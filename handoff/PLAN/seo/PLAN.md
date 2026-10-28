@@ -54,6 +54,27 @@ also feeds the "changed this year" page (section 5).
   preserved; HSTS on .ca). Done at the registrar/DNS or CDN edge (owner access needed, T198).
 - Removed slugs 301; unknown paths get a real 404 with links to the regions.
 
+## 2b. The v1 site's indexed URLs (found 2026-10-27; the owner already has Search Console for them)
+v1 (`archive/webapp/scripts/prerender.mjs`, live sitemap 2026-07-25) served **19,331** pages at `/waterbody/<wbg>/`:
+`wbg` = the FWA watershed code with its `-000000` padding stripped (11,622 streams) or the waterbody_key (7,709 lakes). The
+live sitemap is committed as `app/seo/legacy-paths.txt`.
+- **Decision: keep `/water/<slug>` as the canonical form; do not carry the opaque codes forward.** A code says nothing to a
+  searcher and the new unit (one page per named water, parts as sections) merges and splits v1's per-code pages, so the same
+  URL could not mean the same page anyway. Every v1 path 301s once (never a chain, never a 404), which passes the indexed
+  pages' standing to the new URL.
+- **Crosswalk.** Today's items carry the same codes (`wsc:<code>`, `wbk:<key>` refs in the atlas registry), so
+  `app/tools/seo/legacy-crosswalk.mjs` resolves each v1 id to the item(s) holding it -> `app/seo/legacy-crosswalk.json`.
+  Counts: 19,274 exact, 30 resolved through a parent code (a tributary -> the stream it joins), 5 to a region
+  (`UNGAZ_*_R7`), 22 unresolvable (3-digit stubs like `/waterbody/100/`) -> home page.
+- **Build.** `legacy.ts` turns the crosswalk plus the slug map into `legacy-redirects.json` and an edge worker
+  (`_worker.js`; Cloudflare `_redirects` caps at 2,000 static rules). Target: the item's water page; if the item has no page
+  (no rules today) its region page; else `/`. Counts are printed by every build and recorded in T192/T198.
+  `legacy.test.ts` pins: crosswalk covers all 19,331 paths exactly once; every redirect is one 301 to a built page and the
+  target is not itself redirected; the shipped worker answers as the pure function does.
+- **Hosting (T86/T198):** the worker needs `run_worker_first = ["/waterbody/*"]` in the new site's wrangler config.
+- **Search Console (owner):** keep the existing property; add the new sitemap beside the old one; use "Change of address"
+  only if the domain changes (it does not); watch Pages > Not found (404) and Redirect error for two months.
+
 ## 3. Structured data (JSON-LD, generated; must match visible text)
 - `BreadcrumbList` (Home > Region > Water) on every water page.
 - `WebPage` with `dateModified` = release date, `isPartOf` the `WebSite` (declared on `/`).

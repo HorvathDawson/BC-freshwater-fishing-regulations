@@ -119,7 +119,7 @@ use that as the sole source of future work."
 | T72 | release LATEST pointer + prune old releases | DONE | 0eb70144 | Q7 answered: 22 old releases pruned |
 | T73 | smaller reach hand-off (N14, disk) | PARTIAL | e375cc61 | owner: convert full + full_prev through heavy.sh, binding diff, record sizes (ticket) |
 | T74 | native colouring engine + native map gaps | DONE | 740f37b8 | Android: per-tile event via the binding patch, one engine, hatches/pill via Images, expo-location; emulator 13 pans / 49 frames 0 grey; iOS → T217; lake modes wait on lake facts in a release |
-| T75 | basemap in the release manifest | PARTIAL | — | all |
+| T75 | basemap in the release manifest | PARTIAL | d4589cb5, 6f25c3c9 | manifest names `basemap-147bd82d051f` (274 MB) in the live LATEST r-c706f5eaa2a3 (verified 2026-10-27); left: offline native launch draws ground (phone, T77) |
 | T76 | own gauge across a continuation (Vedder) | DONE | ce29990c, 2470ef08, f648ab5c, 4fba2181, e5dfe217 | live in r-36fbc5326506 |
 | T77 | D1 phone testing | OPEN | — | all (owner) |
 | T78 | tidal/backwater disclosure on Level | DONE | 4d35d021, c0412c4d, 8185dd28, 5aec64f3, ca52fa7c, c0ea4eb9 | live; Q47–Q49 |
@@ -129,7 +129,7 @@ use that as the sole source of future work."
 | T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | DONE | f7075463, d8997fbd, 663242b1, 7b9cf940 | — |
 | T83 | map: boundaries under water, warm dot, sub-20 pairs | DONE | 111bd363, cbd3e139, e61a6e7d, 7bb14b79, a9dae070 | — |
 | T84 | ticket-ledger guard | DONE | caf5ef52 | — |
-| T85 | native install size: z13 overzoom + landuse filter (D32) | PARTIAL | — | all (heavy) |
+| T85 | native install size: z13 overzoom + landuse filter (D32) | DONE | aeba83ca, b17dfa1f, d4589cb5, 6f25c3c9 | atlas z13 + basemap landuse filter + basemap z13 under the owner 2026-10-27 rule, all via T202 (basemap 918 -> 274.5 MB; audit clean on 6 extents; shots 8cc3af7e) |
 | T86 | production hosting + ship config | OPEN | — | all (owner) |
 | T87 | owner sign-off walk, then final clean-up | OPEN | — | all (owner) |
 | T88 | iOS build | OPEN | — | all (owner timing) |
@@ -233,13 +233,13 @@ use that as the sole source of future work."
 | T186 | web prefetch after first paint (region's regs file; core + wasm on idle) + core-words chevrons (Q164, Q162) | DONE | d54842ec, b8b5b357, 0a129a14 | first tap still fetches water + access → T182 |
 | T187 | a braid piece between one window's two cuts is inside it (Peace Site C closure, 359005110:3454) | DONE | 13027245, 525ab99e, 0bc22c70 | found by the post-braid check; 1 rule changes |
 | T188 | get found in search: per-water static pages, sitemap, structured data, Search Console, outreach plan (no spam bots) | PARTIAL | plan | plan done in handoff/PLAN/seo/PLAN.md; build → T192–T198 (domain canifishthis.ca; full rules per water page) |
-| T192 | SEO: stable slug map + per-water page model from the bundle (presenter code shared) | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; seo/PLAN.md §1 |
-| T193 | SEO: static water pages + About, built in the release job | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; after T192 |
-| T194 | SEO: sitemap, robots, canonicals, JSON-LD + build gates | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; after T193 |
-| T195 | SEO: region hubs, weekend/changes pages, share images | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; after T193 |
-| T196 | SEO: page performance budget + Lighthouse CI gate | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; after T193 |
-| T197 | SEO: outreach kit (drafts only, no sending; no bots or link schemes) | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; owner sends |
-| T198 | SEO: .com to .ca 301, HSTS, Search Console/Bing wiring, measurement | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; owner: DNS/accounts; with T86 |
+| T192 | SEO: stable slug map + per-water page model from the bundle (presenter code shared) | PARTIAL | 1c4dd582, 435ce2d8 | committed; first real build + v1 redirects: see ticket Outcome; seo/PLAN.md §1 |
+| T193 | SEO: static water pages + About, built in the release job | PARTIAL | 1c4dd582, 435ce2d8 | committed; first real build + v1 redirects: see ticket Outcome; after T192 |
+| T194 | SEO: sitemap, robots, canonicals, JSON-LD + build gates | PARTIAL | 1c4dd582, 435ce2d8 | committed; first real build + v1 redirects: see ticket Outcome; after T193 |
+| T195 | SEO: region hubs, weekend/changes pages, share images | PARTIAL | 1c4dd582, 435ce2d8 | committed; first real build + v1 redirects: see ticket Outcome; after T193 |
+| T196 | SEO: page performance budget + Lighthouse CI gate | PARTIAL | 1c4dd582, 435ce2d8 | committed; first real build + v1 redirects: see ticket Outcome; after T193 |
+| T197 | SEO: outreach kit (drafts only, no sending; no bots or link schemes) | PARTIAL | 1c4dd582, 435ce2d8 | committed; first real build + v1 redirects: see ticket Outcome; owner sends |
+| T198 | SEO: .com to .ca 301, HSTS, Search Console/Bing wiring, measurement | PARTIAL | 1c4dd582, 435ce2d8 | committed; first real build + v1 redirects: see ticket Outcome; owner: DNS/accounts; with T86 |
 | T189 | curation review from the pilot: source pinned, each rule's extent in words (tributaries, carve-outs), entry extent on top, tributary + lake-split calls in the mark, one pre-check per fact | DONE | 106dbc83 | owner re-runs the pilot on it |
 | T190 | a two-region piece's decision ladder heads both regions' rules with one region | DONE | 5a6cb255 | app only (decided.ts) |
 | T191 | curation review: one-row top bar (secondary filters fold), "fix extent" per rule + entry (op, 1-2 points: map split / any split / NEW confluence, lake inlet/outlet, map click; items; tributaries; read-only preview) as Mark.extent_fix, in tickets for T185 | DONE | 031eeb0c | owner tries it in the pilot |

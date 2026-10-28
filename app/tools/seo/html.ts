@@ -52,15 +52,20 @@ ul{padding-left:1.1rem}li{margin:.25rem 0}li.sub{list-style:none;margin-left:-1.
 .tag{font-size:.8rem;color:var(--muted)}footer{border-top:1px solid var(--line);margin-top:2rem;padding:1rem;text-align:center;font-size:.9rem;color:var(--muted)}
 `;
 
-/** The page title, 60 characters at most: "<Water> fishing regulations (BC) — Can I Fish This?", shortened by dropping words, then the name. */
-export function titleOf(name: string, site: Site): string {
-  const end = ` — ${site.name}`;
+/** The page title, 60 characters at most: "<Water> fishing regulations (BC) — Can I Fish This?", shortened by dropping words (the brand, then "fishing"); the name is never cut. */
+export function titleOf(name: string, site: Site, qualifier = ""): string {
+  const end = ` — ${site.name}`, q = qualifier ? ` (${qualifier})` : "";
   for (const mid of [" fishing regulations (BC)", " fishing regulations", " regulations"]) {
-    const t = `${name}${mid}${end}`;
+    const t = `${name}${q}${mid}${end}`;
     if (t.length <= 60) return t;
   }
-  const room = 60 - end.length - " regulations".length;
-  return `${name.slice(0, Math.max(1, room - 1)).trimEnd()}…${" regulations"}${end}`;
+  // too long with the brand: drop it, then the "fishing"; a name that is itself too long is never cut (a cut name is how two
+  // waters end up with one title), so such a title runs past 60 and a search result shortens it on its own
+  for (const mid of [" fishing regulations (BC)", " fishing regulations", " regulations"]) {
+    const t = `${name}${q}${mid}`;
+    if (t.length <= 60) return t;
+  }
+  return `${name}${q} regulations`;
 }
 
 /** At most 155 characters, cut at a word. */

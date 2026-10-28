@@ -126,3 +126,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
     `T74PROBE` lines per pan for the numbers); the gauge reading's pill (not seen on the emulator); the five hatches;
     "At my location" (asks on the tap, then drops the pin where you stand); a theme switch keeps the hatches.
 - **Sign-off walk** at the end (T87) before app/design is deleted.
+
+- **SEO, v1 pages (2026-10-27):** keep your existing Search Console property; when the new site is live add the new sitemap
+  beside the old one, and for two months watch Pages > Not found (404) and Redirect error (the 19,331 old `/waterbody/` URLs
+  should show as Page with redirect). Deploy the generated `_worker.js` with `run_worker_first = ["/waterbody/*"]` (T86 hosting).

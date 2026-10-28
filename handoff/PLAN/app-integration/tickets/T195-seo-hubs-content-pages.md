@@ -1,6 +1,6 @@
 # T195 — SEO region hubs, weekend and changes pages, share images
 
-Status: PARTIAL - built and green, uncommitted (see Outcome).
+Status: PARTIAL - committed 1c4dd582, 435ce2d8; first real-release build, v1 redirects and owner steps left (see Outcome).
 
 Source: T188 plan, handoff/PLAN/seo/PLAN.md sections 1 and 5.
 ## Work
@@ -11,7 +11,7 @@ Every water page is reachable from a hub in two clicks or fewer; dated pages sta
 
 Depends: T193. Size: M. Owner: no. Default: regenerated with each release.
 
-## Outcome (built and green but UNCOMMITTED because the sandbox refused the commit step; commit the listed paths, then mark DONE with the hash)
+## Outcome (committed 1c4dd582, 435ce2d8)
 - Per region (those with waters): `/region/<n>` (every water, one click), `/region/<n>/open-this-weekend` (statuses for the coming
   Sat/Sun from the app's presenter for those days), `/region/<n>/season-changes` (opens/closes in the next 60 days, read from the strip's
   year runs; WATER-level, not by species), and `/changes` (rule changes vs the previous release's `snapshot.json`; absent without one).

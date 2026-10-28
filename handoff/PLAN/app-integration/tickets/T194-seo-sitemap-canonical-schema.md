@@ -1,6 +1,6 @@
 # T194 — SEO sitemap, robots, canonicals, structured data
 
-Status: PARTIAL - built and green, uncommitted (see Outcome).
+Status: PARTIAL - committed 1c4dd582, 435ce2d8; first real-release build, v1 redirects and owner steps left (see Outcome).
 
 Source: T188 plan, handoff/PLAN/seo/PLAN.md sections 2 and 3.
 ## Work
@@ -12,7 +12,7 @@ fact in it appears in the page HTML.
 
 Depends: T193. Size: M. Owner: no. Default: FAQ markup dropped if it ever mismatches the page.
 
-## Outcome (built and green but UNCOMMITTED because the sandbox refused the commit step; commit the listed paths, then mark DONE with the hash)
+## Outcome (committed 1c4dd582, 435ce2d8)
 - `site.ts`/`jsonld.ts`/`html.ts`: `sitemap.xml` index + `sitemap-N.xml` (<= 50,000), `robots.txt` (Disallow /api/, /data/), self-canonical
   `https://canifishthis.ca<path>` (no trailing slash), title <= 60, unique description <= 155, OG/Twitter tags. JSON-LD: WebSite, WebPage
   (dateModified), BreadcrumbList, Place (+River/LakeBodyOfWater by certain kind, geo), FAQPage ("Can I fish X today?" with its visible

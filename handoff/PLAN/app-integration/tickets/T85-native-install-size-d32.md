@@ -1,6 +1,6 @@
 # T85 — Native install size: atlas z13 overzoom and the basemap landuse filter (D32)
 
-Status: PARTIAL — code done 2026-10-24; the tiles-window build, shots and after-numbers are left (see Outcome).
+Status: DONE 2026-10-27 — atlas z13, the landuse filter and basemap z13 (owner rule) shipped under T202: aeba83ca, b17dfa1f, d4589cb5, 6f25c3c9; post-fix shots 8cc3af7e.
 
 Source: decisions D32 and app-data/QUESTIONS.md: about −345 MB per native install, "scheduled before the first public
 native release". T64 names only parcels, basins and "S2 easy wins".

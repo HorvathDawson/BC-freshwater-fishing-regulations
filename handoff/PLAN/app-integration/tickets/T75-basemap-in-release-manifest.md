@@ -1,6 +1,6 @@
 # T75 — The basemap in the release manifest (audit N18, P18b)
 
-Status: PARTIAL — code done 2026-10-24; the tiles-window build, shots and after-numbers are left (see Outcome).
+Status: PARTIAL — manifest side DONE: the live LATEST (r-c706f5eaa2a3) names `basemap-147bd82d051f` (274 MB), built/released by T202 d4589cb5 + 6f25c3c9 (verified 2026-10-27). Left: an offline native launch drawing ground (needs the phone, T77).
 
 Source: the live `r-98ded5f443e1/manifest.json` has `basemap: null`; `release/build.py` takes a `basemap` argument but
 deliver never passes one; `release/manifest.py` allows `{id,url,bytes,sha256} | null`. Native cannot install the ground

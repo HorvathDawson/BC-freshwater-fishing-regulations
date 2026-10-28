@@ -1,6 +1,6 @@
 # T197 — SEO outreach kit (drafts only, no sending)
 
-Status: PARTIAL - built and green, uncommitted (see Outcome).
+Status: PARTIAL - committed 1c4dd582, 435ce2d8; first real-release build, v1 redirects and owner steps left (see Outcome).
 
 Source: T188 plan, handoff/PLAN/seo/PLAN.md section 7. Owner rule: no spam bots, link schemes or auto-posting.
 ## Work
@@ -11,7 +11,7 @@ The owner reads and sends by hand; every template says the app is a free non-pro
 
 Depends: T193 live. Size: S. Owner: yes (sends the messages). Default: drafts only.
 
-## Outcome (drafts written; built and green but UNCOMMITTED because the sandbox refused the commit step; commit the listed paths, then mark DONE with the hash)
+## Outcome (committed 1c4dd582, 435ce2d8)
 - `handoff/PLAN/seo/outreach/`: README (the rules), club email, FFSBC/fish-and-game email, forum post, one r/bcfishing maker post, tackle
   shop counter card (QR to the region page), and an empty `tracker.csv`. Nothing sent or scheduled; no scripts. `outreach.test.ts` holds
   every template to free + non-profit + feedback + not a legal source, and to never ask for a link, share, vote or review.

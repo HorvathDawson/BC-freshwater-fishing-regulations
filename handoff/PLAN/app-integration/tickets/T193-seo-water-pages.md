@@ -1,6 +1,6 @@
 # T193 — SEO static water pages and About page
 
-Status: PARTIAL - built and green, uncommitted (see Outcome).
+Status: PARTIAL - committed 1c4dd582, 435ce2d8; first real-release build, v1 redirects and owner steps left (see Outcome).
 
 Source: T188 plan, handoff/PLAN/seo/PLAN.md sections 1 and 5.
 ## Work
@@ -11,7 +11,7 @@ Pages read without JS; page count == waters with rules; pages refresh on every r
 
 Depends: T192. Size: M. Owner: no. Default: no maps or interactive parts on the page.
 
-## Outcome (built and green but UNCOMMITTED because the sandbox refused the commit step; commit the listed paths, then mark DONE with the hash)
+## Outcome (committed 1c4dd582, 435ce2d8)
 - `app/tools/build-seo.mjs` (`pnpm seo --release-dir <folder>` | `--fixture`) loads `tools/seo/*.ts` through vite's SSR loader (vitest's own
   engine; knip allows it) and writes `app/dist/seo` (gitignored). Page = h1, "Can I fish X today?" + the verdict, as-of date and release id,
   the full rules by part (presenter wording, synopsis page linked per rule), connected waters, more in the region, centre point, the

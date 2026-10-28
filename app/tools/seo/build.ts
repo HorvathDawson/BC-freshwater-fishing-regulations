@@ -14,6 +14,7 @@ import { openRegsFixture, openReleaseDir } from "@app/data/release/node";
 import { BUDGET, checkBudget, lighthouseConfig, measure, type Measured } from "./budget";
 import { headersFile, hostRules, redirectsFile } from "./hosting";
 import type { Site } from "./html";
+import { legacyRedirects, legacyWorker, type Crosswalk, type LegacyBuilt } from "./legacy";
 import { buildDayOf, type BuildDay } from "./model";
 import { buildSite, type Snapshot, type SiteBuild } from "./site";
 import { EMPTY_SLUG_MAP, type SlugMap } from "./slug";
@@ -21,6 +22,7 @@ import { EMPTY_SLUG_MAP, type SlugMap } from "./slug";
 const APP = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const DEFAULT_OUT = join(APP, "dist/seo");
 export const SLUG_MAP_FILE = join(APP, "seo/slug-map.json");
+export const CROSSWALK_FILE = join(APP, "seo/legacy-crosswalk.json");
 
 export interface Config extends Site { readonly alsoHosts: readonly string[] }
 export const readConfig = (): Config => JSON.parse(readFileSync(join(APP, "seo/site.json"), "utf8")) as Config;
@@ -29,8 +31,10 @@ export interface BuildArgs {
   readonly loader: ReturnType<typeof openRegsFixture>;
   readonly config?: Config; readonly on: BuildDay;
   readonly slugMap?: SlugMap; readonly previous?: Snapshot | null;
+  /** the v1 site's indexed paths and the items that hold them (legacy-crosswalk.json); none = no v1 redirects */
+  readonly crosswalk?: Crosswalk;
 }
-export interface Built { readonly build: SiteBuild; readonly files: ReadonlyMap<string, string>; readonly measured: Measured; readonly problems: readonly string[] }
+export interface Built { readonly legacy: LegacyBuilt | null; readonly build: SiteBuild; readonly files: ReadonlyMap<string, string>; readonly measured: Measured; readonly problems: readonly string[] }
 
 /** Everything the site is, in memory: pages, sitemap, robots, hosting config, the budget and its Lighthouse config. */
 export async function buildAll(a: BuildArgs): Promise<Built> {
@@ -44,6 +48,13 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   files.set("_headers", headersFile());
   files.set("_redirects", redirectsFile(build.removed));
   files.set("redirects.json", `${JSON.stringify(hostRules(config, config.alsoHosts), null, 1)}\n`);
+  let legacy: LegacyBuilt | null = null;
+  if (a.crosswalk) {
+    const pathOfItem = new Map(build.models.map((m) => [m.id, `/water/${build.slugMap.waters[m.id]!.slug}`]));
+    legacy = legacyRedirects(a.crosswalk, pathOfItem, new Set(build.regions));
+    files.set("legacy-redirects.json", `${JSON.stringify(legacy.map)}\n`);
+    files.set("_worker.js", legacyWorker(legacy.map));
+  }
   const htmlPaths = [...files.keys()].filter((k) => k.endsWith(".html") && k !== "404.html");
   const measured = measure(files, htmlPaths, build.cssHref.slice(1));
   const problems = checkBudget(measured, files, htmlPaths);
@@ -56,7 +67,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
                   ...build.pages.filter((p) => p.kind === "water").slice(0, 3).map((p) => p.path)];
   files.set("lighthouserc.json", `${JSON.stringify(lighthouseConfig(sample.map((p) => `${p.slice(1)}/index.html`)), null, 1)}\n`);
   files.set("budget.json", `${JSON.stringify({ budget: BUDGET, measured, problems }, null, 1)}\n`);
-  return { build, files, measured, problems };
+  return { build, files, measured, problems, legacy };
 }
 
 /** Write `files` under `out`, which is emptied first and must sit in a `dist` folder (it is deleted). */
@@ -88,10 +99,12 @@ export async function main(args: readonly string[]): Promise<void> {
   const built = await buildAll({
     loader, on: buildDayOf(now),
     slugMap: existsSync(slugFile) ? (JSON.parse(readFileSync(slugFile, "utf8")) as SlugMap) : EMPTY_SLUG_MAP,
+    ...(existsSync(CROSSWALK_FILE) ? { crosswalk: JSON.parse(readFileSync(CROSSWALK_FILE, "utf8")) as Crosswalk } : {}),
     previous: prevFile ? (JSON.parse(readFileSync(resolve(prevFile), "utf8")) as Snapshot) : null,
   });
   if (built.problems.length) throw new Error(`seo: ${built.problems.length} budget/consistency problem(s):\n${built.problems.join("\n")}`);
   writeSite(opt(args, "--out") ?? DEFAULT_OUT, built.files);
   if (args.includes("--update-slugs")) writeFileSync(slugFile, built.files.get("slug-map.json")!);
-  console.log(`seo: ${built.build.pages.length} pages (${built.build.models.length} waters), p95 ${built.measured.p95GzipBytes} B gzip, css ${built.measured.cssGzipBytes} B gzip`);
+  console.log(`seo: ${built.build.pages.length} pages (${built.build.models.length} waters), p95 ${built.measured.p95GzipBytes} B gzip, css ${built.measured.cssGzipBytes} B gzip` +
+    (built.legacy ? `; v1 redirects ${JSON.stringify(built.legacy.counts)}` : ""));
 }

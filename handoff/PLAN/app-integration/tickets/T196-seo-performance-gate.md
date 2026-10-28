@@ -1,6 +1,6 @@
 # T196 — SEO page performance budget and Lighthouse CI
 
-Status: PARTIAL - built and green, uncommitted (see Outcome).
+Status: PARTIAL - committed 1c4dd582, 435ce2d8; first real-release build, v1 redirects and owner steps left (see Outcome).
 
 Source: T188 plan, handoff/PLAN/seo/PLAN.md section 6.
 ## Work
@@ -11,7 +11,7 @@ The release fails when a budget is exceeded; the numbers are recorded.
 
 Depends: T193. Size: S. Owner: no. Default: targets as in the plan.
 
-## Outcome (built and green but UNCOMMITTED because the sandbox refused the commit step; commit the listed paths, then mark DONE with the hash)
+## Outcome (committed 1c4dd582, 435ce2d8)
 - `budget.ts`: html <= 30 KB gzip, p95 <= 16 KB gzip, css <= 10 KB gzip, critical css <= 2 KB, no blocking script; `buildAll` returns the
   problems and `pnpm seo` fails on any. `budget.json` records the numbers; `lighthouserc.json` (mobile, simulated 4G, LCP <= 1.8 s, CLS <=
   0.05, TBT <= 200 ms, Performance >= 95, SEO 100, A11y >= 95) is generated for sample built pages.

@@ -117,3 +117,8 @@ Owner questions (each with the default built):
 - Item 3's klmb_1010 exclusion: kept and reworded, not removed (removing fails by construction: the golden draws the
   legacy article). The app's rainbow group is set aside by row (`exclusions.ts` D19_GROUPS, asserted present once) and
   its possession-sheet line (D19_SHEET_LINES); keep.parity pins the group's drawn lines whole.
+
+## Sweep 2026-10-27 (code-only check)
+Nothing left is both code-only and unblocked for this lane: 3's two open shapes need the gate/data work above; 4 lives in
+`packages/ui` / `packages/map` (active iOS/paint lanes, not touched); 6 needs a push to GitHub (command in item 6, the
+owner or merger runs it); Q-T80a/b/c are owner calls with defaults built. Items 1, 2, 5 (declined by design), 7 stay as recorded.

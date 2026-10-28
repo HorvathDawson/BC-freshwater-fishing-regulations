@@ -78,7 +78,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const slugOf = (id: string) => slugMap.waters[id]!.slug;
   const byName = (a: WaterModel, b: WaterModel) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
   const regions = [...new Set(models.flatMap((m) => m.regions))].sort((a, b) => a - b);
-  const inRegion = (r: number) => models.filter((m) => m.regions.includes(r)).sort(byName);
+  const regionMemo = new Map<number, WaterModel[]>();
+  const inRegion = (r: number) => { let l = regionMemo.get(r); if (!l) regionMemo.set(r, l = models.filter((m) => m.regions.includes(r)).sort(byName)); return l; };
   const cssHref = `/assets/site.${sha(CSS, 10)}.css`;
   const known = new Map(models.map((m) => [m.id, m]));
   const regionPath = (r: number) => `/region/${r}`;
@@ -103,18 +104,20 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     what.set(v, path);
   };
   const waterHash = new Map<string, string>();
-  const nameCount = new Map<string, number>(), sameRegion = new Map<string, number>();
+  const nameCount = new Map<string, number>(), sameRegion = new Map<string, WaterModel[]>();
   for (const m of models) {
     nameCount.set(m.name, (nameCount.get(m.name) ?? 0) + 1);
-    sameRegion.set(`${m.name}|${m.region}`, (sameRegion.get(`${m.name}|${m.region}`) ?? 0) + 1);
+    sameRegion.set(`${m.name}|${m.region}`, [...(sameRegion.get(`${m.name}|${m.region}`) ?? []), m]);
   }
   for (const m of models) {
     const path = waterPath(m), siblings = inRegion(m.region), at = siblings.indexOf(m);
     const near = [...siblings.slice(Math.max(0, at - 3), at), ...siblings.slice(at + 1, at + 4)];
-    // two waters with one name keep distinct titles: the region, then the slug
-    const label = (nameCount.get(m.name) ?? 0) === 1 ? m.name
-      : (sameRegion.get(`${m.name}|${m.region}`) ?? 0) === 1 ? `${m.name} (${regionLabel(m.region)})` : `${m.name} (${regionLabel(m.region)}, ${slugOf(m.id)})`;
-    const title = titleOf(label, site), description = descriptionOf(m, label);
+    // two waters with one name keep distinct titles: the region, then "no. k" among those of the same name and region
+    const dup = (nameCount.get(m.name) ?? 0) > 1;
+    const twins = [...(sameRegion.get(`${m.name}|${m.region}`) ?? [])].sort((x, y) => x.id.localeCompare(y.id));
+    const qual = !dup ? "" : twins.length === 1 ? regionLabel(m.region) : `${regionLabel(m.region)}, no. ${twins.indexOf(m) + 1}`;
+    const label = qual ? `${m.name} (${qual})` : m.name;
+    const title = titleOf(m.name, site, qual), description = descriptionOf(m, label);
     unique(titles, title, path); unique(descriptions, description, path);
     const hash = sha(JSON.stringify(m.parts.map((p) => [p.label, p.sections.filter((s) => s.title !== "Why it is closed").map((s) => [s.title, s.items.filter((i) => !i.dated)])])));
     waterHash.set(m.id, hash);
