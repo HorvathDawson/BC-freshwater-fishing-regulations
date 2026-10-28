@@ -161,7 +161,7 @@ export function WaterScreen({ source, item, palette, onBack,
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, Date.now())}
                   // (T54) the access notice; its link moves to the water's Map view, where the area is drawn
                   access={access.value ?? null}
-                  salmon={salmon.value ? <SalmonCard card={salmon.value} palette={palette} /> : undefined}
+                  salmon={salmon.value ? ({ actions, images }) => <SalmonCard card={salmon.value!} palette={palette} actions={actions} images={images} /> : undefined}
                   onAccessMap={views ? () => views.onView("map") : undefined}
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)

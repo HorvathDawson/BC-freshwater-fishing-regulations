@@ -178,6 +178,8 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export interface SalmonRowVM {
   readonly key: string;
+  /** The species this row answers for (SALMON_SPECIES order); the "Salmon — closed" row names all five. */
+  readonly species: readonly SalmonSpecies[];
   /** "Coho", "Sockeye · chum", or "Salmon" when every species is closed. */
   readonly label: string;
   readonly status: SalmonVerdictStatus | "varies";
@@ -230,7 +232,7 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
   if (per.every((ixs) => statusOf(ixs) === "closed")) {
     const all = [...new Set(per.flat())];
     return { allClosed: true, gear,
-             rows: [{ key: "all", label: SALMON_WORDS.all, status: "closed", statusLabel: SALMON_WORDS.status.closed,
+             rows: [{ key: "all", species: SALMON_SPECIES, label: SALMON_WORDS.all, status: "closed", statusLabel: SALMON_WORDS.status.closed,
                       notes: notesOf(all) }] };
   }
   const groups = new Map<string, { sp: SalmonSpecies[]; ixs: number[] }>();
@@ -243,7 +245,7 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
   });
   const rows = [...groups.entries()].map(([key, g]) => {
     const st = statusOf(g.ixs);
-    return { key, label: cap(g.sp.map((s) => SPECIES_NAME[s]).join(" · ")), status: st,
+    return { key, species: g.sp, label: cap(g.sp.map((s) => SPECIES_NAME[s]).join(" · ")), status: st,
              statusLabel: SALMON_WORDS.status[st],
              notes: st === "varies" ? [SALMON_WORDS.varies] : notesOf(g.ixs) };
   });

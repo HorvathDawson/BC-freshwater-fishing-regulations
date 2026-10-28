@@ -13,6 +13,7 @@ import type { SheetKey } from "../sheetKey";
 import { fishNames } from "../tree";
 import { WORDS } from "../words";
 import { text } from "../line";
+import { SALMON_TIPS } from "./salmonTips";
 
 /** sheetHtml sp: — null when the species is neither in the export's book nor pictured (the prototype's `!f && !pics`). */
 export function fishSheet(inp: RegsInputs, key: SheetKey, code: string, fish: FishManifest = FISH): SheetVM | null {
@@ -20,7 +21,7 @@ export function fishSheet(inp: RegsInputs, key: SheetKey, code: string, fish: Fi
   if (!inp.statics.exportSpecies.fish[code] && !pics.length) return null;
   const blocks: SheetBlock[] = pics.map((p) => ({ k: "image", code, file: p.file, alt: p.caption, width: p.width, height: p.height,
     credit: `${p.caption}${p.phase ? WORDS.DOT + p.phase : ""}${WORDS.DOT}${p.credit} (${p.source})` }));
-  const tips = FISH_TIPS[code] ?? [];
+  const tips = FISH_TIPS[code] ?? SALMON_TIPS[code] ?? [];
   if (tips.length) blocks.push({ k: "head", text: WORDS.SHEET_LOOK_FOR }, { k: "list", items: tips.map((t) => ({ line: [text(t)], strong: null })) });
   return { key, title: fishNames(inp, fish)(code), sub: null, blocks };
 }

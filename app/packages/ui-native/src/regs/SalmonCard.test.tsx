@@ -5,7 +5,7 @@
  * where they land. And the map's Standard / Salmon toggle: a radio pair whose press only sets the choice.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { salmonCard, type RegsPage, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
 import { RegsScreen } from "./RegsScreen";
@@ -46,14 +46,16 @@ describe("the Salmon card", () => {
     render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
                        salmon={<SalmonCard card={card} palette={LIGHT} />} />);
     const el = screen.getByTestId("salmon-card");
-    // after the Keep tab, before Gear
-    expect(screen.getByTestId("keep-tab").compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // ABOVE the Keep tab (owner 2026-10-28)
+    expect(screen.getByTestId("keep-tab").compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
     expect(el.getAttribute("aria-label")).toBe("Salmon, DFO: Open today");
-    expect(screen.getAllByTestId("salmon-card-block-row").map((r) => r.textContent)).toEqual([
-      "Chinook · sockeye · pinkNo fishing for chinook (Apr 1–Mar 31)Closed",
-      "Coho4 per day, only 2 over 50 cm (Jul 15–Aug 23)Open",
-      "ChumNot opened by DFO: closed to salmon fishingClosed",
-    ]);
+    const rows = screen.getAllByTestId("salmon-card-block-row").map((r) => r.textContent!);
+    expect(rows.map((r, i) => [r.startsWith(["Chinook · sockeye · pink", "Coho", "Chum"][i]!), r.includes(["Closed", "Open", "Closed"][i]!)]))
+      .toEqual([[true, true], [true, true], [true, true]]);
+    expect(rows[1]).toContain("4 per day, only 2 over 50 cm (Jul 15–Aug 23)");
+    // each species of a row is pictured, both looks, and opens its fish sheet
+    expect(within(screen.getAllByTestId("salmon-card-block-row")[0]!).getAllByTestId("salmon-look").length).toBe(6);
+    expect(screen.getByTestId("pic:CO").textContent).toBe("oceanspawningCoho salmon ›");
     expect(screen.getByTestId("salmon-card-block-gear").textContent).toBe("No natural bait allowed (Jan 1–Dec 31)");
     expect([screen.getByTestId("salmon-source").textContent, screen.getByTestId("salmon-asof").textContent])
       .toEqual(["Fisheries and Oceans Canada · Region 6 Skeena", "DFO page dated Aug 28, 2026"]);
@@ -73,13 +75,14 @@ describe("the Salmon card", () => {
     const rows = screen.getAllByTestId("salmon-card-block-row");
     expect(rows.length).toBe(1);
     expect(rows[0]!.textContent!.startsWith("Salmon — closed")).toBe(true);
+    expect(within(rows[0]!).getAllByTestId("salmon-look").length).toBe(10);       // five species, two looks each
     expect(screen.getByTestId("salmon-card").getAttribute("aria-label")).toBe("Salmon, DFO: Closed today");
   });
 
   it("A WATER DFO DOES NOT LIST reads 'Salmon — closed', and says why (owner 2026-10-27)", () => {
     render(<SalmonCard card={salmonCard(FACTS, { sids: [7], item: "gnis:1" }, JUL20)} palette={LIGHT} />);
     expect(screen.getAllByTestId("salmon-card-block-row").map((r) => r.textContent))
-      .toEqual(["Salmon — closedNot opened by DFO: closed to salmon fishingClosed"]);
+      .toEqual([expect.stringMatching(/^Salmon — closedClosedNot opened by DFO: closed to salmon fishing/)]);
     expect(screen.getByTestId("salmon-not-listed").textContent)
       .toBe("DFO does not list this water for salmon. It is closed to salmon fishing.");
   });
@@ -112,5 +115,15 @@ describe("the Standard / Salmon / Bait & fly toggle", () => {
     render(<RegsLayerToggle col={col} palette={LIGHT} />);
     expect(screen.queryByTestId("regs-paint-method")).toBeNull();
     expect(screen.getByTestId("regs-paint-salmon")).toBeTruthy();
+  });
+});
+
+describe("a species' picture opens its fish sheet", () => {
+  it("sp:CO on a press", () => {
+    const opened: string[] = [];
+    const card = salmonCard(FACTS, { sids: [101], item: null }, JUL20);
+    render(<SalmonCard card={card} palette={LIGHT} actions={{ onSheet: (k: string) => opened.push(k) } as never} />);
+    fireEvent.click(screen.getByTestId("pic:CO"));
+    expect(opened).toEqual(["sp:CO"]);
   });
 });
