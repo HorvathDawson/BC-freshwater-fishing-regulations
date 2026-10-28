@@ -112,6 +112,11 @@ export const CROSS = {
   LAKE_SECTIONS: (n: number) => ({ file: "conditions", sql:
     `SELECT sid, station FROM lake_section WHERE sid IN (${ids(n)})` }),
   ALL_LAKE_SECTIONS: { file: "conditions", sql: "SELECT sid, station FROM lake_section" },
+  /** (T224) core: whether this release carries `name_source` (a core cut before it shows no name's source). */
+  HAS_NAME_SOURCE: { file: "core", sql: "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'name_source'" },
+  /** (T224) core: where these waters' non-official names came from (`name_source`'s primary key is (item_id, name)). */
+  NAME_SOURCES_FOR_ITEMS: (n: number) => ({ file: "core", sql:
+    `SELECT item_id, name, label FROM name_source WHERE item_id IN (${ids(n)})` }),
   HAS_LAKE_SECTION: { file: "conditions", sql:
     "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'lake_section'" },
   /** conditions: stations standing on these sections. */

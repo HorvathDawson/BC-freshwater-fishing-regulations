@@ -1551,3 +1551,18 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   "coho 2 a day" and "coho 4 a day, hatchery-marked only" are two pieces. There is one helper, `salmonTimelineKey`.
   Every salmon cut is named, by its split or by the DFO place at its edge ("Edge of DFO area: …"). None of the 42 falls
   back to "Salmon rules change here". Release r-c331a7a3c2cf.
+
+## T224 name variants — owner answers 2026-10-28
+1. **Flow:** an accepted name is SEARCHABLE and, on a water with **no official name**, it is the **shown name**,
+   labelled with its source ("Name from City of Abbotsford stream layer"). An official (gazetted) name always wins on
+   a named water. Every name carries its REAL source; only a BC Geographical Names name is official.
+2. **Auto-accept** the 181 high-confidence rows (≥ 80 % overlap or a reviewed/bound ECCC station, one candidate, no
+   rival, FWA-unnamed). Every other row goes to the review app's **Names** tab (:5183, `#names/`); the owner
+   spot-checks a 30-row sample of the auto-accepted ones there. A mark (scope `name`, call accept / reject) decides;
+   `python -m pipeline.tools.mined_names` writes the accepted set to `data/curated/waters/mined_names.json`.
+3. **08MH079's line (blk 356314888):** both — "Kilgard Creek" (Abbotsford layer) shown, "Lonzo Creek (North Fork)"
+   (the ECCC station name) a searchable variant.
+4. **Fixes to existing variants:** "South Alouette River" stored as gazette (official); the Burnaby map names as
+   `municipal` (City of Burnaby waterways map, with its URL); every added-streams variant names its city, and the 3
+   `excluded_fwa` names (the removed FWA reach's own gazetted name) are official; the 7 dead Burnaby entries (FWA lines
+   the added streams removed) are gone — those names live on the minted streams.

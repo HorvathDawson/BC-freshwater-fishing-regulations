@@ -18,7 +18,7 @@ from pipeline.common.models.sections import Section, SectionBoundary
 from pipeline.common.models.graph import FlowEdge, StreamGraph, StreamNode
 from pipeline.common.models.splits import SplitAnchor, SplitDef, SplitPoint
 from pipeline.common.models.regs import SectionRegs
-from pipeline.common.models.registry import RegistryBoundary, RegistryItem
+from pipeline.common.models.registry import NameRecord, RegistryBoundary, RegistryItem
 
 __all__ = [
     "WATERBODY_KINDS",
@@ -37,5 +37,5 @@ __all__ = [
     # matching output
     "SectionRegs",
     # registry
-    "RegistryBoundary", "RegistryItem",
+    "NameRecord", "RegistryBoundary", "RegistryItem",
 ]

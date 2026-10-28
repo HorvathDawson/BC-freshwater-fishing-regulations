@@ -14,6 +14,7 @@ import { DFO_HASH, DfoReview } from "./components/DfoReview";
 import { TIDAL_HASH, TidalReview } from "./components/TidalReview";
 import { PROPOSALS_HASH, ProposalsView } from "./components/ProposalsView";
 import { SLOUGH_HASH, SloughReview } from "./components/SloughReview";
+import { NAMES_HASH, NamesReview } from "./components/NamesReview";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
@@ -22,6 +23,8 @@ const inTidal = () => decodeURIComponent(window.location.hash.slice(1)).startsWi
 /** T185: `#proposals` opens the read-only Proposals view — waiting to apply (the marks are the decisions) */
 /** T55: `#sloughs/<polygon id>` opens the Slough mode (pre-marks to confirm) */
 const inSloughs = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(SLOUGH_HASH);
+/** T224: `#names/<candidate id>` opens the Names mode (mined name variants: spot-check + review) */
+const inNames = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(NAMES_HASH);
 const inProposals = () => decodeURIComponent(window.location.hash.slice(1)) === PROPOSALS_HASH;
 
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
@@ -42,6 +45,7 @@ export default function App() {
   const [tidal, setTidal] = useState(inTidal);
   const [proposals, setProposals] = useState(inProposals);
   const [sloughs, setSloughs] = useState(inSloughs);
+  const [names, setNames] = useState(inNames);
   const [regions, setRegions] = useState<RegionSummary[]>([]);
   // THE ONE QUEUE (T135, PLAN §3): every region, in the review order, by default
   const [region, setRegion] = useState(ALL_REGIONS);
@@ -120,6 +124,7 @@ export default function App() {
     const open = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
       if (id.startsWith(SLOUGH_HASH)) { setSloughs(true); return; }
+      if (id.startsWith(NAMES_HASH)) { setNames(true); return; }
       if (id.startsWith(DFO_HASH)) { setDfo(true); setTidal(false); setProposals(false); return; }
       if (id.startsWith(TIDAL_HASH)) { setTidal(true); setDfo(false); setProposals(false); return; }
       if (id === PROPOSALS_HASH) { setProposals(true); setDfo(false); setTidal(false); return; }
@@ -209,12 +214,16 @@ export default function App() {
     setTidal(false);
     setProposals(false);
     setSloughs(false);
+    setNames(false);
   };
   const toTidal = () => { window.history.replaceState(null, "", `#${TIDAL_HASH}`); setDfo(false); setProposals(false); setTidal(true); };
   const toDfo = () => { window.history.replaceState(null, "", `#${DFO_HASH}`); setTidal(false); setProposals(false); setDfo(true); };
   const toProposals = () => { window.history.replaceState(null, "", `#${PROPOSALS_HASH}`); setDfo(false); setTidal(false); setProposals(true); };
   if (sloughs) {
     return <SloughReview onLeave={leaveModes} />;
+  }
+  if (names) {
+    return <NamesReview onLeave={leaveModes} />;
   }
   if (proposals) {
     return <ProposalsView onLeave={leaveModes} />;
@@ -259,6 +268,11 @@ export default function App() {
             title="T55: slough / canal pieces drawn as lakes — confirm the pre-marks (narrow, wide marsh) or change them"
             onClick={() => { window.history.replaceState(null, "", `#${SLOUGH_HASH}`); setSloughs(true); }}>
             Sloughs
+          </button>
+          <button className="btn small" data-testid="names-tab"
+            title="T224: names for waters from city layers, OpenStreetMap, ECCC stations — spot-check the auto-accepted, accept / reject the rest"
+            onClick={() => { window.history.replaceState(null, "", `#${NAMES_HASH}`); setNames(true); }}>
+            Names
           </button>
           <button className="btn small" data-testid="tidal-tab"
             title="T212: the proposed tidal boundary on every ocean-entering stream (read only; accept = a mark)"

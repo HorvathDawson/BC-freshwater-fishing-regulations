@@ -26,7 +26,7 @@
 import { shownParameter, type WaterFix } from "@app/core";
 import { num, str, type Row } from "../sql/db";
 import * as BQ from "../sql/queries";
-import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
+import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, seriesOf, sid,
          traceDown, withNear, type DownOf } from "../sql/shared";
 import type { Observations } from "../feed/http";
 import type { Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
@@ -82,6 +82,10 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     return () => (p ??= get(q).then((r) => !!r, (e) => { p = null; throw e; }));
   };
   const hasItemNear = has(CROSS.HAS_ITEM_NEAR), hasLakeSection = has(CROSS.HAS_LAKE_SECTION);
+  const hasNameSource = has(CROSS.HAS_NAME_SOURCE);
+  /** (T224) the `name_source` rows of these waters; none from a core cut before the table. */
+  const nameSourcesOf = async (items: readonly string[]): Promise<Row[]> =>
+    (await hasNameSource()) ? chunked(items, (c) => all(CROSS.NAME_SOURCES_FOR_ITEMS(c.length), ...c)) : [];
   const down: DownOf = async (at) => {
     const r = await get(R.DOWN_FROM!, at);
     return r ? sid(r.down_sid) : null;
@@ -251,8 +255,9 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     async water(id): Promise<Water | null> {
       const item = await get(R.ITEM!, id);
       if (!item) return null;
+      const src = (await nameSourcesOf([str(item.item_id)])).find((r) => str(r.name) === str(item.name));
       return { item: str(item.item_id) as ItemId, name: str(item.name), kind: str(item.kind),
-               sections: await sectionsOf(id) };
+               sections: await sectionsOf(id), nameSource: src ? str(src.label) : null };
     },
 
     async searchNames(q, limit): Promise<readonly NameHit[]> {
@@ -260,7 +265,9 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       if (needle === null || limit < 1) return [];
       const rows = await all(R.SEARCH!, needle, Math.max(limit * 3, 60));
       const hits = rankNameHits(query, rows, limit);
-      return hits.length ? withNear(hits, await townsFor(hits.map((h) => h.item))) : hits;
+      if (!hits.length) return hits;
+      const items = hits.map((h) => h.item);
+      return withNameSources(withNear(hits, await townsFor(items)), await nameSourcesOf(items));
     },
 
     async searchPointers(q, limit): Promise<readonly PointerHit[]> {

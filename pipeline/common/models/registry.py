@@ -35,6 +35,17 @@ def bare_split_id(alias: str) -> str:
 
 
 @dataclass(frozen=True)
+class NameRecord:
+    """T224: one of an item's names WITH ITS REAL SOURCE — `source` the `NameSource` code, `label` the words a
+    reader sees ("City of Abbotsford stream layer"), `ref` the source row, `official` only for a gazetted name."""
+    name: str
+    source: str
+    label: str
+    ref: str = ""
+    official: bool = False
+
+
+@dataclass(frozen=True)
 class RegistryItem:
     """A regulated waterbody the matcher points an Entry at. Identity + names come straight from the
     graph node grouping (which already merged blk-chains + applied name_variants); `boundaries` is the
@@ -59,6 +70,9 @@ class RegistryItem:
                                          # so no reader opens the curated polygons to learn it. A lake
                                          # with parts OWNS NO SECTION of its own (user ruling 2026-10-03):
                                          # its parts are the water, and it is found through them.
+    #: T224: the source of the item's name and of each variant (one record per name, best source first).
+    #: Empty for an area. The bundle shows these labels; `variants` stays the plain search list.
+    name_sources: tuple[NameRecord, ...] = ()
     aliases: tuple[str, ...] = ()        # item ids this item ABSORBED (`registry.flowing`: a river's
                                          # polygons folded into its line's item, a slough's polygons
                                          # into one item). The permanent record of what an old id names;

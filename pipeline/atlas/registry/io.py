@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from pipeline.common.models import RegistryBoundary, RegistryItem
+from pipeline.common.models import NameRecord, RegistryBoundary, RegistryItem
 
 
 def _item_to_dict(it: RegistryItem) -> dict:
@@ -28,6 +28,10 @@ def _item_to_dict(it: RegistryItem) -> dict:
         "ref_ids": list(it.ref_ids),
         # omitted when empty, like a boundary's `aliases`: only a curated lake part has one
         **({"part_of": it.part_of} if it.part_of else {}),
+        # T224: each name's real source; `ref` omitted when empty
+        **({"name_sources": [{"name": r.name, "source": r.source, "label": r.label,
+                              **({"ref": r.ref} if r.ref else {}), "official": r.official}
+                             for r in it.name_sources]} if it.name_sources else {}),
         # omitted when empty: only an item that absorbed another (`registry.flowing`) has any
         **({"aliases": list(it.aliases)} if it.aliases else {}),
         "boundaries": [
@@ -54,6 +58,9 @@ def _item_from_dict(d: dict) -> RegistryItem:
         ref_ids=tuple(d.get("ref_ids", [])),
         part_of=str(d.get("part_of") or ""),
         aliases=tuple(d.get("aliases", ())),
+        name_sources=tuple(NameRecord(name=r["name"], source=r.get("source", "alias"), label=r.get("label", ""),
+                                      ref=r.get("ref", ""), official=bool(r.get("official")))
+                           for r in d.get("name_sources", ())),
         boundaries=tuple(
             RegistryBoundary(id=b["id"], label=b.get("label", ""), kind=b.get("kind", ""),
                              ref=b.get("ref", ""), wbk=b.get("wbk", ""),

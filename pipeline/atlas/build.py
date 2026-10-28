@@ -335,12 +335,23 @@ def _streams_in_bbox(streams: list[dict], bbox) -> list[dict]:
 def _added_name_variant_entries(variants: list[dict]) -> list[dict]:
     """Convert the artifact's flat name variants ({kind,name,target_blk,target_gnis}) to apply_name_variants
     entries (a municipal/FWA name aliased onto the blk it belongs to)."""
+    from pipeline.common.name_sources import CITY_LABELS
     out = []
     for v in variants:
         if not v.get("name"):
             continue
+        city = v.get("source") or ""
+        if v.get("kind") == "excluded_fwa":
+            # T224: the removed FWA reach's OWN gazetted name, kept on the stream that replaced it — official
+            nm = {"name": v["name"], "source": "gazette", "note": "added:excluded_fwa",
+                  **({"source_ref": f"gnis:{v['target_gnis']}"} if v.get("target_gnis") else {})}
+        else:
+            # T224: a city's name (its own minted stream, or an FWA line it maps): the city layer, never official
+            nm = {"name": v["name"], "source": "municipal", "note": f"added:{v.get('kind', '')}",
+                  "source_label": CITY_LABELS.get(city, "Municipal stream layer"),
+                  **({"source_ref": f"data/source/municipal ({city})"} if city else {})}
         out.append({"target": {"blk": str(v["target_blk"]), "gnis_id": str(v.get("target_gnis") or "")},
-                    "names": [{"name": v["name"], "source": "alias", "note": f"added:{v.get('kind', '')}"}]})
+                    "names": [nm]})
     return out
 
 
@@ -598,7 +609,9 @@ def add_waters(b: _Build) -> None:
     # be applied the moment the graph exists. So the pass is split in two, and `protected_blks` goes.
     from pipeline.atlas.graph.names import apply_name_variants, load_name_variants
     _nv_path = args.name_variants or CURATED.waters.name_variants
-    _nv_all = load_name_variants(_nv_path) + _added_name_variant_entries(add_nv)
+    # T224: + the mined names the owner accepted (city layers, OSM, ECCC…), each with its real source
+    _nv_all = (load_name_variants(_nv_path) + load_name_variants(CURATED.waters.mined_names)
+               + _added_name_variant_entries(add_nv))
     _nv_reach = [e for e in _nv_all if e.get("reach") or (e.get("target") or {}).get("reach")]
     _nv_now = [e for e in _nv_all if e not in _nv_reach]
     if _nv_now:

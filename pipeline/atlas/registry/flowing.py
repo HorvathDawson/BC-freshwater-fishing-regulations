@@ -360,6 +360,9 @@ def merge_flowing_polygons(registry: dict[str, RegistryItem], graph, polys: dict
         item = replace(
             head, id=new_id, kind="stream", name=head.name,
             variants=tuple(sorted({v for p in parts for v in p.variants})),
+            # T224: each name keeps the source it came with (the head's first, then the parts')
+            name_sources=tuple({r.name: r for p in reversed(parts) for r in p.name_sources}[n]
+                               for n in dict.fromkeys(r.name for p in parts for r in p.name_sources)),
             mus=tuple(sorted({m for p in parts for m in p.mus})),
             section_ids=tuple(secs),
             boundaries=tuple(bounds),

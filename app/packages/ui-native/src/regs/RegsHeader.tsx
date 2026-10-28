@@ -44,8 +44,10 @@ export function pickPlace(place: { full: string; short: string }, measuredHeight
  * NO ACTION IN THE NAME ROW (owner call 3): T71 dropped the Map button (the view strip is the one Map entry), T150 the
  * Parts button (the water's Map view lists the parts). The place label below keeps the part's name.
  */
-export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = false }: {
+export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = false, nameSource = null }: {
   header: HeaderVM; palette: Palette;
+  /** (T224) where the water's name came from when it is not the official one (`WaterTitle`'s `source`) */
+  nameSource?: string | null;
   /** where the selected tab is read from (the pin store) */
   tabs: TabSource;
   onDate: () => void;
@@ -59,7 +61,7 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = fal
   return (
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill in it */}
-      <WaterTitle name={h.name} palette={palette}>
+      <WaterTitle name={h.name} palette={palette} source={nameSource}>
         {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
       </WaterTitle>
       <Place place={h.place} palette={palette} />

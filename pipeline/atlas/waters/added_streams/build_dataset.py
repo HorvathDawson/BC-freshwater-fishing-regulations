@@ -1482,7 +1482,8 @@ def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[
         for p in report.get("fwa_exclude", ()):                 # union, order-preserving
             if p not in exclude:
                 exclude.append(p)
-        name_variants += report["name_variants"]
+        # T224: each variant names the city layer it came from (its label in the app)
+        name_variants += [{**v, "source": source} for v in report["name_variants"]]
         for kk in counts:
             counts[kk] += report["counts"].get(kk, 0)
         minted += report["minted"]

@@ -57,6 +57,9 @@ FILES = {
         # so still core/1: a core without it is one the app's pointer search answers nothing from (the committed regs
         # fixture's core, like its missing `place`, is cut to what its suite asks)
         "see_pointer": ["entry_id", "name", "ix", "target_entry", "target_name", "item_id"],
+        # (T224) where a non-official shown name / alias came from (a city layer, OSM, an ECCC station…). ADDITIVE,
+        # so still core/1: a core without it shows no source (the app asks `HAS_NAME_SOURCE` first)
+        "name_source": ["item_id", "name", "src", "label"],
         # (T182) each water's "near X" town(s) (build.core_near): a search's result line reads core alone. ADDITIVE,
         # so still core/1: a core without it is read the old way (near's place_water)
         "item_near": ["ord", "place_id", "ckm"]}},

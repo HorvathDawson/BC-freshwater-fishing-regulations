@@ -42,11 +42,13 @@ class StaleReason(str, Enum):
 #: the order reasons are reported in (and the order of the enum)
 STALE_REASONS: tuple[StaleReason, ...] = tuple(StaleReason)
 
-Scope = Literal["entry", "rule", "split", "dfo", "tidal", "slough", "q154"]
+Scope = Literal["entry", "rule", "split", "dfo", "tidal", "slough", "q154", "name"]
 #: T55 (owner 2026-10-28): the owner's call on a slough / canal candidate (`review.slough`)
 SloughCall = Literal["stream", "not stream"]
 #: Q154 (owner 2026-10-28): the owner's call on a sample small pond a river runs through (`review.q154`)
 Q154Call = Literal["pool", "real lake"]
+#: T224 (owner 2026-10-28): the owner's call on a name-variant candidate (`review.names`)
+NameCall = Literal["accept", "reject"]
 #: T185 (owner 2026-10-27): THE MARKS ARE THE DECISIONS. The retired accept step wrote marks of
 #: scope `proposal` (P y / P n on a proposal's digest); the store is append-only, so a line of it
 #: may still be there — `load` skips it, and nothing makes a new one.
@@ -75,7 +77,10 @@ CHECKS: dict[str, tuple[str, ...]] = {"entry": ("T", "R", "P", "A"),
                                       "slough": ("P",),
                                       # Q154: a sample pond (`review.q154`) — P only: the call
                                       # (pool = river rules / real lake) is right; unsure is P ?
-                                      "q154": ("P",)}
+                                      "q154": ("P",),
+                                      # T224: a name-variant candidate (`review.names`) — P only: the
+                                      # call (accept / reject the name for that water) is right
+                                      "name": ("P",)}
 
 #: THE PROBLEM CATEGORIES a "wrong" mark names (PLAN §2), grouped by the check that finds them.
 #: The review screen offers exactly these; the store keeps any string (an old mark stays valid).
@@ -304,7 +309,7 @@ class NewSplit(BaseModel):
 class RecordPrint(BaseModel):
     """One record's fingerprints (`fingerprint.entry_records`)."""
     model_config = ConfigDict(extra="forbid", frozen=True)
-    key: str = Field(..., pattern=r"^(entry|rule:.+|lic:.+|split:.+|slough:.+|q154:.+)$")
+    key: str = Field(..., pattern=r"^(entry|rule:.+|lic:.+|split:.+|slough:.+|q154:.+|name:.+)$")
     meaning: str
     binding: str
     reach: Optional[str] = None
@@ -360,7 +365,8 @@ class Mark(BaseModel):
     #: T55: THE OWNER'S CALL on a slough / canal candidate — "stream" (fold it into its river) or
     #: "not stream" (it stays a lake). Only on a slough mark; a verified slough mark carries one.
     #: Q154: "pool" (takes the river's rules) or "real lake" on a q154 sample mark
-    call: Optional[Union[SloughCall, Q154Call]] = None
+    #: T224: "accept" / "reject" on a name-variant candidate (scope name)
+    call: Optional[Union[SloughCall, Q154Call, NameCall]] = None
 
     @field_validator("reviewer")
     @classmethod
@@ -418,8 +424,19 @@ class Mark(BaseModel):
                     or self.rule_id is not None):
                 raise ValueError("a q154 mark carries only its call")
             return self
+        if self.scope == "name":
+            if keys != [f"name:{self.target}"] or self.prints.text is not None:
+                raise ValueError("a name mark holds exactly its candidate's prints")
+            if self.verdict == "verified" and self.call not in ("accept", "reject"):
+                raise ValueError("a verified name mark says accept or reject")
+            if self.verdict != "verified" and self.call is not None:
+                raise ValueError("only a verified name mark carries a call")
+            if (self.tributaries or self.extent_fix or self.new_splits or self.lake_split_later
+                    or self.rule_id is not None):
+                raise ValueError("a name mark carries only its call")
+            return self
         if self.call is not None:
-            raise ValueError("only a slough or q154 mark carries a call")
+            raise ValueError("only a slough, q154 or name mark carries a call")
         if self.scope in ("split", "tidal"):
             if keys != [f"split:{self.target}"] or self.prints.text is not None:
                 raise ValueError(f"a {self.scope} mark holds exactly its "
@@ -743,6 +760,10 @@ def target_prints(mark: Mark, entries: Mapping[str, Mapping], ctx) -> Optional["
     if mark.scope == "q154":                      # Q154: a sample small pond (`review.q154`)
         from pipeline.regs.review import q154 as Q
         got = Q.prints_of(mark.target)
+        return Prints.model_validate(got) if got is not None else None
+    if mark.scope == "name":                      # T224: a name-variant candidate (`review.names`)
+        from pipeline.regs.review import names as N
+        got = N.prints_of(mark.target)
         return Prints.model_validate(got) if got is not None else None
     if mark.scope == "slough":                    # T55: a slough / canal candidate (`review.slough`)
         from pipeline.regs.review import slough as S

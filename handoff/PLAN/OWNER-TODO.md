@@ -33,13 +33,10 @@ with the default Claude uses until you answer). Newest first inside each section
   This release changes 34 waters' parts (no-access split, e.g. Coquitlam is now 4 parts). It adds salmon-chain pieces to
   `part_stretch` / `part_mark`, and drops 1,618 dormant gauges from Conditions (148 lake gauges among them). Look at
   Coquitlam and Cowichan on the Map tab: shots in `app-integration/T228-shots/`.
-- **T224 name variants (2026-10-28):** local sources name FWA lines the app has no name for (Kilgard Creek and more):
-  ticket T224 "Findings" (data: `handoff/PLAN/curation-review/name-variants/candidates.json`). Two calls: (1) does an accepted
-  variant become a SEARCH ALIAS only, or also the DISPLAY NAME of an FWA-unnamed water (today any alias on an unnamed
-  line silently becomes its name)? Default: alias only, display only by your per-name yes. (2) May high-confidence
-  ones auto-accept (≥ 80 % line overlap both ways or a reviewed/bound gauge, one candidate, no rival name, the line
-  FWA-unnamed)? Default: no, you confirm each. Also 08MH079's blk has TWO names: Kilgard Creek (Abbotsford) vs
-  Lonzo Creek (North Fork) (the ECCC station name) — which one, or both?
+- **T224 names (2026-10-28, your answers applied):** in the review app, **Names** tab (:5183, `#names/`): spot-check
+  the 30-row sample of the 181 auto-accepted names (view "spot-check"; a reject takes one out), then work the review
+  list (36 high, 552 medium, 8,061 low — "accept / reject all visible" is one commit). They reach the app on the next
+  atlas build after Claude reruns `python -m pipeline.tools.mined_names`.
 - **T202 basemap (2026-10-27):** the basemap is now z13 (918 → 274.5 MB). Look at the app at your spots, z10–z18,
   light and dark: trail and FSR names should show from z15. Then say "delete the old basemap", and Claude removes
   `data/generated/scratch/basemap-pre-T202-20260925.pmtiles`. Grid coarsening shipped too: the basemap is now 274.5 MB. Shots

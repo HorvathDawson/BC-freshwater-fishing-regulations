@@ -72,7 +72,7 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes":
 #: History: 14 → 15 MB, owner 2026-10-22 (Q55).
 OFFLINE_GATE = 20_000_000
 
-CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer")
+CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer", "name_source")
 NEAR_TABLES = ("place_water",)
 COND_TABLES = ("gauge", "section_gauge", "lake_gauge")
 DOWN_TABLES = ("section_down",)
@@ -181,6 +181,16 @@ def _core_flags(con: sqlite3.Connection) -> None:
     con.execute("ALTER TABLE item_section_k RENAME TO item_section")
     con.execute("CREATE INDEX section_by_item ON item_section(ord)")
     core_near(con)
+
+
+NAME_SOURCE_DDL = ("CREATE TABLE name_source (item_id TEXT NOT NULL, name TEXT NOT NULL, src TEXT NOT NULL, "
+                   "label TEXT NOT NULL, PRIMARY KEY (item_id, name)) WITHOUT ROWID")
+
+
+def _core_flags_empty_name_source(con: sqlite3.Connection) -> None:
+    """`_core_flags`, for a bundle cut before T224's `name_source`: the table, empty."""
+    con.execute(NAME_SOURCE_DDL)
+    _core_flags(con)
 
 
 def core_near(con: sqlite3.Connection, schema: str = "b") -> None:
@@ -449,8 +459,13 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     p = work / "access.bin"
     p.write_bytes(PAINT.encode_access(b, handles=base["section_handles"]))
     files["access"] = p
-    files["core"] = copy_file(work / "core.sqlite", {"b": bundle}, [("b", t, None) for t in CORE_TABLES],
-                              {**base, "format": FORMATS["core"]}, extra=_core_flags)
+    # (T224) `name_source` is additive: a bundle built before it gives an empty table (no name shows a source)
+    with sqlite3.connect(f"file:{bundle}?mode=ro", uri=True) as _b:
+        _has_ns = _b.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='name_source'").fetchone()
+    files["core"] = copy_file(work / "core.sqlite", {"b": bundle},
+                              [("b", t, None) for t in CORE_TABLES if t != "name_source" or _has_ns],
+                              {**base, "format": FORMATS["core"]},
+                              extra=_core_flags if _has_ns else _core_flags_empty_name_source)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
                               {**base, "format": FORMATS["near"]})
     files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},

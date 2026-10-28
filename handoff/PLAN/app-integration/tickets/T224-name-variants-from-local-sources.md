@@ -1,7 +1,11 @@
 # T224 — Name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source
 
-Status: OPEN — candidates mined 2026-10-28 (`handoff/PLAN/curation-review/name-variants/`); ★ owner: how accepted
-variants flow + whether high-confidence ones auto-accept (OWNER-TODO). No data changed.
+Status: IN PROGRESS — 2026-10-28: owner answers applied (decisions.md "T224"). Built: every name carries its real
+source end to end (NameTuple label/ref → registry `name_sources` → bundle/core `name_source` → app search "also X ·
+source" and a "Name from …" line under a non-official shown name); 183 accepted names in
+`data/curated/waters/mined_names.json` (181 auto + 08MH079's two); review app **Names** tab (marks of scope `name`);
+existing-variant fixes. NEXT: the next atlas build (registry + tiles names) + bundle/release; the owner's spot-check
+and review marks → rerun `python -m pipeline.tools.mined_names` → next build.
 
 Source: owner 2026-10-28: 08MH079's stream is FWA-unnamed but Abbotsford's municipal layer calls it "KILGARD CREEK", and
 the app has no such variant — "we could find many more". Add-ons the same day: every variant carries its REAL source and

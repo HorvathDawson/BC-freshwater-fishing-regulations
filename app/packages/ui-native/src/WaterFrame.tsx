@@ -97,8 +97,16 @@ export function WaterFrame({ palette, face, onBack, backLabel, title, bleed = fa
  * face (two lines at most — more at the OS's larger text, T40), and beside it whatever the view puts there (the regs header's date pill).
  * `name` null: the row is held empty (the name is still loading) so nothing under it moves when it arrives.
  */
-export function WaterTitle({ name, palette, children }: {
+/** (T224) the line under a name that is not the official one: where it came from */
+const WATER_NAME_SOURCE = (source: string) => `Name from ${source}`;
+
+export function WaterTitle({ name, palette, source = null, children }: {
   name: string | null; palette: Palette;
+  /**
+   * (T224) Where the name came from when it is not the official (gazetted) one ("City of Abbotsford stream layer"),
+   * said under it. Null: an official name, nothing said.
+   */
+  source?: string | null;
   /** Beside the name, right-aligned. */
   children?: React.ReactNode;
 }) {
@@ -109,8 +117,17 @@ export function WaterTitle({ name, palette, children }: {
     <View testID="water-title"
           style={{ minHeight: WATER_FRAME.titleHeight, paddingLeft: WATER_FRAME.gutter, paddingRight: 8, gap: 8,
                    flexDirection: "row", alignItems: "center" }}>
-      <Text accessibilityRole={name ? "header" : undefined} numberOfLines={lines} maxFontSizeMultiplier={CAPPED_SCALE}
-            style={[TYPE.headerName, { flex: 1, color: palette.ink }]}>{name ?? ""}</Text>
+      {source && name ? (
+        <View style={{ flex: 1 }}>
+          <Text accessibilityRole="header" numberOfLines={lines} maxFontSizeMultiplier={CAPPED_SCALE}
+                style={[TYPE.headerName, { color: palette.ink }]}>{name}</Text>
+          <Text testID="water-name-source" maxFontSizeMultiplier={CAPPED_SCALE}
+                style={[TYPE.meta, { color: palette.sub }]}>{WATER_NAME_SOURCE(source)}</Text>
+        </View>
+      ) : (
+        <Text accessibilityRole={name ? "header" : undefined} numberOfLines={lines} maxFontSizeMultiplier={CAPPED_SCALE}
+              style={[TYPE.headerName, { flex: 1, color: palette.ink }]}>{name ?? ""}</Text>
+      )}
       {children}
     </View>
   );

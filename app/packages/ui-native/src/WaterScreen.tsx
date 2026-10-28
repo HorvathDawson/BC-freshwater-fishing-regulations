@@ -167,7 +167,7 @@ export function WaterScreen({ source, item, palette, onBack,
     return (
       <>
       {frame(null, (
-      <RegsScreen page={regs} palette={palette} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout}
+      <RegsScreen page={regs} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout}
                   start={start} onStarted={onStarted} onPart={onPart}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, Date.now())}
@@ -205,7 +205,7 @@ export function WaterScreen({ source, item, palette, onBack,
   // the day sheet in the SAME place as beside the page above, so a reload's loading frame keeps it (it does not remount)
   return (
     <>
-    {frame(<WaterTitle name={s?.name ?? null} palette={palette} />, (
+    {frame(<WaterTitle name={s?.name ?? null} palette={palette} source={s?.nameSource ?? null} />, (
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
         {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{page}</ViewSwipe> : page}
       </ScrollView>

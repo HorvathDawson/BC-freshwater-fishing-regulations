@@ -18,3 +18,17 @@ class NameTuple:
     source: NameSource
     note: str = ""
     gnis_id: str = ""
+    #: T224: who gave the name, in words ("City of Abbotsford stream layer"); empty = the source's own label
+    #: (`common.name_sources.LABELS`). `ref` points at the source row (a file#id, a station, a URL).
+    label: str = ""
+    ref: str = ""
+
+    @property
+    def official(self) -> bool:
+        """Only a gazetted (BC Geographical Names) name is official — never a regulation's, a city's or OSM's."""
+        return self.source == NameSource.gazette
+
+    @property
+    def source_label(self) -> str:
+        from pipeline.common.name_sources import label_of
+        return self.label or label_of(self.source)

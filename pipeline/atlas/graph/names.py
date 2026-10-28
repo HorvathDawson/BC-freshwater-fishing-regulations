@@ -232,7 +232,9 @@ def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
                 src = NameSource(n.get("source", "regulation"))
             except ValueError:
                 src = NameSource.alias                # unknown source -> searchable alias
-            tuples.append(NameTuple(nm, src, n.get("note", ""), gnis_id=gid))
+            # T224: the name's own source label + ref ("City of Abbotsford stream layer", a file#id)
+            tuples.append(NameTuple(nm, src, n.get("note", ""), gnis_id=gid,
+                                    label=n.get("source_label") or "", ref=n.get("source_ref") or ""))
             if n.get("display"):
                 disp = nm
         if not tuples:

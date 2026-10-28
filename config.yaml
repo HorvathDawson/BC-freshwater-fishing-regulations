@@ -106,6 +106,7 @@ curated:
   waters:
     splits: "data/curated/waters/splits.json"                      # authored
     name_variants: "data/curated/waters/name_variants.json"        # authored
+    mined_names: "data/curated/waters/mined_names.json"            # promoted (T224: names from city / OSM / ECCC sources, accepted)
     areas: "data/curated/waters/areas.json"                        # authored
     # Hand-drawn ADMIN polygons: closure zones a regulation states as an area, not a reach.
     # An areas.json def names this file in `file` instead of naming a fetched gpkg `layer`.

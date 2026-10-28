@@ -1,0 +1,5560 @@
+[
+ {
+  "target": {
+   "blks": [
+    "354087697"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cowichan River",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 229,
+     "source_len_m": 179,
+     "lonlat": [
+      -123.80402,
+      48.76122
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354087697~cowichan-river",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354088905"
+   ]
+  },
+  "names": [
+   {
+    "name": "Quinsam River Diversion Headpond",
+    "source": "gauge",
+    "source_label": "ECCC hydrometric station name",
+    "source_ref": "ECCC station 08HD034 (QUINSAM RIVER DIVERSION HEADPOND)",
+    "official": false,
+    "evidence": {
+     "trust": "reviewed",
+     "distance_m": 5.7,
+     "lonlat": [
+      -125.52055,
+      49.93
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354088905~quinsam-river-diversion-headpond",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354089003"
+   ]
+  },
+  "names": [
+   {
+    "name": "Maraude Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 403,
+     "source_len_m": 402,
+     "lonlat": [
+      -126.77475,
+      50.04943
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354089003~maraude-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354089612"
+   ]
+  },
+  "names": [
+   {
+    "name": "The Cut Coulee",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1149,
+     "source_len_m": 1147,
+     "lonlat": [
+      -123.69568,
+      48.44467
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354089612~the-cut-coulee",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354090493"
+   ]
+  },
+  "names": [
+   {
+    "name": "Crocker Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 3792,
+     "source_len_m": 3729,
+     "lonlat": [
+      -124.50744,
+      49.30987
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354090493~crocker-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354090778"
+   ]
+  },
+  "names": [
+   {
+    "name": "Baker Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.842,
+     "near_m": 1452,
+     "source_len_m": 1749,
+     "lonlat": [
+      -123.69869,
+      48.39734
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354090778~baker-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354091667"
+   ]
+  },
+  "names": [
+   {
+    "name": "Gray Farm Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 620,
+     "source_len_m": 618,
+     "lonlat": [
+      -123.72436,
+      49.13776
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354091667~gray-farm-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354092267"
+   ]
+  },
+  "names": [
+   {
+    "name": "Chapple Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.919,
+     "source_overlap": 0.898,
+     "near_m": 772,
+     "source_len_m": 852,
+     "lonlat": [
+      -123.78044,
+      49.13804
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354092267~chapple-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354095395"
+   ]
+  },
+  "names": [
+   {
+    "name": "Belvedere Farm Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 660,
+     "source_len_m": 658,
+     "lonlat": [
+      -123.7105,
+      49.14154
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354095395~belvedere-farm-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354096324"
+   ]
+  },
+  "names": [
+   {
+    "name": "Rap Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 736,
+     "source_len_m": 734,
+     "lonlat": [
+      -124.23019,
+      48.94514
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354096324~rap-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354107767"
+   ]
+  },
+  "names": [
+   {
+    "name": "Hamilton Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.859,
+     "source_overlap": 1.0,
+     "near_m": 2081,
+     "source_len_m": 2000,
+     "lonlat": [
+      -124.44726,
+      49.31567
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354107767~hamilton-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354108514"
+   ]
+  },
+  "names": [
+   {
+    "name": "McKay Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.951,
+     "near_m": 2778,
+     "source_len_m": 2938,
+     "lonlat": [
+      -124.32654,
+      48.51968
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354108514~mckay-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354113327"
+   ]
+  },
+  "names": [
+   {
+    "name": "Port Augusta Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 410,
+     "source_len_m": 409,
+     "lonlat": [
+      -124.93505,
+      49.67395
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354113327~port-augusta-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354114978"
+   ]
+  },
+  "names": [
+   {
+    "name": "Beaver Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.92,
+     "source_overlap": 1.0,
+     "near_m": 1639,
+     "source_len_m": 1561,
+     "lonlat": [
+      -123.48778,
+      48.94863
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354114978~beaver-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354115683"
+   ]
+  },
+  "names": [
+   {
+    "name": "Craig Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 4345,
+     "source_len_m": 4305,
+     "lonlat": [
+      -123.98466,
+      48.40569
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354115683~craig-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354115965"
+   ]
+  },
+  "names": [
+   {
+    "name": "Mayfly Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.829,
+     "source_overlap": 1.0,
+     "near_m": 3236,
+     "source_len_m": 3146,
+     "lonlat": [
+      -125.18195,
+      49.89911
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354115965~mayfly-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354116002"
+   ]
+  },
+  "names": [
+   {
+    "name": "Harris Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 2065,
+     "source_len_m": 2055,
+     "lonlat": [
+      -124.51216,
+      49.31257
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354116002~harris-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354117553"
+   ]
+  },
+  "names": [
+   {
+    "name": "Normandy Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.816,
+     "source_overlap": 0.956,
+     "near_m": 1158,
+     "source_len_m": 1210,
+     "lonlat": [
+      -123.38945,
+      48.50075
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354117553~normandy-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354118062"
+   ]
+  },
+  "names": [
+   {
+    "name": "Jacqueline Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 607,
+     "source_len_m": 604,
+     "lonlat": [
+      -123.74329,
+      49.16009
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354118062~jacqueline-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354118973"
+   ]
+  },
+  "names": [
+   {
+    "name": "Farley Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1428,
+     "source_len_m": 1425,
+     "lonlat": [
+      -123.43339,
+      48.59591
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354118973~farley-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354119767"
+   ]
+  },
+  "names": [
+   {
+    "name": "Devlin Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1385,
+     "source_len_m": 1308,
+     "lonlat": [
+      -125.1062,
+      49.64444
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354119767~devlin-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354120641"
+   ]
+  },
+  "names": [
+   {
+    "name": "Loon Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1278,
+     "source_len_m": 1226,
+     "lonlat": [
+      -124.22552,
+      48.9428
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354120641~loon-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354125014"
+   ]
+  },
+  "names": [
+   {
+    "name": "North McNaughton Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.81,
+     "source_overlap": 0.803,
+     "near_m": 3107,
+     "source_len_m": 3786,
+     "lonlat": [
+      -124.78605,
+      49.44663
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354125014~north-mcnaughton-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354125318"
+   ]
+  },
+  "names": [
+   {
+    "name": "Pup Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 4097,
+     "source_len_m": 3955,
+     "lonlat": [
+      -125.14008,
+      49.76868
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354125318~pup-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354125656"
+   ]
+  },
+  "names": [
+   {
+    "name": "Throup Stream",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.968,
+     "source_overlap": 0.966,
+     "near_m": 1086,
+     "source_len_m": 1143,
+     "lonlat": [
+      -123.71116,
+      48.38451
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354125656~throup-stream",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354126239"
+   ]
+  },
+  "names": [
+   {
+    "name": "Benes Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.966,
+     "source_overlap": 1.0,
+     "near_m": 345,
+     "source_len_m": 309,
+     "lonlat": [
+      -123.47228,
+      48.6797
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354126239~benes-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354126755"
+   ]
+  },
+  "names": [
+   {
+    "name": "Hidden Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1052,
+     "source_len_m": 1048,
+     "lonlat": [
+      -124.16971,
+      48.73103
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354126755~hidden-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354128296"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cat Stream",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.042,
+     "source_overlap": 0.477,
+     "near_m": 136,
+     "source_len_m": 285,
+     "lonlat": [
+      -123.96594,
+      49.16592
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354128296~cat-stream",
+    "confidence": "high"
+   },
+   {
+    "name": "Cat Stream",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.948,
+     "source_overlap": 1.0,
+     "near_m": 3109,
+     "source_len_m": 3037,
+     "lonlat": [
+      -123.94667,
+      49.15958
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354128296~cat-stream",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354128686"
+   ]
+  },
+  "names": [
+   {
+    "name": "Salmon Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.985,
+     "source_overlap": 1.0,
+     "near_m": 1484,
+     "source_len_m": 1457,
+     "lonlat": [
+      -123.46662,
+      48.61221
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354128686~salmon-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354132772"
+   ]
+  },
+  "names": [
+   {
+    "name": "Death Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 652,
+     "source_len_m": 649,
+     "lonlat": [
+      -124.23609,
+      48.94891
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354132772~death-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354136493"
+   ]
+  },
+  "names": [
+   {
+    "name": "Rashleigh Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.842,
+     "source_overlap": 1.0,
+     "near_m": 1365,
+     "source_len_m": 1288,
+     "lonlat": [
+      -123.40322,
+      48.58842
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354136493~rashleigh-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354139008"
+   ]
+  },
+  "names": [
+   {
+    "name": "Darough Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.999,
+     "source_overlap": 1.0,
+     "near_m": 1853,
+     "source_len_m": 1826,
+     "lonlat": [
+      -123.99046,
+      49.16857
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354139008~darough-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354139477"
+   ]
+  },
+  "names": [
+   {
+    "name": "Gnarly Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1097,
+     "source_len_m": 1045,
+     "lonlat": [
+      -124.23526,
+      48.95284
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354139477~gnarly-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354139803"
+   ]
+  },
+  "names": [
+   {
+    "name": "Sheet Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1559,
+     "source_len_m": 1505,
+     "lonlat": [
+      -124.22467,
+      48.9469
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354139803~sheet-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354139831"
+   ]
+  },
+  "names": [
+   {
+    "name": "Westglade Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.977,
+     "source_overlap": 1.0,
+     "near_m": 1484,
+     "source_len_m": 1455,
+     "lonlat": [
+      -124.60089,
+      49.38552
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354139831~westglade-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354140869"
+   ]
+  },
+  "names": [
+   {
+    "name": "Dick's Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.836,
+     "source_overlap": 1.0,
+     "near_m": 2889,
+     "source_len_m": 2806,
+     "lonlat": [
+      -123.72326,
+      49.15414
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354140869~dicks-brook",
+    "confidence": "high"
+   },
+   {
+    "name": "Dick's Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.162,
+     "source_overlap": 1.0,
+     "near_m": 561,
+     "source_len_m": 522,
+     "lonlat": [
+      -123.7401,
+      49.14525
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354140869~dicks-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354141792"
+   ]
+  },
+  "names": [
+   {
+    "name": "Finlay Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.929,
+     "source_overlap": 1.0,
+     "near_m": 2745,
+     "source_len_m": 2787,
+     "lonlat": [
+      -125.00911,
+      49.72144
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354141792~finlay-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354141940"
+   ]
+  },
+  "names": [
+   {
+    "name": "Burnham Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.953,
+     "source_overlap": 1.0,
+     "near_m": 918,
+     "source_len_m": 865,
+     "lonlat": [
+      -123.37102,
+      48.53513
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354141940~burnham-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354142015"
+   ]
+  },
+  "names": [
+   {
+    "name": "Teacher's Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.998,
+     "source_overlap": 1.0,
+     "near_m": 3525,
+     "source_len_m": 3427,
+     "lonlat": [
+      -125.1027,
+      49.76273
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354142015~teachers-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354142529"
+   ]
+  },
+  "names": [
+   {
+    "name": "Mallard Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.925,
+     "source_overlap": 1.0,
+     "near_m": 2317,
+     "source_len_m": 2201,
+     "lonlat": [
+      -124.96813,
+      49.68244
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354142529~mallard-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354142996"
+   ]
+  },
+  "names": [
+   {
+    "name": "Emily Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.821,
+     "source_overlap": 1.0,
+     "near_m": 887,
+     "source_len_m": 857,
+     "lonlat": [
+      -124.8617,
+      49.53244
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354142996~emily-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354143627"
+   ]
+  },
+  "names": [
+   {
+    "name": "Rugged Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.839,
+     "source_overlap": 1.0,
+     "near_m": 4038,
+     "source_len_m": 3902,
+     "lonlat": [
+      -126.72796,
+      50.02676
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354143627~rugged-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354143934"
+   ]
+  },
+  "names": [
+   {
+    "name": "Blue Heron Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 311,
+     "source_len_m": 313,
+     "lonlat": [
+      -123.42342,
+      48.67101
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354143934~blue-heron-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354145759"
+   ]
+  },
+  "names": [
+   {
+    "name": "River Meadows Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.896,
+     "source_overlap": 1.0,
+     "near_m": 1070,
+     "source_len_m": 1017,
+     "lonlat": [
+      -125.01255,
+      49.69986
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354145759~river-meadows-creek",
+    "confidence": "high"
+   },
+   {
+    "name": "River Meadows Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.087,
+     "source_overlap": 1.0,
+     "near_m": 103,
+     "source_len_m": 68,
+     "lonlat": [
+      -125.00651,
+      49.70345
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354145759~river-meadows-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354147156"
+   ]
+  },
+  "names": [
+   {
+    "name": "Mud Bay Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 4177,
+     "source_len_m": 4112,
+     "lonlat": [
+      -124.81667,
+      49.46291
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354147156~mud-bay-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354147601"
+   ]
+  },
+  "names": [
+   {
+    "name": "Forbidden Plateau Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 5139,
+     "source_len_m": 4985,
+     "lonlat": [
+      -125.08935,
+      49.681
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354147601~forbidden-plateau-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354148045"
+   ]
+  },
+  "names": [
+   {
+    "name": "Maple Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1286,
+     "source_len_m": 1282,
+     "lonlat": [
+      -125.01216,
+      49.62551
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354148045~maple-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354148885"
+   ]
+  },
+  "names": [
+   {
+    "name": "Thatcher Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.955,
+     "source_overlap": 1.0,
+     "near_m": 3348,
+     "source_len_m": 3219,
+     "lonlat": [
+      -123.86969,
+      49.09023
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354148885~thatcher-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354148939"
+   ]
+  },
+  "names": [
+   {
+    "name": "Hidden Hills Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1469,
+     "source_len_m": 1466,
+     "lonlat": [
+      -123.7205,
+      48.86358
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354148939~hidden-hills-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354149669"
+   ]
+  },
+  "names": [
+   {
+    "name": "Bevan Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 4220,
+     "source_len_m": 3929,
+     "lonlat": [
+      -125.0656,
+      49.66459
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354149669~bevan-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354150301"
+   ]
+  },
+  "names": [
+   {
+    "name": "B. P. Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.942,
+     "source_overlap": 1.0,
+     "near_m": 7021,
+     "source_len_m": 6863,
+     "lonlat": [
+      -124.6503,
+      49.24357
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354150301~b-p-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354151186"
+   ]
+  },
+  "names": [
+   {
+    "name": "Stink Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 975,
+     "source_len_m": 970,
+     "lonlat": [
+      -127.49669,
+      50.72091
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354151186~stink-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354151912"
+   ]
+  },
+  "names": [
+   {
+    "name": "Noble Creek",
+    "source": "gauge",
+    "source_label": "ECCC hydrometric station name",
+    "source_ref": "ECCC station 08HA028 (NOBLE CREEK AT THE MOUTH)",
+    "official": false,
+    "evidence": {
+     "trust": "unmatched",
+     "distance_m": 79.8,
+     "lonlat": [
+      -123.36306,
+      48.54111
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354151912~noble-creek",
+    "confidence": "high"
+   },
+   {
+    "name": "Noble Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.14,
+     "source_overlap": 1.0,
+     "near_m": 672,
+     "source_len_m": 645,
+     "lonlat": [
+      -123.36565,
+      48.54132
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354151912~noble-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354153674"
+   ]
+  },
+  "names": [
+   {
+    "name": "Marion Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.931,
+     "source_overlap": 1.0,
+     "near_m": 8302,
+     "source_len_m": 8088,
+     "lonlat": [
+      -125.35806,
+      49.23363
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354153674~marion-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "354155073"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cathedral Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.914,
+     "source_overlap": 1.0,
+     "near_m": 12056,
+     "source_len_m": 11759,
+     "lonlat": [
+      -125.72438,
+      49.76592
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:354155073~cathedral-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "355994871"
+   ]
+  },
+  "names": [
+   {
+    "name": "Celtic Slough",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.864,
+     "source_overlap": 1.0,
+     "near_m": 786,
+     "source_len_m": 686,
+     "lonlat": [
+      -123.18268,
+      49.21826
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:355994871~celtic-slough",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "355994949"
+   ]
+  },
+  "names": [
+   {
+    "name": "Quesnel River (Side Channel)",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.963,
+     "source_overlap": 0.85,
+     "near_m": 638,
+     "source_len_m": 761,
+     "lonlat": [
+      -122.27686,
+      52.89115
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:355994949~quesnel-river-side-channel",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "355997438"
+   ]
+  },
+  "names": [
+   {
+    "name": "Shovel Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 324,
+     "source_len_m": 323,
+     "lonlat": [
+      -121.8582,
+      49.78278
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:355997438~shovel-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356001337"
+   ]
+  },
+  "names": [
+   {
+    "name": "South Ziggurat Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.99,
+     "near_m": 742,
+     "source_len_m": 761,
+     "lonlat": [
+      -122.86097,
+      50.18955
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356001337~south-ziggurat-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356033284"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cub Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 656,
+     "source_len_m": 659,
+     "lonlat": [
+      -122.81173,
+      49.16065
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356033284~cub-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356037641"
+   ]
+  },
+  "names": [
+   {
+    "name": "Gates Spawning Channel",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.949,
+     "source_overlap": 1.0,
+     "near_m": 2032,
+     "source_len_m": 1999,
+     "lonlat": [
+      -122.4842,
+      50.54778
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356037641~gates-spawning-channel",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356050695"
+   ]
+  },
+  "names": [
+   {
+    "name": "Tower Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 562,
+     "source_len_m": 561,
+     "lonlat": [
+      -122.77395,
+      49.35726
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356050695~tower-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356056778"
+   ]
+  },
+  "names": [
+   {
+    "name": "Corinne Brook",
+    "source": "municipal",
+    "source_label": "City of Abbotsford stream layer",
+    "source_ref": "data/source/municipal/abbotsford_streams.geojson#314581,315106,317527,318064,318240",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.385,
+     "source_overlap": 0.903,
+     "near_m": 507,
+     "source_len_m": 516,
+     "lonlat": [
+      -122.17402,
+      49.09248
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356056778~corinne-brook",
+    "confidence": "high"
+   },
+   {
+    "name": "Corinne Brook",
+    "source": "municipal",
+    "source_label": "City of Abbotsford stream layer",
+    "source_ref": "data/source/municipal/abbotsford_streams.geojson#314581,315106,317527,318064,318240",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.219,
+     "source_overlap": 0.547,
+     "near_m": 288,
+     "source_len_m": 510,
+     "lonlat": [
+      -122.18071,
+      49.0934
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356056778~corinne-brook",
+    "confidence": "high"
+   },
+   {
+    "name": "Corinne Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1317,
+     "source_len_m": 1314,
+     "lonlat": [
+      -122.17707,
+      49.09261
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356056778~corinne-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356062107"
+   ]
+  },
+  "names": [
+   {
+    "name": "Jantz Stream",
+    "source": "municipal",
+    "source_label": "City of Abbotsford stream layer",
+    "source_ref": "data/source/municipal/abbotsford_streams.geojson#314675,318736,319961,325760,331718",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.742,
+     "source_overlap": 0.967,
+     "near_m": 481,
+     "source_len_m": 480,
+     "lonlat": [
+      -122.18845,
+      49.08883
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356062107~jantz-stream",
+    "confidence": "high"
+   },
+   {
+    "name": "Jantz Stream",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.833,
+     "source_overlap": 1.0,
+     "near_m": 539,
+     "source_len_m": 513,
+     "lonlat": [
+      -122.18766,
+      49.08822
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356062107~jantz-stream",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356078121"
+   ]
+  },
+  "names": [
+   {
+    "name": "Thomson Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.888,
+     "source_overlap": 0.865,
+     "near_m": 515,
+     "source_len_m": 564,
+     "lonlat": [
+      -122.72863,
+      49.02351
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356078121~thomson-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356081632"
+   ]
+  },
+  "names": [
+   {
+    "name": "Hunt Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.986,
+     "near_m": 1241,
+     "source_len_m": 1282,
+     "lonlat": [
+      -122.84221,
+      49.14785
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356081632~hunt-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356082830"
+   ]
+  },
+  "names": [
+   {
+    "name": "Marshall Creek",
+    "source": "municipal",
+    "source_label": "City of Abbotsford stream layer",
+    "source_ref": "data/source/municipal/abbotsford_streams.geojson#314920,314962,315265,315709.0,315709.1",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.802,
+     "near_m": 921,
+     "source_len_m": 1187,
+     "lonlat": [
+      -122.17203,
+      49.05578
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356082830~marshall-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356085915"
+   ]
+  },
+  "names": [
+   {
+    "name": "Henry Bose Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.86,
+     "source_overlap": 1.0,
+     "near_m": 989,
+     "source_len_m": 936,
+     "lonlat": [
+      -122.84121,
+      49.12197
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356085915~henry-bose-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356088277"
+   ]
+  },
+  "names": [
+   {
+    "name": "Trickle Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 845,
+     "source_len_m": 843,
+     "lonlat": [
+      -121.45875,
+      49.50189
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356088277~trickle-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356092472"
+   ]
+  },
+  "names": [
+   {
+    "name": "Jacobsen Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.856,
+     "source_overlap": 0.887,
+     "near_m": 4548,
+     "source_len_m": 5002,
+     "lonlat": [
+      -122.6831,
+      49.01791
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356092472~jacobsen-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356095236"
+   ]
+  },
+  "names": [
+   {
+    "name": "Reedville Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.987,
+     "source_overlap": 1.0,
+     "near_m": 1116,
+     "source_len_m": 1100,
+     "lonlat": [
+      -122.83898,
+      49.11929
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356095236~reedville-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356096337"
+   ]
+  },
+  "names": [
+   {
+    "name": "Gill Brook",
+    "source": "municipal",
+    "source_label": "City of Abbotsford stream layer",
+    "source_ref": "data/source/municipal/abbotsford_streams.geojson#316952",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.882,
+     "source_overlap": 0.966,
+     "near_m": 1249,
+     "source_len_m": 1278,
+     "lonlat": [
+      -122.17248,
+      49.11849
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356096337~gill-brook",
+    "confidence": "high"
+   },
+   {
+    "name": "Gill Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.935,
+     "source_overlap": 0.927,
+     "near_m": 1323,
+     "source_len_m": 1372,
+     "lonlat": [
+      -122.17653,
+      49.11904
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356096337~gill-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356118304"
+   ]
+  },
+  "names": [
+   {
+    "name": "Miami Slough",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.966,
+     "near_m": 1528,
+     "source_len_m": 1633,
+     "lonlat": [
+      -121.78494,
+      49.29391
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356118304~miami-slough",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356128411"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cloverdale Canal",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.823,
+     "source_overlap": 1.0,
+     "near_m": 2522,
+     "source_len_m": 2479,
+     "lonlat": [
+      -122.7525,
+      49.10447
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356128411~cloverdale-canal",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356128529"
+   ]
+  },
+  "names": [
+   {
+    "name": "Mckay Creek",
+    "source": "municipal",
+    "source_label": "City of Abbotsford stream layer",
+    "source_ref": "data/source/municipal/abbotsford_streams.geojson#314725,314842,314892,315002,315103",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.8,
+     "source_overlap": 0.835,
+     "near_m": 4897,
+     "source_len_m": 5416,
+     "lonlat": [
+      -122.18682,
+      49.09119
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356128529~mckay-creek",
+    "confidence": "high"
+   },
+   {
+    "name": "Mckay Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.843,
+     "source_overlap": 0.871,
+     "near_m": 5162,
+     "source_len_m": 5968,
+     "lonlat": [
+      -122.1954,
+      49.08526
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356128529~mckay-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356130026"
+   ]
+  },
+  "names": [
+   {
+    "name": "Upper Titman Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 457,
+     "source_len_m": 456,
+     "lonlat": [
+      -122.79215,
+      49.05943
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356130026~upper-titman-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356136026"
+   ]
+  },
+  "names": [
+   {
+    "name": "McNally Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.809,
+     "source_overlap": 0.869,
+     "near_m": 1039,
+     "source_len_m": 1165,
+     "lonlat": [
+      -122.77162,
+      49.01959
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356136026~mcnally-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356136630"
+   ]
+  },
+  "names": [
+   {
+    "name": "Norum Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.937,
+     "source_overlap": 1.0,
+     "near_m": 433,
+     "source_len_m": 402,
+     "lonlat": [
+      -122.91705,
+      49.17086
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356136630~norum-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356137300"
+   ]
+  },
+  "names": [
+   {
+    "name": "Wilkin Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 893,
+     "source_len_m": 905,
+     "lonlat": [
+      -122.03349,
+      49.00382
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356137300~wilkin-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356145206"
+   ]
+  },
+  "names": [
+   {
+    "name": "Angel Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 3132,
+     "source_len_m": 3036,
+     "lonlat": [
+      -123.50978,
+      50.57461
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356145206~angel-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356150719"
+   ]
+  },
+  "names": [
+   {
+    "name": "Harper Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.931,
+     "source_overlap": 0.968,
+     "near_m": 1112,
+     "source_len_m": 1119,
+     "lonlat": [
+      -120.1583,
+      50.73109
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356150719~harper-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356152258"
+   ]
+  },
+  "names": [
+   {
+    "name": "Rae Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 747,
+     "source_len_m": 746,
+     "lonlat": [
+      -122.36415,
+      49.15173
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356152258~rae-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356161149"
+   ]
+  },
+  "names": [
+   {
+    "name": "Fleetwood Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.853,
+     "source_overlap": 0.962,
+     "near_m": 1660,
+     "source_len_m": 1810,
+     "lonlat": [
+      -122.78114,
+      49.14126
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356161149~fleetwood-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356177804"
+   ]
+  },
+  "names": [
+   {
+    "name": "Gourlay Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.835,
+     "source_overlap": 0.85,
+     "near_m": 1996,
+     "source_len_m": 2293,
+     "lonlat": [
+      -122.18011,
+      49.18352
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356177804~gourlay-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356179747"
+   ]
+  },
+  "names": [
+   {
+    "name": "North Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 312,
+     "source_len_m": 312,
+     "lonlat": [
+      -122.6264,
+      49.13453
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356179747~north-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356188803"
+   ]
+  },
+  "names": [
+   {
+    "name": "No Good Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 3116,
+     "source_len_m": 3031,
+     "lonlat": [
+      -123.53055,
+      50.58227
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356188803~no-good-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356195100"
+   ]
+  },
+  "names": [
+   {
+    "name": "Reeve Slough",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1060,
+     "source_len_m": 1086,
+     "lonlat": [
+      -122.79535,
+      49.24715
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356195100~reeve-slough",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356196726"
+   ]
+  },
+  "names": [
+   {
+    "name": "Shamrock Creek",
+    "source": "municipal",
+    "source_label": "City of Abbotsford stream layer",
+    "source_ref": "data/source/municipal/abbotsford_streams.geojson#314862,314881,316344,316999,317022",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.826,
+     "near_m": 988,
+     "source_len_m": 947,
+     "lonlat": [
+      -122.27671,
+      49.0358
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356196726~shamrock-creek",
+    "confidence": "high"
+   },
+   {
+    "name": "Shamrock Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.916,
+     "source_overlap": 0.999,
+     "near_m": 691,
+     "source_len_m": 700,
+     "lonlat": [
+      -122.27745,
+      49.03542
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356196726~shamrock-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356205439"
+   ]
+  },
+  "names": [
+   {
+    "name": "Glover Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.885,
+     "source_overlap": 0.929,
+     "near_m": 725,
+     "source_len_m": 849,
+     "lonlat": [
+      -122.63926,
+      49.11241
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356205439~glover-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356210019"
+   ]
+  },
+  "names": [
+   {
+    "name": "Silverstream Slough",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.897,
+     "near_m": 1660,
+     "source_len_m": 1876,
+     "lonlat": [
+      -122.27267,
+      49.11039
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356210019~silverstream-slough",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356211380"
+   ]
+  },
+  "names": [
+   {
+    "name": "Truckwash Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.867,
+     "source_overlap": 1.0,
+     "near_m": 4415,
+     "source_len_m": 4322,
+     "lonlat": [
+      -123.42054,
+      50.68773
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356211380~truckwash-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356217367"
+   ]
+  },
+  "names": [
+   {
+    "name": "Manson Canal",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.857,
+     "source_overlap": 1.0,
+     "near_m": 1686,
+     "source_len_m": 1659,
+     "lonlat": [
+      -122.89274,
+      49.19297
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356217367~manson-canal",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356218035"
+   ]
+  },
+  "names": [
+   {
+    "name": "Saporano Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 2271,
+     "source_len_m": 2266,
+     "lonlat": [
+      -122.2042,
+      49.23701
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356218035~saporano-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356220750"
+   ]
+  },
+  "names": [
+   {
+    "name": "Laura Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 753,
+     "source_len_m": 609,
+     "lonlat": [
+      -122.71426,
+      49.05694
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356220750~laura-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356226572"
+   ]
+  },
+  "names": [
+   {
+    "name": "McGillivray Creek South Fork",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 4301,
+     "source_len_m": 4240,
+     "lonlat": [
+      -122.53675,
+      50.5798
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356226572~mcgillivray-creek-south-fork",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356228345"
+   ]
+  },
+  "names": [
+   {
+    "name": "Shane Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 866,
+     "source_len_m": 865,
+     "lonlat": [
+      -122.77029,
+      53.8995
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356228345~shane-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356232808"
+   ]
+  },
+  "names": [
+   {
+    "name": "Brae Slough",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.823,
+     "source_overlap": 0.998,
+     "near_m": 1357,
+     "source_len_m": 1360,
+     "lonlat": [
+      -122.57879,
+      49.17751
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356232808~brae-slough",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356238772"
+   ]
+  },
+  "names": [
+   {
+    "name": "Stapley Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.968,
+     "source_overlap": 0.84,
+     "near_m": 1439,
+     "source_len_m": 1781,
+     "lonlat": [
+      -121.78716,
+      49.00419
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356238772~stapley-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356249293"
+   ]
+  },
+  "names": [
+   {
+    "name": "McFadden Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.995,
+     "near_m": 3666,
+     "source_len_m": 3715,
+     "lonlat": [
+      -122.46374,
+      49.25849
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356249293~mcfadden-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356253337"
+   ]
+  },
+  "names": [
+   {
+    "name": "Karen Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.911,
+     "source_overlap": 0.984,
+     "near_m": 2464,
+     "source_len_m": 2578,
+     "lonlat": [
+      -122.44191,
+      49.23914
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356253337~karen-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356254237"
+   ]
+  },
+  "names": [
+   {
+    "name": "Pylon Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.935,
+     "source_overlap": 0.978,
+     "near_m": 3959,
+     "source_len_m": 3955,
+     "lonlat": [
+      -123.49349,
+      50.57439
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356254237~pylon-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356263650"
+   ]
+  },
+  "names": [
+   {
+    "name": "Kerfoot Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.856,
+     "source_overlap": 0.927,
+     "near_m": 2113,
+     "source_len_m": 2251,
+     "lonlat": [
+      -122.5741,
+      49.01233
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356263650~kerfoot-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356271168"
+   ]
+  },
+  "names": [
+   {
+    "name": "Bean Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.94,
+     "source_overlap": 0.96,
+     "near_m": 2210,
+     "source_len_m": 2251,
+     "lonlat": [
+      -122.44443,
+      49.23101
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356271168~bean-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356272352"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cohen Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.838,
+     "source_overlap": 1.0,
+     "near_m": 189,
+     "source_len_m": 160,
+     "lonlat": [
+      -121.93928,
+      49.37269
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356272352~cohen-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356275366"
+   ]
+  },
+  "names": [
+   {
+    "name": "Everet's Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 962,
+     "source_len_m": 959,
+     "lonlat": [
+      -121.44684,
+      49.50245
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356275366~everets-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356280098"
+   ]
+  },
+  "names": [
+   {
+    "name": "King Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.827,
+     "source_overlap": 0.988,
+     "near_m": 3423,
+     "source_len_m": 3442,
+     "lonlat": [
+      -122.82227,
+      49.17808
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356280098~king-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356288569"
+   ]
+  },
+  "names": [
+   {
+    "name": "Buxton Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.938,
+     "source_overlap": 0.926,
+     "near_m": 5344,
+     "source_len_m": 5728,
+     "lonlat": [
+      -121.70832,
+      49.05278
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356288569~buxton-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356294200"
+   ]
+  },
+  "names": [
+   {
+    "name": "Price Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1984,
+     "source_len_m": 1980,
+     "lonlat": [
+      -122.81399,
+      49.15625
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356294200~price-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356300550"
+   ]
+  },
+  "names": [
+   {
+    "name": "Peacock Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.99,
+     "source_overlap": 0.861,
+     "near_m": 1934,
+     "source_len_m": 2277,
+     "lonlat": [
+      -122.85074,
+      49.09385
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356300550~peacock-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356304947"
+   ]
+  },
+  "names": [
+   {
+    "name": "Smith Brook",
+    "source": "municipal",
+    "source_label": "City of Abbotsford stream layer",
+    "source_ref": "data/source/municipal/abbotsford_streams.geojson#315188,322557,325238,326250,330669",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.908,
+     "source_overlap": 0.701,
+     "near_m": 1519,
+     "source_len_m": 1974,
+     "lonlat": [
+      -122.16793,
+      49.08323
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356304947~smith-brook",
+    "confidence": "high"
+   },
+   {
+    "name": "Smith Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.902,
+     "source_overlap": 0.835,
+     "near_m": 1509,
+     "source_len_m": 1790,
+     "lonlat": [
+      -122.16752,
+      49.08071
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356304947~smith-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356305031"
+   ]
+  },
+  "names": [
+   {
+    "name": "Problem Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.807,
+     "source_overlap": 0.829,
+     "near_m": 2006,
+     "source_len_m": 2397,
+     "lonlat": [
+      -123.50362,
+      50.56815
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356305031~problem-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356314888"
+   ]
+  },
+  "names": [
+   {
+    "name": "Kilgard Creek",
+    "source": "municipal",
+    "source_label": "City of Abbotsford stream layer",
+    "source_ref": "data/source/municipal/abbotsford_streams.geojson#314607,314723,315200,316156,316246",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.687,
+     "source_overlap": 0.851,
+     "near_m": 2160,
+     "source_len_m": 2302,
+     "lonlat": [
+      -122.1949,
+      49.0537
+     ]
+    },
+    "accepted": "owner 2026-10-28: 08MH079's line — Kilgard Creek shown",
+    "candidate": "blk:356314888~kilgard-creek",
+    "confidence": "medium",
+    "display": true
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356314888"
+   ]
+  },
+  "names": [
+   {
+    "name": "Lonzo Creek (North Fork)",
+    "source": "gauge",
+    "source_label": "ECCC hydrometric station name",
+    "source_ref": "ECCC station 08MH079 (LONZO CREEK (NORTH FORK) NEAR KILGARD)",
+    "official": false,
+    "evidence": {
+     "trust": "bound",
+     "distance_m": 0,
+     "lonlat": [
+      -122.19556,
+      49.05778
+     ]
+    },
+    "accepted": "owner 2026-10-28: 08MH079's line — Lonzo Creek (North Fork) searchable",
+    "candidate": "blk:356314888~lonzo-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356316442"
+   ]
+  },
+  "names": [
+   {
+    "name": "East Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.906,
+     "source_overlap": 0.811,
+     "near_m": 1845,
+     "source_len_m": 2208,
+     "lonlat": [
+      -122.56745,
+      49.2714
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356316442~east-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356317915"
+   ]
+  },
+  "names": [
+   {
+    "name": "Canyon Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.85,
+     "source_overlap": 0.918,
+     "near_m": 3855,
+     "source_len_m": 4040,
+     "lonlat": [
+      -123.47681,
+      50.59059
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356317915~canyon-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356322711"
+   ]
+  },
+  "names": [
+   {
+    "name": "Gulch Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.935,
+     "source_overlap": 1.0,
+     "near_m": 916,
+     "source_len_m": 894,
+     "lonlat": [
+      -119.76269,
+      50.74761
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356322711~gulch-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356337117"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cattle Valley Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 11524,
+     "source_len_m": 11219,
+     "lonlat": [
+      -121.96069,
+      50.35591
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356337117~cattle-valley-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356353428"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cottonwood Creek South",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.999,
+     "source_overlap": 0.982,
+     "near_m": 13384,
+     "source_len_m": 13246,
+     "lonlat": [
+      -122.08665,
+      50.35536
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356353428~cottonwood-creek-south",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356354557"
+   ]
+  },
+  "names": [
+   {
+    "name": "S&M Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.928,
+     "source_overlap": 0.98,
+     "near_m": 7172,
+     "source_len_m": 7123,
+     "lonlat": [
+      -122.53929,
+      50.22973
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356354557~s-m-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356356588"
+   ]
+  },
+  "names": [
+   {
+    "name": "Coho Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.817,
+     "source_overlap": 0.967,
+     "near_m": 4232,
+     "source_len_m": 4304,
+     "lonlat": [
+      -122.74314,
+      49.34143
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356356588~coho-creek",
+    "confidence": "high"
+   },
+   {
+    "name": "Coho Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.166,
+     "source_overlap": 1.0,
+     "near_m": 858,
+     "source_len_m": 853,
+     "lonlat": [
+      -122.71868,
+      49.34933
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356356588~coho-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356360791"
+   ]
+  },
+  "names": [
+   {
+    "name": "Scudamore Creek North",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.944,
+     "source_overlap": 1.0,
+     "near_m": 17369,
+     "source_len_m": 16781,
+     "lonlat": [
+      -122.09928,
+      50.33487
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356360791~scudamore-creek-north",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356364390"
+   ]
+  },
+  "names": [
+   {
+    "name": "Lakes Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.899,
+     "source_overlap": 1.0,
+     "near_m": 10597,
+     "source_len_m": 10105,
+     "lonlat": [
+      -122.03285,
+      50.16339
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356364390~lakes-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356368998"
+   ]
+  },
+  "names": [
+   {
+    "name": "Meadow Creek Diversion",
+    "source": "gauge",
+    "source_label": "ECCC hydrometric station name",
+    "source_ref": "ECCC station 08NH128 (MEADOW CREEK DIVERSION BELOW JOHN CREEK)",
+    "official": false,
+    "evidence": {
+     "trust": "reviewed",
+     "distance_m": 13.1,
+     "lonlat": [
+      -116.9975,
+      50.25417
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356368998~meadow-creek-diversion",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356370187"
+   ]
+  },
+  "names": [
+   {
+    "name": "Inkaneep Creek",
+    "source": "gauge",
+    "source_label": "ECCC hydrometric station name",
+    "source_ref": "ECCC station 08NM012 (INKANEEP CREEK NEAR OLIVER (LOWER STATION))",
+    "official": false,
+    "evidence": {
+     "trust": "reviewed",
+     "distance_m": 17.2,
+     "lonlat": [
+      -119.49167,
+      49.11667
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356370187~inkaneep-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356432746"
+   ]
+  },
+  "names": [
+   {
+    "name": "Porcupine River",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.99,
+     "source_overlap": 1.0,
+     "near_m": 1653,
+     "source_len_m": 1621,
+     "lonlat": [
+      -116.73707,
+      51.38068
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356432746~porcupine-river",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356464736"
+   ]
+  },
+  "names": [
+   {
+    "name": "Meighan Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.925,
+     "source_overlap": 1.0,
+     "near_m": 1457,
+     "source_len_m": 1421,
+     "lonlat": [
+      -119.19214,
+      50.44605
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356464736~meighan-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356470444"
+   ]
+  },
+  "names": [
+   {
+    "name": "Krumholtz Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 3053,
+     "source_len_m": 2987,
+     "lonlat": [
+      -117.27346,
+      51.27759
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356470444~krumholtz-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356500859"
+   ]
+  },
+  "names": [
+   {
+    "name": "Negro Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 10050,
+     "source_len_m": 9736,
+     "lonlat": [
+      -115.9818,
+      49.45044
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356500859~negro-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356520700"
+   ]
+  },
+  "names": [
+   {
+    "name": "White Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.907,
+     "source_overlap": 1.0,
+     "near_m": 708,
+     "source_len_m": 682,
+     "lonlat": [
+      -120.60856,
+      49.42921
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356520700~white-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356559786"
+   ]
+  },
+  "names": [
+   {
+    "name": "Boardman Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.974,
+     "source_overlap": 1.0,
+     "near_m": 2460,
+     "source_len_m": 2373,
+     "lonlat": [
+      -115.09204,
+      49.50166
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:356559786~boardman-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "359111766"
+   ]
+  },
+  "names": [
+   {
+    "name": "Wendy Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.949,
+     "source_overlap": 1.0,
+     "near_m": 480,
+     "source_len_m": 451,
+     "lonlat": [
+      -120.82851,
+      56.27039
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:359111766~wendy-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "359295223"
+   ]
+  },
+  "names": [
+   {
+    "name": "College Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.802,
+     "source_overlap": 1.0,
+     "near_m": 543,
+     "source_len_m": 504,
+     "lonlat": [
+      -120.83557,
+      56.26842
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:359295223~college-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "359343124"
+   ]
+  },
+  "names": [
+   {
+    "name": "North Hermann Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.948,
+     "near_m": 1244,
+     "source_len_m": 1336,
+     "lonlat": [
+      -121.14638,
+      54.98681
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:359343124~north-hermann-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "359353121"
+   ]
+  },
+  "names": [
+   {
+    "name": "Nabors Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 4607,
+     "source_len_m": 4554,
+     "lonlat": [
+      -121.14715,
+      55.00652
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:359353121~nabors-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "359567586"
+   ]
+  },
+  "names": [
+   {
+    "name": "Camp Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.875,
+     "source_overlap": 0.986,
+     "near_m": 18075,
+     "source_len_m": 17982,
+     "lonlat": [
+      -121.09667,
+      55.03123
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:359567586~camp-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360236788"
+   ]
+  },
+  "names": [
+   {
+    "name": "Ninebark Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.821,
+     "source_overlap": 0.802,
+     "near_m": 609,
+     "source_len_m": 782,
+     "lonlat": [
+      -122.85219,
+      49.35632
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360236788~ninebark-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360247170"
+   ]
+  },
+  "names": [
+   {
+    "name": "Hunlen Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 473,
+     "source_len_m": 472,
+     "lonlat": [
+      -125.75436,
+      52.28228
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360247170~hunlen-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360278283"
+   ]
+  },
+  "names": [
+   {
+    "name": "Norguard Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 852,
+     "source_len_m": 844,
+     "lonlat": [
+      -122.84863,
+      49.43885
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360278283~norguard-brook",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360280439"
+   ]
+  },
+  "names": [
+   {
+    "name": "Huszar Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.864,
+     "source_overlap": 0.812,
+     "near_m": 1618,
+     "source_len_m": 2042,
+     "lonlat": [
+      -123.40957,
+      49.34162
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360280439~huszar-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360304172"
+   ]
+  },
+  "names": [
+   {
+    "name": "Panorama Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.988,
+     "source_overlap": 0.846,
+     "near_m": 972,
+     "source_len_m": 1184,
+     "lonlat": [
+      -122.95318,
+      49.33323
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360304172~panorama-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360319246"
+   ]
+  },
+  "names": [
+   {
+    "name": "Jessie Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 717,
+     "source_len_m": 715,
+     "lonlat": [
+      -122.97795,
+      49.39085
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360319246~jessie-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360324076"
+   ]
+  },
+  "names": [
+   {
+    "name": "Pluton Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 868,
+     "source_len_m": 866,
+     "lonlat": [
+      -123.38807,
+      49.39323
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360324076~pluton-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360342347"
+   ]
+  },
+  "names": [
+   {
+    "name": "Frank Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.971,
+     "source_overlap": 1.0,
+     "near_m": 853,
+     "source_len_m": 777,
+     "lonlat": [
+      -123.38171,
+      49.35208
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360342347~frank-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360357261"
+   ]
+  },
+  "names": [
+   {
+    "name": "Brigade Bay Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.811,
+     "source_overlap": 0.804,
+     "near_m": 1018,
+     "source_len_m": 1300,
+     "lonlat": [
+      -123.34359,
+      49.49241
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360357261~brigade-bay-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360368539"
+   ]
+  },
+  "names": [
+   {
+    "name": "Coffin Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 728,
+     "source_len_m": 635,
+     "lonlat": [
+      -123.07115,
+      49.38061
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360368539~coffin-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360377737"
+   ]
+  },
+  "names": [
+   {
+    "name": "Senate Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 573,
+     "source_len_m": 500,
+     "lonlat": [
+      -123.06522,
+      49.37611
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360377737~senate-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360405521"
+   ]
+  },
+  "names": [
+   {
+    "name": "Temple Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1378,
+     "source_len_m": 1349,
+     "lonlat": [
+      -123.30201,
+      49.53288
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360405521~temple-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360418020"
+   ]
+  },
+  "names": [
+   {
+    "name": "Roche Point Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.907,
+     "near_m": 864,
+     "source_len_m": 961,
+     "lonlat": [
+      -122.96451,
+      49.30489
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360418020~roche-point-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360428491"
+   ]
+  },
+  "names": [
+   {
+    "name": "Burton Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 2250,
+     "source_len_m": 2242,
+     "lonlat": [
+      -123.73137,
+      49.49749
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360428491~burton-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360479384"
+   ]
+  },
+  "names": [
+   {
+    "name": "Empress Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 911,
+     "source_len_m": 907,
+     "lonlat": [
+      -123.12761,
+      49.60261
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360479384~empress-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360555609"
+   ]
+  },
+  "names": [
+   {
+    "name": "Windsor Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.905,
+     "source_overlap": 0.839,
+     "near_m": 1552,
+     "source_len_m": 1788,
+     "lonlat": [
+      -123.10715,
+      49.37719
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360555609~windsor-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360569185"
+   ]
+  },
+  "names": [
+   {
+    "name": "Fromme Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 816,
+     "source_len_m": 738,
+     "lonlat": [
+      -123.06087,
+      49.38174
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360569185~fromme-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360589684"
+   ]
+  },
+  "names": [
+   {
+    "name": "Maude Frickert Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.824,
+     "source_overlap": 1.0,
+     "near_m": 8203,
+     "source_len_m": 8048,
+     "lonlat": [
+      -123.4582,
+      50.16045
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360589684~maude-frickert-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360594352"
+   ]
+  },
+  "names": [
+   {
+    "name": "Damsoon Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.921,
+     "source_overlap": 1.0,
+     "near_m": 2927,
+     "source_len_m": 2792,
+     "lonlat": [
+      -123.42745,
+      49.50485
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360594352~damsoon-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360596958"
+   ]
+  },
+  "names": [
+   {
+    "name": "Queen's Cup Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.825,
+     "source_overlap": 0.819,
+     "near_m": 1172,
+     "source_len_m": 1428,
+     "lonlat": [
+      -122.84735,
+      49.36089
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360596958~queens-cup-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360626307"
+   ]
+  },
+  "names": [
+   {
+    "name": "Stuyvesant Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 3454,
+     "source_len_m": 3396,
+     "lonlat": [
+      -123.39916,
+      49.95638
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360626307~stuyvesant-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360631291"
+   ]
+  },
+  "names": [
+   {
+    "name": "Emsley Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 386,
+     "source_len_m": 382,
+     "lonlat": [
+      -123.09618,
+      49.34534
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360631291~emsley-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360656139"
+   ]
+  },
+  "names": [
+   {
+    "name": "Balloon Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.997,
+     "source_overlap": 0.958,
+     "near_m": 1650,
+     "source_len_m": 1671,
+     "lonlat": [
+      -123.00917,
+      49.37664
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360656139~balloon-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360661877"
+   ]
+  },
+  "names": [
+   {
+    "name": "Wyssen Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 335,
+     "source_len_m": 342,
+     "lonlat": [
+      -122.97614,
+      49.41345
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360661877~wyssen-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360681465"
+   ]
+  },
+  "names": [
+   {
+    "name": "Elderberry Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1410,
+     "source_len_m": 1412,
+     "lonlat": [
+      -122.84834,
+      49.34419
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360681465~elderberry-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360686071"
+   ]
+  },
+  "names": [
+   {
+    "name": "Nygaard Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.992,
+     "source_overlap": 0.9,
+     "near_m": 1772,
+     "source_len_m": 1919,
+     "lonlat": [
+      -126.57143,
+      52.38975
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360686071~nygaard-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360698837"
+   ]
+  },
+  "names": [
+   {
+    "name": "Grennon Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 574,
+     "source_len_m": 572,
+     "lonlat": [
+      -123.43521,
+      49.45109
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360698837~grennon-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360717058"
+   ]
+  },
+  "names": [
+   {
+    "name": "One Eye Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.939,
+     "source_overlap": 0.91,
+     "near_m": 3161,
+     "source_len_m": 3410,
+     "lonlat": [
+      -123.80191,
+      50.19223
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360717058~one-eye-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360747072"
+   ]
+  },
+  "names": [
+   {
+    "name": "Wolverine Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.858,
+     "source_overlap": 0.875,
+     "near_m": 4163,
+     "source_len_m": 4687,
+     "lonlat": [
+      -122.78128,
+      49.9635
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360747072~wolverine-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360750947"
+   ]
+  },
+  "names": [
+   {
+    "name": "Boulder Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.887,
+     "source_overlap": 0.905,
+     "near_m": 4823,
+     "source_len_m": 5420,
+     "lonlat": [
+      -122.98306,
+      49.35487
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360750947~boulder-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360755606"
+   ]
+  },
+  "names": [
+   {
+    "name": "Paranoid Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.884,
+     "source_overlap": 1.0,
+     "near_m": 7880,
+     "source_len_m": 7678,
+     "lonlat": [
+      -122.92867,
+      49.76543
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360755606~paranoid-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360760569"
+   ]
+  },
+  "names": [
+   {
+    "name": "Sundown Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.926,
+     "source_overlap": 1.0,
+     "near_m": 5992,
+     "source_len_m": 5897,
+     "lonlat": [
+      -123.52936,
+      50.37108
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360760569~sundown-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360765287"
+   ]
+  },
+  "names": [
+   {
+    "name": "Colwood Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.982,
+     "near_m": 2187,
+     "source_len_m": 2194,
+     "lonlat": [
+      -123.10471,
+      49.38694
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360765287~colwood-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360766324"
+   ]
+  },
+  "names": [
+   {
+    "name": "Thomas Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.901,
+     "source_overlap": 0.865,
+     "near_m": 1621,
+     "source_len_m": 1842,
+     "lonlat": [
+      -122.98129,
+      49.3161
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360766324~thomas-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360768090"
+   ]
+  },
+  "names": [
+   {
+    "name": "Skullhead Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.96,
+     "source_overlap": 1.0,
+     "near_m": 2279,
+     "source_len_m": 2020,
+     "lonlat": [
+      -122.92364,
+      49.75869
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360768090~skullhead-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360784317"
+   ]
+  },
+  "names": [
+   {
+    "name": "Beer Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1909,
+     "source_len_m": 1898,
+     "lonlat": [
+      -122.98766,
+      49.37252
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360784317~beer-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360798415"
+   ]
+  },
+  "names": [
+   {
+    "name": "Round Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.828,
+     "source_overlap": 0.91,
+     "near_m": 5864,
+     "source_len_m": 6284,
+     "lonlat": [
+      -123.49999,
+      50.19166
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360798415~round-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360809256"
+   ]
+  },
+  "names": [
+   {
+    "name": "Spring Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 1461,
+     "source_len_m": 1464,
+     "lonlat": [
+      -123.01979,
+      50.08416
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360809256~spring-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360810400"
+   ]
+  },
+  "names": [
+   {
+    "name": "Drifter Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 3340,
+     "source_len_m": 3304,
+     "lonlat": [
+      -123.10973,
+      49.37463
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360810400~drifter-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360818251"
+   ]
+  },
+  "names": [
+   {
+    "name": "East Gray Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.922,
+     "source_overlap": 0.974,
+     "near_m": 6755,
+     "source_len_m": 6698,
+     "lonlat": [
+      -123.66972,
+      49.55273
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360818251~east-gray-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360820636"
+   ]
+  },
+  "names": [
+   {
+    "name": "Lions Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.879,
+     "source_overlap": 1.0,
+     "near_m": 1770,
+     "source_len_m": 1741,
+     "lonlat": [
+      -123.10855,
+      49.38161
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360820636~lions-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360830493"
+   ]
+  },
+  "names": [
+   {
+    "name": "Peach Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.874,
+     "source_overlap": 0.897,
+     "near_m": 7040,
+     "source_len_m": 7717,
+     "lonlat": [
+      -123.53933,
+      50.12731
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360830493~peach-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360834850"
+   ]
+  },
+  "names": [
+   {
+    "name": "Lodgepole Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.817,
+     "source_overlap": 0.815,
+     "near_m": 1287,
+     "source_len_m": 1580,
+     "lonlat": [
+      -122.84736,
+      49.3507
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360834850~lodgepole-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360835297"
+   ]
+  },
+  "names": [
+   {
+    "name": "Shannon Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.942,
+     "source_overlap": 1.0,
+     "near_m": 3540,
+     "source_len_m": 3455,
+     "lonlat": [
+      -123.74521,
+      49.52442
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360835297~shannon-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360837986"
+   ]
+  },
+  "names": [
+   {
+    "name": "Last Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 0.882,
+     "near_m": 3034,
+     "source_len_m": 3401,
+     "lonlat": [
+      -123.60334,
+      50.23878
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360837986~last-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360838112"
+   ]
+  },
+  "names": [
+   {
+    "name": "Outrigger Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.841,
+     "source_overlap": 1.0,
+     "near_m": 9271,
+     "source_len_m": 9042,
+     "lonlat": [
+      -123.66463,
+      50.22657
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360838112~outrigger-creek",
+    "confidence": "high"
+   },
+   {
+    "name": "Outrigger Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.023,
+     "source_overlap": 1.0,
+     "near_m": 251,
+     "source_len_m": 229,
+     "lonlat": [
+      -123.6278,
+      50.25903
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360838112~outrigger-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360860441"
+   ]
+  },
+  "names": [
+   {
+    "name": "Carnival Creek",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 1.0,
+     "source_overlap": 1.0,
+     "near_m": 8276,
+     "source_len_m": 8152,
+     "lonlat": [
+      -123.41165,
+      50.23797
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360860441~carnival-creek",
+    "confidence": "high"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360871596"
+   ]
+  },
+  "names": [
+   {
+    "name": "Paul Said Brook",
+    "source": "osm",
+    "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+    "source_ref": "data/source/bc.pmtiles",
+    "official": false,
+    "evidence": {
+     "blk_overlap": 0.975,
+     "source_overlap": 1.0,
+     "near_m": 8434,
+     "source_len_m": 8248,
+     "lonlat": [
+      -126.72351,
+      52.29343
+     ]
+    },
+    "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+    "candidate": "blk:360871596~paul-said-brook",
+    "confidence": "high"
+   }
+  ]
+ }
+]

@@ -62,6 +62,21 @@ export function pointerHits(query: string, rows: readonly Row[], limit: number):
   return rankPointers(query, hits).slice(0, limit);
 }
 
+/**
+ * (T224) Each hit's name sources, from `name_source` rows (item_id, name, label): the shown name's (`nameSource`) and
+ * the matched alias's (`matchedSource`). A name with no row is official (or the release predates the table): null.
+ */
+export function withNameSources(hits: NameHit[], rows: readonly Row[]): NameHit[] {
+  const by = new Map<string, string>();
+  for (const r of rows) by.set(`${str(r.item_id)}\u0000${str(r.name)}`, str(r.label));
+  for (const h of hits) {
+    const o = h as { nameSource?: string | null; matchedSource?: string | null };
+    o.nameSource = by.get(`${h.item}\u0000${h.name}`) ?? null;
+    o.matchedSource = h.matchedAs !== null ? by.get(`${h.item}\u0000${h.matchedAs}`) ?? null : null;
+  }
+  return hits;
+}
+
 /** Each hit's nearest-town line, from its rings (rows with item_id, name, kind, lat, lon, km; nearest first). */
 export function withNear(hits: NameHit[], rings: readonly Row[]): NameHit[] {
   const by = new Map<string, NearPlace[]>();

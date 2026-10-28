@@ -22,6 +22,9 @@ class NameSource(str, Enum):
                                           # all (Docee River, Rainy Creek). SEARCHABLE, and ranked
                                           # below gazette so it never relabels a gazetted water —
                                           # a DFO-only water still displays it via `display: true`.
+    municipal = "municipal"               # a city's stream layer (T224: Abbotsford, Burnaby, Port Moody, Squamish);
+                                          # `source_label` names the city. Never official.
+    osm = "osm"                           # OpenStreetMap waterway name (T224). Never official.
     alias = "alias"                       # alternate name — SEARCHABLE but never beats gazette
     synopsis = "synopsis"                 # a verbatim name used by a regulation entry
 

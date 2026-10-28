@@ -54,6 +54,8 @@ export type Slot = React.ReactNode | ((actions: KeepActions) => React.ReactNode)
 export interface RegsScreenProps {
   page: RegsPage;
   palette: Palette;
+  /** (T224) where the water's name came from when it is not the official one ("City of Abbotsford stream layer") */
+  nameSource?: string | null;
   images?: FishImages;
   /** (T38) the hatch sheet's two drawings (apps/mobile `ADIPOSE_IMAGES`); absent → an empty ground of their size */
   adipose?: AdiposeImages;
@@ -117,7 +119,8 @@ export interface RegsScreenProps {
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
                              gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
-                             lapsed = null, access = null, onAccessMap, glance = null, salmonStrip = null }: RegsScreenProps) {
+                             lapsed = null, access = null, onAccessMap, glance = null, salmonStrip = null,
+                             nameSource = null }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
@@ -176,7 +179,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   const header = useMemo(() => ({ ...page.header, tabs: page.header.tabs.filter((t) =>
     (t.tab !== "gear" || !!gear) && (t.tab !== "methods" || !!methods)) }), [page.header, gear, methods]);
   const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab}
-                           side={layout === "desktop"} />;
+                           side={layout === "desktop"} nameSource={nameSource} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;
     if (!node) return null;

@@ -100,9 +100,10 @@ export function WaterMap({ source, item, palette, children }: {
 }) {
   const sheet = useWater(source, item);
   const name = sheet.state === "ready" ? sheet.value?.name ?? null : null;
+  const nameSource = sheet.state === "ready" ? sheet.value?.nameSource ?? null : null;
   // the canvas goes full-bleed under the frame's header (the one difference the frame allows); the name row stays on it
   return (
-    <WaterFrame palette={palette} face="regulations" title={<WaterTitle name={name} palette={palette} />} bleed>
+    <WaterFrame palette={palette} face="regulations" title={<WaterTitle name={name} palette={palette} source={nameSource} />} bleed>
       {children}
     </WaterFrame>
   );

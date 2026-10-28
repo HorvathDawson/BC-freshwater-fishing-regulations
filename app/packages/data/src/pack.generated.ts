@@ -113,6 +113,12 @@ export const PACK_FILES: Record<string, PackFile> = {
         "k",
         "v"
       ],
+      "name_source": [
+        "item_id",
+        "name",
+        "src",
+        "label"
+      ],
       "place": [
         "place_id",
         "osm",

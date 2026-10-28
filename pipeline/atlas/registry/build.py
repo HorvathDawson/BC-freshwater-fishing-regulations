@@ -16,7 +16,9 @@ import re
 from collections import Counter, defaultdict
 from dataclasses import replace
 
-from pipeline.common.models import WATERBODY_KINDS, NameSource, NodeKind, RegistryBoundary, RegistryItem, StreamGraph, StreamNode
+from pipeline.common.models import (WATERBODY_KINDS, NameRecord, NameSource, NodeKind, RegistryBoundary, RegistryItem,
+                                   StreamGraph, StreamNode)
+from pipeline.common.name_sources import is_official, label_of
 from pipeline.common.names import key
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.utils import wsc as _wsc
@@ -61,6 +63,28 @@ def item_id(n: StreamNode, wsc_gnis: dict[str, str]) -> str:
     if n.wsc:
         return f"wsc:{trim_wsc(n.wsc)}"
     return f"blk:{n.blk}"
+
+
+_SRC_RANK = {s: i for i, s in enumerate(NameSource)}
+
+
+def name_records(names, tuples) -> tuple[NameRecord, ...]:
+    """T224: one `NameRecord` per name in `names` (order kept, duplicates dropped): the best-ranked tuple that
+    carries the name gives its source, label and ref. A name no tuple carries (a curator's pinned name) is
+    `override` — a person typed it."""
+    best: dict[str, object] = {}
+    for t in tuples:
+        if t.name and (t.name not in best or _SRC_RANK[t.source] < _SRC_RANK[best[t.name].source]):
+            best[t.name] = t
+    out = []
+    for nm in dict.fromkeys(n for n in names if n):
+        t = best.get(nm)
+        if t is None:
+            out.append(NameRecord(name=nm, source=NameSource.override.value, label=label_of(NameSource.override)))
+        else:
+            out.append(NameRecord(name=nm, source=t.source.value, label=t.label or label_of(t.source),
+                                  ref=t.ref, official=is_official(t.source)))
+    return tuple(out)
 
 
 def _primary_name(iid: str, nodes) -> str:
@@ -392,6 +416,7 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
                 seen_refs[rb.ref] = rid
         registry[iid] = RegistryItem(
             id=iid, name=name, kind=kind, variants=variants,
+            name_sources=name_records([name, *variants], [t for n in nodes for t in n.name_tuples]),
             section_ids=tuple(n.node_id for n in nodes),
             boundaries=tuple(bmap.values()),
             ref_ids=_ref_ids(nodes),
@@ -512,6 +537,8 @@ def add_waterbody_items(registry: dict[str, RegistryItem], names: dict[str, tupl
         registry[iid] = RegistryItem(
             id=iid, name=name, kind=kind,
             variants=tuple(sorted(set(nms))),
+            name_sources=tuple(NameRecord(name=nm, source=NameSource.gazette.value, label=label_of(NameSource.gazette),
+                                          official=True) for nm in dict.fromkeys([name, *sorted(set(nms))])),
             ref_ids=tuple(sorted(refs)),
         )
     return registry
@@ -536,9 +563,20 @@ def add_curated_wbk_items(registry: dict[str, RegistryItem], name_variants: list
             iid = f"wbk:{w}"
             if iid in registry:                          # a graph node / FWA-named item already owns it
                 continue
+            from pipeline.common.models import NameTuple
+            tuples = []
+            for n in e["names"]:
+                if not n.get("name"):
+                    continue
+                try:
+                    src = NameSource(n.get("source", "regulation"))
+                except ValueError:
+                    src = NameSource.alias
+                tuples.append(NameTuple(n["name"], src, label=n.get("source_label") or "", ref=n.get("source_ref") or ""))
             registry[iid] = RegistryItem(
                 id=iid, name=disp, kind="lake",
                 variants=tuple(sorted(set(names))),
+                name_sources=name_records([disp, *sorted(set(names))], tuples),
                 ref_ids=(f"wbk:{w}",),
             )
     return registry

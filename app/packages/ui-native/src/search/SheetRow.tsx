@@ -102,7 +102,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
   return (
     <Hit palette={palette} tone={palette.accent} name={h.name}
          status={rowStatus(h.item, statusIndex, today)}
-         alias={h.matchedAs !== null ? `also ${h.matchedAs}` : null}
+         alias={nameLine(h)}
          sub={waterRowSub(h.kind, h.near, r.dup)}
          strongSub={r.dup}
          selected={isSelected(pick, t)}
@@ -111,6 +111,17 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
          onPress={() => act({ t: "select", target: t })}
          onGo={() => onOpenWater(h.item)} />
   );
+}
+
+/**
+ * (T224) The line under a water's name: the alias the query matched and where that alias came from ("also Kilgard
+ * Creek · City of Abbotsford stream layer"); else, for a name that is not the official one, where IT came from
+ * ("name: OpenStreetMap"). Null: nothing to say.
+ */
+export function nameLine(h: { matchedAs: string | null; matchedSource?: string | null; nameSource?: string | null }):
+    string | null {
+  if (h.matchedAs !== null) return `also ${h.matchedAs}${h.matchedSource ? ` · ${h.matchedSource}` : ""}`;
+  return h.nameSource ? `name: ${h.nameSource}` : null;
 }
 
 const cap = (s: string) => (s ? s[0]!.toUpperCase() + s.slice(1) : s);

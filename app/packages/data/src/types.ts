@@ -354,6 +354,12 @@ export interface Water {
   name: string;
   kind: string;
   sections: readonly SectionId[];
+  /**
+   * (T224) Where the shown name came from when it is NOT the official (gazetted) one — "City of Abbotsford stream
+   * layer", "OpenStreetMap", "ECCC hydrometric station name". Absent / null: an official name, or a release without
+   * the `name_source` table.
+   */
+  nameSource?: string | null;
 }
 
 export interface NameHit {
@@ -363,6 +369,10 @@ export interface NameHit {
   kind: string;
   /** Set when the query matched an alias rather than the display name. */
   matchedAs: string | null;
+  /** (T224) Where `matchedAs` came from ("City of Abbotsford stream layer"); null: official or not known. */
+  matchedSource?: string | null;
+  /** (T224) Where the shown `name` came from when it is not the official one; null: official or not known. */
+  nameSource?: string | null;
   pieces: number;
   /**
    * How notable it is: the FWA stream magnitude of its biggest reach — how many headwaters
