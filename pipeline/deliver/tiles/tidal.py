@@ -12,6 +12,13 @@ registry and graph, so the tiles and the bundle's `tidal` table cannot disagree 
 THE AREA. The DFO polygon follows the coast; where the owner put a cut ABOVE the polygon's edge (the words'
 landmark: Capilano's CN bridge, Nimpkish's signs) the removed piece would sit in neither — so each removed
 piece's footprint (a line buffered `PIECE_BUFFER_M`, a polygon as it is), less the polygon, joins the layer.
+THE WHOLE POLYGON, FROM z9, NOT A COASTAL BAND (measured 2026-10-28, one-layer archives with the production
+flags): the polygon whole is 3.73 MB at z9-13 (+0.09 MB for z6-8, dropped: z9 is where the streams show); clipped
+to a 2 km coastal band it is 4.13 MB — its 601,582 vertices are nearly all shoreline, which the band keeps, and the
+band's own inner edge adds a line to every coastal tile where the open sea's solid tiles had deduplicated. As a
+GeoJSON overlay (like `bc_outside.geojson`) it would be 3.4 MB gzip / 13 MB raw whole (4.3 / 15 MB as the band),
+parsed whole on every map load — 0.7 MB gzip only at a 50 m simplification, not crisp at z15.
+
 Where the owner put a cut BELOW the polygon's edge (Cowichan: the mouth, the polygon 950 m up) the
 freshwater stream is drawn over the tidal fill; a tap on the stream is the stream's (it is asked first).
 """

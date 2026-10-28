@@ -218,7 +218,7 @@ ADMIN: tuple[LayerSpec, ...] = (
             "Point Ecological Reserve, both real permit-access water, were on nobody's map.",
     ),
     LayerSpec(
-        name="tidal_water", geometry="polygon", ladder="none", minzoom=6,
+        name="tidal_water", geometry="polygon", ladder="none", minzoom=9,
         attrs=("area_id", "name"),
         why="TIDAL WATER (T166, owner 2026-10-28): the DFO tidal-waters polygon (`tidal_boundary` in the build gpkg), "
             "plus the footprint of every stream piece taken off the map below an accepted tidal boundary where the "

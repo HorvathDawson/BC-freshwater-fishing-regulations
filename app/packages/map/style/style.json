@@ -247,8 +247,7 @@
       "type": "fill",
       "source": "atlas",
       "source-layer": "tidal_water",
-      "minzoom": 6,
-      "maxzoom": 13,
+      "minzoom": 9,
       "layout": {
         "visibility": "visible"
       }
@@ -258,8 +257,7 @@
       "type": "line",
       "source": "atlas",
       "source-layer": "tidal_water",
-      "minzoom": 6,
-      "maxzoom": 13,
+      "minzoom": 9,
       "layout": {
         "visibility": "visible"
       }
@@ -1348,8 +1346,7 @@
       "type": "symbol",
       "source": "atlas",
       "source-layer": "tidal_water",
-      "minzoom": 7,
-      "maxzoom": 13,
+      "minzoom": 9,
       "layout": {
         "visibility": "visible",
         "symbol-placement": "point",

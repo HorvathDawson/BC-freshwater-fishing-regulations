@@ -755,8 +755,7 @@
       "geometry": "polygon",
       "featureIdProperty": "area_id",
       "highlightable": false,
-      "minzoom": 6,
-      "maxzoom": 13,
+      "minzoom": 9,
       "colorModes": {
         "plain": {
           "label": "Tidal water",
@@ -795,7 +794,7 @@
       "label": {
         "field": "name",
         "placement": "point",
-        "minzoom": 7,
+        "minzoom": 9,
         "priority": 9,
         "font": [
           "Noto Sans Italic"

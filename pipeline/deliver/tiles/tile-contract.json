@@ -179,7 +179,7 @@
       "featureId": "area_id",
       "decorative": false,
       "mvtId": false,
-      "minzoom": 6,
+      "minzoom": 9,
       "maxzoom": 13,
       "ladder": "none",
       "flows": null
