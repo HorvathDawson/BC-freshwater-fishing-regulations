@@ -1,6 +1,6 @@
 # T226 — Bait-ban / fly-only marks: fade in with zoom
 
-Status: DONE — owner 2026-10-28: the T213 marks (ink edge under the status line, dashed for a bait ban) look very
+Status: DONE (6db63d0e) — owner 2026-10-28: the T213 marks (ink edge under the status line, dashed for a bait ban) look very
 aggressive zoomed out.
 
 ## Change
