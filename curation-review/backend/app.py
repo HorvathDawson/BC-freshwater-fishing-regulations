@@ -128,7 +128,9 @@ def get_entries(region: str | None = None, status: str | None = None,
     import preverify
     # the second method's verdict on the entry's split proposals (owner 2026-10-27), read only
     import awaiting_water
-    return [{**r, "pv": preverify.entry(r["entry_id"]), "t89": awaiting_water.flag(r["entry_id"])} for r in rows]
+    # owner 2026-10-28: the low-confidence cuts each entry's rules name (the "low-confidence cuts" queue)
+    return [{**r, "pv": preverify.entry(r["entry_id"]), "t89": awaiting_water.flag(r["entry_id"]),
+             "low_cuts": reuse.low_cuts_of(r["entry_id"]) or None} for r in rows]
 
 
 #: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only); T164: a DFO

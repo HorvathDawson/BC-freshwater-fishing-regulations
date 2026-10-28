@@ -109,6 +109,12 @@ export function QueueList({ rows, selected, loading, onSelect, facts }: Props) {
                 awaiting water{r.t89.has_lead ? " · lead" : ""}
               </span>
             )}
+            {r.low_cuts && (
+              <span className="chip-tag t89" data-testid="low-cut-badge"
+                title={`a guessed cut to check on the satellite map: ${r.low_cuts.join(", ")}`}>
+                low-confidence cut{r.low_cuts.length > 1 ? `s · ${r.low_cuts.length}` : ""}
+              </span>
+            )}
             {r.tier && <span className="badge tier" title="review tier (PLAN §3)">{r.tier}</span>}
             <span className="dim">r{r.region}</span>
             {r.page != null && <span className="dim">p.{r.page}</span>}

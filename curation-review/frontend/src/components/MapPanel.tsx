@@ -56,7 +56,13 @@ interface Props {
   fitNamed?: boolean;
   /** T191: while set, a map click is a NEW split point (lon, lat) for the extent-fix editor */
   onPick?: ((lnglat: [number, number]) => void) | null;
+  /** owner 2026-10-28: open on the satellite imagery (a low-confidence cut is checked against the ground);
+   *  the "satellite" button toggles it either way */
+  satellite?: boolean;
 }
+
+/** the same keyless Esri World Imagery the app uses (app/packages/map/style/style.json) */
+const IMAGERY_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false";
 
 /** a named split's colour: amber while it is still to verify (an open auto-proposal / "Verify:"),
  *  else dark — the label says which cut it is either way */
@@ -151,7 +157,12 @@ export function MapPanel({
   onSelectSplit, reloadKey = 0, focusItemId = null,
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
   preview = null, saved = null, suggested = null, fitSuggested = false, flyTo = null, onPick = null, selectZoom = 12, fitNamed = true,
+  satellite = false,
 }: Props) {
+  const [sat, setSat] = useState(satellite);
+  const satRef = useRef(sat);
+  satRef.current = sat;
+  useEffect(() => { if (satellite) setSat(true); }, [satellite]);
   const selectedRef = useRef(selectedSplitId);
   selectedRef.current = selectedSplitId;
   const picking = useRef(onPick);
@@ -241,6 +252,8 @@ export function MapPanel({
         sprite: "https://protomaps.github.io/basemaps-assets/sprites/v4/light",
         sources: {
           protomaps: { type: "vector", url: BASEMAP_URL, maxzoom: 15 },
+          imagery: { type: "raster", tiles: [IMAGERY_URL], tileSize: 256, maxzoom: 19,
+                     attribution: "Imagery © Esri, Maxar, Earthstar Geographics" },
           item: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           tribs: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           named: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
@@ -251,6 +264,8 @@ export function MapPanel({
         },
         layers: [
           ...layers("protomaps", LIGHT),
+          { id: "imagery", type: "raster", source: "imagery",
+            layout: { visibility: satRef.current ? "visible" : "none" } },
           // A lake/wetland item (Vedder Canal) is a POLYGON, not a line — drawn under the lines so a
           // stream threading it stays visible on top.
           { id: "item-fill", type: "fill", source: "item",
@@ -686,6 +701,12 @@ export function MapPanel({
     whenReady(m, run);
   }
 
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => { if (m.getLayer("imagery")) m.setLayoutProperty("imagery", "visibility", sat ? "visible" : "none"); });
+  }, [sat]);
+
   return (
     <div className="map-panel">
       <div className="map-bar">
@@ -783,6 +804,15 @@ export function MapPanel({
         >
           {shownReach ? "🎯 in / out" : "🌿 tributaries"}
           {tribBusy ? " …" : showTribs && nTribs != null ? ` (${nTribs})` : ""}
+        </button>
+        <button
+          className={`btn${sat ? " primary" : ""}`}
+          style={{ padding: "1px 8px" }}
+          data-testid="satellite-toggle"
+          title="satellite imagery (Esri World Imagery) under the lines and cuts"
+          onClick={() => setSat((v) => !v)}
+        >
+          🛰 satellite
         </button>
         <button
           className={`btn${measure ? " primary" : ""}`}

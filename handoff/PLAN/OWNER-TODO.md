@@ -16,9 +16,12 @@ with the default Claude uses until you answer). Newest first inside each section
   light and dark: trail and FSR names should show from z15. Then say "delete the old basemap", and Claude removes
   `data/generated/scratch/basemap-pre-T202-20260925.pmtiles`. Grid coarsening shipped too: the basemap is now 274.5 MB. Shots
   and numbers: `handoff/PLAN/tiles/T202-basemap-audit.md`.
-- **"Needs a split" follow-ups (2026-10-27, live in r-8b43fb267199):** (1) check on the map the three guessed `low` cuts —
-  Chapman lower falls + 100 m below (SCRD survey point, ~576 m below the power line), Deena "second bridge" (no bridge
-  mapped: a point 5 km above the tidal boundary), Mamin "third bridge" (Mamin Main road, 9.1 km above tidal); (2) Columbia
+- **"Needs a split" follow-ups (2026-10-27, live in r-8b43fb267199):** (1) the three guessed `low` cuts are in the
+  review app, **Low-confidence cuts** queue (top bar button; or http://127.0.0.1:5183/?lowcuts) — each entry opens on
+  satellite, flown to the cut, with why it is a guess: Chapman lower falls + 100 m below (SCRD survey point, ~576 m below
+  the power line), Deena "second bridge" (no bridge mapped: a point 5 km above the tidal boundary), Mamin "third bridge"
+  (Mamin Main road, 9.1 km above tidal). Right = Place y; wrong = Place n, "split misplaced", pick the right point on
+  the map in the extent fix. (2) Columbia
   r11 "from Mud Lake": FWA names no Mud Lake, so it runs Fairmont → Columbia Lake (the outlet wetland, wbk 329093907, is
   the likely Mud Lake) — say if Mud Lake is elsewhere; (3) Stave r1/r2 (Ruskin/Northrop spawning channels) stay notes:
   the channels have no sections in the atlas — adding them is Claude's work (T222), nothing for you here.
@@ -31,7 +34,8 @@ with the default Claude uses until you answer). Newest first inside each section
   "accept proposal" (a) pre-fills Place y + the cut; Record mark is the only write. Summary:
   handoff/PLAN/curation-review/tidal/tidal-candidates.md. (Capilano = source text and Cowichan = river mouth are
   already yours, 10-27, a86fddbf; 3 tidal marks recorded 10-28.)
-- **Cranberry canyon cuts:** the bottom is a DEM estimate (low). Check it on the map in the review tool.
+- **Cranberry canyon cuts:** the bottom is a DEM estimate (low). In the review app, **Low-confidence cuts** queue (with
+  White River and Chuckwalla River, the other `low` cuts).
 - **Map look (T64, T85, T113, T152; all built and live):** look at the map (wetland-heavy Fort Nelson and the
   Chilcotin without unnamed wetlands; z13–z18 bends on the Fraser/Vedder now overzoomed from z13; Vancouver's dense z13
   tiles; no OSM creeks under ours at z14+) and say if the look suffers — the basemap's OSM wetland fill is one style layer

@@ -54,7 +54,11 @@ export default function App() {
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   // T89: only the entries whose rules bind no water (owner Q45), listed with their leads
   const [t89Only, setT89Only] = useState(false);
-  const rows = useMemo(() => applyPv(t89Only ? allRows.filter((r) => r.t89) : allRows, pvf), [allRows, pvf, t89Only]);
+  // owner 2026-10-28: the LOW-CONFIDENCE CUTS queue — entries whose rules name a guessed cut (Chapman lower
+  // falls, Deena "second bridge", Mamin "third bridge", Cranberry canyon bottom …), each checked on its map
+  const [lowOnly, setLowOnly] = useState(() => new URLSearchParams(window.location.search).has("lowcuts"));
+  const rows = useMemo(() => applyPv(allRows.filter((r) => (!t89Only || r.t89) && (!lowOnly || r.low_cuts)), pvf),
+    [allRows, pvf, t89Only, lowOnly]);
   const [loadingRows, setLoadingRows] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<EntryDetailT | null>(null);
@@ -246,6 +250,11 @@ export default function App() {
             title="T212: the proposed tidal boundary on every ocean-entering stream (read only; accept = a mark)"
             onClick={toTidal}>
             Tidal
+          </button>
+          <button className={`btn small${lowOnly ? " primary" : ""}`} data-testid="low-cuts-tab"
+            title="owner 2026-10-28: entries whose rules name a guessed (low-confidence) cut — open one, check the cut on the satellite map; Place y confirms it, Place n + 'split misplaced' + a map pick moves it"
+            onClick={() => { setLowOnly((v) => !v); if (!lowOnly) { setVerify(""); setSeverity("all"); setTier(""); } }}>
+            Low-confidence cuts ({allRows.filter((r) => r.low_cuts).length})
           </button>
           <button className="btn small" data-testid="proposals-tab" title="T185: the edits your marks propose, waiting to apply (read only)"
             onClick={toProposals}>

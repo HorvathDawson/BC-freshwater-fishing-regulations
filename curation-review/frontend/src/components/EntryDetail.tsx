@@ -159,6 +159,15 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
       .catch(() => { if (live) setNamed(null); });
     return () => { live = false; };
   }, [entry, reloadKey]);
+  // owner 2026-10-28: a guessed cut opens on the satellite imagery, flown to — the low-confidence cuts queue
+  const lowCuts = useMemo(() => (named?.features ?? []).filter((f) => f.properties.confidence === "low"), [named]);
+  const lowCutsAll = useMemo(() => [
+    ...lowCuts.map((f) => ({ ...f.properties, coord: f.geometry.coordinates as [number, number] | null })),
+    ...(named?.unplaced ?? []).filter((u) => u.confidence === "low").map((u) => ({ ...u, coord: null })),
+  ], [lowCuts, named]);
+  useEffect(() => {
+    if (lowCuts.length) setFly((f) => ({ coord: lowCuts[0].geometry.coordinates, zoom: 15, n: (f?.n ?? 0) + 1 }));
+  }, [lowCuts]);
   const namedBy = useMemo(() => {
     const m: Record<string, NamedSplit & { why?: string; placed: boolean }> = {};
     for (const f of named?.features ?? []) m[f.properties.split_id] = { ...f.properties, placed: true };
@@ -439,6 +448,24 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
           </div>
 
           {view && <Prechecks view={view} />}
+          {lowCutsAll.length > 0 && (
+            <div className="section warn-row" data-testid="low-cuts-panel">
+              <h3>Low-confidence cut{lowCutsAll.length > 1 ? "s" : ""} to check on the satellite map</h3>
+              <ul>
+                {lowCutsAll.map((c) => (
+                  <li key={c.split_id}>
+                    <strong>{c.name}</strong>{" "}
+                    {c.coord ? (
+                      <button className="btn small" onClick={() => setFly((f) => ({ coord: c.coord!, zoom: 16, n: (f?.n ?? 0) + 1 }))}>show</button>
+                    ) : <span className="dim">not on the served map yet</span>}
+                    {c.note && <div className="dim">{c.note}</div>}
+                  </li>
+                ))}
+              </ul>
+              <div className="dim">Right: <b>Place y</b>. Wrong: <b>Place n</b>, problem “split misplaced”, and pick the
+                right point on the map in the extent fix (or say where in the note). Record mark is the only write.</div>
+            </div>
+          )}
           {detail.awaiting_water && <AwaitingWaterPanel aw={detail.awaiting_water} onShow={(c) => setFly((f) => ({ coord: c, n: (f?.n ?? 0) + 1 }))} />}
           <SplitSuggestions items={detail.split_suggestions ?? []} />
 
@@ -620,6 +647,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
             fitSuggested={!!detail.awaiting_water}
             flyTo={fly}
             onPick={pickCb.cb}
+            satellite={lowCuts.length > 0}
           />
           )}
         </div>

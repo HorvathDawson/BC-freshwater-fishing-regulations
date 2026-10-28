@@ -412,6 +412,8 @@ export interface MarkView {
 }
 
 export interface QueueRow {
+  /** owner 2026-10-28: the low-confidence cuts (splits.json `confidence: low`) the entry's rules name */
+  low_cuts?: string[] | null;
   /** T89: the entry's rules bind no water (owner Q45) — its awaiting-water record, summarised */
   t89?: { rules: number; has_lead: boolean } | null;
   /** owner 2026-10-27: the second method's verdict on the entry's split proposals */
@@ -592,6 +594,10 @@ export interface NamedSplit {
   to_verify: boolean;
   grade: "L" | "M" | "H" | null;
   item_id: string | null;
+  /** T207: the cut's confidence (splits.json's authored value, else the built boundary's) */
+  confidence?: "high" | "medium" | "low";
+  /** a low-confidence cut's splits.json `_note` (why it is a guess) */
+  note?: string;
 }
 
 export interface EntrySplits {

@@ -2058,6 +2058,8 @@ def entry_split_points(entry_id: str) -> dict | None:
                  "name": f"{water}: {label}" if water else label, **by,
                  "to_verify": split_needs_verify(sp) if sp else False,
                  "grade": split_grade(sp) if sp else None, "item_id": on_item}
+        if conf == LOW_CUT and sp.get("_note"):      # owner 2026-10-28: why the cut is a guess, on screen
+            props["note"] = sp["_note"]
         geom = None
         if sid in meta:                               # a cut on a line: its point on the section
             f = _geo(_split_point(sid), "named_split", {})
@@ -2076,6 +2078,36 @@ def entry_split_points(entry_id: str) -> dict | None:
             continue
         feats.append({"type": "Feature", "geometry": geom, "properties": props})
     return {"type": "FeatureCollection", "features": feats, "unplaced": unplaced}
+
+
+#: THE LOW-CONFIDENCE CUTS QUEUE (owner 2026-10-28): the owner cannot open links, so a cut placed by a
+#: guess (Chapman lower falls, Deena "second bridge", Mamin "third bridge", the Cranberry canyon bottom)
+#: is checked where Cranberry's is: on the map of each entry whose rules name it. Place y confirms it;
+#: Place n + "split misplaced" with the extent fix's map pick moves it (in the mark, as ever).
+LOW_CUT = "low"
+
+
+def low_cuts_of(entry_id: str) -> list[str]:
+    """The low-confidence cuts (splits.json `confidence: low`) the entry's extents name, in order."""
+    return _low_cut_index(_stamp((SPLITS_JSON_PATH, *sorted(ENTRIES_DIR.glob("region-*.json"))))) \
+        .get(entry_id, [])
+
+
+@lru_cache(maxsize=1)
+def _low_cut_index(_key: tuple) -> dict[str, list[str]]:
+    low = {sid for sid, (_w, sp) in _split_records().items() if sp.get("confidence") == LOW_CUT}
+    out: dict[str, list[str]] = {}
+    if not low:
+        return out
+    for _r, e in _all_entries():
+        got: list[str] = []
+        for _path, ex, _role in iter_extents(e):
+            for sid in ex.get("splits") or ():
+                if sid in low and sid not in got:
+                    got.append(sid)
+        if got:
+            out[e["entry_id"]] = got
+    return out
 
 
 # --------------------------------------------------------------------------- #
