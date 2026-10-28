@@ -55,6 +55,13 @@ ticket FINDS them all and proposes them, with confidence and sources, for the ow
   6 m), Fraser CPR bridge at Mission (10 m), Coquitlam Mary Hill Bypass (10 m), Pitt CPR bridge (18 m), Tlell sign
   (0 m). Turning a `split`-anchored NewSplit into an alias (not a cut) is T185's job.
 
+## Owner 2026-10-28: the tidal piece is removed (T98 folded in)
+Accepted tidal splits do more than label the mouth: the piece BELOW each one is removed from the freshwater map (no
+freshwater rules; Fraser below Mission included). Built as T166 step 5 (walk tributaries first, then drop the piece).
+Tributary check against these candidates: `handoff/PLAN/curation-review/tidal/tributary-impact.md` — 29 rules reach a
+tidal piece through their trib walk; only 2 trib sections lie wholly below a cut; the owner's belief holds if the walk
+runs on the full network. Review the Kitimat candidate (7137 m) before accepting: kitimat_river.r1 lies wholly below it.
+
 ## Follow-up (2026-10-27): where the owner edited, and what is left for him
 - Tool: `python -m pipeline.tools.audit.tidal_triage edits --dfo-gpkg <DFO_TIDAL_BOUNDARY.gpkg from R2> --gpkg
   <bc_fisheries_data.gpkg>`, then `... web <findings.json ...> --basemap <bc.pmtiles>`, then `... triage` (read only).

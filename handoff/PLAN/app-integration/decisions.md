@@ -1469,3 +1469,15 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   dropping small parts at z11–12) moves the private-land edge by pixels or delays lots a zoom. Not done: brotli, the
   uncompressed native archive.
 - lake split later (owner 2026-10-28): a lake entry whose ONLY real issue is an undrawn part / unresolved lake area (needs a lake split) is severity `later`, below `none`, hidden from the review queue and its counts unless the severity filter is "all" or "lake split later" (`severity.py`, `LAKE_LATER_CODES`); with any other high/medium reason it keeps its normal priority. The app shows such rules by T208 ("Outlet area only (see map N)", else "Where: <part words>"); lake splits themselves stay deferred.
+
+## 2026-10-28 — tidal water (owner; T98 folded into T212/T166)
+- **T98 is superseded** by the tidal-split work (T212 proposals → T185/T166 cuts). Q42 answered; RULINGS C-2/K8 noted.
+- **The tidal piece is removed:** when the tidal splits land, the piece of a stream below its tidal split is REMOVED
+  from the freshwater map — no freshwater rules there (K7 wins over K8), the Fraser below the Mission CPR bridge
+  included. Built as T166 step 5; T212 notes it.
+- **Tributaries:** the owner believes no tributary rule is actually affected. Checked against the T212 candidates and
+  the live reach run (`handoff/PLAN/curation-review/tidal/tributary-impact.md`): true provided the tributary walk runs
+  on the full network BEFORE the tidal pieces are dropped, and a stream entering tidal water stays its river's
+  tributary — then only 2 tributary-walk sections (both mouth slivers) lie wholly below a cut. Walking the
+  freshwater-only graph instead would cut 29 rules off whole tributary trees. Kitimat r1 lies wholly below its proposed
+  cut: review that candidate before accepting.

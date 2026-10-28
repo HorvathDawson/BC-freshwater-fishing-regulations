@@ -219,7 +219,7 @@ Never cite a PDF page without writing "PDF p.".
 | K5 | A lake divided into internal closure areas (a lake split) is DEFERRED, never curated as a stream cut. | 2026-08 | Shuswap Lake's p.28 maps A/B/C. | 28 | Curation process (the review app's `deferred` status). ◐ |
 | K6 | A braid's surviving channel is chosen by principle: FWA's mainstem first, then the highest magnitude and order, then length. Never by id order. | 2026-10-06 (B8) | — | — | `nests.SURVIVOR_BY_PRINCIPLE`; `test_prune.py` |
 | K7 | TIDAL water is a different regulation system. It carries no provincial rules or licences, only the note "tidal water: see the federal (DFO) tidal waters regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence is required". | 2026-10-06 (D12) | Nitinat Lake is tidal and is the only tidal row. | 21 | `licence.TIDAL_IS_DOCUMENTED`; `test_answers_tidal.py`; `test_placement_rulings.py::test_nitinat_lake_is_tidal_and_the_only_tidal_row` ⚡ see C-2 |
-| K8 | The Fraser below the Mission CPR bridge is approved AS BUILT (Region 2 freshwater zone rules) until tidal water is specced. | 2026-10-07 | A steelhead at New Westminster on Sep 1 reads "release". | 21, 23 | **⚠ NOT ENFORCED** as tidal: the tidal spec is ON HOLD. ⚡ see C-2 |
+| K8 | The Fraser below the Mission CPR bridge is approved AS BUILT (Region 2 freshwater zone rules) until tidal water is specced. | 2026-10-07 | A steelhead at New Westminster on Sep 1 reads "release". | 21, 23 | **⚠ NOT ENFORCED** as tidal. Owner 2026-10-28: K8 retires when the T212/T166 tidal cuts land — the piece below each tidal split (Fraser below Mission included) is REMOVED from the freshwater map (T98 folded into T212/T166). ⚡ see C-2 |
 | K9 | An unnamed part's water kind is the graph node's (`reach.water_kind.kind_of`), never a guess: "we definitely know this from the build". | 2026-10-10 (S1) | An unnamed pond on a river reads as a lake or stream from its node. | — | `read.section_kind`; `unnamed_part.kind` |
 
 ## 11. Extents and boundaries (E)
@@ -325,6 +325,11 @@ Never cite a PDF page without writing "PDF p.".
   freshwater rules there "as built" until the tidal spec, which is ON HOLD. The four user testers
   hit this on the default Fraser part (TRIAGE item 1). The early memory note "not wanted:
   tidal-boundary rules (geometry handles)" also predates K7.
+  **Owner 2026-10-28 (resolves C-2 once built):** K7 wins. When the T212 tidal splits land (built by T166 step 5), the
+  piece of a stream below its tidal split is removed from the freshwater map: no freshwater rules there, the Fraser
+  below Mission included; K8 then retires. Tributaries: the trib walk runs on the full network before the tidal piece
+  is dropped, and a stream entering tidal water stays its river's tributary (check:
+  handoff/PLAN/curation-review/tidal/tributary-impact.md). T98 is folded into T212/T166.
 - **C-3. Exact size bounds and the display (Q13): ACCEPTED 2026-10-08.** "None over 40 cm" against a
   closed "40 cm or more" band is an accepted ambiguity: the user says no one can measure a fish that
   precisely. The display wording stays as it is.
@@ -348,7 +353,7 @@ Never cite a PDF page without writing "PDF p.".
 ## 16. Not enforced, or held only by curated data
 
 - **⚠ NOT ENFORCED:**
-  - K8, Fraser below Mission as tidal (ticket T98).
+  - K8, Fraser below Mission as tidal (until T166 step 5 removes the tidal pieces; T98 folded into T212/T166 2026-10-28).
 - **◐ PARTIAL, curated data with no test pinning it:**
   - K5 (ticket T100).
 

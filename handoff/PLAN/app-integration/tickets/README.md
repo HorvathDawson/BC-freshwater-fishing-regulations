@@ -135,14 +135,14 @@ use that as the sole source of future work."
 | T88 | iOS build | OPEN | — | all (owner timing) |
 | T89 | rules that bind no water (10 unmatched + 3 no extent) | DONE | 010b5c28, 1ea79ca0, 894854c0, d47a38cd, 5f1eec34 | 6 rows / 21 rules await a located water: proposals in curation-review/t89-awaiting-water.json (Q45) |
 | T90 | Chehalis closure reaches Harrison side channels | DONE | ca9aa451, 9eb7d92f, 9d305ebf, 8fa32076, c8c72d6f | live; T102 part B |
-| T91 | Atnarko campsite split location | OPEN | — | all (owner) |
+| T91 | Atnarko campsite split location | DONE | c357fcdb 94599d8b | closed under the lake-boundary rule: campsite end = owner pin; Tenas Lake outlet @630.47 (edge facing the extent); 96/96 ambiguous_cut picks nearest the other end, nothing moved |
 | T92 | gear omission check | DONE | de0581e1, b931f93d, 750ba2ad, 9c78ef20 | — |
 | T93 | gauge ↔ section relationship table (policy) | OPEN | — | all |
 | T94 | gauge promote: `--only`, demotion guard | DONE | 969ec8fe, 28f03711, 01bf3873, 6753fd6f | first real match+promote dry-run is the owner's |
 | T95 | salmon (DFO) regulations: the plan | DROPPED | — | plan exists (pipeline/regs/dfo_salmon/PLAN.md); work → T164 |
 | T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | DONE | 3e841e31, 3760fd5f, f0228e09, 15723b83 | — |
 | T97 | curation review phase 1 (marks that last) + umbrella | PARTIAL | 303f6d9d, 15c04705, 5717c9fb | phase 1 done; phases 2–5 → T133–T136 |
-| T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
+| T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | DROPPED | — | superseded: folded into T212/T166 (owner 2026-10-28): the tidal piece is removed from the freshwater map |
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | DONE | f8742374, 53d57288, f3bc2b4b, 857bed9a | — |
 | T100 | lakes divided into closure areas: whole lake + area caveat citing the book's map (Q43 default) | DONE | f72b57d0, 8710bdd2, 1cccc29e, da79ce4d | deliver + fixture re-cut |
 | T101 | gauges walk through slough/canal polygons + Q44 side-channel rule | DONE | 74e10c03, 2ffbae66, 92c188b4, a2fae3cf, f99f2cd8, bb632aa9, 22835b2f | Q83, Q84 (defaults built) |
@@ -203,14 +203,14 @@ use that as the sole source of future work."
 | T156 | test hygiene: hydat sandbox stub release; temp gate fixtures outside the app tree | DONE | 9c6cbd46, 7714418a, 23cee506 | tests; delivered r-9cf1fef180a8 |
 | T157 | Conditions follow-ups: switcher states, no record to compare, ELF caveat on map, handover drawn | DONE | 9c6cbd46, 4b82d910, 7714418a, 2c845cf2 | app; delivered r-9cf1fef180a8 |
 | T158 | depth contours vs no-access fills: contours held off lake fills, deep navy | DONE | 9c6cbd46, 7714418a, 3d5f19de | app style; delivered r-9cf1fef180a8 |
-| T159 | gauge auto-promote checks every name the matcher accepted (Arrow Reservoir / Lower Arrow Lake) | OPEN | — | ★ owner runs promote |
+| T159 | gauge auto-promote checks every name the matcher accepted (Arrow Reservoir / Lower Arrow Lake) | PARTIAL | ce1cf83c | matched_name + promote check done; 8 stations proposed (match.t159.json); ★ owner runs promote --only |
 | T160 | 08HB074's standing Comox Lake backwater gets its own Level sentence | DONE | 52462f99, fd99643c | deliver; delivered r-9cf1fef180a8 |
 | T161 | the pipeline ships each fish's leading origin (rows 33); mainRes only reads it | DONE | 23be8123, d0bc72fd, 3bf1e1e1, 3e89b917 | deliver + fixture re-cut (rows 33); delivered r-9cf1fef180a8 |
 | T162 | salmon/steelhead run timing: PSF + DFO parsed to `timing.json`; integration plan (handoff/PLAN/runtiming/PLAN.md) | PARTIAL | 24879b00 | app integration → T199 (owner said go 2026-10-25; size gate gone with T182); Q144 open |
 | T163 | McKinley Creek r1x (reported catch-and-release on the upstream pond) | DROPPED | — | not a defect: r1x is the spring-closure lift (RULINGS L13), whole by design; r1 (the C&R) already stops at the lake |
 | T164 | salmon (DFO): finish the dossier, place the 96+7 splits, review the extents, fetch + place current quotas | OPEN | — | umbrella over T95/T132; DFO review mode built in the local app (queue, map, anchors, new-split proposals in the mark); ★ owner reviews the 346 extents + confirms splits |
 | T165 | no public access: streams dotted grey (owner), warning amber only in the page banner; own keeps amber | DONE | f438d417, bfd82ad6 | app style |
-| T166 | tidal areas cut: DFO tidal polygon → one clean cut across each stream (fix partial-channel blobs) | OPEN | — | after cleanup; atlas rebuild; ★ confirm cuts |
+| T166 | tidal areas cut: DFO tidal polygon → one clean cut across each stream (fix partial-channel blobs) | OPEN | — | after cleanup; atlas rebuild; ★ confirm cuts; then REMOVE the tidal piece (T98 folded in, 10-28) |
 | T167 | More tab: simpler details, references on their own page, data freshness compact on the main tab, a real desktop layout | DONE | 3af0dbaa, de06c3ae | app; tiles date needs a manifest stamp (follow-up) |
 | T168 | "N gauges in view": split gauges on this water from donor gauges; not-reporting gauges under a closed drop-down (owner 2026-10-24) | DONE | bfee90d9, fcddee67 | app |
 | T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | DONE | 89b8e1a1, d42f0741 | delivered r-46595c88e76e: Nicomen all 9 sections one panel (4740) |
@@ -256,7 +256,7 @@ use that as the sole source of future work."
 | T209 | vessel restrictions in the app: boats line (electric only, no powered boats, power cap, speed, towing, no vessels) on the water page + map sheet | DONE | ffe7e7e2 | boats line on the page (6 kinds, golden test); electric_only kW still the owner's call |
 | T210 | DFO review mode: proposed splits shared along the river, Place y without a new split, simpler new-split UI | DONE | 0805e479 | proposals deduped across all marks (2 distinct; 1 duplicate pair folded), server reuses ids, Place y with existing-cut fix, 3-step new-split UI; owner tries it |
 | T211 | DFO salmon regs in the app (options), the DFO feed plan, historic extent matching, new-location alert | DONE | 491c9089, 4b18a372 | card + toggle; live feed `regs.dfo_salmon.live` (offline = last capture), new-location alert → DFO mode via `live queue`; part 3 moved to the DFO-locations lane; owner: feed cron + R2 sync; 10-28: region header notes (feed + release, card "Region rules (DFO)", scoped waters via curated bindings), gear marks on the Salmon map + card, `salmon` split per bundle region (b16b7a88, 9aa0ad11) |
-| T212 | tidal boundaries: a tidal split on every ocean-entering stream (research + proposals, no data change yet) | PARTIAL | — | 1,163 candidates (916/966 named ocean streams met by the polygon) in handoff/PLAN/curation-review/tidal/; curation review Tidal tab, accept = a mark; owner reviews, then T185/T166 build the cuts |
+| T212 | tidal boundaries: a tidal split on every ocean-entering stream (research + proposals, no data change yet) | PARTIAL | — | 1,163 candidates (916/966 named ocean streams met by the polygon) in handoff/PLAN/curation-review/tidal/; curation review Tidal tab, accept = a mark; owner reviews, then T185/T166 build the cuts and remove the tidal piece (T98 folded in, 10-28); trib check: tidal/tributary-impact.md |
 | T213 | paint bait-ban and fly-fishing-only waters distinctly from general restrictions | DONE | 74caddda, 898fd9e6, 0c203100 | release file `method` (308 kB gz, strip projection); 10-28 rework: marks on Standard (ink edge under the status line: solid fly only, dashed bait ban; lake ring), Bait & fly mode removed; Standard / Salmon under Layers; day strip in the corner; shots T213-shots/gear-*, variants/ |
 | T214 | app polish: quota sub-cap wording names its total, desktop no-swipe + Esc back, clearer part highlight, steady up/downstream buttons | DONE | 555e7ee9 33775c57 | items 1, 2, 4 (subcap lead + golden amendment, desktop no-swipe + Esc Back, reserved exit slot); item 3 part halo at full outline, others dim 0.25 (web light + dark) |
 | T215 | open the PDF on the page with the entry's section highlighted | DONE | 3e5ef46f 15d19068 7c513588 | full PDF + highlight annotation, web verified (Cowichan p.15); phone unverified; owner uploads the release to R2 |
@@ -280,14 +280,14 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
    Unification audit 2026-10-22 (wrong answers today): T103, T104, T106, T109 step 1, T116 first (cheap, no binding
    diff); then T105, T107, T108, T110, T120, T114; T113 rides the tiles window (band 5); T111 + T115 ride the reach
    rerun with T102, each with its own reviewed binding diff.
-3. **Waiting on the owner:** T101 (Q44), T55 (candidate marks), T67 (braid Q1/Q2/Q4), T97 (curation plan), T91, T93.
+3. **Waiting on the owner:** T101 (Q44), T55 (candidate marks), T67 (braid Q1/Q2/Q4), T97 (curation plan), T93.
 4. **Cleanup, once features settle:** T60 (consistency auditors) → T70 leftover → T61 → T62 → T63; T72 and T73 in
    this band (T73 alone, not concurrent with T61's normaliser).
    Unification tickets (latent or plausible): T117 (after T102 part B), T118 (with T108), T112 → T119, T121, T122,
    T123, T124, T125.
 5. **Tiles window (one tile build):** T64 + T85, then T75; T129 (web request budget) alongside.
 6. **Native and shipping:** T50 (alone, heavy) → T74 → T77 ★ → T86 ★ → T88 ★. T65 (determinism, heavy) in a quiet gap.
-7. **Last:** T95 ★, T98 ★ (POSTPONED), T87 ★ (sign-off walk, then delete app/design).
+7. **Last:** T95 ★, T87 ★ (sign-off walk, then delete app/design). T98 is folded into T212/T166.
 8. **Last band (owner 2026-10-27: start with T202 tile sizes + the parked basemap z13):** T199 run timing, T200 stocked lakes, T201 bathymetry / depth maps (then T218 digitised lakes, T219 scan tracing), T202 tile size optimizations.
 
 ## Owner questions
@@ -304,9 +304,8 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q26 | T86 | R2 bucket, contact address (domain decided: canifishthis.ca, .com redirects; name "Can I Fish This?") (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
 | Q27 | T87 | Sign-off: the app looks right; delete app/design | hold until the owner walks it | owner |
 | Q28 | T88 | When to build iOS | after the Android ship | owner |
-| Q30 | T91 | Where the Atnarko campsite boundary signs are | keep the current binding until confirmed | owner |
 | Q31 | T93 | Gauge representativeness policy | the current drainage gate stays default | owner |
-| Q42 | T98 | Lift the tidal-spec hold? | K8 as built until lifted | owner |
+| Q42 | T98 | Lift the tidal-spec hold? | ANSWERED 2026-10-28: tidal pieces are removed from the freshwater map with the T212/T166 cuts (decisions.md) | owner |
 | Q47 | T78 | Tidal sentence: closed "Notes and sources" fold, or open under the Level headline? | in the fold | owner |
 | Q62 | T103 | Slot size wording: plain says "none over 60 cm, under 90 cm" where the book says "none between 60 cm and 90 cm" — reword? | keep the existing wording rule (RULINGS P37) | owner |
 | Q63 | T103 | "Keep only lake trout, none over …" can read as "only lake trout may be kept" — reword the house style? | unchanged | owner |

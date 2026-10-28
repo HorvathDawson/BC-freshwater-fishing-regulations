@@ -58,7 +58,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 
 - **Readings of the book (a wrong call misleads anglers):** Q124 a river's rules on unnamed widenings (456 polygons) ·
   Q87 Beattie Lake bull trout beside or inside the trout quota · Q140 no-access banner on a part's open stretch ·
-  Q42 tidal Fraser below Mission (postponed) · Q62, Q63 size-slot and "keep only" wording.
+  Q62, Q63 size-slot and "keep only" wording.
 - **Which gauge speaks (your policy):** Q31 the gauge rule · Q103 diversion
   gauges stop at their canal (24 sections lose every gauge) · Q113 cuts for 38 silent stations (atlas rebuild).
 - **How it looks (taste):** Q130 each model's line under Change · Q132 day chips may still use ELF · Q79 "river" vs "stream" on the page ·
@@ -84,10 +84,18 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   the first Salmon press, as you decided 10-28).
 - **Scope and big rebuilds:** Q10 imagery corridor (offline corridor + pools go/no-go; online Esri is settled).
 - **Things only you can do or know:** Q4 slough marks (review page) · Q126 were you
-  on Level? · Q30 Atnarko campsite signs · Q9 phone testing · Q26 hosting/app name ·
+  on Level? · Q9 phone testing · Q26 hosting/app name ·
   Q28 iOS timing · Q27 sign-off walk.
 
 ## Things only you can run or provide
+- **T159 gauge promote (2026-10-28):** 8 stations now pass the name check (matcher's `matched_name`). Read the dry-run,
+  drop any you disagree with (look at 08JA027: code moves up one level; 08MH079: 442 m from its stream), then run:
+  ```
+  python -m pipeline.gauges.generate.promote --matches data/generated/gauges/match.t159.json --only 08GB008 08HA050 08HA051 08HA057 08JA027 08MH079 08MH080 08MH100 --dry-run
+  python -m pipeline.gauges.generate.promote --matches data/generated/gauges/match.t159.json --only 08GB008 08HA050 08HA051 08HA057 08JA027 08MH079 08MH080 08MH100
+  ```
+  No demotions expected (add `--accept-demotions` only after reading the dry-run). Commit
+  `data/curated/gauges/{matches,candidates}.json`. Table: tickets/T159-station-name-promote.md.
 
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
 - **R2 upload** of a new release and of the gauge feed, with your credentials:

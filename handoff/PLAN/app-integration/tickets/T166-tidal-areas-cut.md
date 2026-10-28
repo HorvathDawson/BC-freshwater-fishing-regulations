@@ -5,7 +5,7 @@ Status: OPEN — after the cleanup band.
 Source: owner 2026-10-23: "another ticket to add is doing a tidal areas cut. this will be a little bit tricky because our
 dfo tidal layer was cut mostly to the right spot but has a lot of areas where it cuts away only some of the stream
 (doesnt follow it very well) and we need to fix the blobs to work around that. this is a good after cleanup task".
-Related: T98 (the tidal RULES spec, RULINGS K7/K8/C-2, on hold — owner Q42), T78 (tidal gauges).
+Related: T98 (the tidal RULES spec — SUPERSEDED 2026-10-28, folded in here as step 5), T78 (tidal gauges).
 
 ## The problem
 The DFO tidal boundary (data/source/bc_fisheries_data.gpkg layer `tidal_boundary`, one province-wide polygon; read by
@@ -41,12 +41,19 @@ location." So the census is driven by NAMED streams:
    `tidal`, with the evidence and a "Verify: proposed (tidal)" stamp so each lands in the review tool's S0 queue for the
    owner), plus a `tidal` flag on the sections below it. A map artifact (like the slough page) to check the proposals,
    showing the DFO polygon, the proposed cut and the reassigned blobs.
-4. Atlas rebuild with the cuts → binding diff (expect only section splits at the cuts) → tiles in the same vintage. No
-   rule changes until T98's spec is un-held: the flag ships, the page wording stays K8 until then.
+4. Atlas rebuild with the cuts → binding diff (expect only section splits at the cuts) → tiles in the same vintage.
+5. **Remove the tidal piece (owner 2026-10-28; T98 folded in):** every section below an accepted tidal cut is REMOVED
+   from the freshwater map — no freshwater rules, licences or parts there (the Fraser below the Mission CPR bridge
+   included; RULINGS K7 applies, K8 retires, C-2 closes). Order matters (tributary-impact.md): expand tributaries on the
+   full network FIRST, then drop the tidal pieces — never walk the freshwater-only graph (else 29 rules lose tributary
+   trees: Skeena r1 130 lower-estuary tribs, Nass r1 252, Bella Coola 394 …). A stream entering a tidal piece stays
+   its river's tributary. Binding diff must show only (a) tidal-piece sections dropped, (b) straddling sections split;
+   flag kitimat_river.r1 (its whole extent lies below the proposed Kitimat cut — review that candidate first).
+   What the page/tap shows on tidal water (K7's note, tidal gauges T78) rides with this step.
 
 ## Acceptance
 Every NAMED stream near the tidal boundary has a reviewed cut (or a stated reason it has none); every DFO locator
 that implies a tidal limit is matched to a cut or listed; unnamed streams default to the mouth; every crossing classified; no river split lengthwise; every proposed cut reviewed (S0); a test pins a sample of crossings
 (Fraser at Mission, Squamish, Skeena, Cowichan) to one cut each.
 
-Depends: cleanup band done; T98 for the rules. Size: M–L (atlas rebuild). Owner: confirm the proposed cuts.
+Depends: cleanup band done; T212 accepted marks. Size: M–L (atlas rebuild). Owner: confirm the proposed cuts.
