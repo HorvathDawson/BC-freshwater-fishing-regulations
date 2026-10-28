@@ -247,6 +247,7 @@ def _label(loc) -> str:
 def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: Iterable[dict],
           sid_of: Mapping[str, int], item_sections: Optional[Mapping[str, Iterable[int]]] = None,
           headers: Optional[Mapping[str, Sequence[dict]]] = None,
+          scope_headers: Optional[Mapping[str, Sequence[dict]]] = None,
           upstream: Optional[Callable[[Sequence[str]], Iterable[str]]] = None) -> Tuple[dict, List[Tuple[int, int]]]:
     """(payload, [(sid, chain)] sorted by sid). `entry_files`: slug → `entries.EntryFile`; `feeds`: slug → the typed
     feed (`typed/region-<slug>.json`); `placed`: the reach run's rows; `sid_of`: section id → handle.
@@ -270,7 +271,9 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         feed = feeds.get(slug) or {}
         by_fp = {l["fingerprint"]: l["rules"] for l in feed.get("locators") or []}
         notes = list((headers or {}).get(slug) or [])
-        sc, unresolved = H.resolve(notes, ef, upstream)
+        # the scopes are resolved for the release's notes AND the newest page's (`scope_headers`): the feed's notes
+        # name waters by these keys, so a page newer than the release's rules still finds its waters here
+        sc, unresolved = H.resolve([*notes, *((scope_headers or {}).get(slug) or [])], ef, upstream)
         regions[slug] = {"name": getattr(ef, "region_name", slug), "asof": feed.get("date_modified"),
                          "url": PAGE_URL.format(slug=slug), "notes": notes,
                          **({"unresolved": unresolved} if unresolved else {})}
@@ -411,6 +414,19 @@ def load_headers(feeds: Mapping[str, dict], cache_dir: Optional[Path] = None) ->
                 break
         else:
             print(f"  salmon: region {slug}: no cached page dated {want} — the release carries no header notes for it")
+    return out
+
+
+def load_current_headers(slugs: Iterable[str], cache_dir: Optional[Path] = None) -> Dict[str, List[dict]]:
+    """The newest cached page's header notes per region (`cache/dfo_salmon/raw`): what the live feed reads today — used
+    for the scopes only, so the feed's water notes find their items in this release."""
+    from pipeline.regs.dfo_salmon import header as H
+    from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE
+    out: Dict[str, List[dict]] = {}
+    for slug in sorted(slugs):
+        p = Path(cache_dir or DEFAULT_CACHE) / "raw" / f"region{slug}-eng.html"
+        if p.exists():
+            out[slug] = H.parse_header(p.read_text(encoding="utf-8", errors="replace"), slug)
     return out
 
 

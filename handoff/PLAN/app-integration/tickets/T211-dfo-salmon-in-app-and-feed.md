@@ -99,3 +99,21 @@ that has rules carries it (chain `u`): map `check`, card leads "Salmon rules on 
 check DFO" + DFO link, rows read Check DFO. 100 waters / 2,466 sections today (was open 1,188, closed 1,118, release
 160); release still shown on 43,800 sections / 130 waters (area defaults, genuine). Left: Sheldens Creek's undrawn
 place reaches no section (its water has no item sections); feed-only `unplaced.json` places carry no item ids yet.
+
+## Built (2026-10-28, owner: region headers, gear on Salmon, the file split) — b16b7a88
+- **Region header** (`pipeline/regs/dfo_salmon/header.py`): every region page's header → typed notes carrying DFO's
+  words (daylight, facility 100 m, daily / possession / annual / monthly, min_size, measure, adult / jack, closed,
+  bait_ban, other — nothing dropped). Scoped notes bind ONLY through the curated DFO water bindings (exact name, then the
+  "(…)" qualifier dropped when that is one water; "A/B River" as A + B only when each binds exactly one); a watershed
+  adds every item upstream (`item_down`): Squamish → 137 items. Today every scoped name resolves (R1 bait-ban exceptions,
+  R2 Squamish / Fraser / Chehalis / Chilliwack-Vedder / Capilano, R5B Bella Coola/Atnarko); an unresolved one is
+  listed on the feed region (`unresolved`) and told to the owner. Feed: `regions[slug].notes` + `header` digest; a
+  change of words notifies once; a held / failed page keeps the last header. Release: notes from the cached page of the
+  rules' own date + `scopes`; the feed wins (`withSalmonFeed`). App `salmonNotes` == pipeline `notes_for` (golden).
+- **Card:** "Region rules (DFO) · Region N name" block; a scoped note on its species' open row, else "On this water
+  (DFO)"; a sizes line on open rows (min size, adult length — a water's own 62 cm beats the region's 50); the provincial
+  bait ban / fly only of the day ("B.C. rules, also for salmon").
+- **Salmon map:** the T213 gear edges + legend rows, hidden where the salmon day closes the section.
+- **Split:** `salmon/2` head (payload) + `salmon-<bundle region>` slices (+ `salmon-x`: sections in no region); the card
+  reads head + its part's akey regions' slices, the map all, native installs all. Per-file gates (head 60 kB, slices
+  320 kB); taps priced salmon + the largest slice.

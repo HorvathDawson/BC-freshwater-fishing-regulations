@@ -185,7 +185,9 @@ def parse_header(html: str, slug: str) -> List[dict]:
     """The page's header notes, in page order, each with a stable id (`<slug>:<kind>:<hash of its words>`)."""
     notes: List[dict] = []
     seen = set()
-    for text, lead, has_kids in _items(html):
+    items = _items(html)
+    for text, lead, has_kids in items:
+        raw = text
         # DFO's lead-in ("You must be aware of these measurements:") is no rule; a sentence before it is
         text = _RE_LEADIN.sub("", text).strip()
         if not text:
@@ -198,7 +200,9 @@ def parse_header(html: str, slug: str) -> List[dict]:
             head = re.split(r"\s+except\b", text, maxsplit=1, flags=re.I)[0]
             n = classify(head) if "adult" in text.lower() else None
             if n:
-                n["t"] = text.rstrip(":")
+                # the region-wide note quotes the whole definition, its exceptions listed as DFO prints them
+                kids = [t.rstrip(". ") for t, l, _ in items if l == raw]
+                n["t"] = f"{text.rstrip(':')}: {'; '.join(kids)}." if kids else text.rstrip(":")
         else:
             n = classify(text, lead if lead and re.search(r"adult (chinook|coho)|bait ban", lead, re.I) else None)
         if not n:

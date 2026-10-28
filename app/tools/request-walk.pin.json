@@ -12,6 +12,7 @@
  ],
  "visit | search: open the water (R3)": [
   "salmon",
+  "salmon-3",
   "water"
  ],
  "tap named | first paint": [
@@ -23,6 +24,7 @@
  "tap named | map tap: a named water (R2)": [
   "access",
   "salmon",
+  "salmon-2",
   "water"
  ],
  "tap unnamed | first paint": [
@@ -36,6 +38,7 @@
   "down",
   "regs-sid",
   "salmon",
+  "salmon-2",
   "water"
  ],
  "conditions | first paint": [
@@ -62,9 +65,11 @@
   "feed:index",
   "geo",
   "manifest",
+  "method",
   "paint",
   "regs-1",
   "salmon",
+  "salmon-1",
   "wasm",
   "water"
  ],
@@ -73,9 +78,11 @@
   "feed:index",
   "geo",
   "manifest",
+  "method",
   "paint",
   "regs-2",
   "salmon",
+  "salmon-2",
   "wasm",
   "water"
  ],
@@ -84,9 +91,11 @@
   "feed:index",
   "geo",
   "manifest",
+  "method",
   "paint",
   "regs-3",
   "salmon",
+  "salmon-3",
   "wasm",
   "water"
  ],
@@ -95,9 +104,11 @@
   "feed:index",
   "geo",
   "manifest",
+  "method",
   "paint",
   "regs-4",
   "salmon",
+  "salmon-4",
   "wasm",
   "water"
  ],
@@ -106,9 +117,11 @@
   "feed:index",
   "geo",
   "manifest",
+  "method",
   "paint",
   "regs-5",
   "salmon",
+  "salmon-5",
   "wasm",
   "water"
  ],
@@ -117,9 +130,11 @@
   "feed:index",
   "geo",
   "manifest",
+  "method",
   "paint",
   "regs-6",
   "salmon",
+  "salmon-6",
   "wasm",
   "water"
  ],
@@ -128,9 +143,11 @@
   "feed:index",
   "geo",
   "manifest",
+  "method",
   "paint",
   "regs-8",
   "salmon",
+  "salmon-8",
   "wasm",
   "water"
  ],
@@ -139,9 +156,11 @@
   "feed:index",
   "geo",
   "manifest",
+  "method",
   "paint",
   "regs-7a",
   "salmon",
+  "salmon-7a",
   "wasm",
   "water"
  ],
@@ -150,9 +169,11 @@
   "feed:index",
   "geo",
   "manifest",
+  "method",
   "paint",
   "regs-7b",
   "salmon",
+  "salmon-7b",
   "wasm",
   "water"
  ],
@@ -188,6 +209,7 @@
   "access",
   "core",
   "salmon",
+  "salmon-2",
   "wasm",
   "water"
  ],

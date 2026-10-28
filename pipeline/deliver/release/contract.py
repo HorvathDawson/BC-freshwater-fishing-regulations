@@ -185,15 +185,17 @@ WEB_BUDGET = {
     # file), the water map's boxes (geo, read with the page's access note) and the tapped section's access note
     # (4,501,206 → 4,627,390, regs-6: core + 126 kB for item_near; part_geo moved, not added)
     # (T182, 2026-10-28) + salmon: the page's Salmon card (T211) reads it — the prefetch no longer hides it (5,053,227)
-    # (owner 2026-10-28) the card reads the salmon head and its region's slice (`salmon-{region}`, the largest)
+    # (owner 2026-10-28) the card reads the salmon head and its region's slice (`salmon-{region}`, priced as the largest,
+    # R6 305,569): r-70f3ce0effc2 4,987,754 (was 5,061,679 with the whole file; an R2 tap reads 26 kB of salmon, not 405)
     "first_tap": {"files": ["core", "water", "geo", "access", "regs-{region}", "salmon", "salmon-{region}"],
-                  "gate": 5_600_000},
+                  "gate": 5_500_000},
     # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and the flow pointers (down) the header's
     # "Tributary of ..." walks — no longer all of conditions (8,590,503 → 5,892,308, regs-6)
     # (T182, 2026-10-28) + salmon for the page's Salmon card, as the named tap (6,282,328)
     "first_tap_unnamed": {"files": ["core", "water", "access", "regs-{region}", "regs-sid", "down", "salmon",
                                     "salmon-{region}"],
-                          "gate": 7_000_000},
+                          # (owner 2026-10-28) r-70f3ce0effc2 6,216,855 (was 6,290,780)
+                          "gate": 6_850_000},
     # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
     # climatology (climate) waits for a chart (4,151,534 → 997,511)
     "conditions_open": {"files": ["flow-area", "conditions"], "gate": 1_150_000},

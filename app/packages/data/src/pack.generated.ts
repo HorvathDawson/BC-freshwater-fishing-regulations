@@ -1088,7 +1088,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
       "salmon",
       "salmon-{region}"
     ],
-    "gate": 5600000
+    "gate": 5500000
   },
   "first_tap_unnamed": {
     "files": [
@@ -1101,7 +1101,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
       "salmon",
       "salmon-{region}"
     ],
-    "gate": 7000000
+    "gate": 6850000
   },
   "conditions_open": {
     "files": [

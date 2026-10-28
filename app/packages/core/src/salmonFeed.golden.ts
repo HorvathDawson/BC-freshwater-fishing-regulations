@@ -87,9 +87,9 @@ export const SALMON_FEED_GOLDEN = {
       "cm": 30
      },
      {
-      "id": "6:adult:40da2362",
+      "id": "6:adult:5292d2c1",
       "k": "adult",
-      "t": "An \"adult chinook\" in Region 6 is defined as being over 50 cm except in the following areas where an \"adult chinook\" is defined as being over 62 cm",
+      "t": "An \"adult chinook\" in Region 6 is defined as being over 50 cm except in the following areas where an \"adult chinook\" is defined as being over 62 cm: the Kispiox River from Sep 1 to Dec 31; the Babine and Bulkley Rivers from Sep 01 to Dec 31.",
       "sp": [
        "CH"
       ],
@@ -724,9 +724,9 @@ export const SALMON_FEED_GOLDEN = {
       "cm": 30
      },
      {
-      "id": "6:adult:40da2362",
+      "id": "6:adult:5292d2c1",
       "k": "adult",
-      "t": "An \"adult chinook\" in Region 6 is defined as being over 50 cm except in the following areas where an \"adult chinook\" is defined as being over 62 cm",
+      "t": "An \"adult chinook\" in Region 6 is defined as being over 50 cm except in the following areas where an \"adult chinook\" is defined as being over 62 cm: the Kispiox River from Sep 1 to Dec 31; the Babine and Bulkley Rivers from Sep 01 to Dec 31.",
       "sp": [
        "CH"
       ],
@@ -802,7 +802,7 @@ export const SALMON_FEED_GOLDEN = {
       "t": "Reminder: There is no fishing for eulachon in Region 6."
      }
     ],
-    "header": "bbb921ed8f2fa2b4"
+    "header": "0298abc0995dcf11"
    }
   }
  },
@@ -1021,7 +1021,7 @@ export const SALMON_FEED_GOLDEN = {
      "6:measure:89e5a0b6",
      "6:min_size:3e134f97",
      "6:min_size:9a18cc7a",
-     "6:adult:40da2362",
+     "6:adult:5292d2c1",
      "6:other:41155080"
     ],
     "water": [
@@ -1046,7 +1046,7 @@ export const SALMON_FEED_GOLDEN = {
      "6:measure:89e5a0b6",
      "6:min_size:3e134f97",
      "6:min_size:9a18cc7a",
-     "6:adult:40da2362",
+     "6:adult:5292d2c1",
      "6:other:41155080"
     ],
     "water": [
@@ -1070,7 +1070,7 @@ export const SALMON_FEED_GOLDEN = {
      "6:measure:89e5a0b6",
      "6:min_size:3e134f97",
      "6:min_size:9a18cc7a",
-     "6:adult:40da2362",
+     "6:adult:5292d2c1",
      "6:bait_ban:ff2dcf43",
      "6:other:41155080"
     ],
@@ -1095,7 +1095,7 @@ export const SALMON_FEED_GOLDEN = {
      "6:measure:89e5a0b6",
      "6:min_size:3e134f97",
      "6:min_size:9a18cc7a",
-     "6:adult:40da2362",
+     "6:adult:5292d2c1",
      "6:bait_ban:ff2dcf43",
      "6:other:41155080"
     ],
@@ -1118,7 +1118,7 @@ export const SALMON_FEED_GOLDEN = {
      "6:measure:89e5a0b6",
      "6:min_size:3e134f97",
      "6:min_size:9a18cc7a",
-     "6:adult:40da2362",
+     "6:adult:5292d2c1",
      "6:bait_ban:ff2dcf43",
      "6:other:41155080"
     ],

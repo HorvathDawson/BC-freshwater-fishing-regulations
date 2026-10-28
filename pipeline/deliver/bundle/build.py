@@ -696,7 +696,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
             return sorted(_id_of[o] for o in seen)
 
         _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1], _item_secs,
-                                               headers=_salmon.load_headers(_feeds), upstream=_upstream)
+                                               headers=_salmon.load_headers(_feeds),
+                                               scope_headers=_salmon.load_current_headers(_feeds), upstream=_upstream)
         _salmon.write_bundle(db, _payload, _salmon_secs)
         cov.filled("salmon_section", len(_salmon_secs))
         del _files, _feeds, _placed, _payload, _salmon_secs

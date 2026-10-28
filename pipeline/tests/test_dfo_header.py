@@ -81,6 +81,9 @@ def test_the_adult_definition_and_its_exceptions():
     assert kispiox["cm"] == 62 and [w["n"] for w in kispiox["w"]] == ["Kispiox River"]
     assert kispiox["on"] == [[244, 365]]                                             # Sep 1 .. Dec 31, leap calendar
     assert kispiox["t"].endswith("over 62 cm: the Kispiox River from Sep 1 to Dec 31")
+    # the region-wide note quotes the exceptions, as DFO lists them
+    assert region["t"].endswith("over 62 cm: the Kispiox River from Sep 1 to Dec 31; the Babine and Bulkley Rivers "
+                                "from Sep 01 to Dec 31.")
     assert [w["n"] for w in two["w"]] == ["Babine River", "Bulkley River"] and two["on"] == [[244, 365]]
 
 
@@ -108,7 +111,7 @@ def test_names_bind_only_through_the_curated_waters():
     scopes, unresolved = H.resolve(notes, ef, upstream=lambda items: ["gnis:9"] if "gnis:1" in items else [])
     assert scopes["kispiox river+ws"] == ["gnis:1", "gnis:9"]                        # the watershed: + upstream
     assert scopes["kispiox river"] == ["gnis:1"] and scopes["babine river"] == ["gnis:2"]   # qualifier dropped
-    assert unresolved == [{"note": next(n["id"] for n in notes if "Bulkley" in n["t"]), "name": "Bulkley River"}]
+    assert unresolved == [{"note": next(n["id"] for n in notes if n.get("w") and "Bulkley" in n["t"]), "name": "Bulkley River"}]
     # two curated waters of one name: never picked between
     _, un = H.resolve(notes, _ef(("Kispiox River", ["gnis:1"]), ("Kispiox River", ["gnis:3"])))
     assert {"Kispiox River"} <= {u["name"] for u in un}
@@ -171,3 +174,15 @@ def test_the_feed_carries_the_header_and_a_change_tells_once(tmp_path, monkeypat
                   now="2026-10-28T18:00:00Z", notify_url="http://n", sender=lambda u, t: sent.append(t),
                   entries_dir=tmp_path / "none")
     assert three["index"]["regions"]["6"]["notes"] == two["index"]["regions"]["6"]["notes"]
+
+
+def test_the_release_resolves_the_newest_pages_waters_too():
+    """A release whose rules predate today's page still carries the scopes today's header names (the feed's notes
+    find their waters by key), its own notes staying its page's."""
+    from pipeline.tests.test_salmon_file import _fixture
+    files, feeds, placed, sid_of = _fixture()
+    files["6"].waters = [SimpleNamespace(name="Kispiox River", aliases=[], item_ids=["gnis:4674"])]
+    payload, _ = S.build(files, feeds, placed, sid_of, headers={"6": []},
+                         scope_headers={"6": H.parse_header(HEADER, "6")}, upstream=lambda i: [])
+    assert payload["regions"]["6"]["notes"] == []
+    assert payload["scopes"]["6"]["kispiox river"] == ["gnis:4674"]
