@@ -2,14 +2,14 @@
  * (T211, restyled owner 2026-10-28) THE SALMON CARD — "Salmon · DFO", drawn like a Keep group (GroupCard): a head under
  * a heavy rule, then one boxed row per answer with a status rail and chip, the species' pictures (ocean AND spawning
  * looks) each opening its fish sheet (sp:CH … — the ID tips), then DFO's source and as-of block. Above the provincial
- * Keep tab. Every species closed: one "Salmon — closed" row. DFO places on this water not drawn yet follow, tagged
- * "Location not yet mapped". A water with DFO places not drawn yet leads with the partial-coverage line and DFO's page
+ * Keep tab. Every species closed: one "Salmon — closed" row. DFO places on this water not drawn yet follow IN THE SAME
+ * TABLE (T221), each row tagged with its place and "Location not yet mapped". A water with DFO places not drawn yet leads with the partial-coverage line and DFO's page
  * (owner 2026-10-28). Then (owner 2026-10-28) the provincial bait ban / fly only that day (it applies to salmon too), the
  * header notes naming this water, and the page's DFO regions' header rules in a compact "Region rules (DFO)" block; an
  * open row carries the header's sizes. No logic and no words of its own: everything is core `salmonCard`'s.
  */
 import { Image, Linking, Text, View } from "react-native";
-import { FISH, SALMON_WORDS, WORDS, type SalmonBlockVM, type SalmonCardVM, type SalmonRowVM } from "@app/core";
+import { FISH, SALMON_WORDS, WORDS, type SalmonCardVM, type SalmonRowVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
@@ -51,7 +51,7 @@ function Looks({ species, palette, actions, images }: { species: SalmonRowVM["sp
                 );
               })}
             </View>
-            <Text style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.accent, marginTop: 2 }]}>{`${name} ›`}</Text>
+            <Text style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.accent, marginTop: 2 }]}>{name} ›</Text>
           </RegsPress>
         );
       })}
@@ -59,26 +59,57 @@ function Looks({ species, palette, actions, images }: { species: SalmonRowVM["sp
   );
 }
 
-function Block({ block, palette, testID, actions, images }: { block: SalmonBlockVM; palette: Palette; testID: string; actions?: KeepActions; images?: FishImages }) {
+/** One answer row of the table: its status rail and chip, DFO's words, the sizes, the species' pictures. `place`: a DFO
+ *  place on this water not drawn yet (its words and the tag), said inside the row (T221: one table, owner 2026-10-28). */
+function Row({ r, allClosed, first, place, palette, testID, actions, images }: {
+  r: SalmonRowVM; allClosed: boolean; first: boolean; place?: { label: string; tag: string }; palette: Palette; testID: string;
+  actions?: KeepActions; images?: FishImages }) {
   return (
-    <View testID={testID}>
-      {block.rows.map((r) => (
-        <View key={r.key} testID={`${testID}-row`}
-              style={{ marginTop: 8, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: palette.line2,
-                       borderLeftWidth: 5, borderLeftColor: chipColour(palette, r.status) }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-            <Text style={{ ...TYPE.regsBodySemi, color: palette.ink, flex: 1 }}>
-              {block.allClosed ? `${r.label} — ${r.statusLabel.toLowerCase()}` : r.label}
-            </Text>
-            <Chip status={r.status} label={r.statusLabel} palette={palette} />
-          </View>
-          {r.notes.map((n) => <Text key={n} style={{ ...TYPE.meta, color: palette.sub, marginTop: 2 }}>{n}</Text>)}
-          {r.sizes && <Text testID={`${testID}-sizes`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{r.sizes}</Text>}
-          <Looks species={r.species} palette={palette} actions={actions} images={images} />
+    <View testID={`${testID}-row`}
+          style={{ marginTop: first ? 8 : 0, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: palette.line2,
+                   borderTopWidth: first ? 1 : 0, borderLeftWidth: 5, borderLeftColor: chipColour(palette, r.status) }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+        <Text style={{ ...TYPE.regsBodySemi, color: palette.ink, flex: 1 }}>
+          {allClosed ? `${r.label} — ${r.statusLabel.toLowerCase()}` : r.label}
+        </Text>
+        <Chip status={r.status} label={r.statusLabel} palette={palette} />
+      </View>
+      {place && (
+        <View testID="salmon-unmapped" style={{ marginTop: 2 }}>
+          <Text style={{ ...TYPE.metaSemi, color: palette.ink }}>{place.label}</Text>
+          <Text testID="salmon-unmapped-tag" style={{ ...TYPE.kicker, color: palette.sub }}>{place.tag}</Text>
         </View>
+      )}
+      {r.notes.map((n) => <Text key={n} style={{ ...TYPE.meta, color: palette.sub, marginTop: 2 }}>{n}</Text>)}
+      {r.sizes && <Text testID={`${testID}-sizes`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{r.sizes}</Text>}
+      <Looks species={r.species} palette={palette} actions={actions} images={images} />
+    </View>
+  );
+}
+
+/**
+ * (T221, owner 2026-10-28: "make salmon one table total") THE TABLE: the water's own rows, then each DFO place on it not
+ * drawn yet, its rows in the SAME table (the place said in the row) — one table, never a second box under the first.
+ * The blocks' gear lines follow it.
+ */
+function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette: Palette; actions?: KeepActions; images?: FishImages }) {
+  // the partial-coverage line above is the table's lead row: the first answer row joins it
+  let n = card.partial ? 1 : 0;
+  return (
+    <View testID="salmon-card-block">
+      {card.rows.map((r) => (
+        <Row key={r.key} r={r} allClosed={card.allClosed} first={n++ === 0} palette={palette} testID="salmon-card-block"
+             actions={actions} images={images} />
       ))}
-      {block.gear.map((g) => (
-        <Text key={g} testID={`${testID}-gear`} style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>
+      {card.unmapped.map((u, i) => u.block.rows.map((r) => (
+        <Row key={`${u.label}#${i}:${r.key}`} r={r} allClosed={u.block.allClosed} first={n++ === 0} place={{ label: u.label, tag: u.tag }}
+             palette={palette} testID="salmon-unmapped-block" actions={actions} images={images} />
+      )))}
+      {card.gear.map((g) => (
+        <Text key={g} testID="salmon-card-block-gear" style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>
+      ))}
+      {card.unmapped.flatMap((u) => u.block.gear).filter((g) => !card.gear.includes(g)).map((g) => (
+        <Text key={`u:${g}`} testID="salmon-unmapped-block-gear" style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>
       ))}
     </View>
   );
@@ -105,10 +136,10 @@ export function SalmonCard({ card, palette, actions, images }: {
                                                   borderColor: palette.line2, borderLeftWidth: 5, borderLeftColor: palette.sub }}>
             <Text style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{card.partial.text}</Text>
             <Text testID="salmon-partial-link" accessibilityRole="link" onPress={() => { void Linking.openURL(card.partial!.url); }}
-                  style={{ ...TYPE.metaSemi, color: palette.accent, marginTop: 4, paddingVertical: 4 }}>{`${card.partial.link} ›`}</Text>
+                  style={{ ...TYPE.metaSemi, color: palette.accent, marginTop: 4, paddingVertical: 4 }}>{card.partial.link} ›</Text>
           </View>
         )}
-        <Block block={card} palette={palette} testID="salmon-card-block" actions={actions} images={images} />
+        <Table card={card} palette={palette} actions={actions} images={images} />
         {card.gearProvincial && (
           <Text testID="salmon-gear-provincial" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: 8 }}>{card.gearProvincial}</Text>
         )}
@@ -121,14 +152,6 @@ export function SalmonCard({ card, palette, actions, images }: {
         {card.notListed && (
           <Text testID="salmon-not-listed" style={{ ...TYPE.meta, color: palette.ink, paddingTop: 8 }}>{card.notListed}</Text>
         )}
-        {card.unmapped.map((u, i) => (
-          <View key={`${u.label}#${i}`} testID="salmon-unmapped"
-                style={{ borderTopWidth: 1, borderColor: palette.line, paddingTop: 8, marginTop: 12 }}>
-            <Text style={{ ...TYPE.metaSemi, color: palette.ink }}>{u.label}</Text>
-            <Text testID="salmon-unmapped-tag" style={{ ...TYPE.kicker, color: palette.sub }}>{u.tag}</Text>
-            <Block block={u.block} palette={palette} testID="salmon-unmapped-block" actions={actions} images={images} />
-          </View>
-        ))}
         {card.regionRules.map((g) => (
           <View key={g.label} testID="salmon-region-rules"
                 style={{ marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>

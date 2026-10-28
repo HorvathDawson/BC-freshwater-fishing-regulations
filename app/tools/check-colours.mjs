@@ -69,6 +69,12 @@ const NAMED = new Set(("aliceblue antiquewhite aqua aquamarine azure beige bisqu
   "wheat white whitesmoke yellow yellowgreen").split(" "));
 
 /**
+ * (T221) Words the app uses as NAMES that CSS also calls a colour: "salmon" is the Salmon colouring mode and the DFO
+ * card (T211), never a paint here — a line saying "colour by salmon" is not a colour literal.
+ */
+const NOT_A_PAINT = new Set(["salmon"]);
+
+/**
  * A named colour is only a colour where something is being COLOURED. `namedFlavor("black")`
  * picks Protomaps' dark basemap and is a name, not a paint; `color: "black"` is a paint.
  */
@@ -116,7 +122,7 @@ export function findColours(src, path = "x.ts") {
   code.split("\n").forEach((line, i) => {
     const found = [...line.matchAll(HEX), ...line.matchAll(FUNC)].map((m) => m[0]);
     if (COLOUR_CONTEXT.test(line) || path.endsWith(".css"))
-      for (const m of line.matchAll(QUOTED)) if (NAMED.has(m[1].toLowerCase())) found.push(m[0]);
+      for (const m of line.matchAll(QUOTED)) if (NAMED.has(m[1].toLowerCase()) && !NOT_A_PAINT.has(m[1])) found.push(m[0]);
     if (path.endsWith(".css"))
       for (const m of line.matchAll(/:\s*([a-zA-Z]+)\s*[;!}]/g))
         if (NAMED.has(m[1].toLowerCase())) found.push(m[1]);

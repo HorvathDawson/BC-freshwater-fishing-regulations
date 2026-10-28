@@ -373,3 +373,16 @@ describe("back steps out one layer: moves inside a water replace, a different wa
             reduce(from, { type: "close" }) === from]).toEqual([3, from, from, true]);
   });
 });
+
+describe("(T221) a solo water: one part, no continuation — no Map view", () => {
+  const W = "gnis:4688" as ItemId;
+  const open = (view: "regs" | "map") => reduce(HOME, { type: "openWater", item: W, view });
+  it("the `solo` action drops the Map view (Regulations in front if the Map was); another water's is ignored", () => {
+    const onMap = reduce(open("map"), { type: "solo", item: W });
+    expect([waterFrame(onMap)?.view, frameViews(waterFrame(onMap)!)]).toEqual(["regs", ["regs", "conditions"]]);
+    const other = open("map");
+    expect(reduce(other, { type: "solo", item: "gnis:1" as ItemId })).toBe(other);
+    expect(reduce(onMap, { type: "solo", item: W })).toBe(onMap);
+    expect(backDepth(onMap)).toBe(backDepth(open("map")));
+  });
+});

@@ -69,6 +69,12 @@ export interface WaterFrame {
   group?: readonly ItemId[];
   /** (T203) The water Map opens on the WHOLE water (a search result's: the reader picks the section there). A step to another part drops it. */
   whole?: boolean;
+  /**
+   * (T221, owner 2026-10-28) A water of one part that goes on as / from no other (`@app/core` `soloWater`): its map has
+   * nothing to choose, so the frame offers Regulations and Conditions only (`frameViews`). Set by a search result that
+   * knew it, or by the Shell once the water's group is read (the `solo` action).
+   */
+  solo?: boolean;
 }
 /** A spot being added: at the point the reader gave (a long press, a tap in pick mode, their location), or none yet. */
 export interface AddingSpot { at: LatLon | null }
@@ -115,7 +121,9 @@ export type RouteAction =
        */
       fromSearch?: boolean;
       /** (T203) The water Map opens framed on the whole water. */
-      whole?: boolean }
+      whole?: boolean;
+      /** (T221) The water is solo (one part, no continuation): no Map view. */
+      solo?: boolean }
   /** (T48) Open or close search over the map on screen. */
   | { type: "search"; open: boolean }
   | { type: "view"; view: View }
@@ -135,6 +143,11 @@ export type RouteAction =
   | { type: "cross"; item: ItemId; part: number }
   | { type: "back" }
   /**
+   * (T221) The water `item` turned out solo (its group read): the top frame, when it is that water, drops its Map view
+   * (Regulations in front if the Map was). A move within the water, not a back step. Nothing in browse mode.
+   */
+  | { type: "solo"; item: ItemId }
+  /**
    * (Owner 2026-10-22 late) The water header's ×: leave EVERY water at once, for where the first was opened from
    * (`from`, whole). Nothing in browse mode.
    */
@@ -153,8 +166,8 @@ export const HOME: BrowseRoute = { mode: "browse", tab: "map", spot: null, addin
  * section: `RegsTarget` kind "section") and its Conditions, but no water map — the map frames a named water's parts.
  */
 export const REACH_ONLY: readonly WaterView[] = ["regs", "conditions"];
-export function frameViews(f: Pick<WaterFrame, "item">): readonly WaterView[] {
-  return f.item === null ? REACH_ONLY : WATER_VIEWS;
+export function frameViews(f: Pick<WaterFrame, "item" | "solo">): readonly WaterView[] {
+  return f.item === null || f.solo ? REACH_ONLY : WATER_VIEWS;
 }
 
 const top = (r: WaterRoute): WaterFrame => r.stack[r.stack.length - 1]!;
@@ -186,7 +199,8 @@ const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | nu
   const f: WaterFrame = { item: a.item, part: a.part ?? null, tapSid, at: tapSid !== null ? a.at ?? null : null,
                           view: a.view ?? "regs",
                           ...(a.item !== null && a.group && a.group.length > 1 ? { group: a.group } : {}),
-                          ...(a.whole && (a.view ?? "regs") === "map" ? { whole: true } : {}) };
+                          ...(a.whole && (a.view ?? "regs") === "map" ? { whole: true } : {}),
+                          ...(a.solo && a.item !== null ? { solo: true } : {}) };
   if (f.item === null && tapSid === null) return null;
   return frameViews(f).includes(f.view) ? f : null;
 };
@@ -234,7 +248,12 @@ export function reduce(r: Route, a: RouteAction): Route {
     case "part":
       if (top(r).item === null) return r;
       return a.item === undefined || a.item === top(r).item ? withTop(r, { part: a.part, whole: undefined })
-        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null, whole: undefined });
+        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null, whole: undefined, solo: undefined });
+    case "solo": {
+      const t = top(r);
+      if (t.item !== a.item || t.solo) return r;
+      return withTop(r, { solo: true, whole: undefined, view: t.view === "map" ? "regs" : t.view });
+    }
     case "flowInto": {
       const f = opened({ type: "openWater", item: a.item, part: a.part });
       return f === null ? r : enter(r, f);

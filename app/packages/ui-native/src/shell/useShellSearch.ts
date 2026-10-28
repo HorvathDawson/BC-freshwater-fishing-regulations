@@ -94,7 +94,7 @@ export function useShellSearch({ source, nav, camera }: {
     }
     searchMoved.current = false;            // the camera from before search is not put back: the water is the subject
     setSearchMemory(NO_SEARCH);             // the search is consumed, its text with it
-    opener.searched(id);
+    void opener.searched(id);
   };
   /** One step of search (`searchStep`): a pick lowers the sheet to half, so the keyboard goes with it. */
   const searchAct = (a: SearchAction) => {

@@ -178,6 +178,47 @@ export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
 const foldsShare = (t: TreeTier, env: TreeEnv): boolean => t === env.ctx.relTier && env.tot === "a" && t.tier === "share"
   && t.n === env.ctx.g.headline?.n && /^Only \d+ of the \d+ may be from streams\.?$/.test(t.says || "");
 
+/** Every kind under `nodes`, at any depth. */
+const kindsUnder = (nodes: readonly (TreeKind | TreeTier)[]): TreeKind[] =>
+  nodes.flatMap((n) => (n.node === "kind" ? [n] : kindsUnder(n.children)));
+
+/**
+ * (T221, owner 2026-10-28, the Dala River) A COUNT TIER THAT REACHES PAST ITS SIZE BOX: the release split it (T203) — the
+ * kinds the box's cap binds sit in the box under it, the others left it and say its count on their own line (an
+ * `also_counts` by its rule, `tier` null). Its line names every fish it counts, so inside the box it read as if the box
+ * held the rainbow trout it names. Such a count tier's LINE is drawn before the box; its kinds stay in the box.
+ */
+function reachesPast(ct: TreeTier, box: TreeTier, all: readonly (TreeKind | TreeTier)[]): boolean {
+  if (ct.tier !== "count" || box.tier !== "size") return false;
+  const inBox = new Set(kindsUnder(box.children));
+  const mine = new Set(kindsUnder(ct.children).flatMap((k) => k.species));
+  return kindsUnder(all).some((k) => !inBox.has(k) && (k.also_counts ?? []).some((a) =>
+    a.tier === null && a.by === ct.by && a.n === ct.n && a.species.some((x) => mine.has(x))));
+}
+
+/** (T221) a lifted count tier's line (`liftCounts`) → the size box it was lifted from (its words read as they did there). */
+const liftedFrom = new WeakMap<TreeTier, TreeTier>();
+
+/**
+ * (T221) A tier's stored children AS DRAWN: a size box is preceded by the line of each count tier inside it that reaches
+ * past it (`reachesPast`; the line alone, no children), and the box holds that tier's kinds in its place. `all`: the
+ * group's whole stored tree. Exported for the store-held parity walk (conformance tree.parity), which mirrors it.
+ */
+export function liftCounts(kids: readonly (TreeKind | TreeTier)[], all: readonly (TreeKind | TreeTier)[]): (TreeKind | TreeTier)[] {
+  return kids.flatMap((c): (TreeKind | TreeTier)[] => {
+    if (c.node === "kind" || c.tier !== "size") return [c];
+    const lifted = c.children.filter((x): x is TreeTier => x.node === "tier" && reachesPast(x, c, all));
+    if (!lifted.length) return [c];
+    const heads = lifted.map((ct) => { const h: TreeTier = { ...ct, children: [] }; liftedFrom.set(h, c); return h; });
+    return [...heads, { ...c, children: c.children.flatMap((x) => (lifted.includes(x as TreeTier) ? (x as TreeTier).children : [x])) }];
+  });
+}
+
+function nodesOf(kids: readonly (TreeKind | TreeTier)[], env: TreeEnv, seen: ReadonlySet<number>, up: TreeTier | null): TreeNodeVM[] {
+  return liftCounts(kids, env.ctx.g.tree as readonly (TreeKind | TreeTier)[]).map((c) =>
+    c.node === "kind" ? kindRow(c, env) : tierNode(c, env, false, seen, liftedFrom.get(c) ?? up));
+}
+
 /** prototype tierH: a tier's head — kicker, line (its fresh Rule book page), relation, sub, its origin line. */
 export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: ReadonlySet<number>, up: TreeTier | null = null): TierVM {
   const key = env.inp.rules.get(t.by), hasKey = !key.missing;
@@ -189,7 +230,7 @@ export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: Readonl
         book: [...(!g.origin ? env.ctx.rootBook : []), ...(!g.origin && env.ctx.rootBook.length && extra.length ? [text(" ")] : []), ...extra] }
     : null;
   const below = new Set([...seen, ...pg]);
-  const children = t.children.map((c) => (c.node === "tier" ? tierNode(c, env, false, below, t) : kindRow(c, env)));
+  const children = nodesOf(t.children, env, below, t);
   const base = { t: "tier" as const, tier: t.tier, tid: t.id, n: t.n, band: t.tier === "size", short: shortOf(t), children };
   if (foldsShare(t, env)) {
     const origin = torg(bk);
@@ -207,7 +248,9 @@ export function treeOf(env: TreeEnv): readonly TreeNodeVM[] | null {
   const { g, hdrRoot, rootPages } = env.ctx;
   if (!g.tree.length) return null;
   const tops = hdrRoot ? hdrRoot.children : g.tree;
-  return tops.map((t) => (t.node === "tier" ? tierNode(t, env, !hdrRoot, rootPages, hdrRoot) : kindRow(t, env)));
+  // (T221) a top-level size box takes `nodesOf` too; a top tier is a root only when the head is not (`!hdrRoot`)
+  return hdrRoot ? nodesOf(tops, env, rootPages, hdrRoot)
+    : tops.map((t) => (t.node === "tier" ? tierNode(t, env, true, rootPages, hdrRoot) : kindRow(t, env)));
 }
 
 /** The tree environment of one group (`drawn`: the rows page v36 draws an article for). */

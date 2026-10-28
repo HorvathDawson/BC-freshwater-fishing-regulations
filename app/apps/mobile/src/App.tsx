@@ -32,7 +32,7 @@ import { FishSpinner, setSynopsisSource, Shell, THEMES, type ThemeName } from "@
 import { LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
-import { systemBack } from "./systemBack";
+import { routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { startLink } from "./startLink";
 
@@ -59,7 +59,8 @@ const START = startLink();
  * do not hear the change.) A cold start begins empty, from the start link.
  */
 const place: { route: Route | null } = { route: null };
-const holdPlace = (r: Route) => { place.route = r; };
+// (T221) and on the web the address bar follows it, so a refresh opens where the reader was
+const holdPlace = (r: Route) => { place.route = r; routeUrl(r); };
 if (START?.who) setAnglerProfile(START.who);
 
 /**

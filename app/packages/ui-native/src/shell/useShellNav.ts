@@ -2,12 +2,13 @@
  * WHERE THE READER IS: the route, its one back, the one water opener and the water header's views — the Shell's
  * navigation, read once here and handed down (T62 3.4).
  */
-import { waterExit } from "@app/core";
+import { soloWater, waterExit } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Platform } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { frameViews, regsGroupOf, useOpenWater, useRoute, waterFrame, type BrowseTab, type Route } from "@app/ui";
+import { frameViews, regsGroupOf, regsSoloOf, useOpenWater, useRegsStore, useRoute, useWaterGroup, waterFrame, type BrowseTab,
+         type Route } from "@app/ui";
 import { backDepth, edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
 import { useRegulationKeys } from "@app/ui";
 import { TABS, type TabKey } from "../TabBar";
@@ -61,7 +62,19 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   routeNow.current = route;
   const now = useCallback(() => routeNow.current, []);
   const groupOf = useMemo(() => (loader ? regsGroupOf(loader) : undefined), [loader]);
-  const opener = useOpenWater(source, go, { now, group: groupOf });
+  const soloOf = useMemo(() => (loader ? regsSoloOf(loader) : undefined), [loader]);
+  const opener = useOpenWater(source, go, { now, group: groupOf, solo: soloOf });
+  /*
+   * (T221, owner 2026-10-28) A SOLO WATER HAS NO MAP VIEW: one part, going on as / from no other water (`soloWater`; the
+   * Vedder ↔ Chilliwack keep theirs). However the water was opened — a map tap, a spot, a link — once its group is read
+   * the frame is told (`solo`), and its Map view goes (Regulations in front if the Map was).
+   */
+  const regsStore = useRegsStore(route.mode === "water" ? loader : null);
+  const soloGroup = useWaterGroup(regsStore.value ?? null, frame?.solo ? null : item);
+  useEffect(() => {
+    const g = soloGroup.value;
+    if (item !== null && g && g.parts[0]?.item === item && soloWater(g)) go({ type: "solo", item });
+  }, [soloGroup.value, item, go]);
   /** G1 (owner 2026-10-21): a sideways swipe moves between a water's views — Regulations · Conditions · Map. */
   const viewSwipe = useViewSwipe(route, go, isTouchDevice());
   /**

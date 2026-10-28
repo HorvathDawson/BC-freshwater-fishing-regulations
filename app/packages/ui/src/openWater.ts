@@ -34,6 +34,8 @@ export interface WaterOpen {
   whole?: boolean;
   /** (T58) The water's split-lake areas, itself among them (`siblingItems`): another area of a lake held is that lake. */
   group?: readonly ItemId[];
+  /** (T221) The water is solo (one part, no continuation, `@app/core` `soloWater`): no Map view, Regulations in front. */
+  solo?: boolean;
 }
 
 /**
@@ -42,10 +44,11 @@ export interface WaterOpen {
  */
 export function openWater(o: WaterOpen): RouteAction {
   const asked = o.view ?? "regs";
-  const views = frameViews({ item: o.item });
+  const solo = !!o.solo && o.item !== null;
+  const views = frameViews({ item: o.item, solo });
   const a: RouteAction = { type: "openWater", item: o.item, tapSid: o.tapSid ?? null, at: o.at ?? null,
                           part: o.part ?? null, view: views.includes(asked) ? asked : views[0]!,
-                          ...(o.group ? { group: o.group } : {}) };
+                          ...(o.group ? { group: o.group } : {}), ...(solo ? { solo: true } : {}) };
   const w = o.whole && a.view === "map" ? { ...a, whole: true } : a;
   return o.fromSearch ? { ...w, fromSearch: true } : w;
 }
@@ -73,8 +76,11 @@ export interface WaterOpener {
   flow(item: ItemId, build: (group: readonly ItemId[] | undefined) => RouteAction): Promise<void>;
   /** A water by its id (a spot, a deep path). */
   item(item: ItemId, view?: View): void;
-  /** A water picked from search's results: the search is consumed, so back lands on the map (route `fromSearch`). */
-  searched(item: ItemId): void;
+  /**
+   * A water picked from search's results: the search is consumed, so back lands on the map (route `fromSearch`). (T221)
+   * A solo water (`OpenerOptions.solo`) opens on its Regulations; any other on its whole Map (T203).
+   */
+  searched(item: ItemId): Promise<void>;
 }
 
 export interface OpenerOptions {
@@ -91,6 +97,11 @@ export interface OpenerOptions {
    * A read that fails opens the water without them (as a water alone).
    */
   group?: (item: ItemId) => Promise<readonly ItemId[]>;
+  /**
+   * (T221) Whether a water is solo (one part, no continuation: `@app/core` `soloWater` over its group). Asked for a search
+   * result only; a read that fails counts as not solo (its Map opens, as before). Absent: never asked.
+   */
+  solo?: (item: ItemId) => Promise<boolean>;
 }
 
 /** The opener (`useOpenWater`'s value), React-free: what a test drives. */
@@ -113,14 +124,21 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
     flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)),
     // nothing to wait on: at once, and any open still in flight is overtaken
     item: (item, view = "regs") => { latest += 1; go(openWater({ item, view })); },
-    // (T203) a result ALWAYS opens the water's Map, the whole water shown, from Conditions or Regs alike
-    searched: (item) => { latest += 1; go(openWater({ item, view: "map", whole: true, fromSearch: true })); },
+    // (T203) a result opens the water's Map, the whole water shown, from Conditions or Regs alike — (T221) unless the
+    // water is solo: nothing to choose on its map, so its Regulations
+    searched: (item) => {
+      if (!o.solo) { latest += 1; go(openWater({ item, view: "map", whole: true, fromSearch: true })); return Promise.resolve(); }
+      const ask = o.solo;
+      return settle(async () => ((await ask(item).catch(() => false))
+        ? openWater({ item, view: "regs", solo: true, fromSearch: true })
+        : openWater({ item, view: "map", whole: true, fromSearch: true })));
+    },
   };
 }
 
 /** The Shell's handle on `openWater` / `openTap`, dispatching to the route. */
 export function useOpenWater(source: Pick<WaterSource, "itemForSection">, go: (a: RouteAction) => void,
                              o: OpenerOptions = {}): WaterOpener {
-  const { now, group } = o;
-  return useMemo(() => waterOpener(source, go, { now, group }), [source, go, now, group]);
+  const { now, group, solo } = o;
+  return useMemo(() => waterOpener(source, go, { now, group, solo }), [source, go, now, group, solo]);
 }

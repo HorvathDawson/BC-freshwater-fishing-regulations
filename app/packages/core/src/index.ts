@@ -21,6 +21,7 @@ export * from "./access";
 export * from "./lakeFacts";
 export * from "./salmon";
 export * from "./salmonFeed";
+export * from "./glance";
 export * from "./method";
 export * from "./paint";
 export * from "./search";

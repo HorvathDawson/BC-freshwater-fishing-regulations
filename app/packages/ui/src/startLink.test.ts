@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { HOME, reduce } from "./route";
 import { openWater } from "./openWater";
-import { parseStartLink } from "./startLink";
+import { parseStartLink, routeSearch } from "./startLink";
 import type { ItemId } from "@app/data";
 
 const NOW = new Date(2026, 9, 22, 9, 30);   // Thu Oct 22 2026, local
@@ -51,5 +51,16 @@ describe("parseStartLink (T41: the web test deep link)", () => {
       "start link: tab=cards is not a tab", "start link: sheet=nope is not a sheet key", "start link: age=old is not adult|u16",
       "start link: res=x is not resident|non_resident|non_resident_alien", "start link: theme=blue is not light|dark",
       "start link: scroll=up is not a scroll offset"]);
+  });
+});
+
+describe("(T221) the address follows the route: routeSearch", () => {
+  it("the water in front as a start link; its other keys kept; browse and an unnamed reach say no water", () => {
+    const r = reduce(HOME, { type: "openWater", item: "gnis:4688" as never, part: 2, view: "map" });
+    expect(routeSearch(r, "?theme=dark&tab=gear")).toBe("?theme=dark&regs=gnis:4688&part=2&view=map");
+    expect(parseStartLink(routeSearch(r))!.route).toEqual(r);
+    expect(routeSearch(HOME, "?regs=gnis:1&date=2026-07-01")).toBe("?date=2026-07-01");
+    const reach = reduce(HOME, { type: "openWater", item: null, tapSid: 5 as never, view: "regs" });
+    expect(routeSearch(reach)).toBe("");
   });
 });

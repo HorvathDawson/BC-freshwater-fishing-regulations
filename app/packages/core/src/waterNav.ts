@@ -294,6 +294,15 @@ export function crossDown(g: WaterGroup, at: number): NavCross | null {
   return g.next && g.next.at === at && !stepsDown(g, at).length ? g.next : null;
 }
 
+/**
+ * (T221, owner 2026-10-28) A water of ONE part (one stretch: `parts` counts each stretch) that goes on as / from no
+ * other water (`next` / `prev`, the Vedder ↔ Chilliwack): its map has nothing to choose, so a search result opens its
+ * Regulations and the water screen offers no Map view. A split lake's areas are parts of its group, so it is never solo.
+ */
+export function soloWater(g: WaterGroup): boolean {
+  return g.parts.length === 1 && g.next === null && g.prev === null;
+}
+
 /** ▲ off the top of this water into the one it goes on from: only on the part that meets it, with nothing above. */
 export function crossUp(g: WaterGroup, at: number): NavCross | null {
   return g.prev && g.prev.at === at && !stepsUp(g, at).length ? g.prev : null;

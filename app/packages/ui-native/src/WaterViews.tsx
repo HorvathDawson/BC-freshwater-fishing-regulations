@@ -82,7 +82,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
         <>
           {/* (T54, owner Q2 default) the flow colour stays; a section in no-access land carries the banner here too */}
           {noAccess && <AccessNoticeBlock notice={noAccess} palette={palette}
-                                          onMap={views ? () => views.onView("map") : undefined} />}
+                                          onMap={views?.views.includes("map") ? () => views.onView("map") : undefined} />}
           <ConditionsPanel source={source} section={section} palette={palette}
                            tiles={tiles} theme={theme} feed={feed}
                            parameter={parameter} onParameter={onParameter} from={from}

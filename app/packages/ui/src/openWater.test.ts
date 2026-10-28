@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import { openTap, openWater, waterOpener } from "./openWater";
-import { HOME, reduce, waterFrame, type Route, type RouteAction } from "./route";
+import { HOME, frameViews, reduce, waterFrame, type Route, type RouteAction } from "./route";
 
 const VEDDER = "gnis:3062" as ItemId;
 const AT = { lat: 49.1, lon: -121.9 };
@@ -180,5 +180,21 @@ describe("(T203) a search result ALWAYS lands on the water's Map, the whole wate
 
   it("`whole` is only ever carried by a Map view", () => {
     expect(openWater({ item: VEDDER, view: "regs", whole: true })).not.toHaveProperty("whole");
+  });
+});
+
+describe("(T221) a SOLO water from search opens on its Regulations, its Map view gone", () => {
+  it("solo: Regulations in front, no Map view; not solo, or the read failing: the whole Map as before", async () => {
+    const sent: RouteAction[] = [];
+    const ask = (answer: boolean | Error) => waterOpener(source, (a) => sent.push(a), {
+      solo: async () => { if (answer instanceof Error) throw answer; return answer; } });
+    await ask(true).searched(VEDDER);
+    await ask(false).searched(VEDDER);
+    await ask(new Error("no store")).searched(VEDDER);
+    expect(sent.map((a) => [(a as { view?: string }).view, (a as { solo?: boolean }).solo ?? false])).toEqual(
+      [["regs", true], ["map", false], ["map", false]]);
+    const r = reduce({ ...mapTab, search: true } as Route, sent[0]!);
+    expect(frameViews(waterFrame(r)!)).toEqual(["regs", "conditions"]);
+    expect(reduce(r, { type: "view", view: "map" })).toBe(r);
   });
 });

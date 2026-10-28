@@ -3,10 +3,10 @@
  * block, "Where you can’t fish", the Possession row, the Other fish list, the outside-B.C. foot. tokens.md §5. No logic:
  * each draws its VM slice.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Image, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import { WORDS, type BannerVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
+import { GLANCE_WORDS, WORDS, type BannerVM, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -184,13 +184,52 @@ function Thumb({ code, images, palette }: { code: string | null; images: FishIma
   );
 }
 
-export function OtherFish({ rows, keys, palette, actions, images }: {
+/** (T221) A folded row of the at-a-glance table: its row (picture, name, the day's answer) and the card it opens. */
+export interface GlanceFold { readonly key: string; readonly row: GlanceRowVM; readonly body: () => ReactNode }
+
+/**
+ * (T221, owner 2026-10-28 — a try) A FOLDED ROW: drawn as an Other fish row — picture, name, the day's answer on the
+ * right — but its end is a "Details" button with the set's expand mark (not the sheet's ›), and a press opens its full
+ * card in place under it (pressed again, "Hide", folds it).
+ */
+function FoldRow({ f, palette, images }: { f: GlanceFold; palette: Palette; images?: FishImages }) {
+  const [open, setOpen] = useState(false);
+  const tone = f.row.tone === "release" ? palette.restricted : f.row.tone === "closed" ? palette.closed : palette.ink;
+  return (
+    <View testID={`glance:${f.key}`}>
+      <View style={{ paddingHorizontal: GUTTER }}>
+        <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={GLANCE_WORDS.a11y(f.row.name, open)}
+                   onPress={() => setOpen(!open)} box={ROW}
+                   style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1,
+                            borderTopColor: palette.line }}>
+          <Thumb code={f.row.thumb} images={images} palette={palette} />
+          <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
+          <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>
+          <View testID="glance-toggle" style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", minWidth: 84, gap: 4, paddingVertical: 4, paddingHorizontal: 8,
+                                                 borderWidth: 1, borderColor: palette.accent, borderRadius: palette.r.chip }}>
+            <Text style={[TYPE.metaBold, { color: palette.accent }]}>{open ? GLANCE_WORDS.hide : GLANCE_WORDS.show}</Text>
+            <Icon name={open ? "collapse" : "expand"} colour={palette.accent} size={14} />
+          </View>
+        </RegsPress>
+      </View>
+      {open && <View testID={`glance-body:${f.key}`} style={{ paddingBottom: 12 }}>{f.body()}</View>}
+    </View>
+  );
+}
+
+export function OtherFish({ rows, keys, palette, actions, images, folds = [] }: {
   rows: readonly OtherFishRowVM[]; keys: readonly OtherFishKeyVM[]; palette: Palette; actions: KeepActions; images?: FishImages;
+  /** (T221) the at-a-glance table's folded rows (Salmon, the quota groups), drawn first; then the table heads "Fish" */
+  folds?: readonly GlanceFold[];
 }) {
   const tone = (t: OtherFishRowVM["tone"]) => (t === "release" ? palette.restricted : t === "closed" ? palette.closed : palette.ink);
   return (
-    <View testID="keep-otherfish" style={{ paddingTop: 18, paddingHorizontal: GUTTER, paddingBottom: 4, marginTop: 14, borderTopWidth: 1.5, borderTopColor: palette.ink }}>
-      <Text accessibilityRole="header" style={[TYPE.sectionHead, { color: palette.ink, marginBottom: 8 }]}>{WORDS.OTHER_FISH}</Text>
+    <View testID="keep-otherfish" style={{ paddingTop: 18, paddingBottom: 4, marginTop: 14, borderTopWidth: 1.5, borderTopColor: palette.ink }}>
+      <Text accessibilityRole="header" style={[TYPE.sectionHead, { color: palette.ink, marginBottom: 8, paddingHorizontal: GUTTER }]}>
+        {folds.length ? GLANCE_WORDS.head : WORDS.OTHER_FISH}
+      </Text>
+      {folds.map((f) => <FoldRow key={f.key} f={f} palette={palette} images={images} />)}
+      <View style={{ paddingHorizontal: GUTTER }}>
       {rows.map((o) => [
         <RegsPress key={o.open} accessibilityRole="button" onPress={() => actions.onSheet(o.open)} box={ROW}
                    style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
@@ -221,6 +260,7 @@ export function OtherFish({ rows, keys, palette, actions, images }: {
           ))}
         </View>
       )}
+      </View>
     </View>
   );
 }

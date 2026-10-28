@@ -1,6 +1,7 @@
 /**
- * T41 — THE START LINK: a TEST AFFORDANCE ON THE WEB ONLY. `?regs=<item>&part=<i>&date=YYYY-MM-DD&tab=<tab>&sheet=<key>
- * &age=&res=&theme=&scroll=` opens the app straight on one water's Regulations page — the browser tools
+ * T41 — THE START LINK, ON THE WEB ONLY. `?regs=<item>&part=<i>&view=<view>&date=YYYY-MM-DD&tab=<tab>&sheet=<key>
+ * &age=&res=&theme=&scroll=` opens the app straight on one water's Regulations page (or, T221 `view`, its Conditions or
+ * Map) — the browser tools
  * (`app/tools/regs-walk.mjs`, `compare-regs.mjs`) put every golden state on screen with it. The app reads it ONCE, at
  * start (`apps/mobile` `startLink.web.ts`; native has none — D1 keeps navigation in the Shell, no route ever ships).
  *
@@ -12,7 +13,30 @@ import { parseSheetKey, type SheetKey, type Tab, type Who } from "@app/core";
 import type { ItemId } from "@app/data";
 import { openWater } from "./openWater";
 import { mapDayOf } from "./regs";
-import { HOME, reduce, type Route } from "./route";
+import { HOME, reduce, waterFrame, type Route, type View } from "./route";
+
+/** The query keys a route owns (`routeSearch` writes them; the rest — date, angler, theme — are left as they were). */
+export const ROUTE_KEYS = ["regs", "part", "view", "tab", "sheet", "scroll"] as const;
+const VIEWS: readonly View[] = ["regs", "conditions", "map"];
+
+/**
+ * (T221, owner 2026-10-28) THE ADDRESS OF WHAT IS ON SCREEN: the water in front as a start link (`?regs=<item>&part=
+ * &view=`), so a refresh opens the same water, part and view. `current` is the page's query string now: its other keys
+ * (date, angler, theme) are kept, the route's replaced. Browsing, or an unnamed reach (no item: its section id must
+ * never leave the bundle, AGENTS 5), says no water. Returns the new query string ("" or "?…").
+ */
+export function routeSearch(r: Route, current = ""): string {
+  const q = new URLSearchParams(current);
+  for (const k of ROUTE_KEYS) q.delete(k);
+  const f = waterFrame(r);
+  if (f && f.item !== null) {
+    q.set("regs", f.item);
+    if (f.part !== null) q.set("part", String(f.part));
+    if (f.view !== "regs") q.set("view", f.view);
+  }
+  const out = q.toString().replace(/%3A/gi, ":");   // an item id's colon reads as typed; a URL query allows it
+  return out ? `?${out}` : "";
+}
 
 /** Where the Regulations page starts: the tab scrolled to, the sheet open over it, and/or a scroll offset (px). */
 export interface RegsStart { tab: Tab; sheet: SheetKey | null; scroll: number }
@@ -65,8 +89,11 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   const who: Who | null = age === null && res === null ? null
     : { age: (age ?? "adult") as Who["age"], residency: (res ?? "resident") as Who["residency"] };
 
+  const viewS = q.get("view");
+  const view = viewS === null ? "regs" : (VIEWS as readonly string[]).includes(viewS) ? (viewS as View) : bad("view", VIEWS.join("|"));
+
   const themeS = q.get("theme");
   const theme = themeS === null ? null : themeS === "light" || themeS === "dark" ? themeS : bad("theme", "light|dark");
 
-  return { route: reduce(HOME, openWater({ item: item as ItemId, part, view: "regs" })), day, regs: { tab, sheet, scroll }, who, theme };
+  return { route: reduce(HOME, openWater({ item: item as ItemId, part, view, whole: view === "map" && part === null })), day, regs: { tab, sheet, scroll }, who, theme };
 }

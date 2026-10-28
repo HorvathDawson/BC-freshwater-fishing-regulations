@@ -70,10 +70,10 @@ function Kind({ k, first, inBand, at, palette, actions, images }: { k: KindVM; f
       {meta && (
         <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", rowGap: 4, columnGap: 8, marginTop: k.size?.rule ? 0 : 4 }}>
           {/* owner 2026-10-27: a size RULE ("must be 50 cm (20 in) or less; release any longer") is part of the count line it
-              limits: no gap under it, an accent rail on the left joins it, bold ink, no separate chip box */}
+              limits: no gap under it, no separate chip box. (T221, owner 2026-10-28: the accent rail looked odd) plain — the
+              row's own meta line, semibold ink, as the table's other second lines */}
           {k.size && (k.size.rule
-            ? <Text testID="chip:size" style={[TYPE.regsChip, { fontFamily: TYPE.regsBodyBold.fontFamily, color: palette.ink,
-                borderLeftWidth: 3, borderLeftColor: palette.accent, paddingLeft: 8, paddingVertical: 2, marginLeft: 2 }]}>{k.size.text}</Text>
+            ? <Text testID="chip:size" style={[TYPE.metaSemi, { color: palette.ink, paddingVertical: 2 }]}>{k.size.text}</Text>
             : <Text testID="chip:size" style={[TYPE.regsChip, { color: palette.ink, backgroundColor: palette.tint, paddingVertical: 3, paddingHorizontal: 8 }]}>{k.size.text}</Text>)}
           {k.qualifiers && <Text style={[TYPE.metaSemi, { color: palette.sub }]}>{k.qualifiers}</Text>}
         </View>

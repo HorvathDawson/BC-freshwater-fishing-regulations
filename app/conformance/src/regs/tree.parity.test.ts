@@ -8,7 +8,7 @@
  * stampsFor: "You need … ›") included since rows 31: the store's `TreeKind.stamps`, worded by tree.ts `stampLine`.
  */
 import { afterAll, describe, expect, it } from "vitest";
-import { plain, subcapLead, treeOf, type KindVM, type Line, type TierVM, type TreeKind, type TreeNodeVM, type TreeTier } from "@app/core";
+import { liftCounts, plain, subcapLead, treeOf, type KindVM, type Line, type TierVM, type TreeKind, type TreeNodeVM, type TreeTier } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, summary } from "./golden";
 import { norm } from "./eq";
 import { droppedLines, excluded, comparableGroups } from "./exclusions";
@@ -25,7 +25,10 @@ it(`T18 tree parity runs against a paired regs store${gate.skip ? ` — SKIPPED:
 
 /** a tree against the store's own nodes: each tier's words (Rule book links aside) are TreeTier.says, each kind's sentence
  *  starts with TreeKind.says (a folded kind draws none) — the store, not this port, is the oracle */
-function storeWalk(vm: readonly TreeNodeVM[], store: readonly (TreeTier | TreeKind)[], id: string, up: TreeTier | null = null, title = ""): void {
+function storeWalk(vm: readonly TreeNodeVM[], stored: readonly (TreeTier | TreeKind)[], id: string, up: TreeTier | null = null, title = "",
+                   all: readonly (TreeTier | TreeKind)[] = stored): void {
+  // (T221) a count tier reaching past its size box is drawn as a line before the box (core liftCounts)
+  const store = up ? liftCounts(stored, all) : stored;
   expect(vm.length, id).toBe(store.length);
   vm.forEach((x, i) => {
     const d = store[i]!;
@@ -33,7 +36,7 @@ function storeWalk(vm: readonly TreeNodeVM[], store: readonly (TreeTier | TreeKi
       // T214 item 1: the store's "Of these, " is read as the sub-cap's lead (core subcapLead), the rest of the line is the store's
       const lead = subcapLead(d, up, title), says = lead ? lead + d.says.slice("Of these, ".length) : d.says;
       if (!x.folded) expect(norm(plain(x.line.filter((r) => r.t !== "book"))), `${id} ${d.id}`).toBe(norm(says));
-      storeWalk(x.children, d.children, id, d, title);
+      storeWalk(x.children, d.children, id, d, title, all);
     } else if (x.t === "kind" && d.node === "kind") {
       if (d.folded) expect(x.says, id).toBeNull();
       else expect(norm(plain(x.says)).startsWith(norm(d.says)), `${id} ${d.says}`).toBe(true);
@@ -58,7 +61,7 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
         // the Kitimat ruling: held to the STORE's tree instead (verify_map.py's check — tier line = TreeTier.says, kind
         // sentence starts with TreeKind.says, folded kinds draw none), and the root stays the golden's
         expect(got.treeRoot).toBe(gold[i]!.treeRoot);
-        storeWalk(treeOf(g.env) ?? [], g.ctx.hdrRoot ? g.ctx.hdrRoot.children : g.ctx.g.tree, id, g.ctx.hdrRoot, g.ctx.title);
+        storeWalk(treeOf(g.env) ?? [], g.ctx.hdrRoot ? g.ctx.hdrRoot.children : g.ctx.g.tree, id, g.ctx.hdrRoot, g.ctx.title, g.ctx.g.tree);
         return;
       }
       expect(got).toEqual({ tree: goldenTree(gold[i]!.tree, droppedLines("keep", id, `groups.${i}.tree`)), treeRoot: gold[i]!.treeRoot });
@@ -76,6 +79,21 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
   const treeOfGroup = async (id: string, i = 0) => treeOf((await tree(id, i)).env)!;
   const tierById = async (id: string, tid: string, i = 0) => find(await treeOfGroup(id, i), (x) => x.t === "tier" && x.tid === tid) as TierVM;
   const kindNamed = async (id: string, name: string, i = 0) => find(await treeOfGroup(id, i), (x) => x.t === "kind" && x.kind === name) as KindVM;
+
+  it("(T221, owner 2026-10-28, the Dala River) a count tier reaching past the size box draws its line BEFORE the box", async () => {
+    const ns = await treeOfGroup("x17p0_1010");
+    let seen = false;
+    walk(ns, (x) => {
+      if (x.t !== "tier" || !x.band) return;
+      expect(x.children.some((c) => c.t === "tier" && c.tier === "count" && /rainbow/.test(plain(c.line))), "the box holds no rainbow count").toBe(false);
+      seen = true;
+    });
+    const flat: TierVM[] = [];
+    walk(ns, (x) => { if (x.t === "tier") flat.push(x); });
+    const head = flat.findIndex((t) => t.tier === "count" && /rainbow trout or steelhead in all/.test(plain(t.line)));
+    const box = flat.findIndex((t) => t.band);
+    expect([seen, head >= 0, head < box, flat[head]?.children.length]).toEqual([true, true, true, 0]);
+  });
 
   it("1. vedder_1010 share t3 folds into form a's lead: no kicker, no words; its origin keeps How to tell and p.21", async () => {
     const t = await tierById("vedder_1010", "t3");

@@ -24,7 +24,7 @@
  */
 import { useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
-import { dayRange, regsLapsedNote, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
+import { dayRange, regsLapsedNote, salmonGlance, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAccessNotice, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
@@ -48,7 +48,7 @@ import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 
 export function WaterScreen({ source, item, palette, onBack,
                               loader = null, day = null, onDay, section = null, part = null, fishImages, adiposeImages,
-                              start = null, onStarted, onPart }: {
+                              start = null, onStarted, onPart, glance = false }: {
   /** The water; null for an unnamed reach (T53), which `section` then names — its regulations are that section's. */
   source: WaterSource; item: ItemId | null;
   /**
@@ -77,6 +77,8 @@ export function WaterScreen({ source, item, palette, onBack,
   onStarted?: () => void;
   /** (T58) a Parts sheet row: read that part of this water (the caller makes it the frame's part). */
   onPart?: (partIx: number) => void;
+  /** (T221, a try) the Keep tab's at-a-glance table: the quota groups and Salmon folded into the species list. */
+  glance?: boolean;
 }) {
   const sheet = useWater(source, item);
   // THE REGULATIONS: the store, the part (the one the frame names, else the tapped section's), the day's inputs, the page
@@ -162,7 +164,8 @@ export function WaterScreen({ source, item, palette, onBack,
                   // (T54) the access notice; its link moves to the water's Map view, where the area is drawn
                   access={access.value ?? null}
                   salmon={salmon.value ? ({ actions, images }) => <SalmonCard card={salmon.value!} palette={palette} actions={actions} images={images} /> : undefined}
-                  onAccessMap={views ? () => views.onView("map") : undefined}
+                  glance={glance ? { salmon: salmon.value ? salmonGlance(salmon.value) : null } : null}
+                  onAccessMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),

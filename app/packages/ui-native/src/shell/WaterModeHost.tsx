@@ -78,5 +78,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
                      onPart={item === null ? undefined : (p) => go(partAction(item, item, p))}
                      // NO `feed`. The view quotes no number, so it reads no gauge data — the Conditions view, one
                      // swipe away, is where a water's numbers are.
+                     // (T221, a try) the Keep tab's at-a-glance table, in the app (a screen mounted alone keeps the cards)
+                     glance
                      onBack={back} />;
 }

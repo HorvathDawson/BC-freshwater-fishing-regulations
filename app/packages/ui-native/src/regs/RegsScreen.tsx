@@ -19,7 +19,7 @@
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Platform, ScrollView, Text, View } from "react-native";
-import { creditsFor, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type RegsPage, type SheetKey, type Tab } from "@app/core";
+import { creditsFor, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type GlanceRowVM, type RegsPage, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { Credits } from "../Credits";
 import { FreshDot } from "../menu/Fresh";
@@ -78,6 +78,12 @@ export interface RegsScreenProps {
    *  function is handed this screen's actions and the fish pictures (its species open their fish sheets). */
   salmon?: React.ReactNode | ((a: { actions: KeepActions; images?: FishImages }) => React.ReactNode);
   /**
+   * (T221, owner 2026-10-28 — a try) THE AT-A-GLANCE TABLE: the Keep tab's species list carries the quota groups and the
+   * Salmon card as folded rows (`KeepTab` `glance`). `salmon` is then that card's row (`@app/core` `salmonGlance`), the
+   * card drawn when it is opened, not above the Keep tab. Absent: the page as it was (the cards in full).
+   */
+  glance?: { salmon: GlanceRowVM | null } | null;
+  /**
    * (T45) how much room there is (@app/ui `useLayoutClass`, handed down by the water screen; this screen never reads the
    * window). "phone" (the default): the page as it always was. "tablet": the page and its pin bar held to the reading
    * column. "desktop": that, beside the side column (the date pill, the sections, the pinned lines) — `RegsWide`.
@@ -109,7 +115,7 @@ export interface RegsScreenProps {
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
                              gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
-                             lapsed = null, access = null, onAccessMap }: RegsScreenProps) {
+                             lapsed = null, access = null, onAccessMap, glance = null }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
@@ -187,10 +193,13 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
         </WaterInset>
       )}
       <BoatsLine boats={page.boats} palette={palette} onSheet={openSheet} />
-      {typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon}
+      {!glance && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
         <StickyContext.Provider value={sticky}>
-          <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
+          <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images}
+                   glance={glance ? { salmon: glance.salmon && salmon
+                     ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
+                     : null } : null} />
         </StickyContext.Provider>
       </AnchorContext.Provider>
       {sec("gear", gear)}

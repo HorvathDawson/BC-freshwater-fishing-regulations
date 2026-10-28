@@ -16,12 +16,12 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useMemo, useSyncExternalStore } from "react";
-import { accessNotice, buildRegsPage, methodClassOn, salmonCardLive, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
+import { accessNotice, buildRegsPage, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who } from "@app/core";
 import { downstreamWater, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { loadRegsInputs, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
+import { loadRegsInputs, loadWaterGroup, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
          type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
 
@@ -65,6 +65,14 @@ export function loadRegsStore(loader: RegsLoader, expect: RegsExpect = {}): Prom
  */
 export function regsGroupOf(loader: RegsLoader): (item: ItemId) => Promise<readonly ItemId[]> {
   return async (item) => (await siblingItems(await loadRegsStore(loader), item)) as readonly ItemId[];
+}
+
+/**
+ * (T221) Whether a water is solo — one part, going on as / from no other water (`@app/core` `soloWater` over its group,
+ * `loadWaterGroup`): what the opener asks of a search result (solo: its Regulations, not its Map).
+ */
+export function regsSoloOf(loader: RegsLoader): (item: ItemId) => Promise<boolean> {
+  return async (item) => soloWater(await loadWaterGroup(await loadRegsStore(loader), item));
 }
 
 /**
