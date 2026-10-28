@@ -269,7 +269,7 @@ use that as the sole source of future work."
 | T222 | Stave spawning channels (Ruskin/Northrop): add the FWA side channels so Stave r1/r2 can bind | OPEN | — | added_streams + atlas rebuild; no owner call |
 | T223 | user accounts shared between the web app and the phone app (sign-in, what syncs, offline) | OPEN | — | far future; default plan: Firebase Auth + Worker + R2 users/<uid>/, no DB |
 | T224 | name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source | OPEN | — | candidates mined 10-28 (curation-review/name-variants); ★ owner: flow + auto-accept |
-| T225 | feeds: where they live, how they're triggered, alerting (gauges, DFO, HYDAT) | OPEN | — | design first; owner picks host (default GitHub Actions) |
+| T225 | feeds: where they live, how they're triggered, alerting (gauges, DFO, HYDAT) | OPEN | — | design first; host = Cloudflare Workers cron (owner 10-28), alerts in Cloudflare |
 
 ## Order for open tickets
 
@@ -334,7 +334,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
 
 ### Answered (recently, for the record)
-- Q87, Q140, Q62, Q63 — owner 2026-10-28, built defaults reversed (decisions.md "owner answers Q87, Q140, Q62, Q63"): Beattie Lake's bull trout sits INSIDE the lake's 1 (RULINGS Q27; only Beattie changes); a tapped section outside no-access land leads with its part's banner; slots say "between"; no-count size rules say "X must be …; release any …". Release r-950edb593228 staged, not promoted.
+- Q87, Q140, Q62, Q63 — owner 2026-10-28, built defaults reversed (decisions.md "owner answers Q87, Q140, Q62, Q63"): Beattie Lake's bull trout sits INSIDE the lake's 1 (RULINGS Q27; only Beattie changes); a tapped section outside no-access land leads with its part's banner; slots say "between"; no-count size rules say "X must be …; release any …". Release r-a67545574492 staged, not promoted.
 - Stale-item sweep 2026-10-28 (already settled): Q114 — pilot DROPPED by the owner 2026-10-25 (implement_progress.md CURRENT STATE: "no time"; the real review replaces it). Q145 — answered by T211 part 2, built 2026-10-27 with the owner's corrections: the feed host runs `regs.dfo_salmon.live` every 6 h Jun 1–Oct 31, daily otherwise (cron + R2 sync are the owner's, OWNER-TODO). Q32 — obsolete: T95 DROPPED (superseded by T164), salmon scope set by the owner since (T164, T211 option A 2026-10-27). Q125 — answered 2026-10-24 (muted fill, built; the row had stayed in the open table). Q142 — owner 2026-10-28: lake splits deferred ("lake split later" severity); the default "not now; caveat line" stands. Q119 — not an owner question: the unification audit was Claude's own run; Claude re-derives the two pointers by search or drops them (T125).
 - Q160 — owner 2026-10-24: combine CLEVER + COFFEE on every forecast day, weighted by measured skill → T177. Q161 — owner: a spot records conditions for its TRIP date (not save time) → built in the T177 lane.
 - Q84 (side channel and its river) — owner 2026-10-24 delegated ("do what you think is best just make sure it is sane"): T169 one panel per side-channel water; Q169d (one panel for a long side-channel water) decided yes.

@@ -38,12 +38,17 @@ The app already reads the feeds offline-first: the last captured feed is shown w
    OWNER-TODO once automated.
 
 ## Owner questions (each with a default)
-- Q-T225a host: default **GitHub Actions** for gauges + DFO (Python as is), HYDAT stays manual on notify.
-- Q-T225b alerts channel: default ntfy topic.
+- Q-T225a host: **DECIDED owner 2026-10-28 — Cloudflare Workers Cron Triggers** (GitHub Actions schedules judged
+  too flaky). HYDAT stays manual on notify. First design step: measure each feed's CPU per run against the Workers
+  plan limits (the free plan's per-invocation CPU cap is small; fetch wait doesn't count, parsing does) and choose:
+  port the fetch+parse to TypeScript (shares the app's toolchain), Python Workers if the deps fit, or Workflows/
+  Containers for anything heavy. Note if the paid Workers plan is needed and what it costs.
+- Q-T225b alerts: default **inside Cloudflare** — the Worker posts to ntfy/Discord via fetch, and/or Email Workers
+  `send_email` to the owner's verified address; a `status.json` in R2 + Cloudflare's own Worker error notifications.
 - Q-T225c gauge cadence: default hourly in daylight, 3-hourly at night.
 
 ## Acceptance
 Feeds update on schedule on staging for a week with no hand runs; a forced source failure alerts once and the app
 shows the stale age; runbook written; then prod switched on by the owner.
 
-Depends: T177 (gauge feed), T211 (DFO feed), staging deploy (T192–T198 lane). Size: M. Owner: host choice + prod keys.
+Depends: T177 (gauge feed), T211 (DFO feed), staging deploy (T192–T198 lane). Size: M. Owner: prod keys (host decided: Cloudflare Workers).
