@@ -764,6 +764,7 @@ def sweep(graph: StreamGraph, geoms: dict, points: list[SplitPoint],
                         done.add(x)
                         p = SplitPoint(split_id=sid, blk=g.nodes[x].blk, route_measure=float(k["m"]), fid="",
                                        label=sp.label, anchor_type=sp.anchor_type, source=sp.source,
+                                       tidal=getattr(sp, "tidal", False),
                                        concern=f"braid cut across {sid} at {round(k['dist'])} m from the host")
                         case.cut_points.append(p)
                         out_pts.append(p)
@@ -782,6 +783,7 @@ def sweep(graph: StreamGraph, geoms: dict, points: list[SplitPoint],
                             case.crossings.append(x)
                             p = SplitPoint(split_id=sid, blk=g.nodes[x["node"]].blk, route_measure=float(x["m"]),
                                            fid="", label=sp.label, anchor_type=sp.anchor_type, source=sp.source,
+                                           tidal=getattr(sp, "tidal", False),
                                            concern=f"tributary of a braid cut across {sid}")
                             case.cut_points.append(p)
                             out_pts.append(p)

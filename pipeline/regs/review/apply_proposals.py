@@ -81,7 +81,7 @@ def plan(props: list[dict], tried: set[str], landed_sids: set[str] = frozenset()
     by_id = {p["id"]: p for p in props}
     blocked = []
     for p in props:
-        if p["id"] in tried or p["kind"] == "lake_split_later":
+        if p["id"] in tried or p["kind"] in ("lake_split_later", "tidal_mouth", "tidal_followup"):
             continue
         if not p["applicable"]:
             blocked.append((p["id"], "not applicable: " + "; ".join(p["problems"] or ["no edit"])))

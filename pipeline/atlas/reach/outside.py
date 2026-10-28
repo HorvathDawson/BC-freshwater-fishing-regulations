@@ -232,3 +232,98 @@ def tidal_owner(entries, registry, *, strict: bool = True) -> dict[str, str]:
         for s in got:
             out.setdefault(s, str(e.get("entry_id") or ""))
     return out
+
+
+# ------------------------------------------------------------------------------------------------
+# T166 step 5 (owner 2026-10-28, RULINGS C-2): THE PIECE BELOW A TIDAL BOUNDARY IS TIDAL WATER.
+# ------------------------------------------------------------------------------------------------
+
+#: The resolved-cuts sidecar of an atlas (`splits.write_resolved`); a curated split flagged
+#: `tidal: true` in splits.json carries `tidal` on its rows there (the atlas build, or the
+#: `pipeline.atlas.sidecars` migration for a reused cut flagged after the build).
+RESOLVED_SPLITS = "splits.resolved.json"
+
+#: THE TIDAL PIECE IS THE WATER BELOW THE CUT, AND ONLY THAT WATER (owner 2026-10-28;
+#: handoff/PLAN/curation-review/tidal/tributary-impact.md): `downstream_of` the tidal split on the
+#: water(s) that carry it, by the same resolver a rule's extent uses (route measure on the cut's own
+#: blue line, braid channels cut at build). No tributary is part of it: a stream entering the tidal
+#: piece keeps its own water, and stays its river's tributary — the walk runs on the full network and
+#: the tidal piece is taken out of each binding AFTER it (`build._without_tidal`). Walking the
+#: freshwater-only graph instead cut 29 rules off whole tributary trees.
+TIDAL_PIECE_HAS_NO_TRIBUTARIES = True
+
+
+def tidal_splits(build_dir) -> tuple[str, ...]:
+    """The split ids this atlas resolved as TIDAL BOUNDARIES (rows of `splits.resolved.json` with
+    `tidal`), sorted. An atlas with no such file is refused: a missing sidecar is not "no tidal
+    boundary" (AGENTS 37)."""
+    import json
+    from pathlib import Path
+    p = Path(build_dir) / RESOLVED_SPLITS
+    if not p.exists():
+        raise SystemExit(f"tidal: {p} is missing — the atlas writes it; without it the tidal "
+                         "boundaries cannot be read")
+    rows = json.loads(p.read_text(encoding="utf-8"))
+    return tuple(sorted({str(r["split_id"]) for r in rows if r.get("tidal")}))
+
+
+def tidal_cut_owner(registry, graph, split_ids, *, strict: bool = True,
+                    report: list | None = None) -> dict[str, str]:
+    """`{section: "split:<id>"}` — THE TIDAL PIECE below each tidal split (`TIDAL_PIECE_HAS_NO_
+    TRIBUTARIES`): `downstream_of` the cut, scoped to every registry item that carries it (its
+    boundary, or an alias of one). A section below two cuts keeps the first by split id.
+
+    REFUSED (`strict`, the run) — never a silent "nothing is tidal here": a tidal split no item
+    carries (the atlas did not cut it), or one the resolver cannot place on its water. `report`
+    (optional) collects one row per split: its items, the sections it makes tidal, and the pieces
+    the resolver could not place (`unclassified`: a braid or arm reaching the sea unjoined) — those
+    stay freshwater and are listed, never guessed (AGENTS 12)."""
+    from pipeline.atlas.reach import extent as _resolve
+    carriers: dict[str, set[str]] = {}
+    for iid, it in registry.items():
+        for b in getattr(it, "boundaries", ()) or ():
+            for a in b.answers_to():
+                carriers.setdefault(a, set()).add(iid)
+    out: dict[str, str] = {}
+    for sid in sorted(set(split_ids)):
+        items = sorted(carriers.get(sid, ()))
+        if not items:
+            if strict:
+                raise SystemExit(f"tidal: split {sid!r} is a tidal boundary but no registry item "
+                                 "carries it — the atlas did not cut it (rebuild the atlas)")
+            continue
+        why: list = []
+        got = _resolve.resolve_extent(registry, graph, [], {
+            "op": "downstream_of", "splits": [sid], "item_ids": items}, reasons=why)
+        if got is None:
+            if strict:
+                raise SystemExit(f"tidal: the piece below tidal split {sid!r} on {items} cannot be "
+                                 f"resolved: {why}")
+            continue
+        secs = sorted(got.get("sections") or ())
+        for s in secs:
+            out.setdefault(s, f"split:{sid}")
+        if report is not None:
+            report.append({"split": sid, "items": items, "sections": len(secs),
+                           "unplaced": sorted(got.get("unclassified") or ()),
+                           "ambiguous_cut": list(got.get("ambiguous_cut") or ())})
+    return out
+
+
+def tidal_water(entries, registry, graph=None, split_ids=(), *, strict: bool = True,
+                report: list | None = None) -> dict[str, str]:
+    """`{section: owner}` — ALL THE TIDAL WATER the reach run takes out of every binding: the waters
+    of the rows marked `tidal` (owner: the row's entry id, `tidal_owner`), then the piece below every
+    tidal split (owner `split:<id>`, `tidal_cut_owner`). A row's claim stands where both hold. The
+    run writes it as `tidal.jsonl`; the bundle's `tidal` table is read from that file."""
+    out = dict(tidal_owner(entries, registry, strict=strict))
+    if split_ids:
+        for s, o in tidal_cut_owner(registry, graph, split_ids, strict=strict,
+                                    report=report).items():
+            out.setdefault(s, o)
+    return out
+
+
+def is_cut_owner(owner: str) -> bool:
+    """Is a `tidal` owner a tidal split (`split:<id>`), not a row marked tidal?"""
+    return str(owner or "").startswith("split:")

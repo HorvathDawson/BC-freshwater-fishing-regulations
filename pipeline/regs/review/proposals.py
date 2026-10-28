@@ -58,8 +58,15 @@ OUT_DIR = REPO / "handoff" / "PLAN" / "curation-review" / "proposals"
 INDEX = "index.json"
 #: the review app's backend: the in-memory binding path (`reuse.binding_change`) lives there
 BACKEND = REPO / "curation-review" / "backend"
-#: the proposal kinds
-KINDS = ("new_split", "extent", "lake_split_later")
+#: the proposal kinds — T166: `tidal_flag` flags a cut already in splits.json a TIDAL BOUNDARY;
+#: `tidal_mouth` lists a tidal boundary the owner put at the stream's mouth (nothing is tidal, no edit)
+KINDS = ("new_split", "tidal_flag", "extent", "lake_split_later", "tidal_mouth", "tidal_followup")
+#: T166: a tidal boundary within this many metres of the FWA mouth IS the mouth — no cut is made
+#: (a cut on a line's end breaks both halves: memory end-cut-halves-the-water) and nothing is tidal
+TIDAL_MOUTH_M = 1.0
+#: T212 owner calls made before the Tidal tab could record a mark (Capilano, Cowichan, 2026-10-27):
+#: each is the candidate's proposed boundary, accepted; a later tidal mark on the same candidate wins
+TIDAL_DECISIONS = REPO / "handoff" / "PLAN" / "curation-review" / "tidal" / "owner-decisions.json"
 
 
 def _slug(s: str, n: int = 60) -> str:
@@ -90,6 +97,8 @@ class Sources:
     build: Optional[Path] = None
     #: the owner's confidence calls on proposed splits (`marks.ConfidenceOverride`)
     overrides: tuple = ()
+    #: T166: the owner's tidal calls recorded before the Tidal tab (`TIDAL_DECISIONS`); None = none
+    tidal_decisions: Optional[Path] = None
     _reg: Optional[dict] = field(default=None, repr=False)
     _texts: dict = field(default_factory=dict, repr=False)
 
@@ -101,7 +110,8 @@ class Sources:
                    dfo_dir=Path(CURATED.regulations.entries.dfo_salmon),
                    splits_path=Path(CURATED.waters.splits),
                    build=Path(build) if build else GENERATED.build(),
-                   overrides=tuple(load_overrides(CURATED.regulations.review.proposal_overrides)))
+                   overrides=tuple(load_overrides(CURATED.regulations.review.proposal_overrides)),
+                   tidal_decisions=TIDAL_DECISIONS if TIDAL_DECISIONS.exists() else None)
 
     def text(self, path: Path) -> str:
         p = Path(path)
@@ -225,6 +235,17 @@ def apply_edit(doc: dict, ed: Mapping, *, strict: bool = True) -> None:
         if any(sp.get("id") == ed["split"]["id"] for w in wbs for sp in w.get("splits") or []):
             raise ValueError(f"splits.json already has a split {ed['split']['id']}")
         wb.setdefault("splits", []).append(copy.deepcopy(ed["split"]))
+        return
+    if ed["kind"] == "split_flag":                       # T166: one field on an existing split
+        sp = next((sp for w in doc.get("waterbodies") or [] for sp in w.get("splits") or []
+                   if sp.get("id") == ed["split_id"]), None)
+        if sp is None:
+            raise ValueError(f"splits.json has no split {ed['split_id']}")
+        now = sp.get(ed["field"], _MISSING)
+        if strict and now != ed["before"]:
+            raise ValueError(f"split {ed['split_id']} {ed['field']} is {now!r} now, the proposal "
+                             f"was made on {ed['before']!r}")
+        sp[ed["field"]] = copy.deepcopy(ed["after"])
         return
     t = _target_of(doc, ed)
     if t is None:
@@ -397,6 +418,70 @@ def _proposes(m) -> bool:
         m.extent_fix or m.tributaries or m.new_splits or m.lake_split_later)
 
 
+# --------------------------------------------------------------------------- tidal (T166)
+
+def _tidal_decides(m) -> bool:
+    """Does a tidal mark in force DECIDE a tidal boundary? Only Place y with its one cut (the point
+    the owner chose: the proposal, a polygon crossing, the words' landmark or his own). A wrong or
+    unsure mark decides nothing yet — one carrying a point is LISTED for follow-up (Bear River:
+    "most likely the split is at the bridge, we should look more online"), never applied."""
+    return m.scope == "tidal" and len(m.new_splits) == 1 and m.verdict == "verified"
+
+
+def _tidal_followup(m) -> bool:
+    """A tidal mark in force that is not a decision but says something: wrong / unsure."""
+    return m.scope == "tidal" and m.verdict in ("wrong", "unsure")
+
+
+def tidal_decision_marks(path: Optional[Path], candidates: Optional[Path] = None) -> list:
+    """THE OWNER'S EARLIER TIDAL CALLS (`TIDAL_DECISIONS`) as tidal marks: each candidate's proposed
+    boundary as its one new split, Place y, the call's date and note. They come BEFORE the marks
+    store, so a later mark on the same candidate supersedes them (`marks.latest`). The file is
+    handoff data the owner dictated (decisions.md 2026-10-27); a call naming a candidate the
+    candidates file no longer has is refused, never skipped."""
+    if path is None or not Path(path).exists():
+        return []
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import tidal as T
+    doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    out = []
+    for d in doc.get("decisions") or []:
+        row = T.candidate(d["id"], candidates)
+        if row is None:
+            raise ValueError(f"tidal decision {d['id']} ({d.get('water')}): no such candidate in "
+                             f"{candidates or T.path()}")
+        pr = row.get("proposed") or {}
+        reuse = pr.get("reuse") or {}
+        n = {"ref": d["id"].replace(":", "-")[:40], "on_item": (row.get("items") or [None])[0],
+             "name": pr.get("split_name") or f"{row.get('water')}: tidal boundary",
+             "quote": d.get("where") or "", "note": d.get("note") or ""}
+        if reuse.get("split_id"):
+            n.update(anchor="split", split_id=reuse["split_id"])
+        else:
+            n.update(anchor="coord", coord=tuple(pr["coord"]), blk=row.get("blk"),
+                     measure=pr.get("measure"))
+        out.append(M.Mark.model_validate({
+            "scope": "tidal", "target": d["id"], "verdict": "verified", "answers": {"P": "y"},
+            "reviewer": "dawson", "date": d.get("decided") or "", "pdf_sha256": "0" * 64,
+            "note": f"owner call ({_rel(Path(path))}): {d.get('note') or ''}".strip(),
+            "prints": T.prints(row), "new_splits": [n]}))
+    return out
+
+
+def _tidal_label(n, water: str = "") -> str:
+    """A tidal cut's label: its name without the water's own name ("Nanaimo River: tidal boundary"
+    -> "tidal boundary"), as every other split of the water is labelled; it always says tidal."""
+    name = (n.name or "").strip() or "tidal boundary"
+    head, sep, tail = name.partition(": ")
+    if sep and tail.strip():                     # T212 names every cut "<water>: <place>"
+        name = tail.strip()
+    # a cut ABOVE the mouth is no "mouth": T212 labelled every polygon crossing of a stream it found
+    # no words for "mouth (tidal boundary)", Amos Creek's 500 m up included
+    if name.lower().startswith("mouth") and (n.measure or 0) > TIDAL_MOUTH_M:
+        name = "tidal boundary"
+    return name if "tidal" in name.lower() else f"{name} (tidal boundary)"
+
+
 def _point_split(fix_point, on_item: Optional[str], ref: str):
     """A T191 NEW point (confluence / lake inlet / outlet / map point) as a `NewSplit`."""
     from pipeline.regs.review.marks import NewSplit
@@ -404,11 +489,36 @@ def _point_split(fix_point, on_item: Optional[str], ref: str):
                     item_id=fix_point.item_id, coord=fix_point.coord, on_item=on_item)
 
 
+def _tidal_flag(sid: str, have: Mapping, src: Sources, marks: list, water: str) -> list[dict]:
+    """T166: flag an EXISTING split a tidal boundary (a reused cut: the Fraser's CPR bridge at
+    Mission, the Campbell's cement block sign) — one `tidal_flag` proposal, or none when it is
+    flagged already. The cut does not move; the piece below it becomes tidal water."""
+    sp = have.get(sid)
+    if sp is not None and sp.get("tidal") is True:
+        return []
+    problems = [] if sp is not None else [f"splits.json has no split {sid}"]
+    edits = [] if problems else [{"file": _rel(src.splits_path), "kind": "split_flag",
+                                  "split_id": sid, "field": "tidal", "before": _MISSING,
+                                  "after": True}]
+    return [{"id": f"tidal-flag-{_slug(sid, 60)}", "kind": "tidal_flag", "target": sid,
+             "scope": "split", "rule_id": None,
+             "title": f"TIDAL BOUNDARY: flag {sid} on {water} (the cut stays; the piece below it is "
+                      "tidal water)",
+             "marks": marks, "edits": edits, "depends_on": [], "problems": problems,
+             "notes": ["an existing cut: the atlas sidecar carries the flag "
+                       "(`python -m pipeline.atlas.sidecars`), no new cut"],
+             "split_id": sid, "confidence": None}]
+
+
 def build(marks: Iterable, src: Sources) -> list[dict]:
     """EVERY PROPOSAL the marks make against the files NOW, new splits first. Pure: reads `src`."""
     from pipeline.regs.review import marks as M
-    marks = list(marks)
-    inforce = [m for m in M.latest(marks).values() if _proposes(m)]
+    # T166: the owner's earlier tidal calls first, so a mark made since supersedes one
+    marks = tidal_decision_marks(src.tidal_decisions) + list(marks)
+    latest = M.latest(marks).values()
+    inforce = [m for m in latest if _proposes(m)]
+    tidal_in = [m for m in latest if _tidal_decides(m)]
+    tidal_open = [m for m in latest if _tidal_followup(m)]
     shared = M.proposals(marks, src.overrides)          # T210: one per distinct cut, every mark
     splits_doc = src.doc(src.splits_path)
     have = {sp["id"]: sp for wb in splits_doc.get("waterbodies") or []
@@ -448,13 +558,56 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
                     n = _point_split(p, on, f"{_slug(m.target, 30)}_{fi}_{pi}")
                     ref_group[(m.key, f"#{fi}.{pi}")] = group_for(n, who)
 
+    # T166: EACH TIDAL BOUNDARY THE OWNER DECIDED. A cut above the mouth is a new split (shared with
+    # any other mark naming the same cut) flagged `tidal`; on an existing split, that split is flagged;
+    # at the mouth there is no cut and nothing is tidal (listed).
     out: list[dict] = []
+    for m in sorted(tidal_in, key=lambda m: m.target):
+        who = {"target": m.target, "rule_id": None, "reviewer": m.reviewer, "date": m.date}
+        n = m.new_splits[0]
+        water = ((src.item(n.on_item) or {}).get("name") if n.on_item else None) or (
+            n.name or "").partition(":")[0] or (n.on_item or "water")
+        if n.anchor == "split":
+            out.extend(_tidal_flag(n.split_id, have, src, [who], water))
+            continue
+        if n.measure is not None and n.measure <= TIDAL_MOUTH_M:
+            out.append({"id": f"tidal-mouth-{_slug(m.target, 40)}", "kind": "tidal_mouth",
+                        "target": n.on_item, "scope": "tidal", "rule_id": None,
+                        "title": f"{water}: the tidal boundary is the mouth — no cut, nothing tidal",
+                        "marks": [who], "edits": [], "depends_on": [], "problems": [],
+                        "notes": ["the mouth is where the stream meets tidal water already: the "
+                                  "whole stream stays freshwater (T166)"],
+                        "split_id": None, "confidence": None})
+            continue
+        g = group_for(n, who)
+        g["tidal"] = True
+        from pipeline.regs.review import tidal as T
+        cand = T.candidate(m.target) or {}
+        if cand.get("water"):
+            g.setdefault("tidal_water", cand["water"])
+        if cand.get("confidence") and n.confidence is None:
+            g.setdefault("tidal_conf", cand["confidence"])  # the candidate's grade, unless set
+    for m in sorted(tidal_open, key=lambda m: m.target):
+        n = m.new_splits[0] if m.new_splits else None
+        out.append({"id": f"tidal-open-{_slug(m.target, 40)}", "kind": "tidal_followup",
+                    "target": m.target, "scope": "tidal", "rule_id": None,
+                    "title": f"{m.target}: the owner's tidal mark says {m.verdict} — no cut until a "
+                             "Place y mark" + (f" (his point: {n.name}, {n.measure} m above the mouth)"
+                                               if n is not None else ""),
+                    "marks": [{"target": m.target, "rule_id": None, "reviewer": m.reviewer,
+                               "date": m.date, "note": m.note}],
+                    "edits": [], "depends_on": [], "problems": [], "notes": [m.note] if m.note else [],
+                    "split_id": None, "confidence": None})
+
     # ---- new splits
     gid_split: dict[str, str] = {}                       # group id -> its split id (new or existing)
     for g in groups:
         n = g["split"]
         sh = next((p for p in shared if p["id"] == g["gid"]), None)
         conf = sh["confidence"] if sh else M.confidence_of(g["members"], src.overrides)
+        if g.get("tidal_conf") and not any(x.confidence for x in g["members"]) and not any(
+                M.same_anchor(o.match, n) for o in src.overrides):
+            conf = g["tidal_conf"]                       # T166: the tidal candidate's own grade
         pid = f"split-{_slug(g['gid'], 40)}"
         targets = ", ".join(sorted({w["target"] for w in g["marks"]}))
         prov = f"proposed in review marks on {targets}"
@@ -465,7 +618,10 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
         wb = next((w for w in splits_doc.get("waterbodies") or [] if w.get("applies_to") == at),
                   None) if at else None
         water = (wb or {}).get("name") or ((src.item(n.on_item) or {}).get("name")
-                                           if n.on_item else None) or (n.on_item or "water")
+                                           if n.on_item else None) or g.get("tidal_water") or (
+                                               n.on_item or "water")
+        if g.get("tidal"):                               # T166: labelled as its water's cuts are
+            n = n.model_copy(update={"name": _tidal_label(n, water)})
         base = f"{_slug(water.split('(')[0], 40)}__{_slug(n.name or n.anchor, 32)}"
         rec, notes = None, []
         try:
@@ -477,6 +633,8 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
             dup = None
         if dup is not None:                              # already in splits.json: applied
             gid_split[g["gid"]] = dup
+            if g.get("tidal"):                           # T166: ... but flagged tidal?
+                out.extend(_tidal_flag(dup, have, src, g["marks"], water))
             continue
         sid, k = base, 1
         while sid in taken:
@@ -487,15 +645,21 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
         edits = []
         if not problems:
             rec, notes = split_record(n, src, sid=sid, provenance=prov, confidence=conf)
+            if g.get("tidal"):                           # T166: the piece below it is tidal water
+                rec["tidal"] = True
             edits = [{"file": _rel(src.splits_path), "kind": "split",
                       "waterbody": {"name": water.upper() if wb is None else wb["name"],
                                     "applies_to": at},
                       "split": rec}]
         out.append({"id": pid, "kind": "new_split", "target": n.on_item, "scope": "split",
-                    "rule_id": None, "title": f"new split {sid} on {water}: "
-                    + _ANCHOR_WORDS.get(n.anchor, n.anchor) + (f" {n.name}" if n.name else ""),
+                    "rule_id": None, "title": ("TIDAL BOUNDARY " if g.get("tidal") else "")
+                    + f"new split {sid} on {water}: "
+                    + _ANCHOR_WORDS.get(n.anchor, n.anchor) + (f" {n.name}" if n.name else "")
+                    + (f" ({n.measure:.0f} m above the mouth; the piece below is tidal water)"
+                       if g.get("tidal") and n.measure is not None else ""),
                     "marks": g["marks"], "edits": edits, "depends_on": [], "problems": problems,
-                    "notes": notes, "split_id": sid, "confidence": conf})
+                    "notes": notes, "split_id": sid, "confidence": conf,
+                    **({"tidal": {"blk": n.blk, "measure": n.measure}} if g.get("tidal") else {})})
 
     # ---- one proposal per mark
     for m in inforce:
@@ -630,7 +794,8 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
             {k: v for k, v in ed.items() if k != "file"}
             | ({"split": {k: v for k, v in ed["split"].items() if k != "_note"}}
                if ed["kind"] == "split" else {}) for ed in p["edits"]]})
-    order = {"new_split": 0, "extent": 1, "lake_split_later": 2}
+    order = {"new_split": 0, "tidal_flag": 0, "extent": 1, "lake_split_later": 2, "tidal_mouth": 3,
+             "tidal_followup": 3}
     out.sort(key=lambda p: order[p["kind"]])
     return out
 
@@ -652,7 +817,9 @@ def side_dir(p: Mapping) -> str:
 def changes_cuts(p: Mapping, props: Iterable[Mapping]) -> bool:
     """Does landing `p` add or move a cut — a split edit in it or in a new split it waits on? Such
     a proposal is bound only on a side atlas: it needs the side rebuild first."""
-    return any(ed["kind"] == "split" for q in chain_of(p, props) for ed in q["edits"])
+    # T166: flagging a cut tidal moves no cut, but it moves what is freshwater — the side atlas
+    # (its sidecar carries the flag) and its binding diff answer it the same way
+    return any(ed["kind"] in ("split", "split_flag") for q in chain_of(p, props) for ed in q["edits"])
 
 
 def side_ready(p: Mapping) -> bool:
@@ -692,7 +859,20 @@ def side_commands(p: Mapping, props: Iterable[Mapping]) -> list[str]:
     return cmds
 
 
-def write_side(p: Mapping, props: Iterable[Mapping], src: Sources, out: Path) -> list[Path]:
+def tidal_props(props: Iterable[Mapping]) -> list[Mapping]:
+    """T166: every APPLICABLE tidal proposal — a new split flagged `tidal`, or a `tidal_flag`."""
+    return [p for p in props if p["applicable"] and (p["kind"] == "tidal_flag" or any(
+        ed["kind"] == "split" and ed["split"].get("tidal") for ed in p["edits"]))]
+
+
+def write_side_many(chain: list[Mapping], src: Sources, out: Path) -> list[Path]:
+    """PATCHED COPIES with every proposal of `chain` applied, in order (T166: all the tidal
+    boundaries on one side atlas). The same refusal as `write_side`."""
+    return write_side(chain[-1], chain, src, out, chain=chain)
+
+
+def write_side(p: Mapping, props: Iterable[Mapping], src: Sources, out: Path,
+               chain: Optional[list] = None) -> list[Path]:
     """PATCHED COPIES for a side rebuild: the catalogue, splits.json and the DFO files, copied into
     `out` with the proposal (and the new splits it names) applied. Refuses a directory under
     data/curated: the curated files are only ever written by `apply_proposals`."""
@@ -702,7 +882,7 @@ def write_side(p: Mapping, props: Iterable[Mapping], src: Sources, out: Path) ->
     cur = Path(CURATED.waters.splits).resolve().parents[1]
     if out == cur or cur in out.parents:
         raise ValueError(f"{out} is under the curated data ({cur}): a side copy goes elsewhere")
-    texts = materialize(chain_of(p, props), src)
+    texts = materialize(chain if chain is not None else chain_of(p, props), src)
     written = []
     for name, d in (("catalogue", src.entries_dir), ("dfo_salmon", src.dfo_dir)):
         for f in _region_files(d):
@@ -750,9 +930,11 @@ def check(props: list[dict], src: Sources) -> None:
             p["check"] = {"cheap": False, "why": "not applicable: " + "; ".join(
                 p["problems"] or ["no edit"])}
             continue
-        if p["kind"] == "new_split":
+        if p["kind"] in ("new_split", "tidal_flag"):
             p["check"] = {"cheap": False, "why": "a new split changes the atlas: the side rebuild "
-                          "and its binding diff answer it"}
+                          "and its binding diff answer it" if p["kind"] == "new_split" else
+                          "a tidal flag moves what is freshwater: the side atlas and its binding "
+                          "diff answer it (T166)"}
             continue
         if p["depends_on"]:
             p["check"] = {"cheap": False, "why": "names a new split (" + ", ".join(
@@ -841,7 +1023,8 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--check", action="store_true",
                    help="bind each proposal in memory before/after (loads the graph)")
     s = sub.add_parser("side", help="patched copies of the curated files for a side rebuild")
-    s.add_argument("id")
+    s.add_argument("id", help="a proposal id, or `tidal` for EVERY applicable tidal proposal at once "
+                              "(T166: one side atlas for all the tidal boundaries)")
     s.add_argument("--out", type=Path, required=True)
     for x in (b, s):
         x.add_argument("--marks", type=Path, default=CURATED.regulations.review.marks)
@@ -851,6 +1034,16 @@ def main(argv: list[str] | None = None) -> int:
     src = Sources.live(a.build)
     marks = M.load(a.marks)
     props = build(marks, src)
+    if a.cmd == "side" and a.id == "tidal":
+        tid = tidal_props(props)
+        if not tid:
+            print("no applicable tidal proposal", file=sys.stderr)
+            return 2
+        for w in write_side_many(tid, src, a.out):
+            print(f"  {w}")
+        print(f"{len(tid)} tidal proposal(s) patched: " + " ".join(p["id"] for p in tid),
+              file=sys.stderr)
+        return 0
     if a.cmd == "side":
         p = next((q for q in props if q["id"] == a.id), None)
         if p is None or not p["applicable"]:

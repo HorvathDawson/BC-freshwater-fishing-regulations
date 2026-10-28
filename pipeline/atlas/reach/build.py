@@ -12,6 +12,7 @@ no performance problem here — do not add parallelism.
 from __future__ import annotations
 
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 
 from pipeline.atlas.reach.covered import covered_ids as _covered_ids
@@ -29,7 +30,7 @@ from pipeline.atlas.reach.steelhead import Presence as _SteelheadPresence
 from pipeline.atlas.reach import steelhead as _steelhead
 from pipeline.common.fishing_water import not_fishing_sections
 from pipeline.atlas.reach.outside import (
-    outside_bc, region_limit, rowed_waters, shared_waters, tidal_owner,
+    outside_bc, region_limit, rowed_waters, shared_waters, tidal_water, is_cut_owner,
 )
 from pipeline.regs.parsing.catalogue import Designation
 from pipeline.atlas.reach.licensing import (
@@ -61,7 +62,7 @@ class ReachResult:
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
-                  covered_fn=None, steelhead_list=()) -> ReachResult:
+                  covered_fn=None, steelhead_list=(), tidal_splits=()) -> ReachResult:
     """Resolve every rule in `entries` against one build.
 
     `entries` is an iterable of ``(region, entry_dict)`` — the shape
@@ -75,6 +76,11 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     curated file): each water is resolved to one item or the run stops, and its own sections are
     marked KNOWN — a presence indicator, and on its flowing sections a rainbow over 50 cm is a
     steelhead (`anadromous`, user ruling 2026-10-03); it binds no rule (`reach.steelhead`).
+
+    `tidal_splits` are the atlas's TIDAL BOUNDARIES (`outside.tidal_splits`; T166, owner 2026-10-28):
+    the piece of a water below each is tidal water (`outside.tidal_cut_owner`), taken out of every
+    binding AFTER the tributary walk, like a row marked tidal. A rule left with nothing is unresolved
+    `tidal` and LISTED (`report.tidal_emptied`), never silently gone.
     """
     t0 = time.time()
     bindings: list[RuleBinding] = []
@@ -110,10 +116,11 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # The waters the tables print a row of their own for: a confluence cut's joining water with
     # none goes with the cut, one with its own row stays out (`confluence_excludes`).
     owned = rowed_waters(ents)
-    # Water the book calls tidal (Nitinat Lake): out of every row but its own (`tidal_owner`,
-    # written with the run as `tidal.jsonl`; `tidal_sections` is its key set).
-    tidal_of = tidal_owner(ents, registry)
-    tidal = frozenset(tidal_of)
+    # Water the book calls tidal (Nitinat Lake): out of every row but its own (`tidal_owner`), and
+    # the piece below every tidal boundary (T166, `tidal_cut_owner`) out of every row — both after
+    # the walk. Written with the run as `tidal.jsonl`; `tidal` maps each section to its owner.
+    tidal_of = tidal_water(ents, registry, graph, tidal_splits, report=report.tidal_cuts)
+    tidal = tidal_of
     parks = national_park_sections(registry)
     presence = _SteelheadPresence(registry, graph)
     # THE CURATED KNOWN-STEELHEAD LIST: a presence indicator (each water's own sections), no rule.
@@ -259,6 +266,15 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             report.licensing["tributaries_pending"] = \
                 report.licensing.get("tributaries_pending", 0) + 1
 
+    # A RULE THE TIDAL BOUNDARIES LEFT WITH NO WATER (T166): unresolved `tidal`, and LISTED with the
+    # cut(s) that took it — kitimat_river.r1 lies wholly below the proposed Kitimat cut. A reader of
+    # the run (the binding diff, the review) sees each one; none vanishes.
+    lost_to = {(d.entry_id, d.rule_id): d.payload.get("splits") or [] for d in diagnostics
+               if d.kind == "tidal" and d.payload.get("splits")}
+    report.tidal_emptied = [
+        {"entry_id": b.entry_id, "rule_id": b.rule_id, "splits": lost_to[(b.entry_id, b.rule_id)]}
+        for b in sorted(bindings, key=lambda b: (b.entry_id, b.rule_id))
+        if b.reason == Reason.tidal and (b.entry_id, b.rule_id) in lost_to]
     report.tributaries_pending = sum(1 for b in bindings if b.tributaries_pending)
     for b in bindings:
         report.outcomes[b.outcome.value] = report.outcomes.get(b.outcome.value, 0) + 1
@@ -287,7 +303,16 @@ def tidal_limit(entry: dict, tidal):
     `tidal` (Nitinat Lake's own row keeps its water). One reading (T125 item 5, adversarial review): `build_reach` and
     the steelhead twins (`_bind_steelhead_waters`) both ask it before `classify.apply_limits`; the twins took tidal water
     out of every row, marked or not."""
-    return None if not tidal or entry.get("tidal") else tidal
+    if not tidal:
+        return None
+    if not entry.get("tidal"):
+        return tidal
+    # T166: a row marked tidal keeps its OWN water only — the piece below a tidal boundary (or another
+    # tidal row's water) still leaves it, when the caller passed the owners
+    if isinstance(tidal, Mapping):
+        other = {s: o for s, o in tidal.items() if o != entry.get("entry_id")}
+        return other or None
+    return None
 
 
 def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry, graph=None, *,
@@ -492,8 +517,13 @@ def _without_tidal(entry: dict, rule: dict, binding: RuleBinding, diags: list[Di
         return binding, diags
     gone = set(binding.sections) - left
     kept = tuple(s for s in binding.sections if s in left)
+    # T166: which tidal boundaries took water from it (`outside.tidal_cut_owner`), when the caller
+    # passed the owners — a row marked tidal is no cut and is not named here
+    cuts = sorted({str(tidal[s])[len("split:"):] for s in gone
+                   if isinstance(tidal, Mapping) and is_cut_owner(tidal.get(s, ""))})
     diags = diags + [Diagnostic(entry["entry_id"], rule["rule_id"], "tidal", {
         "removed": len(gone), "kept": len(kept),
+        **({"splits": cuts} if cuts else {}),
         "why": "tidal water: the federal tidal regulations apply, no provincial rule does"})]
     if not kept:
         return RuleBinding(entry["entry_id"], rule["rule_id"], Outcome.unresolved, (),

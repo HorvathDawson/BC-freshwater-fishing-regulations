@@ -69,10 +69,28 @@ def main() -> int:
     # THE USER'S KNOWN-STEELHEAD LIST (curated; a missing file raises) — `reach.steelhead`: a
     # presence indicator, it binds no rule.
     from pipeline.atlas.reach.steelhead import load_list
+    # THE TIDAL BOUNDARIES THIS ATLAS CUT (T166, `outside.tidal_splits`): the piece below each is
+    # tidal water, out of every binding after the walk.
+    from pipeline.atlas.reach.outside import tidal_splits
+    tidal_ids = tidal_splits(build)
     result = build_reaches(entries, registry, graph, build=build.name,
-                           handles=digest_for(build), steelhead_list=load_list())
+                           handles=digest_for(build), steelhead_list=load_list(),
+                           tidal_splits=tidal_ids)
     r = result.report
     print(f"{r.n_entries:,} entries · {r.n_rules:,} rules · {r.seconds}s")
+    if r.tidal_cuts:
+        print(f"  tidal        {len(r.tidal_cuts)} tidal boundar{'y' if len(r.tidal_cuts) == 1 else 'ies'}, "
+              f"{sum(c['sections'] for c in r.tidal_cuts):,} section(s) below them made tidal")
+        for c in r.tidal_cuts:
+            if c["unplaced"]:
+                print(f"    {c['split']}: {len(c['unplaced'])} piece(s) not placed, left freshwater: "
+                      f"{c['unplaced'][:4]}")
+    if r.tidal_emptied:
+        # LOUD (T166): a rule whose whole reach lies below a tidal boundary binds nothing now
+        print(f"!! {len(r.tidal_emptied)} rule(s) left with NO water by the tidal boundaries "
+              "(unresolved `tidal`) — review each cut / rule:")
+        for x in r.tidal_emptied:
+            print(f"!!   {x['entry_id']} {x['rule_id']}  <- {', '.join(x['splits'])}")
     for k, v in sorted(r.outcomes.items()):
         print(f"  {k:<12} {v:,}")
     for k, v in sorted(r.reasons.items(), key=lambda kv: -kv[1]):

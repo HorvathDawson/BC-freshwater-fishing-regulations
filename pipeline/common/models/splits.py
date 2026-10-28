@@ -164,6 +164,9 @@ class SplitDef:
     entry: str = ""               # the splits.json waterbody entry it was authored under (its `name`);
                                   # two cuts of ONE entry on one point is an error (`anchors.resolve_split_defs`)
     confidence: str = "high"      # T207: high | medium | low (`CONFIDENCE`) — display only
+    # T166: the cut is a TIDAL BOUNDARY (owner 2026-10-28): the piece of its water below it is tidal
+    # water — out of every freshwater binding after the tributary walk (`reach.outside.tidal_cut_owner`)
+    tidal: bool = False
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "SplitDef":
@@ -183,7 +186,17 @@ class SplitDef:
             concern=str(d.get("_concern", d.get("concern", ""))),
             entry=str(d.get("entry", "")),
             confidence=confidence_of(d.get("confidence")),
+            tidal=_tidal_flag(d.get("tidal"), d.get("id")),
         )
+
+
+def _tidal_flag(v, sid) -> bool:
+    """A split's authored `tidal` (absent: False); only a JSON boolean is read (T166)."""
+    if v in (None, False):
+        return False
+    if v is True:
+        return True
+    raise ValueError(f"split {sid!r}: tidal must be true or absent, got {v!r}")
 
 
 @dataclass(frozen=True)
@@ -214,3 +227,5 @@ class SplitPoint:
     at_edge: bool = False
     # T207: carried from SplitDef.confidence (high | medium | low); `high` is never written out
     confidence: str = "high"
+    # T166: carried from SplitDef.tidal — the cut is a tidal boundary (written only when true)
+    tidal: bool = False

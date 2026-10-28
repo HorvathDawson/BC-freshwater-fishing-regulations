@@ -1,6 +1,6 @@
 # T166 — Tidal areas cut: turn the DFO tidal polygon into clean cuts across each stream
 
-Status: OPEN — after the cleanup band.
+Status: PARTIAL — step 5's build path is in (Phase 1, 2026-10-28); the owner is marking; apply + atlas rebuild next.
 
 Source: owner 2026-10-23: "another ticket to add is doing a tidal areas cut. this will be a little bit tricky because our
 dfo tidal layer was cut mostly to the right spot but has a lot of areas where it cuts away only some of the stream
@@ -57,3 +57,41 @@ that implies a tidal limit is matched to a cut or listed; unnamed streams defaul
 (Fraser at Mission, Squamish, Skeena, Cowichan) to one cut each.
 
 Depends: cleanup band done; T212 accepted marks. Size: M–L (atlas rebuild). Owner: confirm the proposed cuts.
+
+## Outcome — Phase 1: marks -> curated tidal splits -> the tidal piece out of every binding (2026-10-28)
+
+The path, end to end (no curated data changed yet; the owner is still marking in the Tidal tab):
+
+1. **Marks -> proposals** (`pipeline/regs/review/proposals.py`, T185's path): a tidal mark in force with
+   Place y and its one cut is a decision. Above the mouth -> one `new_split` flagged `"tidal": true`, labelled
+   as its water's cuts are ("tidal boundary"; a T212 "mouth (tidal boundary)" 500 m up is no mouth), the
+   candidate's confidence unless the mark set one, shared with any other mark naming the same cut. On an
+   existing split (reuse: Tlell sign, Fraser CPR bridge) -> `tidal_flag` (edit `split_flag`, the cut stays). At
+   the mouth (<= 1 m: Cowichan, Copper Creek) -> `tidal_mouth`, listed, no edit, nothing tidal. A wrong / unsure
+   tidal mark -> `tidal_followup`, listed, never applied (Bear River: "look more online"). The owner's earlier calls
+   (`tidal/owner-decisions.json`: Capilano, Cowichan) are marks too; a later mark wins.
+2. **The flag through the atlas**: `SplitDef.tidal` -> `SplitPoint.tidal` (anchors, braid sweep) ->
+   `splits.resolved.json` rows carry `tidal` (`RESOLVED_KEYS`); the sidecar migration carries it for a reused cut
+   flagged after a build (no new cut, no rebuild for a flag alone).
+3. **The tidal piece** (`reach/outside.py`: `tidal_splits`, `tidal_cut_owner`, `tidal_water`): `downstream_of` the
+   tidal split on every item carrying it, the same resolver a rule's extent uses; no tributary
+   (`TIDAL_PIECE_HAS_NO_TRIBUTARIES`). Owner `split:<id>` in `tidal.jsonl` -> the bundle's `tidal` table -> status
+   TIDAL (grey) and the K7 note on tap, no rules, no licensing (the Nitinat path; `tables.py` accepts a cut owner).
+   A tidal split no item carries, or one the resolver cannot place, stops the run. Pieces it cannot place stay
+   freshwater and are listed (`report.tidal_cuts[].unplaced`).
+4. **Walk first, then drop**: the subtraction is `build._without_tidal`, after the walk on the full graph — a creek
+   entering tidal water stays its river's tributary (pinned + a mutation). A row marked tidal keeps only its own water.
+5. **Guard**: a rule left with no water is unresolved `tidal`, listed in `report.json` `tidal_emptied` and printed
+   `!!` by the reach CLI. BEFORE applying: `python -m pipeline.tools.audit.tidal_preview` lists the rules every
+   section of which lies below a marked cut (kitimat_river.r1 shape, pinned) from the live run, no graph.
+6. Reach stage key holds the tidal split ids (`pipeline/build.py`); `side tidal` writes ONE side copy with every
+   tidal proposal (`python -m pipeline.regs.review.proposals side tidal --out <side>`); `apply_proposals
+   --side-checked <id>` lands each after the side atlas + binding diff.
+
+Tests: `test_tidal_cut.py` (12), `test_review_tidal_proposals.py` (8). Preview on 13 marked cuts (2026-10-28):
+0 rules lose all water; 14 river rules lose or straddle one section.
+
+Left for Phase 2 / later: the review app's `reuse._tidal` still reads the rows only (its backend reloads on edit
+while the owner marks — change it after); the Proposals tab shows the new kinds without words; RULINGS K7/K8/C-2
+text once built; tiles still draw the tidal piece (grey, as Nitinat) — dropping it from the tile layers is a
+separate call.

@@ -291,9 +291,12 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     db.executemany("INSERT INTO tidal (sid, entry_id) VALUES (?,?)", tidal)
     cov.filled("tidal", len(tidal))
     own = {s: e for s, e in tidal}
-    if set(own.values()) - {ce.entry_id for ce in ces if getattr(ce, "tidal", False)}:
+    # an owner is a row marked tidal, or (T166) a TIDAL BOUNDARY `split:<id>` — the piece below it
+    from pipeline.atlas.reach.outside import is_cut_owner
+    rows = {e for e in own.values() if not is_cut_owner(e)}
+    if rows - {ce.entry_id for ce in ces if getattr(ce, "tidal", False)}:
         raise SystemExit(f"tidal: the reach run names tidal rows the corpus does not mark tidal "
-                         f"({sorted(set(own.values()))}) — re-run the reach builder")
+                         f"({sorted(rows)}) — re-run the reach builder")
     # THE CUTS THAT MATCHED SEVERAL PLACES ON THEIR LINE (RULINGS E16, `rule_ambiguous_cut`),
     # READ FROM THE RUN'S DIAGNOSTICS: every candidate and the one the builder took.
     amb = ambiguous_cuts(read_table(reaches, "rule_diagnostic"))

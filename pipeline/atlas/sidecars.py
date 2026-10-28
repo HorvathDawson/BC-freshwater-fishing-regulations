@@ -72,6 +72,11 @@ def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> l
             r.pop("confidence", None)
             if getattr(d, "confidence", "high") != "high":
                 r["confidence"] = d.confidence
+            # T166: a split flagged a tidal boundary after the build (a reused cut) reaches the
+            # reach run through this sidecar too — the cut itself is unchanged
+            r.pop("tidal", None)
+            if getattr(d, "tidal", False):
+                r["tidal"] = True
         elif sid.startswith("area:"):
             r["source"] = "area"
         elif sid.startswith("length:"):

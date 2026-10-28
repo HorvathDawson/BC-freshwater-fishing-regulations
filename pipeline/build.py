@@ -169,6 +169,7 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
     from pipeline.atlas.registry import load_registry
     from pipeline.atlas.reach.steelhead import fingerprint, load_list
     from pipeline.atlas.reach.dfo_salmon import entries_digest as dfo_entries_digest
+    from pipeline.atlas.reach.outside import tidal_splits
     from pipeline.common.section_handles import digest_for, registry_digest_for
     from pipeline.regs.parsing.io import corpus_digest, read_all_entries
 
@@ -179,6 +180,9 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
         "reach": dict(atlas, corpus=corpus, steelhead=fingerprint(load_list()),
                       # (T211) the DFO salmon locations the run places: a curator placing one reruns the reach step
                       dfo=dfo_entries_digest(),
+                      # (T166) the tidal boundaries the run cuts the tidal pieces at: flagging a reused cut
+                      # tidal reaches the atlas through its sidecar, and reruns the reach step
+                      tidal=_sha(tidal_splits(build_dir)),
                       code=code_digest(CODE["reach"])),
         "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
                         sources=deliver_sources(missing_ok),

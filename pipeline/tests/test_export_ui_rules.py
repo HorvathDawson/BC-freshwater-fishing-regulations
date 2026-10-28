@@ -240,14 +240,16 @@ def test_tidal_water_is_marked_carries_only_its_note_and_stops_province_wide_lic
     there (`province_except`: `tidal`)."""
     rows = dict(db.execute("SELECT sid, entry_id FROM tidal"))
     assert rows, "the bundle lists no tidal section (Nitinat Lake)"
-    assert set(rows.values()) == {"r1:nitinat_lake@1-3"}
+    # the row marked tidal, and (T166) the piece below each tidal boundary, owner `split:<id>`
+    assert {e for e in rows.values() if not e.startswith("split:")} == {"r1:nitinat_lake@1-3"}
     want = dict(db.execute("SELECT i.item_id, COUNT(*) FROM item i JOIN item_section s "
                            "ON s.ord = i.ord JOIN tidal t ON t.sid = s.sid GROUP BY 1"))
     for item, w in doc["waters"].items():
         got = w.get("tidal")
         assert (got or {}).get("sections", 0) == want.get(item, 0), item
         if got:
-            assert got["entry"] == "r1:nitinat_lake@1-3" and "Tidal Waters" in got["guide"]
+            assert got["entry"] in ("r1:nitinat_lake@1-3",) or got["entry"].startswith("split:")
+            assert "Tidal Waters" in got["guide"]
     assert "wbk:329504244" in want
     foreign = db.execute("SELECT COUNT(*) FROM tidal t JOIN section_ruleset sr ON sr.sid = t.sid "
                          "JOIN ruleset rs ON rs.set_id = sr.set_id "

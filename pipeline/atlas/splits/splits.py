@@ -259,7 +259,8 @@ def resolve_splits(defs: list[SplitDef], chains: list[BlkChain],
 #: the build (`write_resolved`) and for the sidecars migration (`pipeline.atlas.sidecars`), so a
 #: migrated file is byte-equal to the one a fresh build writes.
 RESOLVED_KEYS = ("split_id", "blk", "route_measure", "label", "anchor_type", "offset_m",
-                 "source", "anchor_offset_m", "anchor_offset_dir", "picked_up", "concern", "confidence")
+                 "source", "anchor_offset_m", "anchor_offset_dir", "picked_up", "concern", "confidence",
+                 "tidal")
 
 
 def order_resolved(row: dict) -> dict:
@@ -295,5 +296,7 @@ def write_resolved(points: list[SplitPoint], path: str) -> None:
             row["concern"] = p.concern
         if getattr(p, "confidence", "high") != "high":       # T207: absent == high
             row["confidence"] = p.confidence
+        if getattr(p, "tidal", False):                       # T166: a tidal boundary (absent == no)
+            row["tidal"] = True
         rows.append(row)
     Path(path).write_text(dump_resolved(rows))
