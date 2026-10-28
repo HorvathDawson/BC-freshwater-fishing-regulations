@@ -41,6 +41,10 @@ WHAT GOES
     4. (T85, T202) WITHIN landuse, water AND earth, the features the style never draws — see
        LANDUSE_DRAWN and `feature_filter` — and `sort_rank`, a key nothing reads.
 
+    5. (T202, owner 2026-10-27) THE FILLS AND THE COASTLINE ON A COARSER GRID: landuse at 1024 units,
+       water and earth at 2048, roads untouched at 4096 (`basemap_grid`). About −15%, nothing
+       visible in the shots.
+
 Run: python -m pipeline.deliver.tiles.basemap
 """
 
@@ -144,6 +148,8 @@ def build(src: Path, out: Path, boundary: Path, maxzoom: int = MAX_ZOOM) -> Path
               f"(water lines dropped: {', '.join(WATER_LINES_DROPPED)}; keys dropped: {', '.join(UNREAD_KEYS)})")
         if maxzoom < SOURCE_ZOOM:
             print(f"  4. rebuilding the z{maxzoom} roads from the z{maxzoom + 1} roads, names and all")
+        from pipeline.deliver.tiles.basemap_grid import GRID_SHIFT
+        print(f"  5. coarser grid for {', '.join(f'{k} {4096 >> v}' for k, v in GRID_SHIFT.items()) or 'nothing'}")
         _trim(src, out, Path(tmp), [f"--region={region}"], maxzoom)
 
     after = out.stat().st_size
@@ -174,8 +180,10 @@ def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int) -> Non
     # should not start shipping it without anyone deciding to.
     join = ["tile-join", "-f", "--no-tile-size-limit", *[a for k in UNREAD_KEYS for a in ("-x", k)],
             "-j", json.dumps(feature_filter(), separators=(",", ":"))]
+    joined = tmp / f"joined-z{maxzoom}.pmtiles"
     if maxzoom >= SOURCE_ZOOM:
-        _run([*join, "-o", str(out), *[a for lyr in KEEP for a in ("-l", lyr)], str(clipped)])
+        _run([*join, "-o", str(joined), *[a for lyr in KEEP for a in ("-l", lyr)], str(clipped)])
+        _grid(joined, out, tmp)
         return
     from pipeline.deliver.tiles.basemap_roads import roads_geojsonl
     low, top, roads = (tmp / f"{p}-z{maxzoom}.pmtiles" for p in ("low", "top", "roads"))
@@ -190,7 +198,17 @@ def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int) -> Non
         _run(["tippecanoe", "-q", "-f", "-o", str(roads), f"-Z{maxzoom}", f"-z{maxzoom}", "-l", "roads",
               "--no-tile-size-limit", "--no-feature-limit", "-P", str(lines)])
         parts.append(roads)
-    _run(["tile-join", "-f", "--no-tile-size-limit", "-o", str(out), *map(str, parts)])
+    _run(["tile-join", "-f", "--no-tile-size-limit", "-o", str(joined), *map(str, parts)])
+    _grid(joined, out, tmp)
+
+
+def _grid(joined: Path, out: Path, tmp: Path) -> None:
+    """Cut 5 (T202): the fills and coastline on a coarser grid (`basemap_grid.GRID_SHIFT`); roads keep 4096."""
+    from pipeline.deliver.tiles.basemap_grid import GRID_SHIFT, requantize_archive
+    if not GRID_SHIFT:
+        shutil.move(str(joined), str(out))
+        return
+    requantize_archive(joined, out, tmp, workers=int(THREADS))
 
 
 # THE ZOOM-CAP AUDIT (T85; owner 2026-10-24: "basemap to z13 too, on two conditions: no feature may be lost —
@@ -254,6 +272,7 @@ def census(archive: Path, zoom: int, bbox: tuple | None = None) -> tuple[dict, s
     the buffer of an edge tile would look lost."""
     import math
     from collections import Counter, defaultdict
+    from shapely import make_valid
     from shapely.geometry import box, shape
     r = subprocess.run(["tippecanoe-decode", f"-Z{zoom}", f"-z{zoom}", str(archive)],
                        capture_output=True, text=True)
@@ -272,7 +291,11 @@ def census(archive: Path, zoom: int, bbox: tuple | None = None) -> tuple[dict, s
                 p = f.get("properties") or {}
                 g = None
                 if clip is not None:
-                    g = shape(f["geometry"]).intersection(clip)
+                    g = shape(f["geometry"])
+                    try:
+                        g = g.intersection(clip)
+                    except Exception:  # noqa: BLE001 — a fill rounded onto the grid can self-touch (GEOS refuses)
+                        g = make_valid(g).intersection(clip)
                     if g.is_empty:
                         continue
                 k = (lyr, p.get("kind"), p.get("kind_detail"))

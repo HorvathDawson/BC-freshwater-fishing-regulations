@@ -101,6 +101,45 @@ def _hilbert_xy(z: int, pos: int) -> tuple[int, int]:
     return x, y
 
 
+def header_and_metadata(archive: Path) -> tuple[dict, dict]:
+    """The PMTiles v3 header fields a rewrite needs (zooms, bounds, center) and the JSON metadata."""
+    with open(archive, "rb") as f:
+        h = f.read(127)
+        if h[:7] != b"PMTiles" or h[7] != 3:
+            raise ValueError(f"{archive} is not a PMTiles v3 archive")
+        _ro, _rl, mo, ml = struct.unpack("<4Q", h[8:40])
+        f.seek(mo)
+        meta = json.loads(_decomp(f.read(ml), h[97]) or b"{}")
+    e7 = lambda o: struct.unpack("<i", h[o:o + 4])[0] / 1e7  # noqa: E731
+    return ({"minzoom": h[100], "maxzoom": h[101], "bounds": (e7(102), e7(106), e7(110), e7(114)),
+             "center": (e7(119), e7(123), h[118])}, meta)
+
+
+def all_tiles(archive: Path):
+    """Yield (z, x, y, stored tile bytes, still compressed) for every addressed tile of `archive`."""
+    with open(archive, "rb") as f:
+        h = f.read(127)
+        root_o, root_l, _mo, _ml, leaf_o, _ll, data_o = struct.unpack("<7Q", h[8:64])
+        icomp = h[97]
+
+        def walk(entries):
+            for tid, rl, ln, off in entries:
+                if rl == 0:
+                    f.seek(leaf_o + off)
+                    yield from walk(_directory(_decomp(f.read(ln), icomp)))
+                    continue
+                f.seek(data_o + off)
+                blob = f.read(ln)
+                for t in range(tid, tid + rl):
+                    z = 0
+                    while t >= _first_id(z + 1):
+                        z += 1
+                    yield (z, *_hilbert_xy(z, t - _first_id(z)), blob)
+
+        f.seek(root_o)
+        yield from walk(_directory(_decomp(f.read(root_l), icomp)))
+
+
 def tiles_at(archive: Path, z: int):
     """Yield (hilbert position, x, y, raw MVT bytes) for every tile of `archive` at zoom `z`, in Hilbert order (the
     four children of one parent tile are consecutive)."""

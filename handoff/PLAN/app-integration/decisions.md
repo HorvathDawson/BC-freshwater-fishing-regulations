@@ -1447,4 +1447,6 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   2. rebuild the basemap;
   3. add a `landuse` style layer filtered to `kind == "wetland"` in `runtime-style.ts`, below our water.
   The data is still in `data/source/bc.pmtiles`. This supersedes the 2026-10-24 call that kept it.
-- **Grid coarsening of fills is investigated only, not shipped.** The numbers and shots are in the audit doc.
+- **Grid coarsening SHIPPED (owner 2026-10-27, "ship the bigger grid coarsening"):** the basemap's landuse goes to 1024
+  units and water and earth (coastline) to 2048; roads stay at 4096 (`tiles/basemap_grid.GRID_SHIFT`). 322.5 →
+  274.5 MB, nothing visible. Undo: `GRID_SHIFT = {}` and rebuild.

@@ -14,12 +14,12 @@ locations kept in chains, unmapped `d: 1`) lands at the next deliver run — no 
 
 ## (earlier) CURRENT STATE (2026-10-27, night — T202 basemap built)
 
-BASEMAP: `data/generated/tiles/basemap.pmtiles` is now the T202 build, **322.5 MB** (was 918.4), z0–13, released
-`basemap-859406091819` (`data/release/basemap/…` + `tiles/basemap.meta.json`). The next `deliver release` names it. The
+BASEMAP: `data/generated/tiles/basemap.pmtiles` is now the T202 build, **274.5 MB** (was 918.4; 322.5 before the grid
+step shipped), z0–13, released `basemap-147bd82d051f` (`data/release/basemap/…` + `tiles/basemap.meta.json`). The next `deliver release` names it. The
 z13 roads are rebuilt from z14 (`tiles/basemap_roads.py`), so trail/FSR names survive, and the zoom audit is clean on 6
 extents. The wetland stand-in is dropped (decisions 2026-10-27). OLD FILE KEPT until the owner looks:
-`data/generated/scratch/basemap-pre-T202-20260925.pmtiles`. Commit d4589cb5. Grid coarsening: investigated only (T202
-basemap audit doc). Known red, not this lane: `tools/overzoom.test.ts` "every tiled source…" (3) waits for the
+`data/generated/scratch/basemap-pre-T202-20260925.pmtiles`. Commit d4589cb5. Grid coarsening SHIPPED (landuse 1024, water/earth
+2048; `tiles/basemap_grid.py`). Known red, not this lane: `tools/overzoom.test.ts` "every tiled source…" (3) waits for the
 atlas lane's `MU_MAX_ZOOM`.
 
 ## (earlier) CURRENT STATE (2026-10-27, late — T211 salmon merged + released)

@@ -15,9 +15,9 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
-- **T202 basemap (2026-10-27):** the basemap is now z13 (918 → 322.5 MB). Look at the app at your spots, z10–z18,
+- **T202 basemap (2026-10-27):** the basemap is now z13 (918 → 274.5 MB). Look at the app at your spots, z10–z18,
   light and dark: trail and FSR names should show from z15. Then say "delete the old basemap", and Claude removes
-  `data/generated/scratch/basemap-pre-T202-20260925.pmtiles`. Grid coarsening (another 4–16%) is your call. Shots
+  `data/generated/scratch/basemap-pre-T202-20260925.pmtiles`. Grid coarsening shipped too: the basemap is now 274.5 MB. Shots
   and numbers: `handoff/PLAN/tiles/T202-basemap-audit.md`.
 - **"Needs a split" follow-ups (2026-10-27, live in r-8b43fb267199):** (1) check on the map the three guessed `low` cuts —
   Chapman lower falls + 100 m below (SCRD survey point, ~576 m below the power line), Deena "second bridge" (no bridge

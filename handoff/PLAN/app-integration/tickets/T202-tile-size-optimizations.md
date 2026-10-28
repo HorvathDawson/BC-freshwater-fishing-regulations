@@ -35,3 +35,6 @@ density. Measure the saving and prove (audit-zoom) that no trail/FSR feature or 
 - **Size:** basemap **918.4 → 322.5 MB**. Promoted file by file, released as `basemap-859406091819`. The old file is
   kept at `data/generated/scratch/basemap-pre-T202-20260925.pmtiles` until the owner looks.
 - **Grid coarsening:** investigated only, not shipped. The numbers and shots are in the audit doc.
+- **Grid coarsening SHIPPED (owner 2026-10-27):** landuse at 1024, water and earth at 2048 (`tiles/basemap_grid.py`).
+  The basemap is now **274.5 MB** (`basemap-147bd82d051f`), the audit is clean, and the shots differ by ≤0.07% of
+  pixels.

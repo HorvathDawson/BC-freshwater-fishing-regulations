@@ -223,3 +223,23 @@ Artifacts (session scratchpad `…/scratchpad/bm/`):
 
   **Verdict:** g1 is invisible and g2 nearly so. Either would be shipped as a re-encode step after `_trim`. That is
   the owner's call.
+
+## Grid coarsening SHIPPED 2026-10-27 (owner: "ship the bigger grid coarsening")
+- **Change:** `pipeline/deliver/tiles/basemap_grid.py` is the build's last cut (`basemap._grid`). It puts landuse at
+  1024 units and water and earth at 2048. Roads, places and boundaries are copied byte for byte.
+  - Vertices are rounded, not floored, so this is a little better than the scratch g2.
+  - A ring that collapses is dropped, and its holes go with it. Winding is kept.
+- **Size:** province build **274,472,515 bytes (274.5 MB)**, from 322.5 MB; 918.4 MB before T202.
+
+  | layer | MB |
+  |---|---|
+  | landuse | 149.1 |
+  | water | 67.5 |
+  | roads | 38.3 |
+  | earth | 13.3 |
+
+  z13 is 126.8 MB. Released as `basemap-147bd82d051f`. The pre-T202 backup is still kept.
+- **Zoom audit:** re-run with the grid step, clean on all 6 extents.
+- **Spot-check on the real build:** 6 shot pairs (Vancouver z14 light / z16 dark, Squamish backcountry z12, Chilcotin
+  z14 dark / z16 light, Lac Le Jeune z12). Against the pre-grid build at most 0.07% of pixels differ, and nothing is
+  visible (`bm/shots/real-*.png`).
