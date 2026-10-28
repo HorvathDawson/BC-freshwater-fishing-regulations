@@ -22,3 +22,9 @@ Depends: T192. Size: M. Owner: no. Default: no maps or interactive parts on the 
   script (the static text is already right on release day). Wiring `pnpm seo` into the publish job is the release owner's step (publish.py
   is human-run).
 - Paths: app/tools/build-seo.mjs, app/tools/seo/{html,site,build}.ts, site.test.ts, app/seo/site.json, app/knip.jsonc, app/package.json.
+
+## Staging 2026-10-28
+Live on https://staging.canifishthis.ca with release r-46be3c135e68 (19,774 pages, budget clean; v1 redirects 19,147 water /
+162 region / 22 home, each one 301, spot-checked). Lighthouse mobile: A11y 100, CLS 0, Performance 69-76 from Cloudflare-injected
+bot/analytics script (zone setting, owner). Still PARTIAL: production deploy and Search Console are the owner's. Record, findings
+and redo steps: handoff/PLAN/seo/staging.md; deploy scripts: deploy/staging/.

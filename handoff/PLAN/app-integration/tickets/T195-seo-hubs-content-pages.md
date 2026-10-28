@@ -23,3 +23,9 @@ A region over 400 waters lists A-Z letter pages (`/region/N/waters-<letter>`, ki
 weekend pages cap each list at 250 with a pointer to the hub. Real build (19,718 pages): largest page now 7.6 KB gzip (was region 6 hub
 27.5 KB, weekend 27.1 KB). `budget.json` gained a `quality` block (19,718 unique titles and descriptions, 0 empty, 0 descriptions over 155,
 23 titles over 60: long names are not cut, see T192) and the build fails if any title or description repeats. Test: site.test.ts (hubSplitAt).
+
+## Staging 2026-10-28
+Live on https://staging.canifishthis.ca with release r-46be3c135e68 (19,774 pages, budget clean; v1 redirects 19,147 water /
+162 region / 22 home, each one 301, spot-checked). Lighthouse mobile: A11y 100, CLS 0, Performance 69-76 from Cloudflare-injected
+bot/analytics script (zone setting, owner). Still PARTIAL: production deploy and Search Console are the owner's. Record, findings
+and redo steps: handoff/PLAN/seo/staging.md; deploy scripts: deploy/staging/.

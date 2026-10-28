@@ -44,3 +44,9 @@ Real build: every target exists, no chains. `legacy.test.ts`. See seo/PLAN.md 2b
 - Slug chain name -> region -> MU(s) -> nearest town -> index, only as far as needed (`mill-creek-r3`, `mud-lake-r3-3-12`, `...-near-quesnel`, `-2` last). MU = the `@<unit>` of a water's book entries. Real build: 19,482 slugs, 0 duplicates; stopped at name 12,699, region 3,977, MU 169, town 1,340, index 1,297; longest 73 chars (`squamish-powerhouse-channel-r2-2-6-near-squamish-riverside-day-use-area-2`).
 - Water pages: section and group headings carry unique anchors; a "rules at a glance" block answers steelhead / salmon / trout / bait ban / fly-only / closures / boats questions with the page's own sentences (`topics.ts`), the FAQPage JSON-LD carries only those same Q/A pairs (checked as visible text), and each water links to its region's topic hubs.
 - Topic hubs: `/topic/<t>` and `/region/N/<t>` (63 pages; lists capped at 600), linked from the region hub. Real build 19,774 pages, largest 8.0 KB gzip, p95 3.3 KB, all titles and descriptions unique.
+
+## Staging 2026-10-28
+Live on https://staging.canifishthis.ca with release r-46be3c135e68 (19,774 pages, budget clean; v1 redirects 19,147 water /
+162 region / 22 home, each one 301, spot-checked). Lighthouse mobile: A11y 100, CLS 0, Performance 69-76 from Cloudflare-injected
+bot/analytics script (zone setting, owner). Still PARTIAL: production deploy and Search Console are the owner's. Record, findings
+and redo steps: handoff/PLAN/seo/staging.md; deploy scripts: deploy/staging/.

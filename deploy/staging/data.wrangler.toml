@@ -1,0 +1,15 @@
+# STAGING ONLY. Deploy: npx --prefix app wrangler deploy -c deploy/staging/data.wrangler.toml
+# There is deliberately no production env in this file (prod = bc-fishing-r2 / bucket bc-fishing-regulations, human-run).
+name = "bc-fishing-r2-staging"
+main = "data-worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+preview_urls = false
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "bc-fishing-regulations-staging"
+
+[[routes]]
+pattern = "data-staging.canifishthis.ca"
+custom_domain = true

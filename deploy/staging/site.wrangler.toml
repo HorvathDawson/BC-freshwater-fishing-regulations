@@ -1,0 +1,19 @@
+# STAGING ONLY. Assemble then deploy: deploy/staging/site.sh   (no production env in this file; prod is human-run)
+# The site = the Expo web export (the app at /) + the SEO pages (tools/seo) in one static-assets worker. The worker runs
+# first only for the v1 paths (/waterbody/*: one 301 each, legacy.ts); everything else is a static file or the real 404.
+name = "bc-fishing-regulations-staging"
+main = "../../app/dist/staging-site-worker/worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = false
+preview_urls = false
+
+[assets]
+directory = "../../app/dist/staging-site"
+binding = "ASSETS"
+not_found_handling = "404-page"
+html_handling = "drop-trailing-slash"
+run_worker_first = ["/waterbody/*"]
+
+[[routes]]
+pattern = "staging.canifishthis.ca"
+custom_domain = true

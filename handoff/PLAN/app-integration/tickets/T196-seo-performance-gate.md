@@ -18,3 +18,9 @@ Depends: T193. Size: S. Owner: no. Default: targets as in the plan.
 - Fixture numbers (39 waters): largest page 5,072 B gzip, p95 3,909 B, css 791 B, critical css 281 B. Mutation tests: oversized page,
   fat css, blocking script each fail.
 - NOT run: `lhci autorun` (Lighthouse needs Chrome and is the release job's step; the CLI is not a workspace dependency).
+
+## Staging 2026-10-28
+Live on https://staging.canifishthis.ca with release r-46be3c135e68 (19,774 pages, budget clean; v1 redirects 19,147 water /
+162 region / 22 home, each one 301, spot-checked). Lighthouse mobile: A11y 100, CLS 0, Performance 69-76 from Cloudflare-injected
+bot/analytics script (zone setting, owner). Still PARTIAL: production deploy and Search Console are the owner's. Record, findings
+and redo steps: handoff/PLAN/seo/staging.md; deploy scripts: deploy/staging/.

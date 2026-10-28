@@ -20,3 +20,9 @@ Depends: T193. Size: M. Owner: no. Default: FAQ markup dropped if it ever mismat
 - Gates that throw: JSON-LD fact not on the page / missing field, duplicate title or description, a water no hub links, sitemap count !=
   page count. Tests plant each fault. Verification tokens come from `app/seo/site.json` (null = nothing rendered).
 - Share cards are SVG (`/share/<slug>.svg`); a raster PNG for Facebook/X needs an image library (no new dependency added): owner call.
+
+## Staging 2026-10-28
+Live on https://staging.canifishthis.ca with release r-46be3c135e68 (19,774 pages, budget clean; v1 redirects 19,147 water /
+162 region / 22 home, each one 301, spot-checked). Lighthouse mobile: A11y 100, CLS 0, Performance 69-76 from Cloudflare-injected
+bot/analytics script (zone setting, owner). Still PARTIAL: production deploy and Search Console are the owner's. Record, findings
+and redo steps: handoff/PLAN/seo/staging.md; deploy scripts: deploy/staging/.

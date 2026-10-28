@@ -24,3 +24,9 @@ Depends: T86 hosting, T194. Size: S. Owner: yes (registrar/DNS, Search Console a
 `legacy.ts` emits `legacy-redirects.json` + `_worker.js` (Cloudflare `_redirects` caps at 2,000 rules; 19,331 v1 paths). Hosting
 must set `run_worker_first = ["/waterbody/*"]`; check with `curl -I https://canifishthis.ca/waterbody/930-055749/` -> one 301 to a /water/ page.
 Counts and rationale: T192, seo/PLAN.md 2b.
+
+## Staging 2026-10-28
+Live on https://staging.canifishthis.ca with release r-46be3c135e68 (19,774 pages, budget clean; v1 redirects 19,147 water /
+162 region / 22 home, each one 301, spot-checked). Lighthouse mobile: A11y 100, CLS 0, Performance 69-76 from Cloudflare-injected
+bot/analytics script (zone setting, owner). Still PARTIAL: production deploy and Search Console are the owner's. Record, findings
+and redo steps: handoff/PLAN/seo/staging.md; deploy scripts: deploy/staging/.
