@@ -1,11 +1,12 @@
 /**
- * T215 — the synopsis's loading card (owner 2026-10-28): a spinner and "Loading the synopsis… N%" (indeterminate when the
+ * T215 — the synopsis's loading card (owner 2026-10-28): a fish spinner and "Loading the synopsis… N%" (indeterminate when the
  * download's size is unknown) with Cancel; on a failure the words, Retry and the plain gov.bc.ca link. Drawn by the Shell
  * (floating over the app) and inside the sheet host (a sheet's Modal covers the Shell). Nothing while idle, and nothing in
  * the first SHOW_AFTER_MS of a load (a cached copy opens without a flash). The app's tokens only.
  */
-import { ActivityIndicator, Linking, Pressable, Text, View } from "react-native";
+import { Linking, Pressable, Text, View } from "react-native";
 import { SYNOPSIS_PDF } from "@app/core";
+import { FishSpinner } from "../FishSpinner";
 import { SPACE, type Palette } from "../theme";
 import { TYPE } from "../type";
 import { MIN_HIT } from "./hit";
@@ -37,7 +38,7 @@ export function SynopsisLoading({ palette, floating = false }: { palette: Palett
       <View style={{ width: "100%", maxWidth: 480, flexDirection: "row", flexWrap: "wrap", alignItems: "center", paddingLeft: SPACE.s4,
                      backgroundColor: palette.card, borderWidth: 1.5, borderColor: err ? palette.warning : palette.accent,
                      borderRadius: palette.r.box, ...palette.lift }}>
-        {!err && <ActivityIndicator color={palette.accent} style={{ marginRight: SPACE.s3 }} />}
+        {!err && <View style={{ marginRight: SPACE.s2 }}><FishSpinner palette={palette} size={40} label={W.loading} /></View>}
         <Text accessibilityLiveRegion="polite" style={[TYPE.bodyStrong, { flex: 1, minWidth: 140, color: palette.ink, paddingVertical: SPACE.s3 }]}>
           {err ? W.failed : n === null ? W.loading : W.percent(n)}
         </Text>
