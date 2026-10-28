@@ -1,6 +1,7 @@
 # T152 — Sewage basins, tailing ponds and dumps are drawn as fishable lakes
 
-Status: PARTIAL — code done 2026-10-24; the tiles-window build, shots and after-numbers are left (see Outcome).
+Status: DONE 2026-10-27 — shipped by the 10-27 atlas build + reach + tiles (b6b5000e171023c9.0d7666619a1c) in release
+r-c706f5eaa2a3; after-numbers and a shot below (T152 lane, 2026-10-27 night).
 
 Source: T148 census (handoff/PLAN/sloughs/v2/census.md table B), 2026-10-23.
 
@@ -48,3 +49,14 @@ Code done 2026-10-24 (tiles window); takes effect at the next atlas build → re
   (web + native fill over its own source-layer, never the lake colour, no id/tap/highlight), `tools/tile-contract.test.ts`
   (no longer undrawn), `tools/layer-order.test.ts` (a fill under the boundaries). Shows once the next atlas build ships
   the layer.
+
+## After (measured on the live atlas / reach / tiles / release r-c706f5eaa2a3, 2026-10-27)
+Nothing rebuilt for this — the T202 atlas-tiles build (aeba83ca) and its reach re-run carried the stamp, so registry +
+reach + tiles + deliver are all live.
+- Tiles: `layers/not_fishing_water.geojsonl` 275 features (z9–13 in atlas.pmtiles); 0 of their rings are in
+  `lake.geojsonl`. The app draws the muted fill (style layer `not_fishing_water`, :39218 verified via
+  queryRenderedFeatures). Shot: `T152-shots/highland-valley-tailings-z11.5-light.png` (Highland Valley Copper ponds,
+  grey-tan, not lake-blue).
+- Reach: `rule_diagnostic.jsonl` kind `not_fishing_water` 245 rows — 242 zone rule sets (zp 78, z7 53, z6 23, z4 17,
+  z5 17, z3 15, z2 14, z8 13, z1 12) + `liard_river_watershed.r1–r3` (12 Fort Nelson basins each); 67 rules lost all
+  275 polygons, the rest lost the ones in their area. No named water's binding moved (as predicted: regulated 0).

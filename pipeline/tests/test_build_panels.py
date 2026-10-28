@@ -381,18 +381,19 @@ def test_a_true_channel_of_the_main_river_still_follows_that_river():
 
 def test_the_same_code_condition_is_what_holds_the_side_channel_tests():
     """MUTATION PIN: the same tests against `mainstem_of` with the code condition removed
-    must fail — otherwise they pass for some other reason and pin nothing."""
+    must fail — otherwise they pass for some other reason and pin nothing. (The search lives in
+    `mainstem_candidates` since T174; `mainstem_of` is its first pick.)"""
     import inspect
     import textwrap
 
     import pipeline.gauges.consume.panels as bp
 
-    src = textwrap.dedent(inspect.getsource(bp.mainstem_of))
+    src = textwrap.dedent(inspect.getsource(bp.mainstem_candidates))
     cond = " or o.wsc != node.wsc"
     assert src.count(cond) == 1, "the code condition moved; update this pin to match"
     ns = dict(vars(bp))
     exec(compile(src.replace(cond, ""), bp.__file__, "exec"), ns)
-    mutant = ns["mainstem_of"]
+    mutant = lambda graph, area: {s: c[0] for s, c in ns["mainstem_candidates"](graph, area).items()}  # noqa: E731
 
     graph, donors = _widgeon()
     assert bp.mainstem_of(graph, AREA)["slough"] == "pitt"

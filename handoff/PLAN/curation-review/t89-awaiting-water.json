@@ -1,0 +1,535 @@
+{
+ "ticket": "T89",
+ "generated": "2026-10-27",
+ "rule": "owner Q45 (2026-10-23): leave unbound and listed (AWAITING_WATER); never bind a same-name water elsewhere",
+ "how_to_fix": "locate the water (map/coords) -> name_variants.json record naming its FWA wbk (or ungazetted.json point) -> atlas registry rebuild -> match the row -> shrink AWAITING_WATER_ROWS in pipeline/tests/test_t89_rules_that_bind_no_water.py",
+ "searched": [
+  "registry.json names+variants (every candidate below)",
+  "FWA lakes GNIS_NAME_1/2/3 inside the printed MU (bc_fisheries_data.gpkg)",
+  "WSA bathymetry maps (wsa_bathymetry_maps.csv, bathymetry_polygons inside the MU)",
+  "web search (nothing)"
+ ],
+ "proposals": [
+  {
+   "kind": "awaiting_water",
+   "entry_id": "r5:frog_lake@5-6",
+   "name": "Frog Lake",
+   "printed_mu": "5-6",
+   "rules": 4,
+   "status": "unresolved \u2014 no water of this name in or near the printed MU",
+   "lead": null,
+   "same_name_candidates_elsewhere": [
+    {
+     "item_id": "wbk:329500585",
+     "name": "Frog Lake",
+     "kind": "lake",
+     "mus": [
+      "1-10"
+     ],
+     "lonlat": [
+      -125.61431,
+      50.1903
+     ],
+     "km_from_printed_mu": 135.0
+    },
+    {
+     "item_id": "wbk:329107057",
+     "name": "Frog Lake",
+     "kind": "lake",
+     "mus": [
+      "3-29"
+     ],
+     "lonlat": [
+      -120.75894,
+      50.93609
+     ],
+     "km_from_printed_mu": 295.7
+    },
+    {
+     "item_id": "wbk:329324611",
+     "name": "Frog Lakes",
+     "kind": "lake",
+     "mus": [
+      "3-28"
+     ],
+     "lonlat": [
+      -120.20749,
+      51.29848
+     ],
+     "km_from_printed_mu": 319.4
+    },
+    {
+     "item_id": "wbk:329321938",
+     "name": "Frog Lakes",
+     "kind": "lake",
+     "mus": [
+      "3-28"
+     ],
+     "lonlat": [
+      -120.20748,
+      51.29676
+     ],
+     "km_from_printed_mu": 319.5
+    },
+    {
+     "item_id": "wbk:329322097",
+     "name": "Frog Lakes",
+     "kind": "lake",
+     "mus": [
+      "3-28"
+     ],
+     "lonlat": [
+      -120.20791,
+      51.29188
+     ],
+     "km_from_printed_mu": 319.6
+    },
+    {
+     "item_id": "wbk:329465459",
+     "name": "Frog Lake",
+     "kind": "lake",
+     "mus": [
+      "7-30"
+     ],
+     "lonlat": [
+      -123.06189,
+      55.28512
+     ],
+     "km_from_printed_mu": 345.3
+    },
+    {
+     "item_id": "wbk:329157708",
+     "name": "Frog Lakes",
+     "kind": "lake",
+     "mus": [
+      "7-52"
+     ],
+     "lonlat": [
+      -127.33714,
+      58.03835
+     ],
+     "km_from_printed_mu": 620.6
+    },
+    {
+     "item_id": "wbk:329156052",
+     "name": "Frog Lakes",
+     "kind": "lake",
+     "mus": [
+      "7-52"
+     ],
+     "lonlat": [
+      -127.34188,
+      58.03958
+     ],
+     "km_from_printed_mu": 620.8
+    },
+    {
+     "item_id": "wbk:329157314",
+     "name": "Frog Lakes",
+     "kind": "lake",
+     "mus": [
+      "7-52"
+     ],
+     "lonlat": [
+      -127.35567,
+      58.04035
+     ],
+     "km_from_printed_mu": 621.0
+    },
+    {
+     "item_id": "wbk:329156377",
+     "name": "Frog Lakes",
+     "kind": "lake",
+     "mus": [
+      "7-52"
+     ],
+     "lonlat": [
+      -127.36932,
+      58.0412
+     ],
+     "km_from_printed_mu": 621.2
+    },
+    {
+     "item_id": "wbk:329157095",
+     "name": "Frog Lakes",
+     "kind": "lake",
+     "mus": [
+      "7-52"
+     ],
+     "lonlat": [
+      -127.36385,
+      58.04141
+     ],
+     "km_from_printed_mu": 621.2
+    },
+    {
+     "item_id": "wbk:329157350",
+     "name": "Frog Lakes",
+     "kind": "lake",
+     "mus": [
+      "7-52"
+     ],
+     "lonlat": [
+      -127.39289,
+      58.04239
+     ],
+     "km_from_printed_mu": 621.6
+    },
+    {
+     "item_id": "wbk:329156045",
+     "name": "Frog Lakes",
+     "kind": "lake",
+     "mus": [
+      "7-52"
+     ],
+     "lonlat": [
+      -127.41402,
+      58.04131
+     ],
+     "km_from_printed_mu": 621.7
+    }
+   ]
+  },
+  {
+   "kind": "awaiting_water",
+   "entry_id": "r5:hidden_lake@5-6",
+   "name": "Hidden Lake",
+   "printed_mu": "5-6",
+   "rules": 4,
+   "status": "unresolved \u2014 no water of this name in or near the printed MU",
+   "lead": "FWA lakes in MU 5-15 include a Hidden Lake (wbk:329354780, 27.6 ha); none in 5-6.",
+   "same_name_candidates_elsewhere": [
+    {
+     "item_id": "wbk:329064493",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "6-8"
+     ],
+     "lonlat": [
+      -126.65089,
+      54.51179
+     ],
+     "km_from_printed_mu": 227.1
+    },
+    {
+     "item_id": "wbk:329343304",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "7-15"
+     ],
+     "lonlat": [
+      -123.20303,
+      54.09998
+     ],
+     "km_from_printed_mu": 229.6
+    },
+    {
+     "item_id": "wbk:329467610",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "1-5"
+     ],
+     "lonlat": [
+      -124.5641,
+      49.21849
+     ],
+     "km_from_printed_mu": 247.8
+    },
+    {
+     "item_id": "wbk:329533504",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "2-8"
+     ],
+     "lonlat": [
+      -122.9495,
+      49.37631
+     ],
+     "km_from_printed_mu": 280.9
+    },
+    {
+     "item_id": "wbk:329354780",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "5-15"
+     ],
+     "lonlat": [
+      -120.54553,
+      52.01633
+     ],
+     "km_from_printed_mu": 286.5
+    },
+    {
+     "item_id": "wbk:329468929",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "7-16"
+     ],
+     "lonlat": [
+      -122.57704,
+      54.67719
+     ],
+     "km_from_printed_mu": 305.2
+    },
+    {
+     "item_id": "wbk:329451984",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "8-8"
+     ],
+     "lonlat": [
+      -120.09773,
+      49.87646
+     ],
+     "km_from_printed_mu": 394.6
+    },
+    {
+     "item_id": "wbk:329518174",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "3-35"
+     ],
+     "lonlat": [
+      -118.58086,
+      51.10408
+     ],
+     "km_from_printed_mu": 434.8
+    },
+    {
+     "item_id": "wbk:329459224",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "8-10"
+     ],
+     "lonlat": [
+      -119.17763,
+      50.13313
+     ],
+     "km_from_printed_mu": 435.8
+    },
+    {
+     "item_id": "wbk:329663960",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "8-25"
+     ],
+     "lonlat": [
+      -118.82233,
+      50.56407
+     ],
+     "km_from_printed_mu": 437.7
+    },
+    {
+     "item_id": "wbk:329263743",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "6-16"
+     ],
+     "lonlat": [
+      -129.43622,
+      56.45651
+     ],
+     "km_from_printed_mu": 497.2
+    },
+    {
+     "item_id": "wbk:329221036",
+     "name": "Hidden Lakes",
+     "kind": "lake",
+     "mus": [
+      "4-36"
+     ],
+     "lonlat": [
+      -116.48442,
+      51.48409
+     ],
+     "km_from_printed_mu": 570.1
+    },
+    {
+     "item_id": "wbk:328961770",
+     "name": "Hidden Lake",
+     "kind": "lake",
+     "mus": [
+      "7-46"
+     ],
+     "lonlat": [
+      -120.00276,
+      57.47388
+     ],
+     "km_from_printed_mu": 651.8
+    }
+   ]
+  },
+  {
+   "kind": "awaiting_water",
+   "entry_id": "r5:secret_lake@5-6",
+   "name": "Secret Lake",
+   "printed_mu": "5-6",
+   "rules": 4,
+   "status": "unresolved \u2014 no water of this name in or near the printed MU",
+   "lead": null,
+   "same_name_candidates_elsewhere": [
+    {
+     "item_id": "wbk:329054765",
+     "name": "Secret Lake",
+     "kind": "lake",
+     "mus": [
+      "3-30"
+     ],
+     "lonlat": [
+      -120.57505,
+      51.20887
+     ],
+     "km_from_printed_mu": 297.4
+    },
+    {
+     "item_id": "wbk:328989031",
+     "name": "Secret Lake",
+     "kind": "lake",
+     "mus": [
+      "8-7"
+     ],
+     "lonlat": [
+      -120.24133,
+      49.70415
+     ],
+     "km_from_printed_mu": 397.4
+    }
+   ]
+  },
+  {
+   "kind": "awaiting_water",
+   "entry_id": "r5:square_lake@5-6",
+   "name": "Square Lake",
+   "printed_mu": "5-6",
+   "rules": 3,
+   "status": "unresolved \u2014 no water of this name in or near the printed MU",
+   "lead": null,
+   "same_name_candidates_elsewhere": [
+    {
+     "item_id": "wbk:329043437",
+     "name": "Square Lake",
+     "kind": "lake",
+     "mus": [
+      "5-3"
+     ],
+     "lonlat": [
+      -122.8905,
+      51.69605
+     ],
+     "km_from_printed_mu": 128.2
+    },
+    {
+     "item_id": "wbk:329645547",
+     "name": "Square Lake",
+     "kind": "lake",
+     "mus": [
+      "6-4"
+     ],
+     "lonlat": [
+      -125.82291,
+      53.72873
+     ],
+     "km_from_printed_mu": 131.4
+    },
+    {
+     "item_id": "wbk:329272482",
+     "name": "Square Lake",
+     "kind": "lake",
+     "mus": [
+      "7-12"
+     ],
+     "lonlat": [
+      -123.20245,
+      53.81402
+     ],
+     "km_from_printed_mu": 205.8
+    },
+    {
+     "item_id": "wbk:329102648",
+     "name": "Square Lake",
+     "kind": "lake",
+     "mus": [
+      "7-24"
+     ],
+     "lonlat": [
+      -122.70202,
+      54.48267
+     ],
+     "km_from_printed_mu": 283.2
+    },
+    {
+     "item_id": "wbk:328985756",
+     "name": "Square Lake",
+     "kind": "lake",
+     "mus": [
+      "8-21"
+     ],
+     "lonlat": [
+      -119.55988,
+      50.42746
+     ],
+     "km_from_printed_mu": 396.4
+    }
+   ]
+  },
+  {
+   "kind": "awaiting_water",
+   "entry_id": "r5:redfern_lake@5-15",
+   "name": "Redfern Lake",
+   "printed_mu": "5-15",
+   "rules": 3,
+   "status": "unresolved \u2014 no water of this name in or near the printed MU",
+   "lead": "Registry has Ruth Redfern Creek (gnis:28333, MU 5-15, -120.58 52.13); the lake may be an unnamed FWA lake on it. The one gazetted Redfern Lake (wbk:329662835, 499 ha, WSA bathymetry map 00436UPRO 1982) is in MU 7-42, 466 km away.",
+   "same_name_candidates_elsewhere": [
+    {
+     "item_id": "wbk:329662835",
+     "name": "Redfern Lake",
+     "kind": "lake",
+     "mus": [
+      "7-42"
+     ],
+     "lonlat": [
+      -123.90195,
+      57.3535
+     ],
+     "km_from_printed_mu": 466.1
+    }
+   ]
+  },
+  {
+   "kind": "awaiting_water",
+   "entry_id": "r6:squirrel_lake@6-1",
+   "name": "Squirrel Lake",
+   "printed_mu": "6-1",
+   "rules": 3,
+   "status": "unresolved \u2014 no water of this name in or near the printed MU",
+   "lead": "A WSA bathymetry map titled SQUIRREL LAKE exists (01446MAHD, 1988, code 129-360400-23900-98400-5640) with no FWA lake carrying that 50K key; the registry's Squirrel Lake (wbk:329354753, MU 5-1) is Paddy Lake by name_variants.",
+   "same_name_candidates_elsewhere": [
+    {
+     "item_id": "wbk:329354753",
+     "name": "Squirrel Lake",
+     "kind": "lake",
+     "mus": [
+      "5-1"
+     ],
+     "lonlat": [
+      -120.76094,
+      51.89478
+     ],
+     "km_from_printed_mu": 287.7
+    }
+   ]
+  }
+ ]
+}

@@ -118,6 +118,7 @@ def flowing(graph, water_of: dict[str, str] | None = None, kind_of: dict[str, st
     """
     water_of = water_of or {}
     kind_of = kind_of or {}
+    widenings = river_widenings(graph, water_of) if RIVER_WIDENINGS and water_of else frozenset()
 
     def is_stream(sec: str) -> bool:
         node = graph.nodes.get(sec)
@@ -126,8 +127,34 @@ def flowing(graph, water_of: dict[str, str] | None = None, kind_of: dict[str, st
         if _kind(node) == "stream":
             return True
         water = water_of.get(sec)
-        return water is not None and kind_of.get(water) == "stream"
+        return (water is not None and kind_of.get(water) == "stream") or sec in widenings
     return is_stream
+
+
+#: Q154 (T174) — MEASURED, OFF (owner question; default "measure first"): walk an unowned polygon a river threads on its
+#: own watershed code as the river (`river_widenings`). Off, every unowned polygon is a lake crossing, as before.
+RIVER_WIDENINGS = False
+
+
+def river_widenings(graph, water_of: dict[str, str]) -> frozenset[str]:
+    """Unowned polygons (no water item) that a stream ENTERS and LEAVES on the polygon's own watershed code — an
+    unnamed FWA lake polygon the river runs through (T174, Q154). The atlas has no double-line river polygons: these
+    are FWA lakes (`WATERBODY_TYPE L`), mostly under 1 ha, that the walk counts as storage. A not-fishing polygon
+    (T152) is never one."""
+    ups: dict[str, list[str]] = collections.defaultdict(list)
+    downs: dict[str, list[str]] = collections.defaultdict(list)
+    for e in graph.edges:
+        ups[e.to_node].append(e.from_node)
+        downs[e.from_node].append(e.to_node)
+    out = set()
+    for sec, node in graph.nodes.items():
+        if _kind(node) != "lake" or sec in water_of or getattr(node, "not_fishing", "") or not node.wsc:
+            continue
+        on_code = lambda xs: any(_kind(graph.nodes.get(x)) == "stream" and graph.nodes[x].wsc == node.wsc  # noqa: E731
+                                 for x in xs if x in graph.nodes)
+        if on_code(ups[sec]) and on_code(downs[sec]):
+            out.add(sec)
+    return frozenset(out)
 
 
 def _same_blue_line(graph, water_of: dict[str, str] | None, is_stream, a: str, b: str) -> bool:
@@ -459,17 +486,27 @@ def mainstem_of(graph, area_of) -> dict[str, str]:
     and stopping early adopted a magnitude-8 stub sitting between the channel and the Fraser.
     Four of Herrling's seven pieces went that way before the search was allowed to run out.
     """
+    return {sec: cands[0] for sec, cands in mainstem_candidates(graph, area_of).items()}
+
+
+def mainstem_candidates(graph, area_of) -> dict[str, list[str]]:
+    """`side channel section -> every section `mainstem_of` could adopt, LARGEST FIRST` (the first is its pick).
+
+    The search and the guards are `mainstem_of`'s (its own code, not a side channel, a stream, bigger than the
+    channel, within `MAINSTEM_HOPS`); ties keep the order the search met them, so the first is exactly the section
+    `mainstem_of` has always picked. The rest are what the build falls back on when that one is SILENT
+    (`ADOPT_ANSWERED`, T174).
+    """
     up: dict[str, list[str]] = collections.defaultdict(list)
     down: dict[str, list[str]] = collections.defaultdict(list)
     for e in graph.edges:
         up[e.to_node].append(e.from_node)
         down[e.from_node].append(e.to_node)
-
-    parent: dict[str, str] = {}
+    out: dict[str, list[str]] = {}
     for sec, node in graph.nodes.items():
         if not _is_side_channel(node) or _kind(node) != "stream":
             continue
-        best: tuple[float, str] | None = None
+        found: list[tuple[float, int, str]] = []
         mine = area_of(node) or 0.0
         seen = {sec}
         frontier = [sec]
@@ -497,12 +534,12 @@ def mainstem_of(graph, area_of) -> dict[str, str]:
                         # it is a channel of, which is by definition the larger reach; a
                         # stub smaller than the channel is another minor piece of the same
                         # braid, not the river.
-                        if a and a > mine and (best is None or a > best[0]):
-                            best = (a, other)
+                        if a and a > mine:
+                            found.append((-a, len(found), other))
             frontier = nxt
-        if best is not None:
-            parent[sec] = best[1]
-    return parent
+        if found:
+            out[sec] = [o for _a, _i, o in sorted(found)]
+    return out
 
 
 def side_channel_waters(graph, area_of, water_of: dict[str, str] | None, kind_of: dict[str, str] | None,
@@ -753,6 +790,58 @@ def stream_polygons(graph, water_of: dict[str, str], kind_of: dict[str, str],
     return out
 
 
+#: T174 (owner sanity rule, T169: "a predicted section flows into unpredicted then back into predicted without reason").
+#: Q153 — a side piece whose largest river section in reach is SILENT adopts the largest one that answers (`build`).
+ADOPT_ANSWERED = True
+#: Q155 — a run of a stream water's own lines with no answer, between pieces of that water answering ALIKE, takes that
+#: answer (`water_line_gaps`).
+WATER_LINE_GAPS = True
+
+
+def water_line_gaps(graph, water_of: dict[str, str], kind_of: dict[str, str],
+                    panelled: dict[str, tuple]) -> dict[str, str]:
+    """`unanswered line of a STREAM water -> the piece of that water whose answer it takes` (T174, Q155).
+
+    NO GAP WITHOUT A REASON, WITHIN ONE WATER. Gravel Slough's 1425 connector lines run between its own polygons; the
+    polygons answer by the fallback (`stream_polygons`) and nothing reaches a LINE between them — the walk never does
+    (its catchment is a stub's) and the fallback is for polygons. So one water read answered, grey, answered.
+
+    A RUN is a connected set of one stream water's LINES that have no answer (`panelled`). It takes an answer only when
+    its every neighbour of the SAME water that answers — up and down — carries ONE answer (the same panel and area),
+    with at least one above and one below: the same source on both sides, so nothing new enters between. Another
+    water at an end (a creek, the river it joins) is never read; an end with no answer is not an answer. Two answers
+    at the ends (a gauge between them, a confluence) leave the run as it is.
+    """
+    up: dict[str, list[str]] = collections.defaultdict(list)
+    down: dict[str, list[str]] = collections.defaultdict(list)
+    for e in graph.edges:
+        up[e.to_node].append(e.from_node)
+        down[e.from_node].append(e.to_node)
+
+    def gap(x: str, water: str) -> bool:
+        return (x not in panelled and water_of.get(x) == water and _kind(graph.nodes.get(x)) == "stream")
+
+    out: dict[str, str] = {}
+    done: set[str] = set()
+    for start in sorted(water_of):
+        water = water_of[start]
+        if start in done or kind_of.get(water) != "stream" or start not in graph.nodes or not gap(start, water):
+            continue
+        run, frontier = {start}, [start]
+        while frontier:
+            frontier = [y for x in frontier for y in up[x] + down[x] if y not in run and gap(y, water)]
+            run.update(frontier)
+        done |= run
+        above = {y for x in run for y in up[x] if y not in run and water_of.get(y) == water and y in panelled}
+        below = {y for x in run for y in down[x] if y not in run and water_of.get(y) == water and y in panelled}
+        if not above or not below or len({panelled[y] for y in above | below}) != 1:
+            continue
+        end = min(below)
+        for x in run:
+            out[x] = end
+    return out
+
+
 def systems(continues) -> dict[str, str]:
     """`water item -> its system` for every water in a `water_continue` link: the waters one name change joins (the
     Chilliwack and the Vedder) share one key, a chain (A as B, B as C) all of them. A water in no link is its own system
@@ -877,8 +966,9 @@ def build(graph, model: AreaModel,
                                        getattr(n, "wsc", ""))
     # WHICH WATER IS A SIDE CHANNEL OF WHICH RIVER — decided once (`side_channel_waters`), before the walk, so the walk's
     # branch-point cut and the adoption below ask the same map.
-    adopted = mainstem_of(graph, area_of)
-    waters = side_channel_waters(graph, area_of, water_of, kind_of, adopted, continues) if water_of else {}
+    adoptable = mainstem_candidates(graph, area_of)
+    adopted = {sec: cands[0] for sec, cands in adoptable.items()}
+    waters =side_channel_waters(graph, area_of, water_of, kind_of, adopted, continues) if water_of else {}
     cand = candidates(graph, area_of, donors, max_ratio, water_of=water_of, kind_of=kind_of, continues=continues,
                       channels={w: (water_of or {}).get(p) for w, p in waters.items()})
     own = own_distances(graph, water_of, donors, continues, kind_of=kind_of) if water_of else {}
@@ -964,7 +1054,10 @@ def build(graph, model: AreaModel,
     for sec, parent in adopted.items():
         if (water_of or {}).get(sec) in waters:
             continue
-        got = by_section.get(parent)
+        got = walked.get(parent)
+        if got is None and ADOPT_ANSWERED:
+            # THE LARGEST RIVER SECTION IN REACH IS SILENT — the next largest that ANSWERS (T174, Q153).
+            got = next((walked[p] for p in adoptable[sec][1:] if p in walked), None)
         if got is None:
             by_section.pop(sec, None)      # the river has no panel; neither can its channel
         else:
@@ -983,6 +1076,10 @@ def build(graph, model: AreaModel,
                 by_section[sec] = by_section[line]
             else:
                 by_section.pop(sec, None)
+        # A LINE OF A STREAM WATER BETWEEN TWO PIECES OF IT ANSWERING ALIKE TAKES THAT ANSWER — see `water_line_gaps`.
+        if WATER_LINE_GAPS:
+            for sec, end in water_line_gaps(graph, water_of, kind_of, by_section).items():
+                by_section[sec] = by_section[end]
 
     def intern_panel(chosen: tuple[Member, ...]) -> int:
         key = tuple(sorted((m.station, m.role, round(m.area_km2, 3), m.years, m.regulated,

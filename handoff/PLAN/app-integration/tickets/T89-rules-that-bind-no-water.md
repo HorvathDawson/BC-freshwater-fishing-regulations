@@ -1,6 +1,7 @@
 # T89 — Rules that bind no water: 10 unmatched synopsis rows + 3 rules with no extent
 
-Status: PARTIAL — 010b5c28 + review fix 894854c0 (lane wf_4b4f5207-c7a-4). The 3 no-extent rules + the Endako (R7) row are fixed in the
+Status: DONE 2026-10-27 (what evidence can resolve) — 010b5c28 + review fix 894854c0 (lane wf_4b4f5207-c7a-4); the
+rest are proposals awaiting a located water (see "2026-10-27 night" below). Original note: The 3 no-extent rules + the Endako (R7) row are fixed in the
 catalogue and pinned; ships with the next reach rerun + deliver (no atlas). LEFT: 8 rows (22 rules) whose printed MU
 holds no registry water of their name — Mackenzie Creek 4-21, Frog/Hidden/Secret/Square Lake 5-6, Redfern Lake 5-15,
 Squirrel Lake 6-1 — need the water located and named in the registry (owner Q-A below), then an atlas registry
@@ -85,3 +86,18 @@ elsewhere puts a quota or closure on the wrong water. To fix one: locate it (a m
 gazetteer), add a `name_variants.json` record naming its FWA wbk/blk (or an `ungazetted.json` point), rebuild the
 registry (atlas), match the row, shrink `AWAITING_WATER_ROWS`. Mackenzie Creek's "No Fishing" is the one closure
 among them (acceptance item "Mackenzie Creek shows the closure" waits on this).
+
+## 2026-10-27 night — what is left, measured on the live bundle (r-c706f5eaa2a3)
+`rule_unresolved.jsonl` = 25 = by design 4 (kinbasket/kootenay `*_tributaries.r2` working exclusions, `hg_quota.r6b`,
+`trout_char_quota.r5b`) + 21 awaiting a water (6 rows). Mackenzie Creek is resolved (owner 2026-10-26: "4-21" is a
+typo for 4-31 → gnis:12042, binds, shows its "No Fishing"); Nanaimo r5, Nilkitkwa r4, Fulton r3, Endako 7A all bind.
+`test_t89_rules_that_bind_no_water.py` (bundle included) 16/16 green.
+The six rows (Frog, Hidden, Secret, Square 5-6; Redfern 5-15; Squirrel 6-1) were searched again for evidence: the
+registry's names + variants, FWA lake GNIS names 1–3 inside the printed MU, the WSA bathymetry maps (CSV + polygons
+in the MU), and the web. NONE has a water of that name in or within 128 km of the printed MU; nothing is bound (Q45:
+never bind a same-name water elsewhere). Leads found: Redfern — Ruth Redfern Creek (gnis:28333, 5-15); Squirrel — a
+1988 WSA map "SQUIRREL LAKE" (01446MAHD) with no FWA lake on that 50K key; Hidden — an FWA Hidden Lake in 5-15
+(wbk:329354780), none in 5-6. They are PROPOSALS for the curation review app:
+`handoff/PLAN/curation-review/t89-awaiting-water.json` (kind `awaiting_water`, one per row: rules, leads, every
+same-name candidate with MU and km from the printed MU). The review-app lane surfaces it (not wired here — that
+directory belongs to the review-app lane); the owner locates a water, and the fix path is in the file.

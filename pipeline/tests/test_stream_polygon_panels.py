@@ -64,8 +64,8 @@ def _answers(panels) -> dict[str, tuple[tuple[str, ...], float | None]]:
 
 
 def test_a_stream_water_s_polygons_take_the_answer_of_its_line_below():
-    """Whole value. The polygons paint like the slough; the lake stays a lake; `mid` keeps the walk's (non-)answer —
-    it is a line, and why the walk cannot reach it is the separate, postponed question (T55)."""
+    """Whole value. The polygons paint like the slough; the lake stays a lake; `mid` — a line no walk reaches — sits
+    between two pieces of its own water answering alike, so it takes that answer (T174 `water_line_gaps`, Q155)."""
     graph, water_of, donors = _nicomen()
     panels = build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS)
     assert _answers(panels) == {
@@ -77,6 +77,7 @@ def test_a_stream_water_s_polygons_take_the_answer_of_its_line_below():
         # the unpanelled `mid` and the polygon below it, all the same water, to the first line that has an answer.
         "p_low": (("FOOT",), 100.0),
         "p_up": (("FOOT",), 100.0),
+        "mid": (("FOOT",), 100.0),
     }
     # The SAME panel, not an equal copy: the polygon and its line are one answer.
     assert panels.by_section["p_low"] == panels.by_section["foot"]

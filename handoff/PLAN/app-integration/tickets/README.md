@@ -133,7 +133,7 @@ use that as the sole source of future work."
 | T86 | production hosting + ship config | OPEN | — | all (owner) |
 | T87 | owner sign-off walk, then final clean-up | OPEN | — | all (owner) |
 | T88 | iOS build | OPEN | — | all (owner timing) |
-| T89 | rules that bind no water (10 unmatched + 3 no extent) | PARTIAL | 010b5c28, 1ea79ca0, 894854c0, d47a38cd, 5f1eec34 | 8 rows stay unbound (Q45 answered: leave) |
+| T89 | rules that bind no water (10 unmatched + 3 no extent) | DONE | 010b5c28, 1ea79ca0, 894854c0, d47a38cd, 5f1eec34 | 6 rows / 21 rules await a located water: proposals in curation-review/t89-awaiting-water.json (Q45) |
 | T90 | Chehalis closure reaches Harrison side channels | DONE | ca9aa451, 9eb7d92f, 9d305ebf, 8fa32076, c8c72d6f | live; T102 part B |
 | T91 | Atnarko campsite split location | OPEN | — | all (owner) |
 | T92 | gear omission check | DONE | de0581e1, b931f93d, 750ba2ad, 9c78ef20 | — |
@@ -196,7 +196,7 @@ use that as the sole source of future work."
 | T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | DONE | e5ba7972 | published v2; ★ owner marks |
 | T150 | drop the regs header's "Parts" button; the part list lives in the Map view | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app; delivered r-9cf1fef180a8 |
 | T151 | water Map view: one line width, selected part by dimming; labels in the loaded face | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app; delivered r-9cf1fef180a8 |
-| T152 | sewage basins, tailing ponds, dumps (275) drawn as fishable lakes | PARTIAL | — | registry + reach + deliver; tiles window |
+| T152 | sewage basins, tailing ponds, dumps (275) drawn as fishable lakes | DONE | ef91524b, c321204d | live since the 10-27 atlas/tiles build (r-c706f5eaa2a3): 245 bindings removed, 275 muted fills |
 | T153 | a river's rules on unnamed lake polygons on its course (Q124 default, one flag) | DONE | 52462f99, 62e9cb7c | reach rerun: 569 polygons on 154 rivers, 284 rules gain, 0 lose; delivered r-9cf1fef180a8 |
 | T154 | a dams layer (BC WRIS, OGL-BC) matched to FWA; T148 R2 reads it | DONE | 23be8123, d8fab861, 216753d7 | fetch layer `dams`; evidence only (Q-T154a); delivered r-9cf1fef180a8 |
 | T155 | Still Creek and Nelson Creek: book entries with no water (named ditch/canal lines) | DONE | 83463771 | measured: all three entries bind (99, 6, 9 sections); no change |
@@ -218,7 +218,7 @@ use that as the sole source of future work."
 | T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | DONE | 3f43c1dd, ef762537, a09374b0 | feed republish (local; R2 owner) + app |
 | T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | DONE | 9cc8724f, 04c7da78 | 9 findings → T50 "Found by T172" (status-bar insets, pin press, stale-install error) |
 | T173 | fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue | OPEN | — | future |
-| T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | OPEN | — | deliver; Q153–Q155 |
+| T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | DONE | (this lane) | r-bda3fea28838: +407 Flow / +327 Level, 0 changed/lost; Q154 measured, off |
 | T175 | a water's own line shows at every zoom on its Conditions / water map (copy from tiles, clamp the opening zoom) | DONE | e8999343, 1f46e968 | app; native not run (T172/T50) |
 | T176 | the Conditions legend's "N gauges in view" counts sections, not gauges | DONE | e8999343, 1f46e968 | app: "N reaches coloured" |
 | T177 | combine CLEVER + COFFEE on every forecast day, weighted by measured skill (owner Q160) | DONE | b039349e, 73dd133e, af119f2c | feed republish; equal weights until the archive decides (T178); + spots record the trip day |
@@ -332,9 +332,9 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q149 | T154 | Bonaparte (329055141) has no dam in the provincial data — mark it lake by hand on the slough page? | yours on the page | owner |
 | Q151 | T166 | Unnamed streams: assume their tidal limit is at the mouth (no crossing work)? | yes | owner |
 | Q152 | T153 | A pond a steelhead river takes as its widening is ANADROMOUS (a rainbow over 50 cm in it is a steelhead, p.80) — 68 ponds; found by the card gate on the Kitimat's pond? | yes (built; one flag) | owner |
-| Q153 | T174 | A river's own side piece is adopted onto the LARGEST same-code section — use the nearest ANSWERED one instead (84 Flow gaps)? | measure first (T174) | owner |
-| Q154 | T174 | Walk a river's own unowned double-line polygon as the river (as T101 does for stream items' polygons)? | measure first (T174) | owner |
-| Q155 | T174 | Gravel Slough's 1425 connector lines take the answer of the polygons around them? | yes (3 sections) | owner |
+| Q153 | T174 | A river's own side piece is adopted onto the LARGEST same-code section — use the nearest ANSWERED one instead (84 Flow gaps)? | measured: largest ANSWERED in reach, +148 side pieces, 0 changed — SHIPPED (`ADOPT_ANSWERED`) | owner (revert = one switch) |
+| Q154 | T174 | Walk a river's own unowned double-line polygon as the river (as T101 does for stream items' polygons)? | measured: they are small FWA LAKES, not river polygons; ON moves 96,590 sections (+95k Flow) — kept OFF (`RIVER_WIDENINGS`) | owner |
+| Q155 | T174 | Gravel Slough's 1425 connector lines take the answer of the polygons around them? | yes — built as `water_line_gaps` (any stream water; Gravel 2 of 3, the 3rd has two answers) | owner |
 | Q158 | T168 | A renamed continuation's gauge counts as "on this water" (the Vedder lists the Chilliwack's 08MH001 as its own)? | yes | owner |
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
 
