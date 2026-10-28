@@ -125,7 +125,9 @@ def get_entries(region: str | None = None, status: str | None = None,
                                    "msg": "status is one of " + ", ".join(reuse.STATUSES)}])
     rows = reuse.queue(region=region, status=status, kind=kind, verify=verify, order=order,
                        tier=tier, severity=severity)
-    return rows
+    import preverify
+    # the second method's verdict on the entry's split proposals (owner 2026-10-27), read only
+    return [{**r, "pv": preverify.entry(r["entry_id"])} for r in rows]
 
 
 #: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only); T164: a DFO
@@ -355,7 +357,9 @@ def get_entry(entry_id: str):
     d = reuse.entry_detail(entry_id)
     if d is None:
         raise HTTPException(404, f"entry {entry_id} not found")
-    return d
+    import preverify
+    # the entry's missing-split / ambiguous-cut proposals with their pre-verify (read only)
+    return {**d, "split_suggestions": preverify.entry_items(entry_id)}
 
 
 @app.get("/api/items/{item_id}/geojson")

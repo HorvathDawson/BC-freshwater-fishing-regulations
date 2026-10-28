@@ -412,6 +412,8 @@ export interface MarkView {
 }
 
 export interface QueueRow {
+  /** owner 2026-10-27: the second method's verdict on the entry's split proposals */
+  pv?: Pv | null;
   entry_id: string;
   region: string;
   name: string;
@@ -511,6 +513,8 @@ export interface UnusedSplit {
 }
 
 export interface EntryDetail {
+  /** missing-split / ambiguous-cut proposals (`entry-split-suggestions.json`), read only */
+  split_suggestions?: SplitSuggestion[];
   entry: Entry;
   region: string;
   item: Item | null; // `boundaries` is the union over the item AND `also_items`
@@ -928,6 +932,7 @@ export interface ProposedSplit {
 }
 export type DfoState = "needs_cut" | "bound" | "unbound" | "no_water";
 export interface DfoRow {
+  pv?: Pv | null;
   id: string;
   region: string;
   kind: string;
@@ -1133,6 +1138,7 @@ export interface TidalCandidate {
 }
 /** GET /api/tidal/queue */
 export interface TidalRow {
+  pv?: Pv | null;
   id: string;
   water: string;
   blk: string;
@@ -1171,4 +1177,37 @@ export interface TidalDetail {
   items: { id: string; name: string; kind: string | null; mus: string[] }[];
   points: EntrySplits;
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
+}
+
+/* PRE-VERIFIED (owner 2026-10-27): a second, independent method's verdict (`backend/preverify.py`) */
+export type PvStatus = "pre-verified" | "disagree" | "unchecked";
+export interface Pv {
+  status: PvStatus;
+  why: string;
+  method: string | null;
+  first: string | null;
+  delta_m: number | null;
+  tolerance_m: number | null;
+  duplicate_of: string | null;
+  /** an entry's row: how many of its proposals, and how many pre-verified */
+  n?: number;
+  n_pre?: number;
+}
+/** one missing-split / ambiguous-cut proposal on an entry (`pipeline.regs.review.split_suggest`) */
+export interface SplitSuggestion {
+  id: string;
+  rule_id: string;
+  kind: string;
+  phrase: string;
+  suggestion: {
+    op: string; points: { kind: string; split_id: string }[]; items: string[];
+    new_splits: { ref: string; name?: string; coord?: [number, number]; measure?: number; confidence?: string; anchor?: string }[];
+    words?: string;
+  } | null;
+  confidence: "high" | "medium" | "low" | "none";
+  reason: string;
+  evidence: string[];
+  preverify: Pv | null;
+  duplicate_of: string | null;
+  pick: { builder: number | null; proposed: number | null; agrees: boolean } | null;
 }

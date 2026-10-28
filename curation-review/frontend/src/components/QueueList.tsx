@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { PvBadge } from "./Preverify";
 import type { EntrySeverity, QueueFacts, QueueRow } from "../types";
 
 interface Props {
@@ -101,6 +102,7 @@ export function QueueList({ rows, selected, loading, onSelect, facts }: Props) {
             {/* ONE chip: is there a real issue to review (owner 2026-10-26); the risk factors and
                 pre-checks it was read from are its hover, not badges of their own */}
             {r.severity && <SeverityChip level={r.severity} reasons={r.severity_reasons} />}
+            {!r.reviewed?.holds && <PvBadge pv={r.pv} />}
             {r.tier && <span className="badge tier" title="review tier (PLAN §3)">{r.tier}</span>}
             <span className="dim">r{r.region}</span>
             {r.page != null && <span className="dim">p.{r.page}</span>}

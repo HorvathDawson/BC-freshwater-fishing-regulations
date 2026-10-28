@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type {
   Boundary, EntryDetail as EntryDetailT, EntryReaches, EntrySplits, ExtentFix, Mode, NamedRef,
-  NamedSplit, ReviewView, RuleScopeWords, TribCall,
+  NamedSplit, ReviewView, RuleScopeWords, SplitSuggestion, TribCall,
 } from "../types";
 import { ExtentFixEditor } from "./ExtentFixEditor";
 import { api } from "../api";
@@ -13,6 +13,7 @@ import { EntryReview, markWords, useEntryReview, type MarkExtras } from "./Entry
 import { Finding, findingsOf, Prechecks } from "./Prechecks";
 import { ITEM_COLORS, MapPanel } from "./MapPanel";
 import { VerdictBar } from "./useMarking";
+import { PvBadge } from "./Preverify";
 
 /** T207: how a rule's `review_reason` says a cut is still to be located by the owner (`precheck.NEEDS_SPLIT`). */
 const NEEDS_SPLIT = "needs a split (owner to locate)";
@@ -436,6 +437,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
           </div>
 
           {view && <Prechecks view={view} />}
+          <SplitSuggestions items={detail.split_suggestions ?? []} />
 
           {/* ONE BLOCK PER RULE (T189): what it says, then where it holds. */}
           <div className="section">
@@ -616,6 +618,51 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* THE ENTRY'S SPLIT PROPOSALS (owner 2026-10-27, `pipeline.regs.review.split_suggest`): for each
+   missing split / ambiguous cut, where it would go, the confidence, the evidence and a SECOND
+   method's verdict. Read only: to take one, mark the entry (Place, with the extent fix). */
+function SplitSuggestions({ items }: { items: SplitSuggestion[] }) {
+  if (!items.length) return null;
+  const KIND: Record<string, string> = {
+    ambiguous_cut: "ambiguous cut", undrawn_part: "missing split (undrawn part)",
+    unresolved_locator: "missing split (locator)", unresolved: "unresolved rule",
+    unplaced: "unplaced pieces", landmark_unbound: "landmark not bound",
+  };
+  return (
+    <div className="section split-suggestions" data-testid="split-suggestions">
+      <h3>Split proposals ({items.length}) <span className="dim" style={{ fontWeight: 400, fontSize: 12 }}>
+        — read only; a second method's check beside each</span></h3>
+      <ul style={{ margin: 0, paddingLeft: 16 }}>
+        {items.map((it) => (
+          <li key={it.id} data-testid="split-suggestion">
+            <strong>{it.rule_id}</strong> · {KIND[it.kind] ?? it.kind}
+            <span className={`chip-tag conf-${it.confidence === "none" ? "low" : it.confidence}`}>{it.confidence}</span>
+            <PvBadge pv={it.preverify} />
+            {it.duplicate_of && <span className="chip-tag pv-dup" title={`same place as ${it.duplicate_of}`}>same as {it.duplicate_of}</span>}
+            {it.pick && <span className={`chip-tag ${it.pick.agrees ? "synced" : "orphan"}`}
+              title={`builder took ${it.pick.builder ?? "?"} m; the second method says ${it.pick.proposed ?? "?"} m`}>
+              pick {it.pick.agrees ? "agrees" : "differs"}</span>}
+            <div>“{it.phrase}”{it.suggestion?.words ? <> → <em>{it.suggestion.words}</em></> : null}</div>
+            {(it.suggestion?.new_splits ?? []).map((n) => (
+              <div key={n.ref} className="dim">new split: {n.name ?? n.ref}
+                {n.coord ? ` at ${n.coord[1].toFixed(5)}, ${n.coord[0].toFixed(5)}` : ""}
+                {n.measure != null ? ` (${Math.round(n.measure)} m)` : ""}</div>
+            ))}
+            <div className="dim">{it.reason}</div>
+            {it.preverify?.why && <div className="dim">2nd check: {it.preverify.why}</div>}
+            {it.evidence.length > 0 && (
+              <details><summary className="dim">evidence ({it.evidence.length})</summary>
+                <ul>{it.evidence.map((e, i) => <li key={i}>{/^https?:/.test(e)
+                  ? <a href={e} target="_blank" rel="noreferrer">{e}</a> : e}</li>)}</ul>
+              </details>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

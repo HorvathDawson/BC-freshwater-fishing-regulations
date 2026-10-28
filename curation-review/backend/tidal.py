@@ -20,6 +20,7 @@ from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 
+import preverify
 import reuse
 from pipeline.regs.review import tidal as T
 
@@ -65,7 +66,8 @@ def _row(r: dict, m) -> dict:
             "triage": t.get("class"), "edited": t.get("edited"), "n_web": len(t.get("web") or []),
             "triage_why": t.get("why"),
             "multi_crossing": bool((r.get("polygon") or {}).get("multi_crossing")),
-            "n_cuts": (r.get("polygon") or {}).get("n_cuts") or 0}
+            "n_cuts": (r.get("polygon") or {}).get("n_cuts") or 0,
+            "pv": preverify.tidal(r["id"])}
 
 
 def queue(confidence: str | None = None, verify: str | None = None, enters: str | None = None,

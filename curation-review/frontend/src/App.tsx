@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import type {
   EntryDetail as EntryDetailT, Mode, PendingBuild, Progress, QueueOrder, QueueRow, RegionSummary,
@@ -6,6 +6,7 @@ import type {
 } from "./types";
 import { ALL_REGIONS, FilterBar } from "./components/FilterBar";
 import { QueueList } from "./components/QueueList";
+import { applyPv, PV_DEFAULT, PvControls, type PvFilter } from "./components/Preverify";
 import { EntryDetail } from "./components/EntryDetail";
 import { ProgressBar } from "./components/ProgressBar";
 import { isTyping, keepSelected, nextUnsure, paceSamples, recordPace } from "./review";
@@ -48,7 +49,10 @@ export default function App() {
   // (tier, then the most urgent risk factor; T135), or the book's (region, page)
   const [verify, setVerify] = useState<ReviewFilter>("");
   const [order, setOrder] = useState<QueueOrder>("risk");
-  const [rows, setRows] = useState<QueueRow[]>([]);
+  const [allRows, setRows] = useState<QueueRow[]>([]);
+  // owner 2026-10-27: the second method's verdict on each entry's split proposals — filter / order
+  const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
+  const rows = useMemo(() => applyPv(allRows, pvf), [allRows, pvf]);
   const [loadingRows, setLoadingRows] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<EntryDetailT | null>(null);
@@ -245,7 +249,7 @@ export default function App() {
             onClick={toProposals}>
             Proposals
           </button></>}
-        moreSet={(tier ? 1 : 0) + (severity ? 1 : 0)}
+        moreSet={(tier ? 1 : 0) + (severity ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0)}
         more={
           <>
             <div>
@@ -264,6 +268,7 @@ export default function App() {
                 {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
+            <PvControls value={pvf} onChange={setPvf} rows={allRows} dupes={false} />
             <ProgressBar progress={progress} samples={samples} commands={mode?.commands} />
           </>
         }

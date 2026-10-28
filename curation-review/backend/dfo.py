@@ -25,6 +25,7 @@ from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 
+import preverify
 import reuse
 from pipeline.regs.review import dfo as D
 
@@ -158,6 +159,7 @@ def _row(slug: str, loc: dict, water: dict | None, m) -> dict:
             "duplicate_of": loc.get("duplicate_of"),
             "verify": v["status"], "reasons": v["reasons"],
             "suggested": _suggested(loc["location_id"]),
+            "pv": preverify.dfo(loc["location_id"]),
             "new_splits": len(m.new_splits) if m is not None else 0}
 
 

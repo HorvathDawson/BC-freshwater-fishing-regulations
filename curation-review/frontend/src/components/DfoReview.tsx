@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { applyPv, PV_DEFAULT, PvBadge, PvControls, type PvFilter } from "./Preverify";
 import { api, type EntryRefused } from "../api";
 import type {
   AnchorCheck, AnchorKind, Check, CheckAnswer, DfoDetail, DfoHunt, DfoProgress, DfoRow, DfoSuggestion, EntrySplits,
@@ -180,7 +181,9 @@ interface Props {
    point, an existing split). Everything goes in the mark (POST /api/marks, scope "dfo"); a new split
    never goes into splits.json from here — T185 turns the marks into reviewed changes. */
 export function DfoReview({ mode, onLeave, onTidal }: Props) {
-  const [rows, setRows] = useState<DfoRow[]>([]);
+  const [allRows, setRows] = useState<DfoRow[]>([]);
+  const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
+  const rows = useMemo(() => applyPv(allRows, pvf), [allRows, pvf]);
   const [progress, setProgress] = useState<DfoProgress | null>(null);
   const [filters, setFilters] = useState({ region: "", status: "active", need: "", verify: "", q: "" });
   const [selected, setSelected] = useState<string | null>(() => {
@@ -268,6 +271,7 @@ export function DfoReview({ mode, onLeave, onTidal }: Props) {
               {VERIFY.map(([k, w]) => <option key={k} value={k}>{w}</option>)}
             </select>
           </div>
+          <PvControls value={pvf} onChange={setPvf} rows={allRows} />
           <input className="dfo-search" placeholder="water or words…" value={filters.q}
             onChange={(e) => set({ q: e.target.value })} aria-label="search DFO" />
           <span className="progress dfo-progress" data-testid="dfo-progress">
@@ -305,6 +309,7 @@ export function DfoReview({ mode, onLeave, onTidal }: Props) {
                 {r.new_splits > 0 && <span className="chip-tag new">+{r.new_splits} split</span>}
                 {r.suggested && r.verify === "unmarked" && <span className="chip-tag suggested"
                   title="a suggested extent is waiting on this location">suggested · {r.suggested}</span>}
+                {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
                 <span>{r.n_rows} row{r.n_rows === 1 ? "" : "s"}</span>
               </div>
               <div className="meta dfo-text">{r.text || "(the whole water)"}</div>

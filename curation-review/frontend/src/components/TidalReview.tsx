@@ -5,6 +5,7 @@ import type {
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
+import { applyPv, PV_DEFAULT, PvBadge, PvControls, type PvFilter } from "./Preverify";
 
 export const TIDAL_HASH = "tidal/";
 
@@ -60,7 +61,9 @@ interface Props {
    PRE-FILLS a mark (Place y + the cut as a new split); "Record mark" is the one write (POST
    /api/marks, scope "tidal"). Nothing here writes splits.json (T185). */
 export function TidalReview({ mode, onLeave, onDfo }: Props) {
-  const [rows, setRows] = useState<TidalRow[]>([]);
+  const [allRows, setRows] = useState<TidalRow[]>([]);
+  const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
+  const rows = useMemo(() => applyPv(allRows, pvf), [allRows, pvf]);
   const [progress, setProgress] = useState<TidalProgress | null>(null);
   const [filters, setFilters] = useState({ confidence: "", verify: "", enters: "", words: false, q: "", triage: DEFAULT_TRIAGE });
   const [selected, setSelected] = useState<string | null>(() => {
@@ -160,6 +163,7 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
             <input type="checkbox" checked={filters.words} onChange={(e) => set({ words: e.target.checked })}
               data-testid="tidal-words-only" /> words name it
           </label>
+          <PvControls value={pvf} onChange={setPvf} rows={allRows} />
           <input className="dfo-search" placeholder="stream…" value={filters.q}
             onChange={(e) => set({ q: e.target.value })} aria-label="search tidal" />
           <span className="progress dfo-progress" data-testid="tidal-progress">
@@ -199,6 +203,7 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
                 {r.triage && <span className={`chip-tag${r.triage === "missed" || r.triage === "sanity" ? " new" : ""}`}
                   title={r.triage_why ?? ""}>{r.triage}</span>}
                 {r.n_web > 0 && <span className="chip-tag suggested">web · {r.n_web}</span>}
+                {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
                 {r.multi_crossing && r.triage !== "multi-crossing" && <span className="chip-tag" title="the line crosses the polygon in, out and in again">{r.n_cuts} crossings</span>}
               </div>
               <div className="meta dfo-text">{CROSSING_WORDS[r.crossing] ?? r.crossing}</div>

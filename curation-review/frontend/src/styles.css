@@ -1011,3 +1011,11 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .prop-check tr.changed td { font-weight: 700; }
 .prop-problem { color: var(--danger-text, #b00); font-size: 12px; }
 .prop-decision { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; font-size: 12px; }
+
+/* PRE-VERIFIED (owner 2026-10-27): a second, independent method's verdict — never an acceptance */
+.chip-tag.pv-pre-verified { background: #ccfbf1; color: #115e59; border: 1px solid #2dd4bf; }
+.chip-tag.pv-disagree { background: #ffedd5; color: #9a3412; border: 1px solid #fb923c; }
+.chip-tag.pv-unchecked { background: #f4f4f5; color: #52525b; border: 1px solid #d4d4d8; }
+.chip-tag.pv-dup { background: #f4f4f5; color: #71717a; border: 1px dashed #a1a1aa; }
+.split-suggestions { border-left: 3px solid #0d9488; padding-left: 8px; }
+.split-suggestions li { margin: 4px 0; font-size: 12px; }
