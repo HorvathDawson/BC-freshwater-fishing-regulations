@@ -214,3 +214,12 @@ Artifacts (session scratchpad `…/scratchpad/bm/`):
     shipped or decided (T85's filter, this change):
     - the scratch page draws OSM parks, which the app hides;
     - the live file still has stream lines and oneway arrows.
+- **Province bytes for the grid variants:** the exact province re-encode was queued behind other lanes' heavy jobs and
+  was cancelled. The estimate comes from the sampled z≤13 re-encode above, which still included wetland:
+  - g1 ≈ −20 MB (≈ −6%, giving ≈ 300 MB);
+  - g2 ≈ −50 MB (≈ −15%, giving ≈ 270 MB).
+
+  To get exact numbers, run `bm/requant.py` on the promoted file through `scripts/heavy.sh`.
+
+  **Verdict:** g1 is invisible and g2 nearly so. Either would be shipped as a re-encode step after `_trim`. That is
+  the owner's call.
