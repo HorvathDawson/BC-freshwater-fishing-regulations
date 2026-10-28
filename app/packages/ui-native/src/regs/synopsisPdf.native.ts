@@ -1,14 +1,19 @@
 /**
  * T215 (NATIVE) — open our copy of the synopsis with the entry highlighted. The release's PDF is downloaded ONCE per release
  * (it is named by its sha256) into the cache directory, the highlight annotation is written, and the result is handed to the
- * system to show: the file URL first, the share sheet when no handler takes it. NOT VERIFIED ON A DEVICE (like N1/N2).
+ * system to show: on Android a VIEW intent on its content:// URI (verified on the emulator, T50); on iOS the file URL
+ * first, the share sheet when no handler takes it (iOS not yet verified on a device).
  * `synopsisPdf.web.ts` is the browser's.
  */
 import { Linking, Platform, Share } from "react-native";
 import { File, Paths } from "expo-file-system";
+import { startActivityAsync } from "expo-intent-launcher";
 import type { SourceBox } from "@app/core";
 import { highlightPdf } from "./highlightPdf";
 import type { SynopsisSource } from "./synopsisSource";
+
+/** Android's `Intent.FLAG_GRANT_READ_URI_PERMISSION`: the viewer may read the one file it is handed. */
+const GRANT_READ_URI = 0x1;
 
 const held = (s: SynopsisSource) => new File(Paths.cache, `synopsis-${s.sha256.slice(0, 16)}.pdf`);
 
@@ -27,15 +32,20 @@ export async function loadSynopsis(s: SynopsisSource, fetchImpl: typeof fetch = 
 /** Open the synopsis with `boxes` highlighted. Throws when it cannot: the caller falls back to the plain link. */
 export async function openHighlighted(s: SynopsisSource, _pdf: number, boxes: readonly SourceBox[],
                                       os: string = Platform.OS): Promise<void> {
-  // ANDROID CANNOT BE HANDED THE FILE (T50 emulator walk): `Linking` refuses a file:// URI and sends no read grant with a
-  // content:// one, and `Share` drops `url` there — the reader got an EMPTY share sheet. Throwing sends `openBook` to the
-  // plain link (the PDF in the browser, no highlight) until a native intent with FLAG_GRANT_READ_URI_PERMISSION exists.
-  if (os === "android") throw new Error("synopsis: Android cannot open a highlighted local PDF");
   const out = await highlightPdf(await loadSynopsis(s), boxes);
   const f = new File(Paths.cache, "synopsis-open.pdf");
   if (f.exists) f.delete();
   f.create();
   f.write(out);
   // the page is the first the boxes name: a native viewer ignores `#page=`, so the highlight is what marks the place
+  if (os === "android") {
+    // (T50) ANDROID: `Linking` refuses a file:// URI and sends no read grant with a content:// one, and `Share` drops
+    // `url` there (the reader got an EMPTY share sheet). A VIEW intent on the file's content:// URI (expo-file-system's
+    // FileProvider) with FLAG_GRANT_READ_URI_PERMISSION opens it in the reader's PDF app; no PDF app rejects, and
+    // `openBook` falls back to the plain link.
+    await startActivityAsync("android.intent.action.VIEW",
+                             { data: f.contentUri, type: "application/pdf", flags: GRANT_READ_URI });
+    return;
+  }
   await Linking.openURL(f.uri).catch(() => Share.share({ url: f.uri }).then(() => undefined));
 }

@@ -125,10 +125,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
     at z9–z13 and say whether any water shows plain/grey before its colour (`EXPO_PUBLIC_COLOUR_PROBE=1` logs
     `T74PROBE` lines per pan for the numbers); the five hatches;
     "At my location" (asks on the tap, then drops the pin where you stand); a theme switch keeps the hatches.
-  - Android rule-book link (T50, 2026-10-27): opens the plain PDF in the browser, NO highlight — decide whether to add a
-    native intent package (expo-intent-launcher) so Android can open the highlighted copy; iOS still shares the file.
-  - Android bottom bar (T50): the gesture handle sits over the tab bar labels — needs react-native-safe-area-context
-    (a native package) for the real bottom inset.
+  - Android on a real phone (T50, 2026-10-27; emulator-verified): the rule-book link opens the highlighted PDF in your
+    PDF app (scroll to the entry's page — viewers ignore the page number); nothing sits under the status bar or the
+    gesture / 3-button bar.
 - **Sign-off walk** at the end (T87) before app/design is deleted.
 
 - **SEO, v1 pages (2026-10-27):** keep your existing Search Console property; when the new site is live add the new sitemap

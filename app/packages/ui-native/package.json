@@ -10,6 +10,7 @@
     "@app/data": "workspace:*",
     "@app/map": "workspace:*",
     "@app/ui": "workspace:*",
+    "expo-intent-launcher": "57.0.1",
     "pdf-lib": "1.17.1"
   },
   "peerDependencies": {

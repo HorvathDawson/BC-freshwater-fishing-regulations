@@ -108,3 +108,19 @@ Open (listed, not fixed):
   (dev only).
 - Not walked this session: a size-tier water (boxed tier + sticky size header, 9849276b), the place row one-line check
   at large text scale.
+
+## Packages approved (owner 2026-10-27) — insets + Android PDF (shots `T50-shots/t50b-*`)
+- `react-native-safe-area-context` 5.7.0: App.tsx owns the insets (`SafeAreaProvider` + its `SafeAreaView`, every edge),
+  replacing RN's iOS-only SafeAreaView and the interim `StatusBar.currentHeight` pad. Emulator: top bar below the status
+  bar, tab bar above the gesture handle AND above the 3-button bar (t50b-insets-gesture / -3button).
+- `expo-intent-launcher` 57.0.1: Android opens the HIGHLIGHTED copy (VIEW intent, expo-file-system's content:// URI,
+  FLAG_GRANT_READ_URI_PERMISSION) — opened in the Drive PDF viewer; the written file carries the /Highlight on PDF page 24
+  (Chilliwack p.22). No PDF app → `openBook` falls back to the plain link. (t50b-pdf-android-viewer)
+- Walked: the size box on Chilliwack part 2 (boxed tier, sticky header bounded to the box) and the regs place row at
+  font scale 1.3 (two lines only where the name does not fit; Today stays right). (t50b-sizebox*, t50b-fontscale)
+Still open:
+- Sheets are Modals (their own window): in 3-button mode the sheet's 28 dp bottom padding lies under the nav bar (the
+  content clears it; t50b-sheet-3button). Fix inside `Sheet` if a sheet ever ends in a button.
+- A font-scale change restarts the activity (`fontScale` not in the manifest's `configChanges`) and the app reopens on the
+  Map, losing the open water.
+- Landscape and the back table (step 4) still not walked.

@@ -162,6 +162,15 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   tap (`requestForegroundPermissionsAsync`) and never before. Used ONLY by `apps/mobile/src/locate.native.ts`; the web
   side is the browser's geolocation (`locate.web.ts`). Its config plugin in `apps/mobile/app.json` carries the
   when-in-use permission string; background location is off. Native code: it needs a rebuilt development build.
+- `react-native-safe-area-context` — **5.7.0, exact: the version Expo SDK 57's `bundledNativeModules.json` names**
+  (`~5.7.0`; pinned in the root `overrides`, native code). (T50, owner 2026-10-27) The system bars' real insets: Android
+  draws edge-to-edge (API 35), so the status bar sat over the top bar and the gesture handle over the tab bar, and RN's own
+  `SafeAreaView` pads iOS only (and is deprecated). ONE place reads them: `apps/mobile` App.tsx (`SafeAreaProvider` +
+  its `SafeAreaView` round the whole app); components never read insets. On web it pads by the browser's `env()`.
+- `expo-intent-launcher` — **57.0.1** (the SDK 57 line; `bundledNativeModules` names `~57.0.1`). (T50, owner 2026-10-27)
+  Android only: hands the highlighted synopsis copy (T215) to the reader's PDF app as a `content://` URI with a read
+  grant — `Linking` refuses `file://` and sends no grant, and `Share` drops `url` on Android. Used ONLY by
+  `ui-native/src/regs/synopsisPdf.native.ts`; iOS shares the file, web opens a blob. Native code: rebuilt dev build.
 - `pdf-lib` — **1.17.1**, pure JS, no native code. (T215, owner 2026-10-27) "open the PDF" shows our copy of the synopsis with the
   entry's row highlighted: it loads the 24 MB release PDF and adds one `/Highlight` annotation per source box
   (`ui-native/src/regs/highlightPdf.ts`), the same on web and phone. Costs ~0.5 MB of JS and 1-2 s to rewrite the PDF at the

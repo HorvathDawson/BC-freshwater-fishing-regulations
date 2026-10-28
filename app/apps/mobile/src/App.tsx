@@ -12,7 +12,8 @@
  * set: the map then draws the development tiles, and their stamped `tile_version` is what proves the pair (`pairingOf`).
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Platform, SafeAreaView, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
+import { Platform, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import {
   BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
@@ -148,11 +149,11 @@ export default function App() {
 
   return (
     <LayoutWidthContext.Provider value={width}>
-    {/* RN's SafeAreaView pads on iOS only. Android draws edge-to-edge (API 35), so the status bar sat over the top bar,
-        the back links and Close, and swallowed their taps (T172 / T50): the frame pads by the bar's height there. The
-        gesture/nav bar at the bottom is still T50's (it needs real insets). */}
-    <SafeAreaView style={{ flex: 1, backgroundColor: palette.card,
-                           paddingTop: Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0 }}>
+    {/* THE SYSTEM BARS' INSETS, read here and nowhere else (T50): Android draws edge-to-edge (API 35), so without them the
+        status bar sat over the top bar, the back links and Close (and swallowed their taps), and the gesture handle over
+        the tab bar. RN's own SafeAreaView padded iOS only; react-native-safe-area-context pads every edge on both. */}
+    <SafeAreaProvider>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
       <StatusBar barStyle={name === "dark" ? "light-content" : "dark-content"} />
       {failed ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32,
@@ -245,6 +246,7 @@ export default function App() {
         </View>
       )}
     </SafeAreaView>
+    </SafeAreaProvider>
     </LayoutWidthContext.Provider>
   );
 }

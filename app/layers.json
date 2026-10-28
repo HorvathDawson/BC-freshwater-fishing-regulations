@@ -76,7 +76,8 @@
         "@expo-google-fonts/bricolage-grotesque",
         "@expo-google-fonts/archivo",
         "@expo-google-fonts/jetbrains-mono",
-        "react-native-gesture-handler"
+        "react-native-gesture-handler",
+        "react-native-safe-area-context"
       ],
       "banned": [
         "maplibre-gl",
@@ -97,7 +98,8 @@
         "react-native-gesture-handler",
         "@react-native-community/netinfo",
         "pdf-lib",
-        "expo-file-system"
+        "expo-file-system",
+        "expo-intent-launcher"
       ],
       "banned": [
         "react-dom",
