@@ -477,7 +477,7 @@ describe("overzoom: the camera past the tiles, every source at its own deepest z
              atlas: sources.atlas?.maxzoom, basemap: sources.basemap?.maxzoom, imagery: sources.imagery?.maxzoom })
       .toEqual({ minZoom: 4, maxZoom: 18, maxBounds: [[-147.1, 40.2], [-106.1, 68]],
                  // Esri World Imagery's own z19 (owner 2026-10-21): the camera never outruns it; holes 404 to the parent
-                 atlas: 13, basemap: 14, imagery: 19 });
+                 atlas: 13, basemap: 13, imagery: 19 });
   });
   it("web: a fit goes no closer than the atlas's z14, though the camera may", async () => {
     render(<WebMap {...base({ fit: { key: "pond", bbox: [-121.9502, 49.1999, -121.9498, 49.2001] } })} />);
