@@ -24,10 +24,10 @@ function fitZoom(b: readonly [number, number, number, number], w: number, h: num
 }
 
 describe("the zoom ceilings", () => {
-  it("the camera goes four zooms past the tiles; the sources stop where their archives stop", () => {
+  it("the camera goes five zooms past the tiles; the sources stop where their archives stop", () => {
     expect({ min: MIN_ZOOM, atlas: ATLAS_MAX_ZOOM, basemap: BASEMAP_MAX_ZOOM, camera: CAMERA_MAX_ZOOM,
              fit: FIT_MAX_ZOOM })
-      .toEqual({ min: 4, atlas: 13, basemap: 14, camera: 18, fit: 14 });
+      .toEqual({ min: 4, atlas: 13, basemap: 13, camera: 18, fit: 14 });
   });
 
   it("no source's deepest zoom is the camera's — a source raised to it fetches tiles that do not exist", () => {
