@@ -273,6 +273,7 @@ use that as the sole source of future work."
 | T226 | bait-ban / fly-only marks fade in with zoom (gentle default, `late` variant) | DONE | 6db63d0e | paint.ts gearPaint ramps; shots T226-shots/ |
 | T227 | closed-to-game-fish waters open for salmon: the salmon year bar at the top, region closure, species notes, plain closed row | DONE | 4f2e22a3, 6af1ffa5, f35fdc75, 3dd41b02 | owner 2026-10-28 (Cowichan); shots T227-shots/; `salmonTimelineKey` for the merge lane |
 | T228 | no-access land and salmon break a water's pieces (live salmon merge on the map); dormant gauges attach to nothing; trout includes char (C4) | DONE | a757756b | live r-c331a7a3c2cf: 34 waters gain a part (Coquitlam 4), no rule set moved; 1,618 dormant matched stations out of Conditions; owner re-cuts sync.mjs + regs-fixture |
+| T229 | DFO salmon cascade on the Skeena: plain explanation + Cascade map in the review app (DFO mode) | PARTIAL | — | map done; owner Q1–Q6 (rank inside the named-water tier gives 2 wrong answers: Kitsumkalum mouth, Morice Forks; Areas 3–6 default spans the Skeena/Nass) |
 
 ## Order for open tickets
 

@@ -15,6 +15,7 @@ import { TIDAL_HASH, TidalReview } from "./components/TidalReview";
 import { PROPOSALS_HASH, ProposalsView } from "./components/ProposalsView";
 import { SLOUGH_HASH, SloughReview } from "./components/SloughReview";
 import { NAMES_HASH, NamesReview } from "./components/NamesReview";
+import { CASCADE_HASH, CascadeView } from "./components/CascadeView";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
@@ -25,6 +26,8 @@ const inTidal = () => decodeURIComponent(window.location.hash.slice(1)).startsWi
 const inSloughs = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(SLOUGH_HASH);
 /** T224: `#names/<candidate id>` opens the Names mode (mined name variants: spot-check + review) */
 const inNames = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(NAMES_HASH);
+/** T229: `#cascade/<watershed>` opens the DFO Cascade map (which DFO places apply where) */
+const inCascade = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(CASCADE_HASH);
 const inProposals = () => decodeURIComponent(window.location.hash.slice(1)) === PROPOSALS_HASH;
 
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
@@ -46,6 +49,7 @@ export default function App() {
   const [proposals, setProposals] = useState(inProposals);
   const [sloughs, setSloughs] = useState(inSloughs);
   const [names, setNames] = useState(inNames);
+  const [cascade, setCascade] = useState(inCascade);
   const [regions, setRegions] = useState<RegionSummary[]>([]);
   // THE ONE QUEUE (T135, PLAN §3): every region, in the review order, by default
   const [region, setRegion] = useState(ALL_REGIONS);
@@ -125,6 +129,7 @@ export default function App() {
       const id = decodeURIComponent(window.location.hash.slice(1));
       if (id.startsWith(SLOUGH_HASH)) { setSloughs(true); return; }
       if (id.startsWith(NAMES_HASH)) { setNames(true); return; }
+      if (id.startsWith(CASCADE_HASH)) { setCascade(true); return; }
       if (id.startsWith(DFO_HASH)) { setDfo(true); setTidal(false); setProposals(false); return; }
       if (id.startsWith(TIDAL_HASH)) { setTidal(true); setDfo(false); setProposals(false); return; }
       if (id === PROPOSALS_HASH) { setProposals(true); setDfo(false); setTidal(false); return; }
@@ -215,10 +220,16 @@ export default function App() {
     setProposals(false);
     setSloughs(false);
     setNames(false);
+    setCascade(false);
   };
+  const toCascade = () => { window.history.replaceState(null, "", `#${CASCADE_HASH}skeena`); setDfo(false); setTidal(false); setProposals(false); setCascade(true); };
+  const toDfoFromCascade = () => { setCascade(false); window.history.replaceState(null, "", `#${DFO_HASH}`); setDfo(true); };
   const toTidal = () => { window.history.replaceState(null, "", `#${TIDAL_HASH}`); setDfo(false); setProposals(false); setTidal(true); };
   const toDfo = () => { window.history.replaceState(null, "", `#${DFO_HASH}`); setTidal(false); setProposals(false); setDfo(true); };
   const toProposals = () => { window.history.replaceState(null, "", `#${PROPOSALS_HASH}`); setDfo(false); setTidal(false); setProposals(true); };
+  if (cascade) {
+    return <CascadeView onLeave={leaveModes} onDfo={toDfoFromCascade} />;
+  }
   if (sloughs) {
     return <SloughReview onLeave={leaveModes} />;
   }
@@ -232,7 +243,7 @@ export default function App() {
     return <TidalReview mode={mode} onLeave={leaveModes} onDfo={toDfo} />;
   }
   if (dfo && mode) {
-    return <DfoReview mode={mode} onLeave={leaveModes} onTidal={toTidal} />;
+    return <DfoReview mode={mode} onLeave={leaveModes} onTidal={toTidal} onCascade={toCascade} />;
   }
 
   return (

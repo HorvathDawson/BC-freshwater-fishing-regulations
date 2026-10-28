@@ -178,7 +178,9 @@ def test_the_impact_line_whole():
 #: read routes the sweep below does not call, and why — each is a pure read of the build
 _HEAVY_READS = {"/api/items/{item_id}/geojson", "/api/items/{item_id}/tributaries/geojson",
                 "/api/entries/{entry_id}/rules/{rule_id}/resolved", "/basemap/bc.pmtiles",
-                "/api/synopsis.pdf"}
+                "/api/synopsis.pdf",
+                # T229: a whole watershed's chains + geometry (the real reach run, not the fixture)
+                "/api/dfo/cascade/{name}"}
 _PARAMS = {"entry_id": ADAM, "rule_id": "adam_river.r1",
            "item_id": "gnis:28136", "filename": "page_016_row_000.png", "printed": "14",
            "location_id": CAMPBELL, "cid": "0", "pid": "lake:0", "key": "0"}

@@ -173,6 +173,8 @@ interface Props {
   onLeave: () => void;
   /** T212: over to the Tidal mode */
   onTidal?: () => void;
+  /** T229: the Cascade map (which DFO places apply where, per watershed) */
+  onCascade?: () => void;
 }
 
 /* THE DFO REVIEW MODE (T164): every scraped DFO salmon extent — the notice's own words, its rows,
@@ -180,7 +182,7 @@ interface Props {
    fix, and NEW SPLIT proposals by anchor (confluence, lake inlet / outlet, bridge, dam, signs, a map
    point, an existing split). Everything goes in the mark (POST /api/marks, scope "dfo"); a new split
    never goes into splits.json from here — T185 turns the marks into reviewed changes. */
-export function DfoReview({ mode, onLeave, onTidal }: Props) {
+export function DfoReview({ mode, onLeave, onTidal, onCascade }: Props) {
   const [allRows, setRows] = useState<DfoRow[]>([]);
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   const rows = useMemo(() => applyPv(allRows, pvf), [allRows, pvf]);
@@ -240,6 +242,7 @@ export function DfoReview({ mode, onLeave, onTidal }: Props) {
             <button className="btn small" role="tab" aria-selected={false} onClick={onLeave}>Synopsis entries</button>
             <button className="btn small primary" role="tab" aria-selected>DFO salmon extents</button>
             {onTidal && <button className="btn small" role="tab" aria-selected={false} onClick={onTidal}>Tidal</button>}
+            {onCascade && <button className="btn small" role="tab" aria-selected={false} onClick={onCascade}>Cascade</button>}
           </div>
           <div>
             <label>region</label>

@@ -135,7 +135,7 @@ def get_entries(region: str | None = None, status: str | None = None,
 
 #: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only); T164: a DFO
 #: salmon location (the DFO review mode); T212: a proposed tidal boundary (the Tidal mode)
-REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal", "slough", "q154")
+REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal", "slough", "q154", "name")
 
 
 class MarkPayload(BaseModel):
@@ -186,7 +186,7 @@ def post_mark(body: MarkPayload):
         if body.targets:
             raise HTTPException(422, [{"path": "", "msg": "a Q154 mark names one sample pond"}])
         data.pop("targets")
-    elif body.scope != "slough":
+    elif body.scope not in ("slough", "name"):     # T224: a name mark may name several candidates too
         if body.targets or body.call is not None:
             raise HTTPException(422, [{"path": "", "msg": "only a slough mark carries a call or several targets"}])
         data.pop("targets"), data.pop("call")
@@ -508,6 +508,18 @@ def dfo_progress():
     return dfo.progress()
 
 
+@app.get("/api/dfo/cascade/{name}")
+def dfo_cascade(name: str, min_order: int = 3, tol: float = 30.0):
+    """T229 THE CASCADE of one watershed (`cascade.cascade`): every section coloured by the DFO
+    places whose chain covers it, narrowest first, and per chain the place that answers each
+    species on each day — the bundle's own `verdict_on`, read only."""
+    import cascade
+    try:
+        return cascade.cascade(name, min_order=min_order, tol=tol)
+    except KeyError:
+        raise HTTPException(404, f"no cascade frame {name!r} (one of: {', '.join(cascade.FRAMES)})")
+
+
 @app.get("/api/dfo/locations/{location_id:path}/reach")
 def dfo_reach(location_id: str, limit: int = 6000):
     """What the location's curated extent binds NOW (`build_reach`), as geometry."""
@@ -688,6 +700,40 @@ def q154_pond(pid: str):
     got = ponds.detail(pid)
     if got is None:
         raise HTTPException(404, f"Q154 sample pond {pid} not found")
+    return got
+
+
+# --------------------------------------------------------------------------- T224: Names review mode
+# All READS: the mined name-variant candidates (`pipeline.regs.review.names`). The owner's call is a mark
+# (scope "name", call accept / reject) through POST /api/marks.
+
+@app.get("/api/names/queue")
+def names_queue(group: str | None = None, confidence: str | None = None, source: str | None = None,
+                verify: str | None = None, q: str | None = None, spot: bool = False):
+    """THE NAMES QUEUE (`variants.queue`): `group` auto | owner | review, `confidence`, `source`, `verify`
+    (todo = unmarked or stale), `q`, `spot` (the auto-accepted spot-check sample only)."""
+    import variants
+    from pipeline.regs.review.names import GROUPS
+    if group and group not in GROUPS:
+        raise HTTPException(422, [{"path": "group", "msg": "group is one of " + ", ".join(GROUPS)}])
+    if verify and verify not in variants.VERIFIES:
+        raise HTTPException(422, [{"path": "verify", "msg": "verify is one of " + ", ".join(variants.VERIFIES)}])
+    return variants.queue(group=group, confidence=confidence, source=source, verify=verify, q=q, spot=spot)
+
+
+@app.get("/api/names/progress")
+def names_progress():
+    import variants
+    return variants.progress()
+
+
+@app.get("/api/names/candidates/{cid:path}")
+def names_candidate(cid: str):
+    """One name candidate: its row, every source with its evidence, a map point."""
+    import variants
+    got = variants.detail(cid)
+    if got is None:
+        raise HTTPException(404, f"name candidate {cid} not found")
     return got
 
 
