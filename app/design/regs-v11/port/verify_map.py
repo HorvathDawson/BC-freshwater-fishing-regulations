@@ -25,6 +25,11 @@ from pipeline.deliver.store.release import province_store  # noqa: E402
 # OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat the store's group tree differs from page v36's by
 # design (app/conformance/src/regs/exclusions.ts KITIMAT_RULED_IDS); their trees are not walked here, every other check runs.
 KITIMAT_RULED = {"x14p0_1010", "x14p1_1010", "x14p2_1010"}
+# decisions D19 (a), AS BUILT (T80 item 3; app/conformance/src/regs/exclusions.ts D19_GROUPS): the store ships klmb_1010's
+# 10 rainbow trout as a one-kind GROUP, where the golden (page v36's legacy card path) draws a plain article, so the store has
+# exactly one group more than the golden there; asserted as exactly +1, and the extra group is not walked.
+D19_EXTRA = {"klmb_1010": 1}
+D19_ROW = 2
 TROUTISH = set("RB CT EB GB LT DV ST BT CT_ws CT_c".split())   # page_v36.js rowsHtml
 
 
@@ -63,11 +68,12 @@ def main():
         split = bool(main_) and len(rest) >= 2
         shown = [] if closed else (main_ if split else rows)
         want = [r for r in shown if r.get("group") and r["group"].get("headline")]
-        ok = len(want) == len(g["groups"]); R["groups"] += ok; ok or bad.append(("groups", sid))
+        ok = len(want) == len(g["groups"]) + D19_EXTRA.get(sid, 0); R["groups"] += ok; ok or bad.append(("groups", sid))
         of = g["otherFish"]
         ok = (of is None and (closed or not split)) or (of is not None and not closed and split and len(of) == len(rest))
         R["otherFish"] += ok; ok or bad.append(("otherFish", sid))
-        for r, gg in zip(want, g["groups"]):
+        cmp_ = want if sid not in D19_EXTRA else [r for r in want if r is not rows[D19_ROW]]   # the extra group is the legacy-path row's
+        for r, gg in zip(cmp_, g["groups"]):
             if sid in KITIMAT_RULED: continue
             tree = r["group"].get("tree")
             if not tree or not gg["tree"]: continue
@@ -80,6 +86,31 @@ def main():
     print(f"{'(not walked)':13} {len(KITIMAT_RULED)} Kitimat-ruled states' trees (owner ruling 2026-10-21 (a))")
     if bad:
         print("differ:", bad[:10]); sys.exit(1)
+
+
+# T128 (owner 2026-10-22): the store's kind line names its total, "Of your 2 trout and char a day in streams, up to 2 may
+# be X"; page v36 (the golden) says the old forms. conformance/src/regs/subcapTotal.ts holds the full rewrite against the
+# golden; here the kind is compared by what the sentence SAYS (its cap K, its fish X, the wild-steelhead clause, and the
+# total T where the golden names one), whichever of the two wordings carries it.
+_NEW = re.compile(r"^Of (?:your|the) (?P<t>\d+) [^,]*?, (?:up to|only) (?P<k>\d+) may be (?P<x>.+)$")
+_OLD = [re.compile(r"^(?:Up to|Only) (?P<k>\d+) (?:of the (?P<t>\d+)(?: from streams)? )?may be (?P<x>.+)$"),
+        re.compile(r"^Up to (?P<k>\d+) (?P<x>.+) \(part of the (?P<t>\d+) from streams\)$")]
+
+
+def _kind_facts(says):
+    s = re.sub(r"\s*How to tell ›$", "", says.strip())
+    m = _NEW.match(s) or next((m for m in (r.match(s) for r in _OLD) if m), None)
+    if not m: return None
+    x, wild = m["x"], False
+    for w in (" only — wild steelhead go back", " — wild steelhead go back"):
+        if x.endswith(w): x, wild = x[:-len(w)], True
+    return m["k"], x, wild, m["t"]
+
+
+def kind_same(store, golden):
+    if golden.startswith(store): return True    # kinds the owner's wording never touched
+    a, b = _kind_facts(store), _kind_facts(golden)
+    return bool(a and b and a[:3] == b[:3] and (b[3] is None or a[3] == b[3]))
 
 
 def walk(ns, gs, tiers, kinds, bad, sid, headline=None, head=None):
@@ -100,7 +131,7 @@ def walk(ns, gs, tiers, kinds, bad, sid, headline=None, head=None):
             walk(nd.get("children", []), x.get("children") or [], tiers, kinds, bad, sid, headline, head)
         else:
             kinds[1] += 1
-            if nd.get("folded") or (x["says"] or "").startswith(nd["says"]): kinds[0] += 1
+            if nd.get("folded") or kind_same(nd["says"], x["says"] or ""): kinds[0] += 1
             else: bad.append(("kind", sid, nd["says"], x["says"]))
 
 

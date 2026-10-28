@@ -96,7 +96,7 @@ Rank = Callable[[float, date], "float | None"]
 
 def coded(ratio: float) -> float:
     """A change ratio as the percentile-shaped number the donor pathway combines (see CHANGE_SCALE)."""
-    z = math.log2(ratio) / CHANGE_SCALE
+    z = math.log2(max(ratio, 1e-9)) / CHANGE_SCALE   # a forecast of no flow at all is ratio 0: the floor, not a crash
     p = 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
     return min(1.0 - CODE_FLOOR, max(CODE_FLOOR, p))
 
