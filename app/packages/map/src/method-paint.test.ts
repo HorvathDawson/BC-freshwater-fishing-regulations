@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import { methodDayProfiles, type MethodFacts, type StatusIndex } from "@app/core";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { Colouring, methodInput, statusInput, type LabelTarget, type TileRenderer, type TileSections } from "./colouring";
-import { GEAR_EDGE_PX, GEAR_LAYERS, gearPaint, paintFor, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { GEAR_EDGE_PX, GEAR_LAYERS, GEAR_RAMP, GEAR_RAMPS, gearPaint, paintFor, rampAt, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { runtimeStyle } from "./runtime-style";
 import { resolveTheme, NO_VALUES } from "./style";
 
@@ -38,19 +38,37 @@ describe("the gear marks' paint", () => {
     const p = gearPaint("stream", "profile", "fly", t, MAY, W);
     expect(p["line-color"]).toBe(t["color.gear.edge"]);
     expect(p["line-dasharray"]).toBeUndefined();
-    expect(p["line-opacity"]).toEqual(["case", ["all",
+    // zoom is only ever the input of a top-level interpolate, so the day's test sits inside each stop (T226)
+    const op = p["line-opacity"] as unknown[];
+    expect(op.slice(0, 3)).toEqual(["interpolate", ["linear"], ["zoom"]]);
+    expect(op[4]).toEqual(["case", ["all",
       ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", ["m1"]]],
-      ["!", ["in", ["coalesce", ["feature-state", "p"], ""], ["literal", ["p3", "n"]]]]], 1, 0]);
+      ["!", ["in", ["coalesce", ["feature-state", "p"], ""], ["literal", ["p3", "n"]]]]], 0, 0]);
     expect(JSON.stringify(p["line-width"])).toContain(`["+",`);
     expect(JSON.stringify(p["line-width"])).toContain(`${2 * GEAR_EDGE_PX}`);
   });
 
+  it("T226: the marks fade in with zoom — nothing at the far zooms, the T213 look at full strength, a longer dash when thin", () => {
+    const ramp = GEAR_RAMPS[GEAR_RAMP];
+    expect([rampAt(ramp.opacity, 5), rampAt(ramp.opacity, 8), rampAt(ramp.opacity, 22)]).toEqual([0, 0, 1]);
+    expect(rampAt(ramp.edge, 22)).toBe(1);
+    const mid = rampAt(ramp.opacity, 10);
+    expect(mid).toBeGreaterThan(rampAt(ramp.opacity, 9));
+    expect(mid).toBeLessThan(1);
+    const p = gearPaint("stream", "profile", "bait", t, MAY, W);
+    const dash = t["dash.gear.bait"] as number[];
+    expect(p["line-dasharray"]).toEqual(["step", ["zoom"], ["literal", dash.map((n) => n * 2)], 11, ["literal", dash]]);
+    const ring = gearPaint("lake", "profile", "fly", t, MAY)["line-width"] as unknown[];
+    expect(ring.slice(0, 3)).toEqual(["interpolate", ["linear"], ["zoom"]]);
+    expect(ring[ring.length - 1]).toBe(1.6);
+  });
+
   it("bait: the same edge, dashed (`dash.gear.bait`); a lake gets a ring of the same ink", () => {
     const p = gearPaint("stream", "profile", "bait", t, MAY, W);
-    expect([p["line-dasharray"], JSON.stringify(p["line-opacity"]).includes(`["m0"]`)]).toEqual([t["dash.gear.bait"], true]);
+    expect([JSON.stringify(p["line-dasharray"]).includes(JSON.stringify(t["dash.gear.bait"])), JSON.stringify(p["line-opacity"]).includes(`["m0"]`)]).toEqual([true, true]);
     const ring = gearPaint("lake", "profile", "bait", t, MAY);
-    expect([ring["line-color"], typeof ring["line-width"], ring["line-dasharray"]])
-      .toEqual([t["color.gear.edge"], "number", t["dash.gear.bait"]]);
+    expect([ring["line-color"], Array.isArray(ring["line-width"]), JSON.stringify(ring["line-dasharray"]).includes(JSON.stringify(t["dash.gear.bait"]))])
+      .toEqual([t["color.gear.edge"], true, true]);
   });
 
   it("nowhere outside the Standard and Salmon modes, with no method or no status installed, or on a day with none", () => {
@@ -66,10 +84,11 @@ describe("the gear marks' paint", () => {
   it("(owner 2026-10-28) the Salmon map carries the same marks, hidden where the SALMON day closes the section", () => {
     const SALMON = { open: ["s1"], release: [], closed: ["s0", "s2"], check: [], none: [] };
     const p = gearPaint("stream", "salmon", "fly", t, { ...MAY, salmon: SALMON }, W);
-    expect(p["line-opacity"]).toEqual(["case", ["all",
+    expect((p["line-opacity"] as unknown[])[4]).toEqual(["case", ["all",
       ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", ["m1"]]],
-      ["!", ["in", ["coalesce", ["feature-state", "sp"], ""], ["literal", ["s0", "s2"]]]]], 1, 0]);
-    expect(gearPaint("lake", "salmon", "bait", t, { ...MAY, salmon: SALMON })["line-dasharray"]).toEqual(t["dash.gear.bait"]);
+      ["!", ["in", ["coalesce", ["feature-state", "sp"], ""], ["literal", ["s0", "s2"]]]]], 0, 0]);
+    expect(JSON.stringify(gearPaint("lake", "salmon", "bait", t, { ...MAY, salmon: SALMON })["line-dasharray"]))
+      .toContain(JSON.stringify(t["dash.gear.bait"]));
     // no salmon day installed: nothing marked (the status day is not the Salmon map's read)
     expect(gearPaint("stream", "salmon", "fly", t, MAY, W)["line-opacity"]).toBe(0);
   });

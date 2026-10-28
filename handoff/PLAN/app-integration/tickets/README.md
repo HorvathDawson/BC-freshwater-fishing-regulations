@@ -270,6 +270,7 @@ use that as the sole source of future work."
 | T223 | user accounts shared between the web app and the phone app (sign-in, what syncs, offline) | OPEN | — | far future; default plan: Firebase Auth + Worker + R2 users/<uid>/, no DB |
 | T224 | name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source | OPEN | — | candidates mined 10-28 (curation-review/name-variants); ★ owner: flow + auto-accept |
 | T225 | feeds: where they live, how they're triggered, alerting (gauges, DFO, HYDAT) | OPEN | — | design first; host = Cloudflare Workers cron (owner 10-28), alerts in Cloudflare |
+| T226 | bait-ban / fly-only marks fade in with zoom (gentle default, `late` variant) | DONE | — | paint.ts gearPaint ramps; shots T226-shots/ |
 
 ## Order for open tickets
 

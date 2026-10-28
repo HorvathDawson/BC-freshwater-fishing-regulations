@@ -151,6 +151,32 @@ export type GearMark = "fly" | "bait";
 /** The edge each side of a marked stream line, and a marked lake's ring, in px. */
 export const GEAR_EDGE_PX = 1.5;
 export const GEAR_RING_PX = 1.6;
+/**
+ * (T226, owner 2026-10-28: "very aggressive when zoomed out") THE MARKS FADE IN WITH ZOOM. Each ramp is [zoom, value]
+ * stops: `opacity` (0 below the first stop: the mark is noise there), `edge` (the fraction of `GEAR_EDGE_PX` / `GEAR_RING_PX`
+ * drawn). Full strength, the T213 look, from the last stop up. `gentle` (default) ramps over z8-z14; `late` holds the
+ * mark back until z9.5 and is full by z12. The dash is lengthened below z11 so a thin line reads as dashes, not a shimmer.
+ */
+export const GEAR_RAMPS = {
+  gentle: { opacity: [[8, 0], [9, 0.3], [11, 0.6], [14, 1]], edge: [[8, 0.35], [11, 0.65], [14, 1]] },
+  late: { opacity: [[9.5, 0], [10.5, 0.5], [12, 1]], edge: [[9.5, 0.5], [12, 1]] },
+} as const;
+export const GEAR_RAMP: keyof typeof GEAR_RAMPS = "gentle";
+type Ramp = readonly (readonly [number, number])[];
+/** A ramp's value at `zoom`, linear between stops and held outside them. */
+export function rampAt(ramp: Ramp, zoom: number): number {
+  if (zoom <= ramp[0][0]) return ramp[0][1];
+  for (let i = 1; i < ramp.length; i++) {
+    const [z1, v1] = ramp[i], [z0, v0] = ramp[i - 1];
+    if (zoom <= z1) return v0 + (v1 - v0) * (zoom - z0) / (z1 - z0);
+  }
+  return ramp[ramp.length - 1][1];
+}
+/** The dash: the token from z11 up, a longer one below it (the line is thin; a 1.2 dash is a few pixels). */
+function gearDash(tokens: Tokens): unknown {
+  const d = tokens["dash.gear.bait"] as number[];
+  return ["step", ["zoom"], ["literal", d.map((n) => n * 2)], 11, ["literal", d]];
+}
 /** The modes the marks ride on: the Standard map's status mode, and (owner 2026-10-28: "bait and fly rules also apply
  *  to salmon") the Salmon map's — the provincial gear rule holds for a salmon angler too. */
 const GEAR_MODES: readonly string[] = ["profile", "salmon"];
@@ -181,14 +207,19 @@ export function gearShown(layerId: "stream" | "lake", mode: string, mark: GearMa
 export function gearPaint(layerId: "stream" | "lake", mode: string, mark: GearMark, tokens: Tokens,
                           values: ChannelValues | null = NO_VALUES, streamWidth?: unknown): Record<string, unknown> {
   const shown = gearShown(layerId, mode, mark, values);
+  const ramp = GEAR_RAMPS[GEAR_RAMP];
   const width = layerId === "stream" && streamWidth !== undefined
-    ? withinZoomCurve(streamWidth, (w) => ["+", w, 2 * GEAR_EDGE_PX]) : GEAR_RING_PX;
+    ? withinZoomCurve(streamWidth, (w, z) => ["+", w, 2 * GEAR_EDGE_PX * rampAt(ramp.edge, z)])
+    : ["interpolate", ["linear"], ["zoom"],
+       ...ramp.edge.flatMap(([z, f]) => [z, GEAR_RING_PX * f])];
   return {
     "line-color": tokens["color.gear.edge"],
     "line-width": width,
     // solid for fly only; dashed for a bait ban (a layer's dash is fixed, so each mark is its own layer)
-    ...(mark === "bait" ? { "line-dasharray": tokens["dash.gear.bait"] } : {}),
-    "line-opacity": shown === null ? 0 : ["case", shown, 1, 0],
+    ...(mark === "bait" ? { "line-dasharray": gearDash(tokens) } : {}),
+    // zoom may only be the input of a top-level interpolate, so the day's test sits inside each stop
+    "line-opacity": shown === null ? 0
+      : ["interpolate", ["linear"], ["zoom"], ...ramp.opacity.flatMap(([z, o]) => [z, ["case", shown, o, 0]])],
   };
 }
 
@@ -428,13 +459,13 @@ const HEX6 = /^#[0-9a-f]{6}$/i;
  * curve; it has to be pushed into each of the curve's outputs, which is the same value
  * everywhere and legal. Anything that is not such a curve is transformed directly.
  */
-function withinZoomCurve(expr: unknown, f: (value: unknown) => unknown): unknown {
+function withinZoomCurve(expr: unknown, f: (value: unknown, zoom: number) => unknown): unknown {
   const isZoomCurve = Array.isArray(expr)
     && (expr[0] === "interpolate" || expr[0] === "step")
     && JSON.stringify(expr[expr[0] === "step" ? 1 : 2]) === '["zoom"]';
-  if (!isZoomCurve) return f(expr);
+  if (!isZoomCurve) return f(expr, 99);
   const a = expr as unknown[];
   const head = a[0] === "step" ? 2 : 3;           // step: op, input, default; interpolate: op, interp, input
   return [...a.slice(0, head),
-          ...a.slice(head).map((v, i) => ((i % 2 === 0) ? v : f(v)))];
+          ...a.slice(head).map((v, i, all) => ((i % 2 === 0) ? v : f(v, all[i - 1] as number)))];
 }
