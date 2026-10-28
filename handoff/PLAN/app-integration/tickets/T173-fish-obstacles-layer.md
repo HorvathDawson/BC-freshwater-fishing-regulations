@@ -1,18 +1,107 @@
 # T173 — A fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue
 
-Status: OPEN — future (owner 2026-10-23: "a fish obstacle layer could be interesting from the bc data catalogue. but
-that is a future ticket").
+Status: DONE — c27db165 (data + tile layer), 88b60317 (app). The marks reach readers with the next tile build (release
+lane, commands below); until then the switch draws nothing (the shipped atlas has no `obstacle` layer). Owner call: Q165
+(PSCIS).
 
-## Sources to evaluate
-- Provincial Obstacles to Fish Passage (FISS obstacles — falls, cascades, dams, velocity barriers, with height where
-  known) and the Provincial Stream Crossing Inventory (PSCIS: culvert / crossing assessments, passability) — BC Data
-  Catalogue, Open Government Licence – BC; fetch via the openmaps WFS like T154's dams layer.
-- Already in the repo: the T154 dams layer (WRIS) and the OSM waterfalls layer.
+Source: owner 2026-10-23 ("a fish obstacle layer could be interesting from the bc data catalogue"); started 2026-10-28.
 
-## Work (when it starts)
-1. Fetch + licence note + a fetch script (data/fetch_data.py style); match points to FWA lines (as dams.py does).
-2. Decide what it is FOR: a map layer (obstacles as small marks with type/height on tap), and/or evidence for run timing
-   (T162: a run cannot pass a barrier — the passage walk stops there) and for regulations ("upstream of the falls"
-   locators in T164's DFO work and the synopsis).
-3. App: a toggle in the layers menu; marks small and distinct from gauges and spots; tap sheet with type, height,
-   source, date. Ships: release file + app. Size: M.
+## Work
+1. Fetch + licence note + a fetch script (data/fetch_data.py style); dedupe the sources.
+2. A tile layer within the size budgets; measure it.
+3. App: a toggle in the layers menu (off by default); marks small and distinct from gauges and spots; tap sheet with
+   type, name, height, source, date.
+
+## As built
+- **Data (licences checked on the catalogue records 2026-10-28, `package_show`).**
+  - **FISS** — Provincial Obstacles to Fish Passage, `WHSE_FISH.FISS_OBSTACLES_PNT_SP` (35bbac7c-2e2f-4587-9108-f4aa1e862809),
+    **Open Government Licence – British Columbia**: 24,832 points.
+  - **WRIS** — BC Dams, `WHSE_WATER_MANAGEMENT.WRIS_DAMS_PUBLIC_SVW` (bd632217-35f9-4d01-8e57-a6dbc454f236), **OGL-BC**:
+    2,490 crest lines (the T154 layer).
+  - **PSCIS is NOT used.** Every PSCIS view (`PSCIS_ASSESSMENT_SVW`, `…_HABITAT_CONFIRMATION_SVW`, `…_REMEDIATION_SVW`,
+    `…_DESIGN_PROPOSAL_SVW`) is licensed **"Access Only"** — the Province's copyright page: "reproduction is not permitted
+    without written permission". 19,905 assessments, with `CURRENT_BARRIER_RESULT_CODE` (BARRIER / POTENTIAL / PASSABLE),
+    would be the culvert-barrier source if permission is granted (Q165). FISS's own culvert records (2,103) ship instead.
+  - Fetch: `data/fetch_data.py` type `WFS_FILE` (the paginated WFS fetcher into a gpkg of its own), entries
+    `fish_obstacles_fiss` / `fish_obstacles_dams` → `data/source/fish_obstacles/fish_obstacles.gpkg` (layers `fiss`, `dams`;
+    EPSG:3005; 11 MB; gitignored). Never the main gpkg.
+- **What is kept, and the dedupe** (`pipeline/deliver/tiles/obstacles.py`):
+  - FISS by OBSTACLE NAME (the code `PD` is both "Private Dam" and "Persistent debris"): falls, cascade (+ chute),
+    canyon, velocity barrier, culvert, and every built dam (hydro, irrigation, storage, private, regional, fisheries,
+    weir, unknown origin). Dropped (10,312): beaver dams, log jams / LWD, rocks, debris, landslides, bridges, pumps,
+    wedges, "other" — transient or not findable again; most surveys are from the 1990s.
+  - WRIS: standing dams (Active, Deactivated) on their water (Main, Conversion, Outlet), at the crest's midpoint.
+    Dropped: saddle dams, spillways, and dams not built / removed / breached / decommissioned / applied for.
+  - Same-type FISS points within 10 m are one obstacle (3,422 pairs sit within 0.5 m — the same record surveyed twice);
+    the kept one has a height, then the latest survey, then the lowest id. A FISS dam within 200 m of a kept WRIS crest
+    IS that dam (FISS points were placed on 1:50k maps); the WRIS record wins (named, with its height).
+  - Heights of 0, below 0 or over 500 m are survey placeholders (-1000, 9999) and are dropped. No dam owner: WRIS names
+    private people as owners.
+  - **15,185 marks**: falls 5,805 · cascade 3,911 · culvert 2,103 · canyon 555 · velocity 249 · FISS dam 642 · WRIS dam
+    1,920. With a height 7,898; a name (dams) 1,920; the water's name (FISS) 7,553.
+- **Slim schema** (tile layer `obstacle`, point, z10–13, `layers.FEATURES`): `obstacle_id` (`fiss:<point id>` /
+  `wris:<dam file number>`), `type` (falls · cascade · canyon · velocity · culvert · dam), `name` (a dam's), `water`
+  (the stream a FISS obstacle is on), `height_m`, `source` (fiss · wris), `year` (surveyed / commissioned). Names go
+  through `tiles.names.display` (WRIS names arrive in capitals). `tile-contract.json` regenerated; the tiles export writes
+  the layer; `python -m pipeline.deliver.tiles --obstacles-only` writes just `layers/obstacle.geojsonl`; the tiles stage
+  key stamps the source file (`build.obstacles_source`; missing → the stage runs and names the fetch).
+- **App.** `@app/core` `overlay.obstacles` ("Fish obstacles · Falls, cascades, culverts and dams. From zoom 10"), Map tab
+  only, off by default, sets the toggleable style group `obstacles`. Style layers `obstacle_ring` + `obstacle` (circle, z10):
+  an ink dot (alias of the gauge-dot ink: near-black on light, near-white on dark) in a paper ring (alias of
+  `color.outside`) — no hue, so a mark never reads as a status or a reading; a gauge is a coloured dot (Conditions map
+  only) and a spot a pin. Radius ~2.2 px at z10 → 3.2 at z13 → 4.4 at z16. A tap: `MapRenderer.pressObstacle` (same 24 px box,
+  both renderers) is asked BEFORE the water — a tap on the mark raises `ObstacleSheet` (`@app/core` `obstacleSheet`:
+  title = the dam's name or the type; "On <water>"; Type / Height / Surveyed or Commissioned / Source + record id; a note
+  that surveys are old and passage depends on fish and flow; the OGL-BC attribution line) and opens no water under it.
+  A hidden layer answers no query, so with the switch off taps are unchanged.
+- **Tests.** pytest `test_tile_obstacles.py` (types by name, placeholders, years, dedupe both ways, spec + the app's type
+  list held equal to the pipeline's), `test_tiles.py` inventory + stage key, `test_tile_feature_ids.py`; vitest
+  `obstacles.test.ts` (whole sheets), `ObstacleSheet.test.tsx`, `parity.test.ts` (same query, same answer on both
+  renderers; null when nothing is there), layers / LayersSheet / ConditionsLayers / back-layers pins updated.
+  Ran (worktree = HEAD + this change): tsc -b, boundaries, platform, colours, 125 vitest files (1,534 passed); pytest tile
+  suites 55 passed. `pnpm check`'s knip / style passed in the main checkout.
+
+## Size (measured 2026-10-28, against the live atlas db853e9556df81a6.16b3906b04bf, 168.1 MB)
+The obstacle layer built alone with the archive's own top-band flags (`tippe._common`, z10–13): 21,153 tiles, 4.04 MB gz
+standalone (4.80 MB raw MVT). What it ADDS to the atlas: each obstacle tile's MVT appended to the live atlas tile at the
+same z/x/y and gzipped, minus the atlas tile gzipped the same way (scratch `measure.py`):
+
+| zoom | tiles with a mark | added (gz) |
+|---|---:|---:|
+| z10 | 1,346 | +446 kB |
+| z11 | 3,470 | +625 kB |
+| z12 | 6,655 | +859 kB |
+| z13 | 9,682 | +1,106 kB |
+| **total** | 21,153 | **+3.04 MB (+1.8 % of the atlas)** |
+
+Confirmed by the real join: `tile-join` of the live atlas + the obstacle layer = 179,346,272 B against 176,303,284 B — **+3,042,988 B (+1.73 %)**.
+
+Budgets: the release gates (`release.build.SIZE_GATES`, `OFFLINE_GATE` 20 MB, `WEB_BUDGET`) price the release files, not
+the tiles — the layer touches none of them. No tile-size gate exists; the phone holds ~450 MB of tiles + basemap
+(T182's note), so +3.0 MB is +0.7 % of the offline package. Web: a z10–13 tile with marks grows ~0.1–0.3 kB gz, only
+where marks are. **Ship decision: in the atlas, offline included, z10–13** (no split needed). If it ever must shrink:
+minzoom 11 saves 0.45 MB; dropping `obstacle_id` (unique strings) saves a further share.
+
+## Release lane — fold it into the next build
+```
+# 1. the source (once per refresh; already fetched on this machine 2026-10-28)
+PYTHONPATH="$PWD" .venv/bin/python data/fetch_data.py --layers fish_obstacles_fiss fish_obstacles_dams
+# 2a. a full tile build exports it with everything else (heavy):
+scripts/heavy.sh tiles 30 -- .venv/bin/python -m pipeline.deliver.tiles --build data/generated/atlas/full
+# 2b. or, on a tile build whose layer files are current: add just this layer, then re-tile
+.venv/bin/python -m pipeline.deliver.tiles --obstacles-only            # writes data/generated/tiles/layers/obstacle.geojsonl
+scripts/heavy.sh tiles 30 -- .venv/bin/python -m pipeline.deliver.tiles --tiles-only --build data/generated/atlas/full
+# 3. promote as usual: pmtiles + meta + layers/*.geojsonl file by file (layers/obstacle.geojsonl is new)
+```
+No bundle or release-file change. The app commit is safe before the tiles: the switch draws nothing on an atlas without
+the layer.
+
+## Shots
+`handoff/PLAN/app-integration/T173-shots/` (Rosedale / Popkum, r-c331a7a3c2cf on the joined scratch atlas, served by a
+private tile server and swapped in by a browser route; nothing promoted): `desktop-layers-sheet.png` (the switch on),
+`desktop-layer-on.png`, `desktop-tap-sheet.png` (Falls, 35 m, FISS 23953), `phone-layer-on.png`, `phone-tap-sheet.png`
+(Culvert on Nevin Creek, FISS 19492). The marks sit on the status lines as ink dots in a paper ring.
+
+## Left / follow-ups
+- Q165 (owner): ask the Province for written permission to ship PSCIS barrier assessments? Default: no; FISS culverts only.
+- T162 / T164 (run timing, "upstream of the falls" locators) can read `obstacles.build()` — not wired here.

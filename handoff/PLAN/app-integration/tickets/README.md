@@ -217,7 +217,7 @@ use that as the sole source of future work."
 | T170 | a spot gets the flow of its own day (historical) on refresh or on request | DONE | ef762537, 298cee48, a09374b0 | app; GeoMet direct from the browser (no proxy) |
 | T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | DONE | 3f43c1dd, ef762537, a09374b0 | feed republish (local; R2 owner) + app |
 | T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | DONE | 9cc8724f, 04c7da78 | 9 findings → T50 "Found by T172" (status-bar insets, pin press, stale-install error) |
-| T173 | fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue | OPEN | — | future |
+| T173 | fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue | DONE | c27db165, 88b60317 | FISS + WRIS (OGL-BC; PSCIS is Access Only → Q165), 15,185 marks, atlas layer `obstacle` z10-13 +3.0 MB; reaches readers with the next tile build (commands in the ticket); shots T173-shots/ |
 | T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | DONE | 00153bf6 | r-bda3fea28838: +407 Flow / +327 Level, 0 changed/lost; Q154 measured, off |
 | T175 | a water's own line shows at every zoom on its Conditions / water map (copy from tiles, clamp the opening zoom) | DONE | e8999343, 1f46e968 | app; native not run (T172/T50) |
 | T176 | the Conditions legend's "N gauges in view" counts sections, not gauges | DONE | e8999343, 1f46e968 | app: "N reaches coloured" |
@@ -327,6 +327,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q146 | T150 | Opening the parts list shortens the map but does not re-centre it (the Fraser's long lower part gets cut off on a phone) — re-centre on open? | no (keeps the reader's pan) | owner |
 | Q147 | T153 | A pond a steelhead row now takes also gets the zone's lake wording of the steelhead rule (zp:steelhead r1b/r2b/r4b +68 polygons each, z5 r6b +44)? | accept | owner |
 | Q148 | T154 | Promote "dammed widening = lake" (R2 with the dams layer: 26 candidates → LAKE; catches Quinsam and South Nanaimo, not Bonaparte) into the slough candidates, or keep dams as evidence only? | evidence only | owner |
+| Q165 | T173 | PSCIS culvert barrier assessments (19,905, with BARRIER / POTENTIAL / PASSABLE) are "Access Only" on the catalogue: ask the Province for written permission to ship them in the obstacles layer? | no — FISS culverts only (2,103) | owner |
 | Q149 | T154 | Bonaparte (329055141) has no dam in the provincial data — mark it lake by hand on the slough page? | yours on the page | owner |
 | Q151 | T166 | Unnamed streams: assume their tidal limit is at the mouth (no crossing work)? | yes | owner |
 | Q152 | T153 | A pond a steelhead river takes as its widening is ANADROMOUS (a rainbow over 50 cm in it is a steelhead, p.80) — 68 ponds; found by the card gate on the Kitimat's pond? | yes (built; one flag) | owner |
