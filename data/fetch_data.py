@@ -1609,6 +1609,9 @@ def _layer_already_fetched(name: str, cfg: dict, gpkg_out: Path, existing_layers
     if t in ("R2_FILE", "CSV_DOWNLOAD", "OSM_PLACES"):
         dest = gpkg_out.parent / cfg["dest"]
         return dest.exists() and dest.stat().st_size > 0
+    if t == "WFS_FILE":
+        dest = gpkg_out.parent / cfg["dest"]
+        return dest.exists() and cfg["layer"] in set(fiona.listlayers(dest))
     if t == "PDF_BULK":
         dest_dir = gpkg_out.parent / cfg["dest_dir"]
         return dest_dir.exists() and any(dest_dir.iterdir())
@@ -1696,6 +1699,17 @@ def main():
         # handoff/PLAN/sloughs/v2/dams.py matches each dam to the FWA lines/polygons it sits on, and the T148 revise's
         # R2 reads that ("a widening behind a dam reads as a lake"). Small (~2.4 MB of GeoJSON, one WFS page).
         "dams": {"type": "WFS", "source": "WHSE_WATER_MANAGEMENT.WRIS_DAMS_PUBLIC_SVW"},
+        # T173 FISH OBSTACLES — the map layer's two sources, into a gpkg of their own
+        # (data/source/fish_obstacles/fish_obstacles.gpkg, layers `fiss` and `dams`; EPSG:3005), never the main gpkg.
+        # Both Open Government Licence – British Columbia (catalogue 35bbac7c-2e2f-4587-9108-f4aa1e862809 "Provincial
+        # Obstacles to Fish Passage"; bd632217-35f9-4d01-8e57-a6dbc454f236 "BC Dams"), checked 2026-10-28. NOT PSCIS
+        # (culvert assessments, WHSE_FISH.PSCIS_*): its catalogue licence is "Access Only" — reproduction not permitted
+        # without written permission — so it may not ship. pipeline/deliver/tiles/obstacles.py reads these two into the
+        # atlas's `obstacle` layer. Small: ~25k points + ~2.5k crest lines, four WFS pages.
+        "fish_obstacles_fiss": {"type": "WFS_FILE", "source": "WHSE_FISH.FISS_OBSTACLES_PNT_SP",
+                                "dest": "fish_obstacles/fish_obstacles.gpkg", "layer": "fiss"},
+        "fish_obstacles_dams": {"type": "WFS_FILE", "source": "WHSE_WATER_MANAGEMENT.WRIS_DAMS_PUBLIC_SVW",
+                                "dest": "fish_obstacles/fish_obstacles.gpkg", "layer": "dams"},
         "wma": {"type": "WFS", "source": "WHSE_TANTALIS.TA_WILDLIFE_MGMT_AREAS_SVW"},
         "wmu": {
             "type": "WFS",
@@ -1881,6 +1895,10 @@ def main():
         try:
             if cfg["type"] == "WFS":
                 fetch_wfs_paginated(name, cfg["source"], gpkg_out, temp_dir)
+            elif cfg["type"] == "WFS_FILE":
+                dest = gpkg_out.parent / cfg["dest"]
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                fetch_wfs_paginated(cfg["layer"], cfg["source"], dest, temp_dir)
             elif cfg["type"] == "PARCEL_FABRIC":
                 fetch_parcel_fabric(name, cfg["url"], cfg["layer"], gpkg_out, temp_dir)
             elif cfg["type"] == "FWA_GDB":

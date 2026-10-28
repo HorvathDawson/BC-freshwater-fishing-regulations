@@ -197,8 +197,17 @@ def tiles_key(build_dir: Path) -> dict:
     data-only `pipeline build` never rebuilds (or re-ships) the tiles."""
     from pipeline.common.section_handles import digest_for
     areas = Path(CURATED.waters.areas)
+    # (T173) the fish obstacles' own fetched file; missing, the key says so and the stage runs (and names the fetch)
+    ob = obstacles_source()
     return {"handles": digest_for(build_dir), "gpkg": stamp(sources()["gpkg"]),
-            "areas": hashlib.sha256(areas.read_bytes()).hexdigest()[:16], "code": code_digest(CODE["tiles"])}
+            "areas": hashlib.sha256(areas.read_bytes()).hexdigest()[:16], "code": code_digest(CODE["tiles"]),
+            "obstacles": stamp(ob) if ob.exists() else None}
+
+
+def obstacles_source() -> Path:
+    """(T173) The fish obstacles the tiles stage reads (`pipeline.deliver.tiles.obstacles.GPKG`)."""
+    from pipeline.deliver.tiles.obstacles import GPKG
+    return Path(SOURCE / GPKG)
 
 
 def outputs(build_dir: Path) -> dict[str, list[Path]]:

@@ -367,7 +367,26 @@ HYDROLOGY: tuple[LayerSpec, ...] = (
     ),
 )
 
-ALL: tuple[LayerSpec, ...] = WATER + ADMIN + LABELS + HYDROLOGY
+#: THE THINGS ON THE WATER (T173): marks a reader switches on, never part of the answer the water's colour gives.
+FEATURES: tuple[LayerSpec, ...] = (
+    LayerSpec(
+        name="obstacle", geometry="point", ladder="none", minzoom=10,
+        attrs=("obstacle_id", "type", "name", "water", "height_m", "source", "year"),
+        why="FISH OBSTACLES (T173): falls, cascades, canyons, velocity barriers, culverts and dams — the Province's "
+            "Obstacles to Fish Passage (FISS) and its dam register (WRIS), both Open Government Licence – BC, merged and "
+            "deduped by `tiles/obstacles.py` (PSCIS is \"Access Only\" and does not ship). A switch in the Layers sheet, "
+            "off by default; a tap names what it is.\n\n"
+            "`obstacle_id` is the source's own id (`fiss:<point id>`, `wris:<dam file number>`), a string, so no MVT id. "
+            "`type` is one of `obstacles.OBSTACLE_TYPES`; `name` a dam's; `water` the stream a FISS obstacle is on (its "
+            "gazetted name); `height_m` where measured; `source` fiss | wris; `year` surveyed (FISS) or commissioned "
+            "(WRIS). Every one is read by the tap sheet; none by the style.\n\n"
+            "z10 AND UP, one zoom for every mark: 15,185 marks, +3.0 MB on the 168 MB atlas (T173 measured, each "
+            "obstacle tile appended to the live atlas tile and gzipped: z10 +0.45, z11 +0.62, z12 +0.86, z13 +1.11 MB). "
+            "Below z10 a mark has no stream under it that a reader can see.",
+    ),
+)
+
+ALL: tuple[LayerSpec, ...] = WATER + ADMIN + LABELS + HYDROLOGY + FEATURES
 BY_NAME = {s.name: s for s in ALL}
 
 assert len({s.name for s in ALL}) == len(ALL), "layer names must be unique"

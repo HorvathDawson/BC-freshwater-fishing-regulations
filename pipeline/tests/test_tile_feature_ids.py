@@ -17,6 +17,7 @@ import re
 
 from pipeline.deliver.tiles import basins as B
 from pipeline.deliver.tiles import export as E
+from pipeline.deliver.tiles import obstacles as O
 from pipeline.deliver.tiles.layers import ALL, BY_NAME
 
 
@@ -44,6 +45,8 @@ EXPORTERS = {
     # The field lives in its own module because it is neither water nor administrative
     # geography — it is the ground a reading is a claim about. See tiles/basins.py.
     "basin": B.export_basins,
+    # (T173) the record is built by `obstacles.build`; `export_obstacles` writes it through `_writer`
+    "obstacle": O.build,
 }
 
 

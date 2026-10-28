@@ -29,6 +29,9 @@ def main() -> None:
                     help="run tippecanoe over the layer files ALREADY in --out/layers and "
                          "skip the export. For changes to the tippecanoe invocation, where "
                          "re-deriving the same geometry is ~40 min of wasted work.")
+    ap.add_argument("--obstacles-only", action="store_true",
+                    help="(T173) write ONLY layers/obstacle.geojsonl (the fish obstacles, from "
+                         "data/source/fish_obstacles/) and stop; `--tiles-only` then builds it into the atlas")
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--release-root", type=Path, default=GENERATED.release,
                     help="where the released tile folder goes: <root>/tiles/<version>/ (default: data/release)")
@@ -53,6 +56,10 @@ def main() -> None:
     build_dir, out_dir = Path(a.build), Path(a.out)
     layer_dir = out_dir / "layers"
     layer_dir.mkdir(parents=True, exist_ok=True)
+    if a.obstacles_only:
+        from pipeline.deliver.tiles.obstacles import export_obstacles
+        print(f"obstacles -> {layer_dir}: {export_obstacles(layer_dir)}")
+        return
     tippe.check()                       # fail before an hour of work, not after
     if not a.no_release:
         from pipeline.deliver.tiles import assets
@@ -81,6 +88,9 @@ def main() -> None:
     # reading is a claim about, and it draws only below the zoom the rivers take over at.
     from pipeline.deliver.tiles.basins import export_basins
     counts |= export_basins(a.gpkg, layer_dir)
+    # (T173) the fish obstacles: their own fetched file, not the main gpkg (`tiles/obstacles.py`)
+    from pipeline.deliver.tiles.obstacles import export_obstacles
+    counts |= export_obstacles(layer_dir)
     if not a.skip_water:
         print("water")
         counts |= export.export_streams(build_dir, layer_dir, limit=a.limit)

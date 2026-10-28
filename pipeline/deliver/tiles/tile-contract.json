@@ -230,6 +230,25 @@
       "maxzoom": 7,
       "ladder": "none",
       "flows": null
+    },
+    "obstacle": {
+      "geometry": "point",
+      "attrs": [
+        "obstacle_id",
+        "type",
+        "name",
+        "water",
+        "height_m",
+        "source",
+        "year"
+      ],
+      "featureId": "obstacle_id",
+      "decorative": false,
+      "mvtId": false,
+      "minzoom": 10,
+      "maxzoom": 13,
+      "ladder": "none",
+      "flows": null
     }
   },
   "magnitudeLadder": [
