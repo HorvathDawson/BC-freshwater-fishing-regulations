@@ -451,6 +451,7 @@ class _Build:
         self.splits = None              # curated + gauge split defs (gauge_cuts)
         self.splits_doc = None          # the splits.json document read now: its anchors are recorded (T133)
         self.matches_sha = None         # the gauge match file's digest, when the build cuts at gauges
+        self.cuts_sha = None            # the digest of the gauge cut set made from it (T159)
         self.area_polys = None          # rule-scoped area polygons (cut_curated, when a split names one)
         self.applied_splits: list = []
         self.braid_sweep = None         # the braid sweep judged before the curated cuts (cut_curated)
@@ -777,9 +778,10 @@ def gauge_cuts(b: _Build) -> None:
     """CUT DEFINITIONS: the curated splits (default on) and the gauge cuts, which ride in as
     ordinary split defs after them.
 
-    Reads: args. Writes: splits, splits_doc, matches_sha."""
+    Reads: args. Writes: splits, splits_doc, matches_sha, cuts_sha."""
     args = b.args
     _matches_sha = None             # bound only when the build cuts at its gauges
+    _cuts_sha = None                # ... and the cut set's digest (T159): a non-cut row change is the same graph
     splits_doc = None          # the splits.json document read now: its anchors are recorded (T133)
     if args.no_splits:
         splits = None
@@ -841,6 +843,8 @@ def gauge_cuts(b: _Build) -> None:
                     "   reports the reading at Hope for water at Lillooet)")
             _rows = _gauge_defs(_matches, load_stations(
                 SOURCE / "bc_hydrometric_stations.json"))
+            from pipeline.gauges.matches import cuts_digest_of
+            _cuts_sha = cuts_digest_of(_rows)
             splits = list(splits) + [SplitDef.from_dict(r) for r in _rows]
             # THE TRUST MIX, not just the count. A build cutting at 1,864 unreviewed
             # guesses is in a different state from one cutting at 206 human-confirmed
@@ -855,6 +859,7 @@ def gauge_cuts(b: _Build) -> None:
     b.splits = splits
     b.splits_doc = splits_doc
     b.matches_sha = _matches_sha
+    b.cuts_sha = _cuts_sha
 
 
 def sectionize(b: _Build) -> None:
@@ -1544,7 +1549,8 @@ def write_sidecars(b: _Build) -> None:
     # WHICH GAUGE MATCHES THIS GRAPH IS CUT AT (N8, audit F28), for the bundle to check
     from pipeline.gauges.matches import write_record
     write_record(out, cut=not args.no_gauge_splits,
-                 sha=None if args.no_gauge_splits else _matches_sha)
+                 sha=None if args.no_gauge_splits else _matches_sha,
+                 cuts_sha=None if args.no_gauge_splits else b.cuts_sha)
     print("\n" + summary)
     print(f"\nwrote artifacts + graph.gpkg to {out}/")
 

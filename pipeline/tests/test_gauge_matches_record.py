@@ -24,7 +24,7 @@ from pipeline.gauges import matches as M
 @pytest.fixture
 def world(tmp_path: Path):
     matches = tmp_path / "matches.json"
-    matches.write_text(json.dumps({"stations": [{"station": "08AA001", "status": "matched"}]}))
+    matches.write_text(json.dumps({"stations": [{"station": "08AA001", "status": "matched", "resolved_by": "t", "distance_m": 0}]}))
     atlas = tmp_path / "atlas"
     atlas.mkdir()
     return matches, atlas
@@ -39,7 +39,7 @@ def test_the_same_file_passes(world):
 def test_a_changed_file_is_refused_with_both_digests_and_the_fix(world):
     matches, atlas = world
     M.write_record(atlas, cut=True, sha=M.matches_digest(matches))
-    matches.write_text(json.dumps({"stations": [{"station": "08AA001", "status": "no_match"}]}))
+    matches.write_text(json.dumps({"stations": [{"station": "08AA001", "status": "no_match", "resolved_by": "t", "distance_m": 0}]}))
     with pytest.raises(SystemExit) as e:
         M.check_record(atlas, matches)
     msg = str(e.value)
@@ -87,3 +87,45 @@ def test_the_atlas_build_writes_the_record_and_the_bundle_checks_it_first():
     assert "write_record(" in a and "matches_digest(" in a
     g = inspect.getsource(bundle_build.write)
     assert g.index("check_record(") < g.index("read_match(")
+
+
+# ---------------------------------------------------------------- T159: the CUT SET, not the bytes
+
+def _rows(stream2: dict) -> dict:
+    return {"stations": [
+        {"station": "08AA001", "status": "matched", "resolved_by": "t", "distance_m": 0, "lon": -122.0, "lat": 49.0, "wsc": "100-1"},
+        {"station": "08AA002", "resolved_by": "t", "distance_m": 0, **stream2}]}
+
+
+def test_a_change_that_moves_no_cut_passes_and_one_that_does_is_refused(tmp_path, monkeypatch):
+    """T159 promoted 8 stations — 6 lake gauges, 2 not transmitting — and the byte digest refused the
+    bundle though no boundary moved. A non-cut row passes; a row that becomes a cut is still refused."""
+    from pipeline.gauges.consume import cuts
+    monkeypatch.setattr(cuts, "speaks_now", lambda s: s["station"] == "08AA001")
+    roster = tmp_path / "roster.json"
+    roster.write_text("[]")
+    from pipeline.gauges.consume import shed
+    monkeypatch.setattr(shed, "load_stations", lambda p: [
+        {"station": "08AA001", "name": "a"}, {"station": "08AA002", "name": "b"}])
+    matches, atlas = tmp_path / "m.json", tmp_path / "atlas"
+    atlas.mkdir()
+    matches.write_text(json.dumps(_rows({"status": "no_match"})))
+    M.write_record(atlas, cut=True, sha=M.matches_digest(matches),
+                   cuts_sha=M.cuts_digest(matches, roster))
+    # a lake gauge / a silent station joins: no cut
+    matches.write_text(json.dumps(_rows({"status": "matched", "lon": -122.1, "lat": 49.1, "wsc": "100-2"})))
+    M.check_record(atlas, matches, roster)
+    # it starts transmitting: now it IS a cut the atlas never made
+    monkeypatch.setattr(cuts, "speaks_now", lambda s: True)
+    with pytest.raises(SystemExit, match="did not cut"):
+        M.check_record(atlas, matches, roster)
+
+
+def test_record_cuts_needs_the_file_the_atlas_read(tmp_path, world):
+    matches, atlas = world
+    (atlas / "graph.pkl.meta.json").write_text(json.dumps({"build_ts": 4_000_000_000.0}))
+    M.write_record(atlas, cut=True, sha=M.matches_digest(matches))
+    other = tmp_path / "other.json"
+    other.write_text(json.dumps({"stations": []}))
+    with pytest.raises(SystemExit, match="not the"):
+        M.record_cuts(atlas, other)
