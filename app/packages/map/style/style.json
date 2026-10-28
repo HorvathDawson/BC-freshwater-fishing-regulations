@@ -243,6 +243,28 @@
       ]
     },
     {
+      "id": "tidal_water",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "tidal_water",
+      "minzoom": 6,
+      "maxzoom": 13,
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
+      "id": "tidal_water__edge",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "tidal_water",
+      "minzoom": 6,
+      "maxzoom": 13,
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
       "id": "basin__edge",
       "type": "line",
       "source": "basins",
@@ -1318,6 +1340,59 @@
             "kind"
           ],
           "permit"
+        ]
+      ]
+    },
+    {
+      "id": "tidal_water__label",
+      "type": "symbol",
+      "source": "atlas",
+      "source-layer": "tidal_water",
+      "minzoom": 7,
+      "maxzoom": 13,
+      "layout": {
+        "visibility": "visible",
+        "symbol-placement": "point",
+        "text-field": [
+          "get",
+          "name"
+        ],
+        "text-font": [
+          "Noto Sans Italic"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          7,
+          10,
+          10,
+          11.5,
+          13,
+          13
+        ],
+        "text-letter-spacing": 0.08,
+        "text-max-width": 9,
+        "text-allow-overlap": false,
+        "text-padding": 3
+      },
+      "filter": [
+        "all",
+        [
+          "has",
+          "name"
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "name"
+          ],
+          ""
         ]
       ]
     },

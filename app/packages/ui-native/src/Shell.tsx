@@ -39,6 +39,7 @@ import { TabBar } from "./TabBar";
 import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
 import { ObstacleSheet } from "./ObstacleSheet";
+import { TidalSheet } from "./TidalSheet";
 import { DaySheet } from "./regs/DaySheet";
 import { WaterViewsContext } from "./ViewSwipe";
 import { MenuContext } from "./menu/MenuContext";
@@ -80,6 +81,8 @@ export function Shell(p: ShellProps) {
   const [layersOpen, setLayersOpen] = useState(false);
   /** (T173) The tapped fish obstacle mark's tile properties, while its sheet is up. */
   const [obstacle, setObstacle] = useState<Readonly<Record<string, unknown>> | null>(null);
+  /** (T166) Whether the tidal water sheet is up (a tap on tidal water, no water under it). */
+  const [tidalOpen, setTidalOpen] = useState(false);
   /**
    * The camera survives leaving the map.
    *
@@ -179,7 +182,7 @@ export function Shell(p: ShellProps) {
                   onDay={setMapDay} onOpenDay={() => setDayOpen(true)}
                   dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
-                  onObstacle={setObstacle} />;
+                  onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} />;
 
   /** (T48) The top bar — the search field — is the maps': on the Map and Conditions tabs while browsing. */
   const topBar = route.mode === "browse" && (tab === "map" || tab === "conditions") && !rail.picking;
@@ -248,6 +251,8 @@ export function Shell(p: ShellProps) {
                 range={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)} />
       {/* (T173) a tapped fish obstacle mark: what it is (Map tab, while browsing) */}
       <ObstacleSheet props={route.mode === "browse" ? obstacle : null} palette={palette} onClose={() => setObstacle(null)} />
+      {/* (T166) a tap on tidal water: why the freshwater regulations stop here (Map tab, while browsing) */}
+      <TidalSheet open={route.mode === "browse" && tidalOpen} palette={palette} onClose={() => setTidalOpen(false)} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
                    mapDay={mapDay} />
     </View>

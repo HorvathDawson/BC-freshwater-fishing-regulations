@@ -223,6 +223,11 @@ export interface MapProps {
    */
   onPressObstacle?: (props: Readonly<Record<string, unknown>>) => void;
   /**
+   * (T166) A tap that hit no water section but landed on TIDAL WATER (the `tidal_water` layer): the app raises the tidal
+   * sheet (`@app/core` `tidalSheet`). Asked last — after the obstacle mark and the water. Absent, the tap does nothing.
+   */
+  onPressTidal?: () => void;
+  /**
    * Renderer failures. Not optional in spirit: an empty map and a map whose tiles failed
    * to load look identical, and this app's whole argument is that "we do not know" must
    * never be drawn as anything else.

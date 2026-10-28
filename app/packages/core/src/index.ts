@@ -53,4 +53,5 @@ export * from "./mapRail";
 export * from "./spotPins";
 export * from "./layers";
 export * from "./obstacles";
+export * from "./tidal";
 export * from "./dayPicker";

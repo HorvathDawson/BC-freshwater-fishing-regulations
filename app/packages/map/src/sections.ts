@@ -35,6 +35,15 @@ export const TAP_RADIUS = 12;
  */
 export const OBSTACLE_LAYERS: readonly string[] = ["obstacle"];
 
+/**
+ * (T166) TIDAL WATER, asked LAST (`MapRenderer.pressTidal`): a tap that hits no water section but lands on the `tidal_water`
+ * area (the DFO tidal-waters polygon) opens the tidal sheet. Never before a section: freshwater drawn over it answers first.
+ */
+export const TIDAL_LAYERS: readonly string[] = ["tidal_water"];
+
+/** True when any feature of a tidal query exists (the area carries no tap payload: it is the same sheet everywhere). */
+export const anyTidal = (features: readonly unknown[]): boolean => features.length > 0;
+
 /** The first obstacle's tile properties, or null (a feature with no properties is not one). */
 export function firstObstacle(features: readonly { properties?: unknown }[]): Readonly<Record<string, unknown>> | null {
   for (const f of features)

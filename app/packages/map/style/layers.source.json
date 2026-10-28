@@ -748,6 +748,85 @@
       "$comment": "NATIONAL PARKS AND THE CHILKOOT TRAIL — federal closures, drawn in v1's crimson and HATCHED. The hatch is the message: on a paper chart diagonal lines mean keep out, and a flat red tint would read as merely another kind of area. `kind` is what separates these from provincial parks in the same tile layer — a park with a kind of its own is a park with its own closing authority."
     },
     {
+      "id": "tidal_water",
+      "group": "water",
+      "source": "atlas",
+      "sourceLayer": "tidal_water",
+      "geometry": "polygon",
+      "featureIdProperty": "area_id",
+      "highlightable": false,
+      "minzoom": 6,
+      "maxzoom": 13,
+      "colorModes": {
+        "plain": {
+          "label": "Tidal water",
+          "scale": "static",
+          "color": {
+            "token": "color.tidal.fill"
+          }
+        }
+      },
+      "opacity": {
+        "token": "opacity.tidal"
+      },
+      "outline": {
+        "color": {
+          "token": "color.tidal.edge"
+        },
+        "width": {
+          "token": "width.tidal.edge",
+          "mode": "zoom",
+          "ramp": [
+            [
+              6,
+              0.4
+            ],
+            [
+              9,
+              0.7
+            ],
+            [
+              12,
+              1.0
+            ]
+          ]
+        }
+      },
+      "label": {
+        "field": "name",
+        "placement": "point",
+        "minzoom": 7,
+        "priority": 9,
+        "font": [
+          "Noto Sans Italic"
+        ],
+        "size": [
+          [
+            7,
+            10
+          ],
+          [
+            10,
+            11.5
+          ],
+          [
+            13,
+            13
+          ]
+        ],
+        "maxWidth": 9,
+        "letterSpacing": 0.08,
+        "color": {
+          "token": "color.label.water"
+        },
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 1.4
+      },
+      "$comment": "(T166, owner 2026-10-28) TIDAL WATER: the DFO tidal-waters polygon (all BC coastal sea and the estuaries) plus the footprints of the stream pieces removed below a tidal boundary (pipeline/deliver/tiles). Freshwater regulations stop here; DFO's tidal rules begin. Drawn UNDER every freshwater layer (first in the water group, before the basin field) as a muted sea-teal wash and a thin edge, STATIC in every colour mode. NOT decorative: it carries `area_id` (always \"tidal\") and `name` (\"Tidal water\"), property-based identity and no MVT id, so it is a tap target of its own — asked after the obstacle mark and the water sections (src/sections.ts `TIDAL_LAYERS`), opening the tidal sheet (`@app/core` `tidalSheet`). The tile has minzoom 6, maxzoom 13 (overzoomed past it). The label is the tile `name`; the full wording lives in the sheet."
+    },
+    {
       "id": "basin",
       "group": "water",
       "source": "basins",
@@ -2296,7 +2375,8 @@
         "watershed": "plain",
         "sign_zone": "plain",
         "obstacle_ring": "plain",
-        "obstacle": "plain"
+        "obstacle": "plain",
+        "tidal_water": "plain"
       },
       "hide": [
         "mu",
@@ -2333,7 +2413,8 @@
         "watershed": "plain",
         "sign_zone": "plain",
         "obstacle_ring": "plain",
-        "obstacle": "plain"
+        "obstacle": "plain",
+        "tidal_water": "plain"
       },
       "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet — that needs the donor panel — and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
     },
@@ -2363,7 +2444,8 @@
         "watershed": "plain",
         "sign_zone": "plain",
         "obstacle_ring": "plain",
-        "obstacle": "plain"
+        "obstacle": "plain",
+        "tidal_water": "plain"
       }
     },
     {
@@ -2393,7 +2475,8 @@
         "watershed": "plain",
         "sign_zone": "plain",
         "obstacle_ring": "plain",
-        "obstacle": "plain"
+        "obstacle": "plain",
+        "tidal_water": "plain"
       },
       "$comment": "THE DEFAULT, because regulations are not integrated. The Map tab draws water in its neutral colour; the per-layer modes the app sets (stocked, surveyed, standing) are applied over this. The `regulations` view and the `closure` colour mode it used were removed with the regulation integration — see app/packages/core/src/regulations.ts."
     }

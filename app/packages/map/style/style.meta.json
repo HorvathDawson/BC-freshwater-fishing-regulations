@@ -82,12 +82,14 @@
         "sign_zone": "plain",
         "obstacle_ring": "plain",
         "obstacle": "plain",
+        "tidal_water": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
+        "tidal_water__edge": "plain",
         "basin__edge": "standing",
         "lake__edge": "standing",
         "region__edge": "plain",
@@ -99,6 +101,7 @@
         "eco_reserve__label": "plain",
         "park__label": "plain",
         "park_closed__label": "plain",
+        "tidal_water__label": "plain",
         "lake__label": "plain",
         "region__label": "plain",
         "mu__label": "plain",
@@ -145,12 +148,14 @@
         "sign_zone": "plain",
         "obstacle_ring": "plain",
         "obstacle": "plain",
+        "tidal_water": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
+        "tidal_water__edge": "plain",
         "basin__edge": "plain",
         "lake__edge": "plain",
         "region__edge": "plain",
@@ -162,6 +167,7 @@
         "eco_reserve__label": "plain",
         "park__label": "plain",
         "park_closed__label": "plain",
+        "tidal_water__label": "plain",
         "lake__label": "plain",
         "region__label": "plain",
         "mu__label": "plain",
@@ -197,12 +203,14 @@
         "sign_zone": "plain",
         "obstacle_ring": "plain",
         "obstacle": "plain",
+        "tidal_water": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
+        "tidal_water__edge": "plain",
         "basin__edge": "plain",
         "lake__edge": "stocked",
         "region__edge": "plain",
@@ -214,6 +222,7 @@
         "eco_reserve__label": "plain",
         "park__label": "plain",
         "park_closed__label": "plain",
+        "tidal_water__label": "plain",
         "lake__label": "plain",
         "region__label": "plain",
         "mu__label": "plain",
@@ -249,12 +258,14 @@
         "sign_zone": "plain",
         "obstacle_ring": "plain",
         "obstacle": "plain",
+        "tidal_water": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
+        "tidal_water__edge": "plain",
         "basin__edge": "plain",
         "lake__edge": "plain",
         "region__edge": "plain",
@@ -266,6 +277,7 @@
         "eco_reserve__label": "plain",
         "park__label": "plain",
         "park_closed__label": "plain",
+        "tidal_water__label": "plain",
         "lake__label": "plain",
         "region__label": "plain",
         "mu__label": "plain",
@@ -331,6 +343,7 @@
     "eco_reserve": "protected",
     "park": "protected",
     "park_closed": "protected",
+    "tidal_water": "water",
     "basin": "water",
     "wetland": "water",
     "wetland_flowing": "water",
@@ -351,6 +364,7 @@
     "no_access_permit__edge": "access",
     "eco_reserve__edge": "protected",
     "park_closed__edge": "protected",
+    "tidal_water__edge": "water",
     "basin__edge": "water",
     "lake__edge": "water",
     "region__edge": "admin",
@@ -362,6 +376,7 @@
     "eco_reserve__label": "protected",
     "park__label": "protected",
     "park_closed__label": "protected",
+    "tidal_water__label": "water",
     "lake__label": "water",
     "region__label": "admin",
     "mu__label": "admin",
@@ -465,6 +480,15 @@
         "scale": "static",
         "color": {
           "token": "color.status.closed"
+        }
+      }
+    },
+    "tidal_water": {
+      "plain": {
+        "label": "Tidal water",
+        "scale": "static",
+        "color": {
+          "token": "color.tidal.fill"
         }
       }
     },
@@ -1386,6 +1410,15 @@
         }
       }
     },
+    "tidal_water__edge": {
+      "plain": {
+        "label": "tidal_water outline",
+        "scale": "static",
+        "color": {
+          "token": "color.tidal.edge"
+        }
+      }
+    },
     "basin__edge": {
       "plain": {
         "label": "basin outline",
@@ -1776,6 +1809,15 @@
         }
       }
     },
+    "tidal_water__label": {
+      "plain": {
+        "label": "tidal_water label",
+        "scale": "static",
+        "color": {
+          "token": "color.label.water"
+        }
+      }
+    },
     "lake__label": {
       "plain": {
         "label": "lake label",
@@ -1978,6 +2020,7 @@
     "eco_reserve": "area_id",
     "park": "area_id",
     "park_closed": "area_id",
+    "tidal_water": "area_id",
     "basin": "basin_id",
     "wetland": "section_id",
     "wetland_flowing": "section_id",
@@ -2158,6 +2201,24 @@
         ]
       ]
     },
+    "tidal_water__edge": {
+      "token": "width.tidal.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          6,
+          0.4
+        ],
+        [
+          9,
+          0.7
+        ],
+        [
+          12,
+          1
+        ]
+      ]
+    },
     "basin__edge": {
       "token": "width.basin.seam",
       "mode": "zoom",
@@ -2315,6 +2376,7 @@
     "eco_reserve": "opacity.closure",
     "park": "opacity.park",
     "park_closed": "opacity.closure",
+    "tidal_water": "opacity.tidal",
     "basin": "opacity.basin",
     "wetland": "opacity.wetland",
     "wetland_flowing": "opacity.wetland",
@@ -2412,6 +2474,10 @@
       "color": "color.outside",
       "width": 1.4
     },
+    "tidal_water__label": {
+      "color": "color.outside",
+      "width": 1.4
+    },
     "lake__label": {
       "color": "color.outside",
       "width": 1.4
@@ -2501,6 +2567,10 @@
       "color.lake.edge": "#4E88A6",
       "color.wetland.fill": "#75AE8C",
       "color.notfishing.fill": "#BDB3A0",
+      "color.tidal.fill": "#A9CFCB",
+      "color.tidal.edge": "#5E9A97",
+      "opacity.tidal": 0.4,
+      "width.tidal.edge": 1,
       "color.contour.line": "#000040",
       "color.park.fill": "#cfe3b4",
       "color.park.edge": "#7d9c5c",
@@ -2639,6 +2709,10 @@
       "color.lake.edge": "#6FA8C4",
       "color.wetland.fill": "#3F7759",
       "color.notfishing.fill": "#9A8C75",
+      "color.tidal.fill": "#1F5A52",
+      "color.tidal.edge": "#6FA8A4",
+      "opacity.tidal": 0.45,
+      "width.tidal.edge": 1,
       "color.contour.line": "#000040",
       "color.park.fill": "#22371f",
       "color.park.edge": "#4e7a44",
@@ -2777,6 +2851,10 @@
       "color.lake.edge": "#4E88A6",
       "color.wetland.fill": "#81C784",
       "color.notfishing.fill": "#BDB3A0",
+      "color.tidal.fill": "#A9CFCB",
+      "color.tidal.edge": "#5E9A97",
+      "opacity.tidal": 0.4,
+      "width.tidal.edge": 1,
       "color.contour.line": "#000040",
       "color.park.fill": "#cfe3b4",
       "color.park.edge": "#7d9c5c",
@@ -3031,6 +3109,26 @@
       "type": "color",
       "themeable": true,
       "$comment": "sewage basins, tailing ponds, dumps (T152, Q125): a muted GROUND colour, never a water one — it holds water, and none of it is fishing water"
+    },
+    "color.tidal.fill": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T166) Tidal water: the sea and the estuaries, where the freshwater regulations stop and DFO's tidal rules begin. A muted sea-teal wash, deliberately NOT any freshwater status colour and not the lake blue."
+    },
+    "color.tidal.edge": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T166) The thin outline of tidal water, a darker step of its fill."
+    },
+    "opacity.tidal": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T166) A quiet wash under the freshwater: the shape says 'different rules here', the freshwater above it is the answer."
+    },
+    "width.tidal.edge": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T166) Scales the tidal outline's zoom curve: a hairline, so a coast reads as an edge and not a line."
     },
     "color.contour.line": {
       "type": "color",

@@ -29,7 +29,7 @@ const NONE_PINS: readonly never[] = [];
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate,
                              photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
-                             onDay, onOpenDay, dayRange, onObstacle }: {
+                             onDay, onOpenDay, dayRange, onObstacle, onTidal }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -45,6 +45,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   dayRange: DayRange;
   /** (T173) A fish obstacle mark tapped on the Map tab: the Shell raises its sheet. */
   onObstacle?: (props: Readonly<Record<string, unknown>>) => void;
+  /** (T166) A tap on tidal water (no water under it) on the Map tab: the Shell raises the tidal sheet. */
+  onTidal?: () => void;
   /** (T186) The region under the map's centre, for the web prefetch (`useReleasePrefetch`); absent on a phone. */
   onRegion?: (regionId: string | null) => void;
 }) {
@@ -195,6 +197,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // (T173) a fish obstacle mark (drawn only while its Layers switch is on, Map tab only): its sheet,
                      // and no water opens under it
                      onPressObstacle={picking || wideSearch || tab !== "map" ? undefined : onObstacle}
+                     // (T166) tidal water, asked last (Map tab only): its sheet
+                     onPressTidal={picking || wideSearch || tab !== "map" ? undefined : onTidal}
                      // and anywhere off a spot, a tap clears the selected spot's pin (T145, `mapPointTap`)
                      onMapPoint={mapPointTap(rail, wideSearch ? closeSearch : null)}
                      onError={(e) => console.error("map:", e.message)} />

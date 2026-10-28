@@ -65,6 +65,8 @@ export interface MapRenderer {
   press(x: number, y: number): Promise<{ layer: string; id: number } | null>;
   /** (T173) The fish obstacle under a tap at `(x, y)` (the same box, `OBSTACLE_LAYERS`): its tile properties, or null. */
   pressObstacle(x: number, y: number): Promise<Readonly<Record<string, unknown>> | null>;
+  /** (T166) Whether a tap at `(x, y)` (the same box, `TIDAL_LAYERS`) lands on tidal water. Asked after the water. */
+  pressTidal(x: number, y: number): Promise<boolean>;
   /** The sections on screen (`VISIBLE_LAYERS`), as numbers, once each. */
   visible(): Promise<number[]>;
   /** The box of the given sections' features the tiles have delivered (a searched water's own shape), or null. */

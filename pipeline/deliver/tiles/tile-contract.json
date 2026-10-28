@@ -249,6 +249,20 @@
       "maxzoom": 13,
       "ladder": "none",
       "flows": null
+    },
+    "tidal_water": {
+      "geometry": "polygon",
+      "attrs": [
+        "area_id",
+        "name"
+      ],
+      "featureId": "area_id",
+      "decorative": false,
+      "mvtId": false,
+      "minzoom": 6,
+      "maxzoom": 13,
+      "ladder": "none",
+      "flows": null
     }
   },
   "magnitudeLadder": [
