@@ -1,6 +1,6 @@
 # T221 — Solo waters open on their regulations, the URL follows the water, one salmon table, the at-a-glance fish table
 
-Status: DONE — 73625e35. Item 5 (at-a-glance table) is a try: owner to keep or revert (one `glance` prop in WaterModeHost).
+Status: DONE — 73625e35, 4a5f7a40, 9784a7b0. At-a-glance table kept by the owner (no counts on folded rows).
 
 Source: owner feedback 2026-10-28 on the web app (Dala River).
 
@@ -24,12 +24,13 @@ Source: owner feedback 2026-10-28 on the web app (Dala River).
    reopens the same water / part / view; back from it is the map.
 4. **Per-species size rule.** The accent rail is gone: the rule is a plain semibold ink meta line under its count
    line. The shared-cap size box (Dala's "only 1 over 50 cm") is unchanged.
-5. **At-a-glance fish table (a try).** In the app (`WaterModeHost` → `WaterScreen glance`), the Keep tab's species list
-   heads "Fish" and carries Salmon and each quota group as folded rows — picture, name, the day's answer
-   (`groupGlance` "5 a day"; `salmonGlance` "check DFO" / "closed" …) and a bordered "Details ⌄" button; pressed, the
-   full card opens in place ("Hide ⌃"). The Salmon card no longer draws above the Keep tab there. A screen mounted
-   alone (tests, the regs tools) keeps every card in full.
-
+5. **At-a-glance fish table (owner: keep).** In the app (`WaterModeHost` → `WaterScreen glance`), the Keep tab's species
+   list heads "Species and limits" and carries Salmon and each quota group as folded rows: picture, name and a bordered
+   "Details ⌄" button; pressed, the full card opens in place ("Hide ⌃"). Owner follow-up 2026-10-28: a folded row
+   says NO count ("5 a day" misread as the group's answer) — `groupGlance` has no value; `salmonGlance` says a status
+   word only when every salmon row (undrawn DFO places too) has it ("closed", "check DFO"), else nothing (Dala, Kildala:
+   mixed → Details only). The Salmon card no longer draws above the Keep tab there. A screen mounted alone (tests, the
+   regs tools) keeps every card in full.
 6. **(owner add-on) A count line that reaches past its size box goes before it.** On the Dala River the stream's
    "1 brown trout, cutthroat trout, rainbow trout or steelhead in all" sat inside Region 6's "only 1 over 50 cm" box,
    which does not hold the rainbow. General rule (`@app/core` `liftCounts`, presentation only, the release's tree is
@@ -42,5 +43,5 @@ Source: owner feedback 2026-10-28 on the web app (Dala River).
 `search-kildala-{desktop,phone}.png` (solo: search opens Regulations, no Map tab); `search-vedder-desktop.png`
 (continuation: still the Map).
 
-## Open for the owner
-- Keep the at-a-glance table (item 5) or revert to the full cards? It is one prop (`glance`) in `WaterModeHost`.
+## Owner calls
+- At-a-glance table: KEPT (owner 2026-10-28), with no counts on folded rows and the "Species and limits" heading.
