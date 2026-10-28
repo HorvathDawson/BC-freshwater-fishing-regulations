@@ -1,0 +1,84 @@
+{
+ "generated": "2026-10-28",
+ "source": "data/curated/regulations/overrides.json not_found:true (19 rows)",
+ "counts": {
+  "t89_awaiting_water": 6,
+  "intentional_duplicates_or_crosslists": 8,
+  "kootenay_pointer_rows": 5
+ },
+ "proposals": [
+  {
+   "kind": "pointer_row",
+   "entry_id": null,
+   "name": "ARROW LAKES",
+   "region": "REGION 4 - Kootenay",
+   "printed_mu": [
+    "4-15",
+    "4-32"
+   ],
+   "rules": 0,
+   "raw_regs": "See Upper Arrow Lake",
+   "verdict": "identified",
+   "confidence": "high",
+   "lead": "Arrow Lakes = Upper Arrow Lake wbk:328961689 + Lower Arrow Lake wbk:328961720 (BCGNIS 43779 'Arrow Lakes', recorded, -117.8095 50.1832; both registry items carry variant 'Arrow Reservoir'). Row is a cross-reference with no rules of its own \u2014 binding it adds nothing."
+  },
+  {
+   "kind": "pointer_row",
+   "entry_id": null,
+   "name": "ARROW LAKES' TRIBUTARIES",
+   "region": "REGION 4 - Kootenay",
+   "printed_mu": [],
+   "rules": 0,
+   "raw_regs": "See Lower Arrow Lake's tributaries and Upper Arrow Lake's tributaries",
+   "verdict": "identified",
+   "confidence": "high",
+   "lead": "Tributaries of wbk:328961689 and wbk:328961720; both have their own tributary rows. Pointer only."
+  },
+  {
+   "kind": "pointer_row",
+   "entry_id": null,
+   "name": "SEVEN MILE RESERVOIR",
+   "region": "REGION 4 - Kootenay",
+   "printed_mu": [
+    "4-8"
+   ],
+   "rules": 0,
+   "raw_regs": "See Pend d'Oreille River",
+   "verdict": "identified",
+   "confidence": "high",
+   "lead": "The impoundment behind Seven Mile Dam on the Pend d'Oreille River; the book's PEND D'OREILLE RIVER row (MU 4-8) says it 'Includes the reservoirs behind Waneta Dam and Seven Mile Dam'. No FWA lake polygon or BCGNIS name exists for it (river polygon). Pointer only \u2014 rules already ride the river."
+  },
+  {
+   "kind": "pointer_row",
+   "entry_id": null,
+   "name": "SEVEN MILE RESERVOIR'S TRIBUTARIES",
+   "region": "REGION 4 - Kootenay",
+   "printed_mu": [
+    "4-8"
+   ],
+   "rules": 0,
+   "raw_regs": "See Pend d'Oreille River's tributaries",
+   "verdict": "identified",
+   "confidence": "high",
+   "lead": "= Pend d'Oreille River's tributaries row. Pointer only."
+  },
+  {
+   "kind": "pointer_row",
+   "entry_id": null,
+   "name": "WANETA RESERVOIR'S TRIBUTARIES",
+   "region": "REGION 4 - Kootenay",
+   "printed_mu": [
+    "4-8"
+   ],
+   "rules": 0,
+   "raw_regs": "See Pend d'Oreille River's tributaries",
+   "verdict": "identified",
+   "confidence": "high",
+   "lead": "= Pend d'Oreille River's tributaries row. Pointer only. (Registry 'Waneta Reservoir' wbk:329262640 is just a 19 ha manmade polygon at the border.)"
+  }
+ ],
+ "skipped_as_intentional": [
+  "R5 copies of MU 6-1 lakes printed in both regions: TOMS, BASALT, GATCHO, NAGLICO, PETTRY, CHIPMUNK (Duplicate:), R5 SQUIRREL (cross-listed, same unresolved water as r6:squirrel_lake@6-1)",
+  "ENDAKO RIVER R7A 7-12 (cross-listed from Region 6)"
+ ]
+}

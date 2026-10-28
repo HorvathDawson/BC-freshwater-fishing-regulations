@@ -17,7 +17,7 @@
    "printed_mu": "5-6",
    "rules": 4,
    "status": "unresolved \u2014 no water of this name in or near the printed MU",
-   "lead": null,
+   "lead": "RESEARCH 2026-10-28 (low, unresolved): no record names it. Likely another small lake in the Stewart Lake drainage like Hidden/Secret (same rules); unnamed 1994-surveyed candidates wbk:328962870 (01256ATNA), wbk:329021897 (01267ATNA), wbk:329021982 (01272ATNA).",
    "same_name_candidates_elsewhere": [
     {
      "item_id": "wbk:329500585",
@@ -188,7 +188,58 @@
      ],
      "km_from_printed_mu": 621.7
     }
-   ]
+   ],
+   "research": {
+    "verdict": "unresolved",
+    "confidence": "low",
+    "candidate": null,
+    "candidates_low": [
+     {
+      "wbk": "328962870",
+      "wbid_50k": "01256ATNA",
+      "area_ha": 10.9,
+      "lonlat": [
+       -125.4608,
+       52.1781
+      ],
+      "why": "unnamed, same Stewart Lake drainage (0660) as Hidden/Secret, 1994 Region 5 lake survey"
+     },
+     {
+      "wbk": "329021897",
+      "wbid_50k": "01267ATNA",
+      "area_ha": 8.6,
+      "lonlat": [
+       -125.4707,
+       52.1668
+      ],
+      "why": "unnamed, 0660 drainage, 1994 Region 5 lake survey"
+     },
+     {
+      "wbk": "329021982",
+      "wbid_50k": "01272ATNA",
+      "area_ha": 4.4,
+      "lonlat": [
+       -125.4822,
+       52.1622
+      ],
+      "why": "unnamed, 0660 drainage, 1994 Region 5 lake survey"
+     }
+    ],
+    "evidence": [
+     {
+      "source": "reasoning",
+      "url": null,
+      "quote": "Frog, Hidden and Secret carry identical rules (No Ice Fishing; quota 1; bait ban, single barbless) and Hidden+Secret are both AIM 1997 lakes in the Stewart Lake drainage, so Frog is very likely another small lake there. No record names it."
+     }
+    ],
+    "searched": [
+     "FISS lake surveys + fish observations: every SOURCE_REF containing FROG (BC-wide) and every ATNA/KLIN record \u2014 only Vancouver Island (SALM), Thompson (LNTH, LNIC) and Frog River (FROG) hits",
+     "EcoCat titles containing FROG LAKE and every ATNA-titled report",
+     "BC Geographical Names (Frog Lake, all statuses) \u2014 none in the Chilcotin",
+     "web: Frog Lake + Charlotte/Nimpo/Anahim/Stewart/Tweedsmuir; only the synopsis itself"
+    ],
+    "fix": "owner/regional biologist (Williams Lake) to name which 0660-drainage lake is Frog; or leave AWAITING_WATER"
+   }
   },
   {
    "kind": "awaiting_water",
@@ -197,7 +248,7 @@
    "printed_mu": "5-6",
    "rules": 4,
    "status": "unresolved \u2014 no water of this name in or near the printed MU",
-   "lead": "FWA lakes in MU 5-15 include a Hidden Lake (wbk:329354780, 27.6 ha); none in 5-6.",
+   "lead": "RESEARCH 2026-10-28 (high): unnamed FWA lake wbk:329021830 (01338ATNA, 24 ha) at -125.6081 52.1129, W of Stewart Lake \u2014 FISS 'LIMNOLOGY DATA FOR HIDDEN LAKE' + AIM 1997 'Un-named (Hidden) Lake'. | earlier: FWA lakes in MU 5-15 include a Hidden Lake (wbk:329354780, 27.6 ha); none in 5-6.",
    "same_name_candidates_elsewhere": [
     {
      "item_id": "wbk:329064493",
@@ -368,7 +419,52 @@
      ],
      "km_from_printed_mu": 651.8
     }
-   ]
+   ],
+   "research": {
+    "verdict": "identified",
+    "confidence": "high",
+    "candidate": {
+     "wbk": "329021830",
+     "wbid_50k": "01338ATNA",
+     "area_ha": 24.1,
+     "lonlat": [
+      -125.6081,
+      52.1129
+     ],
+     "gnis": null,
+     "registry_item": null,
+     "wsc_50k": "910-290700-99900-80000-0660",
+     "note": "unnamed FWA lake ~2.5 km W of Stewart Lake, same drainage as Stewart, Crazy Bear and Secret"
+    },
+    "evidence": [
+     {
+      "source": "FISS lake survey (BC Lakes Database survey_id 58, Region 5 Williams Lake, 1993)",
+      "url": "https://openmaps.gov.bc.ca/geo/pub/wfs (WHSE_FISH.FISS_LAKE_SURVEYS_SVW)",
+      "quote": "UNTITLED REPORT: LIMNOLOGY DATA FOR HIDDEN LAKE \u2014 WATERBODY_IDENTIFIER 01338ATNA, GAZETTED_NAME null"
+     },
+     {
+      "source": "FDIS rchsrvy_id 30392 (AIM Ecological Consultants, 1997-09-26)",
+      "url": "https://openmaps.gov.bc.ca/geo/pub/wfs (WHSE_FISH.FISS_LAKE_SURVEYS_SVW)",
+      "quote": "Project ID/Name: 495/Reconnaissance Survey of Un-named (Hidden) Lake - 1997 \u2014 01338ATNA"
+     },
+     {
+      "source": "EcoCat report 32595",
+      "url": "https://a100.gov.bc.ca/pub/acat/public/viewReport.do?reportId=32595",
+      "quote": "Limnology Sample - Unnamed (Hidden) (01338ATNA)"
+     },
+     {
+      "source": "EcoCat report 32579",
+      "url": "https://a100.gov.bc.ca/pub/acat/public/viewReport.do?reportId=32579",
+      "quote": "A Reconnaissance Survey of Unnamed Lake (01338ATNA) \u2014 AIM Ecological Consultants"
+     },
+     {
+      "source": "FWA lakes (bc_fisheries_data.gpkg)",
+      "url": null,
+      "quote": "WATERBODY_KEY 329021830: WATERBODY_KEY_50K 1338, group ATNA, 24.1 ha, inside MU 5-6"
+     }
+    ],
+    "fix": "name_variants.json: HIDDEN LAKE (REGION 5, MU 5-6) -> wbk 329021830"
+   }
   },
   {
    "kind": "awaiting_water",
@@ -377,7 +473,7 @@
    "printed_mu": "5-6",
    "rules": 4,
    "status": "unresolved \u2014 no water of this name in or near the printed MU",
-   "lead": null,
+   "lead": "RESEARCH 2026-10-28 (high): unnamed FWA lake wbk:329021850 (01370ATNA, 17.5 ha) at -125.6168 52.0999 \u2014 AIM 1997 'Reconnaissance Survey of Unnamed (Secret) Lake'; EcoCat 49174 bathymetry 'Secret Lake'.",
    "same_name_candidates_elsewhere": [
     {
      "item_id": "wbk:329054765",
@@ -405,7 +501,47 @@
      ],
      "km_from_printed_mu": 397.4
     }
-   ]
+   ],
+   "research": {
+    "verdict": "identified",
+    "confidence": "high",
+    "candidate": {
+     "wbk": "329021850",
+     "wbid_50k": "01370ATNA",
+     "area_ha": 17.5,
+     "lonlat": [
+      -125.6168,
+      52.0999
+     ],
+     "gnis": null,
+     "registry_item": null,
+     "wsc_50k": "910-290700-99900-80000-0660",
+     "note": "unnamed FWA lake 1.4 km S of Hidden Lake, same stream"
+    },
+    "evidence": [
+     {
+      "source": "FDIS rchsrvy_id 33227 (AIM Ecological Consultants, 1997-09-27)",
+      "url": "https://openmaps.gov.bc.ca/geo/pub/wfs (WHSE_FISH.FISS_LAKE_SURVEYS_SVW)",
+      "quote": "Project ID/Name: 523/Reconnaissance Survey of Unnamed (Secret) Lake - 1997 \u2014 01370ATNA"
+     },
+     {
+      "source": "EcoCat report 49174 (with bathymetric maps 'Secret Lake', 'Secret Lake 2', 'Secret Lake 3')",
+      "url": "https://a100.gov.bc.ca/pub/acat/public/viewReport.do?reportId=49174",
+      "quote": "A Reconnaissance Survey of Unnamed Lake Alis Secret"
+     },
+     {
+      "source": "FISS fish observations",
+      "url": "https://openmaps.gov.bc.ca/geo/pub/wfs (WHSE_FISH.FISS_FISH_OBSRVTN_PNT_SP)",
+      "quote": "01-JAN-94 LAKE SURVEY DATA \u2014 01370ATNA, Rainbow Trout"
+     },
+     {
+      "source": "FWA lakes",
+      "url": null,
+      "quote": "WATERBODY_KEY 329021850: WATERBODY_KEY_50K 1370, group ATNA, 17.5 ha, inside MU 5-6"
+     }
+    ],
+    "fix": "name_variants.json: SECRET LAKE (REGION 5, MU 5-6) -> wbk 329021850"
+   }
   },
   {
    "kind": "awaiting_water",
@@ -414,7 +550,7 @@
    "printed_mu": "5-6",
    "rules": 3,
    "status": "unresolved \u2014 no water of this name in or near the printed MU",
-   "lead": null,
+   "lead": "RESEARCH 2026-10-28 (high): Whitton Lake wbk:329021786 (gnis 39187, 01503ATNA, 238 ha) at -125.5596 52.0319 \u2014 AIM 1997 'Reconnaissance Survey of Whitton (Square) Lake'.",
    "same_name_candidates_elsewhere": [
     {
      "item_id": "wbk:329043437",
@@ -481,7 +617,42 @@
      ],
      "km_from_printed_mu": 396.4
     }
-   ]
+   ],
+   "research": {
+    "verdict": "identified",
+    "confidence": "high",
+    "candidate": {
+     "wbk": "329021786",
+     "wbid_50k": "01503ATNA",
+     "area_ha": 237.7,
+     "lonlat": [
+      -125.5596,
+      52.0319
+     ],
+     "gnis": "39187",
+     "registry_item": "wbk:329021786",
+     "wsc_50k": "910-290700-99900-80000",
+     "note": "gazetted Whitton Lake; 'Square' is its local name. The book has no Whitton Lake row, so nothing collides"
+    },
+    "evidence": [
+     {
+      "source": "FDIS rchsrvy_id 27660 (AIM Ecological Consultants, 1997-09-23)",
+      "url": "https://openmaps.gov.bc.ca/geo/pub/wfs (WHSE_FISH.FISS_LAKE_SURVEYS_SVW)",
+      "quote": "Project ID/Name: 522/Reconnaissance Survey of Whitton (Square) Lake - 1997 \u2014 01503ATNA, GAZETTED_NAME WHITTON LAKE"
+     },
+     {
+      "source": "EcoCat report 33962",
+      "url": "https://a100.gov.bc.ca/pub/acat/public/viewReport.do?reportId=33962",
+      "quote": "A Reconnaissance Survey of Whitton Lake, 1997  01503ATNA"
+     },
+     {
+      "source": "registry.json",
+      "url": null,
+      "quote": "wbk:329021786 Whitton Lake, mus ['5-6'], ref gnis:39187"
+     }
+    ],
+    "fix": "name_variants.json: SQUARE LAKE (REGION 5, MU 5-6) -> wbk 329021786 (Whitton Lake)"
+   }
   },
   {
    "kind": "awaiting_water",
@@ -490,7 +661,7 @@
    "printed_mu": "5-15",
    "rules": 3,
    "status": "unresolved \u2014 no water of this name in or near the printed MU",
-   "lead": "Registry has Ruth Redfern Creek (gnis:28333, MU 5-15, -120.58 52.13); the lake may be an unnamed FWA lake on it. The one gazetted Redfern Lake (wbk:329662835, 499 ha, WSA bathymetry map 00436UPRO 1982) is in MU 7-42, 466 km away.",
+   "lead": "RESEARCH 2026-10-28 (low, unresolved): no Redfern lake in FISS/EcoCat/BCGNIS for the Cariboo. Ruth Redfern Creek (gnis:28333) runs through Deception Lake and rises at unnamed wbk:329354762 (00034MAHD, 33 ha) \u2014 but FISS calls that one 'Goat Lake'. | earlier: Registry has Ruth Redfern Creek (gnis:28333, MU 5-15, -120.58 52.13); the lake may be an unnamed FWA lake on it. The one gazetted Redfern Lake (wbk:329662835, 499 ha, WSA bathymetry map 00436UPRO 1982) is in MU 7-42, 466 km away.",
    "same_name_candidates_elsewhere": [
     {
      "item_id": "wbk:329662835",
@@ -505,7 +676,49 @@
      ],
      "km_from_printed_mu": 466.1
     }
-   ]
+   ],
+   "research": {
+    "verdict": "unresolved",
+    "confidence": "low",
+    "candidate": null,
+    "candidates_low": [
+     {
+      "wbk": "329354762",
+      "wbid_50k": "00034MAHD",
+      "area_ha": 32.8,
+      "lonlat": [
+       -120.5402,
+       52.1519
+      ],
+      "why": "the only sizeable unnamed lake on Ruth Redfern Creek (headwater). AGAINST: FISS calls it 'UNNAMED LAKE (GOAT LAKE)' (BC Lakes Database survey_id 5484; EcoCat 51923)"
+     }
+    ],
+    "evidence": [
+     {
+      "source": "BC Geographical Names",
+      "url": "https://apps.gov.bc.ca/pub/bcgnws/names/22824",
+      "quote": "Ruth Redfern Creek, Creek, adopted, -120.583 52.07 \u2014 the only 'Redfern' feature in the Cariboo; the one Redfern Lake (names/23417) is at -123.894 57.352 (Redfern-Keily Park, MU 7-42)"
+     },
+     {
+      "source": "FWA",
+      "url": null,
+      "quote": "Ruth Redfern Creek (FWA 100-190442-998192-349877-237590-862788-538472) flows through Deception Lake (wbk 329354827, has its own book row, same rules) and rises at unnamed wbk 329354762"
+     },
+     {
+      "source": "FISS fish obs on Ruth Redfern Creek",
+      "url": "https://openmaps.gov.bc.ca/geo/pub/wfs (WHSE_FISH.FISS_FISH_OBSRVTN_PNT_SP)",
+      "quote": "01-MAY-70 ELKIN LAKE FILE; Deception Creek Fish Inventory - 1997 \u2014 no Redfern lake name"
+     }
+    ],
+    "searched": [
+     "FISS lake surveys + fish obs: REDFERN anywhere (only 00436UPRO, Region 7B)",
+     "EcoCat: REDFERN (only 1981 Redfern Lake 00436UPRO)",
+     "every lake survey in the Canim/Deception/McNeil block (MAHD/HORS 51.95-52.25N)",
+     "BC Geographical Names (Redfern*)",
+     "web search (Redfern Lake Canim/Mahood/Cariboo)"
+    ],
+    "fix": "leave AWAITING_WATER; Goat Lake is a weak guess only"
+   }
   },
   {
    "kind": "awaiting_water",
@@ -514,7 +727,7 @@
    "printed_mu": "6-1",
    "rules": 3,
    "status": "unresolved \u2014 no water of this name in or near the printed MU",
-   "lead": "A WSA bathymetry map titled SQUIRREL LAKE exists (01446MAHD, 1988, code 129-360400-23900-98400-5640) with no FWA lake carrying that 50K key; the registry's Squirrel Lake (wbk:329354753, MU 5-1) is Paddy Lake by name_variants.",
+   "lead": "RESEARCH 2026-10-28 (unresolved): the only BC Squirrel Lake (BCGNIS 39822; WSA 01446MAHD) is MU 5-1 Paddy Lake, which has its own row. Nothing in FISS/EcoCat names a Squirrel Lake near Chipmunk/Toms (EUCL). | earlier: A WSA bathymetry map titled SQUIRREL LAKE exists (01446MAHD, 1988, code 129-360400-23900-98400-5640) with no FWA lake carrying that 50K key; the registry's Squirrel Lake (wbk:329354753, MU 5-1) is Paddy Lake by name_variants.",
    "same_name_candidates_elsewhere": [
     {
      "item_id": "wbk:329354753",
@@ -529,7 +742,33 @@
      ],
      "km_from_printed_mu": 287.7
     }
-   ]
+   ],
+   "research": {
+    "verdict": "unresolved",
+    "confidence": "none",
+    "candidate": null,
+    "evidence": [
+     {
+      "source": "BC Geographical Names",
+      "url": "https://apps.gov.bc.ca/pub/bcgnws/names/39822",
+      "quote": "Squirrel Lake, adopted, -120.765 51.896 \u2014 the only Squirrel Lake in BC; it is in MU 5-1 and is the registry's Paddy/Squirrel Lake (wbk 329354753), which has its own PADDY LAKE 5-1 row"
+     },
+     {
+      "source": "FISS lake survey 2442 / EcoCat 55510 / WSA map 01446MAHD",
+      "url": "https://a100.gov.bc.ca/pub/acat/public/viewReport.do?reportId=55510",
+      "quote": "A RECONNAISSANCE SURVEY OF SQUIRREL LAKE (1987) \u2014 01446MAHD, -120.758 51.891: the same 5-1 lake, not 6-1"
+     }
+    ],
+    "searched": [
+     "FISS lake surveys + fish obs: SQUIRREL BC-wide (only 01446MAHD); every EUCL survey (incl. the 1993 winter limnology series that named Chipmunk/Toms) and all lake records 52.88-53.2N 124.9-125.9W",
+     "EcoCat: SQUIRREL, EUCL, Kluskus, Euchiniko, Naglico, Pettry",
+     "BC Geographical Names (Squirrel*)",
+     "Eliguk Lake Lodge / Furthermost Outpost sites",
+     "web search (Squirrel Lake + Eliguk/Tweedsmuir/Entiako/Blackwater)"
+    ],
+    "fix": "leave AWAITING_WATER; likely a local name for one of the 1993 'Lake #19-#25' unnamed EUCL lakes near Chipmunk/Toms, but nothing ties it"
+   }
   }
- ]
+ ],
+ "research_note": "2026-10-28 research lane: see handoff/PLAN/curation-review/unmatched-lakes-research.md; leads are proposals only \u2014 the owner accepts via marks"
 }
