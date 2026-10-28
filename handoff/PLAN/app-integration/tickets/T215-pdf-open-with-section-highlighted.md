@@ -26,4 +26,6 @@ highlighted using a PDF HIGHLIGHT ANNOTATION on that page (owner 2026-10-27), wo
   PDF page 17 with the river's row highlighted (T215-shots/web-cowichan-p15.png). Re-cut: taps/tokens/inventory, regs-fixture
   r-4c045b454820, frozen VM fixtures (+boxes).
 - LEFT (owner): R2 upload (OWNER-TODO "R2 upload": the release now includes the 24 MB PDF; bucket CORS GET). Phone path unverified
-  on a device.  ("Source ›" sheet) pages carry no box yet; zone/province tables have no row box (plain link).
+  on a device. The "Source ›" sheet pages carry no box yet; zone/province tables have no row box (plain link).
+
+Commits: 3e5ef46f 15d19068 7c513588 f0bce5ad
