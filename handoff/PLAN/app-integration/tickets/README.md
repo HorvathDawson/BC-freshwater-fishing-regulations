@@ -118,7 +118,7 @@ use that as the sole source of future work."
 | T71 | one Map entry: drop the regs header's Map button | DONE | 4817a2e7, 40d6a47c | — |
 | T72 | release LATEST pointer + prune old releases | DONE | 0eb70144 | Q7 answered: 22 old releases pruned |
 | T73 | smaller reach hand-off (N14, disk) | PARTIAL | e375cc61 | owner: convert full + full_prev through heavy.sh, binding diff, record sizes (ticket) |
-| T74 | native colouring engine + native map gaps | IN PROGRESS | — | Android: per-tile event via the binding patch, one engine, hatches/pill via Images, expo-location; emulator 13 pans / 49 frames 0 grey; iOS → T217; lake modes wait on lake facts in a release |
+| T74 | native colouring engine + native map gaps | DONE | 740f37b8 | Android: per-tile event via the binding patch, one engine, hatches/pill via Images, expo-location; emulator 13 pans / 49 frames 0 grey; iOS → T217; lake modes wait on lake facts in a release |
 | T75 | basemap in the release manifest | PARTIAL | — | all |
 | T76 | own gauge across a continuation (Vedder) | DONE | ce29990c, 2470ef08, f648ab5c, 4fba2181, e5dfe217 | live in r-36fbc5326506 |
 | T77 | D1 phone testing | OPEN | — | all (owner) |

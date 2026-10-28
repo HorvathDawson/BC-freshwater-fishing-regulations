@@ -1,6 +1,6 @@
 # T74 — Native colouring engine, plus the native map gaps (audit N4, APP-PREP N2-F1)
 
-Status: IN PROGRESS (T74 lane; DONE with its commit).
+Status: DONE (2026-10-27) — 740f37b8.
 
 Source: `map/colouring.ts` has `coloursEachTile = platform === "web"`; `ui/lakeColour.ts`: native "has no per-tile event
 yet … keeps its lakes plain"; native still uses the pushed "status" mode (wave item 2.19). T50 refers to "the native
