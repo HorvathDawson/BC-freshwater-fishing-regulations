@@ -1,8 +1,18 @@
 # T223 — user accounts shared between the web app and the phone app
 
-Status: OPEN — not started; owner answers the questions below first (no build yet).
+Status: OPEN — FAR FUTURE (owner 2026-10-28); default plan below; owner answers the questions first (no build yet).
 
 Source: owner 2026-10-28: one account a person can use in both the web app and the native app.
+
+## Default plan (owner 2026-10-28)
+- **Sign-in: a free hosted auth provider does all account work** (passwords/email links, Apple/Google, resets, abuse).
+  Default Firebase Auth (free tier; web + native SDKs); Supabase Auth or Clerk are alternatives. Cloudflare has no
+  public-user auth (Cloudflare Access is for staff, 50-seat free tier) — not used.
+- **Our side: one Cloudflare Worker + R2, no database.** The Worker verifies the provider's ID token and reads/writes
+  only `users/<uid>/` in R2: `data.json` (spots, settings) and `photos/` beside it.
+- **Delete / export:** delete removes `users/<uid>/` and the provider account (Apple's in-app deletion rule);
+  export downloads the same folder.
+- Accounts optional; local-first stays; this replaces the Q-T223a default (Worker + D1).
 
 ## Today (what an account would replace)
 - No accounts and no server state. The app is static files plus R2 (release, gauge feed, DFO feed).

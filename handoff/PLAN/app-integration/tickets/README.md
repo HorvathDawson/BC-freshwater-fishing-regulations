@@ -267,7 +267,7 @@ use that as the sole source of future work."
 | T220 | braid channels close: no channel line ends where the water goes on (prune closure + one zoom per side-channel run) | DONE | 4c90fe68, 64c28a2b | owner 10-28 FIX complete; 1,041 -> 97 dangling ends, no existing binding moved; live r-46be3c135e68 |
 | T221 | solo waters open on regs (no Map), URL follows the water, one salmon table, plain size rule, count line before its size box, at-a-glance species table (kept, no counts) | DONE | 73625e35, 9784a7b0 | owner 2026-10-28 web feedback (Dala River) |
 | T222 | Stave spawning channels (Ruskin/Northrop): add the FWA side channels so Stave r1/r2 can bind | OPEN | — | added_streams + atlas rebuild; no owner call |
-| T223 | user accounts shared between the web app and the phone app (sign-in, what syncs, offline) | OPEN | — | owner 2026-10-28; questions Q-T223a–f (auth provider, what syncs, privacy, offline, optional, timing); no build |
+| T223 | user accounts shared between the web app and the phone app (sign-in, what syncs, offline) | OPEN | — | far future; default plan: Firebase Auth + Worker + R2 users/<uid>/, no DB |
 
 ## Order for open tickets
 
@@ -308,10 +308,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q31 | T93 | Gauge representativeness policy | the current drainage gate stays default | owner |
 | Q42 | T98 | Lift the tidal-spec hold? | ANSWERED 2026-10-28: tidal pieces are removed from the freshwater map with the T212/T166 cuts (decisions.md) | owner |
 | Q47 | T78 | Tidal sentence: closed "Notes and sources" fold, or open under the Level headline? | in the fold | owner |
-| Q62 | T103 | Slot size wording: plain says "none over 60 cm, under 90 cm" where the book says "none between 60 cm and 90 cm" — reword? | keep the existing wording rule (RULINGS P37) | owner |
-| Q63 | T103 | "Keep only lake trout, none over …" can read as "only lake trout may be kept" — reword the house style? | unchanged | owner |
 | Q79 | T116 | Regs page says "river" for a stream ("this river's rule", "Whole river") while search rows say "Stream" — switch the page to "stream"? | keep "river" on the page | owner |
-| Q87 | T139 | Beattie Lake 7-57: does the Liard watershed's "bull trout 1 (30–50 cm)" sit BESIDE the lake's own "trout 1" (2 a day) or INSIDE it (1 in all)? | beside (the reader's ruling; headline "2 a day per angler") | owner |
 | Q91 | T105 | The 54,386 matched-only sections now say "No gauge on this water is close enough in size" — wording ok? | as built | owner |
 | Q103 | T117 | The gauge shed climbs the way the walk does: the Theodosia (08GC005) and Quinsam (08HD034) diversion gauges no longer speak for water above their canal (the river's own gauge takes over on 174 + 107 sections); 24 sections lose every gauge; a gauge ON a canal reads only its own piece? | as built | owner |
 | Q113 | T122 | Gauge cuts follow the roster's realtime snapshot, sheds follow ECCC Active: 38 active-but-silent stations have a shed and no cut. Make cuts follow Active (atlas rebuild, moves section ids)? | unchanged | owner |
@@ -321,7 +318,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q130 | T144 | Under a combined Change, also draw each model's own line (quieter)? | yes | owner |
 | Q132 | T144 | The +1/+3/+5/+10 chips keep the old model order (CLEVER then ELF) — or follow the Change source too? | keep | owner |
 | Q139 | T147 | The no-access block also leads Conditions for a tapped no-access section at full size? | keep | owner |
-| Q140 | T147 | A tapped section outside no-access land on a part that runs through it: show the part's "Some of this part is inside …" banner? | no (the tapped section speaks) | owner |
 | Q144 | T162 | Run timing layer: default species (steelhead?), show passage reaches (dashed) as well as spawning, and its own map layer vs inside Conditions? | steelhead; both, passage dashed; its own layer | owner |
 | Q146 | T150 | Opening the parts list shortens the map but does not re-centre it (the Fraser's long lower part gets cut off on a phone) — re-centre on open? | no (keeps the reader's pan) | owner |
 | Q147 | T153 | A pond a steelhead row now takes also gets the zone's lake wording of the steelhead rule (zp:steelhead r1b/r2b/r4b +68 polygons each, z5 r6b +44)? | accept | owner |
@@ -336,6 +332,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
 
 ### Answered (recently, for the record)
+- Q87, Q140, Q62, Q63 — owner 2026-10-28, built defaults reversed (decisions.md "owner answers Q87, Q140, Q62, Q63"): Beattie Lake's bull trout sits INSIDE the lake's 1 (RULINGS Q27; only Beattie changes); a tapped section outside no-access land leads with its part's banner; slots say "between"; no-count size rules say "X must be …; release any …". Release r-950edb593228 staged, not promoted.
 - Stale-item sweep 2026-10-28 (already settled): Q114 — pilot DROPPED by the owner 2026-10-25 (implement_progress.md CURRENT STATE: "no time"; the real review replaces it). Q145 — answered by T211 part 2, built 2026-10-27 with the owner's corrections: the feed host runs `regs.dfo_salmon.live` every 6 h Jun 1–Oct 31, daily otherwise (cron + R2 sync are the owner's, OWNER-TODO). Q32 — obsolete: T95 DROPPED (superseded by T164), salmon scope set by the owner since (T164, T211 option A 2026-10-27). Q125 — answered 2026-10-24 (muted fill, built; the row had stayed in the open table). Q142 — owner 2026-10-28: lake splits deferred ("lake split later" severity); the default "not now; caveat line" stands. Q119 — not an owner question: the unification audit was Claude's own run; Claude re-derives the two pointers by search or drops them (T125).
 - Q160 — owner 2026-10-24: combine CLEVER + COFFEE on every forecast day, weighted by measured skill → T177. Q161 — owner: a spot records conditions for its TRIP date (not save time) → built in the T177 lane.
 - Q84 (side channel and its river) — owner 2026-10-24 delegated ("do what you think is best just make sure it is sane"): T169 one panel per side-channel water; Q169d (one panel for a long side-channel water) decided yes.
