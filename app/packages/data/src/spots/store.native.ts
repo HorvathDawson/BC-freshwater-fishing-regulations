@@ -92,6 +92,11 @@ export function openRecentSearchStore(): { read(): string | null; write(text: st
   return fileStore("recent-searches.json");
 }
 
+/** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), a small file of its own. */
+export function openDataModeStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("low-data.txt");
+}
+
 function fileStore(name: string): { read(): string | null; write(text: string): void } {
   const dir = new Directory(Paths.document, "spots");
   const file = () => new File(dir, name);

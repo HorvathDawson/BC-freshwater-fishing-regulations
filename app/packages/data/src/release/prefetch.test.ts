@@ -29,6 +29,13 @@ describe("prefetchPlan: what to fetch ahead", () => {
   ];
   for (const [what, s, want] of cases)
     it(what, () => expect(prefetchPlan({ ...base, ...s })).toEqual(want));
+  // (T254) low-bandwidth mode: nothing opened ahead; core's bytes queued behind anything the reader asks for
+  it("low-bandwidth mode, idle: the region's file and core's bytes AHEAD, nothing opened", () =>
+    expect(prefetchPlan({ ...base, lowData: true })).toEqual({ regs: "2", core: false, coreAhead: true }));
+  it("low-bandwidth mode, not idle / Save-Data: the region's file only", () => {
+    expect(prefetchPlan({ ...base, lowData: true, idle: false })).toEqual({ regs: "2", core: false, coreAhead: false });
+    expect(prefetchPlan({ ...base, lowData: true, saveData: true })).toEqual({ regs: "2", core: false, coreAhead: false });
+  });
 });
 
 describe("regionOfTile: a tile's region_id as the release's region word", () => {
@@ -90,6 +97,15 @@ describe("runPrefetch through the loader: one download per file, the later open 
     await L.db("core"); await settle();
     expect([fetched.sort(), L.opened(), marks]).toEqual([["core", "regs-2"], ["core"],
                                                          [`${PREFETCH_MARK}:regs-2`, `${PREFETCH_MARK}:core`]]);
+  });
+
+  it("(T254) low-bandwidth mode: core's bytes are fetched, not opened; the tap's open then fetches nothing", async () => {
+    const { L, fetched, opened, marks, mark } = await setup();
+    runPrefetch(L, prefetchPlan({ region: "2", idle: true, saveData: false, effectiveType: "4g", lowData: true }), mark);
+    await settle(); await settle();
+    expect([fetched.sort(), opened, marks]).toEqual([["core", "regs-2"], [], [`${PREFETCH_MARK}:regs-2`, `${PREFETCH_MARK}:core-ahead`]]);
+    await L.db("core");
+    expect([fetched.length, opened]).toEqual([2, ["core"]]);
   });
 
   it("the view moves to another region: that region's file too, each once", async () => {

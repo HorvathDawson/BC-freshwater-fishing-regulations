@@ -42,6 +42,8 @@ export * from "./imagery";
 export * from "./sync";
 export * from "./inseason";
 export * from "./prefetch";
+// (T254) low-bandwidth mode: the Data setting, the platform's word and the meter as one mode; what is downloading
+export * from "./net";
 
 export * from "./layout";
 export * from "./gestures";

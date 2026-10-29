@@ -10,8 +10,10 @@
 import { Linking, Platform } from "react-native";
 import { bookUrl, type SourceBox } from "@app/core";
 import { openHighlighted } from "./synopsisPdf";
-import { getSynopsisSource } from "./synopsisSource";
-import { runSynopsisLoad } from "./synopsisLoad";
+import { etaSeconds } from "@app/data";
+import { getSynopsisNet, getSynopsisSource } from "./synopsisSource";
+import { offerSynopsis, runSynopsisLoad } from "./synopsisLoad";
+import { synopsisHeld } from "./synopsisPdf";
 
 /** Open the synopsis for a book run's PDF page. A refused open (no PDF handler) is logged, never thrown or alerted. */
 export function openBook(pdf: number, boxes?: readonly SourceBox[], os: string = Platform.OS,
@@ -25,9 +27,19 @@ export function openBook(pdf: number, boxes?: readonly SourceBox[], os: string =
   // (owner 2026-10-28) one download at a time, with progress + cancel (`synopsisLoad`); a failure shows Retry and the plain
   // link on the loading card rather than silently opening gov.bc.ca. A press while one is loading is ignored.
   const bx = boxes ?? [];
-  const run = runSynopsisLoad(pdf, bx, (h) => open(src, pdf, bx, h));
-  if (!run) return Promise.resolve();
-  return run.catch((e: unknown) => {
-    console.warn(`openBook: could not open the highlighted synopsis (PDF page ${pdf})`, e);
-  });
+  const go = () => {
+    const run = runSynopsisLoad(pdf, bx, (h) => open(src, pdf, bx, h));
+    if (!run) return Promise.resolve();
+    return run.catch((e: unknown) => {
+      console.warn(`openBook: could not open the highlighted synopsis (PDF page ${pdf})`, e);
+    });
+  };
+  // (T254, owner 2026-10-29: "no PDF auto-fetch (offer it with size)") on a slow line a rule book not yet on the device
+  // is OFFERED first: its size and about how long it would take here; Download goes on as above
+  const net = getSynopsisNet();
+  if (net?.low() && !synopsisHeld(src)) {
+    offerSynopsis(pdf, src.bytes, etaSeconds(src.bytes, net.bps()), () => { void go(); });
+    return Promise.resolve();
+  }
+  return go();
 }

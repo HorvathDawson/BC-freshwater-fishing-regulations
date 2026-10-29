@@ -20,7 +20,7 @@ export interface NetInfoStateLike {
   isInternetReachable?: boolean | null;
   /** (T231) "wifi", "cellular", … */
   type?: string;
-  details?: { isConnectionExpensive?: boolean } | null;
+  details?: { isConnectionExpensive?: boolean; cellularGeneration?: string | null } | null;
 }
 
 /** The part of NetInfo this calls: its listener, which reports the current state first and then every change. */
@@ -35,6 +35,12 @@ export const onlineFrom = (s: NetInfoStateLike): boolean => s.isConnected !== fa
 export const meteredFrom = (s: NetInfoStateLike): boolean =>
   s.type === "cellular" || s.details?.isConnectionExpensive === true;
 
+/** (T254) The link's speed as NetInfo says it: the cellular generation ("2g" | "3g" | "4g" | "5g") on cellular, else unknown. */
+export const hintsFrom = (s: NetInfoStateLike): { online: boolean; cellularGeneration: string | null } => ({
+  online: onlineFrom(s),
+  cellularGeneration: s.type === "cellular" && typeof s.details?.cellularGeneration === "string" ? s.details.cellularGeneration : null,
+});
+
 /** No source: the phone never says, and the probe is its only signal. */
 const NO_SOURCE: Connectivity = { watches: false, probeWhileUp: true, online: () => true, subscribe: () => () => {} };
 
@@ -43,17 +49,31 @@ export function netInfoConnectivity(load: () => NetInfoLike): Connectivity {
   try { ni = load(); } catch { return NO_SOURCE; }
   let last = true;
   let metered = false, tracking = false;
-  // (T231) the metered word is followed from the first time it is asked (the update service asks it at any time)
+  let generation: string | null = null;
+  // (T231) the metered word is followed from the first time it is asked (the update service asks it at any time);
+  // (T254) the cellular generation with it
   const track = () => {
     if (tracking) return;
     tracking = true;
-    try { ni.addEventListener((s) => { metered = meteredFrom(s); }); } catch { /* no reports: never metered */ }
+    try { ni.addEventListener((s) => { metered = meteredFrom(s); generation = hintsFrom(s).cellularGeneration; }); }
+    catch { /* no reports: never metered */ }
   };
   return {
     watches: true,
     probeWhileUp: true,
     online: () => last,
     metered: () => { track(); return metered; },
+    hints: () => { track(); return { cellularGeneration: generation }; },
+    watchHints(on) {
+      track();
+      let was = generation;
+      return ni.addEventListener((s) => {
+        const now = hintsFrom(s).cellularGeneration;
+        if (now === was) return;
+        was = now;
+        on();
+      });
+    },
     watchMetered(on) {
       track();
       let was = metered;

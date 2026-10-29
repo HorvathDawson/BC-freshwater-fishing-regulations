@@ -28,8 +28,11 @@ export type FileName = "paint" | "flow-area" | "lakes" | "access" | "core" | "ne
 export type DbName = Exclude<FileName, "paint" | "flow-area" | "lakes" | "access" | BinName>;
 
 export interface ReleaseSource {
-  /** The RAW (decoded, verified) bytes of a release file. */
-  bytes(name: FileName): Promise<Uint8Array>;
+  /**
+   * The RAW (decoded, verified) bytes of a release file. (T254) `ahead`: fetched ahead of need (a prefetch), so on a poor
+   * line it waits behind what the reader asked for (`@app/data` net `PRIORITY`); a source with no order ignores it.
+   */
+  bytes(name: FileName, o?: { ahead?: boolean }): Promise<Uint8Array>;
 }
 /**
  * Open one SQLite file. `bytes` fetches the verified file (the web opens it in sql.js); an opener that reads the file
@@ -207,7 +210,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
       if (!m.files[name]) return Promise.reject(new ReleaseError(`release ${m.data_release} has no file ${name}`));
       let p = ahead.get(name);
       if (!p) {
-        p = source.bytes(name).then(() => {});
+        p = source.bytes(name, { ahead: true }).then(() => {});
         p.catch(() => ahead.delete(name));        // a failure is not kept: the next ask (or the open) tries again
         ahead.set(name, p);
       }

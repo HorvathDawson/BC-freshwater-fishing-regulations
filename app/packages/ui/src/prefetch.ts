@@ -40,12 +40,16 @@ const IDLE_FALLBACK_MS = 2000;
 export const BACKGROUND_DELAY_MS = 4000;
 
 export function useReleasePrefetch(loader: ReleaseLoader | null, onIdle?: () => void,
-                                   background?: BackgroundPrefetch | null): ((regionId: unknown) => void) | undefined {
+                                   background?: BackgroundPrefetch | null,
+                                   /** (T254) low-bandwidth mode now: core's bytes are fetched ahead, not opened */
+                                   lowData?: () => boolean): ((regionId: unknown) => void) | undefined {
   const s = useRef<{ painted: boolean; idle: boolean; region: PrefetchSignals["region"] }>(
     { painted: false, idle: false, region: null });
   const cancel = useRef<(() => void) | null>(null);
   const idleCb = useRef(onIdle);
   idleCb.current = onIdle;
+  const low = useRef(lowData);
+  low.current = lowData;
   const bg = useRef(background ?? null);
   bg.current = background ?? null;
   const bgTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -54,7 +58,8 @@ export function useReleasePrefetch(loader: ReleaseLoader | null, onIdle?: () => 
   const run = useCallback(() => {
     if (!loader) return;
     const g = globalThis as typeof globalThis & IdleHost & { navigator?: { connection?: Connection } };
-    const plan = prefetchPlan({ region: s.current.region, idle: s.current.idle, ...connectionSignals(g.navigator) });
+    const plan = prefetchPlan({ region: s.current.region, idle: s.current.idle, ...connectionSignals(g.navigator),
+                               lowData: low.current?.() ?? false });
     runPrefetch(loader, plan, (name) => { try { g.performance?.mark?.(name); } catch { /* no marks: nothing lost */ } });
   }, [loader]);
 

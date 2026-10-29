@@ -268,3 +268,25 @@ describe("when a quiet gauge last reported (owner 2026-10-21)", () => {
     expect(await f.lastReport(S)).toBeNull();
   });
 });
+
+// (T254) a dead line: the feed's request is cut (never hangs), and the last good copy this session read is what it says
+describe("httpFeed on a bad line (T254)", () => {
+  it("a dead request is cut and tried once more; then the last good copy stands, its own age saying how old", async () => {
+    const index = { fetchedAt: "2026-10-29T06:00:00Z", stations: { "08MH001": { percentile: 0.5, observedAt: "2026-10-29T05:00:00Z" } } };
+    let up = true, asked = 0;
+    const fetchImpl = (async (_url: string, init?: RequestInit) => {
+      asked++;
+      if (up) return { ok: true, status: 200, json: async () => index } as unknown as Response;
+      // the line is dead: no answer until the request is cut
+      return new Promise((_, fail) => init?.signal?.addEventListener("abort", () => fail(new Error("aborted"))));
+    }) as typeof fetch;
+    const f = httpFeed("http://x/feeds/gauge", fetchImpl, { limits: { firstByteMs: 200, stallMs: 200, totalMs: 200 } });
+    expect((await f.index())?.fetchedAt).toBe(index.fetchedAt);
+    up = false; f.refresh?.();
+    const t0 = Date.now();
+    const again = await f.index();
+    expect(again?.fetchedAt).toBe(index.fetchedAt);          // the last good copy, not "could not check"
+    expect(asked).toBe(3);                                    // the first read, then two tries
+    expect(Date.now() - t0).toBeLessThan(5_000);
+  });
+});

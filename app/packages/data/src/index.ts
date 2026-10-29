@@ -41,3 +41,5 @@ export { parseManifest, pair, type Held, type Manifest } from "./manifest";
 export { sha256Hex } from "./sha256";
 // (T231) THE UPDATE SERVICE: every feed and the release checked against the origin, fetched verified, applied safely
 export * from "./update";
+// (T254) BAD CONNECTIONS: the low-bandwidth policy, the meter, the order (gate), the resilient download, what is downloading
+export * from "./net";

@@ -83,20 +83,23 @@ export interface NetSignals {
   hidden: boolean;
   /** battery saver, or a low battery not charging */
   lowBattery: boolean;
+  /** (T254) the app is in low-bandwidth mode (More → Data, or a poor link measured): nothing ahead of need */
+  lowData: boolean;
 }
 
 export const NET_DEFAULT: NetSignals = {
   online: true, saveData: false, effectiveType: null, measuredBps: null, metered: false, allowMetered: false,
-  hidden: false, lowBattery: false,
+  hidden: false, lowBattery: false, lowData: false,
 };
 
-export type PrefetchHold = "offline" | "save-data" | "slow" | "metered" | "background" | "battery";
+export type PrefetchHold = "offline" | "save-data" | "slow" | "metered" | "background" | "battery" | "low-data";
 
 /** THE GATE, pure: what holds the background prefetch now, or null (go). */
 export function prefetchHold(s: NetSignals): PrefetchHold | null {
   if (!s.online) return "offline";
   if (s.hidden) return "background";
   if (s.saveData) return "save-data";
+  if (s.lowData) return "low-data";
   if (s.metered && !s.allowMetered) return "metered";
   if (s.lowBattery) return "battery";
   if (s.effectiveType !== null) { if (s.effectiveType !== "4g") return "slow"; }

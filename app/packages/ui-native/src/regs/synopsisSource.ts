@@ -10,3 +10,18 @@ let source: SynopsisSource | null = null;
 
 export const setSynopsisSource = (s: SynopsisSource | null): void => { source = s; };
 export const getSynopsisSource = (): SynopsisSource | null => source;
+
+/**
+ * (T254) THE APP'S LINE, for the rule book: low-bandwidth mode and the measured rate (the offer says how long the
+ * download would take), and the meter / online word the download itself uses. Null: no `Net` (a test): never offered.
+ */
+export interface SynopsisNet {
+  readonly low: () => boolean;
+  readonly bps: () => number | null;
+  readonly meter?: import("@app/data").NetMeter | null;
+  readonly online?: () => boolean;
+  readonly waitOnline?: (signal?: AbortSignal) => Promise<void>;
+}
+let net: SynopsisNet | null = null;
+export const setSynopsisNet = (n: SynopsisNet | null): void => { net = n; };
+export const getSynopsisNet = (): SynopsisNet | null => net;

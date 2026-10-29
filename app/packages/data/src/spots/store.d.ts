@@ -35,3 +35,5 @@ export declare function openWalkthroughStore(): { read(): string | null; write(t
 export declare function openRecentSearchStore(): { read(): string | null; write(text: string): void };
 /** (T237) Problem reports waiting to be sent (offline), as whole text (a JSON list). */
 export declare function openReportOutboxStore(): { read(): string | null; write(text: string): void };
+/** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), as whole text. */
+export declare function openDataModeStore(): { read(): string | null; write(text: string): void };

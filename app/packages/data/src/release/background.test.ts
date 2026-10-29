@@ -92,6 +92,8 @@ describe("prefetchHold: the gate", () => {
     ["metered (cellular), mobile data not allowed", { metered: true }, "metered"],
     ["metered, the reader allowed large downloads on mobile data (T231)", { metered: true, allowMetered: true }, null],
     ["low battery, not charging", { lowBattery: true }, "battery"],
+    ["(T254) low-bandwidth mode: nothing ahead of need", { lowData: true }, "low-data"],
+    ["(T254) low-bandwidth mode on a 4g browser word: still held", { lowData: true, effectiveType: "4g" }, "low-data"],
     ["the browser says nothing: go until measured", { effectiveType: null }, null],
     ["says nothing, measured fast", { effectiveType: null, measuredBps: FAST_BYTES_PER_S * 4 }, null],
     ["says nothing, measured slow", { effectiveType: null, measuredBps: FAST_BYTES_PER_S / 2 }, "slow"],

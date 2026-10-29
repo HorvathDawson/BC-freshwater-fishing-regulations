@@ -22,17 +22,17 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+import { INSTALL_WORDS, MAP_CREDITS, installLine, netBanner, progressWords, rolledBackLine, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine } from "@app/core";
-import { createReportOutbox, createUpdateLog, createUpdateService, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
+import { createNet, createReportOutbox, createUpdateLog, createUpdateService, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openWalkthroughStore, openRecentSearchStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { connectivity, FishSpinner, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
+import { connectivity, FishSpinner, setSynopsisNet, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeUrl, systemBack } from "./systemBack";
@@ -86,6 +86,33 @@ const DATA_FETCH: typeof fetch = Object.keys(VERSION_HEADERS).length
   ? versionedFetch((u, i) => fetch(u, i), VERSION_HEADERS) : (u, i) => fetch(u, i);
 /** (T251) the Updates log's "simulate offline": the update service is told the network is down while on */
 const devOffline = { on: false };
+/**
+ * (T254) THE APP'S LINE: one `Net` — the low-bandwidth mode (set by `useNetState` below from the Data setting, the
+ * platform's word and the app's own meter), the order a poor line takes the release files in, the resilient download
+ * and what is downloading now. The boot's web source, the rule book and every screen share it.
+ */
+const NET = createNet({ online: { online: () => !devOffline.on && connectivity.online(),
+                                  subscribe: (on) => connectivity.subscribe(on) } });
+setSynopsisNet({ low: () => NET.mode().low, bps: () => NET.meter.bps(), meter: NET.meter, online: NET.online,
+                 waitOnline: NET.waitOnline });
+
+/** (T254) How long the app, its data open, waits for its type faces before it draws in the system face. */
+const FONT_WAIT_MS = 4000;
+
+/** (T254) Under the start spinner on a slow or missing line: said, and how far the map's first file has come. */
+function BootNetLine({ colour }: { colour: string }) {
+  const { mode } = useNet();
+  const now = useNetActivity(NET);
+  const said = netBanner(mode);
+  if (!said && !now.downloads.length) return null;
+  const loaded = now.downloads.reduce((a, d) => a + d.loaded, 0);
+  const total = now.downloads.every((d) => d.total !== null) ? now.downloads.reduce((a, d) => a + (d.total ?? 0), 0) : null;
+  return (
+    <Text testID="boot-slow" style={{ color: colour, fontSize: 12, textAlign: "center", paddingHorizontal: 24 }}>
+      {[said, progressWords(loaded, total)].filter(Boolean).join(" · ")}
+    </Text>
+  );
+}
 
 export default function App() {
   const scheme = useColorScheme();
@@ -122,6 +149,8 @@ export default function App() {
   const firstRun = useMemo(() => openFirstRunStore(), []);
   const walkthrough = useMemo(() => openWalkthroughStore(), []);
   const recentSearches = useMemo(() => openRecentSearchStore(), []);
+  // (T254) low-bandwidth mode: the More → Data setting (kept on the device), the platform's word, the meter → one mode
+  const dataModeStore = useMemo(() => openDataModeStore(), []);
   // T199: the run timing (its own feed, `runtiming/` on the data origin) — read the first time Run timing is chosen
   const runTiming = useMemo(() => httpRunTiming(`${ENDPOINTS.base}/runtiming`, openRunTimingStore()), []);
 
@@ -130,7 +159,7 @@ export default function App() {
   const [generation, setGeneration] = useState(0);
   const boot = useReleaseBoot(useMemo(() => ({
     manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
-    salmonFeed, deferUpdate: true,
+    salmonFeed, deferUpdate: true, net: NET,
     // (T251) a phone's requests name the app; its first install is gated by the release's minAppVersion (the web's app
     // ships with its data: never gated)
     ...(WEB ? {} : { fetch: DATA_FETCH, appVersion: APP_VERSION }),
@@ -295,11 +324,22 @@ export default function App() {
   // The faces are named in @app/ui-native/type.ts and loaded here, so that package stays
   // free of platform imports. Until they land, hold the splash rather than paint the whole
   // app in the system face and reflow it a beat later.
-  const [ready] = useFonts({
+  const [fontsIn, fontError] = useFonts({
     BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
     Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
     JetBrainsMono_500Medium,
   });
+  // (T254) BUT NEVER FOREVER: on a slow line the web's font check gives up after 12 s (expo-font's FontObserver) and
+  // `useFonts` reports an error, never ready — the app sat on "Loading type…" for good (measured: Slow 3G, a local
+  // build). A failed check, or FONT_WAIT_MS with the data already open, draws the app in the system face; the faces swap
+  // in when their files land (the @font-face rules are injected either way).
+  const [fontWaitOver, setFontWaitOver] = useState(false);
+  useEffect(() => {
+    if (fontsIn || !data) return;
+    const t = setTimeout(() => setFontWaitOver(true), FONT_WAIT_MS);
+    return () => clearTimeout(t);
+  }, [fontsIn, data]);
+  const ready = fontsIn || !!fontError || fontWaitOver;
 
   // (T45) THE WINDOW'S WIDTH, read here and nowhere else in the app: every screen takes its layout class from it
   // (@app/ui `useLayoutClass`), so a component arranges itself for a phone, a tablet or a desktop without reading the window
@@ -311,6 +351,7 @@ export default function App() {
         status bar sat over the top bar, the back links and Close (and swallowed their taps), and the gesture handle over
         the tab bar. RN's own SafeAreaView padded iOS only; react-native-safe-area-context pads every edge on both. */}
     <SafeAreaProvider>
+    <NetRoot net={NET} connectivity={connectivity} store={dataModeStore}>
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
       <StatusBar barStyle={name === "dark" ? "light-content" : "dark-content"} />
       {failed ? (
@@ -400,6 +441,8 @@ export default function App() {
           <Text style={{ color: palette.sub, fontSize: 13 }}>
             {startStage(!ready && data ? "fonts" : stage)}
           </Text>
+          {/* (T254) on a slow or missing line: said, and how far the map's first file has come */}
+          {stage !== "install" && <BootNetLine colour={palette.faint} />}
           {stage === "install" && progress && (
             <>
               <Text style={{ color: palette.sub, fontSize: 13 }}>{installLine(progress)}</Text>
@@ -409,6 +452,7 @@ export default function App() {
         </View>
       )}
     </SafeAreaView>
+    </NetRoot>
     </SafeAreaProvider>
     </LayoutWidthContext.Provider>
   );

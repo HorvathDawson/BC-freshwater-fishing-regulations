@@ -5,29 +5,32 @@
  * so a popup blocker allows it. `synopsisPdf.ts` is the phone's.
  */
 import type { SourceBox } from "@app/core";
+import { fetchResilient } from "@app/data";
 import { highlightPdf } from "./highlightPdf";
-import type { SynopsisSource } from "./synopsisSource";
+import { getSynopsisNet, type SynopsisSource } from "./synopsisSource";
 import type { LoadHooks } from "./synopsisLoad";
 
-/** The PDF bytes, read as a stream so `onProgress` can say how far (Content-Length, else the manifest's byte count; null total when neither). */
+/** (T254) the copies opened whole this session (the HTTP cache holds them: a second open asks nothing) */
+const opened = new Set<string>();
+export const synopsisHeld = (s: SynopsisSource): boolean => opened.has(s.sha256);
+
+/** "%PDF": the body is the file itself, so a Range into it means what it says (a cut download resumes) */
+const isPdf = (h: Uint8Array) => h.length >= 4 && h[0] === 0x25 && h[1] === 0x50 && h[2] === 0x44 && h[3] === 0x46;
+
+/**
+ * The PDF bytes, read as a stream so `onProgress` can say how far (Content-Length, else the manifest's byte count; null
+ * total when neither). (T254) Through `fetchResilient`: a stalled download is cut and RESUMED from where it stopped
+ * (`Range`), tried again with backoff, and waits out an offline spell — 25 MB on one bar is never started over.
+ */
 export async function loadSynopsis(s: SynopsisSource, fetchImpl: typeof fetch = fetch, hooks: Partial<LoadHooks> = {}): Promise<Uint8Array> {
-  const res = await fetchImpl(s.url, { cache: "force-cache", signal: hooks.signal });
-  if (!res.ok) throw new Error(`synopsis: HTTP ${res.status} for ${s.url}`);
-  const len = Number(res.headers?.get?.("content-length"));
-  const total = len > 0 ? len : s.bytes > 1 ? s.bytes : null;
-  const reader = res.body?.getReader?.();
-  if (!reader) return new Uint8Array(await res.arrayBuffer());
-  const parts: Uint8Array[] = [];
-  let got = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    parts.push(value); got += value.length;
-    hooks.onProgress?.(got, total);
-  }
-  const out = new Uint8Array(got);
-  let at = 0;
-  for (const p of parts) { out.set(p, at); at += p.length; }
+  const net = getSynopsisNet();
+  const total = s.bytes > 1 ? s.bytes : null;
+  const out = await fetchResilient(s.url, {
+    fetchImpl, signal: hooks.signal, wireBytes: total, init: { cache: "force-cache" }, resumable: isPdf,
+    meter: net?.meter ?? null, isOnline: net?.online, waitOnline: net?.waitOnline,
+    onProgress: (got, len) => hooks.onProgress?.(got, len ?? total),
+  });
+  opened.add(s.sha256);
   return out;
 }
 

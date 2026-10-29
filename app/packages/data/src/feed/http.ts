@@ -22,6 +22,7 @@
 import { shownParameter, standing, type SourceChange } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
+import { fetchJsonResilient } from "../net/fetch";
 
 /** The forecast exactly as the publisher writes it — both quantities, unpicked. */
 interface RawForecast extends Omit<Forecast, "series" | "disclaimer"> {
@@ -239,8 +240,11 @@ export function lastReportAt(f: { now?: { at?: string | null } | null; recent?: 
   return day ? day[0] : null;
 }
 
+/** (T254) A feed file is small (a station's ≈ 50 kB, the index ≈ 130 kB on the wire): 45 s for the whole of it. */
+const FEED_LIMITS = { firstByteMs: 45_000, stallMs: 45_000, totalMs: 45_000 };
+
 export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
-                         opts: { indexHeld?: boolean } = {}): GaugeFeed {
+                         opts: { indexHeld?: boolean; limits?: { firstByteMs: number; stallMs: number; totalMs: number } } = {}): GaugeFeed {
   const trimmed = base.replace(/\/+$/, "");
   /** (T231) the update service owns the index: once read it is held until the service offers a newer one (`offer`) */
   const held = (url: string) => !!opts.indexHeld && url === `${trimmed}/index.json`;
@@ -248,6 +252,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
   // screen that asks three components for the same station opens three connections.
   const inflight = new Map<string, Promise<unknown>>();
   const cache = new Map<string, { at: number; value: unknown }>();
+  /** (T254) the last good copy of each file this session read: what a dead line answers with (a refresh keeps it) */
+  const good = new Map<string, unknown>();
 
   async function load<T>(path: string): Promise<T | null> {
     const url = `${trimmed}/${path}`;
@@ -258,13 +264,16 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
     if (!p) {
       p = (async () => {
         try {
-          const res = await fetchImpl(url);
-          if (!res.ok) return null;          // 404 = this station is not transmitting
-          const value = (await res.json()) as T;
-          cache.set(url, { at: Date.now(), value });
-          return value;
+          // (T254) on a bad line a dead request is cut and tried once more (never longer than FEED_LIMITS)
+          const got = await fetchJsonResilient<T>(url, { fetchImpl, attempts: 2, limits: opts.limits ?? FEED_LIMITS });
+          if (!got.ok) return null;          // 404 = this station is not transmitting
+          cache.set(url, { at: Date.now(), value: got.value });
+          good.set(url, got.value);
+          return got.value;
         } catch {
-          return null;                        // offline — an answer, not an exception
+          // (T254) offline or a dead line — an answer, not an exception: the last good copy if this session has one
+          // (its own fetchedAt says how old it is, P02), else nothing
+          return (good.get(url) as T | undefined) ?? null;
         } finally {
           inflight.delete(url);
         }

@@ -9,14 +9,17 @@ import { Linking, Platform, Share } from "react-native";
 import { File, Paths } from "expo-file-system";
 import { startActivityAsync } from "expo-intent-launcher";
 import type { SourceBox } from "@app/core";
+import { fetchResilient } from "@app/data";
 import { highlightPdf } from "./highlightPdf";
-import type { SynopsisSource } from "./synopsisSource";
+import { getSynopsisNet, type SynopsisSource } from "./synopsisSource";
 import type { LoadHooks } from "./synopsisLoad";
 
 /** Android's `Intent.FLAG_GRANT_READ_URI_PERMISSION`: the viewer may read the one file it is handed. */
 const GRANT_READ_URI = 0x1;
 
 const held = (s: SynopsisSource) => new File(Paths.cache, `synopsis-${s.sha256.slice(0, 16)}.pdf`);
+/** (T254) whether the release's copy is already in the cache directory (nothing to offer: it opens at once) */
+export const synopsisHeld = (s: SynopsisSource): boolean => { try { return held(s).exists; } catch { return false; } };
 
 /** The release's PDF bytes: the cached file when it is there, else downloaded (and kept for the release's life). */
 export async function loadSynopsis(s: SynopsisSource, fetchImpl: typeof fetch = fetch, hooks: Partial<LoadHooks> = {}): Promise<Uint8Array> {
@@ -24,9 +27,11 @@ export async function loadSynopsis(s: SynopsisSource, fetchImpl: typeof fetch = 
   if (f.exists) return f.bytes();
   // (owner 2026-10-28) the loading card shows on the phone too; React Native's fetch gives no stream, so the bar is
   // indeterminate there (the percent shows where `res.body` streams) and Cancel aborts the request.
-  const res = await fetchImpl(s.url, { signal: hooks.signal });
-  if (!res.ok) throw new Error(`synopsis: HTTP ${res.status} for ${s.url}`);
-  const bytes = new Uint8Array(await res.arrayBuffer());
+  // (T254) a dead request is cut and tried again with backoff, and an offline spell is waited out (no stream here, so
+  // no resume: a cut download starts again)
+  const net = getSynopsisNet();
+  const bytes = await fetchResilient(s.url, { fetchImpl, signal: hooks.signal, wireBytes: s.bytes > 1 ? s.bytes : null,
+                                              meter: net?.meter ?? null, isOnline: net?.online, waitOnline: net?.waitOnline });
   hooks.onProgress?.(bytes.length, bytes.length);
   f.create();
   f.write(bytes);

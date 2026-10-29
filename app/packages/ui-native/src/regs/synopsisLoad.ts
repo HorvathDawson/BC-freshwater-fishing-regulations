@@ -24,7 +24,10 @@ export const SHOW_AFTER_MS = 150;
 export type SynopsisLoadState =
   | { readonly phase: "idle" }
   | { readonly phase: "loading"; readonly pdf: number; readonly loaded: number; readonly total: number | null; readonly visible: boolean }
-  | { readonly phase: "error"; readonly pdf: number; readonly boxes: readonly SourceBox[] | undefined };
+  | { readonly phase: "error"; readonly pdf: number; readonly boxes: readonly SourceBox[] | undefined }
+  /** (T254) on a slow line, asked first: the rule book's size and how long it would take; `go` starts it */
+  | { readonly phase: "offer"; readonly pdf: number; readonly bytes: number; readonly seconds: number | null;
+      readonly go: () => void };
 
 export interface LoadHooks { readonly signal: AbortSignal; readonly onProgress: (loaded: number, total: number | null) => void }
 
@@ -51,6 +54,18 @@ export function cancelSynopsisLoad(): void {
   ctrl = null;
   set({ phase: "idle" });
 }
+
+/**
+ * (T254) ASK BEFORE A LARGE DOWNLOAD on a slow line: the card says the size and the time, and Download starts `go`
+ * (the ordinary load, progress and all); Not now leaves it. A press while one is offered or loading is ignored.
+ */
+export function offerSynopsis(pdf: number, bytes: number, seconds: number | null, go: () => void): boolean {
+  if (state.phase === "loading" || state.phase === "offer") return false;
+  set({ phase: "offer", pdf, bytes, seconds, go: () => { set({ phase: "idle" }); go(); } });
+  return true;
+}
+/** (T254) Not now: the offer goes, nothing is fetched. */
+export const declineSynopsisOffer = (): void => { if (state.phase === "offer") set({ phase: "idle" }); };
 
 /** Leave the error state (the card's close). */
 export const dismissSynopsisError = (): void => { if (state.phase === "error") set({ phase: "idle" }); };

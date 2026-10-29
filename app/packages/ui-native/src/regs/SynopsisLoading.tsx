@@ -5,14 +5,14 @@
  * the first SHOW_AFTER_MS of a load (a cached copy opens without a flash). The app's tokens only.
  */
 import { Linking, Pressable, Text, View } from "react-native";
-import { SYNOPSIS_PDF } from "@app/core";
+import { NET_WORDS, SYNOPSIS_PDF } from "@app/core";
 import { FishSpinner } from "../FishSpinner";
 import { BottomInset } from "../WindowInset";
 import { SPACE, type Palette } from "../theme";
 import { TYPE } from "../type";
 import { MIN_HIT } from "./hit";
 import { openBook } from "./openBook";
-import { cancelSynopsisLoad, dismissSynopsisError, percentOf, SYNOPSIS_WORDS as W, useSynopsisLoad } from "./synopsisLoad";
+import { cancelSynopsisLoad, declineSynopsisOffer, dismissSynopsisError, percentOf, SYNOPSIS_WORDS as W, useSynopsisLoad } from "./synopsisLoad";
 
 /** The link's own words while its page is loading (null: it is not loading). */
 export function useBookLoadingWords(pdf: number | null): string | null {
@@ -25,6 +25,7 @@ export function useBookLoadingWords(pdf: number | null): string | null {
 export function SynopsisLoading({ palette, floating = false }: { palette: Palette; floating?: boolean }) {
   const s = useSynopsisLoad();
   if (s.phase === "idle" || (s.phase === "loading" && !s.visible)) return null;
+  const offer = s.phase === "offer" ? s : null;
   const err = s.phase === "error";
   const failed = s.phase === "error" ? s : null;
   const n = s.phase === "loading" ? percentOf(s) : null;
@@ -38,18 +39,25 @@ export function SynopsisLoading({ palette, floating = false }: { palette: Palett
   const bar = (
     <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", paddingLeft: SPACE.s4, minHeight: 56,
                    backgroundColor: palette.card, borderTopWidth: 1.5, borderTopColor: err ? palette.warning : palette.ink }}>
-      {!err && <View style={{ marginRight: SPACE.s2 }}><FishSpinner palette={palette} size={36} label={W.loading} /></View>}
+      {!err && !offer && <View style={{ marginRight: SPACE.s2 }}><FishSpinner palette={palette} size={36} label={W.loading} /></View>}
       <Text accessibilityLiveRegion="polite" style={[TYPE.bodyStrong, { flex: 1, minWidth: 140, color: palette.ink, paddingVertical: SPACE.s3 }]}>
-        {err ? W.failed : n === null ? W.loading : W.percent(n)}
+        {offer ? NET_WORDS.pdf.offer(offer.bytes, offer.seconds) : err ? W.failed : n === null ? W.loading : W.percent(n)}
       </Text>
-      {err ? (
+      {/* (T254) on a slow line the rule book is offered with its size before a byte of it is fetched */}
+      {offer ? (
+        <>
+          {act(NET_WORDS.pdf.download, offer.go, "synopsis-download")}
+          {act(NET_WORDS.pdf.cancel, declineSynopsisOffer, "synopsis-decline")}
+        </>
+      ) : err ? (
         <>
           {act(W.retry, () => { if (!failed) return; dismissSynopsisError(); void openBook(failed.pdf, failed.boxes).catch(() => undefined); }, "synopsis-retry")}
           {act(W.fallback, () => { dismissSynopsisError(); void Linking.openURL(SYNOPSIS_PDF); }, "synopsis-fallback")}
         </>
       ) : act(W.cancel, cancelSynopsisLoad, "synopsis-cancel")}
     </View>);
+  const id = offer ? "synopsis-offer" : "synopsis-loading";
   return floating
-    ? <View testID="synopsis-loading" style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: palette.card }}>{bar}<BottomInset min={0} /></View>
-    : <View testID="synopsis-loading">{bar}</View>;
+    ? <View testID={id} style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: palette.card }}>{bar}<BottomInset min={0} /></View>
+    : <View testID={id}>{bar}</View>;
 }

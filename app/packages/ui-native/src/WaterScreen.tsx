@@ -22,13 +22,13 @@
  * Every value here arrived from a hook in @app/ui (rule 25). NO CONDITIONS HOOK RUNS HERE: a number on this view
  * would be a second, poorer copy of the Conditions view one swipe away (AGENTS rule 23).
  */
-import { useContext, useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
-import { asOfLine, dayRange, gearIfFished, gearTabsFor, regsLapsedNote, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, regsLapsedNote, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotice, useInSeasonBanners, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
-         useSalmonCard,
+         useSalmonCard, useNet,
          useRegsTarget, useRegulations, useWater, type RegsStart } from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
@@ -40,13 +40,23 @@ import { GearTab } from "./regs/GearTab";
 import { LicenceTab } from "./regs/LicenceTab";
 import { MethodsTab } from "./regs/MethodsTab";
 import { openBook } from "./regs/openBook";
+import { PartPending, RegsWaiting } from "./regs/NetWaiting";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 
 /** Why the page says the regulations are unavailable when no release loader was handed in. */
 
-export function WaterScreen({ source, item, palette, onBack,
+/**
+ * (T254) THE VIEW, REMOUNTED TO TRY AGAIN: a page that failed on a dead line (not a refusal: the loader forgets a failed
+ * fetch) is asked again when the reader presses Try again, and by itself when the device comes back online.
+ */
+export function WaterScreen(p: Parameters<typeof WaterScreenBody>[0]) {
+  const [n, setN] = useState(0);
+  return <WaterScreenBody key={n} {...p} onRetry={() => setN((x) => x + 1)} />;
+}
+
+function WaterScreenBody({ source, item, palette, onBack, onRetry,
                               loader = null, day = null, onDay, section = null, part = null, fishImages, adiposeImages,
                               start = null, onStarted, onPart, glance = false }: {
   /** The water; null for an unnamed reach (T53), which `section` then names — its regulations are that section's. */
@@ -79,6 +89,8 @@ export function WaterScreen({ source, item, palette, onBack,
   onPart?: (partIx: number) => void;
   /** (T221, a try) the Keep tab's at-a-glance table: the quota groups and Salmon folded into the species list. */
   glance?: boolean;
+  /** (T254) ask the whole page again (the wrapper remounts it) */
+  onRetry?: () => void;
 }) {
   const sheet = useWater(source, item);
   // THE REGULATIONS: the store, the part (the one the frame names, else the tapped section's), the day's inputs, the page
@@ -93,6 +105,10 @@ export function WaterScreen({ source, item, palette, onBack,
   const down = useDownstreamWater(source, item, section);
   const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null);
   const regsError = store.error ?? found.error ?? inputs.error;
+  // (T254) a refusal (a release that cannot answer) is not a dead line: no Try again for it
+  const regsRetry = !!regsError && regsError.name !== "RegsStoreError" && !!onRetry;
+  const regsErrorNow = useRef(false);
+  regsErrorNow.current = !!regsError || sheet.state === "failed";
   // (T54) the tapped section's access: the no-access banner or the gentle note; (T147) opened with no section, the
   // page's own part's no-access banner (a water opened from search must still lead with the fact); (Q140) a tapped
   // section wholly outside, on a part that runs through no-access land, leads with the part's banner
@@ -108,7 +124,20 @@ export function WaterScreen({ source, item, palette, onBack,
     : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity
     [inputs.value?.partIx, pageItem?.id, pageItem?.ord, part, section, inputs.value?.key?.akey]);
-  const salmon = useSalmonCard(loader, store.value ?? null, salmonPage, day);
+  // (T254) a failed Salmon card is asked again on Try again, and when the line comes back
+  const { mode: netMode } = useNet();
+  const [salmonTry, setSalmonTry] = useState(0);
+  const salmon = useSalmonCard(loader, store.value ?? null, salmonPage, day, salmonTry);
+  const wasOffline = useRef(netMode.offline);
+  useEffect(() => {
+    const back = wasOffline.current && !netMode.offline;
+    wasOffline.current = netMode.offline;
+    if (!back) return;
+    if (salmon.state === "failed") setSalmonTry((x) => x + 1);
+    if (regsErrorNow.current) onRetry?.();
+  }, [netMode.offline]);   // eslint-disable-line react-hooks/exhaustive-deps -- only the line coming back
+  // (T254) a release that ships salmon draws a card on every page: until it is in, its place says why
+  const salmonExpected = !!loader?.manifest?.files?.salmon;
   // (T230) the provincial in-season changes matched to this water / part, in effect on THE day (informational)
   const inSeasonPage = useMemo(() => (pageItem && inputs.value
     ? { item: pageItem.id, ord: pageItem.ord, partIx: inputs.value.partIx, parts: pageItem.parts.length } : null),
@@ -150,6 +179,7 @@ export function WaterScreen({ source, item, palette, onBack,
     return frame(<WaterTitle name={null} palette={palette} />, (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <FishSpinner palette={palette} size={110} label={WATER_SCREEN_WORDS.loading} />
+        <RegsWaiting palette={palette} />
       </View>
     ));
   }
@@ -159,6 +189,13 @@ export function WaterScreen({ source, item, palette, onBack,
         <Text style={{ ...TYPE.body, color: palette.closed }}>
           {sheet.state === "failed" ? String(sheet.error) : WATER_SCREEN_WORDS.noSuchWater}
         </Text>
+        {/* (T254) a dead line: ask again (and by itself when the device comes back online) */}
+        {sheet.state === "failed" && onRetry && (
+          <Pressable testID="regs-retry" onPress={onRetry} accessibilityRole="button" accessibilityLabel={NET_WORDS.part.retry}
+                     hitSlop={6} style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}>
+            <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{NET_WORDS.part.retry}</Text>
+          </Pressable>
+        )}
       </WaterInset>
     ));
   }
@@ -184,7 +221,13 @@ export function WaterScreen({ source, item, palette, onBack,
                   inSeason={inSeason}
                   asOf={asOfLine({ release: loader.manifest ?? null, inSeasonAt, now: Date.now(),
                                    salmonAt: salmon.value ? salmon.value.feedAt ?? null : undefined })}
-                  salmon={salmon.value ? ({ actions, images }) => <SalmonCard card={salmon.value!} palette={palette} actions={actions} images={images} /> : undefined}
+                  salmon={salmon.value ? ({ actions, images }) => <SalmonCard card={salmon.value!} palette={palette} actions={actions} images={images} />
+                    // (T254) the card is still coming (it waits behind the regulations on a slow line) or could not come:
+                    // said in its place, never a silent gap
+                    : salmonExpected && salmon.state !== "ready"
+                      ? <PartPending palette={palette} what={NET_WORDS.part.salmon} state={salmon.state} testID="salmon-pending"
+                                     onRetry={() => setSalmonTry((x) => x + 1)} />
+                      : undefined}
                   glance={glance ? { salmon: salmon.value ? salmonGlance(salmon.value) : null } : null}
                   salmonStrip={salmonStrip}
                   onAccessMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
@@ -209,8 +252,20 @@ export function WaterScreen({ source, item, palette, onBack,
   const page = (
     <WaterInset style={{ paddingTop: SPACE.s4, paddingBottom: 32 }}>
       {!loader || regsError
-        ? <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError?.message ?? WATER_SCREEN_WORDS.noRelease)}</Text>
-        : <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />}
+        ? <>
+            <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError?.message ?? WATER_SCREEN_WORDS.noRelease)}</Text>
+            {/* (T254) a dead line, not a refusal: ask again (and by itself when the device comes back online) */}
+            {regsRetry && (
+              <Pressable testID="regs-retry" onPress={onRetry} accessibilityRole="button" accessibilityLabel={NET_WORDS.part.retry}
+                         hitSlop={6} style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}>
+                <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{NET_WORDS.part.retry}</Text>
+              </Pressable>
+            )}
+          </>
+        : <>
+            <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />
+            <RegsWaiting palette={palette} />
+          </>}
     </WaterInset>
   );
   // the day sheet in the SAME place as beside the page above, so a reload's loading frame keeps it (it does not remount)

@@ -26,7 +26,7 @@ import { bellLabel, dayRange, placeholderFor, runSheet, syncVM } from "@app/core
 import { useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
-         BackLayerContext, InSeasonContext, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { connectivity } from "./connectivity";
 import { SearchSheet } from "./SearchSheet";
@@ -48,6 +48,7 @@ import { WaterViewsContext } from "./ViewSwipe";
 import { MenuContext } from "./menu/MenuContext";
 import { BrowseHost } from "./shell/BrowseHost";
 import { MapLegend, PairBanner } from "./shell/MapLegend";
+import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
 import { SpotHost, useSpotEdit } from "./shell/SpotHost";
 import { WaterModeHost } from "./shell/WaterModeHost";
@@ -61,6 +62,9 @@ import { useWalkthrough, WalkthroughSheet } from "./Walkthrough";
 
 export type { ShellProps } from "./shell/props";
 
+/** (T254) How long low-bandwidth mode waits with nothing downloading before the map's bait & fly marks are fetched. */
+const GEAR_QUIET_MS = 15_000;
+
 export function Shell(p: ShellProps) {
   const { source, palette, theme, tiles, spots = [], onSaveSpot, weather, feed, photos, loader = null, locate = null,
           menuInfo, checkRelease = null, releaseNamed = null, hydat, updates = null } = p;
@@ -71,7 +75,15 @@ export function Shell(p: ShellProps) {
   const [settled, setSettled] = useState(!(p.prefetch && loader));
   // (T253) and the background tier after it: every file an unnamed-stream tap reads, the region in view first
   const background = useBackgroundPrefetch(p.prefetch ? loader : null, { onEvent: p.prefetchLog ?? undefined });
-  const onRegion = useReleasePrefetch(p.prefetch ? loader : null, () => setSettled(true), background.scheduler);
+  // (T254) LOW-BANDWIDTH MODE: the background tier holds, the idle tier fetches core's bytes ahead (not opened), and the
+  // map's bait & fly marks wait for a quiet line (15 s with nothing downloading)
+  const netState = useNet();
+  const lowNow = useRef(netState.mode.low);
+  lowNow.current = netState.mode.low;
+  useEffect(() => { background.scheduler?.signals({ lowData: netState.mode.low }); }, [background.scheduler, netState.mode.low]);
+  const onRegion = useReleasePrefetch(p.prefetch ? loader : null, () => setSettled(true), background.scheduler,
+                                      () => lowNow.current);
+  const quietLine = useNetQuiet(GEAR_QUIET_MS);
   const { route, go, tab, frame, adding, openSpot, back, backLayers } = nav;
   /*
    * EVERY SURFACE IS UNDER THE ONE BACK (app/HANDOFF-ui.md "Back, everywhere"): whatever the Shell returns — the spot,
@@ -129,7 +141,8 @@ export function Shell(p: ShellProps) {
   const syncState = useSync({ feed, release: loader?.release ?? null, checkRelease, named: releaseNamed, updates });
   const col = useMapColouring({ source, feed, status: p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
-                                epoch: syncState.epoch, settled, salmonOnDemand: !!(p.prefetch && loader),
+                                epoch: syncState.epoch, settled, gearSettled: settled && quietLine,
+                                salmonOnDemand: !!(p.prefetch && loader),
                                 runTiming: p.runTiming ?? null });
   // (T199) the runs sheet's words, for the tapped section, the species chosen and the map's day
   const runsVM = useMemo(() => {
@@ -242,6 +255,8 @@ export function Shell(p: ShellProps) {
     <MenuContext.Provider value={menu}>
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <PairBanner col={col} palette={palette} />
+      {/* (T254) a slow or missing line, said once over everything: "Slow connection — showing what we have" */}
+      <NetBanner palette={palette} onPress={() => nav.toTab("more")} />
       <View style={{ flex: 1 }}>
         <EdgeBack drag={nav.edge}>
           <WaterViewsContext.Provider value={nav.waterViews}>

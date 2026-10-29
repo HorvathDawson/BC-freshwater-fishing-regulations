@@ -6,7 +6,9 @@ import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path'
 
 export const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
-export async function open(url, { width = 440, height = 900, init = '', offline = false, dpr = 1, mobile = false, network = false } = {}) {
+// T254: `setup(send)` runs before the page is navigated (network throttling must be in force from the first byte);
+// `onEvent(m)` sees every other DevTools event (the bad-network harness answers `Fetch.requestPaused` with it).
+export async function open(url, { width = 440, height = 900, init = '', offline = false, dpr = 1, mobile = false, network = false, setup = null, onEvent = null } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'regs-web-'));
   const proc = spawn(CHROME, ['--headless=new', ...(process.env.CI ? ['--no-sandbox'] : []), '--remote-debugging-port=0', `--user-data-dir=${dir}`, '--no-first-run',
     '--allow-file-access-from-files', `--window-size=${width},${height}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
@@ -25,16 +27,18 @@ export async function open(url, { width = 440, height = 900, init = '', offline 
   const onNetwork = (m) => {
     if (m.method === 'Network.requestWillBeSent' && !m.params.redirectResponse) {
       const r = { url: m.params.request.url, method: m.params.request.method, range: m.params.request.headers.Range ?? null, bytes: null, status: null,
-                  wall: m.params.wallTime ?? null };   // T186: when it was sent (epoch s), to split a prefetch off first paint
+                  wall: m.params.wallTime ?? null,   // T186: when it was sent (epoch s), to split a prefetch off first paint
+                  at: Date.now(), doneAt: null };     // T254: sent / finished, on node's clock
       byId.set(m.params.requestId, r); requests.push(r);
     } else if (m.method === 'Network.responseReceived') { const r = byId.get(m.params.requestId); if (r) r.status = m.params.response.status; }
-    else if (m.method === 'Network.loadingFinished') { const r = byId.get(m.params.requestId); if (r) r.bytes = m.params.encodedDataLength; }
-    else if (m.method === 'Network.loadingFailed') { const r = byId.get(m.params.requestId); if (r) r.failed = m.params.errorText; }
+    else if (m.method === 'Network.loadingFinished') { const r = byId.get(m.params.requestId); if (r) { r.bytes = m.params.encodedDataLength; r.doneAt = Date.now(); } }
+    else if (m.method === 'Network.loadingFailed') { const r = byId.get(m.params.requestId); if (r) { r.failed = m.params.errorText; r.doneAt = Date.now(); } }
   };
   ws.addEventListener('message', e => { const m = JSON.parse(e.data); if (network && m.method?.startsWith('Network.')) onNetwork(m);
     if (m.id && wait.has(m.id)) { const [res, rej] = wait.get(m.id); wait.delete(m.id); m.error ? rej(new Error(m.error.message)) : res(m.result); }
     else if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') errors.push(m.params.args.map(a => a.value ?? a.description ?? '').join(' '));
-    else if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text); });
+    else if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
+    if (onEvent && m.method && !m.id) onEvent(m); });
   const send = (method, params = {}) => new Promise((res, rej) => { const i = ++id; wait.set(i, [res, rej]); ws.send(JSON.stringify({ id: i, method, params })); });
   const evaluate = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true });
     if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text); return r.result.value; };
@@ -43,6 +47,7 @@ export async function open(url, { width = 440, height = 900, init = '', offline 
   if (init) await send('Page.addScriptToEvaluateOnNewDocument', { source: init });
   if (network) await send('Network.enable', {});
   if (offline) { await send('Network.enable'); await send('Network.setBlockedURLs', { urls: ['http://*', 'https://*'] }); }
+  if (setup) await setup(send);
   await send('Page.navigate', { url });
   for (let t = 0; t < 600; t++) { if (await evaluate('document.readyState').catch(() => '') === 'complete') break; await new Promise(r => setTimeout(r, 100)); }
   const close = async () => { try { ws.close(); } catch {} const gone = new Promise(r => proc.once('exit', r)); proc.kill(); await gone;

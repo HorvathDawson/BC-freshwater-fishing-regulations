@@ -93,6 +93,11 @@ export function openRecentSearchStore(): { read(): string | null; write(text: st
   return keyStore("canifishthis.recentSearches.v1");
 }
 
+/** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), one key of its own. */
+export function openDataModeStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.lowData.v1");
+}
+
 function keyStore(LAYERS_KEY: string): { read(): string | null; write(text: string): void } {
   return {
     read: () => { try { return globalThis.localStorage?.getItem(LAYERS_KEY) ?? null; } catch { return null; } },

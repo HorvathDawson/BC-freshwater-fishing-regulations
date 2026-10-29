@@ -19,7 +19,8 @@
  */
 import { PaintError, releaseAllowed, StatusIndexError, UPDATE_WORDS, type AppVersion, type Paint } from "@app/core";
 import { VerifyError } from "../fetchVerified";
-import { compatible, loadManifest, ManifestError, type Held, type Manifest } from "../manifest";
+import { fetchResilient, NetError, type Net } from "../net";
+import { compatible, loadManifest, ManifestError, parseManifest, type Held, type Manifest } from "../manifest";
 import { sha256Hex } from "../sha256";
 import type { WaterSource } from "../index";
 import type { SourceOptions } from "./source";
@@ -37,7 +38,7 @@ export interface ReleasePlatform {
   releaseCache(name?: string): Promise<{ readonly kind: string; get(url: string): Promise<Uint8Array | null>;
                                          put(url: string, bytes: Uint8Array): Promise<void> }>;
   releaseSource(m: Manifest, at: { base: string; cache: Awaited<ReturnType<ReleasePlatform["releaseCache"]>>;
-                                   held: Held | null; fetch?: typeof fetch }): ReleaseSource;
+                                   held: Held | null; fetch?: typeof fetch; net?: Net | null }): ReleaseSource;
   device(fetchImpl?: typeof fetch): {
     fs: ReleaseFs;
     download: (url: string, expect: { bytes: number; sha256: string }) => Promise<Uint8Array>;
@@ -62,6 +63,8 @@ export interface BootOptions {
   /** (T211) the live DFO salmon feed (last capture kept): laid over the release's salmon file (`withLiveSalmon`) */
   salmonFeed?: SalmonFeedSource;
   fetch?: typeof fetch;
+  /** (T254) the app's bad-connection kit: the web source's fetches take their turn, survive cuts, say how far they got */
+  net?: Net | null;
   onStage?: (s: BootStage) => void;
   onProgress?: (p: Progress) => void;
   /** How long a launch waits for the manifest before going on with the held set (native). */
@@ -122,6 +125,17 @@ const PREVIOUS = "release/previous";
 /** A set that would not open and was rolled back: not installed again until the manifest names another. */
 const REFUSED = "release/refused";
 
+/** (T254) The manifest through `fetchResilient` (timeouts, retries, waiting out an offline spell); an HTTP refusal stays a
+ *  `ManifestError`. */
+async function resilientManifest(url: string, f: typeof fetch, net: Net): Promise<Manifest> {
+  const body = await fetchResilient(url, { fetchImpl: f, wireBytes: 8000, isOnline: net.online, waitOnline: net.waitOnline })
+    .catch((e: unknown) => {
+      if (e instanceof NetError && e.kind === "http") throw new ManifestError(`manifest: HTTP ${e.status} for ${url}`);
+      throw e;
+    });
+  return parseManifest(JSON.parse(new TextDecoder().decode(body)));
+}
+
 function timeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((ok, fail) => {
     const t = setTimeout(() => fail(new Error(`manifest: no answer in ${ms} ms`)), ms);
@@ -163,10 +177,12 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
 
   if (!dev) {
     // THE WEB: online by definition; the manifest is required, and only paint is fetched before the map
-    const m = await loadManifest(o.manifestUrl, undefined, f);
+    // (T254) on a bad line the manifest is a resilient download: a stalled request is cut and tried again, and while
+    // the device is offline the boot waits for it to come back rather than failing
+    const m = o.net ? await resilientManifest(o.manifestUrl, f, o.net) : await loadManifest(o.manifestUrl, undefined, f);
     const cache = await o.platform.releaseCache();
     const loader = withLiveSalmon(
-      releaseLoader(m, o.platform.releaseSource(m, { base: o.releaseBase, cache, held: null, fetch: f }),
+      releaseLoader(m, o.platform.releaseSource(m, { base: o.releaseBase, cache, held: null, fetch: f, net: o.net ?? null }),
                     o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null })), o.salmonFeed);
     o.onStage?.("paint");
     const paint = await loader.paint();
@@ -176,7 +192,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       if (sameSet(pointerFor(next), pointerFor(m))) return null;
       // the files this session has opened that the new release changed: warmed in the release cache, verified
       const names = loader.opened().filter((n) => next.files[n] && next.files[n]!.sha256 !== m.files[n]?.sha256);
-      const ahead = releaseLoader(next, o.platform.releaseSource(next, { base: o.releaseBase, cache, held: null, fetch: f }),
+      const ahead = releaseLoader(next, o.platform.releaseSource(next, { base: o.releaseBase, cache, held: null, fetch: f, net: o.net ?? null }),
                                   o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null }));
       const of = names.reduce((n, k) => n + next.files[k]!.bytes, 0);
       let done = 0, bytes = 0;
@@ -213,7 +229,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       throw new ReleaseError(`release ${m.data_release}: tiles ${t.id ?? "(no id)"} are not in ${m.tiles.compatible}`);
     const dir = `release/${h.release}`;
     const loader = releaseLoader(m,
-      o.platform.releaseSource(m, { base: o.releaseBase, cache, held: h, fetch: f }),
+      o.platform.releaseSource(m, { base: o.releaseBase, cache, held: h, fetch: f, net: o.net ?? null }),
       o.platform.releaseOpener({
         wasmBase: o.wasmBase,
         installed: (name) => {

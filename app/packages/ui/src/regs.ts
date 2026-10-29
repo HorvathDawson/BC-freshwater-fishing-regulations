@@ -199,13 +199,16 @@ export async function salmonCardFor(loader: SalmonLoader, store: Pick<RegsStore,
 }
 
 export function useSalmonCard(loader: SalmonLoader | null, store: Pick<RegsStore, "navRows"> | null,
-                              page: SalmonPage | null, mapDay: Date | null): Async<SalmonCardLiveVM | null> {
+                              page: SalmonPage | null, mapDay: Date | null,
+                              /** (T254) a new number asks again (Try again; the line coming back after a failure) */
+                              retry = 0): Async<SalmonCardLiveVM | null> {
   const asks = !!loader && !!page;
   const on = mapDay ?? new Date();
   const dayKey = `${on.getFullYear()}-${on.getMonth() + 1}-${on.getDate()}`;
   return useAsync(async () => (asks ? salmonCardFor(loader!, store, page!, on) : null),
                   `salmon:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${page?.section ?? ""}:`
-                  + `${page?.item ?? ""}:${page?.ord ?? ""}:${page?.partIx ?? ""}:${page?.akey ?? ""}:${dayKey}`, asks);
+                  + `${page?.item ?? ""}:${page?.ord ?? ""}:${page?.partIx ?? ""}:${page?.akey ?? ""}:${dayKey}`
+                  + (retry ? `:r${retry}` : ""), asks);
 }
 
 export function useAccessNotice(loader: Pick<ReleaseLoader, "paint" | "access"> | null,

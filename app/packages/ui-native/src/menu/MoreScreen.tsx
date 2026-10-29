@@ -18,8 +18,8 @@
  */
 import { createContext, useContext } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
-import { useLayoutClass } from "@app/ui";
-import { menuVM, UPDATE_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
+import { useLayoutClass, useNet, useNetBps } from "@app/ui";
+import { dataModeLine, menuVM, NET_WORDS, UPDATE_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
@@ -188,6 +188,8 @@ function DataBlock({ vm, palette, metered }: { vm: MoreVM["data"]; palette: Pale
           })}
         </View>
         {vm.updates && <UpdatesRow vm={vm.updates} palette={palette} metered={metered ?? null} />}
+        {/* (T254) low-bandwidth mode: Automatic / On / Off, and what it is doing now */}
+        <LowDataRow palette={palette} />
         {/* (T253) the web's background prefetch, quietly: which regions an unnamed-stream tap reads from the device */}
         {vm.offline && (
           <Text testID="data-offline" style={{ ...TYPE.small, color: palette.faint, paddingHorizontal: GUTTER,
@@ -232,6 +234,44 @@ function UpdatesRow({ vm, palette, metered }: { vm: NonNullable<MoreVM["data"]["
           <Text style={{ ...TYPE.metaBold, color: metered.on ? palette.accent : palette.sub }}>{metered.on ? C.on : C.off}</Text>
         </Pressable>
       )}
+    </View>
+  );
+}
+
+/**
+ * (T254) THE LOW-BANDWIDTH SETTING: Automatic (the app decides from the link it measures), On, Off — a three-way
+ * choice, and under it what the mode is doing now and why ("On now — slow connection (0.4 Mbit/s)"). Kept on the device.
+ * Not drawn where the app has no `Net` (a screen mounted alone in a test).
+ */
+function LowDataRow({ palette }: { palette: Palette }) {
+  const { net, mode, setting, setSetting } = useNet();
+  const bps = useNetBps(net);
+  if (!net) return null;
+  const W = NET_WORDS.setting;
+  return (
+    <View testID="data-low" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3, gap: SPACE.s1,
+                                     borderTopWidth: 1, borderTopColor: palette.line }}>
+      <Text style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink }}>{W.label}</Text>
+      <Text style={{ ...TYPE.small, color: palette.sub }}>{W.hint}</Text>
+      <View accessibilityRole="radiogroup" accessibilityLabel={W.label}
+            style={{ flexDirection: "row", gap: SPACE.s2, marginTop: SPACE.s1, flexWrap: "wrap" }}>
+        {(["auto", "on", "off"] as const).map((k) => {
+          const on = setting === k;
+          return (
+            <Pressable key={k} testID={`data-low-${k}`} onPress={() => setSetting(k)} accessibilityRole="radio"
+                       aria-checked={on} accessibilityLabel={`${W.label}: ${W.choices[k]}`}
+                       style={({ pressed }) => ({ minHeight: 40, minWidth: 64, paddingHorizontal: SPACE.s3, justifyContent: "center",
+                                                  alignItems: "center", borderWidth: 1.5,
+                                                  borderColor: on ? palette.accent : palette.line,
+                                                  backgroundColor: on ? palette.tint : pressed ? palette.tint : palette.card })}>
+              <Text style={{ ...(on ? TYPE.metaBold : TYPE.meta), color: on ? palette.accent : palette.ink }}>{W.choices[k]}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <Text testID="data-low-now" style={{ ...TYPE.small, color: mode.low ? palette.ink : palette.faint }}>
+        {dataModeLine(mode, bps)}
+      </Text>
     </View>
   );
 }

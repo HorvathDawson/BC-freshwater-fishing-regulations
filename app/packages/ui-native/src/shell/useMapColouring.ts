@@ -28,7 +28,7 @@ export const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 10 };
 export const HANDOVER_Z = FIELD_HANDOVER_Z;
 
 export function useMapColouring({ source, feed, status, pairing, tiles, layerStore, attribution, mapTab, mapDay,
-                                  epoch, settled = true, salmonOnDemand = false, runTiming = null }: {
+                                  epoch, settled = true, gearSettled = settled, salmonOnDemand = false, runTiming = null }: {
   source: WaterSource; feed?: GaugeFeed; status: StatusSource | null; pairing: PairingInput | null;
   tiles: TileEndpoints; layerStore?: LayerStore; attribution?: readonly string[];
   /** Which browse map's questions are asked (a water's map view asks the Map tab's). */
@@ -39,6 +39,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   epoch: number;
   /** (T182) False until the web's idle prefetch has started: the Salmon / Bait & fly files wait for it (a phone: true). */
   settled?: boolean;
+  /** (T254) The bait & fly marks' file waits for this too (low-bandwidth mode: a quiet line); default `settled`. */
+  gearSettled?: boolean;
   /** (T182, owner 2026-10-28) The web: the salmon file is read on the first press of Salmon, not up front (a phone: false). */
   salmonOnDemand?: boolean;
   /** (T199) The run-timing feed (its own stream, not the release): read the first time Run timing is chosen. */
@@ -172,7 +174,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const salmonLoading = regsLayer === "salmon" && salmonOffered && salmon.loading;
   // (T213) BAIT BAN / FLY ONLY: marks on the Standard map — the release's `method` file handed over the same way; the
   // legend lists the marks while the Standard regulations are drawn
-  const method = useMethodColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled });
+  const method = useMethodColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled: gearSettled });
   // (owner 2026-10-28) the marks ride the Salmon map too: bait and fly rules also apply to salmon
   const gearMarked = method.feed !== null && layers.effective.water === "regulations";
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk,
