@@ -91,7 +91,7 @@ use that as the sole source of future work."
 | T44 | one WaterFrame | DONE | 825cf1a8, f2e98e0d | — |
 | T45 | desktop layout for Regulations | DONE | 919cdb6f, 412f4bfc | — |
 | T46 | fish ID on desktop | DONE | e3332e62 | — |
-| T47 | status colours you can tell apart | PARTIAL | daf61b67, 5473776d, d6a5a51c, 056d6cc5, e6754333 | boundaries under water, warm dot hue, sub-20 pairs → T83 (palette D closed) |
+| T47 | status colours you can tell apart | DONE | daf61b67, 5473776d, d6a5a51c, 056d6cc5, e6754333, (T83) 111bd363, cbd3e139, 7bb14b79 | — (leftovers built in T83) |
 | T48 | search in the top bar | DONE | d1b5680a, f733ec5e, 81000acf, 349968b0, 3f8c277f | — (keyboard → T69) |
 | T49 | map's day: calendar icon + date sheet | DONE | 02570d07, 1fc9be2e, 9db57864 | — |
 | T50 | Android emulator parity + system bars | OPEN | 7da6deff, 294dd4d5 (ticket), T74 follow-ups ee5d259f, e8225cd0, 58ea79bf | marks/PDF/insets/sheets/font-size restart fixed; back table + landscape walked; regs scroll not kept on recreate |

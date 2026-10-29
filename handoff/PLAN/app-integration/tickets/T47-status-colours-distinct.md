@@ -1,6 +1,6 @@
 # T47 — status colours you can tell apart: "has its own regulations" vs "closed" (and restricted)
 
-Status: PARTIAL — daf61b67, 5473776d, d6a5a51c, 056d6cc5, e6754333. Palette D questions closed (decisions.md "palette D stands"). Left → T83: boundaries under the water, the warm temperature dot's hue, the sub-20 pairs. Close as DONE when T83 closes.
+Status: DONE — daf61b67, 5473776d, d6a5a51c, 056d6cc5, e6754333; leftovers built in T83 (111bd363, cbd3e139, e61a6e7d, 7bb14b79, a9dae070: boundaries under the water lines, own warm-dot hue `color.temp.warm` in light/dark/cvd, every sub-20 pair lifted or a reasoned `UNDER_20` exception; shots handoff/PLAN/app-data/status-colours/T83/). Closed 2026-10-28 (T83 DONE). Palette D questions closed (decisions.md "palette D stands").
 
 Phase 4 · Depends on T22 (tokens), the colouring engine (colouring.ts), T39 (palette gate) · Size 1 day
 
