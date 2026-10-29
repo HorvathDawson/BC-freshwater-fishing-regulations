@@ -202,7 +202,8 @@ async function traceFor(source: WaterSource, section: SectionId | null, speaker:
   return freezeTrace({
     station: link.station, stationName: link.name, trust: link.trust,
     path: await source.traceToGauge(section),
-    metres: null,
+    metres: link.metres ?? null,
+    rel: link.rel ?? null,
     reachMagnitude: link.reachMagnitude || null,
     gaugeMagnitude: link.gaugeMagnitude || null,
     // FROZEN WITH THE REST OF THE SPOT. The station does not move, but a spot pinned

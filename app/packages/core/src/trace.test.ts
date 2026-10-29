@@ -6,7 +6,7 @@
  * and the camera must be the same for both, or a saved spot says something the app never said.
  */
 import { describe, expect, it } from "vitest";
-import { freezeTrace, onTheReach, reachCount, routeCamera, shareWord, traceSentence, tracePath,
+import { freezeTrace, onTheReach, reachCount, routeCamera, shareWord, traceSentence, tracePath, whereWord,
          type GaugeTrace } from "./trace";
 import type { SectionKey } from "./section";
 
@@ -78,5 +78,41 @@ describe("shareWord boundaries", () => {
     expect(shareWord(trace({ reachMagnitude: 999, gaugeMagnitude: 100_000 }))).toBe("1.00 %");
     expect(shareWord(trace({ reachMagnitude: 1, gaugeMagnitude: 100 }))).toBe("1.0 %");
     expect(shareWord(trace({ reachMagnitude: 24, gaugeMagnitude: 1000 }))).toBe("2.4 %");
+  });
+});
+
+// ---- (T93) where the station stands, as the release says it (`section_gauge.rel` / `dist_m`) ----
+describe("the relationship's words", () => {
+  it("a station downstream on this water: the distance row says which way", () => {
+    expect(whereWord(trace({ rel: "down" }))).toBe("12.3 km downstream");
+    expect(traceSentence(trace({ rel: "down" }))).toBe("Water here flows 12.3 km down to 08MH001.");
+  });
+  it("downstream on the river this flows into", () => {
+    expect(whereWord(trace({ rel: "down_trunk", metres: 3_000 })))
+      .toBe("3.0 km downstream, on the river this flows into");
+  });
+  it("a station UPSTREAM (the Vedder below 08MH001): never 'drains through' or 'flows down to'", () => {
+    expect(whereWord(trace({ rel: "up", metres: 6_000 }))).toBe("6.0 km upstream");
+    expect(traceSentence(trace({ rel: "up", metres: 6_000 })))
+      .toBe("08MH001 is 6.0 km upstream, on this water: water here has already passed it.");
+    // the reach that starts at the station: no "0 m"
+    expect(whereWord(trace({ rel: "up", metres: 0 }))).toBe("at the top of this reach");
+    expect(traceSentence(trace({ rel: "up", metres: 0 })))
+      .toBe("08MH001 is just upstream, on this water: water here has already passed it.");
+    // a one-reach walk is not "on the reach" when the release says the station is upstream
+    expect(onTheReach(trace({ rel: "up", metres: 0, path: ["a" as never] }))).toBe(false);
+  });
+  it("on the reach is the release's word when it has one", () => {
+    expect(onTheReach(trace({ rel: "on", metres: 0 }))).toBe(true);
+    expect(whereWord(trace({ rel: "on", metres: 0 }))).toBe("on the reach");
+  });
+  it("a release cut before T93 (no rel): the bare distance, or nothing", () => {
+    expect(whereWord(trace())).toBe("12.3 km");
+    expect(whereWord(trace({ metres: null }))).toBeNull();
+  });
+  it("freezes with the spot", () => {
+    const f = freezeTrace(trace({ rel: "up", metres: 6_000 }));
+    expect(f.rel).toBe("up");
+    expect(traceSentence(f)).toBe(traceSentence(trace({ rel: "up", metres: 6_000 })));
   });
 });

@@ -70,7 +70,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "sid",
         "station",
         "trust",
-        "mag"
+        "mag",
+        "rel",
+        "dist_m"
       ]
     }
   },

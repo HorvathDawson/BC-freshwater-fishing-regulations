@@ -284,7 +284,7 @@ export function placeInBand(v: number | null, band: Band | null): BandPlace | nu
  * The Fraser at Hope drains 216,600 km2. Without a floor it "describes" every creek in
  * the valley — 601 reaches on the Chilliwack window alone. With it, 4.
  */
-export { TRUST_FLOOR, type GaugeTrust } from "./gauge-policy.generated";
+export { TRUST_FLOOR, type GaugeRel, type GaugeTrust } from "./gauge-policy.generated";
 
 import type { GaugeTrust as Trust } from "./gauge-policy.generated";
 import { PERCENTILE_KNOTS } from "./gauge-policy.generated";

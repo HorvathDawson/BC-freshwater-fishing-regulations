@@ -55,7 +55,7 @@ import sys
 from pathlib import Path
 
 from pipeline.gauges.consume.panel import MIN_TOTAL_WEIGHT
-from pipeline.gauges.consume.shed import TRUST_BANDS
+from pipeline.gauges.consume.shed import GAUGE_RELS, TRUST_BANDS
 from pipeline.gauges.feed import change as _change
 from pipeline.gauges.feed.climatology import PCTILES
 from pipeline.gauges.feed.publish import HORIZONS, _TEMP_BANDS
@@ -133,6 +133,13 @@ export const TRUST_BANDS: readonly (readonly [GaugeTrust, number])[] = [
 {bands}
 ];
 
+// Where a reach's gauge stands (T93), from `GAUGE_RELS` in pipeline/gauges/consume/shed.py: written into
+// `section_gauge.rel` with the channel distance `dist_m`. Which of them may speak is the build's policy, never the app's.
+
+/** Where the gauge stands, seen from the reach: on it, down / up its own watercourse, down the river it flows into,
+ *  on a tributary of it, or a relationship the codes cannot say. */
+export type GaugeRel = {" | ".join(f'"{r}"' for r in GAUGE_RELS)};
+
 // The water-temperature classes, from `_TEMP_BANDS` in pipeline/gauges/feed/publish.py -- the publisher writes one
 // onto every temperature reading (`temperatureBand`), and the Conditions legend words them (`TEMP_LEGEND` in core).
 // POLICY awaiting curation, not physics, and never a citation of a closure order.
@@ -193,7 +200,7 @@ def main(argv=None) -> int:
     if a.check:
         for p, _ in stale:
             print(f"STALE: {p.relative_to(ROOT)} does not match "
-                  "pipeline/gauges/consume/shed.py :: TRUST_BANDS / "
+                  "pipeline/gauges/consume/shed.py :: TRUST_BANDS, GAUGE_RELS / "
                   "pipeline/gauges/feed/publish.py :: _TEMP_BANDS / "
                   "pipeline/gauges/feed/change.py / "
                   "pipeline/gauges/feed/record.py / climatology.py PCTILES / "

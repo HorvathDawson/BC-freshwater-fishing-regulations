@@ -3,7 +3,8 @@
  * `makeReleaseSource` (`../release/source.ts`) asks the release's files and hands the rows here; a test may hand rows
  * from any SQLite with the pipeline bundle's columns. (Its second reader, the dev bundle's, was retired in T61.)
  */
-import { bandAt, boxOfParts, calendarDayOfYear, describeBy, rankPointers, rankWaters, type Band, type Bbox, type NearPlace } from "@app/core";
+import { bandAt, boxOfParts, calendarDayOfYear, describeBy, rankPointers, rankWaters, type Band, type Bbox, type GaugeRel,
+         type NearPlace } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { Aged, GaugeLink, GaugeWaters, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId,
               Series, StationId } from "../index";
@@ -110,7 +111,7 @@ export function nearHit(r: Row): NearHit {
  * Both gauge accessors funnel through here so a reach and a whole water can never describe
  * the same station differently — the failure the shared-logic rule exists to prevent.
  *
- * Both magnitudes are real and stored: `reach_mag` is this section's, `mag` the gauge
+ * Both magnitudes are real and stored: `reach_mag` is this section's, `gauge_mag` the gauge
  * node's. Their ratio is what the trust band was cut from, so a sheet can show its working
  * — "this station drains 40x your reach" — rather than asserting a word. A 0 here means
  * the bundler had no magnitude for that node, which the trace model renders as "not known".
@@ -124,11 +125,14 @@ export function link(r: Row | undefined, section: SectionId | null,
     name: r.name ? str(r.name) : str(r.station),
     trust: str(r.trust) as GaugeLink["trust"],
     reachMagnitude: num(r.reach_mag) ?? 0,
-    gaugeMagnitude: num(r.mag) ?? 0,
+    gaugeMagnitude: num(r.gauge_mag) ?? 0,
     // Purely the feed's answer. `null` when no index was available — genuinely unknown,
     // which the UI must not render as "stopped reporting".
     live: live === null ? null : live.has(str(r.station)),
     areaKm2: num(r.area_km2),
+    // (T93) absent on a release cut before the columns (`SELECT sg.*` then carries none): null, never a guessed "on"
+    rel: r.rel ? (str(r.rel) as GaugeRel) : null,
+    metres: num(r.dist_m),
     lon: num(r.lon), lat: num(r.lat),
     section,
   };

@@ -78,7 +78,9 @@ FILES = {
         "lake_gauge": ["item_id", "station"],
         "lake_section": ["sid", "station"],
         "meta": ["k", "v"],
-        "section_gauge": ["sid", "station", "trust", "mag"]}},
+        # `rel`, `dist_m` (T93): where the station stands to the reach and how far along the channel. ADDITIVE, last,
+        # nullable — still conditions/1; an older release has neither and the app says no distance
+        "section_gauge": ["sid", "station", "trust", "mag", "rel", "dist_m"]}},
     "down": {"format": "down/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "section_down": ["sid", "down_sid"]}},
     "climate": {"format": "climate/1", "kind": "sqlite", "tables": {

@@ -136,7 +136,7 @@ describe("captureSpot", () => {
     expect("section" in stored).toBe(false);
     expect(stored.item).toBe("it_42");
     expect(stored.trace).toEqual({
-      station: "08MH001", stationName: "Vedder", trust: "good", reaches: 3, metres: null,
+      station: "08MH001", stationName: "Vedder", trust: "good", reaches: 3, metres: null, rel: null,
       reachMagnitude: 40, gaugeMagnitude: 80, lon: -121.96, lat: 49.09,
     });
     expect(JSON.stringify(s)).not.toMatch(/\b10[123]\b/);

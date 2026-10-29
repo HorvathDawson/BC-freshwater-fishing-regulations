@@ -13,8 +13,8 @@
  * `@app/core/trace`; this file only lays them out.
  */
 import { Text, View } from "react-native";
-import { CONDITIONS_WORDS, distanceWord, hereMapLabel, onTheReach, reachCount, routeCamera,
-         shareWord, traceSentence, tracePath, trustWord, TRACE_WORDS,
+import { CONDITIONS_WORDS, hereMapLabel, reachCount, routeCamera,
+         shareWord, traceSentence, tracePath, trustWord, TRACE_WORDS, whereWord,
          type AnyTrace as Trace } from "@app/core";
 import type { TileEndpoints } from "@app/map";
 import { MiniMap } from "./MiniMap";
@@ -44,7 +44,7 @@ export function GaugeTrace({ trace, palette, title = TRACE_WORDS.title,
   // case simply has more to work with.
   const camera = routeCamera(trace, from ?? null);
   const facts: [string, string | null][] = [
-    [W.label.distance, onTheReach(trace) ? W.onTheReach : distanceWord(trace.metres)],
+    [W.label.distance, whereWord(trace)],
     [W.label.reach, trace.reachMagnitude === null ? null : W.magnitude(trace.reachMagnitude)],
     [W.label.gauge, trace.gaugeMagnitude === null ? null : W.magnitude(trace.gaugeMagnitude)],
     [W.label.share, shareWord(trace)],

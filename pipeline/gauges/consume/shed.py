@@ -123,17 +123,105 @@ def trust_for(section_mag: Optional[int], gauge_mag: Optional[int]) -> Optional[
 
 @dataclass(frozen=True)
 class GaugeLink:
-    """One (section, gauge) claim, with the evidence for it."""
+    """One (section, gauge) claim, with the evidence for it.
+
+    `rel` / `dist_m` (T93): how the GAUGE stands to this section (`REL_*` below) and the channel distance between them
+    along the walk that found it. Every candidate carries them, admitted or not, so a policy (`POLICIES`) is a choice
+    over facts already in hand — never a re-walk, never a re-match.
+    """
     section_id: str
     station: str
     trust: str
     ratio: float
     hops: int
+    rel: str = ""
+    dist_m: int = 0
+
+    @property
+    def drains(self) -> bool:
+        """This reach's water drains through the gauge (`drains_through`): the drainage gate's yes."""
+        return self.rel in DRAINS_THROUGH
+
+
+# ---- THE RELATIONSHIP (T93) ------------------------------------------------------------------------------------------
+#
+# WHERE THE GAUGE STANDS, SEEN FROM THE SECTION — the words the app says it in ("the gauge is 12 km downstream"). Decided
+# by the two walks (which side of the gauge) and the FWA codes (`wsc.relation`: the same watercourse, or a branch), so it
+# is a fact about the river network, not a judgement; the judgement is the policy below.
+REL_ON = "on"                  # the gauge stands on this section
+REL_DOWN = "down"              # downstream, on this same watercourse (same FWA code)
+REL_UP = "up"                  # upstream, on this same watercourse
+REL_DOWN_TRUNK = "down_trunk"  # downstream, on the river this reach's water flows into (this reach is its tributary)
+REL_UP_BRANCH = "up_branch"    # on a TRIBUTARY of this reach's water: Slesse Creek's gauge seen from the Chilliwack
+REL_APART = "apart"            # the walk reached it, the codes say two branches (a braid across a code run)
+REL_UNKNOWN = "unknown"        # a watershed code is missing: nothing can be said
+
+#: Every relationship, in the order the app's vocabulary lists them (emitted as `GaugeRel`, gauge-policy.generated.ts).
+GAUGE_RELS = (REL_ON, REL_DOWN, REL_UP, REL_DOWN_TRUNK, REL_UP_BRANCH, REL_APART, REL_UNKNOWN)
+
+#: The relationships under which this reach's water has passed the gauge — `drains_through` (the gate) as a set.
+DRAINS_THROUGH = frozenset({REL_ON, REL_DOWN, REL_UP, REL_DOWN_TRUNK})
+
+
+def relate(section_wsc: str, gauge_wsc: str, *, hops: int, upstream_walk: bool) -> str:
+    """Where a gauge stands to a section the shed walk reached. `upstream_walk`: found climbing from the gauge (so the
+    section is above it, the gauge downstream). Equivalent to `drains_through` on the gate's question:
+    `relate(...) in DRAINS_THROUGH` == `drains_through(section_wsc, gauge_wsc)` for every pair (pinned in the tests)."""
+    r = _wsc.relation(section_wsc, gauge_wsc)
+    if r == _wsc.UNKNOWN:
+        return REL_UNKNOWN
+    if r == _wsc.SAME:
+        return REL_ON if hops == 0 else (REL_DOWN if upstream_walk else REL_UP)
+    if r == _wsc.BELOW:                 # this reach's code extends the gauge's: it drains into the gauge's water
+        # climbing: a tributary above the gauge. Descending (rare): a side channel FWA codes as a branch, below the
+        # gauge — the gauge is upstream of it, and its water still passed the gauge
+        return REL_DOWN_TRUNK if upstream_walk else REL_UP
+    if r == _wsc.ABOVE:                 # the gauge's code extends this reach's: the gauge is on a branch of it
+        return REL_UP_BRANCH
+    return REL_APART
+
+
+# ---- THE POLICY (T93, owner 2026-09-02: "the gauge rule should be a tunable policy") ---------------------------------
+#
+# A policy ADMITS candidates (which relationships may speak at all); the rank among the admitted is common to every
+# policy (best ratio, then a transmitting station, then the id — see `choose`). Changing the policy is a bundle rebuild
+# (`GAUGE_POLICY`), never a re-match: the candidates and their relationships are the same.
+
+@dataclass(frozen=True)
+class GaugePolicy:
+    name: str
+    admits: frozenset
+    doc: str
+
+    def admit(self, link: GaugeLink) -> bool:
+        return link.rel in self.admits
+
+
+POLICIES: dict[str, GaugePolicy] = {p.name: p for p in (
+    # TODAY'S GATE, unchanged: the reach's water drains through the gauge (`drains_through`).
+    GaugePolicy("drainage", DRAINS_THROUGH,
+                "the reach's water drains through the gauge (the FWA-code gate since Slesse Creek)"),
+    # Stricter: one watercourse only — a tributary reach is not told its trunk river's flow.
+    GaugePolicy("same_watercourse", frozenset({REL_ON, REL_DOWN, REL_UP}),
+                "only a gauge on this reach's own watercourse (same FWA code), up or down"),
+    # The behaviour BEFORE the gate (kept to show what the gate refuses): a gauge on a tributary may speak for its
+    # trunk river, as Slesse Creek did for 13 reaches of the Chilliwack.
+    GaugePolicy("ungated", frozenset({REL_ON, REL_DOWN, REL_UP, REL_DOWN_TRUNK, REL_UP_BRANCH}),
+                "any gauge the walk reaches whose code relationship is known (pre-gate; Slesse speaks for the Chilliwack)"),
+)}
+
+#: The policy every build uses. `drainage` is today's gate (owner default, T93: "keep the current gate as the default").
+GAUGE_POLICY = "drainage"
 
 
 def _walk(graph, start: str, adj: dict[str, list[int]], forward: bool,
-          keep) -> Iterable[tuple[str, int]]:
-    """Breadth-first over the flow graph, yielding (node_id, hops) for nodes ``keep`` admits.
+          keep) -> Iterable[tuple[str, int, float]]:
+    """Breadth-first over the flow graph, yielding (node_id, hops, metres) for nodes ``keep`` admits.
+
+    METRES (T93) is the channel distance from the gauge to the near end of the node, along the walk's own tree. A
+    station stands at the DOWNSTREAM end of its section (`place.nodes_for` takes the section that begins at the gauge
+    and runs upstream), so climbing, the gauge's own section is the first stretch walked; descending, the section
+    below it starts at the gauge (0 m).
 
     PRUNING IS SOUND HERE. Magnitude falls monotonically upstream and rises monotonically
     downstream, so the trust ratio decays monotonically in both directions away from the
@@ -147,14 +235,17 @@ def _walk(graph, start: str, adj: dict[str, list[int]], forward: bool,
         from pipeline.atlas.graph import tributaries as _tribs
         ctx = _tribs.reach_context(graph, {start})
     seen = {start}
-    q: deque[tuple[str, int]] = deque([(start, 0)])
+    q: deque[tuple[str, int, float]] = deque([(start, 0, 0.0)])
     while q:
-        node, hops = q.popleft()
+        node, hops, metres = q.popleft()
         if not keep(node):
             continue                     # neither emitted nor expanded past
-        yield node, hops
+        yield node, hops, metres
         if hops >= _MAX_HOPS:
             continue
+        # the stretch between this node's near end and the next node's: this node's own length, except descending
+        # from the gauge's section, whose downstream end IS the gauge
+        step = float(getattr(graph.nodes[node], "length_m", 0.0) or 0.0) if (forward or node != start) else 0.0
         for ix in sorted(adj.get(node, ())):
             e = graph.edges[ix]
             nxt = e.from_node if forward else e.to_node
@@ -163,7 +254,7 @@ def _walk(graph, start: str, adj: dict[str, list[int]], forward: bool,
             if ctx is not None and _tribs.may_enter(ctx, nxt, node, e, via=_tribs.UP) is not None:
                 continue                 # the tributary walk's own refusal (T117)
             seen.add(nxt)
-            q.append((nxt, hops + 1))
+            q.append((nxt, hops + 1, metres + step))
 
 
 #: The water kinds that report a LEVEL, not a discharge: standing water, as the registry calls it.
@@ -230,10 +321,50 @@ def drains_through(section_wsc: str, gauge_wsc: str) -> bool:
     return _wsc.is_at_or_below(section_wsc, gauge_wsc)
 
 
+def choose(found: dict[str, list[GaugeLink]], by_id: dict[str, dict],
+           policy: str = GAUGE_POLICY) -> list[GaugeLink]:
+    """ONE station per section: the best candidate `policy` admits, sorted by section.
+
+    Best ratio wins. A TIE IS BROKEN ON WHETHER THE STATION IS TRANSMITTING, and only then
+    on the id for determinism.
+
+    The id alone was doing real damage, because a tie is not rare: two stations that resolve
+    to the SAME node have ratio 1.0 against each other and the lower id took every section.
+    Measured on the province, six active stations spoke for nothing at all —
+
+        08MH044 FRASER RIVER AT WHONOCK          lost to 08MH024 (Fraser at Mission)
+        08MH103 CHILLIWACK RIVER ABOVE SLESSE    lost to 08MH016 (outlet of Chilliwack Lake)
+        08HD007 SALMON RIVER ABOVE MEMEKAY       lost to 08HD006 (near Sayward)
+
+    — and in the Duncan and Quinsam cases the id happened to pick the DISCONTINUED station
+    over the transmitting one, so the reach was handed a gauge with no reading. Sharing a
+    node at all is the deeper problem (those pairs are up to 18 km apart and should be cut
+    into different sections); until the cuts separate them, preferring the station a reader
+    can actually get a number from is the honest tiebreak.
+    """
+    pol = POLICIES[policy]                    # an unknown name raises: a typo must not build a different app
+
+    def rank(l: GaugeLink) -> tuple:
+        return (-l.ratio, 0 if speaks_now(by_id.get(l.station, {})) else 1, l.station)
+
+    out = []
+    for sec in sorted(found):
+        admitted = [l for l in found[sec] if pol.admit(l)]
+        if admitted:
+            out.append(min(admitted, key=rank))
+    return out
+
+
 def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, str],
                       prefer: set[str] | None = None,
-                      *, report: list[str] | None = None, registry=None) -> list[GaugeLink]:
-    """Every (section, gauge) pair worth storing — ALL gauges per section, best first.
+                      *, report: list[str] | None = None, registry=None,
+                      policy: str = GAUGE_POLICY,
+                      candidates: list[GaugeLink] | None = None) -> list[GaugeLink]:
+    """Every (section, gauge) pair worth storing — ONE gauge per section, the policy's best.
+
+    ``policy`` (T93): which relationships may speak — `POLICIES`, default `GAUGE_POLICY` (today's drainage gate).
+    ``candidates``: when a list, receives EVERY pair the walks reached, admitted or not, with its relationship and
+    distance, sorted by (section, station) — the bundle's `gauge_relation` table.
 
     ``node_for_station`` comes from the spatial match (``pipeline.gauges.generate.match``) and is kept
     a separate argument on purpose: matching needs geometry and a 5 GB atlas, this needs
@@ -317,47 +448,38 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
             _walk(graph, node_id, graph.up_adj, True, keep),    # its tributaries
             _walk(graph, node_id, graph.down_adj, False, keep),  # what it flows into
         )
-        for walk in walks:
-            for sec, hops in walk:
+        mine: dict[str, GaugeLink] = {}
+        for upstream_walk, walk in zip((True, False), walks):
+            for sec, hops, metres in walk:
                 # A lake reached from a river gauge is skipped for the same reason as the
                 # reverse: the river's discharge is not the lake's level.
                 if is_lake_station(graph, sec, registry):
-                    continue
-                # THE GAUGE MUST BE IN THIS REACH'S DRAINAGE. The walk can arrive at water
-                # the gauge has never seen — downstream from a tributary is the mainstem —
-                # and the magnitude ratio cannot tell the difference, because it is
-                # symmetric and the question is not. See `drains_through`.
-                if not drains_through(_trim(getattr(graph.nodes[sec], "wsc", "")),
-                                      gauge_wsc):
                     continue
                 mag = int(graph.nodes[sec].stream_magnitude)
                 band = trust_for(mag, gauge_mag)
                 if band is None:                    # keep() already refused these
                     continue
                 lo, hi = sorted((mag, int(gauge_mag)))
-                found.setdefault(sec, []).append(
-                    GaugeLink(sec, station, band, lo / hi, hops))
+                # WHERE THE GAUGE STANDS (T93). Every pair the walk reaches is a CANDIDATE with its relationship;
+                # whether it may speak is the policy's call (`choose`). Under `drainage` — the default — that is
+                # today's gate: THE GAUGE MUST BE IN THIS REACH'S DRAINAGE. The walk can arrive at water the gauge has
+                # never seen — downstream from a tributary is the mainstem — and the magnitude ratio cannot tell the
+                # difference, because it is symmetric and the question is not. See `drains_through`.
+                rel = relate(_trim(getattr(graph.nodes[sec], "wsc", "")), gauge_wsc,
+                             hops=hops, upstream_walk=upstream_walk)
+                link = GaugeLink(sec, station, band, lo / hi, hops, rel, int(round(metres / 100.0)) * 100)
+                # one candidate per (section, station): a braid can reach a section from both walks — the nearer wins
+                # (the ratio, and so the band and the gate, are the same either way)
+                if sec not in mine or hops < mine[sec].hops:
+                    mine[sec] = link
+        for sec, link in mine.items():
+            found.setdefault(sec, []).append(link)
 
-    # Best ratio wins. A TIE IS BROKEN ON WHETHER THE STATION IS TRANSMITTING, and only then
-    # on the id for determinism.
-    #
-    # The id alone was doing real damage, because a tie is not rare: two stations that resolve
-    # to the SAME node have ratio 1.0 against each other and the lower id took every section.
-    # Measured on the province, six active stations spoke for nothing at all —
-    #
-    #     08MH044 FRASER RIVER AT WHONOCK          lost to 08MH024 (Fraser at Mission)
-    #     08MH103 CHILLIWACK RIVER ABOVE SLESSE    lost to 08MH016 (outlet of Chilliwack Lake)
-    #     08HD007 SALMON RIVER ABOVE MEMEKAY       lost to 08HD006 (near Sayward)
-    #
-    # — and in the Duncan and Quinsam cases the id happened to pick the DISCONTINUED station
-    # over the transmitting one, so the reach was handed a gauge with no reading. Sharing a
-    # node at all is the deeper problem (those pairs are up to 18 km apart and should be cut
-    # into different sections); until the cuts separate them, preferring the station a reader
-    # can actually get a number from is the honest tiebreak.
-    def rank(l: GaugeLink) -> tuple:
-        return (-l.ratio, 0 if speaks_now(by_id.get(l.station, {})) else 1, l.station)
-
-    links = [min(found[sec], key=rank) for sec in sorted(found)]
+    # the rank (best ratio, a transmitting station, the id) is `choose`'s, common to every policy
+    if candidates is not None:
+        candidates.extend(sorted((l for ls in found.values() for l in ls),
+                                 key=lambda l: (l.section_id, l.station)))
+    links = choose(found, by_id, policy)
 
     if report is not None:
         spoke = {l.station for l in links}

@@ -818,8 +818,25 @@ CREATE TABLE gauge (station TEXT PRIMARY KEY, name TEXT NOT NULL,
 -- `mag` is THIS section's stream magnitude, against `gauge.mag` for the station's. The
 -- band alone cannot rank two gauges: 'good' spans a tenth of a watershed to all of it, so
 -- ordering on it picked a 13 km2 creek station over the Cowichan's own river gauge.
+--
+-- `rel` / `dist_m` (T93): WHERE THE GAUGE STANDS, seen from this section, and how far along the channel —
+-- 'on' (this section; 0), 'down' / 'up' (downstream / upstream on this same watercourse: one FWA code),
+-- 'down_trunk' (downstream on the river this reach's water flows into). `dist_m` is metres from the near end of
+-- this section to the station, rounded to 100 m (a station stands at the downstream end of its own section).
+-- The app says it ("the gauge is 12 km downstream"). Which relationships may speak is the build's POLICY
+-- (`pipeline/gauges/consume/shed.py` POLICIES / GAUGE_POLICY, default 'drainage' = today's gate); every candidate,
+-- admitted or not, is in `gauge_relation` below. ADDED LAST, nullable: still conditions/1, an older release has none.
 CREATE TABLE section_gauge (sid INTEGER PRIMARY KEY, station TEXT NOT NULL,
-                            trust TEXT NOT NULL, mag INTEGER);
+                            trust TEXT NOT NULL, mag INTEGER, rel TEXT, dist_m INTEGER);
+
+-- EVERY (section, gauge) CANDIDATE the shed walk reached (T93), with the facts a policy chooses over: `rel` as above
+-- plus 'up_branch' (the gauge is on a TRIBUTARY of this water — Slesse Creek's gauge seen from the Chilliwack, which
+-- the default policy refuses), 'apart' and 'unknown' (the codes cannot say); `hops` along the walk; `ratio` the
+-- symmetric magnitude ratio behind `trust`. BUILD-SIDE ONLY: no release file carries it (the release contract lists the
+-- tables each file ships). Changing the policy is a bundle rebuild, never a re-match or an atlas rebuild.
+CREATE TABLE gauge_relation (sid INTEGER NOT NULL, station TEXT NOT NULL, rel TEXT NOT NULL,
+                             dist_m INTEGER NOT NULL, hops INTEGER NOT NULL, ratio REAL NOT NULL,
+                             trust TEXT NOT NULL, PRIMARY KEY (sid, station)) WITHOUT ROWID;
 
 -- THE DONOR PANEL ------------------------------------------------------------------
 --

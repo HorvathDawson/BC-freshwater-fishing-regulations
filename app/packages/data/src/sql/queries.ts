@@ -157,8 +157,10 @@ export const SEARCH_PLACES =
  * that says "08MH016" and nothing else has told the reader nothing.
  */
 export const GAUGE_FOR_SECTION =
-  "SELECT sg.station, sg.trust, sg.mag AS reach_mag, g.name, g.lon, g.lat, g.area_km2, " +
-  "       g.mag, g.sid AS gauge_section " +
+  // `sg.*`, NOT A COLUMN LIST (T93): `rel` / `dist_m` are new, and a release cut before them has neither — naming them
+  // would fail the query and take the gauge with it (the `gaugePlaces` reason). `link` reads them when present.
+  "SELECT sg.*, sg.mag AS reach_mag, g.name, g.lon, g.lat, g.area_km2, " +
+  "       g.mag AS gauge_mag, g.sid AS gauge_section " +
   "FROM section_gauge sg LEFT JOIN gauge g USING(station) " +
   "WHERE sg.sid = ?";
 

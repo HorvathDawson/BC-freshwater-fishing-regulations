@@ -3,7 +3,7 @@
  * gauges' links, panels and routes, series and forecasts, and the search hits. Data only — the interface is source.ts.
  */
 import type {
-  Band, GaugeTrust, NearPlace, RecordYears, RunChange, SourceChange, Standing, WaterSignals,
+  Band, GaugeRel, GaugeTrust, NearPlace, RecordYears, RunChange, SourceChange, Standing, WaterSignals,
 } from "@app/core";
 
 /** Durable across rebuilds — 99.88% stable. The only id that crosses an artifact boundary. */
@@ -113,6 +113,13 @@ export interface GaugeLink {
   live: boolean | null;
   /** Gross drainage area at the station, km2. ECCC's own figure; null when unpublished. */
   areaKm2: number | null;
+  /**
+   * WHERE THE STATION STANDS, seen from this reach (T93, `section_gauge.rel`) — on it, downstream / upstream on this
+   * same watercourse, downstream on the river this water flows into — and the channel distance in metres from the
+   * reach's near end (`dist_m`, to 100 m). Null on a release cut before T93: then nothing is said about direction.
+   */
+  rel: GaugeRel | null;
+  metres: number | null;
   /** Where the station is, for the map. Null when ECCC published no coordinate. */
   lon: number | null;
   lat: number | null;

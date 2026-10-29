@@ -97,9 +97,8 @@ export async function stationReading(source: WaterSource, station: StationId | n
  * time. Both feed the SAME component — a gauge's representativeness is the most
  * misreadable number in the app, so the sentence explaining it may not have two versions.
  *
- * `metres` is null here and that is not an oversight: along-channel distance to the station
- * is not computed by anything yet. The component renders "not known", which is the truth.
- * A zero would read as "the gauge is right here".
+ * `metres` and `rel` (T93) are the release's `section_gauge.dist_m` / `.rel`: the channel distance and which side the
+ * station stands on. A release cut before T93 has neither — null, which the component renders "not known", the truth.
  */
 export function useGaugeTrace(
   source: WaterSource, section: SectionId | null,
@@ -121,7 +120,9 @@ export function useGaugeTrace(
         stationName: link.name,
         trust: link.trust,
         path: await source.traceToGauge(section),
-        metres: null,
+        // (T93) the channel distance and the side the station stands on, as the release states them
+        metres: link.metres ?? null,
+        rel: link.rel ?? null,
         reachMagnitude: link.reachMagnitude || null,
         gaugeMagnitude: link.gaugeMagnitude || null,
         // ECCC's own coordinate, straight through. Null when they published none — which

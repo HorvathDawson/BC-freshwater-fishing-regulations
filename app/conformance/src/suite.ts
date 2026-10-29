@@ -173,6 +173,16 @@ export function runConformance(name: string, make: () => Promise<WaterSource>,
     expect(near!.trust).toBe("good");
   });
 
+  T("a gauge link says where the station stands, or nothing (T93)", async (s) => {
+    // `section_gauge.rel` / `dist_m`: a release cut before them reads null for both — never a guessed side or a 0 m
+    const g = await s.gaugeForSection(sections.lowerChilliwack);
+    if (g!.rel === null) expect(g!.metres).toBeNull();
+    else {
+      expect(["on", "down", "up", "down_trunk"]).toContain(g!.rel);
+      expect(g!.metres).toBeTypeOf("number");
+    }
+  });
+
   T("the series carries the percentile envelope beside the observations", async (s) => {
     const g = await s.gaugeForSection(sections.lowerChilliwack);
     const series = await s.gaugeSeries(g!.station, "72h");

@@ -12,6 +12,7 @@
  * completely different claims about a river.
  */
 import type { GaugeTrust } from "./flow";
+import type { GaugeRel } from "./gauge-policy.generated";
 import type { SectionKey } from "./section";
 
 export interface GaugeTrace {
@@ -31,6 +32,12 @@ export interface GaugeTrace {
   path: readonly SectionKey[];
   /** Along-channel distance to the station. Null when nothing has computed it. */
   metres: number | null;
+  /**
+   * WHERE THE STATION STANDS, seen from this reach (T93, `section_gauge.rel`): on it, downstream or upstream on this
+   * same watercourse, or downstream on the river this water flows into. Absent / null on a release cut before T93 and on
+   * a spot saved before it — then the words fall back to what the walk alone can say.
+   */
+  rel?: GaugeRel | null;
   /** FWA stream magnitudes the trust was derived from. */
   reachMagnitude: number | null;
   gaugeMagnitude: number | null;
@@ -204,7 +211,7 @@ export const SAME_PLACE_M = 250;
 
 /** The gauge is on this very reach — there is no distance to travel. */
 export const onTheReach = (t: AnyTrace): boolean =>
-  t.station !== null && reachCount(t) <= 1;
+  t.station !== null && (t.rel ? t.rel === "on" : reachCount(t) <= 1);
 
 /**
  * What fraction of the gauge's watershed this reach is.
@@ -224,6 +231,26 @@ export function distanceWord(metres: number | null): string | null {
   return metres >= 1000 ? `${(metres / 1000).toFixed(1)} km` : `${Math.round(metres)} m`;
 }
 
+/** Which way along the channel the station stands, as the distance row's value says it (T93). */
+const WAY: Partial<Record<GaugeRel, string>> = {
+  down: "downstream", up: "upstream", down_trunk: "downstream, on the river this flows into",
+  up_branch: "upstream, on a tributary",
+};
+
+/**
+ * The distance row's value (T93): "12.3 km downstream", "450 m upstream", the bare distance when the release says no
+ * direction, or null when there is no distance. Never "0 m" — a reach that starts at the station is "at the gauge".
+ */
+export function whereWord(t: AnyTrace): string | null {
+  if (onTheReach(t)) return TRACE_WORDS.onTheReach;
+  const way = t.rel ? WAY[t.rel] : undefined;
+  if (way && t.metres !== null && t.metres < 100)
+    return t.rel === "up" || t.rel === "up_branch" ? TRACE_WORDS.atTheTop : TRACE_WORDS.atTheFoot;
+  const d = distanceWord(t.metres);
+  if (d === null) return null;
+  return way ? `${d} ${way}` : d;
+}
+
 /** "2.4 %", "0.03 %", or null. Two decimals below one percent, where the floors live. */
 export function shareWord(t: AnyTrace): string | null {
   const s = share(t);
@@ -240,6 +267,8 @@ export const TRACE_WORDS = {
   title: "How this spot reaches the gauge",
   label: { distance: "distance", reach: "this reach", gauge: "at the gauge", share: "share", trust: "so it shows" },
   onTheReach: "on the reach",
+  atTheTop: "at the top of this reach",
+  atTheFoot: "at the foot of this reach",
   magnitude: (m: number) => `magnitude ${m}`,
   gaugeDot: "the gauge",
   notKnown: "not known",
@@ -257,6 +286,14 @@ export function traceSentence(t: AnyTrace): string {
            "would still give you a number, and the number would be wrong.";
   if (onTheReach(t)) return `The gauge sits on this reach.`;
   const d = distanceWord(t.metres);
+  // (T93) THE STATION IS UPSTREAM: water here has already passed it — "drains through" and "flows down to" would both
+  // be false (the Vedder below 08MH001). The release says so in `rel`; without it the walk's downstream words stand.
+  if (t.rel === "up" || t.rel === "up_branch") {
+    const on = t.rel === "up" ? "on this water" : "on a tributary of this water";
+    return d === null || (t.metres ?? 0) < 100
+      ? `${t.station} is just upstream, ${on}: water here has already passed it.`
+      : `${t.station} is ${d} upstream, ${on}: water here has already passed it.`;
+  }
   return d === null
     ? `This reach drains through ${t.station}.`
     : `Water here flows ${d} down to ${t.station}.`;

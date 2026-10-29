@@ -23,6 +23,13 @@ export const TRUST_BANDS: readonly (readonly [GaugeTrust, number])[] = [
   ["weak", 0.001],
 ];
 
+// Where a reach's gauge stands (T93), from `GAUGE_RELS` in pipeline/gauges/consume/shed.py: written into
+// `section_gauge.rel` with the channel distance `dist_m`. Which of them may speak is the build's policy, never the app's.
+
+/** Where the gauge stands, seen from the reach: on it, down / up its own watercourse, down the river it flows into,
+ *  on a tributary of it, or a relationship the codes cannot say. */
+export type GaugeRel = "on" | "down" | "up" | "down_trunk" | "up_branch" | "apart" | "unknown";
+
 // The water-temperature classes, from `_TEMP_BANDS` in pipeline/gauges/feed/publish.py -- the publisher writes one
 // onto every temperature reading (`temperatureBand`), and the Conditions legend words them (`TEMP_LEGEND` in core).
 // POLICY awaiting curation, not physics, and never a citation of a closure order.
