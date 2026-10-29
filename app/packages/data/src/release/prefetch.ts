@@ -31,7 +31,7 @@ export interface PrefetchSignals {
   saveData: boolean;
   /** `navigator.connection.effectiveType` (null when the browser does not say). */
   effectiveType: string | null;
-  /** (T254) low-bandwidth mode: core's bytes are fetched AHEAD (behind anything the reader asks for), not opened */
+  /** (T254) low-bandwidth mode: nothing ahead of need but the region's file (owner 2026-10-29: skip prefetch) */
   lowData?: boolean;
 }
 
@@ -40,16 +40,14 @@ export interface PrefetchPlan {
   regs: Region | null;
   /** Open `core` (and with it the sql.js engine). */
   core: boolean;
-  /** (T254) Fetch `core`'s bytes ahead, at the back of the queue, without opening it (low-bandwidth mode). */
-  coreAhead?: boolean;
 }
 
 /** THE DECISION, pure: what to prefetch given the signals. */
 export function prefetchPlan(s: PrefetchSignals): PrefetchPlan {
   const slow = s.effectiveType !== null && SLOW_CONNECTIONS.includes(s.effectiveType);
-  // (T254) on a poor line nothing is opened ahead (no sql.js engine pulled in unasked): core's bytes alone wait at the
-  // back of the queue, so a tap that needs them finds them partly or wholly in — and a tap on anything else goes first
-  if (s.lowData) return { regs: s.region, core: false, coreAhead: s.idle && !s.saveData };
+  // (T254) a poor line: core is not fetched unasked (measured: core ahead made Conditions 20 s slower on Slow 3G); the
+  // region's file still is, behind anything the reader asks for (the web source's gate: `ahead`)
+  if (s.lowData) return { regs: s.region, core: false };
   return { regs: s.region, core: s.idle && !s.saveData && !slow };
 }
 
@@ -65,10 +63,6 @@ export function runPrefetch(loader: ReleaseLoader, plan: PrefetchPlan, mark: (na
   if (plan.regs && !loader.prefetched(`regs-${plan.regs}`)) {
     mark(`${PREFETCH_MARK}:regs-${plan.regs}`);
     void loader.prefetch(`regs-${plan.regs}`).catch(() => {});
-  }
-  if (plan.coreAhead && !loader.prefetched("core")) {
-    mark(`${PREFETCH_MARK}:core-ahead`);
-    void loader.prefetch("core").catch(() => {});
   }
   if (plan.core && !loader.opened().includes("core")) {
     mark(`${PREFETCH_MARK}:core`);

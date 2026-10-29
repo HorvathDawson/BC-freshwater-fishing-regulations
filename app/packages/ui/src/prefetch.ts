@@ -41,7 +41,7 @@ export const BACKGROUND_DELAY_MS = 4000;
 
 export function useReleasePrefetch(loader: ReleaseLoader | null, onIdle?: () => void,
                                    background?: BackgroundPrefetch | null,
-                                   /** (T254) low-bandwidth mode now: core's bytes are fetched ahead, not opened */
+                                   /** (T254) low-bandwidth mode now: nothing unasked but the region's file */
                                    lowData?: () => boolean): ((regionId: unknown) => void) | undefined {
   const s = useRef<{ painted: boolean; idle: boolean; region: PrefetchSignals["region"] }>(
     { painted: false, idle: false, region: null });

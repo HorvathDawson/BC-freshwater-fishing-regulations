@@ -197,7 +197,9 @@ async function tapUntilRegs(s, t, cap) {
   while (Date.now() < end && !opened) {
     await s.closeSheets();
     tapAt = await s.pageNow();
-    await s.tap(t.x, t.y);
+    // (T254) a banner over the app (slow / offline) moves the map down by its height: the same place on the map
+    const dy = await s.b.evaluate(`document.querySelector('[data-testid=net-status]')?.getBoundingClientRect().height ?? 0`).catch(() => 0);
+    await s.tap(t.x, t.y + dy);
     // the water's frame is up (its name may come later: an unnamed reach is named by the store it is waiting for)
     opened = await s.until(`!!document.querySelector('[data-testid=water-title]')`, 2500);
   }
@@ -300,7 +302,8 @@ async function offlineBack(site, o) {
     await s.closeSheets();
     await s.setOffline(true);
     let opened = false;
-    for (let i = 0; i < 6 && !opened; i++) { await s.closeSheets(); await s.tap(TAPS.named.x, TAPS.named.y);
+    const dy = () => s.b.evaluate(`document.querySelector('[data-testid=net-status]')?.getBoundingClientRect().height ?? 0`).catch(() => 0);
+    for (let i = 0; i < 6 && !opened; i++) { await s.closeSheets(); await s.tap(TAPS.named.x, TAPS.named.y + await dy());
       opened = await s.until(`!!document.querySelector('[data-testid=water-title]')?.innerText.trim()`, 2500); }
     await sleep(15_000 - 6 * 2500 > 0 ? 15_000 - 6 * 2500 : 0);
     const offlineShown = await s.text();
@@ -311,7 +314,7 @@ async function offlineBack(site, o) {
     let recovered = 'stuck';
     if (await s.until(`!!document.querySelector('[data-testid=regs-header]')`, 60_000)) recovered = 'by itself';
     else {
-      await s.closeSheets(); await s.tap(TAPS.named.x, TAPS.named.y);
+      await s.closeSheets(); await s.tap(TAPS.named.x, TAPS.named.y + await dy());
       if (await s.until(`!!document.querySelector('[data-testid=regs-header]')`, 60_000)) recovered = 'after a re-tap';
     }
     const seen = await s.seen();
