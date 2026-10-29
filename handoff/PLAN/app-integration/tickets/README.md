@@ -332,7 +332,7 @@ use that as the sole source of future work."
 | T286 | Tap → regulations instant on phones (≤150 ms to content, never a spinner): measure, batch reads, cache, prefetch on settle | OPEN | — | owner 2026-10-29 |
 | T287 | No freeze when a download finishes: verify/unzip off the JS thread, prepare then swap at idle, minimal re-render | OPEN | — | owner 2026-10-29 |
 | T288 | Glossary: every Synopsis definition (printed p.80), A–Z scrubber, modern layout, fuzzy search | DONE | 732f100f1, 64ae838bf | terms ship with the next release from ≥732f100f1 |
-| T290 | Remove the Names and Proposals tabs from the curation review tool (after the T224 close-out) | BLOCKED | — | owner 2026-10-29 |
+| T290 | Remove the Names, Proposals and Low-confidence cuts tabs from the curation review tool | OPEN | — | owner 2026-10-29 |
 | T291 | Test-tag problem/crash reports from tools, ignore them in digest + review, clean up staging reports | PARTIAL | 16fc227fc | built + staging cleaned (7 reports, 7 crash kinds deleted); verified live on the deployed worker 2026-10-29 (tagged report + crash land in reports-test/ and crashes-test/, none in the real prefixes); left: confirm with the next `session.sh --build` APK |
 
 ## Order for open tickets

@@ -1,9 +1,11 @@
 # T290 — Remove the Names and Proposals tabs from the curation review tool
 
-Status: BLOCKED (owner 2026-10-29: "after this we can remove the name tab from review curation tool"; waits on the T224
+Status: OPEN (unblocked by owner 2026-10-29 — do it now; owner 2026-10-29: "after this we can remove the name tab from review curation tool"; waits on the T224
 close-out in the current rebuild — coverage names accepted, obvious gauge names accepted, held gauge names answered).
 
 ## Work
+Also the **Low-confidence cuts** tab (owner 2026-10-29). Any open item those tabs held is settled in chat.
+
 Also (owner 2026-10-29: "the review curation tool proposal tab can be removed too"): the read-only Proposals view
 (`#proposals`, TopNav entry, its backend endpoint if only the view uses it). The proposals/apply pipeline
 (`apply_proposals`) stays — only the view goes.
