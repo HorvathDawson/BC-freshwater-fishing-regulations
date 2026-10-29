@@ -175,6 +175,15 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     const same = col("spot-that-day") === col("spot-next-days");
     expect(same).toBe(w < 880);
     expect(col("spot-that-day")).toBe(col("spot-added"));
+    // a photograph opens full screen: named, with next / close; the next one is reached, the first has no previous
+    press("Photo 1 of 2"); await settle();
+    expect(screen.queryByLabelText("Previous photo")).toBeNull();
+    press("Next photo"); await settle();
+    expect(screen.getAllByLabelText("Photo 2 of 2").length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText("Next photo")).toBeNull();
+    press("Close photo"); await settle();
+    expect(screen.queryByTestId("photo-viewer")).toBeNull();
+    press("Photo 2 of 2"); await settle();   // left open: the audit below sees the viewer too
   }, /That day[\s\S]*What you added[\s\S]*The next few days/],
 ];
 

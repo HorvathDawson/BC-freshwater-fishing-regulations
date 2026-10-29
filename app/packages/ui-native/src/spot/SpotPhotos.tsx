@@ -1,6 +1,7 @@
 /** S1: a spot's photographs — drawn from the store; in draft and edit, with add and remove (`usePhotoEdit`). */
 import { ErrorState } from "../ErrorState";
 import { LoadingState } from "../LoadingState";
+import { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import { PHOTO_WORDS, photoLabel, removePhotoLabel } from "@app/data/spots";
 import type { PhotoEdit } from "@app/ui";
@@ -8,24 +9,31 @@ import { TYPE } from "../type";
 import { round, type Palette } from "../theme";
 import { Button } from "../Button";
 import { Icon } from "../icons";
+import { hitProps } from "../regs/hit";
 import { Block } from "./parts";
+import { PhotoViewer } from "./PhotoViewer";
 
 export function SpotPhotos({ photos, uris, pe, palette }: {
   photos: readonly string[]; uris: ReturnType<typeof import("@app/ui").usePhotoUris>; pe: PhotoEdit | undefined;
   palette: Palette;
 }) {
+  const [open, setOpen] = useState<number | null>(null);
   return (
     <Block palette={palette} title={PHOTO_WORDS.heading}>
+      <PhotoViewer uris={photos.map((r) => uris.get(r) ?? null)} index={open} onIndex={setOpen}
+                   onClose={() => setOpen(null)} palette={palette} />
       <View testID="spot-photo-grid" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {photos.map((ref, i) => {
           const uri = uris.get(ref);
           return (
-            <View key={ref} style={{ flexGrow: 1, flexBasis: 104, maxWidth: 220, aspectRatio: 1, borderRadius: palette.r.box,
+            <View key={ref} style={{ width: "31.5%", aspectRatio: 1, borderRadius: palette.r.box,
                                      overflow: "hidden", backgroundColor: palette.tint,
                                      alignItems: "center", justifyContent: "center" }}>
               {uri ? (
-                <Image source={{ uri }} accessibilityRole="image" accessibilityLabel={photoLabel(i + 1, photos.length)}
-                       style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+                <Pressable {...hitProps({ w: 104, h: 104 })} onPress={() => setOpen(i)} accessibilityRole="button"
+                           accessibilityLabel={photoLabel(i + 1, photos.length)} style={{ width: "100%", height: "100%" }}>
+                  <Image source={{ uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+                </Pressable>
               ) : uri === null ? (
                 <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint, padding: 8,
                                textAlign: "center" }}>{PHOTO_WORDS.missing}</Text>

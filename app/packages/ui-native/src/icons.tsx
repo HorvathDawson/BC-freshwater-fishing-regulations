@@ -21,7 +21,9 @@ import { OBSTACLE_ICON_GRID, OBSTACLE_ICON_HALO, OBSTACLE_ICON_SHAPES, obstacleI
 export type IconName =
   | "map" | "conditions" | "spots" | "more" | "layers"
   | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse" | "sync" | "bell" | "check" | "fish" | "delta"
-  | "runs" | "play" | "pause";
+  | "runs" | "play" | "pause"
+  // (T284) the sky, for a day of weather
+  | "sun" | "cloud" | "cloudSun" | "cloudRain" | "cloudDrizzle" | "cloudSnow" | "cloudFog" | "cloudStorm";
 
 /** Which Lucide icon (lucide-static@0.460.0, `icons/<name>.svg`) each app icon is a copy of. */
 export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
@@ -46,6 +48,8 @@ export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
   runs: "fish-symbol",
   play: "play",
   pause: "pause",
+  sun: "sun", cloud: "cloud", cloudSun: "cloud-sun", cloudRain: "cloud-rain", cloudDrizzle: "cloud-drizzle",
+  cloudSnow: "cloud-snow", cloudFog: "cloud-fog", cloudStorm: "cloud-lightning",
 };
 
 /** The owner's stroke (Lucide ships 2): round caps and joins on the 24 grid. */
@@ -145,6 +149,24 @@ export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
     { rect: [14, 4, 4, 16, 1] },
     { rect: [6, 4, 4, 16, 1] },
   ],
+  // (T284) the sky: Lucide's sun, cloud-sun, cloud, cloud-rain, cloud-drizzle, cloud-snow, cloud-fog, cloud-lightning
+  sun: [
+    { circle: [12, 12, 4] },
+    { path: "M12 2v2" }, { path: "M12 20v2" }, { path: "m4.93 4.93 1.41 1.41" }, { path: "m17.66 17.66 1.41 1.41" },
+    { path: "M2 12h2" }, { path: "M20 12h2" }, { path: "m6.34 17.66-1.41 1.41" }, { path: "m19.07 4.93-1.41 1.41" },
+  ],
+  cloud: [{ path: "M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" }],
+  cloudSun: [
+    { path: "M12 2v2" }, { path: "m4.93 4.93 1.41 1.41" }, { path: "M20 12h2" }, { path: "m19.07 4.93-1.41 1.41" },
+    { path: "M15.947 12.65a4 4 0 0 0-5.925-4.128" }, { path: "M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z" },
+  ],
+  cloudRain: [{ path: "M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" }, { path: "M16 14v6" }, { path: "M8 14v6" }, { path: "M12 16v6" }],
+  cloudDrizzle: [{ path: "M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" }, { path: "M8 19v1" }, { path: "M8 14v1" }, { path: "M16 19v1" }, { path: "M16 14v1" },
+                 { path: "M12 21v1" }, { path: "M12 16v1" }],
+  cloudSnow: [{ path: "M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" }, { path: "M8 15h.01" }, { path: "M8 19h.01" }, { path: "M12 17h.01" }, { path: "M12 21h.01" },
+              { path: "M16 15h.01" }, { path: "M16 19h.01" }],
+  cloudFog: [{ path: "M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" }, { path: "M16 17H7" }, { path: "M17 21H9" }],
+  cloudStorm: [{ path: "M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973" }, { path: "m13 12-3 5h4l-3 5" }],
 };
 
 /** One icon from the table, `size` px square, stroked in `colour` (a palette token). Decorative: its button speaks. */

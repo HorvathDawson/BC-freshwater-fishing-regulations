@@ -4,7 +4,7 @@
  */
 import { Text, View } from "react-native";
 import { DAY_PANEL_WORDS, savedGauges, spotReadingFigure, visitDay, type Spot } from "@app/data/spots";
-import { SPOT_RECORD_WORDS, percentileLabel } from "@app/core";
+import { SPOT_RECORD_WORDS, percentileOrdinal } from "@app/core";
 import { DonorPanel } from "../DonorPanel";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
@@ -64,7 +64,7 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
             <Text style={{ ...TYPE.figure, color: palette.sub }}>{fig.unit}</Text>
             {r.percentile != null && (
               <Text style={{ ...TYPE.figure, color: palette.sub }}>
-                · {percentileLabel(r.percentile)} against the record
+                {SPOT_RECORD_WORDS.standing(percentileOrdinal(r.percentile))}
               </Text>
             )}
           </View>

@@ -42,14 +42,35 @@ export function skyWord(code: number | null): string {
   return DASH;
 }
 
+/** (T284) The sky as a picture: which of the icon set's sky drawings a day's WMO code takes; null for none. */
+export type SkyIcon = "sun" | "cloudSun" | "cloud" | "cloudRain" | "cloudDrizzle" | "cloudSnow" | "cloudFog" | "cloudStorm";
+export function skyIcon(code: number | null): SkyIcon | null {
+  if (code === null) return null;
+  if (code === 0) return "sun";
+  if (code === 1 || code === 2) return "cloudSun";
+  if (code === 3) return "cloud";
+  if (code === 45 || code === 48) return "cloudFog";
+  if (code >= 51 && code <= 57) return "cloudDrizzle";
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return "cloudRain";
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "cloudSnow";
+  if (code >= 95 && code <= 99) return "cloudStorm";
+  return null;
+}
+
+/** (T284) How wet a day was, 0 (none or not recorded) to 3, for the table's tint; the number is always printed too. */
+export function rainBand(mm: number | null): 0 | 1 | 2 | 3 {
+  return mm === null || mm < 0.2 ? 0 : mm < 2 ? 1 : mm < 8 ? 2 : 3;
+}
+
 /** A lead-up weather day as the strip draws it. A value nobody recorded is a dash. */
 export function leadUpWeatherCells(d: DailyWeather): { day: string; sky: string; temps: string; rain: string;
-                                                        wind: string } {
+                                                        wind: string; icon: SkyIcon | null; band: 0 | 1 | 2 | 3 } {
   const deg = (v: number | null) => (v === null ? DASH : `${Math.round(v)}°`);
   return {
     day: leadUpDayLabel(d.date), sky: skyWord(d.code), temps: `${deg(d.maxC)} / ${deg(d.minC)}`,
     rain: d.precipMm === null ? DASH : `${tenth(d.precipMm)} mm`,
     wind: d.windMaxKph === null ? DASH : `${Math.round(d.windMaxKph)} km/h`,
+    icon: skyIcon(d.code), band: rainBand(d.precipMm),
   };
 }
 
@@ -171,6 +192,8 @@ export const LEAD_UP_WORDS = {
   gaugeEmpty: "The station has no daily means for that week.",
   weatherFilledIn: `${OPEN_METEO_ATTRIBUTION} · filled in afterwards`,
   weatherSource: OPEN_METEO_ATTRIBUTION,
+  /** (T284) the weather table's row labels, said once at the left */
+  rows: { day: "Day", sky: "Sky", temp: "High / low", rain: "Rain", wind: "Wind" },
   /** The refresh line: a whole half of the week was never read (offline, or saved before the week was kept). */
   notRecorded: "The week before this visit was not recorded — it can be filled in from the days themselves.",
   /** The refresh line: the week was read, but some of its days were not out yet (owner bug 2026-10-22). */
@@ -261,6 +284,8 @@ export const PHOTO_WORDS = {
   remove: "Remove photo",
   missing: "This photo is no longer on this device.",
   adding: "Adding the photo…",
+  /** (T284) the full-screen viewer */
+  close: "Close photo", previous: "Previous photo", next: "Next photo",
 } as const;
 
 /* ---- back, everywhere: leaving a spot being added ---------------------------------------------------------------- */

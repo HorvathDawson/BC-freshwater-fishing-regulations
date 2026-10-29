@@ -61,7 +61,7 @@ describe("likeVisitView", () => {
             "Wind: 8 km/h then, 8 km/h forecast at 09:00. The same: 100% alike, 10% of the score.",
             "Cloud: 40% then, 40% forecast at 09:00. The same: 100% alike, 5% of the score.",
           ] },
-        { date: "2026-10-24", top: "Sat", sub: "24 Oct", score: "100%", read: "Very similar", basis: "weather only", best: false,
+        { date: "2026-10-24", top: "Sat", sub: "24 Oct", score: "100%", read: "Very similar", basis: "No flow forecast for this day: scored on the weather only.", best: false,
           reasons: ["Air temperature: the same", "Rain in the 3 days before: the same", "Wind: the same", "Cloud: the same"],
           label: "Sat, 24 Oct: 100%, very similar to your visit, on the weather only.",
           why: [
@@ -73,7 +73,7 @@ describe("likeVisitView", () => {
             "Cloud: 40% then, 40% forecast at 09:00. The same: 100% alike, 9% of the score.",
           ] },
         expect.objectContaining({ date: "2026-10-25", score: "100%", basis: null }),
-        expect.objectContaining({ date: "2026-10-26", score: "100%", basis: "weather only" }),
+        expect.objectContaining({ date: "2026-10-26", score: "100%", basis: "No flow forecast for this day: scored on the weather only." }),
       ],
     });
   });

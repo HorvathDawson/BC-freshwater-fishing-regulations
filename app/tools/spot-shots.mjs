@@ -47,7 +47,7 @@ const INIT = SEEN + `try { localStorage.setItem('canifishthis.spots.v1', ${JSON.
   }
 } catch (e) { console.error('photo seed', e); } })();`;
 
-const SIZES = { phone: { width: 390, height: 2000, dpr: 1, mobile: true }, desktop: { width: 1280, height: 1100, dpr: 1, mobile: false } };
+const SIZES = { phone360: { width: 360, height: 2000, dpr: 1, mobile: true }, phone: { width: 390, height: 2000, dpr: 1, mobile: true }, desktop: { width: 1280, height: 1500, dpr: 1, mobile: false } };
 async function until(b, expr, ms = 60000) { for (let t = 0; t < ms; t += 250) { if (await b.evaluate(expr).catch(() => false)) return; await sleep(250); } throw new Error('timed out: ' + expr); }
 async function click(b, find) {
   const at = await b.evaluate(`(() => { const e = ${find}; if (!e) return null; const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()`);

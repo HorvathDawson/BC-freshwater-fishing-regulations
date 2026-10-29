@@ -22,7 +22,7 @@ export interface LikeDayVM {
   score: string;
   /** "Very similar" / "Similar" / "Different"; null with no score. */
   read: string | null;
-  /** "weather only" when flow is not in the score; "low-water model" when ELF forecast the day's flow (T171). */
+  /** why flow is not in the score ("No flow forecast for this day: scored on the weather only.") — T284; "low-water model" when ELF forecast the day's flow (T171). */
   basis: string | null;
   /** (T284) The day that looks most like the visit (the highest score; the earlier on a tie); at most one. */
   best: boolean;
@@ -68,7 +68,7 @@ export function likeVisitView(spot: Spot, f: LikeFetched, offline: boolean, now:
     return { date: d.date, top: h.top, sub: h.sub, score: likeScoreText(d),
              read: d.read ? LIKE_WORDS.reads[d.read] : null,
              // under the score: "weather only" with no flow, "low-water model" when ELF forecast the flow (T171)
-             basis: d.basis === "weather" ? LIKE_WORDS.weatherOnly : d.caveat ? LIKE_WORDS.lowWater : null,
+             basis: d.basis === "weather" ? d.note ?? LIKE_WORDS.weatherOnly : d.caveat ? LIKE_WORDS.lowWater : null,
              best: d.date === bestDate,
              reasons: d.factors.flatMap((x) => (x.plain === null ? [] : [x.plain])),
              label: likeDayLabel(d, now),

@@ -72,6 +72,8 @@ export const SPOT_RECORD_WORDS = {
   water: "What the water was doing",
   noReading: "No gauge is entitled to speak for this water, so no reading was recorded. A station draining a far "
     + "larger watershed would have given a number, and the number would have been wrong.",
+  /** the reading's standing, said plainly: "42nd percentile for the time of year" */
+  standing: (ordinal: string) => `${ordinal} percentile for the time of year`,
   weather: "Weather",
   noWeather: "No weather was recorded for this spot.",
 } as const;

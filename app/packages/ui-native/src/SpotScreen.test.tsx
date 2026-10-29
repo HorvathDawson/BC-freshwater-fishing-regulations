@@ -288,7 +288,7 @@ describe("<SpotScreen> draft mode shows what the saved spot will show", () => {
       wind: !!r.queryByText("wind 8 km/h"), rain: !!r.queryByText("rain 2 mm"),
       // `percentileLabel`, shared with the map dot and the sheet — this read "p62"
       // while the map read "p62nd" about the same station.
-      pctile: !!r.queryByText("· p62nd against the record"),
+      pctile: !!r.queryByText("62nd percentile for the time of year"),
       observed: r.queryAllByTestId("spot-observed").map((e) => e.textContent),
     };
     cleanup();
@@ -430,7 +430,7 @@ describe("<SpotScreen> the week before (S1)", () => {
     const { getByLabelText, getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ leadUp })} />);
     expect(getByLabelText("Mon Aug 24: rain, high 17°C, low 8°C, 6 mm of rain, wind up to 10 km/h").textContent)
-      .toBe("Mon 24Rain17° / 8°6 mm");
+      .toBe("Mon 2417° / 8°6 mm10 km/h");
     expect(getByTestId("leadup-rain").textContent).toBe("6 mm of rain in the week before, on 1 day.");
     expect(getByTestId("leadup-weather-source").textContent).toBe("Weather from Open-Meteo.com (CC BY 4.0)");
   });
@@ -438,10 +438,10 @@ describe("<SpotScreen> the week before (S1)", () => {
   it("draws the station's daily means with their place, a gap as a dash, and the week's direction", () => {
     const { getByLabelText, getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ leadUp })} />);
-    expect(getByLabelText("Sun Aug 23: 50.0 m³/s, the 50th percentile for the day").textContent).toBe("50.0p50th");
-    expect(getByLabelText("Tue Aug 25: no daily mean recorded").textContent).toBe("—");
+    expect(getByLabelText("Sun Aug 23: 50.0 m³/s, the 50th percentile for the day").textContent).toBe("Sun 2350.0p50th");
+    expect(getByLabelText("Tue Aug 25: no daily mean recorded").textContent).toBe("Tue 25—");
     expect(getByLabelText("Sat Aug 29: 20.0 m³/s, at or below the 10th percentile for the day").textContent)
-      .toBe("20.0≤p10");
+      .toBe("Sat 2920.0≤p10");
     expect(getByTestId("leadup-unit").textContent).toBe("m³/s");
     expect(getByTestId("leadup-trend").textContent).toBe("Flow fell over the week: 50.0 → 20.0 m³/s");
     expect(getByTestId("leadup-gauge-meta").textContent).toBe("08MH001 · daily means");
@@ -490,7 +490,7 @@ describe("<SpotScreen> the week before (S1)", () => {
       .toBe("1 day had no weather from Open-Meteo yet. Refresh fills it in.");
     expect(getByTestId("leadup-gauge-pending").textContent)
       .toBe("The station had not published 2 of these days yet. Refresh fills them in.");
-    expect(getByLabelText("Sat Aug 29: no daily mean published yet").textContent).toBe("—not yet");
+    expect(getByLabelText("Sat Aug 29: no daily mean published yet").textContent).toBe("Sat 29—not yet");
     fireEvent.click(getByLabelText("Refresh this spot"));
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });

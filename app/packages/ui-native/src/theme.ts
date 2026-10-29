@@ -238,7 +238,7 @@ const HARD = (offset: number, colour: string) =>
 /** (T147) How much of the no-access colour tints its block's ground. */
 export const NO_ACCESS_BAND = 0.14;
 /** `fill` laid over `under` at `alpha`, as one opaque colour (what the eye gets from a tint). */
-const laid = (fill: string, under: string, alpha: number): string => {
+export const laid = (fill: string, under: string, alpha: number): string => {
   const p = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
   const [f, u] = [p(fill), p(under)];
   return `#${f.map((c, i) => Math.round(c * alpha + u[i]! * (1 - alpha)).toString(16).padStart(2, "0")).join("")}`;

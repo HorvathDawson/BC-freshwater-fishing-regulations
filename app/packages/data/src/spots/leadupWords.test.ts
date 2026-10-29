@@ -22,13 +22,13 @@ describe("a lead-up weather day", () => {
 
   it("is drawn as whole cells", () => {
     expect(leadUpWeatherCells(w("2026-08-23"))).toEqual(
-      { day: "Sun 23", sky: "Rain", temps: "18° / 9°", rain: "4.2 mm", wind: "22 km/h" });
+      { day: "Sun 23", sky: "Rain", temps: "18° / 9°", rain: "4.2 mm", wind: "22 km/h", icon: "cloudRain", band: 2 });
   });
 
   it("draws a day with nothing recorded as dashes, never as a neighbour's values", () => {
     expect(leadUpWeatherCells({ date: "2026-08-26", maxC: null, minC: null, precipMm: null, windMaxKph: null,
                                 code: null })).toEqual(
-      { day: "Wed 26", sky: "—", temps: "— / —", rain: "—", wind: "—" });
+      { day: "Wed 26", sky: "—", temps: "— / —", rain: "—", wind: "—", icon: null, band: 0 });
   });
 
   it("is said whole, for a screen reader", () => {
@@ -169,6 +169,7 @@ describe("the fixed words", () => {
       gaugeEmpty: "The station has no daily means for that week.",
       weatherFilledIn: "Weather from Open-Meteo.com (CC BY 4.0) · filled in afterwards",
       weatherSource: "Weather from Open-Meteo.com (CC BY 4.0)",
+      rows: { day: "Day", sky: "Sky", temp: "High / low", rain: "Rain", wind: "Wind" },
       notRecorded: "The week before this visit was not recorded — it can be filled in from the days themselves.",
       someDaysPending:
         "Some days of the week before were not available yet when this was saved — they can be filled in now.",
@@ -180,6 +181,9 @@ describe("the fixed words", () => {
       remove: "Remove photo",
       missing: "This photo is no longer on this device.",
       adding: "Adding the photo…",
+      close: "Close photo",
+      previous: "Previous photo",
+      next: "Next photo",
     });
   });
 

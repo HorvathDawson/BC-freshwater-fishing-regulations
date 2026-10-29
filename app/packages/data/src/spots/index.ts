@@ -15,7 +15,7 @@ export { openMeteo } from "./weather";
 export { needsRefresh, refreshReason, refreshSpot } from "./refresh";
 export { observedLine, spotHeadline, spotReadingFigure, spotRowLines, weatherTrend, LEAD_UP_WORDS, leadUpDayLabel,
          leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugeSentence, leadUpGaugeTrend, leadUpGaugePending, leadUpQuantity,
-         leadUpUnit, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending, leadUpWeatherSentence, PHOTO_WORDS,
+         leadUpUnit, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending, leadUpWeatherSentence, PHOTO_WORDS, rainBand, skyIcon,
          photoFailed, photoLabel, removePhotoLabel, staleSpotsLine } from "./words";
 export { DRAFT_WORDS } from "./words";
 // S1: the week before a visit, and a spot's photographs (the platform pair behind `./photoStore`)
@@ -31,3 +31,5 @@ export { dayFlowAskable, dayFlowStation, fillDayFlow, storedHydat, readingIsTheD
 // Q161: the trip day's gauge panel for a spot added for an earlier day
 export { savedGauges } from "./dayFlow";
 export { DAY_FLOW_WORDS, DAY_PANEL_WORDS, dayFlowLine } from "./words";
+
+export type { SkyIcon } from "./words";

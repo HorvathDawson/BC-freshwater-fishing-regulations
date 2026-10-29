@@ -7,13 +7,14 @@
  */
 import { LEAD_UP_WORDS, leadUpDayLabel, leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugePending, leadUpGaugeSentence,
          leadUpGaugeTrend, leadUpPendingDays, leadUpQuantity, leadUpUnit, leadUpRainLine, leadUpWeatherCells,
-         leadUpWeatherPending, leadUpWeatherSentence, type LeadUp, type SpotReading } from "@app/data/spots";
+         leadUpWeatherPending, leadUpWeatherSentence, type LeadUp, type SkyIcon, type SpotReading } from "@app/data/spots";
 
 export interface LeadUpView {
   heading: string;
   /** Seven columns, oldest first; each `label` is the day said whole (a screen reader, a test). */
   weather: {
-    days: { label: string; day: string; sky: string; temps: string; rain: string; wind: string }[];
+    days: { label: string; day: string; sky: string; temps: string; rain: string; wind: string;
+            icon: SkyIcon | null; band: 0 | 1 | 2 | 3 }[];
     rain: string | null;
     source: string;
     /** How many days the service had not sent yet, and that a refresh fills them; null when none. */
