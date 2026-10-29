@@ -725,14 +725,6 @@ export function salmonStripOf(card: SalmonCardVM, general: {
   };
 }
 
-/** The Salmon legend's credit line: whose rules, as of when, and the unlisted rule — one whole sentence each. */
-export function salmonLegendSource(f: SalmonFacts | null): string {
-  const dates = f ? Object.values(f.payload.regions).map((r) => r.asof).filter((x): x is string => !!x).sort() : [];
-  const newest = dates[dates.length - 1];
-  return `Salmon rules from ${SALMON_WORDS.agency} (DFO)${newest ? `, pages dated up to ${dateWords(newest)}` : ""}. `
-    + "Waters DFO does not list are closed to salmon.";
-}
-
 /** The Salmon legend's rows, in the style's order. */
 export function salmonLegend(): readonly { readonly status: SalmonMapStatus; readonly label: string }[] {
   return SALMON_MAP_STATUSES.map((s) => ({ status: s, label: SALMON_WORDS.legend[s] }));

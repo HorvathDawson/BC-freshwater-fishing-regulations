@@ -1,6 +1,6 @@
 # T274 - Past-day flow from our own server (no ECCC call from the device)
 
-Status: DONE in code 2026-10-29 (owner: "we should have it stored"); staging R2 seeded; worker not involved.
+Status: DONE in code 2026-10-29 (owner: "we should have it stored"); staging R2 seeded; worker not involved. Commit: 1719acb57
 
 Source: the T270 audit found `dayFlow.ts` asking ECCC GeoMet (`api.weather.gc.ca`) from the device for a spot's visit-day flow older than the feed's record.
 

@@ -1,6 +1,6 @@
 # T276 — Mode notes by the mode switch, Runs tab legible on phones, first-open tutorials for Runs and Conditions
 
-Status: DONE 2026-10-29 (owner 2026-10-29).
+Status: DONE 2026-10-29 (owner 2026-10-29). Commits: 9f0b0a113, f3e0bde78
 
 Source: owner: the DFO line ("Salmon rules from Fisheries and Oceans Canada (DFO), pages dated up to …. Waters DFO does not
 list are closed to salmon.") "should maybe go near the button used to change mode instead of in legend at bottom"; "the run

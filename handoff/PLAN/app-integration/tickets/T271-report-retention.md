@@ -1,6 +1,6 @@
 # T271 — Problem reports deleted automatically after 180 days
 
-Status: DONE in code 2026-10-29; worker deploy is the owner's (owner 2026-10-29: "yes this sounds good"; privacy@canifishthis.ca mailbox is set up by the owner).
+Status: DONE in code 2026-10-29; worker deploy is the owner's (owner 2026-10-29: "yes this sounds good"; privacy@canifishthis.ca mailbox is set up by the owner). Commit: b43039fe5
 
 ## Work
 1. Feeds worker (app/workers/feeds) daily cron deletes report objects older than 180 days (by stored timestamp), staging bucket

@@ -1,6 +1,6 @@
 # T270 — Map fonts and symbols from our own server only
 
-Status: DONE 2026-10-29 (owner 2026-10-29: "we need everything moved to our server").
+Status: DONE 2026-10-29 (owner 2026-10-29: "we need everything moved to our server"). Commit: b43039fe5
 
 Source: privacy-page check found glyphs + sprites load from `https://protomaps.github.io/basemaps-assets`
 (`app/packages/map/src/endpoints.ts` PM_ASSETS).

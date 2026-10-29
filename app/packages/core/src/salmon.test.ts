@@ -4,7 +4,7 @@
  * words — whole strings (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { decodeSalmon, decodeSalmonHead, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel, salmonLegendSource,
+import { decodeSalmon, decodeSalmonHead, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel,
          SALMON_WORDS, SalmonError, salmonStatusFromSpecies, gearTabsFor, salmonStripOf, salmonTimelineKey } from "./salmon";
 import { salmonGlance } from "./glance";
 
@@ -99,11 +99,6 @@ describe("the Salmon colouring's day", () => {
   it("a section paints its chain's answer: an unlisted section paints closed", () => {
     const f = facts(), day = salmonDayProfiles(f, JUL20);
     expect([day.open.includes(salmonLabel(f, 101)), day.closed.includes(salmonLabel(f, 7))]).toEqual([true, true]);
-  });
-
-  it("the legend says whose rules, as of when, and the unlisted rule", () => {
-    expect(salmonLegendSource(facts())).toBe("Salmon rules from Fisheries and Oceans Canada (DFO), pages dated up to "
-      + "Aug 28, 2026. Waters DFO does not list are closed to salmon.");
   });
 });
 

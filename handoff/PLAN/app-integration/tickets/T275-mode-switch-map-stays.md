@@ -1,6 +1,6 @@
 # T275 — Switching Standard ↔ Salmon must not resize the map
 
-Status: DONE 2026-10-29 (owner 2026-10-29: "when moving from standard to salmon the map also resizes weird. it should only be the ui
+Status: DONE 2026-10-29 (owner 2026-10-29: "when moving from standard to salmon the map also resizes weird. it should only be the ui Commits: dbfeb4bf4, 70aa5e8e9
 block changing size and map staying the same").
 
 ## Work

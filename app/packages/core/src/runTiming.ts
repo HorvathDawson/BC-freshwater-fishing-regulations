@@ -602,11 +602,6 @@ export function runSheet(f: RunTimingFacts, sid: number, chosen: readonly RunSpe
   };
 }
 
-/** The legend's credit (the map's foot, short): whose data, by name; the sheet carries the terms in full. */
-export function runCreditShort(f: Pick<RunTimingFacts, "sources">): string {
-  return RUN_WORDS.credit([Object.keys(f.sources).sort().map((k) => f.sources[k]!.credit).join(" · ")]);
-}
-
 /** The credit line every surface showing a timing carries: each source's credit and its terms. */
 export function runCredit(f: Pick<RunTimingFacts, "sources">, which: readonly string[]): string {
   return RUN_WORDS.credit(which.filter((k) => f.sources[k]).map((k) => `${f.sources[k]!.credit} — ${f.sources[k]!.terms}`));
