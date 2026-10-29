@@ -1,7 +1,7 @@
 # T212 — tidal boundaries: a tidal split on every stream that enters the ocean (research first, no data changes yet)
 
 Status: PARTIAL — 2026-10-29 (later): 3 owner re-marks left (Caycuse, Dempster, Bear at the mouth); delta channels
-built (r-8e04e839ea48). Earlier 10-29: every candidate marked (1,168/1,168); the 32 cut/flag proposals applied (T185, splits.json)
+built (r-fa1915a56adb). Earlier 10-29: every candidate marked (1,168/1,168); the 32 cut/flag proposals applied (T185, splits.json)
 and shipped in r-62e2f3a8c81e; 8 tidal marks are follow-ups that make no cut (below). Research: 41393956.
 
 Source: owner 2026-10-27 — "critical"; start in the next work window.
@@ -200,10 +200,13 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   `reach.outside.tidal_waters` / `tidal_whole_owner` (owner `water:<item_id>`, every section, no tributary, out of every
   binding after the walk) → `tidal.jsonl` → bundle `tidal` (status tidal, K7 note) and off the map (`tiles/tidal.py`
   `tidal_pieces`; `bundle.undrawn` proves both agree via `is_cut_owner`). Reach + tiles stage keys hold the file.
-  Tests: `test_tidal_cut.py` +3. Code 68348561. Built + promoted (local LATEST): **r-8e04e839ea48** — reach 92 tidal
+  Tests: `test_tidal_cut.py` +3. Code 68348561. Built + promoted (local LATEST): **r-fa1915a56adb** (first r-8e04e839ea48, superseded) — reach 92 tidal
   sections (87 below cuts + 5 channel sections), no rule left without water (`tidal_emptied` []; 92 zone-rule
   bindings lose the channel sections), tiles leave 92 off (`undrawn.tidal`), bundle `tidal` 93 rows, vintage agrees.
   Not uploaded to staging.
+- Found on the way (fixed, d2858cc8): since T166 a row marked tidal lost its OWN water whenever any tidal split
+  existed (`build_reach` passed the whole tidal map to `_without_tidal`, not the row's limit) — Nitinat Lake's r1 was
+  unresolved in r-62e2f3a8c81e. r-fa1915a56adb binds it again (unresolved `tidal` 0).
 - **Bear River (Stewart): no written source; the boundary is the mouth** — where the line meets the coast. The proposal
   already is that point: FWA measure 0 (-129.98932, 55.91761), the end of the double-line river polygon, 6 m from the
   basemap's ocean polygon. The mark in force says "wrong" (4,387 m), so the owner re-marks it at the mouth (no cut).
