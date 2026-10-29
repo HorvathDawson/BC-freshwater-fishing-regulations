@@ -84,7 +84,7 @@ def test_unambiguous_between_is_auto():
     p = A.propose(_row("is-000000000001", "Peace River", "No fishing between Peace Canyon Dam and Hwy 29 Bridge"),
                   _ctx())
     assert p.auto and p.confidence == "high"
-    assert [e.model_dump() for e in p.extents] == [
+    assert [e.model_dump(exclude_none=True) for e in p.extents] == [
         {"op": "between", "item_id": "gnis:1", "splits": ["peace__canyon_dam", "peace__hwy_29"]}]
 
 
@@ -107,9 +107,14 @@ def test_two_same_named_waters_disambiguated_only_by_the_printed_licence_river()
     assert not q.auto and q.why == "2 waters named 'Perry Creek' in the region"
 
 
-def test_tributaries_only_and_other_water_are_guesses():
+def test_tributaries_only_and_including_tributaries_and_other_water():
+    """owner 2026-10-29: "X's Tributaries" is X with tributaries ONLY; "including tributaries" walks them."""
     ctx = _ctx()
-    assert not A.propose(_row("is-000000000005", "Peace River's Tributaries", "No fishing"), ctx).auto
+    p = A.propose(_row("is-000000000005", "Peace River's Tributaries", "No fishing"), ctx)
+    assert p.auto and [e.model_dump(exclude_none=True) for e in p.extents] == [
+        {"op": "whole", "item_id": "gnis:1", "splits": [], "tributaries": "only"}]
+    p = A.propose(_row("is-000000000008", "Peace River", "No fishing, including tributaries."), ctx)
+    assert p.auto and p.extents[0].tributaries == "include"
     p = A.propose(_row("is-000000000006", "Peace River", "No Fishing in the Northrop Spawning Channel"), ctx)
     assert not p.auto and "another water" in p.why
 

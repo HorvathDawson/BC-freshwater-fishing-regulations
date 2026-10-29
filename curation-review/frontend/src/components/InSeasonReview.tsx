@@ -16,6 +16,9 @@ const OPS: { op: InSeasonOp; words: string; n: number }[] = [
   { op: "downstream_of", words: "downstream of", n: 1 },
   { op: "between", words: "between", n: 2 },
 ];
+/** the picker's groups (owner 2026-10-29): every place on the water's line, by kind (`points.points`) */
+const PLACE_KINDS: [string, string][] = [["split", "splits"], ["lake", "lake inlets / outlets"],
+  ["trib", "named tributaries' confluences"], ["region", "region boundaries"], ["mu", "MU boundaries"], ["mouth", "mouth"]];
 const nSplits = (op: InSeasonOp) => OPS.find((o) => o.op === op)?.n ?? 0;
 type Filter = "unmatched" | "matched" | "all";
 
@@ -27,10 +30,10 @@ const dates = (r: InSeasonRow) =>
 
 /** an AUTO match says so (owner add-on 2026-10-28), with its confidence; the evidence is the title */
 function AutoChip({ r }: { r: InSeasonRow }) {
-  if (r.match?.source !== "auto") return null;
+  if (r.match?.source !== "auto" && r.match?.source !== "claude") return null;
   const c = r.match.confidence ?? "medium";
   return <span className={`chip-tag conf-${c}`} data-testid="inseason-auto"
-    title={`matched automatically (${c}) — ${evidenceWords(r.match.evidence)}`}>auto · {c}</span>;
+    title={`matched ${r.match.source === "claude" ? "by Claude" : "automatically"} (${c}) — ${evidenceWords(r.match.evidence)}`}>{r.match.source} · {c}</span>;
 }
 function evidenceWords(ev: InSeasonEvidence | null | undefined): string {
   if (!ev) return "";
@@ -161,7 +164,7 @@ function InSeasonDetail({ row, source, nav, onSaved }: {
   // an unmatched row starts from auto's best guess (never saved until the owner saves it)
   const start = row.match?.extents ?? row.guess?.extents ?? [];
   const [extents, setExtents] = useState<InSeasonExtent[]>(() =>
-    start.map(({ op, item_id, splits }) => ({ op, item_id, splits: [...splits] })));
+    start.map(({ op, item_id, splits, tributaries }) => ({ op, item_id, splits: [...splits], tributaries: tributaries ?? null })));
   const [names, setNames] = useState<Record<string, string>>(() =>
     Object.fromEntries(start.map((e) => [e.item_id, e.item_name ?? e.item_id])));
   const [splitsOf, setSplitsOf] = useState<Record<string, InSeasonItemSplits>>({});
@@ -266,8 +269,8 @@ function InSeasonDetail({ row, source, nav, onSaved }: {
           {row.state === "stale" && <div className="notice" style={{ margin: "6px 0" }}>
             The feed no longer holds this row: the match stays in the file until it is cleared by hand.</div>}
 
-          {row.match?.source === "auto" && <div className="notice" style={{ margin: "6px 0" }} data-testid="inseason-auto-evidence">
-            <strong>Matched automatically ({row.match.confidence ?? "?"}).</strong> {evidenceWords(row.match.evidence)}.
+          {(row.match?.source === "auto" || row.match?.source === "claude") && <div className="notice" style={{ margin: "6px 0" }} data-testid="inseason-auto-evidence">
+            <strong>{row.match.source === "claude" ? "Matched by Claude" : "Matched automatically"} ({row.match.confidence ?? "?"}) — check it.</strong> {evidenceWords(row.match.evidence)}.
             {" "}Saving here makes it yours: auto never writes over an owner match.</div>}
           {!row.match && row.guess && <div className="notice" style={{ margin: "6px 0" }} data-testid="inseason-guess">
             <strong>Not matched automatically:</strong> {row.guess.why}.
@@ -291,13 +294,24 @@ function InSeasonDetail({ row, source, nav, onSaved }: {
                   {e.splits.map((s, k) => (
                     <select key={k} aria-label={`split ${k + 1}`} value={s}
                       onChange={(ev) => patch(i, { splits: e.splits.map((x, j) => (j === k ? ev.target.value : x)) })}>
-                      <option value="">{opts ? (all.length ? "pick a split…" : "no named splits on this water") : "loading…"}</option>
-                      {all.map((sp) => <option key={sp.split_id} value={sp.split_id}>{sp.label}</option>)}
+                      <option value="">{opts ? (all.length ? "pick a place…" : "no places on this water's line") : "loading…"}</option>
+                      {PLACE_KINDS.map(([kind, words]) => {
+                        const of = all.filter((sp) => ((sp as { kind?: string }).kind ?? "split") === kind);
+                        return of.length ? <optgroup key={kind} label={words}>
+                          {of.map((sp) => <option key={sp.split_id} value={sp.split_id}>{sp.label}</option>)}</optgroup> : null;
+                      })}
                     </select>
                   ))}
+                  <select aria-label="tributaries" data-testid="inseason-tributaries" value={e.tributaries ?? ""}
+                    onChange={(ev) => patch(i, { tributaries: (ev.target.value || null) as InSeasonExtent["tributaries"] })}>
+                    <option value="">no tributaries</option>
+                    <option value="include">including tributaries</option>
+                    <option value="only">tributaries only</option>
+                  </select>
                   {preview?.per_extent?.[i] && (
                     <span className={preview.per_extent[i].why ? "chip-tag conf-low" : "chip-tag conf-high"}
-                      title={preview.per_extent[i].why ?? ""}>{preview.per_extent[i].n_sections} sections</span>
+                      title={preview.per_extent[i].why ?? ""}>{preview.per_extent[i].n_sections} sections
+                      {preview.per_extent[i].n_tributaries ? ` (${preview.per_extent[i].n_tributaries} by the tributary walk)` : ""}</span>
                   )}
                   <button className="btn small" onClick={() => setExtents((xs) => xs.filter((_, j) => j !== i))}>remove</button>
                 </div>

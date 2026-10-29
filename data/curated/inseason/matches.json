@@ -9,12 +9,13 @@
         {
           "op": "whole",
           "item_id": "gnis:39454",
-          "splits": []
+          "splits": [],
+          "tributaries": "include"
         }
       ],
       "note": "auto",
       "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
+      "at": "2026-10-29T08:26:14Z",
       "source": "auto",
       "evidence": {
         "water": "Salmon River",
@@ -26,10 +27,58 @@
         "locators": [],
         "splits": {},
         "notes": [
-          "the row includes tributaries: the banner is on the water only"
+          "the text includes tributaries: the extent walks them"
         ]
       },
       "confidence": "high"
+    },
+    "is-14e4e067f16f": {
+      "region": "5",
+      "water": "Fraser River",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__chilcotin_river_into_fraser_river",
+            "region:3|5"
+          ]
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: from the Chilcotin confluence downstream to the Region 5 boundary: the lower Region 5 boundary (Region 3/5 crossing), since 'downstream' from the Chilcotin",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Fraser River",
+        "notes": [
+          "from the Chilcotin confluence downstream to the Region 5 boundary: the lower Region 5 boundary (Region 3/5 crossing), since 'downstream' from the Chilcotin"
+        ]
+      },
+      "confidence": "medium"
+    },
+    "is-19ea430e45d1": {
+      "region": "2",
+      "water": "Stave River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "wsc:100-046202-028692-080600",
+          "splits": [],
+          "tributaries": "include"
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: the change is in Northrop Spawning Channel (not the Stave): whole channel including tributaries; 'the intake' has no pick-point, so the whole channel",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Stave River",
+        "notes": [
+          "the change is in Northrop Spawning Channel (not the Stave): whole channel including tributaries; 'the intake' has no pick-point, so the whole channel"
+        ]
+      },
+      "confidence": "medium"
     },
     "is-34e1f8ba7e89": {
       "region": "4",
@@ -40,12 +89,13 @@
           "item_id": "gnis:17044",
           "splits": [
             "lodgepole_creek__falls"
-          ]
+          ],
+          "tributaries": "include"
         }
       ],
       "note": "auto",
       "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
+      "at": "2026-10-29T08:26:14Z",
       "source": "auto",
       "evidence": {
         "water": "Lodgepole Creek (upstream of falls)",
@@ -61,7 +111,7 @@
           "falls": "lodgepole_creek__falls"
         },
         "notes": [
-          "the row includes tributaries: the banner is on the water only"
+          "the text includes tributaries: the extent walks them"
         ]
       },
       "confidence": "high"
@@ -102,12 +152,13 @@
         {
           "op": "whole",
           "item_id": "gnis:26324",
-          "splits": []
+          "splits": [],
+          "tributaries": "include"
         }
       ],
       "note": "auto",
       "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
+      "at": "2026-10-29T08:26:14Z",
       "source": "auto",
       "evidence": {
         "water": "Similkameen River",
@@ -119,7 +170,7 @@
         "locators": [],
         "splits": {},
         "notes": [
-          "the row includes tributaries: the banner is on the water only",
+          "the text includes tributaries: the extent walks them",
           "the water runs into region(s) 2: the extent is not clipped to region 8"
         ]
       },
@@ -195,12 +246,13 @@
         {
           "op": "whole",
           "item_id": "gnis:12386",
-          "splits": []
+          "splits": [],
+          "tributaries": "include"
         }
       ],
       "note": "auto",
       "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
+      "at": "2026-10-29T08:26:14Z",
       "source": "auto",
       "evidence": {
         "water": "Bessette Creek",
@@ -212,7 +264,7 @@
         "locators": [],
         "splits": {},
         "notes": [
-          "the row includes tributaries: the banner is on the water only"
+          "the text includes tributaries: the extent walks them"
         ]
       },
       "confidence": "high"
@@ -315,12 +367,13 @@
           "item_id": "gnis:9343",
           "splits": [
             "alexander_creek__easternmost_hwy_3"
-          ]
+          ],
+          "tributaries": "include"
         }
       ],
       "note": "auto",
       "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
+      "at": "2026-10-29T08:26:14Z",
       "source": "auto",
       "evidence": {
         "water": "Alexander Creek (downstream of the easternmost Hwy 3 bridge)",
@@ -336,10 +389,59 @@
           "the easternmost Hwy 3 bridge": "alexander_creek__easternmost_hwy_3"
         },
         "notes": [
-          "the row includes tributaries: the banner is on the water only"
+          "the text includes tributaries: the extent walks them"
         ]
       },
       "confidence": "high"
+    },
+    "is-84b0abe3fd13": {
+      "region": "2",
+      "water": "Fraser River",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__the_cpr_bridge_at_mission",
+            "region:2|3"
+          ]
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: rescind of the Region 2 trout closure 'Fraser mainstem upstream of the CPR Bridge at Mission': the Fraser item from that bridge up to the Region 2/3 boundary; the book's excluded sloughs and side channels are separate waters and not included",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Fraser River",
+        "notes": [
+          "rescind of the Region 2 trout closure 'Fraser mainstem upstream of the CPR Bridge at Mission': the Fraser item from that bridge up to the Region 2/3 boundary; the book's excluded sloughs and side channels are separate waters and not included"
+        ]
+      },
+      "confidence": "medium"
+    },
+    "is-9cc030ee9af2": {
+      "region": "4",
+      "water": "Kaslo River",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:11345",
+          "splits": [
+            "trib:gnis:11410"
+          ]
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end)",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Kaslo River",
+        "notes": [
+          "rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end)"
+        ]
+      },
+      "confidence": "medium"
     },
     "is-9f132ef6252a": {
       "region": "7B",
@@ -419,6 +521,99 @@
         ]
       },
       "confidence": "medium"
+    },
+    "is-ae26b6334dde": {
+      "region": "4",
+      "water": "Lardeau River",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:16359",
+          "splits": [
+            "lake:329120715:outlet",
+            "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T08:26:14Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Lardeau River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:16359": "Lardeau River"
+        },
+        "locators": [
+          "downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek"
+        ],
+        "splits": {
+          "fishing boundary signs at Trout Lake outlet": "lake:329120715:outlet",
+          "fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek": "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
+        }
+      },
+      "confidence": "high"
+    },
+    "is-b0fdf1205cdd": {
+      "region": "2",
+      "water": "Chilliwack Lake, Upper Pitt River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "wbk:329083341",
+          "splits": []
+        },
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:7551",
+          "splits": [
+            "lake:329291806:inlet"
+          ]
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: two waters: Chilliwack Lake whole; 'Upper Pitt River' = the Pitt River upstream of the Pitt Lake inlet",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Chilliwack Lake, Upper Pitt River",
+        "notes": [
+          "two waters: Chilliwack Lake whole; 'Upper Pitt River' = the Pitt River upstream of the Pitt Lake inlet"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-b3197170450c": {
+      "region": "8",
+      "water": "Granby River’s Tributaries",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:18775",
+          "splits": [],
+          "tributaries": "only"
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T08:26:14Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Granby River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:18775": "Granby River"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "the row is the water's tributaries: tributaries only"
+        ]
+      },
+      "confidence": "high"
     },
     "is-b55c08ea4074": {
       "region": "4",
@@ -580,6 +775,28 @@
       },
       "confidence": "high"
     },
+    "is-d39112adf4c4": {
+      "region": "4",
+      "water": "Keen Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:11410",
+          "splits": []
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo)",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Keen Creek",
+        "notes": [
+          "rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo)"
+        ]
+      },
+      "confidence": "medium"
+    },
     "is-d39e790b2c5b": {
       "region": "4",
       "water": "Fording River (downstream of Josephine Falls)",
@@ -704,6 +921,252 @@
         "splits": {}
       },
       "confidence": "high"
+    },
+    "is-e932e70532b4": {
+      "region": "8",
+      "water": "Okanagan River Oxbows",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "wbk:328948249",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328947490",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328944522",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328957729",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329459219",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329459234",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460279",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329459157",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462114",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462438",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462220",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461070",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462410",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462406",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460316",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462179",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461320",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461445",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462452",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461584",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462319",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462064",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461918",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462395",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460748",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460457",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328985785",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461800",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461866",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328985783",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328985789",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461388",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460329",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460050",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460670",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462470",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461983",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462424",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462306",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462043",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:22618",
+          "splits": []
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: the curated override names the oxbows: 41 waters, all whole",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Okanagan River Oxbows",
+        "notes": [
+          "the curated override names the oxbows: 41 waters, all whole"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-ecfd33ebcc81": {
+      "region": "2",
+      "water": "Fraser River",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__spuzzum_creek_into_fraser_river"
+          ]
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: Region 2 row: the Fraser item below the Spuzzum Creek confluence (that confluence is also the Region 2/3 crossing); the Fraser item is the mainstem, channels/sloughs are their own waters",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Fraser River",
+        "notes": [
+          "Region 2 row: the Fraser item below the Spuzzum Creek confluence (that confluence is also the Region 2/3 crossing); the Fraser item is the mainstem, channels/sloughs are their own waters"
+        ]
+      },
+      "confidence": "medium"
     }
   },
   "history": [
@@ -1039,163 +1502,174 @@
           "splits": []
         }
       ]
-    }
-  ],
-  "guesses": {
-    "is-14e4e067f16f": {
-      "why": "'the Region 5 boundary': no split on this water reads 'the Region 5 boundary'",
-      "evidence": {
-        "water": "Fraser River",
-        "via": "override",
-        "reason": "Fraser River in Region 5. Channels and sloughs are in Zone 2 only.",
-        "items": {
-          "gnis:39325": "Fraser River"
-        },
-        "locators": [
-          "from the confluence with the Chilcotin River downstream to the Region 5 boundary"
-        ],
-        "splits": {
-          "the Chilcotin River": "fraser_river__chilcotin_river_into_fraser_river"
-        }
-      },
+    },
+    {
+      "at": "2026-10-29T08:26:14Z",
+      "id": "is-0cf7f7b877ef",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:39454",
       "extents": [
         {
           "op": "whole",
-          "item_id": "gnis:39325",
-          "splits": []
+          "item_id": "gnis:39454",
+          "splits": [],
+          "tributaries": "include"
         }
       ]
     },
-    "is-19ea430e45d1": {
-      "why": "the change is in another water: 'Northrop Spawning Channel'; 'the intake': no split on this water reads 'the intake'; 'where the channel joins the Stave River main': no split on this water reads 'where the channel joins the Stave River main'",
-      "evidence": {
-        "water": "Stave River",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:14589": "Stave River"
-        },
-        "other_water": "Northrop Spawning Channel",
-        "locators": [
-          "from the intake downstream to where the channel joins the Stave River main"
-        ],
-        "splits": {},
-        "notes": [
-          "the row includes tributaries: the banner is on the water only"
-        ]
-      },
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:14589",
-          "splits": []
-        }
-      ]
-    },
-    "is-84b0abe3fd13": {
-      "why": "the name resolves to 13 waters",
-      "evidence": {
-        "water": "Fraser River",
-        "via": "override",
-        "reason": "Fraser River (GNIS 39325) upstream of the CPR Bridge at Mission, plus all named channels and sloughs without their own regulation entries. Region 2. Nicomen Slough and Strawberry Slough excluded — they have separate regulation entries.",
-        "items": {
-          "gnis:39325": "Fraser River",
-          "gnis:10494": "Annacis Channel",
-          "gnis:11566": "Bedford Channel",
-          "gnis:17805": "Cannery Channel",
-          "gnis:17368": "Enterprise Channel",
-          "gnis:14905": "Morey Channel",
-          "gnis:22631": "Parsons Channel",
-          "gnis:21224": "Sapperton Channel",
-          "gnis:14010": "Gilmour Slough",
-          "gnis:11481": "Jeperson Side Channel",
-          "gnis:13499": "Maria Slough",
-          "gnis:25152": "Tilbury Slough",
-          "gnis:8341": "Williamson Slough"
-        },
-        "locators": [
-          "upstream of the CPR Bridge at Mission"
-        ],
-        "splits": {
-          "the CPR Bridge at Mission": "fraser_river__the_cpr_bridge_at_mission"
-        },
-        "notes": [
-          "the text speaks of tributaries",
-          "a rescind row: informational, bound to its water"
-        ]
-      },
+    {
+      "at": "2026-10-29T08:26:14Z",
+      "id": "is-34e1f8ba7e89",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): upstream_of gnis:17044 lodgepole_creek__falls",
       "extents": [
         {
           "op": "upstream_of",
-          "item_id": "gnis:39325",
+          "item_id": "gnis:17044",
           "splits": [
-            "fraser_river__the_cpr_bridge_at_mission"
+            "lodgepole_creek__falls"
+          ],
+          "tributaries": "include"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T08:26:14Z",
+      "id": "is-4254fc685e34",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (medium): whole gnis:26324",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:26324",
+          "splits": [],
+          "tributaries": "include"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T08:26:14Z",
+      "id": "is-53180f57e676",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:12386",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:12386",
+          "splits": [],
+          "tributaries": "include"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T08:26:14Z",
+      "id": "is-7feb28092abf",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): downstream_of gnis:9343 alexander_creek__easternmost_hwy_3",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:9343",
+          "splits": [
+            "alexander_creek__easternmost_hwy_3"
+          ],
+          "tributaries": "include"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T08:26:14Z",
+      "id": "is-ae26b6334dde",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): between gnis:16359 lake:329120715:outlet,lardeau_river__fishing_boundary_signs_near_mobbs_creek",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:16359",
+          "splits": [
+            "lake:329120715:outlet",
+            "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
           ]
         }
       ]
     },
-    "is-9cc030ee9af2": {
-      "why": "'Keen Creek': no split on this water reads 'Keen Creek'; 'boundary signs at river mouth at Kootenay Lake Upstream of Keen Creek': no split on this water reads 'boundary signs at river mouth at Kootenay Lake Upstream of Keen Creek'",
-      "evidence": {
-        "water": "Kaslo River",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:11345": "Kaslo River"
-        },
-        "locators": [
-          "from downstream of Keen Creek to boundary signs at river mouth at Kootenay Lake Upstream of Keen Creek"
-        ],
-        "splits": {},
-        "notes": [
-          "a rescind row: informational, bound to its water"
-        ]
-      },
+    {
+      "at": "2026-10-29T08:26:14Z",
+      "id": "is-b3197170450c",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:18775",
       "extents": [
         {
           "op": "whole",
-          "item_id": "gnis:11345",
-          "splits": []
+          "item_id": "gnis:18775",
+          "splits": [],
+          "tributaries": "only"
         }
       ]
     },
-    "is-ae26b6334dde": {
-      "why": "'fishing boundary signs at Trout Lake outlet': no split on this water reads 'fishing boundary signs at Trout Lake outlet'",
-      "evidence": {
-        "water": "Lardeau River",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:16359": "Lardeau River"
-        },
-        "locators": [
-          "downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek"
-        ],
-        "splits": {
-          "fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek": "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
-        }
-      },
+    {
+      "at": "2026-10-29T08:27:28Z",
+      "id": "is-84b0abe3fd13",
+      "action": "set",
+      "by": "claude",
+      "note": "Claude 2026-10-29 at owner's request — check: rescind of the Region 2 trout closure 'Fraser mainstem upstream of the CPR Bridge at Mission': the Fraser item from that bridge up to the Region 2/3 boundary; the book's excluded sloughs and side channels are separate waters and not included",
       "extents": [
         {
-          "op": "whole",
-          "item_id": "gnis:16359",
-          "splits": []
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__the_cpr_bridge_at_mission",
+            "region:2|3"
+          ]
         }
       ]
     },
-    "is-b0fdf1205cdd": {
-      "why": "the name resolves to 2 waters",
-      "evidence": {
-        "water": "Chilliwack Lake, Upper Pitt River",
-        "via": "override",
-        "reason": "In-season combined entry: Chilliwack Lake (GNIS 13745) + Pitt River (GNIS 7551)",
-        "items": {
-          "wbk:329083341": "Chilliwack Lake",
-          "gnis:7551": "Pitt River"
-        },
-        "locators": [],
-        "splits": {}
-      },
+    {
+      "at": "2026-10-29T08:27:28Z",
+      "id": "is-ecfd33ebcc81",
+      "action": "set",
+      "by": "claude",
+      "note": "Claude 2026-10-29 at owner's request — check: Region 2 row: the Fraser item below the Spuzzum Creek confluence (that confluence is also the Region 2/3 crossing); the Fraser item is the mainstem, channels/sloughs are their own waters",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__spuzzum_creek_into_fraser_river"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T08:27:28Z",
+      "id": "is-14e4e067f16f",
+      "action": "set",
+      "by": "claude",
+      "note": "Claude 2026-10-29 at owner's request — check: from the Chilcotin confluence downstream to the Region 5 boundary: the lower Region 5 boundary (Region 3/5 crossing), since 'downstream' from the Chilcotin",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__chilcotin_river_into_fraser_river",
+            "region:3|5"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T08:27:28Z",
+      "id": "is-b0fdf1205cdd",
+      "action": "set",
+      "by": "claude",
+      "note": "Claude 2026-10-29 at owner's request — check: two waters: Chilliwack Lake whole; 'Upper Pitt River' = the Pitt River upstream of the Pitt Lake inlet",
       "extents": [
         {
           "op": "whole",
@@ -1203,49 +1677,51 @@
           "splits": []
         },
         {
-          "op": "whole",
+          "op": "upstream_of",
           "item_id": "gnis:7551",
-          "splits": []
+          "splits": [
+            "lake:329291806:inlet"
+          ]
         }
       ]
     },
-    "is-b3197170450c": {
-      "why": "the row is the water's TRIBUTARIES: an extent cannot say tributaries only",
-      "evidence": {
-        "water": "Granby River’s Tributaries",
-        "via": "override",
-        "reason": "Tributaries of Granby River - links to parent waterbody (GNIS 18775 - Granby River). Regulation MU 8-15.",
-        "items": {
-          "gnis:18775": "Granby River"
-        },
-        "locators": [],
-        "splits": {}
-      },
+    {
+      "at": "2026-10-29T08:27:28Z",
+      "id": "is-19ea430e45d1",
+      "action": "set",
+      "by": "claude",
+      "note": "Claude 2026-10-29 at owner's request — check: the change is in Northrop Spawning Channel (not the Stave): whole channel including tributaries; 'the intake' has no pick-point, so the whole channel",
       "extents": [
         {
           "op": "whole",
-          "item_id": "gnis:18775",
-          "splits": []
+          "item_id": "wsc:100-046202-028692-080600",
+          "splits": [],
+          "tributaries": "include"
         }
       ]
     },
-    "is-d39112adf4c4": {
-      "why": "'falls approximately 6 km': no split on this water reads 'falls approximately 6 km'",
-      "evidence": {
-        "water": "Keen Creek",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:11410": "Keen Creek"
-        },
-        "locators": [
-          "downstream of falls approximately 6 km"
-        ],
-        "splits": {},
-        "notes": [
-          "a rescind row: informational, bound to its water"
-        ]
-      },
+    {
+      "at": "2026-10-29T08:27:28Z",
+      "id": "is-9cc030ee9af2",
+      "action": "set",
+      "by": "claude",
+      "note": "Claude 2026-10-29 at owner's request — check: rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end)",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:11345",
+          "splits": [
+            "trib:gnis:11410"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T08:27:28Z",
+      "id": "is-d39112adf4c4",
+      "action": "set",
+      "by": "claude",
+      "note": "Claude 2026-10-29 at owner's request — check: rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo)",
       "extents": [
         {
           "op": "whole",
@@ -1254,58 +1730,12 @@
         }
       ]
     },
-    "is-e932e70532b4": {
-      "why": "the name resolves to 41 waters",
-      "evidence": {
-        "water": "Okanagan River Oxbows",
-        "via": "override",
-        "reason": "Okanagan River Oxbows in MU 8-1. Multiple oxbow waterbodies and stream segments along the Okanagan River. Includes 32 watershed codes, 40 waterbody keys, and 1 linear feature ID.",
-        "items": {
-          "wbk:328948249": "OKANAGAN RIVER OXBOWS",
-          "wbk:328947490": "OKANAGAN RIVER OXBOWS",
-          "wbk:328944522": "OKANAGAN RIVER OXBOWS",
-          "wbk:328957729": "OKANAGAN RIVER OXBOWS",
-          "wbk:329459219": "OKANAGAN RIVER OXBOWS",
-          "wbk:329459234": "OKANAGAN RIVER OXBOWS",
-          "wbk:329460279": "OKANAGAN RIVER OXBOWS",
-          "wbk:329459157": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462114": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462438": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462220": "OKANAGAN RIVER OXBOWS",
-          "wbk:329461070": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462410": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462406": "OKANAGAN RIVER OXBOWS",
-          "wbk:329460316": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462179": "OKANAGAN RIVER OXBOWS",
-          "wbk:329461320": "OKANAGAN RIVER OXBOWS",
-          "wbk:329461445": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462452": "OKANAGAN RIVER OXBOWS",
-          "wbk:329461584": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462319": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462064": "OKANAGAN RIVER OXBOWS",
-          "wbk:329461918": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462395": "OKANAGAN RIVER OXBOWS",
-          "wbk:329460748": "OKANAGAN RIVER OXBOWS",
-          "wbk:329460457": "OKANAGAN RIVER OXBOWS",
-          "wbk:328985785": "OKANAGAN RIVER OXBOWS",
-          "wbk:329461800": "OKANAGAN RIVER OXBOWS",
-          "wbk:329461866": "OKANAGAN RIVER OXBOWS",
-          "wbk:328985783": "OKANAGAN RIVER OXBOWS",
-          "wbk:328985789": "OKANAGAN RIVER OXBOWS",
-          "wbk:329461388": "OKANAGAN RIVER OXBOWS",
-          "wbk:329460329": "OKANAGAN RIVER OXBOWS",
-          "wbk:329460050": "OKANAGAN RIVER OXBOWS",
-          "wbk:329460670": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462470": "OKANAGAN RIVER OXBOWS",
-          "wbk:329461983": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462424": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462306": "OKANAGAN RIVER OXBOWS",
-          "wbk:329462043": "OKANAGAN RIVER OXBOWS",
-          "gnis:22618": "Park Rill"
-        },
-        "locators": [],
-        "splits": {}
-      },
+    {
+      "at": "2026-10-29T08:27:28Z",
+      "id": "is-e932e70532b4",
+      "action": "set",
+      "by": "claude",
+      "note": "Claude 2026-10-29 at owner's request — check: the curated override names the oxbows: 41 waters, all whole",
       "extents": [
         {
           "op": "whole",
@@ -1513,44 +1943,6 @@
           "splits": []
         }
       ]
-    },
-    "is-ecfd33ebcc81": {
-      "why": "the name resolves to 13 waters",
-      "evidence": {
-        "water": "Fraser River",
-        "via": "override",
-        "reason": "Fraser River (GNIS 39325) upstream of the CPR Bridge at Mission, plus all named channels and sloughs without their own regulation entries. Region 2. Nicomen Slough and Strawberry Slough excluded — they have separate regulation entries.",
-        "items": {
-          "gnis:39325": "Fraser River",
-          "gnis:10494": "Annacis Channel",
-          "gnis:11566": "Bedford Channel",
-          "gnis:17805": "Cannery Channel",
-          "gnis:17368": "Enterprise Channel",
-          "gnis:14905": "Morey Channel",
-          "gnis:22631": "Parsons Channel",
-          "gnis:21224": "Sapperton Channel",
-          "gnis:14010": "Gilmour Slough",
-          "gnis:11481": "Jeperson Side Channel",
-          "gnis:13499": "Maria Slough",
-          "gnis:25152": "Tilbury Slough",
-          "gnis:8341": "Williamson Slough"
-        },
-        "locators": [
-          "downstream of Spuzzum Creek confluence with the Fraser River"
-        ],
-        "splits": {
-          "Spuzzum Creek confluence with the Fraser River": "fraser_river__spuzzum_creek_into_fraser_river"
-        }
-      },
-      "extents": [
-        {
-          "op": "downstream_of",
-          "item_id": "gnis:39325",
-          "splits": [
-            "fraser_river__spuzzum_creek_into_fraser_river"
-          ]
-        }
-      ]
     }
-  }
+  ]
 }

@@ -189,7 +189,7 @@ export function Shell(p: ShellProps) {
    * the banners); the ones not on the map yet are the notice, which opens by itself once per row per device and from
    * the top bar's bell. Informational: nothing here changes an answer.
    */
-  const inSeason = useInSeason(p.inSeason ?? null, syncState.inSeasonEpoch);
+  const inSeason = useInSeason(p.inSeason ?? null, syncState.inSeasonEpoch, loader?.manifest?.data_release ?? null);
   const notice = useInSeasonNotice(inSeason.unmatched, p.inSeasonSeen ?? null);
   // (T236) the first-run notice (not legal advice) comes first: nothing else opens by itself while it is up
   const firstRun = useFirstRun(p.firstRun ?? null);

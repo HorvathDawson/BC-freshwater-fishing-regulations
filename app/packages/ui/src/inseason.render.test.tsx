@@ -9,7 +9,7 @@ import { useInSeasonNotice, type InSeasonNoticeState } from "./inseason";
 
 afterEach(cleanup);
 const ch = (id: string): InSeasonChange =>
-  ({ id, region: "4", water: "Kaslo River", text: "No fishing", from: null, to: null, source: "s", extents: [] });
+  ({ id, region: "4", water: "Kaslo River", text: "No fishing", from: null, to: null, source: "s", extents: [], places: null });
 const mem = () => { let t: string | null = null; return { read: () => t, write: (x: string) => { t = x; } }; };
 
 function Probe({ rows, store, out }: { rows: InSeasonChange[]; store: ReturnType<typeof mem>; out: { s?: InSeasonNoticeState } }) {

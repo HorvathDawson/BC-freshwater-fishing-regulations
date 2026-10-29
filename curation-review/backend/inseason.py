@@ -81,9 +81,17 @@ def _in_effect(frm: str | None, to: str | None, today: str) -> bool | None:
 
 def _extent_view(e: M.InSeasonExtent, labels: dict[str, str]) -> dict:
     it = reuse._registry().get(e.item_id)
-    return {"op": e.op, "item_id": e.item_id, "splits": list(e.splits),
+    return {"op": e.op, "item_id": e.item_id, "splits": list(e.splits), "tributaries": e.tributaries,
             "item_name": it.name if it else None,
-            "split_labels": [labels.get(s) or s for s in e.splits]}
+            "split_labels": [labels.get(s) or _derived_label(e.item_id, s) for s in e.splits]}
+
+
+def _derived_label(item_id: str, pid: str) -> str:
+    """A pick-point's label (lake inlet, confluence, crossing …); the id itself when the atlas is not loaded."""
+    try:
+        return next((p.label for p in _points(item_id) if p.id == pid), pid)
+    except Exception:            # the queue must never fail on a label
+        return pid
 
 
 def _labels() -> dict[str, str]:
@@ -172,22 +180,52 @@ def row(rid: str) -> dict | None:
 
 # --------------------------------------------------------------------------- the picker and the preview (reads)
 
+def _points(item_id: str):
+    """The water's pick-points (`pipeline.regs.inseason.points`): splits, lake inlets/outlets, named confluences,
+    region / MU crossings, the mouth."""
+    from pipeline.regs.inseason import points as P
+    return P.points(reuse._registry(), reuse._graph(), item_id)
+
+
+def _point_coord(node_id: str | None, end: str) -> list[float] | None:
+    """A stem node's end, from the served atlas's geometry (FWA lines run mouth -> source)."""
+    if not node_id:
+        return None
+    feats = reuse._features("streams", [node_id], "point")
+    if not feats:
+        return None
+    gm = feats[0].get("geometry") or {}
+    lines = gm.get("coordinates") or []
+    if gm.get("type") == "LineString":
+        lines = [lines]
+    if not lines or not lines[0]:
+        return None
+    return list(lines[0][0] if end == "down" else lines[-1][-1])
+
+
 def item_splits(item_id: str) -> dict | None:
-    """The splits.json splits on one water (`reuse._item_split_source`, the review app's own answer) plus
-    the built boundaries on it that splits.json holds, as labelled points. None: no such item."""
+    """EVERY PICK-POINT on one water (owner 2026-10-29), as labelled map points: its splits.json and atlas cuts,
+    lake inlets / outlets, named tributaries' confluences, region / MU boundary crossings and its mouth — each with
+    `kind`. None: no such item."""
     import dfo
     it = reuse._registry().get(item_id)
     if it is None:
         return None
     known = split_ids()
-    ids = [sp["id"] for sp in reuse._item_split_source(it) if sp.get("id") in known]
-    ids += [b.id for b in (it.boundaries or ()) if b.id in known]
     feats, unplaced = [], []
-    for sid in dict.fromkeys(ids):
-        f = dfo._split_feature(sid, rules=[], to_verify=False, item_id=item_id)
-        if f is None:
+    for p in _points(item_id):
+        f = dfo._split_feature(p.id, rules=[], to_verify=False, item_id=item_id) if p.id in known else None
+        if f is not None and "unplaced" not in f:
+            f["properties"].update({"kind": p.kind, "label": p.label, "name": p.label})
+            feats.append(f)
             continue
-        (unplaced.append(f["unplaced"]) if "unplaced" in f else feats.append(f))
+        c = _point_coord(p.node, p.end)
+        props = {"split_id": p.id, "label": p.label, "name": p.label, "water": it.name, "rules": [], "parts": [],
+                 "to_verify": False, "grade": None, "item_id": item_id, "kind": p.kind}
+        if c is None:
+            unplaced.append({**props, "why": "no point on the served atlas"})
+        else:
+            feats.append({"type": "Feature", "geometry": {"type": "Point", "coordinates": c}, "properties": props})
     return {"item": {"id": item_id, "name": it.name, "kind": it.kind, "mus": list(it.mus)[:4]},
             "splits": {"type": "FeatureCollection", "features": feats, "unplaced": unplaced}}
 
@@ -207,14 +245,18 @@ def parse_extents(raw) -> list[M.InSeasonExtent]:
 
 
 def _check(extents: list[M.InSeasonExtent]) -> None:
-    """Every item in this build's registry, every split in splits.json."""
+    """Every item in this build's registry; every place a splits.json split or one of the water's pick-points."""
     reg, known = reuse._registry(), split_ids()
     for e in extents:
         if e.item_id not in reg:
             raise Refused(f"{e.item_id}: no such water in this build's registry")
-        bad = [s for s in e.splits if s not in known]
+        if not e.splits:
+            continue
+        on = {p.id for p in _points(e.item_id)}
+        bad = [s for s in e.splits if s not in known and s not in on]
         if bad:
-            raise Refused(f"unknown split(s) {', '.join(bad)}: not in splits.json")
+            raise Refused(f"unknown place(s) {', '.join(bad)}: not in splits.json and not a place on "
+                          f"{reg[e.item_id].name}")
 
 
 def extent_preview(extents: list[M.InSeasonExtent], limit: int = 6000) -> dict:
@@ -225,14 +267,15 @@ def extent_preview(extents: list[M.InSeasonExtent], limit: int = 6000) -> dict:
     reg, graph = reuse._registry(), reuse._graph()
     total: set[str] = set()
     per: list[dict] = []
+    from pipeline.regs.inseason import points as P
     for e in extents:
-        reasons: list = []
-        got = reuse._resolve.resolve_extent(reg, graph, [e.item_id], e.model_dump(), reasons=reasons)
-        secs = set((got or {}).get("sections") or ())
+        try:
+            got = P.resolve(reg, graph, e.model_dump(exclude_none=True))
+            secs, why, ntrib = set(got["sections"]), None, got["tributaries"]
+        except P.Unresolved as ex:
+            secs, why, ntrib = set(), str(ex) or "the extent binds nothing", 0
         total |= secs
-        why = None if secs else ("; ".join(f"{c}{': ' + d if d else ''}" for c, d in reasons)
-                                 or "the extent binds nothing")
-        per.append({"n_sections": len(secs), "why": why})
+        per.append({"n_sections": len(secs), "n_tributaries": ntrib, "why": why})
     ids = sorted(total)
     why = next((f"extent {i + 1}: {p['why']}" for i, p in enumerate(per) if p["why"]), None)
     return reuse._json_safe({

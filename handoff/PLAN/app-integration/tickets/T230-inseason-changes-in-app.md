@@ -42,3 +42,14 @@ Depends: T225 feed. Size: L. Owner: no. Default: rows with only a `from` stay in
   the bell (the notice itself opens on any screen at load).
 - Shots: `T230-shots/` desktop + phone notice, bell badge, part banner (Fording below Josephine Falls; part above shows
   none), partial banner (Peace), review tab.
+
+## Follow-up 2026-10-29 (owner): every place on a water's line, tributaries, fills
+- Pick-points (`pipeline/regs/inseason/points.py`): splits + atlas cuts, `lake:<wbk>:inlet|outlet`, `trib:<item>` (named
+  confluences), `region:A|B`, `mu:A|B` (downstream|upstream), `mouth`. Derived points cut by stem route measure (no
+  splits.json write). Extents carry `tributaries: include | only` (the regs' `tributaries.expand`).
+- Publish now resolves every match on the atlas and ships `places` (parts per water) for the release it names; the
+  app uses them only on that release (else the label fallback). Named tributary waters get the banner; UNNAMED
+  tributary reaches do not (no durable id).
+- Auto reads the pick-points ("Keen Creek", "Pitt Lake", "Region 5 boundary"), "including tributaries", "X's
+  Tributaries"; owner and Claude matches are never overwritten. 24 auto + 8 filled as `source: claude` (owner request).
+- The DFO extent editor does not share this picker (its own `ExtentFixEditor` / `_splits_fc`): unchanged.

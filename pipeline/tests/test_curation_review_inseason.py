@@ -118,7 +118,7 @@ def test_2_a_good_save_writes_the_match_and_its_history(env):
     ({"id": "is-ffffffffffff", "extents": [{"op": "whole", "item_id": COWICHAN}]}, "no such in-season row"),
     ({"id": STALE, "extents": [{"op": "whole", "item_id": COWICHAN}]}, "no such in-season row"),
     ({"id": OPEN, "extents": [{"op": "upstream_of", "item_id": COWICHAN, "splits": ["no_such_split"]}]},
-     "unknown split"),
+     "unknown place"),
     ({"id": OPEN, "extents": [{"op": "between", "item_id": COWICHAN, "splits": [TRESTLE]}]}, "names 2 split"),
     ({"id": OPEN, "extents": [{"op": "whole", "item_id": "gnis:999999999"}]}, "no such water"),
     # a split on another water: the extent binds nothing on the Cowichan

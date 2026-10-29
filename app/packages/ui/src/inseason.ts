@@ -7,7 +7,7 @@
  * Informational only: nothing here touches an answer, a status or the map's colours.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { INSEASON_WORDS, inSeasonBanner, inSeasonNoticeRows, inSeasonOn, inSeasonUnseen, isoDayOf, joinInSeason,
+import { INSEASON_WORDS, inSeasonBanner, inSeasonWaters, inSeasonNoticeRows, inSeasonOn, inSeasonUnseen, isoDayOf, joinInSeason,
          type InSeasonBannerVM, type InSeasonChange, type InSeasonMarks, type InSeasonNoticeRow } from "@app/core";
 import type { InSeasonData, InSeasonSource } from "@app/data";
 import type { RegsStore } from "@app/data/regs";
@@ -21,13 +21,16 @@ export interface InSeasonNow {
   readonly unmatched: readonly InSeasonChange[];
   /** the feed + links read (null: none yet, or none captured) — the day's join is per page (`useInSeasonBanners`) */
   readonly data: InSeasonData | null;
+  /** this device's data release: `places` are read only on the release they name */
+  readonly release: string | null;
 }
 
-const NONE: InSeasonNow = { matched: [], unmatched: [], data: null };
+const NONE: InSeasonNow = { matched: [], unmatched: [], data: null, release: null };
 export const InSeasonContext = createContext<InSeasonNow>(NONE);
 
 /** The feed + links, joined for TODAY (the notice's day). A page joins again for its own day. */
-export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0): InSeasonNow {
+export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0,
+                            release: string | null = null): InSeasonNow {
   const tick = usePoll(INSEASON_POLL_MS, !!source);
   const [data, setData] = useState<InSeasonData | null>(null);
   useEffect(() => {
@@ -37,7 +40,8 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
     // (T231) `epoch`: bumped when the update service sees the feed move (the source was told to forget it)
   }, [source, tick, epoch]);
   const today = isoDayOf(new Date());
-  return useMemo(() => (data ? { ...joinInSeason(data.feed, data.links, today), data } : NONE), [data, today]);
+  return useMemo(() => (data ? { ...joinInSeason(data.feed, data.links, today, release), data, release } : NONE),
+    [data, today, release]);
 }
 
 export interface InSeasonPage {
@@ -51,11 +55,13 @@ export interface InSeasonPage {
 /** The banners on one Regulations page, for its day (null: today). Its water's part marks are read once per water. */
 export function useInSeasonBanners(store: Pick<RegsStore, "navRows"> | null, page: InSeasonPage | null,
                                    day: Date | null): readonly InSeasonBannerVM[] {
-  const { data } = useContext(InSeasonContext);
+  const { data, release } = useContext(InSeasonContext);
   const iso = isoDayOf(day ?? new Date());
-  const matched = useMemo(() => (data ? joinInSeason(data.feed, data.links, iso).matched : []), [data, iso]);
-  const here = page ? matched.filter((c) => c.extents.some((e) => e.item === page.item)) : [];
-  const needsMarks = !!store && !!page && here.some((c) => c.extents.some((e) => e.item === page.item && e.op !== "whole"));
+  const matched = useMemo(() => (data ? joinInSeason(data.feed, data.links, iso, release).matched : []),
+    [data, iso, release]);
+  const here = page ? matched.filter((c) => inSeasonWaters(c).includes(page.item)) : [];
+  const needsMarks = !!store && !!page
+    && here.some((c) => !c.places && c.extents.some((e) => e.item === page.item && e.op !== "whole"));
   const marks = useAsync<InSeasonMarks | null>(
     async () => {
       const nav = await store!.navRows(page!.ord);

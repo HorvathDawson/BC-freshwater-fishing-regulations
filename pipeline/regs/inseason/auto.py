@@ -140,8 +140,26 @@ def tokens(s: str, host: set[str] = frozenset()) -> set[str]:
     return {t for t in re.findall(r"[a-z0-9]+", s) if t not in _NOISE and t not in host}
 
 
-def match_split(place: str, splits: list[dict], host_name: str) -> tuple[Optional[str], str, list[str]]:
-    """(split id | None, confidence | why, candidate ids)."""
+def match_split(place: str, splits: list[dict], host_name: str, op: str = "") -> tuple[Optional[str], str, list[str]]:
+    """(split id | None, confidence | why, candidate ids). `splits` are the water's pick-points (`points.points`:
+    splits, lake inlets/outlets, confluences, region / MU crossings, the mouth) as {id, label}; a lake named alone
+    is its INLET upstream of it and its OUTLET downstream of it (owner 2026-10-29: "upstream of Pitt Lake")."""
+    got = _match_split(place, splits, host_name)
+    if got[0] is None and len(got[2]) > 1:
+        from pipeline.regs.inseason.points import is_derived
+        real = [c for c in got[2] if not is_derived(c)]
+        if len(real) == 1 and all(is_derived(c) for c in got[2] if c != real[0]):
+            return real[0], "high", got[2]          # a curated cut over the derived point at the same place
+    if got[0] is None and got[2] and op in ("upstream_of", "downstream_of"):
+        lakes = {c.rsplit(":", 1)[0] for c in got[2] if re.match(r"^lake:[\w.\-]+:(inlet|outlet)$", c)}
+        if len(lakes) == 1 and all(c.startswith(next(iter(lakes))) for c in got[2]):
+            pick = f"{next(iter(lakes))}:{'inlet' if op == 'upstream_of' else 'outlet'}"
+            if pick in got[2]:
+                return pick, "high", got[2]
+    return got
+
+
+def _match_split(place: str, splits: list[dict], host_name: str) -> tuple[Optional[str], str, list[str]]:
     host = tokens(host_name)
     want = tokens(place, host)
     if not want:
@@ -174,6 +192,8 @@ class Context:
     splits_doc: dict
     #: extents -> (binds?, why); None = not verified
     verify: Optional[Callable[[list[M.InSeasonExtent]], tuple[bool, str]]] = None
+    #: item id -> its pick-points as [{id, label}] (`points.points`, needs the graph); None: splits.json only
+    places: Optional[Callable[[str], list[dict]]] = None
 
 
 @dataclass
@@ -228,21 +248,26 @@ def propose(row: dict, ctx: Context) -> Proposal:
     from pipeline.atlas.splits.splits import splits_on
     from pipeline.regs.matching.matcher import _item_region_nums
     rid, change = row["id"], row.get("change", "")
-    ids, ev, why = resolve_water(row, ctx)
+    # "Granby River's Tributaries": the water is the Granby River (its tributaries only, below)
+    named = re.sub(r"[’']s\s+tributaries\b", "", row["water"], flags=re.I).strip()
+    ids, ev, why = resolve_water({**row, "water": named}, ctx)
     p = Proposal(rid, False, evidence=ev)
     conf = "medium" if ev.get("disambiguated_by") else "high"
     notes: list[str] = []
     blockers: list[str] = []
     if why:
         blockers.append(why)
+    trib = None
     if re.search(r"tributar", row["water"], re.I):
-        blockers.append("the row is the water's TRIBUTARIES: an extent cannot say tributaries only")
+        trib = "only"                      # "Granby River's Tributaries" (owner 2026-10-29)
+        notes.append("the row is the water's tributaries: tributaries only")
     other = _OTHER_WATER.search(change)
     if other and tokens(other.group(1)) - tokens(row["water"]):
         blockers.append(f"the change is in another water: '{other.group(1)}'")
         ev["other_water"] = other.group(1)
-    if re.search(r"including (?:its )?tributaries", change, re.I):
-        notes.append("the row includes tributaries: the banner is on the water only")
+    if trib is None and re.search(r"including (?:its )?tributaries", change, re.I):
+        trib = "include"
+        notes.append("the text includes tributaries: the extent walks them")
     elif re.search(r"tributar", change, re.I):
         notes.append("the text speaks of tributaries")
         conf = "medium"
@@ -256,11 +281,14 @@ def propose(row: dict, ctx: Context) -> Proposal:
     if primary:
         it = ctx.registry[primary]
         splits = splits_on(ctx.splits_doc, set(it.ref_ids))
+        if ctx.places is not None:
+            have = {sp.get("id") for sp in splits}
+            splits = splits + [pl for pl in ctx.places(primary) if pl["id"] not in have]
         ev["splits"] = {}
         for loc in locs:
             got = []
             for place in loc.places:
-                sid, how, cands = match_split(place, splits, it.name)
+                sid, how, cands = match_split(place, splits, it.name, loc.op)
                 if sid:
                     got.append(sid)
                     ev["splits"][place] = sid
@@ -269,15 +297,21 @@ def propose(row: dict, ctx: Context) -> Proposal:
                 else:
                     blockers.append(f"'{place}': {how}" + (f" ({', '.join(cands)})" if cands else ""))
             if len(got) == len(loc.places):
-                exts.append(M.InSeasonExtent(op=loc.op, item_id=primary, splits=got))
+                op, got = loc.op, got
+                if op == "between" and "mouth" in got:      # "from A to the river mouth": below A
+                    op, got = "downstream_of", [g for g in got if g != "mouth"]
+                if op == "between" and len(set(got)) == 1:
+                    blockers.append(f"'{loc.quote}': both ends read as the same place ({got[0]})")
+                    continue
+                exts.append(M.InSeasonExtent(op=op, item_id=primary, splits=got, tributaries=trib))
         if not locs:
-            exts = [M.InSeasonExtent(op="whole", item_id=c) for c in ids]
+            exts = [M.InSeasonExtent(op="whole", item_id=c, tributaries=trib) for c in ids]
         else:
             ups = {e.splits[0] for e in exts if e.op == "upstream_of"}
             downs = {e.splits[0] for e in exts if e.op == "downstream_of"}
             if ups & downs:
                 notes.append(f"upstream and downstream of {sorted(ups & downs)[0]}: the whole water")
-                exts = [M.InSeasonExtent(op="whole", item_id=primary)]
+                exts = [M.InSeasonExtent(op="whole", item_id=primary, tributaries=trib)]
             # one extent per distinct place
             exts = list({json.dumps(e.model_dump(), sort_keys=True): e for e in exts}.values())
         if exts and not blockers and any(e.op != "between" for e in exts):
@@ -316,8 +350,8 @@ def apply(doc: M.Matches, feed: dict, ctx: Context, at: str) -> tuple[M.Matches,
     for row in sorted(feed.get("rows") or [], key=lambda r: r["id"]):
         rid = row["id"]
         cur = matches.get(rid)
-        if cur is not None and cur.source == "owner":
-            continue
+        if cur is not None and cur.source in ("owner", "claude"):
+            continue                     # a person's (or Claude's, at the owner's request) match: never touched
         p = propose(row, ctx)
         props.append(p)
         if p.auto:
@@ -352,13 +386,12 @@ def context(verify: bool = True) -> Context:
     ctx = Context(reg, build_name_index(reg), build_id_index(reg), build_override_index(load_overrides(DEFAULT_OVERRIDES)),
                   json.loads(Path(CURATED.waters.splits).read_text(encoding="utf-8")))
     if verify:
-        ctx.verify = _graph_verifier(reg)
+        ctx.verify, ctx.places = _graph_verifier(reg)
     return ctx
 
 
 def _graph_verifier(reg):
     """The review backend's preview, without the backend: `extent.resolve_extent` on the default build's graph."""
-    from pipeline.atlas.reach import extent as X
     from pipeline.atlas.reach import position
     from pipeline.atlas.registry import regions
     from pipeline.common.curated import GENERATED
@@ -368,14 +401,19 @@ def _graph_verifier(reg):
     regions.attach_from(build, g, reg)
     position.attach(g, build)
 
+    from pipeline.regs.inseason import points as P
+
     def verify(exts: list[M.InSeasonExtent]) -> tuple[bool, str]:
         for e in exts:
-            reasons: list = []
-            got = X.resolve_extent(reg, g, [e.item_id], e.model_dump(), reasons=reasons)
-            if not (got or {}).get("sections"):
-                return False, "; ".join(f"{c}{': ' + d if d else ''}" for c, d in reasons) or f"{e.op} binds nothing"
+            try:
+                P.resolve(reg, g, e.model_dump(exclude_none=True))
+            except P.Unresolved as ex:
+                return False, str(ex) or f"{e.op} binds nothing"
         return True, ""
-    return verify
+
+    def places(item_id: str) -> list[dict]:
+        return [{"id": p.id, "label": p.label} for p in P.points(reg, g, item_id) if p.m is not None]
+    return verify, places
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -69,7 +69,7 @@ describe("in-season: which parts an extent covers", () => {
     expect(inSeasonParts({ item: "i", op: "upstream_of", at: ["Hwy 3 bridge"] }, RIVER)).toBeNull();
   });
   it("on a page: its part, the whole water's page, an unresolved cut shown on the whole water as partial", () => {
-    const c = (extents: any[]) => ({ id: "is-a", region: "4", water: "W", text: "No fishing", from: null, to: null, source: SRC, extents });
+    const c = (extents: any[]) => ({ id: "is-a", region: "4", water: "W", text: "No fishing", from: null, to: null, source: SRC, extents, places: null });
     const up = c([{ item: "i", op: "upstream_of", at: ["B"] }]);
     expect(inSeasonOn([up], "i", 3, RIVER).map((p) => p.partial)).toEqual([false]);
     expect(inSeasonOn([up], "i", 0, RIVER)).toEqual([]);
@@ -90,17 +90,39 @@ describe("in-season: the words, whole", () => {
   });
   it("the banner line, as the owner wrote it", () => {
     const b = inSeasonBanner({ partial: false, change: { id: "is-a", region: "8", water: "Okanagan River", from: "2026-10-15",
-      to: "2026-11-30", text: "No fishing July 30 to September 15.", source: SRC, extents: [] } });
+      to: "2026-11-30", text: "No fishing July 30 to September 15.", source: SRC, extents: [], places: null } });
     expect(b.line).toBe("In-season change (Oct 15–Nov 30): No fishing July 30 to September 15. — source ›");
     expect([b.url, b.partial, b.note]).toEqual([SRC, null, "Shown as posted; the answers on this page do not include it yet."]);
-    expect(inSeasonBanner({ partial: true, change: { id: "x", region: "8", water: "W", from: null, to: null, text: "T", source: SRC, extents: [] } }).line)
+    expect(inSeasonBanner({ partial: true, change: { id: "x", region: "8", water: "W", from: null, to: null, text: "T", source: SRC, extents: [], places: null } }).line)
       .toBe("In-season change: T — source ›");
   });
   it("the notice rows, and which are unseen", () => {
-    const u = [{ id: "is-k", region: "4", water: "Kaslo River", from: "2025-04-04", to: null, text: "Rescinding …", source: SRC, extents: [] },
-               { id: "is-p", region: "provincial", water: "All waters", from: null, to: null, text: "X", source: SRC, extents: [] }];
+    const u = [{ id: "is-k", region: "4", water: "Kaslo River", from: "2025-04-04", to: null, text: "Rescinding …", source: SRC, extents: [], places: null },
+               { id: "is-p", region: "provincial", water: "All waters", from: null, to: null, text: "X", source: SRC, extents: [], places: null }];
     expect(inSeasonNoticeRows(u).map((r) => `${r.where} | ${r.dates}`))
       .toEqual(["Region 4 · Kaslo River | since Apr 4, 2025", "Provincial · All waters | null"]);
     expect(inSeasonUnseen(u, new Set(["is-k"]))).toEqual(["is-p"]);
+  });
+});
+
+describe("in-season: places on the device's release (owner 2026-10-29)", () => {
+  const links = parseInSeasonLinks({ format: "inseason-links/1", release: "r-1", matches: {
+    "is-a": { extents: [{ item: "gnis:7551", op: "upstream_of", at: ["lake:1:inlet"] }],
+              places: { "gnis:7551": { parts: [0, 2], some: [2], all: false }, "gnis:9": { parts: [0], all: true } } },
+  } });
+  const f = feed([row({ id: "is-a" })]);
+  it("on its release: exactly the parts it names, a tributary water too; partly-covered parts are partial", () => {
+    const [c] = joinInSeason(f, links, "2026-10-29", "r-1").matched;
+    expect(inSeasonOn([c!], "gnis:7551", 0, null).map((p) => p.partial)).toEqual([false]);
+    expect(inSeasonOn([c!], "gnis:7551", 2, null).map((p) => p.partial)).toEqual([true]);
+    expect(inSeasonOn([c!], "gnis:7551", 1, null)).toEqual([]);
+    expect(inSeasonOn([c!], "gnis:7551", null, null).map((p) => p.partial)).toEqual([true]);
+    expect(inSeasonOn([c!], "gnis:9", 0, null).map((p) => p.partial)).toEqual([false]);
+  });
+  it("on another release: never the parts (rule 6) — the extents, and a derived place no mark carries is partial", () => {
+    const [c] = joinInSeason(f, links, "2026-10-29", "r-2").matched;
+    expect(c!.places).toBeNull();
+    expect(inSeasonOn([c!], "gnis:9", 0, null)).toEqual([]);
+    expect(inSeasonOn([c!], "gnis:7551", 1, RIVER).map((p) => p.partial)).toEqual([true]);
   });
 });

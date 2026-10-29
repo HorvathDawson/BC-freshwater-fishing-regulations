@@ -12,7 +12,7 @@ import { LIGHT } from "./theme";
 afterEach(cleanup);
 const SRC = "https://www2.gov.bc.ca/x";
 const change = { id: "is-a", region: "8", water: "Okanagan River", from: "2026-10-15", to: "2026-11-30",
-                 text: "No fishing July 30 to September 15.", source: SRC, extents: [] };
+                 text: "No fishing July 30 to September 15.", source: SRC, extents: [], places: null };
 
 describe("in-season", () => {
   it("<InSeasonBanners>: the owner's line, whole, then the note and the source link", () => {

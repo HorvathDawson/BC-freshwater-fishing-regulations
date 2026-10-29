@@ -1325,7 +1325,11 @@ export interface MarksHealth {
 
 // --- T230: the In-season tab (`curation-review/backend/inseason.py`) ---
 export type InSeasonOp = "whole" | "upstream_of" | "downstream_of" | "between";
-export interface InSeasonExtent { op: InSeasonOp; item_id: string; splits: string[] }
+export interface InSeasonExtent {
+  op: InSeasonOp; item_id: string; splits: string[];
+  /** owner 2026-10-29: the regs' tributary walk added ("include") or alone ("only") */
+  tributaries?: "include" | "only" | null;
+}
 /** an extent as the queue shows it: with the water's name and the splits' labels */
 export interface InSeasonExtentView extends InSeasonExtent { item_name: string | null; split_labels: string[] }
 export interface InSeasonHistory {
@@ -1356,7 +1360,7 @@ export interface InSeasonRow {
            note: string; by: string; at: string;
            /** owner add-on 2026-10-28: "auto" = `pipeline.regs.inseason.auto` (unambiguous rows only); an owner
             *  save makes it "owner", and auto never writes over an owner match */
-           source: "owner" | "auto"; confidence: "high" | "medium" | "low" | null;
+           source: "owner" | "auto" | "claude"; confidence: "high" | "medium" | "low" | null;
            evidence: InSeasonEvidence | null } | null;
   /** auto's best guess for an unmatched row (pre-fills the editor; never applied) */
   guess: { why: string; evidence: InSeasonEvidence | null; extents: InSeasonExtentView[] } | null;
@@ -1375,7 +1379,7 @@ export interface InSeasonItemSplits {
   splits: EntrySplits;
 }
 export interface InSeasonPreview extends ExtentPreview {
-  per_extent?: { n_sections: number; why: string | null }[];
+  per_extent?: { n_sections: number; n_tributaries?: number; why: string | null }[];
 }
 export interface InSeasonMatchPost {
   id: string;

@@ -44,7 +44,11 @@ class InSeasonExtent(BaseModel):
 
     op: Literal["whole", "upstream_of", "downstream_of", "between"]
     item_id: str
+    #: the place(s) cutting the water: a splits.json id, an atlas boundary id (`area:…`, `length:…`), or a derived
+    #: pick-point (`points.DERIVED_RE`: `mouth`, `lake:<wbk>:inlet|outlet`, `trib:<item>`, `region:A|B`, `mu:A|B`)
     splits: List[str] = Field(default_factory=list)
+    #: owner 2026-10-29: "include" adds the regs' tributary walk; "only" is the walk without the stretch itself
+    tributaries: Optional[Literal["include", "only"]] = None
 
     @field_validator("item_id")
     @classmethod
@@ -93,7 +97,7 @@ class Match(BaseModel):
     at: str = ""
     #: owner add-on 2026-10-28: "auto" = written by `pipeline.regs.inseason.auto` (unambiguous only), "owner" = a
     #: person (the review tab, by hand). An owner match always wins: auto never overwrites one.
-    source: Literal["owner", "auto"] = "owner"
+    source: Literal["owner", "auto", "claude"] = "owner"
     #: auto only: what matched (water name → item, boundary words → split ids) and how sure
     evidence: Optional[dict] = None
     confidence: Optional[Literal["high", "medium", "low"]] = None
@@ -181,12 +185,19 @@ def problems(doc: Matches, *, feed_ids: Iterable[str] | None = None,
             out.append(f"{rid}: no such in-season row in the feed")
         for e in m.extents:
             for s in e.splits:
-                if known is not None and s not in known:
+                if known is not None and s not in known and not place_id_shape(s):
                     out.append(f"{rid}: unknown split {s!r}")
     for h in doc.history:
         if not ID_RE.match(h.id):
             out.append(f"history: {h.id!r} is not an in-season row id")
     return out
+
+
+def place_id_shape(pid: str) -> bool:
+    """A pick-point id that is not a splits.json id but has a valid shape (a derived point or an atlas boundary);
+    whether it is ON the water is the review backend's check (`points.points`)."""
+    from pipeline.regs.inseason import points as P
+    return P.is_derived(pid) or bool(P.ATLAS_ID_RE.match(pid))
 
 
 def _dump_match(m: Match) -> dict:

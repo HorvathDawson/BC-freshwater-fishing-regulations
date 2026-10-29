@@ -51,10 +51,15 @@ export interface InSeasonExtent {
   /** the split labels, as the release's part marks carry them (1 for up/downstream_of, 2 for between) */
   readonly at?: readonly string[];
 }
+/** (owner 2026-10-29) where a match lands in ONE release: the parts of each water it touches (`some`: only partly) */
+export interface InSeasonPlace { readonly parts: readonly number[]; readonly some?: readonly number[]; readonly all: boolean }
 export interface InSeasonLinks {
   readonly format: typeof INSEASON_LINKS_FORMAT;
+  /** the data release `places` name parts in; a device on another release reads `extents` instead (AGENTS 6) */
+  readonly release?: string;
   readonly matches: Readonly<Record<string, { readonly extents: readonly InSeasonExtent[];
-                                              readonly from?: string; readonly to?: string }>>;
+                                              readonly from?: string; readonly to?: string;
+                                              readonly places?: Readonly<Record<string, InSeasonPlace>> }>>;
 }
 
 /** The feed as the app reads it, or null (never a half-read feed). */
@@ -80,9 +85,14 @@ export function parseInSeasonLinks(x: unknown): InSeasonLinks | null {
     const exts = Array.isArray(m?.extents) ? m.extents : [];
     const ok = exts.length > 0 && exts.every((e) => e && typeof e.item === "string" && OPS.has(e.op)
       && (e.at ?? []).length === NEEDS[e.op] && (e.at ?? []).every((a: unknown) => typeof a === "string" && (a as string).length > 0));
-    if (ok) matches[id] = m;
+    if (!ok) continue;
+    const places = m.places && typeof m.places === "object"
+      && Object.values(m.places).every((p) => p && typeof p.all === "boolean" && Array.isArray(p.parts)
+        && p.parts.every(Number.isInteger) && (p.some ?? []).every(Number.isInteger)) ? m.places : undefined;
+    matches[id] = { extents: m.extents, ...(m.from ? { from: m.from } : {}), ...(m.to ? { to: m.to } : {}),
+                    ...(places ? { places } : {}) };
   }
-  return { format: INSEASON_LINKS_FORMAT, matches };
+  return { format: INSEASON_LINKS_FORMAT, ...(typeof l.release === "string" ? { release: l.release } : {}), matches };
 }
 
 /** "2026-07-30" for a local date. */
@@ -117,10 +127,18 @@ export interface InSeasonChange {
   readonly source: string;
   /** the matched extents; empty = not matched yet */
   readonly extents: readonly InSeasonExtent[];
+  /** the parts it lands on in THIS device's release (null: the links name another release, or none) */
+  readonly places: Readonly<Record<string, InSeasonPlace>> | null;
+}
+
+/** The waters a matched change is on (its places' waters, else its extents'). */
+export function inSeasonWaters(c: InSeasonChange): string[] {
+  return c.places ? Object.keys(c.places) : [...new Set(c.extents.map((e) => e.item))];
 }
 
 /** Every row of the feed in effect on `day` ("YYYY-MM-DD"), split into matched and not. Removed rows are never in. */
-export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | null, day: string):
+export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | null, day: string,
+                             release: string | null = null):
   { matched: InSeasonChange[]; unmatched: InSeasonChange[] } {
   const matched: InSeasonChange[] = [], unmatched: InSeasonChange[] = [];
   if (!feed) return { matched, unmatched };
@@ -130,8 +148,9 @@ export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | n
     const link = links?.matches[r.id];
     const span = inSeasonSpan(r, link);
     if ((span.from && span.from > day) || (span.to && span.to < day)) continue;
+    const places = link?.places && links?.release && links.release === release ? link.places : null;
     const c: InSeasonChange = { id: r.id, region: r.region, water: r.water, text: r.change, ...span,
-                                source: feed.source, extents: link?.extents ?? [] };
+                                source: feed.source, extents: link?.extents ?? [], places };
     (c.extents.length ? matched : unmatched).push(c);
   }
   return { matched, unmatched };
@@ -194,6 +213,13 @@ export function inSeasonOn(matched: readonly InSeasonChange[], item: string, par
                            marks: InSeasonMarks | null): InSeasonOnPage[] {
   const out: InSeasonOnPage[] = [];
   for (const c of matched) {
+    if (c.places) {                       // THE RELEASE'S OWN PARTS (publish resolved them on this release's atlas)
+      const p = c.places[item];
+      if (!p) continue;
+      if (partIx === null) out.push({ change: c, partial: !p.all });
+      else if (p.parts.includes(partIx)) out.push({ change: c, partial: (p.some ?? []).includes(partIx) });
+      continue;
+    }
     let on = false, partial = false;
     for (const e of c.extents) {
       if (e.item !== item) continue;
