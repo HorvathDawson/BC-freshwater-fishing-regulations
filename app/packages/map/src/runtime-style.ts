@@ -24,6 +24,7 @@ import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOAC
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint } from "./labels";
+import { ATLAS_CREDIT, BASEMAP_CREDIT, creditLayers, creditSources } from "./credits";
 
 /** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
 function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Tokens) {
@@ -138,8 +139,9 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       // overzooms the last real tile instead of asking the archive for tiles it does not hold — a blank map. Stated
       // rather than left to the archive's header because a style's own `maxzoom` wins over the header's (GL JS
       // `loadTileJson`), and `tools/overzoom.test.ts` holds both numbers to the archives the pipeline writes.
-      basemap: { type: "vector" as const, url: `pmtiles://${at.basemap}`, maxzoom: BASEMAP_MAX_ZOOM, attribution:
-        '<a href="https://openstreetmap.org/copyright">© OpenStreetMap</a> · © Protomaps' },
+      // (T235) ODbL's credit, linked — `credits.ts` holds every credit the map shows
+      basemap: { type: "vector" as const, url: `pmtiles://${at.basemap}`, maxzoom: BASEMAP_MAX_ZOOM,
+                 attribution: BASEMAP_CREDIT },
       ...externalRasters(at.imagery),
       // `outside` IS a URL — the mask is fetched. `gauges` is not: it is the GeoJSON
       // itself, so it has to be parsed. See `geojsonData` (gaugeDots.ts) for why that distinction
@@ -153,10 +155,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         // Every reach, lake and boundary in this archive is derived from the Province's
         // Freshwater Atlas, and the rules painted over them from the Province's synopsis.
         // Both are open data with an attribution condition, and the map is where they are
-        // actually drawn.
-        attribution:
-          '<a href="https://www2.gov.bc.ca/gov/content/data/open-data">Province of British ' +
-          "Columbia</a> \u00b7 Freshwater Atlas &amp; Freshwater Fishing Synopsis",
+        // actually drawn. (T235) It also holds OpenStreetMap names and channels: credited here too (`ATLAS_CREDIT`).
+        attribution: ATLAS_CREDIT,
         /**
          * NO `promoteId` ON THE ATLAS (T202, owner 2026-10-27). A section's id is its MVT feature id (P18,
          * `pipeline/tests/test_tile_mvt_ids.py`); the tiles no longer repeat it as a `section_id` property (18 MB).
@@ -179,6 +179,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       ...traceSources(),
       // (T175) THE WATER COPY's source, empty until a map keeps a water's lines — see water-copy.ts.
       [COPY_SOURCE]: { type: "geojson" as const, data: EMPTY_COPY },
+      // (T235) the credits a mode or an overlay adds, each on an empty source of its own — see credits.ts
+      ...creditSources(),
     },
     layers: [
       /**
@@ -487,6 +489,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        * value, and two names for one meaning is how a palette drifts.
        */
       ...(at.gauges ? gaugeLayers(theme, modes, paper) : []),
+      // (T235) the credits' layers: draw nothing, visible while the look draws their data (credits.ts)
+      ...creditLayers(),
       /*
        * THE ROUTE OVERLAY, LAST OF ALL — over every river and every gauge dot. Present in
        * every view and empty unless a route map fills it (`setTrace`), so declaring it costs

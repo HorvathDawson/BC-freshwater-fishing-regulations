@@ -87,7 +87,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
       headings: ["More", "Data", "Display", "Contact"],
       rows: [
         "GlossaryWhat the regulations' words mean",
-        "Sources and creditsWho publishes the data, and on what terms",
+        "Sources and licencesWho publishes the data, and under which licence",
         "AboutWhat this app is, and what it is not",
         "Report a problemSomething wrong, missing or confusing",
       ],
@@ -275,7 +275,7 @@ describe("a page", () => {
     render(<App out={{}} loader={loader} />);
     pick("menu-item-sources");
     const page = screen.getByTestId("menu-page-sources");
-    expect(page.querySelector("[role=header], [role=heading]")?.textContent).toBe("Sources and credits");
+    expect(page.querySelector("[role=header], [role=heading]")?.textContent).toBe("Sources and licences");
     expect(screen.getAllByTestId(/^source-(?!detail-)/).map((e) => e.textContent)).toEqual([
       "SynopsisProvince of British Columbia. The printed regulations this app reads."
         + "2025–2027 BC Freshwater Fishing Regulations Synopsis",
@@ -471,7 +471,7 @@ describe("the Regulations screen's report link (T41 Q3, Claude 2026-10-22: once,
                     licence={<Text>licence section</Text>} />
       </MenuContext.Provider>);
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "report-link", "regs-fish-credits"]);   // (T43) the foot credits last
+      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "regs-legal", "report-link", "regs-fish-credits"]);   // (T43) the foot credits last
     expect(screen.getAllByText("Report a problem with this page")).toHaveLength(1);
     // (T41 Q3 review) it reports the whole page: whichever tab the row has selected, the report names no tab
     for (const t of ["methods", "keep", "licence", "gear"] as const) {

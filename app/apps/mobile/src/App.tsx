@@ -26,7 +26,7 @@ import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage, up
 import { createUpdateService, httpFeed, httpInSeason, httpSalmonFeed, manifestDate, type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openUpdateStore, openMeteo, openPhotos, openSpots, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openUpdateStore, openMeteo, openPhotos, openSpots, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { connectivity, FishSpinner, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName } from "@app/ui-native";
 import { LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
@@ -100,6 +100,8 @@ export default function App() {
   // T230: the provincial in-season changes and where each applies, the last capture kept for offline; the ids shown
   const inSeason = useMemo(() => httpInSeason(ENDPOINTS.inSeason, openInSeasonStore()), []);
   const inSeasonSeen = useMemo(() => openInSeasonSeenStore(), []);
+  // T236: the first-run notice (not legal advice), once per device
+  const firstRun = useMemo(() => openFirstRunStore(), []);
 
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell. (T231) The phone's background install
   // is the update service's (`deferUpdate`: it holds a large set for Wi-Fi); `generation` re-boots onto a staged update.
@@ -282,7 +284,7 @@ export default function App() {
                onSaveSpot={spotsHook.save}
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
-               inSeason={inSeason} inSeasonSeen={inSeasonSeen}
+               inSeason={inSeason} inSeasonSeen={inSeasonSeen} firstRun={firstRun}
                refreshing={refreshing}
                onDeleteSpot={spotsHook.remove}
                onRefreshSpots={async () => {

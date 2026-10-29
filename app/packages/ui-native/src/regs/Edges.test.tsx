@@ -54,7 +54,7 @@ describe("8. outside B.C.", () => {
                        licence={page.licence ? <Text>licence</Text> : undefined} />);
     expect(screen.getByTestId("keep-tab").textContent).toBe("This part of the water is outside B.C.: no B.C. rules apply.");
     expect(screen.getByTestId("keep-outside").textContent).toBe("This part of the water is outside B.C.: no B.C. rules apply.");
-    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"))).toEqual(["keep-tab"]);
+    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"))).toEqual(["keep-tab", "regs-legal"]);
     expect(screen.queryByTestId("regs-licence")).toBeNull();
     expect(within(screen.getByRole("tablist", { name: "Section" })).getAllByRole("tab").map((t) => t.textContent)).toEqual(["What you can keep"]);
   });

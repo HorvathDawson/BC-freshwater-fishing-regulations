@@ -67,6 +67,11 @@ export function openUpdateStore(): { read(): string | null; write(text: string):
   return fileStore("updates.json");
 }
 
+/** (T236) The first-run notice's accepted version (`FIRST_RUN_VERSION`), a small file of its own. */
+export function openFirstRunStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("first-run.txt");
+}
+
 function fileStore(name: string): { read(): string | null; write(text: string): void } {
   const dir = new Directory(Paths.document, "spots");
   const file = () => new File(dir, name);

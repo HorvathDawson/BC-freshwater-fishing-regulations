@@ -165,9 +165,13 @@ export function salmonFeedLine(f: SalmonFacts | null): string | null {
 }
 
 /** The Salmon card with the feed's line (`checked`: null when the release's own file answers). */
-export interface SalmonCardLiveVM extends SalmonCardVM { readonly checked: string | null }
+export interface SalmonCardLiveVM extends SalmonCardVM {
+  readonly checked: string | null;
+  /** (T236) the feed's publish time (ISO) the card was read through; null: the release's own file */
+  readonly feedAt?: string | null;
+}
 
 export function salmonCardLive(f: SalmonFacts, page: { sids: readonly number[]; item: string | null; gear?: SalmonGearInput },
                                on: Date): SalmonCardLiveVM {
-  return { ...salmonCard(f, page, on), checked: salmonFeedLine(f) };
+  return { ...salmonCard(f, page, on), checked: salmonFeedLine(f), feedAt: salmonFeedOf(f)?.at ?? null };
 }

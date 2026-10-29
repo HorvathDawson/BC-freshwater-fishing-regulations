@@ -8,6 +8,7 @@
  * the tree, and a map still showing the previous colouring is recoverable where a white screen is not.
  */
 import type { MapAdapter, MapHandle } from "./adapters/contract";
+import { creditDrawn, creditId, MAP_CREDITS_DRAWN } from "./credits";
 import { gaugeDotColour } from "./gaugeDots";
 import { STYLE_META } from "./style";
 
@@ -59,4 +60,6 @@ export function applyLook(adapter: MapAdapter, h: MapHandle, has: (layerId: stri
     try { adapter.setGroupVisible(h, id, on); } catch (e) { report(asError(e)); }
   }
   if (look.basemap !== undefined) adapter.setBasemap(h, look.basemap, theme);
+  // (T235) A MODE'S OR AN OVERLAY'S CREDIT, on while the look draws its data (credits.ts): the attribution follows it
+  for (const c of MAP_CREDITS_DRAWN) if (has(creditId(c))) h.setVisibility(creditId(c), creditDrawn(c, look));
 }

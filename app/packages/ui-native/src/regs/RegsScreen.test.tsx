@@ -81,10 +81,10 @@ describe("<RegsScreen>", () => {
   it("licence-last: Keep, Gear, Methods, Licence, then the footer, in the one scroll; absent sections are not drawn", () => {
     mount({ footer: <Text testID="foot">foot</Text> });
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "regs-fish-credits", "foot"]);
+      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "regs-legal", "regs-fish-credits", "foot"]);
     cleanup();
     mount({ gear: undefined, methods: undefined, licence: undefined });
-    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"))).toEqual(["keep-tab", "regs-fish-credits"]);
+    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"))).toEqual(["keep-tab", "regs-legal", "regs-fish-credits"]);
     // (T227, owner 2026-10-28) a Gear / Methods section not drawn (nothing may be fished that day) is not offered as a tab
     expect(within(screen.getByRole("tablist", { name: "Section" })).getAllByRole("tab").map((t) => t.textContent))
       .toEqual(["What you can keep", "Licence"]);

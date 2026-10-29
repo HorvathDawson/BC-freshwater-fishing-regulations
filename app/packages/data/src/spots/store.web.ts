@@ -68,6 +68,11 @@ export function openUpdateStore(): { read(): string | null; write(text: string):
   return keyStore("canifishthis.updates.v1");
 }
 
+/** (T236) The first-run notice's accepted version (`FIRST_RUN_VERSION`), one key of its own. */
+export function openFirstRunStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.firstRun.v1");
+}
+
 function keyStore(LAYERS_KEY: string): { read(): string | null; write(text: string): void } {
   return {
     read: () => { try { return globalThis.localStorage?.getItem(LAYERS_KEY) ?? null; } catch { return null; } },

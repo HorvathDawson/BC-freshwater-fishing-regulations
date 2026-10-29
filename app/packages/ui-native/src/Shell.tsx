@@ -55,6 +55,7 @@ import { HOME, useMapColouring } from "./shell/useMapColouring";
 import { useShellNav } from "./shell/useShellNav";
 import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
+import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
 
 export type { ShellProps } from "./shell/props";
 
@@ -165,6 +166,8 @@ export function Shell(p: ShellProps) {
    */
   const inSeason = useInSeason(p.inSeason ?? null, syncState.inSeasonEpoch);
   const notice = useInSeasonNotice(inSeason.unmatched, p.inSeasonSeen ?? null);
+  // (T236) the first-run notice (not legal advice) comes first: nothing else opens by itself while it is up
+  const firstRun = useFirstRun(p.firstRun ?? null);
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port; asked
@@ -288,9 +291,11 @@ export function Shell(p: ShellProps) {
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
                    mapDay={mapDay} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
-      <InSeasonNotice open={notice.open || (bellOpen && notice.count + syncState.failed.length > 0)} rows={notice.rows}
+      <InSeasonNotice open={(notice.open && !firstRun.open) || (bellOpen && notice.count + syncState.failed.length > 0)} rows={notice.rows}
                       palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}
                       sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }} />
+      {/* (T236) not legal advice: once per device, before anything else */}
+      <FirstRunNotice state={firstRun} palette={palette} />
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />

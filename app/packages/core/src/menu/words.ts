@@ -35,7 +35,8 @@ export const MENU_WORDS = {
   back: "Back",
   items: {
     glossary: { label: "Glossary", hint: "What the regulations' words mean" },
-    sources: { label: "Sources and credits", hint: "Who publishes the data, and on what terms" },
+    // (T235) "Sources and licences": every dataset, its licence and the words it asks for
+    sources: { label: "Sources and licences", hint: "Who publishes the data, and under which licence" },
     about: { label: "About", hint: "What this app is, and what it is not" },
     report: { label: "Report a problem", hint: "Something wrong, missing or confusing" },
   } satisfies Record<MenuPageKey, { label: string; hint: string }>,
@@ -65,7 +66,7 @@ export const MENU_WORDS = {
       + "lake and it says what the regulations allow there on the day you choose, alongside what the water is doing.",
     notOfficial: "This app is not the official regulations. It is built from the B.C. Freshwater Fishing Regulations "
       + "Synopsis and other public sources, and it can be wrong or out of date. The Synopsis, the Province's in-season "
-      + "changes and federal notices are the law: check them before you fish.",
+      + "changes and federal notices are the law: check them before you fish. Nothing in this app is legal advice.",
     official: "Open the official Synopsis",
     versions: "Versions",
     app: "App build",

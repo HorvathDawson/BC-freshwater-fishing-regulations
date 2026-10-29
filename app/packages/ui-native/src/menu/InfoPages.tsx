@@ -3,14 +3,16 @@
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
 import { Linking, Pressable, Text, View } from "react-native";
-import { WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
+import { LICENCE_WORDS, licencesVM, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
 import { Credits } from "../Credits";
+import { LicencesList } from "./Licences";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 
 const open = (url: string) => { void Linking.openURL(url); };
 
-export function AboutPage({ vm, palette, onEnv }: { vm: AboutVM; palette: Palette; onEnv?: (env: AppEnv) => void }) {
+export function AboutPage({ vm, palette, onEnv, onSources }: { vm: AboutVM; palette: Palette; onEnv?: (env: AppEnv) => void;
+                            /** (T235) open Sources and licences */ onSources?: () => void }) {
   return (
     <>
       {vm.env && <EnvBadge vm={vm.env} palette={palette} />}
@@ -23,6 +25,11 @@ export function AboutPage({ vm, palette, onEnv }: { vm: AboutVM; palette: Palett
       <Pressable onPress={() => open(vm.official.url)} accessibilityRole="link" accessibilityLabel={vm.official.label}>
         <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{`${vm.official.label} ${WORDS.LINK_OUT}`}</Text>
       </Pressable>
+      {onSources && (
+        <Pressable testID="about-sources" onPress={onSources} accessibilityRole="link" accessibilityLabel={LICENCE_WORDS.fromAbout}>
+          <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{`${LICENCE_WORDS.fromAbout} ›`}</Text>
+        </Pressable>
+      )}
       <View style={{ gap: SPACE.s2 }}>
         <Text style={{ ...TYPE.section, color: palette.sub }}>{vm.versionsTitle}</Text>
         {vm.versions.map((v) => (
@@ -107,6 +114,8 @@ export function SourcesPage({ vm, palette }: { vm: SourcesVM; palette: Palette }
       <Credits palette={palette} ink={palette.sub} lines={vm.pictures.lines} label={vm.pictures.label} testID="sources-fish-credits" />
       {/* (N1) the icon set's ISC notice: the licence asks every copy to carry it */}
       <Credits palette={palette} ink={palette.sub} lines={vm.icons.lines} label={vm.icons.label} testID="sources-icon-credits" />
+      {/* (T235) every dataset's licence and the words it asks for */}
+      <LicencesList vm={licencesVM()} palette={palette} />
     </>
   );
 }

@@ -25,6 +25,7 @@
  */
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { applyLook, type Look } from "./look";
+import { creditId, MAP_CREDITS_DRAWN } from "./credits";
 import type { TileEndpoints } from "./endpoints";
 import { runtimeStyle } from "./runtime-style";
 import { ATLAS_SOURCES, SECTION_SOURCE_LAYERS, stateTarget } from "./sections";
@@ -131,6 +132,11 @@ export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[]
   // map chosen) is a claim about the map that is false. The phone's style is rebuilt on every basemap change anyway.
   const imagery = s.sources.imagery;
   if (imagery && o.basemap !== "satellite") delete imagery.attribution;
+  // (T235) the same for a mode's or an overlay's credit: only while the look drew its layer (credits.ts)
+  for (const c of MAP_CREDITS_DRAWN) {
+    const l = s.layers.find((x) => x.id === creditId(c));
+    if (l?.layout?.visibility === "none") delete s.sources[creditId(c)]?.attribution;
+  }
 
   for (const id of ATLAS_SOURCES) if (s.sources[id]) delete s.sources[id]!.promoteId;
   for (const l of s.layers) {

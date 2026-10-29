@@ -72,7 +72,7 @@ describe("about", () => {
           + "lake and it says what the regulations allow there on the day you choose, alongside what the water is doing.",
         notOfficial: "This app is not the official regulations. It is built from the B.C. Freshwater Fishing "
           + "Regulations Synopsis and other public sources, and it can be wrong or out of date. The Synopsis, the "
-          + "Province's in-season changes and federal notices are the law: check them before you fish.",
+          + "Province's in-season changes and federal notices are the law: check them before you fish. Nothing in this app is legal advice.",
         official: { label: "Open the official Synopsis", url: "https://example.test/s.pdf" },
         versionsTitle: "Versions",
         versions: [

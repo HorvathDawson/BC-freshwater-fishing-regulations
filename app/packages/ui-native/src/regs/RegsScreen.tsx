@@ -19,7 +19,7 @@
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Platform, ScrollView, Text, View } from "react-native";
-import { creditsFor, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
+import { creditsFor, LEGAL_WORDS, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { InSeasonBanners } from "./InSeasonBanner";
 import { Credits } from "../Credits";
@@ -119,12 +119,17 @@ export interface RegsScreenProps {
   /** (T230) the provincial in-season changes on this water / part on the page's day (`useInSeasonBanners`), drawn
    *  right under the access notice; informational, they change no answer. */
   inSeason?: readonly InSeasonBannerVM[];
+  /**
+   * (T236) how current this page's sources are (core `asOfLine`: "Regulations as of … · salmon feed … · in-season …"),
+   * drawn at the page's foot under the "not legal advice" line (`LEGAL_WORDS.footer`, always drawn). Absent: that line only.
+   */
+  asOf?: string | null;
 }
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
                              gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = null, onAccessMap, inSeason = [], glance = null, salmonStrip = null,
-                             nameSource = null }: RegsScreenProps) {
+                             nameSource = null, asOf = null }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
@@ -218,6 +223,11 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       {sec("gear", gear)}
       {sec("methods", methods)}
       {sec("licence", licence)}
+      {/* (T236) every page's foot: not legal advice, and how current its sources are */}
+      <WaterInset testID="regs-legal" style={{ paddingTop: 20, gap: 4 }}>
+        <Text style={{ ...TYPE.small, color: palette.sub }}>{LEGAL_WORDS.footer}</Text>
+        {asOf && <Text testID="regs-as-of" style={{ ...TYPE.small, color: palette.sub }}>{asOf}</Text>}
+      </WaterInset>
       {/* (T41 Q3) once, at the page's foot: the report is about the whole page (it names no tab) */}
       <ReportLink page={page} palette={palette} />
       {credits.length > 0 && (

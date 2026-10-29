@@ -51,6 +51,8 @@ export interface ShellProps {
   inSeason?: import("@app/data").InSeasonSource | null;
   /** (T230) the in-season row ids this device has been shown in the notice (once per row per device). */
   inSeasonSeen?: import("@app/ui").InSeasonSeenStore | null;
+  /** (T236) where the first-run notice's acceptance is kept (`openFirstRunStore`). Absent: the notice never opens. */
+  firstRun?: import("../FirstRunNotice").FirstRunStore | null;
   refreshing?: boolean;
   attribution?: readonly string[];
   /** The fish pictures by species code, registered by the app (T20). Absent -> silhouettes. */

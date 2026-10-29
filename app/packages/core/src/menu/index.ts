@@ -15,6 +15,9 @@
  *   sourcesVM       every source the app reads, who publishes it and its licence, the edition / tile build in use —
  *                   references only; each source's date and freshness (`sourceFreshness`) are the More tab's
  *   contactVM       the ONE contact value (app config), or a placeholder until the owner supplies it
+ *   licencesVM      (T235) every dataset, its licence (linked) and the words it asks for — the Sources page's foot
+ *   asOfLine / LEGAL_WORDS   (T236) the regs page's foot: not legal advice, and how current its sources are; the
+ *                   first-run notice's words
  *   diagnosticRows / reportMessage / mailtoUrl   a problem report: what the user wrote plus the diagnostics they can
  *                   SEE and switch off, composed for the platform's share sheet or an email — nothing is ever sent
  *                   without the user pressing send, and nothing is sent in the background
@@ -26,3 +29,5 @@ export * from "./sources";
 export * from "./freshness";
 export * from "./contact";
 export * from "./report";
+export * from "./licences";
+export * from "./legal";

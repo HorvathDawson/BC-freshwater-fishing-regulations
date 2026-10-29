@@ -52,7 +52,7 @@ describe("<WaterScreen> regulations", () => {
     // (T35) on a closed day the Licence section is its heading (D16 a)
     expect(screen.getByTestId("licence-tab").textContent).toBe("Licence");
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "regs-licence"]);
+      .toEqual(["keep-tab", "regs-licence", "regs-legal"]);
   }, 30_000);
 
   it("a release past its valid_until: the page leads with core's out-of-date sentence (none on an unstamped release)", async () => {

@@ -248,7 +248,7 @@ describe("the More tab, top to bottom", () => {
                  options: [{ k: "light", t: "Light" }, { k: "dark", t: "Dark" }, { k: "cvd", t: "Colour-blind" }] },
       rows: [
         { k: "glossary", label: "Glossary", hint: "What the regulations' words mean" },
-        { k: "sources", label: "Sources and credits", hint: "Who publishes the data, and on what terms" },
+        { k: "sources", label: "Sources and licences", hint: "Who publishes the data, and under which licence" },
         { k: "about", label: "About", hint: "What this app is, and what it is not" },
         { k: "report", label: "Report a problem", hint: "Something wrong, missing or confusing" },
       ],

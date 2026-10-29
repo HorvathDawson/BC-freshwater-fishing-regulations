@@ -8,7 +8,7 @@
 export type { Spot, SpotReading, SpotWeather, WeatherSample, DailyWeather, DailyGauge, LeadUp } from "./model";
 export { spotLabel, isUntitled } from "./model";
 export { captureSpot, type WeatherSource } from "./capture";
-export { openSpots, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore,
+export { openSpots, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore,
          openUpdateStore } from "./store";
 export { openSpotsWith, type SpotsFs } from "./core";
 export { openMeteo } from "./weather";

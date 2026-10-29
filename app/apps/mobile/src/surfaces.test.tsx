@@ -138,7 +138,7 @@ const PLACES: { place: string; route: Route; pushed: boolean; loader?: boolean; 
     go: async () => { act(() => { fireEvent.focus(screen.getByLabelText("Search waters and towns")); }); await until(() => screen.queryByLabelText("Close search") !== null); } },
   { place: "Layers sheet", route: HOME, pushed: true, go: () => click("Layers") },
   { place: "More › Glossary", route: { ...HOME, tab: "more" }, pushed: true, loader: true, go: () => click("Glossary") },
-  { place: "More › Sources and credits", route: { ...HOME, tab: "more" }, pushed: true, loader: true, go: () => click("Sources and credits") },
+  { place: "More › Sources and licences", route: { ...HOME, tab: "more" }, pushed: true, loader: true, go: () => click("Sources and licences") },
   { place: "More › About", route: { ...HOME, tab: "more" }, pushed: true, loader: true, go: () => click("About") },
   { place: "More › Report a problem", route: { ...HOME, tab: "more" }, pushed: true, loader: true, go: () => click("Report a problem") },
 ];

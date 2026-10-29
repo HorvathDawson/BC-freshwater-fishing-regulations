@@ -94,7 +94,8 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ro
         edition: m?.sources?.synopsis?.title ?? null, tiles })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles, dataEnv,
-        edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)} onEnv={pickEnv} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
+        edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)} onEnv={pickEnv}
+                                   onSources={() => menu.show("sources")} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
       {page("report", <ReportPage palette={palette} contact={info.contact} diagnostics={diagnostics} />)}
     </>
   );
