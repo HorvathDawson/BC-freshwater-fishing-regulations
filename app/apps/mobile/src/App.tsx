@@ -22,15 +22,15 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { INSTALL_WORDS, MAP_CREDITS, installLine, netBanner, progressWords, rolledBackLine, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+import { downloadFraction, INSTALL_WORDS, MAP_CREDITS, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { connectivity, ErrorState, LoadingState, setSynopsisNet, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
+import { connectivity, ErrorState, LoadingState, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
@@ -132,8 +132,8 @@ export default function App() {
   // Open-Meteo: no key, and it has an archive endpoint — which is what lets a spot pinned
   // with no signal be filled in later from the day it was actually made.
   const weather = useMemo(() => openMeteo(), []);
-  // T170: HYDAT's daily means through ECCC GeoMet, for a spot's visit day older than the feed's record (one GET each)
-  const hydat = useMemo(() => geometHydat(), []);
+  // T170/T274: HYDAT's daily means from our data host, for a spot's visit day older than the feed's record (one small file per station)
+  const hydat = useMemo(() => storedHydat(ENDPOINTS.hydat), []);
   // S1: a spot's photographs — files beside the spots file on a phone, IndexedDB in a browser — and the platform's
   // picker (`./pickPhoto.native.ts` / `.web.ts`). The user's own: never in a release, never uploaded.
   const photos = useMemo<SpotPhotos>(
@@ -333,6 +333,8 @@ export default function App() {
   const retryBoot = useCallback(() => setAttempt((a) => a + 1), []);
   const stage = boot.state === "loading" ? boot.stage : boot.state === "failed" ? "manifest" : "paint";
   const progress = boot.state === "loading" ? boot.progress : null;
+  // (T272) a first install's second stage: everything is down, and it is being set up on the device
+  const setup = progress?.setup ?? null;
   // T215: our copy of the synopsis PDF (the release names it; fetched on the first highlighted open, from the release
   // base on web and phone alike — it is not part of the installed set). None: "open the PDF" stays the plain link.
   const synopsis = boot.state === "ready" ? boot.booted.manifest.synopsis : null;
@@ -366,6 +368,7 @@ export default function App() {
     return () => clearTimeout(t);
   }, [fontsIn, data]);
   const ready = fontsIn || !!fontError || fontWaitOver;
+  const bootWords = setup ? SETUP_WORDS.title : startStage(!ready && data ? "fonts" : stage);
 
   // (T45) THE WINDOW'S WIDTH, read here and nowhere else in the app: every screen takes its layout class from it
   // (@app/ui `useLayoutClass`), so a component arranges itself for a phone, a tablet or a desktop without reading the window
@@ -451,16 +454,22 @@ export default function App() {
       ) : (
         // THE LOADING SCREEN, and on a phone's first run the download screen: which step, and how much is down
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 14 }}>
-          <LoadingState palette={palette} size={110} label={startStage(!ready && data ? "fonts" : stage)} />
-          <Text style={{ color: palette.sub, fontSize: 13 }}>
-            {startStage(!ready && data ? "fonts" : stage)}
-          </Text>
+          <LoadingState palette={palette} size={110} label={bootWords} />
+          <Text style={{ color: palette.sub, fontSize: 13 }}>{bootWords}</Text>
           {/* (T254) on a slow or missing line: said, and how far the map's first file has come */}
-          {stage !== "install" && <BootNetLine colour={palette.faint} />}
-          {stage === "install" && progress && (
+          {stage !== "install" && !setup && <BootNetLine colour={palette.faint} />}
+          {/* (T272) the first bar: the download; it stays (full) under the second stage's bar */}
+          {(stage === "install" || setup) && progress && progress.of > 0 && (
             <>
+              <StageBar palette={palette} value={downloadFraction(progress)} testID="boot-download-bar" />
               <Text style={{ color: palette.sub, fontSize: 13 }}>{installLine(progress)}</Text>
-              <Text style={{ color: palette.faint, fontSize: 12 }}>{INSTALL_WORDS.wifi}</Text>
+              {!setup && <Text style={{ color: palette.faint, fontSize: 12 }}>{INSTALL_WORDS.wifi}</Text>}
+            </>
+          )}
+          {setup && (
+            <>
+              <StageBar palette={palette} value={setupFraction(setup)} testID="boot-setup-bar" />
+              <Text style={{ color: palette.sub, fontSize: 13 }}>{setupLine(setup)}</Text>
             </>
           )}
         </View>

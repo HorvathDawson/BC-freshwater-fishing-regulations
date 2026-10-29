@@ -315,6 +315,7 @@ use that as the sole source of future work."
 | T269 | Water pages ARE the app: `/water/<slug>` prerendered with the app's own regs pane (same look), app hydrates; hubs/sitemap/legacy 301s point at it; separate text-only water pages retired | OPEN | — | owner 2026-10-29 |
 | T270 | Map fonts + symbols (glyphs/sprites) from our own data host only, offline-capable; audit every third-party request | DONE | — | owner 2026-10-29 |
 | T271 | Problem reports auto-deleted after 180 days (feeds worker cron); privacy page wording + privacy@ address | DONE (deploy: owner) | — | owner 2026-10-29 |
+| T274 | Past-day flow (HYDAT daily means) stored on our data host; dayFlow.ts no longer calls ECCC GeoMet | DONE (staging seeded; prod upload human) | T270 | owner 2026-10-29 |
 | T272 | First install: second progress bar after download ("Setting up on this device") with real progress; measure + cut the post-download step | OPEN | — | owner 2026-10-29 |
 | T273 | Panning lag on Android: profile, then cache per-section answers, batch viewport queries, defer work during gestures, prefetch one screen out | OPEN | — | owner 2026-10-29 |
 | T275 | Mode switch (Standard/Salmon/Runs) resizes the map; only the UI block should change, map fixed | OPEN | — | owner 2026-10-29 |

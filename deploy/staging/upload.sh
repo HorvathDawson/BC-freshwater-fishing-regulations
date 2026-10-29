@@ -37,6 +37,11 @@ rclone copy data/generated/gauges/feeds "$D/feeds/live" --s3-no-check-bucket --t
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"
 rclone copyto data/generated/gauges/feeds/clim.json "$D/feeds/live/clim.json" --s3-no-check-bucket --checksum \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"
+# (T274) HYDAT daily means per station (pipeline.gauges.feed.hydat_daily; static between HYDAT releases): what dayFlow.ts reads
+if [[ -d data/generated/gauges/hydat_daily ]]; then
+  rclone copy data/generated/gauges/hydat_daily "$D/feeds/hydat" --s3-no-check-bucket --transfers 32 --include "*.json" \
+    --header-upload "Cache-Control: public, max-age=86400" --header-upload "Content-Type: application/json"
+fi
 rclone copy data/generated/regs/dfo_salmon/feed "$D/feeds/dfo" --s3-no-check-bucket --include "*.json" --ignore-existing \
   --exclude "feed.notified.json" \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"

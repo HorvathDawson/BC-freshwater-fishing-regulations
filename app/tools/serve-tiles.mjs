@@ -107,6 +107,9 @@ createServer((req, res) => {
     // In production it sits in R2, and the app changes a base URL rather than a code path.
     ?? (/^\/feeds\/live\/[\w-]+\.json$/.test(route)
           ? `${repo}data/generated/gauges/feeds/${route.split("/").pop()}` : undefined)
+    // (T274) HYDAT's DAILY MEANS per station: `python -m pipeline.gauges.feed.hydat_daily` (R2 `feeds/hydat/` in prod)
+    ?? (/^\/feeds\/hydat\/[\w-]+\.json$/.test(route)
+          ? `${repo}data/generated/gauges/hydat_daily/${route.split("/").pop()}` : undefined)
     // (T211) THE DFO SALMON FEED: whatever `python -m pipeline.regs.dfo_salmon.live` last wrote (R2 `feeds/dfo/` in prod)
     ?? (/^\/feeds\/dfo\/[\w-]+\.json$/.test(route)
           ? `${repo}data/generated/regs/dfo_salmon/feed/${route.split("/").pop()}` : undefined)

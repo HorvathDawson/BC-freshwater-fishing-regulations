@@ -133,6 +133,8 @@ export function endpointsFor(base: string, channel: UpdateChannel = "live") {
     },
     /** The live gauge feed: real ECCC data from `python -m pipeline.gauges.feed.publish`, matching the release. */
     feed: `${base}/feeds/live`,
+    /** (T274) HYDAT's daily means, one file per station (pipeline.gauges.feed.hydat_daily; R2 `feeds/hydat/`). */
+    hydat: `${base}/feeds/hydat`,
     /** (T211) The live DFO salmon feed (`python -m pipeline.regs.dfo_salmon.live`; R2 `feeds/dfo/`). */
     dfoFeed: `${base}/feeds/dfo`,
     /** (T230) The provincial in-season changes (T225 worker's index.json) + their curated links (R2 `feeds/inseason/`). */

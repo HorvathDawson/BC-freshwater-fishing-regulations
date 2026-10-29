@@ -8,10 +8,9 @@
  *
  *   1. the feed's own daily series (`WaterSource.gaugeSeries(station, "year", "discharge")`): this year's daily means as
  *      ECCC published them (provisional), and the last complete HYDAT years the feed carries (`priorYears`);
- *   2. older or missing, WHEN ONLINE: ONE request to ECCC's MSC GeoMet OGC API, collection `hydrometric-daily-mean`
- *      (HYDAT's published daily means; Open Government Licence – Canada), for the first record on or after the day
- *      (`GEOMET_DAILY_MEAN`). Verified 2026-10-23: CORS `Access-Control-Allow-Origin: *`, fields `DATE`, `DISCHARGE`,
- *      `LEVEL` (nulls where the record is blank), and the station's record ends months before today.
+ *    2. older or missing, WHEN ONLINE: that station's HYDAT daily means from OUR data host (`storedHydat`, T274: R2
+ *      `feeds/hydat/<station>.json`, built from the HYDAT release by pipeline/gauges/feed/hydat_daily.py). The device
+ *      makes no request to ECCC (it used to ask GeoMet; owner 2026-10-29: "we should have it stored").
  *
  * Ranked against the SAME envelope the app ranks every reading with (the series' band for that day of the year, core
  * `percentileInBand` — the feed's `percentile_of`). DISCHARGE ONLY: a station that measures no flow, or a day whose
@@ -28,9 +27,6 @@ import { dayIn } from "./leadup";
 import { stripRoutes } from "./migrate";
 import type { DayFlow, Spot } from "./model";
 
-/** ECCC GeoMet's HYDAT daily means (OGC API – Features). */
-export const GEOMET_DAILY_MEAN = "https://api.weather.gc.ca/collections/hydrometric-daily-mean/items";
-
 /** What HYDAT says about a station on a day: its daily mean (either value may be blank); a later record only (no
  *  record that day); or nothing on or after it (not published yet). */
 export type HydatDay =
@@ -38,31 +34,48 @@ export type HydatDay =
   | { kind: "later"; next: string }
   | { kind: "none" };
 
-/** HYDAT's daily mean for one station on one day. Rejects when the service cannot be reached. */
+/** HYDAT's daily mean for one station on one day. Rejects when the source cannot be reached. */
 export interface HydatDaily { day(station: string, date: string): Promise<HydatDay> }
 
-/** GeoMet serves HYDAT's single-precision values as doubles (19.600000381469727): kept to 4 decimals, what HYDAT holds. */
-const num = (v: unknown): number | null =>
-  (typeof v === "number" && Number.isFinite(v) ? Math.round(v * 1e4) / 1e4 : null);
+/** One station's stored daily means (`hydat-daily/1`, pipeline/gauges/feed/hydat_daily.py): a 366-slot array per year. */
+interface StoredDaily { format: string; from: number; q: (number | null)[][] }
+
+/** Day-of-year slot in a fixed leap year, so Feb 29 is slot 59 in every year. */
+const slotOf = (month: number, day: number) =>
+  Math.round((Date.UTC(2000, month - 1, day) - Date.UTC(2000, 0, 1)) / 86_400_000);
 
 /**
- * The GeoMet port: ONE GET — the station's first daily mean ON OR AFTER the day (`datetime=<day>/..`, ascending, one
- * feature). Its date is the day: that day's values. A later date: the record has no row for the day. None: nothing
- * published that far.
+ * (T274) HYDAT's daily means from OUR data host: `<feedBase>/<station>.json` (R2 `feeds/hydat/`), one small file per
+ * station, kept for the session. No request leaves for ECCC. The file holds flow only (a level never stands in) and the
+ * newest 30 years: a day before it is "later" (no record), a year after its last is "none" (not published yet), a
+ * station with no file is "none". A fetch failure rejects (the caller says offline).
  */
-export function geometHydat(fetchFn: typeof fetch = fetch): HydatDaily {
+export function storedHydat(feedBase: string, fetchFn: typeof fetch = fetch): HydatDaily {
+  const base = feedBase.replace(/\/+$/, "");
+  const cache = new Map<string, Promise<StoredDaily | null>>();
+  const load = (station: string) => {
+    let p = cache.get(station);
+    if (!p) {
+      p = fetchFn(`${base}/${encodeURIComponent(station)}.json`).then(async (res) => {
+        if (res.status === 404 || res.status === 403) return null;
+        if (!res.ok) throw new Error(`HYDAT daily means: HTTP ${res.status}`);
+        return (await res.json()) as StoredDaily;
+      });
+      p.catch(() => cache.delete(station));                // a failure is asked again, not kept
+      cache.set(station, p);
+    }
+    return p;
+  };
   return {
     async day(station, date) {
-      const q = new URLSearchParams({ f: "json", STATION_NUMBER: station, datetime: `${date}/..`, sortby: "DATE",
-                                      limit: "1" });
-      const res = await fetchFn(`${GEOMET_DAILY_MEAN}?${q.toString()}`);
-      if (!res.ok) throw new Error(`HYDAT daily mean: HTTP ${res.status}`);
-      const body = (await res.json()) as { features?: { properties?: Record<string, unknown> }[] };
-      const p = body.features?.[0]?.properties;
-      if (!p) return { kind: "none" };
-      const day = typeof p.DATE === "string" ? p.DATE.slice(0, 10) : null;
-      if (day !== date) return day ? { kind: "later", next: day } : { kind: "none" };
-      return { kind: "day", discharge: num(p.DISCHARGE), level: num(p.LEVEL) };
+      const doc = await load(station);
+      if (!doc || !Array.isArray(doc.q) || !doc.q.length) return { kind: "none" };
+      const y = Number(date.slice(0, 4));
+      const row = doc.q[y - doc.from];
+      if (y < doc.from) return { kind: "later", next: `${doc.from}-01-01` };
+      if (!row) return { kind: "none" };
+      const v = row[slotOf(Number(date.slice(5, 7)), Number(date.slice(8, 10)))];
+      return { kind: "day", discharge: typeof v === "number" ? v : null, level: null };
     },
   };
 }
@@ -79,7 +92,7 @@ export type DayFlowAnswer =
 
 export interface DayFlowPorts {
   source: WaterSource;
-  /** HYDAT through GeoMet; absent: older days wait (said as offline). */
+  /** HYDAT's daily means from our data host (`storedHydat`); absent: older days wait (said as offline). */
   hydat?: HydatDaily;
   /** The device's word on being online; `true` where it cannot say. */
   online?: () => boolean;

@@ -197,9 +197,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `If you pinned the spot where you were standing, those coordinates are where you were. ` +
     `Open-Meteo’s servers see your device’s IP address as any website would; we do not control their records. ` +
     `Nothing else about you is sent with the request.</p>` +
-    `<p>When you ask for the flow on a past day at a spot, the app may ask Environment and Climate Change Canada (api.weather.gc.ca) ` +
-    `for that river gauge’s record of that day. The request names the gauge station and the date, not your location or your spot.</p>` +
-    `<h2>Downloads from our servers</h2><p>The app downloads the regulations, the map and river-gauge and salmon notices from our servers, ` +
+    `<h2>Downloads from our servers</h2><p>The app downloads the regulations, the map and river-gauge readings (including past days’ flow) and salmon notices from our servers, ` +
     `which run on Cloudflare. Each request carries the app’s version (so we can tell old versions from new) ` +
     `and, as with any web request, your IP address, which Cloudflare handles to serve the request. ` +
     `These downloads are the same for everyone and do not include your location, your spots or any identifier. ` +

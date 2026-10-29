@@ -2,7 +2,7 @@
  * ONE HISTORY READ (T170): a spot's visit-day flow is read in ONE place.
  *
  * `flowOnDay` in `@app/data/spots` `dayFlow.ts` is the only function that asks for a past day's flow — the feed's daily
- * series first, then HYDAT's daily means through ECCC GeoMet. The refresh and the spot's "Get the flow for that day"
+ * series first, then HYDAT's daily means from our own data host (T274). The refresh and the spot's "Get the flow for that day"
  * both reach it through `fillDayFlow`; nothing writes a spot's `dayFlow` but `fillDayFlow` (and the refresh, copying
  * its answer onto the spot it is filling). A second reader would be a second answer to "what was the river doing that
  * day" — the drift T51's backdated-spot bug already was (capture reading TODAY's feed for an earlier day).
@@ -12,7 +12,7 @@
  * `dayFlow.ts`, both calling `flowOnDay`) — so capture is a third caller of the fill, and never a reader of its own.
  *
  * Over every app module (tests excluded):
- *   1. the GeoMet collection is named in `dayFlow.ts` only;
+ *   1. ECCC's GeoMet API is named nowhere: the device never asks ECCC (T274);
  *   2. `flowOnDay(` is called only inside `dayFlow.ts` (by `fillDayFlow` and `panelOnDay`);
  *   3. `fillDayFlow(` is called by the refresh (`refresh.ts`), capture (`capture.ts`) and the app's one-spot action
  *      (`App.tsx`) only; the trip day's panel (`capturePanelOnDay(` / `fillDayPanel(`) by capture and the refresh only;
@@ -40,7 +40,7 @@ function sources(dir: string, out: string[] = []): string[] {
 const FILES = ROOTS.flatMap((r) => sources(join(APP, r))).map((p) => ({ path: relative(APP, p), text: readFileSync(p, "utf8") }));
 const where = (re: RegExp) => FILES.filter((f) => re.test(f.text)).map((f) => f.path).sort();
 
-const GEOMET = /hydrometric-daily-mean/;
+const GEOMET = /hydrometric-daily-mean|api\.weather\.gc\.ca/;
 const CALLS_READ = /(?<!function )\bflowOnDay\(/;
 const CALLS_FILL = /(?<!function )\bfillDayFlow\(/;
 const WRITES = /\bdayFlow: (?!DayFlow)/;
@@ -66,8 +66,8 @@ describe("one history read (T170)", () => {
             WRITES_PANEL.test("  panelDay?: PanelDay | null;")]).toEqual([false, false, false, false, false]);
   });
 
-  it("GeoMet is named in dayFlow.ts only", () => {
-    expect(where(GEOMET)).toEqual(["packages/data/src/spots/dayFlow.ts"]);
+  it("GeoMet is named nowhere in the app", () => {
+    expect(where(GEOMET)).toEqual([]);
   });
 
   it("flowOnDay is called in dayFlow.ts only; the fills by capture, the refresh and the app's action only", () => {

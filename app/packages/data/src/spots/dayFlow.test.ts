@@ -1,10 +1,10 @@
 /**
- * T170: a spot gets the flow of its own day — from the feed's daily series, else HYDAT through ECCC GeoMet when online;
+ * T170: a spot gets the flow of its own day — from the feed's daily series, else HYDAT from our data host when online;
  * never over a reading taken on the day; discharge only; offline waits. Whole values, LOCAL timestamps.
  */
 import { describe, expect, it } from "vitest";
 import { percentileInBand, type Band } from "@app/core";
-import { dayFlowAskable, fillDayFlow, flowOnDay, geometHydat, GEOMET_DAILY_MEAN, needsDayFlow, readingIsTheDays,
+import { dayFlowAskable, fillDayFlow, flowOnDay, storedHydat, needsDayFlow, readingIsTheDays,
          type HydatDaily, type HydatDay } from "./dayFlow";
 import { needsRefresh, refreshReason, refreshSpot } from "./refresh";
 import { visitConditions } from "./likeVisit";
@@ -12,43 +12,39 @@ import { DAY_FLOW_WORDS, dayFlowLine } from "./words";
 import type { Spot } from "./model";
 import type { Aged, Parameter, WaterSource, Series } from "../index";
 
-/**
- * GeoMet's own answer for the Chilliwack at Vedder Crossing on 15 Aug 2024 (fetched 2026-10-23 from
- * `…/hydrometric-daily-mean/items?f=json&STATION_NUMBER=08MH001&datetime=2024-08-15/..&sortby=DATE&limit=1`),
- * trimmed to what is read.
- */
-const GEOMET_08MH001_2024_08_15 = { type: "FeatureCollection", numberMatched: 685, numberReturned: 1, features: [{
-  id: "08MH001.2024-08-15", type: "Feature",
-  properties: { IDENTIFIER: "08MH001.2024-08-15", STATION_NAME: "CHILLIWACK RIVER AT VEDDER CROSSING",
-                STATION_NUMBER: "08MH001", PROV_TERR_STATE_LOC: "BC", DATE: "2024-08-15", LEVEL: 2.052999973297119,
-                DISCHARGE: 19.600000381469727, DISCHARGE_SYMBOL_EN: null, LEVEL_SYMBOL_EN: null } }] };
+/** A stored station file (`hydat-daily/1`): 1995 and 1996 (a leap year), flow on a few days. */
+const year = (set: Record<number, number>) => { const a: (number | null)[] = Array(366).fill(null); for (const [i, v] of Object.entries(set)) a[Number(i)] = v; return a; };
+const STORED = { format: "hydat-daily/1", station: "08MH001", release: "20260717", from: 1995, q: [
+  year({ 226: 19.6 }),                         // 1995: slot 226 = 15 Aug (slots are leap-year days, 1996 and 1995 alike: 227)
+  year({ 59: 3.5, 227: 21.1 }),                // 1996: 29 Feb, 15 Aug (leap year: slot 227)
+] };
 
-describe("geometHydat — one GET for the first record on or after the day", () => {
-  const port = (body: unknown, ok = true) => {
+describe("storedHydat — the station's file from our data host, no ECCC", () => {
+  const port = (body: unknown, status = 200) => {
     const urls: string[] = [];
-    const f = (async (url: string) => { urls.push(url); return { ok, status: ok ? 200 : 503, json: async () => body }; }) as
+    const f = (async (url: string) => { urls.push(url); return { ok: status < 400, status, json: async () => body }; }) as
       unknown as typeof fetch;
-    return { urls, hydat: geometHydat(f) };
+    return { urls, hydat: storedHydat("https://data.example/feeds/hydat/", f) };
   };
 
-  it("asks once, by station and day, and reads that day's flow and level", async () => {
-    const { urls, hydat } = port(GEOMET_08MH001_2024_08_15);
-    expect(await hydat.day("08MH001", "2024-08-15")).toEqual(
-      { kind: "day", discharge: 19.6, level: 2.053 });
-    expect(urls).toEqual([`${GEOMET_DAILY_MEAN}?f=json&STATION_NUMBER=08MH001&datetime=2024-08-15%2F..&sortby=DATE&limit=1`]);
-    expect(GEOMET_DAILY_MEAN).toBe("https://api.weather.gc.ca/collections/hydrometric-daily-mean/items");
+  it("reads a day's flow from <base>/<station>.json, Feb 29 in slot 59, and asks once per station", async () => {
+    const { urls, hydat } = port(STORED);
+    expect(await hydat.day("08MH001", "1996-08-15")).toEqual({ kind: "day", discharge: 21.1, level: null });
+    expect(await hydat.day("08MH001", "1996-02-29")).toEqual({ kind: "day", discharge: 3.5, level: null });
+    expect(await hydat.day("08MH001", "1996-03-01")).toEqual({ kind: "day", discharge: null, level: null });
+    expect(urls).toEqual(["https://data.example/feeds/hydat/08MH001.json"]);
+    expect(urls.join()).not.toMatch(/weather\.gc\.ca/);
   });
 
-  it("a later record only is no row for the day; nothing at all is not published yet; blanks stay null", async () => {
-    const later = { features: [{ properties: { DATE: "2024-08-20", DISCHARGE: 18, LEVEL: 2 } }] };
-    const blank = { features: [{ properties: { DATE: "2026-06-30", DISCHARGE: null, LEVEL: null } }] };
-    expect([await port(later).hydat.day("08MH001", "2024-08-15"), await port({ features: [] }).hydat.day("08MH001", "2026-08-15"),
-            await port(blank).hydat.day("08MH001", "2026-06-30")]).toEqual([
-      { kind: "later", next: "2024-08-20" }, { kind: "none" }, { kind: "day", discharge: null, level: null }]);
+  it("before the file is no record; after its last year is not published; no file is not published", async () => {
+    const { hydat } = port(STORED);
+    expect([await hydat.day("08MH001", "1990-08-15"), await hydat.day("08MH001", "2026-08-15")]).toEqual([
+      { kind: "later", next: "1995-01-01" }, { kind: "none" }]);
+    expect(await port({}, 404).hydat.day("08XX999", "1996-08-15")).toEqual({ kind: "none" });
   });
 
   it("an HTTP failure rejects (the caller says offline), never 'nothing there'", async () => {
-    await expect(port({}, false).hydat.day("08MH001", "2024-08-15")).rejects.toThrow("HTTP 503");
+    await expect(port({}, 503).hydat.day("08MH001", "1996-08-15")).rejects.toThrow("HTTP 503");
   });
 });
 
