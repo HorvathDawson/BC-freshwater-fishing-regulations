@@ -34,7 +34,7 @@ import { makeReleaseSource } from "./source";
 
 /** What `@app/data/release/platform` exports (structurally; a test passes fakes). */
 export interface ReleasePlatform {
-  releaseOpener(at: { wasmBase: string; installed: (name: DbName) => { dir: string; file: string } | null }): Opener;
+  releaseOpener(at: { wasmBase: string; installed: (name: DbName) => { dir: string; file: string } | null; net?: Net | null }): Opener;
   releaseCache(name?: string): Promise<{ readonly kind: string; get(url: string): Promise<Uint8Array | null>;
                                          put(url: string, bytes: Uint8Array): Promise<void> }>;
   releaseSource(m: Manifest, at: { base: string; cache: Awaited<ReturnType<ReleasePlatform["releaseCache"]>>;
@@ -183,7 +183,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     const cache = await o.platform.releaseCache();
     const loader = withLiveSalmon(
       releaseLoader(m, o.platform.releaseSource(m, { base: o.releaseBase, cache, held: null, fetch: f, net: o.net ?? null }),
-                    o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null })), o.salmonFeed);
+                    o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null, net: o.net ?? null })), o.salmonFeed);
     o.onStage?.("paint");
     const paint = await loader.paint();
     const held: Held = { tiles: m.tiles.current?.id ?? null, basemap: m.basemap?.id ?? null,
@@ -193,7 +193,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       // the files this session has opened that the new release changed: warmed in the release cache, verified
       const names = loader.opened().filter((n) => next.files[n] && next.files[n]!.sha256 !== m.files[n]?.sha256);
       const ahead = releaseLoader(next, o.platform.releaseSource(next, { base: o.releaseBase, cache, held: null, fetch: f, net: o.net ?? null }),
-                                  o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null }));
+                                  o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null, net: o.net ?? null }));
       const of = names.reduce((n, k) => n + next.files[k]!.bytes, 0);
       let done = 0, bytes = 0;
       for (const n of names) {

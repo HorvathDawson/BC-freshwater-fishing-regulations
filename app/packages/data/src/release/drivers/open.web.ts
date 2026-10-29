@@ -6,6 +6,7 @@
  * costs nothing next to its download.
  */
 import initSqlJs, { type Database } from "sql.js";
+import { fetchResilient } from "../../net";
 import type { Db, Row } from "../../sql/db";
 import type { Opener } from "../loader";
 import type { OpenAt } from "./open";
@@ -39,7 +40,15 @@ function wrap(db: Database): Db {
 export function releaseOpener(at: OpenAt): Opener {
   return async (_name, bytes) => {
     if (!engine || engine.base !== at.wasmBase) {
-      const mine = { base: at.wasmBase, sql: initSqlJs({ locateFile: (f: string) => `${at.wasmBase}${f}` }) };
+      // (T254) with the app's `net`, the wasm comes through `fetchResilient`: a tap made while offline waits for the line
+      // (and opens by itself when it is back) instead of failing at once on the engine's own one-shot fetch
+      const net = at.net ?? null;
+      const sql = net
+        ? fetchResilient(`${at.wasmBase}sql-wasm-browser.wasm`, { wireBytes: 330_000, meter: net.meter, isOnline: net.online,
+                                                                   waitOnline: net.waitOnline })
+            .then((b) => initSqlJs({ wasmBinary: b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer }))
+        : initSqlJs({ locateFile: (f: string) => `${at.wasmBase}${f}` });
+      const mine = { base: at.wasmBase, sql };
       // a failed load (the wasm is a network fetch) is NOT kept: the next open loads the engine again
       mine.sql.catch(() => { if (engine === mine) engine = null; });
       engine = mine;

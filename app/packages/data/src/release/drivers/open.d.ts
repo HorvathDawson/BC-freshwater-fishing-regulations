@@ -9,12 +9,15 @@
  * (check-platform holds the pair's export surfaces equal).
  */
 import type { DbName, Opener } from "../loader";
+import type { Net } from "../../net";
 
 export interface OpenAt {
   /** Where sql.js finds its wasm (web). The phone has SQLite built in and ignores it. */
   wasmBase: string;
   /** The installed copy of a file — its folder (a file:// uri) and name — or null where none is installed. */
   installed: (name: DbName) => { dir: string; file: string } | null;
+  /** (T254) the web: the wasm is a resilient download (timeouts, retries, waits out an offline spell) */
+  net?: Net | null;
 }
 
 export declare function releaseOpener(at: OpenAt): Opener;
