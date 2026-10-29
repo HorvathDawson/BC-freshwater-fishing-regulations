@@ -465,6 +465,27 @@
       -123.77181,
       48.88965
      ]
+    },
+    {
+     "id": "chemainus_river__tidal_boundary",
+     "label": "tidal boundary",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.686629,
+       48.886806
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "low",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:354154440 — \"Chemainus River: \"the tidal waters of the Chemainus River\" (not located)\"",
+     "_coord": [
+      -123.686629,
+      48.886806
+     ],
+     "tidal": true
     }
    ]
   },
