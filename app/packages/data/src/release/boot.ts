@@ -66,6 +66,12 @@ export interface BootOptions {
   onProgress?: (p: Progress) => void;
   /** How long a launch waits for the manifest before going on with the held set (native). */
   manifestTimeoutMs?: number;
+  /**
+   * (T231) Leave the background update to the update service (`Booted.stage`, called by `@app/data` `createUpdateService`
+   * when its policy allows: Wi-Fi for a large set): the launch starts no install of its own. Absent/false: the launch
+   * installs a newer set in the background, as before.
+   */
+  deferUpdate?: boolean;
 }
 
 export interface Booted {
@@ -81,6 +87,17 @@ export interface Booted {
   update: Promise<Held | null>;
   /** Native: the new set would not open, so this launch went back to the one it replaced (null: it did not). */
   rolledBack: RolledBack | null;
+  /**
+   * (T231) Fetch what a newer manifest needs BESIDE the set in use, verified, and never under it: on a phone the whole
+   * set is installed and the pointer swapped (`install`; the set in use stays on disk and open until the next boot, which
+   * opens the new one and prunes the old); on the web the changed files this session has opened are fetched into the
+   * release cache (immutable urls), so the boot that applies it reads them from there. Resolves when the next boot can
+   * use it (null: nothing to fetch — the same set, one refused, or one already installed and waiting to be applied).
+   */
+  stage(m: Manifest, onProgress?: (p: Progress) => void): Promise<Held | null>;
+  /** (T231) The manifest this launch read from the server (the web's is `manifest`), or null (offline): the update
+   *  service's first check (`seedRelease`), so a launch asks for the manifest once. */
+  latest: Manifest | null;
 }
 
 /**
@@ -149,8 +166,24 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     const paint = await loader.paint();
     const held: Held = { tiles: m.tiles.current?.id ?? null, basemap: m.basemap?.id ?? null,
                          assets: m.tiles.assets?.id ?? null, release: m.data_release, files: {} };
+    const stage = async (next: Manifest, onProgress?: (p: Progress) => void): Promise<Held | null> => {
+      if (sameSet(pointerFor(next), pointerFor(m))) return null;
+      // the files this session has opened that the new release changed: warmed in the release cache, verified
+      const names = loader.opened().filter((n) => next.files[n] && next.files[n]!.sha256 !== m.files[n]?.sha256);
+      const ahead = releaseLoader(next, o.platform.releaseSource(next, { base: o.releaseBase, cache, held: null, fetch: f }),
+                                  o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null }));
+      const of = names.reduce((n, k) => n + next.files[k]!.bytes, 0);
+      let done = 0, bytes = 0;
+      for (const n of names) {
+        await ahead.prefetch(n);
+        bytes += next.files[n]!.bytes;
+        onProgress?.({ done: ++done, total: names.length, file: n, bytes, of });
+      }
+      return pointerFor(next);
+    };
     return { manifest: m, held, loader, paint, source: makeReleaseSource(loader, { feed: o.feed }),
-             locate: (path) => `${o.releaseBase}${path}`, update: Promise.resolve(null), rolledBack: null };
+             locate: (path) => `${o.releaseBase}${path}`, update: Promise.resolve(null), rolledBack: null, stage,
+             latest: m };
   }
 
   // THE PHONE: the held set first; the network only to install it once and to look for a newer one
@@ -222,25 +255,35 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   }
 
   const now = held;
-  const target = latest ? pointerFor(latest) : null;
   const refused = await readHeld(dev.fs, REFUSED);
+  /** (T231) The set installed for the next boot by this session (one at a time: a newer one waits for that boot). */
+  let staged: Held | null = null;
+  let staging: Promise<Held | null> | null = null;
   // an update whenever ANY part of the set moved — data files, tiles, mask, basemap, assets — unless it was refused, or
   // is the set this launch rolled back from and will retry (already installed, still the pointer's)
-  const update = latest && target && !sameSet(target, now) && !(refused && sameSet(target, refused))
-      && !(retrying && sameSet(target, retrying.h))
-    ? (async () => {
-        // a newer set replaces the one being retried: what of it the held set does not name goes first
-        if (retrying) await prune(dev.fs, retrying.h, retrying.m, now, set.m);
-        return install(latest, dev.fs, dev.download, o.releaseBase, now, () => {}, dev.toDisk,
-                       () => writeHeld(dev.fs, PREVIOUS, now), rawFetch(f));
-      })()
-    : Promise.resolve(null);
+  const stage = (next: Manifest, onProgress: (p: Progress) => void = () => {}): Promise<Held | null> => {
+    if (staging) return staging;
+    const target = pointerFor(next);
+    if (staged || sameSet(target, now) || (refused && sameSet(target, refused))
+        || (retrying && sameSet(target, retrying.h))) return Promise.resolve(null);
+    staging = (async () => {
+      // a newer set replaces the one being retried: what of it the held set does not name goes first
+      if (retrying) { await prune(dev.fs, retrying.h, retrying.m, now, set.m); retrying = null; }
+      const h = await install(next, dev.fs, dev.download, o.releaseBase, now, onProgress, dev.toDisk,
+                              () => writeHeld(dev.fs, PREVIOUS, now), rawFetch(f));
+      staged = h;
+      return h;
+    })();
+    staging.then(() => { staging = null; }, () => { staging = null; });
+    return staging;
+  };
+  const update = latest && !o.deferUpdate ? stage(latest) : Promise.resolve(null);
   update.catch(() => {});        // a failed update leaves the held set in force (install never swapped)
 
   const loader = withLiveSalmon(set.loader, o.salmonFeed);
   return { manifest: set.m, held: now, loader, paint: set.paint,
            source: makeReleaseSource(loader, { feed: o.feed }),
-           locate: (path) => dev.fileUri(`release/${path}`), update, rolledBack };
+           locate: (path) => dev.fileUri(`release/${path}`), update, rolledBack, stage, latest };
 }
 
 /**

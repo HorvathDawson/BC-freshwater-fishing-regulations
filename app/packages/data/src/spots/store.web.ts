@@ -62,6 +62,12 @@ export function openInSeasonSeenStore(): { read(): string | null; write(text: st
   return keyStore("canifishthis.inseasonSeen.v1");
 }
 
+
+/** (T231) The update service's small state (`@app/data` `UpdateStore`): validators, times, the metered setting. */
+export function openUpdateStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.updates.v1");
+}
+
 function keyStore(LAYERS_KEY: string): { read(): string | null; write(text: string): void } {
   return {
     read: () => { try { return globalThis.localStorage?.getItem(LAYERS_KEY) ?? null; } catch { return null; } },

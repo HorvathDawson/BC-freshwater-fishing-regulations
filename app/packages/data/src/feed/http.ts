@@ -215,6 +215,11 @@ export interface GaugeFeed {
    * short-lived cache. Optional: a feed with no cache (a fixture) has nothing to forget.
    */
   refresh?(): void;
+  /**
+   * (T231) The update service fetched a changed `index.json` whole: take it as the index (the station files it may have
+   * moved are forgotten, so they are read again on the next ask). Throws when it is not an index: nothing is changed.
+   */
+  offer?(index: unknown): void;
 }
 
 type Row = readonly [string, number | null, number | null];
@@ -234,8 +239,11 @@ export function lastReportAt(f: { now?: { at?: string | null } | null; recent?: 
   return day ? day[0] : null;
 }
 
-export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFeed {
+export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
+                         opts: { indexHeld?: boolean } = {}): GaugeFeed {
   const trimmed = base.replace(/\/+$/, "");
+  /** (T231) the update service owns the index: once read it is held until the service offers a newer one (`offer`) */
+  const held = (url: string) => !!opts.indexHeld && url === `${trimmed}/index.json`;
   // One in-flight request per URL, and a short-lived result cache. Without the first, a
   // screen that asks three components for the same station opens three connections.
   const inflight = new Map<string, Promise<unknown>>();
@@ -244,7 +252,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
   async function load<T>(path: string): Promise<T | null> {
     const url = `${trimmed}/${path}`;
     const hit = cache.get(url);
-    if (hit && Date.now() - hit.at < FEED_TTL_MS) return hit.value as T;
+    if (hit && (held(url) || Date.now() - hit.at < FEED_TTL_MS)) return hit.value as T;
 
     let p = inflight.get(url) as Promise<T | null> | undefined;
     if (!p) {
@@ -277,6 +285,14 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
 
     // in-flight requests are left to finish: the next ask after them is a fresh fetch
     refresh() { cache.clear(); },
+
+    offer(index) {
+      const i = index as Partial<IndexFile> | null;
+      if (!i || typeof i !== "object" || typeof i.stations !== "object" || i.stations === null)
+        throw new Error("not a gauge feed index (no stations)");
+      cache.clear();
+      cache.set(`${trimmed}/index.json`, { at: Date.now(), value: i });
+    },
 
     async lastReport(station) {
       const f = await load<StationFile>(`${station}.json`);

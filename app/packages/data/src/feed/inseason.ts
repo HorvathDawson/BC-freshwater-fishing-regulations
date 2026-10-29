@@ -15,6 +15,8 @@ export interface InSeasonData { readonly feed: InSeasonFeed; readonly links: InS
 export interface InSeasonSource {
   /** The newest pair: fetched now, else the last captured, else null. */
   latest(): Promise<InSeasonData | null>;
+  /** (T231) The update service saw the feed move: forget what is held, so the next `latest()` fetches the pair. */
+  refresh?(): void;
 }
 
 export const INSEASON_TTL_MS = 60 * 60_000;
@@ -53,5 +55,6 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
       if (!held || now() - held.at > ttl) held = { at: now(), p: get() };
       return held.p;
     },
+    refresh() { held = null; },
   };
 }

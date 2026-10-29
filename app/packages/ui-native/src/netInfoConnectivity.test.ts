@@ -66,3 +66,25 @@ describe("netInfoConnectivity", () => {
     expect([c.watches, c.probeWhileUp, c.online(), heard]).toEqual([false, true, true, []]);
   });
 });
+
+describe("(T231) metered: cellular or an expensive connection holds a large download for Wi-Fi", () => {
+  it("reads the type and the system's word; each change is told", async () => {
+    const { meteredFrom } = await import("./netInfoConnectivity");
+    expect([{ isConnected: true, type: "wifi" }, { isConnected: true, type: "cellular" },
+            { isConnected: true, type: "wifi", details: { isConnectionExpensive: true } }].map(meteredFrom))
+      .toEqual([false, true, true]);
+    const listeners: ((s: NetInfoStateLike) => void)[] = [];
+    const ni: NetInfoLike = { addEventListener(on) { listeners.push(on); return () => {}; } };
+    const c = netInfoConnectivity(() => ni);
+    expect(listeners.length).toBe(0);                       // nothing followed until it is asked
+    expect(c.metered!()).toBe(false);
+    const heard: boolean[] = [];
+    c.watchMetered!((m) => heard.push(m));
+    const emit = (s: NetInfoStateLike) => listeners.forEach((l) => l(s));
+    emit({ isConnected: true, type: "cellular" });
+    expect(c.metered!()).toBe(true);
+    emit({ isConnected: true, type: "cellular" });
+    emit({ isConnected: true, type: "wifi" });
+    expect(heard).toEqual([true, false]);
+  });
+});

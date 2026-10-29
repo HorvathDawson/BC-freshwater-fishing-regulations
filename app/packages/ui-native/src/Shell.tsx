@@ -22,8 +22,8 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { dayRange, placeholderFor, syncVM } from "@app/core";
-import { useMemo, useRef, useState } from "react";
+import { bellLabel, dayRange, placeholderFor, syncVM } from "@app/core";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
          BackLayerContext, InSeasonContext, useInSeason, useInSeasonNotice, useReleasePrefetch, type RegsStart } from "@app/ui";
@@ -41,6 +41,7 @@ import { LayersSheet } from "./LayersSheet";
 import { ObstacleSheet } from "./ObstacleSheet";
 import { TidalSheet } from "./TidalSheet";
 import { InSeasonNotice } from "./InSeasonNotice";
+import { SyncErrorSheet } from "./SyncErrorSheet";
 import { DaySheet } from "./regs/DaySheet";
 import { WaterViewsContext } from "./ViewSwipe";
 import { MenuContext } from "./menu/MenuContext";
@@ -59,7 +60,7 @@ export type { ShellProps } from "./shell/props";
 
 export function Shell(p: ShellProps) {
   const { source, palette, theme, tiles, spots = [], onSaveSpot, weather, feed, photos, loader = null, locate = null,
-          menuInfo, checkRelease = null, releaseNamed = null, hydat } = p;
+          menuInfo, checkRelease = null, releaseNamed = null, hydat, updates = null } = p;
   const nav = useShellNav({ source, loader, systemBack: p.systemBack ?? null, initialRoute: p.initialRoute,
                            onRoute: p.onRoute });
   /** (T186) the map's region reports drive the web prefetch; undefined (a phone): the map is not asked. (T182) The
@@ -118,7 +119,7 @@ export function Shell(p: ShellProps) {
    * THE SYNC STATE (owner 2026-10-22): when the flows were last published, whether a newer data release exists, and the
    * icon's refresh — ONE reading of the feed's age for the top bar's icon and More's Data block alike.
    */
-  const syncState = useSync({ feed, release: loader?.release ?? null, checkRelease, named: releaseNamed });
+  const syncState = useSync({ feed, release: loader?.release ?? null, checkRelease, named: releaseNamed, updates });
   const col = useMapColouring({ source, feed, status: p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
                                 epoch: syncState.epoch, settled, salmonOnDemand: !!(p.prefetch && loader) });
@@ -134,17 +135,35 @@ export function Shell(p: ShellProps) {
     face: (m, press) => <SpotPin m={m} palette={palette} press={press} />,
   };
   /** The SYNC ICON's state (`syncVM`): fresh, needs a refresh, checking — none when there is nothing to sync. */
-  const sync = feed || checkRelease
+  const sync = feed || checkRelease || updates
     ? syncVM({ feed: !!feed, feedFetchedAt: syncState.feedFetchedAt, checkedAt: syncState.checkedAt,
-               checking: syncState.checking, newRelease: syncState.newRelease, now: Date.now() })
+               checking: syncState.checking, newRelease: syncState.newRelease, now: Date.now(),
+               ...(syncState.update ? { update: syncState.update } : {}) })
     : null;
+  /** (T231) the red badge's tap: what could not be updated, and Retry; any other state's tap checks now */
+  const [syncErrorOpen, setSyncErrorOpen] = useState(false);
+  /** (T231) the bell opened by hand: its sync section and the in-season rows together */
+  const [bellOpen, setBellOpen] = useState(false);
+  const onSync = sync?.kind === "error" ? () => setSyncErrorOpen(true) : syncState.refresh;
+  /*
+   * (T231) A DOWNLOADED RELEASE IS APPLIED AT A SAFE MOMENT: nothing the reader is reading changes under them — a
+   * browse tab with no water, spot, capture or search open. The app boots onto it and says so ("Updated to …").
+   */
+  const releaseReady = syncState.updates?.release?.phase === "ready" ? syncState.updates.release.target : null;
+  const safe = route.mode === "browse" && frame === null && openSpot === null && !adding && !searching;
+  const askedApply = useRef<string | null>(null);
+  useEffect(() => {
+    if (!releaseReady || !safe || askedApply.current === releaseReady) return;
+    askedApply.current = releaseReady;
+    p.onSafeToApply?.();
+  }, [releaseReady, safe, p.onSafeToApply]);
   const barBottom = topBarBottom();
   /*
    * (T230) THE PROVINCIAL IN-SEASON CHANGES: read once here and handed to every Regulations page (`InSeasonContext`:
    * the banners); the ones not on the map yet are the notice, which opens by itself once per row per device and from
    * the top bar's bell. Informational: nothing here changes an answer.
    */
-  const inSeason = useInSeason(p.inSeason ?? null);
+  const inSeason = useInSeason(p.inSeason ?? null, syncState.inSeasonEpoch);
   const notice = useInSeasonNotice(inSeason.unmatched, p.inSeasonSeen ?? null);
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
@@ -220,8 +239,11 @@ export function Shell(p: ShellProps) {
           * its zIndex keeps it painted over the sheet and the dim.
           */}
         {topBar && (
-          <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={syncState.refresh}
-                  notices={{ count: notice.count, label: notice.label, onPress: notice.show }}
+          <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={onSync}
+                  // (T231, owner 2026-10-28) one bell: the in-season changes not on the map, and the updates that failed
+                  notices={{ count: notice.count + syncState.failed.length,
+                             label: bellLabel(notice.count ? notice.label : null, syncState.failed.length),
+                             onPress: () => setBellOpen(true) }}
                   open={searching}
                   query={searchMemory.q} onQuery={search.searchType}
                   onOpen={search.onFieldFocus}
@@ -266,7 +288,12 @@ export function Shell(p: ShellProps) {
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
                    mapDay={mapDay} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
-      <InSeasonNotice open={notice.open} rows={notice.rows} palette={palette} onClose={notice.close} />
+      <InSeasonNotice open={notice.open || (bellOpen && notice.count + syncState.failed.length > 0)} rows={notice.rows}
+                      palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}
+                      sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }} />
+      {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
+      <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
+                      checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />
     </View>
     </MenuContext.Provider>
   ));

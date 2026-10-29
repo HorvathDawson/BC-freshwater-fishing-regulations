@@ -87,6 +87,18 @@ export interface ShellProps {
    */
   releaseNamed?: string | null;
   /**
+   * (T231) THE UPDATE SERVICE (`@app/data` `createUpdateService`, the app's): the sync icon reads it — checking, a
+   * download's progress, an update ready, a failure (red badge; the tap opens what failed and Retry) — and its tap is a
+   * manual check. Given, `checkRelease`/`releaseNamed` are not used.
+   */
+  updates?: import("@app/data").UpdateService | null;
+  /**
+   * (T231) A downloaded release is ready and the reader is at a SAFE MOMENT (a browse map or the Spots / More tab, with
+   * no water, spot, capture or search open): the app applies it (boots onto it and says "Updated to …"). Called once
+   * per ready release.
+   */
+  onSafeToApply?: () => void;
+  /**
    * (T186, Q164) Fetch ahead after first paint: the regs file of the region in view, and core + sql-wasm when the
    * browser is idle and not on Save-Data / a slow connection (`@app/ui` `useReleasePrefetch`). The WEB only (App passes
    * it there): a phone holds the release installed.

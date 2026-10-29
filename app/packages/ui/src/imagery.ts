@@ -26,6 +26,13 @@ export interface Connectivity {
   online(): boolean;
   /** Every change of the device's word; returns the unsubscribe. Never called where it cannot say. */
   subscribe(on: (online: boolean) => void): () => void;
+  /**
+   * (T231) A METERED connection now (cellular, or one the system calls expensive): what holds a large release download
+   * for Wi-Fi. Absent: the platform cannot say (the web), read as not metered.
+   */
+  metered?(): boolean;
+  /** (T231) Every change of `metered`; returns the unsubscribe. */
+  watchMetered?(on: (metered: boolean) => void): () => void;
 }
 
 export interface ImageryReachInput {

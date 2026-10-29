@@ -11,8 +11,8 @@
  * path (the development bundle path was retired, T61). `atlas.meta.json` is read only while the manifest names no tile
  * set: the map then draws the development tiles, and their stamped `tile_version` is what proves the pair (`pairingOf`).
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Platform, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AppState, Platform, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import {
@@ -22,13 +22,13 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage } from "@app/core";
-import { httpFeed, httpInSeason, httpSalmonFeed, loadManifest, type WaterSource } from "@app/data";
+import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage, updatedToast, UPDATE_WORDS } from "@app/core";
+import { createUpdateService, httpFeed, httpInSeason, httpSalmonFeed, manifestDate, type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openMeteo, openPhotos, openSpots, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openUpdateStore, openMeteo, openPhotos, openSpots, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { FishSpinner, setSynopsisSource, Shell, THEMES, type ThemeName } from "@app/ui-native";
+import { connectivity, FishSpinner, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName } from "@app/ui-native";
 import { LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
@@ -93,27 +93,95 @@ export default function App() {
   // P01: every write awaited and serialised; a failure reaches the screen that asked
   const spotsHook = useSpots(spotStore);
   const spots: Spot[] = spotsHook.spots.state === "ready" ? spotsHook.spots.value : [];
-  const feed = useMemo(() => httpFeed(FEED), []);
+  // (T231) the gauge index is the update service's to renew: once read it is held until the service offers a newer one
+  const feed = useMemo(() => httpFeed(FEED, undefined, { indexHeld: true }), []);
   // T211: the live DFO salmon rules, the last capture kept on the device for offline
   const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore()), []);
   // T230: the provincial in-season changes and where each applies, the last capture kept for offline; the ids shown
   const inSeason = useMemo(() => httpInSeason(ENDPOINTS.inSeason, openInSeasonStore()), []);
   const inSeasonSeen = useMemo(() => openInSeasonSeenStore(), []);
 
-  // THE RELEASE: manifest → (native: install / update) → paint, then the Shell
+  // THE RELEASE: manifest → (native: install / update) → paint, then the Shell. (T231) The phone's background install
+  // is the update service's (`deferUpdate`: it holds a large set for Wi-Fi); `generation` re-boots onto a staged update.
+  const [generation, setGeneration] = useState(0);
   const boot = useReleaseBoot(useMemo(() => ({
     manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
-    salmonFeed,
-  }), [feed, salmonFeed]));
-  /**
-   * (The sync icon, owner 2026-10-22) What data release the server names NOW — read again by the icon's tap and its
-   * poll, to SAY that a newer one exists (installed in the background at the next launch on a phone, by a reload on the
-   * web; never swapped under the reader). `no-store`: an HTTP cache must not answer "is there anything newer?".
+    salmonFeed, deferUpdate: true,
+  }), [feed, salmonFeed]), generation);
+  const booted = boot.state === "ready" ? boot.booted : null;
+  const bootedRef = useRef(booted);
+  bootedRef.current = booted;
+
+  /*
+   * (T231) THE UPDATE SERVICE (owner 2026-10-28: "check the data origin for new updates and download them"): the three
+   * feeds and the release, checked on start, on the way back to the foreground, on an interval and on the sync icon;
+   * an unchanged object costs a 304. A changed feed is handed to its loader whole; a newer release is staged beside the
+   * one in use (verified) and applied at a safe moment (the Shell says when), with "Updated to …".
    */
-  const checkRelease = useCallback(
-    () => loadManifest(ENDPOINTS.manifest, undefined, (u, init) => fetch(u, { ...init, cache: "no-store" }))
-      .then((m) => m.data_release),
-    []);
+  const updates = useMemo(() => createUpdateService({
+    feeds: [
+      { id: "gauges", url: `${ENDPOINTS.feed}/index.json`, apply: (text) => feed.offer!(JSON.parse(text)) },
+      { id: "dfo", url: `${ENDPOINTS.dfoFeed}/index.json`, apply: (text) => salmonFeed.offer!(text) },
+      { id: "inseason", url: `${ENDPOINTS.inSeason}/index.json`, apply: () => inSeason.refresh?.() },
+    ],
+    release: {
+      manifestUrl: ENDPOINTS.manifest,
+      held: () => bootedRef.current?.held ?? null,
+      stage: async (m, on) => {
+        const b = bootedRef.current;
+        if (!b) throw new Error(UPDATE_WORDS.sheet.notOpen);
+        await b.stage(m, (p) => on(p.bytes, p.of));
+      },
+    },
+    store: openUpdateStore(),
+    network: {
+      online: () => connectivity.online(),
+      metered: () => connectivity.metered?.() ?? false,
+      subscribe: (on) => {
+        const a = connectivity.subscribe(on);
+        // off a metered connection (onto Wi-Fi): a download held for Wi-Fi looks again
+        const b = connectivity.watchMetered?.((m) => { if (!m) on(true); });
+        return () => { a(); b?.(); };
+      },
+    },
+    lifecycle: {
+      subscribe: (on) => {
+        let was = AppState.currentState;
+        const sub = AppState.addEventListener("change", (st) => { if (st === "active" && was !== "active") on(); was = st; });
+        return () => sub.remove();
+      },
+    },
+  }), [feed, salmonFeed, inSeason]);
+  // started once the release is open (the service compares against the set in use); the boot's manifest read seeds it
+  const started = useRef(false);
+  useEffect(() => {
+    if (!booted || started.current) return;
+    started.current = true;
+    if (booted.latest) updates.seedRelease(booted.latest);
+    updates.start();
+  }, [booted, updates]);
+  useEffect(() => () => updates.stop(), [updates]);
+  /** Apply a staged update: boot onto it, the set in use on screen until the new one is ready. */
+  const apply = useCallback(() => {
+    if (updates.snapshot().release?.phase === "ready") setGeneration((g) => g + 1);
+  }, [updates]);
+  // back from the background with an update ready: the safest moment there is
+  useEffect(() => {
+    let was = AppState.currentState;
+    const sub = AppState.addEventListener("change", (st) => { if (st === "active" && was !== "active") apply(); was = st; });
+    return () => sub.remove();
+  }, [apply]);
+  // the boot that applied it: told to the service, and said ("Updated to …")
+  const [toast, setToast] = useState<string | null>(null);
+  const appliedGen = useRef(0);
+  useEffect(() => {
+    if (boot.state !== "ready" || boot.generation === 0 || appliedGen.current === boot.generation) return;
+    appliedGen.current = boot.generation;
+    if (boot.applyError) return;
+    updates.applied(boot.booted.manifest.data_release);
+    setToast(updatedToast(manifestDate(boot.booted.manifest)));
+  }, [boot, updates]);
+  const clearToast = useCallback(() => setToast(null), []);
 
   const data = useMemo((): { source: WaterSource; status: StatusSource; pairing: PairingInput;
                              tiles: MapTiles & { imagery: string }; loader: ReleaseLoader } | null => {
@@ -194,10 +262,9 @@ export default function App() {
           </Text>
         )}
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={MENU_INFO}
-               checkRelease={checkRelease}
-               // T129: the web's boot read the server's manifest an instant ago; the sync icon's first check takes that
-               // read rather than a second request (a phone's boot opened its HELD set, so its first check still asks)
-               releaseNamed={Platform.OS === "web" ? data.loader.manifest.data_release : null}
+               // (T231) the sync icon reads the update service; a ready update is applied at the Shell's safe moment
+               updates={updates} onSafeToApply={apply}
+               // T129: the boot's manifest read seeds the service's first release check (`seedRelease`): no second request
                // (T186, Q164) the web fetches ahead after first paint; a phone holds the release installed
                prefetch={Platform.OS === "web"}
                layerStore={layerStore} likeStore={likeStore}
@@ -243,6 +310,8 @@ export default function App() {
                }}
                // the map's credits name the publishers the Sources page names (`MAP_CREDITS`, @app/core menu/sources.ts)
                attribution={MAP_CREDITS} />
+        {/* (T231) a downloaded update was put in use at a safe moment: said */}
+        <UpdateToast text={toast} palette={palette} onDone={clearToast} />
         </View>
       ) : (
         // THE LOADING SCREEN, and on a phone's first run the download screen: which step, and how much is down

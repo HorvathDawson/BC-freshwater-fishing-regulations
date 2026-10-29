@@ -23,3 +23,5 @@ export declare function openSalmonFeedStore(): { read(): string | null; write(te
 export declare function openInSeasonStore(): { read(): string | null; write(text: string): void };
 /** (T230) The in-season row ids this device has been shown in the notice (a JSON list). */
 export declare function openInSeasonSeenStore(): { read(): string | null; write(text: string): void };
+/** (T231) The update service's small state (`@app/data` `UpdateStore`), as whole text under one name. */
+export declare function openUpdateStore(): { read(): string | null; write(text: string): void };

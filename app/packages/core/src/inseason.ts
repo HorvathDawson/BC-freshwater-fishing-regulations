@@ -19,6 +19,7 @@
  * Every sentence is composed here, whole (AGENTS 33).
  */
 import { MONTHS } from "./calendar.generated";
+import { MENU_WORDS } from "./menu/words";
 
 export const INSEASON_FEED_FORMAT = "inseason-feed/1";
 export const INSEASON_LINKS_FORMAT = "inseason-links/1";
@@ -225,7 +226,7 @@ export const INSEASON_WORDS = {
   sourceLabel: "Open the province's in-season changes page",
   partial: "On part of this water: the change says where.",
   informational: "Shown as posted; the answers on this page do not include it yet.",
-  noticeTitle: "In-season changes",
+  noticeTitle: MENU_WORDS.sources.names.inseason,
   noticeIntro: "The province has posted changes we have not placed on the map yet. Check each one before you fish.",
   noticeClose: "Got it",
   badge: (n: number) => `${n} in-season ${n === 1 ? "change" : "changes"} not on the map yet`,

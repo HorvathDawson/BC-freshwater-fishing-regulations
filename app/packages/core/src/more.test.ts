@@ -286,7 +286,7 @@ describe("the sync icon: fresh, needs a refresh, checking — said aloud", () =>
       "fresh | Refresh data: up to date",
     ]);
     expect(syncVM({ feed: true, feedFetchedAt: null, checkedAt: null, checking: false, newRelease: null, now: NOW }).hint)
-      .toBe("Checks the river flows and the data release again");
+      .toBe("Checks the river flows, the salmon and in-season feeds and the data release again");
   });
 
   it("a feed the SERVER has not published lately is no refresh prompt (a tap cannot fix it): no dot, said quietly", () => {

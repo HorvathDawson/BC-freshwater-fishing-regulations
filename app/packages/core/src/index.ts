@@ -40,6 +40,8 @@ export * from "./pairing";
 export * from "./menu";
 export * from "./iconSet";
 export * from "./more";
+// (T231) the data updates in words: the sources' lines, the sync icon's failure sheet, the toast
+export * from "./updates";
 export * from "./imagery";
 export * from "./staleness";
 export * from "./freshness";

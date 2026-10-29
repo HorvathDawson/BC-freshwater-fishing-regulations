@@ -30,13 +30,16 @@ import { forwardRef, useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { SEARCH_BAR, type SyncVM } from "@app/core";
 import { Icon } from "./icons";
+import { SyncRing } from "./SyncRing";
 import { CLOSE_KEEPS_FOCUS, closedFieldClick } from "./searchFocus";
 import { NATIVE_DRIVER, useReducedMotion } from "./motion";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
 /** The bar's measures: inset from the screen's edges, the field, the slab under it, the sync slot and its dot. */
-export const TOP_BAR = { top: 10, side: 14, field: 44, slab: 3, wide: 720, panel: 440, slot: 40, dot: 8 } as const;
+export const TOP_BAR = { top: 10, side: 14, field: 44, slab: 3, wide: 720, panel: 440, slot: 40, dot: 8,
+                         /** (T231) the error badge, and the progress ring's box round the glyph */
+                         badge: 15, ring: 26 } as const;
 
 /** (T48) On a wide screen (tablet, desktop) the bar and its sheet are a left panel, not a full-width strip. */
 export function searchPanelWidth(screen: number): number | null {
@@ -168,6 +171,11 @@ function NoticeButton({ palette, count, label, onPress }: { palette: Palette; co
  * the glyph's upper right, ringed in the card so it reads on the stroke. Needs-a-refresh is the one state that asks
  * for a look, so it alone is dotted — in `attention`, never a water-status colour (a red dot beside closed water reads
  * as "closed"); checking dims the glyph to `faint` while it turns.
+ *
+ * (T231) DOWNLOADING: a ring of progress round the glyph (`SyncRing`, accent on a `line` track) and the dot. DONE: the
+ * glyph gives way to a check in the accent for a moment after a check the reader asked for. ERROR (owner 2026-10-28:
+ * "ERROR badge (red)"): a badge in `closed` — the app's error red, as the failed-boot screen and a danger button use
+ * it — with a "!" in `onAccent`, where the dot sits; the tap then opens what failed (the Shell's `SyncErrorSheet`).
  */
 function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM; onPress?: () => void }) {
   const reduced = useReducedMotion();
@@ -181,23 +189,43 @@ function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM
     return () => loop.stop();
   }, [spinning, turn]);
   const rotate = turn.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
-  const D = TOP_BAR.dot;
+  const D = TOP_BAR.dot, B = TOP_BAR.badge, R = TOP_BAR.ring;
+  const dotted = sync.kind === "stale" || sync.kind === "downloading";
   return (
     <Pressable testID="sync-button" onPress={onPress} disabled={sync.kind === "checking"}
                accessibilityRole="button" accessibilityLabel={sync.label} accessibilityHint={sync.hint}
-               aria-busy={sync.kind === "checking"} hitSlop={2}
+               aria-busy={sync.kind === "checking" || sync.kind === "downloading"} hitSlop={2}
                style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
                                           justifyContent: "center", borderLeftWidth: 1, borderLeftColor: palette.line,
                                           backgroundColor: pressed ? palette.wash : "transparent" })}>
-      <View importantForAccessibility="no-hide-descendants" aria-hidden>
-        <Animated.View style={{ transform: [{ rotate }] }}>
-          <Icon name="sync" colour={sync.kind === "checking" ? palette.faint : palette.sub} size={18} />
-        </Animated.View>
-        {sync.kind === "stale" && (
+      <View importantForAccessibility="no-hide-descendants" aria-hidden
+            style={{ width: R, height: R, alignItems: "center", justifyContent: "center" }}>
+        {sync.kind === "downloading" && (
+          <View style={{ position: "absolute", top: 0, left: 0 }}>
+            <SyncRing progress={sync.progress ?? 0} size={R} track={palette.line} colour={palette.accent} />
+          </View>
+        )}
+        {sync.kind === "done" ? (
+          <View testID="sync-done"><Icon name="check" colour={palette.accent} size={18} /></View>
+        ) : (
+          <Animated.View style={{ transform: [{ rotate }] }}>
+            <Icon name="sync" colour={sync.kind === "checking" ? palette.faint : palette.sub}
+                  size={sync.kind === "downloading" ? 14 : 18} />
+          </Animated.View>
+        )}
+        {dotted && (
           <View testID="sync-dot"
-                style={{ position: "absolute", top: -3, right: -4, width: D + 3, height: D + 3, borderRadius: (D + 3) / 2,
+                style={{ position: "absolute", top: -1, right: -2, width: D + 3, height: D + 3, borderRadius: (D + 3) / 2,
                          backgroundColor: palette.card, alignItems: "center", justifyContent: "center" }}>
             <View style={{ width: D, height: D, borderRadius: D / 2, backgroundColor: palette.attention }} />
+          </View>
+        )}
+        {sync.kind === "error" && (
+          <View testID="sync-error"
+                style={{ position: "absolute", top: -4, right: -6, width: B, height: B, borderRadius: B / 2,
+                         backgroundColor: palette.closed, borderWidth: 1.5, borderColor: palette.card,
+                         alignItems: "center", justifyContent: "center" }}>
+            <Text style={{ ...TYPE.metaBold, fontSize: 10, lineHeight: 12, color: palette.onAccent }}>!</Text>
           </View>
         )}
       </View>

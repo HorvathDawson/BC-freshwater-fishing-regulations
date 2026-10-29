@@ -61,6 +61,12 @@ export function openInSeasonSeenStore(): { read(): string | null; write(text: st
   return fileStore("inseason-seen.json");
 }
 
+
+/** (T231) The update service's small state (`@app/data` `UpdateStore`): validators, times, the metered setting. */
+export function openUpdateStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("updates.json");
+}
+
 function fileStore(name: string): { read(): string | null; write(text: string): void } {
   const dir = new Directory(Paths.document, "spots");
   const file = () => new File(dir, name);

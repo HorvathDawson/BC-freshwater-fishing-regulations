@@ -19,7 +19,7 @@
 import { createContext, useContext } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { useLayoutClass } from "@app/ui";
-import { menuVM, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
+import { menuVM, UPDATE_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
@@ -40,15 +40,20 @@ export interface MoreScreenProps {
   onTheme: (t: ThemeName) => void;
   /** open a page over the tab */
   onPick: (page: MenuPageKey) => void;
+  /**
+   * (T231) the large-updates-on-mobile-data setting: its state and how to change it — a phone only (the web downloads
+   * no large set); absent: no row
+   */
+  metered?: { on: boolean; set: (on: boolean) => void } | null;
 }
 
 /** A wide screen: the blocks are boxed cards in columns, not edge-to-edge bands. */
 const Wide = createContext(false);
 
-export function MoreScreen({ palette, data, back, onBack, contact, theme, onTheme, onPick }: MoreScreenProps) {
+export function MoreScreen({ palette, data, back, onBack, contact, theme, onTheme, onPick, metered = null }: MoreScreenProps) {
   const vm = menuVM({ data, back, contact });
   const wide = useLayoutClass() !== "phone";
-  const dataBlock = <DataBlock vm={vm.data} palette={palette} />;
+  const dataBlock = <DataBlock vm={vm.data} palette={palette} metered={metered} />;
   const rest = (
     <>
       <DisplayTiles vm={vm.display} palette={palette} theme={theme} onTheme={onTheme} />
@@ -132,7 +137,8 @@ function Chevron({ palette }: { palette: Palette }) {
  * its date or age, with the state in words after it when stale (drawn in ink so the eye finds it). Each row says its
  * state aloud in full ("Live gauge readings: 4h ago. Likely out of date.").
  */
-function DataBlock({ vm, palette }: { vm: MoreVM["data"]; palette: Palette }) {
+function DataBlock({ vm, palette, metered }: { vm: MoreVM["data"]; palette: Palette;
+                                              metered: { on: boolean; set: (on: boolean) => void } | null | undefined }) {
   // a wide row is long from name to date: a hairline between rows carries the eye across (a phone's rows are short)
   const ruled = useContext(Wide);
   return (
@@ -181,8 +187,45 @@ function DataBlock({ vm, palette }: { vm: MoreVM["data"]; palette: Palette }) {
             );
           })}
         </View>
+        {vm.updates && <UpdatesRow vm={vm.updates} palette={palette} metered={metered ?? null} />}
       </Group>
     </>
+  );
+}
+
+/**
+ * (T231) THE UPDATES ROW: under the sources, ruled off — the newest check (or a download, or how many failed) on the
+ * right; under it, small, each source's own "checked · updated" and its failure in words. On a phone, the setting for
+ * large updates on mobile data.
+ */
+function UpdatesRow({ vm, palette, metered }: { vm: NonNullable<MoreVM["data"]["updates"]>; palette: Palette;
+                                                metered: { on: boolean; set: (on: boolean) => void } | null }) {
+  const C = UPDATE_WORDS.cellular;
+  return (
+    <View testID="data-updates" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3,
+                                         borderTopWidth: 1, borderTopColor: palette.line, gap: 2 }}>
+      <View accessible accessibilityLabel={vm.label}
+            style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s3, minHeight: 32 }}>
+        <Icon name="sync" colour={palette.sub} size={14} />
+        <Text style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink, flexShrink: 0 }}>{vm.title}</Text>
+        <Text testID="data-updates-line" numberOfLines={1}
+              style={{ ...TYPE.meta, color: palette.sub, flex: 1, textAlign: "right" }}>{vm.line}</Text>
+      </View>
+      {vm.sources.map((s) => (
+        <Text key={s.k} testID={`data-updates-${s.k}`} style={{ ...TYPE.small, color: s.problem ? palette.ink : palette.faint }}>
+          {s.shown}
+        </Text>
+      ))}
+      {metered && (
+        <Pressable testID="data-updates-metered" onPress={() => metered.set(!metered.on)}
+                   accessibilityRole="switch" aria-checked={metered.on} accessibilityLabel={C.label}
+                   accessibilityHint={C.hint}
+                   style={{ flexDirection: "row", alignItems: "center", minHeight: 40, marginTop: SPACE.s1 }}>
+          <Text style={{ ...TYPE.small, color: palette.ink, flex: 1 }}>{C.label}</Text>
+          <Text style={{ ...TYPE.metaBold, color: metered.on ? palette.accent : palette.sub }}>{metered.on ? C.on : C.off}</Text>
+        </Pressable>
+      )}
+    </View>
   );
 }
 

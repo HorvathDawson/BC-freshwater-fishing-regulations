@@ -16,6 +16,13 @@ export interface SalmonFeedStore { read(): string | null; write(text: string): v
 export interface SalmonFeedSource {
   /** The newest feed: fetched now, else the last captured, else null. */
   latest(): Promise<SalmonFeed | null>;
+  /**
+   * (T231) The update service fetched a changed feed whole: take it (kept as the capture, answered from now on without a
+   * fetch). Throws when it is not a whole `dfo-feed/1`: nothing is changed.
+   */
+  offer?(text: string): void;
+  /** (T231) Bumped by every feed taken (`offer`): what holds an answer built from the feed asks again when it moves. */
+  version?(): number;
 }
 
 export const SALMON_FEED_TTL_MS = 60 * 60_000;
@@ -42,11 +49,20 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
     } catch { /* offline, or not a feed: the capture answers */ }
     return captured();
   };
+  let version = 0;
   return {
     latest() {
       if (!held || now() - held.at > ttl) held = { at: now(), p: get() };
       return held.p;
     },
+    offer(text) {
+      const f = parseSalmonFeed(JSON.parse(text));
+      if (!f) throw new Error("not a dfo-feed/1 feed");
+      try { store?.write(text); } catch { /* a cache: a refused write only costs the next offline open */ }
+      held = { at: now(), p: Promise.resolve(f) };
+      version += 1;
+    },
+    version: () => version,
   };
 }
 
@@ -62,7 +78,8 @@ export function withLiveSalmon<L extends { salmon(regions?: readonly Region[]): 
   const live = new Map<string, Promise<SalmonFacts | null>>();
   const out = Object.create(loader) as L;
   out.salmon = (regions?: readonly Region[]) => {
-    const key = regions ? [...regions].sort().join(",") : "*";
+    // (T231) keyed by the feed's version too: a feed the update service took is read at the next ask
+    const key = `${feed.version?.() ?? 0}:${regions ? [...regions].sort().join(",") : "*"}`;
     let p = live.get(key);
     if (!p) {
       p = loader.salmon(regions).then(async (f) => (f ? pickSalmon(f, await feed.latest().catch(() => null)) : f));

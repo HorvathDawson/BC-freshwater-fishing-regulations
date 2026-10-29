@@ -192,6 +192,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
     }));
     expect(found).toEqual([
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
+      "packages/ui-native/src/InSeasonNotice.tsx#InSeasonNotice: takes onClose",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
       // (T173) a tapped fish obstacle mark's sheet, drawn by the Shell over the map: a <Sheet>, so it registers
       "packages/ui-native/src/ObstacleSheet.tsx#ObstacleSheet: takes onClose",
@@ -204,6 +205,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel",
       "packages/ui-native/src/SpotDropSheet.tsx#SpotDropSheet: takes onCancel",
       "packages/ui-native/src/SpotPickBanner.tsx#SpotPickBanner: takes onCancel",
+      "packages/ui-native/src/SyncErrorSheet.tsx#SyncErrorSheet: takes onClose",
       "packages/ui-native/src/TidalSheet.tsx#TidalSheet: takes onClose",
       // (T60) SpotScreen read "takes onBack" only from its bottom row's `? p.onBack : leaveEdit` ternary; that second
       // Back button is gone (one surface per action). It still registers (`useBackLayer`) and back.test drives it.

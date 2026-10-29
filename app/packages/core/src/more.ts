@@ -24,6 +24,7 @@ import {
 } from "./menu";
 import { agoWords } from "./freshness";
 import { byCadence } from "./staleness";
+import { updateSourcesVM, type UpdateReleaseInput, type UpdateSourceInput, type UpdatesVM } from "./updates";
 
 export const MORE_WORDS = {
   /** the back control at the top: where it goes, aloud */
@@ -91,11 +92,15 @@ export interface DataBlockVM {
   readonly rows: readonly DataRowVM[];
   /** said when the server names a newer data release than the one in use; null otherwise */
   readonly newRelease: string | null;
+  /** (T231) the update service's line (last checked, a download, a failure) and one line per source; null: no service */
+  readonly updates: UpdatesVM | null;
 }
 
 export interface DataInput extends SourcesInput {
   /** The data release the server names now (re-read by the sync icon), when it differs from the one in use; else null. */
   newRelease: string | null;
+  /** (T231) the update service's sources and release download, or absent (no service) */
+  updates?: { sources: readonly UpdateSourceInput[]; release: UpdateReleaseInput | null } | null;
 }
 
 /** A row's date or age in few words — what the release states, or what the app fetched; never a guess. */
@@ -152,6 +157,7 @@ export function dataVM(s: DataInput): DataBlockVM {
     inseason: { title: W.inseason.title, text: W.inseason.text, link: { label: W.inseason.link, url: INSEASON_URL } },
     rows,
     newRelease: s.newRelease !== null ? W.newRelease : null,
+    updates: s.updates ? updateSourcesVM({ ...s.updates, now: s.now }) : null,
   };
 }
 
@@ -191,12 +197,18 @@ export function menuVM(i: { data: DataInput; back: string; contact: string | nul
 
 // ── the sync icon ────────────────────────────────────────────────────────────────────────────────────────────────────
 
-export type SyncKind = "fresh" | "stale" | "checking";
+/**
+ * (T231) fresh / stale (the dot: a tap or the update fixes it) / checking (the turn) / downloading (a ring of progress and
+ * the dot) / done (a brief check after a check the reader asked for) / error (a red badge: a check or a download failed;
+ * the tap opens what failed, when each last succeeded, and Retry).
+ */
+export type SyncKind = "fresh" | "stale" | "checking" | "downloading" | "done" | "error";
 
 export const SYNC_WORDS = {
   /** the icon's name aloud, before its state */
   name: "Refresh data",
-  hint: "Checks the river flows and the data release again",
+  hint: "Checks the river flows, the salmon and in-season feeds and the data release again",
+  errorHint: "Shows what could not be updated, and lets you try again",
   checking: "checking now",
   release: "a newer data release is available; reopen the app to use it",
   checkedOld: (ago: string) => `last checked on this device ${ago}`,
@@ -204,6 +216,12 @@ export const SYNC_WORDS = {
   /** fresh here, but the server's feed is old: nothing a tap can fetch, said without the dot */
   serverOld: (ago: string) => `nothing newer to fetch; river flows last published ${ago}`,
   fresh: "up to date",
+  /** (T231) */
+  done: "up to date, just checked",
+  downloading: (pct: number) => `downloading an update, ${pct}%`,
+  ready: "an update is downloaded and will be used at the next pause",
+  waitingWifi: "an update is waiting for Wi-Fi",
+  error: (what: string) => `could not update ${what}`,
 } as const;
 
 export interface SyncInput {
@@ -218,9 +236,20 @@ export interface SyncInput {
   /** a newer data release the server names, or null */
   newRelease: string | null;
   now: number;
+  /**
+   * (T231) the update service's word: a release download's progress (0–1; null: none under way), a release downloaded
+   * and waiting to be applied, one waiting for Wi-Fi, the sources whose last check or download FAILED (names, in the
+   * order they are listed; offline counts only after a check the reader asked for), and a check the reader asked for
+   * that has just finished cleanly. Absent: the icon reads as before.
+   */
+  update?: { downloading: number | null; ready: boolean; waitingWifi: boolean; failed: readonly string[]; done: boolean };
 }
 
-export interface SyncVM { readonly kind: SyncKind; readonly label: string; readonly hint: string }
+export interface SyncVM {
+  readonly kind: SyncKind; readonly label: string; readonly hint: string;
+  /** (T231) a download's progress, 0–1, for the ring (downloading only) */
+  readonly progress?: number;
+}
 
 /**
  * THE SYNC ICON'S STATE. The dot ("stale") is only for what a tap or a reopen fixes: a newer data release (reopen),
@@ -228,11 +257,23 @@ export interface SyncVM { readonly kind: SyncKind; readonly label: string; reado
  * has not published past `STALE_AFTER.feed` is NOT dotted — a tap re-reads the same old index, so the dot would
  * never clear (and would sit in regs mode too, where flows are irrelevant); it is said in the label, quietly, and the
  * More tab's Data block badges it "likely out of date". Checking while a check is under way; fresh otherwise.
+ * (T231) Before those: checking, then a FAILURE (error), then a download under way, then a check just done; an update
+ * downloaded or waiting for Wi-Fi is dotted like a newer release.
  */
 export function syncVM(s: SyncInput): SyncVM {
   const w = SYNC_WORDS;
-  const say = (kind: SyncKind, state: string): SyncVM => ({ kind, label: `${w.name}: ${state}`, hint: w.hint });
+  const say = (kind: SyncKind, state: string, extra: Partial<SyncVM> = {}): SyncVM =>
+    ({ kind, label: `${w.name}: ${state}`, hint: kind === "error" ? w.errorHint : w.hint, ...extra });
+  const u = s.update;
   if (s.checking) return say("checking", w.checking);
+  if (u && u.failed.length) return say("error", w.error(listWords(u.failed)));
+  if (u && u.downloading !== null) {
+    const p = Math.max(0, Math.min(1, u.downloading));
+    return say("downloading", w.downloading(Math.round(p * 100)), { progress: p });
+  }
+  if (u?.done) return say("done", w.done);
+  if (u?.ready) return say("stale", w.ready);
+  if (u?.waitingWifi) return say("stale", w.waitingWifi);
   if (s.newRelease !== null) return say("stale", w.release);
   if (s.feed) {
     if (s.checkedAt === null) return say("stale", w.feedNot);
@@ -242,4 +283,9 @@ export function syncVM(s: SyncInput): SyncVM {
     if (b.kind === "stale") return say("fresh", w.serverOld(agoWords(s.feedFetchedAt!, s.now)));
   }
   return say("fresh", w.fresh);
+}
+
+/** "a", "a and b", "a, b and c" — names in a sentence. */
+function listWords(xs: readonly string[]): string {
+  return xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 }

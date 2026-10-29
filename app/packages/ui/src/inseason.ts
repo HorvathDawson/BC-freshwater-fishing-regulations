@@ -27,14 +27,15 @@ const NONE: InSeasonNow = { matched: [], unmatched: [], data: null };
 export const InSeasonContext = createContext<InSeasonNow>(NONE);
 
 /** The feed + links, joined for TODAY (the notice's day). A page joins again for its own day. */
-export function useInSeason(source: InSeasonSource | null | undefined): InSeasonNow {
+export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0): InSeasonNow {
   const tick = usePoll(INSEASON_POLL_MS, !!source);
   const [data, setData] = useState<InSeasonData | null>(null);
   useEffect(() => {
     let live = true;
     if (source) void source.latest().then((d) => { if (live && d) setData(d); }, () => {});
     return () => { live = false; };
-  }, [source, tick]);
+    // (T231) `epoch`: bumped when the update service sees the feed move (the source was told to forget it)
+  }, [source, tick, epoch]);
   const today = isoDayOf(new Date());
   return useMemo(() => (data ? { ...joinInSeason(data.feed, data.links, today), data } : NONE), [data, today]);
 }
