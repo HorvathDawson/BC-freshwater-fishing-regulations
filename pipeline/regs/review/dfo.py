@@ -165,3 +165,89 @@ def need(loc: Mapping) -> dict:
     have = sum(len(e.get("splits") or []) for e in ex)
     return {"op": op, "points": n, "have": have, "bound": bool(ex),
             "missing": max(0, (n or 0) - have) if not ex else 0}
+
+
+# --------------------------------------------------------------------------- historic groups
+
+#: words that never tell two places apart (place-word comparison)
+_GROUP_STOP = frozenset("the of a an to at from in on and or approximately approx located that portion "
+                        "waters water is are as by with its for be all known".split())
+#: how alike two places' words must be (Jaccard) to be grouped without DFO's own duplicate link
+GROUP_ALIKE = 0.85
+
+
+def _gnorm(s: Optional[str]) -> str:
+    import re
+    return " ".join(re.sub(r"[^a-z0-9 ]", " ", (s or "").lower()).split())
+
+
+def _place_text(loc: Mapping) -> str:
+    st = loc.get("source_text") or {}
+    return f"{st.get('waters') or loc.get('water') or ''} {st.get('specific_area') or ''}"
+
+
+def _water_identity(loc: Mapping, water: Optional[Mapping]) -> tuple:
+    """A water's identity across rewordings / name variants: its registry items, else its
+    normalised name."""
+    its = (water or {}).get("item_ids") or []
+    return tuple(sorted(its)) if its else ("name", _gnorm(loc.get("water")))
+
+
+def _place_facts(text: str) -> tuple[frozenset, frozenset, tuple]:
+    """(place words, numbers, the guards that must agree: direction words and a tributary call)."""
+    import re
+    t = text.lower()
+    words = frozenset(w for w in re.findall(r"[a-z0-9]+", t) if w not in _GROUP_STOP)
+    nums = frozenset(re.findall(r"\d+(?:\.\d+)?", t))
+    guards = (("upstream" in t or "above" in t), ("downstream" in t or "below" in t),
+              bool(re.search(r"(including|excluding|not including)\s+(its\s+)?tributar", t)),
+              bool(re.search(r"\bexcluding|\bexcept|not including", t)))
+    return words, nums, guards
+
+
+def group_why(hist: Mapping, cur: Mapping, cur_id: str) -> Optional[tuple[str, float]]:
+    """Why a historic place is the same place as a current one on the same water, or None:
+    DFO's own duplicate link, or the place words alike (`GROUP_ALIKE`) with the same numbers, the
+    same direction words and the same tributary / exception call."""
+    if hist.get("duplicate_of") == cur_id:
+        return "DFO lists it as a rewording (duplicate_of)", 1.01
+    (a, an, ag), (b, bn, bg) = _place_facts(_place_text(hist)), _place_facts(_place_text(cur))
+    if an != bn or ag != bg or not (a | b):
+        return None
+    j = len(a & b) / len(a | b)
+    if j < GROUP_ALIKE:
+        return None
+    return f"same water, place words {round(j * 100)}% alike, same numbers and direction", j
+
+
+def groups(locs: Mapping[str, tuple[str, dict, Optional[dict]]] | None = None) -> dict[str, dict]:
+    """HISTORIC PLACES GROUPED WITH THE CURRENT ONE THEY REWORD (owner 2026-10-28): each dormant
+    location joins the active location on the same water (`_water_identity`) it is most alike
+    (`group_why`), so one extent decision labels the group. -> location id -> {id, canonical,
+    members: [{id, why}]} for every member (canonical first, its why None); a place in no group is
+    absent. Read only; recording writes one mark per member the reviewer keeps (`group` links them)."""
+    locs = locs if locs is not None else locations()
+    by_water: dict[tuple, list[str]] = {}
+    hist: list[str] = []
+    for lid, (_s, loc, water) in locs.items():
+        if (loc.get("status") or "active") == "active":
+            by_water.setdefault(_water_identity(loc, water), []).append(lid)
+        else:
+            hist.append(lid)
+    joined: dict[str, list[tuple[str, str]]] = {}
+    for h in hist:
+        _s, loc, water = locs[h]
+        best = None
+        for c in by_water.get(_water_identity(loc, water), []):
+            got = group_why(loc, locs[c][1], c)
+            if got and (best is None or got[1] > best[2]):
+                best = (c, got[0], got[1])
+        if best:
+            joined.setdefault(best[0], []).append((h, best[1]))
+    out: dict[str, dict] = {}
+    for c, ms in joined.items():
+        g = {"id": f"grp:{c}", "canonical": c,
+             "members": [{"id": c, "why": None}] + [{"id": h, "why": w} for h, w in sorted(ms)]}
+        for m in g["members"]:
+            out[m["id"]] = g
+    return out

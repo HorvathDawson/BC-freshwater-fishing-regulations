@@ -803,6 +803,8 @@ export interface MarkPost {
   extent_fix?: ExtentFix[];
   /** T164: NEW splits proposed (`marks.NewSplit`) — proposals only, never splits.json */
   new_splits?: NewSplit[];
+  /** owner 2026-10-28: a DFO historic group — every member kept gets the same mark (one each) */
+  targets?: string[];
 }
 
 /** T191: the catalogue's extent ops (`marks.OP_POINTS`), by their own names */
@@ -966,6 +968,13 @@ export interface DfoRow {
   lake_area?: boolean;
   /** the confidence of the location's SUGGESTED extent (`dfo-suggestions.json`), when there is one */
   suggested?: SuggestConfidence | null;
+  /** owner 2026-10-28: historic rewordings grouped with this place — one decision labels them all */
+  group?: { id: string; size: number; canonical: string } | null;
+}
+/** a member of a DFO historic group (`review.dfo.groups`) and why it was grouped */
+export interface DfoGroupMember {
+  id: string; why: string | null; this: boolean; water: string; text: string; status: string;
+  verify: VerifyStatus;
 }
 export type SuggestConfidence = "high" | "medium" | "low" | "none";
 /** A SUGGESTED extent (`pipeline.regs.dfo_salmon.suggest`): never applied — "accept suggestion"
@@ -1070,6 +1079,7 @@ export interface DfoDetail {
   proposed: ProposedSplit[];
   hints: { name: string; anchor: AnchorKind; items: ItemHit[] }[];
   siblings: { id: string; text: string; status: string; section: string | null }[];
+  group?: { id: string; canonical: string; members: DfoGroupMember[] } | null;
   /** the SUGGESTED extent, or null (never applied) */
   suggestion?: DfoSuggestion | null;
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;

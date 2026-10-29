@@ -153,7 +153,12 @@ def lake_area(loc: dict, water: dict | None) -> bool:
         and bool(AREA_WORDS.search(text))
 
 
-def _row(slug: str, loc: dict, water: dict | None, m) -> dict:
+def _groups() -> dict:
+    """location id -> its HISTORIC GROUP (`review.dfo.groups`, owner 2026-10-28)."""
+    return D.groups(_locations())
+
+
+def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None) -> dict:
     st = loc.get("source_text") or {}
     need = D.need(loc)
     rows, rules = D.rule_rows(loc, DFO_TYPED)
@@ -178,12 +183,16 @@ def _row(slug: str, loc: dict, water: dict | None, m) -> dict:
             "suggested": _suggested(loc["location_id"]),
             "pv": preverify.dfo(loc["location_id"]),
             "lake_area": lake_area(loc, water),
-            "new_splits": len(m.new_splits) if m is not None else 0}
+            "new_splits": len(m.new_splits) if m is not None else 0,
+            # owner 2026-10-28: historic rewordings grouped with this place (one decision labels all)
+            "group": ({"id": g["id"], "size": len(g["members"]), "canonical": g["canonical"]}
+                      if (g := (groups or {}).get(loc["location_id"])) else None)}
 
 
 def _rows() -> list[dict]:
-    states = _states()
-    out = [_row(slug, loc, water, states.get(lid)) for lid, (slug, loc, water) in _locations().items()]
+    states, groups = _states(), _groups()
+    out = [_row(slug, loc, water, states.get(lid), groups)
+           for lid, (slug, loc, water) in _locations().items()]
     # the review order: the live page first, then what is missing a cut, then region and water
     rank = {"needs_cut": 0, "unbound": 1, "no_water": 2, "bound": 3}
     out.sort(key=lambda r: (r["status"] != "active", rank[r["state"]], reuse._region_key(r["region"]),
@@ -344,8 +353,20 @@ def detail(location_id: str) -> dict | None:
                  "status": l.get("status") or "active", "section": l.get("section")}
                 for lid, (_s, l, _w) in _locations().items()
                 if l.get("water_id") and l.get("water_id") == loc.get("water_id") and lid != location_id]
+    groups = _groups()
+    g = groups.get(location_id)
+    group = None
+    if g is not None:
+        states, locs = _states(), _locations()
+        group = {"id": g["id"], "canonical": g["canonical"], "members": [
+            {"id": x["id"], "why": x["why"], "this": x["id"] == location_id,
+             "water": locs[x["id"]][1].get("water") or "",
+             "text": (locs[x["id"]][1].get("source_text") or {}).get("specific_area") or "",
+             "status": locs[x["id"]][1].get("status") or "active",
+             "verify": _verify(states.get(x["id"]), locs[x["id"]][1], locs[x["id"]][2])["status"]}
+            for x in g["members"]]}
     return reuse._json_safe({
-        "row": _row(slug, loc, water, m), "location": loc, "water": water,
+        "row": _row(slug, loc, water, m, groups), "location": loc, "water": water, "group": group,
         "items": [_item_ref(i) for i in (water or {}).get("item_ids") or []],
         "page_url": D.page_url(slug), "verbatim": {"waters": st.get("waters") or loc.get("water"),
                                                    "specific_area": st.get("specific_area") or ""},
@@ -659,6 +680,25 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
             "pdf_sha256": pdf_sha256, "pages": [], "prints": now}
     mark = M.Mark.model_validate(data)
     return mark, M.Prints.model_validate(now), reused
+
+
+def marks_for_group(body: dict, *, date: str, pdf_sha256: str) -> list:
+    """ONE EXTENT DECISION FOR A HISTORIC GROUP (owner 2026-10-28): the mark `mark_for` makes for
+    `target`, and the same answers / extent fix / new splits for every other id in `targets` — each
+    a member of target's group (`review.dfo.groups`), each with its own prints NOW and the group's
+    id in `group`. ValueError when a target is not in the group. -> marks, target's first."""
+    target = str(body.get("target") or "")
+    want = [t for t in dict.fromkeys([target, *(body.get("targets") or [])])]
+    g = _groups().get(target)
+    if g is None:
+        raise ValueError(f"{target} is in no historic group")
+    members = {m["id"] for m in g["members"]}
+    stray = [t for t in want if t not in members]
+    if stray:
+        raise ValueError(f"not in {target}'s group: {', '.join(stray)}")
+    base = {k: v for k, v in body.items() if k != "targets"}
+    return [mark_for({**base, "target": t, "group": g["id"]}, date=date, pdf_sha256=pdf_sha256)[0]
+            for t in want]
 
 
 def _dedupe_against_store(stamped: list[dict]) -> tuple[list[dict], dict, list[dict]]:

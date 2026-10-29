@@ -207,6 +207,12 @@ def post_mark(body: MarkPayload):
         if body.targets:
             raise HTTPException(422, [{"path": "", "msg": "a Q154 mark names one sample pond"}])
         data.pop("targets")
+    elif body.scope == "dfo":                       # owner 2026-10-28: a historic group's members
+        if body.call is not None:
+            raise HTTPException(422, [{"path": "", "msg": "a DFO mark carries no call"}])
+        data.pop("call")
+        if not body.targets:
+            data.pop("targets")
     elif body.scope not in ("slough", "name"):     # T224: a name mark may name several candidates too
         if body.targets or body.call is not None:
             raise HTTPException(422, [{"path": "", "msg": "only a slough mark carries a call or several targets"}])

@@ -315,6 +315,8 @@ export function DfoReview({ mode }: Props) {
                 <span>r{r.region}{r.section ? ` · ${r.section}` : ""}</span>
                 {r.status !== "active" && <span className="chip-tag">dormant</span>}
                 {r.new_splits > 0 && <span className="chip-tag new">+{r.new_splits} split</span>}
+                {r.group && <span className="chip-tag" data-testid="dfo-group-size"
+                  title="historic rewordings of this place — one extent decision labels the group">group of {r.group.size}</span>}
                 {r.suggested && r.verify === "unmarked" && <span className="chip-tag suggested"
                   title="a suggested extent is waiting on this location">suggested · {r.suggested}</span>}
                 {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
@@ -363,6 +365,9 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   const [reviewer, setName] = useState(getReviewer);
   const [splits, setSplits] = useState<NewSplit[]>([]);
   const [checks, setChecks] = useState<Record<string, AnchorCheck>>({});
+  // owner 2026-10-28: the historic group's members to label with this decision ("same extent", on)
+  const [keep, setKeep] = useState<Record<string, boolean>>(
+    () => Object.fromEntries((detail.group?.members ?? []).map((m) => [m.id, true])));
   const saved = useMemo(() => savedFixOf(was), [was]);
   // the editor opens PRE-FILLED with the saved fix: marking again carries it on, never drops it
   const [fix, setFix] = useState<ExtentFix | null>(saved);
@@ -519,8 +524,10 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
         ...(fix ? { extent_fix: [fix] } : {}),
         ...(carried.length ? { new_splits: carried } : {}),
         ...(defer ? { verdict: "deferred" as const } : {}),
+        ...(groupTargets.length > 1 ? { targets: groupTargets } : {}),
       });
       const said = `saved ✓ ${detail.row.water || id}`
+        + (groupTargets.length > 1 ? ` (+${groupTargets.length - 1} grouped)` : "")
         + (fix ? ` — your extent: ${fixWords(fix, splitNameOf, itemNameOf)}` : " — mark recorded (no extent fix)");
       setOkMsg(said);
       onMarked(got.reused ?? [], said);
@@ -534,6 +541,8 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
       setBusy(false);
     }
   }
+  const groupTargets = (detail.group?.members ?? []).filter((m) => m.this || keep[m.id] !== false)
+    .map((m) => m.id);
   // Enter records the mark; y n ? answer the next unanswered check
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
@@ -630,6 +639,27 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             {loc.binding.notes.length > 0 && <div className="ext-row"><span className="k">notes</span>{loc.binding.notes.join(" · ")}</div>}
             {detail.splits.unplaced.length > 0 && (
               <div className="ext-row dim">not on the map: {detail.splits.unplaced.map((u) => u.name).join(", ")}</div>
+            )}
+            {detail.group && (
+              <div className="ext-row" data-testid="dfo-group">
+                <span className="k">group of {detail.group.members.length}</span>
+                <span className="dim"> one extent decision labels every member ticked (one mark each)</span>
+                <ul className="named-splits">
+                  {detail.group.members.map((m) => (
+                    <li key={m.id}>
+                      <label className="check" title={m.why ?? "the current place"}>
+                        <input type="checkbox" checked={m.this || keep[m.id] !== false} disabled={m.this}
+                          data-testid="dfo-group-keep"
+                          onChange={(e) => setKeep((k) => ({ ...k, [m.id]: e.target.checked }))} />
+                        {" "}same extent
+                      </label>{" "}
+                      {m.this ? <strong>{m.text || "(whole water)"}</strong>
+                        : <a href={`#${DFO_HASH}${encodeURIComponent(m.id)}`}>{m.text || "(whole water)"}</a>}
+                      <span className="dim"> {m.status} · {m.verify}{m.why ? ` — ${m.why}` : " — current"}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             {detail.siblings.length > 0 && (
               <details className="ext-row">

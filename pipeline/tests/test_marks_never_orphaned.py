@@ -133,3 +133,61 @@ def test_no_owner_mark_is_orphaned_or_dropped_live():
         f"  {r['scope']} {r['target']} ({r['verdict']}, {r['date']}) "
         f"{r.get('reasons') or r.get('error') or 'target gone'} splits={r['new_splits']}"
         for r in dropped)
+
+
+# ------------------------------------------------------------------ historic groups, auto-approve
+
+def _loc(lid, text, *, status="active", dup=None, water="Test River", wid="1:test-river"):
+    return {"location_id": lid, "water": water, "water_id": wid, "status": status,
+            "duplicate_of": dup, "source_text": {"waters": water, "specific_area": text}}
+
+
+def _locs(*locs, items=("gnis:1",)):
+    w = {"water_id": "1:test-river", "item_ids": list(items)}
+    return {loc["location_id"]: ("1", loc, w) for loc in locs}
+
+
+def test_a_historic_rewording_joins_its_current_place():
+    locs = _locs(_loc("cur", "from the Highway 4 bridge downstream to the mouth"),
+                 _loc("old", "from Highway 4 bridge downstream to mouth", status="dormant"),
+                 _loc("dup", "between the signs", status="dormant", dup="cur"),
+                 _loc("up", "from the Highway 4 bridge upstream to the mouth", status="dormant"),
+                 _loc("num", "from the Highway 5 bridge downstream to the mouth", status="dormant"),
+                 _loc("tri", "from the Highway 4 bridge downstream to the mouth including tributaries",
+                      status="dormant"))
+    g = D.groups(locs)
+    assert set(g) == {"cur", "old", "dup"}, g             # direction / number / tributaries differ
+    assert g["old"]["id"] == g["cur"]["id"] == "grp:cur" and g["cur"]["members"][0] == {"id": "cur", "why": None}
+    whys = {m["id"]: m["why"] for m in g["cur"]["members"]}
+    assert "duplicate_of" in whys["dup"] and "alike" in whys["old"]
+
+
+def test_a_group_is_carried_only_by_a_dfo_mark_and_omitted_when_none(tmp_path):
+    ent, typed, _ = _world(tmp_path)
+    m = _mark(D.prints_of(LOC, ent, typed))
+    assert '"group"' not in M.line(m)
+    g = M.Mark.model_validate({**m.model_dump(), "group": "grp:x"})
+    assert '"group":"grp:x"' in M.line(g)
+    with pytest.raises(ValueError, match="only a DFO mark"):
+        M.Mark.model_validate({**m.model_dump(), "scope": "tidal", "group": "grp:x"})
+
+
+def test_a_grouped_mark_whose_member_vanished_is_an_orphan(tmp_path, monkeypatch):
+    ent, typed, _ = _world(tmp_path)
+    monkeypatch.setattr(D, "default_dir", lambda: ent)
+    monkeypatch.setattr(D, "default_typed_dir", lambda: typed)
+    m = M.Mark.model_validate({**_mark(D.prints_of(LOC, ent, typed)).model_dump(), "group": "grp:x"})
+    gone = M.Mark.model_validate({**m.model_dump(), "target": "1:test-river:old-wording"})
+    h = M.health([m, gone], entries={}, ctx=None)
+    assert h["scopes"]["dfo"] == {"held": 1, "landed": 0, "stale": 0, "orphan": 1}
+    assert h["orphans"][0]["target"] == "1:test-river:old-wording"
+
+
+@pytest.mark.parametrize("words,area,places,ok", [
+    ("Test River", "", 1, True), ("Bridge River", "", 1, True), ("Comox Lake", "", 1, True),
+    ("Test River", "below the bridge", 1, False), ("Test River tributaries", "", 1, False),
+    ("Test River (not including Atnarko River)", "", 1, False), ("Test River", "", 2, False)])
+def test_auto_approve_takes_only_a_bare_water_named_once(words, area, places, ok):
+    from pipeline.regs.review import dfo_auto as A
+    loc = {"water": words, "source_text": {"waters": words, "specific_area": area, "op": "whole_water"}}
+    assert (A.why_not(loc, {"item_ids": ["gnis:1"]}, places) is None) is ok

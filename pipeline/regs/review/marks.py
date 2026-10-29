@@ -367,6 +367,9 @@ class Mark(BaseModel):
     #: Q154: "pool" (takes the river's rules) or "real lake" on a q154 sample mark
     #: T224: "accept" / "reject" on a name-variant candidate (scope name)
     call: Optional[Union[SloughCall, Q154Call, NameCall]] = None
+    #: owner 2026-10-28: THE GROUP a DFO mark was recorded with — historic places that reword a
+    #: current one (`review.dfo.groups`) take one extent decision, one mark per member, linked here
+    group: Optional[str] = None
 
     @field_validator("reviewer")
     @classmethod
@@ -384,6 +387,8 @@ class Mark(BaseModel):
     @model_validator(mode="after")
     def _consistent(self) -> "Mark":
         need = CHECKS[self.scope]
+        if self.group is not None and self.scope != "dfo":
+            raise ValueError("only a DFO mark is recorded with a group")
         if (self.scope == "rule") != (self.rule_id is not None):
             raise ValueError("a rule mark names its rule_id; an entry or split mark does not")
         extra = sorted(set(self.answers) - set(need))
@@ -513,7 +518,7 @@ class Mark(BaseModel):
 #: fields a line leaves out while they hold their default (T189 added them): a mark without them
 #: is the same line it was before they existed
 _OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": [],
-                 "new_splits": [], "call": None}
+                 "new_splits": [], "call": None, "group": None}
 
 
 def line(mark: Mark) -> str:
