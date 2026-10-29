@@ -124,7 +124,7 @@ export function useTown(source: WaterSource, place: PlaceHit | null): Async<Town
   return useAsync(
     async () => {
       if (!place) return null;
-      const read = async (): Promise<TownView> => {
+      try {
         // The source answers nearest first; the list reads MOST WORTH LISTING first —
         // importance against distance, decided in core (`rankNear`).
         const near = rankNear(await source.watersNear(place.place));
@@ -133,14 +133,11 @@ export function useTown(source: WaterSource, place: PlaceHit | null): Async<Town
           place, near,
           sections: waters.flatMap((w) => (w ? w.sections : [])),
         };
-      };
-      // (T264) the first town read after a cold start on Android sometimes failed (the near file's first open): the
-      // failure is named (console.error → the Updates log, logcat) and the read tried once more before it is said
-      try { return await read(); }
-      catch (err) {
+      } catch (err) {
+        // (T264) a failed near read is named (console.error → the Updates log, logcat), then said (`nearFailed`). The
+        // cold-start failure it once hid was the native SQLite race fixed in `drivers/serial.ts`; nothing retries it
         console.error(`near ${place.place}: ${err instanceof Error ? `${err.name}: ${err.message}` : String(err)}`);
-        await new Promise((r) => setTimeout(r, 400));
-        return read();
+        throw err;
       }
     },
     `town:${place?.place ?? ""}`,

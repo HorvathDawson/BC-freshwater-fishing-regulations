@@ -15,6 +15,7 @@ and recorded; the report is `out/runs/<stamp>/index.html` (plus `report.md`, `re
 | `offline` | cold start in airplane mode on the installed set (map, search, a water's regulations, Conditions); the banner; offline mid-session; satellite says it is online-only; Check now offline is `offline`; a slow line; reconnect clears the banner and checks at once |
 | `spots` | a spot made offline (At my location) with a photo is saved, survives a cold start offline, says what it is missing; back online it fills in its weather/gauge context by itself; an edit made offline is kept |
 | `report` | Report a problem offline → "saved on this device"; survives a restart; flushed on reconnect; the staging feeds worker holds it (`GET /reports`, read only) |
+| `near-cold` | (T264) ten cold starts (offline/online alternating), a town tapped FIRST: its waters are listed every time and no failed near read is logged (`NEAR_COLD_RUNS=n`) |
 
 `install` runs first and leaves the app holding the current staging release; the others build on it (none clears the
 app again: a fresh install is ~500 MB).

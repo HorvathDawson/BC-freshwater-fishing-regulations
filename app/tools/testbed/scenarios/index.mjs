@@ -7,5 +7,6 @@ import { bigUpdate } from './big-update.mjs';
 import { offline } from './offline.mjs';
 import { spots } from './spots.mjs';
 import { report } from './report.mjs';
+import { nearCold } from './near-cold.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, nearCold];
