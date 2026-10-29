@@ -38,6 +38,7 @@ import http from 'node:http';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { open } from './regs-web/cdp.mjs';
+import { project, TARGETS } from './map-tap.mjs';
 
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
@@ -76,10 +77,7 @@ export function kindOf(url, site) {
 /** The data a flaky line may drop: never the app's own page and code (a run with no app measures nothing). */
 const droppable = (url, site) => !['app'].includes(kindOf(url, site)) && /^https?:/.test(url);
 
-const TAPS = {
-  named: { x: 102, y: 260, name: 'Gravel Slough' },
-  unnamed: { x: 319, y: 602, name: 'Unnamed stream · Region 2' },
-};
+const TAPS = TARGETS;   // map-tap.mjs: real vertices, projected at tap time (a fixed pixel broke with T275)
 const LINK = { item: 'gnis:3062', name: 'Vedder River' };
 const WATCH = ['map-day', 'regs-header', 'water-title', 'map-horizons', 'synopsis-loading', 'synopsis-retry', 'boot-slow',
                'synopsis-offer', 'net-status', 'regs-slow', 'salmon-pending'];
@@ -163,6 +161,7 @@ async function session(site, url, profile, o) {
       .find((e) => /^(Done|I understand|Skip)$/.test((e.getAttribute('aria-label') || e.innerText || '').trim())); if (!e) return false; e.click(); return true; })()`).catch(() => false),
     tap: async (x, y) => { for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
       await b.send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }); },
+    tapWater: async (t) => { const p = await project((e) => b.evaluate(e), t); await s.tap(p.x, p.y); },
     shot: async (name) => { if (!o.shots) return; fs.mkdirSync(o.shots, { recursive: true });
       const r = await b.send('Page.captureScreenshot', { format: 'png' });
       fs.writeFileSync(path.join(o.shots, `${profile}-${name}${o.desktop ? '-desktop' : ''}.png`), Buffer.from(r.data, 'base64')); },
@@ -203,9 +202,8 @@ async function tapUntilRegs(s, t, cap) {
   while (Date.now() < end && !opened) {
     await s.closeSheets();
     tapAt = await s.pageNow();
-    // (T254) a banner over the app (slow / offline) moves the map down by its height: the same place on the map
-    const dy = await s.b.evaluate(`document.querySelector('[data-testid=net-status]')?.getBoundingClientRect().height ?? 0`).catch(() => 0);
-    await s.tap(t.x, t.y + dy);
+    // (T254) a banner over the app moves the map: the projection reads the canvas as it is now, so it follows
+    await s.tapWater(t);
     // the water's frame is up (its name may come later: an unnamed reach is named by the store it is waiting for)
     opened = await s.until(`!!document.querySelector('[data-testid=water-title]')`, 2500);
   }
@@ -308,8 +306,7 @@ async function offlineBack(site, o) {
     await s.closeSheets();
     await s.setOffline(true);
     let opened = false;
-    const dy = () => s.b.evaluate(`document.querySelector('[data-testid=net-status]')?.getBoundingClientRect().height ?? 0`).catch(() => 0);
-    for (let i = 0; i < 6 && !opened; i++) { await s.closeSheets(); await s.tap(TAPS.named.x, TAPS.named.y + await dy());
+    for (let i = 0; i < 6 && !opened; i++) { await s.closeSheets(); await s.tapWater(TAPS.named);
       opened = await s.until(`!!document.querySelector('[data-testid=water-title]')?.innerText.trim()`, 2500); }
     await sleep(15_000 - 6 * 2500 > 0 ? 15_000 - 6 * 2500 : 0);
     const offlineShown = await s.text();
@@ -320,7 +317,7 @@ async function offlineBack(site, o) {
     let recovered = 'stuck';
     if (await s.until(`!!document.querySelector('[data-testid=regs-header]')`, 60_000)) recovered = 'by itself';
     else {
-      await s.closeSheets(); await s.tap(TAPS.named.x, TAPS.named.y + await dy());
+      await s.closeSheets(); await s.tapWater(TAPS.named);
       if (await s.until(`!!document.querySelector('[data-testid=regs-header]')`, 60_000)) recovered = 'after a re-tap';
     }
     const seen = await s.seen();

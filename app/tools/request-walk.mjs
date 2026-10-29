@@ -25,6 +25,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { open } from './regs-web/cdp.mjs';
 import { serve } from './bad-net.mjs';
+import { project, TARGETS } from './map-tap.mjs';
 
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
@@ -175,21 +176,22 @@ async function spot() {
  * a retiled map fails here by name rather than pinning some other water's files.
  */
 const MAP_TAPS = [
-  { walk: 'tap named', x: 102, y: 260, name: 'Gravel Slough', moment: 'map tap: a named water (R2)' },
-  { walk: 'tap unnamed', x: 319, y: 602, name: 'Unnamed stream · Region 2', moment: 'map tap: an unnamed stream (R2)' },
+  { walk: 'tap named', at: TARGETS.named, name: 'Gravel Slough', moment: 'map tap: a named water (R2)' },
+  { walk: 'tap unnamed', at: TARGETS.unnamed, name: 'Unnamed stream · Region 2', moment: 'map tap: an unnamed stream (R2)' },
   // T186: the named tap again with Save-Data on — no idle prefetch, so the tap fetches core + wasm itself
-  { walk: 'tap named (save-data)', x: 102, y: 260, name: 'Gravel Slough', moment: 'map tap: a named water (R2)', saveData: true },
+  { walk: 'tap named (save-data)', at: TARGETS.named, name: 'Gravel Slough', moment: 'map tap: a named water (R2)', saveData: true },
 ];
 async function taps() {
   for (const t of MAP_TAPS) {
     const s = await session(`${URL0}/`, { saveData: !!t.saveData });
     try {
       await firstPaint(s, t.walk);
+      const at = await project((e) => s.b.evaluate(e), t.at);   // a vertex of the water, projected: no fixed pixel
       for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
-        await s.b.send('Input.dispatchMouseEvent', { type, x: t.x, y: t.y, button: 'left', clickCount: 1 });
-      await s.until(`!!document.querySelector('[data-testid=water-title]')?.innerText.trim()`, 60000, `a tap at ${t.x},${t.y} to open a water`);
+        await s.b.send('Input.dispatchMouseEvent', { type, x: at.x, y: at.y, button: 'left', clickCount: 1 });
+      await s.until(`!!document.querySelector('[data-testid=water-title]')?.innerText.trim()`, 60000, `a tap at ${at.x},${at.y} to open a water`);
       const head = await s.b.evaluate(`document.querySelector('[data-testid=water-title]')?.innerText ?? ''`);
-      if (!head.startsWith(t.name)) throw new Error(`the tap at ${t.x},${t.y} opened "${head.split('\n')[0]}", not ${t.name}`);
+      if (!head.startsWith(t.name)) throw new Error(`the tap at ${at.x},${at.y} opened "${head.split('\n')[0]}", not ${t.name}`);
       // the water opens on its Regulations tab (T203: the title shows first, the page after)
       await s.until(`!!document.querySelector('[data-testid=regs-header]')`, 60000, `the Regulations of ${t.name}`);
       await s.idle(); record(t.walk, t.moment, s.take());

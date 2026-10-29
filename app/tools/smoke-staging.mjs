@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { open } from './regs-web/cdp.mjs';
+import { project, TARGETS } from './map-tap.mjs';
 
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
@@ -227,8 +228,9 @@ async function browser() {
 
     await step('phone: tap a named water → its regulations', async () => {
       last = '04-tap-named';
-      await tapAt(b, 102, 260);
-      await until(b, `!!${tidQ('water-title')}?.innerText.trim()`, 60000, 'a water to open from the tap at 102,260');
+      const at = await project((e) => b.evaluate(e), TARGETS.named);   // projected from a vertex of the water, not a fixed pixel
+      await tapAt(b, at.x, at.y);
+      await until(b, `!!${tidQ('water-title')}?.innerText.trim()`, 60000, `a water to open from the tap at ${at.x},${at.y}`);
       const t = await titleOf(b);
       must(t.startsWith('Gravel Slough'), `the tap opened "${t.split('\n')[0]}", not Gravel Slough`);
       await until(b, `!!${tidQ('regs-header')}`, 60000, 'the Regulations of Gravel Slough');
@@ -239,8 +241,9 @@ async function browser() {
     await step('phone: tap an unnamed stream → its regulations', async () => {
       last = '05-tap-unnamed';
       await until(b, `!${tidQ('water-title')}`, 10000, 'the water to close');
-      await tapAt(b, 319, 602);
-      await until(b, `!!${tidQ('water-title')}?.innerText.trim()`, 60000, 'a water to open from the tap at 319,602');
+      const at = await project((e) => b.evaluate(e), TARGETS.unnamed);
+      await tapAt(b, at.x, at.y);
+      await until(b, `!!${tidQ('water-title')}?.innerText.trim()`, 60000, `a water to open from the tap at ${at.x},${at.y}`);
       const t = await titleOf(b);
       must(t.startsWith('Unnamed stream · Region 2'), `the tap opened "${t.split('\n')[0]}", not an unnamed stream`);
       await until(b, `!!${tidQ('regs-header')}`, 60000, 'the unnamed stream\'s Regulations');
