@@ -1830,6 +1830,26 @@
      "applies_to": {
       "wsc": "920-722273"
      }
+    },
+    {
+     "id": "salmon_river__tidal_boundary",
+     "label": "tidal boundary",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -125.918303,
+       50.361219
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:354152994 — \"Salmon River: Salmon Bay (tidal) runs up to \"the downstream side of the first bridge upstream on the Salmon River\"\"",
+     "_coord": [
+      -125.918303,
+      50.361219
+     ],
+     "tidal": true
     }
    ]
   },
