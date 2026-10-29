@@ -61,6 +61,8 @@ function asFieldErrors(detail: unknown): FieldError[] {
       : { path: "", msg: typeof d === "string" ? d : JSON.stringify(d) });
 }
 
+import { addRefusal, resolve as resolveRefusal } from "./refusals";
+
 let pageMap: Promise<Record<string, number>> | null = null;
 
 export const api = {
@@ -113,17 +115,27 @@ export const api = {
   // --- review marks (T97: the append-only store; T134: the review screen makes them) ---
   /** THE ONE WRITE OF THE APP: a mark. Throws an EntryRefused with the server's reasons. */
   postMark: async (mark: MarkPost): Promise<MarkView> => {
-    const res = await fetch("/api/marks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(mark),
-    });
+    let res: Response;
+    try {
+      res = await fetch("/api/marks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(mark),
+      });
+    } catch (e) {
+      // owner 2026-10-28: a save that never reached the server is a refused save too
+      addRefusal(mark, [`the server could not be reached: ${String(e)}`]);
+      throw e;
+    }
     if (!res.ok) {
       const payload = await res.json().catch(() => ({}));
       const err = new Error(`mark refused (${res.status})`) as EntryRefused;
       err.fieldErrors = asFieldErrors(payload?.detail ?? payload?.errors);
+      addRefusal(mark, err.fieldErrors.length
+        ? err.fieldErrors.map((x) => (x.path ? `${x.path}: ` : "") + x.msg) : [`HTTP ${res.status}`]);
       throw err;
     }
+    resolveRefusal(mark);
     return (await res.json()) as MarkView;
   },
 

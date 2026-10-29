@@ -129,6 +129,7 @@ def test_commit_removes_a_file_it_created_when_a_later_write_fails(env):
 def test_backups_are_bounded(env):
     w, tmp = env["writes"], env["tmp"]
     env["mp"].setattr(w, "KEEP", 3)
+    env["mp"].setattr(w, "BURST_S", 0)                # each write its own snapshot here
     p = tmp / "x.json"
     for i in range(6):
         w.commit([(p, f"{i}\n")], "test")
@@ -136,6 +137,53 @@ def test_backups_are_bounded(env):
     assert len(snaps) == 3
     assert [next(s.rglob("x.json")).read_text() for s in snaps] == ["2\n", "3\n", "4\n"], \
         "the newest snapshots are kept, each holding the file as it was before that write"
+
+
+def test_a_burst_takes_one_snapshot_holding_the_files_before_it(env):
+    """Owner 2026-10-28: 1,110 scripted tidal marks evicted every older snapshot."""
+    w, tmp = env["writes"], env["tmp"]
+    p = tmp / "x.json"
+    p.write_text("before\n")
+    for i in range(50):
+        w.commit([(p, f"{i}\n")], "mark")
+    snap, = _snapshots(env)
+    assert next(snap.rglob("x.json")).read_text() == "before\n"
+    w.commit([(p, "other\n")], "other-action")         # another action is its own snapshot
+    assert len(_snapshots(env)) == 2
+
+
+def test_a_burst_never_evicts_yesterday_and_one_a_day_is_kept(env):
+    from datetime import datetime, timedelta, timezone
+    w = env["writes"]
+    env["mp"].setattr(w, "KEEP", 3)
+    env["mp"].setattr(w, "KEEP_DAYS", 60)
+    now = datetime(2026, 10, 28, 12, tzinfo=timezone.utc)
+    root = env["backups"]
+    root.mkdir(exist_ok=True)
+
+    def snap(t):
+        d = root / f"{t.strftime('%Y%m%dT%H%M%S.%fZ')}-mark"
+        d.mkdir()
+        return d
+    old = [snap(now - timedelta(days=k, hours=1)) for k in (90, 40, 40.01, 2)]
+    yday = [snap(now - timedelta(days=1, minutes=m)) for m in range(5)]
+    today = [snap(now - timedelta(minutes=m)) for m in range(10)]
+    keep = w.keep_set(sorted(root.iterdir()), now)
+    assert set(yday) <= keep, "every snapshot of the previous day survives today's burst"
+    assert set(sorted(today)[-3:]) <= keep and not set(sorted(today)[:-3]) & keep
+    assert old[0] not in keep, "older than KEEP_DAYS: count only"
+    assert old[3] in keep and len({old[1], old[2]} & keep) == 1, "one a day, the day's last"
+
+
+def test_a_refused_save_is_logged_to_a_file(env, tmp_path):
+    import app as app_mod
+    log = tmp_path / "refused.jsonl"
+    env["mp"].setattr(app_mod, "REFUSED_LOG", log)
+    r = _post_mark(env["client"], "r9:no_such_entry@9-9")
+    assert r.status_code in (404, 422)
+    row = json.loads(log.read_text().splitlines()[-1])
+    assert row["target"] == "r9:no_such_entry@9-9" and row["status"] == r.status_code
+    assert row["reasons"] and row["payload"]["scope"] == "entry"
 
 
 # --------------------------------------------------------------------------- #
@@ -153,6 +201,7 @@ def test_a_mark_backs_up_the_store_and_only_appends(env, as_built):
     path = min(env["cat"].glob("region-*.json"), key=lambda p: p.stat().st_size)
     eid = json.loads(path.read_text(encoding="utf-8"))["entries"][0]["entry_id"]
     c, store = env["client"], env["marks"]
+    env["mp"].setattr(env["writes"], "BURST_S", 0)   # two marks, two snapshots (no burst)
     r = _post_mark(c, eid)
     assert r.status_code == 200, r.text
     first, = _snapshots(env)

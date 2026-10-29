@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { MarksHealthBanner } from "./components/MarksHealthBanner";
+import { RefusedSavesBanner } from "./components/RefusedSavesBanner";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./styles.css";
 
@@ -9,5 +10,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <App />
     <MarksHealthBanner />
+    <RefusedSavesBanner />
   </React.StrictMode>,
 );

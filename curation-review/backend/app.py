@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import os
 import re
+from pathlib import Path
 from collections import Counter
 
 from fastapi import FastAPI, HTTPException
@@ -193,8 +194,53 @@ class MarkPayload(BaseModel):
     targets: list[str] = []
 
 
+#: EVERY SAVE THE SERVER REFUSES, on file (owner 2026-10-28: a refused save must be impossible to
+#: miss — the terminal is not enough). One JSON line each: when, the item, the status, the reasons
+#: and the payload (so it can be retried). `CURATION_REFUSED_LOG` points it at a copy (tests).
+REFUSED_LOG: Path | None = None
+_REFUSED_DEFAULT = reuse._ROOT / "data" / "generated" / "review" / "refused-saves.jsonl"
+
+
+def refused_log() -> Path:
+    """`REFUSED_LOG` when set, else `CURATION_REFUSED_LOG` read NOW (the tests point every app they
+    build at a temp file), else the repo's log."""
+    env = os.environ.get("CURATION_REFUSED_LOG")
+    return REFUSED_LOG or (Path(env) if env else _REFUSED_DEFAULT)
+
+
+def _log_refused(body: "MarkPayload", status: int, detail) -> None:
+    import datetime as _dt
+    import json as _json
+    import logging
+    reasons = ([d.get("msg", str(d)) if isinstance(d, dict) else str(d) for d in detail]
+               if isinstance(detail, list) else [str(detail)])
+    row = {"at": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+           "scope": body.scope, "target": body.target, "rule_id": body.rule_id,
+           "targets": list(body.targets), "status": status, "reasons": reasons,
+           "reviewer": body.reviewer, "payload": body.model_dump()}
+    try:
+        import writes
+        writes.log_refused(refused_log(), _json.dumps(row, ensure_ascii=False, default=str))
+    except OSError:
+        logging.getLogger("uvicorn.error").exception("could not log a refused save")
+    logging.getLogger("uvicorn.error").warning("REFUSED SAVE %s %s (%s): %s", body.scope,
+                                               body.target, status, "; ".join(reasons))
+
+
 @app.post("/api/marks")
 def post_mark(body: MarkPayload):
+    """THE ONE WRITE, with every refusal logged (`REFUSED_LOG`) before it is returned."""
+    try:
+        return _post_mark(body)
+    except HTTPException as ex:
+        _log_refused(body, ex.status_code, ex.detail)
+        raise
+    except Exception as ex:
+        _log_refused(body, 500, f"{type(ex).__name__}: {ex}")
+        raise
+
+
+def _post_mark(body: MarkPayload):
     """Record a reviewer's mark (T97) in the append-only store `marks.jsonl`, against the
     target's fingerprints NOW. THE ONE WRITE OF REVIEW MODE. Refused (422) on an entry that fails
     the gate, or a mark the model refuses (a verdict its answers do not support, no reviewer);

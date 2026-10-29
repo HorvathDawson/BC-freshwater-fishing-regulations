@@ -78,6 +78,12 @@ def need(request_or_node, kind: str, path, hint: str) -> Path:
 
 
 @pytest.fixture(autouse=True)
+def _refused_saves_to_temp(tmp_path, monkeypatch):
+    """No test writes the review app's real refused-saves log (owner 2026-10-28)."""
+    monkeypatch.setenv("CURATION_REFUSED_LOG", str(tmp_path / "refused-saves.jsonl"))
+
+
+@pytest.fixture(autouse=True)
 def _the_marked_data(request):
     """The safety net under the marker: a test marked `needs_bundle` / `needs_atlas` FAILS with the
     make-command when the bundle / atlas build is absent, even where it reads it without `need`."""
