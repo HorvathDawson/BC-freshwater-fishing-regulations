@@ -6,6 +6,7 @@ import type {
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
+import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { applyPv, PV_DEFAULT, PvBadge, PvControls, type PvFilter } from "./Preverify";
 
 export const TIDAL_HASH = "tidal/";
@@ -120,8 +121,6 @@ const GROUP_WORDS: [string, string][] = [
 
 interface Props {
   mode: Mode;
-  onLeave: () => void;
-  onDfo: () => void;
 }
 
 /* THE TIDAL REVIEW MODE (T212): every proposed tidal boundary — the owner's DFO tidal polygon held
@@ -129,7 +128,7 @@ interface Props {
    gauges) — listed, on the map with the polygon's edge, and accepted one by one. Accepting
    PRE-FILLS a mark (Place y + the cut as a new split); "Record mark" is the one write (POST
    /api/marks, scope "tidal"). Nothing here writes splits.json (T185). */
-export function TidalReview({ mode, onLeave, onDfo }: Props) {
+export function TidalReview({ mode }: Props) {
   const [allRows, setRows] = useState<TidalRow[]>([]);
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   const [mouthOnly, setMouthOnly] = useState(false);
@@ -139,6 +138,7 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
   const [bulkBusy, setBulkBusy] = useState(false);
   const queueSeq = useRef(0);
   const [progress, setProgress] = useState<TidalProgress | null>(null);
+  const fold = useFold("tidal");
   const [filters, setFilters] = useState({ confidence: "", verify: "", enters: "", words: false, q: "", triage: DEFAULT_TRIAGE });
   const [selected, setSelected] = useState<string | null>(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
@@ -251,12 +251,21 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
   return (
     <div className="app dfo-mode tidal-mode" data-testid="tidal-mode">
       <div className="filterbar-wrap">
-        <div className="filterbar">
-          <div className="mode-tabs" role="tablist">
-            <button className="btn small" role="tab" aria-selected={false} onClick={onLeave}>Synopsis entries</button>
-            <button className="btn small" role="tab" aria-selected={false} onClick={onDfo}>DFO salmon extents</button>
-            <button className="btn small primary" role="tab" aria-selected>Tidal</button>
-          </div>
+        <TopNav active="tidal" right={<>
+          <span className="progress dfo-progress" data-testid="tidal-progress">
+            {progress ? <>
+              <strong>{progress.done}/{progress.total}</strong> marked
+              <span data-testid="tidal-triage-counts"> · <strong>{progress.by_triage?.missed ?? 0}</strong> missed
+                · <strong>{progress.by_triage?.sanity ?? 0}</strong> sanity
+                · <strong>{progress.by_triage?.["multi-crossing"] ?? 0}</strong> multi-crossing</span>
+              <span className="dim"> · {progress.with_words} named by the words
+                · named ocean streams met by the polygon {cov.named_ocean_entering_found_by_polygon ?? "?"}/{cov.named_ocean_entering_total ?? "?"}</span>
+            </> : "…"}
+          </span>
+          <FoldToggle fold={fold} set={(filters.triage !== DEFAULT_TRIAGE ? 1 : 0) + (filters.confidence ? 1 : 0) + (filters.enters ? 1 : 0) + (filters.verify ? 1 : 0) + (filters.words ? 1 : 0) + (filters.q ? 1 : 0) + (mouthOnly ? 1 : 0) + (defaultOnly ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0)} />
+        </>} />
+        {fold.open && (
+        <div className="filterbar filterbar-more" data-testid="filters-more">
           <div data-testid="tidal-triage-filter">
             <label>triage</label>
             <select aria-label="triage" value={filters.triage} onChange={(e) => set({ triage: e.target.value })}>
@@ -320,17 +329,8 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
           )}
           <input className="dfo-search" placeholder="stream…" value={filters.q}
             onChange={(e) => set({ q: e.target.value })} aria-label="search tidal" />
-          <span className="progress dfo-progress" data-testid="tidal-progress">
-            {progress ? <>
-              <strong>{progress.done}/{progress.total}</strong> marked
-              <span data-testid="tidal-triage-counts"> · <strong>{progress.by_triage?.missed ?? 0}</strong> missed
-                · <strong>{progress.by_triage?.sanity ?? 0}</strong> sanity
-                · <strong>{progress.by_triage?.["multi-crossing"] ?? 0}</strong> multi-crossing</span>
-              <span className="dim"> · {progress.with_words} named by the words
-                · named ocean streams met by the polygon {cov.named_ocean_entering_found_by_polygon ?? "?"}/{cov.named_ocean_entering_total ?? "?"}</span>
-            </> : "…"}
-          </span>
-        </div>
+                  </div>
+        )}
         <div className="filterbar-line"><div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)" }} /></div>
         {progress?.groups && (
           <div className="dim" data-testid="tidal-groups" style={{ display: "flex", flexWrap: "wrap", gap: 14, padding: "4px 8px", fontSize: 12 }}>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { TopNav } from "./TopNav";
 
 /* T185: THE PROPOSALS VIEW — a read-only "waiting to apply" list. Every proposed edit the review
    marks make (`python -m pipeline.regs.review.proposals build`): what it changes, the confidence of
@@ -149,7 +150,7 @@ function Card({ p }: { p: Proposal }) {
   );
 }
 
-export function ProposalsView({ onLeave }: { onLeave: () => void }) {
+export function ProposalsView() {
   const [view, setView] = useState<View | null>(null);
   const [error, setError] = useState("");
   const load = useCallback(() => {
@@ -163,8 +164,8 @@ export function ProposalsView({ onLeave }: { onLeave: () => void }) {
     .sort((a, b) => (SEV_RANK[a.severity?.level ?? "none"] ?? 3) - (SEV_RANK[b.severity?.level ?? "none"] ?? 3));
   return (
     <div className="proposals" data-testid="proposals-view">
+      <TopNav active="proposals" />
       <div className="prop-bar">
-        <button className="btn small" onClick={onLeave}>← review</button>
         <b>Proposals — waiting to apply</b>
         <span className="muted">{view ? `${view.proposals.length} proposed · made ${view.made ?? "never"}` : "loading…"}</span>
         <button className="btn small" onClick={load}>refresh</button>

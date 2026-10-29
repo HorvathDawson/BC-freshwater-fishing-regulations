@@ -1046,3 +1046,18 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
     flex: 0 0 auto; min-width: 0; height: 460px; border-left: 0; border-top: 1px solid var(--border); }
   .source-pin { position: static; max-height: none; }
 }
+
+/* ---- the one top bar (TopNav): main tabs + badges, sub-tabs only for the active tab, Filters fold ---- */
+.topnav { background: var(--panel); }
+.topnav-row { display: flex; align-items: center; gap: 10px; padding: 3px 10px; min-width: 0; }
+.topnav-row .progress { font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topnav .mode-tabs { display: flex; gap: 2px; flex: none; }
+.topnav-tab { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.topnav-tab kbd { font: 10px/1 monospace; opacity: .5; }
+.topnav-tab.primary kbd { opacity: .8; }
+.topnav-badge { font-size: 10px; padding: 0 5px; border-radius: 8px; background: rgba(0,0,0,.08); font-variant-numeric: tabular-nums; }
+.topnav-tab.primary .topnav-badge { background: rgba(255,255,255,.25); }
+.topnav-sub { padding: 2px 10px 3px; border-top: 1px solid var(--border); background: #f8fafc; }
+.topnav-subtab { font-size: 12px; }
+.topnav .spacer { flex: 1; }
+.topnav-row > .btn { white-space: nowrap; flex: none; }

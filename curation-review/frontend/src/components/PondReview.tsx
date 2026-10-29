@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
 import type { MarkPost } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
+import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { MapPanel } from "./MapPanel";
 
 export const POND_HASH = "sloughs/q154/";
@@ -72,9 +73,10 @@ async function postPond(body: { target: string; choice: Choice | null; note: str
   return api.postMark(mark as unknown as MarkPost);
 }
 
-export function PondReview({ onLeave, onSloughs }: { onLeave: () => void; onSloughs: () => void }) {
+export function PondReview() {
   const [rows, setRows] = useState<PondRow[]>([]);
   const [tally, setTally] = useState<Tally | null>(null);
+  const fold = useFold("ponds");
   const [filters, setFilters] = useState({ set: "", verify: "", caught: "" });
   const [selected, setSelected] = useState<string | null>(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
@@ -131,12 +133,12 @@ export function PondReview({ onLeave, onSloughs }: { onLeave: () => void; onSlou
   return (
     <div className="app dfo-mode slough-mode" data-testid="pond-mode">
       <div className="filterbar-wrap">
-        <div className="filterbar">
-          <div className="mode-tabs" role="tablist">
-            <button className="btn small" role="tab" aria-selected={false} onClick={onLeave}>Synopsis entries</button>
-            <button className="btn small" role="tab" aria-selected={false} onClick={onSloughs}>Sloughs</button>
-            <button className="btn small primary" role="tab" aria-selected>Small ponds (Q154)</button>
-          </div>
+        <TopNav active="sloughs" sub="ponds" right={<>
+          {tally && <TallyLine t={tally} />}
+          <FoldToggle fold={fold} set={(filters.set ? 1 : 0) + (filters.verify ? 1 : 0) + (filters.caught ? 1 : 0)} />
+        </>} />
+        {fold.open && (
+        <div className="filterbar filterbar-more" data-testid="filters-more">
           <div>
             <label>show</label>
             <select aria-label="set" data-testid="pond-set" value={filters.set} onChange={(e) => set({ set: e.target.value })}>
@@ -155,8 +157,8 @@ export function PondReview({ onLeave, onSloughs }: { onLeave: () => void; onSlou
               {VERIFY.map(([k, w]) => <option key={k} value={k}>{w}</option>)}
             </select>
           </div>
-          {tally && <TallyLine t={tally} />}
-        </div>
+                  </div>
+        )}
         <div className="filterbar-line"><div style={{ width: `${bar}%`, height: "100%", background: "var(--accent)" }} /></div>
       </div>
       {notice && <div className="notice" data-testid="pond-notice" style={{ margin: 8 }}>{notice}{" "}

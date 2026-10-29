@@ -16,6 +16,7 @@ import { PROPOSALS_HASH, ProposalsView } from "./components/ProposalsView";
 import { SLOUGH_HASH, SloughReview } from "./components/SloughReview";
 import { NAMES_HASH, NamesReview } from "./components/NamesReview";
 import { CASCADE_HASH, CascadeView } from "./components/CascadeView";
+import { setBadge } from "./components/TopNav";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
@@ -71,6 +72,7 @@ export default function App() {
   const [lowOnly, setLowOnly] = useState(() => new URLSearchParams(window.location.search).has("lowcuts"));
   const rows = useMemo(() => applyPv(allRows.filter((r) => (!t89Only || r.t89) && (!lowOnly || r.low_cuts)), pvf),
     [allRows, pvf, t89Only, lowOnly]);
+  useEffect(() => { setBadge("lowcuts", String(allRows.filter((r) => r.low_cuts).length)); }, [allRows]);
   const [loadingRows, setLoadingRows] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<EntryDetailT | null>(null);
@@ -127,12 +129,21 @@ export default function App() {
   useEffect(() => {
     const open = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
-      if (id.startsWith(SLOUGH_HASH)) { setSloughs(true); return; }
-      if (id.startsWith(NAMES_HASH)) { setNames(true); return; }
-      if (id.startsWith(CASCADE_HASH)) { setCascade(true); return; }
-      if (id.startsWith(DFO_HASH)) { setDfo(true); setTidal(false); setProposals(false); return; }
-      if (id.startsWith(TIDAL_HASH)) { setTidal(true); setDfo(false); setProposals(false); return; }
-      if (id === PROPOSALS_HASH) { setProposals(true); setDfo(false); setTidal(false); return; }
+      const only = (m: "sloughs" | "names" | "cascade" | "dfo" | "tidal" | "proposals" | "") => {
+        setSloughs(m === "sloughs"); setNames(m === "names"); setCascade(m === "cascade");
+        setDfo(m === "dfo"); setTidal(m === "tidal"); setProposals(m === "proposals");
+        // the Low cuts tab is the entries view with `?lowcuts`
+        const low = m === "" && new URLSearchParams(window.location.search).has("lowcuts");
+        setLowOnly(low);
+        if (low) { setVerify(""); setSeverity("all"); setTier(""); }
+      };
+      if (id.startsWith(SLOUGH_HASH)) { only("sloughs"); return; }
+      if (id.startsWith(NAMES_HASH)) { only("names"); return; }
+      if (id.startsWith(CASCADE_HASH)) { only("cascade"); return; }
+      if (id.startsWith(DFO_HASH)) { only("dfo"); return; }
+      if (id.startsWith(TIDAL_HASH)) { only("tidal"); return; }
+      if (id === PROPOSALS_HASH) { only("proposals"); return; }
+      only("");
       if (!id) return;
       setSelected(id);
       openedAt.current = Date.now();
@@ -213,37 +224,23 @@ export default function App() {
     else api.entry(selected).then(setDetail).catch(() => {});
   }, [loadRows, loadProgress, selected]);
 
-  const leaveModes = () => {
-    window.history.replaceState(null, "", window.location.pathname);
-    setDfo(false);
-    setTidal(false);
-    setProposals(false);
-    setSloughs(false);
-    setNames(false);
-    setCascade(false);
-  };
-  const toCascade = () => { window.history.replaceState(null, "", `#${CASCADE_HASH}skeena`); setDfo(false); setTidal(false); setProposals(false); setCascade(true); };
-  const toDfoFromCascade = () => { setCascade(false); window.history.replaceState(null, "", `#${DFO_HASH}`); setDfo(true); };
-  const toTidal = () => { window.history.replaceState(null, "", `#${TIDAL_HASH}`); setDfo(false); setProposals(false); setTidal(true); };
-  const toDfo = () => { window.history.replaceState(null, "", `#${DFO_HASH}`); setTidal(false); setProposals(false); setDfo(true); };
-  const toProposals = () => { window.history.replaceState(null, "", `#${PROPOSALS_HASH}`); setDfo(false); setTidal(false); setProposals(true); };
   if (cascade) {
-    return <CascadeView onLeave={leaveModes} onDfo={toDfoFromCascade} />;
+    return <CascadeView />;
   }
   if (sloughs) {
-    return <SloughReview onLeave={leaveModes} />;
+    return <SloughReview />;
   }
   if (names) {
-    return <NamesReview onLeave={leaveModes} />;
+    return <NamesReview />;
   }
   if (proposals) {
-    return <ProposalsView onLeave={leaveModes} />;
+    return <ProposalsView />;
   }
   if (tidal && mode) {
-    return <TidalReview mode={mode} onLeave={leaveModes} onDfo={toDfo} />;
+    return <TidalReview mode={mode} />;
   }
   if (dfo && mode) {
-    return <DfoReview mode={mode} onLeave={leaveModes} onTidal={toTidal} onCascade={toCascade} />;
+    return <DfoReview mode={mode} />;
   }
 
   return (
@@ -270,35 +267,7 @@ export default function App() {
           loadPending();
           setReloadKey((k) => k + 1);
         }}
-        slot={<>
-          <button className="btn small" data-testid="dfo-tab" title="T164: review every scraped DFO salmon extent"
-            onClick={() => { window.history.replaceState(null, "", `#${DFO_HASH}`); setDfo(true); }}>
-            DFO salmon extents
-          </button>
-          <button className="btn small" data-testid="sloughs-tab"
-            title="T55: slough / canal pieces drawn as lakes — confirm the pre-marks (narrow, wide marsh) or change them"
-            onClick={() => { window.history.replaceState(null, "", `#${SLOUGH_HASH}`); setSloughs(true); }}>
-            Sloughs
-          </button>
-          <button className="btn small" data-testid="names-tab"
-            title="T224: names for waters from city layers, OpenStreetMap, ECCC stations — spot-check the auto-accepted, accept / reject the rest"
-            onClick={() => { window.history.replaceState(null, "", `#${NAMES_HASH}`); setNames(true); }}>
-            Names
-          </button>
-          <button className="btn small" data-testid="tidal-tab"
-            title="T212: the proposed tidal boundary on every ocean-entering stream (read only; accept = a mark)"
-            onClick={toTidal}>
-            Tidal
-          </button>
-          <button className={`btn small${lowOnly ? " primary" : ""}`} data-testid="low-cuts-tab"
-            title="owner 2026-10-28: entries whose rules name a guessed (low-confidence) cut — open one, check the cut on the satellite map; Place y confirms it, Place n + 'split misplaced' + a map pick moves it"
-            onClick={() => { setLowOnly((v) => !v); if (!lowOnly) { setVerify(""); setSeverity("all"); setTier(""); } }}>
-            Low-confidence cuts ({allRows.filter((r) => r.low_cuts).length})
-          </button>
-          <button className="btn small" data-testid="proposals-tab" title="T185: the edits your marks propose, waiting to apply (read only)"
-            onClick={toProposals}>
-            Proposals
-          </button></>}
+        lowOnly={lowOnly}
         moreSet={(tier ? 1 : 0) + (severity ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0) + (t89Only ? 1 : 0)}
         more={
           <>

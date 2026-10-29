@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { FoldToggle, TopNav, useFold } from "./TopNav";
 import type { QueueOrder, RegionSummary, ReviewFilter, Status, VerifyStatus } from "../types";
 
 /** What the parse and the build left (never review progress — that is the "review" filter). */
@@ -19,8 +20,8 @@ interface Props {
   onRegion: (r: string) => void;
   onStatus: (s: Status | "") => void;
   onRefresh: () => void;
-  /** kept on the one row (the DFO tab) */
-  slot?: ReactNode;
+  /** the Low cuts tab is this view with `?lowcuts` */
+  lowOnly?: boolean;
   /** in the collapsible area (tier, the per-tier progress and the output commands) */
   more?: ReactNode;
   /** filters set inside `more` (the tier), counted on the fold button */
@@ -40,11 +41,6 @@ const REVIEW: [ReviewFilter, string][] = [
   ["deferred", "deferred"], ["verified", "human-reviewed"],
 ];
 
-const MORE_KEY = "curation-review.filters-open";
-function readOpen(): boolean {
-  try { return window.localStorage.getItem(MORE_KEY) === "1"; } catch { return false; }
-}
-
 /* THE TOP BAR, ONE ROW (T191): region, review, and a slim progress line stay in
    view; status, order, tier, refresh and the output commands fold into "filters", so the detail
    pane gets the height. A filter set in the fold is counted on its button, so it is never hidden. */
@@ -55,7 +51,7 @@ export function FilterBar({
   onRegion,
   onStatus,
   onRefresh,
-  slot,
+  lowOnly = false,
   more,
   moreSet = 0,
   verify,
@@ -63,11 +59,7 @@ export function FilterBar({
   order,
   onOrder,
 }: Props) {
-  const [open, setOpen] = useState(readOpen);
-  const toggle = () => setOpen((o) => {
-    try { window.localStorage.setItem(MORE_KEY, o ? "0" : "1"); } catch { /* per-viewer only */ }
-    return !o;
-  });
+  const fold = useFold("entries");
   // every region: the counts summed (so the filters' numbers stay right in the one queue)
   const current = region === ALL_REGIONS && regions.length ? {
     id: ALL_REGIONS,
@@ -85,27 +77,7 @@ export function FilterBar({
   const folded = (status ? 1 : 0) + (order !== "risk" ? 1 : 0) + moreSet;
   return (
     <div className="filterbar-wrap" data-testid="filterbar">
-      <div className="filterbar">
-        <select value={region} aria-label="region" onChange={(e) => onRegion(e.target.value)}>
-          <option value={ALL_REGIONS}>all regions{regions.length
-            ? ` (${regions.reduce((n, r) => n + r.total, 0)})` : ""}</option>
-          {regions.map((r) => (
-            <option key={r.id} value={r.id}>
-              region {r.id} ({r.total})
-            </option>
-          ))}
-        </select>
-        <select value={verify} aria-label="review filter"
-          onChange={(e) => onVerify(e.target.value as ReviewFilter)}>
-          {REVIEW.map(([v, w]) => {
-            const n = v === "" ? current?.total
-              : v === "todo" ? (current ? current.total - done : undefined)
-              : v === "recheck" ? undefined
-              : current?.by_verify?.[v as VerifyStatus] ?? 0;
-            return <option key={v} value={v}>review: {w}{n != null ? ` (${n})` : ""}</option>;
-          })}
-        </select>
-        {slot}
+      <TopNav active={lowOnly ? "lowcuts" : "entries"} right={<>
         {current && (
           <span className="progress slim" data-testid="progress"
             title="human-reviewed: verified on every check against the book (a mark on an entry changed since does not count)">
@@ -113,16 +85,31 @@ export function FilterBar({
             {progress && region !== ALL_REGIONS && <span className="dim"> · all {progress.verified}/{progress.total}</span>}
           </span>
         )}
-        <div className="spacer" />
-        <button type="button" className={`btn small${open ? " primary" : ""}`} data-testid="filters-toggle"
-          aria-expanded={open} onClick={toggle}
-          title="status, order, tier, refresh, the per-tier progress and the output commands">
-          filters{folded ? ` (${folded})` : ""} {open ? "▴" : "▾"}
-        </button>
-      </div>
+        <FoldToggle fold={fold} set={folded + (region !== ALL_REGIONS ? 1 : 0) + (verify ? 1 : 0)}
+          title="region, review, status, order, tier, refresh, the per-tier progress and the output commands" />
+      </>} />
       <div className="filterbar-line" aria-hidden><i style={{ width: `${pct}%` }} /></div>
-      {open && (
+      {fold.open && (
         <div className="filterbar filterbar-more" data-testid="filters-more">
+          <select value={region} aria-label="region" onChange={(e) => onRegion(e.target.value)}>
+            <option value={ALL_REGIONS}>all regions{regions.length
+              ? ` (${regions.reduce((n, r) => n + r.total, 0)})` : ""}</option>
+            {regions.map((r) => (
+              <option key={r.id} value={r.id}>
+                region {r.id} ({r.total})
+              </option>
+            ))}
+          </select>
+          <select value={verify} aria-label="review filter"
+            onChange={(e) => onVerify(e.target.value as ReviewFilter)}>
+            {REVIEW.map(([v, w]) => {
+              const n = v === "" ? current?.total
+                : v === "todo" ? (current ? current.total - done : undefined)
+                : v === "recheck" ? undefined
+                : current?.by_verify?.[v as VerifyStatus] ?? 0;
+              return <option key={v} value={v}>review: {w}{n != null ? ` (${n})` : ""}</option>;
+            })}
+          </select>
           <div>
             <label>status</label>
             <select value={status} aria-label="status"

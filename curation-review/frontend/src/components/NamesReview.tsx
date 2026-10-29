@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
 import type { MarkPost } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
+import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { MapPanel } from "./MapPanel";
 
 export const NAMES_HASH = "names/";
@@ -71,9 +72,10 @@ async function postName(body: { targets: string[]; choice: Choice; note: string;
   return api.postMark(mark as unknown as MarkPost);
 }
 
-export function NamesReview({ onLeave }: { onLeave: () => void }) {
+export function NamesReview() {
   const [rows, setRows] = useState<NameRow[]>([]);
   const [progress, setProgress] = useState<Progress | null>(null);
+  const fold = useFold("names");
   const [view, setView] = useState("spot");
   const [verify, setVerify] = useState("");
   const [q, setQ] = useState("");
@@ -146,11 +148,14 @@ export function NamesReview({ onLeave }: { onLeave: () => void }) {
   return (
     <div className="app dfo-mode slough-mode" data-testid="names-mode">
       <div className="filterbar-wrap">
-        <div className="filterbar">
-          <div className="mode-tabs" role="tablist">
-            <button className="btn small" role="tab" aria-selected={false} onClick={onLeave}>Synopsis entries</button>
-            <button className="btn small primary" role="tab" aria-selected>Names</button>
-          </div>
+        <TopNav active="names" right={<>
+          {progress && <span className="progress dfo-progress" data-testid="names-progress">
+            spot-check <strong>{sp?.done}/{sp?.total}</strong> · review <strong>{rv?.done}/{rv?.total}</strong>
+            {" "}· accepted {progress.by_fate.accepted ?? 0}</span>}
+          <FoldToggle fold={fold} set={(view !== "spot" ? 1 : 0) + (verify ? 1 : 0) + (q ? 1 : 0)} />
+        </>} />
+        {fold.open && (
+        <div className="filterbar filterbar-more" data-testid="filters-more">
           <div>
             <label>show</label>
             <select aria-label="view" data-testid="names-view" value={view} onChange={(e) => { setView(e.target.value); setSelected(null); }}>
@@ -164,12 +169,10 @@ export function NamesReview({ onLeave }: { onLeave: () => void }) {
             </select>
           </div>
           <div><label>find</label><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="name / blk" /></div>
-          {progress && <span className="progress dfo-progress" data-testid="names-progress">
-            spot-check <strong>{sp?.done}/{sp?.total}</strong> · review <strong>{rv?.done}/{rv?.total}</strong>
-            {" "}· accepted {progress.by_fate.accepted ?? 0}</span>}
           <button className="btn small" disabled={busy} data-testid="names-accept-all" onClick={() => void allVisible("accept")}>accept all visible</button>
           <button className="btn small" disabled={busy} data-testid="names-reject-all" onClick={() => void allVisible("reject")}>reject all visible</button>
         </div>
+        )}
       </div>
       {notice && <div className="notice" data-testid="names-notice" style={{ margin: 8 }}>{notice}{" "}
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setNotice("")}>dismiss</button></div>}

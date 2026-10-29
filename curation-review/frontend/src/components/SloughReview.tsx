@@ -3,6 +3,7 @@ import { api, type EntryRefused } from "../api";
 import type { MarkPost } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
+import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { POND_HASH, PondReview } from "./PondReview";
 
 export const SLOUGH_HASH = "sloughs/";
@@ -74,19 +75,21 @@ async function postSlough(body: { target?: string; targets?: string[]; call: "st
 }
 
 /** the Sloughs tab: the slough queue, or its "Small ponds (Q154)" view (`#sloughs/q154/<id>`) */
-export function SloughReview({ onLeave }: { onLeave: () => void }) {
+export function SloughReview() {
   const [ponds, setPonds] = useState(() => decodeURIComponent(window.location.hash.slice(1)).startsWith(POND_HASH));
-  const toPonds = (on: boolean) => {
-    window.history.replaceState(null, "", `#${on ? POND_HASH : SLOUGH_HASH}`);
-    setPonds(on);
-  };
-  return ponds ? <PondReview onLeave={onLeave} onSloughs={() => toPonds(false)} />
-    : <SloughList onLeave={onLeave} onPonds={() => toPonds(true)} />;
+  // the top bar's "Small ponds" sub-tab changes the hash
+  useEffect(() => {
+    const onHash = () => setPonds(decodeURIComponent(window.location.hash.slice(1)).startsWith(POND_HASH));
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  return ponds ? <PondReview /> : <SloughList />;
 }
 
-function SloughList({ onLeave, onPonds }: { onLeave: () => void; onPonds: () => void }) {
+function SloughList() {
   const [rows, setRows] = useState<SloughRow[]>([]);
   const [progress, setProgress] = useState<SloughProgress | null>(null);
+  const fold = useFold("sloughs");
   const [filters, setFilters] = useState({ group: "premark", basis: "", verify: "todo", region: "", q: "" });
   const [selected, setSelected] = useState<string | null>(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
@@ -173,14 +176,20 @@ function SloughList({ onLeave, onPonds }: { onLeave: () => void; onPonds: () => 
   return (
     <div className="app dfo-mode slough-mode" data-testid="slough-mode">
       <div className="filterbar-wrap">
-        <div className="filterbar">
-          <div className="mode-tabs" role="tablist">
-            <button className="btn small" role="tab" aria-selected={false} onClick={onLeave}>Synopsis entries</button>
-            <button className="btn small primary" role="tab" aria-selected>Sloughs</button>
-            <button className="btn small" role="tab" aria-selected={false} data-testid="ponds-tab"
-              title="Q154: small unnamed ponds a river runs through — pool (river rules) or real lake? A sample against the proposed cutoff"
-              onClick={onPonds}>Small ponds (Q154)</button>
-          </div>
+        <TopNav active="sloughs" sub="sloughs" right={<>
+          <span className="progress dfo-progress" data-testid="slough-progress">
+            {progress ? <>
+              <strong>{progress.done}/{progress.total}</strong> decided
+              <span className="dim"> · pre-marked {(progress.by_basis.narrow ?? 0) + (progress.by_basis["wide marsh"] ?? 0)}
+                {" "}({progress.by_basis.narrow ?? 0} narrow, {progress.by_basis["wide marsh"] ?? 0} wide marsh)
+                {" "}· your list {progress.by_group["owner list"] ?? 0} ({progress.intermittent} intermittent)
+                {" "}· {progress.by_group.owner ?? 0} marked on the review page</span>
+            </> : "…"}
+          </span>
+          <FoldToggle fold={fold} set={(filters.group !== "premark" ? 1 : 0) + (filters.basis ? 1 : 0) + (filters.verify !== "todo" ? 1 : 0) + (filters.region ? 1 : 0) + (filters.q ? 1 : 0)} />
+        </>} />
+        {fold.open && (
+        <div className="filterbar filterbar-more" data-testid="filters-more">
           <div>
             <label>group</label>
             <select aria-label="group" data-testid="slough-group" value={filters.group} onChange={(e) => set({ group: e.target.value })}>
@@ -206,16 +215,8 @@ function SloughList({ onLeave, onPonds }: { onLeave: () => void; onPonds: () => 
           </div>
           <input className="dfo-search" placeholder="stream / id…" value={filters.q}
             onChange={(e) => set({ q: e.target.value })} aria-label="search sloughs" />
-          <span className="progress dfo-progress" data-testid="slough-progress">
-            {progress ? <>
-              <strong>{progress.done}/{progress.total}</strong> decided
-              <span className="dim"> · pre-marked {(progress.by_basis.narrow ?? 0) + (progress.by_basis["wide marsh"] ?? 0)}
-                {" "}({progress.by_basis.narrow ?? 0} narrow, {progress.by_basis["wide marsh"] ?? 0} wide marsh)
-                {" "}· your list {progress.by_group["owner list"] ?? 0} ({progress.intermittent} intermittent)
-                {" "}· {progress.by_group.owner ?? 0} marked on the review page</span>
-            </> : "…"}
-          </span>
-        </div>
+                  </div>
+        )}
         <div className="filterbar-line"><div style={{ width: `${bar}%`, height: "100%", background: "var(--accent)" }} /></div>
       </div>
       {notice && <div className="notice" data-testid="slough-notice" style={{ margin: 8 }}>{notice}{" "}

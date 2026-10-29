@@ -7,6 +7,7 @@ import type {
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
+import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { ExtentFixEditor, pointWords } from "./ExtentFixEditor";
 
 /** T210: the anchor types a NEW split is added by — click the river, pick one of these, confirm. */
@@ -169,12 +170,6 @@ export const DFO_HASH = "dfo/";
 
 interface Props {
   mode: Mode;
-  /** back to the synopsis entries */
-  onLeave: () => void;
-  /** T212: over to the Tidal mode */
-  onTidal?: () => void;
-  /** T229: the Cascade map (which DFO places apply where, per watershed) */
-  onCascade?: () => void;
 }
 
 /* THE DFO REVIEW MODE (T164): every scraped DFO salmon extent — the notice's own words, its rows,
@@ -182,11 +177,12 @@ interface Props {
    fix, and NEW SPLIT proposals by anchor (confluence, lake inlet / outlet, bridge, dam, signs, a map
    point, an existing split). Everything goes in the mark (POST /api/marks, scope "dfo"); a new split
    never goes into splits.json from here — T185 turns the marks into reviewed changes. */
-export function DfoReview({ mode, onLeave, onTidal, onCascade }: Props) {
+export function DfoReview({ mode }: Props) {
   const [allRows, setRows] = useState<DfoRow[]>([]);
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   const rows = useMemo(() => applyPv(allRows, pvf), [allRows, pvf]);
   const [progress, setProgress] = useState<DfoProgress | null>(null);
+  const fold = useFold("dfo");
   const [filters, setFilters] = useState({ region: "", status: "active", need: "", verify: "", q: "", lake: "" });
   const [selected, setSelected] = useState<string | null>(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
@@ -237,13 +233,21 @@ export function DfoReview({ mode, onLeave, onTidal, onCascade }: Props) {
   return (
     <div className="app dfo-mode" data-testid="dfo-mode">
       <div className="filterbar-wrap">
-        <div className="filterbar">
-          <div className="mode-tabs" role="tablist">
-            <button className="btn small" role="tab" aria-selected={false} onClick={onLeave}>Synopsis entries</button>
-            <button className="btn small primary" role="tab" aria-selected>DFO salmon extents</button>
-            {onTidal && <button className="btn small" role="tab" aria-selected={false} onClick={onTidal}>Tidal</button>}
-            {onCascade && <button className="btn small" role="tab" aria-selected={false} onClick={onCascade}>Cascade</button>}
-          </div>
+        <TopNav active="dfo" sub="extents" right={<>
+          <span className="progress dfo-progress" data-testid="dfo-progress">
+            {all ? <>
+              <strong>{all.done}/{all.total}</strong> marked
+              {live && <span className="dim"> · live {live.done}/{live.total}</span>}
+              <span className="dim"> · {all.by_state.needs_cut ?? 0} need a cut · {all.by_state.bound ?? 0} bound
+                · {all.new_splits} new split{all.new_splits === 1 ? "" : "s"} proposed</span>
+              {(all.by_verify.wrong ?? 0) + (all.by_verify.unsure ?? 0) > 0 &&
+                <span className="dim"> · {all.by_verify.wrong ?? 0} wrong, {all.by_verify.unsure ?? 0} unsure</span>}
+            </> : "…"}
+          </span>
+          <FoldToggle fold={fold} set={(filters.region ? 1 : 0) + (filters.status !== "active" ? 1 : 0) + (filters.need ? 1 : 0) + (filters.verify ? 1 : 0) + (filters.lake ? 1 : 0) + (filters.q ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0)} />
+        </>} />
+        {fold.open && (
+        <div className="filterbar filterbar-more" data-testid="filters-more">
           <div>
             <label>region</label>
             <select aria-label="DFO region" value={filters.region} onChange={(e) => set({ region: e.target.value })}>
@@ -286,17 +290,8 @@ export function DfoReview({ mode, onLeave, onTidal, onCascade }: Props) {
           <PvControls value={pvf} onChange={setPvf} rows={allRows} />
           <input className="dfo-search" placeholder="water or words…" value={filters.q}
             onChange={(e) => set({ q: e.target.value })} aria-label="search DFO" />
-          <span className="progress dfo-progress" data-testid="dfo-progress">
-            {all ? <>
-              <strong>{all.done}/{all.total}</strong> marked
-              {live && <span className="dim"> · live {live.done}/{live.total}</span>}
-              <span className="dim"> · {all.by_state.needs_cut ?? 0} need a cut · {all.by_state.bound ?? 0} bound
-                · {all.new_splits} new split{all.new_splits === 1 ? "" : "s"} proposed</span>
-              {(all.by_verify.wrong ?? 0) + (all.by_verify.unsure ?? 0) > 0 &&
-                <span className="dim"> · {all.by_verify.wrong ?? 0} wrong, {all.by_verify.unsure ?? 0} unsure</span>}
-            </> : "…"}
-          </span>
-        </div>
+                  </div>
+        )}
         <div className="filterbar-line"><div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)" }} /></div>
       </div>
       {notice && <div className="notice" data-testid="dfo-notice" style={{ margin: 8 }}>{notice}{" "}

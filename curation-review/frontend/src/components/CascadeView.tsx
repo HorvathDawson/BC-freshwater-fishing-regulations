@@ -1,3 +1,4 @@
+import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -62,7 +63,8 @@ function runAt<T extends unknown[]>(runs: T[], d: number): T | null {
   return hit;
 }
 
-export function CascadeView({ onLeave, onDfo }: { onLeave: () => void; onDfo: () => void }) {
+export function CascadeView() {
+  const fold = useFold("cascade");
   const [name, setName] = useState(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
     return (h.startsWith(CASCADE_HASH) && h.slice(CASCADE_HASH.length)) || "skeena";
@@ -209,12 +211,12 @@ export function CascadeView({ onLeave, onDfo }: { onLeave: () => void; onDfo: ()
   return (
     <div className="app" data-testid="cascade-mode" style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <div className="filterbar-wrap">
-        <div className="filterbar">
-          <div className="mode-tabs" role="tablist">
-            <button className="btn small" role="tab" aria-selected={false} onClick={onLeave}>Synopsis entries</button>
-            <button className="btn small" role="tab" aria-selected={false} onClick={onDfo}>DFO salmon extents</button>
-            <button className="btn small primary" role="tab" aria-selected>Cascade</button>
-          </div>
+        <TopNav active="dfo" sub="cascade" right={<>
+          {data && <span className="muted">{data.n_sections.toLocaleString()} sections · {data.chains.length} distinct chains</span>}
+          <FoldToggle fold={fold} set={(minOrder !== 3 ? 1 : 0)} />
+        </>} />
+        {fold.open && (
+        <div className="filterbar filterbar-more" data-testid="filters-more">
           <div>
             <label>watershed</label>
             <select aria-label="watershed" value={name} onChange={(e) => setName(e.target.value)}>
@@ -232,8 +234,8 @@ export function CascadeView({ onLeave, onDfo }: { onLeave: () => void; onDfo: ()
             <input type="range" min={0} max={365} value={day} onChange={(e) => setDay(Number(e.target.value))} aria-label="day of year" />
             <span style={{ marginLeft: 6 }}>{dayLabel(day)}</span>
           </div>
-          {data && <span className="muted">{data.n_sections.toLocaleString()} sections · {data.chains.length} distinct chains</span>}
         </div>
+        )}
       </div>
       {error && <div className="error">{error}</div>}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
