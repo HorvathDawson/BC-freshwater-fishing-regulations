@@ -316,7 +316,7 @@ use that as the sole source of future work."
 | T270 | Map fonts + symbols (glyphs/sprites) from our own data host only, offline-capable; audit every third-party request | DONE | — | owner 2026-10-29 |
 | T271 | Problem reports auto-deleted after 180 days (feeds worker cron); privacy page wording + privacy@ address | DONE (deploy: owner) | — | owner 2026-10-29 |
 | T274 | Past-day flow (HYDAT daily means) stored on our data host; dayFlow.ts no longer calls ECCC GeoMet | DONE (staging seeded; prod upload human) | T270 | owner 2026-10-29 |
-| T272 | First install: second progress bar after download ("Setting up on this device") with real progress; measure + cut the post-download step | DONE | COMMIT | 100 % → map 112 s → 11 s (emulator); assets fetched beside the download, paced under the 429 limit; hash follows the download |
+| T272 | First install: second progress bar after download ("Setting up on this device") with real progress; measure + cut the post-download step | DONE | abaf19343, f0357560b | 100 % → map 112 s → 11 s (emulator); assets fetched beside the download, paced under the 429 limit; hash follows the download |
 | T273 | Panning lag on Android: profile, then cache per-section answers, batch viewport queries, defer work during gestures, prefetch one screen out | OPEN | — | owner 2026-10-29 |
 | T275 | Mode switch (Standard/Salmon/Runs) resizes the map; only the UI block should change, map fixed | DONE | dbfeb4bf4 (+70aa5e8e9) | owner 2026-10-29 |
 | T276 | DFO line by the mode switch; Runs tab legible on phones (bigger slider); spawner legend + Conditions → first-open tutorials; local /runtiming/ | DONE | 9f0b0a113 | owner 2026-10-29 |

@@ -1,6 +1,6 @@
 # T272 — First install: a second progress bar after the download, and make that step fast
 
-Status: DONE 2026-10-29 — COMMIT (owner 2026-10-29 on Android: "it downloaded everything then at 100% it took a very long
+Status: DONE 2026-10-29 — abaf19343 (+ App.tsx in f0357560b) (owner 2026-10-29 on Android: "it downloaded everything then at 100% it took a very long
 time to open. it needs a second loading bar so the user doesnt get confused").
 
 ## Work
