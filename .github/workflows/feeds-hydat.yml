@@ -16,9 +16,9 @@ name: feeds — HYDAT → climatology → R2
 #
 # SECRETS (named here, NOT set — the owner adds them under Settings → Secrets and variables → Actions):
 #   CLOUDFLARE_ACCOUNT_ID            the account id (R2's S3 endpoint is https://<id>.r2.cloudflarestorage.com)
-#   STAGING_R2_ACCESS_KEY_ID         an R2 API token scoped to bc-fishing-regulations-staging, Object Read & Write
-#   STAGING_R2_SECRET_ACCESS_KEY
-#   (prod, later) PROD_R2_ACCESS_KEY_ID / PROD_R2_SECRET_ACCESS_KEY
+#   R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY   the repo's existing R2 API token (already set by the owner); it must be
+#                                             allowed Object Read & Write on bc-fishing-regulations-staging. It may be
+#                                             account-wide: the bucket guard below is what keeps this staging-only.
 #
 # NOTE: GitHub only lists a workflow_dispatch workflow in the Actions tab once the file is on the default branch
 # (main); until then run it with `gh workflow run feeds-hydat.yml --ref redesign/stream-sections -f upload=false`.
@@ -52,19 +52,17 @@ jobs:
     timeout-minutes: 60
     env:
       BUCKET: ${{ inputs.target == 'production' && 'bc-fishing-regulations' || 'bc-fishing-regulations-staging' }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.STAGING_R2_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGING_R2_SECRET_ACCESS_KEY }}
-      # OWNER (prod): replace the two lines above with
-      #   AWS_ACCESS_KEY_ID: ${{ inputs.target == 'production' && secrets.PROD_R2_ACCESS_KEY_ID || secrets.STAGING_R2_ACCESS_KEY_ID }}
-      #   AWS_SECRET_ACCESS_KEY: ${{ inputs.target == 'production' && secrets.PROD_R2_SECRET_ACCESS_KEY || secrets.STAGING_R2_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      # OWNER (prod): the same token, if it reaches the prod bucket; widen the guard below on purpose, nowhere else
       AWS_DEFAULT_REGION: auto
       R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
     steps:
       - name: Guard — staging only until the owner enables production
         run: |
           case "$BUCKET" in
-            *-staging) echo "target bucket: $BUCKET" ;;
-            *) echo "::error::production is not enabled in this workflow"; exit 1 ;;
+            bc-fishing-regulations-staging) echo "target bucket: $BUCKET" ;;
+            *) echo "::error::only bc-fishing-regulations-staging is allowed (got $BUCKET)"; exit 1 ;;
           esac
 
       - uses: actions/checkout@v4

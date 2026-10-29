@@ -139,12 +139,12 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Emails go to your verified address: DFO places / in-season changes / a whole feed failing at once, the rest in one daily
   digest. When a DFO email arrives: `python -m pipeline.regs.dfo_salmon.live queue --regions <n>`, commit the entry files,
   then sync them (below). Production switch-on (worker + prod bucket) is yours.
-- **GitHub secrets for the feed sync workflows** (`feeds-sync-inputs.yml`: DFO entries + roster + in-season matches;
-  `feeds-hydat.yml`): `CLOUDFLARE_ACCOUNT_ID`, `STAGING_R2_ACCESS_KEY_ID`, `STAGING_R2_SECRET_ACCESS_KEY` (an R2 API token,
-  Object Read & Write, scoped to `bc-fishing-regulations-staging`). Not set yet; the workflows are manual
-  (`workflow_dispatch`) and list in the Actions tab only once on `main` — until then
-  `gh workflow run feeds-sync-inputs.yml --ref redesign/stream-sections -f what=both -f dry_run=true`. The Mac twin needs
-  no secrets: `deploy/staging/sync-inputs.sh`.
+- **Feed sync workflows** (`feeds-sync-inputs.yml`: DFO entries + roster + in-season matches; `feeds-hydat.yml`): NO new
+  secrets — they use the repo's existing `CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, and refuse any
+  bucket but `bc-fishing-regulations-staging`. Only confirm that R2 token's scope includes the staging bucket (it may be
+  prod-only; a failed staging write in the first run would show it). Manual (`workflow_dispatch`); listed in the Actions tab
+  only once on `main` — until then `gh workflow run feeds-sync-inputs.yml --ref redesign/stream-sections -f what=both -f
+  dry_run=true`. The Mac twin: `deploy/staging/sync-inputs.sh`.
 - **`scripts/update-hydat.sh`**: run it when the "New HYDAT" email arrives (after the HYDAT action).
 - **Phone testing** (T77, Q9), **production hosting** (T86, Q26: R2 bucket, contact address, app name), **iOS build**
   (T88).

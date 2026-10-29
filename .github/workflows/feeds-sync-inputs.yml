@@ -15,8 +15,8 @@ name: feeds — sync curated inputs → R2 private/
 # Later (owner's call): run it on push to those paths — uncomment the `push:` block below.
 #
 # TARGET: staging only until the owner enables production (uncomment the option + the prod secrets).
-# SECRETS (named, NOT set): CLOUDFLARE_ACCOUNT_ID, STAGING_R2_ACCESS_KEY_ID, STAGING_R2_SECRET_ACCESS_KEY
-#   (prod, later: PROD_R2_ACCESS_KEY_ID, PROD_R2_SECRET_ACCESS_KEY).
+# SECRETS (already set in the repo by the owner): CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY. The token
+#   may be account-wide: the bucket guard below is what keeps this staging-only.
 # NOTE: listed in the Actions tab only once on the default branch; until then:
 #   gh workflow run feeds-sync-inputs.yml --ref redesign/stream-sections -f what=both -f dry_run=true
 
@@ -57,16 +57,16 @@ jobs:
     timeout-minutes: 10
     env:
       BUCKET: ${{ inputs.target == 'production' && 'bc-fishing-regulations' || 'bc-fishing-regulations-staging' }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.STAGING_R2_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGING_R2_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: auto
       R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
     steps:
       - name: Guard — staging only until the owner enables production
         run: |
           case "$BUCKET" in
-            *-staging) echo "target bucket: $BUCKET" ;;
-            *) echo "::error::production is not enabled in this workflow"; exit 1 ;;
+            bc-fishing-regulations-staging) echo "target bucket: $BUCKET" ;;
+            *) echo "::error::only bc-fishing-regulations-staging is allowed (got $BUCKET)"; exit 1 ;;
           esac
           [ -n "${AWS_ACCESS_KEY_ID:-}" ] || { echo "::error::R2 keys are not set (see the header)"; exit 1; }
 
