@@ -58,6 +58,19 @@ describe("netInfoConnectivity", () => {
     expect([heard, c.online()]).toEqual([[false], false]);
   });
 
+  it("(T255) every subscriber hears each change — not only the first to listen", () => {
+    const subs = new Set<(s: NetInfoStateLike) => void>();
+    const ni: NetInfoLike = { addEventListener(on) { subs.add(on); return () => { subs.delete(on); }; } };
+    const emit = (s: NetInfoStateLike) => subs.forEach((f) => f(s));
+    const c = netInfoConnectivity(() => ni);
+    const a: boolean[] = [], b: boolean[] = [];
+    c.subscribe((on) => a.push(on));
+    c.subscribe((on) => b.push(on));
+    emit({ isConnected: false, isInternetReachable: false });
+    emit({ isConnected: true, isInternetReachable: true });
+    expect([a, b, c.online()]).toEqual([[false, true], [false, true], true]);
+  });
+
   it("NetInfo's module not linked (its import throws): no source — the tile probe is the phone's only signal", () => {
     const c = netInfoConnectivity(() => { throw new Error("NativeModule.RNCNetInfo is null"); });
     const heard: boolean[] = [];

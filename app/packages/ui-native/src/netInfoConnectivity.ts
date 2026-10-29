@@ -85,10 +85,15 @@ export function netInfoConnectivity(load: () => NetInfoLike): Connectivity {
       });
     },
     subscribe(on) {
+      // (T255) each subscriber keeps its OWN last word: with one shared `last`, the first listener to hear a change
+      // recorded it and every later subscriber saw "no change" — only the first ever heard offline → online (the
+      // spots' reconnect refresh never fired on the emulator)
+      let was = last;
       return ni.addEventListener((s) => {
         const now = onlineFrom(s);
-        if (now === last) return;
         last = now;
+        if (now === was) return;
+        was = now;
         on(now);
       });
     },
