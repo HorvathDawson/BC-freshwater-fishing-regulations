@@ -133,7 +133,9 @@ def _verify(m, loc, water) -> dict:
     from pipeline.regs.review import marks as M
     if m is None:
         return {"status": "unmarked", "verdict": None, "reasons": []}
-    return M.status(m, _now(loc, water))
+    # owner 2026-10-28: a mark whose own extent / new splits have LANDED holds over the binding
+    # move landing made (`reuse.applied_keys`) — applying the owner's work never undoes it
+    return M.status(m, _now(loc, water), applied=reuse.applied_keys())
 
 
 #: words of a SUB-AREA of a lake: a line, a radius, a bay, a compass side, signs, a portion
@@ -378,30 +380,39 @@ def _reach_input(loc: dict, water: dict | None, extents: list[dict] | None = Non
     return entry, rules[0]
 
 
-def _bind(entry: dict, rule: dict, limit: int) -> dict:
+def _walks_tributaries(entry: dict, rule: dict) -> bool:
+    from pipeline.atlas.reach.classify import wants_tributaries
+    return bool(wants_tributaries(rule, entry))
+
+
+def _bind(entry: dict, rule: dict, limit: int, walks: bool = False) -> dict:
     from pipeline.atlas.reach.build import build_reach
     if not rule["extents"]:
         return {"resolvable": False, "why": "no extent curated yet: nothing binds", "n_sections": 0}
     binding, _d = build_reach(entry, rule, reuse._registry(), reuse._graph())
     ids = sorted(binding.sections)
     return reuse._json_safe({
-        "resolvable": True, "why": None, "n_sections": len(ids),
+        "resolvable": True, "why": None, "n_sections": len(ids), "walks_tributaries": walks,
         "outcomes": {rule["rule_id"]: binding.outcome.value}, "truncated": len(ids) > limit,
         "geojson": {"type": "FeatureCollection",
                     "features": reuse._sections_geojson(ids[:limit], "preview")}})
 
 
-def reach(location_id: str, limit: int = 6000) -> dict | None:
-    """WHAT THE LOCATION'S EXTENT BINDS NOW — `build_reach` on the curated binding."""
+def reach(location_id: str, limit: int = 6000, tributaries: bool = False) -> dict | None:
+    """WHAT THE LOCATION'S EXTENT BINDS NOW — `build_reach` on the curated binding. The tributary
+    walk is the slow, huge part (Bella Coola `whole`: 13 MB), so by default it is skipped and the
+    water's own reach comes back; `tributaries=True` walks them as the binding says.
+    `walks_tributaries` says whether the binding would walk them at all (the toggle's meaning)."""
     got = _locations().get(location_id)
     if got is None:
         return None
     _slug, loc, water = got
-    entry, rule = _reach_input(loc, water)
-    return _bind(entry, rule, limit)
+    entry, rule = _reach_input(loc, water, tributaries=None if tributaries else False)
+    walks = _walks_tributaries(*_reach_input(loc, water)) if not tributaries else _walks_tributaries(entry, rule)
+    return _bind(entry, rule, limit, walks)
 
 
-def extent_preview(location_id: str, fix, limit: int = 6000) -> dict | None:
+def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool = False) -> dict | None:
     """A PROPOSED EXTENT (`marks.ExtentFix`, scope "entry") resolved on a copy, read only. A NEW
     split (`new`, or a T191 new point) is not a split yet: no preview, and the answer says so."""
     got = _locations().get(location_id)
@@ -422,10 +433,12 @@ def extent_preview(location_id: str, fix, limit: int = 6000) -> dict | None:
     elif fix.items:
         ex["item_ids"] = list(fix.items)
     try:
-        entry, rule = _reach_input(loc, water, [ex], fix.tributaries)
+        entry, rule = _reach_input(loc, water, [ex], fix.tributaries if tributaries else False)
+        walks = _walks_tributaries(*_reach_input(loc, water, [ex], fix.tributaries)) if not tributaries \
+            else _walks_tributaries(entry, rule)
     except Exception as e:  # noqa: BLE001 — the Extent model refuses a malformed one
         return {"resolvable": False, "n_sections": None, "why": f"not an extent: {e}"}
-    return _bind(entry, rule, limit)
+    return _bind(entry, rule, limit, walks)
 
 
 # --------------------------------------------------------------------------- anchors (read)

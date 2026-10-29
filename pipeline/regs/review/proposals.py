@@ -532,8 +532,10 @@ def _tidal_flag(sid: str, have: Mapping, src: Sources, marks: list, water: str) 
              "split_id": sid, "confidence": None}]
 
 
-def build(marks: Iterable, src: Sources) -> list[dict]:
-    """EVERY PROPOSAL the marks make against the files NOW, new splits first. Pure: reads `src`."""
+def build(marks: Iterable, src: Sources, *, applied: Optional[set] = None) -> list[dict]:
+    """EVERY PROPOSAL the marks make against the files NOW, new splits first. Pure: reads `src`.
+    `applied`, when given, collects the key of every mark whose extent / tributary fix the files
+    already say (landed: no proposal is made for it) — `applied_keys`."""
     from pipeline.regs.review import marks as M
     # T166: the owner's earlier tidal calls first, so a mark made since supersedes one
     marks = tidal_decision_marks(src.tidal_decisions) + list(marks)
@@ -777,6 +779,8 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
                                           "entry_id": m.target, "scope": scope, "field": fld,
                                           "before": before, "after": val})
         if not edits and not problems:
+            if applied is not None:
+                applied.add(m.key)
             continue                                     # the files already say it: applied
         words = []
         from pipeline.regs.review.tickets import fix_words
@@ -822,6 +826,20 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
     order = {"new_split": 0, "tidal_flag": 0, "extent": 1, "lake_split_later": 2, "tidal_mouth": 3,
              "tidal_followup": 3}
     out.sort(key=lambda p: order[p["kind"]])
+    return out
+
+
+def applied_keys(marks: Iterable, src: Sources) -> set:
+    """THE MARKS WHOSE OWN FIX HAS LANDED (owner 2026-10-28): the key of every mark in force whose
+    extent fix / tributary call the curated files now say exactly (`build` makes no proposal for it
+    — new points resolved to the split that landed for them, by anchor, never by proposal content).
+    Landing a mark moves its target's binding fingerprint; `marks.status(applied=...)` holds such a
+    mark instead of calling it stale, so applying the owner's work never undoes it. Cheap: only the
+    scopes that propose extents are built, without the tidal decisions."""
+    import dataclasses
+    keep = [m for m in marks if m.scope in ("entry", "rule", "dfo")]
+    out: set = set()
+    build(keep, dataclasses.replace(src, tidal_decisions=None), applied=out)
     return out
 
 

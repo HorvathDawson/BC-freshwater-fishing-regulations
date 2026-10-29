@@ -60,12 +60,33 @@ def _warm_at_startup():
         import threading
         threading.Thread(target=reuse.warm, name="curation-warm", daemon=True).start()
 
+        def _health():                    # owner 2026-10-28: say orphaned marks at startup, loudly
+            import logging
+            try:
+                h = reuse.marks_health()
+            except Exception:
+                logging.getLogger("curation").exception("marks health failed")
+                return
+            if h["n_orphans"] or h["n_stale"]:
+                logging.getLogger("uvicorn.error").warning(
+                    "MARKS: %d orphaned, %d stale — %s", h["n_orphans"], h["n_stale"],
+                    "; ".join(f"{r['scope']} {r['target']}" for r in (h["orphans"] + h["stale_rows"])[:20]))
+        threading.Thread(target=_health, name="marks-health", daemon=True).start()
+
 
 @app.get("/api/ready")
 def get_ready():
     """THE READY SIGNAL: whether the backend has loaded what a first entry needs (`reuse.warm`),
     step by step with the time each finished — poll it before the reviewer starts."""
     return reuse.readiness()
+
+
+@app.get("/api/marks/health")
+def get_marks_health():
+    """EVERY OWNER MARK ACCOUNTED FOR (owner 2026-10-28, `marks.health`): per scope held / landed /
+    stale / orphan, with the orphaned (target gone) and stale marks listed with what they said. The
+    app shows a banner when any mark is orphaned or stale, instead of silently showing it undone."""
+    return reuse.marks_health()
 
 
 @app.get("/api/mode")
@@ -521,10 +542,11 @@ def dfo_cascade(name: str, min_order: int = 3, tol: float = 30.0):
 
 
 @app.get("/api/dfo/locations/{location_id:path}/reach")
-def dfo_reach(location_id: str, limit: int = 6000):
-    """What the location's curated extent binds NOW (`build_reach`), as geometry."""
+def dfo_reach(location_id: str, limit: int = 6000, tributaries: bool = False):
+    """What the location's curated extent binds NOW (`build_reach`), as geometry. The tributary
+    walk is skipped unless `tributaries=true` (the Extents map's "Show tributaries" toggle)."""
     import dfo
-    got = dfo.reach(location_id, limit=limit)
+    got = dfo.reach(location_id, limit=limit, tributaries=tributaries)
     if got is None:
         raise HTTPException(404, f"DFO location {location_id} not found")
     return got
@@ -550,7 +572,7 @@ def dfo_anchor(location_id: str, split: str):
 
 
 @app.get("/api/dfo/locations/{location_id:path}/extent-preview")
-def dfo_extent_preview(location_id: str, fix: str, limit: int = 6000):
+def dfo_extent_preview(location_id: str, fix: str, limit: int = 6000, tributaries: bool = False):
     """A proposed extent (`marks.ExtentFix`) on a DFO location resolved, READ ONLY."""
     import json as _json
     import dfo
@@ -560,7 +582,7 @@ def dfo_extent_preview(location_id: str, fix: str, limit: int = 6000):
         f = M.ExtentFix.model_validate(_json.loads(fix))
     except (ValueError, ValidationError) as ex:
         raise HTTPException(422, str(ex))
-    got = dfo.extent_preview(location_id, f, limit=limit)
+    got = dfo.extent_preview(location_id, f, limit=limit, tributaries=tributaries)
     if got is None:
         raise HTTPException(404, f"DFO location {location_id} not found")
     return got

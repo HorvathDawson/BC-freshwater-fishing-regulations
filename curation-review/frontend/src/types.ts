@@ -1301,3 +1301,14 @@ export interface AwaitingWater {
   map: GeoJSON.FeatureCollection;
   rule: string; how_to_fix: string; searched: string[]; generated: string;
 }
+
+/** owner 2026-10-28 (`marks.health`): a mark in force the queue cannot show as done */
+export interface MarkHealthRow {
+  scope: string; target: string; rule_id: string | null; verdict: string; date: string;
+  reviewer: string; note: string; new_splits: string[]; text: string;
+  reasons?: string[]; error?: string;
+}
+export interface MarksHealth {
+  scopes: Record<string, { held: number; landed: number; stale: number; orphan: number }>;
+  orphans: MarkHealthRow[]; stale_rows: MarkHealthRow[]; n_orphans: number; n_stale: number;
+}

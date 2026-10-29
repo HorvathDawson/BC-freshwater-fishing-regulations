@@ -788,14 +788,72 @@ def split_states(marks: Iterable[Mark], ctx) -> dict[str, dict]:
             for sid in sorted(ctx.split_index)}
 
 
-def status(mark: Mark | None, now: Prints | Mapping | None) -> dict:
+#: what LANDING A MARK'S OWN FIX moves on its target (owner 2026-10-28): the curated binding and
+#: what the build makes of it. A mark whose fix the files now say (`proposals.applied_keys`) still
+#: holds when only these moved — the owner's work is never undone by applying it.
+APPLIED_PARTS = frozenset({"binding", "reach", "answer", "unbuilt"})
+
+
+def held_by_landing(mark: Mark, now: Prints | Mapping | None, applied: Iterable = ()) -> bool:
+    """Does `mark` hold only because its own fix landed? Its key is in `applied` (its extent fix
+    is what the files say now), its target still exists, and only `APPLIED_PARTS` moved."""
+    if now is None or mark.key not in set(applied):
+        return False
+    parts = moved(mark, now)
+    return bool(parts) and parts <= APPLIED_PARTS
+
+
+def status(mark: Mark | None, now: Prints | Mapping | None, *, applied: Iterable = ()) -> dict:
     """What the queue shows for one target: {status, verdict, reasons}. `status` is `unmarked`, the
-    verdict while the mark holds, or `stale`."""
+    verdict while the mark holds, or `stale`. `applied`: the keys of marks whose own fix has landed
+    (`proposals.applied_keys`) — such a mark holds over the move its landing made (`landed` true)."""
     if mark is None:
         return {"status": "unmarked", "verdict": None, "reasons": []}
+    if held_by_landing(mark, now, applied):
+        return {"status": mark.verdict, "verdict": mark.verdict, "reasons": [], "landed": True}
     reasons = stale_reasons(mark, now)
     return {"status": "stale" if reasons else mark.verdict, "verdict": mark.verdict,
             "reasons": [r.value for r in reasons]}
+
+
+def health(marks: Iterable[Mark], *, entries: Mapping[str, Mapping], ctx,
+           applied: Iterable = ()) -> dict:
+    """EVERY MARK IN FORCE, accounted for (owner 2026-10-28: a mark must never silently fall back
+    to "not done"). Per scope: `held` (the mark holds), `landed` (holds over its own fix landing),
+    `stale` (its target moved: a re-check, with reasons) and `orphan` (its target is GONE — a
+    renamed / regenerated id: the mark counts nowhere). `orphans` and `stale_rows` list them with
+    what the mark said, so the review app can put them on a banner instead of hiding them."""
+    applied = set(applied)
+    by: dict[str, dict] = {}
+    orphans, stale_rows = [], []
+    for m in latest(marks).values():
+        if m.scope in RETIRED_SCOPES:
+            continue
+        c = by.setdefault(m.scope, {"held": 0, "landed": 0, "stale": 0, "orphan": 0})
+        try:
+            now = target_prints(m, entries, ctx)
+        except Exception as ex:                  # a reader that cannot answer is an orphan, said
+            now, err = None, f"{type(ex).__name__}: {ex}"
+        else:
+            err = None
+        said = {"scope": m.scope, "target": m.target, "rule_id": m.rule_id, "verdict": m.verdict,
+                "date": m.date, "reviewer": m.reviewer, "note": m.note,
+                "new_splits": [n.name or n.ref for n in m.new_splits],
+                "text": (m.prints.text or "")[:160]}
+        if now is None:
+            c["orphan"] += 1
+            orphans.append({**said, **({"error": err} if err else {})})
+            continue
+        st = status(m, now, applied=applied)
+        if st.get("landed"):
+            c["landed"] += 1
+        elif st["status"] == "stale":
+            c["stale"] += 1
+            stale_rows.append({**said, "reasons": st["reasons"]})
+        else:
+            c["held"] += 1
+    return {"scopes": by, "orphans": orphans, "stale_rows": stale_rows,
+            "n_orphans": len(orphans), "n_stale": len(stale_rows)}
 
 
 # --------------------------------------------------------------------------------------------

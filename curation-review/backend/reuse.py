@@ -1041,7 +1041,59 @@ def _mark_states() -> dict[str, list]:
 
 def _mark_view(m, now) -> dict:
     from pipeline.regs.review import marks as M
-    return {**json.loads(m.model_dump_json()), **M.status(m, now)}
+    return {**json.loads(m.model_dump_json()), **M.status(m, now, applied=applied_keys())}
+
+
+def _dfo_dir() -> Path:
+    from pipeline.regs.review import dfo as D
+    return (Path(os.environ["CURATION_DFO_DIR"]) if os.environ.get("CURATION_DFO_DIR")
+            else D.default_dir())
+
+
+def _dir_stamp(d: Path) -> tuple:
+    try:
+        return tuple(sorted((f.name, f.stat().st_mtime_ns, f.stat().st_size)
+                            for f in Path(d).glob("*.json")))
+    except OSError:
+        return ()
+
+
+def applied_keys() -> frozenset:
+    """THE MARKS WHOSE OWN FIX HAS LANDED (`proposals.applied_keys`, owner 2026-10-28): applying a
+    mark moves its target's binding, and the mark must still count as done. Keyed on the stamps of
+    the marks store, splits.json and the catalogue / DFO region files."""
+    return _applied_keys_for((_stamp((MARKS_PATH, SPLITS_JSON_PATH)), _dir_stamp(ENTRIES_DIR),
+                              _dir_stamp(_dfo_dir())))
+
+
+@lru_cache(maxsize=1)
+def _applied_keys_for(_key: tuple) -> frozenset:
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import proposals as P
+    try:
+        src = P.Sources(entries_dir=Path(ENTRIES_DIR), dfo_dir=_dfo_dir(),
+                        splits_path=Path(SPLITS_JSON_PATH), build=_BUILD)
+        return frozenset(P.applied_keys(M.load(MARKS_PATH), src))
+    except Exception:                          # never take the queue down: no mark is excused
+        import logging
+        logging.getLogger(__name__).exception("applied_keys failed")
+        return frozenset()
+
+
+def marks_health() -> dict:
+    """EVERY MARK IN FORCE ACCOUNTED FOR (owner 2026-10-28, `marks.health`): per scope held /
+    landed / stale / orphan, and the orphaned and stale marks listed with what they said — the
+    review app's startup banner. A mark is never silently shown undone."""
+    return _marks_health_for(_stamp((MARKS_PATH, SPLITS_JSON_PATH)), _dir_stamp(ENTRIES_DIR),
+                             _dir_stamp(_dfo_dir()), id(_review_context()))
+
+
+@lru_cache(maxsize=1)
+def _marks_health_for(*_key) -> dict:
+    from pipeline.regs.review import marks as M
+    entries = {e["entry_id"]: e for _r, e in _all_entries()}
+    return M.health(M.load(MARKS_PATH), entries=entries, ctx=_review_context(),
+                    applied=applied_keys())
 
 
 def _entry_mark_state(e: dict, states: dict[str, list]) -> dict:
@@ -1066,11 +1118,11 @@ def _entry_mark_state(e: dict, states: dict[str, list]) -> dict:
 
     entry_mark = next((m for m in ms if m.scope == "entry"), None)
     if entry_mark is not None:
-        st = M.status(entry_mark, now)
+        st = M.status(entry_mark, now, applied=applied_keys())
         return {"status": st["status"], "note": entry_mark.note, "reasons": st["reasons"],
                 "reviewed": reviewed([entry_mark], st["status"] == "verified")
                 if entry_mark.verdict == "verified" else None}
-    sts = [(m, M.status(m, now)) for m in ms if m.scope == "rule"]
+    sts = [(m, M.status(m, now, applied=applied_keys())) for m in ms if m.scope == "rule"]
     every = {r.get("rule_id") for r in e.get("rules") or []}
     # a zone entry WAS reviewed when every rule's mark in force was a verified one
     was = ([m for m, _ in sts] if every and all(m.verdict == "verified" for m, _ in sts)
@@ -2412,7 +2464,10 @@ _BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs,
                  # T207: corpus-wide split use (reads the registry) and the authored confidences
                  _used_splits_for, _confidences_for,
                  # owner 2026-10-26: the atlas's area names (matched by area, the within-op list)
-                 _area_name_map_for)
+                 _area_name_map_for,
+                 # owner 2026-10-28: the marks whose own fix landed, and every mark accounted for
+                 _applied_keys_for, _marks_health_for,
+                 _low_cut_index)
 
 
 # --------------------------------------------------------------------------- #
