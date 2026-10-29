@@ -56,3 +56,9 @@ Depends: T192–T198 (built). Size: L. Owner: no.
   visitors then get the app's own "Before you fish" sheet.
 - Tests: `prerender.test.ts` (merge rules + mutations), `site.test.ts` rewritten for app pages (pane present, no text body,
   ‹/× links, verdict = app's, JSON-LD, budget), `startLink.test.ts` (`show`, shards).
+- **Map ready behind a landing (owner 2026-10-29; 0e4d5636a, 08e8a35dc):** once the
+  water's own page is up and the browser is idle, the Shell mounts the map behind the water (hidden, framed on it), so back
+  shows that same map. Back-tap → coloured map, phone, staging 4c4d98bc, cache off: no throttle 724 → 53 ms; Fast 3G
+  4,603 → 44 ms (`vedder-river-phone-back-fast3g-warm.png`). Tapped waters and ordinary starts mount nothing extra
+  (`WarmMap.shell.test.tsx`). Fast 3G hand-over (app's own pane replaces the prerender) is ~43 s either way: the 4 MB
+  app bundle, not the map.
