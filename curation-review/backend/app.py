@@ -811,6 +811,68 @@ def names_candidate(cid: str):
     return got
 
 
+# --------------------------------------------------------------------------- T230: In-season tab
+# The provincial in-season feed's rows and where each applies (`inseason.py`). THE ONE WRITE THAT IS NOT A
+# MARK (owner 2026-10-28, AGENTS 66): POST /api/inseason/matches edits data/curated/inseason/matches.json —
+# Claude/owner tooling, informational only, one history note per edit — through `writes.commit`.
+
+class InSeasonMatchPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    #: None / [] clears the match
+    extents: list[dict] | None = None
+    effective: dict | None = None
+    #: REQUIRED: the history note of this edit
+    note: str
+    by: str = ""
+
+
+@app.get("/api/inseason/queue")
+def inseason_queue():
+    """Every in-season feed row (and removed row, and a match on a row the feed no longer holds: "stale") with
+    its match state, in-effect flag and history; progress {matched, unmatched, total}. No feed file: an empty
+    queue that says so (`available: false`, `message`)."""
+    import inseason
+    try:
+        return inseason.queue()
+    except (OSError, ValueError) as ex:
+        raise HTTPException(503, f"in-season queue unavailable: {ex}")
+
+
+@app.get("/api/inseason/items/{item_id}/splits")
+def inseason_item_splits(item_id: str):
+    """The splits.json splits on one water, as labelled map points — the extent editor's split picker."""
+    import inseason
+    got = inseason.item_splits(item_id)
+    if got is None:
+        raise HTTPException(404, f"item {item_id} not found")
+    return got
+
+
+@app.get("/api/inseason/extent-preview")
+def inseason_extent_preview(extent: str, limit: int = 6000):
+    """What the proposed extents (`extent`: one `{op, item_id, splits}` or a list, as JSON) bind, unioned,
+    as geometry — read only."""
+    import json as _json
+    import inseason
+    try:
+        exts = inseason.parse_extents(_json.loads(extent))
+        return inseason.extent_preview(exts, limit=limit)
+    except (ValueError, inseason.Refused) as ex:
+        raise HTTPException(422, str(ex))
+
+
+@app.post("/api/inseason/matches")
+def inseason_save_match(body: InSeasonMatchPayload):
+    """SET or CLEAR one in-season row's match (`inseason.save_match`): validated (row in the feed, known water
+    and splits, the extent binds a section, a note), then `writes.commit` (backup + atomic). 400 when refused."""
+    import inseason
+    try:
+        return inseason.save_match(body.id, body.extents, body.effective, body.note, body.by)
+    except inseason.Refused as ex:
+        raise HTTPException(400, str(ex))
+
+
 @app.get("/api/row-image/{filename}")
 def row_image(filename: str):
     """Serve a source synopsis row-crop image (<generated>/regs/extraction/row_images/<name>.png)."""

@@ -694,7 +694,9 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     were removed (2026-10-24), and a fix is a reviewed change to the curated files, never the app's.
     `test_curation_review_safety` pins the app to exactly `POST /api/marks` and that no backend module but
     `writes.py` writes a file (its one caller: the mark); the screen test's route sweep proves nothing under
-    `data/curated` changes. Never add a write route. The verdict is `marks.verdict_from_answers`, the
+    `data/curated` changes. Never add a write route. The one exception (T230, owner 2026-10-28):
+    `POST /api/inseason/matches` writes only `data/curated/inseason/matches.json` (Claude/owner tooling, not a mark;
+    a history note per edit) via `writes.commit`. The verdict is `marks.verdict_from_answers`, the
     tiers `regs/review/tiers.py`, the coverage strip `regs/review/coverage.py` (its fold IS `squash`) — one function each.
 67. **The review queue has one order and one reader of the run** (T135). The order is `tiers.queue_rank` (tier, the
     most urgent risk factor `tiers.RISKS`, the severity-A pre-checks). ENTRIES ONLY (T184): no split is a review

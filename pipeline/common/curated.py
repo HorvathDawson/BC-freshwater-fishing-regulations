@@ -188,6 +188,17 @@ class RunTiming(BaseModel):
     _abs = field_validator("*", mode="before")(_absolute)
 
 
+class InSeason(BaseModel):
+    """T226: the provincial in-season rows bound to waters (`pipeline.regs.inseason.matches`), AUTHORED — written by
+    the review app's In-season tab or by hand, never by a generator."""
+
+    model_config = ConfigDict(frozen=True)
+
+    matches: FilePath
+
+    _abs = field_validator("*", mode="before")(_absolute)
+
+
 class Curated(BaseModel):
     """Every path whose loss costs human time rather than CPU."""
 
@@ -200,6 +211,7 @@ class Curated(BaseModel):
     stocking: Domain
     bathymetry: Domain
     runtiming: RunTiming
+    inseason: InSeason
 
     _abs = field_validator("base", mode="before")(_absolute)
 
@@ -295,11 +307,14 @@ class Generated(BaseModel):
     regs: GeneratedRegs
     gauges: GeneratedGauges
     runtiming: Path
+    #: T226: what `pipeline.regs.inseason.publish` writes for the app (`matches.json` beside the feed; served as
+    #: `/feeds/inseason/` by the local tile server, R2 `feeds/inseason/` in production)
+    inseason: Path
     #: The shipped set (`data/release`), NOT a build artifact: only what an app downloads (P08/P18).
     release: Path
 
     _abs = field_validator("base", "reaches", "bundle", "tiles", "added_streams", "scratch",
-                           "runtiming", "release", mode="before")(_absolute)
+                           "runtiming", "inseason", "release", mode="before")(_absolute)
 
     # --- builds -----------------------------------------------------------------------
 

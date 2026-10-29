@@ -54,6 +54,10 @@ generated:
   # Run timing: the CU polygons `pipeline.runtiming.parse` stitches from the cached Explorer
   # tiles (cu_polygons.geojson, read by `pipeline.deliver runs`). Re-runnable from data/source/runtiming/.
   runtiming: "data/generated/runtiming"
+
+  # T226: the in-season matches compiled for the app (`pipeline.regs.inseason.publish`); the local tile server serves
+  # `feed/` as /feeds/inseason/ (R2 `feeds/inseason/` in production, beside the T225 worker's index.json).
+  inseason: "data/generated/inseason"
   # THE SHIPPED SET (MINIMAL-PACKAGING §1; P08/P18), apart from every build artifact: data/release/<data_release>/,
   # data/release/tiles/<tile_version>/ (geometry-only atlas, the outside-BC mask, map assets), data/release/basemap/.
   release: "data/release"
@@ -141,6 +145,11 @@ curated:
     # PARSED, not authored (T162): every PSF CU curve and DFO NuSEDS stream timing, rewritten by
     # `python -m pipeline.runtiming.parse`; tracked because the fetched pages are not.
     timing: "data/curated/runtiming/timing.json"
+
+  # --- in-season changes bound to waters (T226) -------------------------------------
+  # AUTHORED: feed row id -> extent; written by the review app's In-season tab (its one non-mark write) or by hand.
+  inseason:
+    matches: "data/curated/inseason/matches.json"
 
   # --- matches: machine-produced, human-reviewed ---------------------------------
   #

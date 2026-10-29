@@ -10,6 +10,8 @@ splits.json, and appends reviewers' marks to the marks store — `POST /api/mark
 route. The editors' routes (`POST /api/check`, `PUT /api/entries/{id}`, split add / save / delete /
 rename — the retired fix mode) are gone: a request to one is refused by the router (404 / 405). A
 fix is a reviewed change to the curated files (T185), never this app's.
+**The one exception (T230, owner 2026-10-28):** `POST /api/inseason/matches` writes the in-season
+matches file (`data/curated/inseason/matches.json`) — Claude/owner tooling, not a mark — below.
 `GET /api/mode` → `{app_url, checks: {entry, rule}, problems: {T, R, P, A: [..]},
 prechecks: {code: {severity, what}}, commands: {commit_marks, tickets, prechecks}}` (T135: the
 commands the screen PRINTS for the human; it runs none).
@@ -414,6 +416,36 @@ The proposed tidal boundaries (`handoff/PLAN/curation-review/tidal/tidal-candida
 - Accepting: `POST /api/marks` with `scope: "tidal"`, `answers: {P: "y"}` and the cut as ONE `new_splits`
   entry (`anchor: "coord"`, snapped to the stream and stamped by the server). P n with the reviewer's
   own point is a wrong mark ("split misplaced"). Never a splits.json write (T185 builds the split).
+
+### In-season mode (T230) — reads, and the one non-mark write
+The provincial in-season feed (T225 `inseason-feed/1`: `data/generated/inseason/feed/index.json`, or
+`CURATION_INSEASON_FEED`) and where each row applies, `data/curated/inseason/matches.json`
+(`CURATION_INSEASON_MATCHES`; read through `pipeline.regs.inseason.matches`). INFORMATIONAL ONLY: a match puts a
+banner on the water in the app, never changes an answer.
+- `GET /api/inseason/queue` → `{available, message, source, fetchedAt, rows, progress: {matched, auto, unmatched,
+  total, removed, stale}}`. One row per feed row and removed row (`removed: true`, `status: "removed"`), plus a
+  match on a row the feed no longer holds (`state: "stale"`). Each row: the feed's fields (`region, section,
+  water` as printed, `effective` text, `from, to, change, parsed, status`), `state` matched | unmatched | stale,
+  `match` (`extents[]` with `item_name` / `split_labels`, `effective`, `note, by, at`) or null, `dates`
+  `{from, to, source: curated | feed}` (the curated `effective` overrides the feed's field by field),
+  `in_effect` (from ≤ today ≤ to; `to` null = open-ended; null when no dates) and `history[]` (this row's
+  edits). No feed file: 200 with `available: false` and a message. Progress counts live rows only.
+  AUTO (owner add-on 2026-10-28, `python -m pipeline.regs.inseason.auto`): `match.source` owner | auto, with
+  `match.confidence` and `match.evidence` (water via, items, locators, boundary words → split ids, notes);
+  `progress.auto`; an unmatched row carries `guess` `{why, evidence, extents[]}` (auto's best guess, pre-fills the
+  editor, never applied). A save here is always `source: owner`; auto never writes over an owner match.
+- `GET /api/inseason/items/{item_id}/splits` → `{item, splits}`: the splits.json splits on that water as
+  labelled points (the `EntrySplits` shape) — the editor's split picker.
+- `GET /api/inseason/extent-preview?extent=<json>` — one `{op, item_id, splits}` or a list (a union), each
+  resolved on its own water by the builder's extent resolver (`extent.resolve_extent`) → `{resolvable, why,
+  n_sections, per_extent[{n_sections, why}], truncated, geojson}`. 422 for a malformed extent, an unknown water
+  or split. Read only.
+- `POST /api/inseason/matches` body `{id, extents | null, effective?: {from?, to?}, note, by?}` — SET the row's
+  match (extents given) or CLEAR it (`null` / `[]`), appending a history row `{at, id, action, by, note}`.
+  Refused 400: an empty note, an id not in the feed (rows or removed), a malformed extent (op / split count), a
+  water not in the registry, a split not in splits.json, an extent that binds no section, a clear of an
+  unmatched row. Written by `writes.commit` (backup + atomic) under `writes.LOCK`; returns the row as the queue
+  shows it.
 
 ### GET /basemap/bc.pmtiles
 Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol needs byte ranges).

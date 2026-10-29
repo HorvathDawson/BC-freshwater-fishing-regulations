@@ -1,0 +1,1556 @@
+{
+  "$comment": "T226 AUTHORED: provincial in-season rows (feeds/inseason/index.json `rows[].id`) -> where they apply. Written by the review app's In-season tab (POST /api/inseason/matches) or by hand; read through pipeline.regs.inseason.matches (validates: unknown splits, ops, ids refused). INFORMATIONAL ONLY: a match puts a banner on the water in the app, it never changes an answer. `history` is append-only, one note per edit.",
+  "format": "inseason-matches/1",
+  "matches": {
+    "is-0cf7f7b877ef": {
+      "region": "3",
+      "water": "Salmon River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:39454",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Salmon River",
+        "via": "name",
+        "reason": "disambiguated by region 3",
+        "items": {
+          "gnis:39454": "Salmon River"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "the row includes tributaries: the banner is on the water only"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-34e1f8ba7e89": {
+      "region": "4",
+      "water": "Lodgepole Creek (upstream of falls)",
+      "extents": [
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:17044",
+          "splits": [
+            "lodgepole_creek__falls"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Lodgepole Creek (upstream of falls)",
+        "via": "override",
+        "reason": "Matched via base name: LODGEPOLE CREEK",
+        "items": {
+          "gnis:17044": "Lodgepole Creek"
+        },
+        "locators": [
+          "upstream of falls"
+        ],
+        "splits": {
+          "falls": "lodgepole_creek__falls"
+        },
+        "notes": [
+          "the row includes tributaries: the banner is on the water only"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-39abf1c6f713": {
+      "region": "4",
+      "water": "Quinn Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:1961",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Quinn Creek",
+        "via": "override",
+        "reason": "GNIS name: Quinn (Queen) Creek. Full name includes parenthetical.",
+        "items": {
+          "gnis:1961": "Quinn (Queen) Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-4254fc685e34": {
+      "region": "8",
+      "water": "Similkameen River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:26324",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Similkameen River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:26324": "Similkameen River"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "the row includes tributaries: the banner is on the water only",
+          "the water runs into region(s) 2: the extent is not clipped to region 8"
+        ]
+      },
+      "confidence": "medium"
+    },
+    "is-441737881ec3": {
+      "region": "1",
+      "water": "Heber Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:20215",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Heber Creek",
+        "via": "override",
+        "reason": "HEBER CREEK is a name variant of HEBER RIVER — the same water. [was skip+variant_of; converted to a direct id]",
+        "items": {
+          "gnis:20215": "Heber River"
+        },
+        "locators": [
+          "upstream of top of lower canyon",
+          "downstream of top of lower canyon",
+          "downstream of Saunders Creek to the top of the lower canyon"
+        ],
+        "splits": {
+          "top of lower canyon": "heber_river__top_of_lower_canyon",
+          "Saunders Creek": "heber_river__saunders_creek_into_heber_river",
+          "the top of the lower canyon": "heber_river__top_of_lower_canyon"
+        },
+        "notes": [
+          "upstream and downstream of heber_river__top_of_lower_canyon: the whole water"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-4847b38baf1c": {
+      "region": "8",
+      "water": "Granby River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:18775",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Granby River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:18775": "Granby River"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "confidence": "high"
+    },
+    "is-53180f57e676": {
+      "region": "8",
+      "water": "Bessette Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:12386",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Bessette Creek",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:12386": "Bessette Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "the row includes tributaries: the banner is on the water only"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-5c46aad57f6e": {
+      "region": "4",
+      "water": "Perry Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:14741",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Perry Creek",
+        "via": "name",
+        "reason": "2 candidates for 'Perry Creek'",
+        "candidates": [
+          "gnis:14740",
+          "gnis:14741"
+        ],
+        "disambiguated_by": "in the St. Mary River watershed (the row's classified licence)",
+        "items": {
+          "gnis:14741": "Perry Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "medium"
+    },
+    "is-6beaeeb05e26": {
+      "region": "4",
+      "water": "Forsyth Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:11815",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Forsyth Creek",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:11815": "Forsyth Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-7c2b97a6c474": {
+      "region": "8",
+      "water": "Okanagan River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:32069",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Okanagan River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:32069": "Okanagan River"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "confidence": "high"
+    },
+    "is-7feb28092abf": {
+      "region": "4",
+      "water": "Alexander Creek (downstream of the easternmost Hwy 3 bridge)",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:9343",
+          "splits": [
+            "alexander_creek__easternmost_hwy_3"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Alexander Creek (downstream of the easternmost Hwy 3 bridge)",
+        "via": "override",
+        "reason": "Matched via base name: ALEXANDER CREEK",
+        "items": {
+          "gnis:9343": "Alexander Creek"
+        },
+        "locators": [
+          "downstream of the easternmost Hwy 3 bridge"
+        ],
+        "splits": {
+          "the easternmost Hwy 3 bridge": "alexander_creek__easternmost_hwy_3"
+        },
+        "notes": [
+          "the row includes tributaries: the banner is on the water only"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-9f132ef6252a": {
+      "region": "7B",
+      "water": "Peace River",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:14619",
+          "splits": [
+            "peace_river__peace_canyon_dam",
+            "peace_river__hwy_29_bridge"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Peace River",
+        "via": "override",
+        "reason": "Matched via base name: PEACE RIVER",
+        "items": {
+          "gnis:14619": "Peace River"
+        },
+        "locators": [
+          "between Peace Canyon Dam and Hwy 29 Bridge"
+        ],
+        "splits": {
+          "Peace Canyon Dam": "peace_river__peace_canyon_dam",
+          "Hwy 29 Bridge": "peace_river__hwy_29_bridge"
+        }
+      },
+      "confidence": "high"
+    },
+    "is-ac81f09cc47c": {
+      "region": "3",
+      "water": "Fraser River",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__hell_s_gate",
+            "fraser_river__spuzzum_creek_into_fraser_river"
+          ]
+        },
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__hell_s_gate"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Fraser River",
+        "via": "override",
+        "reason": "Fraser River in Region 3. Channels and sloughs are in Zone 2 only.",
+        "items": {
+          "gnis:39325": "Fraser River"
+        },
+        "locators": [
+          "from Hells Gate to Spuzzum Creek confluence",
+          "upstream of Hells Gate"
+        ],
+        "splits": {
+          "Hells Gate": "fraser_river__hell_s_gate",
+          "Spuzzum Creek confluence": "fraser_river__spuzzum_creek_into_fraser_river"
+        },
+        "notes": [
+          "the water runs into region(s) 2, 5, 7: the extent is not clipped to region 3"
+        ]
+      },
+      "confidence": "medium"
+    },
+    "is-b55c08ea4074": {
+      "region": "4",
+      "water": "Alexander Creek (upstream of the easternmost Hwy 3 bridge)",
+      "extents": [
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:9343",
+          "splits": [
+            "alexander_creek__easternmost_hwy_3"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Alexander Creek (upstream of the easternmost Hwy 3 bridge)",
+        "via": "override",
+        "reason": "Matched via base name: ALEXANDER CREEK",
+        "items": {
+          "gnis:9343": "Alexander Creek"
+        },
+        "locators": [
+          "upstream of the easternmost Hwy 3 bridge"
+        ],
+        "splits": {
+          "the easternmost Hwy 3 bridge": "alexander_creek__easternmost_hwy_3"
+        },
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-b655c90cb0f6": {
+      "region": "4",
+      "water": "Duncan River",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:22255",
+          "splits": [
+            "duncan_river__duncan_dam"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Duncan River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:22255": "Duncan River"
+        },
+        "locators": [
+          "downstream of Duncan Dam"
+        ],
+        "splits": {
+          "Duncan Dam": "duncan_river__duncan_dam"
+        },
+        "notes": [
+          "the text speaks of tributaries",
+          "a rescind row: informational, bound to its water"
+        ]
+      },
+      "confidence": "medium"
+    },
+    "is-ba87af74a85d": {
+      "region": "4",
+      "water": "Hellroaring Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:20676",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Hellroaring Creek",
+        "via": "name",
+        "reason": "2 candidates for 'Hellroaring Creek'",
+        "candidates": [
+          "gnis:20676",
+          "gnis:20677"
+        ],
+        "disambiguated_by": "in the St. Mary River watershed (the row's classified licence)",
+        "items": {
+          "gnis:20676": "Hellroaring Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "medium"
+    },
+    "is-ca91a5418bef": {
+      "region": "4",
+      "water": "Morrissey Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:14951",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Morrissey Creek",
+        "via": "name",
+        "reason": "disambiguated by region 4",
+        "items": {
+          "gnis:14951": "Morrissey Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-d2c6c62e8bd6": {
+      "region": "1",
+      "water": "Cowichan River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:12227",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Cowichan River",
+        "via": "override",
+        "reason": "Matched via base name: COWICHAN RIVER",
+        "items": {
+          "gnis:12227": "Cowichan River"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "confidence": "high"
+    },
+    "is-d39e790b2c5b": {
+      "region": "4",
+      "water": "Fording River (downstream of Josephine Falls)",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:19955",
+          "splits": [
+            "fording_river__josephine_falls"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Fording River (downstream of Josephine Falls)",
+        "via": "override",
+        "reason": "Matched via base name: FORDING RIVER",
+        "items": {
+          "gnis:19955": "Fording River"
+        },
+        "locators": [
+          "downstream of Josephine Falls"
+        ],
+        "splits": {
+          "Josephine Falls": "fording_river__josephine_falls"
+        },
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-d88914c741e0": {
+      "region": "4",
+      "water": "Cadorna Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:16777",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Cadorna Creek",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:16777": "Cadorna Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high"
+    },
+    "is-da00d75dbce0": {
+      "region": "4",
+      "water": "Lodgepole Creek (downstream of falls near the km 26 post on Lodgepole Road)",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:17044",
+          "splits": [
+            "lodgepole_creek__falls"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Lodgepole Creek (downstream of falls near the km 26 post on Lodgepole Road)",
+        "via": "override",
+        "reason": "Matched via base name: LODGEPOLE CREEK",
+        "items": {
+          "gnis:17044": "Lodgepole Creek"
+        },
+        "locators": [
+          "downstream of falls near the km 26 post on Lodgepole Road"
+        ],
+        "splits": {
+          "falls near the km 26 post on Lodgepole Road": "lodgepole_creek__falls"
+        },
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "medium"
+    },
+    "is-e4e8ab4a1415": {
+      "region": "1",
+      "water": "Heber Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:20215",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Heber Creek",
+        "via": "override",
+        "reason": "HEBER CREEK is a name variant of HEBER RIVER — the same water. [was skip+variant_of; converted to a direct id]",
+        "items": {
+          "gnis:20215": "Heber River"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "confidence": "high"
+    }
+  },
+  "history": [
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-0cf7f7b877ef",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:39454",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:39454",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-34e1f8ba7e89",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): upstream_of gnis:17044 lodgepole_creek__falls",
+      "extents": [
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:17044",
+          "splits": [
+            "lodgepole_creek__falls"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-39abf1c6f713",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:1961",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:1961",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-4254fc685e34",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (medium): whole gnis:26324",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:26324",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-441737881ec3",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:20215",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:20215",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-4847b38baf1c",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:18775",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:18775",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-53180f57e676",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:12386",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:12386",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-5c46aad57f6e",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (medium): whole gnis:14741",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:14741",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-6beaeeb05e26",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:11815",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:11815",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-7c2b97a6c474",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:32069",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:32069",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-7feb28092abf",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): downstream_of gnis:9343 alexander_creek__easternmost_hwy_3",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:9343",
+          "splits": [
+            "alexander_creek__easternmost_hwy_3"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-9f132ef6252a",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): between gnis:14619 peace_river__peace_canyon_dam,peace_river__hwy_29_bridge",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:14619",
+          "splits": [
+            "peace_river__peace_canyon_dam",
+            "peace_river__hwy_29_bridge"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-ac81f09cc47c",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (medium): between gnis:39325 fraser_river__hell_s_gate,fraser_river__spuzzum_creek_into_fraser_river; upstream_of gnis:39325 fraser_river__hell_s_gate",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__hell_s_gate",
+            "fraser_river__spuzzum_creek_into_fraser_river"
+          ]
+        },
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__hell_s_gate"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-b55c08ea4074",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): upstream_of gnis:9343 alexander_creek__easternmost_hwy_3",
+      "extents": [
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:9343",
+          "splits": [
+            "alexander_creek__easternmost_hwy_3"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-b655c90cb0f6",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (medium): downstream_of gnis:22255 duncan_river__duncan_dam",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:22255",
+          "splits": [
+            "duncan_river__duncan_dam"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-ba87af74a85d",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (medium): whole gnis:20676",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:20676",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-ca91a5418bef",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:14951",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:14951",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-d2c6c62e8bd6",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:12227",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:12227",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-d39e790b2c5b",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): downstream_of gnis:19955 fording_river__josephine_falls",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:19955",
+          "splits": [
+            "fording_river__josephine_falls"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-d88914c741e0",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:16777",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:16777",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-da00d75dbce0",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (medium): downstream_of gnis:17044 lodgepole_creek__falls",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:17044",
+          "splits": [
+            "lodgepole_creek__falls"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T01:41:59Z",
+      "id": "is-e4e8ab4a1415",
+      "action": "auto",
+      "by": "auto",
+      "note": "auto (high): whole gnis:20215",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:20215",
+          "splits": []
+        }
+      ]
+    }
+  ],
+  "guesses": {
+    "is-14e4e067f16f": {
+      "why": "'the Region 5 boundary': no split on this water reads 'the Region 5 boundary'",
+      "evidence": {
+        "water": "Fraser River",
+        "via": "override",
+        "reason": "Fraser River in Region 5. Channels and sloughs are in Zone 2 only.",
+        "items": {
+          "gnis:39325": "Fraser River"
+        },
+        "locators": [
+          "from the confluence with the Chilcotin River downstream to the Region 5 boundary"
+        ],
+        "splits": {
+          "the Chilcotin River": "fraser_river__chilcotin_river_into_fraser_river"
+        }
+      },
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:39325",
+          "splits": []
+        }
+      ]
+    },
+    "is-19ea430e45d1": {
+      "why": "the change is in another water: 'Northrop Spawning Channel'; 'the intake': no split on this water reads 'the intake'; 'where the channel joins the Stave River main': no split on this water reads 'where the channel joins the Stave River main'",
+      "evidence": {
+        "water": "Stave River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:14589": "Stave River"
+        },
+        "other_water": "Northrop Spawning Channel",
+        "locators": [
+          "from the intake downstream to where the channel joins the Stave River main"
+        ],
+        "splits": {},
+        "notes": [
+          "the row includes tributaries: the banner is on the water only"
+        ]
+      },
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:14589",
+          "splits": []
+        }
+      ]
+    },
+    "is-84b0abe3fd13": {
+      "why": "the name resolves to 13 waters",
+      "evidence": {
+        "water": "Fraser River",
+        "via": "override",
+        "reason": "Fraser River (GNIS 39325) upstream of the CPR Bridge at Mission, plus all named channels and sloughs without their own regulation entries. Region 2. Nicomen Slough and Strawberry Slough excluded — they have separate regulation entries.",
+        "items": {
+          "gnis:39325": "Fraser River",
+          "gnis:10494": "Annacis Channel",
+          "gnis:11566": "Bedford Channel",
+          "gnis:17805": "Cannery Channel",
+          "gnis:17368": "Enterprise Channel",
+          "gnis:14905": "Morey Channel",
+          "gnis:22631": "Parsons Channel",
+          "gnis:21224": "Sapperton Channel",
+          "gnis:14010": "Gilmour Slough",
+          "gnis:11481": "Jeperson Side Channel",
+          "gnis:13499": "Maria Slough",
+          "gnis:25152": "Tilbury Slough",
+          "gnis:8341": "Williamson Slough"
+        },
+        "locators": [
+          "upstream of the CPR Bridge at Mission"
+        ],
+        "splits": {
+          "the CPR Bridge at Mission": "fraser_river__the_cpr_bridge_at_mission"
+        },
+        "notes": [
+          "the text speaks of tributaries",
+          "a rescind row: informational, bound to its water"
+        ]
+      },
+      "extents": [
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__the_cpr_bridge_at_mission"
+          ]
+        }
+      ]
+    },
+    "is-9cc030ee9af2": {
+      "why": "'Keen Creek': no split on this water reads 'Keen Creek'; 'boundary signs at river mouth at Kootenay Lake Upstream of Keen Creek': no split on this water reads 'boundary signs at river mouth at Kootenay Lake Upstream of Keen Creek'",
+      "evidence": {
+        "water": "Kaslo River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:11345": "Kaslo River"
+        },
+        "locators": [
+          "from downstream of Keen Creek to boundary signs at river mouth at Kootenay Lake Upstream of Keen Creek"
+        ],
+        "splits": {},
+        "notes": [
+          "a rescind row: informational, bound to its water"
+        ]
+      },
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:11345",
+          "splits": []
+        }
+      ]
+    },
+    "is-ae26b6334dde": {
+      "why": "'fishing boundary signs at Trout Lake outlet': no split on this water reads 'fishing boundary signs at Trout Lake outlet'",
+      "evidence": {
+        "water": "Lardeau River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:16359": "Lardeau River"
+        },
+        "locators": [
+          "downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek"
+        ],
+        "splits": {
+          "fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek": "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
+        }
+      },
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:16359",
+          "splits": []
+        }
+      ]
+    },
+    "is-b0fdf1205cdd": {
+      "why": "the name resolves to 2 waters",
+      "evidence": {
+        "water": "Chilliwack Lake, Upper Pitt River",
+        "via": "override",
+        "reason": "In-season combined entry: Chilliwack Lake (GNIS 13745) + Pitt River (GNIS 7551)",
+        "items": {
+          "wbk:329083341": "Chilliwack Lake",
+          "gnis:7551": "Pitt River"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "wbk:329083341",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:7551",
+          "splits": []
+        }
+      ]
+    },
+    "is-b3197170450c": {
+      "why": "the row is the water's TRIBUTARIES: an extent cannot say tributaries only",
+      "evidence": {
+        "water": "Granby River’s Tributaries",
+        "via": "override",
+        "reason": "Tributaries of Granby River - links to parent waterbody (GNIS 18775 - Granby River). Regulation MU 8-15.",
+        "items": {
+          "gnis:18775": "Granby River"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:18775",
+          "splits": []
+        }
+      ]
+    },
+    "is-d39112adf4c4": {
+      "why": "'falls approximately 6 km': no split on this water reads 'falls approximately 6 km'",
+      "evidence": {
+        "water": "Keen Creek",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:11410": "Keen Creek"
+        },
+        "locators": [
+          "downstream of falls approximately 6 km"
+        ],
+        "splits": {},
+        "notes": [
+          "a rescind row: informational, bound to its water"
+        ]
+      },
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:11410",
+          "splits": []
+        }
+      ]
+    },
+    "is-e932e70532b4": {
+      "why": "the name resolves to 41 waters",
+      "evidence": {
+        "water": "Okanagan River Oxbows",
+        "via": "override",
+        "reason": "Okanagan River Oxbows in MU 8-1. Multiple oxbow waterbodies and stream segments along the Okanagan River. Includes 32 watershed codes, 40 waterbody keys, and 1 linear feature ID.",
+        "items": {
+          "wbk:328948249": "OKANAGAN RIVER OXBOWS",
+          "wbk:328947490": "OKANAGAN RIVER OXBOWS",
+          "wbk:328944522": "OKANAGAN RIVER OXBOWS",
+          "wbk:328957729": "OKANAGAN RIVER OXBOWS",
+          "wbk:329459219": "OKANAGAN RIVER OXBOWS",
+          "wbk:329459234": "OKANAGAN RIVER OXBOWS",
+          "wbk:329460279": "OKANAGAN RIVER OXBOWS",
+          "wbk:329459157": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462114": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462438": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462220": "OKANAGAN RIVER OXBOWS",
+          "wbk:329461070": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462410": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462406": "OKANAGAN RIVER OXBOWS",
+          "wbk:329460316": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462179": "OKANAGAN RIVER OXBOWS",
+          "wbk:329461320": "OKANAGAN RIVER OXBOWS",
+          "wbk:329461445": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462452": "OKANAGAN RIVER OXBOWS",
+          "wbk:329461584": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462319": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462064": "OKANAGAN RIVER OXBOWS",
+          "wbk:329461918": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462395": "OKANAGAN RIVER OXBOWS",
+          "wbk:329460748": "OKANAGAN RIVER OXBOWS",
+          "wbk:329460457": "OKANAGAN RIVER OXBOWS",
+          "wbk:328985785": "OKANAGAN RIVER OXBOWS",
+          "wbk:329461800": "OKANAGAN RIVER OXBOWS",
+          "wbk:329461866": "OKANAGAN RIVER OXBOWS",
+          "wbk:328985783": "OKANAGAN RIVER OXBOWS",
+          "wbk:328985789": "OKANAGAN RIVER OXBOWS",
+          "wbk:329461388": "OKANAGAN RIVER OXBOWS",
+          "wbk:329460329": "OKANAGAN RIVER OXBOWS",
+          "wbk:329460050": "OKANAGAN RIVER OXBOWS",
+          "wbk:329460670": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462470": "OKANAGAN RIVER OXBOWS",
+          "wbk:329461983": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462424": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462306": "OKANAGAN RIVER OXBOWS",
+          "wbk:329462043": "OKANAGAN RIVER OXBOWS",
+          "gnis:22618": "Park Rill"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "wbk:328948249",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328947490",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328944522",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328957729",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329459219",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329459234",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460279",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329459157",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462114",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462438",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462220",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461070",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462410",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462406",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460316",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462179",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461320",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461445",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462452",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461584",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462319",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462064",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461918",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462395",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460748",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460457",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328985785",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461800",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461866",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328985783",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:328985789",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461388",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460329",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460050",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329460670",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462470",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329461983",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462424",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462306",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wbk:329462043",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:22618",
+          "splits": []
+        }
+      ]
+    },
+    "is-ecfd33ebcc81": {
+      "why": "the name resolves to 13 waters",
+      "evidence": {
+        "water": "Fraser River",
+        "via": "override",
+        "reason": "Fraser River (GNIS 39325) upstream of the CPR Bridge at Mission, plus all named channels and sloughs without their own regulation entries. Region 2. Nicomen Slough and Strawberry Slough excluded — they have separate regulation entries.",
+        "items": {
+          "gnis:39325": "Fraser River",
+          "gnis:10494": "Annacis Channel",
+          "gnis:11566": "Bedford Channel",
+          "gnis:17805": "Cannery Channel",
+          "gnis:17368": "Enterprise Channel",
+          "gnis:14905": "Morey Channel",
+          "gnis:22631": "Parsons Channel",
+          "gnis:21224": "Sapperton Channel",
+          "gnis:14010": "Gilmour Slough",
+          "gnis:11481": "Jeperson Side Channel",
+          "gnis:13499": "Maria Slough",
+          "gnis:25152": "Tilbury Slough",
+          "gnis:8341": "Williamson Slough"
+        },
+        "locators": [
+          "downstream of Spuzzum Creek confluence with the Fraser River"
+        ],
+        "splits": {
+          "Spuzzum Creek confluence with the Fraser River": "fraser_river__spuzzum_creek_into_fraser_river"
+        }
+      },
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__spuzzum_creek_into_fraser_river"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -32,7 +32,7 @@ BACKEND = REPO / "curation-review" / "backend"
 ADAM = "r1:adam_river_except_eve_river@1-10"
 ZONE = "z4:daily_quotas"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence",
-         "dfo")
+         "dfo", "inseason")
 #: T164: a DFO location with no extent yet, and the tributary whose confluence it names
 CAMPBELL = "1:campbell-river:downstream-of-the-confluence-with"
 _QUINSAM = {"ref": "n1", "anchor": "confluence", "name": "Quinsam River", "item_id": "gnis:27883",
@@ -251,7 +251,8 @@ def test_no_request_writes_anything_but_a_mark(env):
     c, app = env["client"], env["app"].app
     writes = {(m, r.path) for r in app.routes for m in getattr(r, "methods", None) or ()
               if m not in ("GET", "HEAD")}
-    assert writes == {("POST", "/api/marks")}, writes
+    # T230 (owner 2026-10-28): the in-season matches route is the one non-mark write; not called here
+    assert writes == {("POST", "/api/marks"), ("POST", "/api/inseason/matches")}, writes
     curated = _stamps(CURATED.base)
     before = _snapshot(env["root"])
     called = []

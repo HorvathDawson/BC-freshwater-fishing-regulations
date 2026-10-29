@@ -9,7 +9,9 @@
                 cut-points are still auto-proposals and the tool hid every word of that
   one write     the app serves reads and one write, a mark; no backend module but `writes.py`
                 writes a file, and its one caller is the mark (T185: the fix-mode writers are
-                retired)
+                retired) — and ONE exception (T230, owner 2026-10-28): `POST /api/inseason/matches`,
+                the in-season matches file (Claude/owner tooling, not a mark), through the same
+                `writes.commit`
 
 Runs the backend against TEMP COPIES of the files it could write; reads no generated data.
 """
@@ -30,7 +32,7 @@ REPO = Path(__file__).resolve().parents[2]
 TOOL = REPO / "curation-review"
 BACKEND = TOOL / "backend"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "dfo",
-                "review", "evidence")
+                "review", "evidence", "inseason")
 
 
 @pytest.fixture(scope="module")
@@ -196,6 +198,10 @@ def test_the_hwy_19_bridge_note_is_on_the_bridge_not_the_eve_river_confluence():
 #: THE ONE WRITE the app serves: a mark. The editors' routes (entry save and the draft check,
 #: split add / move / delete / rename — the retired fix mode) are gone, not hidden behind a flag.
 MARK_ROUTE = {("POST", "/api/marks")}
+#: ... and THE ONE EXCEPTION (T230, owner 2026-10-28: "this file is Claude/owner tooling, not marks; keep a
+#: history note per edit"): the in-season matches file, data/curated/inseason/matches.json
+INSEASON_ROUTE = {("POST", "/api/inseason/matches")}
+WRITE_ROUTES = MARK_ROUTE | INSEASON_ROUTE
 #: what the retired editors were asked, so a request to one is shown refused
 RETIRED = (("POST", "/api/check"), ("PUT", "/api/entries/{entry_id}"),
            ("PUT", "/api/splits/{split_id}"), ("POST", "/api/splits"),
@@ -221,8 +227,9 @@ def _load_app(monkeypatch, env_value: str | None):
 
 
 def test_the_app_serves_one_write_a_mark(env):
-    """Reads and POST /api/marks — nothing else writes (PLAN §4 phase 3, T185)."""
-    assert _writes_of(env["app"].app) == MARK_ROUTE
+    """Reads and POST /api/marks — nothing else writes (PLAN §4 phase 3, T185) — but the T230 in-season
+    matches route."""
+    assert _writes_of(env["app"].app) == WRITE_ROUTES
 
 
 def test_no_switch_opens_a_writer(env, monkeypatch):
@@ -230,7 +237,7 @@ def test_no_switch_opens_a_writer(env, monkeypatch):
     second mode, and neither run script offers one."""
     for value in (None, "0", "1", "true"):
         mod = _load_app(monkeypatch, value)
-        assert _writes_of(mod.app) == MARK_ROUTE, value
+        assert _writes_of(mod.app) == WRITE_ROUTES, value
         assert not hasattr(mod, "FIX") and not hasattr(mod, "register_fix_routes")
     for sh in (TOOL / "run.sh", BACKEND / "run.sh"):
         assert "--fix" not in sh.read_text(encoding="utf-8") and \
@@ -245,7 +252,7 @@ def test_the_one_write_check_is_pinned_by_mutation(env, monkeypatch):
     @mod.app.put("/api/entries/{entry_id}")
     def _a_writer(entry_id: str):                  # pragma: no cover — never called
         return {}
-    assert _writes_of(mod.app) != MARK_ROUTE
+    assert _writes_of(mod.app) != WRITE_ROUTES
 
 
 def _snapshot(root: Path) -> dict[str, bytes]:
@@ -307,11 +314,16 @@ def test_the_only_file_write_is_the_mark_s_commit():
     split save / add / delete / rename — called `writes.commit` on the catalogue or splits.json."""
     got = {py.name: _write_calls(py.read_text(encoding="utf-8"))
            for py in sorted(BACKEND.glob("*.py")) if py.name != "writes.py"}
-    assert {k: v for k, v in got.items() if v} == {"reuse.py": [("post_mark", "commit")]}
+    assert {k: v for k, v in got.items() if v} == {"reuse.py": [("post_mark", "commit")],
+                                                    "inseason.py": [("save_match", "commit")]}
     src = (BACKEND / "reuse.py").read_text(encoding="utf-8")
     # T55: a slough batch ("accept all visible") is several marks in that same one commit
     assert "writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, marks))], \"mark\")" in src
     assert "marks = batch or [mark]" in src
+    # T230: the in-season write names exactly the matches file, as one commit
+    ins = (BACKEND / "inseason.py").read_text(encoding="utf-8")
+    assert ins.count("writes.commit(") == 1 and 'writes.commit([(path, text)], "inseason-match")' in ins
+    assert "path = matches_path()" in ins and "with writes.LOCK:" in ins
 
 
 def test_the_write_pin_is_pinned_by_mutation():

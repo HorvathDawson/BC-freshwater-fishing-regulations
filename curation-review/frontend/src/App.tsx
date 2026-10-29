@@ -16,6 +16,7 @@ import { PROPOSALS_HASH, ProposalsView } from "./components/ProposalsView";
 import { SLOUGH_HASH, SloughReview } from "./components/SloughReview";
 import { NAMES_HASH, NamesReview } from "./components/NamesReview";
 import { CASCADE_HASH, CascadeView } from "./components/CascadeView";
+import { INSEASON_HASH, InSeasonReview } from "./components/InSeasonReview";
 import { setBadge, TopNav } from "./components/TopNav";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
@@ -29,6 +30,8 @@ const inSloughs = () => decodeURIComponent(window.location.hash.slice(1)).starts
 const inNames = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(NAMES_HASH);
 /** T229: `#cascade/<watershed>` opens the DFO Cascade map (which DFO places apply where) */
 const inCascade = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(CASCADE_HASH);
+/** T230: `#inseason/<row id>` opens the In-season tab (the provincial in-season rows and where each applies) */
+const inInseason = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(INSEASON_HASH);
 const inProposals = () => decodeURIComponent(window.location.hash.slice(1)) === PROPOSALS_HASH;
 
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
@@ -51,6 +54,7 @@ export default function App() {
   const [sloughs, setSloughs] = useState(inSloughs);
   const [names, setNames] = useState(inNames);
   const [cascade, setCascade] = useState(inCascade);
+  const [inseason, setInseason] = useState(inInseason);
   const [regions, setRegions] = useState<RegionSummary[]>([]);
   // THE ONE QUEUE (T135, PLAN §3): every region, in the review order, by default
   const [region, setRegion] = useState(ALL_REGIONS);
@@ -129,9 +133,9 @@ export default function App() {
   useEffect(() => {
     const open = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
-      const only = (m: "sloughs" | "names" | "cascade" | "dfo" | "tidal" | "proposals" | "") => {
+      const only = (m: "sloughs" | "names" | "cascade" | "dfo" | "tidal" | "proposals" | "inseason" | "") => {
         setSloughs(m === "sloughs"); setNames(m === "names"); setCascade(m === "cascade");
-        setDfo(m === "dfo"); setTidal(m === "tidal"); setProposals(m === "proposals");
+        setDfo(m === "dfo"); setTidal(m === "tidal"); setProposals(m === "proposals"); setInseason(m === "inseason");
         // the Low cuts tab is the entries view with `?lowcuts`
         const low = m === "" && new URLSearchParams(window.location.search).has("lowcuts");
         setLowOnly(low);
@@ -139,6 +143,7 @@ export default function App() {
       };
       if (id.startsWith(SLOUGH_HASH)) { only("sloughs"); return; }
       if (id.startsWith(NAMES_HASH)) { only("names"); return; }
+      if (id.startsWith(INSEASON_HASH)) { only("inseason"); return; }
       if (id.startsWith(CASCADE_HASH)) { only("cascade"); return; }
       if (id.startsWith(DFO_HASH)) { only("dfo"); return; }
       if (id.startsWith(TIDAL_HASH)) { only("tidal"); return; }
@@ -232,6 +237,9 @@ export default function App() {
   }
   if (names) {
     return <NamesReview />;
+  }
+  if (inseason) {
+    return <InSeasonReview />;
   }
   if (proposals) {
     return <ProposalsView />;

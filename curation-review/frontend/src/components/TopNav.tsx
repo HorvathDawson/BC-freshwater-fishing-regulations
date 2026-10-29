@@ -7,7 +7,7 @@ import { isTyping } from "../review";
    (`useFold`, open/closed remembered per tab). Navigation is the URL: it sets the hash (and `?lowcuts`)
    and fires `hashchange`, which App reads, so every old link keeps working. */
 
-export type TabId = "entries" | "lowcuts" | "dfo" | "tidal" | "sloughs" | "names" | "proposals";
+export type TabId = "entries" | "lowcuts" | "dfo" | "tidal" | "sloughs" | "names" | "inseason" | "proposals";
 
 interface Tab { id: TabId; label: string; key: string; title: string; hash: string }
 const TABS: Tab[] = [
@@ -19,6 +19,7 @@ const TABS: Tab[] = [
   { id: "lowcuts", label: "Low cuts", key: "l", hash: "",
     title: "entries whose rules name a guessed (low-confidence) cut — check the cut on the satellite map" },
   { id: "proposals", label: "Proposals", key: "p", hash: "proposals", title: "T185: the edits your marks propose, waiting to apply (read only)" },
+  { id: "inseason", label: "In-season", key: "i", hash: "inseason/", title: "T230: the provincial in-season changes — where each applies" },
 ];
 
 /** the sub-tabs of a main tab; `hash` is the whole target */
@@ -72,6 +73,7 @@ function refreshBadges() {
   read("/api/tidal/progress", (p) => setBadge("tidal", frac(p.done, p.total)));
   read("/api/sloughs/progress", (p) => setBadge("sloughs", frac(p.done, p.total)));
   read("/api/names/progress", (p) => setBadge("names", frac(p.review?.done, p.review?.total)));
+  read("/api/inseason/queue", (q) => setBadge("inseason", frac(q.progress?.matched, q.progress?.total)));
   read("/api/proposals", (p) => setBadge("proposals", String(p.proposals?.length ?? 0)));
   window.setTimeout(async () => { for (const job of jobs) await job(); }, 1000);
 }

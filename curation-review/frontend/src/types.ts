@@ -1322,3 +1322,67 @@ export interface MarksHealth {
   scopes: Record<string, { held: number; landed: number; stale: number; orphan: number }>;
   orphans: MarkHealthRow[]; stale_rows: MarkHealthRow[]; n_orphans: number; n_stale: number;
 }
+
+// --- T230: the In-season tab (`curation-review/backend/inseason.py`) ---
+export type InSeasonOp = "whole" | "upstream_of" | "downstream_of" | "between";
+export interface InSeasonExtent { op: InSeasonOp; item_id: string; splits: string[] }
+/** an extent as the queue shows it: with the water's name and the splits' labels */
+export interface InSeasonExtentView extends InSeasonExtent { item_name: string | null; split_labels: string[] }
+export interface InSeasonHistory {
+  at: string; id: string; action: "set" | "clear" | "auto"; by?: string; note?: string; extents?: InSeasonExtent[];
+}
+/** what auto read: the water (via, items), the locators it found, boundary words → split ids, notes */
+export interface InSeasonEvidence {
+  water?: string; via?: string; reason?: string; items?: Record<string, string>; candidates?: string[];
+  disambiguated_by?: string; locators?: string[]; splits?: Record<string, string>; notes?: string[];
+  other_water?: string;
+}
+export interface InSeasonRow {
+  id: string; region: string; section: string;
+  /** as printed */
+  water: string;
+  /** the feed's effective text, verbatim */
+  effective: string;
+  from: string | null; to: string | null;
+  /** the change, verbatim */
+  change: string;
+  parsed?: { kinds?: string[] } | null;
+  /** the feed's: new | changed | unchanged | removed ("gone" on a stale match) */
+  status: string;
+  removed: boolean;
+  firstSeen?: string | null; changedAt?: string | null; removedAt?: string | null;
+  state: "matched" | "unmatched" | "stale";
+  match: { extents: InSeasonExtentView[]; effective: { from: string | null; to: string | null } | null;
+           note: string; by: string; at: string;
+           /** owner add-on 2026-10-28: "auto" = `pipeline.regs.inseason.auto` (unambiguous rows only); an owner
+            *  save makes it "owner", and auto never writes over an owner match */
+           source: "owner" | "auto"; confidence: "high" | "medium" | "low" | null;
+           evidence: InSeasonEvidence | null } | null;
+  /** auto's best guess for an unmatched row (pre-fills the editor; never applied) */
+  guess: { why: string; evidence: InSeasonEvidence | null; extents: InSeasonExtentView[] } | null;
+  /** the dates in force: the curated `effective` over the feed's, field by field */
+  dates: { from: string | null; to: string | null; source: "curated" | "feed" };
+  in_effect: boolean | null;
+  history: InSeasonHistory[];
+}
+export interface InSeasonQueue {
+  available: boolean; message: string | null; source: string | null; fetchedAt: string | null;
+  rows: InSeasonRow[];
+  progress: { matched: number; auto?: number; unmatched: number; total: number; removed: number; stale: number };
+}
+export interface InSeasonItemSplits {
+  item: { id: string; name: string; kind: string; mus: string[] };
+  splits: EntrySplits;
+}
+export interface InSeasonPreview extends ExtentPreview {
+  per_extent?: { n_sections: number; why: string | null }[];
+}
+export interface InSeasonMatchPost {
+  id: string;
+  /** null / [] clears the match */
+  extents: InSeasonExtent[] | null;
+  effective?: { from?: string | null; to?: string | null } | null;
+  /** required: this edit's history note */
+  note: string;
+  by?: string;
+}

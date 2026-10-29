@@ -26,6 +26,9 @@ no fix mode any more — the entry / split editors, entry save, the draft check 
 delete / rename were removed with their routes, and `test_curation_review_safety` pins that no
 backend module but `writes.py` writes a file, its one caller being the mark.
 `test_curation_review_screen` calls every route and proves nothing under `data/curated` changed.
+The one exception (T230, owner 2026-10-28): the **In-season** tab (`#inseason/`) edits
+`data/curated/inseason/matches.json` through `POST /api/inseason/matches` (Claude/owner tooling, not a mark;
+a history note per edit), by the same `writes.commit`.
 
 **DFO salmon extents (T164).** The top bar's "DFO salmon extents" (or `#dfo/<location_id>`) opens
 the second queue: every scraped DFO location, its notice words and rows, its extent on the map. A
@@ -171,6 +174,7 @@ licensing; and the map.
 | Registry (read) | `data/generated/atlas/full/registry.json` | item identity, **`boundaries`**, `variants`, `mus`, `section_ids` |
 | Geometry (read) | `data/generated/atlas/full/graph.pkl`, `geometries.pkl`, `waterbody_polys.pkl` | streams, split points, lakes, areas — served as GeoJSON for the map |
 | Marks (append) | `data/curated/regulations/review/marks.jsonl` | the one write |
+| In-season matches (T230) | `data/curated/inseason/matches.json` | the one non-mark write |
 
 **The one write goes through `backend/writes.py`**: the marks store is backed up first, byte for
 byte, into `data/generated/regs/entries_backup/curation-review/<UTC stamp>-mark/…`

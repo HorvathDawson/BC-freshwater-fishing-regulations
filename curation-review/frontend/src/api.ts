@@ -38,6 +38,12 @@ import type {
   TidalRow,
   TidalSnap,
   MarksHealth,
+  InSeasonExtent,
+  InSeasonItemSplits,
+  InSeasonMatchPost,
+  InSeasonPreview,
+  InSeasonQueue,
+  InSeasonRow,
 } from "./types";
 
 async function getJSON<T>(url: string): Promise<T> {
@@ -162,6 +168,30 @@ export const api = {
   extentPreview: (entryId: string, fix: ExtentFix) =>
     getJSON<ExtentPreview>(`/api/entries/${encodeURIComponent(entryId)}/extent-preview?fix=` +
       encodeURIComponent(JSON.stringify(fix))),
+
+  // --- T230: the In-season tab (reads, and its one write: the in-season matches file, not a mark) ---
+  inseasonQueue: () => getJSON<InSeasonQueue>("/api/inseason/queue"),
+  inseasonItemSplits: (itemId: string) =>
+    getJSON<InSeasonItemSplits>(`/api/inseason/items/${encodeURIComponent(itemId)}/splits`),
+  inseasonPreview: async (extents: InSeasonExtent[]): Promise<InSeasonPreview> => {
+    const res = await fetch(`/api/inseason/extent-preview?extent=${encodeURIComponent(JSON.stringify(extents))}`);
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return { resolvable: false, why: String(body?.detail ?? res.statusText), n_sections: null };
+    return body as InSeasonPreview;
+  },
+  inseasonSave: async (post: InSeasonMatchPost): Promise<InSeasonRow> => {
+    const res = await fetch("/api/inseason/matches", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(post),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const d = body?.detail;
+      throw new Error(typeof d === "string" ? d : JSON.stringify(d ?? res.statusText));
+    }
+    return body as InSeasonRow;
+  },
 
   // --- T164: the DFO review mode (reads; a DFO mark goes through postMark, scope "dfo") ---
   dfoQueue: (f: { region?: string; status?: string; need?: string; verify?: string; q?: string; lake?: string }) => {
