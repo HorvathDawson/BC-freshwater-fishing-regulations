@@ -268,25 +268,24 @@ export const SEARCH_BAR = {
   placeSub: (kind: string) => `${kind} · every named water around it`,
   show: (name: string) => `Show ${name} on the map`,
   placeholders: [
-    "Cast your search — any lake or river",
-    "Drop a line: river, lake or creek…",
+    "Cast a search…",
+    "Drop a line: any water",
     "Hook a water by name",
     "Reel in a river…",
-    "Where to next? Search waters",
+    "Where to next?",
     "Find your next water",
-    "Search a lake, river or town",
-    "Name a town to find water near it",
-    "Fishing near a town? Type its name",
+    "Any creek worth a cast?",
+    "Lake, river or town",
+    "Fishing near a town?",
   ],
 } as const;
 
 /**
- * THE LONGEST PLACEHOLDER, in characters, that fits the field at 390 px: the field's text box there is about 309 px
- * (390 − 2 × 14 inset − the 1.5 edges − the magnifier's 38 − 12 padding) and Archivo at 16 px averages 7 px a character
- * ("Cast your search — any lake or river", 36 characters, measured 252 px in the mocks). 36 keeps a margin for the widest
- * glyphs; the web check measures every line in Chrome (handoff/PLAN/app-integration/T48-shots).
+ * THE LONGEST PLACEHOLDER, in characters, that fits the field at 390 px. (owner 2026-10-29) The bell and the refresh
+ * button now sit inside the bar, which leaves about 230 px of text box; Archivo at 16 px averages 7 px a character, so 24
+ * keeps a margin for the widest glyphs (36-character lines were cut off on a phone).
  */
-export const PLACEHOLDER_MAX = 36;
+export const PLACEHOLDER_MAX = 24;
 
 /** The placeholder for one opening: `seed` (any number; the app passes a random one, a test a fixed one) picks the line. */
 export function placeholderFor(seed: number): string {

@@ -141,31 +141,29 @@ describe("(T48) the top bar's search field and its results sheet", () => {
       });
   });
 
-  it("the placeholder lines: the approved six, then three that name towns; none promises fish", () => {
+  it("the placeholder lines: short punning lines that fit beside the bell (owner 2026-10-29); none promises fish", () => {
     expect(SEARCH_BAR.placeholders).toEqual([
-      "Cast your search — any lake or river",
-      "Drop a line: river, lake or creek…",
+      "Cast a search…",
+      "Drop a line: any water",
       "Hook a water by name",
       "Reel in a river…",
-      "Where to next? Search waters",
+      "Where to next?",
       "Find your next water",
-      "Search a lake, river or town",
-      "Name a town to find water near it",
-      "Fishing near a town? Type its name",
+      "Any creek worth a cast?",
+      "Lake, river or town",
+      "Fishing near a town?",
     ]);
     expect(SEARCH_BAR.placeholders.filter((l) => /biting|catch|fish are/i.test(l))).toEqual([]);
   });
 
   it("every line fits the field at 390 px: at most PLACEHOLDER_MAX characters (measured in Chrome, T48-shots)", () => {
-    expect([PLACEHOLDER_MAX, SEARCH_BAR.placeholders.filter((l) => [...l].length > PLACEHOLDER_MAX)]).toEqual([36, []]);
+    expect([PLACEHOLDER_MAX, SEARCH_BAR.placeholders.filter((l) => [...l].length > PLACEHOLDER_MAX)]).toEqual([24, []]);
   });
 
   it("ONE line per opening: a seed picks it, the same seed always the same line, every line reachable", () => {
     const n = SEARCH_BAR.placeholders.length;
     expect([placeholderFor(0), placeholderFor(0.999), placeholderFor(n), placeholderFor(-1), placeholderFor(Number.NaN)])
-      .toEqual(["Cast your search — any lake or river", "Cast your search — any lake or river",
-                "Cast your search — any lake or river", "Drop a line: river, lake or creek…",
-                "Cast your search — any lake or river"]);
+      .toEqual(["Cast a search…", "Cast a search…", "Cast a search…", "Drop a line: any water", "Cast a search…"]);
     expect(new Set(Array.from({ length: n }, (_, i) => placeholderFor(i))).size).toBe(n);
   });
 });
