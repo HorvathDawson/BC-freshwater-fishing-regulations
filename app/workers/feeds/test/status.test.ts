@@ -11,8 +11,8 @@ const run = (at: string, ok = true, extra: Partial<RunRecord> = {}): RunRecord =
 });
 
 describe("status + alerts", () => {
-  it("cadence: gauges hourly; DFO 6 h Jun–Oct, daily otherwise", () => {
-    expect(cadenceMin("gauges", new Date("2026-01-01T00:00:00Z"))).toBe(60);
+  it("cadence: gauges 30 min by day, hourly at night; DFO 6 h Jun–Oct, daily otherwise", () => {
+    expect(cadenceMin("gauges", new Date("2026-01-01T00:00:00Z"))).toBe(30);
     expect(cadenceMin("dfo", new Date("2026-07-01T00:00:00Z"))).toBe(360);
     expect(cadenceMin("dfo", new Date("2026-12-01T00:00:00Z"))).toBe(1440);
   });

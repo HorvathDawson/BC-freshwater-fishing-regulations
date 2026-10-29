@@ -142,8 +142,8 @@ describe("rolling health", () => {
     const html = statusHtml(st, new Date(at));
     expect(html).toContain("eccc-hourly");
     expect(html).toContain("Failing parts (1)");
-    expect(cadenceMin("gauges", new Date("2026-10-28T09:00:00Z"))).toBe(180);
-    expect(cadenceMin("gauges", new Date("2026-10-28T18:00:00Z"))).toBe(60);
+    expect(cadenceMin("gauges", new Date("2026-10-28T09:00:00Z"))).toBe(60);
+    expect(cadenceMin("gauges", new Date("2026-10-28T18:00:00Z"))).toBe(30);
   });
 
   it("emails: a whole feed failing / stale is urgent, degraded is not", () => {

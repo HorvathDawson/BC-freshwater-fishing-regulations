@@ -61,8 +61,8 @@ export const STALE_CADENCES = 2.5;
 
 /** The cadence wanted (T225 Q-T225c / Q145): gauges hourly; DFO every 6 h Jun 1–Oct 31, daily otherwise. */
 export function cadenceMin(job: Job, now: Date): number {
-  // wrangler.toml [triggers]: hourly 13–05 UTC (06–22 PDT), 3-hourly 06/09/12 UTC at night
-  if (job === "gauges") return now.getUTCHours() >= 6 && now.getUTCHours() <= 12 ? 180 : 60;
+  // wrangler.toml [triggers]: every 30 min 13–05 UTC (06–22 PDT), hourly 06–12 UTC at night (owner 2026-10-28)
+  if (job === "gauges") return now.getUTCHours() >= 6 && now.getUTCHours() <= 12 ? 60 : 30;
   // DFO and in-season (as DFO): every 6 h Jun–Oct, daily otherwise
   const m = now.getUTCMonth() + 1;
   return m >= 6 && m <= 10 ? 360 : 1440;

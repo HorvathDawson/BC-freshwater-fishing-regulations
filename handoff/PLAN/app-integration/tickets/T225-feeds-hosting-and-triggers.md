@@ -237,10 +237,16 @@ Staging redeployed (b8715797), every job run by hand with `?dryNotify=1`; `vites
 
 ## Phase A (owner 2026-10-28): schedule on, robustness, failure measures, R2 inputs
 Staging only; `bc-fishing-feeds-staging` version d5181571; `vitest run --root app/workers/feeds` 115 tests.
-- **Schedule** (`wrangler.toml [triggers]`, UTC; the minute names the job): gauges `:05` hourly 13–05 UTC (06–22 PDT) +
-  06/09/12 UTC at night; DFO `:15` every 6 h Jun–Oct, 14 UTC daily Nov–May; in-season `:45` as DFO. HYDAT (asked once a
+- **Schedule** (`wrangler.toml [triggers]`, UTC; the minute names the job): gauges `:05` + `:35` every 30 min 13–05 UTC
+  (06–22 PDT) and `:05` hourly 06–12 UTC at night (owner 2026-10-28: 30 min; hourly at night is my call — few anglers
+  look then and the forecasts only reissue mid-morning); DFO `:15` every 6 h Jun–Oct, 14 UTC daily Nov–May; in-season `:45` as DFO. HYDAT (asked once a
   day) and roster drift ride the gauge run. Stale = 2.5 cadences (gauges 60 min by day, 180 at night; DFO/in-season 360 /
   1440).
+  **Cost at this cadence**: 34 day + 7 night = 41 gauge runs/day ≈ 1,250/mo. CPU ≈ 120 recompute × 2.3 s + 1,130 reuse ×
+  1.5 s ≈ **2.0M CPU-ms/mo** (+ DFO/in-season ≤ 0.05M) of the paid plan's 30M included → $0 extra; per-run worst 5 s CPU is
+  under the 30 s cap for sub-hourly crons. R2: ~400 class A + ~400 class B per gauge run ≈ **500k A / 500k B per month**
+  (+ status/nodata/DFO ≈ 5k) — inside the 1M A / 10M B free tier, but A now uses ~half of it account-wide (the app's
+  reads are class B); past 1M A it would cost $4.50/M (≈ $0–2/mo). Storage unchanged (cents).
 - **Robustness** (`src/health.ts` `resilientFetch`, wraps every job's network): per-attempt timeout; bounded retries with
   exponential backoff + jitter on network/timeout/5xx (429 only with Retry-After ≤ 10 s; never 403/404); a per-host
   breaker (6 hard failures in a row → the rest of that host's requests this run fail fast as `circuit`); failed bodies
