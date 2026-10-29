@@ -2912,6 +2912,26 @@
       -123.11085,
       49.35533
      ]
+    },
+    {
+     "id": "capilano_river__cn_railway_bridge_tidal_boundary",
+     "label": "CN Railway Bridge (tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.139433,
+       49.321832
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:360875983 — \"CN Railway Bridge at the mouth (synopsis box; OSM rail crossing, 37 m above the FWA mouth)\"",
+     "_coord": [
+      -123.139433,
+      49.321832
+     ],
+     "tidal": true
     }
    ]
   },
