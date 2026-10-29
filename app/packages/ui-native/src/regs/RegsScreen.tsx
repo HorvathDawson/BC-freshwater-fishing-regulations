@@ -19,10 +19,9 @@
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Platform, ScrollView, Text, View } from "react-native";
-import { creditsFor, LEGAL_WORDS, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
+import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { InSeasonBanners } from "./InSeasonBanner";
-import { Credits } from "../Credits";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
 import { ReportLink } from "../menu/ReportLink";
@@ -208,9 +207,6 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   }, [store]);
   const keepActions: KeepActions = { ...actions, onSheet: openSheet, onTab: toTab };
 
-  // (T43) the pictures this page can show, credited at its foot (the app's whole list is the menu's Data sources page)
-  const credits = useMemo(() => creditsFor(page), [page]);
-
   // (T227) a tab whose section is not drawn (Gear / Methods on a day nothing may be fished) is not offered
   const header = useMemo(() => ({ ...page.header, tabs: page.header.tabs.filter((t) =>
     (t.tab !== "gear" || !!gear) && (t.tab !== "methods" || !!methods)) }), [page.header, gear, methods]);
@@ -257,11 +253,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       </WaterInset>
       {/* (T41 Q3) once, at the page's foot: the report is about the whole page (it names no tab) */}
       <ReportLink page={page} palette={palette} />
-      {credits.length > 0 && (
-        <WaterInset style={{ paddingTop: 20 }} testID="regs-fish-credits">
-          <Credits palette={palette} ink={palette.sub} lines={credits} label={WORDS.FISH_PICTURES} />
-        </WaterInset>
-      )}
+      {/* (owner 2026-10-29) the fish pictures are credited on More → Sources and licences only, not at the page's foot */}
       {footer}
     </View>
   );
