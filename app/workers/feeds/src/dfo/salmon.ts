@@ -2,7 +2,7 @@
 // gear_on), the map status, runs, and the interner — plus live.location_calendar / compose on top.
 import { dumps } from "./pyjson";
 import type { TypedRule } from "./typed";
-import { DATES_UNPARSED, MONTHS, monthDay, YEAR } from "./typed";
+import { DATES_UNPARSED, MONTHS, monthDay, OTHER_FISH, YEAR } from "./typed";
 
 export const SPECIES = ["CH", "CO", "SK", "PK", "CM"] as const;
 const ALL_SALMON = "SA";
@@ -47,6 +47,8 @@ const covers = (r: R, sp: string): boolean => {
   return s.includes(sp) || s.includes(ALL_SALMON);
 };
 const isGear = (r: R): boolean => !!(r.gear && r.gear.length) || GEAR_TYPES.has(r.type);
+/** T229: a row about another fish (eulachon) — never a salmon verdict, one of the gear lines (salmon.py `_other_fish`) */
+const otherFish = (r: R): boolean => r.type === "advisory" && String(r.review_reason ?? "").startsWith(OTHER_FISH);
 
 const fmtMd = (md: number) => `${MONTHS[Math.floor(md / 100) - 1]} ${md % 100}`;
 function rangeTxt(a: number, b: number): string {
@@ -128,7 +130,7 @@ class Loc {
     }
     this.limits = SPECIES.map((sp) => rules.filter((r) => !r.within && !isGear(r) && covers(r, sp) && ("take" in r || "may_target" in r)));
     this.unreadable = rules.filter((r) => !r.within);
-    this.gear = rules.filter((r) => isGear(r) && (!speciesOf(r).length || SPECIES.some((sp) => covers(r, sp))));
+    this.gear = rules.filter((r) => (isGear(r) && (!speciesOf(r).length || SPECIES.some((sp) => covers(r, sp)))) || otherFish(r));
     this.checks = SPECIES.map((sp) => rules.filter((r) => r.check && !r.within && !isGear(r) && (!speciesOf(r).length || covers(r, sp))));
     this.gearChecks = this.gear.filter((r) => r.check);
   }

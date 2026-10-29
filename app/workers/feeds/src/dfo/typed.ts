@@ -206,6 +206,11 @@ const SPECIES: Record<string, string[]> = {
   "sockeye, pink, chum": ["SK", "PK", "CM"],
   eulachon: ["EU"],
 };
+/** T229: the salmon codes; a row about any other fish ("All | No fishing for eulachon", Region 6 B(ii)) is never a
+ * salmon rule — typed as an advisory whose review_reason starts OTHER_FISH, shown as its own line (salmon.ts gearOn). */
+const SALMON_CODES = new Set(["SA", "CH", "CO", "SK", "PK", "CM"]);
+export const OTHER_FISH = "another fish, not salmon: ";
+const RE_NO_FISHING_FOR = pyRe("\\bno\\s+fishing\\s+for\\s+([a-z]+)\\b", "i");
 const RE_ONLY_OVER = pyRe("only\\s+(\\d+)\\s+(?:of\\s+which\\s+may\\s+be\\s+)?(?:over|greater\\s+than|more\\s+than)\\s+(\\d+)\\s*cm", "i");
 const RE_WHICH_MAY = pyRe("(\\d+)\\s+of\\s+which\\s+may\\s+be\\s+(?:more\\s+than|greater\\s+than|over)\\s+(\\d+)\\s*cm", "i");
 const RE_NONE_OVER = pyRe("none\\s+over\\s+(\\d+)\\s*cm", "i");
@@ -546,6 +551,10 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
     return [make({ rule_id: rid, type: "advisory", review_reason: "DFO has not set this row yet ('to be determined')" })];
   if (unreadable)
     return [make({ rule_id: rid, type: "advisory", review_reason: `dates do not parse to a calendar window: ${repr(rawDates)}` })];
+  const nf = search(RE_NO_FISHING_FOR, gear);
+  const named = nf ? SPECIES[nf[1]!.toLowerCase()] : undefined;
+  if (nf && named && !named.some((c) => SALMON_CODES.has(c)))
+    return [make({ rule_id: rid, type: "advisory", review_reason: `${OTHER_FISH}${nf[1]!.toLowerCase()}` })];
   if (!codes.length && gear)
     return [make({ rule_id: rid, type: "advisory", review_reason: `unmapped species cell ${repr(rec.species)}` })];
 
