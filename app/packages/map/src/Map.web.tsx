@@ -44,7 +44,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                       onError, onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, insetTop = 0, onRegion }: MapProps) {
+                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, insetTop = 0, insetBottom = 0, onRegion }: MapProps) {
   const refs = useWebMapRefs(onError);
   // (T243) the camera's own glides jump while the OS asks for reduced motion (`motion.ts`)
   useEffect(() => {
@@ -104,7 +104,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     "--map-icon-filter": furniture.iconFilter,
     // (T48) the app's own bar over the map's top: the top-right controls start under it
     "--map-inset-top": `${insetTop}px`,
-  } as React.CSSProperties), [furniture, insetTop]);
+    // (T275) a block over the map's foot: the credits and the scale sit above it
+    "--map-inset-bottom": `${insetBottom}px`,
+  } as React.CSSProperties), [furniture, insetTop, insetBottom]);
 
   // the spots' layer is the map's sibling, over it in the same box (the host is the map's: MapLibre owns its children)
   return <>

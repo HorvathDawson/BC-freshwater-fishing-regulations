@@ -29,13 +29,13 @@ import type { ShellSearch } from "./useShellSearch";
 const NONE: readonly SectionKey[] = [];
 const NONE_PINS: readonly never[] = [];
 
-export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop,
+export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate,
                              photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
                              offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onRuns, fishImages }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
-  insetTop: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
+  insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
   spotsError?: string | null; onRefreshSpots?: () => void | Promise<void>; refreshing?: boolean;
   locate: Locate | null; photos?: SpotPhotos; loader: ReleaseLoader | null; syncState: SyncState;
   menu: MenuControls; menuInfo?: MenuInfo; mapDay: Date | null;
@@ -155,7 +155,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
         ? <MapScreen at={tiles} palette={palette} theme={theme}
                      camera={camera.current}
                      // (T48) the top bar over the map: the corner's chips, the rail and the web map's controls go under it
-                     insetTop={insetTop}
+                     insetTop={insetTop} insetBottom={insetBottom}
                      // the provisional pin a long press dropped, else the spot "Show" sent the map to — unless the
                      // spots are drawn, when that spot's own (selected) pin marks it (T131)
                      marker={rail.marker(spotsShown)}
@@ -175,7 +175,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                          : restore ? { key: restore.key, bbox: null, camera: restore.camera } : null}
                      // WHAT SEARCH LIGHTS, whole, while search is open — on either map; closed, nothing (the Conditions
                      // view lights a gauge's route with the same feature-state and must not inherit a search)
-                     highlight={searching ? session.focus?.highlight ?? NONE : NONE}
+                     // (T269) — and, arrived at a page's own water (its ‹ / × back to the map), that water
+                     highlight={searching ? session.focus?.highlight ?? NONE : arrive?.highlight ?? NONE}
                      standing={cond.standing}
                      lakes={lakeFeed}
                      salmon={salmonFeed}

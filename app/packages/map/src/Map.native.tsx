@@ -82,7 +82,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                       onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs,
                       basemap, marks, onPressMark, spots, onImageryError: _noTileErrors,
-                      onRegion: _noPrefetch }: MapProps) {
+                      onRegion: _noPrefetch, insetBottom = 0 }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
@@ -478,6 +478,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         {...nativeMapGestures()}
         // a bare map is an illustration: no furniture. Attribution goes with it (the page credits the data, MapProps.bare)
         attribution={!bare}
+        attributionPosition={{ bottom: 8 + insetBottom, right: 8 }}
         logo={false}
         // OURS is drawn below (`metricScale`): the binding's is top-left only on Android, in the device's units. But
         // the binding's must EXIST on Android: switched off, the map's surface left a black hole over the next screen
@@ -562,7 +563,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         // the map's surface left a black rectangle over the next screen on Android when it unmounted (emulator, N2
         // review; the unwrapped map does not)
         <View pointerEvents="none" accessibilityLabel="scale"
-              style={{ position: "absolute", right: 10, bottom: 24, width: Math.round(scale.width) }}>
+              style={{ position: "absolute", right: 10, bottom: 24 + insetBottom, width: Math.round(scale.width) }}>
           <Text numberOfLines={1}
                 style={{ color: furniture.ink, fontSize: 11, lineHeight: 13, letterSpacing: 0.2, paddingLeft: 4,
                          marginBottom: 2, fontFamily: "Archivo_600SemiBold", fontVariant: ["tabular-nums"],

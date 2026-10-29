@@ -21,3 +21,5 @@ Salmon 137, Runs 259 px on a phone) changed the map's height on every mode switc
 Verified on web (Playwright, phone 390x844 and desktop 1280x800, Standard -> Salmon -> Standard -> Runs): the map canvas rect is
 identical in every frame (390x790 / 1280x746), only the foot changes. Frames: `T275-shots/`. Android: same component tree
 (`Shell.tsx`), no emulator run. ui-native suite 1317 pass.
+
+Credits (follow-up): `MapProps.insetBottom` (the foot's measured height, `Shell` onLayout) lifts the web attribution + scale (`--map-inset-bottom` in controls.css) and the native attribution (`attributionPosition`) + scale ruler above the legend; the map rect is untouched. Phone frames: attribution bottom 28 px above the foot in Standard/Salmon/Runs. tsc ui-native, mobile, map: exit 0.

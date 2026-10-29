@@ -310,6 +310,11 @@ export interface MapProps {
    */
   insetTop?: number;
   /**
+   * (T275) How much of the map's bottom a block drawn over it covers (the legend), in px: the credits (attribution) and the
+   * scale are lifted above it. Only those two move: the map's size and camera never do. 0 when absent.
+   */
+  insetBottom?: number;
+  /**
    * The ground under the water: the drawn basemap, or satellite imagery.
    *
    * A property of the MAP, not a layer group a screen may address: the imagery is an

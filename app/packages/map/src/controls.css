@@ -27,6 +27,8 @@
  * compass) starts under it rather than behind it. `--map-inset-top` is always set by the map (0 when no bar).
  */
 .maplibregl-ctrl-top-right { top: var(--map-inset-top); }
+/* (T275) the credits and the scale stay above a block drawn over the map's foot */
+.maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left { bottom: var(--map-inset-bottom, 0px); }
 
 .maplibregl-ctrl-group {
   border-radius: 0;

@@ -104,6 +104,8 @@ export function Shell(p: ShellProps) {
   /** (T166) Whether the tidal water sheet is up (a tap on tidal water, no water under it). */
   const [tidalOpen, setTidalOpen] = useState(false);
   /** (T199) The section a tap asked about under Run timing (its runs sheet), else null. */
+  // (T275) the foot block's height, for the credits and scale above it
+  const [footH, setFootH] = useState(0);
   const [runsAt, setRunsAt] = useState<number | null>(null);
   /**
    * The camera survives leaving the map.
@@ -118,6 +120,8 @@ export function Shell(p: ShellProps) {
   const waterCamera = useRef<Camera | null>(null);
   const search = useShellSearch({ source, nav, camera, recentStore: p.recentSearches ?? null });
   const { searching, session, searchMemory, field } = search;
+  // (T269) a page started on (or at) a water: the map comes back at it, lit
+  useEffect(() => { if (p.arriveAt) search.landOn(p.arriveAt); }, []);   // eslint-disable-line react-hooks/exhaustive-deps -- once, on mount
   useEscapeBack(nav.back, nav.escapeBack && !searching);   // T214 item 2: on the desktop web Escape is Back (a no-op on a phone)
   /** ONE placeholder line per opening of the app, never cycled while on screen. */
   const [placeholder] = useState(() => placeholderFor(Math.random() * 1e6));
@@ -258,7 +262,7 @@ export function Shell(p: ShellProps) {
                      waterCamera={waterCamera} fishImages={p.fishImages} adiposeImages={p.adiposeImages}
                      mapDay={mapDay} onDay={setMapDay} start={start} onStarted={() => setStart(null)} />
     : <BrowseHost nav={nav} col={col} search={search} rail={rail} palette={palette} theme={theme}
-                  themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom}
+                  themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footH}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} photos={photos}
                   loader={loader} syncState={syncState} menu={menu} menuInfo={menuInfo} mapDay={mapDay}
@@ -329,7 +333,8 @@ export function Shell(p: ShellProps) {
           block's height changes with the mode (Standard / Salmon / Runs / Conditions) and as a flex sibling it resized the
           map each time; now the map keeps its size and camera, and only the block changes. */}
       <View testID="map-foot" style={{ height: 0, zIndex: 1 }} pointerEvents="box-none">
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }} pointerEvents="box-none">
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }} pointerEvents="box-none"
+              onLayout={(e) => setFootH(Math.round(e.nativeEvent.layout.height))}>
           {showLegend && (
             <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
           )}
