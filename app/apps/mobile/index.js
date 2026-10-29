@@ -18,7 +18,11 @@ if (__DEV__ && process.env.EXPO_PUBLIC_COLOUR_PROBE === "1") globalThis.__colour
 if (process.env.EXPO_PUBLIC_PAN_PROBE === "1") globalThis.__panProbe = true;
 
 import App from "./src/App";
+import { holdSplash } from "./src/splash";
 import { withGestureRoot } from "./src/gestureRoot";
+
+// (T244) keep the native splash (the loading fish) up until the boot screen's spinner is drawn: src/splash.ts
+holdSplash();
 
 // Gestures (G1) need their root view above everything.
 registerRootComponent(withGestureRoot(App));

@@ -133,6 +133,13 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q28 iOS timing · Q27 sign-off walk.
 
 ## Things only you can run or provide
+- **Store listing sign-off (T244, 2026-10-29)**: read `app-integration/store/listing-draft.md` and `store/privacy-labels-draft.md`
+  (nothing is submitted). Decide: the **app icon / adaptive icon / feature graphic** (no icon art in the repo; suggestion: the loading fish in
+  its ring, the splash's art, larger), the **contact address** shown on the listing (same as `EXPO_PUBLIC_CONTACT`), the **Location row**
+  of the data-safety / App Privacy answers (a saved spot's coordinates go to Open-Meteo: recommended to declare it), the support URL, categories.
+  Look at the new splash: `app-integration/T244-shots/` (web boot screen light/dark, native art); it shows on the next native build.
+- **Production run (T240 section 11, 2026-10-29)**: the prod commands for map-assets (T270), HYDAT day flow (T274), the report-purge deploy (T271),
+  and the SEO build against the prod app export (`--app`, T269/T279) are written in `tickets/T240-production-launch-checklist.md`.
 - **Google Play setup (T268), when Google finishes verifying your Play account**: create the app ca.canifishthis.app,
   accept Play App Signing, upload the first AAB `app/dist/aab/latest.aab` by hand to Internal testing, add your Gmail as
   tester (opt-in link into `~/.canifishthis/play-test-url`), App content (privacy policy, data safety, content rating;

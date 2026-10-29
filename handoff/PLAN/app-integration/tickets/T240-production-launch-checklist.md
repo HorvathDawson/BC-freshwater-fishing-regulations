@@ -1,6 +1,6 @@
 # T240 — production launch checklist (one list, in order)
 
-Status: OPEN — the list is written; nothing on it is started (prod is the owner's; T86 is POSTPONED until he says go).
+Status: OPEN — the list is written and brought up to date 2026-10-29 (T269-T271, T274, T279, map-assets, privacy page, splash); nothing on it is started (prod is the owner's; T86 is POSTPONED until he says go).
 
 Source: owner 2026-10-28 — approved proposal P6 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 Pulls together what T86 (hosting), T198 (SEO redirects / Search Console), T225 (feeds), T232 (environments),
@@ -83,6 +83,20 @@ against staging) and the owner runs on prod.
       tap → regs, conditions, salmon, PDF, a `/water` page, a legacy 301, the map attribution, the disclaimer.
 - [ ] The same on a phone with a `production` build (T77 / T244 internal track).
 - [ ] Rollback written down: the previous release stays in R2 (T72 keeps live + previous); LATEST back one line.
+
+## 11. Added 2026-10-29 (what today's work puts on the prod run; every command is the OWNER's — prod stays human)
+Paths are from the repo root; `<R>` = the release folder (`data/release/<r-id>`), `<PB>` = the prod bucket `bc-fishing-regulations`.
+- [ ] **Map assets (T270)** — fonts + symbols from our host, no CDN: `rclone copy <R>/$(python3 -c "import json;print(json.load(open('<R>/manifest.json'))['tiles']['assets']['url'])") r2:<PB>/map-assets/v1 --s3-no-check-bucket --transfers 16 --header-upload "Cache-Control: public, max-age=31536000, immutable"` (pbf as `application/x-protobuf`, as `upload.sh` does for staging). Check: `curl -I https://data.canifishthis.ca/map-assets/v1/<a glyph>` is 200 and `tiles.assets` in prod's manifest.
+- [ ] **HYDAT day flow (T274)** — `rclone copy data/generated/gauges/hydat_daily r2:<PB>/feeds/hydat --s3-no-check-bucket --header-upload "Cache-Control: public, max-age=86400"` (same HYDAT vintage as the prod bundle; rerun after `scripts/update-hydat.sh`). Check: one station file 200 with CORS open.
+- [ ] **Feeds worker prod (T225, T271)** — beyond section 3: the worker also runs the daily report purge (:25 cron: `private/reports/**` older than 180 d). After deploying with the prod config: `curl -X POST -H "Authorization: Bearer $RUN_TOKEN" https://<prod feeds worker>/run/purge-reports`, then `/status.json` shows `reportRetention`. Command: `npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.prod.toml` (the prod file named in section 3).
+- [ ] **SEO build for prod (T269, T279)** — water pages are the app's own pane, so the SEO build MUST be given the prod app export it will be served beside, or the pages' script tag names a bundle the site lacks (`site.sh` refuses it for staging):
+      `EXPO_PUBLIC_APP_ENV=production pnpm -C app --filter @app/mobile exec expo export --clear --platform web --output-dir ../../dist/web-prod` then
+      `node app/tools/build-seo.mjs --release-dir data/release/<r-id> --app app/dist/web-prod --threads 4 --out app/dist/seo-prod` (heavy — one at a time via `scripts/heavy.sh`, ≤4 threads; T279 stores each page compressed only, `index.html.gz`/`.br`, served by the worker by Accept-Encoding; the prod site switch of `site.sh` is section 5; confirm the exact flags against the `site.sh` staging call when writing the prod switch). Check: the page's `<script src>` is in the export; `/water/<slug>` shows the pane with JS off.
+- [ ] **Prod site deploy of the above** — the prod wrangler (section 5) with the pre-compressed pages (T279, when done) and the host's file-count/size headroom noted there.
+- [ ] **Privacy page live (T268/T244)** — `https://canifishthis.ca/privacy` answers 200 on prod (it is part of the SEO build; linked from the footer, About, Sources, the report form). The store listings quote this URL. The mailbox `privacy@canifishthis.ca` exists (owner set up) and the build's `EXPO_PUBLIC_CONTACT` is the same address.
+- [ ] **Release promote check** — prod `LATEST` and the manifest the app reads name the same release as the tiles and the SEO build (one vintage: tiles, bundle and pages).
+- [ ] **Store listing (T244)** — owner signs off `handoff/PLAN/app-integration/store/listing-draft.md` + `privacy-labels-draft.md`; then Play internal track (T268/T267) and TestFlight (T88). Splash + icon are in the production build's prebuild (T244).
+Dependencies unchanged: sections 1-3 before the app's production build reads prod; section 4 only after.
 
 ## Acceptance
 Every box ticked or marked n/a by the owner; the smoke test green on prod; the feed fresh for 24 h; the old cron off

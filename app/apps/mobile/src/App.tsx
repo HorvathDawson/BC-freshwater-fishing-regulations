@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, Share, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import {
   BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
@@ -22,29 +22,30 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { downloadFraction, INSTALL_WORDS, MAP_CREDITS, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+import { downloadFraction, INSTALL_WORDS, MAP_CREDITS, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { connectivity, ErrorState, LoadingState, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, routeKind, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { startLink } from "./startLink";
+import { releaseSplash } from "./splash";
 
-import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, pickChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
+import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, pickChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
 /*
  * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
- * in-memory ring, which a reader sees — and can switch off — in a report before sending it. Nothing is stored on disk
- * and nothing is sent in the background (owner 2026-10-21).
+ * in-memory ring, which a reader sees — and can switch off — in a report before sending it. The ring itself is never
+ * stored or sent; uncaught errors go separately, scrubbed, under the Data switch (T242, below).
  */
 teeConsoleErrors(console);
 import { ADIPOSE_IMAGES, FISH_IMAGES } from "./fishImages.generated";
@@ -86,6 +87,23 @@ const VERSION_HEADERS = WEB
 const SHARED_FETCH = shareFetch((u, i) => fetch(u, i));
 const DATA_FETCH: typeof fetch = Object.keys(VERSION_HEADERS).length
   ? versionedFetch(SHARED_FETCH, VERSION_HEADERS) : SHARED_FETCH;
+/**
+ * (T242) APP ERRORS to our own server (the feeds worker's `POST /crash`; no third-party service): the Data switch "Send
+ * crash reports" (default on), the uncaught-error catchers, and a fatal error kept from the last run, sent now.
+ * The screen is reported as a KIND only (`routeKind`); nothing is sent offline or when the switch is off.
+ */
+const crashSetting = createCrashSetting(openCrashSettingStore());
+const crashContext = { release: "none" };
+if (CRASH_URL) {
+  const reporter = createCrashReporter({
+    url: CRASH_URL, setting: crashSetting, online: () => connectivity.online(), store: openCrashPendingStore(),
+    context: () => ({ app: MENU_INFO.appBuild, env: APP_ENV.env, platform: WEB ? "web" : `${Platform.OS} ${Platform.Version}`,
+                     release: crashContext.release }),
+    route: () => routeKind(place.route),
+  });
+  installCrashHandlers(reporter);
+  void reporter.flush();
+}
 /** (T251) the Updates log's "simulate offline": the update service is told the network is down while on */
 const devOffline = { on: false };
 /**
@@ -115,6 +133,38 @@ function BootNetLine({ colour }: { colour: string }) {
     <Text testID="boot-slow" style={{ color: colour, fontSize: 12, textAlign: "center", paddingHorizontal: 24 }}>
       {[said, progressWords(loaded, total)].filter(Boolean).join(" · ")}
     </Text>
+  );
+}
+
+/**
+ * (T244) THE LOADING SCREEN: the loading fish at the centre of the WINDOW, its pun beneath, then the step and the
+ * progress. The fish is drawn at once (`immediate`: no 300 ms hold) at the size and centre of the native splash picture
+ * (`pnpm splash`, 110 dp), so the native splash can hand off to it with nothing to jump: the centre is the window's, not
+ * the safe area's (the native splash is centred in the window), so the insets' difference is taken back out. Everything
+ * else hangs below the fish, so what arrives late (the step, a download bar) never moves it. The native splash is let go
+ * once the fish is laid out.
+ */
+const BOOT_FISH = 110;
+function BootScreen({ palette, line, words, children }: {
+  palette: (typeof THEMES)[ThemeName]; line: string; words: string; children?: React.ReactNode;
+}) {
+  const insets = useSafeAreaInsets();
+  const onLayout = useCallback(() => {
+    // two frames: the fish's strip is drawn on the first one after layout
+    requestAnimationFrame(() => requestAnimationFrame(releaseSplash));
+  }, []);
+  return (
+    <View testID="boot-screen" style={{ flex: 1, transform: [{ translateY: (insets.bottom - insets.top) / 2 }] }}>
+      <View style={{ position: "absolute", top: "50%", marginTop: -BOOT_FISH / 2, left: 0, right: 0, alignItems: "center" }}
+            onLayout={onLayout}>
+        <LoadingState palette={palette} size={BOOT_FISH} label={words} immediate />
+      </View>
+      <View style={{ position: "absolute", top: "50%", marginTop: BOOT_FISH / 2 + 8, left: 0, right: 0, alignItems: "center", gap: 10 }}>
+        <Text testID="boot-line" style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }}>{line}</Text>
+        <Text style={{ color: palette.sub, fontSize: 13 }}>{words}</Text>
+        {children}
+      </View>
+    </View>
   );
 }
 
@@ -176,6 +226,7 @@ export default function App() {
   const booted = boot.state === "ready" ? boot.booted : null;
   const bootedRef = useRef(booted);
   bootedRef.current = booted;
+  if (booted) crashContext.release = booted.manifest.data_release;
 
   /*
    * (T231) THE UPDATE SERVICE (owner 2026-10-28: "check the data origin for new updates and download them"): the three
@@ -346,6 +397,8 @@ export default function App() {
   // a phone whose newest set would not open went back to the one it replaced: said, above the map
   const rolledBack = boot.state === "ready" ? boot.booted.rolledBack : null;
 
+  // (T244) one pun per opening, under the loading fish
+  const splashLine = useMemo(() => splashLineFor(Math.random() * 1e6), []);
   const name: ThemeName = theme ?? (scheme === "dark" ? "dark" : "light");
   const palette = THEMES[name];
 
@@ -368,6 +421,8 @@ export default function App() {
     return () => clearTimeout(t);
   }, [fontsIn, data]);
   const ready = fontsIn || !!fontError || fontWaitOver;
+  // (T244) the native splash is let go when the boot screen's fish is up (BootScreen); a start that skips that screen lets it go here
+  useEffect(() => { if (failed || (ready && data)) releaseSplash(); }, [failed, ready, data]);
   const bootWords = setup ? SETUP_WORDS.title : startStage(!ready && data ? "fonts" : stage);
 
   // (T45) THE WINDOW'S WIDTH, read here and nowhere else in the app: every screen takes its layout class from it
@@ -381,6 +436,7 @@ export default function App() {
         the tab bar. RN's own SafeAreaView padded iOS only; react-native-safe-area-context pads every edge on both. */}
     <SafeAreaProvider>
     <NetRoot net={NET} connectivity={connectivity} store={dataModeStore}>
+    <CrashSettingRoot setting={CRASH_URL ? crashSetting : null}>
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
       <StatusBar barStyle={name === "dark" ? "light-content" : "dark-content"} />
       {failed ? (
@@ -453,9 +509,7 @@ export default function App() {
         </View>
       ) : (
         // THE LOADING SCREEN, and on a phone's first run the download screen: which step, and how much is down
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 14 }}>
-          <LoadingState palette={palette} size={110} label={bootWords} />
-          <Text style={{ color: palette.sub, fontSize: 13 }}>{bootWords}</Text>
+        <BootScreen palette={palette} line={splashLine} words={bootWords}>
           {/* (T254) on a slow or missing line: said, and how far the map's first file has come */}
           {stage !== "install" && !setup && <BootNetLine colour={palette.faint} />}
           {/* (T272) the first bar: the download; it stays (full) under the second stage's bar */}
@@ -472,9 +526,10 @@ export default function App() {
               <Text style={{ color: palette.sub, fontSize: 13 }}>{setupLine(setup)}</Text>
             </>
           )}
-        </View>
+        </BootScreen>
       )}
     </SafeAreaView>
+    </CrashSettingRoot>
     </NetRoot>
     </SafeAreaProvider>
     </LayoutWidthContext.Provider>

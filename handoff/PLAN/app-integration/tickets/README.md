@@ -283,11 +283,11 @@ use that as the sole source of future work."
 | T237 | report a problem: Send report (reason, email, offline queue via T231) → staging feeds worker POST /report (rate-limited, private R2, digest) → review-app Reports tab | PARTIAL | 12a75940 | native device not run; production endpoint + privacy wording are the owner's |
 | T238 | offline regions manager (phone): keep/delete regions, storage used | PARTIAL | b55c20c7b, 6f3fc912f, 342454f7b | More → Offline maps built (regs always all-B.C., owner 10-29); per-region map → T259 |
 | T239 | annual synopsis update: runbook + book diff tool + dry run | OPEN | — | owner 2026-10-28 (P5); the parse is human-run |
-| T240 | production launch checklist (data-worker fix, prod R2, feeds prod + crons, retire old cron/workflows, DNS 301s, Search Console, noindex off, CF bot/robots, secrets, smoke, env) | OPEN | — | owner 2026-10-28 (P6); list written; ★ lines are the owner's; body of T86 |
+| T240 | production launch checklist (updated 2026-10-29: section 11 = map-assets, HYDAT, report purge, SEO build --app, privacy page, store; data-worker fix, prod R2, feeds prod + crons, retire old cron/workflows, DNS 301s, Search Console, noindex off, CF bot/robots, secrets, smoke, env) | OPEN | — | owner 2026-10-28 (P6); list written; ★ lines are the owner's; body of T86 |
 | T241 | staging smoke tests after every deploy (CDP driver vs staging) | DONE | ec26ed584 | 18 checks phone+desktop, 52 s, green; in site.sh/upload.sh; manual workflow not yet run (branch unpushed) |
 | T242 | crash + error reporting (privacy-light) | OPEN | — | owner 2026-10-28 (P8); owner: Sentry vs own endpoint (default own) |
 | T243 | accessibility pass (native) | DONE | 98bb69021, cbaf6e30a, e0e70fed5, d12bd8799, d34ea54e3 | shell press gate (36 states), contrast tokens, axe web walk clean, camera reduce-motion; leftovers → T258 |
-| T244 | app store readiness (icon, splash, listing, privacy labels, internal tracks) | OPEN | — | owner 2026-10-28 (P10); owner: accounts, listing text |
+| T244 | app store readiness (icon, splash, listing, privacy labels, internal tracks) | IN PROGRESS (splash + listing/label drafts done; icon, accounts, submissions: owner) | — | owner 2026-10-28 (P10); owner: accounts, listing text |
 | T245 | low-end Android performance budgets + fixes | OPEN | — | owner 2026-10-28 (P11) |
 | T246 | backups / disaster recovery (R2 + inventory + restore test) | DONE | ec26ed584 | backup bucket + lifecycle; worker daily cron; curated/release scripts; restore test all hashes pass; restore not served end-to-end |
 | T247 | search upgrades (fuzzy, MU/region/town, recents) | DONE | 96abc2b58 | in-memory index, typos, MU/region/town, region/MU on rows, recents; core `item_area` (live release gets MU/region search with its next cut); shots T247-shots/ |
@@ -321,7 +321,7 @@ use that as the sole source of future work."
 | T275 | Mode switch (Standard/Salmon/Runs) resizes the map; only the UI block should change, map fixed | DONE | dbfeb4bf4 (+70aa5e8e9) | owner 2026-10-29 |
 | T276 | DFO line by the mode switch; Runs tab legible on phones (bigger slider); spawner legend + Conditions → first-open tutorials; local /runtiming/ | DONE | 9f0b0a113, f3e0bde78 | owner 2026-10-29 |
 | T277 | Satellite imagery draws in the Android app whenever online; offline toggle says why | DONE | a7673eff4 | not reproduced (HEAD + owner APK draw it on the emulator); probe retries once and logs why it failed |
-| T278 | Re-cut golden regs fixtures after the tidal cuts: PART_TIDAL declaration + renumbered parts (Fraser, Campbell, Brunette, Coquitlam…) | OPEN | — | c1029 lane 2026-10-29 |
+| T278 | Re-cut golden regs fixtures after the tidal cuts: PART_TIDAL declaration + renumbered parts (Fraser, Campbell, Brunette, Coquitlam…) | PARTIAL | — | c1029 lane 2026-10-29; parity green on r-62e2f3a8c81e; owner: tidal part still listed in the water map (Skeena fork test) |
 | T279 | Water pages stored pre-compressed (br/gzip served by encoding), all three layouts kept; SEO build across ≤4 cores | OPEN | — | owner 2026-10-29 |
 | T280 | Basemap two stages: raw Protomaps source via range requests → pruned + simplified ship copy (forest/green-space simplification, visual gate); fixes pan hitches | OPEN | — | owner 2026-10-29 |
 | T281 | Draw the lake area an in-part rule holds on (François map 1, Shuswap A/B/C, Mahood, Canim) | DEFERRED | — | from T208; waits on lake splits (owner deferral, Q142) |

@@ -14,3 +14,26 @@ export const SPINNER_WORDS = { loading: "Loading" } as const;
 
 /** (T224) The water title's line under a name that is not the official one: where it came from. */
 export const WATER_TITLE_WORDS = { nameSource: (source: string) => `Name from ${source}` } as const;
+
+/**
+ * (T244, owner 2026-10-29) THE SPLASH'S LINE: the short pun under the loading fish while the app opens. One line per
+ * opening, picked by `splashLineFor` and never cycled while it is on screen — the same rule as the search placeholders
+ * (`SEARCH_BAR.placeholders`, `./search`). Each is about waters and the rules and none promises fish.
+ */
+export const SPLASH_WORDS = {
+  lines: [
+    "Wading into the rules…",
+    "Getting our lines straight…",
+    "Reading between the lines…",
+    "Hooked on the fine print…",
+    "All going swimmingly…",
+    "Casting about for the rules…",
+  ],
+} as const;
+
+/** The splash line for one opening: `seed` (any number; the app passes a random one, a test a fixed one) picks it. */
+export function splashLineFor(seed: number): string {
+  const lines = SPLASH_WORDS.lines;
+  const i = Number.isFinite(seed) ? Math.abs(Math.floor(seed)) % lines.length : 0;
+  return lines[i]!;
+}
