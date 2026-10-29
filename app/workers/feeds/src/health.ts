@@ -9,7 +9,8 @@
 //
 // Every final outcome is tallied per SOURCE (a source = one upstream service: the ECCC hourly CSVs, one DFO region page,
 // the in-season page, …; `sourceOf`) and error CLASS: http_4xx, http_404, http_5xx, blocked (403), rate_limited (429),
-// timeout, network, parse (the job says the body was unusable), circuit (skipped by the breaker). The run's tally goes
+// timeout, network, parse (the job says the body was unusable), circuit (skipped by the breaker: a `skipped` count, never
+// a failure — the part was not asked, keeps its last good data and does not degrade the feed). The run's tally goes
 // into status.json (`lastRun.sources`) and is folded into a ROLLING record per source (hourly buckets, 7 days):
 // 24 h / 7 d counts per class, success rate, consecutive whole-source failed runs, last error, last ok (`foldHealth`).
 // Parts (a station, a DFO region) that failed this run are kept in `parts` with since / runs-in-a-row / class.
@@ -64,6 +65,8 @@ export interface SourceRun {
   fail: number;
   /** extra attempts spent on retries */
   retries: number;
+  /** requests the breaker skipped (`circuit`): not asked, so neither ok nor fail; the part keeps its last good data */
+  skipped?: number;
   /** answers that are failures in form but expected (listed stations with no data): out of ok / fail */
   expected?: number;
   errors: Partial<Record<ErrorClass, number>>;
@@ -122,6 +125,12 @@ export class RunHealth {
     s.last = { cls, detail: detail.slice(0, 300), url };
     if (url) this.failedUrls.set(url, cls);
   }
+  /** the breaker did not ask for this url: not a failure (see resilientFetch) */
+  skip(source: string, url = "") {
+    const s = this.src(source);
+    s.skipped = (s.skipped ?? 0) + 1;
+    if (url) this.failedUrls.set(url, "circuit");
+  }
   /** a fetch that answered 200 but whose body the job could not use */
   demote(source: string, cls: ErrorClass, detail: string, url = "") {
     const s = this.src(source);
@@ -176,7 +185,9 @@ export function resilientFetch(f: Fetch, health: RunHealth, o: ResilientOptions 
       /* the fetch below throws */
     }
     if (health.breakerOpen(host)) {
-      health.fail(source, "circuit", `${host}: ${BREAKER_TRIP}+ hard failures in a row this run; not asked`, url);
+      // owner 2026-10-29: a skip is not a failure of the thing skipped (it was never asked) — one host blip must not mark
+      // hundreds of healthy stations failed. Tallied as `skipped`; the url keeps its class so a job can tell.
+      health.skip(source, url);
       throw new SourceError("circuit", `circuit open for ${host}`, source);
     }
     let lastErr: unknown = null;

@@ -99,6 +99,19 @@ describe("the outbox", () => {
     expect((await deliver([], { store, config: c, fetch: okFetch, now: T("2026-10-29T15:10:00Z") })).messages).toHaveLength(1);
   });
 
+  it("gauge failures never email alone, even flagged urgent; the digest carries them", async () => {
+    const store = new MemStore();
+    const { sent, cfg } = mailbox();
+    const c = { ...cfg, digest: true, digestHourUtc: 15 };
+    const g = (key: string) => ({ ...ev(key, "health", "Gauge feed FAILED"), urgent: true, data: { job: "gauges", from: "ok", to: "failing", detail: "x" } });
+    const r1 = await deliver([g("health:gauges:ok>failing:a")], { store, config: c, fetch: okFetch, now: T("2026-10-28T09:00:00Z") });
+    expect(r1.messages).toEqual([]);
+    expect(sent).toHaveLength(0);
+    const r2 = await deliver([], { store, config: c, fetch: okFetch, now: T("2026-10-28T15:05:00Z") });
+    expect(r2.messages).toHaveLength(1);
+    expect(r2.messages[0]!.subject).toMatch(/^\[staging\] Daily digest: /);
+  });
+
   it("no 'all fine' digest: a day with only a recovery sends nothing", async () => {
     const store = new MemStore();
     const { sent, cfg } = mailbox();

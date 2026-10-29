@@ -11,6 +11,8 @@
 // "recovered" health event alone (`fine`) never makes a digest; current state is /status's job, not email's.
 // Owner 2026-10-28 (Phase A): a WHOLE feed failing or going stale is the exception — `urgent`, emailed at once; a
 // degraded feed (some stations / a region / a source failing) and a source down 3 runs running wait for the digest.
+// Owner 2026-10-29: GAUGE failures are the exception to the exception — a gauge feed failing, stale or degraded NEVER
+// emails alone; it rides only in the daily digest (DFO + in-season stay urgent).
 // Dry run: nothing sent, nothing recorded — the messages are returned (POST /run/<job>?dryNotify=1, /notify/preview).
 //
 // State (private): notify/state.json — {told: {key: at}, pending: [...], lastDigest}. A key is forgotten after a year.
@@ -165,7 +167,8 @@ export async function deliver(
     fresh.push(e);
   }
   const digest = !!o.config.digest;
-  const isUrgent = (e: FeedEvent) => URGENT.includes(e.kind) || !!e.urgent;
+  // owner 2026-10-29: gauge health is never urgent, whatever flagged it
+  const isUrgent = (e: FeedEvent) => URGENT.includes(e.kind) || (!!e.urgent && !(e.kind === "health" && e.data?.job === "gauges"));
   const now: FeedEvent[] = digest ? fresh.filter(isUrgent) : fresh;
   const later = digest ? fresh.filter((e) => !isUrgent(e)) : [];
   const pending = [...st.pending, ...later];
@@ -228,7 +231,7 @@ export async function sendTest(c: NotifyConfig, fetch: Fetch, now: Date, label: 
       })()
     : {
         subject: `[${label}] TEST — notifications are wired`,
-        text: `This is a TEST message from the ${label} feeds worker, sent ${now.toISOString()}.\n\nPolicy: DFO places to review and in-season changes are emailed at once; HYDAT, roster drift and feed health come in one daily digest, sent only on a day with an issue. Current state: /status on the worker.\n\nNothing needs doing.\n`,
+        text: `This is a TEST message from the ${label} feeds worker, sent ${now.toISOString()}.\n\nPolicy: DFO places to review and in-season changes are emailed at once; HYDAT, roster drift and feed health come in one daily digest, sent only on a day with an issue (gauge failures too, even a whole gauge feed failing). Current state: /status on the worker.\n\nNothing needs doing.\n`,
         keys: [],
       };
   return send(m, c, fetch, now, log);

@@ -76,7 +76,10 @@ describe("resilientFetch", () => {
       }
     }
     expect(s.calls()).toBe(BREAKER_TRIP);
-    expect(h.sources["eccc-hourly"]!.errors).toEqual({ blocked: BREAKER_TRIP, circuit: 10 });
+    // skipped is not failed (owner 2026-10-29): only the real failures are tallied
+    expect(h.sources["eccc-hourly"]!.errors).toEqual({ blocked: BREAKER_TRIP });
+    expect(h.sources["eccc-hourly"]).toMatchObject({ fail: BREAKER_TRIP, skipped: 10 });
+    expect(h.failedUrls.get(H.replace("08MF005", `ST${BREAKER_TRIP + 3}`))).toBe("circuit");
   });
 
   it("the source table covers every upstream", () => {
@@ -146,10 +149,12 @@ describe("rolling health", () => {
     expect(cadenceMin("gauges", new Date("2026-10-28T18:00:00Z"))).toBe(30);
   });
 
-  it("emails: a whole feed failing / stale is urgent, degraded is not", () => {
-    const ev = healthEvents([{ job: "dfo", from: "ok", to: "failing", text: "x" }, { job: "gauges", from: "ok", to: "degraded", text: "y" }], "2026-10-28T10:00:00Z");
+  it("emails: a whole DFO feed failing / stale is urgent, degraded is not; a gauge feed is NEVER urgent", () => {
+    const ev = healthEvents([{ job: "dfo", from: "ok", to: "failing", text: "x" }, { job: "dfo", from: "ok", to: "degraded", text: "y" }, { job: "gauges", from: "ok", to: "failing", text: "g" }, { job: "gauges", from: "ok", to: "stale", text: "s" }], "2026-10-28T10:00:00Z");
     expect(ev[0]!.urgent).toBe(true);
     expect(ev[1]!.urgent).toBeUndefined();
+    expect(ev[2]!.urgent).toBeUndefined();
+    expect(ev[3]!.urgent).toBeUndefined();
   });
 });
 

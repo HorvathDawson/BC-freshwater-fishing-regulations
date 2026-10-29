@@ -136,8 +136,9 @@ export function healthEvents(alerts: Alert[], at: string): FeedEvent[] {
     key: `health:${a.job}:${a.from ?? "-"}>${a.to}:${at}`, kind: "health" as const, title: a.text.slice(0, 160),
     text: `${a.text}\n\nStatus: /status on the feeds worker.`, at, ...(a.to === "ok" ? { fine: true } : {}),
     data: { job: a.job, from: a.from, to: a.to, detail: a.text },
-    // owner 2026-10-28: a WHOLE feed failing / stale is emailed at once; degraded and recoveries wait for the digest
-    ...(a.to === "failing" || a.to === "stale" ? { urgent: true } : {}),
+    // owner 2026-10-28: a WHOLE feed failing / stale is emailed at once; degraded and recoveries wait for the digest.
+    // owner 2026-10-29: EXCEPT gauges — a gauge failure of any size only ever rides in the daily digest.
+    ...((a.to === "failing" || a.to === "stale") && a.job !== "gauges" ? { urgent: true } : {}),
   }));
 }
 
@@ -241,7 +242,10 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       } catch (e) {
         log(`reports: not read (${String(e)})`);
       }
-      const failed = (s.failed ?? []).filter((st) => !nd.listedNoData.has(st));
+      // owner 2026-10-29: a station the breaker skipped was never asked: not a failure, its last good entry is carried
+      const skipped = (s.failed ?? []).filter((st) => health.failedUrls.get(HOURLY(st)) === "circuit");
+      const failed = (s.failed ?? []).filter((st) => !nd.listedNoData.has(st) && health.failedUrls.get(HOURLY(st)) !== "circuit");
+      counts.skippedByBreaker = skipped.length;
       counts.failed = failed.length;
       counts.listedNoData = nd.listedNoData.size;
       counts.carriedStale = s.carried ?? 0;
@@ -254,7 +258,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         }
       }
       if (failed.length > GAUGE_DEGRADED_SHARE * s.asked)
-        held.push({ where: "stations", why: `${failed.length} of ${s.asked} not answered this run; ${s.carried ?? 0} kept their last good entry (stale)` });
+        held.push({ where: "stations", why: `${failed.length} of ${s.asked} failed this run; ${s.carried ?? 0} kept their last good entry (stale)` });
       if (s.forecastFailed?.length) held.push({ where: "forecast", why: `${s.forecastFailed.join(", ")} summary unavailable; last good runs carried` });
       if (s.answered === 0) throw new Error(`no station answered (asked ${s.asked}); index.json ${s.indexKept ? "kept (last good)" : "rewritten"}`);
     } else if (job === "dfo") {
