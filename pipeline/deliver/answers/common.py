@@ -556,11 +556,18 @@ def expand(codes: Optional[Sequence[str]]) -> List[str]:
     return out
 
 
+def each_name(codes: Sequence[str], conj: str = " and ") -> str:
+    """Each fish by its own name, never a group's (ROUND15 1 / RULINGS P19: a size group names exactly the
+    kinds it binds). THE one fish-list wording; `lc_names` is it with a closed group said by its name."""
+    return join([lc(sp_name(c)) for c in codes], conj)
+
+
 def lc_names(codes: Sequence[str], conj: str = " and ") -> str:
+    """The fish in words: a closed group by its name ("trout and char"), else `each_name`."""
     g = group_for(codes)
     if g:
         return lc(g)
-    return join([lc(sp_name(c)) for c in codes], conj)
+    return each_name(codes, conj)
 
 
 MON = MONTHS

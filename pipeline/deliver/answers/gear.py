@@ -36,7 +36,7 @@ import json
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers.common import AnswersError, Bundle, RuleKey, dumps, \
-    expand, rule_id
+    expand, join, rule_id
 from pipeline.deliver.calendar import month_day
 from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
@@ -300,11 +300,11 @@ SUMMARY_PARTS = ("mode", "lines", "hook", "attach", "weight")
 
 
 def _or(words: Sequence[str]) -> str:
-    return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " or " + words[-1]
+    return join(words, " or ")
 
 
 def _and(words: Sequence[str]) -> str:
-    return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " and " + words[-1]
+    return join(words)
 
 
 #: the hook answer that restricts nothing: the sentence names no hook then (ROUND13 G, owner: "any hook"

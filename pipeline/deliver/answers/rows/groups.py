@@ -32,10 +32,7 @@ def total_of(P: "Part", model: dict, row: dict) -> R:
 
 
 def _names(codes: Sequence[str], conj: str = " or ") -> str:
-    g = common.group_for(codes)
-    if g:
-        return common.lc(g)
-    return common.join([common.lc(common.sp_name(c)) for c in codes], conj)
+    return common.lc_names(codes, conj)
 
 
 def _names_short(codes: Sequence[str]) -> str:
@@ -50,8 +47,8 @@ def _names_short(codes: Sequence[str]) -> str:
         if len(s) >= 3 and s < members and len(rest) <= 2:
             from pipeline.deliver.answers.card import book_order
             return (f"{common.lc(common.sp_name(name))} other than "
-                    f"{common.join([common.lc(common.sp_name(x)) for x in book_order(rest)], ' or ')}")
-    return common.join([common.lc(common.sp_name(c)) for c in codes], " or ")
+                    f"{common.each_name(book_order(rest), ' or ')}")
+    return common.each_name(codes, " or ")
 
 
 def _range_words(a, b) -> str:

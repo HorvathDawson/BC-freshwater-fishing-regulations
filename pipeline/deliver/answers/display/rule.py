@@ -6,7 +6,7 @@ from __future__ import annotations
 import re
 from typing import List, Optional, Sequence
 from pipeline.deliver.answers.common import (
-    AnswersError, band_words, cap, clean, cm_in, join, lc, m_ft, sp_name, when_words
+    AnswersError, band_words, cap, clean, cm_in, each_name, lc, m_ft, when_words
 )
 from pipeline.deliver.bundle.rules import closure_grade
 
@@ -161,7 +161,7 @@ def written_name(x: dict, conj: str = " and ") -> str:
     w = list(x.get("species") or [])
     if w == ["TROUT_CHAR"] and "CHAR" in (x.get("species_except") or []):
         return "trout"
-    return join([lc(sp_name(c)) for c in w], conj) if w else "fish"
+    return each_name(w, conj) if w else "fish"
 
 
 #: THE POSSESSION QUOTA'S EXCEPTION, in plain words — ONE source (RULINGS Q15:
@@ -257,7 +257,7 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     species = list(x.get("species") or [])
     sp = names or nm(" and ")
     ex = [s for s in (x.get("species_except") or []) if not (s == "CHAR" and sp == "trout")]
-    ex_txt = f" (not {join([lc(sp_name(s)) for s in ex], ' or ')})" if ex and not names else ""
+    ex_txt = f" (not {each_name(ex, ' or ')})" if ex and not names else ""
     many = (len(species) > 1 or (bool(_MANY.match(sp)) and sp != "trout")
             or any(s in SPECIES_GROUPS for s in species))
     water = x.get("water")
@@ -382,7 +382,7 @@ def _title(x: dict) -> Optional[str]:
         if conj == " or ":
             w = re.sub(r"^trout and char", "trout or char", w)
         ex = [s for s in (x.get("species_except") or []) if not (s == "CHAR" and w == "trout")]
-        return w + (f" (not {join([lc(sp_name(e)) for e in ex], ' or ')})" if ex else "")
+        return w + (f" (not {each_name(ex, ' or ')})" if ex else "")
     whole = bool(re.search(r"game fish|^fish", written_name(x)))
     water = x.get("water")
     frm = f" from {water}s" if water else (" in tributaries" if _js(x.get("tributaries_only")) else "")

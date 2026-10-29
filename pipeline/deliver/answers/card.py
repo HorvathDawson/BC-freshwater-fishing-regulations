@@ -71,10 +71,7 @@ def _js(v):
 
 
 def _names(codes: Sequence[str], conj: str = " and ") -> str:
-    g = common.group_for(codes)
-    if g:
-        return common.lc(g)
-    return common.join([common.lc(common.sp_name(c)) for c in codes], conj)
+    return common.lc_names(codes, conj)
 
 
 def _cm(v, inch: bool = False) -> str:
@@ -569,7 +566,7 @@ def book_order(codes: Sequence[str]) -> List[str]:
 def _named_list(codes: Sequence[str]) -> str:
     """ROUND15 1: the kinds a size group binds, each named ("Brown trout, Dolly Varden/bull trout, lake
     trout or brook trout") — never a group's name, which would claim kinds it does not bind."""
-    return common.cap(common.join([common.lc(common.sp_name(c)) for c in codes], " or "))
+    return common.cap(common.each_name(codes, " or "))
 
 
 def _named_with_members(codes: Sequence[str]) -> str:
