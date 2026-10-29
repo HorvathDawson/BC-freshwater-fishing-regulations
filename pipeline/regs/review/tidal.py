@@ -239,17 +239,39 @@ OWNER_STATED = {
 }
 
 
-def words_conflict(r: dict, evs: list, p2: dict | None) -> list[str]:
-    """WHERE WORDS DISAGREE (owner 2026-10-28: only words make a conflict, never the polygon): a DFO line in
-    tidal water crossing the stream above the mouth, a pass-2 source naming an upstream boundary, or a
-    located pass-2 entry the owner's mark breaks."""
+def located_words(r: dict, evs: list) -> list[tuple[float, str]]:
+    """Every located word point as (m above the mouth, what): sources, the resolved landmark, pass-2 "is" and sign rows."""
+    m0 = float((r.get("mouth") or {}).get("measure") or 0.0)
+    out = [(float(s["measure"]) - m0, f"{s['kind']}: {s.get('source')}") for s in r.get("sources") or []
+           if s.get("kind") != "tidal_gauge" and s.get("measure") is not None and str(s.get("kind")) != "curated_split_offset"]
+    wp = r.get("words_point") or {}
+    if wp.get("measure") is not None:
+        out.append((float(wp["measure"]) - m0, f"landmark: {wp.get('located_by')}"))
+    for e in evs:
+        lo = e.get("located") or {}
+        if lo.get("above_mouth_m") is not None and (e.get("effective") == "is" or (_sign_words(e) and e.get("effective") == "at_or_below")):
+            out.append((float(lo["above_mouth_m"]), f"DFO pass 2: {e.get('label') or e.get('entry')}"))
+    return out
+
+
+def words_conflict(r: dict, evs: list, p2: dict | None, at_m: float = 0.0) -> list[str]:
+    """WHERE WORDS DISAGREE (owner 2026-10-28: only words make a conflict, never the polygon) — with the row's point
+    (`at_m` above the mouth: the located words, else the mouth), with each other, or with the owner's mark: a DFO
+    line in tidal water crossing above the point, located words more than 300 m apart, a pass-2 entry the mark
+    breaks; on a mouth row, a pass-2 source naming an upstream boundary."""
     out = []
     for e in evs:
         lo = e.get("located") or {}
-        if e.get("effective") == "at_or_above" and lo.get("above_mouth_m") is not None and lo["above_mouth_m"] > DEFAULT_LINE_M:
-            out.append(f"a DFO line in tidal water crosses {lo['above_mouth_m']:.0f} m above the mouth ({e.get('label') or e.get('entry')})")
+        if e.get("effective") == "at_or_above" and lo.get("above_mouth_m") is not None \
+                and lo["above_mouth_m"] > at_m + DEFAULT_LINE_M:
+            out.append(f"a DFO line in tidal water crosses {lo['above_mouth_m']:.0f} m above the mouth, above the "
+                       f"proposed {at_m:.0f} m ({e.get('label') or e.get('entry')})")
+    pts = located_words(r, evs)
+    if pts and max(p for p, _ in pts) - min(p for p, _ in pts) > 300.0:
+        lo_, hi_ = min(pts), max(pts)
+        out.append(f"the words disagree with each other: {lo_[1]} at {lo_[0]:.0f} m vs {hi_[1]} at {hi_[0]:.0f} m")
     dm = (p2 or {}).get("dfo_mouth") or {}
-    if dm.get("upstream_sources"):
+    if dm.get("upstream_sources") and at_m < 1 and not pts:
         out.append(f"upstream sources: {'; '.join(dm['upstream_sources'][:3])}")
     if (p2 or {}).get("mark_conflict"):
         out.append(f"words disagree with the owner's mark ({', '.join((p2.get('mark_conflict_entries') or [])[:3])})")
@@ -296,7 +318,6 @@ def apply_default(by_id: dict, doc2: dict | None) -> dict:
         r["boundary_words"] = ([stated["words"]] if stated else []) + boundary_words(r, evs)
         # located words -> "words name it"; words that name a boundary but are not located -> "locate" (never the default)
         r["words_status"] = "located" if r["specified"] else ("locate" if r["boundary_words"] else None)
-        r["words_conflict"] = words_conflict(r, evs, p2)
         dv = None if (stated or r["words_status"]) else default_verdict(r, evs, p2)
         wl = WORDS_LOCATED.get(cid)
         if wl and not stated:
@@ -353,6 +374,10 @@ def apply_default(by_id: dict, doc2: dict | None) -> dict:
                 r["alternates"] = [{**a, "proposed": a.get("kind") == "mouth",
                                     **({"label": f"{a.get('label')} (ignored for cuts)"} if a.get("kind") == "polygon" else {})}
                                    for a in r.get("alternates") or []]
+        at_m = float((r.get("proposed") or {}).get("above_mouth_m") or 0.0) if r["words_status"] == "located" else 0.0
+        r["words_conflict"] = words_conflict(r, evs, p2, at_m)
+        r["group"] = ("conflict" if r["words_conflict"] else "words" if r["words_status"] == "located"
+                      else "locate" if r["words_status"] == "locate" else "mouth")
         out[cid] = r
     return out
 

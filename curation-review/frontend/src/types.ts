@@ -1195,6 +1195,8 @@ export interface TidalRow {
   words_status?: "located" | "locate" | null;
   boundary_words?: string[];
   words_confidence?: string | null;
+  /** the Tidal tab's group (owner 2026-10-28): mouth | words | locate | conflict */
+  group?: "mouth" | "words" | "locate" | "conflict";
   /** the mark in force is the owner's un-accept (deferred): the default bulk accept may take it */
   unaccepted?: boolean;
 }
@@ -1211,8 +1213,8 @@ export interface TidalProgress {
   /** DFO default: mouth counts by verdict (high / conflict) */
   by_dfo_default?: Record<string, number>;
   /** the Tidal tab's progress groups: marked / total each; `default_acceptable` = what the default bulk accept takes */
-  groups?: Record<"words" | "words_locate" | "dfo_mouth" | "dfo_default" | "conflict", { total: number; marked: number }>
-    & { unmarked: { total: number; marked: number; unmarked: number }; default_acceptable: number };
+  groups?: Record<"mouth" | "words" | "locate" | "conflict" | "done", { total: number; marked: number }>
+    & { default_acceptable: number };
   coverage: Record<string, unknown>;
 }
 /** GET /api/tidal/candidates/{id} */

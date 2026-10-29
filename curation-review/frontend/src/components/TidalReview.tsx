@@ -11,10 +11,6 @@ import { applyPv, PV_DEFAULT, PvBadge, PvControls, type PvFilter } from "./Preve
 
 export const TIDAL_HASH = "tidal/";
 
-const VERIFY: [string, string][] = [
-  ["", "all"], ["todo", "to do"], ["unmarked", "never marked"], ["stale", "changed since marked"],
-  ["verified", "accepted"], ["wrong", "wrong"], ["unsure", "unsure"], ["deferred", "deferred"],
-];
 const CROSSING_WORDS: Record<string, string> = {
   clean: "polygon crosses once", at_mouth: "polygon edge at the mouth", blobs: "polygon crosses in pieces",
   misses: "polygon misses the stream",
@@ -115,9 +111,16 @@ export function defaultSplit(c: TidalCandidate): NewSplit {
 export const defaultAcceptable = (rows: TidalRow[]) =>
   rows.filter((r) => r.dfo_default === "high" && !(r.boundary_words?.length) && (r.verify === "unmarked" || r.unaccepted));
 
-const GROUP_WORDS: [string, string][] = [
-  ["words", "words name it"], ["words_locate", "words name it — locate"], ["dfo_mouth", "DFO confirms mouth"], ["dfo_default", "DFO default: mouth"], ["conflict", "conflicts"],
+/** THE TIDAL TAB'S GROUPS (owner 2026-10-28): every candidate in exactly one; "done" = owner-marked, across them */
+export const TIDAL_GROUPS: [TidalGroup, string, string][] = [
+  ["mouth", "Mouth (DFO default)", "no source names a boundary in words: DFO's default puts it at the mouth"],
+  ["words", "Words name the boundary", "the words are located on the line: review the proposed point"],
+  ["locate", "Words name it — not located yet", "the words name a boundary that is not placed yet: place it"],
+  ["conflict", "Conflict", "words disagree with the mouth, with each other, or with an owner mark"],
+  ["done", "Done", "owner-marked"],
 ];
+type TidalGroup = "mouth" | "words" | "locate" | "conflict" | "done";
+const isDone = (r: TidalRow) => r.verify !== "unmarked" && r.verify !== "stale";
 
 interface Props {
   mode: Mode;
@@ -131,15 +134,14 @@ interface Props {
 export function TidalReview({ mode }: Props) {
   const [allRows, setRows] = useState<TidalRow[]>([]);
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
-  const [mouthOnly, setMouthOnly] = useState(false);
-  const [defaultOnly, setDefaultOnly] = useState(false);
-  const rows = useMemo(() => applyPv(allRows.filter((r) => (!mouthOnly || r.dfo_mouth) && (!defaultOnly || r.dfo_default)), pvf),
-    [allRows, pvf, mouthOnly, defaultOnly]);
+  const [group, setGroup] = useState<TidalGroup>("words");
+  const [q, setQ] = useState("");
+  const rows = useMemo(() => applyPv(allRows.filter((r) => (group === "done" ? isDone(r) : !isDone(r) && (r.group ?? "mouth") === group)
+    && (!q.trim() || r.water.toLowerCase().includes(q.trim().toLowerCase()))), pvf), [allRows, pvf, group, q]);
   const [bulkBusy, setBulkBusy] = useState(false);
   const queueSeq = useRef(0);
   const [progress, setProgress] = useState<TidalProgress | null>(null);
   const fold = useFold("tidal");
-  const [filters, setFilters] = useState({ confidence: "", verify: "", enters: "", words: false, q: "", triage: DEFAULT_TRIAGE });
   const [selected, setSelected] = useState<string | null>(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
     return h.startsWith(TIDAL_HASH) ? h.slice(TIDAL_HASH.length) || null : null;
@@ -150,10 +152,10 @@ export function TidalReview({ mode }: Props) {
 
   const loadRows = useCallback(() => {
     const seq = ++queueSeq.current;      // only the latest request lands (a slow earlier one must not overwrite it)
-    api.tidalQueue(mouthOnly || defaultOnly ? { ...filters, triage: "" } : filters)
+    api.tidalQueue({})
       .then((got) => { if (seq === queueSeq.current) setRows(got); }).catch((e) => setError(String(e)));
     api.tidalProgress().then(setProgress).catch(() => {});
-  }, [filters, mouthOnly, defaultOnly]);
+  }, []);
 
   // ACCEPT ALL "DFO DEFAULT: MOUTH" (owner 2026-10-28): EVERY candidate nothing specifies — the whole queue,
   // whatever the filters — one owner mark each at the FWA mouth; conflicts and marked rows skipped
@@ -187,33 +189,6 @@ export function TidalReview({ mode }: Props) {
     loadRows();
   }
 
-  // ACCEPT THE "DFO CONFIRMS MOUTH" BUCKET: one mark per unmarked upgrade / new row (marks are the only write)
-  async function acceptMouths() {
-    const take = mouthAcceptable(rows);
-    const who = getReviewer().trim();
-    if (!who) { setError("Type your name in a candidate's review box first: every mark names its reviewer."); return; }
-    if (!take.length) { setNotice("nothing to accept: every DFO-confirms-mouth row here is marked or a conflict"); return; }
-    if (!window.confirm(`Accept ${take.length} "DFO confirms the mouth" candidate(s): the tidal cut at the FWA mouth?`
-      + `\n\nOne mark each (P y), by ${who}. Conflicts and already-marked rows are skipped; a mark can be changed later.`)) return;
-    setBulkBusy(true);
-    let ok = 0;
-    const bad: string[] = [];
-    for (const r of take) {
-      try {
-        const d = await api.tidalCandidate(r.id);
-        await api.postMark({ scope: "tidal", target: r.id, answers: { P: "y" }, problem: null,
-          note: `DFO confirms the mouth (T212 pass 2): ${r.dfo_mouth_why ?? ""} — bulk accept`, reviewer: who, seconds: 0,
-          new_splits: [mouthSplit(d.candidate)] });
-        ok += 1;
-      } catch (e) {
-        bad.push(`${r.water}: ${String(e)}`);
-      }
-    }
-    setBulkBusy(false);
-    setNotice(`saved ✓ ${ok} DFO-confirms-mouth mark(s)${bad.length ? ` · ${bad.length} NOT saved` : ""}`);
-    if (bad.length) setError(bad.join(" · "));
-    loadRows();
-  }
   useEffect(() => { loadRows(); }, [loadRows]);
 
   const open = useCallback((id: string) => {
@@ -245,106 +220,40 @@ export function TidalReview({ mode }: Props) {
     document.querySelector(`[data-tidal="${CSS.escape(selected)}"]`)?.scrollIntoView({ block: "nearest" });
   }, [selected, rows]);
 
-  const set = (patch: Partial<typeof filters>) => setFilters((f) => ({ ...f, ...patch }));
-  const cov = (progress?.coverage ?? {}) as Record<string, number>;
-  const pct = progress && progress.total ? (100 * progress.done) / progress.total : 0;
+    const pct = progress && progress.total ? (100 * progress.done) / progress.total : 0;
   return (
     <div className="app dfo-mode tidal-mode" data-testid="tidal-mode">
       <div className="filterbar-wrap">
         <TopNav active="tidal" right={<>
           <span className="progress dfo-progress" data-testid="tidal-progress">
-            {progress ? <>
-              <strong>{progress.done}/{progress.total}</strong> marked
-              <span data-testid="tidal-triage-counts"> · <strong>{progress.by_triage?.missed ?? 0}</strong> missed
-                · <strong>{progress.by_triage?.sanity ?? 0}</strong> sanity
-                · <strong>{progress.by_triage?.["multi-crossing"] ?? 0}</strong> multi-crossing</span>
-              <span className="dim"> · {progress.with_words} named by the words
-                · named ocean streams met by the polygon {cov.named_ocean_entering_found_by_polygon ?? "?"}/{cov.named_ocean_entering_total ?? "?"}</span>
-            </> : "…"}
+            {progress ? <><strong>{progress.done}/{progress.total}</strong> marked</> : "…"}
           </span>
-          <FoldToggle fold={fold} set={(filters.triage !== DEFAULT_TRIAGE ? 1 : 0) + (filters.confidence ? 1 : 0) + (filters.enters ? 1 : 0) + (filters.verify ? 1 : 0) + (filters.words ? 1 : 0) + (filters.q ? 1 : 0) + (mouthOnly ? 1 : 0) + (defaultOnly ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0)} />
+          <FoldToggle fold={fold} set={(q ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0)} />
         </>} />
-        {fold.open && (
-        <div className="filterbar filterbar-more" data-testid="filters-more">
-          <div data-testid="tidal-triage-filter">
-            <label>triage</label>
-            <select aria-label="triage" value={filters.triage} onChange={(e) => set({ triage: e.target.value })}>
-              <option value="review">missed + sanity + multi-crossing ({(progress?.by_triage?.missed ?? 0) + (progress?.by_triage?.sanity ?? 0)
-                + (progress?.by_triage?.["multi-crossing"] ?? 0)})</option>
-              {Object.keys(TRIAGE_WORDS).map((k) => (
-                <option key={k} value={k}>{TRIAGE_WORDS[k]} ({progress?.by_triage?.[k as keyof TidalProgress["by_triage"]] ?? 0})</option>
-              ))}
-              <option value="">all</option>
-            </select>
-          </div>
-          <label className="dim" style={{ display: "flex", gap: 4, alignItems: "center" }}>
-            <input type="checkbox" data-testid="tidal-show-all" checked={filters.triage === ""}
-              onChange={(e) => set({ triage: e.target.checked ? "" : DEFAULT_TRIAGE })} /> show all
-          </label>
-          <div>
-            <label>confidence</label>
-            <select aria-label="confidence" value={filters.confidence} onChange={(e) => set({ confidence: e.target.value })}>
-              <option value="">all</option>
-              {["high", "medium", "low"].map((c) => (
-                <option key={c} value={c}>{c} ({progress?.by_confidence[c] ?? 0})</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>enters</label>
-            <select aria-label="enters" value={filters.enters} onChange={(e) => set({ enters: e.target.value })}>
-              <option value="">any</option>
-              <option value="ocean">the sea</option>
-              <option value="tidal_water">tidal water (a tidal river / estuary)</option>
-            </select>
-          </div>
-          <div>
-            <label>review</label>
-            <select aria-label="tidal review" value={filters.verify} onChange={(e) => set({ verify: e.target.value })}>
-              {VERIFY.map(([k, w]) => <option key={k} value={k}>{w}</option>)}
-            </select>
-          </div>
-          <label className="dim" style={{ display: "flex", gap: 4, alignItems: "center" }}>
-            <input type="checkbox" checked={filters.words} onChange={(e) => set({ words: e.target.checked })}
-              data-testid="tidal-words-only" /> words name it
-          </label>
-          <PvControls value={pvf} onChange={setPvf} rows={allRows} />
-          <label className="dim" style={{ display: "flex", gap: 4, alignItems: "center" }} data-testid="tidal-mouth-bucket"
-            title="T212 pass 2: a DFO tidal-water area at the stream's mouth confirms tidal water reaches the FWA mouth (DFO's default rule)">
-            <input type="checkbox" checked={mouthOnly} onChange={(e) => setMouthOnly(e.target.checked)} /> DFO confirms mouth
-            ({progress?.by_dfo_mouth?.upgrade ?? 0} high · {progress?.by_dfo_mouth?.new ?? 0} new · {progress?.by_dfo_mouth?.conflict ?? 0} conflict)
-          </label>
-          {mouthOnly && (
-            <button className="btn small primary" disabled={bulkBusy || !mouthAcceptable(rows).length} data-testid="tidal-mouth-accept"
-              onClick={() => void acceptMouths()}>{bulkBusy ? "saving…" : `accept ${mouthAcceptable(rows).length} at the mouth`}</button>
-          )}
-          <label className="dim" style={{ display: "flex", gap: 4, alignItems: "center" }} data-testid="tidal-default-bucket"
-            title="DFO definitions page: unless otherwise specified, the tidal boundary is a line across the mouth. These streams have no source naming the boundary itself.">
-            <input type="checkbox" checked={defaultOnly} onChange={(e) => setDefaultOnly(e.target.checked)} /> DFO default: mouth
-            ({progress?.by_dfo_default?.high ?? 0} high · {progress?.by_dfo_default?.conflict ?? 0} conflict)
-          </label>
-          {defaultOnly && (
+        <div className="filterbar" data-testid="tidal-groups" style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+          {TIDAL_GROUPS.map(([k, w, why]) => {
+            const g = k === "done" ? progress?.groups?.done : progress?.groups?.[k];
+            const n = k === "done" ? (g?.marked ?? 0) : (g ? g.total - g.marked : 0);
+            return (
+              <button key={k} className={`btn small${group === k ? " primary" : ""}`} title={why} data-testid={`tidal-group-${k}`}
+                onClick={() => setGroup(k)} style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                {w} <strong>{n}</strong>
+                {g && <span className="progress slim" title={`${g.marked} of ${g.total} marked`}>
+                  <span className="bar"><i style={{ width: `${g.total ? (100 * g.marked) / g.total : 0}%` }} /></span></span>}
+              </button>);
+          })}
+          {group === "mouth" && (
             <button className="btn small primary" disabled={bulkBusy || !progress?.groups?.default_acceptable} data-testid="tidal-default-accept"
               onClick={() => void acceptDefaults()}>{bulkBusy ? "saving…" : `Accept all ${progress?.groups?.default_acceptable ?? 0} at the mouth (DFO default)`}</button>
           )}
-          <input className="dfo-search" placeholder="stream…" value={filters.q}
-            onChange={(e) => set({ q: e.target.value })} aria-label="search tidal" />
-                  </div>
-        )}
-        <div className="filterbar-line"><div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)" }} /></div>
-        {progress?.groups && (
-          <div className="dim" data-testid="tidal-groups" style={{ display: "flex", flexWrap: "wrap", gap: 14, padding: "4px 8px", fontSize: 12 }}>
-            {GROUP_WORDS.map(([k, w]) => {
-              const g = progress.groups![k as "words"];
-              return (
-                <span key={k} className="progress slim" title={`${w}: ${g.marked} of ${g.total} marked`}>
-                  {w} <strong>{g.marked}/{g.total}</strong>
-                  <span className="bar"><i style={{ width: `${g.total ? (100 * g.marked) / g.total : 0}%` }} /></span>
-                </span>);
-            })}
-            <span className="progress slim">unmarked <strong>{progress.groups.unmarked.unmarked}</strong></span>
+        </div>
+        {fold.open && (
+          <div className="filterbar filterbar-more" data-testid="filters-more">
+            <PvControls value={pvf} onChange={setPvf} rows={allRows} />
+            <input className="dfo-search" placeholder="stream…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="search tidal" />
           </div>
         )}
+        <div className="filterbar-line"><div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)" }} /></div>
       </div>
       {notice && <div className="notice" data-testid="tidal-notice" style={{ margin: 8 }}>{notice}{" "}
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setNotice("")}>dismiss</button></div>}
@@ -352,7 +261,7 @@ export function TidalReview({ mode }: Props) {
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setError("")}>dismiss</button></div>}
       <div className="main">
         <div className="queue" data-testid="tidal-queue">
-          <div className="queue-group">{rows.length} proposed tidal boundar{rows.length === 1 ? "y" : "ies"} — read only; accepting records a mark</div>
+          <div className="queue-group">{rows.length} in {TIDAL_GROUPS.find(([k]) => k === group)?.[1]} — read only; accepting records a mark</div>
           {rows.map((r) => (
             <div key={r.id} data-tidal={r.id} className={`queue-row${r.id === selected ? " selected" : ""}`}
               onClick={() => open(r.id)}>
@@ -365,23 +274,12 @@ export function TidalReview({ mode }: Props) {
                 <span>{r.zones.slice(0, 2).join(", ") || `blk ${r.blk}`}</span>
                 <span>{r.enters === "ocean" ? "sea" : "tidal water"}</span>
                 <span>{r.above_mouth_m > 75 ? `${Math.round(r.above_mouth_m)} m above mouth` : "at the mouth"}</span>
-                {r.n_words > 0 && <span className="chip-tag suggested">words · {r.agreement}</span>}
-                {r.words_disagree && <span className="chip-tag new">words disagree</span>}
-                {r.triage && <span className={`chip-tag${r.triage === "missed" || r.triage === "sanity" ? " new" : ""}`}
-                  title={r.triage_why ?? ""}>{r.triage}</span>}
-                {r.n_web > 0 && <span className="chip-tag suggested">web · {r.n_web}</span>}
-                {r.dfo_mouth && <span className={`chip-tag${r.dfo_mouth === "conflict" ? " new" : " suggested"}`} title={r.dfo_mouth_why ?? ""}>
-                  {r.dfo_mouth === "conflict" ? "DFO mouth: conflict" : r.dfo_mouth === "new" ? "DFO mouth: new" : "DFO confirms mouth"}</span>}
-                {r.dfo_default && <span className={`chip-tag${r.dfo_default === "conflict" ? " new" : " suggested"}`} title={r.dfo_default_why ?? ""}>
-                  {r.dfo_default === "conflict" ? "DFO default: conflict" : "DFO default: mouth"}</span>}
-                {r.words_status === "locate" && <span className="chip-tag new" title={(r.boundary_words ?? []).join(" | ")}>words name it — locate</span>}
-                {r.words_status === "located" && r.n_words === 0 && <span className="chip-tag suggested" title={(r.boundary_words ?? []).join(" | ")}>
-                  words located{r.words_confidence ? ` · ${r.words_confidence}` : ""}</span>}
-                {r.unaccepted && <span className="chip-tag new" title="the owner un-accepted this: no specified boundary">un-accepted</span>}
+                {r.group === "conflict" && <span className="chip-tag new" title={(r.words_conflict ?? []).join(" | ")}>conflict</span>}
+                {r.group === "words" && r.words_confidence && <span className="chip-tag suggested">{r.words_confidence}</span>}
                 {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
-                {r.multi_crossing && r.triage !== "multi-crossing" && <span className="chip-tag" title="the line crosses the polygon in, out and in again">{r.n_cuts} crossings</span>}
               </div>
-              <div className="meta dfo-text">{CROSSING_WORDS[r.crossing] ?? r.crossing}</div>
+              <div className="meta dfo-text">{r.group === "conflict" ? (r.words_conflict ?? [])[0]
+                : r.group === "mouth" ? "no source names a boundary in words" : (r.boundary_words ?? [])[0] ?? ""}</div>
             </div>
           ))}
         </div>
