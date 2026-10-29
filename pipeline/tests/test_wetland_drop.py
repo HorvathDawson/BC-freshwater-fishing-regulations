@@ -63,7 +63,8 @@ def _db(**extra):
         CREATE TABLE ruleset (set_id INTEGER, entry_id TEXT, via TEXT);
         CREATE TABLE section_ruleset (sid INTEGER, set_id INTEGER);
         CREATE TABLE item_section (ord INTEGER, sid INTEGER);
-        CREATE TABLE section_gauge (sid INTEGER);""")
+        CREATE TABLE section_gauge (sid INTEGER);
+        CREATE TABLE tidal (sid INTEGER, entry_id TEXT);  -- (T166) problems() checks the tidal cut too""")
     db.executemany("INSERT INTO item VALUES (?,?,?)",
                    [(0, "area:watershed:liard", "area"), (1, "gnis:5", "stream")])
     db.executemany("INSERT INTO entry VALUES (?,?)", [("z7:base", None),

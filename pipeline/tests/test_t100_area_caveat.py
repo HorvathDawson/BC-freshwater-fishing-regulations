@@ -57,13 +57,13 @@ def _corpus():
 #: undrawn part). 135 rules on 87 rows, 2026-10-23. Lakes are most of them (100 rules on lakes, 9 on
 #: Hatzic Lake and Slough / Shuswap's lake-and-river row, the rest streams and one zone line).
 #: Kootenay, Williston (Zones A/B) and Shannon are SPLIT into parts (`sub_lake_areas.json`) and are
-#: not here; Ross Lake / Skagit River are not either — each row binds its whole water by the book.
+#: not here, nor the Stave's two spawning channels (T222 drew Ruskin and Northrop); Ross Lake / Skagit River are not either — each row binds its whole water by the book.
 WIDENED = {
     "r1:cowichan_lake_including_bear_lake@1-4": 1, "r1:great_central_lake@1-7": 1,
     "r2:alouette_lake@2-8": 2, "r2:cultus_lake@2-3": 1,
     "r2:harrison_lake@2-18": 1, "r2:harrison_river_from_the_fraser_river_upstream_to_harrison_la@2-18": 1,
     "r2:pitt_lake@2-8": 2, "r2:powell_lake@2-12": 1, "r2:ruby_lake@2-5": 1,
-    "r2:sakinaw_lake@2-5": 2, "r2:stave_river@2-8": 2, "r3:adams_lake@3-37": 1, "r3:leighton_lake@3-18": 2,
+    "r2:sakinaw_lake@2-5": 2, "r3:adams_lake@3-37": 1, "r3:leighton_lake@3-18": 2,
     "r3:loon_lake@3-30": 2, "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46": 8,
     "r3:roche_lake@3-20": 1, "r3:shumway_lake@3-20": 1,
     "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26": 7, "r3:white_lake@3-26": 1,
@@ -113,7 +113,8 @@ def test_the_widened_rules_are_counted():
     # whole (91 -> 85)
     # owner 2026-10-26: François Lake r2-r7 hold on the whole lake (97 -> 91); drop_on_parts made 33 "on parts" rules whole-water (no caveat), and Cranberry r1 binds
     # between its two canyon cuts (131, 83 before)
-    assert (sum(per.values()), len(per)) == (85, 56)
+    # T222 (r-0fa7927b16e5): the Stave's r1/r2 bind the Ruskin and Northrop channels, drawn now (85, 56 -> 83, 55)
+    assert (sum(per.values()), len(per)) == (83, 55)
     lic = sorted(e["entry_id"] for f in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json"))
                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())

@@ -82,6 +82,10 @@ ALLOWED = {
     ("pipeline/regs/dfo_salmon/splitwork.py", 'x.startswith("wsc:")'),
     # registry ref ids ("wsc:100-1"), split to get the code that is then handed to `wsc`
     ("pipeline/regs/dfo_salmon/suggest.py", 'r.startswith("wsc:")'),
+    ("pipeline/regs/inseason/auto.py", 'ref.startswith("wsc:")'),
+    # a name source's prefix ("municipal:<city>") and a precheck message, not codes
+    ("pipeline/regs/review/names.py", 'src.startswith("municipal:")'),
+    ("pipeline/regs/review/split_suggest.py", "f['what'][:300]"),
     # a basin AREA id ("area:basin:100-342455-"): the id's prefix, then the code is handed to `wsc`
     ("pipeline/atlas/registry/basins.py", "str(area_id).startswith(BASIN)"),
     ("pipeline/atlas/registry/basins.py", "code = str(area_id)[len(BASIN):]"),

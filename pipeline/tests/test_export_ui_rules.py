@@ -197,13 +197,18 @@ def test_a_water_s_parts_are_the_bundle_s_own_pairing(doc, db):
                                           None if ls is None else str(ls),
                                           tuple(pe.split(",")) if pe else (), bool(sw), st, n))
     for item, w in doc["waters"].items():
-        got = {(p["ruleset"], p["licensing_set"], tuple(p.get("province_except") or ()),
-                bool(p.get("anadromous_rainbow")), p.get("steelhead"), p["sections"])
-               for p in w["parts"]}
+        # (T228, a757756b) no-access land and a salmon boundary break a water's pieces: one pairing can be two parts,
+        # each its own stretch — so the pairing is the parts' sum, and a pairing's parts lie in different places
+        per: dict = {}
+        for p in w["parts"]:
+            k = (p["ruleset"], p["licensing_set"], tuple(p.get("province_except") or ()),
+                 bool(p.get("anadromous_rainbow")), p.get("steelhead"))
+            per.setdefault(k, []).append(p)
+        got = {(*k, sum(p["sections"] for p in ps)) for k, ps in per.items()}
         assert got == want.get(item, set()), item       # a lake cut into parts owns no section
-        keys = [(p["ruleset"], p["licensing_set"], tuple(p.get("province_except") or ()),
-                 bool(p.get("anadromous_rainbow")), p.get("steelhead")) for p in w["parts"]]
-        assert len(keys) == len(set(keys)), f"{item}: a part appears twice"
+        for k, ps in per.items():
+            where = [json.dumps(p.get("runs"), sort_keys=True) for p in ps]
+            assert len(where) == len(set(where)), f"{item}: a part appears twice {k}"
         assert "rulesets" not in w and "licensing_sets" not in w, "one encoding, not two"
         # PER PART, never per water: the page must not infer which stretch is the park's
         assert "province_except" not in w, f"{item}: province_except is a per-part fact"

@@ -62,6 +62,7 @@ from pipeline.common.utils import wsc as _wsc
 from pipeline.common.utils.wsc import trim_wsc as _trim
 from pipeline.gauges.liveness import speaks_now
 from pipeline.gauges.consume.panels import LARGE_SHARE
+from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS
 
 #: THE SHED CLIMBS AS THE TRIBUTARY WALK CLIMBS (T117, owner 2026-10-22: one entry check, used in every
 #: walk). Going UP from a gauge, each step is one `tributaries.may_enter` allows with the gauge's own
@@ -560,7 +561,7 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
 
 #: (T252) The edges a walk DOWN takes first: the river going on (`MAINSTEM_EDGE_KINDS`) and a river ENTERING A LAKE —
 #: a piece with a `lake_in` edge ends at the lake, and its other edges are braids and distributaries leaving it.
-_WALK_FIRST = frozenset({"continuation", "lake_out", "lake_in"})
+_WALK_FIRST = MAINSTEM_EDGE_KINDS | {"lake_in"}
 
 
 def _down_one(graph, sec: str) -> Optional[str]:
@@ -631,7 +632,7 @@ def section_lengths(graph, down: dict[str, str]) -> dict[str, float]:
     of the way from the upper Pitt to the Alouette, and a zero there would say 0.
     """
     from pipeline.atlas.graph.windows import polygon_window
-    from pipeline.common.models.enums import NodeKind
+    from pipeline.atlas.reach.water_kind import kind_of
 
     arrive: dict[str, list[str]] = {}
     for a, b in down.items():
@@ -639,7 +640,8 @@ def section_lengths(graph, down: dict[str, str]) -> dict[str, float]:
     out: dict[str, float] = {}
     for sec in sorted(down):
         n = graph.nodes[sec]
-        if n.kind != NodeKind.lake:
+        # the SHAPE, not the water (registry None: the graph node's kind) — a polygon has no length on a line
+        if kind_of(graph, None, sec) != "lake":
             out[sec] = max(0.0, float(n.length_m or (n.up_m - n.down_m) or 0.0))
             continue
         w = polygon_window(graph, sec)

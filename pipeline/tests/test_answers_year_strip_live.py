@@ -38,7 +38,7 @@ def built(request):
 
 @pytest.mark.needs_bundle
 def test_the_oracle_is_page_v38_over_134_states():
-    assert (HYDRATE["meta"]["version"], HYDRATE["meta"]["year"], len(HYDRATE["states"]), len(IDS)) == ("v38", 2026, 134, 126)  # T183: 127 ids, not 128 (straddlers carry both regions); 2026-10-27: 126 (Columbia x18p3 split)
+    assert (HYDRATE["meta"]["version"], HYDRATE["meta"]["year"], len(HYDRATE["states"]), len(IDS)) == ("v38", 2026, 134, 123)  # T183: 127 ids, not 128 (straddlers carry both regions); 2026-10-27: 126 (Columbia x18p3 split); r-0fa7927b16e5: 123 (taps.json gone 11: T220 Dean x13p2 + Kootenay x9p2, T228 Coquitlam x37p0)
     assert sorted(set(HYDRATE["states"]) - set(IDS)) == sorted(TAPS["gone"])
 
 

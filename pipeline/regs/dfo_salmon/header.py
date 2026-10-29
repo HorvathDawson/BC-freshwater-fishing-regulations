@@ -32,7 +32,7 @@ from pipeline.common import calendar_spec
 
 FORMAT = "dfo-header/1"
 _SP = {"chinook": "CH", "coho": "CO", "sockeye": "SK", "pink": "PK", "chum": "CM"}
-_MONTHS = {m: i for i, m in enumerate("jan feb mar apr may jun jul aug sep oct nov dec".split(), 1)}
+_MONTHS = {m.lower(): i for i, m in enumerate(calendar_spec.MONTHS, 1)}
 _RE_STOP = re.compile(r"<h[1-6][^>]*>\s*(?:Related links|Salmon limits, openings and closures)|<(?:p|li)[^>]*>\s*(?:This table refers to"
                       r"|Unless otherwise stated in the table|There is no fishing for salmon in [^<]* except for the opportunities)", re.I)
 _DATE = r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{1,2})"

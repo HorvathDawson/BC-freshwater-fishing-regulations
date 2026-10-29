@@ -850,9 +850,9 @@ def test_chilliwack_rainbow_over_50_cm_is_a_steelhead(db):
     jul = _kept(sid, (7, 15), "RB")
     assert {f"{eid}::chilliwack_vedder_rivers.r9", f"{tc}::trout_char_quota.r1"} <= jul
     assert f"{tc}::trout_char_quota.r2" not in jul
-    # elsewhere in Region 2 a rainbow of any size is a rainbow: "1 over 50 cm" speaks for it
-    other = _sid(db, tc, "trout_char_quota.r2",
-                 without=(("r2:chilliwack_vedder%", None),))
+    # elsewhere in Region 2 a rainbow of any size is a rainbow: "1 over 50 cm" speaks for it — on a water with no row
+    # of its own (the lowest-id section was the Stave's Northrop channel once T222 bound it: "No Fishing" there)
+    other = _sid(db, tc, "trout_char_quota.r2", without=(("r%", None),))
     assert not db.execute("select 1 from steelhead_water where sid = ?", (other,)).fetchone()
     assert f"{tc}::trout_char_quota.r2" in _kept(other, (7, 15), "RB")
 

@@ -20,6 +20,7 @@ from types import SimpleNamespace
 import pytest
 
 from pipeline.deliver import salmon as S
+from pipeline.tests.conftest import need
 from pipeline.regs.dfo_salmon import header as H
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -117,8 +118,9 @@ def test_names_bind_only_through_the_curated_waters():
     assert {"Kispiox River"} <= {u["name"] for u in un}
 
 
-@pytest.mark.skipif(not glob.glob(str(ROOT / "cache/dfo_salmon/raw/region*-eng.html")), reason="no cached DFO pages")
+@pytest.mark.needs_cache
 def test_every_cached_region_page_parses_and_region_2_reads_as_printed():
+    need(None, "cache", ROOT / "cache/dfo_salmon/raw/region2-eng.html", "python -m pipeline.regs.dfo_salmon.fetch")
     for p in sorted(glob.glob(str(ROOT / "cache/dfo_salmon/raw/region*-eng.html"))):
         slug = Path(p).name[6:-9]
         if slug == "5":

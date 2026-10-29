@@ -247,6 +247,7 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/reach/build.py", "_stem_to_first_lake"): "may_enter",
     ("pipeline/common/io/export_gpkg.py", "export_tributaries"): "may_enter",
     ("pipeline/gauges/consume/shed.py", "build_gauge_sheds"): "hands up_adj to `_walk`, which asks may_enter",
+    ("pipeline/gauges/consume/shed.py", "section_lengths"): "T252: a lake's inflow edges, one level (its length inflow to outlet)",
     ("pipeline/tools/audit/unnamed_trib_sweep.py", "TopoGraph.__init__"): "builds the sweep's graph view",
     ("pipeline/tools/audit/unnamed_trib_sweep.py", "_subtree"): "may_enter",
 }

@@ -1072,7 +1072,8 @@ def test_no_lake_is_steelhead_water(db):
         "SELECT DISTINCT i.item_id, i.name FROM steelhead_water w JOIN item_section s "
         "ON s.sid = w.sid JOIN item i ON i.ord = s.ord WHERE i.kind != 'stream'")}
     assert got == set(), got
-    _, sid = _read_handles(Path(dict(db.execute("SELECT k, v FROM meta"))["build"]))
+    from pipeline.common.section_handles import build_of_bundle
+    _, sid = _read_handles(build_of_bundle(dict(db.execute("SELECT k, v FROM meta"))))
     sw = {s for (s,) in db.execute("SELECT sid FROM steelhead_water")}
     for nid in LISTED_POLYGONS | {VEDDER_CANAL_SECTION}:
         assert sid[nid] in sw, nid

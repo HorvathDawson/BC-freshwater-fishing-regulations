@@ -9837,7 +9837,8 @@
        "op": "whole",
        "item_id": "blk:355993381"
       }
-     ]
+     ],
+     "extent_text": "in the Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing"
     },
     {
      "rule_id": "stave_river.r2",
@@ -9853,7 +9854,8 @@
        "op": "whole",
        "item_id": "wsc:100-046202-028692-080600"
       }
-     ]
+     ],
+     "extent_text": "in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main"
     }
    ]
   },

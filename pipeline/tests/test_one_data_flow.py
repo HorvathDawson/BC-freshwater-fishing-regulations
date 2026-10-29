@@ -432,7 +432,8 @@ def _built():
     need(None, "bundle", bundle, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     meta = dict(db.execute("SELECT k, v FROM meta"))
-    build = Path(meta["build"])
+    from pipeline.common.section_handles import build_of_bundle
+    build = build_of_bundle(meta)
     run = Path(os.environ.get("UI_EXPORT_REACHES") or GENERATED.reaches / meta["reach_run"])
     need(None, "atlas", build / "region_home.json", ATLAS_HINT)
     need(None, "reach_run", run / "tidal.jsonl", REACH_HINT)

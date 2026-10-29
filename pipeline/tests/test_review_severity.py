@@ -82,7 +82,8 @@ def test_the_corpus_severities_measured():
     unquoted text), 1025 none. With the run, its unresolved / ambiguous / unplaced rules join high.
     Re-pinned 2026-10-26 (owner): 126 high, 358 low, 1031 none — the six area rows with no item are
     matched by area, not "binds nothing" (`tiers.area_matched`), and Mackenzie Creek (book MU typo
-    4-21 -> 4-31) now matches its creek."""
+    4-21 -> 4-31) now matches its creek. Re-measured 2026-10-28 (r-0fa7927b16e5): 119 high, 364 low, 1032 none —
+    named undrawn parts drawn since (T207, T222 Stave channels, the owner's "needs a split" list: widened 91 -> 83)."""
     from collections import Counter
 
     from pipeline.regs.review import tiers as T
@@ -91,7 +92,7 @@ def test_the_corpus_severities_measured():
     for e in _corpus():
         b = bool(e.get("matched"))
         got[S.entry_severity(P.prechecks(e, binds=b), risks=T.risks(e, binds=b))["level"]] += 1
-    for lv, want in {"high": 126, "low": 358, "none": 1031}.items():
+    for lv, want in {"high": 119, "low": 364, "none": 1032}.items():
         assert abs(got[lv] - want) <= max(3, want // 20), (lv, got[lv], want)
 
 

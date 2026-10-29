@@ -69,7 +69,8 @@ def db():
 
 @pytest.fixture(scope="module")
 def build(db) -> Path:
-    return Path(dict(db.execute("SELECT k, v FROM meta"))["build"])
+    from pipeline.common.section_handles import build_of_bundle
+    return build_of_bundle(dict(db.execute("SELECT k, v FROM meta")))
 
 
 @pytest.fixture(scope="module")

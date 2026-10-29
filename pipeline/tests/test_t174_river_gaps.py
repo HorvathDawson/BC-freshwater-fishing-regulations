@@ -153,4 +153,8 @@ def test_gravel_slough_s_connectors_answer_in_the_bundle():
     assert total == 11
     if silent == 3:
         predates(f"{_bundle()} predates T174 (water_line_gaps) — rerun pipeline.deliver")
-    assert silent == 1
+    # (T228, a757756b) a DORMANT station (discontinued, not real-time) attaches to nothing: Elk Creek's 08MF048 and
+    # 08MF018 and the Fraser's 08MF064 are all dormant, so no donor is left and every section is silent — for that reason
+    dormant = {st for st, sid in db.execute(
+        "SELECT station, sid FROM gauge WHERE station IN ('08MF048', '08MF018', '08MF064')") if sid is None}
+    assert dormant == {"08MF048", "08MF018", "08MF064"} and silent == total

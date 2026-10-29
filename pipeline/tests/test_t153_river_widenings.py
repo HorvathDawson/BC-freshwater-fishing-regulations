@@ -215,7 +215,12 @@ def test_one_function_decides_it():
     assert readers == ["atlas/reach/cache.py", "atlas/reach/extent.py"]
     callers = sorted(str(p.relative_to(root)) for p in root.rglob("*.py")
                      if "tests" not in p.parts and "river_widenings(" in p.read_text(encoding="utf-8"))
-    assert callers == ["atlas/reach/extent.py"]
+    # (T174, Q154) the gauge walk's own question — may a gauge walk an unowned polygon its river threads as the river —
+    # is a second, MEASURED-OFF derivation (`panels.RIVER_WIDENINGS = False`) awaiting the owner; it binds no rule.
+    # When Q154 is answered it either goes or reads this one.
+    assert callers == ["atlas/reach/extent.py", "gauges/consume/panels.py"]
+    from pipeline.gauges.consume.panels import RIVER_WIDENINGS
+    assert RIVER_WIDENINGS is False, "Q154 switched on: make the gauge walk read extent.river_widenings, not its own"
 
 
 @pytest.mark.parametrize("ex", [{"op": "downstream_of", "splits": ["cut"]}, WHOLE])

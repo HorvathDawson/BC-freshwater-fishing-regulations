@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.common.curated import CURATED
+from pipeline.tests.conftest import ATLAS_HINT, BUNDLE_HINT, need
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -52,12 +53,12 @@ def env(tmp_path_factory):
 def _a_section(reports) -> tuple[int, str]:
     """A section handle the served bundle files under a named water, and that water."""
     from pipeline.deliver.bundle import read as R
-    if reports._vintage() is None or not Path(R.BUNDLE).exists():
-        pytest.skip("no served build / bundle on this machine")
+    need(None, "bundle", R.BUNDLE, BUNDLE_HINT)
+    assert reports._vintage() is not None, f"the served build {reports.reuse._BUILD} has no section handles — {ATLAS_HINT}"
     db = sqlite3.connect(f"file:{R.BUNDLE}?mode=ro", uri=True)
     try:
-        if dict(db.execute("SELECT k, v FROM meta WHERE k = 'section_handles'")).get("section_handles") != reports._vintage():
-            pytest.skip("the bundle is another vintage than the served build")
+        got = dict(db.execute("SELECT k, v FROM meta WHERE k = 'section_handles'")).get("section_handles")
+        assert got == reports._vintage(), f"the bundle ({got}) is another vintage than the served build ({reports._vintage()})"
         sid, item = db.execute("SELECT x.sid, i.item_id FROM item_section x JOIN item i ON i.ord = x.ord "
                                "WHERE i.item_id LIKE 'gnis:%' ORDER BY x.sid LIMIT 1").fetchone()
     finally:
@@ -75,6 +76,8 @@ class _Answer(io.BytesIO):
     def __exit__(self, *a): self.close()
 
 
+@pytest.mark.needs_bundle
+@pytest.mark.needs_atlas
 def test_the_list_asks_the_worker_with_the_token_and_resolves_this_vintage(env):
     reports = env["reports"]
     sid, item = _a_section(reports)

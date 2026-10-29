@@ -238,8 +238,11 @@ def test_every_cache_is_dropped_on_a_rebuild_or_declared_static(env):
     stale after a promote — the old list missed `_geoms`, `_blk_index` and the place-namer."""
     reuse = env["reuse"]
     static = {"_row_image_index", "_to_lonlat", "_fwa_lake_poly"}  # source data, not the build
+    # a CLASS with a `cache_clear` method (`_Memo`) is no cache; its instances key on their inputs (the build's stamps
+    # and the build caches' own objects), so they follow a rebuild by construction
     cached = {n for n, f in vars(reuse).items()
-              if callable(f) and hasattr(f, "cache_clear") and getattr(f, "__module__", "reuse")
+              if callable(f) and not isinstance(f, type) and hasattr(f, "cache_clear")
+              and getattr(f, "__module__", "reuse")
               in ("reuse", None)}
     built = {f.__name__ for f in reuse._BUILD_CACHES}
     assert cached - built - static == set(), "a cache neither dropped on rebuild nor static"

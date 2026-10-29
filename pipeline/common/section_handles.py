@@ -144,3 +144,24 @@ def registry_digest_for(build_dir: Path) -> str:
     items = sorted(items, key=lambda i: str(i.get("id")))
     return hashlib.sha256(json.dumps(items, sort_keys=True, separators=(",", ":"),
                                      ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
+
+
+def build_of_bundle(meta: Mapping[str, str]) -> Path:
+    """THE ATLAS BUILD A BUNDLE WAS MADE FROM, from its `meta` (`build`, `section_handles`).
+
+    `meta.build` is the build's absolute path at bundling time; a bundle built in a scratch
+    worktree (r-0fa7927b16e5's was) records a path that no longer exists. Then this checkout's
+    build of the same name stands in — accepted only when its handle table is the very one the
+    bundle records, so a reader never pairs a bundle with another atlas's handles.
+    """
+    recorded = Path(meta["build"])
+    if (recorded / FILENAME).exists():
+        return recorded
+    from pipeline.common.curated import GENERATED
+    local = GENERATED.atlas.builds / recorded.name
+    want = meta.get("section_handles")
+    if want and (local / FILENAME).exists() and digest_for(local) == want:
+        return local
+    raise SystemExit(
+        f"the bundle's atlas build {recorded} is gone and {local} is not it "
+        f"(handles {digest_for(local) if (local / FILENAME).exists() else 'missing'} != {want})")

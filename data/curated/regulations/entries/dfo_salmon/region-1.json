@@ -5220,6 +5220,113 @@
         "notes": [],
         "spatial_caveat": false
       }
+    },
+    {
+      "location_id": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nanaimo River",
+      "water_id": "1:nanaimo-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "b06fab380224fc28"
+      ],
+      "source_text": {
+        "waters": "Nanaimo River",
+        "specific_area": "in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream",
+        "landmarks": [
+          "cedar",
+          "nanaimo",
+          "portions",
+          "subarea",
+          "tidal"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "confluence",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nanaimo River",
+      "water_id": "1:nanaimo-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "431c6c51e0cac490"
+      ],
+      "source_text": {
+        "waters": "Nanaimo River",
+        "specific_area": "in Subarea 17-14 (tidal portions of the Nanaimo River), that portion of the Nanaimo River from the Cedar Bridge to the white square boundary signs approximately 400 m downstream of the Cedar Bridge",
+        "landmarks": [
+          "400",
+          "cedar",
+          "nanaimo",
+          "portion",
+          "portions",
+          "square",
+          "subarea",
+          "that",
+          "tidal"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "bridge",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
     }
   ]
 }

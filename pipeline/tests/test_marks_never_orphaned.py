@@ -123,8 +123,7 @@ def test_no_owner_mark_is_orphaned_or_dropped_live():
     its own fix landed. Fails listing every orphan / stale DFO mark with what it said."""
     from pipeline.common.curated import CURATED
     path = Path(CURATED.regulations.review.marks)
-    if not path.exists():
-        pytest.skip("no marks store")
+    assert path.exists(), f"no marks store at {path} — it is curated, in git"
     marks = [m for m in M.load(path) if m.scope in CHEAP_SCOPES]
     src = P.Sources.live()
     h = M.health(marks, entries={}, ctx=None, applied=P.applied_keys(M.load(path), src))

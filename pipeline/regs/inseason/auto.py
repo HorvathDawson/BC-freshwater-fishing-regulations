@@ -34,6 +34,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Optional
 
+from pipeline.common.utils import wsc as _wsc
 from pipeline.regs.inseason import matches as M
 
 MONTHS = ("january|february|march|april|may|june|july|august|september|october|november|december|"
@@ -64,6 +65,11 @@ class Locator:
     op: str                      # upstream_of | downstream_of | between
     places: list[str]
     quote: str
+
+
+def _wsc_codes(item) -> list[str]:
+    """An item's watershed codes, from its registry ref ids (`wsc:100-1`)."""
+    return [ref.split(":", 1)[1] for ref in item.ref_ids if ref.startswith("wsc:")]
 
 
 def _clean(text: str) -> str:
@@ -207,9 +213,9 @@ def resolve_water(row: dict, ctx: Context) -> tuple[list[str], dict, str]:
             hits = ctx.name_index.get(_norm(parent)) or []
             reg = re.match(r"(\d)", row.get("region", "") or "")
             hits = [h for h in hits if not reg or any(m.startswith(reg.group(1) + "-") for m in ctx.registry[h].mus)]
-            wscs = [w[4:] for h in hits for w in ctx.registry[h].ref_ids if w.startswith("wsc:")]
-            inside = sorted({c for c in r.candidates for w in ctx.registry[c].ref_ids if w.startswith("wsc:")
-                             and any(w[4:].startswith(p + "-") for p in wscs)})
+            wscs = [w for h in hits for w in _wsc_codes(ctx.registry[h])]
+            inside = sorted({c for c in r.candidates for w in _wsc_codes(ctx.registry[c])
+                             if any(_wsc.is_strictly_below(w, p) for p in wscs)})
             if len(inside) == 1:
                 ev["disambiguated_by"] = f"in the {parent} watershed (the row's classified licence)"
                 ev["items"] = {inside[0]: ctx.registry[inside[0]].name}
