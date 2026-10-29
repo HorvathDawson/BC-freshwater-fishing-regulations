@@ -23,6 +23,23 @@ name = "REPORT_LIMITER"
 namespace_id = "2370"
 simple = { limit = 1, period = 10 }
 
+# T246: the backup bucket (src/backup.ts; daily/ + monthly/ snapshots of private/ and the feed state). Never served by a
+# worker. Retention = its lifecycle rules (daily/ 30 d, monthly/ 400 d, curated/ 365 d, restore-test/ 1 d).
+[[r2_buckets]]
+binding = "BACKUP"
+bucket_name = "bc-fishing-regulations-staging-backup"
+
+# T249: per-IP rate limits on every route (src/guard.ts). Per Cloudflare location, eventually consistent; period 10 or 60 s.
+[[ratelimits]]
+name = "RL_PUBLIC"
+namespace_id = "2491"
+simple = { limit = 60, period = 60 }
+
+[[ratelimits]]
+name = "RL_AUTH"
+namespace_id = "2492"
+simple = { limit = 10, period = 60 }
+
 [[send_email]]
 name = "EMAIL"
 
@@ -36,6 +53,7 @@ STATUS_URL = "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
 #   :05 + :35 gauges   every 30 min 13–05 UTC (06–22 PDT / 05–21 PST), hourly (:05) at night 06–12 UTC (owner 2026-10-28)
 #   :15 DFO      every 6 h Jun–Oct (salmon season), daily 14 UTC (07 PDT) Nov–May
 #   :45 in-season  as DFO
+#   :25 backup   daily 09 UTC (T246)
 # HYDAT (a new release, asked once a day) and ECCC roster drift are checked inside the gauge run — no cron of their own.
 # Status: GET /status on the worker; stale = no success for 2.5 cadences (gauges 30 min by day, 60 min at night).
 [triggers]
@@ -46,4 +64,5 @@ crons = [
   "15 14 * 1-5,11-12 *",
   "45 */6 * 6-10 *",
   "45 14 * 1-5,11-12 *",
+  "25 9 * * *",                  # T246: the daily backup (02:25 PDT), src/backup.ts
 ]

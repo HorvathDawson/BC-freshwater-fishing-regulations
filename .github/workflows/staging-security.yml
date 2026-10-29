@@ -1,0 +1,47 @@
+name: staging — nothing private is public
+
+# T249 (owner 2026-10-28). deploy/staging/check-public.mjs against the STAGING bucket + data worker: every private/ key
+# asked of https://data-staging.canifishthis.ca must 404 (and 15 other spellings), and no public text object may hold a
+# secret (the R2 key pair, a reporter email from private/reports/, a Bearer token / PEM key / secret-named field).
+# Optionally (flood: true) deploy/staging/flood-test.mjs: a request flood on the feeds + data workers must get 429.
+#
+# Schedule: daily 10:10 UTC — GitHub runs a schedule only from the default branch (main), so it starts once this file is
+# merged there; until then run it by hand:
+#   gh workflow run staging-security.yml --ref redesign/stream-sections
+# SECRETS (already set): CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY (read-only use: list + get).
+# The bucket is hardcoded in the script: this workflow can only ever look at staging.
+
+on:
+  workflow_dispatch:
+    inputs:
+      flood:
+        description: "Also flood the feeds + data workers and expect 429 (this runner's IP is limited for a minute after)"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "10 10 * * *"
+
+concurrency:
+  group: staging-security
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: deploy/staging
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: private/ not served, no secret in a public object
+        run: node deploy/staging/check-public.mjs
+      - name: a flood gets 429
+        if: ${{ inputs.flood }}
+        run: node deploy/staging/flood-test.mjs

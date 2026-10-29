@@ -11,8 +11,19 @@ const CORS = {
   "Access-Control-Expose-Headers": "Content-Length, Content-Range, Content-Type, Content-Encoding, ETag",
   "Access-Control-Max-Age": "86400",
 };
+// (T249) per-IP rate limit (the RL binding, data.wrangler.toml [[ratelimits]]): 300 per 10 s per IP per Cloudflare
+// location — a map session pans at a few hundred tile range requests a MINUTE; a sustained flood gets 429. Absent / throwing
+// binding = no limit (never take the data down).
+async function limited(request, env) {
+  if (!env.RL) return null;
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+  try { if ((await env.RL.limit({ key: `data:${ip}` })).success) return null; } catch { return null; }
+  return new Response("Too Many Requests\n", { status: 429, headers: { ...CORS, "Retry-After": "60", "Cache-Control": "no-store" } });
+}
 export default {
   async fetch(request, env) {
+    const slow = await limited(request, env);
+    if (slow) return slow;
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
     if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method Not Allowed", { status: 405, headers: CORS });
     const key = decodeURIComponent(new URL(request.url).pathname.slice(1));
@@ -22,7 +33,8 @@ export default {
     if (!key || key.split("/").includes("..")) return new Response("Not Found", { status: 404, headers: CORS });
     // T225: the feeds worker keeps its state (notified keys, runs archive, roster, DFO entries + page corpus) under
     // private/ in the same bucket; never serve it.
-    if (key.startsWith("private/")) return new Response("Not Found", { status: 404, headers: CORS });
+    // (T249) also "./private/…", "/private/…", "PRIVATE/…" and the bare prefix: never anything that could be read as it
+    if (/^[\/.]*private(\/|$)/i.test(key)) return new Response("Not Found", { status: 404, headers: CORS });
     const range = request.headers.get("Range");
     let opts = {};
     const m = range && /^bytes=(\d+)-(\d*)$/.exec(range);

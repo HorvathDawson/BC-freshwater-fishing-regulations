@@ -44,3 +44,5 @@ done
 .venv/bin/python -m pipeline.deliver.release.stamp "$M" ${MIN_APP_VERSION+--min-app-version "$MIN_APP_VERSION"}
 cp_ "$M" release/manifest.json --header-upload "Cache-Control: no-cache" --header-upload "Content-Type: application/json"
 echo "uploaded $REL to $D"; rclone size "$D"
+# (T241) the smoke test against the live staging site + this bucket; SMOKE=0 skips it
+if [[ "${SMOKE:-1}" != 0 ]]; then node app/tools/smoke-staging.mjs --shots "${SMOKE_SHOTS:-app/dist/smoke-staging}"; fi

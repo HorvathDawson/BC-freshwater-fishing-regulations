@@ -10,6 +10,13 @@ preview_urls = false
 binding = "BUCKET"
 bucket_name = "bc-fishing-regulations-staging"
 
+# (T249) per-IP rate limit (data-worker.js `limited`): 300 per 10 s (a map session pans at a few hundred tile range
+# requests a MINUTE); period must be 10 or 60 s. Approximate: counted per machine, synced within the location.
+[[ratelimits]]
+name = "RL"
+namespace_id = "2493"
+simple = { limit = 300, period = 10 }
+
 [[routes]]
 pattern = "data-staging.canifishthis.ca"
 custom_domain = true

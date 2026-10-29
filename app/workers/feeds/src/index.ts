@@ -24,6 +24,8 @@ import { sampleDfoEvents } from "./email";
 import { readStatus, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
 import { pageUrl } from "./dfo/fetch";
+import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
+import { runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./backup";
 import { CORS as REPORT_CORS, handleReport, listReports, reportEvents, type ReportEnv } from "./reports";
 
 export interface Env extends ReportEnv {
@@ -41,6 +43,11 @@ export interface Env extends ReportEnv {
   /** the env tag every email carries ("staging" | "production") and the status page link (vars) */
   FEEDS_ENV?: string;
   STATUS_URL?: string;
+  /** (T249) per-IP rate limits ([[ratelimits]] in wrangler.toml; src/guard.ts): absent under test */
+  RL_PUBLIC?: RateLimiter;
+  RL_AUTH?: RateLimiter;
+  /** (T246) the backup bucket (bc-fishing-regulations-staging-backup; src/backup.ts) */
+  BACKUP?: DstBucket;
 }
 
 const STATUS_PREFIX = "private/feeds/";
@@ -342,11 +349,31 @@ export function dfoHeld(regions: Record<string, any>): Held[] {
   return out;
 }
 
-const authed = (req: Request, env: Env) => !!env.RUN_TOKEN && req.headers.get("Authorization") === `Bearer ${env.RUN_TOKEN}`;
+// (T249) constant-time compare (src/guard.ts)
+const authed = (req: Request, env: Env) => bearerOk(req, env.RUN_TOKEN);
+
+/** (T246) the daily backup; a failure is told at once (urgent health event) */
+async function backup(env: Env, now = new Date()) {
+  if (!env.BACKUP) return { ok: false, error: "no BACKUP binding" };
+  const r = await runBackup(env.BUCKET as unknown as SrcBucket, env.BACKUP, now);
+  if (!r.ok) {
+    try {
+      await deliver([{ key: `backup:${r.day}`, kind: "health", title: `Backup ${r.day} failed`, urgent: true, at: r.at,
+        text: `The daily R2 backup (daily/${r.day}/ in bc-fishing-regulations-staging-backup) failed after ${r.copied} objects:\n${r.error}\n\nRetry: POST /run/backup on the feeds worker (Bearer RUN_TOKEN).` }],
+        { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now });
+    } catch { /* logged below */ }
+  }
+  console.log(JSON.stringify({ job: "backup", ok: r.ok, copied: r.copied, bytes: r.bytes, skipped: r.skipped.length, wallMs: r.wallMs }));
+  return r;
+}
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
+    // (T249) every route is rate-limited per IP before anything else runs (the token routes more tightly)
+    const cls = routeClass(url.pathname);
+    const slow = await limited(cls === "auth" ? env.RL_AUTH : env.RL_PUBLIC, req, cls);
+    if (slow) return slow;
     // (T237) problem reports from the app: public POST (validated, rate-limited, stored private), authed GET for review
     if (url.pathname === "/report") {
       if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: REPORT_CORS });
@@ -362,7 +389,9 @@ export default {
     if (req.method === "GET" && (url.pathname === "/status" || url.pathname === "/status.json")) {
       const now = new Date();
       const st = refresh(await readStatus(r2Store(env.BUCKET, STATUS_PREFIX)), now);
-      if (url.pathname === "/status.json") return Response.json(servedStatus(st, now), { headers: { "Cache-Control": "no-store" } });
+      // (T246) the last backup run beside the feeds (null: none yet)
+      const bk = await (async () => { try { return JSON.parse((await env.BUCKET.get(BACKUP_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
+      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), backup: bk }, { headers: { "Cache-Control": "no-store" } });
       return new Response(statusHtml(st, now), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/notify/test" && req.method === "POST") {
@@ -381,6 +410,11 @@ export default {
       const c = notifyConfig(env);
       return Response.json({ channel: c.emailTo && c.emailFrom && c.sendEmail ? "email" : c.webhook ? "webhook" : "log", digest: !!c.digest, pending: s.pending.length, told: Object.keys(s.told).length, lastDigest: s.lastDigest, messages: compose(s.pending, true, c.ctx) });
     }
+    if (url.pathname === "/run/backup" && req.method === "POST") {
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const r = await backup(env);
+      return Response.json(r, { status: r.ok ? 200 : 500 });
+    }
     const job = url.pathname.match(/^\/run\/(gauges|dfo|inseason)$/)?.[1] as Job | undefined;
     if (!job || req.method !== "POST") return new Response("Not Found", { status: 404 });
     if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
@@ -391,7 +425,8 @@ export default {
   },
   async scheduled(ev: { cron: string }, env: Env, ctx: { waitUntil(p: Promise<unknown>): void }): Promise<void> {
     // cron strings are in wrangler.toml [triggers]: the minute field names the job
-    //   "15 …" DFO, "45 …" in-season, anything else the gauges
+    //   "15 …" DFO, "45 …" in-season, "25 …" the daily backup (T246), anything else the gauges
+    if (ev.cron.startsWith("25 ")) { ctx.waitUntil(backup(env)); return; }
     const job: Job = ev.cron.startsWith("15 ") ? "dfo" : ev.cron.startsWith("45 ") ? "inseason" : "gauges";
     ctx.waitUntil(run(job, env).then((r) => console.log(JSON.stringify({ job, ok: r.ok, wallMs: r.wallMs, meter: r.meter }))));
   },

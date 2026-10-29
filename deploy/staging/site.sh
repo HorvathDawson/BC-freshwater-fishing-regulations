@@ -1,7 +1,7 @@
 #!/bin/bash
 # STAGING ONLY: merge app/dist/web-staging (`pnpm -C app/apps/mobile export:web:staging`: EXPO_PUBLIC_APP_ENV=staging, T232) and
 # app/dist/seo (build-seo.mjs on the same release) into app/dist/staging-site, make it unindexable, deploy.
-#   deploy/staging/site.sh [--dry-run]
+#   deploy/staging/site.sh [--dry-run]        (T241: the staging smoke test runs after a real deploy; SMOKE=0 skips it)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 W=app/dist/web-staging; S=app/dist/seo; O=app/dist/staging-site; K=app/dist/staging-site-worker
@@ -22,3 +22,7 @@ printf 'User-agent: *\nDisallow: /\n# STAGING (staging.canifishthis.ca): not for
 printf '\n/*\n  X-Robots-Tag: noindex, nofollow\n' >> "$O/_headers"
 echo "files: $(find "$O" -type f | wc -l)"
 npx --prefix app wrangler deploy -c deploy/staging/site.wrangler.toml "$@"
+# (T241) the smoke test on the live staging site: exit 1 (and screenshots) when any check fails
+if [[ "${SMOKE:-1}" != 0 && " $* " != *" --dry-run "* ]]; then
+  node app/tools/smoke-staging.mjs --shots "${SMOKE_SHOTS:-app/dist/smoke-staging}"
+fi

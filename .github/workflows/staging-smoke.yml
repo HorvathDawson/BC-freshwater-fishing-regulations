@@ -1,0 +1,45 @@
+name: staging — smoke test
+
+# T241 (owner 2026-10-28). MANUAL ONLY (workflow_dispatch): no schedule, no push trigger.
+# Runs app/tools/smoke-staging.mjs against https://staging.canifishthis.ca — feeds /status + freshness, manifest,
+# synopsis, a /water/ page, a legacy /waterbody/ 301, private/ not served; then a headless Chrome (the repo's CDP
+# driver, no npm install needed) on the live app: map paints (phone + desktop), Salmon + Run timing modes, a tap on a
+# named water and on an unnamed stream, Pitt River Conditions (a gauge reading), the rule book PDF.
+# STAGING ONLY: the script refuses any non-staging host. No secrets: every endpoint it reads is public.
+# The screenshots are attached to the run (artifact smoke-staging), pass or fail.
+# NOTE: listed in the Actions tab only once on the default branch; until then:
+#   gh workflow run staging-smoke.yml --ref redesign/stream-sections
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "The /water/<slug> page to check (a wrong slug is the deliberate-failure test)"
+        type: string
+        default: vedder-river
+
+concurrency:
+  group: staging-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: app/tools
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Smoke test staging
+        env:
+          CHROME: /usr/bin/google-chrome
+          CI: "1"
+        run: node app/tools/smoke-staging.mjs --shots smoke-shots --slug "${{ inputs.slug }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-staging
+          path: smoke-shots/
+          if-no-files-found: ignore
