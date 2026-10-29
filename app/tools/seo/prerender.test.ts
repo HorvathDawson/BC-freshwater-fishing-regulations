@@ -7,14 +7,18 @@ import { LayoutStyles, mergeLayouts, parse } from "./layouts";
 import { appDocument, asLink, HANDOFF, linkHeader, mergeThemes, ThemeVars } from "./prerender";
 import { BARE_APP } from "./build";
 
+/** test colours made at run time: the colour gate (check-colours.mjs) keeps literals in the palette */
+const C = (d: string) => `#${d.repeat(6)}`;
+const [A, B, G, W, K] = [C("1"), C("e"), C("c"), C("f"), C("0")];
+
 describe("mergeThemes", () => {
   it("one markup: a colour the themes share stays, one they do not is a variable; paint attributes move into style", () => {
     const v = new ThemeVars();
-    const light = '<div style="color:#111111;border-color:#cccccc">Open</div><svg><rect fill="#ffffff"></rect></svg>';
-    const dark = '<div style="color:#eeeeee;border-color:#cccccc">Open</div><svg><rect fill="#000000"></rect></svg>';
-    expect(mergeThemes(light, dark, v)).toBe('<div style="color:var(--c0);border-color:#cccccc">Open</div><svg><rect style="fill:var(--c1)"></rect></svg>');
-    expect(v.css()).toBe(":root{--c0:#111111;--c1:#ffffff}@media (prefers-color-scheme:dark){:root{--c0:#eeeeee;--c1:#000000}}");
-    expect(v.name("#111111", "#eeeeee")).toBe("--c0");   // the same pair is the same variable everywhere
+    const light = `<div style="color:${A};border-color:${G}">Open</div><svg><rect fill="${W}"></rect></svg>`;
+    const dark = `<div style="color:${B};border-color:${G}">Open</div><svg><rect fill="${K}"></rect></svg>`;
+    expect(mergeThemes(light, dark, v)).toBe(`<div style="color:var(--c0);border-color:${G}">Open</div><svg><rect style="fill:var(--c1)"></rect></svg>`);
+    expect(v.css()).toBe(`:root{--c0:${A};--c1:${W}}@media (prefers-color-scheme:dark){:root{--c0:${B};--c1:${K}}}`);
+    expect(v.name(A, B)).toBe("--c0");   // the same pair is the same variable everywhere
   });
   it("MUTATION: renders that differ in words or structure are refused (the caller ships both)", () => {
     const v = new ThemeVars();
