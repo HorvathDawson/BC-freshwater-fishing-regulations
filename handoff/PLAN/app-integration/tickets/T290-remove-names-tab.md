@@ -1,9 +1,13 @@
-# T290 — Remove the Names tab from the curation review tool
+# T290 — Remove the Names and Proposals tabs from the curation review tool
 
 Status: BLOCKED (owner 2026-10-29: "after this we can remove the name tab from review curation tool"; waits on the T224
 close-out in the current rebuild — coverage names accepted, obvious gauge names accepted, held gauge names answered).
 
 ## Work
+Also (owner 2026-10-29: "the review curation tool proposal tab can be removed too"): the read-only Proposals view
+(`#proposals`, TopNav entry, its backend endpoint if only the view uses it). The proposals/apply pipeline
+(`apply_proposals`) stays — only the view goes.
+
 Remove the Names tab (frontend route `#names/`, its backend endpoints, tests) from curation-review. Keep the data files and
 pipeline (mined names, accept/reject records) — only the review UI goes. Any held gauge names are settled in chat, not the tab.
 
