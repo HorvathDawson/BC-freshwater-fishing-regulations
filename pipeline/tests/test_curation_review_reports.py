@@ -127,3 +127,24 @@ def test_the_reports_routes_only_read(env):
     routes = {(m, r.path) for r in app_mod.app.routes for m in getattr(r, "methods", None) or ()
               if r.path.startswith("/api/reports")}
     assert routes == {("GET", "/api/reports"), ("GET", "/api/reports/section")}
+
+
+def test_a_reply_draft_only_when_the_reporter_allowed_contact(env):
+    """(owner 2026-10-29) "Reply by email": a mailto: draft for the owner's own mail client — to the reporter, subject
+    "Your report about <water> — canifishthis", their words quoted, a line for the question. Never without the tick."""
+    from urllib.parse import parse_qs, unquote, urlsplit
+    reports = env["reports"]
+    r = {**_report(place="Vedder River"), "text": "Closure ends at the bridge.\nNot the forks.",
+         "email": "angler+x@example.org", "contact": True}
+    m = reports.reply_mailto(r, "Vedder River")
+    u = urlsplit(m)
+    assert u.scheme == "mailto" and unquote(u.path) == "angler+x@example.org"
+    q = parse_qs(u.query)
+    assert q["subject"] == ["Your report about Vedder River — canifishthis"]
+    assert "%0D%0A" in m and "%0A%0A" not in m.replace("%0D%0A", "")
+    assert [x.replace("\r\n", "\n") for x in q["body"]] == ["Hello,\n\nThank you for your report about Vedder River, sent 2026-10-28. You wrote:\n\n"
+                         "> Closure ends at the bridge.\n> Not the forks.\n\n[your question here]\n\n— canifishthis\n"]
+    assert reports.reply_mailto({**r, "contact": False}, "Vedder River") is None
+    assert reports.reply_mailto({**r, "contact": None}, "Vedder River") is None
+    assert reports.reply_mailto({**r, "email": None}, "Vedder River") is None
+    assert "about the app" in parse_qs(urlsplit(reports.reply_mailto(r, None)).query)["subject"][0]

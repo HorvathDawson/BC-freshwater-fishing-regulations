@@ -26,6 +26,10 @@ const REASON: Record<Reason, string> = {
 
 export interface Report {
   id: string; created: string; received: string; reason: Reason; text: string; email: string | null;
+  /** (owner 2026-10-29) the reporter ticked "You may contact me" */
+  contact?: boolean;
+  /** the backend's mailto: draft (reports.reply_mailto) — only when contact is allowed */
+  reply?: string | null;
   context: { screen?: string; tab?: string; place?: string; water?: string; part?: number; partLabel?: string;
              section?: number; day?: string; mode?: string; app?: string; env?: string; platform?: string;
              release?: string; tiles?: string; errors?: string[] };
@@ -157,6 +161,7 @@ export function ReportsView() {
                   <span>{REASON[r.reason] ?? r.reason}</span>
                   <span>{r.received.slice(0, 16).replace("T", " ")}</span>
                   {r.context.env && <span className="chip-tag">{r.context.env}</span>}
+                  {r.reply && <span className="chip-tag conf-high" title="the reporter allowed contact">reply ok</span>}
                 </div>
                 <div className="meta">{r.text.length > 140 ? `${r.text.slice(0, 140)}…` : r.text}</div>
               </div>
@@ -196,7 +201,8 @@ function ReportDetail({ r, status, onStatus, nav }: { r: Report; status: ReportS
     ["Day", c.day], ["Map colours", c.mode],
     ["App", [c.app, c.env ? `(${c.env})` : null].filter(Boolean).join(" ") || undefined], ["Platform", c.platform],
     ["Release", c.release], ["Tiles", c.tiles],
-    ["Sent", `${r.created} · received ${r.received}`], ["Reply to", r.email ?? undefined],
+    ["Sent", `${r.created} · received ${r.received}`],
+    ["Email", r.email ? `${r.email}${r.contact ? " · may be contacted" : " · contact NOT allowed"}` : undefined],
   ];
   return (
     <div className="detail review-mode" data-testid="reports-detail">
@@ -220,6 +226,11 @@ function ReportDetail({ r, status, onStatus, nav }: { r: Report; status: ReportS
                   className={`btn small${status === s.k ? " primary" : ""}`} onClick={() => onStatus(s.k)}>{s.t}</button>
               ))}
               <span className="dim" style={{ fontSize: 11 }}>kept in this browser</span>
+              <span className="spacer" style={{ flex: 1 }} />
+              {r.reply && (
+                <a className="btn small primary" data-testid="report-reply" href={r.reply}
+                  title="opens a draft in your own mail client — nothing is sent from here">Reply by email</a>
+              )}
             </div>
           </div>
           <div className="section">

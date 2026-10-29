@@ -163,7 +163,9 @@ export const MENU_WORDS = {
     another: "Report something else",
     /** the privacy line under the form */
     privacy: "We use your report only to fix the app's data. It holds what you wrote and the details you left switched on; "
-      + "your email, if you give one, is used only to reply.",
+      + "your email, if you give one, is used only to reply — and only if you tick ‘You may contact me’.",
+    /** (owner 2026-10-29) shown only once an email is given; off by default */
+    contact: "You may contact me about this report",
     orEmail: "Or send it yourself:",
     /** "Where you were": the map's colouring when the report was asked */
     envLine: (env: string) => `Data: ${env}`,

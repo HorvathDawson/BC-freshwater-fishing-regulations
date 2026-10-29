@@ -56,6 +56,18 @@ Owner: yes — where reports go (default: R2 `private/reports/` + daily digest e
   within 10 s → 429, malformed → 400, `GET /reports` without token → 403. The review tab synced all three and showed
   the water on its map. Shots `../T237-shots/`.
 
+## Reply to a reporter (owner 2026-10-29)
+- Daily digest for reports approved (production the same way at launch).
+- Form: "You may contact me about this report" checkbox, shown only once a well-formed email is typed, off by default,
+  cleared with the email; sent as `contact` (true only with an email). Privacy line: "…used only to reply — and only
+  if you tick ‘You may contact me’."
+- Worker: `contact` validated (boolean, optional; absent = not allowed) and stored; the digest line ends "· reply
+  allowed" and says "Reply: allowed / not allowed / no email" — never the address. No mail is ever sent to a reporter
+  from the worker. Redeployed to staging.
+- Review app: a report with contact allowed carries `reply` (`reports.reply_mailto`): a mailto: draft to the reporter,
+  subject "Your report about <water> — canifishthis", their words quoted, a "[your question here]" line; the Reports
+  tab shows "reply ok" and a "Reply by email" link that opens the owner's own mail client. Shot `review-03-reply-by-email.png`.
+
 ## Not done
 - Native (phone) not run on a device; the outbox's native store and NetInfo path are covered only by the shared code.
 - Production endpoint (owner: where reports go in prod; T86/T240). Privacy wording is Claude's draft (owner to approve).

@@ -20,7 +20,7 @@ class MemBucket implements R2BucketLike {
 
 const report = (over: Record<string, unknown> = {}) => ({
   format: "report/1", id: "0123456789abcdef", created: "2026-10-28T20:00:00.000Z", reason: "place",
-  text: "The closure ends at the bridge.", email: "angler@example.org",
+  text: "The closure ends at the bridge.", email: "angler@example.org", contact: true,
   context: { place: "Vedder River", water: "356308001", part: 2, section: 812345, day: "Today, Oct 28", mode: "salmon",
              app: "0.1.0", env: "staging", platform: "web", release: "r-0fa7927b16e5", tiles: "10cbcb72e9f907cf.edc12ab96087" },
   ...over,
@@ -107,9 +107,22 @@ describe("POST /report (T237)", () => {
     expect(BUCKET.m.size).toBe(0);
   });
 
-  it("an empty email is no email", () => {
+  it("an empty email is no email, and no email is no contact; contact must be a boolean", () => {
     const v = validateReport(report({ email: "" }));
     expect(v.ok && v.report.email).toBeNull();
+    expect(v.ok && v.report.contact).toBe(false);
+    const w = validateReport(report({ contact: undefined }));
+    expect(w.ok && w.report.contact).toBe(false);                 // an app before 2026-10-29: not allowed
+    expect(validateReport(report({ contact: "yes" }))).toEqual({ ok: false, error: "bad contact" });
+  });
+
+  it("the digest says reply not allowed when the box was not ticked (and never the address)", async () => {
+    const BUCKET = new MemBucket();
+    await handleReport(post(report({ contact: false })), { BUCKET }, at("2026-10-28T20:00:00Z"));
+    const ev = await reportEvents(BUCKET, () => false, at("2026-10-28T20:30:00Z"), "x");
+    expect(ev[0]!.title).not.toMatch(/reply allowed/);
+    expect(ev[0]!.text).toMatch(/Reply: not allowed/);
+    expect(JSON.stringify(ev)).not.toMatch(/angler@example\.org/);
   });
 });
 
@@ -141,7 +154,8 @@ describe("the owner's digest (T237: a report is a digest line, never urgent)", (
     expect(ev[0]!.key).toBe("report:0123456789abcdef");
     expect(ev[0]!.kind).toBe("report");
     expect(ev[0]!.urgent).toBeUndefined();
-    expect(ev[0]!.title).toBe("Wrong place on the map: Vedder River (356308001) part 2 — The closure ends at the bridge.");
+    expect(ev[0]!.title).toBe("Wrong place on the map: Vedder River (356308001) part 2 — The closure ends at the bridge. · reply allowed");
+    expect(ev[0]!.text).toMatch(/Reply: allowed/);
     const all = JSON.stringify(ev) + compose(ev, true).map((m) => m.text).join("");
     expect(all).not.toMatch(/angler@example\.org/);
     expect(compose(ev, true)[0]!.text).toMatch(/Problem reports from the app/);

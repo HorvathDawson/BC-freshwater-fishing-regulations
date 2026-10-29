@@ -10,7 +10,7 @@
  * Draws `diagnosticRows` / `reportMessage` (core/menu/report.ts) and `useReportSend` (@app/ui); decides nothing.
  */
 import { useMemo, useState } from "react";
-import { Linking, Share, Switch, Text, TextInput, View } from "react-native";
+import { Linking, Pressable, Share, Switch, Text, TextInput, View } from "react-native";
 import { contactVM, diagnosticRows, emailProblem, mailtoUrl, MENU_WORDS, REPORT_REASONS, reportMessage, type DiagKey,
          type Diagnostics, type ReportReason } from "@app/core";
 import { useReportSend, type ReportSender } from "@app/ui";
@@ -27,6 +27,8 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
   const w = MENU_WORDS.report;
   const [reason, setReason] = useState<ReportReason>("rule");
   const [email, setEmail] = useState("");
+  // (owner 2026-10-29) "You may contact me": only with an email, off by default, cleared with the email
+  const [mayContact, setMayContact] = useState(false);
   const tx = useReportSend(sender);
   const [what, setWhat] = useState("");
   const [off, setOff] = useState<Partial<Record<DiagKey, boolean>>>({});
@@ -38,8 +40,9 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
   const to = contactVM(contact);
   const ready = what.trim().length > 0;
   const emailBad = emailProblem(email);
+  const contactShown = email.trim().length > 0 && !emailBad;
   const sendNow = tx.send && ready && !emailBad && tx.state.kind !== "sending"
-    ? () => tx.send!({ reason, what, email, diagnostics, on }) : undefined;
+    ? () => tx.send!({ reason, what, email, contact: contactShown && mayContact, diagnostics, on }) : undefined;
   const reasons = useMemo(() => REPORT_REASONS.map((k) => ({ k, t: w.reasons[k] })), [w]);
 
   const mail = to.kind === "email" && ready ? () => { void Linking.openURL(mailtoUrl(to.value, message)); } : undefined;
@@ -60,7 +63,7 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
         </View>
         <Text style={{ ...TYPE.small, color: palette.sub }}>{w.privacy}</Text>
         <Button palette={palette} kind="ghost" label={w.another}
-                onPress={() => { setWhat(""); setEmail(""); setOff({}); tx.reset(); }} />
+                onPress={() => { setWhat(""); setEmail(""); setMayContact(false); setOff({}); tx.reset(); }} />
       </>
     );
   }
@@ -93,6 +96,18 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
                               borderRadius: palette.r.box, padding: SPACE.s3, backgroundColor: palette.card }} />
           <Text testID={emailBad ? "report-email-bad" : undefined}
                 style={{ ...TYPE.small, color: emailBad ? palette.closed : palette.sub }}>{emailBad ?? w.emailHint}</Text>
+          {contactShown && (
+            <Pressable testID="report-contact" onPress={() => setMayContact((c) => !c)} accessibilityRole="checkbox"
+                       aria-checked={mayContact} accessibilityLabel={w.contact}
+                       style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, minHeight: 44 }}>
+              <View style={{ width: 22, height: 22, borderWidth: 1.5, borderColor: palette.ink, borderRadius: 4,
+                             alignItems: "center", justifyContent: "center",
+                             backgroundColor: mayContact ? palette.accent : palette.card }}>
+                {mayContact && <Text style={{ ...TYPE.bodyStrong, fontSize: 14, lineHeight: 16, color: palette.onAccent }}>✓</Text>}
+              </View>
+              <Text style={{ ...TYPE.body, color: palette.ink, flex: 1 }}>{w.contact}</Text>
+            </Pressable>
+          )}
         </View>
       )}
 

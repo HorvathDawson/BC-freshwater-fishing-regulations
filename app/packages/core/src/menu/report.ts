@@ -163,6 +163,8 @@ export interface ReportPayload {
   reason: ReportReason;
   text: string;
   email: string | null;
+  /** (owner 2026-10-29) the reporter ticked "You may contact me about this report" — only ever with an email */
+  contact: boolean;
   context: ReportContext;
 }
 
@@ -174,6 +176,7 @@ const cut = (s: string, n: number = REPORT_LIMITS.field) => s.slice(0, n);
  * environment with "App version").
  */
 export function reportPayload(i: { id: string; created: string; reason: ReportReason; what: string; email: string;
+                                   contact?: boolean;
                                    diagnostics: Diagnostics; on: Partial<Record<DiagKey, boolean>> }): ReportPayload {
   const d = i.diagnostics, on = (k: DiagKey) => i.on[k] !== false;
   const c: ReportContext = {};
@@ -197,7 +200,8 @@ export function reportPayload(i: { id: string; created: string; reason: ReportRe
   if (on("release") && d.release) c.release = cut(d.release);
   if (on("tiles") && d.tiles) c.tiles = cut(d.tiles);
   if (on("errors") && d.errors.length) c.errors = d.errors.slice(-REPORT_LIMITS.errors).map((l) => cut(l, REPORT_LIMITS.line));
-  const email = i.email.trim();
+  const e = i.email.trim();
+  const email = e && !emailProblem(e) ? e : null;
   return { format: REPORT_FORMAT, id: i.id, created: i.created, reason: i.reason,
-           text: cut(i.what.trim(), REPORT_LIMITS.text), email: email && !emailProblem(email) ? email : null, context: c };
+           text: cut(i.what.trim(), REPORT_LIMITS.text), email, contact: !!email && !!i.contact, context: c };
 }

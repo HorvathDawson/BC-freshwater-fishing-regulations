@@ -439,7 +439,7 @@ describe("report a problem, sent (T237)", () => {
   it("sends every field of every row left on — the section handle with Where, the environment with App version", () => {
     expect(reportPayload({ ...base, on: {} })).toEqual({
       format: "report/1", id: "abc", created: "2026-10-28T20:00:00.000Z", reason: "rule", text: "Wrong closure.",
-      email: null,
+      email: null, contact: false,
       context: { screen: "water · regulations", place: "Vedder River", water: "356308001", part: 2, partLabel: "Mouth → X",
                  section: 812345, day: "Today, Oct 21", mode: "salmon", app: "0.1.0 (build 1)", env: "staging",
                  platform: "web", release: "r-0fa7927b16e5", tiles: "10cbcb72e9f907cf.edc12ab96087", errors: ["e1", "e2"] },
@@ -459,6 +459,14 @@ describe("report a problem, sent (T237)", () => {
   it("keeps a well-formed email, drops a malformed one, and says why", () => {
     expect(reportPayload({ ...base, email: " a@b.ca ", on: {} }).email).toBe("a@b.ca");
     expect(reportPayload({ ...base, email: "nope", on: {} }).email).toBeNull();
+    // (owner 2026-10-29) "You may contact me" holds only with a usable email
+    expect(reportPayload({ ...base, email: "a@b.ca", contact: true, on: {} }).contact).toBe(true);
+    expect(reportPayload({ ...base, email: "a@b.ca", on: {} }).contact).toBe(false);
+    expect(reportPayload({ ...base, email: "nope", contact: true, on: {} }).contact).toBe(false);
+    expect(reportPayload({ ...base, email: "", contact: true, on: {} }).contact).toBe(false);
+    expect(MENU_WORDS.report.privacy).toBe("We use your report only to fix the app's data. It holds what you wrote and "
+      + "the details you left switched on; your email, if you give one, is used only to reply — and only if you tick "
+      + "‘You may contact me’.");
     expect(emailProblem("")).toBeNull();
     expect(emailProblem("a@b.ca")).toBeNull();
     expect(emailProblem("a b@c.ca")).toBe("That does not look like an email address.");

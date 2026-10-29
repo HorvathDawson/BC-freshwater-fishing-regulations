@@ -41,6 +41,8 @@ export interface StoredReport {
   reason: (typeof REASONS)[number];
   text: string;
   email: string | null;
+  /** (owner 2026-10-29) the reporter ticked "You may contact me" — true only with an email */
+  contact: boolean;
   context: Record<string, unknown>;
 }
 
@@ -76,6 +78,8 @@ export function validateReport(raw: unknown): { ok: true; report: Omit<StoredRep
     if (typeof r.email !== "string" || r.email.length > LIMITS.email || !EMAIL_RE.test(r.email.trim())) return { ok: false, error: "invalid email address" };
     email = r.email.trim();
   }
+  if (r.contact !== undefined && typeof r.contact !== "boolean") return { ok: false, error: "bad contact" };
+  const contact = !!email && r.contact === true;
   const c = r.context;
   if (!c || typeof c !== "object" || Array.isArray(c)) return { ok: false, error: "bad context" };
   const ctx: Record<string, unknown> = {};
@@ -92,7 +96,7 @@ export function validateReport(raw: unknown): { ok: true; report: Omit<StoredRep
       ctx[k] = v;
     } else return { ok: false, error: `unknown context.${k}` };
   }
-  return { ok: true, report: { format: REPORT_FORMAT, id: r.id, created: r.created, reason: r.reason as StoredReport["reason"], text: r.text.trim(), email, context: ctx } };
+  return { ok: true, report: { format: REPORT_FORMAT, id: r.id, created: r.created, reason: r.reason as StoredReport["reason"], text: r.text.trim(), email, contact, context: ctx } };
 }
 
 async function sha256hex(s: string): Promise<string> {
@@ -220,12 +224,12 @@ export function reportEvent(r: StoredReport, at: string): FeedEvent {
   return {
     key: `report:${r.id}`,
     kind: "report",
-    title: `${REASON_WORDS[r.reason] ?? r.reason}: ${where} — ${oneLine.slice(0, 90)}${oneLine.length > 90 ? "…" : ""}`,
+    title: `${REASON_WORDS[r.reason] ?? r.reason}: ${where} — ${oneLine.slice(0, 90)}${oneLine.length > 90 ? "…" : ""}${r.contact && r.email ? " · reply allowed" : ""}`,
     text:
       `${r.text}\n\n` +
       `Where: ${where}${c.day ? ` · ${c.day}` : ""}${c.mode ? ` · map ${c.mode}` : ""}\n` +
       `App: ${c.app ?? "?"}${c.env ? ` (${c.env})` : ""} · ${c.platform ?? "?"} · release ${c.release ?? "?"}\n` +
-      `Contact email: ${r.email ? "given (in the stored report)" : "none"}\n` +
+      `Reply: ${r.contact && r.email ? "allowed (Review app → Reports → Reply by email)" : r.email ? "not allowed (email given, contact not ticked)" : "no email"}\n` +
       `Received ${r.received} · id ${r.id}\n` +
       `Review: the review app's Reports tab (Sync).`,
     at,

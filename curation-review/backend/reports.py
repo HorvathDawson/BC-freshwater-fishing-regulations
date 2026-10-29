@@ -10,6 +10,9 @@ says, for each, which water and which piece of it the report was about on THIS r
                             section's node id and the water(s) it belongs to. A report from another vintage says so:
                             its handle names a different piece here and is never resolved.
     section_geojson(sid, tiles)   the tapped section's geometry (the map's highlight), same vintage rule
+    reply_mailto(report, water)   (owner 2026-10-29) a reporter who ticked "You may contact me": a mailto: draft the owner
+                            opens in their OWN mail client (the worker never sends mail to a reporter — Cloudflare's
+                            send_email reaches verified addresses only). None for anyone else.
 
 READ ONLY: nothing is written here. The reviewer's status (new / looking / fixed / won't fix) is kept in the browser
 (localStorage), per viewer — it is a to-do list, never a mark (AGENTS 66).
@@ -23,6 +26,7 @@ import json
 import os
 import sqlite3
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import date, timedelta
 from functools import lru_cache
@@ -139,7 +143,27 @@ def enrich(r: dict) -> dict:
             section = {"sid": sid, "node": None, "items": [],
                        "vintage": "unknown" if not c.get("tiles") else "other"}
     water = c.get("water") or (section["items"][0] if section and section["items"] else None)
-    return {**r, "item": _item_view(water), "section": section}
+    item = _item_view(water)
+    return {**r, "item": item, "section": section,
+            "reply": reply_mailto(r, (item or {}).get("name") or c.get("place"))}
+
+
+def reply_mailto(r: dict, water: str | None) -> str | None:
+    """The owner's reply draft: to the reporter, "Your report about <water> — canifishthis", their report quoted and a
+    line for the owner's question. Only when the reporter allowed contact AND gave an email."""
+    email = r.get("email")
+    if not (r.get("contact") is True and isinstance(email, str) and email.strip()):
+        return None
+    about = water or "the app"
+    day = str(r.get("created") or r.get("received") or "")[:10]
+    quoted = "\n".join(f"> {line}" if line else ">" for line in str(r.get("text") or "").splitlines())
+    body = (f"Hello,\n\nThank you for your report about {about}"
+            + (f", sent {day}" if day else "") + f". You wrote:\n\n{quoted}\n\n"
+            + "[your question here]\n\n— canifishthis\n")
+    q = urllib.parse.urlencode({"subject": f"Your report about {about} — canifishthis", "body": body},
+                               quote_via=urllib.parse.quote)
+    # RFC 6068: a line break in a mailto body is %0D%0A (the app's mailtoUrl does the same)
+    return f"mailto:{urllib.parse.quote(email.strip(), safe='@')}?{q.replace('%0A', '%0D%0A')}"
 
 
 def section_geojson(sid: int, tiles: str) -> dict:

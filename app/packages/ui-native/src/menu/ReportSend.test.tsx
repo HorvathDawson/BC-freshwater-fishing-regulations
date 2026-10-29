@@ -55,11 +55,16 @@ describe("Send report (T237)", () => {
     expect(screen.getByTestId("report-privacy").textContent).toMatch(/only to reply/);
     act(() => { fireEvent.click(screen.getByLabelText("Wrong place on the map")); });
     type("report-what", "The closure ends at the bridge, not the forks.");
+    expect(screen.queryByTestId("report-contact")).toBeNull();          // no email: no "contact me"
     type("report-email", "not an email");
+    expect(screen.queryByTestId("report-contact")).toBeNull();          // a malformed one: none either
     expect(screen.getByTestId("report-email-bad").textContent).toBe("That does not look like an email address.");
     act(() => { fireEvent.click(screen.getByLabelText("Send report")); });   // disabled while the email is malformed
     expect(sent).toEqual([]);
     type("report-email", "angler@example.org");
+    expect(screen.getByTestId("report-contact").getAttribute("aria-checked")).toBe("false");   // off by default
+    act(() => { fireEvent.click(screen.getByTestId("report-contact")); });
+    expect(screen.getByTestId("report-contact").getAttribute("aria-checked")).toBe("true");
     act(() => { fireEvent.click(screen.getByLabelText("Platform")); });      // switched off: not sent
     act(() => { fireEvent.click(screen.getByLabelText("Send report")); });
     await flush();
@@ -69,7 +74,7 @@ describe("Send report (T237)", () => {
     expect(Number.isNaN(Date.parse(p.created))).toBe(false);
     expect({ ...p, id: "x", created: "y" }).toEqual({
       format: "report/1", id: "x", created: "y", reason: "place", text: "The closure ends at the bridge, not the forks.",
-      email: "angler@example.org",
+      email: "angler@example.org", contact: true,
       context: { screen: "water · regulations", place: "Vedder River", water: "356308001", part: 2, section: 812345,
                  day: "Today, Oct 28", mode: "salmon", app: "0.1.0", env: "staging",
                  tiles: "10cbcb72e9f907cf.edc12ab96087" },

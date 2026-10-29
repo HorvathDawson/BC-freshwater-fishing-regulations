@@ -15,7 +15,8 @@ export type ReportSendState =
   | { readonly kind: "queued"; readonly offline: boolean } | { readonly kind: "refused"; readonly error: string };
 
 export interface ReportDraft {
-  reason: ReportReason; what: string; email: string; diagnostics: Diagnostics; on: Partial<Record<DiagKey, boolean>>;
+  reason: ReportReason; what: string; email: string; contact?: boolean; diagnostics: Diagnostics;
+  on: Partial<Record<DiagKey, boolean>>;
 }
 
 export function useReportSend(sender: ReportSender | null, now: () => Date = () => new Date()):
