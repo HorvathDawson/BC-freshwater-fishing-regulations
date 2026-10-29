@@ -148,8 +148,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   then sync them (below). Production switch-on (worker + prod bucket) is yours.
 - **Feed sync workflows** (`feeds-sync-inputs.yml`: DFO entries + roster + in-season matches; `feeds-hydat.yml`): NO new
   secrets — they use the repo's existing `CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, and refuse any
-  bucket but `bc-fishing-regulations-staging`. Only confirm that R2 token's scope includes the staging bucket (it may be
-  prod-only; a failed staging write in the first run would show it). Manual (`workflow_dispatch`); listed in the Actions tab
+  bucket but `bc-fishing-regulations-staging`. Token scope: owner 2026-10-29 says it covers staging + prod (the workflows'
+  exact-bucket guard keeps them on staging). Manual (`workflow_dispatch`); listed in the Actions tab
   only once on `main` — until then `gh workflow run feeds-sync-inputs.yml --ref redesign/stream-sections -f what=both -f
   dry_run=true`. The Mac twin: `deploy/staging/sync-inputs.sh`.
 - **`scripts/update-hydat.sh`**: run it when the "New HYDAT" email arrives (after the HYDAT action).
