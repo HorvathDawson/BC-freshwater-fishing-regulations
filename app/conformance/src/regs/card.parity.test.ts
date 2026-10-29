@@ -75,7 +75,7 @@ const project = (m: CardModel): OracleModel => ({
 const rowLine = (m: CardModel) => m.rows.map((r) => [r.kind, r.pool?.rix ?? null, r.daily, r.members]);
 
 it("the oracle: page v38's buildModel over the 134 golden states, YEAR 2026", () => {
-  expect([H.meta.version, YEAR, Object.keys(H.states).length, ids.length]).toEqual(["v38", 2026, 134, 124]);   // (T115, T67, T183, 2026-10-27 x18p3, T220 x13p2 x9p2) 10 gone
+  expect([H.meta.version, YEAR, Object.keys(H.states).length, ids.length]).toEqual(["v38", 2026, 134, 123]);   // (T115, T67, T183, 2026-10-27 x18p3, T220 x13p2 x9p2, T228 x37p0) 11 gone
 });
 
 it(`T08 card parity runs against a paired release${pairing.skip ? ` — SKIPPED: ${"reason" in pairing ? pairing.reason : pairing.fail}` : ""}`, () => {

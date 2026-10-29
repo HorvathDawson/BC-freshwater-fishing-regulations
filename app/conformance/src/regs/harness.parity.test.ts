@@ -29,7 +29,7 @@ it("7. golden.json and taps.json are from one sync", () => {
   // (T183) and the West Road's x27p1 merged into part 0, (2026-10-27) the Columbia's x18p3 split in two by its Mud Lake
   // speed limit; T220 x13p2 + x9p2: 124 tapped + 10 gone = 134
   expect([T.meta.golden, golden().meta.version, ids.length, Object.keys(T.gone).length, Object.keys(golden().states).length])
-    .toEqual(["d7b1ed35", "v38", 124, 10, 134]);
+    .toEqual(["d7b1ed353", "v38", 123, 11, 134]);   // (T228) x37p0 gone: 123 tapped + 11 gone
   expect([...Object.keys(T.states), ...Object.keys(T.gone)].sort()).toEqual(Object.keys(golden().states).sort());
 });
 
@@ -61,7 +61,7 @@ describe.skipIf(gate.skip)(`T12 harness parity (store: ${label})`, () => {
     expect(await Promise.all(["vedder_515", "klwa_1010", "klwa_1012", "x15p7_1010"].map(pick))).toEqual([
       // keys and frame ids come from taps.json (the Python reference decoder), never literals: a rebuild that adds an
       // answer key renumbers them (T56, batch 3), and the test is about the two decoders agreeing, not about a vintage
-      ["vedder_515", T.states.vedder_515!.akey, 1, { ...T.states.vedder_515!.cell, display: 64 }],
+      ["vedder_515", T.states.vedder_515!.akey, 1, { ...T.states.vedder_515!.cell, display: 109 }],   // (r-0fa7927b16e5) frame ids renumbered: 64 -> 109
       ["klwa_1010", T.states.klwa_1010!.akey, 1, T.states.klwa_1010!.cell],
       ["klwa_1012", T.states.klwa_1012!.akey, 0, T.states.klwa_1012!.cell],
       ["x15p7_1010", T.states.x15p7_1010!.akey, 4, T.states.x15p7_1010!.cell],

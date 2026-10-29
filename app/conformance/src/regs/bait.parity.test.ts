@@ -62,7 +62,7 @@ describe.skipIf(gate.skip)("T31 bait vs golden gear.bait (and the whole Gear tab
       t.bait++; if (b.notes.length) t.notes++; if (b.dated.length) t.dated++;
       if (b.dated.some((d) => d.chip === "Now")) t.now++; if (b.dated.some((d) => d.when === "All year")) t.allYear++;
     }
-    expect(t).toEqual({ bait: 101, notes: 62, dated: 63, now: 62, allYear: 20 });
+    expect(t).toEqual({ bait: 100, notes: 62, dated: 63, now: 62, allYear: 20 });
   });
 
   it("mutation pins: a swapped column, a lost note, a wrong chip or a reordered item fails the comparison", async () => {

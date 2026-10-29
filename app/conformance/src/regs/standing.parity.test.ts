@@ -52,7 +52,7 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
       if (eq.ok) passed++; else bad.push(`${c.id}\n${eq.diff}`);
     }
     expect(bad).toEqual([]);
-    expect(total).toBe(124);   // 134 golden − 10 gone (T115 ×4, T67 ×2, T183 ×1, 2026-10-27 x18p3 ×1, T220 ×2)
+    expect(total).toBe(123);   // 134 golden − 11 gone (T115 ×4, T67 ×2, T183 ×1, 2026-10-27 x18p3 ×1, T220 ×2, T228 ×1)
   });
 
   it("2. glenn_501: the Duncan River's exemption, its Rule book page and the nearer row's caution", async () => {
@@ -103,6 +103,6 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
       if (p) values.push(p.value); else none++;
     }
     if (!values.length && !none) return;   // no paired store: cases() yielded nothing (a failure under REGS_STORE_REQUIRED=1)
-    expect([values.length, none, [...new Set(values)]]).toEqual([101, 23, ["2 days’ quota"]]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
+    expect([values.length, none, [...new Set(values)]]).toEqual([100, 23, ["2 days’ quota"]]);   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 });

@@ -62,13 +62,18 @@ T183 = "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries
 T115 = "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only"
 T67 = "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12)"
 T220 = "T220 (owner 2026-10-28, FIX \"complete\"): no channel line ends where the water goes on"
+T228 = ("T228 (a757756b, owner 2026-10-28): no-access land breaks a water's pieces — the Coquitlam's Lougheed -> lake "
+        "outlet stretch (golden part 0, 10 sections) is cut at the Coquitlam Watershed boundary into store parts 0 (1 "
+        "section) and 1 (9), so the mouth and Mary Hill parts are renumbered 1 -> 2 and 2 -> 3 (4 parts, not 3)")
 _LEN = "the automatic length cuts moved off braid-spanned junctions (owner Q2)"
 _GAUGE = "the old perpendicular sweep's gauge cuts are gone"
 COLUMBIA_R11 = ('2026-10-27 (owner, decisions.md "needs a split"): columbia_river.r11 \'Speed restriction (10 km/h) from Mud Lake to Columbia Lake\' now binds the Fairmont -> Columbia Lake stretch, so the golden\'s two-stretch part (Kinbasket Lake -> Donald + Fairmont -> Columbia Lake outlet, 3 sections) is two parts: 3 (Fairmont, 2 sections, with the speed limit) and 7 (Kinbasket -> Donald, 1 section)')
 PART_MOVED = {"x15p16_1010": 15,
               # (T67, then T183) the Skeena's Ecological Reserve is two parts (PART_GONE x19p5: 5 below the Exchamsiks cut,
               # 6 the host channel above it), which renumbers the parts after them
-              "x19p6_1010": 7, "x19p7_1010": 8}
+              "x19p6_1010": 7, "x19p7_1010": 8,
+              # (T228) the Coquitlam's no-access split renumbers the parts after it
+              "x37p1_1010": 2, "x37p2_1010": 3}
               # (T187) x22p6 (the Peace's Dinosaur Lake part) is back to its golden place and size: part 6, 1 section
 #: gone states whose water's list of parts is still the golden's (labels and order the Parts sheet draws): not `recut`
 GONE_NOT_RECUT: set[str] = set()
@@ -82,7 +87,8 @@ RECUT_WHY = {"x22p2_1010": "T67 (owner 2026-10-24): the Peace's braids are cut a
              "x15p16_1010": f"{T183}: the Fraser's straddling pieces are parts of their own again (15 -> 17 parts; the "
                             f"golden has 19)",
              "x27p0_1010": f"{T183}: the West Road's straddling pieces are parts of their own (3 -> 5 parts)",
-             "x18p3_1010": COLUMBIA_R11}
+             "x18p3_1010": COLUMBIA_R11,
+             "x37p1_1010": T228}
 PART_GROWN = {
     "x27p0_1010": f"{T183}: the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections",
     "x27p2_1010": f"{T183}: the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch",
@@ -99,6 +105,7 @@ PART_GROWN = {
     "x19p1_1010": "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)",
 }
 PART_GONE = {
+    "x37p0_1010": (0, T228),
     "x9p2_1010": (2, f"{T220}: restored braid pieces joined the Kootenay's closed parts: the page's merged 'closed all "
                      f"year' list is 19 sections (part 2: 18, part 7: 1), not the golden's 16"),
     "x13p2_1010": (3, f"{T220}: restored braid pieces renumbered the Dean; the golden closed part (the page's merged "

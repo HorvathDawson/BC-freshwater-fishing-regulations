@@ -51,7 +51,8 @@ describe.skipIf(gate.skip)("T30 gear lines vs golden gear", () => {
       t.lineChanges.push(...v.lines.filter((l) => l.changes.length).map((l) => `${id} ${l.k}`));
       if (v.mode?.changes.length) t.modeChanges.push(id);
     }
-    expect(t).toEqual({ closed: 23, threeLines: 101, mode: 10,
+    expect(t).toEqual({ closed: 23, threeLines: 100, mode: 10,   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two
+     
       nullSrc: ["vedder_515", "cow1_1010", "cow2_1010", "cow3_1010", "x13p0_1010", "x16p8_1010", "x17p7_1010", "x17p1_1010"].map((x) => `${x} weight`),
       lineChanges: ["vedder_1010 hook", "x16p3_1010 hook", "x17p4_1010 hook"], modeChanges: ["vedder_515", "cow1_1010", "cow3_1010"] });
   });

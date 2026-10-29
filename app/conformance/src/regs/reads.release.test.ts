@@ -165,9 +165,9 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
   });
 
   // (T115, T67, T183, 2026-10-27 x18p3, T220 x13p2 x9p2) 124: the 10 golden states taps.json lists `gone` are not tapped
-  it("15. cell parity: all 124 golden taps read their cell (and their key, segments, part) from the release", async () => {
+  it("15. cell parity: all 123 golden taps read their cell (and their key, segments, part) from the release", async () => {
     const states = Object.entries(T.states);
-    expect([states.length, Object.keys(T.gone).length]).toEqual([124, 10]);
+    expect([states.length, Object.keys(T.gone).length]).toEqual([123, 11]);   // (T228) x37p0 gone
     const bad: string[] = [];
     for (const [id, t] of states) {
       const k = await st.akey(t.akey), part = (await st.parts(t.item_ord))[t.partIx]!;

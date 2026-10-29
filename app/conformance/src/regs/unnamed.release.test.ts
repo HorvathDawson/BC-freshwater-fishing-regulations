@@ -26,8 +26,9 @@ const at = liveReleaseAt();
 // (2026-10-27, r-8b43fb267199: Chapman/Deena/Mamin cuts) the three keep their line numbers in atlas 52c5cff7ba8b6313
 // (2026-10-27, r-ea426985a467: T185 Quinsam + Sandy Pool cuts) salmon and base are two lines later in b6b5000e171023c9
 // (2026-10-28, r-46be3c135e68: T220 restored braid pieces) all three later in db853e9556df81a6: 8, 105 and 11 lines
-const H_ATLAS = "db853e9556df81a6";
-const H = { eve: 1417, salmon: 64146, base: 59522 } as const;
+// (T222, r-0fa7927b16e5: the Ruskin/Northrop channels + T224 own-item names) 10cbcb72e9f907cf: 1, 5 and 1 lines later
+const H_ATLAS = "10cbcb72e9f907cf";
+const H = { eve: 1418, salmon: 64151, base: 59523 } as const;
 /** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 
@@ -85,7 +86,10 @@ describe.skipIf(!at.dir)(`T53 an unnamed stream's regulations on the live releas
     const t = await tap(H.base, 10, 22, "Thursday");
     expect([t.item, t.page.header.name, t.page.header.place, t.trib, t.reach.filter((k) => !/^z(6|p):/.test(k)),
             t.page.status, banner(t.page)])
-      .toEqual([null, "Unnamed stream · Region 6", null, [], [], "open", null]);
+      // (T252, r-0fa7927b16e5) section_down is closed downstream through lakes, so the walk reaches Tahtsa Lake: the place
+      // line names it; the rules are still the region's base alone (no trib or reach rule)
+      .toEqual([null, "Unnamed stream · Region 6", { full: "Tributary of Tahtsa Lake", short: "Tributary of Tahtsa Lake" },
+                [], [], "open", null]);
     // every line the page cites is the base's
     expect(t.page.keep.whereNot!.items.map((x) => x.rule).filter((k) => !/^z(6|p):/.test(k))).toEqual([]);
   });

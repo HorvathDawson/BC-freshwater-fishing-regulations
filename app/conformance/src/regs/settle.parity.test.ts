@@ -93,7 +93,7 @@ const project = (c: Settled): OracleSettle => ({
 });
 
 it("the oracle: page v38's settle over the 134 golden states, YEAR 2026", () => {
-  expect([H.meta.version, H.meta.year, Object.keys(H.states).length, ids.length]).toEqual(["v38", 2026, 134, 124]);   // (T115, T67, T183, 2026-10-27 x18p3, T220 x13p2 x9p2) 10 gone
+  expect([H.meta.version, H.meta.year, Object.keys(H.states).length, ids.length]).toEqual(["v38", 2026, 134, 123]);   // (T115, T67, T183, 2026-10-27 x18p3, T220 x13p2 x9p2, T228 x37p0) 11 gone
   expect(ids).toEqual(Object.keys(T.states));
   expect(Object.keys(H.states).filter((id) => id in T.gone)).toEqual(Object.keys(T.gone));
 });
@@ -166,7 +166,7 @@ group.skipIf(pairing.skip)(`T07 settle on the live release (${at.path ?? at.reas
       tally[k] = (tally[k] ?? 0) + 1;
       timed += c.timed.length;
     }
-    expect([tally, timed]).toEqual([{ own: 95, closed: 22, base: 6, tidal: 1 }, 0]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
+    expect([tally, timed]).toEqual([{ own: 94, closed: 22, base: 6, tidal: 1 }, 0]);   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 
   it("6. displayStatusOn / isClosedOn on the Vedder: Jun 1–30 (leap days 153–182) closed, the days either side not", async () => {

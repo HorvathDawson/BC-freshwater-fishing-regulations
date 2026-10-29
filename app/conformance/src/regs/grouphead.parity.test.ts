@@ -92,7 +92,7 @@ describe.skipIf(gate.skip)("T17 group head", () => {
       expect(plain(b.shareOf), id).toMatch(new RegExp(`^↳ .*\\b${relTier.n}\\b`));
       expect(b.form, id).toBe("b");
     }
-    expect(n).toBe(55);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part: its group goes with it; (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: their 2 groups (x15p17, x15p18) go with them; (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`): its group goes with it
+    expect(n).toBe(54);   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two: its group goes with it;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part: its group goes with it; (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: their 2 groups (x15p17, x15p18) go with them; (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`): its group goes with it
   });
 
   it("9. property (r20e/r20f): a moved tag leaves the head (and heads the share, if any); no head scope says ' streams' over an ' across ' total", async () => {

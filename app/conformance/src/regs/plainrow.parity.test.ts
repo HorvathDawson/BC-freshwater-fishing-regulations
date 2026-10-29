@@ -46,7 +46,7 @@ describe("T19b plain rows vs golden keep.plainRows (every state)", () => {
       if (eq.ok) passed++; else bad.push(`${c.id}: ${got.length} rows vs ${want.length}\n${each.map((e) => ("diff" in e ? e.diff : "")).join("\n")}`);
     }
     expect(bad).toEqual([]);
-    expect([total, rows]).toEqual([124, 27]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
+    expect([total, rows]).toEqual([123, 27]);   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 
   const at = async (id: string) => { for await (const c of cases("keep")) if (c.id === id) return rowsOf(await c.inputs()); return null; };

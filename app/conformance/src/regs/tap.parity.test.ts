@@ -30,7 +30,7 @@ const MOMENT_SPLITS: Readonly<Record<string, number>> = {
 // (T115, T67, T183, 2026-10-27 x18p3, T220 x13p2 x9p2) 124 tapped + 10 taps.json lists `gone` = the golden's 134
 it("the oracle: 124 tapped golden states (+ 10 gone), 4 Feb 29 cases, at the golden this port targets", () => {
   expect([ids.length, T.leap.length, T.meta.generator, T.meta.version, T.meta.year])
-    .toEqual([124, 4, "app/tools/regs-recut/taps.py", "v38", 2026]);
+    .toEqual([123, 4, "app/tools/regs-recut/taps.py", "v38", 2026]);   // (T228) x37p0 gone: 123 tapped + 11 gone
   for (const [id, s] of Object.entries(MOMENT_SPLITS)) expect([id, T.states[id]!.s, T.states[id]!.moments !== null]).toEqual([id, s, true]);
 });
 

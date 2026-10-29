@@ -2,8 +2,8 @@
  "meta": {
   "generator": "app/tools/regs-recut/hydrate.mjs",
   "ref": "HEAD",
-  "sha": "cf6a20ef",
-  "golden": "d7b1ed35",
+  "sha": "cf6a20efa",
+  "golden": "d7b1ed353",
   "version": "v38",
   "year": 2026,
   "decodeLines": "1-246"

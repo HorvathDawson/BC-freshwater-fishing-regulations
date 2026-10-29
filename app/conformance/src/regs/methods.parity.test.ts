@@ -10,7 +10,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { buildRegsPage, type MethodsVM, type YesNoVM } from "@app/core";
 import { eqPlain } from "./eq";
 import { ADULT_RESIDENT, caseIds, golden, inputsOf, parityGate, requestOf, summary } from "./golden";
-import { excluded, ON_PARTS_BOAT_IDS } from "./exclusions";
+import { excluded, ON_PARTS_BOAT_IDS, PART_GONE_IDS } from "./exclusions";
 import { methodsProj } from "./gearPage";
 
 interface GMethods { closed: string | null; ways: unknown; boats: unknown; reference: { open: boolean } | null; lines: string[] }
@@ -73,9 +73,10 @@ describe.skipIf(gate.skip)("T32 ways, boats, reference vs golden methods", () =>
       if (v.boats) t.boats.push(id);
       if (v.reference) { t.reference++; t.refShape.add(JSON.stringify([v.reference.label, v.reference.title, v.reference.sub, v.reference.groups.map((x) => x.head)])); }
     }
-    expect([t.closed, t.ways, t.reference]).toEqual([23, 101, 101]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
+    expect([t.closed, t.ways, t.reference]).toEqual([23, 100, 100]);   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
     expect(t.boats.sort()).toEqual(["bc1_501", "bc1_1010", "x14p0_1010", "x14p1_1010", "x14p2_1010", "x15p2_1010", "x16p1_1010", "x18p0_1010",
-      "x21p0_1010", "x21p1_1010", "x21p2_1010", "x27p0_1010", "x27p2_1010", ...ON_PARTS_BOAT_IDS].sort());
+      "x21p0_1010", "x21p1_1010", "x21p2_1010", "x27p0_1010", "x27p2_1010",
+      ...ON_PARTS_BOAT_IDS.filter((id) => !PART_GONE_IDS.includes(id))].sort());   // (T228) x37p0 gone
     expect([...t.refShape]).toEqual([JSON.stringify(["Reference", "Handling fish", "21 rules that apply everywhere",
       ["When you catch a fish", "When you release a fish", "When you keep a fish", "Carrying fish", "Never"]])]);
   });

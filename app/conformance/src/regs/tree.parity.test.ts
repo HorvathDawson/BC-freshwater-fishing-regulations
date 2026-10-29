@@ -204,7 +204,7 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
     // the golden's own counts: 27 folded kinds, 127 tiers (Kitimat's ruled trees have as many of each); (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: their 3 tiers
     // (x15p17 1, x15p18 2) go with them; (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`): its 1 tier goes with it
     // (T203) + 13: Region 6's shared 1 over 50 cm is one size tier on 13 states (exclusions T203_SIZE_BOX_IDS)
-    expect([folded, checked]).toEqual([27, 138]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part
+    expect([folded, checked]).toEqual([27, 136]);   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two: its 2 tiers go with it;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part
   });
 
   it("12. property (r20e/r20f): a drawn share under an ' across ' total reads 'Only N of the M …', N a big number, M ≠ N", async () => {

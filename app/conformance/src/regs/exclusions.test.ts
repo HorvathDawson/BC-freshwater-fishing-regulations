@@ -36,8 +36,9 @@ describe("EXCLUDE", () => {
     const gone = Object.keys(T.gone).sort();
     // (T183) the West Road's x27p1 joins them: its Region 6 stretch shares its rules with part 0 (taps.py PART_GONE);
     // (2026-10-27) and the Columbia's x18p3: its two-stretch part split at the Mud Lake speed limit; (T220) the Dean's
-    // x13p2 (restored braid pieces renumbered its closed part) and the Kootenay's x9p2 (its closed parts grew 16 -> 19)
-    expect(gone).toEqual(["x13p2_1010", "x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x18p3_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010", "x9p2_1010"]);
+    // x13p2 (restored braid pieces renumbered its closed part) and the Kootenay's x9p2 (its closed parts grew 16 -> 19);
+    // (T228) the Coquitlam's x37p0 (the no-access split cut its Lougheed -> lake outlet part in two)
+    expect(gone).toEqual(["x13p2_1010", "x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x18p3_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010", "x37p0_1010", "x9p2_1010"]);
     for (const b of blocks) {
       for (const id of gone) expect(excluded(b, id)?.reason, `${b} ${id}`).toBe(`part gone — ${T.gone[id]!.reason}`);
       expect(Object.keys(T.states).filter((id) => excluded(b, id)?.reason.startsWith("part gone")), b).toEqual([]);
@@ -59,11 +60,12 @@ describe("EXCLUDE", () => {
     // and the West Road's x27p0/2, and the West Road's 2 tapped states join the re-cut Parts sheets (25 -> 27). (T179)
     // the Koocanusa cut moved to the reservoir's inlet: the Kootenay's x9p0/1 are grown (4 -> 6) and its 8 tapped
     // states join the re-cut Parts sheets (27 -> 35). (2026-10-27) x18p3 gone; the Columbia's 6 tapped states join them (35 -> 41). (T220) x13p2 and x9p2 gone;
-    // the Dean's Parts sheet is still the golden's (RECUT_SAME_PARTS), so it does not join them; the Kootenay's x9p2 leaves them (41 -> 40)
-    const gone = ["x13p2_1010", "x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x18p3_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010", "x9p2_1010"].flatMap(() =>
+    // the Dean's Parts sheet is still the golden's (RECUT_SAME_PARTS), so it does not join them; the Kootenay's x9p2 leaves them (41 -> 40).
+    // (T228) x37p0 gone; the Coquitlam's 2 tapped states (x37p1/2, renumbered) join the re-cut Parts sheets (40 -> 42)
+    const gone = ["x13p2_1010", "x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x18p3_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010", "x37p0_1010", "x9p2_1010"].flatMap(() =>
       ["header 1 -", "keep 1 -", "gear 1 -", "methods 1 -", "licence 1 -", "sheets 1 -", "pins 1 -"]);
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual([...gone, "header 6 ^place\\.(full|short)$", "sheets 40 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
+      .toEqual([...gone, "header 6 ^place\\.(full|short)$", "sheets 42 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
         "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`,
         `header ${GOLDEN_PARTS_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
@@ -161,7 +163,7 @@ describe("(T21) the whole Keep tab", () => {
 describe("pins (T28, IMPLEMENT-HANDOFF C5)", () => {
   it("no golden state carries the v33 pinUpdate throw at v38 @ d7b1ed35 (golden synced at HEAD 2026-10-27; v36snap carries the size-rule duty wording); no state is dropped, only the Kitimat ruling's tier lines", () => {
     const errs = Object.entries(G.states).filter(([, s]) => !!(s.pins as { error?: unknown } | null)?.error).map(([id]) => id);
-    expect([G.meta.version, G.meta.sha, errs]).toEqual(["v38", "d7b1ed35", []]);
+    expect([G.meta.version, G.meta.sha, errs]).toEqual(["v38", "d7b1ed353", []]);
     // no state is dropped for a pins reason; (T115) the 4 whose part the release merged away are dropped from every block
     expect(Object.keys(G.states).filter((id) => excluded("pins", id) !== null).sort()).toEqual(Object.keys(T.gone).sort());
     expect(excluded("pins", "x14p1_1010", "anchors.0.tiers")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
