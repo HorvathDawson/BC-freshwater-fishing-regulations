@@ -154,3 +154,12 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   359784.pdf`): its "Tidal Water Boundaries" table is 14 Region 2 rivers + Fraser–Pitt, Squamish, Skeena — every one
   already in `tidal_words.LANDMARKS`. It also says "the Mamquam blind channel [is] considered tidal" — Mamquam is
   not a T212 candidate (a Squamish tributary): open.
+- **Tidal tab groups (owner 2026-10-28):** four groups, every candidate in exactly one — Mouth (DFO default) /
+  Words name the boundary (located) / Words name it — not located yet / Conflict (words vs the mouth, each other, or
+  an owner mark) — plus Done (owner-marked); a progress bar each. Confirms-mouth, pass-2 buckets, triage classes and
+  default-conflict are folded in (the evidence stays in the row's detail). Before: mouth 1124 / words 34 / locate 0 /
+  conflict 10, done 24 of 1168. Group 1 auto-accepted by the owner's call: one owner mark per unmarked mouth row at
+  the FWA mouth, note "owner 2026-10-28: auto-accepted — DFO default, no boundary words" (1110 recorded; existing marks
+  untouched). 7 refused by the snap — the FWA mouth is >500 m from the atlas item's line or the stream is not in the
+  registry: Skagit (1379 m), Campus (757), Caycuse (716), Dempster (524), Doobah (606), Hobiton (628), Nelson Creek
+  (no registry item) — open: place by hand.
