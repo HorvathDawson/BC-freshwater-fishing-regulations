@@ -3293,6 +3293,26 @@
       -122.53622,
       49.20714
      ]
+    },
+    {
+     "id": "kanaka_creek__cpr_bridge_tidal_boundary",
+     "label": "CPR Bridge (tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.580836,
+       49.202567
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:356352191 — \"Kanaka Creek: CPR Bridge\"",
+     "_coord": [
+      -122.580836,
+      49.202567
+     ],
+     "tidal": true
     }
    ]
   },
