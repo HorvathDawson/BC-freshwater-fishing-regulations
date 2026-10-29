@@ -4,7 +4,15 @@
  * THESE bytes, so the highlight is drawn on this copy and no other (the gov.bc.ca file is not byte-identical).
  * Null (no release block, e.g. the fixture release): `openBook` keeps opening the plain link.
  */
-export interface SynopsisSource { readonly url: string; readonly sha256: string; readonly bytes: number }
+export interface SynopsisSource {
+  readonly url: string; readonly sha256: string; readonly bytes: number;
+  /**
+   * (T285) where the SAME bytes are now, asked only when `url` answers 404. A release's files go when the next release
+   * replaces it (staging keeps the latest only), yet the synopsis is named by its content and rides on into the next one:
+   * a device still on the older release finds the file under the live release. Null: nowhere else.
+   */
+  readonly alternate?: () => Promise<string | null>;
+}
 
 let source: SynopsisSource | null = null;
 

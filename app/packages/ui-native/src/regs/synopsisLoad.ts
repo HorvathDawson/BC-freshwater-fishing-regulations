@@ -15,6 +15,8 @@ export const SYNOPSIS_WORDS = Object.freeze({
   cancel: "Cancel",
   failed: "Couldn’t load the synopsis.",
   retry: "Retry",
+  close: "Close",
+  noViewer: "No app on this device opens PDFs. Install a PDF reader, or open the synopsis on gov.bc.ca.",
   fallback: "Open on gov.bc.ca ›",
 });
 
@@ -24,7 +26,8 @@ export const SHOW_AFTER_MS = 150;
 export type SynopsisLoadState =
   | { readonly phase: "idle" }
   | { readonly phase: "loading"; readonly pdf: number; readonly loaded: number; readonly total: number | null; readonly visible: boolean }
-  | { readonly phase: "error"; readonly pdf: number; readonly boxes: readonly SourceBox[] | undefined }
+  | { readonly phase: "error"; readonly pdf: number; readonly boxes: readonly SourceBox[] | undefined;
+      /** (T285) the device has no PDF viewer: the card says so rather than "couldn't load" */ readonly noViewer?: boolean }
   /** (T254) on a slow line, asked first: the rule book's size and how long it would take; `go` starts it */
   | { readonly phase: "offer"; readonly pdf: number; readonly bytes: number; readonly seconds: number | null;
       readonly go: () => void };
@@ -92,7 +95,7 @@ export function runSynopsisLoad(pdf: number, boxes: readonly SourceBox[] | undef
     (e: unknown) => {
       if (ctrl !== mine) return;                        // cancelled: already idle
       clearTimer(); ctrl = null;
-      set({ phase: "error", pdf, boxes });
+      set({ phase: "error", pdf, boxes, noViewer: (e as { name?: string } | null)?.name === "NoPdfViewer" });
       throw e;
     });
 }

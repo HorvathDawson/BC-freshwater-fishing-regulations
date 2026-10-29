@@ -143,3 +143,20 @@ describe("a phone's NetInfo: the cellular generation", () => {
     expect(c.hints!()).toEqual({ cellularGeneration: "3g" });
   });
 });
+
+describe("the failed synopsis card closes without opening anything (T285)", () => {
+  it("Close, and the words for a device with no PDF app", async () => {
+    setSynopsisSource({ url: "https://r2.test/synopsis.pdf", sha256: "a".repeat(64), bytes: 10 });
+    setSynopsisNet(null);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(<SynopsisLoading palette={LIGHT} floating />);
+    const err = Object.assign(new Error("none"), { name: "NoPdfViewer" });
+    await act(async () => { await openBook(5, [], "android", vi.fn().mockRejectedValue(err)); });
+    expect(getSynopsisLoad()).toMatchObject({ phase: "error", noViewer: true });
+    expect(screen.getByTestId("synopsis-loading").textContent).toContain("No app on this device opens PDFs");
+    expect(screen.getByTestId("synopsis-fallback")).toBeTruthy();
+    fireEvent.click(screen.getByTestId("synopsis-close"));
+    expect(getSynopsisLoad().phase).toBe("idle");
+    setSynopsisSource(null);
+  });
+});

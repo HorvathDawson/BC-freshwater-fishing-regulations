@@ -4,7 +4,8 @@
  * (floating over the app) and inside the sheet host (a sheet's Modal covers the Shell). Nothing while idle, and nothing in
  * the first SHOW_AFTER_MS of a load (a cached copy opens without a flash). The app's tokens only.
  */
-import { Linking, Pressable, Text, View } from "react-native";
+import { useEffect } from "react";
+import { BackHandler, Linking, Platform, Pressable, Text, View } from "react-native";
 import { NET_WORDS, SYNOPSIS_PDF } from "@app/core";
 import { LoadingState } from "../LoadingState";
 import { BottomInset } from "../WindowInset";
@@ -24,6 +25,13 @@ export function useBookLoadingWords(pdf: number | null): string | null {
 
 export function SynopsisLoading({ palette, floating = false }: { palette: Palette; floating?: boolean }) {
   const s = useSynopsisLoad();
+  // (T285) the failed card closes without opening anything: its Close, the Android back button, a tap outside (floating)
+  const failing = s.phase === "error";
+  useEffect(() => {
+    if (!failing || Platform.OS === "web") return undefined;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => { dismissSynopsisError(); return true; });
+    return () => sub.remove();
+  }, [failing]);
   if (s.phase === "idle" || (s.phase === "loading" && !s.visible)) return null;
   const offer = s.phase === "offer" ? s : null;
   const err = s.phase === "error";
@@ -42,7 +50,7 @@ export function SynopsisLoading({ palette, floating = false }: { palette: Palett
       {/* the bar itself waited before it showed (`visible`): its fish is there at once */}
       {!err && !offer && <View style={{ marginRight: SPACE.s2 }}><LoadingState palette={palette} size={36} label={W.loading} immediate /></View>}
       <Text accessibilityLiveRegion="polite" style={[TYPE.bodyStrong, { flex: 1, minWidth: 140, color: palette.ink, paddingVertical: SPACE.s3 }]}>
-        {offer ? NET_WORDS.pdf.offer(offer.bytes, offer.seconds) : err ? W.failed : n === null ? W.loading : W.percent(n)}
+        {offer ? NET_WORDS.pdf.offer(offer.bytes, offer.seconds) : err ? (failed?.noViewer ? W.noViewer : W.failed) : n === null ? W.loading : W.percent(n)}
       </Text>
       {/* (T254) on a slow line the rule book is offered with its size before a byte of it is fetched */}
       {offer ? (
@@ -53,12 +61,17 @@ export function SynopsisLoading({ palette, floating = false }: { palette: Palett
       ) : err ? (
         <>
           {act(W.retry, () => { if (!failed) return; dismissSynopsisError(); void openBook(failed.pdf, failed.boxes).catch(() => undefined); }, "synopsis-retry")}
+          {act(W.close, dismissSynopsisError, "synopsis-close")}
           {act(W.fallback, () => { dismissSynopsisError(); void Linking.openURL(SYNOPSIS_PDF); }, "synopsis-fallback")}
         </>
       ) : act(W.cancel, cancelSynopsisLoad, "synopsis-cancel")}
     </View>);
   const id = offer ? "synopsis-offer" : "synopsis-loading";
   return floating
-    ? <View testID={id} style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: palette.card }}>{bar}<BottomInset min={0} /></View>
+    ? <>
+        {err && <Pressable testID="synopsis-scrim" accessibilityLabel={W.close} onPress={dismissSynopsisError}
+                           style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} />}
+        <View testID={id} style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: palette.card }}>{bar}<BottomInset min={0} /></View>
+      </>
     : <View testID={id}>{bar}</View>;
 }

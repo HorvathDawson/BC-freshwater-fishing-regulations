@@ -394,7 +394,12 @@ export default function App() {
   const synopsis = boot.state === "ready" ? boot.booted.manifest.synopsis : null;
   useEffect(() => {
     setSynopsisSource(synopsis?.sha256 && synopsis.bytes
-      ? { url: `${ENDPOINTS.release}${synopsis.url}`, sha256: synopsis.sha256, bytes: synopsis.bytes } : null);
+      ? { url: `${ENDPOINTS.release}${synopsis.url}`, sha256: synopsis.sha256, bytes: synopsis.bytes,
+          // (T285) this release's files may be gone (404): the live manifest names the same synopsis under the live release
+          alternate: async () => {
+            const live = (await (await fetch(ENDPOINTS.manifest)).json() as { synopsis?: { sha256?: string; url?: string } }).synopsis;
+            return live?.sha256 === synopsis.sha256 && live?.url ? `${ENDPOINTS.release}${live.url}` : null;
+          } } : null);
   }, [synopsis]);
 
   // a phone whose newest set would not open went back to the one it replaced: said, above the map

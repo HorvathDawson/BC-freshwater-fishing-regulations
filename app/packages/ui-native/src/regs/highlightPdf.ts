@@ -56,7 +56,7 @@ export async function highlightPdf(pdf: Uint8Array, boxes: readonly SourceBox[],
     copies.forEach((c, k) => doc.insertPage(k, c));
   }
   // a link with no row to mark (a zone or province table, a Source sheet): the copy opens at the page it names
-  if (!drawn && opts.page && opts.page >= 1 && opts.page <= pages.length) {
+  if (!drawn && opts.page && opts.page >= 2 && opts.page <= pages.length) {
     if (opts.entryFirst) { const [c] = await doc.copyPages(doc, [opts.page - 1]); doc.insertPage(0, c!); }
     else doc.catalog.set(PDFName.of("OpenAction"), doc.context.obj([pages[opts.page - 1]!.ref, PDFName.of("Fit")]));
     return doc.save();
