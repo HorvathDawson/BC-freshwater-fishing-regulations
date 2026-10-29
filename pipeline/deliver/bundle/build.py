@@ -570,9 +570,14 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     from pipeline.common.section_handles import read as _read_handles
     _handle_ids = list(_read_handles(build_dir)[0])
     _continues = _continuation.links(db, _handle_ids, graph)
-    # SETTLED NOW, BEFORE THE GAUGES (T76), with the pairings read above (`_book`)
-    _settled = _continuation.settle(_continues, _book)
+    # SETTLED NOW, BEFORE THE GAUGES (T76), with the pairings read above (`_book`), then GATED by the owner's decisions
+    # (owner 2026-10-29): only a reviewed link ships; a new one is held and listed beside the bundle, not shipped
+    _settled, _held = _continuation.gate_bundle(db, _continuation.settle(_continues, _book))
     del _book
+    _held_path = Path(out).with_name("continuations_held.json")
+    _held_path.write_text(json.dumps(_held, indent=1) + "\n")
+    print(f"     water_continue: {len(_settled)} reviewed links ship; {len(_held)} listed in {_held_path.name}"
+          + "".join(f"\n       {h['status']:8} {h['names'] or h['from'] + ' -> ' + h['to']}" for h in _held))
     # The same graph says where each section lies along its water and what ends it — the cuts a part's runs go between
     # (`section_span`, `split`). A natural lower end's words (`continues:` / `confluence:` / `mouth`) are the links just
     # made (T108: `continuation.goes_on` decides it once; the span end and the ▲ button cannot disagree). Before the

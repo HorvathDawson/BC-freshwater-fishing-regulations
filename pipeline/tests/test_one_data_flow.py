@@ -44,11 +44,12 @@ def test_the_bundle_reads_no_curated_waters_file():
     """`CURATED.` under pipeline/deliver/bundle may name only the corpus (`regulations.entries`) and the book's own
     text the glossary quotes (`regulations.reference`, copied into `glossary_source`, plan 2.14).
     `part_of`, cut labels and offsets come from the atlas; the steelhead list through its own
-    loader (a fingerprint check, not a fact)."""
+    loader (a fingerprint check, not a fact). And the owner's continuation review (`waters.continuations`, owner
+    2026-10-29): `water_continue` is made in the bundle, so the gate that ships only reviewed links reads it there."""
     bad = []
     for p, text in _sources(BUNDLE_DIR).items():
         for m in re.finditer(r"CURATED\.([A-Za-z_.]+)", text):
-            if not m.group(1).startswith(("regulations.entries", "regulations.reference")):
+            if not m.group(1).startswith(("regulations.entries", "regulations.reference", "waters.continuations")):
                 bad.append(f"{p.name}: CURATED.{m.group(1)}")
     assert bad == []
     for p, text in _sources(BUNDLE_DIR).items():

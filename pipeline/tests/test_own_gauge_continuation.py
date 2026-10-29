@@ -186,9 +186,13 @@ def test_the_table_must_be_what_the_panels_were_built_with():
             pass
 
     found = [(1, 11, 2, 21, True)]
+    ok = C.Decided(reviewed=[("gnis:1", "gnis:2")])
     with pytest.raises(C.ContinuationError, match="panels were built"):
-        C.write(db, found, Cov(), built_with=[])
-    assert C.write(db, found, Cov(), built_with=[(1, 11, 2, 21)]) == 1
+        C.write(db, found, Cov(), built_with=[], decided=ok)
+    assert C.write(db, found, Cov(), built_with=[(1, 11, 2, 21)], decided=ok) == 1
+    # owner 2026-10-29: a link the owner has not reviewed is never written
+    db.execute("DELETE FROM water_continue")
+    assert C.write(db, found, Cov(), built_with=[], decided=C.Decided()) == 0
 
 
 # ------------------------------------------------------------------ the acceptance, on the real bundle

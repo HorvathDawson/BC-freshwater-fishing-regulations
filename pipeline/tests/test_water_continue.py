@@ -352,6 +352,10 @@ class _Cov:
         self.rows[t] = n
 
 
+#: the synthetic waters' links, as the owner's review (owner 2026-10-29: only a reviewed link is written)
+OK = C.Decided(reviewed=[("gnis:1", "gnis:2"), ("gnis:3", "gnis:2")])
+
+
 def test_the_bundle_links_while_the_graph_is_loaded_and_writes_parts_once_they_exist():
     """Two halves, because the build drops the graph before the parts exist: `links` reads the graph (section ids),
     `write` turns them into parts after `derived.write`."""
@@ -361,7 +365,7 @@ def test_the_bundle_links_while_the_graph_is_loaded_and_writes_parts_once_they_e
     assert links == [(1, 1, 2, 3, False)]
     db.executescript("INSERT INTO part_section VALUES (1, 1, 1), (2, 2, 1), (2, 3, 0);")
     cov = _Cov()
-    C.write(db, links, cov)
+    C.write(db, links, cov, decided=OK)
     assert db.execute("SELECT ord, part, next_ord, next_part FROM water_continue").fetchall() == [(1, 1, 2, 0)]
     assert cov.rows == {"water_continue": 1}
 
@@ -393,15 +397,15 @@ def test_the_bundle_keeps_a_confluence_link_only_where_an_entry_heading_pairs_th
     db = _confluence_bundle("CHILLIWACK/VEDDER RIVERS", ["gnis:1", "gnis:2"])
     links = C.links(db, ids, _G2())
     assert links == [(1, 1, 2, 3, True), (3, 4, 2, 3, True)]
-    C.write(db, links, _Cov())
+    C.write(db, links, _Cov(), decided=OK)
     assert db.execute("SELECT ord, part, next_ord, next_part FROM water_continue").fetchall() == [(1, 1, 2, 0)]
     # the heading names them, but the entry did not match the Chilliwack: no pairing
     db = _confluence_bundle("CHILLIWACK/VEDDER RIVERS", ["gnis:2"])
-    C.write(db, C.links(db, ids, _G2()), _Cov())
+    C.write(db, C.links(db, ids, _G2()), _Cov(), decided=OK)
     assert db.execute("SELECT COUNT(*) FROM water_continue").fetchone() == (0,)
     # a lone heading names no pair
     db = _confluence_bundle("VEDDER RIVER", ["gnis:1", "gnis:2"])
-    C.write(db, C.links(db, ids, _G2()), _Cov())
+    C.write(db, C.links(db, ids, _G2()), _Cov(), decided=OK)
     assert db.execute("SELECT COUNT(*) FROM water_continue").fetchone() == (0,)
 
 
@@ -409,13 +413,13 @@ def test_a_link_whose_section_has_no_part_stops_the_build():
     db = _bundle_tables()
     db.execute("INSERT INTO part_section VALUES (1, 1, 1)")
     with pytest.raises(C.ContinuationError, match="has no part"):
-        C.write(db, [(1, 1, 2, 3, False)], _Cov())
+        C.write(db, [(1, 1, 2, 3, False)], _Cov(), decided=OK)
 
 
 @pytest.mark.needs_bundle
 def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
     """On the real bundle: the link the owner asked for (the Chilliwack's mouth part into the Vedder's part 0), and the
-    18 reviewed links (T59: the Atnarko as the Bella Coola) — the bundle is where `water_continue` is made now; the
+    17 reviewed links (T59: the Atnarko as the Bella Coola) — the bundle is where `water_continue` is made now; the
     release copies it (`test_release.py`)."""
     import os
     import sqlite3
@@ -447,21 +451,15 @@ def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
     parts = set(b.execute("SELECT ord, part_ix FROM part"))
     assert all((a, p) in parts and (n, q) in parts for a, p, n, q in rows)
     # OWNER 2026-10-21 (late): the 18 rows reviewed in handoff/PLAN/app-data/p15/continuations.md, less the one the FWA
-    # codes call reversed (Eagle Trib.5 "flows into" Eagle Trib.5-3); the 10 municipal continuations stay
-    name = dict(b.execute("SELECT ord, name FROM item"))
-    assert sorted({(name[a], name[n]) for a, _, n, _ in rows}) == sorted({
-        ("Chilliwack River", "Vedder River"), ("Hatzis Slough", "Lower Hatzic Slough"),
-        ("Chilqua Creek", "Chilqua Slough"), ("Page Creek", "Matsqui Slough"), ("Marblehill Creek", "Semmihault Creek"),
-        ("Davidson Creek", "Tomat Creek"), ("Pass Creek", "Screw Creek"),
-        # T108: ("Jeperson Side Channel", "Jeperson Side Channel") is gone — no water continues into itself
-        ("Aliceville Trib.1-1", "Aliceville Trib.1"), ("Beecher Trib.4", "Beecher Creek"),
-        ("Crayfish Creek Trib.3-1", "Crayfish Creek Trib.3"), ("Eagle Trib.4-1", "Eagle Trib.4"), ("Jr 4-1-2", "Jr 4-1"),
-        ("Noble Creek Trib.1 Trib.1", "Noble Creek Trib.1"), ("Rochester Creek", "Holmes Creek"),
-        ("Westway Avenue Drainage Ditch", "Magnolia Creek Trib 1"),
-        ("Finch Connector (Unnamed)", "Logger's Lane Connector"),
-        # T59 (owner 2026-10-22): two rivers meet, and the book's "ATNARKO/BELLA COOLA RIVERS" names the one that goes
-        # on; the Talchako stays a tributary (above). The only row the pairing adds, reviewed on the live bundle + graph
-        ("Atnarko River", "Bella Coola River")})
+    # codes call reversed (Eagle Trib.5 "flows into" Eagle Trib.5-3); the 10 municipal continuations stay; T59 adds the
+    # Atnarko as the Bella Coola. OWNER 2026-10-29: the bundle holds EXACTLY the reviewed set
+    # (data/curated/waters/continuations.json) — Meadow Creek -> Meadow Creek Diversion (T224 named it from a gauge) is
+    # refused, and any new candidate is held, not shipped
+    item = dict(b.execute("SELECT ord, item_id FROM item"))
+    decided = C.Decided.load()
+    assert {(item[a], item[n]) for a, _, n, _ in rows} == decided.reviewed
+    assert not {(item[a], item[n]) for a, _, n, _ in rows} & decided.refused
+    assert ("gnis:27273", "blk:356368998") in decided.refused
     assert len(rows) == 17
     atn, bc = ordof["gnis:17209"], ordof["gnis:11611"]
     assert [r for r in rows if atn in (r[0], r[2]) or bc in (r[0], r[2])] == [(atn, 3, bc, 0)]
@@ -578,3 +576,63 @@ def test_the_book_pairs_the_waters_one_heading_names_together():
     # a matched water the heading does not name exactly is not paired ("South Atnarko" is not "Atnarko")
     assert C.heading_pairs("ATNARKO/BELLA COOLA RIVERS", {"gnis:29411": "South Atnarko River",
                                                           "gnis:11611": "Bella Coola River"}) == set()
+
+
+# ------------------------------------------------------------------ owner 2026-10-29: only reviewed links ship
+
+ITEMS = {1: "gnis:1", 2: "gnis:2", 3: "blk:3", 4: "gnis:4", 5: "gnis:5"}
+
+
+def test_only_a_reviewed_link_ships_and_a_new_one_is_held():
+    d = C.Decided(reviewed=[("gnis:1", "gnis:2")])
+    ship, listed = C.gate([(1, 11, 2, 21), (4, 41, 5, 51)], ITEMS, d)
+    assert ship == [(1, 11, 2, 21)]
+    assert [(h["from"], h["to"], h["status"]) for h in listed] == [("gnis:4", "gnis:5", "held")]
+
+
+def test_a_refused_link_never_ships_and_a_mined_name_makes_no_link():
+    """Meadow Creek -> Meadow Creek Diversion: the diversion's only name is a T224 label (ECCC gauge) — a label is never
+    evidence of one watercourse, and the owner refused the link."""
+    d = C.Decided(refused=[("gnis:1", "gnis:2")])
+    ship, listed = C.gate([(1, 11, 2, 21), (4, 41, 3, 31)], ITEMS, d, labelled={"blk:3"})
+    assert ship == []
+    assert {(h["from"], h["status"]) for h in listed} == {("gnis:1", "refused"), ("gnis:4", "label")}
+
+
+def test_a_reviewed_link_with_a_labelled_name_still_ships():
+    """The municipal continuations (city-layer names, not gazetted) were reviewed by the owner: review decides."""
+    d = C.Decided(reviewed=[("gnis:4", "blk:3")])
+    assert C.gate([(4, 41, 3, 31)], ITEMS, d, labelled={"blk:3"})[0] == [(4, 41, 3, 31)]
+
+
+def test_a_reviewed_link_the_topology_no_longer_proposes_is_listed_stale():
+    d = C.Decided(reviewed=[("gnis:1", "gnis:2")])
+    assert C.gate([], ITEMS, d) == ([], [{"from": "gnis:1", "to": "gnis:2", "names": "", "status": "stale"}])
+
+
+def test_the_curated_decisions_hold_the_reviewed_17_and_refuse_meadow_creek():
+    d = C.Decided.load()
+    assert len(d.reviewed) == 17 and ("gnis:8634", "gnis:3062") in d.reviewed
+    assert d.refused == {("gnis:27273", "blk:356368998")}
+
+
+def test_a_link_both_reviewed_and_refused_stops(tmp_path):
+    import json
+    p = tmp_path / "c.json"
+    p.write_text(json.dumps({"reviewed": [{"from": "a", "to": "b"}], "refused": [{"from": "a", "to": "b"}]}))
+    with pytest.raises(C.ContinuationError, match="reviewed AND refused"):
+        C.Decided.load(p)
+
+
+def test_gate_bundle_reads_labels_from_name_source():
+    import sqlite3
+    b = sqlite3.connect(":memory:")
+    b.executescript("""
+        CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT, name TEXT);
+        CREATE TABLE name_source (item_id TEXT, name TEXT, src TEXT, label TEXT);
+        INSERT INTO item VALUES (1, 'gnis:27273', 'Meadow Creek'), (2, 'blk:356368998', 'Meadow Creek Diversion');
+        INSERT INTO name_source VALUES ('blk:356368998', 'Meadow Creek Diversion', 'gauge', 'ECCC hydrometric station name');
+    """)
+    ship, listed = C.gate_bundle(b, [(1, 11, 2, 21)], C.Decided())
+    assert ship == [] and listed[0]["status"] == "label"
+    assert listed[0]["names"] == "Meadow Creek -> Meadow Creek Diversion"

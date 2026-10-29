@@ -1,0 +1,100 @@
+{
+ "_about": "THE CONTINUATION LINKS THE OWNER HAS DECIDED (water_continue). The bundle ships ONLY a link in `reviewed` (item ids, A continues as B); a link in `refused` never ships; any other link the atlas topology proposes is HELD — listed in the bundle build's continuations_held.json + its output, not shipped — until the owner adds it here. Reviewed 2026-10-21 (handoff/PLAN/app-data/p15/continuations.md) + T59 2026-10-22; Meadow Creek refused 2026-10-29. pipeline.deliver.bundle.continuation.gate",
+ "reviewed": [
+  {
+   "from": "wsc:900-059194-358500-866100",
+   "to": "wsc:900-059194-358500",
+   "names": "Aliceville Trib.1-1 -> Aliceville Trib.1"
+  },
+  {
+   "from": "gnis:17209",
+   "to": "gnis:11611",
+   "names": "Atnarko River -> Bella Coola River",
+   "note": "T59 (owner 2026-10-22): book pairing ATNARKO/BELLA COOLA RIVERS"
+  },
+  {
+   "from": "wsc:100-019698-999999-402800-985900",
+   "to": "wsc:100-019698-999999-402800",
+   "names": "Beecher Trib.4 -> Beecher Creek"
+  },
+  {
+   "from": "gnis:8634",
+   "to": "gnis:3062",
+   "names": "Chilliwack River -> Vedder River"
+  },
+  {
+   "from": "gnis:13751",
+   "to": "gnis:13750",
+   "names": "Chilqua Creek -> Chilqua Slough"
+  },
+  {
+   "from": "wsc:100-019698-831000-376299-952800",
+   "to": "wsc:100-019698-831000-376299",
+   "names": "Crayfish Creek Trib.3-1 -> Crayfish Creek Trib.3"
+  },
+  {
+   "from": "gnis:15995",
+   "to": "gnis:8282",
+   "names": "Davidson Creek -> Tomat Creek"
+  },
+  {
+   "from": "wsc:100-019698-794100-685700-745000",
+   "to": "wsc:100-019698-794100-685700",
+   "names": "Eagle Trib.4-1 -> Eagle Trib.4"
+  },
+  {
+   "from": "wsc:900-105462-575700-926200",
+   "to": "wsc:900-105462-575700",
+   "names": "Finch Connector (Unnamed) -> Logger's Lane Connector"
+  },
+  {
+   "from": "gnis:16120",
+   "to": "gnis:37373",
+   "names": "Hatzis Slough -> Lower Hatzic Slough"
+  },
+  {
+   "from": "wsc:100-012330-767500-225700-978500",
+   "to": "wsc:100-012330-767500-225700",
+   "names": "Jr 4-1-2 -> Jr 4-1"
+  },
+  {
+   "from": "gnis:13483",
+   "to": "gnis:24936",
+   "names": "Marblehill Creek -> Semmihault Creek"
+  },
+  {
+   "from": "wsc:900-056279-352700-460700-441900",
+   "to": "wsc:900-056279-352700-460700",
+   "names": "Noble Creek Trib.1 Trib.1 -> Noble Creek Trib.1"
+  },
+  {
+   "from": "gnis:21902",
+   "to": "gnis:14275",
+   "names": "Page Creek -> Matsqui Slough"
+  },
+  {
+   "from": "gnis:25438",
+   "to": "gnis:26178",
+   "names": "Pass Creek -> Screw Creek"
+  },
+  {
+   "from": "wsc:100-019698-429300-999999",
+   "to": "wsc:100-019698-429300",
+   "names": "Rochester Creek -> Holmes Creek"
+  },
+  {
+   "from": "wsc:900-102882-078200-056700-031200-804200",
+   "to": "wsc:900-102882-078200-056700-031200",
+   "names": "Westway Avenue Drainage Ditch -> Magnolia Creek Trib 1"
+  }
+ ],
+ "refused": [
+  {
+   "from": "gnis:27273",
+   "to": "blk:356368998",
+   "names": "Meadow Creek -> Meadow Creek Diversion",
+   "decided": "owner 2026-10-29",
+   "why": "appeared only because T224 named the diversion from an ECCC gauge name; mined names are labels only and never make a continuation"
+  }
+ ]
+}

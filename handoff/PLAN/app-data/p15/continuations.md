@@ -154,3 +154,8 @@ All 1,572 stream→stream pairs whose mouth meets the top piece of the receiver 
 | Amadis Creek | Watt Creek | WRONG | B's line goes on 3,786 m above A's mouth; also joining there: an unnamed stream |
 | Sakwi Creek | Weaver Creek | WRONG | B's line goes on 2,393 m above A's mouth; also joining there: Weaver Lake (lake outlet), an unnamed stream |
 | Brierly Creek | Wolverine River | WRONG | B's line goes on 8,236 m above A's mouth; also joining there: an unnamed stream |
+
+## 2026-10-29 — the reviewed set is now a curated file (owner)
+The 17 links above are `data/curated/waters/continuations.json` `reviewed`; only those ship. Refused there: Meadow Creek
+-> Meadow Creek Diversion (T224 named the diversion from a gauge; mined names are labels only). A new candidate is held
+and listed beside the bundle (`continuations_held.json`), never shipped automatically.

@@ -35,6 +35,11 @@ the measure on the receiving line where it joins):
     is no evidence; A's code extending B's (a tributary that is all there is above B's top) is kept, as the owner kept
     the municipal ones.
 
+THE OWNER DECIDES WHAT SHIPS (owner 2026-10-29). THE RULE only PROPOSES links; `gate` ships a link only when it is in
+`data/curated/waters/continuations.json` `reviewed`, never one in `refused`, and HOLDS any other (listed beside the
+bundle in `continuations_held.json`, not shipped). A name is never evidence: T224's mined names are labels, and naming
+Meadow Creek Diversion from an ECCC gauge made it Meadow Creek's continuation overnight (refused).
+
 ONE DECISION (T108, owner 2026-10-22: "unify checks that decide the same thing"). `goes_on` is the only place that
 answers "at its lower end, does A go on as B, meet B at a confluence, or end?", with one constant set (`STUB_M`,
 `CONFLUENCE_M`, `OWN_M`). The bundle's span end words read it (`lower_ends` -> `spans.compute`): a `continues:<B>` end
@@ -431,16 +436,81 @@ def links(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Link]:
     return candidates(streams, secs, b.execute("SELECT ord, down_ord FROM item_down"), line, flow)
 
 
+class Decided:
+    """THE OWNER'S DECISIONS ON CONTINUATION LINKS (owner 2026-10-29, `data/curated/waters/continuations.json`):
+    `reviewed` {(A item, B item)} ship, `refused` never do. The topology above only PROPOSES; a link ships when the
+    owner has reviewed it, so a newly named water (T224 mined names are labels only: Meadow Creek Diversion, named from
+    an ECCC gauge, became Meadow Creek's continuation overnight) can never add a link on its own."""
+
+    def __init__(self, reviewed: Iterable[Tuple[str, str]] = (), refused: Iterable[Tuple[str, str]] = ()):
+        self.reviewed, self.refused = set(map(tuple, reviewed)), set(map(tuple, refused))
+
+    @classmethod
+    def load(cls, path=None) -> "Decided":
+        import json
+        if path is None:
+            from pipeline.common.curated import CURATED
+            path = CURATED.waters.continuations
+        d = json.loads(open(path, encoding="utf-8").read())
+        pick = lambda k: [(r["from"], r["to"]) for r in d.get(k) or ()]  # noqa: E731
+        both = set(pick("reviewed")) & set(pick("refused"))
+        if both:
+            raise ContinuationError(f"{path}: reviewed AND refused: {sorted(both)}")
+        return cls(pick("reviewed"), pick("refused"))
+
+
+def gate(settled: Iterable[Tuple[int, int, int, int]], item_of: Mapping[int, str], decided: Decided,
+         labelled: Set[str] = frozenset(), names: Optional[Mapping[int, str]] = None
+         ) -> Tuple[List[Tuple[int, int, int, int]], List[dict]]:
+    """(the links that SHIP, the rest listed) — `settle`'s links through the owner's decisions (`Decided`). A link ships
+    only when reviewed; refused never; any other is `held` for the owner's review, or `label` when either water's
+    shown name is not an official one (`labelled`, item ids: a mined / non-gazetted name is a label, never evidence of
+    one watercourse — owner 2026-10-29), which the owner may still review in. The listing also names a reviewed link
+    the topology no longer proposes (`stale`)."""
+    names = names or {}
+    ship, listed, seen = [], [], set()
+    for r in sorted(set(settled)):
+        k = (item_of[r[0]], item_of[r[2]])
+        seen.add(k)
+        if k in decided.reviewed:
+            ship.append(r)
+            continue
+        why = ("refused" if k in decided.refused else
+               "label" if (k[0] in labelled or k[1] in labelled) else "held")
+        listed.append({"from": k[0], "to": k[1], "names": f"{names.get(r[0], k[0])} -> {names.get(r[2], k[1])}",
+                       "status": why})
+    for k in sorted(decided.reviewed - seen):
+        listed.append({"from": k[0], "to": k[1], "names": "", "status": "stale"})
+    return ship, listed
+
+
+def gate_bundle(b: sqlite3.Connection, settled: Iterable[Tuple[int, int, int, int]],
+                decided: Optional[Decided] = None) -> Tuple[List[Tuple[int, int, int, int]], List[dict]]:
+    """`gate` against the bundle as far as it is built: `item`, and `name_source` (T224: a row for every shown name that
+    is not the official gazette's) for the labelled waters. `decided` defaults to the curated file."""
+    decided = decided if decided is not None else Decided.load()
+    item_of, names = {}, {}
+    for o, i, n in b.execute("SELECT ord, item_id, name FROM item"):
+        item_of[o], names[o] = i, n
+    labelled: Set[str] = set()
+    if b.execute("SELECT 1 FROM sqlite_master WHERE name = 'name_source'").fetchone():
+        labelled = {i for (i,) in b.execute(
+            "SELECT s.item_id FROM name_source s JOIN item i ON i.item_id = s.item_id AND i.name = s.name")}
+    return gate(settled, item_of, decided, labelled, names)
+
+
 def write(b: sqlite3.Connection, found: Iterable[Link], cov,
-          built_with: Optional[Iterable[Tuple[int, int, int, int]]] = None) -> int:
+          built_with: Optional[Iterable[Tuple[int, int, int, int]]] = None,
+          decided: Optional[Decided] = None) -> int:
     """The bundle's `water_continue (ord, part, next_ord, next_part)` from `links`' candidates, settled with the book's
-    pairings (`book_pairs`, from `entry`), once `part_section` exists. A linked section with no part stops the build.
+    pairings (`book_pairs`, from `entry`) and gated by the owner's decisions (`gate_bundle`: only reviewed links ship),
+    once `part_section` exists. A linked section with no part stops the build.
 
     `built_with`: the links the donor panels were built with (settled earlier from `catalogue_heads`, T76). The table
     must be exactly those — or the Vedder's panel and its ▲ would disagree about what one system is — else the build
     stops."""
     part = {(o, s): p for o, s, p in b.execute("SELECT ord, sid, part_ix FROM part_section")}
-    settled = settle(found, book_pairs(b))
+    settled = gate_bundle(b, settle(found, book_pairs(b)), decided)[0]
     if built_with is not None and sorted(settled) != sorted(built_with):
         raise ContinuationError(f"water_continue: the panels were built with {sorted(built_with)}, the entry table "
                                 f"settles {sorted(settled)} — the catalogue read and `entry` disagree")

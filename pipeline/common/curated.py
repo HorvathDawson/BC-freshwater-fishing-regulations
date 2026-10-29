@@ -83,6 +83,9 @@ class Waters(BaseModel):
     #: PROMOTED (T224): name variants mined from city layers, OSM, ECCC… that the owner accepted (auto rule or
     #: review mark); each name carries its real source. Written by `pipeline.tools.mined_names`.
     mined_names: FilePath
+    #: THE OWNER-DECIDED CONTINUATION LINKS (`water_continue`): `reviewed` ship, `refused` never, anything else the
+    #: topology proposes is held for review (owner 2026-10-29, `bundle.continuation.gate`).
+    continuations: FilePath
     areas: FilePath
     #: Hand-drawn admin polygons — closure zones a regulation states as an AREA rather than a
     #: reach. Selected by an `areas.json` def that names it in `file`; see `load_area_polys`.

@@ -1653,3 +1653,12 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - `down` (flow paths, T252): 0.72 → 1.25 MB gzip; first tap on an unnamed stream: 6.85 → 7.2 MB; core (T247 item_area): → 1.45 MB.
   Owner: "yes i approve" (2026-10-29); background prefetch (T253) hides most of it on good connections; bad-connection
   loading is its own follow-up ticket.
+
+## 2026-10-29 — continuation links ship only when reviewed (owner)
+- **Refused:** Meadow Creek -> Meadow Creek Diversion (`gnis:27273` -> `blk:356368998`). It appeared as an 18th
+  `water_continue` row only because T224 named the diversion from an ECCC gauge name. T224 names are LABELS only.
+- **Rule:** the atlas topology (`bundle/continuation.goes_on`) only proposes. A link ships only when it is in
+  `data/curated/waters/continuations.json` `reviewed` (the 17: 2026-10-21 review + T59 Atnarko/Bella Coola); `refused`
+  never ships; any other candidate is HELD — listed in `continuations_held.json` beside the bundle and in the build
+  output (status `held`, or `label` when a water's shown name is not gazetted) — until the owner adds it to `reviewed`.
+  `continuation.gate`; pinned in `test_water_continue.py`.
