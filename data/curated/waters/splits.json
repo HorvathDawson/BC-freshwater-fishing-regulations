@@ -3433,6 +3433,26 @@
       -122.82521,
       49.06944
      ]
+    },
+    {
+     "id": "nicomekl_river__burlington_northern_railway_brid",
+     "label": "Burlington Northern Railway Bridge (tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.869379,
+       49.057862
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:356353722 — \"Nicomekl River: Burlington Northern Railway Bridge\"",
+     "_coord": [
+      -122.869379,
+      49.057862
+     ],
+     "tidal": true
     }
    ]
   },
