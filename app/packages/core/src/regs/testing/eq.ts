@@ -1,7 +1,7 @@
 /**
  * The golden comparison (contracts.md §1/§5, tests.md §1.2; golden ≥ b999cfd7). The golden carries ONE space wherever two
  * elements abut; the app side is `plain()`/`plainAll()` (line.ts). Both sides are `norm`ed, then compared line by line.
- * Ports app/design/regs-v11/port/golden.mjs `gap()`/`lines()` normalisation. A comparison, not a regulation: it decides
+ * Ports app/design/regs-v11/port/golden.mjs (deleted in T87; in git) `gap()`/`lines()` normalisation. A comparison, not a regulation: it decides
  * nothing about the water.
  */
 

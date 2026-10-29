@@ -9,7 +9,8 @@ LIVE RELEASE: r-c331a7a3c2cf (T228, a757756b; bundle-only deliver, no atlas or r
 part.no_access (34 waters gain a part, Coquitlam 4 parts), salmon-chain pieces in part_stretch/part_mark (876 stretch
 rows) merged live in the app (`mergeNav`), and dormant gauges detached (lake_gauge 179 -> 31, section_panel 248,800 ->
 124,006). Every section's rule set and licensing set are equal to r-a871447c48ba's. Owner owes sync.mjs + regs-fixture
-re-cuts (OWNER-TODO). `tsc -b` is red on packages/map/src/paint.ts (T226 gear-marks lane, 6db63d0e), not T228.
+re-cuts (OWNER-TODO; T87 2026-10-28: app/design is deleted, the re-cut is `node app/tools/regs-recut/sync.mjs`, taps +
+hydrate only, golden/pins/tokens/inventory frozen). `tsc -b` is red on packages/map/src/paint.ts (T226 gear-marks lane, 6db63d0e), not T228.
 
 ## (earlier) CURRENT STATE (2026-10-28 — release r-a871447c48ba live)
 

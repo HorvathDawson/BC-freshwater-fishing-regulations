@@ -3,7 +3,7 @@
 No data: the pure rules (km, rank, midpoint walk, mark merge, split labels). On a bundle (`needs_bundle`; point
 `UI_EXPORT_BUNDLE` at a SIDE bundle built with `python -m pipeline.deliver bundle --out …/bundle.next.sqlite`, never the
 live one before promotion): the Vedder / Chilliwack and the Cowichan against the prototype's water map
-(`app/design/regs-v11/watermap.js`, written by `water_map_export` from the same build), and every part's midpoint.
+(`pipeline/tests/fixtures/watermap.js`, frozen: written by `water_map_export` for the deleted prototype, T87), and every part's midpoint.
 """
 from __future__ import annotations
 
@@ -179,7 +179,7 @@ def _bundle(request) -> sqlite3.Connection:
 
 def _watermap() -> dict:
     from pipeline.common.curated import REPO_ROOT
-    t = (REPO_ROOT / "app" / "design" / "regs-v11" / "watermap.js").read_text()
+    t = (REPO_ROOT / "pipeline" / "tests" / "fixtures" / "watermap.js").read_text()
     return json.loads(t[t.index("{"):t.rindex("}") + 1])["waters"]
 
 

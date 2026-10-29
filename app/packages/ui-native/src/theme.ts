@@ -292,7 +292,7 @@ export const DARK: Palette = paletteFor("dark");
  *
  * `{ ...LIGHT, ...outcomes("cvd") }` swapped four colours and inherited everything else, so
  * every ramp added to the palette afterwards silently joined this theme wearing the light
- * theme's hues (see `tools/cvd.test.ts` and design/colour.md for what that shipped). Its
+ * theme's hues (see `tools/cvd.test.ts` and git history of app/design/colour.md, deleted in T87, for what that shipped). Its
  * values now live in `themes/cvd.json`, which names every token like any other theme: the
  * categorical hues follow Okabe & Ito's Color Universal Design set and the stocking ramp is
  * cividis, trimmed at the light end.

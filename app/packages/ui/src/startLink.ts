@@ -2,7 +2,7 @@
  * T41 — THE START LINK, ON THE WEB ONLY. `?regs=<item>&part=<i>&view=<view>&date=YYYY-MM-DD&tab=<tab>&sheet=<key>
  * &age=&res=&theme=&scroll=` opens the app straight on one water's Regulations page (or, T221 `view`, its Conditions or
  * Map) — the browser tools
- * (`app/tools/regs-walk.mjs`, `compare-regs.mjs`) put every golden state on screen with it. The app reads it ONCE, at
+ * (`app/tools/regs-walk.mjs`) put every golden state on screen with it. The app reads it ONCE, at
  * start (`apps/mobile` `startLink.web.ts`; native has none — D1 keeps navigation in the Shell, no route ever ships).
  *
  * It decides nothing: the water opens through `openWater` (the one way in), the day is the Shell's one day, the angler

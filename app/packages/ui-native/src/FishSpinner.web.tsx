@@ -7,7 +7,7 @@
  * is the exact failure the whole design exists to avoid: a loader that stutters when the
  * thread is busy, which is precisely when it is on screen.
  *
- * The CSS here is the same composite `design/fish-sprite.html` renders — a strip paged by
+ * The CSS here is the same composite `tools/fish-sprite/fish-sprite.html` renders — a strip paged by
  * `steps()` inside an element the orbit rotates. Keeping both is not duplication of LOGIC:
  * there is none. The frames, the timings and the ring geometry all come from the one
  * generated file, so the two renderers cannot disagree about what is drawn.

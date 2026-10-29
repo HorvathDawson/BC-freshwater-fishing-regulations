@@ -9,7 +9,7 @@
  *
  * Development only. In production the same bytes sit on R2 and the browser range-requests
  * them directly; nothing about the client changes, which is the point of the two-storage
- * design (`design/` and the architecture artifact).
+ * design (the architecture artifact).
  */
 import { createReadStream, statSync, existsSync, readdirSync, readFileSync } from "node:fs";
 import { createServer } from "node:http";

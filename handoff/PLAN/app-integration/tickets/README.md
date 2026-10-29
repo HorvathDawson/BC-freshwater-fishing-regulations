@@ -131,7 +131,7 @@ use that as the sole source of future work."
 | T84 | ticket-ledger guard | DONE | caf5ef52 | — |
 | T85 | native install size: z13 overzoom + landuse filter (D32) | DONE | aeba83ca, b17dfa1f, d4589cb5, 6f25c3c9 | atlas z13 + basemap landuse filter + basemap z13 under the owner 2026-10-27 rule, all via T202 (basemap 918 -> 274.5 MB; audit clean on 6 extents; shots 8cc3af7e) |
 | T86 | production hosting + ship config | POSTPONED | — | parked by owner 2026-10-28 (prod a while off; SEO prod too); includes the data-worker double-gzip fix before any prod release |
-| T87 | owner sign-off walk, then final clean-up | OPEN | — | all (owner) |
+| T87 | owner sign-off walk, then final clean-up | PARTIAL | 1267d358 | sign-off walk (owner); clean-up done 2026-10-28 |
 | T88 | iOS build | OPEN | — | all (owner timing) |
 | T89 | rules that bind no water (10 unmatched + 3 no extent) | DONE | 010b5c28, 1ea79ca0, 894854c0, d47a38cd, 5f1eec34 | 6 rows / 21 rules await a located water: proposals in curation-review/t89-awaiting-water.json (Q45) |
 | T90 | Chehalis closure reaches Harrison side channels | DONE | ca9aa451, 9eb7d92f, 9d305ebf, 8fa32076, c8c72d6f | live; T102 part B |

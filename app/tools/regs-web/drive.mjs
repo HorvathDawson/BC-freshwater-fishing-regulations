@@ -1,5 +1,5 @@
 // T41 — driving the app's Regulations page on Expo web (react-native-web: `data-testid` from `testID`, roles and names
-// from accessibilityRole / accessibilityLabel). Shared by regs-walk.mjs, compare-regs.mjs and regs-census.mjs.
+// from accessibilityRole / accessibilityLabel). Shared by regs-walk.mjs, request-walk.mjs and regs-census.mjs.
 import { open } from './cdp.mjs';
 import { PHONE } from './states.mjs';
 
@@ -62,14 +62,3 @@ export async function scrollTo(b, y) {
 /** a rect as plain numbers */
 export const RECT = `const R = (e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, top: r.top, bottom: r.bottom, left: r.left, right: r.right }; };`;
 
-/** PNG of a clip (CSS px) at the page's DPR; `capture` lets a clip reach below the viewport */
-export async function shoot(b, clip) {
-  const r = await b.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { ...clip, scale: 1 } });
-  return Buffer.from(r.data, 'base64');
-}
-
-/** the viewport's size (CSS px) — a tall shot grows it so the whole page is laid out at once */
-export async function resize(b, width, height, dpr = PHONE.dpr) {
-  await b.send('Emulation.setDeviceMetricsOverride', { width, height: Math.ceil(height), deviceScaleFactor: dpr, mobile: false });
-  await sleep(700);
-}

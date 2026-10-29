@@ -4,7 +4,7 @@ An entry's `source_pages` (the bundle's and the export's `pages`) are PRINTED pa
 `fishing_synopsis.pdf#page=N` takes the PDF's page index, 2 to 6 ahead. The design mock linked the
 printed number and opened pages early. These tests prove the map against the book itself — every
 cited page, looked up in the map, is a PDF page whose text holds the entry's row — and that the
-map is the one the export ships, the curation app serves and the mock carries.
+map is the one the export ships and the curation app serves.
 """
 from __future__ import annotations
 
@@ -18,7 +18,6 @@ from pipeline.common import synopsis_pages as SP
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOGUE = ROOT / "data" / "curated" / "regulations" / "entries" / "catalogue"
-MOCK = ROOT / "app" / "design" / "regs-v3.html"
 
 # The synopsis PDF is tracked in git: a missing PDF fails (`test_the_pdf_is_there`), never skips.
 
@@ -132,13 +131,3 @@ def test_the_export_ships_the_map_and_refuses_an_unmapped_page(page_map):
     assert export_checks.pdf_page_problems(doc) == [
         "entry b cites printed page 81, which guide.pdf_pages does not map"]
     assert export_checks.pdf_page_problems({"guide": {}, "entries": {}})        # an empty map is refused
-
-
-def test_the_design_mock_carries_the_shipped_map_and_links_through_it(page_map):
-    html = MOCK.read_text(encoding="utf-8")
-    got = re.search(r"var PDF_PAGES=(\{.*?\});", html)
-    assert got, "regs-v3.html must carry PDF_PAGES"
-    assert json.loads(got.group(1)) == {str(k): v for k, v in page_map.items()}
-    # every #page= the mock builds takes the looked-up PDF page, never the printed one
-    links = re.findall(r'"#page="\+(\w+)', html)
-    assert links and set(links) == {"pdfPg"}

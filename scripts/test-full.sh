@@ -8,12 +8,11 @@
 #   1. pnpm -C app check                                    every app gate + vitest (≈ 17 s)
 #   2. pytest (the fast suite, `-m "not slow"`)             ≈ 8.5 min serial (2026-10-20: 3572 passed)
 #   3. pytest -m slow                                       264 tests: determinism and full-build guards (AGENTS 18)
-#   4. check.mjs, every round                               the whole prototype suite
-#   5. card gate on the shipped answers                     problems: 0 (rule 9)
-#   6. the generated-file --checks                          python -m pipeline.tools.emit --check (all four)
+#   4. card gate on the shipped answers                     problems: 0 (rule 9)
+#   5. the generated-file --checks                          python -m pipeline.tools.emit --check (all four)
 #
 # Not run here, because each has its own procedure: the golden re-sync (app/tools/regs-recut/sync.mjs, after a release),
-# verify_map / pinreplay / quotes (after a sync), the perf gates, and the comprehension-reader gate (manual,
+# verify_map (run by the re-cut), the perf gates, and the comprehension-reader gate (manual,
 # owner-launched).
 # Every step runs unfiltered (no rtk). If a step fails, fix it, rerun only the failing files, then run Tier 2 once more.
 set -uo pipefail
@@ -26,7 +25,6 @@ step() { local name=$1 s=$SECONDS; shift; echo "── $name"; if "$@"; then ech
 step "app check" pnpm -C app check
 step "pytest fast" "$PY" -m pytest -q
 step "pytest slow" "$PY" -m pytest -q -m slow
-step "check.mjs" node app/design/regs-v11/tools/check.mjs
 step "card gate" "$PY" -m pipeline.deliver.answers.card_check
 # the release (P08): parity of every single-file read against the bundle, the query plans and the perf budgets
 # THE release on disk: `release.manifest.latest`, the one answer every reader asks (T133)

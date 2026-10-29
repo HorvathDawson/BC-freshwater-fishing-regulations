@@ -272,7 +272,7 @@ frame of the wrong colouring.
 **Desktop is a layout class** (T45, `useLayoutClass`), not a DOM component set; the empty
 `apps/web` placeholder was deleted (T70).
 
-**Contract gaps.** `app/design/data-contract.html` still names things the source cannot
+**Contract gaps.** `app/design/data-contract.html` (deleted in T87; in git) still names things the source cannot
 answer: `entry`, `rule`, `rule_section`, `chart`, `release`/`stock_water`, `edition`,
 `base_reg`, `rule_unplaced`, `tombstone`. Those are bundle-side (see the data handoff).
 

@@ -422,7 +422,7 @@ const FISH_SPRITE_CYCLE = 640, FISH_SPRITE_ORBIT = 3200;
 
 // A viewable copy beside the module, because a base64 data URI inside a TS file is not
 // something anyone can look at — and the artwork is reviewed by looking at it.
-const sheet = fileURLToPath(new URL("../design/fish-sprite.png", import.meta.url));
+const sheet = fileURLToPath(new URL("./fish-sprite/fish-sprite.png", import.meta.url));
 writeFileSync(sheet, contactSheet(alpha, W, S, N));
 
 const out = fileURLToPath(new URL("../packages/ui-native/src/fish-sprite.generated.ts",
@@ -469,12 +469,12 @@ const figures = SIZES.map((px) =>
   `<figure><div class="fish" style="--s:${px}px"><div class="spin"><i></i></div></div>` +
   `<figcaption>${px}px</figcaption></figure>`).join("\n  ");
 
-const html = fileURLToPath(new URL("../design/fish-sprite.html", import.meta.url));
+const html = fileURLToPath(new URL("./fish-sprite/fish-sprite.html", import.meta.url));
 writeFileSync(html, PAGE({ uri, frames: N, kb: (bytes.length / 1024).toFixed(1),
                            cycle: FISH_SPRITE_CYCLE, orbit: FISH_SPRITE_ORBIT, figures,
                            ring: ORBIT / S, ringW: 2.4 / S }));
 
 console.log(`fish sprite  ${N} frames  ${W}x${S}  ${(bytes.length / 1024).toFixed(1)} KB`);
 console.log(`  module  packages/ui-native/src/fish-sprite.generated.ts  (base64 data URI)`);
-console.log(`  frames  design/fish-sprite.png   — contact sheet, one image per frame`);
-console.log(`  MOVING  design/fish-sprite.html  — open this to watch it swim`);
+console.log(`  frames  tools/fish-sprite/fish-sprite.png — contact sheet, one image per frame`);
+console.log(`  MOVING  tools/fish-sprite/fish-sprite.html — open this to watch it swim`);

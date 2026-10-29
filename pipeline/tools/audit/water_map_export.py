@@ -4,7 +4,7 @@
         --group vedder=gnis:3062,gnis:8634 --group cowichan=gnis:12227 \
         --group klwa=wbk:-22,wbk:-21,wbk:-20 \
         --date 10-10 --date 10-12 --date 05-15 --date 06-15 \
-        --out app/design/regs-v11/watermap.js
+        --out pipeline/tests/fixtures/watermap.js
 
 For the regulations view's water map (design prototype regs-v11, ROUND9 C / D3): NOT the app's
 Map tab, an overlay for moving along a water the angler has ALREADY chosen. It replaces the hand

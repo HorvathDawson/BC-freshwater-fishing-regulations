@@ -1,4 +1,4 @@
-// T41: a COPY of app/design/regs-v11/tools/cdp.mjs (tools/ never imports from design/): a minimal headless-Chrome driver over
+// T41: a copy of the prototype's cdp.mjs (app/design/, deleted in T87): a minimal headless-Chrome driver over
 // the DevTools protocol (no npm dependencies; Node 22+ for WebSocket). Adds `dpr` (device pixels per CSS px), `mobile`, and
 // `console` (every console error / uncaught exception the page raises, for the walk's "no console errors").
 import { spawn } from 'node:child_process';

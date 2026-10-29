@@ -41,10 +41,11 @@ The app decides nothing about a regulation: every answer is looked up in the rel
 | `packages/data/dev/fixture-release/` | three frozen BUNDLE-half releases (plain, lakeGauged, conformance) | cut once (T61), frozen |
 | `packages/data/dev/regs-release/` | the regs fixture release, cut from a live one | `pnpm regs-fixture` (owner-run on a new release) |
 | `packages/data/dev/feeds/` | a gauge feed for tests | `pipeline.gauges.feed.publish` |
-| `fixtures/golden/` | the prototype oracles: golden, hydrate, taps, tokens, inventory, pins | `app/tools/regs-recut/sync.mjs` |
+| `fixtures/golden/` | the prototype oracles: golden, tokens, inventory, pins (frozen since T87); hydrate, taps (re-cut after a release) | `tools/regs-recut/sync.mjs` |
+| `fixtures/reference/` | page v36 (html, js) and its calendar copy, frozen: the parity tests' and the re-cut's oracle | `python -m pipeline.tools.emit.calendar` (calendar only) |
 | `fixtures/reader-states.json`, `fixtures/fishart.js` | the reader tool's states; the fish drawings `tools/emit-adipose.mjs` reads | hand / prototype |
 
-`design/` is the mock-up archive and the port generators that read it; nothing in `packages/` imports from it.
+The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps it (regs v38 @ 7fb6809f).
 
 ## Gates (`pnpm check`, the order is `package.json` `scripts.check`)
 
@@ -58,6 +59,6 @@ goes through `scripts/heavy.sh`. `tools/vintage-pins.test.ts` refuses an id lite
 
 The gates (`check-*.mjs`, `build-style.mjs`, `emit-*.mjs`), the consistency auditors (`one-*.test.ts`, `consistency.ts`),
 the local server (`serve-tiles.mjs`, `pnpm tiles`), and the browser drivers for shots and walks (`regs-web/`,
-`regs-census.mjs`, `regs-walk.mjs`, `compare-regs.mjs`, and `request-walk.mjs` — T129's pinned list of what a web visitor
+`regs-census.mjs`, `regs-walk.mjs`, and `request-walk.mjs` — T129's pinned list of what a web visitor
 fetches per moment, `request-walk.pin.json`, priced against the release's `WEB_BUDGET` by `release-budget.test.ts`; they
 need Chrome and the running app).
