@@ -6,6 +6,7 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **ODbL / OSM-derived data (T235, 2026-10-28):** 177 accepted water names and the Northrop channel come from OpenStreetMap, so ODbL asks us to offer that derived data under the ODbL. Default: publish a small `osm-derived.json` with each release and link it from Sources and licences (today the page says "on request"); or stop auto-accepting OSM names. Also confirm the four city stream layers' licence wording. Production launch checklist: tickets/T240 (the starred lines are yours).
 - **Staging is live (2026-10-28): https://staging.canifishthis.ca** (app + SEO pages, release r-46be3c135e68; data from
   data-staging.canifishthis.ca). Check: the map paints and a tap opens regs; a few `/water/<slug>` pages (e.g.
   `/water/vedder-river`), `/region/2`, `/sitemap.xml`, and an old link such as `/waterbody/930-055749/` (one 301 to
