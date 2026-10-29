@@ -53,8 +53,17 @@ def build(marks_path: Path) -> list[dict]:
         tgt = N.target_entry(c)
         if not tgt:
             continue
-        entries.append({"target": tgt, "names": N.name_records(i, c, call_by=by)})
+        recs = N.name_records(i, c, call_by=by)
+        if refused(recs):
+            continue                      # (owner 2026-10-28) a slur is never a name we ship, whoever accepted it
+        entries.append({"target": tgt, "names": recs})
     return entries
+
+
+def refused(records: list[dict]) -> list[str]:
+    """The names in `records` the deny-list refuses (`pipeline.common.offensive_names`)."""
+    from pipeline.common.offensive_names import offensive
+    return [r["name"] for r in records if offensive(r.get("name"))]
 
 
 #: (owner 2026-10-28) the names whose source is OpenStreetMap are offered under the ODbL; the record rides in the file.
