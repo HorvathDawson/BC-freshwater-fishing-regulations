@@ -1,6 +1,6 @@
 # T229 — the DFO salmon cascade on the Skeena: how it works, a Cascade map, and what looks wrong
 
-Status: PARTIAL — the explanation and the Cascade map are done; owner questions Q1–Q6 are open (no pipeline change made)
+Status: DONE (808784f1, e20796648, 29326f97f) — the Cascade map; owner answers 2026-10-28 implemented; release r-6e96911055ce
 
 Source: owner 2026-10-28: "make sure the cascade regs in Skeena are correctly done … go over how the cascade works and
 make sure I agree. maybe on a map use colors to show the different cascading, multi colour if multiple apply."
@@ -161,3 +161,13 @@ narrower-wins rule applies to them.
 - Q4: eulachon is its own line, not a salmon closure.
 - Q5: a tributary at a cut belongs to both sides.
 - Q6: the undrawn places go to the T164 queue (listed there).
+
+**Release r-6e96911055ce (promoted 2026-10-28; reach + deliver, same tiles), checked against r-e01dc8f3719f:**
+- Skeena at the Kitsumkalum mouth, Jul 20: coho went from open ("4 per day … Jul 15–Aug 31") to closed ("No fishing for
+  salmon (Jul 1–Aug 31)").
+- The Morice Forks and Gosnell–Lamprey chains, Jul 20: coho is now closed.
+- Skeena chains carrying a tidal-Area row: 60 of 62 before, 0 of 60 now. Nass: 0. Section E keeps the Area rows (30
+  chains).
+- Unlisted lower-Skeena chum is decided by B(ii)'s own row again (B(ii) → A: "No fishing for sockeye, pink or chum");
+  "No fishing for eulachon (Apr 1–Mar 31)" shows as a line.
+- The release also carries every other lane's change committed or in the tree since r-e01dc8f3719f.
