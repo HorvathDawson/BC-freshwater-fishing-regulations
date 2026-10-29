@@ -66,7 +66,7 @@ export interface OnlineLike {
 }
 
 /** (T255) After a reconnect: the first try waits for the line to settle, then retries while a spot still waits. */
-export const RECONNECT_TRIES_MS = [3_000, 20_000, 60_000] as const;
+const RECONNECT_TRIES_MS = [3_000, 20_000, 60_000] as const;
 
 /**
  * (T255) BACK ONLINE, THE SPOTS FILL IN BY THEMSELVES. A spot made with no signal holds no weather, no week before and no

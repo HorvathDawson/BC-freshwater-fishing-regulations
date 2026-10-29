@@ -1,0 +1,6 @@
+# Scroll down until TEXT (a regex, whole) is on screen; fails when it never shows.
+appId: ca.canifishthis.app
+---
+- scrollUntilVisible:
+    element: { text: "${TEXT}" }
+    timeout: 20000

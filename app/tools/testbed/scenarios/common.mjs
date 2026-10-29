@@ -31,6 +31,9 @@ export async function coldStart(ctx, opts) {
 
 /** The Updates log page, open (More → About → Updates log). */
 export function openLog(ctx) {
+  const w = ctx.device.screenText();
+  if (w.includes('Updates log') && w.includes('Check now')) return;         // already there
+  if (!w.includes('MORE')) ctx.device.sh('input keyevent 4');              // a menu page: back to the tabs first
   ctx.flow('open-updates-log');
 }
 

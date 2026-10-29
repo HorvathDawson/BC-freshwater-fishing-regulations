@@ -96,8 +96,10 @@ export const spots = {
       await coldStart(ctx, { ms: 60_000 });
       ctx.flow('tab', { TAB: 'Spots' });
       ctx.flow('tap-text', { TEXT: spot.title });
-      await ctx.waitText(/edited offline by the test bed/, 15_000);
+      ctx.flow('scroll-to', { TEXT: 'edited offline by the test bed' });     // the notes sit at the page's foot
+      const said = await ctx.waitText(/edited offline by the test bed/, 5_000);
       d.sh('input keyevent 4');
+      return `kept: "${said}"`;
     });
     let synced = false;
     await ctx.step('back online → its weather fills in by itself (adapter: expectSynced)', async () => {

@@ -1,0 +1,458 @@
+{
+ "id": "2026-10-29T13-00-11",
+ "started": "2026-10-29T13:00:11.878Z",
+ "device": "emulator-5580 · sdk_gphone64_arm64 · Android 15",
+ "apk": "app/tools/testbed/out/app-testbed.apk (release, staging, channel test, env switch on)",
+ "channel": "test (staging test/)",
+ "sync": "local",
+ "scenarios": [
+  {
+   "id": "install",
+   "title": "First run downloads the release and opens the map",
+   "result": "fail",
+   "steps": [
+    {
+     "title": "test channel reset to the live release",
+     "result": "pass",
+     "ms": 5112,
+     "note": "test/ = r-0fa7927b16e5"
+    },
+    {
+     "title": "clean app on Wi-Fi",
+     "result": "pass",
+     "ms": 7623,
+     "shot": "001-install-clean-app-on-wi-fi.jpg"
+    },
+    {
+     "title": "first-run download, then the map",
+     "result": "fail",
+     "ms": 901726,
+     "error": "no text /^More$/ on screen in 900 s (saw: At a glance | Thu, Oct 29 | Thu, Oct 29 | Gmail | Gmail | Photos | Photos | YouTube | YouTube | Home | Phone | Phone); APP CRASHED: FATAL EXCEPTION: expo.modules.AsyncFunctionQueue / Process: ca.canifishthis.app, PID: 3281 / java.lang.OutOfMemoryError: Failed to allocate a 8388627 byte allocation with 965872 free bytes and 943KB until OOM, target footprint 201326592, growth limit 201326592 / at dalvik.system.VMRuntime.newNonMovableArray(Native Method)",
+     "shot": "002-install-first-run-download-then-the-map.jpg"
+    }
+   ],
+   "findings": [
+    "crash in \"first-run download, then the map\": FATAL EXCEPTION: expo.modules.AsyncFunctionQueue / Process: ca.canifishthis.app, PID: 3281 / java.lang.OutOfMemoryError: Failed to allocate a 8388627 byte allocation with 965872 free bytes and 943KB until OOM, target footprint 201326592, growth limit 201326592 / at dalvik.system.VMRuntime.newNonMovableArray(Native Method)"
+   ],
+   "ms": 920309
+  },
+  {
+   "id": "feeds",
+   "title": "New feeds in R2 are detected, downloaded and shown",
+   "result": "pass",
+   "steps": [
+    {
+     "title": "test channel reset; app up on Wi-Fi",
+     "result": "pass",
+     "ms": 35447,
+     "shot": "030-feeds-test-channel-reset-app-up-on-wi-fi.jpg"
+    },
+    {
+     "title": "Check now: every feed unchanged (304)",
+     "result": "pass",
+     "ms": 41808,
+     "note": "Gauges: ok · DFO salmon: ok · In-season: ok · Release: ok",
+     "shot": "031-feeds-check-now-every-feed-unchanged-304-.jpg"
+    },
+    {
+     "title": "gauges bumped in R2 → detected on return to the foreground (no tap)",
+     "result": "pass",
+     "ms": 70286,
+     "note": "06:47:13, Gauges, changed, 200 · 272.5 kB · 1325 ms, 24525c56 → dda8b09e",
+     "shot": "032-feeds-gauges-bumped-in-r2-detected-on-return-t.jpg"
+    },
+    {
+     "title": "DFO + in-season bumped → Check now downloads both",
+     "result": "pass",
+     "ms": 14731,
+     "note": "06:47:24, In-season, changed, 200 · 16.1 kB · 380 ms · manual, b911cbfb → 339de21b",
+     "shot": "033-feeds-dfo-in-season-bumped-check-now-downloads.jpg"
+    },
+    {
+     "title": "sync button: up to date after the check",
+     "result": "pass",
+     "ms": 16717,
+     "note": "Refresh data: up to date",
+     "shot": "034-feeds-sync-button-up-to-date-after-the-check.jpg"
+    },
+    {
+     "title": "DFO index removed (404) → sync error badge + bell",
+     "result": "pass",
+     "ms": 14512,
+     "note": "Refresh data: could not update the DFO salmon feed · bell: 1 update failed",
+     "shot": "035-feeds-dfo-index-removed-404-sync-error-badge-b.jpg"
+    },
+    {
+     "title": "the bell opens what failed, with Retry",
+     "result": "pass",
+     "ms": 11676,
+     "note": "DFO salmon: The server did not answer. Last succeeded just now.",
+     "shot": "036-feeds-the-bell-opens-what-failed-with-retry.jpg"
+    },
+    {
+     "title": "feed back → Retry clears the error",
+     "result": "pass",
+     "ms": 31138,
+     "note": "Refresh data: up to date",
+     "shot": "037-feeds-feed-back-retry-clears-the-error.jpg"
+    }
+   ],
+   "findings": [],
+   "ms": 242874
+  },
+  {
+   "id": "big-update",
+   "title": "A big release update: Wi-Fi hold, download, apply; app-too-old; corrupt",
+   "result": "fail",
+   "steps": [
+    {
+     "title": "test channel reset; app up on Wi-Fi, current",
+     "result": "pass",
+     "ms": 14699,
+     "shot": "108-big-update-test-channel-reset-app-up-on-wi-fi-curre.jpg"
+    },
+    {
+     "title": "a BIG release in R2; the phone on mobile data (metered)",
+     "result": "pass",
+     "ms": 5067,
+     "note": "r-0fa7927b16e5-big69017 · network MOBILE",
+     "shot": "109-big-update-a-big-release-in-r2-the-phone-on-mobile-.jpg"
+    },
+    {
+     "title": "Check now → \"waiting for Wi-Fi\" (nothing downloaded)",
+     "result": "pass",
+     "ms": 41050,
+     "note": "Release: ok · waiting-wifi r-0fa7927b16e5-big69017",
+     "shot": "110-big-update-check-now-waiting-for-wi-fi-nothing-down.jpg"
+    },
+    {
+     "title": "top bar says it: the sync button",
+     "result": "pass",
+     "ms": 17052,
+     "note": "Refresh data: an update is waiting for Wi-Fi",
+     "shot": "111-big-update-top-bar-says-it-the-sync-button.jpg"
+    },
+    {
+     "title": "the bell lists the update waiting",
+     "result": "fail",
+     "ms": 1960,
+     "error": "no bell entry for an update waiting for Wi-Fi (the bell lists in-season changes and failed updates only) — ticket T263",
+     "shot": "112-big-update-the-bell-lists-the-update-waiting.jpg"
+    },
+    {
+     "title": "More → Data says it",
+     "result": "pass",
+     "ms": 9539,
+     "note": "Updates: An update is waiting for Wi-Fi.",
+     "shot": "113-big-update-more-data-says-it.jpg"
+    },
+    {
+     "title": "Wi-Fi back → the download starts by itself, with progress",
+     "result": "fail",
+     "ms": 136846,
+     "error": "no text /^Refresh data: (downloading an update, \\d+%|an update is downloaded)/ on screen in 120 s — still held for Wi-Fi: ticket T265",
+     "said": "Tap on \"${TAB}\", Index: 0... COMPLETED",
+     "shot": "114-big-update-wi-fi-back-the-download-starts-by-itself.jpg"
+    },
+    {
+     "title": "(T265 until fixed) Check now on Wi-Fi → it downloads and is staged",
+     "result": "pass",
+     "ms": 74402,
+     "note": "07:29:14, Release, staged, 274.5 MB · 39651 ms, r-0fa7927b16e5-big68225 → r-0fa7927b16e5-big69017",
+     "shot": "115-big-update--t265-until-fixed-check-now-on-wi-fi-it-.jpg"
+    },
+    {
+     "title": "next pause (background → foreground) → applied; the new release in use",
+     "result": "pass",
+     "ms": 67505,
+     "note": "no toast seen · data staging · data-staging.canifishthis.ca · channel test · release r-0fa7927b16e5-big69017",
+     "shot": "116-big-update-next-pause-background-foreground-applied.jpg"
+    },
+    {
+     "title": "a release that needs app 99.0.0 → \"Update the app\", data kept",
+     "result": "pass",
+     "ms": 18344,
+     "note": "Release: ok · app-too-old r-0fa7927b16e5-needs-99.0.0 (needs 99.0.0)",
+     "shot": "117-big-update-a-release-that-needs-app-99-0-0-update-t.jpg"
+    },
+    {
+     "title": "More says \"Update the app to get new regulations\"",
+     "result": "pass",
+     "ms": 24764,
+     "note": "Updates: Update the app to get new regulations.",
+     "shot": "118-big-update-more-says-update-the-app-to-get-new-regu.jpg"
+    },
+    {
+     "title": "a corrupt release → sha-mismatch, the set in use kept",
+     "result": "pass",
+     "ms": 38759,
+     "note": "07:31:42, Release, failed, 0 B · 2027 ms · stage, r-0fa7927b16e5-big69017 → r-0fa7927b16e5-corrupt, sha-mismatch: https://data-staging.canifishthis.ca/release/r-0fa7927b16e5/paint-f27598e208c2.bin.gz: sha256 f27598e208c2…, the manifest says 000000000000…",
+     "shot": "119-big-update-a-corrupt-release-sha-mismatch-the-set-i.jpg"
+    },
+    {
+     "title": "reset: back to the live release (its basemap id differs again: a second big download, on Wi-Fi)",
+     "result": "pass",
+     "ms": 138928,
+     "note": "Gauges: ok · DFO salmon: ok · In-season: ok · Release: ok",
+     "shot": "120-big-update-reset-back-to-the-live-release-its-basem.jpg"
+    }
+   ],
+   "findings": [],
+   "ms": 595334
+  },
+  {
+   "id": "offline",
+   "title": "Offline launch, offline mid-session, slow line, reconnect",
+   "result": "pass",
+   "steps": [
+    {
+     "title": "airplane mode, then a cold start: the map opens from the device",
+     "result": "pass",
+     "ms": 5392,
+     "note": "none",
+     "shot": "148-offline-airplane-mode-then-a-cold-start-the-map-.jpg"
+    },
+    {
+     "title": "the offline banner is shown",
+     "result": "pass",
+     "ms": 1961,
+     "note": "Offline — showing what’s saved on this device",
+     "shot": "149-offline-the-offline-banner-is-shown.jpg"
+    },
+    {
+     "title": "search works offline (\"Cultus\")",
+     "result": "pass",
+     "ms": 15193,
+     "note": "Cultus Lake",
+     "shot": "150-offline-search-works-offline-cultus-.jpg"
+    },
+    {
+     "title": "a water's regulations open offline",
+     "result": "pass",
+     "ms": 15685,
+     "note": "✓Open",
+     "shot": "151-offline-a-water-s-regulations-open-offline.jpg"
+    },
+    {
+     "title": "a town offline: the waters near it (read from the installed set)",
+     "result": "pass",
+     "ms": 42181,
+     "note": "listed",
+     "shot": "152-offline-a-town-offline-the-waters-near-it-read-f.jpg"
+    },
+    {
+     "title": "back to the water: Conditions view",
+     "result": "pass",
+     "ms": 39441,
+     "shot": "153-offline-back-to-the-water-conditions-view.jpg"
+    },
+    {
+     "title": "Conditions offline: last captured readings or \"not available offline\", never a spinner",
+     "result": "pass",
+     "ms": 14516,
+     "note": "No gauge on this water is close enough in size to speak for it.",
+     "shot": "154-offline-conditions-offline-last-captured-reading.jpg"
+    },
+    {
+     "title": "online again: the banner goes and the service checks at once",
+     "result": "pass",
+     "ms": 51205,
+     "note": "07:50:23, Gauges, changed, 200 · 270.1 kB · 455 ms, 3f00a22c → 04610e74",
+     "shot": "155-offline-online-again-the-banner-goes-and-the-ser.jpg"
+    },
+    {
+     "title": "the same town online: the waters near it",
+     "result": "pass",
+     "ms": 43858,
+     "note": "listed",
+     "shot": "156-offline-the-same-town-online-the-waters-near-it.jpg"
+    },
+    {
+     "title": "mid-session: offline while using the app → the banner, the app keeps working",
+     "result": "pass",
+     "ms": 46847,
+     "shot": "157-offline-mid-session-offline-while-using-the-app-.jpg"
+    },
+    {
+     "title": "online-only part offline: satellite imagery says so",
+     "result": "pass",
+     "ms": 39765,
+     "note": "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself.",
+     "shot": "158-offline-online-only-part-offline-satellite-image.jpg"
+    },
+    {
+     "title": "Check now offline: \"offline\", nothing requested",
+     "result": "pass",
+     "ms": 36770,
+     "note": "Gauges: failed (offline) · DFO salmon: failed (offline) · In-season: failed (offline) · Release: failed (offline)",
+     "shot": "159-offline-check-now-offline-offline-nothing-reques.jpg"
+    },
+    {
+     "title": "a slow line (EDGE speed, GPRS latency) → slow banner or \"still loading\"",
+     "result": "pass",
+     "ms": 50011,
+     "note": "nothing said within 2 s (the installed set answers before the line matters)",
+     "shot": "160-offline-a-slow-line-edge-speed-gprs-latency-slow.jpg"
+    },
+    {
+     "title": "back to a full line: no error left on screen",
+     "result": "pass",
+     "ms": 24525,
+     "note": "Refresh data: up to date",
+     "shot": "161-offline-back-to-a-full-line-no-error-left-on-scr.jpg"
+    }
+   ],
+   "findings": [],
+   "ms": 437248
+  },
+  {
+   "id": "spots",
+   "title": "Spots offline: create with a photo, persist, fill in on reconnect",
+   "result": "pass",
+   "steps": [
+    {
+     "title": "setup: local sync adapter, a photo in the gallery, GPS on Cultus Lake",
+     "result": "pass",
+     "ms": 8436
+    },
+    {
+     "title": "offline (airplane mode)",
+     "result": "pass",
+     "ms": 2732,
+     "shot": "135-spots-offline-airplane-mode-.jpg"
+    },
+    {
+     "title": "Spots → At my location → the capture, offline",
+     "result": "pass",
+     "ms": 47270,
+     "shot": "136-spots-spots-at-my-location-the-capture-offline.jpg"
+    },
+    {
+     "title": "add a photo from the gallery (the system photo picker)",
+     "result": "pass",
+     "ms": 30641,
+     "note": "PHOTOGRAPHS",
+     "shot": "137-spots-add-a-photo-from-the-gallery-the-system-.jpg"
+    },
+    {
+     "title": "name it \"Testbed njv3u\" and save",
+     "result": "pass",
+     "ms": 22419,
+     "shot": "138-spots-name-it-testbed-njv3u-and-save.jpg"
+    },
+    {
+     "title": "it is stored (adapter: expectStored)",
+     "result": "pass",
+     "ms": 9775,
+     "note": "Testbed njv3u",
+     "shot": "139-spots-it-is-stored-adapter-expectstored-.jpg"
+    },
+    {
+     "title": "it says what it could not record offline (adapter: expectPending)",
+     "result": "pass",
+     "ms": 20846,
+     "note": "No weather was recorded — it can be filled in from the day this was pinned.",
+     "shot": "140-spots-it-says-what-it-could-not-record-offline.jpg"
+    },
+    {
+     "title": "cold start, still offline: the spot and its photo are still there",
+     "result": "pass",
+     "ms": 15107,
+     "note": "listed with its photo · Testbed njv3u",
+     "shot": "141-spots-cold-start-still-offline-the-spot-and-it.jpg"
+    },
+    {
+     "title": "edit offline: notes typed (keyboard up: is \"Save changes\" above it?)",
+     "result": "pass",
+     "ms": 26504,
+     "note": "\"Save changes\" visible above the keyboard",
+     "shot": "142-spots-edit-offline-notes-typed-keyboard-up-is-.jpg"
+    },
+    {
+     "title": "system back closes the keyboard only (the edit stays)",
+     "result": "pass",
+     "ms": 3512,
+     "shot": "143-spots-system-back-closes-the-keyboard-only-the.jpg"
+    },
+    {
+     "title": "Save changes; cold start offline; the notes are kept",
+     "result": "pass",
+     "ms": 38538,
+     "note": "kept: \"edited offline by the test bed\"",
+     "shot": "144-spots-save-changes-cold-start-offline-the-note.jpg"
+    },
+    {
+     "title": "back online → its weather fills in by itself (adapter: expectSynced)",
+     "result": "pass",
+     "ms": 27202,
+     "note": "filled in: nothing missing",
+     "shot": "145-spots-back-online-its-weather-fills-in-by-itse.jpg"
+    },
+    {
+     "title": "the spot after reconnect",
+     "result": "pass",
+     "ms": 19152,
+     "note": "No gauge is entitled to speak for this water, so no reading was recorded. A station draining a far larger watershed would have given a number, and the number would have been wrong. · HOW THIS SPOT REACHES THE GAUGE · AT THE GAUGE · WEATHER",
+     "shot": "146-spots-the-spot-after-reconnect.jpg"
+    },
+    {
+     "title": "clean up: delete the spot",
+     "result": "pass",
+     "ms": 23682,
+     "shot": "147-spots-clean-up-delete-the-spot.jpg"
+    }
+   ],
+   "findings": [],
+   "ms": 300342
+  },
+  {
+   "id": "report",
+   "title": "Report a problem offline → queued → sent on reconnect",
+   "result": "pass",
+   "steps": [
+    {
+     "title": "offline, app up",
+     "result": "pass",
+     "ms": 10057,
+     "shot": "076-report-offline-app-up.jpg"
+    },
+    {
+     "title": "send a report offline → \"saved on this device\"",
+     "result": "pass",
+     "ms": 37782,
+     "note": "You are offline. Your report is saved on this device and will be sent when you are back online.",
+     "shot": "077-report-send-a-report-offline-saved-on-this-devi.jpg"
+    },
+    {
+     "title": "not on the server yet",
+     "result": "pass",
+     "ms": 3448,
+     "note": "absent, as it should be",
+     "shot": "078-report-not-on-the-server-yet.jpg"
+    },
+    {
+     "title": "closed and reopened offline (the outbox is on disk)",
+     "result": "pass",
+     "ms": 3504,
+     "shot": "079-report-closed-and-reopened-offline-the-outbox-i.jpg"
+    },
+    {
+     "title": "online → flushed by itself; the worker holds it",
+     "result": "pass",
+     "ms": 16374,
+     "note": "stored 58e8e30b56bb30a8 2026-10-29T14:07:55.579Z",
+     "shot": "080-report-online-flushed-by-itself-the-worker-hold.jpg"
+    },
+    {
+     "title": "back to the map",
+     "result": "pass",
+     "ms": 11058,
+     "shot": "081-report-back-to-the-map.jpg"
+    }
+   ],
+   "findings": [],
+   "ms": 86057
+  }
+ ],
+ "finished": "2026-10-29T14:55:14.514Z"
+}

@@ -19,6 +19,13 @@ and recorded; the report is `out/runs/<stamp>/index.html` (plus `report.md`, `re
 `install` runs first and leaves the app holding the current staging release; the others build on it (none clears the
 app again: a fresh install is ~500 MB).
 
+## Last run (2026-10-29, all six scenarios)
+
+`handoff/PLAN/app-integration/T255-shots/run-final/index.html` (report + shots). install FAIL (T262: the first install
+dies of OutOfMemoryError, crash-loops, resumes), feeds PASS, big-update FAIL on two steps (bell: T263; Wi-Fi return
+does not start the held download: T265 — "Check now" does), offline PASS, spots PASS, report PASS. A step tagged with
+a ticket is a known app gap: it turns green when that ticket lands.
+
 ## Run it locally
 
 One-time: Android SDK + AVD `n1_pixel` (T50/T172), Android Studio's JBR, `rclone` remote `r2:` (staging), Maestro:
@@ -56,9 +63,10 @@ inspector (inside a session).
 - `run.mjs` — the runner: `ctx.step` (run → screenshot → record), `ctx.flow` (Maestro), `ctx.waitText` (screen words,
   uiautomator, falling back to `maestro hierarchy` while a spinner turns), `ctx.updates` (the test channel), `ctx.sync`
   (the sync adapter).
-- `lib/device.mjs` — adb: `net('wifi' | 'cellular' | 'offline')` (Wi-Fi + data / data only = METERED / airplane mode),
+- `lib/device.mjs` — adb: `net('wifi' | 'cellular' | 'offline')` (Wi-Fi + data / data only = METERED / airplane mode
+  with both radios off — Android keeps Wi-Fi up in airplane mode once it was turned on during one),
   `link(speed, delay)` (emulator console), launch/stop/background, screenshots, `addPhoto`, `geo`.
-- `lib/maestro.mjs`, `lib/report.mjs`, `flows/*.yaml`, `scenarios/*.mjs`, `media/` (the test photo).
+- `lib/maestro.mjs` (each flow's Maestro log under `out/<run>/maestro/<scenario>/`), `lib/report.mjs`, `flows/*.yaml`, `scenarios/*.mjs`, `media/` (the test photo).
 - `deploy/staging/test-updates.mjs big` (added here): the large release.
 
 ## Accounts (T223): adding sync scenarios

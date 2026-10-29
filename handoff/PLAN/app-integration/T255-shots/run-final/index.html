@@ -1,0 +1,204 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Test bed 2026-10-29T13-00-11</title><style>
+:root{--bg:#fff;--fg:#1b1f23;--sub:#5a6470;--line:#e3e6ea;--pass:#1f7a3a;--fail:#b3261e;--skip:#7a6a1f}
+@media (prefers-color-scheme:dark){:root{--bg:#14171a;--fg:#e8eaed;--sub:#9aa3ad;--line:#2b3036;--pass:#5cc27a;--fail:#ff8a80;--skip:#d9c56b}}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,sans-serif;margin:0 auto;max-width:1100px;padding:16px}
+h1{font-size:20px}h2{font-size:16px;margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
+.r-pass{color:var(--pass)}.r-fail{color:var(--fail)}.r-skip,.r-warn{color:var(--skip)}
+table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top}
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.step{border:1px solid var(--line);border-radius:8px;padding:8px}.step img{width:100%;border-radius:4px}
+.sub{color:var(--sub);font-size:12px}pre{white-space:pre-wrap;font-size:11px;color:var(--sub);max-height:140px;overflow:auto}
+</style></head><body><h1>Test bed run 2026-10-29T13-00-11</h1>
+<p class="sub">emulator-5580 · sdk_gphone64_arm64 · Android 15 · APK app/tools/testbed/out/app-testbed.apk (release, staging, channel test, env switch on) · channel test (staging test/) · started 2026-10-29T13:00:11.878Z</p>
+<table><tr><th>scenario</th><th>result</th><th>steps</th><th>time</th></tr>
+<tr><td><a href="#install">install</a> — First run downloads the release and opens the map</td><td class="r-fail">FAIL</td><td>2/3</td><td>920 s</td></tr><tr><td><a href="#feeds">feeds</a> — New feeds in R2 are detected, downloaded and shown</td><td class="r-pass">PASS</td><td>8/8</td><td>243 s</td></tr><tr><td><a href="#big-update">big-update</a> — A big release update: Wi-Fi hold, download, apply; app-too-old; corrupt</td><td class="r-fail">FAIL</td><td>11/13</td><td>595 s</td></tr><tr><td><a href="#offline">offline</a> — Offline launch, offline mid-session, slow line, reconnect</td><td class="r-pass">PASS</td><td>14/14</td><td>437 s</td></tr><tr><td><a href="#spots">spots</a> — Spots offline: create with a photo, persist, fill in on reconnect</td><td class="r-pass">PASS</td><td>14/14</td><td>300 s</td></tr><tr><td><a href="#report">report</a> — Report a problem offline → queued → sent on reconnect</td><td class="r-pass">PASS</td><td>6/6</td><td>86 s</td></tr>
+</table>
+<h2 id="install">install — First run downloads the release and opens the map <span class="r-fail">FAIL</span></h2>
+<ul><li>crash in &quot;first-run download, then the map&quot;: FATAL EXCEPTION: expo.modules.AsyncFunctionQueue / Process: ca.canifishthis.app, PID: 3281 / java.lang.OutOfMemoryError: Failed to allocate a 8388627 byte allocation with 965872 free bytes and 943KB until OOM, target footprint 201326592, growth limit 201326592 / at dalvik.system.VMRuntime.newNonMovableArray(Native Method)</li></ul>
+<div class="steps"><div class="step"><div><b class="r-pass">PASS</b> 1. test channel reset to the live release</div>
+<div class="sub">test/ = r-0fa7927b16e5</div>
+
+</div><div class="step"><div><b class="r-pass">PASS</b> 2. clean app on Wi-Fi</div>
+
+<a href="001-install-clean-app-on-wi-fi.jpg"><img loading="lazy" src="001-install-clean-app-on-wi-fi.jpg" alt="clean app on Wi-Fi"></a>
+</div><div class="step"><div><b class="r-fail">FAIL</b> 3. first-run download, then the map</div>
+<div class="r-fail">no text /^More$/ on screen in 900 s (saw: At a glance | Thu, Oct 29 | Thu, Oct 29 | Gmail | Gmail | Photos | Photos | YouTube | YouTube | Home | Phone | Phone); APP CRASHED: FATAL EXCEPTION: expo.modules.AsyncFunctionQueue / Process: ca.canifishthis.app, PID: 3281 / java.lang.OutOfMemoryError: Failed to allocate a 8388627 byte allocation with 965872 free bytes and 943KB until OOM, target footprint 201326592, growth limit 201326592 / at dalvik.system.VMRuntime.newNonMovableArray(Native Method)</div>
+<a href="002-install-first-run-download-then-the-map.jpg"><img loading="lazy" src="002-install-first-run-download-then-the-map.jpg" alt="first-run download, then the map"></a>
+</div></div><h2 id="feeds">feeds — New feeds in R2 are detected, downloaded and shown <span class="r-pass">PASS</span></h2>
+
+<div class="steps"><div class="step"><div><b class="r-pass">PASS</b> 1. test channel reset; app up on Wi-Fi</div>
+
+<a href="030-feeds-test-channel-reset-app-up-on-wi-fi.jpg"><img loading="lazy" src="030-feeds-test-channel-reset-app-up-on-wi-fi.jpg" alt="test channel reset; app up on Wi-Fi"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 2. Check now: every feed unchanged (304)</div>
+<div class="sub">Gauges: ok · DFO salmon: ok · In-season: ok · Release: ok</div>
+<a href="031-feeds-check-now-every-feed-unchanged-304-.jpg"><img loading="lazy" src="031-feeds-check-now-every-feed-unchanged-304-.jpg" alt="Check now: every feed unchanged (304)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 3. gauges bumped in R2 → detected on return to the foreground (no tap)</div>
+<div class="sub">06:47:13, Gauges, changed, 200 · 272.5 kB · 1325 ms, 24525c56 → dda8b09e</div>
+<a href="032-feeds-gauges-bumped-in-r2-detected-on-return-t.jpg"><img loading="lazy" src="032-feeds-gauges-bumped-in-r2-detected-on-return-t.jpg" alt="gauges bumped in R2 → detected on return to the foreground (no tap)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 4. DFO + in-season bumped → Check now downloads both</div>
+<div class="sub">06:47:24, In-season, changed, 200 · 16.1 kB · 380 ms · manual, b911cbfb → 339de21b</div>
+<a href="033-feeds-dfo-in-season-bumped-check-now-downloads.jpg"><img loading="lazy" src="033-feeds-dfo-in-season-bumped-check-now-downloads.jpg" alt="DFO + in-season bumped → Check now downloads both"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 5. sync button: up to date after the check</div>
+<div class="sub">Refresh data: up to date</div>
+<a href="034-feeds-sync-button-up-to-date-after-the-check.jpg"><img loading="lazy" src="034-feeds-sync-button-up-to-date-after-the-check.jpg" alt="sync button: up to date after the check"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 6. DFO index removed (404) → sync error badge + bell</div>
+<div class="sub">Refresh data: could not update the DFO salmon feed · bell: 1 update failed</div>
+<a href="035-feeds-dfo-index-removed-404-sync-error-badge-b.jpg"><img loading="lazy" src="035-feeds-dfo-index-removed-404-sync-error-badge-b.jpg" alt="DFO index removed (404) → sync error badge + bell"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 7. the bell opens what failed, with Retry</div>
+<div class="sub">DFO salmon: The server did not answer. Last succeeded just now.</div>
+<a href="036-feeds-the-bell-opens-what-failed-with-retry.jpg"><img loading="lazy" src="036-feeds-the-bell-opens-what-failed-with-retry.jpg" alt="the bell opens what failed, with Retry"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 8. feed back → Retry clears the error</div>
+<div class="sub">Refresh data: up to date</div>
+<a href="037-feeds-feed-back-retry-clears-the-error.jpg"><img loading="lazy" src="037-feeds-feed-back-retry-clears-the-error.jpg" alt="feed back → Retry clears the error"></a>
+</div></div><h2 id="big-update">big-update — A big release update: Wi-Fi hold, download, apply; app-too-old; corrupt <span class="r-fail">FAIL</span></h2>
+
+<div class="steps"><div class="step"><div><b class="r-pass">PASS</b> 1. test channel reset; app up on Wi-Fi, current</div>
+
+<a href="108-big-update-test-channel-reset-app-up-on-wi-fi-curre.jpg"><img loading="lazy" src="108-big-update-test-channel-reset-app-up-on-wi-fi-curre.jpg" alt="test channel reset; app up on Wi-Fi, current"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 2. a BIG release in R2; the phone on mobile data (metered)</div>
+<div class="sub">r-0fa7927b16e5-big69017 · network MOBILE</div>
+<a href="109-big-update-a-big-release-in-r2-the-phone-on-mobile-.jpg"><img loading="lazy" src="109-big-update-a-big-release-in-r2-the-phone-on-mobile-.jpg" alt="a BIG release in R2; the phone on mobile data (metered)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 3. Check now → &quot;waiting for Wi-Fi&quot; (nothing downloaded)</div>
+<div class="sub">Release: ok · waiting-wifi r-0fa7927b16e5-big69017</div>
+<a href="110-big-update-check-now-waiting-for-wi-fi-nothing-down.jpg"><img loading="lazy" src="110-big-update-check-now-waiting-for-wi-fi-nothing-down.jpg" alt="Check now → &quot;waiting for Wi-Fi&quot; (nothing downloaded)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 4. top bar says it: the sync button</div>
+<div class="sub">Refresh data: an update is waiting for Wi-Fi</div>
+<a href="111-big-update-top-bar-says-it-the-sync-button.jpg"><img loading="lazy" src="111-big-update-top-bar-says-it-the-sync-button.jpg" alt="top bar says it: the sync button"></a>
+</div><div class="step"><div><b class="r-fail">FAIL</b> 5. the bell lists the update waiting</div>
+<div class="r-fail">no bell entry for an update waiting for Wi-Fi (the bell lists in-season changes and failed updates only) — ticket T263</div>
+<a href="112-big-update-the-bell-lists-the-update-waiting.jpg"><img loading="lazy" src="112-big-update-the-bell-lists-the-update-waiting.jpg" alt="the bell lists the update waiting"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 6. More → Data says it</div>
+<div class="sub">Updates: An update is waiting for Wi-Fi.</div>
+<a href="113-big-update-more-data-says-it.jpg"><img loading="lazy" src="113-big-update-more-data-says-it.jpg" alt="More → Data says it"></a>
+</div><div class="step"><div><b class="r-fail">FAIL</b> 7. Wi-Fi back → the download starts by itself, with progress</div>
+<div class="r-fail">no text /^Refresh data: (downloading an update, \d+%|an update is downloaded)/ on screen in 120 s — still held for Wi-Fi: ticket T265</div>
+<a href="114-big-update-wi-fi-back-the-download-starts-by-itself.jpg"><img loading="lazy" src="114-big-update-wi-fi-back-the-download-starts-by-itself.jpg" alt="Wi-Fi back → the download starts by itself, with progress"></a>
+<pre>Tap on &quot;${TAB}&quot;, Index: 0... COMPLETED</pre></div><div class="step"><div><b class="r-pass">PASS</b> 8. (T265 until fixed) Check now on Wi-Fi → it downloads and is staged</div>
+<div class="sub">07:29:14, Release, staged, 274.5 MB · 39651 ms, r-0fa7927b16e5-big68225 → r-0fa7927b16e5-big69017</div>
+<a href="115-big-update--t265-until-fixed-check-now-on-wi-fi-it-.jpg"><img loading="lazy" src="115-big-update--t265-until-fixed-check-now-on-wi-fi-it-.jpg" alt="(T265 until fixed) Check now on Wi-Fi → it downloads and is staged"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 9. next pause (background → foreground) → applied; the new release in use</div>
+<div class="sub">no toast seen · data staging · data-staging.canifishthis.ca · channel test · release r-0fa7927b16e5-big69017</div>
+<a href="116-big-update-next-pause-background-foreground-applied.jpg"><img loading="lazy" src="116-big-update-next-pause-background-foreground-applied.jpg" alt="next pause (background → foreground) → applied; the new release in use"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 10. a release that needs app 99.0.0 → &quot;Update the app&quot;, data kept</div>
+<div class="sub">Release: ok · app-too-old r-0fa7927b16e5-needs-99.0.0 (needs 99.0.0)</div>
+<a href="117-big-update-a-release-that-needs-app-99-0-0-update-t.jpg"><img loading="lazy" src="117-big-update-a-release-that-needs-app-99-0-0-update-t.jpg" alt="a release that needs app 99.0.0 → &quot;Update the app&quot;, data kept"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 11. More says &quot;Update the app to get new regulations&quot;</div>
+<div class="sub">Updates: Update the app to get new regulations.</div>
+<a href="118-big-update-more-says-update-the-app-to-get-new-regu.jpg"><img loading="lazy" src="118-big-update-more-says-update-the-app-to-get-new-regu.jpg" alt="More says &quot;Update the app to get new regulations&quot;"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 12. a corrupt release → sha-mismatch, the set in use kept</div>
+<div class="sub">07:31:42, Release, failed, 0 B · 2027 ms · stage, r-0fa7927b16e5-big69017 → r-0fa7927b16e5-corrupt, sha-mismatch: https://data-staging.canifishthis.ca/release/r-0fa7927b16e5/paint-f27598e208c2.bin.gz: sha256 f27598e208c2…, the manifest says 000000000000…</div>
+<a href="119-big-update-a-corrupt-release-sha-mismatch-the-set-i.jpg"><img loading="lazy" src="119-big-update-a-corrupt-release-sha-mismatch-the-set-i.jpg" alt="a corrupt release → sha-mismatch, the set in use kept"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 13. reset: back to the live release (its basemap id differs again: a second big download, on Wi-Fi)</div>
+<div class="sub">Gauges: ok · DFO salmon: ok · In-season: ok · Release: ok</div>
+<a href="120-big-update-reset-back-to-the-live-release-its-basem.jpg"><img loading="lazy" src="120-big-update-reset-back-to-the-live-release-its-basem.jpg" alt="reset: back to the live release (its basemap id differs again: a second big download, on Wi-Fi)"></a>
+</div></div><h2 id="offline">offline — Offline launch, offline mid-session, slow line, reconnect <span class="r-pass">PASS</span></h2>
+
+<div class="steps"><div class="step"><div><b class="r-pass">PASS</b> 1. airplane mode, then a cold start: the map opens from the device</div>
+<div class="sub">none</div>
+<a href="148-offline-airplane-mode-then-a-cold-start-the-map-.jpg"><img loading="lazy" src="148-offline-airplane-mode-then-a-cold-start-the-map-.jpg" alt="airplane mode, then a cold start: the map opens from the device"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 2. the offline banner is shown</div>
+<div class="sub">Offline — showing what’s saved on this device</div>
+<a href="149-offline-the-offline-banner-is-shown.jpg"><img loading="lazy" src="149-offline-the-offline-banner-is-shown.jpg" alt="the offline banner is shown"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 3. search works offline (&quot;Cultus&quot;)</div>
+<div class="sub">Cultus Lake</div>
+<a href="150-offline-search-works-offline-cultus-.jpg"><img loading="lazy" src="150-offline-search-works-offline-cultus-.jpg" alt="search works offline (&quot;Cultus&quot;)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 4. a water's regulations open offline</div>
+<div class="sub">✓Open</div>
+<a href="151-offline-a-water-s-regulations-open-offline.jpg"><img loading="lazy" src="151-offline-a-water-s-regulations-open-offline.jpg" alt="a water's regulations open offline"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 5. a town offline: the waters near it (read from the installed set)</div>
+<div class="sub">listed</div>
+<a href="152-offline-a-town-offline-the-waters-near-it-read-f.jpg"><img loading="lazy" src="152-offline-a-town-offline-the-waters-near-it-read-f.jpg" alt="a town offline: the waters near it (read from the installed set)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 6. back to the water: Conditions view</div>
+
+<a href="153-offline-back-to-the-water-conditions-view.jpg"><img loading="lazy" src="153-offline-back-to-the-water-conditions-view.jpg" alt="back to the water: Conditions view"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 7. Conditions offline: last captured readings or &quot;not available offline&quot;, never a spinner</div>
+<div class="sub">No gauge on this water is close enough in size to speak for it.</div>
+<a href="154-offline-conditions-offline-last-captured-reading.jpg"><img loading="lazy" src="154-offline-conditions-offline-last-captured-reading.jpg" alt="Conditions offline: last captured readings or &quot;not available offline&quot;, never a spinner"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 8. online again: the banner goes and the service checks at once</div>
+<div class="sub">07:50:23, Gauges, changed, 200 · 270.1 kB · 455 ms, 3f00a22c → 04610e74</div>
+<a href="155-offline-online-again-the-banner-goes-and-the-ser.jpg"><img loading="lazy" src="155-offline-online-again-the-banner-goes-and-the-ser.jpg" alt="online again: the banner goes and the service checks at once"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 9. the same town online: the waters near it</div>
+<div class="sub">listed</div>
+<a href="156-offline-the-same-town-online-the-waters-near-it.jpg"><img loading="lazy" src="156-offline-the-same-town-online-the-waters-near-it.jpg" alt="the same town online: the waters near it"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 10. mid-session: offline while using the app → the banner, the app keeps working</div>
+
+<a href="157-offline-mid-session-offline-while-using-the-app-.jpg"><img loading="lazy" src="157-offline-mid-session-offline-while-using-the-app-.jpg" alt="mid-session: offline while using the app → the banner, the app keeps working"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 11. online-only part offline: satellite imagery says so</div>
+<div class="sub">Satellite needs a connection. Showing the map until you are back online; satellite returns by itself.</div>
+<a href="158-offline-online-only-part-offline-satellite-image.jpg"><img loading="lazy" src="158-offline-online-only-part-offline-satellite-image.jpg" alt="online-only part offline: satellite imagery says so"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 12. Check now offline: &quot;offline&quot;, nothing requested</div>
+<div class="sub">Gauges: failed (offline) · DFO salmon: failed (offline) · In-season: failed (offline) · Release: failed (offline)</div>
+<a href="159-offline-check-now-offline-offline-nothing-reques.jpg"><img loading="lazy" src="159-offline-check-now-offline-offline-nothing-reques.jpg" alt="Check now offline: &quot;offline&quot;, nothing requested"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 13. a slow line (EDGE speed, GPRS latency) → slow banner or &quot;still loading&quot;</div>
+<div class="sub">nothing said within 2 s (the installed set answers before the line matters)</div>
+<a href="160-offline-a-slow-line-edge-speed-gprs-latency-slow.jpg"><img loading="lazy" src="160-offline-a-slow-line-edge-speed-gprs-latency-slow.jpg" alt="a slow line (EDGE speed, GPRS latency) → slow banner or &quot;still loading&quot;"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 14. back to a full line: no error left on screen</div>
+<div class="sub">Refresh data: up to date</div>
+<a href="161-offline-back-to-a-full-line-no-error-left-on-scr.jpg"><img loading="lazy" src="161-offline-back-to-a-full-line-no-error-left-on-scr.jpg" alt="back to a full line: no error left on screen"></a>
+</div></div><h2 id="spots">spots — Spots offline: create with a photo, persist, fill in on reconnect <span class="r-pass">PASS</span></h2>
+
+<div class="steps"><div class="step"><div><b class="r-pass">PASS</b> 1. setup: local sync adapter, a photo in the gallery, GPS on Cultus Lake</div>
+
+
+</div><div class="step"><div><b class="r-pass">PASS</b> 2. offline (airplane mode)</div>
+
+<a href="135-spots-offline-airplane-mode-.jpg"><img loading="lazy" src="135-spots-offline-airplane-mode-.jpg" alt="offline (airplane mode)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 3. Spots → At my location → the capture, offline</div>
+
+<a href="136-spots-spots-at-my-location-the-capture-offline.jpg"><img loading="lazy" src="136-spots-spots-at-my-location-the-capture-offline.jpg" alt="Spots → At my location → the capture, offline"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 4. add a photo from the gallery (the system photo picker)</div>
+<div class="sub">PHOTOGRAPHS</div>
+<a href="137-spots-add-a-photo-from-the-gallery-the-system-.jpg"><img loading="lazy" src="137-spots-add-a-photo-from-the-gallery-the-system-.jpg" alt="add a photo from the gallery (the system photo picker)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 5. name it &quot;Testbed njv3u&quot; and save</div>
+
+<a href="138-spots-name-it-testbed-njv3u-and-save.jpg"><img loading="lazy" src="138-spots-name-it-testbed-njv3u-and-save.jpg" alt="name it &quot;Testbed njv3u&quot; and save"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 6. it is stored (adapter: expectStored)</div>
+<div class="sub">Testbed njv3u</div>
+<a href="139-spots-it-is-stored-adapter-expectstored-.jpg"><img loading="lazy" src="139-spots-it-is-stored-adapter-expectstored-.jpg" alt="it is stored (adapter: expectStored)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 7. it says what it could not record offline (adapter: expectPending)</div>
+<div class="sub">No weather was recorded — it can be filled in from the day this was pinned.</div>
+<a href="140-spots-it-says-what-it-could-not-record-offline.jpg"><img loading="lazy" src="140-spots-it-says-what-it-could-not-record-offline.jpg" alt="it says what it could not record offline (adapter: expectPending)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 8. cold start, still offline: the spot and its photo are still there</div>
+<div class="sub">listed with its photo · Testbed njv3u</div>
+<a href="141-spots-cold-start-still-offline-the-spot-and-it.jpg"><img loading="lazy" src="141-spots-cold-start-still-offline-the-spot-and-it.jpg" alt="cold start, still offline: the spot and its photo are still there"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 9. edit offline: notes typed (keyboard up: is &quot;Save changes&quot; above it?)</div>
+<div class="sub">&quot;Save changes&quot; visible above the keyboard</div>
+<a href="142-spots-edit-offline-notes-typed-keyboard-up-is-.jpg"><img loading="lazy" src="142-spots-edit-offline-notes-typed-keyboard-up-is-.jpg" alt="edit offline: notes typed (keyboard up: is &quot;Save changes&quot; above it?)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 10. system back closes the keyboard only (the edit stays)</div>
+
+<a href="143-spots-system-back-closes-the-keyboard-only-the.jpg"><img loading="lazy" src="143-spots-system-back-closes-the-keyboard-only-the.jpg" alt="system back closes the keyboard only (the edit stays)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 11. Save changes; cold start offline; the notes are kept</div>
+<div class="sub">kept: &quot;edited offline by the test bed&quot;</div>
+<a href="144-spots-save-changes-cold-start-offline-the-note.jpg"><img loading="lazy" src="144-spots-save-changes-cold-start-offline-the-note.jpg" alt="Save changes; cold start offline; the notes are kept"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 12. back online → its weather fills in by itself (adapter: expectSynced)</div>
+<div class="sub">filled in: nothing missing</div>
+<a href="145-spots-back-online-its-weather-fills-in-by-itse.jpg"><img loading="lazy" src="145-spots-back-online-its-weather-fills-in-by-itse.jpg" alt="back online → its weather fills in by itself (adapter: expectSynced)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 13. the spot after reconnect</div>
+<div class="sub">No gauge is entitled to speak for this water, so no reading was recorded. A station draining a far larger watershed would have given a number, and the number would have been wrong. · HOW THIS SPOT REACHES THE GAUGE · AT THE GAUGE · WEATHER</div>
+<a href="146-spots-the-spot-after-reconnect.jpg"><img loading="lazy" src="146-spots-the-spot-after-reconnect.jpg" alt="the spot after reconnect"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 14. clean up: delete the spot</div>
+
+<a href="147-spots-clean-up-delete-the-spot.jpg"><img loading="lazy" src="147-spots-clean-up-delete-the-spot.jpg" alt="clean up: delete the spot"></a>
+</div></div><h2 id="report">report — Report a problem offline → queued → sent on reconnect <span class="r-pass">PASS</span></h2>
+
+<div class="steps"><div class="step"><div><b class="r-pass">PASS</b> 1. offline, app up</div>
+
+<a href="076-report-offline-app-up.jpg"><img loading="lazy" src="076-report-offline-app-up.jpg" alt="offline, app up"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 2. send a report offline → &quot;saved on this device&quot;</div>
+<div class="sub">You are offline. Your report is saved on this device and will be sent when you are back online.</div>
+<a href="077-report-send-a-report-offline-saved-on-this-devi.jpg"><img loading="lazy" src="077-report-send-a-report-offline-saved-on-this-devi.jpg" alt="send a report offline → &quot;saved on this device&quot;"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 3. not on the server yet</div>
+<div class="sub">absent, as it should be</div>
+<a href="078-report-not-on-the-server-yet.jpg"><img loading="lazy" src="078-report-not-on-the-server-yet.jpg" alt="not on the server yet"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 4. closed and reopened offline (the outbox is on disk)</div>
+
+<a href="079-report-closed-and-reopened-offline-the-outbox-i.jpg"><img loading="lazy" src="079-report-closed-and-reopened-offline-the-outbox-i.jpg" alt="closed and reopened offline (the outbox is on disk)"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 5. online → flushed by itself; the worker holds it</div>
+<div class="sub">stored 58e8e30b56bb30a8 2026-10-29T14:07:55.579Z</div>
+<a href="080-report-online-flushed-by-itself-the-worker-hold.jpg"><img loading="lazy" src="080-report-online-flushed-by-itself-the-worker-hold.jpg" alt="online → flushed by itself; the worker holds it"></a>
+</div><div class="step"><div><b class="r-pass">PASS</b> 6. back to the map</div>
+
+<a href="081-report-back-to-the-map.jpg"><img loading="lazy" src="081-report-back-to-the-map.jpg" alt="back to the map"></a>
+</div></div>
+</body></html>

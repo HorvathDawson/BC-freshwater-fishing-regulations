@@ -1,6 +1,6 @@
-# Layers → Satellite on (online only), then close the sheet.
+# Layers (its label grows a count when a layer is on: "Choose layers…") → the Satellite row tapped (on ↔ off).
 appId: ca.canifishthis.app
 ---
-- tapOn: { text: "Choose layers" }
+- tapOn: { text: "Choose layers.*", index: 0 }
 - tapOn: { text: "Satellite", index: 0 }
 - waitForAnimationToEnd: { timeout: 4000 }

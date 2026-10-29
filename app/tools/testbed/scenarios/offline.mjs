@@ -89,10 +89,17 @@ export const offline = {
     await ctx.step('online-only part offline: satellite imagery says so', async () => {
       await toMap(ctx);
       await ctx.device.sleep(1500);
-      ctx.flow('layers-satellite');
-      await ctx.device.sleep(3000);
-      const said = await ctx.waitText(/Satellite needs a connection|NEEDS A CONNECTION/, 15_000);
+      ctx.flow('layers-satellite');                                         // on (or off, if a run left it on)
+      let w = ctx.device.screenText();
+      if (!w.some((x) => /NEEDS A CONNECTION|Satellite needs a connection/.test(x))) {
+        ctx.flow('tap-text', { TEXT: 'Satellite' });                       // it was on: now on again
+        await ctx.device.sleep(1500);
+        w = ctx.device.screenText();
+      }
+      const said = w.find((x) => /NEEDS A CONNECTION|Satellite needs a connection/.test(x));
+      ctx.flow('tap-text', { TEXT: 'Satellite' });                         // left off for the next run
       ctx.flow('tap-text', { TEXT: 'Done' });
+      if (!said) throw new Error('Satellite on, offline: nothing says it needs a connection');
       return said;
     });
     await ctx.step('Check now offline: "offline", nothing requested', async () => {
@@ -117,7 +124,7 @@ export const offline = {
     await ctx.step('back to a full line: no error left on screen', async () => {
       ctx.device.link('full', 'none');
       await ctx.device.sleep(15_000);
-      await toMap(ctx);
+      await coldStart(ctx);
       const l = ctx.device.screenText().find((w) => /^Refresh data: could not update/.test(w));
       if (l) throw new Error(l);
       return ctx.device.screenText().find((w) => /^Refresh data/.test(w));
