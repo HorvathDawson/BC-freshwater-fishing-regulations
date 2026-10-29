@@ -45,17 +45,17 @@
           ]
         }
       ],
-      "note": "Claude 2026-10-29 at owner's request — check: from the Chilcotin confluence downstream to the Region 5 boundary: the lower Region 5 boundary (Region 3/5 crossing), since 'downstream' from the Chilcotin",
-      "by": "claude",
-      "at": "2026-10-29T08:27:28Z",
-      "source": "claude",
+      "note": "owner 2026-10-29: within Region 5 — checked: the extent (Chilcotin confluence at 481.9 km down to the Region 3/5 crossing at 418.4 km) lies wholly inside the Fraser's Region 5 stretch (418.4–674.5 km); every section is a Region 5 section, unchanged",
+      "by": "claude (owner-directed)",
+      "at": "2026-10-29T08:40:04Z",
+      "source": "owner",
       "evidence": {
         "water": "Fraser River",
         "notes": [
           "from the Chilcotin confluence downstream to the Region 5 boundary: the lower Region 5 boundary (Region 3/5 crossing), since 'downstream' from the Chilcotin"
-        ]
-      },
-      "confidence": "medium"
+        ],
+        "owner": "owner 2026-10-29: within Region 5 — checked: the extent (Chilcotin confluence at 481.9 km down to the Region 3/5 crossing at 418.4 km) lies wholly inside the Fraser's Region 5 stretch (418.4–674.5 km); every section is a Region 5 section, unchanged"
+      }
     },
     "is-19ea430e45d1": {
       "region": "2",
@@ -68,17 +68,17 @@
           "tributaries": "include"
         }
       ],
-      "note": "Claude 2026-10-29 at owner's request — check: the change is in Northrop Spawning Channel (not the Stave): whole channel including tributaries; 'the intake' has no pick-point, so the whole channel",
-      "by": "claude",
-      "at": "2026-10-29T08:27:28Z",
-      "source": "claude",
+      "note": "owner 2026-10-29: 'the intake' is where Northrop meets the Stave; the atlas has no link at that end (one piece, -2300000000:0, outflow only), so no intake pick-point — whole channel incl. tributaries stays",
+      "by": "claude (owner-directed)",
+      "at": "2026-10-29T08:40:04Z",
+      "source": "owner",
       "evidence": {
         "water": "Stave River",
         "notes": [
           "the change is in Northrop Spawning Channel (not the Stave): whole channel including tributaries; 'the intake' has no pick-point, so the whole channel"
-        ]
-      },
-      "confidence": "medium"
+        ],
+        "owner": "owner 2026-10-29: 'the intake' is where Northrop meets the Stave; the atlas has no link at that end (one piece, -2300000000:0, outflow only), so no intake pick-point — whole channel incl. tributaries stays"
+      }
     },
     "is-34e1f8ba7e89": {
       "region": "4",
@@ -405,19 +405,79 @@
             "fraser_river__the_cpr_bridge_at_mission",
             "region:2|3"
           ]
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:10494",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:11566",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:17805",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:17368",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:14905",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:22631",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:21224",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:14010",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:11481",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:13499",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:25152",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:8341",
+          "splits": []
         }
       ],
-      "note": "Claude 2026-10-29 at owner's request — check: rescind of the Region 2 trout closure 'Fraser mainstem upstream of the CPR Bridge at Mission': the Fraser item from that bridge up to the Region 2/3 boundary; the book's excluded sloughs and side channels are separate waters and not included",
-      "by": "claude",
-      "at": "2026-10-29T08:27:28Z",
-      "source": "claude",
+      "note": "owner 2026-10-29: mirror the Region 2 Fraser entry r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4 — the Fraser from the CPR Bridge at Mission to the Region 2/3 boundary plus every water that entry matches (12 channels/sloughs, all Region 2)",
+      "by": "claude (owner-directed)",
+      "at": "2026-10-29T08:40:04Z",
+      "source": "owner",
       "evidence": {
         "water": "Fraser River",
         "notes": [
           "rescind of the Region 2 trout closure 'Fraser mainstem upstream of the CPR Bridge at Mission': the Fraser item from that bridge up to the Region 2/3 boundary; the book's excluded sloughs and side channels are separate waters and not included"
-        ]
-      },
-      "confidence": "medium"
+        ],
+        "owner": "owner 2026-10-29: mirror the Region 2 Fraser entry r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4 — the Fraser from the CPR Bridge at Mission to the Region 2/3 boundary plus every water that entry matches (12 channels/sloughs, all Region 2)"
+      }
     },
     "is-9cc030ee9af2": {
       "region": "4",
@@ -1941,6 +2001,115 @@
           "op": "whole",
           "item_id": "gnis:22618",
           "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T08:40:04Z",
+      "id": "is-84b0abe3fd13",
+      "action": "set",
+      "by": "claude (owner-directed)",
+      "note": "owner 2026-10-29: mirror the Region 2 Fraser entry r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4 — the Fraser from the CPR Bridge at Mission to the Region 2/3 boundary plus every water that entry matches (12 channels/sloughs, all Region 2)",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__the_cpr_bridge_at_mission",
+            "region:2|3"
+          ]
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:10494",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:11566",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:17805",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:17368",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:14905",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:22631",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:21224",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:14010",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:11481",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:13499",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:25152",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "gnis:8341",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T08:40:04Z",
+      "id": "is-14e4e067f16f",
+      "action": "set",
+      "by": "claude (owner-directed)",
+      "note": "owner 2026-10-29: within Region 5 — checked: the extent (Chilcotin confluence at 481.9 km down to the Region 3/5 crossing at 418.4 km) lies wholly inside the Fraser's Region 5 stretch (418.4–674.5 km); every section is a Region 5 section, unchanged",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__chilcotin_river_into_fraser_river",
+            "region:3|5"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-10-29T08:40:04Z",
+      "id": "is-19ea430e45d1",
+      "action": "set",
+      "by": "claude (owner-directed)",
+      "note": "owner 2026-10-29: 'the intake' is where Northrop meets the Stave; the atlas has no link at that end (one piece, -2300000000:0, outflow only), so no intake pick-point — whole channel incl. tributaries stays",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "wsc:100-046202-028692-080600",
+          "splits": [],
+          "tributaries": "include"
         }
       ]
     }
