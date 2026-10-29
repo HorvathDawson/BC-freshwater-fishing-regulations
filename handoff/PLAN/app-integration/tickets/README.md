@@ -331,6 +331,7 @@ use that as the sole source of future work."
 | T285 | Synopsis PDF fails to open in the Android app ("couldn't load synopsis") | OPEN | — | owner 2026-10-29 |
 | T286 | Tap → regulations instant on phones (≤150 ms to content, never a spinner): measure, batch reads, cache, prefetch on settle | OPEN | — | owner 2026-10-29 |
 | T287 | No freeze when a download finishes: verify/unzip off the JS thread, prepare then swap at idle, minimal re-render | OPEN | — | owner 2026-10-29 |
+| T288 | Glossary: every Synopsis definition (printed p.80), A–Z scrubber, modern layout, fuzzy search | OPEN | — | owner 2026-10-29 |
 
 ## Order for open tickets
 
