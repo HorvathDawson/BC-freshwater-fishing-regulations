@@ -1,11 +1,8 @@
 # T224 — Name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source
 
-Status: IN PROGRESS — 2026-10-28: owner answers applied (decisions.md "T224"). Built: every name carries its real
-source end to end (NameTuple label/ref → registry `name_sources` → bundle/core `name_source` → app search "also X ·
-source" and a "Name from …" line under a non-official shown name); 183 accepted names in
-`data/curated/waters/mined_names.json` (181 auto + 08MH079's two); review app **Names** tab (marks of scope `name`);
-existing-variant fixes. NEXT: the next atlas build (registry + tiles names) + bundle/release; the owner's spot-check
-and review marks → rerun `python -m pipeline.tools.mined_names` → next build.
+Status: DONE 2026-10-29 — in release r-62e2f3a8c81e (atlas c1029). Owner spot-check of 20 auto-accepted names is
+listed below (OWNER-TODO); a reject → `python -m pipeline.tools.mined_names` → next build. Earlier: 009aeec0, 39cc91e2,
+2ea061c4.
 
 Source: owner 2026-10-28: 08MH079's stream is FWA-unnamed but Abbotsford's municipal layer calls it "KILGARD CREEK", and
 the app has no such variant — "we could find many more". Add-ons the same day: every variant carries its REAL source and
@@ -128,3 +125,39 @@ No variant in the bundle without a source; no non-gazetted name marked official;
 to its source row; binding diff reviewed before promote.
 
 Depends: owner calls (2). Size: M. Owner: yes (2). Default: search alias only, nothing auto-accepted.
+
+## Close-out (2026-10-29, verified on r-62e2f3a8c81e)
+- `mined_names.json` is current (`--check`), no name marks yet. 183 entries: 181 auto-accepted — 169 shown as
+  the water's name (FWA-unnamed lines), **12 not applied** (their FWA line is not
+  in the atlas: pruned or tidal piece — `registry.mined` reports, never applies): Cowichan River (354087697), Maraude,
+  Port Augusta, Blue Heron, Celtic Slough, Quesnel River (Side Channel), South Ziggurat, Upper Titman, Rae, North,
+  Ninebark, Hunlen Creek; + 08MH079's two (below).
+- 08MH079's line: core item `blk:356314888` "Kilgard Creek" (name_source: City of Abbotsford stream layer) + alias
+  "Lonzo Creek (North Fork)" (ECCC); tiles `stream` layer names it (same vintage 07f861e5422be466).
+- core `name_source` 3,937 rows, none `alias`; the 38 aliases without a row are gazetted (official) second names, by
+  design. "South Alouette River" gazette in the registry. App: search "also X · source", "Name from …" (uiWords).
+
+### Owner spot-check (20; Names tab `#names/`, a reject takes one out)
+Picked for risk: every non-OSM auto-accept + the OSM rows with the weakest overlap / shortest line / no water word.
+| name | source | blk | why look |
+|---|---|---|---|
+| Cat Stream | OSM | 354128296 | overlap 4 % / 48 % — passed auto-accept, likely wrong |
+| The Cut Coulee | OSM | 354089612 | no water word |
+| Cohen Creek | OSM | 356272352 | 160 m source line |
+| Benes Creek | OSM | 354126239 | 309 m |
+| College Creek | OSM | 359295223 | 80 % overlap (edge) |
+| North McNaughton Creek | OSM | 354125014 | 81 % / 80 % |
+| Brigade Bay Creek | OSM | 360357261 | 81 % / 80 % |
+| Problem Creek | OSM | 356305031 | 81 % / 83 % |
+| Coho Creek | OSM | 356356588 | 82 % |
+| Corinne Brook | Abbotsford | 356056778 | covers only 39 % of the FWA line |
+| Jantz Stream | Abbotsford | 356062107 | 74 % of the FWA line |
+| Marshall Creek | Abbotsford | 356082830 | Marshall is also the main creek's name nearby |
+| Gill Brook | Abbotsford | 356096337 | — |
+| Mckay Creek | Abbotsford | 356128529 | spelling (McKay?) shown as sourced |
+| Shamrock Creek | Abbotsford | 356196726 | — |
+| Smith Brook | Abbotsford | 356304947 | 70 % of the source on the line |
+| Inkaneep Creek | ECCC | 356370187 | FWA-unnamed line under a known gazetted name |
+| Meadow Creek Diversion | ECCC | 356368998 | a diversion shown as a water |
+| Quinsam River Diversion Headpond | ECCC | 354088905 | a headpond shown as a stream |
+| Noble Creek | ECCC | 354151912 | — |

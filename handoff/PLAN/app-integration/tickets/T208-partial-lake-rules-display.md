@@ -1,6 +1,7 @@
 # T208 — show rules that hold on an undrawn part of a lake (e.g. François Lake outlet area, "map 1")
 
-Status: PARTIAL
+Status: DONE 2026-10-29 — display, map link and list built and in r-62e2f3a8c81e; the drawn outline is T281
+(waits on lake splits, deferred by the owner).
 
 Source: owner 2026-10-26, reviewing François Lake: "Char — 2 per day … in part: the area at the outlet of François
 Lake described on map 1" is held as an undrawn part (a note on the water, never colouring it).
@@ -49,3 +50,9 @@ not to the whole lake and not buried.
   the 30). Now "Outlet area only" (core `WORDS.AREA_ONLY(lead, false)`); a book map without a name still says "(see the
   map)" with its page linked. Test: `caveats.test.ts` (Ruby / inlet / Mahood shapes).
 - Still PARTIAL: the drawn outline waits on lake splits (deferred by the owner, memory `lake-splits-deferred`).
+
+## Close-out (2026-10-29)
+Every work item is built: the in-part treatment (tag up front, `restricted` bar, never behind the fold), the synopsis
+map link, the list (30 tagged, 0 gaps). r-62e2f3a8c81e carries it: 83 rules with `not_yet_mapped`, 13 with a book map
+(François r1: map 1, p.51). Tests: `caveats.test.ts` + `CaveatArea.test.tsx` 20/20. The one item left — a drawn outline
+of the area — needs a lake split, which the owner deferred (memory `lake-splits-deferred`, Q142): moved to T281.

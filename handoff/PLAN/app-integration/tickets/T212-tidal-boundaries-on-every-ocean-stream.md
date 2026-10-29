@@ -1,6 +1,7 @@
 # T212 — tidal boundaries: a tidal split on every stream that enters the ocean (research first, no data changes yet)
 
-Status: PARTIAL (41393956 — research done, proposals in the review Tidal tab; no curated data changed)
+Status: PARTIAL — 2026-10-29: every candidate marked (1,168/1,168); the 32 cut/flag proposals applied (T185, splits.json)
+and shipped in r-62e2f3a8c81e; 8 tidal marks are follow-ups that make no cut (below). Research: 41393956.
 
 Source: owner 2026-10-27 — "critical"; start in the next work window.
 
@@ -172,3 +173,18 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   that the polygon decides no cut (T166). The 88a42a2b guard catches polygon points by the split's note text; no
   mark in force has one (the 7 polygon accepts are superseded), but it would NOT catch a mouth-noted cut that
   snapped up the line (Marchand / Taquat: a cut on the item's end) — open.
+
+## Close-out check (2026-10-29, on r-62e2f3a8c81e)
+- Tidal tab: 1,168 candidates (1,163 + pass-2's 4 Fraser channels + Whispering), **all 1,168 carry a tidal mark in
+  force** (1,162 verified, 5 unsure, 1 wrong). Coverage: every named ocean-entering stream (966) has a candidate.
+- `proposals build` (scratch dir): **0 applicable tidal proposals left** — the 32 new_split / tidal_flag ones are in
+  splits.json (T185 commits 8459fa16..e8c0c7cf) and the release (`tidal.jsonl` 88 sections on 33 owners). 1,128 are
+  `tidal_mouth` (no cut, nothing tidal — incl. Marchand / Taquat / Campus / Doobah / Hobiton, whose point is the atlas
+  line's own lower end). 8 are `tidal_followup` (no cut until a new mark):
+  - Caycuse River (1,925 m) and Dempster Creek (550 m): owner-verified at a DEM point, which is neither words nor the
+    mouth (rule 10-28) — owner: re-mark at the mouth (DFO default)?
+  - Parsons / Annacis / Cannery / Morey Channels (Fraser delta): owner "unsure", note "this entire channel is tidal".
+    They are still freshwater in the release (no tidal split reaches them). Whole-water tidal needs a path the marks
+    do not have (today only a catalogue row marked `tidal`, as Nitinat Lake) — owner: yes → Claude builds it.
+  - Skagit River: "this is us border it crosses" — it leaves BC, no BC tidal water; no cut is right, nothing to do.
+  - Bear River (Stewart): "wrong … likely the bridge; look more online" — Claude: find a located words source.

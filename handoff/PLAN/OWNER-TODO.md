@@ -34,10 +34,12 @@ with the default Claude uses until you answer). Newest first inside each section
 - **T228 (2026-10-28):** two DFO queue items from T228. (1) Klinaklini: place "Management Units 5-6 to 5-11 boundary"
   as a split (pre-filled point). (2) Bella Coola: exclude the Atnarko (gnis:17209) from its tributaries. The re-cut
   commands come after the next release (one more rebuild is coming).
-- **T224 names (2026-10-28, your answers applied):** in the review app, **Names** tab (:5183, `#names/`): spot-check
-  the 30-row sample of the 181 auto-accepted names (view "spot-check"; a reject takes one out), then work the review
-  list (36 high, 552 medium, 8,061 low — "accept / reject all visible" is one commit). They reach the app on the next
-  atlas build after Claude reruns `python -m pipeline.tools.mined_names`.
+- **T224 names (2026-10-29, live in r-62e2f3a8c81e):** review app **Names** tab (:5183, `#names/`), reject any that
+  are wrong among these 20 auto-accepted names (list + why in tickets/T224 "Owner spot-check"): Cat Stream (4 % overlap —
+  likely wrong), The Cut Coulee, Cohen Creek, Benes Creek, College Creek, North McNaughton Creek, Brigade Bay Creek,
+  Problem Creek, Coho Creek (OSM); Corinne Brook, Jantz Stream, Marshall Creek, Gill Brook, Mckay Creek, Shamrock Creek,
+  Smith Brook (Abbotsford); Inkaneep Creek, Meadow Creek Diversion, Quinsam River Diversion Headpond, Noble Creek (ECCC).
+  No rejects = done. The rest of the review list (36 high, 552 medium, 8,061 low) is optional.
 - **T202 basemap (2026-10-27):** the basemap is now z13 (918 → 274.5 MB). Look at the app at your spots, z10–z18,
   light and dark: trail and FSR names should show from z15. Then say "delete the old basemap", and Claude removes
   `data/generated/scratch/basemap-pre-T202-20260925.pmtiles`. Grid coarsening shipped too: the basemap is now 274.5 MB. Shots
@@ -56,13 +58,12 @@ with the default Claude uses until you answer). Newest first inside each section
   the matcher rerun + `promote --only 08MH079` follow.
 - **T204 phone check:** Kanaka Creek's map now has two marks (112 Avenue bridge, Cliff Park Falls) and its lower part is
   two separately selectable stretches ("… · stretch 1 of 2"); say if the stretch wording should differ.
-- **Tidal boundaries (T212, 2026-10-27, critical):** open the curation review's **Tidal** tab. 1,163 proposed tidal
-  cuts (every named stream your tidal polygon crosses + every named ocean-entering FWA stream); start with
-  "words name it" (31). 19 agree with the book / DFO words; look first at Nimpkish (polygon 5.7 km up vs "100 m above the Hwy 19 bridge" ≈ 1.2 km), Tlell (polygon
-  misses it; synopsis says 1.5 km above Hwy 16, DFO says ~1 km) and Squamish (the dyke line is not located).
-  "accept proposal" (a) pre-fills Place y + the cut; Record mark is the only write. Summary:
-  handoff/PLAN/curation-review/tidal/tidal-candidates.md. (Capilano = source text and Cowichan = river mouth are
-  already yours, 10-27, a86fddbf; 3 tidal marks recorded 10-28.)
+- **Tidal boundaries (T212, 2026-10-29):** all 1,168 marked; 32 cuts shipped in r-62e2f3a8c81e. Two yes/no:
+  (1) Caycuse River and Dempster Creek are marked at a DEM point (1,925 m / 550 m), which the 10-28 rule makes no cut —
+  re-mark them at the mouth (DFO default) in the **Tidal** tab? (2) Parsons, Annacis, Cannery and Morey Channels
+  (Fraser delta; your note "this entire channel is tidal") are still freshwater in the app — make each whole channel
+  tidal (off the freshwater map)? Yes → Claude builds the whole-water path + a reach rerun. (Skagit: leaves BC, no cut;
+  Bear River: Claude looks for a written boundary.)
 - **Cranberry canyon cuts:** the bottom is a DEM estimate (low). In the review app, **Low-confidence cuts** queue (with
   White River and Chuckwalla River, the other `low` cuts).
 - **Map look (T64, T85, T113, T152; all built and live):** look at the map (wetland-heavy Fort Nelson and the
