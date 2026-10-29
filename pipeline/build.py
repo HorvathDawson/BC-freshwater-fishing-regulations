@@ -171,7 +171,7 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
     from pipeline.atlas.registry import load_registry
     from pipeline.atlas.reach.steelhead import fingerprint, load_list
     from pipeline.atlas.reach.dfo_salmon import entries_digest as dfo_entries_digest
-    from pipeline.atlas.reach.outside import tidal_splits
+    from pipeline.atlas.reach.outside import tidal_splits, tidal_waters
     from pipeline.common.section_handles import digest_for, registry_digest_for
     from pipeline.regs.parsing.io import corpus_digest, read_all_entries
 
@@ -185,6 +185,8 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
                       # (T166) the tidal boundaries the run cuts the tidal pieces at: flagging a reused cut
                       # tidal reaches the atlas through its sidecar, and reruns the reach step
                       tidal=_sha(tidal_splits(build_dir)),
+                      # (T212) the whole waters the owner calls tidal
+                      tidal_waters=_sha(tidal_waters()),
                       code=code_digest(CODE["reach"])),
         "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
                         sources=deliver_sources(missing_ok),
@@ -201,10 +203,12 @@ def tiles_key(build_dir: Path) -> dict:
     areas = Path(CURATED.waters.areas)
     # (T173) the fish obstacles' own fetched file; missing, the key says so and the stage runs (and names the fetch)
     ob = obstacles_source()
-    from pipeline.atlas.reach.outside import tidal_splits
+    from pipeline.atlas.reach.outside import tidal_splits, tidal_waters
     return {"handles": digest_for(build_dir), "gpkg": stamp(sources()["gpkg"]),
             # T166: the tidal boundaries — the pieces below them come off the map
             "tidal": _sha(tidal_splits(build_dir)),
+            # T212: whole tidal waters come off the map too
+            "tidal_waters": _sha(tidal_waters()),
             "areas": hashlib.sha256(areas.read_bytes()).hexdigest()[:16], "code": code_digest(CODE["tiles"]),
             "obstacles": stamp(ob) if ob.exists() else None}
 

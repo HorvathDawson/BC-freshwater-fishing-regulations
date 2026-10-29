@@ -86,6 +86,9 @@ class Waters(BaseModel):
     #: THE OWNER-DECIDED CONTINUATION LINKS (`water_continue`): `reviewed` ship, `refused` never, anything else the
     #: topology proposes is held for review (owner 2026-10-29, `bundle.continuation.gate`).
     continuations: FilePath
+    #: T212 (owner 2026-10-29): WHOLE WATERS THAT ARE TIDAL (Fraser delta channels) — every section of each item is
+    #: tidal water, off the freshwater map (`reach.outside.tidal_whole_owner`).
+    tidal_waters: FilePath
     areas: FilePath
     #: Hand-drawn admin polygons — closure zones a regulation states as an AREA rather than a
     #: reach. Selected by an `areas.json` def that names it in `file`; see `load_area_polys`.

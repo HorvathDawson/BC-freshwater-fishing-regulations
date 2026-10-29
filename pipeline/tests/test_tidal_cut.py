@@ -236,9 +236,11 @@ def test_the_tiles_leave_off_the_reach_runs_own_set(estuary, tmp_path):
     g, reg = estuary
     write_resolved([SplitPoint(TIDE, "R", 1000.0, "", "tidal boundary", AnchorType.point,
                                source="curated", tidal=True)], str(tmp_path / "splits.resolved.json"))
-    assert tidal_pieces(tmp_path, graph=g, registry=reg) == frozenset(O.tidal_cut_owner(reg, g, [TIDE]))
+    assert tidal_pieces(tmp_path, graph=g, registry=reg, whole=()) == frozenset(O.tidal_cut_owner(reg, g, [TIDE]))
     write_resolved([], str(tmp_path / "splits.resolved.json"))
-    assert tidal_pieces(tmp_path, graph=g, registry=reg) == frozenset()
+    assert tidal_pieces(tmp_path, graph=g, registry=reg, whole=()) == frozenset()
+    # T212: a whole tidal water comes off the map too
+    assert tidal_pieces(tmp_path, graph=g, registry=reg, whole=("gnis:2",)) == frozenset({"T1:0"})
 
 
 def test_the_tidal_area_is_the_dfo_polygon_plus_pieces_outside_it():
@@ -272,3 +274,35 @@ def test_the_bundle_proves_the_tiles_left_off_exactly_its_tidal_pieces():
     assert U.tidal_gauges(db, {"tidal": [1, 2]}) == [(2, "08GA999")]
     assert any("still drawn" in x for x in U.problems(db, {"tidal": [1]}))
     assert any("no tidal piece" in x for x in U.problems(db, {"tidal": [1, 2, 9]}))
+
+
+# ---------------------------------------------------------- T212: a whole water that is tidal (owner 2026-10-29)
+
+def test_a_whole_tidal_water_is_every_section_of_it_and_off_the_map(estuary):
+    """Parsons / Annacis / Cannery / Morey Channels: "this entire channel is tidal"."""
+    g, reg = estuary
+    rows: list = []
+    got = O.tidal_whole_owner(reg, ["gnis:2"], report=rows)
+    assert got == {"T1:0": "water:gnis:2"} and O.is_cut_owner("water:gnis:2")
+    assert rows[0]["sections"] == 1
+    with pytest.raises(SystemExit, match="not in the registry"):
+        O.tidal_whole_owner(reg, ["gnis:404"])
+    res = build_reaches([_row("r1:river@1-1", [{"rule_id": "r1", "extents": [{"op": "whole"}],
+                                                "includes_tributaries": True}])],
+                        reg, g, tidal_splits=(), tidal_waters=("gnis:2",))
+    b = res.bindings[0]
+    assert "T1:0" not in b.sections and {"R:0", "R:1000", "T2:0"} <= set(b.sections)
+    assert res.tidal == {"T1:0": "water:gnis:2"}
+
+
+def test_a_rule_on_a_whole_tidal_water_is_unresolved_and_listed(estuary):
+    g, reg = estuary
+    res = build_reaches([{"entry_id": "r1:one@1-1", "matched": ["gnis:2"],
+                          "rules": [{"rule_id": "c", "extents": [{"op": "whole"}]}]}],
+                        reg, g, tidal_waters=("gnis:2",))
+    assert res.bindings[0].reason is Reason.tidal
+    assert res.report.tidal_emptied == [{"entry_id": "r1:one@1-1", "rule_id": "c", "splits": ["water:gnis:2"]}]
+
+
+def test_the_curated_whole_tidal_waters_are_the_owners_four_channels():
+    assert O.tidal_waters() == ("gnis:10494", "gnis:14905", "gnis:17805", "gnis:22631")

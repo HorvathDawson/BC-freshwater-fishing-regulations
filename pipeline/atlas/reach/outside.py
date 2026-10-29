@@ -310,20 +310,64 @@ def tidal_cut_owner(registry, graph, split_ids, *, strict: bool = True,
     return out
 
 
+def tidal_waters(path=None) -> tuple[str, ...]:
+    """T212 (owner 2026-10-29): the registry items that are TIDAL WATER ALONG THEIR WHOLE LENGTH
+    (`data/curated/waters/tidal_waters.json`, e.g. the Fraser delta channels "this entire channel is
+    tidal"), sorted. A missing file is refused (AGENTS 37: never a silent "none")."""
+    import json
+    from pathlib import Path
+    if path is None:
+        from pipeline.common.curated import CURATED
+        path = CURATED.waters.tidal_waters
+    p = Path(path)
+    if not p.exists():
+        raise SystemExit(f"tidal: {p} is missing — the curated whole tidal waters cannot be read")
+    doc = json.loads(p.read_text(encoding="utf-8"))
+    return tuple(sorted({str(w["item_id"]) for w in doc.get("waters") or ()}))
+
+
+def tidal_whole_owner(registry, item_ids, *, strict: bool = True,
+                      report: list | None = None) -> dict[str, str]:
+    """`{section: "water:<item_id>"}` — EVERY section of each whole tidal water (`tidal_waters`). Like
+    the piece below a tidal split it has no tributary (a creek entering it keeps its own water) and is
+    taken out of every binding after the walk. REFUSED (`strict`): an item the registry does not hold
+    (the curated id went stale) — never a silent "nothing is tidal here"."""
+    out: dict[str, str] = {}
+    for iid in sorted(set(item_ids)):
+        it = registry.get(iid) if hasattr(registry, "get") else None
+        secs = sorted(getattr(it, "section_ids", ()) or ()) if it is not None else []
+        if not secs:
+            if strict:
+                raise SystemExit(f"tidal: whole tidal water {iid!r} (tidal_waters.json) is not in the "
+                                 "registry or has no section")
+            continue
+        for s in secs:
+            out.setdefault(s, f"water:{iid}")
+        if report is not None:
+            report.append({"split": f"water:{iid}", "items": [iid], "sections": len(secs),
+                           "unplaced": [], "ambiguous_cut": []})
+    return out
+
+
 def tidal_water(entries, registry, graph=None, split_ids=(), *, strict: bool = True,
-                report: list | None = None) -> dict[str, str]:
+                report: list | None = None, whole_waters=()) -> dict[str, str]:
     """`{section: owner}` — ALL THE TIDAL WATER the reach run takes out of every binding: the waters
     of the rows marked `tidal` (owner: the row's entry id, `tidal_owner`), then the piece below every
-    tidal split (owner `split:<id>`, `tidal_cut_owner`). A row's claim stands where both hold. The
+    tidal split (owner `split:<id>`, `tidal_cut_owner`), then every whole tidal water (owner
+    `water:<item_id>`, `tidal_whole_owner`). A row's claim stands where both hold. The
     run writes it as `tidal.jsonl`; the bundle's `tidal` table is read from that file."""
     out = dict(tidal_owner(entries, registry, strict=strict))
     if split_ids:
         for s, o in tidal_cut_owner(registry, graph, split_ids, strict=strict,
                                     report=report).items():
             out.setdefault(s, o)
+    if whole_waters:
+        for s, o in tidal_whole_owner(registry, whole_waters, strict=strict, report=report).items():
+            out.setdefault(s, o)
     return out
 
 
 def is_cut_owner(owner: str) -> bool:
-    """Is a `tidal` owner a tidal split (`split:<id>`), not a row marked tidal?"""
-    return str(owner or "").startswith("split:")
+    """Is a `tidal` owner curated tidal water OFF THE MAP — the piece below a tidal split
+    (`split:<id>`) or a whole tidal water (`water:<item_id>`, T212) — not a row marked tidal?"""
+    return str(owner or "").startswith(("split:", "water:"))

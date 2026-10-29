@@ -50,7 +50,8 @@ def tidal_problems(db: sqlite3.Connection, undrawn: dict[str, list[int]]) -> lis
     `reach.outside.tidal_cut_owner` on the same atlas). They are in items (the river's lower end) and
     carry no rule by construction (`rules.tables` proves it), so the T64 water-row test does not apply."""
     drawn_off = set(undrawn.get("tidal") or ())
-    cut = {s for s, e in db.execute("SELECT sid, entry_id FROM tidal") if str(e).startswith("split:")}
+    from pipeline.atlas.reach.outside import is_cut_owner      # split:<id> or (T212) water:<item_id>
+    cut = {s for s, e in db.execute("SELECT sid, entry_id FROM tidal") if is_cut_owner(e)}
     out = []
     if drawn_off - cut:
         out.append(f"{len(drawn_off - cut)} section(s) the tiles left off as tidal are no tidal piece in "

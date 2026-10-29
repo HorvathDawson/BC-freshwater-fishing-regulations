@@ -71,16 +71,18 @@ def main() -> int:
     from pipeline.atlas.reach.steelhead import load_list
     # THE TIDAL BOUNDARIES THIS ATLAS CUT (T166, `outside.tidal_splits`): the piece below each is
     # tidal water, out of every binding after the walk.
-    from pipeline.atlas.reach.outside import tidal_splits
+    from pipeline.atlas.reach.outside import tidal_splits, tidal_waters
     tidal_ids = tidal_splits(build)
+    # T212 (owner 2026-10-29): whole waters that are tidal (curated `tidal_waters.json`)
+    tidal_whole = tidal_waters()
     result = build_reaches(entries, registry, graph, build=build.name,
                            handles=digest_for(build), steelhead_list=load_list(),
-                           tidal_splits=tidal_ids)
+                           tidal_splits=tidal_ids, tidal_waters=tidal_whole)
     r = result.report
     print(f"{r.n_entries:,} entries · {r.n_rules:,} rules · {r.seconds}s")
     if r.tidal_cuts:
-        print(f"  tidal        {len(r.tidal_cuts)} tidal boundar{'y' if len(r.tidal_cuts) == 1 else 'ies'}, "
-              f"{sum(c['sections'] for c in r.tidal_cuts):,} section(s) below them made tidal")
+        print(f"  tidal        {len(r.tidal_cuts)} tidal boundar{'y' if len(r.tidal_cuts) == 1 else 'ies'} / whole "
+              f"water(s), {sum(c['sections'] for c in r.tidal_cuts):,} section(s) made tidal")
         for c in r.tidal_cuts:
             if c["unplaced"]:
                 print(f"    {c['split']}: {len(c['unplaced'])} piece(s) not placed, left freshwater: "

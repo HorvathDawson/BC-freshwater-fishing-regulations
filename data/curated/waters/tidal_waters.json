@@ -1,0 +1,53 @@
+{
+ "_about": "WHOLE WATERS THAT ARE TIDAL (T212/T166, owner 2026-10-29). Each item here is tidal water along its whole length: the reach run takes every section of it out of every binding after the tributary walk (owner `water:<item_id>`, `reach.outside.tidal_whole_owner`), the tiles leave it off the freshwater map, and the app shows it as tidal water (DFO rules). Authored from the owner's answer; `mark` is the Tidal-tab mark it answers (read-only copy).",
+ "waters": [
+  {
+   "item_id": "gnis:22631",
+   "name": "Parsons Channel",
+   "blk": "355992068",
+   "decided": "owner 2026-10-29: yes, the whole channel is tidal (answer to T212 follow-up: 'make each whole channel tidal')",
+   "mark": {
+    "target": "tidal:355992068",
+    "verdict": "unsure",
+    "date": "2026-10-29",
+    "note": "this entire channel is tidal"
+   }
+  },
+  {
+   "item_id": "gnis:10494",
+   "name": "Annacis Channel",
+   "blk": "355994265",
+   "decided": "owner 2026-10-29: yes, the whole channel is tidal (answer to T212 follow-up: 'make each whole channel tidal')",
+   "mark": {
+    "target": "tidal:355994265",
+    "verdict": "unsure",
+    "date": "2026-10-29",
+    "note": "this entire channnel is tidal"
+   }
+  },
+  {
+   "item_id": "gnis:17805",
+   "name": "Cannery Channel",
+   "blk": "355994324",
+   "decided": "owner 2026-10-29: yes, the whole channel is tidal (answer to T212 follow-up: 'make each whole channel tidal')",
+   "mark": {
+    "target": "tidal:355994324",
+    "verdict": "unsure",
+    "date": "2026-10-29",
+    "note": "this entire channel is tidal"
+   }
+  },
+  {
+   "item_id": "gnis:14905",
+   "name": "Morey Channel",
+   "blk": "355994870",
+   "decided": "owner 2026-10-29: yes, the whole channel is tidal (answer to T212 follow-up: 'make each whole channel tidal')",
+   "mark": {
+    "target": "tidal:355994870",
+    "verdict": "unsure",
+    "date": "2026-10-29",
+    "note": "this entire channel is tidal"
+   }
+  }
+ ]
+}

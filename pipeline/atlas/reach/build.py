@@ -62,7 +62,7 @@ class ReachResult:
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
-                  covered_fn=None, steelhead_list=(), tidal_splits=()) -> ReachResult:
+                  covered_fn=None, steelhead_list=(), tidal_splits=(), tidal_waters=()) -> ReachResult:
     """Resolve every rule in `entries` against one build.
 
     `entries` is an iterable of ``(region, entry_dict)`` — the shape
@@ -81,6 +81,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     the piece of a water below each is tidal water (`outside.tidal_cut_owner`), taken out of every
     binding AFTER the tributary walk, like a row marked tidal. A rule left with nothing is unresolved
     `tidal` and LISTED (`report.tidal_emptied`), never silently gone.
+
+    `tidal_waters` (T212, owner 2026-10-29; `outside.tidal_waters`): registry items that are tidal
+    along their whole length (the Fraser delta channels) — every section out of every binding, the same way.
     """
     t0 = time.time()
     bindings: list[RuleBinding] = []
@@ -119,7 +122,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # Water the book calls tidal (Nitinat Lake): out of every row but its own (`tidal_owner`), and
     # the piece below every tidal boundary (T166, `tidal_cut_owner`) out of every row — both after
     # the walk. Written with the run as `tidal.jsonl`; `tidal` maps each section to its owner.
-    tidal_of = tidal_water(ents, registry, graph, tidal_splits, report=report.tidal_cuts)
+    tidal_of = tidal_water(ents, registry, graph, tidal_splits, report=report.tidal_cuts,
+                           whole_waters=tidal_waters)
     tidal = tidal_of
     parks = national_park_sections(registry)
     presence = _SteelheadPresence(registry, graph)
@@ -522,8 +526,9 @@ def _without_tidal(entry: dict, rule: dict, binding: RuleBinding, diags: list[Di
     kept = tuple(s for s in binding.sections if s in left)
     # T166: which tidal boundaries took water from it (`outside.tidal_cut_owner`), when the caller
     # passed the owners — a row marked tidal is no cut and is not named here
-    cuts = sorted({str(tidal[s])[len("split:"):] for s in gone
-                   if isinstance(tidal, Mapping) and is_cut_owner(tidal.get(s, ""))})
+    cuts = sorted({(o[len("split:"):] if o.startswith("split:") else o) for s in gone
+                   for o in (str(tidal.get(s, "")) if isinstance(tidal, Mapping) else "",)
+                   if is_cut_owner(o)})
     diags = diags + [Diagnostic(entry["entry_id"], rule["rule_id"], "tidal", {
         "removed": len(gone), "kept": len(kept),
         **({"splits": cuts} if cuts else {}),
