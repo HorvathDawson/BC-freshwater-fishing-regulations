@@ -189,7 +189,8 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
       </View>
       <View style={{ height: TICKS + BAR }}>
         {counts.map((c, i) => c === 0 ? null : (
-          <View key={i}
+          // (T243) a labelled picture, said as one: a label on a role-less view is ignored by screen readers (axe)
+          <View key={i} accessibilityRole="image"
                 accessibilityLabel={legendTickLabel(c, markWords ? markWords((i + 0.5) / BINS)
                                                     : FLOW_LEGEND.near(percentileOrdinal((i + 0.5) / BINS)))}
                 style={{ position: "absolute", bottom: BAR, left: pct(i / BINS), width: pct(1 / BINS),
@@ -197,7 +198,7 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
             <View style={{ height: Math.max(3, (c / peak) * TICKS), backgroundColor: palette.ink, opacity: 0.8 }} />
           </View>
         ))}
-        <View testID="legend-bar" accessibilityLabel={describe ?? FLOW_LEGEND.scale(title, low, high, mid)}
+        <View testID="legend-bar" accessibilityRole="image" accessibilityLabel={describe ?? FLOW_LEGEND.scale(title, low, high, mid)}
               style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: BAR }}>
           <Svg width="100%" height={BAR} viewBox={`0 0 100 ${BAR}`} preserveAspectRatio="none">
             <Defs>

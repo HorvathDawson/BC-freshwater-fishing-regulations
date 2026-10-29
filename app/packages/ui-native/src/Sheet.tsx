@@ -35,6 +35,9 @@ const OPTION_HIT = hitProps({ w: 44, h: 44 });
  * on a 1.42 line: 4 px of air per title line (8 on a two-line title) the words do not need. 19 / 23 is the app's other 19 px
  * heading (WaterMapView's name, TYPE.figureBig): the face's own ratio (23 / 27 ≈ 0.85 ≈ 19 / 23).
  */
+
+/** (T243) the scrim is a press (it closes the sheet): said as a button, and as large as the window it covers */
+const SCRIM_HIT = hitProps({ w: 320, h: 200 });
 export const SHEET_TITLE = { ...TYPE.screen, fontSize: 19, lineHeight: 23 } as const;
 /**
  * (T37, T82 O5) THE PHONE SHEET IS SIZED TO ITS CONTENT; a scrolling body is capped at this share of the window. The
@@ -189,7 +192,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
       <Modal visible={open} transparent animationType="fade" onRequestClose={requestClose}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: SHEET_DIALOG.inset }}>
-            <Pressable accessibilityLabel={SHEET_WORDS.close} onPress={onClose}
+            <Pressable accessibilityRole="button" accessibilityLabel={SHEET_WORDS.close} onPress={onClose} {...SCRIM_HIT}
                        style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0, backgroundColor: palette.scrim }} />
             <View testID="sheet-dialog" accessibilityViewIsModal
                   style={{ width: "100%", maxWidth: SHEET_DIALOG.maxWidth, // no window height yet (0: not measured) caps nothing
@@ -228,7 +231,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
             only its opacity moves, so the dim neither travels with the sheet nor uncovers a bright band as it leaves. */}
         <Animated.View testID="sheet-scrim" style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0,
                                                      backgroundColor: palette.scrim, opacity: dim }}>
-          <Pressable accessibilityLabel={SHEET_WORDS.close} onPress={onClose} style={{ flex: 1 }} />
+          <Pressable accessibilityRole="button" accessibilityLabel={SHEET_WORDS.close} onPress={onClose} {...SCRIM_HIT} style={{ flex: 1 }} />
         </Animated.View>
         {/*
           THE SHEET WAS THE LAST ROUNDED THING. It carried a 22px radius on both top corners

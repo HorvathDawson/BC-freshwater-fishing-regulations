@@ -32,7 +32,9 @@ export function MenuPage({ open, title, onBack, palette, children, scroll = true
         <View testID={testID} style={{ flex: 1 }}>
           <MenuPageHead title={title} onBack={onBack} palette={palette} backLabel={backLabel} column={column} />
           {scroll
-            ? <ScrollView contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 40, gap: SPACE.s4,
+            // (T243) focusable: a page with nothing to press (the web's Offline maps) still scrolls from the keyboard (axe
+            // scrollable-region-focusable)
+            ? <ScrollView focusable contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 40, gap: SPACE.s4,
                                                    ...column }}>
                 {children}
               </ScrollView>

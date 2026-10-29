@@ -2,8 +2,8 @@
  * T243 — THE APP WITH A SCREEN READER, outside the Regulations view (which `regs/a11y.test.tsx` holds): every press on
  * the map tabs and their controls, the bottom bar, search and its results, the Layers sheet, the Spots tab, a spot, the
  * spot capture, a water's three views, the More tab and every menu page — on a phone and on a desktop — has a name and
- * a box that reaches 44 × 44 (`shellPressAudit`: its `hitProps` box), and no labelled container hides words its label
- * does not say (`labelAudit`; a row whose label SAYS its words — a source's "Synopsis: No date recorded. Unknown." —
+ * a box that reaches 44 × 44 (`shellPressAudit`: its `hitProps` box), no labelled container hides words its label
+ * does not say, and no wordless picture carries a label without a role (the web never says it: axe aria-prohibited-attr) (`labelAudit`; a row whose label SAYS its words — a source's "Synopsis: No date recorded. Unknown." —
  * reads in full and is allowed). The map renderer is stubbed (no WebGL in jsdom); everything else is the app's, on the
  * fixture. Each rule is pinned by a planted violation at the foot.
  */
@@ -50,7 +50,13 @@ const press = (name: string | RegExp) => act(() => { fireEvent.click(screen.getA
 function findings(): string[] {
   const p = shellPressAudit(document.body);
   const hid = labelAudit(document.body).filter((x) => !x.label.includes(x.text));
+  // a label on an element with no role and no words is not said at all on the web (ARIA prohibits it there; axe's
+  // aria-prohibited-attr): a picture — a legend's tick, a bar — needs role "image" for its label to be heard
+  const mute = [...document.querySelectorAll("[aria-label]")].filter((e) => !e.getAttribute("role")
+    && !(e.textContent ?? "").trim() && !["INPUT", "TEXTAREA", "IMG", "svg"].includes(e.tagName)
+    && !e.closest('[aria-hidden="true"]'));
   return [...p.bad.map((b) => `${b.role} "${b.name}": ${b.why}`), ...hid.map((h) => `"${h.label}" hides "${h.text}"`),
+          ...mute.map((e) => `"${e.getAttribute("aria-label")}" is on a wordless ${e.tagName.toLowerCase()} with no role: never said`),
           ...(p.checked === 0 ? ["no press at all: the state did not render"] : [])];
 }
 
@@ -97,12 +103,14 @@ describe("(T243) the audit catches what it is for", () => {
         <Text>Short</Text></Pressable>
       <View accessibilityLabel="Card"><Text>words a reader never hears</Text></View>
       <View accessibilityLabel="Synopsis: up to date"><Text>Synopsis</Text></View>
+      <View accessibilityLabel="3 gauges near the 10th percentile"><View /></View>
     </View>);
     expect(findings()).toEqual([
       'button "": no accessible name',
       'button "No box": no data-hitslop: give it hitProps(its box)',
       'switch "Short": reaches 30×30',
       '"Card" hides "words a reader never hears"',
+      '"3 gauges near the 10th percentile" is on a wordless div with no role: never said',
     ]);
   });
 });
