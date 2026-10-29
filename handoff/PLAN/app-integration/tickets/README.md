@@ -275,6 +275,7 @@ use that as the sole source of future work."
 | T228 | no-access land and salmon break a water's pieces (live salmon merge on the map); dormant gauges attach to nothing; trout includes char (C4) | DONE | a757756b | live r-c331a7a3c2cf: 34 waters gain a part (Coquitlam 4), no rule set moved; 1,618 dormant matched stations out of Conditions; owner re-cuts sync.mjs + regs-fixture |
 | T229 | DFO salmon cascade on the Skeena: plain explanation + Cascade map (review app, DFO mode); the order read from the Region 6 page | DONE | 808784f1, e20796648, 29326f97f | release r-6e96911055ce: more specific place wins within a tier (Kitsumkalum mouth closed Jul 1–Aug 31, Morice Forks), tidal-Area rows section E only, eulachon its own line; Q3/Q6 to T164 |
 | T230 | provincial in-season changes: curated matches (+ auto 22/32), banners on matched waters, unmatched notice + badge, review In-season tab | DONE | 03fc2eb2 + app commit | owner 2026-10-28; feed = T225 `feeds/inseason/index.json`; R2 matches.json upload is the owner's; shots T230-shots/ |
+| T234 | push notifications: regulation changes on followed waters + condition/forecast alerts | OPEN | — | not started; owner questions Q-T234a–c (device-only v1, alert kinds, timing) |
 
 ## Order for open tickets
 
