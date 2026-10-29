@@ -383,7 +383,11 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
 
     # CLOSED DOWNSTREAM, WITH EACH REACH'S LENGTH (T252): a lake's pointer carries the walk on to its outlet, and
     # `len` (in DOWN_LEN_UNIT_M) lets the app say "about N km along the river" by summing a route's reaches.
-    down = downstream_map(graph, (l.section_id for l in links))
+    # SEEDED with shed members and every NAMED section a donor panel speaks for (T252): a named water's braid or side
+    # channel (the upper Pitt's, beside Pitt Lake) is no shed member, and without a pointer of its own its donor map
+    # said "no mapped path". Unnamed panel sections stay out: 64k more rows (+470 kB gz) for little.
+    down = downstream_map(graph, [*(l.section_id for l in links),
+                                  *(s for s in panels.by_section if s in owner)])
     lens = section_lengths(graph, down)
     db.executemany("INSERT INTO section_down (sid, down_sid, len) VALUES (?,?,?)",
                    [(sid[s], sid[down[s]], round(lens[s] / DOWN_LEN_UNIT_M)) for s in sorted(down)])

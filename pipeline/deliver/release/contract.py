@@ -202,7 +202,9 @@ WEB_BUDGET = {
     "first_tap_unnamed": {"files": ["core", "water", "access", "regs-{region}", "regs-sid", "down", "salmon",
                                     "salmon-{region}"],
                           # (owner 2026-10-28) r-70f3ce0effc2 6,216,855 (was 6,290,780)
-                          "gate": 6_850_000},
+                          # (T252) + ~498 kB on `down` (closed downstream, named panel seeds, reach lengths: 624,913 →
+                          # 1,122,957) ≈ 6,715,000: the gate 6,850,000 → 7,200,000
+                          "gate": 7_200_000},
     # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
     # climatology (climate) waits for a chart (4,151,534 → 997,511)
     "conditions_open": {"files": ["flow-area", "conditions"], "gate": 1_150_000},

@@ -1110,7 +1110,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
       "salmon",
       "salmon-{region}"
     ],
-    "gate": 6850000
+    "gate": 7200000
   },
   "conditions_open": {
     "files": [

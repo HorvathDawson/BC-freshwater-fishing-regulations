@@ -20,7 +20,19 @@ water (stream magnitude: Pitt Lake's outlet is the Pitt, not the side channel be
 Paths only: nothing in the build reads `section_down`; it is written after `gauge`, `section_gauge`, `lake_gauge`,
 the panels and the basins, from the same graph, so none of them can change (gauge choice is policy, untouched).
 
-MEASURED_POINTERS
+Seeded with shed members AND every named section a donor panel speaks for (a named water's braids and side channels —
+the upper Pitt's beside the lake — are no shed members). Measured on the 2026-10-28 bundle's own atlas (handles
+db853e9556df81a6, graph probe through `scripts/heavy.sh`):
+
+| | before | after |
+|---|---|---|
+| pointer rows | 107,731 | 141,324 (mostly lakes) |
+| shed/panel walks ending at a lake | 50,184 (20,986 lakes) | 886 panel walks (a handful of lakes with no outlet) |
+| donor routes drawable (of 154,506) | 43,814 | 86,079 |
+| existing pointers re-ranked (braid / lake / bigger water) | — | 3,853 (paths only) |
+
+Pitt: every gnis:7551 section with 08MH006 in its panel now draws it — above the lake through Pitt Lake to the
+Alouette mouth (~70 km along the river), below it ~19-28 km.
 
 **2. Distance along the river.** `section_down.len` (ADDITIVE, nullable, still down/1): each reach's length along the
 flow path in units of `DOWN_LEN_UNIT_M` (shed.py ↔ app `sql/shared.ts`) — a stream piece's own length, a lake's
@@ -33,7 +45,10 @@ path joins them. The map marks the confluence (`trace-join` + `trace-join-label`
 along the river") at the tributary's end against the confluence reach, found in the TILES' geometry
 (`trace-geometry.junction`; no second geometry store). A release cut before `len` reads as before (no distance).
 
-SIZE_NOTE
+**Size.** `down` gz 624,913 → 1,122,957 (closure + named seeds +~250 kB, `len` at 100 m +~250 kB; a log-scale `len`
+saves only ~40 kB — the length itself is the information). Gate `down` 720,000 → 1,250,000 and the
+`first_tap_unnamed` moment 6,850,000 → 7,200,000 (≈6.72 MB). `conditions` untouched. All unnamed panel sections as
+seeds would be 1,590,953 — not done.
 
 **3. Station names cased once.** `gauge.name` is written through `place_names.display_case` (T113's one caser:
 "McGregor River at Lower Canyon", "North Alouette River at 232nd Street, Maple Ridge"); core `stationWater` keeps a cased
