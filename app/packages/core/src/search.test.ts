@@ -137,21 +137,22 @@ describe("(T48) the top bar's search field and its results sheet", () => {
         nearFailed: "Could not read what is near this town.",
         placeSub: "Town · every named water around it",
         show: "Show Hope on the map",
-        placeholders: 9,
+        placeholders: 10,
       });
   });
 
-  it("the placeholder lines: short punning lines that fit beside the bell (owner 2026-10-29); none promises fish", () => {
+  it("the placeholder lines: every line a fishing pun, short enough to fit beside the bell (owner 2026-10-29); none promises fish", () => {
     expect(SEARCH_BAR.placeholders).toEqual([
       "Cast a search…",
       "Drop a line: any water",
       "Hook a water by name",
       "Reel in a river…",
-      "Where to next?",
-      "Find your next water",
       "Any creek worth a cast?",
-      "Lake, river or town",
-      "Fishing near a town?",
+      "Lure up a lake…",
+      "Troll for a town…",
+      "Wade into a search…",
+      "Tackle a town or lake",
+      "Fly to any river…",
     ]);
     expect(SEARCH_BAR.placeholders.filter((l) => /biting|catch|fish are/i.test(l))).toEqual([]);
   });

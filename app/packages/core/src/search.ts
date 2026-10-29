@@ -272,11 +272,12 @@ export const SEARCH_BAR = {
     "Drop a line: any water",
     "Hook a water by name",
     "Reel in a river…",
-    "Where to next?",
-    "Find your next water",
     "Any creek worth a cast?",
-    "Lake, river or town",
-    "Fishing near a town?",
+    "Lure up a lake…",
+    "Troll for a town…",
+    "Wade into a search…",
+    "Tackle a town or lake",
+    "Fly to any river…",
   ],
 } as const;
 
