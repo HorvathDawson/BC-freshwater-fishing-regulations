@@ -1,6 +1,6 @@
 # T277 — Satellite imagery works in the Android app whenever online
 
-Status: DONE 2026-10-29 — COMMIT (not reproduced on the emulator; probe hardened + logged) (owner 2026-10-29: "satellite should work in app if they have wifi").
+Status: DONE 2026-10-29 — a7673eff4 (not reproduced on the emulator; probe hardened + logged) (owner 2026-10-29: "satellite should work in app if they have wifi").
 
 ## Work
 Find why the Esri imagery layer doesn't show in the APK (style source on native, offline/bad-connection mode suppressing it,
