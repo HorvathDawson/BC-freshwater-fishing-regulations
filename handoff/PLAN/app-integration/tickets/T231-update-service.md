@@ -1,6 +1,6 @@
 # T231 — the update service: the app checks the data origin for new feeds and releases and downloads them
 
-Status: IN PROGRESS — main checkout lane (redesign/stream-sections).
+Status: DONE — 5681f6b8, 5c2b9cfb (staging e2e: the moved feed fetched, the others 304).
 
 Source: owner 2026-10-28 — "the app must check the data origin (R2 via the data worker) for new updates and download
 them: new feeds (gauges, DFO, in-season) and bigger updates (a new release manifest: bundle files, salmon slices,
