@@ -321,6 +321,7 @@ use that as the sole source of future work."
 | T275 | Mode switch (Standard/Salmon/Runs) resizes the map; only the UI block should change, map fixed | DONE | dbfeb4bf4 (+70aa5e8e9) | owner 2026-10-29 |
 | T276 | DFO line by the mode switch; Runs tab legible on phones (bigger slider); spawner legend + Conditions → first-open tutorials; local /runtiming/ | DONE | 9f0b0a113 | owner 2026-10-29 |
 | T277 | Satellite imagery draws in the Android app whenever online; offline toggle says why | OPEN | — | owner 2026-10-29 |
+| T278 | Re-cut golden regs fixtures after the tidal cuts: PART_TIDAL declaration + renumbered parts (Fraser, Campbell, Brunette, Coquitlam…) | OPEN | — | c1029 lane 2026-10-29 |
 
 ## Order for open tickets
 
