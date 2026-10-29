@@ -10001,6 +10001,35 @@
      "tidal": true
     }
    ]
+  },
+  {
+   "name": "YORKSON CREEK",
+   "applies_to": {
+    "gnis_id": "30435"
+   },
+   "splits": [
+    {
+     "id": "yorkson_creek__tidal_boundary",
+     "label": "tidal boundary",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.654413,
+       49.195947
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:356250588",
+     "_coord": [
+      -122.654413,
+      49.195947
+     ],
+     "tidal": true
+    }
+   ]
   }
  ]
 }
