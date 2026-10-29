@@ -16,9 +16,9 @@ describe("the walkthrough (T248)", () => {
       .toEqual([["days"], ["modes"], ["map"], ["tab:conditions"], ["tab:runs"], ["sync", "bell"]]);
     for (const c of WALKTHROUGH_WORDS.cards) { expect(c.title.length).toBeGreaterThan(3); expect(c.body.length).toBeGreaterThan(40); }
   });
-  it("names the three map modes by the words the app already uses", () => {
+  it("names the map's modes by the words the app already uses (Run timing is its own tab, T255)", () => {
     const b = WALKTHROUGH_WORDS.cards.find((c) => c.key === "modes")!.body;
-    expect(["Standard", "Salmon", "Run timing"].every((w) => b.includes(w))).toBe(true);
+    expect(["Standard", "Salmon"].every((w) => b.includes(w))).toBe(true);
   });
   it("seen only when the stored text is the current version", () => {
     expect([walkthroughSeen(null), walkthroughSeen(""), walkthroughSeen("walkthrough-1"), walkthroughSeen(WALKTHROUGH_VERSION),

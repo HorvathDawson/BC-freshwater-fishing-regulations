@@ -35,7 +35,7 @@ export const WALKTHROUGH_VERSION = "walkthrough-2";
 export const walkthroughSeen = (stored: string | null | undefined): boolean => stored?.trim() === WALKTHROUGH_VERSION;
 
 /**
- * (T257) What a step of the tour points at, on the Map tab: the date bar, the Standard / Salmon / Run timing switch, the
+ * (T257) What a step of the tour points at, on the Map tab: the date bar, the Standard / Salmon switch, the
  * map itself (a spot in its middle: "tap here"), the Conditions and Runs tabs, and the refresh button with the bell beside it. The
  * surface registers each control under its key; a control that is not on screen drops its step.
  */
@@ -63,9 +63,9 @@ export const WALKTHROUGH_WORDS = {
     { key: "days", targets: ["days"], title: "Pick the day",
       body: `The map colours every water for ${DAY_PICKER.todaySaid}, ${DAY_PICKER.tomorrowSaid} or any date you choose, `
         + "because seasons and closures change through the year." },
-    { key: "modes", targets: ["modes"], title: "Three ways to read the map",
-      body: `${SALMON_WORDS.toggle.standard} shows what the regulations allow. ${SALMON_WORDS.toggle.salmon} paints DFO's `
-        + `salmon rules instead, and ${RUN_WORDS.mode} shows when each run is in the water.` },
+    { key: "modes", targets: ["modes"], title: "Regulations or salmon",
+      body: `${SALMON_WORDS.toggle.standard} shows what the regulations allow on each water. ${SALMON_WORDS.toggle.salmon} `
+        + "paints DFO's salmon rules instead." },
     { key: "map", targets: ["map"], title: "Tap a water",
       body: "Tap any stream or lake to open its regulations for the day you chose." },
     { key: "conditions", targets: ["tab:conditions"], title: "See what the river is doing",
