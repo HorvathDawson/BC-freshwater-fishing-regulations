@@ -118,6 +118,12 @@ async function http() {
 // ---------------------------------------------------------------- browser
 const NO_POPUP = `(() => { window.__pdf = null; window.open = (u) => { if (u) window.__pdf = String(u);
   return { document: { body: {} }, close() {}, location: { set href(v) { window.__pdf = String(v); } } }; }; })();`;
+/** a fresh profile gets the "Before you fish" notice (T236) and the coach-mark tour (T257/T248): seed both as seen, from
+ *  the versions in the source (the way a11y-walk.mjs does), and the in-season sheet as seen */
+const rd = (f, re) => re.exec(fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '..', f), 'utf8'))?.[1];
+const SEEN = `try { localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(rd('packages/core/src/menu/legal.ts', /FIRST_RUN_VERSION = "([^"]+)"/) ?? 'disclaimer-1')});
+  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify(rd('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/) ?? '1')});
+  localStorage.setItem('canifishthis.inseasonSeen.v1', '["*"]'); } catch {}`;
 const tidQ = (id) => `document.querySelector('[data-testid=${JSON.stringify(id)}]')`;
 async function until(b, expr, ms, what) {
   for (let t = 0; t < ms; t += 200) { if (await b.evaluate(expr).catch(() => false)) return; await sleep(200); }
@@ -130,7 +136,7 @@ async function tapAt(b, x, y) { for (const type of ['mouseMoved', 'mousePressed'
 /** the first-run notice ("I understand") and the in-season sheet ("Done") cover the map on a fresh profile */
 async function dismiss(b) {
   for (let i = 0; i < 6; i++) {
-    const n = (await press(b, 'I understand') ? 1 : 0) + (await press(b, 'Done') ? 1 : 0);
+    const n = (await press(b, 'I understand') ? 1 : 0) + (await press(b, 'Done') ? 1 : 0) + (await press(b, 'Skip') ? 1 : 0);
     if (!n && i > 1) return; await sleep(700);
   }
 }
@@ -179,7 +185,7 @@ async function navigate(b, url) {
 }
 
 async function browser() {
-  const b = await open(`${SITE}/`, { width: 390, height: 844, dpr: 1, mobile: true, network: true, init: NO_POPUP });
+  const b = await open(`${SITE}/`, { width: 390, height: 844, dpr: 1, mobile: true, network: true, init: NO_POPUP + SEEN });
   let last = 'phone-0';
   const step = async (name, fn) => check(name, async () => {
     try { return await fn(); }
@@ -192,14 +198,18 @@ async function browser() {
       const t = await b.evaluate(`[...document.querySelectorAll('.maplibregl-ctrl-attrib, [class*=attrib]')].map((e) => e.textContent).join(' ')`);
       must(/OpenStreetMap/.test(t), `attribution text: ${JSON.stringify(t.slice(0, 160))}`);
     });
-    for (const [label, id, file, re] of [['Salmon', 'regs-paint-salmon', '02-salmon', /salmon/i], ['Run timing', 'regs-paint-runs', '03-run-timing', /\/runtiming\/index\.json/]]) {
+    for (const [label, id, file, re, tab] of [['Salmon', 'regs-paint-salmon', '02-salmon', /salmon/i, null], ['Run timing', null, '03-run-timing', /\/runtiming\/index\.json/, 'Runs']]) {
       await step(`phone: ${label} mode paints`, async () => {
         last = file;
         must(standard, 'no standard map to compare against');
         const before = b.requests.length;
-        must(await b.evaluate(`(() => { const e = ${tidQ(id)}; if (!e) return false; e.click(); return true; })()`), `no ${id} control`);
-        await until(b, `(() => { const e = ${tidQ(id)}; return e && (e.getAttribute('aria-selected') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-pressed') === 'true'); })()`, 15000, `${label} selected`).catch(() => {});
+        if (tab) must(await press(b, tab), `no ${tab} tab`);   // T261: Run timing is the Runs bottom tab
+        else {
+          must(await b.evaluate(`(() => { const e = ${tidQ(id)}; if (!e) return false; e.click(); return true; })()`), `no ${id} control`);
+          await until(b, `(() => { const e = ${tidQ(id)}; return e && (e.getAttribute('aria-selected') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-pressed') === 'true'); })()`, 15000, `${label} selected`).catch(() => {});
+        }
         await sleep(5000);
+        await dismiss(b);
         const read = b.requests.slice(before).filter((r) => re.test(r.url));
         const bad = b.requests.slice(before).filter((r) => r.status >= 400 || r.failed);
         must(!bad.length, `failed requests: ${bad.slice(0, 3).map((r) => `${r.url} ${r.status ?? r.failed}`).join(', ')}`);
@@ -210,6 +220,9 @@ async function browser() {
         return `${(p.diff * 100).toFixed(1)}% pixels changed, ${read.length} ${label.toLowerCase()} reads`;
       });
     }
+    must(await b.evaluate(`(() => { const e = [...document.querySelectorAll('[aria-label="Map"]')].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.top > innerHeight * 0.8; }).pop();
+      if (!e) return false; e.click(); return true; })()`), 'no Map tab (bottom bar)');
+    await until(b, `!!${tidQ('map-day')}`, 15000, 'the Map tab (map-day)'); await sleep(1500);
     await b.evaluate(`${tidQ('regs-paint-standard')}?.click()`); await sleep(2500);
 
     await step('phone: tap a named water → its regulations', async () => {
@@ -273,7 +286,7 @@ async function browser() {
 }
 
 async function desktop() {
-  const b = await open(`${SITE}/`, { width: 1440, height: 900, dpr: 1, network: true });
+  const b = await open(`${SITE}/`, { width: 1440, height: 900, dpr: 1, network: true, init: SEEN });
   try {
     await check('desktop: the map paints', async () => {
       try { return (await mapPaints(b, '09-desktop-map')).detail; }

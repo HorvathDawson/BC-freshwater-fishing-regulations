@@ -63,8 +63,14 @@ const SAVE_DATA = `try { Object.defineProperty(Navigator.prototype, 'connection'
  *  what a COLD visitor fetches. `tools/prefetch-measure.mjs` measures the tap with it on. */
 const NO_BACKGROUND = `globalThis.__releasePrefetchBackground = false;`;
 
+/** the "Before you fish" notice and the coach-mark tour cover the map on a fresh profile: seed both as seen (versions read from the source) */
+const rdv = (f, re) => re.exec(fs.readFileSync(new URL(`../${f}`, import.meta.url), 'utf8'))?.[1];
+const SEEN = `try { localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(rdv('packages/core/src/menu/legal.ts', /FIRST_RUN_VERSION = "([^"]+)"/) ?? 'disclaimer-1')});
+  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify(rdv('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/) ?? '1')});
+  localStorage.setItem('canifishthis.inseasonSeen.v1', '["*"]'); } catch {}`;
+
 async function session(url, { seedSpot = false, saveData = false } = {}) {
-  const init = NO_BACKGROUND + (seedSpot ? `try { if (!localStorage.getItem('canifishthis.spots.v1')) localStorage.setItem('canifishthis.spots.v1', ${JSON.stringify(JSON.stringify([SPOT]))}); } catch {}` : '')
+  const init = NO_BACKGROUND + SEEN + (seedSpot ? `try { if (!localStorage.getItem('canifishthis.spots.v1')) localStorage.setItem('canifishthis.spots.v1', ${JSON.stringify(JSON.stringify([SPOT]))}); } catch {}` : '')
     + (saveData ? SAVE_DATA : '');
   const b = await open(url, { width: 390, height: 844, network: true, init });
   const take = () => b.requests.splice(0).filter((r) => /^https?:/.test(r.url));
