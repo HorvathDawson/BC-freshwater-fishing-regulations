@@ -25,7 +25,7 @@ so staging builds go through Play internal testing. Package `ca.canifishthis.app
   link from `~/.canifishthis/play-test-url` (else the store page). `--no-upload` stops after the AAB.
   A draft app (listing not complete) only takes draft releases: the uploader retries as draft and says so; roll it out
   in the console.
-- First AAB: built by `build-apk.sh --play --no-upload --no-email` (see the ledger row for the path and versionCode).
+- First AAB (2026-10-29): `app/dist/aab/canifishthis-0.1.2-4-c66f90a4d.aab` (= `latest.aab`), versionCode 4, 31.1 MB, signature checked against the upload cert.
 
 ## Blocked on T268 (owner)
 

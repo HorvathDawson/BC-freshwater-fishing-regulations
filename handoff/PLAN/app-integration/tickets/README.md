@@ -310,7 +310,7 @@ use that as the sole source of future work."
 | T264 | "Could not read what is near this town" on Android, intermittent (first town read after a cold start) | DONE | b96ffb83f, ae80ae39d | root cause: expo shared-object registry race under a ~400-call burst; one app-wide SQLite queue, retry removed; near-cold ×10: 0 failures |
 | T265 | a big update held for Wi-Fi does not start when Wi-Fi returns (low mode still "cellular" when the metered change lands; nothing re-asks) | DONE | b96ffb83f, 38a508b3e | phoneNetwork re-asks when the low mode clears; big-update Wi-Fi step PASS |
 | T266 | marks are review state; decided data in per-domain files via one exporter (tidal, DFO extents, sloughs, ponds, names) | OPEN | — | owner idea 2026-10-29; not started |
-| T267 | Google Play internal testing for dev/staging builds: upload key (~/.canifishthis), config-plugin release signing, `build-apk.sh --play` (versionCode bump, AAB, API upload to internal, email) | BLOCKED | (this commit) | owner 2026-10-29; blocked on T268 (owner) |
+| T267 | Google Play internal testing for dev/staging builds: upload key (~/.canifishthis), config-plugin release signing, `build-apk.sh --play` (versionCode bump, AAB, API upload to internal, email) | BLOCKED | 022ca080b, c66f90a4d | owner 2026-10-29; blocked on T268 (owner) |
 | T268 | OWNER: Google Play setup when account verification completes — create app ca.canifishthis.app, Play App Signing, first AAB by hand, internal testers + opt-in link, app content (data safety, rating, privacy policy), service-account JSON | OPEN (owner) | — | owner 2026-10-29; unblocks T267 |
 
 ## Order for open tickets

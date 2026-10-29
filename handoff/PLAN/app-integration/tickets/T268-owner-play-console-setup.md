@@ -5,7 +5,7 @@ Status: OPEN — assigned to the OWNER; waiting on Google's verification of the 
 Unblocks T267 (Claude side, done: upload key, `deploy/staging/build-apk.sh --play`). Only the owner can do these, in
 Play Console and Google Cloud. Package **ca.canifishthis.app**.
 
-First AAB (versionCode 4, upload-key signed): `app/dist/aab/latest.aab` (pinned copy `app/dist/aab/canifishthis-0.1.2-4-*.aab`).
+First AAB (versionCode 4, upload-key signed): `app/dist/aab/latest.aab` (pinned copy `app/dist/aab/canifishthis-0.1.2-4-c66f90a4d.aab`, 31.1 MB, built 2026-10-29 from c66f90a4d).
 Upload certificate (if Play asks): SHA-1 `EF:CE:2D:3A:74:DC:88:B7:9C:E0:F6:EA:CF:3D:69:10:1E:06:E7:CE`,
 SHA-256 `79:50:98:B4:34:AD:FE:E7:D8:F5:35:8B:F4:28:16:C5:1F:67:41:5B:51:B9:06:36:3E:91:FF:E5:E8:92:43:FC`
 (certificate file `~/.canifishthis/upload_certificate.pem`).
