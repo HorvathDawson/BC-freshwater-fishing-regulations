@@ -411,17 +411,25 @@ def carry_side_channels(placed: Iterable[dict], area_bound: Iterable[str], sid_o
     area_bound = set(area_bound)
     off = set(off_stem)
     handle_of = {v: k for k, v in sid_of.items()}
+    stem_of: Dict[int, set] = defaultdict(set)              # each water's main-stem (on-stem) sections
+    for s_, o in ord_of.items():
+        if s_ not in off:
+            stem_of[o].add(s_)
     out = []
     for row in placed:
         if not row.get("mapped") or row["location_id"] in area_bound:
             out.append(row)
             continue
         have = {sid_of[h] for h in row["sections"] if h in sid_of}
-        todo, add = list(have), []
+        # only on a water the place covers WHOLE (every main-stem section): a place bound to part of a water (Morice
+        # "from the signs ... to Lamprey Creek") must not creep past its own cut along a side channel
+        whole = {o for o in {ord_of.get(x) for x in have} - {None} if stem_of[o] and stem_of[o] <= have}
+        todo, add = [x for x in have if ord_of.get(x) in whole], []
         while todo:
             x = todo.pop()
             for y in touch.get(x, ()):
-                if y in off and y not in have and y in ord_of and ord_of.get(x) == ord_of[y] and y in handle_of:
+                if y in off and y not in have and ord_of.get(y) in whole and ord_of.get(x) == ord_of[y] \
+                        and y in handle_of:
                     have.add(y)
                     add.append(y)
                     todo.append(y)

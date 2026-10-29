@@ -28,11 +28,9 @@ with the default Claude uses until you answer). Newest first inside each section
   (Claude may not). It re-cuts taps.json + hydrate.json only: golden.json is frozen since T87 deleted the prototype
   (2026-10-28), so the golden re-extraction of the Q62/Q63 words is moot. (Whonnock 08MH100 and Beattie "Trout"
   answered 10-28: T228.)
-- **T228 re-cuts on release r-c331a7a3c2cf (2026-10-28):** Claude cannot run `node app/tools/regs-recut/sync.mjs`.
-  Run it, then `pnpm -C app regs-fixture`, and commit what they write (taps, hydrate, dev regs-release fixture).
-  This release changes 34 waters' parts (no-access split, e.g. Coquitlam is now 4 parts). It adds salmon-chain pieces to
-  `part_stretch` / `part_mark`, and drops 1,618 dormant gauges from Conditions (148 lake gauges among them). Look at
-  Coquitlam and Cowichan on the Map tab: shots in `app-integration/T228-shots/`.
+- **T228 (2026-10-28):** two DFO queue items from T228. (1) Klinaklini: place "Management Units 5-6 to 5-11 boundary"
+  as a split (pre-filled point). (2) Bella Coola: exclude the Atnarko (gnis:17209) from its tributaries. The re-cut
+  commands come after the next release (one more rebuild is coming).
 - **T224 names (2026-10-28, your answers applied):** in the review app, **Names** tab (:5183, `#names/`): spot-check
   the 30-row sample of the 181 auto-accepted names (view "spot-check"; a reject takes one out), then work the review
   list (36 high, 552 medium, 8,061 low — "accept / reject all visible" is one commit). They reach the app on the next

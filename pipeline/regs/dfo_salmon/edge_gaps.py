@@ -72,12 +72,15 @@ def items(bundle: Path, gpkg: Optional[str] = None) -> List[dict]:
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     P, secs = read_bundle(db)
     chain_of = dict(secs)
-    locs = {}
+    locs, water_items = {}, {}
     for slug in ALL_SLUGS:
         if PAGES[slug].is_stub:
             continue
-        for loc in E.load(slug, E.ENTRIES_DIR).locations:
+        ef = E.load(slug, E.ENTRIES_DIR)
+        for loc in ef.locations:
             locs[loc.location_id] = loc
+            w = ef.water(loc.water_id)
+            water_items[loc.location_id] = list(getattr(w, "item_ids", None) or [])
     if gpkg is None:
         from project_config import get_config
         gpkg = str(get_config().fwa_data_gpkg)
@@ -93,26 +96,24 @@ def items(bundle: Path, gpkg: Optional[str] = None) -> List[dict]:
                     None)
         cross = mu_group_crossing(area, int(iid.split(":")[1]) if iid.startswith("gnis:") else None, (lon, lat), gpkg) \
             if area and Path(gpkg).exists() else None
-        sugg = None
-        if cross:
-            # the place's own extent stays (`within` its area); the mark carries the NEW SPLIT the edge needs
-            sugg = {"op": "within", "points": [], "items": [iid],
-                    "tributaries": None, "words": f"place {cross['name']} on {name} as a split",
-                    "new_splits": [{"ref": "sg1", "anchor": "coord", "name": cross["name"], "coord": cross["coord"],
-                                    "on_item": iid, "quote": _words(loc) if loc else "", "confidence": "medium"}]}
+        # an area-bound place keeps its extent (`within` its area): what the edge needs is a NEW SPLIT at the crossing,
+        # proposed here in the marks' NewSplit shape (the extent editor has no point to hang it on)
+        split = {"ref": "sg1", "anchor": "coord", "name": cross["name"], "coord": cross["coord"], "on_item": iid,
+                 "quote": _words(loc) if loc else "", "confidence": "medium"} if cross else None
         out.append({
             "location_id": lid, "water": name, "text": _words(loc) if loc else "",
             "state": "edge_gap", "why": "edge_not_placed", "outcome": "new_split" if cross else "place_edge",
-            "confidence": "medium" if cross else "low", "items": [iid], "status": "active",
+            "confidence": "none", "items": [iid], "status": "active",          # no extent fix: the split is the work
             "edge_gap": {"water": name, "item_id": iid, "at": [lon, lat], "down_sid": d, "up_sid": u,
                          "places": {"below": [[p, _words(locs[p]) if p in locs else ""] for p in a],
                                     "above": [[p, _words(locs[p]) if p in locs else ""] for p in b]},
                          "differ": [[p, _words(locs[p]) if p in locs else ""] for p in only],
                          "cause": (f"area-bound: the {area} edge crosses the water ({cross['name']})" if cross
-                                   else f"the place {lid} covers only part of the water")},
+                                   else f"the place {lid} covers only part of the water"),
+                         **({"new_split": split} if split else {})},
             "reason": (f"{name}: the salmon changes at {lon},{lat} where no split stands (a DFO place's edge not placed "
                        f"as a split) — not cut until placed"),
-            **({"suggestion": sugg} if sugg else {})})
+            })
     # a place whose own words exclude a water its placement covers ("Bella Coola River (not including Atnarko River)")
     name_of = dict(db.execute("SELECT item_id, name FROM item"))
     ord_of = dict(db.execute("SELECT item_id, ord FROM item"))
@@ -128,12 +129,17 @@ def items(bundle: Path, gpkg: Optional[str] = None) -> List[dict]:
                     continue
                 out.append({
                     "location_id": lid, "water": name_of.get(iid), "text": _words(loc),
-                    "state": "edge_gap", "why": "covers_excluded_water", "outcome": "extent_fix",
+                    "state": "edge_gap", "why": "covers_excluded_water", "outcome": "extent_fix", "matched": "whole",
                     "confidence": "high", "items": [iid], "status": "active",
                     "edge_gap": {"water": name_of.get(iid), "item_id": iid, "sections": n, "of": len(sids),
                                  "cause": f"the place's tributary walk covers {excl}, which its own words exclude"},
                     "reason": (f"{_words(loc)} covers {n} of {len(sids)} sections of {excl} ({iid}) — add {iid} to "
-                               f"its tributary_excludes")})
+                               f"its tributary_excludes"),
+                    # the place's own water, its tributaries, the excluded one named (the editor has no exclude field:
+                    # the words say what to add)
+                    "suggestion": {"op": "whole", "points": [], "items": water_items.get(lid, []), "tributaries": True, "new_splits": [],
+                                   "words": f"the whole water and its tributaries, NOT {excl}: add {iid} to "
+                                            f"tributary_excludes"}})
     return out
 
 

@@ -1549,8 +1549,9 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - **(follow-up, owner 2026-10-28) The salmon merge key is the REGULATIONS, not the verdict word.** Each species'
   rule content (limits, sizes, hatchery-marked or wild, gear and method conditions, windows) is compared every day, so
   "coho 2 a day" and "coho 4 a day, hatchery-marked only" are two pieces. There is one helper, `salmonTimelineKey`.
-  Every salmon cut is named, by its split or by the DFO place at its edge ("Edge of DFO area: …"). None of the 42 falls
-  back to "Salmon rules change here". Release r-c331a7a3c2cf.
+- **(owner 2026-10-28) Every boundary is a named split; there are no fallback names.** A salmon difference at a point
+  with no split is a data gap, a DFO place edge not yet placed. It is not cut and not named; it goes on the DFO review
+  queue. A water-bound DFO place that covers a water's whole main stem also covers that water's side channels.
 
 ## T224 name variants — owner answers 2026-10-28
 1. **Flow:** an accepted name is SEARCHABLE and, on a water with **no official name**, it is the **shown name**,

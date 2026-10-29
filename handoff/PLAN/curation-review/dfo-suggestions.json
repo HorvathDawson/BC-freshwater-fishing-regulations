@@ -14992,6 +14992,140 @@
    },
    "why": "needs_split",
    "outcome": "new_high"
+  },
+  "5b:region:section": {
+   "location_id": "5b:region:section",
+   "water": "Klinaklini River",
+   "text": "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed).",
+   "state": "edge_gap",
+   "why": "edge_not_placed",
+   "outcome": "new_split",
+   "confidence": "none",
+   "items": [
+    "gnis:3273"
+   ],
+   "status": "active",
+   "edge_gap": {
+    "water": "Klinaklini River",
+    "item_id": "gnis:3273",
+    "at": [
+     -124.983276,
+     51.986316
+    ],
+    "down_sid": 1235548,
+    "up_sid": 766566,
+    "places": {
+     "below": [
+      [
+       "5b:region:section",
+       "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed)."
+      ]
+     ],
+     "above": []
+    },
+    "differ": [
+     [
+      "5b:region:section",
+      "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed)."
+     ]
+    ],
+    "cause": "area-bound: the area:mu_group:management_units_5_6_to_5_11 edge crosses the water (Management Units 5-6 to 5-11 boundary)",
+    "new_split": {
+     "ref": "sg1",
+     "anchor": "coord",
+     "name": "Management Units 5-6 to 5-11 boundary",
+     "coord": [
+      -124.99676,
+      51.978791
+     ],
+     "on_item": "gnis:3273",
+     "quote": "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed).",
+     "confidence": "medium"
+    }
+   },
+   "reason": "Klinaklini River: the salmon changes at -124.983276,51.986316 where no split stands (a DFO place's edge not placed as a split) — not cut until placed",
+   "edge_gaps": [
+    {
+     "water": "Klinaklini River",
+     "item_id": "gnis:3273",
+     "at": [
+      -124.983276,
+      51.986316
+     ],
+     "down_sid": 1235548,
+     "up_sid": 766566,
+     "places": {
+      "below": [
+       [
+        "5b:region:section",
+        "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed)."
+       ]
+      ],
+      "above": []
+     },
+     "differ": [
+      [
+       "5b:region:section",
+       "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed)."
+      ]
+     ],
+     "cause": "area-bound: the area:mu_group:management_units_5_6_to_5_11 edge crosses the water (Management Units 5-6 to 5-11 boundary)",
+     "new_split": {
+      "ref": "sg1",
+      "anchor": "coord",
+      "name": "Management Units 5-6 to 5-11 boundary",
+      "coord": [
+       -124.99676,
+       51.978791
+      ],
+      "on_item": "gnis:3273",
+      "quote": "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed).",
+      "confidence": "medium"
+     }
+    }
+   ]
+  },
+  "5b:bella-coola-river-not-including-at:whole": {
+   "location_id": "5b:bella-coola-river-not-including-at:whole",
+   "water": "Atnarko River",
+   "text": "Bella Coola River (not including Atnarko River)",
+   "state": "edge_gap",
+   "why": "covers_excluded_water",
+   "outcome": "extent_fix",
+   "matched": "whole",
+   "confidence": "high",
+   "items": [
+    "gnis:17209"
+   ],
+   "status": "active",
+   "edge_gap": {
+    "water": "Atnarko River",
+    "item_id": "gnis:17209",
+    "sections": 40,
+    "of": 40,
+    "cause": "the place's tributary walk covers Atnarko River, which its own words exclude"
+   },
+   "reason": "Bella Coola River (not including Atnarko River) covers 40 of 40 sections of Atnarko River (gnis:17209) — add gnis:17209 to its tributary_excludes",
+   "suggestion": {
+    "op": "whole",
+    "points": [],
+    "items": [
+     "gnis:11611"
+    ],
+    "tributaries": true,
+    "new_splits": [],
+    "words": "the whole water and its tributaries, NOT Atnarko River: add gnis:17209 to tributary_excludes"
+   },
+   "edge_gaps": [
+    {
+     "water": "Atnarko River",
+     "item_id": "gnis:17209",
+     "sections": 40,
+     "of": 40,
+     "cause": "the place's tributary walk covers Atnarko River, which its own words exclude"
+    }
+   ]
   }
- }
+ },
+ "edge_gaps": 2
 }

@@ -46,10 +46,25 @@ AND char.
   so "coho 2 a day" and "coho 4 a day, hatchery-marked only" split even though both are open. The ui's own copy is gone.
   Tests in `waterNav.merge.test.ts`: a limit difference splits, hatchery-only vs any splits, identical content joins
   (across chains, with case or spacing apart), a feed change re-groups.
-- Cut names (`topology.chain_label`): the named split at the cut, else "Edge of DFO area: <DFO's place words>" for the
-  narrowest place one side has and the other does not. Of 42 salmon cuts, 36 carry a split name (Cowichan: "white
-  triangle boundary sign located in Sandy Pool Regional Park"), 6 a DFO place (Atnarko, Tusulko, Tomahnous, Klinaklini
-  ×3), and **0 fall back** to "Salmon rules change here".
+- Every boundary is a named split (owner 2026-10-28). The build cuts a part only where the salmon chain changes AT a
+  named split (`topology.cut_between`). Where the chain changes with no split there, the build neither cuts nor names
+  the point: it is a DATA GAP, a DFO place edge not yet placed as a split. Each gap goes into the bundle table
+  `salmon_edge_gap`, is printed by the build, and is put on the review's DFO queue by `pipeline.regs.dfo_salmon.edge_gaps`
+  (into `dfo-suggestions.json`; `suggest.run` folds it in too). "Salmon rules change here" and "Edge of DFO area" are gone.
+- The 6 unnamed cuts, by cause:
+  - **Atnarko**: Bella Coola River "(not including Atnarko River)" has tributaries=true, and its walk covers the
+    Atnarko's 38 main-stem sections; it missed only 2 side channels. This was a data defect, not a missing split. The
+    queue now has an extent-fix item: add gnis:17209 to the Bella Coola place's `tributary_excludes`.
+  - **Tomahnous Creek**: "Tatshenshini … including tributaries" covered the creek's stem but not its side channel. The
+    side channel was missed by the placement, so the place now covers the whole water. Rule (`salmon.carry_side_channels`):
+    a water-bound place that covers every main-stem section of a water also covers that water's side channels. No cut.
+  - **Klinaklini** (3 cuts, 1 gap): the 5B catch-all is bound to the MU 5-6 to 5-11 polygon, and the river leaves MU
+    5-6 into 5-12. That edge is a real line. The queue item carries a proposed new split, "Management Units 5-6 to 5-11
+    boundary", at (-124.99676, 51.978791) on gnis:3273. Until it is placed, no cut there.
+  - **Tusulko**: the same MU-group edge, but a named lake split stands there, so it is cut and named by that split.
+  - After the change the build reports exactly **1 gap** (Klinaklini). A first try (carrying side channels for every
+    water-bound place) created 3 new gaps (Morice ×2, Skeena) because partial places crept past their own cuts. It is
+    now limited to waters the place covers whole.
 - A piece is named by its own ends ("Mouth → white triangle boundary sign …"), never "stretch 1 of 2". Shot:
   `T228-shots/cowichan-sandy-pool-cut.png`.
 
