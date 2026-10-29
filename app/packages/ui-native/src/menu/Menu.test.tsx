@@ -231,6 +231,27 @@ describe("a page", () => {
       + "recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf"]]);
   });
 
+  it("(T232) About in a development build: the data source's badge and origin, the switch, and its pending note", () => {
+    const picked: string[] = [];
+    const env = { about: { env: "staging" as const, built: "staging" as const,
+                           origin: "https://data-staging.canifishthis.ca", switchable: true },
+                  pending: null, pick: (k: string) => { picked.push(k); } };
+    render(<App out={{}} info={{ ...INFO, env }} />);
+    pick("menu-item-about");
+    expect([text("about-env-badge"), text("about-env-value")])
+      .toEqual(["STAGING", "Staging · data-staging.canifishthis.ca"]);
+    expect(screen.queryByTestId("about-env-note")).toBeNull();
+    fireEvent.click(screen.getByTestId("about-env-local"));
+    expect([picked, text("about-env-note"), screen.getByTestId("about-env-local").getAttribute("aria-checked")]).toEqual(
+      [["local"], "Local is used from the next start. Close and reopen the app.", "true"]);
+  });
+
+  it("(T232) About in a production build says nothing about environments", () => {
+    render(<App out={{}} />);
+    pick("menu-item-about");
+    expect([screen.queryByTestId("about-env-badge"), screen.queryByTestId("about-env")]).toEqual([null, null]);
+  });
+
   it("back closes the page to the More tab", () => {
     const out: { back?: Back } = {};
     render(<App out={out} />);

@@ -74,6 +74,14 @@ export const MENU_WORDS = {
     regulations: "Regulations",
     devBundle: "Development bundle",
     notStated: "Not stated",
+    /** (T232) the data source, said only in a development or staging build */
+    env: {
+      label: "Data source",
+      names: { local: "Local", staging: "Staging", production: "Production" },
+      choose: "Read data from (development builds only)",
+      pending: (to: string) => `${to} is used from the next start. Close and reopen the app.`,
+      overridden: (built: string) => `Chosen here; this build was made for ${built}.`,
+    },
   },
   /**
    * (T167, owner 2026-10-23: "separate out references to a separate thing") THE SOURCES — one name each, the same on

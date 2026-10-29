@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  aboutVM, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, isoDayWords,
+  aboutEnvVM, aboutVM, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, isoDayWords,
   mailtoUrl, regsReportWhere, reportMessage, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
@@ -81,6 +81,7 @@ describe("about", () => {
           { label: "Map tiles", value: "d768d6e135e62b99.c9f9604f12bf" },
           { label: "Regulations", value: "2025–2027 BC Freshwater Fishing Regulations Synopsis" },
         ],
+        env: null,
       });
   });
 
@@ -91,6 +92,29 @@ describe("about", () => {
       { label: "Map tiles", value: "Not stated" },
       { label: "Regulations", value: "Not stated" },
     ]);
+  });
+
+  // (T232) the data source: said in a development / staging build, never in production
+  const ENV = { env: "staging", built: "staging", origin: "https://data-staging.canifishthis.ca", switchable: false,
+                pending: null } as const;
+  it("a staging build shows a badge and the origin, and no switch unless the build has one", () => {
+    expect(aboutEnvVM(ENV)).toEqual({ badge: "STAGING", label: "Data source",
+      value: "Staging · data-staging.canifishthis.ca", choose: null, note: null });
+  });
+  it("a production build reading production says nothing; one with a switch does", () => {
+    const prod = { ...ENV, env: "production", built: "production", origin: "https://data.canifishthis.ca" } as const;
+    expect([aboutEnvVM(prod), aboutEnvVM(null), aboutVM({ appBuild: null, release: null, tiles: null, edition: null,
+      dataEnv: prod }, "u").env]).toEqual([null, null, null]);
+    expect(aboutEnvVM({ ...prod, switchable: true })?.badge).toBe("PRODUCTION");
+  });
+  it("a development build's switch marks the pending choice and says when it applies, whole", () => {
+    const vm = aboutEnvVM({ ...ENV, switchable: true, pending: "local" });
+    expect(vm?.choose).toEqual({ title: "Read data from (development builds only)", choices: [
+      { k: "local", label: "Local", on: true }, { k: "staging", label: "Staging", on: false },
+      { k: "production", label: "Production", on: false }] });
+    expect(vm?.note).toBe("Local is used from the next start. Close and reopen the app.");
+    expect(aboutEnvVM({ ...ENV, env: "local", built: "staging", origin: "http://192.168.1.20:39217", switchable: true })
+      ?.note).toBe("Chosen here; this build was made for Staging.");
   });
 });
 

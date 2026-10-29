@@ -3,16 +3,17 @@
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
 import { Linking, Pressable, Text, View } from "react-native";
-import { WORDS, type AboutVM, type SourcesVM } from "@app/core";
+import { WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
 import { Credits } from "../Credits";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 
 const open = (url: string) => { void Linking.openURL(url); };
 
-export function AboutPage({ vm, palette }: { vm: AboutVM; palette: Palette }) {
+export function AboutPage({ vm, palette, onEnv }: { vm: AboutVM; palette: Palette; onEnv?: (env: AppEnv) => void }) {
   return (
     <>
+      {vm.env && <EnvBadge vm={vm.env} palette={palette} />}
       <Text style={{ ...TYPE.body, color: palette.ink }}>{vm.what}</Text>
       {/* THE AUTHORITY DISCLAIMER: boxed in ink so it cannot be read as a footnote */}
       <View testID="about-not-official" style={{ borderWidth: 1.5, borderColor: palette.ink, padding: SPACE.s3,
@@ -33,7 +34,49 @@ export function AboutPage({ vm, palette }: { vm: AboutVM; palette: Palette }) {
           </View>
         ))}
       </View>
+      {vm.env && <EnvBlock vm={vm.env} palette={palette} onEnv={onEnv} />}
     </>
+  );
+}
+
+/** (T232) The data source's badge, small, at the head of About — a development or staging build only. */
+function EnvBadge({ vm, palette }: { vm: AboutEnvVM; palette: Palette }) {
+  return (
+    <View style={{ flexDirection: "row" }}>
+      <Text testID="about-env-badge" accessibilityLabel={`${vm.label}: ${vm.value}`}
+            style={{ ...TYPE.small, fontSize: 11, letterSpacing: 0.6, color: palette.sub, borderWidth: 1,
+                     borderColor: palette.line, paddingHorizontal: 6, paddingVertical: 1 }}>{vm.badge}</Text>
+    </View>
+  );
+}
+
+/** (T232) The data source: where this build reads, and in a development build the switch (applied on the next start). */
+function EnvBlock({ vm, palette, onEnv }: { vm: AboutEnvVM; palette: Palette; onEnv?: (env: AppEnv) => void }) {
+  return (
+    <View testID="about-env" style={{ gap: SPACE.s2 }}>
+      <View style={{ flexDirection: "row", gap: SPACE.s3, paddingVertical: 6, borderTopWidth: 1, borderTopColor: palette.line }}>
+        <Text style={{ ...TYPE.small, color: palette.sub, width: 104 }}>{vm.label}</Text>
+        <Text selectable testID="about-env-value"
+              style={{ ...TYPE.figure, fontSize: 12.5, color: palette.ink, flex: 1 }}>{vm.value}</Text>
+      </View>
+      {vm.choose && onEnv && (
+        <View accessibilityRole="radiogroup" accessibilityLabel={vm.choose.title} style={{ gap: SPACE.s2 }}>
+          <Text style={{ ...TYPE.small, color: palette.sub }}>{vm.choose.title}</Text>
+          <View style={{ flexDirection: "row", gap: SPACE.s2 }}>
+            {vm.choose.choices.map((c) => (
+              <Pressable key={c.k} testID={`about-env-${c.k}`} onPress={() => onEnv(c.k)} accessibilityRole="radio"
+                         aria-checked={c.on} accessibilityLabel={c.label}
+                         style={{ flex: 1, alignItems: "center", paddingVertical: SPACE.s2, borderWidth: c.on ? 1.5 : 1,
+                                  borderColor: c.on ? palette.ink : palette.line,
+                                  backgroundColor: c.on ? palette.tint : "transparent" }}>
+                <Text style={{ ...TYPE.small, color: c.on ? palette.ink : palette.sub }}>{c.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
+      {vm.note && <Text testID="about-env-note" style={{ ...TYPE.small, color: palette.sub }}>{vm.note}</Text>}
+    </View>
   );
 }
 

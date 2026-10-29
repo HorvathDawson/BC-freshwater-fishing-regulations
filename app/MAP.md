@@ -13,7 +13,7 @@ The one current map of `app/` (T63, checked against the code 2026-10-24). Why th
 | `packages/ui` | headless React hooks — data, never elements: boot, search session, water/regs/route hooks, layout class | core, data, react |
 | `packages/ui-native` | every component (RN primitives) and every layout: `Shell.tsx` + `shell/`, water screen, regs screen (`src/regs/`), sheets, panels | core, data, ui, map |
 | `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`), the generated style (`style/`, from `layers.source.json`) | core |
-| `apps/mobile` | the one shell for native and web (Expo + react-native-web): `src/App.tsx`, config, platform glue | all |
+| `apps/mobile` | the one shell for native and web (Expo + react-native-web): `src/App.tsx`, config (`config.ts` + `env.ts`: the data environment local / staging / production, T232; `eas.json` profiles), platform glue | all |
 | `conformance` | suites run against every `WaterSource` and the regs store: the fixture releases, the live release, the oracle parities (`src/regs/`) | all |
 
 ## The data path (one path: the release, P11)

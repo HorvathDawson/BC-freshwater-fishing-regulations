@@ -1,11 +1,11 @@
-/** P10: no `localhost` literal outside the one endpoints file (apps/mobile/src/config.ts). */
+/** P10: no `localhost` literal outside the endpoints files (apps/mobile/src/config.ts and, T232, env.ts — the environments). */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const APP = fileURLToPath(new URL("..", import.meta.url));
-const ALLOWED = new Set(["apps/mobile/src/config.ts"]);
+const ALLOWED = new Set(["apps/mobile/src/config.ts", "apps/mobile/src/env.ts"]);
 
 interface Fs {
   readdirSync(p: string): string[];

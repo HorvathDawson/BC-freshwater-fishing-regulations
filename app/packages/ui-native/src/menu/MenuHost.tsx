@@ -9,10 +9,10 @@
  *
  * Each open level is a back layer (G1): back closes a glossary term, then the page.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Platform } from "react-native";
 import { getSynopsisSource } from "../regs/synopsisSource";
-import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM } from "@app/core";
+import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type Route } from "@app/ui";
 import type { Palette } from "../theme";
@@ -27,6 +27,12 @@ export interface MenuInfo {
   readonly appBuild: string | null;
   /** THE ONE CONTACT VALUE: an email address or a web link; null until the owner supplies one (a placeholder shows) */
   readonly contact: string | null;
+  /**
+   * (T232) The data source this run reads (`apps/mobile/src/config.ts` `APP_ENV`), and in a development build how to
+   * pick another (persisted; applied on the next start). Omitted / null: About says nothing about it.
+   */
+  readonly env?: { readonly about: Omit<AboutEnvInput, "pending">; readonly pending: AppEnv | null;
+                   pick(env: AppEnv): void } | null;
 }
 
 /** No build facts: the build states none and the owner has supplied no contact yet. */
@@ -44,6 +50,11 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ro
   day: Date | null;
 }) {
   const s = menu.state;
+  // (T232) a source picked on About waits for the next start; the page says so until then
+  const [pendingEnv, setPendingEnv] = useState<AppEnv | null>(info.env?.pending ?? null);
+  const dataEnv = info.env ? { ...info.env.about, pending: pendingEnv } : null;
+  const pickEnv = info.env ? (k: AppEnv) => { info.env!.pick(k); setPendingEnv(k === info.env!.about.env ? null : k); }
+    : undefined;
   const where = routeWhere(route, day ? dayLabel(day) : null);
   const glossary = useGlossary(loader, s.page === "glossary");
   const m = loader?.manifest ?? null;
@@ -82,8 +93,8 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ro
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
         edition: m?.sources?.synopsis?.title ?? null, tiles })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
-        appBuild: info.appBuild, release: loader?.release ?? null, tiles,
-        edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
+        appBuild: info.appBuild, release: loader?.release ?? null, tiles, dataEnv,
+        edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)} onEnv={pickEnv} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
       {page("report", <ReportPage palette={palette} contact={info.contact} diagnostics={diagnostics} />)}
     </>
   );

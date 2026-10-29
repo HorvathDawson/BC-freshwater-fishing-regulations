@@ -8,7 +8,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "prebuild": "expo prebuild --clean",
-    "export:web": "expo export --platform web"
+    "export:web": "expo export --platform web",
+    "export:web:staging": "EXPO_PUBLIC_APP_ENV=staging expo export --platform web --output-dir ../../dist/web-staging"
   },
   "dependencies": {
     "@app/core": "workspace:*",

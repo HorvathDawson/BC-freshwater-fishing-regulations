@@ -77,13 +77,14 @@
         "@expo-google-fonts/archivo",
         "@expo-google-fonts/jetbrains-mono",
         "react-native-gesture-handler",
-        "react-native-safe-area-context"
+        "react-native-safe-area-context",
+        "expo-file-system"
       ],
       "banned": [
         "maplibre-gl",
         "@maplibre/maplibre-react-native"
       ],
-      "why": "an app that imports a map SDK directly can define its own layers, and the two apps drift apart visually. Go through @app/map. Font loading is listed here on purpose: expo-font is an asset loader, and the app shell is the only layer that may register assets. expo-image-picker is here for the same reason (S1): picking a photo opens the platform's own picker or camera — a platform service the app shell wires and hands down (`src/pickPhoto.native.ts` / `.web.ts`), so @app/ui-native draws the buttons and never names a native module. expo-location is here for the same reason (T74): where the phone is, for the Spots menu's \"At my location\", wired in `src/locate.native.ts` and handed down as `Locate`. @app/ui-native NAMES the faces (type.ts) and must not load them, or it would need a platform asset pipeline and stop being drawable by anything else. react-native-gesture-handler is here only for GestureHandlerRootView at the root (G1); the gestures themselves are @app/ui-native's."
+      "why": "an app that imports a map SDK directly can define its own layers, and the two apps drift apart visually. Go through @app/map. Font loading is listed here on purpose: expo-font is an asset loader, and the app shell is the only layer that may register assets. expo-image-picker is here for the same reason (S1): picking a photo opens the platform's own picker or camera — a platform service the app shell wires and hands down (`src/pickPhoto.native.ts` / `.web.ts`), so @app/ui-native draws the buttons and never names a native module. expo-location is here for the same reason (T74): where the phone is, for the Spots menu's \"At my location\", wired in `src/locate.native.ts` and handed down as `Locate`. @app/ui-native NAMES the faces (type.ts) and must not load them, or it would need a platform asset pipeline and stop being drawable by anything else. react-native-gesture-handler is here only for GestureHandlerRootView at the root (G1); the gestures themselves are @app/ui-native's. expo-file-system is here only for the build's own config (T232): a development build's choice of data environment is read synchronously before anything renders (`src/envStore.native.ts`), because the endpoints are fixed for the run; every other file the app keeps is @app/data's."
     },
     "packages/ui-native": {
       "purpose": "Phone components (RN primitives). Shared by the native app AND mobile web.",

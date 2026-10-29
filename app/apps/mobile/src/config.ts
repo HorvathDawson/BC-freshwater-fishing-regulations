@@ -1,17 +1,33 @@
 /**
- * THE ENDPOINTS (P10): every URL the app reads, from ONE base, and the only file a `localhost` may appear in
- * (`tools/no-localhost.test.ts`).
+ * THE ENDPOINTS (P10): every URL the app reads, from ONE base, and the only files a `localhost` may appear in (this and
+ * `env.ts`; `tools/no-localhost.test.ts`).
  *
- * `EXPO_PUBLIC_DATA_BASE` sets the base (an R2 domain in production; a LAN address such as http://192.168.1.20:39217 for
- * a device dev build, where "localhost" is the phone itself). Unset, it is the dev server on this machine (`pnpm tiles`).
+ * (T232) THE BASE IS THE ENVIRONMENT'S: local / staging / production (`env.ts`), chosen at build time by
+ * `EXPO_PUBLIC_APP_ENV` (eas.json's profiles set it), a development build's switch on About aside. Unset, the web is
+ * local (the dev server on this machine, `pnpm tiles`) and a phone is staging. `EXPO_PUBLIC_DATA_BASE` still sets the
+ * base outright for the build's environment — a LAN address such as http://192.168.1.20:39217 for a device build aimed
+ * at this machine, where "localhost" is the phone itself.
  *
  * ONE SET, ONE BASE. The release (`release/manifest.json`, P08/P11) is the app's data; the tiles below are drawn while
  * the manifest names no tile set of its own, and the feed is the live gauges. They must be one vintage: tiles, release
  * and feed join on section and station ids, and a mixed set colours nothing.
  */
+import { Platform } from "react-native";
+import type { AppEnv } from "@app/core";
 import { imageryTiles } from "@app/map";
+import { endpointsFor, resolveEnv } from "./env";
+import { envStore, restart } from "./envStore";
 
-const BASE = (process.env.EXPO_PUBLIC_DATA_BASE ?? "http://localhost:39217").replace(/\/$/, "");
+const SWITCHABLE = __DEV__ || process.env.EXPO_PUBLIC_ENV_SWITCH === "1";
+
+/** (T232) This run's environment and data origin. Read once, at start: a switch applies on the next start. */
+export const APP_ENV = resolveEnv({
+  web: Platform.OS === "web",
+  appEnv: process.env.EXPO_PUBLIC_APP_ENV,
+  dataBase: process.env.EXPO_PUBLIC_DATA_BASE,
+  switchable: SWITCHABLE,
+  override: SWITCHABLE ? envStore.read() : null,
+});
 
 /**
  * THE MENU'S BUILD FACTS (owner 2026-10-21). `CONTACT` is THE ONE contact value the menu's Contact and Report a problem
@@ -23,6 +39,12 @@ const BASE = (process.env.EXPO_PUBLIC_DATA_BASE ?? "http://localhost:39217").rep
 export const MENU_INFO = {
   appBuild: process.env.EXPO_PUBLIC_APP_BUILD?.trim() || null,
   contact: process.env.EXPO_PUBLIC_CONTACT?.trim() || null,
+  // (T232) About's data-source badge and, in a development build, its switch (kept; applied on the next start)
+  env: {
+    about: { env: APP_ENV.env, built: APP_ENV.built, origin: APP_ENV.origin, switchable: APP_ENV.switchable },
+    pending: null,
+    pick: (env: AppEnv) => { envStore.write(env); if (env !== APP_ENV.env) restart(); },
+  },
 } as const;
 
 /**
@@ -35,22 +57,5 @@ export const MENU_INFO = {
  */
 export const IMAGERY_TILES = imageryTiles(process.env.EXPO_PUBLIC_ARCGIS_API_KEY?.trim() || null);
 
-export const ENDPOINTS = {
-  base: BASE,
-  /** The release manifest (app-manifest/2); every release file's url is relative to `${base}/release/`. */
-  manifest: `${BASE}/release/manifest.json`,
-  release: `${BASE}/release/`,
-  tiles: {
-    atlas: `${BASE}/atlas.pmtiles`,
-    basemap: `${BASE}/basemap.pmtiles`,
-    outside: `${BASE}/bc_outside.geojson`,
-  },
-  /** The live gauge feed: real ECCC data from `python -m pipeline.gauges.feed.publish`, matching the release. */
-  feed: `${BASE}/feeds/live`,
-  /** (T211) The live DFO salmon feed (`python -m pipeline.regs.dfo_salmon.live`; R2 `feeds/dfo/`). */
-  dfoFeed: `${BASE}/feeds/dfo`,
-  /** (T230) The provincial in-season changes (T225 worker's index.json) + their curated links (matches.json; R2 `feeds/inseason/`). */
-  inSeason: `${BASE}/feeds/inseason`,
-  /** Where sql.js finds its engine on the web: the same origin as the release files it opens. */
-  sqlWasm: `${BASE}/`,
-} as const;
+/** Every URL the app reads (the release, tiles, feeds, sql.js), from `APP_ENV.origin`. T231's update service reads it. */
+export const ENDPOINTS = endpointsFor(APP_ENV.origin);
