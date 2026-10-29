@@ -325,6 +325,7 @@ use that as the sole source of future work."
 | T279 | Water pages stored pre-compressed (br/gzip served by encoding), all three layouts kept; SEO build across ≤4 cores | DONE | 86947fe9f | 1.5 GB → 473 MB, 26.5 → 17 min; 59,381 files of 100,000; staging 11996b77 br, smoke 18/0/0 |
 | T280 | Basemap two stages: raw Protomaps source via range requests → pruned + simplified ship copy (forest/green-space simplification, visual gate); fixes pan hitches | OPEN | — | owner 2026-10-29 |
 | T281 | Draw the lake area an in-part rule holds on (François map 1, Shuswap A/B/C, Mahood, Canim) | POSTPONED | — | from T208; waits on lake splits (owner deferral, Q142) |
+| T282 | Web app bundle 4 MB → lazy chunks so the app takes over fast on slow lines (43 s on Fast 3G today) | OPEN | — | T269 finding 2026-10-29 |
 
 ## Order for open tickets
 
