@@ -137,7 +137,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   tester (opt-in link into `~/.canifishthis/play-test-url`), App content (privacy policy, data safety, content rating;
   our answers in the ticket), service-account JSON to `~/.canifishthis/play-service-account.json`. Unblocks T267
   (`deploy/staging/build-apk.sh --play`). Back up `~/.canifishthis/` (upload key + password).
-- **Privacy policy (2026-10-29, for Play)**: page built at /privacy (staging checked). Set up the mailbox **privacy@canifishthis.ca** (or change `PRIVACY_EMAIL` in `app/tools/seo/html.ts`) and read the page once: it promises reports (and any email) are deleted after they are looked into, which nothing automatic does yet, so you delete them from R2 `private/reports/` by hand or ask for a retention job. Production `https://canifishthis.ca/privacy` goes live with the site.
+- **Privacy policy (2026-10-29, for Play)**: page at /privacy. Mailbox set up; 180-day report deletion approved (T271). Left: read the page once.
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
 - **R2 upload** of a new release and of the gauge feed, with your credentials:
   `python -m pipeline.deliver.release.publish --release data/release/$(cat data/release/LATEST) --yes` (records

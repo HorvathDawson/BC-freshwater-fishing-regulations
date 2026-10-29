@@ -312,6 +312,9 @@ use that as the sole source of future work."
 | T266 | marks are review state; decided data in per-domain files via one exporter (tidal, DFO extents, sloughs, ponds, names) | OPEN | — | owner idea 2026-10-29; not started |
 | T267 | Google Play internal testing for dev/staging builds: upload key (~/.canifishthis), config-plugin release signing, `build-apk.sh --play` (versionCode bump, AAB, API upload to internal, email) | BLOCKED | 022ca080b, c66f90a4d | owner 2026-10-29; blocked on T268 (owner) |
 | T268 | OWNER: Google Play setup when account verification completes — create app ca.canifishthis.app, Play App Signing, first AAB by hand, internal testers + opt-in link, app content (data safety, rating, privacy policy), service-account JSON | OPEN (owner) | — | owner 2026-10-29; unblocks T267 |
+| T269 | Water pages ARE the app: `/water/<slug>` prerendered with the app's own regs pane (same look), app hydrates; hubs/sitemap/legacy 301s point at it; separate text-only water pages retired | OPEN | — | owner 2026-10-29 |
+| T270 | Map fonts + symbols (glyphs/sprites) from our own data host only, offline-capable; audit every third-party request | OPEN | — | owner 2026-10-29 |
+| T271 | Problem reports auto-deleted after 180 days (feeds worker cron); privacy page wording + privacy@ address | OPEN | — | owner 2026-10-29 |
 
 ## Order for open tickets
 
