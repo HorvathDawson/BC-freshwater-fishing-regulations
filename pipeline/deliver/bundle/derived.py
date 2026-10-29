@@ -25,7 +25,7 @@
 Every table is held to SQL CHECK / UNIQUE / FOREIGN KEY constraints (schema.sql; the build runs
 `PRAGMA foreign_keys = ON`), and `prove` refuses a build whose rows break a fact the constraints
 cannot state (a part's sections disagreeing on whether the steelhead rules apply, tidal water or
-the water kind; a part with no rule set that is not wholly outside B.C.; a key that does not
+the water kind; a part with no rule set that is not wholly outside B.C. or tidal water; a key that does not
 reproduce the steelhead views).
 """
 from __future__ import annotations
@@ -223,8 +223,10 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
             raise DerivedError(f"part: {name}: its sections disagree on whether it is tidal water")
         if len(keys) != 1:
             raise DerivedError(f"part: {name}: its sections carry {len(keys)} rule keys")
-        if rs is None and not all(x in outside for x in sids):
-            raise DerivedError(f"part: {name}: no rule set, yet not wholly outside B.C.")
+        # T166: a piece below a tidal boundary carries no freshwater rule (the walk took it out of every binding);
+        # a part with no rule set must be wholly outside B.C. or wholly tidal water
+        if rs is None and not all(x in outside or x in tidal for x in sids):
+            raise DerivedError(f"part: {name}: no rule set, yet not wholly outside B.C. or tidal water")
         homes = sorted({home[x] for x in sids if x in home})
         out.append((o, n_of[o], rs, next(iter(keys)), ls, p, int(w), s,
                     int(next(iter(rules_apply))), ",".join(T.Region(h).value for h in homes),

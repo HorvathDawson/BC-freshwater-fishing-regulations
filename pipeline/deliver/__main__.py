@@ -79,6 +79,8 @@ def canonical_homes(debug: bool = False) -> dict:
     b, r = GENERATED.bundle, _EXPORT_OUT.parent
     return {"bundle.sqlite": b / "bundle.sqlite", "verdicts.sqlite": b / "verdicts.sqlite",
             "status_index.bin": b / "status_index.bin",
+            # (owner 2026-10-29) the continuation links the gate held, beside the bundle that listed them
+            "continuations_held.json": b / "continuations_held.json",
             "ui-rules-export.json": _EXPORT_OUT, "ui-rules-guide.json": r / "ui-rules-guide.json",
             "ui-rules-answers.json": r / "ui-rules-answers.json", STAMP_NAME: r / STAMP_NAME,
             **({"regs.sqlite": DEBUG_OUT} if debug else {})}
