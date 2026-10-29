@@ -34,6 +34,9 @@ Depends: T237, T242. Size: S. Owner: no (worker deploy is the owner's command).
   looked real); crash kinds 7 -> 0 (3 local dev-server errors incl. Metro TransformError, 1 staging-web hot-reload error, the forced T242 check x2, the test
   bed `am crash` exit record). Rate-limit counters (`limits/`) left. Nothing real existed.
 
+## Verified live (2026-10-29, worker deployed by the owner)
+curl POST /report and /crash with `test:true` -> 201 each; they landed in `private/reports-test/2026-10-29/` and `private/crashes-test/`, nothing in `private/reports/` or `private/crashes/`; both objects then deleted. `GET /reports` without `?test=1` needs the run token (not used); its filtering is pinned by `reports.test.ts`.
+
 ## Left (owner)
 - Deploy the worker: `npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml`. Until then new tool reports are stored as ordinary ones (the old worker ignores `test`);
   the test bed needs a rebuilt APK (the next `session.sh --build`) to send the tag.
