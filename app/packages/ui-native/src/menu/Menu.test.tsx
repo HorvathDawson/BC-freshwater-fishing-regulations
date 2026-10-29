@@ -104,8 +104,8 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
       aloud: screen.getAllByTestId(/^data-row-/).map((e) => e.getAttribute("aria-label")),
     }).toEqual({
       summary: "1 likely out of date",
-      warning: "In-season changes are not read"
-        + "The Province can change a regulation during the season. Check its notices before you fish."
+      warning: "In-season changes"
+        + "Shown on the waters they apply to. Some may not be placed on the map yet, so check the Province's notices before you fish."
         + "Province's in-season changes ↗",
       drawn: [
         "Synopsis2025–2027 edition",

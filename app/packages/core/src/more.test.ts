@@ -63,8 +63,8 @@ describe("the Data block: always on More, compact — every source, one row each
 
   it("the in-season changes: never a row, always the warning, with the Province's page", () => {
     expect(dataVM(LIVE).inseason).toEqual({
-      title: "In-season changes are not read",
-      text: "The Province can change a regulation during the season. Check its notices before you fish.",
+      title: "In-season changes",
+      text: "Shown on the waters they apply to. Some may not be placed on the map yet, so check the Province's notices before you fish.",
       link: { label: "Province's in-season changes",
               url: "https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations#In-Season-changes" },
     });

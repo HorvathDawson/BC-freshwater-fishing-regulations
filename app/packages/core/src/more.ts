@@ -40,10 +40,10 @@ export const MORE_WORDS = {
       release: "Newer data available",
     },
     newRelease: "A newer data release is available. Reopen the app to use it.",
-    /** THE ONE SOURCE THE APP DOES NOT READ, said where it cannot be missed (owner: the "not read" warning stays) */
+    /** In-season changes (T230): shown where placed; the warning stays for rows not yet placed (owner 2026-10-29 reword) */
     inseason: {
-      title: "In-season changes are not read",
-      text: "The Province can change a regulation during the season. Check its notices before you fish.",
+      title: "In-season changes",
+      text: "Shown on the waters they apply to. Some may not be placed on the map yet, so check the Province's notices before you fish.",
       link: "Province's in-season changes",
     },
     /** a row's date or age, in few words */
