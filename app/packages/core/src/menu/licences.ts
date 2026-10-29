@@ -22,7 +22,13 @@ export const LICENCES = {
           url: "https://www.esri.com/en-us/legal/terms/full-master-agreement" },
   permission: { label: "Used with the publisher's written permission", url: null },
   isc: { label: "ISC licence", url: "https://lucide.dev/license" },
-  municipal: { label: "Each city's open data licence", url: null },
+  oglAbbotsford: { label: "City of Abbotsford Open Data Licence",
+                   url: "https://opendata-abbotsford.hub.arcgis.com/pages/city-of-abbotsford-open-data-licence" },
+  oglBurnaby: { label: "Open Government Licence – City of Burnaby", url: "https://data.burnaby.ca/pages/open-government-licence" },
+  oglPortMoody: { label: "Open Government Licence – Port Moody (Open Data Terms of Use)",
+                  url: "https://www.portmoody.ca/city-government/open-data-portal/open-data-terms-of-use/" },
+  oglSquamish: { label: "Open Government Licence – Squamish",
+                 url: "https://squamish.ca/government-and-administration/maps-and-data/open-data/" },
 } as const;
 export type LicenceKey = keyof typeof LICENCES;
 
@@ -73,9 +79,22 @@ export const LICENCE_ROWS: readonly LicenceRow[] = [
     url: "https://www.openstreetmap.org/copyright" },
   { k: "protomaps", name: "Protomaps basemap", from: "© Protomaps", shows: "The basemap's tiles and style.",
     licence: "odbl", wording: "© Protomaps", url: "https://protomaps.com" },
-  { k: "municipal", name: "City stream layers", from: "City of Abbotsford, City of Burnaby, City of Port Moody, "
-      + "District of Squamish", shows: "Streams the Atlas does not have, and their local names.",
-    licence: "municipal", wording: null, url: null },
+  { k: "abbotsford", name: "City of Abbotsford stream layer", from: "City of Abbotsford",
+    shows: "Streams the Atlas does not have, and their local names (Abbotsford).", licence: "oglAbbotsford",
+    wording: "Contains information licensed under the Open Government Licence – City of Abbotsford.",
+    url: "https://opendata-abbotsford.hub.arcgis.com" },
+  { k: "burnaby", name: "City of Burnaby waterways layer", from: "City of Burnaby",
+    shows: "Streams the Atlas does not have, and their local names (Burnaby).", licence: "oglBurnaby",
+    wording: "Contains information licensed under the Open Government Licence – City of Burnaby.",
+    url: "https://data.burnaby.ca" },
+  { k: "portmoody", name: "City of Port Moody stream layer (ESA streams)", from: "City of Port Moody",
+    shows: "Streams the Atlas does not have, and their local names (Port Moody).", licence: "oglPortMoody",
+    wording: "Contains information licensed under the Open Government Licence – Port Moody.",
+    url: "https://www.portmoody.ca/city-government/open-data-portal/" },
+  { k: "squamish", name: "District of Squamish watercourse layer", from: "District of Squamish",
+    shows: "Streams the Atlas does not have, and their local names (Squamish).", licence: "oglSquamish",
+    wording: "Contains information licensed under the Open Government Licence – Squamish.",
+    url: "https://data.squamish.ca" },
   { k: "access", name: "Parks, ecological reserves and land status", from: "Province of British Columbia",
     shows: "Closed parks, reserves and no-access land on the map.", licence: "oglBc", wording: OGL_BC_WORDS,
     url: "https://catalogue.data.gov.bc.ca" },
@@ -117,12 +136,6 @@ export const LICENCE_WORDS = {
   licenceFor: (name: string, licence: string) => `Licence for ${name}: ${licence}`,
   words: "Required wording",
   open: "Open the publisher's page",
-  /**
-   * ODbL 4.6: data we derive from OpenStreetMap and show publicly is offered under the ODbL. The file itself is an
-   * owner call (T235); until it exists the offer is on request.
-   */
-  odbl: "Data this app derives from OpenStreetMap (some water names and two side channels) is © OpenStreetMap "
-    + "contributors and available under the Open Database License: ask through Contact or Report a problem.",
   /** the About page's link here */
   fromAbout: "Sources and licences",
 } as const;
@@ -135,12 +148,11 @@ export interface LicencesVM {
   readonly title: string;
   readonly intro: string;
   readonly rows: readonly LicenceRowVM[];
-  readonly odbl: string;
 }
 
 export function licencesVM(): LicencesVM {
   return {
-    title: LICENCE_WORDS.title, intro: LICENCE_WORDS.intro, odbl: LICENCE_WORDS.odbl,
+    title: LICENCE_WORDS.title, intro: LICENCE_WORDS.intro,
     rows: LICENCE_ROWS.map((r) => ({ ...r, licenceLabel: LICENCES[r.licence].label, licenceUrl: LICENCES[r.licence].url })),
   };
 }

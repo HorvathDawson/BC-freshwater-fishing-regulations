@@ -1645,3 +1645,4 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   month is the day strip's month (no separate slider); "in the water" = a PSF curve at >= 10 % of its peak or a DFO
   pentad where >= 25 % of surveyed years saw fish; a tap under Run timing opens the runs sheet (with "Open this water"),
   not the water page; a CU's own main drainage is never dropped as "spill" (+16 PSF runs bound, 312 of 329).
+- **Owner 2026-10-28 (T235, ODbL):** no separate `osm-derived.json`. OpenStreetMap is credited through the map attribution (the basemap pmtiles already come from OSM) and on Sources and licences; the "OSM-derived data on request / offered under ODbL" line is removed. ODbL's share-alike for derived databases is an owner-accepted risk, not legal advice. The four city stream layers (Abbotsford, Burnaby, Port Moody, Squamish) each have their own row with licence, link and wording.

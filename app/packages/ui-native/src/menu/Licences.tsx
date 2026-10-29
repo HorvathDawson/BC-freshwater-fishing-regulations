@@ -44,7 +44,6 @@ export function LicencesList({ vm, palette }: { vm: LicencesVM; palette: Palette
           </View>
         ))}
       </View>
-      <Text testID="sources-odbl" style={{ ...TYPE.small, color: palette.sub }}>{vm.odbl}</Text>
     </View>
   );
 }

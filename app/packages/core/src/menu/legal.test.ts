@@ -54,8 +54,13 @@ describe("Sources and licences (T235)", () => {
   it("the forecast's words are the Province's verbatim, the same as the Conditions credits", () => {
     expect(MAP_CREDITS).toContain(LICENCE_ROWS.find((r) => r.k === "forecast")!.wording);
   });
-  it("offers the OpenStreetMap-derived data under the ODbL", () => {
-    expect(licencesVM().odbl).toContain("Open Database License");
+  it("lists the four city stream layers, each with its own licence and no ODbL offer line", () => {
+    for (const k of ["abbotsford", "burnaby", "portmoody", "squamish"]) {
+      const r = licencesVM().rows.find((x) => x.k === k)!;
+      expect(r.licenceUrl).toMatch(/^https:/);
+      expect(r.wording).toContain("Open Government Licence");
+    }
+    expect(licencesVM()).not.toHaveProperty("odbl");
     expect(MENU_WORDS.items.sources.label).toBe("Sources and licences");
   });
 });

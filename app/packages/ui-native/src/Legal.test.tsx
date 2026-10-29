@@ -57,11 +57,11 @@ describe("the first-run notice (T236)", () => {
 });
 
 describe("Sources and licences (T235)", () => {
-  it("lists every dataset with its licence and the words it asks for, and the ODbL offer", () => {
+  it("lists every dataset with its licence and the words it asks for", () => {
     render(<LicencesList vm={licencesVM()} palette={LIGHT} />);
     expect(screen.getAllByTestId(/^licence-(?!words-)/).map((e) => e.getAttribute("data-testid")))
       .toEqual(LICENCE_ROWS.map((r) => `licence-${r.k}`));
     expect(screen.getByTestId("licence-words-osm").textContent).toBe("© OpenStreetMap contributors");
-    expect(screen.getByTestId("sources-odbl").textContent).toContain("Open Database License");
+    expect(screen.queryByTestId("sources-odbl")).toBeNull();
   });
 });
