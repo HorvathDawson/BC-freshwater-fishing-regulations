@@ -4,7 +4,7 @@ import { Pressable, Text, View } from "react-native";
 import { WATER_STATUS, type WaterStatus } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
-import type { Palette } from "../theme";
+import { round, type Palette } from "../theme";
 import { hitProps } from "../regs/hit";
 
 /**
@@ -69,7 +69,7 @@ export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, sel
             {name}
           </Text>
           {status ? (
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: palette.waterStatus[status] }} />
+            <View style={{ width: 8, height: 8, borderRadius: round(8), backgroundColor: palette.waterStatus[status] }} />
           ) : null}
         </View>
         {/* The alias line. Without it a matched alias looks like the wrong water. */}

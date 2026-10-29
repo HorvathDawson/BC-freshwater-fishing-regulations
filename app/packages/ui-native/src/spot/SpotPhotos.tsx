@@ -1,9 +1,11 @@
 /** S1: a spot's photographs — drawn from the store; in draft and edit, with add and remove (`usePhotoEdit`). */
+import { ErrorState } from "../ErrorState";
+import { LoadingState } from "../LoadingState";
 import { Image, Pressable, Text, View } from "react-native";
 import { PHOTO_WORDS, removePhotoLabel } from "@app/data/spots";
 import type { PhotoEdit } from "@app/ui";
 import { TYPE } from "../type";
-import type { Palette } from "../theme";
+import { round, type Palette } from "../theme";
 import { Button } from "../Button";
 import { Icon } from "../icons";
 import { Block } from "./parts";
@@ -32,7 +34,7 @@ export function SpotPhotos({ photos, uris, pe, palette }: {
                 <Pressable onPress={() => { void pe.remove(ref); }} accessibilityRole="button"
                            accessibilityLabel={removePhotoLabel(i + 1)}
                            style={{ position: "absolute", top: 4, right: 4, width: 28, height: 28,
-                                    borderRadius: 14, alignItems: "center", justifyContent: "center",
+                                    borderRadius: round(28), alignItems: "center", justifyContent: "center",
                                     backgroundColor: palette.card }}>
                   <Icon name="close" colour={palette.ink} size={16} />
                 </Pressable>
@@ -50,9 +52,14 @@ export function SpotPhotos({ photos, uris, pe, palette }: {
           ))}
         </View>
       )}
-      {pe?.busy ? <Text style={{ ...TYPE.small, color: palette.sub }}>{PHOTO_WORDS.adding}</Text> : null}
+      {pe?.busy ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <LoadingState palette={palette} size={22} label={PHOTO_WORDS.adding} />
+          <Text style={{ ...TYPE.small, color: palette.sub }}>{PHOTO_WORDS.adding}</Text>
+        </View>
+      ) : null}
       {pe?.error ? (
-        <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed }}>{pe.error}</Text>
+        <ErrorState palette={palette} message={pe.error} />
       ) : null}
     </Block>
   );

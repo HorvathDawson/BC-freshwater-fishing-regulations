@@ -24,13 +24,13 @@ import { GaugeGroups } from "./GaugeGroups";
 import Svg, { Circle, Path } from "react-native-svg";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
-import { FishSpinner } from "./FishSpinner";
+import { LoadingState } from "./LoadingState";
 import { DonorPanel, donorTone, Kicker } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { Hydrograph } from "./Hydrograph";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import { TYPE } from "./type";
-import { GUTTER, SPACE, type Palette } from "./theme";
+import { GUTTER, SPACE, type Palette, round } from "./theme";
 
 /** The units, from core's one table. */
 export const UNIT: Readonly<Record<Parameter, string>> = CONDITIONS_WORDS.unit;
@@ -132,9 +132,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
 
   if (vm.loading)
     return (
-      <View style={{ paddingVertical: 48, alignItems: "center" }}>
-        <FishSpinner palette={palette} size={110} label={W.readingWater} />
-      </View>
+      <LoadingState palette={palette} size={110} label={W.readingWater} style={{ paddingVertical: 48, alignItems: "center" }} />
     );
 
   const reading = vm.reading;
@@ -214,9 +212,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                                  [f.model, forecastModelOption(f)] as const)} />
       </View>
       {chart.state === "loading" && (
-        <View style={{ alignItems: "center", paddingVertical: SPACE.s4 }}>
-          <FishSpinner palette={palette} size={72} label={W.loadingRecord} />
-        </View>
+        <LoadingState palette={palette} size={72} label={W.loadingRecord} style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />
       )}
       {/* THE LAST CHART STAYS UP, DIMMED, while a gauge not yet in hand loads — never a spinner in its place. */}
       {view && (
@@ -299,7 +295,7 @@ function GaugeSwitch({ palette, gauges, groups, onPick }: {
                               borderRadius: palette.r.pill, borderWidth: g.on ? 2 : 1,
                               borderColor: g.on ? donorTone(palette, g.row, g.quiet) : palette.line2,
                               backgroundColor: g.on ? palette.tint : palette.card }}>
-            <View style={{ width: 9, height: 9, borderRadius: 5,
+            <View style={{ width: 9, height: 9, borderRadius: round(9),
                            backgroundColor: donorTone(palette, g.row, g.quiet) }} />
             <Text style={{ ...TYPE.figure, color: palette.ink }}>{g.station}</Text>
             <Text style={{ ...TYPE.metaBold, color: g.quiet ? palette.faint : palette.sub }}>{g.share}</Text>

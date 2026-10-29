@@ -22,6 +22,7 @@
  * water near it, and Next goes straight to step 3 — step 2 is still there, one ‹ Back away, to move the pin.
 
  */
+import { ErrorState } from "./ErrorState";
 import { SPOT_CAPTURE_AT, SPOT_CAPTURE_WORDS as CW, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
 import { useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -29,7 +30,7 @@ import type { WaterSource, SectionId } from "@app/data";
 import type { HydatDaily, Spot, WeatherSource } from "@app/data/spots";
 import { dayFlowView, useBackLayer, useCaptureSpot, type CaptureWater, type SpotPhotos } from "@app/ui";
 import type { Camera, TileEndpoints } from "@app/map";
-import { FishSpinner } from "./FishSpinner";
+import { LoadingState } from "./LoadingState";
 import { MapScreen } from "./MapScreen";
 import { SpotScreen } from "./SpotScreen";
 import { Confirm } from "./spot/Confirm";
@@ -216,7 +217,7 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
                  style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}>
         <IconText name="back" text={CW.back} style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }} />
       </Pressable>
-      {error ? <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed }}>{error}</Text> : null}
+      {error ? <ErrorState palette={palette} message={error} /> : null}
 
       <View style={{ gap: 6 }}>
         <Text style={{ ...TYPE.title, color: palette.ink }}>{CW.when}</Text>
@@ -270,11 +271,9 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
       </View>
 
       <View style={{ flex: 1 }} />
-      <Pressable {...hitProps({ w: 200, h: 51 })} onPress={onNext} accessibilityRole="button" accessibilityLabel={CW.next}
-                 style={{ borderRadius: palette.r.box, paddingVertical: 15, alignItems: "center",
-                          backgroundColor: palette.accent }}>
-        <Text style={{ ...TYPE.bodyStrong, color: palette.onAccent }}>{CW.next}</Text>
-      </Pressable>
+      {/* (T257) the one button: this step's Next had been typed out (15 px padding, no slab, 14.5 px words) beside the
+          Button the next step uses */}
+      <Button palette={palette} label={CW.next} onPress={onNext} grow={false} />
     </View>
   );
 }
@@ -324,10 +323,9 @@ function Coach({ palette, title, detail, chose, onCancel, onNext, onNextAsync }:
 
 function Busy({ palette, label }: { palette: Palette; label: string }) {
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 14,
-                   backgroundColor: palette.card }}>
-      <FishSpinner palette={palette} size={96} label={label} />
+    <LoadingState palette={palette} size={96} label={label}
+                  style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 14, backgroundColor: palette.card }}>
       <Text style={{ ...TYPE.small, color: palette.sub }}>{label}…</Text>
-    </View>
+    </LoadingState>
   );
 }

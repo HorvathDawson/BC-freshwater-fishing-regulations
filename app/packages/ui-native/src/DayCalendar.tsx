@@ -37,7 +37,7 @@ export function MapDayStrip({ palette, day, range, onDay, onOpen, now }: {
 }) {
   const chips = mapDayChips(day, now ?? new Date(), range);
   return (
-    <CornerStrip palette={palette} testID="map-day" label={DAY_PICKER.strip}
+    <CornerStrip palette={palette} testID="map-day" label={DAY_PICKER.strip} coach="days"
                  segments={chips.map((c) => ({
                    key: c.k, chip: c.chip, label: c.label, on: c.on, enabled: c.enabled,
                    icon: c.k === "pick" ? "calendar" as const : undefined,

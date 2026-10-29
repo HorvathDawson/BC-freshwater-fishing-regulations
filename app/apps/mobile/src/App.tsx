@@ -28,9 +28,9 @@ import { createNet, createReportOutbox, createUpdateLog, createUpdateService, ve
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { connectivity, FishSpinner, setSynopsisNet, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
+import { connectivity, LoadingState, setSynopsisNet, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
@@ -151,6 +151,8 @@ export default function App() {
   const firstRun = useMemo(() => openFirstRunStore(), []);
   const walkthrough = useMemo(() => openWalkthroughStore(), []);
   const recentSearches = useMemo(() => openRecentSearchStore(), []);
+  // (T255) the species the Runs tab paints, kept between visits
+  const runSpeciesStore = useMemo(() => openRunSpeciesStore(), []);
   // (T254) low-bandwidth mode: the More → Data setting (kept on the device), the platform's word, the meter → one mode
   const dataModeStore = useMemo(() => openDataModeStore(), []);
   // T199: the run timing (its own feed, `runtiming/` on the data origin) — read the first time Run timing is chosen
@@ -422,7 +424,7 @@ export default function App() {
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
                inSeason={inSeason} inSeasonSeen={inSeasonSeen} firstRun={firstRun} walkthrough={walkthrough} recentSearches={recentSearches}
-               runTiming={runTiming}
+               runTiming={runTiming} runSpeciesStore={runSpeciesStore}
                refreshing={refreshing}
                onDeleteSpot={spotsHook.remove}
                onRefreshSpots={refreshSpots}
@@ -447,7 +449,7 @@ export default function App() {
       ) : (
         // THE LOADING SCREEN, and on a phone's first run the download screen: which step, and how much is down
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 14 }}>
-          <FishSpinner palette={palette} size={110} label={startStage(!ready && data ? "fonts" : stage)} />
+          <LoadingState palette={palette} size={110} label={startStage(!ready && data ? "fonts" : stage)} />
           <Text style={{ color: palette.sub, fontSize: 13 }}>
             {startStage(!ready && data ? "fonts" : stage)}
           </Text>

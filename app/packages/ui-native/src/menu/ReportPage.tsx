@@ -9,6 +9,7 @@
  *
  * Draws `diagnosticRows` / `reportMessage` (core/menu/report.ts) and `useReportSend` (@app/ui); decides nothing.
  */
+import { ErrorState } from "../ErrorState";
 import { useMemo, useState } from "react";
 import { Linking, Pressable, Share, Switch, Text, TextInput, View } from "react-native";
 import { contactVM, diagnosticRows, emailProblem, mailtoUrl, MENU_WORDS, REPORT_REASONS, reportMessage, type DiagKey,
@@ -101,7 +102,7 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
             <Pressable {...hitProps({ w: 200, h: 44 })} testID="report-contact" onPress={() => setMayContact((c) => !c)} accessibilityRole="checkbox"
                        aria-checked={mayContact} accessibilityLabel={w.contact}
                        style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, minHeight: 44 }}>
-              <View style={{ width: 22, height: 22, borderWidth: 1.5, borderColor: palette.ink, borderRadius: 4,
+              <View style={{ width: 22, height: 22, borderWidth: 1.5, borderColor: palette.ink, borderRadius: palette.r.chip,
                              alignItems: "center", justifyContent: "center",
                              backgroundColor: mayContact ? palette.accent : palette.card }}>
                 {mayContact && <Text style={{ ...TYPE.bodyStrong, fontSize: 14, lineHeight: 16, color: palette.onAccent }}>✓</Text>}
@@ -137,9 +138,9 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
       {!ready && <Text testID="report-empty" style={{ ...TYPE.small, color: palette.sub }}>{w.empty}</Text>}
       {tx.send && (
         <View style={{ gap: SPACE.s2 }}>
-          <Button palette={palette} label={tx.state.kind === "sending" ? w.sending : w.sendNow} onPress={sendNow} />
+          <Button palette={palette} label={w.sendNow} onPress={sendNow} busy={tx.state.kind === "sending"} />
           {tx.state.kind === "refused" && (
-            <Text testID="report-refused" style={{ ...TYPE.small, color: palette.closed }}>{w.refused(tx.state.error)}</Text>
+            <ErrorState palette={palette} testID="report-refused" message={w.refused(tx.state.error)} />
           )}
           <Text testID="report-privacy" style={{ ...TYPE.small, color: palette.sub }}>{w.privacy}</Text>
           <Text style={{ ...TYPE.small, color: palette.sub }}>{w.orEmail}</Text>
@@ -149,7 +150,7 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
         {to.kind === "email" && <Button palette={palette} kind={tx.send ? "ghost" : "solid"} label={w.send} onPress={mail} />}
         <Button palette={palette} kind={to.kind === "email" || tx.send ? "ghost" : "solid"} label={w.share} onPress={share} />
       </View>
-      {shareFailed && <Text testID="report-noshare" style={{ ...TYPE.small, color: palette.closed }}>{w.noShare}</Text>}
+      {shareFailed && <ErrorState palette={palette} testID="report-noshare" message={w.noShare} />}
 
       {/* EXACTLY WHAT WILL BE SENT — selectable, so it can be copied when neither way out works */}
       <View style={{ gap: SPACE.s2 }}>

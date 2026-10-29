@@ -13,14 +13,21 @@ export const LEGAL_WORDS = {
   /** the first-run notice: shown once per device until accepted (`FIRST_RUN_VERSION` re-asks after a wording change) */
   firstRun: {
     title: "Before you fish",
-    lines: [
-      "This app reads the B.C. Freshwater Fishing Regulations Synopsis, the Province's in-season changes and DFO's "
-        + "salmon notices onto a map. It is not the official regulations and it is not legal advice.",
-      "It can be wrong or out of date. The synopsis, the Province's in-season changes and DFO's notices are the "
-        + "authority: check them before you fish.",
-      "You are responsible for knowing and following the regulations where you fish.",
+    /** (T257) one line under the title, then three short points: what the app is, who decides, what changes */
+    lead: "A quick word before you start.",
+    points: [
+      { title: "Not the official regulations",
+        body: "This app reads the B.C. Freshwater Fishing Regulations Synopsis, the Province's in-season changes and DFO's "
+          + "salmon notices onto a map. It is not legal advice." },
+      { title: "The official sources decide",
+        body: "The synopsis, the Province's in-season changes and DFO's notices are the authority. Check them before you fish." },
+      { title: "Regulations change in season",
+        body: "Closures and limits can change at short notice, and this app can be out of date. You are responsible for "
+          + "following the regulations where you fish." },
     ],
     accept: "I understand",
+    /** the link to the page that names every source and its licence (More → Sources and licences) */
+    sources: "Sources and licences",
   },
   asOf: {
     regs: (day: string) => `Regulations as of ${day}`,

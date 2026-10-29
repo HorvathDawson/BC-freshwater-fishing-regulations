@@ -5,7 +5,9 @@
  * segment is FILLED, not merely tinted: it repaints the whole map, so which one is on has to read from the corner of an
  * eye. Each segment is a 44 × 44 press (`hitProps`).
  */
+import { LoadingState } from "./LoadingState";
 import { Pressable, Text, View } from "react-native";
+import { useCoachTarget } from "./CoachMarks";
 import { hitProps } from "./regs/hit";
 import { Icon, type IconName } from "./icons";
 import { TYPE } from "./type";
@@ -28,17 +30,20 @@ export interface CornerSegment {
   /** false: shown, refused (`aria-disabled`) */
   readonly enabled?: boolean;
   readonly onPress: () => void;
-  /** (radio strips) the choice is loading: `aria-busy` */
+  /** (radio strips) the choice is loading: `aria-busy`, and (T257) the fish turns in its icon's place */
   readonly busy?: boolean;
 }
 
-export function CornerStrip({ palette, segments, testID, label, radio = false }: {
+export function CornerStrip({ palette, segments, testID, label, radio = false, coach }: {
   palette: Palette; segments: readonly CornerSegment[]; testID: string; label?: string;
   /** one choice of several (Standard / Salmon): a radiogroup of radios, `aria-checked` not `aria-pressed` */
   radio?: boolean;
+  /** (T257) the key the first-run tour points at this strip by (`useCoachTarget`) */
+  coach?: string;
 }) {
+  const target = useCoachTarget(coach);
   return (
-    <View testID={testID} accessibilityLabel={label} accessibilityRole={radio ? "radiogroup" : undefined}
+    <View ref={target} collapsable={false} testID={testID} accessibilityLabel={label} accessibilityRole={radio ? "radiogroup" : undefined}
           style={{ flexDirection: "row", backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2,
                    borderRadius: palette.r.pill, overflow: "hidden", ...palette.lift }}>
       {segments.map((h, i) => {
@@ -52,7 +57,8 @@ export function CornerStrip({ palette, segments, testID, label, radio = false }:
                            gap: 5, alignItems: "center", justifyContent: "center",
                            backgroundColor: h.on ? palette.accent : palette.card, opacity: enabled ? 1 : 0.45,
                            borderLeftWidth: i ? (h.mode ? 2 : 1) : 0, borderLeftColor: h.mode ? palette.ink : palette.line2 }}>
-              {h.icon && <Icon name={h.icon} colour={ink} size={h.chip ? 15 : 17} />}
+              {h.busy ? <LoadingState palette={palette} size={h.chip ? 15 : 17} colour={ink} />
+                : h.icon && <Icon name={h.icon} colour={ink} size={h.chip ? 15 : 17} />}
               <View style={{ alignItems: "center" }}>
                 {h.chip ? (
                   <Text style={{ ...TYPE.micro, fontSize: 13, lineHeight: h.note ? 14 : 17, fontWeight: "600", color: ink }}>

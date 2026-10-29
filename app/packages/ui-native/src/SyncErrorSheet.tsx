@@ -42,7 +42,7 @@ export function SyncFailures({ vm, palette, checking, onRetry }: {
         </View>
       ))}
       <View style={{ flexDirection: "row", paddingTop: 4 }}>
-        <Button palette={palette} label={checking ? vm.retrying : vm.retry} onPress={checking ? undefined : onRetry} />
+        <Button palette={palette} label={vm.retry} onPress={onRetry} busy={checking} />
       </View>
     </View>
   );

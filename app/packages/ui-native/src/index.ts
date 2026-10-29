@@ -39,7 +39,7 @@ export { SheetHost, type SheetHostProps } from "./regs/SheetHost";
 export { Hydrograph } from "./Hydrograph";
 export { Credits } from "./Credits";
 export { GaugeTrace } from "./GaugeTrace";
-export { FishSpinner } from "./FishSpinner";
+export { LoadingState, useDelayedShow, SPINNER_TIMING } from "./LoadingState";
 // (T231) the "Updated to …" toast and the device's word on its network (online, metered) for the update service
 export { UpdateToast } from "./UpdateToast";
 export { connectivity } from "./connectivity";

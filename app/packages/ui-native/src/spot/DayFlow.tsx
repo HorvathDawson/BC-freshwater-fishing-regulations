@@ -1,5 +1,6 @@
 /** T170: the trip day's own flow from the day's record, and the action that asks for it (`useDayFlow`). */
-import { Pressable, Text } from "react-native";
+import { Button } from "../Button";
+import { Text } from "react-native";
 import type { DayFlowView } from "@app/ui";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
@@ -18,14 +19,8 @@ export function DayFlowBlock({ df, onAsk, palette }: {
               style={{ ...TYPE.small, color: palette.sub }}>{df.status}</Text>
       ) : null}
       {df.action && onAsk ? (
-        <Pressable onPress={onAsk} disabled={df.action.busy}
-                   accessibilityRole="button" accessibilityLabel={df.action.label}
-                   aria-disabled={df.action.busy}
-                   style={{ alignSelf: "flex-start", borderRadius: palette.r.pill, paddingVertical: 8,
-                            paddingHorizontal: 14, backgroundColor: palette.card, borderWidth: 1,
-                            borderColor: palette.line2, opacity: df.action.busy ? 0.5 : 1 }}>
-          <Text style={{ ...TYPE.micro, fontSize: 12.5, color: palette.accent }}>{df.action.label}</Text>
-        </Pressable>
+        <Button palette={palette} kind="small" label={df.action.label} onPress={onAsk} busy={df.action.busy}
+                style={{ alignSelf: "flex-start" }} />
       ) : null}
     </Block>
   );

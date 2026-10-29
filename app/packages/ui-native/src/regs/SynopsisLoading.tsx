@@ -6,7 +6,7 @@
  */
 import { Linking, Pressable, Text, View } from "react-native";
 import { NET_WORDS, SYNOPSIS_PDF } from "@app/core";
-import { FishSpinner } from "../FishSpinner";
+import { LoadingState } from "../LoadingState";
 import { BottomInset } from "../WindowInset";
 import { SPACE, type Palette } from "../theme";
 import { TYPE } from "../type";
@@ -39,7 +39,8 @@ export function SynopsisLoading({ palette, floating = false }: { palette: Palett
   const bar = (
     <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", paddingLeft: SPACE.s4, minHeight: 56,
                    backgroundColor: palette.card, borderTopWidth: 1.5, borderTopColor: err ? palette.warning : palette.ink }}>
-      {!err && !offer && <View style={{ marginRight: SPACE.s2 }}><FishSpinner palette={palette} size={36} label={W.loading} /></View>}
+      {/* the bar itself waited before it showed (`visible`): its fish is there at once */}
+      {!err && !offer && <View style={{ marginRight: SPACE.s2 }}><LoadingState palette={palette} size={36} label={W.loading} immediate /></View>}
       <Text accessibilityLiveRegion="polite" style={[TYPE.bodyStrong, { flex: 1, minWidth: 140, color: palette.ink, paddingVertical: SPACE.s3 }]}>
         {offer ? NET_WORDS.pdf.offer(offer.bytes, offer.seconds) : err ? W.failed : n === null ? W.loading : W.percent(n)}
       </Text>

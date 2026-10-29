@@ -15,7 +15,6 @@
  *               are P15's. The canvas pans, so here the swipe listens on the header only.
  */
 import { useContext } from "react";
-import { View } from "react-native";
 import { WATER_SCREEN_WORDS } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
@@ -25,7 +24,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { AccessNoticeBlock } from "./regs/AccessNoticeBlock";
 import { WaterViewsContext } from "./ViewSwipe";
-import { FishSpinner } from "./FishSpinner";
+import { LoadingState } from "./LoadingState";
 import { type Palette } from "./theme";
 import { WaterFrame, WaterTitle } from "./WaterFrame";
 
@@ -74,9 +73,8 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
     <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>
       {section === null ? (
         sheet.state === "loading" && (
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <FishSpinner palette={palette} size={110} label={WATER_SCREEN_WORDS.loading} />
-          </View>
+          <LoadingState palette={palette} size={110} label={WATER_SCREEN_WORDS.loading}
+                        style={{ flex: 1, alignItems: "center", justifyContent: "center" }} />
         )
       ) : (
         <>

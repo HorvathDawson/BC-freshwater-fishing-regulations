@@ -44,7 +44,7 @@ import { AccessibilityInfo, Animated, Easing, View } from "react-native";
 import { spriteStaircase } from "@app/ui";
 import { FISH_SPRITE } from "./fish-sprite.generated";
 import { SPINNER_WORDS } from "@app/core";
-import type { Palette } from "./theme";
+import { round, type Palette } from "./theme";
 
 export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading, colour }:
   { palette: Palette; size?: number; label?: string; colour?: string }) {
@@ -86,7 +86,7 @@ export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading,
           style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
       {/* Behind, and not rotated — a circle looks identical at every angle, so spinning it
           would be pure cost. */}
-      <View style={{ position: "absolute", width: ring, height: ring, borderRadius: ring / 2,
+      <View style={{ position: "absolute", width: ring, height: ring, borderRadius: round(ring),
                      borderWidth: Math.max(size * FISH_SPRITE.ring.width, 1),
                      borderColor: palette.line }} />
       <Animated.View style={{ position: "absolute", width: size, height: size,

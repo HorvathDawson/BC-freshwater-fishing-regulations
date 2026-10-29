@@ -6,6 +6,7 @@
  * @app/map resolves those through the generated style, so the phone and the desktop cannot
  * colour the same river differently.
  */
+import { useCoachTarget } from "./CoachMarks";
 import type { SectionKey } from "@app/core";
 import type { ReactNode } from "react";
 import { View } from "react-native";
@@ -97,8 +98,10 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   /** (T186) The region under the centre, each settle — see MapProps.onRegion (the web prefetch's). */
   onRegion?: MapProps["onRegion"];
 }) {
+  // (T257) the first-run tour's "tap a water" points at the middle of this map
+  const coachTarget = useCoachTarget("map");
   return (
-    <View style={{ flex: 1, backgroundColor: palette.tint }}>
+    <View ref={coachTarget} collapsable={false} style={{ flex: 1, backgroundColor: palette.tint }}>
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onPressObstacle={onPressObstacle} onPressTidal={onPressTidal} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}

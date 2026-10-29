@@ -22,15 +22,16 @@
  * Every value here arrived from a hook in @app/ui (rule 25). NO CONDITIONS HOOK RUNS HERE: a number on this view
  * would be a second, poorer copy of the Conditions view one swipe away (AGENTS rule 23).
  */
+import { ErrorState } from "./ErrorState";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView } from "react-native";
 import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, regsLapsedNote, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotice, useInSeasonBanners, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useSalmonCard, useNet,
          useRegsTarget, useRegulations, useWater, type RegsStart } from "@app/ui";
-import { FishSpinner } from "./FishSpinner";
+import { LoadingState, useDelayedShow } from "./LoadingState";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { AdiposeImages, FishImages } from "./regs/types";
 import { DaySheet } from "./regs/DaySheet";
@@ -42,7 +43,6 @@ import { LicenceTab } from "./regs/LicenceTab";
 import { MethodsTab } from "./regs/MethodsTab";
 import { openBook } from "./regs/openBook";
 import { PartPending, RegsWaiting } from "./regs/NetWaiting";
-import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 
@@ -110,6 +110,9 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const regsRetry = !!regsError && regsError.name !== "RegsStoreError" && !!onRetry;
   const regsErrorNow = useRef(false);
   regsErrorNow.current = !!regsError || sheet.state === "failed";
+  // (T257) the waits, on the one timing: no spinner for a quick load, and one shown stays up its short hold
+  const sheetWait = useDelayedShow(item !== null && sheet.state === "loading");
+  const regsWait = useDelayedShow(!!loader && !regsError && !regs);
   // (T54) the tapped section's access: the no-access banner or the gentle note; (T147) opened with no section, the
   // page's own part's no-access banner (a water opened from search must still lead with the fact); (Q140) a tapped
   // section wholly outside, on a part that runs through no-access land, leads with the part's banner
@@ -176,27 +179,21 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   );
 
   // an unnamed reach has no water sheet: its name is the store's, on the page
-  if (item !== null && sheet.state === "loading") {
+  if (item !== null && (sheet.state === "loading" || sheetWait.pending)) {
     return frame(<WaterTitle name={null} palette={palette} />, (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <FishSpinner palette={palette} size={110} label={WATER_SCREEN_WORDS.loading} />
+      <LoadingState palette={palette} size={110} label={WATER_SCREEN_WORDS.loading} shown={sheetWait.shown}
+                    style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <RegsWaiting palette={palette} />
-      </View>
+      </LoadingState>
     ));
   }
   if (item !== null && (sheet.state === "failed" || !sheet.value)) {
     return frame(<WaterTitle name={null} palette={palette} />, (
       <WaterInset style={{ paddingTop: SPACE.s4 }}>
-        <Text style={{ ...TYPE.body, color: palette.closed }}>
-          {sheet.state === "failed" ? String(sheet.error) : WATER_SCREEN_WORDS.noSuchWater}
-        </Text>
         {/* (T254) a dead line: ask again (and by itself when the device comes back online) */}
-        {sheet.state === "failed" && onRetry && (
-          <Pressable testID="regs-retry" onPress={onRetry} accessibilityRole="button" accessibilityLabel={NET_WORDS.part.retry}
-                     hitSlop={6} style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}>
-            <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{NET_WORDS.part.retry}</Text>
-          </Pressable>
-        )}
+        <ErrorState palette={palette} size="body"
+                    message={sheet.state === "failed" ? String(sheet.error) : WATER_SCREEN_WORDS.noSuchWater}
+                    onRetry={sheet.state === "failed" ? onRetry : undefined} retryLabel={NET_WORDS.part.retry} retryTestID="regs-retry" />
       </WaterInset>
     ));
   }
@@ -204,7 +201,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const s = sheet.value;   // null only for an unnamed reach
 
   // THE REGULATIONS PAGE (T23): the regs header (its name row is the frame's WaterTitle) fixed above ONE scroll
-  if (loader && regs && !regsError) {
+  if (loader && regs && !regsError && !regsWait.pending) {
     // (T227) DFO's salmon year under the provincial bar, at the top (none where DFO has no salmon rules here); the Gear /
     // Methods tabs' closed line names its exception
     const salmonStrip = salmon.value ? salmonStripOf(salmon.value, regs.keep.strip) : null;
@@ -254,18 +251,14 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
     <WaterInset style={{ paddingTop: SPACE.s4, paddingBottom: 32 }}>
       {!loader || regsError
         ? <>
-            <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError?.message ?? WATER_SCREEN_WORDS.noRelease)}</Text>
             {/* (T254) a dead line, not a refusal: ask again (and by itself when the device comes back online) */}
-            {regsRetry && (
-              <Pressable testID="regs-retry" onPress={onRetry} accessibilityRole="button" accessibilityLabel={NET_WORDS.part.retry}
-                         hitSlop={6} style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}>
-                <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{NET_WORDS.part.retry}</Text>
-              </Pressable>
-            )}
+            <ErrorState palette={palette} size="body"
+                        message={WORDS.REGS_UNAVAILABLE(regsError?.message ?? WATER_SCREEN_WORDS.noRelease)}
+                        onRetry={regsRetry ? onRetry : undefined} retryLabel={NET_WORDS.part.retry} retryTestID="regs-retry" />
           </>
         : <>
-            <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />
-            <RegsWaiting palette={palette} align="left" />
+            <LoadingState palette={palette} size={64} label={WORDS.REGS_LOADING} shown={regsWait.shown} />
+            {regsWait.shown && <RegsWaiting palette={palette} align="left" />}
           </>}
     </WaterInset>
   );

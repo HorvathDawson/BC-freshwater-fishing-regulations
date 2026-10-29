@@ -13,7 +13,7 @@
 import { Text, View } from "react-native";
 import type { SourceFreshness, FreshnessVM } from "@app/core";
 import { TYPE } from "../type";
-import type { Palette } from "../theme";
+import { round, type Palette } from "../theme";
 
 export const FRESH_DOT = 8;
 
@@ -27,7 +27,7 @@ export function FreshDot({ palette, kind, size = FRESH_DOT }: { palette: Palette
   const filled = kind === "fresh" || kind === "stale";
   return (
     <View testID={`fresh-${kind}`} importantForAccessibility="no-hide-descendants" aria-hidden
-          style={{ width: size, height: size, borderRadius: size / 2, borderWidth: filled ? 0 : 1.5, borderColor: c,
+          style={{ width: size, height: size, borderRadius: round(size), borderWidth: filled ? 0 : 1.5, borderColor: c,
                    backgroundColor: filled ? c : "transparent" }} />
   );
 }

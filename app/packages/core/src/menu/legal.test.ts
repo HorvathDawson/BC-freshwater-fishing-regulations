@@ -31,7 +31,9 @@ describe("the regulations' as-of line (T236)", () => {
   });
   it("the foot line and the first-run notice say what the owner asked for", () => {
     expect(LEGAL_WORDS.footer).toBe("Not legal advice — the B.C. synopsis and DFO notices are the authority.");
-    expect(LEGAL_WORDS.firstRun.lines.join(" ")).toContain("not legal advice");
+    expect(LEGAL_WORDS.firstRun.points.map((x) => x.body).join(" ")).toContain("not legal advice");
+    expect(LEGAL_WORDS.firstRun.points.map((x) => x.title)).toEqual(["Not the official regulations", "The official sources decide", "Regulations change in season"]);
+    expect(LEGAL_WORDS.firstRun.sources).toBe(MENU_WORDS.items.sources.label);
     expect(MENU_WORDS.about.notOfficial).toContain("Nothing in this app is legal advice.");
   });
   it("first run: accepted only by the current version", () => {

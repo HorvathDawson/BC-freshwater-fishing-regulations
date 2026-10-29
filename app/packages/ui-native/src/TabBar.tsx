@@ -19,6 +19,7 @@
  * would be a second selection language beside it, a rounded tile against square chrome, and a new filled colour under
  * an ink icon — one more pair for the palette gate (T39) to hold in light, dark and the colour-blind palette.
  */
+import { useCoachRefs } from "./CoachMarks";
 import { Pressable, Text, View } from "react-native";
 import { BROWSE_TABS } from "@app/core";
 import { Icon, type IconName } from "./icons";
@@ -38,6 +39,7 @@ export const TAB_BAR = { icon: 20, gap: 3, padTop: 5, padBottom: 4, minHit: 44 }
 
 export function TabBar({ active, onChange, palette }:
   { active: TabKey; onChange: (k: TabKey) => void; palette: Palette }) {
+  const coach = useCoachRefs();   // (T257) the first-run tour points at the tabs (`tab:<key>`)
   return (
     <View accessibilityRole="tablist"
           // A HARD RULE, in ink. The bar sat on a pale hairline, which on a white card is
@@ -48,7 +50,7 @@ export function TabBar({ active, onChange, palette }:
       {TABS.map(({ k, t }) => {
         const on = k === active;
         return (
-          <Pressable {...hitProps({ w: 80, h: TAB_BAR.minHit })} key={k} onPress={() => onChange(k)}
+          <Pressable {...hitProps({ w: 80, h: TAB_BAR.minHit })} key={k} onPress={() => onChange(k)} ref={coach(`tab:${k}`)}
                      accessibilityRole="tab" aria-selected={on}
                      accessibilityLabel={t}
                      style={{ flex: 1, alignItems: "center", gap: TAB_BAR.gap, paddingVertical: 2,

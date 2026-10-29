@@ -51,7 +51,7 @@ function Row({ row, palette, theme, first }: { row: HelpRow; palette: Palette; t
         <HelpSwatchView swatch={row.swatch} palette={palette} theme={theme} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ ...TYPE.bodyStrong, fontSize: 14.5, color: palette.ink }}>{row.name}</Text>
+        <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{row.name}</Text>
         <Text style={{ ...TYPE.small, color: palette.sub }}>{row.text}</Text>
       </View>
     </View>

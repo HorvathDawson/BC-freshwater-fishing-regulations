@@ -20,6 +20,7 @@
  * frozen copy instead of a live query. A gauge's representativeness is the most misread
  * number in the app; it may not have two explanations.
  */
+import { ErrorState } from "./ErrorState";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { isUntitled, needsRefresh, refreshReason, spotHeadline, spotLabel, type PhotoStore, type Spot } from "@app/data/spots";
@@ -141,9 +142,7 @@ export function SpotScreen(p: SpotScreenProps) {
       </View>
 
       {p.error ? (
-        <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed, paddingHorizontal: 18 }}>
-          {p.error}
-        </Text>
+        <ErrorState palette={palette} message={p.error} style={{ paddingHorizontal: 18 }} />
       ) : null}
 
       {shown && (
@@ -196,15 +195,7 @@ export function SpotScreen(p: SpotScreenProps) {
             <Text style={{ ...TYPE.small, flex: 1, color: palette.sub }}>
               {refreshReason(spot)}
             </Text>
-            <Pressable {...hitProps({ w: 80, h: 37 })} onPress={p.onRefresh} disabled={p.refreshing}
-                       accessibilityRole="button" accessibilityLabel={W.refreshSpot}
-                       style={{ borderRadius: palette.r.pill, paddingVertical: 8, paddingHorizontal: 14,
-                                backgroundColor: palette.card, borderWidth: 1,
-                                borderColor: palette.line2, opacity: p.refreshing ? 0.5 : 1 }}>
-              <Text style={{ ...TYPE.micro, fontSize: 12.5, color: palette.accent }}>
-                {p.refreshing ? "…" : W.refresh}
-              </Text>
-            </Pressable>
+            <Button palette={palette} kind="small" label={W.refresh} a11yLabel={W.refreshSpot} onPress={p.onRefresh} busy={p.refreshing} />
           </View>
         )}
 

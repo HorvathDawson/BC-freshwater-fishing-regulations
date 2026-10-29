@@ -59,6 +59,7 @@ import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
 import { useWalkthrough, WalkthroughSheet } from "./Walkthrough";
+import { CoachContext, useCoachRegistry } from "./CoachMarks";
 
 export type { ShellProps } from "./shell/props";
 
@@ -193,8 +194,13 @@ export function Shell(p: ShellProps) {
   const notice = useInSeasonNotice(inSeason.unmatched, p.inSeasonSeen ?? null);
   // (T236) the first-run notice (not legal advice) comes first: nothing else opens by itself while it is up
   const firstRun = useFirstRun(p.firstRun ?? null);
-  // (T248) the first-run walkthrough comes SECOND: held while the notice is up, and the in-season notice waits for it
-  const walkthrough = useWalkthrough(p.walkthrough ?? null, firstRun.open);
+  // (T248) the first-run walkthrough comes SECOND: held while the notice is up, and the in-season notice waits for it.
+  // (T257) It is a tour of the Map tab's own controls, so it is held, too, while the Map tab is not what is browsed;
+  // More → Help's "show it again" goes to the Map tab first.
+  const coach = useCoachRegistry();
+  const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
+  const walkthrough = useWalkthrough(p.walkthrough ?? null, firstRun.open || !onMapTab);
+  const replayTour = () => { nav.toTab("map"); walkthrough.reopen(); };
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port; asked
@@ -251,7 +257,8 @@ export function Shell(p: ShellProps) {
         || (tab === "map" && (col.layers.water.drawn !== "regulations" || col.statusOk)));
 
   return layered(withInSeason(
-    // a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink)
+    <CoachContext.Provider value={coach}>
+    {/* a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink) */}
     <MenuContext.Provider value={menu}>
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <PairBanner col={col} palette={palette} />
@@ -327,18 +334,19 @@ export function Shell(p: ShellProps) {
                    void nav.opener.tap(sid as never, null, "regs");
                  }} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
-                   mapDay={mapDay} theme={theme} onWalkthrough={walkthrough.reopen} sync={syncState} />
+                   mapDay={mapDay} theme={theme} onWalkthrough={replayTour} sync={syncState} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
       <InSeasonNotice open={(notice.open && !firstRun.open && !walkthrough.open) || (bellOpen && notice.count + syncState.failed.length > 0)} rows={notice.rows}
                       palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}
                       sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }} />
       {/* (T236) not legal advice: once per device, before anything else */}
-      <FirstRunNotice state={firstRun} palette={palette} />
-      <WalkthroughSheet state={walkthrough} palette={palette} />
+      <FirstRunNotice state={firstRun} palette={palette} onSources={() => menu.show("sources")} />
+      <WalkthroughSheet state={walkthrough} palette={palette} registry={coach} />
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />
     </View>
     </MenuContext.Provider>
+    </CoachContext.Provider>
   ));
 }

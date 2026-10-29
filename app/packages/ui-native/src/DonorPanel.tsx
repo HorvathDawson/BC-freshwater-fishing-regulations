@@ -49,7 +49,7 @@ import { CornerStrip } from "./CornerStrip";
 import { GaugeGroups } from "./GaugeGroups";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
-import { SPACE, type Palette } from "./theme";
+import { SPACE, type Palette, round } from "./theme";
 
 /** The bullet's inset, so a row's detail lines align under its name and not its dot. */
 const INSET = 9 + SPACE.s2;
@@ -212,7 +212,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
       <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
         {/* The same tone as its pin, so the map and the table are one thing. */}
         <View testID={`donor-dot-${r.station}`}
-              style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: toneOf(r.row) }} />
+              style={{ width: 9, height: 9, borderRadius: round(9), backgroundColor: toneOf(r.row) }} />
         <Text style={{ ...TYPE.figure, color: palette.ink }}>{r.station}</Text>
         {r.name ? (
           <Text numberOfLines={1} style={{ ...TYPE.metaSemi, color: palette.sub, flex: 1, minWidth: 0 }}>

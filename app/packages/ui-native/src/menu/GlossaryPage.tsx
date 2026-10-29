@@ -10,7 +10,7 @@ import { useMemo, useState } from "react";
 import { FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { glossaryRows, glossBlocks, MENU_WORDS, type SheetKey } from "@app/core";
 import { useBackLayer, type Async, type Glossary } from "@app/ui";
-import { FishSpinner } from "../FishSpinner";
+import { LoadingState } from "../LoadingState";
 import { SheetBlockView } from "../regs/SheetBody";
 import { openBook } from "../regs/openBook";
 import { TYPE } from "../type";
@@ -31,9 +31,8 @@ export function GlossaryPage({ glossary, term, onTerm, onCloseTerm, palette }: {
     return <Note palette={palette} text={MENU_WORDS.glossary.failed(glossary.error.message)} tone="closed" />;
   if (glossary.state === "loading")
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <FishSpinner palette={palette} size={64} label={MENU_WORDS.glossary.loading} />
-      </View>
+      <LoadingState palette={palette} size={64} label={MENU_WORDS.glossary.loading}
+                    style={{ flex: 1, alignItems: "center", justifyContent: "center" }} />
     );
   if (!g) return <Note palette={palette} text={MENU_WORDS.glossary.unavailable} />;
 

@@ -26,15 +26,16 @@
  * The placeholder is ONE line per opening of the app (`placeholderFor`), never cycled while on screen; the field is
  * always called "Search waters and towns" aloud, whatever the line says.
  */
-import { forwardRef, useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { LoadingState } from "./LoadingState";
+import { useCoachTarget } from "./CoachMarks";
+import { forwardRef, useState } from "react";
+import { Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { SEARCH_BAR, type SyncVM } from "@app/core";
 import { Icon } from "./icons";
 import { SyncRing } from "./SyncRing";
 import { CLOSE_KEEPS_FOCUS, closedFieldClick } from "./searchFocus";
-import { NATIVE_DRIVER, useReducedMotion } from "./motion";
 import { TYPE, CAPPED_SCALE } from "./type";
-import type { Palette } from "./theme";
+import { round, type Palette } from "./theme";
 import { hitProps } from "./regs/hit";
 
 /** The bar's measures: inset from the screen's edges, the field, the slab under it, the sync slot and its dot. */
@@ -151,8 +152,9 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
  * `attention` (never a water-status colour); its tap re-opens the notice. Shown only while there is one.
  */
 function NoticeButton({ palette, count, label, onPress }: { palette: Palette; count: number; label: string; onPress: () => void }) {
+  const target = useCoachTarget("bell");   // (T257) the first-run tour points at it
   return (
-    <Pressable {...hitProps({ w: TOP_BAR.slot + 4, h: TOP_BAR.field })} testID="inseason-bell" onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
+    <Pressable {...hitProps({ w: TOP_BAR.slot + 4, h: TOP_BAR.field })} ref={target} testID="inseason-bell" onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
                style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
                                           justifyContent: "center", borderLeftWidth: 1, borderLeftColor: palette.line,
                                           backgroundColor: pressed ? palette.wash : "transparent" })}>
@@ -168,7 +170,7 @@ export function BellGlyph({ palette, count }: { palette: Palette; count: number 
       <Icon name="bell" colour={palette.sub} size={18} />
       <View testID="inseason-count"
             style={{ position: "absolute", top: -7, right: -9, minWidth: 16, height: 16, paddingHorizontal: 3,
-                     borderRadius: 8, backgroundColor: palette.attention, borderWidth: 1.5, borderColor: palette.card,
+                     borderRadius: round(16), backgroundColor: palette.attention, borderWidth: 1.5, borderColor: palette.card,
                      alignItems: "center", justifyContent: "center" }}>
         <Text style={{ ...TYPE.metaBold, fontSize: 10, lineHeight: 12, color: palette.card }}>{count > 99 ? "99+" : count}</Text>
       </View>
@@ -188,8 +190,9 @@ export function BellGlyph({ palette, count }: { palette: Palette; count: number 
  * it — with a "!" in `onAccent`, where the dot sits; the tap then opens what failed (the Shell's `SyncErrorSheet`).
  */
 function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM; onPress?: () => void }) {
+  const target = useCoachTarget("sync");   // (T257) the first-run tour points at it
   return (
-    <Pressable {...hitProps({ w: TOP_BAR.slot + 4, h: TOP_BAR.field })} testID="sync-button" onPress={onPress} disabled={sync.kind === "checking"}
+    <Pressable {...hitProps({ w: TOP_BAR.slot + 4, h: TOP_BAR.field })} ref={target} testID="sync-button" onPress={onPress} disabled={sync.kind === "checking"}
                accessibilityRole="button" accessibilityLabel={sync.label} accessibilityHint={sync.hint}
                aria-busy={sync.kind === "checking" || sync.kind === "downloading"}
                style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
@@ -205,17 +208,6 @@ function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM
  * state added here is drawn there, and a help picture cannot drift from the icon.
  */
 export function SyncGlyph({ palette, sync }: { palette: Palette; sync: SyncVM }) {
-  const reduced = useReducedMotion();
-  const turn = useRef(new Animated.Value(0)).current;
-  const spinning = sync.kind === "checking" && !reduced;
-  useEffect(() => {
-    if (!spinning) { turn.stopAnimation(); turn.setValue(0); return; }
-    const loop = Animated.loop(Animated.timing(turn, { toValue: 1, duration: 900, easing: Easing.linear,
-                                                       useNativeDriver: NATIVE_DRIVER }));
-    loop.start();
-    return () => loop.stop();
-  }, [spinning, turn]);
-  const rotate = turn.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
   const D = TOP_BAR.dot, B = TOP_BAR.badge, R = TOP_BAR.ring;
   const dotted = sync.kind === "stale" || sync.kind === "downloading";
   return (
@@ -227,10 +219,11 @@ export function SyncGlyph({ palette, sync }: { palette: Palette; sync: SyncVM })
         </View>
       )}
       {sync.kind === "checking" && (
-        // CHECKING: an accent arc turning round the glyph (still, under reduced motion) — seen at a glance
-        <Animated.View testID="sync-checking" style={{ position: "absolute", top: 0, left: 0, transform: [{ rotate }] }}>
-          <SyncRing progress={0.3} size={R} track={palette.line} colour={palette.accent} />
-        </Animated.View>
+        // CHECKING (T257): the app's one spinner, the fish, circling the glyph — through the one delayed show, so a quick
+        // check never flashes it (still, under reduced motion)
+        <View testID="sync-checking" style={{ position: "absolute", top: 0, left: 0 }}>
+          <LoadingState palette={palette} size={R} colour={palette.accent} />
+        </View>
       )}
       {sync.kind === "done" ? (
         <View testID="sync-done"><Icon name="check" colour={palette.accent} size={18} /></View>
@@ -240,14 +233,14 @@ export function SyncGlyph({ palette, sync }: { palette: Palette; sync: SyncVM })
       )}
       {dotted && (
         <View testID="sync-dot"
-              style={{ position: "absolute", top: -1, right: -2, width: D + 3, height: D + 3, borderRadius: (D + 3) / 2,
+              style={{ position: "absolute", top: -1, right: -2, width: D + 3, height: D + 3, borderRadius: round(D + 3),
                        backgroundColor: palette.card, alignItems: "center", justifyContent: "center" }}>
-          <View style={{ width: D, height: D, borderRadius: D / 2, backgroundColor: palette.attention }} />
+          <View style={{ width: D, height: D, borderRadius: round(D), backgroundColor: palette.attention }} />
         </View>
       )}
       {sync.kind === "error" && (
         <View testID="sync-error"
-              style={{ position: "absolute", top: -4, right: -6, width: B, height: B, borderRadius: B / 2,
+              style={{ position: "absolute", top: -4, right: -6, width: B, height: B, borderRadius: round(B),
                        backgroundColor: palette.closed, borderWidth: 1.5, borderColor: palette.card,
                        alignItems: "center", justifyContent: "center" }}>
           <Text style={{ ...TYPE.metaBold, fontSize: 10, lineHeight: 12, color: palette.onAccent }}>!</Text>

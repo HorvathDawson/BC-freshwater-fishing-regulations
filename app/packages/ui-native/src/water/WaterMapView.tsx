@@ -13,6 +13,7 @@
  * one goes on from or as opens that water's map (`onCross`), and every step to another part is the frame's part
  * (`onPart`) — so the Regulations and Conditions views agree with the map.
  */
+import { LoadingState } from "../LoadingState";
 import { useRef, type ComponentProps } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { WATER_MAP_WORDS } from "@app/core";
@@ -137,7 +138,11 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
             )}
           </>
         ) : (
-          <Text style={{ ...TYPE.body, color: palette.sub }} testID="water-map-status">{status}</Text>
+          <View style={{ gap: 12, alignItems: "flex-start" }}>
+            {/* (T257) still loading: the one spinner, beside the words that say what is coming */}
+            {status === WATER_MAP_WORDS.loading && <LoadingState palette={palette} size={64} label={status} />}
+            <Text style={{ ...TYPE.body, color: palette.sub }} testID="water-map-status">{status}</Text>
+          </View>
         )}
         </WaterInset>
       </View>

@@ -36,7 +36,7 @@ import { Animated, FlatList, Pressable, Text, View, useWindowDimensions } from "
 import { SEARCH_BAR, type StatusIndex } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useBackLayer, type SearchAction, type SearchPick, type SearchSession } from "@app/ui";
-import { FishSpinner } from "./FishSpinner";
+import { LoadingState } from "./LoadingState";
 import { Icon } from "./icons";
 import { NATIVE_DRIVER, useReducedMotion } from "./motion";
 import { TOP_BAR, searchPanelWidth } from "./TopBar";
@@ -162,9 +162,8 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
           </View>
         )}
         {session.busy ? (
-          <View style={{ alignItems: "center", paddingVertical: 28 }}>
-            <FishSpinner palette={palette} size={86} label={SEARCH_BAR.searching} />
-          </View>
+          <LoadingState palette={palette} size={86} label={SEARCH_BAR.searching}
+                        style={{ alignItems: "center", paddingVertical: 28 }} />
         ) : (
           <FlatList
             data={rows}

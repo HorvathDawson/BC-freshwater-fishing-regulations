@@ -9,6 +9,8 @@
  *
  * A tab root, not a surface: back from it is the Map tab (the route's tab rule); a spot opened from it is the route's too.
  */
+import { ErrorState } from "./ErrorState";
+import { Button } from "./Button";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SPOTS_LIST_WORDS, SPOTS_MENU } from "@app/core";
 import type { PhotoStore } from "@app/data/spots";
@@ -39,7 +41,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
       </View>
       <ScrollView>
         {vm.error !== null && (
-          <Text accessibilityRole="alert" style={{ ...TYPE.body, color: palette.closed, padding: 20 }}>{vm.error}</Text>
+          <ErrorState palette={palette} size="body" message={vm.error} style={{ padding: 20 }} />
         )}
         {vm.empty && (
           <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6, gap: 6 }}>
@@ -51,15 +53,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 16,
                          backgroundColor: palette.tint }}>
             <Text testID="spots-stale" style={{ ...TYPE.small, flex: 1, color: palette.sub }}>{vm.stale}</Text>
-            <Pressable {...hitProps({ w: 80, h: 37 })} onPress={onRefresh} disabled={refreshing}
-                       accessibilityRole="button" accessibilityLabel={SPOTS_MENU.refreshLabel}
-                       style={{ borderRadius: palette.r.pill, paddingVertical: 8, paddingHorizontal: 14,
-                                backgroundColor: palette.card, borderWidth: 1,
-                                borderColor: palette.line2, opacity: refreshing ? 0.5 : 1 }}>
-              <Text style={{ ...TYPE.micro, fontSize: 12.5, color: palette.accent }}>
-                {refreshing ? SPOTS_MENU.refreshing : SPOTS_MENU.refresh}
-              </Text>
-            </Pressable>
+            <Button palette={palette} kind="small" label={SPOTS_MENU.refresh} a11yLabel={SPOTS_MENU.refreshLabel} onPress={onRefresh} busy={refreshing} />
           </View>
         )}
         {vm.rows.map((r) => (
@@ -67,8 +61,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
                    onOpen={() => onOpen(r.id)} onShow={() => onShow(r.id)} />
         ))}
         {error ? (
-          <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed, paddingHorizontal: 20,
-                                                   paddingTop: 12 }}>{error}</Text>
+          <ErrorState palette={palette} message={error} style={{ paddingHorizontal: 20, paddingTop: 12 }} />
         ) : null}
         {vm.adds.map((a, i) => (
           <Pressable {...hitProps({ w: 300, h: 46 })} key={a.k} onPress={() => onAdd(a.k)} accessibilityRole="button" accessibilityLabel={a.label}

@@ -10,16 +10,18 @@ import { WATER_STATUSES } from "./status";
 import { HELP_WORDS, SYNC_KINDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, helpVM, walkthroughSeen } from "./help";
 
 describe("the walkthrough (T248)", () => {
-  it("is 3 or 4 cards, each with a title and words, in the order the owner listed", () => {
-    expect(WALKTHROUGH_WORDS.cards.map((c) => c.key)).toEqual(["modes", "days", "tap", "offline"]);
+  it("(T257) is six steps, each pointing at a control, in the order the owner listed", () => {
+    expect(WALKTHROUGH_WORDS.cards.map((c) => c.key)).toEqual(["days", "modes", "map", "conditions", "runs", "sync"]);
+    expect(WALKTHROUGH_WORDS.cards.map((c) => c.targets))
+      .toEqual([["days"], ["modes"], ["map"], ["tab:conditions"], ["tab:runs"], ["sync", "bell"]]);
     for (const c of WALKTHROUGH_WORDS.cards) { expect(c.title.length).toBeGreaterThan(3); expect(c.body.length).toBeGreaterThan(40); }
   });
   it("names the three map modes by the words the app already uses", () => {
-    const b = WALKTHROUGH_WORDS.cards[0]!.body;
+    const b = WALKTHROUGH_WORDS.cards.find((c) => c.key === "modes")!.body;
     expect(["Standard", "Salmon", "Run timing"].every((w) => b.includes(w))).toBe(true);
   });
   it("seen only when the stored text is the current version", () => {
-    expect([walkthroughSeen(null), walkthroughSeen(""), walkthroughSeen("walkthrough-0"), walkthroughSeen(WALKTHROUGH_VERSION),
+    expect([walkthroughSeen(null), walkthroughSeen(""), walkthroughSeen("walkthrough-1"), walkthroughSeen(WALKTHROUGH_VERSION),
             walkthroughSeen(` ${WALKTHROUGH_VERSION}\n`)]).toEqual([false, false, false, true, true]);
   });
 });

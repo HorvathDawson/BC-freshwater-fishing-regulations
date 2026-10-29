@@ -28,44 +28,53 @@ import { SALMON_MAP_STATUSES, SALMON_WORDS, type SalmonMapStatus } from "./salmo
 import { WATER_STATUS, WATER_STATUSES, WATER_STATUS_LINE, type WaterStatus } from "./status";
 import { TIDAL_SHEET_WORDS } from "./tidal";
 
-/** Stored on a device that has seen, or skipped, the walkthrough. Bump to show the cards again after a rewrite. */
-export const WALKTHROUGH_VERSION = "walkthrough-1";
+/** Stored on a device that has seen, or skipped, the walkthrough. Bump to show it again after a rewrite (T257: the tour). */
+export const WALKTHROUGH_VERSION = "walkthrough-2";
 
 /** Has this device seen the current walkthrough? (the stored text is the version it saw) */
 export const walkthroughSeen = (stored: string | null | undefined): boolean => stored?.trim() === WALKTHROUGH_VERSION;
 
-/** What a card draws above its words: a named picture the surface builds from the app's own pieces. */
-export type WalkthroughArt = "modes" | "days" | "tap" | "offline";
+/**
+ * (T257) What a step of the tour points at, on the Map tab: the date bar, the Standard / Salmon / Run timing switch, the
+ * map itself (a spot in its middle: "tap here"), the Conditions and Runs tabs, and the refresh button with the bell beside it. The
+ * surface registers each control under its key; a control that is not on screen drops its step.
+ */
+export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "tab:runs" | "sync" | "bell";
 
 export interface WalkthroughCard {
-  readonly key: WalkthroughArt;
+  readonly key: string;
+  /** the controls it points at (their union); the first is the step's own */
+  readonly targets: readonly WalkthroughTarget[];
   readonly title: string;
   readonly body: string;
 }
 
 export const WALKTHROUGH_WORDS = {
-  /** the sheet's name aloud */
-  label: "Welcome",
+  /** the tour's name aloud */
+  label: "Welcome tour",
   next: "Next",
   back: "Back",
   skip: "Skip",
   done: "Start exploring",
   step: (i: number, n: number) => `${i} of ${n}`,
-  /** the Help page's button that shows the cards again */
+  /** the Help page's button that shows the tour again */
   again: "Show the walkthrough again",
   cards: [
-    { key: "modes", title: "Three ways to read the map",
-      body: `${SALMON_WORDS.toggle.standard} shows what the regulations allow on each water. ${SALMON_WORDS.toggle.salmon} `
-        + `paints DFO's salmon rules instead. ${RUN_WORDS.mode} shows when each run is in the water. Switch under the Layers button.` },
-    { key: "days", title: "Pick the day",
-      body: `The date bar in the map's corner colours the map for ${DAY_PICKER.todaySaid}, ${DAY_PICKER.tomorrowSaid} or any `
-        + "day you choose, because seasons and closures change through the year." },
-    { key: "tap", title: "Tap a water",
-      body: "Tap any stream or lake to open its regulations for the day you chose. Switch to Conditions to see what the "
-        + "river is doing, and to the map to see where you are." },
-    { key: "offline", title: "Works offline",
-      body: "The regulations are kept on your device, so they work with no signal. The refresh button brings in new data "
-        + "when you are online, and the bell lists in-season changes and anything that could not update." },
+    { key: "days", targets: ["days"], title: "Pick the day",
+      body: `The map colours every water for ${DAY_PICKER.todaySaid}, ${DAY_PICKER.tomorrowSaid} or any date you choose, `
+        + "because seasons and closures change through the year." },
+    { key: "modes", targets: ["modes"], title: "Three ways to read the map",
+      body: `${SALMON_WORDS.toggle.standard} shows what the regulations allow. ${SALMON_WORDS.toggle.salmon} paints DFO's `
+        + `salmon rules instead, and ${RUN_WORDS.mode} shows when each run is in the water.` },
+    { key: "map", targets: ["map"], title: "Tap a water",
+      body: "Tap any stream or lake to open its regulations for the day you chose." },
+    { key: "conditions", targets: ["tab:conditions"], title: "See what the river is doing",
+      body: "Conditions colours the rivers from the gauges, and every water has a Conditions view beside its regulations." },
+    { key: "runs", targets: ["tab:runs"], title: "When the fish are in",
+      body: "Runs shows when each run of fish is in the water, through the year." },
+    { key: "sync", targets: ["sync", "bell"], title: "Works offline",
+      body: "The regulations are kept on your device. The refresh button brings in new data when you are online; the bell "
+        + "beside it lists in-season changes and anything that could not update. Replay this tour from More → Help." },
   ] satisfies readonly WalkthroughCard[],
 } as const;
 

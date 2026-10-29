@@ -310,7 +310,7 @@ function Key({ palette, label, swatch, colour }: {
     <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
       <View style={{ width: 16, height: 9, justifyContent: "center" }}>
         {swatch === "fill" || swatch === "faintfill" ? (
-          <View style={{ height: 9, borderRadius: 2, backgroundColor: colour,
+          <View style={{ height: 9, backgroundColor: colour,
                          opacity: swatch === "fill" ? 0.11 : 0.06 }} />
         ) : (
           <View style={{ height: 0, borderTopWidth: 2, borderTopColor: colour,

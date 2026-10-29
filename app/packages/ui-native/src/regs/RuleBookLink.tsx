@@ -6,7 +6,7 @@
  * Drawn alone (SourceLine) or nested inside a line's Text (LineText's book run): it is a Text either way.
  */
 import { Text, View } from "react-native";
-import { FishSpinner } from "../FishSpinner";
+import { LoadingState } from "../LoadingState";
 import { bookText, WORDS } from "@app/core";
 import type { SourceBox } from "@app/core";
 import { TYPE, type TextStyle } from "../type";
@@ -39,7 +39,7 @@ export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, b
     <RegsPress accessibilityRole="link" accessibilityLabel={WORDS.BOOK_A11Y(printed)} onPress={() => { void (box ? onBook(pdf, box) : onBook(pdf)); }}
                box={{ w: bare ? 24 : MIN_HIT, h: TYPE.metaBold.lineHeight }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-        {loading !== null && <FishSpinner palette={palette} size={22} label={loading} />}
+        {loading !== null && <LoadingState palette={palette} size={22} label={loading} />}
         <Text style={[face, { color: palette.accent }]}>{words}</Text>
       </View>
     </RegsPress>

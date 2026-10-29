@@ -4,10 +4,11 @@
  * place not drawn yet tagged "Location not yet mapped". Words are core's (`salmonCard`, pinned whole there); this pins
  * where they land. And the map's Standard / Salmon toggle: a radio pair whose press only sets the choice.
  */
-import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { salmonCard, type RegsPage, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
+import { SPINNER_TIMING } from "../LoadingState";
 import { RegsScreen } from "./RegsScreen";
 import { SalmonCard } from "./SalmonCard";
 import { RegsLayerToggle } from "../shell/RegsLayerToggle";
@@ -111,12 +112,19 @@ describe("the Standard / Salmon switch (beside the day strip, top left)", () => 
     expect(set).toEqual(["salmon"]);
   });
 
-  it("T182 (web): while the first press's salmon file loads, Salmon is the choice and reads Loading…, busy", () => {
-    const col = { regsLayer: "salmon", salmonLoading: true, setRegsLayer: () => {} } as unknown as MapColouring;
-    render(<RegsLayerToggle col={col} palette={LIGHT} />);
-    const sal = screen.getByTestId("regs-paint-salmon");
-    expect([sal.getAttribute("aria-checked"), sal.getAttribute("aria-busy"), sal.textContent])
-      .toEqual(["true", "true", "Loading…"]);
+  it("T182 (web): while the first press's salmon file loads, Salmon is the choice and busy; (T257) the fish turns in its icon's place", () => {
+    vi.useFakeTimers();
+    try {
+      const col = { regsLayer: "salmon", salmonLoading: true, setRegsLayer: () => {} } as unknown as MapColouring;
+      render(<RegsLayerToggle col={col} palette={LIGHT} />);
+      const sal = screen.getByTestId("regs-paint-salmon");
+      expect([sal.getAttribute("aria-checked"), sal.getAttribute("aria-busy"), sal.textContent])
+        .toEqual(["true", "true", "Salmon"]);
+      // a quick load shows no spinner; a slow one shows the one spinner after its delay
+      expect(within(sal).queryByRole("progressbar")).toBeNull();
+      act(() => { vi.advanceTimersByTime(SPINNER_TIMING.showAfterMs); });
+      expect(within(sal).getByRole("progressbar")).toBeTruthy();
+    } finally { vi.useRealTimers(); }
   });
 });
 

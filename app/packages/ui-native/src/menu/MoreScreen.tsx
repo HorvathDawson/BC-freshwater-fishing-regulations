@@ -21,7 +21,7 @@ import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { useLayoutClass, useNet, useNetBps } from "@app/ui";
 import { dataModeLine, menuVM, NET_WORDS, UPDATE_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
 import { TYPE } from "../type";
-import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName } from "../theme";
+import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName, round } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
 import { DottedSwatch } from "../Chrome";
 import { Icon } from "../icons";
@@ -337,10 +337,10 @@ function DisplayTiles({ vm, palette, theme, onTheme }: {
                   </View>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8, paddingVertical: 7,
                                  borderTopWidth: 1, borderTopColor: palette.line }}>
-                    <View style={{ width: 14, height: 14, borderRadius: 7, borderWidth: 1.5,
+                    <View style={{ width: 14, height: 14, borderRadius: round(14), borderWidth: 1.5,
                                    borderColor: on ? palette.accent : palette.faint, alignItems: "center",
                                    justifyContent: "center" }}>
-                      {on && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: palette.accent }} />}
+                      {on && <View style={{ width: 6, height: 6, borderRadius: round(6), backgroundColor: palette.accent }} />}
                     </View>
                     <Text numberOfLines={1} style={{ ...TYPE.metaBold, flexShrink: 1, color: on ? palette.ink : palette.sub }}>
                       {o.t}
