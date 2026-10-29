@@ -13,7 +13,7 @@ import { useCoachTarget } from "./CoachMarks";
 import { Icon } from "./icons";
 import { hitProps } from "./regs/hit";
 import type { FishImages } from "./regs/types";
-import { TYPE } from "./type";
+import { LEGEND_TEXT, TYPE } from "./type";
 import { round, type Palette } from "./theme";
 
 const CHIP_HIT = hitProps({ w: 72, h: 40 });
@@ -160,7 +160,7 @@ export function RunDayCaption({ pentad, today, title, onToday, onHelp, palette }
           {RUN_WORDS.slider.value(pentad, pentad === today)}
         </Text>
         {title && (
-          <Text testID="runs-legend-title" numberOfLines={1} style={{ ...TYPE.small, fontSize: 13, color: palette.sub }}>
+          <Text testID="runs-legend-title" numberOfLines={1} style={{ ...TYPE.small, fontSize: LEGEND_TEXT, color: palette.sub }}>
             {title}
           </Text>
         )}

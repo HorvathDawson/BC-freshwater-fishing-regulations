@@ -173,7 +173,7 @@ export const MENU_WORDS = {
     orEmail: "Or send it yourself:",
     /** "Where you were": the map's colouring when the report was asked */
     envLine: (env: string) => `Data: ${env}`,
-    modes: { standard: "Standard", salmon: "Salmon", runs: "Run timing" },
+    modes: { standard: "Trout & more", salmon: "Salmon", runs: "Run timing" },
     /** the diagnostics' switches, in the order the form lists them */
     diag: {
       app: "App version", platform: "Platform", release: "Data release", tiles: "Map tiles",

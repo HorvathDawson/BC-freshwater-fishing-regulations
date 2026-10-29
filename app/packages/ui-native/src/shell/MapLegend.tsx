@@ -16,7 +16,7 @@ import { Pressable, Text, View } from "react-native";
 import { RunDayCaption, RunDaySlider } from "../RunsControls";
 import { LegendCount, LegendRamp, LegendStrip } from "../Chrome";
 import { legendColour } from "../LayersSheet";
-import { TYPE } from "../type";
+import { LEGEND_TEXT, TYPE } from "../type";
 import { changeRampStops, flowRampStops, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 
@@ -141,7 +141,7 @@ export function RunsLegend({ col, palette, theme, onHelp }: { col: MapColouring;
           <Pressable testID={r.problem ? "runs-legend-problem" : "runs-legend-loading"} onPress={() => setOpen((o) => !o)}
                      accessibilityRole="button" accessibilityLabel={note}>
             <Text numberOfLines={open ? undefined : 1}
-                  style={{ ...TYPE.small, fontSize: 13, lineHeight: 18, color: palette.sub }}>{note}</Text>
+                  style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: palette.sub }}>{note}</Text>
           </Pressable>
         )}
       </View>

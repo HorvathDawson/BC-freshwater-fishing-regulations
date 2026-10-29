@@ -66,3 +66,11 @@ describe("the Map tab's legend strip", () => {
       .toEqual([LIGHT.survey[0], LIGHT.survey[1], LIGHT.water[0]]);
   });
 });
+
+describe("(T283) the legend's words are large enough to read, in every mode", () => {
+  it("a legend entry's label and count draw at the legend floor (15 px), never the old 11.5", () => {
+    render(<LegendCount palette={LIGHT} colour={LIGHT.waterStatus.closed} n={3} label="Closed today" />);
+    expect((screen.getByText("Closed today") as HTMLElement).style.fontSize).toBe("15px");
+    expect((screen.getByText("3") as HTMLElement).style.fontSize).toBe("15px");
+  });
+});

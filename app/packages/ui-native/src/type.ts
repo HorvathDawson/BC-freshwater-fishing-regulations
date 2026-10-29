@@ -33,6 +33,9 @@ export interface TextStyle {
   letterSpacing?: number; textTransform?: "uppercase";
 }
 
+/** (T283) the map legend's words, one size in every map mode (it was 11.5, hard to read on a phone): the legend text floor. */
+export const LEGEND_TEXT = 15;
+
 export const TYPE = {
   /** A water's name at the top of its sheet. */
   title:    { fontFamily: FACE.displayHeavy, fontSize: 30, lineHeight: 34, letterSpacing: -0.7 },

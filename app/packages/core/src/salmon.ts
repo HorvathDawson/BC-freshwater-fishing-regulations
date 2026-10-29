@@ -278,7 +278,7 @@ export const SALMON_WORDS = {
   noteTwoAuthorities: "Salmon are set by DFO, not the provincial regulations above. Both apply.",
   legendTitle: "Salmon, from DFO",
   toggle: {
-    standard: "Standard", salmon: "Salmon",
+    standard: "Trout & more", salmon: "Salmon",
     label: "Colour the regulations by",
     /** (T182) the web reads the salmon file on the first press of Salmon: the choice says so while it loads */
     loading: "Loading…",

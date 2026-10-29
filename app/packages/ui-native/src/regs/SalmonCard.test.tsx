@@ -103,7 +103,7 @@ describe("the Standard / Salmon switch (beside the day strip, top left)", () => 
     render(<RegsLayerToggle col={col} palette={LIGHT} />);
     const [std, sal] = [screen.getByTestId("regs-paint-standard"), screen.getByTestId("regs-paint-salmon")];
     expect([std, sal].map((e) => [e!.getAttribute("aria-checked"), e!.textContent]))
-      .toEqual([["true", "Standard"], ["false", "Salmon"]]);
+      .toEqual([["true", "Trout & more"], ["false", "Salmon"]]);
     expect(screen.getByTestId("regs-paint").getAttribute("role")).toBe("radiogroup");
     expect([std, sal].map((e) => e!.getAttribute("role"))).toEqual(["radio", "radio"]);
     expect(screen.getByTestId("icon-fish")).toBeTruthy();

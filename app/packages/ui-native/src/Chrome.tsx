@@ -7,7 +7,7 @@
 import { FLOW_LEGEND, legendCount, legendTickLabel, percentileOrdinal, standing } from "@app/core";
 import { ScrollView, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
-import { TYPE } from "./type";
+import { LEGEND_TEXT, TYPE } from "./type";
 import type { Palette } from "./theme";
 
 /**
@@ -27,9 +27,9 @@ export function LegendStrip({ palette, children, full, wrap }:
   if (wrap) {
     return (
       <View testID="legend-strip"
-            style={{ flexGrow: 0, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 14,
-                     rowGap: 5, borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
-                     paddingHorizontal: 14, paddingVertical: 7 }}>
+            style={{ flexGrow: 0, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 16,
+                     rowGap: 6, borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
+                     paddingHorizontal: 14, paddingVertical: 9 }}>
         {children}
       </View>
     );
@@ -67,18 +67,18 @@ export function LegendStrip({ palette, children, full, wrap }:
  * (T165) A DOTTED line swatch, the same 14 × 3 box as a solid one: three dashes with gaps, the map's `stream-noaccess`
  * pattern at legend size (Views, so it draws the same on web and native — `borderStyle: "dotted"` does not).
  */
-export function DottedSwatch({ colour, width = 14 }: { colour: string; width?: number }) {
-  const n = Math.max(2, Math.round(width / 5));
+export function DottedSwatch({ colour, width = 14, thick = 3 }: { colour: string; width?: number; thick?: number }) {
+  const n = Math.max(2, Math.round(width / (thick + 2)));
   return (
-    <View testID="swatch-dotted" style={{ width, height: 3, flexDirection: "row", justifyContent: "space-between" }}>
-      {Array.from({ length: n }, (_, i) => <View key={i} style={{ width: 3, height: 3, backgroundColor: colour }} />)}
+    <View testID="swatch-dotted" style={{ width, height: thick, flexDirection: "row", justifyContent: "space-between" }}>
+      {Array.from({ length: n }, (_, i) => <View key={i} style={{ width: thick, height: thick, backgroundColor: colour }} />)}
     </View>
   );
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, edge, big }:
-  { palette: Palette; /** (T276) larger, for the Runs foot on a phone */ big?: boolean; colour: string; n?: number; label: string;
+export function LegendCount({ palette, colour, n, label, line, dotted, edge }:
+  { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
      * the same width: no status is drawn wider than another, so the key must not suggest one.
@@ -92,16 +92,16 @@ export function LegendCount({ palette, colour, n, label, line, dotted, edge, big
      */
     edge?: "solid" | "dashed" }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
       {edge ? <View testID={`legend-edge-${edge}`}
-                    style={{ width: 16, height: 7, borderWidth: 1.25, borderColor: colour, borderStyle: edge }} />
-        : line && dotted ? <DottedSwatch colour={colour} /> : <View style={line
-        ? { width: 14, height: 3, backgroundColor: colour }
-        : { width: 9, height: 9, borderRadius: palette.r.chip, backgroundColor: colour }} />}
+                    style={{ width: 22, height: 10, borderWidth: 1.5, borderColor: colour, borderStyle: edge }} />
+        : line && dotted ? <DottedSwatch colour={colour} width={20} thick={4} /> : <View style={line
+        ? { width: 20, height: 4, backgroundColor: colour }
+        : { width: 12, height: 12, borderRadius: palette.r.chip, backgroundColor: colour }} />}
       {n !== undefined && (
-        <Text style={{ ...TYPE.figure, fontSize: 11.5, color: palette.ink }}>{n}</Text>
+        <Text style={{ ...TYPE.figure, fontSize: LEGEND_TEXT, color: palette.ink }}>{n}</Text>
       )}
-      <Text style={{ ...TYPE.small, fontSize: big ? 13.5 : 11.5, color: palette.sub }}>{label}</Text>
+      <Text style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: palette.sub }}>{label}</Text>
     </View>
   );
 }
