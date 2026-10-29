@@ -473,7 +473,7 @@ describe("the Regulations screen's report link (T41 Q3, Claude 2026-10-22: once,
                     licence={<Text>licence section</Text>} />
       </MenuContext.Provider>);
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "regs-legal", "report-link", "regs-fish-credits"]);   // (T43) the foot credits last
+      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "regs-legal", "report-link"]);   // (owner 2026-10-29) no fish credits at the foot: Sources page only
     expect(screen.getAllByText("Report a problem with this page")).toHaveLength(1);
     // (T41 Q3 review) it reports the whole page: whichever tab the row has selected, the report names no tab
     for (const t of ["methods", "keep", "licence", "gear"] as const) {
