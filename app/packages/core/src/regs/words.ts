@@ -107,7 +107,8 @@ export const WORDS = Object.freeze({
   WHERE: (p: string) => "Where: " + p,
   WHERE_SIGNS: "Where: some spots, marked by buoys and signs. Look for signs.",
   // (T208) a rule held on an area of the water the book maps: "Outlet area only (see map 1): …", the map's link after it
-  AREA_ONLY: (lead: string, map: string | null) => lead + " only (" + (map ? "see " + map : "see the map") + ")",
+  // the map named ("see map 1"), the book's map unnamed ("see the map"), or no map at all (an outlet the book only words): none
+  AREA_ONLY: (lead: string, map: string | null | false) => lead + " only" + (map === false ? "" : " (" + (map ? "see " + map : "see the map") + ")"),
   AREA_OUTLET: "Outlet area", AREA_INLET: "Inlet area", AREA_PART: (noun: string) => "Part of this " + noun,
   AREA_MAP: (map: string | null) => "See " + (map ?? "the map") + " · ",
   MAP_IN_REGS: "(map $1 in the regulations)",

@@ -108,6 +108,16 @@ describe("inPartOf: rules of parts the map can't draw", () => {
     const plainSpot = inPartOf(settled({ inpart: [{ rule: whole, now: true }] }), win, KEEP_FAMS)!;
     expect(["areas" in plainSpot, "areaNow" in plainSpot]).toEqual([false, false]);   // no area: the block as before
   });
+  it("T208: an outlet / inlet rule the book gives no map for names its area and claims no map; an unnamed book map says 'see the map'", () => {
+    const win = { item: { kind: "lake" }, statics: { pdfPages: { 28: 30 } } } as unknown as RegsInputs;
+    const ruby = view(4, 3351, { label: "No fishing" }, { undrawn_part: "in the outlet bay within 100 m of the head of Ruby Creek" }, { book: [] });
+    const inlet = view(5, 3351, { label: "No fishing" }, { undrawn_part: "within 100 m of the mouth of the inlet stream" }, { book: [] });
+    const m = view(6, 3351, { label: "No fishing" }, { undrawn_part: "within fishing boundary signs at the western tip of the lake" }, { book: [] });
+    const mahood = ruleView(6, { ...m.export, not_yet_mapped: { part: m.part!, identified: true, map: { name: null, page: 28, cite: "the map on p.28" } } } as never, m.facts, BOOK, "reach");
+    const c = inPartOf(settled({ inpart: [{ rule: ruby, now: true }, { rule: inlet, now: true }, { rule: mahood, now: true }] }), win, KEEP_FAMS)!;
+    expect(c.items.map((x) => [x.area?.tag, x.area?.map ? plain(x.area.map) : null])).toEqual([
+      ["Outlet area only", null], ["Inlet area only", null], ["Part of this lake only (see the map)", "See the map · p.28 ↗"]]);
+  });
   it("another family's rules are not this block's; none → null", () => {
     expect(inPartOf(settled({ inpart: [{ rule: boat, now: true }] }), inp, KEEP_FAMS)).toBeNull();
   });

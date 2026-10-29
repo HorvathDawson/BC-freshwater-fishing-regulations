@@ -37,3 +37,15 @@ not to the whole lake and not buried.
   day the area rule holds (François Nov 21: "No fishing · Nov 15–May 31" with "See map 1 · p.51 ↗" shown at once). Blocks
   without an area are unchanged (golden parity holds). Tests: `caveats.test.ts`, `ui-native/regs/CaveatArea.test.tsx`.
   Shots: `T208-shots/` (web, :39218). The map sheet draws the same Keep tab. Still PARTIAL: the drawn outline waits on lake splits.
+
+## Outcome 3 (2026-10-29 overnight, the list + a wording fix)
+- THE LIST (work item 3), measured from `data/generated/regs/ui-rules-export.json`: 83 rules carry `not_yet_mapped`; 30
+  have an area the app tags (an outlet/inlet part, or a `not_yet_mapped.map`), and NO rule whose part or words cite a map
+  is left without a tag (0 gaps). Mapped: François r1 (map 1, p.51); Shuswap r1/r2 (map A), r3 (map B), r4 (map C), r5,
+  r5x, r11x (p.28, unnamed); Mahood r1–r4 (p.28); Canim r1 (p.42). Outlet/inlet only: Ruby r1, Leighton r1/r2, Loon r2,
+  Mahood r5–r8, Mitchell r1, Buckinghorse r1, Helene r1, Klahowya r1, Silverthorne r1, Letain r1, Rainbow Lakes r1,
+  Wolverine r1, Mabel r1.
+- FIXED: an outlet/inlet rule with NO book map read "Outlet area only (see the map)" — a map that does not exist (17 of
+  the 30). Now "Outlet area only" (core `WORDS.AREA_ONLY(lead, false)`); a book map without a name still says "(see the
+  map)" with its page linked. Test: `caveats.test.ts` (Ruby / inlet / Mahood shapes).
+- Still PARTIAL: the drawn outline waits on lake splits (deferred by the owner, memory `lake-splits-deferred`).

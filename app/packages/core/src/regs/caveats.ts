@@ -77,7 +77,7 @@ export function areaOf(r: RuleView, inp: RegsInputs): CaveatItemVM["area"] | nul
   const edge = /\boutlet\b/i.test(part) ? WORDS.AREA_OUTLET : /\binlet\b/i.test(part) ? WORDS.AREA_INLET : null;
   if (!mp && !edge) return null;
   const lead = edge ?? WORDS.AREA_PART(pageWaterNoun(inp));
-  return { tag: WORDS.AREA_ONLY(lead, mp ? mp.name : null),
+  return { tag: WORDS.AREA_ONLY(lead, mp ? mp.name : false),   // (T208) no map: never "see the map"
            map: mp ? [text(WORDS.AREA_MAP(mp.name)), { t: "book", printed: mp.page, pdf: inp.statics.pdfPages[mp.page] ?? null, bare: true }] : null };
 }
 
