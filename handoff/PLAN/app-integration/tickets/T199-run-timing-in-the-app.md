@@ -23,7 +23,7 @@ stocked and bathy maps." Follows T162 (data + plan, PARTIAL).
 
 Band: last ("Data feeds at the end"), with T200 and T201.
 
-## Outcome (2026-10-28) — PARTIAL: its own stream + the Run timing mode; step 2 (refining the data) not done
+## Outcome (2026-10-28, 318a07dd) — PARTIAL: its own stream + the Run timing mode; step 2 (refining the data) not done
 
 Owner 2026-10-28: start T199 as ITS OWN STREAM, not the regs / bundle / release; Q144 answered with the defaults
 (steelhead; spawning solid, passage dashed; its own mode with its own paint index). The release plan of T162
