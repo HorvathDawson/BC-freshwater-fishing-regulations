@@ -143,8 +143,6 @@ DEFAULT_CACHE = "data/source/dfo_tidal_areas/2026-10-28/fm-gp/rec/definitions-en
 DEFAULT_QUOTE = ("Tidal water boundary: Unless otherwise specified, the tidal boundary is a straight line drawn between "
                  "the two most seaward points of land located on either side of the mouth of a river or stream.")
 DEFAULT_REASON = "DFO default (unless otherwise specified): the mouth"
-#: the polygon's top crossing this close (m) to the FWA mouth IS the mouth (`tidal_candidates.AT_MOUTH_M`)
-DEFAULT_POLY_M = 75.0
 #: a DFO line in tidal water this close (m) above the mouth is at the mouth (`tidal_pass2.MOUTH_TOL_M`)
 DEFAULT_LINE_M = 150.0
 
@@ -168,52 +166,83 @@ def specified_by(r: dict, evs: list) -> list[str]:
     return out
 
 
-def default_verdict(r: dict, evs: list) -> Optional[dict]:
-    """DFO'S DEFAULT (owner 2026-10-28): a stream nothing specifies (`specified_by` empty) takes the boundary
-    at its FWA mouth — "high", or "conflict" where the tidal polygon's top crossing sits above the mouth, a
-    DFO line in tidal water crosses it above the mouth, or pass 2 found an upstream source (listed, not
-    moved). None: something specifies the boundary."""
-    if specified_by(r, evs):
-        return None
-    m0 = float((r.get("mouth") or {}).get("measure") or 0.0)
-    against = []
-    poly = r.get("polygon") or {}
-    if poly.get("crossing") in ("clean", "blobs", "at_mouth") and poly.get("measure") is not None:
-        up = float(poly["measure"]) - m0
-        if up > DEFAULT_POLY_M:
-            against.append(f"the tidal polygon crosses {up:.0f} m above the mouth"
-                           + (" (owner-edited polygon)" if (r.get("triage") or {}).get("edited") else ""))
+#: OWNER-STATED BOUNDARIES (words in their own right): Nitinat Lake is a tidal lagoon, so it and the river
+#: below are tidal — the cut is where the Nitinat River enters the lake (FWA: the top of the lake's
+#: construction line, WATERBODY_KEY 329504244)
+OWNER_STATED = {
+    "tidal:354155007": {"measure": 23306.5, "coord": [-124.681897, 48.821445],
+                        "words": "owner 2026-10-28: Nitinat Lake and below are tidal",
+                        "label": "head of Nitinat Lake (tidal boundary)"},
+}
+
+
+def words_conflict(r: dict, evs: list, p2: dict | None) -> list[str]:
+    """WHERE WORDS DISAGREE (owner 2026-10-28: only words make a conflict, never the polygon): a DFO line in
+    tidal water crossing the stream above the mouth, a pass-2 source naming an upstream boundary, or a
+    located pass-2 entry the owner's mark breaks."""
+    out = []
     for e in evs:
         lo = e.get("located") or {}
         if e.get("effective") == "at_or_above" and lo.get("above_mouth_m") is not None and lo["above_mouth_m"] > DEFAULT_LINE_M:
-            against.append(f"a DFO line in tidal water crosses {lo['above_mouth_m']:.0f} m above the mouth ({e.get('label') or e.get('entry')})")
-    if r.get("dfo_mouth") == "conflict":
-        against.append(f"pass 2: {r.get('dfo_mouth_why')}")
+            out.append(f"a DFO line in tidal water crosses {lo['above_mouth_m']:.0f} m above the mouth ({e.get('label') or e.get('entry')})")
+    dm = (p2 or {}).get("dfo_mouth") or {}
+    if dm.get("upstream_sources"):
+        out.append(f"upstream sources: {'; '.join(dm['upstream_sources'][:3])}")
+    if (p2 or {}).get("mark_conflict"):
+        out.append(f"words disagree with the owner's mark ({', '.join((p2.get('mark_conflict_entries') or [])[:3])})")
+    return out
+
+
+def default_verdict(r: dict, evs: list, p2: dict | None = None) -> Optional[dict]:
+    """DFO'S DEFAULT (owner 2026-10-28): a stream nothing specifies (`specified_by` empty) takes the boundary
+    at its FWA mouth — "high", or "conflict" where WORDS disagree (`words_conflict`). THE POLYGON IS IGNORED
+    for cuts (owner 2026-10-28): it only draws the labelled tidal area on the map. None: words specify it."""
+    if specified_by(r, evs):
+        return None
     unlocated = [s for s in r.get("sources") or [] if s.get("kind") != "tidal_gauge" and s.get("measure") is None]
     note = (f"; {len(unlocated)} source(s) mention a boundary but locate nothing (e.g. {unlocated[0].get('source')})"
             if unlocated else "; no source specifies a boundary")
+    against = words_conflict(r, evs, p2)
     if against:
         return {"verdict": "conflict", "why": f"{DEFAULT_REASON}{note} — but {'; '.join(against)}"}
     return {"verdict": "high", "why": f"{DEFAULT_REASON}{note}"}
 
 
+def _mouth_proposal(r: dict, measure: float, coord, basis: str, label: str) -> dict:
+    above = round(measure - float((r.get("mouth") or {}).get("measure") or 0.0), 1)
+    return {"measure": measure, "coord": coord, "above_mouth_m": above, "basis": basis, "split_label": label,
+            "split_name": f"{r['water']}: {label}", "aliases": [] if above < 1 else ["tidal boundary"], "reuse": None}
+
+
 def apply_default(by_id: dict, doc2: dict | None) -> dict:
-    """THE DFO DEFAULT on every candidate, additively (`proposed`, `polygon`, `sources` untouched — no mark
-    goes stale): `specified` (what names the boundary), `dfo_default` high | conflict | None and its `why`;
-    a default row gains the definitions page as evidence. The default's own grade is `dfo_default` ("high"):
-    `confidence` stays the candidate's, since `proposals` grades a non-mouth cut by it (a mouth cut has none)."""
+    """THE CUT COMES ONLY FROM WORDS OR DFO'S DEFAULT (owner 2026-10-28), at load, additively. Per candidate:
+    `specified` (what names the boundary), `words_conflict`, `dfo_default` high | conflict | None + `why`. A
+    default row's `proposed` becomes the FWA mouth (a polygon proposal is dropped; an owner-stated boundary —
+    Nitinat — is proposed where stated); the file's own proposal is kept as `proposed_t212`, which `prints`
+    holds marks against, so no mark goes stale. `confidence` stays the candidate's (`proposals` grades a
+    non-mouth cut by it; the default's grade is `dfo_default`)."""
     import copy
-    evs_by = {p["id"]: p.get("evidence") or [] for p in (doc2 or {}).get("proposals") or []}
+    p2_by = {p["id"]: p for p in (doc2 or {}).get("proposals") or []}
     out = {}
     for cid, r0 in by_id.items():
         r = copy.deepcopy(r0)
-        evs = evs_by.get(cid, [])
-        r["specified"] = specified_by(r, evs)
-        dv = default_verdict(r, evs)
+        p2 = p2_by.get(cid)
+        evs = (p2 or {}).get("evidence") or []
+        stated = OWNER_STATED.get(cid)
+        r["specified"] = ([stated["words"]] if stated else []) + specified_by(r, evs)
+        r["words_conflict"] = words_conflict(r, evs, p2)
+        dv = None if stated else default_verdict(r, evs, p2)
         r["dfo_default"] = dv["verdict"] if dv else None
         r["dfo_default_why"] = dv["why"] if dv else None
-        if dv:
-            mouth = r.get("mouth") or {}
+        mouth = r.get("mouth") or {}
+        if stated:
+            r["proposed_t212"] = r.get("proposed")
+            r["proposed"] = _mouth_proposal(r, stated["measure"], stated["coord"], f"the words: {stated['words']}", stated["label"])
+            r["alternates"] = [{**a, "proposed": False} for a in r.get("alternates") or []] + [
+                {"id": "owner0", "kind": "words", "label": stated["words"], "measure": stated["measure"],
+                 "above_mouth_m": r["proposed"]["above_mouth_m"], "coord": stated["coord"], "words": stated["words"],
+                 "proposed": True, "supported": True}]
+        elif dv:
             t = r.setdefault("triage", {"class": None, "web": []})
             t["web"] = [{"id": "dfo-default", "marker": DEFAULT_REASON, "kind": "dfo_default", "quote": DEFAULT_QUOTE,
                          "url": DEFAULT_URL, "site": f"DFO Pacific recreational fishing definitions (cached: {DEFAULT_CACHE})",
@@ -221,6 +250,13 @@ def apply_default(by_id: dict, doc2: dict | None) -> dict:
                          "located": ({"measure": mouth.get("measure"), "coord": mouth.get("coord"), "located_by": "the FWA mouth"}
                                      if mouth.get("coord") else None),
                          "agrees": dv["verdict"] == "high"}, *(t.get("web") or [])]
+            if mouth.get("coord") is not None:
+                r["proposed_t212"] = r.get("proposed")
+                r["proposed"] = _mouth_proposal(r, float(mouth.get("measure") or 0.0), mouth["coord"], DEFAULT_REASON,
+                                                "mouth (tidal boundary)")
+                r["alternates"] = [{**a, "proposed": a.get("kind") == "mouth",
+                                    **({"label": f"{a.get('label')} (ignored for cuts)"} if a.get("kind") == "polygon" else {})}
+                                   for a in r.get("alternates") or []]
         out[cid] = r
     return out
 
@@ -266,7 +302,8 @@ def _h(obj) -> str:
 
 def prints(row: dict) -> dict:
     """THE PRINTS of a candidate (`marks.Prints` shape): no book text; one `split:<id>` record."""
-    pr = row.get("proposed") or {}
+    # held against the FILE's proposal (`proposed_t212` when the default / an owner-stated boundary replaced it)
+    pr = row.get("proposed_t212") or row.get("proposed") or {}
     meaning = {"water": row.get("water"), "blk": row.get("blk"), "measure": pr.get("measure"),
                "label": pr.get("split_label")}
     binding = {"polygon": row.get("polygon"),

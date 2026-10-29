@@ -1188,6 +1188,8 @@ export interface TidalRow {
   dfo_default_why?: string | null;
   /** what names the boundary itself, located on the line (empty: nothing specifies it) */
   specified?: string[];
+  /** where WORDS disagree with the mouth / the owner's mark (the polygon never makes a conflict) */
+  words_conflict?: string[];
   /** the mark in force is the owner's un-accept (deferred): the default bulk accept may take it */
   unaccepted?: boolean;
 }

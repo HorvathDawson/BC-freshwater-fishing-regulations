@@ -53,7 +53,8 @@ def groups(rows: list[dict]) -> dict:
     sel = {"words": [r for r in rows if r["specified"]],
            "dfo_mouth": [r for r in rows if r["dfo_mouth"] in ("upgrade", "new")],
            "dfo_default": [r for r in rows if r["dfo_default"] == "high"],
-           "conflict": [r for r in rows if r["dfo_default"] == "conflict" or r["dfo_mouth"] == "conflict"]}
+           # only WORDS make a conflict (owner 2026-10-28: the polygon is ignored for cuts)
+           "conflict": [r for r in rows if r["words_conflict"]]}
     out = {k: {"total": len(v), "marked": sum(1 for r in v if _marked(r))} for k, v in sel.items()}
     out["unmarked"] = {"total": len(rows), "marked": sum(1 for r in rows if _marked(r)),
                        "unmarked": sum(1 for r in rows if r["verify"] == "unmarked")}
@@ -95,6 +96,7 @@ def _row(r: dict, m) -> dict:
             # DFO DEFAULT (owner 2026-10-28): nothing specifies the boundary -> the mouth; high | conflict | None
             "dfo_default": r.get("dfo_default"), "dfo_default_why": r.get("dfo_default_why"),
             "specified": list(r.get("specified") or []),
+            "words_conflict": list(r.get("words_conflict") or []),
             # un-accepted by the owner (a deferred mark superseding an accept): the default bulk accept may take it
             "unaccepted": bool(m is not None and m.verdict == "deferred" and m.note.startswith(UNACCEPT_NOTE))}
 

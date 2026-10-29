@@ -137,3 +137,9 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
 - Tidal tab: "DFO default: mouth" bucket + chips; "Accept all N at the mouth (DFO default)" takes EVERY default-high
   row in the whole queue (filters ignored) that is unmarked or owner-un-accepted, behind a confirm dialog — one mark
   each at the FWA mouth. Group progress bars (words name it / DFO confirms mouth / DFO default / conflicts / unmarked).
+- **Owner 2026-10-28 (later): the polygon is ignored for cuts** (decisions.md). `apply_default` no longer reads the
+  polygon: a default row's `proposed` is the FWA mouth (the file's proposal kept as `proposed_t212`, which `prints`
+  holds marks against — nothing went stale); polygon alternates are labelled "ignored for cuts"; Nitinat is
+  owner-stated (`OWNER_STATED`, head of Nitinat Lake, 23,306.5 m). Counts now: **default high 1131, default
+  conflict 9, words name it 28; conflicts (words only) 17**; bulk-acceptable 1123. The 5 polygon accepts (Mamin,
+  Adam, Amos, Asseek, Amor De Cosmos) re-marked at the mouth by the owner's call.

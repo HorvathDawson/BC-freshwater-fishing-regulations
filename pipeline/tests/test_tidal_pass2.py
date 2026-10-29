@@ -192,16 +192,25 @@ def test_default_high_when_nothing_specifies():
     assert out["dfo_default"] == "high" and out["specified"] == []
     assert out["confidence"] == "medium"               # a non-mouth cut keeps the candidate's grade (proposals)
     assert out["triage"]["web"][0]["url"] == T.DEFAULT_URL
-    assert out["proposed"]["measure"] == 20.0          # the proposal is never moved (no mark goes stale)
+    assert out["proposed"]["measure"] == 0.0 and out["proposed_t212"]["measure"] == 20.0   # the mouth; file's kept
 
 
-def test_default_conflict_when_polygon_is_upstream_and_unlocated_words_do_not_specify():
+def test_polygon_is_ignored_for_cuts_unlocated_words_do_not_specify():
     from pipeline.regs.review import tidal as T
     r = _cand(polygon={"crossing": "blobs", "measure": 2971.6},
+              proposed={"measure": 2971.6, "above_mouth_m": 2971.6, "split_label": "mouth (tidal boundary)"},
               sources=[{"kind": "synopsis_row", "source": "row", "words": "10 km upstream of the tidal boundary"}])
+    before = T.prints(r)
     out = T.apply_default({"tidal:1": r}, None)["tidal:1"]
-    assert out["dfo_default"] == "conflict" and "2972 m above the mouth" in out["dfo_default_why"]
-    assert out["confidence"] == "medium"
+    assert out["dfo_default"] == "high" and out["proposed"]["above_mouth_m"] == 0.0
+    assert T.prints(out) == before                       # held against the file's proposal: no mark goes stale
+
+
+def test_owner_stated_nitinat_is_words_not_default():
+    from pipeline.regs.review import tidal as T
+    out = T.apply_default({"tidal:354155007": _cand(id="tidal:354155007", water="Nitinat River")}, None)["tidal:354155007"]
+    assert out["dfo_default"] is None and out["specified"][0].startswith("owner 2026-10-28")
+    assert out["proposed"]["measure"] == 23306.5
 
 
 def test_located_source_or_pass2_is_specifies_so_no_default():

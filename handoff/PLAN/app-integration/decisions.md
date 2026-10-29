@@ -1566,3 +1566,20 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
    `municipal` (City of Burnaby waterways map, with its URL); every added-streams variant names its city, and the 3
    `excluded_fwa` names (the removed FWA reach's own gazetted name) are official; the 7 dead Burnaby entries (FWA lines
    the added streams removed) are gone — those names live on the minted streams.
+
+## OWNER 2026-10-28 — tidal splits: words or the DFO default (the mouth); the polygon is ignored for cuts
+- A tidal cut comes only from (a) written words that specify the boundary, located on the line (synopsis box/row,
+  DFO tidal-area page/notice, curated split, a located web sign/bridge/road/rail, a pass-2 entry naming the boundary,
+  or an owner-stated boundary), or (b) DFO's default — "Unless otherwise specified, the tidal boundary is a straight
+  line drawn between the two most seaward points of land … on either side of the mouth" (DFO definitions page,
+  cached `data/source/dfo_tidal_areas/2026-10-28/fm-gp/rec/definitions-eng.html`): the FWA mouth.
+- The DFO tidal polygon makes no proposal and no conflict. It may still draw the labelled tidal area on the map
+  (T166 `tidal_water`), never a cut. Why: a 30-stream sample of the old polygon "conflicts" — 21/30 were the polygon
+  running a narrow strip up the river channel past a mouth that already meets the sea; 6/30 an FWA line running on
+  across a bay.
+- Conflicts only where WORDS disagree with the mouth or with an owner mark (a DFO line in tidal water above the
+  mouth, a source naming an upstream boundary, a pass-2 entry the mark breaks).
+- Nitinat: Nitinat Lake (a tidal lagoon) and the river below are tidal — the cut is where the Nitinat River enters
+  the lake (owner-stated, a words boundary). Clowhom / Chambers: the mouth default unless words say otherwise.
+- Mamin, Adam, Amos, Asseek, Amor De Cosmos: accepted at the mouth (new owner marks superseding polygon accepts).
+- Existing marks are untouched; the review holds them against the file's own proposal, so none went stale.

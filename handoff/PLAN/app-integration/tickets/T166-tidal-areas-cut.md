@@ -103,3 +103,7 @@ bundle proves tiles and reach agree (`bundle.undrawn.tidal_problems`; gauges on 
 the polygon misses; the app draws it (subtle teal, under the water) and a tap opens "Tidal water — DFO rules"
 (253850b9: `tidalSheet`, `TidalSheet`, `pressTidal`; tap order obstacle → water → tidal). Tiles key holds the tidal
 split ids. Tests: `test_tidal_cut.py` (+3), tile inventory / feature-id / stage-key tests.
+
+**Owner 2026-10-28: the DFO tidal polygon is for drawing only.** It may draw the labelled tidal area on the map
+(`tidal_water`), never a cut: tidal cuts come from located words or the DFO default (the mouth). See decisions.md
+"tidal splits: words or the DFO default" and T212.
