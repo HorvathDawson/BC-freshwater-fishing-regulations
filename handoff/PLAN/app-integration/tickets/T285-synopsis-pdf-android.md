@@ -1,6 +1,6 @@
 # T285 — Opening the synopsis PDF fails in the Android app ("couldn't load synopsis")
 
-Status: DONE 2026-10-29 (owner 2026-10-29, on the staging APK). Shots: `handoff/PLAN/app-integration/T285-shots/`.
+Status: DONE 2026-10-29, 0e5f33dc8 (owner 2026-10-29, on the staging APK). Shots: `handoff/PLAN/app-integration/T285-shots/`.
 
 ## Cause (reproduced on the testbed emulator, release r-fa1915a56adb)
 - The installed release's synopsis URL (`<release>/r-xxx/synopsis-<id>.pdf`) answers **404**: staging keeps only the latest

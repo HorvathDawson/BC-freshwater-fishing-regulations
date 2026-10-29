@@ -328,7 +328,7 @@ use that as the sole source of future work."
 | T282 | Web app bundle 4 MB → lazy chunks so the app takes over fast on slow lines (43 s on Fast 3G today) | OPEN | — | T269 finding 2026-10-29 |
 | T283 | "Standard" map mode renamed "Trout & more"; legend text larger in every mode | DONE | 0438013fa | owner 2026-10-29 |
 | T284 | Spot page restructured: That day · What you added · The next few days (similarity + why); phone + desktop layouts | DONE | 85e854da2 | owner 2026-10-29 |
-| T285 | Synopsis PDF fails to open in the Android app ("couldn't load synopsis") | DONE | see commit | cause: replaced release's PDF 404; native download + live-manifest alternate, About via openBook, Close on the failed card |
+| T285 | Synopsis PDF fails to open in the Android app ("couldn't load synopsis") | DONE | 0e5f33dc8 | cause: replaced release's PDF 404; native download + live-manifest alternate, About via openBook, Close on the failed card |
 | T286 | Tap → regulations instant on phones (≤150 ms to content, never a spinner): measure, batch reads, cache, prefetch on settle | OPEN | — | owner 2026-10-29 |
 | T287 | No freeze when a download finishes: verify/unzip off the JS thread, prepare then swap at idle, minimal re-render | OPEN | — | owner 2026-10-29 |
 | T288 | Glossary: every Synopsis definition (printed p.80), A–Z scrubber, modern layout, fuzzy search | DONE | 732f100f1, 64ae838bf | terms ship with the next release from ≥732f100f1 |
