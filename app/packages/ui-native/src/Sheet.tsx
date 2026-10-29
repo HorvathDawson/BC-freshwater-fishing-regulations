@@ -287,9 +287,11 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
  * `.segm.lsel`) draws the same radiogroup as one framed strip — 1.5 px ink frame and dividers, each option an equal
  * share, the checked one ink with card text — one radiogroup implementation, two looks.
  */
-export function Choice<T extends string>({ palette, options, value, onChange, label, variant = "pills" }: {
+export function Choice<T extends string>({ palette, options, value, onChange, label, variant = "pills", flush = false }: {
   palette: Palette; options: readonly { k: T; t: string }[]; value: T;
   onChange: (k: T) => void; label: string; variant?: "pills" | "segmented";
+  /** (T237) pills on a page that sets its own gutter: no inset of their own */
+  flush?: boolean;
 }) {
   if (variant === "segmented")
     return (
@@ -310,7 +312,7 @@ export function Choice<T extends string>({ palette, options, value, onChange, la
     );
   return (
     <View accessibilityRole="radiogroup" accessibilityLabel={label}
-          style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 18 }}>
+          style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: flush ? 0 : 18 }}>
       {options.map((o) => {
         const on = o.k === value;
         return (

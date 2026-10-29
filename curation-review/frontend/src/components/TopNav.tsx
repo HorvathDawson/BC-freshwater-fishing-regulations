@@ -7,7 +7,7 @@ import { isTyping } from "../review";
    (`useFold`, open/closed remembered per tab). Navigation is the URL: it sets the hash (and `?lowcuts`)
    and fires `hashchange`, which App reads, so every old link keeps working. */
 
-export type TabId = "entries" | "lowcuts" | "dfo" | "tidal" | "sloughs" | "names" | "inseason" | "proposals";
+export type TabId = "entries" | "lowcuts" | "dfo" | "tidal" | "sloughs" | "names" | "inseason" | "proposals" | "reports";
 
 interface Tab { id: TabId; label: string; key: string; title: string; hash: string }
 const TABS: Tab[] = [
@@ -20,6 +20,7 @@ const TABS: Tab[] = [
     title: "entries whose rules name a guessed (low-confidence) cut — check the cut on the satellite map" },
   { id: "proposals", label: "Proposals", key: "p", hash: "proposals", title: "T185: the edits your marks propose, waiting to apply (read only)" },
   { id: "inseason", label: "In-season", key: "i", hash: "inseason/", title: "T230: the provincial in-season changes — where each applies" },
+  { id: "reports", label: "Reports", key: "r", hash: "reports/", title: "T237: problem reports from the app — sync from staging, status kept here" },
 ];
 
 /** the sub-tabs of a main tab; `hash` is the whole target */

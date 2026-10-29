@@ -13,7 +13,8 @@
 // health into one email a day. `?dryNotify=1` on a run, or `POST /notify/preview`, shows the messages without sending.
 //
 // R2 layout (one bucket): published  feeds/live/  feeds/dfo/  feeds/inseason/   (the data worker serves these)
-//                         private    private/feeds/{gauges,dfo,inseason,notify}/, private/feeds/status.json
+//                         private    private/feeds/{gauges,dfo,inseason,notify}/, private/feeds/status.json,
+//                                    private/reports/<day>/<id>.json (T237: POST /report, GET /reports; src/reports.ts)
 import { meteredFetch, meteredStore, newMeter, r2Store, type Meter, type R2BucketLike } from "./io";
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
@@ -22,8 +23,9 @@ import { compose, deliver, readState, sendTest, type FeedEvent, type NotifyConfi
 import { readStatus, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
 import { pageUrl } from "./dfo/fetch";
+import { CORS as REPORT_CORS, handleReport, listReports, reportEvents, type ReportEnv } from "./reports";
 
-export interface Env {
+export interface Env extends ReportEnv {
   BUCKET: R2BucketLike;
   RUN_TOKEN?: string;
   FEED_NOTIFY_URL?: string;
@@ -213,6 +215,14 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       // owner 2026-10-28: a station ECCC lists but has 404'd for NODATA_DAYS is "listed, no data" — not a failure
       const nd = await noDataStations(r2Store(env.BUCKET, "private/feeds/gauges/"), s.answered ? s.failed ?? [] : [], s.answered ? s.asked : 0, health, at, opts.dryNotify);
       events.push(...nd.events);
+      // (T237) problem reports received since the last run: one digest line each (not urgent)
+      try {
+        const ns = await readState(r2Store(env.BUCKET, STATUS_PREFIX));
+        const pend = new Set(ns.pending.map((e) => e.key));
+        events.push(...(await reportEvents(env.BUCKET, (k) => !!ns.told[k] || pend.has(k), started, at)));
+      } catch (e) {
+        log(`reports: not read (${String(e)})`);
+      }
       const failed = (s.failed ?? []).filter((st) => !nd.listedNoData.has(st));
       counts.failed = failed.length;
       counts.listedNoData = nd.listedNoData.size;
@@ -326,6 +336,18 @@ const authed = (req: Request, env: Env) => !!env.RUN_TOKEN && req.headers.get("A
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
+    // (T237) problem reports from the app: public POST (validated, rate-limited, stored private), authed GET for review
+    if (url.pathname === "/report") {
+      if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: REPORT_CORS });
+      if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: REPORT_CORS });
+      return handleReport(req, env);
+    }
+    if (url.pathname === "/reports" && req.method === "GET") {
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const since = url.searchParams.get("since") ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(since)) return new Response("since must be YYYY-MM-DD", { status: 400 });
+      return Response.json({ reports: await listReports(env.BUCKET, since) }, { headers: { "Cache-Control": "no-store" } });
+    }
     if (req.method === "GET" && (url.pathname === "/status" || url.pathname === "/status.json")) {
       const now = new Date();
       const st = refresh(await readStatus(r2Store(env.BUCKET, STATUS_PREFIX)), now);

@@ -83,6 +83,8 @@ export interface R2BucketLike {
   get(key: string): Promise<{ text(): Promise<string> } | null>;
   put(key: string, body: string, opts?: { httpMetadata?: { contentType?: string; cacheControl?: string } }): Promise<unknown>;
   delete(key: string): Promise<void>;
+  /** (T237) listing a prefix (the reports); optional so the feed jobs' stores need not provide it */
+  list?(o: { prefix: string; cursor?: string; limit?: number }): Promise<{ objects: { key: string }[]; truncated: boolean; cursor?: string }>;
 }
 
 // ── change-aware writes (owner 2026-10-28: "only WRITE an object when its content differs") ─────────────────────────

@@ -17,7 +17,7 @@
 import { body as webhookBody } from "./notify";
 import type { Fetch, Store } from "./io";
 
-export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health";
+export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health" | "report";
 export interface FeedEvent {
   key: string;
   kind: EventKind;
@@ -60,6 +60,7 @@ const KIND_TITLE: Record<EventKind, string> = {
   inseason: "In-season regulation changes",
   dfo: "DFO salmon: places to review",
   health: "Feed health",
+  report: "Problem reports from the app",
 };
 
 export async function readState(store: Store): Promise<NotifyState> {
@@ -86,7 +87,7 @@ export function compose(events: FeedEvent[], digest = false): Message[] {
     return [{ subject: `BC fishing feeds — daily digest: ${events.length} item${events.length > 1 ? "s" : ""}`, text, keys: events.map((e) => e.key) }];
   }
   const out: Message[] = [];
-  for (const e of events.filter((x) => x.kind === "hydat" || x.kind === "roster" || x.kind === "health"))
+  for (const e of events.filter((x) => x.kind === "hydat" || x.kind === "roster" || x.kind === "health" || x.kind === "report"))
     out.push({ subject: `BC fishing feeds — ${e.title}`, text: e.text, keys: [e.key] });
   for (const k of ["inseason", "dfo"] as const) {
     const es = events.filter((e) => e.kind === k);

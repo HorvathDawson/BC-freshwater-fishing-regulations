@@ -949,6 +949,33 @@ def synopsis_row_page(key: str):
                     media_type="image/png")
 
 
+# --------------------------------------------------------------------------- T237: Reports tab
+# Problem reports the app sent (the staging feeds worker's private/reports/), read through the worker with the run
+# token — READ ONLY: nothing is written here; the reviewer's status per report is kept in the browser (`reports.py`).
+
+@app.get("/api/reports")
+def reports_list(since: str | None = None):
+    """Every report since `since` (YYYY-MM-DD; default 90 days), newest first, each with the water it names and,
+    when its tiles are this build's vintage, the tapped section's node and waters. 503 when the worker cannot be
+    asked (no token, offline) — the tab keeps what it synced before."""
+    import re as _re
+    import reports
+    if since is not None and not _re.fullmatch(r"\d{4}-\d{2}-\d{2}", since):
+        raise HTTPException(422, "since must be YYYY-MM-DD")
+    try:
+        got = reports.fetch(since)
+    except reports.ReportsUnavailable as ex:
+        raise HTTPException(503, str(ex))
+    return {"reports": [reports.enrich(r) for r in got], "source": reports._url()}
+
+
+@app.get("/api/reports/section")
+def reports_section(sid: int, tiles: str):
+    """The tapped section of a report as map geometry — empty when the report's tiles are another vintage."""
+    import reports
+    return reports.section_geojson(sid, tiles)
+
+
 @app.get("/api/synopsis/page/{printed}.png")
 def synopsis_page_image(printed: int):
     """The whole printed page, rendered — the region chapter a zone entry was transcribed from has

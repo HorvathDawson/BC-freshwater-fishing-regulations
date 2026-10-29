@@ -15,7 +15,7 @@
 import { Platform } from "react-native";
 import { resolveAppVersion, versionLine, type AppEnv } from "@app/core";
 import { imageryTiles } from "@app/map";
-import { endpointsFor, resolveChannel, resolveEnv } from "./env";
+import { endpointsFor, reportUrlFor, resolveChannel, resolveEnv } from "./env";
 import { channelStore, envStore, restart } from "./envStore";
 
 const SWITCHABLE = __DEV__ || process.env.EXPO_PUBLIC_ENV_SWITCH === "1";
@@ -84,6 +84,9 @@ export const IMAGERY_TILES = imageryTiles(process.env.EXPO_PUBLIC_ARCGIS_API_KEY
 
 /** Every URL the app reads (the release, tiles, feeds, sql.js), from `APP_ENV.origin`. T231's update service reads it. */
 export const ENDPOINTS = endpointsFor(APP_ENV.origin, UPDATE_CHANNEL);
+
+/** (T237) Where "Send report" posts (null: email / share only). */
+export const REPORT_URL = reportUrlFor(APP_ENV.env, process.env.EXPO_PUBLIC_REPORT_URL);
 
 /** (T251) Pick the update channel (a switchable build): kept, applied on the next start. */
 export function pickChannel(c: string): void {

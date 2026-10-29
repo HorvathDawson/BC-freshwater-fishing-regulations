@@ -103,6 +103,11 @@ export interface UpdateOptions {
    * older than the release it reads; a store build can lag, so a phone passes its version.
    */
   appVersion?: AppVersion | null;
+  /**
+   * (T237) The report outbox: what the reader sent while offline goes out with this service's own retry — on every check
+   * the device is online for, and the moment the network comes back. A failure here never fails a check.
+   */
+  outbox?: { pending(): number; flush(): Promise<unknown> } | null;
 }
 
 export interface SourceStatus {
@@ -399,6 +404,11 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     return true;
   }
 
+  /** (T237) queued problem reports: sent alongside a check, never awaited by it, never failing it */
+  const flushOutbox = () => {
+    try { if (o.outbox && o.outbox.pending() > 0) void o.outbox.flush().catch(() => {}); } catch { /* next check */ }
+  };
+
   // ── scheduling ──────────────────────────────────────────────────────────────────────────────────────────────────────
   let started = false;
   let seeded = false;
@@ -447,6 +457,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
       }));
       if (o.network?.subscribe) unsubs.push(o.network.subscribe((online) => {
         if (!online) return;
+        flushOutbox();
         // back online: whatever failed for want of a network is tried now, and a download waiting for Wi-Fi looks again
         const failed = [...feeds.values()].some((s) => s.offline && s.error) || !!(release?.offline && release.error);
         if (failed) void service.check({});
@@ -486,6 +497,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
           }
           ok = false;
         } else {
+          flushOutbox();
           const work: Promise<boolean>[] = [];
           if (doFeeds) work.push(...o.feeds.map((s) => checkFeed(s)));
           if (doRelease) work.push(checkRelease());

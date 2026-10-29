@@ -3,7 +3,7 @@
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
 import { Linking, Pressable, Text, View } from "react-native";
-import { LICENCE_WORDS, licencesVM, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
+import { LICENCE_WORDS, licencesVM, MENU_WORDS, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
 import { Credits } from "../Credits";
 import { LicencesList } from "./Licences";
 import { TYPE } from "../type";
@@ -11,8 +11,9 @@ import { SPACE, type Palette } from "../theme";
 
 const open = (url: string) => { void Linking.openURL(url); };
 
-export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog }: { vm: AboutVM; palette: Palette;
+export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onReport }: { vm: AboutVM; palette: Palette;
                             onEnv?: (env: AppEnv) => void;
+                            /** (T237) open Report a problem */ onReport?: () => void;
                             /** (T235) open Sources and licences */ onSources?: () => void;
                             /** (T251) open the Updates log (development and staging builds) */ onUpdatesLog?: () => void }) {
   return (
@@ -30,6 +31,11 @@ export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog }: { vm:
       {onSources && (
         <Pressable testID="about-sources" onPress={onSources} accessibilityRole="link" accessibilityLabel={LICENCE_WORDS.fromAbout}>
           <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{LICENCE_WORDS.fromAboutLink}</Text>
+        </Pressable>
+      )}
+      {onReport && (
+        <Pressable testID="about-report" onPress={onReport} accessibilityRole="link" accessibilityLabel={MENU_WORDS.report.fromAbout}>
+          <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{MENU_WORDS.report.fromAbout}</Text>
         </Pressable>
       )}
       <View style={{ gap: SPACE.s2 }}>

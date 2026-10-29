@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aboutEnvVM, aboutVM, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, isoDayWords,
-  mailtoUrl, regsReportWhere, reportMessage, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
+  mailtoUrl, regsReportWhere, reportMessage, reportPayload, emailProblem, REPORT_REASONS, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
 import { IMAGERY_ATTRIBUTION } from "./imagery";
@@ -386,7 +386,10 @@ describe("report a problem", () => {
 
   it("lists the place the reader was in, one line each", () => {
     expect(whereLines(d.where)).toEqual(["Screen: water · regs", "Tab: Gear", "Water: Vedder River (356308001)",
-                                         "Part: 2", "Section: 812345", "Day: Tue, Oct 21"]);
+                                         "Part: 2", "Day: Tue, Oct 21"]);
+    // (T237) the section handle is internal: sent with this row, never a line of it
+    expect(whereLines({ section: 812345 })).toEqual([]);
+    expect(whereLines({ mode: "salmon" })).toEqual(["Map colours: Salmon"]);
     expect(whereLines({ screen: "map" })).toEqual(["Screen: map"]);
     expect(whereLines({ part: 0 })).toEqual(["Part: 0"]);
     expect(whereLines({ part: 1, partLabel: "Mouth → Slesse Creek" })).toEqual(["Part: 1 (Mouth → Slesse Creek)"]);
@@ -397,7 +400,7 @@ describe("report a problem", () => {
   it("shows every diagnostic it would send, and drops the empty ones", () => {
     expect(diagnosticRows(d).map((r) => [r.k, r.label, r.lines.length])).toEqual([
       ["app", "App version", 1], ["platform", "Platform", 1], ["release", "Data release", 1], ["tiles", "Map tiles", 1],
-      ["where", "Where you were", 6], ["errors", "Recent errors", 2]]);
+      ["where", "Where you were", 5], ["errors", "Recent errors", 2]]);
     expect(diagnosticRows({ ...d, release: null, errors: [] }).map((r) => r.k)).toEqual(["app", "platform", "tiles", "where"]);
   });
 
@@ -406,7 +409,7 @@ describe("report a problem", () => {
       subject: "Can I Fish This? problem report: Vedder River · Gear",
       body: "The closure is wrong.\n\n--\nApp version: 1.2.0 (34)\nPlatform: android 15\nData release: r-6960fe8201e3\n"
         + "Where you were:\n  Screen: water · regs\n  Tab: Gear\n  Water: Vedder River (356308001)\n  Part: 2\n"
-        + "  Section: 812345\n  Day: Tue, Oct 21",
+        + "  Day: Tue, Oct 21",
     });
   });
 
@@ -419,6 +422,63 @@ describe("report a problem", () => {
   it("encodes a mailto the way mail apps read it", () => {
     expect(mailtoUrl("hello@example.org", { subject: "A & B", body: "line 1\nline 2" }))
       .toBe("mailto:hello@example.org?subject=A%20%26%20B&body=line%201%0D%0Aline%202");
+  });
+});
+
+describe("report a problem, sent (T237)", () => {
+  const d: Diagnostics = {
+    appBuild: "0.1.0 (build 1)", env: "staging", platform: "web", release: "r-0fa7927b16e5",
+    tiles: "10cbcb72e9f907cf.edc12ab96087",
+    where: { screen: "water · regulations", place: "Vedder River", water: "356308001", part: 2, partLabel: "Mouth → X",
+             section: 812345, day: "Today, Oct 21", mode: "salmon" },
+    errors: ["e1", "e2"],
+  };
+  const base = { id: "abc", created: "2026-10-28T20:00:00.000Z", reason: "rule" as const, what: "  Wrong closure. ",
+                 email: "", diagnostics: d };
+
+  it("sends every field of every row left on — the section handle with Where, the environment with App version", () => {
+    expect(reportPayload({ ...base, on: {} })).toEqual({
+      format: "report/1", id: "abc", created: "2026-10-28T20:00:00.000Z", reason: "rule", text: "Wrong closure.",
+      email: null,
+      context: { screen: "water · regulations", place: "Vedder River", water: "356308001", part: 2, partLabel: "Mouth → X",
+                 section: 812345, day: "Today, Oct 21", mode: "salmon", app: "0.1.0 (build 1)", env: "staging",
+                 platform: "web", release: "r-0fa7927b16e5", tiles: "10cbcb72e9f907cf.edc12ab96087", errors: ["e1", "e2"] },
+    });
+  });
+
+  it("sends NO field of a row the reader switched off (the payload is pinned whole)", () => {
+    const all = { app: false, platform: false, release: false, tiles: false, where: false, errors: false };
+    expect(reportPayload({ ...base, on: all }).context).toEqual({});
+    const noWhere = reportPayload({ ...base, on: { where: false, errors: false } });
+    expect(noWhere.context).toEqual({ app: "0.1.0 (build 1)", env: "staging", platform: "web", release: "r-0fa7927b16e5",
+                                      tiles: "10cbcb72e9f907cf.edc12ab96087" });
+    expect(JSON.stringify(noWhere)).not.toMatch(/812345|356308001|Vedder/);
+    expect(reportPayload({ ...base, on: { app: false } }).context.env).toBeUndefined();
+  });
+
+  it("keeps a well-formed email, drops a malformed one, and says why", () => {
+    expect(reportPayload({ ...base, email: " a@b.ca ", on: {} }).email).toBe("a@b.ca");
+    expect(reportPayload({ ...base, email: "nope", on: {} }).email).toBeNull();
+    expect(emailProblem("")).toBeNull();
+    expect(emailProblem("a@b.ca")).toBeNull();
+    expect(emailProblem("a b@c.ca")).toBe("That does not look like an email address.");
+    expect(emailProblem("a@b")).toBe("That does not look like an email address.");
+  });
+
+  it("caps the text and the error lines", () => {
+    const p = reportPayload({ ...base, what: "x".repeat(5000), diagnostics: { ...d, errors: Array.from({ length: 30 }, (_, i) => `e${i}`) }, on: {} });
+    expect(p.text.length).toBe(4000);
+    expect(p.context.errors).toHaveLength(20);
+    expect(p.context.errors![19]).toBe("e29");
+  });
+
+  it("lists the reasons in the form's order, each worded", () => {
+    expect(REPORT_REASONS.map((r) => MENU_WORDS.report.reasons[r]))
+      .toEqual(["Wrong rule", "Wrong place on the map", "Missing water", "Wrong name", "Something else"]);
+  });
+
+  it("shows the environment on the App version row", () => {
+    expect(diagnosticRows(d)[0]).toEqual({ k: "app", label: "App version", lines: ["0.1.0 (build 1)", "Data: staging"] });
   });
 });
 

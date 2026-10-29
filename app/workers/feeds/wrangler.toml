@@ -17,6 +17,12 @@ bucket_name = "bc-fishing-regulations-staging"
 # Email Routing address (horvath.dawson@gmail.com: verified), the sender an address on an Email Routing domain
 # (canifishthis.ca: routing enabled, status ready — checked 2026-10-28). NOTIFY_EMAIL_TO is a secret (set by wrangler
 # secret put); the rest are plain vars. FEED_NOTIFY_URL (webhook fallback) is unset.
+# T237: problem reports (POST /report). A cheap edge gate before the R2 per-IP limit in src/reports.ts: 1 per 10 s per IP.
+[[ratelimits]]
+name = "REPORT_LIMITER"
+namespace_id = "2370"
+simple = { limit = 1, period = 10 }
+
 [[send_email]]
 name = "EMAIL"
 

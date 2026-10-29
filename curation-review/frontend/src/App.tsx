@@ -17,6 +17,7 @@ import { SLOUGH_HASH, SloughReview } from "./components/SloughReview";
 import { NAMES_HASH, NamesReview } from "./components/NamesReview";
 import { CASCADE_HASH, CascadeView } from "./components/CascadeView";
 import { INSEASON_HASH, InSeasonReview } from "./components/InSeasonReview";
+import { REPORTS_HASH, ReportsView } from "./components/ReportsView";
 import { setBadge, TopNav } from "./components/TopNav";
 import { P1_HASH, P1Quick } from "./components/P1Quick";
 
@@ -33,6 +34,8 @@ const inNames = () => decodeURIComponent(window.location.hash.slice(1)).startsWi
 const inCascade = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(CASCADE_HASH);
 /** T230: `#inseason/<row id>` opens the In-season tab (the provincial in-season rows and where each applies) */
 const inInseason = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(INSEASON_HASH);
+/** T237: `#reports/<id>` opens the Reports tab (problem reports from the app) */
+const inReports = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(REPORTS_HASH);
 /** owner 2026-10-28: `#p1/` opens the P1 quick-confirm view (Entries sub-tab) */
 const inP1 = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(P1_HASH);
 const inProposals = () => decodeURIComponent(window.location.hash.slice(1)) === PROPOSALS_HASH;
@@ -58,6 +61,7 @@ export default function App() {
   const [names, setNames] = useState(inNames);
   const [cascade, setCascade] = useState(inCascade);
   const [inseason, setInseason] = useState(inInseason);
+  const [reportsTab, setReportsTab] = useState(inReports);
   const [p1, setP1] = useState(inP1);
   const [regions, setRegions] = useState<RegionSummary[]>([]);
   // THE ONE QUEUE (T135, PLAN §3): every region, in the review order, by default
@@ -137,7 +141,8 @@ export default function App() {
   useEffect(() => {
     const open = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
-      const only = (m: "sloughs" | "names" | "cascade" | "dfo" | "tidal" | "proposals" | "inseason" | "p1" | "") => {
+      const only = (m: "sloughs" | "names" | "cascade" | "dfo" | "tidal" | "proposals" | "inseason" | "reports" | "p1" | "") => {
+        setReportsTab(m === "reports");
         setP1(m === "p1");
         setSloughs(m === "sloughs"); setNames(m === "names"); setCascade(m === "cascade");
         setDfo(m === "dfo"); setTidal(m === "tidal"); setProposals(m === "proposals"); setInseason(m === "inseason");
@@ -149,6 +154,7 @@ export default function App() {
       if (id.startsWith(SLOUGH_HASH)) { only("sloughs"); return; }
       if (id.startsWith(NAMES_HASH)) { only("names"); return; }
       if (id.startsWith(INSEASON_HASH)) { only("inseason"); return; }
+      if (id.startsWith(REPORTS_HASH)) { only("reports"); return; }
       if (id.startsWith(P1_HASH)) { only("p1"); return; }
       if (id.startsWith(CASCADE_HASH)) { only("cascade"); return; }
       if (id.startsWith(DFO_HASH)) { only("dfo"); return; }
@@ -246,6 +252,9 @@ export default function App() {
   }
   if (inseason) {
     return <InSeasonReview />;
+  }
+  if (reportsTab) {
+    return <ReportsView />;
   }
   if (proposals) {
     return <ProposalsView />;

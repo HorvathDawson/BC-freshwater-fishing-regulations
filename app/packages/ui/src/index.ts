@@ -46,5 +46,6 @@ export * from "./layout";
 export * from "./gestures";
 export * from "./leave";
 export * from "./menu";
+export * from "./report";
 export * from "./errorLog";
 export * from "./startLink";

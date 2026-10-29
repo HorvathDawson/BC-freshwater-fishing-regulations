@@ -26,6 +26,24 @@ export const ORIGINS: Readonly<Record<AppEnv, string>> = Object.freeze({
   production: "https://data.canifishthis.ca",
 });
 
+/**
+ * (T237) WHERE A PROBLEM REPORT IS SENT, per environment: the feeds worker's `POST /report` (app/workers/feeds). Staging
+ * only for now — local reports to staging too (a local web build is the owner's test bench); production has no endpoint
+ * until its worker exists (T86), so a production build offers email / share only. `EXPO_PUBLIC_REPORT_URL` overrides
+ * ("off" disables).
+ */
+export const REPORT_URLS: Readonly<Record<AppEnv, string | null>> = Object.freeze({
+  local: "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/report",
+  staging: "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/report",
+  production: null,
+});
+
+export function reportUrlFor(env: AppEnv, override?: string | undefined): string | null {
+  const o = override?.trim();
+  if (o === "off") return null;
+  return o || REPORT_URLS[env];
+}
+
 const isAppEnv = (v: unknown): v is AppEnv => typeof v === "string" && (APP_ENVS as readonly string[]).includes(v);
 
 const trimBase = (u: string) => u.trim().replace(/\/+$/, "");
