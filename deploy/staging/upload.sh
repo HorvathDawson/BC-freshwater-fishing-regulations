@@ -15,8 +15,9 @@ q() { python3 -c "import json,sys;m=json.load(open('$M'));print(eval(sys.argv[1]
 IMM="Cache-Control: public, max-age=31536000, immutable"
 cp_() { rclone copyto "$1" "$D/$2" --s3-no-check-bucket "${@:3}"; }
 # (T199) runtiming/ is the run-timing feed's (feeds-runtiming.yml / pipeline.runtiming.feed.publish): never cleared here
-echo "clear $D (except feeds/, private/, runtiming/)"
-rclone delete "$D" --s3-no-check-bucket --exclude "feeds/**" --exclude "private/**" --exclude "runtiming/**"
+# (T251) test/ is the staging update-test channel (deploy/staging/test-updates.mjs): never cleared here either
+echo "clear $D (except feeds/, private/, runtiming/, test/)"
+rclone delete "$D" --s3-no-check-bucket --exclude "feeds/**" --exclude "private/**" --exclude "runtiming/**" --exclude "test/**"
 TILES=$(q "m['tiles']['current']['id']")
 rclone copy "$R/tiles/$TILES" "$D/release/tiles/$TILES" --s3-no-check-bucket --transfers 16 --header-upload "$IMM" \
   --exclude "*.pbf"

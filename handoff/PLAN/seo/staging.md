@@ -72,3 +72,19 @@ Release **r-46be3c135e68** (LATEST; tiles db853e9556df81a6.16b3906b04bf, basemap
 ## Redo
 `deploy/staging/upload.sh <release>` (clears the bucket EXCEPT `feeds/**` + `private/**` — the feeds worker's output and state, T225 Phase A — then runs `deploy/staging/sync-inputs.sh`), rebuild the two dist folders as in 3, `deploy/staging/site.sh`.
 `npx --prefix app wrangler deploy -c deploy/staging/data.wrangler.toml` only if the data worker changes.
+
+## Phase B (2026-10-29 UTC): release r-0fa7927b16e5 on staging
+- `deploy/staging/upload.sh r-0fa7927b16e5` (clear spares feeds/, private/, runtiming/, test/): tiles 10cbcb72e9f907cf.edc12ab96087
+  (obstacle layer in the pmtiles), basemap, 20 data files + 12 salmon parts, synopsis-08f58537261f.pdf, manifest stamped
+  `published 2026-10-29` (T251 stamp) and put LAST; sync-inputs (entries same, matches 22). 1,313 objects, 557 MiB.
+- Builds: `pnpm -C app/apps/mobile export:web:staging` (T232; build 0374a71) and `pnpm -C app seo --release-dir
+  ../data/release/r-0fa7927b16e5` → 19,945 pages (19,653 waters), p95 3,346 B gzip. `deploy/staging/site.sh` → version 6cbb47ac.
+- Verified on https://staging.canifishthis.ca (shots staging-shots/B01–B13): map paints from the new release (every request
+  to data-staging, release r-0fa7927b16e5, no 4xx but /favicon.ico) (B01); Vedder regs (B02); 6-row in-season bell (B03); tap on
+  an unnamed stream → "Unnamed stream · Region 2" regs (B04); Pitt River Conditions: estimate from 08MH006 (North Alouette,
+  donor), live reading 21:45 PDT, CLEVER/COFFEE (B05); Salmon mode (B06); Run timing mode, runtiming/index.json
+  tile_version = the release's tiles (B07); in-season banner on Cadorna Creek (B08); fish obstacles layer (B09); "Rule book
+  p.N" opens our synopsis PDF (blob of release/…/synopsis-08f58537261f.pdf, #page=11) (B10); sync button "Refresh data: up
+  to date" (B11); Updates log (app 0.1.0 build 1 0374a71, data staging, channel live) (B12); feeds /status all ok, gauges
+  last run 05:35 UTC from the :35 cron (B13).
+- Seen: More → Data still says "In-season changes are not read" although the app now reads them (T230 wording to fix).
