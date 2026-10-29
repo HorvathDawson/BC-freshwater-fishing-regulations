@@ -24,6 +24,8 @@ describe("the sync icon (T231)", () => {
     const { rerender } = render(bar({}));
     expect([screen.queryByTestId("sync-dot"), screen.queryByTestId("sync-ring"), screen.queryByTestId("sync-error")])
       .toEqual([null, null, null]);
+    rerender(bar({}, () => {}, true));
+    expect(screen.getByTestId("sync-checking")).toBeTruthy();
     rerender(bar({ downloading: 0.3 }));
     expect(screen.getByTestId("sync-ring")).toBeTruthy();
     expect(screen.getByTestId("sync-dot")).toBeTruthy();

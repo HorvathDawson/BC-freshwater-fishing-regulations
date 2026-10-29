@@ -205,13 +205,17 @@ function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM
             <SyncRing progress={sync.progress ?? 0} size={R} track={palette.line} colour={palette.accent} />
           </View>
         )}
+        {sync.kind === "checking" && (
+          // CHECKING: an accent arc turning round the glyph (still, under reduced motion) — seen at a glance
+          <Animated.View testID="sync-checking" style={{ position: "absolute", top: 0, left: 0, transform: [{ rotate }] }}>
+            <SyncRing progress={0.3} size={R} track={palette.line} colour={palette.accent} />
+          </Animated.View>
+        )}
         {sync.kind === "done" ? (
           <View testID="sync-done"><Icon name="check" colour={palette.accent} size={18} /></View>
         ) : (
-          <Animated.View style={{ transform: [{ rotate }] }}>
-            <Icon name="sync" colour={sync.kind === "checking" ? palette.faint : palette.sub}
-                  size={sync.kind === "downloading" ? 14 : 18} />
-          </Animated.View>
+          <Icon name="sync" colour={sync.kind === "checking" ? palette.accent : palette.sub}
+                size={sync.kind === "downloading" || sync.kind === "checking" ? 14 : 18} />
         )}
         {dotted && (
           <View testID="sync-dot"
