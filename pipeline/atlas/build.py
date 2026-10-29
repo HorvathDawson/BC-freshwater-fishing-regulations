@@ -299,11 +299,23 @@ _ADDED_LAKES_GEOJSON = CURATED.waters.added_lakes
 _DEFAULT_SPLITS = CURATED.waters.splits
 
 
+#: FWA wsc prefixes the OWNER has approved removing in favour of a city layer. EMPTY (owner 2026-10-29): every
+#: FWA line stays; city lines only add names (labels) and the named streams FWA lacks. The old exclusion deleted
+#: real creeks (Nelson Creek). Adding a prefix here is the owner's call, never a regeneration's.
+OWNER_APPROVED_FWA_EXCLUDE: frozenset[str] = frozenset()
+
+
 def _apply_fwa_exclude(fids: list, prefixes: list[str]) -> tuple[list, int]:
     """Drop FWA fids whose (already trimmed) WSC starts with any `fwa_exclude` prefix — the coarse FWA
-    tributaries the municipal added-streams network supersedes. Returns (kept fids, dropped count)."""
+    tributaries the municipal added-streams network supersedes. Returns (kept fids, dropped count).
+    REFUSES a prefix the owner has not approved (`OWNER_APPROVED_FWA_EXCLUDE`)."""
     if not prefixes:
         return fids, 0
+    unapproved = sorted(set(prefixes) - OWNER_APPROVED_FWA_EXCLUDE)
+    if unapproved:
+        raise SystemExit("atlas build: added_streams.json `fwa_exclude` removes FWA lines the owner has not approved "
+                         f"({', '.join(unapproved)}); every FWA line stays (owner 2026-10-29) — regenerate the "
+                         "artifact (build_dataset) or have the owner add them to OWNER_APPROVED_FWA_EXCLUDE")
     kept = [f for f in fids if not _wsc.has_prefix(f.wsc, prefixes)]
     return kept, len(fids) - len(kept)
 

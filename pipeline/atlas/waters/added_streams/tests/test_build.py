@@ -526,3 +526,40 @@ def test_under_lake_segment_tagged_and_noded():
     add_fids, _ = to_graph_inputs(streams)
     chains = build_blk_chains(add_fids, {"LAKE7": "lake"})
     assert any(r.wbk == "LAKE7" for c in chains for r in c.waterbody_runs)
+
+
+def test_addable_named_real_streams_only():
+    """Owner 2026-10-29: only a named, real city stream is added — unnamed, '(Unnamed)', drainage-typed or
+    drainage-named pieces are not."""
+    from pipeline.atlas.waters.added_streams.build_dataset import addable, FWA_EXCLUDE_BY_SOURCE
+    assert FWA_EXCLUDE_BY_SOURCE == {}                     # every FWA line stays
+    assert addable({"name": "Nelson Creek", "drainage": ""})[0]
+    assert not addable({"name": "", "drainage": ""})[0]
+    assert not addable({"name": "Finch Connector (Unnamed)", "drainage": ""})[0]
+    assert not addable({"name": "Westway Avenue Drainage Ditch", "drainage": ""})[0]
+    assert not addable({"name": "Dallas Creek", "drainage": "theme culvert"})[0]
+
+
+def test_keep_previous_blks_reuses_old_ids_and_never_collides():
+    from pipeline.atlas.waters.added_streams.build_dataset import _keep_previous_blks
+    prev = [{"blk": "-2000000005", "source": "burnaby", "name": "A Creek", "src_id": 1},
+            {"blk": "-2000000007", "source": "burnaby", "name": "B Creek", "src_id": 2}]
+    new = [{"blk": "-2000000000", "source": "burnaby", "name": "B Creek", "src_id": 2,
+            "receiver_kind": "fwa", "receiver_blk": "1", "connector": {"to_fwa": True, "to_blk": 1}},
+           {"blk": "-2000000001", "source": "burnaby", "name": "C Creek", "src_id": 3,
+            "receiver_kind": "added", "receiver_blk": "-2000000000",
+            "connector": {"to_fwa": False, "to_blk": -2000000000}}]
+    nv = [{"target_blk": "-2000000001"}]
+    assert _keep_previous_blks(new, nv, prev) == 1
+    assert new[0]["blk"] == "-2000000007"
+    assert new[1]["blk"] not in {"-2000000005", "-2000000007", "-2000000000"}
+    assert new[1]["receiver_blk"] == "-2000000007" and new[1]["connector"]["to_blk"] == -2000000007
+    assert nv[0]["target_blk"] == new[1]["blk"]
+
+
+def test_atlas_build_refuses_an_unapproved_fwa_exclude():
+    import pytest
+    from pipeline.atlas import build as b
+    assert b._apply_fwa_exclude([1, 2], []) == ([1, 2], 0)
+    with pytest.raises(SystemExit):
+        b._apply_fwa_exclude([], ["100-019698-"])

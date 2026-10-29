@@ -7144,9 +7144,9 @@
     "2-8"
    ]
   },
-  "note": "Burnaby's Still Creek, the added stream wsc 100-019698-999999 (blk -2000000335, flows into Burnaby Lake). The other name hit, gnis:15431 'Willow Creek', is a one-section tributary of it (wsc 100-019698-999999-614700) that carries 'Still Creek' as a variant because added_streams maps the gazetted Still Creek (GNIS 15431) onto blk -2000000392 — an atlas defect, reported, not fixed here. The row includes tributaries, so Willow Creek is covered through the walk. [T4 2026-09-24]",
+  "note": "Burnaby's Still Creek: the FWA blue line (gnis 15431, wsc 100-019698-961269, blk 356328804, flows into Burnaby Lake). Owner 2026-10-29: every FWA line stays and the city layer only adds names, so the city's Still Creek is a label on this line, not an added stream (it was the added stream wsc 100-019698-999999 / blk -2000000335 while added_streams removed FWA's). The row includes tributaries, so the city-added creeks above it are covered through the walk. [T4 2026-09-24]",
   "fwa_watershed_codes": [
-   "100-019698-999999"
+   "100-019698-961269"
   ]
  },
  {

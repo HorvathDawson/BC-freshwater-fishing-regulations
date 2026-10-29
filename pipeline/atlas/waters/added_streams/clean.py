@@ -4,7 +4,7 @@ Each source (Port Moody / Burnaby / Squamish / Abbotsford — see SOURCES.md) ha
 property soup. `clean_source` flattens MultiLineStrings, drops the cruft (we only carry mapped
 fields), and maps every feature to:
 
-    {source, src_id, name, connect_to_hint, ftype, fish, species, trib_parent}
+    {source, src_id, name, connect_to_hint, ftype, fish, species, trib_parent, drainage}
 
 Nothing is filtered by type — `ftype`/`fish` are carried as tags so a later batch can filter. Output
 is a lon/lat FeatureCollection written to `data/generated/municipal/cleaned/<source>.geojson`.
@@ -83,13 +83,35 @@ def _pm_connect(description: Optional[str]) -> str:
 
 
 # source -> (id_field, mapper(props) -> uniform-props dict without 'source')
+#: (owner 2026-10-29) Port Moody's own type fields that mark a piece as DRAINAGE, not a stream: a culvert or ditch
+#: (`theme`), hidden (piped) drainage, a ditch or an unverified connection line (`stream_type`). Such a piece is never
+#: added. NOT the `description` "CONNECTED TO PORT MOODY DRAINAGE SYSTEM": it sits on open STREAM/CREEK pieces of real
+#: salmon creeks (Goulet, Slaughterhouse, Dallas), so it says where the creek ends up, not what the piece is.
+_PM_DRAINAGE_THEME = {"culvert", "ditch"}
+_PM_DRAINAGE_TYPE = {"hidden drainage", "ditch", "un-verified connection line"}
+_PM_DRAINAGE_DESC = ("culverted", "ditch")
+
+
+def _pm_drainage(p: dict) -> str:
+    theme = (p.get("theme") or "").strip().lower()
+    stype = (p.get("stream_type") or "").strip().lower()
+    desc = (p.get("description") or "").strip().lower()
+    if theme in _PM_DRAINAGE_THEME:
+        return f"theme {theme}"
+    if stype in _PM_DRAINAGE_TYPE:
+        return f"stream_type {stype}"
+    if any(desc.startswith(d) for d in _PM_DRAINAGE_DESC):
+        return f"description {desc}"
+    return ""
+
+
 def _map_port_moody(p: dict) -> dict:
     name = _title(p.get("local_stream_name") or p.get("stream_names"))
     return {"src_id": p.get("OBJECTID"), "name": name,
             "connect_to_hint": _pm_connect(p.get("description")),
             "ftype": (p.get("theme") or "").strip().lower(),
             "fish": _norm_fish(p.get("stream_feature_code")), "species": "",
-            "trib_parent": _trib_parent(name)}
+            "trib_parent": _trib_parent(name), "drainage": _pm_drainage(p)}
 
 
 def _map_burnaby(p: dict) -> dict:
@@ -116,7 +138,8 @@ def _map_abbotsford(p: dict) -> dict:
     is_ditch = raw.upper().startswith("DITCH-")
     return {"src_id": p.get("OBJECTID"), "name": "" if is_ditch else _title(raw),
             "connect_to_hint": "", "ftype": "ditch" if is_ditch else "stream",
-            "fish": _norm_fish(p.get("FISH_CLASS")), "species": "", "trib_parent": ""}
+            "fish": _norm_fish(p.get("FISH_CLASS")), "species": "", "trib_parent": "",
+            "drainage": "STREAM_NAME ditch" if is_ditch else ""}
 
 
 def _map_osm(p: dict) -> dict:
@@ -193,6 +216,7 @@ def clean_features(features: list[dict], source: str) -> list[dict]:
     out: list[dict] = []
     for ft in features:
         props = mapper(ft.get("properties", {}))
+        props.setdefault("drainage", "")                  # the layer's own drainage marking (owner 2026-10-29)
         props["source"] = source
         if props.get("name") in aliases:                  # fix a misspelling so the creek's pieces merge as one
             props["name"] = aliases[props["name"]]

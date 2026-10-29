@@ -34,9 +34,10 @@ def _the_gpkg(request):
 
 # Distinctive municipal creeks we minted for the Burnaby/Deer Lake cluster; each must resolve as a
 # tributary (transitive ancestor) of the Brunette. Named, non-fragment streams -> stable to assert.
+# (Owner 2026-10-29: every FWA line stays, so Deer Lake Brook / Beaver Creek — city lines on FWA lines — are now
+# NAME LABELS on those FWA lines, not minted streams.)
 _EXPECT_ADDED_TRIBS = {
-    "Deer Lake Brook", "Beaver Creek", "Turtle Creek",
-    "Chickadee Creek", "Angelo Creek", "First Beach Creek",
+    "Turtle Creek", "Chickadee Creek", "Angelo Creek", "First Beach Creek", "Willow Creek",
 }
 
 

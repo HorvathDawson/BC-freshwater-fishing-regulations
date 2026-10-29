@@ -14,6 +14,7 @@ consumes that artifact on every build (on by default) — see the package README
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
@@ -642,17 +643,35 @@ def _name_candidate(muni_name: str, fwa_name: str, fwa_blk: str, fwa_gnis: str) 
                          display=not fwa_name, conflict=bool(fwa_name))
 
 
-# FWA reaches the municipal geojson supersedes: wsc-code PREFIXES to drop (the reach + everything
-# upstream). The muni lines there then classify as novels and mint their own codes. Keyed by source.
-FWA_EXCLUDE_BY_SOURCE: dict[str, tuple] = {
-    "squamish": ("900-105574-087851", "900-103611", "900-102882-190726"),  # each reach + all tribs -> municipal
-    "burnaby": ("100-019698-", "100-010829", "100-011460", "100-011602", "100-011048"),   # everything UPSTREAM of Brunette
-    #                                              River (Deer + Burnaby Lake, Still/Stoney/etc.) -> municipal
-    #                                              version + lake-node graph. Trailing '-' keeps Brunette River
-    #                                              (100-019698) itself. 100-010829 / 100-011460 / 100-011602:
-    #                                              FWA reaches the municipal layer supersedes.
-    "port_moody": ("900-058384",),               # coastal FWA reach + tribs the municipal layer supersedes.
-}
+# FWA reaches the municipal geojson supersedes: wsc-code PREFIXES to drop (the reach + everything upstream).
+# EMPTY BY OWNER RULING (2026-10-29): "the city layers are supposed to get added to the FWA layer … should have left
+# old streams and only added names unless the stream wasn't in FWA". Every FWA line stays; a city line that matches
+# one becomes a NAME LABEL on it (`duplicate` name variant), and only a named, real city stream with no FWA
+# equivalent is added. The old list (burnaby 100-019698- / 100-010829 / 100-011460 / 100-011602 / 100-011048,
+# squamish 900-105574-087851 / 900-103611 / 900-102882-190726, port_moody 900-058384) deleted real creeks (Nelson
+# Creek). `pipeline.atlas.build` refuses a non-empty `fwa_exclude` outside `OWNER_APPROVED_FWA_EXCLUDE`.
+FWA_EXCLUDE_BY_SOURCE: dict[str, tuple] = {}
+
+#: (owner 2026-10-29) A city piece is ADDED only when it is a named, real stream. Unnamed pieces, pieces a layer's
+#: own type fields mark as drainage (clean.py `drainage`: culvert / ditch / hidden drainage / storm system), and
+#: pieces whose NAME says drainage are dropped. A name the layer itself marks "(Unnamed)" is unnamed.
+_DRAINAGE_NAME = re.compile(r"\b(ditch|drain|drainage|culvert|storm\s*sewer|outfall)\b", re.IGNORECASE)
+_UNNAMED_MARK = re.compile(r"\(\s*unnamed\s*\)", re.IGNORECASE)
+
+
+def addable(props: dict) -> tuple[bool, str]:
+    """Is this cleaned city piece a NAMED, REAL stream (owner 2026-10-29)? (keep?, why-dropped)."""
+    name = (props.get("name") or "").strip()
+    if props.get("drainage"):
+        return False, f"drainage ({props['drainage']})"
+    if not name:
+        return False, "unnamed"
+    if _UNNAMED_MARK.search(name):
+        return False, "unnamed (the layer marks it '(Unnamed)')"
+    if _DRAINAGE_NAME.search(name):
+        return False, "drainage (by its name)"
+    return True, ""
+
 
 # Only these lakes (by GNIS name) form drainage NODES per source — every stream touching one connects to
 # it and drains through its outflow (user: burnaby is only Deer + Burnaby Lake). All OTHER lakes (small
@@ -1353,7 +1372,7 @@ ADDED_STREAMS_ODBL = ("the `streams[]` and `name_variants[]` entries whose `sour
 
 def write(streams, candidates, report, out_dir: Path, name: str = "added_streams") -> Path:
     from pipeline.common.licence import odbl as _odbl
-    out = Path(out_dir) / "added_streams.build.json"
+    out = Path(out_dir) / f"{name}.json"
     out.write_text(json.dumps({
         "_about": "Minted additional-streams dataset (see added_streams). Consumer: remove FWA blue lines "
                   "whose trimmed wsc starts with any `fwa_exclude` prefix, ingest `streams` (blk/wsc/geometry/"
@@ -1378,6 +1397,14 @@ def _report_md(report: dict) -> str:
              f"- novel kept: **{c['novel']}**",
              f"- minted streams: **{report['minted']}**",
              f"- unresolved (skipped): **{len(report['unresolved'])}**", ""]
+    if report.get("input_dropped") is not None:
+        from collections import Counter
+        lines += ["## City pieces not added (owner 2026-10-29: named, real streams only)", ""]
+        for (src, why), n in sorted(Counter((d["source"], d["why"].split(" (")[0])
+                                            for d in report["input_dropped"]).items()):
+            lines.append(f"- {src}: {why} — {n}")
+        lines += [f"- kept as input: {report.get('input_kept')}",
+                  f"- minted blks kept from the previous artifact: {report.get('kept_blks')}", ""]
     if report["name_conflicts"]:
         lines += ["## Name conflicts (FWA name is boss; add the municipal name as a variant)", ""]
         for nc in report["name_conflicts"]:
@@ -1432,17 +1459,25 @@ def _resolve_source(source: str, gpkg: str, pad: float):
     Squamish coastal code). Unconfirmed features are dropped, exactly as the maps do."""
     from pipeline.atlas.waters.added_streams.clean import clean_source
     from pipeline.atlas.waters.added_streams.dem import ElevationSampler
-    features = [f for f in clean_source(source)
-                if not str(f.get("properties", {}).get("ftype", "")).lower().startswith("unconfirmed")]
+    raw = [f for f in clean_source(source)
+           if not str(f.get("properties", {}).get("ftype", "")).lower().startswith("unconfirmed")]
+    features, dropped = [], []
+    for f in raw:                                      # owner 2026-10-29: named, real streams only
+        ok, why = addable(f["properties"])
+        (features.append(f) if ok else dropped.append((f["properties"], why)))
     pts = [_TO_ALBERS.transform(x, y) for f in features for x, y in f["geometry"]["coordinates"]]
     xs, ys = [p[0] for p in pts], [p[1] for p in pts]
     bbox = (min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
     chains, lake_index, tidal, _, _ = _load_fwa(gpkg, bbox)
     approved = approved_lake_polys(gpkg, bbox, source)
-    return resolve_and_mint(
+    streams, candidates, report = resolve_and_mint(
         features, chains, lake_index, tidal,
         exclude_wsc=FWA_EXCLUDE_BY_SOURCE.get(source, ()), approved_lakes=approved,
         orient_sampler=ElevationSampler(), trust_source=source in RELIABLE_SOURCES)
+    report["input_dropped"] = [{"src_id": p.get("src_id"), "name": p.get("name") or "", "why": why}
+                               for p, why in dropped]
+    report["input_kept"] = len(features)
+    return streams, candidates, report
 
 
 def _offset_added_blks(streams: list[dict], name_variants: list[dict], offset: int) -> None:
@@ -1473,6 +1508,55 @@ _CONTINUATION_FRAC = 0.85         # a same-name piece joining its receiver above
                                   # CONTINUATION (shares the code); below it is a distinct TRIBUTARY
 
 
+def _keep_previous_blks(streams: list[dict], name_variants: list[dict], previous: list[dict]) -> int:
+    """A minted blk is an ABI (splits, overrides, gauge matches and item ids name it): a stream the previous artifact
+    already minted — same source, name and src_id — keeps its old blk; the others take fresh blks past every old one
+    in their source's band. Rewrites every reference (receiver, connector, name variant). Returns how many kept."""
+    def minted(v):
+        try:
+            return int(v) <= -_MINT_BASE
+        except (TypeError, ValueError):
+            return False
+    old = {}
+    for s in previous:
+        if minted(s["blk"]):
+            old.setdefault((s.get("source"), s.get("name"), str(s.get("src_id"))), []).append(str(s["blk"]))
+    old_used = {b for v in old.values() for b in v}
+    remap, taken = {}, set()
+    for s in streams:
+        if not minted(s["blk"]):
+            continue
+        cand = old.get((s.get("source"), s.get("name"), str(s.get("src_id"))), [])
+        if len(cand) == 1 and cand[0] not in taken:
+            remap[str(s["blk"])] = cand[0]
+            taken.add(cand[0])
+    floor = min((int(b) for b in old_used), default=0)
+    nxt = {}
+    for s in streams:
+        b = str(s["blk"])
+        if not minted(b) or b in remap:
+            continue
+        band = (-int(b) - _MINT_BASE) // _SOURCE_BLK_SPAN
+        lo = min([int(x) for x in old_used if (-int(x) - _MINT_BASE) // _SOURCE_BLK_SPAN == band]
+                 + [-(_MINT_BASE + band * _SOURCE_BLK_SPAN)])
+        n = nxt.get(band, lo) - 1
+        while str(n) in old_used:
+            n -= 1
+        nxt[band] = n
+        remap[b] = str(n)
+    del floor
+    for s in streams:
+        s["blk"] = remap.get(str(s["blk"]), s["blk"])
+        if s.get("receiver_kind") == "added":
+            s["receiver_blk"] = remap.get(str(s["receiver_blk"]), s["receiver_blk"])
+        c = s.get("connector")
+        if c and not c.get("to_fwa") and minted(c.get("to_blk")):
+            c["to_blk"] = int(remap.get(str(c["to_blk"]), c["to_blk"]))
+    for nv in name_variants:
+        nv["target_blk"] = remap.get(str(nv["target_blk"]), nv["target_blk"])
+    return len(taken)
+
+
 def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[Path] = None) -> Path:
     all_streams: list[dict] = []
     all_candidates: list = []
@@ -1483,6 +1567,8 @@ def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[
     unresolved: list = []
     name_conflicts: list = []
     nonlinear: list = []
+    input_dropped: list = []
+    input_kept: dict = {}
     for k, source in enumerate(sources):
         streams, candidates, report = _resolve_source(source, gpkg, pad)
         _offset_added_blks(streams, report["name_variants"], k * _SOURCE_BLK_SPAN)   # keep blks disjoint per source
@@ -1497,14 +1583,22 @@ def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[
             counts[kk] += report["counts"].get(kk, 0)
         minted += report["minted"]
         unresolved += [f"{source}: {u}" for u in report["unresolved"]]
+        input_dropped += [{**d, "source": source} for d in report.get("input_dropped", ())]
+        input_kept[source] = report.get("input_kept", 0)
         name_conflicts += report.get("name_conflicts", [])
         nonlinear += report.get("nonlinear_blks", [])
         print(f"  {source}: {report['counts']}  minted={report['minted']}  "
               f"unresolved={len(report['unresolved'])}")
+    out_dir = out_dir or CURATED.waters.added_streams.parent   # data/curated/waters/
+    prev = Path(out_dir) / "added_streams.json"
+    if not prev.exists():
+        prev = CURATED.waters.added_streams
+    kept_blks = _keep_previous_blks(all_streams, name_variants,
+                                    json.loads(prev.read_text(encoding="utf-8")).get("streams", []))
     report = {"counts": counts, "minted": minted, "unresolved": unresolved,
               "fwa_exclude": exclude, "name_variants": name_variants,
-              "nonlinear_blks": nonlinear, "name_conflicts": name_conflicts, "diagnostics": []}
-    out_dir = out_dir or CURATED.waters.added_streams.parent   # data/curated/waters/
+              "nonlinear_blks": nonlinear, "name_conflicts": name_conflicts, "diagnostics": [],
+              "input_dropped": input_dropped, "input_kept": input_kept, "kept_blks": kept_blks}
     out = write(all_streams, all_candidates, report, out_dir)
     print(f"  sources={sources}  {counts}  minted={minted}  streams={len(all_streams)}  -> {out}")
     return out
@@ -1517,6 +1611,7 @@ def main() -> None:
                     help="municipal sources (default: burnaby)")
     ap.add_argument("--gpkg", default=None)
     args = ap.parse_args()
+    from project_config import get_config
     build(args.sources or ["burnaby"], args.gpkg or get_config().fwa_data_gpkg)
 
 

@@ -3,7 +3,7 @@ name exclusions are filtered (bad/duplicated data), nothing else."""
 
 from pipeline.atlas.waters.added_streams.clean import clean_features
 
-_UNIFORM = {"source", "src_id", "name", "connect_to_hint", "ftype", "fish", "species", "trib_parent"}
+_UNIFORM = {"source", "src_id", "name", "connect_to_hint", "ftype", "fish", "species", "trib_parent", "drainage"}
 
 
 def _ls(coords, **props):
@@ -22,6 +22,17 @@ def test_abbotsford_strips_cruft_titlecases_and_keeps_ditches():
     assert feats[0]["properties"]["fish"] == "Class A"
     # ditch kept (nothing filtered), tagged, name blanked
     assert feats[1]["properties"]["ftype"] == "ditch" and feats[1]["properties"]["name"] == ""
+    assert feats[1]["properties"]["drainage"] and not feats[0]["properties"]["drainage"]   # owner 2026-10-29
+
+
+def test_port_moody_drainage_from_its_own_type_fields():
+    """Owner 2026-10-29: a culvert / ditch / hidden-drainage piece is marked drainage (never added); a stream is not."""
+    feats = clean_features([
+        _ls([[0, 0], [1, 0]], OBJECTID=1, local_stream_name="Dallas Creek", theme="Culvert"),
+        _ls([[1, 0], [2, 0]], OBJECTID=2, theme="Stream", stream_type="HIDDEN DRAINAGE"),
+        _ls([[2, 0], [3, 0]], OBJECTID=3, local_stream_name="Dallas Creek", theme="Stream"),
+    ], "port_moody")
+    assert [bool(f["properties"]["drainage"]) for f in feats] == [True, True, False]
 
 
 def test_squamish_name_alias_fixes_typo():

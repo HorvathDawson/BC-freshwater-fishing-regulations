@@ -115,6 +115,13 @@ Consume the built dataset with `build_dataset.to_graph_inputs(load_build(path))`
 
 ## Build integration (consumed by `pipeline/atlas/build.py`)
 
+**Owner model (2026-10-29): city layers ADD to FWA, never replace it.** `fwa_exclude` is empty and the atlas build
+refuses a non-empty one outside `pipeline.atlas.build.OWNER_APPROVED_FWA_EXCLUDE`. A city line that matches an FWA line
+is a NAME LABEL on it (`duplicate` name variant, with its city's source label); only a NAMED, REAL city stream with no FWA
+equivalent is minted (`build_dataset.addable`: unnamed, "(Unnamed)", drainage-typed — clean.py `drainage` from the
+layer's own type fields — or drainage-named pieces are not). A re-freeze keeps every previously minted blk it can
+(`_keep_previous_blks`: same source + name + src_id), since splits, overrides and gauge matches name them.
+
 The build **does not re-run the resolver**. It consumes a single **frozen, vetted** artifact —
 `pipeline/added_streams.build.json` (top-level, beside `splits.json`) — that is generated once, eyeballed on the
 verify maps, and checked in. `build.py` reads it on **every build, on by default** (skip with
