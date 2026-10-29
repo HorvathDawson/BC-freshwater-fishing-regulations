@@ -65,6 +65,15 @@ SPECIES: dict[str, List[str]] = {
     "eulachon": ["EU"],
 }
 
+#: The salmon codes. A row about any other fish (eulachon) is never a salmon rule.
+SALMON_CODES = frozenset({"SA", "CH", "CO", "SK", "PK", "CM"})
+#: the advisory's `review_reason` prefix that marks a row about another fish (the bundle shows it as a line)
+OTHER_FISH = "another fish, not salmon: "
+#: "All | No fishing for eulachon" (Region 6 B(ii)): the species cell says All, the row names ONE other fish. Read as
+#: "All salmon", it closed chum on the lower Skeena (T229, owner 2026-10-28: eulachon is not a salmon closure — the row
+#: is its own line).
+_RE_NO_FISHING_FOR = re.compile(r"\bno\s+fishing\s+for\s+([a-z]+)\b", re.I)
+
 #: "N per day, only M over X cm" and its wordings. The sub-limit keeps its own count.
 _RE_ONLY_OVER = re.compile(
     r"only\s+(\d+)\s+(?:of\s+which\s+may\s+be\s+)?(?:over|greater\s+than|more\s+than)\s+(\d+)\s*cm",
@@ -335,6 +344,13 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
                               review_reason=f"dates do not parse to a calendar window: "
                                             f"{raw_dates!r}",
                               **base())]
+
+    # A row about ANOTHER FISH ("All | No fishing for eulachon"): not a salmon rule. An advisory the bundle shows as its
+    # own line (`deliver.salmon._other_fish`; EU is not on the book's species list, so it cannot be a species code).
+    if (m := _RE_NO_FISHING_FOR.search(gear)) and (named := SPECIES.get(m.group(1).lower())) \
+            and not set(named) & SALMON_CODES:
+        return [CatalogueRule(rule_id=rid, type=RuleType.advisory,
+                              review_reason=f"{OTHER_FISH}{m.group(1).lower()}", **base())]
 
     if not codes and gear:
         return [CatalogueRule(rule_id=rid, type=RuleType.advisory,

@@ -90,3 +90,74 @@ waters in the Skeena watershed" carry no rules.
     year bar per species: which place answers (colour) and what it says (open / release / closed / check).
 - Screenshots: `T229-shots/t229-c1.png` (watershed), `t229-c2.png` (an Exchamsiks section's chain + year),
   `t229-c3.png` (stripes, zoomed).
+
+## Owner 2026-10-28: answers, and the order taken from the Region 6 page itself
+
+**What the page says** (cached `cache/dfo_salmon/raw/region6-eng.html`, the page the release's rules came from):
+
+> Unless otherwise stated in the table below, the daily limit for all waters in Region 6 is zero (0)
+
+> A. All Region 6 waters — All lakes or streams or parts thereof in the aggregate (combined total), in Region 6,
+> unless otherwise stated below. Please review sections B, C, D, E and F carefully.
+
+> B. Skeena River Watershed – Section "A" applies if stream, specific area, time period, quotas or other species
+> restrictions are not listed in the following sections. (the same words head C, D and E)
+
+> All waters in section "B(i)" – Skeena River Watershed upstream of the CNR Railway Bridge at Terrace, unless
+> otherwise stated below (the same for B(ii), C, D, E)
+
+> E. … All waters in section "E" - Other Mainland Watersheds unless otherwise stated below. / All streams and lakes
+> flowing into tidal waters of Areas 3, 4, 5, and 6. / All streams flowing into tidal water Area 5. / All streams
+> flowing into tidal water Area 6 unless stated below.
+
+> Skeena River — upstream of CNR bridge at Terrace, B.C. to a point above the confluence with the Babine River,
+> excluding the areas below
+
+Read in order:
+1. A named water's row comes first. It is the "otherwise stated below" of its section's row.
+2. In section E only, the tidal-Area rows come next. They sit under E's own row, and Area 6 is "unless stated below".
+3. Then the section's own row: B(i), B(ii), C, D or E.
+4. Then A, which applies to whatever the section does not list. The page says this per "time period, quotas or other
+   species restrictions", so it falls through species by species and day by day.
+5. If nothing is stated, the limit is zero (closed).
+
+When one row is inside another on the same water, the narrower one wins: "excluding the areas below". The other
+regions' pages are flat lists of named waters with the same "Unless otherwise stated … zero" header; Region 2 says
+"waters … flowing into Areas 13, 15, and 16". No other page has lettered sections or Area rows, so only the
+narrower-wins rule applies to them.
+
+**How the pipeline differed from the page, and what changed**
+1. **Two rows on the same water.** The order was alphabetical by id. It is now the more specific place first: the one
+   covering fewer sections (`salmon.chain_order`), with the id only breaking ties.
+2. **The tidal-Area rows were bound to every stream draining to Areas 3–6.** That is why they "beat" B(i) and B(ii)
+   across 97% of the Skeena: the Skeena's mouth is in Area 4. They are now bound outside the Skeena, Nass, Fraser and
+   Haida Gwaii (section E's own `outside_areas`), so they apply in section E only. Inside E, ranking them above E's
+   own row is what the page says.
+3. **"All | No fishing for eulachon" (B(ii))** was typed as an all-salmon closure. It is now a line about another
+   fish (Q4).
+
+**The owner's questions**
+- *(1) Why does the tidal-Area default rank above B(i)/B(ii)?* Our encoding gave every tidal-Area row precedence 2
+  and every section row 1. On the page that ordering only holds inside section E, where the Area rows sit under E's
+  own row. The cross-section comparison came only from the wrong binding (Q2). With that fixed, an Area row and a
+  B(i)/B(ii) row never meet on one section.
+- *(2) What is an "undrawn" place?* Yes: a DFO place whose curated binding has no extent yet. The reach run writes it
+  `mapped: false` with outcome `no_extent`, usually because the cut it needs (a sign, a bridge, a confluence) is not a
+  split yet. The release carries it under its water, and the app paints that water `check`.
+- *(3) Kitsumkalum mouth.* The two places are "Skeena River — mainstem waters downstream of CNR Railway Bridge at
+  Terrace" (123 sections; coho open Jul 15–Nov 30, sockeye windows, pink 2/day) and "Skeena River — mainstem waters
+  near the Kitsumkalum River mouth, Zymagotitz confluence to Hell's Gate" (4 sections; no salmon Jul 1–Aug 31). Both
+  are rows on a named water (tier 3). Inside a tier the order was the id, and "…mainstem-waters-**d**ownstream…"
+  sorts before "…mainstem-waters-**n**ear…". It is now size: the 4-section mouth comes first.
+- *(4) Q2.* Section E is "Other Mainland Watersheds, except for the Fraser River watershed". Its tidal-Area rows were
+  bound as "every stream whose outlet reaches tidal Area 3, 4, 5 or 6". The Skeena empties into Area 4 and the Nass
+  into Area 3, so both basins whole fell inside, and the binding never subtracted E's siblings as E's own row does.
+  Fixed (above).
+
+**Decisions (decisions.md, OWNER 2026-10-28 T229):**
+- Q1: the more specific place wins.
+- Q2: the Area rows are section E's only.
+- Q3: leave for now. The extent is fixed when the DFO extents are finished after the splits (noted in T164).
+- Q4: eulachon is its own line, not a salmon closure.
+- Q5: a tributary at a cut belongs to both sides.
+- Q6: the undrawn places go to the T164 queue (listed there).

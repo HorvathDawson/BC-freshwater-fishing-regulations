@@ -81,3 +81,14 @@ DONE (the "DFO review app" part; steps 1, 2, 4, 5 stay OPEN). The app is usable 
 Checks: `test_review_dfo.py`, `test_curation_review_screen.py` (queue, anchors, a DFO mark changes only the store),
 the safety pins unchanged; frontend `tsc -b`. Screenshots (Campbell River r1, a Quinsam confluence split + extent
 fix; a confluence + a sign by map click) were taken on :18918, not committed.
+
+## From T229 (owner 2026-10-28) — Skeena work for this queue
+- Q3: a named-water place listed under one lettered section must stay inside it — "Skeena: mainstem waters only"
+  (a B(i) row, pink 2/day) is bound `whole` and covers the 119 B(ii) mainstem sections below the CNR bridge. Fix it
+  in the extent when the DFO extents are finished after the splits (clip to B(i)).
+- Q6: the ~30 Skeena places still without an extent (their waters paint `check`): Bulkley below the Morice and the
+  two Bulkley-tributaries rows, Babine Lake ×3, Babine River reaches ×2, Kitwanga, Kitseguecla incl. tributaries,
+  Kitsumkalum reaches ×3 + Kitsumkalum Lake, Lakelse reaches ×3, Kispiox below the signs, Sustut and Suskwa incl.
+  tributaries, Shegunia, Pinkut, Zymoetz / Zymagotitz / Exchamsiks / Exstew / Kasiks / Khyex / Gitnadoix reaches,
+  Redsand Lake, Scotia, Ecstall above the signs, Bear. The review app's DFO → Cascade map shows each (dashed legend
+  swatch, dotted water on the map).

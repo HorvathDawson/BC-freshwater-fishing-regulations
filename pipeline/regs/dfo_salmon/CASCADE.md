@@ -98,3 +98,14 @@ E is just *"none of the above"*. Its siblings have to be mapped anyway, so E is 
 | Areas 3/4/5/6 | **the only new machinery**: which tidal area a stream's mouth sits in |
 
 Thirteen boxes to draw, one of which is free, and one mechanism we do not have yet.
+
+## Two named rows on one water, and the Area rows (T229, owner 2026-10-28)
+
+* When two rows on one water both cover a section, **the more specific one answers first**: the one covering fewer
+  sections (`deliver.salmon.chain_order`). The page says so itself ("…to a point above the confluence with the Babine
+  River, excluding the areas below"). Before this, the order was alphabetical by id, and the Kitsumkalum-mouth closure
+  lost to the "mainstem downstream of the CNR bridge" opening.
+* **The tidal-Area rows belong to E alone.** Each one is bound to "drains to Area N" *outside* E's siblings (Skeena,
+  Nass, Fraser, Haida Gwaii), exactly as E's own row is. The Skeena's mouth is in Area 4, so without that subtraction
+  the "no chinook" row covered 97% of the Skeena.
+* A row about another fish ("All | No fishing for eulachon") is not a salmon rule. It is shown as its own line.

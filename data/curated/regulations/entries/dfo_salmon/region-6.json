@@ -2578,6 +2578,12 @@
             "area_id": "area:drains_to:pfma_5",
             "feature_types": [
               "stream"
+            ],
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
             ]
           }
         ],
@@ -2585,7 +2591,9 @@
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
+        ],
         "spatial_caveat": false
       }
     },
@@ -2649,6 +2657,12 @@
             "area_id": "area:drains_to:pfma_6",
             "feature_types": [
               "stream"
+            ],
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
             ]
           }
         ],
@@ -2656,7 +2670,9 @@
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
+        ],
         "spatial_caveat": false
       }
     },
@@ -5790,26 +5806,52 @@
         "extents": [
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_3"
+            "area_id": "area:drains_to:pfma_3",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           },
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_4"
+            "area_id": "area:drains_to:pfma_4",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           },
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_5"
+            "area_id": "area:drains_to:pfma_5",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           },
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_6"
+            "area_id": "area:drains_to:pfma_6",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           }
         ],
         "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
+        ],
         "spatial_caveat": false
       }
     },
@@ -5866,6 +5908,12 @@
             "area_id": "area:drains_to:pfma_5",
             "feature_types": [
               "stream"
+            ],
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
             ]
           }
         ],
@@ -5873,7 +5921,9 @@
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
+        ],
         "spatial_caveat": false
       }
     },
@@ -5932,6 +5982,12 @@
             "area_id": "area:drains_to:pfma_6",
             "feature_types": [
               "stream"
+            ],
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
             ]
           }
         ],
@@ -5939,7 +5995,9 @@
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
+        ],
         "spatial_caveat": false
       }
     },
@@ -11009,26 +11067,52 @@
         "extents": [
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_3"
+            "area_id": "area:drains_to:pfma_3",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           },
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_4"
+            "area_id": "area:drains_to:pfma_4",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           },
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_5"
+            "area_id": "area:drains_to:pfma_5",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           },
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_6"
+            "area_id": "area:drains_to:pfma_6",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           }
         ],
         "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
+        ],
         "spatial_caveat": false
       }
     },

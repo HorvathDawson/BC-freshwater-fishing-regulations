@@ -6,8 +6,8 @@ answers per species and day — the release's own chains, recomputed from the sa
     <reach run>/dfo_salmon.jsonl.gz                             each place's sections (what the bundle reads)
 
 THE CHAIN of a section is every drawn DFO place covering it, NARROWEST FIRST by the bundle's own order
-(`pipeline.deliver.salmon.build`: precedence desc — a water 3, a tidal-area default 2, a section default or
-closure 1, the region default 0 — then location id). Per species and day the FIRST place of the chain with a
+(`pipeline.deliver.salmon.chain_order`: precedence desc — a water 3, a tidal-area default 2, a section default or
+closure 1, the region default 0 — then, within a tier, the place covering fewer sections, then location id). Per species and day the FIRST place of the chain with a
 rule for that species that day answers (`salmon.verdict_on`, called one place at a time, which is the same
 walk). A place with rules that is NOT DRAWN yet sits on every section of its water as `undrawn`: the app paints
 those sections `check` (partial coverage).
@@ -88,7 +88,9 @@ def _model(name: str, _key: tuple) -> dict:
                 if s in frame:
                     undrawn_on[s].add(lid)
 
-    order = lambda lid: (-locs[lid][1].get("precedence", 0), lid)   # noqa: E731 — salmon.build's order
+    # the bundle's own sort key (`salmon.chain_order`): tier, then the more specific place (fewer sections), then id
+    order = S.chain_order({lid: loc.get("precedence", 0) for lid, (_s, loc, _w) in locs.items()},
+                          S.extent_sizes(placed.values()))
     chain_ix: dict[tuple, int] = {}
     chains: list[dict] = []
     sec_chain: dict[str, int] = {}

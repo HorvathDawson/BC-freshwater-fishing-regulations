@@ -7,7 +7,8 @@ shipped as answers per day, so the app decides nothing about a salmon rule (app/
        └─ build() ─▶ the bundle's `salmon_doc` + `salmon_section` ─▶ the release file `salmon` (`salmon/1`, encode())
 
 THE UNIT IS A CHAIN: the DFO locations that hold on a section, NARROWEST FIRST (precedence: a water 3, a tidal-area
-default 2, a section default or closure 1, the region default 0; then location id). Region 6 is a cascade — read flat,
+default 2, a section default or closure 1, the region default 0; then, within a tier, the place covering FEWER sections —
+T229, owner 2026-10-28: the more specific place wins; then location id — `chain_order`). Region 6 is a cascade — read flat,
 section A opens coho on the Kispiox while B(i) closes it and the water reopens a five-week window
 (`test_the_skeena_cascade_resolves_through_the_join`) — so per species and day the FIRST location of the chain with a
 rule for that species on that day answers, never a wider one.
@@ -120,6 +121,13 @@ def _is_gear(rule: dict) -> bool:
     return bool(rule.get("gear")) or rule.get("type") in _GEAR_TYPES
 
 
+def _other_fish(rule: dict) -> bool:
+    """A row about a fish that is not a salmon ("No fishing for eulachon", Region 6 B(ii)): never a salmon verdict, shown
+    as its own line beside the gear lines (T229, owner 2026-10-28)."""
+    from pipeline.regs.dfo_salmon.typed import OTHER_FISH
+    return rule.get("type") == "advisory" and str(rule.get("review_reason") or "").startswith(OTHER_FISH)
+
+
 def _when_words(rule: dict) -> str:
     from pipeline.deliver.answers.common import when_words
     return when_words(rule.get("when") or {}, "plain")
@@ -175,10 +183,11 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
 
 
 def gear_on(chain: Sequence[Sequence[dict]], md: int) -> Tuple[str, ...]:
-    """The gear lines that hold on day `md`: the narrowest location with any that day."""
+    """The gear lines that hold on day `md`: the narrowest location with any that day. A row about another fish
+    ("No fishing for eulachon") is one of its lines (`_other_fish`)."""
     for rules in chain:
-        held = [r for r in rules if _is_gear(r) and holds_on(r, md)
-                and (not _species_of(r) or any(_covers(r, sp) for sp in SPECIES))]
+        held = [r for r in rules if holds_on(r, md) and (
+                (_is_gear(r) and (not _species_of(r) or any(_covers(r, sp) for sp in SPECIES))) or _other_fish(r))]
         if held:
             return tuple(dict.fromkeys(_text([r], {}) for r in held))
     return ()
@@ -204,6 +213,22 @@ def runs_of(values: Sequence[int]) -> List[int]:
             out += [i, v]
             prev = v
     return out
+
+
+# ── the chain order ──────────────────────────────────────────────────────────────────────────────────────────────────
+
+def extent_sizes(placed: Iterable[dict]) -> Dict[str, int]:
+    """location id -> how many sections its drawn extent covers (the reach run's rows; an undrawn place has none)."""
+    return {r["location_id"]: len(r.get("sections") or ()) for r in placed if r.get("mapped")}
+
+
+def chain_order(precedence: Mapping[str, int], size: Mapping[str, int]) -> Callable[[str], tuple]:
+    """THE SORT KEY OF A CHAIN, NARROWEST FIRST (T229, owner 2026-10-28): the tier (precedence: a water 3, a tidal-area
+    default 2, a section default or closure 1, the region default 0), then WITHIN A TIER THE MORE SPECIFIC PLACE — the
+    one covering fewer sections (a mouth closure before the reach around it, a reach before its whole river) — then the
+    location id. It was the id alone within a tier, so "Skeena mainstem downstream of the CNR bridge" (123 sections)
+    sorted before its Kitsumkalum-mouth closure (4) and opened coho, pink and sockeye the closure shuts Jul 1-Aug 31."""
+    return lambda lid: (-precedence.get(lid, 0), size.get(lid, 1 << 30), lid)
 
 
 # ── the build ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -286,7 +311,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             rules_of[loc.location_id] = [r for fp in loc.fingerprints for r in by_fp.get(fp, [])]
             locs[loc.location_id] = (slug, loc, ef)
 
-    order = lambda lid: (-locs[lid][1].precedence, lid)          # noqa: E731 — narrowest first
+    placed = list(placed)
+    order = chain_order({lid: locs[lid][1].precedence for lid in locs}, extent_sizes(placed))
     covering: Dict[int, List[str]] = defaultdict(list)
     unmapped_locs: List[str] = []
     missing: List[str] = []

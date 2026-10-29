@@ -1583,3 +1583,22 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   the lake (owner-stated, a words boundary). Clowhom / Chambers: the mouth default unless words say otherwise.
 - Mamin, Adam, Amos, Asseek, Amor De Cosmos: accepted at the mouth (new owner marks superseding polygon accepts).
 - Existing marks are untouched; the review holds them against the file's own proposal, so none went stale.
+
+## OWNER 2026-10-28 — the DFO salmon cascade reads as the Region 6 page says (T229)
+- The page's own words set the order: "Unless otherwise stated in the table below, the daily limit for all waters in
+  Region 6 is zero (0)"; A "All … in Region 6, unless otherwise stated below"; B/C/D/E "Section "A" applies if stream,
+  specific area, time period, quotas or other species restrictions are not listed in the following sections"; each
+  section's own row "All waters in section … unless otherwise stated below"; in E, the tidal-Area rows sit under E's
+  row and "All streams flowing into tidal water Area 6 unless stated below"; a reach row "… excluding the areas below".
+  So: a named water's row > (in E only) the tidal-Area rows > the section's own row > A; per species and per day the
+  first that speaks answers; nothing speaks → closed.
+- Q1: within a tier the MORE SPECIFIC place wins — the one covering fewer sections (`salmon.chain_order`); the id
+  only breaks a tie. Kitsumkalum mouth closes all salmon Jul 1–Aug 31; Morice Forks / Gosnell–Lamprey coho fixed.
+- Q2: the tidal-Area rows (3–6, 5, 6) are section E's: bound outside the Skeena, Nass, Fraser and Haida Gwaii (E's own
+  `outside_areas`). They had been bound to every stream draining to those Areas — the Skeena's mouth is in Area 4.
+- Q3: leave — a B(i) row reaching below the CNR bridge is an extent issue, fixed when the DFO extents are finished
+  after the splits (T164).
+- Q4: "All | No fishing for eulachon" (B(ii)) is not a salmon closure: typed as an advisory about another fish, shown
+  as its own line beside the gear lines, never deciding chum.
+- Q5: a tributary entering exactly at a cut belongs to BOTH sides (kept).
+- Q6: the ~30 undrawn Skeena places go to the DFO review queue (T164).
