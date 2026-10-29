@@ -4,6 +4,7 @@
  */
 import { dayLabel, type DayRange, type SectionKey } from "@app/core";
 import { useCallback, type MutableRefObject } from "react";
+import { Platform, View } from "react-native";
 import type { SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MapRail, type MenuControls,
@@ -86,13 +87,16 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   const { onConditions, modes, activeGroups } = mm;
   /*
    * (T213, owner 2026-10-28) THE MAP TAB'S OWN SWITCHES, on the map: the day in the corner Conditions keeps its horizons
-   * in, and Standard / Salmon under the Layers button — while the day's regulations are what the map draws, and not
+   * in, and Standard / Salmon beside it — while the day's regulations are what the map draws, and not
    * while search's sheet is over it.
    */
   const regsDrawn = tab === "map" && !searching && col.statusOk && layers.water.drawn === "regulations";
+  // one control row — the day, then Standard / Salmon — wrapping under the day on a phone
   const corner = regsDrawn
-    ? <MapDayStrip palette={palette} day={mapDay} range={dayRange} onDay={onDay} onOpen={onOpenDay} /> : undefined;
-  const railExtra = regsDrawn && col.salmonOffered ? <RegsLayerToggle col={col} palette={palette} /> : undefined;
+    ? <View testID="map-corner-row" pointerEvents="box-none" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "flex-start" }}>
+        <MapDayStrip palette={palette} day={mapDay} range={dayRange} onDay={onDay} onOpen={onOpenDay} />
+        {col.salmonOffered && <RegsLayerToggle col={col} palette={palette} />}
+      </View> : undefined;
 
   return tab === "spots"
     // (T48) THE SPOTS TAB: the list, open one, Show it on the map, add one — the long press on the maps stays
@@ -111,7 +115,13 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
       // (T48) THE MORE TAB: the data's freshness, the display options, the pages (each opens over it: MenuHost, a back
       // layer) and Contact; its ‹ returns to the tab it was opened from (the route's `prev`) — the one back
       ? <MoreScreen palette={palette}
-                    data={{ ...dataFacts, newRelease: syncState.newRelease }}
+                    data={{ ...dataFacts, newRelease: syncState.newRelease,
+                            // (T231) the update service's sources and download, for the Updates row
+                            updates: syncState.updates
+                              ? { sources: syncState.sources, release: syncState.updates.release } : null }}
+                    // (T231) a phone downloads whole sets: the large-updates-on-mobile-data setting
+                    metered={syncState.updates && syncState.allowMetered && Platform.OS !== "web"
+                      ? { on: syncState.updates.allowMetered, set: syncState.allowMetered } : null}
                     back={TABS.find((t) => t.k === (browse.prev ?? "map"))!.t} onBack={back}
                     contact={menuInfo?.contact ?? null}
                     theme={themeName} onTheme={onTheme}
@@ -181,7 +191,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // P16 removed them). Temperature has no forecast, so it gets none. The
                      // SAME state the panel header sets — `useHorizon` in useMapColouring.
                      horizons={mm.horizonsShown ? { chips: horizonChipsShown, onPick: pickDay } : undefined}
-                     corner={corner} railExtra={railExtra}
+                     corner={corner}
                      // LAYERS ON BOTH MAPS (owner 2026-10-22): on Conditions the sheet is that map's own —
                      // Show (Flow · Level · Temperature), the ground, gauges and arrows — never the Map tab's
                      onLayers={onLayers}

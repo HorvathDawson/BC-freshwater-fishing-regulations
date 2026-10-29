@@ -26,13 +26,17 @@ export interface CornerSegment {
   /** false: shown, refused (`aria-disabled`) */
   readonly enabled?: boolean;
   readonly onPress: () => void;
+  /** (radio strips) the choice is loading: `aria-busy` */
+  readonly busy?: boolean;
 }
 
-export function CornerStrip({ palette, segments, testID, label }: {
+export function CornerStrip({ palette, segments, testID, label, radio = false }: {
   palette: Palette; segments: readonly CornerSegment[]; testID: string; label?: string;
+  /** one choice of several (Standard / Salmon): a radiogroup of radios, `aria-checked` not `aria-pressed` */
+  radio?: boolean;
 }) {
   return (
-    <View testID={testID} accessibilityLabel={label}
+    <View testID={testID} accessibilityLabel={label} accessibilityRole={radio ? "radiogroup" : undefined}
           style={{ flexDirection: "row", backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2,
                    borderRadius: palette.r.pill, overflow: "hidden", ...palette.lift }}>
       {segments.map((h, i) => {
@@ -40,8 +44,8 @@ export function CornerStrip({ palette, segments, testID, label }: {
         const ink = h.on ? palette.onAccent : h.note || !enabled ? palette.sub : palette.ink;
         return (
           <Pressable key={h.key} testID={`${testID}-${h.key}`} onPress={h.onPress} disabled={!enabled}
-                     accessibilityRole="button" accessibilityLabel={h.label} aria-disabled={!enabled}
-                     aria-pressed={h.on} {...SEGMENT_HIT}>
+                     accessibilityRole={radio ? "radio" : "button"} accessibilityLabel={h.label} aria-disabled={!enabled}
+                     aria-busy={h.busy} {...(radio ? { "aria-checked": h.on } : { "aria-pressed": h.on })} {...SEGMENT_HIT}>
             <View style={{ minWidth: 46, paddingVertical: h.note ? 4 : 8, paddingHorizontal: 10, flexDirection: "row",
                            gap: 5, alignItems: "center", justifyContent: "center",
                            backgroundColor: h.on ? palette.accent : palette.card, opacity: enabled ? 1 : 0.45,

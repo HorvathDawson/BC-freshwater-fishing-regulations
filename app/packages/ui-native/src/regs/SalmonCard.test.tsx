@@ -95,7 +95,7 @@ describe("the Salmon card", () => {
   });
 });
 
-describe("the Standard / Salmon switch (under the Layers button, T213)", () => {
+describe("the Standard / Salmon switch (beside the day strip, top left)", () => {
   it("a radio pair; a press sets the choice and nothing else; no Bait & fly (marks on Standard)", () => {
     const set: string[] = [];
     const col = { regsLayer: "standard", setRegsLayer: (p: string) => set.push(p) } as unknown as MapColouring;
@@ -103,6 +103,9 @@ describe("the Standard / Salmon switch (under the Layers button, T213)", () => {
     const [std, sal] = [screen.getByTestId("regs-paint-standard"), screen.getByTestId("regs-paint-salmon")];
     expect([std, sal].map((e) => [e!.getAttribute("aria-checked"), e!.textContent]))
       .toEqual([["true", "Standard"], ["false", "Salmon"]]);
+    expect(screen.getByTestId("regs-paint").getAttribute("role")).toBe("radiogroup");
+    expect([std, sal].map((e) => e!.getAttribute("role"))).toEqual(["radio", "radio"]);
+    expect(screen.getByTestId("icon-fish")).toBeTruthy();
     expect(screen.queryByTestId("regs-paint-method")).toBeNull();
     fireEvent.click(sal!);
     expect(set).toEqual(["salmon"]);

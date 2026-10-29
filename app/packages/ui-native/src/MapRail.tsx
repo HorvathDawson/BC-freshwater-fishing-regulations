@@ -38,8 +38,8 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, childre
   /** Absent: no Layers button. Both browse maps pass it (owner 2026-10-22): each opens the sheet with its own entries. */
   onLayers?: () => void;
   /**
-   * (T213, owner 2026-10-28: "near the layer icon would be better") the map's own switches, stacked under the rail,
-   * right-aligned with it: the Map tab's Standard / Salmon (`RegsLayerToggle`).
+   * any further map switch, stacked under the rail, right-aligned with it. None today: Standard / Salmon moved to the
+   * top-left corner beside the day strip (owner 2026-10-28).
    */
   children?: ReactNode;
 }) {

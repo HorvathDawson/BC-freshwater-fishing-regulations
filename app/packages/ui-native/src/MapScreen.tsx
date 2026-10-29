@@ -20,7 +20,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressObstacle, onPressTidal, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, status, standing, lakes, salmon, method, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, marks, onPressMark, spots,
-                            insetTop = 0, onRegion, corner, railExtra }: {
+                            insetTop = 0, onRegion, corner }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -74,10 +74,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
    * days and words) and the Shell's one `pick`, the same pair the panel header draws.
    */
   horizons?: { chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void };
-  /** (T213) The Map tab's day strip, in the corner the horizons use on Conditions (`MapDayStrip`). */
+  /** (T213) The Map tab's day strip, in the corner the horizons use on Conditions (`MapDayStrip`) and beside it the Standard / Salmon switch (`RegsLayerToggle`). */
   corner?: ReactNode;
-  /** (T213) What sits under the Layers button: the Map tab's Standard / Salmon switch (`RegsLayerToggle`). */
-  railExtra?: ReactNode;
   onError?: (e: Error) => void;
   /** Send the camera to a chosen water — see MapProps.fit. */
   fit?: MapProps["fit"];
@@ -126,7 +124,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         NO satellite button here either: the choice is the Layers sheet's Basemap — two controls for one setting is one
         too many.
       */}
-      <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14, flexDirection: "column",
+      <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14, right: 72, flexDirection: "column",
                                           gap: 8, alignItems: "flex-start" }} pointerEvents="box-none">
       {horizons && (
         <CornerStrip palette={palette} testID="map-horizons"
@@ -142,7 +140,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         THE RAIL (owner 2026-10-21): Layers moved here from a bottom-left pill — the map's own buttons in one stack on the
         right, under MapLibre's zoom stack (`MapRail`). Layers alone since T48: Spots is a bottom-bar tab again.
       */}
-      <MapRail palette={palette} onLayers={onLayers} layersChanged={layersChanged} top={insetTop}>{railExtra}</MapRail>
+      <MapRail palette={palette} onLayers={onLayers} layersChanged={layersChanged} top={insetTop} />
     </View>
   );
 }

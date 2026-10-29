@@ -23,11 +23,11 @@ import { LIGHT } from "./theme";
 
 const TAP = { sid: 0 };
 vi.mock("./MapScreen", () => ({
-  // (T213) the corner (the map's day strip) and the rail's switch are drawn as the map would
+  // (T213) the corner (the map's day strip) (day strip and Standard / Salmon) are drawn as the map would
   MapScreen: (p: { status?: { day: Date } | null; onPressFeature?: (l: string, id: number) => void;
-                   corner?: ReactNode; railExtra?: ReactNode }) =>
+                   corner?: ReactNode }) =>
     <View>
-      {p.corner}{p.railExtra}
+      {p.corner}
       <Text testID="map-status">{p.status ? p.status.day.toDateString() : "no status"}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel="tap the map"
                  onPress={() => { void p.onPressFeature?.("streams", TAP.sid); }}><Text>map</Text></Pressable>
