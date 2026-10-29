@@ -1,9 +1,9 @@
 # T125 — Latent duplicate checks: pins and small helpers (agree today)
 
 Status: PARTIAL — 370a3978 (1), 7fcdfaab (2), bffe4431 (3), 81c05b55 (4), 4c0b6272 (5), e81ee1b7 (6), 8d720fb9 (7),
-84525b29 + 4076c58b + 1fdecc94 + ddcd5aca + 1b106ff9 (8: matching 6/7, app 9/11, reach 9, answers 10/11), 0e5baf51 (9).
+84525b29 + 4076c58b + 1fdecc94 + ddcd5aca + 1b106ff9 (8: matching 6/7, app 9/11, reach 9, answers 10/11), ba5d5873 (8: answers 12), 580ca3f7 (8: reach 11), 0e5baf51 (9).
 Adversarial review: 720e9a6f, 388e6f08, a97c63a0, 9835fa2e, 2b86b39f (see Adversarial review).
-Lane lane-T125 (wf_144b677f-89c-3). Left in item 8: gauges 9, answers 12, reach 11 (see Left). Rebuild: reach rerun +
+Lane lane-T125 (wf_144b677f-89c-3). Left in item 8: gauges 9 only (owner-run promote; see Left). Item 7's per-quantity record years in the handoff scripts: left as recorded. Rebuild: reach rerun +
 deliver (items 4, 5 ride the next reach rerun; 1-3, 8 ship with deliver); app check after the regs fixture re-cut.
 
 ## As built
@@ -194,3 +194,17 @@ for a second fish-list wording path and a double computation in the reach step) 
 Still open, none code-only and unblocked: gauges 9 (needs a `StationMatch` field, a match.json regenerate and an owner-run
 promote; pipeline/gauges/feed is another lane's); answers 12 and reach 11 (the audit's file/line pointers are missing: Q119);
 item 7's Python `contributions_of` (member tuples differ per script). The two base-branch failures noted above are not this ticket's.
+
+## Done 2026-10-28 (Q119 re-derived by search)
+- **answers 12, fish-list wording** — ba5d5873. `common.each_name` (each fish by its own name: the INTENTIONAL split,
+  ROUND15 1 / RULINGS P19 — a size group never says a group's name) and `common.lc_names` (a closed group by its name,
+  else `each_name`). Second paths gone: `card._names` and `rows/groups._names` (copies of `lc_names`), six inline
+  `join([lc(sp_name(c)) …])` in card / groups / display.rule, gear's `_or`/`_and` (a second `join`). `tree.kind_names`
+  (shared "trout" noun) builds on them; `stamps._sp_words`' ", " fallback is page v36's and stays. Text-identical;
+  `test_one_fish_list_wording.py` (scan + mutation pin). Answers suite: 996 pass; 10 `*_live` failures compare the
+  shipped taps/release to the golden (day lists), not this code.
+- **reach 11, double computation** — 580ca3f7. `entry_scope` and `scope_unclassified` each called `resolve_extent` on
+  every scope extent of every entry; `build.scope_resolutions` resolves them once and both read it. Same outputs by
+  construction (no reach rerun needed); pin in `test_basin_areas.py` counts the resolves. Reach/scope tests: 682 pass.
+- Left: gauges 9 (needs a `StationMatch` field, match.json regenerate and an owner-run promote); item 7's per-quantity
+  record years in the four handoff scripts (measurement only, member tuples differ per script).

@@ -122,3 +122,13 @@ Owner questions (each with the default built):
 Nothing left is both code-only and unblocked for this lane: 3's two open shapes need the gate/data work above; 4 lives in
 `packages/ui` / `packages/map` (active iOS/paint lanes, not touched); 6 needs a push to GitHub (command in item 6, the
 owner or merger runs it); Q-T80a/b/c are owner calls with defaults built. Items 1, 2, 5 (declined by design), 7 stay as recorded.
+
+## Sweep 2026-10-28
+- Item 4 (the flash), a narrowing, not a fix: `useConditionsColour`'s values do NOT drop across a tab switch — `useAsync`
+  with `enabled` false keeps its last answer, and on return the same `sameAs` makes the re-run a refresh (the last
+  table stays); a changed poll tick also returns the last answer until the new one lands. So the ~8 frames are not the
+  values being recomputed; the lead is the order inside the map's `applyLook` (the stream mode / wash switched before
+  the standing channel's feature-state is written). Needs per-frame instrumentation on the live web app
+  (`packages/map`, `ui-native/shell/useMapColouring.ts` — both active lanes today); not touched.
+- 3's two open shapes (card gate's water-limited total places; one-kind row inside another rule's total) need a
+  deliver to prove — the atlas rebuild holds the heavy slot. 6 needs a push (command in item 6). Q-T80a/b/c owner.
