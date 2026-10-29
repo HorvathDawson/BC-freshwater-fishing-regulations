@@ -34,5 +34,7 @@ export * from "./standing";
 export { downstreamWater } from "./downstream";
 // THE RELEASE (P10): verified fetches, the manifest's diff and pairing
 export { fetchVerified, verify } from "./fetchVerified";
-export { loadManifest, parseManifest, pair, type Held, type Manifest } from "./manifest";
+export { parseManifest, pair, type Held, type Manifest } from "./manifest";
 export { sha256Hex } from "./sha256";
+// (T231) THE UPDATE SERVICE: every feed and the release checked against the origin, fetched verified, applied safely
+export * from "./update";

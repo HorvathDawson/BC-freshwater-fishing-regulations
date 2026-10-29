@@ -40,6 +40,9 @@ export { Hydrograph } from "./Hydrograph";
 export { Credits } from "./Credits";
 export { GaugeTrace } from "./GaugeTrace";
 export { FishSpinner } from "./FishSpinner";
+// (T231) the "Updated to …" toast and the device's word on its network (online, metered) for the update service
+export { UpdateToast } from "./UpdateToast";
+export { connectivity } from "./connectivity";
 export { MenuContext } from "./menu/MenuContext";
 export { MoreScreen } from "./menu/MoreScreen";
 export { MenuHost, NO_MENU_INFO, type MenuInfo } from "./menu/MenuHost";
