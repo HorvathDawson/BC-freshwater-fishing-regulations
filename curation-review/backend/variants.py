@@ -50,6 +50,8 @@ def _row(i: str, c: dict, m, spot: set) -> dict:
     # what will happen to it: accepted (auto / owner / your mark), rejected (your mark), or waiting
     if call == "reject":
         fate = "rejected"
+    elif (owner or {}).get("call") == N.HOLD and call != "accept":
+        fate = "waiting"                      # owner 2026-10-29: held, not applied
     elif call == "accept" or owner or g == "auto":
         fate = "accepted"
     else:

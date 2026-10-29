@@ -38,10 +38,33 @@ OWNER = {
                                      "why": "owner 2026-10-28: 08MH079's line — Kilgard Creek shown"},
     "blk:356314888~lonzo-creek": {"call": "accept", "name": "Lonzo Creek (North Fork)",
                                    "why": "owner 2026-10-28: 08MH079's line — Lonzo Creek (North Fork) searchable"},
+    # owner 2026-10-29: a name that came in by an ECCC station is accepted when the station's name plainly names this
+    # water; a diversion / headpond name may name a structure, so it is HELD (not applied) until the owner says
+    "blk:356370187~inkaneep-creek": {"call": "accept", "why": "owner 2026-10-29: the gauge 08NM012 (Inkaneep Creek "
+                                     "near Oliver) names this water"},
+    "blk:354151912~noble-creek": {"call": "accept", "why": "owner 2026-10-29: the gauge 08HA028 (Noble Creek at the "
+                                  "mouth) names this water"},
+    "blk:356368998~meadow-creek-diversion": {"call": "hold", "why": "owner 2026-10-29: held — the gauge 08NH128 "
+                                             "(Meadow Creek Diversion below John Creek) may name a structure"},
+    "blk:354088905~quinsam-river-diversion-headpond": {"call": "hold", "why": "owner 2026-10-29: held — the gauge "
+                                                       "08HD034 (Quinsam River Diversion Headpond) names a structure"},
 }
+#: owner 2026-10-29: every auto-accepted row that came in by LINE COVERAGE (>= 80 %) is the owner's accept
+COVERAGE_ACCEPTED = "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)"
+_SMALL = {"near", "at", "the", "above", "below", "of", "and", "on", "in", "to"}
+
+
+def gauge_label(station: str, station_name: str) -> str:
+    """How a name taken from an ECCC station is credited (the app: "Name from <label>"): the gauge and its own
+    name, e.g. "the Environment Canada gauge 08NM012 (Inkaneep Creek near Oliver)"."""
+    words = (station_name or "").replace("(LOWER STATION)", "").replace("(UPPER STATION)", "").split()
+    nice = " ".join(w.lower() if k and w.lower() in _SMALL else w.title() for k, w in enumerate(words))
+    return f"the Environment Canada gauge {station}" + (f" ({nice})" if nice else "")
 
 GROUPS = ("owner", "auto", "review")
 CALLS = ("accept", "reject")
+#: an owner call in `OWNER` that keeps a row OUT of the accepted set pending the owner (owner 2026-10-29)
+HOLD = "hold"
 
 
 def key(s: str) -> str:
@@ -126,13 +149,15 @@ def name_records(i: str, c: dict, *, call_by: str) -> list[dict]:
         code = "municipal" if src.startswith("municipal:") else SOURCE_CODE.get(src, "alias")
         ev = s.get("evidence") or {}
         ref = s.get("source_ref", "")
+        label = s["source_label"]
         if src == "eccc" and ev.get("station"):
             ref = f"ECCC station {ev['station']} ({ev.get('station_name', '')})"
+            label = gauge_label(ev["station"], ev.get("station_name", ""))
         elif src == "bcgnis_cache" and ev.get("feature_id"):
             ref = f"BC GNIS feature {ev['feature_id']}"
         elif src.startswith("municipal:") and ev.get("source_ids"):
             ref = f"{ref}#{','.join(str(x) for x in ev['source_ids'][:5])}"
-        rec = {"name": nm, "source": code, "source_label": s["source_label"], "source_ref": ref,
+        rec = {"name": nm, "source": code, "source_label": label, "source_ref": ref,
                "official": code == "gazette",
                "evidence": {k: v for k, v in ev.items() if k in ("blk_overlap", "source_overlap", "near_m",
                                                                   "source_len_m", "distance_m", "trust", "lonlat")},

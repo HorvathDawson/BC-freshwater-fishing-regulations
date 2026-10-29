@@ -532,6 +532,12 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                     mid, pt = midpoint(x["sids"], x["part"]["poly"], x["g"], rep[(o, x["v"])])
                     (lon, lat), bb = ll(pt), box(x["g"])
                 stretch_rows.append((o, x["v"], x["k"], srank, mid, lon, lat, *bb, json.dumps(x["sids"])))
+        def stem_g(x):
+            if "stem_g" not in x:
+                gs = [geo[s] for s in x["sids"] if s in geo and s in span and not span[s][4]]
+                x["stem_g"] = unary_union(gs) if gs else None
+            return x["stem_g"]
+
         raw = []
         for i in range(len(nodes)):
             for j in range(i + 1, len(nodes)):
@@ -545,6 +551,11 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                 a, b = dn["g"], up["g"]
                 if a.distance(b) > TOUCH_M:
                     continue
+                # the mark stands where the MAIN STEMS meet when they do: a cut swept across a braid also separates
+                # the side channel, and the nearest pair there put the mark on the braid (Cranberry canyon bottom)
+                sa, sb = stem_g(dn), stem_g(up)
+                if sa is not None and sb is not None and sa.distance(sb) <= TOUCH_M:
+                    a, b = sa, sb
                 pa, pb = nearest_points(a, b)
                 lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
                 at = chain_label(dn, up, span, splits, touch) if same \

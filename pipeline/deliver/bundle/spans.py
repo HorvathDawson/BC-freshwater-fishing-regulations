@@ -493,6 +493,11 @@ def lake_edge_rows(registry, graph, handles: dict[str, int], items, stems: dict[
     return out
 
 
+def _is_braid_row(r: dict) -> bool:
+    """A resolved row the braid sweep added for a cut whose host is another line (`concern` "braid cut across …")."""
+    return str(r.get("concern") or "").startswith("braid cut across")
+
+
 def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
                f: NameFacts | None = None, lake_items: dict | None = None) -> list[tuple]:
     """The `split` table: every cut the atlas resolved, once per id — (split_id, name, kind, at,
@@ -513,7 +518,9 @@ def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
         rs = by_id[sid]
         if REGION_AREA.match(sid):
             continue                                  # a region line is `region_line:<code>`
-        first = sorted(rs, key=lambda r: (str(r["blk"]), r["route_measure"]))[0]
+        # the HOST row first: a braid sweep's extra row ("braid cut across …") never speaks for the cut — it has
+        # no confidence of its own and stands on the side channel (Cranberry canyon bottom, owner 2026-10-29)
+        first = sorted(rs, key=lambda r: (_is_braid_row(r), str(r["blk"]), r["route_measure"]))[0]
         blk, m = str(first["blk"]), float(first["route_measure"])
         kind = first["anchor_type"]
         label = first.get("label") or sid

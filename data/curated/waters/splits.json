@@ -3499,7 +3499,9 @@
      "_coord": [
       -122.83407,
       49.28408
-     ]
+     ],
+     "tidal": true,
+     "_tidal_source": "owner 2026-10-29: \"The railway bridge crossing Noons Creek serves as the definitive boundary separating tidal from freshwater regulations.\" (Ioco Spur rail bridge, OSM basemap, 0.2 m from this point)"
     }
    ]
   },

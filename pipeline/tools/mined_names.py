@@ -46,8 +46,10 @@ def build(marks_path: Path) -> list[dict]:
             by = who
         elif i in N.OWNER and N.OWNER[i]["call"] == "accept":
             by = N.OWNER[i]["why"]
+        elif i in N.OWNER and N.OWNER[i]["call"] == N.HOLD:
+            continue                                      # owner 2026-10-29: held, not applied
         elif c.get("auto_accept_eligible"):
-            by = "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)"
+            by = N.COVERAGE_ACCEPTED
         else:
             continue
         tgt = N.target_entry(c)

@@ -31,35 +31,8 @@
        48.76122
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354087697~cowichan-river",
-     "confidence": "high"
-    }
-   ]
-  },
-  {
-   "target": {
-    "blks": [
-     "354088905"
-    ]
-   },
-   "names": [
-    {
-     "name": "Quinsam River Diversion Headpond",
-     "source": "gauge",
-     "source_label": "ECCC hydrometric station name",
-     "source_ref": "ECCC station 08HD034 (QUINSAM RIVER DIVERSION HEADPOND)",
-     "official": false,
-     "evidence": {
-      "trust": "reviewed",
-      "distance_m": 5.7,
-      "lonlat": [
-       -125.52055,
-       49.93
-      ]
-     },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
-     "candidate": "blk:354088905~quinsam-river-diversion-headpond",
      "confidence": "high"
     }
    ]
@@ -87,7 +60,7 @@
        50.04943
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354089003~maraude-creek",
      "confidence": "high"
     }
@@ -116,7 +89,7 @@
        48.44467
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354089612~the-cut-coulee",
      "confidence": "high"
     }
@@ -145,7 +118,7 @@
        49.30987
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354090493~crocker-creek",
      "confidence": "high"
     }
@@ -174,7 +147,7 @@
        48.39734
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354090778~baker-creek",
      "confidence": "high"
     }
@@ -203,7 +176,7 @@
        49.13776
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354091667~gray-farm-creek",
      "confidence": "high"
     }
@@ -232,7 +205,7 @@
        49.13804
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354092267~chapple-creek",
      "confidence": "high"
     }
@@ -261,7 +234,7 @@
        49.14154
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354095395~belvedere-farm-creek",
      "confidence": "high"
     }
@@ -290,7 +263,7 @@
        48.94514
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354096324~rap-creek",
      "confidence": "high"
     }
@@ -319,7 +292,7 @@
        49.31567
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354107767~hamilton-creek",
      "confidence": "high"
     }
@@ -348,7 +321,7 @@
        48.51968
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354108514~mckay-creek",
      "confidence": "high"
     }
@@ -377,7 +350,7 @@
        49.67395
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354113327~port-augusta-creek",
      "confidence": "high"
     }
@@ -406,7 +379,7 @@
        48.94863
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354114978~beaver-creek",
      "confidence": "high"
     }
@@ -435,7 +408,7 @@
        48.40569
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354115683~craig-creek",
      "confidence": "high"
     }
@@ -464,7 +437,7 @@
        49.89911
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354115965~mayfly-creek",
      "confidence": "high"
     }
@@ -493,7 +466,7 @@
        49.31257
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354116002~harris-creek",
      "confidence": "high"
     }
@@ -522,7 +495,7 @@
        48.50075
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354117553~normandy-creek",
      "confidence": "high"
     }
@@ -551,7 +524,7 @@
        49.16009
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354118062~jacqueline-brook",
      "confidence": "high"
     }
@@ -580,7 +553,7 @@
        48.59591
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354118973~farley-creek",
      "confidence": "high"
     }
@@ -609,7 +582,7 @@
        49.64444
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354119767~devlin-creek",
      "confidence": "high"
     }
@@ -638,7 +611,7 @@
        48.9428
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354120641~loon-creek",
      "confidence": "high"
     }
@@ -667,7 +640,7 @@
        49.44663
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354125014~north-mcnaughton-creek",
      "confidence": "high"
     }
@@ -696,7 +669,7 @@
        49.76868
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354125318~pup-creek",
      "confidence": "high"
     }
@@ -725,7 +698,7 @@
        48.38451
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354125656~throup-stream",
      "confidence": "high"
     }
@@ -754,7 +727,7 @@
        48.6797
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354126239~benes-creek",
      "confidence": "high"
     }
@@ -783,7 +756,7 @@
        48.73103
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354126755~hidden-creek",
      "confidence": "high"
     }
@@ -812,7 +785,7 @@
        49.16592
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354128296~cat-stream",
      "confidence": "high"
     },
@@ -832,7 +805,7 @@
        49.15958
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354128296~cat-stream",
      "confidence": "high"
     }
@@ -861,7 +834,7 @@
        48.61221
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354128686~salmon-brook",
      "confidence": "high"
     }
@@ -890,7 +863,7 @@
        48.94891
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354132772~death-creek",
      "confidence": "high"
     }
@@ -919,7 +892,7 @@
        48.58842
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354136493~rashleigh-brook",
      "confidence": "high"
     }
@@ -948,7 +921,7 @@
        49.16857
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354139008~darough-creek",
      "confidence": "high"
     }
@@ -977,7 +950,7 @@
        48.95284
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354139477~gnarly-creek",
      "confidence": "high"
     }
@@ -1006,7 +979,7 @@
        48.9469
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354139803~sheet-creek",
      "confidence": "high"
     }
@@ -1035,7 +1008,7 @@
        49.38552
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354139831~westglade-brook",
      "confidence": "high"
     }
@@ -1064,7 +1037,7 @@
        49.15414
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354140869~dicks-brook",
      "confidence": "high"
     },
@@ -1084,7 +1057,7 @@
        49.14525
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354140869~dicks-brook",
      "confidence": "high"
     }
@@ -1113,7 +1086,7 @@
        49.72144
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354141792~finlay-creek",
      "confidence": "high"
     }
@@ -1142,7 +1115,7 @@
        48.53513
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354141940~burnham-brook",
      "confidence": "high"
     }
@@ -1171,7 +1144,7 @@
        49.76273
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354142015~teachers-creek",
      "confidence": "high"
     }
@@ -1200,7 +1173,7 @@
        49.68244
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354142529~mallard-creek",
      "confidence": "high"
     }
@@ -1229,7 +1202,7 @@
        49.53244
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354142996~emily-creek",
      "confidence": "high"
     }
@@ -1258,7 +1231,7 @@
        50.02676
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354143627~rugged-creek",
      "confidence": "high"
     }
@@ -1287,7 +1260,7 @@
        48.67101
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354143934~blue-heron-creek",
      "confidence": "high"
     }
@@ -1316,7 +1289,7 @@
        49.69986
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354145759~river-meadows-creek",
      "confidence": "high"
     },
@@ -1336,7 +1309,7 @@
        49.70345
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354145759~river-meadows-creek",
      "confidence": "high"
     }
@@ -1365,7 +1338,7 @@
        49.46291
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354147156~mud-bay-creek",
      "confidence": "high"
     }
@@ -1394,7 +1367,7 @@
        49.681
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354147601~forbidden-plateau-creek",
      "confidence": "high"
     }
@@ -1423,7 +1396,7 @@
        49.62551
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354148045~maple-creek",
      "confidence": "high"
     }
@@ -1452,7 +1425,7 @@
        49.09023
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354148885~thatcher-creek",
      "confidence": "high"
     }
@@ -1481,7 +1454,7 @@
        48.86358
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354148939~hidden-hills-creek",
      "confidence": "high"
     }
@@ -1510,7 +1483,7 @@
        49.66459
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354149669~bevan-creek",
      "confidence": "high"
     }
@@ -1539,7 +1512,7 @@
        49.24357
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354150301~b-p-creek",
      "confidence": "high"
     }
@@ -1568,7 +1541,7 @@
        50.72091
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354151186~stink-creek",
      "confidence": "high"
     }
@@ -1584,7 +1557,7 @@
     {
      "name": "Noble Creek",
      "source": "gauge",
-     "source_label": "ECCC hydrometric station name",
+     "source_label": "the Environment Canada gauge 08HA028 (Noble Creek at the Mouth)",
      "source_ref": "ECCC station 08HA028 (NOBLE CREEK AT THE MOUTH)",
      "official": false,
      "evidence": {
@@ -1595,7 +1568,7 @@
        48.54111
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: the gauge 08HA028 (Noble Creek at the mouth) names this water",
      "candidate": "blk:354151912~noble-creek",
      "confidence": "high"
     },
@@ -1615,7 +1588,7 @@
        48.54132
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: the gauge 08HA028 (Noble Creek at the mouth) names this water",
      "candidate": "blk:354151912~noble-creek",
      "confidence": "high"
     }
@@ -1644,7 +1617,7 @@
        49.23363
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354153674~marion-creek",
      "confidence": "high"
     }
@@ -1673,7 +1646,7 @@
        49.76592
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:354155073~cathedral-creek",
      "confidence": "high"
     }
@@ -1702,7 +1675,7 @@
        49.21826
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:355994871~celtic-slough",
      "confidence": "high"
     }
@@ -1731,7 +1704,7 @@
        52.89115
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:355994949~quesnel-river-side-channel",
      "confidence": "high"
     }
@@ -1760,7 +1733,7 @@
        49.78278
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:355997438~shovel-creek",
      "confidence": "high"
     }
@@ -1789,7 +1762,7 @@
        50.18955
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356001337~south-ziggurat-creek",
      "confidence": "high"
     }
@@ -1818,7 +1791,7 @@
        49.16065
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356033284~cub-creek",
      "confidence": "high"
     }
@@ -1847,7 +1820,7 @@
        50.54778
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356037641~gates-spawning-channel",
      "confidence": "high"
     }
@@ -1876,7 +1849,7 @@
        49.35726
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356050695~tower-creek",
      "confidence": "high"
     }
@@ -1905,7 +1878,7 @@
        49.09248
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356056778~corinne-brook",
      "confidence": "high"
     },
@@ -1925,7 +1898,7 @@
        49.0934
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356056778~corinne-brook",
      "confidence": "high"
     },
@@ -1945,7 +1918,7 @@
        49.09261
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356056778~corinne-brook",
      "confidence": "high"
     }
@@ -1974,7 +1947,7 @@
        49.08883
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356062107~jantz-stream",
      "confidence": "high"
     },
@@ -1994,7 +1967,7 @@
        49.08822
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356062107~jantz-stream",
      "confidence": "high"
     }
@@ -2023,7 +1996,7 @@
        49.02351
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356078121~thomson-creek",
      "confidence": "high"
     }
@@ -2052,7 +2025,7 @@
        49.14785
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356081632~hunt-brook",
      "confidence": "high"
     }
@@ -2081,7 +2054,7 @@
        49.05578
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356082830~marshall-creek",
      "confidence": "high"
     }
@@ -2110,7 +2083,7 @@
        49.12197
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356085915~henry-bose-creek",
      "confidence": "high"
     }
@@ -2139,7 +2112,7 @@
        49.50189
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356088277~trickle-creek",
      "confidence": "high"
     }
@@ -2168,7 +2141,7 @@
        49.01791
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356092472~jacobsen-creek",
      "confidence": "high"
     }
@@ -2197,7 +2170,7 @@
        49.11929
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356095236~reedville-creek",
      "confidence": "high"
     }
@@ -2226,7 +2199,7 @@
        49.11849
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356096337~gill-brook",
      "confidence": "high"
     },
@@ -2246,7 +2219,7 @@
        49.11904
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356096337~gill-brook",
      "confidence": "high"
     }
@@ -2275,7 +2248,7 @@
        49.29391
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356118304~miami-slough",
      "confidence": "high"
     }
@@ -2304,7 +2277,7 @@
        49.10447
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356128411~cloverdale-canal",
      "confidence": "high"
     }
@@ -2333,7 +2306,7 @@
        49.09119
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356128529~mckay-creek",
      "confidence": "high"
     },
@@ -2353,7 +2326,7 @@
        49.08526
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356128529~mckay-creek",
      "confidence": "high"
     }
@@ -2382,7 +2355,7 @@
        49.05943
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356130026~upper-titman-creek",
      "confidence": "high"
     }
@@ -2411,7 +2384,7 @@
        49.01959
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356136026~mcnally-creek",
      "confidence": "high"
     }
@@ -2440,7 +2413,7 @@
        49.17086
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356136630~norum-creek",
      "confidence": "high"
     }
@@ -2469,7 +2442,7 @@
        49.00382
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356137300~wilkin-creek",
      "confidence": "high"
     }
@@ -2498,7 +2471,7 @@
        50.57461
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356145206~angel-creek",
      "confidence": "high"
     }
@@ -2527,7 +2500,7 @@
        50.73109
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356150719~harper-creek",
      "confidence": "high"
     }
@@ -2556,7 +2529,7 @@
        49.15173
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356152258~rae-creek",
      "confidence": "high"
     }
@@ -2585,7 +2558,7 @@
        49.14126
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356161149~fleetwood-creek",
      "confidence": "high"
     }
@@ -2614,7 +2587,7 @@
        49.18352
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356177804~gourlay-creek",
      "confidence": "high"
     }
@@ -2643,7 +2616,7 @@
        49.13453
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356179747~north-creek",
      "confidence": "high"
     }
@@ -2672,7 +2645,7 @@
        50.58227
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356188803~no-good-creek",
      "confidence": "high"
     }
@@ -2701,7 +2674,7 @@
        49.24715
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356195100~reeve-slough",
      "confidence": "high"
     }
@@ -2730,7 +2703,7 @@
        49.0358
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356196726~shamrock-creek",
      "confidence": "high"
     },
@@ -2750,7 +2723,7 @@
        49.03542
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356196726~shamrock-creek",
      "confidence": "high"
     }
@@ -2779,7 +2752,7 @@
        49.11241
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356205439~glover-creek",
      "confidence": "high"
     }
@@ -2808,7 +2781,7 @@
        49.11039
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356210019~silverstream-slough",
      "confidence": "high"
     }
@@ -2837,7 +2810,7 @@
        50.68773
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356211380~truckwash-creek",
      "confidence": "high"
     }
@@ -2866,7 +2839,7 @@
        49.19297
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356217367~manson-canal",
      "confidence": "high"
     }
@@ -2895,7 +2868,7 @@
        49.23701
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356218035~saporano-creek",
      "confidence": "high"
     }
@@ -2924,7 +2897,7 @@
        49.05694
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356220750~laura-brook",
      "confidence": "high"
     }
@@ -2953,7 +2926,7 @@
        50.5798
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356226572~mcgillivray-creek-south-fork",
      "confidence": "high"
     }
@@ -2982,7 +2955,7 @@
        53.8995
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356228345~shane-creek",
      "confidence": "high"
     }
@@ -3011,7 +2984,7 @@
        49.17751
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356232808~brae-slough",
      "confidence": "high"
     }
@@ -3040,7 +3013,7 @@
        49.00419
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356238772~stapley-creek",
      "confidence": "high"
     }
@@ -3069,7 +3042,7 @@
        49.25849
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356249293~mcfadden-creek",
      "confidence": "high"
     }
@@ -3098,7 +3071,7 @@
        49.23914
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356253337~karen-creek",
      "confidence": "high"
     }
@@ -3127,7 +3100,7 @@
        50.57439
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356254237~pylon-creek",
      "confidence": "high"
     }
@@ -3156,7 +3129,7 @@
        49.01233
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356263650~kerfoot-creek",
      "confidence": "high"
     }
@@ -3185,7 +3158,7 @@
        49.23101
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356271168~bean-creek",
      "confidence": "high"
     }
@@ -3214,7 +3187,7 @@
        49.37269
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356272352~cohen-creek",
      "confidence": "high"
     }
@@ -3243,7 +3216,7 @@
        49.50245
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356275366~everets-creek",
      "confidence": "high"
     }
@@ -3272,7 +3245,7 @@
        49.17808
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356280098~king-creek",
      "confidence": "high"
     }
@@ -3301,7 +3274,7 @@
        49.05278
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356288569~buxton-creek",
      "confidence": "high"
     }
@@ -3330,7 +3303,7 @@
        49.15625
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356294200~price-creek",
      "confidence": "high"
     }
@@ -3359,7 +3332,7 @@
        49.09385
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356300550~peacock-brook",
      "confidence": "high"
     }
@@ -3388,7 +3361,7 @@
        49.08323
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356304947~smith-brook",
      "confidence": "high"
     },
@@ -3408,7 +3381,7 @@
        49.08071
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356304947~smith-brook",
      "confidence": "high"
     }
@@ -3437,7 +3410,7 @@
        50.56815
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356305031~problem-creek",
      "confidence": "high"
     }
@@ -3483,7 +3456,7 @@
     {
      "name": "Lonzo Creek (North Fork)",
      "source": "gauge",
-     "source_label": "ECCC hydrometric station name",
+     "source_label": "the Environment Canada gauge 08MH079 (Lonzo Creek (North Fork) near Kilgard)",
      "source_ref": "ECCC station 08MH079 (LONZO CREEK (NORTH FORK) NEAR KILGARD)",
      "official": false,
      "evidence": {
@@ -3523,7 +3496,7 @@
        49.2714
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356316442~east-creek",
      "confidence": "high"
     }
@@ -3552,7 +3525,7 @@
        50.59059
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356317915~canyon-creek",
      "confidence": "high"
     }
@@ -3581,7 +3554,7 @@
        50.74761
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356322711~gulch-creek",
      "confidence": "high"
     }
@@ -3610,7 +3583,7 @@
        50.35591
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356337117~cattle-valley-creek",
      "confidence": "high"
     }
@@ -3639,7 +3612,7 @@
        50.35536
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356353428~cottonwood-creek-south",
      "confidence": "high"
     }
@@ -3668,7 +3641,7 @@
        50.22973
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356354557~s-m-creek",
      "confidence": "high"
     }
@@ -3697,7 +3670,7 @@
        49.34143
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356356588~coho-creek",
      "confidence": "high"
     },
@@ -3717,7 +3690,7 @@
        49.34933
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356356588~coho-creek",
      "confidence": "high"
     }
@@ -3746,7 +3719,7 @@
        50.33487
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356360791~scudamore-creek-north",
      "confidence": "high"
     }
@@ -3775,35 +3748,8 @@
        50.16339
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356364390~lakes-creek",
-     "confidence": "high"
-    }
-   ]
-  },
-  {
-   "target": {
-    "blks": [
-     "356368998"
-    ]
-   },
-   "names": [
-    {
-     "name": "Meadow Creek Diversion",
-     "source": "gauge",
-     "source_label": "ECCC hydrometric station name",
-     "source_ref": "ECCC station 08NH128 (MEADOW CREEK DIVERSION BELOW JOHN CREEK)",
-     "official": false,
-     "evidence": {
-      "trust": "reviewed",
-      "distance_m": 13.1,
-      "lonlat": [
-       -116.9975,
-       50.25417
-      ]
-     },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
-     "candidate": "blk:356368998~meadow-creek-diversion",
      "confidence": "high"
     }
    ]
@@ -3818,7 +3764,7 @@
     {
      "name": "Inkaneep Creek",
      "source": "gauge",
-     "source_label": "ECCC hydrometric station name",
+     "source_label": "the Environment Canada gauge 08NM012 (Inkaneep Creek near Oliver)",
      "source_ref": "ECCC station 08NM012 (INKANEEP CREEK NEAR OLIVER (LOWER STATION))",
      "official": false,
      "evidence": {
@@ -3829,7 +3775,7 @@
        49.11667
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: the gauge 08NM012 (Inkaneep Creek near Oliver) names this water",
      "candidate": "blk:356370187~inkaneep-creek",
      "confidence": "high"
     }
@@ -3858,7 +3804,7 @@
        51.38068
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356432746~porcupine-river",
      "confidence": "high"
     }
@@ -3887,7 +3833,7 @@
        50.44605
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356464736~meighan-creek",
      "confidence": "high"
     }
@@ -3916,7 +3862,7 @@
        51.27759
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356470444~krumholtz-creek",
      "confidence": "high"
     }
@@ -3945,7 +3891,7 @@
        49.45044
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356500859~negro-creek",
      "confidence": "high"
     }
@@ -3974,7 +3920,7 @@
        49.42921
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356520700~white-creek",
      "confidence": "high"
     }
@@ -4003,7 +3949,7 @@
        49.50166
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356559786~boardman-creek",
      "confidence": "high"
     }
@@ -4032,7 +3978,7 @@
        56.27039
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:359111766~wendy-creek",
      "confidence": "high"
     }
@@ -4061,7 +4007,7 @@
        56.26842
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:359295223~college-creek",
      "confidence": "high"
     }
@@ -4090,7 +4036,7 @@
        54.98681
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:359343124~north-hermann-creek",
      "confidence": "high"
     }
@@ -4119,7 +4065,7 @@
        55.00652
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:359353121~nabors-creek",
      "confidence": "high"
     }
@@ -4148,7 +4094,7 @@
        55.03123
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:359567586~camp-creek",
      "confidence": "high"
     }
@@ -4177,7 +4123,7 @@
        49.35632
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360236788~ninebark-creek",
      "confidence": "high"
     }
@@ -4206,7 +4152,7 @@
        52.28228
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360247170~hunlen-creek",
      "confidence": "high"
     }
@@ -4235,7 +4181,7 @@
        49.43885
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360278283~norguard-brook",
      "confidence": "high"
     }
@@ -4264,7 +4210,7 @@
        49.34162
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360280439~huszar-creek",
      "confidence": "high"
     }
@@ -4293,7 +4239,7 @@
        49.33323
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360304172~panorama-creek",
      "confidence": "high"
     }
@@ -4322,7 +4268,7 @@
        49.39085
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360319246~jessie-creek",
      "confidence": "high"
     }
@@ -4351,7 +4297,7 @@
        49.39323
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360324076~pluton-creek",
      "confidence": "high"
     }
@@ -4380,7 +4326,7 @@
        49.35208
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360342347~frank-creek",
      "confidence": "high"
     }
@@ -4409,7 +4355,7 @@
        49.49241
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360357261~brigade-bay-creek",
      "confidence": "high"
     }
@@ -4438,7 +4384,7 @@
        49.38061
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360368539~coffin-creek",
      "confidence": "high"
     }
@@ -4467,7 +4413,7 @@
        49.37611
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360377737~senate-creek",
      "confidence": "high"
     }
@@ -4496,7 +4442,7 @@
        49.53288
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360405521~temple-creek",
      "confidence": "high"
     }
@@ -4525,7 +4471,7 @@
        49.30489
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360418020~roche-point-creek",
      "confidence": "high"
     }
@@ -4554,7 +4500,7 @@
        49.49749
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360428491~burton-creek",
      "confidence": "high"
     }
@@ -4583,7 +4529,7 @@
        49.60261
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360479384~empress-creek",
      "confidence": "high"
     }
@@ -4612,7 +4558,7 @@
        49.37719
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360555609~windsor-creek",
      "confidence": "high"
     }
@@ -4641,7 +4587,7 @@
        49.38174
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360569185~fromme-creek",
      "confidence": "high"
     }
@@ -4670,7 +4616,7 @@
        50.16045
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360589684~maude-frickert-creek",
      "confidence": "high"
     }
@@ -4699,7 +4645,7 @@
        49.50485
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360594352~damsoon-creek",
      "confidence": "high"
     }
@@ -4728,7 +4674,7 @@
        49.36089
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360596958~queens-cup-creek",
      "confidence": "high"
     }
@@ -4757,7 +4703,7 @@
        49.95638
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360626307~stuyvesant-creek",
      "confidence": "high"
     }
@@ -4786,7 +4732,7 @@
        49.34534
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360631291~emsley-creek",
      "confidence": "high"
     }
@@ -4815,7 +4761,7 @@
        49.37664
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360656139~balloon-creek",
      "confidence": "high"
     }
@@ -4844,7 +4790,7 @@
        49.41345
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360661877~wyssen-creek",
      "confidence": "high"
     }
@@ -4873,7 +4819,7 @@
        49.34419
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360681465~elderberry-creek",
      "confidence": "high"
     }
@@ -4902,7 +4848,7 @@
        52.38975
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360686071~nygaard-creek",
      "confidence": "high"
     }
@@ -4931,7 +4877,7 @@
        49.45109
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360698837~grennon-creek",
      "confidence": "high"
     }
@@ -4960,7 +4906,7 @@
        50.19223
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360717058~one-eye-creek",
      "confidence": "high"
     }
@@ -4989,7 +4935,7 @@
        49.9635
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360747072~wolverine-creek",
      "confidence": "high"
     }
@@ -5018,7 +4964,7 @@
        49.35487
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360750947~boulder-creek",
      "confidence": "high"
     }
@@ -5047,7 +4993,7 @@
        49.76543
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360755606~paranoid-creek",
      "confidence": "high"
     }
@@ -5076,7 +5022,7 @@
        50.37108
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360760569~sundown-creek",
      "confidence": "high"
     }
@@ -5105,7 +5051,7 @@
        49.38694
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360765287~colwood-creek",
      "confidence": "high"
     }
@@ -5134,7 +5080,7 @@
        49.3161
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360766324~thomas-creek",
      "confidence": "high"
     }
@@ -5163,7 +5109,7 @@
        49.75869
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360768090~skullhead-creek",
      "confidence": "high"
     }
@@ -5192,7 +5138,7 @@
        49.37252
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360784317~beer-creek",
      "confidence": "high"
     }
@@ -5221,7 +5167,7 @@
        50.19166
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360798415~round-creek",
      "confidence": "high"
     }
@@ -5250,7 +5196,7 @@
        50.08416
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360809256~spring-creek",
      "confidence": "high"
     }
@@ -5279,7 +5225,7 @@
        49.37463
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360810400~drifter-creek",
      "confidence": "high"
     }
@@ -5308,7 +5254,7 @@
        49.55273
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360818251~east-gray-creek",
      "confidence": "high"
     }
@@ -5337,7 +5283,7 @@
        49.38161
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360820636~lions-creek",
      "confidence": "high"
     }
@@ -5366,7 +5312,7 @@
        50.12731
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360830493~peach-creek",
      "confidence": "high"
     }
@@ -5395,7 +5341,7 @@
        49.3507
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360834850~lodgepole-creek",
      "confidence": "high"
     }
@@ -5424,7 +5370,7 @@
        49.52442
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360835297~shannon-creek",
      "confidence": "high"
     }
@@ -5453,7 +5399,7 @@
        50.23878
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360837986~last-creek",
      "confidence": "high"
     }
@@ -5482,7 +5428,7 @@
        50.22657
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360838112~outrigger-creek",
      "confidence": "high"
     },
@@ -5502,7 +5448,7 @@
        50.25903
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360838112~outrigger-creek",
      "confidence": "high"
     }
@@ -5531,7 +5477,7 @@
        50.23797
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360860441~carnival-creek",
      "confidence": "high"
     }
@@ -5560,7 +5506,7 @@
        52.29343
       ]
      },
-     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:360871596~paul-said-brook",
      "confidence": "high"
     }

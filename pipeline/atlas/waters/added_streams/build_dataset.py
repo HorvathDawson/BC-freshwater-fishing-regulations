@@ -738,6 +738,49 @@ def approved_lake_polys(gpkg, bbox, source: str) -> list:
     return out
 
 
+_LAKE_IN_M = 25.0         # T289: ...and joins the receiver at least this far inside the lake (off its lake edge)
+_LAKE_STUB_M = 60.0       # T289: a connector leaving a lake by at most this to reach its receiver BELOW the lake
+
+
+def _lake_stub_confluence(mouth: Point, confl: Point, rgeom, lake_index) -> Optional[Point]:
+    """T289 (added-stream lake stub makes a false outlet). The straight connector mouth -> `confl` (the
+    nearest point of the receiver FWA line) crosses an FWA lake that the receiver itself runs through, and
+    leaves it again by a short stub (<= `_LAKE_STUB_M`) to reach `confl` OUTSIDE the lake — so the atlas
+    reads creek -> lake -> stub -> receiver: a second lake outlet (Thomas Creek into Burnaby Lake, its 34 m
+    stub to the Brunette below the lake; the lake-tributary walk then skips the creek). The creek drains to
+    the lake: return the receiver's point INSIDE that lake nearest the connector's lake entry (the join a
+    Lawson / Crayfish Creek already has). None when the shape does not hold (confl in the lake already, no
+    lake crossed, a long run past the lake, or a receiver that does not run through it)."""
+    conn = LineString([mouth, confl])
+    if conn.length <= 0 or getattr(lake_index, "tree", None) is None:
+        return None
+    for i in lake_index.candidates(conn):
+        poly = lake_index.geoms[i]
+        if not conn.intersects(poly) or poly.contains(confl):
+            continue
+        inside = conn.intersection(poly)
+        if inside.is_empty or inside.length <= 0:
+            continue
+        exit_m = max(conn.project(Point(c)) for g in _parts(inside) for c in g.coords)
+        if conn.length - exit_m > _LAKE_STUB_M:
+            continue                                     # a long run past the lake: a real connector, leave it
+        through = rgeom.intersection(poly)
+        if through.is_empty or through.length <= 0:
+            continue                                     # the receiver does not run through this lake
+        entry = conn.interpolate(min(conn.project(Point(c)) for g in _parts(inside) for c in g.coords))
+        best = min(_parts(through), key=lambda g: g.distance(entry))
+        # INSIDE the lake: never at the receiver's own lake edge (Thomas's nearest point IS the Brunette's outlet,
+        # which would keep the stub), so held `_LAKE_IN_M` off both ends of the receiver's run through the lake
+        k = min(_LAKE_IN_M, best.length / 2)
+        at = best.interpolate(min(max(best.project(entry), k), best.length - k))
+        return at if not at.equals(confl) else None
+    return None
+
+
+def _parts(g) -> list:
+    return [x for x in (g.geoms if hasattr(g, "geoms") else [g]) if x.geom_type == "LineString" and x.length > 0]
+
+
 def _with_connector(line: LineString, conn) -> LineString:
     """Fold a gap connector INTO the stream's mainstem geometry: prepend the confluence point (on the
     receiver) to the mouth, so the exported stream is ONE continuous line under one blk/wsc that reaches its
@@ -1059,6 +1102,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     bl_total: dict[str, float] = {}                               # FWA blk -> true blue-line length (cached)
     add_geom_wsc: dict[str, tuple[LineString, str, float]] = {}   # added blk -> (geom, wsc, length)
     lake_outlet_blks: set[int] = set()                            # streams run THROUGH a lake as its spine
+    lake_stub_fixed: list[int] = []                               # T289: connectors re-joined inside a lake
     for ch in order_topo:
         kind, rblk = receiver[ch.blk]
         line = geom[ch.blk]
@@ -1090,6 +1134,11 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                 geom[ch.blk] = line = clipped                 # connector); the trimmed geometry is the output
                 mouth = Point(line.coords[0])
             proj = rgeom.project(mouth); confl = rgeom.interpolate(proj)
+            if kind == "fwa":                                 # T289: a connector that cuts a lake the receiver
+                inlake = _lake_stub_confluence(mouth, confl, rgeom, lake_index)   # runs through, then a short
+                if inlake is not None:                        # stub out to the receiver BELOW the lake, is a
+                    proj = rgeom.project(inlake); confl = rgeom.interpolate(proj)  # false 2nd outlet: join the
+                    lake_stub_fixed.append(ch.blk)            # receiver INSIDE the lake (a lake inlet)
             mint_d, mint_len = proj, rlen
             if kind == "fwa" and rmm > _BLUELINE_TRUNC_TOL:       # partially-loaded big river: mint against the
                 total = bl_total.get(rblk)                        # ABSOLUTE route measure over the TRUE blue-line
@@ -1109,6 +1158,9 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
             geom[ch.blk] = line = through                         # all piled at the outlet -> identical -999999).
             lake_outlet_blks.add(ch.blk)                          # its extra length is under-lake (gets the wbk)
         add_geom_wsc[str(ch.blk)] = (line, wsc, line.length)
+    if lake_stub_fixed:                                           # T289: reported, never silent
+        print(f"  lake stub: {len(lake_stub_fixed)} connector(s) re-joined inside the lake they cut: "
+              + ", ".join(f"{b} {ch_by_blk[b].name or ''}".strip() for b in lake_stub_fixed))
 
     # same name => same wsc. Collapse each same-name lineage to its SENIOR code (the shallowest same-name
     # code that is a prefix-ancestor — a braid/slough is a different blk on the same blue-line lineage;
