@@ -39,8 +39,8 @@ const KEYS: Record<Channel, string> = {
   // (T211) the Salmon colouring: each section's DFO chain label
   salmon: salmonInput({ facts: { chainOf: () => 0, chains: 0 } as never, day: new Date(2026, 0, 1) }).labels.key,
   method: methodInput({ facts: { profileOf: () => null, profiles: 0 } as never, day: new Date(2026, 0, 1) }).labels.key,
-  // (T199) the run timing: each section's state for the species and month
-  runs: runsInput({ facts: { state: () => undefined, has: () => false } as never, slot: 6, month: 0 }).labels.key,
+  // (T199/T261) the run timing: each section's state for the species slots and pentad
+  runs: runsInput({ facts: { state: () => undefined, has: () => false } as never, slots: [6], pentad: 0 }).labels.key,
 };
 
 describe("one colouring engine", () => {

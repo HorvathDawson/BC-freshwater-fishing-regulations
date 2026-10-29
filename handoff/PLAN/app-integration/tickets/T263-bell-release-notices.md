@@ -1,6 +1,6 @@
 # T263 — the bell says when a data update is waiting for Wi-Fi, ready, or needs a newer app
 
-Status: DONE
+Status: DONE — ae4181e30
 
 Source: owner 2026-10-29 (T255 brief: a bigger update → "update available/needed at the top + in the bell/
 notifications"). Today the release's state reaches only the sync button's label/dot and More → Data; the bell

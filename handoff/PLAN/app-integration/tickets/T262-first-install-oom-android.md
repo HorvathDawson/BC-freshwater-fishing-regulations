@@ -1,6 +1,6 @@
 # T262 — Android first install crashes (OutOfMemoryError in expo fetch) part way through the ~500 MB download
 
-Status: DONE (2026-10-29)
+Status: DONE (2026-10-29) — b96ffb83f
 
 Source: T255 test bed, 2026-10-29 (release APK, staging, AVD n1_pixel API 35, Wi-Fi). A clean app's first run died
 55 s in: `FATAL EXCEPTION: expo.modules.AsyncFunctionQueue … java.lang.OutOfMemoryError: Failed to allocate a 8388627
