@@ -10,14 +10,16 @@ import fs from 'node:fs'; import path from 'node:path';
 import { open } from './regs-web/cdp.mjs';
 
 const APP = process.env.APP_URL || 'http://localhost:39218';
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+// APP_ROOT: the tree the build was made from (its stored-version words); default this one
+const ROOT = process.env.APP_ROOT || path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const read = (f, re) => re.exec(fs.readFileSync(path.join(ROOT, f), 'utf8'))?.[1];
 const FIRST_RUN = read('packages/core/src/menu/legal.ts', /FIRST_RUN_VERSION = "([^"]+)"/);
 const WALK = read('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const SIZES = { desktop: { width: 1280, height: 800, dpr: 1, mobile: false }, phone: { width: 390, height: 844, dpr: 2, mobile: true } };
-const seed = (firstRun, walk) => `try { ${firstRun ? `localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(FIRST_RUN)});` : "localStorage.removeItem('canifishthis.firstRun.v1');"}
+// Math.random pinned: the search field's placeholder is picked at random, and a diff should see only real changes
+const seed = (firstRun, walk) => `Math.random = () => 0.42; try { ${firstRun ? `localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(FIRST_RUN)});` : "localStorage.removeItem('canifishthis.firstRun.v1');"}
   ${walk ? `localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify(WALK)});` : "localStorage.removeItem('canifishthis.walkthrough.v1');"}
   localStorage.setItem('canifishthis.inseasonSeen.v1', '["*"]'); } catch {}`;
 
@@ -39,13 +41,18 @@ const MAP_READY = `!!document.querySelector('[role=tablist]')`;
 export const SCENES = {
   map: ['', true, true, async () => {}],
   firstrun: ['', false, false, async (b) => { await until(b, `!!document.querySelector('[data-testid=first-run-notice]')`); }],
-  tour: ['', true, false, async (b) => { await until(b, `!!document.querySelector('[data-testid=walkthrough]')`); }],
-  regs: ['?regs=gnis:3062&date=2026-06-15', true, true, async (b) => { await until(b, `!!document.querySelector('[data-testid=regs-header]')`); }],
+  tour: ['', true, false, async (b) => { await until(b, `!!document.querySelector('[data-testid=walkthrough], [data-testid^=coach-step-]')`); }],
+  regs: ['?regs=gnis:3062&date=2026-06-15', true, true, async () => {}],
   conditions: ['', true, true, async (b) => { await click(b, tab('Conditions')); }],
   spots: ['', true, true, async (b) => { await click(b, tab('Spots')); }],
   more: ['', true, true, async (b) => { await click(b, tab('More')); }],
   help: ['', true, true, async (b) => { await click(b, tab('More')); await sleep(800); await click(b, byText('[role=button]', 'Help')); }],
-  layers: ['', true, true, async (b) => { await click(b, `document.querySelector('[aria-label^="Layers"]')`); }],
+  layers: ['', true, true, async (b) => { await click(b, `document.querySelector('[aria-label^="Choose layers"]')`); }],
+  // the tour's later steps (after only: the cards had no such steps)
+  ...Object.fromEntries([2, 3, 4, 5].map((n) => [`tour${n}`, ['', true, false, async (b) => {
+    await until(b, `!!document.querySelector('[data-testid^=coach-step-]')`);
+    for (let i = 1; i < n; i++) { await click(b, byText('[role=button]', 'Next')); await sleep(700); }
+  }]])),
 };
 
 async function shoot(out, names) {
@@ -57,7 +64,7 @@ async function shoot(out, names) {
       await b.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: theme }, { name: 'prefers-reduced-motion', value: 'reduce' }] });
       await b.send('Page.reload', {});
       await sleep(1500);
-      await until(b, name === 'regs' ? `!!document.querySelector('[data-testid=regs-header]')` : MAP_READY, 120000);
+      await until(b, name === 'regs' ? `document.body.textContent.includes('Vedder River')` : MAP_READY, 120000);
       await b.evaluate('document.fonts.ready.then(() => 1)');
       await sleep(5000);
       await steps(b);

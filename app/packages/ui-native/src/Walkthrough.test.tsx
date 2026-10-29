@@ -8,7 +8,7 @@ import { HELP_WORDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, helpVM } from "@app
 import { tidalColours } from "@app/map";
 import { HelpPage } from "./menu/HelpPage";
 import { useWalkthrough, WalkthroughSheet, type WalkthroughStore } from "./Walkthrough";
-import { placeCallout, unionRect, useCoachRegistry, type CoachRegistry } from "./CoachMarks";
+import { insideWindow, placeCallout, unionRect, useCoachRegistry, type CoachRegistry } from "./CoachMarks";
 import { DARK, LIGHT } from "./theme";
 
 afterEach(cleanup);
@@ -135,6 +135,10 @@ describe("coach-mark geometry (T257)", () => {
     expect([wide.width, wide.left]).toEqual([360, 1022 - 180]);
     const edge = placeCallout({ x: 1230, y: 10, w: 44, h: 44 }, { w: 1280, h: 800 });
     expect(edge.left).toBe(1280 - 360 - 16);
+  });
+  it("keeps the spotlight inside the window, ring and all (a tab at the foot)", () => {
+    expect(insideWindow({ x: 174, y: 788, w: 132, h: 60 }, { w: 390, h: 844 })).toEqual({ x: 174, y: 788, w: 132, h: 54 });
+    expect(insideWindow({ x: -6, y: -6, w: 50, h: 50 }, { w: 390, h: 844 })).toEqual({ x: 2, y: 2, w: 42, h: 42 });
   });
   it("unions the rects it is given", () => {
     expect(unionRect([{ x: 10, y: 10, w: 10, h: 10 }, { x: 30, y: 5, w: 10, h: 10 }])).toEqual({ x: 10, y: 5, w: 30, h: 15 });

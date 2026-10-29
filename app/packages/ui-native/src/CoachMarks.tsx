@@ -170,7 +170,8 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words }: {
   useEffect(() => { if (open && shown && shown.length === 0) onFinish(); }, [open, shown, onFinish]);
 
   const onLayout = (e: LayoutChangeEvent) => setWin({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height });
-  const hole = at?.hole ?? null;
+  // kept inside the window, ring and all (a tab at the window's foot: its room below would fall off the screen)
+  const hole = at?.hole && win ? insideWindow(at.hole, win) : null;
   const place = win ? placeCallout(hole, win) : null;
   const rise = reduced ? 0 : fade.interpolate({ inputRange: [0, 1], outputRange: [place?.below === false ? -8 : 8, 0] });
 
@@ -240,6 +241,12 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words }: {
       </View>
     </Modal>
   );
+}
+
+/** A spotlight inside the window, its ring included. */
+export function insideWindow(h: Rect, win: { w: number; h: number }): Rect {
+  const x = Math.max(RING, h.x), y = Math.max(RING, h.y);
+  return { x, y, w: Math.min(win.w - RING, h.x + h.w) - x, h: Math.min(win.h - RING, h.y + h.h) - y };
 }
 
 const dim = (palette: Palette, left: number, top: number, width: number, height: number) =>
