@@ -44,6 +44,9 @@ export default {
     const headers = new Headers(CORS);
     obj.writeHttpMetadata(headers);
     headers.set("ETag", obj.httpEtag);
+    // R2 httpMetadata.contentDisposition (the dev APK: `attachment; filename=...`) — writeHttpMetadata already copies it; set it
+    // explicitly so it survives however the runtime filters, and expose it to CORS readers
+    if (obj.httpMetadata?.contentDisposition) headers.set("Content-Disposition", obj.httpMetadata.contentDisposition);
     if (!headers.has("Cache-Control")) headers.set("Cache-Control", "public, max-age=300");
     if (key.endsWith(".wasm")) headers.set("Content-Type", "application/wasm");
     const inm = request.headers.get("If-None-Match");

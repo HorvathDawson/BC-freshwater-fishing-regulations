@@ -56,8 +56,8 @@ HTML
 [[ " $* " == *" --no-upload "* ]] && { echo "built $OUT/$NAME ($MB MB)"; exit 0; }
 W="npx --prefix app wrangler r2 object put --remote"
 APK=application/vnd.android.package-archive
-$W "$BUCKET/app/android/$NAME" --file "$OUT/$NAME" --content-type $APK --cache-control "public, max-age=31536000, immutable"
-$W "$BUCKET/app/android/latest.apk" --file "$OUT/latest.apk" --content-type $APK --cache-control "no-cache"
+$W "$BUCKET/app/android/$NAME" --file "$OUT/$NAME" --content-type $APK --content-disposition "attachment; filename=\"$NAME\"" --cache-control "public, max-age=31536000, immutable"
+$W "$BUCKET/app/android/latest.apk" --file "$OUT/latest.apk" --content-type $APK --content-disposition "attachment; filename=\"canifishthis-staging.apk\"" --cache-control "no-cache"
 $W "$BUCKET/app/android/index.html" --file "$OUT/index.html" --content-type "text/html; charset=utf-8" --cache-control "no-cache"
 curl -sI "$BASE/latest.apk" | head -8
 if [[ " $* " != *" --no-email "* ]]; then

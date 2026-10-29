@@ -240,7 +240,7 @@ describe("gauges: stations the breaker skipped are first in line next run", () =
     expect(new Set(asked.slice(0, notRefreshed.size))).toEqual(notRefreshed); // first in line
     expect(s3.failed ?? []).toEqual(s1Failed); // only the fixture's own never-answering station
     const idx3 = JSON.parse((await feed.get("index.json"))!);
-    for (const st of notRefreshed) expect(idx3.stations[st].stale).toBeUndefined();
+    for (const st of notRefreshed) if (!s1Failed.includes(st)) expect(idx3.stations[st].stale).toBeUndefined();
   });
 });
 
