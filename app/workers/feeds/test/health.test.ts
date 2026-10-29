@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { foldHealth, resilientFetch, RunHealth, SourceError, sourceOf, summarize, windowOf, BREAKER_TRIP, type FeedHealth } from "../src/health";
 import type { Fetch } from "../src/io";
-import { runGauges } from "../src/gauges/publish";
+import { askOrder, runGauges } from "../src/gauges/publish";
 import { runInSeason } from "../src/inseason";
 import { cadenceMin, servedStatus, statusHtml, recordHealth, record, type Status } from "../src/status";
 import { healthEvents, noDataStations, NODATA_DAYS } from "../src/index";
@@ -80,6 +80,33 @@ describe("resilientFetch", () => {
     expect(h.sources["eccc-hourly"]!.errors).toEqual({ blocked: BREAKER_TRIP });
     expect(h.sources["eccc-hourly"]).toMatchObject({ fail: BREAKER_TRIP, skipped: 10 });
     expect(h.failedUrls.get(H.replace("08MF005", `ST${BREAKER_TRIP + 3}`))).toBe("circuit");
+  });
+
+  it("owner 2026-10-29: retry attempts do not count toward the streak, only a request's final failure", async () => {
+    const h = new RunHealth();
+    const s = seq(new Response("", { status: 503 })); // every attempt fails: 2 attempts per eccc-hourly request
+    const f = resilientFetch(s.fetch, h, { sleep: noSleep });
+    // a 3-station blip: 3 requests x 2 attempts = 6 failed attempts (used to trip), but only 3 final failures
+    for (let i = 0; i < 3; i++) await f(H.replace("08MF005", `ST${i}`));
+    expect(h.breakerOpen("dd.weather.gc.ca")).toBe(false);
+    const ok = resilientFetch(async () => new Response("ok"), h, { sleep: noSleep });
+    expect((await ok(H.replace("08MF005", "ST9"))).status).toBe(200);
+    expect(h.sources["eccc-hourly"]!.skipped).toBeUndefined();
+    // BREAKER_TRIP final failures in a row still trip it
+    for (let i = 0; i < BREAKER_TRIP; i++) await f(H.replace("08MF005", `T${i}`));
+    expect(h.breakerOpen("dd.weather.gc.ca")).toBe(true);
+  });
+
+  it("the breaker is per run: a fresh RunHealth starts closed", () => {
+    const a = new RunHealth();
+    for (let i = 0; i < BREAKER_TRIP; i++) a.hit("dd.weather.gc.ca", "blocked");
+    expect(a.breakerOpen("dd.weather.gc.ca")).toBe(true);
+    expect(new RunHealth().breakerOpen("dd.weather.gc.ca")).toBe(false);
+  });
+
+  it("stations not refreshed last run are asked first, longest-stale first", () => {
+    const prev = { A: { observedAt: "x" }, B: { stale: true, staleSince: "2026-10-29T02:00:00Z" }, C: { stale: true, staleSince: "2026-10-29T01:00:00Z" }, D: {} };
+    expect(askOrder(["A", "B", "C", "D", "E"], prev)).toEqual(["E", "C", "B", "A", "D"]);
   });
 
   it("the source table covers every upstream", () => {
@@ -186,6 +213,34 @@ describe("gauges: a failed station keeps its last good entry, marked stale", () 
     expect(s3.answered).toBe(0);
     expect(s3.indexKept).toBe(true);
     expect(await feed.get("index.json")).toBe(before);
+  });
+});
+
+describe("gauges: stations the breaker skipped are first in line next run", () => {
+  const FIX = join(__dirname, "fixtures/gauges");
+  it("run 2 trips the breaker (fresh per run), run 3 asks the unrefreshed stations first and refreshes them", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "gauges-order-"));
+    cpSync(join(FIX, "seed"), dir, { recursive: true });
+    const rec = loadRecording(FIX);
+    const base = fixtureFetch(rec).fetch;
+    const feed = dirStore(join(dir, "feed"));
+    const priv = dirStore(join(dir, "priv"));
+    const roster = JSON.parse(readFileSync(join(FIX, "roster.json"), "utf-8"));
+    const csv = (u: string) => /BC_(\w+)_hourly_hydrometric\.csv/.exec(u)?.[1];
+    const go = (fetch: Fetch, i: number) =>
+      runGauges({ fetch: resilientFetch(fetch, new RunHealth(), { sleep: noSleep }), feed, priv, now: new Date(Date.parse(rec.now) + i * 3600_000), roster, sleep: noSleep });
+    const s1Failed = (await go(base, 0)).failed ?? [];
+    const ids = Object.keys(JSON.parse((await feed.get("index.json"))!).stations).sort();
+    const keep = new Set(ids.slice(0, 3)); // the first 3 answer, every other CSV is blocked (403 → breaker trips after 6)
+    const s2 = await go(async (u, i) => (csv(u) && !keep.has(csv(u)!) ? new Response("", { status: 403 }) : base(u, i)), 1);
+    const notRefreshed = new Set(s2.failed ?? []);
+    expect(notRefreshed.size).toBeGreaterThan(BREAKER_TRIP); // some failed, the rest never asked (skipped)
+    const asked: string[] = [];
+    const s3 = await go(async (u, i) => (csv(u) && asked.push(csv(u)!), base(u, i)), 2);
+    expect(new Set(asked.slice(0, notRefreshed.size))).toEqual(notRefreshed); // first in line
+    expect(s3.failed ?? []).toEqual(s1Failed); // only the fixture's own never-answering station
+    const idx3 = JSON.parse((await feed.get("index.json"))!);
+    for (const st of notRefreshed) expect(idx3.stations[st].stale).toBeUndefined();
   });
 });
 

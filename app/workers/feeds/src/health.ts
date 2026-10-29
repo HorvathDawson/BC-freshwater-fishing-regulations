@@ -107,7 +107,8 @@ export class RunHealth {
   sources: Record<string, SourceRun> = {};
   /** the class each failed URL ended with (a job maps its parts — stations, regions — back to these) */
   failedUrls = new Map<string, ErrorClass>();
-  /** hard failures in a row per host (the breaker) */
+  /** hard FINAL failures (after a request's retries) in a row per host (the breaker). Per run: this object is built fresh
+   *  for each run and never persisted, so the breaker is closed at the start of every run. */
   private streak = new Map<string, number>();
   /** parts that failed this run: "station 08MF005" / "region 6" → class */
   parts: Record<string, { cls: ErrorClass; detail: string }> = {};
@@ -200,18 +201,18 @@ export function resilientFetch(f: Fetch, health: RunHealth, o: ResilientOptions 
       } catch (e) {
         lastErr = e;
         const cls = classOfError(e);
-        health.hit(host, cls);
         if (attempt < policy.attempts && !health.breakerOpen(host)) {
           await sleep(Math.min(5000, 500 * 2 ** (attempt - 1)) + rnd() * 250);
           continue;
         }
+        health.hit(host, cls); // owner 2026-10-29: only a request's FINAL failure counts toward the streak
         health.fail(source, cls, `${(e as Error)?.name ?? "Error"}: ${String((e as Error)?.message ?? e)}`, url);
         throw e;
       }
       let cls = classOfStatus(res.status);
       if (cls === "http_404" && policy.expect404) cls = null;
-      health.hit(host, cls);
       if (cls === null) {
+        health.hit(host, null);
         health.ok(source);
         return res;
       }
@@ -221,6 +222,7 @@ export function resilientFetch(f: Fetch, health: RunHealth, o: ResilientOptions 
         const ra = res.headers.get("Retry-After");
         const s = ra && /^\d+$/.test(ra.trim()) ? Number(ra.trim()) : null;
         if (cls === "rate_limited" && (s === null || s > RETRY_AFTER_MAX_S)) {
+          health.hit(host, cls);
           health.fail(source, cls, `HTTP ${res.status}${s !== null ? ` (Retry-After ${s}s)` : ""}`, url);
           return res; // asked to back off: we do, until next run
         }
@@ -232,6 +234,7 @@ export function resilientFetch(f: Fetch, health: RunHealth, o: ResilientOptions 
         await sleep(wait);
         continue;
       }
+      health.hit(host, cls);
       health.fail(source, cls, `HTTP ${res.status}`, url);
       return res;
     }

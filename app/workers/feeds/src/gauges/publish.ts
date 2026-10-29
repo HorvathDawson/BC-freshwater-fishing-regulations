@@ -736,6 +736,25 @@ interface Prev {
 }
 
 /** publish.publish */
+/** The order stations are asked in. A station not refreshed last run (carried `stale`, or dropped from the index after the
+ *  carry limit / never in it) goes FIRST, the longest-stale first, then the rest by id — so a host blip or a tripped
+ *  breaker (which skips whatever comes last) can never starve the same stations run after run. Nothing about the
+ *  breaker is persisted: the index entry is the only state. (owner 2026-10-29) */
+export function askOrder(ids: readonly string[], prev: Record<string, any>): string[] {
+  const since = (st: string): string | null => {
+    const p = prev[st];
+    if (!p || typeof p !== "object") return ""; // not in the index: first
+    return p.stale ? String(p.staleSince ?? "") : null;
+  };
+  const rank = (st: string) => since(st);
+  return [...ids].sort((x, y) => {
+    const rx = rank(x), ry = rank(y);
+    if ((rx === null) !== (ry === null)) return rx === null ? 1 : -1;
+    if (rx !== ry && rx !== null && ry !== null) return rx < ry ? -1 : 1;
+    return x < y ? -1 : x > y ? 1 : 0;
+  });
+}
+
 async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" | "forecastRuns" | "notify">> {
   const { fetch, feed, priv, clim, now, log } = a;
   const forecast = a.forecast || {};
@@ -773,7 +792,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   const unchanged = new Set<string>();
   const validators = new Map<string, { etag: string | null; lm: string | null }>();
   const got = (
-    await pool([...a.ids].sort(), WORKERS, async (st) => {
+    await pool(askOrder(a.ids, prevStations), WORKERS, async (st) => {
       const url = `${BASE}/hourly/BC_${st}_hourly_hydrometric.csv`;
       if (!a.aware) {
         const text = await get(fetch, url);
@@ -789,7 +808,9 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       validators.set(st, { etag: r.etag, lm: r.lm });
       return r.text ? parseHourly(st, r.text) : null;
     })
-  ).filter((r): r is Reading => r !== null);
+  )
+    .filter((r): r is Reading => r !== null)
+    .sort((x, y) => (x.station < y.station ? -1 : x.station > y.station ? 1 : 0)); // ask order is not output order
   if (a.meter) a.meter.sourcesUnchanged += unchanged.size;
   if (a.aware) log(`  unchanged ${unchanged.size} of ${got.length} station CSVs (304): parse, merge and station-file write skipped`);
   const fresh = got.filter((r) => !unchanged.has(r.station));
