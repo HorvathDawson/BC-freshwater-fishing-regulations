@@ -54,6 +54,8 @@ export interface ShellProps {
   inSeasonSeen?: import("@app/ui").InSeasonSeenStore | null;
   /** (T236) where the first-run notice's acceptance is kept (`openFirstRunStore`). Absent: the notice never opens. */
   firstRun?: import("../FirstRunNotice").FirstRunStore | null;
+  /** (T248) where the first-run walkthrough's "seen" is kept (`openWalkthroughStore`). Absent: it never opens by itself. */
+  walkthrough?: import("../Walkthrough").WalkthroughStore | null;
   /** (T199) the run-timing feed (`httpRunTiming`; its own stream, not the release). Absent: no Run timing mode. */
   runTiming?: import("@app/data").RunTimingSource | null;
   refreshing?: boolean;

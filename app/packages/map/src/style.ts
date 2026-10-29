@@ -325,6 +325,14 @@ export function gearEdgeColour(theme: string): string {
   return hex;
 }
 
+/** (T248) The fill and edge the map paints tidal water with in one theme — the Help page's swatch for it. */
+export function tidalColours(theme: string): { fill: string; edge: string } {
+  const t = resolveTheme(theme);
+  const fill = t["color.tidal.fill"], edge = t["color.tidal.edge"];
+  if (typeof fill !== "string" || typeof edge !== "string") throw new Error(`theme "${theme}" has no tidal water colours`);
+  return { fill, edge };
+}
+
 export function waterStatusColour(theme: string, status: WaterStatus): string {
   const hex = resolveTheme(theme)[WATER_STATUS[status].token];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint ${status}`);

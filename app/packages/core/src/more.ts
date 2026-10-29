@@ -169,7 +169,7 @@ export function dataVM(s: DataInput): DataBlockVM {
 // ── the More tab ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** The pages listed as rows on the More tab, in order — Sources and credits among them, linked once. */
-export const MORE_ROWS: readonly MenuPageKey[] = ["glossary", "sources", "about", "report"];
+export const MORE_ROWS: readonly MenuPageKey[] = ["help", "glossary", "sources", "about", "report"];
 
 export interface MenuItemVM { readonly k: MenuPageKey; readonly label: string; readonly hint: string }
 

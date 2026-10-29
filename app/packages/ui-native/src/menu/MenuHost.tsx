@@ -14,8 +14,9 @@ import { Platform } from "react-native";
 import { getSynopsisSource } from "../regs/synopsisSource";
 import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
-import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type Route } from "@app/ui";
+import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type ReportSender, type Route } from "@app/ui";
 import type { Palette } from "../theme";
+import { HelpPage } from "./HelpPage";
 import { GlossaryPage } from "./GlossaryPage";
 import { AboutPage, SourcesPage } from "./InfoPages";
 import { MenuPage } from "./MenuPage";
@@ -36,13 +37,19 @@ export interface MenuInfo {
                    pick(env: AppEnv): void } | null;
   /** (T251) The Updates log's controls (App.tsx): development and staging builds only; absent, About does not link it. */
   readonly updatesLog?: UpdatesLogControls | null;
+  /** (T237) the report outbox (App.tsx): "Send report" posts through it; absent, the form offers email / share only */
+  readonly report?: ReportSender | null;
 }
 
 /** No build facts: the build states none and the owner has supplied no contact yet. */
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
-export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, route, day }: {
+export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader, info = NO_MENU_INFO, tiles, route, day, mode = null }: {
   menu: MenuControls; palette: Palette;
+  /** (T248) the map theme's name (the Help page resolves its swatches through it) */
+  theme?: string;
+  /** (T248) re-open the first-run walkthrough from the Help page; absent: no button */
+  onWalkthrough?: () => void;
   /** the release (null: none open — a test — so no regulations and no manifest) */
   loader: RegsLoader | null;
   info?: MenuInfo;
@@ -51,6 +58,8 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ro
   /** where the reader is now (the Shell's route) and the map's day (null = today) — a report is prefilled with them */
   route: Route;
   day: Date | null;
+  /** (T237) the map's regulations colouring (standard / salmon / runs): a report says which the reader had on */
+  mode?: string | null;
 }) {
   const s = menu.state;
   // (T232) a source picked on About waits for the next start; the page says so until then
@@ -67,16 +76,17 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ro
   const reportOpen = s.page === "report";
   const diagnostics = useMemo(() => ({
     appBuild: info.appBuild,
+    env: info.env?.about.env ?? null,
     // the OS and its version on a phone; on the web react-native-web's Version is a placeholder ("0.0.0"), so the
     // platform alone — the browser is not read (nothing the reader did not choose to share)
     platform: Platform.OS === "web" ? "web" : `${Platform.OS} ${Platform.Version}`,
     release: loader?.release ?? null,
     tiles,
-    where: s.report ?? where,
+    where: { ...(s.report ?? where), ...(mode ? { mode } : {}) },
     errors: ERROR_LOG.recent(),
   }), [reportOpen, s.report]);     // frozen at open, deliberately: a report states what was true when it was asked
 
-  const page = (k: "sources" | "about" | "report" | "updates", node: React.ReactNode) => (
+  const page = (k: "help" | "sources" | "about" | "report" | "updates", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
               testID={`menu-page-${k}`}>
       {s.page === k ? node : null}
@@ -93,14 +103,18 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ro
                         palette={palette} />
         )}
       </MenuPage>
+      {page("help", <HelpPage palette={palette} theme={theme}
+                              onWalkthrough={onWalkthrough ? () => { menu.closePage(); onWalkthrough(); } : undefined} />)}
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
         edition: m?.sources?.synopsis?.title ?? null, tiles })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles, dataEnv,
         edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)} onEnv={pickEnv}
                                    onUpdatesLog={info.updatesLog ? () => menu.show("updates") : undefined}
+                                   onReport={() => menu.report(where)}
                                    onSources={() => menu.show("sources")} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
-      {page("report", <ReportPage palette={palette} contact={info.contact} diagnostics={diagnostics} />)}
+      {page("report", <ReportPage palette={palette} contact={info.contact} diagnostics={diagnostics}
+                                  sender={info.report ?? null} />)}
       {info.updatesLog && page("updates", <UpdatesLogPage c={info.updatesLog} palette={palette} />)}
     </>
   );

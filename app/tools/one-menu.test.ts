@@ -121,7 +121,7 @@ describe("one list of the data's sources (T167)", () => {
       judged: ["packages/core/src/menu/freshness.ts", "packages/core/src/more.ts"],
       rows: ["packages/core/src/more.ts"],
       badge: ["packages/ui-native/src/menu/MoreScreen.tsx"],
-      dot: ["packages/ui-native/src/menu/MoreScreen.tsx", "packages/ui-native/src/regs/RegsScreen.tsx"],
+      dot: ["packages/ui-native/src/menu/HelpPage.tsx", "packages/ui-native/src/menu/MoreScreen.tsx", "packages/ui-native/src/regs/RegsScreen.tsx"],
     });
   });
 

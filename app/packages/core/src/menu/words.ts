@@ -2,7 +2,7 @@
 import { IMAGERY_ATTRIBUTION } from "../imagery";
 
 /** The pages that open OVER the More tab. Display and Contact are drawn on the tab itself (owner 2026-10-22). */
-export type MenuPageKey = "glossary" | "sources" | "about" | "report" | "updates";
+export type MenuPageKey = "help" | "glossary" | "sources" | "about" | "report" | "updates";
 
 /** The app's name as the menu writes it (app.json's display name is the slug; the owner names the product). */
 export const APP_NAME = "Can I Fish This?";
@@ -34,6 +34,8 @@ export const MENU_WORDS = {
   title: "More",
   back: "Back",
   items: {
+    // (T248) what the colours, lines, badges, bell and refresh button mean; re-opens the first-run walkthrough
+    help: { label: "Help", hint: "What the colours, lines and symbols mean" },
     glossary: { label: "Glossary", hint: "What the regulations' words mean" },
     // (T235) "Sources and licences": every dataset, its licence and the words it asks for
     sources: { label: "Sources and licences", hint: "Who publishes the data, and under which licence" },
@@ -141,6 +143,31 @@ export const MENU_WORDS = {
     subject: `${APP_NAME} problem report`,
     subjectAt: (where: string) => `${APP_NAME} problem report: ${where}`,
     fromRegs: "Report a problem with this page",
+    /** (T237) About's link to the form */
+    fromAbout: "Report a problem",
+    /** (T237) the reason, the form's first choice (`REPORT_REASONS` order) */
+    reason: "What kind of problem?",
+    reasons: {
+      rule: "Wrong rule", place: "Wrong place on the map", missing: "Missing water", name: "Wrong name", other: "Something else",
+    },
+    email: "Your email (optional)",
+    emailHint: "Only if you would like a reply. It is never shown or shared.",
+    emailBad: "That does not look like an email address.",
+    /** the one button that sends it to us (when this build has a report address) */
+    sendNow: "Send report",
+    sending: "Sending…",
+    sent: "Thank you — your report was sent.",
+    queued: "You are offline. Your report is saved on this device and will be sent when you are back online.",
+    queuedRetry: "We could not reach our server. Your report is saved on this device and will be sent automatically.",
+    refused: (why: string) => `The report was not accepted: ${why}`,
+    another: "Report something else",
+    /** the privacy line under the form */
+    privacy: "We use your report only to fix the app's data. It holds what you wrote and the details you left switched on; "
+      + "your email, if you give one, is used only to reply.",
+    orEmail: "Or send it yourself:",
+    /** "Where you were": the map's colouring when the report was asked */
+    envLine: (env: string) => `Data: ${env}`,
+    modes: { standard: "Standard", salmon: "Salmon", runs: "Run timing" },
     /** the diagnostics' switches, in the order the form lists them */
     diag: {
       app: "App version", platform: "Platform", release: "Data release", tiles: "Map tiles",
@@ -152,7 +179,7 @@ export const MENU_WORDS = {
       tab: (t: string) => `Tab: ${t}`,
       water: (w: string) => `Water: ${w}`,
       part: (p: string) => `Part: ${p}`,
-      section: (n: number) => `Section: ${n}`,
+      mode: (m: string) => `Map colours: ${m}`,
       day: (d: string) => `Day: ${d}`,
       /** the screen a regulations tab's report names */
       regs: "water · regulations",

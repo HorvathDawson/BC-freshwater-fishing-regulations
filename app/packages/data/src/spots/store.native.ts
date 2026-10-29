@@ -72,9 +72,24 @@ export function openUpdateLogStore(): { read(): string | null; write(text: strin
   return fileStore("update-log.json");
 }
 
+/** (T237) Problem reports waiting to be sent (offline), as whole text (a JSON list). */
+export function openReportOutboxStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("report-outbox.json");
+}
+
 /** (T236) The first-run notice's accepted version (`FIRST_RUN_VERSION`), a small file of its own. */
 export function openFirstRunStore(): { read(): string | null; write(text: string): void } {
   return fileStore("first-run.txt");
+}
+
+/** (T248) The first-run walkthrough's seen version (`WALKTHROUGH_VERSION`), a small file of its own. */
+export function openWalkthroughStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("walkthrough.txt");
+}
+
+/** (T247) The recent searches (a JSON list), a small file of its own; device-only. */
+export function openRecentSearchStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("recent-searches.json");
 }
 
 function fileStore(name: string): { read(): string | null; write(text: string): void } {

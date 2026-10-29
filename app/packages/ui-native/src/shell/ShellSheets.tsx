@@ -12,7 +12,8 @@ import type { Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 import type { ShellNav } from "./useShellNav";
 
-export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay }: {
+export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough }: {
+  theme?: string; onWalkthrough?: () => void;
   nav: ShellNav; col: MapColouring; rail: MapRail; menu: MenuControls; palette: Palette; loader: ReleaseLoader | null;
   menuInfo?: MenuInfo; mapDay: Date | null;
 }) {
@@ -22,8 +23,8 @@ export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, m
       <SpotDropSheet at={route.mode === "browse" ? rail.drop : null} palette={palette}
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
-      <MenuHost menu={menu} palette={palette} loader={loader} info={menuInfo} tiles={col.vintage.tiles ?? null}
-                route={route} day={mapDay} />
+      <MenuHost menu={menu} palette={palette} theme={theme} onWalkthrough={onWalkthrough} loader={loader} info={menuInfo} tiles={col.vintage.tiles ?? null}
+                route={route} day={mapDay} mode={col.regsLayer} />
     </>
   );
 }

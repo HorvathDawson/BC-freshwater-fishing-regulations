@@ -86,6 +86,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
       back: ["Map", "Back to Map"],
       headings: ["More", "Data", "Display", "Contact"],
       rows: [
+        "HelpWhat the colours, lines and symbols mean",
         "GlossaryWhat the regulations' words mean",
         "Sources and licencesWho publishes the data, and under which licence",
         "AboutWhat this app is, and what it is not",
@@ -259,7 +260,7 @@ describe("a page", () => {
     let r = false;
     act(() => { r = out.back!.back(); });
     settle();
-    expect([r, screen.queryByTestId("menu-page-about"), screen.getAllByTestId(/^menu-item-/).length]).toEqual([true, null, 4]);
+    expect([r, screen.queryByTestId("menu-page-about"), screen.getAllByTestId(/^menu-item-/).length]).toEqual([true, null, 5]);
     act(() => { r = out.back!.back(); });
     expect(r).toBe(false);
   });

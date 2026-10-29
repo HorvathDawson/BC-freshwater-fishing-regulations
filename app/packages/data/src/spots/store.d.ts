@@ -29,3 +29,9 @@ export declare function openUpdateStore(): { read(): string | null; write(text: 
 export declare function openUpdateLogStore(): { read(): string | null; write(text: string): void };
 /** (T236) The first-run notice's accepted version (`@app/core` `FIRST_RUN_VERSION`), as whole text. */
 export declare function openFirstRunStore(): { read(): string | null; write(text: string): void };
+/** (T248) The first-run walkthrough's seen version (`@app/core` `WALKTHROUGH_VERSION`), as whole text. */
+export declare function openWalkthroughStore(): { read(): string | null; write(text: string): void };
+/** (T247) The recent searches, a JSON list as whole text; device-only. */
+export declare function openRecentSearchStore(): { read(): string | null; write(text: string): void };
+/** (T237) Problem reports waiting to be sent (offline), as whole text (a JSON list). */
+export declare function openReportOutboxStore(): { read(): string | null; write(text: string): void };

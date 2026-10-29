@@ -24,11 +24,11 @@ import {
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine } from "@app/core";
-import { createUpdateLog, createUpdateService, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
+import { createReportOutbox, createUpdateLog, createUpdateService, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openUpdateStore, openUpdateLogStore, openMeteo, openPhotos, openSpots, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openWalkthroughStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { connectivity, FishSpinner, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
@@ -39,7 +39,7 @@ import { routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { startLink } from "./startLink";
 
-import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, pickChannel, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
+import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, pickChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
 /*
  * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
@@ -120,6 +120,7 @@ export default function App() {
   const inSeasonSeen = useMemo(() => openInSeasonSeenStore(), []);
   // T236: the first-run notice (not legal advice), once per device
   const firstRun = useMemo(() => openFirstRunStore(), []);
+  const walkthrough = useMemo(() => openWalkthroughStore(), []);
   // T199: the run timing (its own feed, `runtiming/` on the data origin) — read the first time Run timing is chosen
   const runTiming = useMemo(() => httpRunTiming(`${ENDPOINTS.base}/runtiming`, openRunTimingStore()), []);
 
@@ -145,8 +146,12 @@ export default function App() {
    */
   // (T251) the Updates log: development and staging builds keep the last 200 events on the device
   const updateLog = useMemo(() => (UPDATES_LOG ? createUpdateLog({ store: openUpdateLogStore() }) : null), []);
+  // (T237) problem reports: POSTed to the report endpoint, or kept on the device and sent with the service's retry
+  const reportOutbox = useMemo(() => (REPORT_URL ? createReportOutbox({
+    url: REPORT_URL, store: openReportOutboxStore(), online: () => !devOffline.on && connectivity.online() }) : null), []);
   const updates = useMemo(() => createUpdateService({
     fetch: DATA_FETCH,
+    outbox: reportOutbox,
     onEvent: updateLog ? updateLog.append : undefined,
     // (T251) a store build can lag behind the data: a release asking for a newer app is not applied. The web's code ships
     // with its data, so it is never gated — save `EXPO_PUBLIC_RELEASE_GATE=1`, the browser test's way to see the gate
@@ -183,7 +188,7 @@ export default function App() {
         return () => sub.remove();
       },
     },
-  }), [feed, salmonFeed, inSeason, updateLog]);
+  }), [feed, salmonFeed, inSeason, updateLog, reportOutbox]);
   // started once the release is open (the service compares against the set in use); the boot's manifest read seeds it
   const started = useRef(false);
   useEffect(() => {
@@ -252,7 +257,7 @@ export default function App() {
       } catch { return false; }
     },
   }), [updateLog, updates, apply]);
-  const menuInfo = useMemo(() => ({ ...MENU_INFO, updatesLog }), [updatesLog]);
+  const menuInfo = useMemo(() => ({ ...MENU_INFO, updatesLog, report: reportOutbox }), [updatesLog, reportOutbox]);
 
   const data = useMemo((): { source: WaterSource; status: StatusSource; pairing: PairingInput;
                              tiles: MapTiles & { imagery: string }; loader: ReleaseLoader } | null => {
@@ -355,7 +360,7 @@ export default function App() {
                onSaveSpot={spotsHook.save}
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
-               inSeason={inSeason} inSeasonSeen={inSeasonSeen} firstRun={firstRun}
+               inSeason={inSeason} inSeasonSeen={inSeasonSeen} firstRun={firstRun} walkthrough={walkthrough}
                runTiming={runTiming}
                refreshing={refreshing}
                onDeleteSpot={spotsHook.remove}

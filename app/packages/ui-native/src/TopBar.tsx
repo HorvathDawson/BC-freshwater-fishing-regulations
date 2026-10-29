@@ -153,16 +153,23 @@ function NoticeButton({ palette, count, label, onPress }: { palette: Palette; co
                style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
                                           justifyContent: "center", borderLeftWidth: 1, borderLeftColor: palette.line,
                                           backgroundColor: pressed ? palette.wash : "transparent" })}>
-      <View importantForAccessibility="no-hide-descendants" aria-hidden>
-        <Icon name="bell" colour={palette.sub} size={18} />
-        <View testID="inseason-count"
-              style={{ position: "absolute", top: -7, right: -9, minWidth: 16, height: 16, paddingHorizontal: 3,
-                       borderRadius: 8, backgroundColor: palette.attention, borderWidth: 1.5, borderColor: palette.card,
-                       alignItems: "center", justifyContent: "center" }}>
-          <Text style={{ ...TYPE.metaBold, fontSize: 10, lineHeight: 12, color: palette.card }}>{count > 99 ? "99+" : count}</Text>
-        </View>
-      </View>
+      <BellGlyph palette={palette} count={count} />
     </Pressable>
+  );
+}
+
+/** The bell and its count, as the top bar draws them; exported so the Help page (T248) shows the same picture. */
+export function BellGlyph({ palette, count }: { palette: Palette; count: number }) {
+  return (
+    <View importantForAccessibility="no-hide-descendants" aria-hidden>
+      <Icon name="bell" colour={palette.sub} size={18} />
+      <View testID="inseason-count"
+            style={{ position: "absolute", top: -7, right: -9, minWidth: 16, height: 16, paddingHorizontal: 3,
+                     borderRadius: 8, backgroundColor: palette.attention, borderWidth: 1.5, borderColor: palette.card,
+                     alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ ...TYPE.metaBold, fontSize: 10, lineHeight: 12, color: palette.card }}>{count > 99 ? "99+" : count}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -178,6 +185,23 @@ function NoticeButton({ palette, count, label, onPress }: { palette: Palette; co
  * it — with a "!" in `onAccent`, where the dot sits; the tap then opens what failed (the Shell's `SyncErrorSheet`).
  */
 function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM; onPress?: () => void }) {
+  return (
+    <Pressable testID="sync-button" onPress={onPress} disabled={sync.kind === "checking"}
+               accessibilityRole="button" accessibilityLabel={sync.label} accessibilityHint={sync.hint}
+               aria-busy={sync.kind === "checking" || sync.kind === "downloading"} hitSlop={2}
+               style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
+                                          justifyContent: "center", borderLeftWidth: 1, borderLeftColor: palette.line,
+                                          backgroundColor: pressed ? palette.wash : "transparent" })}>
+      <SyncGlyph palette={palette} sync={sync} />
+    </Pressable>
+  );
+}
+
+/**
+ * THE SYNC ICON'S PICTURE, in each state. Exported so the Help page (T248) draws the very glyph the button wears — a
+ * state added here is drawn there, and a help picture cannot drift from the icon.
+ */
+export function SyncGlyph({ palette, sync }: { palette: Palette; sync: SyncVM }) {
   const reduced = useReducedMotion();
   const turn = useRef(new Animated.Value(0)).current;
   const spinning = sync.kind === "checking" && !reduced;
@@ -192,47 +216,40 @@ function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM
   const D = TOP_BAR.dot, B = TOP_BAR.badge, R = TOP_BAR.ring;
   const dotted = sync.kind === "stale" || sync.kind === "downloading";
   return (
-    <Pressable testID="sync-button" onPress={onPress} disabled={sync.kind === "checking"}
-               accessibilityRole="button" accessibilityLabel={sync.label} accessibilityHint={sync.hint}
-               aria-busy={sync.kind === "checking" || sync.kind === "downloading"} hitSlop={2}
-               style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
-                                          justifyContent: "center", borderLeftWidth: 1, borderLeftColor: palette.line,
-                                          backgroundColor: pressed ? palette.wash : "transparent" })}>
-      <View importantForAccessibility="no-hide-descendants" aria-hidden
-            style={{ width: R, height: R, alignItems: "center", justifyContent: "center" }}>
-        {sync.kind === "downloading" && (
-          <View style={{ position: "absolute", top: 0, left: 0 }}>
-            <SyncRing progress={sync.progress ?? 0} size={R} track={palette.line} colour={palette.accent} />
-          </View>
-        )}
-        {sync.kind === "checking" && (
-          // CHECKING: an accent arc turning round the glyph (still, under reduced motion) — seen at a glance
-          <Animated.View testID="sync-checking" style={{ position: "absolute", top: 0, left: 0, transform: [{ rotate }] }}>
-            <SyncRing progress={0.3} size={R} track={palette.line} colour={palette.accent} />
-          </Animated.View>
-        )}
-        {sync.kind === "done" ? (
-          <View testID="sync-done"><Icon name="check" colour={palette.accent} size={18} /></View>
-        ) : (
-          <Icon name="sync" colour={sync.kind === "checking" ? palette.accent : palette.sub}
-                size={sync.kind === "downloading" || sync.kind === "checking" ? 14 : 18} />
-        )}
-        {dotted && (
-          <View testID="sync-dot"
-                style={{ position: "absolute", top: -1, right: -2, width: D + 3, height: D + 3, borderRadius: (D + 3) / 2,
-                         backgroundColor: palette.card, alignItems: "center", justifyContent: "center" }}>
-            <View style={{ width: D, height: D, borderRadius: D / 2, backgroundColor: palette.attention }} />
-          </View>
-        )}
-        {sync.kind === "error" && (
-          <View testID="sync-error"
-                style={{ position: "absolute", top: -4, right: -6, width: B, height: B, borderRadius: B / 2,
-                         backgroundColor: palette.closed, borderWidth: 1.5, borderColor: palette.card,
-                         alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ ...TYPE.metaBold, fontSize: 10, lineHeight: 12, color: palette.onAccent }}>!</Text>
-          </View>
-        )}
-      </View>
-    </Pressable>
+    <View importantForAccessibility="no-hide-descendants" aria-hidden
+          style={{ width: R, height: R, alignItems: "center", justifyContent: "center" }}>
+      {sync.kind === "downloading" && (
+        <View style={{ position: "absolute", top: 0, left: 0 }}>
+          <SyncRing progress={sync.progress ?? 0} size={R} track={palette.line} colour={palette.accent} />
+        </View>
+      )}
+      {sync.kind === "checking" && (
+        // CHECKING: an accent arc turning round the glyph (still, under reduced motion) — seen at a glance
+        <Animated.View testID="sync-checking" style={{ position: "absolute", top: 0, left: 0, transform: [{ rotate }] }}>
+          <SyncRing progress={0.3} size={R} track={palette.line} colour={palette.accent} />
+        </Animated.View>
+      )}
+      {sync.kind === "done" ? (
+        <View testID="sync-done"><Icon name="check" colour={palette.accent} size={18} /></View>
+      ) : (
+        <Icon name="sync" colour={sync.kind === "checking" ? palette.accent : palette.sub}
+              size={sync.kind === "downloading" || sync.kind === "checking" ? 14 : 18} />
+      )}
+      {dotted && (
+        <View testID="sync-dot"
+              style={{ position: "absolute", top: -1, right: -2, width: D + 3, height: D + 3, borderRadius: (D + 3) / 2,
+                       backgroundColor: palette.card, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: D, height: D, borderRadius: D / 2, backgroundColor: palette.attention }} />
+        </View>
+      )}
+      {sync.kind === "error" && (
+        <View testID="sync-error"
+              style={{ position: "absolute", top: -4, right: -6, width: B, height: B, borderRadius: B / 2,
+                       backgroundColor: palette.closed, borderWidth: 1.5, borderColor: palette.card,
+                       alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ ...TYPE.metaBold, fontSize: 10, lineHeight: 12, color: palette.onAccent }}>!</Text>
+        </View>
+      )}
+    </View>
   );
 }

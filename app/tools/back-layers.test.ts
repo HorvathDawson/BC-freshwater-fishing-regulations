@@ -143,6 +143,7 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel": "the capture's banner; SpotCapture's layer is its back",
   "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
+  "packages/ui-native/src/menu/HelpPage.tsx#HelpPage: draws HelpPage": "(T248) a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/UpdatesLogPage.tsx#UpdatesLogPage: draws UpdatesLogPage": "(T251) a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack": "the page header's ‹ button; its MenuPage registers (useBackLayer)",
@@ -212,9 +213,11 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/TidalSheet.tsx#TidalSheet: takes onClose",
       // (T60) SpotScreen read "takes onBack" only from its bottom row's `? p.onBack : leaveEdit` ternary; that second
       // Back button is gone (one surface per action). It still registers (`useBackLayer`) and back.test drives it.
+      "packages/ui-native/src/Walkthrough.tsx#WalkthroughSheet: draws WalkthroughSheet",
       "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack",
       "packages/ui-native/src/WaterScreen.tsx#WaterScreen: takes onBack",
       "packages/ui-native/src/menu/GlossaryPage.tsx#GlossaryPage: draws GlossaryPage",
+      "packages/ui-native/src/menu/HelpPage.tsx#HelpPage: draws HelpPage",
       "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage",
       "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPage: a Modal",

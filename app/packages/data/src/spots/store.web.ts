@@ -73,9 +73,24 @@ export function openUpdateLogStore(): { read(): string | null; write(text: strin
   return keyStore("canifishthis.updateLog.v1");
 }
 
+/** (T237) Problem reports waiting to be sent (offline), as whole text (a JSON list). */
+export function openReportOutboxStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.reportOutbox.v1");
+}
+
 /** (T236) The first-run notice's accepted version (`FIRST_RUN_VERSION`), one key of its own. */
 export function openFirstRunStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.firstRun.v1");
+}
+
+/** (T248) The first-run walkthrough's seen version (`WALKTHROUGH_VERSION`), one key of its own. */
+export function openWalkthroughStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.walkthrough.v1");
+}
+
+/** (T247) The recent searches (a JSON list of what the reader looked for), one key of its own; a cache, device-only. */
+export function openRecentSearchStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.recentSearches.v1");
 }
 
 function keyStore(LAYERS_KEY: string): { read(): string | null; write(text: string): void } {
