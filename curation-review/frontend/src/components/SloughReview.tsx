@@ -458,10 +458,11 @@ function SloughView({ detail, reviewer, setName, nav, onMarked }: {
         </div>
         <div className="detail-map">
           <div className="dim" style={{ fontSize: 12, marginBottom: 4 }}>
-            <span style={{ color: "#7c3aed" }}>violet: the candidate polygon's outline</span> · use the map's satellite button to see the ground
+            <span style={{ color: "#7c3aed" }}>violet: the candidate polygon's outline</span> · satellite imagery on (the map's satellite button turns it off)
           </div>
           {/* no itemId: the stream's own fit would pull the view off a small piece; the basemap draws the water */}
-          <MapPanel itemId={null} suggested={detail.outline} fitNamed={false} flyTo={fly} selectZoom={15} />
+          {/* owner 2026-10-29: opens on satellite, and stays on it as a mark moves to the next candidate */}
+          <MapPanel itemId={null} suggested={detail.outline} fitNamed={false} flyTo={fly} selectZoom={15} satellite />
         </div>
       </div>
     </div>
