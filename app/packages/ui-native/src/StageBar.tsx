@@ -4,7 +4,10 @@
  * `value` 0..1. Said to a screen reader as a progress bar with its percentage.
  */
 import { View } from "react-native";
-import type { Palette } from "./theme";
+import { round, type Palette } from "./theme";
+
+/** the bar's height (its ends are round: `round(BAR)`) */
+const BAR = 6;
 
 export function StageBar({ palette, value, width = 220, testID }: {
   palette: Palette; value: number; width?: number; testID?: string;
@@ -13,8 +16,8 @@ export function StageBar({ palette, value, width = 220, testID }: {
   return (
     <View testID={testID} accessibilityRole="progressbar"
           accessibilityValue={{ min: 0, max: 100, now: Math.floor(v * 100) }}
-          style={{ width, height: 6, borderRadius: 3, backgroundColor: palette.line, overflow: "hidden" }}>
-      <View style={{ width: `${v * 100}%`, height: "100%", borderRadius: 3, backgroundColor: palette.accent }} />
+          style={{ width, height: BAR, borderRadius: round(BAR), backgroundColor: palette.line, overflow: "hidden" }}>
+      <View style={{ width: `${v * 100}%`, height: "100%", borderRadius: round(BAR), backgroundColor: palette.accent }} />
     </View>
   );
 }

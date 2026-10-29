@@ -191,12 +191,14 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
     const fs = memFs(), log: string[] = [], stages: string[] = [], progress: string[] = [];
     const boot = (f: typeof fetch) => bootRelease({
       manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
-      onStage: (s) => stages.push(s), onProgress: (p) => progress.push(`${p.file} ${p.done}/${p.total}`),
+      onStage: (s) => stages.push(s), onProgress: (p) => progress.push(p.setup ? `setup ${p.setup.step} ${p.setup.done}/${p.setup.of}` : `${p.file} ${p.done}/${p.total}`),
       manifestTimeoutMs: 1000 });
 
     const first = await boot(releaseFetch(BASE, r1.dir, log));
     expect(stages).toEqual(["manifest", "install", "paint"]);
-    expect(progress).toEqual(["access 1/6", "conditions 2/6", "core 3/6", "flow-area 4/6", "near 5/6", "paint 6/6"]);
+    // (T272) then the second stage: the set opened in steps (manifest, paint, core)
+    expect(progress).toEqual(["access 1/6", "conditions 2/6", "core 3/6", "flow-area 4/6", "near 5/6", "paint 6/6",
+                              "setup open 0/3", "setup open 1/3", "setup open 2/3", "setup open 3/3"]);
     expect(log.length).toBe(7);                                       // the manifest + every file, once
     expect(first.held.release).toBe(first.manifest.data_release);
     expect(await first.update).toBeNull();
