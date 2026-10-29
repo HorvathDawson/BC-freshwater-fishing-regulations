@@ -271,9 +271,10 @@ export async function reportPastExits(o: { reporter: CrashReporter; source: Exit
       if (r.reason === "CRASH" && o.jsFatalSent) continue;
       if (await o.reporter.sendExit(r)) sent++;
     }
-    const newest = (await o.source.recent(since)).reduce((m, r) => Math.max(m, r.timestamp), since);
+    const all = await o.source.recent(since);
+    const newest = all.reduce((m, r) => Math.max(m, r.timestamp), since);
     try { o.seen?.write(String(newest)); } catch { /* looked at again next start */ }
-    console.info(`[crash-reports] sent ${sent} exit record(s)`);   // the test bed reads this line (logcat)
+    console.info(`[crash-reports] sent ${sent} exit record(s); ${all.length} new in the system's record (${all.map((r) => r.reason).join(",")}), ${list.length} bad`);   // the test bed reads this line (logcat)
     return sent;
   } catch { return 0; }
 }

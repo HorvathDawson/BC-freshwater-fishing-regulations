@@ -4,7 +4,8 @@
 // The run token is not used: the worker's answer (201) is what the app's count rests on.
 import { appUp, coldStart } from './common.mjs';
 
-const SENT = /\[crash-reports\] sent (\d+) exit record/;
+const SENT = /\[crash-reports\] sent (\d+) exit record[^\n]*/;
+const said = (ctx) => [...ctx.device.logcatJs().matchAll(/\[crash-reports\][^\n]*/g)].map((m) => m[0]).join(' | ');
 const sentCount = (ctx) => { const m = [...ctx.device.logcatJs().matchAll(new RegExp(SENT, 'g'))].at(-1); return m ? Number(m[1]) : null; };
 
 export const crash = {
@@ -15,8 +16,9 @@ export const crash = {
     await ctx.step('the app is crashed (am crash)', async () => {
       ctx.device.sh(`am crash ${ctx.device.APP_ID}`);
       const end = Date.now() + 15_000;
-      while (Date.now() < end && ctx.device.pidOf()) await ctx.device.sleep(500);
-      if (ctx.device.pidOf()) throw new Error('the app did not die');
+      const alive = () => { try { return ctx.device.pidOf(); } catch { return null; } };   // pidof exits 1 when there is none
+      while (Date.now() < end && alive()) await ctx.device.sleep(500);
+      if (alive()) throw new Error('the app did not die');
       ctx.device.adb(['logcat', '-b', 'crash', '-c']);          // this crash is the test, not a finding
       return 'process gone';
     });
@@ -27,7 +29,7 @@ export const crash = {
       let n = null;
       while (Date.now() < end && (n = sentCount(ctx)) === null) await ctx.device.sleep(3000);
       if (n === null) throw new Error('no "[crash-reports] sent" line in 90 s');
-      if (n < 1) throw new Error(`the exit record was not accepted by the worker (sent ${n})`);
+      if (n < 1) throw new Error(`the exit record was not accepted by the worker (${said(ctx)}); system record: ${ctx.device.sh('dumpsys activity exit-info ' + ctx.device.APP_ID).replace(/\s+/g, ' ').slice(0, 500)}`);
       return `sent ${n}`;
     });
     await ctx.step('a start after a normal stop sends none', async () => {

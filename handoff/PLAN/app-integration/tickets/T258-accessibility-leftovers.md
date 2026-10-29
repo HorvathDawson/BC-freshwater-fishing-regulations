@@ -31,9 +31,10 @@ Depends: T257 merged. Size: S–M. Owner: yes (the phone walk).
 2. **Labelled text rows on the web**: the Data rows and the updates row (More), the Help legend rows, the sync error rows and the day
    grid are `role="group"` so react-native-web keeps their label (a role-less div's `aria-label` is prohibited and skipped). The gate
    now fails any `div[aria-label]` with words and no role (planted violations pinned).
-3. **Web targets - decision: keep as drawn.** The rail (40 px), back links (32 px) and similar are >= 24 px (WCAG 2.5.8 AA) on the web;
-   react-native-web ignores `hitSlop`, and drawing them at 44 would move the layout (T260's rule: no look change). Native keeps the
-   44 x 44 reach by `hitProps`. Owner may decide otherwise; it is a size change, not a hit-area one.
+3. **Web targets - owner 2026-10-29: "grow them a little bit"** (31c8d04): the map's side rail buttons 40 -> 44 px (`MapRail` SIZE), the menu / More back links
+   32 -> 40 px (`MenuPage`, `MoreScreen` `more-back`: height and press box). Layout otherwise unchanged. `T258-shots/`: before/after map (desktop light)
+   and More (phone light) + `DIFF.md` (map 0.07-0.24 % differing = the rail; More / Help 7-17 % = the header is 8 px taller, so the page below
+   moves down 8 px, expected). Other 32 px links (Faces, InSeasonNotice, ReportLink, group-card links) were not in scope and stay >= 24 px.
 4. **Axe walk** (`tools/a11y-walk.mjs`, 22 scenes x desktop/phone x light/dark): clean except the coach `aria-modal` finding above, fixed.
 
 ## Owner only

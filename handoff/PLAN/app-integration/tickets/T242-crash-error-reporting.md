@@ -1,6 +1,6 @@
 # T242 — crash and error reporting (privacy-light)
 
-Status: PARTIAL — built and tested (960d2d8); the staging worker is NOT deployed yet (the permission classifier refused the deploy: owner runs `npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml`), so the end-to-end "forced error lands once" on web + Android is not run.
+Status: PARTIAL — built and tested (960d2d8, 31c8d04); web forced error lands on staging (201); Android native-exit path proven up to the POST; the staging worker needs ONE MORE deploy (new `native` kind + 1 s gap) before the Android exit record is accepted: `npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml`, then `scripts/heavy.sh testbed 30 -- bash app/tools/testbed/session.sh --max-min 30 -- node app/tools/testbed/run.mjs crash` (no rebuild).
 
 Source: owner 2026-10-28 — approved proposal P8 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -42,9 +42,26 @@ Owner rule 2026-10-29: NO third-party crash service; everything from our own ser
   digest once, purge), `ui/src/crashReport.test.ts` (payload pinned, scrub, switch, offline, dedupe, fatal kept/sent/cleared, handlers
   chain), `ui-native/menu/CrashSwitch.test.tsx`, `apps/mobile/env.test.ts`.
 
+## Owner answers 2026-10-29 and what was done (31c8d04)
+- Default ON approved. Staging worker deployed by the owner (first version).
+- **Web forced error on staging web (2026-10-29)**: a throw and an unhandled rejection in the dev web app (local env -> staging worker): the throw
+  POSTed `crash/1` and got **201**; the rejection 1.5 s later got 429 (the deployed gap is 3 s per IP; now 1 s in code, needs the redeploy).
+  The payload on the wire was scrubbed ("forced T242 check '...' #,#"; stack `at <anonymous>:1:24`, route `map`). curl: bad key 400, GET /crashes without
+  token 403. Reading `GET /crashes` needs the run token (not used by Claude): owner can check `GET /crashes?since=2026-10-29` shows TestError /
+  TypeError "forced T242 check" (and app `t242-check`).
+- **Native kills (Android)**: local Expo module `apps/mobile/modules/exit-info` (Kotlin, `ApplicationExitInfo`, API 30+, own process only, reason /
+  importance / status / rss / description; NO trace stream read) -> `@app/ui` `reportPastExits` at start: bad exits only (CRASH, CRASH_NATIVE, ANR,
+  LOW_MEMORY, EXCESSIVE_RESOURCE_USAGE, INITIALIZATION_FAILURE, SIGNALED, DEPENDENCY_DIED), newest 3, kind `native`, name `NativeExit`, no stack,
+  route `other`, same switch / same scrub / same worker; a plain CRASH is skipped when the kept JS fatal was just sent (same event); the newest
+  timestamp is kept (`crash-exit-seen`) only when sending was possible. Worker: `native` kind accepted, digest text says "the system ended the app".
+  Privacy page lists it (and says iPhones send none yet).
+- **Test bed** `crash` scenario (`am crash` -> restart -> "[crash-reports] sent N exit record(s)" -> a normal restart sends none). On the emulator
+  2026-10-29 the module read the system record (1 new, CRASH, 1 bad) and the app tried to send it; the deployed worker answered 400 "bad kind" (it predates
+  `native`), so step 3 is red until the redeploy. Steps 1, 2 and 4 pass.
+- **iOS**: MetricKit (MXMetricManager diagnostic payloads) needs a Swift subscriber module and only delivers on the next day's launch; not cheap, not
+  done. Web and iOS still report JS errors only.
+
 ## Not done / owner
-- Deploy the feeds worker (command above), then force an error on a staging web build and the Android test bed and read `GET /crashes`.
-- True native process crashes (an OutOfMemoryError that kills the JVM, a native signal) never reach the JS handler: only JS errors and
-  the global handler's fatal JS errors are reported. A native crash reporter (a stored "last run ended badly" marker) is a follow-up.
+- Redeploy the feeds worker (command in Status), then re-run the `crash` scenario; read `GET /crashes` (run token) once.
 - Privacy wording is Claude's draft (owner to approve, like the report wording).
 - Review-app tab for crashes (the digest + `GET /crashes` are the v1 reading).
