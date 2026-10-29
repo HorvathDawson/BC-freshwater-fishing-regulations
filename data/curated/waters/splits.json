@@ -9973,6 +9973,34 @@
      "tidal": true
     }
    ]
+  },
+  {
+   "name": "WHONNOCK CREEK",
+   "applies_to": {
+    "gnis_id": "5366"
+   },
+   "splits": [
+    {
+     "id": "whonnock_creek__cp_rail_line_tidal_boundary",
+     "label": "CP rail line (tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.460084,
+       49.174034
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:356250271 — \"Whonnock Creek: CP rail line\"",
+     "_coord": [
+      -122.460084,
+      49.174034
+     ],
+     "tidal": true
+    }
+   ]
   }
  ]
 }
