@@ -172,7 +172,9 @@ describe("back, everywhere: one mechanism", () => {
     const users = where(/\bonRequestClose\b/);
     expect([users, users.filter((p) => !wired(read(p)))]).toEqual([[
       // (T257) the first-run tour's coach marks: back skips the tour
-      "packages/ui-native/src/CoachMarks.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx"], []]);
+      "packages/ui-native/src/CoachMarks.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
+      // (T284) a spot photograph, full screen
+      "packages/ui-native/src/spot/PhotoViewer.tsx"], []]);
   });
 });
 
@@ -235,6 +237,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/UpdatesLogPage.tsx#UpdatesLogPage: draws UpdatesLogPage",
       "packages/ui-native/src/regs/DaySheet.tsx#DaySheet: takes onClose",
       "packages/ui-native/src/spot/Confirm.tsx#Confirm: takes onCancel",
+    "packages/ui-native/src/spot/PhotoViewer.tsx#PhotoViewer: a Modal",
       "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose",
       "packages/ui-native/src/water/WaterMapView.tsx#MarkPop: a dialog",
       "packages/ui-native/src/water/WaterMapView.tsx#Chooser: a dialog",

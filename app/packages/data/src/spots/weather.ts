@@ -43,7 +43,7 @@ const localMidnight = (d: string): number => {
 };
 
 /** T51: the hourly fields a coming day is compared at, and how many days either side of today are asked for. */
-const AHEAD_HOURLY = "temperature_2m,wind_speed_10m,cloud_cover";
+const AHEAD_HOURLY = "temperature_2m,wind_speed_10m,cloud_cover,pressure_msl";
 const AHEAD_DAYS = 5;
 /** The rain window before today's comparison (core `LIKE_RAIN_DAYS`). */
 const AHEAD_PAST_DAYS = 3;
@@ -69,7 +69,7 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
           days: dt.map((date, i) => ({ date, precipMm: num(body.daily?.precipitation_sum?.[i]) })),
           hours: ht.map((at, i) => ({ at, tempC: num(body.hourly?.temperature_2m?.[i]),
                                       windKph: num(body.hourly?.wind_speed_10m?.[i]),
-                                      cloudPct: num(body.hourly?.cloud_cover?.[i]) })),
+                                      cloudPct: num(body.hourly?.cloud_cover?.[i]), pressureHpa: num(body.hourly?.pressure_msl?.[i]) })),
         };
       } catch {
         return null;

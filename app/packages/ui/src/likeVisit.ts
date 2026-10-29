@@ -68,7 +68,7 @@ export function likeVisitView(spot: Spot, f: LikeFetched, offline: boolean, now:
     return { date: d.date, top: h.top, sub: h.sub, score: likeScoreText(d),
              read: d.read ? LIKE_WORDS.reads[d.read] : null,
              // under the score: "weather only" with no flow, "low-water model" when ELF forecast the flow (T171)
-             basis: d.basis === "weather" ? d.note ?? LIKE_WORDS.weatherOnly : d.caveat ? LIKE_WORDS.lowWater : null,
+             basis: d.basis === "weather" ? d.note ?? LIKE_WORDS.weatherOnly : d.caveat === LIKE_WORDS.carried ? LIKE_WORDS.carried : d.caveat ? LIKE_WORDS.lowWater : null,
              best: d.date === bestDate,
              reasons: d.factors.flatMap((x) => (x.plain === null ? [] : [x.plain])),
              label: likeDayLabel(d, now),

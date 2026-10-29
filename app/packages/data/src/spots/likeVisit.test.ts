@@ -26,7 +26,7 @@ describe("visitConditions — the frozen record only", () => {
                            at: { at: "2026-08-30T09:00", tempC: 14, cloudPct: 40, pressureHpa: 1014, humidityPct: 70 } } },
       leadUp: { weather: week([9, 9, 9, 9, 0.5, 1, 0.5]), station: "08MH016", gauge: null },
     });
-    expect(visitConditions(spot)).toEqual({ flow: 0.42, tempC: 14, rainMm: 2, windKph: 8, cloudPct: 40 });
+    expect(visitConditions(spot)).toEqual({ flow: 0.42, tempC: 14, rainMm: 2, windKph: 8, cloudPct: 40, pressureHpa: 1014 });
     expect(visitHour(spot)).toBe("09:00");
   });
 
@@ -44,7 +44,7 @@ describe("visitConditions — the frozen record only", () => {
 
   it("a rain window with a day not known is no rain, and no weather is nulls — never a guess", () => {
     expect(visitConditions(base({ leadUp: { weather: week([0, 0, 0, 0, 0, null, 1]), station: null, gauge: null } })))
-      .toEqual({ flow: null, tempC: null, rainMm: null, windKph: null, cloudPct: null });
+      .toEqual({ flow: null, tempC: null, rainMm: null, windKph: null, cloudPct: null, pressureHpa: null });
   });
 });
 
@@ -128,19 +128,36 @@ describe("comingConditions", () => {
   const ahead: WeatherAhead = {
     days: ["2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25",
            "2026-10-26"].map((date, i) => ({ date, precipMm: i === 6 ? null : i })),
-    hours: [{ at: "2026-10-22T09:00", tempC: 7, windKph: 12, cloudPct: 90 },
+    hours: [{ at: "2026-10-22T09:00", tempC: 7, windKph: 12, cloudPct: 90, pressureHpa: 1010 },
             { at: "2026-10-22T10:00", tempC: 9, windKph: 30, cloudPct: 10 }],
   };
   it("rain over the three days before each day; air, wind, cloud at the visit's hour; flow by day", () => {
     const f: LikeFetched = { weather: ahead, weatherAt: NOW, flow: { "2026-10-22": 0.5, "2026-10-23": 0.55 }, flowAt: NOW };
     expect(comingConditions(f, likeDays(NOW), "09:00")).toEqual([
-      { date: "2026-10-22", flow: 0.5, tempC: 7, rainMm: 0 + 1 + 2, windKph: 12, cloudPct: 90 },
-      { date: "2026-10-23", flow: 0.55, tempC: null, rainMm: 1 + 2 + 3, windKph: null, cloudPct: null },
-      { date: "2026-10-24", flow: null, tempC: null, rainMm: 2 + 3 + 4, windKph: null, cloudPct: null },
-      { date: "2026-10-25", flow: null, tempC: null, rainMm: 3 + 4 + 5, windKph: null, cloudPct: null },
+      { date: "2026-10-22", flow: 0.5, tempC: 7, rainMm: 0 + 1 + 2, windKph: 12, cloudPct: 90, pressureHpa: 1010 },
+      { date: "2026-10-23", flow: 0.55, tempC: null, rainMm: 1 + 2 + 3, windKph: null, cloudPct: null, pressureHpa: null },
+      { date: "2026-10-24", flow: null, tempC: null, rainMm: 2 + 3 + 4, windKph: null, cloudPct: null, pressureHpa: null },
+      { date: "2026-10-25", flow: null, tempC: null, rainMm: 3 + 4 + 5, windKph: null, cloudPct: null, pressureHpa: null },
       // the 25th's rain is not known: the 26th's window has a hole
-      { date: "2026-10-26", flow: null, tempC: null, rainMm: null, windKph: null, cloudPct: null },
+      { date: "2026-10-26", flow: null, tempC: null, rainMm: null, windKph: null, cloudPct: null, pressureHpa: null },
     ]);
+  });
+});
+
+describe("comingConditions — a day no forecast reaches carries today's reading (T284)", () => {
+  const ahead: WeatherAhead = { days: [], hours: [] };
+  it("flow from the reading now, marked carried, only where the station has a reading; else null (weather only)", () => {
+    const f: LikeFetched = { weather: ahead, weatherAt: NOW, flowAt: NOW, flowNow: "2026-10-22",
+      flow: { "2026-10-22": 0.5, "2026-10-23": 0.55 } };
+    const got = comingConditions(f, likeDays(NOW), "09:00");
+    expect(got.map((c) => [c.date, c.flow, c.flowCarried ?? false])).toEqual([
+      ["2026-10-22", 0.5, false], ["2026-10-23", 0.55, false], ["2026-10-24", 0.5, true], ["2026-10-25", 0.5, true],
+      ["2026-10-26", 0.5, true]]);
+    // a station with no reading at all: nothing to carry, nothing marked
+    const none = comingConditions({ ...f, flow: { "2026-10-22": null }, flowNow: "2026-10-22" }, likeDays(NOW), "09:00");
+    expect(none.map((c) => [c.flow, c.flowCarried ?? false])).toEqual(Array(5).fill([null, false]));
+    expect(comingConditions({ ...f, flow: null, flowNow: null }, likeDays(NOW), "09:00").map((c) => c.flow))
+      .toEqual(Array(5).fill(null));
   });
 });
 
@@ -195,13 +212,13 @@ describe("openMeteo().ahead", () => {
       urls.push(url);
       return { ok: true, json: async () => ({
         daily: { time: ["2026-10-19", "2026-10-20"], precipitation_sum: [1.2, null] },
-        hourly: { time: ["2026-10-22T09:00"], temperature_2m: [7.5], wind_speed_10m: ["x"], cloud_cover: [90] } }) };
+        hourly: { time: ["2026-10-22T09:00"], temperature_2m: [7.5], wind_speed_10m: ["x"], cloud_cover: [90], pressure_msl: [1008.4] } }) };
     }) as unknown as typeof fetch;
     expect(await openMeteo(fake).ahead!(49.1, -121.96)).toEqual({
       days: [{ date: "2026-10-19", precipMm: 1.2 }, { date: "2026-10-20", precipMm: null }],
-      hours: [{ at: "2026-10-22T09:00", tempC: 7.5, windKph: null, cloudPct: 90 }] });
+      hours: [{ at: "2026-10-22T09:00", tempC: 7.5, windKph: null, cloudPct: 90, pressureHpa: 1008.4 }] });
     expect(urls).toEqual(["https://api.open-meteo.com/v1/forecast?latitude=49.1&longitude=-121.96"
-      + "&daily=precipitation_sum&hourly=temperature_2m,wind_speed_10m,cloud_cover&timezone=auto&past_days=3"
+      + "&daily=precipitation_sum&hourly=temperature_2m,wind_speed_10m,cloud_cover,pressure_msl&timezone=auto&past_days=3"
       + "&forecast_days=5"]);
   });
 

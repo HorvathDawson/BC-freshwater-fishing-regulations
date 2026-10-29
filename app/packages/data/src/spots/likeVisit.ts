@@ -27,7 +27,8 @@ import type { Spot } from "./model";
  *  hourly air, wind and cloud, each on the PLACE's local clock ("2026-10-24", "2026-10-24T09:00"). */
 export interface WeatherAhead {
   days: { date: string; precipMm: number | null }[];
-  hours: { at: string; tempC: number | null; windKph: number | null; cloudPct: number | null }[];
+  hours: { at: string; tempC: number | null; windKph: number | null; cloudPct: number | null;
+           /** absent on a forecast cached before T284 */ pressureHpa?: number | null }[];
 }
 
 /** The station rows `reading` reads, as the feed's index carries them. */
@@ -89,6 +90,7 @@ export function visitConditions(spot: Spot): LikeConditions {
     rainMm: rain,
     windKph: w?.windKph ?? null,
     cloudPct: w?.window?.at?.cloudPct ?? null,
+    pressureHpa: w?.window?.at?.pressureHpa ?? w?.pressureHpa ?? null,
   };
 }
 
@@ -142,11 +144,18 @@ export function comingConditions(f: LikeFetched, days: readonly string[], hour: 
     const got = before.map((b) => f.weather!.days.find((x) => x.date === b)?.precipMm ?? null);
     return got.every((v) => v !== null) ? got.reduce((s, v) => s + v!, 0) : null;
   };
+  // (T284) a day no forecast reaches carries TODAY's reading forward — said so, and counted for less (core `likeDay`);
+  // "weather only" is for a station with no reading at all
+  const nowFlow = f.flowNow ? f.flow?.[f.flowNow] ?? null : null;
   return days.map((date) => {
     const h = f.weather?.hours.find((x) => x.at === `${date}T${hour}`);
     const by = f.flowModels?.[date];
-    return { date, flow: f.flow?.[date] ?? null, ...(by ? { flowModel: by.model, flowLowWater: !!by.lowWater } : {}),
-             tempC: h?.tempC ?? null, rainMm: rainOf(date), windKph: h?.windKph ?? null, cloudPct: h?.cloudPct ?? null };
+    const own = f.flow?.[date] ?? null;
+    const carried = own === null && nowFlow !== null;
+    return { date, flow: own ?? nowFlow, ...(carried ? { flowCarried: true } : {}),
+             ...(by ? { flowModel: by.model, flowLowWater: !!by.lowWater } : {}),
+             tempC: h?.tempC ?? null, rainMm: rainOf(date), windKph: h?.windKph ?? null, cloudPct: h?.cloudPct ?? null,
+             pressureHpa: h?.pressureHpa ?? null };
   });
 }
 

@@ -30,12 +30,19 @@ import { agoWords } from "./freshness";
 import { CHANGE_LOW_WATER, CHANGE_LOW_WATER_MARK } from "./change";
 
 /** The factors, in the order a day's working lists them. */
-export type LikeFactorKey = "flow" | "temp" | "rain" | "wind" | "cloud";
-export const LIKE_FACTORS: readonly LikeFactorKey[] = ["flow", "temp", "rain", "wind", "cloud"];
+export type LikeFactorKey = "flow" | "rain" | "cloud" | "pressure" | "temp" | "wind";
+export const LIKE_FACTORS: readonly LikeFactorKey[] = ["flow", "rain", "cloud", "pressure", "temp", "wind"];
 
-/** Each factor's weight; they sum to 1. Flow most (owner), then the air and the rain before, then wind and cloud. */
+/**
+ * Each factor's weight; they sum to 1. THREE TIERS (owner 2026-10-29): the river's flow and the rain in the days before
+ * count most and equally (0.25 each), then cloud cover and pressure (0.15 each), then the air's temperature and the
+ * wind (0.10 each).
+ */
 export const LIKE_WEIGHTS: Readonly<Record<LikeFactorKey, number>> =
-  { flow: 0.45, temp: 0.2, rain: 0.2, wind: 0.1, cloud: 0.05 };
+  { flow: 0.25, rain: 0.25, cloud: 0.15, pressure: 0.15, temp: 0.1, wind: 0.1 };
+
+/** A flow carried forward from today's reading (no forecast reaches the day) counts for this fraction of its weight. */
+export const LIKE_CARRIED_WEIGHT = 0.5;
 
 /**
  * How far apart a factor must be to count as not alike at all (likeness 0), in its own unit. Linear in between.
@@ -44,9 +51,10 @@ export const LIKE_WEIGHTS: Readonly<Record<LikeFactorKey, number>> =
  *   rain   15    mm, the rain over the LIKE_RAIN_DAYS days before
  *   wind   25    km/h, at the visit's hour
  *   cloud  100   % cover, at the visit's hour (clear against overcast)
+ *   pressure 20  hPa, at the visit's hour
  */
 export const LIKE_SPANS: Readonly<Record<LikeFactorKey, number>> =
-  { flow: 0.5, temp: 12, rain: 15, wind: 25, cloud: 100 };
+  { flow: 0.5, temp: 12, rain: 15, wind: 25, cloud: 100, pressure: 20 };
 
 /** The one-word read: at or above `verySimilar` (a fraction of 1), at or above `similar`, else different. */
 export const LIKE_READS = { verySimilar: 0.85, similar: 0.65 } as const;
@@ -64,11 +72,15 @@ export interface LikeConditions {
   /** A coming day's: the model that forecast `flow` (T171), and whether it is the low-water model (ELF, T144). */
   flowModel?: string | null;
   flowLowWater?: boolean;
+  /** (T284) A coming day's `flow` is TODAY'S reading carried forward: no forecast reaches the day. */
+  flowCarried?: boolean;
   tempC: number | null;
   /** Rain over the LIKE_RAIN_DAYS days before, mm. */
   rainMm: number | null;
   windKph: number | null;
   cloudPct: number | null;
+  /** hPa, mean sea level, at the visit's hour. */
+  pressureHpa?: number | null;
 }
 
 export type LikeRead = "very similar" | "similar" | "different";
@@ -116,12 +128,16 @@ export function likeRead(score01: number): LikeRead {
 const READS: Readonly<Record<LikeRead, string>> =
   { "very similar": "Very similar", similar: "Similar", different: "Different" };
 const LABELS: Readonly<Record<LikeFactorKey, string>> =
-  { flow: "Flow", temp: "Air temperature", rain: "Rain in the 3 days before", wind: "Wind", cloud: "Cloud" };
+  { flow: "Flow", temp: "Air temperature", rain: "Rain in the 3 days before", wind: "Wind", cloud: "Cloud",
+    pressure: "Pressure" };
 
 export const LIKE_WORDS = {
   heading: "Like your visit?",
-  intro: "How alike each of the next five days looks to the day you were here. Flow counts most, then the air and "
-    + "the rain in the three days before, then wind and cloud.",
+  intro: "How alike each of the next five days looks to the day you were here. The river's flow and the rain in the "
+    + "three days before count most, then cloud and air pressure, then air temperature and wind.",
+  /** A coming day no river forecast reaches: today's reading stands in, and counts for less. */
+  carried: "No river forecast reaches this day, so its flow is today's reading carried forward: less certain.",
+  carriedWhen: "from today's reading",
   /** The mark on the day that looks most like the visit (T284). */
   best: "Closest to your visit",
   visit: "Your visit",
@@ -148,6 +164,7 @@ function said(key: LikeFactorKey, v: number): string {
     case "rain": return `${round1(v)} mm`;
     case "wind": return `${Math.round(v)} km/h`;
     case "cloud": return `${Math.round(v)}%`;
+    case "pressure": return `${Math.round(v)} hPa`;
   }
 }
 
@@ -172,6 +189,10 @@ function apart(key: LikeFactorKey, then: number, that: number): string {
       const k = Math.round(n(d));
       return k === 0 ? "the same" : `${k} km/h ${d > 0 ? "windier" : "calmer"}`;
     }
+    case "pressure": {
+      const h = Math.round(n(d));
+      return h === 0 ? "the same" : `${h} hPa ${d > 0 ? "higher" : "lower"}`;
+    }
     case "cloud": {
       const c = Math.round(n(d));
       return c === 0 ? "the same" : `${c} points ${d > 0 ? "cloudier" : "clearer"}`;
@@ -186,9 +207,11 @@ function apart(key: LikeFactorKey, then: number, that: number): string {
 export function likeDay(then: LikeConditions, that: LikeConditions & { date: string },
                         o: { today?: boolean; hour?: string } = {}): LikeDay {
   const val = (c: LikeConditions, k: LikeFactorKey): number | null =>
-    k === "flow" ? c.flow : k === "temp" ? c.tempC : k === "rain" ? c.rainMm : k === "wind" ? c.windKph : c.cloudPct;
+    k === "flow" ? c.flow : k === "temp" ? c.tempC : k === "rain" ? c.rainMm : k === "wind" ? c.windKph
+    : k === "pressure" ? c.pressureHpa ?? null : c.cloudPct;
   const known = LIKE_FACTORS.filter((k) => val(then, k) !== null && val(that, k) !== null);
-  const total = known.reduce((s, k) => s + LIKE_WEIGHTS[k], 0);
+  const weight = (k: LikeFactorKey) => (k === "flow" && that.flowCarried ? LIKE_WEIGHTS[k] * LIKE_CARRIED_WEIGHT : LIKE_WEIGHTS[k]);
+  const total = known.reduce((s, k) => s + weight(k), 0);
   const at = o.hour ? ` at ${o.hour}` : "";
   const factors: LikeFactor[] = LIKE_FACTORS.map((k) => {
     const a = val(then, k), b = val(that, k);
@@ -200,9 +223,9 @@ export function likeDay(then: LikeConditions, that: LikeConditions & { date: str
       return { key: k, likeness: null, share: 0, line: `${label}: ${why}. Not scored.`, plain: null };
     }
     const l = likeness(k, a, b);
-    const share = LIKE_WEIGHTS[k] / total;
+    const share = weight(k) / total;
     // a low-water day names its model: "5th percentile forecast by ELF" (T171)
-    const flowWhen = o.today ? "now" : that.flowLowWater ? `forecast by ${that.flowModel ?? "a low-water model"}` : "forecast";
+    const flowWhen = that.flowCarried ? LIKE_WORDS.carriedWhen : o.today ? "now" : that.flowLowWater ? `forecast by ${that.flowModel ?? "a low-water model"}` : "forecast";
     const when = k === "flow" ? flowWhen : k === "rain" ? "forecast" : `forecast${at}`;
     return { key: k, likeness: l, share, plain: `${label}: ${apart(k, a, b)}`,
              line: `${label}: ${said(k, a)} then, ${said(k, b)} ${when}. ${cap(apart(k, a, b))}: ${pct(l)} alike, `
@@ -216,7 +239,8 @@ export function likeDay(then: LikeConditions, that: LikeConditions & { date: str
     date: that.date, score: Math.round(s01 * 100), read: likeRead(s01),
     basis: flowIn ? "all" : "weather",
     note: flowIn ? null : then.flow === null ? LIKE_WORDS.noFlowThen : LIKE_WORDS.noFlowAhead,
-    caveat: flowIn && !o.today && that.flowLowWater ? CHANGE_LOW_WATER : null,
+    caveat: flowIn && that.flowCarried ? LIKE_WORDS.carried
+      : flowIn && !o.today && that.flowLowWater ? CHANGE_LOW_WATER : null,
     factors,
   };
 }
@@ -226,7 +250,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /** True when the visit holds nothing at all to compare with. */
 export function likeNothingThen(then: LikeConditions): boolean {
   return LIKE_FACTORS.every((k) => (k === "flow" ? then.flow : k === "temp" ? then.tempC : k === "rain" ? then.rainMm
-    : k === "wind" ? then.windKph : then.cloudPct) === null);
+    : k === "wind" ? then.windKph : k === "pressure" ? then.pressureHpa ?? null : then.cloudPct) === null);
 }
 
 /** The LIKE_DAYS local days from `now`'s day: today first. */

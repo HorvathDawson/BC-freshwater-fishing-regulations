@@ -1,6 +1,6 @@
 # T284 — A saved spot's page, restructured: the day, your notes, how the coming days compare
 
-Status: DONE 2026-10-29 (owner 2026-10-29: "restructure the spot info. to make it clear this was what the day looked like. this is the
+Status: DONE 2026-10-29, 85e854da2 (owner 2026-10-29: "restructure the spot info. to make it clear this was what the day looked like. this is the
 info and images you added and this is how similar that day was to the next few days and why. make it formatted a lot
 better for both mobile and desktop. right now it is a hard read").
 
@@ -27,7 +27,7 @@ Phone: one column in that order. From `WIDE_PANEL` (880): That day + What you ad
 Same data, no new fetch. Words: `SPOT_WORDS` (thatDay, added, nextDays), `LIKE_WORDS.best`, `LikeFactor.plain` (core),
 `photoLabel` (data/spots words); `LikeDayVM.best` / `.reasons` (ui). The strip's tap-to-open working is gone (the reasons are
 shown); `why` stays on the view model unrendered.
-Not done: tapping a photo to open it (no viewer exists; not in scope without a new component).
+Later (owner/coordinator review 2026-10-29): the week before is a forecast-style table (sky icons, tinted rain, sticky row labels); a photo opens full screen (`spot/PhotoViewer`); similarity is tiered — flow + rain (0.25 each), cloud + pressure (0.15), temp + wind (0.10) — with a day no forecast reaches carrying today's reading at half weight, said.
 Shots (web, headless, 390 / 1280, with and without photos): `T284-shots/before-*`, `after-*` (`app/tools/spot-shots.mjs`).
 A11y gate: `a11y.shell.test.tsx` gains a spot-with-notes-photos-and-days state at both widths (names, 44 px boxes, the
 columns' shape asserted).
