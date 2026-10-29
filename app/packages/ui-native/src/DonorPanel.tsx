@@ -50,6 +50,7 @@ import { GaugeGroups } from "./GaugeGroups";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
 import { SPACE, type Palette, round } from "./theme";
+import { hitProps } from "./regs/hit";
 
 /** The bullet's inset, so a row's detail lines align under its name and not its dot. */
 const INSET = 9 + SPACE.s2;
@@ -195,7 +196,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   const row = (r: DonorRowVM, i: number) => {
     const pick = onSelect ? () => onSelect(r.station as StationId) : undefined;
     return (
-    <Pressable onPress={pick} disabled={!pick}
+    <Pressable {...hitProps({ w: 300, h: 40 })} onPress={pick} disabled={!pick}
           accessibilityRole={pick ? "button" : "text"}
           // `aria-selected`, not `accessibilityState`: react-native-web >= 0.21
           // ignores the latter (AGENTS 34).
@@ -422,7 +423,7 @@ export function Fold({ palette, children }: { palette: Palette; children: ReactN
   const [open, setOpen] = useState(false);
   return (
     <View style={{ borderTopWidth: 1, borderTopColor: palette.line }}>
-      <Pressable onPress={() => setOpen(!open)} accessibilityRole="button"
+      <Pressable {...hitProps({ w: 300, h: 40 })} onPress={() => setOpen(!open)} accessibilityRole="button"
                  aria-expanded={open} accessibilityLabel={CONDITIONS_WORDS.fold}
                  style={{ flexDirection: "row", alignItems: "center",
                           paddingVertical: SPACE.s3, gap: SPACE.s2 }}>

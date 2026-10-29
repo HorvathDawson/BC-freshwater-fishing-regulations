@@ -16,7 +16,7 @@ export function LeadUpStrip({ view, palette }: { view: LeadUpView; palette: Pale
     <Text testID={testID} style={{ ...TYPE.small, color: palette.sub }}>{s}</Text>
   );
   const caption = (testID: string, s: string) => (
-    <Text testID={testID} style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>{s}</Text>
+    <Text testID={testID} style={{ ...TYPE.caption, color: palette.faint }}>{s}</Text>
   );
   return (
     <View style={{ gap: 10 }}>

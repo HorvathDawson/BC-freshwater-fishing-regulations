@@ -18,6 +18,7 @@ import { GUTTER, SHEET_DIALOG, SPACE, type Palette } from "./theme";
 import { NATIVE_DRIVER, SHEET_MOTION, useReducedMotion } from "./motion";
 import { hitProps } from "./regs/hit";
 import { BottomInset } from "./WindowInset";
+import { Chip } from "./Chip";
 
 /**
  * (T40) "Done" is a short word (about 34 × 21 at the body size): grown to 44 × 44 to the touch.
@@ -319,15 +320,7 @@ export function Choice<T extends string>({ palette, options, value, onChange, la
       {options.map((o) => {
         const on = o.k === value;
         return (
-          <Pressable key={o.k} onPress={() => onChange(o.k)} accessibilityRole="radio"
-                     aria-checked={on} accessibilityLabel={o.t}
-                     style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: palette.r.pill,
-                              backgroundColor: on ? palette.accent : palette.wash,
-                              borderWidth: 1,
-                              borderColor: on ? palette.accent : palette.ink }}>
-            <Text style={{ ...TYPE.micro, fontSize: 12.5,
-                           color: on ? palette.onAccent : palette.sub }}>{o.t}</Text>
-          </Pressable>
+          <Chip key={o.k} palette={palette} look="choice" label={o.t} on={on} onPress={() => onChange(o.k)} />
         );
       })}
     </View>

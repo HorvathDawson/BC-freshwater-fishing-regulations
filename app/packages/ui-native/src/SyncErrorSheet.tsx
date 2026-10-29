@@ -34,7 +34,7 @@ export function SyncFailures({ vm, palette, checking, onRetry }: {
   return (
     <View testID="sync-failures" style={{ gap: 12 }}>
       {vm.rows.map((r) => (
-        <View key={r.k} testID={`sync-error-${r.k}`} accessible accessibilityLabel={r.label}
+        <View key={r.k} testID={`sync-error-${r.k}`} accessible role="group" accessibilityLabel={r.label}
               style={{ borderLeftWidth: 4, borderLeftColor: palette.closed, paddingLeft: 10, gap: 2 }}>
           <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{r.name}</Text>
           <Text style={{ ...TYPE.small, color: palette.ink }}>{r.problem}</Text>

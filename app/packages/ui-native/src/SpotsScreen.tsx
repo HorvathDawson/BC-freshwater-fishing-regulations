@@ -11,6 +11,7 @@
  */
 import { ErrorState } from "./ErrorState";
 import { Button } from "./Button";
+import { EmptyState } from "./EmptyState";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SPOTS_LIST_WORDS, SPOTS_MENU } from "@app/core";
 import type { PhotoStore } from "@app/data/spots";
@@ -43,12 +44,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
         {vm.error !== null && (
           <ErrorState palette={palette} size="body" message={vm.error} style={{ padding: 20 }} />
         )}
-        {vm.empty && (
-          <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6, gap: 6 }}>
-            <Text style={{ ...TYPE.name, fontSize: 18, color: palette.ink }}>{vm.empty.title}</Text>
-            <Text style={{ ...TYPE.small, lineHeight: 19.5, color: palette.sub }}>{vm.empty.body}</Text>
-          </View>
-        )}
+        {vm.empty && <EmptyState palette={palette} title={vm.empty.title} body={vm.empty.body} />}
         {vm.stale !== null && onRefresh && (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 16,
                          backgroundColor: palette.tint }}>
@@ -74,7 +70,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
                            color: palette.accent }}>+</Text>
             <View style={{ flex: 1 }}>
               <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{a.label}</Text>
-              {a.detail ? <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>{a.detail}</Text> : null}
+              {a.detail ? <Text style={{ ...TYPE.caption, color: palette.sub }}>{a.detail}</Text> : null}
             </View>
           </Pressable>
         ))}

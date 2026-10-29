@@ -69,7 +69,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                         describe={CHANGE_LEGEND.describe}
                         stops={changeRampStops(theme)} marks={visibleMarks} />
             {/* (T157) the low-water caveat on the map: what a dot's "low-water model" mark means */}
-            <Text testID="change-legend-low-water" style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>
+            <Text testID="change-legend-low-water" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>
               {CHANGE_LEGEND.lowWater}
             </Text>
           </>

@@ -12,6 +12,7 @@ import { UPDATE_LOG_CAP, UPDATE_LOG_WORDS, UPDATE_WORDS, updateLogHead, updateLo
 import type { UpdateLog, UpdateService } from "@app/data";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
+import { NoneLine } from "../EmptyState";
 
 export type UpdateChannelKey = "live" | "test";
 
@@ -113,7 +114,7 @@ export function UpdatesLogPage({ c, palette }: { c: UpdatesLogControls; palette:
 
       <View testID="updates-log-rows" style={{ borderBottomWidth: 1, borderBottomColor: palette.line }}>
         <Text style={{ ...TYPE.small, color: palette.sub, paddingBottom: SPACE.s1 }}>{W.count(events.length, UPDATE_LOG_CAP)}</Text>
-        {rows.length === 0 && <Text style={{ ...TYPE.small, color: palette.sub }}>{W.empty}</Text>}
+        {rows.length === 0 && <NoneLine palette={palette}>{W.empty}</NoneLine>}
         {rows.map((row) => (
           <View key={row.key} testID="updates-log-row" accessibilityLabel={row.label}
                 style={{ paddingVertical: SPACE.s2 - 2, borderTopWidth: 1, borderTopColor: palette.line, gap: 1 }}>

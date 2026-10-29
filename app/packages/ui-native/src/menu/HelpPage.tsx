@@ -44,7 +44,7 @@ export function HelpSwatchView({ swatch, palette, theme }: { swatch: HelpSwatch;
 
 function Row({ row, palette, theme, first }: { row: HelpRow; palette: Palette; theme: string; first: boolean }) {
   return (
-    <View testID={`help-row-${row.key}`} accessible accessibilityLabel={helpRowAloud(row)}
+    <View testID={`help-row-${row.key}`} accessible role="group" accessibilityLabel={helpRowAloud(row)}
           style={{ flexDirection: "row", alignItems: "flex-start", gap: SPACE.s3, paddingVertical: 10,
                    borderTopWidth: first ? 0 : 1, borderTopColor: palette.line }}>
       <View style={{ width: 44, minHeight: 22, alignItems: "center", justifyContent: "center", paddingTop: 2 }}>

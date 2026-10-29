@@ -32,6 +32,7 @@ import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette, round } from "./theme";
 import { hitProps } from "./regs/hit";
+import { NoneLine } from "./EmptyState";
 
 /** The units, from core's one table. */
 export const UNIT: Readonly<Record<Parameter, string>> = CONDITIONS_WORDS.unit;
@@ -182,7 +183,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const refuse = vm.refuse;
   const detail = refuse || vm.trace ? (
     <>
-      {refuse && <Text style={{ ...TYPE.body, color: palette.sub }}>{vm.noGauge}</Text>}
+      {refuse && <NoneLine palette={palette} size="body">{vm.noGauge}</NoneLine>}
       {vm.trace && (
         <GaugeTrace trace={vm.trace} palette={palette} at={tiles} theme={theme} from={from} />
       )}
@@ -370,7 +371,7 @@ function ChangeBlock({ palette, change, colour }: { palette: Palette; change: Ch
       {change.caveat && (
         <Text testID="change-caveat" style={{ ...TYPE.body, color: palette.ink }}>{change.caveat}</Text>
       )}
-      {change.none && <Text style={{ ...TYPE.body, color: palette.sub }}>{change.none}</Text>}
+      {change.none && <NoneLine palette={palette} size="body">{change.none}</NoneLine>}
       {change.attribution && <Text style={{ ...TYPE.meta, color: palette.faint }}>{change.attribution}</Text>}
     </View>
   );

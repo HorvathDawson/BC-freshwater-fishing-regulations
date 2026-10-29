@@ -175,7 +175,7 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
   const n = marks?.length ?? 0;
   const count = legendCount(n);
   const pct = (x: number) => `${Math.round(x * 1000) / 10}%` as const;
-  const word = { ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub } as const;
+  const word = { ...TYPE.caption, lineHeight: 15, color: palette.sub } as const;
 
   return (
     <View testID="legend-ramp" style={{ width: "100%", maxWidth: LEGEND_RAMP_MAX, alignSelf: "center" }}>

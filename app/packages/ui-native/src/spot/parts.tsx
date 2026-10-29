@@ -12,7 +12,7 @@ export function Meta({ palette, at, backfilled, station }: {
   palette: Palette; at: string | null; backfilled?: boolean; station?: string | null;
 }) {
   return (
-    <Text testID="spot-observed" style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
+    <Text testID="spot-observed" style={{ ...TYPE.caption, color: palette.faint }}>
       {observedLine(at, backfilled, station)}
     </Text>
   );

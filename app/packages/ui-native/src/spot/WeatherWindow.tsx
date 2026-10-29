@@ -68,7 +68,7 @@ function Trend({ win, palette }: {
   const said = weatherTrend(win);
   if (said === null) return null;
   return (
-    <Text testID="spot-trend" style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
+    <Text testID="spot-trend" style={{ ...TYPE.caption, color: palette.faint }}>
       {said}
     </Text>
   );

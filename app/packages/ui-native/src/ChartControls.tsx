@@ -13,9 +13,9 @@
  * reads as a statement of fact ("this station measures level") instead of as a broken
  * switch.
  */
-import { Pressable, Text, View } from "react-native";
-import { TYPE } from "./type";
+import { View } from "react-native";
 import type { Palette } from "./theme";
+import { Chip } from "./Chip";
 
 export function ChartControls<T extends string>({ palette, value, options, onPick, label }: {
   palette: Palette; value: T; options: readonly (readonly [T, string])[];
@@ -44,16 +44,7 @@ export function ChartControls<T extends string>({ palette, value, options, onPic
            * same slab the map's zoom buttons use, so the app's chrome and MapLibre's read
            * as one set rather than two.
            */
-          <Pressable key={id} onPress={() => onPick(id)} accessibilityRole="radio"
-                     aria-selected={on} accessibilityLabel={text}
-                     style={{ paddingVertical: 7, paddingHorizontal: 13,
-                              borderRadius: palette.r.pill, borderWidth: 1,
-                              borderColor: on ? palette.accent : palette.line2,
-                              backgroundColor: on ? palette.tint : palette.card,
-                              ...palette.lift }}>
-            <Text style={{ ...TYPE.micro, fontSize: 11.5, fontWeight: on ? "700" : "600",
-                           color: on ? palette.accent : palette.ink }}>{text}</Text>
-          </Pressable>
+          <Chip key={id} palette={palette} look="chart" label={text} on={on} onPress={() => onPick(id)} />
         );
       })}
     </View>

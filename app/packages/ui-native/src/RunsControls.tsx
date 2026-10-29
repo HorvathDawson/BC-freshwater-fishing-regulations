@@ -14,7 +14,7 @@ import { Icon } from "./icons";
 import { hitProps } from "./regs/hit";
 import type { FishImages } from "./regs/types";
 import { TYPE } from "./type";
-import type { Palette } from "./theme";
+import { round, type Palette } from "./theme";
 
 const CHIP_HIT = hitProps({ w: 72, h: 40 });
 
@@ -97,7 +97,7 @@ export function RunDaySlider({ pentad, today, playing, onPentad, onPlay, season,
       <Pressable testID="run-play" onPress={() => onPlay(!playing)} accessibilityRole="button"
                  accessibilityLabel={playing ? RUN_WORDS.slider.pause : RUN_WORDS.slider.play} aria-pressed={playing}
                  {...PLAY_HIT}
-                 style={{ width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center",
+                 style={{ width: 48, height: 48, borderRadius: round(48), alignItems: "center", justifyContent: "center",
                           backgroundColor: palette.accent }}>
         <Icon name={playing ? "pause" : "play"} colour={palette.onAccent} size={22} />
       </Pressable>
@@ -122,7 +122,7 @@ export function RunDaySlider({ pentad, today, playing, onPentad, onPlay, season,
               </View>
             ))}
           </View>
-          <View pointerEvents="none" style={{ height: LINE, borderRadius: 3, backgroundColor: palette.line2 }} />
+          <View pointerEvents="none" style={{ height: LINE, borderRadius: palette.r.chip, backgroundColor: palette.line2 }} />
           {w > 0 && (
             <>
               {/* today: a short ink tick through the track */}
@@ -130,7 +130,7 @@ export function RunDaySlider({ pentad, today, playing, onPentad, onPlay, season,
                     style={{ position: "absolute", left: x(today) - 1.5, top: TRACK_H / 2 - 12, width: 3, height: 24,
                              backgroundColor: palette.ink }} />
               <View pointerEvents="none"
-                    style={{ position: "absolute", left: x(pentad) - THUMB / 2, top: (TRACK_H - THUMB) / 2, width: THUMB, height: THUMB, borderRadius: THUMB / 2,
+                    style={{ position: "absolute", left: x(pentad) - THUMB / 2, top: (TRACK_H - THUMB) / 2, width: THUMB, height: THUMB, borderRadius: round(THUMB),
                              backgroundColor: palette.card, borderWidth: 4, borderColor: palette.accent, ...palette.lift }} />
             </>
           )}
@@ -176,7 +176,7 @@ export function RunDayCaption({ pentad, today, title, onToday, onHelp, palette }
       {onHelp && (
         <Pressable testID="run-help" onPress={onHelp} accessibilityRole="button" accessibilityLabel={TAB_TOUR_WORDS.label.runs}
                    {...hitProps({ w: 44, h: 44 })}
-                   style={{ width: 32, height: 32, borderRadius: 16, borderWidth: 1.5, borderColor: palette.line2,
+                   style={{ width: 32, height: 32, borderRadius: round(32), borderWidth: 1.5, borderColor: palette.line2,
                             alignItems: "center", justifyContent: "center" }}>
           <Text style={{ ...TYPE.bodyStrong, fontSize: 16, color: palette.ink }}>?</Text>
         </Pressable>

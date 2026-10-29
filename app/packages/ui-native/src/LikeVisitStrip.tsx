@@ -56,7 +56,7 @@ export function LikeVisitStrip({ view, palette }: { view: LikeVisitView; palette
           {shown.why.map((w) => <Text key={w} style={{ ...TYPE.small, color: palette.sub }}>{w}</Text>)}
         </View>
       ) : null}
-      <Text testID="like-age" style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>{view.age}</Text>
+      <Text testID="like-age" style={{ ...TYPE.caption, color: palette.faint }}>{view.age}</Text>
     </View>
   );
 }

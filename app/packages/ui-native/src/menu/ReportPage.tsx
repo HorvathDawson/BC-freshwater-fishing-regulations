@@ -20,6 +20,7 @@ import { Choice } from "../Sheet";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { hitProps } from "../regs/hit";
+import { NoneLine } from "../EmptyState";
 
 export function ReportPage({ diagnostics, contact, palette, sender = null }: {
   diagnostics: Diagnostics; contact: string | null; palette: Palette;
@@ -135,7 +136,7 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
         </View>
       )}
 
-      {!ready && <Text testID="report-empty" style={{ ...TYPE.small, color: palette.sub }}>{w.empty}</Text>}
+      {!ready && <NoneLine palette={palette} testID="report-empty">{w.empty}</NoneLine>}
       {tx.send && (
         <View style={{ gap: SPACE.s2 }}>
           <Button palette={palette} label={w.sendNow} onPress={sendNow} busy={tx.state.kind === "sending"} />

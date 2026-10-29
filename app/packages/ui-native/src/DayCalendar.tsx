@@ -19,6 +19,7 @@ import { CornerStrip } from "./CornerStrip";
 import { Icon, type IconName } from "./icons";
 import type { Palette } from "./theme";
 import { TYPE } from "./type";
+import { hitProps } from "./regs/hit";
 
 /** A thumb's target: every button here is at least this tall and wide. */
 const TARGET = 44;
@@ -53,7 +54,7 @@ export function MapDayStrip({ palette, day, range, onDay, onOpen, now }: {
 function Btn({ palette, text, icon, label, onPress, enabled = true, strong = false }:
   { palette: Palette; text?: string; icon?: IconName; label: string; onPress: () => void; enabled?: boolean; strong?: boolean }) {
   return (
-    <Pressable onPress={onPress} disabled={!enabled} accessibilityRole="button" accessibilityLabel={label}
+    <Pressable {...hitProps({ w: TARGET, h: TARGET })} onPress={onPress} disabled={!enabled} accessibilityRole="button" accessibilityLabel={label}
                aria-disabled={!enabled}
                style={({ pressed }) => ({
                  minHeight: TARGET, minWidth: TARGET, paddingHorizontal: 10, alignItems: "center",
@@ -147,13 +148,13 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
           <Text key={w.long} style={{ ...TYPE.micro, flex: 1, textAlign: "center", color: palette.sub }}>{w.short}</Text>
         ))}
       </View>
-      <View testID="day-grid" accessibilityLabel={DAY_PICKER.gridLabel(m.title)} {...keys}>
+      <View testID="day-grid" role="group" accessibilityLabel={DAY_PICKER.gridLabel(m.title)} {...keys}>
         {m.weeks.map((w, wi) => (
           <View key={wi} style={{ flexDirection: "row" }}>
             {w.map((c, ci) => c === null
               ? <View key={`b${ci}`} style={{ flex: 1, minHeight: TARGET }} />
               : (
-                <Pressable key={c.iso} ref={(el) => { cellRefs.current.set(c.iso, el as never); }}
+                <Pressable {...hitProps({ w: TARGET, h: TARGET })} key={c.iso} ref={(el) => { cellRefs.current.set(c.iso, el as never); }}
                            onPress={() => onDay(chooseDay(new Date(shownView.year, shownView.month, c.n, 12), now))}
                            disabled={c.disabled} accessibilityRole="button" accessibilityLabel={c.label}
                            aria-selected={c.chosen} aria-disabled={c.disabled}

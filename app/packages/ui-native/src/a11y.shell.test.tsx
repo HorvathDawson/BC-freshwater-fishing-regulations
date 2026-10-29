@@ -13,7 +13,8 @@ import { Pressable, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { Spot } from "@app/data/spots";
-import { HOME, type Route } from "@app/ui";
+import { clearPanelCache, HOME, type Route } from "@app/ui";
+import type { Panel, SectionId, WaterSource } from "@app/data";
 import { LIGHT } from "./theme";
 import { labelAudit, shellPressAudit } from "./regs/testing/a11yAudit";
 import { hitProps } from "./regs/hit";
@@ -29,13 +30,13 @@ const TAMIHI: Spot = {
   waterName: null, title: "Tamihi run", notes: "", photos: [], reading: null, weather: null, trace: null, panel: null,
 };
 
-function mount(start: Route, width: number) {
+function mount(start: Route, width: number, extra: Record<string, unknown> = {}) {
   Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: width });
   Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: width > 700 ? 900 : 844 });
   render(<GestureHandlerRootView>
     <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
            tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} spots={[TAMIHI]} onSaveSpot={() => {}}
-           locate={null} />
+           locate={null} {...extra} />
   </GestureHandlerRootView>);
 }
 /** a closed sheet slides out on react-native-web and is gone at the end of its animation, which jsdom never plays */
@@ -55,7 +56,13 @@ function findings(): string[] {
   const mute = [...document.querySelectorAll("[aria-label]")].filter((e) => !e.getAttribute("role")
     && !(e.textContent ?? "").trim() && !["INPUT", "TEXTAREA", "IMG", "svg"].includes(e.tagName)
     && !e.closest('[aria-hidden="true"]'));
-  return [...p.bad.map((b) => `${b.role} "${b.name}": ${b.why}`), ...hid.map((h) => `"${h.label}" hides "${h.text}"`),
+  // (T258) and a labelled row WITH words and no role (a "Synopsis: Unknown." status row) is not said either: react-native-web
+  // puts aria-label on a generic div, which ARIA prohibits and a web screen reader skips, so the status words in the label are
+  // lost; a `role="group"` keeps the label. (A Text leaf — dir="auto" — carries its own words and is exempt.)
+  const mutedRows = [...document.querySelectorAll("div[aria-label]")].filter((e) => !e.getAttribute("role")
+    && (e.textContent ?? "").trim() && e.getAttribute("dir") !== "auto" && !e.closest('[aria-hidden="true"]'));
+  return [...mutedRows.map((e) => `"${e.getAttribute("aria-label")}" is a labelled row with words and no role: the web drops its label`),
+          ...p.bad.map((b) => `${b.role} "${b.name}": ${b.why}`), ...hid.map((h) => `"${h.label}" hides "${h.text}"`),
           ...mute.map((e) => `"${e.getAttribute("aria-label")}" is on a wordless ${e.tagName.toLowerCase()} with no role: never said`),
           ...(p.checked === 0 ? ["no press at all: the state did not render"] : [])];
 }
@@ -84,6 +91,80 @@ const STATES: [string, Route, (() => Promise<void>) | null][] = [
   ...["regulations", "conditions", "map"].map((v): [string, Route, null] => [`a water: ${v}`, WATER(v), null]),
 ];
 
+/**
+ * (T258) the states T257 was rewriting during T243. Mounted in the Shell where a reader reaches them without a device
+ * (the bell sheet, the first-run notice), and on their own, with the real component and the fixtures its own test uses,
+ * where jsdom cannot lay the host out (the coach marks need measured controls; the day sheet, the sync error sheet and
+ * a gauge's Conditions need data the fixture source does not hold). Each must also SHOW its words: a state that drew
+ * nothing would pass the audit.
+ */
+const memory = (v: string | null = null) => ({ v, read() { return this.v; }, write(t: string) { this.v = t; } });
+
+const SEC = 7 as SectionId;
+const PANEL: Panel = { areaKm2: 50, members: [
+  { station: "LEAD" as never, role: "up", areaKm2: 60, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true }] };
+const GAUGE_SOURCE = {
+  panelsFor: async () => new Map([[SEC, PANEL]]),
+  panelRoutes: async () => [{ station: "LEAD", name: "Lead Creek near Town", lat: 49, lon: -122, role: "up", path: [SEC] }],
+  lakeStationsFor: async () => new Map(), gaugeForSection: async () => null, traceToGauge: async () => [],
+  gaugeSeries: async () => null, gaugeParameters: async () => ["discharge", "level"],
+  gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000, value: { discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below", at: "2026-09-04T06:00:00Z" } }),
+} as unknown as WaterSource;
+const GAUGE_FEED = { index: async () => ({ stations: { LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15 } } }) };
+
+async function coachRegistry() {
+  const { renderHook } = await import("@testing-library/react");
+  const { useCoachRegistry } = await import("./CoachMarks");
+  const reg = renderHook(() => useCoachRegistry()).result.current;
+  const at: Record<string, [number, number, number, number]> = {
+    days: [14, 70, 200, 34], modes: [230, 70, 290, 34], map: [0, 0, 1024, 700], "tab:conditions": [300, 720, 120, 48],
+    "tab:runs": [420, 720, 120, 48], sync: [400, 10, 44, 44], bell: [356, 10, 44, 44] };
+  for (const [k, r] of Object.entries(at)) reg.set(k, { measureInWindow: (cb: (...n: number[]) => void) => cb(...r) } as never);
+  return reg;
+}
+
+/** state, how it is put on screen, and the words that prove it is there */
+const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
+  ["the bell sheet (Notifications)", async (w) => {
+    mount(HOME, w); await settle();
+    act(() => { fireEvent.click(screen.getByTestId("inseason-bell")); }); await settle();
+  }, /Notifications/],
+  ["the first-run notice", async (w) => { mount(HOME, w, { firstRun: memory(null) }); await settle(); }, /Before you fish/],
+  ["the day calendar sheet", async () => {
+    const { DaySheet } = await import("./regs/DaySheet");
+    const { dayRange } = await import("@app/core");
+    render(<DaySheet open onClose={() => {}} palette={LIGHT} day={null} onDay={() => {}} range={dayRange(new Date(2026, 8, 4), null)} now={new Date(2026, 8, 4, 12)} />);
+    await settle();
+  }, /Showing /],
+  ["the sync error sheet", async () => {
+    const { SyncErrorSheet } = await import("./SyncErrorSheet");
+    render(<SyncErrorSheet open palette={LIGHT} checking={false} onRetry={() => {}} onClose={() => {}}
+      failed={[{ k: "gauges", checkedAt: Date.now() - 60_000, updatedAt: null, error: "HTTP 503", failedAt: Date.now() - 60_000, offline: false }]} />);
+    await settle();
+  }, /Retry/],
+  ["the coach marks (walkthrough)", async () => {
+    const { WalkthroughSheet } = await import("./Walkthrough");
+    const reg = await coachRegistry();
+    render(<WalkthroughSheet state={{ open: true, pending: false, finish: () => {}, reopen: () => {} }} palette={LIGHT} registry={reg} />);
+    await screen.findByTestId("coach-spotlight", {}, { timeout: 3000 });
+  }, /Next/],
+  ["a water's Conditions with a gauge, donors and the day", async () => {
+    clearPanelCache();
+    const { ConditionsPanel } = await import("./ConditionsPanel");
+    render(<ConditionsPanel source={GAUGE_SOURCE} section={SEC} palette={LIGHT} feed={GAUGE_FEED} scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await screen.findByText("AT LEAD CREEK NEAR TOWN");
+  }, /Lead Creek/],
+];
+
+describe.each([["phone", 390], ["desktop", 1280]] as const)("(T258) %s: the leftover states", (_l, width) => {
+  for (const [name, put, see] of STATES_T258)
+    it(name, async () => {
+      await put(width);
+      expect(document.body.textContent).toMatch(see);
+      expect(findings()).toEqual([]);
+    });
+});
+
 describe.each([["phone", 390], ["desktop", 1280]] as const)("(T243) %s: every press named and reaching 44 × 44", (_l, width) => {
   for (const [name, start, go] of STATES)
     it(name, async () => {
@@ -104,8 +185,13 @@ describe("(T243) the audit catches what it is for", () => {
       <View accessibilityLabel="Card"><Text>words a reader never hears</Text></View>
       <View accessibilityLabel="Synopsis: up to date"><Text>Synopsis</Text></View>
       <View accessibilityLabel="3 gauges near the 10th percentile"><View /></View>
+      <View accessible accessibilityLabel="Synopsis: No date recorded. Unknown."><Text>Synopsis</Text></View>
+      <View accessible role="group" accessibilityLabel="Basemap: 2026-03-05. Up to date."><Text>Basemap</Text></View>
     </View>);
     expect(findings()).toEqual([
+      '"Card" is a labelled row with words and no role: the web drops its label',
+      '"Synopsis: up to date" is a labelled row with words and no role: the web drops its label',
+      '"Synopsis: No date recorded. Unknown." is a labelled row with words and no role: the web drops its label',
       'button "": no accessible name',
       'button "No box": no data-hitslop: give it hitProps(its box)',
       'switch "Short": reaches 30×30',

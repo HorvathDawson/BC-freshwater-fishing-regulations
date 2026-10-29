@@ -39,6 +39,7 @@ import type { Palette } from "./theme";
 import { Button } from "./Button";
 import { Icon, IconText, type IconName } from "./icons";
 import { hitProps } from "./regs/hit";
+import { Chip } from "./Chip";
 
 type Step = "water" | "point" | "when" | "details" | "saving";
 /** Where one back goes from each step: the step before it (a read in flight goes back to the hour it was asked for). */
@@ -232,17 +233,7 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
                        color: palette.faint }}>DAY</Text>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           {VISIT_QUICK_DAYS.map(([label, off]) => (
-            <Pressable {...hitProps({ w: 60, h: 36 })} key={label} accessibilityRole="button" accessibilityLabel={label}
-                       onPress={() => onDay(off)}
-                       style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: palette.r.pill,
-                                borderWidth: 1,
-                                borderColor: dayOffset === off ? palette.accent : palette.line2,
-                                backgroundColor: dayOffset === off ? palette.accent : "transparent" }}>
-              <Text style={{ ...TYPE.micro, fontSize: 12.5,
-                             color: dayOffset === off ? palette.onAccent : palette.ink }}>
-                {label}
-              </Text>
-            </Pressable>
+            <Chip key={label} palette={palette} look="day" role="button" label={label} on={dayOffset === off} onPress={() => onDay(off)} />
           ))}
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14, paddingTop: 4 }}>

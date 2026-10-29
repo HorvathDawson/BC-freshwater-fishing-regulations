@@ -119,7 +119,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
             {col.regsLayer === "salmon" && salmonCheckedLine(col.salmonFacts) && (
               <View style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.chip,
                              paddingHorizontal: 8, paddingVertical: 5, alignSelf: "flex-start" }} pointerEvents="none">
-                <Text testID="salmon-legend-source" style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>
+                <Text testID="salmon-legend-source" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>
                   {salmonCheckedLine(col.salmonFacts)}
                 </Text>
               </View>

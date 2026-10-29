@@ -94,7 +94,7 @@ export function LayersSheet({ open, onClose, palette, vm, onChoose }: {
               <View key={r.label} style={{ flexDirection: "row", alignItems: "center", gap: 6,
                                            maxWidth: r.swatch.kind === "neutral" ? "100%" : undefined }}>
                 <View style={{ width: 9, height: 9, backgroundColor: legendColour(palette, r.swatch) }} />
-                <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub, flexShrink: 1 }}>{r.label}</Text>
+                <Text style={{ ...TYPE.caption, color: palette.sub, flexShrink: 1 }}>{r.label}</Text>
               </View>
             ))}
           </View>
@@ -141,7 +141,7 @@ function SwitchRow({ palette, row, onPress }: { palette: Palette; row: LayerTile
       {ROW_ICON[row.id] && <Icon name={ROW_ICON[row.id]!} colour={palette.ink} size={20} />}
       <View style={{ flex: 1 }}>
         <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{row.label}</Text>
-        {row.note && <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>{row.note}</Text>}
+        {row.note && <Text style={{ ...TYPE.caption, color: palette.sub }}>{row.note}</Text>}
         {/* (T173) THE KEY to the fish obstacles' icons, inside their row: one mark and its word per type */}
         {row.id === "overlay.obstacles" && (
           <View testID="obstacle-key" style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 12, rowGap: 5, paddingTop: 7 }}>
@@ -174,7 +174,7 @@ function SwitchRow({ palette, row, onPress }: { palette: Palette; row: LayerTile
 
 function Fine({ palette, children, testID }: { palette: Palette; children: React.ReactNode; testID?: string }) {
   return (
-    <Text testID={testID} style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 16.5, color: palette.sub, paddingTop: 8 }}>
+    <Text testID={testID} style={{ ...TYPE.caption, lineHeight: 16.5, color: palette.sub, paddingTop: 8 }}>
       {children}
     </Text>
   );

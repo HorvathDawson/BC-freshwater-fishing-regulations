@@ -20,6 +20,7 @@ import { NATIVE_DRIVER, useReducedMotion } from "./motion";
 import { SHEET_TITLE } from "./Sheet";
 import { GUTTER, SPACE, type Palette } from "./theme";
 import { TYPE } from "./type";
+import { hitProps } from "./regs/hit";
 
 export interface Rect { x: number; y: number; w: number; h: number }
 
@@ -194,8 +195,8 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words }: {
           </>
         ) : <View style={dim(palette, 0, 0, win.w, win.h)} />)}
         {at && place && (
-          <Animated.View testID={`coach-step-${at.step.key}`} accessibilityViewIsModal aria-modal
-                         accessibilityLabel={words.label}
+          <Animated.View testID={`coach-step-${at.step.key}`} accessibilityViewIsModal aria-modal role="dialog"
+                         aria-labelledby="coach-title" accessibilityLabelledBy="coach-title"
                          style={{ position: "absolute", left: place.left, width: place.width,
                                   ...(place.top !== null ? { top: place.top } : place.bottom !== null ? { bottom: place.bottom } : { top: (win!.h - 220) / 2 }),
                                   opacity: fade, transform: [{ translateY: rise }] }}>
@@ -211,12 +212,12 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words }: {
                 <Text testID="coach-count" accessibilityLiveRegion="polite"
                       style={{ ...TYPE.section, color: palette.sub }}>{words.step(Math.min(i, n - 1) + 1, n)}</Text>
                 {!last && (
-                  <Pressable onPress={onFinish} accessibilityRole="button" accessibilityLabel={words.skip} hitSlop={12}>
+                  <Pressable onPress={onFinish} accessibilityRole="button" accessibilityLabel={words.skip} {...hitProps({ w: 44, h: 24 })}>
                     <Text style={{ ...TYPE.bodyStrong, color: palette.sub }}>{words.skip}</Text>
                   </Pressable>
                 )}
               </View>
-              <Text accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink }}>{at.step.title}</Text>
+              <Text nativeID="coach-title" accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink }}>{at.step.title}</Text>
               <Text style={{ ...TYPE.body, color: palette.ink }}>{at.step.body}</Text>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: SPACE.s2 }}>
                 <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ flexDirection: "row", gap: 6 }}>
@@ -227,7 +228,7 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words }: {
                 </View>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s3 }}>
                   {i > 0 && (
-                    <Pressable onPress={back} accessibilityRole="button" accessibilityLabel={words.back} hitSlop={12}>
+                    <Pressable onPress={back} accessibilityRole="button" accessibilityLabel={words.back} {...hitProps({ w: 44, h: 24 })}>
                       <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{words.back}</Text>
                     </Pressable>
                   )}

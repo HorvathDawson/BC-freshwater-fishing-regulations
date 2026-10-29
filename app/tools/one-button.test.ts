@@ -27,12 +27,12 @@ const walk = (d: string) => {
 walk(SRC);
 
 /** the files that fill a control with the accent for a reason of their own (a chosen segment, a day, a badge, a mark) */
-const ON_ACCENT = new Set(["Button.tsx", "CornerStrip.tsx", "DayCalendar.tsx", "Sheet.tsx", "LayersSheet.tsx", "MapRail.tsx",
+const ON_ACCENT = new Set(["Button.tsx", "Chip.tsx", "CornerStrip.tsx", "DayCalendar.tsx", "Sheet.tsx", "LayersSheet.tsx", "MapRail.tsx",
   "SpotCapture.tsx", "TopBar.tsx", "shell/MapLegend.tsx", "regs/SalmonCard.tsx", "menu/ReportPage.tsx", "water/WaterMapView.tsx",
   // the Runs tab's play button (run-timing v2 lane, in flight 2026-10-29)
   "RunsControls.tsx"]);
 /** in flight in another lane when this landed (2026-10-29): its circles and track are to become round() / palette.r.* */
-const RADIUS_PENDING = new Set(["RunsControls.tsx", "RunsSheet.tsx"]);
+const RADIUS_PENDING = new Set<string>([]);   // (T260) RunsControls / RunsSheet moved to round() / palette.r.*
 
 describe("one button, one error line, square corners (T257)", () => {
   it("has sources", () => expect(files.length).toBeGreaterThan(50));
@@ -40,6 +40,18 @@ describe("one button, one error line, square corners (T257)", () => {
   it("no literal corner radius (a circle is round(side))", () => {
     for (const [f, s] of files) if (!f.startsWith("FishSpinner") && !RADIUS_PENDING.has(f))
       expect([f, /borderRadius:\s*["'\d]/.test(s)]).toEqual([f, false]);
+  });
+
+  it("no empty state, none line or 11.5 caption typed out (T260)", () => {
+    for (const [f, s] of files) {
+      if (f !== "EmptyState.tsx") expect([f, /TYPE\.name, fontSize: 18[\s\S]{0,160}TYPE\.small, lineHeight: 19\.5/.test(s)]).toEqual([f, false]);
+      expect([f, /TYPE\.small, fontSize: 11\.5/.test(s)]).toEqual([f, false]);   // `TYPE.caption`
+    }
+  });
+
+  it("no chip typed out (T260)", () => {
+    for (const [f, s] of files) if (f !== "Chip.tsx")
+      expect([f, /<Pressable[\s\S]{0,400}paddingVertical: (9, paddingHorizontal: 14|7, paddingHorizontal: 13)[\s\S]{0,120}borderRadius: palette\.r\.pill/.test(s)]).toEqual([f, false]);
   });
 
   it("no small action pill typed out", () => {

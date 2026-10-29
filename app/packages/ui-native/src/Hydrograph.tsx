@@ -21,6 +21,7 @@ import { chartPointer, useChartHover, useChartWheel } from "./chartInput";
 import { TYPE } from "./type";
 import { SwipeShield } from "./ViewSwipe";
 import { SPACE, type Palette } from "./theme";
+import { hitProps } from "./regs/hit";
 
 /** The axis labels' size: the chart is built at the width it is drawn, so a label is drawn at its own size. */
 const TICK = 11;
@@ -225,7 +226,7 @@ function ZoomButton({ palette, label, glyph, onPress }: {
 }) {
   const off = !onPress;
   return (
-    <Pressable onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={label}
+    <Pressable {...hitProps({ w: 32, h: 32 })} onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={label}
                aria-disabled={off}
                style={{ minWidth: 32, height: 32, paddingHorizontal: SPACE.s2, alignItems: "center",
                         justifyContent: "center", borderRadius: palette.r.pill, borderWidth: 1,

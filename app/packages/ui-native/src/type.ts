@@ -46,6 +46,8 @@ export const TYPE = {
   body:     { fontFamily: FACE.text, fontSize: 14.5, lineHeight: 21 },
   bodyStrong: { fontFamily: FACE.textSemi, fontSize: 14.5, lineHeight: 21 },
   small:    { fontFamily: FACE.text, fontSize: 12.5, lineHeight: 18 },
+  /** (T260) the line under a row or a control: `small` at 11.5 (what eighteen screens typed out as `...TYPE.small, fontSize: 11.5`). */
+  caption:  { fontFamily: FACE.text, fontSize: 11.5, lineHeight: 18 },
   micro:    { fontFamily: FACE.textMedium, fontSize: 11, lineHeight: 14, letterSpacing: 0.3 },
   /** The word in a status pill. Never smaller than this — it is the answer. */
   pill:     { fontFamily: FACE.textBold, fontSize: 12, lineHeight: 14, letterSpacing: 0.7,

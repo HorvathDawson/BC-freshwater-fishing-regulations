@@ -46,7 +46,7 @@ export function RunsSheet({ vm, palette, theme = "light", fishImages, onClose, o
           {vm.riverEntry && <Text style={{ ...TYPE.small, color: palette.sub }}>
             {vm.km ? `${vm.riverEntry} ${vm.km}` : vm.riverEntry}</Text>}
           {vm.countsNote && <Text testID="runs-counts-note" style={{ ...TYPE.small, color: palette.sub }}>{vm.countsNote}</Text>}
-          <Text testID="runs-credit" style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>{vm.credit}</Text>
+          <Text testID="runs-credit" style={{ ...TYPE.caption, color: palette.sub }}>{vm.credit}</Text>
           {onOpenWater && (
             <Pressable accessibilityRole="button" onPress={onOpenWater} style={{ paddingVertical: 8, minHeight: 44 }}>
               <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{RUN_WORDS.openWater}</Text>
@@ -84,7 +84,7 @@ function YearChart({ r, pentad, palette, theme }: { r: RunRowVM; pentad: number;
   return (
     <View testID="runs-year" accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
           style={{ marginTop: 2 }}>
-      <View style={{ flexDirection: "row", height: 12, backgroundColor: palette.wash, borderRadius: 2, overflow: "hidden" }}>
+      <View style={{ flexDirection: "row", height: 12, backgroundColor: palette.wash, borderRadius: palette.r.chip, overflow: "hidden" }}>
         {r.year.map((w, p) => (
           <View key={p} style={{ flex: 1, backgroundColor: w ? on : "transparent",
                                  opacity: w && r.kind === "pass" && p % 2 ? 0.55 : 1 }} />
