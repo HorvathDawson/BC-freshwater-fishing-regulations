@@ -1881,7 +1881,8 @@
      "_coord": [
       -124.8538,
       49.27476
-     ]
+     ],
+     "tidal": true
     },
     {
      "id": "somass_river__signs_1_km_above_papermill_dam",
