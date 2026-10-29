@@ -83,7 +83,7 @@ export interface ShellProps {
   initialDay?: Date | null;
   /** (T41) where the first water's Regulations page starts (the web start link): handed to that page once. */
   regsStart?: RegsStart | null;
-  /** (T269) the water the page started on or at (the web start link's `arrive`): the map comes back framed on it, lit. Read once. */
+  /** (T269) the water the page started on or at (the web start link's `arrive`): the map comes back framed on it (nothing lit). Read once. */
   arriveAt?: ItemId | null;
   /** The platform's location, for the Spots menu's "At my location" (the app's). Absent -> not offered. */
   locate?: Locate | null;

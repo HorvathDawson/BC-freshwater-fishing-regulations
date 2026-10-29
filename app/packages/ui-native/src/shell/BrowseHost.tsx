@@ -191,8 +191,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                          : restore ? { key: restore.key, bbox: null, camera: restore.camera } : null}
                      // WHAT SEARCH LIGHTS, whole, while search is open — on either map; closed, nothing (the Conditions
                      // view lights a gauge's route with the same feature-state and must not inherit a search)
-                     // (T269) — and, arrived at a page's own water (its ‹ / × back to the map), that water
-                     highlight={searching ? session.focus?.highlight ?? NONE : arrive?.highlight ?? NONE}
+                     highlight={searching ? session.focus?.highlight ?? NONE : NONE}
                      standing={cond.standing}
                      lakes={lakeFeed}
                      salmon={salmonFeed}

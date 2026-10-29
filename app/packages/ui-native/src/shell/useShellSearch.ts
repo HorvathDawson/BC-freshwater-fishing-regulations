@@ -7,7 +7,7 @@
  */
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
 import { Keyboard, useWindowDimensions, type TextInput } from "react-native";
-import type { ItemId, SectionId, WaterSource } from "@app/data";
+import type { ItemId, WaterSource } from "@app/data";
 import { NO_SEARCH, searchStep, useRecentSearches, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
 import type { Camera } from "@app/map";
 import { searchPanelWidth } from "../TopBar";
@@ -77,9 +77,7 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
    * move of the route, so a later return (a map tap's water, then back) is never dragged back to it.
    */
   const [arrive, setArrive] = useState<{ key: string; bbox: readonly [number, number, number, number];
-                                         refine: boolean;
-                                         /** (T269) the water lit on the map it arrives at (a landing's water); absent: none */
-                                         highlight?: readonly SectionId[] } | null>(null);
+                                         refine: boolean } | null>(null);
   const arrivals = useRef(0);
   const arrivedAt = useRef<typeof route | null>(null);
   useEffect(() => {
@@ -106,13 +104,14 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
   /**
    * (T269, owner 2026-10-29) THE PAGE STARTED ON A WATER (a `/water/<slug>` page, a start link) or at one (`?show=`):
    * the map, whenever it comes back — the ‹ or × of that first water, the system back — comes back FRAMED ON THAT WATER,
-   * LIT, never on wherever the map last was. The same arrival as a searched water's, once, forgotten at the next move.
+   * as it stands under a tapped water's pane; nothing is lit (owner 2026-10-29: closing leaves the map as closing a tapped
+   * pane does — the camera kept, no selection). The same arrival as a searched water's, once, forgotten at the next move.
    */
   const landOn = (id: ItemId) => {
     const n = ++arrivals.current;
     arrivedAt.current = null;
-    void Promise.all([source.water(id), source.waterBox(id)]).then(([w, bbox]) => {
-      if (bbox && arrivals.current === n) setArrive({ key: `arrive:${id}:${n}`, bbox, refine: false, highlight: w?.sections ?? [] });
+    void source.waterBox(id).then((bbox) => {
+      if (bbox && arrivals.current === n) setArrive({ key: `arrive:${id}:${n}`, bbox, refine: false });
     });
   };
   /** One step of search (`searchStep`): a pick lowers the sheet to half, so the keyboard goes with it. */

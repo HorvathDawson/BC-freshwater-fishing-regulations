@@ -53,7 +53,8 @@ export interface StartLink {
   /**
    * (T269, owner 2026-10-29) THE MAP COMES BACK AT THIS WATER: a page that started on a named water (a `/water/<slug>`
    * page, `?regs=`) — or `?show=<item>`, the map at a water, the link a water page's ‹ and × are before the app runs —
-   * returns to the map framed on that water with it lit, never to wherever the map last was. Null: none.
+   * returns to the map framed on that water (nothing lit: as closing a tapped water leaves it), never to wherever the map
+   * last was. Null: none.
    */
   arrive: ItemId | null;
 }
@@ -84,7 +85,7 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   const bad = (k: string, what: string): never => { throw new Error(`start link: ${k}=${q.get(k)} is not ${what}`); };
   const ITEM = /^[a-z]+:-?\d+$/;
   if (item === null) {
-    // (T269) `?show=<item>`: the map, framed on that water, lit
+    // (T269) `?show=<item>`: the map, framed on that water (nothing lit)
     const show = q.get("show");
     if (show === null) return null;
     if (!ITEM.test(show)) bad("show", "an item id");
