@@ -2990,7 +2990,8 @@
      "_coord": [
       -122.80636,
       49.22692
-     ]
+     ],
+     "tidal": true
     },
     {
      "id": "coquitlam_river__lougheed_highway_bridge",
