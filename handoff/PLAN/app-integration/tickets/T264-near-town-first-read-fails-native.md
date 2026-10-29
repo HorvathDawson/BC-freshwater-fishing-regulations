@@ -1,6 +1,6 @@
 # T264 — "Could not read what is near this town" on Android, intermittently (the first town read after a cold start)
 
-Status: OPEN
+Status: OPEN (items 1 + 3 done 2026-10-29; the cold-start loop not run)
 
 Source: T255 test bed 2026-10-29 (release APK, staging r-0fa7927b16e5, emulator, AIRPLANE MODE). Cold start offline →
 search "Cultus" → tap the place row "Cultus Lake · Village" → "WATER NEAR CULTUS LAKE — Could not read what is near this
@@ -21,3 +21,7 @@ fit "first time after a cold start only".
 ## Acceptance
 Ten cold starts (offline and online) with the town tap first: every one lists the waters (test bed loop).
 Depends: T255. Size: S–M. Owner: no.
+
+## Partly done (2026-10-29)
+`useTown` (ui search.ts) names a failed near read (`console.error` → the Updates log / logcat) and tries it once more
+after 400 ms before `nearFailed`. The race itself is not found; the ten-cold-start loop (acceptance) is not run.

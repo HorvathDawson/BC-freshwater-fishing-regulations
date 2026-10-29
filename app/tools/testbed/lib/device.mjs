@@ -90,6 +90,15 @@ export const background = () => sh('input keyevent KEYCODE_HOME');
 export const installed = () => /package:/.test(sh(`pm path ${APP_ID}`));
 export function install(apk) { adb(['install', '-r', apk], { timeout: 300_000 }); }
 export const pidOf = () => sh(`pidof ${APP_ID}`).trim() || null;
+/** (T262) the app's heap now, KB (`dumpsys meminfo`): Java, native and total PSS; null when it is not running. */
+export function heap() {
+  try {
+    const t = sh(`dumpsys meminfo ${APP_ID}`);
+    const kb = (re) => Number(re.exec(t)?.[1] ?? NaN);
+    const java = kb(/Java Heap:\s+(\d+)/), native = kb(/Native Heap:\s+(\d+)/), total = kb(/TOTAL PSS:\s+(\d+)/);
+    return Number.isFinite(java) ? { java, native, total } : null;
+  } catch { return null; }
+}
 
 /** Crash-buffer lines naming the app (a crash in a step is said in the report). */
 export function crashed(sinceIso) {

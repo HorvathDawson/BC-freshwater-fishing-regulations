@@ -19,16 +19,36 @@ export const install = {
     await ctx.step('first-run download, then the map (no crash)', async () => {
       const t0 = Date.now();
       let relaunched = 0;
+      // (T262) the peak heap over the download, sampled every 5 s
+      const peak = { java: 0, native: 0, total: 0 };
+      // (T262) TESTBED_KILL_MB=<n>: the app is killed once its download line passes n MB, to prove the resume
+      const killMb = Number(process.env.TESTBED_KILL_MB || 0);
+      let killed = false;
       // the download is watched; a dead app (T262: OutOfMemoryError in expo fetch) is relaunched as a reader would,
       // and the step fails on the crash (the runner reads the crash buffer) while the rest of the run goes on
       while (Date.now() - t0 < 20 * 60_000) {
-        if (ctx.device.screenText().includes('More')) break;
+        // the map's tab bar, or the first-run notice over it (a cleared app): the download is done
+        const w = ctx.device.screenText();
+        if (w.includes('More') || w.includes('MORE') || w.some((x) => /^(Before you fish|I understand|Skip)$/.test(x))) break;
+        if (killMb && !killed) {
+          const got = Number((/([\d,.]+) of [\d,.]+ MB downloaded/.exec(w.join(' '))?.[1] ?? '0').replace(/,/g, ''));
+          if (got >= killMb) {
+            killed = `${got} MB`; ctx.device.stop(); await ctx.device.sleep(2000); ctx.device.launch(); continue;
+          }
+          await ctx.device.sleep(500);
+          continue;
+        }
         if (!ctx.device.pidOf()) { relaunched++; ctx.device.launch(); }
+        const h = ctx.device.heap();
+        if (h) for (const k of Object.keys(peak)) peak[k] = Math.max(peak[k], h[k] || 0);
         await ctx.device.sleep(5000);
       }
-      await appUp(ctx, { launch: false, ms: 10_000 });
+      const took = Math.round((Date.now() - t0) / 1000);
+      await appUp(ctx, { launch: false, ms: 60_000 });
       ctx.flow('dismiss-first-run');
-      return `opened in ${Math.round((Date.now() - t0) / 1000)} s after launch${relaunched ? ` — the app died ${relaunched}× and was relaunched (resumed)` : ''}`;
+      const mb = (kb) => `${Math.round(kb / 1024)} MB`;
+      return `downloaded and up in ${took} s after launch${relaunched ? ` — the app died ${relaunched}× and was relaunched (resumed)` : ''}${killed ? ` — killed at ${killed} and resumed` : ''}` +
+        ` · peak heap: Java ${mb(peak.java)}, native ${mb(peak.native)}, total PSS ${mb(peak.total)}`;
     }, { stop: true });
     await ctx.step('Updates log: every source checked on start', async () => {
       openLog(ctx);

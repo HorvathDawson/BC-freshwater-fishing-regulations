@@ -52,19 +52,58 @@ export interface PartFs {
 }
 
 /**
- * THE RESUMABLE DOWNLOAD (MINIMAL-PACKAGING §5): HTTP Range requests of `chunk` bytes appended to `${path}.part`. The
- * `.part` IS the resume state — a crash or a dropped connection leaves it, and the next attempt asks for the bytes after
- * its length — so nothing else has to be saved. When it is whole it is hashed off disk (`Sha256`, chunk by chunk) and
- * renamed onto `path`; bytes that are not the manifest's drop the `.part`. A server that answers a range with anything
- * but 206 is refused: a 200 is the whole file, which a phone must not take into memory.
+ * Fill `part` up to `total` bytes, resuming after the `have` it already holds (bytes it already holds are kept), calling
+ * `onBytes` with the length so far. A transport: `rangedFill` (JS fetch, by ranges) or the phone's native downloader.
  */
-export function rangedDownload(fs: PartFs, fetchImpl: typeof fetch = fetch, chunk = 8 * 1024 * 1024): DownloadTo {
+export type PartFill = (url: string, part: string, have: number, total: number,
+                        onBytes?: (n: number) => void) => Promise<void>;
+
+/**
+ * THE RESUMABLE DOWNLOAD (MINIMAL-PACKAGING §5): `fill` grows `${path}.part`. The `.part` IS the resume state — a crash
+ * or a dropped connection leaves it, and the next attempt asks for the bytes after its length — so nothing else has to
+ * be saved. When it is whole it is hashed off disk (`Sha256`, chunk by chunk) and renamed onto `path`; bytes that are not
+ * the manifest's drop the `.part`.
+ */
+export function partDownload(fs: PartFs, fill: PartFill): DownloadTo {
   return async (url, path, e, onBytes) => {
     const part = `${path}.part`;
+    // already in place from a stage that failed after it (the file is named by its content): kept when it verifies
+    if (await fs.size(path) === e.bytes) {
+      const h = new Sha256();
+      await fs.chunks(path, (b) => { h.update(b); });
+      if (h.hex() === e.sha256) { onBytes?.(e.bytes); return; }
+    }
     let have = await fs.size(part);
     if (have > e.bytes) { await fs.remove(part); have = 0; }
-    while (have < e.bytes) {
-      const end = Math.min(have + chunk, e.bytes) - 1;
+    if (have < e.bytes) await fill(url, part, have, e.bytes, onBytes);
+    const got = await fs.size(part);
+    if (got !== e.bytes) {
+      if (got > e.bytes) await fs.remove(part);
+      throw new VerifyError(`${url}: ${got} bytes on disk, the manifest says ${e.bytes}`);
+    }
+    const h = new Sha256();
+    const t0 = Date.now();
+    await fs.chunks(part, (b) => { h.update(b); });
+    const sha = h.hex();
+    console.info(`[download] ${url}: sha256 of ${got} bytes in ${Date.now() - t0} ms`);
+    if (sha !== e.sha256) {
+      await fs.remove(part);
+      throw new VerifyError(`${url}: sha256 ${sha.slice(0, 12)}…, the manifest says ${e.sha256.slice(0, 12)}…`);
+    }
+    await fs.rename(part, path);
+  };
+}
+
+/**
+ * The JS transport: HTTP Range requests of `chunk` bytes appended to the `.part`. A server that answers a range with
+ * anything but 206 is refused: a 200 is the whole file, which a phone must not take into memory. NOT the Android one
+ * (T262): each body passes through expo's fetch as a Java-heap buffer that outlives its use until a JS GC, and a
+ * 500 MB first install filled the 192 MB heap — Android downloads natively (`install.native.ts`).
+ */
+export function rangedFill(fs: PartFs, fetchImpl: typeof fetch = fetch, chunk = 8 * 1024 * 1024): PartFill {
+  return async (url, part, have, total, onBytes) => {
+    while (have < total) {
+      const end = Math.min(have + chunk, total) - 1;
       const res = await fetchImpl(url, { headers: { Range: `bytes=${have}-${end}` } });
       if (res.status !== 206) {
         await fs.remove(part);
@@ -76,15 +115,12 @@ export function rangedDownload(fs: PartFs, fetchImpl: typeof fetch = fetch, chun
       have += b.length;
       onBytes?.(have);
     }
-    const h = new Sha256();
-    await fs.chunks(part, (b) => { h.update(b); });
-    const got = h.hex();
-    if (got !== e.sha256) {
-      await fs.remove(part);
-      throw new VerifyError(`${url}: sha256 ${got.slice(0, 12)}…, the manifest says ${e.sha256.slice(0, 12)}…`);
-    }
-    await fs.rename(part, path);
   };
+}
+
+/** The resumable download by JS Range requests (tests, and any platform without a native downloader). */
+export function rangedDownload(fs: PartFs, fetchImpl: typeof fetch = fetch, chunk = 8 * 1024 * 1024): DownloadTo {
+  return partDownload(fs, rangedFill(fs, fetchImpl, chunk));
 }
 
 /** `done`/`total` count files; `bytes`/`of` count what is fetched (copies from the held set cost nothing). */

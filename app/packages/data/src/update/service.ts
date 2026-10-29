@@ -61,6 +61,39 @@ export interface NetworkLike {
   subscribe?(on: (online: boolean) => void): () => void;
 }
 
+/** What `phoneNetwork` reads of the device (`@app/ui-native` `connectivity`) and of the app's `Net` (its slow-line mode). */
+export interface PhoneConnectivity {
+  online(): boolean;
+  metered?(): boolean;
+  subscribe(on: (online: boolean) => void): () => void;
+  watchMetered?(on: (metered: boolean) => void): () => void;
+}
+export interface ModeSource {
+  mode(): { low: boolean; why?: string | null };
+  subscribeMode(on: (m: { low: boolean; why?: string | null }) => void): () => void;
+}
+
+/**
+ * The update service's network on a phone: metered on mobile data, and (T254) on a slow line unless the reader's setting
+ * chose the low mode. Told when the device comes online, when it leaves a metered connection, and (T265) when the slow
+ * mode clears: NetInfo's Wi-Fi event lands a render BEFORE `useNetMode` clears the low mode, so at that instant a big
+ * update was still held — and nothing asked again until the next foreground return.
+ */
+export function phoneNetwork(c: PhoneConnectivity, net: ModeSource, extra: { offline?: () => boolean } = {}): NetworkLike {
+  return {
+    online: () => !extra.offline?.() && c.online(),
+    metered: () => (c.metered?.() ?? false) || (net.mode().low && net.mode().why !== "setting"),
+    subscribe: (on) => {
+      const a = c.subscribe(on);
+      // off a metered connection (onto Wi-Fi): a download held for Wi-Fi looks again
+      const b = c.watchMetered?.((m) => { if (!m) on(true); });
+      let low = net.mode().low;
+      const d = net.subscribeMode((m) => { if (low && !m.low) on(true); low = m.low; });
+      return () => { a(); b?.(); d(); };
+    },
+  };
+}
+
 export interface UpdatePolicy {
   feedEveryMs: number;
   releaseEveryMs: number;

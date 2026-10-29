@@ -13,7 +13,8 @@ import { VerifyError } from "../fetchVerified";
 import type { Held, Manifest } from "../manifest";
 import { MANIFEST_FORMAT } from "../pack.generated";
 import { checkObject } from "./check";
-import { createUpdateService, releaseMoved, releaseNeed, type FeedSpec, type UpdateStore } from "./service";
+import { createUpdateService, phoneNetwork, releaseMoved, releaseNeed, type FeedSpec, type UpdateStore } from "./service";
+import { createNet } from "../net";
 
 const enc = (s: string) => new TextEncoder().encode(s);
 
@@ -338,6 +339,33 @@ describe("the release", () => {
     await flush();
     expect(staged).toEqual(["v2", "s2 v2"]);
     s2.stop();
+  });
+
+  it("T265: held on a slow mobile line; Wi-Fi returns while the slow mode is still on, then the mode clears: it starts", async () => {
+    const m1 = manifest("r1", { tiles: "v1" });
+    const big = manifest("r1", { tiles: "v2", tileBytes: 500_000_000 });
+    const o = origin({ [M]: JSON.stringify(big) });
+    let cell = true;
+    const online: ((up: boolean) => void)[] = [], meter: ((m: boolean) => void)[] = [];
+    const conn = { online: () => true, metered: () => cell,
+                   subscribe: (on: (up: boolean) => void) => { online.push(on); return () => {}; },
+                   watchMetered: (on: (m: boolean) => void) => { meter.push(on); return () => {}; } };
+    const net = createNet();
+    net.setMode({ low: true, why: "cellular", offline: false });
+    const staged: string[] = [];
+    const s = createUpdateService({ feeds: [], fetch: o.fetch, network: phoneNetwork(conn, net),
+      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(m.tiles.current!.id!); } } });
+    s.start();
+    await flush(); await flush();
+    expect(s.snapshot().release!.phase).toBe("waiting-wifi");
+    cell = false;
+    meter.forEach((f) => f(false));                    // NetInfo: Wi-Fi — but the low mode clears a render later
+    await flush();
+    expect(staged).toEqual([]);
+    net.setMode({ low: false, why: null, offline: false });
+    await flush();
+    expect(staged).toEqual(["v2"]);
+    s.stop();
   });
 
   it("T129: a manifest the boot just read seeds the first check (no second request at start)", async () => {

@@ -124,14 +124,24 @@ export function useTown(source: WaterSource, place: PlaceHit | null): Async<Town
   return useAsync(
     async () => {
       if (!place) return null;
-      // The source answers nearest first; the list reads MOST WORTH LISTING first —
-      // importance against distance, decided in core (`rankNear`).
-      const near = rankNear(await source.watersNear(place.place));
-      const waters = await Promise.all(near.map((n) => source.water(n.item)));
-      return {
-        place, near,
-        sections: waters.flatMap((w) => (w ? w.sections : [])),
+      const read = async (): Promise<TownView> => {
+        // The source answers nearest first; the list reads MOST WORTH LISTING first —
+        // importance against distance, decided in core (`rankNear`).
+        const near = rankNear(await source.watersNear(place.place));
+        const waters = await Promise.all(near.map((n) => source.water(n.item)));
+        return {
+          place, near,
+          sections: waters.flatMap((w) => (w ? w.sections : [])),
+        };
       };
+      // (T264) the first town read after a cold start on Android sometimes failed (the near file's first open): the
+      // failure is named (console.error → the Updates log, logcat) and the read tried once more before it is said
+      try { return await read(); }
+      catch (err) {
+        console.error(`near ${place.place}: ${err instanceof Error ? `${err.name}: ${err.message}` : String(err)}`);
+        await new Promise((r) => setTimeout(r, 400));
+        return read();
+      }
     },
     `town:${place?.place ?? ""}`,
     place !== null,

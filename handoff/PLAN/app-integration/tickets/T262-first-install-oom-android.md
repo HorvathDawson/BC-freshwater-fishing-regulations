@@ -1,6 +1,6 @@
 # T262 — Android first install crashes (OutOfMemoryError in expo fetch) part way through the ~500 MB download
 
-Status: OPEN
+Status: DONE (2026-10-29)
 
 Source: T255 test bed, 2026-10-29 (release APK, staging, AVD n1_pixel API 35, Wi-Fi). A clean app's first run died
 55 s in: `FATAL EXCEPTION: expo.modules.AsyncFunctionQueue … java.lang.OutOfMemoryError: Failed to allocate a 8388627
@@ -33,3 +33,16 @@ outlive their use until a JS GC, and the 192 MB Java heap fills.
 ## Acceptance
 `run.mjs install` passes twice in a row on a clean app (no crash line); peak Java heap noted (`dumpsys meminfo`).
 Depends: T255. Size: M. Owner: no.
+
+## Done (2026-10-29)
+- Cause confirmed: the 8 MB Range bodies through expo's fetch (Java-heap buffers outliving their use). The big files
+  (tiles, mask, basemap) now download NATIVELY: `partDownload` (install.ts: `.part` resume state, off-disk sha256,
+  rename; a file already in place that verifies is kept) over `nativeFill` (install.native.ts: expo-file-system
+  `DownloadTask` straight to disk; a resume downloads `bytes=<have>-` to `<part>.tail` and appends it 1 MB at a time;
+  4 tries with backoff for a DNS miss / dropped line). `rangedDownload` (JS) stays for tests. `[download]` lines in logcat.
+- Failed first-run screen: two automatic retries (2 s, 4 s) on the loading screen, then the reader's words
+  (`INSTALL_WORDS.again` / `firstRunOffline`, or the app-too-old line) in `ErrorState` with "Try again"
+  (`useReleaseBoot`'s new `attempt`); the exception and `pnpm tiles` hint only in a local build.
+- Test bed: `install` passes on clean apps (twice), no crash; peak Java heap 35 MB (was the 192 MB limit), total PSS
+  144 MB; a full first install ~70 s of download + ~40 s of hashing on the emulator. `TESTBED_KILL_MB=<n>` kills the
+  app mid-download to prove the resume. The install scenario now samples `dumpsys meminfo` (peak in the step line).

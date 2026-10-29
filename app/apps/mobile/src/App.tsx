@@ -24,13 +24,13 @@ import {
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, MAP_CREDITS, installLine, netBanner, progressWords, rolledBackLine, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine } from "@app/core";
-import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
+import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { connectivity, LoadingState, setSynopsisNet, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
+import { connectivity, ErrorState, LoadingState, setSynopsisNet, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
@@ -163,13 +163,16 @@ export default function App() {
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell. (T231) The phone's background install
   // is the update service's (`deferUpdate`: it holds a large set for Wi-Fi); `generation` re-boots onto a staged update.
   const [generation, setGeneration] = useState(0);
+  // (T262) a failed first start is tried again: twice by itself (a DNS miss, a dropped line), then on the reader's Retry
+  const [attempt, setAttempt] = useState(0);
+  const [autoTries, setAutoTries] = useState(0);
   const boot = useReleaseBoot(useMemo(() => ({
     manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
     salmonFeed, deferUpdate: true, net: NET,
     // (T251) a phone's requests name the app; its first install is gated by the release's minAppVersion (the web's app
     // ships with its data: never gated)
     ...(WEB ? {} : { fetch: DATA_FETCH, appVersion: APP_VERSION }),
-  }), [feed, salmonFeed]), generation);
+  }), [feed, salmonFeed]), generation, attempt);
   const booted = boot.state === "ready" ? boot.booted : null;
   const bootedRef = useRef(booted);
   bootedRef.current = booted;
@@ -207,18 +210,9 @@ export default function App() {
       },
     },
     store: openUpdateStore(),
-    network: {
-      online: () => !devOffline.on && connectivity.online(),
-      // (T254) a slow line holds a LARGE update the way mobile data does (the setting for mobile data still lets it go):
-      // a release set on one bar would starve every answer the reader asks for
-      metered: () => (connectivity.metered?.() ?? false) || (NET.mode().low && NET.mode().why !== "setting"),
-      subscribe: (on) => {
-        const a = connectivity.subscribe(on);
-        // off a metered connection (onto Wi-Fi): a download held for Wi-Fi looks again
-        const b = connectivity.watchMetered?.((m) => { if (!m) on(true); });
-        return () => { a(); b?.(); };
-      },
-    },
+    // (T254) a slow line holds a LARGE update the way mobile data does (the setting for mobile data still lets it go):
+    // a release set on one bar would starve every answer the reader asks for; (T265) the slow mode clearing looks again
+    network: phoneNetwork(connectivity, NET, { offline: () => devOffline.on }),
     lifecycle: {
       subscribe: (on) => {
         let was = AppState.currentState;
@@ -326,9 +320,18 @@ export default function App() {
   // (T255) back online (or opened online) with a spot made offline: its weather and gauge context fill in by themselves
   useRefreshOnReconnect(dataSource ? SPOT_NET : null, spots.some(needsRefresh), refreshSpots);
 
-  const failed = boot.state === "failed" ? boot.error.message : null;
+  // (T262) what a failed start says: the reader's words (an app too old to read this release says so); the exception
+  // and the dev server hint only in a local build
+  const tooOld = boot.state === "failed" && boot.error.message === UPDATE_WORDS.row.appTooOld;
+  useEffect(() => {
+    if (boot.state !== "failed" || tooOld || autoTries >= 2) return;
+    const t = setTimeout(() => { setAutoTries((n) => n + 1); setAttempt((a) => a + 1); }, 2000 * (autoTries + 1));
+    return () => clearTimeout(t);
+  }, [boot, tooOld, autoTries]);
+  const failed = boot.state === "failed" && (tooOld || autoTries >= 2) ? boot.error.message : null;
   const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
-  const stage = boot.state === "loading" ? boot.stage : "paint";
+  const retryBoot = useCallback(() => setAttempt((a) => a + 1), []);
+  const stage = boot.state === "loading" ? boot.stage : boot.state === "failed" ? "manifest" : "paint";
   const progress = boot.state === "loading" ? boot.progress : null;
   // T215: our copy of the synopsis PDF (the release names it; fetched on the first highlighted open, from the release
   // base on web and phone alike — it is not part of the installed set). None: "open the PDF" stays the plain link.
@@ -378,22 +381,19 @@ export default function App() {
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
       <StatusBar barStyle={name === "dark" ? "light-content" : "dark-content"} />
       {failed ? (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32,
+        <View testID="boot-failed" style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32,
                        gap: 8 }}>
-          <Text style={{ color: palette.closed, fontSize: 16, textAlign: "center" }}>
+          <Text style={{ color: palette.ink, fontSize: 16, textAlign: "center" }}>
             {INSTALL_WORDS.failed}
           </Text>
-          {firstRunOffline && (
-            <Text style={{ color: palette.sub, fontSize: 13, textAlign: "center" }}>
-              {INSTALL_WORDS.firstRunOffline}
+          <ErrorState palette={palette} size="body" style={{ textAlign: "center" }}
+                      message={tooOld ? failed : firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again}
+                      onRetry={tooOld ? undefined : retryBoot} retryLabel={INSTALL_WORDS.retry} retryTestID="boot-retry" />
+          {APP_ENV.env === "local" && (
+            <Text style={{ color: palette.faint, fontSize: 12, textAlign: "center" }}>
+              {failed} {INSTALL_WORDS.serve}
             </Text>
           )}
-          <Text style={{ color: palette.sub, fontSize: 13, textAlign: "center" }}>
-            {failed}
-          </Text>
-          <Text style={{ color: palette.faint, fontSize: 12, textAlign: "center" }}>
-            {INSTALL_WORDS.serve}
-          </Text>
         </View>
       ) : ready && data ? (
         <View style={{ flex: 1 }}>

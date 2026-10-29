@@ -15,8 +15,9 @@ export type BootState =
  * Boot once (null: not on this path). `opts` is read at mount. (T231) `generation`: bumped by the app to APPLY an update
  * the update service staged — the boot runs again WITHOUT the loading screen, and the set in use stays on screen until
  * the new one is ready (paint decoded, core opened, paired); a failure keeps the old set and is said (`applyError`).
+ * (T262) `attempt`: bumped to try a FAILED first start again (with the loading screen; what was downloaded is kept).
  */
-export function useReleaseBoot(opts: BootOptions | null, generation = 0): BootState {
+export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt = 0): BootState {
   const [s, set] = useState<BootState>({ state: "loading", stage: "manifest", progress: null });
   const on = opts !== null;
   useEffect(() => {
@@ -24,6 +25,8 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0): BootSt
     let live = true;
     const again = generation > 0;
     let progress: Progress | null = null, stage = "manifest";
+    // (T262) a failed first start tried again (`attempt`): back to the loading screen; the download resumes
+    if (!again && attempt > 0) set({ state: "loading", stage, progress });
     bootRelease({
       ...opts,
       onStage: (st) => { stage = st; if (live && !again) set({ state: "loading", stage, progress }); },
@@ -39,6 +42,6 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0): BootSt
       });
     return () => { live = false; };
     // once per mount and once per generation: a newer release is used at the next launch, or when the app applies it
-  }, [on, generation]);
+  }, [on, generation, attempt]);
   return s;
 }

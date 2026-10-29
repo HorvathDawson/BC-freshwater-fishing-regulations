@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { sha256Hex } from "../sha256";
-import { rangedDownload, type PartFs } from "./install";
+import { partDownload, rangedDownload, type PartFs } from "./install";
 
 function memParts(): PartFs & { files: Map<string, Uint8Array> } {
   const files = new Map<string, Uint8Array>();
@@ -67,5 +67,30 @@ describe("rangedDownload (native tiles: resumable, verified off disk)", () => {
     expect([...fs.files.keys()]).toEqual([]);
     await expect(rangedDownload(fs, rangeServer(body, [], -1, true), 8)("u", "t", want)).rejects.toThrow(/206/);
     expect([...fs.files.keys()]).toEqual([]);
+  });
+});
+
+describe("partDownload (T262: any transport, e.g. Android's native one, held to the manifest off disk)", () => {
+  const body = new TextEncoder().encode("0123456789abcdefghij");
+  const want = { bytes: body.length, sha256: sha256Hex(body) };
+
+  it("hands the transport what the .part already holds, and refuses a .part left short", async () => {
+    const fs = memParts(), asked: number[] = [];
+    await fs.append("t.part", body.subarray(0, 5));
+    const short = partDownload(fs, async (_u, part, have) => { asked.push(have); await fs.append(part, body.subarray(have, 12)); });
+    await expect(short("u", "t", want)).rejects.toThrow(/12 bytes on disk/);
+    expect(fs.files.get("t.part")!.length).toBe(12);                       // kept: the next attempt resumes it
+    const whole = partDownload(fs, async (_u, part, have) => { asked.push(have); await fs.append(part, body.subarray(have)); });
+    await whole("u", "t", want);
+    expect(asked).toEqual([5, 12]);
+    expect(fs.files.get("t")).toEqual(body);
+  });
+
+  it("a file already in place with the manifest's bytes is kept (a stage that failed after it): nothing fetched", async () => {
+    const fs = memParts(), asked: number[] = [];
+    await fs.append("t", body);
+    await partDownload(fs, async (_u, _p, have) => { asked.push(have); })("u", "t", want);
+    expect(asked).toEqual([]);
+    expect(fs.files.get("t")).toEqual(body);
   });
 });

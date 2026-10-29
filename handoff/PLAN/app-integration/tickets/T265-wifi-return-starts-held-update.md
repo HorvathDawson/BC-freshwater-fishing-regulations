@@ -1,6 +1,6 @@
 # T265 — a big update held for Wi-Fi does not start when Wi-Fi comes back
 
-Status: OPEN
+Status: DONE (2026-10-29)
 
 Source: T255 test bed 2026-10-29 (`run.mjs big-update`, emulator, release APK on staging test channel). A release over
 the metered line (`test-updates.mjs big`, ~270 MB) on mobile data correctly reads "An update is waiting for Wi-Fi"
@@ -22,3 +22,8 @@ the update stays held, and nothing asks again when the mode clears.
 ## Acceptance
 `run.mjs big-update` passes its Wi-Fi-back step; a service test pins the re-try on the mode change.
 Depends: T231, T254. Size: S. Owner: no.
+
+## Done (2026-10-29)
+`phoneNetwork` (data update/service.ts) is the service's phone network (moved out of App.tsx): it also tells the
+service when `Net`'s low mode clears (`Net.subscribeMode`, new). Service test "T265: held on a slow mobile line…"
+pins it. Test bed `big-update`: "Wi-Fi back → the download starts by itself" PASS (twice); only the T263 bell step fails.

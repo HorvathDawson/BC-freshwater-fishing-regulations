@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { shareFetch } from "./share";
 import { httpFeed } from "../feed/http";
+import type { StationId } from "../index";
 
 const INDEX = { stations: { "08MF005": {} } };
 /** a fetch whose answers wait for `go()`, counting what reached the "network" */
@@ -98,7 +99,7 @@ describe("the held index is read no-store (so it joins the service's check which
   it("a station file is still an ordinary cached GET", async () => {
     const g = gated(), shared = shareFetch(g.fn);
     const feed = httpFeed("https://x.test/feeds/live", shared, { indexHeld: true });
-    const p = feed.lastReport("08MF005"); g.go(); await p;
+    const p = feed.lastReport("08MF005" as StationId); g.go(); await p;
     expect(g.calls.find((c) => c.url.endsWith("08MF005.json"))!.init!.cache).toBeUndefined();
   });
 });

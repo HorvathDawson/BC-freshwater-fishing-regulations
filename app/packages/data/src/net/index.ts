@@ -28,6 +28,8 @@ export interface Net {
   /** the mode now (set by the screens' `useNetMode`, which owns the setting and the platform's hints) */
   mode(): NetMode;
   setMode(m: NetMode): void;
+  /** (T265) told on every change of the mode (after it is set); returns the unsubscribe */
+  subscribeMode(on: (m: NetMode) => void): () => void;
   online(): boolean;
   /** resolves when the device is online again (at once when it is) */
   waitOnline(signal?: AbortSignal): Promise<void>;
@@ -38,6 +40,7 @@ const ALWAYS_ONLINE: OnlineSource = { online: () => true, subscribe: () => () =>
 export function createNet(o: { online?: OnlineSource; meter?: NetMeter } = {}): Net {
   const src = o.online ?? ALWAYS_ONLINE;
   let mode: NetMode = netMode("auto", NO_HINTS);
+  const modeSubs = new Set<(m: NetMode) => void>();
   const gate = createFetchGate({ low: () => mode.low });
   return {
     meter: o.meter ?? createNetMeter(),
@@ -48,7 +51,9 @@ export function createNet(o: { online?: OnlineSource; meter?: NetMeter } = {}): 
       const was = mode.low;
       mode = m;
       if (was !== m.low) gate.changed();
+      for (const f of [...modeSubs]) f(m);
     },
+    subscribeMode(on) { modeSubs.add(on); return () => { modeSubs.delete(on); }; },
     online: () => src.online(),
     waitOnline(signal) {
       if (src.online()) return Promise.resolve();
