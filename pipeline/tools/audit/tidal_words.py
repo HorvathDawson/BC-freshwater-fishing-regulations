@@ -43,6 +43,7 @@ from pathlib import Path
 import shapely
 from shapely.geometry import LineString, Point
 
+from pipeline.common.licence import odbl as _odbl
 from pipeline.tools.audit.tidal_candidates import (AT_MOUTH_M, MOUTH_LABEL, REUSE_ALIAS, _to_albers,
                                                    _to_lonlat, point_at, snap)
 from pipeline.tools.audit.tidal_preverify import geoms_of, load_lines
@@ -234,6 +235,7 @@ def fetch_osm(cands: list[dict], gpkg: Path, out: Path) -> dict:
         res = {"_about": "OSM ways (Overpass, overpass-api.de) around each tidal candidate whose words name a "
                          "rail / road / line landmark; read by pipeline.tools.audit.tidal_words apply. Refresh: delete "
                          "and re-run `tidal_words osm` (it resumes: candidates in `fetched` are skipped).",
+               "_licence": _odbl("every way in `ways` (id, tags, geometry)"),
                "fetched": sorted(done), "ways": ways}
         out.write_text(json.dumps(res, ensure_ascii=False) + "\n")   # after each: a failed run resumes
         time.sleep(2)

@@ -688,7 +688,8 @@ def export_places(places_json: Path, out_dir: Path) -> dict:
     spec = BY_NAME["place"]
     write, close = _writer(out_dir, spec)
     seen: set[tuple] = set()
-    for p in json.loads(places_json.read_text()):
+    from pipeline.common.licence import entries
+    for p in entries(json.loads(places_json.read_text()), "places"):   # `_licence` (ODbL) beside the list
         rank = int(p.get("rank", _DEFAULT_RANK))
         key = (p["name"], round(p["lon"], 3), round(p["lat"], 3))
         if key in seen:            # the gazetteer lists some places twice

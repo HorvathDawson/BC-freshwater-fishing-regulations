@@ -41,6 +41,17 @@ export function LicencesList({ vm, palette }: { vm: LicencesVM; palette: Palette
                 <Text style={{ ...TYPE.small, color: palette.accent }}>{`${LICENCE_WORDS.open} ${WORDS.LINK_OUT}`}</Text>
               </Pressable>
             )}
+            {r.files && r.files.length > 0 && (
+              <View testID={`licence-files-${r.k}`} style={{ gap: 2 }}>
+                <Text style={{ ...TYPE.small, color: palette.sub }}>{LICENCE_WORDS.files}</Text>
+                {r.files.map((f) => (
+                  <Pressable key={f.url} onPress={() => open(f.url)} accessibilityRole="link"
+                             accessibilityLabel={`${LICENCE_WORDS.files}: ${f.label}`}>
+                    <Text style={{ ...TYPE.small, color: palette.accent }}>{`${f.label} ${WORDS.LINK_OUT}`}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </View>
         ))}
       </View>

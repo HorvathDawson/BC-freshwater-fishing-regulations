@@ -25,6 +25,8 @@ describe("the map's credits (T235)", () => {
     expect(s.sources.atlas!.attribution).toBe(ATLAS_CREDIT);
     expect(ATLAS_CREDIT).toContain("OGL-BC");
     expect(ATLAS_CREDIT).toContain("OpenStreetMap contributors");
+    // (owner 2026-10-28 audit) the always-drawn no-access land and reserves are OpenStreetMap data
+    expect(ATLAS_CREDIT).toContain("access land");
   });
 
   it("gives each mode/overlay credit its own source and a layer that draws nothing, hidden by default", () => {

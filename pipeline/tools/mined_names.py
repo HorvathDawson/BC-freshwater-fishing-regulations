@@ -57,12 +57,24 @@ def build(marks_path: Path) -> list[dict]:
     return entries
 
 
+#: (owner 2026-10-28) the names whose source is OpenStreetMap are offered under the ODbL; the record rides in the file.
+LICENCE_APPLIES_TO = ("every `names[]` record whose `source` is \"osm\" (its name, target and evidence). Records with "
+                      "another `source` are not OpenStreetMap data: `municipal` names are under the city's own open "
+                      "government licence, `gauge` names under the Open Government Licence – Canada.")
+
+
+def document(got: list[dict]) -> dict:
+    """The file: the ODbL record, then the entries (readers take them through `licence.entries`)."""
+    from pipeline.common.licence import odbl
+    return {"_licence": odbl(LICENCE_APPLIES_TO), "entries": got}
+
+
 def main(argv: list[str]) -> int:
     from pipeline.common.curated import CURATED as C
     marks_path = C.regulations.review.marks
     out = CURATED.waters.mined_names
     got = build(marks_path)
-    text = json.dumps(got, indent=1, ensure_ascii=False) + "\n"
+    text = json.dumps(document(got), indent=1, ensure_ascii=False) + "\n"
     if "--check" in argv:
         same = out.read_text() == text
         print("mined_names.json is current" if same else "mined_names.json is OUT OF DATE")

@@ -1344,12 +1344,21 @@ def load_build(path: str | Path) -> list[dict]:
     return json.loads(Path(path).read_text(encoding="utf-8"))["streams"]
 
 
+#: (owner 2026-10-28) only the `source: "osm"` streams are OpenStreetMap data; the city layers carry their own licences.
+ADDED_STREAMS_ODBL = ("the `streams[]` and `name_variants[]` entries whose `source` is \"osm\" (geometry, name, "
+                      "segments; today Northrop Channel, blk -2300000000, from data/source/municipal/osm_streams.geojson). "
+                      "Every other entry is from a city stream layer under that city's open government licence "
+                      "(Abbotsford, Burnaby, Port Moody, Squamish: see pipeline/atlas/waters/added_streams/SOURCES.md).")
+
+
 def write(streams, candidates, report, out_dir: Path, name: str = "added_streams") -> Path:
+    from pipeline.common.licence import odbl as _odbl
     out = Path(out_dir) / "added_streams.build.json"
     out.write_text(json.dumps({
         "_about": "Minted additional-streams dataset (see added_streams). Consumer: remove FWA blue lines "
                   "whose trimmed wsc starts with any `fwa_exclude` prefix, ingest `streams` (blk/wsc/geometry/"
                   "segments), and apply `name_variants` (municipal names -> the FWA/added blk they alias).",
+        "_licence": _odbl(ADDED_STREAMS_ODBL),
         "fwa_exclude": report.get("fwa_exclude", []),
         "name_variants": report.get("name_variants", []),
         "streams": streams}, indent=1), encoding="utf-8")

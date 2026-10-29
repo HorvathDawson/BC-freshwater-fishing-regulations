@@ -7,6 +7,7 @@ with the default Claude uses until you answer). Newest first inside each section
 ## Decisions that block work (nothing ships until you answer)
 
 - **City licence wording (T235, 2026-10-28):** Burnaby and Abbotsford pages could not be read verbatim; the page uses the licences' default attribution form. Confirm in a browser (links in T235). Production launch checklist: tickets/T240 (the starred lines are yours).
+- **ODbL offer (T235, 2026-10-28):** done as you asked (`data/LICENSE-ODbL.md`, `_licence` in each file). Yours: (1) the repo has no LICENSE of its own — the notice says the rest is "under its own terms"; pick one if you want it stated; (2) the app links files on the `redesign/stream-sections` branch (`licences.ts` `REPO_BLOB`) — flip to `main` when it merges; (3) the no-access land (incl. Malcolm Knapp) and reserve outlines are OSM, not the Province — now credited as OSM.
 - **Update testing on your phone (T251, 2026-10-28):** dev build → About → Updates log → channel Test → reopen; then `node deploy/staging/test-updates.mjs reset | feed-bump gauges | release 1 | corrupt | missing | feed-404 dfo | min-app 99.0.0` and Check now (steps in tickets/T251). Before prod (T86/T240): the production data worker must allow the `X-App-Version` header (copy staging's data-worker.js CORS line), or web update checks fail.
 - **Staging is live (2026-10-28): https://staging.canifishthis.ca** (app + SEO pages, release r-46be3c135e68; data from
   data-staging.canifishthis.ca). Check: the map paints and a tap opens regs; a few `/water/<slug>` pages (e.g.

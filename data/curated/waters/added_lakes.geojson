@@ -1,5 +1,13 @@
 {
  "type": "FeatureCollection",
+ "_licence": {
+  "spdx": "ODbL-1.0",
+  "attribution": "© OpenStreetMap contributors",
+  "applies_to": "the features whose `properties.source` is \"osm\" (their geometry; ids 2 Marsh Pond, 3 Children's Fishing Pond, 4 Cheam Lake, 5 Minnekhada Marsh, 6 Cahilty Lake), polygons taken from OpenStreetMap. The `source: \"manual\"` features are this repo's own drawing on the Freshwater Atlas (Province of British Columbia, OGL-BC) and are not OpenStreetMap data.",
+  "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+  "source": "https://www.openstreetmap.org/copyright",
+  "notice": "data/LICENSE-ODbL.md"
+ },
  "features": [
   {
    "type": "Feature",

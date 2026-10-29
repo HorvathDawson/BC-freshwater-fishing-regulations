@@ -34,6 +34,45 @@ from OSM) and on Sources and licences; the "available on request / offered under
 share-alike for derived databases (177 accepted OSM names + the Northrop geometry) is an owner-accepted risk, not legal
 advice.
 
+## ODbL — REVISED (owner 2026-10-28, later the same day): offered under the ODbL from the public repo
+The repo is public, so its OSM-derived data is already public: each OSM-derived committed file now carries a top-level
+`_licence` record (spdx ODbL-1.0, "© OpenStreetMap contributors", `applies_to`, url) and `data/LICENSE-ODbL.md` lists
+exactly which files/entries are ODbL (the rest of the repo is not). Two bare-list files became
+`{"_licence", "<list>"}` (`mined_names.json` → `entries`, `bc_places.json` → `places`); readers unwrap through
+`pipeline/common/licence.py` `entries` (`load_name_variants`, bundle `_places`, tiles `export_places`), and the writers
+(`tools/mined_names`, `fetch_osm_places`, `added_streams.build_dataset.write`, `tidal_words osm`) emit the record. Tests:
+`pipeline/tests/test_licence_records.py` (record present + listed, loaders return the same entries as HEAD). The
+Sources and licences page links the files on GitHub (`licences.ts` `ODBL_FILES`, `REPO_BLOB` = the
+`redesign/stream-sections` branch — flip on merge) and has a new row **No-access land and reserves (OpenStreetMap)**;
+the `access` row no longer claims no-access land for the Province. The atlas credit now reads "some names, waters,
+places and access land © OpenStreetMap contributors". Owner decision, recorded; not legal advice.
+
+### Audit: every shipped dataset (2026-10-28)
+| dataset | ships as | source | licence | OSM? |
+|---|---|---|---|---|
+| basemap `bc.pmtiles` | basemap tiles | Protomaps build of OSM | ODbL (Produced Work: attribution) | yes (credited) |
+| `land_access` (Coquitlam etc. watersheds, DND land, nature reserves; **Malcolm Knapp** geocoded by name via osmnx/Nominatim) | tile `no_access`, bundle `access_area`/`section_access` | Overpass (`fetch_overpass_land_access`) | ODbL | **yes — newly found** |
+| `aboriginal_lands` (Indian reserves, treaty land) | tile `indigenous_land`, bundle `access_area` tier reserve | Overpass (`fetch_overpass_aboriginal_lands`) | ODbL | **yes — newly found** (not CLSS/Canada Lands) |
+| `bc_places.json` gazetteer | bundle `place` (search), `near` | Overpass (`fetch_osm_places`) | ODbL | **yes — newly found** (committed) |
+| `mined_names.json` | names in atlas + bundle | 182 OSM (basemap), 9 municipal, 5 gauge | ODbL / city OGL / OGL-Canada | part |
+| `added_lakes.geojson` | atlas lakes | ids 2–6 from OSM (Marsh Pond, Children's Fishing Pond, Cheam Lake, Minnekhada Marsh, Cahilty Lake); 10 manual | ODbL / own | **part — newly found** |
+| `added_streams.json` + `osm_streams.geojson` | atlas streams | Northrop Channel OSM; 361 from 3 city layers (+ Abbotsford names) | ODbL / city OGL | part |
+| `splits.json` | cut points in atlas | 52 anchor coords placed on an OSM way/node (bridges, dams, falls); rest FWA/curator | ODbL (the 52) / own | **part — newly found** |
+| `added_areas.geojson` (2 sign zones) | tile `sign_zone` | curator-drawn, OSM only consulted | own | no |
+| `name_variants.json` | names | synopsis + curator (notes mention OSM) | own / Province | no |
+| `areas.json` defs; parks_bc, eco reserves, WMA, WMU/regions, historic sites | tiles `park`/`eco_reserve`/`wma`/`mu`/`region` | BC Data Catalogue (TANTALIS, WAA, HIST) | OGL-BC | no |
+| national parks | tile `park` (national) | `WHSE_ADMIN_BOUNDARIES.CLAB_NATIONAL_PARKS` via BC catalogue | OGL-BC as listed (CLAB is Canada Lands data; recheck) | no |
+| private land | tile `parcel`, bundle `access_area` tier private | ParcelMap BC parcel fabric | OGL-BC | no |
+| FWA streams/lakes/wetlands/watersheds, GNIS names, bathymetry contours | atlas | Province | OGL-BC | no |
+| tidal boundary / PFMA | tile `tidal_water` | DFO via R2 / BC catalogue | OGL-Canada / OGL-BC | no |
+| obstacles (FISS, WRIS dams, PSCIS) | tile `obstacle` | Province | OGL-BC (PSCIS owner Q165) | no |
+| gauges, HYDAT | bundle, feeds | ECCC | OGL-Canada | no |
+| BC outline / outside mask | `bc_outside.geojson` | union of WMUs (Province) | OGL-BC | no |
+| city stream layers | atlas streams | 4 cities | city OGLs | no |
+| synopsis, in-season, DFO salmon, run timing, stocking, forecasts, weather, imagery, icons | bundle/feeds | as the table above | as above | no |
+| not shipped: `waterfalls`, `water_access_points` gpkg layers; `tidal-osm-landmarks.json` (curation cache, committed: record added) | — | Overpass | ODbL | yes, not shipped |
+| roads | not shipped (forest service roads layer unused; roads are the basemap's) | — | — | — |
+
 ## City stream layers (2026-10-28 follow-up) — one row each on Sources and licences
 Sources: `data/source/municipal/*.geojson` (pipeline/atlas/waters/added_streams/SOURCES.md); no others.
 | city | licence | page | wording on the page |

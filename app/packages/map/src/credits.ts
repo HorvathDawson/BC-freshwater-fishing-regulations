@@ -33,11 +33,13 @@ export const BASEMAP_CREDIT = `${a(LICENCE_URLS.odbl, "© OpenStreetMap contribu
 
 /**
  * The atlas's credit (always on): the Province's Freshwater Atlas (OGL-BC) and synopsis, and — since T222/T224 — names
- * and side channels taken from OpenStreetMap, which ODbL says must be credited wherever they are shown, satellite or not.
+ * and side channels taken from OpenStreetMap, which ODbL says must be credited wherever they are shown, satellite or not
+ * — and (owner 2026-10-28 audit) the always-drawn no-access land and reserve outlines, five lake outlines and the town
+ * search, which are OpenStreetMap too.
  */
 export const ATLAS_CREDIT =
   `${a(LICENCE_URLS.oglBc, "Province of British Columbia")} (OGL-BC) · Freshwater Atlas &amp; Freshwater Fishing ` +
-  `Synopsis · some names and channels ${a(LICENCE_URLS.odbl, "© OpenStreetMap contributors")}`;
+  `Synopsis · some names, waters, places and access land ${a(LICENCE_URLS.odbl, "© OpenStreetMap contributors")}`;
 
 export interface MapCredit {
   readonly id: string;

@@ -1,7 +1,7 @@
 /** (T235 / T236) the licences list and the legal lines, pinned as finished strings (AGENTS 33). */
 import { describe, expect, it } from "vitest";
 import { asOfLine, FIRST_RUN_VERSION, firstRunAccepted, LEGAL_WORDS, regsAsOfDay } from "./legal";
-import { LICENCE_ROWS, LICENCES, licencesVM } from "./licences";
+import { LICENCE_ROWS, LICENCES, licencesVM, ODBL_FILES, REPO_BLOB } from "./licences";
 import { MAP_CREDITS } from "./sources";
 import { MENU_WORDS } from "./words";
 
@@ -67,5 +67,18 @@ describe("Sources and licences (T235)", () => {
     }
     expect(licencesVM()).not.toHaveProperty("odbl");
     expect(MENU_WORDS.items.sources.label).toBe("Sources and licences");
+  });
+  it("(owner 2026-10-28) links the ODbL files on GitHub, and credits OpenStreetMap for the no-access land", () => {
+    const osm = licencesVM().rows.find((r) => r.k === "osm")!;
+    expect(osm.files).toBe(ODBL_FILES);
+    const paths = ODBL_FILES.map((f) => f.url.slice(REPO_BLOB.length + 1));
+    for (const p of ["data/LICENSE-ODbL.md", "data/source/bc_places.json", "data/curated/waters/mined_names.json",
+      "data/curated/waters/added_lakes.geojson", "data/curated/waters/added_streams.json",
+      "data/source/municipal/osm_streams.geojson", "data/curated/waters/splits.json"]) expect(paths).toContain(p);
+    expect(REPO_BLOB).toMatch(/^https:\/\/github\.com\/HorvathDawson\/BC-freshwater-fishing-regulations\/blob\//);
+    const land = licencesVM().rows.find((r) => r.k === "osmland")!;
+    expect([land.licence, land.wording]).toEqual(["odbl", "© OpenStreetMap contributors"]);
+    expect(land.shows).toContain("Malcolm Knapp");
+    expect(licencesVM().rows.find((r) => r.k === "access")!.shows).not.toMatch(/no-access/);
   });
 });

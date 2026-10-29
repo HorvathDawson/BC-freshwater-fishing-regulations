@@ -1,5 +1,13 @@
 {
  "_about": "Minted additional-streams dataset (see added_streams). Consumer: remove FWA blue lines whose trimmed wsc starts with any `fwa_exclude` prefix, ingest `streams` (blk/wsc/geometry/segments), and apply `name_variants` (municipal names -> the FWA/added blk they alias).",
+ "_licence": {
+  "spdx": "ODbL-1.0",
+  "attribution": "\u00a9 OpenStreetMap contributors",
+  "applies_to": "the `streams[]` and `name_variants[]` entries whose `source` is \"osm\" (geometry, name, segments; today Northrop Channel, blk -2300000000, from data/source/municipal/osm_streams.geojson). Every other entry is from a city stream layer under that city's open government licence (Abbotsford, Burnaby, Port Moody, Squamish: see pipeline/atlas/waters/added_streams/SOURCES.md).",
+  "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+  "source": "https://www.openstreetmap.org/copyright",
+  "notice": "data/LICENSE-ODbL.md"
+ },
  "fwa_exclude": [
   "100-019698-",
   "100-010829",

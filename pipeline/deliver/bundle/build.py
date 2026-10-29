@@ -411,7 +411,8 @@ def _places(db: sqlite3.Connection, places_json: Path, boundary: Path,
     # NOT re-clipped here. `data/fetch_data.py` clips to the province when it writes the
     # gazetteer, so the file on disk is already only BC. Filtering in both places means two
     # answers to "is this in British Columbia" and one of them eventually goes stale.
-    kept = json.loads(places_json.read_text())
+    from pipeline.common.licence import entries
+    kept = entries(json.loads(places_json.read_text()), "places")   # `_licence` (ODbL) beside the list
     rows = kept
     db.executemany("INSERT INTO place VALUES (?,?,?,?,?,?,?)",
                    ((n, _place_id(p), p["name"], p.get("place"), p.get("pop"),

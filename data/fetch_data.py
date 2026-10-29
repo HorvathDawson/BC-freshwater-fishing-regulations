@@ -1509,7 +1509,11 @@ def fetch_osm_places(short_name: str, dest_path: Path) -> None:
 
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(dest_path, "w", encoding="utf-8") as fh:
-        json.dump(places, fh, ensure_ascii=False)
+        # (owner 2026-10-28) OpenStreetMap data, offered under the ODbL: the record rides in the file and readers
+        # take the list through `pipeline.common.licence.entries(doc, "places")`.
+        from pipeline.common.licence import odbl
+        json.dump({"_licence": odbl("every entry in `places` (name, alt names, place kind, population, position); "
+                                    "`rank` is this repo's own ordering"), "places": places}, fh, ensure_ascii=False)
     by_kind = collections.Counter(p["place"] for p in places)
     named = sum(1 for p in places if p["alt"])
     print(f"  ✅ '{short_name}': {len(places):,} places "

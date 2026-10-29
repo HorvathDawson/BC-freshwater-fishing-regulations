@@ -32,6 +32,18 @@ export const LICENCES = {
 } as const;
 export type LicenceKey = keyof typeof LICENCES;
 
+/**
+ * (owner 2026-10-28) THE REPO IS PUBLIC, so the OpenStreetMap-derived data in it is offered under the ODbL from there:
+ * each file carries its own `_licence` record and `data/LICENSE-ODbL.md` lists exactly which files and entries. These are
+ * links to those files on GitHub. The branch is the one the data lives on; change `REPO_BLOB` when it merges.
+ */
+export const REPO_URL = "https://github.com/HorvathDawson/BC-freshwater-fishing-regulations";
+export const REPO_BLOB = `${REPO_URL}/blob/redesign/stream-sections`;
+const repoFile = (path: string, label = path.split("/").pop()!) => ({ label, url: `${REPO_BLOB}/${path}` });
+
+/** A data file in the repo a row's licence applies to, linked. */
+export interface LicenceFile { readonly label: string; readonly url: string }
+
 export interface LicenceRow {
   readonly k: string;
   /** the dataset, as the app names it */
@@ -45,7 +57,25 @@ export interface LicenceRow {
   readonly wording: string | null;
   /** the publisher's page for the dataset */
   readonly url: string | null;
+  /** (ODbL) the files in this repo that hold the data, linked on GitHub; absent: none */
+  readonly files?: readonly LicenceFile[];
 }
+
+/** (owner 2026-10-28) the OpenStreetMap-derived files in the repo, offered under the ODbL (data/LICENSE-ODbL.md). */
+export const ODBL_FILES: readonly LicenceFile[] = [
+  repoFile("data/LICENSE-ODbL.md", "LICENSE-ODbL.md (which files and entries)"),
+  repoFile("data/source/bc_places.json"),
+  repoFile("data/curated/waters/mined_names.json"),
+  repoFile("data/curated/waters/added_lakes.geojson"),
+  repoFile("data/curated/waters/added_streams.json"),
+  repoFile("data/source/municipal/osm_streams.geojson"),
+  repoFile("data/curated/waters/splits.json"),
+];
+/** the fetch that builds the access land and reserve layers from OpenStreetMap (not committed: built, then shipped) */
+export const ODBL_LAND_FILES: readonly LicenceFile[] = [
+  repoFile("data/LICENSE-ODbL.md", "LICENSE-ODbL.md (which files and entries)"),
+  repoFile("data/fetch_data.py", "fetch_data.py (how the layers are built)"),
+];
 
 const OGL_BC_WORDS = "Contains information licensed under the Open Government Licence – British Columbia.";
 const OGL_CA_WORDS = "Contains information licensed under the Open Government Licence – Canada.";
@@ -74,9 +104,16 @@ export const LICENCE_ROWS: readonly LicenceRow[] = [
     shows: "Official water names.", licence: "oglBc", wording: OGL_BC_WORDS,
     url: "https://apps.gov.bc.ca/pub/bcgnws/" },
   { k: "osm", name: "OpenStreetMap", from: "© OpenStreetMap contributors",
-    shows: "The basemap (roads, towns, land), some local water names, and two side channels the Atlas does not have "
-      + "(Northrop Channel and Creek).", licence: "odbl", wording: "© OpenStreetMap contributors",
-    url: "https://www.openstreetmap.org/copyright" },
+    shows: "The basemap (roads, towns, land), the towns search finds, some local water names, a side channel the "
+      + "Atlas does not have (Northrop Channel), five lake and pond outlines, and the position of some bridges, dams "
+      + "and falls that mark where a regulation starts or ends. Offered under the ODbL in the app's public repository.",
+    licence: "odbl", wording: "© OpenStreetMap contributors", url: "https://www.openstreetmap.org/copyright",
+    files: ODBL_FILES },
+  { k: "osmland", name: "No-access land and reserves (OpenStreetMap)", from: "© OpenStreetMap contributors",
+    shows: "Land the public may not enter or may enter only with a permit (municipal watersheds such as Coquitlam, "
+      + "military land, the Malcolm Knapp Research Forest), and Indian reserve and treaty land outlines.",
+    licence: "odbl", wording: "© OpenStreetMap contributors", url: "https://www.openstreetmap.org/copyright",
+    files: ODBL_LAND_FILES },
   { k: "protomaps", name: "Protomaps basemap", from: "© Protomaps", shows: "The basemap's tiles and style.",
     licence: "odbl", wording: "© Protomaps", url: "https://protomaps.com" },
   { k: "abbotsford", name: "City of Abbotsford stream layer", from: "City of Abbotsford",
@@ -95,8 +132,9 @@ export const LICENCE_ROWS: readonly LicenceRow[] = [
     shows: "Streams the Atlas does not have, and their local names (Squamish).", licence: "oglSquamish",
     wording: "Contains information licensed under the Open Government Licence – Squamish.",
     url: "https://data.squamish.ca" },
-  { k: "access", name: "Parks, ecological reserves and land status", from: "Province of British Columbia",
-    shows: "Closed parks, reserves and no-access land on the map.", licence: "oglBc", wording: OGL_BC_WORDS,
+  { k: "access", name: "Parks, ecological reserves and land title", from: "Province of British Columbia",
+    shows: "National and provincial parks, ecological reserves, wildlife management areas and private land "
+      + "(ParcelMap BC) on the map.", licence: "oglBc", wording: OGL_BC_WORDS,
     url: "https://catalogue.data.gov.bc.ca" },
   { k: "obstacles", name: "Fish obstacles: FISS, WRIS dams, PSCIS crossings", from: "Province of British Columbia",
     shows: "Falls, dams and culverts (the Fish obstacles layer).", licence: "oglBc", wording: OGL_BC_WORDS,
@@ -135,6 +173,8 @@ export const LICENCE_WORDS = {
   /** a licence link's spoken name: one per row, so a screen reader can tell the rows' same-named links apart */
   licenceFor: (name: string, licence: string) => `Licence for ${name}: ${licence}`,
   words: "Required wording",
+  /** (ODbL) the row's files in the app's public repository */
+  files: "Files (in the app's public repository)",
   open: "Open the publisher's page",
   /** the About page's link here */
   fromAbout: "Sources and licences",

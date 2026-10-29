@@ -90,8 +90,10 @@ def _display_case(name: str) -> str:
 
 
 def load_name_variants(path) -> list[dict]:
+    from pipeline.common.licence import entries
     p = Path(path)                          # curated: a missing file raises (AGENTS 37, P2)
-    return json.loads(p.read_text())
+    # a licensed file (mined_names.json: `{"_licence": ..., "entries": [...]}`) or a bare list (name_variants.json)
+    return entries(json.loads(p.read_text()), "entries")
 
 
 _REACH_MIN_OVERLAP_M = 1.0   # a reach must overlap a section by more than this to name it (proximity)
