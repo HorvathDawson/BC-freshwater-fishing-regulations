@@ -284,15 +284,15 @@ use that as the sole source of future work."
 | T238 | offline regions manager (phone): keep/delete regions, storage used | OPEN | — | owner 2026-10-28 (P4); needs a per-region tile split (T85/T202) |
 | T239 | annual synopsis update: runbook + book diff tool + dry run | OPEN | — | owner 2026-10-28 (P5); the parse is human-run |
 | T240 | production launch checklist (data-worker fix, prod R2, feeds prod + crons, retire old cron/workflows, DNS 301s, Search Console, noindex off, CF bot/robots, secrets, smoke, env) | OPEN | — | owner 2026-10-28 (P6); list written; ★ lines are the owner's; body of T86 |
-| T241 | staging smoke tests after every deploy (Playwright vs staging) | OPEN | — | owner 2026-10-28 (P7) |
+| T241 | staging smoke tests after every deploy (CDP driver vs staging) | DONE | ec26ed584 | 18 checks phone+desktop, 52 s, green; in site.sh/upload.sh; manual workflow not yet run (branch unpushed) |
 | T242 | crash + error reporting (privacy-light) | OPEN | — | owner 2026-10-28 (P8); owner: Sentry vs own endpoint (default own) |
 | T243 | accessibility pass (native) | OPEN | — | owner 2026-10-28 (P9) |
 | T244 | app store readiness (icon, splash, listing, privacy labels, internal tracks) | OPEN | — | owner 2026-10-28 (P10); owner: accounts, listing text |
 | T245 | low-end Android performance budgets + fixes | OPEN | — | owner 2026-10-28 (P11) |
-| T246 | backups / disaster recovery (R2 + inventory + restore test) | OPEN | — | owner 2026-10-28 (P12); owner: backup bucket |
+| T246 | backups / disaster recovery (R2 + inventory + restore test) | DONE | ec26ed584 | backup bucket + lifecycle; worker daily cron; curated/release scripts; restore test all hashes pass; restore not served end-to-end |
 | T247 | search upgrades (fuzzy, MU/region/town, recents) | OPEN | — | owner 2026-10-28 (P13) |
 | T248 | first-run walkthrough + help page (after T236's disclaimer notice) | OPEN | — | owner 2026-10-28 (P14) |
-| T249 | feeds/worker security (rate limits, token rotation, private/ never public, secrets inventory) | OPEN | — | owner 2026-10-28 (P15) |
+| T249 | feeds/worker security (rate limits, token rotation, private/ never public, secrets inventory) | DONE | ec26ed584 | 429 on flood (feeds + data), token rotated on staging, check-public PASS, inventory in ticket; prod WAF rule = owner |
 | T250 | Expo SDK / dependency upgrade window (MapLibre RN patch re-apply) | OPEN | — | owner 2026-10-28 (P16); before T244 |
 | T251 | testing data updates: Updates log (dev/staging, ring buffer, check/force/offline/clear/apply/copy), staging test channel (`test/` + `deploy/staging/test-updates.mjs` + `app/tools/updates-e2e.mjs`), app version (app.json semver + build + sha + date; About, `X-App-Version`, `minAppVersion` gate), `published` stamped at publish | DONE | fe10a015 | owner 2026-10-28; prod data worker must allow `X-App-Version` (T86) |
 | T252 | donor paths through lakes (`section_down` closed downstream + walk ranking), distance along the river (`section_down.len`, `alongM`, confluence label on the map), station names through the shared caser | PARTIAL | — | follow-ups to 9ea333d1; rides the next bundle + release; Pitt check on :39218 after it |
