@@ -1,0 +1,352 @@
+[
+ {
+  "scene": "map",
+  "size": "desktop",
+  "theme": "light",
+  "axe": [],
+  "focus": {
+   "stops": 29,
+   "unmarked": []
+  },
+  "error": null
+ },
+ {
+  "scene": "map",
+  "size": "desktop",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "map",
+  "size": "phone",
+  "theme": "light",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "map",
+  "size": "phone",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "conditions",
+  "size": "desktop",
+  "theme": "light",
+  "axe": [],
+  "focus": {
+   "stops": 29,
+   "unmarked": []
+  },
+  "error": null
+ },
+ {
+  "scene": "conditions",
+  "size": "desktop",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "conditions",
+  "size": "phone",
+  "theme": "light",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "conditions",
+  "size": "phone",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "spots",
+  "size": "desktop",
+  "theme": "light",
+  "axe": [],
+  "focus": {
+   "stops": 28,
+   "unmarked": []
+  },
+  "error": null
+ },
+ {
+  "scene": "spots",
+  "size": "desktop",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "spots",
+  "size": "phone",
+  "theme": "light",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "spots",
+  "size": "phone",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "more",
+  "size": "desktop",
+  "theme": "light",
+  "axe": [],
+  "focus": {
+   "stops": 27,
+   "unmarked": []
+  },
+  "error": null
+ },
+ {
+  "scene": "more",
+  "size": "desktop",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "more",
+  "size": "phone",
+  "theme": "light",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "more",
+  "size": "phone",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "offline",
+  "size": "desktop",
+  "theme": "light",
+  "axe": [],
+  "focus": {
+   "stops": 30,
+   "unmarked": []
+  },
+  "error": null
+ },
+ {
+  "scene": "offline",
+  "size": "desktop",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "offline",
+  "size": "phone",
+  "theme": "light",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "offline",
+  "size": "phone",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "help",
+  "size": "desktop",
+  "theme": "light",
+  "axe": [],
+  "focus": {
+   "stops": 30,
+   "unmarked": []
+  },
+  "error": null
+ },
+ {
+  "scene": "help",
+  "size": "desktop",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "help",
+  "size": "phone",
+  "theme": "light",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "help",
+  "size": "phone",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "sources",
+  "size": "desktop",
+  "theme": "light",
+  "axe": [],
+  "focus": {
+   "stops": 30,
+   "unmarked": []
+  },
+  "error": null
+ },
+ {
+  "scene": "sources",
+  "size": "desktop",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "sources",
+  "size": "phone",
+  "theme": "light",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "sources",
+  "size": "phone",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "layers",
+  "size": "desktop",
+  "theme": "light",
+  "axe": [],
+  "focus": {
+   "stops": 30,
+   "unmarked": []
+  },
+  "error": null
+ },
+ {
+  "scene": "layers",
+  "size": "desktop",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "layers",
+  "size": "phone",
+  "theme": "light",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "layers",
+  "size": "phone",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "search",
+  "size": "desktop",
+  "theme": "light",
+  "axe": [],
+  "focus": {
+   "stops": 30,
+   "unmarked": []
+  },
+  "error": null
+ },
+ {
+  "scene": "search",
+  "size": "desktop",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "search",
+  "size": "phone",
+  "theme": "light",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "search",
+  "size": "phone",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "regs",
+  "size": "desktop",
+  "theme": "light",
+  "axe": [],
+  "focus": {
+   "stops": 30,
+   "unmarked": []
+  },
+  "error": null
+ },
+ {
+  "scene": "regs",
+  "size": "desktop",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "regs",
+  "size": "phone",
+  "theme": "light",
+  "axe": [],
+  "focus": null,
+  "error": null
+ },
+ {
+  "scene": "regs",
+  "size": "phone",
+  "theme": "dark",
+  "axe": [],
+  "focus": null,
+  "error": null
+ }
+]

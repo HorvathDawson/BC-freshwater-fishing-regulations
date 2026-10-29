@@ -170,6 +170,11 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   - Android on a real phone (T50, 2026-10-27; emulator-verified): the rule-book link opens the highlighted PDF in your
     PDF app with the entry's page FIRST and the whole book after it — say if that reads right; nothing sits under the
     status bar or the gesture / 3-button bar; changing the system font size keeps the water you had open.
+  - Accessibility (T243 → T258, 2026-10-29): a TalkBack / VoiceOver walk (map → water → regs → conditions → salmon →
+    menu) and the largest system text; the bottom tab labels stop growing at 1.3× (Q160) — say if that is wrong.
+  - Regs scroll (T50, 2026-10-29): scroll a water's Regulations, switch to Conditions / another tab / change the font
+    size, come back — it should be where you left it.
+  - Offline maps (T238/T259): More → Offline maps; which map regions a first install keeps (Q161, default all).
 - **Sign-off walk** at the end (T87) before app/design is deleted.
 
 - **SEO, v1 pages (2026-10-27):** keep your existing Search Console property; when the new site is live add the new sitemap

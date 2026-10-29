@@ -251,7 +251,7 @@ use that as the sole source of future work."
 | T204 | a part's separate stretches and a mark at every place two parts meet (T203 items 4–5) | DONE | 9e0960ec | built in r-8b43fb267199 (Kanaka: bridge + falls marks, 610 stretch rows); owner phone check |
 | T205 | curation review: zone entries without a map, species + sizes per rule, pilot removed, compact T/R/P/A widget, bigger show-on-map | DONE | 7a55e651 | owner tries it |
 | T206 | app golden parity after the retired overlapping rules AND the zone daily-quota rename (page v36 oracle) | DONE | 3797095c 66a0aa70 | order-only amendment (rename flips), ORACLE_RETIRED + Lois fold, on-parts, handle re-pins; check green bar release-budget (T203) |
-| T208 | show rules that hold on an undrawn part of a lake ("area at the outlet … map 1") clearly, linked to the synopsis map | PARTIAL | 3fc83a0f | app shows area rules as "Outlet area only (see map N)" with the synopsis page linked, named on the fold head and open on a day the rule holds; the drawn outline waits on lake splits |
+| T208 | show rules that hold on an undrawn part of a lake ("area at the outlet … map 1") clearly, linked to the synopsis map | PARTIAL | 3fc83a0f, 08d19ed36 | area rules listed (30, 0 gaps); outlet/inlet with no map no longer says "see the map"; the drawn outline waits on lake splits (deferred) |
 | T207 | "on parts" is a note; unused-cut false positives; split confidence end to end; White/Fulton/Chuckwalla/Cranberry cuts | DONE | 04315ec5 0e605022 48239620 c127eff6 | built in r-d32f814feac0; 8 DFO scopes bound; Burton/Kootenay decided by the owner 2026-10-26 (445643c2) and bound; 18 left as high severity |
 | T209 | vessel restrictions in the app: boats line (electric only, no powered boats, power cap, speed, towing, no vessels) on the water page + map sheet | DONE | ffe7e7e2 | boats line on the page (6 kinds, golden test); 162 electric_only rules store max_power_kw 7.5 (owner 10-28, pipeline/tools/electric_kw.py) |
 | T210 | DFO review mode: proposed splits shared along the river, Place y without a new split, simpler new-split UI | DONE | 0805e479 | proposals deduped across all marks (2 distinct; 1 duplicate pair folded), server reuses ids, Place y with existing-cut fix, 3-step new-split UI; owner tries it |
@@ -281,12 +281,12 @@ use that as the sole source of future work."
 | T235 | data attribution: map credits naming what is drawn (web + native), source credits on the sheets, About → Sources & licences (ODbL / OGL-BC / OGL-Canada / DFO / PSF / Esri) | DONE | cf41b443 | ODbL decided 10-28 (no file; map + Sources credit); city licences added; owner: confirm Burnaby/Abbotsford wording; native ⓘ on a device rides T77 |
 | T236 | legal disclaimer (About, first run, regs foot) + "Regulations as of … · salmon feed … · in-season …" on each water page | DONE | cf41b443 | as-of reads `published` (stamped at publish, T251), the newest synopsis/DFO input date before it |
 | T237 | report a problem: Send report (reason, email, offline queue via T231) → staging feeds worker POST /report (rate-limited, private R2, digest) → review-app Reports tab | PARTIAL | 12a75940 | native device not run; production endpoint + privacy wording are the owner's |
-| T238 | offline regions manager (phone): keep/delete regions, storage used | OPEN | — | owner 2026-10-28 (P4); needs a per-region tile split (T85/T202) |
+| T238 | offline regions manager (phone): keep/delete regions, storage used | PARTIAL | b55c20c7b, 6f3fc912f, 342454f7b | More → Offline maps built (regs always all-B.C., owner 10-29); per-region map → T259 |
 | T239 | annual synopsis update: runbook + book diff tool + dry run | OPEN | — | owner 2026-10-28 (P5); the parse is human-run |
 | T240 | production launch checklist (data-worker fix, prod R2, feeds prod + crons, retire old cron/workflows, DNS 301s, Search Console, noindex off, CF bot/robots, secrets, smoke, env) | OPEN | — | owner 2026-10-28 (P6); list written; ★ lines are the owner's; body of T86 |
 | T241 | staging smoke tests after every deploy (CDP driver vs staging) | DONE | ec26ed584 | 18 checks phone+desktop, 52 s, green; in site.sh/upload.sh; manual workflow not yet run (branch unpushed) |
 | T242 | crash + error reporting (privacy-light) | OPEN | — | owner 2026-10-28 (P8); owner: Sentry vs own endpoint (default own) |
-| T243 | accessibility pass (native) | OPEN | — | owner 2026-10-28 (P9) |
+| T243 | accessibility pass (native) | DONE | 98bb69021, cbaf6e30a, e0e70fed5, d12bd8799, d34ea54e3 | shell press gate (36 states), contrast tokens, axe web walk clean, camera reduce-motion; leftovers → T258 |
 | T244 | app store readiness (icon, splash, listing, privacy labels, internal tracks) | OPEN | — | owner 2026-10-28 (P10); owner: accounts, listing text |
 | T245 | low-end Android performance budgets + fixes | OPEN | — | owner 2026-10-28 (P11) |
 | T246 | backups / disaster recovery (R2 + inventory + restore test) | DONE | ec26ed584 | backup bucket + lifecycle; worker daily cron; curated/release scripts; restore test all hashes pass; restore not served end-to-end |
@@ -301,6 +301,8 @@ use that as the sole source of future work."
 | T255 | Android app test bed: Maestro flows + adb network control + scenario runner/report (feeds, big update, offline, spots offline, report outbox; T223 sync seam) | IN PROGRESS | — | owner 2026-10-29 |
 | T256 | bad connections part 2: fewer bytes per answer (water/core by region), a start link before paint, Conditions chart before its envelope, the phone installer on resilient fetch, bundle size, request walk first-run | OPEN | — | from T254 measurements |
 | T257 | polish pass: coach-mark tour, "Before you fish" sheet, one delayed FishSpinner for every wait, shared components + guards | IN PROGRESS | — | owner 2026-10-29 polish pass |
+| T258 | accessibility leftovers: T257's screens into the shell gate, web text-row labels, web targets, owner TalkBack/VoiceOver walk | OPEN | — | after T257 |
+| T259 | offline map by region: per-region tiles, Save/Remove map regions, install/update fetch kept maps only | OPEN | — | needs T85/T202 tile split; owner default regions |
 
 ## Order for open tickets
 
@@ -362,6 +364,8 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q155 | T174 | Gravel Slough's 1425 connector lines take the answer of the polygons around them? | yes — built as `water_line_gaps` (any stream water; Gravel 2 of 3, the 3rd has two answers) | owner |
 | Q158 | T168 | A renamed continuation's gauge counts as "on this water" (the Vedder lists the Chilliwack's 08MH001 as its own)? | yes | owner |
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
+| Q160 | T243 | Bottom tab labels follow the OS text size only to 1.3× (a quarter of a phone holds no more; the platforms' own tab bars do the same) | 1.3× cap | owner |
+| Q161 | T259 | Which map regions a first install keeps offline | all (~460 MB map; regs always all-B.C.) | owner |
 
 ### Answered (recently, for the record)
 - Q144 — owner 2026-10-28: the defaults — steelhead the default species; spawning reaches solid and passage reaches DASHED (not a paler ramp); its own map mode (a third choice beside Standard / Salmon, with its own index for painting), not inside Conditions. Built in T199 (decisions.md "Q144").
