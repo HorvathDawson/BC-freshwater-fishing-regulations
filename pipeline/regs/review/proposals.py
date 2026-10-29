@@ -420,17 +420,33 @@ def _proposes(m) -> bool:
 
 # --------------------------------------------------------------------------- tidal (T166)
 
+#: OWNER 2026-10-28: a tidal split comes only from WRITTEN WORDS or the DFO default (the mouth) — the DFO polygon
+#: decides no cut (it is still drawn, as the `tidal_water` area). A tidal mark whose chosen point is the polygon's
+#: crossing (the Tidal tab stamps "chosen point: polygon ..." on its new split) is listed, never applied.
+POLYGON_POINT_WORDS = ("chosen point: polygon", "polygon crossing")
+
+
+def polygon_point(n) -> bool:
+    """Was this tidal cut placed by the DFO polygon (not by words, the mouth or the owner's own point)?"""
+    text = f"{n.note or ''} {n.quote or ''}".lower()
+    return any(w in text for w in POLYGON_POINT_WORDS) and "chosen point: words" not in text \
+        and "chosen point: mouth" not in text and "chosen point: custom" not in text
+
+
 def _tidal_decides(m) -> bool:
     """Does a tidal mark in force DECIDE a tidal boundary? Only Place y with its one cut (the point
     the owner chose: the proposal, a polygon crossing, the words' landmark or his own). A wrong or
     unsure mark decides nothing yet — one carrying a point is LISTED for follow-up (Bear River:
     "most likely the split is at the bridge, we should look more online"), never applied."""
-    return m.scope == "tidal" and len(m.new_splits) == 1 and m.verdict == "verified"
+    return (m.scope == "tidal" and len(m.new_splits) == 1 and m.verdict == "verified"
+            and not polygon_point(m.new_splits[0]))
 
 
 def _tidal_followup(m) -> bool:
-    """A tidal mark in force that is not a decision but says something: wrong / unsure."""
-    return m.scope == "tidal" and m.verdict in ("wrong", "unsure")
+    """A tidal mark in force that is not a decision but says something: wrong / unsure, or a Place y
+    on a polygon point (`POLYGON_POINT_WORDS`)."""
+    return m.scope == "tidal" and (m.verdict in ("wrong", "unsure") or (
+        m.verdict == "verified" and len(m.new_splits) == 1 and polygon_point(m.new_splits[0])))
 
 
 def tidal_decision_marks(path: Optional[Path], candidates: Optional[Path] = None) -> list:
@@ -455,7 +471,13 @@ def tidal_decision_marks(path: Optional[Path], candidates: Optional[Path] = None
         n = {"ref": d["id"].replace(":", "-")[:40], "on_item": (row.get("items") or [None])[0],
              "name": pr.get("split_name") or f"{row.get('water')}: tidal boundary",
              "quote": d.get("where") or "", "note": d.get("note") or ""}
-        if reuse.get("split_id"):
+        if d.get("anchor"):                          # the owner named the place himself (Nitinat: the lake inlet)
+            a = dict(d["anchor"])
+            n.update({k: v for k, v in a.items() if k in ("anchor", "item_id", "split_id", "coord", "blk",
+                                                         "measure", "offset_m")})
+            n["name"] = a.get("name") or n["name"]
+            n["on_item"] = a.get("on_item") or n["on_item"]
+        elif reuse.get("split_id"):
             n.update(anchor="split", split_id=reuse["split_id"])
         else:
             n.update(anchor="coord", coord=tuple(pr["coord"]), blk=row.get("blk"),
@@ -591,9 +613,12 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
         n = m.new_splits[0] if m.new_splits else None
         out.append({"id": f"tidal-open-{_slug(m.target, 40)}", "kind": "tidal_followup",
                     "target": m.target, "scope": "tidal", "rule_id": None,
-                    "title": f"{m.target}: the owner's tidal mark says {m.verdict} — no cut until a "
-                             "Place y mark" + (f" (his point: {n.name}, {n.measure} m above the mouth)"
-                                               if n is not None else ""),
+                    "title": (f"{m.target}: a polygon point — the DFO polygon decides no tidal cut "
+                              "(owner 2026-10-28: words or the mouth); mark it again"
+                              if m.verdict == "verified" else
+                              f"{m.target}: the owner's tidal mark says {m.verdict} — no cut until a "
+                              "Place y mark") + (f" (point: {n.name}, {n.measure} m above the mouth)"
+                                                 if n is not None else ""),
                     "marks": [{"target": m.target, "rule_id": None, "reviewer": m.reviewer,
                                "date": m.date, "note": m.note}],
                     "edits": [], "depends_on": [], "problems": [], "notes": [m.note] if m.note else [],

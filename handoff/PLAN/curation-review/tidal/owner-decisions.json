@@ -1,5 +1,5 @@
 {
- "_about": "Owner calls on tidal candidates (decisions.md '2026-10-27 \u2014 tidal calls'), read by pipeline/tools/audit/tidal_triage.py triage. A decided candidate is class 'owner-decided'. No curated writes: the candidate's proposed boundary already sits where the owner says; this records the call.",
+ "_about": "Owner calls on tidal candidates (decisions.md '2026-10-27 — tidal calls'), read by pipeline/tools/audit/tidal_triage.py triage. A decided candidate is class 'owner-decided'. No curated writes: the candidate's proposed boundary already sits where the owner says; this records the call. T166 (owner 2026-10-28): the proposals (pipeline.regs.review.proposals) read each call as a Place y tidal mark at the candidate's proposed point, or at `anchor` when the call names the place itself; a later Tidal-tab mark on the same candidate wins.",
  "decisions": [
   {
    "id": "tidal:360875983",
@@ -18,6 +18,21 @@
    "where": "the FWA river mouth (0 m); the DFO Hecate ramp - Green Point line lies seaward of it",
    "note": "the tidal boundary is the river mouth, not the polygon (950 m up) nor the Cowichan Bay line",
    "decided": "2026-10-27"
+  },
+  {
+   "id": "tidal:354155007",
+   "water": "Nitinat River",
+   "blk": "354155007",
+   "boundary": "source_text",
+   "where": "the Nitinat River's entry into Nitinat Lake (the lake inlet): Nitinat Lake and the river below it are tidal",
+   "note": "owner 2026-10-28: Nitinat Lake is tidal (synopsis p.17; its row is marked tidal) and so is the river below the lake; the cut stands where the river enters the lake, not at the polygon's crossing (28,143 m)",
+   "anchor": {
+    "anchor": "lake_inlet",
+    "item_id": "wbk:329504244",
+    "on_item": "gnis:23318",
+    "name": "Nitinat River: Nitinat Lake inlet (tidal boundary)"
+   },
+   "decided": "2026-10-28"
   }
  ]
 }

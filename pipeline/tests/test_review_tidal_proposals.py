@@ -185,3 +185,29 @@ def test_a_tidal_cut_or_flag_waits_on_its_side_rebuild(src):
     assert nxt is not None
     P.check(props, src)
     assert all(not p["check"]["cheap"] for p in props)
+
+
+def test_a_polygon_point_is_never_a_cut(src):
+    """Owner 2026-10-28: tidal splits come only from written words or the DFO mouth default."""
+    def with_point(note):
+        m = _tidal(NANAIMO)
+        return m.model_copy(update={"new_splits": [m.new_splits[0].model_copy(update={"note": note})]})
+    poly = with_point("chosen point: polygon (the proposal) — polygon crossing (uppermost)")
+    [p] = P.build([poly], src)
+    assert p["kind"] == "tidal_followup" and not p["edits"] and "polygon" in p["title"]
+    words = with_point("chosen point: words (the proposal) — the words: Cedar Bridge")
+    assert P.build([poly, words], src)[0]["kind"] == "new_split"     # a later words mark wins
+
+
+def test_an_owner_call_may_name_the_place_itself(src, tmp_path):
+    """Nitinat (owner 2026-10-28): the lake and the river below it are tidal — the cut stands at the
+    river's entry to the lake, not at the polygon's crossing."""
+    dec = tmp_path / "owner-decisions.json"
+    dec.write_text(json.dumps({"decisions": [{"id": NANAIMO, "water": "Nanaimo River", "decided": "2026-10-28",
+        "anchor": {"anchor": "lake_inlet", "item_id": "wbk:9", "on_item": "gnis:16505",
+                   "name": "Nanaimo River: Lake inlet (tidal boundary)"}}]}))
+    [p] = P.build([], P.Sources(src.entries_dir, src.dfo_dir, src.splits_path, tidal_decisions=dec))
+    sp = p["edits"][0]["split"]
+    assert sp["tidal"] is True and sp["label"] == "Lake inlet (tidal boundary)"
+    assert sp["anchor"] in ({"type": "lake", "wbk": "9", "edge": "inlet"},
+                            {"type": "point", "coord": sp["anchor"].get("coord"), "is_lonlat": True})
