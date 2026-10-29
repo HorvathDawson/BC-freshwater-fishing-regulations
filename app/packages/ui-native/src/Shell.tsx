@@ -47,7 +47,7 @@ import { DaySheet } from "./regs/DaySheet";
 import { WaterViewsContext } from "./ViewSwipe";
 import { MenuContext } from "./menu/MenuContext";
 import { BrowseHost } from "./shell/BrowseHost";
-import { MapLegend, PairBanner } from "./shell/MapLegend";
+import { MapLegend, PairBanner, RunsLegend } from "./shell/MapLegend";
 import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
 import { SpotHost, useSpotEdit } from "./shell/SpotHost";
@@ -144,12 +144,12 @@ export function Shell(p: ShellProps) {
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
                                 epoch: syncState.epoch, settled, gearSettled: settled && quietLine,
                                 salmonOnDemand: !!(p.prefetch && loader),
-                                runTiming: p.runTiming ?? null });
-  // (T199) the runs sheet's words, for the tapped section, the species chosen and the map's day
+                                runTiming: p.runTiming ?? null, runSpeciesStore: p.runSpeciesStore ?? null });
+  // (T199, T261) the runs sheet's words, for the tapped section, the species chosen and the slider's pentad
   const runsVM = useMemo(() => {
     const f = col.runs.facts, sp = col.runs.chosen;
-    return runsAt !== null && f && sp ? runSheet(f, runsAt, sp, mapDay ?? new Date()) : null;
-  }, [runsAt, col.runs.facts, col.runs.chosen, mapDay]);
+    return runsAt !== null && f && sp.length ? runSheet(f, runsAt, sp, col.runs.pentad) : null;
+  }, [runsAt, col.runs.facts, col.runs.chosen, col.runs.pentad]);
   /*
    * YOUR SPOTS ON EVERY MAP (owner 2026-10-22: "toggle our spots on and off in the layer menu"), while the Layers
    * sheet's Spots switch is on (default on); (T131) each a mark that opens its spot, drawn by `SpotPin`, the selected
@@ -247,10 +247,12 @@ export function Shell(p: ShellProps) {
                   dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
-                  onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onRuns={setRunsAt} />;
+                  onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onRuns={setRunsAt}
+                  fishImages={p.fishImages} />;
 
-  /** (T48) The top bar — the search field — is the maps': on the Map and Conditions tabs while browsing. */
-  const topBar = route.mode === "browse" && (tab === "map" || tab === "conditions") && !rail.picking;
+  /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)
+   *  Runs while browsing, so the bell is where it always is on every map. */
+  const topBar = route.mode === "browse" && (tab === "map" || tab === "conditions" || tab === "runs") && !rail.picking;
   // the legend is the map's caption: while search's sheet is over the map it captions nothing in view
   const showLegend = route.mode === "browse" && !searching
     && (tab === "conditions"
@@ -307,6 +309,8 @@ export function Shell(p: ShellProps) {
       {showLegend && (
         <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
       )}
+      {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
+      {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} />}
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
       {bottomBarShown(route) && <TabBar active={tab} palette={palette} onChange={nav.toTab} />}
       {/* (T215) the synopsis PDF is loading / failed: progress, Cancel, Retry */}
@@ -326,8 +330,9 @@ export function Shell(p: ShellProps) {
       <ObstacleSheet props={route.mode === "browse" ? obstacle : null} palette={palette} onClose={() => setObstacle(null)} />
       {/* (T166) a tap on tidal water: why the freshwater regulations stop here (Map tab, while browsing) */}
       <TidalSheet open={route.mode === "browse" && tidalOpen} palette={palette} onClose={() => setTidalOpen(false)} />
-      {/* (T199) a tap under Run timing: the runs on that section, and on to its regulations */}
-      <RunsSheet vm={route.mode === "browse" ? runsVM : null} palette={palette} onClose={() => setRunsAt(null)}
+      {/* (T199, T261) a tap on the Runs map: the runs on that section, and on to its regulations */}
+      <RunsSheet vm={route.mode === "browse" && tab === "runs" ? runsVM : null} palette={palette} theme={theme}
+                 fishImages={p.fishImages} onClose={() => setRunsAt(null)}
                  onOpenWater={runsAt === null ? undefined : () => {
                    const sid = runsAt;
                    setRunsAt(null);

@@ -16,7 +16,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DeviceEventEmitter } from "react-native";
-import { Colouring, LABEL_SOURCE_LAYERS, methodInput, runsInput, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
+import { Colouring, LABEL_SOURCE_LAYERS, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
          type Channel, type ChannelInput, type LabelSourceLayer, type LabelTarget, type TileRenderer } from "../colouring";
 import type { MapAdapter } from "../adapters/contract";
 import type { MapProps } from "../map-props";
@@ -188,7 +188,7 @@ export function useNativeColouring(o: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [method?.facts, methodDay, o.atlasUrl]);
   // (T199) the run timing: the state IS the label, a species or month change relabels
-  const runsKey = runs ? `${runs.slot}:${runs.month}` : "";
+  const runsKey = runsKeyOf(runs);
   useEffect(() => toChannel("runs", runs ? runsInput(runs) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [runs?.facts, runsKey, o.atlasUrl]);

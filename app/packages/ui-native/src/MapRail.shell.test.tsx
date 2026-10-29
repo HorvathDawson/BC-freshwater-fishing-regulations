@@ -100,12 +100,12 @@ const look = () => {
     : screen.queryByText("Tamihi run") ? "spot screen" : "nothing";
   return `${bar}${on ? ` (${on})` : ""} | ${map} | ${up}`;
 };
-const BAR = "Map Conditions Spots More";
+const BAR = "Map Conditions Runs Spots More";
 const ROOT = `${BAR} (Map) | pin none · fit none · camera 49.15,-121.85,10 | nothing`;
 const tab = (name: string) => act(() => { fireEvent.click(screen.getByRole("tab", { name })); });
 
 describe("spots and the rail, through the Shell (T48)", () => {
-  it("four tabs, Spots among them; the rail is Layers alone on both maps — no Spots button anywhere on a map", () => {
+  it("five tabs (T261: Runs), Spots among them; the rail is Layers alone on both maps — no Spots button anywhere on a map", () => {
     mount();
     const map = [look(), screen.queryByLabelText("Choose layers") !== null, screen.queryByLabelText("Your spots")];
     cleanup();

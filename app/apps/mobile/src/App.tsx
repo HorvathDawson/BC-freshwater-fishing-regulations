@@ -28,7 +28,7 @@ import { createNet, createReportOutbox, createUpdateLog, createUpdateService, ve
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { connectivity, LoadingState, setSynopsisNet, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
@@ -151,6 +151,8 @@ export default function App() {
   const firstRun = useMemo(() => openFirstRunStore(), []);
   const walkthrough = useMemo(() => openWalkthroughStore(), []);
   const recentSearches = useMemo(() => openRecentSearchStore(), []);
+  // (T261) the species the Runs tab paints, kept between visits
+  const runSpeciesStore = useMemo(() => openRunSpeciesStore(), []);
   // (T254) low-bandwidth mode: the More → Data setting (kept on the device), the platform's word, the meter → one mode
   const dataModeStore = useMemo(() => openDataModeStore(), []);
   // T199: the run timing (its own feed, `runtiming/` on the data origin) — read the first time Run timing is chosen
@@ -422,7 +424,7 @@ export default function App() {
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
                inSeason={inSeason} inSeasonSeen={inSeasonSeen} firstRun={firstRun} walkthrough={walkthrough} recentSearches={recentSearches}
-               runTiming={runTiming}
+               runTiming={runTiming} runSpeciesStore={runSpeciesStore}
                refreshing={refreshing}
                onDeleteSpot={spotsHook.remove}
                onRefreshSpots={refreshSpots}

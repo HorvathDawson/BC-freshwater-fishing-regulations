@@ -12,12 +12,19 @@ arrival, else start of spawning, else the peak) to the last (end of spawning, el
 pentad, the percent of those years the fish were present; the words are the medians (arrival, peak of spawning, end).
 Only the most recent `MAX_YEARS` dated years count, and a stream with fewer than `MIN_YEARS` gives no record — two
 surveys are an anecdote, not a timing.
+
+COUNTS (T261): each DFO record also carries DFO's spawner estimate (`COUNT_FIELD`) per year, from EVERY row of its
+stream, species and run — a counted year need not be a dated one — the most recent `COUNT_YEARS`, ascending, as
+`counts: [[year, n], ...]`. An empty or unreadable value is no count; 0 is a count (the survey found none). PSF runs
+carry NO counts: PSF's written permission covers run-timing curves and CU reach assignments only
+(`fetch.explorer.PERMISSION`); its catch, run-size and spawner-abundance series are never read into anything.
 """
 from __future__ import annotations
 
 import argparse
 import csv
 import json
+import math
 import statistics
 from collections import defaultdict
 from pathlib import Path
@@ -29,6 +36,10 @@ from pipeline.runtiming.timing import CREDIT, PENTADS, slot_of, write_timing
 
 MIN_YEARS = 3
 MAX_YEARS = 25
+#: the spawner counts a DFO record carries (T261): the most recent this many COUNTED years, dated or not
+COUNT_YEARS = 12
+#: the NuSEDS column counted: DFO's estimate of all natural spawners (the one column filled across every species)
+COUNT_FIELD = "NATURAL_SPAWNERS_TOTAL"
 #: a survey year whose dates span more than this is a typo (or two runs entered as one), not a season
 MAX_SPAN_DAYS = 200
 #: the season starts Mar 1 for medians and spans (coho spawn into January; spring chinook arrive in April)
@@ -127,11 +138,24 @@ def presence_curve(windows: List[Tuple[int, int]]) -> List[int]:
     return [int(round(100 * h / n)) for h in hits]
 
 
+def spawners(row: dict) -> Optional[int]:
+    """The row's `COUNT_FIELD`, or None (empty, or not a number). 0 is a real count."""
+    t = (row.get(COUNT_FIELD) or "").strip().replace(",", "")
+    try:
+        v = float(t)
+    except ValueError:
+        return None
+    if not math.isfinite(v) or v < 0:
+        return None
+    return int(round(v))
+
+
 def dfo_records(rows: Iterable[dict], sites: Dict[str, Tuple[float, float, str]]) -> Tuple[List[dict], dict]:
     """The NuSEDS rows -> one record per (site, species, run type[, pink brood line]) with enough dated years. A site
     DFO types as an aggregate ("Stream Aggregate": the uncounted remainder of a system) is not a place, and gives no
     record."""
     by: Dict[tuple, Dict[int, tuple]] = defaultdict(dict)
+    counted: Dict[tuple, Dict[int, int]] = defaultdict(dict)
     names: Dict[tuple, str] = {}
     seen = 0
     for row in rows:
@@ -145,13 +169,16 @@ def dfo_records(rows: Iterable[dict], sites: Dict[str, Tuple[float, float, str]]
             year = int(row["ANALYSIS_YR"])
         except (KeyError, ValueError):
             continue
+        run = (row.get("RUN_TYPE") or "").strip().upper()
+        slot = slot_of(sp, year=year)
+        k = (row["GFE_ID"].strip(), trim_wsc(raw.strip()), sp, slot, run)
+        n = spawners(row)
+        if n is not None:                                   # every row counts, dated or not (one per year: the last)
+            counted[k][year] = n
         w = year_window(row)
         if w is None:
             continue
         seen += 1
-        run = (row.get("RUN_TYPE") or "").strip().upper()
-        slot = slot_of(sp, year=year)
-        k = (row["GFE_ID"].strip(), trim_wsc(raw.strip()), sp, slot, run)
         by[k][year] = w                                     # one survey per stream, species, run and year
         # WATERBODY, not GAZETTED_NAME: it names the surveyed stretch ("BABINE RIVER - SECTION 4")
         names[k] = (row.get("WATERBODY") or row.get("GAZETTED_NAME") or "").strip()
@@ -165,6 +192,7 @@ def dfo_records(rows: Iterable[dict], sites: Dict[str, Tuple[float, float, str]]
         ws = [by[k][y] for y in years]
         peaks = [w[2] for w in ws if w[2] is not None]
         ll = sites.get(gfe)
+        counts = sorted(counted.get(k, {}).items())[-COUNT_YEARS:]
         out.append({
             "key": f"dfo:{gfe}:{slot}:{run or '-'}", "source": "dfo", "species": sp, "slot": slot,
             "name": titled(names[k]), "label": RUN_LABELS.get(run),
@@ -173,8 +201,10 @@ def dfo_records(rows: Iterable[dict], sites: Dict[str, Tuple[float, float, str]]
             "window": [fmt_day(unseason(statistics.median(w[0] for w in ws))),
                        fmt_day(unseason(statistics.median(w[1] for w in ws)))],
             "years": len(years), "first_year": years[0], "last_year": years[-1], "wsc": wsc,
-            "lon": ll[0] if ll else None, "lat": ll[1] if ll else None, "site_kind": ll[2] if ll else None})
-    return out, {"dated_survey_rows": seen, "records": len(out), f"under_{MIN_YEARS}_years": dropped}
+            "lon": ll[0] if ll else None, "lat": ll[1] if ll else None, "site_kind": ll[2] if ll else None,
+            "counts": [list(c) for c in counts] or None})
+    return out, {"dated_survey_rows": seen, "records": len(out), f"under_{MIN_YEARS}_years": dropped,
+                 "records_with_counts": sum(1 for r in out if r["counts"])}
 
 
 _SMALL = {"of", "and", "the", "de"}

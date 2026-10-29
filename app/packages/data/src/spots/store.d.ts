@@ -37,3 +37,5 @@ export declare function openRecentSearchStore(): { read(): string | null; write(
 export declare function openReportOutboxStore(): { read(): string | null; write(text: string): void };
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), as whole text. */
 export declare function openDataModeStore(): { read(): string | null; write(text: string): void };
+/** (T261) The species the Runs tab paints (a JSON list of names), as whole text; device-only. */
+export declare function openRunSpeciesStore(): { read(): string | null; write(text: string): void };

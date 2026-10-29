@@ -25,7 +25,7 @@ ROWS = {  # sid: (k, order, wsc, blk, m0, m1, names, down, item, x, y)
 }
 
 
-def make_base(tmp_path):
+def make_base(tmp_path, wg=None):
     sids = sorted(ROWS)
     st = {"wsc": [], "wbk": [], "nm": [], "it": []}
     ix = lambda t, v: st[t].index(v) if v in st[t] else (st[t].append(v) or len(st[t]) - 1)   # noqa: E731
@@ -38,6 +38,9 @@ def make_base(tmp_path):
                      ("dn", dn), ("it", ix("it", it)), ("x", int(x * 1e5)), ("y", int(y * 1e5))):
             cols[c].append(v)
         prev = s
+    if wg is not None:                       # {sid: basin id}: the optional watershed-group column (T261)
+        st["wg"] = sorted(set(wg.values()))
+        cols["wg"] = [st["wg"].index(wg[s]) if s in wg else -1 for s in sids]
     b = {"format": BASE.FORMAT, "section_handles": "h" * 16, "tile_version": "h" * 16 + ".t", "count": len(sids),
          "strings": st, "cols": cols}
     p = tmp_path / "base.json.gz"
@@ -59,7 +62,7 @@ def make_inputs(tmp_path):
     dfo = [{"key": "dfo:9:Coho:-", "source": "dfo", "species": "Coho", "slot": "Coho", "name": "Test Creek",
             "label": None, "curve": curve([9]), "peak": "Oct 10", "window": ["Oct 1", "Oct 30"], "years": 10,
             "first_year": 2010, "last_year": 2024, "wsc": "100-000001-000100", "lon": -122.0, "lat": 49.5,
-            "site_kind": "Stream"}]
+            "site_kind": "Stream", "counts": [[2023, 40], [2024, 0]]}]
     sources = {"psf": {"title": "t", "dataset": "d", "updated": "2024-09-10", "fetched": "2026-10-28"},
                "dfo": {"title": "t", "dataset": "d", "updated": "20260601", "fetched": "2026-10-28",
                        "licence": "Open Government Licence – Canada"}}
@@ -131,3 +134,61 @@ def test_months_and_pentads_read_the_curve():
     assert B.months_of(r) == 1 | (1 << 11)
     bits = int(B.pentads_of(r), 16)
     assert bits & 1 and bits >> 72 & 1 and not bits >> 36 & 1
+
+
+def test_dfo_runs_carry_their_counts_and_psf_runs_none(built):
+    docs, *_ = built
+    runs = {r["id"]: r for r in docs["runs"]["runs"]}
+    assert runs["dfo:9:Coho:-"]["n"] == [[2023, 40], [2024, 0]]
+    assert "n" not in runs["psf:7"]
+    assert docs["runs"]["counts"] == {"dfo": {"field": "NATURAL_SPAWNERS_TOTAL",
+                                              "words": "spawners counted (DFO estimate)", "years": 12}}
+
+
+def test_a_base_without_wg_paints_no_basins(built):
+    docs, _, report, _ = built
+    assert "basins" not in docs["paint"] and report["basins_painted"] is None
+
+
+def test_basins_or_the_runs_of_their_painted_sections(tmp_path):
+    timing, poly = make_inputs(tmp_path)
+    # A holds the river (passage only) and the lake (steelhead spawning); B holds the tributary (steelhead spawning +
+    # coho observed) and the trickle (nothing painted); C holds only the other river (nothing painted: left out)
+    wg = {1: "AAAA", 2: "AAAA", 6: "AAAA", 3: "BBBB", 4: "BBBB", 5: "CCCC"}
+    files, index, report = B.build(timing, poly, make_base(tmp_path, wg))
+    paint = json.loads(files["paint"])
+    runs = json.loads(files["runs"])["runs"]
+    slots = json.loads(files["runs"])["slots"]
+    steel, coho = slots.index("Steelhead"), slots.index("Coho")
+    pent = {r["id"]: r["pentads"] for r in runs}
+    zero = "0" * 19
+    assert paint["basins"]["ids"] == ["AAAA", "BBBB"]
+    assert paint["basins"]["m"] == [[[steel, pent["psf:7"], pent["psf:7"]]],
+                                    [[coho, pent["dfo:9:Coho:-"], zero], [steel, pent["psf:7"], zero]]]
+    assert report["basins_painted"] == 2 and report["dfo_runs_with_counts"] == 1
+    B.check(files, index)
+    bad = json.loads(files["paint"])
+    bad["basins"]["m"][0][0][1] = "f" * 19                  # bits past pentad 72
+    with pytest.raises(SystemExit):
+        B.check(dict(files, paint=B._bytes(bad)), index)
+
+
+def test_add_basins_keeps_the_handles_and_the_name(tmp_path, monkeypatch):
+    p = make_base(tmp_path)
+    # stand-in for the FWA groups: one box around the first river's mouth, nothing elsewhere
+    import geopandas as gpd
+    from shapely.geometry import box
+    from pyproj import Transformer
+    t = Transformer.from_crs(4326, 3005, always_xy=True)
+    x0, y0 = t.transform(-122.05, 48.95)
+    x1, y1 = t.transform(-121.95, 49.05)
+    gdf = gpd.GeoDataFrame({"basin_id": ["LFRA"]}, geometry=[box(x0, y0, x1, y1)], crs=3005)
+    monkeypatch.setattr("pipeline.deliver.tiles.basins.groups", lambda gpkg: gdf)
+    out = tmp_path / "out"
+    assert BASE.main(["--add-basins", str(p), "--out", str(out), "--gpkg", "unused.gpkg"]) == 0
+    q = out / "base-" "hhhhhhhhhhhhhhhh.json.gz"
+    b = BASE.read(q)
+    orig = BASE.read(p)
+    assert b["section_handles"] == orig["section_handles"] and b["cols"]["x"] == orig["cols"]["x"]
+    assert b["strings"]["wg"] == ["LFRA"] and b["cols"]["wg"] == [0, -1, -1, -1, -1, -1]
+    assert B.wg_of(b) == {1: "LFRA"}

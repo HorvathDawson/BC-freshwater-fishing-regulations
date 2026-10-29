@@ -47,9 +47,10 @@ import { useReducer } from "react";
 import { WATER_VIEWS, type WaterView } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 
-export type BrowseTab = "map" | "conditions" | "spots" | "more";
-/** The tabs search opens over (T48): the two maps. Spots and More have no map behind them to search on. */
-export const SEARCH_TABS: readonly BrowseTab[] = ["map", "conditions"];
+export type BrowseTab = "map" | "conditions" | "runs" | "spots" | "more";
+/** The tabs search opens over (T48): the maps — (T261) the Runs map too, so its top bar (search, sync, the bell) is
+ *  the other maps'. Spots and More have no map behind them to search on. */
+export const SEARCH_TABS: readonly BrowseTab[] = ["map", "conditions", "runs"];
 export type View = WaterView;
 export type SpotId = string;
 /** Where on a reach a Conditions tap landed: the "you are here" end of its route map. */

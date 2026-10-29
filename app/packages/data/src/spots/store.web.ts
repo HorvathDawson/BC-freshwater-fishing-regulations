@@ -93,6 +93,11 @@ export function openRecentSearchStore(): { read(): string | null; write(text: st
   return keyStore("canifishthis.recentSearches.v1");
 }
 
+/** (T261) The species the Runs tab paints (a JSON list of names), kept between visits; device-only. */
+export function openRunSpeciesStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.runSpecies.v1");
+}
+
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), one key of its own. */
 export function openDataModeStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.lowData.v1");

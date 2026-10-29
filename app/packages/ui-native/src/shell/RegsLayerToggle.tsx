@@ -6,25 +6,24 @@
  * fly only are no choice here: they are marks on Standard (`@app/map` `gearPaint`). (T182) On the web the first press of
  * Salmon reads the salmon file: the choice is busy until the map can paint it (T257: the fish turns in its icon's place).
  */
-import { RUN_WORDS, SALMON_WORDS } from "@app/core";
+import { SALMON_WORDS } from "@app/core";
 import { CornerStrip } from "../CornerStrip";
 import type { Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 
 export function RegsLayerToggle({ col, palette }: { col: Pick<MapColouring, "regsLayer" | "setRegsLayer"> &
-                                                   Partial<Pick<MapColouring, "salmonLoading" | "salmonOffered" |
-                                                                "runsOffered" | "runsLoading">>; palette: Palette }) {
+                                                   Partial<Pick<MapColouring, "salmonLoading" | "salmonOffered">>;
+                                                 palette: Palette }) {
   const W = SALMON_WORDS.toggle;
-  // (T199) Run timing, the third choice: offered where the run-timing feed is wired; read on its first press
-  const keys = (["standard", "salmon", "runs"] as const).filter((k) =>
-    k === "standard" || (k === "salmon" ? col.salmonOffered !== false : col.runsOffered === true));
+  // (T261) Run timing is no choice here any more: it has its own tab, Runs
+  const keys = (["standard", "salmon"] as const).filter((k) => k === "standard" || col.salmonOffered !== false);
   return (
     <CornerStrip palette={palette} testID="regs-paint" label={W.label} radio coach="modes"
                  segments={keys.map((k) => {
-                   const busy = (k === "salmon" && col.salmonLoading === true) || (k === "runs" && col.runsLoading === true);
-                   const word = k === "runs" ? RUN_WORDS.mode : W[k];
+                   const busy = k === "salmon" && col.salmonLoading === true;
+                   const word = W[k];
                    return { key: k, chip: word, label: word, on: col.regsLayer === k, busy,
-                            icon: k === "salmon" ? "fish" as const : k === "runs" ? "calendar" as const : "map" as const,
+                            icon: k === "salmon" ? "fish" as const : "map" as const,
                             onPress: () => col.setRegsLayer(k) };
                  })} />
   );

@@ -1,20 +1,28 @@
 /**
- * (T199) THE RUN TIMING MODE'S DATA: the run-timing feed read the first time the reader chooses Run timing (never up
- * front: it is its own stream, not the release), held for the session, and handed to the map only on a proven pair
- * whose tiles are the atlas the paint index was bound to. The species row's choice and the day are the map's inputs;
- * the day is the map's own day (the corner's day strip), its month the paint.
+ * (T199, T261) THE RUNS TAB'S DATA: the run-timing feed read the first time the reader opens Runs (never up front: it
+ * is its own stream, not the release), held for the session, and handed to the map only on a proven pair whose tiles
+ * are the atlas the paint index was bound to.
+ *
+ * (T261, owner 2026-10-29) Its inputs are its own, not the Map tab's: the SPECIES chosen (several at once, steelhead by
+ * default, kept between visits in `store`) and the PENTAD the date slider holds (today's to start; a play button walks
+ * the year). The map is repainted from a THROTTLED pentad, so a fast scrub relabels the tiles a few times a second, not
+ * once per pixel; the slider and the sheet read the pentad as it moves.
  */
-import { useMemo, useState } from "react";
-import { runSpecies, slotFor, type RunSpecies, type RunTimingFacts } from "@app/core";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { pentadOf, restoreRunSpecies, runSpecies, saveRunSpecies, slotsFor, type RunSpecies,
+         type RunTimingFacts } from "@app/core";
 import type { RunTimingSource } from "@app/data";
 import { useAsync } from "./async";
 
-/** What the map is handed (`MapProps.runs`): the facts, the slot painted and the month (0 = January). */
+/** What the map is handed (`MapProps.runs`): the facts, the slots painted and the pentad (0..72). */
 export interface RunsFeedVM {
   readonly facts: RunTimingFacts;
-  readonly slot: number;
-  readonly month: number;
+  readonly slots: readonly number[];
+  readonly pentad: number;
 }
+
+/** Where the species chosen are kept: whole text, by one name (`@app/data/spots` `openRunSpeciesStore`). */
+export interface RunSpeciesStore { read(): string | null; write(text: string): void }
 
 export interface RunTimingVM {
   /** the map's input, null until loaded and while the atlas is not the one it was bound to */
@@ -26,35 +34,90 @@ export interface RunTimingVM {
   /** from the last capture (offline), not fetched now */
   readonly captured: boolean;
   readonly species: readonly RunSpecies[];
-  readonly chosen: RunSpecies | null;
-  readonly choose: (name: string) => void;
+  /** the species chosen, in the row's order; never empty once the feed is in */
+  readonly chosen: readonly RunSpecies[];
+  /** add or remove a species (the last one stays: a map of no species answers nothing) */
+  readonly toggle: (name: string) => void;
+  /** the pentad the slider holds (0..72), today's, and the year it is read in (pink's brood line) */
+  readonly pentad: number;
+  readonly today: number;
+  readonly year: number;
+  readonly setPentad: (p: number) => void;
+  readonly playing: boolean;
+  readonly setPlaying: (on: boolean) => void;
 }
 
+/** How often a moving slider repaints the map (ms), and how long one step of Play holds. */
+export const RUNS_PAINT_MS = 140;
+export const RUNS_PLAY_MS = 650;
+
 /**
- * `wanted`: the reader has chosen Run timing (the first time asks the feed; later it is kept). `tiles` the drawn tiles'
- * version ("<handles>.<build>"), `paired` the release / tiles pair proven. `day` the map's day (null: today).
+ * `wanted`: the reader is on the Runs tab (the first time asks the feed; later it is kept). `tiles` the drawn tiles'
+ * version ("<handles>.<build>"), `paired` the release / tiles pair proven. `store` keeps the species chosen.
  */
 export function useRunTiming(i: { source: RunTimingSource | null | undefined; wanted: boolean; paired: boolean;
-                                  tiles: string | null; day: Date | null }): RunTimingVM {
+                                  tiles: string | null; store?: RunSpeciesStore | null; now?: Date }): RunTimingVM {
   const [asked, setAsked] = useState(false);
   if (i.wanted && i.source && !asked) setAsked(true);
   const got = useAsync(() => i.source!.latest(), "runtiming", asked && !!i.source);
   const data = got.state === "ready" ? got.value : null;
   const facts = data?.facts ?? null;
   const species = useMemo(() => (facts ? runSpecies(facts) : []), [facts]);
-  const [name, setName] = useState<string | null>(null);
-  const chosen = species.find((s) => s.name === name) ?? species[0] ?? null;
+  // the reader's choice this session, else what the store kept (read once), else the default
+  const [names, setNames] = useState<readonly string[] | null>(null);
+  const kept = useMemo(() => {
+    try { return i.store?.read() ?? null; } catch { return null; }
+  }, [i.store]);
+  const chosenNames = useMemo(() => restoreRunSpecies(names ? saveRunSpecies(names) : kept, species),
+                              [names, kept, species]);
+  const chosen = useMemo(() => species.filter((s) => chosenNames.includes(s.name)), [species, chosenNames]);
+  const toggle = useCallback((name: string) => {
+    const now = chosenNames.includes(name) ? chosenNames.filter((n) => n !== name) : [...chosenNames, name];
+    if (now.length === 0) return;
+    setNames(now);
+    try { i.store?.write(saveRunSpecies(now)); } catch { /* a preference: losing it costs a tap */ }
+  }, [chosenNames, i.store]);
+
+  const day = i.now ?? new Date();
+  const today = pentadOf(day);
+  const year = day.getFullYear();
+  const [pentad, setPentadRaw] = useState(today);
+  const [playing, setPlaying] = useState(false);
+  const setPentad = useCallback((p: number) => {
+    setPlaying(false);
+    setPentadRaw(Math.max(0, Math.min(72, Math.round(p))));
+  }, []);
+  // PLAY: a pentad a step, round the year, until the reader touches the slider or presses Pause
+  useEffect(() => {
+    if (!playing) return;
+    const t = setInterval(() => setPentadRaw((p) => (p + 1) % 73), RUNS_PLAY_MS);
+    return () => clearInterval(t);
+  }, [playing]);
+  const painted = useThrottled(pentad, RUNS_PAINT_MS);
+
   const handles = i.tiles ? i.tiles.split(".")[0]! : null;
   const ours = facts !== null && i.paired && handles === facts.handles;
-  const dayKey = i.day ? `${i.day.getFullYear()}-${i.day.getMonth()}-${i.day.getDate()}` : "today";
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- the day's identity is its date, not the Date object
-  const day = useMemo(() => i.day ?? new Date(), [dayKey]);
-  const slot = facts && chosen ? slotFor(facts, chosen, day.getFullYear()) : -1;
-  const month = day.getMonth();
-  const feed = useMemo(() => (ours && facts && slot >= 0 ? { facts, slot, month } : null), [ours, facts, slot, month]);
+  const slots = useMemo(() => (facts ? slotsFor(facts, chosen, year) : []), [facts, chosen, year]);
+  const slotsKey = slots.join(",");
+  const feed = useMemo(() => (ours && facts && slots.length ? { facts, slots, pentad: painted } : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the slots' identity is their content
+    [ours, facts, slotsKey, painted]);
   const loading = asked && got.state === "loading";
   const problem = got.state === "failed" || (got.state === "ready" && !facts) ? "failed"
     : facts && i.paired && handles !== null && handles !== facts.handles ? "stale" : null;
-  return { feed, facts, loading, problem, captured: data?.from === "capture", species, chosen,
-           choose: setName };
+  return { feed, facts, loading, problem, captured: data?.from === "capture", species, chosen, toggle,
+           pentad, today, year, setPentad, playing, setPlaying };
+}
+
+/** The value, but changed at most every `ms` while it keeps moving — the last change always lands. */
+function useThrottled<T>(v: T, ms: number): T {
+  const [out, setOut] = useState(v);
+  const last = useRef(0);
+  useEffect(() => {
+    const wait = last.current + ms - Date.now();
+    if (wait <= 0) { last.current = Date.now(); setOut(v); return; }
+    const t = setTimeout(() => { last.current = Date.now(); setOut(v); }, wait);
+    return () => clearTimeout(t);
+  }, [v, ms]);
+  return out;
 }

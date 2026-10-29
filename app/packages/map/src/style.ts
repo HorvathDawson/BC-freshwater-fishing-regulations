@@ -89,9 +89,9 @@ export interface ChannelValues {
   /** (T213) the bait ban / fly only day: which method labels are marked fly / bait (@app/core `methodDayProfiles`)
    *  — no colour of its own: the Standard map's gear edges (paint.ts `gearPaint`). */
   method: MethodDay | null;
-  /** (T199) the run timing's values are its labels (`rt`: the state for the species and month), so the style reads
-   *  nothing here: the slot and month painted, as one key ("slot:month") — a record, not a colour. */
-  runs: string | null;
+  /** (T199) the run timing's section values are its labels (`rt`: the state for the species and pentad); (T261) what
+   *  is here is the zoomed-out field's — each watershed group's state by its `basin_id` — and the key painted. */
+  runs: { readonly key: string; readonly basins: Readonly<Record<string, "spawn" | "pass" | "off">> } | null;
 }
 export const NO_VALUES: ChannelValues =
   { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null, runs: null };

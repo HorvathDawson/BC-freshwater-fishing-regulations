@@ -185,6 +185,8 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
   let values: ChannelValues = NO_VALUES;
   /** The basins this map holds a standing for (`setChannel("standing")`), so one that loses it is cleared. */
   const basinsHeld = new Set<string>();
+  /** (T261) The basins this map holds a run state for (`setChannel("runs")`): the Runs tab's zoomed-out field. */
+  const runBasinsHeld = new Set<string>();
   const paint = (h: MapHandle, layerId: string, mode: string, tokens: Tokens) => {
     modeOf[layerId] = mode;
     const out = paintFor(layerId, mode, tokens, values);
@@ -315,6 +317,17 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         const now = (next as ChannelValues["standing"])?.basins ?? {};
         for (const id of basinsHeld) if (!(id in now)) { h.setFeatureState("basin", id, { standing: null }); basinsHeld.delete(id); }
         for (const [id, v] of Object.entries(now)) { h.setFeatureState("basin", id, { standing: v }); basinsHeld.add(id); }
+        return;
+      }
+      if (channel === "runs") {
+        /*
+         * (T261) THE RUNS TAB'S FIELD, the same way: each watershed group's state by its id in feature-state `rt`, and
+         * nothing for the style — the sections' states are the engine's labels and the dash reads them, so a species or
+         * pentad change (the slider) makes no paint call at all.
+         */
+        const now = (next as ChannelValues["runs"])?.basins ?? {};
+        for (const id of runBasinsHeld) if (!(id in now)) { h.setFeatureState("basin", id, { rt: null }); runBasinsHeld.delete(id); }
+        for (const [id, v] of Object.entries(now)) { h.setFeatureState("basin", id, { rt: v }); runBasinsHeld.add(id); }
         return;
       }
       const tokens = resolveTheme(themeName, overrides);

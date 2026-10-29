@@ -70,6 +70,9 @@ class TimedRun:
     lon: Optional[float] = None         # dfo: the census site's point, when DFO gives one
     lat: Optional[float] = None
     site_kind: Optional[str] = None     # dfo: DFO's site type ("Stream", "Lake", "Artificial Channel" …)
+    #: dfo only (T261): ((year, spawners counted), ...) ascending, the most recent `parse.COUNT_YEARS` counted years.
+    #: NEVER on a psf run: PSF's permission covers the curves and CU reach assignments, not its abundance series.
+    counts: Optional[Tuple[Tuple[int, int], ...]] = None
 
 
 @dataclass(frozen=True)
@@ -84,7 +87,13 @@ def _run(d: dict) -> TimedRun:
     d["curve"] = tuple(d["curve"])
     if d.get("window"):
         d["window"] = tuple(d["window"])
+    if d.get("counts"):
+        d["counts"] = tuple((int(y), int(n)) for y, n in d["counts"])
+    else:
+        d["counts"] = None
     r = TimedRun(**d)
+    if r.counts and r.source != "dfo":
+        raise ValueError(f"timing: {r.key} — only DFO runs carry counts (PSF's permission covers timing, not abundance)")
     if len(r.curve) != PENTADS or any(not (0 <= v <= 100) for v in r.curve):
         raise ValueError(f"timing: {r.key} has no 73-pentad 0..100 curve")
     if r.slot not in SLOTS:

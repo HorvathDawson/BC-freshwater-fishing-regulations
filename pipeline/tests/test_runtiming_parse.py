@@ -104,3 +104,41 @@ def test_the_committed_timings_read_whole_and_credit_both_sources():
 def test_a_missing_timing_file_raises(tmp_path):
     with pytest.raises(FileNotFoundError, match="pipeline.runtiming.parse"):
         read_timing(tmp_path / "timing.json")
+
+
+def test_dfo_counts_come_from_every_row_capped_to_the_latest_years():
+    rows = [nuseds("1", "Coho", y) for y in (2001, 2002, 2003)]                # three dated years: a record
+    for r, n in zip(rows, ("120", "0", "")):                                    # 0 is a count; empty is none
+        r["NATURAL_SPAWNERS_TOTAL"] = n
+    for y in range(2004, 2020):                                                 # undated years still count
+        rows.append({**nuseds("1", "Coho", y), "STREAM_ARRIVAL_DT_FROM": "", "END_SPAWN_DT_TO": "",
+                     "NATURAL_SPAWNERS_TOTAL": "n/a" if y == 2010 else str(y - 2000)})
+    rows.append({**nuseds("1", "Chum", 2005), "NATURAL_SPAWNERS_TOTAL": "999"})   # another species: not this record
+    out, rep = P.dfo_records(rows, {"1": (-121.7, 49.1, "Stream")})
+    (rec,) = out
+    assert rec["years"] == 3
+    want = [[y, y - 2000] for y in range(2004, 2020) if y != 2010][-P.COUNT_YEARS:]
+    assert rec["counts"] == want and len(want) == 12 and want[0] == [2007, 7]
+    # fewer counted years: all of them, 0 kept, empty dropped
+    out, _ = P.dfo_records(rows[:3], {"1": (-121.7, 49.1, "Stream")})
+    assert out[0]["counts"] == [[2001, 120], [2002, 0]]
+    assert rep["records_with_counts"] == 1
+
+
+def test_spawners_reads_numbers_only():
+    assert [P.spawners({"NATURAL_SPAWNERS_TOTAL": v}) for v in ("0", "12.0", " 7 ", "", "x", "-1", "nan")] == \
+        [0, 12, 7, None, None, None, None]
+    assert P.spawners({}) is None
+
+
+def test_counts_round_trip_and_never_ride_a_psf_run(tmp_path):
+    from pipeline.runtiming.timing import write_timing
+    curve = [0] * 73
+    curve[40] = 100
+    dfo = {"key": "dfo:1:Coho:-", "source": "dfo", "species": "Coho", "slot": "Coho", "name": "n", "label": None,
+           "curve": curve, "peak": None, "window": None, "counts": [[2001, 5], [2002, 0]]}
+    write_timing(tmp_path / "t.json", [], [dfo], {})
+    assert read_timing(tmp_path / "t.json").dfo[0].counts == ((2001, 5), (2002, 0))
+    psf = {**dfo, "key": "psf:1", "source": "psf"}
+    with pytest.raises(ValueError, match="only DFO"):
+        write_timing(tmp_path / "u.json", [psf], [], {})

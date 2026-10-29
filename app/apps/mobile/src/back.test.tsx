@@ -130,7 +130,7 @@ function withLake() {
 function where(): string {
   const parts: string[] = [];
   const bar = screen.queryByRole("tab", { name: "Spots" });   // only the bottom bar has a Spots tab (a water's view strip has Conditions too)
-  const tab = bar ? ["Map", "Conditions", "Spots", "More"]
+  const tab = bar ? ["Map", "Conditions", "Runs", "Spots", "More"]
     .find((k) => screen.getByRole("tab", { name: k }).getAttribute("aria-selected") === "true") : null;
   const strip = screen.queryByRole("tablist", { name: "Views of this water" });
   if (strip) {

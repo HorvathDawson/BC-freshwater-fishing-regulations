@@ -8,7 +8,8 @@ import type { GaugeFeed, RunTimingSource, WaterSource, SectionId } from "@app/da
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
 import { useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
-         useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type StatusSource } from "@app/ui";
+         useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type RunSpeciesStore,
+         type StatusSource } from "@app/ui";
 import { FIELD_HANDOVER_Z, type Camera, type TileEndpoints, imageryTiles } from "@app/map";
 import { connectivity } from "../connectivity";
 import { imageryProbe } from "../imageryProbe";
@@ -28,7 +29,8 @@ export const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 10 };
 export const HANDOVER_Z = FIELD_HANDOVER_Z;
 
 export function useMapColouring({ source, feed, status, pairing, tiles, layerStore, attribution, mapTab, mapDay,
-                                  epoch, settled = true, gearSettled = settled, salmonOnDemand = false, runTiming = null }: {
+                                  epoch, settled = true, gearSettled = settled, salmonOnDemand = false, runTiming = null,
+                                  runSpeciesStore = null }: {
   source: WaterSource; feed?: GaugeFeed; status: StatusSource | null; pairing: PairingInput | null;
   tiles: TileEndpoints; layerStore?: LayerStore; attribution?: readonly string[];
   /** Which browse map's questions are asked (a water's map view asks the Map tab's). */
@@ -43,8 +45,10 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   gearSettled?: boolean;
   /** (T182, owner 2026-10-28) The web: the salmon file is read on the first press of Salmon, not up front (a phone: false). */
   salmonOnDemand?: boolean;
-  /** (T199) The run-timing feed (its own stream, not the release): read the first time Run timing is chosen. */
+  /** (T199) The run-timing feed (its own stream, not the release): read the first time the Runs tab is opened. */
   runTiming?: RunTimingSource | null;
+  /** (T261) Where the Runs tab's species are kept between visits (`openRunSpeciesStore`). */
+  runSpeciesStore?: RunSpeciesStore | null;
 }) {
   /**
    * The reaches the map currently has rendered — what the Conditions view asks the panel
@@ -160,17 +164,15 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const salmonOffered = salmon.offered && layers.effective.water === "regulations";
   // (T182) on the web the first Salmon press reads the file: the map stays Standard (the toggle says Loading) until it is in
   /*
-   * (T199) RUN TIMING: the third choice beside Standard / Salmon (owner 2026-10-28: its own mode, its own index). The
-   * feed is read on the first press (the choice says Loading… until it is in) and painted only on the atlas it was bound
-   * to; the species row and the map's day (its month) are what it paints.
+   * (T199, T261) RUN TIMING — ITS OWN TAB, Runs (owner 2026-10-29; it was a third choice beside Standard / Salmon). The
+   * feed is read the first time the tab is opened and painted only on the atlas it was bound to; the species chosen and
+   * the date slider's pentad are what it paints (`useRunTiming`).
    */
-  const runsOffered = !!runTiming && mapTab === "map" && paired && layers.effective.water === "regulations";
-  const runs = useRunTiming({ source: runTiming, wanted: regsLayer === "runs" && runsOffered, paired,
-                              tiles: vintage.tiles, day: mapDay });
-  const runsShown = regsLayer === "runs" && runsOffered && runs.feed !== null;
-  const runsLoading = regsLayer === "runs" && runsOffered && runs.loading;
-  const regsShown: RegsLayer = runsShown ? "runs"
-    : regsLayer === "salmon" && salmonOffered && salmon.feed !== null ? "salmon" : "standard";
+  const runsOffered = !!runTiming;
+  const runs = useRunTiming({ source: runTiming, wanted: mapTab === "runs", paired, tiles: vintage.tiles,
+                              store: runSpeciesStore });
+  const runsShown = mapTab === "runs" && runs.feed !== null;
+  const regsShown: RegsLayer = regsLayer === "salmon" && salmonOffered && salmon.feed !== null ? "salmon" : "standard";
   const salmonLoading = regsLayer === "salmon" && salmonOffered && salmon.loading;
   // (T213) BAIT BAN / FLY ONLY: marks on the Standard map — the release's `method` file handed over the same way; the
   // legend lists the marks while the Standard regulations are drawn
@@ -180,7 +182,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk,
                            water: layers.effective.water, groups: layers.effective.groups,
                            basemap: layers.effective.basemap, imageryUp: imagery.up,
-                           salmon: regsShown === "salmon", runs: regsShown === "runs" });
+                           salmon: regsShown === "salmon", runs: runsShown, runsField: runs.facts?.hasField === true });
   // Esri's credit is listed exactly while its imagery is drawn (the map's own control does the same from the style)
   const credits = useMemo(() => attribution && withImageryCredit(attribution, mm.basemap), [attribution, mm.basemap]);
   /*
@@ -206,11 +208,10 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   return { noteVisible, setZoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
            mapStatus, salmonFeed, salmonOffered, salmonLoading, methodFeed, gearMarked,
-           regsLayer: salmonLoading ? "salmon" as RegsLayer : runsLoading || (regsLayer === "runs" && runsOffered)
-             ? "runs" as RegsLayer : regsShown,
+           regsLayer: salmonLoading ? "salmon" as RegsLayer : regsShown,
            setRegsLayer, salmonFacts: salmon.facts,
-           // (T199) the run timing: offered, loading, what the map paints (only while chosen), the species row
-           runsOffered, runsLoading, runs, runsFeed: regsShown === "runs" ? runs.feed : null };
+           // (T199, T261) the run timing: offered (the Runs tab), its state, and what the map paints (on Runs only)
+           runsOffered, runs, runsFeed: runsShown ? runs.feed : null };
 }
 
 export type MapColouring = ReturnType<typeof useMapColouring>;

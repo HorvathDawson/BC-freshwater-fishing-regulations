@@ -92,6 +92,11 @@ export function openRecentSearchStore(): { read(): string | null; write(text: st
   return fileStore("recent-searches.json");
 }
 
+/** (T261) The species the Runs tab paints (a JSON list of names), kept between visits; device-only. */
+export function openRunSpeciesStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("run-species.json");
+}
+
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), a small file of its own. */
 export function openDataModeStore(): { read(): string | null; write(text: string): void } {
   return fileStore("low-data.txt");

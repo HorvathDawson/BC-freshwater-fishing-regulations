@@ -10,6 +10,15 @@ sha256 is not the index's — refused here, never in the app.
 IN THE WATER, per month and per pentad: a PSF curve at `PRESENT["psf"]` % of its own peak or more (its tails below that
 are a trickle the 5th–95th percentile window already brackets); a DFO curve where at least `PRESENT["dfo"]` % of the
 surveyed years saw fish in the stream.
+
+ADDED IN T261 (optional keys; every format stays /1 and a reader that ignores them reads the files as before):
+  runs   a DFO run's `n`: [[year, spawners counted], ...] ascending (DFO's NATURAL_SPAWNERS_TOTAL, the most recent 12
+         counted years; `parse.COUNT_YEARS`), and the doc's top-level `counts` saying what `n` is. PSF runs never carry
+         one: PSF's permission covers the timing curves and CU reach assignments, not its abundance series.
+  paint  `basins` (only when the base has its `wg` column): the ZOOMED-OUT FIELD — per FWA watershed group (the tiles'
+         `basin` layer, `basin_id`), per slot, the pentads (19-hex, `pentads_of`'s 73 bits) a LOCAL run (spawning or
+         observed) and a PASSING run is in the water on the group's painted sections: {"ids": [sorted basin ids],
+         "m": [per basin [[slot, local, passing], ...], slots ascending]}. Only groups with a run.
 """
 from __future__ import annotations
 
@@ -20,7 +29,7 @@ import hashlib
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Sequence, Set, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from pipeline.common import calendar_spec as SPEC
 from pipeline.runtiming.feed import base as BASE
@@ -77,11 +86,17 @@ def pentads_of(r: TimedRun) -> str:
 
 # ---- the files -----------------------------------------------------------------------------------------------------
 
+#: what a DFO run's `n` is (the runs doc's `counts`); PSF has none — see the module docstring
+COUNTS = {"dfo": {"field": "NATURAL_SPAWNERS_TOTAL", "words": "spawners counted (DFO estimate)", "years": 12}}
+
+
 def run_record(r: TimedRun) -> dict:
     d = {"id": r.key, "src": r.source, "sp": r.species, "slot": SLOTS.index(r.slot), "name": r.name,
          "months": months_of(r), "pentads": pentads_of(r)}
     for k, v in (("label", r.label), ("peak", r.peak), ("window", list(r.window) if r.window else None),
-                 ("q", r.quality), ("years", [r.years, r.first_year, r.last_year] if r.years else None)):
+                 ("q", r.quality), ("years", [r.years, r.first_year, r.last_year] if r.years else None),
+                 # DFO only: a PSF run's abundance is never read (its permission covers timing alone)
+                 ("n", [[y, c] for y, c in r.counts] if r.counts and r.source == "dfo" else None)):
         if v is not None:
             d[k] = v
     return d
@@ -156,6 +171,38 @@ def reaches(rows: Dict[int, int], a) -> dict:
     return {"items": list(items), "blks": list(lines), "streams": cols, "lakes": lakes}
 
 
+def basins_of(per: Dict[int, Set[Tuple[int, int]]], runs: Sequence[TimedRun], wg: Dict[int, str]) -> dict:
+    """THE ZOOMED-OUT FIELD: per watershed group, per slot, the pentads a local (spawning / observed) and a passing run
+    is in the water on its painted sections — OR'd bits, as 19-hex like `pentads_of`. Groups with no run are left out."""
+    bits: Dict[str, Dict[int, List[int]]] = defaultdict(lambda: defaultdict(lambda: [0, 0]))
+    pent: Dict[int, int] = {}
+    for s, rels in per.items():
+        b = wg.get(s)
+        if b is None:
+            continue
+        for i, rel in rels:
+            if i not in pent:
+                pent[i] = int(pentads_of(runs[i]), 16)
+            bits[b][SLOTS.index(runs[i].slot)][1 if rel == PASSAGE else 0] |= pent[i]
+    ids = sorted(b for b, per_slot in bits.items() if any(lo or hi for lo, hi in per_slot.values()))
+    return {"ids": ids, "m": [[[sl, format(lo, "019x"), format(hi, "019x")]
+                               for sl, (lo, hi) in sorted(bits[b].items())] for b in ids]}
+
+
+def wg_of(base: dict) -> Optional[Dict[int, str]]:
+    """{sid: basin id} from the base's optional `wg` column; None when the base has none."""
+    c = base["cols"]
+    if "wg" not in c:
+        return None
+    table = base["strings"].get("wg", [])
+    out, s = {}, 0
+    for d, i in zip(c["sid"], c["wg"]):
+        s += d
+        if i >= 0:
+            out[s] = table[i]
+    return out
+
+
 def _bytes(obj: dict) -> bytes:
     return (json.dumps(obj, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n").encode("utf-8")
 
@@ -169,7 +216,10 @@ def build(timing_path: Path, polygons_path: Path, base_path: Path) -> Tuple[Dict
     fc = json.loads(polygons_path.read_text())
     polygons = {int(f["id"]): shape(f["geometry"]).simplify(SIMPLIFY, preserve_topology=False).buffer(0)
                 for f in fc["features"]}
-    a = atlas_of(BASE.read(base_path))
+    base = BASE.read(base_path)
+    a = atlas_of(base)
+    wg = wg_of(base)
+    del base
     psf, dfo = list(timing.psf), list(timing.dfo)
     per, report = bind(a, psf, dfo, polygons)
     all_runs = psf + dfo
@@ -187,12 +237,14 @@ def build(timing_path: Path, polygons_path: Path, base_path: Path) -> Tuple[Dict
     sources = sources_of(timing.sources)
     runs_doc = {"format": RUNS_FORMAT, "slots": list(SLOTS), "default": SLOTS.index(DEFAULT_SLOT),
                 "present": PRESENT, "relations": list(RELATIONS), "relation_words": RELATION_WORDS,
-                "sources": sources, "runs": [run_record(r) for r in runs]}
+                "sources": sources, "counts": COUNTS, "runs": [run_record(r) for r in runs]}
     runs_raw = _bytes(runs_doc)
     runs_sha = hashlib.sha256(runs_raw).hexdigest()
     paint_doc = {"format": PAINT_FORMAT, "section_handles": a.handles, "tile_version": a.tile_version,
                  "runs_sha256": runs_sha, "profiles": profiles, "sid": delta, "p": [rows[s] for s in sids],
                  "km": [int(round(km[s] / 10)) + 1 if s in psf_here and s in km else 0 for s in sids]}
+    if wg is not None:
+        paint_doc["basins"] = basins_of(per, all_runs, wg)
     waters_doc = {"format": WATERS_FORMAT, "runs_sha256": runs_sha, "relations": list(RELATIONS),
                   "run_ids": [r.key for r in runs], "profiles": [pr["r"] for pr in profiles], **reaches(rows, a)}
     files = {"runs": runs_raw, "paint": _bytes(paint_doc), "waters": _bytes(waters_doc)}
@@ -206,6 +258,8 @@ def build(timing_path: Path, polygons_path: Path, base_path: Path) -> Tuple[Dict
         index["files"][name] = {"url": f"{name}-{sha[:12]}.json.gz", "bytes": len(raw), "sha256": sha}
     report.update({"runs": len(runs), "runs_unbound": len(all_runs) - len(runs), "profiles": len(profiles),
                    "painted_sections": len(sids), "base_sections": len(a.sids),
+                   "dfo_runs_with_counts": sum(1 for r in runs if r.source == "dfo" and r.counts),
+                   "basins_painted": len(paint_doc["basins"]["ids"]) if "basins" in paint_doc else None,
                    "raw_bytes": {k: len(v) for k, v in files.items()},
                    "gz_bytes": {k: len(gzip.compress(v, mtime=0)) for k, v in files.items()}})
     check(files, index)
@@ -233,6 +287,23 @@ def check(files: Dict[str, bytes], index: dict) -> None:
     for pr in paint["profiles"]:
         if not pr["r"] or any(x // 3 >= n for x in pr["r"]):
             raise SystemExit("check: a profile names a run the runs file lacks")
+    if any("n" in r and r["src"] != "dfo" for r in runs["runs"]):
+        raise SystemExit("check: a non-DFO run carries counts")
+    for r in runs["runs"]:
+        ys = [y for y, _ in r.get("n", [])]
+        if ys != sorted(set(ys)) or any(c < 0 for _, c in r.get("n", [])):
+            raise SystemExit(f"check: {r['id']}'s counts are not one per year, ascending, >= 0")
+    if "basins" in paint:
+        ids, m = paint["basins"]["ids"], paint["basins"]["m"]
+        if ids != sorted(set(ids)) or len(ids) != len(m):
+            raise SystemExit("check: basin ids are not unique and sorted, or not one row each")
+        nslot = len(runs["slots"])
+        for row in m:
+            sl = [e[0] for e in row]
+            if not row or sl != sorted(set(sl)) or any(not (0 <= x < nslot) for x in sl):
+                raise SystemExit("check: a basin's slots are empty, repeated, unsorted or out of range")
+            if any(len(h) != 19 or int(h, 16) >> PENTADS for e in row for h in e[1:]):
+                raise SystemExit("check: a basin's pentads are not 19 hex digits of 73 bits")
     if waters["run_ids"] != [r["id"] for r in runs["runs"]] or waters["profiles"] != [pr["r"] for pr in paint["profiles"]]:
         raise SystemExit("check: waters and runs / paint list different runs or profiles")
 

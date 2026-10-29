@@ -79,6 +79,10 @@ Shots: `T199-shots/` (desktop + phone, Chilliwack / Fraser, Dec 15, against stag
 2. After every atlas promote: `python -m pipeline.runtiming.feed.base --upload --yes` (Mac), then step 1.
 3. When happy, uncomment the monthly `schedule:`; production stays commented out (and `feed.publish` names staging only).
 
+### Superseded in part by T261 (owner 2026-10-29)
+Run timing is its own bottom tab, Runs (no longer a third choice beside Standard / Salmon); slider by pentad, several
+species, watershed groups zoomed out, DFO counts in the sheet. See T261-runs-tab.md.
+
 ### Not done
 Step 2 of Work (curves vs DFO escapement, low-confidence CUs); a native device run (web + phone-web only); pruning old
 content-named files on R2 (a few MB a refresh).

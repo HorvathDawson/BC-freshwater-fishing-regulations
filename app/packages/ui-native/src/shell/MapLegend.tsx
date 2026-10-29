@@ -8,10 +8,12 @@
  */
 import { CHANGE_LEGEND, changeMarkWords, closedLegend, FLOW_LEGEND, TEMP_LEGEND, unprovenLine, WATER_STATUS,
          WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, salmonLegendSource, GEAR_LEGEND, METHOD_WORDS,
-         RUN_STATES, RUN_WORDS, runCreditShort }
+         RUN_STATES, RUN_WORDS, runCreditShort, slotsFor }
   from "@app/core";
 import { gearEdgeColour, runStateColour, salmonStatusColour } from "@app/map";
+import { useMemo } from "react";
 import { Text, View } from "react-native";
+import { RunDayCaption, RunDaySlider } from "../RunsControls";
 import { LegendCount, LegendRamp, LegendStrip } from "../Chrome";
 import { legendColour } from "../LayersSheet";
 import { TYPE } from "../type";
@@ -82,30 +84,6 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
         waterLegend(layers.water.drawn).map((r) => (
           <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)} label={r.label} />
         ))
-      ) : col.regsLayer === "runs" ? (
-        // (T199) RUN TIMING: the species and month painted, the three states (passing dashed) and no run, whose data
-        <>
-          {col.runs.chosen && (
-            <Text testID="runs-legend-title" style={{ ...TYPE.small, fontWeight: "600", color: palette.ink }}>
-              {RUN_WORDS.legendTitle(col.runs.chosen.name, (mapDay ?? new Date()).getMonth())}
-            </Text>
-          )}
-          {RUN_STATES.map((s) => (
-            <LegendCount key={s} palette={palette} colour={runStateColour(theme, s)} line dotted={s === "pass"}
-                         label={RUN_WORDS.legend[s]} />
-          ))}
-          <LegendCount palette={palette} colour={runStateColour(theme, "none")} line label={RUN_WORDS.legend.none} />
-          {col.runs.problem && (
-            <Text testID="runs-legend-problem" style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>
-              {col.runs.problem === "stale" ? RUN_WORDS.stale : RUN_WORDS.failed}
-            </Text>
-          )}
-          {col.runs.facts && (
-            <Text testID="runs-legend-source" style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>
-              {runCreditShort(col.runs.facts)}
-            </Text>
-          )}
-        </>
       ) : col.regsLayer === "salmon" ? (
         // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
         // Layers button and the day in the map's corner (T213)
@@ -140,6 +118,63 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
         </>
       )}
     </LegendStrip>
+  );
+}
+
+/**
+ * (T261) THE RUNS TAB'S FOOT: the date slider (the days shown, Today, Play, the season behind the track), then what the
+ * colours mean — lines for the streams zoomed in (passing dashed), fills for the watershed groups zoomed out — the
+ * run-size key the tap sheet's bars are drawn on, and whose data it is (or why nothing is drawn).
+ */
+export function RunsLegend({ col, palette, theme }: { col: MapColouring; palette: Palette; theme: string }) {
+  const r = col.runs;
+  const field = col.mm.fieldOn;
+  const slots = useMemo(() => (r.facts ? slotsFor(r.facts, r.chosen, r.year) : []), [r.facts, r.chosen, r.year]);
+  const season = useMemo(() => (r.facts ? r.facts.season(slots) : []), [r.facts, slots]);
+  const note = { ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub };
+  return (
+    <View testID="runs-legend" style={{ borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
+                                        paddingHorizontal: 14, paddingTop: 8, paddingBottom: 8, gap: 6 }}>
+      <View style={{ width: "100%", maxWidth: 760, alignSelf: "center", gap: 6 }}>
+        <RunDayCaption pentad={r.pentad} today={r.today} title={r.chosen.length ? RUN_WORDS.legendTitle(r.chosen.map((s) => s.name)) : null}
+                       onToday={() => r.setPentad(r.today)} palette={palette} />
+        <RunDaySlider pentad={r.pentad} today={r.today} playing={r.playing} onPentad={r.setPentad} onPlay={r.setPlaying}
+                      season={season} theme={theme} palette={palette} />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 4 }}>
+          {RUN_STATES.map((s) => (
+            <LegendCount key={s} palette={palette} colour={runStateColour(theme, s)} line={!field}
+                         dotted={!field && s === "pass"} label={RUN_WORDS.legend[s]} />
+          ))}
+          <LegendCount palette={palette} colour={runStateColour(theme, "none")} line={!field} label={RUN_WORDS.legend.none} />
+        </View>
+        {field && <Text testID="runs-legend-field" style={note}>{RUN_WORDS.field}</Text>}
+        <RunScale palette={palette} />
+        {r.loading && <Text testID="runs-legend-loading" style={note}>{RUN_WORDS.loading}</Text>}
+        {r.problem && <Text testID="runs-legend-problem" style={note}>
+          {r.problem === "stale" ? RUN_WORDS.stale : RUN_WORDS.failed}</Text>}
+        {r.captured && r.facts && <Text testID="runs-legend-captured" style={note}>{RUN_WORDS.captured(r.facts.builtAt)}</Text>}
+        {r.facts && <Text testID="runs-legend-source" style={note}>{runCreditShort(r.facts)}</Text>}
+      </View>
+    </View>
+  );
+}
+
+/** The run-size key: five bars on the log scale the sheet's counts are drawn on (10 … 100k), and "no counts". */
+function RunScale({ palette }: { palette: Palette }) {
+  const W = RUN_WORDS.scale;
+  return (
+    <View testID="runs-scale" style={{ flexDirection: "row", alignItems: "flex-end", flexWrap: "wrap", columnGap: 10, rowGap: 2 }}>
+      <Text style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>{W.title}</Text>
+      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4 }}>
+        {W.ticks.map((t, i) => (
+          <View key={t} style={{ alignItems: "center", gap: 1 }}>
+            <View style={{ width: 9, height: Math.round(((i + 1) / 5) * 14), backgroundColor: palette.ink, opacity: 0.75 }} />
+            <Text style={{ ...TYPE.month, fontSize: 9, color: palette.sub }}>{t}</Text>
+          </View>
+        ))}
+      </View>
+      <Text style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>{W.none}</Text>
+    </View>
   );
 }
 

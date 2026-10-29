@@ -162,7 +162,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon, method, runs,
   });
   const cv = colouring.values;
-  const basinKey = JSON.stringify(cv.standing?.basins ?? null);
+  const basinKey = JSON.stringify([cv.standing?.basins ?? null, cv.runs?.key ?? null]);
 
   /*
    * THE STYLE. Keyed on what changes how the map LOOKS — never on `gauges` (read through a ref: a feed tick goes to

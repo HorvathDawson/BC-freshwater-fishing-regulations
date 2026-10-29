@@ -303,6 +303,7 @@ use that as the sole source of future work."
 | T257 | polish pass: coach-mark tour, "Before you fish" sheet, one delayed FishSpinner for every wait, shared components + guards | IN PROGRESS | — | owner 2026-10-29 polish pass |
 | T258 | accessibility leftovers: T257's screens into the shell gate, web text-row labels, web targets, owner TalkBack/VoiceOver walk | OPEN | — | after T257 |
 | T259 | offline map by region: per-region tiles, Save/Remove map regions, install/update fetch kept maps only | OPEN | — | needs T85/T202 tile split; owner default regions |
+| T261 | run timing v2: its own Runs tab (bell stays), date slider by pentad (Play, today, season), watershed groups zoomed out, multi-species chips with fish art (kept), DFO counts in the sheet ("No counts" otherwise), feed `n` + `basins` on staging | PARTIAL | — | owner 2026-10-29; follows T199; counts coverage + native run open |
 
 ## Order for open tickets
 

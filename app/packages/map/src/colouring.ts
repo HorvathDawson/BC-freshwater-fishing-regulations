@@ -114,27 +114,33 @@ export function methodInput(s: MethodFeed): ChannelInput {
 
 /**
  * (T199) THE RUN TIMING as the map is told it — ONLY on a proven pair whose tiles are the atlas the paint index was
- * bound to: the run-timing feed's facts, the species slot and the month (0 = January).
+ * bound to: the run-timing feed's facts, the species slots chosen (T261: several at once) and the pentad (0..72, the
+ * Runs tab's date slider).
  */
 export interface RunsFeed {
   readonly facts: RunTimingFacts;
-  readonly slot: number;
-  readonly month: number;
+  readonly slots: readonly number[];
+  readonly pentad: number;
 }
 
+/** The runs feed's identity for an effect's deps: the slots and the pentad painted. */
+export const runsKeyOf = (r: RunsFeed | null | undefined): string => (r ? `${r.slots.join(",")}:${r.pentad}` : "");
+
 /**
- * The runs channel: each section's state for the slot and month in feature-state `rt` (`spawn` / `pass` / `off`; no run
- * recorded: no key). THE VALUES ARE THE LABELS (the lake modes' shape): a species or month change relabels the loaded
- * tiles, and the style never changes.
+ * The runs channel: each section's state for the slots and pentad in feature-state `rt` (`spawn` / `pass` / `off`; no
+ * run recorded: no key). THE VALUES ARE THE LABELS (the lake modes' shape): a species or pentad change relabels the
+ * loaded tiles, and the style never changes. (T261) Its values are the zoomed-out field's: each watershed group's
+ * state, set on the basin by its id as the standing field's are.
  */
 export function runsInput(r: RunsFeed): ChannelInput {
-  const f = r.facts, slot = r.slot, month = r.month;
+  const f = r.facts, slots = r.slots, pentad = r.pentad;
+  const key = runsKeyOf(r);
   return {
     // a section with no run of any species never wears the key; one with other species' runs is cleared (a relabel)
-    labels: { key: "rt", of: f, label: (id) => f.state(id, slot, month) ?? (f.has(id) ? null : undefined) },
-    valuesKey: `${slot}:${month}`,
+    labels: { key: "rt", of: f, label: (id) => f.state(id, slots, pentad) ?? (f.has(id) ? null : undefined) },
+    valuesKey: key,
     relabels: true,
-    values: () => `${slot}:${month}`,
+    values: () => ({ key, basins: f.basins(slots, pentad) }),
   };
 }
 

@@ -81,7 +81,7 @@ const look = () => {
     `${t.getAttribute("aria-label")}${t.getAttribute("aria-selected") === "true" ? "*" : ""}`).join(" · ") : "no strip";
   const back = screen.queryAllByLabelText("Back").map((b) => b.textContent).join() || "no back";
   const bar = screen.queryByRole("tab", { name: "Spots" })
-    ? ["Map", "Conditions", "Spots", "More"].map((k) =>
+    ? ["Map", "Conditions", "Runs", "Spots", "More"].map((k) =>
       `${k}${screen.getByRole("tab", { name: k }).getAttribute("aria-selected") === "true" ? "*" : ""}`).join(" ")
     : "no bar";
   const title = screen.queryByText("Chilliwack River") ? "Chilliwack River" : "no title";
@@ -154,13 +154,13 @@ describe("one water screen, whichever map you tapped", () => {
     act(() => { fireEvent.click(screen.getByLabelText("Back")); });
     seen.push(look());
     expect(seen).toEqual([
-      "no back | no strip | no title | the map | Map Conditions* Spots More",
+      "no back | no strip | no title | the map | Map Conditions* Runs Spots More",
       `Conditions | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
       "Conditions | Regulations* · Conditions · Map | Chilliwack River | regs page | no bar",
       `Conditions | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
       "Conditions | Regulations · Conditions · Map* | Chilliwack River | the map | no bar",
       // back from any view leaves the water: the Conditions map, as it was
-      "no back | no strip | no title | the map | Map Conditions* Spots More",
+      "no back | no strip | no title | the map | Map Conditions* Runs Spots More",
     ]);
   });
 
@@ -170,7 +170,7 @@ describe("one water screen, whichever map you tapped", () => {
     await until(() => regsShown() && titled());
     fireEvent.click(screen.getByRole("tab", { name: "Conditions" }));
     act(() => { fireEvent.click(screen.getByLabelText("Back")); });
-    expect(look()).toBe("no back | no strip | no title | the map | Map* Conditions Spots More");
+    expect(look()).toBe("no back | no strip | no title | the map | Map* Conditions Runs Spots More");
   });
 
   it("(T53) an unnamed reach: Regulations · Conditions (no Map) from either map; the Map tab puts Regulations in front", async () => {
@@ -194,11 +194,11 @@ describe("one water screen, whichever map you tapped", () => {
       `Conditions | Regulations · Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
       "Conditions | Regulations* · Conditions | no title | regs page | no bar",
       // a view move replaced the frame: one back leaves the reach
-      "no back | no strip | no title | the map | Map Conditions* Spots More",
+      "no back | no strip | no title | the map | Map Conditions* Runs Spots More",
       // the Map tab opens the very same screen with Regulations in front; only where back goes differs
       "Map | Regulations* · Conditions | no title | regs page | no bar",
       "regs on null part null",
-      "no back | no strip | no title | the map | Map* Conditions Spots More",
+      "no back | no strip | no title | the map | Map* Conditions Runs Spots More",
     ]);
   });
 

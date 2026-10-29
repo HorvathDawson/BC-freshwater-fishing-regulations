@@ -26,9 +26,9 @@ describe("<Icon>", () => {
     expect(getByTestId(`icon-${n}`).getAttribute("aria-hidden")).toBe("true");
     const svg = container.querySelector("svg")!;
     expect([svg.getAttribute("viewBox"), svg.getAttribute("width")]).toEqual(["0 0 24 24", "20"]);
-    const marks = [...svg.querySelectorAll("path, circle, rect")];
+    const marks = [...svg.querySelectorAll("path, circle, rect, polygon")];
     expect(marks.map((m) => m.tagName.toLowerCase()))
-      .toEqual(ICONS[n].map((s) => ("path" in s ? "path" : "circle" in s ? "circle" : "rect")));
+      .toEqual(ICONS[n].map((s) => ("path" in s ? "path" : "circle" in s ? "circle" : "polygon" in s ? "polygon" : "rect")));
     for (const m of marks) {
       expect([m.getAttribute("stroke"), m.getAttribute("stroke-width"), m.getAttribute("stroke-linecap"),
               m.getAttribute("stroke-linejoin"), m.getAttribute("fill")])

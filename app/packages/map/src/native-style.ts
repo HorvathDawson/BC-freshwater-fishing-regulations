@@ -103,6 +103,15 @@ function jsonHandle(layers: StyleLayer[]): MapHandle {
   };
 }
 
+/** The field's values per basin id: its standing and its run state, in one state object each. */
+function mergeArea(standing: Readonly<Record<string, number>> | undefined,
+                   runs: Readonly<Record<string, string>> | undefined): Record<string, Record<string, unknown>> {
+  const out: Record<string, Record<string, unknown>> = {};
+  for (const [id, v] of Object.entries(standing ?? {})) out[id] = { standing: v };
+  for (const [id, v] of Object.entries(runs ?? {})) out[id] = { ...out[id], rt: v };
+  return out;
+}
+
 export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[] } {
   // only the modes a layer has reach runtimeStyle (which throws on any other); `applyLook` reports the rest
   const known = Object.fromEntries(Object.entries(o.modes ?? {})
@@ -121,10 +130,11 @@ export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[]
   for (const ch of Object.keys(values) as (keyof ChannelValues)[])
     if (values[ch] !== null) adapter.setChannel(h, ch, values[ch] as never, o.theme);
   const basins = values.standing?.basins;
+  // (T261) and the Runs tab's field: each watershed group's run state, beside its standing
+  const runBasins = values.runs?.basins;
   const field = STYLE_META.field?.layer;
-  const areaData: NativeStyleInput["areaData"] = basins && field
-    ? { ...o.areaData, [field]: { ...o.areaData?.[field],
-        ...Object.fromEntries(Object.entries(basins).map(([id, v]) => [id, { standing: v } as Record<string, unknown>])) } }
+  const areaData: NativeStyleInput["areaData"] = (basins || runBasins) && field
+    ? { ...o.areaData, [field]: { ...o.areaData?.[field], ...mergeArea(basins, runBasins) } }
     : o.areaData;
   // the ground (`o.basemap`) is part of the look: `applyLook` set it, as it does on the web map
   // ESRI'S CREDIT ONLY WHILE ITS IMAGERY IS DRAWN. The web's control lists only sources a visible layer uses; MapLibre

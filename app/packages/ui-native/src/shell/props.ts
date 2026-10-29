@@ -60,6 +60,8 @@ export interface ShellProps {
   walkthrough?: import("../Walkthrough").WalkthroughStore | null;
   /** (T199) the run-timing feed (`httpRunTiming`; its own stream, not the release). Absent: no Run timing mode. */
   runTiming?: import("@app/data").RunTimingSource | null;
+  /** (T261) where the Runs tab's species are kept between visits (`openRunSpeciesStore`). Absent: kept for this run. */
+  runSpeciesStore?: import("@app/ui").RunSpeciesStore | null;
   refreshing?: boolean;
   attribution?: readonly string[];
   /** The fish pictures by species code, registered by the app (T20). Absent -> silhouettes. */

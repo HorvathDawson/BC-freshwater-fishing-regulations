@@ -4,7 +4,7 @@
  */
 import { dayLabel, type DayRange, type SectionKey } from "@app/core";
 import { useCallback, type MutableRefObject } from "react";
-import { Platform, ScrollView, View } from "react-native";
+import { Platform, View } from "react-native";
 import type { SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MapRail, type MenuControls,
@@ -20,8 +20,8 @@ import type { MenuInfo } from "../menu/MenuHost";
 import type { Palette, ThemeName } from "../theme";
 import { HANDOVER_Z, HOME, type MapColouring } from "./useMapColouring";
 import { RegsLayerToggle } from "./RegsLayerToggle";
-import { CornerStrip } from "../CornerStrip";
-import { RUN_WORDS } from "@app/core";
+import { RunSpeciesChips } from "../RunsControls";
+import type { FishImages } from "../regs/types";
 import type { ShellNav } from "./useShellNav";
 import type { ShellSearch } from "./useShellSearch";
 
@@ -32,7 +32,7 @@ const NONE_PINS: readonly never[] = [];
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate,
                              photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
-                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onRuns }: {
+                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onRuns, fishImages }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -50,8 +50,10 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   onObstacle?: (props: Readonly<Record<string, unknown>>) => void;
   /** (T166) A tap on tidal water (no water under it) on the Map tab: the Shell raises the tidal sheet. */
   onTidal?: () => void;
-  /** (T199) A tap on the Map tab while Run timing is drawn: the Shell raises the runs sheet for that section. */
+  /** (T199, T261) A tap on the Runs map (at or above the handover): the Shell raises the runs sheet for that section. */
   onRuns?: (sid: number) => void;
+  /** (T261) The fish art per species code (apps/mobile `FISH_IMAGES`): the Runs tab's species chips. */
+  fishImages?: FishImages;
   /** (T186) The region under the map's centre, for the web prefetch (`useReleasePrefetch`); absent on a phone. */
   onRegion?: (regionId: string | null) => void;
   /** (T253) The regions the web's background prefetch holds for an unnamed-stream tap (More → Data); null: none runs. */
@@ -75,8 +77,12 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   const onPressFeature = useCallback(async (_layer: string, featureId: SectionKey, lat?: number, lon?: number) => {
     // PICK ON THE MAP: a tap places the spot's pin (`onMapPoint`) and opens nothing — a water under it included
     if (picking) return;
-    // (T199) under Run timing a tap answers "which runs, when" for the section, not the regulations
-    if (tab === "map" && col.runsFeed && onRuns) { onRuns(Number(featureId)); return; }
+    // (T199, T261) on Runs a tap answers "which runs, when" for the section, not the regulations — and below the
+    // handover it is the watershed groups, where nothing is tapped (as on Conditions)
+    if (tab === "runs") {
+      if (col.runsFeed && onRuns && (camera.current?.zoom ?? HOME.zoom) >= HANDOVER_Z) onRuns(Number(featureId));
+      return;
+    }
     const conditions = tab === "conditions";
     if (!tapOpensWater({ tab, flowParam, zoom: camera.current?.zoom ?? HOME.zoom, handover: HANDOVER_Z })) return;
     // The tile's feature id IS the section handle — converted, not cast (see noteVisible).
@@ -103,17 +109,16 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   const corner = regsDrawn
     ? <View testID="map-corner-row" pointerEvents="box-none" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "flex-start" }}>
         <MapDayStrip palette={palette} day={mapDay} range={dayRange} onDay={onDay} onOpen={onOpenDay} />
-        {(col.salmonOffered || col.runsOffered) && <RegsLayerToggle col={col} palette={palette} />}
-        {/* (T199) the species the Run timing mode paints (steelhead first, the default; Q144) */}
-        {col.regsLayer === "runs" && col.runs.species.length > 0 &&
-          // a phone is narrower than six species: the row scrolls sideways rather than run under the map's buttons
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxWidth: "100%", flexGrow: 0 }}>
-          <CornerStrip palette={palette} testID="run-species" label={RUN_WORDS.speciesLabel} radio
-                       segments={col.runs.species.map((s) => ({ key: s.name, chip: s.name, label: s.name,
-                                                                 on: col.runs.chosen?.name === s.name,
-                                                                 onPress: () => col.runs.choose(s.name) }))} />
-          </ScrollView>}
-      </View> : undefined;
+        {col.salmonOffered && <RegsLayerToggle col={col} palette={palette} />}
+      </View>
+    // (T261) THE RUNS TAB'S CORNER: the species, several at once, each with its fish (the date slider is the foot's)
+    : tab === "runs" && !searching && col.runs.species.length > 0
+      // stretched to the corner's width, so the chips scroll inside it and never widen the page
+      ? <View testID="map-corner-row" pointerEvents="box-none" style={{ alignSelf: "stretch", overflow: "hidden" }}>
+          <RunSpeciesChips species={col.runs.species} chosen={col.runs.chosen} onToggle={col.runs.toggle}
+                           fishImages={fishImages} palette={palette} />
+        </View>
+      : undefined;
 
   return tab === "spots"
     // (T48) THE SPOTS TAB: the list, open one, Show it on the map, add one — the long press on the maps stays
@@ -146,7 +151,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                     theme={themeName} onTheme={onTheme}
                     onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null))
                                     : menu.show(k))} />
-      : tab === "map" || tab === "conditions"
+      : tab === "map" || tab === "conditions" || tab === "runs"
         ? <MapScreen at={tiles} palette={palette} theme={theme}
                      camera={camera.current}
                      // (T48) the top bar over the map: the corner's chips, the rail and the web map's controls go under it
@@ -214,7 +219,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      corner={corner}
                      // LAYERS ON BOTH MAPS (owner 2026-10-22): on Conditions the sheet is that map's own —
                      // Show (Flow · Level · Temperature), the ground, gauges and arrows — never the Map tab's
-                     onLayers={onLayers}
+                     onLayers={tab === "runs" ? undefined : onLayers}
                      // how many of THIS map's layer choices differ from the defaults: the rail's badge, said aloud
                      layersChanged={layers.changed}
                      // press and hold: a provisional pin, and the sheet that asks before anything is made

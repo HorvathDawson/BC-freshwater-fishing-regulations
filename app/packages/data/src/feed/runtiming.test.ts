@@ -31,7 +31,7 @@ describe("httpRunTiming", () => {
     const got = await httpRunTiming("https://o/runtiming", store, serve({ "index.json": JSON.stringify(index),
       "runs-a.json.gz": runs, "paint-b.json.gz": paint })).latest();
     expect(got?.from).toBe("live");
-    expect(got?.facts.state(7, 0, 0)).toBe("spawn");
+    expect(got?.facts.state(7, [0], 0)).toBe("spawn");
     expect(store.text).not.toBeNull();
   });
 

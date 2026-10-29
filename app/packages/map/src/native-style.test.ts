@@ -153,6 +153,13 @@ describe("the native style", () => {
     expect(JSON.stringify(layer(s, "basin").paint!["fill-color"])).toContain(JSON.stringify(["literal", { "BX-1": 42 }]));
   });
 
+  it("(T261) the Runs tab's field: each watershed group's run state from the engine, in the field's table", () => {
+    const values = { ...NO_VALUES, runs: { key: "6:44", basins: { LFRA: "pass", CHWK: "spawn" } } } as never;
+    const s = nativeStyle({ ...base, modes: { stream: "runs", basin: "runs" }, values }).style as unknown as S;
+    const fill = JSON.stringify(layer(s, "basin").paint!["fill-color"]);
+    expect(fill).toContain(JSON.stringify(["literal", { LFRA: "pass", CHWK: "spawn" }]));
+  });
+
   it("writes into a copy: the generated style the web also reads is untouched", () => {
     const before = JSON.stringify(MAP_STYLE);
     nativeStyle({ ...base, modes: { stream: "profile" }, hide: ["mu"], basemap: "satellite" });

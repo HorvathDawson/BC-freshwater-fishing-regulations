@@ -15,6 +15,11 @@ can reach. Columns, one row per kept section in sid order:
     sid (delta)  k 0 stream / 1 lake   o order   len metres   wsc (string table)   blk   m0 m1 (measures, m)
     wbk (lake key, string table)   nm (name keys, string table)   dn (the kept sections it flows into)
     it (its water's item_id, string table; -1 none)   x y (a point: a line's midpoint, a polygon's ring centre, 1e-5 deg)
+    wg (OPTIONAL, T261: the FWA watershed group — the tiles' `basin_id` — the point lies within, string table `wg`;
+        -1 none). A base without it still reads; the feed then has no zoomed-out field. Added to an existing base,
+        without the atlas, by:
+
+    python -m pipeline.runtiming.feed.base --add-basins <base-<handles>.json.gz> [--out DIR] [--gpkg FILE] [--upload --yes]
 """
 from __future__ import annotations
 
@@ -197,9 +202,49 @@ def build(build_dir: Path, tiles: Path, release: Path) -> Tuple[dict, dict]:
             "min_order": MIN_ORDER, "count": len(sids),
             "strings": {k: [s for s, _ in sorted(v.items(), key=lambda kv: kv[1])] for k, v in strings.items()},
             "cols": cols}
-    report = {"sections": len(rows), "kept": len(sids), "lakes": sum(cols["k"]), "with_item": sum(1 for i in cols["it"]
+    add_basins(base)
+    report = {"basins": len(base["strings"]["wg"]), "sections": len(rows), "kept": len(sids), "lakes": sum(cols["k"]), "with_item": sum(1 for i in cols["it"]
                                                                                                    if i >= 0)}
     return base, report
+
+
+def basin_of(points: Sequence[Tuple[float, float]], gpkg: Optional[Path] = None) -> Tuple[List[str], List[int]]:
+    """(the basin ids, per point its index in them or -1): the watershed group (`deliver.tiles.basins.groups`, BC
+    Albers) each lon/lat point lies within. The groups are the Province's non-overlapping cover, so a point has at most
+    one; a point on a border or off the cover (the sea, a neighbour) has none."""
+    import numpy as np
+    import shapely
+    from pyproj import Transformer
+    from shapely.strtree import STRtree
+
+    from pipeline.deliver.tiles.basins import groups
+    if gpkg is None:
+        from pipeline.common.curated import SOURCE
+        gpkg = SOURCE / "bc_fisheries_data.gpkg"
+    g = groups(str(gpkg))
+    ids = list(g["basin_id"])
+    tree = STRtree(list(g.geometry))
+    if not len(points):
+        return [], []
+    lon, lat = np.array([p[0] for p in points]), np.array([p[1] for p in points])
+    x, y = Transformer.from_crs(4326, 3005, always_xy=True).transform(lon, lat)
+    pi, gi = tree.query(shapely.points(x, y), predicate="within")
+    hit = [-1] * len(points)
+    for a, b in zip(pi.tolist(), gi.tolist()):
+        if hit[a] < 0:
+            hit[a] = b
+    used = sorted({ids[h] for h in hit if h >= 0})
+    pos = {b: i for i, b in enumerate(used)}
+    return used, [pos[ids[h]] if h >= 0 else -1 for h in hit]
+
+
+def add_basins(base: dict, gpkg: Optional[Path] = None) -> dict:
+    """The base with its `wg` column (and `strings["wg"]`) set from each section's point — added or replaced."""
+    c = base["cols"]
+    table, col = basin_of([(x / 1e5, y / 1e5) for x, y in zip(c["x"], c["y"])], gpkg)
+    base["strings"]["wg"] = table
+    c["wg"] = col
+    return base
 
 
 def write(base: dict, out: Path) -> Path:
@@ -218,6 +263,10 @@ def read(path: Path) -> dict:
     bad = [k for k, v in b["cols"].items() if len(v) != n]
     if bad:
         raise SystemExit(f"{path}: columns {bad} are not {n} long")
+    if "wg" in b["cols"]:
+        m = len(b["strings"].get("wg", []))
+        if any(not (-1 <= i < m) for i in b["cols"]["wg"]):
+            raise SystemExit(f"{path}: a wg index outside its string table")
     return b
 
 
@@ -241,7 +290,20 @@ def main(argv=None) -> int:
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--upload", action="store_true", help="put it on the STAGING bucket's private/runtiming/base/")
     ap.add_argument("--yes", action="store_true", help="with --upload: send it (without: print the plan)")
+    ap.add_argument("--add-basins", type=Path, default=None, metavar="BASE",
+                    help="add (or replace) the wg column on an existing base, no atlas; written to --out (default: "
+                         "beside it, same name)")
+    ap.add_argument("--gpkg", type=Path, default=None, help="with --add-basins: the FWA gpkg (default: SOURCE's)")
     a = ap.parse_args(argv)
+    if a.add_basins is not None:
+        base = add_basins(read(a.add_basins), a.gpkg)
+        p = write(base, a.out or a.add_basins.parent)
+        hit = sum(1 for i in base["cols"]["wg"] if i >= 0)
+        print(f"base: wg on {hit:,} of {base['count']:,} sections, {len(base['strings']['wg'])} basins -> {p} "
+              f"({p.stat().st_size:,} B)")
+        if a.upload:
+            upload(p, base["section_handles"], a.yes)
+        return 0
     release = a.release or GENERATED.release / (GENERATED.release / "LATEST").read_text().strip()
     base, report = build(a.build or GENERATED.require_build(), a.tiles or GENERATED.tiles, release)
     p = write(base, a.out or GENERATED.runtiming / "feed")

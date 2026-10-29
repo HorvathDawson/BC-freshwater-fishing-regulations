@@ -9,7 +9,7 @@ import { readingDayOf, salmonDayIndex } from "@app/core";
 import { useEffect, useRef } from "react";
 import type * as maplibregl from "maplibre-gl";
 import type { WebRenderer } from "../adapters/web";
-import { LABEL_SOURCE_LAYERS, methodInput, runsInput, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
+import { LABEL_SOURCE_LAYERS, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
          type Channel, type ChannelInput, type TileRenderer, type TileSections } from "../colouring";
 import type { MapProps } from "../map-props";
 import { sourceTiles, tileIds } from "../tile-ids.web";
@@ -67,7 +67,7 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue }: Lit,
   const methodDay = method ? readingDayOf(method.day) : -1;
   useEffect(() => toChannel("method", method ? methodInput(method) : null, `method:${methodDay}`),
             [method?.facts, methodDay, at.atlas]);
-  // (T199) the run timing: the state for the species and month IS the label — a change relabels the loaded tiles
-  const runsKey = runs ? `${runs.slot}:${runs.month}` : "";
+  // (T199) the run timing: the state for the species and pentad IS the label — a change relabels the loaded tiles
+  const runsKey = runsKeyOf(runs);
   useEffect(() => toChannel("runs", runs ? runsInput(runs) : null, `runs:${runsKey}`), [runs?.facts, runsKey, at.atlas]);
 }

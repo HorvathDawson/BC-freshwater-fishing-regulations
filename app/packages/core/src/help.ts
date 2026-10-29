@@ -117,7 +117,7 @@ export const HELP_WORDS = {
     colours: { title: "Line colours", intro: "A line's colour is the regulation answer for the day the map shows." },
     lines: { title: "Line styles and areas", intro: "Marks drawn on top of the colours, and areas the regulations do not cover." },
     salmon: { title: "Salmon colours", intro: "In Salmon mode the lines show DFO's salmon rules instead." },
-    runs: { title: "Run timing", intro: "In Run timing mode the lines show when the chosen species is in the water." },
+    runs: { title: "Runs", intro: "On the Runs tab the map shows when the species you choose are in the water: slide the date through the year, zoom out for each watershed group, tap a stream for its runs and counts." },
     badges: { title: "Badges", intro: "On the More tab, each source of data wears a badge for how current it is." },
     bell: { title: "The bell", intro: "Opens the in-season changes the map does not draw yet, and anything that could not update." },
     sync: { title: "The refresh button", intro: "Checks for new data. Its look says what state the data is in." },

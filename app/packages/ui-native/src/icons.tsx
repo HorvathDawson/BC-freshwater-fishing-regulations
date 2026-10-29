@@ -15,12 +15,13 @@
  * react-native-svg draws them on the web and on a phone alike; the colour is always a palette token, passed in.
  */
 import { Text, View, type TextStyle } from "react-native";
-import Svg, { Circle, Ellipse, Path, Rect } from "react-native-svg";
+import Svg, { Circle, Ellipse, Path, Polygon, Rect } from "react-native-svg";
 import { OBSTACLE_ICON_GRID, OBSTACLE_ICON_HALO, OBSTACLE_ICON_SHAPES, obstacleIconKind, type IconShape, type ObstacleIconKind } from "@app/core";
 
 export type IconName =
   | "map" | "conditions" | "spots" | "more" | "layers"
-  | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse" | "sync" | "bell" | "check" | "fish" | "delta";
+  | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse" | "sync" | "bell" | "check" | "fish" | "delta"
+  | "runs" | "play" | "pause";
 
 /** Which Lucide icon (lucide-static@0.460.0, `icons/<name>.svg`) each app icon is a copy of. */
 export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
@@ -42,6 +43,9 @@ export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
   check: "check",
   fish: "fish",
   delta: "trending-up-down",
+  runs: "fish-symbol",
+  play: "play",
+  pause: "pause",
 };
 
 /** The owner's stroke (Lucide ships 2): round caps and joins on the 24 grid. */
@@ -50,7 +54,8 @@ export const ICON_STROKE = 1.75;
 type Shape =
   | { readonly path: string }
   | { readonly circle: readonly [cx: number, cy: number, r: number] }
-  | { readonly rect: readonly [x: number, y: number, w: number, h: number, rx: number] };
+  | { readonly rect: readonly [x: number, y: number, w: number, h: number, rx: number] }
+  | { readonly polygon: string };
 
 /** THE TABLE: the only path data for a chrome glyph in the app. Each entry is its Lucide file's elements, in order. */
 export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
@@ -132,6 +137,14 @@ export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
     { path: "M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4" },
     { path: "m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98" },
   ],
+  // (T261) the Runs tab: a fish's outline, apart from the Salmon mode's fish
+  runs: [{ path: "M2 16s9-15 20-4C11 23 2 8 2 8" }],
+  // (T261) the Runs date slider's play / pause
+  play: [{ polygon: "6 3 20 12 6 21 6 3" }],
+  pause: [
+    { rect: [14, 4, 4, 16, 1] },
+    { rect: [6, 4, 4, 16, 1] },
+  ],
 };
 
 /** One icon from the table, `size` px square, stroked in `colour` (a palette token). Decorative: its button speaks. */
@@ -144,6 +157,7 @@ export function Icon({ name, colour, size = 24 }: { name: IconName; colour: stri
         {ICONS[name].map((s, i) =>
           "path" in s ? <Path key={i} d={s.path} {...line} />
           : "circle" in s ? <Circle key={i} cx={s.circle[0]} cy={s.circle[1]} r={s.circle[2]} {...line} />
+          : "polygon" in s ? <Polygon key={i} points={s.polygon} {...line} />
           : <Rect key={i} x={s.rect[0]} y={s.rect[1]} width={s.rect[2]} height={s.rect[3]} rx={s.rect[4]} {...line} />)}
       </Svg>
     </View>

@@ -17,8 +17,8 @@ import { useAsync } from "./async";
 import { sourceKey } from "./conditionsColour";
 
 /** Which regulations the Map tab paints: the provincial day's status (bait ban / fly only marked on it, T213), or DFO's
- *  salmon — or (T199) no regulations at all: the Run timing mode, when the fish are in the water. */
-export type RegsLayer = "standard" | "salmon" | "runs";
+ *  salmon. (T261) Run timing left this switch for its own tab, Runs. */
+export type RegsLayer = "standard" | "salmon";
 
 /** What the map is handed (`MapProps.salmon`): the release's facts and the day. */
 export interface SalmonFeedVM {

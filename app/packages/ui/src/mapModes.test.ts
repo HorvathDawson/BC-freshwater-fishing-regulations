@@ -99,6 +99,22 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
     });
   });
 
+  it("(T261) Runs: every water by the runs, whatever the Map tab's colouring; the watershed groups zoomed out", () => {
+    const out = at({ tab: "runs", runs: true, runsField: true, zoomedOut: true, water: "stocked" });
+    expect([out.modes, out.fieldOn, out.horizonsShown, out.asksVisible]).toEqual([
+      { stream: "runs", lake: "runs", lake_flowing: "runs", wetland_flowing: "runs", gauges: "standing", basin: "runs" },
+      true, false, false]);
+    expect(at({ tab: "runs", runs: true, runsField: true, zoomedOut: false }).fieldOn).toBe(false);
+    // a feed without the field: the rivers at every zoom, no field drawn
+    expect([at({ tab: "runs", runs: true, zoomedOut: true }).fieldOn, at({ tab: "runs", runs: true }).modes.basin])
+      .toEqual([false, "plain"]);
+    // before the feed is in, or on an unproven pair: plain, never the regulations
+    expect(at({ tab: "runs" }).modes.stream).toBe("plain");
+    expect(at({ tab: "runs", runs: true, paired: false }).modes).toEqual(at({ tab: "map", paired: false }).modes);
+    // and the Map tab never paints runs
+    expect(at({ tab: "map", runs: true }).modes.stream).toBe("profile");
+  });
+
   it("Conditions, level, zoomed in: standings on the level question, no field", () => {
     const m = at({ tab: "conditions", flowParam: "level" });
     expect([m.quantity, m.standingParam, m.fieldOn, m.modes.stream, m.modes.basin])

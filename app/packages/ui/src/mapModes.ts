@@ -57,10 +57,11 @@ export interface MapModeInput {
    */
   salmon?: boolean;
   /**
-   * (T199) The Map tab shows RUN TIMING (the mode switch on Run timing, and the feed handed to the map): every water by
-   * the chosen species' runs for the month — no regulation is drawn. Only under the Regulations water colouring.
+   * (T199, T261) The Runs tab's feed is in and handed to the map: every water by the chosen species' runs for the pentad
+   * — no regulation is drawn. `runsField`: the feed carries the zoomed-out field (each watershed group's runs).
    */
   runs?: boolean;
+  runsField?: boolean;
 }
 
 export interface MapModesVM {
@@ -95,11 +96,12 @@ export interface MapModesVM {
 
 /**
  * IS THE CATCHMENT FIELD THE ANSWER IN THIS VIEW (below the handover)? On Conditions, under Flow or Level — never under
- * temperature, where the models publish no field and the rivers stay drawn (plain) at every zoom. The ONE predicate the
+ * temperature, where the models publish no field and the rivers stay drawn (plain) at every zoom — and (T261) on Runs,
+ * where each watershed group wears its runs. The ONE predicate the
  * field's drawing (`fieldOn`) and the map's taps (`tapOpensWater`) both read.
  */
 export const fieldAnswers = (tab: BrowseTab, flowParam: FlowParam): boolean =>
-  tab === "conditions" && flowParam !== "temperature";
+  (tab === "conditions" && flowParam !== "temperature") || tab === "runs";
 
 /**
  * DOES A TAP AT THIS ZOOM OPEN A WATER? Not where the field is drawn: below the handover (`FIELD_HANDOVER_Z`, @app/map)
@@ -140,10 +142,13 @@ export function mapModes(i: MapModeInput): MapModesVM {
   const salmonOn = !!i.salmon && i.paired && !onConditions && !lakeMeasure;
   const salmonMode = "salmon";
   // (T213) bait ban / fly only are no mode: marks on the Standard map's status mode (@app/map `gearPaint`)
-  // (T199) RUN TIMING: its own channel (`runs`, labelled per tile with the section's state for the species and month)
-  const runsOn = !!i.runs && i.paired && !onConditions && !lakeMeasure;
-  const regsMode = runsOn ? "runs" : salmonOn ? salmonMode : i.statusOk ? statusMode : "plain";
+  // (T199, T261) RUN TIMING: the Runs tab's own channel (`runs`, labelled per tile with the section's state for the
+  // species and pentad); every water by it, whatever the Map tab's water colouring — plain until the feed is in
+  const onRuns = i.tab === "runs";
+  const runsOn = onRuns && !!i.runs && i.paired;
+  const regsMode = salmonOn ? salmonMode : i.statusOk ? statusMode : "plain";
   const river = !i.paired ? "plain"
+    : onRuns ? (runsOn ? "runs" : "plain")
     : onConditions ? (temperature ? "plain" : "standing")
     : lakeMeasure ? "plain"
     : regsMode;
@@ -152,6 +157,7 @@ export function mapModes(i: MapModeInput): MapModesVM {
     // Lakes answer the same question as the rivers, on both tabs (`lake_gauge` on Conditions, a station IN the lake);
     // under a lake measure the lakes wear it and the rivers go neutral
     lake: !i.paired ? "plain"
+      : onRuns ? river
       : onConditions ? (temperature ? "plain" : "standing")
       : lakeMeasure ?? regsMode,
     lake_flowing: river,
@@ -159,13 +165,15 @@ export function mapModes(i: MapModeInput): MapModesVM {
     gauges: temperature ? "temperature" : "standing",
     // THE FIELD must be named or it is never painted. `standing` only where the rivers are — it is the zoomed-out
     // form of the same answer; under temperature the models publish no field.
-    basin: !i.paired ? "plain" : onConditions && !temperature ? "standing" : "plain",
+    // (T261) and on Runs the watershed groups by their runs, where the feed carries them
+    basin: !i.paired ? "plain" : onConditions && !temperature ? "standing"
+      : runsOn && i.runsField ? "runs" : "plain",
   };
   const activeGroups = { ...i.groups };
   return {
     onConditions, quantity, standingParam,
     standingHorizon: temperature ? 0 : i.horizon,
-    fieldOn: fieldAnswers(i.tab, i.flowParam) && i.zoomedOut,
+    fieldOn: fieldAnswers(i.tab, i.flowParam) && i.zoomedOut && (!onRuns || (runsOn && !!i.runsField)),
     horizonsShown: onConditions && !temperature,
     asksVisible: onConditions,
     modes, activeGroups,
@@ -182,11 +190,12 @@ export function mapModes(i: MapModeInput): MapModesVM {
  * memoised on a hand-picked subset of inputs, so a later rule that makes a mode depend on anything stays correct.
  */
 export function useMapModes(i: MapModeInput): MapModesVM {
-  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp, salmon, runs } = i;
+  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp, salmon, runs,
+          runsField } = i;
   const vm = useMemo(
     () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp,
-                     salmon, runs }),
-    [tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp, salmon, runs]);
+                     salmon, runs, runsField }),
+    [tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp, salmon, runs, runsField]);
   const modes = useSameContent(vm.modes);
   const activeGroups = useSameContent(vm.activeGroups);
   return useMemo(() => ({ ...vm, modes, activeGroups }), [vm, modes, activeGroups]);
