@@ -89,9 +89,12 @@ export interface ChannelValues {
   /** (T213) the bait ban / fly only day: which method labels are marked fly / bait (@app/core `methodDayProfiles`)
    *  — no colour of its own: the Standard map's gear edges (paint.ts `gearPaint`). */
   method: MethodDay | null;
+  /** (T199) the run timing's values are its labels (`rt`: the state for the species and month), so the style reads
+   *  nothing here: the slot and month painted, as one key ("slot:month") — a record, not a colour. */
+  runs: string | null;
 }
 export const NO_VALUES: ChannelValues =
-  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null };
+  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null, runs: null };
 
 /** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
 export type Tokens = Record<string, string | number | number[]>;
@@ -305,6 +308,13 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
 export function salmonStatusColour(theme: string, status: SalmonMapStatus): string {
   const hex = resolveTheme(theme)[`color.salmon.${status}`];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint salmon ${status}`);
+  return hex;
+}
+
+/** (T199) The colour the Run timing mode paints a run state (or no run: `none`) in one theme — its legend swatch. */
+export function runStateColour(theme: string, state: "spawn" | "pass" | "off" | "none"): string {
+  const hex = resolveTheme(theme)[`color.run.${state}`];
+  if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint run ${state}`);
   return hex;
 }
 

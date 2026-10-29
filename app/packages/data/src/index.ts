@@ -25,6 +25,9 @@ export { FEED_TTL_MS, httpFeed, type GaugeFeed } from "./feed/http";
 export { httpSalmonFeed } from "./feed/salmon";
 // (T230) the provincial in-season changes + their curated links, the last capture kept on the device
 export { httpInSeason, type InSeasonData, type InSeasonSource } from "./feed/inseason";
+// (T199) the run timing (its own feed, not the release), read lazily, the last capture kept on the device
+export { httpRunTiming, type RunTimingSource } from "./feed/runtiming";
+export { openRunTimingStore } from "./spots/runTimingStore";
 
 // The panel arithmetic: bundle rows plus a feed reading -> one answer. Three callers,
 // one of them not a screen, so it cannot live behind a hook — see ./panel.ts.

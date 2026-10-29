@@ -20,7 +20,7 @@ import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { PM_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
-import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint } from "./labels";
@@ -413,6 +413,17 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
           "source-layer": "stream",
           layout: { "line-cap": "butt" as const, "line-join": "round" as const },
           paint: noaccessPaint(mode ?? "plain", resolveTheme(theme)),
+        },
+        /*
+         * (T199) A PASSING RUN, DASHED (`runsPassPaint`): over the stream line, shown only in the Run timing mode where
+         * the section's `rt` label is `pass`. Its own layer for the same reason as the dots above.
+         */
+        {
+          id: RUNS_PASS_LAYER, type: "line" as const, source: "atlas",
+          "source-layer": "stream",
+          layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+          paint: runsPassPaint(mode ?? "plain", resolveTheme(theme),
+                               (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]),
         }];
       }),
       /*

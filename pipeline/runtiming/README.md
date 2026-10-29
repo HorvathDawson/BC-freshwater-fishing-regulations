@@ -1,8 +1,9 @@
-# Run timing — PARSED, NOT FED (T162, 2026-10-24)
+# Run timing — FED AS ITS OWN STREAM (T162 parse, T199 feed 2026-10-28)
 
-When each salmon and steelhead run is in fresh water. The data is parsed and tracked; nothing reads it yet. How it
-would reach the app — binding, release file, colouring, sheet, credits, open questions — is
-`handoff/PLAN/runtiming/PLAN.md` (owner 2026-10-24: data + plan only; the app waits for the owner).
+When each salmon and steelhead run is in fresh water. T199 (owner 2026-10-28): it reaches the app as ITS OWN FEED,
+not the release — `pipeline/runtiming/feed/` (base → build → publish; the data contract is its `__init__.py`), run by
+`.github/workflows/feeds-runtiming.yml`, read by the Map tab's Run timing mode from R2 `runtiming/`.
+`handoff/PLAN/runtiming/PLAN.md` (T162) is the binding's history; its release file `runs/1` is superseded.
 
 ## Sources
 

@@ -30,6 +30,7 @@ export * from "./mapModes";
 export * from "./conditionsColour";
 export * from "./lakeColour";
 export * from "./salmonColour";
+export * from "./runTiming";
 export * from "./release";
 export * from "./boot";
 export * from "./regs";

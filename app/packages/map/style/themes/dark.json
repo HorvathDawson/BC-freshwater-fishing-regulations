@@ -138,6 +138,14 @@
       1.2
     ],
     "color.obstacle.mark": "@color.gauge.dot",
-    "color.obstacle.ring": "@color.outside"
+    "color.obstacle.ring": "@color.outside",
+    "color.run.spawn": "#FF8A4C",
+    "color.run.pass": "#FFD27A",
+    "color.run.off": "#7A6E8F",
+    "color.run.none": "#33404C",
+    "dash.run.pass": [
+      2,
+      1.5
+    ]
   }
 }

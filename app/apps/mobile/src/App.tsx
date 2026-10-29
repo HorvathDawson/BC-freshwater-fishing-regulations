@@ -23,7 +23,8 @@ import {
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage, updatedToast, UPDATE_WORDS } from "@app/core";
-import { createUpdateService, httpFeed, httpInSeason, httpSalmonFeed, manifestDate, type WaterSource } from "@app/data";
+import { createUpdateService, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
+         type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openUpdateStore, openMeteo, openPhotos, openSpots, refreshSpot,
@@ -102,6 +103,8 @@ export default function App() {
   const inSeasonSeen = useMemo(() => openInSeasonSeenStore(), []);
   // T236: the first-run notice (not legal advice), once per device
   const firstRun = useMemo(() => openFirstRunStore(), []);
+  // T199: the run timing (its own feed, `runtiming/` on the data origin) — read the first time Run timing is chosen
+  const runTiming = useMemo(() => httpRunTiming(`${ENDPOINTS.base}/runtiming`, openRunTimingStore()), []);
 
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell. (T231) The phone's background install
   // is the update service's (`deferUpdate`: it holds a large set for Wi-Fi); `generation` re-boots onto a staged update.
@@ -285,6 +288,7 @@ export default function App() {
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
                inSeason={inSeason} inSeasonSeen={inSeasonSeen} firstRun={firstRun}
+               runTiming={runTiming}
                refreshing={refreshing}
                onDeleteSpot={spotsHook.remove}
                onRefreshSpots={async () => {

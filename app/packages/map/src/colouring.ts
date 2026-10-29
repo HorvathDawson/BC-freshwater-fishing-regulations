@@ -37,7 +37,8 @@
  * the style differs: a paint call on the web, a style swap on the phone (`nativeStyle`'s `values`).
  */
 import { readingDayOf, dayProfiles, methodDayProfiles, methodLabel, profileLabel, salmonDayIndex, salmonDayProfiles,
-         salmonLabel, stockRecency, type LakeFacts, type MethodFacts, type SalmonFacts, type StatusIndex } from "@app/core";
+         salmonLabel, stockRecency, type LakeFacts, type MethodFacts, type RunTimingFacts, type SalmonFacts,
+         type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import type { StandingValues, Tokens } from "./style";
 import { perSectionLayers, spreadSections, type PerSectionLayer } from "./sections";
@@ -69,7 +70,7 @@ export interface LakeFeed {
 }
 
 /** The colourings that label sections: one per question a release's data answers on the map. */
-export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method";
+export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method" | "runs";
 
 /**
  * (T211) THE SALMON COLOURING as the map is told it — ONLY on a proven pair: the release's DFO salmon (each section's
@@ -108,6 +109,32 @@ export function methodInput(s: MethodFeed): ChannelInput {
     labels: { key: "gm", of: f, label: (id) => methodLabel(f, id) },
     valuesKey: readingDayOf(s.day),
     values: () => methodDayProfiles(f, s.day),
+  };
+}
+
+/**
+ * (T199) THE RUN TIMING as the map is told it — ONLY on a proven pair whose tiles are the atlas the paint index was
+ * bound to: the run-timing feed's facts, the species slot and the month (0 = January).
+ */
+export interface RunsFeed {
+  readonly facts: RunTimingFacts;
+  readonly slot: number;
+  readonly month: number;
+}
+
+/**
+ * The runs channel: each section's state for the slot and month in feature-state `rt` (`spawn` / `pass` / `off`; no run
+ * recorded: no key). THE VALUES ARE THE LABELS (the lake modes' shape): a species or month change relabels the loaded
+ * tiles, and the style never changes.
+ */
+export function runsInput(r: RunsFeed): ChannelInput {
+  const f = r.facts, slot = r.slot, month = r.month;
+  return {
+    // a section with no run of any species never wears the key; one with other species' runs is cleared (a relabel)
+    labels: { key: "rt", of: f, label: (id) => f.state(id, slot, month) ?? (f.has(id) ? null : undefined) },
+    valuesKey: `${slot}:${month}`,
+    relabels: true,
+    values: () => `${slot}:${month}`,
   };
 }
 
@@ -361,7 +388,7 @@ export class Colouring {
  * Pushed through `data` they would be a second pathway beside the engine (owner 2026-10-21: "it should be a single
  * pathway"): both maps refuse them, and report it (tools/one-colouring-engine.test.ts).
  */
-export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm"];
+export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm", "rt"];
 
 type Pushed = Record<string, Record<string, Record<string, unknown>>>;
 
@@ -383,7 +410,7 @@ export function withoutEngineKeys(data: Pushed, report: (e: Error) => void): Pus
       if (Object.keys(rest).length) kept[id] = rest;
     }
     if (refused) report(new Error(`pushed ${ENGINE_KEYS.join("/")} on "${layerId}" refused: the map colours `
-                                  + "sections through the colouring engine only (MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon, MapProps.method)"));
+                                  + "sections through the colouring engine only (MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon, MapProps.method, MapProps.runs)"));
     if (Object.keys(kept).length) out[layerId] = kept;
   }
   return spreadSections(out);

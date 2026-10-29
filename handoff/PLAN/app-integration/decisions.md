@@ -1633,4 +1633,15 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   0 sections gain, 4 change (Vedder River: 08MH024 Fraser at Mission -> 08MH001, ratios 0.985-1.0), 0 lose. Dropped by
   the floor: the Vedder side reach's 08MH016 (0.002) and the Atnarko's 08FB006 on 7 Bella Coola side reaches (0.001);
   those sections are ungauged, as before.
-
+- **Owner 2026-10-28 (Q144, T199 run timing):** steelhead is the default species; spawning reaches are drawn solid and
+  passage reaches DASHED (a runtime dash layer, `stream-runs-pass`, since `line-dasharray` cannot vary per feature);
+  run timing is its OWN map mode — a third choice beside Standard / Salmon — with its own paint index, and its own
+  stream: NOT the bundle or the release. A GitHub Actions workflow (`feeds-runtiming.yml`, manual; monthly schedule
+  written, commented out; staging only) fetches PSF + DFO, parses (T162), binds against the live atlas through a
+  "binding base" the owner builds on the Mac after an atlas promote (`python -m pipeline.runtiming.feed.base --upload
+  --yes`, kept at R2 `private/runtiming/base/<handles>.json.gz`), and uploads `runtiming/index.json` → content-named
+  `runs`, `paint`, `waters` files. The app reads it lazily on the first press of Run timing, keeps the last capture for
+  offline, and paints nothing on tiles of another atlas (says so in the legend). Claude's calls inside it: the map's
+  month is the day strip's month (no separate slider); "in the water" = a PSF curve at >= 10 % of its peak or a DFO
+  pentad where >= 25 % of surveyed years saw fish; a tap under Run timing opens the runs sheet (with "Open this water"),
+  not the water page; a CU's own main drainage is never dropped as "spill" (+16 PSF runs bound, 312 of 329).

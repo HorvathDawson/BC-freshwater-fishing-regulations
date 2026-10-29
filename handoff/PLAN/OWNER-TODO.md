@@ -117,8 +117,11 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **T89 six waters:** Frog/Hidden/Secret/Square (5-6), Redfern (5-15), Squirrel (6-1) — nothing of those names near
   the printed MU; if you know where any is, the proposal file `handoff/PLAN/curation-review/t89-awaiting-water.json`
   lists the leads and the fix path.
-- **Run timing (T199, last band; you said go 10-25):** Q144 (steelhead first, passage on a paler ramp, its own layer).
-  The release total no longer blocks it (T182: per-file gates + a web cold-load gate; 20 MB offline backstop).
+- **Run timing (T199, built 10-28 on staging; Q144 answered with the defaults):** (1) run
+  `gh workflow run feeds-runtiming.yml --ref redesign/stream-sections -f upload=true` once (uses the repo's R2 secrets;
+  staging only) and check its report; (2) after every atlas promote, rebuild the binding base on the Mac:
+  `python -m pipeline.runtiming.feed.base --upload --yes`, then run the workflow; (3) when happy, uncomment its
+  monthly schedule; (4) look at Run timing on the phone (T199-shots/).
 - **T182 caps (built with defaults, veto if wrong):** offline total 20 MB (was 15); cold-load gate 3.35 MB (salmon on
   the first Salmon press, as you decided 10-28).
 - **Scope and big rebuilds:** Q10 imagery corridor (offline corridor + pools go/no-go; online Esri is settled).

@@ -99,6 +99,10 @@ createServer((req, res) => {
     // pipeline.regs.inseason.publish [--feed …]` last wrote them (R2 `feeds/inseason/` in prod)
     ?? (/^\/feeds\/inseason\/[\w-]+\.json$/.test(route)
           ? `${repo}data/generated/inseason/feed/${route.split("/").pop()}` : undefined)
+    // (T199) THE RUN TIMING: index.json + its content-named files, as `python -m pipeline.runtiming.feed.build --out
+    // data/generated/runtiming/feed/out` last wrote them (R2 `runtiming/` in prod)
+    ?? (/^\/runtiming\/[\w.-]+\.json(\.gz)?$/.test(route)
+          ? `${repo}data/generated/runtiming/feed/out/runtiming/${route.split("/").pop()}` : undefined)
     ?? releaseFile(route);
   if (!file || !existsSync(file)) return res.writeHead(404).end("no such archive");
 

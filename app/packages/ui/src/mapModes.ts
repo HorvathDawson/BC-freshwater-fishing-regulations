@@ -56,6 +56,11 @@ export interface MapModeInput {
    * release's salmon handed to the map). Only under the Regulations water colouring; absent = Standard.
    */
   salmon?: boolean;
+  /**
+   * (T199) The Map tab shows RUN TIMING (the mode switch on Run timing, and the feed handed to the map): every water by
+   * the chosen species' runs for the month — no regulation is drawn. Only under the Regulations water colouring.
+   */
+  runs?: boolean;
 }
 
 export interface MapModesVM {
@@ -135,7 +140,9 @@ export function mapModes(i: MapModeInput): MapModesVM {
   const salmonOn = !!i.salmon && i.paired && !onConditions && !lakeMeasure;
   const salmonMode = "salmon";
   // (T213) bait ban / fly only are no mode: marks on the Standard map's status mode (@app/map `gearPaint`)
-  const regsMode = salmonOn ? salmonMode : i.statusOk ? statusMode : "plain";
+  // (T199) RUN TIMING: its own channel (`runs`, labelled per tile with the section's state for the species and month)
+  const runsOn = !!i.runs && i.paired && !onConditions && !lakeMeasure;
+  const regsMode = runsOn ? "runs" : salmonOn ? salmonMode : i.statusOk ? statusMode : "plain";
   const river = !i.paired ? "plain"
     : onConditions ? (temperature ? "plain" : "standing")
     : lakeMeasure ? "plain"
@@ -175,11 +182,11 @@ export function mapModes(i: MapModeInput): MapModesVM {
  * memoised on a hand-picked subset of inputs, so a later rule that makes a mode depend on anything stays correct.
  */
 export function useMapModes(i: MapModeInput): MapModesVM {
-  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp, salmon } = i;
+  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp, salmon, runs } = i;
   const vm = useMemo(
     () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp,
-                     salmon }),
-    [tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp, salmon]);
+                     salmon, runs }),
+    [tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp, salmon, runs]);
   const modes = useSameContent(vm.modes);
   const activeGroups = useSameContent(vm.activeGroups);
   return useMemo(() => ({ ...vm, modes, activeGroups }), [vm, modes, activeGroups]);

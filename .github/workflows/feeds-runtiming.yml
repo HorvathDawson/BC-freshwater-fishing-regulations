@@ -1,0 +1,127 @@
+name: feeds — run timing (PSF + DFO) → R2 runtiming/
+
+# T199 (owner 2026-10-28): run timing is ITS OWN STREAM — not the bundle, not the release. MANUAL (workflow_dispatch);
+# a monthly schedule is written below, commented out, for the owner to turn on.
+#
+# What it does (pipeline/runtiming/feed/__init__.py has the data contract):
+#   1. which atlas the app is on: the bucket's release/manifest.json → its tiles' section_handles
+#   2. the binding base for those handles: private/runtiming/base/<handles>.json.gz (the atlas reduced to what the
+#      binding reads; the OWNER builds it on the Mac after an atlas promote — the atlas cannot run on a hosted runner:
+#        python -m pipeline.runtiming.feed.base --upload --yes
+#      ) — refused, with that line, when it is missing
+#   3. fetch: the Pacific Salmon Explorer's run-timing page + the CU polygon tiles (PSF), NuSEDS (DFO, OGL – Canada)
+#   4. parse (pipeline.runtiming.parse) → timing.json + cu_polygons.geojson, in the runner only
+#   5. build (pipeline.runtiming.feed.build) → runtiming/{runs,paint,waters}-<sha12>.json.gz + index.json, checked
+#   6. (upload: true) the files, then index.json LAST (pipeline.runtiming.feed.publish --via aws)
+# Nothing fetched is kept: the PSF pages may not be re-hosted (T162). The run's artifact is the REPORT only (counts,
+# sizes), never the data.
+#
+# TARGET: staging by default and, for now, ONLY staging. Production is an explicit choice that is commented out
+# below until the owner enables it (uncomment the option AND the prod secrets block; publish.py names only staging —
+# give it a --bucket first).
+#
+# SECRETS (the repo's existing ones, as feeds-sync-inputs.yml):
+#   CLOUDFLARE_ACCOUNT_ID            the account id (R2's S3 endpoint is https://<id>.r2.cloudflarestorage.com)
+#   R2_ACCESS_KEY_ID                 the repo's R2 API token (Object Read & Write); it may be account-wide, so the
+#   R2_SECRET_ACCESS_KEY             bucket guard below is what keeps this staging-only
+#   (prod, later) PROD_R2_ACCESS_KEY_ID / PROD_R2_SECRET_ACCESS_KEY
+#
+# NOTE: GitHub only lists a workflow_dispatch workflow in the Actions tab once the file is on the default branch
+# (main); until then run it with `gh workflow run feeds-runtiming.yml --ref redesign/stream-sections -f upload=false`.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which R2 bucket"
+        type: choice
+        default: staging
+        options:
+          - staging
+          # - production   # OWNER: uncomment to enable (and the prod secrets in the env block below)
+      upload:
+        description: "Upload to R2 runtiming/ (false = build and report only)"
+        type: boolean
+        default: false
+  # OWNER: monthly, the 3rd at 09:00 UTC — PSF revises ~yearly, NuSEDS a few times a year; a run whose sources did not
+  # move writes the same content-named files again (same sha) and only index.json's built_at changes. A scheduled run
+  # has no inputs: it uploads to staging (see UPLOAD below).
+  # schedule:
+  #   - cron: "0 9 3 * *"
+
+concurrency:
+  group: feeds-runtiming
+  cancel-in-progress: false
+
+jobs:
+  runtiming:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      BUCKET: ${{ inputs.target == 'production' && 'bc-fishing-regulations' || 'bc-fishing-regulations-staging' }}
+      UPLOAD: ${{ github.event_name == 'schedule' || inputs.upload }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      # OWNER (prod): replace the two lines above with
+      #   AWS_ACCESS_KEY_ID: ${{ inputs.target == 'production' && secrets.PROD_R2_ACCESS_KEY_ID || secrets.R2_ACCESS_KEY_ID }}
+      #   AWS_SECRET_ACCESS_KEY: ${{ inputs.target == 'production' && secrets.PROD_R2_SECRET_ACCESS_KEY || secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      W: ${{ github.workspace }}/work
+    steps:
+      - name: Guard — staging only until the owner enables production
+        run: |
+          case "$BUCKET" in
+            bc-fishing-regulations-staging) echo "target bucket: $BUCKET" ;;
+            *) echo "::error::only bc-fishing-regulations-staging is allowed (got $BUCKET)"; exit 1 ;;
+          esac
+          [ -n "${AWS_ACCESS_KEY_ID:-}" ] || { echo "::error::R2 keys are not set (see the header)"; exit 1; }
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      # only what fetch / parse / build import (pipeline.common.curated: pyyaml + pydantic; the polygons: shapely +
+      # mapbox-vector-tile), not the whole pipeline's requirements.txt
+      - run: pip install pyyaml pydantic shapely mapbox-vector-tile orjson
+
+      - name: 1/6 the live atlas (release/manifest.json → section_handles)
+        run: |
+          aws s3 cp "s3://$BUCKET/release/manifest.json" /tmp/manifest.json --endpoint-url "$R2_ENDPOINT" --only-show-errors \
+            || { echo "::error::no release/manifest.json in $BUCKET"; exit 1; }
+          H=$(python -c 'import json; print(json.load(open("/tmp/manifest.json"))["tiles"]["current"]["id"].split(".")[0])')
+          echo "HANDLES=$H" >> "$GITHUB_ENV"
+          echo "live release $(python -c 'import json; print(json.load(open("/tmp/manifest.json"))["data_release"])'), tiles' section_handles $H"
+
+      - name: 2/6 the binding base for that atlas
+        run: |
+          mkdir -p "$W"
+          aws s3 cp "s3://$BUCKET/private/runtiming/base/$HANDLES.json.gz" "$W/base.json.gz" --endpoint-url "$R2_ENDPOINT" \
+            --only-show-errors || {
+            echo "::error::no binding base for section_handles $HANDLES. OWNER, on the Mac (needs the atlas):"
+            echo "::error::  python -m pipeline.runtiming.feed.base --upload --yes"
+            exit 1; }
+
+      - name: 3/6 fetch (PSF run-timing page + CU tiles, DFO NuSEDS)
+        run: |
+          python -m pipeline.runtiming.fetch.explorer --out "$W/src" --only run-timing
+          python -m pipeline.runtiming.fetch.boundaries --out "$W/src"
+          python -m pipeline.runtiming.fetch.nuseds --out "$W/src/dfo"
+
+      - name: 4/6 parse
+        run: python -m pipeline.runtiming.parse --src "$W/src" --out "$W/timing.json" --polygons "$W/cu_polygons.geojson"
+
+      - name: 5/6 build (bind + paint index + checks)
+        run: |
+          python -m pipeline.runtiming.feed.build --timing "$W/timing.json" --polygons "$W/cu_polygons.geojson" \
+            --base "$W/base.json.gz" --out "$W/out"
+          ls -la "$W/out/runtiming"
+          { echo '```json'; cat "$W/out/report.json"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with: { name: "runtiming-report-${{ env.HANDLES }}", path: work/out/report.json, retention-days: 30 }
+
+      - name: 6/6 upload to R2 (files, then index.json last)
+        if: env.UPLOAD == 'true'
+        run: |
+          python -m pipeline.runtiming.feed.publish --dir "$W/out/runtiming" --via aws --yes
+          echo "Uploaded run timing (atlas $HANDLES) to $BUCKET/runtiming/." >> "$GITHUB_STEP_SUMMARY"

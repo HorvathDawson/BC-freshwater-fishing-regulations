@@ -1223,6 +1223,31 @@
             "field": "profile"
           },
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
+        },
+        "runs": {
+          "label": "Run timing for the month",
+          "scale": "categorical",
+          "property": "rt",
+          "enum": "run_state",
+          "categories": {
+            "spawn": {
+              "token": "color.run.spawn"
+            },
+            "pass": {
+              "token": "color.run.none"
+            },
+            "off": {
+              "token": "color.run.off"
+            }
+          },
+          "missing": {
+            "token": "color.run.none"
+          },
+          "data": {
+            "provider": "runs",
+            "field": "state"
+          },
+          "$comment": "(T199) RUN TIMING, the fast way of the lake modes: feature-state `rt` holds the section's state for the chosen species and month (@app/core `RunTimingFacts.state`: `spawn` a local run in the water, `pass` passing through, `off` recorded but not this month), set as each tile arrives; a species or month change RELABELS the loaded tiles (the values are the labels), so the style never changes. `pass` paints the quiet line and the dash over it (`stream-runs-pass`, paint.ts) carries it. No run recorded: `missing`, the quiet line — never 'no fish'."
         }
       },
       "opacity": {
@@ -1449,6 +1474,31 @@
             "field": "profile"
           },
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
+        },
+        "runs": {
+          "label": "Run timing for the month",
+          "scale": "categorical",
+          "property": "rt",
+          "enum": "run_state",
+          "categories": {
+            "spawn": {
+              "token": "color.run.spawn"
+            },
+            "pass": {
+              "token": "color.run.none"
+            },
+            "off": {
+              "token": "color.run.off"
+            }
+          },
+          "missing": {
+            "token": "color.run.none"
+          },
+          "data": {
+            "provider": "runs",
+            "field": "state"
+          },
+          "$comment": "(T199) RUN TIMING, the fast way of the lake modes: feature-state `rt` holds the section's state for the chosen species and month (@app/core `RunTimingFacts.state`: `spawn` a local run in the water, `pass` passing through, `off` recorded but not this month), set as each tile arrives; a species or month change RELABELS the loaded tiles (the values are the labels), so the style never changes. `pass` paints the quiet line and the dash over it (`stream-runs-pass`, paint.ts) carries it. No run recorded: `missing`, the quiet line — never 'no fish'."
         }
       },
       "opacity": {
@@ -1725,6 +1775,31 @@
             "field": "profile"
           },
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
+        },
+        "runs": {
+          "label": "Run timing for the month",
+          "scale": "categorical",
+          "property": "rt",
+          "enum": "run_state",
+          "categories": {
+            "spawn": {
+              "token": "color.run.spawn"
+            },
+            "pass": {
+              "token": "color.run.none"
+            },
+            "off": {
+              "token": "color.run.off"
+            }
+          },
+          "missing": {
+            "token": "color.run.none"
+          },
+          "data": {
+            "provider": "runs",
+            "field": "state"
+          },
+          "$comment": "(T199) RUN TIMING, the fast way of the lake modes: feature-state `rt` holds the section's state for the chosen species and month (@app/core `RunTimingFacts.state`: `spawn` a local run in the water, `pass` passing through, `off` recorded but not this month), set as each tile arrives; a species or month change RELABELS the loaded tiles (the values are the labels), so the style never changes. `pass` paints the quiet line and the dash over it (`stream-runs-pass`, paint.ts) carries it. No run recorded: `missing`, the quiet line — never 'no fish'."
         }
       },
       "opacity": {
@@ -2193,6 +2268,31 @@
             "field": "profile"
           },
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
+        },
+        "runs": {
+          "label": "Run timing for the month",
+          "scale": "categorical",
+          "property": "rt",
+          "enum": "run_state",
+          "categories": {
+            "spawn": {
+              "token": "color.run.spawn"
+            },
+            "pass": {
+              "token": "color.run.none"
+            },
+            "off": {
+              "token": "color.run.off"
+            }
+          },
+          "missing": {
+            "token": "color.run.none"
+          },
+          "data": {
+            "provider": "runs",
+            "field": "state"
+          },
+          "$comment": "(T199) RUN TIMING, the fast way of the lake modes: feature-state `rt` holds the section's state for the chosen species and month (@app/core `RunTimingFacts.state`: `spawn` a local run in the water, `pass` passing through, `off` recorded but not this month), set as each tile arrives; a species or month change RELABELS the loaded tiles (the values are the labels), so the style never changes. `pass` paints the quiet line and the dash over it (`stream-runs-pass`, paint.ts) carries it. No run recorded: `missing`, the quiet line — never 'no fish'."
         }
       },
       "label": {
@@ -2497,6 +2597,13 @@
       "key": "section_id",
       "freshness": "bundle",
       "$comment": "(T213) BAIT BAN AND FLY FISHING ONLY (`method/1`, pipeline/deliver/method.py): each section's day-profile of none / bait ban / fly only, projected at deliver time from the answers' open-days strips and pinned to the same section_handles digest as the tiles. A section the file does not list is none every day; closures are the status index's."
+    },
+    "runs": {
+      "kind": "feed",
+      "key": "section_id",
+      "freshness": "live",
+      "$comment": "(T199) THE RUN TIMING FEED (`runtiming/` on the data origin, pipeline/runtiming/feed): its own stream, not the release, read when the Run timing mode is first chosen. The paint index is keyed by the tiles' own section_id and stamped with their section_handles: on other tiles it paints nothing. Stale after 400 days: the curves are multi-year averages, refreshed about yearly; a capture a season old is still the answer.",
+      "staleAfterMs": 34560000000
     }
   },
   "$toggleable_groups": "WHAT MAY BE SWITCHED OFF, and what may not.\n\n`protected` and `access` are NOT toggleable and are ON by default. A national park, an ecological reserve, an Indian reserve and land the public may not enter are all reasons a person can be somewhere they should not be, and none of them is a preference. They were both toggleable and hidden by default, which meant the map's normal state was one that showed none of them.\n\n`ownership` IS toggleable and off by default, and that asymmetry is the point: title is context, not an instruction. It carries private land ONLY — most of British Columbia is Crown land, so drawing that would be a wash over the whole province saying almost nothing. Private title on the bank you meant to walk down is worth looking up deliberately.",

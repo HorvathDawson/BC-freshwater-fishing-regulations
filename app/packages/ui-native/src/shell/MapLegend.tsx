@@ -7,9 +7,10 @@
  * colouring. Plain water needs no key. Whether it is shown is the Shell's call; what it says is here.
  */
 import { CHANGE_LEGEND, changeMarkWords, closedLegend, FLOW_LEGEND, TEMP_LEGEND, unprovenLine, WATER_STATUS,
-         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, salmonLegendSource, GEAR_LEGEND, METHOD_WORDS }
+         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, salmonLegendSource, GEAR_LEGEND, METHOD_WORDS,
+         RUN_STATES, RUN_WORDS, runCreditShort }
   from "@app/core";
-import { gearEdgeColour, salmonStatusColour } from "@app/map";
+import { gearEdgeColour, runStateColour, salmonStatusColour } from "@app/map";
 import { Text, View } from "react-native";
 import { LegendCount, LegendRamp, LegendStrip } from "../Chrome";
 import { legendColour } from "../LayersSheet";
@@ -81,6 +82,30 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
         waterLegend(layers.water.drawn).map((r) => (
           <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)} label={r.label} />
         ))
+      ) : col.regsLayer === "runs" ? (
+        // (T199) RUN TIMING: the species and month painted, the three states (passing dashed) and no run, whose data
+        <>
+          {col.runs.chosen && (
+            <Text testID="runs-legend-title" style={{ ...TYPE.small, fontWeight: "600", color: palette.ink }}>
+              {RUN_WORDS.legendTitle(col.runs.chosen.name, (mapDay ?? new Date()).getMonth())}
+            </Text>
+          )}
+          {RUN_STATES.map((s) => (
+            <LegendCount key={s} palette={palette} colour={runStateColour(theme, s)} line dotted={s === "pass"}
+                         label={RUN_WORDS.legend[s]} />
+          ))}
+          <LegendCount palette={palette} colour={runStateColour(theme, "none")} line label={RUN_WORDS.legend.none} />
+          {col.runs.problem && (
+            <Text testID="runs-legend-problem" style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>
+              {col.runs.problem === "stale" ? RUN_WORDS.stale : RUN_WORDS.failed}
+            </Text>
+          )}
+          {col.runs.facts && (
+            <Text testID="runs-legend-source" style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>
+              {runCreditShort(col.runs.facts)}
+            </Text>
+          )}
+        </>
       ) : col.regsLayer === "salmon" ? (
         // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
         // Layers button and the day in the map's corner (T213)

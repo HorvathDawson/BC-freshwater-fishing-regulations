@@ -53,6 +53,8 @@ export interface ShellProps {
   inSeasonSeen?: import("@app/ui").InSeasonSeenStore | null;
   /** (T236) where the first-run notice's acceptance is kept (`openFirstRunStore`). Absent: the notice never opens. */
   firstRun?: import("../FirstRunNotice").FirstRunStore | null;
+  /** (T199) the run-timing feed (`httpRunTiming`; its own stream, not the release). Absent: no Run timing mode. */
+  runTiming?: import("@app/data").RunTimingSource | null;
   refreshing?: boolean;
   attribution?: readonly string[];
   /** The fish pictures by species code, registered by the app (T20). Absent -> silhouettes. */

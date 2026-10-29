@@ -16,7 +16,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DeviceEventEmitter } from "react-native";
-import { Colouring, LABEL_SOURCE_LAYERS, methodInput, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
+import { Colouring, LABEL_SOURCE_LAYERS, methodInput, runsInput, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
          type Channel, type ChannelInput, type LabelSourceLayer, type LabelTarget, type TileRenderer } from "../colouring";
 import type { MapAdapter } from "../adapters/contract";
 import type { MapProps } from "../map-props";
@@ -33,7 +33,7 @@ export interface AtlasSource {
   nativeTag(): number;
 }
 
-type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "method">;
+type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "method" | "runs">;
 
 export interface NativeColouring {
   /** The channels' style-borne values, for `nativeStyle`. */
@@ -165,7 +165,7 @@ export function useNativeColouring(o: {
   /** One channel's input, to the engine — the web's `useChannels`, the same calls. */
   const toChannel = (channel: Channel, input: ChannelInput | null) =>
     engine.current!.set({} as never, target, renderer, channel, input, ref.current.theme);
-  const { status, standing, lakes, salmon, method } = o;
+  const { status, standing, lakes, salmon, method, runs } = o;
   const statusDay = status ? readingDayOf(status.day) : 0;
   useEffect(() => toChannel("status", status ? statusInput(status) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,6 +187,11 @@ export function useNativeColouring(o: {
   useEffect(() => toChannel("method", method ? methodInput(method) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [method?.facts, methodDay, o.atlasUrl]);
+  // (T199) the run timing: the state IS the label, a species or month change relabels
+  const runsKey = runs ? `${runs.slot}:${runs.month}` : "";
+  useEffect(() => toChannel("runs", runs ? runsInput(runs) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [runs?.facts, runsKey, o.atlasUrl]);
 
   const coloured = useCallback((id: number) =>
     (id >> 3) < acked.current.length && (acked.current[id >> 3]! & (1 << (id & 7))) !== 0, []);

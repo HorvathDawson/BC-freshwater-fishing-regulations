@@ -224,6 +224,23 @@ export function gearPaint(layerId: "stream" | "lake", mode: string, mark: GearMa
   };
 }
 
+/**
+ * (T199) A PASSING RUN IS A DASH (Q144, owner 2026-10-28: "spawning reaches + passage reaches dashed"). `line-dasharray`
+ * cannot vary per feature, so — like the no-access dots — the dash is its own runtime layer over every stream, shown
+ * only where the stream's mode is `runs` and its label `rt` is `pass`; the `stream` layer paints that section the quiet
+ * `color.run.none` line underneath, so the dash carries the whole distinction. Its width is the stream's own.
+ */
+export const RUNS_PASS_LAYER = "stream-runs-pass";
+
+export function runsPassPaint(mode: string, tokens: Tokens, streamWidth?: unknown): Record<string, unknown> {
+  return {
+    "line-color": tokens["color.run.pass"],
+    "line-width": streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2],
+    "line-dasharray": tokens["dash.run.pass"],
+    "line-opacity": mode === "runs" ? ["case", ["==", ["feature-state", "rt"], "pass"], 1, 0] : 0,
+  };
+}
+
 /** The MapLibre paint property that carries colour, per layer type. */
 // Module-private: an implementation detail of `paintFor`.
 function colourPropFor(type: string | undefined): string {

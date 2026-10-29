@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./endpoints";
 import type { TraceProp } from "./trace-overlay";
-import type { LakeFeed, MethodFeed, ProfileStatus, SalmonFeed, StandingFeed } from "./colouring";
+import type { LakeFeed, MethodFeed, ProfileStatus, RunsFeed, SalmonFeed, StandingFeed } from "./colouring";
 import type { SelectionCue } from "./paint";
 
 /** A boundary mark on a water (`MapProps.marks`). `a11y`: what a screen reader says for it. */
@@ -208,6 +208,12 @@ export interface MapProps {
    * solid fly only, dashed bait ban), none where `status` closes the section. ONLY ON A PROVEN PAIR.
    */
   method?: MethodFeed | null;
+  /**
+   * (T199) THE RUN TIMING, for every layer in the `runs` mode — the same engine (`colouring.ts`, the `runs` channel):
+   * each section's state for the chosen species and month as its tile arrives (a passing run dashed: `stream-runs-pass`).
+   * Handed over only while the Run timing mode is chosen. ONLY ON A PROVEN PAIR of the paint index's atlas.
+   */
+  runs?: RunsFeed | null;
   /**
    * A tapped feature, and WHERE on it the tap landed.
    *

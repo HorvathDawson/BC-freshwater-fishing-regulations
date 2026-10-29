@@ -22,7 +22,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { bellLabel, dayRange, placeholderFor, syncVM } from "@app/core";
+import { bellLabel, dayRange, placeholderFor, runSheet, syncVM } from "@app/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
@@ -40,6 +40,7 @@ import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
 import { ObstacleSheet } from "./ObstacleSheet";
 import { TidalSheet } from "./TidalSheet";
+import { RunsSheet } from "./RunsSheet";
 import { InSeasonNotice } from "./InSeasonNotice";
 import { SyncErrorSheet } from "./SyncErrorSheet";
 import { DaySheet } from "./regs/DaySheet";
@@ -86,6 +87,8 @@ export function Shell(p: ShellProps) {
   const [obstacle, setObstacle] = useState<Readonly<Record<string, unknown>> | null>(null);
   /** (T166) Whether the tidal water sheet is up (a tap on tidal water, no water under it). */
   const [tidalOpen, setTidalOpen] = useState(false);
+  /** (T199) The section a tap asked about under Run timing (its runs sheet), else null. */
+  const [runsAt, setRunsAt] = useState<number | null>(null);
   /**
    * The camera survives leaving the map.
    *
@@ -123,7 +126,13 @@ export function Shell(p: ShellProps) {
   const syncState = useSync({ feed, release: loader?.release ?? null, checkRelease, named: releaseNamed, updates });
   const col = useMapColouring({ source, feed, status: p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
-                                epoch: syncState.epoch, settled, salmonOnDemand: !!(p.prefetch && loader) });
+                                epoch: syncState.epoch, settled, salmonOnDemand: !!(p.prefetch && loader),
+                                runTiming: p.runTiming ?? null });
+  // (T199) the runs sheet's words, for the tapped section, the species chosen and the map's day
+  const runsVM = useMemo(() => {
+    const f = col.runs.facts, sp = col.runs.chosen;
+    return runsAt !== null && f && sp ? runSheet(f, runsAt, sp, mapDay ?? new Date()) : null;
+  }, [runsAt, col.runs.facts, col.runs.chosen, mapDay]);
   /*
    * YOUR SPOTS ON EVERY MAP (owner 2026-10-22: "toggle our spots on and off in the layer menu"), while the Layers
    * sheet's Spots switch is on (default on); (T131) each a mark that opens its spot, drawn by `SpotPin`, the selected
@@ -213,7 +222,7 @@ export function Shell(p: ShellProps) {
                   onDay={setMapDay} onOpenDay={() => setDayOpen(true)}
                   dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
-                  onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} />;
+                  onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onRuns={setRunsAt} />;
 
   /** (T48) The top bar — the search field — is the maps': on the Map and Conditions tabs while browsing. */
   const topBar = route.mode === "browse" && (tab === "map" || tab === "conditions") && !rail.picking;
@@ -288,6 +297,13 @@ export function Shell(p: ShellProps) {
       <ObstacleSheet props={route.mode === "browse" ? obstacle : null} palette={palette} onClose={() => setObstacle(null)} />
       {/* (T166) a tap on tidal water: why the freshwater regulations stop here (Map tab, while browsing) */}
       <TidalSheet open={route.mode === "browse" && tidalOpen} palette={palette} onClose={() => setTidalOpen(false)} />
+      {/* (T199) a tap under Run timing: the runs on that section, and on to its regulations */}
+      <RunsSheet vm={route.mode === "browse" ? runsVM : null} palette={palette} onClose={() => setRunsAt(null)}
+                 onOpenWater={runsAt === null ? undefined : () => {
+                   const sid = runsAt;
+                   setRunsAt(null);
+                   void nav.opener.tap(sid as never, null, "regs");
+                 }} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
                    mapDay={mapDay} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
