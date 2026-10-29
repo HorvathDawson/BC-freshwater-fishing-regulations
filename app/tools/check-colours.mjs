@@ -122,7 +122,7 @@ export function findColours(src, path = "x.ts") {
   code.split("\n").forEach((line, i) => {
     const found = [...line.matchAll(HEX), ...line.matchAll(FUNC)].map((m) => m[0]);
     if (COLOUR_CONTEXT.test(line) || path.endsWith(".css"))
-      for (const m of line.matchAll(QUOTED)) if (NAMED.has(m[1].toLowerCase()) && !NOT_A_PAINT.has(m[1])) found.push(m[0]);
+      for (const m of line.matchAll(QUOTED)) if (NAMED.has(m[1].toLowerCase()) && !NOT_A_PAINT.has(m[1].toLowerCase())) found.push(m[0]);
     if (path.endsWith(".css"))
       for (const m of line.matchAll(/:\s*([a-zA-Z]+)\s*[;!}]/g))
         if (NAMED.has(m[1].toLowerCase())) found.push(m[1]);

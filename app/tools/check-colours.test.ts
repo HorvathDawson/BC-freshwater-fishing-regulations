@@ -78,6 +78,8 @@ describe("the scanner leaves alone what is not a colour", () => {
     ["transparent", `backgroundColor: on ? palette.tint : "transparent"`],
     ["a URL fragment", `const u = "https://example.org/page#abc-def";`],
     ["a word that is a colour, not used as one", `label: "Orange River"`],
+    // (T221) the Salmon mode's name, in any case, beside a colour word on the line
+    ["the Salmon mode, capitalised", `for (const [label] of [["Sal_mon", "regs-paint-salmon"]]) paint(label);`],
   ])("%s", (_what, src) => {
     expect(found(src)).toEqual([]);
   });
