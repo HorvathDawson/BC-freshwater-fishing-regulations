@@ -5,7 +5,9 @@
 #   .../app/android/latest.apk  and  canifishthis-staging-<version>-<sha>.apk
 # Signed with Expo's debug keystore (android/app/debug.keystore, gitignored; same key every build, so an update installs
 # over the previous one). Sideload only. HEAVY: wrapped in scripts/heavy.sh (waits for the machine lock).
-# Usage: deploy/staging/build-apk.sh [--no-upload]
+# After upload it emails the owner the link (POST /notify/apk on the staging feeds worker, RUN_TOKEN from
+# app/workers/feeds/.run-token) unless --no-email; a failed email only warns.
+# Usage: deploy/staging/build-apk.sh [--no-upload] [--no-email]
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 if [[ -z ${BUILD_APK_INNER:-} ]]; then
@@ -49,11 +51,23 @@ Pinned copy: <a href="$NAME">$NAME</a></p>
 <li>Updates: install a newer APK from this page over the old one; your saved spots stay. The app also updates its data by itself.</li></ol>
 </body>
 HTML
-[[ ${1:-} == --no-upload ]] && { echo "built $OUT/$NAME ($MB MB)"; exit 0; }
+[[ " $* " == *" --no-upload "* ]] && { echo "built $OUT/$NAME ($MB MB)"; exit 0; }
 W="npx --prefix app wrangler r2 object put --remote"
 APK=application/vnd.android.package-archive
 $W "$BUCKET/app/android/$NAME" --file "$OUT/$NAME" --content-type $APK --cache-control "public, max-age=31536000, immutable"
 $W "$BUCKET/app/android/latest.apk" --file "$OUT/latest.apk" --content-type $APK --cache-control "no-cache"
 $W "$BUCKET/app/android/index.html" --file "$OUT/index.html" --content-type "text/html; charset=utf-8" --cache-control "no-cache"
 curl -sI "$BASE/latest.apk" | head -8
+if [[ " $* " != *" --no-email "* ]]; then
+  PREV=$(cat "$OUT/last-sha" 2>/dev/null || true)
+  if [[ -n $PREV ]] && git cat-file -e "$PREV^{commit}" 2>/dev/null; then RANGE="$PREV..HEAD"; else RANGE="-10"; fi
+  export V=$VER B=$CODE S=$SHA D=$DATE SZ="$MB MB" U="$BASE/latest.apk"
+  export CH=$(git log $RANGE --no-merges -10 --format=%s | cut -c1-160)
+  BODY=$(python3 -c 'import json,os;e=os.environ;print(json.dumps({"version":e["V"],"build":e["B"],"sha":e["S"],"date":e["D"],"size":e["SZ"],"url":e["U"],"changes":e["CH"].splitlines()}))')
+  TOK=$(tr -d '\n' < app/workers/feeds/.run-token 2>/dev/null || true)
+  code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $TOK" -H "Content-Type: application/json" \
+    -d "$BODY" https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/notify/apk || true)
+  echo "email: HTTP $code (200 = sent)"
+fi
+git rev-parse HEAD > "$OUT/last-sha"
 echo "published $BASE/index.html  ($NAME, $MB MB)"

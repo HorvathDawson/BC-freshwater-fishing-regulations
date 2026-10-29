@@ -253,6 +253,42 @@ export function sectionFor(kind: string, events: FeedEvent[], ctx: RenderCtx): S
   }
 }
 
+// ── (owner 2026-10-29) a new dev APK ──────────────────────────────────────────────────────────────────────────────────
+export interface ApkInfo {
+  version: string;
+  build?: string;
+  sha: string;
+  date: string;
+  size: string;
+  url: string;
+  changes: string[];
+}
+const clip = (s: unknown, n: number) => String(s ?? "").slice(0, n);
+export function apkSection(a: ApkInfo): Section {
+  return {
+    heading: `New Android dev APK ${a.version} (${a.size})`,
+    subject: `New Android dev APK ${a.version} (${a.size})`,
+    blocks: [
+      { title: "Download", items: [{ name: a.url, note: `version ${a.version}${a.build ? ` (build ${a.build})` : ""}, commit ${a.sha}, built ${a.date}, ${a.size}` }] },
+      ...(a.changes.length ? [{ title: "What changed", items: a.changes.slice(0, 10).map((text) => ({ text })) }] : []),
+    ],
+    steps: [
+      { text: "Open the download link in Chrome on the phone and tap Download." },
+      { text: "Allow Chrome to install unknown apps when asked (Settings, Apps, Chrome, Install unknown apps)." },
+      { text: "Open the file and tap Install over the old one (saved spots stay). If Play Protect warns, choose Install anyway." },
+    ],
+    why: "A new dev build was uploaded to the staging bucket. Sent at once, by default (build-apk.sh --no-email turns it off).",
+  };
+}
+/** Validate the POST /notify/apk body; null when it is not one. */
+export function parseApk(b: any): ApkInfo | null {
+  if (!b || typeof b !== "object" || !b.version || !b.sha || !b.url || !/^https:\/\/[^\s]+$/.test(String(b.url))) return null;
+  return {
+    version: clip(b.version, 40), build: b.build ? clip(b.build, 12) : undefined, sha: clip(b.sha, 40), date: clip(b.date, 20),
+    size: clip(b.size, 20), url: clip(b.url, 300), changes: Array.isArray(b.changes) ? b.changes.slice(0, 10).map((x: unknown) => clip(x, 200)) : [],
+  };
+}
+
 // ── the layout ────────────────────────────────────────────────────────────────────────────────────────────────────────
 const tag = (ctx: RenderCtx) => `[${ctx.env.toLowerCase()}] `;
 

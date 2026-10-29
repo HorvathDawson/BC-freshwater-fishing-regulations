@@ -90,3 +90,15 @@ describe("the email template", () => {
     expect(wrap("aaa bbb ccc ddd", 9, "* ", "  ")).toEqual(["* aaa bbb", "  ccc ddd"]);
   });
 });
+
+import { apkSection, parseApk, render } from "../src/email";
+describe("new APK email", () => {
+  it("renders the subject, link and changes; refuses a body without a url", () => {
+    const a = parseApk({ version: "0.1.0", build: "1", sha: "abc1234", date: "2026-10-29", size: "49.6 MB", url: "https://data-staging.canifishthis.ca/app/android/latest.apk", changes: ["T1: a", "T2: b"] })!;
+    const r = render([apkSection(a)], { env: "staging", statusUrl: null });
+    expect(r.subject).toBe("[staging] New Android dev APK 0.1.0 (49.6 MB)");
+    expect(r.text).toContain("latest.apk");
+    expect(r.text).toContain("T2: b");
+    expect(parseApk({ version: "1", sha: "x", url: "javascript:1" })).toBeNull();
+  });
+});

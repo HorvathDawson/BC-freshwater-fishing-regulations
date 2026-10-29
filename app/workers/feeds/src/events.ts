@@ -16,7 +16,7 @@
 // State (private): notify/state.json — {told: {key: at}, pending: [...], lastDigest}. A key is forgotten after a year.
 import { body as webhookBody } from "./notify";
 import type { Fetch, Store } from "./io";
-import { render, sectionFor, type RenderCtx } from "./email";
+import { apkSection, render, sectionFor, type ApkInfo, type RenderCtx } from "./email";
 
 export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health" | "report";
 export interface FeedEvent {
@@ -232,6 +232,12 @@ export async function sendTest(c: NotifyConfig, fetch: Fetch, now: Date, label: 
         keys: [],
       };
   return send(m, c, fetch, now, log);
+}
+
+/** (owner 2026-10-29) the new-APK email: urgent, sent at once, no dedupe / state. */
+export async function sendApk(c: NotifyConfig, fetch: Fetch, now: Date, a: ApkInfo, log: (s: string) => void = () => {}): Promise<"email" | "webhook" | "log" | null> {
+  const r = render([apkSection(a)], c.ctx ?? DEFAULT_CTX);
+  return send({ ...r, keys: [] }, c, fetch, now, log);
 }
 
 async function send(m: Message, c: NotifyConfig, fetch: Fetch, now: Date, log: (s: string) => void): Promise<"email" | "webhook" | "log" | null> {

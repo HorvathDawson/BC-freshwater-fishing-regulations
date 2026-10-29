@@ -19,8 +19,8 @@ import { meteredFetch, meteredStore, newMeter, r2Store, type Meter, type R2Bucke
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
 import { runInSeason } from "./inseason";
-import { compose, deliver, readState, sendTest, type FeedEvent, type NotifyConfig } from "./events";
-import { sampleDfoEvents } from "./email";
+import { compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
+import { parseApk, sampleDfoEvents } from "./email";
 import { readStatus, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
 import { pageUrl } from "./dfo/fetch";
@@ -401,6 +401,15 @@ export default {
       const body = (await req.json().catch(() => ({}))) as { sample?: string };
       const sample = body.sample === "dfo" ? sampleDfoEvents() : [];
       const via = await sendTest(notifyConfig(env), fetch, new Date(), env.FEEDS_ENV || "staging", (s) => lines.push(s), sample);
+      return Response.json({ via, log: lines }, { status: via ? 200 : 502 });
+    }
+    if (url.pathname === "/notify/apk" && req.method === "POST") {
+      // (owner 2026-10-29) deploy/staging/build-apk.sh: a new dev APK is up — one urgent email, at once
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const a = parseApk(await req.json().catch(() => null));
+      if (!a) return new Response("Bad Request", { status: 400 });
+      const lines: string[] = [];
+      const via = await sendApk(notifyConfig(env), fetch, new Date(), a, (s) => lines.push(s));
       return Response.json({ via, log: lines }, { status: via ? 200 : 502 });
     }
     if (url.pathname === "/notify/preview" && req.method === "POST") {
