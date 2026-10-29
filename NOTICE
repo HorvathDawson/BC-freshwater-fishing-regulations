@@ -1,0 +1,96 @@
+THIRD-PARTY MATERIAL
+
+The original work in this repository is Copyright (c) 2026 Dawson Horvath, all rights reserved (see LICENSE).
+The material below belongs to others and keeps its own licence and terms. LICENSE does not apply to it, and nothing
+here relicenses it. This is a record of what the repository contains, not legal advice.
+
+1. OpenStreetMap-derived data -- ODbL 1.0
+   What: names, places, waters, access land and cut points taken from OpenStreetMap.
+   Where: the files and entries listed in data/LICENSE-ODbL.md (each carries a top-level "_licence" record), e.g.
+          data/source/bc_places.json, data/curated/waters/mined_names.json, added_lakes.geojson, added_streams.json,
+          splits.json, data/source/municipal/osm_streams.geojson.
+   Licence: Open Database License 1.0, https://opendatacommons.org/licenses/odbl/1-0/ ; see data/LICENSE-ODbL.md.
+   Attribution: (c) OpenStreetMap contributors, https://www.openstreetmap.org/copyright .
+   Note: only the listed files and entries are under the ODbL; share-alike applies to derived databases.
+
+2. Protomaps / OpenStreetMap basemap
+   What: the basemap tiles (bc.pmtiles, a Protomaps build of OpenStreetMap; the file is gitignored, not committed)
+         and the style that draws them.
+   Licence: ODbL 1.0 for the OSM data; see https://docs.protomaps.com/ for the Protomaps terms.
+   Attribution: (c) OpenStreetMap contributors, (c) Protomaps.
+
+3. Province of British Columbia -- Open Government Licence - British Columbia
+   What: Freshwater Atlas (streams, lakes, wetlands, watersheds), GNIS names, bathymetry contours, wildlife
+         management units and regions, provincial parks, ecological reserves, wildlife management areas, historic
+         sites, ParcelMap BC parcels, fish obstacles (FISS, WRIS dams, PSCIS), stocking records, weather forecast data.
+   Where: data/source/ (bc_boundary.geojson, bc_outside.geojson, bc_bathymetry_sheets.json, wsa_bathymetry_maps.csv),
+          data/curated/ and data/generated/ (derived), and the app bundle and tiles built from them.
+   Licence: https://www2.gov.bc.ca/gov/content/data/policy-standards/data-policies/open-data/open-government-licence-bc
+   Attribution: "Contains information licensed under the Open Government Licence - British Columbia."
+   Note: the national-park layer comes from CLAB_NATIONAL_PARKS via the BC catalogue (Canada Lands data);
+         its licence is flagged for recheck (see T235).
+
+4. Government of Canada -- Open Government Licence - Canada
+   What: ECCC hydrometric stations and HYDAT (data/source/bc_hydrometric_stations.json, hydat.release; the sqlite
+         file is gitignored), DFO tidal/PFMA areas (data/source/dfo_tidal_areas/, saved web pages dated 2026-10-28),
+         DFO salmon openings and run-timing data.
+   Licence: https://open.canada.ca/en/open-government-licence-canada
+   Attribution: "Contains information licensed under the Open Government Licence - Canada."
+   Note: DFO pages carry the DFO non-endorsement wording ("not an official version") as shown in the app.
+
+5. City open-data licences (stream layers and local names)
+   Where: data/source/municipal/ (abbotsford_streams, burnaby_waterways, port_moody_esa_streams,
+          squamish_watercourses .geojson) and data derived from them under data/curated/waters/.
+   - City of Abbotsford: City of Abbotsford Open Data Licence,
+     https://opendata-abbotsford.hub.arcgis.com/pages/city-of-abbotsford-open-data-licence
+     Attribution: "Contains information licenced under the Open Government Licence - City of Abbotsford."
+   - City of Burnaby: Open Government Licence - City of Burnaby,
+     https://data.burnaby.ca/pages/open-government-licence
+     Attribution: "Contains information licensed under the Open Government Licence - British Columbia."
+   - City of Port Moody: Open Data Terms of Use (Open Government Licence - Port Moody),
+     https://www.portmoody.ca/city-government/open-data-portal/open-data-terms-of-use/
+     Attribution: "Contains information licensed under the Open Government Licence - Port Moody."
+   - District of Squamish: Open Government Licence - Squamish,
+     https://squamish.ca/government-and-administration/maps-and-data/open-data/
+     Attribution: "Contains information licensed under the Open Government Licence - Squamish."
+
+6. Pacific Salmon Foundation -- run-timing data (permission, no open licence)
+   What: Salmon Explorer run-timing pages and the curves derived from them.
+   Where: data/source/runtiming/ (three saved pages and fetched.json), data/curated/runtiming/.
+   Terms: (c) Pacific Salmon Foundation, all rights reserved by default; no reuse grant is published. Used with
+          PSF's written permission (recorded in fetched.json; the reply itself is not stored). See T162.
+   Attribution: as PSF asked and as recorded in fetched.json and shown in the app.
+   Note: the permission covers use in the free app; it is not a licence to redistribute the saved pages.
+
+7. BC Freshwater Fishing Regulations Synopsis (PDF copy)
+   What: data/source/fishing_synopsis.pdf, a copy of the Province's published synopsis (the regulations text is
+         parsed into data/curated/regulations/).
+   Terms: Crown copyright, Province of British Columbia. No licence was found for the PDF itself. UNRESOLVED: it
+          is NOT known to be under the OGL-BC; do not assume it is. The copy is not byte-identical to the
+          gov.bc.ca file.
+
+8. Lucide icons -- ISC licence
+   What: 18 icon paths copied into app/packages/ui-native/src/icons.tsx.
+   Where: app/LICENSES/lucide.txt (lucide-static v0.460.0).
+   Licence: ISC, https://lucide.dev/license
+   Attribution: credited in the app (More > Sources and licences).
+
+9. Esri World Imagery (satellite basemap)
+   What: tiles loaded at run time while satellite is on; nothing is committed.
+   Terms: Esri master agreement, https://www.esri.com/en-us/legal/terms/full-master-agreement ; credit shown on
+          the map.
+
+10. Open-Meteo (weather)
+    What: forecast data fetched at run time; nothing is committed.
+    Licence: CC BY 4.0, https://open-meteo.com/en/license ; credit shown in the app.
+
+11. Third-party code
+    - app/patches/@maplibre__maplibre-react-native@11.5.0.patch is a patch to MapLibre React Native (MIT,
+      https://github.com/maplibre/maplibre-react-native); the patch is derivative of that code and stays under its
+      licence.
+    - npm and pip dependencies are not vendored. Each is installed from its registry under its own licence
+      (see package.json, app/pnpm-lock.yaml, requirements.txt); there is no committed copy to list.
+    - archive/ holds retired code; it may carry dependencies under their own licences.
+
+12. Fonts
+    No font files are committed. The app uses system fonts; nothing to attribute.

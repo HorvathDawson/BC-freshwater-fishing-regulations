@@ -1,6 +1,7 @@
 {
   "name": "canifishthis",
   "private": true,
+  "license": "UNLICENSED",
   "type": "module",
   "scripts": {
     "check": "pnpm run tickets && pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run colours && pnpm run spinner && pnpm run gauge-policy && pnpm run calendar && pnpm run fish && pnpm run answers && pnpm run pack && pnpm run deps && pnpm run knip && pnpm run typecheck && pnpm run typecheck:seo && pnpm run test",

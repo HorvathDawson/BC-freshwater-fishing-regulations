@@ -68,6 +68,13 @@ describe("Sources and licences (T235)", () => {
     expect(licencesVM()).not.toHaveProperty("odbl");
     expect(MENU_WORDS.items.sources.label).toBe("Sources and licences");
   });
+  it("(owner 2026-10-29) Burnaby uses the BC statement verbatim; Abbotsford keeps its own 'licenced' spelling", () => {
+    const row = (k: string) => licencesVM().rows.find((x) => x.k === k)!;
+    expect(row("burnaby").wording).toBe("Contains information licensed under the Open Government Licence – British Columbia.");
+    expect(row("abbotsford").wording).toBe("Contains information licenced under the Open Government Licence – City of Abbotsford.");
+    expect(row("burnaby").licenceUrl).toBe("https://data.burnaby.ca/pages/open-government-licence");
+    expect(row("abbotsford").licenceUrl).toBe("https://opendata-abbotsford.hub.arcgis.com/pages/city-of-abbotsford-open-data-licence");
+  });
   it("(owner 2026-10-28) links the ODbL files on GitHub, and credits OpenStreetMap for the no-access land", () => {
     const osm = licencesVM().rows.find((r) => r.k === "osm")!;
     expect(osm.files).toBe(ODBL_FILES);

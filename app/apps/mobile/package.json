@@ -2,6 +2,7 @@
   "name": "@app/mobile",
   "version": "0.1.0",
   "private": true,
+  "license": "UNLICENSED",
   "main": "index.js",
   "scripts": {
     "web": "expo start --web --port 39218",

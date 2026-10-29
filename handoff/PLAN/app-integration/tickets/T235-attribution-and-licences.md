@@ -77,17 +77,15 @@ places and access land © OpenStreetMap contributors". Owner decision, recorded;
 Sources: `data/source/municipal/*.geojson` (pipeline/atlas/waters/added_streams/SOURCES.md); no others.
 | city | licence | page | wording on the page |
 |---|---|---|---|
-| Abbotsford | City of Abbotsford Open Data Licence (OGL-Canada 2.0 variant) | https://opendata-abbotsford.hub.arcgis.com/pages/city-of-abbotsford-open-data-licence | default form (see caveat) |
-| Burnaby | Open Government Licence – City of Burnaby (OGL-BC 2.0 variant) | https://data.burnaby.ca/pages/open-government-licence | default form (see caveat) |
+| Abbotsford | City of Abbotsford Open Data Licence (OGL-Canada 2.0 variant) | https://opendata-abbotsford.hub.arcgis.com/pages/city-of-abbotsford-open-data-licence | "Contains information licenced under the Open Government Licence – City of Abbotsford." (owner pasted the page 2026-10-29; their spelling "licenced") |
+| Burnaby | Open Government Licence – City of Burnaby (OGL-BC 2.0 variant) | https://data.burnaby.ca/pages/open-government-licence | "Contains information licensed under the Open Government Licence – British Columbia." (required when the provider gives none; the Burnaby licence uses the BC statement verbatim; owner pasted the page 2026-10-29) |
 | Port Moody | Open Data Terms of Use = Open Government Licence – Port Moody | https://www.portmoody.ca/city-government/open-data-portal/open-data-terms-of-use/ | "Contains information licensed under the Open Government Licence – Port Moody." (read from the page) |
 | Squamish | Open Government Licence – Squamish (OGL-BC 2.0 variant) | https://squamish.ca/government-and-administration/maps-and-data/open-data/ (portal data.squamish.ca) | "Contains information licensed under the Open Government Licence – Squamish." (from search of the page; fetch was 403) |
 All four are on the OSMF LWG "OGL Canada and local variants" compatible list (https://osmfoundation.org/wiki/OGL_Canada_and_local_variants).
-Caveat: the Burnaby and Abbotsford pages are JS-rendered and could not be read verbatim; the licences are confirmed, the
-wording is the licences' standard default ("Contains information licensed under the Open Government Licence – <city>.").
-Recheck on the pages in a browser (owner, 2 min); Abbotsford's own text may use "licenced" / "City of Abbotsford".
+Wording for Burnaby and Abbotsford confirmed from the licence pages by the owner, 2026-10-29 (no caveat remains).
 
 ## Not done / follow-ups
 - Native attribution not checked on a device (MapLibre RN shows the style's source credits behind its ⓘ; the style
   logic is unit-tested). Rides T77 phone testing.
 
-Depends: none. Size: S. Owner: confirm the Burnaby/Abbotsford default wording on their licence pages.
+Depends: none. Size: S.
