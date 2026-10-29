@@ -7823,6 +7823,27 @@
      },
      "note": "",
      "_note": "Kitsault Bridge on the Nass — the bound for the Region 6 winter stream closure ('or Nass River upstream of Kitsault Bridge, Jan 1-June 15')."
+    },
+    {
+     "id": "nass_river__tidal_boundary_dfo_subarea_3_12",
+     "label": "tidal boundary (DFO Subarea 3-12)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.951193,
+       54.979542
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:360885942",
+     "_coord": [
+      -129.951193,
+      54.979542
+     ],
+     "tidal": true
     }
    ]
   },
