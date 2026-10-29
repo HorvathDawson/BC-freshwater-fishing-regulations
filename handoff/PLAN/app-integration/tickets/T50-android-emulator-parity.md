@@ -135,3 +135,18 @@ Then fixed (2026-10-27 late; shots `T50-shots/t50c-*`):
   closed, framed on the water; the day sheet closes, the day kept; water views are lateral (back leaves the water);
   capture's first step → Spots; Spots → Map. All as the table says.
 Still open: the regs page's scroll position and tab are not kept across a recreation (the water and its view are).
+
+## Regs scroll kept (2026-10-29 overnight, eb087bd7d)
+- The left item ("the regs page's scroll position and tab are not kept"): fixed in SHARED code. `regs/scrollMemory.ts`
+  remembers the Regulations page's scroll per water as opened (item, part, tapped reach), in memory only (no id leaves
+  the bundle); `RegsScreen` (`scrollKey`, from WaterScreen) returns there on a remount — a view switch (Conditions →
+  Regulations), a tab switch, back / forward, a new day, an Android recreation (font / display size: the JS lives on) —
+  once the page is tall enough (polled ≤ 3 s), the selected tab following the scroll as before. A start link wins; a
+  drag during the wait leaves the scroll with the reader. Test: `RegsScreen.test.tsx` (T50).
+- Claude call: a water opened again the same way (same reach) also returns to where it was left (newest 50 waters).
+- Web shots (desktop + phone: scrolled → Conditions → back on Regulations, scrollTop 256 → 256 and 300 → 300):
+  `T50-shots/t50d-scroll-kept-*`.
+- EMULATOR (release APK from the working tree, `n1_pixel`, via heavy.sh + the T255 test bed, Maestro): Chilliwack /
+  Vedder → Regulations, three swipes down (Gear selected) → Conditions → Regulations: the SAME screen (identical
+  capture); font size 1.0 → 1.3 (activity recreated): the same scroll offset, Gear still selected; back to 1.0: the
+  same screen again. Shots `T50-shots/t50e-emulator-*`. The regs-scroll left item is closed; nothing else of T50 changed.
