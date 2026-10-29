@@ -36,7 +36,9 @@ def _cand(cid, water, gnis, measure, coord, label, conf, reuse=None):
     if reuse:
         pr["reuse"] = {"split_id": reuse}
     return {"id": cid, "water": water, "blk": cid.split(":")[1], "items": [f"gnis:{gnis}"],
-            "proposed": pr, "polygon": {"crossing": "clean"}, "sources": [], "confidence": conf}
+            "proposed": pr, "polygon": {"crossing": "clean"}, "sources": [], "confidence": conf,
+            # the located words (owner 2026-10-28: a cut stands only at words or the mouth); Bear has none
+            **({"words_point": {"measure": measure}} if "mouth" not in label else {})}
 
 
 CANDS = [
@@ -111,8 +113,7 @@ def test_a_mark_set_confidence_wins_over_the_candidates(src):
 
 
 def test_a_cut_above_the_mouth_is_no_mouth(src):
-    m = _tidal(BEAR, name="Bear River: mouth (tidal boundary)", measure=500.0)
-    [p] = P.build([m.model_copy(update={"verdict": "verified", "answers": {"P": "y"}})], src)
+    [p] = P.build([_tidal(NANAIMO, name="Nanaimo River: mouth (tidal boundary)", confidence="low")], src)
     assert p["edits"][0]["split"]["label"] == "tidal boundary"
     assert p["edits"][0]["split"]["confidence"] == "low"
 
@@ -211,3 +212,32 @@ def test_an_owner_call_may_name_the_place_itself(src, tmp_path):
     assert sp["tidal"] is True and sp["label"] == "Lake inlet (tidal boundary)"
     assert sp["anchor"] in ({"type": "lake", "wbk": "9", "edge": "inlet"},
                             {"type": "point", "coord": sp["anchor"].get("coord"), "is_lonlat": True})
+
+
+def test_a_tidal_point_is_the_words_the_mouth_or_nothing(src, tmp_path):
+    """The stricter guard (owner 2026-10-28): the stored distance above the mouth must match a located words
+    point of the candidate, or the mouth, within TIDAL_POINT_TOL_M — by measure, not by the note's words. A
+    "mouth" point landing on the atlas line's own lower end (Marchand Creek: the line starts 430 m up, where it
+    enters Nitinat Lake) is the mouth: no cut there, ever (a cut on a line's end breaks both halves)."""
+    def at(m, cid=NANAIMO):
+        x = _tidal(cid)
+        return x.model_copy(update={"new_splits": [x.new_splits[0].model_copy(update={"measure": m})]})
+    assert P.build([at(2979.5 + 20)], src)[0]["kind"] == "new_split"          # the words point (Cedar Bridge)
+    off = P.build([at(2600.0)], src)[0]
+    assert off["kind"] == "tidal_followup" and not off["edits"] and "neither" in off["title"]
+    assert P.build([at(0.5)], src)[0]["kind"] == "tidal_mouth"
+    # the line's own lower end: a build whose handles start the line at 430 m
+    build = tmp_path / "b"
+    build.mkdir()
+    (build / "section_handles.txt").write_text("354154938:430\n354154938:2000\n")
+    s2 = P.Sources(src.entries_dir, src.dfo_dir, src.splits_path, build=build)
+    [p] = P.build([at(429.8)], s2)
+    assert p["kind"] == "tidal_mouth" and "both halves" in p["notes"][1]
+    assert P.tidal_point(at(429.8).new_splits[0], T.candidate(NANAIMO), None) is None   # no build: not trusted
+
+
+def test_words_measures_never_read_the_polygon():
+    cand = {"words_point": {"measure": 10.0}, "alternates": [{"kind": "words", "measure": 20.0},
+            {"kind": "polygon", "measure": 30.0}, {"kind": "mouth", "measure": 0.0}],
+            "sources": [{"kind": "synopsis_box", "measure": 40.0}, {"kind": "polygon", "measure": 50.0}]}
+    assert sorted(P.words_measures(cand)) == [10.0, 20.0, 40.0]

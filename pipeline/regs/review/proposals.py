@@ -433,6 +433,74 @@ def polygon_point(n) -> bool:
         and "chosen point: mouth" not in text and "chosen point: custom" not in text
 
 
+#: T166 (owner 2026-10-28): a tidal cut's point must be WITHIN THIS of a located words point of its candidate
+#: (`words_point`, a `words` alternate, a book / DFO source), else of the mouth — never anywhere else
+TIDAL_POINT_TOL_M = 25.0
+
+
+def words_measures(cand: Mapping) -> list[float]:
+    """The located WORDS points of a tidal candidate (above-mouth measures): its `words_point`, each `words`
+    alternate, each written source (synopsis, DFO notice / area page, a curated split). Never the polygon."""
+    out = []
+    wp = (cand.get("words_point") or {}).get("measure")
+    if wp is not None:
+        out.append(float(wp))
+    out += [float(a["measure"]) for a in cand.get("alternates") or ()
+            if a.get("kind") == "words" and a.get("measure") is not None]
+    out += [float(x["measure"]) for x in cand.get("sources") or ()
+            if x.get("measure") is not None and x.get("kind") not in ("polygon", "dem", "tidal_gauge")]
+    return out
+
+
+def tidal_point(n, cand: Mapping, line_start: Optional[float]) -> Optional[str]:
+    """WHAT A TIDAL MARK'S POINT IS (owner 2026-10-28: words or the DFO mouth default, never the polygon):
+    `mouth` (<= `TIDAL_MOUTH_M`), `line_end` (within `TIDAL_POINT_TOL_M` of the atlas line's own lower end when
+    it starts above the FWA mouth — a stream entering a lake, or one FWA carries only from the border: a cut
+    there breaks both halves, memory end-cut-halves-the-water), `words` (within
+    the tolerance of a located words point), `place` (a registry anchor the owner named: a lake inlet, a
+    confluence), or None — anything else, which is never cut."""
+    if n.anchor not in ("coord", "bridge", "dam", "sign"):
+        return "place"
+    if n.measure is None:
+        return None
+    d = float(n.measure)
+    if d <= TIDAL_MOUTH_M:
+        return "mouth"
+    if line_start is not None and line_start > TIDAL_MOUTH_M and abs(d - line_start) <= TIDAL_POINT_TOL_M:
+        return "line_end"
+    if any(abs(d - w) <= TIDAL_POINT_TOL_M for w in words_measures(cand)):
+        return "words"
+    return None
+
+
+def _line_starts(build: Optional[Path], blks: set) -> dict[str, float]:
+    """{blk: the lowest section measure the atlas has on it} for `blks` (from `section_handles.txt`)."""
+    blks = {b for b in blks if b}
+    p = Path(build or "") / "section_handles.txt"
+    if not blks or not build or not p.exists():
+        return {}
+    out: dict[str, float] = {}
+    with open(p, encoding="utf-8") as f:
+        for ln in f:
+            b, _, m = ln.strip().rpartition(":")
+            if b in blks:
+                v = float(m)
+                out[b] = min(out.get(b, v), v)
+    return out
+
+
+def _tidal_off_point(m, n, water: str) -> dict:
+    """A Place y tidal mark whose point is neither the words nor the mouth (`tidal_point` None): listed."""
+    return {"id": f"tidal-open-{_slug(m.target, 40)}", "kind": "tidal_followup", "target": m.target,
+            "scope": "tidal", "rule_id": None,
+            "title": (f"{water}: the point ({n.measure} m above the mouth) is neither a located words point nor the "
+                      f"mouth (within {TIDAL_POINT_TOL_M:g} m) — no cut (owner 2026-10-28); mark it again"),
+            "marks": [{"target": m.target, "rule_id": None, "reviewer": m.reviewer, "date": m.date,
+                       "note": m.note}],
+            "edits": [], "depends_on": [], "problems": [], "notes": [n.note] if n.note else [],
+            "split_id": None, "confidence": None}
+
+
 def _tidal_decides(m) -> bool:
     """Does a tidal mark in force DECIDE a tidal boundary? Only Place y with its one cut (the point
     the owner chose: the proposal, a polygon crossing, the words' landmark or his own). A wrong or
@@ -542,6 +610,8 @@ def build(marks: Iterable, src: Sources, *, applied: Optional[set] = None) -> li
     latest = M.latest(marks).values()
     inforce = [m for m in latest if _proposes(m)]
     tidal_in = [m for m in latest if _tidal_decides(m)]
+    # T166: where each tidal stream's atlas line starts (its lowest section), from the build's handles
+    line_starts = _line_starts(src.build, {str(x.new_splits[0].blk or "") for x in tidal_in})
     tidal_open = [m for m in latest if _tidal_followup(m)]
     shared = M.proposals(marks, src.overrides)          # T210: one per distinct cut, every mark
     splits_doc = src.doc(src.splits_path)
@@ -594,19 +664,27 @@ def build(marks: Iterable, src: Sources, *, applied: Optional[set] = None) -> li
         if n.anchor == "split":
             out.extend(_tidal_flag(n.split_id, have, src, [who], water))
             continue
-        if n.measure is not None and n.measure <= TIDAL_MOUTH_M:
+        from pipeline.regs.review import tidal as T
+        cand = T.candidate(m.target) or {}
+        point = tidal_point(n, cand, line_starts.get(str(n.blk or cand.get("blk") or "")))
+        if point is None:
+            out.append(_tidal_off_point(m, n, water))
+            continue
+        if point in ("mouth", "line_end"):
             out.append({"id": f"tidal-mouth-{_slug(m.target, 40)}", "kind": "tidal_mouth",
                         "target": n.on_item, "scope": "tidal", "rule_id": None,
                         "title": f"{water}: the tidal boundary is the mouth — no cut, nothing tidal",
                         "marks": [who], "edits": [], "depends_on": [], "problems": [],
                         "notes": ["the mouth is where the stream meets tidal water already: the "
-                                  "whole stream stays freshwater (T166)"],
+                                  "whole stream stays freshwater (T166)"] + (
+                            [f"the point ({n.measure} m) is the atlas line's own lower end (it starts "
+                             f"{line_starts.get(str(n.blk or cand.get('blk') or ''))} m: where the stream enters a "
+                             "lake, or crosses the border): a cut there would break both halves — no cut"]
+                            if point == "line_end" else []),
                         "split_id": None, "confidence": None})
             continue
         g = group_for(n, who)
         g["tidal"] = True
-        from pipeline.regs.review import tidal as T
-        cand = T.candidate(m.target) or {}
         if cand.get("water"):
             g.setdefault("tidal_water", cand["water"])
         if cand.get("confidence") and n.confidence is None:
