@@ -134,7 +134,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **Store listing sign-off (T244, 2026-10-29)**: read `app-integration/store/listing-draft.md` and `store/privacy-labels-draft.md`
   (nothing is submitted). Decide: the **app icon / adaptive icon / feature graphic** (DONE from the favicon, per your answer: `T244-shots/icons-preview.png`; add words to the feature graphic if you want), the support URL, categories. Contact = support@canifishthis.ca and the Location row (declared: collected + shared with Open-Meteo) are decided.
   Look at the new splash: `app-integration/T244-shots/` (web boot screen light/dark, native art); it shows on the next native build.
-- **Set up the mailbox support@canifishthis.ca** (Cloudflare Email Routing, forward to the same inbox as privacy@canifishthis.ca): it is the store listing's contact and the app's Contact page (`EXPO_PUBLIC_CONTACT`).
 - **Production run (T240 section 11, 2026-10-29)**: the prod commands for map-assets (T270), HYDAT day flow (T274), the report-purge deploy (T271),
   and the SEO build against the prod app export (`--app`, T269/T279) are written in `tickets/T240-production-launch-checklist.md`.
 - **Google Play setup (T268), when Google finishes verifying your Play account**: create the app ca.canifishthis.app,
