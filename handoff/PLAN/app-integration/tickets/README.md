@@ -309,6 +309,7 @@ use that as the sole source of future work."
 | T263 | the bell says a data update is waiting for Wi-Fi / ready / needs a newer app (today: failures + in-season only) | DONE | — | owner 2026-10-29 via T255 |
 | T264 | "Could not read what is near this town" on Android, intermittent (first town read after a cold start) | OPEN | (this commit) | error logged + one retry; race not found, loop not run |
 | T265 | a big update held for Wi-Fi does not start when Wi-Fi returns (low mode still "cellular" when the metered change lands; nothing re-asks) | DONE | (this commit) | phoneNetwork re-asks when the low mode clears; big-update Wi-Fi step PASS |
+| T266 | marks are review state; decided data in per-domain files via one exporter (tidal, DFO extents, sloughs, ponds, names) | OPEN | — | owner idea 2026-10-29; not started |
 
 ## Order for open tickets
 
