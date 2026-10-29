@@ -14,7 +14,7 @@
  * the browser's word on the network, the tab's visibility and the battery; `useReleasePrefetch` starts it
  * `BACKGROUND_DELAY_MS` after the idle tier and tells it each region the map settles in.
  */
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createBackgroundPrefetch, prefetchPlan, regionOfTile, runPrefetch, LOW_BATTERY,
          type BackgroundPrefetch, type NetSignals, type PrefetchSignals, type PrefetchSnapshot } from "@app/data/release";
 import type { ReleaseLoader } from "@app/data/release";
@@ -176,4 +176,24 @@ export function useBackgroundPrefetch(loader: ReleaseLoader | null, o: { onEvent
   const read = useCallback(() => scheduler?.snapshot() ?? NONE, [scheduler]);
   const status = useSyncExternalStore(subscribe, read, read);
   return { scheduler, status };
+}
+
+/**
+ * (owner 2026-10-29, T269 follow-up) TRUE ONCE THE PAGE HAS GONE IDLE while `enabled` (the browser's
+ * `requestIdleCallback`; a browser without one, `IDLE_FALLBACK_MS` later), and true from then on. For work that must not
+ * compete with what is on screen: the map made ready behind a water page the visitor landed on, so back shows it painted.
+ */
+export function useIdleOnce(enabled: boolean): boolean {
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    if (!enabled || idle) return;
+    const g = globalThis as typeof globalThis & IdleHost;
+    if (typeof g.requestIdleCallback === "function") {
+      const h = g.requestIdleCallback(() => setIdle(true));
+      return () => g.cancelIdleCallback?.(h);
+    }
+    const t = setTimeout(() => setIdle(true), IDLE_FALLBACK_MS);
+    return () => clearTimeout(t);
+  }, [enabled, idle]);
+  return idle;
 }

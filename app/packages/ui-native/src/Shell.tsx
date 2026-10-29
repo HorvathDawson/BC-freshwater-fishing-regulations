@@ -26,7 +26,7 @@ import { bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
-         BackLayerContext, InSeasonContext, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { connectivity } from "./connectivity";
 import { SearchSheet } from "./SearchSheet";
@@ -62,6 +62,9 @@ import { TabTourSheet, useTabTour, useWalkthrough, WalkthroughSheet } from "./Wa
 import { CoachContext, useCoachRegistry } from "./CoachMarks";
 
 export type { ShellProps } from "./shell/props";
+
+/** (owner 2026-10-29) the map readied behind a landing's water: the whole box, unseen (painted, not shown) */
+const BEHIND = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 } as const;
 
 /** (T254) How long low-bandwidth mode waits with nothing downloading before the map's bait & fly marks are fetched. */
 const GEAR_QUIET_MS = 15_000;
@@ -120,7 +123,10 @@ export function Shell(p: ShellProps) {
   const waterCamera = useRef<Camera | null>(null);
   const search = useShellSearch({ source, nav, camera, recentStore: p.recentSearches ?? null });
   const { searching, session, searchMemory, field } = search;
-  // (T269) a page started on (or at) a water: the map comes back at it, lit
+  /** (owner 2026-10-29) the page started ON a water (a landing): the map is readied behind it once idle (below) */
+  const [landed] = useState(() => !!p.arriveAt && p.initialRoute?.mode === "water");
+  const warm = useIdleOnce(landed && frame !== null);
+  // (T269) a page started on (or at) a water: the map comes back framed on it
   useEffect(() => { if (p.arriveAt) search.landOn(p.arriveAt); }, []);   // eslint-disable-line react-hooks/exhaustive-deps -- once, on mount
   useEscapeBack(nav.back, nav.escapeBack && !searching);   // T214 item 2: on the desktop web Escape is Back (a no-op on a phone)
   /** ONE placeholder line per opening of the app, never cycled while on screen. */
@@ -269,12 +275,21 @@ export function Shell(p: ShellProps) {
                    onSaved={async (s) => { await onSaveSpot(s); go({ type: "openSpot", id: s.id }); }} />
     );
 
-  const body = frame !== null
+  const water = frame !== null
     ? <WaterModeHost frame={frame} nav={nav} col={col} source={source} palette={palette} loader={loader} tiles={tiles}
                      theme={theme} feed={feed} rail={rail} spotLayer={spotLayer} camera={camera}
                      waterCamera={waterCamera} fishImages={p.fishImages} adiposeImages={p.adiposeImages}
                      mapDay={mapDay} onDay={setMapDay} start={start} onStarted={() => setStart(null)} />
-    : <BrowseHost nav={nav} col={col} search={search} rail={rail} palette={palette} theme={theme}
+    : null;
+  /*
+   * (owner 2026-10-29) THE MAP MADE READY BEHIND A LANDING: a page that started on a water (a `/water/<slug>` page) has
+   * no map under it, so back used to wait for the map to mount, fetch and colour. Once the page has gone idle the map
+   * is mounted behind the water, unseen and untouchable, at the water's own framing (`landOn`'s arrival): its tiles and
+   * colours load then, and back shows it painted — the same map, not a new one. Only for a landing: a water tapped from
+   * the map, and an ordinary start, are as before.
+   */
+  const browse = frame === null || (landed && warm)
+    ? <BrowseHost nav={nav} col={col} search={search} rail={rail} palette={palette} theme={theme}
                   themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footH}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} photos={photos}
@@ -284,7 +299,17 @@ export function Shell(p: ShellProps) {
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onRuns={setRunsAt}
-                  fishImages={p.fishImages} />;
+                  fishImages={p.fishImages} />
+    : null;
+  const body = (
+    <View style={{ flex: 1 }}>
+      {browse && (
+        <View key="browse" style={frame === null ? { flex: 1 } : BEHIND} pointerEvents={frame === null ? "auto" : "none"}
+              aria-hidden={frame !== null}>{browse}</View>
+      )}
+      {water && <View key="water" style={{ flex: 1 }}>{water}</View>}
+    </View>
+  );
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)
    *  Runs while browsing, so the bell is where it always is on every map. */
