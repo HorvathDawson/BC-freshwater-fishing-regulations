@@ -569,7 +569,16 @@ def _tidal_label(n, water: str = "") -> str:
     # no words for "mouth (tidal boundary)", Amos Creek's 500 m up included
     if name.lower().startswith("mouth") and (n.measure or 0) > TIDAL_MOUTH_M:
         name = "tidal boundary"
+    # a DFO AREA DESCRIPTION is no place name ("That portion of Toquart Bay in Subarea 23-10 bounded on the …",
+    # cut to 60 characters by the mark): the cut is the tidal boundary, named by the subarea it quotes
+    if _DFO_AREA_WORDS.match(name):
+        sub = re.search(r"\bSubarea\s+(\d+-\d+)", name, re.IGNORECASE)
+        name = f"tidal boundary (DFO Subarea {sub.group(1)})" if sub else "tidal boundary"
     return name if "tidal" in name.lower() else f"{name} (tidal boundary)"
+
+
+#: the openings of a DFO area / subarea description quoted as a tidal point's words (T212 pass 2)
+_DFO_AREA_WORDS = re.compile(r"^\s*(that portion|those waters|the waters|subarea\s+\d)", re.IGNORECASE)
 
 
 def _point_split(fix_point, on_item: Optional[str], ref: str):

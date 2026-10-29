@@ -255,3 +255,18 @@ def test_words_measures_never_read_the_polygon():
             {"kind": "polygon", "measure": 30.0}, {"kind": "mouth", "measure": 0.0}],
             "sources": [{"kind": "synopsis_box", "measure": 40.0}, {"kind": "polygon", "measure": 50.0}]}
     assert sorted(P.words_measures(cand)) == [10.0, 20.0, 40.0]
+
+
+def test_a_dfo_area_description_is_no_cut_label():
+    """A tidal point whose words are a DFO subarea description (cut to 60 chars by the mark) is labelled by the
+    subarea, never by the fragment — splits.json refuses a label that names no place (2026-10-29, Toquart)."""
+    from types import SimpleNamespace
+    from pipeline.regs.review.proposals import _tidal_label
+    from pipeline.atlas.splits.splits import label_problem
+    for words, want in [
+            ("TOQUART RIVER: That portion of Toquart Bay in Subarea 23-10 bounded on the ",
+             "tidal boundary (DFO Subarea 23-10)"),
+            ("The waters and intertidal foreshore of the Fraser River, lyi", "tidal boundary"),
+            ("CN Railway Bridge", "CN Railway Bridge (tidal boundary)")]:
+        got = _tidal_label(SimpleNamespace(name=words, measure=900.0))
+        assert got == want and not label_problem(got)

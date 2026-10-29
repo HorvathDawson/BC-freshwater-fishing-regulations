@@ -50,6 +50,10 @@ class ConnectorSpec:
     x: float
     y: float
     kind: str          # "connector" (a mouth↔receiver gap) | "confluence" (shared vertex)
+    #: an INTAKE (owner 2026-10-29, Northrop): the edge runs the other way — the FWA river at ``at_measure`` on
+    #: ``to_blk`` FEEDS the added side channel's HEAD (``from_node`` names the added blk). A side channel's start,
+    #: as FWA draws one (Ruskin): the river flows into the channel, never the channel into the river.
+    intake: bool = False
 
 
 def load_features(path: str | Path) -> list[dict]:
@@ -288,6 +292,13 @@ def _mouth_node(graph: StreamGraph, blk: str) -> Optional[str]:
     return min(cands, key=lambda kv: kv[1].down_m)[0] if cands else None
 
 
+def _head_node(graph: StreamGraph, blk: str) -> Optional[str]:
+    """The source-most stream node on ``blk`` (largest up_m) — an added side channel's intake piece."""
+    cands = [(nid, n) for nid, n in graph.nodes.items()
+             if n.kind == NodeKind.stream and str(n.blk) == blk]
+    return max(cands, key=lambda kv: kv[1].up_m)[0] if cands else None
+
+
 def connector_geom_id(mainstem_blk: str, from_node: str) -> str:
     """Geometry-sidecar key for a connector bridge — keyed by the RECEIVING MAINSTEM blk so the
     connector shares the mainstem's blk (the mainstem reaching out to pick up the tributary)."""
@@ -303,6 +314,21 @@ def attach_connectors(graph: StreamGraph, geoms: dict, specs: list[ConnectorSpec
     connectors: list[dict] = []
     skipped = 0
     for s in specs:
+        if s.intake:
+            src = _fwa_node_for_measure(graph, str(s.to_blk), s.at_measure)     # the river piece at the intake
+            head = _head_node(graph, s.from_node.rsplit(":", 1)[0])             # the side channel's top piece
+            if not src or not head or (src, head) in existing:
+                skipped += 1
+                continue
+            ei = len(graph.edges)
+            graph.edges.append(FlowEdge(from_node=src, to_node=head, at_measure=graph.nodes[head].up_m,
+                                        x=s.x, y=s.y, kind="confluence"))
+            graph.up_adj.setdefault(head, []).append(ei)
+            graph.down_adj.setdefault(src, []).append(ei)
+            existing.add((src, head))
+            connectors.append({"blk": s.to_blk, "from_node": src, "to_node": head, "kind": "intake",
+                               "geom_id": None})
+            continue
         # Resolve nodes BY MEASURE, not by a `{blk}:0` guess — a stream node id is `{blk}:{down_m}`, and a mouth
         # that now runs under a lake (the through-lake spine) has NO :0 section. The receiver node is the one
         # whose span holds at_measure; the tributary's from_node is its own mouth-most piece.

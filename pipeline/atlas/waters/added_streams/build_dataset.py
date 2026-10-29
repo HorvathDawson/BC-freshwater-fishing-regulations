@@ -35,6 +35,7 @@ from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common.models import BlkChain
 from pipeline.common.names import compact_key
+from pipeline.common import fwa_edge_types
 from pipeline.common.curated import CURATED, GENERATED
 
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
@@ -651,6 +652,36 @@ def _name_candidate(muni_name: str, fwa_name: str, fwa_blk: str, fwa_gnis: str) 
 # squamish 900-105574-087851 / 900-103611 / 900-102882-190726, port_moody 900-058384) deleted real creeks (Nelson
 # Creek). `pipeline.atlas.build` refuses a non-empty `fwa_exclude` outside `OWNER_APPROVED_FWA_EXCLUDE`.
 FWA_EXCLUDE_BY_SOURCE: dict[str, tuple] = {}
+
+#: SIDE CHANNELS the owner has named (2026-10-29): an added stream that is a side channel OF a river — the river
+#: feeds its head (the intake) and it drains back. Keyed (source, src_id). It carries FWA's secondary-flow edge type
+#: (1350, as the Ruskin channels beside it) and an `intake`: the river's blue line and measure where its head takes
+#: water. Its watershed code stays the minted one under its receiver (a strict descendant of the river's), so a
+#: tributary walk from the channel never climbs into the river (`THE_WALK_NEVER_ENTERS_A_PARENT`), while the river's
+#: own walk reaches it as before; the river is never upstream of it as a tributary.
+SIDE_CHANNELS: dict[tuple[str, str], dict] = {
+    ("osm", "osm-1"): {"edge_type": "1350", "intake_blk": "356362384"},   # Northrop Channel <- Stave River
+}
+_INTAKE_TOL = 150.0       # the head must lie this near the river's blue line (Northrop: 111 m, across the bank)
+
+
+def _apply_side_channels(source: str, streams: list[dict], chains: list) -> None:
+    by_blk = {str(c.blk): c for c in chains}
+    for s in streams:
+        cfg = SIDE_CHANNELS.get((source, str(s.get("src_id"))))
+        if not cfg:
+            continue
+        river = by_blk[cfg["intake_blk"]]
+        head = Point(s["segments"][-1]["coords3005"][-1])          # segments run mouth -> source
+        proj = river.geometry.project(head)
+        at = river.geometry.interpolate(proj)
+        if at.distance(head) > _INTAKE_TOL:
+            raise ValueError(f"side channel {s['name']}: its head is {at.distance(head):.0f} m from "
+                             f"{cfg['intake_blk']} (> {_INTAKE_TOL} m)")
+        s["edge_type"] = cfg["edge_type"]
+        s["intake"] = {"from_blk": cfg["intake_blk"], "at_measure": river.mouth_measure + proj,
+                       "x": at.x, "y": at.y, "head": [head.x, head.y], "gap_m": round(at.distance(head), 1)}
+
 
 #: (owner 2026-10-29) A city piece is ADDED only when it is a named, real stream. Unnamed pieces, pieces a layer's
 #: own type fields mark as drainage (clean.py `drainage`: culvert / ditch / hidden drainage / storm system), and
@@ -1350,12 +1381,18 @@ def to_graph_inputs(streams: list[dict]) -> tuple[list, list[ConnectorSpec]]:
     for s in streams:
         segs = [(LineString(seg["coords3005"]), seg["wbk"]) for seg in s["segments"]]
         fids += added_fidrows(s["blk"], s["wsc"], segs, s["stream_order"], s["stream_magnitude"],
+                              edge_type=str(s.get("edge_type") or fwa_edge_types.SINGLE_LINE),
                               base_measure=s.get("base_measure", 0.0))
         c = s.get("connector")
         if c:
             specs.append(ConnectorSpec(from_node=f"{s['blk']}:0", to_blk=str(c["to_blk"]),
                                        to_fwa=c["to_fwa"], at_measure=c["at_measure"],
                                        x=c["x"], y=c["y"], kind=c["kind"]))
+        it = s.get("intake")
+        if it:                                          # the river feeds the side channel's head (Northrop)
+            specs.append(ConnectorSpec(from_node=f"{s['blk']}:head", to_blk=str(it["from_blk"]), to_fwa=True,
+                                       at_measure=it["at_measure"], x=it["x"], y=it["y"], kind="confluence",
+                                       intake=True))
     return fids, specs
 
 
@@ -1474,6 +1511,7 @@ def _resolve_source(source: str, gpkg: str, pad: float):
         features, chains, lake_index, tidal,
         exclude_wsc=FWA_EXCLUDE_BY_SOURCE.get(source, ()), approved_lakes=approved,
         orient_sampler=ElevationSampler(), trust_source=source in RELIABLE_SOURCES)
+    _apply_side_channels(source, streams, chains)
     report["input_dropped"] = [{"src_id": p.get("src_id"), "name": p.get("name") or "", "why": why}
                                for p, why in dropped]
     report["input_kept"] = len(features)

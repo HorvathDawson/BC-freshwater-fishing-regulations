@@ -121,6 +121,10 @@ is a NAME LABEL on it (`duplicate` name variant, with its city's source label); 
 equivalent is minted (`build_dataset.addable`: unnamed, "(Unnamed)", drainage-typed — clean.py `drainage` from the
 layer's own type fields — or drainage-named pieces are not). A re-freeze keeps every previously minted blk it can
 (`_keep_previous_blks`: same source + name + src_id), since splits, overrides and gauge matches name them.
+A SIDE CHANNEL the owner names (`build_dataset.SIDE_CHANNELS`, today Northrop Channel <- Stave River) carries FWA's
+secondary-flow edge type (1350, as the Ruskin channels) and an `intake` (the river's blk + measure feeding its head):
+`attach_connectors` adds the river -> head edge. Its code stays a strict descendant of the river's, so its own walk never
+climbs the river (`test_northrop_side_channel.py`).
 
 The build **does not re-run the resolver**. It consumes a single **frozen, vetted** artifact —
 `pipeline/added_streams.build.json` (top-level, beside `splits.json`) — that is generated once, eyeballed on the
