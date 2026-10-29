@@ -1,6 +1,6 @@
 /** The route map's words, whole. */
 import { describe, expect, it } from "vitest";
-import { donorMapKey, donorMapLabel, donorRelation, hereMapLabel, ROUTE_MAP_WORDS, routeLegend, stationWater } from "./routeMap";
+import { donorMapKey, donorMapLabel, donorRelation, hereMapLabel, joinMapLabel, ROUTE_MAP_WORDS, routeLegend, stationWater } from "./routeMap";
 
 describe("the route map's words", () => {
   it("labels a gauge with its share, in the panel's own words", () => {
@@ -82,5 +82,26 @@ describe("donorRelation (owner 2026-10-28)", () => {
   it("names the station alone when its name has no water to split off", () => {
     expect(stationWater("SOMEWHERE")).toBeNull();
     expect(donorRelation({ ...base, name: null, km: null })).toMatch(/^08MH006, which joins this water below here;/);
+  });
+  // T252: a drawn path says its distance along the river and where the waters meet; the straight line only without one
+  it("says a joined gauge's distance along the river and the confluence, not the straight line", () => {
+    expect(donorRelation({ ...base, alongKm: 34.2, joinWater: "Alouette River" })).toBe(
+      "08MH006 is on North Alouette River, which joins this water at the mouth of Alouette River, about 34 km along the river; scaled by drainage (45× apart).");
+    expect(donorRelation({ ...base, alongKm: 4.26, joinWater: null })).toContain("which joins this water below here, about 4.3 km along the river;");
+    expect(donorRelation({ ...base, joined: false, role: "down", reaches: 3, alongKm: 7.04 }))
+      .toContain("about 7.0 km downstream on this water's line");
+    // no path: the straight line stays, whatever lengths there are
+    expect(donorRelation({ ...base, joined: false, reaches: 0, alongKm: 50 })).toContain("about 12 km away: no mapped path");
+  });
+  it("labels the confluence on the map with the same distance", () => {
+    expect(joinMapLabel("Alouette River", 34.2)).toBe("joins at the mouth of Alouette River · about 34 km along the river");
+    expect(joinMapLabel(null, 2.04)).toBe("joins here · about 2.0 km along the river");
+    expect(joinMapLabel("Alouette River", null)).toBe("joins at the mouth of Alouette River");
+  });
+  // T252 item 3: the bundle's names come cased by the shared caser (T113); only an old release's capitals are re-cased
+  it("keeps a cased station name as it comes (McGregor, not Mcgregor)", () => {
+    expect(stationWater("McGregor River at Lower Canyon")).toBe("McGregor River");
+    expect(stationWater("North Alouette River at 232nd Street, Maple Ridge")).toBe("North Alouette River");
+    expect(stationWater("NORTH ALOUETTE RIVER AT 232ND STREET")).toBe("North Alouette River");
   });
 });

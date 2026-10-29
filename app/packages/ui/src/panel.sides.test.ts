@@ -118,5 +118,23 @@ describe("(owner 2026-10-28) a donor on another water joins through the confluen
     expect(row.relation).toMatch(/^SECOND, which joins this water below here \(the gauge is about [\d.]+ km away\); scaled by drainage/);
     // a gauge on this water has no such line
     expect(vm.groups!.flatMap((g) => [...g.shown, ...g.folded]).find((r) => r.station === "LEAD")!.relation).toBeNull();
+    // no reach lengths in this release: no confluence words on the map beyond the place
+    expect(mine[1]!.mark).toEqual({ at: "s3", into: "s2", label: "joins here" });
+  });
+
+  // T252: the release's reach lengths make the distance one along the river, on the map and in the line alike
+  it("says the distance along the river and where the waters meet, on the map and in the relation line", () => {
+    const a = answer();
+    const joined: PanelAnswer = { ...a, rows: a.rows.map((r) => r.station !== "SECOND" ? r : ({ ...r,
+      route: { ...r.route!, path: ["s1", "s2", "s3", "s9"] as never, join: 1, alongM: 34_200, joinSide: "gauge" as const,
+               joinWater: "Alouette River" } })) };
+    const vm = donorView(joined, { ...opts(SIDES), from: { lat: 49.0, lon: -121.6 } });
+    if (!vm.ok || !vm.map) throw new Error("expected a map");
+    const up = vm.map.routes.find((r) => r.station === "SECOND" && r.role === "up")!;
+    expect(up.mark).toEqual({ at: "s3", into: "s2",
+                              label: "joins at the mouth of Alouette River · about 34 km along the river" });
+    const row = vm.groups!.flatMap((g) => [...g.shown, ...g.folded]).find((r) => r.station === "SECOND")!;
+    expect(row.relation).toMatch(
+      /^SECOND, which joins this water at the mouth of Alouette River, about 34 km along the river; scaled by drainage/);
   });
 });

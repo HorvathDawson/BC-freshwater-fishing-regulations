@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { encodeTile, type FixtureFeature } from "./mvt.fixture";
 import {
   blockAround, clipLine, clipRing, collectionBbox, endFor, newTraceCache, project, readTrace,
-  routeBbox, tileOf, tilesCovering, traceCollection, zoomForBudget, type TileSource,
+  junction, routeBbox, tileOf, tilesCovering, traceCollection, zoomForBudget, type TileSource,
   type TraceRoute,
 } from "./trace-geometry";
 
@@ -185,5 +185,29 @@ describe("the overlay collection", () => {
         geometry: { type: "MultiLineString", coordinates: [[[0, 0], [1, 1]]] } },
     ] });
     expect(collectionBbox(fc)).toEqual([0, 0, 2, 2]);
+  });
+
+  // T252: the confluence is found in the tiles' own geometry and marked with the words handed in
+  it("marks the confluence at the tributary's end against the confluence reach", () => {
+    const P = (pts: number[][]) => pts as [number, number][];
+    // the confluence reach runs (0,0)->(0,4); the tributary's line comes in from the east and ends at (0,2), mid-reach;
+    // a tile clipped it at (5,2), an end far from the river
+    const into = { lines: [P([[0, 0], [0, 2], [0, 4]])], areas: [], z: 12 };
+    const trib = { lines: [P([[0, 2], [3, 2]]), P([[3, 2], [5, 2]])], areas: [], z: 12 };
+    expect(junction(trib, into)).toEqual([0, 2]);
+    expect(junction(undefined, into)).toBeNull();
+    expect(junction({ lines: [], areas: [], z: 12 }, into)).toBeNull();
+    const fc = traceCollection([
+      route({ role: "up", tone: "tone-a", path: [7, 8], mark: { at: 8 as never, into: 7 as never,
+                                                                 label: "joins at the mouth of Alouette River" } }),
+    ], new Map([[7, into], [8, trib]]));
+    expect(fc.features.at(-1)).toEqual({ type: "Feature",
+      properties: { role: "up", tone: "tone-a", order: 1, kind: "join", on: false,
+                    label: "joins at the mouth of Alouette River" },
+      geometry: { type: "Point", coordinates: [0, 2] } });
+    // a reach the tiles did not hold: no mark rather than a guessed one
+    expect(traceCollection([route({ role: "up", tone: "t", path: [7], mark: { at: 9 as never, into: 7 as never,
+                                                                              label: "x" } })],
+                           new Map([[7, into]])).features.some((f) => f.properties.kind === "join")).toBe(false);
   });
 });

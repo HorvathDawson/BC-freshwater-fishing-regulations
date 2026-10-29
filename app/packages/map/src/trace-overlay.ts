@@ -87,12 +87,15 @@ export function tracePaint(theme: string): Record<string, Record<string, unknown
     "trace-gauge": { "circle-color": ["get", "tone"], "circle-stroke-color": paper },
     "trace-here-label": { "text-color": t["color.ui.accent"] as string, "text-halo-color": paper },
     "trace-label": { "text-color": ink },
+    "trace-join": { "circle-color": paper, "circle-stroke-color": ["get", "tone"] },
+    "trace-join-label": { "text-color": ink, "text-halo-color": paper },
   };
 }
 
 /** The overlay's layer ids, in draw order. */
 export const TRACE_LAYER_IDS = [
-  "trace-line-down", "trace-line-up", "trace-arrows", "trace-gauge-halo", "trace-gauge", "trace-label", "trace-here", "trace-here-label"] as const;
+  "trace-line-down", "trace-line-up", "trace-arrows", "trace-join", "trace-join-label", "trace-gauge-halo", "trace-gauge",
+  "trace-label", "trace-here", "trace-here-label"] as const;
 
 /**
  * The overlay's layers. Appended LAST to the style, so the route and its marks sit on top
@@ -142,6 +145,20 @@ export function traceLayers(theme: string):
                 "text-keep-upright": false, "text-allow-overlap": true,
                 "text-ignore-placement": true, "text-rotation-alignment": "map" },
       paint: { ...p["trace-arrows"], "text-halo-width": 1.6 } },
+    /*
+     * (T252) THE CONFLUENCE, where a gauge's water and this one meet: a small ring in the route's tone, and its words
+     * ("joins at the mouth of … · about N km along the river") — optional, so a crowded map drops them before a share.
+     */
+    { id: "trace-join", type: "circle", source: TRACE_SOURCE,
+      filter: line("join"),
+      paint: { ...p["trace-join"], "circle-radius": 4.5, "circle-stroke-width": 2.5 } },
+    { id: "trace-join-label", type: "symbol", source: TRACE_SOURCE,
+      filter: ["all", line("join"), ["has", "label"]],
+      layout: { "text-field": ["get", "label"], "text-font": ["Noto Sans Medium"], "text-size": 11.5,
+                "text-variable-anchor-offset": ["literal", ["left", [0.9, 0], "right", [-0.9, 0],
+                                                            "top", [0, 0.8], "bottom", [0, -0.8]]],
+                "text-max-width": 14, "text-optional": true },
+      paint: { ...p["trace-join-label"], "text-halo-width": 1.6 } },
     /*
      * A FAINT INK RING under every dot. The paper ring alone vanishes on a dark map, and a
      * quiet gauge's tone is the palette's dark grey there — a dot drawn in the map's own

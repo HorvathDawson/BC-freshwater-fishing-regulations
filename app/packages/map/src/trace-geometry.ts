@@ -63,6 +63,11 @@ export interface TraceRoute {
   from: LonLat | null;
   /** The gauge — the chain's last end. */
   to: LonLat | null;
+  /**
+   * (T252) THE CONFLUENCE to mark on this route: where section `at` (a tributary's last reach) ends against section
+   * `into` (the confluence reach), found in the tiles' own geometry (`junction`), labelled with `label` as given.
+   */
+  mark?: { at: SectionKey; into: SectionKey; label: string };
 }
 
 export interface TileSource {
@@ -366,11 +371,34 @@ export async function readTrace(routes: readonly TraceRoute[], src: TileSource,
 
 export interface TraceFeature {
   type: "Feature";
-  properties: { role: "up" | "down"; tone: string; kind: "line" | "area"; order: number; on: boolean };
+  properties: { role: "up" | "down"; tone: string; kind: "line" | "area" | "join"; order: number; on: boolean;
+                /** Only on a `join` point: its words (`TraceRoute.mark.label`). */
+                label?: string };
   geometry: { type: "MultiLineString"; coordinates: Pt[][] }
-          | { type: "MultiPolygon"; coordinates: Pt[][][] };
+          | { type: "MultiPolygon"; coordinates: Pt[][][] }
+          | { type: "Point"; coordinates: Pt };
 }
 export interface TraceCollection { type: "FeatureCollection"; features: TraceFeature[] }
+
+/**
+ * (T252) WHERE A TRIBUTARY MEETS THE CONFLUENCE REACH, from the tiles' own geometry (no second geometry store): of the
+ * ends of `at`'s lines (a reach's line ends where it flows into the next, and where a tile clipped it), the one nearest
+ * any vertex of `into`. Null when either shape was not found, or `at` has no line (a lake).
+ */
+export function junction(at: SectionShape | undefined, into: SectionShape | undefined): Pt | null {
+  if (!at || !into) return null;
+  const ends = at.lines.flatMap((l) => (l.length ? [l[0]!, l[l.length - 1]!] : []));
+  const target = [...into.lines.flat(), ...into.areas.flatMap((poly) => poly[0] ?? [])];
+  if (!ends.length || !target.length) return null;
+  const k = Math.cos((ends[0]![1] * Math.PI) / 180) ** 2;     // a degree of longitude is shorter than one of latitude
+  let best: Pt | null = null, bd = Infinity;
+  for (const e of ends)
+    for (const t of target) {
+      const d = k * (e[0] - t[0]) ** 2 + (e[1] - t[1]) ** 2;
+      if (d < bd) { bd = d; best = e; }
+    }
+  return best;
+}
 
 /**
  * The overlay: one line feature and at most one area feature per route.
@@ -396,6 +424,11 @@ export function traceCollection(routes: readonly TraceRoute[],
     if (lines.length)
       features.push({ type: "Feature", properties: { ...props, kind: "line" },
                       geometry: { type: "MultiLineString", coordinates: lines } });
+    // (T252) the confluence, where this route's water meets the other — when the tiles held both reaches
+    const at = r.mark ? junction(shapes.get(Number(r.mark.at)), shapes.get(Number(r.mark.into))) : null;
+    if (at && r.mark)
+      features.push({ type: "Feature", properties: { ...props, kind: "join", label: r.mark.label },
+                      geometry: { type: "Point", coordinates: at } });
   });
   return { type: "FeatureCollection", features };
 }
@@ -408,6 +441,7 @@ export function collectionBbox(fc: TraceCollection): Bbox | null {
   };
   for (const f of fc.features) {
     if (f.geometry.type === "MultiLineString") f.geometry.coordinates.forEach((l) => l.forEach(take));
+    else if (f.geometry.type === "Point") take(f.geometry.coordinates);
     else f.geometry.coordinates.forEach((poly) => poly[0]?.forEach(take));
   }
   return Number.isFinite(w) ? [w, s, e, n] : null;

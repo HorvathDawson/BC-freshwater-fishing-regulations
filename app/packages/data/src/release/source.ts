@@ -27,7 +27,7 @@ import { shownParameter, type WaterFix } from "@app/core";
 import { num, str, type Row } from "../sql/db";
 import * as BQ from "../sql/queries";
 import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, seriesOf, sid,
-         traceDown, withNear, type DownOf } from "../sql/shared";
+         traceDown, withNear, decodeLen, type DownOf, type RouteFacts } from "../sql/shared";
 import type { Observations } from "../feed/http";
 import type { Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
               PlaceHit, PlaceId, PointerHit, Reading, WaterSource, SectionId, StationId, Water } from "../index";
@@ -90,6 +90,16 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     const r = await get(R.DOWN_FROM!, at);
     return r ? sid(r.down_sid) : null;
   };
+  /** (T252) a route's facts beyond its path: reach lengths (down, when the release has them) and water names (core). */
+  const hasDownLen = has(CROSS.HAS_DOWN_LEN);
+  const routeFacts = async (): Promise<RouteFacts> => ({
+    ...((await hasDownLen()) ? { lenOf: async (s: SectionId) => decodeLen((await get(CROSS.LEN_OF, s))?.len) } : {}),
+    nameOf: async (s: SectionId) => {
+      const r = await get(R.ITEM_FOR_SECTION!, s);
+      const item = r ? await get(R.ITEM!, str(r.item_id)) : null;
+      return item ? { name: str(item.name), kind: str(item.kind) } : null;
+    },
+  });
   const live = async () => (await opts.feed?.live?.()) ?? null;
 
   /** The sections of a water (core), in the water's own order. */
@@ -412,7 +422,8 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       const list = panel === null ? [] : members.get(panel) ?? [];
       if (!list.length) return [];
       const stations = list.map((m) => m.station);
-      return routesOf(section, list, placesOf(await all(CROSS.GAUGE_PLACES(stations.length), ...stations)), down);
+      return routesOf(section, list, placesOf(await all(CROSS.GAUGE_PLACES(stations.length), ...stations)), down,
+                      await routeFacts());
     },
 
     async gaugeWaters(section, stations) {

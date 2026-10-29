@@ -81,3 +81,57 @@ describe("a gauge on another water joins through the confluence (owner 2026-10-2
     expect(direct[0]!.join).toBeUndefined();
   });
 });
+
+describe("T252: a route's distance along the river, and where its waters meet", () => {
+  // the upper Pitt (1) flows into Pitt Lake (2), out to the lower Pitt (3, 4); the Alouette (11) joins at 3 below its
+  // gauge's reach (10). Lengths in metres; the lake's is its through-line.
+  const next = new Map<number, number>([[1, 2], [2, 3], [3, 4], [10, 11], [11, 3]]);
+  const len = new Map<number, number>([[1, 8000], [2, 25000], [3, 4000], [10, 2000], [11, 6000]]);
+  const name = new Map<number, string>([[1, "Pitt River"], [2, "Pitt Lake"], [3, "Pitt River"], [4, "Pitt River"],
+                                        [10, "North Alouette River"], [11, "Alouette River"]]);
+  const down = async (f: SectionId) => (next.get(f as unknown as number) ?? null) as SectionId | null;
+  const facts = { lenOf: async (x: SectionId) => len.get(x as unknown as number) ?? null,
+                  nameOf: async (x: SectionId) => {
+                    const n = name.get(x as unknown as number);
+                    return n ? { name: n, kind: n.endsWith("Lake") ? "lake" : "stream" } : null;
+                  } };
+  const places = () => placesOf([
+    { station: "08MH006", name: "North Alouette River at 232nd Street", sid: 10, lon: -122.58, lat: 49.24 },
+    { station: "08MH035", name: "Pitt River near Port Coquitlam", sid: 4, lon: -122.7, lat: 49.24 },
+    { station: "08ZZ001", name: "Upper", sid: 1, lon: -122.6, lat: 49.7 },
+  ]);
+
+  it("sums half the spot, the reaches to the confluence and the gauge's water below its gauge", async () => {
+    const [r] = await routesOf(s(1), [{ station: st("08MH006"), role: "up" }], places(), down, facts);
+    expect(r!.path).toEqual([s(1), s(2), s(3), s(11), s(10)]);
+    // 4,000 (half the spot) + 25,000 (the lake) + 6,000 (the Alouette below its gauge); the confluence reach counts 0
+    expect(r!.alongM).toBe(35000);
+    expect(r!.joinSide).toBe("gauge");
+    expect(r!.joinWater).toBe("Alouette River");
+  });
+
+  it("counts a downstream gauge's own reach, and not an upstream one's", async () => {
+    const [d] = await routesOf(s(1), [{ station: st("08MH035"), role: "down" }], places(), down, facts);
+    expect(d!.path).toEqual([s(1), s(2), s(3), s(4)]);
+    expect(d!.alongM).toBeUndefined();               // 4's length is unknown here: never a sum with a hole
+    const [u] = await routesOf(s(3), [{ station: st("08ZZ001"), role: "up" }], places(), down, facts);
+    expect(u!.path).toEqual([s(3), s(2), s(1)]);
+    expect(u!.alongM).toBe(2000 + 25000);             // half of 3, the lake; the gauge stands at 1's lower end
+  });
+
+  it("marks the spot's side when this water is the tributary", async () => {
+    // the spot on the Alouette (11), its gauge up the Pitt (1): the Alouette enters at 3
+    const [r] = await routesOf(s(11), [{ station: st("08ZZ001"), role: "up" }], places(), down, facts);
+    expect(r!.path).toEqual([s(11), s(3), s(2), s(1)]);
+    expect(r!.join).toBe(1);
+    expect(r!.joinSide).toBe("spot");
+    expect(r!.joinWater).toBe("Alouette River");
+    expect(r!.alongM).toBe(3000 + 25000);
+  });
+
+  it("says nothing of distance on a release with no lengths", async () => {
+    const [r] = await routesOf(s(1), [{ station: st("08MH006"), role: "up" }], places(), down);
+    expect(r!.alongM).toBeUndefined();
+    expect(r!.joinWater).toBeUndefined();
+  });
+});

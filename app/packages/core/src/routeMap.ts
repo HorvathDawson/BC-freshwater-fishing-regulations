@@ -90,15 +90,22 @@ export function routeLegend(roles: readonly ("up" | "down")[]):
 }
 
 /**
- * THE WATER A STATION IS ON, from ECCC's station name: "NORTH ALOUETTE RIVER AT 232ND STREET, MAPLE RIDGE" is on the
- * "North Alouette River". Null when the name carries no such split (then the sentence names the station alone).
+ * THE WATER A STATION IS ON, from its name: "North Alouette River at 232nd Street, Maple Ridge" is on the "North
+ * Alouette River". Null when the name carries no such split (then the sentence names the station alone).
+ *
+ * THE NAME COMES CASED (T252): the bundle writes `gauge.name` through the one shared caser (T113 `display_case`: Mc /
+ * Mac / O', ordinals), so "McGregor River" is never re-cased here into "Mcgregor". Only a release cut before that still
+ * ships ECCC's capitals, and only those are title-cased here, plainly.
  */
 export function stationWater(name: string | null | undefined): string | null {
   if (!name) return null;
   const head = name.split(/\s+(?:AT|NEAR|BELOW|ABOVE|DOWNSTREAM OF|UPSTREAM OF|AT THE)\s+/i)[0]!.trim();
   if (!head || head.length === name.trim().length) return null;
-  return head.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+  return head !== head.toUpperCase() ? head : head.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
 }
+
+/** "about 12 km" / "about 3.4 km": a distance as the relation line and the map's confluence label say it. */
+export const aboutKm = (km: number): string => `about ${km < 10 ? km.toFixed(1) : Math.round(km)} km`;
 
 /** What the route to a gauge is, as `donorRelation` reads it. */
 export interface DonorRelationFacts {
@@ -111,6 +118,10 @@ export interface DonorRelationFacts {
   joined: boolean;
   /** Straight-line distance from here to the gauge, km; null where either end is not known. */
   km: number | null;
+  /** (T252) Distance ALONG THE RIVER from here to the gauge, km (`PanelRoute.alongM`); null where not known. */
+  alongKm?: number | null;
+  /** (T252) The water whose mouth the confluence is (`PanelRoute.joinWater`); null/absent when unnamed or not known. */
+  joinWater?: string | null;
   /** "45× apart" (`sizeApart`): how far the gauge's drainage is from this water's. */
   apart: string;
 }
@@ -119,16 +130,36 @@ export interface DonorRelationFacts {
  * ONE PLAIN LINE per gauge estimating from another water (owner 2026-10-28): how it relates to the water being read,
  * and that its reading is scaled by drainage. Three cases, said as they are: it joins this water below here; it is on
  * this water's own line; or no path joins them and it stands in for this water by similar country.
+ *
+ * (T252) A DRAWN PATH SAYS ITS DISTANCE ALONG THE RIVER, and where the waters meet ("at the mouth of the Alouette
+ * River"); the straight line is said only where no path joins them, or on a release with no reach lengths.
  */
 export function donorRelation(r: DonorRelationFacts): string {
   const water = stationWater(r.name);
   const where = water ? `${r.station} is on ${water}` : r.station;
-  const far = r.km === null ? "" : ` (the gauge is about ${r.km < 10 ? r.km.toFixed(1) : Math.round(r.km)} km away)`;
+  const along = r.alongKm ?? null;
   const scaled = `scaled by drainage (${r.apart})`;
-  if (r.joined)
-    return `${where}, which joins this water below here${far}; ${scaled}.`;
+  if (r.joined) {
+    const at = r.joinWater ? `at the mouth of ${r.joinWater}` : "below here";
+    const far = along !== null ? `, ${aboutKm(along)} along the river`
+      : r.km === null ? "" : ` (the gauge is ${aboutKm(r.km)} away)`;
+    return `${where}, which joins this water ${at}${far}; ${scaled}.`;
+  }
+  const way = r.role === "up" ? "upstream" : "downstream";
   if (r.reaches > 1)
-    return `${where}, ${r.reaches - 1} ${r.reaches === 2 ? "reach" : "reaches"} ${r.role === "up" ? "upstream" : "downstream"} on this water's line; ${scaled}.`;
+    return along !== null
+      ? `${where}, ${aboutKm(along)} ${way} on this water's line; ${scaled}.`
+      : `${where}, ${r.reaches - 1} ${r.reaches === 2 ? "reach" : "reaches"} ${way} on this water's line; ${scaled}.`;
   if (r.reaches === 1) return `${where}, on this reach; ${scaled}.`;
-  return `${where}${r.km === null ? "" : `, about ${r.km < 10 ? r.km.toFixed(1) : Math.round(r.km)} km away`}: no mapped path joins it to this water, so it stands in for it by similar country; ${scaled}.`;
+  return `${where}${r.km === null ? "" : `, ${aboutKm(r.km)} away`}: no mapped path joins it to this water, so it stands in for it by similar country; ${scaled}.`;
+}
+
+/**
+ * (T252) THE CONFLUENCE'S LABEL ON THE ROUTE MAP, where a gauge's water and this one meet: "joins at the mouth of
+ * Alouette River · about 34 km along the river" — the distance is the same along-river one the relation line says
+ * (here to the gauge). Unnamed: "joins here"; no reach lengths: the place alone.
+ */
+export function joinMapLabel(joinWater: string | null | undefined, alongKm: number | null | undefined): string {
+  const at = joinWater ? `joins at the mouth of ${joinWater}` : "joins here";
+  return alongKm == null ? at : `${at} · ${aboutKm(alongKm)} along the river`;
 }

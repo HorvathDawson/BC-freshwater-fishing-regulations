@@ -248,6 +248,19 @@ export interface PanelRoute {
    * the gauge is on this water's line (or the path is not drawable).
    */
   join?: number;
+  /**
+   * (T252) METRES ALONG THE RIVER from the spot to this gauge over `path` (shared `alongMetres`: the spot at the middle
+   * of its reach, a station at the downstream end of its own), through the confluence when `join` is set. Absent when
+   * the path is not drawable or the release carries no section lengths (one cut before `section_down.len`).
+   */
+  alongM?: number;
+  /**
+   * (T252) Only with `join`: which side's water ENTERS at the confluence — `gauge` (the gauge's river is the tributary:
+   * its reach `path[join + 1]` ends there) or `spot` (this water is: `path[join - 1]` ends there) — and that water's
+   * name, absent when unnamed. The map marks the confluence at that reach's end, labelled "joins at <it> · N km …".
+   */
+  joinSide?: "spot" | "gauge";
+  joinWater?: string;
 }
 
 /** Which quantity a chart is about. Never mixed — see `Series.parameter`. */

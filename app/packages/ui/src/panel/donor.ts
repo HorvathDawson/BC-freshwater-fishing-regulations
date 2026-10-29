@@ -6,7 +6,7 @@ import { changeLowWaterNote, CONDITIONS_WORDS, disagreeNote, donorBecause, donor
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
          panelCamera, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
          backwaterNote, unplacedNote, type SectionKey } from "@app/core";
-import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS, routeLegend } from "@app/core";
+import { donorMapKey, donorMapLabel, hereMapLabel, joinMapLabel, ROUTE_MAP_WORDS, routeLegend } from "@app/core";
 import { gaugeSides, groupGauges, isDonorSide, stateAt, type GaugeGroup, type GaugeSide } from "@app/core";
 import { useAsync } from "../async";
 import { horizonChips, type HorizonChipVM } from "./horizon";
@@ -78,6 +78,12 @@ export interface DonorRouteVM {
   path: readonly SectionKey[];
   from: { lat: number; lon: number } | null;
   to: { lat: number; lon: number } | null;
+  /**
+   * (T252) THE CONFLUENCE, on the gauge's-water half of a route on another water: marked at the downstream end of `at`
+   * (the tributary's last reach) where it meets `into` (the confluence reach) — the map finds the point in the tiles'
+   * own geometry — and labelled `joinMapLabel` ("joins at the mouth of … · about N km along the river").
+   */
+  mark?: { at: SectionKey; into: SectionKey; label: string };
 }
 
 export interface DonorMapVM {
@@ -203,6 +209,9 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const shown = rows.filter((r) => !donorSilent(r, { ref, horizon: o.horizon }));
   const toneOf = (r: DonorRow) => tone.get(r)!;
 
+  // (T252) here to the gauge ALONG THE RIVER, km — only where the path is drawn and the release has reach lengths
+  const alongKm = (r: DonorRow): number | null =>
+    r.route?.alongM != null && r.route.path.length > 0 ? r.route.alongM / 1000 : null;
   // where "here" is for a distance: the tap, else the middle of the water's box
   const here0 = o.from ?? (o.place ? { lat: (o.place[1] + o.place[3]) / 2, lon: (o.place[0] + o.place[2]) / 2 } : null);
   const placed = shown.filter((r) => r.route?.lat != null && r.route?.lon != null);
@@ -263,10 +272,13 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
       const base = { row: toneOf(r), station: r.station };
       // A GAUGE ON ANOTHER WATER: this water flows down to the confluence (solid), then the gauge's water comes down
       // to it (dashed) — two lines in the gauge's one tone, meeting where the waters do.
-      return j === undefined
-        ? [{ ...base, role: r.role, path, from, to }]
-        : [{ ...base, role: "down", path: path.slice(0, j + 1), from, to: null },
-           { ...base, role: "up", path: path.slice(j), from: null, to }];
+      if (j === undefined) return [{ ...base, role: r.role, path, from, to }];
+      // (T252) the confluence: the tributary's last reach ends where it meets the confluence reach `path[j]`
+      const at = r.route!.joinSide === "spot" ? path[j - 1] : path[j + 1];
+      const mark = at === undefined ? undefined
+        : { at, into: path[j]!, label: joinMapLabel(r.route!.joinWater, alongKm(r)) };
+      return [{ ...base, role: "down", path: path.slice(0, j + 1), from, to: null },
+              { ...base, role: "up", path: path.slice(j), from: null, to, ...(mark ? { mark } : {}) }];
     }),
     legend: routeLegend(drawn.map((r) => r.role)),
     bbox: [Math.min(...pts.map((p) => p.lon)), Math.min(...pts.map((p) => p.lat)),
@@ -289,6 +301,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
         joined: r.route?.join !== undefined,
         km: here0 && r.route?.lat != null && r.route?.lon != null
           ? metresApart(here0, { lat: r.route.lat, lon: r.route.lon }) / 1000 : null,
+        alongKm: alongKm(r), joinWater: r.route?.joinWater ?? null,
         apart: sizeApart(r.areaRatio) }),
       because: donorCounted(r) ? donorBecause(r) : null,
       label: donorRowLabel(r, o.pickable, on, { ref, horizon: o.horizon }),

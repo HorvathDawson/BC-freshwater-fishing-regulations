@@ -67,8 +67,10 @@ export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLar
     role: r.role, tone: toneOf(r.row), path: r.path, on: !!selected && r.station === selected,
     from: r.from ? { lon: r.from.lon, lat: r.from.lat } : null,
     to: r.to ? { lon: r.to.lon, lat: r.to.lat } : null,
+    ...(r.mark ? { mark: r.mark } : {}),
   })), [vm.routes, toneOf]);
-  const routeKey = routes.map((r) => `${r.role}:${r.tone}:${r.on ? 1 : 0}:${r.path.join(",")}`).join("|");
+  const routeKey = routes.map((r) => `${r.role}:${r.tone}:${r.on ? 1 : 0}:${r.path.join(",")}${r.mark ? `:${r.mark.label}` : ""}`)
+    .join("|");
   const pins = vm.pins.map((p) => ({ lat: p.lat, lon: p.lon, kind: p.kind,
                                      tone: toneOf(p.row), label: p.label, rank: p.rank }));
   const trace: TraceProp = { key: routeKey, routes, pins };

@@ -558,31 +558,102 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
     return links
 
 
+#: (T252) The edges a walk DOWN takes first: the river going on (`MAINSTEM_EDGE_KINDS`) and a river ENTERING A LAKE —
+#: a piece with a `lake_in` edge ends at the lake, and its other edges are braids and distributaries leaving it.
+_WALK_FIRST = frozenset({"continuation", "lake_out", "lake_in"})
+
+
+def _down_one(graph, sec: str) -> Optional[str]:
+    """The one section `sec` flows into, for a walk down to the sea.
+
+    In order (T252): never a channel that flows straight back into `sec` (the upper Pitt's braids leave and rejoin the
+    one piece, and the walk went round them and stopped); the river going on or into its lake (`_WALK_FIRST`); the
+    bigger water (stream magnitude: Pitt Lake's outlet is the Pitt, not the side channel beside it); the lowest id.
+    """
+    best: tuple | None = None
+    for ix in sorted(graph.down_adj.get(sec, ())):
+        e = graph.edges[ix]
+        to = graph.nodes.get(e.to_node)
+        if to is None:
+            continue
+        back = any(graph.edges[j].to_node == sec for j in graph.down_adj.get(e.to_node, ()))
+        rank = (back, 0 if getattr(e, "kind", "") in _WALK_FIRST else 1, -(to.stream_magnitude or 0), e.to_node)
+        if best is None or rank < best:
+            best = rank
+    return None if best is None else best[-1]
+
+
 def downstream_map(graph, sections: Iterable[str]) -> dict[str, str]:
-    """section -> the section it flows into, for shed members only.
+    """section -> the section it flows into, for shed members AND everything below them.
 
     This is the chain a client walks to answer "how does my spot reach that gauge". It is
-    stored for shed members and nobody else: 2.02M pointers would be most of the bundle,
-    and every hop on a trace to a gauge is by definition inside that gauge's shed.
+    stored for shed members, not every section: 2.02M pointers would be most of the bundle.
+
+    CLOSED DOWNSTREAM (T252, owner 2026-10-28). A pointer's TARGET gets a pointer of its own, and
+    so on to the sea or the edge of the atlas. Seeded with shed members only, the chain used to
+    stop at the first section that was not one — above all a LAKE, which never speaks for a shed
+    (`lake_gauge` reads lakes), so a river walked down into Pitt Lake and ended there: the gauge
+    on the Alouette below the lake read "no mapped path" from the upper Pitt. The lake's own
+    pointer is its `lake_out` edge (a mainstem edge), so the walk goes on to the outlet river.
+    Paths only: nothing else in the bundle reads these pointers.
 
     A section with several outgoing edges (a braid, a distributary) takes the mainstem one
     if there is one — a trace must follow the river, not wander into a side channel.
     """
-    from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS
-
-    want = set(sections)
     out: dict[str, str] = {}
-    for sec in sorted(want):
-        best: tuple[int, str] | None = None
-        for ix in sorted(graph.down_adj.get(sec, ())):
-            e = graph.edges[ix]
-            if e.to_node not in graph.nodes:
-                continue
-            rank = (0 if getattr(e, "kind", "") in MAINSTEM_EDGE_KINDS else 1, e.to_node)
-            if best is None or rank < best:
-                best = rank
-        if best is not None:
-            out[sec] = best[1]
+    seen = set(sections)
+    todo = sorted(seen, reverse=True)
+    while todo:
+        sec = todo.pop()
+        nxt = _down_one(graph, sec)
+        if nxt is None:
+            continue
+        out[sec] = nxt
+        if nxt not in seen:
+            seen.add(nxt)
+            todo.append(nxt)
+    return out
+
+
+#: (T252) The unit `section_down.len` is stored in, metres — the app's `DOWN_LEN_UNIT_M` (app/packages/data/src/sql/
+#: shared.ts) reads it back. A sum over a route's reaches is what is said, "about N km", so 100 m is finer than needed.
+DOWN_LEN_UNIT_M = 100
+
+
+def section_lengths(graph, down: dict[str, str]) -> dict[str, float]:
+    """Metres ALONG THE FLOW PATH through each section that has a pointer (T252): what a walk
+    down the pointers covers crossing it, so "N km along the river" is a sum over the path.
+
+    A stream piece: its own length on its blue line (`length_m`, else `up_m - down_m`). A LAKE
+    has no measure of its own: the river's measure window across it (`windows.polygon_window`,
+    where its through-line enters and leaves), else the straight line from the inflow the walk
+    arrives by (the largest, then the lowest id) to the outlet it leaves by — Pitt Lake is 25 km
+    of the way from the upper Pitt to the Alouette, and a zero there would say 0.
+    """
+    from pipeline.atlas.graph.windows import polygon_window
+    from pipeline.common.models.enums import NodeKind
+
+    arrive: dict[str, list[str]] = {}
+    for a, b in down.items():
+        arrive.setdefault(b, []).append(a)
+    out: dict[str, float] = {}
+    for sec in sorted(down):
+        n = graph.nodes[sec]
+        if n.kind != NodeKind.lake:
+            out[sec] = max(0.0, float(n.length_m or (n.up_m - n.down_m) or 0.0))
+            continue
+        w = polygon_window(graph, sec)
+        if w is not None and w[1] is not None and w[2] is not None and w[2] > w[1]:
+            out[sec] = float(w[2] - w[1])
+            continue
+        outlet = next((graph.edges[ix] for ix in sorted(graph.down_adj.get(sec, ()))
+                       if graph.edges[ix].to_node == down[sec]), None)
+        ins = sorted(arrive.get(sec, ()),
+                     key=lambda a: (-(graph.nodes[a].stream_magnitude or 0), a))
+        inlet = next((graph.edges[ix] for ix in sorted(graph.up_adj.get(sec, ()))
+                      if ins and graph.edges[ix].from_node == ins[0]), None)
+        out[sec] = (math.hypot(outlet.x - inlet.x, outlet.y - inlet.y)
+                    if outlet is not None and inlet is not None else 0.0)
     return out
 
 

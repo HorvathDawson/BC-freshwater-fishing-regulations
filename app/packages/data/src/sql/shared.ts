@@ -325,7 +325,7 @@ export async function routesOf(section: SectionId,
                                places: ReadonlyMap<string, { name: string; section: SectionId | null;
                                                              lon: number | null; lat: number | null;
                                                              tidal?: boolean; backwater?: boolean }>,
-                               down: DownOf): Promise<PanelRoute[]> {
+                               down: DownOf, along: RouteFacts = {}): Promise<PanelRoute[]> {
   const walk = async (from: SectionId, stop: SectionId): Promise<SectionId[] | null> => {
     const path: SectionId[] = [from];
     const seen = new Set<SectionId>([from]);
@@ -385,10 +385,15 @@ export async function routesOf(section: SectionId,
         join = i;
       }
     }
+    const metres = along.lenOf && path.length ? await alongMetres(path, m.role, join, along.lenOf) : null;
+    const meet = join !== undefined && along.nameOf ? await joinWater(path, join, along.nameOf) : null;
     out.push({
       station: m.station, name: place?.name ?? null,
       lon: place?.lon ?? null, lat: place?.lat ?? null,
       role: m.role, path, ...(join !== undefined ? { join } : {}),
+      // (T252) metres along the river, and where the two waters meet: absent on a release cut before `section_down.len`
+      ...(metres !== null ? { alongM: metres } : {}),
+      ...(meet ? { joinSide: meet.side, ...(meet.water ? { joinWater: meet.water } : {}) } : {}),
       // `true` only (T78): a station the release flags tidal; absent otherwise, as an older release reads.
       ...(place?.tidal ? { tidal: true as const } : {}),
       // `true` only (T160): a station a lake below it backs up; absent otherwise, as an older release reads.
@@ -396,6 +401,71 @@ export async function routesOf(section: SectionId,
     });
   }
   return out;
+}
+
+/**
+ * (T252) THE UNIT OF `section_down.len` — the pipeline's `DOWN_LEN_UNIT_M` (pipeline/gauges/consume/shed.py), the one
+ * number both sides agree on: a reach's length along the flow path is stored as a count of these.
+ */
+export const DOWN_LEN_UNIT_M = 100;
+
+/** A stored `section_down.len` as metres; null for a row with none. */
+export const decodeLen = (v: unknown): number | null =>
+  v === null || v === undefined ? null : Number(v) * DOWN_LEN_UNIT_M;
+
+/** (T252) What `routesOf` may also read: each section's length along the flow path, and the water a section is on. */
+export interface RouteFacts {
+  /** Metres a walk down the pointers covers crossing `s` (`section_down.len`); null where the release has none. */
+  lenOf?: (s: SectionId) => Promise<number | null>;
+  /** The water `s` is on (its name and kind); null for an unnamed section. */
+  nameOf?: (s: SectionId) => Promise<{ name: string; kind: string } | null>;
+}
+
+/**
+ * (T252) METRES ALONG THE RIVER from the spot to the gauge, over `path` (spot first, gauge last). The spot is taken at
+ * the middle of its reach, and a station stands at the DOWNSTREAM end of its own reach (schema.sql `section_gauge`):
+ *   gauge downstream   half the spot + every reach after it, the gauge's own included (the walk crosses all of it)
+ *   gauge upstream     every reach between + half the spot (the gauge's own reach lies above where it stands)
+ *   on another water   half the spot + the spot's reaches down to the confluence, then the gauge's water's reaches
+ *                      below the gauge down to it (the confluence reach itself, where they meet, counts 0)
+ * Null when any length it needs is unknown — never a sum with a hole in it.
+ */
+export async function alongMetres(path: readonly SectionId[], role: "up" | "down", join: number | undefined,
+                                  lenOf: (s: SectionId) => Promise<number | null>): Promise<number | null> {
+  const last = path.length - 1;
+  const take: SectionId[] = join !== undefined
+    ? [...path.slice(1, join), ...path.slice(join + 1, last)]
+    : role === "down" ? path.slice(1) : path.slice(1, last);
+  const spot = await lenOf(path[0]!);
+  if (spot === null) return null;
+  let m = spot / 2;
+  for (const s of take) {
+    const l = await lenOf(s);
+    if (l === null) return null;
+    m += l;
+  }
+  return m;
+}
+
+/**
+ * (T252) WHICH WATER ENTERS AT THE CONFLUENCE: the side (`gauge` / `spot`) whose arriving reach is the TRIBUTARY, whose
+ * mouth the confluence is — a stream on another water than the confluence reach's. The other side is the river going
+ * on: the same water, or a lake it drains (Pitt Lake above the lower Pitt). Two streams both on other waters (two forks
+ * making a third river): the gauge's side, the common case. `water` the tributary's name, absent when it is unnamed.
+ */
+export async function joinWater(path: readonly SectionId[], join: number,
+                                nameOf: (s: SectionId) => Promise<{ name: string; kind: string } | null>):
+    Promise<{ side: "spot" | "gauge"; water: string | null } | null> {
+  const at = (await nameOf(path[join]!))?.name ?? null;
+  const arriving = async (i: number) => {
+    if (i < 0 || i >= path.length || i === join) return null;
+    const w = await nameOf(path[i]!);
+    return { water: w?.name ?? null, entering: w?.kind !== "lake" && (w?.name ?? null) !== at };
+  };
+  const gauge = await arriving(join + 1), spot = await arriving(join - 1);
+  if (gauge?.entering) return { side: "gauge", water: gauge.water };
+  if (spot?.entering) return { side: "spot", water: spot.water };
+  return gauge ? { side: "gauge", water: null } : null;
 }
 
 /** `gaugePlaces` rows to the map `routesOf` reads. */

@@ -990,7 +990,13 @@ CREATE TABLE lake_gauge (item_id TEXT NOT NULL, station TEXT NOT NULL,
 -- runs downstream of its gauge, and the last member's neighbour is outside it. A trace that
 -- runs out of pointers has reached the edge of what any gauge speaks for; that is the
 -- answer, not missing data, and the client must render it as the end of the chain.
-CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER NOT NULL);
+--
+-- (T252) CLOSED DOWNSTREAM: a pointer's target has a pointer of its own, to the sea or the edge of the atlas — seeded
+-- with shed members only, the walk used to end at the first section that was not one, a LAKE above all (Pitt Lake: the
+-- upper Pitt never reached the Alouette's gauge). `len`: the reach's length along the flow path in units of
+-- `shed.DOWN_LEN_UNIT_M` (a lake: its through-line's measure window, else inflow-to-outlet straight line), summed by the
+-- app for "about N km along the river". ADDED LAST, nullable: still down/1, an older release has none.
+CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER NOT NULL, len INTEGER);
 
 -- Pentad-sampled percentiles. p0 and p100 are absent on purpose: they do not interpolate
 -- (82% error, measured), and a wrong extreme is worse than no extreme.

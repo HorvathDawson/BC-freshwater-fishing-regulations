@@ -62,10 +62,13 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: down 624,863, geo 612,797, flow-area 188,672).
 #: (owner 2026-10-28) `salmon` is split per bundle region: the head (payload, ~25 kB gz) and `salmon-<r>` (each region's
 #: sid runs; measured on r-098f810f6e0a's sections: R6 277,024, R5 102,502, R1 51,828, R2 51,000, the rest < 25 kB)
+#: (T252) `down` 720,000 → 1,150,000, PROVISIONAL until the first build measures it: the pointers closed downstream
+#: (+25,093 rows, 21,370 of them lakes: 624,913 → 777,588 gz, measured on the 2026-10-28 bundle's atlas) and each
+#: reach's length (`len`, ~1.5-2.5 B a row gz). The first unnamed tap pays it (`first_tap_unnamed`, still under its gate).
 SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000, "salmon": 60_000,
               **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "method": 600_000,
               "water": 2_500_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 950_000,
-              "down": 720_000, "geo": 700_000, "flow-area": 220_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
+              "down": 1_150_000, "geo": 700_000, "flow-area": 220_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
 #: (T182) The release total is no longer the web's cap — a web visitor never fetches the whole release (the cold load is
 #: `WEB_BUDGET["cold_load"]`); it is what a PHONE holds offline, beside ~450 MB of tiles + basemap. It stays as a
 #: runaway-growth backstop, raised 15 → 20 MB so the last band's files (T199 runs ~0.87 MB, T200, T201/T218) fit.

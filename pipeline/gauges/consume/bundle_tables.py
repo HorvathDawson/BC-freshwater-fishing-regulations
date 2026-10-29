@@ -95,7 +95,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     from pipeline.gauges import build_gauge_sheds, lake_gauge_links
     from pipeline.gauges.consume.place import nodes_for, summarise
     from pipeline.gauges.matches import check_record, read_match
-    from pipeline.gauges.consume.shed import downstream_map, load_stations
+    from pipeline.gauges.consume.shed import DOWN_LEN_UNIT_M, downstream_map, load_stations, section_lengths
     from pipeline.gauges.liveness import dormant, may_speak, speaks_now
 
     from pipeline.common.section_handles import read as _read_handles
@@ -167,9 +167,13 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
 
     # No liveness column of any kind -- see schema.sql. The bundle says a gauge exists and
     # where it is; the feed index says which are talking, by containing them.
+    # THE NAME AS A READER WRITES IT (T252 item 3): ECCC publishes "MCGREGOR RIVER AT LOWER CANYON"; the one shared
+    # caser (T113 `place_names.display_case`: Mc/Mac/O', ordinals) makes it "McGregor River at Lower Canyon", once, here
+    # — the app shows `gauge.name` as it comes and no longer re-cases it ("Mcgregor").
+    from pipeline.deliver.bundle.place_names import display_case
     db.executemany("INSERT INTO gauge (station, name, item_id, sid, lon, lat, area_km2, mag, "
                    "matched_by, match_m, tidal, backwater) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [
-        (s["station"], s["name"],
+        (s["station"], display_case(s["name"]),
          owner.get(matched.get(s["station"], "")),
          sid.get(matched[s["station"]]) if s["station"] in matched else None,
          s["lon"], s["lat"], s.get("area_km2"),
@@ -377,9 +381,12 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         # bundle built "fine" with no basins. It stops the build now, naming the cause.
         raise SystemExit(f"basin_member: not built: {_exc}") from _exc
 
+    # CLOSED DOWNSTREAM, WITH EACH REACH'S LENGTH (T252): a lake's pointer carries the walk on to its outlet, and
+    # `len` (in DOWN_LEN_UNIT_M) lets the app say "about N km along the river" by summing a route's reaches.
     down = downstream_map(graph, (l.section_id for l in links))
-    db.executemany("INSERT INTO section_down (sid, down_sid) VALUES (?,?)",
-                   [(sid[s], sid[down[s]]) for s in sorted(down)])
+    lens = section_lengths(graph, down)
+    db.executemany("INSERT INTO section_down (sid, down_sid, len) VALUES (?,?,?)",
+                   [(sid[s], sid[down[s]], round(lens[s] / DOWN_LEN_UNIT_M)) for s in sorted(down)])
     cov.filled("section_down", len(down))
 
     bands: dict[str, int] = {}

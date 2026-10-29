@@ -18,6 +18,7 @@ from pipeline.gauges.consume.shed import (
     build_gauge_sheds,
     downstream_map,
     lake_gauge_links,
+    section_lengths,
     trust_for,
 )
 from pipeline.common.models.enums import NodeKind
@@ -179,6 +180,57 @@ class TestDownstreamMap:
     def test_the_last_section_before_the_sea_points_nowhere(self):
         g = _graph({"a": 10}, [])
         assert downstream_map(g, ["a"]) == {}
+
+
+def _pitt() -> StreamGraph:
+    """The upper Pitt flows into Pitt Lake, the lake out to the lower Pitt, which the Alouette joins: one blue line
+    ("P") from the Fraser up through the lake (the lake cuts it from 3,000 to 28,000 m), the Alouette on its own ("A")."""
+    g = StreamGraph()
+    def stream(nid, blk, lo, hi, mag):
+        g.nodes[nid] = StreamNode(node_id=nid, kind=NodeKind.stream, blk=blk, wsc=TRUNK, down_m=lo, up_m=hi,
+                                  length_m=hi - lo, stream_magnitude=mag)
+    stream("P:0", "P", 0, 3000, 900)            # lower Pitt, below the Alouette
+    stream("P:28000", "P", 28000, 60000, 500)   # upper Pitt, above the lake
+    stream("A:0", "A", 0, 9000, 300)            # the Alouette, its gauge's reach
+    g.nodes["lake:1"] = StreamNode(node_id="lake:1", kind=NodeKind.lake, wbk="1")
+    for a, b, kind, m, x, y in [("P:28000", "lake:1", "lake_in", 28000, 0, 25000),
+                                ("lake:1", "P:0", "lake_out", 3000, 0, 0),
+                                ("A:0", "P:0", "confluence", 1500, 900, 0)]:
+        g.edges.append(FlowEdge(from_node=a, to_node=b, at_measure=m, x=x, y=y, kind=kind))
+    for ix, e in enumerate(g.edges):
+        g.up_adj.setdefault(e.to_node, []).append(ix)
+        g.down_adj.setdefault(e.from_node, []).append(ix)
+    return g
+
+
+class TestDownstreamThroughLakes:
+    """T252: the pointers are closed downstream, so a walk passes a lake to its outlet; each reach carries its length."""
+
+    def test_a_walk_into_a_lake_goes_on_to_the_outlet(self):
+        # seeded with the upper Pitt alone (the lake speaks for no shed): the lake and the lower Pitt get pointers too
+        assert downstream_map(_pitt(), ["P:28000"]) == {"P:28000": "lake:1", "lake:1": "P:0"}
+
+    def test_the_seeds_own_pointers_are_unchanged(self):
+        g = _graph({"a": 10, "b": 20, "c": 30}, [("a", "b"), ("b", "c")])
+        assert downstream_map(g, ["a"]) == {"a": "b", "b": "c"}
+        assert downstream_map(g, ["a", "b"]) == {"a": "b", "b": "c"}
+
+    def test_lengths_are_the_reach_and_the_lakes_through_line(self):
+        g = _pitt()
+        down = downstream_map(g, ["P:28000", "A:0"])
+        lens = section_lengths(g, down)
+        assert lens["P:28000"] == 32000 and lens["A:0"] == 9000
+        assert lens["lake:1"] == 25000              # the Pitt's measure window across the lake: 3,000 to 28,000
+
+    def test_a_lake_off_its_rivers_line_is_the_straight_line_inflow_to_outlet(self):
+        g = _pitt()
+        g.nodes["P:28000"] = StreamNode(node_id="P:28000", kind=NodeKind.stream, blk="Q", wsc=TRUNK, down_m=0,
+                                        up_m=32000, length_m=32000, stream_magnitude=500)
+        g.nodes["P:0"] = StreamNode(node_id="P:0", kind=NodeKind.stream, blk="R", wsc=TRUNK, down_m=0, up_m=3000,
+                                    length_m=3000, stream_magnitude=900)
+        lens = section_lengths(g, downstream_map(g, ["P:28000"]))
+        # no line both enters and leaves: polygon_window gives a one-sided window, so the edges' points are used
+        assert lens["lake:1"] == 25000
 
 
 class TestStationNames:

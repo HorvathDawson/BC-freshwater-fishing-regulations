@@ -117,6 +117,13 @@ export const CROSS = {
   /** (T224) core: where these waters' non-official names came from (`name_source`'s primary key is (item_id, name)). */
   NAME_SOURCES_FOR_ITEMS: (n: number) => ({ file: "core", sql:
     `SELECT item_id, name, label FROM name_source WHERE item_id IN (${ids(n)})` }),
+  /**
+   * (T252) down: whether `section_down` carries `len` (each reach's length along the flow path, ADDITIVE, still
+   * down/1); a release cut before it has none, and a route then says no along-river distance.
+   */
+  HAS_DOWN_LEN: { file: "down", sql: "SELECT 1 AS x FROM pragma_table_info('section_down') WHERE name = 'len'" },
+  /** (T252) down: one reach's length along the flow path, in `DOWN_LEN_UNIT_M` units (`sql/shared` decodes it). */
+  LEN_OF: { file: "down", sql: "SELECT len FROM section_down WHERE sid = ?" },
   HAS_LAKE_SECTION: { file: "conditions", sql:
     "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'lake_section'" },
   /** conditions: stations standing on these sections. */
