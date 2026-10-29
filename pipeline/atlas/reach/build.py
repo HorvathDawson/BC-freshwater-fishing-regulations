@@ -431,11 +431,14 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     with the cut (`confluence_excludes`). `None` (a caller that did not compute it) knows of no
     row, so every joining water goes with the cut — the review app passes the same map.
     """
-    if tidal_limit(entry, tidal):
+    lim = tidal_limit(entry, tidal)
+    if lim:
         binding, diags = build_reach(entry, rule, registry, graph, covered=covered, clip=clip,
                                      outside=outside, shared=shared, regional=regional,
                                      owned=owned)
-        return _without_tidal(entry, rule, binding, diags, tidal)
+        # the LIMIT, not every tidal section: a row marked tidal (Nitinat Lake) keeps its own water even
+        # when a tidal split elsewhere makes the limit non-empty (it lost it, 2026-10-28..29 releases)
+        return _without_tidal(entry, rule, binding, diags, lim)
     if covered is None:
         covered = _covered_ids(entry, registry)
     if outside is None:

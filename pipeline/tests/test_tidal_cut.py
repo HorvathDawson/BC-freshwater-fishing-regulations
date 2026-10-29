@@ -306,3 +306,15 @@ def test_a_rule_on_a_whole_tidal_water_is_unresolved_and_listed(estuary):
 
 def test_the_curated_whole_tidal_waters_are_the_owners_four_channels():
     assert O.tidal_waters() == ("gnis:10494", "gnis:14905", "gnis:17805", "gnis:22631")
+
+
+def test_a_row_marked_tidal_keeps_its_own_water_when_a_cut_exists_elsewhere(estuary):
+    """Nitinat Lake's own row lost its lake once any tidal split existed (_without_tidal got the whole
+    tidal map instead of the row's limit)."""
+    g, reg = estuary
+    row = {"entry_id": "r1:two@1-1", "matched": ["gnis:3"], "tidal": True,
+           "rules": [{"rule_id": "n", "extents": [{"op": "whole"}]}]}
+    res = build_reaches([row], reg, g, tidal_splits=(TIDE,))
+    b = res.bindings[0]
+    assert b.outcome is Outcome.bound and set(b.sections) == {"T2:0"}
+    assert res.tidal["T2:0"] == "r1:two@1-1" and res.tidal["R:0"] == f"split:{TIDE}"

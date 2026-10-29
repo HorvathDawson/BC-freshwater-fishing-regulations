@@ -362,7 +362,7 @@ def test_the_tiles_stage_key_is_geometry_only(tmp_path, monkeypatch):
     assert B.tiles_key(build)["obstacles"] is None          # (T173) not fetched: the stage runs and names the fetch
     obstacles.write_bytes(b"x")
     before = B.tiles_key(build)
-    assert set(before) == {"handles", "gpkg", "areas", "code", "obstacles", "tidal"}
+    assert set(before) == {"handles", "gpkg", "areas", "code", "obstacles", "tidal", "tidal_waters"}
     (build / "registry.json").write_text('{"items": {"renamed": 1}}')
     assert B.tiles_key(build) == before
     # (T166) a new tidal boundary takes a piece off the map: the tiles rerun
