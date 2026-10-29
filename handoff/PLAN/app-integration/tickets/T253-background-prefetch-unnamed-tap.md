@@ -1,6 +1,6 @@
 # T253 — background prefetch: the files an unnamed-stream tap reads, fetched ahead on a good connection
 
-Status: DONE (f52055bb) — web. Native needs nothing (see below).
+Status: DONE (f52055bb, 5b13ab24) — web. Native needs nothing (see below).
 
 Source: owner 2026-10-28 — "tapping an UNNAMED stream is slow the first time (it pulls the lazy files …). Make it fast
 by PREFETCHING in the background when it's cheap."
@@ -9,8 +9,9 @@ by PREFETCHING in the background when it's cheap."
 
 **Scheduler** `@app/data/release` `background.ts` (`createBackgroundPrefetch`). What: `WEB_BUDGET.first_tap_unnamed`
 (the contract's list: core, water, access, regs-<r>, regs-sid, down, salmon, salmon-<r>), per region, only files
-the manifest names. Order: the region in view, its neighbours (`REGION_NEAR`, hand-written and symmetric; priority
-only), then the province. The shared files come with the first region. Concurrency 1. Each file goes through
+the manifest names. Order: the region in view, then its neighbours (`REGION_NEAR`, hand-written and symmetric). Nothing
+beyond (owner 2026-10-28: capped at view + neighbours). When the view moves to another region, that region and its
+neighbours are fetched, under the same gate; regions already ready stay ready. The shared files come with the first region. Concurrency 1. Each file goes through
 `ReleaseLoader.prefetch`. That is the same verified, cached path T231's web `Booted.stage` warms a release through,
 and the same one the tap reads (Cache Storage by immutable url, sha-checked). It has no fetch path of its own.
 Gate `prefetchHold`: offline, hidden (background), Save-Data, metered without T231's mobile-data setting, low
@@ -46,7 +47,8 @@ header on screen:
 | prefetched | 245 ms median (230–251) | nothing |
 
 Bytes by default for the Chilliwack view: 4.79 MB (gz) until Region 2 was ready (≈5 s at Fast 4G, starting 4 s after
-idle). The whole province is 7.70 MB in 22 files, beyond the idle tier's core + regs-2. Chrome kept `effectiveType: 4g`
+idle). The default total (view + neighbours, capped) is 6.15 MB in 14 files, beyond the idle tier's core + regs-2; Regions
+2, 1, 3, 5 and 8 are ready. Before the cap, the whole province was 7.70 MB in 22 files. Chrome kept `effectiveType: 4g`
 under this throttle, so there were no holds.
 
 ## Tests
@@ -58,7 +60,7 @@ scheduler per loader, cancelled on unmount, kill switch, `webNetSignals`, `batte
 (the More line, the Data block, log rows). `tsc -b`, boundaries, platform, deps, knip all green.
 
 ## Left
-- Region priority is centre + neighbours. The map reports only the region under its centre; a viewport-wide list
+- The set is centre + neighbours. The map reports only the region under its centre; a viewport-wide list
   would need the map to report every region it shows.
 - On an unknown-speed connection a "slow" measurement holds for the session (until the connection changes).
 - The full vitest run has failures that predate this ticket (goldens, the live release moving under the release lane,

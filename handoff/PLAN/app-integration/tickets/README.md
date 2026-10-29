@@ -296,7 +296,7 @@ use that as the sole source of future work."
 | T250 | Expo SDK / dependency upgrade window (MapLibre RN patch re-apply) | OPEN | — | owner 2026-10-28 (P16); before T244 |
 | T251 | testing data updates: Updates log (dev/staging, ring buffer, check/force/offline/clear/apply/copy), staging test channel (`test/` + `deploy/staging/test-updates.mjs` + `app/tools/updates-e2e.mjs`), app version (app.json semver + build + sha + date; About, `X-App-Version`, `minAppVersion` gate), `published` stamped at publish | DONE | fe10a015 | owner 2026-10-28; prod data worker must allow `X-App-Version` (T86) |
 | T252 | donor paths through lakes (`section_down` closed downstream + walk ranking), distance along the river (`section_down.len`, `alongM`, confluence label on the map), station names through the shared caser | PARTIAL | — | follow-ups to 9ea333d1; rides the next bundle + release; Pitt check on :39218 after it |
-| T253 | background prefetch of the files an unnamed-stream tap reads (view region → neighbours → province; good connection only; T231 cache path; Updates log + More "Offline data") | DONE | f52055bb | owner 2026-10-28; tap 5.4 s → 0.25 s at Fast 4G; native installs whole |
+| T253 | background prefetch of the files an unnamed-stream tap reads (view region + neighbours only, capped; good connection only; T231 cache path; Updates log + More "Offline data") | DONE | f52055bb, 5b13ab24 | owner 2026-10-28; tap 5.4 s → 0.25 s at Fast 4G; native installs whole |
 
 ## Order for open tickets
 
