@@ -27,9 +27,9 @@ function fake(o: { openGroup?: boolean } = {}) {
   const asked: string[] = [];
   const log = <T>(what: string, v: T): Promise<T> => { asked.push(what); return Promise.resolve(v); };
   const parts: PartRow[] = [
-    { itemOrd: 3, partIx: 0, akey: 2, facts: facts("Mouth to bridge"), sections: 4 },
-    { itemOrd: 3, partIx: 1, akey: 5, facts: facts("Above the bridge"), sections: 2 },
-    { itemOrd: 3, partIx: 2, akey: null, facts: null, sections: 1 }];
+    { itemOrd: 3, partIx: 0, akey: 2, facts: facts("Mouth to bridge"), sections: 4, tidal: false },
+    { itemOrd: 3, partIx: 1, akey: 5, facts: facts("Above the bridge"), sections: 2, tidal: false },
+    { itemOrd: 3, partIx: 2, akey: null, facts: null, sections: 1, tidal: false }];
   const picker: Picker = { headed: true, choices: [
     { parts: [0, 1], closed: !o.openGroup, sections: 6, heading: "h", text: "t" }, { parts: [2], closed: false, sections: 1, heading: "h", text: "t" }] };
   const keys = {

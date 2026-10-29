@@ -251,7 +251,8 @@ export async function waterModel(store: RegsStore, ord: number, on: BuildDay): P
   add(nav.exit, "flows-into"); add(nav.continuesAs, "continues-as"); add(nav.continuesFrom, "continues-from");
   const book = new Map<string, BookRef>();
   for (const m of models) for (const s of m.sections) for (const i of s.items) for (const b of i.book) book.set(`${b.printed}`, b);
-  const first = nav.geo[0]?.mid ?? null;
+  // (T278) never a tidal piece's middle (owner T166: no parts on tidal water)
+  const first = nav.geo.find((g) => !parts[g.partIx]?.tidal)?.mid ?? null;
   return {
     ord, id: it.id, name: it.name, kind: it.kind, regions, region: regions[0] ?? 0, status: r.status, answer: r.answer, parts: models,
     neighbours, mid: first ? [first[0], first[1]] : null, book: [...book.values()].sort((a, b) => a.printed - b.printed),

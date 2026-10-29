@@ -233,8 +233,8 @@ describe("T12 summary", () => {
     // (T115) the 4 states whose part the release merged away, and (T67) the 2 closed states whose merged closed list the
     // release re-cut, are excluded from every block (exclusions PART_GONE_IDS); (T183) so is the West Road's x27p1, its
     // part merged into part 0
-    // (T278) + the 3 whose whole part is tidal now (x15p3, x31p, x37p1: taps.json `tidal`)
-    const GONE = " · 14 excluded (x9p2_1010, x13p2_1010, x15p3_1010, x15p14_1010, x15p15_1010, x15p17_1010, x15p18_1010, x18p3_1010, x19p5_1010, x22p2_1010, x27p1_1010, x31p_1010, x37p1_1010, x37p0_1010)";   // (2026-10-27) + the Columbia's x18p3; (T220) + the Dean's x13p2 and the Kootenay's x9p2; (T228) + the Coquitlam's x37p0
+    // (T278) + the 2 whose whole part is tidal now (x15p3, x37p1: taps.json `tidal`)
+    const GONE = " · 13 excluded (x9p2_1010, x13p2_1010, x15p3_1010, x15p14_1010, x15p15_1010, x15p17_1010, x15p18_1010, x18p3_1010, x19p5_1010, x22p2_1010, x27p1_1010, x37p1_1010, x37p0_1010)";   // (2026-10-27) + the Columbia's x18p3; (T220) + the Dean's x13p2 and the Kootenay's x9p2; (T228) + the Coquitlam's x37p0
     expect(summary("methods", 134, 134)).toBe("methods parity: 134/134 states equal" + GONE   // (T32) the Set lines note the prototype's DOM lost, asserted instead
       + " · ^boats$ not compared (the page blocks and golden re-cut on drop_on_parts)"   // (T206) the on-parts ruling's Boats blocks, pinned instead
       + " · ^ways\\.list\\.0\\.items\\.\\d+\\.note$ not compared (never — a prototype markup bug, not a regulation)");

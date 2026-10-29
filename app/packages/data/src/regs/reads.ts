@@ -39,6 +39,9 @@ export interface PartRow {
   /** null when part.ord IS NULL (outside B.C.) — decode.py `Store.answers` shape. */
   readonly facts: PartFacts | null;
   readonly sections: number;
+  /** (T278; owner T166 2026-10-28: no parts on tidal water) a tidal cut's piece: no key, every section tidal (its
+   *  `xpart.province_except` holds "tidal"). The store keeps it at its part index; nothing lists it as a part. */
+  readonly tidal: boolean;
 }
 export interface PlaceRow extends AnswersPlace { readonly place: number }
 export interface RulesetRow { readonly sections: number; readonly reach: readonly number[]; readonly trib: readonly number[] }
@@ -218,7 +221,8 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
 
     parts: (ord) => once("parts", ord, async () => {
       const rows = await (await base.water()).all(
-        "SELECT part_ix, akey, ord, label_s, short_s, runs_s, place_s, hint_s, km, closed_all_year, paper_licence, sections " +
+        "SELECT part_ix, akey, ord, label_s, short_s, runs_s, place_s, hint_s, km, closed_all_year, paper_licence, sections, " +
+        "(SELECT j FROM xpart WHERE id = part.xp) AS xj " +
         "FROM part WHERE item_ord = ? ORDER BY part_ix", ord);
       return Promise.all(rows.map(async (p, i): Promise<PartRow> => {
         if (n(p.part_ix) !== i) throw damaged(`item ${ord}'s parts are out of sequence`);
@@ -228,7 +232,10 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
           place: p.place_s === null ? null : await s(p.place_s), hint: await s(p.hint_s), km: nn(p.km),
           closed_all_year: n(p.closed_all_year) === 1, paper_licence: json<number[]>(p.paper_licence),
         };
-        return { itemOrd: ord, partIx: i, akey: nn(p.akey), facts, sections: n(p.sections) };
+        const xp = p.akey === null && p.xj !== null && p.xj !== undefined
+          ? base.val<{ province_except?: readonly string[] }>("xpart", p.xj) : null;
+        return { itemOrd: ord, partIx: i, akey: nn(p.akey), facts, sections: n(p.sections),
+                 tidal: (xp?.province_except ?? []).includes("tidal") };
       }));
     }),
 

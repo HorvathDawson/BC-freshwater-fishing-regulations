@@ -34,7 +34,7 @@ const DICT = Buffer.from(JSON.stringify(RULE));
 
 /** Two regions; akey 1 → region 1, akey 2 → region 2. Frame id 5 exists in BOTH region files with DIFFERENT content,
  *  so a read routed to the wrong file is seen. regs-sid: handle 4097 (block 1, slot 1) → akey 2, place 0. */
-function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean } = {}) {
+function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean } = {}) {
   const asked: string[] = [];
   const spy = (name: string, d: Db): Db => ({
     all: (q, ...p) => { asked.push(`${name}: ${q.split(" FROM ")[1]?.split(" ")[0]}`); return d.all(q, ...p); },
@@ -56,7 +56,10 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badS
       runs_s INTEGER, place_s INTEGER, hint_s INTEGER, km REAL, closed_all_year INTEGER, paper_licence TEXT, xp INTEGER,
       sections INTEGER, xruns INTEGER, PRIMARY KEY (item_ord, part_ix));
     INSERT INTO part VALUES (3, 0, 2, 0, 2, 3, 4, NULL, 5, 12.5, 0, '[7]', 0, 5, 0), (3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, 0, 1, 0);
+      NULL, NULL, NULL, ${o.tidalPart ? 1 : 0}, 1, 0);
+    CREATE TABLE xpart (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
+    INSERT INTO xpart VALUES (0, ${X({ ruleset: null, licensing_set: null })}),
+      (1, ${X({ ruleset: null, licensing_set: null, steelhead: "known", province_except: ["tidal"] })});
     CREATE TABLE picker (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
     INSERT INTO picker VALUES (0, ${X({ choices: [], headed: false })});
     CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL, PRIMARY KEY (ord, sid));
@@ -143,9 +146,14 @@ describe("reads over water", () => {
     const st = await openRegsStore(seed().loader);
     expect(await st.parts(3)).toEqual([
       { itemOrd: 3, partIx: 0, akey: 2, sections: 5, facts: { order: 0, label: "Mouth to the bridge", short: "Mouth → Bridge",
-        runs: "runs", place: null, hint: "hint", km: 12.5, closed_all_year: false, paper_licence: [7] } },
-      { itemOrd: 3, partIx: 1, akey: null, sections: 1, facts: null },
+        runs: "runs", place: null, hint: "hint", km: 12.5, closed_all_year: false, paper_licence: [7] }, tidal: false },
+      { itemOrd: 3, partIx: 1, akey: null, sections: 1, facts: null, tidal: false },
     ]);
+  });
+
+  it("(T278) parts: an unkeyed part whose xpart province_except holds \"tidal\" is a tidal piece (owner T166: never listed)", async () => {
+    const st = await openRegsStore(seed({ tidalPart: true }).loader);
+    expect((await st.parts(3)).map((p) => [p.partIx, p.tidal])).toEqual([[0, false], [1, true]]);
   });
 
   it("akey, segments, moments (segmom.ix → statics.moments), picker, ruleset (trib defaults to [])", async () => {

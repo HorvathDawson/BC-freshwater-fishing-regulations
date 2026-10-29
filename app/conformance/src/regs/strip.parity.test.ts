@@ -8,7 +8,6 @@
  * year strip (rows 30 `rows[].year`) — nothing is derived here.
  */
 import { afterAll, describe, expect, it } from "vitest";
-import { frozenTidalPage } from "./fixtures";
 import { buildModel, fmtDay, makePlace, settle, stripOf, type StripVM } from "@app/core";
 import { eqPlain } from "./eq";
 import { caseIds, golden, inputsOf, parityGate, requestOf, summary } from "./golden";
@@ -116,8 +115,7 @@ describe.skipIf(gate.skip)("T13 year strip vs golden keep.strip", () => {
     expect([await texts("cow0_1010"), await flex("cow0_1010")]).toEqual([["Closed", "today", "Opens Nov 16"], [184, 135, 46]]);
   });
 
-// (T278) x31p_1010 is tidal now (taps.json `tidal`): the release has no tidal key, so the page is the frozen one (fixtures.ts frozenTidalPage)
-  it("tidal x31p_1010 (frozen page): no strip (T14's tidal banner)", () => {
-    expect(frozenTidalPage().keep.strip).toBeNull();
+  it("tidal x31p_1010: no strip (T14's tidal banner)", async () => {
+    expect(await stripFor("x31p_1010")).toBeNull();
   });
 });

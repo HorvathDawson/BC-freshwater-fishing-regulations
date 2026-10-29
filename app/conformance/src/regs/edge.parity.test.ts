@@ -19,7 +19,6 @@ import { gearLines, methodsLines } from "./gearPage";
 import { keepLines, selectorOf } from "./keepPage";
 import { norm } from "./eq";
 import { T203_SIZE_BOX_IDS } from "./exclusions";
-import { frozenTidalPage } from "./fixtures";
 
 const G = golden().states, T = taps();
 const gate = await parityGate();
@@ -39,10 +38,9 @@ it(`T42 edge parity runs against a paired regs store${gate.skip ? ` — SKIPPED:
 });
 
 describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
-// (T278) x31p_1010 is tidal now (taps.json `tidal`): the release has no tidal key, so the page is the frozen one (fixtures.ts frozenTidalPage)
-  it("5. tidal x31p_1010 (frozen page): the banner alone, a faint dot, Gear and Methods in the banner's words", () => {
-    const p = frozenTidalPage() as unknown as RegsPage;
-    expect([p.status, p.header.dot]).toEqual(["tidal", "faint"]);
+  it("5. tidal x31p_1010: the banner alone, a faint dot, Gear and Methods in the banner's words", async () => {
+    const inp = (await inputsOf("x31p_1010"))!, p = await pageOf("x31p_1010");
+    expect([edgeKind(inp), p.status, p.header.dot]).toEqual(["tidal", "tidal", "faint"]);
     expect(p.keep.order).toEqual(["banner"]);
     expect(keepText(p)).toEqual(["Tidal water", TIDAL_NOTE]);
     expect(keepText(p)).toEqual((G.x31p_1010!.keep as GKeep).lines.map(norm));
@@ -52,8 +50,8 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
     expect(methodsLines(p.methods!)).toEqual((G.x31p_1010!.methods as { lines: string[] }).lines.map(norm));
   });
 
-  it("5b. mutation pin: the tidal Keep tab with a strip or a where-not block is not the golden (frozen page)", () => {
-    const p = frozenTidalPage() as unknown as RegsPage, want = (G.x31p_1010!.keep as GKeep).order;
+  it("5b. mutation pin: the tidal Keep tab with a strip or a where-not block is not the golden", async () => {
+    const p = await pageOf("x31p_1010"), want = (G.x31p_1010!.keep as GKeep).order;
     expect(p.keep.order.map((b) => selectorOf(b, p.keep))).toEqual(want);
     const extra = { ...p.keep, order: [...p.keep.order, "outside" as const], outside: "x" };
     expect(extra.order.map((b) => selectorOf(b, extra))).not.toEqual(want);

@@ -42,8 +42,8 @@ describe("regs-web states", () => {
     }
     // (T115, T67, T183, T220, T228) 123: the golden's 134 less the 11 whose part the release re-cut (taps.json `gone`; T220 added
     // Dean x13p2, Kootenay x9p2; T228's no-access split cut the Coquitlam's x37p0 in two)
-    // (T278) 120: and the 3 whose whole part is tidal now (taps.json `tidal`: x15p3, x31p, x37p1), in GONE too
-    expect({ n: IDS.length, protos: protos.size, apps: apps.size, wrong }).toEqual({ n: 120, protos: 120, apps: 120, wrong: [] });
+    // (T278) 121: and the 2 whose whole part is tidal now (taps.json `tidal`: x15p3, x37p1), in GONE too
+    expect({ n: IDS.length, protos: protos.size, apps: apps.size, wrong }).toEqual({ n: 121, protos: 121, apps: 121, wrong: [] });
     expect([...IDS, ...GONE].sort()).toEqual(Object.keys(G.states).sort());
     // (T183) the Fraser's gone states' reasons are T183's now (a straddling piece carries both regions' rules again)
     expect(() => stateOf("x15p14_1010")).toThrow(/has no part in the store: T183/);
@@ -65,10 +65,10 @@ describe("regs-web states", () => {
     expect(PROTO_TODAY).toBe("2026-10-10");
   });
 
-  // (T278, r-62e2f3a8c81e) x15p3_1010 and x31p_1010 (tidal) leave: their parts are tidal now (taps.json `tidal`, off the map)
-  it("WALK_STATES: check.mjs's state sets as golden ids + the timed edge state, less the tidal ones", () => {
+  // (T278, r-62e2f3a8c81e) x15p3_1010 leaves: its part is tidal now (taps.json `tidal`, off the map)
+  it("WALK_STATES: check.mjs's state sets as golden ids + the tidal and timed edge states, less a part that is tidal now", () => {
     expect(WALK_STATES).toEqual(["vedder_1010", "klwa_1010", "cow1_1010", "chw1_1010", "wilkes_1010", "vedder_515", "x12p_1010",
       "x3p_1010", "iron_720", "x34p_1010", "x35p_1010", "bc0_1010", "bc0_501", "ape_1010", "ape_501", "bc1_501",
-      "hamill_615", "klwa_1012", "glenn_615", "chw2_1010", "x15p2_1010"]);
+      "hamill_615", "klwa_1012", "glenn_615", "chw2_1010", "x31p_1010", "x15p2_1010"]);
   });
 });

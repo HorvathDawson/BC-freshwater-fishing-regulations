@@ -88,8 +88,7 @@ COQUITLAM_TIDAL = ("T278 (r-62e2f3a8c81e, tidal cut split:coquitlam_river__mary_
                    "the Coquitlam from the mouth up to the Mary Hill Bypass Bridge is tidal (1 section, store part 3, "
                    "unkeyed), so the golden mouth part (old store part 2) has no freshwater part and the Mary Hill -> "
                    "Lougheed part is renumbered 3 -> 2")
-NITINAT_TIDAL = ("T278 (r-62e2f3a8c81e, tidal entry r1:nitinat_lake@1-3, 'Nitinat Lake is tidal water'): the lake's one "
-                 "section is tidal (store part 0, unkeyed; the item is not shown), so the water has no freshwater part")
+# (r-8e04e839ea48, d2858cc80) Nitinat Lake (x31p) is a tidal-keyed water again: tapped, its tidal banner as before
 T228 = ("T228 (a757756b, owner 2026-10-28): no-access land breaks a water's pieces — the Coquitlam's Lougheed -> lake "
         "outlet stretch (golden part 0, 10 sections) is cut at the Coquitlam Watershed boundary into store parts 0 (1 "
         "section) and 1 (9), so the mouth and Mary Hill parts are renumbered 1 -> 2 and 2 -> 3 (4 parts, not 3)")
@@ -129,7 +128,7 @@ RECUT_WHY = {"x22p2_1010": "T67 (owner 2026-10-24): the Peace's braids are cut a
              "x27p0_1010": f"{T183}: the West Road's straddling pieces are parts of their own (3 -> 5 parts)",
              "x18p3_1010": COLUMBIA_R11,
              "x37p1_1010": f"{T228}; then {COQUITLAM_TIDAL}",
-             "x16p3_1010": CAMPBELL_TIDAL, "x23p0_1010": BRUNETTE_TIDAL, "x31p_1010": NITINAT_TIDAL}
+             "x16p3_1010": CAMPBELL_TIDAL, "x23p0_1010": BRUNETTE_TIDAL}
 PART_GROWN = {
     "x27p0_1010": f"{T183}: the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections",
     "x27p2_1010": f"{T183}: the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch",
@@ -212,7 +211,6 @@ PART_TIDAL = {
     "x15p3_1010": (None, 16, f"{FRASER_TIDAL} (before: {T67}: {_GAUGE} on the Fraser's side channels 355992485 and "
                              f"355994872, and 08MH028's cut moved 578 -> 545 m: 30 -> 29 sections)"),
     "x37p1_1010": (None, 3, f"{COQUITLAM_TIDAL} (before: {T228})"),
-    "x31p_1010": (None, 0, NITINAT_TIDAL),
     "x16p3_1010": (5, 10, f"{CAMPBELL_TIDAL} (before: T185, owner marks 2026-10-27: the Quinsam River confluence cut lies "
                           f"inside the Maple Street stretch, 7 -> 8 sections)"),
     "x23p0_1010": (0, 2, BRUNETTE_TIDAL),

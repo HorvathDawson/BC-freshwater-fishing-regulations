@@ -1,6 +1,6 @@
 # T278 — Re-cut the app's golden regs fixtures after the tidal cuts (part renumbering)
 
-Status: PARTIAL — re-cut done on r-62e2f3a8c81e, golden parity green; one owner call open (the tidal part in the water map, below).
+Status: DONE — re-cut on r-fa1915a56adb (LATEST), golden parity green; tidal parts never listed in the water map.
 
 ## Problem
 Release r-62e2f3a8c81e's 23 new tidal cuts renumber golden parts: Fraser (x15p*), Campbell (x16p3–p5), Brunette (x23p0),
@@ -37,7 +37,11 @@ Depends: c1029 release. Size: S–M. Owner: no.
   carries the pipeline's "every section it selects (1) is tidal water" note (oracles.ts ORACLE_TIDAL_NOTED). Tallies
   re-pinned; handles re-pinned by section id (atlas full.prev -> full): unnamed.release, waterGroup, WaterMapView,
   WaterScreen.unnamed, WaterMode.
-- OPEN (owner): the store keeps each tidal piece as an unkeyed part (province_except tidal), and the water map lists it
-  (`loadWaterGroup`): the Skeena's map now starts with a nameless "Skeena River" part below the tidal boundary, so
-  packages/ui/src/waterMap.test.ts "a fork upstream" fails (the Reserve is entry 2, not 1). decisions 2026-10-28 say no
-  parts on tidal water; not re-pinned. Either the store drops tidal parts or the app filters them.
+- Water map (coordinator 2026-10-29, owner T166 "no parts on tidal water"): `PartRow.tidal` (reads.ts: an unkeyed part
+  whose `xpart.province_except` holds "tidal"); `loadWaterGroup` leaves it out (core `waterGroup` drops its stretches,
+  sections and marks with it); the SEO model's water middle skips it. waterMap.test pins the Skeena (store part 9 tidal,
+  never an entry); the fork test passes unchanged.
+- Re-cut again on r-fa1915a56adb (Annacis/Cannery/Morey/Parsons channels whole-tidal: none is a golden water; d2858cc80
+  rebinds Nitinat Lake r1): x31p is a tidal-keyed water again, so it is tapped as before (its banner tests back on the
+  live release, no frozen-page path, no tidal note); 121 tapped + 11 gone + 2 tidal (x15p3, x37p1). regs fixture
+  r-29e03ae863a9; handles unchanged (07f861e5422be466).

@@ -62,7 +62,7 @@ describe.skipIf(gate.skip)("T31 bait vs golden gear.bait (and the whole Gear tab
       t.bait++; if (b.notes.length) t.notes++; if (b.dated.length) t.dated++;
       if (b.dated.some((d) => d.chip === "Now")) t.now++; if (b.dated.some((d) => d.when === "All year")) t.allYear++;
     }
-    // (T278) x15p3 + x37p1 + x31p tidal now: the tidal cuts took their whole parts (taps.json `tidal`): x15p3 and x37p1 had bait
+    // (T278) x15p3 + x37p1 tidal now: the tidal cuts took their whole parts (taps.json `tidal`): x15p3 and x37p1 had bait
     expect(t).toEqual({ bait: 98, notes: 62, dated: 63, now: 62, allYear: 20 });
   });
 

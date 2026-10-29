@@ -16,7 +16,9 @@ async function rowsOf(store: GroupStore, ord: number): Promise<ItemNavRows> {
   const [item, parts, nav] = await Promise.all([store.item(ord), store.parts(ord), store.navRows(ord)]);
   return {
     ord, item: item.id, name: item.name, kind: item.kind,
-    parts: parts.map((p) => ({ partIx: p.partIx, label: p.facts?.label ?? item.name, short: p.facts?.short ?? item.name })),
+    // (T278; owner T166 2026-10-28: no parts on tidal water) a tidal piece is never listed; `waterGroup` drops its
+    // stretches, sections and the marks that would reach it with it
+    parts: parts.filter((p) => !p.tidal).map((p) => ({ partIx: p.partIx, label: p.facts?.label ?? item.name, short: p.facts?.short ?? item.name })),
     geo: nav.geo, marks: nav.marks, sections: nav.sections, stretches: nav.stretches, exit: nav.exit,
     continuesAs: nav.continuesAs, continuesFrom: nav.continuesFrom,
   };

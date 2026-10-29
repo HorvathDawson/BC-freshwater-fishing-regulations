@@ -191,6 +191,18 @@ describe("a fork upstream: the Skeena's Ecological Reserve", () => {
   });
 });
 
+// (T278, owner T166 2026-10-28: no parts on tidal water) the release keeps each tidal cut's piece as an unkeyed part
+// (the Skeena's part 9, below `split:skeena_river__tidal_boundary`); the water map never lists it
+describe("a tidal piece is never a part of the water map", () => {
+  it("the Skeena: the store's part 9 is tidal, and no entry of its group is part 9", async () => {
+    const ord = (await st.itemOrd("gnis:2936"))!;
+    expect((await st.parts(ord)).filter((p) => p.tidal).map((p) => [p.partIx, p.akey])).toEqual([[9, null]]);
+    const g = await loadWaterGroup(st, "gnis:2936");
+    expect(g.parts.filter((p) => p.item === "gnis:2936" && p.partIx === 9)).toEqual([]);
+    expect(g.marks.every((m) => [m.down, ...m.up].every((i) => g.parts[i]!.partIx !== 9))).toBe(true);
+  });
+});
+
 describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake part was not)", () => {
   /** Every state one press of ▼ or ▲ (and, at a fork, each choice) leads to from part `at`. */
   const presses = (g: WaterGroup, at: number): number[] => (["down", "up"] as const).flatMap((type) => {

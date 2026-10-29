@@ -75,7 +75,7 @@ export const idOfHash = (hash) => {
   if (!hit) throw new Error(`no golden state for ${hash}`);
   return hit;
 };
-// (T278, r-62e2f3a8c81e) less GONE: x15p3 (the Fraser below Mission) and the tidal edge x31p (Nitinat Lake) are tidal now, off the map
+// (T278, r-62e2f3a8c81e) less GONE: x15p3 (the Fraser below Mission) is tidal now, off the map
 export const WALK_STATES = [...new Set([...HASHES.map(idOfHash), 'x31p_1010', 'x15p2_1010'])].filter((id) => !GONE.includes(id));
 
 /** The four states whose Methods must fit one screen under the header (bait-ways-compact). */

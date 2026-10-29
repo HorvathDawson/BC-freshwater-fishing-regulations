@@ -5,7 +5,6 @@
  * values are the golden's; the ticket's literals are asserted beside it as whole strings.
  */
 import { afterAll, describe, expect, it } from "vitest";
-import { frozenTidalPage } from "./fixtures";
 import {
   buildModel, inheritedOf, makePlace, plain, possessionOf, settle, whereNotOf, type Line, type RegsInputs,
 } from "@app/core";
@@ -53,7 +52,7 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
       if (eq.ok) passed++; else bad.push(`${c.id}\n${eq.diff}`);
     }
     expect(bad).toEqual([]);
-    expect(total).toBe(120);   // (T278) x15p3 + x31p + x37p1 tidal now (taps.json `tidal`): the tidal cuts took their whole parts   // 134 golden − 11 gone (T115 ×4, T67 ×2, T183 ×1, 2026-10-27 x18p3 ×1, T220 ×2, T228 ×1)
+    expect(total).toBe(121);   // (T278) x15p3 + x37p1 tidal now (taps.json `tidal`): the tidal cuts took their whole parts   // 134 golden − 11 gone (T115 ×4, T67 ×2, T183 ×1, 2026-10-27 x18p3 ×1, T220 ×2, T228 ×1)
   });
 
   it("2. glenn_501: the Duncan River's exemption, its Rule book page and the nearer row's caution", async () => {
@@ -90,11 +89,7 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
         expect(b.possession && [b.possession.label, b.possession.value, b.possession.term, b.possession.open])
           .toEqual(["Possession", "2 days’ quota", "possession_quota", "pos:pos"]);
       }
-      // (T278) x31p_1010 is tidal now (taps.json `tidal`), not a case: its frozen page (fixtures.ts frozenTidalPage) draws none of the three
-    }
-    {
-      const k = frozenTidalPage().keep;
-      expect([k.inherited, k.whereNot, k.possession]).toEqual([null, null, null]);
+      if (c.id === "x31p_1010") expect(blocks(await c.inputs())).toEqual({ inherited: null, whereNot: null, possession: null });
     }
   });
 
@@ -108,6 +103,6 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
       if (p) values.push(p.value); else none++;
     }
     if (!values.length && !none) return;   // no paired store: cases() yielded nothing (a failure under REGS_STORE_REQUIRED=1)
-    expect([values.length, none, [...new Set(values)]]).toEqual([98, 22, ["2 days’ quota"]]);   // (T278) x15p3 + x31p + x37p1 tidal now (taps.json `tidal`): the tidal cuts took their whole parts   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
+    expect([values.length, none, [...new Set(values)]]).toEqual([98, 23, ["2 days’ quota"]]);   // (T278) x15p3 + x37p1 tidal now (taps.json `tidal`): the tidal cuts took their whole parts   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 });
