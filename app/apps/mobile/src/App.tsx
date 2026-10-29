@@ -203,7 +203,9 @@ export default function App() {
     store: openUpdateStore(),
     network: {
       online: () => !devOffline.on && connectivity.online(),
-      metered: () => connectivity.metered?.() ?? false,
+      // (T254) a slow line holds a LARGE update the way mobile data does (the setting for mobile data still lets it go):
+      // a release set on one bar would starve every answer the reader asks for
+      metered: () => (connectivity.metered?.() ?? false) || (NET.mode().low && NET.mode().why !== "setting"),
       subscribe: (on) => {
         const a = connectivity.subscribe(on);
         // off a metered connection (onto Wi-Fi): a download held for Wi-Fi looks again
