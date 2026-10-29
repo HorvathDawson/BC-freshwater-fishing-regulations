@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { answerFrom, type DonorRow, type PanelAnswer, type StationId } from "@app/data";
 import { donorCounted } from "@app/core";
 import { useAsync } from "../async";
+import { useFeedVersion } from "../feedVersion";
 
 type Index = Parameters<typeof answerFrom>[1];
 
@@ -45,10 +46,11 @@ export function withLastReports(rows: readonly DonorRow[],
 export function useLastReports(feed: PanelFeed | undefined, panel: PanelAnswer): PanelAnswer {
   const want = lastReportWanted(panel.rows);
   const key = `last:${want.join(",")}`;
+  const v = useFeedVersion("gauges");
   const got = useAsync(
     async () => new Map(await Promise.all(
       want.map(async (s) => [s, await feed!.lastReport!(s as StationId).catch(() => undefined)] as const))),
-    key, !!feed?.lastReport && want.length > 0);
+    `${key}#${v}`, !!feed?.lastReport && want.length > 0, key);
   const map = got.state === "ready" ? got.value : null;
   return useMemo(() => {
     if (!map) return panel;
@@ -59,7 +61,8 @@ export function useLastReports(feed: PanelFeed | undefined, panel: PanelAnswer):
 
 /** The Province's forecast attribution, as the live feed carries it (T52); null until it is in, or when absent. */
 export function useForecastAttribution(feed: PanelFeed | undefined): string | null {
+  const v = useFeedVersion("gauges");
   const got = useAsync(async () => (feed ? (await feed.index())?.forecastAttribution ?? null : null),
-                       "forecast-attribution", feed !== undefined);
+                       `forecast-attribution#${v}`, feed !== undefined, "forecast-attribution");
   return got.state === "ready" ? got.value ?? null : null;
 }

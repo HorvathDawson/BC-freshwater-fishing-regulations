@@ -31,6 +31,7 @@ import type { ItemId, SectionId } from "@app/data";
 import { loadRawWaterGroup, type GroupStore, type RegsStore } from "@app/data/regs";
 import type { ReleaseLoader } from "@app/data/release";
 import { useAsync, type Async } from "./async";
+import { useFeedVersion } from "./feedVersion";
 import { useRegsTarget } from "./regs";
 import { openWater } from "./openWater";
 import type { RouteAction } from "./route";
@@ -297,6 +298,7 @@ export function useSalmonKey(loader: Pick<ReleaseLoader, "salmon" | "regionsOf">
                              store: Pick<RegsStore, "itemOrd" | "parts"> | null,
                              item: ItemId | null): ((sid: number) => string) | null {
   const key = `water-salmon:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${item ?? ""}`;
+  const dfo = useFeedVersion("dfo");   // (owner 2026-10-29) a DFO feed taken: compared again, in place
   const r = useAsync(async () => {
     if (!loader || !store || !item) return null;
     const ord = await store.itemOrd(item);
@@ -306,7 +308,7 @@ export function useSalmonKey(loader: Pick<ReleaseLoader, "salmon" | "regionsOf">
     const f = await loader.salmon(regions.length ? regions : undefined);
     // the ONE salmon comparison (`@app/core` `salmonTimelineKey`: the regulations' content, live feed included)
     return f ? (sid: number) => salmonTimelineKey(f, sid) : null;
-  }, key, !!loader && !!store && !!item);
+  }, `${key}#${dfo}`, !!loader && !!store && !!item, key);
   return r.state === "ready" ? r.value : null;
 }
 

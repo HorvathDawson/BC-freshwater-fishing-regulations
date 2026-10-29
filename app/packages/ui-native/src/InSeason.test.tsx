@@ -31,7 +31,7 @@ describe("in-season", () => {
     expect(screen.getAllByTestId("inseason-notice-row").map((r) => r.textContent))
       .toEqual(["Region 4 · Kaslo River · since Apr 4, 2025No fishing July 30 to September 15.source ›"]);
   });
-  it("<TopBar>: the bell with its count opens the notice; no count, no bell", () => {
+  it("<TopBar>: the bell with its count opens the notice; no count, the bell without a badge (owner 2026-10-29)", () => {
     let opened = 0;
     const bar = (count: number) => (
       <TopBar palette={LIGHT} placeholder="p" sync={null} open={false} query="" onQuery={() => {}} onOpen={() => {}}
@@ -41,7 +41,14 @@ describe("in-season", () => {
     fireEvent.click(screen.getByLabelText("3 in-season changes not on the map yet"));
     expect(opened).toBe(1);
     rerender(bar(0));
-    expect(screen.queryByTestId("inseason-bell")).toBeNull();
+    expect(screen.getByTestId("inseason-bell")).toBeTruthy();
+    expect(screen.queryByTestId("inseason-count")).toBeNull();
+  });
+  it("<InSeasonNotice>: opened with nothing pending, it says so", () => {
+    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}} sync={{ failed: [], checking: false, onRetry: () => {} }} />);
+    expect(screen.getByTestId("notice-empty").textContent).toBe("No notifications");
+    expect(screen.getByText("Notifications")).toBeTruthy();
+    expect(bellLabel(null, 0)).toBe("No notifications");
   });
 });
 

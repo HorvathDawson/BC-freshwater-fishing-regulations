@@ -7,7 +7,7 @@ import { act, cleanup, fireEvent, render, renderHook, screen } from "@testing-li
 import { HELP_WORDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, helpVM } from "@app/core";
 import { tidalColours } from "@app/map";
 import { HelpPage } from "./menu/HelpPage";
-import { useWalkthrough, WalkthroughSheet, type WalkthroughStore } from "./Walkthrough";
+import { stepsFor, useWalkthrough, WalkthroughSheet, type WalkthroughStore } from "./Walkthrough";
 import { insideWindow, placeCallout, unionRect, useCoachRegistry, type CoachRegistry } from "./CoachMarks";
 import { DARK, LIGHT } from "./theme";
 
@@ -36,6 +36,17 @@ function useCoachRegistryForTest(): CoachRegistry {
 const steps = (missing: readonly string[] = []) => w.cards.filter((c) => !c.targets.every((t) => missing.includes(t)));
 
 describe("the walkthrough (T248, coach marks T257)", () => {
+  it("(owner 2026-10-29) one tour, two step lists: the web build (this one) draws the web's last step", async () => {
+    expect(stepsFor("web").at(-1)!.title).toBe(w.webSync.title);
+    expect(stepsFor("app").at(-1)!.title).toBe(w.cards.at(-1)!.title);
+    render(<WalkthroughSheet state={{ open: true, finish: () => {}, reopen: () => {} }} palette={LIGHT} registry={screenOf()} />);
+    for (let i = 0; i < w.cards.length - 1; i++) {
+      await screen.findByTestId(`coach-step-${w.cards[i]!.key}`, {}, { timeout: 3000 });
+      act(() => { fireEvent.click(screen.getByText(w.next)); });
+    }
+    await screen.findByTestId("coach-step-sync", {}, { timeout: 3000 });
+    expect(screen.getByText(w.webSync.body)).toBeTruthy();
+  });
   it("opens on a new device and walks the steps on the real controls; the last stores the version and closes it", async () => {
     const store = memory();
     const reg = screenOf();

@@ -9,6 +9,7 @@ import type { Horizon, Parameter, WaterSource, SectionId, Series, StationId } fr
 import { useAsync, usePoll, type Async } from "../async";
 import { askOnce, peekAnswer, seriesKey } from "../answers";
 import { gaugeGeoJSON, type GaugeQuantity } from "../gaugePoints";
+import { useFeedVersion } from "../feedVersion";
 
 export interface Conditions {
   /** null when no station is entitled to speak for this water. */
@@ -50,12 +51,14 @@ export function useStationReading(
   // P02: re-asked every READING_POLL_MS while a view holds it (the feed's own cache lives as long), keeping the last
   // reading on screen meanwhile; each tick also re-renders, so its age line moves on.
   const tick = usePoll(READING_POLL_MS, station !== null);
+  // (owner 2026-10-29) a feed the update service took is asked at once, the same refresh a tick makes
+  const v = useFeedVersion("gauges");
   // ASKED THROUGH THE ANSWER STORE (answers.ts), under the key the Conditions prefetch uses, so a gauge picked in the
   // switch reads out in the same render. Reused for half a poll: a tick is always older than that, so it asks again.
   const key = `reading:${station ?? ""}`;
   return useAsync(
     () => askOnce(source, key, () => stationReading(source, station), READING_REUSE_MS),
-    `${key}#${tick}`,
+    `${key}#${tick}:${v}`,
     station !== null,
     key,
     () => peekAnswer<Conditions>(source, key, READING_REUSE_MS),
@@ -150,6 +153,7 @@ export function useGaugeGeoJSON(
   quantity: GaugeQuantity = "flow",
   horizon: Horizon = 0,
 ): string | null {
+  const v = useFeedVersion("gauges");
   const got = useAsync(
     async () => {
       if (!feed) return null;
@@ -161,8 +165,10 @@ export function useGaugeGeoJSON(
     // and 274 a temperature, and they are not nested. A shared cache would show one
     // roster under another's heading. SO IS THE HORIZON (T126): the dots follow it, and a
     // day no run reaches drops the dots a forecast cannot speak for.
-    `gaugepoints:${quantity}:${horizon}`,
+    `gaugepoints:${quantity}:${horizon}#${v}`,
     enabled,
+    // a moved feed is a refresh: the dots stay drawn until the new ones are in
+    `gaugepoints:${quantity}:${horizon}`,
   );
   return got.state === "ready" ? got.value : null;
 }
@@ -179,12 +185,14 @@ export function useSeries(
   parameter?: Parameter, model?: string, enabled = true,
 ): Async<Series | null> {
   const key = seriesKey(station, span, parameter, model);
+  const v = useFeedVersion("gauges");
   const got = useAsync(
     () => (station ? askOnce(source, key, () => source.gaugeSeries(station, span, parameter, model))
                    : Promise.resolve(null)),
-    key,
+    `${key}#${v}`,
     station !== null && enabled,
-    undefined,
+    // (owner 2026-10-29) a moved feed is a refresh of the same series: the last one stays up meanwhile
+    key,
     () => peekAnswer(source, key),
   );
   return useMemo(() => (got.state === "ready"

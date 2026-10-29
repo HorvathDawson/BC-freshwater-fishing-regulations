@@ -5,7 +5,7 @@
  * TARGETS. A control that the tour may point at registers its host view under a key (`useCoachTarget("days")`); the tour
  * measures it in the window when its step comes up (`measureInWindow`, react-native and react-native-web alike) and
  * measures its own layer the same way, so the spotlight lands on the control whatever insets sit between them. A key with
- * no registered or measurable view (Standard / Salmon is not offered; the bell is down with nothing to say) drops its
+ * no registered or measurable view (Standard / Salmon is not offered; no sync button with nothing to sync) drops its
  * step: the tour never describes a control that is not on screen. Registering is free outside a tour (no provider: a no-op).
  *
  * LOOK. The app's own: square, a 1.5 px ink edge and the offset slab (`palette.lift`) on the callout, the sheet's title

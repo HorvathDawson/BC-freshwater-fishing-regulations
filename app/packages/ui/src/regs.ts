@@ -24,6 +24,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import { loadRegsInputs, loadWaterGroup, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
          type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
+import { useFeedVersion } from "./feedVersion";
 
 // ── the store ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -205,10 +206,12 @@ export function useSalmonCard(loader: SalmonLoader | null, store: Pick<RegsStore
   const asks = !!loader && !!page;
   const on = mapDay ?? new Date();
   const dayKey = `${on.getFullYear()}-${on.getMonth() + 1}-${on.getDate()}`;
-  return useAsync(async () => (asks ? salmonCardFor(loader!, store, page!, on) : null),
-                  `salmon:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${page?.section ?? ""}:`
-                  + `${page?.item ?? ""}:${page?.ord ?? ""}:${page?.partIx ?? ""}:${page?.akey ?? ""}:${dayKey}`
-                  + (retry ? `:r${retry}` : ""), asks);
+  // (owner 2026-10-29) a DFO feed the update service took redraws the open page's card in place: a refresh
+  const dfo = useFeedVersion("dfo");
+  const key = `salmon:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${page?.section ?? ""}:`
+    + `${page?.item ?? ""}:${page?.ord ?? ""}:${page?.partIx ?? ""}:${page?.akey ?? ""}:${dayKey}`
+    + (retry ? `:r${retry}` : "");
+  return useAsync(async () => (asks ? salmonCardFor(loader!, store, page!, on) : null), `${key}#${dfo}`, asks, key);
 }
 
 export function useAccessNotice(loader: Pick<ReleaseLoader, "paint" | "access"> | null,

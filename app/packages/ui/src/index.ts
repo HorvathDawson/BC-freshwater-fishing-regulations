@@ -40,6 +40,8 @@ export * from "./mapRail";
 export * from "./layerChoice";
 export * from "./imagery";
 export * from "./sync";
+// (owner 2026-10-29) the open page follows the feeds: their versions
+export * from "./feedVersion";
 export * from "./inseason";
 export * from "./prefetch";
 // (T238) More → Offline maps, headless

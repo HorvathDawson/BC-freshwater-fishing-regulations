@@ -5,6 +5,7 @@
 import { useState } from "react";
 import type { BundleCounts, GaugeFeed, ItemId, WaterSource } from "@app/data";
 import { useAsync, type Async } from "../async";
+import { useFeedVersion } from "../feedVersion";
 
 /**
  * What the Layers sheet says about the data it is sitting on.
@@ -31,6 +32,8 @@ export function useDataFacts(source: WaterSource, feed?: GaugeFeed, wanted = tru
   // So nothing is asked until a screen that shows the figures is up (`wanted`), and once asked they are kept.
   const [asked, setAsked] = useState(wanted);
   if (wanted && !asked) setAsked(true);
+  // (owner 2026-10-29) a feed the update service took: its station count and age read again
+  const v = useFeedVersion("gauges");
   return useAsync(async () => {
     // The bundle is local and always answers; the feed is a network call that may not. Each
     // is caught on its own, so a feed that is down cannot blank the bundle's counts.
@@ -43,7 +46,7 @@ export function useDataFacts(source: WaterSource, feed?: GaugeFeed, wanted = tru
       liveStations: index ? Object.keys(index.stations).length : null,
       fetchedAt: index?.fetchedAt ?? null,
     };
-  }, `datafacts:${feed ? "feed" : "nofeed"}`, asked);
+  }, `datafacts:${feed ? "feed" : "nofeed"}#${v}`, asked, `datafacts:${feed ? "feed" : "nofeed"}`);
 }
 
 /**

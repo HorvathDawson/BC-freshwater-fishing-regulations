@@ -67,6 +67,10 @@ export const UPDATE_WORDS = {
   bell: {
     count: (n: number) => (n === 1 ? "1 update failed" : `${n} updates failed`),
     title: "Notices",
+    /** (owner 2026-10-29) the bell is always drawn: its label aloud, and the open sheet's line, when nothing is pending */
+    none: "No notifications",
+    /** the empty sheet's title */
+    noneTitle: "Notifications",
     /** (T263) the "Data update" section: a release of regulations, map and salmon data, by state */
     release: {
       title: "Data update",
@@ -211,7 +215,7 @@ export function updatedToast(day: string | null): string {
  */
 export function bellLabel(inseason: string | null, failed: number, release: ReleaseNoticeVM | null = null): string {
   return [release?.label ?? null, inseason, failed > 0 ? UPDATE_WORDS.bell.count(failed) : null]
-    .filter(Boolean).join("; ");
+    .filter(Boolean).join("; ") || UPDATE_WORDS.bell.none;
 }
 
 export interface ReleaseNoticeVM {

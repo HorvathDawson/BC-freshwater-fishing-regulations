@@ -8,7 +8,8 @@
  * core's (`WALKTHROUGH_WORDS`). It points at the controls themselves, so it cannot show one that is gone.
  */
 import { useCallback, useState } from "react";
-import { WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, walkthroughSeen } from "@app/core";
+import { Platform } from "react-native";
+import { WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, walkthroughCards, walkthroughSeen } from "@app/core";
 import { CoachTour, type CoachRegistry, type CoachStep } from "./CoachMarks";
 import type { Palette } from "./theme";
 
@@ -35,9 +36,11 @@ export function useWalkthrough(store: WalkthroughStore | null, blocked: boolean)
   return { open: !blocked && (pending || manual), finish, reopen };
 }
 
-const STEPS: readonly CoachStep[] = WALKTHROUGH_WORDS.cards.map((c) => ({
+/** (owner 2026-10-29) one tour, two step lists: the web's says what its refresh button does there (no offline copy) */
+export const stepsFor = (platform: "web" | "app"): readonly CoachStep[] => walkthroughCards(platform).map((c) => ({
   key: c.key, targets: c.targets, title: c.title, body: c.body, ...(c.key === "map" ? { shape: "spot" as const } : {}),
 }));
+const STEPS = stepsFor(Platform.OS === "web" ? "web" : "app");
 
 export function WalkthroughSheet({ state, palette, registry }: { state: Walkthrough; palette: Palette; registry: CoachRegistry }) {
   return <CoachTour open={state.open} steps={STEPS} palette={palette} registry={registry} onFinish={state.finish}

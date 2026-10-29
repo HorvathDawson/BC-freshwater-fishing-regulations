@@ -32,11 +32,15 @@ export function InSeasonNotice({ open, rows, palette, onClose, sync = null, rele
   const rel = release?.vm ?? null;
   const others = rows.length > 0 || !!(sync && sync.failed.length);
   const failed = sync && sync.failed.length ? syncErrorVM(sync.failed, Date.now()) : null;
-  const title = rel && !others ? rel.title : failed && rows.length || rel && others ? UPDATE_WORDS.bell.title
+  // (owner 2026-10-29) the bell is always drawn, so it can open on nothing: "No notifications"
+  const empty = !rel && !failed && rows.length === 0;
+  const title = empty ? UPDATE_WORDS.bell.noneTitle : rel && !others ? rel.title
+    : failed && rows.length || rel && others ? UPDATE_WORDS.bell.title
     : failed ? failed.title : INSEASON_WORDS.noticeTitle;
   return (
     <Sheet open={open} onClose={onClose} title={title} sub={null} palette={palette} scroll dialog>
       <View testID="inseason-notice" style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12, gap: 14 }}>
+        {empty && <Text testID="notice-empty" style={{ ...TYPE.body, color: palette.sub }}>{UPDATE_WORDS.bell.none}</Text>}
         {rel && release && (
           <View testID="notice-release" style={{ gap: 8 }}>
             {others && <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{rel.title}</Text>}

@@ -61,7 +61,8 @@ export interface TopBarProps {
   sync: SyncVM | null;
   /** The sync icon's tap: refresh what can be refreshed. */
   onSync?: () => void;
-  /** (T230) the in-season notice's bell: the count of changes not on the map yet (none: no bell) and its tap */
+  /** (T230) the bell: the count of what is pending (0: the bell without a badge — owner 2026-10-29, always drawn) and its
+   *  tap; null: no bell (a screen alone, a test) */
   notices?: { count: number; label: string; onPress: () => void } | null;
   /** Search is open (route `search`): the ‹ in the magnifier's place, the accent edge. */
   open: boolean;
@@ -129,7 +130,7 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
                      // the field's own edge (accent while open) is its focus mark: no second browser ring inside it
                      style={{ ...TYPE.body, fontSize: 16, lineHeight: 21, color: palette.ink, flex: 1, minWidth: 0,
                               outlineWidth: 0, outlineStyle: "solid",
-                              paddingVertical: 0, paddingRight: query.length > 0 || (!open && sync) ? 0 : 12,
+                              paddingVertical: 0, paddingRight: query.length > 0 || (!open && (sync || notices)) ? 0 : 12,
                               height: TOP_BAR.field }} />
           {query.length > 0 ? (
             <Pressable {...hitProps({ w: TOP_BAR.slot, h: TOP_BAR.field })} onPress={() => onQuery("")} accessibilityRole="button" accessibilityLabel={SEARCH_BAR.clear}
@@ -137,7 +138,7 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
               <Icon name="close" colour={palette.sub} size={18} />
             </Pressable>
           ) : null}
-          {query.length === 0 && !open && notices && notices.count > 0 && (
+          {query.length === 0 && !open && notices && (
             <NoticeButton palette={palette} count={notices.count} label={notices.label} onPress={notices.onPress} />
           )}
           {query.length === 0 && !open && sync && <SyncButton palette={palette} sync={sync} onPress={onSync} />}
@@ -148,8 +149,9 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
 });
 
 /**
- * (T230) THE IN-SEASON BELL: the provincial in-season changes not placed on the map yet — a bell with their count, in
- * `attention` (never a water-status colour); its tap re-opens the notice. Shown only while there is one.
+ * (T230) THE BELL: the provincial in-season changes not placed on the map yet, the updates that failed and the data
+ * update's state — a bell with their count, in `attention` (never a water-status colour); its tap opens the notice.
+ * (owner 2026-10-29) ALWAYS DRAWN beside the sync button: with nothing pending it has no badge and opens "No notifications".
  */
 function NoticeButton({ palette, count, label, onPress }: { palette: Palette; count: number; label: string; onPress: () => void }) {
   const target = useCoachTarget("bell");   // (T257) the first-run tour points at it
@@ -168,12 +170,12 @@ export function BellGlyph({ palette, count }: { palette: Palette; count: number 
   return (
     <View importantForAccessibility="no-hide-descendants" aria-hidden>
       <Icon name="bell" colour={palette.sub} size={18} />
-      <View testID="inseason-count"
+      {count > 0 && <View testID="inseason-count"
             style={{ position: "absolute", top: -7, right: -9, minWidth: 16, height: 16, paddingHorizontal: 3,
                      borderRadius: round(16), backgroundColor: palette.attention, borderWidth: 1.5, borderColor: palette.card,
                      alignItems: "center", justifyContent: "center" }}>
         <Text style={{ ...TYPE.metaBold, fontSize: 10, lineHeight: 12, color: palette.card }}>{count > 99 ? "99+" : count}</Text>
-      </View>
+      </View>}
     </View>
   );
 }

@@ -14,6 +14,7 @@ import { useMemo, useState } from "react";
 import type { MethodFacts, SalmonFacts } from "@app/core";
 import type { WaterSource } from "@app/data";
 import { useAsync } from "./async";
+import { useFeedVersion } from "./feedVersion";
 import { sourceKey } from "./conditionsColour";
 
 /** Which regulations the Map tab paints: the provincial day's status (bait ban / fly only marked on it, T213), or DFO's
@@ -45,7 +46,10 @@ export function useSalmonColour(i: { source: WaterSource; paired: boolean; statu
   const [asked, setAsked] = useState<string | null>(null);
   const key = `salmonfacts:${sourceKey(i.source)}`;
   if (on && asked !== key) setAsked(key);
-  const facts = useAsync(() => i.source.salmonFacts(), key, asked === key);
+  // (owner 2026-10-29) a DFO feed the update service took recolours the map in place (the loader's salmon is keyed on
+  // the feed's version, `withLiveSalmon`): a refresh, the last colours stay meanwhile
+  const dfo = useFeedVersion("dfo");
+  const facts = useAsync(() => i.source.salmonFacts(), `${key}#${dfo}`, asked === key, key);
   const f = facts.state === "ready" ? facts.value : null;
   const dayKey = i.day ? `${i.day.getFullYear()}-${i.day.getMonth()}-${i.day.getDate()}` : "today";
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the day's identity is its date, not the Date object

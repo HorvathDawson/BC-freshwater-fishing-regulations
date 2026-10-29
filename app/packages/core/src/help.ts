@@ -76,7 +76,21 @@ export const WALKTHROUGH_WORDS = {
       body: "The regulations are kept on your device. The refresh button brings in new data when you are online; the bell "
         + "beside it lists in-season changes and anything that could not update. Replay this tour from More → Help." },
   ] satisfies readonly WalkthroughCard[],
+  /**
+   * (owner 2026-10-29) THE WEB'S LAST STEP: a browser keeps no offline copy and has no Wi-Fi rule, so its refresh button
+   * is said for what it does there — checks for new gauge data and regulations. Same key and targets as the app's.
+   */
+  webSync: { key: "sync", targets: ["sync", "bell"], title: "Stay up to date",
+    body: "The refresh button checks for new gauge data and regulations; the bell beside it lists in-season changes "
+      + "and anything that could not update. Replay this tour from More → Help." } satisfies WalkthroughCard,
 } as const;
+
+/** (owner 2026-10-29) The tour's steps for the platform: the app's (works offline), or the web's (checks for new data). */
+export function walkthroughCards(platform: "web" | "app"): readonly WalkthroughCard[] {
+  return platform === "web"
+    ? WALKTHROUGH_WORDS.cards.map((c) => (c.key === "sync" ? WALKTHROUGH_WORDS.webSync : c))
+    : WALKTHROUGH_WORDS.cards;
+}
 
 // ── the Help page ────────────────────────────────────────────────────────────────────────────────────────────────
 

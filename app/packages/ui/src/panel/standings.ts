@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { answerFrom, sectionStanding, speakerFor, type Horizon, type Panel,
          type PanelAnswer, type Quantity, type WaterSource, type SectionId, type Speaker } from "@app/data";
 import { useAsync, type Async } from "../async";
+import { useFeedVersion } from "../feedVersion";
 
 type Index = Parameters<typeof answerFrom>[1];
 
@@ -100,6 +101,8 @@ export function usePanelStandings(
   const key = (sections.length
     ? `${sections.length}:${sections[0]}:${sections[sections.length - 1]}` : "")
     + `:${quantity}:${horizon}`;
+  // (owner 2026-10-29) a feed the update service took recolours in place (a refresh: the last colours stay meanwhile)
+  const v = useFeedVersion("gauges");
   const got = useAsync(
     async (): Promise<ReadonlyMap<SectionId, number>> => {
       const out = new Map<SectionId, number>();
@@ -134,8 +137,9 @@ export function usePanelStandings(
       }
       return out;
     },
-    `panelstandings:${key}`,
+    `panelstandings:${key}#${v}`,
     sections.length > 0 && feed !== undefined,
+    `panelstandings:${key}`,
   );
   const none = useMemo(() => new Map<SectionId, number>(), []);
   return got.state === "ready" ? got.value : none;
@@ -149,6 +153,8 @@ export function usePanel(
   quantity: Quantity = "discharge",
   horizon: Horizon = 0,
 ): PanelAnswer {
+  // (owner 2026-10-29) the open Conditions view re-reads a feed the update service took, in place
+  const v = useFeedVersion("gauges");
   const got = useAsync(
     async () => {
       if (!section) return null;
@@ -161,8 +167,9 @@ export function usePanel(
       ]);
       return answerFrom(panels.get(section), idx, quantity, horizon);
     },
-    `panel:${section ?? ""}:${quantity}:${horizon}`,
+    `panel:${section ?? ""}:${quantity}:${horizon}#${v}`,
     section !== null,
+    `panel:${section ?? ""}:${quantity}:${horizon}`,
   );
   const none = useMemo<PanelAnswer>(
     () => ({ answer: { ok: false, why: "no-station" }, rows: [], areaKm2: null,

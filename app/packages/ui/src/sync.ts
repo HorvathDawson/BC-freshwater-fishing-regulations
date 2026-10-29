@@ -27,6 +27,7 @@ import { failedSources, hydatNotice as noticeOf, UPDATE_WORDS, type HydatNotice,
          type UpdateSourceKey } from "@app/core";
 import { FEED_TTL_MS, type GaugeFeed, type UpdateService, type UpdateSnapshot } from "@app/data";
 import { usePoll } from "./async";
+import { feedMoved } from "./feedVersion";
 
 /**
  * (T68) The index's word on forecasts: the stamp, null when it says none is held, undefined when it does not say (an
@@ -113,7 +114,9 @@ export function useSync({ feed, release, checkRelease, named = null, updates = n
                                     updates ? updates.snapshot : NO_SNAP);
   // a feed the service took is a new answer for whatever reads the feed: the same re-ask a tap makes
   const [inSeasonEpoch, setInSeasonEpoch] = useState(0);
+  // (owner 2026-10-29) and every view built from it asks again in place (`feedVersion`: the reading, chart, salmon card)
   useEffect(() => updates?.onFeedChange((id) => {
+    feedMoved(id);
     if (id === "inseason") setInSeasonEpoch((e) => e + 1); else setEpoch((e) => e + 1);
   }), [updates]);
   // the brief check after a clean manual check: shown, then cleared by a re-render when its time is up

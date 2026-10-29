@@ -15,6 +15,7 @@ import { CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, mo
 import type { Parameter, WaterSource, Series, StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { askOnce, chartParameter, peekAnswer, seriesKey } from "./answers";
+import { useFeedVersion } from "./feedVersion";
 import { READING_REUSE_MS, stationReading } from "./hooks";
 import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydrograph";
 
@@ -118,10 +119,13 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
                              parameter: Parameter | undefined, model: string | undefined,
                              width: number, enabled = true): Async<ChartView | null> {
   const key = seriesKey(station, span, parameter, model);
+  // (owner 2026-10-29) a feed the update service took redraws the chart in place: a refresh of the same series (its
+  // window and read-out, keyed on `key`, are kept)
+  const v = useFeedVersion("gauges");
   const series = useAsync(
     () => (station ? askOnce(source, key, () => source.gaugeSeries(station, span, parameter, model))
                    : Promise.resolve(null)),
-    key, station !== null && enabled, undefined, () => peekAnswer(source, key));
+    `${key}#${v}`, station !== null && enabled, key, () => peekAnswer(source, key));
   const [raw, setState] = useState<State>({ key, domain: null, probe: null });
   const st: State = raw.key === key ? raw : { key, domain: null, probe: null };
   const s = series.state === "ready" ? series.value?.value ?? null : null;
@@ -203,6 +207,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
 export function usePrefetchGauges(source: WaterSource, stations: readonly StationId[], span: ChartSpan,
                                   picked: Parameter | null | undefined, model: string | undefined): void {
   const list = stations.join("\n");
+  const v = useFeedVersion("gauges");
   useEffect(() => {
     if (!list) return;
     let alive = true;
@@ -220,5 +225,5 @@ export function usePrefetchGauges(source: WaterSource, stations: readonly Statio
     void Promise.all(ids.flatMap((st) => [chart(st, span), reading(st)]))
       .then(() => { if (alive) for (const st of ids) void chart(st, other); });
     return () => { alive = false; };
-  }, [source, list, span, picked, model]);
+  }, [source, list, span, picked, model, v]);
 }

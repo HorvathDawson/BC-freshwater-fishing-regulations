@@ -7,7 +7,7 @@ import { GEAR_LEGEND } from "./method";
 import { RUN_STATES } from "./runTiming";
 import { SALMON_MAP_STATUSES } from "./salmon";
 import { WATER_STATUSES } from "./status";
-import { HELP_WORDS, SYNC_KINDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, helpVM, walkthroughSeen } from "./help";
+import { HELP_WORDS, SYNC_KINDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, helpVM, walkthroughCards, walkthroughSeen } from "./help";
 
 describe("the walkthrough (T248)", () => {
   it("(T257) is six steps, each pointing at a control, in the order the owner listed", () => {
@@ -15,6 +15,15 @@ describe("the walkthrough (T248)", () => {
     expect(WALKTHROUGH_WORDS.cards.map((c) => c.targets))
       .toEqual([["days"], ["modes"], ["map"], ["tab:conditions"], ["tab:runs"], ["sync", "bell"]]);
     for (const c of WALKTHROUGH_WORDS.cards) { expect(c.title.length).toBeGreaterThan(3); expect(c.body.length).toBeGreaterThan(40); }
+  });
+  it("(owner 2026-10-29) the web's tour says what its refresh button does there; the app's keeps works-offline", () => {
+    const web = walkthroughCards("web"), app = walkthroughCards("app");
+    expect(web.map((c) => [c.key, c.targets])).toEqual(app.map((c) => [c.key, c.targets]));
+    const sync = (l: typeof web) => l.find((c) => c.key === "sync")!;
+    expect(sync(web).body).toContain("checks for new gauge data and regulations");
+    expect(sync(web).body).not.toMatch(/offline|Wi-Fi|on your device/);
+    expect(sync(app).title).toBe("Works offline");
+    expect(web.filter((c, i) => c !== app[i]).map((c) => c.key)).toEqual(["sync"]);
   });
   it("names the map's modes by the words the app already uses (Run timing is its own tab, T255)", () => {
     const b = WALKTHROUGH_WORDS.cards.find((c) => c.key === "modes")!.body;

@@ -360,7 +360,7 @@ export function Shell(p: ShellProps) {
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
                    mapDay={mapDay} theme={theme} onWalkthrough={replayTour} sync={syncState} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
-      <InSeasonNotice open={(notice.open && !firstRun.open && !walkthrough.open) || (bellOpen && notice.count + syncState.failed.length + (releaseVM ? 1 : 0) > 0)} rows={notice.rows}
+      <InSeasonNotice open={(notice.open && !firstRun.open && !walkthrough.open) || bellOpen} rows={notice.rows}
                       palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}
                       sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }}
                       release={releaseVM ? { vm: releaseVM.phase === "app-too-old" && !appUrl ? { ...releaseVM, action: null } : releaseVM,
