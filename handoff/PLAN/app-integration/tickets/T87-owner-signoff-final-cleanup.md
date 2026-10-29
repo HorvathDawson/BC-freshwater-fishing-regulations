@@ -1,7 +1,7 @@
 # T87 — Owner sign-off walk, then the final clean-up phase
 
 Status: PARTIAL — clean-up done 2026-10-28 (owner: "delete the old design prototype now — it's in git"): 1267d358
-(re-cut tooling to app/tools/regs-recut/, page v36 to app/fixtures/reference/) + the deletion commit. Left: the owner's
+(re-cut tooling to app/tools/regs-recut/, page v36 to app/fixtures/reference/) + 8a043348, 7e656fcb (deletions). Left: the owner's
 sign-off walk (web + phone), recorded in decisions.md.
 
 Source: implement_progress "FINAL CLEAN-UP PHASE (owner, 2026-10-20) — ONLY after the app is done AND the owner has …
