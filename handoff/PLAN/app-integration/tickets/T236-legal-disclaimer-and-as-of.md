@@ -1,6 +1,6 @@
 # T236 — legal disclaimer (About, first run, regs foot) and "Regulations as of … · salmon feed … · in-season …"
 
-Status: IN PROGRESS (lane T235/T236, main checkout)
+Status: DONE — cf41b443 (web walked desktop + phone; native style unit-tested, not walked on a device)
 
 Source: owner 2026-10-28 — approved proposal P2 ("Not legal advice — the B.C. synopsis and DFO notices are the
 authority"; "Regulations as of <release date> · salmon feed <age> · in-season <age>" on each water page).
