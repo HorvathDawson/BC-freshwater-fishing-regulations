@@ -324,7 +324,7 @@ use that as the sole source of future work."
 | T278 | Re-cut golden regs fixtures after the tidal cuts: PART_TIDAL declaration + renumbered parts (Fraser, Campbell, Brunette, Coquitlam…) | PARTIAL | — | c1029 lane 2026-10-29; parity green on r-62e2f3a8c81e; owner: tidal part still listed in the water map (Skeena fork test) |
 | T279 | Water pages stored pre-compressed (br/gzip served by encoding), all three layouts kept; SEO build across ≤4 cores | OPEN | — | owner 2026-10-29 |
 | T280 | Basemap two stages: raw Protomaps source via range requests → pruned + simplified ship copy (forest/green-space simplification, visual gate); fixes pan hitches | OPEN | — | owner 2026-10-29 |
-| T281 | Draw the lake area an in-part rule holds on (François map 1, Shuswap A/B/C, Mahood, Canim) | DEFERRED | — | from T208; waits on lake splits (owner deferral, Q142) |
+| T281 | Draw the lake area an in-part rule holds on (François map 1, Shuswap A/B/C, Mahood, Canim) | POSTPONED | — | from T208; waits on lake splits (owner deferral, Q142) |
 
 ## Order for open tickets
 

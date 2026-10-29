@@ -1,6 +1,6 @@
 # T281 — Draw the area of a lake an in-part rule holds on (François "map 1", Shuswap A/B/C, Mahood, Canim)
 
-Status: DEFERRED (waits on lake splits — owner 2026-10-28, Q142, memory `lake-splits-deferred`).
+Status: POSTPONED (deferred) (waits on lake splits — owner 2026-10-28, Q142, memory `lake-splits-deferred`).
 
 Source: T208's last work item ("later a drawn outline when lake splits land").
 
