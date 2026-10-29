@@ -317,6 +317,7 @@ use that as the sole source of future work."
 | T271 | Problem reports auto-deleted after 180 days (feeds worker cron); privacy page wording + privacy@ address | DONE (deploy: owner) | — | owner 2026-10-29 |
 | T272 | First install: second progress bar after download ("Setting up on this device") with real progress; measure + cut the post-download step | OPEN | — | owner 2026-10-29 |
 | T273 | Panning lag on Android: profile, then cache per-section answers, batch viewport queries, defer work during gestures, prefetch one screen out | OPEN | — | owner 2026-10-29 |
+| T275 | Mode switch (Standard/Salmon/Runs) resizes the map; only the UI block should change, map fixed | OPEN | — | owner 2026-10-29 |
 
 ## Order for open tickets
 
