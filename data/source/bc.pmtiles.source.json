@@ -1,0 +1,17 @@
+{
+  "upstream_url": "https://build.protomaps.com/20260305.pmtiles",
+  "upstream_version": "4.14.1",
+  "osm_replication_time": "2026-03-05T04:00:00Z",
+  "osm_replication_seq": "118125",
+  "bbox": [
+    -148.0,
+    45.0,
+    -108.0,
+    63.5
+  ],
+  "maxzoom": 15,
+  "fetched_at": "2026-07-10",
+  "bytes": 4360240464,
+  "sha256": "53aec653a5314e4d7405b479909ed6f1524023a14432495e966491c64ed06aac",
+  "note": "Fetched before T280's source stage. The URL is inferred from the OSM replication time (2026-03-05); that build has since been pruned upstream, so the sha256 is what identifies this file."
+}

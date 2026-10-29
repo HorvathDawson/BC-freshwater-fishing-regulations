@@ -6,12 +6,14 @@
 //   node app/tools/testbed/run.mjs pan          (PAN_SWIPES=n, default 16; PAN_ROUNDS=n, default 2)
 import fs from 'node:fs';
 import path from 'node:path';
-import { coldStart } from './common.mjs';
+import { coldStart, openLog, toMap } from './common.mjs';
 
 const SWIPES = Number(process.env.PAN_SWIPES ?? 16);
 const ROUNDS = Number(process.env.PAN_ROUNDS ?? 2);
 /** PAN_GROUND=satellite: the same pan over Esri's imagery instead of the drawn basemap (splits the basemap's share). */
 const GROUND = process.env.PAN_GROUND ?? 'map';
+/** PAN_UPDATE=1 (T280): first take the live staging release (test channel reset → staged → applied), e.g. a new basemap. */
+const UPDATE = process.env.PAN_UPDATE === '1';
 
 /** `dumpsys gfxinfo <app>`'s summary: frames, janky share, the 50/90/95/99th percentile frame times (ms). */
 function gfx(t) {
@@ -53,6 +55,25 @@ export const pan = {
       await coldStart(ctx, { ms: 90_000 });
       await ctx.device.sleep(5000);                                  // the first screen's tiles and colours in
     });
+    if (UPDATE) {
+      await ctx.step('the live staging release taken (PAN_UPDATE): staged, applied at the next pause', async () => {
+        const target = ctx.updates('reset').release?.data_release;
+        openLog(ctx);
+        ctx.flow('updates-log-action', { ACTION: 'check' });
+        const row = await ctx.waitText(/Release, (staged|unchanged)/, 15 * 60_000);
+        if (/staged/.test(row)) {
+          await toMap(ctx);
+          ctx.device.background(); await ctx.device.sleep(3000); ctx.device.launch();
+          openLog(ctx);
+          await ctx.waitText(/Release, applied/, 30_000);
+        }
+        const head = ctx.device.screenText().find((w) => /release r-/.test(w)) ?? '';
+        if (target && !head.includes(target)) throw new Error(`in use: ${head} (want ${target})`);
+        await coldStart(ctx, { ms: 90_000 });
+        await ctx.device.sleep(5000);
+        return head;
+      });
+    }
     if (GROUND === 'satellite') {
       await ctx.step('ground: satellite (PAN_GROUND)', async () => {
         ctx.flow('layers-satellite');

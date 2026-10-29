@@ -34,7 +34,7 @@ def _mock(tmp_path, monkeypatch):
     monkeypatch.setattr(B, "_boundary_4326", lambda src, out: out)
     monkeypatch.setattr(R, "roads_geojsonl", lambda archive, out, zoom=14: 1)
 
-    def grid(src, out, tmp, workers=4):
+    def grid(src, out, tmp, workers=4, **kw):
         calls.append(["grid", src, out])
         out.write_bytes(b"x")
     monkeypatch.setattr(G, "requantize_archive", grid)

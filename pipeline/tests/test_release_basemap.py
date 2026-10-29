@@ -64,3 +64,46 @@ def test_publish_uploads_the_basemap_before_the_data_and_the_manifest_last(tmp_p
     (r / "manifest.json").write_text(json.dumps(m))
     keys = [p.key for p in publish.plan(r, rel)]
     assert keys == [m["basemap"]["url"], "r-1/core-x.gz", "manifest.json"]
+
+
+def _ship(tmp_path, tag, basemap):
+    from pipeline.deliver.release.build import FORMATS, ship
+    work = tmp_path / f"work-{tag}"
+    work.mkdir()
+    names = sorted(FORMATS)[:2]
+    files = {}
+    for n in names:
+        files[n] = work / f"{n}.raw"
+        files[n].write_bytes(f"{n} bytes".encode())
+    pdf = tmp_path / "synopsis.pdf"
+    pdf.write_bytes(b"%PDF")
+    return ship(work, files, "d768d6e135e62b99", tmp_path / f"out-{tag}", basemap=basemap,
+                tiles={"current": {"id": "t1"}, "assets": None, "mask": None}, valid_until="2027-03-31",
+                regs_versions={"rows": 1}, sources={"basemap": {"date": "2026-03-05"}},
+                bundle={"entries_digest": "e", "reach_digest": "r"}, synopsis=pdf)
+
+
+def test_a_release_rebased_on_a_new_basemap_has_the_id_the_build_would_give_it(tmp_path):
+    # T280: a basemap-only change ships without re-running the data build — and the id is not invented: it is the one
+    # `ship` gives the same inputs with the new basemap block
+    from pipeline.deliver.release import rebase as RB
+    old_bm = {"id": "basemap-aaa", "url": "basemap/basemap-aaa/basemap-aaa.pmtiles", "bytes": 1, "sha256": "a"}
+    new_bm = {"id": "basemap-bbb", "url": "basemap/basemap-bbb/basemap-bbb.pmtiles", "bytes": 2, "sha256": "b"}
+    old = _ship(tmp_path, "old", old_bm)
+    want = _ship(tmp_path, "want", new_bm)
+    assert RB.release_id(json.loads((old / "manifest.json").read_text())) == old.name
+    m = json.loads((old / "manifest.json").read_text())
+    m["published"] = "2026-10-29"                                  # a publish stamp is kept, outside the hash
+    (old / "manifest.json").write_text(json.dumps(m))
+    got = RB.rebase(old, new_bm)
+    assert got.name == want.name != old.name
+    gm, wm = json.loads((got / "manifest.json").read_text()), json.loads((want / "manifest.json").read_text())
+    assert gm.pop("published") == "2026-10-29" and gm == wm
+    assert sorted(p.name for p in got.iterdir()) == sorted(p.name for p in want.iterdir())
+    with pytest.raises(SystemExit, match="already names"):
+        RB.rebase(got, new_bm)
+    # a manifest that no longer recomputes to its id is refused
+    m["regulations"]["valid_until"] = "2099-01-01"
+    (old / "manifest.json").write_text(json.dumps(m))
+    with pytest.raises(SystemExit, match="does not recompute"):
+        RB.rebase(old, {**new_bm, "id": "basemap-ccc"})

@@ -45,6 +45,16 @@ WHAT GOES
        water and earth at 2048, roads untouched at 4096 (`basemap_grid`). About −15%, nothing
        visible in the shots.
 
+    6. (T280, owner 2026-10-29) THE GREEN FILLS SIMPLIFIED PER ZOOM: landuse (wood, forest, ...) and
+       landcover rings Douglas-Peucker simplified and slivers dropped, in the same pass as 5
+       (`basemap_grid.SIMPLIFY`). T273 traced the pan hitches to new tiles' wood polygons. Gated by
+       the render diff `app/tools/basemap-shots.mjs`.
+
+TWO STAGES (T280): this module is the SHIP stage. Its input is the SOURCE stage's untouched upstream extract,
+`data/source/bc.pmtiles` with its sidecar (`basemap_source`: fetched by range requests, sha256-pinned). The build
+refuses a source that is not the file its sidecar names, and stamps that provenance into the shipped archive's
+metadata (`source_*`), so a shipped basemap names the exact bytes it was cut from.
+
 Run: python -m pipeline.deliver.tiles.basemap
 """
 
@@ -131,7 +141,7 @@ def _boundary_4326(src: Path, out: Path) -> Path:
     return out
 
 
-def build(src: Path, out: Path, boundary: Path, maxzoom: int = MAX_ZOOM) -> Path:
+def build(src: Path, out: Path, boundary: Path, maxzoom: int = MAX_ZOOM, provenance: dict | None = None) -> Path:
     _tools()
     if not src.exists():
         raise FileNotFoundError(f"{src} not found")
@@ -150,7 +160,9 @@ def build(src: Path, out: Path, boundary: Path, maxzoom: int = MAX_ZOOM) -> Path
             print(f"  4. rebuilding the z{maxzoom} roads from the z{maxzoom + 1} roads, names and all")
         from pipeline.deliver.tiles.basemap_grid import GRID_SHIFT
         print(f"  5. coarser grid for {', '.join(f'{k} {4096 >> v}' for k, v in GRID_SHIFT.items()) or 'nothing'}")
-        _trim(src, out, Path(tmp), [f"--region={region}"], maxzoom)
+        from pipeline.deliver.tiles.basemap_grid import SIMPLIFY
+        print(f"  6. simplifying {', '.join(f'{k} {v}' for k, v in SIMPLIFY.items()) or 'nothing'}")
+        _trim(src, out, Path(tmp), [f"--region={region}"], maxzoom, provenance)
 
     after = out.stat().st_size
     print(f"  ✅ {after / 1e9:.2f} GB  ({100 * (1 - after / before):.0f}% smaller overall)")
@@ -167,7 +179,7 @@ def _tools() -> None:
 THREADS = "4"
 
 
-def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int) -> None:
+def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int, provenance: dict | None = None) -> None:
     """Cuts 1-4 of the build, over `clip` (`--region=<geojson>` for the province, `--bbox=...` for an audit
     extent): the ONE code path the build and the zoom-cap audit share, so the audit measures what ships.
 
@@ -183,7 +195,7 @@ def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int) -> Non
     joined = tmp / f"joined-z{maxzoom}.pmtiles"
     if maxzoom >= SOURCE_ZOOM:
         _run([*join, "-o", str(joined), *[a for lyr in KEEP for a in ("-l", lyr)], str(clipped)])
-        _grid(joined, out, tmp)
+        _grid(joined, out, tmp, provenance)
         return
     from pipeline.deliver.tiles.basemap_roads import roads_geojsonl
     low, top, roads = (tmp / f"{p}-z{maxzoom}.pmtiles" for p in ("low", "top", "roads"))
@@ -199,16 +211,23 @@ def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int) -> Non
               "--no-tile-size-limit", "--no-feature-limit", "-P", str(lines)])
         parts.append(roads)
     _run(["tile-join", "-f", "--no-tile-size-limit", "-o", str(joined), *map(str, parts)])
-    _grid(joined, out, tmp)
+    _grid(joined, out, tmp, provenance)
 
 
-def _grid(joined: Path, out: Path, tmp: Path) -> None:
-    """Cut 5 (T202): the fills and coastline on a coarser grid (`basemap_grid.GRID_SHIFT`); roads keep 4096."""
-    from pipeline.deliver.tiles.basemap_grid import GRID_SHIFT, requantize_archive
-    if not GRID_SHIFT:
+def _grid(joined: Path, out: Path, tmp: Path, provenance: dict | None = None) -> None:
+    """Cuts 5 and 6 (T202, T280): the fills and coastline on a coarser grid (`basemap_grid.GRID_SHIFT`; roads keep
+    4096) and the green fills simplified (`SIMPLIFY`), in one re-encode, with the source's provenance in the metadata."""
+    from pipeline.deliver.tiles.basemap_grid import GRID_SHIFT, SIMPLIFY, requantize_archive
+    if not GRID_SHIFT and not SIMPLIFY:
         shutil.move(str(joined), str(out))
         return
-    requantize_archive(joined, out, tmp, workers=int(THREADS))
+    requantize_archive(joined, out, tmp, workers=int(THREADS), extra_meta=source_meta(provenance))
+
+
+def source_meta(provenance: dict | None) -> dict:
+    """The source sidecar (`basemap_source`) as `source_*` metadata keys of the shipped archive."""
+    keys = ("upstream_url", "upstream_version", "osm_replication_time", "sha256")
+    return {f"source_{k}": provenance[k] for k in keys if provenance and provenance.get(k)}
 
 
 # THE ZOOM-CAP AUDIT (T85; owner 2026-10-24: "basemap to z13 too, on two conditions: no feature may be lost —
@@ -456,7 +475,9 @@ def main(argv=None) -> int:
             if not lossless(report):
                 raise SystemExit(f"basemap: a z{a.max_zoom} cap loses features the z{SOURCE_ZOOM} build has "
                                  f"— refused")
-        build(SOURCE / "bc.pmtiles", a.out, SOURCE / "bc_boundary.geojson", a.max_zoom)
+        from pipeline.deliver.tiles.basemap_source import check
+        build(SOURCE / "bc.pmtiles", a.out, SOURCE / "bc_boundary.geojson", a.max_zoom,
+              provenance=check(SOURCE / "bc.pmtiles"))
     if not a.no_release:
         to_release(a.out, a.release_root, a.out.parent)
     return 0

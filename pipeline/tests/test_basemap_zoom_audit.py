@@ -99,6 +99,8 @@ def test_the_build_caps_at_z13_and_refuses_a_lossy_cap(tmp_path, monkeypatch):
     assert (B.MAX_ZOOM, B.SOURCE_ZOOM) == (13, 14)
     built = []
     monkeypatch.setattr(B, "build", lambda *a, **k: built.append(a))
+    from pipeline.deliver.tiles import basemap_source
+    monkeypatch.setattr(basemap_source, "check", lambda archive: {"sha256": "ab" * 32})
     lossy = {"x": {"kinds": {("landuse", "school", None): 1}, "names": [], "short": {}, "fragments": {}}}
     monkeypatch.setattr(B, "audit_zoom_cap", lambda src, cap, **k: lossy)
     # ... and the audit runs before every capped build: a loss refuses it before anything is built
