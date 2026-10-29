@@ -28,16 +28,17 @@ import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdat
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { connectivity, ErrorState, LoadingState, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, routeKind, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, reportPastExits, routeKind, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { startLink } from "./startLink";
+import { exitSource } from "./exitInfo";
 import { releaseSplash } from "./splash";
 
 import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, pickChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
@@ -102,7 +103,9 @@ if (CRASH_URL) {
     route: () => routeKind(place.route),
   });
   installCrashHandlers(reporter);
-  void reporter.flush();
+  // a kept JS fatal error first, then why earlier runs ended (Android: native crashes, ANRs, low-memory kills)
+  void reporter.flush().then((jsFatalSent) => reportPastExits({
+    reporter, source: exitSource, seen: openCrashExitStore(), setting: crashSetting, online: () => connectivity.online(), jsFatalSent }));
 }
 /** (T251) the Updates log's "simulate offline": the update service is told the network is down while on */
 const devOffline = { on: false };

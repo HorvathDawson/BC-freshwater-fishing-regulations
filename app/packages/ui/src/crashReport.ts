@@ -17,7 +17,7 @@ import { createContext, createElement, useContext, useEffect, useState, type Rea
 import type { Route } from "./route";
 
 export const CRASH_FORMAT = "crash/1";
-export type CrashKind = "js" | "promise" | "render";
+export type CrashKind = "js" | "promise" | "render" | "native";
 export type RouteKind = "map" | "conditions" | "runs" | "spots" | "menu" | "water" | "other";
 export const CRASH_LIMITS = { name: 60, message: 200, stack: 2000, field: 100 } as const;
 
@@ -135,6 +135,8 @@ export interface CrashReporter {
   report(error: unknown, o: { kind: CrashKind; fatal: boolean }): void;
   /** Send a fatal error kept from the last run (at start). Resolves true when one went. */
   flush(): Promise<boolean>;
+  /** (Android) Send why the last run ended, as read from the system. Resolves true when sent; false = not sent (off, offline, repeat, refused). */
+  sendExit(r: ExitRecord): Promise<boolean>;
 }
 
 export function createCrashReporter(o: {
@@ -175,6 +177,14 @@ export function createCrashReporter(o: {
         if (!o.online()) return;                        // offline: dropped (a kept fatal one goes at the next start)
         void post(p).then((ok) => { if (ok && opt.fatal) clearKept(); });
       } catch { /* reporting never breaks the app */ }
+    },
+    async sendExit(r) {
+      try {
+        if (!o.setting.get() || !o.online()) return false;
+        const e = new Error(`${r.reason} while ${r.importance.toLowerCase()}${r.rssKb > 0 ? `, ${Math.round(r.rssKb / 1024)} MB in use` : ""}${r.status ? `, status ${r.status}` : ""}${r.description ? `: ${r.description}` : ""}`);
+        e.name = "NativeExit"; e.stack = "";
+        return await post(crashPayload({ error: e, kind: "native", fatal: true, route: "other", ctx: o.context(), now: new Date(r.timestamp) }));
+      } catch { return false; }
     },
     async flush() {
       try {
@@ -224,4 +234,46 @@ export function installCrashHandlers(reporter: CrashReporter, g: Record<string, 
     undo.push(() => { g.removeEventListener?.("error", onError); g.removeEventListener?.("unhandledrejection", onRej); });
   }
   return () => { for (const u of undo.reverse()) u(); };
+}
+
+// ── why the last run ended (Android's ApplicationExitInfo) ────────────────────────────────────────────────────────────
+
+export interface ExitRecord {
+  readonly timestamp: number;
+  /** CRASH, CRASH_NATIVE, ANR, LOW_MEMORY, EXCESSIVE_RESOURCE_USAGE, INITIALIZATION_FAILURE, SIGNALED, … or one that is not an error */
+  readonly reason: string;
+  readonly importance: string;
+  readonly status: number;
+  readonly rssKb: number;
+  readonly description: string;
+}
+export interface ExitSource { recent(since: number): Promise<ExitRecord[]> }
+
+/** exits that end the app badly; EXIT_SELF, USER_REQUESTED, USER_STOPPED, PERMISSION_CHANGE and the like are not errors */
+const BAD_EXITS: readonly string[] = ["CRASH", "CRASH_NATIVE", "ANR", "LOW_MEMORY", "EXCESSIVE_RESOURCE_USAGE", "INITIALIZATION_FAILURE", "SIGNALED", "DEPENDENCY_DIED"];
+
+/**
+ * At start: send why earlier runs ended badly, from the system's own record (so a native crash, an ANR, a low-memory kill or a
+ * Java out-of-memory the JS handler never saw is reported). The same switch, scrubbing and server as every other error; nothing
+ * for a normal exit. Every exit is looked at once: the newest timestamp seen is kept (`seen`), but only when sending was
+ * possible (switch on and online) - offline, the system still holds them for the next start. A plain "CRASH" is skipped when the
+ * last run's JS error was kept and sent (`jsFatalSent`): that is the same event. At most `max` a start, newest first.
+ */
+export async function reportPastExits(o: { reporter: CrashReporter; source: ExitSource | null; seen: TextStore | null; setting: CrashSetting;
+                                           online: () => boolean; jsFatalSent: boolean; max?: number }): Promise<number> {
+  try {
+    if (!o.source || !o.setting.get() || !o.online()) return 0;
+    const since = Number(o.seen?.read() ?? 0) || 0;
+    const list = (await o.source.recent(since)).filter((r) => r.timestamp > since && BAD_EXITS.includes(r.reason))
+      .sort((a, b) => b.timestamp - a.timestamp);
+    let sent = 0;
+    for (const r of list.slice(0, o.max ?? 3)) {
+      if (r.reason === "CRASH" && o.jsFatalSent) continue;
+      if (await o.reporter.sendExit(r)) sent++;
+    }
+    const newest = (await o.source.recent(since)).reduce((m, r) => Math.max(m, r.timestamp), since);
+    try { o.seen?.write(String(newest)); } catch { /* looked at again next start */ }
+    console.info(`[crash-reports] sent ${sent} exit record(s)`);   // the test bed reads this line (logcat)
+    return sent;
+  } catch { return 0; }
 }

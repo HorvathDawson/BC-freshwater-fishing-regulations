@@ -147,6 +147,10 @@ export function privacyBody(site: Site, asOf: string): string {
     `<li>the kind of screen you were on — map, conditions, runs, spots, menu or a water page — and never which water, where you were or what you searched for;</li>` +
     `<li>the error itself: its type, its message with any quoted text, web address, e-mail address, coordinates and long numbers removed, and the app’s own code trace (file names and line numbers);</li>` +
     `<li>whether the error stopped the app, and the time.</li></ul>` +
+    `<p>On Android the app also asks the phone, the next time it starts, why its last run ended. If the answer was a crash, a freeze (“app not responding”), ` +
+    `or the system closing the app for memory or resource use, the app sends that reason, how busy the app was (foreground or background), ` +
+    `how much memory it was using, the exit code and the time. It reads no crash dump or memory contents, and no screen is named for it. ` +
+    `This follows the same switch and the same rules below. iPhones send no crash reports yet.</p>` +
     `<p>It never includes your location, spots, photos, notes, searches, e-mail address or any device or advertising identifier. ` +
     `Each different error is sent once per time the app runs, and only while you are online; an error that happens offline is not saved to send later, ` +
     `except one that stops the app, which is kept on your device and sent the next time the app starts (and deleted from your device if you have switched crash reports off). ` +

@@ -132,11 +132,11 @@ describe("the catchers (T242)", () => {
     const prev = vi.fn();
     let handler: ((e: unknown, f?: boolean) => void) | undefined;
     const g: Record<string, unknown> = { ErrorUtils: { getGlobalHandler: () => prev, setGlobalHandler: (h: typeof handler) => { handler = h; } } };
-    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false }, g);
+    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => false }, g);
     handler!(new Error("x"), true);
     expect(calls).toEqual(["x:js:true"]);
     expect(prev).toHaveBeenCalledOnce();
-    installCrashHandlers({ report: () => calls.push("twice"), flush: async () => false }, g);   // second install: nothing
+    installCrashHandlers({ report: () => calls.push("twice"), flush: async () => false, sendExit: async () => false }, g);   // second install: nothing
     handler!(new Error("y"), false);
     expect(calls).toEqual(["x:js:true", "y:js:false"]);
     undo();
@@ -146,9 +146,42 @@ describe("the catchers (T242)", () => {
     const l: Record<string, (ev: never) => void> = {};
     const g = { addEventListener: (k: string, f: (ev: never) => void) => { l[k] = f; }, removeEventListener: () => {} };
     const calls: string[] = [];
-    installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}`), flush: async () => false }, g as never);
+    installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}`), flush: async () => false, sendExit: async () => false }, g as never);
     l.error!({ error: new Error("e1") } as never);
     l.unhandledrejection!({ reason: new Error("r1") } as never);
     expect(calls).toEqual(["e1:js", "r1:promise"]);
+  });
+});
+
+describe("why the last run ended (Android exit records, T242)", () => {
+  const rec = (reason: string, t: number, over = {}) => ({ timestamp: t, reason, importance: "FOREGROUND", status: 0, rssKb: 524288, description: "", ...over });
+  const setup = async (recs: ReturnType<typeof rec>[], over: { online?: boolean; on?: boolean; jsFatalSent?: boolean; seen?: string | null } = {}) => {
+    const sent: any[] = [];
+    const setting = createCrashSetting(null); if (over.on === false) setting.set(false);
+    const mem = { v: over.seen ?? null as string | null };
+    const fetch = vi.fn(async (_u: unknown, i?: RequestInit) => { sent.push(JSON.parse(String(i?.body))); return new Response("{}", { status: 201 }); });
+    const reporter = createCrashReporter({ url: "u", setting, online: () => over.online !== false, context: () => ctx, route: () => "map", fetch: fetch as never, now: () => NOW });
+    const { reportPastExits } = await import("./crashReport");
+    const n = await reportPastExits({ reporter, source: { recent: async (s) => recs.filter((r) => r.timestamp > s) }, seen: { read: () => mem.v, write: (t) => { mem.v = t; } },
+                                      setting, online: () => over.online !== false, jsFatalSent: over.jsFatalSent ?? false });
+    return { n, sent, mem };
+  };
+  it("sends a native crash, an ANR and an out-of-memory kill as kind native with no stack, once", async () => {
+    const t = await setup([rec("CRASH_NATIVE", 3000, { status: 11 }), rec("ANR", 2000), rec("EXIT_SELF", 1500), rec("LOW_MEMORY", 1000, { importance: "BACKGROUND" })]);
+    expect(t.n).toBe(3);
+    expect(t.sent.map((p) => p.message)).toEqual([
+      "CRASH_NATIVE while foreground, 512 MB in use, status 11", "ANR while foreground, 512 MB in use", "LOW_MEMORY while background, 512 MB in use"]);
+    expect(t.sent[0]).toMatchObject({ kind: "native", fatal: true, route: "other", name: "NativeExit", stack: "" });
+    expect(t.mem.v).toBe("3000");
+    const again = await setup([rec("CRASH_NATIVE", 3000)], { seen: t.mem.v });
+    expect(again.n).toBe(0);
+  });
+  it("a plain CRASH is the kept JS error already sent; switched off or offline sends nothing and marks nothing", async () => {
+    expect((await setup([rec("CRASH", 5)], { jsFatalSent: true })).n).toBe(0);
+    expect((await setup([rec("CRASH", 5)])).n).toBe(1);
+    const off = await setup([rec("ANR", 5)], { on: false });
+    expect(off.n).toBe(0); expect(off.mem.v).toBeNull();
+    const net = await setup([rec("ANR", 5)], { online: false });
+    expect(net.n).toBe(0); expect(net.mem.v).toBeNull();
   });
 });

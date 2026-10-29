@@ -82,6 +82,11 @@ export function openCrashSettingStore(): { read(): string | null; write(text: st
   return fileStore("crash-reports.txt");
 }
 
+/** (T242) The newest Android exit record already looked at (epoch ms as text), a small file of its own. */
+export function openCrashExitStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("crash-exit-seen.txt");
+}
+
 /** (T242) A fatal error kept for the next start (one JSON payload, or empty), a small file of its own. */
 export function openCrashPendingStore(): { read(): string | null; write(text: string): void } {
   return fileStore("crash-pending.json");

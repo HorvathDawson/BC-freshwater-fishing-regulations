@@ -7,8 +7,9 @@ import { bigUpdate } from './big-update.mjs';
 import { offline } from './offline.mjs';
 import { spots } from './spots.mjs';
 import { report } from './report.mjs';
+import { crash } from './crash.mjs';
 import { nearCold } from './near-cold.mjs';
 import { pan } from './pan.mjs';
 import { satellite } from './satellite.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, nearCold, satellite, pan];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan];

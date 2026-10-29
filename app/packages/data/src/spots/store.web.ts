@@ -83,6 +83,11 @@ export function openCrashSettingStore(): { read(): string | null; write(text: st
   return keyStore("canifishthis.crashReports.v1");
 }
 
+/** (T242) The newest Android exit record already looked at (epoch ms as text), one key of its own. */
+export function openCrashExitStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.crashExitSeen.v1");
+}
+
 /** (T242) A fatal error kept for the next start (one JSON payload, or empty), one key of its own. */
 export function openCrashPendingStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.crashPending.v1");

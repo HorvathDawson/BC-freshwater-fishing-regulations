@@ -20,11 +20,11 @@ import { CORS, listKeys, rateLimit, sha256hex, type ReportEnv } from "./reports"
 export const CRASHES_PREFIX = "private/crashes/";
 const LIMITS_PREFIX = `${CRASHES_PREFIX}limits/`;
 export const CRASH_FORMAT = "crash/1";
-export const CRASH_KINDS = ["js", "promise", "render"] as const;
+export const CRASH_KINDS = ["js", "promise", "render", "native"] as const;
 export const ROUTE_KINDS = ["map", "conditions", "runs", "spots", "menu", "water", "other"] as const;
 export const CRASH_LIMITS = { bytes: 8192, name: 60, message: 200, stack: 2000, field: 100 } as const;
 /** one crash POST per IP per this, and at most PER_DAY a day (the app sends one per new kind per run) */
-export const CRASH_GAP_MS = 3_000;
+export const CRASH_GAP_MS = 1_000;
 export const CRASH_PER_DAY = 40;
 export const CRASH_RETENTION_DAYS = 90;
 const STR_FIELDS = ["app", "env", "platform", "release"] as const;
@@ -154,7 +154,7 @@ export function crashEvent(c: CrashKind, at: string): FeedEvent {
     title: `${s.name}: ${s.message.slice(0, 90)}${s.message.length > 90 ? "…" : ""} (${s.platform}, ${s.route})`,
     text:
       `${s.name}: ${s.message}\n${s.stack}\n\n` +
-      `New error kind ${c.hash}${s.fatal ? " (fatal)" : ""}: ${s.kind} error on the ${s.route} screen.\n` +
+      `New error kind ${c.hash}${s.fatal ? " (fatal)" : ""}: ${s.kind === "native" ? "the system ended the app (Android exit record)" : `${s.kind} error`} on the ${s.route} screen.\n` +
       `App ${s.app} (${s.env}) · ${s.platform} · release ${s.release} · versions seen: ${vs}\n` +
       `First seen ${c.first} · ${c.count} so far. Read them all: GET /crashes on the feeds worker (Bearer RUN_TOKEN).`,
     at,

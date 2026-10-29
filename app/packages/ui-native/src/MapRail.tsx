@@ -15,8 +15,8 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { hitProps } from "./regs/hit";
 
-/** One button of the stack: 40 px square, reaching 48 with its slop (a thumb's target). */
-const SIZE = 40;
+/** One button of the stack: 44 px square (T258, owner 2026-10-29: grown from 40 so the web reaches the 44 target as drawn). */
+const SIZE = 44;
 /** (N1) the rail's icon: 20 px, the bar's size, so Layers and the tabs are one set at one weight. */
 const RAIL_ICON = 20;
 /**

@@ -90,7 +90,7 @@ function Head({ vm, palette, onBack }: { vm: MoreVM; palette: Palette; onBack: (
     <View style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       <View style={{ width: "100%", maxWidth: wide ? MORE_WIDE.maxWidth + 2 * GUTTER : undefined, alignSelf: "center",
                      paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s3, gap: SPACE.s1 }}>
-        <Pressable {...hitProps({ w: 60, h: 32 })} testID="more-back" onPress={onBack} accessibilityRole="button" accessibilityLabel={vm.back.label} style={{ alignSelf: "flex-start", minHeight: 32, flexDirection: "row", alignItems: "center", gap: 2 }}>
+        <Pressable {...hitProps({ w: 60, h: 40 })} testID="more-back" onPress={onBack} accessibilityRole="button" accessibilityLabel={vm.back.label} style={{ alignSelf: "flex-start", minHeight: 40, flexDirection: "row", alignItems: "center", gap: 2 }}>
           <Icon name="back" colour={palette.accent} size={16} />
           <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{vm.back.to}</Text>
         </Pressable>

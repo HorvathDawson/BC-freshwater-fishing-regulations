@@ -54,10 +54,10 @@ describe("POST /crash (T242)", () => {
   it("refuses a 2nd POST from one IP within the gap and the daily cap, but not another IP", async () => {
     const BUCKET = new MemBucket();
     expect((await handleCrash(post(crash()), { BUCKET }, at("2026-10-29T20:00:00Z"))).status).toBe(201);
-    expect((await handleCrash(post(crash()), { BUCKET }, at("2026-10-29T20:00:01Z"))).status).toBe(429);
+    expect((await handleCrash(post(crash()), { BUCKET }, at("2026-10-29T20:00:00.500Z"))).status).toBe(429);
     expect((await handleCrash(post(crash(), "198.51.100.9"), { BUCKET }, at("2026-10-29T20:00:01Z"))).status).toBe(201);
     let t = Date.parse("2026-10-29T21:00:00Z"), last = 201;
-    for (let i = 0; i < CRASH_PER_DAY + 1; i++) { last = (await handleCrash(post(crash(), "192.0.2.1"), { BUCKET }, new Date(t))).status; t += 4000; }
+    for (let i = 0; i < CRASH_PER_DAY + 1; i++) { last = (await handleCrash(post(crash(), "192.0.2.1"), { BUCKET }, new Date(t))).status; t += 1500; }
     expect(last).toBe(429);
   });
 

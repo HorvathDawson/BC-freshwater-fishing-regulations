@@ -37,6 +37,8 @@ export declare function openRecentSearchStore(): { read(): string | null; write(
 export declare function openReportOutboxStore(): { read(): string | null; write(text: string): void };
 /** (T242) The "Send crash reports" switch ("on" | "off"; nothing stored = on), as whole text. */
 export declare function openCrashSettingStore(): { read(): string | null; write(text: string): void };
+/** (T242) The newest Android exit record already looked at (epoch ms as text), as whole text. */
+export declare function openCrashExitStore(): { read(): string | null; write(text: string): void };
 /** (T242) A fatal error kept for the next start (one JSON payload, or empty), as whole text. */
 export declare function openCrashPendingStore(): { read(): string | null; write(text: string): void };
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), as whole text. */

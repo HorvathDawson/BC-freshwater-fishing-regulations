@@ -53,8 +53,8 @@ function MenuPageHead({ title, onBack, palette, backLabel = MENU_WORDS.back, col
   return (
     <View style={{ borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s3, gap: SPACE.s1, ...column }}>
-        <Pressable {...hitProps({ w: 60, h: 32 })} onPress={onBack} accessibilityRole="button" accessibilityLabel={backLabel}
-                   style={{ alignSelf: "flex-start", minHeight: 32, justifyContent: "center" }}>
+        <Pressable {...hitProps({ w: 60, h: 40 })} onPress={onBack} accessibilityRole="button" accessibilityLabel={backLabel}
+                   style={{ alignSelf: "flex-start", minHeight: 40, justifyContent: "center" }}>
           <IconText name="back" text={backLabel} style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }} />
         </Pressable>
         <Text accessibilityRole="header" style={{ ...TYPE.screen, color: palette.ink }}>{title}</Text>
