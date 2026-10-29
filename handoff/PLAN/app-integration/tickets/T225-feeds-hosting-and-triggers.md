@@ -187,16 +187,16 @@ Staging redeployed (b8715797), every job run by hand with `?dryNotify=1`; `vites
   on email failure or no email → `FEED_NOTIFY_URL` webhook; neither → logged and recorded. A failed send stays pending and
   is retried next run. `NOTIFY_DIGEST=daily` → one digest a day (first run at/after `NOTIFY_DIGEST_HOUR_UTC`, default
   15 = 08:00 PDT); health is always immediate. **Dry run**: `POST /run/<job>?dryNotify=1` returns the messages, sends and
-  records nothing; `POST /notify/preview` (bearer) shows the queued digest. `REVIEW_APP_URL` (default
-  `http://localhost:5183`) for the DFO links.
+  records nothing; `POST /notify/preview` (bearer) shows the queued digest. DFO emails carry no link (the review app is local):
+  "First: … queue --regions N / Then: Review app → DFO → Extents: <place>" (owner 2026-10-28; REVIEW_APP_URL removed).
 - **What is told**: (a) HYDAT — the listing is asked once a day now (`private/feeds/gauges/hydat.check.json`), a new
   release → "New HYDAT <date> — run the HYDAT action" (the Actions workflow, then `scripts/update-hydat.sh --upload`);
   (b) in-season — `POST /run/inseason` ports main's `update-in-season.yml` scrape (provincial page accordion, 32 rows / 7
   sections today; a Worker is NOT blocked by the page's Akamai, unlike GitHub's runners): first run is the baseline, then
   any added / changed / removed row → one email with the diff (snapshots in `private/feeds/inseason/`); the old
   GitHub-issue job also matched rows to synopsis waters — not ported (the in-season rows are not in the app yet);
-  (c) DFO — every unplaced / held / moved / unbound-header notice, one list per run, with the review app's `#dfo/` link and
-  the `queue --regions` command; (d) health — a feed going degraded / failing / stale and recovering;
+  (c) DFO — every unplaced / held / moved / unbound-header notice, one list per run, with the `queue --regions` command and
+  the review-app tab to open (DFO → Extents); (d) health — a feed going degraded / failing / stale and recovering;
   (e) also included: **ECCC roster drift** (the station list changed → refresh the roster, then the sync workflow).
   Checked and NOT included: `update-stocking.yml` (weekly export + upload, no owner action — stocking is T200) and
   `update-hydro.yml` (data only). Staging dry run today: DFO 2 places to review; gauges a roster-drift message (+10
@@ -221,7 +221,7 @@ Staging redeployed (b8715797), every job run by hand with `?dryNotify=1`; `vites
   makes a digest (it rides along when there is one). Current state is /status's job, not email's.
 - **Email is live on staging** (version 765d9851): Email Routing on canifishthis.ca enabled / ready, horvath.dawson@gmail.com
   a verified destination (both read through the API, nothing changed). `NOTIFY_EMAIL_TO` = secret; vars in wrangler.toml:
-  `NOTIFY_EMAIL_FROM=status@canifishthis.ca`, `NOTIFY_DIGEST=daily`, `REVIEW_APP_URL=http://localhost:5183`;
+  `NOTIFY_EMAIL_FROM=status@canifishthis.ca`, `NOTIFY_DIGEST=daily`;
   `FEED_NOTIFY_URL` unset. One labelled TEST email sent through `POST /notify/test` (bearer) — accepted by send_email.
   From now on a non-dry run emails for real (the next DFO run: its 2 unplaced places, once).
 - **In-season feed** `feeds/inseason/index.json` (published by `POST /run/inseason`; served by the staging data worker),

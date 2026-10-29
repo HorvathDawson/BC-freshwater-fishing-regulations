@@ -132,9 +132,10 @@ describe("what each job tells", () => {
     expect(h).toMatchObject({ key: "hydat:20261015", kind: "hydat", title: "New HYDAT 20261015 — run the HYDAT action" });
     expect(h!.text).toMatch(/feeds — HYDAT → climatology → R2/);
     expect(r).toMatchObject({ key: "roster:+2/-1", kind: "roster" });
-    const [d] = dfoEvents([{ key: "dfo-new:6:abc", text: "DFO Region 6: new location on Skeena River: 'x' — 2 rules held unplaced. Place it in DFO review after: …" }], "t", "https://review.example/");
-    expect(d!.text).toContain("Review: https://review.example/#dfo/");
-    expect(d!.text).toContain("--regions 6");
+    const [d] = dfoEvents([{ key: "dfo-new:6:abc", text: "DFO Region 6: new location on Skeena River: 'x' — 2 rules held unplaced. Place it in DFO review after: …" }], "t");
+    expect(d!.text).toContain("First: python -m pipeline.regs.dfo_salmon.live queue --regions 6");
+    expect(d!.text).toContain("Then: Review app → DFO → Extents: Skeena River — x");
+    expect(d!.text).not.toMatch(/https?:/);
     expect(healthEvents([{ job: "dfo", from: "ok", to: "stale", text: "DFO salmon feed is STALE" }], "t")[0]!.key).toBe("health:dfo:ok>stale:t");
   });
 });

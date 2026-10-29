@@ -23,4 +23,3 @@ name = "EMAIL"
 [vars]
 NOTIFY_EMAIL_FROM = "status@canifishthis.ca"
 NOTIFY_DIGEST = "daily"          # DFO + in-season are urgent (at once); the rest one digest a day, only on a day with an issue
-REVIEW_APP_URL = "http://localhost:5183"

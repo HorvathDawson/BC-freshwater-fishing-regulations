@@ -33,8 +33,6 @@ export interface Env {
   /** "daily": one digest a day (health stays immediate) */
   NOTIFY_DIGEST?: string;
   NOTIFY_DIGEST_HOUR_UTC?: string;
-  /** where the review app's DFO queue opens (default the local review app) */
-  REVIEW_APP_URL?: string;
 }
 
 const STATUS_PREFIX = "private/feeds/";
@@ -82,8 +80,9 @@ export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
   );
 }
 
-/** DFO notices (unplaced / held / moved / header names / fetch failures) → events linked to the review app */
-export function dfoEvents(notices: { key: string; text: string }[], at: string, reviewUrl: string): FeedEvent[] {
+/** DFO notices (unplaced / held / moved / header names / fetch failures) → events naming the review-app tab to open
+ *  (the review app runs on the owner's machine: no link, just where to go) and the queue command to run first */
+export function dfoEvents(notices: { key: string; text: string }[], at: string): FeedEvent[] {
   return notices.map((n) => {
     const m = /DFO Region (\w+):/.exec(n.text);
     const lid = /\b(\d[ab]?:[a-z0-9-]+:[a-z0-9-]+)\b/.exec(n.text)?.[1];
@@ -91,10 +90,23 @@ export function dfoEvents(notices: { key: string; text: string }[], at: string, 
       key: n.key,
       kind: "dfo" as const,
       title: n.text.split(";")[0]!.slice(0, 200),
-      text: `${n.text}\n\nReview: ${reviewUrl.replace(/\/$/, "")}/#dfo/${lid ?? ""}${m ? `\nQueue: python -m pipeline.regs.dfo_salmon.live queue --regions ${m[1]}` : ""}`,
+      text:
+        `${n.text}\n\n` +
+        (m ? `First: python -m pipeline.regs.dfo_salmon.live queue --regions ${m[1]}\n` : "") +
+        `Then: Review app → DFO → Extents: ${lid ?? placeOf(n.text) ?? "the new rows"}`,
       at,
     };
   });
+}
+
+/** the place a DFO notice names: "on <water>: '<scope>'" / "header names '<x>'" */
+function placeOf(text: string): string | null {
+  const m = /\bon ([^:]+?): '([^']*)'/.exec(text) ?? /\bon ([^:]+?): "([^"]*)"/.exec(text);
+  if (m) return `${m[1]} — ${m[2]!.slice(0, 120)}`;
+  const w = /\bon ([A-Z][^,;:()]+?)(?:,| \(| —|;|$)/.exec(text);
+  if (w) return w[1]!;
+  const h = /names '([^']+)'/.exec(text);
+  return h ? h[1]! : null;
 }
 
 /** status alerts (a feed's state changed) → events */
@@ -151,7 +163,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         notices: s.notices.length, unchangedRegions: (s.skipped ?? []).length,
       };
       summary = { ...counts, skipped: s.skipped };
-      events.push(...dfoEvents(s.notices, at, env.REVIEW_APP_URL || "http://localhost:5183"));
+      events.push(...dfoEvents(s.notices, at));
     } else {
       const s = await runInSeason({
         fetch: fetch_,
