@@ -220,3 +220,4 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   dammed lake above Salmon Inlet: whether Dempster meets tidal water at all is moot — no cut either way.)
 
 - 2026-10-29 owner: Caycuse River and Dempster Creek "are good where they are" — their marks stay as made; the build makes no cut for either (each item already starts at the lake edge).
+- 2026-10-29 owner: Bear River "was fine how it was" — no re-mark; the build already makes no cut (mouth).
