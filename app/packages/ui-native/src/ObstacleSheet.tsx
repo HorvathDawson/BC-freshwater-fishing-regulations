@@ -4,6 +4,7 @@
  * A bottom sheet at every width, like the other sheets that sit over the map: the mark stays visible above it.
  */
 import { obstacleSheet } from "@app/core";
+import { ObstacleIcon } from "./icons";
 import { Text, View } from "react-native";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";
@@ -15,7 +16,8 @@ export function ObstacleSheet({ props, palette, onClose }: {
 }) {
   const vm = props ? obstacleSheet(props) : null;
   return (
-    <Sheet open={vm !== null} onClose={onClose} title={vm?.title ?? ""} sub={vm?.sub ?? null} palette={palette}>
+    <Sheet open={vm !== null} onClose={onClose} title={vm?.title ?? ""} sub={vm?.sub ?? null} palette={palette}
+           icon={props ? <ObstacleIcon type={props.type} ink={palette.ink} size={24} /> : undefined}>
       <View testID="obstacle-sheet" style={{ paddingHorizontal: 20, paddingTop: 12, gap: 8 }}>
         {vm?.rows.map((r) => (
           <View key={r.label} style={{ flexDirection: "row", gap: 12 }}>

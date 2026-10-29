@@ -13,9 +13,9 @@
  *    attribution) and the app's colours (the menu's Display page).
  */
 import { Pressable, Text, View } from "react-native";
-import { LAYER_WORDS, STOCK_RECENCY, waterLegend, type LayerTileVM, type LayersVM, type LegendSwatch }
+import { LAYER_WORDS, OBSTACLE_ICON_KINDS, OBSTACLE_WORDS, STOCK_RECENCY, waterLegend, type LayerTileVM, type LayersVM, type LegendSwatch }
   from "@app/core";
-import { Icon, type IconName } from "./icons";
+import { Icon, ObstacleIcon, type IconName } from "./icons";
 import { Sheet } from "./Sheet";
 import { OptionRow, type Option } from "./OptionRow";
 import { TYPE } from "./type";
@@ -141,6 +141,19 @@ function SwitchRow({ palette, row, onPress }: { palette: Palette; row: LayerTile
       <View style={{ flex: 1 }}>
         <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{row.label}</Text>
         {row.note && <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>{row.note}</Text>}
+        {/* (T173) THE KEY to the fish obstacles' icons, inside their row: one mark and its word per type */}
+        {row.id === "overlay.obstacles" && (
+          <View testID="obstacle-key" style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 12, rowGap: 5, paddingTop: 7 }}>
+            {OBSTACLE_ICON_KINDS.map((k) => (
+              <View key={k} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                <ObstacleIcon type={k} ink={palette.ink} size={16} />
+                <Text style={{ ...TYPE.small, fontSize: 11, color: palette.sub }}>
+                  {k === "other" ? OBSTACLE_WORDS.otherKey : OBSTACLE_WORDS.types[k]}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
       {row.tag
         ? <Text style={{ ...TYPE.section, fontSize: 10, letterSpacing: 1.2, color: palette.sub }}>

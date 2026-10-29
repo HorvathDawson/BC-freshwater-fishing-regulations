@@ -488,6 +488,33 @@ for (const l of src.layers ?? []) {
    * layer, each filtered, is how MapLibre expresses that — and it is the only way, since a
    * colour mode reads FEATURE-STATE and this value is in the tile.
    */
+  /*
+   * AN ICON POINT (T173, the fish obstacles): a point drawn as a picture chosen by a tile property, not a circle. The
+   * images are generated per theme (`@app/map` images.ts, like the hatches), so the style only NAMES them; overlap is
+   * off and the sort key ranks the property's values, so a crowded reach drops the lesser mark instead of stacking them.
+   * The symbol sits where its circle would (above the lines, under the names), and a layer with no `icon` is unchanged.
+   */
+  if (l.icon) {
+    const ic = l.icon;
+    const iw = `${where} icon`;
+    if (l.geometry !== "point") err(`${iw}: only a point can be an icon`);
+    if (!ic.by || !ic.images || !ic.fallback) err(`${iw}: needs "by" (the tile property), "images" (value -> image) and "fallback"`);
+    const values = Object.keys(ic.images ?? {});
+    for (const v of ic.sortOrder ?? []) if (!values.includes(v)) err(`${iw}: sortOrder names "${v}", which has no image`);
+    const size = ["interpolate", ["linear"], ["zoom"], ...(ic.size ?? []).flat()];
+    outLayers.push({ id: l.id, type: "symbol", ...geom,
+      ...(l.filter ? { filter: l.filter } : {}),
+      layout: {
+        ...geom.layout,
+        "icon-image": ["match", ["get", ic.by], ...values.flatMap((v) => [v, ic.images[v]]), ic.fallback],
+        "icon-size": size,
+        "icon-allow-overlap": false,
+        "icon-ignore-placement": false,
+        "icon-padding": ic.padding ?? 2,
+        "symbol-sort-key": ["match", ["get", ic.by],
+          ...(ic.sortOrder ?? []).flatMap((v, i) => [v, i]), (ic.sortOrder ?? []).length],
+      } });
+  } else
   outLayers.push({ id: l.id, type: MAPLIBRE_TYPE[l.geometry], ...geom,
                    ...(l.filter ? { filter: l.filter } : {}) });
 

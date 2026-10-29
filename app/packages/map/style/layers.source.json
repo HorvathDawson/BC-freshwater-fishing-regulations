@@ -2271,44 +2271,6 @@
       }
     },
     {
-      "id": "obstacle_ring",
-      "group": "obstacles",
-      "source": "atlas",
-      "sourceLayer": "obstacle",
-      "geometry": "point",
-      "featureIdProperty": "obstacle_id",
-      "highlightable": false,
-      "minzoom": 10,
-      "width": {
-        "token": "width.obstacle.ring",
-        "mode": "zoom",
-        "ramp": [
-          [
-            10,
-            3.6
-          ],
-          [
-            13,
-            4.8
-          ],
-          [
-            16,
-            6.2
-          ]
-        ]
-      },
-      "colorModes": {
-        "plain": {
-          "label": "Fish obstacles",
-          "scale": "static",
-          "color": {
-            "token": "color.obstacle.ring"
-          }
-        }
-      },
-      "$comment": "(T173) The paper ring under each obstacle mark (MapLibre circles are drawn here without a stroke): it lifts the ink dot off a status-coloured stream line, which is where nearly every mark sits."
-    },
-    {
       "id": "obstacle",
       "group": "obstacles",
       "source": "atlas",
@@ -2317,24 +2279,6 @@
       "featureIdProperty": "obstacle_id",
       "highlightable": false,
       "minzoom": 10,
-      "width": {
-        "token": "width.obstacle.mark",
-        "mode": "zoom",
-        "ramp": [
-          [
-            10,
-            2.2
-          ],
-          [
-            13,
-            3.2
-          ],
-          [
-            16,
-            4.4
-          ]
-        ]
-      },
       "colorModes": {
         "plain": {
           "label": "Fish obstacles",
@@ -2344,7 +2288,42 @@
           }
         }
       },
-      "$comment": "(T173) FISH OBSTACLES, as small marks: an ink dot in a paper ring, one look for every type (the tap sheet says which). SMALL AND COLOURLESS ON PURPOSE: the colours on this map are answers (a status, a gauge's reading), and a mark that wore one would read as one. Distinct from a gauge (a coloured dot, the Conditions map's) and a spot (a pin). Tapped before the water under it (`sections.ts` OBSTACLE_LAYERS, `MapProps.onPressObstacle`). From z10, the tile layer's own minzoom."
+      "$comment": "(T173) FISH OBSTACLES, as small icons, one drawing per type (falls, cascade, canyon, velocity barrier, dam, culvert; any other type is a dot): neutral ink in a paper halo, 14 px at z10 to 18 px at z16. The drawings are `@app/core` `OBSTACLE_ICON_SHAPES`, rasterised per theme by `@app/map` `obstacle-icons.ts` and added like the hatches (`addImage` on the web, the binding's `Images` on a phone); the style only names them (`icon.images`, by the tile's `type`). Overlap is OFF and the sort key ranks the type (`icon.sortOrder`: a dam is placed before a culvert), so a crowded reach drops the lesser mark instead of stacking them. COLOURLESS ON PURPOSE: the colours on this map are answers (a status, a gauge's reading), and a mark that wore one would read as one. Distinct from a gauge (a coloured dot, the Conditions map's) and a spot (a pin). Tapped before the water under it (`sections.ts` OBSTACLE_LAYERS, `MapProps.onPressObstacle`). From z10, the tile layer's own minzoom.",
+      "icon": {
+        "by": "type",
+        "images": {
+          "falls": "obstacle-falls",
+          "cascade": "obstacle-cascade",
+          "canyon": "obstacle-canyon",
+          "velocity": "obstacle-velocity",
+          "culvert": "obstacle-culvert",
+          "dam": "obstacle-dam"
+        },
+        "fallback": "obstacle-other",
+        "sortOrder": [
+          "dam",
+          "falls",
+          "canyon",
+          "cascade",
+          "velocity",
+          "culvert"
+        ],
+        "size": [
+          [
+            10,
+            0.875
+          ],
+          [
+            13,
+            1
+          ],
+          [
+            16,
+            1.125
+          ]
+        ],
+        "padding": 3
+      }
     }
   ],
   "views": [
@@ -2373,7 +2352,6 @@
         "not_fishing_water": "plain",
         "watershed": "plain",
         "sign_zone": "plain",
-        "obstacle_ring": "plain",
         "obstacle": "plain",
         "tidal_water": "plain"
       },
@@ -2411,7 +2389,6 @@
         "not_fishing_water": "plain",
         "watershed": "plain",
         "sign_zone": "plain",
-        "obstacle_ring": "plain",
         "obstacle": "plain",
         "tidal_water": "plain"
       },
@@ -2442,7 +2419,6 @@
         "not_fishing_water": "plain",
         "watershed": "plain",
         "sign_zone": "plain",
-        "obstacle_ring": "plain",
         "obstacle": "plain",
         "tidal_water": "plain"
       }
@@ -2473,7 +2449,6 @@
         "not_fishing_water": "plain",
         "watershed": "plain",
         "sign_zone": "plain",
-        "obstacle_ring": "plain",
         "obstacle": "plain",
         "tidal_water": "plain"
       },

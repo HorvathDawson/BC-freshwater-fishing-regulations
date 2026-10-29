@@ -106,6 +106,12 @@ describe("the Layers sheet, mounted", () => {
       + "no-access and permit-only land, and region and management-unit lines. They are never switched off.");
   });
 
+  it("(T173) the Fish obstacles row carries its key: an icon and a word per type, the dot last", () => {
+    render(<Wired facts={NONE} out={{}} />);
+    expect(text("obstacle-key")).toBe("FallsCascadeCanyonVelocity barrierCulvertDamOther");
+    expect(screen.getAllByTestId(/^obstacle-icon-/).length).toBe(7);
+  });
+
   it("each greyed tile and switch says why in its own tag", () => {
     render(<Wired facts={NONE} out={{}} />);
     const tile = (name: string) => screen.getByRole("radio", { name }).textContent;

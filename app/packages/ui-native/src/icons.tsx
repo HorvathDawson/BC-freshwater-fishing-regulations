@@ -15,7 +15,8 @@
  * react-native-svg draws them on the web and on a phone alike; the colour is always a palette token, passed in.
  */
 import { Text, View, type TextStyle } from "react-native";
-import Svg, { Circle, Path, Rect } from "react-native-svg";
+import Svg, { Circle, Ellipse, Path, Rect } from "react-native-svg";
+import { OBSTACLE_ICON_GRID, OBSTACLE_ICON_HALO, OBSTACLE_ICON_SHAPES, obstacleIconKind, type IconShape, type ObstacleIconKind } from "@app/core";
 
 export type IconName =
   | "map" | "conditions" | "spots" | "more" | "layers"
@@ -134,6 +135,32 @@ export function IconText({ name, text, style, size = 16, gap = 4 }: {
     <View style={{ flexDirection: "row", alignItems: "center", gap }}>
       <View style={{ marginLeft: -3 }}><Icon name={name} colour={style.color} size={size} /></View>
       <Text style={style}>{text}</Text>
+    </View>
+  );
+}
+
+/**
+ * (T173) A FISH OBSTACLE's icon — the map's own drawing (`@app/core` `OBSTACLE_ICON_SHAPES`, the table the map rasterises),
+ * for the tap sheet's header and the Layers sheet's key. `ink` is the palette's ink; `halo` (optional) is the paper under
+ * it, as on the map. Decorative: the words beside it name the type.
+ */
+export function ObstacleIcon({ type, ink, halo, size = 16 }: { type: unknown; ink: string; halo?: string; size?: number }) {
+  const kind: ObstacleIconKind = obstacleIconKind(type);
+  const draw = (s: IconShape, colour: string, grow: number, key: string) => {
+    const d = (p: readonly (readonly [number, number])[]) => p.map(([x, y], i) => `${i ? "L" : "M"}${x} ${y}`).join(" ");
+    const line = { stroke: colour, strokeLinecap: "round", strokeLinejoin: "round", fill: "none" } as const;
+    if ("stroke" in s) return <Path key={key} d={d(s.stroke)} {...line} strokeWidth={s.w + grow} />;
+    if ("fill" in s) return <Path key={key} d={`${d(s.fill)} Z`} {...line} fill={colour} strokeWidth={grow} />;
+    if ("ring" in s) return <Ellipse key={key} cx={s.ring[0]} cy={s.ring[1]} rx={s.ring[2]} ry={s.ring[3]} {...line} strokeWidth={s.w + grow} />;
+    return <Circle key={key} cx={s.disc[0]} cy={s.disc[1]} r={s.disc[2] + grow / 2} fill={colour} />;
+  };
+  const shapes = OBSTACLE_ICON_SHAPES[kind];
+  return (
+    <View testID={`obstacle-icon-${kind}`} aria-hidden importantForAccessibility="no-hide-descendants" style={{ width: size, height: size }}>
+      <Svg width={size} height={size} viewBox={`0 0 ${OBSTACLE_ICON_GRID} ${OBSTACLE_ICON_GRID}`}>
+        {halo ? shapes.map((s, i) => draw(s, halo, OBSTACLE_ICON_HALO * 2, `h${i}`)) : null}
+        {shapes.map((s, i) => draw(s, ink, 0, `i${i}`))}
+      </Svg>
     </View>
   );
 }

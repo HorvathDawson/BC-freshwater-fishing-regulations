@@ -96,6 +96,26 @@ scripts/heavy.sh tiles 30 -- .venv/bin/python -m pipeline.deliver.tiles --tiles-
 No bundle or release-file change. The app commit is safe before the tiles: the switch draws nothing on an atlas without
 the layer.
 
+## Icons (owner 2026-10-28: "small, nice icons per type") — style/app only, no tile change
+- The mark is no longer a dot in a ring: one icon per `type` (falls, cascade, canyon, velocity barrier, dam, culvert; any other or
+  missing type is the dot), neutral ink (`color.obstacle.mark`) in a paper halo (`color.obstacle.ring`), 14 px at z10 → 16 at z13 →
+  18 at z16 (`icon-size` ramp). Style layer `obstacle_ring` and the `width.obstacle.*` tokens are gone; `obstacle` is a symbol layer
+  (`layers.source.json` `icon`, emitted by `tools/build-style.mjs`: `icon-image` match on `type`, `icon-allow-overlap` off,
+  `symbol-sort-key` ranks dam < falls < canyon < cascade < velocity < culvert < dot so a crowded reach drops the lesser mark, padding 3),
+  still z10+ and tapped by the same `pressObstacle`.
+- ONE drawing table: `@app/core` `obstacleIcons.ts` (`OBSTACLE_ICON_SHAPES`, a 16 grid: strokes, polygons, an ellipse, a disc).
+  The map rasterises it per theme (`@app/map` `obstacle-icons.ts`, 3x, signed-distance AA) into `generatedImages` — `addImage` on the web,
+  the binding's `Images` on a phone under per-theme names (the same rail as the hatches / pill / pin, so native needed no new code).
+  The UI draws the same table with react-native-svg (`ObstacleIcon` in `icons.tsx`): the tap sheet's header (`Sheet` takes an `icon`),
+  and a key (icon + word per type, the dot last) inside the Layers sheet's Fish obstacles row (`obstacle-key`). Colours are the two tokens in every
+  theme (light, dark, colour-blind: no new colour family; dark is near-white ink on a dark halo).
+- Tests: `obstacleIcons.test.ts` (kinds = tile types + dot, points inside the grid, SVG), `obstacle-icons.test.ts` (pixels, per-theme
+  images on both renderers, the style names only images that exist, no ring layer), `ObstacleSheet` header icon, `LayersSheet` key.
+- Shots `T173-shots/icons-*`: `desktop|phone-light|dark-z11|z14` (Saanich / Hagan Creek, Victoria area, the densest mixed cluster of
+  marks — a scratch GeoJSON of the 15,185 marks stood in for the not-yet-rebuilt atlas layer, same layer spec and images), plus
+  `icons-phone-tap-sheet-dark.png` and `icons-desktop-light|phone-dark-layers-sheet.png`. At z14 the 7 marks of one reach collapse to dams + a
+  culvert (falls / cascade drop until zoom 15+): the dam ranks first, by design; say if falls should outrank dams.
+
 ## Shots
 `handoff/PLAN/app-integration/T173-shots/` (Rosedale / Popkum, r-c331a7a3c2cf on the joined scratch atlas, served by a
 private tile server and swapped in by a browser route; nothing promoted): `desktop-layers-sheet.png` (the switch on),

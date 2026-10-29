@@ -20,6 +20,8 @@ export const OBSTACLE_WORDS = {
   } satisfies Record<ObstacleType, string>,
   /** A record whose type this app does not know (a newer tile): said plainly, never dropped. */
   unknownType: "Obstacle to fish",
+  /** The Layers sheet key's word for the dot (the icon a type this app does not know, or none, wears). */
+  otherKey: "Other",
   rows: { type: "Type", height: "Height", surveyed: "Surveyed", commissioned: "Commissioned", source: "Source" },
   sources: {
     fiss: "Provincial Obstacles to Fish Passage",

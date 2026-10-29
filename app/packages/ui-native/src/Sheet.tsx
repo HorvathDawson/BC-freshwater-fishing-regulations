@@ -44,11 +44,13 @@ export const SHEET_TITLE = { ...TYPE.screen, fontSize: 19, lineHeight: 23 } as c
  */
 export const SHEET_BODY_CAP = 0.68;
 
-export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false, footer }: {
+export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false, footer, icon }: {
   open: boolean; onClose: () => void; title: string;
   palette: Palette; children: React.ReactNode;
   /** (T37) the body scrolls inside the sheet, at most SHEET_BODY_CAP (0.68) of the window tall (the regs sheets); default false: as before */
   scroll?: boolean;
+  /** (T173) a small mark before the title (the fish obstacle's icon); absent: the title alone */
+  icon?: React.ReactNode;
   /** (T37) a small line under the title row (a rule's level, a row's water and day) */
   sub?: string | null;
   /** (T37) the inner ScrollView, so a sheet opened in this one's place can start at its top */
@@ -131,9 +133,13 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   const [up, setUp] = useState(open);
   if (open && !up) setUp(true);
   // what it showed, kept while it leaves: a caller that clears its content on close (SheetHost) slides out what was there
-  const kept = useRef({ title, sub, children });
-  if (open) kept.current = { title, sub, children };
-  const shown = open ? { title, sub, children } : kept.current;
+  const kept = useRef({ title, sub, children, icon });
+  if (open) kept.current = { title, sub, children, icon };
+  const shown = open ? { title, sub, children, icon } : kept.current;
+  const titleText = <Text accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>;
+  const titleEl = shown.icon
+    ? <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 1 }}>{shown.icon}{titleText}</View>
+    : titleText;
   useEffect(() => {
     /*
      * The wide dialog's Modal shows `open` itself and runs no motion of ours, so a close there must put `up` down at once:
@@ -194,7 +200,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                                justifyContent: "space-between", paddingHorizontal: 18,
                                paddingBottom: 10, borderBottomWidth: 1.5,
                                borderBottomColor: palette.ink }}>
-                  <Text accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>
+                  {titleEl}
                   <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done} {...DONE_HIT}>
                     <Text style={{ ...DONE_WORD, color: palette.accent }}>{SHEET_WORDS.done}</Text>
                   </Pressable>
@@ -244,7 +250,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                              justifyContent: "space-between", paddingHorizontal: 18,
                              paddingBottom: 10, borderBottomWidth: 1.5,
                              borderBottomColor: palette.ink }}>
-                <Text accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>
+                {titleEl}
                 <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done}
                            {...DONE_HIT}>
                   <Text style={{ ...DONE_WORD, color: palette.accent }}>{SHEET_WORDS.done}</Text>

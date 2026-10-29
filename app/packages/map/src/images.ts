@@ -9,7 +9,9 @@ import { hereImage } from "./here-mark";
 import { pillImage } from "./pill";
 import { pngDataUri } from "./png";
 import { STYLE_META } from "./style";
+import { OBSTACLE_IMAGE_PREFIX, obstacleIconImage, obstacleImageId } from "./obstacle-icons";
 import { HERE_IMAGE } from "./trace-overlay";
+import { OBSTACLE_ICON_KINDS } from "@app/core";
 
 export const PILL_IMAGE = "gauge-pill";
 
@@ -27,7 +29,7 @@ export interface GeneratedImage {
 
 /** Is `id` one of the images `generatedImages` makes (what `styleimagemissing` re-adds)? */
 export const isGeneratedImage = (id: string): boolean =>
-  id === PILL_IMAGE || id === HERE_IMAGE || id.endsWith("-hatch");
+  id === PILL_IMAGE || id === HERE_IMAGE || id.endsWith("-hatch") || id.startsWith(OBSTACLE_IMAGE_PREFIX);
 
 export function generatedImages(theme: string): GeneratedImage[] {
   // The pill's border read `color.line`, which was never a token, so every theme drew
@@ -44,6 +46,9 @@ export function generatedImages(theme: string): GeneratedImage[] {
                ...hatchImage(colour(theme, w.token), w.ground, w.stripe, w.darken, w.spacing, w.weight, w.cross) });
   // AND THE "YOU ARE HERE" PIN of the route overlay — the accent on this theme's paper.
   out.push({ id: HERE_IMAGE, ...hereImage(colour(theme, "color.ui.accent"), colour(theme, "color.outside")) });
+  // AND THE FISH OBSTACLES' ICONS (T173): one per type, neutral ink in a paper halo (`obstacle-icons.ts`)
+  for (const k of OBSTACLE_ICON_KINDS)
+    out.push({ id: obstacleImageId(k), ...obstacleIconImage(k, colour(theme, "color.obstacle.mark"), colour(theme, "color.obstacle.ring")) });
   return out;
 }
 

@@ -460,23 +460,71 @@
       }
     },
     {
-      "id": "obstacle_ring",
-      "type": "circle",
-      "source": "atlas",
-      "source-layer": "obstacle",
-      "minzoom": 10,
-      "layout": {
-        "visibility": "none"
-      }
-    },
-    {
       "id": "obstacle",
-      "type": "circle",
+      "type": "symbol",
       "source": "atlas",
       "source-layer": "obstacle",
       "minzoom": 10,
       "layout": {
-        "visibility": "none"
+        "visibility": "none",
+        "icon-image": [
+          "match",
+          [
+            "get",
+            "type"
+          ],
+          "falls",
+          "obstacle-falls",
+          "cascade",
+          "obstacle-cascade",
+          "canyon",
+          "obstacle-canyon",
+          "velocity",
+          "obstacle-velocity",
+          "culvert",
+          "obstacle-culvert",
+          "dam",
+          "obstacle-dam",
+          "obstacle-other"
+        ],
+        "icon-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          10,
+          0.875,
+          13,
+          1,
+          16,
+          1.125
+        ],
+        "icon-allow-overlap": false,
+        "icon-ignore-placement": false,
+        "icon-padding": 3,
+        "symbol-sort-key": [
+          "match",
+          [
+            "get",
+            "type"
+          ],
+          "dam",
+          0,
+          "falls",
+          1,
+          "canyon",
+          2,
+          "cascade",
+          3,
+          "velocity",
+          4,
+          "culvert",
+          5,
+          6
+        ]
       }
     },
     {

@@ -20,6 +20,13 @@ describe("<ObstacleSheet>", () => {
     expect(screen.getByText("Walker Lake Dam")).toBeTruthy();
   });
 
+  it("the header wears the type's icon (a type it does not know wears the dot)", () => {
+    const { rerender } = render(<ObstacleSheet palette={LIGHT} onClose={() => {}} props={{ type: "falls" }} />);
+    expect(screen.getByTestId("obstacle-icon-falls")).toBeTruthy();
+    rerender(<ObstacleSheet palette={LIGHT} onClose={() => {}} props={{ type: "weir" }} />);
+    expect(screen.getByTestId("obstacle-icon-other")).toBeTruthy();
+  });
+
   it("nothing tapped: the sheet is down", () => {
     render(<ObstacleSheet palette={LIGHT} onClose={() => {}} props={null} />);
     expect(screen.queryByTestId("obstacle-sheet")).toBeNull();

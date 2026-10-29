@@ -139,8 +139,6 @@
       1.2
     ],
     "color.obstacle.mark": "@color.gauge.dot",
-    "color.obstacle.ring": "@color.outside",
-    "width.obstacle.mark": 1.0,
-    "width.obstacle.ring": 1.0
+    "color.obstacle.ring": "@color.outside"
   }
 }
