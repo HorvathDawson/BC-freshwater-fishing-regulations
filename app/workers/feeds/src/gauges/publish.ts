@@ -409,6 +409,8 @@ export interface GaugeDeps {
   noForecast?: boolean;
   log?: (s: string) => void;
   sleep?: (ms: number) => Promise<void>;
+  /** how often the HYDAT listing is asked (change-aware; default a day) */
+  hydatCheckMs?: number;
   /** skip parse/compute/writes for stations whose CSV is not modified (default true; the parity test passes false) */
   changeAware?: boolean;
   meter?: Meter;
@@ -428,6 +430,8 @@ export interface GaugeSummary {
   listSource: "eccc" | "roster";
   forecastRuns: number;
   notify: { sent: string[]; failed: string[]; off: boolean };
+  /** change-aware: no new forecast issuance, the last forecast output was reused */
+  forecastReused?: boolean;
 }
 
 const JSON_CT = { contentType: "application/json" };
@@ -478,17 +482,46 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
   }
 
   let latest: string | null = null;
-  if (!deps.noReleaseCheck) {
+  // owner 2026-10-28: the HYDAT listing is asked once a DAY (change-aware), not every run — the last answer stands between
+  let hydatCheck: { latest: string | null; at: number } | null = null;
+  if ((deps.changeAware ?? true) && !deps.noReleaseCheck) {
+    try {
+      hydatCheck = JSON.parse((await priv.get(HYDAT_CHECK)) ?? "null");
+    } catch {
+      hydatCheck = null;
+    }
+  }
+  if (hydatCheck && now - hydatCheck.at < (deps.hydatCheckMs ?? DAY_MS)) latest = hydatCheck.latest;
+  else if (!deps.noReleaseCheck) {
     const html = await get(fetch, HYDAT_DIR, HYDAT_UA, 60_000);
     if (html) {
       const found = [...new Set([...html.matchAll(/Hydat_sqlite3_(\d{8})\.zip/g)].map((m) => m[1]!))].sort();
       latest = found.length ? found[found.length - 1]! : null;
+      if (deps.changeAware ?? true) await priv.put(HYDAT_CHECK, JSON.stringify({ latest, at: now }));
     }
   }
 
   // EVERY STATION FILE IS READ ONCE (Python reads the forecast stations' twice) AND KEPT SLIM: only what the run reads
   // back — `daily` (the record it grows) and the forecast runs that still carry a series (what `withSeries` may carry
   // forward). The whole parsed files are ~48 MB for the province; the Worker has 128 MB.
+  const aware = deps.changeAware ?? true;
+  // FORECAST REUSE (owner 2026-10-28): the BC River Forecast Centre issues once a day (COFFEE ~09:00 PT, CLEVER in
+  // batches 09:30–11:00 PT, ELF ~09:10 PT, not every day). A run whose three layers' `dataLastEditDate` are what the last
+  // forecast run saw, on the same local day, reuses that run's forecast output (index ahead/aheadDays/change, the station
+  // files' forecasts + change) and only updates the observations. Decided BEFORE the station files are read.
+  let reuse = false;
+  let sig: Record<string, number | null> | null = null;
+  let fstate: ForecastState | null = null;
+  if (aware && !deps.noForecast) {
+    try {
+      fstate = JSON.parse((await priv.get(FORECAST_STATE)) ?? "null");
+    } catch {
+      fstate = null;
+    }
+    sig = await forecastSignature(fetch);
+    const today = dayOf(centreWall(now));
+    reuse = !!(fstate && fstate.rev === GAUGE_REV && fstate.day === today && sig && sameSig(sig, fstate.sig));
+  }
   const files = new Map<string, Promise<Prev | null>>();
   const stationFile = (st: string): Promise<Prev | null> => {
     let p = files.get(st);
@@ -502,6 +535,7 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
           return { ok: false }; // unreadable: Python skips it (keep) / starts from nothing (prior)
         }
         if (!f || typeof f !== "object" || Array.isArray(f)) return { ok: false };
+        if (reuse) return { ok: true, daily: f.daily, forecastsText: JSON.stringify(f.forecasts ?? {}), change: f.change };
         const keep: Runs = {};
         for (const [m, run] of Object.entries((f.forecasts || {}) as Runs)) if (truthy(run?.series)) keep[m] = run;
         return { ok: true, daily: f.daily, keep };
@@ -512,7 +546,10 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
   };
 
   let fcast: Summary = {};
-  if (!deps.noForecast) {
+  if (reuse) {
+    fcast = fstate!.summary;
+    log(`  forecast: no new issuance since ${fstate!.at} (layer edit dates unchanged) — last forecast output reused`);
+  } else if (!deps.noForecast) {
     try {
       fcast = await fetchSummary(fetch, log);
       const have: Record<string, Runs> = {};
@@ -524,18 +561,64 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
       });
       fcast = await withSeries(fetch, fcast, new Set(ids), have, now, log);
       for (const f of prevs) if (f) delete f.keep; // carried series now live in `fcast`; the rest is garbage
+      if (aware && sig && Object.keys(fcast).length)
+        await priv.put(FORECAST_STATE, JSON.stringify({ rev: GAUGE_REV, sig, day: dayOf(centreWall(now)), at: wallIso(now) + "Z", summary: stripSeries(fcast) }));
     } catch (e) {
       log(`  forecast unavailable: ${String(e)}`);
     }
   }
 
-  const summary = await publish({ fetch, feed, priv, ids, clim, forecast: fcast, latest, now, listed, drift, roster: rosterName, log, sleep, stationFile, aware: deps.changeAware ?? true, meter: deps.meter });
+  const summary = await publish({ fetch, feed, priv, ids, clim, forecast: fcast, latest, now, listed, drift, roster: rosterName, log, sleep, stationFile, aware, reuse, meter: deps.meter });
   const runs = Object.values(fcast).reduce((n, v) => n + Object.keys(v).length, 0);
   log(`  ✅ ${summary.answered}/${summary.asked} answered, ${summary.withPercentile} with a percentile; ${runs} model runs across ${Object.keys(fcast).length} stations`);
   for (const n of summary.maintenance) if (n.kind === "hydat") log(`  ⚠️  A NEWER HYDAT IS OUT: ${n.latest} (envelope is on ${n.current}, noticed ${n.since}). Refresh with: ${n.action}`);
   const notify = await sendDue(summary.maintenance as any, { url: deps.notifyUrl, fetch, state: priv, stateKey: "notified.json", log });
-  return { ...summary, listSource: source, forecastRuns: runs, notify };
+  return { ...summary, listSource: source, forecastRuns: runs, notify, forecastReused: reuse };
 }
+
+// ── forecast reuse ───────────────────────────────────────────────────────────────────────────────────────────────────
+export const FORECAST_STATE = "forecast.state.json";
+export const HYDAT_CHECK = "hydat.check.json";
+interface ForecastState {
+  rev: string;
+  sig: Record<string, number | null>;
+  /** the Centre-local day the output was computed on (a new day recomputes: aheadDays are dated) */
+  day: string;
+  at: string;
+  summary: Summary;
+}
+const LAYERS: Record<string, string> = { CLEVER: "CLM_MapHub_forecast", COFFEE: "coffee_MapHub_forecast", ELF: "MapHub_ELF_Forecast" };
+/** each forecast layer's `editingInfo.dataLastEditDate` (one small request per model); null when any is unreadable */
+export async function forecastSignature(fetch: Fetch): Promise<Record<string, number | null> | null> {
+  const out: Record<string, number | null> = {};
+  for (const [m, svc] of Object.entries(LAYERS)) {
+    const t = await get(fetch, `https://services6.arcgis.com/ubm4tcTYICKBpist/arcgis/rest/services/${svc}/FeatureServer/0?f=json`);
+    if (!t) return null;
+    try {
+      const v = JSON.parse(t)?.editingInfo?.dataLastEditDate;
+      if (typeof v !== "number") return null;
+      out[m] = v;
+    } catch {
+      return null;
+    }
+  }
+  return out;
+}
+const sameSig = (a: Record<string, number | null>, b: Record<string, number | null> | undefined) =>
+  !!b && Object.keys(a).length === Object.keys(b).length && Object.keys(a).every((k) => a[k] === b[k]);
+function stripSeries(f: Summary): Summary {
+  const out: Summary = {};
+  for (const [st, runs] of Object.entries(f)) {
+    out[st] = {};
+    for (const [m, run] of Object.entries(runs)) {
+      const { series: _s, ...rest } = run;
+      out[st]![m] = rest;
+    }
+  }
+  return out;
+}
+/** a station's forecast runs as issued: what its stored output was computed from */
+const fsigOf = (runs: Runs | undefined) => JSON.stringify(Object.keys(runs || {}).sort().map((m) => [m, runs![m]!.issuedAt ?? null]));
 
 interface PublishArgs {
   fetch: Fetch;
@@ -553,6 +636,7 @@ interface PublishArgs {
   sleep: (ms: number) => Promise<void>;
   stationFile: (st: string) => Promise<Prev | null>;
   aware: boolean;
+  reuse?: boolean;
   meter?: Meter;
 }
 
@@ -571,6 +655,8 @@ interface Base {
   change?: unknown;
 }
 interface Cached {
+  /** the station's forecast runs (model, issuedAt) its forecast fields were computed from */
+  fsig?: string;
   /** the station's non-CSV inputs this run (day, pentad, clim release, forecast runs): its CSV is asked conditionally
    *  only when these are the same as last time */
   ctx: string;
@@ -623,6 +709,9 @@ interface Prev {
   ok: boolean;
   daily?: unknown;
   keep?: Runs;
+  /** forecast reuse: the file's `forecasts` block as written, and its `change` */
+  forecastsText?: string;
+  change?: unknown;
 }
 
 /** publish.publish */
@@ -656,7 +745,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   }
   const nextCache: StationCache = { rev: GAUGE_REV, st: {} };
   const ctxOf = (st: string) =>
-    contentHash(JSON.stringify([nowDay, pent, release, (envelope[st] ? "e" : ""), Object.keys(forecast[st] || {}).length ? now : null]));
+    contentHash(JSON.stringify([nowDay, pent, release, (envelope[st] ? "e" : ""), Object.keys(forecast[st] || {}).length ? (a.reuse ? fsigOf(forecast[st]) : now) : null]));
   const unchanged = new Set<string>();
   const validators = new Map<string, { etag: string | null; lm: string | null }>();
   const got = (
@@ -774,7 +863,21 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     const flowEnv = have.discharge;
     const rankDay: Rank | null = truthy(flowEnv) ? (v, d) => percentileOf(v, bandFor(flowEnv, dayMs(d)! + 12 * HOUR)) : null;
     const runs = forecast[st];
-    const changed = stationChange(runs, now, r.discharge, rankDay);
+    const cprev = a.reuse ? cache?.st[st] : undefined;
+    const prevFile = a.reuse ? await a.stationFile(st) : null;
+    const reuseF = !!(cprev && cprev.fsig === fsigOf(runs) && prevFile?.ok && prevFile.forecastsText !== undefined);
+    let changed: ReturnType<typeof stationChange>;
+    if (reuseF) changed = [{}, null, null] as unknown as ReturnType<typeof stationChange>;
+    else if (a.reuse && prevFile?.ok && prevFile.forecastsText !== undefined) {
+      // reuse run, but this station has no stored output (new, or its cache entry is gone): its runs WITH series are
+      // in its last station file — compute from those
+      const fromFile = JSON.parse(prevFile.forecastsText) as Runs;
+      const withSer: Runs = {};
+      for (const [m, run] of Object.entries(runs || {})) withSer[m] = fromFile[m]?.issuedAt === run.issuedAt && fromFile[m]?.series ? { ...run, series: fromFile[m]!.series } : run;
+      forecast[st] = withSer;
+      changed = stationChange(withSer, now, r.discharge, rankDay);
+    } else changed = stationChange(runs, now, r.discharge, rankDay);
+    const runsNow = forecast[st];
     const per: Record<string, any> = {};
     for (const q of ["discharge", "level"]) {
       const v = q === "level" ? r.level : r.discharge;
@@ -786,18 +889,19 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       const pt = percentileOf(tC, (tEnv[st] || {})[String(pent)]);
       if (pt !== null) per.temperature = pt;
     }
-    const ahead = forecastPercentiles(runs, have, now, { discharge: r.discharge, level: r.level });
-    const days = forecastDays(runs, now, r.discharge, rankDay);
+    const ahead = reuseF ? ((cprev!.base.ahead as Record<string, unknown>) ?? {}) : forecastPercentiles(runsNow, have, now, { discharge: r.discharge, level: r.level });
+    const days = reuseF ? (cprev!.base.aheadDays ?? null) : forecastDays(runsNow, now, r.discharge, rankDay);
+    const idxChange = reuseF ? (cprev!.base.change ?? null) : changed[2];
     index[st] = {
       percentile: percentileOf(observed, band),
       parameter: param,
       ...per,
       observedAt: r.at,
       ...(tC !== null ? { temperatureC: tC, temperatureAt: tAt } : {}),
-      forecast: Object.values(runs || {}).some((run) => truthy(run.series)),
+      forecast: reuseF ? cprev!.base.forecast : Object.values(runsNow || {}).some((run) => truthy(run.series)),
       ...(Object.keys(ahead).length ? { ahead } : {}),
       ...(days ? { aheadDays: days } : {}),
-      ...(changed[2] ? { change: changed[2] } : {}),
+      ...(idxChange ? { change: idxChange } : {}),
     };
     const seen: Means = new Map(seenBy.get(st)!);
     for (const [k, v] of backfill.get(st) || []) seen.set(k, v);
@@ -808,27 +912,32 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     if (old.length) beyondWindow[st] = dayRuns(old);
 
     const forecasts: Record<string, any> = {};
-    for (const mdl of Object.keys(runs || {}).sort()) {
-      const run = runs![mdl]!;
+    for (const mdl of Object.keys(runsNow || {}).sort()) {
+      const run = runsNow![mdl]!;
       forecasts[mdl] = mdl in changed[0] ? { ...run, change: changed[0][mdl] } : run;
     }
-    await put(`${st}.json`, JSON.stringify({
+    const stChange = reuseF ? prevFile!.change : changed[1];
+    const FC = "\u0000forecasts\u0000";
+    let text = JSON.stringify({
       fetchedAt,
       station: st,
       now: { discharge: r.discharge, level: r.level, at: r.at, percentile: index[st].percentile, parameter: param },
       recent: r.recent,
       daily,
       priorYears: ((clim || {}).recentYears ?? {})[st] ?? null,
-      forecasts,
-      ...(changed[1] ? { change: changed[1] } : {}),
-    }));
+      forecasts: reuseF ? FC : forecasts,
+      ...(stChange ? { change: stChange } : {}),
+    });
+    if (reuseF) text = text.replace(JSON.stringify(FC), () => prevFile!.forecastsText!); // the stored block, verbatim
+    await put(`${st}.json`, text);
+    if (prevFile) delete prevFile.forecastsText;
     prior.delete(st);
     seenBy.delete(st);
     backfill.delete(st);
-    const stamps = [newest, ...Object.values(changed[0]).map((c: any) => c.issuedAt)].filter((x) => truthy(x)) as string[];
+    const stamps = [newest, ...(reuseF ? [cprev!.newest] : Object.values(changed[0]).map((c: any) => c.issuedAt))].filter((x) => truthy(x)) as string[];
     newest = stamps.length ? stamps.reduce((a2, b2) => (b2 > a2 ? b2 : a2)) : newest;
     if (a.aware) {
-      const own = (Object.values(changed[0]).map((c: any) => c.issuedAt).filter((x) => truthy(x)) as string[]).sort();
+      const own = reuseF ? (cprev!.newest ? [cprev!.newest] : []) : (Object.values(changed[0]).map((c: any) => c.issuedAt).filter((x) => truthy(x)) as string[]).sort();
       const { temperatureBand: _b, temperature: _t, temperatureC: _c, temperatureAt: _a, percentile, parameter, observedAt, forecast: fc, ahead: ah, aheadDays: ad, change: ch, ...perQ } = index[st];
       const base: Base = { percentile, parameter, per: perQ, observedAt, forecast: fc };
       if (ah !== undefined) base.ahead = ah;
@@ -836,7 +945,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       if (ch !== undefined) base.change = ch;
       const v = validators.get(st) ?? { etag: null, lm: null };
       nextCache.st[st] = {
-        ctx: ctxOf(st), etag: v.etag, lm: v.lm, reading: { at: r.at, level: r.level, discharge: r.discharge }, base,
+        ctx: ctxOf(st), fsig: fsigOf(runs), etag: v.etag, lm: v.lm, reading: { at: r.at, level: r.level, discharge: r.discharge }, base,
         newest: own.length ? own[own.length - 1]! : null, ...(beyondWindow[st] ? { beyond: beyondWindow[st] } : {}),
       };
     }

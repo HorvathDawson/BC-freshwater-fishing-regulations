@@ -179,6 +179,42 @@ run the Python-compatible mode (`pythonParity: true` / `changeAware: false`) or 
   "unmatched → issue" duty is now the DFO feed's unplaced notices + `FEED_NOTIFY_URL`; stocking stays T200.
 - Staging `RUN_TOKEN` rotated; the value is in `app/workers/feeds/.run-token` (gitignored, local only).
 
+## Follow-up 2 (owner 2026-10-28): owner notifications by email, forecast reuse
+Staging redeployed (b8715797), every job run by hand with `?dryNotify=1`; `vitest run --root app/workers/feeds` 101 tests.
+- **One outbox** (`src/events.ts`): events with stable keys → deduped (told once; forgotten after a year) → email via the
+  Cloudflare Email Workers binding `EMAIL` (`[[send_email]]`, unrestricted; from `NOTIFY_EMAIL_FROM` to `NOTIFY_EMAIL_TO`,
+  OWNER sets both as secrets: the destination must be verified in Email Routing, the sender on an Email Routing domain);
+  on email failure or no email → `FEED_NOTIFY_URL` webhook; neither → logged and recorded. A failed send stays pending and
+  is retried next run. `NOTIFY_DIGEST=daily` → one digest a day (first run at/after `NOTIFY_DIGEST_HOUR_UTC`, default
+  15 = 08:00 PDT); health is always immediate. **Dry run**: `POST /run/<job>?dryNotify=1` returns the messages, sends and
+  records nothing; `POST /notify/preview` (bearer) shows the queued digest. `REVIEW_APP_URL` (default
+  `http://localhost:5173`) for the DFO links.
+- **What is told**: (a) HYDAT — the listing is asked once a day now (`private/feeds/gauges/hydat.check.json`), a new
+  release → "New HYDAT <date> — run the HYDAT action" (the Actions workflow, then `scripts/update-hydat.sh --upload`);
+  (b) in-season — `POST /run/inseason` ports main's `update-in-season.yml` scrape (provincial page accordion, 32 rows / 7
+  sections today; a Worker is NOT blocked by the page's Akamai, unlike GitHub's runners): first run is the baseline, then
+  any added / changed / removed row → one email with the diff (snapshots in `private/feeds/inseason/`); the old
+  GitHub-issue job also matched rows to synopsis waters — not ported (the in-season rows are not in the app yet);
+  (c) DFO — every unplaced / held / moved / unbound-header notice, one list per run, with the review app's `#dfo/` link and
+  the `queue --regions` command; (d) health — a feed going degraded / failing / stale and recovering;
+  (e) also included: **ECCC roster drift** (the station list changed → refresh the roster, then the sync workflow).
+  Checked and NOT included: `update-stocking.yml` (weekly export + upload, no owner action — stocking is T200) and
+  `update-hydro.yml` (data only). Staging dry run today: DFO 2 places to review; gauges a roster-drift message (+10
+  stations ECCC lists that the roster calls silent).
+- **Forecast reuse**: the forecasts come from the BC River Forecast Centre's ArcGIS layers (not ECCC). Issuance seen
+  2026-10-28: COFFEE once ~09:04 PT; CLEVER in batches 09:35–10:55 PT; ELF ~09:12 PT, not daily (last 10-27). Each run
+  now asks the three layers' `editingInfo.dataLastEditDate` (3 small requests); unchanged and the same Centre-local day
+  → the last forecast run's output is reused (index `ahead` / `aheadDays` / `change`, the station files' `forecasts` +
+  `change` verbatim), no summary queries, no station-file forecast reads, no forecast maths; only observations update.
+  A new issuance or a new day recomputes once (`private/feeds/gauges/forecast.state.json`). Trade-off (owner's call):
+  between issuances `ahead` is read at the issuing run's hour and the observation scaling is not refreshed.
+- **Measured** (staging, CF cpuTime): gauges recompute 2,227 ms → **reuse 1,481 ms** (−33%), R2 B 438 → 401, A ~397
+  (station files still carry new observations), subrequests 487 → 462. DFO unchanged run 123 ms. In-season 18 ms CPU,
+  1 subrequest. Node (`parity/measure-change.ts`, full roster): 680–726 → 400–464 ms.
+  **Cost table update** — gauges hourly 06–22 + 3-hourly night (~580 runs/mo), ~4 recomputes/day (issuance batches + the
+  day roll) ≈ 120 × 2.3 s + 460 × 1.5 s ≈ **1.0M CPU-ms/mo** (was 1.4–2.9M); R2 class A ≈ 230k/mo (was 255k), B ≈ 235k;
+  DFO ≤ 0.03M CPU-ms; in-season every 6 h ≈ 2k CPU-ms. All inside the $5 plan's 30M; R2 inside the free tier.
+
 ## Acceptance
 Feeds update on schedule on staging for a week with no hand runs; a forced source failure alerts once and the app
 shows the stale age; runbook written; then prod switched on by the owner.

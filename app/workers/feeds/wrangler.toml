@@ -12,3 +12,12 @@ enabled = true
 [[r2_buckets]]
 binding = "BUCKET"
 bucket_name = "bc-fishing-regulations-staging"
+
+# T225 follow-up: owner notifications by email (src/events.ts). Cloudflare Email Workers: the destination must be a
+# VERIFIED address in the account's Email Routing, and the sender an address on an Email Routing domain. OWNER sets both:
+#   npx --prefix app wrangler secret put NOTIFY_EMAIL_TO   -c app/workers/feeds/wrangler.toml
+#   npx --prefix app wrangler secret put NOTIFY_EMAIL_FROM -c app/workers/feeds/wrangler.toml   (e.g. feeds@<your domain>)
+# Optional: NOTIFY_DIGEST=daily (one email a day; health stays immediate), NOTIFY_DIGEST_HOUR_UTC (default 15),
+# FEED_NOTIFY_URL (webhook fallback), REVIEW_APP_URL (default http://localhost:5173). Unset: messages are only logged.
+[[send_email]]
+name = "EMAIL"

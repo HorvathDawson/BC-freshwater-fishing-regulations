@@ -14,10 +14,12 @@ const FEEDS = resolve(new URL(".", import.meta.url).pathname, "..");
 const fix = resolve(process.argv[2] ?? join(FEEDS, "fixtures-full/gauges"));
 const rec = loadRecording(fix);
 const roster = JSON.parse(readFileSync(join(fix, "roster.json"), "utf-8"));
-function etagFetch(): Fetch {
+function etagFetch(etags = true): Fetch {
   const base = fixtureFetch(rec).fetch;
   return async (url, init) => {
+    if (/FeatureServer\/0\?f=json$/.test(url)) return new Response(JSON.stringify({ editingInfo: { dataLastEditDate: 1 } }));
     const r = await base(url, init);
+    if (!etags) return r;
     if (!url.includes("_hourly_hydrometric.csv")) return r;
     const body = await r.text();
     const etag = `"${contentHash(body)}"`;
@@ -26,7 +28,7 @@ function etagFetch(): Fetch {
   };
 }
 const cpu = () => { const u = process.cpuUsage(); return (u.user + u.system) / 1000; };
-async function gauges(aware: boolean) {
+async function gauges(aware: boolean, etags = true) {
   const seed = (sub: string) => { const m = new Map<string, string>(); for (const [k, v] of readTree(join(fix, "seed", sub))) m.set(k, v); return m; };
   const feed = memStore(seed("feed"));
   const priv = memStore(seed("priv"));
@@ -34,13 +36,14 @@ async function gauges(aware: boolean) {
   for (let k = 0; k < 3; k++) {
     const m = newMeter();
     const c0 = cpu();
-    const s = await runGauges({ fetch: etagFetch(), feed: meteredStore(feed, m), priv: meteredStore(priv, m), now: new Date(Date.parse(rec.now) + k * 3600_000), roster, sleep: async () => {}, changeAware: aware, meter: m, noReleaseCheck: false });
-    out.push({ run: k + 1, cpuMs: Math.round(cpu() - c0), r2A: m.r2ClassA, r2B: m.r2ClassB, mbWritten: +(m.bytesWritten / 1e6).toFixed(2), unchanged: m.sourcesUnchanged, answered: s.answered });
+    const s = await runGauges({ fetch: etagFetch(etags), feed: meteredStore(feed, m), priv: meteredStore(priv, m), now: new Date(Date.parse(rec.now) + k * 3600_000), roster, sleep: async () => {}, changeAware: aware, meter: m, noReleaseCheck: false });
+    out.push({ reused: s.forecastReused, run: k + 1, cpuMs: Math.round(cpu() - c0), r2A: m.r2ClassA, r2B: m.r2ClassB, mbWritten: +(m.bytesWritten / 1e6).toFixed(2), unchanged: m.sourcesUnchanged, answered: s.answered });
   }
   return out;
 }
 console.log("gauges, skip OFF", JSON.stringify(await gauges(false)));
-console.log("gauges, skip ON ", JSON.stringify(await gauges(true)));
+console.log("gauges, skip ON, CSVs 304 ", JSON.stringify(await gauges(true)));
+console.log("gauges, skip ON, CSVs changed (no ETag) ", JSON.stringify(await gauges(true, false)));
 
 const FIX = join(FEEDS, "test/fixtures/dfo");
 const slugs = ["1", "2", "3", "4", "5a", "5b", "6", "7", "8"];
@@ -57,7 +60,7 @@ async function dfo(aware: boolean) {
       entries: async (s) => (existsSync(join(FIX, `entries/region-${s}.json`)) ? readFileSync(join(FIX, `entries/region-${s}.json`), "utf-8") : null),
       fetcher: async (s) => [readFileSync(join(FIX, `pages/region${s}-eng.html`), "utf-8"), null],
     });
-    out.push({ run: k + 1, cpuMs: Math.round(cpu() - c0), r2A: m.r2ClassA, r2B: m.r2ClassB, skippedWrites: m.writesSkipped, unchanged: m.sourcesUnchanged });
+    out.push({ reused: s.forecastReused, run: k + 1, cpuMs: Math.round(cpu() - c0), r2A: m.r2ClassA, r2B: m.r2ClassB, skippedWrites: m.writesSkipped, unchanged: m.sourcesUnchanged });
   }
   return out;
 }

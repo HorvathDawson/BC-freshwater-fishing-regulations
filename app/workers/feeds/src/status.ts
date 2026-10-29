@@ -4,7 +4,7 @@
 import type { Fetch, Meter, Store } from "./io";
 import { body as notifyBody } from "./notify";
 
-export type Job = "gauges" | "dfo";
+export type Job = "gauges" | "dfo" | "inseason";
 export type FeedState = "ok" | "degraded" | "failing" | "stale" | "never";
 
 export interface Held {
@@ -57,6 +57,7 @@ export const STALE_CADENCES = 2.5;
 /** The cadence wanted (T225 Q-T225c / Q145): gauges hourly; DFO every 6 h Jun 1–Oct 31, daily otherwise. */
 export function cadenceMin(job: Job, now: Date): number {
   if (job === "gauges") return 60;
+  if (job === "inseason") return 360; // as main's update-in-season.yml
   const m = now.getUTCMonth() + 1;
   return m >= 6 && m <= 10 ? 360 : 1440;
 }
@@ -133,7 +134,7 @@ export function dueAlerts(s: Status): Alert[] {
 }
 
 function alertText(f: FeedStatus): string {
-  const name = f.job === "gauges" ? "Gauge feed" : "DFO salmon feed";
+  const name = f.job === "gauges" ? "Gauge feed" : f.job === "dfo" ? "DFO salmon feed" : "In-season changes check";
   switch (f.state) {
     case "ok":
       return `${name} is OK again (last success ${f.lastSuccess}).`;
@@ -180,7 +181,7 @@ const ago = (iso: string | null, now: Date) => {
 };
 
 export function statusHtml(s: Status, now: Date): string {
-  const rows = (["gauges", "dfo"] as Job[]).map((j) => {
+  const rows = (["gauges", "dfo", "inseason"] as Job[]).map((j) => {
     const f = s.feeds[j];
     if (!f) return `<tr><td>${j}</td><td class="never">never run</td><td colspan="6"></td></tr>`;
     const r = f.lastRun;

@@ -144,3 +144,72 @@ describe("change-aware gauge runs", () => {
     expect(m.sourcesUnchanged).toBe(Object.keys(idx1.stations).length - second.puts.filter((k) => /^\w+\.json$/.test(k) && k !== "index.json").length);
   });
 });
+
+describe("forecast reuse: only a new issuance recomputes forecasts", () => {
+  /** the recording + the three forecast layers' metadata (`dataLastEditDate`), which the test can move */
+  function withLayers(edit: { v: number }): Fetch {
+    const base = fixtureFetch(loadRecording(FIX)).fetch;
+    return async (url, init) => {
+      if (/FeatureServer\/0\?f=json$/.test(url)) return new Response(JSON.stringify({ editingInfo: { dataLastEditDate: edit.v } }));
+      return base(url, init);
+    };
+  }
+  const later = (h: number) => new Date(Date.parse(loadRecording(FIX).now) + h * 3600_000);
+
+  it("same layer edit dates, same day: forecast output reused verbatim, observations still published", async () => {
+    const dir = seeded();
+    const edit = { v: 1 };
+    const first = await runOn(dir, withLayers(edit));
+    expect(first.s.forecastReused).toBe(false);
+    const idx1 = JSON.parse((await first.feed.get("index.json"))!);
+    const withRuns = Object.keys(idx1.stations).filter((st) => idx1.stations[st].forecast);
+    const file1 = Object.fromEntries(await Promise.all(withRuns.map(async (st) => [st, JSON.parse((await first.feed.get(`${st}.json`))!)])));
+    const second = await runOn(dir, withLayers(edit), { now: later(1) });
+    expect(second.s.forecastReused).toBe(true);
+    const idx2 = JSON.parse((await second.feed.get("index.json"))!);
+    for (const st of withRuns) {
+      for (const k of ["forecast", "ahead", "aheadDays", "change"]) expect(idx2.stations[st][k], `${st}.${k}`).toEqual(idx1.stations[st][k]);
+      const f2 = JSON.parse((await second.feed.get(`${st}.json`))!);
+      expect(f2.forecasts).toEqual(file1[st].forecasts);
+      expect(f2.change).toEqual(file1[st].change);
+      expect(f2.fetchedAt).not.toBe(file1[st].fetchedAt); // the file itself was republished with this run's observations
+    }
+    expect(idx2.forecastIssuedAt).toBe(idx1.forecastIssuedAt);
+  });
+
+  it("a moved layer edit date recomputes", async () => {
+    const dir = seeded();
+    const edit = { v: 1 };
+    await runOn(dir, withLayers(edit));
+    edit.v = 2;
+    const second = await runOn(dir, withLayers(edit), { now: later(1) });
+    expect(second.s.forecastReused).toBe(false);
+  });
+
+  it("an unreadable layer never reuses", async () => {
+    const dir = seeded();
+    await runOn(dir, withLayers({ v: 1 }));
+    const second = await runOn(dir, fixtureFetch(loadRecording(FIX)).fetch, { now: later(1) });
+    expect(second.s.forecastReused).toBe(false);
+  });
+});
+
+describe("HYDAT listing: asked once a day", () => {
+  it("a second run within the day reuses the last answer (and its notice stands)", async () => {
+    const dir = seeded();
+    let asked = 0;
+    const base = fixtureFetch(loadRecording(FIX)).fetch;
+    const fetch: Fetch = async (url, init) => {
+      if (url === "https://collaboration.cmc.ec.gc.ca/cmc/hydrometrics/www/") asked++;
+      return base(url, init);
+    };
+    const a = await runOn(dir, fetch);
+    const b = await runOn(dir, fetch, { now: new Date(Date.parse(loadRecording(FIX).now) + 3600_000) });
+    expect(asked).toBe(1);
+    expect(b.s.latest).toBe(a.s.latest);
+    expect(b.s.maintenance.map((n) => n.kind)).toEqual(a.s.maintenance.map((n) => n.kind));
+    const c = await runOn(dir, fetch, { now: new Date(Date.parse(loadRecording(FIX).now) + 25 * 3600_000) });
+    expect(asked).toBe(2);
+    void c;
+  });
+});
