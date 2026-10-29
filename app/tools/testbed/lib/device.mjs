@@ -30,7 +30,11 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  */
 export async function net(state) {
   if (state === 'offline') {
+    // airplane mode AND both radios off: Android remembers "Wi-Fi on in airplane mode" once Wi-Fi was turned on
+    // during one, so airplane mode alone can leave Wi-Fi up (seen in the T255 runs)
     sh('cmd connectivity airplane-mode enable');
+    sh('svc wifi disable');
+    sh('svc data disable');
   } else {
     sh('cmd connectivity airplane-mode disable');
     await sleep(1500);
@@ -38,7 +42,12 @@ export async function net(state) {
     sh(state === 'cellular' ? 'svc wifi disable' : 'svc wifi enable');
   }
   if (state !== 'offline') await waitOnline(state === 'cellular' ? 'MOBILE' : 'WIFI');
-  else await sleep(2500);
+  else {
+    const end = Date.now() + 20_000;
+    while (netState() !== 'none' && Date.now() < end) await sleep(1000);
+    if (netState() !== 'none') throw new Error(`still online after airplane mode (${netState()})`);
+    await sleep(1500);
+  }
   return netState();
 }
 

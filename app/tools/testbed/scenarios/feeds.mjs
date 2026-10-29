@@ -1,7 +1,7 @@
 // (T255) 1. NEW FEEDS IN R2: a feed index changes on the test channel → the app sees it (on a foreground return by
 // itself, and on Check now), downloads it, and the Updates log + the sync button say so; a feed that 404s is a failure
 // the sync button badges and the bell lists, and clears when it is back.
-import { appUp, checkNow, logStatus, openLog, syncLabel, toMap } from './common.mjs';
+import { appUp, checkNow, logStatus, openLog, syncLabel, toMap, coldStart } from './common.mjs';
 
 export const feeds = {
   id: 'feeds',
@@ -10,7 +10,7 @@ export const feeds = {
     await ctx.step('test channel reset; app up on Wi-Fi', async () => {
       ctx.updates('reset');
       await ctx.device.net('wifi');
-      await appUp(ctx);
+      await coldStart(ctx);   // every scenario starts from a fresh launch (the data stays)
     });
     await ctx.step('Check now: every feed unchanged (304)', async () => {
       openLog(ctx);
@@ -60,8 +60,7 @@ export const feeds = {
       ctx.updates('reset');
       ctx.flow('tap-text', { TEXT: 'Retry' });
       await ctx.device.sleep(5000);
-      ctx.device.sh('input keyevent 4');
-      await ctx.device.sleep(1000);
+      await toMap(ctx);
       const l = syncLabel(ctx);
       if (!l || /could not update/.test(l)) throw new Error(`still failed: ${l}`);
       return l;

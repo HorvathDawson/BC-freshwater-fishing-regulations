@@ -16,12 +16,19 @@ export const install = {
       ctx.device.launch();
       await ctx.device.sleep(4000);
     });
-    await ctx.step('first-run download, then the map', async () => {
+    await ctx.step('first-run download, then the map (no crash)', async () => {
       const t0 = Date.now();
-      // the first-run notice / walkthrough may sit over the map: dismissed by the flow when present
-      await appUp(ctx, { launch: false, ms: 15 * 60_000 });
+      let relaunched = 0;
+      // the download is watched; a dead app (T262: OutOfMemoryError in expo fetch) is relaunched as a reader would,
+      // and the step fails on the crash (the runner reads the crash buffer) while the rest of the run goes on
+      while (Date.now() - t0 < 20 * 60_000) {
+        if (ctx.device.screenText().includes('More')) break;
+        if (!ctx.device.pidOf()) { relaunched++; ctx.device.launch(); }
+        await ctx.device.sleep(5000);
+      }
+      await appUp(ctx, { launch: false, ms: 10_000 });
       ctx.flow('dismiss-first-run');
-      return `opened in ${Math.round((Date.now() - t0) / 1000)} s after launch`;
+      return `opened in ${Math.round((Date.now() - t0) / 1000)} s after launch${relaunched ? ` — the app died ${relaunched}× and was relaunched (resumed)` : ''}`;
     }, { stop: true });
     await ctx.step('Updates log: every source checked on start', async () => {
       openLog(ctx);

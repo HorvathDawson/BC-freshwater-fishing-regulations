@@ -15,23 +15,43 @@ export const offline = {
       return ctx.device.netState();
     });
     await ctx.step('the offline banner is shown', async () => ctx.waitText(OFFLINE_BANNER, 20_000));
-    await ctx.step('search works offline ("Vedder")', async () => {
-      ctx.flow('search', { Q: 'Vedder' });
-      return ctx.waitText(/Vedder River/, 20_000);
+    await ctx.step('search works offline ("Cultus")', async () => {
+      ctx.flow('search', { Q: 'Cultus' });
+      return ctx.waitText(/^Cultus Lake/, 20_000);
     });
     await ctx.step("a water's regulations open offline", async () => {
-      ctx.flow('tap-text', { TEXT: 'Vedder River.*' });
+      ctx.flow('open-result', { LINE: 'Lake · near Lindell Beach.*' });
       await ctx.waitText(/Regulations/, 20_000);
       const words = ctx.device.screenText();
       const stuck = words.find((w) => /not available offline|Loading the regulations|this will load when/.test(w));
       if (stuck) throw new Error(`the installed set should answer offline: "${stuck}"`);
       return words.find((w) => /Open|Closed|open|closed/.test(w)) ?? 'regulations drawn';
     });
+    await ctx.step('a town offline: the waters near it (read from the installed set)', async () => {
+      await toMap(ctx);
+      ctx.flow('search', { Q: 'Cultus' });
+      ctx.device.logcatClear();
+      ctx.flow('tap-text', { TEXT: 'Village · every named water around it' });
+      await ctx.device.sleep(4000);
+      const w = ctx.device.screenText();
+      if (w.some((x) => /Could not read what is near this town/.test(x))) {
+        const js = ctx.device.logcatJs().split('\n').filter((l) => /near|sqlite|Error|error/i.test(l)).slice(-4).join(' / ');
+        ctx.finding(`offline, a town's "waters near" fails: "Could not read what is near this town." (Cultus Lake village)${js ? ` — JS: ${js.slice(0, 300)}` : ''}`);
+        throw new Error('Could not read what is near this town.');
+      }
+      return w.find((x) => /NAMED WATERS|named waters/i.test(x)) ?? 'listed';
+    });
+    await ctx.step('back to the water: Conditions view', async () => {
+      await toMap(ctx);
+      ctx.flow('search', { Q: 'Cultus' });
+      ctx.flow('open-result', { LINE: 'Lake · near Lindell Beach.*' });
+      await ctx.waitText(/Regulations/, 20_000);
+    });
     await ctx.step('Conditions offline: last captured readings or "not available offline", never a spinner', async () => {
       ctx.flow('tap-text', { TEXT: 'Conditions' });
       await ctx.device.sleep(4000);
       const words = ctx.device.screenText();
-      const said = words.find((w) => /offline|not available|Last|ago|m³\/s|No reading/i.test(w));
+      const said = words.find((w) => !OFFLINE_BANNER.test(w) && /offline|not available|Last|ago|m³\/s|No reading|gauge|station/i.test(w));
       if (!said) throw new Error(`nothing said about the readings offline (saw: ${words.slice(0, 10).join(' | ')})`);
       return said;
     });
@@ -42,7 +62,17 @@ export const offline = {
       while (Date.now() < end && ctx.device.screenText().some((w) => OFFLINE_BANNER.test(w))) await ctx.device.sleep(1500);
       if (ctx.device.screenText().some((w) => OFFLINE_BANNER.test(w))) throw new Error('the offline banner stayed');
       openLog(ctx);
-      return ctx.waitText(/Gauges, (unchanged|changed)/, 30_000);
+      const row = await ctx.waitText(/Gauges, (unchanged|changed)/, 30_000);
+      return row;
+    });
+    await ctx.step('the same town online: the waters near it', async () => {
+      await toMap(ctx);
+      ctx.flow('search', { Q: 'Cultus' });
+      ctx.flow('tap-text', { TEXT: 'Village · every named water around it' });
+      await ctx.device.sleep(4000);
+      const w = ctx.device.screenText();
+      if (w.some((x) => /Could not read what is near this town/.test(x))) throw new Error('Could not read what is near this town (online too)');
+      return w.find((x) => /NAMED WATERS|named waters/i.test(x)) ?? 'listed';
     });
     await ctx.step('mid-session: offline while using the app → the banner, the app keeps working', async () => {
       await toMap(ctx);
@@ -57,9 +87,13 @@ export const offline = {
       if (bad) throw new Error(bad);
     });
     await ctx.step('online-only part offline: satellite imagery says so', async () => {
+      await toMap(ctx);
+      await ctx.device.sleep(1500);
       ctx.flow('layers-satellite');
       await ctx.device.sleep(3000);
-      return ctx.waitText(/offline|Online only|not available|no connection/i, 15_000);
+      const said = await ctx.waitText(/Satellite needs a connection|NEEDS A CONNECTION/, 15_000);
+      ctx.flow('tap-text', { TEXT: 'Done' });
+      return said;
     });
     await ctx.step('Check now offline: "offline", nothing requested', async () => {
       openLog(ctx);

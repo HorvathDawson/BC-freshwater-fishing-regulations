@@ -25,7 +25,7 @@ export const report = {
     const marker = `TESTBED ${ctx.rec.id}-${Date.now().toString(36)}`;
     await ctx.step('offline, app up', async () => {
       await ctx.device.net('wifi');
-      await appUp(ctx);
+      await coldStart(ctx);   // every scenario starts from a fresh launch (the data stays)
       await ctx.device.net('offline');
     });
     await ctx.step('send a report offline → "saved on this device"', async () => {

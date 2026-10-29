@@ -1,0 +1,6 @@
+# In search results: preview the row whose line is LINE (the map frames it), then its "Open …" arrow.
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "${LINE}", index: 0 }
+- waitForAnimationToEnd: { timeout: 4000 }
+- tapOn: { text: "Open .*", index: 0 }

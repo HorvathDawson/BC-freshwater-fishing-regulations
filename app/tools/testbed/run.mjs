@@ -36,13 +36,25 @@ const run = {
   apk: 'app/tools/testbed/out/app-testbed.apk (release, staging, channel test, env switch on)', channel: 'test (staging test/)',
   sync: SYNC, scenarios: [],
 };
+// (batches) a run into a folder that already holds a report adds its scenarios to it: one report for several heavy jobs
+try {
+  const prev = JSON.parse(fs.readFileSync(path.join(dir, 'report.json'), 'utf8'));
+  run.id = prev.id; run.started = prev.started;
+  run.scenarios.push(...prev.scenarios.filter((x) => !want.includes(x.id)));
+} catch { /* a new report */ }
 console.log(`[testbed] report → ${dir}`);
 
-/** The staging test channel (deploy/staging/test-updates.mjs). */
+/** The staging test channel (deploy/staging/test-updates.mjs); an R2/rclone hiccup is tried again (3 tries). */
 function updates(cmd, arg) {
-  const out = execFileSync('node', [path.join(ROOT, 'deploy/staging/test-updates.mjs'), cmd, ...(arg ? [String(arg)] : [])],
-                           { encoding: 'utf8', timeout: 180_000 });
-  return JSON.parse(out);
+  let last;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const out = execFileSync('node', [path.join(ROOT, 'deploy/staging/test-updates.mjs'), cmd, ...(arg ? [String(arg)] : [])],
+                               { encoding: 'utf8', timeout: 180_000, stdio: ['ignore', 'pipe', 'pipe'] });
+      return JSON.parse(out);
+    } catch (e) { last = e; execFileSync('sleep', ['5']); }
+  }
+  throw new Error(`test-updates ${cmd}: ${String(last?.stderr ?? last?.message ?? last).trim().split('\n').pop()}`);
 }
 
 /** The app's FATAL lines in the crash buffer since the last call (then cleared): the first line of each. */
@@ -58,7 +70,7 @@ function crashes() {
 }
 try { device.adb(['logcat', '-b', 'crash', '-c']); } catch { /* none yet */ }
 
-let shotN = 0;
+let shotN = fs.readdirSync(dir).filter((f) => f.endsWith('.png')).length;
 function makeCtx(sc) {
   const rec = { id: sc.id, title: sc.title, result: 'pass', steps: [], findings: [], ms: 0 };
   run.scenarios.push(rec);
@@ -66,7 +78,12 @@ function makeCtx(sc) {
     device, updates, sync: null, rec, dir,
     /** A UI flow; throws its Maestro words when it fails (the step then fails). */
     flow(name, env) {
-      const r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) });
+      let r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) });
+      // one more try after a beat: a sheet still settling or a toast over a tab is not the app's failure
+      if (!r.ok && !/^(updates-log-action|spot-name-save|report-send|spot-add-photo)$/.test(name)) {
+        execFileSync('sleep', ['2']);
+        r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) });
+      }
       ctx.lastSaid = r.said;
       if (!r.ok) throw new Error(`flow ${name} failed: ${r.said.split('\n').slice(-3).join(' / ') || 'see maestro log'}`);
       return r;

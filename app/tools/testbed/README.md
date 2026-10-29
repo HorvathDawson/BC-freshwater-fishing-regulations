@@ -43,7 +43,8 @@ scripts/heavy.sh testbed 30 -- bash app/tools/testbed/session.sh -- node app/too
 `session.sh` boots `n1_pixel` headless on its own port (5580), installs `out/app-testbed.apk`, runs the command under a
 wall-clock cap (`--max-min`, default 45), then shuts down its own emulator and Gradle daemon. The emulator's data
 persists between batches (`-no-snapshot-save` keeps the userdata image), so the release installed by `install` stays.
-`run.mjs` resets the test channel at the end (`test-updates.mjs reset`).
+`run.mjs` resets the test channel at the end (`test-updates.mjs reset`). Several batches can write ONE report:
+pass the same `--out <dir>` to each (a scenario run again replaces its earlier result).
 
 Writing a flow: `node app/tools/testbed/explore.mjs` (inside a session) saves a screenshot and every word of each
 screen to `out/explore/`; RN `testID` is Maestro's `id:`; `maestro --device emulator-5580 studio` is the interactive

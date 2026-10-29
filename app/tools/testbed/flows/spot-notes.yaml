@@ -1,16 +1,22 @@
-# Spots → the spot TITLE → Edit → Notes NOTES → Save changes.
+# Spots → the spot TITLE → Edit → Notes: NOTES typed (the keyboard left up; the runner screenshots it). SHOT: a path
+# prefix for the flow's own screenshots (the spot page, the edit form before typing).
 appId: ca.canifishthis.app
 ---
-- tapOn: { text: "Spots", index: 0 }
-- tapOn: { text: ".*${TITLE}.*", index: 0 }
+- tapOn: { text: "SPOTS", index: 0 }
+- tapOn: { text: "${TITLE}", index: 0 }
+- extendedWaitUntil:
+    visible: { text: "Edit" }
+    timeout: 10000
+- takeScreenshot: "${SHOT}-spot-page"
 - tapOn: { text: "Edit", index: 0 }
+- extendedWaitUntil:
+    visible: { text: "Save changes" }
+    timeout: 10000
+- takeScreenshot: "${SHOT}-edit-form"
+# the field itself (its placeholder): "Notes" is also the block's heading, which takes no text
 - scrollUntilVisible:
-    element: { text: "Notes" }
+    element: { text: "What happened, what you used, what the water looked like" }
     timeout: 15000
-- tapOn: { text: "Notes", index: 0 }
+- tapOn: { text: "What happened, what you used, what the water looked like" }
 - inputText: "${NOTES}"
-- hideKeyboard
-- scrollUntilVisible:
-    element: { text: "Save changes" }
-    timeout: 15000
-- tapOn: { text: "Save changes" }
+- takeScreenshot: "${SHOT}-typed"

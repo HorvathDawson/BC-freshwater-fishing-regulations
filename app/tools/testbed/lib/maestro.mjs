@@ -26,6 +26,10 @@ export function flow(name, env = {}, { logDir } = {}) {
            JAVA_HOME: process.env.JAVA_HOME ?? '/Applications/Android Studio.app/Contents/jbr/Contents/Home' },
   });
   const log = `${r.stdout ?? ''}${r.stderr ?? ''}`;
+  if (logDir) {
+    fs.mkdirSync(logDir, { recursive: true });
+    fs.writeFileSync(path.join(logDir, `${new Date().toISOString().replace(/[:.]/g, '-')}-${name}.log`), log);
+  }
   const lines = log.split('\n').filter((l) => /FAILED|COMPLETED|Assertion|not found|Element/.test(l)).slice(-12).join('\n');
   return { ok: r.status === 0, ms: Date.now() - t0, log, said: lines.trim() };
 }

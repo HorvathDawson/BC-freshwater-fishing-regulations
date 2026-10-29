@@ -39,7 +39,7 @@ export const spots = {
       d.addPhoto(path.join(HERE, '..', 'media', 'testbed-photo.jpg'), `testbed-${Date.now()}.jpg`);
       d.geo(LAKE.lon, LAKE.lat);
       await d.net('wifi');
-      await appUp(ctx);
+      await coldStart(ctx);   // every scenario starts from a fresh launch (the data stays)
     }, { shot: false });
     await ctx.step('offline (airplane mode)', async () => { await d.net('offline'); });
     await ctx.step('Spots → At my location → the capture, offline', async () => {
@@ -62,25 +62,67 @@ export const spots = {
     await ctx.step('cold start, still offline: the spot and its photo are still there', async () => {
       await coldStart(ctx, { ms: 60_000 });
       await ctx.sync.expectStored(spot);
-      const photo = d.screenText().some((w) => /NO PHOTO/.test(w));
-      return photo ? 'listed — but the row says NO PHOTO' : 'listed with its photo';
+      // the row's words: title, then its lines; a row without a photo says NO PHOTO before its title
+      const w = d.screenText();
+      const at = w.findIndex((x) => x === spot.title);
+      if (at > 0 && /NO PHOTO/.test(w[at - 1] ?? '')) throw new Error('the row says NO PHOTO: the photo was not kept');
+      return `listed with its photo · ${w[at + 1] ?? ''}`;
     });
-    await ctx.step('edit offline: notes added and kept', async () => {
-      ctx.flow('spot-notes', { TITLE: spot.title, NOTES: 'edited offline by the test bed' });
+    let editing = false;
+    await ctx.step('edit offline: notes typed (keyboard up: is "Save changes" above it?)', async () => {
+      ctx.flow('spot-notes', { TITLE: spot.title, NOTES: 'edited offline by the test bed', SHOT: path.join(ctx.dir, 'spots-notes') });
+      await d.sleep(1500);
+      const w = d.screenText();
+      editing = w.some((x) => /edited offline by the test bed/.test(x));
+      if (!editing) throw new Error(`the notes field is not on screen after typing (saw: ${w.slice(0, 8).join(' | ')})`);
+      const visible = w.includes('Save changes');
+      if (!visible) ctx.finding('spot edit (Android 15, edge-to-edge): with the keyboard up, "Save changes" is under the keyboard');
+      return visible ? '"Save changes" visible above the keyboard' : '"Save changes" hidden by the keyboard';
+    });
+    await ctx.step('system back closes the keyboard only (the edit stays)', async () => {
+      if (!editing) ctx.skip('the edit form was not reached');
+      d.sh('input keyevent 4');
+      await d.sleep(1500);
+      const w = d.screenText();
+      if (!w.some((x) => /edited offline by the test bed/.test(x))) {
+        const asked = w.some((x) => /unsaved changes/i.test(x));
+        ctx.finding(`spot edit: one system back with the keyboard up ${asked ? 'asked about unsaved changes' : 'left the edit and its unsaved notes without asking'}`);
+        throw new Error(`back left the edit (saw: ${w.slice(0, 6).join(' | ')})`);
+      }
+    });
+    await ctx.step('Save changes; cold start offline; the notes are kept', async () => {
+      ctx.flow('tap-text', { TEXT: 'Save changes' });
       await d.sleep(2000);
       await coldStart(ctx, { ms: 60_000 });
       ctx.flow('tab', { TAB: 'Spots' });
-      ctx.flow('tap-text', { TEXT: `.*${spot.title}.*` });
+      ctx.flow('tap-text', { TEXT: spot.title });
       await ctx.waitText(/edited offline by the test bed/, 15_000);
       d.sh('input keyevent 4');
     });
+    let synced = false;
     await ctx.step('back online → its weather fills in by itself (adapter: expectSynced)', async () => {
+      d.logcatClear();
       await d.net('wifi');
-      return ctx.sync.expectSynced(spot);
+      const r = await ctx.sync.expectSynced(spot);
+      synced = true;
+      return r;
     });
+    if (!synced) {
+      await ctx.step("diagnosis: does the spot page's own Refresh fill it?", async () => {
+        const js = d.logcatJs().split('\n').filter((l) => /ReactNativeJS/.test(l)).slice(-6).join(' / ');
+        ctx.flow('tab', { TAB: 'Spots' });
+        ctx.flow('tap-text', { TEXT: spot.title });
+        ctx.flow('tap-text', { TEXT: 'Refresh' });
+        await d.sleep(8000);
+        const left = d.screenText().find((w) => /No weather was recorded/.test(w));
+        ctx.finding(`spot made offline not filled after reconnect (2 min); manual Refresh ${left ? 'did NOT fill it either' : 'filled it'}${js ? ` — JS log: ${js.slice(0, 400)}` : ''}`);
+        if (left) throw new Error('manual Refresh did not fill it either');
+        return 'manual Refresh filled it: the reconnect trigger did not fire';
+      });
+    }
     await ctx.step('the spot after reconnect', async () => {
       ctx.flow('tab', { TAB: 'Spots' });
-      ctx.flow('tap-text', { TEXT: `.*${spot.title}.*` });
+      ctx.flow('tap-text', { TEXT: spot.title });
       await d.sleep(2500);
       return d.screenText().filter((w) => /°|km\/h|Weather|m³\/s|gauge/i.test(w)).slice(0, 4).join(' · ');
     });

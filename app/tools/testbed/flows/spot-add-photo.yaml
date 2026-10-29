@@ -5,11 +5,15 @@ appId: ca.canifishthis.app
     element: { text: "Add from photos" }
     timeout: 15000
 - tapOn: { text: "Add from photos" }
-- waitForAnimationToEnd: { timeout: 5000 }
-# the newest photo: the first tile of "Recent" (tiles carry no text; "Photos" is the picker's tab)
 - extendedWaitUntil:
     visible: { text: "Recent" }
     timeout: 10000
-- tapOn: { point: "16%,51%" }
+# the picker's Google Photos card, when it shows, pushes the grid down: dismissed first
+- tapOn: { text: "Dismiss", optional: true }
+- waitForAnimationToEnd: { timeout: 3000 }
+# the newest photo: the first tile under "Recent" (tiles carry no text; "Photos" is the picker's tab)
+- tapOn:
+    below: { text: "Recent" }
+    index: 0
 - waitForAnimationToEnd: { timeout: 5000 }
 - tapOn: { text: "(Done|Add|Select)", optional: true }

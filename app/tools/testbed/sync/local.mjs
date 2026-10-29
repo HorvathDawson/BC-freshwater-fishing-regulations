@@ -9,7 +9,7 @@ export function localAdapter(ctx) {
   const open = async (spot) => {
     ctx.flow('tab', { TAB: 'Spots' });
     await ctx.waitText(new RegExp(spot.title), 15_000);
-    ctx.flow('tap-text', { TEXT: `.*${spot.title}.*` });
+    ctx.flow('tap-text', { TEXT: spot.title });          // the row's own label ("Show … on the map" is the other button)
     await ctx.device.sleep(2000);
   };
   const back = () => ctx.device.sh('input keyevent 4');

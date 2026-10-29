@@ -1,4 +1,4 @@
-# On a new spot's last step: its name, then "Save spot".
+# On a new spot's last step: its name (the field starts with the water's name: cleared first), then "Save spot".
 appId: ca.canifishthis.app
 ---
 - scrollUntilVisible:
@@ -6,6 +6,7 @@ appId: ca.canifishthis.app
     direction: UP
     timeout: 15000
 - tapOn: { text: "(Name this spot|Add a title)", index: 0 }
+- eraseText: 60
 - inputText: "${TITLE}"
 - hideKeyboard
 - scrollUntilVisible:

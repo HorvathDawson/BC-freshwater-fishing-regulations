@@ -1,7 +1,13 @@
-# The first-run notice ("Before you fish" → I understand) and the welcome walkthrough (Skip), when they are up.
+# The first-run notice ("Before you fish": its pages, then I understand) and the tour (Skip), when they are up.
 appId: ca.canifishthis.app
 ---
-- tapOn: { text: "I understand", optional: true }
-- tapOn: { text: "Skip", optional: true }
-- tapOn: { text: "I understand", optional: true }
-- tapOn: { text: "Skip", optional: true }
+- repeat:
+    times: 6
+    commands:
+      - tapOn: { text: "I understand", optional: true }
+      - tapOn: { text: "Skip", optional: true }
+      - runFlow:
+          when:
+            visible: "Before you fish"
+          commands:
+            - tapOn: { text: "Next", optional: true }
