@@ -345,7 +345,9 @@ export function Shell(p: ShellProps) {
                       palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}
                       sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }} />
       {/* (T236) not legal advice: once per device, before anything else */}
-      <FirstRunNotice state={firstRun} palette={palette} onSources={() => menu.show("sources")} />
+      {/* (T257) its "Sources and licences" opens that page: the notice steps aside while a page is up and is back after */}
+      <FirstRunNotice state={{ ...firstRun, open: firstRun.open && menu.state.page === null }} palette={palette}
+                      onSources={() => menu.show("sources")} />
       <WalkthroughSheet state={walkthrough} palette={palette} registry={coach} />
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}

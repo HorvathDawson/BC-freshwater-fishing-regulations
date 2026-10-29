@@ -43,6 +43,15 @@ describe("the first-run notice (T236)", () => {
     expect(store.v).toBe(FIRST_RUN_VERSION);
     expect(result.current.open).toBe(false);
   });
+  it("(T257) three numbered points, I understand, and the way to Sources and licences", () => {
+    const { result } = renderHook(() => useFirstRun(memory()));
+    let sources = 0;
+    render(<FirstRunNotice state={result.current} palette={LIGHT} onSources={() => { sources++; }} />);
+    expect(["first-run-point-1", "first-run-point-2", "first-run-point-3"].map((id) => screen.getByTestId(id).textContent))
+      .toEqual(LEGAL_WORDS.firstRun.points.map((p, i) => `${i + 1}${p.title}${p.body}`));
+    fireEvent.click(screen.getByText(LEGAL_WORDS.firstRun.sources));
+    expect(sources).toBe(1);
+  });
   it("stays down once accepted, and with no store (a test, a screen alone)", () => {
     expect(renderHook(() => useFirstRun(memory(FIRST_RUN_VERSION))).result.current.open).toBe(false);
     expect(renderHook(() => useFirstRun(null)).result.current.open).toBe(false);
