@@ -345,6 +345,10 @@ def _added_name_variant_entries(variants: list[dict]) -> list[dict]:
             # T224: the removed FWA reach's OWN gazetted name, kept on the stream that replaced it — official
             nm = {"name": v["name"], "source": "gazette", "note": "added:excluded_fwa",
                   **({"source_ref": f"gnis:{v['target_gnis']}"} if v.get("target_gnis") else {})}
+        elif city == "osm":
+            # T222: a stream taken from OpenStreetMap (data/source/municipal/osm_streams.geojson), never official
+            nm = {"name": v["name"], "source": "osm", "note": f"added:{v.get('kind', '')}",
+                  "source_label": "OpenStreetMap", "source_ref": "data/source/municipal/osm_streams.geojson"}
         else:
             # T224: a city's name (its own minted stream, or an FWA line it maps): the city layer, never official
             nm = {"name": v["name"], "source": "municipal", "note": f"added:{v.get('kind', '')}",

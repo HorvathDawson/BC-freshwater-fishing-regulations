@@ -76,6 +76,39 @@
  {
   "target": {
    "blks": [
+    "355993381",
+    "355993382",
+    "355993383",
+    "355993384"
+   ]
+  },
+  "names": [
+   {
+    "name": "Ruskin Spawning Channel",
+    "source": "regulation",
+    "note": "T222: unnamed FWA side channels on the east bank of Stave River below Ruskin Dam (OSM 'Ruskin Channel' at the head; the east-side channel built 1978). Region 2 Stave River r1.",
+    "display": true
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "-2300000000"
+   ]
+  },
+  "names": [
+   {
+    "name": "Northrop Spawning Channel",
+    "source": "regulation",
+    "note": "T222: the synopsis' name (Region 2 Stave River r2) for the added stream OpenStreetMap calls Northrop Channel (osm_streams.geojson).",
+    "display": false
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
     "360219234",
     "360553991"
    ]

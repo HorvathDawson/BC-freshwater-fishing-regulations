@@ -1,0 +1,90 @@
+{
+ "type": "FeatureCollection",
+ "_about": "Stream lines taken from OpenStreetMap for the added-streams batch (source key 'osm'). OSM data (c) OpenStreetMap contributors, ODbL.",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm-1",
+    "name": "Northrop Channel",
+    "note": "T222 (owner 2026-10-28): Stave River below Ruskin Dam, west bank; the synopsis' Northrop Spawning Channel (Region 2 Stave River r2). Absent from FWA.",
+    "osm": "OpenStreetMap waterway via the app basemap data/source/bc.pmtiles (Protomaps build, OSM 2026-03-05), z13 tile 13/1310/2806"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -122.411942,
+      49.193813
+     ],
+     [
+      -122.412243,
+      49.193582
+     ],
+     [
+      -122.412361,
+      49.193168
+     ],
+     [
+      -122.412608,
+      49.192874
+     ],
+     [
+      -122.412694,
+      49.192699
+     ],
+     [
+      -122.412651,
+      49.19232
+     ],
+     [
+      -122.412801,
+      49.191773
+     ],
+     [
+      -122.412704,
+      49.191058
+     ],
+     [
+      -122.412179,
+      49.190763
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm-2",
+    "name": "Northrop Creek",
+    "note": "T222 (owner 2026-10-28): Stave River below Ruskin Dam, west bank; the synopsis' Northrop Spawning Channel (Region 2 Stave River r2). Absent from FWA.",
+    "osm": "OpenStreetMap waterway via the app basemap data/source/bc.pmtiles (Protomaps build, OSM 2026-03-05), z13 tile 13/1310/2806"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -122.412114,
+      49.19422
+     ],
+     [
+      -122.41205,
+      49.194178
+     ],
+     [
+      -122.41206,
+      49.194101
+     ],
+     [
+      -122.411921,
+      49.193905
+     ],
+     [
+      -122.411942,
+      49.193813
+     ]
+    ]
+   }
+  }
+ ]
+}

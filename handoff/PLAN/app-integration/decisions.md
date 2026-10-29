@@ -1608,3 +1608,8 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   at the mouth). Mentions that only place something relative to "the tidal boundary" (Mamin, Deena) or name no
   landmark (Dean, Marble) are not boundary words. DFO's triangular boundary signs "near / at the mouth / at the X
   Bridge" on the freshwater pages are boundary words (the definitions page: "a triangular sign near the mouth").
+- **Owner 2026-10-28 approved (T222, Stave spawning channels):** Stave r1 binds the whole Ruskin Spawning Channel
+  (FWA side channels 355993381-4 named in name_variants, item `blk:355993381`). Northrop Spawning Channel is not in
+  FWA: added from OpenStreetMap as an added stream (source `osm`, `data/source/municipal/osm_streams.geojson`,
+  DEM-oriented, joins FWA 356193720), and Stave r2 binds it. Northrop Creek (OSM, ~50 m) is dropped by the general
+  short-tributary prune.
