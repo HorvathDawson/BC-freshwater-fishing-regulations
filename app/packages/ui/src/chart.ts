@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2, panDomain, timeAt,
          zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
-import type { Parameter, WaterSource, Series, StationId } from "@app/data";
+import { draftSeriesOf, type GaugeFeed, type Parameter, type WaterSource, type Series, type StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { askOnce, chartParameter, peekAnswer, seriesKey } from "./answers";
 import { useFeedVersion } from "./feedVersion";
@@ -75,6 +75,11 @@ export interface ChartView {
    * chart"): draw it dimmed with a small inline note, never a spinner in its place. False once the chart is current.
    */
   pending: boolean;
+  /**
+   * (T256) Drawn from the feed alone — the observations and forecast — while the release's climatology (the normal-range
+   * band, `climate`) is on its way: the band is added when it lands. False once the whole series is here.
+   */
+  draft: boolean;
   /** The window is narrower than the whole record — "Whole chart" has something to do. */
   zoomed: boolean;
   /** The value under the finger, placed and said; null when nothing is being read. */
@@ -115,9 +120,21 @@ function extentOf(s: Series | null): Domain | null {
  * the LAST chart up, marked `pending`. Only the first chart a view ever draws shows "loading". `enabled` false (the
  * station's quantities are not known yet) asks nothing and counts as on its way.
  */
+/**
+ * (T256) What the chart may draw BEFORE its envelope: the feed (observations + forecast) and the quantity the reader
+ * picked (absent: the one the observations declare). The draft is asked under its OWN key (`draft:` + the series key):
+ * the answer store never holds it as the series.
+ */
+export interface ChartDraft { feed: Pick<GaugeFeed, "observations">; parameter?: Parameter }
+
+function draftKey(station: StationId | null, span: ChartSpan, parameter: Parameter | undefined,
+                         model: string | undefined): string {
+  return `draft:${seriesKey(station, span, parameter, model)}`;
+}
+
 export function useChartView(source: WaterSource, station: StationId | null, span: ChartSpan,
                              parameter: Parameter | undefined, model: string | undefined,
-                             width: number, enabled = true): Async<ChartView | null> {
+                             width: number, enabled = true, draft: ChartDraft | null = null): Async<ChartView | null> {
   const key = seriesKey(station, span, parameter, model);
   // (owner 2026-10-29) a feed the update service took redraws the chart in place: a refresh of the same series (its
   // window and read-out, keyed on `key`, are kept)
@@ -126,9 +143,19 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     () => (station ? askOnce(source, key, () => source.gaugeSeries(station, span, parameter, model))
                    : Promise.resolve(null)),
     `${key}#${v}`, station !== null && enabled, key, () => peekAnswer(source, key));
+  // (T256) THE CHART BEFORE ITS ENVELOPE: while the series (which waits for the release's climatology, ~1.4 MB) is on
+  // its way, the feed's own observations and forecast are drawn, and the band joins them when it lands
+  const dParam = parameter ?? draft?.parameter;
+  const dKey = draftKey(station, span, dParam, model);
+  const wantsDraft = !!draft && station !== null && series.state === "loading";
+  const drafted = useAsync(
+    async () => askOnce(source, dKey, async () => draftSeriesOf(await draft!.feed.observations(station!), span, dParam, model)),
+    `${dKey}#${v}`, wantsDraft, dKey, () => peekAnswer(source, dKey));
   const [raw, setState] = useState<State>({ key, domain: null, probe: null });
   const st: State = raw.key === key ? raw : { key, domain: null, probe: null };
-  const s = series.state === "ready" ? series.value?.value ?? null : null;
+  const whole = series.state === "ready" ? series.value?.value ?? null : null;
+  const early = series.state === "loading" && wantsDraft && drafted.state === "ready" ? drafted.value?.value ?? null : null;
+  const s = whole ?? early;
   const box = chartBox(width);
   const full = useMemo(() => extentOf(s), [s]);
 
@@ -163,7 +190,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
   }), []);
 
   const current = useMemo<Async<ChartView | null>>(() => {
-    if (series.state !== "ready") return series as Async<ChartView | null>;
+    if (series.state !== "ready" && !early) return series as Async<ChartView | null>;
     if (!s) return { state: "ready", value: null, error: null };
     const n = s.values.length;
     const bands = s.band.length === n ? s.band : Array.from({ length: n }, () => s.band[0] ?? null);
@@ -185,8 +212,8 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     } : null;
     return { state: "ready", error: null,
              value: { shape, readout, zoomed: !!(shape.view && shape.full && isZoomed(shape.view, shape.full)),
-                      pending: false, ...actions } };
-  }, [series, s, span, box.width, box.height, st.domain, st.probe, actions]);
+                      pending: false, draft: s === early, ...actions } };
+  }, [series, s, early, span, box.width, box.height, st.domain, st.probe, actions]);
 
   // The last chart drawn, for the frames between a switch and its answer.
   const last = useRef<ChartView | null>(null);

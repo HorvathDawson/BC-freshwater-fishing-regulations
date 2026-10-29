@@ -128,3 +128,34 @@ describe("useChartView", () => {
     expect(v().readout).toBeNull();
   });
 });
+
+describe("(T256) the chart before its envelope", () => {
+  it("draws the feed's observations while the series (climate) is on its way, and never keeps them as the series", async () => {
+    const { clearAnswers, peekAnswer, seriesKey } = await import("./answers");
+    clearAnswers();
+    let land!: (v: unknown) => void;
+    const slow = { gaugeSeries: () => new Promise((r) => { land = r; }) } as unknown as WaterSource;
+    const obs = { fetchedAt: 0, from: "feed", parameter: "discharge" as const, at: SERIES.at, discharge: SERIES.values,
+                  level: SERIES.values.map(() => null), daily: [], forecasts: {}, priorYears: {} };
+    const draft = { feed: { observations: async () => obs } };
+    const { result } = renderHook(() => useChartView(slow, ST, "72h", undefined, undefined, 600, true, draft));
+    await waitFor(() => expect(result.current.state === "ready" && result.current.value?.draft).toBe(true));
+    const v = result.current.state === "ready" ? result.current.value! : null;
+    expect([v!.pending, v!.shape.box.width]).toEqual([false, 600]);
+    // the answer store holds the draft under its own key: the series is still unanswered
+    expect(peekAnswer(slow, seriesKey(ST, "72h", undefined, undefined))).toBeNull();
+    await act(async () => { land({ fetchedAt: 0, value: SERIES }); });
+    await waitFor(() => expect(result.current.state === "ready" && result.current.value?.draft).toBe(false));
+    expect(peekAnswer<{ value: Series }>(slow, seriesKey(ST, "72h", undefined, undefined))?.value.value.band)
+      .toEqual(SERIES.band);
+  });
+
+  it("without a feed it waits for the series, as before", async () => {
+    const { clearAnswers } = await import("./answers");
+    clearAnswers();
+    const slow = { gaugeSeries: () => new Promise(() => {}) } as unknown as WaterSource;
+    const { result } = renderHook(() => useChartView(slow, ST, "72h", undefined, undefined, 600));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(result.current.state).toBe("loading");
+  });
+});

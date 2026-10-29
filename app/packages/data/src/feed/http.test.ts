@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { httpFeed, lastReportAt } from "./http";
-import { seriesOf } from "../sql/shared";
+import { draftSeriesOf, seriesOf } from "../sql/shared";
 import type { StationId } from "../index";
 
 const S = "08MH001" as StationId;
@@ -166,6 +166,16 @@ describe("httpFeed", () => {
     // an older file carries none: null, never a guess
     const old = (await httpFeed("http://x", server({ "08MH001.json": STATION })).observations(S))!;
     expect([old.change, seriesOf([], old, "72h", "discharge")!.value.change]).toEqual([null, null]);
+  });
+
+  it("(T256) a draft series: the observations with no envelope — a year chart too, which seriesOf refuses with none", async () => {
+    const obs = (await httpFeed("http://x", server({ "08MH001.json": STATION })).observations(S))!;
+    expect(seriesOf([], obs, "year", "discharge")).toBeNull();
+    const year = draftSeriesOf(obs, "year", "discharge")!.value;
+    expect([year.step, year.band.every((b) => b === null)]).toEqual(["1d", true]);
+    const h72 = draftSeriesOf(obs, "72h")!.value;
+    expect([h72.parameter, h72.values]).toEqual([obs.parameter, obs.parameter === "level" ? obs.level : obs.discharge]);
+    expect(draftSeriesOf(null, "72h")).toBeNull();
   });
 
   it("reports no reading when the station answered with no numbers", async () => {

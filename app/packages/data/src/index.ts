@@ -21,6 +21,8 @@ export type { WaterSource } from "./source";
 export type { Db, Row } from "./sql/db";
 
 export { FEED_TTL_MS, httpFeed, type GaugeFeed } from "./feed/http";
+// (T256) the Conditions chart before its envelope: the observations and forecast, no normal range
+export { draftSeriesOf } from "./sql/shared";
 // (T211) the live DFO salmon feed, the last capture kept on the device
 export { httpSalmonFeed } from "./feed/salmon";
 // (T230) the provincial in-season changes + their curated links, the last capture kept on the device

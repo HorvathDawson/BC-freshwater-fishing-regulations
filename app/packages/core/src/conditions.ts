@@ -140,6 +140,8 @@ export const CONDITIONS_WORDS = {
   /** The one fold under the donor list (P16): the working's working and the credits. */
   fold: "Notes and sources",
   loadingRecord: "Loading the record",
+  /** (T256) the chart drawn from the feed before the release's climatology (its normal-range band) has landed */
+  envelopeLoading: "Loading the normal range for this time of year",
   controls: { quantity: "Quantity", span: "Span", model: "Forecast model", gauge: "Gauge" },
   /** The gauge switcher's kicker, right above the chart it switches (owner 2026-10-21). */
   chartGauge: "CHART THIS GAUGE",

@@ -3,7 +3,7 @@
  * `makeReleaseSource` (`../release/source.ts`) asks the release's files and hands the rows here; a test may hand rows
  * from any SQLite with the pipeline bundle's columns. (Its second reader, the dev bundle's, was retired in T61.)
  */
-import { bandAt, boxOfParts, calendarDayOfYear, describeBy, metresOfBucket, rankPointers, rankWaters, relOfCode, type Band,
+import { bandAt, boxOfParts, calendarDayOfYear, describeBy, metresOfBucket, rankPointers, rankWaters, relOfCode, shownParameter, type Band,
          type Bbox, type NearPlace } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { Aged, GaugeLink, GaugeWaters, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId,
@@ -188,8 +188,9 @@ export function f16(h: number): number {
  *          the year and where today sits in it is the question, and it is answered.
  */
 export function seriesOf(pentads: (Band | null)[], obs: Observations | null, span: "72h" | "year",
-                         param: Parameter, model?: string): Aged<Series> | null {
+                         param: Parameter, model?: string, draft = false): Aged<Series> | null {
   const hasClim = pentads.some((b) => b !== null);
+  if (draft && !obs) return null;
 
   // EVERY RUN, narrowed to this chart's quantity. CLEVER publishes discharge only, so
   // on a level chart it comes back with no ribbon and drops out; ELF publishes both.
@@ -204,7 +205,7 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
     ?? null;
 
   if (span === "year") {
-    if (!hasClim) return null;      // a year chart with no envelope has nothing to draw
+    if (!hasClim && !draft) return null;      // a year chart with no envelope has nothing to draw
     /**
      * YEAR TO DATE PLUS A MONTH, not the whole calendar year.
      *
@@ -282,6 +283,17 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
       forecast: chosen, forecasts: runs, priorYears: [], change: obs.change ?? null,
     },
   };
+}
+
+/**
+ * (T256) THE CHART BEFORE ITS ENVELOPE: the feed's observations and forecast as `seriesOf` lays them out, with no
+ * normal-range band — what the Conditions chart draws while the release's climatology (`climate`, ~1.4 MB) is still on
+ * its way on a poor line. NEVER an answer to keep: the UI asks it under its own key, and the series with the band
+ * replaces it. Null with no observations. `param` absent: the quantity the observations declare (`shownParameter`).
+ */
+export function draftSeriesOf(obs: Observations | null, span: "72h" | "year", param?: Parameter,
+                              model?: string): Aged<Series> | null {
+  return seriesOf(Array.from({ length: 73 }, () => null), obs, span, param ?? shownParameter(obs ?? {}), model, true);
 }
 
 /** The stored downstream pointer from a section, or null at the edge of the pointers. */

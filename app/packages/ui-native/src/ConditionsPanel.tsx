@@ -11,7 +11,7 @@
  * finished from `useConditionsView` in @app/ui (rule 25, P12a); the chart's words are
  * core's (`conditions.ts`). What is left here is drawing, and the chart's own controls.
  */
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
 import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
@@ -31,6 +31,7 @@ import { Hydrograph } from "./Hydrograph";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette, round } from "./theme";
+import { hitProps } from "./regs/hit";
 
 /** The units, from core's one table. */
 export const UNIT: Readonly<Record<Parameter, string>> = CONDITIONS_WORDS.unit;
@@ -112,7 +113,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const anyRun = useSeries(source, station, span, param, undefined, known);
   const drawn = changeChartModel(model, horizon,
                                  anyRun.state === "ready" ? anyRun.value?.change : null);
-  const chart = useChartView(source, station, span, param, drawn, chartW, known);
+  // (T256) on a poor line the chart draws the feed's observations and forecast first; the normal range joins them
+  const draft = useMemo(() => (feed?.observations ? { feed: { observations: feed.observations.bind(feed) },
+                                                      parameter: picked ?? undefined } : null), [feed, picked]);
+  const chart = useChartView(source, station, span, param, drawn, chartW, known, draft);
   const series = useSeries(source, station, span, param, drawn, known);
   // EVERY DONOR'S CHART, ASKED NOW (owner 2026-10-21: "get all the data when the page opens rather than one gauge at a
   // time when clicked"), so the gauge switch draws from what is already here.
@@ -227,6 +231,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       {view?.pending && (
         <Text style={{ ...TYPE.meta, color: palette.faint }} accessibilityLiveRegion="polite">{W.loadingRecord}</Text>
       )}
+      {view && !view.pending && view.draft && (
+        <Text style={{ ...TYPE.meta, color: palette.faint }} accessibilityLiveRegion="polite">{W.envelopeLoading}</Text>
+      )}
       {chart.state === "ready" && !view && (
         <Text style={{ ...TYPE.body, color: palette.sub }}>{noChartSentence(span)}</Text>
       )}
@@ -288,7 +295,7 @@ function GaugeSwitch({ palette, gauges, groups, onPick }: {
   groups?: readonly GaugeGroupVM<GaugeChoiceVM>[] | null;
 }) {
   const chip = (g: GaugeChoiceVM) => (
-          <Pressable key={g.station} onPress={() => onPick(g.station)} accessibilityRole="radio"
+          <Pressable {...hitProps({ w: 80, h: 34 })} key={g.station} onPress={() => onPick(g.station)} accessibilityRole="radio"
                      aria-checked={g.on} accessibilityLabel={g.label}
                      style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2,
                               paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,

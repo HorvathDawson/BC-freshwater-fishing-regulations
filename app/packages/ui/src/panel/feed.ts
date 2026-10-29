@@ -3,7 +3,7 @@
  * Province's forecast attribution.
  */
 import { useMemo } from "react";
-import { answerFrom, type DonorRow, type PanelAnswer, type StationId } from "@app/data";
+import { answerFrom, type DonorRow, type GaugeFeed, type PanelAnswer, type StationId } from "@app/data";
 import { donorCounted } from "@app/core";
 import { useAsync } from "../async";
 import { useFeedVersion } from "../feedVersion";
@@ -15,6 +15,8 @@ export type PanelFeed = {
   index(): Promise<Index>;
   /** A station's last report from its own file (`GaugeFeed.lastReport`), for a quiet gauge the index has dropped. */
   lastReport?(station: StationId): Promise<string | null | undefined>;
+  /** (T256) A station's raw observations (`GaugeFeed.observations`): the chart drawn before its envelope lands. */
+  observations?: GaugeFeed["observations"];
 };
 
 /**
