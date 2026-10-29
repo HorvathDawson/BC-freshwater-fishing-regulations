@@ -163,3 +163,12 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   untouched). 7 refused by the snap — the FWA mouth is >500 m from the atlas item's line or the stream is not in the
   registry: Skagit (1379 m), Campus (757), Caycuse (716), Dempster (524), Doobah (606), Hobiton (628), Nelson Creek
   (no registry item) — open: place by hand.
+- **Mark audit (owner 2026-10-28), 1134 tidal marks in force:** 1119 at the FWA mouth, 12 at the located words point,
+  3 neither — Bear River (a "wrong" mark, the owner's own point 4387 m: left), Marchand Creek (430 m) and Taquat Creek
+  (400 m). The last two were auto-accepted AT the mouth but the snap put them on the registry item's lowest end: the
+  atlas no longer carries the lower ~400 m (the item starts at 429.8 / 400.0 m, by the old polygon crossing — T166
+  phase 1b took the tidal pieces off). Re-marking reproduces the same point, so none was posted; same cause as the 7
+  refused (Skagit, Campus, Caycuse, Dempster, Doobah, Hobiton, Nelson). Needs the atlas to keep the lower reach now
+  that the polygon decides no cut (T166). The 88a42a2b guard catches polygon points by the split's note text; no
+  mark in force has one (the 7 polygon accepts are superseded), but it would NOT catch a mouth-noted cut that
+  snapped up the line (Marchand / Taquat: a cut on the item's end) — open.
