@@ -339,7 +339,7 @@ describe("report a problem", () => {
     act(() => { fireEvent.change(screen.getByTestId("report-what"), { target: { value: "The closure is wrong." } }); });
     act(() => { fireEvent.click(screen.getByLabelText("Recent errors")); });        // the reader switches the log off
     const preview = text("report-preview")!;
-    expect(preview).toBe("Can I Fish This? problem report\n\nThe closure is wrong.\n\n--\nApp build: 1.2.0 (34)\n"
+    expect(preview).toBe("Can I Fish This? problem report\n\nThe closure is wrong.\n\n--\nApp version: 1.2.0 (34)\n"
       + `Platform: web\nMap tiles: d768d6e135e62b99.c9f9604f12bf\nWhere you were: Screen: map`);
     expect(preview.includes(errorLine)).toBe(false);
     press("Share…");

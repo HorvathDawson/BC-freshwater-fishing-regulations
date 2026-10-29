@@ -13,3 +13,7 @@ bucket_name = "bc-fishing-regulations-staging"
 [[routes]]
 pattern = "data-staging.canifishthis.ca"
 custom_domain = true
+
+# (T251) Workers Logs: the update checks' `app=<version>` lines (data-worker.js), kept for the dashboard's log search
+[observability]
+enabled = true

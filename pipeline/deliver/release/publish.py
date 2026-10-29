@@ -10,6 +10,9 @@ file that is not there yet. Every file but the manifest is named by its content 
 `Cache-Control: immutable`. The manifest is `no-cache`. Data files are stored gzipped and sent `Content-Encoding: gzip`
 (the app checks the decoded bytes against the manifest's sha256, `fetchVerified`).
 
+(T251) `--yes` STAMPS the manifest first (`stamp.py`): `published` (the day, kept once set) and, with
+`--min-app-version`, the oldest app that may apply it. Neither touches a file, the tiles block or the release id.
+
 Credentials from the environment, never the repo: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET.
 `boto3` (R2 speaks the S3 API) is needed only for `--yes`: `pip install boto3`.
 """
@@ -77,12 +80,19 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--release", type=Path, default=None, help="default: the release data/release/LATEST names")
     ap.add_argument("--yes", action="store_true", help="upload (without it, print the plan only)")
+    ap.add_argument("--min-app-version", default=None,
+                    help="(T251) stamp minAppVersion: older apps keep their data and ask to be updated")
     a = ap.parse_args(argv)
     root = GENERATED.release
     from pipeline.deliver.release.manifest import latest
     release = a.release or latest(root)          # THE release on disk: one answer (T133)
     if release is None:
         raise SystemExit(f"publish: no release under {root} — python -m pipeline.deliver release")
+    if a.yes:                                    # T251: the publish day (and the app gate) stamped, never by the build
+        import datetime as dt
+        from pipeline.deliver.release.stamp import stamp_file
+        kw = {} if a.min_app_version is None else {"min_app_version": a.min_app_version}
+        stamp_file(Path(release) / "manifest.json", today=dt.datetime.now(dt.timezone.utc).date(), **kw)
     puts = plan(Path(release), root)
     for p in puts:
         print(f"{'PUT ' if a.yes else 'plan'} {p.key}  ({p.path.stat().st_size:,} B, {p.cache}"

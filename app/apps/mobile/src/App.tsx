@@ -12,7 +12,7 @@
  * set: the map then draws the development tiles, and their stamped `tile_version` is what proves the pair (`pairingOf`).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AppState, Platform, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
+import { AppState, Platform, Share, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import {
@@ -22,14 +22,16 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage, updatedToast, UPDATE_WORDS } from "@app/core";
-import { createUpdateService, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
+import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+         versionLine } from "@app/core";
+import { createUpdateLog, createUpdateService, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openUpdateStore, openMeteo, openPhotos, openSpots, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openUpdateStore, openUpdateLogStore, openMeteo, openPhotos, openSpots, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { connectivity, FishSpinner, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName } from "@app/ui-native";
+import { connectivity, FishSpinner, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
+         type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
@@ -37,7 +39,7 @@ import { routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { startLink } from "./startLink";
 
-import { ENDPOINTS, IMAGERY_TILES, MENU_INFO } from "./config";
+import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, pickChannel, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
 /*
  * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
@@ -69,6 +71,21 @@ if (START?.who) setAnglerProfile(START.who);
  * changes.
  */
 const FEED = ENDPOINTS.feed;
+
+/**
+ * (T251) EVERY DATA REQUEST SAYS WHICH APP ASKED, so the data worker's logs can tell versions apart: on a phone the
+ * `X-App-Version` header and a User-Agent of our own on every request (the boot's and the update service's); on the web
+ * the header on the update service's checks only (a custom header is a CORS preflight; the staging and production data
+ * workers allow it, the local dev server's `serve-tiles` too once restarted), and the browser's own User-Agent.
+ */
+const WEB = Platform.OS === "web";
+const VERSION_HEADERS = WEB
+  ? (APP_ENV.env === "local" ? {} : versionHeaders(APP_VERSION, { platform: "web", ua: false }))
+  : versionHeaders(APP_VERSION, { platform: `${Platform.OS} ${Platform.Version}`, ua: true });
+const DATA_FETCH: typeof fetch = Object.keys(VERSION_HEADERS).length
+  ? versionedFetch((u, i) => fetch(u, i), VERSION_HEADERS) : (u, i) => fetch(u, i);
+/** (T251) the Updates log's "simulate offline": the update service is told the network is down while on */
+const devOffline = { on: false };
 
 export default function App() {
   const scheme = useColorScheme();
@@ -112,6 +129,9 @@ export default function App() {
   const boot = useReleaseBoot(useMemo(() => ({
     manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
     salmonFeed, deferUpdate: true,
+    // (T251) a phone's requests name the app; its first install is gated by the release's minAppVersion (the web's app
+    // ships with its data: never gated)
+    ...(WEB ? {} : { fetch: DATA_FETCH, appVersion: APP_VERSION }),
   }), [feed, salmonFeed]), generation);
   const booted = boot.state === "ready" ? boot.booted : null;
   const bootedRef = useRef(booted);
@@ -123,11 +143,18 @@ export default function App() {
    * an unchanged object costs a 304. A changed feed is handed to its loader whole; a newer release is staged beside the
    * one in use (verified) and applied at a safe moment (the Shell says when), with "Updated to …".
    */
+  // (T251) the Updates log: development and staging builds keep the last 200 events on the device
+  const updateLog = useMemo(() => (UPDATES_LOG ? createUpdateLog({ store: openUpdateLogStore() }) : null), []);
   const updates = useMemo(() => createUpdateService({
+    fetch: DATA_FETCH,
+    onEvent: updateLog ? updateLog.append : undefined,
+    // (T251) a store build can lag behind the data: a release asking for a newer app is not applied. The web's code ships
+    // with its data, so it is never gated — save `EXPO_PUBLIC_RELEASE_GATE=1`, the browser test's way to see the gate
+    appVersion: WEB && process.env.EXPO_PUBLIC_RELEASE_GATE !== "1" ? null : APP_VERSION,
     feeds: [
-      { id: "gauges", url: `${ENDPOINTS.feed}/index.json`, apply: (text) => feed.offer!(JSON.parse(text)) },
-      { id: "dfo", url: `${ENDPOINTS.dfoFeed}/index.json`, apply: (text) => salmonFeed.offer!(text) },
-      { id: "inseason", url: `${ENDPOINTS.inSeason}/index.json`, apply: () => inSeason.refresh?.() },
+      { id: "gauges", url: ENDPOINTS.checks.gauges, apply: (text) => feed.offer!(JSON.parse(text)) },
+      { id: "dfo", url: ENDPOINTS.checks.dfo, apply: (text) => salmonFeed.offer!(text) },
+      { id: "inseason", url: ENDPOINTS.checks.inseason, apply: () => inSeason.refresh?.() },
     ],
     release: {
       manifestUrl: ENDPOINTS.manifest,
@@ -140,7 +167,7 @@ export default function App() {
     },
     store: openUpdateStore(),
     network: {
-      online: () => connectivity.online(),
+      online: () => !devOffline.on && connectivity.online(),
       metered: () => connectivity.metered?.() ?? false,
       subscribe: (on) => {
         const a = connectivity.subscribe(on);
@@ -156,7 +183,7 @@ export default function App() {
         return () => sub.remove();
       },
     },
-  }), [feed, salmonFeed, inSeason]);
+  }), [feed, salmonFeed, inSeason, updateLog]);
   // started once the release is open (the service compares against the set in use); the boot's manifest read seeds it
   const started = useRef(false);
   useEffect(() => {
@@ -167,8 +194,11 @@ export default function App() {
   }, [booted, updates]);
   useEffect(() => () => updates.stop(), [updates]);
   /** Apply a staged update: boot onto it, the set in use on screen until the new one is ready. */
+  const applying = useRef<{ from: string | null; at: number } | null>(null);
   const apply = useCallback(() => {
-    if (updates.snapshot().release?.phase === "ready") setGeneration((g) => g + 1);
+    if (updates.snapshot().release?.phase !== "ready") return;
+    applying.current = { from: bootedRef.current?.held.release ?? null, at: Date.now() };
+    setGeneration((g) => g + 1);
   }, [updates]);
   // back from the background with an update ready: the safest moment there is
   useEffect(() => {
@@ -183,10 +213,46 @@ export default function App() {
     if (boot.state !== "ready" || boot.generation === 0 || appliedGen.current === boot.generation) return;
     appliedGen.current = boot.generation;
     if (boot.applyError) return;
-    updates.applied(boot.booted.manifest.data_release);
+    const a = applying.current;
+    applying.current = null;
+    updates.applied(boot.booted.manifest.data_release, a ? { from: a.from, ms: Date.now() - a.at } : undefined);
     setToast(updatedToast(manifestDate(boot.booted.manifest)));
   }, [boot, updates]);
   const clearToast = useCallback(() => setToast(null), []);
+
+  // (T251) the Updates log page's levers (development and staging builds): About links it
+  const releaseNow = boot.state === "ready" ? boot.booted.manifest.data_release : null;
+  const releaseRef = useRef(releaseNow);
+  releaseRef.current = releaseNow;
+  const updatesLog = useMemo((): UpdatesLogControls | null => updateLog && ({
+    log: updateLog, updates,
+    header: () => ({ version: versionLine(APP_VERSION), platform: WEB ? "web" : `${Platform.OS} ${Platform.Version}`,
+                     env: APP_ENV.env, origin: APP_ENV.origin, channel: UPDATE_CHANNEL, release: releaseRef.current }),
+    channel: APP_ENV.switchable ? { current: UPDATE_CHANNEL, pick: pickChannel } : null,
+    offline: { get: () => devOffline.on,
+               set: (on) => { devOffline.on = on; updateLog.append({ at: Date.now(), source: "app", kind: "action",
+                                                                       note: UPDATE_LOG_WORDS.notes.offline(on) }); } },
+    forceRedownload: async () => { updates.forget(); await updates.check({ manual: true }); },
+    clearCache: async () => {
+      updates.forget();
+      // the web's release files (Cache Storage); a phone's installed set is the data in use and is never dropped here
+      const caches = (globalThis as { caches?: CacheStorage }).caches;
+      const dropped = caches ? await caches.delete("release-v1").catch(() => false) : false;
+      updateLog.append({ at: Date.now(), source: "app", kind: "action",
+                         note: UPDATE_LOG_WORDS.notes.cache(WEB, dropped) });
+      await updates.check({ manual: true });
+    },
+    apply,
+    copy: async (text) => {
+      try {
+        const clip = (globalThis as { navigator?: { clipboard?: { writeText(t: string): Promise<void> } } }).navigator?.clipboard;
+        if (WEB && clip) { await clip.writeText(text); return true; }
+        await Share.share({ message: text });
+        return true;
+      } catch { return false; }
+    },
+  }), [updateLog, updates, apply]);
+  const menuInfo = useMemo(() => ({ ...MENU_INFO, updatesLog }), [updatesLog]);
 
   const data = useMemo((): { source: WaterSource; status: StatusSource; pairing: PairingInput;
                              tiles: MapTiles & { imagery: string }; loader: ReleaseLoader } | null => {
@@ -266,7 +332,7 @@ export default function App() {
             {rolledBackLine(rolledBack)}
           </Text>
         )}
-        <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={MENU_INFO}
+        <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={menuInfo}
                // (T231) the sync icon reads the update service; a ready update is applied at the Shell's safe moment
                updates={updates} onSafeToApply={apply}
                // T129: the boot's manifest read seeds the service's first release check (`seedRelease`): no second request

@@ -76,12 +76,35 @@ export function resolveEnv(i: EnvInputs): ResolvedEnv {
   return { env, built, origin, switchable: i.switchable };
 }
 
+/**
+ * (T251) THE UPDATE CHANNEL: `live` reads the origin's real manifest and feeds; `test` reads them under `test/` on the
+ * same origin — what `deploy/staging/test-updates.mjs` publishes (a bumped feed, a synthetic release, a corrupt file, a
+ * 404, a minAppVersion) without touching the real staging feeds the crons write. Only what the update service CHECKS
+ * moves: the manifest and the three feed indexes. The release FILES are still read from `${base}/release/` (a test
+ * manifest names the real files, or a missing one on purpose), and each feed's other files from its live folder. Chosen by
+ * `EXPO_PUBLIC_UPDATE_CHANNEL`, or in a switchable build on the Updates log page (kept; applied on the next start).
+ */
+export type UpdateChannel = "live" | "test";
+export const UPDATE_CHANNELS: readonly UpdateChannel[] = ["live", "test"];
+
+export function resolveChannel(i: { named?: string | undefined; switchable: boolean; override?: string | null }): UpdateChannel {
+  const named = i.named?.trim();
+  if (named && !(UPDATE_CHANNELS as readonly string[]).includes(named))
+    throw new Error(`EXPO_PUBLIC_UPDATE_CHANNEL="${named}" is not one of ${UPDATE_CHANNELS.join(", ")}`);
+  if (i.switchable && (UPDATE_CHANNELS as readonly (string | null | undefined)[]).includes(i.override))
+    return i.override as UpdateChannel;
+  return (named as UpdateChannel | undefined) || "live";
+}
+
 /** Every URL the app reads, from one origin (P10). The shape `ENDPOINTS` has always had; T231's service reads it. */
-export function endpointsFor(base: string) {
+export function endpointsFor(base: string, channel: UpdateChannel = "live") {
+  // (T251) what the update service checks moves under test/ on the test channel; nothing else does
+  const up = channel === "test" ? `${base}/test` : base;
   return {
     base,
+    channel,
     /** The release manifest (app-manifest/2); every release file's url is relative to `${base}/release/`. */
-    manifest: `${base}/release/manifest.json`,
+    manifest: `${up}/release/manifest.json`,
     release: `${base}/release/`,
     tiles: {
       atlas: `${base}/atlas.pmtiles`,
@@ -94,6 +117,12 @@ export function endpointsFor(base: string) {
     dfoFeed: `${base}/feeds/dfo`,
     /** (T230) The provincial in-season changes (T225 worker's index.json) + their curated links (R2 `feeds/inseason/`). */
     inSeason: `${base}/feeds/inseason`,
+    /** (T251) The three indexes the update service checks (under `test/` on the test channel). */
+    checks: {
+      gauges: `${up}/feeds/live/index.json`,
+      dfo: `${up}/feeds/dfo/index.json`,
+      inseason: `${up}/feeds/inseason/index.json`,
+    },
     /** Where sql.js finds its engine on the web: the same origin as the release files it opens. */
     sqlWasm: `${base}/`,
   } as const;

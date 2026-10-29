@@ -43,6 +43,9 @@ export * from "./iconSet";
 export * from "./more";
 // (T231) the data updates in words: the sources' lines, the sync icon's failure sheet, the toast
 export * from "./updates";
+// (T251) the app's version (one source, the release gate) and the Updates log's events and words
+export * from "./appVersion";
+export * from "./updateLog";
 export * from "./imagery";
 export * from "./staleness";
 export * from "./freshness";

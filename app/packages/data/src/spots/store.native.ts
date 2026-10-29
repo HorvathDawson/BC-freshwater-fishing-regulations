@@ -67,6 +67,11 @@ export function openUpdateStore(): { read(): string | null; write(text: string):
   return fileStore("updates.json");
 }
 
+/** (T251) The Updates log's ring buffer (development and staging builds only), as whole text. */
+export function openUpdateLogStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("update-log.json");
+}
+
 /** (T236) The first-run notice's accepted version (`FIRST_RUN_VERSION`), a small file of its own. */
 export function openFirstRunStore(): { read(): string | null; write(text: string): void } {
   return fileStore("first-run.txt");

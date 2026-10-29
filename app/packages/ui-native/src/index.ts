@@ -46,5 +46,6 @@ export { connectivity } from "./connectivity";
 export { MenuContext } from "./menu/MenuContext";
 export { MoreScreen } from "./menu/MoreScreen";
 export { MenuHost, NO_MENU_INFO, type MenuInfo } from "./menu/MenuHost";
+export type { UpdatesLogControls, UpdateChannelKey } from "./menu/UpdatesLogPage";
 export { ReportLink } from "./menu/ReportLink";
 export * from "./theme";

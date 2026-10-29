@@ -6,7 +6,8 @@
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-  "Access-Control-Allow-Headers": "Range, If-None-Match, If-Modified-Since, Content-Type",
+  // (T251) X-App-Version: the app names its version on every data request (a phone also in its User-Agent)
+  "Access-Control-Allow-Headers": "Range, If-None-Match, If-Modified-Since, Content-Type, X-App-Version",
   "Access-Control-Expose-Headers": "Content-Length, Content-Range, Content-Type, Content-Encoding, ETag",
   "Access-Control-Max-Age": "86400",
 };
@@ -15,6 +16,9 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
     if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method Not Allowed", { status: 405, headers: CORS });
     const key = decodeURIComponent(new URL(request.url).pathname.slice(1));
+    // (T251) which app asked, in `wrangler tail` / Workers Logs: the update checks (manifests, feed indexes) only
+    const ver = request.headers.get("X-App-Version");
+    if (ver && (key.endsWith("manifest.json") || key.endsWith("index.json"))) console.log(`${key} app=${ver}`);
     if (!key || key.split("/").includes("..")) return new Response("Not Found", { status: 404, headers: CORS });
     // T225: the feeds worker keeps its state (notified keys, runs archive, roster, DFO entries + page corpus) under
     // private/ in the same bucket; never serve it.

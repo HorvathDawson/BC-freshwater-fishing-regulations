@@ -279,7 +279,7 @@ use that as the sole source of future work."
 | T232 | app environments: local / staging / production by `EXPO_PUBLIC_APP_ENV` (phone default staging), one config (`env.ts` → `ENDPOINTS`), dev switch + badge on About, eas.json profiles | DONE | 3d171c8f | owner 2026-10-28; build commands in the ticket; prod host unused until T86 |
 | T234 | push notifications: regulation changes on followed waters + condition/forecast alerts | OPEN | — | not started; owner questions Q-T234a–c (device-only v1, alert kinds, timing) |
 | T235 | data attribution: map credits naming what is drawn (web + native), source credits on the sheets, About → Sources & licences (ODbL / OGL-BC / OGL-Canada / DFO / PSF / Esri) | DONE | cf41b443 | ODbL decided 10-28 (no file; map + Sources credit); city licences added; owner: confirm Burnaby/Abbotsford wording; native ⓘ on a device rides T77 |
-| T236 | legal disclaimer (About, first run, regs foot) + "Regulations as of … · salmon feed … · in-season …" on each water page | DONE | cf41b443 | optional: stamp a `released` date at publish (as-of reads the newest synopsis/DFO input date until then) |
+| T236 | legal disclaimer (About, first run, regs foot) + "Regulations as of … · salmon feed … · in-season …" on each water page | DONE | cf41b443 | as-of reads `published` (stamped at publish, T251), the newest synopsis/DFO input date before it |
 | T237 | report a problem: endpoint + review-app queue (today mailto/share only) | OPEN | — | owner 2026-10-28 (P3); owner: where reports go |
 | T238 | offline regions manager (phone): keep/delete regions, storage used | OPEN | — | owner 2026-10-28 (P4); needs a per-region tile split (T85/T202) |
 | T239 | annual synopsis update: runbook + book diff tool + dry run | OPEN | — | owner 2026-10-28 (P5); the parse is human-run |
@@ -294,6 +294,7 @@ use that as the sole source of future work."
 | T248 | first-run walkthrough + help page (after T236's disclaimer notice) | OPEN | — | owner 2026-10-28 (P14) |
 | T249 | feeds/worker security (rate limits, token rotation, private/ never public, secrets inventory) | OPEN | — | owner 2026-10-28 (P15) |
 | T250 | Expo SDK / dependency upgrade window (MapLibre RN patch re-apply) | OPEN | — | owner 2026-10-28 (P16); before T244 |
+| T251 | testing data updates: Updates log (dev/staging, ring buffer, check/force/offline/clear/apply/copy), staging test channel (`test/` + `deploy/staging/test-updates.mjs` + `app/tools/updates-e2e.mjs`), app version (app.json semver + build + sha + date; About, `X-App-Version`, `minAppVersion` gate), `published` stamped at publish | IN PROGRESS | — | owner 2026-10-28; prod data worker must allow `X-App-Version` (T86) |
 
 ## Order for open tickets
 

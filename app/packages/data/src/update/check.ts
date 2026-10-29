@@ -14,10 +14,11 @@ import { sha256Hex } from "../sha256";
 /** What was last seen of an object: its ETag (the origin's validator) and the sha256 of its bytes. */
 export interface Seen { etag: string | null; sha256: string | null }
 
+/** (T251) `status` (the HTTP answer; null when none came) and `got` (bytes received) for the Updates log. */
 export type Checked =
-  | { kind: "unchanged"; etag: string | null }
-  | { kind: "changed"; bytes: Uint8Array; etag: string | null; sha256: string }
-  | { kind: "failed"; error: string; offline: boolean };
+  | { kind: "unchanged"; etag: string | null; status: number; got: number }
+  | { kind: "changed"; bytes: Uint8Array; etag: string | null; sha256: string; status: number; got: number }
+  | { kind: "failed"; error: string; offline: boolean; status: number | null };
 
 const said = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -30,19 +31,19 @@ export async function checkObject(url: string, seen: Seen | null, fetchImpl: typ
     const headers: Record<string, string> = seen?.etag ? { "If-None-Match": seen.etag.replace(/^W\//, "") } : {};
     res = await fetchImpl(url, { headers, cache: "no-store", ...(signal ? { signal } : {}) });
   } catch (e) {
-    return { kind: "failed", error: `${url}: ${said(e)}`, offline: true };
+    return { kind: "failed", error: `${url}: ${said(e)}`, offline: true, status: null };
   }
-  if (res.status === 304) return { kind: "unchanged", etag: seen?.etag ?? null };
-  if (!res.ok) return { kind: "failed", error: `${url}: HTTP ${res.status}`, offline: false };
+  if (res.status === 304) return { kind: "unchanged", etag: seen?.etag ?? null, status: 304, got: 0 };
+  if (!res.ok) return { kind: "failed", error: `${url}: HTTP ${res.status}`, offline: false, status: res.status };
   let bytes: Uint8Array;
   try {
     bytes = new Uint8Array(await res.arrayBuffer());
   } catch (e) {
     // the connection dropped mid-body: nothing half-read is ever kept
-    return { kind: "failed", error: `${url}: ${said(e)}`, offline: true };
+    return { kind: "failed", error: `${url}: ${said(e)}`, offline: true, status: res.status };
   }
   const etag = res.headers.get("ETag");
   const sha256 = sha256Hex(bytes);
-  if (seen?.sha256 === sha256) return { kind: "unchanged", etag };
-  return { kind: "changed", bytes, etag, sha256 };
+  if (seen?.sha256 === sha256) return { kind: "unchanged", etag, status: res.status, got: bytes.length };
+  return { kind: "changed", bytes, etag, sha256, status: res.status, got: bytes.length };
 }

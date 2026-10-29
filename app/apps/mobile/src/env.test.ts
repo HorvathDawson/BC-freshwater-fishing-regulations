@@ -1,6 +1,6 @@
 /** (T232) The environment a build reads, resolved from its build variables, platform and development switch. */
 import { describe, expect, it } from "vitest";
-import { endpointsFor, envOfOrigin, ORIGINS, resolveEnv } from "./env";
+import { endpointsFor, envOfOrigin, ORIGINS, resolveChannel, resolveEnv } from "./env";
 
 const STAGING = "https://data-staging.canifishthis.ca";
 
@@ -53,5 +53,25 @@ describe("endpointsFor", () => {
     expect([e.manifest, e.release, e.tiles.atlas, e.feed, e.dfoFeed, e.inSeason, e.sqlWasm]).toEqual([
       `${STAGING}/release/manifest.json`, `${STAGING}/release/`, `${STAGING}/atlas.pmtiles`, `${STAGING}/feeds/live`,
       `${STAGING}/feeds/dfo`, `${STAGING}/feeds/inseason`, `${STAGING}/`]);
+  });
+});
+
+describe("(T251) the update channel", () => {
+  it("test moves only what the update service checks under test/; the release files and feed folders stay live", () => {
+    const live = endpointsFor(STAGING), test = endpointsFor(STAGING, "test");
+    expect([test.manifest, test.checks.gauges, test.checks.dfo, test.checks.inseason]).toEqual([
+      `${STAGING}/test/release/manifest.json`, `${STAGING}/test/feeds/live/index.json`,
+      `${STAGING}/test/feeds/dfo/index.json`, `${STAGING}/test/feeds/inseason/index.json`]);
+    expect([test.release, test.feed, test.dfoFeed, test.inSeason, test.tiles.atlas])
+      .toEqual([live.release, live.feed, live.dfoFeed, live.inSeason, live.tiles.atlas]);
+    expect(live.checks.gauges).toBe(`${STAGING}/feeds/live/index.json`);
+  });
+  it("named by the build, switched in a switchable build only; a typo throws", () => {
+    expect(resolveChannel({ switchable: false })).toBe("live");
+    expect(resolveChannel({ named: "test", switchable: false })).toBe("test");
+    expect(resolveChannel({ named: "test", switchable: false, override: "live" })).toBe("test");
+    expect(resolveChannel({ switchable: true, override: "test" })).toBe("test");
+    expect(resolveChannel({ switchable: true, override: "qa" })).toBe("live");
+    expect(() => resolveChannel({ named: "tset", switchable: false })).toThrow();
   });
 });

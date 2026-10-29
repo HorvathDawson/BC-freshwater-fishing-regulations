@@ -76,7 +76,7 @@ describe("about", () => {
         official: { label: "Open the official Synopsis", url: "https://example.test/s.pdf" },
         versionsTitle: "Versions",
         versions: [
-          { label: "App build", value: "1.2.0 (34)" },
+          { label: "Version", value: "1.2.0 (34)" },
           { label: "Data release", value: "r-6960fe8201e3" },
           { label: "Map tiles", value: "d768d6e135e62b99.c9f9604f12bf" },
           { label: "Regulations", value: "2025–2027 BC Freshwater Fishing Regulations Synopsis" },
@@ -87,7 +87,7 @@ describe("about", () => {
 
   it("names the development bundle and says what is not stated, never inventing a version", () => {
     expect(aboutVM({ appBuild: null, release: null, tiles: null, edition: null }, "u").versions).toEqual([
-      { label: "App build", value: "Not stated" },
+      { label: "Version", value: "Not stated" },
       { label: "Data release", value: "Development bundle" },
       { label: "Map tiles", value: "Not stated" },
       { label: "Regulations", value: "Not stated" },
@@ -396,7 +396,7 @@ describe("report a problem", () => {
 
   it("shows every diagnostic it would send, and drops the empty ones", () => {
     expect(diagnosticRows(d).map((r) => [r.k, r.label, r.lines.length])).toEqual([
-      ["app", "App build", 1], ["platform", "Platform", 1], ["release", "Data release", 1], ["tiles", "Map tiles", 1],
+      ["app", "App version", 1], ["platform", "Platform", 1], ["release", "Data release", 1], ["tiles", "Map tiles", 1],
       ["where", "Where you were", 6], ["errors", "Recent errors", 2]]);
     expect(diagnosticRows({ ...d, release: null, errors: [] }).map((r) => r.k)).toEqual(["app", "platform", "tiles", "where"]);
   });
@@ -404,7 +404,7 @@ describe("report a problem", () => {
   it("composes exactly what the reader wrote and the rows they left on", () => {
     expect(reportMessage("  The closure is wrong.  ", d, { errors: false, tiles: false })).toEqual({
       subject: "Can I Fish This? problem report: Vedder River · Gear",
-      body: "The closure is wrong.\n\n--\nApp build: 1.2.0 (34)\nPlatform: android 15\nData release: r-6960fe8201e3\n"
+      body: "The closure is wrong.\n\n--\nApp version: 1.2.0 (34)\nPlatform: android 15\nData release: r-6960fe8201e3\n"
         + "Where you were:\n  Screen: water · regs\n  Tab: Gear\n  Water: Vedder River (356308001)\n  Part: 2\n"
         + "  Section: 812345\n  Day: Tue, Oct 21",
     });

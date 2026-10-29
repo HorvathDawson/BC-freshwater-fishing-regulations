@@ -6,6 +6,8 @@
  * schedule (interval, backoff, foreground, back online) and what is kept across launches.
  */
 import { describe, expect, it } from "vitest";
+import { resolveAppVersion, type UpdateEvent } from "@app/core";
+import { createUpdateLog, versionedFetch } from "./log";
 import { sha256Hex } from "../sha256";
 import { VerifyError } from "../fetchVerified";
 import type { Held, Manifest } from "../manifest";
@@ -362,5 +364,125 @@ describe("the release", () => {
     await s.check({ manual: true });
     expect(s.snapshot().release!.error).toContain("format");
     expect(s.snapshot().manual).toMatchObject({ ok: false });
+  });
+});
+
+// ── (T251) the Updates log's events, the release gate, forget ─────────────────────────────────────────────────────────
+
+describe("(T251) every check is an event", () => {
+  it("feeds: changed (sha before → after, bytes), then unchanged 304 (0 B), then a 404, then offline", async () => {
+    const o = origin({ [G]: "a" });
+    const ev: UpdateEvent[] = [];
+    let online = true;
+    const s = createUpdateService({ feeds: feedsWith({}).slice(0, 1), fetch: o.fetch, onEvent: (e) => ev.push(e),
+                                    network: { online: () => online } });
+    await s.check({ manual: true });
+    await s.check();
+    o.files.delete(G);
+    await s.check();
+    online = false;
+    await s.check();
+    const sha = sha256Hex(enc("a")).slice(0, 8);
+    expect(ev.map((e) => [e.source, e.kind, e.status ?? null, e.bytes ?? null, e.before ?? null, e.after ?? null,
+                          e.errorClass ?? null, !!e.manual]))
+      .toEqual([
+        ["gauges", "changed", 200, 1, null, sha, null, true],
+        ["gauges", "unchanged", 304, 0, sha, sha, null, false],
+        ["gauges", "failed", 404, 0, sha, null, "http-404", false],
+        ["gauges", "offline", null, null, null, null, "offline", false],
+      ]);
+  });
+
+  it("release: changed then staged (data release before → after), applied; a sha mismatch is classed", async () => {
+    const m1 = manifest("r1"), m2 = manifest("r2", { files: { core: [100, "c2"], paint: [10, "p1"] } });
+    const o = origin({ [M]: JSON.stringify(m2) });
+    const ev: UpdateEvent[] = [];
+    let bad = true;
+    const s = createUpdateService({ feeds: [], fetch: o.fetch, onEvent: (e) => ev.push(e), release: {
+      manifestUrl: M, held: () => heldOf(m1),
+      stage: async (_m, on) => { on(100, 100); if (bad) throw new VerifyError("core: sha256 0123…, the manifest says c2…"); },
+    } });
+    await s.check(); await flush();
+    bad = false;
+    await s.check(); await flush();
+    s.applied("r2", { from: "r1", ms: 42 });
+    expect(ev.map((e) => [e.kind, e.before, e.after, e.errorClass ?? null])).toEqual([
+      ["changed", "r1", "r2", null], ["failed", "r1", "r2", "sha-mismatch"],
+      ["changed", "r1", "r2", null], ["staged", "r1", "r2", null], ["applied", "r1", "r2", null],
+    ]);
+    expect(ev.at(-1)!.ms).toBe(42);
+  });
+
+  it("forget(): the next check downloads whole (no If-None-Match) and logs the action", async () => {
+    const o = origin({ [G]: "a" });
+    const ev: UpdateEvent[] = [];
+    const s = createUpdateService({ feeds: feedsWith({}).slice(0, 1), fetch: o.fetch, onEvent: (e) => ev.push(e) });
+    await s.check();
+    s.forget();
+    await s.check();
+    expect(o.log.map((l) => l.inm !== null)).toEqual([false, false]);
+    expect(ev.map((e) => e.kind)).toEqual(["changed", "action", "changed"]);
+  });
+});
+
+describe("(T251) the release gate: minAppVersion", () => {
+  const v = (s: string) => resolveAppVersion({ version: s });
+  const gated = (min: string | undefined) => ({ ...manifest("r2", { files: { core: [100, "c2"], paint: [10, "p1"] } }),
+                                                ...(min ? { minAppVersion: min } : {}) });
+
+  it("an older app keeps its data: nothing staged, phase app-too-old naming the version asked for", async () => {
+    const m1 = manifest("r1");
+    const o = origin({ [M]: JSON.stringify(gated("0.3.0")) });
+    const staged: string[] = [], ev: UpdateEvent[] = [];
+    const s = createUpdateService({ feeds: [], fetch: o.fetch, appVersion: v("0.2.9"), onEvent: (e) => ev.push(e),
+      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(m.data_release); } } });
+    await s.check(); await flush();
+    expect(staged).toEqual([]);
+    expect(s.snapshot().release).toMatchObject({ phase: "app-too-old", target: "r2", needsApp: "0.3.0" });
+    expect(ev.at(-1)).toMatchObject({ kind: "app-too-old", before: "r1", after: "r2", note: "needs app ≥ 0.3.0" });
+    // a later manifest the app may apply clears it and stages
+    o.files.set(M, JSON.stringify(gated("0.2.0")));
+    await s.check(); await flush();
+    expect(staged).toEqual(["r2"]);
+    expect(s.snapshot().release).toMatchObject({ phase: "ready", needsApp: null });
+  });
+
+  it("a new enough app applies it; no appVersion (the web: deployed with its data) is never gated", async () => {
+    for (const appVersion of [v("0.3.0"), v("1.0.0"), null]) {
+      const o = origin({ [M]: JSON.stringify(gated("0.3.0")) });
+      const staged: string[] = [];
+      const s = createUpdateService({ feeds: [], fetch: o.fetch, appVersion,
+        release: { manifestUrl: M, held: () => heldOf(manifest("r1")), stage: async (m) => { staged.push(m.data_release); } } });
+      await s.check(); await flush();
+      expect(staged).toEqual(["r2"]);
+    }
+  });
+
+  it("the boot's own manifest (seedRelease) is gated too", () => {
+    const s = createUpdateService({ feeds: [], appVersion: v("0.1.0"),
+      release: { manifestUrl: M, held: () => heldOf(manifest("r1")), stage: async () => {} } });
+    s.seedRelease(gated("0.2.0"));
+    expect(s.snapshot().release).toMatchObject({ phase: "app-too-old", target: "r2" });
+  });
+});
+
+describe("(T251) the log's ring buffer and the versioned fetch", () => {
+  it("keeps the last `cap` events across a reopen; clear empties it", () => {
+    const store = memStore();
+    const a = createUpdateLog({ store, cap: 3 });
+    for (let i = 0; i < 5; i++) a.append({ at: i, source: "gauges", kind: "unchanged" });
+    const b = createUpdateLog({ store, cap: 3 });
+    expect(b.events().map((e) => e.at)).toEqual([2, 3, 4]);
+    b.clear();
+    expect(createUpdateLog({ store, cap: 3 }).events()).toEqual([]);
+  });
+
+  it("adds the version headers to every request, the request's own headers kept", async () => {
+    const seen: Headers[] = [];
+    const f = versionedFetch((async (_u: RequestInfo | URL, i?: RequestInit) => { seen.push(new Headers(i?.headers));
+                                                                              return new Response("x"); }) as typeof fetch,
+                             { "X-App-Version": "0.1.0+3.abcdef1" });
+    await checkObject(G, { etag: '"e"', sha256: null }, f);
+    expect([seen[0]!.get("X-App-Version"), seen[0]!.get("If-None-Match")]).toEqual(["0.1.0+3.abcdef1", '"e"']);
   });
 });

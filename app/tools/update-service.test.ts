@@ -10,6 +10,7 @@
  *           reads them from there without the network.
  */
 import { describe, expect, it } from "vitest";
+import { resolveAppVersion } from "@app/core";
 import { createUpdateService, fetchVerified, type ItemId, type Manifest } from "@app/data";
 import { bootRelease, heldPath, POINTER, type ReleaseFs, type ReleasePlatform } from "@app/data/release";
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
@@ -176,5 +177,43 @@ describe("web: warmed in the release cache, read from there by the apply", () =>
     expect(applied.manifest.data_release).toBe(m2.data_release);
     await applied.source.itemForSection(0 as never);
     expect(log.filter((u) => u.includes(m2.files.core!.url))).toEqual([]);  // from the cache
+  });
+});
+
+describe("(T251) the release gate at boot (phone)", () => {
+  const gatedFetch = (inner: typeof fetch, min: string) => (async (u: RequestInfo | URL, i?: RequestInit) => {
+    const r = await inner(u, i);
+    if (String(u) !== M) return r;
+    return new Response(JSON.stringify({ ...(await r.json()), minAppVersion: min }), { status: 200 });
+  }) as typeof fetch;
+
+  it("a first run too old for the release installs nothing and says to update the app; a new enough app installs", async () => {
+    const r1 = fixtureRelease("plain");
+    const boot = (fs: ReturnType<typeof memFs>, version: string) => bootRelease({
+      manifestUrl: M, releaseBase: BASE, wasmBase: "", platform: phone(fs), manifestTimeoutMs: 1000, deferUpdate: true,
+      fetch: gatedFetch(releaseFetch(BASE, r1.dir, []), "0.3.0"), appVersion: resolveAppVersion({ version }) });
+    const old = memFs();
+    await expect(boot(old, "0.2.0")).rejects.toThrow("Update the app to get new regulations");
+    expect(old.files.size).toBe(0);
+    const ok = await boot(memFs(), "0.3.0");
+    expect(ok.held.release).toBe((await manifestOf(r1.dir)).data_release);
+  });
+
+  it("a later launch keeps the held set: the service sees the gated release and stages nothing", async () => {
+    const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged");
+    const fs = memFs();
+    const v = resolveAppVersion({ version: "0.2.0" });
+    const boot = (f: typeof fetch) => bootRelease({ manifestUrl: M, releaseBase: BASE, wasmBase: "", platform: phone(fs),
+                                                    fetch: f, manifestTimeoutMs: 1000, deferUpdate: true, appVersion: v });
+    await boot(releaseFetch(BASE, r1.dir, []));
+    const f2 = gatedFetch(releaseFetch(BASE, r2.dir, []), "0.3.0");
+    const b = await boot(f2);
+    const s = createUpdateService({ feeds: [], fetch: f2, appVersion: v, release: releaseSpec(() => b) });
+    s.seedRelease(b.latest!);
+    s.start();
+    await settle(s);
+    expect(s.snapshot().release).toMatchObject({ phase: "app-too-old", needsApp: "0.3.0" });
+    expect(b.held.release).toBe((await manifestOf(r1.dir)).data_release);
+    s.stop();
   });
 });

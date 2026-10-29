@@ -41,19 +41,19 @@ export const firstRunAccepted = (stored: string | null | undefined): boolean => 
 
 /** What the release states about its date (the manifest's own fields; all optional). */
 export interface ReleaseDates {
-  /** a release date the release step stamps (a future manifest field), an ISO day */
-  readonly released?: string | null;
+  /** (T251) the day the release was PUBLISHED (the manifest's `published`, stamped by the publish step), an ISO day */
+  readonly published?: string | null;
   readonly sources?: { readonly synopsis?: { readonly date: string | null } | null;
                        readonly dfo?: { readonly date: string | null } | null } | null;
 }
 
 /**
- * THE REGULATIONS' "AS OF" DAY: the release's own date when it states one, else the newest regulation input it read
+ * THE REGULATIONS' "AS OF" DAY: the day the release was published (`published`, T251) when it states one, else the newest regulation input it read
  * (the synopsis edition's date, DFO's pages' date) — the newest day the regulations in it are known to reflect. Null
  * when it states none (never the download time: that is not when the regulations were read).
  */
 export function regsAsOfDay(r: ReleaseDates | null | undefined): string | null {
-  const own = isoDayWords(r?.released) !== null ? r!.released! : null;
+  const own = isoDayWords(r?.published) !== null ? r!.published! : null;
   if (own) return own;
   const days = [r?.sources?.synopsis?.date, r?.sources?.dfo?.date]
     .filter((d): d is string => isoDayWords(d) !== null).sort();

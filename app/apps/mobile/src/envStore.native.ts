@@ -16,6 +16,15 @@ export const envStore = {
   },
 };
 
+/** (T251) The update channel (live / test), a small file of its own beside the environment's. */
+const channelFile = () => new File(dir(), "update-channel.txt");
+export const channelStore = {
+  read: (): string | null => { try { const f = channelFile(); return f.exists ? f.textSync().trim() || null : null; } catch { return null; } },
+  write: (c: string): void => {
+    try { if (!dir().exists) dir().create({ intermediates: true }); channelFile().write(c); } catch { /* a preference */ }
+  },
+};
+
 export function restart(): boolean {
   if (!__DEV__) return false;
   DevSettings.reload();

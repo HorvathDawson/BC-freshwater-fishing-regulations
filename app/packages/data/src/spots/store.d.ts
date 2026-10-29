@@ -25,5 +25,7 @@ export declare function openInSeasonStore(): { read(): string | null; write(text
 export declare function openInSeasonSeenStore(): { read(): string | null; write(text: string): void };
 /** (T231) The update service's small state (`@app/data` `UpdateStore`), as whole text under one name. */
 export declare function openUpdateStore(): { read(): string | null; write(text: string): void };
+/** (T251) The Updates log's ring buffer (development and staging builds only), as whole text. */
+export declare function openUpdateLogStore(): { read(): string | null; write(text: string): void };
 /** (T236) The first-run notice's accepted version (`@app/core` `FIRST_RUN_VERSION`), as whole text. */
 export declare function openFirstRunStore(): { read(): string | null; write(text: string): void };

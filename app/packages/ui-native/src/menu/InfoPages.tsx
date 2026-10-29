@@ -3,7 +3,7 @@
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
 import { Linking, Pressable, Text, View } from "react-native";
-import { LICENCE_WORDS, licencesVM, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
+import { LICENCE_WORDS, licencesVM, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
 import { Credits } from "../Credits";
 import { LicencesList } from "./Licences";
 import { TYPE } from "../type";
@@ -11,8 +11,10 @@ import { SPACE, type Palette } from "../theme";
 
 const open = (url: string) => { void Linking.openURL(url); };
 
-export function AboutPage({ vm, palette, onEnv, onSources }: { vm: AboutVM; palette: Palette; onEnv?: (env: AppEnv) => void;
-                            /** (T235) open Sources and licences */ onSources?: () => void }) {
+export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog }: { vm: AboutVM; palette: Palette;
+                            onEnv?: (env: AppEnv) => void;
+                            /** (T235) open Sources and licences */ onSources?: () => void;
+                            /** (T251) open the Updates log (development and staging builds) */ onUpdatesLog?: () => void }) {
   return (
     <>
       {vm.env && <EnvBadge vm={vm.env} palette={palette} />}
@@ -42,6 +44,12 @@ export function AboutPage({ vm, palette, onEnv, onSources }: { vm: AboutVM; pale
         ))}
       </View>
       {vm.env && <EnvBlock vm={vm.env} palette={palette} onEnv={onEnv} />}
+      {onUpdatesLog && (
+        <Pressable testID="about-updates-log" onPress={onUpdatesLog} accessibilityRole="link"
+                   accessibilityLabel={UPDATE_LOG_WORDS.aboutLink}>
+          <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{UPDATE_LOG_WORDS.aboutLinkShown}</Text>
+        </Pressable>
+      )}
     </>
   );
 }

@@ -68,6 +68,11 @@ export function openUpdateStore(): { read(): string | null; write(text: string):
   return keyStore("canifishthis.updates.v1");
 }
 
+/** (T251) The Updates log's ring buffer (development and staging builds only), as whole text. */
+export function openUpdateLogStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.updateLog.v1");
+}
+
 /** (T236) The first-run notice's accepted version (`FIRST_RUN_VERSION`), one key of its own. */
 export function openFirstRunStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.firstRun.v1");

@@ -2,7 +2,7 @@
 import { IMAGERY_ATTRIBUTION } from "../imagery";
 
 /** The pages that open OVER the More tab. Display and Contact are drawn on the tab itself (owner 2026-10-22). */
-export type MenuPageKey = "glossary" | "sources" | "about" | "report";
+export type MenuPageKey = "glossary" | "sources" | "about" | "report" | "updates";
 
 /** The app's name as the menu writes it (app.json's display name is the slug; the owner names the product). */
 export const APP_NAME = "Can I Fish This?";
@@ -39,6 +39,8 @@ export const MENU_WORDS = {
     sources: { label: "Sources and licences", hint: "Who publishes the data, and under which licence" },
     about: { label: "About", hint: "What this app is, and what it is not" },
     report: { label: "Report a problem", hint: "Something wrong, missing or confusing" },
+    // (T251) development and staging builds only: reached from About, never listed on the More tab
+    updates: { label: "Updates log", hint: "Every check for new data on this device" },
   } satisfies Record<MenuPageKey, { label: string; hint: string }>,
   /**
    * THE APP'S COLOURS (owner 2026-10-21 late: the palette left the Layers menu for the hamburger) — a whole-app setting,
@@ -69,7 +71,7 @@ export const MENU_WORDS = {
       + "changes and federal notices are the law: check them before you fish. Nothing in this app is legal advice.",
     official: "Open the official Synopsis",
     versions: "Versions",
-    app: "App build",
+    app: "Version",
     release: "Data release",
     tiles: "Map tiles",
     regulations: "Regulations",
@@ -141,7 +143,7 @@ export const MENU_WORDS = {
     fromRegs: "Report a problem with this page",
     /** the diagnostics' switches, in the order the form lists them */
     diag: {
-      app: "App build", platform: "Platform", release: "Data release", tiles: "Map tiles",
+      app: "App version", platform: "Platform", release: "Data release", tiles: "Map tiles",
       where: "Where you were", errors: "Recent errors",
     },
     /** "Where you were", one line per fact */

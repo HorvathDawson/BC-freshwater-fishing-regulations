@@ -6,6 +6,13 @@ export const envStore = {
   write: (env: string): void => { try { globalThis.localStorage?.setItem(KEY, env); } catch { /* a preference */ } },
 };
 
+/** (T251) The update channel (live / test), one key of its own; a reload applies it. */
+const CHANNEL_KEY = "canifishthis.updateChannel.v1";
+export const channelStore = {
+  read: (): string | null => { try { return globalThis.localStorage?.getItem(CHANNEL_KEY) ?? null; } catch { return null; } },
+  write: (c: string): void => { try { globalThis.localStorage?.setItem(CHANNEL_KEY, c); } catch { /* a preference */ } },
+};
+
 export function restart(): boolean {
   if (typeof window === "undefined") return false;
   window.location.reload();

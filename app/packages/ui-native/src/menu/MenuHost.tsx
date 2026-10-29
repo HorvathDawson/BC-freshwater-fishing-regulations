@@ -20,6 +20,7 @@ import { GlossaryPage } from "./GlossaryPage";
 import { AboutPage, SourcesPage } from "./InfoPages";
 import { MenuPage } from "./MenuPage";
 import { ReportPage } from "./ReportPage";
+import { UpdatesLogPage, type UpdatesLogControls } from "./UpdatesLogPage";
 
 /** What the app itself knows about its build (apps/mobile config.ts). */
 export interface MenuInfo {
@@ -33,6 +34,8 @@ export interface MenuInfo {
    */
   readonly env?: { readonly about: Omit<AboutEnvInput, "pending">; readonly pending: AppEnv | null;
                    pick(env: AppEnv): void } | null;
+  /** (T251) The Updates log's controls (App.tsx): development and staging builds only; absent, About does not link it. */
+  readonly updatesLog?: UpdatesLogControls | null;
 }
 
 /** No build facts: the build states none and the owner has supplied no contact yet. */
@@ -73,7 +76,7 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ro
     errors: ERROR_LOG.recent(),
   }), [reportOpen, s.report]);     // frozen at open, deliberately: a report states what was true when it was asked
 
-  const page = (k: "sources" | "about" | "report", node: React.ReactNode) => (
+  const page = (k: "sources" | "about" | "report" | "updates", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
               testID={`menu-page-${k}`}>
       {s.page === k ? node : null}
@@ -95,8 +98,10 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ro
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles, dataEnv,
         edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)} onEnv={pickEnv}
+                                   onUpdatesLog={info.updatesLog ? () => menu.show("updates") : undefined}
                                    onSources={() => menu.show("sources")} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
       {page("report", <ReportPage palette={palette} contact={info.contact} diagnostics={diagnostics} />)}
+      {info.updatesLog && page("updates", <UpdatesLogPage c={info.updatesLog} palette={palette} />)}
     </>
   );
 }

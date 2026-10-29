@@ -17,7 +17,7 @@
  *            another. Anything else (an IO or opener failure) is rolled back for THIS launch only: the pointer, the
  *            set and the set it replaced all stay, and the next launch tries it again.
  */
-import { PaintError, StatusIndexError, type Paint } from "@app/core";
+import { PaintError, releaseAllowed, StatusIndexError, UPDATE_WORDS, type AppVersion, type Paint } from "@app/core";
 import { VerifyError } from "../fetchVerified";
 import { compatible, loadManifest, ManifestError, type Held, type Manifest } from "../manifest";
 import { sha256Hex } from "../sha256";
@@ -72,6 +72,12 @@ export interface BootOptions {
    * installs a newer set in the background, as before.
    */
   deferUpdate?: boolean;
+  /**
+   * (T251) THE RELEASE GATE on a phone: a manifest whose `minAppVersion` is newer than this app is never installed — a
+   * first run says "Update the app to get new regulations" (there is nothing older to keep); a later launch keeps the
+   * held set. The web passes none: its app code is deployed with its data.
+   */
+  appVersion?: AppVersion | null;
 }
 
 export interface Booted {
@@ -190,8 +196,10 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   let held = await heldFrom(dev.fs);
   const latest = await timeout(loadManifest(o.manifestUrl, undefined, f), o.manifestTimeoutMs ?? 5000)
     .catch(() => null);
+  const allowed = (m: Manifest) => !o.appVersion || releaseAllowed(m.minAppVersion, o.appVersion).ok;
   if (!held) {
     if (!latest) throw new BootError("first run: the manifest could not be read", true);
+    if (!allowed(latest)) throw new BootError(UPDATE_WORDS.row.appTooOld);
     o.onStage?.("install");
     held = await install(latest, dev.fs, dev.download, o.releaseBase, null, o.onProgress, dev.toDisk, undefined,
                          rawFetch(f));
@@ -277,7 +285,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     staging.then(() => { staging = null; }, () => { staging = null; });
     return staging;
   };
-  const update = latest && !o.deferUpdate ? stage(latest) : Promise.resolve(null);
+  const update = latest && !o.deferUpdate && allowed(latest) ? stage(latest) : Promise.resolve(null);
   update.catch(() => {});        // a failed update leaves the held set in force (install never swapped)
 
   const loader = withLiveSalmon(set.loader, o.salmonFeed);

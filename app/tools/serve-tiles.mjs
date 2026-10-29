@@ -79,7 +79,7 @@ function releaseFile(route) {
 createServer((req, res) => {
   // The map runs on a different port in development, so it is cross-origin to this server.
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Range");
+  res.setHeader("Access-Control-Allow-Headers", "Range, If-None-Match, X-App-Version");   // T251: the app's version header
   res.setHeader("Access-Control-Expose-Headers", "Content-Range, Content-Length");
   if (req.method === "OPTIONS") return res.writeHead(204).end();
 

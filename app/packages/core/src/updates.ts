@@ -37,6 +37,8 @@ export const UPDATE_WORDS = {
     downloading: (pct: number) => `Downloading an update, ${pct}%`,
     waitingWifi: "An update is waiting for Wi-Fi",
     ready: "An update is ready; it is used at the next pause",
+    /** (T251) the release states a minAppVersion newer than this app: the data in use is kept */
+    appTooOld: "Update the app to get new regulations",
     failed: (n: number) => (n === 1 ? "1 source could not be updated" : `${n} sources could not be updated`),
   },
   sheet: {
@@ -80,7 +82,7 @@ export interface UpdateSourceInput {
 }
 
 export interface UpdateReleaseInput {
-  readonly phase: "current" | "waiting-wifi" | "downloading" | "ready";
+  readonly phase: "current" | "waiting-wifi" | "downloading" | "ready" | "app-too-old";
   readonly progress: { readonly bytes: number; readonly of: number } | null;
 }
 
@@ -142,6 +144,7 @@ export function updateSourcesVM(i: { sources: readonly UpdateSourceInput[]; rele
     ? R.downloading(r.progress && r.progress.of > 0 ? Math.round((100 * r.progress.bytes) / r.progress.of) : 0)
     : r?.phase === "waiting-wifi" ? R.waitingWifi
     : r?.phase === "ready" ? R.ready
+    : r?.phase === "app-too-old" ? R.appTooOld
     : failed > 0 ? R.failed(failed)
     : checked.length ? R.checked(ago(Math.max(...checked), i.now)) : R.notChecked;
   return { title: R.title, line, label: `${R.title}: ${line}.`, sources };

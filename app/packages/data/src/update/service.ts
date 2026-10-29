@@ -23,6 +23,7 @@
  *
  * `snapshot()` is a new object on every change (for `useSyncExternalStore`); `subscribe` is told after each.
  */
+import { errorClassOf, releaseAllowed, type AppVersion, type UpdateEvent } from "@app/core";
 import { diff, parseManifest, type Held, type Manifest } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts)
 import { utf8 } from "../regs/blob";
@@ -93,6 +94,15 @@ export interface UpdateOptions {
   /** Told when the app returns to the foreground (visible again). */
   lifecycle?: { subscribe(on: () => void): () => void };
   policy?: Partial<UpdatePolicy>;
+  /** (T251) Told of every check and step, for the Updates log (`createUpdateLog`); a throw is ignored. */
+  onEvent?: (e: UpdateEvent) => void;
+  /**
+   * (T251) THE RELEASE GATE: this app's version. A manifest whose `minAppVersion` is newer is not staged — the data in
+   * use is kept and the release reads `phase: "app-too-old"` ("Update the app to get new regulations"). Omitted: no
+   * gate — the web, whose app code is deployed WITH its data (the site and the release go out together), so it is never
+   * older than the release it reads; a store build can lag, so a phone passes its version.
+   */
+  appVersion?: AppVersion | null;
 }
 
 export interface SourceStatus {
@@ -109,15 +119,17 @@ export interface SourceStatus {
   readonly failures: number;
 }
 
-export type ReleasePhase = "current" | "waiting-wifi" | "downloading" | "ready";
+export type ReleasePhase = "current" | "waiting-wifi" | "downloading" | "ready" | "app-too-old";
 
 export interface ReleaseStatus extends SourceStatus {
   readonly phase: ReleasePhase;
-  /** The release pending (waiting, downloading or ready), or null. */
+  /** The release pending (waiting, downloading or ready), or refused for an old app (`app-too-old`), or null. */
   readonly target: string | null;
   /** The newest source date the pending manifest states (ISO day), for "Updated to <date>"; null: none stated. */
   readonly targetDate: string | null;
   readonly progress: { readonly bytes: number; readonly of: number } | null;
+  /** (T251) `app-too-old`: the app version the release asks for */
+  readonly needsApp?: string | null;
 }
 
 export interface UpdateSnapshot {
@@ -139,8 +151,10 @@ export interface UpdateService {
   subscribe(on: () => void): () => void;
   /** The boot read this manifest an instant ago (the web, T129): the first release check is not due before the interval. */
   seedRelease(m: Manifest): void;
-  /** The pending release was put in use (the app re-booted onto it). */
-  applied(release: string): void;
+  /** The pending release was put in use (the app re-booted onto it). (T251) `from`, `ms`: for the Updates log. */
+  applied(release: string, info?: { from?: string | null; ms?: number }): void;
+  /** (T251) Forget every validator (ETag, sha) and the manifest last read: the next check downloads each object whole. */
+  forget(): void;
   /** Large release downloads over a metered connection (the reader's setting). */
   allowMetered(on: boolean): void;
   /** Feed changes, by id: what re-asks its readers (the map's colouring) keys on it. */
@@ -182,6 +196,7 @@ export function releaseNeed(m: Manifest, held: Held): number {
 }
 
 const said = (e: unknown) => (e instanceof Error ? e.message : String(e));
+const short = (sha: string | null | undefined) => (sha ? sha.slice(0, 8) : null);
 
 export function createUpdateService(o: UpdateOptions): UpdateService {
   const P: UpdatePolicy = { ...UPDATE_POLICY, ...o.policy,
@@ -189,6 +204,14 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
   const f = o.fetch ?? ((u: RequestInfo | URL, i?: RequestInit) => fetch(u, i));
   const now = o.now ?? Date.now;
   const timers: Timers = o.timers ?? { set: (fn, ms) => setTimeout(fn, ms), clear: (h) => clearTimeout(h as never) };
+  /** the check under way was asked for (the log marks it manual) */
+  let runManual = false;
+  const emit = (e: Omit<UpdateEvent, "at"> & { at?: number }) => {
+    if (!o.onEvent) return;
+    try { o.onEvent({ at: now(), ...(runManual ? { manual: true } : {}), ...e }); } catch { /* the log never breaks a check */ }
+  };
+  /** (T251) May this app apply `m`? (no `appVersion`: always) */
+  const gate = (m: Manifest) => (o.appVersion ? releaseAllowed(m.minAppVersion, o.appVersion) : { ok: true as const });
 
   // ── the kept state ──────────────────────────────────────────────────────────────────────────────────────────────────
   let kept: Persisted = { v: STORE_VERSION, seen: {}, at: {} };
@@ -239,25 +262,33 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     ({ ...s, error, offline, failedAt: now(), failures: s.failures + 1 });
 
   async function checkFeed(spec: FeedSpec): Promise<boolean> {
+    const t0 = now(), before = short(kept.seen[spec.id]?.sha256);
     const r = await checkObject(spec.url, kept.seen[spec.id] ?? null, f);
     if (r.kind === "failed") {
       feeds.set(spec.id, failSource(feeds.get(spec.id)!, r.error, r.offline));
+      emit({ source: spec.id, kind: "failed", status: r.status, bytes: 0, ms: now() - t0, error: r.error,
+             errorClass: errorClassOf(r.error, r.offline), before });
       return false;
     }
     if (r.kind === "unchanged") {
       if (r.etag) kept.seen[spec.id] = { etag: r.etag, sha256: kept.seen[spec.id]?.sha256 ?? null };
       okFeed(spec.id, false);
+      emit({ source: spec.id, kind: "unchanged", status: r.status, bytes: r.got, ms: now() - t0, before, after: before });
       return true;
     }
     try {
       await spec.apply?.(utf8(r.bytes), r.bytes);
     } catch (e) {
       // refused by its loader (not a feed): not "seen", so the next check looks again; the loader keeps what it had
-      feeds.set(spec.id, failSource(feeds.get(spec.id)!, `${spec.url}: ${said(e)}`, false));
+      const error = `${spec.url}: ${said(e)}`;
+      feeds.set(spec.id, failSource(feeds.get(spec.id)!, error, false));
+      emit({ source: spec.id, kind: "failed", status: r.status, bytes: r.got, ms: now() - t0, error, errorClass: "apply",
+             before, after: short(r.sha256) });
       return false;
     }
     kept.seen[spec.id] = { etag: r.etag, sha256: r.sha256 };
     okFeed(spec.id, true);
+    emit({ source: spec.id, kind: "changed", status: r.status, bytes: r.got, ms: now() - t0, before, after: short(r.sha256) });
     for (const l of [...feedListeners]) l(spec.id);
     return true;
   }
@@ -270,13 +301,18 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     release = { ...release, phase: "downloading", target: m.data_release, targetDate: manifestDate(m),
                 progress: { bytes: 0, of: 0 } };
     publish();
+    const t0 = now(), from = spec.held()?.release ?? null;
     staging = spec.stage(m, (bytes, of) => {
       if (release?.phase === "downloading") { release = { ...release, progress: { bytes, of } }; publish(); }
     }).then(
       () => {
+        emit({ source: "release", kind: "staged", bytes: release!.progress?.of ?? 0, ms: now() - t0, before: from,
+               after: m.data_release });
         release = { ...release!, phase: "ready", progress: null, error: null, failedAt: null, offline: false, failures: 0 };
       },
       (e: unknown) => {
+        emit({ source: "release", kind: "failed", bytes: release!.progress?.bytes ?? 0, ms: now() - t0, error: said(e),
+               errorClass: errorClassOf(said(e), false), before: from, after: m.data_release, note: "stage" });
         release = { ...failSource(release!, said(e), false), phase: "current", target: null, targetDate: null,
                     progress: null };
         relSeen = null;          // the next check reads the manifest whole and tries again
@@ -310,32 +346,55 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     if (!held) return true;
     // a release already staged waits to be applied: one pending at a time, so nothing is fetched under it
     if (release.phase === "ready" || release.phase === "downloading") return true;
+    const t0 = now(), before = held.release ?? null;
     const r = await checkObject(spec.manifestUrl, relSeen, f);
     if (r.kind === "failed") {
       release = failSource(release, r.error, r.offline);
+      emit({ source: "release", kind: "failed", status: r.status, bytes: 0, ms: now() - t0, error: r.error,
+             errorClass: errorClassOf(r.error, r.offline), before });
       return false;
     }
+    let tooOld: { m: Manifest; need: string } | null = null;
     if (r.kind === "changed") {
       let m: Manifest;
       try {
         m = parseManifest(JSON.parse(utf8(r.bytes)));
       } catch (e) {
-        release = failSource(release, `${spec.manifestUrl}: ${said(e)}`, false);
+        const error = `${spec.manifestUrl}: ${said(e)}`;
+        release = failSource(release, error, false);
+        emit({ source: "release", kind: "failed", status: r.status, bytes: r.got, ms: now() - t0, error,
+               errorClass: "parse", before });
         return false;
       }
       relSeen = { etag: r.etag, sha256: r.sha256 };
-      pending = releaseMoved(held, m) ? m : null;
-    } else if (r.etag && relSeen) {
-      relSeen = { ...relSeen, etag: r.etag };
+      const g = gate(m);
+      const moved = releaseMoved(held, m);
+      if (!g.ok && moved) tooOld = { m, need: g.need };
+      pending = moved && g.ok ? m : null;
+      emit(tooOld ? { source: "release", kind: "app-too-old", status: r.status, bytes: r.got, ms: now() - t0, before,
+                      after: m.data_release, note: `needs app ≥ ${tooOld.need}` }
+        : { source: "release", kind: moved ? "changed" : "unchanged", status: r.status, bytes: r.got, ms: now() - t0,
+            before, after: m.data_release });
+    } else {
+      if (r.etag && relSeen) relSeen = { ...relSeen, etag: r.etag };
+      emit({ source: "release", kind: "unchanged", status: r.status, bytes: r.got, ms: now() - t0, before,
+             after: release.phase === "app-too-old" ? release.target : before });
     }
     const t = now();
     release = { ...release, checkedAt: t, error: null, failedAt: null, offline: false, failures: 0 };
     kept.at.release = { checkedAt: t, updatedAt: release.updatedAt };
-    if (!pending) {
-      if (release.phase === "waiting-wifi") release = { ...release, phase: "current", target: null, targetDate: null,
-                                                        progress: null };
+    if (tooOld) {
+      // (T251) the data in use is kept; the release is named, and what it asks for
+      release = { ...release, phase: "app-too-old", target: tooOld.m.data_release, targetDate: manifestDate(tooOld.m),
+                  progress: null, needsApp: tooOld.need };
       return true;
     }
+    if (!pending) {
+      if (release.phase === "waiting-wifi" || (release.phase === "app-too-old" && r.kind === "changed"))
+        release = { ...release, phase: "current", target: null, targetDate: null, progress: null, needsApp: null };
+      return true;
+    }
+    if (release.phase === "app-too-old") release = { ...release, phase: "current", needsApp: null };
     maybeStage();
     return true;
   }
@@ -407,6 +466,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
       if (c.manual) manualAsked = true;
       if (inflight) return inflight;
       const doFeeds = c.feeds ?? true, doRelease = c.release ?? true;
+      runManual = !!c.manual;
       checking = true;
       if (c.manual) manual = null;
       publish();
@@ -416,9 +476,14 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
         if (!online) {
           // offline by the device's own word: no request is made; the last good data stays in use
           const why = "offline";
-          if (doFeeds) for (const s of o.feeds) feeds.set(s.id, failSource(feeds.get(s.id)!, why, true));
-          if (doRelease && release && release.phase !== "ready" && release.phase !== "downloading")
+          if (doFeeds) for (const s of o.feeds) {
+            feeds.set(s.id, failSource(feeds.get(s.id)!, why, true));
+            emit({ source: s.id, kind: "offline", errorClass: "offline" });
+          }
+          if (doRelease && release && release.phase !== "ready" && release.phase !== "downloading") {
             release = failSource(release, why, true);
+            emit({ source: "release", kind: "offline", errorClass: "offline" });
+          }
           ok = false;
         } else {
           const work: Promise<boolean>[] = [];
@@ -428,6 +493,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
         }
         save();
         checking = false;
+        runManual = false;
         if (manualAsked) { manual = { at: now(), ok }; manualAsked = false; }
       })().finally(() => {
         // cleared here, never inside the body: an offline check runs to its end before `inflight` is even assigned
@@ -443,16 +509,23 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
       if (!release) return;
       seeded = true;
       const held = o.release?.held();
-      pending = held && releaseMoved(held, m) ? m : null;
+      const moved = !!held && releaseMoved(held, m), g = gate(m);
+      pending = moved && g.ok ? m : null;
       const t = now();
       release = { ...release, checkedAt: t };
+      if (moved && !g.ok) {
+        release = { ...release, phase: "app-too-old", target: m.data_release, targetDate: manifestDate(m), needsApp: g.need };
+        emit({ source: "release", kind: "app-too-old", before: held?.release ?? null, after: m.data_release,
+               note: `needs app ≥ ${g.need} (launch)` });
+      }
       kept.at.release = { checkedAt: t, updatedAt: release.updatedAt };
       if (started) { reschedule(); maybeStage(); }
       publish();
     },
-    applied(r) {
+    applied(r, info) {
       if (!release) return;
       const t = now();
+      emit({ source: "release", kind: "applied", before: info?.from ?? null, after: r, ...(info?.ms != null ? { ms: info.ms } : {}) });
       if (pending?.data_release === r) pending = null;
       release = { ...release, phase: "current", target: null, targetDate: null, progress: null, updatedAt: t };
       kept.at.release = { checkedAt: release.checkedAt, updatedAt: t };
@@ -460,6 +533,12 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
       publish();
       // what is in use moved: the manifest is read again whole at the next check, against the new set
       relSeen = null;
+    },
+    forget() {
+      kept.seen = {};
+      relSeen = null;
+      save();
+      emit({ source: "app", kind: "action", note: "validators forgotten: the next check downloads everything whole" });
     },
     allowMetered(on) {
       allowMetered = on;

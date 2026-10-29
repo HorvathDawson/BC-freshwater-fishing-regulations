@@ -81,6 +81,12 @@ export interface Manifest {{
   regulations: {{ valid_until: string | null; versions: Record<string, number> | null }};
   /** Absent on a release built before it (or a fixture release): every source then reads as not recorded. */
   sources?: Partial<Record<SourceKey, SourceFact>>;
+  /** (T251) The oldest app version (semver) that may apply this release; absent: any. An older app keeps the data it has
+   *  and says "Update the app to get new regulations" (`@app/core` `releaseAllowed`). */
+  minAppVersion?: string | null;
+  /** (T251) The ISO day this release was PUBLISHED (stamped by the publish step, never by the deterministic build): the
+   *  regs page's "Regulations as of <date>". Absent on an older release: the newest input date stands in. */
+  published?: string | null;
 }}
 '''
 

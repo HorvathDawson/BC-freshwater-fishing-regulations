@@ -9,7 +9,7 @@ const NOW = Date.parse("2026-10-28T18:00:00Z");
 
 describe("the regulations' as-of line (T236)", () => {
   it("says the release's day, the salmon feed's age and the in-season feed's age", () => {
-    expect(asOfLine({ release: { released: "2026-10-27" }, salmonAt: "2026-10-28T15:00:00Z",
+    expect(asOfLine({ release: { published: "2026-10-27" }, salmonAt: "2026-10-28T15:00:00Z",
                       inSeasonAt: "2026-10-28T17:00:00Z", now: NOW }))
       .toBe("Regulations as of Oct 27, 2026 · salmon feed 3h ago · in-season 1h ago");
   });
@@ -22,7 +22,12 @@ describe("the regulations' as-of line (T236)", () => {
   it("without its own date, the release's newest regulation input (synopsis or DFO), never another source", () => {
     expect(regsAsOfDay({ sources: { synopsis: { date: "2025-04-01" }, dfo: { date: "2026-08-28" } } })).toBe("2026-08-28");
     expect(regsAsOfDay({ sources: { synopsis: { date: "2025-04-01" }, dfo: { date: null } } })).toBe("2025-04-01");
-    expect(regsAsOfDay({ released: "not a day", sources: null })).toBeNull();
+    expect(regsAsOfDay({ published: "not a day", sources: null })).toBeNull();
+  });
+  it("(T251) the published day wins over the newest input day; an older release without it falls back", () => {
+    const sources = { synopsis: { date: "2025-04-01" }, dfo: { date: "2026-08-28" } };
+    expect(regsAsOfDay({ published: "2026-10-28", sources })).toBe("2026-10-28");
+    expect(regsAsOfDay({ published: null, sources })).toBe("2026-08-28");
   });
   it("the foot line and the first-run notice say what the owner asked for", () => {
     expect(LEGAL_WORDS.footer).toBe("Not legal advice — the B.C. synopsis and DFO notices are the authority.");
