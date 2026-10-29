@@ -37,6 +37,7 @@ import type {
   TidalProgress,
   TidalRow,
   TidalSnap,
+  MarksHealth,
 } from "./types";
 
 async function getJSON<T>(url: string): Promise<T> {
@@ -135,6 +136,8 @@ export const api = {
   progress: () => getJSON<Progress>("/api/review/progress"),
   /** T133: every entry and split awaiting its build, and the command(s) to run */
   pendingBuild: () => getJSON<PendingBuild>("/api/build"),
+  /** owner 2026-10-28: every mark in force accounted for — orphaned / stale ones listed */
+  marksHealth: () => getJSON<MarksHealth>("/api/marks/health"),
 
   // --- T191: the extent-fix editor (reads only; the fix rides the mark) ---
   extentOps: () => getJSON<{ ops: ExtentOpInfo[]; point_kinds: string[] }>("/api/extent-fix/ops"),
@@ -157,13 +160,16 @@ export const api = {
   },
   dfoProgress: () => getJSON<DfoProgress>("/api/dfo/progress"),
   dfoLocation: (id: string) => getJSON<DfoDetail>(`/api/dfo/locations/${encodeURIComponent(id)}`),
-  dfoReach: (id: string) => getJSON<ExtentPreview>(`/api/dfo/locations/${encodeURIComponent(id)}/reach`),
+  /** the tributary walk is skipped unless `tributaries` (the Extents map's "Show tributaries") */
+  dfoReach: (id: string, tributaries = false) =>
+    getJSON<ExtentPreview & { walks_tributaries?: boolean }>(
+      `/api/dfo/locations/${encodeURIComponent(id)}/reach${tributaries ? "?tributaries=true" : ""}`),
   dfoAnchor: (id: string, split: NewSplit) =>
     getJSON<AnchorCheck>(`/api/dfo/locations/${encodeURIComponent(id)}/anchor?split=` +
       encodeURIComponent(JSON.stringify(split))),
-  dfoExtentPreview: (id: string, fix: ExtentFix) =>
+  dfoExtentPreview: (id: string, fix: ExtentFix, tributaries = false) =>
     getJSON<ExtentPreview>(`/api/dfo/locations/${encodeURIComponent(id)}/extent-preview?fix=` +
-      encodeURIComponent(JSON.stringify(fix))),
+      encodeURIComponent(JSON.stringify(fix)) + (tributaries ? "&tributaries=true" : "")),
 
   // --- T212: the Tidal review mode (reads; accepting is a mark through postMark, scope "tidal") ---
   tidalQueue: (f: { confidence?: string; verify?: string; enters?: string; words?: boolean; q?: string; triage?: string }) => {

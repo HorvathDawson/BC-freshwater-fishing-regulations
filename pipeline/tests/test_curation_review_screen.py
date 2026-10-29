@@ -468,6 +468,18 @@ def test_a_proposed_split_is_shared_on_the_river_and_never_entered_twice(env):
     assert _stamps(CURATED.base) == curated, "a DFO mark wrote under data/curated"
 
 
+def test_a_dfo_reach_skips_the_tributary_walk_unless_asked(env):
+    """Owner 2026-10-28: the Extents map draws only the place's own water(s) by default; the
+    tributary walk (Bella Coola `whole`: 13 MB) comes only with `tributaries=true`."""
+    c = env["client"]
+    bc = "5b:bella-coola-river-not-including-at:whole"
+    own = c.get(f"/api/dfo/locations/{bc}/reach").json()
+    full = c.get(f"/api/dfo/locations/{bc}/reach", params={"tributaries": "true"}).json()
+    assert own["resolvable"] and full["resolvable"] and own["walks_tributaries"] is True
+    assert full["walks_tributaries"] is True      # the binding's own call, whether or not it was walked
+    assert 0 < own["n_sections"] < full["n_sections"]
+
+
 def test_a_dfo_extent_fix_is_saved_and_the_location_serves_it_back(env):
     """Owner 2026-10-27: a saved extent was not shown when the location reopened. POST a DFO mark
     carrying an extent fix; GET the location -> its `mark.extent_fix` is that fix (what the editor

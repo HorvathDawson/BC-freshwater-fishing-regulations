@@ -367,7 +367,17 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   // the editor opens PRE-FILLED with the saved fix: marking again carries it on, never drops it
   const [fix, setFix] = useState<ExtentFix | null>(saved);
   const [savedFc, setSavedFc] = useState<GeoJSON.FeatureCollection | null>(null);
-  const [reach, setReach] = useState<ExtentPreview | null>(null);
+  const [reach, setReach] = useState<(ExtentPreview & { walks_tributaries?: boolean }) | null>(null);
+  // "Show tributaries": off by default (the walk is the slow, huge part of a reach); remembered per viewer
+  const [showTribs, setShowTribs] = useState<boolean>(() => {
+    try { return window.localStorage.getItem("dfo-show-tributaries") === "1"; } catch { return false; }
+  });
+  const [loadingTribs, setLoadingTribs] = useState(false);
+  const toggleTribs = (on: boolean) => {
+    setShowTribs(on);
+    setLoadingTribs(on);
+    try { window.localStorage.setItem("dfo-show-tributaries", on ? "1" : "0"); } catch { /* per-viewer only */ }
+  };
   const [fixPreview, setFixPreview] = useState<GeoJSON.FeatureCollection | null>(null);
   const [pick, setPick] = useState<{ cb: ((ll: [number, number]) => void) | null }>({ cb: null });
   const [errors, setErrors] = useState<string[]>([]);
@@ -378,9 +388,10 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   // what the extent binds now — magenta until a fix is previewed
   useEffect(() => {
     let live = true;
-    api.dfoReach(id).then((r) => live && setReach(r)).catch(() => {});
+    api.dfoReach(id, showTribs).then((r) => live && setReach(r)).catch(() => {})
+      .finally(() => live && setLoadingTribs(false));
     return () => { live = false; };
-  }, [id]);
+  }, [id, showTribs]);
 
   const splitAtId = (sid: string) => {
     const f = detail.splits.features.find((x) => x.properties.split_id === sid);
@@ -397,12 +408,12 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
       return at ? [{ type: "Feature", properties: { label: `saved ${i + 1}: ${pointWords(p, (x) => x)}` },
                      geometry: { type: "Point", coordinates: at } } as GeoJSON.Feature] : [];
     });
-    api.dfoExtentPreview(id, saved)
+    api.dfoExtentPreview(id, saved, showTribs)
       .then((r) => live && setSavedFc({ type: "FeatureCollection",
         features: [...((r.geojson?.features ?? []) as GeoJSON.Feature[]), ...pts] }))
       .catch(() => live && setSavedFc({ type: "FeatureCollection", features: pts }));
     return () => { live = false; };
-  }, [id, saved]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, saved, showTribs]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const savedNew = (was?.new_splits ?? []) as NewSplit[];
   const items: NamedRef[] = detail.items.map((i) => ({ id: i.id, name: i.name }));
@@ -463,13 +474,13 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
     const want = { whole: 0, upstream_of: 1, downstream_of: 1, between: 2 }[sg.op as string];
     if (built && want === sg.points.length) {
       api.dfoExtentPreview(id, { scope: "entry", op: sg.op, points: sg.points, items: sg.items,
-                                 tributaries: sg.tributaries })
+                                 tributaries: sg.tributaries }, showTribs)
         .then((r) => live && r.resolvable && setSuggestedFc({ type: "FeatureCollection",
           features: [...((r.geojson?.features ?? []) as GeoJSON.Feature[]), ...pts] }))
         .catch(() => {});
     }
     return () => { live = false; };
-  }, [id, sugg]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, sugg, showTribs]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   function acceptSuggestion() {
     const got = suggestionFix(sugg, [...splits.map((n) => n.ref), ...detail.proposed.map((p) => p.id),
@@ -607,7 +618,14 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
               {ex.length ? ex.map((e, i) => (
                 <span key={i} className="ext-where">{e.op}{(e.splits ?? []).length ? `(${(e.splits ?? []).join(", ")})` : ""}</span>
               )) : <span className="warn-text">none curated{detail.need.missing ? ` — needs ${detail.need.missing} cut${detail.need.missing === 1 ? "" : "s"}` : ""}</span>}
-              {reach && <span className="dim">{reach.resolvable ? `binds ${reach.n_sections} section(s) — magenta on the map` : reach.why}</span>}
+              {reach && <span className="dim">{reach.resolvable ? `binds ${reach.n_sections} section(s)${showTribs ? "" : " (without tributaries)"} — magenta on the map` : reach.why}</span>}
+              <label className="dim" data-testid="dfo-show-tribs"
+                title="Off: the map draws only the place's own water(s). On: also walks and draws its tributaries (slow, large).">
+                <input type="checkbox" checked={showTribs} onChange={(e) => toggleTribs(e.target.checked)} /> Show tributaries
+                {loadingTribs && <span className="dim" data-testid="dfo-tribs-loading"> <style>{"@keyframes spin{to{transform:rotate(360deg)}}"}</style><span className="spinner" aria-hidden="true"
+                  style={{ display: "inline-block", width: 10, height: 10, border: "2px solid currentColor", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite", verticalAlign: "-1px" }} /> loading tributaries…</span>}
+                {reach?.resolvable && reach.walks_tributaries === false && showTribs ? " (this binding has none)" : ""}
+              </label>
             </div>
             {loc.binding.notes.length > 0 && <div className="ext-row"><span className="k">notes</span>{loc.binding.notes.join(" · ")}</div>}
             {detail.splits.unplaced.length > 0 && (
@@ -695,7 +713,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                   .map((n) => ({ id: n.ref, name: `${n.ref}: ${anchorWords(n)} (in your saved mark)` })),
               ]}
               sources={["map", "search", "new"]}
-              previewFn={(f) => api.dfoExtentPreview(id, f)} />
+              previewFn={(f) => api.dfoExtentPreview(id, f, showTribs)} />
             <div className="fix-row" style={{ marginTop: 6 }}>
               <button type="button" className="btn primary small" disabled={busy} data-testid="dfo-save-extent"
                 onClick={() => void submit(false, true)}
