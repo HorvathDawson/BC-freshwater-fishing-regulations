@@ -21,7 +21,7 @@
 import { useEffect, useMemo } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./controls.css";
-import { mapChrome } from "./chrome";
+import { ESRI_BADGE, mapChrome } from "./chrome";
 import { setReducedMotion } from "./motion";
 import type { MapMark, MapProps } from "./map-props";
 import { MARK_LABEL_FONT } from "./marks";
@@ -112,6 +112,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   return <>
     <div ref={refs.host} style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />
     {spotLayer}
+    {/* (T275) Esri's required credit, visible while its imagery is drawn (the full text is in the attribution's (i)) */}
+    {!bare && basemap === "satellite" && (
+      <div data-testid="esri-badge" style={{ position: "absolute", left: 8, bottom: 8 + insetBottom,
+                                             padding: "2px 5px", font: "10px/13px sans-serif", color: furniture.ink,
+                                             background: furniture.card, pointerEvents: "none" }}>{ESRI_BADGE}</div>
+    )}
   </>;
 }
 

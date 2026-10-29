@@ -62,3 +62,9 @@ export function mapChrome(theme: string): MapChrome {
     iconFilter: darkGround(theme) ? "invert(1)" : "none",
   };
 }
+
+/** (T275) The scale control, lifted above the foot block with the credits. One line: `false` drops it, web and native. */
+export const SHOW_SCALE = true;
+
+/** (T275) Esri's required credit, kept visibly on the map while its imagery is drawn (the full text is in the attribution (i)). */
+export const ESRI_BADGE = "Powered by Esri";

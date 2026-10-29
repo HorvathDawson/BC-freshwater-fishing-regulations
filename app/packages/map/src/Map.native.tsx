@@ -56,6 +56,7 @@ import { useNativeColouring, type AtlasSource } from "./native/useColouring";
 import { colourProbe } from "./native/probe";
 import { MARK_LABEL_FONT, labelShift } from "./marks";
 import { metricScale } from "./scale";
+import { ESRI_BADGE, SHOW_SCALE } from "./chrome";
 import type { MapProps } from "./map-props";
 import { COPY_SOURCE, WaterCopy, copyIds, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
@@ -555,7 +556,14 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
           </Marker>
         ))}
       </MLMap>
-      {bare ? null : (
+      {!bare && basemap === "satellite" && (
+        // (T275) Esri's credit stays visible while its imagery is drawn, above the foot block
+        <View pointerEvents="none" style={{ position: "absolute", left: 8, bottom: 8 + insetBottom, paddingHorizontal: 5,
+                                            paddingVertical: 2, backgroundColor: furniture.card }}>
+          <Text style={{ color: furniture.ink, fontSize: 10, lineHeight: 13 }}>{ESRI_BADGE}</Text>
+        </View>
+      )}
+      {bare || !SHOW_SCALE ? null : (
         // THE WEB'S SCALE BAR (controls.css `.maplibregl-ctrl-scale`): bottom-right, a RULER — a hairline with a tick at
         // each end, the distance above its left end, a paper halo and no box — so the bar's LENGTH is the measurement
         // and the number only names it.

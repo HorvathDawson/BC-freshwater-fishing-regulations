@@ -10,6 +10,7 @@ import { webRenderer } from "../adapters/web";
 import { Colouring, LABEL_SOURCE_LAYERS } from "../colouring";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "../gestures";
 import type { MapProps } from "../map-props";
+import { SHOW_SCALE } from "../chrome";
 import { runtimeStyle } from "../runtime-style";
 import { followSize } from "../size";
 import { sourceTiles, tileIds } from "../tile-ids.web";
@@ -106,7 +107,7 @@ export function useMapInstance(refs: WebMapRefs,
      * corners are where every map a reader has used puts a scale, and the top-left is now
      * the date's alone: WHEN is the app's own question, and it deserves the corner.
      */
-    if (!bare)
+    if (!bare && SHOW_SCALE)
       m.addControl(new maplibregl.ScaleControl({ maxWidth: 92, unit: "metric" }),
                    "bottom-right");
     // A map that fails silently is the worst outcome this app can produce: an empty map
