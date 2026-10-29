@@ -215,6 +215,26 @@ Staging redeployed (b8715797), every job run by hand with `?dryNotify=1`; `vites
   day roll) ≈ 120 × 2.3 s + 460 × 1.5 s ≈ **1.0M CPU-ms/mo** (was 1.4–2.9M); R2 class A ≈ 230k/mo (was 255k), B ≈ 235k;
   DFO ≤ 0.03M CPU-ms; in-season every 6 h ≈ 2k CPU-ms. All inside the $5 plan's 30M; R2 inside the free tier.
 
+## Follow-up 3 (owner 2026-10-28): notification policy, email live on staging, in-season feed
+- **Policy**: DFO places to review and in-season changes are URGENT (emailed at once); HYDAT, roster drift and feed
+  health go in ONE daily digest, sent only on a day with at least one issue/action — a recovery alone (`fine`) never
+  makes a digest (it rides along when there is one). Current state is /status's job, not email's.
+- **Email is live on staging** (version 765d9851): Email Routing on canifishthis.ca enabled / ready, horvath.dawson@gmail.com
+  a verified destination (both read through the API, nothing changed). `NOTIFY_EMAIL_TO` = secret; vars in wrangler.toml:
+  `NOTIFY_EMAIL_FROM=status@canifishthis.ca`, `NOTIFY_DIGEST=daily`, `REVIEW_APP_URL=http://localhost:5183`;
+  `FEED_NOTIFY_URL` unset. One labelled TEST email sent through `POST /notify/test` (bearer) — accepted by send_email.
+  From now on a non-dry run emails for real (the next DFO run: its 2 unplaced places, once).
+- **In-season feed** `feeds/inseason/index.json` (published by `POST /run/inseason`; served by the staging data worker),
+  format `inseason-feed/1` (recommended; spec in `src/inseason.ts`): top level `fetchedAt`, `changedAt`, `source`,
+  `pageHash`, `matching {method, matched, unmatched}`, `rows[]`, `removed[]` (30 days). Each row: `id` (stable hash of
+  region + water + its order among that water's rows — a reworded row keeps it), `region` (1…8, 7A/7B, provincial),
+  `section`, `water` (as printed), `waters` (matched ids; empty) + `matched`, `effective` verbatim + `from`/`to` ISO,
+  `change` verbatim, `parsed` only when confident (`kinds` closure / release / limit / bait / gear / licence / rescind /
+  clarification, `species` names, `dailyQuota`, one `window` date range), `status` new / changed / unchanged (vs the
+  page version before the last change) + `previous`, `firstSeen`, `changedAt`. Matching to waters is a separate,
+  optional step (not built: all 32 rows publish `matched: false`). Written only when its content changes (+24 h
+  heartbeat). /status shows rows, unmatched, new, changed, removed.
+
 ## Acceptance
 Feeds update on schedule on staging for a week with no hand runs; a forced source failure alerts once and the app
 shows the stale age; runbook written; then prod switched on by the owner.

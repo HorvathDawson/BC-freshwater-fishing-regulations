@@ -12,13 +12,13 @@
 // NOTIFY_EMAIL_TO), else / on failure the FEED_NOTIFY_URL webhook, else logged. NOTIFY_DIGEST=daily batches all but
 // health into one email a day. `?dryNotify=1` on a run, or `POST /notify/preview`, shows the messages without sending.
 //
-// R2 layout (one bucket): published  feeds/live/  feeds/dfo/   (the data worker serves these)
+// R2 layout (one bucket): published  feeds/live/  feeds/dfo/  feeds/inseason/   (the data worker serves these)
 //                         private    private/feeds/{gauges,dfo,inseason,notify}/, private/feeds/status.json
 import { meteredFetch, meteredStore, newMeter, r2Store, type Meter, type R2BucketLike } from "./io";
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
 import { runInSeason } from "./inseason";
-import { compose, deliver, readState, type FeedEvent, type NotifyConfig } from "./events";
+import { compose, deliver, readState, sendTest, type FeedEvent, type NotifyConfig } from "./events";
 import { readStatus, record, refresh, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 
 export interface Env {
@@ -99,7 +99,10 @@ export function dfoEvents(notices: { key: string; text: string }[], at: string, 
 
 /** status alerts (a feed's state changed) → events */
 export function healthEvents(alerts: Alert[], at: string): FeedEvent[] {
-  return alerts.map((a) => ({ key: `health:${a.job}:${a.from ?? "-"}>${a.to}:${at}`, kind: "health" as const, title: a.text.slice(0, 160), text: `${a.text}\n\nStatus: /status on the feeds worker.`, at }));
+  return alerts.map((a) => ({
+    key: `health:${a.job}:${a.from ?? "-"}>${a.to}:${at}`, kind: "health" as const, title: a.text.slice(0, 160),
+    text: `${a.text}\n\nStatus: /status on the feeds worker.`, at, ...(a.to === "ok" ? { fine: true } : {}),
+  }));
 }
 
 async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: number; dryNotify?: boolean } = {}) {
@@ -150,8 +153,18 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       summary = { ...counts, skipped: s.skipped };
       events.push(...dfoEvents(s.notices, at, env.REVIEW_APP_URL || "http://localhost:5183"));
     } else {
-      const s = await runInSeason({ fetch: fetch_, priv: meteredStore(r2Store(env.BUCKET, "private/feeds/inseason/"), m), now: started, log });
-      counts = { rows: s.rows, sections: s.sections, changed: s.changed ? 1 : 0 };
+      const s = await runInSeason({
+        fetch: fetch_,
+        priv: meteredStore(r2Store(env.BUCKET, "private/feeds/inseason/"), m),
+        feed: meteredStore(r2Store(env.BUCKET, "feeds/inseason/"), m),
+        meter: m,
+        now: started,
+        log,
+      });
+      counts = {
+        rows: s.rows, sections: s.sections, pageChanged: s.changed ? 1 : 0,
+        unmatched: s.feed?.unmatched ?? 0, new: s.feed?.new ?? 0, changed: s.feed?.changed ?? 0, removed: s.feed?.removed ?? 0,
+      };
       summary = { ...counts, first: s.first, diff: s.diff };
       events.push(...s.events);
     }
@@ -196,6 +209,12 @@ export default {
       const st = refresh(await readStatus(r2Store(env.BUCKET, STATUS_PREFIX)), now);
       if (url.pathname === "/status.json") return Response.json(st, { headers: { "Cache-Control": "no-store" } });
       return new Response(statusHtml(st, now), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
+    }
+    if (url.pathname === "/notify/test" && req.method === "POST") {
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const lines: string[] = [];
+      const via = await sendTest(notifyConfig(env), fetch, new Date(), "staging", (s) => lines.push(s));
+      return Response.json({ via, log: lines }, { status: via ? 200 : 502 });
     }
     if (url.pathname === "/notify/preview" && req.method === "POST") {
       // what the owner would get: the queued digest (if any) — nothing sent, nothing recorded

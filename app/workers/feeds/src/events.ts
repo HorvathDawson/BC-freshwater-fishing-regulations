@@ -5,8 +5,10 @@
 //            verified Email Routing address) — when both are set
 //   webhook  FEED_NOTIFY_URL (ntfy / Discord / Slack) — when set, and as the fallback when the email send fails
 //   log      neither configured: logged, and still recorded as told (nothing replays when a channel is added later)
-// NOTIFY_DIGEST=daily queues every kind but `health` and sends ONE digest a day (first run at/after
-// NOTIFY_DIGEST_HOUR_UTC, default 15 = 08:00 PDT); `health` (a feed failing / stale / recovering) is always immediate.
+// POLICY (owner 2026-10-28): DFO places to review and in-season changes are URGENT — emailed at once. With
+// NOTIFY_DIGEST=daily everything else (HYDAT, roster drift, feed health) waits for ONE digest a day (first run at/after
+// NOTIFY_DIGEST_HOUR_UTC, default 15 = 08:00 PDT), sent ONLY when the day holds at least one issue or action — a
+// "recovered" health event alone (`fine`) never makes a digest; current state is /status's job, not email's.
 // Dry run: nothing sent, nothing recorded — the messages are returned (POST /run/<job>?dryNotify=1, /notify/preview).
 //
 // State (private): notify/state.json — {told: {key: at}, pending: [...], lastDigest}. A key is forgotten after a year.
@@ -22,7 +24,11 @@ export interface FeedEvent {
   /** the detail, plain text (a list, a diff, the command to run) */
   text: string;
   at: string;
+  /** good news only (a feed recovered): rides along in a digest, never the reason for one */
+  fine?: boolean;
 }
+/** emailed at once even in digest mode */
+export const URGENT: readonly EventKind[] = ["dfo", "inseason"];
 export interface Message {
   subject: string;
   text: string;
@@ -141,17 +147,19 @@ export async function deliver(
     fresh.push(e);
   }
   const digest = !!o.config.digest;
-  const now: FeedEvent[] = digest ? fresh.filter((e) => e.kind === "health") : fresh;
-  const later = digest ? fresh.filter((e) => e.kind !== "health") : [];
+  const now: FeedEvent[] = digest ? fresh.filter((e) => URGENT.includes(e.kind)) : fresh;
+  const later = digest ? fresh.filter((e) => !URGENT.includes(e.kind)) : [];
   const pending = [...st.pending, ...later];
   const hour = o.config.digestHourUtc ?? 15;
   const due =
     digest &&
-    pending.length > 0 &&
+    pending.some((e) => !e.fine) &&
     (o.flushDigest || ((!st.lastDigest || o.now.getTime() - Date.parse(st.lastDigest) >= 20 * 3600_000) && o.now.getUTCHours() >= hour));
   const messages = [...compose(now), ...(due ? compose(pending, true) : [])];
   const res: NotifyResult = { messages, sentVia: [], queued: due ? 0 : pending.length, failed: 0, dryRun: !!o.dryRun };
   if (o.dryRun) return res;
+  // a day that held only good news sends nothing: drop it once the digest hour has passed
+  const quietDay = digest && !due && pending.length > 0 && pending.every((e) => e.fine) && o.now.getUTCHours() >= hour;
 
   const told: string[] = [];
   const failedKeys = new Set<string>();
@@ -167,7 +175,8 @@ export async function deliver(
   }
   for (const k of told) st.told[k] = nowIso;
   // what failed waits in `pending` and goes again next run (digest or not)
-  st.pending = due ? pending.filter((e) => failedKeys.has(e.key)) : pending;
+  st.pending = due ? pending.filter((e) => failedKeys.has(e.key)) : quietDay ? [] : pending;
+  if (quietDay) for (const e of pending) st.told[e.key] = nowIso;
   for (const e of now) if (failedKeys.has(e.key) && !st.pending.some((p) => p.key === e.key)) st.pending.push(e);
   if (due && !res.failed) st.lastDigest = nowIso;
   if (!digest && st.pending.length) {
@@ -188,6 +197,18 @@ export async function deliver(
     log(`notify: state not written (${String(e)}); messages may repeat`);
   }
   return res;
+}
+
+/** One clearly-labelled test message through the configured channel (POST /notify/test): no dedupe, no state. */
+export async function sendTest(c: NotifyConfig, fetch: Fetch, now: Date, label: string, log: (s: string) => void = () => {}): Promise<"email" | "webhook" | "log" | null> {
+  return send(
+    {
+      subject: `BC fishing feeds — TEST (${label}): notifications are wired`,
+      text: `This is a TEST message from the ${label} feeds worker, sent ${now.toISOString()}.\n\nPolicy: DFO places to review and in-season changes are emailed at once; HYDAT, roster drift and feed health come in one daily digest, sent only on a day with an issue. Current state: /status on the worker.\n\nNothing needs doing.`,
+      keys: [],
+    },
+    c, fetch, now, log,
+  );
 }
 
 async function send(m: Message, c: NotifyConfig, fetch: Fetch, now: Date, log: (s: string) => void): Promise<"email" | "webhook" | "log" | null> {

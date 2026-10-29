@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { compose, deliver, mime, NOTIFY_STATE, readState, type FeedEvent, type NotifyConfig } from "../src/events";
 import { dfoEvents, gaugeEvents, healthEvents } from "../src/index";
-import { diff, parseInSeason, runInSeason } from "../src/inseason";
+import { buildFeed, diff, effectiveDates, parseChange, parseInSeason, regionOf, runInSeason, type InSeasonFeed } from "../src/inseason";
 import { MemStore } from "./dfo.scenario";
 
 const ev = (key: string, kind: FeedEvent["kind"] = "dfo", title = key): FeedEvent => ({ key, kind, title, text: `about ${key}`, at: "2026-10-28T12:00:00Z" });
@@ -68,22 +68,38 @@ describe("the outbox", () => {
     expect((await readState(store)).told["dfo-x"]).toBeDefined();
   });
 
-  it("daily digest: health goes now, the rest waits for one email a day", async () => {
+  it("daily digest: DFO and in-season go now (urgent); HYDAT and health wait for one email a day", async () => {
     const store = new MemStore();
     const { sent, cfg } = mailbox();
     const c = { ...cfg, digest: true, digestHourUtc: 15 };
     const r1 = await deliver([ev("dfo-a"), ev("health:gauges:ok>failing:t", "health", "Gauge feed FAILED")], { store, config: c, fetch: okFetch, now: T("2026-10-28T09:00:00Z") });
-    expect(r1.messages.map((m) => m.subject)).toEqual(["BC fishing feeds — Gauge feed FAILED"]);
+    expect(r1.messages.map((m) => m.subject)).toEqual(["BC fishing feeds — DFO salmon: places to review: 1 new"]);
     expect(r1.queued).toBe(1);
-    await deliver([ev("inseason:h", "inseason")], { store, config: c, fetch: okFetch, now: T("2026-10-28T12:00:00Z") });
+    const r2 = await deliver([ev("inseason:h", "inseason"), ev("hydat:20261015", "hydat")], { store, config: c, fetch: okFetch, now: T("2026-10-28T12:00:00Z") });
+    expect(r2.messages.map((m) => m.subject)).toEqual(["BC fishing feeds — In-season regulation changes: 1 new"]);
     const r3 = await deliver([], { store, config: c, fetch: okFetch, now: T("2026-10-28T15:05:00Z") });
     expect(r3.messages).toHaveLength(1);
     expect(r3.messages[0]!.subject).toBe("BC fishing feeds — daily digest: 2 items");
-    expect(bodyOf(sent.at(-1)!.raw)).toMatch(/== DFO salmon: places to review \(1\) ==[\s\S]*== In-season regulation changes \(1\) ==/);
+    expect(bodyOf(sent.at(-1)!.raw)).toMatch(/== HYDAT \(1\) ==[\s\S]*== Feed health \(1\) ==|== Feed health \(1\) ==[\s\S]*== HYDAT \(1\) ==/);
     // the next digest is a day later, not the next run
-    await deliver([ev("dfo-b")], { store, config: c, fetch: okFetch, now: T("2026-10-28T18:00:00Z") });
-    expect(sent).toHaveLength(2);
+    await deliver([ev("hydat:x", "hydat")], { store, config: c, fetch: okFetch, now: T("2026-10-28T18:00:00Z") });
+    expect(sent).toHaveLength(3);
     expect((await deliver([], { store, config: c, fetch: okFetch, now: T("2026-10-29T15:10:00Z") })).messages).toHaveLength(1);
+  });
+
+  it("no 'all fine' digest: a day with only a recovery sends nothing", async () => {
+    const store = new MemStore();
+    const { sent, cfg } = mailbox();
+    const c = { ...cfg, digest: true, digestHourUtc: 15 };
+    await deliver([{ ...ev("health:gauges:failing>ok:t", "health", "Gauge feed is OK again"), fine: true }], { store, config: c, fetch: okFetch, now: T("2026-10-28T10:00:00Z") });
+    const r = await deliver([], { store, config: c, fetch: okFetch, now: T("2026-10-28T15:30:00Z") });
+    expect(r.messages).toEqual([]);
+    expect(sent).toHaveLength(0);
+    expect((await readState(store)).pending).toEqual([]);
+    // but with an issue the same day, the recovery rides along
+    await deliver([{ ...ev("health:dfo:ok>stale:u", "health", "DFO STALE") }, { ...ev("health:dfo:stale>ok:v", "health", "DFO OK again"), fine: true }], { store, config: c, fetch: okFetch, now: T("2026-10-29T16:00:00Z") });
+    expect(sent).toHaveLength(1);
+    expect(bodyOf(sent[0]!.raw)).toMatch(/DFO STALE[\s\S]*DFO OK again/);
   });
 
   it("dry run: shows the messages, sends nothing, records nothing", async () => {
@@ -151,5 +167,46 @@ describe("in-season changes (main's update-in-season.yml, ported)", () => {
     const r = { section: "R1", water: "A", change: "No fishing", effective: "x" };
     expect(diff([r], [{ ...r, change: "Catch and release" }])).toMatchObject({ added: [], removed: [], changed: [{ before: r }] });
     expect(compose([]).length).toBe(0);
+  });
+});
+
+describe("the published in-season feed (feeds/inseason/index.json, inseason-feed/1)", () => {
+  const page = readFileSync(join(__dirname, "fixtures/inseason/page-2026-10-28.html"), "utf-8");
+  it("every row publishes, unmatched rows flagged; ids stable; dates and confident fields parsed", async () => {
+    const priv = new MemStore();
+    const feed = new MemStore();
+    const r = await runInSeason({ fetch: okFetch, priv, feed, html: page, now: T("2026-10-28T12:00:00Z") });
+    expect(r.feed).toMatchObject({ rows: 32, unmatched: 32, new: 0, changed: 0, removed: 0 });
+    const doc: InSeasonFeed = JSON.parse(feed.m.get("index.json")!);
+    expect(doc).toMatchObject({ format: "inseason-feed/1", matching: { method: null, matched: 0, unmatched: 32 } });
+    expect(new Set(doc.rows.map((x) => x.id)).size).toBe(32); // Heber Creek's two rows get two ids
+    const cow = doc.rows[0]!;
+    expect(cow).toMatchObject({ region: "1", water: "Cowichan River", waters: [], matched: false, from: "2025-07-04", to: "2025-08-31", change: "No fishing", parsed: { kinds: ["closure"] }, status: "unchanged" });
+    expect(doc.rows.find((x) => x.change.startsWith("Rescind"))!.parsed!.kinds).toEqual(["rescind"]);
+    expect(doc.rows.find((x) => x.change.startsWith("Clarification"))!.parsed!.kinds).toEqual(["clarification", "licence"]);
+    expect(doc.rows.find((x) => x.change === "No fishing July 30 to September 15.")!.parsed).toEqual({ kinds: ["closure"], window: { from_month: 7, from_day: 30, to_month: 9, to_day: 15 } });
+    // an unchanged page: the feed object is not rewritten (only the 24 h heartbeat)
+    const puts: string[] = [];
+    const watched = Object.assign(Object.create(feed), { put: async (k: string, b: string) => (puts.push(k), feed.put(k, b)) });
+    await runInSeason({ fetch: okFetch, priv, feed: watched, html: page, now: T("2026-10-28T18:00:00Z") });
+    expect(puts).toEqual([]);
+    // a changed page: statuses, previous text, removed rows; ids survive the rewording
+    const edited = page.replace("July 4, 2025 to August 31, 2025", "July 4, 2025 to September 15, 2025").replace(/<tr>(?:(?!<\/tr>)[\s\S])*?Peace Canyon Dam[\s\S]*?<\/tr>/, "");
+    await runInSeason({ fetch: okFetch, priv, feed: watched, html: edited, now: T("2026-10-29T00:00:00Z") });
+    const d2: InSeasonFeed = JSON.parse(feed.m.get("index.json")!);
+    expect(d2.rows[0]).toMatchObject({ id: cow.id, status: "changed", previous: { effective: "July 4, 2025 to August 31, 2025" }, to: "2025-09-15", firstSeen: "2026-10-28T12:00:00.000Z", changedAt: "2026-10-29T00:00:00.000Z" });
+    expect(d2.removed).toHaveLength(1);
+    expect(d2.removed[0]).toMatchObject({ region: "7B", change: "No fishing between Peace Canyon Dam and Hwy 29 Bridge", removedAt: "2026-10-29T00:00:00.000Z" });
+    expect(d2.rows.filter((x) => x.status === "unchanged")).toHaveLength(30);
+  });
+  it("helpers", () => {
+    expect(regionOf("Region 7B - Peace")).toBe("7B");
+    expect(regionOf("Provincial level information")).toBe("provincial");
+    expect(effectiveDates("Sept 16, 2025")).toEqual({ from: "2025-09-16", to: null });
+    expect(effectiveDates("whenever")).toEqual({ from: null, to: null });
+    expect(parseChange("Trout/char daily quota = 1 (none under 30 cm) and bait ban")).toMatchObject({ kinds: ["limit", "bait"], dailyQuota: 1, species: ["trout", "char"] });
+    expect(parseChange("Something new")).toBeUndefined();
+    const f = buildFeed([{ section: "Region 2 - Lower Mainland", water: "A", change: "No fishing", effective: "" }], null, "2026-10-28T00:00:00Z", "h", true);
+    expect(f.rows[0]!.status).toBe("unchanged"); // the first feed has no "new"
   });
 });
