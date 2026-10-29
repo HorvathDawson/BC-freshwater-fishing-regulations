@@ -106,25 +106,28 @@ async function session(site, url, profile, o) {
   const P = PROFILES[profile];
   const random = rng(o.seed);
   const held = new Set();
-  let b = null, offline = false, blackoutTimer = null;
+  let b = null, offline = false, blackoutTimer = null, send = null, closed = false;
   const conditions = (off) => ({ offline: off, latency: P.latency, downloadThroughput: P.down, uploadThroughput: P.up,
                                  connectionType: P.type });
   const onEvent = (m) => {
-    if (m.method !== 'Fetch.requestPaused' || !b) return;
+    // answered through `send` (set before the page is navigated): the document itself is paused too, and must not
+    // wait for `open()` to return (it waits for the document)
+    if (m.method !== 'Fetch.requestPaused' || !send || closed) return;
     const { requestId, request } = m.params;
     const r = droppable(request.url, site) ? random() : 1;
-    if (P.fail && r < P.fail) { b.send('Fetch.failRequest', { requestId, errorReason: 'ConnectionReset' }).catch(() => {}); return; }
+    if (P.fail && r < P.fail) { send('Fetch.failRequest', { requestId, errorReason: 'ConnectionReset' }).catch(() => {}); return; }
     if (P.stall && r < P.fail + P.stall) {
       held.add(requestId);
-      setTimeout(() => { held.delete(requestId); b?.send('Fetch.failRequest', { requestId, errorReason: 'TimedOut' }).catch(() => {}); }, P.stallMs);
+      setTimeout(() => { if (closed) return; held.delete(requestId); send('Fetch.failRequest', { requestId, errorReason: 'TimedOut' }).catch(() => {}); }, P.stallMs);
       return;
     }
-    b.send('Fetch.continueRequest', { requestId }).catch(() => {});
+    send('Fetch.continueRequest', { requestId }).catch(() => {});
   };
   const width = o.desktop ? 1280 : 390, height = o.desktop ? 800 : 844;
   b = await open(url, {
     width, height, network: true, init: initScript(o.low), onEvent, mobile: !o.desktop, dpr: o.desktop ? 1 : 2,
-    setup: async (send) => {
+    setup: async (sendNow) => {
+      send = sendNow;
       await send('Network.enable', {});
       await send('Network.emulateNetworkConditions', conditions(false));
       if (P.fail || P.stall) await send('Fetch.enable', { patterns: [{ urlPattern: '*', requestStage: 'Request' }] });
@@ -142,6 +145,9 @@ async function session(site, url, profile, o) {
     };
     blackoutTimer = setTimeout(cycle, P.blackout.every);
   }
+  // a page wedged by the line must not wedge the harness: every evaluate gives up after 30 s
+  const evaluate = b.evaluate;
+  b.evaluate = (expr) => Promise.race([evaluate(expr), new Promise((_, no) => setTimeout(() => no(new Error('evaluate: no answer in 30 s')), 30_000))]);
   const s = {
     b, t0, P,
     setOffline: async (off) => { offline = off; await b.send('Network.emulateNetworkConditions', conditions(off)); },
@@ -175,7 +181,7 @@ async function session(site, url, profile, o) {
                // the slow states the page put up (T254): the banner, a waiting line, a part still coming, the PDF offer
                slowStates: ['net-status', 'regs-slow', 'salmon-pending', 'synopsis-offer', 'boot-slow'].filter((k) => k in seenNow) };
     },
-    close: async () => { clearTimeout(blackoutTimer); for (const id of held) await b.send('Fetch.failRequest', { requestId: id, errorReason: 'Aborted' }).catch(() => {});
+    close: async () => { closed = true; clearTimeout(blackoutTimer); for (const id of held) await b.send('Fetch.failRequest', { requestId: id, errorReason: 'Aborted' }).catch(() => {});
       const x = b; b = null; await x.close(); },
   };
   return s;
