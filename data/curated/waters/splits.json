@@ -2049,6 +2049,27 @@
       48.43272
      ],
      "_offset_m": 100
+    },
+    {
+     "id": "sooke_river__tidal_boundary",
+     "label": "tidal boundary",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.702796,
+       48.38604
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:354153927",
+     "_coord": [
+      -123.702796,
+      48.38604
+     ],
+     "tidal": true
     }
    ]
   },
