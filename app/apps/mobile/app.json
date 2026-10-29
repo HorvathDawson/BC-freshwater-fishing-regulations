@@ -22,7 +22,8 @@
           "isAndroidBackgroundLocationEnabled": false
         }
       ],
-      ["@maplibre/maplibre-react-native", { "android": { "nativeVariant": "vulkan" } }]
+      ["@maplibre/maplibre-react-native", { "android": { "nativeVariant": "vulkan" } }],
+      "./plugins/with-upload-signing"
     ],
     "ios": {
       "bundleIdentifier": "ca.canifishthis.app",

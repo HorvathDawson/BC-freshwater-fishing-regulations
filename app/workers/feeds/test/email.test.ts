@@ -100,5 +100,10 @@ describe("new APK email", () => {
     expect(r.text).toContain("latest.apk");
     expect(r.text).toContain("T2: b");
     expect(parseApk({ version: "1", sha: "x", url: "javascript:1" })).toBeNull();
+    // (T267) a Play upload: tester-link steps, not sideload steps
+    const p = parseApk({ channel: "play", version: "0.1.2", build: "4", sha: "abc1234", date: "2026-10-29", size: "40 MB", url: "https://play.google.com/apps/internaltest/1", changes: [] })!;
+    const rp = render([apkSection(p)], { env: "staging", statusUrl: null });
+    expect(rp.subject).toContain("on Google Play");
+    expect(rp.text).not.toContain("unknown apps");
   });
 });

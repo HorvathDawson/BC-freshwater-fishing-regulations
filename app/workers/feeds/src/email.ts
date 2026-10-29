@@ -262,9 +262,26 @@ export interface ApkInfo {
   size: string;
   url: string;
   changes: string[];
+  /** (T267) "play": uploaded to Google Play internal testing; url is the tester link. Default: the sideload APK. */
+  channel?: "apk" | "play";
 }
 const clip = (s: unknown, n: number) => String(s ?? "").slice(0, n);
 export function apkSection(a: ApkInfo): Section {
+  if (a.channel === "play") {
+    return {
+      heading: `New Android test build ${a.version} on Google Play`,
+      subject: `New Android test build ${a.version} (build ${a.build ?? "?"}) on Google Play`,
+      blocks: [
+        { title: "Get it", items: [{ name: a.url, note: `version ${a.version}${a.build ? ` (build ${a.build})` : ""}, commit ${a.sha}, built ${a.date}, bundle ${a.size}` }] },
+        ...(a.changes.length ? [{ title: "What changed", items: a.changes.slice(0, 10).map((text) => ({ text })) }] : []),
+      ],
+      steps: [
+        { text: "Open the link on the phone (signed in with your tester Gmail) and accept the invite once." },
+        { text: "Play Store, canifishthis, Update. Play can take a few minutes to offer a new internal build." },
+      ],
+      why: "A new build was uploaded to the Google Play internal testing track (build-apk.sh --play; --no-email turns this off).",
+    };
+  }
   return {
     heading: `New Android dev APK ${a.version} (${a.size})`,
     subject: `New Android dev APK ${a.version} (${a.size})`,
@@ -286,6 +303,7 @@ export function parseApk(b: any): ApkInfo | null {
   return {
     version: clip(b.version, 40), build: b.build ? clip(b.build, 12) : undefined, sha: clip(b.sha, 40), date: clip(b.date, 20),
     size: clip(b.size, 20), url: clip(b.url, 300), changes: Array.isArray(b.changes) ? b.changes.slice(0, 10).map((x: unknown) => clip(x, 200)) : [],
+    channel: b.channel === "play" ? "play" : "apk",
   };
 }
 
