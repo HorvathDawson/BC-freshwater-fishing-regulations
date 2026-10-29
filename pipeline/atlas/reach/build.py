@@ -136,14 +136,17 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         covered = (covered_fn(e, registry) if covered_fn
                    else _covered_ids(e, registry))
 
-        clip, scope_failed = entry_scope(e, covered, registry, graph)
+        # the row's scope extents resolved ONCE (T125 reach 11): the clip and the pieces it cannot place
+        # both read them — they were each resolving every scope extent again
+        scoped = scope_resolutions(e, covered, registry, graph)
+        clip, scope_failed = entry_scope(e, covered, registry, graph, resolved=scoped)
         if scope_failed:
             report.scope_unresolved.append(entry_id)
         # PIECES THE ROW'S OWN SCOPE COULD NOT PLACE. `entry_scope` keeps only what its extents
         # place, so a braid straddling the row's cut left EVERY rule of the row with no word said
         # — the Peace's side channels across the Site C reach were covered by none of its three
         # rows. Reported per entry (rule_id ""), never placed: the curator decides (AGENTS 12).
-        lost = scope_unclassified(e, covered, registry, graph, clip)
+        lost = scope_unclassified(e, covered, registry, graph, clip, resolved=scoped)
         if lost:
             diagnostics.append(Diagnostic(entry_id, "", "scope_unclassified", {
                 "pieces": lost, "why": "the entry's scope straddles or cannot place these; "
@@ -1044,7 +1047,13 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
     return expand
 
 
-def entry_scope(e: dict, covered: list[str], registry, graph):
+def scope_resolutions(e: dict, covered: list[str], registry, graph) -> list[tuple[dict, dict | None]]:
+    """Each of the entry's scope extents with what `resolve_extent` made of it (None: unresolved) —
+    resolved once per entry for `entry_scope` and `scope_unclassified` both."""
+    return [(sc, _resolve.resolve_extent(registry, graph, covered, sc)) for sc in e.get("extents") or []]
+
+
+def entry_scope(e: dict, covered: list[str], registry, graph, *, resolved=None):
     """The stretch the ENTRY is about, or (None, []) when it is about the whole water.
 
     The synopsis qualifies a row in its NAME — "FRASER RIVER (upstream of the CPR Bridge
@@ -1062,8 +1071,7 @@ def entry_scope(e: dict, covered: list[str], registry, graph):
     """
     out: set[str] = set()
     failed: list[dict] = []
-    for sc in e.get("extents") or []:
-        got = _resolve.resolve_extent(registry, graph, covered, sc)
+    for sc, got in (scope_resolutions(e, covered, registry, graph) if resolved is None else resolved):
         if got is None:
             failed.append(sc)
             continue
@@ -1071,14 +1079,19 @@ def entry_scope(e: dict, covered: list[str], registry, graph):
     return (out or None), failed
 
 
-def scope_unclassified(e: dict, covered: list[str], registry, graph, clip) -> list[str]:
+def scope_unclassified(e: dict, covered: list[str], registry, graph, clip, *,
+                       resolved=None) -> list[str]:
     """The pieces the entry's scope extents report as unplaceable (straddling), minus any its
-    scope placed anyway — what `entry_scope` silently leaves out of every rule of the row."""
+    scope placed anyway — what `entry_scope` silently leaves out of every rule of the row.
+    `resolved`: `scope_resolutions` already made (the reach run passes the one `entry_scope` read)."""
     out: set[str] = set()
-    for sc in e.get("extents") or []:
+    pairs = resolved if resolved is not None else (
+        (sc, None) for sc in e.get("extents") or [])
+    for sc, got in pairs:
         if not isinstance(sc, dict) or sc.get("op") in ("whole", "within"):
             continue
-        got = _resolve.resolve_extent(registry, graph, covered, sc)
+        if resolved is None:
+            got = _resolve.resolve_extent(registry, graph, covered, sc)
         if got is not None:
             out |= set(got.get("unclassified") or ())
     return sorted(out - set(clip or ()))

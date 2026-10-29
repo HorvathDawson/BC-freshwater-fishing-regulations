@@ -233,3 +233,25 @@ def test_every_named_basin_is_its_rivers_code_and_a_minted_basin_matches_the_gra
     for code in ("100-", "400-"):
         assert set(basin_members(g.nodes.values(), code)) == set(
             reg[f"area:basin:{code}"].section_ids)
+
+
+def test_the_rows_scope_is_resolved_once(monkeypatch):
+    """T125 reach 11 (re-derived 2026-10-28): `entry_scope` and `scope_unclassified` each resolved every
+    scope extent again. The run resolves them once (`scope_resolutions`) and both read that."""
+    import inspect
+
+    from pipeline.atlas.reach import build as B
+    calls = []
+
+    def fake(reg, g, covered, ex, reasons=None):
+        calls.append(ex)
+        return {"sections": ["a"], "unclassified": ["x", "a"]}
+    monkeypatch.setattr(B._resolve, "resolve_extent", fake)
+    e = {"entry_id": "r7:x@7-1", "extents": [{"op": "between", "splits": ["p", "q"]}, {"op": "whole"}]}
+    got = B.scope_resolutions(e, [], None, None)
+    clip, failed = B.entry_scope(e, [], None, None, resolved=got)
+    assert (clip, failed, B.scope_unclassified(e, [], None, None, clip, resolved=got)) == ({"a"}, [], ["x"])
+    assert len(calls) == 2                       # once per extent, not again per reader
+    src = inspect.getsource(B.build_reaches)
+    assert "entry_scope(e, covered, registry, graph, resolved=scoped)" in src
+    assert "scope_unclassified(e, covered, registry, graph, clip, resolved=scoped)" in src
