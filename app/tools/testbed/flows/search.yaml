@@ -1,0 +1,6 @@
+# The top bar's search: type Q (the results sheet opens under it).
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "Search waters and towns", index: 0 }
+- inputText: "${Q}"
+- waitForAnimationToEnd: { timeout: 4000 }

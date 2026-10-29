@@ -11,6 +11,9 @@
 //   node deploy/staging/test-updates.mjs missing               a release whose paint file is not there (HTTP 404)
 //   node deploy/staging/test-updates.mjs feed-404 [gauges|dfo|inseason]    that index removed (HTTP 404)
 //   node deploy/staging/test-updates.mjs min-app <semver>      a release that needs app >= <semver> (minAppVersion)
+//   node deploy/staging/test-updates.mjs big [tag]             (T255) a LARGE release: the basemap's id moves (same file,
+//                                                              same sha), so a phone re-downloads it whole (~270 MB) —
+//                                                              over the 20 MB line a metered connection holds for Wi-Fi
 //   node deploy/staging/test-updates.mjs status                what test/ holds now
 //   node deploy/staging/test-updates.mjs clean                 remove test/
 //
@@ -83,6 +86,14 @@ export const missing = () => synthetic('missing', (m) => {
   m.files.paint = { ...m.files.paint, url: 'r-test-missing/paint-000000000000.bin.gz', sha256: '1'.repeat(64) };
   return m;
 });
+// (T255) the basemap is the biggest object a phone installs; a new id with the same url and sha makes the update service
+// count it (`releaseNeed`) and the phone stream it again (install's ranged download onto the same path) — the honest big
+// path (Wi-Fi hold, progress, resume, apply) without writing anything outside test/
+export const big = (tag = String(Date.now() % 100000)) => synthetic(`big${tag}`, (m) => {
+  if (!m.basemap) throw new Error('the live manifest names no basemap');
+  m.basemap = { ...m.basemap, id: `${m.basemap.id}-t${tag}` };
+  return m;
+});
 export const minApp = (v) => {
   if (!/^\d+\.\d+\.\d+/.test(v ?? '')) throw new Error('min-app <semver>, e.g. min-app 99.0.0');
   return synthetic(`needs-${v}`, (m) => ({ ...m, minAppVersion: v }));
@@ -90,7 +101,7 @@ export const minApp = (v) => {
 
 export async function status() {
   const out = {};
-  try { const m = await testManifest(); out.release = { data_release: m.data_release, minAppVersion: m.minAppVersion ?? null }; }
+  try { const m = await testManifest(); out.release = { data_release: m.data_release, minAppVersion: m.minAppVersion ?? null, basemap: m.basemap?.id ?? null }; }
   catch (e) { out.release = String(e.message); }
   for (const [k, dir] of Object.entries(FEEDS)) {
     try { const j = JSON.parse(await get(`test/${dir}/index.json`)); out[k] = j._testBump ? `bumped ${j._testBump}` : 'live copy'; }
@@ -104,7 +115,7 @@ export async function clean() {
   return { cleaned: 'test/' };
 }
 
-const CMDS = { reset, 'feed-bump': feedBump, 'feed-404': feed404, release, corrupt, missing, 'min-app': minApp, status, clean };
+const CMDS = { reset, 'feed-bump': feedBump, 'feed-404': feed404, release, big, corrupt, missing, 'min-app': minApp, status, clean };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, arg] = process.argv.slice(2);

@@ -1,0 +1,8 @@
+# More → Report a problem (the form, nothing sent).
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "More", index: 0 }
+- scrollUntilVisible:
+    element: { text: "Report a problem" }
+    timeout: 20000
+- tapOn: { text: "Report a problem" }

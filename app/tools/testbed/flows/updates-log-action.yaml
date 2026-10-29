@@ -1,0 +1,8 @@
+# On the Updates log page: press one of its buttons (ACTION = check | force | offline | clear-cache | apply | copy | clear).
+appId: ca.canifishthis.app
+---
+- scrollUntilVisible:
+    element: { id: "updates-log-${ACTION}" }
+    direction: UP
+    timeout: 10000
+- tapOn: { id: "updates-log-${ACTION}" }

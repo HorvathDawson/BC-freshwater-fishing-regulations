@@ -1,0 +1,4 @@
+# Open a bottom-bar tab by its label (Map | Conditions | Spots | More): the tab's own label, upper-cased on screen.
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "${TAB}", index: 0 }

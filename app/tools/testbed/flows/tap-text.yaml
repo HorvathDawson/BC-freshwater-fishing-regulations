@@ -1,0 +1,4 @@
+# Tap the first element whose text or label is TEXT (a regex, whole).
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "${TEXT}", index: 0 }

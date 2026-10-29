@@ -1,0 +1,4 @@
+# The top bar's bell (in-season changes not on the map + updates that failed).
+appId: ca.canifishthis.app
+---
+- tapOn: { id: "inseason-bell" }

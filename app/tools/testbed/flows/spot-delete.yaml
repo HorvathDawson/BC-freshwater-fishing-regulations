@@ -1,0 +1,5 @@
+# On a spot's page: Delete → confirm.
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "(Delete|Delete spot)", index: 0 }
+- tapOn: { text: "Delete", index: 1, optional: true }

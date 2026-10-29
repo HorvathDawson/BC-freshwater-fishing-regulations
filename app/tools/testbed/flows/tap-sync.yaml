@@ -1,0 +1,4 @@
+# The top bar's sync button (a check of every source, as the reader's tap).
+appId: ca.canifishthis.app
+---
+- tapOn: { id: "sync-button" }

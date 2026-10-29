@@ -1,0 +1,15 @@
+# More → About → Updates log (development / staging builds only).
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "More", index: 0 }
+- scrollUntilVisible:
+    element: { text: "About" }
+    timeout: 15000
+- tapOn: { text: "About" }
+- scrollUntilVisible:
+    element: { id: "about-updates-log" }
+    timeout: 15000
+- tapOn: { id: "about-updates-log" }
+- extendedWaitUntil:
+    visible: { id: "updates-log-status" }
+    timeout: 15000

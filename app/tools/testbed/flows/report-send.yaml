@@ -1,0 +1,16 @@
+# More → Report a problem: reason "Something else", the words WHAT, then "Send report".
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "More", index: 0 }
+- scrollUntilVisible:
+    element: { text: "Report a problem" }
+    timeout: 15000
+- tapOn: { text: "Report a problem" }
+- tapOn: { text: "Something else" }
+- tapOn: { id: "report-what" }
+- inputText: "${WHAT}"
+- hideKeyboard
+- scrollUntilVisible:
+    element: { text: "Send report" }
+    timeout: 15000
+- tapOn: { text: "Send report" }

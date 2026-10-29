@@ -1,0 +1,14 @@
+# On a new spot's last step: its name, then "Save spot".
+appId: ca.canifishthis.app
+---
+- scrollUntilVisible:
+    element: { text: "(Name this spot|Add a title)" }
+    direction: UP
+    timeout: 15000
+- tapOn: { text: "(Name this spot|Add a title)", index: 0 }
+- inputText: "${TITLE}"
+- hideKeyboard
+- scrollUntilVisible:
+    element: { text: "Save spot" }
+    timeout: 15000
+- tapOn: { text: "Save spot" }

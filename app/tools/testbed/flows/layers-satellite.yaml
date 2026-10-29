@@ -1,0 +1,6 @@
+# Layers → Satellite on (online only), then close the sheet.
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "Choose layers" }
+- tapOn: { text: "Satellite", index: 0 }
+- waitForAnimationToEnd: { timeout: 4000 }

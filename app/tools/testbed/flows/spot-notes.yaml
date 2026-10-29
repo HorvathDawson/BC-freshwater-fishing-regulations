@@ -1,0 +1,16 @@
+# Spots → the spot TITLE → Edit → Notes NOTES → Save changes.
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "Spots", index: 0 }
+- tapOn: { text: ".*${TITLE}.*", index: 0 }
+- tapOn: { text: "Edit", index: 0 }
+- scrollUntilVisible:
+    element: { text: "Notes" }
+    timeout: 15000
+- tapOn: { text: "Notes", index: 0 }
+- inputText: "${NOTES}"
+- hideKeyboard
+- scrollUntilVisible:
+    element: { text: "Save changes" }
+    timeout: 15000
+- tapOn: { text: "Save changes" }

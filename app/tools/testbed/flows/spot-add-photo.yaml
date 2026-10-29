@@ -1,0 +1,15 @@
+# On a spot being made or edited: "Add from photos" → the system photo picker → the newest photo.
+appId: ca.canifishthis.app
+---
+- scrollUntilVisible:
+    element: { text: "Add from photos" }
+    timeout: 15000
+- tapOn: { text: "Add from photos" }
+- waitForAnimationToEnd: { timeout: 5000 }
+# the newest photo: the first tile of "Recent" (tiles carry no text; "Photos" is the picker's tab)
+- extendedWaitUntil:
+    visible: { text: "Recent" }
+    timeout: 10000
+- tapOn: { point: "16%,51%" }
+- waitForAnimationToEnd: { timeout: 5000 }
+- tapOn: { text: "(Done|Add|Select)", optional: true }
