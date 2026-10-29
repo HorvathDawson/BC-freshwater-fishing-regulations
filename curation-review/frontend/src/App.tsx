@@ -18,6 +18,7 @@ import { NAMES_HASH, NamesReview } from "./components/NamesReview";
 import { CASCADE_HASH, CascadeView } from "./components/CascadeView";
 import { INSEASON_HASH, InSeasonReview } from "./components/InSeasonReview";
 import { setBadge, TopNav } from "./components/TopNav";
+import { P1_HASH, P1Quick } from "./components/P1Quick";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
@@ -32,6 +33,8 @@ const inNames = () => decodeURIComponent(window.location.hash.slice(1)).startsWi
 const inCascade = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(CASCADE_HASH);
 /** T230: `#inseason/<row id>` opens the In-season tab (the provincial in-season rows and where each applies) */
 const inInseason = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(INSEASON_HASH);
+/** owner 2026-10-28: `#p1/` opens the P1 quick-confirm view (Entries sub-tab) */
+const inP1 = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(P1_HASH);
 const inProposals = () => decodeURIComponent(window.location.hash.slice(1)) === PROPOSALS_HASH;
 
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
@@ -55,6 +58,7 @@ export default function App() {
   const [names, setNames] = useState(inNames);
   const [cascade, setCascade] = useState(inCascade);
   const [inseason, setInseason] = useState(inInseason);
+  const [p1, setP1] = useState(inP1);
   const [regions, setRegions] = useState<RegionSummary[]>([]);
   // THE ONE QUEUE (T135, PLAN §3): every region, in the review order, by default
   const [region, setRegion] = useState(ALL_REGIONS);
@@ -133,7 +137,8 @@ export default function App() {
   useEffect(() => {
     const open = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
-      const only = (m: "sloughs" | "names" | "cascade" | "dfo" | "tidal" | "proposals" | "inseason" | "") => {
+      const only = (m: "sloughs" | "names" | "cascade" | "dfo" | "tidal" | "proposals" | "inseason" | "p1" | "") => {
+        setP1(m === "p1");
         setSloughs(m === "sloughs"); setNames(m === "names"); setCascade(m === "cascade");
         setDfo(m === "dfo"); setTidal(m === "tidal"); setProposals(m === "proposals"); setInseason(m === "inseason");
         // the Low cuts tab is the entries view with `?lowcuts`
@@ -144,6 +149,7 @@ export default function App() {
       if (id.startsWith(SLOUGH_HASH)) { only("sloughs"); return; }
       if (id.startsWith(NAMES_HASH)) { only("names"); return; }
       if (id.startsWith(INSEASON_HASH)) { only("inseason"); return; }
+      if (id.startsWith(P1_HASH)) { only("p1"); return; }
       if (id.startsWith(CASCADE_HASH)) { only("cascade"); return; }
       if (id.startsWith(DFO_HASH)) { only("dfo"); return; }
       if (id.startsWith(TIDAL_HASH)) { only("tidal"); return; }
@@ -243,6 +249,9 @@ export default function App() {
   }
   if (proposals) {
     return <ProposalsView />;
+  }
+  if (p1) {
+    return mode ? <P1Quick mode={mode} /> : <div className="app"><TopNav active="entries" sub="p1" /><div className="empty-state">loading…</div></div>;
   }
   // owner 2026-10-28: the tab's own shell and "loading…" while /api/mode is in flight — not the entries screen
   if ((tidal || dfo) && !mode) {

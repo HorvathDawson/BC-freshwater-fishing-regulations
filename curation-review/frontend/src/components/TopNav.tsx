@@ -24,6 +24,11 @@ const TABS: Tab[] = [
 
 /** the sub-tabs of a main tab; `hash` is the whole target */
 const SUBS: Partial<Record<TabId, { id: string; label: string; hash: string; title?: string }[]>> = {
+  entries: [
+    { id: "queue", label: "Queue", hash: "" },
+    { id: "p1", label: "P1 quick confirm", hash: "p1/",
+      title: "owner 2026-10-28: P1 closures where every check agrees — closure text + map + the second check, y to accept" },
+  ],
   dfo: [
     { id: "extents", label: "Extents", hash: "dfo/" },
     { id: "cascade", label: "Cascade", hash: "cascade/skeena", title: "T229: which DFO places apply where (map)" },

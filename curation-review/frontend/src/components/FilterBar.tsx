@@ -77,7 +77,7 @@ export function FilterBar({
   const folded = (status ? 1 : 0) + (order !== "risk" ? 1 : 0) + moreSet;
   return (
     <div className="filterbar-wrap" data-testid="filterbar">
-      <TopNav active={lowOnly ? "lowcuts" : "entries"} right={<>
+      <TopNav active={lowOnly ? "lowcuts" : "entries"} sub={lowOnly ? undefined : "queue"} right={<>
         {current && (
           <span className="progress slim" data-testid="progress"
             title="human-reviewed: verified on every check against the book (a mark on an entry changed since does not count)">

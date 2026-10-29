@@ -1061,3 +1061,16 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .topnav-subtab { font-size: 12px; }
 .topnav .spacer { flex: 1; }
 .topnav-row > .btn { white-space: nowrap; flex: none; }
+
+/* P1 quick confirm (owner 2026-10-28, components/P1Quick.tsx) */
+.p1-quick { display: flex; flex-direction: column; gap: 8px; padding: 8px; overflow: auto; flex: 1; min-height: 0; }
+.p1-counts { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.p1-counts .chip-tag { margin-left: 4px; }
+.p1-card { display: grid; grid-template-columns: minmax(320px, 2fr) 3fr; gap: 8px; min-height: 480px; }
+.p1-text { display: flex; flex-direction: column; gap: 6px; overflow: auto; }
+.p1-verbatim { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 12px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; }
+.p1-rules, .p1-why ul { margin: 0; padding-left: 18px; }
+.p1-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.p1-map { min-height: 480px; position: relative; display: flex; }
+.p1-map > * { flex: 1; }
+.p1-rest ol { margin: 4px 0; padding-left: 24px; font-size: 12px; }

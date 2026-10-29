@@ -323,6 +323,14 @@ def review_progress():
     return review.progress()
 
 
+@app.get("/api/review/p1")
+def review_p1():
+    """THE P1 PASS (owner 2026-10-28, `p1.view`): counts by risk and by the second check, the
+    quick-confirm rows (every check agrees) and the rest of P1 in risk order. Read only."""
+    import p1
+    return p1.view()
+
+
 @app.get("/api/review/tickets")
 def review_tickets():
     """THE TICKET EXPORT (T135): every wrong and unsure mark in force as ticket text, with what
