@@ -1338,6 +1338,26 @@
      "applies_to": {
       "wsc": "920-824808"
      }
+    },
+    {
+     "id": "nimpkish_river__tidal_boundary",
+     "label": "tidal boundary",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -126.998709,
+       50.565419
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:354154936 — \"Nimpkish River: the tidal water boundary signs approximately 100 m upstream of the Highway 19 bridge\"",
+     "_coord": [
+      -126.998709,
+      50.565419
+     ],
+     "tidal": true
     }
    ]
   },
