@@ -24,6 +24,7 @@ import { NO_VALUES, type ChannelValues } from "../style";
 import { TILE_IDS_EVENT, TileHold, type TileIdsEvent } from "../tile-hold";
 import type { CopyTarget, WaterCopy } from "../water-copy";
 import { readingDayOf, salmonDayIndex } from "@app/core";
+import { panProbe } from "./panProbe";
 
 /** What the engine asks of the patched atlas `VectorSource` (`VectorSourceRef`, deps.md). */
 export interface AtlasSource {
@@ -58,6 +59,7 @@ export function useNativeColouring(o: {
   atlasUrl: string;
   report: (e: unknown) => void;
 } & Channels): NativeColouring {
+  panProbe.render();                   // (T273) this hook runs on every render of the native map
   const [values, setValues] = useState<ChannelValues>(NO_VALUES);
   // the engine's adapter on a phone: a channel's values go to the style through state (the only call it makes)
   const adapter = useMemo(() => ({
@@ -89,6 +91,8 @@ export function useNativeColouring(o: {
 
   // THE BATCH: per source-layer, sent in one call per burst once the map has drawn
   const queue = useRef(new Map<LabelSourceLayer, { ids: string[]; states: Record<string, unknown>[] }>());
+  /** (T273) labels queued so far (the pan probe's count per tile) */
+  const labelled = useRef(0);
   const queued = useRef(false);
   const flush = useCallback(() => {
     queued.current = false;
@@ -96,8 +100,9 @@ export function useNativeColouring(o: {
     if (!src || !ready.current || !alive.current) return;
     for (const [layer, b] of queue.current) {
       const ids = b.ids;
+      const sent = panProbe.send();
       void src.setFeatureStates(layer, ids, b.states)
-        .then(() => { for (const id of ids) ack(Number(id)); })
+        .then(() => { sent(); for (const id of ids) ack(Number(id)); })
         .catch(ref.current.report);
     }
     queue.current.clear();
@@ -115,6 +120,7 @@ export function useNativeColouring(o: {
       if (!b) queue.current.set(layer, b = { ids: [], states: [] });
       b.ids.push(String(id));
       b.states.push(s);
+      labelled.current += 1;
       schedule();
       // (T175) a label for one of the water copy's sections is the copy's too — the one pathway
       const fresh = ref.current.copy().fresh(id, s);
@@ -142,7 +148,9 @@ export function useNativeColouring(o: {
       if (tag.current === null || e.tag !== tag.current) return;
       const t = hold.current.put(e);
       const c = engine.current!;
+      const before = labelled.current;
       if (c.active) c.label(target, t);
+      panProbe.tile(labelled.current - before);
     });
     return () => sub.remove();
   }, [target]);

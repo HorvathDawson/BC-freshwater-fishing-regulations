@@ -13,6 +13,9 @@ import { registerRootComponent } from "expo";
 // (T74) The grey-frame probe (@app/map `native/probe.ts`): a development build started with
 // EXPO_PUBLIC_COLOUR_PROBE=1 logs, per pan, the frames with a section not yet coloured. Off otherwise.
 if (__DEV__ && process.env.EXPO_PUBLIC_COLOUR_PROBE === "1") globalThis.__colourProbe = true;
+// (T273) The pan probe (@app/map `native/panProbe.ts`): the test bed's build (EXPO_PUBLIC_PAN_PROBE=1) logs, per busy
+// second, the JS thread's lag, the tiles labelled and the feature-state round trips. Off otherwise.
+if (process.env.EXPO_PUBLIC_PAN_PROBE === "1") globalThis.__panProbe = true;
 
 import App from "./src/App";
 import { withGestureRoot } from "./src/gestureRoot";

@@ -55,7 +55,7 @@ if (( BUILD )) || [[ ! -f $APK ]]; then
          android/app/build/intermediates/assets/release
   touch "$OUT/gradle-used"
   t0=$(date +%s)
-  ( cd android && EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_UPDATE_CHANNEL=test \
+  ( cd android && EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_UPDATE_CHANNEL=test EXPO_PUBLIC_PAN_PROBE=1 \
       ./gradlew app:assembleRelease --max-workers=4 -PreactNativeArchitectures=arm64-v8a -x lint ) >"$OUT/gradle.log" 2>&1 \
     || { log "gradle failed (out/gradle.log)"; tail -30 "$OUT/gradle.log"; exit 1; }
   cp android/app/build/outputs/apk/release/app-release.apk "$APK"

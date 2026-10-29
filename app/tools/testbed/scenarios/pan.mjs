@@ -10,6 +10,8 @@ import { coldStart } from './common.mjs';
 
 const SWIPES = Number(process.env.PAN_SWIPES ?? 16);
 const ROUNDS = Number(process.env.PAN_ROUNDS ?? 2);
+/** PAN_GROUND=satellite: the same pan over Esri's imagery instead of the drawn basemap (splits the basemap's share). */
+const GROUND = process.env.PAN_GROUND ?? 'map';
 
 /** `dumpsys gfxinfo <app>`'s summary: frames, janky share, the 50/90/95/99th percentile frame times (ms). */
 function gfx(t) {
@@ -18,6 +20,28 @@ function gfx(t) {
            p50: n(/50th percentile:\s*(\d+)ms/), p90: n(/90th percentile:\s*(\d+)ms/),
            p95: n(/95th percentile:\s*(\d+)ms/), p99: n(/99th percentile:\s*(\d+)ms/),
            slowUi: n(/Number Slow UI thread:\s*(\d+)/), slowDraw: n(/Number Slow issue draw commands:\s*(\d+)/) };
+}
+
+/** The map's own surface (MapLibre draws into a SurfaceView, which gfxinfo does not see): its SurfaceFlinger layer. */
+function mapLayer(ctx) {
+  // Android 15 lists `RequestedLayerState{<name> parentId=…}`; the BLAST layer is the one frames are queued to
+  const m = /(SurfaceView\[ca\.canifishthis[^\]]*\]\(BLAST\)#\d+)/.exec(ctx.device.sh('dumpsys SurfaceFlinger --list'));
+  return m ? m[1] : null;
+}
+/** The present times (ns) SurfaceFlinger holds for that layer (its last ~128 frames). */
+function presents(ctx, layer) {
+  const out = ctx.device.sh(`dumpsys SurfaceFlinger --latency '${layer}'`).split('\n').slice(1);
+  return out.map((l) => l.trim().split(/\s+/).map(Number)).filter((c) => c.length === 3 && c[1] > 0 && c[1] < 9e18).map((c) => c[1]);
+}
+/** The map's frame intervals while it moves (gaps over 250 ms are the map at rest, not a frame). */
+function mapFrames(times) {
+  const t = [...new Set(times)].sort((a, b) => a - b);
+  const gaps = [];
+  for (let i = 1; i < t.length; i++) { const ms = (t[i] - t[i - 1]) / 1e6; if (ms < 250) gaps.push(ms); }
+  gaps.sort((a, b) => a - b);
+  const q = (p) => (gaps.length ? Math.round(gaps[Math.min(gaps.length - 1, Math.floor(p * gaps.length))] * 10) / 10 : 0);
+  return { frames: gaps.length, over20: gaps.filter((g) => g > 20).length, over50: gaps.filter((g) => g > 50).length,
+           p50: q(0.5), p95: q(0.95), p99: q(0.99), max: Math.round((gaps.at(-1) ?? 0) * 10) / 10 };
 }
 
 export const pan = {
@@ -29,29 +53,58 @@ export const pan = {
       await coldStart(ctx, { ms: 90_000 });
       await ctx.device.sleep(5000);                                  // the first screen's tiles and colours in
     });
+    if (GROUND === 'satellite') {
+      await ctx.step('ground: satellite (PAN_GROUND)', async () => {
+        ctx.flow('layers-satellite');
+        ctx.flow('tap-text', { TEXT: 'Done' });
+        await ctx.device.sleep(6000);
+      });
+    }
     const [w, h] = (/(\d+)x(\d+)/.exec(ctx.device.sh('wm size'))?.slice(1) ?? ['1080', '2400']).map(Number);
     const cx = Math.round(w / 2), cy = Math.round(h * 0.45), dx = Math.round(w * 0.35), dy = Math.round(h * 0.18);
     // the same path every run: east, north, west, south, … so the camera ends near where it started
-    const moves = [[-dx, 0], [0, dy], [dx, 0], [0, -dy]];
+    const loop = [[-dx, 0], [0, dy], [dx, 0], [0, -dy]];
+    // round 1 circles one place (its tiles warm after the first lap); round 2 TRAVELS (east, then north: new tiles every
+    // swipe), which is what a reader exploring does
+    const travel = [[-dx, 0], [-dx, 0], [-dx, 0], [-dx, 0], [0, dy], [0, dy], [0, dy], [0, dy]];
     for (let r = 1; r <= ROUNDS; r++) {
-      await ctx.step(`pan round ${r}/${ROUNDS}: ${SWIPES} swipes`, async () => {
+      const moves = r % 2 ? loop : travel;
+      await ctx.step(`pan round ${r}/${ROUNDS} (${r % 2 ? 'circling' : 'travelling'}): ${SWIPES} swipes`, async () => {
         ctx.device.sh(`dumpsys gfxinfo ${ctx.device.APP_ID} reset`);
         ctx.device.logcatClear();
         const t0 = Date.now();
+        const layer = mapLayer(ctx), times = [];
         for (let i = 0; i < SWIPES; i++) {
           const [mx, my] = moves[i % moves.length];
           ctx.device.sh(`input swipe ${cx} ${cy} ${cx + mx} ${cy + my} 350`);
           await ctx.device.sleep(900);
+          if (layer) times.push(...presents(ctx, layer));            // each swipe's frames (the layer keeps ~128)
         }
         await ctx.device.sleep(2500);                                // the last settle's colours
+        const mf = mapFrames(times);
         const g = gfx(ctx.device.sh(`dumpsys gfxinfo ${ctx.device.APP_ID}`));
         const js = ctx.device.logcatJs().split('\n').filter((l) => /\[pan\]|T74PROBE/.test(l));
-        fs.writeFileSync(path.join(ctx.dir, `T273-pan-${r}.txt`), `${JSON.stringify(g)}\n${js.join('\n')}\n`);
+        fs.writeFileSync(path.join(ctx.dir, `T273-pan-${r}.txt`), `${JSON.stringify(g)}\n${JSON.stringify(mf)}\n${js.join('\n')}\n`);
+        // the pan probe's busy seconds (T273, `native/panProbe.ts`): JS lag, tiles labelled, feature-state round trips
+        const ps = js.map((l) => { try { return JSON.parse(l.slice(l.indexOf('[pan] ') + 6)); } catch { return null; } })
+          .filter(Boolean);
+        const sum = (k) => ps.reduce((n, p) => n + (p[k] || 0), 0), max = (k) => ps.reduce((n, p) => Math.max(n, p[k] || 0), 0);
+        const acks = ps.filter((p) => p.ackMean > 0);
+        const probe = ps.length ? ` · JS lag max ${max('lagMax')} ms, ${sum('late')} ticks >100 ms late, tiles ${sum('tiles')}, ` +
+          `labels ${sum('labels')}, sends ${sum('sends')} (ack max ${max('ackMax')} ms, mean ${acks.length ? Math.round(acks.reduce((n, p) => n + p.ackMean, 0) / acks.length) : 0} ms), ` +
+          `map renders ${sum('renders')}` : ' · no pan probe lines (build without EXPO_PUBLIC_PAN_PROBE)';
         const jank = g.frames ? `${Math.round((g.janky / g.frames) * 1000) / 10} %` : '?';
-        return `${Math.round((Date.now() - t0) / 1000)} s · frames ${g.frames}, janky ${g.janky} (${jank}), ` +
+        return `${Math.round((Date.now() - t0) / 1000)} s · MAP SURFACE ${layer ? `${mf.frames} frames, >20 ms ${mf.over20}, >50 ms ${mf.over50}, ` +
+          `p50 ${mf.p50} / p95 ${mf.p95} / p99 ${mf.p99} / max ${mf.max} ms` : 'not found'} · UI (gfxinfo) frames ${g.frames}, janky ${g.janky} (${jank}), ` +
           `p50 ${g.p50} / p90 ${g.p90} / p95 ${g.p95} / p99 ${g.p99} ms, slow UI ${g.slowUi}, slow draw ${g.slowDraw}` +
-          ` · app lines ${js.length}`;
+          probe;
       });
+    }
+    if (GROUND === 'satellite') {
+      await ctx.step('ground back to the map', async () => {
+        ctx.flow('layers-satellite');
+        ctx.flow('tap-text', { TEXT: 'Done' });
+      }, { shot: false });
     }
   },
 };
