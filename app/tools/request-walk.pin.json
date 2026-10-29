@@ -23,6 +23,7 @@
  ],
  "tap named | map tap: a named water (R2)": [
   "access",
+  "geo",
   "salmon",
   "salmon-2",
   "water"
@@ -202,12 +203,13 @@
   "paint"
  ],
  "tap named (save-data) | prefetch after paint": [
-  "method",
   "regs-2"
  ],
  "tap named (save-data) | map tap: a named water (R2)": [
   "access",
   "core",
+  "geo",
+  "method",
   "salmon",
   "salmon-2",
   "wasm",

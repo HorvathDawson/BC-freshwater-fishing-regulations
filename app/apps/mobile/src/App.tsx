@@ -24,7 +24,7 @@ import {
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, MAP_CREDITS, installLine, netBanner, progressWords, rolledBackLine, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine } from "@app/core";
-import { createNet, createReportOutbox, createUpdateLog, createUpdateService, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
+import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
@@ -82,8 +82,10 @@ const WEB = Platform.OS === "web";
 const VERSION_HEADERS = WEB
   ? (APP_ENV.env === "local" ? {} : versionHeaders(APP_VERSION, { platform: "web", ua: false }))
   : versionHeaders(APP_VERSION, { platform: `${Platform.OS} ${Platform.Version}`, ua: true });
+// (T265) one request per URL in the air: the update service's check and the feed loader's read of the same index share it
+const SHARED_FETCH = shareFetch((u, i) => fetch(u, i));
 const DATA_FETCH: typeof fetch = Object.keys(VERSION_HEADERS).length
-  ? versionedFetch((u, i) => fetch(u, i), VERSION_HEADERS) : (u, i) => fetch(u, i);
+  ? versionedFetch(SHARED_FETCH, VERSION_HEADERS) : SHARED_FETCH;
 /** (T251) the Updates log's "simulate offline": the update service is told the network is down while on */
 const devOffline = { on: false };
 /**
@@ -141,7 +143,7 @@ export default function App() {
   const spotsHook = useSpots(spotStore);
   const spots: Spot[] = spotsHook.spots.state === "ready" ? spotsHook.spots.value : [];
   // (T231) the gauge index is the update service's to renew: once read it is held until the service offers a newer one
-  const feed = useMemo(() => httpFeed(FEED, undefined, { indexHeld: true }), []);
+  const feed = useMemo(() => httpFeed(FEED, SHARED_FETCH, { indexHeld: true }), []);
   // T211: the live DFO salmon rules, the last capture kept on the device for offline
   const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore()), []);
   // T230: the provincial in-season changes and where each applies, the last capture kept for offline; the ids shown

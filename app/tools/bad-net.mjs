@@ -332,7 +332,7 @@ async function offlineBack(site, o) {
 
 /** A static server for an exported web build (SPA fallback to index.html), gzipping text and fonts as a CDN does
  *  (staging's Cloudflare does: an uncompressed 3.7 MB bundle would measure the server, not the app). */
-function serve(dir, port) {
+export function serve(dir, port) {
   const packed = new Map();
   const gz = (p) => { let b = packed.get(p); if (!b) { b = zlib.gzipSync(fs.readFileSync(p), { level: 6 }); packed.set(p, b); } return b; };
   const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',

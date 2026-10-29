@@ -265,7 +265,10 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
       p = (async () => {
         try {
           // (T254) on a bad line a dead request is cut and tried once more (never longer than FEED_LIMITS)
-          const got = await fetchJsonResilient<T>(url, { fetchImpl, attempts: 2, limits: opts.limits ?? FEED_LIMITS });
+          // (T265) the held index is read the way the update service reads it (`no-store`: the origin's word), so a read made
+          // while the service's check is in the air joins that request (`shareFetch`) instead of sending a second one
+          const got = await fetchJsonResilient<T>(url, { fetchImpl, attempts: 2, limits: opts.limits ?? FEED_LIMITS,
+                                                          ...(held(url) ? { cache: "no-store" as const } : {}) });
           if (!got.ok) return null;          // 404 = this station is not transmitting
           cache.set(url, { at: Date.now(), value: got.value });
           good.set(url, got.value);

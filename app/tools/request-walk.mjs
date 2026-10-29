@@ -9,6 +9,7 @@
 //   EXPO_PUBLIC_DATA_BASE=http://localhost:<tiles> npx expo start --web --port <yours>   (app/apps/mobile)
 //   node app/tools/request-walk.mjs [--url http://localhost:8081] [--only visit,taps,conditions,spot,regions]
 //                                   [--json out.json] [--pin]      (--pin: write the pin from this run)
+//                                   [--serve <dir>]   (serve a local `expo export --platform web` on --url's port, gzipped as a CDN)
 //   → exit 1 on any FAIL line
 //
 // T186 (Q164): THE PREFETCH after first paint (the region's regs file always; core + sql-wasm when the browser is idle)
@@ -21,7 +22,9 @@
 // zoom, not on the app's choice of what to load. The app bundle and fonts are a development build's (Metro, unminified):
 // recorded as `app`, not pinned, and not what production ships.
 import fs from 'node:fs';
+import path from 'node:path';
 import { open } from './regs-web/cdp.mjs';
+import { serve } from './bad-net.mjs';
 
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
@@ -98,9 +101,10 @@ async function session(url, { seedSpot = false, saveData = false } = {}) {
   return { b, take, idle, until, press };
 }
 
+const srv = opt('--serve', null) ? await serve(path.resolve(opt('--serve')), Number(new URL(URL0).port || 39260)) : null;
 const results = [];   // { walk, moment, requests: [{ kind, name, bytes, url }] }
 const record = (walk, moment, reqs) => results.push({ walk, moment,
-  requests: reqs.map((r) => ({ ...kindOf(r.url), bytes: r.bytes ?? 0, url: r.url, failed: r.failed ?? null })) });
+  requests: reqs.map((r) => ({ ...kindOf(r.url), bytes: r.bytes ?? 0, url: r.url, failed: r.failed ?? null, method: r.method ?? 'GET', at: r.at ?? null })) });
 /** When the app first marked a prefetch (epoch ms), or null: none yet. */
 const PREFETCH_AT = `(() => { const e = performance.getEntriesByType('mark').filter((m) => m.name.startsWith('release-prefetch'));
   return e.length ? performance.timeOrigin + Math.min(...e.map((m) => m.startTime)) : null; })()`;
@@ -221,7 +225,8 @@ if (opt('--json', null)) fs.writeFileSync(opt('--json'), JSON.stringify(results,
 
 // ---- the pin: which named files each moment fetches, sorted, a file fetched twice listed twice (a duplicate request
 // is drift too: the manifest was read twice per visit until T129); tiles, glyphs, the app and other hosts never ----
-const pinOf = (m) => m.requests.filter((r) => r.name && r.kind !== 'external').map((r) => r.name).sort();
+// a CORS preflight (OPTIONS) is the browser asking leave for the request that follows, not a fetch of the file: not counted
+const pinOf = (m) => m.requests.filter((r) => r.name && r.kind !== 'external' && r.method !== 'OPTIONS').map((r) => r.name).sort();
 const now = Object.fromEntries(results.map((m) => [`${m.walk} | ${m.moment}`, pinOf(m)]));
 let bad = failed.length;
 for (const f of failed) console.log(`FAIL request failed — ${f}`);
@@ -239,4 +244,5 @@ if (args.includes('--pin')) {
     if (!same) bad++;
   }
 }
+srv?.close();
 process.exit(bad ? 1 : 0);

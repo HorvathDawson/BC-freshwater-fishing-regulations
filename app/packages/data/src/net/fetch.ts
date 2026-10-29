@@ -171,7 +171,7 @@ export async function fetchResilient(url: string, o: ResilientOptions = {}): Pro
  * error: a 404 means "not transmitting"); a dead line throws `NetError`. The body is read with `res.json()`, so any
  * fetch that answers JSON will do.
  */
-export async function fetchJsonResilient<T>(url: string, o: { fetchImpl?: typeof fetch; attempts?: number; limits?: Timeouts;
+export async function fetchJsonResilient<T>(url: string, o: { fetchImpl?: typeof fetch; attempts?: number; limits?: Timeouts; cache?: RequestCache;
                                                                 sleep?: (ms: number) => Promise<void>; rand?: () => number } = {}):
     Promise<{ ok: true; value: T } | { ok: false; status: number }> {
   const fetchImpl = o.fetchImpl ?? fetch;
@@ -188,7 +188,7 @@ export async function fetchJsonResilient<T>(url: string, o: { fetchImpl?: typeof
         timer = setTimeout(() => { ctl.abort(); fail(new NetError(`${url}: no answer in ${lim.totalMs} ms`, "timeout")); }, lim.totalMs);
       });
       const got = await Promise.race([(async () => {
-        const res = await fetchImpl(url, { signal: ctl.signal });
+        const res = await fetchImpl(url, { signal: ctl.signal, ...(o.cache ? { cache: o.cache } : {}) });
         if (!res.ok) return { ok: false as const, status: res.status };
         return { ok: true as const, value: (await res.json()) as T };
       })(), cut]);
