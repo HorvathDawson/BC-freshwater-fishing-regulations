@@ -13,7 +13,8 @@
  * rises 8 px into place; under reduced motion it only fades, quickly. Only transform and opacity move (no per-frame work).
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Modal, Platform, Pressable, Text, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import { Animated, Easing, Modal, Pressable, Text, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import { useBackLayer } from "@app/ui";
 import { Button } from "./Button";
 import { NATIVE_DRIVER, useReducedMotion } from "./motion";
 import { SHEET_TITLE } from "./Sheet";
@@ -160,16 +161,11 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words }: {
                             useNativeDriver: NATIVE_DRIVER }).start();
   }, [open, at, reduced, fade]);
 
+  // the one back (system back, the browser's back, Escape) skips the tour, as Skip does: it is a back layer while up
+  const requestClose = useBackLayer(open, onFinish);
   const last = i >= n - 1;
   const next = useCallback(() => { if (last) onFinish(); else setI((k) => k + 1); }, [last, onFinish]);
   const back = useCallback(() => setI((k) => Math.max(0, k - 1)), []);
-  // a keyboard on the web: → / ← walk the steps (Escape is the Modal's own close: skip)
-  useEffect(() => {
-    if (!open || Platform.OS !== "web" || typeof document === "undefined") return;
-    const on = (e: KeyboardEvent) => { if (e.key === "ArrowRight") next(); else if (e.key === "ArrowLeft") back(); };
-    document.addEventListener("keydown", on);
-    return () => document.removeEventListener("keydown", on);
-  }, [open, next, back]);
   // nothing at all to point at (a screen with none of the controls): the tour has nothing to say, and counts as seen
   useEffect(() => { if (open && shown && shown.length === 0) onFinish(); }, [open, shown, onFinish]);
 
@@ -179,7 +175,7 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words }: {
   const rise = reduced ? 0 : fade.interpolate({ inputRange: [0, 1], outputRange: [place?.below === false ? -8 : 8, 0] });
 
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={onFinish}>
+    <Modal visible={open} transparent animationType="fade" onRequestClose={requestClose}>
       <View ref={(v) => { origin.current = v as unknown as Measurable; }} collapsable={false} onLayout={onLayout}
             testID="coach-tour" style={{ flex: 1 }}>
         {/* THE DIM, in four pieces round the spotlight (one piece when there is none); presses on it do nothing */}

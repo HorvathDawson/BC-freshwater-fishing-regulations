@@ -132,6 +132,7 @@ const registeredSurfaces = () => new Set(drawing().flatMap((p) =>
  * decision, said in app/HANDOFF-ui.md's table — not a way past the scan.
  */
 const COVERED: Record<string, string> = {
+  "packages/ui-native/src/Walkthrough.tsx#WalkthroughSheet: draws WalkthroughSheet": "(T257) it draws the coach-mark tour (CoachMarks.CoachTour), which registers its own back layer (back skips the tour)",
   "packages/ui-native/src/WaterScreen.tsx#WaterScreenBody: takes onBack": "the on-screen ‹; system back is the Shell's route layer (water → tab)",
   "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack": "T44: hands the on-screen ‹ to the FaceBar it draws (a view mounted alone); system back is the Shell's route layer",
   "packages/ui-native/src/TopBar.tsx#TopBar: takes onClose (TopBarProps)": "T48: the field's ‹ and Escape; search open is ROUTE state (route `search`), so system back closes it through the Shell's route layer, first",
@@ -168,7 +169,8 @@ describe("back, everywhere: one mechanism", () => {
       && [...src.matchAll(/\bonRequestClose\s*=\s*\{([^}]*)\}/g)].every((m) => m[1]!.trim() === "requestClose");
     const users = where(/\bonRequestClose\b/);
     expect([users, users.filter((p) => !wired(read(p)))]).toEqual([[
-      "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx"], []]);
+      // (T257) the first-run tour's coach marks: back skips the tour
+      "packages/ui-native/src/CoachMarks.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx"], []]);
   });
 });
 
@@ -193,6 +195,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       return w ? [`${p}#${d.name}: ${w}`] : [];
     }));
     expect(found).toEqual([
+      // (T257) the first-run tour: its own Modal, registered (useBackLayer)
+      "packages/ui-native/src/CoachMarks.tsx#CoachTour: a Modal",
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
       "packages/ui-native/src/InSeasonNotice.tsx#InSeasonNotice: takes onClose",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
