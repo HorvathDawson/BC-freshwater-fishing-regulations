@@ -2262,6 +2262,27 @@
       -125.34172,
       49.07043
      ]
+    },
+    {
+     "id": "toquart_river__tidal_boundary_dfo_subarea_23_10",
+     "label": "tidal boundary (DFO Subarea 23-10)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -125.358595,
+       49.036913
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:354153024",
+     "_coord": [
+      -125.358595,
+      49.036913
+     ],
+     "tidal": true
     }
    ]
   },
