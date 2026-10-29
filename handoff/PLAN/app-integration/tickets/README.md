@@ -308,6 +308,7 @@ use that as the sole source of future work."
 | T262 | Android first install crashes (OutOfMemoryError in expo fetch, 8 MB range bodies on the Java heap); resumes on relaunch | OPEN | — | found by T255 |
 | T263 | the bell says a data update is waiting for Wi-Fi / ready / needs a newer app (today: failures + in-season only) | OPEN | — | owner 2026-10-29 via T255 |
 | T264 | "Could not read what is near this town" on Android, intermittent (first town read after a cold start) | OPEN | — | found by T255 |
+| T265 | a big update held for Wi-Fi does not start when Wi-Fi returns (low mode still "cellular" when the metered change lands; nothing re-asks) | OPEN | — | found by T255 |
 
 ## Order for open tickets
 
