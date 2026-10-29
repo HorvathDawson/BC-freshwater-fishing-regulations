@@ -31,7 +31,11 @@ export default {
     if (!headers.has("Cache-Control")) headers.set("Cache-Control", "public, max-age=300");
     if (key.endsWith(".wasm")) headers.set("Content-Type", "application/wasm");
     const inm = request.headers.get("If-None-Match");
-    if (inm && !range && inm === obj.httpEtag) return new Response(null, { status: 304, headers });
+    // weak comparison (RFC 9110 §13.1.2): the edge weakens our ETag to W/"…" when it gzips a response, so the app sends the
+    // weak form back; strip W/ on both sides, accept a list and "*"
+    const bare = (t) => t.trim().replace(/^W\//, "");
+    if (inm && !range && (inm.trim() === "*" || inm.split(",").map(bare).includes(bare(obj.httpEtag))))
+      return new Response(null, { status: 304, headers });
     if (request.method === "HEAD") { headers.set("Content-Length", String(obj.size)); return new Response(null, { status: 200, headers }); }
     let status = 200;
     if (m && obj.range) {

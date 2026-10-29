@@ -19,3 +19,6 @@ A preview build passes against staging; the feed stays < 2 h old for 24 h; the r
 
 Depends: T72 (LATEST). Size: M.
 Owner: yes. Default: keep "Can I Fish This?"; R2 staging bucket first; publisher every 30 min.
+- Data worker (prod `bc-fishing-r2`): also compare ETags WEAKLY — the edge weakens the ETag to `W/"…"` when it gzips, so
+  the app's If-None-Match never matched the strong form (always 200). Fixed on staging in `deploy/staging/data-worker.js`
+  (2026-10-28): strip `W/` both sides, accept a list and `*`. Port it with the double-gzip fix.
