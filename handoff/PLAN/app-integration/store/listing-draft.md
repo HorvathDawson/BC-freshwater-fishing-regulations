@@ -46,7 +46,7 @@ fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,anglin
 
 ## Support
 - Support URL: https://canifishthis.ca/about   (confirm; or a mailto page)
-- Contact email: OWNER TO CHOOSE (the privacy page uses privacy@canifishthis.ca; the build's EXPO_PUBLIC_CONTACT must match what the listing shows)
+- Contact email: support@canifishthis.ca (owner 2026-10-29; the build's EXPO_PUBLIC_CONTACT is the same: eas.json profiles, build-apk.sh, export:web scripts; the privacy page keeps privacy@canifishthis.ca)
 - Privacy policy URL: https://canifishthis.ca/privacy  (live when the prod site is up, T240 section 5)
 - Marketing URL (App Store): https://canifishthis.ca
 
@@ -60,9 +60,9 @@ fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,anglin
 ## Graphics (owner to supply or approve)
 | Asset | Need | State |
 |---|---|---|
-| App icon 1024 (App Store) / 512 (Play) | yes | NO ICON ART IN THE REPO beyond Expo's default launcher; owner to approve a mark (suggest the loading fish in its ring on the live-water teal — the splash's art, redrawn larger) |
-| Adaptive icon foreground + background | yes | same decision |
-| Feature graphic 1024x500 (Play) | yes | needs the icon decision |
+| App icon 1024 (App Store) / 512 (Play) | yes | DONE: the favicon (owner 2026-10-29), `app/apps/mobile/assets/icon/icon-1024.png`, `play-512.png`; preview `T244-shots/icons-preview.png` |
+| Adaptive icon foreground + background (+ monochrome) | yes | DONE: `adaptive-foreground.png`, `adaptive-monochrome.png`, background = the light theme's ground (app.config.js) |
+| Feature graphic 1024x500 (Play) | yes | BASE done (`feature-graphic-1024x500.png`: the mark on the ground, no text); owner adds words if wanted |
 | Phone screenshots, light + dark | 2-8 each | take on the production build after T240 smoke; shot list below |
 | Tablet screenshots | Play optional; App Store only if tablets supported (`supportsTablet: false` today, so none) | n/a |
 

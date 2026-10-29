@@ -83,6 +83,8 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   loading fish's frame 0 on the boot screen's ground, light and dark, from `apps/mobile/app.config.js`), and `holdSplash` /
   `releaseSplash` in `apps/mobile/src/splash.ts` keep it up until the boot screen's own spinner is drawn, so the hand-off is
   seamless. Native only (stubs on web); ~no JS cost, a few KB of native code.
+- `@resvg/resvg-js` (dev) — rasterises the favicon SVG into the app icons (`tools/build-icons.mjs`, T244), run by hand; a prebuilt
+  native binary, never in the app.
 - `@expo-google-fonts/bricolage-grotesque` — display face (names, headings). ~90 KB for the
   two weights used; ships with the bundle rather than fetched, so it works offline, which
   the whole app has to.

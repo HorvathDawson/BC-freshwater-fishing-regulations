@@ -53,7 +53,7 @@ against staging) and the owner runs on prod.
       `https://canifishthis.ca` (path + query kept; `redirects.json`); HSTS once https is confirmed everywhere.
 - [ ] `/water/<slug>/` answers 307 today (assets `drop-trailing-slash`): make it a 301 (worker or a redirect rule).
 - [ ] v1 legacy paths `/waterbody/*` → one 301 each (already in the site worker; re-check on prod).
-- [ ] Add a favicon (404 on every page today).
+- [x] Favicon (T244, 2026-10-29): `/favicon.svg` + icon link on the hub pages (SEO build, `tools/seo/favicon.ts`) and the app export's `favicon.ico`; prod already serves the v1 `favicon.svg`: keep it (same file).
 
 ## 6. Search (T198 / T188)
 - [ ] ★ Google Search Console Domain property (DNS TXT) + Bing Webmaster import; submit `/sitemap.xml`.
@@ -69,7 +69,7 @@ against staging) and the owner runs on prod.
 
 ## 8. App config — production values (T232)
 - [ ] `eas.json` `production` profile: `EXPO_PUBLIC_APP_ENV=production` (set), plus `EXPO_PUBLIC_APP_BUILD`
-      (version + build number), ★ `EXPO_PUBLIC_CONTACT` (the release build refuses to build without it — T86).
+      (version + build number), `EXPO_PUBLIC_CONTACT=support@canifishthis.ca` (owner 2026-10-29; set in eas.json's three profiles, `build-apk.sh`, the `export:web` scripts; the mailbox must exist: OWNER-TODO).
 - [ ] Optional `EXPO_PUBLIC_ARCGIS_API_KEY` stays unset (owner 2026-10-21: no key).
 - [ ] Web prod export points at the prod data origin (`export:web` with `EXPO_PUBLIC_APP_ENV=production`).
 - [ ] The About page shows no environment badge on a production build reading production (T232 `aboutEnvVM`).
@@ -90,10 +90,10 @@ Paths are from the repo root; `<R>` = the release folder (`data/release/<r-id>`)
 - [ ] **HYDAT day flow (T274)** — `rclone copy data/generated/gauges/hydat_daily r2:<PB>/feeds/hydat --s3-no-check-bucket --header-upload "Cache-Control: public, max-age=86400"` (same HYDAT vintage as the prod bundle; rerun after `scripts/update-hydat.sh`). Check: one station file 200 with CORS open.
 - [ ] **Feeds worker prod (T225, T271)** — beyond section 3: the worker also runs the daily report purge (:25 cron: `private/reports/**` older than 180 d). After deploying with the prod config: `curl -X POST -H "Authorization: Bearer $RUN_TOKEN" https://<prod feeds worker>/run/purge-reports`, then `/status.json` shows `reportRetention`. Command: `npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.prod.toml` (the prod file named in section 3).
 - [ ] **SEO build for prod (T269, T279)** — water pages are the app's own pane, so the SEO build MUST be given the prod app export it will be served beside, or the pages' script tag names a bundle the site lacks (`site.sh` refuses it for staging):
-      `EXPO_PUBLIC_APP_ENV=production pnpm -C app --filter @app/mobile exec expo export --clear --platform web --output-dir ../../dist/web-prod` then
+      `EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=production pnpm -C app --filter @app/mobile exec expo export --clear --platform web --output-dir ../../dist/web-prod` then
       `node app/tools/build-seo.mjs --release-dir data/release/<r-id> --app app/dist/web-prod --threads 4 --out app/dist/seo-prod` (heavy — one at a time via `scripts/heavy.sh`, ≤4 threads; T279 stores each page compressed only, `index.html.gz`/`.br`, served by the worker by Accept-Encoding; the prod site switch of `site.sh` is section 5; confirm the exact flags against the `site.sh` staging call when writing the prod switch). Check: the page's `<script src>` is in the export; `/water/<slug>` shows the pane with JS off.
 - [ ] **Prod site deploy of the above** — the prod wrangler (section 5) with the pre-compressed pages (T279, when done) and the host's file-count/size headroom noted there.
-- [ ] **Privacy page live (T268/T244)** — `https://canifishthis.ca/privacy` answers 200 on prod (it is part of the SEO build; linked from the footer, About, Sources, the report form). The store listings quote this URL. The mailbox `privacy@canifishthis.ca` exists (owner set up) and the build's `EXPO_PUBLIC_CONTACT` is the same address.
+- [ ] **Privacy page live (T268/T244)** — `https://canifishthis.ca/privacy` answers 200 on prod (it is part of the SEO build; linked from the footer, About, Sources, the report form). The store listings quote this URL. The mailboxes `privacy@canifishthis.ca` (privacy page) and `support@canifishthis.ca` (store contact, the app's Contact page = `EXPO_PUBLIC_CONTACT`) exist and forward to the owner's inbox.
 - [ ] **Release promote check** — prod `LATEST` and the manifest the app reads name the same release as the tiles and the SEO build (one vintage: tiles, bundle and pages).
 - [ ] **Store listing (T244)** — owner signs off `handoff/PLAN/app-integration/store/listing-draft.md` + `privacy-labels-draft.md`; then Play internal track (T268/T267) and TestFlight (T88). Splash + icon are in the production build's prebuild (T244).
 Dependencies unchanged: sections 1-3 before the app's production build reads prod; section 4 only after.

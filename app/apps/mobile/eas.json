@@ -5,15 +5,15 @@
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "ios": { "simulator": false },
-      "env": { "EXPO_PUBLIC_APP_ENV": "staging", "EXPO_PUBLIC_ENV_SWITCH": "1", "EXPO_PUBLIC_APP_BUILD": "dev (staging)" }
+      "env": { "EXPO_PUBLIC_CONTACT": "support@canifishthis.ca", "EXPO_PUBLIC_APP_ENV": "staging", "EXPO_PUBLIC_ENV_SWITCH": "1", "EXPO_PUBLIC_APP_BUILD": "dev (staging)" }
     },
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "env": { "EXPO_PUBLIC_APP_ENV": "staging", "EXPO_PUBLIC_APP_BUILD": "preview (staging)" }
+      "env": { "EXPO_PUBLIC_CONTACT": "support@canifishthis.ca", "EXPO_PUBLIC_APP_ENV": "staging", "EXPO_PUBLIC_APP_BUILD": "preview (staging)" }
     },
     "production": {
-      "env": { "EXPO_PUBLIC_APP_ENV": "production" }
+      "env": { "EXPO_PUBLIC_CONTACT": "support@canifishthis.ca", "EXPO_PUBLIC_APP_ENV": "production" }
     }
   }
 }

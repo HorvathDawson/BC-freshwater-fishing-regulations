@@ -35,8 +35,8 @@ with the default Claude uses until you answer). Newest first inside each section
   as a split (pre-filled point). (2) Bella Coola: exclude the Atnarko (gnis:17209) from its tributaries. The re-cut
   commands come after the next release (one more rebuild is coming).
 - **T224 names (2026-10-29, live in r-62e2f3a8c81e):** review app **Names** tab (:5183, `#names/`), reject any that
-  are wrong among these 20 auto-accepted names (list + why in tickets/T224 "Owner spot-check"): Cat Stream (4 % overlap —
-  likely wrong), The Cut Coulee, Cohen Creek, Benes Creek, College Creek, North McNaughton Creek, Brigade Bay Creek,
+  are wrong among these 20 auto-accepted names (list + why in tickets/T224 "Owner spot-check"): Cat Stream (applied: a 3 km OSM way
+  matches 95 %; within your rule), The Cut Coulee, Cohen Creek, Benes Creek, College Creek, North McNaughton Creek, Brigade Bay Creek,
   Problem Creek, Coho Creek (OSM); Corinne Brook, Jantz Stream, Marshall Creek, Gill Brook, Mckay Creek, Shamrock Creek,
   Smith Brook (Abbotsford); Inkaneep Creek, Meadow Creek Diversion, Quinsam River Diversion Headpond, Noble Creek (ECCC).
   No rejects = done. The rest of the review list (36 high, 552 medium, 8,061 low) is optional.
@@ -58,12 +58,10 @@ with the default Claude uses until you answer). Newest first inside each section
   the matcher rerun + `promote --only 08MH079` follow.
 - **T204 phone check:** Kanaka Creek's map now has two marks (112 Avenue bridge, Cliff Park Falls) and its lower part is
   two separately selectable stretches ("… · stretch 1 of 2"); say if the stretch wording should differ.
-- **Tidal boundaries (T212, 2026-10-29):** all 1,168 marked; 32 cuts shipped in r-62e2f3a8c81e. Two yes/no:
-  (1) Caycuse River and Dempster Creek are marked at a DEM point (1,925 m / 550 m), which the 10-28 rule makes no cut —
-  re-mark them at the mouth (DFO default) in the **Tidal** tab? (2) Parsons, Annacis, Cannery and Morey Channels
-  (Fraser delta; your note "this entire channel is tidal") are still freshwater in the app — make each whole channel
-  tidal (off the freshwater map)? Yes → Claude builds the whole-water path + a reach rerun. (Skagit: leaves BC, no cut;
-  Bear River: Claude looks for a written boundary.)
+- **Tidal boundaries (T212, 2026-10-29):** all 1,168 marked; 32 cuts shipped in r-62e2f3a8c81e. In the **Tidal** tab,
+  re-mark at the mouth (accept the proposal): **Caycuse River** and **Dempster Creek** (the mouth = where the line leaves
+  Nitinat Lake / Clowhom Lake, 716 m / 524 m — the stream's own lower end, no cut) and **Bear River** (the mouth is on the
+  shore, 6 m from the sea). The 4 Fraser delta channels: done as you said (whole channel tidal).
 - **Cranberry canyon cuts:** the bottom is a DEM estimate (low). In the review app, **Low-confidence cuts** queue (with
   White River and Chuckwalla River, the other `low` cuts).
 - **Map look (T64, T85, T113, T152; all built and live):** look at the map (wetland-heavy Fort Nelson and the
@@ -134,10 +132,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 
 ## Things only you can run or provide
 - **Store listing sign-off (T244, 2026-10-29)**: read `app-integration/store/listing-draft.md` and `store/privacy-labels-draft.md`
-  (nothing is submitted). Decide: the **app icon / adaptive icon / feature graphic** (no icon art in the repo; suggestion: the loading fish in
-  its ring, the splash's art, larger), the **contact address** shown on the listing (same as `EXPO_PUBLIC_CONTACT`), the **Location row**
-  of the data-safety / App Privacy answers (a saved spot's coordinates go to Open-Meteo: recommended to declare it), the support URL, categories.
+  (nothing is submitted). Decide: the **app icon / adaptive icon / feature graphic** (DONE from the favicon, per your answer: `T244-shots/icons-preview.png`; add words to the feature graphic if you want), the support URL, categories. Contact = support@canifishthis.ca and the Location row (declared: collected + shared with Open-Meteo) are decided.
   Look at the new splash: `app-integration/T244-shots/` (web boot screen light/dark, native art); it shows on the next native build.
+- **Set up the mailbox support@canifishthis.ca** (Cloudflare Email Routing, forward to the same inbox as privacy@canifishthis.ca): it is the store listing's contact and the app's Contact page (`EXPO_PUBLIC_CONTACT`).
 - **Production run (T240 section 11, 2026-10-29)**: the prod commands for map-assets (T270), HYDAT day flow (T274), the report-purge deploy (T271),
   and the SEO build against the prod app export (`--app`, T269/T279) are written in `tickets/T240-production-launch-checklist.md`.
 - **Google Play setup (T268), when Google finishes verifying your Play account**: create the app ca.canifishthis.app,

@@ -25,6 +25,7 @@ import { fontFaceCss, paneCss as paneCss_, PaneRenderer, type PaneCssParts } fro
 import { PanePool } from "./panePool";
 import type { WaterModel } from "./model";
 import { appDocument } from "./prerender";
+import { withFavicon } from "./favicon";
 import { headersFile, hostRules, redirectsFile } from "./hosting";
 import type { Site } from "./html";
 import { legacyRedirects, legacyWorker, type Crosswalk, type LegacyBuilt } from "./legacy";
@@ -120,6 +121,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const unmerged = parts.flatMap((p) => p.unmerged);
   files.set(paneHref.slice(1), paneCss);
   files.set("_headers", headersFile());
+  withFavicon(files);
   files.set("_redirects", redirectsFile(build.removed));
   files.set("redirects.json", `${JSON.stringify(hostRules(config, config.alsoHosts), null, 1)}\n`);
   let legacy: LegacyBuilt | null = null;

@@ -40,3 +40,14 @@ Privacy; the Location row is an OWNER judgement: a saved spot's coordinates go t
 App icon / adaptive icon / feature graphic (no icon art in the repo beyond Expo's default; suggestion in the listing draft), contact address, listing +
 label sign-off, store screenshots from a production build, developer accounts + TestFlight (T88), Play upload (T267/T268), SDK window T250. Items
 are in OWNER-TODO.
+
+## Update 2026-10-29 (owner answers)
+- **Icon = the favicon** (`archive/webapp/public/favicon.svg`, byte-identical to what canifishthis.ca serves; copied to `apps/mobile/assets/icon/favicon.svg`).
+  `app/tools/build-icons.mjs` (@resvg/resvg-js, dev dep; run by hand, PNGs committed) places its own paths, in its own stroke colour, on the light theme's
+  ground: `icon-1024.png` (iOS, app.json `icon`), `adaptive-foreground.png` + `adaptive-monochrome.png` (inside the 66/108 safe circle; background colour =
+  the ground, set in app.config.js), `play-512.png`, `feature-graphic-1024x500.png` (base, no text), `favicon-48.png` (app.json `web.favicon`).
+  Preview: `T244-shots/icons-preview.png`. Staging/SEO: `tools/seo/favicon.ts` adds `/favicon.svg` + `<link rel="icon">` to every hub page (staging had none, 404);
+  water pages carry the app export's favicon. Not deployed: the staging site deploy waits on the coordinator.
+- **Privacy labels:** Location declared collected + shared with Open-Meteo (weather stays on Open-Meteo), Esri for imagery tiles (owner).
+- **Contact:** support@canifishthis.ca (listing; `EXPO_PUBLIC_CONTACT` in eas.json x3, build-apk.sh, export:web scripts; the app's Contact page reads it). Privacy page
+  keeps privacy@canifishthis.ca. OWNER-TODO: set up the mailbox.

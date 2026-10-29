@@ -12,6 +12,8 @@ const ground = (theme) =>
 
 module.exports = ({ config }) => ({
   ...config,
+  // (T244) the adaptive icon's solid background: the ground the boot screen paints (the icon is the favicon, `pnpm`-less: tools/build-icons.mjs)
+  android: { ...config.android, adaptiveIcon: { ...config.android?.adaptiveIcon, backgroundColor: ground("light") } },
   plugins: [
     ...(config.plugins ?? []),
     ["expo-splash-screen", {
