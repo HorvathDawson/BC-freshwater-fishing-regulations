@@ -43,7 +43,7 @@ describe("T15b caveat blocks vs golden keep.order / keep.lines (every state)", (
       if (got.length) drawn++;
     }
     expect(bad).toEqual([]);
-    expect([total, drawn]).toEqual([123, 9]);   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
+    expect([total, drawn]).toEqual([120, 9]);   // (T278) x15p3 + x31p + x37p1 tidal now (taps.json `tidal`): the tidal cuts took their whole parts   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 
   const at = async (id: string) => { for await (const c of cases("keep")) if (c.id === id) return blocks(await c.inputs()); return null; };

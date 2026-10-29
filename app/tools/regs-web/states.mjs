@@ -22,13 +22,15 @@ export const PROTO_TODAY = (() => {
   return TAPS.states[id].date;
 })();
 
-/** (T115) the golden states whose part the release merged away (taps.json `gone`): the app has no part to open for them */
-export const GONE = Object.keys(TAPS.gone ?? {});
+/** (T115) the golden states whose part the release merged away (taps.json `gone`), and (T278) those whose whole part is
+ *  tidal now (taps.json `tidal`, off the map): the app has no part to open for them */
+export const GONE = [...Object.keys(TAPS.gone ?? {}), ...Object.keys(TAPS.tidal ?? {})];
 /** every golden state id the app can open (all but GONE), in the goldens' order */
-export const IDS = Object.keys(GOLDEN.states).filter((id) => !(id in (TAPS.gone ?? {})));
+export const IDS = Object.keys(GOLDEN.states).filter((id) => !GONE.includes(id));
 export const stateOf = (id) => {
   const g = GOLDEN.states[id], t = TAPS.states[id];
-  if (!g || !t) throw new Error(TAPS.gone?.[id] ? `golden state ${id} has no part in the store: ${TAPS.gone[id].reason}` : `no golden state ${id}`);
+  const why = TAPS.gone?.[id] ?? TAPS.tidal?.[id];
+  if (!g || !t) throw new Error(why ? `golden state ${id} has no part in the store: ${why.reason}` : `no golden state ${id}`);
   return { id, w: g.w, d: g.d, p: g.p, water: g.water, item: t.item, part: t.partIx, date: t.date, sheets: Object.keys(g.sheets || {}) };
 };
 
@@ -69,11 +71,12 @@ const HASHES = ['w=vedder&d=1010', 'w=klwa&d=1010', 'w=cowichan&d=1010&p=1', 'w=
   'w=klwa&d=1012', 'w=glenn&d=615', 'w=chilliwack&d=1010&p=1'];
 export const idOfHash = (hash) => {
   const h = new URLSearchParams(hash), w = h.get('w'), d = Number(h.get('d')), p = Number(h.get('p') || 0);
-  const hit = IDS.find((id) => { const g = GOLDEN.states[id]; return g.w === w && g.d === d && g.p === p; });
+  const hit = Object.keys(GOLDEN.states).find((id) => { const g = GOLDEN.states[id]; return g.w === w && g.d === d && g.p === p; });
   if (!hit) throw new Error(`no golden state for ${hash}`);
   return hit;
 };
-export const WALK_STATES = [...new Set([...HASHES.map(idOfHash), 'x31p_1010', 'x15p2_1010'])];
+// (T278, r-62e2f3a8c81e) less GONE: x15p3 (the Fraser below Mission) and the tidal edge x31p (Nitinat Lake) are tidal now, off the map
+export const WALK_STATES = [...new Set([...HASHES.map(idOfHash), 'x31p_1010', 'x15p2_1010'])].filter((id) => !GONE.includes(id));
 
 /** The four states whose Methods must fit one screen under the header (bait-ways-compact). */
 export const METHODS_COMPACT = ['vedder_1010', 'klwa_1010', 'cow1_1010', 'vedder_515'];

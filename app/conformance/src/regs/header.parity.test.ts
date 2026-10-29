@@ -11,6 +11,7 @@
  * measurement (excluded; T41). Every expected value is the golden's except the ticket's literals.
  */
 import { afterAll, describe, expect, it } from "vitest";
+import { frozenTidalPage } from "./fixtures";
 import { buildModel, headerOf, makePlace, settle, stripOf, subtitleOf, type HeaderVM } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, requestOf, summary } from "./golden";
 import { excluded, PART_RECOUNTED, recountedSub } from "./exclusions";
@@ -113,8 +114,9 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
     expect([v.place, "action" in v]).toEqual([null, false]);
   });
 
-  it("9. x31p_1010 (tidal): a faint dot; its part is labelled — the prototype's null was its missing water map (review fix)", async () => {
-    const v = await headerFor("x31p_1010");
+// (T278) x31p_1010 is tidal now (taps.json `tidal`): the release has no tidal key, so the page is the frozen one (fixtures.ts frozenTidalPage)
+  it("9. x31p_1010 (tidal, frozen page): a faint dot; its part is labelled — the prototype's null was its missing water map (review fix)", () => {
+    const v = frozenTidalPage().header;
     expect([v.dot, v.place && v.place.short !== v.name]).toEqual(["faint", true]);
   });
 

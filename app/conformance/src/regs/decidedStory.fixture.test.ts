@@ -25,8 +25,9 @@ const steps = (s: DecidedStoryVM, head?: RegExp) => s.layers.filter((l) => !head
 const byOf = (s: DecidedStoryVM, says: RegExp) => plain(s.layers.flatMap((l) => l.steps).find((t) => says.test(plain(t.says)))!.by);
 
 describe("T216 on the fixture release", () => {
-  it("the Fraser, part 14 (Regions 3 and 5), Oct 10: both regions' bases, the river's own closure decides, each region's limit overridden by it", async () => {
-    const rows = await rowsOf(await openRegsStore(openRegsFixture()), "gnis:39325", 14, 10, 10);
+  // (T278, regs fixture on r-62e2f3a8c81e) the Fraser's tidal cut at the CPR Bridge at Mission took its old part 3: the Regions 3 and 5 part is 13 now (was 14)
+  it("the Fraser, part 13 (Regions 3 and 5), Oct 10: both regions' bases, the river's own closure decides, each region's limit overridden by it", async () => {
+    const rows = await rowsOf(await openRegsStore(openRegsFixture()), "gnis:39325", 13, 10, 10);
     const tc = storyOf(rows, /^Brook trout/);
     expect(tc.notes).toEqual(["This stretch is in Region 3 and Region 5, so both regions’ rules apply here."]);
     expect(heads(tc)).toEqual(["All of B.C.: the province’s base rules", "Region 3: the region’s base rules", "Region 5: the region’s base rules",
@@ -73,7 +74,7 @@ describe("T216 on the fixture release", () => {
 
   it("every step of every row of every fixture case cites a printed page; every layer has a step", async () => {
     const st = await openRegsStore(openRegsFixture());
-    for (const [item, partIx, m, d] of [["gnis:39325", 14, 10, 10], ["gnis:11611", 1, 5, 1], ["gnis:10457", 0, 5, 1], ["gnis:3062", 0, 5, 15]] as const) {
+    for (const [item, partIx, m, d] of [["gnis:39325", 13, 10, 10], ["gnis:11611", 1, 5, 1], ["gnis:10457", 0, 5, 1], ["gnis:3062", 0, 5, 15]] as const) {
       for (const r of await rowsOf(st, item, partIx, m, d)) {
         const s = r.ladder.story!;
         for (const l of s.layers) {

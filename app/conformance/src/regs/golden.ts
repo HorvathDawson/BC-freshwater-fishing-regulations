@@ -53,7 +53,11 @@ export function paritySkip(at: Pairing, env: Readonly<Record<string, string | un
 
 /** (T115) Is golden state `id` one whose part the release merged away (taps.json `gone`; exclusions.ts PART_GONE_IDS)?
  *  The suites that walk hydrate.json's 134 states (the prototype's own) leave these out: there is no part to tap. */
-export const isGone = (id: string): boolean => id in (tapsOnce().gone ?? {});
+/** (T278) a golden state whose whole part is tidal now (taps.py PART_TIDAL, taps.json `tidal`): off the map, never tapped.
+ *  x31p_1010 (Nitinat Lake, the golden's one tidal water) is one: the release has no tidal key left, so the app's tidal
+ *  banner is pinned only by the frozen VM fixture (ui-native Edges.test.tsx, fixtures/edge_x31p_1010.json). */
+export const isTidal = (id: string): boolean => id in (tapsOnce().tidal ?? {});
+export const isGone = (id: string): boolean => id in (tapsOnce().gone ?? {}) || id in (tapsOnce().tidal ?? {});
 
 /** golden id → the app's request (tests.md §1.2): the tap's item, part, date and weekday as taps.json gives them (never
  *  recomputed from another year); `today` is Oct 10 2026 for every state (the prototype's "today" is d=1010). */

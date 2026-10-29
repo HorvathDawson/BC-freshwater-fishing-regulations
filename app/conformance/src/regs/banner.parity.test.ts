@@ -10,7 +10,8 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { bannerOf, buildModel, makePlace, nextOpen, plain, settle, stripOf, type BannerVM } from "@app/core";
 import { eqPlain, norm } from "./eq";
-import { caseIds, golden, inputsOf, parityGate, requestOf, summary } from "./golden";
+import { caseIds, golden, inputsOf, isTidal, parityGate, requestOf, summary } from "./golden";
+import { tapsOnce } from "./oracles";
 
 interface GBanner { big: string[]; paras: string[]; golink: { text: string; day: null }[]; chain: { text: string; scope: string; src: string }[]; lines: string[] }
 const G = golden();
@@ -56,8 +57,8 @@ describe.skipIf(gate.skip)("T14 banner vs golden keep.banner", () => {
     passed++;
   });
 
-  it("1. 23 tapped golden states draw a banner (27 less T67's two and T220's two gone closed states)", () => {
-    expect(ids.filter((id) => gbanner(id) !== null).length).toBe(23);   // (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
+  it("1. 22 tapped golden states draw a banner (27 less T67's two and T220's two gone closed states, and T278's tidal x31p)", () => {
+    expect(ids.filter((id) => gbanner(id) !== null).length).toBe(22);   // (T278) x31p_1010 (the tidal banner) is tidal now: not tapped   // (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 
   it("2. vedder_615: the strip said 'Closed' and 'Opens Jul 1', so the headline goes; the link keeps its own words", async () => {
@@ -86,8 +87,9 @@ describe.skipIf(gate.skip)("T14 banner vs golden keep.banner", () => {
       .toEqual([["7 sections", "This water", "Rule book p.22 ↗"], ["1 section", "Federal / parks", "Rule book p.9 ↗"]]);
   });
 
-  it("5. x31p_1010: the tidal banner, in the data's words", async () => {
-    expect(await bannerFor("x31p_1010")).toEqual({ kind: "tidal", big: ["Tidal water"], paras: ["Tidal water: a different regulation system. The B.C. freshwater fishing regulations do not apply here: no provincial rule, quota, closure, gear rule, licence or stamp. See the federal (DFO) tidal waters sport fishing regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence is required."],
-      chain: [], reopen: null, merged: null });
+  // (T278, r-62e2f3a8c81e) Nitinat Lake is tidal now (taps.json `tidal`, entry r1:nitinat_lake@1-3): the release has no
+  // tidal key, so the banner's words are pinned by the frozen VM fixture (ui-native Edges.test.tsx) only
+  it("5. x31p_1010: tidal now (taps.json `tidal`), not tapped — the tidal banner it drew", () => {
+    expect([isTidal("x31p_1010"), tapsOnce().tidal.x31p_1010!.reason]).toEqual([true, expect.stringContaining("r1:nitinat_lake@1-3")]);
   });
 });

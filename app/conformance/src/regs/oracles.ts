@@ -306,6 +306,16 @@ export const onPartsDropped = (oracle: number): boolean => ORACLE_ON_PARTS_DROPP
 const ORACLE_PART_DRAWN: readonly string[] = ["r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r11"];
 export const partDrawn = (oracle: number): boolean => ORACLE_PART_DRAWN.includes(pageRid().get(oracle) ?? "");
 
+/**
+ * (T278, r-62e2f3a8c81e) a rule the tidal cuts left on tidal water only: the pipeline flags it uncertain (T166
+ * `tidal_preview`: "every section it selects is tidal water"), so its view carries that note where page v36's had none.
+ * Nitinat Lake's r1 ("Nitinat Lake is tidal water…"): its one section is tidal now (golden x31p_1010, taps.json `tidal`).
+ */
+const ORACLE_TIDAL_NOTED: Readonly<Record<string, string>> = {
+  "r1:nitinat_lake@1-3::nitinat_lake.r1": "Uncertain placement: tidal: every section it selects (1) is tidal water",
+};
+export const tidalNote = (oracle: number): string | null => ORACLE_TIDAL_NOTED[pageRid().get(oracle) ?? ""] ?? null;
+
 /** `oracleRix` over any rule set keyed by rix (a store's `rules()`, a RuleSource's `stored`). */
 export function oracleRixOver(rules: Keyed): (oracle: number) => number {
   const byKey = new Map<string, number>();

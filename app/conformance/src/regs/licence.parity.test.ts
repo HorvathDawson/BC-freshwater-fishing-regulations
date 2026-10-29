@@ -7,6 +7,7 @@
  * reasons in the afterAll summary.
  */
 import { afterAll, describe, expect, it } from "vitest";
+import { frozenTidalPage } from "./fixtures";
 import { licenceBlockLines, licenceSourceLines, licenceSources, profileOf, settle, makePlace, type LicenceVM, type Who } from "@app/core";
 import type { Holds, ProfileAnswer } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, requestOf, summary } from "./golden";
@@ -187,12 +188,12 @@ describe.skipIf(gate.skip)("T33 Licence", () => {
         "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"]]);
   });
 
-  it("tidal x31p_1010 (excluded, D33 (b)), all six: page v36's tidal box with the stored tidal licence words, no source line", async () => {
+  // (T278) x31p_1010 is tidal now (taps.json `tidal`): the release has no tidal key, so only the frozen page (fixtures.ts
+  // frozenTidalPage, the default adult resident) is left to hold the tidal box; the other five profiles had the same box
+  it("tidal x31p_1010 (excluded, D33 (b); frozen page): page v36's tidal box with the stored tidal licence words, no source line", () => {
     expect(TIDAL_LICENCE_IDS).toEqual(["x31p_1010"]);
-    for (const k of LICENCE_PROFILES) {
-      const x = await L("x31p_1010", k);
-      expect([x.blocks, x.src, x.label === gl("vedder_1010", k).label]).toEqual([[{ cls: "classbox", lines: ["Tidal water federal Tidal Waters Sport Fishing Licence"] }], null, true]);
-    }
+    const blocks = (frozenTidalPage().licence as unknown as { blocks: { cls: string; head: string; body: string; source: unknown }[] }).blocks;
+    expect(blocks.map((b) => [b.cls, `${b.head} ${b.body}`, b.source])).toEqual([["classbox", "Tidal water federal Tidal Waters Sport Fishing Licence", null]]);
   });
 
   it("(licence 7) the steelhead stamp is left out by the STORE exactly where the card closes steelhead (the prototype's 7 states)", async () => {

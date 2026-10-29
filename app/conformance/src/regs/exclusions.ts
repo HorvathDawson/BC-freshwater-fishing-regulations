@@ -207,8 +207,18 @@ export const PART_GONE_EXCLUDE: readonly Exclusion[] = PART_GONE_IDS.flatMap((id
   block, ids: [id], reason: `part gone — ${tapsOnce().gone[id]!.reason}`,
   until: "never on this golden — a prototype re-synced on T115's data (it drew the old two-region rows)" })));
 
-/** (T115) The tapped states at a part that took in a merged piece (taps.py PART_GROWN): same rows, a longer extent. */
-export const PART_GROWN_IDS: readonly string[] = Object.entries(tapsOnce().states).filter(([, t]) => t.grown).map(([id]) => id);
+/** (T278) The golden states whose WHOLE part is tidal now (taps.py PART_TIDAL, taps.json `tidal`): a tidal cut took the
+ *  piece below the stream's tidal boundary out of every binding — no freshwater rules, off the map (the store's tidal part
+ *  is unkeyed) — so there is nothing to tap. Every block excludes exactly those, each with its taps.json reason (the cut). */
+export const PART_TIDAL_IDS: readonly string[] = Object.keys(tapsOnce().tidal ?? {});
+export const PART_TIDAL_EXCLUDE: readonly Exclusion[] = PART_TIDAL_IDS.flatMap((id) => BLOCKS.map((block): Exclusion => ({
+  block, ids: [id], reason: `part tidal — ${tapsOnce().tidal[id]!.reason}`,
+  until: "never — tidal water is not under the freshwater regulations (owner 2026-10-28, Q42: removed from the freshwater map)" })));
+
+/** (T115) The tapped states at a part that took in a merged piece (taps.py PART_GROWN): same rows, a longer extent; and
+ *  (T278) the freshwater remainder of a part a tidal cut shortened (taps.py PART_TIDAL, `tidal` on the tap): same rows,
+ *  a shorter extent. */
+export const PART_GROWN_IDS: readonly string[] = Object.entries(tapsOnce().states).filter(([, t]) => t.grown || t.tidal).map(([id]) => id);
 /** (T67) The tapped states whose part kept its label and rows while the atlas re-cut the sections under it (taps.py
  *  PART_RECOUNTED: braid cuts, a ditch leaving its river, moved length cuts): {id: the store's count, why}. header.parity
  *  holds the subtitle to the golden's with that count (`recountedSub`); every block is compared whole. */
@@ -231,16 +241,18 @@ export const RECUT_IDS: readonly string[] = Object.entries(tapsOnce().states)
   .filter(([, t]) => t.item in (tapsOnce().recut ?? {}) && !(t.item in RECUT_SAME_PARTS)).map(([id]) => id);
 export const RECUT_EXCLUDE: readonly Exclusion[] = [
   ...(PART_GROWN_IDS.length ? [{ block: "header" as const, ids: PART_GROWN_IDS, key: /^place\.(full|short)$/,
-    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md), then T183 (owner 2026-10-24) and T67: the part's extent changed — the Skeena's section 2 starts at the Exchamsiks, the West Road's straddling pieces are parts of their own (taps.json `grown`) — so its extent words (the header's full and short label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale). (The Parts button whose aria quoted the label is gone: T150, GOLDEN_PARTS_ACTION_IDS)",
+    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md), then T183 (owner 2026-10-24) and T67: the part's extent changed — the Skeena's section 2 starts at the Exchamsiks, the West Road's straddling pieces are parts of their own (taps.json `grown`); T278: a tidal cut shortened the Campbell's and the Brunette's part (taps.json `tidal`) — so its extent words (the header's full and short label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale). (The Parts button whose aria quoted the label is gone: T150, GOLDEN_PARTS_ACTION_IDS)",
     until: "never on this golden — a prototype re-synced on T115's data" }] : []),
   ...(RECUT_IDS.length ? [{ block: "sheets" as const, ids: RECUT_IDS, key: /^parts$/,
-    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the Fraser's parts were re-cut (19 → 15: each straddling piece joined its neighbour; T183 made them parts again, 15 → 17), T183 the West Road's (3 → 5), and T67 (owner 2026-10-24) the Skeena's (8 → 9: a channel piece of the Ecological Reserve is a part of its own — since T183 the Exchamsiks host channel above the cut, still section 2); T67/T187 the Peace's (the Site C closure takes two braid pieces and is renumbered); taps.json `recut` gives each water's reason. So the Parts sheet lists parts the prototype did not have; every other sheet of these states is compared",
+    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the Fraser's parts were re-cut (19 → 15: each straddling piece joined its neighbour; T183 made them parts again, 15 → 17), T183 the West Road's (3 → 5), and T67 (owner 2026-10-24) the Skeena's (8 → 9: a channel piece of the Ecological Reserve is a part of its own — since T183 the Exchamsiks host channel above the cut, still section 2); T67/T187 the Peace's (the Site C closure takes two braid pieces and is renumbered); T278 the Fraser's, Campbell's, Brunette's and Coquitlam's (a tidal cut took a part or part of one, and the tidal piece is a part of its own); taps.json `recut` gives each water's reason. So the Parts sheet lists parts the prototype did not have; every other sheet of these states is compared",
     until: "never on this golden — a prototype re-synced on T115's data" }] : []),
 ];
 
 export const EXCLUDE: readonly Exclusion[] = [
   // (T115) golden states whose part the release merged away, and the extent words of the re-cut Fraser
   ...PART_GONE_EXCLUDE,
+  // (T278) golden states whose whole part is tidal now
+  ...PART_TIDAL_EXCLUDE,
   ...RECUT_EXCLUDE,
   // (T28) no pins entry: the prototype's pinUpdate throw on a group-less article (25 states at v33, facts A#25) is fixed
   // since UI-NOTES v35 (a group-less row pins nothing, IMPLEMENT-HANDOFF C5) — pins.parity replays every state whole

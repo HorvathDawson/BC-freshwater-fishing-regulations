@@ -34,6 +34,13 @@ that index. Declared states are themselves checked, so an entry that no longer d
   the store's count); the parity holds the subtitle to the golden's with the count replaced.
 - A "closed all year" golden part (no label to check) is held to the store's part at its index being closed all year
   (T67: a renumbering put an open part at a closed state's index); one that is not must be declared.
+- PART_TIDAL (T278): a tidal cut (T166/T185/T212: the piece below a stream's tidal boundary leaves every binding, no
+  freshwater rules, off the map) took the golden part. `(None, tidal_ix, why)`: the WHOLE golden part is tidal now — the
+  store's part `tidal_ix` is unkeyed and unlabelled (the tidal remainder) and no store part has the golden label; written
+  to taps.json `tidal` (not `states`), and the parity excludes the state in every block (exclusions.ts PART_TIDAL_IDS).
+  `(ix, tidal_ix, why)`: the freshwater remainder of the golden part is the store's part `ix` (its extent words changed,
+  its rows did not) — tapped and compared like PART_GROWN (`tidal` on the state). A part only RENUMBERED by a tidal cut
+  is PART_MOVED, citing the cut. Each entry cites its cut (the bundle's `tidal` table: section -> split / entry).
 - PART_GONE: the golden part's water merged into the store's part `now_in` (or, T67, was split or recounted so
   the page's merged closed list is not the golden's); no store part has the golden label and count. Written to taps.json `gone` (not `states`), and the parity excludes the state with this reason
   (conformance/src/regs/exclusions.ts PART_GONE_IDS).
@@ -62,18 +69,51 @@ T183 = "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries
 T115 = "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only"
 T67 = "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12)"
 T220 = "T220 (owner 2026-10-28, FIX \"complete\"): no channel line ends where the water goes on"
+# (T278, r-62e2f3a8c81e) the tidal cuts: each takes the piece below its point out of every binding (bundle `tidal`)
+FRASER_TIDAL = ("T278 (r-62e2f3a8c81e, tidal cut split:fraser_river__the_cpr_bridge_at_mission, gnis:39325 at 76.51 km): "
+                "the Fraser below the CPR Bridge at Mission is tidal (29 sections, store part 16, unkeyed), so the golden "
+                "part 'From the mouth up to the CPR Bridge at Mission' (old store part 3) has no freshwater part and the "
+                "parts after it are renumbered down by one (4..16 -> 3..15)")
+CAMPBELL_TIDAL = ("T278 (r-62e2f3a8c81e, tidal cut split:campbell_river__cement_block_boundary_sign, gnis:39532 at 1.63 km): "
+                  "the Campbell from the mouth up to the cement block boundary sign is tidal (5 sections, store part 10, "
+                  "unkeyed); the golden two-stretch part (old store part 3, 8 sections) keeps only its Maple Street -> "
+                  "power line stretch (store part 5, 3 sections), and John Hart Lake -> Ladore Dam and cement block -> "
+                  "Maple Street are renumbered 4 -> 3 and 5 -> 4 (part order follows rule-set ids)")
+BRUNETTE_TIDAL = ("T278 (r-62e2f3a8c81e, tidal cut split:brunette_river__burlington_northern_railway_brid, gnis:10070 at "
+                  "2.86 km): the Brunette below the Burlington Northern Railway Bridge is tidal (1 section, store part 2, "
+                  "unkeyed), so part 0 starts at the bridge, not the mouth (2 sections, same rows)")
+SKEENA_TIDAL = ("T278 (r-62e2f3a8c81e, tidal cut split:skeena_river__tidal_boundary, gnis:2936 at 6.4 km): the Skeena below "
+                "its tidal boundary is tidal (1 section, store part 9, unkeyed), so part 0 starts at the tidal boundary")
+COQUITLAM_TIDAL = ("T278 (r-62e2f3a8c81e, tidal cut split:coquitlam_river__mary_hill_bypass_bridge, gnis:19986 at 0.31 km): "
+                   "the Coquitlam from the mouth up to the Mary Hill Bypass Bridge is tidal (1 section, store part 3, "
+                   "unkeyed), so the golden mouth part (old store part 2) has no freshwater part and the Mary Hill -> "
+                   "Lougheed part is renumbered 3 -> 2")
+NITINAT_TIDAL = ("T278 (r-62e2f3a8c81e, tidal entry r1:nitinat_lake@1-3, 'Nitinat Lake is tidal water'): the lake's one "
+                 "section is tidal (store part 0, unkeyed; the item is not shown), so the water has no freshwater part")
 T228 = ("T228 (a757756b, owner 2026-10-28): no-access land breaks a water's pieces — the Coquitlam's Lougheed -> lake "
         "outlet stretch (golden part 0, 10 sections) is cut at the Coquitlam Watershed boundary into store parts 0 (1 "
         "section) and 1 (9), so the mouth and Mary Hill parts are renumbered 1 -> 2 and 2 -> 3 (4 parts, not 3)")
 _LEN = "the automatic length cuts moved off braid-spanned junctions (owner Q2)"
 _GAUGE = "the old perpendicular sweep's gauge cuts are gone"
 COLUMBIA_R11 = ('2026-10-27 (owner, decisions.md "needs a split"): columbia_river.r11 \'Speed restriction (10 km/h) from Mud Lake to Columbia Lake\' now binds the Fairmont -> Columbia Lake stretch, so the golden\'s two-stretch part (Kinbasket Lake -> Donald + Fairmont -> Columbia Lake outlet, 3 sections) is two parts: 3 (Fairmont, 2 sections, with the speed limit) and 7 (Kinbasket -> Donald, 1 section)')
-PART_MOVED = {"x15p16_1010": 15,
+PART_MOVED = {"x15p16_1010": 14,   # (T183) 15; then T278 FRASER_TIDAL: 14
+              # (T278) FRASER_TIDAL: the golden part at old store part k (k > 3) is store part k - 1 (x15p9: closed all
+              # year, held to the store's part being closed)
+              "x15p4_1010": 3, "x15p5_1010": 4, "x15p6_1010": 5, "x15p7_1010": 6, "x15p8_1010": 7, "x15p9_1010": 8,
+              "x15p11_1010": 10, "x15p12_1010": 11, "x15p13_1010": 12,
+              # (T278) CAMPBELL_TIDAL renumbers the two parts after the golden part 3
+              "x16p4_1010": 3, "x16p5_1010": 4,
               # (T67, then T183) the Skeena's Ecological Reserve is two parts (PART_GONE x19p5: 5 below the Exchamsiks cut,
               # 6 the host channel above it), which renumbers the parts after them
               "x19p6_1010": 7, "x19p7_1010": 8,
               # (T228) the Coquitlam's no-access split renumbers the parts after it
-              "x37p1_1010": 2, "x37p2_1010": 3}
+              # (T228) x37p1/x37p2 were 1 -> 2 and 2 -> 3; then T278 COQUITLAM_TIDAL: x37p1's part is tidal
+              # (PART_TIDAL) and x37p2's is back at its golden index 2
+              }
+#: why each PART_MOVED state moved, when it is not the water's RECUT_WHY
+MOVED_WHY = {**{k: FRASER_TIDAL for k in ("x15p4_1010", "x15p5_1010", "x15p6_1010", "x15p7_1010", "x15p8_1010", "x15p9_1010",
+                                          "x15p11_1010", "x15p12_1010", "x15p13_1010")},
+             "x16p4_1010": CAMPBELL_TIDAL, "x16p5_1010": CAMPBELL_TIDAL}
               # (T187) x22p6 (the Peace's Dinosaur Lake part) is back to its golden place and size: part 6, 1 section
 #: gone states whose water's list of parts is still the golden's (labels and order the Parts sheet draws): not `recut`
 GONE_NOT_RECUT: set[str] = set()
@@ -85,16 +125,17 @@ RECUT_WHY = {"x22p2_1010": "T67 (owner 2026-10-24): the Peace's braids are cut a
                            "section-2 designation the rest of the Reserve lost, and is a part of its own (8 -> 9 parts)",
              # (T183) the straddling pieces are parts of their own again (T115's merge undone, two regions' rules)
              "x15p16_1010": f"{T183}: the Fraser's straddling pieces are parts of their own again (15 -> 17 parts; the "
-                            f"golden has 19)",
+                            f"golden has 19); then {FRASER_TIDAL}",
              "x27p0_1010": f"{T183}: the West Road's straddling pieces are parts of their own (3 -> 5 parts)",
              "x18p3_1010": COLUMBIA_R11,
-             "x37p1_1010": T228}
+             "x37p1_1010": f"{T228}; then {COQUITLAM_TIDAL}",
+             "x16p3_1010": CAMPBELL_TIDAL, "x23p0_1010": BRUNETTE_TIDAL, "x31p_1010": NITINAT_TIDAL}
 PART_GROWN = {
     "x27p0_1010": f"{T183}: the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections",
     "x27p2_1010": f"{T183}: the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch",
     "x19p0_1010": f"{T67}: the Exchamsiks confluence cut runs straight across and {_LEN}; then T183 (owner 2026-10-24): "
                   f"the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and joined this part "
-                  f"(3 stretches, 44 -> 48 sections)",
+                  f"(3 stretches, 44 -> 48 sections); then {SKEENA_TIDAL}",
     "x9p0_1010": "T179 (owner 2026-10-25, decisions.md Koocanusa): the Koocanusa cut moved from the reservoir's outlet "
                  "(356570348:431810, where the hand point stood) to its INLET (490242), so this 1-section piece below "
                  "the lake now ends at the lake's outlet, not the curated 'u/s end' name (label only; same piece, same rows)",
@@ -112,12 +153,12 @@ PART_GONE = {
                       f"'closed all year', 4 sections) is store parts 3 and 6 now, part 2 is the open 0.5-3.5 km stretch"),
     "x18p3_1010": (3, COLUMBIA_R11),
     "x27p1_1010": (0, f"{T183}: the West Road's Region 6 stretch below Carnlick Creek shares its rules with part 0 now"),
-    "x15p17_1010": (16, f"{T183}: the golden part (356364114:674465, Region 5 and Region 7A) shares its rules with 699253 and is in part 16 now"),
-    "x15p18_1010": (16, f"{T183}: the golden part (356364114:699253, Region 5 and Region 7A) shares its rules with 674465 and is in part 16 now"),
-    "x15p15_1010": (14, f"{T183}: the golden part (356364114:434930, Region 3 and Region 5) has the same rules as 418405 and is in part 14 now"),
+    "x15p17_1010": (15, f"{T183}: the golden part (356364114:674465, Region 5 and Region 7A) shares its rules with 699253 and is in part 16 (T278: 15) now"),
+    "x15p18_1010": (15, f"{T183}: the golden part (356364114:699253, Region 5 and Region 7A) shares its rules with 674465 and is in part 16 (T278: 15) now"),
+    "x15p15_1010": (13, f"{T183}: the golden part (356364114:434930, Region 3 and Region 5) has the same rules as 418405 and is in part 14 (T278: 13) now"),
     # not PART_GROWN: the rows differ too. The prototype's two-region page on 418405 drew Region 3's zone and r5's Fraser
     # rows r2-r4; T183 binds Region 5's zone rules (p.42) and r5 r1 / r6 there as well (tickets/T183 "so 14, not 12")
-    "x15p14_1010": (14, f"{T183}: the golden part (356364114:418405, Region 3 and Region 5) is in part 14 with :434930, "
+    "x15p14_1010": (13, f"{T183}: the golden part (356364114:418405, Region 3 and Region 5) is in part 14 (T278: 13) with :434930, "
                         f"which also carries Region 5's zone rules and the Region 5 Fraser rows r1 and r6 the prototype's "
                         f"page did not draw, so its rows are not the golden's"),
     # (T67, r-0ed3c2b2a0a7) two closed states whose golden page counts sections the release re-cut: the app's merged
@@ -136,8 +177,6 @@ PART_GONE = {
 # atlas full.prev vs the bundle of atlas full): every part below keeps its label and rows; only its section count moved.
 # {state: (store part_ix, why)} — the golden part is the store's part `ix`, same label, another section count
 PART_RECOUNTED = {
-    "x16p3_1010": (3, "T185 (owner marks 2026-10-27): the new Quinsam River confluence cut on the Campbell lies "
-                      "inside this part's Maple Street stretch: 7 -> 8 sections"),
     "cow0_1010": (0, "T185 (owner marks 2026-10-27): the new Sandy Pool white-triangle sign cut (DFO "
                      "'from 66 Mile Trestle downstream to the sign') lies inside this stretch: 10 -> 11 sections"),
     "x21p2_1010": (2, "T179 (owner 2026-10-24, one cut-placement pass): gauge 08NK030 stood 232 m from the curated Elko "
@@ -158,8 +197,6 @@ PART_RECOUNTED = {
     "chw1_1010": (1, f"{T220}: a braid piece that closes a kept side channel was restored to the Vedder: 9 -> 10 sections"),
     "x15p2_1010": (2, f"{T67}: on the Fraser mainstem {_GAUGE} (94,834 / 108,135 / 111,137 / 122,096 / 132,550 / "
                       f"148,097 m) and {_LEN} (93,822 / 116,370 / 135,999 m): 40 -> 36 sections"),
-    "x15p3_1010": (3, f"{T67}: {_GAUGE} on the Fraser's side channels 355992485 and 355994872, and 08MH028's cut "
-                      f"moved 578 -> 545 m: 30 -> 29 sections"),
     "x18p0_1010": (0, f"{T67}: on the Columbia (356570372) {_LEN}: 4 cuts -> 5, 132 -> 133 sections"),
     "x19p3_1010": (3, f"{T67}: the Cedarvale cut takes the braid 360243437 (1,069 m): 51 -> 52 sections"),
     "x20p2_1010": (2, f"{T67}: the Thompson's side channel 355995300 is cut at the boundary signs (187 m): 7 -> 8 sections"),
@@ -168,6 +205,17 @@ PART_RECOUNTED = {
     "x22p1_1010": (1, f"{T67}: the Peace braids 359005110 / 359013560 cut at Site C dam, and {_LEN}: 29 -> 30 sections"),
     "x22p3_1010": (4, f"{T67}: the Halfway braid 359012853 is cut at 3,358 m: 6 -> 7 sections; renumbered 3 -> 4 "
                       f"(part order follows rule-set ids)"),
+}
+# (T278) {state: (store part_ix of the freshwater remainder, or None when the whole golden part is tidal; the store's
+# tidal part; why — the cut)}
+PART_TIDAL = {
+    "x15p3_1010": (None, 16, f"{FRASER_TIDAL} (before: {T67}: {_GAUGE} on the Fraser's side channels 355992485 and "
+                             f"355994872, and 08MH028's cut moved 578 -> 545 m: 30 -> 29 sections)"),
+    "x37p1_1010": (None, 3, f"{COQUITLAM_TIDAL} (before: {T228})"),
+    "x31p_1010": (None, 0, NITINAT_TIDAL),
+    "x16p3_1010": (5, 10, f"{CAMPBELL_TIDAL} (before: T185, owner marks 2026-10-27: the Quinsam River confluence cut lies "
+                          f"inside the Maple Street stretch, 7 -> 8 sections)"),
+    "x23p0_1010": (0, 2, BRUNETTE_TIDAL),
 }
 _SUB = re.compile(r"^(.*?) · (\d+) sections?(?: · (.*))?$")
 
@@ -221,8 +269,25 @@ def main():
             return part_ix, None
         parts, g = store_parts(item), golden_part(st)
         closed = dict(c.execute("select part_ix, closed_all_year from part where item_ord=?", (ord_of[item],)))
+        if sid in PART_TIDAL:
+            ix, tix, why = PART_TIDAL[sid]
+            akeys = dict(c.execute("select part_ix, akey from part where item_ord=?", (ord_of[item],)))
+            hit = [i for i, p in parts.items() if same_part(g, p)]
+            if tix not in parts or akeys.get(tix) is not None or parts[tix][0] is not None or hit:
+                raise SystemExit(f"taps: PART_TIDAL {sid} does not describe the store: tidal part {tix} {parts.get(tix)} "
+                                 f"akey {akeys.get(tix)}, golden {g} is store part {hit}")
+            if ix is None:
+                return None, {"item": item, "partIx": part_ix, "tidalPartIx": tix, "reason": why}
+            if akeys.get(ix) is None:
+                raise SystemExit(f"taps: PART_TIDAL {sid}: the freshwater remainder {ix} {parts.get(ix)} has no key")
+            return ix, None
         if sid in PART_MOVED:
             ix = PART_MOVED[sid]
+            if g[0] in (None, "closed all year"):
+                # (T278) a closed state has no label to check: held to the store's part `ix` being closed all year
+                if closed.get(ix) != 1 or parts.get(ix, (None, -1))[1] < 1:
+                    raise SystemExit(f"taps: PART_MOVED {sid} -> {ix}: golden {g} is closed, store part {ix} {parts.get(ix)} is not")
+                return ix, None
             if same_part(g, parts.get(ix, (None, -1))) is not True or same_part(g, parts.get(part_ix, (None, -1))):
                 raise SystemExit(f"taps: PART_MOVED {sid} -> {ix} does not describe the store: golden {g}, store {parts.get(part_ix)} at {part_ix}, {parts.get(ix)} at {ix}")
             return ix, None
@@ -303,7 +368,7 @@ def main():
                     "golden": G["meta"].get("sha"), "version": G["meta"].get("version"), "year": 2026}, "states": {}, "unnamed": [],
            "leap": [leap("zymoetz_20360229", "gnis:3137", 0, 2036, 2, 29), leap("zymoetz_20360228", "gnis:3137", 0, 2036, 2, 28),
                     leap("zymoetz_20280229", "gnis:3137", 0, 2028, 2, 29), leap("zymoetz_20280228", "gnis:3137", 0, 2028, 2, 28)],
-           "gone": {}, "recut": {}}
+           "gone": {}, "tidal": {}, "recut": {}}
     for sid, st in G["states"].items():
         item = by_name.get(st["water"])
         part_ix = int(st["part"]) if st.get("part") not in (None, "") else 0
@@ -311,21 +376,27 @@ def main():
         wd = WEEKDAYS[datetime.date(2026, month, day).weekday()]
         ix, gone = resolve(sid, st, item, part_ix) if item else (part_ix, None)
         if gone is not None:
-            out["gone"][sid] = {**gone, "md": md, "date": f"2026-{month:02d}-{day:02d}", "weekday": wd}
+            out["tidal" if sid in PART_TIDAL else "gone"][sid] = {**gone, "md": md, "date": f"2026-{month:02d}-{day:02d}", "weekday": wd}
             continue
         out["states"][sid] = {"item": item, "partIx": ix, "md": md, "date": f"2026-{month:02d}-{day:02d}", "weekday": wd,
                               **({"goldenPartIx": part_ix} if ix != part_ix else {}),
                               **({"grown": PART_GROWN[sid]} if sid in PART_GROWN else {}),
+                              **({"tidal": {"reason": PART_TIDAL[sid][2], "tidalPartIx": PART_TIDAL[sid][1]}}
+                                 if sid in PART_TIDAL else {}),
                               **({"recounted": {"reason": PART_RECOUNTED[sid][1], "sections": store_parts(item)[ix][1]}}
                                  if sid in PART_RECOUNTED else {}),
                               **(tap(item, ix, month, day, wd) if item else {"error": "no water"})}
     # the waters whose parts the release re-cut: every state of one sees a different list of parts than the golden's
-    for sid in (*PART_MOVED, *PART_GROWN, *PART_GONE):
+    for sid in (*PART_MOVED, *PART_GROWN, *PART_GONE, *PART_TIDAL):
         if sid in GONE_NOT_RECUT:
             continue
         w = by_name[G["states"][sid]["water"]]
-        out["recut"][w] = RECUT_WHY.get(sid) or out["recut"].get(w) or T115
-    stale = sorted((set(PART_MOVED) | set(PART_GROWN) | set(PART_GONE) | set(PART_RECOUNTED)) - set(G["states"]))
+        out["recut"][w] = RECUT_WHY.get(sid) or out["recut"].get(w) or MOVED_WHY.get(sid) or T115
+    decl = [set(PART_MOVED), set(PART_GROWN), set(PART_GONE), set(PART_RECOUNTED), set(PART_TIDAL)]
+    twice = sorted(x for i, a in enumerate(decl) for b in decl[i + 1:] for x in a & b)
+    if twice:
+        raise SystemExit(f"taps: states declared in two categories: {twice}")
+    stale = sorted(set().union(*decl) - set(G["states"]))
     if stale:
         raise SystemExit(f"taps: declared states not in the golden: {stale}")
     # unnamed: an evenly spaced sample of handles whose akey is past the named range, half streams and half the rest
@@ -359,12 +430,17 @@ def main():
     print(f"taps: {len(out['states'])} states ({len(bad)} unresolved: {bad[:5]}), {len(out['unnamed'])} unnamed, {len(out['leap'])} leap -> {a.out}")
     for sid, v in out["states"].items():
         if "goldenPartIx" in v:
-            how = "PART_MOVED" if sid in PART_MOVED else "PART_RECOUNTED"
+            how = "PART_MOVED" if sid in PART_MOVED else "PART_TIDAL" if sid in PART_TIDAL else "PART_RECOUNTED"
             print(f"taps: {sid} golden part {v['goldenPartIx']} -> store part {v['partIx']} ({how})")
     for sid in PART_GROWN:
         print(f"taps: {sid} part {out['states'][sid]['partIx']} grew (PART_GROWN): {PART_GROWN[sid]}")
     for sid in PART_RECOUNTED:
         print(f"taps: {sid} part {out['states'][sid]['partIx']} recounted (PART_RECOUNTED): {PART_RECOUNTED[sid][1]}")
+    for sid in PART_TIDAL:
+        if sid in out["states"]:
+            print(f"taps: {sid} part {out['states'][sid]['partIx']} is the freshwater remainder (PART_TIDAL): {PART_TIDAL[sid][2]}")
+    for sid, g in out["tidal"].items():
+        print(f"taps: {sid} TIDAL (golden part {g['partIx']}, tidal part {g['tidalPartIx']}): {g['reason']}")
     for sid, g in out["gone"].items():
         print(f"taps: {sid} GONE (golden part {g['partIx']}, now in part {g['nowIn']}): {g['reason']}")
     if bad:

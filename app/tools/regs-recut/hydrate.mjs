@@ -8,7 +8,7 @@
 // `strip` (the line before `function segBar`), with YEAR = taps.json meta.year (2026). States come from golden/taps.json
 // (item id, part index, md); each state's `s` must equal taps.json's — printed, and a mismatch exits 1. The page's parts are
 // the PROTOTYPE's: a state the release renumbered is hydrated at taps.json `goldenPartIx`, and a state whose part the release
-// merged away (taps.json `gone`, T115) is hydrated too (the page still has it; there is no store `s` to check it against),
+// merged away (taps.json `gone`, T115) or that became tidal (taps.json `tidal`, T278) is hydrated too (the page still has it; there is no store `s` to check it against),
 // all in golden.json's order.
 // Rule numbers are the export's rix (page_data.py: D.rid = rix of the full export = the store's rule.rix).
 import fs from 'node:fs'; import path from 'node:path'; import { execFileSync } from 'node:child_process';
@@ -48,14 +48,14 @@ try {
   const states = {}; let same = 0; const bad = [];
   const order = Object.keys(JSON.parse(fs.readFileSync(path.join(A.out, 'golden.json'), 'utf8')).states);
   for (const id of order) {
-    const t = taps.states[id] ?? taps.gone?.[id];
-    if (!t) { bad.push(`${id}: in golden.json, neither tapped nor gone in taps.json`); continue; }
+    const t = taps.states[id] ?? taps.gone?.[id] ?? taps.tidal?.[id];
+    if (!t) { bad.push(`${id}: in golden.json, neither tapped nor gone nor tidal in taps.json`); continue; }
     const wi = P.D.waters.findIndex(w => w.id === t.item);
     if (wi < 0) { bad.push(`${id}: no water ${t.item} in page_v36.html`); continue; }
     const w = P.makePlace(wi, t.goldenPartIx ?? t.partIx);
     if (!w.key) { bad.push(`${id}: no key`); continue; }
     const m = P.buildModel(w, t.md), c = m.ctx;
-    if (taps.gone?.[id]) { /* no store part: nothing to check s against */ }
+    if (taps.gone?.[id] || taps.tidal?.[id]) { /* no store part (T278: a tidal part has no key): nothing to check s against */ }
     else if (c.s === t.s) same++; else bad.push(`${id}: s ${c.s}, taps.json ${t.s}`);
     const cites = new Set();
     const add = r => { if (r && r.ix != null) cites.add(r.ix); };
@@ -88,6 +88,6 @@ try {
     golden: taps.meta.golden, version: taps.meta.version, year: YEAR, decodeLines: `1-${end}` }, describe, rules, states };
   fs.writeFileSync(path.join(A.out, 'hydrate.json'), JSON.stringify(out, null, 1));
   const n = Object.keys(taps.states).length;
-  console.log(`hydrate: s equals taps.json on ${same}/${n} tapped states (+ ${Object.keys(taps.gone ?? {}).length} gone), ${Object.keys(describe).length} rules described -> ${path.relative(REPO, path.join(A.out, 'hydrate.json'))}`);
+  console.log(`hydrate: s equals taps.json on ${same}/${n} tapped states (+ ${Object.keys(taps.gone ?? {}).length} gone, ${Object.keys(taps.tidal ?? {}).length} tidal), ${Object.keys(describe).length} rules described -> ${path.relative(REPO, path.join(A.out, 'hydrate.json'))}`);
   if (bad.length) { console.error(bad.join('\n')); process.exitCode = 1; }
 } finally { /* nothing staged */ }

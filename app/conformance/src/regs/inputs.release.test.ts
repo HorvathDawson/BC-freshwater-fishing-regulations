@@ -75,11 +75,13 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
     expect(sat.year!.ladderBySeg[0]).not.toEqual(sat.year!.ladderBySeg[1]);
   });
 
-  it("4. x15p7_1010 (an hours window: outside it) and x31p_1010 (tidal)", async () => {
-    const x15 = await load(st, "gnis:39325", 7, 10, 10, "Saturday");
+  // (T278, r-62e2f3a8c81e) the Fraser's tidal cut at the CPR Bridge at Mission renumbered x15p7's part 7 -> 6 (taps.py
+  // PART_MOVED); Nitinat Lake is tidal now (taps.json `tidal`): its one part has no key — off the map, no tidal frame
+  it("4. x15p7_1010 (an hours window: outside it) and x31p_1010 (tidal: no key)", async () => {
+    const x15 = await load(st, "gnis:39325", 6, 10, 10, "Saturday");
     expect([x15.s, x15.cell!.display]).toEqual([4, cellOf("x15p7_1010").display]);
     const x31 = await load(st, "wbk:329504244", 0, 10, 10, "Saturday");
-    expect([x31.key!.tidal, x31.frames!.display.status]).toEqual([true, "tidal"]);
+    expect([x31.key ?? null, x31.frames ?? null]).toEqual([null, null]);
   });
 
   it("5. ape_501: a rule the part reaches by the tributary walk ranks 1", async () => {

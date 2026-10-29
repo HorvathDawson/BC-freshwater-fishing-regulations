@@ -97,6 +97,15 @@ export function goldenLinesJson(): string {
  * `buildRegsPage` over no key).
  */
 export const EDGE_FIXTURE_STATES = ["x31p_1010", "x15p2_1010"] as const;
+/**
+ * (T278, r-62e2f3a8c81e) the tidal edge state is FROZEN, not re-cut: Nitinat Lake is tidal now (taps.json `tidal`, entry
+ * r1:nitinat_lake@1-3) and the release carries no tidal key at all, so no store can build its page. `edge_x31p_1010.json`
+ * (written on r-0fa7927b16e5) is the app's tidal page as the last tidal key drew it; the parity tests read it here
+ * (`frozenTidalPage`) and compare it with the golden, and syncFixtures leaves it alone.
+ */
+export const FROZEN_TIDAL_EDGE = "x31p_1010";
+export const frozenTidalPage = (): FrozenRegsPage =>
+  JSON.parse(readFileSync(`${FIXTURE_DIR}/edge_${FROZEN_TIDAL_EDGE}.json`, "utf8")) as FrozenRegsPage;
 
 /**
  * (T40) The style-token gate's states (check.mjs `r20c-style-tokens`: vedder_1010, x35p_1010, klwa_1012, glenn_615 — the
@@ -120,7 +129,7 @@ export async function syncFixtures(env: Readonly<Record<string, string | undefin
     ...FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [id, `${FIXTURE_DIR}/${id}.json`, () => frozenJson(id)]),
     ...LICENCE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [`licence_${id}`, `${FIXTURE_DIR}/licence_${id}.json`, () => licenceJson(id)]),
     ["golden_lines", `${FIXTURE_DIR}/golden_lines.json`, async () => goldenLinesJson()],
-    ...EDGE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [`edge_${id}`, `${FIXTURE_DIR}/edge_${id}.json`, () => frozenJson(id)]),
+    ...EDGE_FIXTURE_STATES.filter((id) => id !== FROZEN_TIDAL_EDGE).map((id): [string, string, () => Promise<string>] => [`edge_${id}`, `${FIXTURE_DIR}/edge_${id}.json`, () => frozenJson(id)]),
     ["edge_unnamed", `${FIXTURE_DIR}/edge_unnamed.json`, () => unnamedJson()],
     ...STYLE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [id, `${FIXTURE_DIR}/${id}.json`, () => frozenJson(id)]),
   ];

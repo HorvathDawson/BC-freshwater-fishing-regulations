@@ -29,8 +29,9 @@ it("7. golden.json and taps.json are from one sync", () => {
   // (T183) and the West Road's x27p1 merged into part 0, (2026-10-27) the Columbia's x18p3 split in two by its Mud Lake
   // speed limit; T220 x13p2 + x9p2: 124 tapped + 10 gone = 134
   expect([T.meta.golden, golden().meta.version, ids.length, Object.keys(T.gone).length, Object.keys(golden().states).length])
-    .toEqual(["d7b1ed353", "v38", 123, 11, 134]);   // (T228) x37p0 gone: 123 tapped + 11 gone
-  expect([...Object.keys(T.states), ...Object.keys(T.gone)].sort()).toEqual(Object.keys(golden().states).sort());
+    .toEqual(["d7b1ed353", "v38", 120, 11, 134]);   // (T278) x15p3 + x31p + x37p1 tidal now (taps.json `tidal`): the tidal cuts took their whole parts   // (T228) x37p0 gone: 123 tapped + 11 gone
+  expect([...Object.keys(T.states), ...Object.keys(T.gone), ...Object.keys(T.tidal)].sort())   // (T278) + 3 tidal
+   .toEqual(Object.keys(golden().states).sort());
 });
 
 it("6. requestOf: the tap's item, part, date and weekday as taps.json gives them; today is Oct 10", () => {

@@ -7,6 +7,7 @@
  * from the implementation: the level words are held to the golden's own rule sheets (case 7).
  */
 import { afterAll, describe, expect, it } from "vitest";
+import { frozenTidalPage } from "./fixtures";
 import { bookBits, buildRegsPage, gearCtxOf, levelWord, stripRuns, type GearLineVM, type GearVM, type RuleView } from "@app/core";
 import { ADULT_RESIDENT, caseIds, cases, golden, inputsOf, parityGate, requestOf, summary } from "./golden";
 import { gearProj } from "./gearPage";
@@ -51,7 +52,8 @@ describe.skipIf(gate.skip)("T30 gear lines vs golden gear", () => {
       t.lineChanges.push(...v.lines.filter((l) => l.changes.length).map((l) => `${id} ${l.k}`));
       if (v.mode?.changes.length) t.modeChanges.push(id);
     }
-    expect(t).toEqual({ closed: 23, threeLines: 100, mode: 10,   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two
+    // (T278) x15p3 + x37p1 + x31p tidal now: the tidal cuts took their whole parts (taps.json `tidal`): x31p was closed (tidal), x15p3 and x37p1 open with 3 lines
+    expect(t).toEqual({ closed: 22, threeLines: 98, mode: 10,   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two
      
       nullSrc: ["vedder_515", "cow1_1010", "cow2_1010", "cow3_1010", "x13p0_1010", "x16p8_1010", "x17p7_1010", "x17p1_1010"].map((x) => `${x} weight`),
       lineChanges: ["vedder_1010 hook", "x16p3_1010 hook", "x17p4_1010 hook"], modeChanges: ["vedder_515", "cow1_1010", "cow3_1010"] });
@@ -102,7 +104,8 @@ describe.skipIf(gate.skip)("T30 gear lines vs golden gear", () => {
     expect((await gearOf("vedder_615")).gear).toEqual({ closed: "No fishing here until Jul 1.", closedMore: [], day: null, mode: null, lines: [], bait: null });
     // (T220) x9p2 and x13p2 are PART_GONE states now (taps.json `gone`): no tap to read
     for (const id of ["chw0_1010", "x5p0_1010"]) expect((await gearOf(id)).gear.closed, id).toBe("No fishing here on any day of the year.");
-    const tidal = (await gearOf("x31p_1010")).gear;
+    // (T278) x31p_1010 is tidal now (taps.json `tidal`): the release has no tidal key, so the page is the frozen one (fixtures.ts frozenTidalPage)
+    const tidal = frozenTidalPage().gear!;
     expect([tidal.closed, tidal.closedMore.length, tidal.lines]).toEqual(["Tidal water", 1, []]);
     expect(tidal.closedMore[0]).toMatch(/^Tidal water: a different regulation system\. /);
   });

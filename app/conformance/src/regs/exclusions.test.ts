@@ -27,8 +27,19 @@ describe("EXCLUDE", () => {
     for (const e of EXCLUDE) expect(e.reason.trim().length, `${e.block} ${e.key ?? ""}`).toBeGreaterThan(20);
   });
 
-  it("every listed id is a taps.json state (tapped, or declared gone)", () => {
-    for (const e of EXCLUDE) if (e.ids !== "*") for (const id of e.ids) expect(T.states[id] ?? T.gone[id], id).toBeDefined();
+  it("every listed id is a taps.json state (tapped, or declared gone or tidal)", () => {
+    for (const e of EXCLUDE) if (e.ids !== "*") for (const id of e.ids) expect(T.states[id] ?? T.gone[id] ?? T.tidal[id], id).toBeDefined();
+  });
+
+  it("(T278) a state whose whole part is tidal is excluded in every block, with its taps.json reason (the cut) — and only those states are", () => {
+    const blocks = ["header", "keep", "gear", "methods", "licence", "sheets", "pins"] as const;
+    const tidal = Object.keys(T.tidal).sort();
+    expect(tidal).toEqual(["x15p3_1010", "x31p_1010", "x37p1_1010"]);
+    for (const b of blocks) {
+      for (const id of tidal) expect(excluded(b, id)?.reason, `${b} ${id}`).toBe(`part tidal — ${T.tidal[id]!.reason}`);
+      expect(Object.keys(T.states).filter((id) => excluded(b, id)?.reason.startsWith("part tidal")), b).toEqual([]);
+    }
+    for (const id of tidal) expect([T.states[id], T.gone[id], T.tidal[id]!.reason], id).toEqual([undefined, undefined, expect.stringMatching(/^T278 \(r-62e2f3a8c81e, tidal (cut split:|entry r1:)/)]);
   });
 
   it("(T115) a state whose part is gone is excluded in every block, with its taps.json reason — and only those states are", () => {
@@ -62,10 +73,14 @@ describe("EXCLUDE", () => {
     // states join the re-cut Parts sheets (27 -> 35). (2026-10-27) x18p3 gone; the Columbia's 6 tapped states join them (35 -> 41). (T220) x13p2 and x9p2 gone;
     // the Dean's Parts sheet is still the golden's (RECUT_SAME_PARTS), so it does not join them; the Kootenay's x9p2 leaves them (41 -> 40).
     // (T228) x37p0 gone; the Coquitlam's 2 tapped states (x37p1/2, renumbered) join the re-cut Parts sheets (40 -> 42)
+    // (T278) x15p3, x31p, x37p1 tidal (whole-state, after the gone); x16p3 and x23p0 are tidal remainders (extent words:
+    // 6 -> 8); the Fraser and Coquitlam lose a tapped state each, the Campbell's 9 and the Brunette's 2 join (42 -> 51)
     const gone = ["x13p2_1010", "x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x18p3_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010", "x37p0_1010", "x9p2_1010"].flatMap(() =>
       ["header 1 -", "keep 1 -", "gear 1 -", "methods 1 -", "licence 1 -", "sheets 1 -", "pins 1 -"]);
+    const tidal = ["x15p3_1010", "x31p_1010", "x37p1_1010"].flatMap(() =>
+      ["header 1 -", "keep 1 -", "gear 1 -", "methods 1 -", "licence 1 -", "sheets 1 -", "pins 1 -"]);
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual([...gone, "header 6 ^place\\.(full|short)$", "sheets 42 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
+      .toEqual([...gone, ...tidal, "header 8 ^place\\.(full|short)$", "sheets 51 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
         "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`,
         `header ${GOLDEN_PARTS_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
@@ -165,7 +180,8 @@ describe("pins (T28, IMPLEMENT-HANDOFF C5)", () => {
     const errs = Object.entries(G.states).filter(([, s]) => !!(s.pins as { error?: unknown } | null)?.error).map(([id]) => id);
     expect([G.meta.version, G.meta.sha, errs]).toEqual(["v38", "d7b1ed353", []]);
     // no state is dropped for a pins reason; (T115) the 4 whose part the release merged away are dropped from every block
-    expect(Object.keys(G.states).filter((id) => excluded("pins", id) !== null).sort()).toEqual(Object.keys(T.gone).sort());
+    // (T278) and the 3 whose whole part is tidal now
+    expect(Object.keys(G.states).filter((id) => excluded("pins", id) !== null).sort()).toEqual([...Object.keys(T.gone), ...Object.keys(T.tidal)].sort());
     expect(excluded("pins", "x14p1_1010", "anchors.0.tiers")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
     expect(excluded("pins", "x14p1_1010", "anchors.0.groupLine")).toBeNull();
     expect(excluded("pins", "vedder_1010", "anchors.0.tiers")).toBeNull();

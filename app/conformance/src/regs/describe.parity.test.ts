@@ -12,7 +12,7 @@
  */
 import { describe as group, expect, it } from "vitest";
 import { describe, ruleIndex, viaOf, type RegsPage, type RuleView } from "@app/core";
-import { hydrate, onPartsDropped, ORACLE_RETIRED, oracleLive, oracleRixOver, partDrawn, taps } from "./oracles";
+import { hydrate, onPartsDropped, ORACLE_RETIRED, oracleLive, oracleRixOver, partDrawn, taps, tidalNote } from "./oracles";
 import { pageDecode, pageSource, storeSource, type RuleSource } from "./ruleSources";
 
 const H = hydrate();
@@ -66,8 +66,8 @@ function parity(src: () => RuleSource, R: () => (oracle: number) => number = () 
     let tribs = 0, ranks = 0;
     const r = R();
     for (const [id, st] of Object.entries(H.states)) {
-      // (T115) a state whose part the release merged away has no tap (taps.json `gone`)
-      if (!T.states[id]) { expect(T.gone[id], `${id} is neither tapped nor gone`).toBeDefined(); continue; }
+      // (T115) a state whose part the release merged away has no tap (taps.json `gone`); (T278) nor one whose part is tidal
+      if (!T.states[id]) { expect(T.gone[id] ?? T.tidal[id], `${id} is neither tapped nor gone nor tidal`).toBeDefined(); continue; }
       const via = viaOf(s.ruleset(T.states[id]!));
       const ix = ruleIndex(s.stored, via, s.book), flat = ruleIndex(s.stored, new Map(), s.book);
       for (const rix of Object.keys(st.via).filter((x) => live(+x))) { expect(via.get(r(+rix)), `${id} via ${rix}`).toBe("trib"); tribs++; }
@@ -98,6 +98,9 @@ group.skipIf(!store)(`T06 parity: the regs store (${store?.name ?? "absent"})`, 
   parity(() => store!, () => oracleRixOver(store!.stored), oracleLive, (rix, want) => {
     // (2026-10-27) ORACLE_PART_DRAWN: the rule binds its part, so its view has none
     if (partDrawn(rix)) return { ...want, part: null };
+    // (T278) a rule left on tidal water only carries the pipeline's uncertain note (oracles.ts ORACLE_TIDAL_NOTED)
+    const tn = tidalNote(rix);
+    if (tn) { expect(want.notes, `oracle rule ${rix}`).toEqual([]); return { ...want, notes: [tn] }; }
     if (!onPartsDropped(rix)) return want;
     expect(want.part, `oracle rule ${rix}`).toBe("on parts");
     return { ...want, part: null };

@@ -1,6 +1,6 @@
 # T278 — Re-cut the app's golden regs fixtures after the tidal cuts (part renumbering)
 
-Status: OPEN (c1029 lane 2026-10-29: `node app/tools/regs-recut/sync.mjs` stops in taps.py).
+Status: PARTIAL — re-cut done on r-62e2f3a8c81e, golden parity green; one owner call open (the tidal part in the water map, below).
 
 ## Problem
 Release r-62e2f3a8c81e's 23 new tidal cuts renumber golden parts: Fraser (x15p*), Campbell (x16p3–p5), Brunette (x23p0),
@@ -16,3 +16,28 @@ PART_RECOUNTED) has no category for a part that BECAME TIDAL (no freshwater rule
 sync.mjs + regs-fixture complete on r-62e2f3a8c81e; golden parity green; each declaration cites its cut.
 
 Depends: c1029 release. Size: S–M. Owner: no.
+
+## Outcome (2026-10-29)
+- taps.py: new `PART_TIDAL` {state: (freshwater part or None, store tidal part, why)}; checked against the store (the
+  tidal part is unkeyed and unlabelled, no store part keeps the golden label). Whole-tidal states go to taps.json `tidal`
+  (not `states`); a tidal remainder is tapped with `tidal` on the state (extent words excluded, like PART_GROWN).
+  PART_MOVED now holds a closed golden state (no label) to the store part being closed. Each entry cites its cut
+  (bundle `tidal` table: section -> split):
+  - Fraser `split:fraser_river__the_cpr_bridge_at_mission` (29 sections, part 16): x15p3 tidal; parts 4..16 -> 3..15
+    (x15p4..9, 11..13, 16 PART_MOVED; x15p14/15/17/18 gone now_in 13/15).
+  - Campbell `split:campbell_river__cement_block_boundary_sign` (5, part 10): x16p3 remainder -> part 5; x16p4 -> 3, x16p5 -> 4.
+  - Coquitlam `split:coquitlam_river__mary_hill_bypass_bridge` (1, part 3): x37p1 tidal; x37p2 back at 2.
+  - Brunette `split:brunette_river__burlington_northern_railway_brid` (1, part 2): x23p0 remainder (label from the bridge).
+  - Skeena `split:skeena_river__tidal_boundary` (1, part 9): x19p0 already PART_GROWN, reason extended.
+  - Nitinat Lake entry `r1:nitinat_lake@1-3`: x31p (the golden's only tidal water) tidal, no key.
+  120 tapped + 11 gone + 3 tidal = 134. hydrate.mjs reads `tidal`; regs-fixture re-cut (r-0a0a962d3352).
+- App/conformance: `TidalTap` + `Tap.tidal` (core testing/golden.ts); exclusions.ts `PART_TIDAL_IDS` excluded in every
+  block; regs-web states treat tidal as GONE. The release has no tidal key left, so the tidal banner is pinned only by
+  the frozen `edge_x31p_1010.json` (fixtures.ts `frozenTidalPage`, not re-cut); the x31p tests read it. Nitinat r1 now
+  carries the pipeline's "every section it selects (1) is tidal water" note (oracles.ts ORACLE_TIDAL_NOTED). Tallies
+  re-pinned; handles re-pinned by section id (atlas full.prev -> full): unnamed.release, waterGroup, WaterMapView,
+  WaterScreen.unnamed, WaterMode.
+- OPEN (owner): the store keeps each tidal piece as an unkeyed part (province_except tidal), and the water map lists it
+  (`loadWaterGroup`): the Skeena's map now starts with a nameless "Skeena River" part below the tidal boundary, so
+  packages/ui/src/waterMap.test.ts "a fork upstream" fails (the Reserve is entry 2, not 1). decisions 2026-10-28 say no
+  parts on tidal water; not re-pinned. Either the store drops tidal parts or the app filters them.

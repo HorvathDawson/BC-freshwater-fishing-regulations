@@ -3230,24 +3230,8 @@
      "items": [
       {
        "checked": false,
-       "long": "From the mouth up to the CPR Bridge at Mission",
-       "part": 3,
-       "status": "open",
-       "sub": null,
-       "text": "Mouth → CPR Bridge at Mission"
-      },
-      {
-       "checked": false,
-       "long": "Closed all year · 2 stretches",
-       "part": 9,
-       "status": "closed",
-       "sub": null,
-       "text": "2800 m downstream of Hell's Gate → Hell's Gate"
-      },
-      {
-       "checked": false,
        "long": null,
-       "part": 7,
+       "part": 6,
        "status": "closed",
        "sub": null,
        "text": "Within Landstrom Bar sign zone"
@@ -3263,7 +3247,7 @@
       {
        "checked": false,
        "long": "From the Spuzzum Creek confluence up to the signs 2800 m downstream of Hell's Gate",
-       "part": 8,
+       "part": 7,
        "status": "open",
        "sub": null,
        "text": "Spuzzum Creek confluence → 2800 m downstream of Hell's Gate"
@@ -3271,7 +3255,7 @@
       {
        "checked": false,
        "long": "From the fishing boundary signs 6500 m downstream of Boston Bar up to the CNR bridge ~1km below Thompson",
-       "part": 5,
+       "part": 4,
        "status": "open",
        "sub": null,
        "text": "6500 m downstream of Boston Bar → CNR bridge ~1km below Thompson"
@@ -3279,7 +3263,7 @@
       {
        "checked": false,
        "long": "From the CNR bridge ~1km below Thompson up to the Thompson River confluence",
-       "part": 11,
+       "part": 10,
        "status": "closed",
        "sub": null,
        "text": "CNR bridge ~1km below Thompson → Thompson River confluence"
@@ -3287,7 +3271,7 @@
       {
        "checked": false,
        "long": "From BC Hydro's tail race outflow channel up to the Hwy 99 bridge at Lillooet",
-       "part": 12,
+       "part": 11,
        "status": "closed",
        "sub": null,
        "text": "BC Hydro's tail race outflow channel → Hwy 99 bridge at Lillooet"
@@ -3295,7 +3279,7 @@
       {
        "checked": false,
        "long": "From the BC Railway up to the lower entrance of the fish ladder at Bridge River Rapids",
-       "part": 13,
+       "part": 12,
        "status": "open",
        "sub": null,
        "text": "BC Railway → Lower entrance of the fish ladder at Bridge River Rapids"
@@ -3303,7 +3287,7 @@
       {
        "checked": false,
        "long": "3 stretches, including from the Thompson River confluence up to BC Hydro's tail race outflow channel",
-       "part": 4,
+       "part": 3,
        "status": "open",
        "sub": null,
        "text": "Thompson River confluence → Region 5 boundary (3 stretches)"
@@ -3311,7 +3295,7 @@
       {
        "checked": false,
        "long": "From Region 5 boundary up to Region 3 boundary",
-       "part": 14,
+       "part": 13,
        "status": "open",
        "sub": null,
        "text": "Region 5 boundary → Region 3 boundary"
@@ -3319,7 +3303,7 @@
       {
        "checked": false,
        "long": "From Region 3 boundary up to the Chilcotin River confluence",
-       "part": 6,
+       "part": 5,
        "status": "open",
        "sub": null,
        "text": "Region 3 boundary → Chilcotin River confluence"
@@ -3327,7 +3311,7 @@
       {
        "checked": false,
        "long": "From the Chilcotin River confluence up to the Williams Lake River confluence",
-       "part": 15,
+       "part": 14,
        "status": "open",
        "sub": null,
        "text": "Chilcotin River confluence → Williams Lake River confluence"
@@ -3343,7 +3327,7 @@
       {
        "checked": false,
        "long": "From Region 7A boundary up to Region 5 boundary",
-       "part": 16,
+       "part": 15,
        "status": "open",
        "sub": null,
        "text": "Region 7A boundary → Region 5 boundary"
@@ -3355,6 +3339,14 @@
        "status": "open",
        "sub": null,
        "text": "Region 5 boundary → Source"
+      },
+      {
+       "checked": false,
+       "long": "Closed all year · 2 stretches",
+       "part": 8,
+       "status": "closed",
+       "sub": null,
+       "text": "2800 m downstream of Hell's Gate → Hell's Gate"
       }
      ],
      "k": "choice"

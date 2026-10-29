@@ -27,8 +27,10 @@ const at = liveReleaseAt();
 // (2026-10-27, r-ea426985a467: T185 Quinsam + Sandy Pool cuts) salmon and base are two lines later in b6b5000e171023c9
 // (2026-10-28, r-46be3c135e68: T220 restored braid pieces) all three later in db853e9556df81a6: 8, 105 and 11 lines
 // (T222, r-0fa7927b16e5: the Ruskin/Northrop channels + T224 own-item names) 10cbcb72e9f907cf: 1, 5 and 1 lines later
-const H_ATLAS = "10cbcb72e9f907cf";
-const H = { eve: 1418, salmon: 64151, base: 59523 } as const;
+// (T278, r-62e2f3a8c81e: the tidal cuts + the FWA restore of the city streams) 07f861e5422be466: 61, 55 and 56 lines EARLIER
+// (atlas full.prev -> full section_handles.txt: the city's minted lines that sorted ahead of them are gone)
+const H_ATLAS = "07f861e5422be466";
+const H = { eve: 1357, salmon: 64096, base: 59467 } as const;
 /** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 
