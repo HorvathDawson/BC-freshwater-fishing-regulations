@@ -60,8 +60,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **T204 phone check:** Kanaka Creek's map now has two marks (112 Avenue bridge, Cliff Park Falls) and its lower part is
   two separately selectable stretches ("… · stretch 1 of 2"); say if the stretch wording should differ.
 - **Tidal boundaries (T212, 2026-10-29):** all 1,168 marked; 32 cuts shipped in r-62e2f3a8c81e. In the **Tidal** tab,
-  re-mark at the mouth (accept the proposal): **Caycuse River** and **Dempster Creek** (the mouth = where the line leaves
-  Nitinat Lake / Clowhom Lake, 716 m / 524 m — the stream's own lower end, no cut) and **Bear River** (the mouth is on the
+  re-mark **Bear River** at the mouth (accept the proposal; the mouth is on the
   shore, 6 m from the sea). The 4 Fraser delta channels: done as you said (whole channel tidal).
 - **Cranberry canyon cuts:** the bottom is a DEM estimate (low). In the review app, **Low-confidence cuts** queue (with
   White River and Chuckwalla River, the other `low` cuts).

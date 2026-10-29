@@ -218,3 +218,5 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   Dempster `360848786:523`), so a mouth mark makes no cut and the stream stays freshwater to the lake edge = the right
   boundary. The DEM marks (1,925 m / 550 m) are not it. Proposed: owner re-marks both at the mouth. (Clowhom Lake is a
   dammed lake above Salmon Inlet: whether Dempster meets tidal water at all is moot — no cut either way.)
+
+- 2026-10-29 owner: Caycuse River and Dempster Creek "are good where they are" — their marks stay as made; the build makes no cut for either (each item already starts at the lake edge).
