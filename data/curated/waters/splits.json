@@ -9988,6 +9988,26 @@
       -123.72651,
       49.46446
      ]
+    },
+    {
+     "id": "chapman_creek__tidal_boundary",
+     "label": "tidal boundary",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.722071,
+       49.440626
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:360857589 — \"Chapman Creek: Highway 101 Bridge (DFO); the notice: \"tidal water fishing boundary signs located below the Hwy 101 Bridge\" | upstream of tidal water fishing boundary signs located below the Hwy 101 Bridge to 100 m below the falls. The falls are located approximately 550 m upstream of the powerline crossing.\"",
+     "_coord": [
+      -123.722071,
+      49.440626
+     ],
+     "tidal": true
     }
    ]
   },
