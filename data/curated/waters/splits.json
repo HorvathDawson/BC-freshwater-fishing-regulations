@@ -315,7 +315,8 @@
      "_coord": [
       -125.26205,
       50.03759
-     ]
+     ],
+     "tidal": true
     },
     {
      "id": "campbell_river__power_line_200m_up_of_quinsam",
