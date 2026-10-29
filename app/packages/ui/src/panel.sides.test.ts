@@ -102,3 +102,21 @@ describe("(T168) on this water first", () => {
     expect(gaugeChoiceGroups(rows, null, {}, null)).toBeNull();
   });
 });
+
+describe("(owner 2026-10-28) a donor on another water joins through the confluence", () => {
+  it("draws two lines in the gauge's one tone — solid to the confluence, dashed up its river — and says so in a line", () => {
+    const a = answer();
+    const joined: PanelAnswer = { ...a, rows: a.rows.map((r) => r.station !== "SECOND" ? r : ({ ...r,
+      route: { ...r.route!, path: ["s1", "s2", "s3", "s9"] as never, join: 1 } })) };
+    const vm = donorView(joined, { ...opts(SIDES), from: { lat: 49.0, lon: -121.6 } });
+    if (!vm.ok || !vm.map) throw new Error("expected a map");
+    const mine = vm.map.routes.filter((r) => r.station === "SECOND");
+    expect(mine.map((r) => [r.role, r.path, r.from !== null, r.to !== null])).toEqual([
+      ["down", ["s1", "s2"], true, false], ["up", ["s2", "s3", "s9"], false, true]]);
+    expect(new Set(mine.map((r) => r.row)).size).toBe(1);
+    const row = vm.groups!.flatMap((g) => [...g.shown, ...g.folded]).find((r) => r.station === "SECOND")!;
+    expect(row.relation).toMatch(/^SECOND, which joins this water below here \(the gauge is about [\d.]+ km away\); scaled by drainage/);
+    // a gauge on this water has no such line
+    expect(vm.groups!.flatMap((g) => [...g.shown, ...g.folded]).find((r) => r.station === "LEAD")!.relation).toBeNull();
+  });
+});

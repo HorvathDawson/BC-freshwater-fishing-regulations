@@ -27,7 +27,6 @@ import type { SectionKey } from "@app/core";
 import type { MapProps, TileEndpoints, TraceProp } from "@app/map";
 import type { DonorMapVM } from "@app/ui";
 import { MiniMap } from "./MiniMap";
-import { GaugeGroups } from "./GaugeGroups";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
@@ -45,7 +44,7 @@ export function routeMapHeight(width: number, larger: boolean): number {
 }
 
 export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLarger,
-                           highlight, standing, waterLine }: {
+                           highlight, standing, waterLine, selected }: {
   vm: DonorMapVM; at: TileEndpoints; theme: string; palette: Palette;
   /** A donor row's tone (grey when quiet), or the accent for null — the panel's own rule. */
   toneOf: (row: number | null) => string;
@@ -57,17 +56,19 @@ export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLar
   standing?: MapProps["standing"];
   /** (T175) The water's own line at every zoom — see MapProps.waterLine. */
   waterLine?: MapProps["waterLine"];
+  /** The gauge picked in the list: its route is drawn heavier, the others thinner. */
+  selected?: string | null;
 }) {
   /*
    * WHAT THE MAP COPIES OUT OF THE TILES. Keyed on the routes alone: a horizon change moves
    * the shares (the pins) and must not refetch a tile; a new section, new routes, does.
    */
   const routes = useMemo(() => vm.routes.map((r) => ({
-    role: r.role, tone: toneOf(r.row), path: r.path,
+    role: r.role, tone: toneOf(r.row), path: r.path, on: !!selected && r.station === selected,
     from: r.from ? { lon: r.from.lon, lat: r.from.lat } : null,
-    to: { lon: r.to.lon, lat: r.to.lat },
+    to: r.to ? { lon: r.to.lon, lat: r.to.lat } : null,
   })), [vm.routes, toneOf]);
-  const routeKey = routes.map((r) => `${r.role}:${r.tone}:${r.path.join(",")}`).join("|");
+  const routeKey = routes.map((r) => `${r.role}:${r.tone}:${r.on ? 1 : 0}:${r.path.join(",")}`).join("|");
   const pins = vm.pins.map((p) => ({ lat: p.lat, lon: p.lon, kind: p.kind,
                                      tone: toneOf(p.row), label: p.label, rank: p.rank }));
   const trace: TraceProp = { key: routeKey, routes, pins };
@@ -100,33 +101,18 @@ export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLar
         </View>
       </View>
 
-      {/* THE KEY: what each mark and each line means, then the gauges by name and share. */}
-      <View style={{ gap: SPACE.s1 }}>
-        {vm.keys.some((k) => k.row === null) && (
-          <KeyRow palette={palette} label={vm.keys.find((k) => k.row === null)!.label}>
-            <HereGlyph fill={palette.accent} edge={palette.card} />
-          </KeyRow>
-        )}
-        {vm.legend.map((l) => (
-          <KeyRow key={l.role} palette={palette} label={l.label}>
-            <LineGlyph tone={palette.sub} dashed={l.role === "up"} />
-          </KeyRow>
-        ))}
-      </View>
-      {/* (T168) grouped, own first, the not-reporting folded — the rows' and the switch's groups */}
-      {vm.keyGroups ? (
-        <GaugeGroups palette={palette} groups={vm.keyGroups} keyOf={(k) => k.label} wrap testID="key-groups"
-                     render={(k) => (
-                       <KeyRow palette={palette} label={k.label}>
-                         <DotGlyph tone={toneOf(k.row)} edge={palette.sub} />
-                       </KeyRow>
-                     )} />
-      ) : (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: SPACE.s3,
-                       rowGap: SPACE.s1 }}>
-          {vm.keys.filter((k) => k.row !== null).map((k) => (
-            <KeyRow key={k.label} palette={palette} label={k.label}>
-              <DotGlyph tone={toneOf(k.row)} edge={palette.sub} />
+      {/* THE KEY: ONE LINE of small inline symbols — you are here, a route down, a route up. The gauges are not
+          listed again here: the list under the map (its dots the same tones as the pins) names each one. */}
+      {(vm.keys.some((k) => k.row === null) || vm.legend.length > 0) && (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: SPACE.s3, rowGap: 2 }}>
+          {vm.keys.some((k) => k.row === null) && (
+            <KeyRow palette={palette} label={vm.keys.find((k) => k.row === null)!.label}>
+              <HereGlyph fill={palette.accent} edge={palette.card} />
+            </KeyRow>
+          )}
+          {vm.legend.map((l) => (
+            <KeyRow key={l.role} palette={palette} label={l.label}>
+              <LineGlyph tone={palette.sub} dashed={l.role === "up"} />
             </KeyRow>
           ))}
         </View>
@@ -171,8 +157,8 @@ function KeyRow({ palette, label, children }: {
 }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
-      <View style={{ width: 22, alignItems: "center" }}>{children}</View>
-      <Text style={{ ...TYPE.meta, color: palette.sub, flexShrink: 1 }}>{label}</Text>
+      <View style={{ minWidth: 14, alignItems: "center" }}>{children}</View>
+      <Text style={{ ...TYPE.micro, color: palette.sub, flexShrink: 1 }}>{label}</Text>
     </View>
   );
 }

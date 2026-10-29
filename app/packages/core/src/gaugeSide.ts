@@ -139,3 +139,6 @@ export function gaugeCountLine(gs: readonly CountedGauge[], horizon: Horizon = 0
   if (quiet.length) parts.push(`${quiet.length} ${quietWord(quiet.map((g) => g.state), horizon)}`);
   return parts.join(" · ");
 }
+
+/** Is this side the donors' (a gauge on another water, estimating for this one)? The one test of it. */
+export const isDonorSide = (s: GaugeSide): boolean => s === "donor";

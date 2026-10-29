@@ -19,11 +19,18 @@ describe("the route overlay's layers", () => {
     expect(traceLayers("light").map((l) => l.id)).toEqual([...TRACE_LAYER_IDS]);
   });
 
-  it("draws the route as ARROWS ONLY — no casing, no tone line, no dash, no lake wash (owner 2026-10-21)", () => {
-    const ids = traceLayers("light").map((l) => l.id);
+  it("draws the path as a solid line downstream and a dashed one upstream, with arrows on it (owner 2026-10-28)", () => {
+    const layers = traceLayers("light");
+    const ids = layers.map((l) => l.id);
     for (const gone of ["trace-area", "trace-casing", "trace-down", "trace-up"]) expect(ids).not.toContain(gone);
-    expect(traceLayers("light").filter((l) => l.type === "line" || l.type === "fill")).toEqual([]);
-    const arrows = traceLayers("light").find((l) => l.id === "trace-arrows")!;
+    const down = layers.find((l) => l.id === "trace-line-down")!, up = layers.find((l) => l.id === "trace-line-up")!;
+    expect((down.paint as Record<string, unknown>)["line-dasharray"]).toBeUndefined();
+    expect((up.paint as Record<string, unknown>)["line-dasharray"]).toBeTruthy();
+    expect((up.paint as Record<string, unknown>)["line-color"]).toEqual(["get", "tone"]);
+    // the line is under its arrows, and the picked gauge's is the heavier
+    expect(ids.indexOf("trace-line-up")).toBeLessThan(ids.indexOf("trace-arrows"));
+    expect(JSON.stringify((down.paint as Record<string, unknown>)["line-width"])).toContain('["get","on"]');
+    const arrows = layers.find((l) => l.id === "trace-arrows")!;
     expect((arrows.paint as Record<string, unknown>)["text-color"]).toEqual(["get", "tone"]);
   });
 

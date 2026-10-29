@@ -1,6 +1,6 @@
 /** The route map's words, whole. */
 import { describe, expect, it } from "vitest";
-import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS, routeLegend } from "./routeMap";
+import { donorMapKey, donorMapLabel, donorRelation, hereMapLabel, ROUTE_MAP_WORDS, routeLegend, stationWater } from "./routeMap";
 
 describe("the route map's words", () => {
   it("labels a gauge with its share, in the panel's own words", () => {
@@ -65,5 +65,22 @@ describe("the route map's words", () => {
       larger: "Larger map",
       smaller: "Smaller map",
     });
+  });
+});
+
+describe("donorRelation (owner 2026-10-28)", () => {
+  const base = { station: "08MH006", name: "NORTH ALOUETTE RIVER AT 232ND STREET, MAPLE RIDGE", role: "up" as const,
+                 reaches: 5, joined: true, km: 12.4, apart: "45× apart" };
+  it("names the donor's water, says where it joins and that it is scaled by drainage", () => {
+    expect(donorRelation(base)).toBe(
+      "08MH006 is on North Alouette River, which joins this water below here (the gauge is about 12 km away); scaled by drainage (45× apart).");
+  });
+  it("says a gauge on this water's line by its reaches, and an unjoined one by its country", () => {
+    expect(donorRelation({ ...base, joined: false, role: "down", reaches: 3 })).toContain("2 reaches downstream on this water's line");
+    expect(donorRelation({ ...base, joined: false, reaches: 0 })).toContain("no mapped path joins it to this water");
+  });
+  it("names the station alone when its name has no water to split off", () => {
+    expect(stationWater("SOMEWHERE")).toBeNull();
+    expect(donorRelation({ ...base, name: null, km: null })).toMatch(/^08MH006, which joins this water below here;/);
   });
 });

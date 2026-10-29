@@ -311,7 +311,7 @@ function GaugeSwitch({ palette, gauges, groups, onPick }: {
       {groups ? (
         <View accessibilityRole="radiogroup" accessibilityLabel={W.controls.gauge}>
           <GaugeGroups palette={palette} groups={groups} keyOf={(g) => g.station} render={chip} wrap
-                       testID="switch-groups" />
+                       headings={false} testID="switch-groups" />
         </View>
       ) : (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}

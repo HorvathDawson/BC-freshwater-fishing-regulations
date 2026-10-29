@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { type DonorRow, type Horizon, type PanelAnswer, type Quantity, type WaterSource, type SectionId,
          type StationId } from "@app/data";
-import { changeLowWaterNote, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorFacts, donorLastReport,
+import { changeLowWaterNote, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorFacts, donorRelation, donorLastReport,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorSilent, donorVotes, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
-         panelCamera, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, tidalNote,
+         panelCamera, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
          backwaterNote, unplacedNote, type SectionKey } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS, routeLegend } from "@app/core";
-import { gaugeSides, groupGauges, stateAt, type GaugeGroup, type GaugeSide } from "@app/core";
+import { gaugeSides, groupGauges, isDonorSide, stateAt, type GaugeGroup, type GaugeSide } from "@app/core";
 import { useAsync } from "../async";
 import { horizonChips, type HorizonChipVM } from "./horizon";
 
@@ -38,6 +38,8 @@ export interface DonorRowVM {
   /** A quiet gauge's last report, local and labelled — or that it is not known. Null for a reporting gauge. */
   lastReport: string | null;
   facts: string;
+  /** How this gauge relates to the water being read, in one plain line; null for a gauge on this water. */
+  relation: string | null;
   /** Why it counts what it counts; null for a quiet gauge, which counts nothing. */
   because: string | null;
   /** The row's screen-reader name. */
@@ -69,11 +71,13 @@ export type GaugeGroupVM<T> = GaugeGroup<T>;
 /** One donor's route, for the overlay: its chain of reaches, spot first, and both ends. */
 export interface DonorRouteVM {
   row: number;
+  /** The donor's station: the row a tap on the list picks, whose path the map then highlights. */
+  station: string;
   /** Where the GAUGE sits: downstream is drawn solid, upstream dashed. */
   role: "up" | "down";
   path: readonly SectionKey[];
   from: { lat: number; lon: number } | null;
-  to: { lat: number; lon: number };
+  to: { lat: number; lon: number } | null;
 }
 
 export interface DonorMapVM {
@@ -199,6 +203,8 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const shown = rows.filter((r) => !donorSilent(r, { ref, horizon: o.horizon }));
   const toneOf = (r: DonorRow) => tone.get(r)!;
 
+  // where "here" is for a distance: the tap, else the middle of the water's box
+  const here0 = o.from ?? (o.place ? { lat: (o.place[1] + o.place[3]) / 2, lon: (o.place[0] + o.place[2]) / 2 } : null);
   const placed = shown.filter((r) => r.route?.lat != null && r.route?.lon != null);
   // (T175) no tap: the water's own box stands for the place (both corners), so the water is in the frame
   const corners = !o.from && o.place
@@ -252,8 +258,16 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     keyGroups: placedGroups?.map((g) => ({ ...g, shown: g.shown.map(keyOf), folded: g.folded.map(keyOf) })) ?? null,
     unplaced: unplacedNote(shown.length - placed.length),
     chain: [...new Set(shown.flatMap((r) => r.route?.path ?? []))],
-    routes: drawn.map((r) => ({ row: toneOf(r), role: r.role, path: r.route!.path,
-                                from, to: { lat: r.route!.lat!, lon: r.route!.lon! } })),
+    routes: drawn.flatMap((r): DonorRouteVM[] => {
+      const to = { lat: r.route!.lat!, lon: r.route!.lon! }, path = r.route!.path, j = r.route!.join;
+      const base = { row: toneOf(r), station: r.station };
+      // A GAUGE ON ANOTHER WATER: this water flows down to the confluence (solid), then the gauge's water comes down
+      // to it (dashed) — two lines in the gauge's one tone, meeting where the waters do.
+      return j === undefined
+        ? [{ ...base, role: r.role, path, from, to }]
+        : [{ ...base, role: "down", path: path.slice(0, j + 1), from, to: null },
+           { ...base, role: "up", path: path.slice(j), from: null, to }];
+    }),
     legend: routeLegend(drawn.map((r) => r.role)),
     bbox: [Math.min(...pts.map((p) => p.lon)), Math.min(...pts.map((p) => p.lat)),
            Math.max(...pts.map((p) => p.lon)), Math.max(...pts.map((p) => p.lat))],
@@ -270,6 +284,12 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
       reads: donorReads(r, { ref: o.day.getTime(), horizon: o.horizon }),
       lastReport: !donorCounted(r) ? donorLastReport(r.observedAt, o.zone) : null,
       facts: donorFacts(r),
+      relation: !sides || !isDonorSide(sideOf(r)) ? null : donorRelation({
+        station: r.station, name: r.route?.name ?? null, role: r.role, reaches: r.route?.path.length ?? 0,
+        joined: r.route?.join !== undefined,
+        km: here0 && r.route?.lat != null && r.route?.lon != null
+          ? metresApart(here0, { lat: r.route.lat, lon: r.route.lon }) / 1000 : null,
+        apart: sizeApart(r.areaRatio) }),
       because: donorCounted(r) ? donorBecause(r) : null,
       label: donorRowLabel(r, o.pickable, on, { ref, horizon: o.horizon }),
     };

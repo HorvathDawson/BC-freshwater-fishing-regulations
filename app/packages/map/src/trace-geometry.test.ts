@@ -177,11 +177,11 @@ describe("the overlay collection", () => {
       route({ role: "up", tone: "tone-b", path: [1, 3, 404] }),
     ], shapes);
     expect(fc).toEqual({ type: "FeatureCollection", features: [
-      { type: "Feature", properties: { role: "down", tone: "tone-a", order: 2, kind: "line" },
+      { type: "Feature", properties: { role: "down", tone: "tone-a", order: 2, kind: "line", on: false },
         geometry: { type: "MultiLineString", coordinates: [[[0, 0], [1, 1]], [[1, 1], [2, 2]]] } },
-      { type: "Feature", properties: { role: "up", tone: "tone-b", order: 1, kind: "area" },
+      { type: "Feature", properties: { role: "up", tone: "tone-b", order: 1, kind: "area", on: false },
         geometry: { type: "MultiPolygon", coordinates: [[[[0, 0], [1, 0], [1, 1], [0, 0]]]] } },
-      { type: "Feature", properties: { role: "up", tone: "tone-b", order: 1, kind: "line" },
+      { type: "Feature", properties: { role: "up", tone: "tone-b", order: 1, kind: "line", on: false },
         geometry: { type: "MultiLineString", coordinates: [[[0, 0], [1, 1]]] } },
     ] });
     expect(collectionBbox(fc)).toEqual([0, 0, 2, 2]);

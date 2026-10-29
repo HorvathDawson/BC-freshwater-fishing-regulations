@@ -8,10 +8,11 @@ import { useState, type ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { GaugeGroupVM } from "@app/ui";
 import { Icon } from "./icons";
+import { hitProps } from "./regs/hit";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
-export function GaugeGroups<T>({ palette, groups, render, keyOf, wrap, testID }: {
+export function GaugeGroups<T>({ palette, groups, render, keyOf, wrap, headings = true, testID }: {
   palette: Palette;
   groups: readonly GaugeGroupVM<T>[];
   /** One item, drawn; `first` is the first drawn in its group (a list's top hairline). */
@@ -19,21 +20,23 @@ export function GaugeGroups<T>({ palette, groups, render, keyOf, wrap, testID }:
   keyOf: (item: T) => string;
   /** Chips that wrap in a row (the switch, the key); a column of rows otherwise. */
   wrap?: boolean;
+  /** false: the groups run on without their headings (the chart's gauge switch — its chips carry their own dot). */
+  headings?: boolean;
   testID?: string;
 }) {
   return (
-    <View style={{ gap: SPACE.s3 }} testID={testID}>
+    <View style={{ gap: headings ? SPACE.s3 : 0 }} testID={testID}>
       {groups.map((g) => (
-        <Group key={g.side} palette={palette} group={g} render={render} keyOf={keyOf} wrap={!!wrap}
+        <Group key={g.side} palette={palette} group={g} render={render} keyOf={keyOf} wrap={!!wrap} headings={headings}
                testID={testID ? `${testID}-${g.side}` : undefined} />
       ))}
     </View>
   );
 }
 
-function Group<T>({ palette, group, render, keyOf, wrap, testID }: {
+function Group<T>({ palette, group, render, keyOf, wrap, headings, testID }: {
   palette: Palette; group: GaugeGroupVM<T>; render: (item: T, first: boolean) => ReactNode;
-  keyOf: (item: T) => string; wrap: boolean; testID: string | undefined;
+  keyOf: (item: T) => string; wrap: boolean; headings: boolean; testID: string | undefined;
 }) {
   const [open, setOpen] = useState(false);
   const items = (list: readonly T[]) => (
@@ -43,15 +46,15 @@ function Group<T>({ palette, group, render, keyOf, wrap, testID }: {
   );
   return (
     <View style={{ gap: SPACE.s2 }} testID={testID}>
-      <Text style={{ ...TYPE.kicker, color: palette.faint }}>{group.heading}</Text>
+      {headings && <Text style={{ ...TYPE.kicker, color: palette.faint }}>{group.heading}</Text>}
       {group.shown.length > 0 && items(group.shown)}
       {group.fold && (
         <Pressable onPress={() => setOpen(!open)} accessibilityRole="button" aria-expanded={open}
                    accessibilityLabel={open ? group.fold.open : group.fold.closed}
-                   testID={testID ? `${testID}-fold` : undefined}
+                   testID={testID ? `${testID}-fold` : undefined} {...(headings ? {} : hitProps({ w: 160, h: 36 }))}
                    // a press reaches 44 px tall (the app's touch floor), though its words are one small line
                    style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s1, alignSelf: "flex-start",
-                            minHeight: 44, paddingRight: SPACE.s2 }}>
+                            minHeight: headings ? 44 : 36, paddingRight: SPACE.s2 }}>
           <Text style={{ ...TYPE.metaBold, color: palette.sub }}>{group.fold.label}</Text>
           {/* the set's chevron (N1): down while closed, up while open */}
           <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={14} />

@@ -45,6 +45,7 @@ import type { StationId } from "@app/data";
 import { useDonorView, type DonorRowVM, type GaugeSides, type Horizon, type HorizonChipVM, type PanelAnswer,
          type Quantity } from "@app/ui";
 import { DonorMap, routeMapHeight } from "./DonorMap";
+import { CornerStrip } from "./CornerStrip";
 import { GaugeGroups } from "./GaugeGroups";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
@@ -200,44 +201,41 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           // ignores the latter (AGENTS 34).
           aria-selected={pick ? r.on : undefined}
           accessibilityLabel={r.label}
-          style={{ paddingVertical: SPACE.s3, gap: SPACE.s1,
+          style={{ paddingVertical: SPACE.s2, gap: 2,
                    borderTopWidth: i === 0 ? 0 : 1, borderTopColor: palette.line,
                    // THE SELECTED ROW IS MARKED ON THE LEFT, not by a tint: the row
                    // already carries a colour that means something (its pin).
                    paddingLeft: SPACE.s2, marginLeft: -SPACE.s2 - 3,
                    borderLeftWidth: 3,
                    borderLeftColor: r.on ? toneOf(r.row) : "transparent" }}>
+      {/* A TIGHT ROW: dot · id · name · its share, on one line; what it reads under it. */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
         {/* The same tone as its pin, so the map and the table are one thing. */}
         <View testID={`donor-dot-${r.station}`}
               style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: toneOf(r.row) }} />
         <Text style={{ ...TYPE.figure, color: palette.ink }}>{r.station}</Text>
         {r.name ? (
-          <Text style={{ ...TYPE.metaSemi, color: palette.sub, flex: 1 }}>
+          <Text numberOfLines={1} style={{ ...TYPE.metaSemi, color: palette.sub, flex: 1, minWidth: 0 }}>
             {r.name}
           </Text>
-        ) : null}
-      </View>
-      {/* EVERY NUMBER SAYS WHAT IT IS — the weight, labelled, beside its bar. */}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2,
-                     marginLeft: INSET }}>
-        <View style={{ flex: 1, height: 5, backgroundColor: palette.line2,
-                       borderRadius: 3, overflow: "hidden" }}>
-          <View style={{ width: r.bar, height: 5, backgroundColor: toneOf(r.row) }} />
-        </View>
+        ) : <View style={{ flex: 1 }} />}
+        {/* EVERY NUMBER SAYS WHAT IT IS — the weight, labelled. */}
         <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{r.weightLine}</Text>
       </View>
       {/* WHAT THIS GAUGE ITSELF READS, in the headline's words. */}
       <Text style={{ ...TYPE.meta, color: palette.ink, marginLeft: INSET }}>
         {r.reads}
       </Text>
-      {/* WHEN A QUIET GAUGE LAST SPOKE (owner 2026-10-21), or that it is not known. */}
-      {r.lastReport ? (
-        <Text style={{ ...TYPE.meta, color: palette.sub, marginLeft: INSET }}>{r.lastReport}</Text>
-      ) : null}
+      {/* WHEN A QUIET GAUGE LAST SPOKE (owner 2026-10-21), or that it is not known; then its facts. */}
       <Text style={{ ...TYPE.meta, color: palette.sub, marginLeft: INSET }}>
-        {r.facts}
+        {[r.lastReport, r.facts].filter(Boolean).join(" · ")}
       </Text>
+      {/* HOW IT RELATES to the water being read — a gauge on another water says where the two meet (owner 2026-10-28). */}
+      {r.relation ? (
+        <Text testID={`donor-relation-${r.station}`} style={{ ...TYPE.meta, color: palette.faint, marginLeft: INSET }}>
+          {r.relation}
+        </Text>
+      ) : null}
     </Pressable>
     );
   };
@@ -290,12 +288,11 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           <View style={{ marginBottom: SPACE.s2 }}>
             <DonorMap vm={map} at={at} theme={theme} palette={palette} toneOf={toneOf}
                       height={mapH} larger={larger} onLarger={setLarger}
-                      highlight={chainProp ?? map.chain} standing={standing}
+                      highlight={chainProp ?? map.chain} selected={selected ?? null} standing={standing}
                       waterLine={waterLine?.length ? { sections: waterLine, at: from ?? placeMid(place) } : undefined} />
           </View>
         )}
 
-        {onSelect && <Kicker palette={palette}>{vm.tapToChart}</Kicker>}
         {vm.groups ? (
           <View accessibilityRole="list" accessibilityLabel={vm.listLabel}>
             <GaugeGroups palette={palette} groups={vm.groups} keyOf={(r) => r.station} testID="donor-groups"
@@ -306,6 +303,8 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
             {vm.rows.map((r, i) => <View key={r.station}>{row(r, i)}</View>)}
           </View>
         )}
+        {/* THE HINT, a quiet caption under the list it is about (it was a kicker, a heading of its own). */}
+        {onSelect && <Text style={{ ...TYPE.meta, color: palette.faint }}>{vm.tapToChart}</Text>}
         {/* THE SILENT MEMBERS, NAMED (owner 2026-10-22): not rows, not pins — one line, each with its last data. */}
         {vm.silent && !vm.groups ? <Silent palette={palette}>{vm.silent}</Silent> : null}
       </Block>
@@ -349,24 +348,21 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   );
 }
 
-/** The panel header's horizon chips — drawn from the VM's `horizons`, decided in @app/ui. */
+/**
+ * The panel header's horizon chips — drawn from the VM's `horizons` (decided in @app/ui), as ONE compact segmented row
+ * (the map's own day strip, `CornerStrip`), never a wrapping run of chips: on a phone "Now · +1d · +3d · +5d · +10d ·
+ * Change" was two lines. Change is the calendar glyph at the end, said aloud as its label.
+ */
 function HorizonHeader({ palette, chips, onPick }: {
   palette: Palette; chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void;
 }) {
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}>
-      {chips.map((h) => (
-        <Pressable key={h.day} onPress={() => onPick(h.day)} accessibilityRole="button"
-                   aria-selected={h.on} accessibilityLabel={h.label}
-                   style={{ paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,
-                            borderRadius: palette.r.pill, borderWidth: 1,
-                            borderColor: h.on ? palette.accent : palette.line2,
-                            backgroundColor: h.on ? palette.accent : "transparent" }}>
-          <Text style={{ ...TYPE.metaBold, color: h.on ? palette.onAccent : h.note ? palette.sub : palette.ink }}>
-            {h.chip}{h.note ? <Text style={{ ...TYPE.meta, color: palette.sub }}>{` · ${h.note}`}</Text> : null}
-          </Text>
-        </Pressable>
-      ))}
+    <View style={{ flexDirection: "row" }}>
+      <CornerStrip palette={palette} testID="panel-horizons"
+                   segments={chips.map((h) => ({
+                     key: String(h.day), chip: h.day === "change" ? "" : h.chip, label: h.label, on: h.on,
+                     ...(h.note ? { note: h.note } : {}), ...(h.day === "change" ? { icon: "calendar" as const } : {}),
+                     onPress: () => onPick(h.day) }))} />
     </View>
   );
 }

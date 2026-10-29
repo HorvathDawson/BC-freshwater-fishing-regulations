@@ -88,3 +88,47 @@ export function routeLegend(roles: readonly ("up" | "down")[]):
   return (["down", "up"] as const).filter((r) => has.has(r))
     .map((role) => ({ role, label: ROUTE_MAP_WORDS[role] }));
 }
+
+/**
+ * THE WATER A STATION IS ON, from ECCC's station name: "NORTH ALOUETTE RIVER AT 232ND STREET, MAPLE RIDGE" is on the
+ * "North Alouette River". Null when the name carries no such split (then the sentence names the station alone).
+ */
+export function stationWater(name: string | null | undefined): string | null {
+  if (!name) return null;
+  const head = name.split(/\s+(?:AT|NEAR|BELOW|ABOVE|DOWNSTREAM OF|UPSTREAM OF|AT THE)\s+/i)[0]!.trim();
+  if (!head || head.length === name.trim().length) return null;
+  return head.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+}
+
+/** What the route to a gauge is, as `donorRelation` reads it. */
+export interface DonorRelationFacts {
+  station: string;
+  name: string | null;
+  role: "up" | "down";
+  /** Reaches in its path (spot first); 0: not drawable. */
+  reaches: number;
+  /** `PanelRoute.join` present: the gauge is on another water that this one flows to meet. */
+  joined: boolean;
+  /** Straight-line distance from here to the gauge, km; null where either end is not known. */
+  km: number | null;
+  /** "45× apart" (`sizeApart`): how far the gauge's drainage is from this water's. */
+  apart: string;
+}
+
+/**
+ * ONE PLAIN LINE per gauge estimating from another water (owner 2026-10-28): how it relates to the water being read,
+ * and that its reading is scaled by drainage. Three cases, said as they are: it joins this water below here; it is on
+ * this water's own line; or no path joins them and it stands in for this water by similar country.
+ */
+export function donorRelation(r: DonorRelationFacts): string {
+  const water = stationWater(r.name);
+  const where = water ? `${r.station} is on ${water}` : r.station;
+  const far = r.km === null ? "" : ` (the gauge is about ${r.km < 10 ? r.km.toFixed(1) : Math.round(r.km)} km away)`;
+  const scaled = `scaled by drainage (${r.apart})`;
+  if (r.joined)
+    return `${where}, which joins this water below here${far}; ${scaled}.`;
+  if (r.reaches > 1)
+    return `${where}, ${r.reaches - 1} ${r.reaches === 2 ? "reach" : "reaches"} ${r.role === "up" ? "upstream" : "downstream"} on this water's line; ${scaled}.`;
+  if (r.reaches === 1) return `${where}, on this reach; ${scaled}.`;
+  return `${where}${r.km === null ? "" : `, about ${r.km < 10 ? r.km.toFixed(1) : Math.round(r.km)} km away`}: no mapped path joins it to this water, so it stands in for it by similar country; ${scaled}.`;
+}

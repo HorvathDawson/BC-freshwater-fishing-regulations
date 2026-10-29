@@ -56,3 +56,28 @@ describe("a tidal gauge's flag on its route (T78)", () => {
     expect(gaugePlaces(2)).toBe("SELECT * FROM gauge WHERE station IN (?,?)");
   });
 });
+
+describe("a gauge on another water joins through the confluence (owner 2026-10-28)", () => {
+  // 1 -> 2 -> 3 -> 4 is the spot's water flowing on; 10 -> 11 -> 3 is the gauge's river meeting it at 3.
+  const next = new Map<number, number>([[1, 2], [2, 3], [3, 4], [10, 11], [11, 3]]);
+  const down = async (f: SectionId) => (next.get(f as unknown as number) ?? null) as SectionId | null;
+  const places = () => placesOf([
+    { station: "08MH006", name: "NORTH ALOUETTE RIVER AT 232ND STREET", sid: 10, lon: -122.58, lat: 49.24 },
+    { station: "08XX000", name: "SOMEWHERE ELSE", sid: 99, lon: -122, lat: 49 },
+  ]);
+
+  it("walks the spot down to the confluence, then the gauge's river back up to the gauge", async () => {
+    const [r] = await routesOf(s(1), [{ station: st("08MH006"), role: "up" }], places(), down);
+    expect(r!.path).toEqual([s(1), s(2), s(3), s(11), s(10)]);
+    expect(r!.join).toBe(2);
+  });
+
+  it("leaves a gauge no walk reaches undrawn, and a direct route without a join", async () => {
+    const out = await routesOf(s(1), [{ station: st("08XX000"), role: "up" }], places(), down);
+    expect(out[0]!.path).toEqual([]);
+    expect(out[0]!.join).toBeUndefined();
+    const direct = await routesOf(s(11), [{ station: st("08MH006"), role: "up" }], places(), down);
+    expect(direct[0]!.path).toEqual([s(11), s(10)]);
+    expect(direct[0]!.join).toBeUndefined();
+  });
+});

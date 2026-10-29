@@ -50,7 +50,7 @@ describe("(T168) the conditions panel, grouped", () => {
     await waitFor(() => expect(screen.getByTestId("gauge-count")).toBeTruthy());
     expect(screen.getByTestId("gauge-count").textContent).toBe("1 gauge on this water · 1 not reporting");
     // the switch: OWN on this water (the chart's gauge), FAR folded under the donors
-    expect(screen.getByTestId("switch-groups-own").textContent).toBe("ON THIS WATEROWN100%");
+    expect(screen.getByTestId("switch-groups-own").textContent).toBe("OWN100%");
     const fold = screen.getByTestId("switch-groups-donor-fold");
     expect(fold.getAttribute("aria-label")).toBe("1 gauge from other waters not reporting. Show them");
     expect(screen.queryByRole("radio", { name: /FAR/ })).toBeNull();

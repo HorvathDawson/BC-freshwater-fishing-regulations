@@ -111,12 +111,12 @@ describe("donorView", () => {
     const [a, b] = [v.rows[0]!, v.rows[1]!];
     expect(vm.rows).toEqual([
       { station: "08MH001", row: 0, name: null, quiet: false, on: false, bar: "60%",
-        weightLine: donorWeightLine(a), reads: donorReads(a), lastReport: null, facts: donorFacts(a),
+        weightLine: donorWeightLine(a), reads: donorReads(a), lastReport: null, facts: donorFacts(a), relation: null,
         because: donorBecause(a), label: donorRowLabel(a, true, false) },
       // A quiet gauge says when it last reported (owner 2026-10-21).
       { station: "08MH024", row: 1, name: null, quiet: true, on: true, bar: "1%",
         weightLine: donorWeightLine(b), reads: "Reporting, but its reading cannot be ranked today.",
-        lastReport: donorLastReport(early), facts: donorFacts(b),
+        lastReport: donorLastReport(early), facts: donorFacts(b), relation: null,
         because: null,
         label: "08MH024, upstream, 2.4× apart, reporting but not ranked today, so it counts for nothing. "
           + "Showing this gauge's chart" },
@@ -192,9 +192,9 @@ describe("donorView", () => {
     const vm = donorView(v, { ...opts, from: { lat: 49.1, lon: -122 } });
     if (!vm.ok || !vm.map) throw new Error("expected a map");
     expect(vm.map.routes).toEqual([
-      { row: 0, role: "up", path: ["s", "a"], from: { lat: 49.1, lon: -122 },
+      { row: 0, station: "08MH001", role: "up", path: ["s", "a"], from: { lat: 49.1, lon: -122 },
         to: { lat: 49.2, lon: -121.5 } },
-      { row: 1, role: "down", path: ["s", "b", "c"], from: { lat: 49.1, lon: -122 },
+      { row: 1, station: "08MH024", role: "down", path: ["s", "b", "c"], from: { lat: 49.1, lon: -122 },
         to: { lat: 49.0, lon: -121.5 } },
     ]);
     expect(vm.map.legend).toEqual([

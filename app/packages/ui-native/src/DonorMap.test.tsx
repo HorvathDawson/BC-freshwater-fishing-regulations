@@ -66,12 +66,12 @@ describe("<DonorMap>", () => {
     draw();
     const t = seen.at(-1)!.trace!;
     expect(t.routes).toEqual([
-      { role: "up", tone: LIGHT.donor[0], path: [1, 2], from: { lon: -122, lat: 49.1 },
+      { role: "up", tone: LIGHT.donor[0], path: [1, 2], on: false, from: { lon: -122, lat: 49.1 },
         to: { lon: -121.5, lat: 49.2 } },
-      { role: "down", tone: LIGHT.quiet, path: [1, 3, 4], from: { lon: -122, lat: 49.1 },
+      { role: "down", tone: LIGHT.quiet, path: [1, 3, 4], on: false, from: { lon: -122, lat: 49.1 },
         to: { lon: -121.5, lat: 49.0 } },
     ]);
-    expect(t.key).toBe(`up:${LIGHT.donor[0]}:1,2|down:${LIGHT.quiet}:1,3,4`);
+    expect(t.key).toBe(`up:${LIGHT.donor[0]}:0:1,2|down:${LIGHT.quiet}:0:1,3,4`);
   });
 
   it("marks the spot as a pin and each gauge as a dot labelled with its share", () => {
@@ -87,12 +87,12 @@ describe("<DonorMap>", () => {
     expect(seen.at(-1)!.pins).toBeUndefined();
   });
 
-  it("keys upstream and downstream apart, and names every gauge with its share", () => {
+  it("keys upstream and downstream apart on one line; the gauges are the list's, not the key's", () => {
     draw();
     for (const t of ["you are here", "gauge downstream: your water flows on to it",
-                     "gauge upstream: its water flows down to you", "08MH001 · 60%",
-                     "08MH024 · reporting, not ranked"])
+                     "gauge upstream: its water flows down to you"])
       expect(screen.getByText(t)).toBeTruthy();
+    expect(screen.queryByText("08MH001 · 60%")).toBeNull();
   });
 
   it("can be zoomed: its zoom buttons are on, though it is bare", () => {

@@ -341,6 +341,20 @@ export async function routesOf(section: SectionId,
     return at === stop ? path : null;
   };
 
+  // EVERY SECTION DOWNSTREAM OF `from`, nearest first (itself included) — the pointers only go down.
+  const chain = async (from: SectionId): Promise<SectionId[]> => {
+    const c: SectionId[] = [from];
+    const seen = new Set<SectionId>([from]);
+    for (let i = 0; i < 5000; i++) {
+      const next = await down(c[c.length - 1]!);
+      if (next === null || seen.has(next)) break;
+      seen.add(next);
+      c.push(next);
+    }
+    return c;
+  };
+  let spotChain: SectionId[] | null = null;
+
   const out: PanelRoute[] = [];
   for (const m of members) {
     const place = places.get(m.station);
@@ -354,10 +368,27 @@ export async function routesOf(section: SectionId,
                                   : await walk(section, gaugeSection);
       path = got ?? [];
     }
+    /*
+     * A GAUGE ON ANOTHER WATER (owner 2026-10-28): neither end is downstream of the other, but the two waters meet. Walk
+     * down from both; the first reach of the spot's chain that the gauge's chain also reaches is the CONFLUENCE, and the
+     * route is the spot down to it, then the gauge's own water back up to the gauge. `join` is the confluence's index in
+     * `path` — before it the water flows on to the confluence, after it the gauge's water flows down to it.
+     */
+    let join: number | undefined;
+    if (!path.length && gaugeSection) {
+      spotChain ??= await chain(section);
+      const theirs = await chain(gaugeSection);
+      const at = new Map(theirs.map((x, i) => [x, i]));
+      const i = spotChain.findIndex((x) => at.has(x));
+      if (i >= 0) {
+        path = [...spotChain.slice(0, i + 1), ...theirs.slice(0, at.get(spotChain[i]!)!).reverse()];
+        join = i;
+      }
+    }
     out.push({
       station: m.station, name: place?.name ?? null,
       lon: place?.lon ?? null, lat: place?.lat ?? null,
-      role: m.role, path,
+      role: m.role, path, ...(join !== undefined ? { join } : {}),
       // `true` only (T78): a station the release flags tidal; absent otherwise, as an older release reads.
       ...(place?.tidal ? { tidal: true as const } : {}),
       // `true` only (T160): a station a lake below it backs up; absent otherwise, as an older release reads.

@@ -57,6 +57,8 @@ export interface TraceRoute {
   /** The donor's identity colour, from the app's palette (a token, never a literal here). */
   tone: string;
   path: readonly SectionKey[];
+  /** The gauge the reader picked in the list: its line is drawn heavier, the rest thinner. */
+  on?: boolean;
   /** The spot — the chain's first end. */
   from: LonLat | null;
   /** The gauge — the chain's last end. */
@@ -364,7 +366,7 @@ export async function readTrace(routes: readonly TraceRoute[], src: TileSource,
 
 export interface TraceFeature {
   type: "Feature";
-  properties: { role: "up" | "down"; tone: string; kind: "line" | "area"; order: number };
+  properties: { role: "up" | "down"; tone: string; kind: "line" | "area"; order: number; on: boolean };
   geometry: { type: "MultiLineString"; coordinates: Pt[][] }
           | { type: "MultiPolygon"; coordinates: Pt[][][] };
 }
@@ -387,7 +389,7 @@ export function traceCollection(routes: readonly TraceRoute[],
       lines.push(...sh.lines);
       areas.push(...sh.areas);
     }
-    const props = { role: r.role, tone: r.tone, order: routes.length - i };
+    const props = { role: r.role, tone: r.tone, order: routes.length - i, on: !!r.on };
     if (areas.length)
       features.push({ type: "Feature", properties: { ...props, kind: "area" },
                       geometry: { type: "MultiPolygon", coordinates: areas } });

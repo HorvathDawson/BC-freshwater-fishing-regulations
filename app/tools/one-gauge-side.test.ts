@@ -68,12 +68,12 @@ describe("one gauge side", () => {
       expect(hits).toEqual([]);
     });
 
-  it("every surface groups through core: the rows, the switch and the key", () => {
+  it("every surface groups through core: the rows and the switch (the map's key lists no gauges: the rows do)", () => {
     const donor = code("packages/ui/src/panel/donor.ts");
     // the donor rows and the key (`donorView`) and the switch (`gaugeChoiceGroups`) each call `groupGauges`
     expect(donor.match(/\bgroupGauges\(/g)?.length).toBe(3);
     expect(code("packages/ui/src/panel/conditions.ts")).toMatch(/\bgaugeCountLine\(/);
-    for (const f of ["DonorPanel.tsx", "ConditionsPanel.tsx", "DonorMap.tsx"])
+    for (const f of ["DonorPanel.tsx", "ConditionsPanel.tsx"])
       expect(code(`packages/ui-native/src/${f}`), f).toMatch(/<GaugeGroups\b/);
   });
 });

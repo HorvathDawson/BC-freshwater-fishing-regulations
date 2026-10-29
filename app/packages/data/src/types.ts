@@ -242,6 +242,12 @@ export interface PanelRoute {
    * related": the donor is still in the panel and still carries its weight.
    */
   path: readonly SectionId[];
+  /**
+   * Present only for a gauge on ANOTHER water that this one flows to meet: the index in `path` of the confluence. The
+   * reaches up to it are the spot's own water flowing down; the rest are the gauge's water coming down to it. Absent:
+   * the gauge is on this water's line (or the path is not drawable).
+   */
+  join?: number;
 }
 
 /** Which quantity a chart is about. Never mixed — see `Series.parameter`. */

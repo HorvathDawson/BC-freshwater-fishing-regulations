@@ -80,6 +80,8 @@ export function tracePaint(theme: string): Record<string, Record<string, unknown
   const paper = t["color.outside"] as string;
   const ink = t["color.ui.ink"] as string;
   return {
+    "trace-line-down": { "line-color": ["get", "tone"] },
+    "trace-line-up": { "line-color": ["get", "tone"] },
     "trace-arrows": { "text-color": ["get", "tone"], "text-halo-color": paper },
     "trace-gauge-halo": { "circle-color": ink },
     "trace-gauge": { "circle-color": ["get", "tone"], "circle-stroke-color": paper },
@@ -90,7 +92,7 @@ export function tracePaint(theme: string): Record<string, Record<string, unknown
 
 /** The overlay's layer ids, in draw order. */
 export const TRACE_LAYER_IDS = [
-  "trace-arrows", "trace-gauge-halo", "trace-gauge", "trace-label", "trace-here", "trace-here-label"] as const;
+  "trace-line-down", "trace-line-up", "trace-arrows", "trace-gauge-halo", "trace-gauge", "trace-label", "trace-here", "trace-here-label"] as const;
 
 /**
  * The overlay's layers. Appended LAST to the style, so the route and its marks sit on top
@@ -118,6 +120,21 @@ export function traceLayers(theme: string):
      * ACROSS the line, not along it; and a 180° `text-rotate` pivots the glyph off the line
      * (`tools/flow-arrows.test.ts`).
      */
+    /*
+     * THE PATH ITSELF (owner 2026-10-28, "no stream path is drawn"): a gauge downstream is a SOLID line in its tone,
+     * one upstream a DASHED one, over the river's own colour; the one picked in the list is heavier. A donor on another
+     * water has both — solid to the confluence, dashed up its own river — and the arrows still say which way water goes.
+     */
+    { id: "trace-line-down", type: "line", source: TRACE_SOURCE,
+      filter: ["all", line("line"), ["==", ["get", "role"], "down"]],
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { ...p["trace-line-down"], "line-opacity": 0.85,
+               "line-width": ["case", ["get", "on"], 5, 3] } },
+    { id: "trace-line-up", type: "line", source: TRACE_SOURCE,
+      filter: ["all", line("line"), ["==", ["get", "role"], "up"]],
+      layout: { "line-cap": "butt", "line-join": "round" },
+      paint: { ...p["trace-line-up"], "line-opacity": 0.85, "line-dasharray": [2, 1.6],
+               "line-width": ["case", ["get", "on"], 5, 3] } },
     { id: "trace-arrows", type: "symbol", source: TRACE_SOURCE,
       filter: line("line"),
       layout: { "symbol-placement": "line", "symbol-spacing": 56, "text-field": "◀",

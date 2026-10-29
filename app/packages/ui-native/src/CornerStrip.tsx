@@ -50,11 +50,13 @@ export function CornerStrip({ palette, segments, testID, label, radio = false }:
                            gap: 5, alignItems: "center", justifyContent: "center",
                            backgroundColor: h.on ? palette.accent : palette.card, opacity: enabled ? 1 : 0.45,
                            borderLeftWidth: i ? 1 : 0, borderLeftColor: palette.line2 }}>
-              {h.icon && <Icon name={h.icon} colour={ink} size={15} />}
+              {h.icon && <Icon name={h.icon} colour={ink} size={h.chip ? 15 : 17} />}
               <View style={{ alignItems: "center" }}>
-                <Text style={{ ...TYPE.micro, fontSize: 13, lineHeight: h.note ? 14 : 17, fontWeight: "600", color: ink }}>
-                  {h.chip}
-                </Text>
+                {h.chip ? (
+                  <Text style={{ ...TYPE.micro, fontSize: 13, lineHeight: h.note ? 14 : 17, fontWeight: "600", color: ink }}>
+                    {h.chip}
+                  </Text>
+                ) : null}
                 {h.note && (
                   <Text style={{ ...TYPE.micro, fontSize: 10, lineHeight: 11, letterSpacing: 0, color: palette.sub }}>
                     {h.note}
