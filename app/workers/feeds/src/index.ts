@@ -148,7 +148,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         notices: s.notices.length, unchangedRegions: (s.skipped ?? []).length,
       };
       summary = { ...counts, skipped: s.skipped };
-      events.push(...dfoEvents(s.notices, at, env.REVIEW_APP_URL || "http://localhost:5173"));
+      events.push(...dfoEvents(s.notices, at, env.REVIEW_APP_URL || "http://localhost:5183"));
     } else {
       const s = await runInSeason({ fetch: fetch_, priv: meteredStore(r2Store(env.BUCKET, "private/feeds/inseason/"), m), now: started, log });
       counts = { rows: s.rows, sections: s.sections, changed: s.changed ? 1 : 0 };

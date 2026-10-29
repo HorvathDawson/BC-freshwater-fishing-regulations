@@ -188,7 +188,7 @@ Staging redeployed (b8715797), every job run by hand with `?dryNotify=1`; `vites
   is retried next run. `NOTIFY_DIGEST=daily` → one digest a day (first run at/after `NOTIFY_DIGEST_HOUR_UTC`, default
   15 = 08:00 PDT); health is always immediate. **Dry run**: `POST /run/<job>?dryNotify=1` returns the messages, sends and
   records nothing; `POST /notify/preview` (bearer) shows the queued digest. `REVIEW_APP_URL` (default
-  `http://localhost:5173`) for the DFO links.
+  `http://localhost:5183`) for the DFO links.
 - **What is told**: (a) HYDAT — the listing is asked once a day now (`private/feeds/gauges/hydat.check.json`), a new
   release → "New HYDAT <date> — run the HYDAT action" (the Actions workflow, then `scripts/update-hydat.sh --upload`);
   (b) in-season — `POST /run/inseason` ports main's `update-in-season.yml` scrape (provincial page accordion, 32 rows / 7

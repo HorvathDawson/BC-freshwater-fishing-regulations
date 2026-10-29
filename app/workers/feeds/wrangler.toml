@@ -18,6 +18,6 @@ bucket_name = "bc-fishing-regulations-staging"
 #   npx --prefix app wrangler secret put NOTIFY_EMAIL_TO   -c app/workers/feeds/wrangler.toml
 #   npx --prefix app wrangler secret put NOTIFY_EMAIL_FROM -c app/workers/feeds/wrangler.toml   (e.g. feeds@<your domain>)
 # Optional: NOTIFY_DIGEST=daily (one email a day; health stays immediate), NOTIFY_DIGEST_HOUR_UTC (default 15),
-# FEED_NOTIFY_URL (webhook fallback), REVIEW_APP_URL (default http://localhost:5173). Unset: messages are only logged.
+# FEED_NOTIFY_URL (webhook fallback), REVIEW_APP_URL (default http://localhost:5183). Unset: messages are only logged.
 [[send_email]]
 name = "EMAIL"
