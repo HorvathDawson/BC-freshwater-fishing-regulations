@@ -290,6 +290,26 @@ def _snap(r: dict, coord) -> dict:
             "coord": tuple(dfo._lonlat(s["point"])), "on_item": dfo._item_of(s["node"], items)}
 
 
+def _unregistered_mouth(r: dict, ns):
+    """A tidal point on a water the atlas registry does not carry (its FWA line replaced by the municipal
+    added-streams network: Nelson Creek, Port Coquitlam): only THE MOUTH is accepted — a mouth means no cut and
+    nothing tidal (`proposals.tidal_point` -> `tidal_mouth`), so it needs no registry item. The point must lie
+    within `proposals.TIDAL_POINT_TOL_M` of the candidate's FWA mouth; it is stamped AT the mouth (blk, mouth
+    measure, mouth coord). Anything else: ValueError, the unregistered water's own refusal."""
+    import dfo
+    from pipeline.regs.review.proposals import TIDAL_POINT_TOL_M
+    mouth = r.get("mouth") or {}
+    if ns.anchor == "coord" and mouth.get("coord") and mouth.get("measure") is not None:
+        to = dfo._to_albers()
+        (x0, y0), (x1, y1) = to(*ns.coord), to(*mouth["coord"])
+        if ((x0 - x1) ** 2 + (y0 - y1) ** 2) ** 0.5 <= TIDAL_POINT_TOL_M:
+            why = f"at the mouth: {r['water']} is not in the atlas registry — no cut, nothing tidal"
+            return ns.model_copy(update={"blk": str(r["blk"]), "measure": float(mouth["measure"]),
+                                         "coord": tuple(mouth["coord"]), "on_item": None,
+                                         "note": f"{ns.note}; {why}" if ns.note else why})
+    raise ValueError(f"{r['water']} is not in the atlas registry: nothing to cut")
+
+
 def snap(cid: str, coord) -> dict | None:
     """A clicked (lon, lat) snapped to the candidate's stream, for the click-to-place point (read
     only; `mark_for` snaps again when the mark is recorded). None: no such candidate."""
@@ -321,6 +341,9 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
         ns = M.NewSplit.model_validate(raw)
         if ns.coord is None:
             raise ValueError(f"new split {ns.ref}: a tidal boundary is a point on the stream")
+        if not (r.get("items") or []):
+            stamped.append(_unregistered_mouth(r, ns).model_dump(mode="json"))
+            continue
         s = _snap(r, ns.coord)
         stamped.append(ns.model_copy(update={"blk": s["blk"], "measure": s["measure"],
                                              "on_item": ns.on_item or s["on_item"],

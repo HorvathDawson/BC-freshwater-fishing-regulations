@@ -51,6 +51,10 @@ CANDS = [
     _cand(CAPILANO, "Capilano River", 5922, 36.9, [-123.139433, 49.321832],
           "CN Railway Bridge (tidal boundary)", "medium"),
 ]
+#: Nelson Creek (Port Coquitlam): its FWA line is replaced by the municipal added streams, so no registry item
+NELSON = "tidal:356013125"
+CANDS.append({**_cand(NELSON, "Nelson Creek", 37595, 38.2, [-122.876534, 49.229439], "mouth (tidal boundary)",
+                      "medium"), "items": [], "mouth": {"measure": 0.0, "coord": [-122.877015, 49.229572]}})
 
 
 @pytest.fixture()
@@ -75,7 +79,7 @@ def src(tmp_path, monkeypatch) -> P.Sources:
 def _tidal(cid, verdict="verified", note="", **ns):
     row = T.candidate(cid)
     pr = row["proposed"]
-    n = {"ref": cid.replace(":", "-"), "on_item": row["items"][0], "name": pr["split_name"],
+    n = {"ref": cid.replace(":", "-"), "on_item": (row["items"] or [None])[0], "name": pr["split_name"],
          **({"anchor": "split", "split_id": pr["reuse"]["split_id"]} if pr.get("reuse") else
             {"anchor": "coord", "coord": pr["coord"], "blk": row["blk"], "measure": pr["measure"]}),
          **ns}
@@ -141,6 +145,16 @@ def test_at_the_mouth_there_is_no_cut_and_a_wrong_mark_is_only_listed(src):
     assert "look more online" in k["tidal_followup"][0]["notes"][0]
     nxt, blocked = A.plan(props, set())
     assert nxt is None and blocked == []                # never applied, never "blocked"
+
+
+def test_a_mouth_on_a_water_the_registry_lacks_is_listed_never_applied(src):
+    # the review app stamps such a mark AT the mouth with no on_item (`tidal._unregistered_mouth`)
+    props = P.build([_tidal(NELSON, on_item=None, measure=0.0, coord=[-122.877015, 49.229572],
+                            note="chosen point: mouth; at the mouth: Nelson Creek is not in the atlas registry")], src)
+    [p] = props
+    assert p["kind"] == "tidal_mouth" and p["edits"] == [] and p["problems"] == []
+    assert p["title"].startswith("Nelson Creek: the tidal boundary is the mouth")
+    assert A.plan(props, set()) == (None, [])
 
 
 def test_the_owners_earlier_calls_are_marks_and_a_later_mark_wins(src, tmp_path):
