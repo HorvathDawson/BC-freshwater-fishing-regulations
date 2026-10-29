@@ -315,6 +315,7 @@ use that as the sole source of future work."
 | T269 | Water pages ARE the app: `/water/<slug>` prerendered with the app's own regs pane (same look), app hydrates; hubs/sitemap/legacy 301s point at it; separate text-only water pages retired | OPEN | — | owner 2026-10-29 |
 | T270 | Map fonts + symbols (glyphs/sprites) from our own data host only, offline-capable; audit every third-party request | OPEN | — | owner 2026-10-29 |
 | T271 | Problem reports auto-deleted after 180 days (feeds worker cron); privacy page wording + privacy@ address | OPEN | — | owner 2026-10-29 |
+| T272 | First install: second progress bar after download ("Setting up on this device") with real progress; measure + cut the post-download step | OPEN | — | owner 2026-10-29 |
 
 ## Order for open tickets
 
