@@ -221,10 +221,10 @@ class TestContinuation:
 
 def test_a_continuation_never_outranks_the_waters_own_gauge():
     # the Bella Coola case, measured: a side reach of the Bella Coola with its own river's gauge (`up`, ratio 0.018)
-    # kept it rather than taking the Atnarko's (`up_branch` across the link, ratio 0.029)
+    # keeps it rather than taking a continuation's gauge, even one with a large share (`up_branch` across the link)
     from pipeline.gauges.consume.shed import GaugeLink, REL_UP, choose
     own = GaugeLink("s", "08FB011", "fair", 0.018, 9, REL_UP, 37_100)
-    cont = GaugeLink("s", "08FB006", "fair", 0.029, 20, REL_UP_BRANCH, 72_200, joined=True)
+    cont = GaugeLink("s", "08FB006", "good", 0.6, 20, REL_UP_BRANCH, 72_200, joined=True)
     assert choose({"s": [own, cont]}, {}, "drainage_continued")[0].station == "08FB011"
     assert choose({"s": [cont]}, {}, "drainage_continued")[0].station == "08FB006"      # a gap is filled
     assert choose({"s": [cont]}, {}, "drainage") == []
@@ -235,3 +235,15 @@ def test_the_app_hears_a_continued_rivers_gauge_as_upstream():
     assert shown_rel(GaugeLink("v", "08MH001", "good", 0.99, 2, REL_UP_BRANCH, 200, joined=True)) == REL_UP
     assert shown_rel(GaugeLink("c", "08MH056", "fair", 0.14, 2, REL_UP_BRANCH, 200)) == REL_UP_BRANCH
     assert shown_rel(GaugeLink("t", "08MH001", "good", 0.5, 2, REL_DOWN_TRUNK, 200)) == REL_DOWN_TRUNK
+
+
+def test_a_continuation_speaks_only_with_a_large_share():
+    # owner 2026-10-28 (Q31 refinement): the Q44 floor, `panels.LARGE_SHARE`, on the symmetric magnitude ratio
+    from pipeline.gauges.consume.panels import LARGE_SHARE
+    from pipeline.gauges.consume.shed import GaugeLink, choose
+    assert POLICIES["drainage_continued"].joined_min_ratio == LARGE_SHARE == 0.5
+    vedder = GaugeLink("v", "08MH001", "good", 0.985, 2, REL_UP_BRANCH, 8_200, joined=True)
+    side = GaugeLink("s", "08FB006", "weak", 0.001, 20, REL_UP_BRANCH, 72_200, joined=True)
+    edge = GaugeLink("e", "X", "good", LARGE_SHARE, 2, REL_UP_BRANCH, 0, joined=True)
+    got = {l.section_id: l.station for l in choose({"v": [vedder], "s": [side], "e": [edge]}, {}, "drainage_continued")}
+    assert got == {"v": "08MH001", "e": "X"}

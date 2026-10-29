@@ -1627,4 +1627,10 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   so its gauge stays off the Chilliwack. A continuation only fills a gap and never outranks a gauge on the section's own
   watercourse. The app hears such a gauge as "upstream". Province: 8 sections gain a gauge, 4 change, 0 lose
   (Vedder: 4 x Fraser at Mission 08MH024 -> 08MH001, 1 new 08MH016; Bella Coola: 7 new, weak, 08FB006).
+- **Owner 2026-10-28 (Q31 refinement):** a gauge across a continuation link applies only when its drainage is a large
+  share of the reach's. The threshold is the existing Q44 floor `panels.LARGE_SHARE` = 0.5 ("a large share of the
+  river's flow"), applied to the symmetric magnitude ratio (`GaugePolicy.joined_min_ratio`); no new number. Province:
+  0 sections gain, 4 change (Vedder River: 08MH024 Fraser at Mission -> 08MH001, ratios 0.985-1.0), 0 lose. Dropped by
+  the floor: the Vedder side reach's 08MH016 (0.002) and the Atnarko's 08FB006 on 7 Bella Coola side reaches (0.001);
+  those sections are ungauged, as before.
 

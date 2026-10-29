@@ -61,6 +61,7 @@ from typing import Iterable, Optional
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common.utils.wsc import trim_wsc as _trim
 from pipeline.gauges.liveness import speaks_now
+from pipeline.gauges.consume.panels import LARGE_SHARE
 
 #: THE SHED CLIMBS AS THE TRIBUTARY WALK CLIMBS (T117, owner 2026-10-22: one entry check, used in every
 #: walk). Going UP from a gauge, each step is one `tributaries.may_enter` allows with the gauge's own
@@ -226,9 +227,13 @@ class GaugePolicy:
     #: gauge on its OWN watercourse: a continuation fills a gap, it never outranks the water's own gauge (measured: the
     #: Bella Coola's side channels swapped 08FB011, on the Bella Coola, for the Atnarko's 08FB006 72 km away on ratio)
     admits_joined: frozenset = frozenset()
+    #: ...and only when the gauge's drainage is a large share of the reach's: the symmetric magnitude `ratio` at or above
+    #: this (owner 2026-10-28, Q31 refinement — the Q44 "large share of the river's flow" floor, not a new number)
+    joined_min_ratio: float = 0.0
 
     def admit(self, link: GaugeLink) -> bool:
-        return link.rel in self.admits or (link.joined and link.rel in self.admits_joined)
+        return link.rel in self.admits or (link.joined and link.rel in self.admits_joined
+                                           and link.ratio >= self.joined_min_ratio)
 
 
 POLICIES: dict[str, GaugePolicy] = {p.name: p for p in (
@@ -238,10 +243,14 @@ POLICIES: dict[str, GaugePolicy] = {p.name: p for p in (
     # THE DEFAULT (owner 2026-10-28, Q31): the gate, plus a gauge on a water this one CONTINUES as under another name.
     # FWA codes the Chilliwack as a branch of the Vedder, so 08MH001 at Vedder Crossing is `up_branch` from the Vedder
     # and the gate gave the Vedder the Fraser at Mission; across the `water_continue` link it is the Vedder's own river.
-    # Slesse Creek is a tributary, not a continuation: its gauge stays off the Chilliwack.
+    # Slesse Creek is a tributary, not a continuation: its gauge stays off the Chilliwack. And only a LARGE SHARE
+    # (owner 2026-10-28): the gauge's drainage at least `panels.LARGE_SHARE` (0.5, Q44's "large share of the river's
+    # flow") of the reach's by magnitude — 08MH001 on the Vedder (0.985-1.0) passes; 08MH016 on a Vedder side reach
+    # (0.002) and the Atnarko's 08FB006 on Bella Coola side reaches (0.001) do not.
     GaugePolicy("drainage_continued", DRAINS_THROUGH,
-                "the drainage gate, plus a gauge up a water this one continues as (Vedder <- Chilliwack)",
-                admits_joined=frozenset({REL_UP_BRANCH})),
+                "the drainage gate, plus a gauge up a water this one continues as (Vedder <- Chilliwack), "
+                "when it carries a large share (Q44's LARGE_SHARE) of the reach's drainage",
+                admits_joined=frozenset({REL_UP_BRANCH}), joined_min_ratio=LARGE_SHARE),
     # Stricter: one watercourse only — a tributary reach is not told its trunk river's flow.
     GaugePolicy("same_watercourse", frozenset({REL_ON, REL_DOWN, REL_UP}),
                 "only a gauge on this reach's own watercourse (same FWA code), up or down"),

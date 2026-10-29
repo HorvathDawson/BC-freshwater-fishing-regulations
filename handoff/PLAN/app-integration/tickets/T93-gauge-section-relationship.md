@@ -128,3 +128,14 @@ two systems have a gauge across the link. No Chilliwack or Slesse section change
 - a water not being joined to itself;
 - own gauge first;
 - `shown_rel`.
+
+### Q31 refinement (owner 2026-10-28): a continuation speaks only with a large share
+A joined gauge is admitted only when the symmetric magnitude ratio is at least `panels.LARGE_SHARE` = 0.5. That is
+Q44's "large share of the river's flow" floor (`GaugePolicy.joined_min_ratio`); no new number.
+
+Re-run on the province: 107,799 → 107,799 sections answered (0 gained, 4 changed, 0 lost). The 4 changes are all on
+the Vedder River: 3 sections and its lake node move from 08MH024 (Fraser at Mission) to 08MH001 (ratios 0.985–1.0,
+0–8 km). The floor drops the earlier 08MH016 on a Vedder side reach (0.002) and 08FB006 on 7 Bella Coola side reaches
+(0.001). Size is unchanged from T93 (conditions about 871 kB, gate 950,000). Tests:
+`test_a_continuation_speaks_only_with_a_large_share`.
+
