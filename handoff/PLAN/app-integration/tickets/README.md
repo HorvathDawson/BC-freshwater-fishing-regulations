@@ -300,6 +300,7 @@ use that as the sole source of future work."
 | T254 | bad connections: CDP harness (Slow 3G / 2G-ish / flaky / offline-then-back) + baseline, low-bandwidth mode (auto + More → Data toggle), per-size timeouts, retry + Range resume, slow/still-loading states | IN PROGRESS | — | owner 2026-10-29 |
 | T255 | Android app test bed: Maestro flows + adb network control + scenario runner/report (feeds, big update, offline, spots offline, report outbox; T223 sync seam) | IN PROGRESS | — | owner 2026-10-29 |
 | T256 | bad connections part 2: fewer bytes per answer (water/core by region), a start link before paint, Conditions chart before its envelope, the phone installer on resilient fetch, bundle size, request walk first-run | OPEN | — | from T254 measurements |
+| T257 | polish pass: coach-mark tour, "Before you fish" sheet, one delayed FishSpinner for every wait, shared components + guards | IN PROGRESS | — | owner 2026-10-29 polish pass |
 
 ## Order for open tickets
 
