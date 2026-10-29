@@ -105,7 +105,7 @@ use that as the sole source of future work."
 | T58 | back follow-ups | DONE | 21d41623, 9ec8114a | — |
 | T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | DONE | c5b1e3d0, 36df866f, 463c013b, c432f6df | live in r-36fbc5326506 |
 | T60 | consistency auditors (N16, Fable) | DONE | 2ac30e42, 9259fa16, ed367f33, d02e1448 | six mutation-pinned gates in pnpm check; F1–F5 fixed; copy move → T180; Q162 |
-| T61 | cleanup wave 2: old pathways/duplicates | PARTIAL | 9db616f0, 884fe9c7, 46cab8cd, baeda569, 0ad1a84, bb22f3eb, a097e407 | lanes A/B/C + 2.8 normaliser merged and promoted (r-5380a42dab54, no binding change); left: 2.17 fixture move → T63 |
+| T61 | cleanup wave 2: old pathways/duplicates | DONE | 9db616f0, 884fe9c7, 46cab8cd, baeda569, 0ad1a84, bb22f3eb, a097e407, fad95e8e | lanes A/B/C + 2.8 normaliser merged and promoted (r-5380a42dab54, no binding change); 2.17 done in T63; 2.13 pinned |
 | T62 | cleanup wave 3: split long files | DONE | b619ca7b…bb31281e, 7b946345…66b81aa6, c6a967bc | app + pipeline lanes merged (byte-identical outputs; live r-bb4331929428); 3.9 dfo_salmon done (whatchanged archived, README index); 3.2 atlas/build.py: phased main(), --gnis parity IDENTICAL (Kennedy River) |
 | T63 | cleanup wave 4: docs, tests, knip | DONE | 341fff64, 11d29685, 9c22614a, 9867bc86 | MAP.md ×2, 16+ duplicate tests gone, knip in check, synopsis isolation fixed, 2.17 fixtures moved |
 | T64 | tiles: S2 size wins + tile rebuild | DONE | ebfbba7d, 05096efd | built and promoted with r-9b51c28ce0fe: atlas.pmtiles 548 -> 228 MB, basemap 918 -> 876 MB; map look on OWNER-TODO |
@@ -275,6 +275,7 @@ use that as the sole source of future work."
 | T228 | no-access land and salmon break a water's pieces (live salmon merge on the map); dormant gauges attach to nothing; trout includes char (C4) | DONE | a757756b | live r-c331a7a3c2cf: 34 waters gain a part (Coquitlam 4), no rule set moved; 1,618 dormant matched stations out of Conditions; owner re-cuts sync.mjs + regs-fixture |
 | T229 | DFO salmon cascade on the Skeena: plain explanation + Cascade map (review app, DFO mode); the order read from the Region 6 page | DONE | 808784f1, e20796648, 29326f97f | release r-6e96911055ce: more specific place wins within a tier (Kitsumkalum mouth closed Jul 1–Aug 31, Morice Forks), tidal-Area rows section E only, eulachon its own line; Q3/Q6 to T164 |
 | T230 | provincial in-season changes: curated matches (+ auto 22/32), banners on matched waters, unmatched notice + badge, review In-season tab | DONE | 03fc2eb2 + app commit | owner 2026-10-28; feed = T225 `feeds/inseason/index.json`; R2 matches.json upload is the owner's; shots T230-shots/ |
+| T231 | update service: feeds + release checked on the origin (ETag/sha), verified downloads, atomic staged swap applied at a safe moment; sync button states + bell sync section | IN PROGRESS | — | — |
 | T234 | push notifications: regulation changes on followed waters + condition/forecast alerts | OPEN | — | not started; owner questions Q-T234a–c (device-only v1, alert kinds, timing) |
 
 ## Order for open tickets

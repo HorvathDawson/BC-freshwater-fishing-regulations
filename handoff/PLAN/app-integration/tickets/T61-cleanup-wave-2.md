@@ -1,9 +1,8 @@
 # T61 — Cleanup wave 2: merge old pathways and duplicates
 
-Status: PARTIAL — lanes A (9db616f0…a3411ccf), B (46cab8cd…baeda569), C (0a24db3a…884fe9c7) merged; see the Outcome
-sections. Done 2026-10-24: 2.8 the one name normaliser (bb22f3eb…a097e407, promoted in r-5380a42dab54: no binding change, 3
-duplicate aliases dropped). Left: 2.17's live-input move into app/fixtures/, stale prose the lanes listed
-(→ T63). 2.10's tolerances-in-bundle-meta: dropped (owner 2026-10-24: the app never reads them). 2.18 is T48. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 2" (items 2.x), with the owner's corrections: keep
+Status: DONE — lanes A (9db616f0…a3411ccf), B (46cab8cd…baeda569), C (0a24db3a…884fe9c7) merged; 2.8 the one name
+normaliser (bb22f3eb…a097e407, promoted r-5380a42dab54); 2.17's live-input move done in T63; 2.13 closed fad95e8e (2026-10-28
+sweep, below). 2.10's tolerances-in-bundle-meta: dropped (owner 2026-10-24: the app never reads them). 2.18 is T48. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 2" (items 2.x), with the owner's corrections: keep
 stocking / bathymetry / salmon code as "prepared"; prove every script unneeded before deleting it.
 Includes the ONE name normaliser (owner accepts a reviewed binding diff), retiring the dev bundle + riffle fixture
 (N6), finishing P20 (no regs.sqlite, N5).
@@ -187,3 +186,12 @@ Checked the lane leftovers: the prose mentions of `fixture_release` / `build-fix
 (only two historical notes remain: test_shared_logic.py docstring, docs/archive/DUPLICATION.md); `knip` over app/ reports
 nothing dead. No further code-only deletions found. Remaining, not code-only/unblocked: 2.17 design/ live inputs move
 (taps.py owner, T63), 2.13 silent `except Exception` audit, 2.14, 2.20, 2.21.
+
+## Close (2026-10-28)
+The 10-27 sweep's "remaining" list re-checked against the tree: 2.14 (bundle table `glossary_source`, present in the live
+bundle), 2.20 (`answers/engine.py`), 2.21 (`added_streams/mapcheck.py`, verify_map gone) were built by lane B and shipped;
+2.17's design/ inputs moved in T63. 2.13: the silent `except Exception` left in pipeline/ — `regs/review/dfo.page_url`
+guarded an import of a constant (dropped: a missing constant is a bug), `tools/audit/review_comments` narrowed to
+OSError, `audit_splits` and `added_streams/dem` (documented fallbacks) say why on the line; the rest already did.
+Pin `pipeline/tests/test_no_silent_except.py` (AST: a broad handler whose body is pass / continue / return [None] needs
+`# noqa: BLE001 — reason`; mutation pin on each shape). fad95e8e. Nothing left.
