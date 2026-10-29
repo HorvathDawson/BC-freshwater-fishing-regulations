@@ -325,11 +325,18 @@ export function Shell(p: ShellProps) {
           <SpotPickBanner palette={palette} onCancel={rail.cancelPick} />
         )}
       </View>
-      {showLegend && (
-        <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
-      )}
-      {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
-      {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} />}
+      {/* (T275) THE FOOT OVERLAYS THE MAP: a zero-height row at the bottom of the page whose block hangs up over the map. The
+          block's height changes with the mode (Standard / Salmon / Runs / Conditions) and as a flex sibling it resized the
+          map each time; now the map keeps its size and camera, and only the block changes. */}
+      <View testID="map-foot" style={{ height: 0, zIndex: 1 }} pointerEvents="box-none">
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }} pointerEvents="box-none">
+          {showLegend && (
+            <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
+          )}
+          {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
+          {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} />}
+        </View>
+      </View>
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
       {bottomBarShown(route) && <TabBar active={tab} palette={palette} onChange={nav.toTab} />}
       {/* (T215) the synopsis PDF is loading / failed: progress, Cancel, Retry */}
