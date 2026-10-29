@@ -11,7 +11,14 @@
 // STRUCTURAL reconcile holds the region; a `section_moved` location keeps its last answers; a fingerprint no curated
 // location knows is UNPLACED (its rules held in unplaced.json, the owner told once). Nothing here writes a curated
 // file.
-import type { Fetch, Store } from "../io";
+//
+// ROBUST MODE (the Worker's default since the T225 follow-up; `pythonParity: true` = the Python byte for byte, kept for
+// the parity tests): (a) the date cell is read by dates.ts and an unreadable one is a `check` verdict ("dates
+// unparsed — check DFO"), never a dropped limit; (b) ONE BAD ROW HOLDS ONLY ITS LOCATION: a row the catalogue refuses
+// (or a calendar that throws) keeps that location's last answers (a `check` verdict when it has none), listed in the
+// region's `holds` with the reason, and the rest of the region publishes. A page that does not parse / verify, and a
+// STRUCTURAL reconcile, still hold the region (those are page-level).
+import { contentHash, loadManifest, skipSameStore, type Fetch, type Meter, type Store } from "../io";
 import { sendDue } from "../notify";
 import { byFingerprint, loadEntryFile, reconcile, type EntryFile, type Report } from "./entries";
 import { build, type TypedFeed } from "./feed";
@@ -23,10 +30,11 @@ import { key } from "./names";
 import { parseRegion } from "./parse";
 import { cmpStr, cmpTuple, formatFixed, pyStrOf, pyTypeName, repr } from "./py";
 import { feedText, loads, PyFloat } from "./pyjson";
-import { Interner, locationCalendar, NOT_LISTED } from "./salmon";
+import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
 
 export const FORMAT = "dfo-feed/1";
+const SPECIES_N = [...SPECIES];
 export const FAIL_NOTIFY = 2;
 const QUEUE_ACTION = (slug: string) => `python -m pipeline.regs.dfo_salmon.live queue --regions ${slug}`;
 
@@ -55,14 +63,50 @@ export interface DfoDeps {
   fetchOptions?: FetchRegionOptions;
   /** keep changed pages in priv history/ (the corpus). Default true with the live fetcher. */
   history?: boolean;
+  /** true: reproduce the Python exactly (whole-region holds, Python's date reader) — the parity tests only */
+  pythonParity?: boolean;
+  /** skip the typing of a region whose page AND entry file are unchanged (its last answers carried), and skip feed
+   *  writes whose content did not change (default: on unless `pythonParity`) */
+  changeAware?: boolean;
+  /** counts skipped writes / unchanged sources */
+  meter?: Meter;
   log?: (s: string) => void;
 }
+
+/** Bump when a code change alters what a region's page types to: unchanged pages are re-typed once after a deploy. */
+export const DFO_REV = "2026-10-28.1";
+/** published index.json is rewritten at least this often even when nothing changed (the app's "checked" age) */
+export const INDEX_HEARTBEAT_MS = 24 * 3600_000;
+
+/** Index.json minus what changes on every run (`at`, each region's `checked`): what "changed" means for a write. */
+export function stableIndex(body: string): string {
+  try {
+    const j = JSON.parse(body);
+    delete j.at;
+    for (const r of Object.values<Json>(j.regions ?? {})) delete r.checked;
+    return JSON.stringify(j);
+  } catch {
+    return body;
+  }
+}
+
+/** A location held at its last answers this run (robust mode): published in the region's `holds`. */
+export interface RowHold {
+  location_id: string;
+  fingerprint: string;
+  why: string;
+  /** "carried": the last feed's answers stand; "check": there were none — the location reads `check` */
+  kept: "carried" | "check";
+}
+export const ROW_HELD_VERDICT = { s: "check", t: "DFO's row for this place could not be read this run — check DFO" };
 
 export interface DfoResult {
   index: Record<string, unknown>;
   unplaced: Record<string, unknown>[];
   notices: { key: string; text: string }[];
   sent: { sent: string[]; failed: string[]; off: boolean };
+  /** change-aware: the regions whose typing was skipped (page + entries unchanged) */
+  skipped?: string[];
 }
 
 type Json = any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -105,12 +149,12 @@ export function liveFetcher(
 }
 
 /** The page → (typed feed, locations, structure). Throws when the page does not parse or verify. */
-export function typePage(html: string, slug: string): [TypedFeed, Location[], Structure] {
+export function typePage(html: string, slug: string, robust = false): [TypedFeed, Location[], Structure] {
   const parsed = parseRegion(html, slug);
   const u = untangle(parsed);
   verify(parsed, u);
   const [locs, rules, structure] = extract(u);
-  const typed = build({ region: slug, date_modified: parsed.date_modified, preamble: parsed.preamble, rules });
+  const typed = build({ region: slug, date_modified: parsed.date_modified, preamble: parsed.preamble, rules }, robust);
   return [typed, locs, structure];
 }
 
@@ -119,7 +163,14 @@ const waterKnown = (ef: EntryFile, water: string): boolean => {
   return !k || ef.waters.some((w) => key(w.name) === k || w.aliases.some((a) => key(a) === k));
 };
 
-function join(slug: string, ef: EntryFile, typed: TypedFeed, locations: Location[], report: Report): [Map<string, Json[]>, Json[]] {
+function join(
+  slug: string,
+  ef: EntryFile,
+  typed: TypedFeed,
+  locations: Location[],
+  report: Report,
+  holds: Map<string, { fingerprint: string; why: string }> = new Map(),
+): [Map<string, Json[]>, Json[]] {
   const index = byFingerprint(ef);
   const byFp = new Map(locations.map((l) => [l.fingerprint, l] as const));
   const outcome = new Map(report.outcomes.map((o) => [o.fingerprint, o] as const));
@@ -128,6 +179,10 @@ function join(slug: string, ef: EntryFile, typed: TypedFeed, locations: Location
   for (const loc of typed.locators || []) {
     const fp = loc.fingerprint;
     const hit = index.get(fp);
+    if (hit && loc.error !== undefined) {
+      if (!holds.has(hit.location_id)) holds.set(hit.location_id, { fingerprint: fp, why: loc.error });
+      continue;
+    }
     if (hit) {
       const l = rules.get(hit.location_id);
       if (l) l.push(...loc.rules);
@@ -149,6 +204,7 @@ function join(slug: string, ef: EntryFile, typed: TypedFeed, locations: Location
       rows: loc.rows,
       rules: loc.rules,
       page_date: typed.date_modified,
+      ...(loc.error !== undefined ? { error: loc.error } : {}),
     });
   }
   return [rules, unplaced];
@@ -197,7 +253,27 @@ const nowStamp = () => isoSeconds(new Date(), true);
 /** One feed run (live.run). Writes feed index.json + unplaced.json, sends the due notices. */
 export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   const log = deps.log ?? (() => {});
+  const robust = !deps.pythonParity;
+  const aware = deps.changeAware ?? robust;
   const at = deps.now ?? nowStamp();
+  const writes = aware ? await loadManifest(deps.priv, "writes.json") : {};
+  const feedStore: Store = aware
+    ? skipSameStore(deps.feed, writes, {
+        now: Date.parse(at),
+        stable: (k, b) => (k === "index.json" ? stableIndex(b) : b),
+        maxAgeMs: (k) => (k === "index.json" ? INDEX_HEARTBEAT_MS : undefined),
+        meter: deps.meter,
+      })
+    : deps.feed;
+  let inputs: { rev?: string; regions?: Record<string, { page: string; entries: string }> } = {};
+  if (aware)
+    try {
+      inputs = JSON.parse((await deps.priv.get("inputs.json")) ?? "{}");
+    } catch {
+      inputs = {};
+    }
+  const inputsOut: Record<string, { page: string; entries: string }> = {};
+  const skipped: string[] = [];
   const entrySource: EntrySource = deps.entries ?? ((slug) => deps.priv.get(`entries/region-${slug}.json`));
   const live = deps.fetcher ? null : liveFetcher(deps.fetch, deps.priv, log, deps.fetchOptions);
   const fetcher: Fetcher = deps.fetcher ?? live!.get;
@@ -220,10 +296,15 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   const prevRegions = prev.regions || {};
 
   const entryCache = new Map<string, EntryFile>();
+  const entryText = new Map<string, string | null>();
+  const rawEntries = async (slug: string) => {
+    if (!entryText.has(slug)) entryText.set(slug, await entrySource(slug));
+    return entryText.get(slug)!;
+  };
   const loadEf = async (slug: string) => {
     let ef = entryCache.get(slug);
     if (!ef) {
-      ef = loadEntryFile(slug, await entrySource(slug));
+      ef = loadEntryFile(slug, await rawEntries(slug));
       entryCache.set(slug, ef);
     }
     return ef;
@@ -253,6 +334,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
       header: was.header ?? null,
       unresolved: was.unresolved || [],
     };
+    if (robust) reg.holds = was.holds || [];
     regionOut[slug] = reg;
     const hold = (why: string, k: string) => {
       reg.held = why;
@@ -290,11 +372,28 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     }
     reg.sha256 = sha;
     reg.checked = fetched || at;
+    if (aware) {
+      // CHANGE-AWARE: the same page and the same entry file type to the same answers — carry them, skip the typing
+      const key = { page: sha, entries: contentHash((await rawEntries(slug)) ?? "") };
+      const last = inputs.rev === DFO_REV ? inputs.regions?.[slug] : undefined;
+      const usable = last && last.page === key.page && last.entries === key.entries && !was.held && slug in prevRegions;
+      if (usable) {
+        inputsOut[slug] = key;
+        Object.assign(locs, carry(prev, slug, verdicts, gears));
+        for (const u of prevUnplacedOf(slug)) {
+          unplaced.push(u);
+          notices.push(unplacedNotice(u)); // re-offered: a send that failed is retried (notified.json dedupes)
+        }
+        skipped.push(slug);
+        if (deps.meter) deps.meter.sourcesUnchanged += 1;
+        continue;
+      }
+    }
     let typed: TypedFeed;
     let found: Location[];
     let structure: Structure;
     try {
-      [typed, found, structure] = typePage(html, slug);
+      [typed, found, structure] = typePage(html, slug, robust);
     } catch (e) {
       hold(`the page did not parse (${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 120).join("")})`, sha.slice(0, 12));
       continue;
@@ -307,10 +406,43 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
       continue;
     }
     readHeader(slug, html, reg, was, ef, notices);
-    const [rules, held] = join(slug, ef, typed, found, rep);
+    const rowHolds = new Map<string, { fingerprint: string; why: string }>();
+    const [rules, held] = join(slug, ef, typed, found, rep, rowHolds);
+    if (aware) inputsOut[slug] = { page: sha, entries: contentHash((await rawEntries(slug)) ?? "") };
     const moved = new Set(rep.outcomes.filter((o) => o.status === "section_moved" && o.location_id).map((o) => o.location_id!));
-    for (const lid of [...rules.keys()].sort(cmpStr))
-      if (!moved.has(lid)) locs[lid] = { r: slug, ...locationCalendar(rules.get(lid)!, verdicts, gears) };
+    for (const lid of [...rules.keys()].sort(cmpStr)) {
+      if (moved.has(lid) || rowHolds.has(lid)) continue;
+      if (!robust) {
+        locs[lid] = { r: slug, ...locationCalendar(rules.get(lid)!, verdicts, gears) };
+        continue;
+      }
+      try {
+        locs[lid] = { r: slug, ...locationCalendar(rules.get(lid)!, verdicts, gears, true) };
+      } catch (e) {
+        const fp = typed.locators.find((l) => byFingerprint(ef).get(l.fingerprint)?.location_id === lid)?.fingerprint ?? "";
+        rowHolds.set(lid, { fingerprint: fp, why: `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 200).join("")}` });
+      }
+    }
+    if (robust) {
+      const kept: RowHold[] = [];
+      for (const lid of [...rowHolds.keys()].sort(cmpStr)) {
+        const h = rowHolds.get(lid)!;
+        const carried = carry(prev, slug, verdicts, gears, new Set([lid]));
+        let how: RowHold["kept"] = "carried";
+        if (carried[lid]) locs[lid] = carried[lid];
+        else {
+          how = "check";
+          const v = verdicts.add(ROW_HELD_VERDICT);
+          locs[lid] = { r: slug, sp: SPECIES_N.map(() => [0, v]), g: [0, -1] };
+        }
+        kept.push({ location_id: lid, fingerprint: h.fingerprint, why: h.why, kept: how });
+        notices.push({
+          key: `dfo-row-held:${slug}:${h.fingerprint}:${sha.slice(0, 12)}`,
+          text: `DFO Region ${slug}: the row for ${lid} did not read (${[...h.why].slice(0, 160).join("")}); ${how === "carried" ? "its last answers stand" : "it reads 'check DFO'"}, the rest of the region is published`,
+        });
+      }
+      reg.holds = kept;
+    }
     if (moved.size) {
       Object.assign(locs, carry(prev, slug, verdicts, gears, moved));
       for (const o of rep.outcomes)
@@ -331,13 +463,25 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   for (const k of Object.keys(locs).sort(cmpStr)) sortedLocs[k] = locs[k];
   const regions: Record<string, Json> = {};
   for (const s of ALL_SLUGS) if (s in regionOut) regions[s] = regionOut[s];
-  const index = { format: FORMAT, at, regions, verdicts: verdicts.items, gears: gears.items, locs: sortedLocs, unplaced: unplaced.length };
+  // robust: number verdicts / gears canonically (first use over the sorted locations; NOT_LISTED stays 0) so a carried
+  // region and a re-typed one publish the same bytes — what lets an unchanged feed skip its write
+  const [vItems, gItems] = robust ? canonical(sortedLocs, verdicts.items, gears.items) : [verdicts.items, gears.items];
+  const index = { format: FORMAT, at, regions, verdicts: vItems, gears: gItems, locs: sortedLocs, unplaced: unplaced.length };
   const unplacedSorted = unplaced
     .map((u, i) => ({ u, i }))
     .sort((a, b) => cmpTuple([a.u.region, a.u.fingerprint], [b.u.region, b.u.fingerprint]) || a.i - b.i)
     .map((x) => x.u);
-  await deps.feed.put("index.json", feedText(index), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
-  await deps.feed.put("unplaced.json", feedText(unplacedSorted), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
+  await feedStore.put("index.json", feedText(index), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
+  await feedStore.put("unplaced.json", feedText(unplacedSorted), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
+  if (aware) {
+    // a region not run this time keeps its last inputs; one held / failed this run has none (re-typed next run)
+    const keep: Record<string, { page: string; entries: string }> = {};
+    if (inputs.rev === DFO_REV) for (const [s2, v] of Object.entries(inputs.regions ?? {})) if (!todo.includes(s2)) keep[s2] = v;
+    const next = JSON.stringify({ rev: DFO_REV, regions: { ...keep, ...inputsOut } });
+    if (next !== JSON.stringify(inputs)) await deps.priv.put("inputs.json", next);
+    if ((feedStore as { changed?: boolean }).changed) await deps.priv.put("writes.json", JSON.stringify(writes));
+    if (skipped.length) log(`unchanged (page + entries): region ${skipped.join(", ")} — typing skipped, last answers carried`);
+  }
   if (live) await live.flush();
   const sent = await sendDue(notices, {
     url: deps.notifyUrl,
@@ -348,7 +492,29 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     messageOf: (n) => n.text,
     log,
   });
-  return { index, unplaced, notices, sent };
+  return { index, unplaced, notices, sent, skipped };
+}
+
+function canonical(locs: Record<string, Json>, vs: unknown[], gs: unknown[]): [unknown[], unknown[]] {
+  const vMap = new Map<number, number>([[0, 0]]);
+  const gMap = new Map<number, number>();
+  const vOut: unknown[] = [vs[0]];
+  const gOut: unknown[] = [];
+  const re = (x: number, m: Map<number, number>, src: unknown[], out: unknown[]) => {
+    if (x < 0) return x;
+    let n = m.get(x);
+    if (n === undefined) {
+      n = out.length;
+      m.set(x, n);
+      out.push(src[x]);
+    }
+    return n;
+  };
+  for (const l of Object.values(locs)) {
+    l.sp = l.sp.map((runs: number[]) => runs.map((x, k) => (k % 2 === 0 ? x : re(x, vMap, vs, vOut))));
+    l.g = l.g.map((x: number, k: number) => (k % 2 === 0 ? x : re(x, gMap, gs, gOut)));
+  }
+  return [vOut, gOut];
 }
 
 function readHeader(slug: string, html: string, reg: Json, was: Json, ef: EntryFile, notices: { key: string; text: string }[]): void {

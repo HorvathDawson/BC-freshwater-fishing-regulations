@@ -1,10 +1,10 @@
 // T225 port of pipeline/gauges/feed/publish.py (the spec): `publish()` and `main()`'s orchestration as one Worker-safe
 // job, `runGauges`. Network only through `deps.fetch`, storage only through two Stores (no node: imports):
 //   feed  — the PUBLISHED prefix (feeds/live/): index.json, <station>.json, clim.json (input, written by the yearly
-//           HYDAT tier in Python), temp_history.json
-//   priv  — never served: runs/<YYYY-MM>.jsonl (Python's `<out>.runs/`), notified.json (`<out>.notified.json`),
+//           HYDAT tier in Python)
+//   priv  — never served: runs/ (append-only, see skill.ts), temp_history.json, notified.json (`<out>.notified.json`),
 //           roster.json (the realtime roster, when `deps.roster` is not passed)
-import type { Fetch, Store } from "../io";
+import { contentHash, type Fetch, type Meter, type Store } from "../io";
 import { sendDue } from "../notify";
 import { combineDay, forecastDays, gaugeScale, modelName, stale, stationChange, type Rank } from "./change";
 import { ATTRIBUTION, fetchSummary, timeout, withSeries, type Runs, type Summary } from "./forecast";
@@ -409,6 +409,9 @@ export interface GaugeDeps {
   noForecast?: boolean;
   log?: (s: string) => void;
   sleep?: (ms: number) => Promise<void>;
+  /** skip parse/compute/writes for stations whose CSV is not modified (default true; the parity test passes false) */
+  changeAware?: boolean;
+  meter?: Meter;
 }
 
 export interface GaugeSummary {
@@ -428,6 +431,8 @@ export interface GaugeSummary {
 }
 
 const JSON_CT = { contentType: "application/json" };
+/** private (T225 follow-up; Python: in the published feed dir) */
+export const TEMP_HISTORY = "temp_history.json";
 
 /** `python -m pipeline.gauges.feed.publish` as one call: list, HYDAT check, forecasts, publish, archive, notify. */
 export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
@@ -524,7 +529,7 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
     }
   }
 
-  const summary = await publish({ fetch, feed, priv, ids, clim, forecast: fcast, latest, now, listed, drift, roster: rosterName, log, sleep, stationFile });
+  const summary = await publish({ fetch, feed, priv, ids, clim, forecast: fcast, latest, now, listed, drift, roster: rosterName, log, sleep, stationFile, aware: deps.changeAware ?? true, meter: deps.meter });
   const runs = Object.values(fcast).reduce((n, v) => n + Object.keys(v).length, 0);
   log(`  ✅ ${summary.answered}/${summary.asked} answered, ${summary.withPercentile} with a percentile; ${runs} model runs across ${Object.keys(fcast).length} stations`);
   for (const n of summary.maintenance) if (n.kind === "hydat") log(`  ⚠️  A NEWER HYDAT IS OUT: ${n.latest} (envelope is on ${n.current}, noticed ${n.since}). Refresh with: ${n.action}`);
@@ -547,6 +552,70 @@ interface PublishArgs {
   log: (s: string) => void;
   sleep: (ms: number) => Promise<void>;
   stationFile: (st: string) => Promise<Prev | null>;
+  aware: boolean;
+  meter?: Meter;
+}
+
+// ── change-aware runs (owner 2026-10-28) ───────────────────────────────────────────────────────────────────────────
+/** Bump when a code change alters a station's output: every station is recomputed once after a deploy. */
+export const GAUGE_REV = "2026-10-28.1";
+export const STATION_CACHE = "stations.cache.json";
+interface Base {
+  percentile: Num;
+  parameter: string;
+  per: Record<string, unknown>;
+  observedAt: string;
+  forecast: boolean;
+  ahead?: unknown;
+  aheadDays?: unknown;
+  change?: unknown;
+}
+interface Cached {
+  /** the station's non-CSV inputs this run (day, pentad, clim release, forecast runs): its CSV is asked conditionally
+   *  only when these are the same as last time */
+  ctx: string;
+  etag: string | null;
+  lm: string | null;
+  reading: { at: string; level: Num; discharge: Num };
+  base: Base;
+  newest: string | null;
+  beyond?: string[][];
+}
+interface StationCache {
+  rev: string;
+  st: Record<string, Cached>;
+}
+
+/** The index entry, in Python's key order; the temperature parts are this run's (the CSV skip never skips them). */
+function composeEntry(b: Base, tC: Num, tAt: string | null, band: string | null, pt: Num): Record<string, any> {
+  return {
+    percentile: b.percentile,
+    parameter: b.parameter,
+    ...b.per,
+    ...(tC !== null ? { temperatureBand: band } : {}),
+    ...(tC !== null && pt !== null ? { temperature: pt } : {}),
+    observedAt: b.observedAt,
+    ...(tC !== null ? { temperatureC: tC, temperatureAt: tAt } : {}),
+    forecast: b.forecast,
+    ...(b.ahead !== undefined ? { ahead: b.ahead } : {}),
+    ...(b.aheadDays !== undefined ? { aheadDays: b.aheadDays } : {}),
+    ...(b.change !== undefined ? { change: b.change } : {}),
+  };
+}
+
+/** GET with validators: `same` when the server answers 304 Not Modified. */
+async function getCond(fetch: Fetch, url: string, etag: string | null, lm: string | null): Promise<{ text: string | null; same: boolean; etag: string | null; lm: string | null }> {
+  try {
+    const headers: Record<string, string> = { "User-Agent": UA };
+    if (etag) headers["If-None-Match"] = etag;
+    if (lm) headers["If-Modified-Since"] = lm;
+    const r = await fetch(url, { headers, signal: timeout(30_000) });
+    if (r.status === 304) return { text: null, same: true, etag, lm };
+    if (!r.ok) return { text: null, same: false, etag: null, lm: null };
+    return { text: await r.text(), same: false, etag: r.headers.get("etag"), lm: r.headers.get("last-modified") };
+  } catch {
+    return { text: null, same: false, etag: null, lm: null };
+  }
 }
 
 /** A previous station file, slimmed (see `stationFile`). */
@@ -573,25 +642,57 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   const nowDay = dayOf(now);
   const fetchedAt = wallIso(now) + "Z";
 
+  // CHANGE-AWARE: a station whose CSV is "not modified" and whose other inputs are the same as last run keeps its last
+  // answers — no parse, no daily merge, no station-file read or write. A station with forecast runs is always
+  // recomputed (its `ahead` values are read at this minute).
+  let cache: StationCache | null = null;
+  if (a.aware) {
+    try {
+      cache = JSON.parse((await priv.get(STATION_CACHE)) ?? "null");
+    } catch {
+      cache = null;
+    }
+    if (!cache || cache.rev !== GAUGE_REV) cache = { rev: GAUGE_REV, st: {} };
+  }
+  const nextCache: StationCache = { rev: GAUGE_REV, st: {} };
+  const ctxOf = (st: string) =>
+    contentHash(JSON.stringify([nowDay, pent, release, (envelope[st] ? "e" : ""), Object.keys(forecast[st] || {}).length ? now : null]));
+  const unchanged = new Set<string>();
+  const validators = new Map<string, { etag: string | null; lm: string | null }>();
   const got = (
     await pool([...a.ids].sort(), WORKERS, async (st) => {
-      const text = await get(fetch, `${BASE}/hourly/BC_${st}_hourly_hydrometric.csv`);
-      return text ? parseHourly(st, text) : null;
+      const url = `${BASE}/hourly/BC_${st}_hourly_hydrometric.csv`;
+      if (!a.aware) {
+        const text = await get(fetch, url);
+        return text ? parseHourly(st, text) : null;
+      }
+      const c = cache!.st[st];
+      const cond = c && c.ctx === ctxOf(st);
+      const r = await getCond(fetch, url, cond ? c.etag : null, cond ? c.lm : null);
+      if (r.same && c) {
+        unchanged.add(st);
+        return { station: st, ...c.reading, recent: [] } as Reading;
+      }
+      validators.set(st, { etag: r.etag, lm: r.lm });
+      return r.text ? parseHourly(st, r.text) : null;
     })
   ).filter((r): r is Reading => r !== null);
+  if (a.meter) a.meter.sourcesUnchanged += unchanged.size;
+  if (a.aware) log(`  unchanged ${unchanged.size} of ${got.length} station CSVs (304): parse, merge and station-file write skipped`);
+  const fresh = got.filter((r) => !unchanged.has(r.station));
 
-  const priorList = await pool(got, WORKERS, async (r) => {
+  const priorList = await pool(fresh, WORKERS, async (r) => {
     const f = await a.stationFile(r.station);
     return { daily: f && f.ok && truthy(f.daily) ? (f.daily as unknown[][]) : [] };
   });
-  const prior = new Map(got.map((r, i) => [r.station, priorList[i]!]));
+  const prior = new Map(fresh.map((r, i) => [r.station, priorList[i]!]));
 
   const seenBy = new Map<string, Means>();
-  for (const r of got) seenBy.set(r.station, meansOf(r.recent));
-  const todayOf = new Map(got.map((r) => [r.station, localDay(r.at, nowDay)]));
+  for (const r of fresh) seenBy.set(r.station, meansOf(r.recent));
+  const todayOf = new Map(fresh.map((r) => [r.station, localDay(r.at, nowDay)]));
   const ym = (d: string) => [Number(d.slice(0, 4)), Number(d.slice(5, 7))] as const;
 
-  const gappy = got
+  const gappy = fresh
     .map((r) => r.station)
     .filter((st) => {
       const [y, m] = ym(todayOf.get(st)!);
@@ -613,9 +714,16 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
 
   const temps = await fetchTemperatures(fetch, got.map((r) => r.station), now, a.sleep);
   // accumulate_temperatures
+  // T225 follow-up: temp_history.json is STATE (the samples the envelope is built from; the app never reads it), so it
+  // lives in the PRIVATE store now. Python publishes it in the feed dir; a legacy public copy is read once, then removed.
   let hist: Record<string, Record<string, number[]>> = {};
+  let legacyPublic = false;
   try {
-    const t = await feed.get("temp_history.json");
+    let t = await priv.get(TEMP_HISTORY);
+    if (t === null) {
+      t = await feed.get(TEMP_HISTORY);
+      legacyPublic = t !== null;
+    }
     hist = t === null ? {} : JSON.parse(t);
   } catch {
     hist = {};
@@ -628,7 +736,8 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     vals.push(pyRound(c, 2));
     if (vals.length > TEMP_SAMPLES_PER_PENTAD) vals.splice(0, vals.length - TEMP_SAMPLES_PER_PENTAD);
   }
-  await feed.put("temp_history.json", JSON.stringify(hist), JSON_CT);
+  await priv.put(TEMP_HISTORY, JSON.stringify(hist), JSON_CT);
+  if (legacyPublic && (feed as DeletableStore).delete) await (feed as DeletableStore).delete!(TEMP_HISTORY);
   const tEnv = temperatureEnvelope(hist);
   log(`  water temperature: ${temps.size} of ${got.length} stations  (${Object.keys(tEnv).length} now have enough history for an envelope)`);
 
@@ -643,6 +752,18 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   };
   for (const r of got) {
     const st = r.station;
+    const t0 = temps.get(st);
+    const tC0 = t0 ? t0[1] : null;
+    const tempParts = (): [Num, string | null, string | null, Num] =>
+      tC0 === null ? [null, null, null, null] : [tC0, t0![0], temperatureBand(tC0), percentileOf(tC0, (tEnv[st] || {})[String(pent)])];
+    if (unchanged.has(st)) {
+      const c = cache!.st[st]!;
+      index[st] = composeEntry(c.base, ...tempParts());
+      nextCache.st[st] = c;
+      if (c.beyond) beyondWindow[st] = c.beyond;
+      if (c.newest && (!newest || c.newest > newest)) newest = c.newest;
+      continue;
+    }
     const have: Record<string, any> = envelope[st] || {};
     const param = shownParameter(have, r.discharge, r.level);
     const band = bandFor(have[param], now);
@@ -706,8 +827,22 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     backfill.delete(st);
     const stamps = [newest, ...Object.values(changed[0]).map((c: any) => c.issuedAt)].filter((x) => truthy(x)) as string[];
     newest = stamps.length ? stamps.reduce((a2, b2) => (b2 > a2 ? b2 : a2)) : newest;
+    if (a.aware) {
+      const own = (Object.values(changed[0]).map((c: any) => c.issuedAt).filter((x) => truthy(x)) as string[]).sort();
+      const { temperatureBand: _b, temperature: _t, temperatureC: _c, temperatureAt: _a, percentile, parameter, observedAt, forecast: fc, ahead: ah, aheadDays: ad, change: ch, ...perQ } = index[st];
+      const base: Base = { percentile, parameter, per: perQ, observedAt, forecast: fc };
+      if (ah !== undefined) base.ahead = ah;
+      if (ad !== undefined) base.aheadDays = ad;
+      if (ch !== undefined) base.change = ch;
+      const v = validators.get(st) ?? { etag: null, lm: null };
+      nextCache.st[st] = {
+        ctx: ctxOf(st), etag: v.etag, lm: v.lm, reading: { at: r.at, level: r.level, discharge: r.discharge }, base,
+        newest: own.length ? own[own.length - 1]! : null, ...(beyondWindow[st] ? { beyond: beyondWindow[st] } : {}),
+      };
+    }
   }
   await Promise.all(inflight);
+  if (a.aware) await priv.put(STATION_CACHE, JSON.stringify(nextCache));
 
   let archived: Record<string, any>;
   try {
@@ -721,10 +856,13 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   const maintenance = maintenanceNotices({ release, latest: a.latest, drift: a.drift, previous: before, at: fetchedAt, roster: a.roster });
   await feed.put("index.json", JSON.stringify({
     fetchedAt,
+    // T225 follow-up: written ONCE. Python's dict literal names it twice and the second (T52: the newest issue among the
+    // runs with a `change` block) silently replaced the first; the app's Forecasts line (T68) means the newest run
+    // feed-wide, which is what this is.
     forecastIssuedAt: newestForecastIssue(forecast),
     hydat: { release, latest: a.latest, stale: staleRelease },
     maintenance,
-    ...(newest ? { forecastAttribution: ATTRIBUTION, forecastIssuedAt: newest } : {}),
+    ...(newest ? { forecastAttribution: ATTRIBUTION } : {}),
     stations: index,
     ...(a.listed !== null ? { listed: [...a.listed].sort() } : {}),
   }), JSON_CT);

@@ -2,7 +2,7 @@
 // gear_on), the map status, runs, and the interner — plus live.location_calendar / compose on top.
 import { dumps } from "./pyjson";
 import type { TypedRule } from "./typed";
-import { MONTHS, monthDay, YEAR } from "./typed";
+import { DATES_UNPARSED, MONTHS, monthDay, YEAR } from "./typed";
 
 export const SPECIES = ["CH", "CO", "SK", "PK", "CM"] as const;
 const ALL_SALMON = "SA";
@@ -29,6 +29,16 @@ export function holdsOn(rule: R, md: number): boolean | null {
     if (a <= b ? a <= md && md <= b : md >= a || md <= b) return true;
   }
   return false;
+}
+
+/** robust mode: how a rule holds on a day — "dated" (a printed range, or no dates: all year), "open" (an "until further
+ * notice" rule on a day before its start: it runs on, but any dated rule outranks it), false, or null (unreadable). */
+export function holdsKind(rule: R, md: number): "dated" | "open" | false | null {
+  const w = (rule.when ?? {}) as { dates?: { from_month: number; from_day: number; to_month: number; to_day: number }[]; unparsed?: string[]; open_ended?: boolean };
+  const h = holdsOn(rule, md);
+  if (h === null) return null;
+  if (h) return "dated";
+  return w.open_ended && w.dates && w.dates.length ? "open" : false;
 }
 
 const speciesOf = (r: R): string[] => (r.species && r.species.length ? r.species : r.when_targeting && r.when_targeting.length ? r.when_targeting : []);
@@ -59,7 +69,17 @@ function whenWords(when: R["when"]): string {
   const w = (when ?? {}) as { dates?: { from_month: number; from_day: number; to_month: number; to_day: number }[]; hours?: { start: ClockW; end: ClockW }; unparsed?: string[]; weekdays?: string[] };
   if (w.weekdays && w.weekdays.length) throw new Error("salmon: a DFO rule with weekdays is not ported");
   const bits: string[] = [];
-  if (w.dates && w.dates.length) bits.push(w.dates.map((d) => rangeTxt(d.from_month * 100 + d.from_day, d.to_month * 100 + d.to_day)).join(", "));
+  const ow = w as { open_ended?: boolean };
+  if (w.dates && w.dates.length)
+    bits.push(
+      w.dates
+        .map((d, i) => {
+          const a = d.from_month * 100 + d.from_day;
+          if (ow.open_ended && i === w.dates!.length - 1) return a === 101 ? "until further notice" : `from ${fmtMd(a)} until further notice`;
+          return rangeTxt(a, d.to_month * 100 + d.to_day);
+        })
+        .join(", "),
+    );
   if (w.hours) bits.push(`${clockWords(w.hours.start)} to ${clockWords(w.hours.end)}`);
   if (w.unparsed && w.unparsed.length) bits.push("as printed: " + w.unparsed.join("; "));
   return bits.join(", ");
@@ -95,6 +115,8 @@ class Loc {
   limits: R[][]; // per species
   unreadable: R[];
   gear: R[];
+  checks: R[][]; // robust: per species, the rules whose dates did not read (`check`)
+  gearChecks: R[];
   memo = new Map<string, string>();
   verdicts = new Map<string, Verdict>();
   gears = new Map<string, string[]>();
@@ -107,6 +129,8 @@ class Loc {
     this.limits = SPECIES.map((sp) => rules.filter((r) => !r.within && !isGear(r) && covers(r, sp) && ("take" in r || "may_target" in r)));
     this.unreadable = rules.filter((r) => !r.within);
     this.gear = rules.filter((r) => isGear(r) && (!speciesOf(r).length || SPECIES.some((sp) => covers(r, sp))));
+    this.checks = SPECIES.map((sp) => rules.filter((r) => r.check && !r.within && !isGear(r) && (!speciesOf(r).length || covers(r, sp))));
+    this.gearChecks = this.gear.filter((r) => r.check);
   }
   text(rs: R[]): string {
     const k = rs.map((r) => this.rules.indexOf(r)).join(",");
@@ -119,11 +143,30 @@ class Loc {
   }
 }
 
-/** salmon.verdict_on over a chain of read locations */
-function verdictOn(chain: Loc[], k: number, md: number): Verdict | null {
+/** salmon.verdict_on over a chain of read locations. `robust`: a rule whose dates did not read makes the species'
+ * verdict `check` on EVERY day (it may close or open any of them — never a silently missing limit), and an "until
+ * further notice" rule fills only the days no dated rule speaks for. */
+function verdictOn(chain: Loc[], k: number, md: number, robust = false): Verdict | null {
   const sp = SPECIES[k]!;
   for (const loc of chain) {
-    const held = loc.limits[k]!.filter((r) => holdsOn(r, md));
+    if (robust && loc.checks[k]!.length) {
+      const why = loc.checks[k]!;
+      const key = "unparsed:" + why.map((r) => loc.rules.indexOf(r)).join(",");
+      let out = loc.verdicts.get(key);
+      if (!out) {
+        out = { s: "check", t: `${DATES_UNPARSED[0]!.toUpperCase()}${DATES_UNPARSED.slice(1)}: ${loc.text(why)}` };
+        const n = notice(why);
+        if (n) out.n = n;
+        loc.verdicts.set(key, out);
+      }
+      return out;
+    }
+    let held: R[];
+    if (robust) {
+      const kinds = loc.limits[k]!.map((r) => [r, holdsKind(r, md)] as const);
+      held = kinds.filter(([, h]) => h === "dated").map(([r]) => r);
+      if (!held.length) held = kinds.filter(([, h]) => h === "open").map(([r]) => r);
+    } else held = loc.limits[k]!.filter((r) => holdsOn(r, md));
     if (held.length) {
       const ownSp = held.filter((r) => speciesOf(r).includes(sp));
       const own = ownSp.length ? ownSp : held;
@@ -154,13 +197,19 @@ function verdictOn(chain: Loc[], k: number, md: number): Verdict | null {
   return null;
 }
 
-function gearOn(chain: Loc[], md: number): string[] {
+function gearOn(chain: Loc[], md: number, robust = false): string[] {
   for (const loc of chain) {
-    const held = loc.gear.filter((r) => holdsOn(r, md));
+    let held: R[];
+    if (robust) {
+      const kinds = loc.gear.map((r) => [r, holdsKind(r, md)] as const);
+      held = kinds.filter(([, h]) => h === "dated").map(([r]) => r);
+      if (!held.length) held = kinds.filter(([, h]) => h === "open").map(([r]) => r);
+      held.push(...loc.gearChecks); // its dates did not read: shown on every day, flagged by its text
+    } else held = loc.gear.filter((r) => holdsOn(r, md));
     if (held.length) {
       const key = held.map((r) => loc.rules.indexOf(r)).join(",");
       let out = loc.gears.get(key);
-      if (!out) loc.gears.set(key, (out = [...new Set(held.map((r) => loc.text([r])))]));
+      if (!out) loc.gears.set(key, (out = [...new Set(held.map((r) => (r.check ? `${r.check}: ` : "") + loc.text([r])))]));
       return out;
     }
   }
@@ -215,16 +264,16 @@ export class Interner<T> {
 }
 
 /** live.location_calendar: one location's year */
-export function locationCalendar(rules: R[], verdicts: Interner<unknown>, gears: Interner<unknown>): { sp: number[][]; g: number[] } {
+export function locationCalendar(rules: R[], verdicts: Interner<unknown>, gears: Interner<unknown>, robust = false): { sp: number[][]; g: number[] } {
   const chain = [new Loc(rules)];
   const perSp: number[][] = SPECIES.map(() => []);
   const gear: number[] = [];
   for (const md of DAYS) {
     for (let k = 0; k < SPECIES.length; k++) {
-      const v = verdictOn(chain, k, md);
+      const v = verdictOn(chain, k, md, robust);
       perSp[k]!.push(v ? verdicts.add(v) : -1);
     }
-    const g = gearOn(chain, md);
+    const g = gearOn(chain, md, robust);
     gear.push(g.length ? gears.add(g) : -1);
   }
   return { sp: perSp.map(runsOf), g: runsOf(gear) };

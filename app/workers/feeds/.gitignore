@@ -1,3 +1,6 @@
 # full-roster recordings for the worst-case timing (tens of MB): kept local, not committed
 fixtures-full/
 .wrangler/
+
+# the staging RUN_TOKEN (wrangler secret), kept locally only
+.run-token

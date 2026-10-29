@@ -26,16 +26,18 @@ export async function parity(fixtures: string, notify?: string) {
     notifyUrl: notify ?? null,
     log: (s) => lines.push(s),
     sleep: async () => {},
+    changeAware: false, // the change-aware skip is tested on its own (test/gauges.robust.test.ts)
   });
   const tsMs = Date.now() - t1;
   const py = readTree(join(work, "py/feed"));
   for (const [k, v] of readTree(join(work, "py/priv"))) py.set(`priv/${k}`, v);
   const ts = readTree(join(work, "ts/feed"));
   for (const [k, v] of readTree(join(work, "ts/priv"))) ts.set(`priv/${k}`, v);
+  const intended = normalizeIntended(py, ts);
   const diffs = compareTrees(py, ts);
   const pyPosts = JSON.parse(readFileSync(join(work, "py/posts.json"), "utf-8"));
   const pyMisses = JSON.parse(readFileSync(join(work, "py/misses.json"), "utf-8"));
-  return { diffs, summary, posts: { py: pyPosts, ts: ff.posts }, misses: { py: pyMisses, ts: ff.misses }, lines, pyMs, tsMs, work };
+  return { diffs, intended, summary, posts: { py: pyPosts, ts: ff.posts }, misses: { py: pyMisses, ts: ff.misses }, lines, pyMs, tsMs, work };
 }
 
 const isMain = /run\.mjs$/.test(process.argv[1] ?? "");
@@ -55,4 +57,46 @@ if (isMain && process.argv[2]) {
   for (const d of sem.filter((d) => d.kind !== "ulp").slice(0, 40)) console.log(d.kind, d.file, d.detail ?? "");
   if (sem.length > 40) console.log(`... ${sem.length - 40} more`);
   console.log("work dir:", r.work);
+}
+
+/** The T225 follow-up's INTENDED differences from the Python, folded back so the rest still diffs exactly (each one is
+ * checked here, not just dropped):
+ *   - temp_history.json is private now (priv/temp_history.json; Python: the published feed dir), and the legacy public
+ *     copy is removed;
+ *   - the runs archive is append-only: priv/runs/<m>/<d>/<t>.jsonl parts (+ day objects) and runs/state.json; month file
+ *     + days + parts concatenated in key order must equal Python's rewritten month file;
+ *   - index.json `forecastIssuedAt` is written once, the newest run feed-wide (T68); Python's second key (T52: the newest
+ *     among runs with a change block) overwrote it — ts must be the same or newer. */
+export function normalizeIntended(py: Map<string, string>, ts: Map<string, string>): string[] {
+  const notes: string[] = [];
+  const th = ts.get("priv/temp_history.json");
+  if (th !== undefined) {
+    if (ts.has("temp_history.json")) throw new Error("temp_history.json is still published");
+    ts.delete("priv/temp_history.json");
+    ts.set("temp_history.json", th);
+    notes.push("temp_history.json: private");
+  }
+  ts.delete("priv/runs/state.json");
+  ts.delete("priv/stations.cache.json");
+  const pieces = [...ts.keys()].filter((k) => /^priv\/runs\/\d{4}-\d{2}\//.test(k)).sort();
+  for (const k of pieces) {
+    const month = k.split("/")[2]!;
+    const mk = `priv/runs/${month}.jsonl`;
+    ts.set(mk, (ts.get(mk) ?? "") + ts.get(k)!);
+    ts.delete(k);
+  }
+  if (pieces.length) notes.push(`runs: ${pieces.length} append-only object(s) folded into the month file`);
+  const pi = py.get("index.json");
+  const ti = ts.get("index.json");
+  if (pi && ti) {
+    const p = JSON.parse(pi);
+    const t = JSON.parse(ti);
+    if (p.forecastIssuedAt !== t.forecastIssuedAt) {
+      if (p.forecastIssuedAt && !(t.forecastIssuedAt >= p.forecastIssuedAt)) throw new Error(`forecastIssuedAt older than Python's: ${t.forecastIssuedAt} < ${p.forecastIssuedAt}`);
+      notes.push(`forecastIssuedAt: py ${p.forecastIssuedAt} (T52's) → ts ${t.forecastIssuedAt} (T68's)`);
+      p.forecastIssuedAt = t.forecastIssuedAt;
+      py.set("index.json", JSON.stringify(p));
+    }
+  }
+  return notes;
 }

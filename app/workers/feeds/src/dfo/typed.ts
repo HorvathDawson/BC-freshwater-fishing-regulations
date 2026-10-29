@@ -5,6 +5,7 @@
 // THE VALIDATORS ARE PORTED TOO, as far as a DFO row can reach them: a rule the catalogue refuses raises, and a raise
 // HOLDS THE WHOLE REGION ("the page did not parse (ValidationError: ...)") — that sentence lands in index.json, so the
 // pydantic message is reproduced (its first 120 characters are what the feed keeps).
+import { readDates } from "./dates";
 import { getCloseMatches } from "./difflib";
 import { PyFloat } from "./pyjson";
 import { capitalize, floatRepr, fullmatch, PyError, pyInt, pyRe, repr, rstrip, search, split, splitWs, strip, sub, translate } from "./py";
@@ -441,6 +442,8 @@ function validate(r: TypedRule): void {
 // ── the rule, as dumped ──────────────────────────────────────────────────────────────────────────────────────────────
 export interface When {
   dates?: DateRange[];
+  /** robust mode: the cell said "until further notice" — the last range's start runs on (salmon.ts) */
+  open_ended?: boolean;
   hours?: { start: unknown; end: unknown };
   unparsed?: string[];
 }
@@ -464,7 +467,12 @@ export interface TypedRule {
   within?: string;
   gear?: Record<string, unknown>[];
   when_targeting?: string[];
+  /** robust mode: why this rule cannot be read on a day — "dates unparsed — check DFO" (salmon.ts: a `check` verdict) */
+  check?: string;
 }
+
+/** The DFO date cell's unparsed state, as the rule and the verdict carry it. */
+export const DATES_UNPARSED = "dates unparsed — check DFO";
 
 function whenOf(windows: string[], times: RegExpExecArray | null): When | null {
   const dates: DateRange[] = [];
@@ -495,15 +503,28 @@ export interface ScrapedRule {
   limits_gear: string;
 }
 
-/** typed.to_rules: one scraped row → the rules it states (dumped). */
-export function toRules(rec: ScrapedRule, ruleBase: string, order: number): TypedRule[] {
+/** typed.to_rules: one scraped row → the rules it states (dumped).
+ *
+ * `robust` (the Worker's default; false = the Python, byte for byte, for the parity tests): the date cell is read by
+ * dates.readDates — "until further notice", "To", "until", day-month order, ordinals, years, typos — and a cell it
+ * still cannot read KEEPS the row's typed rules (never the advisory that dropped the limit), each carrying
+ * `when.unparsed` and `check: DATES_UNPARSED`, which the calendar shows as a `check` verdict on every day. */
+export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robust = false): TypedRule[] {
   const gear = strip(rec.limits_gear || "");
   const says = decode(gear);
   const codes = speciesFor(rec.species || "");
   const rawDates = strip(rec.dates || "");
-  const when = interpretDates(rawDates);
-  const windows = !rawDates ? [] : when.repaired ? [repairDates(rawDates)] : [rawDates];
-  const unreadable = !!rawDates && !when.parsed;
+  const cell = robust ? readDates(rawDates) : null;
+  const when = robust ? { parsed: true, repaired: false } : interpretDates(rawDates);
+  const windows = robust || !rawDates ? [] : when.repaired ? [repairDates(rawDates)] : [rawDates];
+  const unreadable = !robust && !!rawDates && !when.parsed;
+  const robustWhen: When | null =
+    cell === null || cell.kind === "empty"
+      ? null
+      : cell.kind === "ok"
+        ? { dates: cell.ranges, ...(cell.openEnded ? { open_ended: true } : {}) }
+        : { unparsed: [rawDates] };
+  const unparsedDates = cell?.kind === "unparsed";
   const fn = search(RE_FN, gear);
   const notice = fn ? `FN${String(pyInt(fn[1]!)).padStart(4, "0")}` : null;
   const rid = `${ruleBase}.r${order}`;
@@ -513,14 +534,15 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number): Type
     // base(): verbatim / notice / when, then the kwargs (kwargs win)
     const base: Partial<TypedRule> = { verbatim: gear || rec.species || "row" };
     if (notice) base.notice = notice;
-    const w = whenOf(windows, times);
+    const w = robust ? robustWhenOf(robustWhen, times) : whenOf(windows, times);
     if (w) base.when = w;
     const merged: TypedRule = { ...(base as TypedRule), ...stripDefaults(fields) };
+    if (unparsedDates) merged.check = DATES_UNPARSED;
     validate(merged);
     return merged;
   };
 
-  if (search(RE_TBD, gear))
+  if (search(RE_TBD, gear) || cell?.kind === "tbd")
     return [make({ rule_id: rid, type: "advisory", review_reason: "DFO has not set this row yet ('to be determined')" })];
   if (unreadable)
     return [make({ rule_id: rid, type: "advisory", review_reason: `dates do not parse to a calendar window: ${repr(rawDates)}` })];
@@ -601,8 +623,34 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number): Type
       make({ rule_id: `${rid}_fly`, type: "tackle_restriction", gear: [{ slot: "method", only: ["fly_fishing"] }], when_targeting: codes, verbatim: span(gear, RE_FLY) || gear }),
     );
   if (!out.length)
-    out.push(make({ rule_id: rid, type: "advisory", review_reason: "row states no limit, closure or gear rule the scrape could type" }));
+    out.push(
+      make({
+        rule_id: rid,
+        type: "advisory",
+        review_reason: unparsedDates
+          ? `dates do not parse to a calendar window: ${repr(rawDates)}`
+          : "row states no limit, closure or gear rule the scrape could type",
+      }),
+    );
   return out;
+}
+
+/** robust mode's `when`: the read date cell plus the row's hours */
+function robustWhenOf(base: When | null, times: RegExpExecArray | null): When | null {
+  let hours: When["hours"] | null = null;
+  if (times) {
+    const a = parseClock(times[1]!);
+    const b = parseClock(times[2]!);
+    if (!a || !b) throw new PyError("ValueError", `times ${repr(times[0])} do not parse`);
+    hours = { start: a, end: b };
+  }
+  if (!base && !hours) return null;
+  const w: When = {};
+  if (base?.dates) w.dates = base.dates;
+  if (base?.open_ended) w.open_ended = true;
+  if (hours) w.hours = hours;
+  if (base?.unparsed) w.unparsed = base.unparsed;
+  return w;
 }
 
 /** exclude_defaults: drop what equals the field default ([] / "" / null / undefined). */

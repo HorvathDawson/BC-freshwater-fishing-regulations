@@ -22,9 +22,13 @@ export interface Meter {
   bytesIn: number; // fetched from sources
   bytesRead: number; // read from R2
   bytesWritten: number; // written to R2
+  /** puts skipped because the object's content had not changed (change-aware runs) */
+  writesSkipped: number;
+  /** sources answered "not modified" / unchanged, so their parse + compute was skipped */
+  sourcesUnchanged: number;
 }
 
-export const newMeter = (): Meter => ({ subrequests: 0, r2ClassA: 0, r2ClassB: 0, bytesIn: 0, bytesRead: 0, bytesWritten: 0 });
+export const newMeter = (): Meter => ({ subrequests: 0, r2ClassA: 0, r2ClassB: 0, bytesIn: 0, bytesRead: 0, bytesWritten: 0, writesSkipped: 0, sourcesUnchanged: 0 });
 
 const enc = new TextEncoder();
 
@@ -79,4 +83,62 @@ export interface R2BucketLike {
   get(key: string): Promise<{ text(): Promise<string> } | null>;
   put(key: string, body: string, opts?: { httpMetadata?: { contentType?: string; cacheControl?: string } }): Promise<unknown>;
   delete(key: string): Promise<void>;
+}
+
+// ── change-aware writes (owner 2026-10-28: "only WRITE an object when its content differs") ─────────────────────────
+
+/** A fast 64-bit content hash (two 32-bit FNV-1a/murmur-mixed lanes) — change detection, not security. */
+export function contentHash(s: string): string {
+  let h1 = 0xdeadbeef ^ s.length;
+  let h2 = 0x41c6ce57 ^ s.length;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 2654435761);
+    h2 = Math.imul(h2 ^ c, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0");
+}
+
+/** What was last written per key: the hash of its STABLE content and when it was written. Kept in a private object. */
+export type WriteManifest = Record<string, { h: string; t: number }>;
+
+export interface SkipSameOptions {
+  now: number;
+  /** the part of a body that matters (default: all of it) — e.g. an index without its run stamp */
+  stable?: (key: string, body: string) => string;
+  /** rewrite anyway when the last write is older than this (a heartbeat: the app's "checked" age never exceeds it) */
+  maxAgeMs?: (key: string) => number | undefined;
+  meter?: Meter;
+}
+
+/** A Store whose `put` is skipped when the key's stable content hashes the same as its last write. */
+export function skipSameStore<S extends Store>(s: S, manifest: WriteManifest, o: SkipSameOptions): S & { changed: boolean } {
+  const out = Object.create(s) as S & { changed: boolean };
+  out.changed = false;
+  out.get = (k: string) => s.get(k);
+  out.put = async (key: string, body: string, opts?: PutOptions) => {
+    const h = contentHash(o.stable ? o.stable(key, body) : body);
+    const was = manifest[key];
+    const age = o.maxAgeMs?.(key);
+    if (was && was.h === h && (age === undefined || o.now - was.t < age)) {
+      if (o.meter) o.meter.writesSkipped += 1;
+      return;
+    }
+    await s.put(key, body, opts);
+    manifest[key] = { h, t: o.now };
+    out.changed = true;
+  };
+  return out;
+}
+
+export async function loadManifest(priv: Store, key: string): Promise<WriteManifest> {
+  try {
+    const t = await priv.get(key);
+    const m = t === null ? {} : JSON.parse(t);
+    return m && typeof m === "object" && !Array.isArray(m) ? m : {};
+  } catch {
+    return {};
+  }
 }

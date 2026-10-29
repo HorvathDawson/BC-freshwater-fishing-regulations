@@ -108,13 +108,76 @@ shares it; past it, the hourly gauge writes would cost ~$1.4/mo. Storage: ~26 MB
 - 6 simultaneous outgoing connections (R2 included): the 8-wide pools queue at 6; wall 45–80 s against a 15-min cron limit.
 - Cron Triggers: 3 needed (gauges day, gauges night, DFO; season via the cron's month field) of 250/account.
 
-**Before switch-on** (staging week first, then prod = owner): `[triggers]` crons; the entries/roster sync step; prod data
-worker 404 on `private/`; `FEED_NOTIFY_URL` as a worker secret; status.json + alerting (Work 4); retention needs `delete`
-(added to r2Store). Python findings to decide (ported as-is): `forecastIssuedAt` written twice in index.json (T52's value
+**Before switch-on** (staging week first, then prod = owner): `[triggers]` crons; the entries/roster sync step (workflow
+written, secrets to set); prod data worker 404 on `private/`; `FEED_NOTIFY_URL` as a worker secret; status.json + alerting
+(DONE, follow-up below); retention needs `delete` (added to r2Store). Python findings (FIXED in the TS by the follow-up below; the Python is unchanged): `forecastIssuedAt` written twice in index.json (T52's value
 overwrites T68's); `temp_history.json` is published though private-ish; the runs archive month file is rewritten whole
 each run (~8 MB late month — per-run objects would cut R2 bytes); DFO `dates._SEP` misses "October 1 to …" (row → advisory);
 one bad DFO row holds a whole region; held text embeds pydantic 2.13's message. DFO re-types every page every run (as the
 Python); caching by page sha256 would halve its CPU.
+
+## Follow-up 2026-10-28 (owner): robustness, status, change-aware runs, CI jobs
+Redeployed `bc-fishing-feeds-staging` only (version f5c73ac9); both feeds run by hand twice; `vitest run --root
+app/workers/feeds` 86 tests. The Python is unchanged; the TS now intentionally differs where listed, and the parity tests
+run the Python-compatible mode (`pythonParity: true` / `changeAware: false`) or fold the intended difference back and check it.
+- **DFO dates** (`src/dfo/dates.ts`): a new reader — "until further notice" (145 corpus rows; the start runs on, past the
+  year end, but any dated row outranks it), "To"/"until"/"through"/dashes, day-month ("1 Oct"), ordinals, years, typos
+  ("Aprl", "futher", "Setpember"), lists of ranges, ranges across the year end. All 281 distinct cells DFO has printed
+  (`test/fixtures/dfo/date-cells.json`, from cache/ + fixtures) read; it agrees with the Python on every cell the Python
+  could read; 4,000 seeded rewritings read the same; 5,000 garbage cells never throw. A cell it cannot read keeps the
+  row's limit and becomes a `check` verdict on every day for that species ("Dates unparsed — check DFO: …") — the
+  Python made it an advisory and dropped the limit. Committed corpus: check-verdict days 11,770 → 6,646 (the rest are
+  "To be determined").
+- **One bad row** holds only its location: last answers carried (or `check` when there are none), listed in
+  `regions.<s>.holds` with the reason, notice `dfo-row-held:…`; the rest of the region publishes. Page parse/verify
+  failures and STRUCTURAL reconciles still hold the region.
+- **Gauges**: `forecastIssuedAt` written once (T68's newest run feed-wide; Python's second key — T52's — overwrote it);
+  `temp_history.json` moved to private (a legacy public copy is migrated, then deleted — done on staging); the runs
+  archive is append-only: one `runs/<m>/<d>/<HHMMSS>.jsonl` per run + `runs/state.json` (dedupe: last 8 issue times per
+  station+model, seeded once from the legacy month files), closed days → `runs/<m>/<d>.jsonl`, closed months →
+  `runs/<m>.jsonl` (byte-identical to Python's month file). **The Python scoring CLI's copy step must fold the open
+  month's day/part objects** (concatenate in key order).
+- **Status**: `GET /status` (HTML, ~2 KB) and `GET /status.json`, no auth, from `private/feeds/status.json` written by every
+  run: last run (time, wall ms, counts, R2 ops, skipped writes, unchanged sources), last success, last error, held
+  regions/places with reasons, consecutive failures, state ok/degraded/failing/stale (stale = no success for 2.5×
+  cadence: gauges 60 min, DFO 360 min Jun–Oct else 1440). CPU is not readable inside a Worker → `cpuMs: null` (tail /
+  observability). **Alerts**: `FEED_NOTIFY_URL` (not set) gets one post per feed state change; unset → logged and recorded.
+  Staleness is evaluated when either feed runs (a dead cron is seen by the other feed's run; Cloudflare's own error
+  notifications cover "nothing runs").
+- **Change-aware** (owner add-on): DFO — a region whose page sha256 AND entry file hash are unchanged (and `DFO_REV`) is
+  not re-typed; its answers are carried (verdict/gear ids now numbered canonically so carried = recomputed, byte for byte);
+  feed objects are written only when their stable content changes (index.json ignores `at`/`checked`; 24 h heartbeat so
+  the app's "checked" age stays under a day — status.json carries the real checked-at). Gauges — station CSVs are asked
+  with `If-None-Match`/`If-Modified-Since`; a 304 station with the same day/pentad/clim/forecast inputs keeps its last
+  index entry (temperature recomputed), no parse, no station-file read or write (`private/feeds/gauges/stations.cache.json`).
+  A station with forecast runs is always recomputed (its `ahead` is read at the minute) — 377–430 of 438 have runs.
+- **Measured** (staging, CF cpuTime from `wrangler tail`, two back-to-back runs):
+  | run | CF CPU ms | wall s | R2 A / B | skipped writes / unchanged sources |
+  |---|---|---|---|---|
+  | DFO 9 regions, first on new code | 1,017 | 7.6 | 5 / 14 | 0 / 0 |
+  | DFO 9 regions, pages unchanged | **157** | 5.9 | **1** / 14 | 2 / 9 |
+  | gauges 438, first | 2,396 | 48.4 | 442 / 484 | 0 / 0 |
+  | gauges 438, CSVs unchanged (best case) | 2,302 | 41.3 | 397 / 436 | 0 / 45 |
+  Node (fixtures, `parity/measure-change.ts`): DFO unchanged run 113–159 → 18–19 ms CPU, 2 → 0 feed writes; gauges
+  623–691 → 612–645 ms. **Cost update**: DFO's CPU at every cadence drops ~85% (≤0.03M CPU-ms/mo) and its class A to
+  ~2/run (manifest + status). Gauges barely move: at an hourly cadence ECCC's CSVs change every hour and most stations
+  carry forecasts, so ~0–10% of station writes are skipped (≤45 of 442 class A/run); the table above (≤3.6M CPU-ms,
+  ≤320k class A per month hourly) stands. Each run now also writes `status.json` (+1 class A). The real gauge saving would
+  need a coarser `ahead` clock (owner's call; it changes the feed).
+- **CI** (manual `workflow_dispatch` only, staging-only guard, prod option commented out, secrets named not set:
+  `CLOUDFLARE_ACCOUNT_ID`, `STAGING_R2_ACCESS_KEY_ID`, `STAGING_R2_SECRET_ACCESS_KEY`):
+  `.github/workflows/feeds-hydat.yml` (HYDAT → clim.json → `feeds/live/clim.json`; skips when unchanged unless `force`; the
+  bundle half of update-hydat.sh stays on the Mac — the build needs the 10 GB atlas) and
+  `.github/workflows/feeds-sync-inputs.yml` (DFO entry files + slim roster → `private/feeds/…`, writes only what differs;
+  `push:` trigger commented). Listed in the Actions tab only once on `main`; until then `gh workflow run … --ref`.
+  Not triggered. Staging's DFO entry files were re-uploaded by hand from the repo (region-6 had drifted).
+- **The old prod cron** (`bc-fishing-cron`, source in `archive/cron-runner/`, untouched): every 15 min it dispatches
+  `main`'s `update-hydro.yml` (Python hydro job → prod R2 `stations.json`, `gauges.geojson`, `recent/`, `history/`,
+  `climatology/` — the OLD layout, which the prod app reads); `main` also has `update-in-season.yml` (6 h; opens a GitHub
+  issue for unmatched in-season regulations) and `update-stocking.yml`. At prod switch-on: the new worker does not write
+  the old layout, so retire bc-fishing-cron (and those workflows) only when the prod app reads `feeds/`; the in-season
+  "unmatched → issue" duty is now the DFO feed's unplaced notices + `FEED_NOTIFY_URL`; stocking stays T200.
+- Staging `RUN_TOKEN` rotated; the value is in `app/workers/feeds/.run-token` (gitignored, local only).
 
 ## Acceptance
 Feeds update on schedule on staging for a week with no hand runs; a forced source failure alerts once and the app

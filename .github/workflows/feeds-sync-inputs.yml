@@ -1,0 +1,94 @@
+name: feeds — sync curated inputs → R2 private/
+
+# T225 follow-up (owner 2026-10-28). MANUAL ONLY (workflow_dispatch) for now.
+#
+# The feeds Worker reads two curated inputs from R2 PRIVATE keys (never served — the data worker 404s private/), so a
+# curator's change reaches the feeds on their next run with no redeploy. This copies them from the repo:
+#   dfo-entries   data/curated/regulations/entries/dfo_salmon/region-<s>.json → private/feeds/dfo/entries/region-<s>.json
+#   roster        data/source/bc_hydrometric_stations.json, slimmed to [{station, realtime}] → private/feeds/gauges/roster.json
+# Only objects whose bytes differ from what R2 holds are written (compared by MD5 = the R2 ETag of a single-part put).
+#
+# Later (owner's call): run it on push to those paths — uncomment the `push:` block below.
+#
+# TARGET: staging only until the owner enables production (uncomment the option + the prod secrets).
+# SECRETS (named, NOT set): CLOUDFLARE_ACCOUNT_ID, STAGING_R2_ACCESS_KEY_ID, STAGING_R2_SECRET_ACCESS_KEY
+#   (prod, later: PROD_R2_ACCESS_KEY_ID, PROD_R2_SECRET_ACCESS_KEY).
+# NOTE: listed in the Actions tab only once on the default branch; until then:
+#   gh workflow run feeds-sync-inputs.yml --ref redesign/stream-sections -f what=both -f dry_run=true
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which R2 bucket"
+        type: choice
+        default: staging
+        options:
+          - staging
+          # - production   # OWNER: uncomment to enable (and the prod secrets in the env block below)
+      what:
+        description: "What to sync"
+        type: choice
+        default: both
+        options: [both, dfo-entries, roster]
+      dry_run:
+        description: "List what would change; write nothing"
+        type: boolean
+        default: true
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - data/curated/regulations/entries/dfo_salmon/**
+  #     - data/source/bc_hydrometric_stations.json
+
+concurrency:
+  group: feeds-sync-inputs
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BUCKET: ${{ inputs.target == 'production' && 'bc-fishing-regulations' || 'bc-fishing-regulations-staging' }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.STAGING_R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGING_R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+    steps:
+      - name: Guard — staging only until the owner enables production
+        run: |
+          case "$BUCKET" in
+            *-staging) echo "target bucket: $BUCKET" ;;
+            *) echo "::error::production is not enabled in this workflow"; exit 1 ;;
+          esac
+          [ -n "${AWS_ACCESS_KEY_ID:-}" ] || { echo "::error::R2 keys are not set (see the header)"; exit 1; }
+
+      - uses: actions/checkout@v4
+
+      - name: Stage the files
+        run: |
+          mkdir -p out/dfo out/gauges
+          if [ "${{ inputs.what }}" != "roster" ]; then
+            for f in data/curated/regulations/entries/dfo_salmon/region-*.json; do cp "$f" "out/dfo/$(basename "$f")"; done
+          fi
+          if [ "${{ inputs.what }}" != "dfo-entries" ]; then
+            jq -c '[.[] | {station, realtime}]' data/source/bc_hydrometric_stations.json > out/gauges/roster.json
+          fi
+          find out -type f | sort
+
+      - name: Put what changed
+        run: |
+          put() {  # put <local> <key>
+            local want have
+            want=$(md5sum "$1" | cut -d' ' -f1)
+            have=$(aws s3api head-object --bucket "$BUCKET" --key "$2" --endpoint-url "$R2_ENDPOINT" \
+                   --query ETag --output text 2>/dev/null | tr -d '"' || true)
+            if [ "$want" = "$have" ]; then echo "same     $2"; return; fi
+            if [ "${{ inputs.dry_run }}" = "true" ]; then echo "WOULD PUT $2"; return; fi
+            aws s3 cp "$1" "s3://$BUCKET/$2" --endpoint-url "$R2_ENDPOINT" --content-type application/json --only-show-errors
+            echo "put      $2"
+          }
+          for f in out/dfo/*.json; do [ -e "$f" ] && put "$f" "private/feeds/dfo/entries/$(basename "$f")"; done
+          [ -e out/gauges/roster.json ] && put out/gauges/roster.json private/feeds/gauges/roster.json
+          true

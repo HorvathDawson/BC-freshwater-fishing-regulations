@@ -1,0 +1,123 @@
+name: feeds — HYDAT → climatology → R2
+
+# T225 follow-up (owner 2026-10-28). MANUAL ONLY (workflow_dispatch): no schedule, no push trigger.
+#
+# What it does — the part of scripts/update-hydat.sh a hosted runner can do:
+#   1. fetch the newest HYDAT (data/fetch_data.py --layers hydat; ~266 MB; stops unless data/source holds the newest)
+#   2. rebuild the percentile envelope: python -m pipeline.gauges.feed.climatology → clim.json
+#   3. (upload: true) put clim.json at <bucket>/feeds/live/clim.json — the input the feeds Worker reads every gauge run
+#      (bc-fishing-feeds-staging). The worker's next run re-measures every percentile against it and its HYDAT notice
+#      clears (current == latest).
+# What it does NOT do: steps 4–5 of update-hydat.sh (`pipeline build` + the release upload). The build needs the ~10 GB
+# atlas (see pipeline-ci.yml's header) — the owner runs `scripts/update-hydat.sh --upload` on the Mac for the bundle.
+#
+# TARGET: staging by default and, for now, ONLY staging. Production is an explicit choice that is commented out
+# below until the owner enables it (uncomment the option AND the prod secrets block).
+#
+# SECRETS (named here, NOT set — the owner adds them under Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_ACCOUNT_ID            the account id (R2's S3 endpoint is https://<id>.r2.cloudflarestorage.com)
+#   STAGING_R2_ACCESS_KEY_ID         an R2 API token scoped to bc-fishing-regulations-staging, Object Read & Write
+#   STAGING_R2_SECRET_ACCESS_KEY
+#   (prod, later) PROD_R2_ACCESS_KEY_ID / PROD_R2_SECRET_ACCESS_KEY
+#
+# NOTE: GitHub only lists a workflow_dispatch workflow in the Actions tab once the file is on the default branch
+# (main); until then run it with `gh workflow run feeds-hydat.yml --ref redesign/stream-sections -f upload=false`.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which R2 bucket"
+        type: choice
+        default: staging
+        options:
+          - staging
+          # - production   # OWNER: uncomment to enable (and the prod secrets in the env block below)
+      upload:
+        description: "Upload clim.json to R2 (false = build it and attach it as an artifact only)"
+        type: boolean
+        default: false
+      force:
+        description: "Rebuild the envelope even when HYDAT is unchanged"
+        type: boolean
+        default: false
+
+concurrency:
+  group: feeds-hydat
+  cancel-in-progress: false
+
+jobs:
+  hydat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      BUCKET: ${{ inputs.target == 'production' && 'bc-fishing-regulations' || 'bc-fishing-regulations-staging' }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.STAGING_R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGING_R2_SECRET_ACCESS_KEY }}
+      # OWNER (prod): replace the two lines above with
+      #   AWS_ACCESS_KEY_ID: ${{ inputs.target == 'production' && secrets.PROD_R2_ACCESS_KEY_ID || secrets.STAGING_R2_ACCESS_KEY_ID }}
+      #   AWS_SECRET_ACCESS_KEY: ${{ inputs.target == 'production' && secrets.PROD_R2_SECRET_ACCESS_KEY || secrets.STAGING_R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+    steps:
+      - name: Guard — staging only until the owner enables production
+        run: |
+          case "$BUCKET" in
+            *-staging) echo "target bucket: $BUCKET" ;;
+            *) echo "::error::production is not enabled in this workflow"; exit 1 ;;
+          esac
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13", cache: pip }
+      - run: pip install -r requirements.txt
+
+      - name: What clim.json is on now
+        id: now
+        run: |
+          if [ -n "${AWS_ACCESS_KEY_ID:-}" ]; then
+            aws s3 cp "s3://$BUCKET/feeds/live/clim.json" /tmp/clim.current.json --endpoint-url "$R2_ENDPOINT" --only-show-errors || true
+          fi
+          cur=$(python -c 'import json,sys; print(json.load(open("/tmp/clim.current.json")).get("release") or "")' 2>/dev/null || true)
+          echo "current=$cur" >> "$GITHUB_OUTPUT"
+          echo "clim.json in $BUCKET is on HYDAT: ${cur:-unknown}"
+
+      - name: 1/3 fetch HYDAT
+        run: |
+          (cd data && PYTHONPATH=.. python fetch_data.py --layers hydat)
+          latest=$(python -c 'import sys; sys.path.insert(0, "data"); from fetch_data import hydat_latest_release as f; print(f() or "")')
+          have=$(cat data/source/hydat.release 2>/dev/null || true)
+          [ -n "$latest" ] || { echo "::error::could not read the HYDAT listing"; exit 1; }
+          [ "$have" = "$latest" ] || { echo "::error::HYDAT $latest is listed but the fetch left ${have:-nothing}"; exit 1; }
+          echo "HYDAT=$have" >> "$GITHUB_ENV"
+
+      - name: Unchanged? (skip unless force)
+        id: same
+        run: |
+          if [ "${{ steps.now.outputs.current }}" = "$HYDAT" ] && [ "${{ inputs.force }}" != "true" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "clim.json is already on HYDAT $HYDAT — nothing to do (force: true rebuilds anyway)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: 2/3 envelope
+        if: steps.same.outputs.skip != 'true'
+        run: |
+          mkdir -p out
+          python -m pipeline.gauges.feed.climatology --hydat data/source/hydat.sqlite3 --out out/clim.json
+          ls -la out/clim.json
+
+      - uses: actions/upload-artifact@v4
+        if: steps.same.outputs.skip != 'true'
+        with: { name: "clim-${{ env.HYDAT }}", path: out/clim.json, retention-days: 14 }
+
+      - name: 3/3 upload to R2 (feeds/live/clim.json)
+        if: steps.same.outputs.skip != 'true' && inputs.upload
+        run: |
+          [ -n "${AWS_ACCESS_KEY_ID:-}" ] || { echo "::error::R2 keys are not set (see the header)"; exit 1; }
+          aws s3 cp out/clim.json "s3://$BUCKET/feeds/live/clim.json" --endpoint-url "$R2_ENDPOINT" \
+            --content-type application/json --only-show-errors
+          {
+            echo "Uploaded clim.json (HYDAT $HYDAT) to $BUCKET/feeds/live/clim.json."
+            echo "The feeds Worker reads it on its next gauge run. The bundle (gauge_clim / section_panel) still needs"
+            echo "\`scripts/update-hydat.sh --upload\` on the owner's Mac (the build cannot run on a hosted runner)."
+          } >> "$GITHUB_STEP_SUMMARY"

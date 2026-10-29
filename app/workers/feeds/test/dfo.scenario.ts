@@ -40,7 +40,8 @@ export class MemStore implements Store {
   }
 }
 
-export async function runTs(scenarioPath: string): Promise<StepOut[]> {
+/** `pythonParity` (default true): the Python's behaviour byte for byte; false = the Worker's robust mode. */
+export async function runTs(scenarioPath: string, pythonParity = true): Promise<StepOut[]> {
   const base = dirname(scenarioPath);
   const sc: Scenario = JSON.parse(readFileSync(scenarioPath, "utf-8"));
   const feed = new MemStore();
@@ -65,6 +66,7 @@ export async function runTs(scenarioPath: string): Promise<StepOut[]> {
       now: step.now,
       regions: step.regions ?? null,
       notifyUrl: null,
+      pythonParity,
       fetcher: async (slug) => {
         const p = step.pages[slug];
         if (p === null || p === undefined) throw new Error(FAIL_MSG);

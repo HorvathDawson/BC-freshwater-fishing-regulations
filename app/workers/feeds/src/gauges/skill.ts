@@ -35,8 +35,6 @@ export function runRecord(station: string, model: string, run: Run, now: number,
   };
 }
 
-const key = (r: Record<string, any>): string => `${String(r.station)}\u0000${String(r.model)}\u0000${String(r.issuedAt)}`;
-
 function monthOf(wall: number): string {
   return dayOf(wall).slice(0, 7);
 }
@@ -49,40 +47,112 @@ function shiftMonth(month: string, n: number): string {
   return `${String(y).padStart(4, "0")}-${String(m + 1).padStart(2, "0")}`;
 }
 
-/** skill.append_runs over a private Store. Returns `{added, file, bytes}`. */
+/** The archive's small private state: the last issue times archived per station+model (the dedupe), the per-run part
+ * objects of the open day, and the compacted day objects of the open month. */
+export interface RunsState {
+  v: 1;
+  last: Record<string, string[]>;
+  parts: string[];
+  days: string[];
+}
+export const RUNS_STATE = "runs/state.json";
+const LAST_KEEP = 8;
+
+/** skill.append_runs, APPEND-ONLY (T225 follow-up). Python (and this port until 2026-10-28) read the whole month file
+ * and rewrote it every run (~8 MB late in a month). Now each run writes ONE small object, never rewritten:
+ *   runs/<YYYY-MM>/<YYYY-MM-DD>/<HHMMSS>.jsonl   this run's new lines (exactly the lines Python appended)
+ * and a compaction step keeps the object count down:
+ *   a closed day's parts   → runs/<YYYY-MM>/<YYYY-MM-DD>.jsonl   (parts deleted)
+ *   a closed month's days  → runs/<YYYY-MM>.jsonl                (days deleted; the same file Python keeps — a legacy
+ *                                                                 month file written before the switch is its head)
+ * The dedupe reads only runs/state.json (the last LAST_KEEP issue times per station+model), seeded once from the
+ * legacy month files. Concatenating month file + day files + parts in key order gives Python's month file byte for
+ * byte (the parity test does exactly that). Retention: the month ARCHIVE_MONTHS back is deleted, as before. */
 export async function appendRuns(priv: DeletableStore, forecast: Summary | null, now: number, observed: Map<string, number | null>): Promise<Record<string, any>> {
   const local = centreWall(now);
   const month = monthOf(local);
-  const prev = shiftMonth(month, -1);
-  const seen = new Set<string>();
-  const texts: Record<string, string | null> = {};
-  for (const m of [prev, month]) {
-    const text = await priv.get(`runs/${m}.jsonl`);
-    texts[m] = text;
-    for (const line of splitlines(text ?? "")) {
-      try {
-        seen.add(key(JSON.parse(line)));
-      } catch {
-        /* a torn line is skipped */
-      }
-    }
+  const today = dayOf(local);
+  let state: RunsState | null = null;
+  try {
+    const t = await priv.get(RUNS_STATE);
+    if (t !== null) state = JSON.parse(t);
+  } catch {
+    state = null;
   }
+  if (!state || state.v !== 1) {
+    // first run on this layout: seed the dedupe from the legacy month files (read once, never again)
+    state = { v: 1, last: {}, parts: [], days: [] };
+    for (const m of [shiftMonth(month, -1), month])
+      for (const line of splitlines((await priv.get(`runs/${m}.jsonl`)) ?? "")) {
+        try {
+          remember(state, JSON.parse(line));
+        } catch {
+          /* a torn line is skipped */
+        }
+      }
+  }
+  const seen = (r: Record<string, any>) => (state!.last[`${r.station}\u0000${r.model}`] ?? []).includes(String(r.issuedAt));
   const lines: string[] = [];
   for (const st of Object.keys(forecast || {}).sort()) {
     const runs = forecast![st] || {};
     for (const model of Object.keys(runs).sort()) {
       const rec = runRecord(st, model, runs[model]!, now, observed.get(st));
-      if (rec === null || seen.has(key(rec))) continue;
-      seen.add(key(rec));
+      if (rec === null || seen(rec)) continue;
+      remember(state, rec);
       lines.push(dumpsSorted(rec));
     }
   }
-  const path = `runs/${month}.jsonl`;
-  let body = texts[month] ?? null;
+  let file: string | null = null;
+  let bytes = 0;
   if (lines.length) {
-    body = (body ?? "") + lines.join("\n") + "\n";
-    await priv.put(path, body, { contentType: "application/x-ndjson" });
+    const body = lines.join("\n") + "\n";
+    file = `runs/${month}/${today}/${wallIso(now).slice(11, 19).replace(/:/g, "")}.jsonl`;
+    await priv.put(file, body, { contentType: "application/x-ndjson" }); // the part FIRST: a lost state write repeats lines, never loses them
+    if (!state.parts.includes(file)) state.parts.push(file);
+    bytes = new TextEncoder().encode(body).length;
   }
+  const compacted = await compact(priv, state, today, month);
+  await priv.put(RUNS_STATE, JSON.stringify(state));
   if (priv.delete) await priv.delete(`runs/${shiftMonth(month, -ARCHIVE_MONTHS)}.jsonl`);
-  return { added: lines.length, file: path, bytes: body === null ? 0 : new TextEncoder().encode(body).length };
+  return { added: lines.length, file, bytes, ...compacted };
+}
+
+function remember(state: RunsState, r: Record<string, any>): void {
+  const k = `${r.station}\u0000${r.model}`;
+  const l = (state.last[k] ??= []);
+  const v = String(r.issuedAt);
+  if (!l.includes(v)) l.push(v);
+  if (l.length > LAST_KEEP) l.splice(0, l.length - LAST_KEEP);
+}
+
+/** Fold closed days' parts into day objects and closed months' days into the month file. */
+export async function compact(priv: DeletableStore, state: RunsState, today: string, month: string): Promise<{ compactedDays: number; compactedMonths: number }> {
+  let compactedDays = 0;
+  let compactedMonths = 0;
+  const dayOfPart = (k: string) => k.split("/")[2]!;
+  const closedDays = [...new Set(state.parts.map(dayOfPart))].filter((d) => d < today).sort();
+  for (const d of closedDays) {
+    const parts = state.parts.filter((k) => dayOfPart(k) === d).sort();
+    const dayKey = `runs/${d.slice(0, 7)}/${d}.jsonl`;
+    let body = (await priv.get(dayKey)) ?? "";
+    for (const k of parts) body += (await priv.get(k)) ?? "";
+    await priv.put(dayKey, body, { contentType: "application/x-ndjson" });
+    if (priv.delete) for (const k of parts) await priv.delete(k);
+    state.parts = state.parts.filter((k) => !parts.includes(k));
+    if (!state.days.includes(dayKey)) state.days.push(dayKey);
+    compactedDays++;
+  }
+  const monthOfDay = (k: string) => k.split("/")[1]!;
+  const closedMonths = [...new Set(state.days.map(monthOfDay))].filter((m) => m < month).sort();
+  for (const m of closedMonths) {
+    const days = state.days.filter((k) => monthOfDay(k) === m).sort();
+    const monthKey = `runs/${m}.jsonl`;
+    let body = (await priv.get(monthKey)) ?? "";
+    for (const k of days) body += (await priv.get(k)) ?? "";
+    await priv.put(monthKey, body, { contentType: "application/x-ndjson" });
+    if (priv.delete) for (const k of days) await priv.delete(k);
+    state.days = state.days.filter((k) => !days.includes(k));
+    compactedMonths++;
+  }
+  return { compactedDays, compactedMonths };
 }
