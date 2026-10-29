@@ -558,6 +558,25 @@ def tidal_decision_marks(path: Optional[Path], candidates: Optional[Path] = None
     return out
 
 
+#: a tidal point this near (route metres, same blue line) an existing cut IS that cut — flag it, never a second
+#: cut beside it (the atlas refuses two of one water's cuts within 5 m: Nanaimo's tidal boundary on the Cedar Road
+#: bridge, 0.06 m; Ksi Gingolx's highway bridge on the Kincolith River bridge, 4 m). T212's reuse distance.
+TIDAL_REUSE_M = 25.0
+
+
+def _cut_already_there(n, have: Mapping, src: "Sources") -> Optional[str]:
+    """The splits.json cut the built atlas resolved within `TIDAL_REUSE_M` of the tidal point `n` on its blue line."""
+    blk, m = getattr(n, "blk", None), getattr(n, "measure", None)
+    if blk is None or m is None or not src.build:
+        return None
+    p = Path(src.build) / "splits.resolved.json"
+    if not p.exists():
+        return None
+    rows = [r for r in json.loads(src.text(p)) if str(r.get("blk")) == str(blk) and r.get("split_id") in have
+            and r.get("route_measure") is not None and abs(float(r["route_measure"]) - float(m)) <= TIDAL_REUSE_M]
+    return min(rows, key=lambda r: abs(float(r["route_measure"]) - float(m)))["split_id"] if rows else None
+
+
 def _tidal_label(n, water: str = "") -> str:
     """A tidal cut's label: its name without the water's own name ("Nanaimo River: tidal boundary"
     -> "tidal boundary"), as every other split of the water is labelled; it always says tidal."""
@@ -745,6 +764,8 @@ def build(marks: Iterable, src: Sources, *, applied: Optional[set] = None) -> li
         except ValueError as ex:
             problems.append(str(ex))
             dup = None
+        if dup is None and g.get("tidal"):               # T166: a tidal point ON a cut already there
+            dup = _cut_already_there(n, have, src)
         if dup is not None:                              # already in splits.json: applied
             gid_split[g["gid"]] = dup
             if g.get("tidal"):                           # T166: ... but flagged tidal?

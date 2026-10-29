@@ -270,3 +270,19 @@ def test_a_dfo_area_description_is_no_cut_label():
             ("CN Railway Bridge", "CN Railway Bridge (tidal boundary)")]:
         got = _tidal_label(SimpleNamespace(name=words, measure=900.0))
         assert got == want and not label_problem(got)
+
+
+def test_a_tidal_point_on_a_cut_already_there_flags_that_cut(tmp_path):
+    """A tidal point within TIDAL_REUSE_M of a resolved splits.json cut on its line IS that cut (Nanaimo: tidal
+    boundary on the Cedar Road bridge, 0.06 m) — the atlas refuses a second cut on one point (2026-10-29)."""
+    import json as _json
+    from types import SimpleNamespace
+    from pipeline.regs.review.proposals import _cut_already_there
+    (tmp_path / "splits.resolved.json").write_text(_json.dumps([
+        {"split_id": "nanaimo_river__cedar_road_bridge", "blk": "354154938", "route_measure": 2980.0},
+        {"split_id": "gauge__x", "blk": "354154938", "route_measure": 2981.0}]))
+    src = SimpleNamespace(build=tmp_path, text=lambda p: p.read_text())
+    have = {"nanaimo_river__cedar_road_bridge": {}}
+    assert _cut_already_there(SimpleNamespace(blk="354154938", measure=2980.06), have, src) \
+        == "nanaimo_river__cedar_road_bridge"
+    assert _cut_already_there(SimpleNamespace(blk="354154938", measure=3100.0), have, src) is None
