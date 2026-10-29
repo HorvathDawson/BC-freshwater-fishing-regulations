@@ -1,8 +1,8 @@
 # T173 — A fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue
 
-Status: DONE — c27db165 (data + tile layer), 88b60317 (app). The marks reach readers with the next tile build (release
-lane, commands below); until then the switch draws nothing (the shipped atlas has no `obstacle` layer). Owner call: Q165
-(PSCIS).
+Status: DONE — c27db165 (data + tile layer), 88b60317 (app), f4923e1f (icons), PSCIS (section "PSCIS"). The marks
+reach readers with the next tile build (release lane, commands below); until then the switch draws nothing (the shipped
+atlas has no `obstacle` layer). Q165 answered 2026-10-28: owner treats PSCIS as OGL-BC; its culverts are in.
 
 Source: owner 2026-10-23 ("a fish obstacle layer could be interesting from the bc data catalogue"); started 2026-10-28.
 
@@ -18,10 +18,8 @@ Source: owner 2026-10-23 ("a fish obstacle layer could be interesting from the b
     **Open Government Licence – British Columbia**: 24,832 points.
   - **WRIS** — BC Dams, `WHSE_WATER_MANAGEMENT.WRIS_DAMS_PUBLIC_SVW` (bd632217-35f9-4d01-8e57-a6dbc454f236), **OGL-BC**:
     2,490 crest lines (the T154 layer).
-  - **PSCIS is NOT used.** Every PSCIS view (`PSCIS_ASSESSMENT_SVW`, `…_HABITAT_CONFIRMATION_SVW`, `…_REMEDIATION_SVW`,
-    `…_DESIGN_PROPOSAL_SVW`) is licensed **"Access Only"** — the Province's copyright page: "reproduction is not permitted
-    without written permission". 19,905 assessments, with `CURRENT_BARRIER_RESULT_CODE` (BARRIER / POTENTIAL / PASSABLE),
-    would be the culvert-barrier source if permission is granted (Q165). FISS's own culvert records (2,103) ship instead.
+  - **PSCIS** (added later, see "PSCIS"): `WHSE_FISH.PSCIS_ASSESSMENT_SVW` (7ecfafa6-5e18-48cd-8d9b-eae5b5ea2881). The
+    catalogue reads "Access Only"; the owner treats it as OGL-BC (Q165, decisions.md).
   - Fetch: `data/fetch_data.py` type `WFS_FILE` (the paginated WFS fetcher into a gpkg of its own), entries
     `fish_obstacles_fiss` / `fish_obstacles_dams` → `data/source/fish_obstacles/fish_obstacles.gpkg` (layers `fiss`, `dams`;
     EPSG:3005; 11 MB; gitignored). Never the main gpkg.
@@ -85,7 +83,7 @@ minzoom 11 saves 0.45 MB; dropping `obstacle_id` (unique strings) saves a furthe
 ## Release lane — fold it into the next build
 ```
 # 1. the source (once per refresh; already fetched on this machine 2026-10-28)
-PYTHONPATH="$PWD" .venv/bin/python data/fetch_data.py --layers fish_obstacles_fiss fish_obstacles_dams
+PYTHONPATH="$PWD" .venv/bin/python data/fetch_data.py --layers fish_obstacles_fiss fish_obstacles_dams fish_obstacles_pscis
 # 2a. a full tile build exports it with everything else (heavy):
 scripts/heavy.sh tiles 30 -- .venv/bin/python -m pipeline.deliver.tiles --build data/generated/atlas/full
 # 2b. or, on a tile build whose layer files are current: add just this layer, then re-tile
@@ -122,6 +120,44 @@ private tile server and swapped in by a browser route; nothing promoted): `deskt
 `desktop-layer-on.png`, `desktop-tap-sheet.png` (Falls, 35 m, FISS 23953), `phone-layer-on.png`, `phone-tap-sheet.png`
 (Culvert on Nevin Creek, FISS 19492). The marks sit on the status lines as ink dots in a paper ring.
 
+## PSCIS stream crossings (owner 2026-10-28, Q165: treat as OGL-BC)
+- **Fetch:** `fish_obstacles_pscis` (WFS_FILE, `WHSE_FISH.PSCIS_ASSESSMENT_SVW`) → layer `pscis` of the same gpkg:
+  19,905 crossings, one row per `STREAM_CROSSING_ID`, each with its CURRENT result (a remediated crossing reads passable).
+  By current type × result: closed-bottom (culverts) 13,066 = barrier 10,330 · potential 1,667 · unknown 195 · passable
+  874; open-bottom (bridges) 5,391, all passable; other (fords) 1,448, unknown 1,438 / passable 10.
+- **Dedupe (`obstacles.merge_pscis`):** a FISS culvert within 50 m of ANY PSCIS crossing is that crossing — PSCIS wins,
+  the FISS record goes even when the PSCIS one is not drawn (rated passable, or a bridge now). 110 of the 2,103 FISS
+  culverts go; 50 m, not FISS's 200 m dam radius, because 3,480 PSCIS crossings have another within 100 m (one road
+  over a run of tributaries). Where PSCIS has no stream name ("Unnamed", "n/a", "unknown" are dropped as placeholders),
+  the FISS record's gazetted name fills it.
+- **What is drawn — options measured** (each layer tiled alone with the archive's top-band flags, z10–13, each obstacle
+  tile appended to the live atlas db853e9556df81a6.16b3906b04bf tile and gzipped; T173's `measure.py`):
+
+  | option | PSCIS marks | layer marks | added to the 168 MB atlas |
+  |---|---:|---:|---:|
+  | FISS + WRIS only (as first shipped) | 0 | 15,185 | +3.04 MB |
+  | A: culverts, barrier + potential | 11,997 | 27,072 | +5.64 MB |
+  | **B: A + culverts not yet rated (chosen)** | **12,192** | **27,267** | **+5.68 MB** (z10 +0.81, z11 +1.10, z12 +1.58, z13 +2.19) |
+  | C: B + fords (unknown) | 13,630 | 28,705 | +5.89 MB |
+  | D: every culvert, passable too | 13,066 | 28,141 | +5.83 MB |
+  | E: every crossing (bridges + fords) | 19,905 | 34,980 | +6.76 MB |
+
+  **Chosen: B** — barriers, potential barriers and the 195 culverts PSCIS has not rated (+41 kB; unknown is not
+  passable). Passable culverts and bridges are noise on an obstacles map; fords are not culverts and have no rating.
+  The layer goes from ~3.0 to ~5.7 MB (+3.4 % of the atlas, +1.3 % of the ~450 MB offline package); no tile-size gate
+  exists. If it must shrink: minzoom 11 on PSCIS saves ~0.8 MB; dropping `road` (free text) saves a share.
+- **Tile record** (layer attrs appended, contract regenerated): `obstacle_id` `pscis:<crossing id>`, `type` culvert,
+  `water` (stream name), `source` pscis, `year` assessed, and PSCIS only: `barrier` (barrier · potential · unknown),
+  `habitat` (high · medium · low — the assessor's upstream habitat value), `road`, `date` (assessed, ISO).
+  Of the 12,192: a stream name 10,311, a road 11,404, a habitat value 11,193. FISS culverts left: 1,993.
+- **App:** culvert icon (no new icon; `type` is culvert). Tap sheet (`obstacleSheet`): title "Culvert", "On <stream>",
+  rows Fish passage (Barrier / Potential barrier / Passable / Not yet rated) · Habitat upstream (High/Medium/Low value) ·
+  Road · Assessed ("Aug 17, 2008") · Source "Provincial Stream Crossing Inventory · PSCIS <id>"; the OGL-BC line as before.
+- **Tests:** pytest `test_tile_obstacles.py` (shown = unpassable culverts only; FISS-at-a-crossing replaced / kept beyond
+  50 m / name fill; the view's row → record; attrs + the app's barrier words equal the pipeline's), `test_tiles.py`
+  inventory; vitest `obstacles.test.ts` (whole PSCIS sheets, every barrier word, dates).
+- **Release lane:** the gpkg on this machine already has `pscis` (fetched 2026-10-28); the tiles stage key stamps the
+  gpkg, so the next tile build re-exports. A gpkg without the `pscis` layer stops the export naming the fetch command.
+
 ## Left / follow-ups
-- Q165 (owner): ask the Province for written permission to ship PSCIS barrier assessments? Default: no; FISS culverts only.
 - T162 / T164 (run timing, "upstream of the falls" locators) can read `obstacles.build()` — not wired here.

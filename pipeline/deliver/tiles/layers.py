@@ -381,18 +381,21 @@ HYDROLOGY: tuple[LayerSpec, ...] = (
 FEATURES: tuple[LayerSpec, ...] = (
     LayerSpec(
         name="obstacle", geometry="point", ladder="none", minzoom=10,
-        attrs=("obstacle_id", "type", "name", "water", "height_m", "source", "year"),
+        attrs=("obstacle_id", "type", "name", "water", "height_m", "source", "year", "barrier", "habitat", "road", "date"),
         why="FISH OBSTACLES (T173): falls, cascades, canyons, velocity barriers, culverts and dams — the Province's "
-            "Obstacles to Fish Passage (FISS) and its dam register (WRIS), both Open Government Licence – BC, merged and "
-            "deduped by `tiles/obstacles.py` (PSCIS is \"Access Only\" and does not ship). A switch in the Layers sheet, "
-            "off by default; a tap names what it is.\n\n"
-            "`obstacle_id` is the source's own id (`fiss:<point id>`, `wris:<dam file number>`), a string, so no MVT id. "
-            "`type` is one of `obstacles.OBSTACLE_TYPES`; `name` a dam's; `water` the stream a FISS obstacle is on (its "
-            "gazetted name); `height_m` where measured; `source` fiss | wris; `year` surveyed (FISS) or commissioned "
-            "(WRIS). Every one is read by the tap sheet; none by the style.\n\n"
-            "z10 AND UP, one zoom for every mark: 15,185 marks, +3.0 MB on the 168 MB atlas (T173 measured, each "
-            "obstacle tile appended to the live atlas tile and gzipped: z10 +0.45, z11 +0.62, z12 +0.86, z13 +1.11 MB). "
-            "Below z10 a mark has no stream under it that a reader can see.",
+            "Obstacles to Fish Passage (FISS), its dam register (WRIS) and its stream-crossing assessments (PSCIS; "
+            "owner treats it as OGL-BC, Q165), merged and deduped by `tiles/obstacles.py`. A switch in the Layers "
+            "sheet, off by default; a tap names what it is.\n\n"
+            "`obstacle_id` is the source's own id (`fiss:<point id>`, `wris:<dam file number>`, `pscis:<stream "
+            "crossing id>`), a string, so no MVT id. `type` is one of `obstacles.OBSTACLE_TYPES`; `name` a dam's; "
+            "`water` the stream it is on; `height_m` where measured; `source` fiss | wris | pscis; `year` surveyed "
+            "(FISS), commissioned (WRIS) or assessed (PSCIS). PSCIS culverts only: `barrier` (barrier | potential | "
+            "unknown), `habitat` (high | medium | low), `road`, `date` (assessed, ISO). Every one is read by the tap "
+            "sheet; none by the style.\n\n"
+            "z10 AND UP, one zoom for every mark: 27,267 marks (12,192 PSCIS culverts), +5.7 MB on the 168 MB atlas "
+            "(T173 measured, each obstacle tile appended to the live atlas tile and gzipped: z10 +0.81, z11 +1.10, "
+            "z12 +1.58, z13 +2.19 MB; FISS + WRIS alone were +3.0). Below z10 a mark has no stream under it that a "
+            "reader can see.",
     ),
 )
 

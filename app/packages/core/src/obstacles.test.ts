@@ -2,7 +2,7 @@
  * T173 — the fish obstacle tap sheet: whole sheets, never fragments (AGENTS.md rule 33).
  */
 import { describe, expect, it } from "vitest";
-import { OBSTACLE_TYPES, OBSTACLE_WORDS, heightWords, obstacleSheet } from "./obstacles";
+import { OBSTACLE_TYPES, OBSTACLE_WORDS, dateWords, heightWords, obstacleSheet } from "./obstacles";
 
 const NOTE = OBSTACLE_WORDS.note;
 const LICENCE = OBSTACLE_WORDS.licence;
@@ -41,6 +41,36 @@ describe("obstacleSheet", () => {
     expect(obstacleSheet({}).title).toBe("Obstacle to fish");
     expect(obstacleSheet({ type: "weir", height_m: 0, name: " " }))
       .toEqual({ title: "Obstacle to fish", sub: null, rows: [], note: NOTE, licence: LICENCE });
+  });
+
+  it("an assessed stream crossing (PSCIS): barrier status, habitat, road, the date assessed, its crossing id", () => {
+    expect(obstacleSheet({ obstacle_id: "pscis:13", type: "culvert", water: "Nass R. Trib.", source: "pscis",
+                           year: 2008, barrier: "barrier", habitat: "low", road: "Brush Main", date: "2008-08-17" }))
+      .toEqual({
+        title: "Culvert", sub: "On Nass R. Trib.",
+        rows: [{ label: "Fish passage", value: "Barrier" },
+               { label: "Habitat upstream", value: "Low value" },
+               { label: "Road", value: "Brush Main" },
+               { label: "Assessed", value: "Aug 17, 2008" },
+               { label: "Source", value: "Provincial Stream Crossing Inventory · PSCIS 13" }],
+        note: NOTE, licence: LICENCE,
+      });
+    expect(obstacleSheet({ obstacle_id: "pscis:7", type: "culvert", source: "pscis", barrier: "potential", year: "2015" }))
+      .toEqual({
+        title: "Culvert", sub: null,
+        rows: [{ label: "Fish passage", value: "Potential barrier" },
+               { label: "Assessed", value: "2015" },
+               { label: "Source", value: "Provincial Stream Crossing Inventory · PSCIS 7" }],
+        note: NOTE, licence: LICENCE,
+      });
+    expect(["barrier", "potential", "passable", "unknown", "bogus"].map((b) =>
+      obstacleSheet({ type: "culvert", source: "pscis", barrier: b }).rows[0]?.value))
+      .toEqual(["Barrier", "Potential barrier", "Passable", "Not yet rated", "Provincial Stream Crossing Inventory"]);
+  });
+
+  it("dates: ISO to words, anything else null", () => {
+    expect([dateWords("2008-09-10"), dateWords("2021-12-01Z"), dateWords("2008"), dateWords(null)])
+      .toEqual(["Sep 10, 2008", "Dec 1, 2021", null, null]);
   });
 
   it("every type has its own word", () => {

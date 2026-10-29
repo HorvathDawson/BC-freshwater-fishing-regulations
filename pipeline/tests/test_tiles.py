@@ -321,7 +321,8 @@ TILE_INVENTORY = {
     "wma": ("area_id", "name"), "indigenous_land": ("area_id", "name", "name_indigenous", "group"),
     "no_access": ("area_id", "name", "kind"), "watershed": (), "parcel": (),
     "region": ("region_id",), "mu": ("mu_id",), "basin": ("basin_id",),
-    "obstacle": ("obstacle_id", "type", "name", "water", "height_m", "source", "year"),
+    "obstacle": ("obstacle_id", "type", "name", "water", "height_m", "source", "year", "barrier", "habitat",
+                 "road", "date"),
     "tidal_water": ("area_id", "name"),
 }
 

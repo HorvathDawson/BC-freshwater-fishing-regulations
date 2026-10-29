@@ -1613,3 +1613,10 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   FWA: added from OpenStreetMap as an added stream (source `osm`, `data/source/municipal/osm_streams.geojson`,
   DEM-oriented, joins FWA 356193720), and Stave r2 binds it. Northrop Creek (OSM, ~50 m) is dropped by the general
   short-tributary prune.
+- **Owner 2026-10-28 (Q165, PSCIS licence):** PSCIS is in the BC Data Catalogue, so the app treats it as Open Government
+  Licence – British Columbia (owner's call; the catalogue records themselves still read "Access Only"). Datasets:
+  "PSCIS Assessments" 7ecfafa6-5e18-48cd-8d9b-eae5b5ea2881 (https://catalogue.data.gov.bc.ca/dataset/7ecfafa6-5e18-48cd-8d9b-eae5b5ea2881,
+  `WHSE_FISH.PSCIS_ASSESSMENT_SVW`, the one fetched — it carries each crossing's CURRENT barrier result); siblings not
+  fetched: "PSCIS Habitat Confirmations" 572595ab-0a25-452a-a857-1b6bb9c30495, "PSCIS Design Proposal"
+  0c9df95f-a2da-4a7d-b9cb-fea3e8926661, "PSCIS Remediation" 1596afbf-f427-4f26-9bca-d78bceddf485. Fetched over the open
+  WFS (https://openmaps.gov.bc.ca/geo/pub/wfs). The tap sheet carries the same OGL-BC attribution line as FISS / WRIS.

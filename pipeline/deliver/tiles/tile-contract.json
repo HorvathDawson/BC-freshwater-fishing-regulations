@@ -254,7 +254,11 @@
         "water",
         "height_m",
         "source",
-        "year"
+        "year",
+        "barrier",
+        "habitat",
+        "road",
+        "date"
       ],
       "featureId": "obstacle_id",
       "decorative": false,

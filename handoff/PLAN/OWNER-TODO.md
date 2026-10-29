@@ -102,8 +102,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **User accounts (T223, new 2026-10-28):** one account for web + phone. Questions Q-T223a–f in the ticket: auth
   provider, what syncs (spots / photos / pins / settings), privacy of spot locations, offline merge rule, optional or
   required, before or after first release. Nothing is built until you answer.
-- **Fish obstacles (T173, new 2026-10-28):** Q165 — PSCIS culvert barrier assessments are "Access Only" on the
-  catalogue; ask the Province for written permission to ship them? Default: no (FISS culverts only).
 - **Batch 7:** Q146 re-centre the map when the parts list opens · Q147 steelhead lake wording on newly taken ponds ·
   Q148 dams → "lake" for the slough candidates · Q149 Bonaparte by hand.
 - **Gauge gaps on main rivers (T174, shipped r-bda3fea28838):** Q153 (side piece adopts the largest ANSWERED river section) and

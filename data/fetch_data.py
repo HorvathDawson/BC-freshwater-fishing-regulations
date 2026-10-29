@@ -1702,14 +1702,16 @@ def main():
         # T173 FISH OBSTACLES — the map layer's two sources, into a gpkg of their own
         # (data/source/fish_obstacles/fish_obstacles.gpkg, layers `fiss` and `dams`; EPSG:3005), never the main gpkg.
         # Both Open Government Licence – British Columbia (catalogue 35bbac7c-2e2f-4587-9108-f4aa1e862809 "Provincial
-        # Obstacles to Fish Passage"; bd632217-35f9-4d01-8e57-a6dbc454f236 "BC Dams"), checked 2026-10-28. NOT PSCIS
-        # (culvert assessments, WHSE_FISH.PSCIS_*): its catalogue licence is "Access Only" — reproduction not permitted
-        # without written permission — so it may not ship. pipeline/deliver/tiles/obstacles.py reads these two into the
-        # atlas's `obstacle` layer. Small: ~25k points + ~2.5k crest lines, four WFS pages.
+        # Obstacles to Fish Passage"; bd632217-35f9-4d01-8e57-a6dbc454f236 "BC Dams"), checked 2026-10-28. PSCIS
+        # (stream-crossing assessments, 7ecfafa6-5e18-48cd-8d9b-eae5b5ea2881 "PSCIS Assessments") shows "Access Only" on
+        # the catalogue; the owner treats it as OGL-BC (2026-10-28, Q165 — decisions.md). pipeline/deliver/tiles/obstacles.py
+        # reads these three into the atlas's `obstacle` layer. Small: ~25k + ~20k points + ~2.5k crest lines.
         "fish_obstacles_fiss": {"type": "WFS_FILE", "source": "WHSE_FISH.FISS_OBSTACLES_PNT_SP",
                                 "dest": "fish_obstacles/fish_obstacles.gpkg", "layer": "fiss"},
         "fish_obstacles_dams": {"type": "WFS_FILE", "source": "WHSE_WATER_MANAGEMENT.WRIS_DAMS_PUBLIC_SVW",
                                 "dest": "fish_obstacles/fish_obstacles.gpkg", "layer": "dams"},
+        "fish_obstacles_pscis": {"type": "WFS_FILE", "source": "WHSE_FISH.PSCIS_ASSESSMENT_SVW",
+                                 "dest": "fish_obstacles/fish_obstacles.gpkg", "layer": "pscis"},
         "wma": {"type": "WFS", "source": "WHSE_TANTALIS.TA_WILDLIFE_MGMT_AREAS_SVW"},
         "wmu": {
             "type": "WFS",
