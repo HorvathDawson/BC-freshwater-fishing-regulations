@@ -9873,6 +9873,27 @@
      },
      "note": "",
      "_note": "[dfo-salmon 2026-09-02] DFO r2: 'downstream of the powerline crossing at 9 mile (approximately 1.5 km upstream of the confluence with the Cheakamus River)'. DFO gives the crossing's position as a DISTANCE FROM the Cheakamus confluence, not a coordinate — so the anchor is that confluence with a 1,500 m upstream offset along the Squamish, exactly as chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_* do from the bridge. Derived from FWA topology, not a coordinate: Cheakamus River's wsc 900-105574-143635 is a child of the mainstem's, which is the test that distinguished it from same-named creeks in other watersheds."
+    },
+    {
+     "id": "squamish_river__tidal_boundary",
+     "label": "tidal boundary",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.180781,
+       49.685337
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:360886594 — \"Squamish River: a line running true west from the tip of the Squamish Dyke (\"Windsurfer Spit\")\"",
+     "_coord": [
+      -123.180781,
+      49.685337
+     ],
+     "tidal": true
     }
    ]
   },
