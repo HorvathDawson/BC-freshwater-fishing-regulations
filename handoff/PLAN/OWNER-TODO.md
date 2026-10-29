@@ -132,10 +132,11 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q28 iOS timing · Q27 sign-off walk.
 
 ## Things only you can run or provide
-- **Google Play internal testing (T267)**: create the app, upload the first AAB `app/dist/aab/latest.aab` by hand, add
-  yourself as tester (link into `~/.canifishthis/play-test-url`), App content forms, service-account JSON to
-  `~/.canifishthis/play-service-account.json`. Steps 1–7 in tickets/T267. Then `deploy/staging/build-apk.sh --play`.
-  Back up `~/.canifishthis/` (upload key + password).
+- **Google Play setup (T268), when Google finishes verifying your Play account**: create the app ca.canifishthis.app,
+  accept Play App Signing, upload the first AAB `app/dist/aab/latest.aab` by hand to Internal testing, add your Gmail as
+  tester (opt-in link into `~/.canifishthis/play-test-url`), App content (privacy policy, data safety, content rating;
+  our answers in the ticket), service-account JSON to `~/.canifishthis/play-service-account.json`. Unblocks T267
+  (`deploy/staging/build-apk.sh --play`). Back up `~/.canifishthis/` (upload key + password).
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
 - **R2 upload** of a new release and of the gauge feed, with your credentials:
   `python -m pipeline.deliver.release.publish --release data/release/$(cat data/release/LATEST) --yes` (records
