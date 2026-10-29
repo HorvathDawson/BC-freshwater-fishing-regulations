@@ -1,6 +1,6 @@
 # T232 — app environments: local / staging / production, chosen at build time
 
-Status: IN PROGRESS (lane T232, main checkout)
+Status: DONE (3d171c8f) — native device run is the owner's (build commands below)
 
 Source: owner 2026-10-28: app builds need selectable environments (local / staging / production) so a dev build on
 the owner's phone reads STAGING data (data-staging.canifishthis.ca, feeds there; site staging.canifishthis.ca).
