@@ -10,6 +10,7 @@ import { Text } from "react-native";
 import type { RegsPage } from "@app/core";
 import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
+import { forgetRegsScroll, recallRegsScroll, regsScrollKey } from "./scrollMemory";
 import { RegsScreen, type RegsScreenProps } from "./RegsScreen";
 import { createPinStore } from "./pinStore";
 import vedder1010 from "./fixtures/vedder_1010.json";
@@ -208,5 +209,35 @@ describe("<RegsScreen>", () => {
     const to = vi.fn();
     (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
     expect([to.mock.calls.length, onStarted.mock.calls.length]).toEqual([0, 1]);
+  });
+
+  it("(T50) the scroll is kept across a remount (view / tab switch, back, a recreation): back there once the page is tall enough; a start link wins", () => {
+    vi.useFakeTimers();
+    forgetRegsScroll();
+    try {
+      const key = regsScrollKey("gnis:1", null, 7)!;
+      const fire = (y: number) => act(() => { fireEvent.scroll(scrollEl(), { target: { scrollTop: y } }); vi.advanceTimersByTime(50); });
+      mount({ scrollKey: key });
+      fire(1234);
+      const kept = recallRegsScroll(key);
+      cleanup();
+      mount({ scrollKey: key });
+      const to = vi.fn();
+      (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
+      fire(0);                                                   // the page settling at the top does not overwrite it
+      act(() => { vi.advanceTimersByTime(500); });              // jsdom has no layout: content 0 tall — it waits…
+      const waited = to.mock.calls.length;
+      act(() => { vi.advanceTimersByTime(3000); });             // …then goes as far as it can
+      const restored = to.mock.calls, after = recallRegsScroll(key);
+      cleanup();
+      mount({ scrollKey: key, start: { tab: "keep", sheet: null, scroll: 0 } });
+      const to2 = vi.fn();
+      (scrollEl() as unknown as { scroll: typeof to2 }).scroll = to2;
+      act(() => { vi.advanceTimersByTime(4000); });
+      expect({ kept, after, waited, restored, startWins: to2.mock.calls.length, other: regsScrollKey("gnis:1", 2, 7) === key,
+               none: regsScrollKey(null, null, null) })
+        .toEqual({ kept: { y: 1234 }, after: { y: 1234 }, waited: 0, restored: [[{ top: 1234, left: 0, behavior: "auto" }]], startWins: 0,
+                   other: false, none: null });
+    } finally { vi.useRealTimers(); }
   });
 });

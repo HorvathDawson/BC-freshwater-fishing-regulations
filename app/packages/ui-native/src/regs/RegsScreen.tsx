@@ -36,6 +36,7 @@ import { BoatsLine } from "./BoatsLine";
 import { RegsHeader } from "./RegsHeader";
 import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
+import { recallRegsScroll, rememberRegsScroll } from "./scrollMemory";
 import type { LayoutClass, RegsStart } from "@app/ui";
 import { AnchorContext, StickyContext, useAnchors } from "./useAnchors";
 import type { AdiposeImages, FishImages } from "./types";
@@ -124,12 +125,18 @@ export interface RegsScreenProps {
    * drawn at the page's foot under the "not legal advice" line (`LEGAL_WORDS.footer`, always drawn). Absent: that line only.
    */
   asOf?: string | null;
+  /**
+   * (T50) the water as opened (`regsScrollKey`): the page remembers its scroll under it and, mounted again without a
+   * start link (a view or tab switch, back / forward, a new day, an Android recreation), returns there once the page is
+   * tall enough to hold it. Absent: the page opens at the top, as before.
+   */
+  scrollKey?: string | null;
 }
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
                              gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = null, onAccessMap, inSeason = [], glance = null, salmonStrip = null,
-                             nameSource = null, asOf = null }: RegsScreenProps) {
+                             nameSource = null, asOf = null, scrollKey = null }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
@@ -167,6 +174,26 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
     }, 100);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount: a start is applied to the page it opened
+  }, []);
+  // (T50) back where the reader was: the remembered scroll, once the content is tall enough to hold it (polled: images
+  // and fonts grow it), or after ~3 s as far as it goes. A start link wins (it says where to go).
+  // Until then the page's own first scroll events (a layout settling at 0) do not overwrite the memory.
+  const contentH = useRef(0), viewH = useRef(0);
+  const restoring = useRef(!start && !!scrollKey && (recallRegsScroll(scrollKey)?.y ?? 0) > 0);
+  useEffect(() => {
+    if (!restoring.current || !scrollKey) return;
+    const at = recallRegsScroll(scrollKey)!;
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries++;
+      if (!restoring.current) { clearInterval(timer); return; }   // the reader took the scroll: leave it with them
+      if (contentH.current < at.y + viewH.current && tries < 30) return;
+      clearInterval(timer);
+      restoring.current = false;
+      scroll.current?.scrollTo({ y: at.y, animated: false });
+    }, 100);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount, like the start link
   }, []);
   const openSheet = (k: SheetKey) => { actions.onSheet(k); setSheet(k); };
   useEffect(() => {
@@ -243,10 +270,11 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   const read = <ReadingColumn layout={layout} testID="regs-reading">{body}</ReadingColumn>;
   const pageScroll = (
     <View style={{ flex: 1 }}>
-      <ScrollView ref={scroll} testID="regs-scroll" scrollEventThrottle={16} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
-                  onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; scrollY.setValue(y); store.setScroll(y); }}
-                  onLayout={(e) => store.setViewport(e.nativeEvent.layout.height)}
-                  onContentSizeChange={(_w, h) => { store.setContentHeight(h); remeasure(); }}>
+      <ScrollView ref={scroll} testID="regs-scroll" scrollEventThrottle={16} onScrollBeginDrag={() => { restoring.current = false; }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+                  onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; scrollY.setValue(y); store.setScroll(y);
+                                     if (scrollKey && !restoring.current) rememberRegsScroll(scrollKey, y); }}
+                  onLayout={(e) => { viewH.current = e.nativeEvent.layout.height; store.setViewport(e.nativeEvent.layout.height); }}
+                  onContentSizeChange={(_w, h) => { contentH.current = h; store.setContentHeight(h); remeasure(); }}>
         {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{read}</ViewSwipe> : read}
       </ScrollView>
       {layout !== "desktop" && <PinOver layout={layout} store={store} palette={palette} />}

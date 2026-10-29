@@ -35,6 +35,7 @@ import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { AdiposeImages, FishImages } from "./regs/types";
 import { DaySheet } from "./regs/DaySheet";
 import { RegsScreen } from "./regs/RegsScreen";
+import { regsScrollKey } from "./regs/scrollMemory";
 import { SalmonCard } from "./regs/SalmonCard";
 import { GearTab } from "./regs/GearTab";
 import { LicenceTab } from "./regs/LicenceTab";
@@ -213,7 +214,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
       <>
       {frame(null, (
       <RegsScreen page={regs} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout}
-                  start={start} onStarted={onStarted} onPart={onPart}
+                  start={start} onStarted={onStarted} onPart={onPart} scrollKey={regsScrollKey(item, part, section)}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, Date.now())}
                   // (T54) the access notice; its link moves to the water's Map view, where the area is drawn
