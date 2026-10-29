@@ -9,6 +9,7 @@
  * Said in three places: About ("0.1.0 (build 3, a1b2c3d, 2026-10-28)"), every data request (`X-App-Version`, and on a
  * phone the User-Agent), and the Updates log's export. And it gates a release: `releaseAllowed`.
  */
+import { isIsoDay } from "./day";
 
 export interface AppVersion {
   /** semver, e.g. "0.1.0" */
@@ -67,7 +68,7 @@ export function resolveAppVersion(i: AppVersionInputs): AppVersion {
   const sha = i.sha?.trim().toLowerCase() || null;
   if (sha && !/^[0-9a-f]{7,40}$/.test(sha)) throw new Error(`git sha "${sha}" is not a hex commit id`);
   const date = i.date?.trim() || null;
-  if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`build date "${date}" is not an ISO day`);
+  if (date && !isIsoDay(date)) throw new Error(`build date "${date}" is not an ISO day`);
   return { version: v.replace(/^v/, ""), build: b ? Number(b) : null, sha: sha ? sha.slice(0, 7) : null, date };
 }
 
