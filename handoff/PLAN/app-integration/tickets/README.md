@@ -290,8 +290,8 @@ use that as the sole source of future work."
 | T244 | app store readiness (icon, splash, listing, privacy labels, internal tracks) | OPEN | — | owner 2026-10-28 (P10); owner: accounts, listing text |
 | T245 | low-end Android performance budgets + fixes | OPEN | — | owner 2026-10-28 (P11) |
 | T246 | backups / disaster recovery (R2 + inventory + restore test) | DONE | ec26ed584 | backup bucket + lifecycle; worker daily cron; curated/release scripts; restore test all hashes pass; restore not served end-to-end |
-| T247 | search upgrades (fuzzy, MU/region/town, recents) | OPEN | — | owner 2026-10-28 (P13) |
-| T248 | first-run walkthrough + help page (after T236's disclaimer notice) | OPEN | — | owner 2026-10-28 (P14) |
+| T247 | search upgrades (fuzzy, MU/region/town, recents) | DONE | 96abc2b58 | in-memory index, typos, MU/region/town, region/MU on rows, recents; core `item_area` (live release gets MU/region search with its next cut); shots T247-shots/ |
+| T248 | first-run walkthrough + help page (after T236's disclaimer notice) | DONE | 5436081e6 | 4 cards after the notice, skippable, once per device; More -> Help generated from legend tokens; shots T248-shots/ |
 | T249 | feeds/worker security (rate limits, token rotation, private/ never public, secrets inventory) | DONE | ec26ed584 | 429 on flood (feeds + data), token rotated on staging, check-public PASS, inventory in ticket; prod WAF rule = owner |
 | T250 | Expo SDK / dependency upgrade window (MapLibre RN patch re-apply) | OPEN | — | owner 2026-10-28 (P16); before T244 |
 | T251 | testing data updates: Updates log (dev/staging, ring buffer, check/force/offline/clear/apply/copy), staging test channel (`test/` + `deploy/staging/test-updates.mjs` + `app/tools/updates-e2e.mjs`), app version (app.json semver + build + sha + date; About, `X-App-Version`, `minAppVersion` gate), `published` stamped at publish | DONE | fe10a015 | owner 2026-10-28; prod data worker must allow `X-App-Version` (T86) |
