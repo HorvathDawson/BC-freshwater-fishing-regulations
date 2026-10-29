@@ -7,7 +7,7 @@ import { act, cleanup, fireEvent, render, renderHook, screen } from "@testing-li
 import { HELP_WORDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, helpVM } from "@app/core";
 import { tidalColours } from "@app/map";
 import { HelpPage } from "./menu/HelpPage";
-import { stepsFor, useWalkthrough, WalkthroughSheet, type WalkthroughStore } from "./Walkthrough";
+import { stepsFor, useTabTour, useWalkthrough, WalkthroughSheet, type WalkthroughStore } from "./Walkthrough";
 import { insideWindow, placeCallout, unionRect, useCoachRegistry, type CoachRegistry } from "./CoachMarks";
 import { DARK, LIGHT } from "./theme";
 
@@ -39,7 +39,7 @@ describe("the walkthrough (T248, coach marks T257)", () => {
   it("(owner 2026-10-29) one tour, two step lists: the web build (this one) draws the web's last step", async () => {
     expect(stepsFor("web").at(-1)!.title).toBe(w.webSync.title);
     expect(stepsFor("app").at(-1)!.title).toBe(w.cards.at(-1)!.title);
-    render(<WalkthroughSheet state={{ open: true, finish: () => {}, reopen: () => {} }} palette={LIGHT} registry={screenOf()} />);
+    render(<WalkthroughSheet state={{ open: true, pending: false, finish: () => {}, reopen: () => {} }} palette={LIGHT} registry={screenOf()} />);
     for (let i = 0; i < w.cards.length - 1; i++) {
       await screen.findByTestId(`coach-step-${w.cards[i]!.key}`, {}, { timeout: 3000 });
       act(() => { fireEvent.click(screen.getByText(w.next)); });
@@ -194,3 +194,28 @@ function hexToRgb(hex: string): string {
   if (!m) return hex;
   return `rgb(${parseInt(m[1]!, 16)}, ${parseInt(m[2]!, 16)}, ${parseInt(m[3]!, 16)})`;
 }
+
+describe("the tab tutorials (T276)", () => {
+  const mem = (text: string | null = null): WalkthroughStore & { text: string | null } => {
+    const m = { text, read: () => m.text, write: (t: string) => { m.text = t; } };
+    return m;
+  };
+  it("open once, on the tab's first opening, and are remembered beside the welcome tour's line", () => {
+    const store = mem(WALKTHROUGH_VERSION);
+    const { result, rerender } = renderHook(({ on }) => useTabTour(store, "runs", on, false), { initialProps: { on: false } });
+    expect(result.current.open).toBe(false);          // the Runs tab is not in front
+    rerender({ on: true });
+    expect(result.current.open).toBe(true);
+    act(() => result.current.finish());
+    expect(result.current.open).toBe(false);
+    expect(store.text!.split("\n")).toEqual([WALKTHROUGH_VERSION, "tour-runs-1"]);
+    const again = renderHook(() => useTabTour(store, "runs", true, false));
+    expect(again.result.current.open).toBe(false);    // seen
+    act(() => again.result.current.reopen());          // More → Help
+    expect(again.result.current.open).toBe(true);
+  });
+  it("wait while something else holds the screen, and never open with no store", () => {
+    expect(renderHook(() => useTabTour(mem(), "conditions", true, true)).result.current.open).toBe(false);
+    expect(renderHook(() => useTabTour(null, "conditions", true, false)).result.current.open).toBe(false);
+  });
+});

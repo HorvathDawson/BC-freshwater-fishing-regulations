@@ -1,6 +1,6 @@
 # T276 — Mode notes by the mode switch, Runs tab legible on phones, first-open tutorials for Runs and Conditions
 
-Status: OPEN (owner 2026-10-29).
+Status: DONE 2026-10-29 (owner 2026-10-29).
 
 Source: owner: the DFO line ("Salmon rules from Fisheries and Oceans Canada (DFO), pages dated up to …. Waters DFO does not
 list are closed to salmon.") "should maybe go near the button used to change mode instead of in legend at bottom"; "the run
@@ -22,3 +22,10 @@ Phone screenshots: Salmon with the DFO line by the switch; Runs before/after; bo
 (T275 holds).
 
 Depends: T275, T248. Size: S–M. Owner: no.
+
+## Outcome
+1. The DFO source line (same words) now sits under the Standard / Salmon switch, only in Salmon (`BrowseHost` corner); gone from the legend.
+2. Runs: 48 px slider row, 28 px thumb, 5 px track, 48 px Play, larger day caption, species chips (40 px), legend text 13-13.5 px; the spawner scale left the foot (`RunScale` removed).
+3. Tab tutorials on the coach-mark tour: `TAB_TOUR_WORDS` (core `help.ts`), `useTabTour` / `TabTourSheet` (`Walkthrough.tsx`). Runs (species, slider, reading the colours + the 10-100k count scale + "no counts, never guessed") and Conditions (horizons, colours, every water) open once on the tab's first visit, after the notice and welcome tour; remembered as extra lines in the walkthrough's own store (no new key/file); More -> Help has a replay button for each.
+4. `/runtiming/` was already routed in `app/tools/serve-tiles.mjs` (T199); verified 200 on a fresh server (port 39290, stopped). The owner's running :39217 predates it: restart it.
+Shots: `T276-shots/` (phone 390x844). Suites: ui-native + core + map 2786 pass; tsc ui-native, mobile, map, core exit 0.

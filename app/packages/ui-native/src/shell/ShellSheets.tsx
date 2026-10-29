@@ -13,8 +13,8 @@ import type { Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 import type { ShellNav } from "./useShellNav";
 
-export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, sync = null }: {
-  theme?: string; onWalkthrough?: () => void;
+export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, onTabTour, sync = null }: {
+  theme?: string; onWalkthrough?: () => void; onTabTour?: (k: "runs" | "conditions") => void;
   /** (T238) the sync state: a phone's release download and its mobile-data setting, for the Offline maps page */
   sync?: SyncState | null;
   nav: ShellNav; col: MapColouring; rail: MapRail; menu: MenuControls; palette: Palette; loader: ReleaseLoader | null;
@@ -30,7 +30,7 @@ export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, m
       <SpotDropSheet at={route.mode === "browse" ? rail.drop : null} palette={palette}
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
-      <MenuHost menu={menu} palette={palette} theme={theme} onWalkthrough={onWalkthrough} loader={loader} info={menuInfo} tiles={col.vintage.tiles ?? null}
+      <MenuHost menu={menu} palette={palette} theme={theme} onWalkthrough={onWalkthrough} onTabTour={onTabTour} loader={loader} info={menuInfo} tiles={col.vintage.tiles ?? null}
                 route={route} day={mapDay} mode={col.regsLayer} offline={offline} />
     </>
   );

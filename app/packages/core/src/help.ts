@@ -32,14 +32,30 @@ import { TIDAL_SHEET_WORDS } from "./tidal";
 export const WALKTHROUGH_VERSION = "walkthrough-2";
 
 /** Has this device seen the current walkthrough? (the stored text is the version it saw) */
-export const walkthroughSeen = (stored: string | null | undefined): boolean => stored?.trim() === WALKTHROUGH_VERSION;
+export const walkthroughSeen = (stored: string | null | undefined): boolean => seenIn(stored, WALKTHROUGH_VERSION);
+
+/**
+ * (T276) THE SEEN-STORE IS A LIST OF LINES: the welcome tour's version, and one line per tab tutorial (`TAB_TOURS`) the
+ * device has seen. One store, so no new key or file on either platform; an old store (the version alone) reads the same.
+ */
+const seenIn = (stored: string | null | undefined, line: string): boolean =>
+  (stored ?? "").split("\n").some((l) => l.trim() === line);
+/** the stored text with `line` added (nothing else dropped) */
+export const withSeen = (stored: string | null | undefined, line: string): string =>
+  seenIn(stored, line) ? (stored ?? "") : [...(stored ?? "").split("\n").map((l) => l.trim()).filter(Boolean), line].join("\n");
+
+/** (T276) The tutorials shown once, on first opening a tab: Runs (how to read it) and Conditions. Bump a version to show again. */
+export const TAB_TOURS = { runs: "tour-runs-1", conditions: "tour-conditions-1" } as const;
+export type TabTourKey = keyof typeof TAB_TOURS;
+export const tabTourSeen = (stored: string | null | undefined, k: TabTourKey): boolean => seenIn(stored, TAB_TOURS[k]);
 
 /**
  * (T257) What a step of the tour points at, on the Map tab: the date bar, the Standard / Salmon switch, the
  * map itself (a spot in its middle: "tap here"), the Conditions and Runs tabs, and the refresh button with the bell beside it. The
  * surface registers each control under its key; a control that is not on screen drops its step.
  */
-export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "tab:runs" | "sync" | "bell";
+export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "tab:runs" | "sync" | "bell"
+  | "runs:species" | "runs:slider" | "horizons";
 
 export interface WalkthroughCard {
   readonly key: string;
@@ -91,6 +107,36 @@ export function walkthroughCards(platform: "web" | "app"): readonly WalkthroughC
     ? WALKTHROUGH_WORDS.cards.map((c) => (c.key === "sync" ? WALKTHROUGH_WORDS.webSync : c))
     : WALKTHROUGH_WORDS.cards;
 }
+
+/**
+ * (T276, owner 2026-10-29) THE TAB TUTORIALS: how to read the Runs tab (the colours, the spawner-count scale and why a
+ * stream may have none) and the Conditions tab, as coach-mark steps on the first open of each tab. The scale that used
+ * to fill the Runs tab's foot lives here now. Re-opened from More → Help (`again`).
+ */
+export const TAB_TOUR_WORDS = {
+  label: { runs: "How to read Runs", conditions: "How to read Conditions" },
+  again: { runs: "How to read the Runs tab", conditions: "How to read the Conditions tab" },
+  runs: [
+    { key: "species", targets: ["runs:species"], title: "Pick the fish",
+      body: "Choose one species or several; each shows with its fish. The map paints where and when their runs are." },
+    { key: "slider", targets: ["runs:slider"], title: "Move through the year",
+      body: "Drag the slider, or press Play, to watch the runs come and go. Today jumps you back to now. "
+        + "The shaded curve behind the track is how much of the province has these runs in the water." },
+    { key: "read", targets: ["map"], title: "Reading the colours",
+      body: `${RUN_WORDS.legend.spawn}; ${RUN_WORDS.legend.pass.toLowerCase()}; ${RUN_WORDS.legend.off.toLowerCase()}. `
+        + "Tap a stream to see its runs and how many spawners DFO counted there, from 10 up to 100,000 on a log scale. "
+        + `${RUN_WORDS.scale.none}.` },
+  ] satisfies readonly WalkthroughCard[],
+  conditions: [
+    { key: "horizons", targets: ["horizons"], title: "Pick when",
+      body: "Now, the days ahead, or the expected change. The map follows your choice." },
+    { key: "colours", targets: ["map"], title: "Reading the colours",
+      body: "Each dot is a gauge, coloured by how its flow or level compares with past years on this date: low, normal "
+        + "(the middle half of past years) or high. The key at the bottom shows the scale. Tap a gauge for its chart." },
+    { key: "water", targets: ["tab:conditions"], title: "On every water",
+      body: "Any water's page has a Conditions view beside its regulations, with the nearest gauge's history and forecast." },
+  ] satisfies readonly WalkthroughCard[],
+} as const;
 
 // ── the Help page ────────────────────────────────────────────────────────────────────────────────────────────────
 

@@ -7,7 +7,7 @@
  * colouring. Plain water needs no key. Whether it is shown is the Shell's call; what it says is here.
  */
 import { CHANGE_LEGEND, changeMarkWords, closedLegend, FLOW_LEGEND, TEMP_LEGEND, unprovenLine, WATER_STATUS,
-         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, salmonLegendSource, GEAR_LEGEND, METHOD_WORDS,
+         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND, METHOD_WORDS,
          RUN_STATES, RUN_WORDS, runCreditShort, slotsFor }
   from "@app/core";
 import { gearEdgeColour, runStateColour, salmonStatusColour } from "@app/map";
@@ -97,9 +97,6 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
             <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"}
                          label={METHOD_WORDS.legend[m]} />
           ))}
-          <Text testID="salmon-legend-source" style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>
-            {salmonLegendSource(col.salmonFacts)}
-          </Text>
         </>
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core
@@ -131,7 +128,7 @@ export function RunsLegend({ col, palette, theme }: { col: MapColouring; palette
   const field = col.mm.fieldOn;
   const slots = useMemo(() => (r.facts ? slotsFor(r.facts, r.chosen, r.year) : []), [r.facts, r.chosen, r.year]);
   const season = useMemo(() => (r.facts ? r.facts.season(slots) : []), [r.facts, slots]);
-  const note = { ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub };
+  const note = { ...TYPE.small, fontSize: 13, lineHeight: 18, color: palette.sub };
   return (
     <View testID="runs-legend" style={{ borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
                                         paddingHorizontal: 14, paddingTop: 8, paddingBottom: 8, gap: 6 }}>
@@ -140,40 +137,20 @@ export function RunsLegend({ col, palette, theme }: { col: MapColouring; palette
                        onToday={() => r.setPentad(r.today)} palette={palette} />
         <RunDaySlider pentad={r.pentad} today={r.today} playing={r.playing} onPentad={r.setPentad} onPlay={r.setPlaying}
                       season={season} theme={theme} palette={palette} />
-        <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 4 }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 16, rowGap: 6 }}>
           {RUN_STATES.map((s) => (
             <LegendCount key={s} palette={palette} colour={runStateColour(theme, s)} line={!field}
-                         dotted={!field && s === "pass"} label={RUN_WORDS.legend[s]} />
+                         dotted={!field && s === "pass"} label={RUN_WORDS.legend[s]} big />
           ))}
-          <LegendCount palette={palette} colour={runStateColour(theme, "none")} line={!field} label={RUN_WORDS.legend.none} />
+          <LegendCount palette={palette} colour={runStateColour(theme, "none")} line={!field} label={RUN_WORDS.legend.none} big />
         </View>
         {field && <Text testID="runs-legend-field" style={note}>{RUN_WORDS.field}</Text>}
-        <RunScale palette={palette} />
         {r.loading && <Text testID="runs-legend-loading" style={note}>{RUN_WORDS.loading}</Text>}
         {r.problem && <Text testID="runs-legend-problem" style={note}>
           {r.problem === "stale" ? RUN_WORDS.stale : RUN_WORDS.failed}</Text>}
         {r.captured && r.facts && <Text testID="runs-legend-captured" style={note}>{RUN_WORDS.captured(r.facts.builtAt)}</Text>}
         {r.facts && <Text testID="runs-legend-source" style={note}>{runCreditShort(r.facts)}</Text>}
       </View>
-    </View>
-  );
-}
-
-/** The run-size key: five bars on the log scale the sheet's counts are drawn on (10 … 100k), and "no counts". */
-function RunScale({ palette }: { palette: Palette }) {
-  const W = RUN_WORDS.scale;
-  return (
-    <View testID="runs-scale" style={{ flexDirection: "row", alignItems: "flex-end", flexWrap: "wrap", columnGap: 10, rowGap: 2 }}>
-      <Text style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>{W.title}</Text>
-      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4 }}>
-        {W.ticks.map((t, i) => (
-          <View key={t} style={{ alignItems: "center", gap: 1 }}>
-            <View style={{ width: 9, height: Math.round(((i + 1) / 5) * 14), backgroundColor: palette.ink, opacity: 0.75 }} />
-            <Text style={{ ...TYPE.month, fontSize: 9, color: palette.sub }}>{t}</Text>
-          </View>
-        ))}
-      </View>
-      <Text style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>{W.none}</Text>
     </View>
   );
 }

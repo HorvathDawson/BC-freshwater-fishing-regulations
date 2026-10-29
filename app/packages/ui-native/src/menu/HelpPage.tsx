@@ -5,7 +5,7 @@
  * the map no longer draws. "Show the walkthrough again" re-opens the first-run cards.
  */
 import { Text, View } from "react-native";
-import { HELP_WORDS, WALKTHROUGH_WORDS, helpRowAloud, helpVM, type HelpRow, type HelpSwatch } from "@app/core";
+import { HELP_WORDS, TAB_TOUR_WORDS, WALKTHROUGH_WORDS, helpRowAloud, helpVM, type HelpRow, type HelpSwatch } from "@app/core";
 import { gearEdgeColour, runStateColour, salmonStatusColour, tidalColours } from "@app/map";
 import { Button } from "../Button";
 import { DottedSwatch } from "../Chrome";
@@ -58,10 +58,12 @@ function Row({ row, palette, theme, first }: { row: HelpRow; palette: Palette; t
   );
 }
 
-export function HelpPage({ palette, theme, onWalkthrough }: {
+export function HelpPage({ palette, theme, onWalkthrough, onTabTour }: {
   palette: Palette; theme: string;
   /** re-open the first-run walkthrough; absent: no button */
   onWalkthrough?: () => void;
+  /** (T276) replay a tab's tutorial; absent: no buttons */
+  onTabTour?: (k: "runs" | "conditions") => void;
 }) {
   const sections = helpVM();
   return (
@@ -72,6 +74,11 @@ export function HelpPage({ palette, theme, onWalkthrough }: {
           <Button palette={palette} kind="ghost" label={WALKTHROUGH_WORDS.again} onPress={onWalkthrough} />
         </View>
       )}
+      {onTabTour && (["runs", "conditions"] as const).map((k) => (
+        <View key={k} testID={`help-tour-${k}`}>
+          <Button palette={palette} kind="ghost" label={TAB_TOUR_WORDS.again[k]} onPress={() => onTabTour(k)} />
+        </View>
+      ))}
       {sections.map((s) => (
         <View key={s.key} testID={`help-section-${s.key}`} style={{ gap: SPACE.s1 }}>
           <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{s.title}</Text>

@@ -77,8 +77,8 @@ export function DottedSwatch({ colour, width = 14 }: { colour: string; width?: n
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, edge }:
-  { palette: Palette; colour: string; n?: number; label: string;
+export function LegendCount({ palette, colour, n, label, line, dotted, edge, big }:
+  { palette: Palette; /** (T276) larger, for the Runs foot on a phone */ big?: boolean; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
      * the same width: no status is drawn wider than another, so the key must not suggest one.
@@ -101,7 +101,7 @@ export function LegendCount({ palette, colour, n, label, line, dotted, edge }:
       {n !== undefined && (
         <Text style={{ ...TYPE.figure, fontSize: 11.5, color: palette.ink }}>{n}</Text>
       )}
-      <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>{label}</Text>
+      <Text style={{ ...TYPE.small, fontSize: big ? 13.5 : 11.5, color: palette.sub }}>{label}</Text>
     </View>
   );
 }

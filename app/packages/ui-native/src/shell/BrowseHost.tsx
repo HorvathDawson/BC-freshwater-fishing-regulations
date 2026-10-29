@@ -2,9 +2,11 @@
  * THE BROWSE TABS' BODIES: the Map and Conditions tabs' ONE map, the Spots tab and the More tab (T62 3.4: out of the
  * Shell, unchanged). The top bar, the search sheet, the legend and the tab bar are the Shell's, drawn over these.
  */
-import { dayLabel, type DayRange, type SectionKey } from "@app/core";
+import { dayLabel, salmonLegendSource, type DayRange, type SectionKey } from "@app/core";
 import { useCallback, type MutableRefObject } from "react";
-import { Platform, View } from "react-native";
+import { Platform, Text, View } from "react-native";
+import { TYPE } from "../type";
+import { useCoachTarget } from "../CoachMarks";
 import type { SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MapRail, type MenuControls,
@@ -104,17 +106,31 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
    * in, and Standard / Salmon beside it — while the day's regulations are what the map draws, and not
    * while search's sheet is over it.
    */
+  const speciesTarget = useCoachTarget("runs:species");
   const regsDrawn = tab === "map" && !searching && col.statusOk && layers.water.drawn === "regulations";
   // one control row — the day, then Standard / Salmon — wrapping under the day on a phone
   const corner = regsDrawn
     ? <View testID="map-corner-row" pointerEvents="box-none" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "flex-start" }}>
         <MapDayStrip palette={palette} day={mapDay} range={dayRange} onDay={onDay} onOpen={onOpenDay} />
-        {col.salmonOffered && <RegsLayerToggle col={col} palette={palette} />}
+        {col.salmonOffered && (
+          // (T276) the mode switch, and under it — in Salmon — whose rules these are (it was the legend's last line)
+          <View style={{ gap: 6, alignItems: "flex-start", flexShrink: 1 }} pointerEvents="box-none">
+            <RegsLayerToggle col={col} palette={palette} />
+            {col.regsLayer === "salmon" && (
+              <View style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.chip,
+                             paddingHorizontal: 8, paddingVertical: 5, maxWidth: 300 }} pointerEvents="none">
+                <Text testID="salmon-legend-source" style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>
+                  {salmonLegendSource(col.salmonFacts)}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </View>
     // (T261) THE RUNS TAB'S CORNER: the species, several at once, each with its fish (the date slider is the foot's)
     : tab === "runs" && !searching && col.runs.species.length > 0
       // stretched to the corner's width, so the chips scroll inside it and never widen the page
-      ? <View testID="map-corner-row" pointerEvents="box-none" style={{ alignSelf: "stretch", overflow: "hidden" }}>
+      ? <View testID="map-corner-row" ref={speciesTarget} collapsable={false} pointerEvents="box-none" style={{ alignSelf: "stretch", overflow: "hidden" }}>
           <RunSpeciesChips species={col.runs.species} chosen={col.runs.chosen} onToggle={col.runs.toggle}
                            fishImages={fishImages} palette={palette} />
         </View>

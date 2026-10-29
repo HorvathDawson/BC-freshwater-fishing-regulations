@@ -134,7 +134,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14, right: 72, flexDirection: "column",
                                           gap: 8, alignItems: "flex-start" }} pointerEvents="box-none">
       {horizons && (
-        <CornerStrip palette={palette} testID="map-horizons"
+        <CornerStrip palette={palette} testID="map-horizons" coach="horizons"
                      segments={horizons.chips.map((h) => ({ key: String(h.day), chip: h.chip, label: h.label, on: h.on,
                                                             note: h.note ?? undefined,
                                                             onPress: () => horizons.onPick(h.day) }))} />

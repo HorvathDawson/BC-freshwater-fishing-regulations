@@ -58,7 +58,7 @@ import { useShellNav } from "./shell/useShellNav";
 import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
-import { useWalkthrough, WalkthroughSheet } from "./Walkthrough";
+import { TabTourSheet, useTabTour, useWalkthrough, WalkthroughSheet } from "./Walkthrough";
 import { CoachContext, useCoachRegistry } from "./CoachMarks";
 
 export type { ShellProps } from "./shell/props";
@@ -224,6 +224,11 @@ export function Shell(p: ShellProps) {
   const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
   const walkthrough = useWalkthrough(p.walkthrough ?? null, firstRun.open || !onMapTab);
   const replayTour = () => { nav.toTab("map"); walkthrough.reopen(); };
+  // (T276) the Runs and Conditions tutorials: on each tab's first open, after the notice and the welcome tour; More → Help replays
+  const tabBusy = firstRun.open || walkthrough.open || walkthrough.pending || searching;
+  const runsTour = useTabTour(p.walkthrough ?? null, "runs", route.mode === "browse" && tab === "runs", tabBusy);
+  const condTour = useTabTour(p.walkthrough ?? null, "conditions", route.mode === "browse" && tab === "conditions", tabBusy);
+  const replayTab = (k: "runs" | "conditions") => { nav.toTab(k); (k === "runs" ? runsTour : condTour).reopen(); };
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port; asked
@@ -370,7 +375,7 @@ export function Shell(p: ShellProps) {
                    void nav.opener.tap(sid as never, null, "regs");
                  }} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
-                   mapDay={mapDay} theme={theme} onWalkthrough={replayTour} sync={syncState} />
+                   mapDay={mapDay} theme={theme} onWalkthrough={replayTour} onTabTour={replayTab} sync={syncState} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
       <InSeasonNotice open={(notice.open && !firstRun.open && !walkthrough.open) || bellOpen} rows={notice.rows}
                       palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}
@@ -382,6 +387,8 @@ export function Shell(p: ShellProps) {
       <FirstRunNotice state={{ ...firstRun, open: firstRun.open && menu.state.page === null }} palette={palette}
                       onSources={() => menu.show("sources")} />
       <WalkthroughSheet state={walkthrough} palette={palette} registry={coach} />
+      <TabTourSheet tour={runsTour} which="runs" palette={palette} registry={coach} />
+      <TabTourSheet tour={condTour} which="conditions" palette={palette} registry={coach} />
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />

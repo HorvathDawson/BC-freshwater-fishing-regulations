@@ -45,7 +45,7 @@ export interface MenuInfo {
 /** No build facts: the build states none and the owner has supplied no contact yet. */
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
-export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader, info = NO_MENU_INFO, tiles, route, day, mode = null,
+export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabTour, loader, info = NO_MENU_INFO, tiles, route, day, mode = null,
                            offline = null }: {
   /** (T238) the Offline maps page's view and actions (`useOfflineMaps`); null: no release open, the page says nothing */
   offline?: OfflineControls | null;
@@ -54,6 +54,8 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
   theme?: string;
   /** (T248) re-open the first-run walkthrough from the Help page; absent: no button */
   onWalkthrough?: () => void;
+  /** (T276) replay the Runs / Conditions tutorial (Help) */
+  onTabTour?: (k: "runs" | "conditions") => void;
   /** the release (null: none open — a test — so no regulations and no manifest) */
   loader: RegsLoader | null;
   info?: MenuInfo;
@@ -109,7 +111,8 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
       </MenuPage>
       {page("offline", offline ? <OfflinePage c={offline} palette={palette} /> : null)}
       {page("help", <HelpPage palette={palette} theme={theme}
-                              onWalkthrough={onWalkthrough ? () => { menu.closePage(); onWalkthrough(); } : undefined} />)}
+                              onWalkthrough={onWalkthrough ? () => { menu.closePage(); onWalkthrough(); } : undefined}
+                              onTabTour={onTabTour ? (k) => { menu.closePage(); onTabTour(k); } : undefined} />)}
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
         edition: m?.sources?.synopsis?.title ?? null, tiles })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
