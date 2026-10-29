@@ -294,7 +294,7 @@ use that as the sole source of future work."
 | T248 | first-run walkthrough + help page (after T236's disclaimer notice) | OPEN | — | owner 2026-10-28 (P14) |
 | T249 | feeds/worker security (rate limits, token rotation, private/ never public, secrets inventory) | OPEN | — | owner 2026-10-28 (P15) |
 | T250 | Expo SDK / dependency upgrade window (MapLibre RN patch re-apply) | OPEN | — | owner 2026-10-28 (P16); before T244 |
-| T251 | testing data updates: Updates log (dev/staging, ring buffer, check/force/offline/clear/apply/copy), staging test channel (`test/` + `deploy/staging/test-updates.mjs` + `app/tools/updates-e2e.mjs`), app version (app.json semver + build + sha + date; About, `X-App-Version`, `minAppVersion` gate), `published` stamped at publish | IN PROGRESS | — | owner 2026-10-28; prod data worker must allow `X-App-Version` (T86) |
+| T251 | testing data updates: Updates log (dev/staging, ring buffer, check/force/offline/clear/apply/copy), staging test channel (`test/` + `deploy/staging/test-updates.mjs` + `app/tools/updates-e2e.mjs`), app version (app.json semver + build + sha + date; About, `X-App-Version`, `minAppVersion` gate), `published` stamped at publish | DONE | fe10a015 | owner 2026-10-28; prod data worker must allow `X-App-Version` (T86) |
 
 ## Order for open tickets
 

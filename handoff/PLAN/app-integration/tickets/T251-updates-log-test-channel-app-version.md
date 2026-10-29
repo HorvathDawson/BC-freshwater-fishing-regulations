@@ -1,6 +1,6 @@
 # T251 — testing data updates (Updates log + staging test channel) and the app version
 
-Status: IN PROGRESS (main checkout lane)
+Status: DONE (fe10a015)
 
 Source: owner 2026-10-28: (1) "we need a way to test the app data updates — it syncing with R2 when in service and
 tracking updates"; (2) "we need an app version too". Add-ons the same day: the web app's version tracks the release it
