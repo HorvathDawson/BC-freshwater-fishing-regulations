@@ -318,7 +318,7 @@ use that as the sole source of future work."
 | T274 | Past-day flow (HYDAT daily means) stored on our data host; dayFlow.ts no longer calls ECCC GeoMet | DONE (staging seeded; prod upload human) | T270 | owner 2026-10-29 |
 | T272 | First install: second progress bar after download ("Setting up on this device") with real progress; measure + cut the post-download step | OPEN | — | owner 2026-10-29 |
 | T273 | Panning lag on Android: profile, then cache per-section answers, batch viewport queries, defer work during gestures, prefetch one screen out | OPEN | — | owner 2026-10-29 |
-| T275 | Mode switch (Standard/Salmon/Runs) resizes the map; only the UI block should change, map fixed | DONE | see commit | owner 2026-10-29 |
+| T275 | Mode switch (Standard/Salmon/Runs) resizes the map; only the UI block should change, map fixed | DONE | dbfeb4bf4 (+70aa5e8e9) | owner 2026-10-29 |
 | T276 | DFO line by the mode switch; Runs tab legible on phones (bigger slider); spawner legend + Conditions → first-open tutorials; local /runtiming/ | OPEN | — | owner 2026-10-29 |
 | T277 | Satellite imagery draws in the Android app whenever online; offline toggle says why | OPEN | — | owner 2026-10-29 |
 
