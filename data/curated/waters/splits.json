@@ -10228,6 +10228,35 @@
      "tidal": true
     }
    ]
+  },
+  {
+   "name": "CHAMBERS CREEK",
+   "applies_to": {
+    "gnis_id": "3971"
+   },
+   "splits": [
+    {
+     "id": "chambers_creek__tidal_boundary_dfo_subarea_3_18",
+     "label": "tidal boundary (DFO Subarea 3-18)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.946238,
+       54.955691
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "low",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:360880075",
+     "_coord": [
+      -129.946238,
+      54.955691
+     ],
+     "tidal": true
+    }
+   ]
   }
  ]
 }
