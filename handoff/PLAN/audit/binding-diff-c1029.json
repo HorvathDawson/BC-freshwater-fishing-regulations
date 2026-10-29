@@ -1,0 +1,2013 @@
+{
+ "before": "data/generated/reaches/full",
+ "after": "data/generated/side/c1029/reach",
+ "rules_changed": 204,
+ "unresolved": {
+  "r1:nitinat_lake@1-3::nitinat_lake.r1": {
+   "before": null,
+   "after": "tidal"
+  }
+ },
+ "licensing": {
+  "zp:steelhead::steelhead_targeting": {
+   "gained": 98,
+   "lost": 172
+  },
+  "zp:superior_closures::national_park_permit": {
+   "gained": 0,
+   "lost": 2
+  },
+  "r1:tlell_river@6-13::tlell_river": {
+   "gained": 0,
+   "lost": 1
+  }
+ },
+ "classes_note": "city_line = a section on a city (negative) blk; restored_fwa = a blk the old fwa_exclude removed; tidal_piece = below a tidal cut (reach tidal.jsonl); tidal_cut_recut = the upper half of a section a tidal cut split. OTHER: 0.",
+ "rules": {
+  "r1:campbell_river@1-10::campbell_river.r6": {
+   "gained": 0,
+   "lost": 5,
+   "classes": {
+    "-tidal_piece": 5
+   }
+  },
+  "r1:chemainus_river@1-5::chemainus_river.r1": {
+   "gained": 1,
+   "lost": 16,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 16
+   }
+  },
+  "r1:nanaimo_river@1-5::nanaimo_river.r1": {
+   "gained": 0,
+   "lost": 5,
+   "classes": {
+    "-tidal_piece": 5
+   }
+  },
+  "r1:nanaimo_river@1-5::nanaimo_river.r6": {
+   "gained": 0,
+   "lost": 5,
+   "classes": {
+    "-tidal_piece": 5
+   }
+  },
+  "r1:nitinat_lake@1-3::nitinat_lake.r1": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:qualicum_river@1-6::qualicum_river.r1": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:qualicum_river@1-6::qualicum_river.r3": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:qualicum_river@1-6::qualicum_river.r5": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:qualicum_river@1-6::qualicum_river.r6": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:qualicum_river@1-6::qualicum_river.r7": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:salmon_river@1-10::salmon_river.r3": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r1:somass_river@1-7::somass_river.r2": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:somass_river@1-7::somass_river.r2x": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:somass_river@1-7::somass_river.r3": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:sooke_river@1-2::sooke_river.r1": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r1:sooke_river@1-2::sooke_river.r2": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r1:tlell_river@6-13::tlell_river.r1": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:tlell_river@6-13::tlell_river.r2": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r1:tlell_river@6-13::tlell_river.r5": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r2:brunette_river@2-8::brunette_river.r1": {
+   "gained": 53,
+   "lost": 19,
+   "classes": {
+    "+city_line": 37,
+    "+restored_fwa": 16,
+    "-city_line": 19
+   }
+  },
+  "r2:brunette_river@2-8::brunette_river.r2": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:brunette_river_s_tributaries@2-8::brunette_river_s_tributaries.r1": {
+   "gained": 11,
+   "lost": 68,
+   "classes": {
+    "+city_line": 1,
+    "+restored_fwa": 10,
+    "-city_line": 68
+   }
+  },
+  "r2:burnaby_lake_s_tributaries@2-8::burnaby_lake_s_tributaries.r1": {
+   "gained": 53,
+   "lost": 19,
+   "classes": {
+    "+city_line": 37,
+    "+restored_fwa": 16,
+    "-city_line": 19
+   }
+  },
+  "r2:campbell_river@2-4::campbell_river.r2": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:campbell_river@2-4::campbell_river.r4": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:capilano_river@2-8::capilano_river.r2": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:capilano_river@2-8::capilano_river.r3": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:chapman_creek@2-5::chapman_creek.r1": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:coquitlam_river@2-8::coquitlam_river.r2": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r2:kanaka_creek@2-8::kanaka_creek.r1": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:little_stawamus_creek@2-8::little_stawamus_creek.r1": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-city_line": 1
+   }
+  },
+  "r2:nathan_beaver_creek@2-4::nathan_beaver_creek.r2": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:nicomekl_river@2-4::nicomekl_river.r2": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:nicomekl_river@2-4::nicomekl_river.r3": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:nicomekl_river@2-4::nicomekl_river.r5": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:nicomekl_river@2-4::nicomekl_river.r6": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:pitt_river@2-8::pitt_river.r2": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "r2:seymour_river@2-8::seymour_river.r1": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:squamish_river@2-6::squamish_river.r1": {
+   "gained": 5,
+   "lost": 6,
+   "classes": {
+    "+city_line": 2,
+    "+restored_fwa": 2,
+    "+tidal_cut_recut": 1,
+    "-city_line": 5,
+    "-tidal_piece": 1
+   }
+  },
+  "r2:squamish_river_s_tributaries@2-6::squamish_river_tributaries.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+city_line": 2,
+    "+restored_fwa": 2,
+    "-city_line": 5
+   }
+  },
+  "r2:stawamus_river@2-9::stawamus_river.r1": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-city_line": 1
+   }
+  },
+  "r2:still_creek@2-8::still_creek.r1": {
+   "gained": 8,
+   "lost": 72,
+   "classes": {
+    "+city_line": 1,
+    "+restored_fwa": 7,
+    "-city_line": 72
+   }
+  },
+  "r6:nass_river@6-30::nass_river.r1": {
+   "gained": 2,
+   "lost": 3,
+   "classes": {
+    "+tidal_cut_recut": 2,
+    "-tidal_piece": 3
+   }
+  },
+  "r6:skeena_river@6-10::skeena_river.r1": {
+   "gained": 2,
+   "lost": 2,
+   "classes": {
+    "+tidal_cut_recut": 2,
+    "-tidal_piece": 1,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z1:bait_ban_streams::bait_ban_streams.r1": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::species_quotas.r1": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::species_quotas.r2": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::species_quotas.r3": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::species_quotas.r4": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::species_quotas.r5": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::species_quotas.r6": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::trout_quota.r1": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::trout_quota.r2": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::trout_quota.r2b": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::trout_quota.r4": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::trout_quota.r5": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::trout_quota.r6": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::trout_quota.r7": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:daily_quotas::trout_quota.r8": {
+   "gained": 5,
+   "lost": 35,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 35
+   }
+  },
+  "z1:hg_bait_ban_streams::hg_bait_ban_streams.r1": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "z1:hg_quota::hg_quota.r1": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "z1:hg_quota::hg_quota.r2": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "z1:hg_quota::hg_quota.r3": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "z1:hg_quota::hg_quota.r4": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "z1:hg_quota::hg_quota.r5": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "z1:hg_quota::hg_quota.r6": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "z1:hg_quota::hg_quota.r7": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "z1:hg_quota::hg_quota.r8": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "z1:possession_quota::possession_quota.r1": {
+   "gained": 5,
+   "lost": 36,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 36
+   }
+  },
+  "z1:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 5,
+   "lost": 36,
+   "classes": {
+    "+tidal_cut_recut": 5,
+    "-tidal_piece": 36
+   }
+  },
+  "z1:summer_stream_closure::summer_stream_closure.r1": {
+   "gained": 2,
+   "lost": 30,
+   "classes": {
+    "+tidal_cut_recut": 2,
+    "-tidal_piece": 30
+   }
+  },
+  "z2:daily_quotas::species_quotas.r1": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::species_quotas.r2": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::species_quotas.r3": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::species_quotas.r4": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::species_quotas.r5": {
+   "gained": 89,
+   "lost": 133,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 46
+   }
+  },
+  "z2:daily_quotas::species_quotas.r6": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::species_quotas.r7": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::trout_char_quota.r1": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::trout_char_quota.r2": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::trout_char_quota.r2b": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::trout_char_quota.r4": {
+   "gained": 89,
+   "lost": 133,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 46
+   }
+  },
+  "z2:daily_quotas::trout_char_quota.r5": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::trout_char_quota.r5b": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:daily_quotas::trout_char_quota.r6": {
+   "gained": 89,
+   "lost": 133,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 46
+   }
+  },
+  "z2:daily_quotas::trout_char_quota.r7": {
+   "gained": 89,
+   "lost": 133,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 46
+   }
+  },
+  "z2:daily_quotas::trout_char_quota.r8": {
+   "gained": 89,
+   "lost": 133,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 46
+   }
+  },
+  "z2:daily_quotas::trout_char_quota.r9": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "z2:hatchery_steelhead_stop::hatchery_steelhead_stop.r1": {
+   "gained": 89,
+   "lost": 133,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 46
+   }
+  },
+  "z2:possession_quota::possession_quota.r1": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:protected_species::protected_species.r1": {
+   "gained": 89,
+   "lost": 134,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 47
+   }
+  },
+  "z2:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 89,
+   "lost": 133,
+   "classes": {
+    "+city_line": 26,
+    "+restored_fwa": 49,
+    "+tidal_cut_recut": 14,
+    "-city_line": 87,
+    "-tidal_piece": 46
+   }
+  },
+  "z2:stave_river_marking::stave_river_marking.r1": {
+   "gained": 1,
+   "lost": 1,
+   "classes": {
+    "+tidal_cut_recut": 1,
+    "-tidal_piece": 1
+   }
+  },
+  "z6:atlantic_salmon_alert::atlantic_salmon_alert.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::species_quotas.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::species_quotas.r2": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::species_quotas.r3": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::species_quotas.r4": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::species_quotas.r5": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::species_quotas.r6": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::species_quotas.r7": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::species_quotas.r8": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::trout_char_quota.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::trout_char_quota.r2": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::trout_char_quota.r3": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::trout_char_quota.r4": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::trout_char_quota.r5": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::trout_char_quota.r6": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::trout_char_quota.r7": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::trout_char_quota.r8": {
+   "gained": 2,
+   "lost": 2,
+   "classes": {
+    "+tidal_cut_recut": 2,
+    "-tidal_piece": 1,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:daily_quotas::trout_char_quota.r9": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:first_nations_notice::first_nations_notice.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:hatchery_steelhead_stop::hatchery_steelhead_stop.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:possession_quota::possession_quota.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:salmon_quotas_notice::salmon_quotas_notice.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:skeena_fisheries_management::skeena_fisheries_management.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:skeena_nass_bait_ban::skeena_nass_bait_ban.r1": {
+   "gained": 2,
+   "lost": 2,
+   "classes": {
+    "+tidal_cut_recut": 2,
+    "-tidal_piece": 1,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:skeena_nass_bait_ban::skeena_nass_bait_ban.r2": {
+   "gained": 2,
+   "lost": 3,
+   "classes": {
+    "+tidal_cut_recut": 2,
+    "-tidal_piece": 3
+   }
+  },
+  "z6:skeena_quality_waters::skeena_quality_waters.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:steelhead_stream_closure::steelhead_stream_closure.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:steelhead_stream_closure::steelhead_stream_closure.r2": {
+   "gained": 3,
+   "lost": 3,
+   "classes": {
+    "+tidal_cut_recut": 3,
+    "-tidal_piece": 2,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:tagging_program::tagging_program.r1": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:tagging_program::tagging_program.r2": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "z6:tagging_program::tagging_program.r3": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:allowable_methods::allowable_methods.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:allowable_methods::allowable_methods.r2": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:allowable_methods::allowable_methods.r2b": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:allowable_methods::allowable_methods.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:allowable_methods::allowable_methods.r4": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:bait::bait.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:bait::bait.r3": {
+   "gained": 0,
+   "lost": 29,
+   "classes": {
+    "-tidal_piece": 29
+   }
+  },
+  "zp:bait::bait.r4": {
+   "gained": 98,
+   "lost": 174,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 86,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:bait::bait.r5": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "zp:bait::bait.r6": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:bait::bait.r7": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:barbless_single_hook_streams::barbless_single_hook_streams.r1": {
+   "gained": 98,
+   "lost": 174,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 86,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:barbless_single_hook_streams::barbless_single_hook_streams.r2": {
+   "gained": 0,
+   "lost": 1,
+   "classes": {
+    "-tidal_piece": 1
+   }
+  },
+  "zp:barbless_single_hook_streams::barbless_single_hook_streams.r3": {
+   "gained": 98,
+   "lost": 174,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 86,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r10": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r11": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r2": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r4": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r5": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r6": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r7": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r8": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:conduct::conduct.r9": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:crayfish_trapping::crayfish_trapping.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:crayfish_trapping::crayfish_trapping.r2": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:crayfish_trapping::crayfish_trapping.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:fluctuating_levels::fluctuating_levels.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:further_prohibitions::further_prohibitions.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:further_prohibitions::further_prohibitions.r2": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:further_prohibitions::further_prohibitions.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:licence_administration::licence_administration.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:licence_fees::licence_fees.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:measuring_and_possession::measuring_and_possession.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:measuring_and_possession::measuring_and_possession.r2": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:national_park_reserves::national_park_reserves.r1": {
+   "gained": 0,
+   "lost": 2,
+   "classes": {
+    "-tidal_piece": 2
+   }
+  },
+  "zp:no_fishing_buffers::no_fishing_buffers.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:no_fishing_buffers::no_fishing_buffers.r2": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:no_fishing_buffers::no_fishing_buffers.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:no_fishing_scope::no_fishing_scope.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:preparing_catch::preparing_catch.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:preparing_catch::preparing_catch.r2": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:prohibited_methods::prohibited_methods.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:prohibited_methods::prohibited_methods.r2": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:prohibited_methods::prohibited_methods.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:prohibited_methods::prohibited_methods.r4": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:prohibited_methods::prohibited_methods.r5": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:protected_species::protected_species.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:protected_species::protected_species.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:quota_defaults::quota_defaults.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:quota_defaults::quota_defaults.r2": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:quota_defaults::quota_defaults.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:quota_defaults::quota_defaults.r4": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:salmon_stamp::salmon_stamp.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:set_lining::set_lining.r1b": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:spear_fishing::spear_fishing.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:spear_fishing::spear_fishing.r2": {
+   "gained": 4,
+   "lost": 5,
+   "classes": {
+    "+tidal_cut_recut": 4,
+    "-tidal_piece": 4,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:spear_fishing::spear_fishing.r3": {
+   "gained": 94,
+   "lost": 170,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 19,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 83
+   }
+  },
+  "zp:spear_fishing::spear_fishing.r4": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:steelhead::steelhead.r1": {
+   "gained": 98,
+   "lost": 174,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 86,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:steelhead::steelhead.r2": {
+   "gained": 98,
+   "lost": 174,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 86,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:steelhead::steelhead.r4": {
+   "gained": 98,
+   "lost": 174,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 86,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:superior_closures::superior_closures.r1": {
+   "gained": 0,
+   "lost": 2,
+   "classes": {
+    "-tidal_piece": 2
+   }
+  },
+  "zp:superior_closures::superior_closures.r1b": {
+   "gained": 0,
+   "lost": 2,
+   "classes": {
+    "-tidal_piece": 2
+   }
+  },
+  "zp:terminal_tackle::terminal_tackle.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:terminal_tackle::terminal_tackle.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:terminal_tackle::terminal_tackle.r4": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:terminal_tackle::terminal_tackle.r5": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:terminal_tackle::terminal_tackle.r6": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:terminal_tackle::terminal_tackle.r7": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:transporting_catch::transporting_catch.r1": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:transporting_catch::transporting_catch.r2": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:transporting_catch::transporting_catch.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:transporting_catch::transporting_catch.r4": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:transporting_catch::transporting_catch.r5": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:transporting_catch::transporting_catch.r6": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:white_sturgeon_licence::white_sturgeon_licence.r3": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  },
+  "zp:white_sturgeon_licence::white_sturgeon_licence.r4": {
+   "gained": 98,
+   "lost": 175,
+   "classes": {
+    "+city_line": 26,
+    "+tidal_cut_recut": 23,
+    "+restored_fwa": 49,
+    "-city_line": 87,
+    "-tidal_piece": 87,
+    "-tidal_cut_recut": 1
+   }
+  }
+ }
+}
