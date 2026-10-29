@@ -125,7 +125,8 @@ export function Shell(p: ShellProps) {
   const { searching, session, searchMemory, field } = search;
   /** (owner 2026-10-29) the page started ON a water (a landing): the map is readied behind it once idle (below) */
   const [landed] = useState(() => !!p.arriveAt && p.initialRoute?.mode === "water");
-  const warm = useIdleOnce(landed && frame !== null);
+  // ...and only once the water's own page is up (its start applied, `start` null): the map must not race the page's files
+  const warm = useIdleOnce(landed && frame !== null && start === null);
   // (T269) a page started on (or at) a water: the map comes back framed on it
   useEffect(() => { if (p.arriveAt) search.landOn(p.arriveAt); }, []);   // eslint-disable-line react-hooks/exhaustive-deps -- once, on mount
   useEscapeBack(nav.back, nav.escapeBack && !searching);   // T214 item 2: on the desktop web Escape is Back (a no-op on a phone)

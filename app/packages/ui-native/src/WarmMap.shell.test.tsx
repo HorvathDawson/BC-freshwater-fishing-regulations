@@ -32,11 +32,11 @@ beforeAll(() => {
 
 const VEDDER = "gnis:3062" as ItemId;
 const onVedder: Route = reduce(HOME, openWater({ item: VEDDER, part: null, view: "regs" }));
-function mount(initialRoute: Route, arriveAt: ItemId | null) {
+function mount(initialRoute: Route, arriveAt: ItemId | null, regsStart: { tab: "keep"; sheet: null; scroll: number } | null = null) {
   render(
     <GestureHandlerRootView>
       <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
-             tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={initialRoute} arriveAt={arriveAt} />
+             tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={initialRoute} arriveAt={arriveAt} regsStart={regsStart} />
     </GestureHandlerRootView>);
 }
 const idle = async () => { await act(async () => { vi.advanceTimersByTime(2500); }); await act(async () => {}); };
@@ -53,6 +53,13 @@ describe("the map behind a landing", () => {
     expect(screen.getByTestId("water-back")).toBeTruthy();               // the water is still what is on screen
     await act(async () => { fireEvent.click(screen.getByTestId("water-back")); });
     expect([screen.getByTestId("map").closest('[aria-hidden="true"]'), mounts.n]).toEqual([null, 1]);   // the same map, shown
+  });
+
+  it("not before the water's own page is up: a landing whose page has not applied its start yet mounts no map", async () => {
+    vi.useFakeTimers();
+    mount(onVedder, VEDDER, { tab: "keep", sheet: null, scroll: 0 });   // no release here: the page never comes up
+    await idle();
+    expect(screen.queryByTestId("map")).toBeNull();
   });
 
   it("a water tapped from the map (no landing) and an ordinary start mount no map behind anything", async () => {
