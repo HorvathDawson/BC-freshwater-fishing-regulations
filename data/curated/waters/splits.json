@@ -10278,6 +10278,35 @@
      "tidal": true
     }
    ]
+  },
+  {
+   "name": "SEYMOUR RIVER",
+   "applies_to": {
+    "gnis_id": "6105"
+   },
+   "splits": [
+    {
+     "id": "seymour_river__cn_railway_bridge_tidal_boundary",
+     "label": "CN Railway Bridge (tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.024501,
+       49.303573
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:360886339 — \"Seymour River: CN Railway Bridge | from the Seymour River Dam to the tidal boundary, including tributaries\"",
+     "_coord": [
+      -123.024501,
+      49.303573
+     ],
+     "tidal": true
+    }
+   ]
   }
  ]
 }
