@@ -28,6 +28,8 @@
 //   link         a start link (/?regs=gnis:3062, the Vedder): no map needed → Regulations on screen
 //   conditions   paint, then Conditions → its horizons on screen, and → its data landed (the feed + release files the
 //                press started, all finished)
+//   chart        (T256) the link's water on its Conditions view (`&view=conditions`) → its 72-hour chart drawn, and →
+//                the chart's normal range (the climate envelope) drawn on it
 //   pdf          the link's page, then "Rule book page N" → the highlighted PDF opened, an offer to download it, or the
 //                cap (with how far the download got)
 //
@@ -53,7 +55,7 @@ export const PROFILES = {
   'offline-back': { label: 'Offline, then back', down: 400e3 / 8, up: 400e3 / 8, latency: 400, type: 'cellular3g',
                     cap: 240_000, offlineBack: true },
 };
-const STEPS = ['paint', 'named', 'unnamed', 'link', 'conditions', 'pdf'];
+const STEPS = ['paint', 'named', 'unnamed', 'link', 'conditions', 'chart', 'pdf'];
 
 /** A small seeded RNG (mulberry32): the flaky profile's drops are the same each run. */
 export function rng(seed) {
@@ -82,9 +84,16 @@ const LINK = { item: 'gnis:3062', name: 'Vedder River' };
 const WATCH = ['map-day', 'regs-header', 'water-title', 'map-horizons', 'synopsis-loading', 'synopsis-retry', 'boot-slow',
                'synopsis-offer', 'net-status', 'regs-slow', 'salmon-pending'];
 
+/** (T256) the "Before you fish" notice, the coach-mark tour and the in-season notice seen, as the request walk seeds
+ *  them (versions read from the source: a bumped version would cover the map again) */
+const rdv = (f, re) => re.exec(fs.readFileSync(new URL(`../${f}`, import.meta.url), 'utf8'))?.[1];
+const SEEN = `try { localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(rdv('packages/core/src/menu/legal.ts', /FIRST_RUN_VERSION = "([^"]+)"/) ?? 'disclaimer-1')});
+  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify(rdv('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/) ?? '1')});
+  localStorage.setItem('canifishthis.inseasonSeen.v1', '["*"]'); } catch {}`;
+
 /** Before any page script: the first-run notice accepted, the T254 setting (when asked), and the watchers. */
 function initScript(low) {
-  return `try { localStorage.setItem('canifishthis.firstRun.v1', 'disclaimer-1'); } catch {}
+  return `${SEEN}
 ${low ? `try { localStorage.setItem('canifishthis.lowData.v1', ${JSON.stringify(low)}); } catch {}` : ''}
 window.__t254 = { seen: {}, pdfAt: null, pdfBytes: null };
 (() => {
@@ -274,6 +283,25 @@ const STEP = {
       ms: shown ? Math.round(seen['map-horizons'] - pageAt) : null, dataMs: Number.isFinite(last) ? last - at : null,
       files: rs.length, failed: rs.filter((r) => r.failed).length } };
   }),
+  async chart(site, profile, o) {
+    const s = await session(site, `${site}/?regs=${LINK.item}&view=conditions`, profile, o);
+    try {
+      // the chart is the image labelled with its span (core `chartLabel`); its normal range, the key's "10th–90th"
+      const probe = `(() => ({ t: performance.now(), chart: !!document.querySelector('[aria-label="the last 72 hours"]'),
+        band: (document.body.innerText || '').includes('10th–90th') }))()`;
+      let chartMs = null, bandMs = null;
+      const end = Date.now() + s.P.cap;
+      while (Date.now() < end && bandMs === null) {
+        const r = await s.b.evaluate(probe).catch(() => null);
+        if (r?.chart && chartMs === null) chartMs = Math.round(r.t);
+        if (r?.chart && r.band) bandMs = Math.round(r.t);
+        await sleep(250);
+      }
+      await s.shot('chart');
+      return { chart: { status: bandMs !== null ? 'ok' : chartMs !== null ? 'no-band' : 'timeout', ms: chartMs, bandMs },
+               ...(await s.tally()) };
+    } finally { await s.close(); }
+  },
   async pdf(site, profile, o) {
     const s = await session(site, `${site}/?regs=${LINK.item}`, profile, o);
     try {
@@ -355,8 +383,8 @@ const fmt = (ms) => (ms === null || ms === undefined || Number.isNaN(ms) ? '—'
 const cell = (r) => (!r ? '—' : r.status === 'ok' ? fmt(r.ms) : r.status === 'offered' ? `offered (${fmt(r.ms)})` : `${r.status}${r.note ? ` (${r.note})` : ''}`);
 
 export function table(rows) {
-  const out = ['| profile | map chrome | map painted | named tap → regs | unnamed tap → regs | link → regs | Conditions shown / data | PDF | failed requests | console errors |',
-               '|---|---|---|---|---|---|---|---|---|---|'];
+  const out = ['| profile | map chrome | map painted | named tap → regs | unnamed tap → regs | link → regs | Conditions shown / data | water chart / its normal range | PDF | failed requests | console errors |',
+               '|---|---|---|---|---|---|---|---|---|---|---|'];
   for (const r of rows) {
     const S = r.steps;
     const paints = Object.values(S).map((x) => x?.paint).filter((p) => p?.status === 'ok');
@@ -366,9 +394,10 @@ export function table(rows) {
     const c = S.conditions?.conditions;
     const ob = S['offline-back'];
     out.push(`| ${PROFILES[r.profile].label} | ${fmt(med('chrome'))} | ${fmt(med('painted'))} | ${cell(S.named?.regs)} | ${cell(S.unnamed?.regs)} | `
-      + `${cell(S.link?.regs)} | ${c ? (c.status === 'ok' ? `${fmt(c.ms)} / ${fmt(c.dataMs)}` : cell(c)) : '—'} | ${cell(S.pdf?.pdf)} | `
+      + `${cell(S.link?.regs)} | ${c ? (c.status === 'ok' ? `${fmt(c.ms)} / ${fmt(c.dataMs)}` : cell(c)) : '—'} | `
+      + `${S.chart?.chart ? `${fmt(S.chart.chart.ms)} / ${S.chart.chart.bandMs === null ? S.chart.chart.status : fmt(S.chart.chart.bandMs)}` : '—'} | ${cell(S.pdf?.pdf)} | `
       + `${Object.entries(failed).map(([k, n]) => `${k} ${n}`).join(', ') || '0'} | ${errs} |`
-      + (ob ? `\n|  ↳ offline tap | opened: ${ob.offline?.opened ? 'yes' : 'no'} | regs offline: ${ob.offline?.regsWhileOffline ? 'yes' : 'no'} | back: ${ob.back?.status} | ${fmt(ob.back?.ms)} after | | | | | |` : ''));
+      + (ob ? `\n|  ↳ offline tap | opened: ${ob.offline?.opened ? 'yes' : 'no'} | regs offline: ${ob.offline?.regsWhileOffline ? 'yes' : 'no'} | back: ${ob.back?.status} | ${fmt(ob.back?.ms)} after | | | | | | |` : ''));
   }
   return out.join('\n');
 }
