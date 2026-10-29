@@ -179,6 +179,8 @@ interface Props {
    never goes into splits.json from here — T185 turns the marks into reviewed changes. */
 export function DfoReview({ mode }: Props) {
   const [allRows, setRows] = useState<DfoRow[]>([]);
+  // owner 2026-10-28: "loading…" until the first queue arrives, never "0 locations"
+  const [loaded, setLoaded] = useState(false);
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   const rows = useMemo(() => applyPv(allRows, pvf), [allRows, pvf]);
   const [progress, setProgress] = useState<DfoProgress | null>(null);
@@ -193,7 +195,7 @@ export function DfoReview({ mode }: Props) {
   const [notice, setNotice] = useState("");
 
   const loadRows = useCallback(() => {
-    api.dfoQueue(filters).then(setRows).catch((e) => setError(String(e)));
+    api.dfoQueue(filters).then((r) => { setRows(r); setLoaded(true); }).catch((e) => setError(String(e)));
     api.dfoProgress().then(setProgress).catch(() => {});
   }, [filters]);
   useEffect(() => { loadRows(); }, [loadRows]);
@@ -300,7 +302,7 @@ export function DfoReview({ mode }: Props) {
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setError("")}>dismiss</button></div>}
       <div className="main">
         <div className="queue" data-testid="dfo-queue">
-          <div className="queue-group">{rows.length} location{rows.length === 1 ? "" : "s"} — the DFO page's reaches, one each</div>
+          <div className="queue-group">{loaded ? <>{rows.length} location{rows.length === 1 ? "" : "s"} — the DFO page's reaches, one each</> : "loading…"}</div>
           {rows.map((r) => (
             <div key={r.id} data-dfo={r.id} className={`queue-row${r.id === selected ? " selected" : ""}`}
               onClick={() => open(r.id)}>

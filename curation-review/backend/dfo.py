@@ -70,8 +70,13 @@ def _proposals() -> list[dict]:
     proposed it. Read only — the store is never edited."""
     from pipeline.common.curated import CURATED
     from pipeline.regs.review import marks as M
-    return M.proposals(M.load(reuse.MARKS_PATH),
-                       M.load_overrides(CURATED.regulations.review.proposal_overrides))
+    ov = CURATED.regulations.review.proposal_overrides
+    # once per marks / overrides file (owner 2026-10-28: ~0.7 s, read by every DFO progress badge)
+    return _PROPOSALS_MEMO.get((reuse._stamp((reuse.MARKS_PATH, ov)), M.proposals, M.load),
+                               lambda: M.proposals(M.load(reuse.MARKS_PATH), M.load_overrides(ov)))
+
+
+_PROPOSALS_MEMO = reuse._Memo()
 
 
 def _proposal_view(p: dict) -> dict:
@@ -189,7 +194,27 @@ def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None
                       if (g := (groups or {}).get(loc["location_id"])) else None)}
 
 
+#: THE DFO ROWS, COMPUTED ONCE PER INPUT (owner 2026-10-28): the queue, its progress and the tab
+#: badge each recomputed every location's prints (~2-5 s). Inputs: the marks, suggestions,
+#: pre-verify and proposal-override files' stamps; the DFO region files and typed feed (cached per
+#: their stamps), the registry and the landed marks; and the readers (a test may patch one).
+_ROWS_MEMO = reuse._Memo()
+
+
+def _rows_inputs() -> tuple:
+    from pipeline.common.curated import CURATED
+    return (reuse._stamp((reuse.MARKS_PATH, SUGGESTIONS_PATH, preverify.FILES["dfo"],
+                          CURATED.regulations.review.proposal_overrides)),
+            D.regions(DFO_DIR), D.typed(DFO_TYPED), reuse._registry(), reuse.applied_keys(),
+            _locations, _states, _groups, _row)
+
+
 def _rows() -> list[dict]:
+    """Every DFO row in review order — SHARED: callers filter, never mutate."""
+    return _ROWS_MEMO.get(_rows_inputs(), _compute_rows)
+
+
+def _compute_rows() -> list[dict]:
     states, groups = _states(), _groups()
     out = [_row(slug, loc, water, states.get(lid), groups)
            for lid, (slug, loc, water) in _locations().items()]

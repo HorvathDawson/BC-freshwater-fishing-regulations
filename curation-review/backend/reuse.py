@@ -103,6 +103,10 @@ def _single_load(fn):
     cached = lru_cache(maxsize=1)(fn)
 
     def wrapper():
+        # WARM: no lock (owner 2026-10-28) — the registry's readers (queue, progress, health) waited
+        # minutes behind the lock while ANOTHER artifact (the 2.9 GB geometry) loaded under it
+        if cached.cache_info().currsize:
+            return cached()
         with _LOAD_LOCK:
             return cached()
     wrapper.cache_clear = cached.cache_clear
@@ -890,32 +894,62 @@ def queue(region: str | None = None, status: str | None = None,
     P1 Z P2 P3 P4 sweep); `severity` on the entry's severity (`severity.FILTERS`: a level, or
     `issues` — high and medium)."""
     from pipeline.regs.review import severity as S
-    from pipeline.regs.review import tiers as T
-    from pipeline.regs.review.precheck import severe as _severe
     if order not in QUEUE_ORDERS:
         raise ValueError(f"order is one of {', '.join(QUEUE_ORDERS)}, not {order!r}")
+    rows = [r for r in _queue_rows()
+            if (not region or r["region"] == region) and (not status or r["status"] == status)
+            and (not kind or r["kind"] == kind) and (not tier or r["tier"] == tier)
+            and (not verify or r["verify"] == verify or (verify == "todo" and r["verify"] != "verified")
+                 or (verify == "recheck" and r["reviewed"] is not None and not r["reviewed"]["holds"]))
+            and S.matches(r["severity"], severity)]
+
+    def book(r):
+        return (_region_key(r["region"]), r["page"] if r["page"] is not None else 10_000,
+                _KIND_ORDER.get(r["kind"], 9), r["_pos"])
+    rows.sort(key=book if order == "book" else (lambda r: (r["_rank"], book(r))))
+    return [{k: v for k, v in r.items() if k not in ("_pos", "_rank")} for r in rows]
+
+
+#: THE QUEUE IS COMPUTED ONCE PER INPUT (owner 2026-10-28, `_QUEUE_MEMO`): every row, unfiltered,
+#: with its rank — ~2-9 s, and the progress bar, region counts and queue each asked for it on load.
+#: the readers the queue is computed by — a patched one (a test) is a different input
+_QUEUE_READERS = ("_all_entries", "_mark_states", "_entry_mark_state", "_item_for_entry",
+                  "entry_status", "entry_kind", "entry_vintage", "entry_prechecks",
+                  "unused_curated_splits", "splits_to_verify", "matched_areas", "_also_items")
+
+
+def _queue_inputs() -> tuple:
+    """What the queue is computed from: the files' stamps (the marks, splits, overrides, area
+    catalogue, catalogue and DFO region files) and the cached objects read from the rest (the
+    registry, the vintage, the reach run, the fingerprint contexts, the landed marks) — each of
+    those is a new object when its own files change."""
+    return (_stamp((MARKS_PATH, SPLITS_JSON_PATH, OVERRIDES_PATH,
+                    Path(REGISTRY_PATH).parent / "area_catalog.gpkg")),
+            _dir_stamp(ENTRIES_DIR), _dir_stamp(_dfo_dir()),
+            _registry(), built(), run_facts(), _review_context(), _splits_context(), applied_keys(),
+            *(globals()[n] for n in _QUEUE_READERS))
+
+
+def _queue_rows() -> list[dict]:
+    """Every queue row with `_rank` / `_pos` — SHARED: `queue` filters and copies, never mutates."""
+    return _QUEUE_MEMO.get(_queue_inputs(), _compute_queue_rows)
+
+
+def _compute_queue_rows() -> list[dict]:
+    from pipeline.regs.review import severity as S
+    from pipeline.regs.review import tiers as T
+    from pipeline.regs.review.precheck import severe as _severe
     states = _mark_states()
     on = built()                      # the vintage on disk, read once for every row (T133)
     run = run_facts()                 # the reach run's facts, read once (T135)
     to_verify = splits_to_verify()
     rows = []
-    src =[(region, e) for eid, e in load_region(region).items()] if region else _all_entries()
-    for pos, (reg_id, e) in enumerate(src):
+    for pos, (reg_id, e) in enumerate(_all_entries()):
         item = _item_for_entry(e)
         st = entry_status(e, item)
-        if status and st != status:
-            continue
-        if kind and entry_kind(e) != kind:
-            continue
         tr = T.entry_tier(e, binds=item is not None, run=run)
-        if tier and tr != tier:
-            continue
         mst = _entry_mark_state(e, states)
         vst = mst["status"]
-        rev = mst["reviewed"]
-        if verify and not (vst == verify or (verify == "todo" and vst != "verified")
-                           or (verify == "recheck" and rev is not None and not rev["holds"])):
-            continue
         pages = [p for p in (e.get("source_pages") or []) if isinstance(p, int)]
         vin = entry_vintage(e, on)
         found = entry_prechecks(e, run=run, to_verify=to_verify)
@@ -924,8 +958,6 @@ def queue(region: str | None = None, status: str | None = None,
         n_unused = len(unused_curated_splits(e, item))
         sev = S.entry_severity(found, risks=rk, unused_splits=n_unused,
                                lake=bool(item is not None and item.kind == "lake"))
-        if not S.matches(sev["level"], severity):
-            continue
         rows.append({
             "entry_id": e["entry_id"],
             "region": reg_id if isinstance(reg_id, str) else _ident(e)["region"],
@@ -959,16 +991,6 @@ def queue(region: str | None = None, status: str | None = None,
                       *T.queue_rank(e, binds=item is not None, run=run, severe=n_a)),
             "_pos": pos,
         })
-
-    def book(r):
-        return (_region_key(r["region"]), r["page"] if r["page"] is not None else 10_000,
-                _KIND_ORDER.get(r["kind"], 9), r["_pos"])
-    if order == "book":
-        rows.sort(key=book)
-    else:
-        rows.sort(key=lambda r: (r["_rank"], book(r)))
-    for r in rows:
-        del r["_pos"], r["_rank"]
     return rows
 
 
@@ -1058,12 +1080,45 @@ def _dir_stamp(d: Path) -> tuple:
         return ()
 
 
+class _Memo:
+    """ONE VALUE, KEPT WHILE ITS INPUTS HOLD (owner 2026-10-28: the review app's first paint waited
+    on the queue and the DFO rows, recomputed for every badge). `inputs` is a tuple: a stamp tuple
+    compares by value, anything else (a cached object — the registry, `built()`, the review context
+    — or a reader a test patched) by identity, and is held so its id cannot be reused. Concurrent
+    askers wait for the one computation instead of each running it."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._inputs: tuple | None = None
+        self._value = None
+
+    def get(self, inputs: tuple, compute):
+        with self._lock:
+            held = self._inputs
+            if held is None or len(held) != len(inputs) or not all(
+                    (a == b) if isinstance(a, tuple) else (a is b) for a, b in zip(held, inputs)):
+                self._value, self._inputs = compute(), inputs
+            return self._value
+
+    def cache_clear(self) -> None:          # never takes the lock: `invalidate_caches` holds _LOAD_LOCK
+        self._inputs = self._value = None
+
+
+_QUEUE_MEMO = _Memo()
+
+
 def applied_keys() -> frozenset:
     """THE MARKS WHOSE OWN FIX HAS LANDED (`proposals.applied_keys`, owner 2026-10-28): applying a
     mark moves its target's binding, and the mark must still count as done. Keyed on the stamps of
     the marks store, splits.json and the catalogue / DFO region files."""
-    return _applied_keys_for((_stamp((MARKS_PATH, SPLITS_JSON_PATH)), _dir_stamp(ENTRIES_DIR),
-                              _dir_stamp(_dfo_dir())))
+    key = (_stamp((MARKS_PATH, SPLITS_JSON_PATH)), _dir_stamp(ENTRIES_DIR), _dir_stamp(_dfo_dir()))
+    with _MARKS_LOCK:                      # one computation, not one per concurrent badge request
+        return _applied_keys_for(key)
+
+
+#: SERIALISES the marks-derived caches (owner 2026-10-28): `lru_cache` holds no miss, so after a
+#: new mark the app's dozen first requests each recomputed them side by side (GIL-bound: ~5 s each)
+_MARKS_LOCK = threading.RLock()
 
 
 @lru_cache(maxsize=1)
@@ -1084,8 +1139,10 @@ def marks_health() -> dict:
     """EVERY MARK IN FORCE ACCOUNTED FOR (owner 2026-10-28, `marks.health`): per scope held /
     landed / stale / orphan, and the orphaned and stale marks listed with what they said — the
     review app's startup banner. A mark is never silently shown undone."""
-    return _marks_health_for(_stamp((MARKS_PATH, SPLITS_JSON_PATH)), _dir_stamp(ENTRIES_DIR),
-                             _dir_stamp(_dfo_dir()), id(_review_context()))
+    key = (_stamp((MARKS_PATH, SPLITS_JSON_PATH)), _dir_stamp(ENTRIES_DIR), _dir_stamp(_dfo_dir()),
+           id(_review_context()))
+    with _MARKS_LOCK:
+        return _marks_health_for(*key)
 
 
 @lru_cache(maxsize=1)
@@ -1255,8 +1312,16 @@ def _anchors_now(e: dict) -> dict[str, str]:
     from pipeline.atlas.splits.splits import anchor_digest
     from pipeline.regs.review import fingerprint as F
     ctx = _splits_context()
-    idx = ctx.split_index
-    return {sid: anchor_digest(idx[sid]) for sid in sorted(F.entry_split_ids(e, ctx)) if sid in idx}
+    # memoised on the context (a new one per splits.json / registry) by the entry's content: the
+    # queue asks for every entry, and `entry_split_ids` scans every split (owner 2026-10-28: ~1 s)
+    memo = ctx.__dict__.setdefault("anchors_memo", {})
+    key = json.dumps(e, sort_keys=True, ensure_ascii=False, default=str)
+    got = memo.get(key)
+    if got is None:
+        idx = ctx.split_index
+        got = memo[key] = {sid: anchor_digest(idx[sid]) for sid in sorted(F.entry_split_ids(e, ctx))
+                           if sid in idx}
+    return dict(got)
 
 
 def _splits_context():

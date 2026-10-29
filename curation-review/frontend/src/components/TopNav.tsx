@@ -62,13 +62,18 @@ async function j(url: string): Promise<any> {
 function refreshBadges() {
   if (Date.now() - fetchedAt < 60_000) return;
   fetchedAt = Date.now();
-  j("/api/regions").then((rs: { total: number; by_verify?: Record<string, number> }[]) =>
-    setBadge("entries", frac(rs.reduce((n, r) => n + (r.by_verify?.verified ?? 0), 0), rs.reduce((n, r) => n + r.total, 0)))).catch(() => {});
-  j("/api/dfo/progress").then((p) => setBadge("dfo", frac(p.all?.done, p.all?.total))).catch(() => {});
-  j("/api/tidal/progress").then((p) => setBadge("tidal", frac(p.done, p.total))).catch(() => {});
-  j("/api/sloughs/progress").then((p) => setBadge("sloughs", frac(p.done, p.total))).catch(() => {});
-  j("/api/names/progress").then((p) => setBadge("names", frac(p.review?.done, p.review?.total))).catch(() => {});
-  j("/api/proposals").then((p) => setBadge("proposals", String(p.proposals?.length ?? 0))).catch(() => {});
+  // owner 2026-10-28: AFTER the first paint and ONE AT A TIME. Fired together on load, seven badge reads held
+  // the browser's six connections and the backend's threads, and the open tab's own data waited behind them.
+  const jobs: (() => Promise<unknown>)[] = [];
+  const read = (url: string, set: (p: any) => void) => jobs.push(() => j(url).then(set).catch(() => {}));
+  read("/api/regions", (rs: { total: number; by_verify?: Record<string, number> }[]) =>
+    setBadge("entries", frac(rs.reduce((n, r) => n + (r.by_verify?.verified ?? 0), 0), rs.reduce((n, r) => n + r.total, 0))));
+  read("/api/dfo/progress", (p) => setBadge("dfo", frac(p.all?.done, p.all?.total)));
+  read("/api/tidal/progress", (p) => setBadge("tidal", frac(p.done, p.total)));
+  read("/api/sloughs/progress", (p) => setBadge("sloughs", frac(p.done, p.total)));
+  read("/api/names/progress", (p) => setBadge("names", frac(p.review?.done, p.review?.total)));
+  read("/api/proposals", (p) => setBadge("proposals", String(p.proposals?.length ?? 0)));
+  window.setTimeout(async () => { for (const job of jobs) await job(); }, 1000);
 }
 
 export function TopNav({ active, sub, right }: {

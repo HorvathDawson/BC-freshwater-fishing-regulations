@@ -16,7 +16,7 @@ import { PROPOSALS_HASH, ProposalsView } from "./components/ProposalsView";
 import { SLOUGH_HASH, SloughReview } from "./components/SloughReview";
 import { NAMES_HASH, NamesReview } from "./components/NamesReview";
 import { CASCADE_HASH, CascadeView } from "./components/CascadeView";
-import { setBadge } from "./components/TopNav";
+import { setBadge, TopNav } from "./components/TopNav";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
@@ -235,6 +235,15 @@ export default function App() {
   }
   if (proposals) {
     return <ProposalsView />;
+  }
+  // owner 2026-10-28: the tab's own shell and "loading…" while /api/mode is in flight — not the entries screen
+  if ((tidal || dfo) && !mode) {
+    return (
+      <div className="app">
+        <TopNav active={dfo ? "dfo" : "tidal"} sub={dfo ? "extents" : undefined} />
+        <div className="main"><div className="detail"><div className="empty-state">loading…</div></div></div>
+      </div>
+    );
   }
   if (tidal && mode) {
     return <TidalReview mode={mode} />;
