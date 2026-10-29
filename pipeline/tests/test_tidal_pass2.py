@@ -174,7 +174,9 @@ def test_merge_dfo_mouth_upgrade_keeps_prints():
                            "dfo_mouth": {"verdict": "upgrade", "why": "DFO confirms the mouth"}}]}
     r = T.merge_pass2({c["id"]: c}, [c["id"]], doc2)[0][c["id"]]
     assert r["confidence"] == "high" and r["dfo_mouth"] == "upgrade" and T.prints(r) == before
-    assert all(a["id"] != "dfo2" for a in r["alternates"])     # the mouth is the proposal's own point
+    # the mouth is the proposal's own point: no "dfo2" alternate is added (a candidate with no
+    # alternates of its own carries no `alternates` key at all — merge_pass2 adds it only for a point)
+    assert all(a["id"] != "dfo2" for a in r.get("alternates") or [])
 
 
 # ---------------------------------------------------------------- DFO default: the mouth (owner 2026-10-28)

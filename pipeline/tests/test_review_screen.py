@@ -161,7 +161,9 @@ def test_the_corpus_tiers_match_plan_section_3():
     assert sum(got.values()) == 1515
     # T207: an unidentified "on parts" is no risk — 3 closures P1 -> P2, 13 entries P3 -> P4
     # owner 2026-10-27 ("needs a split" list): 6 undrawn parts bound or held whole — P3 103 -> 99, P4 743 -> 747
-    for tier, plan in {"P1": 224, "P2": 264, "P3": 99, "P4": 747, "sweep": 59}.items():
+    # P1 224 -> 220, P2 264 -> 267: the 5 closures whose undrawn parts are now drawn (Chapman, Deena, Mamin 2026-10-27;
+    # Stave r1/r2 T222 2026-10-28) no longer carry the undrawn-closure risk
+    for tier, plan in {"P1": 220, "P2": 267, "P3": 99, "P4": 747, "sweep": 59}.items():
         assert abs(got[tier] - plan) <= 3, (tier, got[tier], plan)
     splits = [s for wb in json.loads(CURATED.waters.splits.read_text())["waterbodies"]
               for s in wb["splits"]]

@@ -358,7 +358,12 @@ def test_progress_counts_every_entry(env):
     tiers = {t["tier"]: t for t in p["tiers"]}
     assert list(tiers) == ["P1", "Z", "P2", "P3", "P4", "sweep"]
     assert tiers["Z"]["total"] == 122  # 132 before the zone merge (6335f73d)
-    assert p["overall"]["total"] == 1515
+    # the progress bar counts the queue as served: "lake split later" entries (aa286a24, owner 2026-10-28)
+    # are hidden from it by default, so it counts the corpus (1515) less them. Their number moves with
+    # the reach run (a lake's only open findings decide it: 50 on the run of 2026-10-28), so the pin
+    # is the corpus, not the shown total
+    later = len(env["reuse"].queue(severity="later"))
+    assert later > 0 and p["overall"]["total"] + later == 1515
     assert p["overall"]["total"] == sum(t["total"] for t in p["tiers"])
     assert all(t["todo"] == t["total"] - t["done"] for t in p["tiers"])
 

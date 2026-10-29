@@ -304,8 +304,9 @@ def test_the_tiers_with_the_run_match_plan_section_3(request):
     undrawn = sum(1 for _, r in closures if r.get("undrawn_part") and not T.unidentified_part(r))
     amb = sum(1 for e, r in closures if r["rule_id"] in run.ambiguous_of(e["entry_id"]))
     # 52 -> 48 closures with undrawn parts (owner 2026-10-26): Cranberry r1 and Fulton r3 are drawn by their new
-    # cuts, and drop_on_parts made the pure "on parts" closures whole-water
-    assert (abs(undrawn - 48) <= 3, abs(amb - 32) <= 3) == (True, True), (undrawn, amb)
+    # cuts, and drop_on_parts made the pure "on parts" closures whole-water. 48 -> 43: Chapman r2, Deena r1, Mamin r3
+    # (owner "needs a split" marks 2026-10-27) and Stave r1 + r2 (T222 Ruskin / Northrop channels, 2026-10-28) drawn
+    assert (abs(undrawn - 43) <= 3, abs(amb - 32) <= 3) == (True, True), (undrawn, amb)
 
 
 # --------------------------------------------------------------------------- tickets

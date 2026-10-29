@@ -339,7 +339,7 @@ def ambiguous_item(eid: str, rid: str, rule: dict, pay: dict, resolved: dict, id
 def run(out: Path = OUT) -> dict:
     from pipeline.common.curated import CURATED, GENERATED
     from pipeline.regs.review.precheck import _corpus, corpus_findings
-    from pipeline.regs.review.runfacts import RunFacts
+    from pipeline.regs.review.runfacts import DIAGNOSTIC, RunFacts
     from pipeline.deliver.bundle.read import BUNDLE
     from pipeline.regs.review import marks as M
     from pipeline.regs.review.fingerprint import Context
@@ -364,13 +364,11 @@ def run(out: Path = OUT) -> dict:
         resolved.setdefault(r["split_id"], []).append(r)
     idx = {sp["id"]: sp for w in json.loads(Path(CURATED.waters.splits).read_text())["waterbodies"]
            for sp in w["splits"]}
-    diag = {}
-    for line in (reach_dir / "rule_diagnostic.jsonl").read_text().splitlines():
-        d = json.loads(line)
-        if d["kind"] == "ambiguous_cut":
-            p = json.loads(d["payload"])
-            p["_src"] = f"{reach_dir.relative_to(ROOT)}/rule_diagnostic.jsonl"
-            diag.setdefault((d["entry_id"], d["rule_id"]), []).append(p)
+    # the run's ambiguous cuts through the ONE run reader (`RunFacts`), in precheck's order: the
+    # n-th `ambiguous_cut` finding of a rule is its n-th OPEN cut (curated picks are `cut_picked`)
+    src = f"{reach_dir.relative_to(ROOT)}/{DIAGNOSTIC}.jsonl"
+    diag = {(eid, rid): [{**p, "_src": src} for p in cuts]
+            for eid in findings for rid, cuts in run_.open_ambiguous_of(eid).items()}
     dfo = json.loads(DFO.read_text())["suggestions"] if DFO.exists() else {}
     tidal = json.loads(TIDAL.read_text())["candidates"] if TIDAL.exists() else []
 

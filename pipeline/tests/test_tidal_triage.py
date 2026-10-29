@@ -139,9 +139,11 @@ def test_straight_cut_threshold_is_150_m():
 
 
 def test_an_owner_decision_wins_over_every_other_class():
-    """decisions.md 2026-10-27: Capilano at the source text, Cowichan at the river mouth."""
+    """decisions.md 2026-10-27: Capilano at the source text, Cowichan at the river mouth; owner
+    2026-10-28: Nitinat River at its entry into Nitinat Lake (the lake and the river below are tidal)."""
     dec = json.loads((TIDAL / TT.OWNER_DECISIONS).read_text())["decisions"]
-    assert {d["water"]: d["boundary"] for d in dec} == {"Capilano River": "source_text", "Cowichan River": "river_mouth"}
+    assert {d["water"]: d["boundary"] for d in dec} == {"Capilano River": "source_text", "Cowichan River": "river_mouth",
+                                                        "Nitinat River": "source_text"}
     no = {"kind": "synopsis_box", "agrees": False}
     c = _c([no])
     c.update(id=dec[0]["id"], blk=dec[0]["blk"])
@@ -155,5 +157,7 @@ def test_the_committed_owner_decided_candidates():
     cs = {c["water"]: c for c in json.loads((TIDAL / "tidal-candidates.json").read_text())["candidates"]}
     for w, b in (("Capilano River", "source_text"), ("Cowichan River", "river_mouth")):
         assert cs[w]["triage"]["class"] == "owner-decided" and cs[w]["triage"]["decision"]["boundary"] == b
-    assert cs["Capilano River"]["proposed"]["above_mouth_m"] == 37.0      # the CN bridge, not the polygon
+    # the CN bridge (OSM way 70954081 crossing, "@ 37 m"), not the polygon; the words-win pass (235489e3)
+    # stores the located crossing unrounded (36.9), so the pin holds the bridge to the metre
+    assert abs(cs["Capilano River"]["proposed"]["above_mouth_m"] - 37.0) < 1.0
     assert cs["Cowichan River"]["proposed"]["above_mouth_m"] == 0.0       # the mouth
