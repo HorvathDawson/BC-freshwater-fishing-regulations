@@ -28,11 +28,11 @@
     "ios": {
       "bundleIdentifier": "ca.canifishthis.app",
       "supportsTablet": false,
-      "buildNumber": "3"
+      "buildNumber": "4"
     },
     "android": {
       "package": "ca.canifishthis.app",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "bundler": "metro",
