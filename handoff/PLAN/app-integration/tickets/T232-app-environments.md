@@ -63,6 +63,15 @@ eas build --profile development --platform ios       # needs an Apple developer 
 pnpm -C app/apps/mobile export:web:staging
 ```
 
+## Android APK to staging (owner 2026-10-29)
+
+`deploy/staging/build-apk.sh [--no-upload]` (heavy.sh-wrapped; waits for the machine lock): release arm64-v8a APK, staging +
+env switch + T251 stamp, signed with Expo's debug keystore (`android/app/debug.keystore`, gitignored; same key each build so
+updates install over). Needs Android Studio's JBR + the SDK (paths defaulted). Uploads to the STAGING bucket under
+`app/android/` (`canifishthis-staging-<ver>-<sha>.apk`, `latest.apk`, `index.html` with link + install steps), served at
+`https://data-staging.canifishthis.ca/app/android/index.html`. `upload.sh`'s clear spares `app/android/**`.
+Rebuild: bump `expo.android.versionCode` (+ version) in app.json when you want a visible new version.
+
 ## Acceptance
 
 - `apps/mobile/src/env.test.ts` (7): defaults (web local, phone staging), named env, typo throws, DATA_BASE naming /
