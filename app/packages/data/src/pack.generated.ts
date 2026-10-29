@@ -72,7 +72,7 @@ export const PACK_FILES: Record<string, PackFile> = {
         "trust",
         "mag",
         "rel",
-        "dist_m"
+        "dist_b"
       ]
     }
   },

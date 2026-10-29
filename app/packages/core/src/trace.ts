@@ -12,7 +12,7 @@
  * completely different claims about a river.
  */
 import type { GaugeTrust } from "./flow";
-import type { GaugeRel } from "./gauge-policy.generated";
+import { DIST_STEP, GAUGE_RELS, type GaugeRel } from "./gauge-policy.generated";
 import type { SectionKey } from "./section";
 
 export interface GaugeTrace {
@@ -231,6 +231,30 @@ export function distanceWord(metres: number | null): string | null {
   return metres >= 1000 ? `${(metres / 1000).toFixed(1)} km` : `${Math.round(metres)} m`;
 }
 
+/**
+ * (T93) The release's encoding back to words' inputs: `section_gauge.rel` is an index into `GAUGE_RELS`, `dist_b` a
+ * channel-distance bucket (0 under 500 m, 1 under 1 km, b >= 2 about 1 km x DIST_STEP^(b-2) — `shed.dist_bucket`).
+ * Null in, null out: a release cut before T93 says nothing.
+ */
+export function relOfCode(code: number | null): GaugeRel | null {
+  return code === null ? null : GAUGE_RELS[code] ?? null;
+}
+export function metresOfBucket(b: number | null): number | null {
+  if (b === null) return null;
+  if (b <= 0) return 0;
+  if (b === 1) return 750;
+  return Math.round(1000 * DIST_STEP ** (b - 2));
+}
+
+/** A bucketed distance as it may honestly be said: "under 500 m", "under 1 km", "about 3.4 km", "about 11 km". */
+export function aboutWord(metres: number | null): string | null {
+  if (metres === null) return null;
+  if (metres < 500) return "under 500 m";
+  if (metres < 1000) return "under 1 km";
+  const km = metres / 1000;
+  return `about ${km < 10 ? km.toFixed(1) : Math.round(km)} km`;
+}
+
 /** Which way along the channel the station stands, as the distance row's value says it (T93). */
 const WAY: Partial<Record<GaugeRel, string>> = {
   down: "downstream", up: "upstream", down_trunk: "downstream, on the river this flows into",
@@ -238,15 +262,16 @@ const WAY: Partial<Record<GaugeRel, string>> = {
 };
 
 /**
- * The distance row's value (T93): "12.3 km downstream", "450 m upstream", the bare distance when the release says no
+ * The distance row's value (T93): "about 11 km downstream", "under 1 km upstream", the bare distance when the release says no
  * direction, or null when there is no distance. Never "0 m" — a reach that starts at the station is "at the gauge".
  */
 export function whereWord(t: AnyTrace): string | null {
   if (onTheReach(t)) return TRACE_WORDS.onTheReach;
   const way = t.rel ? WAY[t.rel] : undefined;
-  if (way && t.metres !== null && t.metres < 100)
+  if (way && t.metres !== null && t.metres < 500)
     return t.rel === "up" || t.rel === "up_branch" ? TRACE_WORDS.atTheTop : TRACE_WORDS.atTheFoot;
-  const d = distanceWord(t.metres);
+  // a release that says the relationship says the distance as a bucket: "about", never false precision
+  const d = t.rel ? aboutWord(t.metres) : distanceWord(t.metres);
   if (d === null) return null;
   return way ? `${d} ${way}` : d;
 }
@@ -285,12 +310,12 @@ export function traceSentence(t: AnyTrace): string {
     return "No station drains enough of this water to speak for it. One that did not " +
            "would still give you a number, and the number would be wrong.";
   if (onTheReach(t)) return `The gauge sits on this reach.`;
-  const d = distanceWord(t.metres);
+  const d = t.rel ? aboutWord(t.metres) : distanceWord(t.metres);
   // (T93) THE STATION IS UPSTREAM: water here has already passed it — "drains through" and "flows down to" would both
   // be false (the Vedder below 08MH001). The release says so in `rel`; without it the walk's downstream words stand.
   if (t.rel === "up" || t.rel === "up_branch") {
     const on = t.rel === "up" ? "on this water" : "on a tributary of this water";
-    return d === null || (t.metres ?? 0) < 100
+    return d === null || (t.metres ?? 0) < 500
       ? `${t.station} is just upstream, ${on}: water here has already passed it.`
       : `${t.station} is ${d} upstream, ${on}: water here has already passed it.`;
   }

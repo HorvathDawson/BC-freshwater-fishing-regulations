@@ -174,7 +174,7 @@ export function runConformance(name: string, make: () => Promise<WaterSource>,
   });
 
   T("a gauge link says where the station stands, or nothing (T93)", async (s) => {
-    // `section_gauge.rel` / `dist_m`: a release cut before them reads null for both — never a guessed side or a 0 m
+    // `section_gauge.rel` / `dist_b`: a release cut before them reads null for both — never a guessed side or a 0 m
     const g = await s.gaugeForSection(sections.lowerChilliwack);
     if (g!.rel === null) expect(g!.metres).toBeNull();
     else {

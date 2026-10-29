@@ -139,3 +139,19 @@ class TestChilliwack:
     def test_an_unknown_policy_is_refused(self):
         with pytest.raises(KeyError):
             build_gauge_sheds(_chilliwack(), STATIONS, AT, policy="nearest")
+
+
+class TestShippedEncoding:
+    """The release carries `rel` as an index and the distance as a bucket (conditions' size gate); the app decodes
+    both with the emitted GAUGE_RELS / DIST_STEP (`relOfCode` / `metresOfBucket` in core trace.ts)."""
+
+    def test_rel_codes_are_indexes_into_the_vocabulary(self):
+        from pipeline.gauges.consume.shed import GAUGE_RELS, rel_code
+        assert [rel_code(r) for r in GAUGE_RELS] == list(range(len(GAUGE_RELS)))
+        assert rel_code(REL_ON) == 0 and rel_code(REL_DOWN_TRUNK) == 3
+
+    @pytest.mark.parametrize("metres,bucket", [(0, 0), (499, 0), (500, 1), (999, 1), (1000, 2), (1500, 3),
+                                               (11_000, 8), (11_391, 8)])
+    def test_distance_buckets(self, metres, bucket):
+        from pipeline.gauges.consume.shed import dist_bucket
+        assert dist_bucket(metres) == bucket

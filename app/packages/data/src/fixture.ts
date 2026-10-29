@@ -203,7 +203,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Wat
         station: id<StationId>(GAUGE.station), name: GAUGE.name, trust: "good",
         reachMagnitude: GAUGE.magnitude, gaugeMagnitude: GAUGE.magnitude,
         // (T93) the lower Chilliwack lies above 08MH001 at Vedder Crossing: the station is downstream on this water
-        live: true, areaKm2: 1230, rel: "down", metres: 4_200, lon: -121.958, lat: 49.096, section: s,
+        live: true, areaKm2: 1230, rel: "down", metres: 3_375, lon: -121.958, lat: 49.096, section: s,
       };
     },
 

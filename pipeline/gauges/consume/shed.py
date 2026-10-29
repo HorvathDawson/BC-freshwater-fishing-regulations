@@ -159,6 +159,26 @@ REL_UNKNOWN = "unknown"        # a watershed code is missing: nothing can be sai
 #: Every relationship, in the order the app's vocabulary lists them (emitted as `GaugeRel`, gauge-policy.generated.ts).
 GAUGE_RELS = (REL_ON, REL_DOWN, REL_UP, REL_DOWN_TRUNK, REL_UP_BRANCH, REL_APART, REL_UNKNOWN)
 
+#: THE SHIPPED ENCODING (T93, measured on the province: rel as TEXT + dist_m to 100 m cost conditions +359 kB gzip, past its
+#: gate). `section_gauge.rel` is the INDEX into `GAUGE_RELS`, `section_gauge.dist_b` a distance BUCKET (both +74 kB):
+#: 0 under 500 m, 1 under 1 km, then 1 km x DIST_STEP^(b-2) to the nearest step — "about 11 km", which is all a
+#: channel distance off FWA 1:20k section ends can honestly say. The bundle's `gauge_relation` keeps text + exact metres.
+DIST_STEP = 1.5
+
+
+def rel_code(rel: str) -> int:
+    return GAUGE_RELS.index(rel)
+
+
+def dist_bucket(metres: int | float) -> int:
+    """The shipped distance bucket (see `DIST_STEP`); `dist_metres` is its inverse to the step's centre."""
+    if metres < 500:
+        return 0
+    if metres < 1000:
+        return 1
+    return 2 + max(0, round(math.log(metres / 1000.0) / math.log(DIST_STEP)))
+
+
 #: The relationships under which this reach's water has passed the gauge — `drains_through` (the gate) as a set.
 DRAINS_THROUGH = frozenset({REL_ON, REL_DOWN, REL_UP, REL_DOWN_TRUNK})
 

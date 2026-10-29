@@ -192,13 +192,14 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     # node's shape (`shed.is_lake_station` -> `reach.water_kind.kind_of`)
     # THE POLICY (T93): every candidate the walks reach is kept with its relationship (`gauge_relation`); which may
     # speak is `GAUGE_POLICY` — 'drainage', today's gate, unless the owner changes it.
-    from pipeline.gauges.consume.shed import GAUGE_POLICY
+    from pipeline.gauges.consume.shed import GAUGE_POLICY, dist_bucket, rel_code
     candidates: list = []
     links = build_gauge_sheds(graph, stations, matched, prefer=active, report=shed_lost,
                               registry=kinds, policy=GAUGE_POLICY, candidates=candidates)
-    db.executemany("INSERT INTO section_gauge (sid, station, trust, mag, rel, dist_m) VALUES (?,?,?,?,?,?)",
+    db.executemany("INSERT INTO section_gauge (sid, station, trust, mag, rel, dist_b) VALUES (?,?,?,?,?,?)",
                    [(sid[l.section_id], l.station, l.trust,
-                     graph.nodes[l.section_id].stream_magnitude, l.rel, l.dist_m) for l in links])
+                     graph.nodes[l.section_id].stream_magnitude, rel_code(l.rel), dist_bucket(l.dist_m))
+                    for l in links])
     cov.filled("section_gauge", len(links))
     db.executemany("INSERT INTO gauge_relation (sid, station, rel, dist_m, hops, ratio, trust) VALUES (?,?,?,?,?,?,?)",
                    [(sid[c.section_id], c.station, c.rel, c.dist_m, c.hops, c.ratio, c.trust) for c in candidates])

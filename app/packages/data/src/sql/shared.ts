@@ -3,8 +3,8 @@
  * `makeReleaseSource` (`../release/source.ts`) asks the release's files and hands the rows here; a test may hand rows
  * from any SQLite with the pipeline bundle's columns. (Its second reader, the dev bundle's, was retired in T61.)
  */
-import { bandAt, boxOfParts, calendarDayOfYear, describeBy, rankPointers, rankWaters, type Band, type Bbox, type GaugeRel,
-         type NearPlace } from "@app/core";
+import { bandAt, boxOfParts, calendarDayOfYear, describeBy, metresOfBucket, rankPointers, rankWaters, relOfCode, type Band,
+         type Bbox, type NearPlace } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { Aged, GaugeLink, GaugeWaters, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId,
               Series, StationId } from "../index";
@@ -130,9 +130,10 @@ export function link(r: Row | undefined, section: SectionId | null,
     // which the UI must not render as "stopped reporting".
     live: live === null ? null : live.has(str(r.station)),
     areaKm2: num(r.area_km2),
-    // (T93) absent on a release cut before the columns (`SELECT sg.*` then carries none): null, never a guessed "on"
-    rel: r.rel ? (str(r.rel) as GaugeRel) : null,
-    metres: num(r.dist_m),
+    // (T93) the shipped encoding decoded (`relOfCode` / `metresOfBucket`); absent on a release cut before the columns
+    // (`SELECT sg.*` then carries none): null, never a guessed "on"
+    rel: relOfCode(num(r.rel)),
+    metres: metresOfBucket(num(r.dist_b)),
     lon: num(r.lon), lat: num(r.lat),
     section,
   };

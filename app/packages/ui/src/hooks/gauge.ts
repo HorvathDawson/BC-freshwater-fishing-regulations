@@ -97,7 +97,7 @@ export async function stationReading(source: WaterSource, station: StationId | n
  * time. Both feed the SAME component — a gauge's representativeness is the most
  * misreadable number in the app, so the sentence explaining it may not have two versions.
  *
- * `metres` and `rel` (T93) are the release's `section_gauge.dist_m` / `.rel`: the channel distance and which side the
+ * `metres` and `rel` (T93) are the release's `section_gauge.dist_b` / `.rel`, decoded: the channel distance and which side the
  * station stands on. A release cut before T93 has neither — null, which the component renders "not known", the truth.
  */
 export function useGaugeTrace(

@@ -116,7 +116,7 @@ export interface GaugeLink {
   /**
    * WHERE THE STATION STANDS, seen from this reach (T93, `section_gauge.rel`) — on it, downstream / upstream on this
    * same watercourse, downstream on the river this water flows into — and the channel distance in metres from the
-   * reach's near end (`dist_m`, to 100 m). Null on a release cut before T93: then nothing is said about direction.
+   * reach's near end, decoded from its bucket (`dist_b`: said "about"). Null on a release cut before T93.
    */
   rel: GaugeRel | null;
   metres: number | null;

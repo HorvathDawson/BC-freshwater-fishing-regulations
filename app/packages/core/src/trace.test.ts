@@ -6,7 +6,8 @@
  * and the camera must be the same for both, or a saved spot says something the app never said.
  */
 import { describe, expect, it } from "vitest";
-import { freezeTrace, onTheReach, reachCount, routeCamera, shareWord, traceSentence, tracePath, whereWord,
+import { freezeTrace, metresOfBucket, onTheReach, reachCount, relOfCode, routeCamera, shareWord, traceSentence, tracePath,
+         whereWord,
          type GaugeTrace } from "./trace";
 import type { SectionKey } from "./section";
 
@@ -81,20 +82,33 @@ describe("shareWord boundaries", () => {
   });
 });
 
-// ---- (T93) where the station stands, as the release says it (`section_gauge.rel` / `dist_m`) ----
+// ---- (T93) where the station stands, as the release says it (`section_gauge.rel` / `dist_b`, decoded) ----
+describe("the release's encoding", () => {
+  it("rel is an index into GAUGE_RELS; null stays null", () => {
+    expect(relOfCode(0)).toBe("on");
+    expect(relOfCode(3)).toBe("down_trunk");
+    expect(relOfCode(null)).toBeNull();
+    expect(relOfCode(99)).toBeNull();
+  });
+  it("dist_b decodes to the bucket's step (shed.dist_bucket's inverse)", () => {
+    expect([0, 1, 2, 3, 8, null].map((b) => metresOfBucket(b))).toEqual([0, 750, 1000, 1500, 11391, null]);
+  });
+});
+
 describe("the relationship's words", () => {
-  it("a station downstream on this water: the distance row says which way", () => {
-    expect(whereWord(trace({ rel: "down" }))).toBe("12.3 km downstream");
-    expect(traceSentence(trace({ rel: "down" }))).toBe("Water here flows 12.3 km down to 08MH001.");
+  it("a station downstream on this water: the distance row says which way, and 'about'", () => {
+    expect(whereWord(trace({ rel: "down", metres: 11_391 }))).toBe("about 11 km downstream");
+    expect(traceSentence(trace({ rel: "down", metres: 11_391 }))).toBe("Water here flows about 11 km down to 08MH001.");
   });
   it("downstream on the river this flows into", () => {
-    expect(whereWord(trace({ rel: "down_trunk", metres: 3_000 })))
-      .toBe("3.0 km downstream, on the river this flows into");
+    expect(whereWord(trace({ rel: "down_trunk", metres: 3_375 })))
+      .toBe("about 3.4 km downstream, on the river this flows into");
+    expect(whereWord(trace({ rel: "down_trunk", metres: 750 }))).toBe("under 1 km downstream, on the river this flows into");
   });
   it("a station UPSTREAM (the Vedder below 08MH001): never 'drains through' or 'flows down to'", () => {
-    expect(whereWord(trace({ rel: "up", metres: 6_000 }))).toBe("6.0 km upstream");
-    expect(traceSentence(trace({ rel: "up", metres: 6_000 })))
-      .toBe("08MH001 is 6.0 km upstream, on this water: water here has already passed it.");
+    expect(whereWord(trace({ rel: "up", metres: 5_063 }))).toBe("about 5.1 km upstream");
+    expect(traceSentence(trace({ rel: "up", metres: 5_063 })))
+      .toBe("08MH001 is about 5.1 km upstream, on this water: water here has already passed it.");
     // the reach that starts at the station: no "0 m"
     expect(whereWord(trace({ rel: "up", metres: 0 }))).toBe("at the top of this reach");
     expect(traceSentence(trace({ rel: "up", metres: 0 })))
@@ -111,8 +125,8 @@ describe("the relationship's words", () => {
     expect(whereWord(trace({ metres: null }))).toBeNull();
   });
   it("freezes with the spot", () => {
-    const f = freezeTrace(trace({ rel: "up", metres: 6_000 }));
+    const f = freezeTrace(trace({ rel: "up", metres: 5_063 }));
     expect(f.rel).toBe("up");
-    expect(traceSentence(f)).toBe(traceSentence(trace({ rel: "up", metres: 6_000 })));
+    expect(traceSentence(f)).toBe(traceSentence(trace({ rel: "up", metres: 5_063 })));
   });
 });
