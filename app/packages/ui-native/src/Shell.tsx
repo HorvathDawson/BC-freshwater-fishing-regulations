@@ -103,7 +103,7 @@ export function Shell(p: ShellProps) {
   const camera = useRef<Camera>(HOME);
   /** The water's map view keeps its own camera (P15), across waters, so the browse map's is left where it was. */
   const waterCamera = useRef<Camera | null>(null);
-  const search = useShellSearch({ source, nav, camera });
+  const search = useShellSearch({ source, nav, camera, recentStore: p.recentSearches ?? null });
   const { searching, session, searchMemory, field } = search;
   useEscapeBack(nav.back, nav.escapeBack && !searching);   // T214 item 2: on the desktop web Escape is Back (a no-op on a phone)
   /** ONE placeholder line per opening of the app, never cycled while on screen. */
@@ -274,7 +274,8 @@ export function Shell(p: ShellProps) {
                        // it consumes the search, so back lands on the map at the water (owner 2026-10-22 late)
                        onOpenWater={search.openSearched}
                        onClose={search.closeToField}
-                       statusIndex={col.statusIndex} total={counts?.waters} />
+                       statusIndex={col.statusIndex} total={counts?.waters}
+                       recents={search.recents.list} onRecent={search.pickRecent} onClearRecents={search.recents.clear} />
         )}
         {/* PICK ON THE MAP (owner 2026-10-22): the slim banner in the search field's place; a back layer */}
         {rail.picking && route.mode === "browse" && tab === "map" && (

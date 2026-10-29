@@ -66,7 +66,7 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: (107,731 → 141,324 rows; the added are mostly lakes) and each reach's length (`len`, 100 m): 624,913 → 1,122,957 gz,
 #: measured on the 2026-10-28 bundle's atlas (full.prev, handles db853e9556df81a6). The first unnamed tap pays it
 #: (`contract.WEB_BUDGET["first_tap_unnamed"]`).
-SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000, "salmon": 60_000,
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_450_000, "lakes": 100_000, "salmon": 60_000,
               **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "method": 600_000,
               "water": 2_500_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 950_000,
               "down": 1_250_000, "geo": 700_000, "flow-area": 220_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
@@ -185,6 +185,7 @@ def _core_flags(con: sqlite3.Connection) -> None:
     con.execute("ALTER TABLE item_section_k RENAME TO item_section")
     con.execute("CREATE INDEX section_by_item ON item_section(ord)")
     core_near(con)
+    core_area(con)
 
 
 NAME_SOURCE_DDL = ("CREATE TABLE name_source (item_id TEXT NOT NULL, name TEXT NOT NULL, src TEXT NOT NULL, "
@@ -215,6 +216,46 @@ def core_near(con: sqlite3.Connection, schema: str = "b") -> None:
              best AS (SELECT ord, min(c) AS m FROM ring GROUP BY ord)
         INSERT INTO item_near SELECT r.ord, r.place_id, min(r.ckm) FROM ring r JOIN best USING (ord)
         WHERE r.c = best.m GROUP BY r.ord, r.place_id ORDER BY r.ord, r.place_id""")
+
+
+def _region_key(r: str) -> tuple:
+    """Regions in the book's order: 1..6, 7A, 7B, 8."""
+    return (int(r[0]), r[1:]) if r[:1].isdigit() else (99, r)
+
+
+def _mu_key(mu: str) -> tuple:
+    """Management units numerically: 2-8 before 2-18."""
+    try:
+        a, b = mu.split("-", 1)
+        return (int(a), int(b))
+    except ValueError:
+        return (99, 0)
+
+
+def core_area(con: sqlite3.Connection, schema: str = "b") -> None:
+    """(T247) `item_area`: per water, the regions it lies in and the management units it touches — the union over its
+    sections of the bundle's own `section_ruleset.place` / `.mus` (`region_place.regions`, `mu_set.codes`) — so search can
+    answer "2-8" and "Region 2" and tell two Elk Rivers apart by where they are, from core alone. Comma-joined, in the
+    book's order. ADDITIVE: a bundle without those tables (a hand-built one, cut before them) gives no table, and the app
+    searches without areas. `schema` holds the bundle; `item_section` is core's own."""
+    have = {r[0] for r in con.execute(f"SELECT name FROM {schema}.sqlite_master WHERE type='table'")}
+    if not {"section_ruleset", "region_place", "mu_set"} <= have:
+        return
+    if not {"place", "mus"} <= {r[1] for r in con.execute(f"PRAGMA {schema}.table_info(section_ruleset)")}:
+        return
+    con.execute("CREATE TABLE item_area (ord INTEGER PRIMARY KEY, regions TEXT NOT NULL, mus TEXT NOT NULL) "
+                "WITHOUT ROWID")
+    regions: Dict[int, set] = {}
+    mus: Dict[int, set] = {}
+    for ord_, rg, mu in con.execute(
+            f"SELECT DISTINCT s.ord, r.regions, m.codes FROM main.item_section s "
+            f"JOIN {schema}.section_ruleset q ON q.sid = s.sid "
+            f"LEFT JOIN {schema}.region_place r ON r.place = q.place LEFT JOIN {schema}.mu_set m ON m.mus = q.mus"):
+        regions.setdefault(ord_, set()).update(x for x in (rg or "").split(",") if x)
+        mus.setdefault(ord_, set()).update(x for x in (mu or "").split(",") if x)
+    con.executemany("INSERT INTO item_area VALUES (?, ?, ?)",
+                    [(o, ",".join(sorted(regions.get(o, ()), key=_region_key)), ",".join(sorted(mus.get(o, ()), key=_mu_key)))
+                     for o in sorted(set(regions) | set(mus))])
 
 
 def lake_section(con: sqlite3.Connection, schema: str = "b") -> None:

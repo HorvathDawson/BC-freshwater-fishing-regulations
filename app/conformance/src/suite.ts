@@ -11,6 +11,7 @@
  * not measure. Regulations are not integrated, so nothing here asks about them.
  */
 import { expect, it } from "vitest";
+import { buildSearchIndex, queryIndex, queryPlaces } from "@app/core";
 import type { ItemId, WaterSource, SectionId, StationId } from "@app/data";
 
 const CHILLIWACK = "gnis:8634" as ItemId;
@@ -130,6 +131,23 @@ export function runConformance(name: string, make: () => Promise<WaterSource>,
     // "R’" keys to "r", which every river holds: one letter is not a search, in any source
     expect(await s.searchNames("R’", 10)).toEqual([]);
     expect(await s.searchNames("''", 10)).toEqual([]);
+  });
+
+  T("(T247) the in-memory index holds every water and town the SQL searches find, and answers the same first", async (s) => {
+    const ix = buildSearchIndex(await s.searchIndex());
+    const name = (await s.water(CHILLIWACK))!.name;
+    const sql = await s.searchNames(name, 10);
+    const inIndex = new Set(ix.waters.map((w) => w.item));
+    for (const h of sql) expect(inIndex.has(h.item), h.name).toBe(true);
+    // a name typed as it is: the index finds the water, the SQL's best is among its first
+    const asked = queryIndex(ix, name).waters.map((w) => w.item);
+    expect(asked).toContain(CHILLIWACK);
+    expect(asked.slice(0, 3)).toContain(sql[0]!.item);
+    const places = await s.searchPlaces("chilliwack", 5);
+    expect(queryPlaces(ix, "chilliwack", 5).map((p) => p.place)).toEqual(places.map((p) => p.place));
+    // a water's row carries the facts the SQL row does
+    const w = ix.waters.find((x) => x.item === CHILLIWACK)!;
+    expect([w.name, w.kind, w.pieces > 0]).toEqual([name, sql.find((h) => h.item === CHILLIWACK)!.kind, true]);
   });
 
   T("honours the limit", async (s) => {

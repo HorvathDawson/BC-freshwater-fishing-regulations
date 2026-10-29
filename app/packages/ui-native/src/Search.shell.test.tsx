@@ -559,8 +559,8 @@ describe("(T69) search on a wide screen by keyboard alone", () => {
     const at = screen.getByTestId("search-field").style.borderTopColor;
     return at === probe(LIGHT.accent) ? "accent" : at === probe(LIGHT.ink) ? "ink" : at;
   };
-  /** The river's row, by its spoken name (the WHERE line in it: `spokenName`). */
-  const NAMED = "Chilliwack River, near Chilliwack, 2 km";
+  /** The river's row, by its spoken name (the WHERE line in it: `spokenName`; T247: its region and unit too). */
+  const NAMED = "Chilliwack River, Region 2, MU 2-8, near Chilliwack, 2 km";
   const ROW = `Show ${NAMED} on the map`;
 
   it("open, type, pick, close, Escape: the focus is where the reader is at each step, and never on the page body", () =>

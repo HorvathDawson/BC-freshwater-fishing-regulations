@@ -10,15 +10,15 @@
  * `focusFor` is the whole decision, pure, so it is tested without a renderer. The hooks
  * below only fetch what it needs.
  */
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
-  NEAR_KM, SEARCH_BAR, duplicateNames, extentOf, searchKey, rankNear, seeLine, townBox, waterCaption, waterStatusOn,
+  NEAR_KM, SEARCH_BAR, SEARCH_FIND, duplicateNames, extentOf, searchKey, rankNear, seeLine, townBox, waterCaption, waterStatusOn,
   watersNear,
-  type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus,
+  type AreaAsk, type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus,
 } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, PointerHit, WaterSource, SectionId } from "@app/data";
 import { useAsync, type Async } from "./async";
-import { useSearch, type SearchResults } from "./hooks";
+import { useSearch, warmSearchIndex, type SearchResults } from "./hooks";
 
 /** What a map should do for the current search. Handed straight to `<Map fit highlight>`. */
 export interface MapFocus {
@@ -252,7 +252,7 @@ export type ResultGroup =
  * "near Fernie".
  */
 export function resultGroups(r: { waters: readonly NameHit[]; places: readonly PlaceHit[];
-                                  pointers?: readonly PointerHit[] }):
+                                  pointers?: readonly PointerHit[]; area?: AreaAsk | null; fuzzy?: boolean }):
     ResultGroup[] {
   const out: ResultGroup[] = [];
   if (r.places.length)
@@ -265,8 +265,12 @@ export function resultGroups(r: { waters: readonly NameHit[]; places: readonly P
                pointers: r.pointers.map((hit) => ({ hit, line: seeLine(hit) })) });
   if (r.waters.length) {
     const dups = duplicateNames(r.waters);
+    const n = r.waters.length;
+    // (T247) a unit or region asked for says so; a typo forgiven says so; else the count as before
+    const title = r.area ? (r.area.code.endsWith("-") ? SEARCH_FIND.inUnits(r.area.code, n) : SEARCH_FIND.inArea(r.area, n))
+      : r.fuzzy ? SEARCH_FIND.closeSpellings(n) : `${n} named ${n === 1 ? "water" : "waters"}`;
     out.push({ kind: "waters",
-               title: `${r.waters.length} named ${r.waters.length === 1 ? "water" : "waters"}`,
+               title,
                waters: r.waters.map((hit) => ({ hit, dup: dups.has(searchKey(hit.name)) })) });
   }
   return out;
@@ -335,18 +339,23 @@ export interface SearchSession {
  */
 export function useSearchSession(source: WaterSource, memory: SearchMemory, open: boolean): SearchSession {
   const { q, pick } = memory;
+  // (T247) the index is built the moment search opens, so the first keystroke finds it ready
+  useEffect(() => { if (open) warmSearchIndex(source); }, [open, source]);
   const hits = useSearch(source, open ? q : "");
   const last = useRef<SearchResults>({ waters: [], places: [], pointers: [] });
   if (hits.state === "ready") last.current = hits.value;
   const typed = open && q.trim().length >= 2;
   const results = typed ? last.current : EMPTY_RESULTS;
+  // (T247) answered = the hook has answered THIS query (it waits out the debounce and, the first time, the index's build):
+  // until then an older answer is on screen and "nothing found" is not yet true
+  const answered = hits.state === "ready" && hits.value.query === q.trim();
   const { focus, town } = useSearchView(source, open ? pick : NO_PICK);
   return {
     results, typed, town, focus,
-    busy: typed && hits.state === "loading" && !last.current.waters.length && !last.current.places.length
+    busy: typed && !answered && hits.state !== "failed" && !last.current.waters.length && !last.current.places.length
       && !last.current.pointers.length,
     failed: typed && hits.state === "failed",
-    none: typed && hits.state === "ready" && !results.waters.length && !results.places.length
+    none: typed && answered && !results.waters.length && !results.places.length
       && !results.pointers.length,
     size: searchSheet(pick),
   };

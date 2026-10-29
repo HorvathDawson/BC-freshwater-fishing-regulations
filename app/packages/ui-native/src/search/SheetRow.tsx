@@ -1,6 +1,6 @@
 /** One row of search's sheet, drawn from its `Row` (search/rows.ts): a heading, a note, a pointer, a place or a water. */
 import { Pressable, Text, View } from "react-native";
-import { SEARCH_BAR, nearRowSub, spokenName, waterRowSub, type StatusIndex } from "@app/core";
+import { SEARCH_BAR, SEARCH_FIND, areaPhrase, nearRowSub, spokenName, waterRowSub, type StatusIndex } from "@app/core";
 import type { ItemId } from "@app/data";
 import { isSelected, rowStatus, type SearchAction, type SearchPick, type SearchTarget } from "@app/ui";
 import { Icon, IconText } from "../icons";
@@ -9,9 +9,13 @@ import type { Palette } from "../theme";
 import { Hit } from "./Hit";
 import type { Row } from "./rows";
 
-export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, today }: {
+export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, today, onRecent, onClearRecents }: {
   r: Row; palette: Palette; pick: SearchPick; act: (a: SearchAction) => void; onOpenWater: (item: ItemId) => void;
   statusIndex: StatusIndex | null; today: Date;
+  /** (T247) a recent search tapped: search it again */
+  onRecent?: (q: string) => void;
+  /** (T247) the recents' Clear */
+  onClearRecents?: () => void;
 }) {
   if (r.t === "head")
     return (
@@ -32,7 +36,12 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
             {r.label}
           </Text>
         )}
-        {r.right ? (
+        {r.right && r.action === "clear-recents" ? (
+          <Pressable testID="search-clear-recents" onPress={onClearRecents} accessibilityRole="button"
+                     accessibilityLabel={SEARCH_FIND.clearLabel} hitSlop={10} style={{ marginLeft: "auto" }}>
+            <Text style={{ ...TYPE.section, color: palette.accent }}>{r.right}</Text>
+          </Pressable>
+        ) : r.right ? (
           <Text style={{ ...TYPE.section, marginLeft: "auto",
                          // `faint` is under 4.5:1 on the band; `place` is not.
                          color: r.band ? palette.place : palette.faint }}>
@@ -46,6 +55,17 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
       <Text style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 10 }}>
         {r.text}
       </Text>
+    );
+  if (r.t === "recent")
+    return (
+      <Pressable testID={`search-recent-${r.q}`} onPress={() => onRecent?.(r.q)} accessibilityRole="button"
+                 accessibilityLabel={SEARCH_FIND.again(r.q)}
+                 style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 48,
+                                            paddingHorizontal: 18, borderTopWidth: 1, borderTopColor: palette.line,
+                                            backgroundColor: pressed ? palette.tint : palette.card })}>
+        <Icon name="search" colour={palette.faint} size={18} />
+        <Text style={{ ...TYPE.body, color: palette.ink, flexShrink: 1 }}>{r.q}</Text>
+      </Pressable>
     );
   if (r.t === "see")
     return (
@@ -97,13 +117,14 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
     );
   }
   const h = r.hit;
-  const named = spokenName(h.name, h.near);
+  const area = areaPhrase(h.regions ?? [], h.mus ?? []);
+  const named = spokenName(h.name, h.near, area);
   const t: SearchTarget = { kind: "water", item: h.item, name: h.name };
   return (
     <Hit palette={palette} tone={palette.accent} name={h.name}
          status={rowStatus(h.item, statusIndex, today)}
          alias={nameLine(h)}
-         sub={waterRowSub(h.kind, h.near, r.dup)}
+         sub={waterRowSub(h.kind, h.near, r.dup, area)}
          strongSub={r.dup}
          selected={isSelected(pick, t)}
          label={SEARCH_BAR.show(named)}

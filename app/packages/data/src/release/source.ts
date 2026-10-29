@@ -23,7 +23,7 @@
  * T182 holds down / climate / geo's tables in their old files and has no `item_near` / `lake_section`: each read then
  * goes the old way (`fileFor`; the two has-table checks below).
  */
-import { shownParameter, type WaterFix } from "@app/core";
+import { describeBy, shownParameter, type IndexWater, type NearPlace, type SearchIndexData, type WaterFix } from "@app/core";
 import { num, str, type Row } from "../sql/db";
 import * as BQ from "../sql/queries";
 import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, seriesOf, sid,
@@ -82,7 +82,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     return () => (p ??= get(q).then((r) => !!r, (e) => { p = null; throw e; }));
   };
   const hasItemNear = has(CROSS.HAS_ITEM_NEAR), hasLakeSection = has(CROSS.HAS_LAKE_SECTION);
-  const hasNameSource = has(CROSS.HAS_NAME_SOURCE);
+  const hasNameSource = has(CROSS.HAS_NAME_SOURCE), hasItemArea = has(CROSS.HAS_ITEM_AREA);
   /** (T224) the `name_source` rows of these waters; none from a core cut before the table. */
   const nameSourcesOf = async (items: readonly string[]): Promise<Row[]> =>
     (await hasNameSource()) ? chunked(items, (c) => all(CROSS.NAME_SOURCES_FOR_ITEMS(c.length), ...c)) : [];
@@ -278,6 +278,42 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       if (!hits.length) return hits;
       const items = hits.map((h) => h.item);
       return withNameSources(withNear(hits, await townsFor(items)), await nameSourcesOf(items));
+    },
+
+    /**
+     * (T247) ONE READ OF CORE, whole, for the in-memory index: waters, aliases, towns, each water's "near X" town
+     * (`item_near`, then `describeBy` as every search row does), its regions and units (`item_area`) and the name sources.
+     * A core cut before `item_near` / `item_area` / `name_source` gives those parts empty — search still works.
+     */
+    async searchIndex(): Promise<SearchIndexData<IndexWater, PlaceHit>> {
+      const [items, aliases, places, near, areas, sources] = await Promise.all([
+        all(CROSS.INDEX_ITEMS), all(CROSS.INDEX_ALIASES), all(CROSS.INDEX_PLACES),
+        hasItemNear().then((h) => (h ? all(CROSS.INDEX_NEAR) : [] as Row[])),
+        hasItemArea().then((h) => (h ? all(CROSS.INDEX_AREA) : [] as Row[])),
+        hasNameSource().then((h) => (h ? all(CROSS.INDEX_NAME_SOURCES) : [] as Row[])),
+      ]);
+      const nearOf = new Map<number, NearPlace[]>();
+      for (const r of near) {
+        const list = nearOf.get(Number(r.ord)) ?? [];
+        list.push({ name: str(r.name), kind: str(r.kind), lat: Number(r.lat), lon: Number(r.lon), km: Number(r.ckm) / 100 });
+        nearOf.set(Number(r.ord), list);
+      }
+      const areaOf = new Map(areas.map((r) => [Number(r.ord), r]));
+      const label = new Map(sources.map((r) => [`${str(r.item_id)}\u0000${str(r.name)}`, str(r.label)]));
+      const csv = (v: unknown): string[] => (v == null || v === "" ? [] : String(v).split(","));
+      return {
+        waters: items.map((r): IndexWater => {
+          const a = areaOf.get(Number(r.ord));
+          return { item: str(r.item_id), name: str(r.name), kind: str(r.kind), size: num(r.size), areaHa: num(r.area_ha),
+                   pieces: Number(r.pieces ?? 0), regions: a ? csv(a.regions) : [], mus: a ? csv(a.mus) : [],
+                   near: describeBy(nearOf.get(Number(r.ord)) ?? []),
+                   nameSource: label.get(`${str(r.item_id)}\u0000${str(r.name)}`) ?? null };
+        }),
+        aliases: aliases.map((r) => ({ item: str(r.item_id), alias: str(r.alias),
+                                       source: label.get(`${str(r.item_id)}\u0000${str(r.alias)}`) ?? null })),
+        places: places.map((r) => ({ place: str(r.place_id) as PlaceId, name: str(r.name), kind: str(r.kind),
+                                     lat: Number(r.lat), lon: Number(r.lon), pop: num(r.pop) })),
+      };
     },
 
     async searchPointers(q, limit): Promise<readonly PointerHit[]> {

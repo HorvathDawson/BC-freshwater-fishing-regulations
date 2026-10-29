@@ -175,18 +175,19 @@ export function nearRowSub(kind: string, km: number): string {
 }
 
 /**
- * The line under a searched water: "Stream · near Fernie · 3 km". A name shared by several waters with no town to
+ * The line under a searched water: "Stream · Region 4 · MU 4-1 · near Fernie · 3 km" (T247: where it is, from `areaPhrase`; two waters of one name differ by it). A name shared by several waters with no town to
  * tell it apart says so ("Stream · no town within 25 km"); a unique name needs no where.
  */
-export function waterRowSub(kind: string, near: { name: string; km: number } | null, dup: boolean): string {
-  const where = wherePhrase(near) ?? (dup ? `no town within ${NEAR_KM} km` : null);
-  return where ? `${kindWord(kind)} · ${where}` : kindWord(kind);
+export function waterRowSub(kind: string, near: { name: string; km: number } | null, dup: boolean,
+                            area: string = ""): string {
+  const where = wherePhrase(near) ?? (dup && !area ? `no town within ${NEAR_KM} km` : null);
+  return [kindWord(kind), area || null, where].filter(Boolean).join(" · ");
 }
 
 /** A searched water's name with its where, as spoken (the "·" is noise read aloud): "Elk River, near Fernie, 3 km". */
-export function spokenName(name: string, near: { name: string; km: number } | null): string {
+export function spokenName(name: string, near: { name: string; km: number } | null, area: string = ""): string {
   const where = wherePhrase(near);
-  return where ? `${name}, ${where.replace(" · ", ", ")}` : name;
+  return [name, area ? area.replace(/ · /g, ", ") : null, where ? where.replace(" · ", ", ") : null].filter(Boolean).join(", ");
 }
 
 /** The near-list header's count: "12 within 25 km". */

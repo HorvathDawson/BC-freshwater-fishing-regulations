@@ -18,6 +18,7 @@ export * from "./hydrograph";
 export * from "./chart";
 export * from "./sprite";
 export * from "./search";
+export * from "./recentSearches";
 export * from "./spots";
 export * from "./capture";
 export * from "./photos";

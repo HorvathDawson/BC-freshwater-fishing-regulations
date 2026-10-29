@@ -3,7 +3,7 @@
  * a screen asks for it, and every one is in the conformance suite, which runs against every implementation.
  * Named for what it reads — waters, gauges, places — and not regulations, which the release loader reads (T62 3.7).
  */
-import type { Bbox, WaterFix } from "@app/core";
+import type { Bbox, IndexWater, SearchIndexData, WaterFix } from "@app/core";
 import type {
   Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, GaugeWaters, ItemId, LakeInfo, NameHit, NearHit, Panel, Parameter, PanelRoute, PlaceHit, PlaceId, PointerHit, Reading, Release, SectionId, Series, StationId, Water,
 } from "./types";
@@ -30,6 +30,14 @@ export interface WaterSource {
   // ---- search ---------------------------------------------------------
   searchNames(q: string, limit: number): Promise<readonly NameHit[]>;
   searchPlaces(q: string, limit: number): Promise<readonly PlaceHit[]>;
+  /**
+   * (T247) EVERYTHING SEARCHABLE, ONCE: every water that owns a section (name, kind, size, regions, management units, the
+   * town it is "near"), every alias with where it came from, and every town. `@app/core`'s `buildSearchIndex` holds it in
+   * memory and answers each keystroke from it (typos, "2-8", "region 2", "near Hope"); the SQL searches above stay for a
+   * reader that cannot afford the read, and for the pointer rows. Regions and units are empty where the release states
+   * none (a core cut before `item_area`).
+   */
+  searchIndex(): Promise<SearchIndexData<IndexWater, PlaceHit>>;
   /** The group names that only point (`PointerHit`) whose name is, or starts with, `q` — ordered by `rankPointers`. */
   searchPointers(q: string, limit: number): Promise<readonly PointerHit[]>;
   /**

@@ -1,4 +1,5 @@
 /**
+ * (T247: these stubs have no search index, so `useSearch` falls back to the source's own searches, which is what is counted.)
  * OWNER DECISION 2026-10-20: search's substring scan (~5 ms p95 on the laptop, A5 in tools/release-perf.test.ts) is
  * accepted PROVIDED the box is debounced so it does not query on every keystroke. This pins that: a burst of typing
  * issues ONE search, after the pause.
@@ -26,7 +27,7 @@ async function type(rerender: (ui: React.ReactElement) => void, source: WaterSou
     await act(async () => { vi.advanceTimersByTime(gapMs); });
   }
 }
-const pause = (ms: number) => act(async () => { vi.advanceTimersByTime(ms); await Promise.resolve(); });
+const pause = (ms: number) => act(async () => { vi.advanceTimersByTime(ms); for (let i = 0; i < 8; i++) await Promise.resolve(); });
 
 beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { cleanup(); vi.useRealTimers(); });

@@ -51,7 +51,7 @@ export const HALF_DROP = 0.45;
 /** The transition's length, ms (F2–F3 of the approved frames: the dim and the rise together). */
 export const SHEET_MS = 240;
 
-export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWater, onClose, statusIndex, total }: {
+export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWater, onClose, statusIndex, total, recents = [], onRecent, onClearRecents }: {
   /** Search is open (route `search`). Closed: the sheet slides (or fades) away and its rows go. */
   open: boolean;
   /**
@@ -73,6 +73,10 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   statusIndex: StatusIndex | null;
   /** How many named waters there are (the source's count), for the sheet's head; absent until read. */
   total?: number;
+  /** (T247) recent searches (device-only) shown before two letters are typed, and what a tap or Clear does */
+  recents?: readonly string[];
+  onRecent?: (q: string) => void;
+  onClearRecents?: () => void;
 }) {
   const still = useReducedMotion();
   // a wide screen: the sheet is a panel under the bar, the map clear beside it
@@ -106,7 +110,7 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   useEscapeCloses(open && panel !== null, onClose);
 
   if (!shown) return null;
-  const rows = open ? sheetRows(pick, session) : [];
+  const rows = open ? sheetRows(pick, session, recents) : [];
   const drop = Math.round(height * HALF_DROP);
   const today = new Date();
   const act = (a: SearchAction) => onAct(a);
@@ -170,7 +174,8 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
             extraData={pick}
             renderItem={({ item: r }) => (
               <SheetRow r={r} palette={palette} pick={pick} act={act} onOpenWater={onOpenWater}
-                        statusIndex={statusIndex} today={today} />
+                        statusIndex={statusIndex} today={today} onRecent={onRecent}
+                        onClearRecents={onClearRecents} />
             )}
           />
         )}

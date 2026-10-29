@@ -8,14 +8,16 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
 import { Keyboard, useWindowDimensions, type TextInput } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
-import { NO_SEARCH, searchStep, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
+import { NO_SEARCH, searchStep, useRecentSearches, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
 import type { Camera } from "@app/map";
 import { searchPanelWidth } from "../TopBar";
 import { CLOSE_KEEPS_FOCUS } from "../searchFocus";
 import type { ShellNav } from "./useShellNav";
 
-export function useShellSearch({ source, nav, camera }: {
+export function useShellSearch({ source, nav, camera, recentStore }: {
   source: WaterSource; nav: ShellNav; camera: MutableRefObject<Camera>;
+  /** (T247) where recent searches are kept (device-only); absent: kept for this run */
+  recentStore?: import("@app/ui").RecentStore | null;
 }) {
   const { route, go, browse, opener } = nav;
   const searching = browse.search;
@@ -24,6 +26,8 @@ export function useShellSearch({ source, nav, camera }: {
   const [searchMemory, setSearchMemory] = useState<SearchMemory>(NO_SEARCH);
   const session = useSearchSession(source, searchMemory, searching);
   const field = useRef<TextInput>(null);
+  // (T247) a search the reader picked a result from is a recent search
+  const recents = useRecentSearches(recentStore);
   /*
    * (T48) SEARCH GIVES THE CAMERA BACK. Where it was when search opened is kept; a pick moves the map (a water framed, a
    * town flown to); closing search — ‹, Escape, the system back, a tab — puts it back EXACTLY (`fit.camera`, sent
@@ -93,12 +97,14 @@ export function useShellSearch({ source, nav, camera }: {
       void source.waterBox(id).then((bbox) => { if (bbox && arrivals.current === n) setArrive({ key, bbox, refine: false }); });
     }
     searchMoved.current = false;            // the camera from before search is not put back: the water is the subject
+    recents.push(searchMemory.q);
     setSearchMemory(NO_SEARCH);             // the search is consumed, its text with it
     void opener.searched(id);
   };
   /** One step of search (`searchStep`): a pick lowers the sheet to half, so the keyboard goes with it. */
   const searchAct = (a: SearchAction) => {
     const next = searchStep(searchMemory.pick, a).pick;
+    if (a.t === "select" || a.t === "go") recents.push(searchMemory.q);
     if (next.selected !== null || next.town !== null) { field.current?.blur(); Keyboard.dismiss(); }
     setSearchMemory({ q: searchMemory.q, pick: next });
   };
@@ -112,7 +118,9 @@ export function useShellSearch({ source, nav, camera }: {
   const wideSearch = searching && searchPanelWidth(screenWidth) !== null;
   /** The focus event of the field: opens search, unless it is the field taking the focus back (`quiet`). */
   const onFieldFocus = () => { if (!quiet.current) go({ type: "search", open: true }); };
-  return { searching, searchMemory, session, field, restore, arrive, openSearched, searchAct, searchType, closeSearch,
+  /** (T247) a recent search tapped: it becomes the query again */
+  const pickRecent = useCallback((q: string) => searchType(q), [searchType]);
+  return { searching, searchMemory, recents, pickRecent, session, field, restore, arrive, openSearched, searchAct, searchType, closeSearch,
            closeToField, wideSearch, onFieldFocus };
 }
 

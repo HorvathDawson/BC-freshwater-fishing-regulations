@@ -408,6 +408,31 @@ def test_t182_item_near_ships_the_town_the_search_row_names_and_its_exact_ties()
     assert max(C.NEAR_HANDICAP_KM.values()) <= C.NEAR_HANDICAP_UNKNOWN_KM
 
 
+def test_t247_item_area_is_the_union_of_a_waters_sections_regions_and_units_in_book_order():
+    """`core_area`: a water's regions and management units are the union over its sections, regions in the book's order
+    (7A after 6) and units numerically (2-8 before 2-18); a water with no ruleset place says empty; a bundle without the
+    tables gives no table at all (ADDITIVE)."""
+    con = sqlite3.connect(":memory:")
+    con.execute("ATTACH ':memory:' AS b")
+    con.executescript("""
+        CREATE TABLE main.item_section (sid INTEGER, ord INTEGER);
+        CREATE TABLE b.section_ruleset (sid INTEGER PRIMARY KEY, place INTEGER, mus INTEGER);
+        CREATE TABLE b.region_place (place INTEGER PRIMARY KEY, regions TEXT);
+        CREATE TABLE b.mu_set (mus INTEGER PRIMARY KEY, codes TEXT);
+        INSERT INTO b.region_place VALUES (0, '2'), (1, '2,5'), (2, '7A');
+        INSERT INTO b.mu_set VALUES (0, ''), (1, '2-18,2-8'), (2, '2-9'), (3, '7-12');
+        INSERT INTO main.item_section VALUES (1, 10), (2, 10), (3, 10), (4, 20);
+        INSERT INTO b.section_ruleset VALUES (1, 0, 1), (2, 1, 2), (3, 2, 3), (4, 0, 0);
+    """)
+    B.core_area(con)
+    assert con.execute("SELECT ord, regions, mus FROM item_area ORDER BY ord").fetchall() == [
+        (10, "2,5,7A", "2-8,2-9,2-18,7-12"), (20, "2", "")]
+    bare = sqlite3.connect(":memory:")
+    bare.execute("ATTACH ':memory:' AS b")
+    B.core_area(bare)
+    assert bare.execute("SELECT 1 FROM sqlite_master WHERE name = 'item_area'").fetchone() is None
+
+
 def test_t182_lake_section_is_the_lowest_station_over_every_lake_holding_the_section():
     con = sqlite3.connect(":memory:")
     con.execute("ATTACH ':memory:' AS b")

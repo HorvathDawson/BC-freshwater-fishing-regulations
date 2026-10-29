@@ -412,6 +412,9 @@ export interface NameHit {
    * name apart. Null when no named place is within 25 km of it.
    */
   near: NearPlace | null;
+  /** (T247) the regions it lies in ("2", "7A") and the management units it touches ("2-8"): what tells two Elk Rivers apart. */
+  regions?: readonly string[];
+  mus?: readonly string[];
 }
 
 /**

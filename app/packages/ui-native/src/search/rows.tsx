@@ -1,22 +1,26 @@
 /** The rows search's sheet draws (`sheetRows`), from what the reader picked and what search answered. Pure (a .tsx so the
  * T60 copy scan reads its words with the sheet's). */
-import { SEARCH_BAR, nearCount, watersNear } from "@app/core";
+import { SEARCH_BAR, SEARCH_FIND, nearCount, watersNear } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit } from "@app/data";
 import { resultGroups, type SearchPick, type SearchSession } from "@app/ui";
 
 export type Row =
   | { t: "head"; key: string; label: string; right?: string; back?: boolean; place?: boolean;
       /** Drawn on the places band — the heading of the places group. */
-      band?: boolean }
+      band?: boolean;
+      /** (T247) a control at the heading's end (the recents' Clear) */
+      action?: "clear-recents" }
   | { t: "place"; key: string; place: PlaceHit }
   | { t: "water"; key: string; hit: NameHit; dup: boolean }
   | { t: "near"; key: string; near: NearHit }
   /** A group name that only points: its line (`seeLine`) and a way to open each water it names. */
   | { t: "see"; key: string; line: string; see: readonly { name: string; item: ItemId | null }[] }
-  | { t: "note"; key: string; text: string };
+  | { t: "note"; key: string; text: string }
+  /** (T247) a recent search: its text, drawn as a row that searches it again */
+  | { t: "recent"; key: string; q: string };
 
 /** The rows the sheet draws, from what the reader picked and what search answered. Pure: the render test reads it. */
-export function sheetRows(pick: SearchPick, s: SearchSession): Row[] {
+export function sheetRows(pick: SearchPick, s: SearchSession, recents: readonly string[] = []): Row[] {
   const rows: Row[] = [];
   const place = pick.town;
   if (place) {
@@ -46,6 +50,11 @@ export function sheetRows(pick: SearchPick, s: SearchSession): Row[] {
     if (s.failed) rows.push({ t: "note", key: "fail", text: SEARCH_BAR.failed });
   } else {
     rows.push({ t: "note", key: "start", text: SEARCH_BAR.start });
+    rows.push({ t: "note", key: "start2", text: SEARCH_FIND.hint });
+    if (recents.length) {
+      rows.push({ t: "head", key: "recent-h", label: SEARCH_FIND.recent, right: SEARCH_FIND.clear, action: "clear-recents" });
+      for (const q of recents) rows.push({ t: "recent", key: `r:${q}`, q });
+    }
   }
   return rows;
 }

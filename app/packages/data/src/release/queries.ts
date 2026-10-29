@@ -112,6 +112,20 @@ export const CROSS = {
   LAKE_SECTIONS: (n: number) => ({ file: "conditions", sql:
     `SELECT sid, station FROM lake_section WHERE sid IN (${ids(n)})` }),
   ALL_LAKE_SECTIONS: { file: "conditions", sql: "SELECT sid, station FROM lake_section" },
+  /** (T247) core: whether this release carries `item_area` (a core cut before it has no regions or units to search by). */
+  HAS_ITEM_AREA: { file: "core", sql: "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'item_area'" },
+  /** (T247) core, whole: what the in-memory search index is built from (`WaterSource.searchIndex`), each read once. */
+  INDEX_ITEMS: { file: "core", sql:
+    "SELECT ord, item_id, name, kind, area_ha, size, pieces FROM item WHERE pieces > 0 ORDER BY ord" },
+  INDEX_ALIASES: { file: "core", sql:
+    "SELECT a.item_id, a.alias FROM alias a JOIN item i ON i.item_id = a.item_id WHERE i.pieces > 0 ORDER BY a.rowid" },
+  INDEX_PLACES: { file: "core", sql:
+    "SELECT place_id, name, kind, pop, lat, lon FROM place WHERE lat IS NOT NULL AND name IS NOT NULL ORDER BY place_id" },
+  INDEX_NEAR: { file: "core", sql:
+    "SELECT n.ord, p.name, p.kind, p.lat, p.lon, n.ckm FROM item_near n JOIN place p ON p.place_id = n.place_id " +
+    "WHERE p.lat IS NOT NULL ORDER BY n.ord, n.ckm, p.place_id" },
+  INDEX_AREA: { file: "core", sql: "SELECT ord, regions, mus FROM item_area" },
+  INDEX_NAME_SOURCES: { file: "core", sql: "SELECT item_id, name, label FROM name_source" },
   /** (T224) core: whether this release carries `name_source` (a core cut before it shows no name's source). */
   HAS_NAME_SOURCE: { file: "core", sql: "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'name_source'" },
   /** (T224) core: where these waters' non-official names came from (`name_source`'s primary key is (item_id, name)). */

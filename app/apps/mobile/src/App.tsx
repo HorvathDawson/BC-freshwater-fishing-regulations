@@ -28,7 +28,7 @@ import { createReportOutbox, createUpdateLog, createUpdateService, versionedFetc
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openWalkthroughStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openWalkthroughStore, openRecentSearchStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { connectivity, FishSpinner, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
@@ -121,6 +121,7 @@ export default function App() {
   // T236: the first-run notice (not legal advice), once per device
   const firstRun = useMemo(() => openFirstRunStore(), []);
   const walkthrough = useMemo(() => openWalkthroughStore(), []);
+  const recentSearches = useMemo(() => openRecentSearchStore(), []);
   // T199: the run timing (its own feed, `runtiming/` on the data origin) — read the first time Run timing is chosen
   const runTiming = useMemo(() => httpRunTiming(`${ENDPOINTS.base}/runtiming`, openRunTimingStore()), []);
 
@@ -360,7 +361,7 @@ export default function App() {
                onSaveSpot={spotsHook.save}
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
-               inSeason={inSeason} inSeasonSeen={inSeasonSeen} firstRun={firstRun} walkthrough={walkthrough}
+               inSeason={inSeason} inSeasonSeen={inSeasonSeen} firstRun={firstRun} walkthrough={walkthrough} recentSearches={recentSearches}
                runTiming={runTiming}
                refreshing={refreshing}
                onDeleteSpot={spotsHook.remove}

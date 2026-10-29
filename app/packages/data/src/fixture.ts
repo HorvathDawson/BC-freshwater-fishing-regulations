@@ -156,6 +156,20 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Wat
         : [];
     },
     // the fixture's valley prints no group name that only points
+    // (T247) the same two waters, towns and alias the searches above answer from
+    async searchIndex() {
+      const near = { name: "Chilliwack", kind: "city", lat: 49.171, lon: -121.953, km: 1.8 };
+      return {
+        waters: [
+          { item: CHILLIWACK.item, name: CHILLIWACK.name, kind: "stream", size: 2236, areaHa: null,
+            pieces: CHILLIWACK.sections.length, regions: ["2"], mus: ["2-8"], near },
+          { item: JEPERSON.item, name: JEPERSON.name, kind: "stream", size: 12, areaHa: null, pieces: 1,
+            regions: ["2"], mus: ["2-8"], near: { ...near, km: 2.4 } },
+        ],
+        aliases: [{ item: JEPERSON.item, alias: JEPERSON.alias, source: null }],
+        places: [{ place: id<PlaceId>("12"), name: "Chilliwack", kind: "city", lat: 49.171, lon: -121.953, pop: 93203 }],
+      };
+    },
     async searchPointers(): Promise<readonly PointerHit[]> {
       return [];
     },

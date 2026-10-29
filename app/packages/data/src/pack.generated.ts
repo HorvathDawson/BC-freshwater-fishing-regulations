@@ -102,6 +102,11 @@ export const PACK_FILES: Record<string, PackFile> = {
         "alias",
         "item_id"
       ],
+      "item_area": [
+        "ord",
+        "regions",
+        "mus"
+      ],
       "item_near": [
         "ord",
         "place_id",

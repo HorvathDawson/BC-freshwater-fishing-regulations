@@ -62,7 +62,11 @@ FILES = {
         "name_source": ["item_id", "name", "src", "label"],
         # (T182) each water's "near X" town(s) (build.core_near): a search's result line reads core alone. ADDITIVE,
         # so still core/1: a core without it is read the old way (near's place_water)
-        "item_near": ["ord", "place_id", "ckm"]}},
+        "item_near": ["ord", "place_id", "ckm"],
+        # (T247) the regions a water lies in and the management units it touches (build.core_area), comma-joined: search
+        # by "2-8" / "Region 2" and the "Region 2 · MU 2-8" that tells two waters of one name apart. ADDITIVE, so still
+        # core/1: a core without it searches by name and town only (the app asks `HAS_ITEM_AREA` first)
+        "item_area": ["ord", "regions", "mus"]}},
     "near": {"format": "near/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
     # (T182) the tables T129 measured riding in a file a moment did not otherwise need moved into files of their own:
@@ -187,7 +191,9 @@ WEB_BUDGET = {
     "cold_load": {"files": ["manifest", "paint", "mask", "core", "regs-{region}", "method"], "gate": 3_350_000},
     # the first search: core alone — each result's "near X" is core's `item_near` (was core + near: 3,082,554 →
     # 1,217,684)
-    "first_search": {"files": ["core"], "gate": 1_400_000},
+    # (T247) + `item_area` (each water's regions and management units: search by "2-8" / "Region 2"): core 1,271,866 →
+    # ~1,381,000 on r-0fa7927b16e5's tables, so 1,400,000 → 1,500,000
+    "first_search": {"files": ["core"], "gate": 1_500_000},
     # the first tap on a NAMED water on the map, largest region: sid -> water (core), the page (water + the region
     # file), the water map's boxes (geo, read with the page's access note) and the tapped section's access note
     # (4,501,206 → 4,627,390, regs-6: core + 126 kB for item_near; part_geo moved, not added)
