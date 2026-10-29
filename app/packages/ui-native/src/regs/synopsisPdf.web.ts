@@ -6,7 +6,6 @@
  */
 import type { SourceBox } from "@app/core";
 import { fetchResilient } from "@app/data";
-import { highlightPdf } from "./highlightPdf";
 import { getSynopsisNet, type SynopsisSource } from "./synopsisSource";
 import type { LoadHooks } from "./synopsisLoad";
 
@@ -41,7 +40,12 @@ export async function openHighlighted(s: SynopsisSource, pdf: number, boxes: rea
   // the new tab is blank until the bytes arrive: say so in it
   try { if (win) win.document.body.textContent = "Loading the synopsis…"; } catch { /* a blocked write is only a missing label */ }
   try {
-    const out = await highlightPdf(await loadSynopsis(s, fetch, hooks), boxes);
+    // (T256) pdf-lib is its own chunk of the web bundle, fetched beside the PDF on the first open: no visitor who never
+    // opens the rule book downloads it
+    const lib = import("./highlightPdf");
+    lib.catch(() => {});                 // a chunk that failed is said below, where it is awaited (the plain link then)
+    const bytes = await loadSynopsis(s, fetch, hooks);
+    const out = await (await lib).highlightPdf(bytes, boxes);
     const url = `${URL.createObjectURL(new Blob([out as BlobPart], { type: "application/pdf" }))}#page=${pdf}`;
     if (win) win.location.href = url; else window.open(url, "_blank");
   } catch (e) {
