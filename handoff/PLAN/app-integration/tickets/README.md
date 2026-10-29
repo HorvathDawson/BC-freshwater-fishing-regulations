@@ -299,6 +299,7 @@ use that as the sole source of future work."
 | T253 | background prefetch of the files an unnamed-stream tap reads (view region + neighbours only, capped; good connection only; T231 cache path; Updates log + More "Offline data") | DONE | f52055bb, 5b13ab24 | owner 2026-10-28; tap 5.4 s → 0.25 s at Fast 4G; native installs whole |
 | T254 | bad connections: CDP harness (Slow 3G / 2G-ish / flaky / offline-then-back) + baseline, low-bandwidth mode (auto + More → Data toggle), per-size timeouts, retry + Range resume, slow/still-loading states | IN PROGRESS | — | owner 2026-10-29 |
 | T255 | Android app test bed: Maestro flows + adb network control + scenario runner/report (feeds, big update, offline, spots offline, report outbox; T223 sync seam) | IN PROGRESS | — | owner 2026-10-29 |
+| T256 | bad connections part 2: fewer bytes per answer (water/core by region), a start link before paint, Conditions chart before its envelope, the phone installer on resilient fetch, bundle size, request walk first-run | OPEN | — | from T254 measurements |
 
 ## Order for open tickets
 
