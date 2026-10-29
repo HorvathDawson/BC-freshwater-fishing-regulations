@@ -45,7 +45,7 @@ def _target_bounds(fwa: FWADataAccessor, applies: Optional[dict]):
             g = fwa.get_features_by_attribute("streams", "BLUE_LINE_KEY", int(applies["blk"]))
         else:
             return None
-    except Exception:
+    except Exception:       # noqa: BLE001 — an audit's bbox only: a water the FWA reader cannot find has none
         return None
     return None if (g is None or g.empty) else tuple(g.total_bounds)
 

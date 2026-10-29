@@ -67,7 +67,7 @@ class ElevationSampler:
             py = min(img.height - 1, max(0, int((fy - y) * img.height)))
             r, g, b = img.getpixel((px, py))
             return r * 256 + g + b / 256.0 - 32768.0
-        except Exception:
+        except Exception:       # noqa: BLE001 — documented: a failed tile fetch -> None, the caller falls back
             return None
 
 

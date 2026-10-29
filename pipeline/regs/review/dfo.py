@@ -52,11 +52,8 @@ def default_typed_dir() -> Path:
 
 def page_url(slug: str) -> Optional[str]:
     """The DFO notice page a region's locations were scraped from."""
-    try:
-        from pipeline.regs.dfo_salmon.fetch import _BASE
-        return _BASE.format(slug=slug)
-    except Exception:  # noqa: BLE001
-        return None
+    from pipeline.regs.dfo_salmon.fetch import _BASE      # a missing constant is a bug, not "no page"
+    return _BASE.format(slug=slug)
 
 
 def _stamp(d: Path) -> tuple:

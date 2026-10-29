@@ -50,7 +50,7 @@ def scan(paths: list[str]):
     for f in _files(paths):
         try:
             lines = f.read_text(errors="ignore").splitlines()
-        except Exception:
+        except OSError:                 # a file gone mid-walk; anything else is a bug
             continue
         for i, line in enumerate(lines, 1):
             m = TAG.search(line)
