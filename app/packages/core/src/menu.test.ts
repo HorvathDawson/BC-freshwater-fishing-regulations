@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  aboutEnvVM, aboutVM, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, isoDayWords,
+  aboutEnvVM, aboutVM, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, glossarySections, markedRuns, editDistance, isoDayWords,
   mailtoUrl, regsReportWhere, reportMessage, reportPayload, emailProblem, REPORT_REASONS, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
@@ -24,10 +24,11 @@ const TERMS = [
 ];
 
 describe("the glossary", () => {
-  it("lists every term alphabetically, accents folded, with its own plain words", () => {
+  it("lists every term alphabetically, accents folded, with its own plain words, letter and page", () => {
     expect(glossaryRows(TERMS).map((r) => r.term)).toEqual(["Artificial fly", "Bait", "Éclosion", "Single barbless hook"]);
-    expect(glossaryRows(TERMS)[0]).toEqual({ id: "artificial_fly", term: "Artificial fly",
-                                             says: "A single barbless hook dressed with feathers, hair or thread." });
+    expect(glossaryRows(TERMS)[0]).toEqual({ id: "artificial_fly", term: "Artificial fly", letter: "A", cite: "p. 80",
+                                             says: "A single barbless hook dressed with feathers, hair or thread.",
+                                             termMarks: [], saysMarks: [] });
   });
 
   it("puts a term whose NAME matches before one whose words do", () => {
@@ -40,6 +41,41 @@ describe("the glossary", () => {
     expect(glossaryRows(TERMS, "eclosion").map((r) => r.id)).toEqual(["éclosion"]);
     expect(glossaryRows(TERMS, "  ").length).toBe(4);
     expect(glossaryRows(TERMS, "sturgeon")).toEqual([]);
+  });
+
+  it("(T288) forgives a typo or two — in the name always, in the words for a longer word — and marks the match", () => {
+    const more = [...TERMS, term("steelhead", "Steelhead", "A rainbow trout longer than 50 cm."),
+                  term("stamp", "Steelhead Stamp", "A stamp you need to fish for steelhead.")];
+    expect(glossaryRows(more, "barbles").map((r) => r.id)).toEqual(["single_barbless_hook", "artificial_fly"]);
+    expect(glossaryRows(more, "steelhed").map((r) => r.id)).toEqual(["steelhead", "stamp"]);
+    expect(glossaryRows(more, "stelhead stmp").map((r) => r.id)).toEqual(["stamp"]);
+    const hit = glossaryRows(more, "barbles")[0]!;
+    expect(hit.termMarks).toEqual([[7, 15]]);                       // "barbles" opens "barbless": the word is marked
+    expect(markedRuns(hit.term, hit.termMarks)).toEqual([["Single ", false], ["barbless", true], [" hook", false]]);
+    expect(glossaryRows(more, "steelhed")[0]!.termMarks).toEqual([[0, 9]]);   // a typo marks the whole word it found
+    expect(glossaryRows(more, "éclos")[0]!.termMarks).toEqual([[0, 8]]);   // marks the original, accent and all
+    // one typo in a 4-letter word finds a name, never a definition's word ("A single barbless hook" is artificial fly's);
+    // under 4 letters, none
+    expect(glossaryRows(more, "hool").map((r) => r.id)).toEqual(["single_barbless_hook"]);
+    expect(glossaryRows(more, "hok")).toEqual([]);
+    expect(glossaryRows(more, "bait")[0]!.termMarks).toEqual([[0, 4]]);
+  });
+
+  it("(T288) the A–Z: every term under its letter, the rail every letter, the empty ones dimmed", () => {
+    const { sections, rail } = glossarySections(TERMS);
+    expect(sections.map((s) => [s.letter, s.rows.map((r) => r.id)])).toEqual(
+      [["A", ["artificial_fly"]], ["B", ["bait"]], ["E", ["éclosion"]], ["S", ["single_barbless_hook"]]]);
+    expect(rail.length).toBe(26);
+    expect(rail.filter((r) => r.has).map((r) => r.letter)).toEqual(["A", "B", "E", "S"]);
+    expect(glossarySections([...TERMS, term("x", "50 cm", "")]).rail.at(-1)).toEqual({ letter: "#", has: true });
+  });
+
+  it("(T288) counts edits with a cap, a swap of two neighbours as one", () => {
+    expect(editDistance("steelhed", "steelhead")).toBe(1);
+    expect(editDistance("barbles", "barbless")).toBe(1);
+    expect(editDistance("trotu", "trout")).toBe(1);
+    expect(editDistance("hte", "the")).toBe(1);
+    expect(editDistance("sturgeon", "steelhead")).toBe(3);
   });
 });
 

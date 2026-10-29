@@ -64,6 +64,12 @@ export const MENU_WORDS = {
     search: "Search the glossary",
     loading: "Loading the glossary",
     none: (q: string) => `No term matches “${q}”.`,
+    /** (T288) the A–Z rail: the strip's name, and each letter's */
+    rail: "Jump to a letter",
+    clear: "Clear the search",
+    jump: (letter: string) => `Jump to ${letter}`,
+    /** a term's printed pages, read aloud ("p. 80" on the row) */
+    pages: (cite: string) => `Synopsis ${cite}`,
     unavailable: "The glossary comes with the regulations data, which this build does not hold.",
     failed: (why: string) => `The glossary could not be read: ${why}`,
   },

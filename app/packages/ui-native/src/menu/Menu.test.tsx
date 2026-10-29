@@ -381,9 +381,16 @@ describe("the glossary page", () => {
     const onTerm = vi.fn();
     render(<GlossaryPage glossary={ready} term={null} onTerm={onTerm} onCloseTerm={() => {}} palette={LIGHT} />);
     expect(screen.getAllByTestId(/^glossary-row-/).map((e) => e.textContent)).toEqual(
-      ["BaitAnything an angler offers a fish to eat.", "Barbless hookA hook with no barb, or one pinched flat."]);
-    act(() => { fireEvent.change(screen.getByLabelText("Search the glossary"), { target: { value: "barbless" } }); });
+      ["Baitp. 80Anything an angler offers a fish to eat.", "Barbless hookp. 80A hook with no barb, or one pinched flat."]);
+    // (T288) one sticky letter head, the rail with every letter, the empty ones disabled
+    expect(screen.getAllByTestId(/^glossary-letter-[A-Z#]$/).map((e) => e.textContent)).toEqual(["B"]);
+    expect(screen.getAllByTestId(/^glossary-rail-/).length).toBe(26);
+    expect(screen.getByLabelText("Jump to B").getAttribute("aria-disabled")).not.toBe("true");
+    expect(screen.getByLabelText("Jump to C").getAttribute("aria-disabled")).toBe("true");
+    act(() => { fireEvent.change(screen.getByLabelText("Search the glossary"), { target: { value: "barbles" } }); });
     expect(screen.getAllByTestId(/^glossary-row-/).map((e) => e.getAttribute("data-testid"))).toEqual(["glossary-row-barbless"]);
+    expect(screen.getAllByTestId("glossary-mark").map((e) => e.textContent)).toEqual(["Barbless"]);
+    expect(screen.queryByTestId("glossary-rail")).toBeNull();      // a ranked list has no letters to jump to
     act(() => { fireEvent.change(screen.getByLabelText("Search the glossary"), { target: { value: "sturgeon" } }); });
     expect(screen.getByText("No term matches “sturgeon”.")).toBeTruthy();
     act(() => { fireEvent.change(screen.getByLabelText("Search the glossary"), { target: { value: "" } }); });

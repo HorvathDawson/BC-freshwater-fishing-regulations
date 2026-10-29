@@ -53,7 +53,9 @@ const pageRun = (inp: { readonly statics: Pick<Statics, "pdfPages"> }, printed: 
 export function glossBlocks(inp: { readonly statics: Pick<Statics, "pdfPages"> }, t: GlossaryTerm): SheetBlock[] {
   const out: SheetBlock[] = [para(t.says)];
   if (t.example) out.push({ k: "example", text: [text(WORDS.SHEET_FOR_EXAMPLE), text(" "), text(t.example)] });
-  if (t.quote) out.push({ k: "fold", summary: WORDS.SHEET_BOOK_WORDS, open: false, body: [{ k: "quote", text: t.quote }] });
+  // (T288) a p.80 definition's plain words ARE the book's: no fold repeating them
+  if (t.quote && squash(t.quote) !== squash(t.says))
+    out.push({ k: "fold", summary: WORDS.SHEET_BOOK_WORDS, open: false, body: [{ k: "quote", text: t.quote }] });
   if (t.pages.length) {
     const line: Run[] = [text(WORDS.BOOK)];
     for (const p of t.pages) line.push(text(" "), pageRun(inp, p));
