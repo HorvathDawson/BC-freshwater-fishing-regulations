@@ -144,7 +144,15 @@ export function Shell(p: ShellProps) {
    * icon's refresh — ONE reading of the feed's age for the top bar's icon and More's Data block alike.
    */
   const syncState = useSync({ feed, release: loader?.release ?? null, checkRelease, named: releaseNamed, updates });
-  const col = useMapColouring({ source, feed, status: p.status ?? null, pairing: p.pairing ?? null, tiles,
+  /*
+   * (T256) A START ON A REGULATIONS PAGE DRAWS THE PAGE FIRST, THE MAP AFTER: the map's status (paint, 0.7 MB) is not
+   * asked until the page it opened is drawn (`start` applied) or the reader leaves the water — on one bar the page's own
+   * files are not sharing the line with the map's (the boot did not wait for paint either: `setRegsFirstStart`).
+   */
+  const [statusHeld, setStatusHeld] = useState(() => !!p.regsStart && route.mode === "water");
+  useEffect(() => { if (statusHeld && (start === null || route.mode !== "water")) setStatusHeld(false); },
+            [statusHeld, start, route.mode]);
+  const col = useMapColouring({ source, feed, status: statusHeld ? null : p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
                                 epoch: syncState.epoch, settled, gearSettled: settled && quietLine,
                                 salmonOnDemand: !!(p.prefetch && loader),

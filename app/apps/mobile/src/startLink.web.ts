@@ -6,7 +6,7 @@
  * build with the water's item id in `<meta name="cift:item">`; the app opens it exactly as `?regs=<item>` would (the
  * page's own query — part, view — kept), and knows that water's slug from then on (`waterSlugs.ts`).
  */
-import { parseStartLink, WATER_PATH, type StartLink } from "@app/ui";
+import { parseStartLink, setRegsFirstStart, WATER_PATH, type StartLink } from "@app/ui";
 import { slugSeen } from "./waterSlugs";
 
 function search(): string {
@@ -21,6 +21,11 @@ function search(): string {
 }
 
 export function startLink(): StartLink | null {
-  try { return parseStartLink(search()); }
+  try {
+    const link = parseStartLink(search());
+    // (T256) a start on a Regulations page draws it before the map's paint
+    setRegsFirstStart(link?.route.mode === "water");
+    return link;
+  }
   catch (e) { console.error(e instanceof Error ? e.message : String(e)); return null; }
 }

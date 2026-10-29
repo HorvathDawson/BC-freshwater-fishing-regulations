@@ -20,6 +20,14 @@ export type BootState =
 /** (T272) The loading screen's redraws while a download reports progress: at most one per this many ms. */
 export const PROGRESS_MS = 200;
 
+/**
+ * (T256) THIS START OPENS A REGULATIONS PAGE FIRST (the web's `?regs=` link, a water's own page): the boot does not wait
+ * for paint, so the page draws without the map's file (≈ 14 s on Slow 3G, 55 s on 2G-ish). Set once, before the app
+ * mounts, by the platform's start link (`apps/mobile` `startLink.web.ts`); the map's status asks for paint when shown.
+ */
+let regsFirst = false;
+export function setRegsFirstStart(on: boolean): void { regsFirst = on; }
+
 export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt = 0): BootState {
   const [s, set] = useState<BootState>({ state: "loading", stage: "manifest", progress: null });
   const on = opts !== null;
@@ -37,6 +45,7 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
     if (!again && attempt > 0) set({ state: "loading", stage, progress });
     bootRelease({
       ...opts,
+      ...(regsFirst ? { paintFirst: false } : {}),
       onStage: (st) => { stage = st; if (live && !again) set({ state: "loading", stage, progress }); },
       onProgress: (p) => {
         progress = p;

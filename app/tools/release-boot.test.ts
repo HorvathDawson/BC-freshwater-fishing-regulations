@@ -56,7 +56,7 @@ describe("web: a cold start is the manifest and paint, then each file on first n
     expect(b.loader.opened()).toEqual(["paint"]);
     // the map's status is paint's, decoded already: colouring fetches nothing more
     const status = await statusOf(releaseStatus(b.loader));
-    expect(status).toBe(b.paint.status);
+    expect(status).toBe(b.paint!.status);
     expect(log.length).toBe(2);
     // the first tap: core, and only core
     expect(await b.source.itemForSection(0 as never)).not.toBeUndefined();
@@ -64,6 +64,21 @@ describe("web: a cold start is the manifest and paint, then each file on first n
     expect(log.filter((u) => DEV_PATH.test(u))).toEqual([]);
     // no tile version folder in the fixture: the map keeps the development endpoints
     expect(releaseTiles(b, DEV_TILES)).toEqual(DEV_TILES);
+  });
+
+  it("(T256) a Regulations-first start (paintFirst false) draws before paint: the manifest alone; paint on the map's ask", async () => {
+    const fx = fixtureRelease("plain"), log: string[] = [];
+    const m = JSON.parse(await (await releaseFetch(BASE, fx.dir, [])(`${BASE}manifest.json`)).text()) as Manifest;
+    const stages: string[] = [];
+    const b = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", paintFirst: false,
+                                  platform: web, fetch: releaseFetch(BASE, fx.dir, log), onStage: (s) => stages.push(s) });
+    expect(stages).toEqual(["manifest"]);
+    expect(log).toEqual([`${BASE}manifest.json`]);
+    expect(b.paint).toBeNull();
+    expect(b.loader.opened()).toEqual([]);
+    // the map's status asks for it when shown (`releaseStatus` → `loader.paint()`)
+    await b.loader.paint();
+    expect(log).toEqual([`${BASE}manifest.json`, `${BASE}${m.files.paint!.url}`]);
   });
 
   it("a release that names its tiles and mask is drawn from them", async () => {

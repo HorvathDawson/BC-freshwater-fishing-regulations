@@ -67,6 +67,12 @@ export interface BootOptions {
   net?: Net | null;
   onStage?: (s: BootStage) => void;
   onProgress?: (p: Progress) => void;
+  /**
+   * (T256) The web waits for paint before the Shell draws (default). False: a start that opens a Regulations page first
+   * (`?regs=`, a water's own page) draws it without paint — the map's status asks for paint when it is shown. Native
+   * ignores it (paint is on disk).
+   */
+  paintFirst?: boolean;
   /** How long a launch waits for the manifest before going on with the held set (native). */
   manifestTimeoutMs?: number;
   /**
@@ -88,7 +94,8 @@ export interface Booted {
   /** The installed set (native) or what the web holds (the manifest's tiles, nothing on disk). */
   held: Held;
   loader: ReleaseLoader;
-  paint: Paint;
+  /** Paint, decoded — null on a web start that did not wait for it (`paintFirst: false`; `loader.paint()` has it). */
+  paint: Paint | null;
   source: WaterSource;
   /** Where the map reads a release-relative path from: a local file on native, the release root on the web. */
   locate(path: string): string;
@@ -184,8 +191,12 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     const loader = withLiveSalmon(
       releaseLoader(m, o.platform.releaseSource(m, { base: o.releaseBase, cache, held: null, fetch: f, net: o.net ?? null }),
                     o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null, net: o.net ?? null })), o.salmonFeed);
-    o.onStage?.("paint");
-    const paint = await loader.paint();
+    // (T256) a Regulations-first start draws its page before paint: the map asks for it when it is shown
+    let paint: Paint | null = null;
+    if (o.paintFirst !== false) {
+      o.onStage?.("paint");
+      paint = await loader.paint();
+    }
     const held: Held = { tiles: m.tiles.current?.id ?? null, basemap: m.basemap?.id ?? null,
                          assets: m.tiles.assets?.id ?? null, release: m.data_release, files: {} };
     const stage = async (next: Manifest, onProgress?: (p: Progress) => void): Promise<Held | null> => {
