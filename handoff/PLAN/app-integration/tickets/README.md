@@ -157,7 +157,7 @@ use that as the sole source of future work."
 | T110 | record years per quantity (Level-mode weights) | DONE | ad835645, 31ade2ee, 999b2659, c97c4a98 | delivered r-b518a2b507fa (paint/4) |
 | T111 | every cut reaches the walk (second extent's window dropped) | DONE | ea894c8a, 271b2747, b8c00620 | no binding moved; leftovers → T141; delivered r-941dcc149b17 |
 | T112 | one entry walker over catalogue extents | DONE | 9cde1fbe, f99cd705, 05a8b704 | no rebuild (review app restart) |
-| T113 | one name caser for tiles and bundle (O'rourke) | PARTIAL | 699c1392, 892db3d2 | shared caser confirmed; "2ND"/"JAJI7EM" fixed; tiles build + deliver still owed |
+| T113 | one name caser for tiles and bundle (O'rourke) | DONE | 699c1392, 892db3d2, f010a2b1 | tiles + deliver r-0fa7927b16e5: 0 casing changes left; O'Rourke right on card + map |
 | T114 | one search key for SQL filter and ranking (barriere) | DONE | ebc435e5, 6a9384d3, 21021abb, e7c4d3ca, 4ae97a60, 48f712e9, 2683568e | delivered r-e88ea8112b1a (core 1.09 MB) |
 | T115 | one home-filtered region membership (12 Fraser pairs) | DONE | e0461d31, 2699715d, 330c029e, b8c00620 | 12 Fraser + 3 steelhead-twin + 1 licensing pair removed; leftovers → T140; delivered r-941dcc149b17 |
 | T116 | one water noun: wetlands called "river" | DONE | 4cf77c7a, 86e6ad40, 0c533d4a, 91b2952e | — |
@@ -266,7 +266,7 @@ use that as the sole source of future work."
 | T219 | bathymetry: trace contours from the open scanned charts for the top-fished lakes | OPEN | — | not yet (owner 2026-10-27); raster scans, georef works, depth labelling needs a review UI; ★ tier size |
 | T220 | braid channels close: no channel line ends where the water goes on (prune closure + one zoom per side-channel run) | DONE | 4c90fe68, 64c28a2b | owner 10-28 FIX complete; 1,041 -> 97 dangling ends, no existing binding moved; live r-46be3c135e68 |
 | T221 | solo waters open on regs (no Map), URL follows the water, one salmon table, plain size rule, count line before its size box, at-a-glance species table (kept, no counts) | DONE | 73625e35, 9784a7b0 | owner 2026-10-28 web feedback (Dala River) |
-| T222 | Stave spawning channels (Ruskin/Northrop): add the FWA side channels so Stave r1/r2 can bind | OPEN | — | added_streams + atlas rebuild; no owner call |
+| T222 | Stave spawning channels (Ruskin/Northrop): add the FWA side channels so Stave r1/r2 can bind | DONE | e8ff6db1, 0f40f008, c47572af, 2ea061c4, f010a2b1 | Ruskin named FWA channels, Northrop from OSM; r1/r2 bind 4+1 sections, no existing binding moved; live r-0fa7927b16e5 |
 | T223 | user accounts shared between the web app and the phone app (sign-in, what syncs, offline) | OPEN | — | far future; default plan: Firebase Auth + Worker + R2 users/<uid>/, no DB |
 | T224 | name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source | IN PROGRESS | 009aeec0 | owner answers 10-28 applied: sources end to end, 183 accepted (mined_names.json), Names tab; needs the next atlas build |
 | T225 | feeds: where they live, how they're triggered, alerting (gauges, DFO, HYDAT) | OPEN | — | host = Cloudflare Workers cron; STAGING schedule ON 10-28 (Phase A: retries/breaker/stale carry, per-source failure measures, R2 inputs synced); acceptance = a week unattended; prod = owner |

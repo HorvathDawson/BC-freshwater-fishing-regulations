@@ -3,7 +3,21 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-28 — release r-c331a7a3c2cf live, T228)
+## CURRENT STATE (2026-10-28 late — release r-0fa7927b16e5 live: T222 + T113 + T224 + T173 + T93 + T252 combined)
+
+LIVE RELEASE: r-0fa7927b16e5 (data/release/LATEST), from HEAD bedc391b. Atlas promoted: 10cbcb72e9f907cf (full; the
+previous db853e9556df81a6 is full.prev), +5 sections (Ruskin Spawning Channel 4 = FWA side channels named, Northrop
+Spawning Channel 1 = added from OSM), 0 gone. Tiles 10cbcb72e9f907cf.edc12ab96087 (185 MB; obstacle layer 27,267 marks incl.
+PSCIS; tidal_water), promoted file by file. Reach digest d1837ae06c209ad8. Mined names (T224) are registry labels only
+(2ea061c4): they no longer change the prune, ditch membership or slough folds. binding_diff old vs new atlas (same
+code): Stave r1/r2 bind; 0 existing sections moved. Re-cuts done (f010a2b1: taps/hydrate, regs fixture r-445850b69ae1,
+VM fixture, pins; Coquitlam T228 declared: x37p0 gone, 123 tapped + 11 gone). Run-timing base + feed rebuilt for the new
+atlas and published to STAGING (runtiming/index.json, base private/runtiming/base/10cbcb72e9f907cf.json.gz).
+Owner 2026-10-28: names are shown as sourced, no name filtering (the deny-list was reverted, bedc391b).
+Unused artefacts left on disk: data/generated/atlas/full_next, full_t222 (side atlases, ~9 GB each), reaches/t222_next,
+t222base, t222b — safe to delete.
+
+## (earlier) CURRENT STATE (2026-10-28 — release r-c331a7a3c2cf live, T228)
 
 LIVE RELEASE: r-c331a7a3c2cf (T228, a757756b; bundle-only deliver, no atlas or reach rerun, same tiles). Changes:
 part.no_access (34 waters gain a part, Coquitlam 4 parts), salmon-chain pieces in part_stretch/part_mark (876 stretch

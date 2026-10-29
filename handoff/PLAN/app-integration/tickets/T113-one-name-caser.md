@@ -1,6 +1,6 @@
 # T113 — One name caser: map labels say "O'rourke Lake", the card says "O'Rourke Lake"
 
-Status: PARTIAL — code done 2026-10-24; the tiles-window build, shots and after-numbers are left (see Outcome).
+Status: DONE — tiles 10cbcb72e9f907cf.edc12ab96087 + release r-0fa7927b16e5 (2026-10-28)
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding answers 6
 (CONFIRMED on `data/generated/tiles/layers/*.geojsonl` and `bundle.sqlite`). Related to T61 2.8 (one name
@@ -51,3 +51,9 @@ suffix after a numeral stays lower, "2nd") and a digit inside a word (JAJI7EM, S
 instead of "Jaji7Em". Test added in test_one_name_caser.py (13 pass; 335 across the name-touching suites). Committed before
 T182's deliver run, so it picks the caser up. Still owed (rebuild, not run here): tiles build + deliver, then re-measure
 T113-name-changes.tsv (a few "Nth"-names and digit-in-word names change). Stays PARTIAL on that rebuild only.
+
+## Outcome (2026-10-28 rebuild, r-0fa7927b16e5)
+Tiles rebuilt with the caser (699c1392): measured old tiles (db853e9556df81a6) vs new, label by label per layer: 0 casing
+changes — the live tiles were already cut with `display_case`, and no shipped label carried an ordinal or a digit-in-word
+name. New labels are new names (108 stream labels: T224 mined names, Ruskin/Northrop), plus the obstacle layer. App:
+O'Rourke Lake reads "O'Rourke Lake" on the card and on the map label (T113-shots/). Export gate (no shouting name) held.
