@@ -160,7 +160,7 @@ async function session(site, url, profile, o) {
       const l = e.getAttribute('aria-label') || ''; return ${prefix ? `l.startsWith(${JSON.stringify(label)})` : `l === ${JSON.stringify(label)}`}; });
       if (!e) return false; e.click(); return true; })()`),
     closeSheets: async () => b.evaluate(`(() => { const e = [...document.querySelectorAll('[aria-label],[role=button]')]
-      .find((e) => /^(Done|I understand)$/.test((e.getAttribute('aria-label') || e.innerText || '').trim())); if (!e) return false; e.click(); return true; })()`).catch(() => false),
+      .find((e) => /^(Done|I understand|Skip)$/.test((e.getAttribute('aria-label') || e.innerText || '').trim())); if (!e) return false; e.click(); return true; })()`).catch(() => false),
     tap: async (x, y) => { for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
       await b.send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }); },
     shot: async (name) => { if (!o.shots) return; fs.mkdirSync(o.shots, { recursive: true });
