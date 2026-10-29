@@ -141,7 +141,7 @@ Depends: owner calls (2). Size: M. Owner: yes (2). Default: search alias only, n
 Picked for risk: every non-OSM auto-accept + the OSM rows with the weakest overlap / shortest line / no water word.
 | name | source | blk | why look |
 |---|---|---|---|
-| Cat Stream | OSM | 354128296 | overlap 4 % / 48 % — passed auto-accept, likely wrong |
+| Cat Stream | OSM | 354128296 | two OSM ways: 95 % / 100 % over 3.0 km (qualifies) + a 285 m stub at 4 % — no water word but "stream" |
 | The Cut Coulee | OSM | 354089612 | no water word |
 | Cohen Creek | OSM | 356272352 | 160 m source line |
 | Benes Creek | OSM | 354126239 | 309 m |
@@ -150,8 +150,8 @@ Picked for risk: every non-OSM auto-accept + the OSM rows with the weakest overl
 | Brigade Bay Creek | OSM | 360357261 | 81 % / 80 % |
 | Problem Creek | OSM | 356305031 | 81 % / 83 % |
 | Coho Creek | OSM | 356356588 | 82 % |
-| Corinne Brook | Abbotsford | 356056778 | covers only 39 % of the FWA line |
-| Jantz Stream | Abbotsford | 356062107 | 74 % of the FWA line |
+| Corinne Brook | Abbotsford + OSM | 356056778 | OSM 100 % / 100 %; Abbotsford's two lines cover 39 % / 22 % |
+| Jantz Stream | Abbotsford + OSM | 356062107 | OSM 83 % / 100 %; Abbotsford 74 % |
 | Marshall Creek | Abbotsford | 356082830 | Marshall is also the main creek's name nearby |
 | Gill Brook | Abbotsford | 356096337 | — |
 | Mckay Creek | Abbotsford | 356128529 | spelling (McKay?) shown as sourced |
@@ -161,3 +161,10 @@ Picked for risk: every non-OSM auto-accept + the OSM rows with the weakest overl
 | Meadow Creek Diversion | ECCC | 356368998 | a diversion shown as a water |
 | Quinsam River Diversion Headpond | ECCC | 354088905 | a headpond shown as a stream |
 | Noble Creek | ECCC | 354151912 | — |
+
+### Auto-accept audit (owner 2026-10-29: "we didnt add this variant right? only should have auto added certain ones")
+Every one of the 181 applied auto-accepts meets the owner rule (decisions.md "T224": high confidence, relation
+`unnamed`, one candidate, no rival, ≥ 80 % overlap or an ECCC station), rechecked source by source: 0 outside it. Cat
+Stream (blk 354128296, near Nanaimo) is one of them — applied and shown — because a second OSM way named "Cat Stream"
+covers 95 % of the FWA line (3,037 m, 100 % of the way on it); the 4 % row the spot-check list first quoted was its
+other, 285 m way. Nothing removed or renamed (ask-first rule): a Names-tab reject takes it out.

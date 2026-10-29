@@ -1,6 +1,7 @@
 # T212 — tidal boundaries: a tidal split on every stream that enters the ocean (research first, no data changes yet)
 
-Status: PARTIAL — 2026-10-29: every candidate marked (1,168/1,168); the 32 cut/flag proposals applied (T185, splits.json)
+Status: PARTIAL — 2026-10-29 (later): 3 owner re-marks left (Caycuse, Dempster, Bear at the mouth); delta channels
+built (r-8e04e839ea48). Earlier 10-29: every candidate marked (1,168/1,168); the 32 cut/flag proposals applied (T185, splits.json)
 and shipped in r-62e2f3a8c81e; 8 tidal marks are follow-ups that make no cut (below). Research: 41393956.
 
 Source: owner 2026-10-27 — "critical"; start in the next work window.
@@ -192,3 +193,25 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
     ("waters of Portland Canal … northerly of … 55°47.807′N") never name the river; the region 6 freshwater page's
     "Bear River" is the Sustut/Skeena one; synopsis (R6), DFO 2015 tidal guide table, web search: nothing. So the DFO
     default holds (the mouth, -129.98932, 55.91761); a bridge cut would be a guess (no words) — owner's call.
+
+## Owner answers 2026-10-29
+- **Parsons / Annacis / Cannery / Morey Channels: YES, the whole channel is tidal.** Built: curated
+  `data/curated/waters/tidal_waters.json` (each item, the owner's answer, the Tidal-tab mark it answers + its note) →
+  `reach.outside.tidal_waters` / `tidal_whole_owner` (owner `water:<item_id>`, every section, no tributary, out of every
+  binding after the walk) → `tidal.jsonl` → bundle `tidal` (status tidal, K7 note) and off the map (`tiles/tidal.py`
+  `tidal_pieces`; `bundle.undrawn` proves both agree via `is_cut_owner`). Reach + tiles stage keys hold the file.
+  Tests: `test_tidal_cut.py` +3. Code 68348561. Built + promoted (local LATEST): **r-8e04e839ea48** — reach 92 tidal
+  sections (87 below cuts + 5 channel sections), no rule left without water (`tidal_emptied` []; 92 zone-rule
+  bindings lose the channel sections), tiles leave 92 off (`undrawn.tidal`), bundle `tidal` 93 rows, vintage agrees.
+  Not uploaded to staging.
+- **Bear River (Stewart): no written source; the boundary is the mouth** — where the line meets the coast. The proposal
+  already is that point: FWA measure 0 (-129.98932, 55.91761), the end of the double-line river polygon, 6 m from the
+  basemap's ocean polygon. The mark in force says "wrong" (4,387 m), so the owner re-marks it at the mouth (no cut).
+- **Caycuse River / Dempster Creek ("are these on the dem? … stream went past mouth to connect to other stream")**:
+  yes — FWA runs each line on through a lake (lake construction line, edge 1450) to join the next line: Caycuse
+  0-716.1 m across Nitinat Lake (tidal), Dempster 0-523.7 m across Clowhom Lake. The real mouth is where the line
+  leaves the lake: Caycuse 716.1 m (-124.68280, 48.79746), Dempster 523.7 m (-123.45408, 49.74832). The mouth proposal
+  is measure 0 (the line's far end in the lake), but the atlas items start AT the lake edge (Caycuse `354151091:716`,
+  Dempster `360848786:523`), so a mouth mark makes no cut and the stream stays freshwater to the lake edge = the right
+  boundary. The DEM marks (1,925 m / 550 m) are not it. Proposed: owner re-marks both at the mouth. (Clowhom Lake is a
+  dammed lake above Salmon Inlet: whether Dempster meets tidal water at all is moot — no cut either way.)

@@ -1662,3 +1662,10 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   never ships; any other candidate is HELD — listed in `continuations_held.json` beside the bundle and in the build
   output (status `held`, or `label` when a water's shown name is not gazetted) — until the owner adds it to `reviewed`.
   `continuation.gate`; pinned in `test_water_continue.py`.
+
+## OWNER 2026-10-29 — T212 tidal follow-ups
+- Parsons, Annacis, Cannery and Morey Channels (Fraser delta) are tidal along their whole length: off the freshwater map,
+  no freshwater rules (curated `data/curated/waters/tidal_waters.json`, owner `water:<item_id>`).
+- Bear River (Stewart): no written boundary exists; the tidal boundary is the mouth, where the river line meets the coast.
+- A stream whose FWA line runs on through a lake or the sea to join another line: its mouth is where the line leaves the
+  water body (the shore / lake-edge crossing), not the line's far end (Caycuse, Dempster).
