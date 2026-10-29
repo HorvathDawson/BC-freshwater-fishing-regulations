@@ -188,3 +188,7 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
     do not have (today only a catalogue row marked `tidal`, as Nitinat Lake) — owner: yes → Claude builds it.
   - Skagit River: "this is us border it crosses" — it leaves BC, no BC tidal water; no cut is right, nothing to do.
   - Bear River (Stewart): "wrong … likely the bridge; look more online" — Claude: find a located words source.
+    Searched 2026-10-29: no written boundary. DFO Area 3 tidal page (cached a-s3-eng) and SOR/2007-77 Subarea 3-16
+    ("waters of Portland Canal … northerly of … 55°47.807′N") never name the river; the region 6 freshwater page's
+    "Bear River" is the Sustut/Skeena one; synopsis (R6), DFO 2015 tidal guide table, web search: nothing. So the DFO
+    default holds (the mouth, -129.98932, 55.91761); a bridge cut would be a guess (no words) — owner's call.
