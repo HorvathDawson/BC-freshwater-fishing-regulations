@@ -116,8 +116,9 @@ def pilot_report(targets: Sequence[Mapping], marks: Iterable,
     tool blocker; per tier and overall, how many were marked (`_finished`: for an entry marked rule
     by rule, every rule of `rules_of[entry]`) and the median / mean time per target.
     A copy a migration carried (`carried_by`) is not the reviewer's work and is not counted."""
+    from pipeline.regs.review.marks import uncleared
     mine: dict[str, list] = {}
-    for m in marks:
+    for m in uncleared(marks):                # a mark taken back (cleared) is not the reviewer's work
         if m.carried_by is None:
             mine.setdefault(m.target, []).append(m)
     rows = []

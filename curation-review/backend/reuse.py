@@ -1573,6 +1573,53 @@ def post_mark(body: dict) -> dict:
     return view
 
 
+#: what an Undo may require of the mark it clears (`clear_marks`' `if_last`)
+_IF_LAST = ("verdict", "note", "date", "reviewer", "call")
+
+
+def clear_marks(body: dict) -> dict:
+    """CLEAR THE MARK IN FORCE on each target (owner 2026-10-29: an accidental "accept all visible"
+    must be undoable): one `marks.cleared_mark` per target, appended in ONE commit — the store is
+    never edited, the newer line takes the mark back and the target reads unmarked. `targets` (or
+    `target`), `rule_id` for a rule mark, `reviewer` and `note` (why) required. `if_last`: clear only
+    the targets whose mark in force says exactly these fields (an Undo of one batch); the others are
+    skipped and listed. ValueError when nothing would be cleared, or (no `if_last`) any target has
+    no mark in force."""
+    import datetime as _dt
+    from pipeline.regs.review import marks as M
+    scope, rule_id = body.get("scope"), body.get("rule_id")
+    targets = [str(t) for t in (body.get("targets") or [body.get("target")]) if t]
+    if not targets:
+        raise ValueError("a cleared mark names its target")
+    if len(set(targets)) != len(targets):
+        raise ValueError("a target is named twice")
+    want = dict(body.get("if_last") or {})
+    bad = sorted(set(want) - set(_IF_LAST))
+    if bad:
+        raise ValueError(f"if_last names {bad}: it may say only {list(_IF_LAST)}")
+    today = _dt.date.today().isoformat()
+    with writes.LOCK, M.store_lock(MARKS_PATH):
+        inforce = M.latest(M.load(MARKS_PATH))
+        out, skipped, missing = [], [], []
+        for t in targets:
+            m = inforce.get((scope, t, rule_id))
+            if m is None:
+                missing.append(t)
+            elif any(getattr(m, k) != v for k, v in want.items()):
+                skipped.append(t)
+            else:
+                out.append(M.cleared_mark(m, reviewer=str(body.get("reviewer") or ""),
+                                          note=str(body.get("note") or ""), date=today))
+        if missing and not want:
+            raise ValueError(f"nothing to clear: no mark in force on {', '.join(missing[:5])}"
+                             + (f" (+{len(missing) - 5} more)" if len(missing) > 5 else ""))
+        if not out:
+            raise ValueError("nothing to clear: no target's mark in force is the one named")
+        writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, out))], "clear")
+    return {"verdict": "cleared", "status": "unmarked", "n": len(out),
+            "targets": [m.target for m in out], "skipped": skipped + missing}
+
+
 # --------------------------------------------------------------------------- T185: proposals
 # READS ONLY: the proposals `python -m pipeline.regs.review.proposals build` wrote. The owner's
 # marks ARE the decisions (2026-10-27): there is no accept step, the tab is a read-only "waiting

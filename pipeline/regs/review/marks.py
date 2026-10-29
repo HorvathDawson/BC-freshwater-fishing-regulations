@@ -53,7 +53,12 @@ NameCall = Literal["accept", "reject"]
 #: scope `proposal` (P y / P n on a proposal's digest); the store is append-only, so a line of it
 #: may still be there — `load` skips it, and nothing makes a new one.
 RETIRED_SCOPES = ("proposal",)
-Verdict = Literal["verified", "wrong", "unsure", "deferred"]
+Verdict = Literal["verified", "wrong", "unsure", "deferred", "cleared"]
+#: owner 2026-10-29: A CLEARED MARK takes back the mark before it — the store is append-only, so an
+#: accidental mark (an "accept all visible" that took too much) is undone by a newer line, never by an
+#: edit. Its target reads UNMARKED (`latest` drops it): no queue, health count, apply path, proposal or
+#: build ever acts on it. A later mark of any other verdict stands as usual.
+CLEARED = "cleared"
 Answer = Literal["y", "n", "?"]
 #: T189: the reviewer's call on tributaries — the water's tributaries should be in, or out
 Tributaries = Literal["include", "exclude"]
@@ -119,6 +124,8 @@ REFUSAL_WORDS: tuple[tuple[str, str], ...] = (
     ("verified needs every check", "Verified needs every check answered y."),
     ("unsure needs a check answered ?", "Unsure needs a check answered ? and none answered n."),
     ("deferred needs a note saying why", "To defer, write a note saying why."),
+    ("cleared needs a note saying why", "To clear a mark, write a note saying why."),
+    ("nothing to clear", "There is no mark in force on it to clear."),
     ("a mark needs the reviewer's name", "Type your name first: every mark names its reviewer."),
     ("an extent fix is proposed on a wrong or unsure mark",
      "A proposed extent fix says the extent is wrong: answer P n (or ?) to record it."),
@@ -391,6 +398,16 @@ class Mark(BaseModel):
             raise ValueError("only a DFO mark is recorded with a group")
         if (self.scope == "rule") != (self.rule_id is not None):
             raise ValueError("a rule mark names its rule_id; an entry or split mark does not")
+        if self.verdict == CLEARED:
+            # a cleared mark says only who took the mark back and why; it holds the prints of the
+            # mark it clears (`cleared_mark`), and carries nothing a reader could act on
+            if not self.note.strip():
+                raise ValueError("cleared needs a note saying why")
+            if (self.answers or self.call is not None or self.problem or self.tributaries
+                    or self.extent_fix or self.new_splits or self.lake_split_later
+                    or self.group is not None):
+                raise ValueError("a cleared mark carries no answers, call or proposal")
+            return self
         extra = sorted(set(self.answers) - set(need))
         if extra:
             raise ValueError(f"a {self.scope} mark answers {list(need)}, not {extra}")
@@ -607,11 +624,37 @@ def refuse_on_gate(target: str, gate_errors: Sequence) -> None:
 
 
 def latest(marks: Iterable[Mark]) -> dict[tuple, Mark]:
-    """The mark in force per target: the LAST one appended (the store is the history)."""
+    """The mark in force per target: the LAST one appended (the store is the history). A target
+    whose last mark is CLEARED has none in force: it is left out, so every reader sees it unmarked."""
     out: dict[tuple, Mark] = {}
     for m in marks:
         out[m.key] = m
+    return {k: m for k, m in out.items() if m.verdict != CLEARED}
+
+
+def uncleared(marks: Iterable[Mark]) -> list[Mark]:
+    """THE HISTORY WITHOUT WHAT WAS TAKEN BACK, in store order: a cleared mark and every earlier mark
+    on its key are dropped (a later mark stays). For readers of the whole history (the shared
+    proposed splits, the pilot's measure) — `latest` is this for the marks in force."""
+    out: list[Mark] = []
+    for m in marks:
+        if m.verdict == CLEARED:
+            out = [x for x in out if x.key != m.key]
+        else:
+            out.append(m)
     return out
+
+
+def cleared_mark(inforce: Mark, *, reviewer: str, note: str, date: str) -> Mark:
+    """THE MARK THAT CLEARS `inforce` (owner 2026-10-29): same key, verdict cleared, the reviewer's
+    note why; it holds the cleared mark's prints and book (it answers nothing). Writes nothing."""
+    if inforce.verdict == CLEARED:
+        raise ValueError("nothing to clear")
+    return Mark.model_validate({"scope": inforce.scope, "target": inforce.target,
+                                "rule_id": inforce.rule_id, "verdict": CLEARED, "answers": {},
+                                "note": note, "reviewer": reviewer, "date": date,
+                                "pdf_sha256": inforce.pdf_sha256, "pages": [],
+                                "prints": inforce.prints.model_dump()})
 
 
 def lake_splits_later(marks: Iterable[Mark]) -> list[dict]:
@@ -941,7 +984,7 @@ def proposals(marks: Iterable[Mark], overrides: Sequence[ConfidenceOverride] = (
     `-2` suffix when another cut already holds it. Read only; the store is never edited."""
     out: list[dict] = []
     seen: list[list[NewSplit]] = []
-    for m in marks:
+    for m in uncleared(marks):              # a cleared mark's proposals are taken back with it
         for n in m.new_splits:
             i = next((k for k, grp in enumerate(seen) if any(same_anchor(n, q) for q in grp)), None)
             if i is None:

@@ -74,6 +74,30 @@ async function postSlough(body: { target?: string; targets?: string[]; call: "st
   return api.postMark(mark as unknown as MarkPost) as unknown as Promise<{ n: number }>;
 }
 
+/** CLEAR the mark in force (owner 2026-10-29): a newer "cleared" line, never an edit of the store;
+ *  `ifLast` clears only targets whose mark in force still says those fields (an Undo of one batch) */
+async function postClear(body: { targets: string[]; note: string; reviewer: string;
+                                 ifLast?: Record<string, string | null> }) {
+  const mark = { scope: "slough", target: "", targets: body.targets, verdict: "cleared", answers: {},
+    note: body.note, reviewer: body.reviewer, ...(body.ifLast ? { if_last: body.ifLast } : {}) };
+  return api.postMark(mark as unknown as MarkPost) as unknown as Promise<{ n: number; skipped: string[] }>;
+}
+
+/** asks why, then clears one candidate's mark; true when cleared */
+async function clearOne(id: string, reviewer: string, onErr: (e: string[]) => void): Promise<boolean> {
+  if (!reviewer.trim()) { onErr(["Type your name first: every mark names its reviewer."]); return false; }
+  const why = window.prompt("Clear this mark — it goes back to the queue unmarked. Why?", "");
+  if (why == null) return false;
+  if (!why.trim()) { onErr(["To clear a mark, write a note saying why."]); return false; }
+  try {
+    await postClear({ targets: [id], note: why.trim(), reviewer: reviewer.trim() });
+    return true;
+  } catch (e) {
+    onErr(errWords(e));
+    return false;
+  }
+}
+
 /** the Sloughs tab: the slough queue, or its "Small ponds (Q154)" view (`#sloughs/q154/<id>`) */
 export function SloughReview() {
   const [ponds, setPonds] = useState(() => decodeURIComponent(window.location.hash.slice(1)).startsWith(POND_HASH));
@@ -100,6 +124,8 @@ function SloughList() {
   const [notice, setNotice] = useState("");
   const [reviewer, setName] = useState(getReviewer);
   const [busy, setBusy] = useState(false);
+  // the last "accept all visible" batch, for its Undo: what it marked and what the marks said
+  const [lastBatch, setLastBatch] = useState<{ targets: string[]; ifLast: Record<string, string | null> } | null>(null);
 
   const asked = useRef(0);   // a slower, older answer never overwrites the newer filter's
   const loadRows = useCallback(() => {
@@ -160,9 +186,32 @@ function SloughList() {
     setReviewer(reviewer.trim());
     setBusy(true);
     try {
-      const got = await postSlough({ targets: acceptable.map((r) => r.id), call: "stream", answer: "y",
-        note: "accepted the pre-mark (accept all visible)", reviewer: reviewer.trim() });
+      const note = "accepted the pre-mark (accept all visible)";
+      const targets = acceptable.map((r) => r.id);
+      const got = await postSlough({ targets, call: "stream", answer: "y", note, reviewer: reviewer.trim() }) as
+        unknown as { n: number; date: string };
+      setLastBatch({ targets, ifLast: { verdict: "verified", call: "stream", note, reviewer: reviewer.trim(), date: got.date } });
       setNotice(`saved ✓ ${got.n} marked stream`);
+      loadRows();
+    } catch (e) {
+      setErrors(errWords(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // UNDO the last accept all visible: clears exactly that batch's marks (a target marked again since is skipped)
+  async function undoBatch() {
+    if (!lastBatch) return;
+    setErrors([]);
+    if (!reviewer.trim()) { setErrors(["Type your name first: every mark names its reviewer."]); return; }
+    if (!window.confirm(`Undo the last accept all visible: clear its ${lastBatch.targets.length} mark(s)? They go back to the queue unmarked.`)) return;
+    setBusy(true);
+    try {
+      const got = await postClear({ targets: lastBatch.targets, ifLast: lastBatch.ifLast, reviewer: reviewer.trim(),
+        note: "undo of accept all visible" });
+      setNotice(`undone ✓ ${got.n} mark(s) cleared${got.skipped.length ? ` · ${got.skipped.length} skipped (marked again since)` : ""}`);
+      setLastBatch(null);
       loadRows();
     } catch (e) {
       setErrors(errWords(e));
@@ -233,6 +282,9 @@ function SloughList() {
               title="one mark each (stream) for every pre-marked row the queue shows now, unmarked — check them first"
               onClick={() => void acceptAll()}>
               accept all visible ({acceptable.length})</button>
+            {lastBatch && <button className="btn small" data-testid="slough-undo-batch" disabled={busy}
+              title="clear exactly the marks the last accept all visible made" onClick={() => void undoBatch()}>
+              undo accept all ({lastBatch.targets.length})</button>}
           </div>
           {rows.map((r) => (
             <div key={r.id} data-slough={r.id} className={`queue-row${r.id === selected ? " selected" : ""}`} onClick={() => open(r.id)}>
@@ -243,6 +295,11 @@ function SloughList() {
                   : r.page_verdict ? <span className="badge verify-verified" title="your mark on the review page">page: {r.page_verdict}</span>
                   : r.premark ? <PremarkBadge pm={r.premark} />
                   : r.intermittent ? <span className="chip-tag new" title="intermittent: no pre-mark (owner 2026-10-28)">intermittent</span> : null}
+                {r.verify !== "unmarked" && (
+                  <button className="btn small" data-testid="slough-row-clear" disabled={busy} style={{ marginLeft: 6, padding: "0 6px" }}
+                    title="clear this mark: back to the queue unmarked"
+                    onClick={(ev) => { ev.stopPropagation(); void clearOne(r.id, reviewer, setErrors).then((ok) => { if (ok) { setNotice(`cleared ✓ ${r.stream ?? r.id}`); loadRows(); } }); }}>
+                    clear</button>)}
               </div>
               <div className="meta">
                 <span>{m(r.width_m)} wide</span>
@@ -331,6 +388,10 @@ function SloughView({ detail, reviewer, setName, nav, onMarked }: {
               <strong>{r.name || r.stream || "unnamed"}</strong>
               <span className="dim">poly {r.id} · R{r.region}{f.mu ? ` · MU ${f.mu}` : ""}</span>
               {was && <span className={`badge verify-${was.status}`}>{was.status === "verified" ? was.call : was.status} · {was.reviewer} {was.date}</span>}
+              {was && <button className="btn small" data-testid="slough-clear" disabled={busy}
+                title="clear this mark: back to the queue unmarked"
+                onClick={() => void clearOne(r.id, reviewer, setErrors).then((ok) => { if (ok) onMarked(`cleared ✓ ${r.stream ?? r.id}`); })}>
+                Clear mark</button>}
               <span className="spacer" style={{ flex: 1 }} />
               <span className="verify-nav">
                 <button className="btn small" disabled={!nav.onPrev} onClick={nav.onPrev}>‹ k</button>

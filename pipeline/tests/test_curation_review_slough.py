@@ -109,3 +109,34 @@ def test_one_call_and_accept_all_visible_are_marks(env):
     assert q["1"]["verify"] == "verified" and q["1"]["call"] == "stream" and q["4"]["call"] == "not stream"
     assert [r["id"] for r in c.get("/api/sloughs/queue", params={"verify": "todo", "group": "premark"}).json()] == []
     assert _digest(REPO / "data/curated") == curated
+
+
+def test_clear_and_undo_batch(env):
+    """Owner 2026-10-29: a mark is CLEARED through the app (a newer line; the store is never edited) — one
+    target, or an Undo of an accept-all batch that clears only targets whose mark in force is that batch's."""
+    c = env["client"]
+    store = env["dir"] / "marks.jsonl"
+    base = {"scope": "slough", "answers": {"P": "y"}, "reviewer": "test"}
+    clr = {"scope": "slough", "verdict": "cleared", "answers": {}, "reviewer": "test"}
+    assert c.post("/api/marks", json={**base, "targets": ["2", "6"], "call": "stream",
+                                      "note": "batch"}).status_code == 200
+    assert c.post("/api/marks", json={**base, "target": "6", "call": "not stream"}).status_code == 200
+    before = store.read_text()
+    assert c.post("/api/marks", json={**clr, "target": "2"}).status_code == 422          # no note
+    assert c.post("/api/marks", json={**clr, "target": "nope", "note": "x"}).status_code == 422
+    assert c.post("/api/marks", json={**base, "target": "2", "call": "stream",
+                                      "if_last": {"note": "x"}}).status_code == 422
+    # Undo: "6" was marked again since, so only "2" is cleared
+    r = c.post("/api/marks", json={**clr, "targets": ["2", "6"], "note": "undo",
+                                   "if_last": {"verdict": "verified", "note": "batch", "call": "stream"}})
+    assert r.status_code == 200, r.text
+    assert r.json()["n"] == 1 and r.json()["targets"] == ["2"] and r.json()["skipped"] == ["6"]
+    assert store.read_text().startswith(before)                                          # appended only
+    q = {r["id"]: r for r in c.get("/api/sloughs/queue").json()}
+    assert q["2"]["verify"] == "unmarked" and q["6"]["call"] == "not stream"
+    assert "2" in [r["id"] for r in c.get("/api/sloughs/queue", params={"verify": "todo"}).json()]
+    # a second clear of the same target has nothing to clear; a new mark after it stands
+    assert c.post("/api/marks", json={**clr, "target": "2", "note": "again"}).status_code == 422
+    assert c.post("/api/marks", json={**base, "target": "2", "call": "not stream"}).status_code == 200
+    q = {r["id"]: r for r in c.get("/api/sloughs/queue").json()}
+    assert q["2"]["verify"] == "verified" and q["2"]["call"] == "not stream"

@@ -314,9 +314,12 @@ def test_the_only_file_write_is_the_mark_s_commit():
     split save / add / delete / rename — called `writes.commit` on the catalogue or splits.json."""
     got = {py.name: _write_calls(py.read_text(encoding="utf-8"))
            for py in sorted(BACKEND.glob("*.py")) if py.name != "writes.py"}
-    assert {k: v for k, v in got.items() if v} == {"reuse.py": [("post_mark", "commit")],
+    # owner 2026-10-29: `clear_marks` appends "cleared" marks to the same store (an Undo), the same way
+    assert {k: v for k, v in got.items() if v} == {"reuse.py": [("post_mark", "commit"),
+                                                                 ("clear_marks", "commit")],
                                                     "inseason.py": [("save_match", "commit")]}
     src = (BACKEND / "reuse.py").read_text(encoding="utf-8")
+    assert "writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, out))], \"clear\")" in src
     # T55: a slough batch ("accept all visible") is several marks in that same one commit
     assert "writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, marks))], \"mark\")" in src
     assert "marks = batch or [mark]" in src

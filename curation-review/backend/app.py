@@ -192,6 +192,10 @@ class MarkPayload(BaseModel):
     call: str | None = None
     #: T55: "accept all visible" — one slough mark per candidate, in one commit (scope slough only)
     targets: list[str] = []
+    #: owner 2026-10-29: verdict "cleared" only — clear a target only while its mark in force says
+    #: these (verdict / note / date / reviewer / call): an Undo of a batch clears exactly that
+    #: batch's marks and skips a target marked again since
+    if_last: dict[str, str | None] | None = None
 
 
 #: EVERY SAVE THE SERVER REFUSES, on file (owner 2026-10-28: a refused save must be impossible to
@@ -249,6 +253,21 @@ def _post_mark(body: MarkPayload):
     from pipeline.regs.review.marks import (CHECKS, refusal_words, unanswered_words,
                                             verdict_from_answers)
     data = body.model_dump()
+    if body.verdict == "cleared":
+        # owner 2026-10-29: TAKE BACK the mark in force (`marks.cleared_mark`) — any review scope, one
+        # target or several (`targets`), one commit; the target reads unmarked again
+        if body.scope not in REVIEW_SCOPES:
+            raise HTTPException(422, [{"path": "scope", "msg": f"scope is one of {list(REVIEW_SCOPES)}"}])
+        try:
+            return reuse.clear_marks(data)
+        except ValidationError as ex:
+            raise HTTPException(422, [{"path": "", "msg": refusal_words(
+                e["msg"], str(e["loc"][0]) if e["loc"] else None)} for e in ex.errors()])
+        except ValueError as ex:
+            raise HTTPException(422, [{"path": "", "msg": refusal_words(str(ex))}])
+    if body.if_last is not None:
+        raise HTTPException(422, [{"path": "", "msg": "only a cleared mark says which mark it clears"}])
+    data.pop("if_last")
     if body.scope == "q154":
         if body.targets:
             raise HTTPException(422, [{"path": "", "msg": "a Q154 mark names one sample pond"}])
