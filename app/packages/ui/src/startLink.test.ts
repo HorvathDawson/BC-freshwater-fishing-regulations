@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { HOME, reduce } from "./route";
 import { openWater } from "./openWater";
-import { parseStartLink, routeSearch } from "./startLink";
+import { parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, WATER_PATH } from "./startLink";
 import type { ItemId } from "@app/data";
 
 const NOW = new Date(2026, 9, 22, 9, 30);   // Thu Oct 22 2026, local
@@ -19,14 +19,22 @@ describe("parseStartLink (T41: the web test deep link)", () => {
       regs: { tab: "gear", sheet: "pos:pos", scroll: 900 },
       who: { age: "u16", residency: "non_resident" },
       theme: "dark",
+      arrive: "gnis:3062",
     });
   });
 
   it("defaults: part from the store (null), today (null), Keep at the top, no sheet, the profile and theme untouched", () => {
     expect(parseStartLink("?regs=wbk:-22", NOW)).toEqual({
       route: reduce(HOME, openWater({ item: "wbk:-22" as ItemId, part: null, view: "regs" })),
-      day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null,
+      day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: "wbk:-22",
     });
+  });
+
+  it("(T269) `show`: the map (no water open), arriving at that water; a bad id throws; the first route write drops it", () => {
+    expect(parseStartLink("?show=gnis:3062", NOW)).toEqual({
+      route: HOME, day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: "gnis:3062" });
+    expect(() => parseStartLink("?show=Vedder", NOW)).toThrow("start link: show=Vedder is not an item id");
+    expect(routeSearch(HOME, "?show=gnis:3062&theme=dark")).toBe("?theme=dark");
   });
 
   it("today's date is null (Today follows midnight); age alone keeps the default residency, res alone the default age", () => {
@@ -51,6 +59,20 @@ describe("parseStartLink (T41: the web test deep link)", () => {
       "start link: tab=cards is not a tab", "start link: sheet=nope is not a sheet key", "start link: age=old is not adult|u16",
       "start link: res=x is not resident|non_resident|non_resident_alien", "start link: theme=blue is not light|dark",
       "start link: scroll=up is not a scroll offset"]);
+  });
+});
+
+describe("(T269) a water page's address", () => {
+  it("the slug shard is a stable hash in range, the same for the build and the app; the water path is /water/<slug>", () => {
+    expect([slugShard("gnis:3062"), slugShard("gnis:3062")]).toEqual([slugShard("gnis:3062"), slugShard("gnis:3062")]);
+    const ids = Array.from({ length: 2000 }, (_, i) => `gnis:${i * 37}`);
+    const used = new Set(ids.map(slugShard));
+    expect([...used].every((n) => n >= 0 && n < SLUG_SHARDS)).toBe(true);
+    expect(used.size).toBe(SLUG_SHARDS);                       // spread over every shard
+    expect(slugShard("")).toBe(0x811c9dc5 % SLUG_SHARDS);      // FNV-1a's offset basis: pinned, a change re-shards every page
+    expect(slugShardPath("gnis:3062")).toMatch(/^\/water-slugs\/\d+\.json$/);
+    expect(["/water/vedder-river", "/water/vedder-river/", "/water/", "/region/2"].map((p) => WATER_PATH.exec(p)?.[1] ?? null))
+      .toEqual(["vedder-river", "vedder-river", null, null]);
   });
 });
 

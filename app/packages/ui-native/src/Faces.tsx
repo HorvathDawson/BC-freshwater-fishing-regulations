@@ -52,7 +52,7 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 32 }}>
           {back ? (
             // (T40) 44 × 44 to the touch: the row is 32 tall and "‹  Map" (the shortest place back goes) about 36 wide
-            <Pressable onPress={back} accessibilityRole="button" accessibilityLabel={WATER_BACK}
+            <Pressable onPress={back} accessibilityRole="button" accessibilityLabel={WATER_BACK} testID="water-back"
                        {...hitProps({ w: 36, h: 32 })} style={{ minHeight: 32, justifyContent: "center" }}>
               <IconText name="back" text={label} style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }} />
             </Pressable>

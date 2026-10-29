@@ -1,5 +1,5 @@
 /**
- * T193-T195 — THE WHOLE SITE FROM ONE RELEASE: water pages, About, region hubs, "open this weekend", "opening and closing
+ * T193-T195 — THE WHOLE SITE FROM ONE RELEASE: water pages (T269: the app's own regs pane, prerendered — `waterPage`), About, region hubs, "open this weekend", "opening and closing
  * dates", "rule changes", sitemap, robots, slug map, share cards and the snapshot the next release is diffed against.
  * Everything is returned as in-memory files (`write.ts` puts them on disk); the pages are built from the release bundle only.
  *
@@ -8,14 +8,21 @@
  */
 import { createHash } from "node:crypto";
 import type { RegsStore } from "@app/data/regs";
-import { aboutBody, privacyBody, CSS, SHARE_GROUND, SHARE_INK, clip, descriptionOf, esc, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, waterBody, type Release, type Site } from "./html";
+import { slugShard, SLUG_SHARDS } from "@app/ui";
+import { aboutBody, privacyBody, CSS, SHARE_GROUND, SHARE_INK, clip, descriptionOf, esc, headOf, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, type Release, type Site } from "./html";
 import { aboutLd, checkJsonLd, pageLd, waterLd } from "./jsonld";
 import { appPage, buildDayOf, listWaterOrds, managementUnits, nearestTowns, statusOn, waterModel, type BuildDay, type WaterModel, type WaterStatus } from "./model";
-import { faqOf, TOPICS, topicLines, type TopicKey } from "./topics";
+import { TOPICS, topicLines, type TopicKey } from "./topics";
 import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
+import { pageSize, type PageSize } from "./budget";
 
-export interface PageRec { readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "weekend" | "calendar" | "changes" | "about" | "privacy"; readonly html: string; readonly hash: string }
+export interface PageRec {
+  readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "weekend" | "calendar" | "changes" | "about" | "privacy";
+  /** the page; "" for a water page handed to `sink` (written out at once: 19,000 prerendered panes are not held) */
+  readonly html: string; readonly hash: string;
+  readonly title: string; readonly description: string; readonly size: PageSize;
+}
 export interface Snapshot {
   readonly release: string; readonly asOf: string;
   readonly pages: Readonly<Record<string, { readonly hash: string; readonly lastmod: string }>>;
@@ -26,6 +33,15 @@ export interface BuildOpts {
   readonly slugMap: SlugMap; readonly previous: Snapshot | null;
   /** a region with more waters than this lists them on A-Z pages, not on its hub (default 400) */
   readonly hubSplitAt?: number;
+  /**
+   * (T269) THE WATER PAGE: the app's own document with the water's regs pane prerendered in it (build.ts over pane.tsx and
+   * prerender.ts), given the page's head tags. There is no other water page.
+   */
+  readonly waterPage: (m: WaterModel, head: string) => Promise<string>;
+  /** where a water page goes as soon as it is made (its file name, its text); absent: kept in `files` (a test's few) */
+  readonly sink?: (file: string, text: string) => void;
+  /** build only these waters (item ids): a sample to look at, never a release's site */
+  readonly only?: ReadonlySet<string>;
 }
 export interface SiteBuild {
   readonly files: ReadonlyMap<string, string>; readonly pages: readonly PageRec[];
@@ -78,7 +94,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const models: WaterModel[] = [];
   for (const ord of await listWaterOrds(store)) {
     const m = await waterModel(store, ord, on);
-    if (m && m.region >= 1) models.push(m);
+    if (m && m.region >= 1 && (!o.only || o.only.has(m.id))) models.push(m);
   }
   const bad: string[] = [];
   for (const m of models) {
@@ -95,15 +111,19 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const regionMemo = new Map<number, WaterModel[]>();
   const inRegion = (r: number) => { let l = regionMemo.get(r); if (!l) regionMemo.set(r, l = models.filter((m) => m.regions.includes(r)).sort(byName)); return l; };
   const cssHref = `/assets/site.${sha(CSS, 10)}.css`;
-  const known = new Map(models.map((m) => [m.id, m]));
   const regionPath = (r: number) => `/region/${r}`;
   const waterPath = (m: WaterModel) => `/water/${slugOf(m.id)}`;
 
   const pages: PageRec[] = [];
   const files = new Map<string, string>();
   const add = (kind: PageRec["kind"], path: string, html: string, hash = sha(stable(html))) => {
-    pages.push({ path, kind, html, hash });
-    files.set(outFile(path), html);
+    // the gates that read a page's HTML run here, as it is made: JSON-LD (a water page, the app's pane, carries no
+    // breadcrumb — the pane draws none, and the JSON-LD says only what the page shows), its title and description
+    bad.push(...checkJsonLd(html, site.origin, kind === "water" ? ["WebPage", "Place"] : undefined).map((x) => `${path}: ${x}`));
+    const title = /<title>([^<]*)<\/title>/.exec(html)?.[1] ?? "", description = /<meta name="description" content="([^"]*)">/.exec(html)?.[1] ?? "";
+    const out = kind === "water" && o.sink;
+    pages.push({ path, kind, html: out ? "" : html, hash, title, description, size: pageSize(path, html) });
+    if (out) o.sink!(outFile(path), html); else files.set(outFile(path), html);
   };
   const shellOf = (path: string, title: string, description: string, body: string, ld: string, image?: string) =>
     shell({ title, description, path, body: body + regionFooter(), jsonld: ld, cssHref, ...(image ? { image } : {}) }, site);
@@ -126,28 +146,20 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const qualOf = (x: WaterModel) => ((nameCount.get(x.name) ?? 0) > 1 ? (towns.get(x.id) ? `near ${towns.get(x.id)}` : regionLabel(x.region)) : "");
   for (const m of models) { const k = `${m.name}|${qualOf(m)}`; const l = sameQual.get(k); if (l) l.push(m); else sameQual.set(k, [m]); }
   for (const m of models) {
-    const path = waterPath(m), siblings = inRegion(m.region), at = siblings.indexOf(m);
-    const near = [...siblings.slice(Math.max(0, at - 3), at), ...siblings.slice(at + 1, at + 4)];
+    const path = waterPath(m);
     // two waters with one name keep distinct titles: where they are (nearest town, else the region), then "no. k" if that repeats
     const town = towns.get(m.id) ?? null;
     const qual0 = (x: WaterModel) => ((nameCount.get(x.name) ?? 0) > 1 ? (towns.get(x.id) ? `near ${towns.get(x.id)}` : regionLabel(x.region)) : "");
     const twins = [...(sameQual.get(`${m.name}|${qual0(m)}`) ?? [])].sort((x, y) => x.id.localeCompare(y.id));
     const qual = qual0(m) && twins.length > 1 ? `${qual0(m)}, no. ${twins.indexOf(m) + 1}` : qual0(m);
-    const label = qual ? `${m.name} (${qual})` : m.name;
     const title = titleOf(m.name, site, qual), description = descriptionOf(m, `${m.name}${/no\. \d+$/.exec(qual)?.[0] ? ` ${/no\. \d+$/.exec(qual)![0]}` : ""}`, town);
     unique(titles, title, path); unique(descriptions, description, path);
     const hash = sha(JSON.stringify(m.parts.map((p) => [p.label, p.sections.filter((s) => s.title !== "Why it is closed").map((s) => [s.title, s.items.filter((i) => !i.dated)])])));
     waterHash.set(m.id, hash);
-    const how = { "flows-into": "Flows into", "continues-as": "Continues as", "continues-from": "Continues from" } as const;
-    const lines = topicLines(m);
-    waterTopics.set(m.id, lines);
-    const topicLinks = TOPICS.filter((t) => lines.has(t.key)).map((t) => ({ key: t.key, href: `${regionPath(m.region)}/${t.key}`, text: `${t.hub} in ${regionLabel(m.region)}` }));
-    const body = waterBody(m, site, release, asOf, {
-      region: regionPath(m.region),
-      neighbours: m.neighbours.flatMap((n) => { const t = known.get(n.id); return t ? [{ href: waterPath(t), text: t.name, how: how[n.how] }] : []; }),
-      near: near.map((n) => ({ href: waterPath(n), text: n.name })),
-    }, { label, town, topics: lines, topicLinks, more: [{ href: `${regionPath(m.region)}/open-this-weekend`, text: `What is open this weekend in ${regionLabel(m.region)}` }, { href: `${regionPath(m.region)}/season-changes`, text: `Waters opening and closing soon in ${regionLabel(m.region)}` }] });
-    add("water", path, shellOf(path, title, description, body, waterLd(m, site, path, title, asOf, regionPath(m.region), faqOf(m, lines)), `/share/${slugOf(m.id)}.svg`), hash);
+    // the topic lines feed the hubs (each a sentence the water's own pane shows)
+    waterTopics.set(m.id, topicLines(m));
+    const head = headOf({ title, description, path, jsonld: waterLd(m, path, title, site), image: `/share/${slugOf(m.id)}.svg` }, site);
+    add("water", path, await o.waterPage(m, head), hash);
     files.set(`share/${slugOf(m.id)}.svg`, shareSvg(m, site));
   }
 
@@ -239,7 +251,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       const ls = ws.slice(0, TOPIC_CAP);
       const body = `<nav class="crumbs"><a href="/">Home</a> › <a href="${regionPath(r)}">${esc(nm)}</a> › ${esc(t.hub)}</nav><h1>${esc(t.hub)} in ${esc(nm)}, B.C.</h1>` +
         `<p>${ws.length} waters in ${esc(nm)}${ws.length > ls.length ? `; the first ${ls.length} by name are listed, every water is on <a href="${regionPath(r)}">the ${esc(nm)} page</a>` : ""}. Each line is the water page's own wording.</p>` +
-        `<ul class="topic">${ls.map((m) => `<li><a href="${waterPath(m)}#${t.key}">${esc(m.name)}</a> <span class="tag">${esc(WORD[m.status])}</span><br>${esc(waterTopics.get(m.id)!.get(t.key)![0]!)}</li>`).join("")}</ul>` +
+        `<ul class="topic">${ls.map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a> <span class="tag">${esc(WORD[m.status])}</span><br>${esc(waterTopics.get(m.id)!.get(t.key)![0]!)}</li>`).join("")}</ul>` +
         `<p><a href="${ipath}">${esc(t.hub)} in all regions</a></p>` +
         `<div class="legal"><p>${esc(NOT_LEGAL)}</p></div>`;
       unique(titles, title, p); unique(descriptions, desc, p);
@@ -280,7 +292,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   }
 
   // ── gates over the HTML ────────────────────────────────────────────────────────────────────────────────────────────
-  for (const p of pages) bad.push(...checkJsonLd(p.html, site.origin).map((x) => `${p.path}: ${x}`));
+  // a water page (the app's pane) carries no breadcrumb: the pane draws none, and the JSON-LD says only what the page shows
   const linked = new Set(pages.filter((p) => p.kind === "region" || p.kind === "letter").flatMap((p) => [...p.html.matchAll(/href="(\/water\/[^"]+)"/g)].map((x) => x[1]!)));
   for (const m of models) if (!linked.has(waterPath(m))) bad.push(`${waterPath(m)} is linked from no region hub`);
   if (bad.length) throw new Error(`seo: ${bad.length} problem(s):\n${bad.slice(0, 20).join("\n")}`);
@@ -301,6 +313,10 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   files.set("404.html", shell({ title: `Page not found — ${site.name}`, description: "That page is not here.", path: "/404", body: notFoundBody(site, regions), cssHref, robots: "noindex" }, site));
   files.set(cssHref.slice(1), CSS);
   files.set("slug-map.json", `${JSON.stringify(slugMap, null, 1)}\n`);
+  // (T269) the app's address bar: item id -> slug, in the shards the app reads one at a time (@app/ui `slugShardPath`)
+  const shards = Array.from({ length: SLUG_SHARDS }, () => ({} as Record<string, string>));
+  for (const m of models) shards[slugShard(m.id)]![m.id] = slugOf(m.id);
+  shards.forEach((sh, i) => files.set(`water-slugs/${i}.json`, JSON.stringify(sh)));
   const snapshot: Snapshot = {
     release: release.id, asOf, pages: snapPages,
     waters: Object.fromEntries(models.map((m) => [m.id, { slug: slugOf(m.id), name: m.name, hash: waterHash.get(m.id)! }])),

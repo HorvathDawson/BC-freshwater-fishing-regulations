@@ -1,12 +1,12 @@
 /**
- * T193/T194 — THE PAGES AS HTML. Plain, crawlable, readable without JS: no script, no map, no widget. Every word of a rule
- * is the presenter's (model.ts); this file adds only the frame around it (headings, links, the not-a-legal-document line).
- * One shared stylesheet (css below, served hashed), a tiny critical part inlined, system fonts.
+ * T193/T194 — THE HUB PAGES AS HTML (regions, letters, topics, weekend, season changes, changes, About, privacy). Plain,
+ * crawlable, readable without JS: no script, no map, no widget. One shared stylesheet (css below, served hashed), a tiny
+ * critical part inlined, system fonts. (T269) A WATER'S page is not drawn here: it is the app's own regs pane, prerendered
+ * (pane.tsx, prerender.ts); this file gives it only its head (`headOf`).
  */
-import { bookUrl, SYNOPSIS_PDF } from "@app/core";
+import { SYNOPSIS_PDF } from "@app/core";
 import meta from "../../packages/map/style/style.meta.json" with { type: "json" };
-import type { BookRef, Item, PartModel, WaterModel } from "./model";
-import { anchorOf, TOPICS, type TopicKey } from "./topics";
+import type { WaterModel } from "./model";
 
 export interface Site {
   readonly origin: string; readonly name: string; readonly contact: string | null;
@@ -81,79 +81,6 @@ export function descriptionOf(m: WaterModel, label: string = m.name, town: strin
   const first = m.parts[0]?.sections.find((s) => s.title === "What you can keep")?.items.find((i) => !i.head)?.text;
   const where = town ? `near ${town}, ${regionLabel(m.region)}` : regionLabel(m.region);
   return clip(`${label} fishing regulations, B.C. (${where}): ${m.answer}${first ? ` ${first}.` : ""}`);
-}
-
-const bookLinks = (book: readonly BookRef[]): string => book.map((b) => b.pdf === null
-  ? ` <span class="bk">(rule book p.${b.printed})</span>`
-  : ` <a class="bk" href="${esc(bookUrl(b.pdf))}" rel="noopener">Rule book p.${b.printed}</a>`).join("");
-const itemHtml = (i: Item): string => i.head ? `<li class="sub">${esc(i.text)}</li>` : `<li>${esc(i.text)}${bookLinks(i.book)}</li>`;
-
-export const appLink = (site: Site, id?: string, part?: number): string =>
-  id === undefined ? `${site.origin}/` : `${site.origin}/?regs=${encodeURIComponent(id)}${part ? `&amp;part=${part}` : ""}`;
-
-function partHtml(p: PartModel, multi: boolean, level: 2 | 3, id: string, site: Site, used: Set<string>): string {
-  const h = (n: number, t: string, anchor?: string) => `<h${n}${anchor ? ` id="${anchor}"` : ""}>${esc(t)}</h${n}>`;
-  // anchors: a section is "keep", "gear", ...; a group inside one is "trout-and-char"; unique on the page, prefixed by the part when there are several
-  const mk = (t: string): string => {
-    const base = (multi ? `p${p.partIx}-` : "") + anchorOf(t);
-    let a = base, n = 2;
-    while (used.has(a)) a = `${base}-${n++}`;
-    used.add(a);
-    return a;
-  };
-  const sections = p.sections.map((s) => {
-    const lvl = level + (multi ? 1 : 0);
-    let html = h(lvl, s.title, mk(s.title)), ul: string[] = [];
-    const flush = () => { if (ul.length) html += `<ul>${ul.join("")}</ul>`; ul = []; };
-    for (const i of s.items) {
-      if (i.head) { flush(); html += h(lvl + 1, i.text, mk(i.text)); } else ul.push(itemHtml(i));
-    }
-    flush();
-    return html;
-  }).join("");
-  const turns = p.turns.length ? `<p class="note">${p.turns.map((t) => `${t.to === "open" ? "Opens" : "Closes"} ${t.on}`).join(" · ")}</p>` : "";
-  return multi
-    ? `<section class="part" id="part-${p.partIx}">${h(2, p.label)}<p class="answer ${p.status}">${esc(p.today)}</p>${turns}` +
-      `<p><a href="${appLink(site, id, p.partIx)}">Open this part in the app</a></p>${sections}</section>`
-    : `${turns}${sections}`;
-}
-
-export interface TopicLink { readonly key: string; readonly href: string; readonly text: string }
-export interface Links { readonly region: string; readonly neighbours: readonly { href: string; text: string; how: string }[]; readonly near: readonly { href: string; text: string }[] }
-
-/** The body of a water page: one answer, the full rules by part, the links in and out. */
-export function waterBody(m: WaterModel, site: Site, release: Release, asOf: string, links: Links, ctx: { label?: string; town?: string | null; topics?: ReadonlyMap<TopicKey, readonly string[]>; topicLinks?: readonly TopicLink[]; more?: readonly { href: string; text: string }[] } = {}): string {
-  const label = ctx.label ?? m.name;
-  const multi = m.parts.length > 1;
-  const q = `Can I fish ${m.name} today?`;
-  const cls = m.status === "open" || m.status === "closed" ? m.status : "";
-  const valid = release.validUntil ? ` Regulations valid until <time datetime="${esc(release.validUntil)}">${esc(release.validUntil)}</time>.` : "";
-  const nav = [
-    `<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="${esc(links.region)}">${esc(regionLabel(m.region))}</a> › ${esc(m.name)}</nav>`,
-    `<h1>${esc(label)} fishing regulations, B.C.</h1>`,
-    `<p class="small">${esc(m.name)} is in ${esc(m.regions.map(regionLabel).join(" and "))}${ctx.town ? `, near ${esc(ctx.town)}` : ""}.</p>`,
-    `<h2>${esc(q)}</h2><p class="answer ${cls}">${esc(m.answer)}</p>`,
-    `<p class="asof">As of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release.id)}.${valid}</p>`,
-    `<p><a class="app" href="${appLink(site, m.id)}">Open ${esc(m.name)} in the app</a></p>`,
-  ].join("");
-  const used = new Set<string>(["topics", ...TOPICS.map((t) => t.key)]);
-  const parts = m.parts.map((p) => partHtml(p, multi, 2, m.id, site, used)).join("");
-  // the rules a visitor asks for by name, each with the page's own sentences and an anchor; the same words feed the FAQ JSON-LD
-  const glance = ctx.topics && ctx.topics.size
-    ? `<section id="topics"><h2>${esc(m.name)} rules at a glance</h2>` + TOPICS.filter((t) => ctx.topics!.has(t.key)).map((t) =>
-        `<h3 id="${t.key}">${esc(t.ask(m.name))}</h3><ul>${ctx.topics!.get(t.key)!.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`).join("") + `</section>` : "";
-  const topicNav = ctx.topicLinks?.length
-    ? `<h2>More ${esc(regionLabel(m.region))} rules like these</h2><ul>${ctx.topicLinks.map((l) => `<li><a href="${esc(l.href)}">${esc(l.text)}</a></li>`).join("")}${(ctx.more ?? []).map((l) => `<li><a href="${esc(l.href)}">${esc(l.text)}</a></li>`).join("")}</ul>` : "";
-  const related = links.neighbours.length
-    ? `<h2>Connected waters</h2><ul>${links.neighbours.map((n) => `<li>${esc(n.how)} <a href="${esc(n.href)}">${esc(n.text)}</a></li>`).join("")}</ul>` : "";
-  const near = links.near.length
-    ? `<h2>More in ${esc(regionLabel(m.region))}</h2><ul class="cols">${links.near.map((n) => `<li><a href="${esc(n.href)}">${esc(n.text)}</a></li>`).join("")}</ul>` : "";
-  const where = m.mid ? `<p class="small">Approximate centre of the water: ${m.mid[1].toFixed(4)}, ${m.mid[0].toFixed(4)}.</p>` : "";
-  const books = m.book.length
-    ? `<p class="small">Synopsis pages cited: ${m.book.map((b) => `${b.printed}`).join(", ")} (printed page numbers).</p>` : "";
-  const legal = `<div class="legal"><p>${esc(NOT_LEGAL)} <a href="${esc(SYNOPSIS_PDF)}" rel="noopener">Official synopsis (PDF)</a>.</p>` +
-    `<p>Rules shown are for an adult resident angler; the licence you need does not change whether a water is open.</p></div>`;
-  return `${nav}${glance}${parts}${topicNav}${related}${near}${where}${books}${legal}`;
 }
 
 export function aboutBody(site: Site, asOf: string): string {
@@ -235,20 +162,24 @@ export interface Shell {
   readonly jsonld?: string; readonly image?: string; readonly cssHref: string; readonly robots?: string;
 }
 
-/** the whole document */
-export function shell(s: Shell, site: Site): string {
+/** The head's page tags: title, description, canonical, robots, social cards, verification, JSON-LD. */
+export function headOf(s: Omit<Shell, "body" | "cssHref">, site: Site): string {
   const url = `${site.origin}${s.path === "/" ? "/" : s.path}`;
   const ver = [site.verification.google ? `<meta name="google-site-verification" content="${esc(site.verification.google)}">` : "",
                site.verification.bing ? `<meta name="msvalidate.01" content="${esc(site.verification.bing)}">` : ""].join("");
   const img = s.image ? `<meta property="og:image" content="${esc(site.origin + s.image)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${esc(site.origin + s.image)}">`
     : `<meta name="twitter:card" content="summary">`;
-  return `<!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
-    `<title>${esc(s.title)}</title><meta name="description" content="${esc(s.description)}">` +
+  return `<title>${esc(s.title)}</title><meta name="description" content="${esc(s.description)}">` +
     `<link rel="canonical" href="${esc(url)}"><meta name="robots" content="${s.robots ?? "index,follow"}">` +
     `<meta property="og:type" content="website"><meta property="og:site_name" content="${esc(site.name)}">` +
     `<meta property="og:title" content="${esc(s.title)}"><meta property="og:description" content="${esc(s.description)}"><meta property="og:url" content="${esc(url)}">` +
-    `${img}${ver}<style>${CRITICAL}</style><link rel="stylesheet" href="${esc(s.cssHref)}">` +
-    `${s.jsonld ? `<script type="application/ld+json">${s.jsonld}</script>` : ""}</head><body>` +
+    `${img}${ver}${s.jsonld ? `<script type="application/ld+json">${s.jsonld}</script>` : ""}`;
+}
+
+/** the whole document */
+export function shell(s: Shell, site: Site): string {
+  return `<!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
+    `${headOf(s, site)}<style>${CRITICAL}</style><link rel="stylesheet" href="${esc(s.cssHref)}"></head><body>` +
     `<header class="top"><div><a href="/">${esc(site.name)}</a><a href="/about">About</a></div></header>` +
     `<main>${s.body}</main><footer>${esc(NOT_LEGAL)} <a href="/privacy">Privacy policy</a></footer></body></html>`;
 }

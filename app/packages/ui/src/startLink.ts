@@ -15,8 +15,9 @@ import { openWater } from "./openWater";
 import { mapDayOf } from "./regs";
 import { HOME, reduce, waterFrame, type Route, type View } from "./route";
 
-/** The query keys a route owns (`routeSearch` writes them; the rest — date, angler, theme — are left as they were). */
-export const ROUTE_KEYS = ["regs", "part", "view", "tab", "sheet", "scroll"] as const;
+/** The query keys a route owns (`routeSearch` writes them; the rest — date, angler, theme — are left as they were). `show`
+ *  is read once at start and gone at the first write. */
+export const ROUTE_KEYS = ["regs", "part", "view", "tab", "sheet", "scroll", "show"] as const;
 const VIEWS: readonly View[] = ["regs", "conditions", "map"];
 
 /**
@@ -49,7 +50,28 @@ export interface StartLink {
   /** the angler, or null: the session's default stands */
   who: Who | null;
   theme: "light" | "dark" | null;
+  /**
+   * (T269, owner 2026-10-29) THE MAP COMES BACK AT THIS WATER: a page that started on a named water (a `/water/<slug>`
+   * page, `?regs=`) — or `?show=<item>`, the map at a water, the link a water page's ‹ and × are before the app runs —
+   * returns to the map framed on that water with it lit, never to wherever the map last was. Null: none.
+   */
+  arrive: ItemId | null;
 }
+
+/**
+ * (T269) A WATER'S ADDRESS: a named water has a page at `/water/<slug>` (the SEO build's committed slug map); the app
+ * reads the slug of the water in front from `/water-slugs/<shard>.json`, one of `SLUG_SHARDS` files the build writes,
+ * the shard picked by this hash of the item id (FNV-1a), so the app never loads the whole map.
+ */
+export const SLUG_SHARDS = 64;
+export function slugShard(item: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < item.length; i++) { h ^= item.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h % SLUG_SHARDS;
+}
+export const slugShardPath = (item: string): string => `/water-slugs/${slugShard(item)}.json`;
+/** The path of the water page `/water/<slug>`; a water's start link otherwise. */
+export const WATER_PATH = /^\/water\/([a-z0-9-]+)\/?$/;
 
 const TABS: readonly Tab[] = ["keep", "gear", "methods", "licence"];
 const AGES = ["adult", "u16"] as const;
@@ -59,9 +81,16 @@ const RESIDENCIES = ["resident", "non_resident", "non_resident_alien"] as const;
 export function parseStartLink(search: string, now: Date = new Date()): StartLink | null {
   const q = new URLSearchParams(search);
   const item = q.get("regs");
-  if (item === null) return null;
   const bad = (k: string, what: string): never => { throw new Error(`start link: ${k}=${q.get(k)} is not ${what}`); };
-  if (!/^[a-z]+:-?\d+$/.test(item)) bad("regs", "an item id");
+  const ITEM = /^[a-z]+:-?\d+$/;
+  if (item === null) {
+    // (T269) `?show=<item>`: the map, framed on that water, lit
+    const show = q.get("show");
+    if (show === null) return null;
+    if (!ITEM.test(show)) bad("show", "an item id");
+    return { route: HOME, day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: show as ItemId };
+  }
+  if (!ITEM.test(item)) bad("regs", "an item id");
 
   const partS = q.get("part");
   const part = partS === null ? null : /^\d+$/.test(partS) ? Number(partS) : bad("part", "a part index");
@@ -95,5 +124,6 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   const themeS = q.get("theme");
   const theme = themeS === null ? null : themeS === "light" || themeS === "dark" ? themeS : bad("theme", "light|dark");
 
-  return { route: reduce(HOME, openWater({ item: item as ItemId, part, view, whole: view === "map" && part === null })), day, regs: { tab, sheet, scroll }, who, theme };
+  return { route: reduce(HOME, openWater({ item: item as ItemId, part, view, whole: view === "map" && part === null })), day, regs: { tab, sheet, scroll }, who, theme,
+           arrive: item as ItemId };
 }

@@ -65,3 +65,10 @@ the local server (`serve-tiles.mjs`, `pnpm tiles`), and the browser drivers for 
 `regs-census.mjs`, `regs-walk.mjs`, and `request-walk.mjs` — T129's pinned list of what a web visitor
 fetches per moment, `request-walk.pin.json`, priced against the release's `WEB_BUDGET` by `release-budget.test.ts`, and `a11y-walk.mjs` (T243: axe-core WCAG A/AA + a Tab focus walk per scene); they
 need Chrome and the running app).
+
+The SEO site (`build-seo.mjs` over `seo/`, T192–T198): hub pages, sitemap, slugs (`app/seo/slug-map.json`), v1 301s. **A water
+page is the app (T269):** `seo/pane.tsx` server-renders the real `Shell` on that water's Regulations view (react-native-web;
+the hooks answered first through `@app/ui` `setPrerenderAnswers`), `seo/prerender.ts` + `seo/layouts.ts` merge the light/dark
+and phone/tablet/desktop renders into one markup, and the page is the web export's own index.html (`--app <export>`) with the
+pane before `#root`; the app takes over when its own pane is up. The app reads `/water/<slug>` as a start link and writes it
+back (`apps/mobile` `startLink.web.ts`, `systemBack.web.ts`, `waterSlugs.ts` over the build's `water-slugs/<n>.json`).

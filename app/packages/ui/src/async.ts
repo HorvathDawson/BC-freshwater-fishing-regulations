@@ -19,6 +19,21 @@ export type Async<T> =
 const LOADING = { state: "loading", value: null, error: null } as const;
 
 /**
+ * (T269) THE PRERENDER'S ANSWERS — set only by the SEO build (`tools/seo/pane.tsx`), never in the app (null). A server
+ * render runs no effects, so a hook could only ever draw its loading frame there. With this set, a question already
+ * answered is drawn in the very first render, and one not yet answered is noted in `asked` (its key and the hook's own
+ * `run`): the build asks them, puts the answers here and renders again, until the page asks nothing new. The page is
+ * drawn by the app's own components and hooks — nothing is answered twice, no second template.
+ */
+export interface PrerenderAnswers {
+  readonly answers: Map<string, Async<unknown>>;
+  readonly asked: Map<string, () => Promise<unknown>>;
+}
+let prerender: PrerenderAnswers | null = null;
+/** @public — the SEO build's switch (tools/seo/pane.tsx); null puts every hook back to the app's behaviour. */
+export function setPrerenderAnswers(p: PrerenderAnswers | null): void { prerender = p; }
+
+/**
  * `key` is a STRING, not a dependency array, and that is deliberate.
  *
  * The array version needed `// eslint-disable-next-line react-hooks/exhaustive-deps`,
@@ -88,6 +103,12 @@ export function useAsync<T>(
     return () => { alive = false; };
   }, [key, enabled]);
 
+  if (prerender && enabled) {
+    const known = prerender.answers.get(key);
+    if (known) return known as Async<T>;
+    prerender.asked.set(key, run);
+    return LOADING as Async<T>;
+  }
   if (out.key === key) return out.v;
   const hit = enabled && !(sameAs !== undefined && out.sameAs === sameAs) ? peek?.() ?? null : null;
   if (hit) {

@@ -20,16 +20,23 @@ export interface Measured {
   readonly p95GzipBytes: number; readonly cssGzipBytes: number; readonly criticalCssBytes: number;
 }
 
-const gz = (s: string) => gzipSync(s, { level: 9 }).length;
+export const gz = (s: string): number => gzipSync(s, { level: 9 }).length;
 
-/** Sizes of the HTML pages (`files` keyed by output path, `pages` the HTML ones) and the stylesheet. */
-export function measure(files: ReadonlyMap<string, string>, htmlPaths: readonly string[], cssPath: string): Measured {
-  const sizes = htmlPaths.map((p) => ({ path: p, gzipBytes: gz(files.get(p)!) })).sort((a, b) => a.gzipBytes - b.gzipBytes);
-  const critical = /<style>([\s\S]*?)<\/style>/.exec(files.get(htmlPaths[0]!) ?? "")?.[1] ?? "";
+/** One built page's numbers, taken as it is made (a water page is written out at once, never held: T269). */
+export interface PageSize { readonly path: string; readonly gzipBytes: number; readonly blocking: boolean; readonly critical: string }
+export const pageSize = (path: string, html: string): PageSize => ({
+  path, gzipBytes: gz(html), blocking: blockingScripts(html).length > 0,
+  // the inlined critical CSS: the page's own `<style>` (not the app's `<style id="expo-reset">`)
+  critical: /<style>([\s\S]*?)<\/style>/.exec(html)?.[1] ?? "",
+});
+
+/** The pages' sizes, the largest inlined critical CSS, and the largest shared stylesheet (`css`: each one's text). */
+export function measure(pages: readonly PageSize[], css: readonly string[]): Measured {
+  const sizes = [...pages].sort((a, b) => a.gzipBytes - b.gzipBytes);
   return {
-    pages: sizes.length, largest: sizes.at(-1) ?? { path: "", gzipBytes: 0 },
+    pages: sizes.length, largest: sizes.length ? { path: sizes.at(-1)!.path, gzipBytes: sizes.at(-1)!.gzipBytes } : { path: "", gzipBytes: 0 },
     p95GzipBytes: sizes.length ? sizes[Math.min(sizes.length - 1, Math.ceil(sizes.length * 0.95) - 1)]!.gzipBytes : 0,
-    cssGzipBytes: gz(files.get(cssPath) ?? ""), criticalCssBytes: Buffer.byteLength(critical),
+    cssGzipBytes: Math.max(0, ...css.map(gz)), criticalCssBytes: Math.max(0, ...pages.map((p) => Buffer.byteLength(p.critical))),
   };
 }
 
@@ -40,13 +47,13 @@ export function blockingScripts(html: string): string[] {
 }
 
 /** What is over budget; [] = within. */
-export function checkBudget(m: Measured, files: ReadonlyMap<string, string>, htmlPaths: readonly string[]): string[] {
+export function checkBudget(m: Measured, pages: readonly PageSize[]): string[] {
   const bad: string[] = [];
   if (m.largest.gzipBytes > BUDGET.htmlGzipBytes) bad.push(`${m.largest.path} is ${m.largest.gzipBytes} B gzip, over ${BUDGET.htmlGzipBytes}`);
   if (m.p95GzipBytes > BUDGET.p95HtmlGzipBytes) bad.push(`p95 page is ${m.p95GzipBytes} B gzip, over ${BUDGET.p95HtmlGzipBytes}`);
-  if (m.cssGzipBytes > BUDGET.cssGzipBytes) bad.push(`the stylesheet is ${m.cssGzipBytes} B gzip, over ${BUDGET.cssGzipBytes}`);
+  if (m.cssGzipBytes > BUDGET.cssGzipBytes) bad.push(`a shared stylesheet is ${m.cssGzipBytes} B gzip, over ${BUDGET.cssGzipBytes}`);
   if (m.criticalCssBytes > BUDGET.criticalCssBytes) bad.push(`the inlined critical CSS is ${m.criticalCssBytes} B, over ${BUDGET.criticalCssBytes}`);
-  for (const p of htmlPaths) if (blockingScripts(files.get(p)!).length) bad.push(`${p} ships blocking JavaScript`);
+  for (const p of pages) if (p.blocking) bad.push(`${p.path} ships blocking JavaScript`);
   return bad;
 }
 

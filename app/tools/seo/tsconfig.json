@@ -1,15 +1,21 @@
 {
-  "$comment": "T192-T198: the SEO build tooling is TypeScript run by vitest / vite (tools/ is in no composite project), so it is typechecked here, against the packages' SOURCE the way vitest.config.ts aliases them. `pnpm run typecheck:seo`, part of `pnpm check`.",
+  "$comment": "T192-T198: the SEO build tooling is TypeScript run by vitest / vite (tools/ is in no composite project), so it is typechecked here, against the packages' SOURCE the way vitest.config.ts aliases them. `pnpm run typecheck:seo`, part of `pnpm check`. (T269) pane.tsx renders the app's own Shell, so the app's packages are typechecked through it too; react-native is react-native-web, as the build loads it.",
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "composite": false, "declaration": false, "emitDeclarationOnly": false, "noEmit": true,
-    "types": ["node"],
+    "types": ["node"], "jsx": "react-jsx",
     "baseUrl": "../..",
     "paths": {
       "@app/core": ["packages/core/src/index.ts"],
+      "@app/data": ["packages/data/src/index.ts"],
       "@app/data/regs": ["packages/data/src/regs/index.ts"],
-      "@app/data/release/node": ["packages/data/src/sql/drivers/releaseDir.ts"]
+      "@app/data/release": ["packages/data/src/release/index.ts"],
+      "@app/data/release/node": ["packages/data/src/sql/drivers/releaseDir.ts"],
+      "@app/data/spots": ["packages/data/src/spots/index.ts"],
+      "@app/ui": ["packages/ui/src/index.ts"],
+      "@app/ui-native": ["packages/ui-native/src/index.ts"],
+      "@app/map": ["packages/map/src/index.ts"]
     }
   },
-  "include": ["*.ts"]
+  "include": ["*.ts", "*.tsx"]
 }

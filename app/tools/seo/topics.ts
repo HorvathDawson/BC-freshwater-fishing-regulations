@@ -1,8 +1,8 @@
 /**
  * "Specific regulation" search: queries like "vedder river steelhead regulations", "<river> bait ban", "is <river> closed",
  * "<lake> trout limit". A TOPIC is a lens on the sentences the presenter already wrote for a water: nothing here writes a rule.
- * A topic's lines are the water page's own items (same words, same dates) that mention it, picked by the word lists below, so the
- * page, its FAQ JSON-LD and the topic hubs can never say more than the app does.
+ * A topic's lines are the water's own presenter items (same words, same dates) that mention it, picked by the word lists below,
+ * so the topic hubs can never say more than the app's pane does. (T269: the water page is the pane; no FAQ markup.)
  */
 import type { WaterModel } from "./model";
 
@@ -10,23 +10,19 @@ export type TopicKey = "steelhead" | "salmon" | "trout" | "bait-ban" | "fly-only
 
 export interface TopicDef {
   readonly key: TopicKey;
-  /** the heading on a water page: "Steelhead" */
-  readonly heading: string;
   /** the hub's name: "Steelhead regulations" */
   readonly hub: string;
-  /** the question a visitor asks, for the FAQ: `${q(name)}` */
-  readonly ask: (name: string) => string;
   readonly test: RegExp;
 }
 
 export const TOPICS: readonly TopicDef[] = [
-  { key: "steelhead", heading: "Steelhead", hub: "Steelhead regulations", ask: (n) => `What are the steelhead rules on ${n}?`, test: /steelhead/i },
-  { key: "salmon", heading: "Salmon", hub: "Salmon fishing regulations", ask: (n) => `What are the salmon rules on ${n}?`, test: /\b(salmon|coho|chinook|sockeye|chum)\b/i },
-  { key: "trout", heading: "Trout and char", hub: "Trout and char limits", ask: (n) => `What is the trout limit on ${n}?`, test: /\b(trout|char|dolly varden)\b/i },
-  { key: "bait-ban", heading: "Bait ban", hub: "Bait ban waters", ask: (n) => `Is bait allowed on ${n}?`, test: /\bno (natural )?bait\b|bait ban|bait is not allowed/i },
-  { key: "fly-only", heading: "Fly fishing only", hub: "Fly fishing only waters", ask: (n) => `Is ${n} fly fishing only?`, test: /fly fishing only|artificial fly only|hooks: one fly\b/i },
-  { key: "closed", heading: "Closures", hub: "Fishing closures", ask: (n) => `What closures apply on ${n}?`, test: /\bclosed\b|no fishing/i },
-  { key: "boat", heading: "Boats and motors", hub: "Boat and motor rules", ask: (n) => `What are the boat and motor rules on ${n}?`, test: /\b(boat|boats|motor|motors|engine|engines|electric motor)\b/i },
+  { key: "steelhead", hub: "Steelhead regulations", test: /steelhead/i },
+  { key: "salmon", hub: "Salmon fishing regulations", test: /\b(salmon|coho|chinook|sockeye|chum)\b/i },
+  { key: "trout", hub: "Trout and char limits", test: /\b(trout|char|dolly varden)\b/i },
+  { key: "bait-ban", hub: "Bait ban waters", test: /\bno (natural )?bait\b|bait ban|bait is not allowed/i },
+  { key: "fly-only", hub: "Fly fishing only waters", test: /fly fishing only|artificial fly only|hooks: one fly\b/i },
+  { key: "closed", hub: "Fishing closures", test: /\bclosed\b|no fishing/i },
+  { key: "boat", hub: "Boat and motor rules", test: /\b(boat|boats|motor|motors|engine|engines|electric motor)\b/i },
 ];
 
 const MAX_LINES = 4;
@@ -51,17 +47,3 @@ export function topicLines(m: WaterModel): Map<TopicKey, string[]> {
   if (m.status === "closed" && !out.has("closed")) out.set("closed", [m.answer]);
   return out;
 }
-
-/** Real questions with the bundle's own answers: one per topic the water has rules on (never an invented answer). */
-export function faqOf(m: WaterModel, lines: ReadonlyMap<TopicKey, readonly string[]>): { q: string; a: string }[] {
-  const out: { q: string; a: string }[] = [];
-  for (const t of TOPICS) {
-    const l = lines.get(t.key);
-    if (!l?.length) continue;
-    out.push({ q: t.ask(m.name), a: l.slice(0, 2).join(" ") });
-  }
-  return out.slice(0, 5);
-}
-
-/** `id` attribute for a heading: "Trout and char" -> "trout-and-char" */
-export const anchorOf = (s: string): string => s.normalize("NFKD").replace(/\p{M}+/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "x";

@@ -1,10 +1,16 @@
 #!/bin/bash
 # STAGING ONLY: merge app/dist/web-staging (`pnpm -C app/apps/mobile export:web:staging`: EXPO_PUBLIC_APP_ENV=staging, T232) and
-# app/dist/seo (build-seo.mjs on the same release) into app/dist/staging-site, make it unindexable, deploy.
+# app/dist/seo (build-seo.mjs on the same release, `--app app/dist/web-staging`: T269) into app/dist/staging-site, make it
+# unindexable, deploy.
 #   deploy/staging/site.sh [--dry-run]        (T241: the staging smoke test runs after a real deploy; SMOKE=0 skips it)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 W=app/dist/web-staging; S=app/dist/seo; O=app/dist/staging-site; K=app/dist/staging-site-worker
+# (T269) a water page is the app's own index.html with its pane prerendered: it must be built against THIS export
+# (`build-seo.mjs --app app/dist/web-staging`), or its script tag names a bundle the site does not have
+js=$(grep -o '/_expo/static/js/web/index-[0-9a-f]*\.js' "$W/index.html")
+one=$(find "$S/water" -name index.html -print -quit)
+grep -q "$js" "$one" || { echo "site.sh: $S's water pages were built against another app export (not $js): rebuild with --app $W" >&2; exit 1; }
 rm -rf "$O" "$K"; mkdir -p "$O" "$K"
 cp -R "$W/." "$O/"
 # SEO files never overwrite the app (the app owns /index.html); report any clash
@@ -12,9 +18,8 @@ X=(--exclude /_worker.js --exclude /budget.json --exclude /lighthouserc.json --e
    --exclude /legacy-redirects.json --exclude /redirects.json)
 comm -12 <(cd "$W" && find . -type f | sort) <(cd "$S" && find . -type f | sort) | sed 's/^/clash (app kept): /'
 rsync -a --ignore-existing "${X[@]}" "$S/" "$O/"
-# "Open in the app" is absolute to production; on staging it must open the staging app (canonicals stay on the .ca)
-grep -rl --include=index.html 'href="https://canifishthis.ca/?regs=' "$O" | xargs perl -pi -e 's#href="https://canifishthis\.ca/\?regs=#href="/?regs=#g'
-# (T232) and the bare "Open the app" link (no ?regs=) too
+# The hubs' "Open the app" link is absolute to production; on staging it must open the staging app (canonicals stay on
+# the .ca). (T269: a water page IS the app — its links are already relative.)
 grep -rl --include=index.html '<a class="app" href="https://canifishthis.ca/">' "$O" | xargs perl -pi -e 's#<a class="app" href="https://canifishthis\.ca/">#<a class="app" href="/">#g' || true
 cp "$S/_worker.js" "$K/worker.js"
 # staging must never be indexed: robots disallows everything, every response says noindex

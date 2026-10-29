@@ -3,7 +3,7 @@
  * (the stored strip bits: open, closed hatch, release, fly-only, artificial flies, bait ban), the selected day's marker,
  * the month initials and the legend. tokens.md §5 YearStrip. No logic: runs, marker and words are the StripVM's.
  */
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { Text, View } from "react-native";
 import Svg, { Defs, Line as SvgLine, Pattern, Rect } from "react-native-svg";
 import { WORDS, type SalmonDrawn, type SalmonStripVM, type StripVM } from "@app/core";
@@ -11,6 +11,26 @@ import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 
 const GAP = 2, H = 10;
+
+/**
+ * (T269) THE BAR'S WIDTH BEFORE IT IS MEASURED. In the app: 0 — the bar waits for its layout, as it always has. The SEO
+ * build's server render never lays out, so it hands the width its layout class draws the bar at (`tools/seo/pane.tsx`),
+ * and the bar is drawn at that width scaled to its box (a viewBox; the day's marker placed by percent): the same bar at
+ * that width, and within a few pixels of it on any other, until the app's own pane replaces it.
+ */
+export const StripWidthHint = createContext(0);
+
+/** The bar's drawing: measured (the app), else the hint scaled to the box (the prerender). */
+function useBarWidth() {
+  const hint = useContext(StripWidthHint);
+  const [w, setW] = useState(0);
+  const at = w || hint;
+  return {
+    at, setW,
+    svg: w ? { width: w, height: H } : { width: "100%", height: H, viewBox: `0 0 ${at} ${H}`, preserveAspectRatio: "none" },
+    marker: (todayAt: number) => (w ? { left: w * todayAt - 1 } : { left: `${todayAt * 100}%` as const, marginLeft: -1 }),
+  };
+}
 
 /** One run's fill (prototype .f-* classes): bit 1 closed hatch; else open / release stripes, + fly, flies, bait. */
 function RunRect({ x, w, bits, palette, id }: { x: number; w: number; bits: number | null; palette: Palette; id: string }) {
@@ -54,7 +74,7 @@ function BarTitle({ text, palette, testID }: { text: string; palette: Palette; t
 }
 
 export function YearStrip({ strip, dateLabel, palette, title = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null }) {
-  const [w, setW] = useState(0);
+  const bar = useBarWidth(), w = bar.at;
   const total = strip.runs.reduce((a, r) => a + r.days, 0) || 365;
   const room = Math.max(0, w - GAP * (strip.runs.length - 1));
   let x = 0;
@@ -73,16 +93,16 @@ export function YearStrip({ strip, dateLabel, palette, title = null }: { strip: 
       </View>
       {/* (T40) the bar is one picture to a screen reader, named by the status line ("Open today"); the marker's date is the
           header pill's, so it is hidden inside it. The legend below stays text. */}
-      <View testID="strip-bar" style={{ marginTop: 22, height: H }} onLayout={(e) => setW(e.nativeEvent.layout.width)}
+      <View testID="strip-bar" style={{ marginTop: 22, height: H }} onLayout={(e) => bar.setW(e.nativeEvent.layout.width)}
             accessible accessibilityRole="image" accessibilityLabel={strip.line.map((l) => l.text).join(" ")}>
         {w > 0 && (
-          <Svg width={w} height={H}>
+          <Svg {...bar.svg}>
             <Patterns id="ys" palette={palette} />
             {rects.map((r) => <RunRect key={r.i} x={r.at} w={r.rw} bits={r.bits} palette={palette} id="ys" />)}
           </Svg>
         )}
         {w > 0 && (
-          <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: -6, left: w * strip.todayAt - 1, width: 2, height: 22, backgroundColor: palette.ink }}>
+          <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: -6, ...bar.marker(strip.todayAt), width: 2, height: 22, backgroundColor: palette.ink }}>
             <Text style={[TYPE.metaSemi, { position: "absolute", bottom: 24, left: -40, width: 82, textAlign: "center", lineHeight: 12.48, color: palette.ink }]}>{dateLabel}</Text>
           </View>
         )}
@@ -121,7 +141,7 @@ function SalmonRect({ x, w, drawn, palette, id }: { x: number; w: number; drawn:
  */
 export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette }: {
   strip: SalmonStripVM; todayAt: number; months: readonly string[]; dateLabel: string; palette: Palette }) {
-  const [w, setW] = useState(0);
+  const bar = useBarWidth(), w = bar.at;
   const total = strip.runs.reduce((a, r) => a + r.days, 0) || 365;
   const room = Math.max(0, w - GAP * (strip.runs.length - 1));
   let x = 0;
@@ -140,16 +160,16 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette }: 
             borderColor: strip.soon.kind === "soonOpen" ? palette.open : palette.closed }]}>{strip.soon.text}</Text>
         )}
       </View>
-      <View testID="salmon-strip-bar" style={{ marginTop: 22, height: H }} onLayout={(e) => setW(e.nativeEvent.layout.width)}
+      <View testID="salmon-strip-bar" style={{ marginTop: 22, height: H }} onLayout={(e) => bar.setW(e.nativeEvent.layout.width)}
             accessible accessibilityRole="image" accessibilityLabel={`${strip.title}: ${strip.word}${strip.when ? ` ${strip.when}` : ""}`}>
         {w > 0 && (
-          <Svg width={w} height={H}>
+          <Svg {...bar.svg}>
             <Patterns id="sb" palette={palette} />
             {rects.map((r) => <SalmonRect key={r.i} x={r.at} w={r.rw} drawn={r.drawn} palette={palette} id="sb" />)}
           </Svg>
         )}
         {w > 0 && (
-          <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: -6, left: w * todayAt - 1, width: 2, height: 22, backgroundColor: palette.ink }}>
+          <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: -6, ...bar.marker(todayAt), width: 2, height: 22, backgroundColor: palette.ink }}>
             <Text style={[TYPE.metaSemi, { position: "absolute", bottom: 24, left: -40, width: 82, textAlign: "center", lineHeight: 12.48, color: palette.ink }]}>{dateLabel}</Text>
           </View>
         )}

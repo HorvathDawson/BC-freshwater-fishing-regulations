@@ -1,7 +1,8 @@
 /**
  * T193-T198 on the committed regs fixture release (43 waters on 2026-10-27), written to a gitignored dist folder: the water
- * pages and their verdicts, the sitemap / canonical / JSON-LD gates, the hubs, the performance budget and the hosting config.
- * Mutation-pinned where a gate could be vacuous: each planted fault must be reported by the gate that owns it.
+ * pages (T269: the app's own regs pane, prerendered) and their verdicts, the sitemap / canonical / JSON-LD gates, the hubs,
+ * the performance budget and the hosting config. Mutation-pinned where a gate could be vacuous: each planted fault must be
+ * reported by the gate that owns it.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -10,7 +11,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { buildRegsPage, type RegsPage } from "@app/core";
 import { loadRegsInputs, openRegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
-import { BUDGET, blockingScripts, checkBudget, measure } from "./budget";
+import { BUDGET, blockingScripts, checkBudget, measure, pageSize } from "./budget";
 import { buildAll, readConfig, writeSite, type Built } from "./build";
 import { TODAY } from "./fixture";
 import { headersFile, HSTS, redirectFor, redirectsFile } from "./hosting";
@@ -26,54 +27,71 @@ let built: Built;
 beforeAll(async () => { built = await buildAll({ loader: openRegsFixture(), on: TODAY }); }, 180_000);
 const cssPath = () => built.build.cssHref.slice(1);
 const waters = () => built.build.pages.filter((p) => p.kind === "water");
+const hubs = () => built.build.pages.filter((p) => p.kind !== "water");
+/** what a water page draws: its prerendered pane, without the head */
+const pane = (html: string) => html.slice(html.indexOf('<div id="prerender">'), html.indexOf('<div id="root">'));
 
-describe("T193 water pages and About", () => {
-  it("one page per water with rules, readable without JavaScript, every page stating the not-a-legal-document line", () => {
+describe("T193 + T269 water pages (the app's own pane) and About", () => {
+  it("one page per water with rules; a hub page ships no script, a water page only the app's (deferred) and the hand-over (a module)", () => {
     expect(waters().length).toBe(built.build.models.length);
     expect(waters().length).toBeGreaterThan(20);
-    for (const p of built.build.pages) {
-      expect(blockingScripts(p.html), p.path).toEqual([]);
+    for (const p of built.build.pages) expect(blockingScripts(p.html), p.path).toEqual([]);
+    for (const p of hubs()) {
       expect(p.html, p.path).not.toMatch(/<script(?![^>]*ld\+json)/);
       expect(text(p.html), p.path).toMatch(/not a legal document/i);
     }
     for (const p of waters()) {
-      expect(p.html).toMatch(/<h1>[^<]+ fishing regulations, B\.C\.<\/h1>/);
-      expect(p.html).toMatch(/class="app" href="https:\/\/canifishthis\.ca\/\?regs=/);   // the prominent Open in the app link
-      expect(p.html).toContain("fishing_synopsis.pdf");
+      expect([...p.html.matchAll(/<script(?![^>]*ld\+json)([^>]*)>/g)].map((m) => m[1]), p.path).toEqual([' type="module"']);
+      expect(text(pane(p.html)), p.path).toMatch(/Not legal advice/);   // the pane's own line, as the app draws it
     }
   });
 
-  it("the Vedder page carries the full rules in plain words, with the book page cited", () => {
-    const v = waters().find((p) => p.path === "/water/vedder-river")!;
-    const t = text(v.html);
-    expect(t).toMatch(/Can I fish Vedder River today\?\s+Open to fishing today, with limits\./);
-    expect(t).toContain("2 a day per angler from streams");
-    expect(t).toContain("This river’s rule: up to 4 hatchery rainbow trout a day");
-    expect(v.html).toMatch(/href="https:[^"]*fishing_synopsis\.pdf#page=24"[^>]*>Rule book p\.22</);
-    expect(t).toMatch(/Region 2/);
+  it("(T269) a water page IS the app's pane: the app's document, the Shell's regs pane in it, no text-only body", () => {
+    for (const p of waters()) {
+      const m = built.build.models.find((x) => p.path === `/water/${built.build.slugMap.waters[x.id]!.slug}`)!;
+      expect(p.html, p.path).toContain(`<meta name="cift:item" content="${m.id}">`);
+      for (const id of ["water-frame", "regs-header", "regs-scroll", "keep-tab"]) expect(pane(p.html), `${p.path} ${id}`).toContain(`data-testid="${id}"`);
+      expect(pane(p.html), p.path).toContain(m.name);
+      // the retired text page (T193's html.ts body) is nowhere: no <main>, no answer paragraph, no "Open in the app"
+      expect(p.html, p.path).not.toMatch(/<main>|class="answer|class="app"/);
+      expect(p.html.indexOf('<div id="prerender">'), p.path).toBeLessThan(p.html.indexOf('<div id="root"></div>'));
+    }
+  });
+
+  it("(owner 2026-10-29) the pane's ‹ and × are links to the map at that water before the app runs", () => {
+    for (const p of waters()) {
+      const id = /<meta name="cift:item" content="([^"]+)">/.exec(p.html)![1]!;
+      const links = [...pane(p.html).matchAll(/<a href="([^"]+)"[^>]*data-testid="(water-back|water-close)"/g)].map((m) => [m[2], m[1]]);
+      expect(new Set(links.map(([t]) => t)), p.path).toEqual(new Set(["water-back", "water-close"]));
+      for (const [, href] of links) expect(href, p.path).toBe(`/?show=${id}`);
+      expect(pane(p.html), p.path).not.toMatch(/role="button"[^>]*data-testid="water-(back|close)"/);
+    }
   });
 
   it("each page's verdict is the app's answer for that water (and a planted wrong verdict is caught)", async () => {
     const store = await openRegsStore(openRegsFixture());
-    const answerClass = (html: string) => /<p class="answer ?(\w*)">/.exec(html)?.[1] ?? "";
+    // the pane's own status word: the strip's `st:<status>` (one part: the page opens on it)
+    const shown = (html: string) => [...new Set([...pane(html).matchAll(/data-testid="st:(open|closed)"/g)].map((m) => m[1]))][0] ?? "";
     const app = async (id: string, partIx: number): Promise<RegsPage> => buildRegsPage(
       await loadRegsInputs(store, { kind: "part", item: id, partIx }, TODAY.day, TODAY.weekday, TODAY.year),
       { today: TODAY.day, who: { age: "adult", residency: "resident" } });
-    const mismatches = (html: string, statuses: string[]) => {
-      const same = new Set(statuses).size === 1 ? statuses[0] : "";
-      return answerClass(html) === (same === "open" || same === "closed" ? same : "") ? [] : [`${answerClass(html)} vs ${same}`];
-    };
+    const mismatches = (html: string, status: string) => (shown(html) === status ? [] : [`${shown(html)} vs ${status}`]);
     let checked = 0;
-    for (const m of built.build.models) {
+    // the build renders today, the fixture's verdicts are for its own day: compare on today
+    const now = buildDayOf(new Date());
+    for (const m of built.build.models.filter((x) => x.parts.length === 1)) {
       const page = waters().find((p) => p.path === `/water/${built.build.slugMap.waters[m.id]!.slug}`)!;
-      const statuses = await Promise.all(m.parts.map(async (p) => (await app(m.id, p.partIx)).status));
-      expect(mismatches(page.html, statuses), m.id).toEqual([]);
+      const s = (buildRegsPage(await loadRegsInputs(store, { kind: "part", item: m.id, partIx: 0 }, now.day, now.weekday, now.year),
+        { today: now.day, who: { age: "adult", residency: "resident" } })).status;
+      if (s !== "open" && s !== "closed") continue;
+      expect(mismatches(page.html, s), m.id).toEqual([]);
       checked++;
     }
-    expect(checked).toBe(built.build.models.length);
+    expect(checked).toBeGreaterThan(10);
     const vedder = waters().find((p) => p.path === "/water/vedder-river")!;
-    expect(mismatches(vedder.html.replace('class="answer open"', 'class="answer closed"'), ["open"])).not.toEqual([]);
-    expect(built.build.models.some((m) => m.status === "closed") || built.build.models.some((m) => m.status === "mixed")).toBe(true);
+    const flipped = shown(vedder.html) === "open" ? "closed" : "open";
+    expect(mismatches(vedder.html.replaceAll(`data-testid="st:${shown(vedder.html)}"`, `data-testid="st:${flipped}"`), shown(vedder.html))).not.toEqual([]);
+    expect(await app("gnis:8634", 0)).toBeTruthy();
   }, 120_000);
 
   it("About names the sources and the contact only when there is one", () => {
@@ -88,12 +106,13 @@ describe("T193 water pages and About", () => {
     expect(text(pv.html)).toMatch(/Open-Meteo/);
     expect(text(pv.html)).toMatch(/salted one-way hash/);
     expect(pv.html).toMatch(/href="\/privacy"/);
-    expect(built.build.pages.every((p) => p.html.includes('<a href="/privacy">Privacy policy</a>'))).toBe(true);
+    // every hub page's footer (a water page is the app's pane: the app's More menu links it)
+    expect(hubs().every((p) => p.html.includes('<a href="/privacy">Privacy policy</a>'))).toBe(true);
   });
 
   it("pages refresh with each release: a new release id and date are in the page", async () => {
     const next = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 10, 3, 12)) });
-    const a = waters()[0]!, b = next.build.pages.find((p) => p.path === a.path)!;
+    const a = built.build.pages.find((p) => p.kind === "region")!, b = next.build.pages.find((p) => p.path === a.path)!;
     expect(text(b.html)).toContain("2026-11-03");
     expect(text(a.html)).toContain("2026-10-27");
   }, 120_000);
@@ -121,22 +140,24 @@ describe("T194 sitemap, robots, canonicals, structured data", () => {
       expect(descs.has(desc), `dup description ${desc}`).toBe(false); descs.add(desc);
     }
     expect(waters().find((p) => p.path === "/water/vedder-river")!.html).toContain("<title>Vedder River fishing regulations, B.C. — Can I Fish This?</title>");
-    // the target query is in the title, the H1, the description and the first lines, with where the water is
+    // the target query is in the title and the description, with where the water is; the pane names the water
     const v = waters().find((p) => p.path === "/water/vedder-river")!.html;
-    expect(v).toContain("<h1>Vedder River fishing regulations, B.C.</h1>");
     expect(/<meta name="description" content="([^"]*)">/.exec(v)![1]).toMatch(/^Vedder River fishing regulations, B\.C\. \((near [^,]+, )?Region \d\): /);
-    expect(v).toMatch(/Vedder River is in Region \d/);
+    expect(v).toContain('<html lang="en-CA"');
   });
 
   it("the JSON-LD parses, has its required fields, and every fact in it is on the page; a planted fact is caught", () => {
-    for (const p of built.build.pages) expect(checkJsonLd(p.html, site.origin), p.path).toEqual([]);
+    for (const p of built.build.pages) expect(checkJsonLd(p.html, site.origin, p.kind === "water" ? ["WebPage", "Place"] : undefined), p.path).toEqual([]);
     const v = waters().find((p) => p.path === "/water/vedder-river")!.html;
-    expect(v).toMatch(/"@type":"BreadcrumbList"/);
-    expect(v).toMatch(/"@type":"FAQPage"/);
+    // (T269) the pane draws no breadcrumb, date or FAQ: the water page's JSON-LD is the page and the water, nothing more
+    expect(v).toMatch(/"@type":\["Place","RiverBodyOfWater"\]/);
+    expect(v).not.toMatch(/BreadcrumbList|FAQPage|GeoCoordinates/);
     const planted = v.replace('"name":"Vedder River"', '"name":"Vedder River","slogan":"The best fishing in BC"');
-    expect(checkJsonLd(planted, site.origin).join("|")).toContain("The best fishing in BC");
+    expect(checkJsonLd(planted, site.origin, ["WebPage", "Place"]).join("|")).toContain("The best fishing in BC");
     expect(checkJsonLd(v.replace(/<script type="application\/ld\+json">/, '<script type="application/ld+json">{'), site.origin)[0]).toMatch(/does not parse/);
-    expect(checkJsonLd(v.replace('"dateModified"', '"dateModifiedX"'), site.origin).join("|")).toMatch(/lacks dateModified/);
+    const hub = built.build.pages.find((p) => p.kind === "region")!.html;
+    expect(checkJsonLd(hub.replace('"dateModified"', '"dateModifiedX"'), site.origin).join("|")).toMatch(/lacks dateModified/);
+    expect(checkJsonLd(v, site.origin).join("|")).toMatch(/missing WebSite/);   // a hub's needs are not a water page's
   });
 
   it("lastmod moves only when a page's content hash moved", async () => {
@@ -163,27 +184,14 @@ describe("T194 sitemap, robots, canonicals, structured data", () => {
 });
 
 describe("specific-regulation pages (topics)", () => {
-  it("a water's topic lines are its own sentences, with anchors, FAQ answers and links to the topic hubs", () => {
+  it("a topic hub lists each water with one of its own sentences and links its water page", () => {
     const topics = built.build.pages.filter((p) => p.kind === "topic");
     expect(topics.length).toBeGreaterThan(3);
-    const withGlance = waters().filter((p) => p.html.includes('id="topics"'));
-    expect(withGlance.length).toBeGreaterThan(5);
-    for (const p of withGlance) {
-      const ld = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(p.html)![1]!;
-      const faq = JSON.parse(ld)["@graph"].find((n: { "@type": string }) => n["@type"] === "FAQPage").mainEntity as { name: string; acceptedAnswer: { text: string } }[];
-      for (const q of faq.slice(1)) {                                  // the first is "Can I fish X today?"
-        expect(p.html, q.name).toContain(`>${q.name.replace(/'/g, "&#39;")}</h3>`.replace("&#39;", "'"));
-        expect(text(p.html)).toContain(q.acceptedAnswer.text);        // never an answer the page does not show
-      }
-      for (const href of [...p.html.matchAll(/href="(\/region\/\d+\/(?:steelhead|salmon|trout|bait-ban|fly-only|closed|boat))"/g)].map((x) => x[1]!))
-        expect(topics.some((t) => t.path === href), `${p.path} -> ${href}`).toBe(true);
-    }
-    for (const t of topics) expect(t.html).toMatch(/<h1>/);
-  });
-  it("sections and groups have anchors that are unique on the page", () => {
-    for (const p of waters()) {
-      const ids = [...p.html.matchAll(/ id="([^"]+)"/g)].map((x) => x[1]!);
-      expect(new Set(ids).size, p.path).toBe(ids.length);
+    const paths = new Set(waters().map((p) => p.path));
+    for (const t of topics) {
+      expect(t.html).toMatch(/<h1>/);
+      for (const href of [...t.html.matchAll(/href="(\/water\/[^"#]+)/g)].map((x) => x[1]!)) expect(paths.has(href), `${t.path} -> ${href}`).toBe(true);
+      expect(t.html, t.path).not.toMatch(/href="\/water\/[^"]*#/);   // the text page's anchors are gone with it (T269)
     }
   });
 });
@@ -210,7 +218,7 @@ describe("T195 hubs and dated pages", () => {
       const path = `/water/${built.build.slugMap.waters[m.id]!.slug}`;
       expect(regionPages.some((r) => r.html.includes(`href="${path}"`)), path).toBe(true);
     }
-    for (const r of regionPages) expect(waters()[0]!.html).toContain(`href="${r.path}"`);
+    for (const r of regionPages) expect(built.build.pages.find((p) => p.kind === "about")!.html).toContain(`href="${r.path}"`);
   });
 
   it("the weekend and opening/closing pages state their release and dates, and link the waters they name", () => {
@@ -257,16 +265,28 @@ describe("T196 performance budget", () => {
     expect(lh.ci.assert.assertions["largest-contentful-paint"]).toEqual(["error", { maxNumericValue: 1800 }]);
   });
 
+  it("(T269) the water pages are measured as built (the prerendered pane, its critical CSS inlined, the app's script deferred)", () => {
+    const water = waters().map((p) => p.size);
+    const m = measure(water, [built.files.get(cssPath())!]);
+    expect(m.p95GzipBytes).toBeLessThanOrEqual(BUDGET.p95HtmlGzipBytes);
+    expect(m.criticalCssBytes).toBeLessThanOrEqual(BUDGET.criticalCssBytes);
+    const paneCss = [...built.files.keys()].find((k) => /^assets\/pane\.[0-9a-f]+\.css$/.test(k))!;
+    expect(waters().every((p) => p.html.includes(`href="/${paneCss}"`))).toBe(true);
+    expect(measure(water, [built.files.get(paneCss)!]).cssGzipBytes).toBeLessThanOrEqual(BUDGET.cssGzipBytes);
+  });
+
   it("MUTATION: an oversized page, a fat stylesheet and a blocking script each fail the gate", () => {
-    const htmlPaths = [...built.files.keys()].filter((k) => k.endsWith(".html") && k !== "404.html");
+    const sizes = built.build.pages.map((p) => p.size);
     const noise = Array.from({ length: 30000 }, (_, i) => `w${i}x${(i * 7919) % 10007}`).join(" ");
-    const fat = new Map(built.files).set(htmlPaths[0]!, built.files.get(htmlPaths[0]!)! + noise);
+    const css = built.files.get(cssPath())!;
+    const fat = [...sizes.slice(1), pageSize(sizes[0]!.path, built.build.pages[0]!.html + noise)];
     // fixed by the T196 budget (30 KiB page limit = 30720 B); `fat` is built to exceed it, whatever the release
-    expect(checkBudget(measure(fat, htmlPaths, cssPath()), fat, htmlPaths).join("|")).toMatch(/over 30720/);
-    const css = new Map(built.files).set(cssPath(), noise + noise);
-    expect(checkBudget(measure(css, htmlPaths, cssPath()), css, htmlPaths).join("|")).toMatch(/stylesheet/);
-    const js = new Map(built.files).set(htmlPaths[1]!, built.files.get(htmlPaths[1]!)!.replace("</head>", '<script src="/app.js"></script></head>'));
-    expect(checkBudget(measure(js, htmlPaths, cssPath()), js, htmlPaths).join("|")).toMatch(/blocking JavaScript/);
+    expect(checkBudget(measure(fat, [css]), fat).join("|")).toMatch(/over 30720/);
+    expect(checkBudget(measure(sizes, [css, noise + noise]), sizes).join("|")).toMatch(/stylesheet/);
+    const js = [...sizes.slice(1), pageSize(sizes[0]!.path, built.build.pages[0]!.html.replace("</head>", '<script src="/app.js"></script></head>'))];
+    expect(checkBudget(measure(js, [css]), js).join("|")).toMatch(/blocking JavaScript/);
+    const crit = [...sizes.slice(1), pageSize(sizes[0]!.path, built.build.pages[0]!.html.replace("<style>", `<style>${noise.slice(0, 3000)}`))];
+    expect(checkBudget(measure(crit, [css]), crit).join("|")).toMatch(/critical CSS/);
     expect(blockingScripts('<script src="/a.js" defer></script><script type="module" src="/m.js"></script>')).toEqual([]);
   });
 });

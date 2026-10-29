@@ -2,7 +2,7 @@
  * THE SHELL'S INPUTS: everything the app hands the Shell (T62 3.4: the props type, out of Shell.tsx unchanged).
  */
 import type { UpdateEvent } from "@app/core";
-import type { WaterSource } from "@app/data";
+import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import type { LayerStore, Locate, PairingInput, RegsStart, Route, SpotPhotos, StatusSource, SystemBack } from "@app/ui";
 import type { DayFlowAnswer, HydatDaily, LikeStore, Spot, WeatherSource } from "@app/data/spots";
@@ -83,6 +83,8 @@ export interface ShellProps {
   initialDay?: Date | null;
   /** (T41) where the first water's Regulations page starts (the web start link): handed to that page once. */
   regsStart?: RegsStart | null;
+  /** (T269) the water the page started on or at (the web start link's `arrive`): the map comes back framed on it, lit. Read once. */
+  arriveAt?: ItemId | null;
   /** The platform's location, for the Spots menu's "At my location" (the app's). Absent -> not offered. */
   locate?: Locate | null;
   /** The menu's build facts (app build, the one contact value), from the app's config. Absent -> neither stated. */

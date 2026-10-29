@@ -123,7 +123,7 @@ function Place({ place, palette }: { place: HeaderVM["place"]; palette: Palette 
  * words at the gutter. A press scrolls the page to its section, as the tab row's does.
  */
 export function SectionList({ h, tabs, palette, onTab }: { h: HeaderVM; tabs: TabSource; palette: Palette; onTab: (t: Tab) => void }) {
-  const selected = useSyncExternalStore(tabs.subscribe, tabs.getTab);
+  const selected = useSyncExternalStore(tabs.subscribe, tabs.getTab, tabs.getTab);
   return (
     <View testID="regs-section-list" accessibilityRole="tablist" accessibilityLabel={WORDS.TABS_LABEL} aria-orientation="vertical"
           style={{ gap: 4 }}>
@@ -148,7 +148,7 @@ export function SectionList({ h, tabs, palette, onTab }: { h: HeaderVM; tabs: Ta
 export const TAB_BOX = { w: 28, h: 34 } as const, TAB_BOX_SIDE = { w: 28, h: 36 } as const;
 
 function TabRow({ h, tabs, palette, onTab }: { h: HeaderVM; tabs: TabSource; palette: Palette; onTab: (t: Tab) => void }) {
-  const selected = useSyncExternalStore(tabs.subscribe, tabs.getTab);
+  const selected = useSyncExternalStore(tabs.subscribe, tabs.getTab, tabs.getTab);
   return (
     // (T40) the row wraps: at 2× text the four tabs are wider than a phone (one row at 1×, as before)
     <View accessibilityRole="tablist" accessibilityLabel={WORDS.TABS_LABEL}

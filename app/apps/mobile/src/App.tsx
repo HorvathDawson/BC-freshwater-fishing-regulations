@@ -421,7 +421,7 @@ export default function App() {
                fishImages={FISH_IMAGES}
                adiposeImages={ADIPOSE_IMAGES}
                systemBack={systemBack}
-               initialRoute={place.route ?? START?.route} onRoute={holdPlace} initialDay={START?.day ?? null} regsStart={START?.regs ?? null}
+               initialRoute={place.route ?? START?.route} onRoute={holdPlace} initialDay={START?.day ?? null} regsStart={START?.regs ?? null} arriveAt={START?.arrive ?? null}
                locate={locate}
                weather={weather}
                photos={photos}

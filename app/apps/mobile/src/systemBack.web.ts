@@ -3,7 +3,8 @@
  * holds is a history entry, kept in step by `@app/ui` `historySync` — so the browser's back pops exactly one frame,
  * the ‹ button leaves no stranded entry, and back at the browse root is the browser's own (it leaves the app).
  */
-import { historySync, routeSearch, type HistoryPort, type Route, type SystemBack } from "@app/ui";
+import { historySync, routeSearch, waterFrame, type HistoryPort, type Route, type SystemBack } from "@app/ui";
+import { slugKnown, slugOf } from "./waterSlugs";
 
 /** The key this app's entries carry their back depth under, beside anything else a page keeps in `history.state`. */
 const KEY = "canifishthis.back";
@@ -35,11 +36,30 @@ export const systemBack: SystemBack = (back) => historySync(port, back);
 let last: Route | null = null;
 let listening = false;
 
+/**
+ * (T269) THE ADDRESS OF A NAMED WATER IS ITS PAGE: `/water/<slug>` (what a search engine lists), with the route's other
+ * keys (part, view) as a query; anything else — the map, an unnamed reach, a water whose slug is not known (yet) — is
+ * `/` with the start link, as before. A slug still being fetched rewrites the address again when it lands.
+ */
 function write(): void {
   if (last === null) return;
   const { pathname, search, hash } = window.location;
-  const next = routeSearch(last, search);
-  if (next !== search) window.history.replaceState(window.history.state, "", `${pathname}${next}${hash}`);
+  const q = routeSearch(last, search);
+  const f = waterFrame(last);
+  const item = f?.item ?? null;
+  const slug = item ? slugKnown(item) : null;
+  let path = "/", next = q;
+  if (slug) {
+    const p = new URLSearchParams(q);
+    p.delete("regs");
+    const rest = p.toString().replace(/%3A/gi, ":");
+    path = `/water/${slug}`;
+    next = rest ? `?${rest}` : "";
+  } else if (item) {
+    const asked = last;
+    void slugOf(item).then((s) => { if (s && last === asked) write(); });
+  }
+  if (next !== search || path !== pathname) window.history.replaceState(window.history.state, "", `${path}${next}${hash}`);
 }
 
 export function routeUrl(r: Route): void {
