@@ -10159,6 +10159,34 @@
      "tidal": true
     }
    ]
+  },
+  {
+   "name": "STAVE RIVER",
+   "applies_to": {
+    "gnis_id": "14589"
+   },
+   "splits": [
+    {
+     "id": "stave_river__cpr_bridge_tidal_boundary",
+     "label": "CPR Bridge (tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.423613,
+       49.17198
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:356362384 — \"Stave River: CPR Bridge\"",
+     "_coord": [
+      -122.423613,
+      49.17198
+     ],
+     "tidal": true
+    }
+   ]
   }
  ]
 }
