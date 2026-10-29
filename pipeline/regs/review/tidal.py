@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional
@@ -163,7 +164,69 @@ def specified_by(r: dict, evs: list) -> list[str]:
     for e in evs:
         if e.get("effective") == "is" and (e.get("located") or {}).get("measure") is not None:
             out.append(f"DFO pass 2 names it: {e.get('label') or e.get('entry')}")
-    return out
+        elif _sign_words(e) and e.get("effective") == "at_or_below" and (e.get("located") or {}).get("measure") is not None:
+            out.append(f"DFO tidal boundary signs: {(e.get('located') or {}).get('located_by')}")
+    wp = r.get("words_point")
+    if wp and wp.get("measure") is not None:          # `tidal_words`: the words' landmark, resolved on the line
+        out.append(f"the words' landmark: {wp.get('located_by')}")
+    if r.get("id") in WORDS_LOCATED:
+        out.append(f"the words' landmark: {WORDS_LOCATED[r['id']]['located_by']}")
+    return list(dict.fromkeys(out))
+
+
+#: DFO's TRIANGULAR SIGNS (the definitions page: "A tidal boundary may also be designated by a fishery officer by
+#: placing a triangular sign near the mouth"): a freshwater page's "white triangular fishing boundary signs located
+#: near / at the mouth / the X Bridge" names the tidal boundary (not "near the Meziadin confluence")
+SIGN_RE = re.compile(r"triang\w* (?:fishing )?boundary signs?(?: located)? (?:near|at) (?:the )?(?:mouth|[\w' ()-]{0,40}bridge)", re.I)
+
+
+def _sign_words(e: dict) -> bool:
+    return bool(SIGN_RE.search(e.get("text") or ""))
+
+
+#: SOURCES THAT MENTION "THE TIDAL BOUNDARY" WITHOUT NAMING IT (relative distances, a bare name): not boundary
+#: words — DFO's default applies (owner 2026-10-28, Mamin)
+NOT_NAMING = {
+    "tidal:360873432": "Mamin River: the third bridge is ~10 km upstream of the tidal boundary — places the bridge, not the boundary",
+    "tidal:360863736": "Deena Creek: the second bridge is ~5 km upstream of the tidal boundary — places the bridge, not the boundary",
+    "tidal:360883982": "Dean River: \"downstream to the tidal boundary\" — names no landmark",
+    "tidal:354155031": "Marble River: \"from the Marble River tidal boundary downstream\" — names no landmark",
+}
+
+#: WORDS LOCATED HERE (owner 2026-10-28, "try hard to locate them"): resolved against the basemap roads / the mouth
+WORDS_LOCATED = {
+    "tidal:360877679": {"measure": 1566.6, "coord": [-129.960007, 54.996629], "confidence": "medium",
+                        "words": "The tidal waters of Gingolx (Kincolith) River from the Gingolx Highway Bridge downstream "
+                                 "(DFO Area 3 page); freshwater: upstream of white triangular fishing boundary signs located "
+                                 "at the Kincolith River Bridge (DFO Region 6 freshwater page)",
+                        "label": "Gingolx Highway Bridge (tidal boundary)",
+                        "located_by": "the only road crossing of the lower Ksi Gingolx (basemap: 'Grassy Point Street' @ 1567 m, "
+                                      "the village end of the Gingolx highway) — both DFO pages name the bridge"},
+    "tidal:354153710": {"measure": None, "coord": None, "confidence": "low",
+                        "words": "yellow triangle signs at the estuary mark the tidal/non-tidal boundary (web)",
+                        "label": "mouth (tidal boundary)",
+                        "located_by": "\"at the estuary\": the FWA mouth (the signs themselves are not pinned; low)"},
+}
+
+
+def boundary_words(r: dict, evs: list) -> list[str]:
+    """EVERY SOURCE THAT NAMES THE TIDAL BOUNDARY IN WORDS (owner 2026-10-28, Serpentine), located or not: a
+    word source (synopsis box / row, DFO page / notice, curated split, line) unless it only mentions the
+    boundary (`NOT_NAMING`), a web finding of a landmark (not "other"), a pass-2 entry whose words name the
+    boundary ("is"), DFO's triangular boundary signs (`SIGN_RE`), an owner-stated boundary, a resolved landmark."""
+    if r.get("id") in NOT_NAMING:
+        return []
+    out = [f"{s['kind']}: {s.get('words') or s.get('source')}" for s in r.get("sources") or []
+           if s.get("kind") != "tidal_gauge"]
+    out += [f"web ({w.get('kind')}): {w.get('marker')}" for w in (r.get("triage") or {}).get("web") or []
+            if w.get("kind") not in ("dfo_pass2", "dfo_default", "other")]
+    out += [f"DFO pass 2: {(e.get('text') or '')[:160]}" for e in evs
+            if e.get("implies") == "is" or (_sign_words(e) and e.get("page_type") == "freshwater")]
+    if (r.get("words_point") or {}).get("words"):
+        out.append(r["words_point"]["words"])
+    if r.get("id") in WORDS_LOCATED:
+        out.append(WORDS_LOCATED[r["id"]]["words"])
+    return list(dict.fromkeys(out))
 
 
 #: OWNER-STATED BOUNDARIES (words in their own right): Nitinat Lake is a tidal lagoon, so it and the river
@@ -230,8 +293,34 @@ def apply_default(by_id: dict, doc2: dict | None) -> dict:
         evs = (p2 or {}).get("evidence") or []
         stated = OWNER_STATED.get(cid)
         r["specified"] = ([stated["words"]] if stated else []) + specified_by(r, evs)
+        r["boundary_words"] = ([stated["words"]] if stated else []) + boundary_words(r, evs)
+        # located words -> "words name it"; words that name a boundary but are not located -> "locate" (never the default)
+        r["words_status"] = "located" if r["specified"] else ("locate" if r["boundary_words"] else None)
         r["words_conflict"] = words_conflict(r, evs, p2)
-        dv = None if stated else default_verdict(r, evs, p2)
+        dv = None if (stated or r["words_status"]) else default_verdict(r, evs, p2)
+        wl = WORDS_LOCATED.get(cid)
+        if wl and not stated:
+            m0 = float((r.get("mouth") or {}).get("measure") or 0.0)
+            at_m = wl["measure"] if wl["measure"] is not None else m0
+            at_c = wl["coord"] or (r.get("mouth") or {}).get("coord")
+            r["proposed_t212"] = r.get("proposed")
+            r["proposed"] = _mouth_proposal(r, at_m, at_c, f"the words: {wl['located_by']}", wl["label"])
+            r["words_confidence"] = wl["confidence"]
+            r["alternates"] = [{**a, "proposed": False} for a in r.get("alternates") or []] + [
+                {"id": "words-loc", "kind": "words", "label": wl["located_by"], "measure": at_m,
+                 "above_mouth_m": r["proposed"]["above_mouth_m"], "coord": at_c, "words": wl["words"],
+                 "proposed": True, "supported": True, "confidence": wl["confidence"]}]
+        else:
+            sign = next((e for e in evs if _sign_words(e) and e.get("effective") == "at_or_below"
+                         and (e.get("located") or {}).get("measure") is not None), None)
+            if sign is not None and not stated and not (r.get("proposed") or {}).get("basis", "").startswith("the words"):
+                lo = sign["located"]
+                r["proposed_t212"] = r.get("proposed")
+                r["proposed"] = _mouth_proposal(r, float(lo["measure"]), lo.get("coord") or (r.get("mouth") or {}).get("coord"),
+                                                f"the words (DFO triangular tidal boundary signs): {lo.get('located_by')}",
+                                                "tidal boundary signs (tidal boundary)" if float(lo.get("above_mouth_m") or 0) >= 1
+                                                else "mouth (tidal boundary)")
+                r["words_confidence"] = "medium"
         r["dfo_default"] = dv["verdict"] if dv else None
         r["dfo_default_why"] = dv["why"] if dv else None
         mouth = r.get("mouth") or {}
@@ -242,6 +331,13 @@ def apply_default(by_id: dict, doc2: dict | None) -> dict:
                 {"id": "owner0", "kind": "words", "label": stated["words"], "measure": stated["measure"],
                  "above_mouth_m": r["proposed"]["above_mouth_m"], "coord": stated["coord"], "words": stated["words"],
                  "proposed": True, "supported": True}]
+        elif r["words_status"] == "locate":
+            # named, not located: no point is proposed — the polygon's is never one; the owner places it
+            r["proposed"] = {**(r.get("proposed") or {}), "basis": "the words name a boundary that is not located yet — place it"}
+            r["proposed_t212"] = r0.get("proposed")
+            r["alternates"] = [{**a, "proposed": False,
+                                **({"label": f"{a.get('label')} (ignored for cuts)"} if a.get("kind") == "polygon" else {})}
+                               for a in r.get("alternates") or []]
         elif dv:
             t = r.setdefault("triage", {"class": None, "web": []})
             t["web"] = [{"id": "dfo-default", "marker": DEFAULT_REASON, "kind": "dfo_default", "quote": DEFAULT_QUOTE,

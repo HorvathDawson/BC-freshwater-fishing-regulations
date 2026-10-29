@@ -195,11 +195,10 @@ def test_default_high_when_nothing_specifies():
     assert out["proposed"]["measure"] == 0.0 and out["proposed_t212"]["measure"] == 20.0   # the mouth; file's kept
 
 
-def test_polygon_is_ignored_for_cuts_unlocated_words_do_not_specify():
+def test_polygon_is_ignored_for_cuts():
     from pipeline.regs.review import tidal as T
     r = _cand(polygon={"crossing": "blobs", "measure": 2971.6},
-              proposed={"measure": 2971.6, "above_mouth_m": 2971.6, "split_label": "mouth (tidal boundary)"},
-              sources=[{"kind": "synopsis_row", "source": "row", "words": "10 km upstream of the tidal boundary"}])
+              proposed={"measure": 2971.6, "above_mouth_m": 2971.6, "split_label": "mouth (tidal boundary)"})
     before = T.prints(r)
     out = T.apply_default({"tidal:1": r}, None)["tidal:1"]
     assert out["dfo_default"] == "high" and out["proposed"]["above_mouth_m"] == 0.0
@@ -221,3 +220,27 @@ def test_located_source_or_pass2_is_specifies_so_no_default():
     assert T.apply_default({"tidal:1": _cand()}, doc2)["tidal:1"]["dfo_default"] is None
     doc2 = {"proposals": [{"id": "tidal:1", "evidence": [{"effective": "at_or_above", "located": {"measure": 800.0, "above_mouth_m": 800.0}}]}]}
     assert T.apply_default({"tidal:1": _cand()}, doc2)["tidal:1"]["dfo_default"] == "conflict"
+
+
+def test_boundary_words_never_fall_to_the_default():
+    """Serpentine (owner 2026-10-28): words name a boundary -> never the mouth default; located -> words name it."""
+    from pipeline.regs.review import tidal as T
+    r = _cand(sources=[{"kind": "synopsis_box", "source": "box", "words": "X River: Burlington Northern Railway Bridge"}])
+    out = T.apply_default({"tidal:1": r}, None)["tidal:1"]
+    assert out["dfo_default"] is None and out["words_status"] == "locate"
+    r = _cand(sources=[{"kind": "synopsis_box", "source": "box", "words": "X River: BN Bridge"}],
+              words_point={"measure": 0.0, "located_by": "rail seaward of the mouth", "words": "X River: BN Bridge"})
+    out = T.apply_default({"tidal:1": r}, None)["tidal:1"]
+    assert out["dfo_default"] is None and out["words_status"] == "located"
+    doc2 = {"proposals": [{"id": "tidal:1", "evidence": [{"implies": "at_or_below", "effective": "at_or_below", "page_type": "freshwater",
+            "text": "upstream of white triangular fishing boundary signs located near mouth of river",
+            "located": {"measure": 0.0, "above_mouth_m": 0.0, "coord": [-125.0, 50.0], "located_by": "near the mouth"}}]}]}
+    out = T.apply_default({"tidal:1": _cand()}, doc2)["tidal:1"]
+    assert out["words_status"] == "located" and out["dfo_default"] is None
+
+
+def test_relative_mentions_are_not_boundary_words():
+    from pipeline.regs.review import tidal as T
+    r = _cand(id="tidal:360873432", sources=[{"kind": "synopsis_row", "source": "row", "words": "third bridge ~10 km upstream of the tidal boundary"}])
+    out = T.apply_default({"tidal:360873432": r}, None)["tidal:360873432"]
+    assert out["dfo_default"] == "high" and out["words_status"] is None

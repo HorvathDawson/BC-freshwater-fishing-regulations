@@ -1190,6 +1190,11 @@ export interface TidalRow {
   specified?: string[];
   /** where WORDS disagree with the mouth / the owner's mark (the polygon never makes a conflict) */
   words_conflict?: string[];
+  /** owner 2026-10-28: words name the boundary — "located" (words name it) or "locate" (named, not located yet:
+   *  never the mouth default, never bulk-accepted) */
+  words_status?: "located" | "locate" | null;
+  boundary_words?: string[];
+  words_confidence?: string | null;
   /** the mark in force is the owner's un-accept (deferred): the default bulk accept may take it */
   unaccepted?: boolean;
 }
@@ -1206,7 +1211,7 @@ export interface TidalProgress {
   /** DFO default: mouth counts by verdict (high / conflict) */
   by_dfo_default?: Record<string, number>;
   /** the Tidal tab's progress groups: marked / total each; `default_acceptable` = what the default bulk accept takes */
-  groups?: Record<"words" | "dfo_mouth" | "dfo_default" | "conflict", { total: number; marked: number }>
+  groups?: Record<"words" | "words_locate" | "dfo_mouth" | "dfo_default" | "conflict", { total: number; marked: number }>
     & { unmarked: { total: number; marked: number; unmarked: number }; default_acceptable: number };
   coverage: Record<string, unknown>;
 }

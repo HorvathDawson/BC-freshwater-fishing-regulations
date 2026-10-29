@@ -113,10 +113,10 @@ export function defaultSplit(c: TidalCandidate): NewSplit {
 /** the rows the "DFO default: mouth" bulk accept takes: default high (never a conflict), never marked
  *  — or un-accepted by the owner */
 export const defaultAcceptable = (rows: TidalRow[]) =>
-  rows.filter((r) => r.dfo_default === "high" && (r.verify === "unmarked" || r.unaccepted));
+  rows.filter((r) => r.dfo_default === "high" && !(r.boundary_words?.length) && (r.verify === "unmarked" || r.unaccepted));
 
 const GROUP_WORDS: [string, string][] = [
-  ["words", "words name it"], ["dfo_mouth", "DFO confirms mouth"], ["dfo_default", "DFO default: mouth"], ["conflict", "conflicts"],
+  ["words", "words name it"], ["words_locate", "words name it — locate"], ["dfo_mouth", "DFO confirms mouth"], ["dfo_default", "DFO default: mouth"], ["conflict", "conflicts"],
 ];
 
 interface Props {
@@ -374,6 +374,9 @@ export function TidalReview({ mode }: Props) {
                   {r.dfo_mouth === "conflict" ? "DFO mouth: conflict" : r.dfo_mouth === "new" ? "DFO mouth: new" : "DFO confirms mouth"}</span>}
                 {r.dfo_default && <span className={`chip-tag${r.dfo_default === "conflict" ? " new" : " suggested"}`} title={r.dfo_default_why ?? ""}>
                   {r.dfo_default === "conflict" ? "DFO default: conflict" : "DFO default: mouth"}</span>}
+                {r.words_status === "locate" && <span className="chip-tag new" title={(r.boundary_words ?? []).join(" | ")}>words name it — locate</span>}
+                {r.words_status === "located" && r.n_words === 0 && <span className="chip-tag suggested" title={(r.boundary_words ?? []).join(" | ")}>
+                  words located{r.words_confidence ? ` · ${r.words_confidence}` : ""}</span>}
                 {r.unaccepted && <span className="chip-tag new" title="the owner un-accepted this: no specified boundary">un-accepted</span>}
                 {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
                 {r.multi_crossing && r.triage !== "multi-crossing" && <span className="chip-tag" title="the line crosses the polygon in, out and in again">{r.n_cuts} crossings</span>}

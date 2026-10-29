@@ -1909,5 +1909,14 @@
   "snapshot": null,
   "source_url": "https://www.pac.dfo-mpo.gc.ca/sitemap-eng.html",
   "status": 404
+ },
+ "/waves-vagues/Library/359784.pdf": {
+  "archive_url": "http://web.archive.org/web/20250806115733/https://waves-vagues.dfo-mpo.gc.ca/Library/359784.pdf",
+  "bytes": 1806767,
+  "fetched": "2026-10-28",
+  "note": "DFO BC Tidal Waters Sport Fishing Guide 2015 (74 pp). 'Tidal Water Boundaries' table: 14 Region 2 rivers + Fraser-Pitt, Squamish (Mamquam blind channel tidal), Skeena \u2014 all in tidal_words.LANDMARKS",
+  "snapshot": null,
+  "source_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/359784.pdf",
+  "status": "direct"
  }
 }

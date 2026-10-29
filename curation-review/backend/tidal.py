@@ -49,8 +49,10 @@ def _marked(r: dict) -> bool:
 def groups(rows: list[dict]) -> dict:
     """THE TIDAL TAB'S PROGRESS GROUPS (owner 2026-10-28): marked / total per group — words name it (a
     source specifies the boundary), DFO confirms mouth, DFO default: mouth, conflicts — and the unmarked
-    count; `default_acceptable` is what the default bulk accept would take (high, unmarked or un-accepted)."""
-    sel = {"words": [r for r in rows if r["specified"]],
+    count; `default_acceptable` is what the default bulk accept would take (high, unmarked or un-accepted — never a
+    row whose words name a boundary: those have no default)."""
+    sel = {"words": [r for r in rows if r["words_status"] == "located"],
+           "words_locate": [r for r in rows if r["words_status"] == "locate"],
            "dfo_mouth": [r for r in rows if r["dfo_mouth"] in ("upgrade", "new")],
            "dfo_default": [r for r in rows if r["dfo_default"] == "high"],
            # only WORDS make a conflict (owner 2026-10-28: the polygon is ignored for cuts)
@@ -58,7 +60,8 @@ def groups(rows: list[dict]) -> dict:
     out = {k: {"total": len(v), "marked": sum(1 for r in v if _marked(r))} for k, v in sel.items()}
     out["unmarked"] = {"total": len(rows), "marked": sum(1 for r in rows if _marked(r)),
                        "unmarked": sum(1 for r in rows if r["verify"] == "unmarked")}
-    out["default_acceptable"] = sum(1 for r in sel["dfo_default"] if r["verify"] == "unmarked" or r["unaccepted"])
+    out["default_acceptable"] = sum(1 for r in sel["dfo_default"] if (r["verify"] == "unmarked" or r["unaccepted"])
+                                    and not r["boundary_words"])
     return out
 
 
@@ -97,6 +100,9 @@ def _row(r: dict, m) -> dict:
             "dfo_default": r.get("dfo_default"), "dfo_default_why": r.get("dfo_default_why"),
             "specified": list(r.get("specified") or []),
             "words_conflict": list(r.get("words_conflict") or []),
+            # owner 2026-10-28: words that name the boundary — "located" (words name it) | "locate" (not located yet)
+            "words_status": r.get("words_status"), "boundary_words": list(r.get("boundary_words") or []),
+            "words_confidence": r.get("words_confidence"),
             # un-accepted by the owner (a deferred mark superseding an accept): the default bulk accept may take it
             "unaccepted": bool(m is not None and m.verdict == "deferred" and m.note.startswith(UNACCEPT_NOTE))}
 

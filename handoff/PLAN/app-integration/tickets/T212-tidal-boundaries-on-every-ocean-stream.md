@@ -143,3 +143,14 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   owner-stated (`OWNER_STATED`, head of Nitinat Lake, 23,306.5 m). Counts now: **default high 1131, default
   conflict 9, words name it 28; conflicts (words only) 17**; bulk-acceptable 1123. The 5 polygon accepts (Mamin,
   Adam, Amos, Asseek, Amor De Cosmos) re-marked at the mouth by the owner's call.
+- **Boundary words never fall to the default (owner 2026-10-28, Serpentine).** `boundary_words` sweeps every source
+  (word sources, web landmarks, pass-2 "is", DFO triangular-sign rows, `tidal_words` landmarks); `NOT_NAMING` keeps
+  Mamin / Deena / Dean / Marble on the default. 7 left the default, all located: Serpentine (0 m, BNSF trestle
+  seaward of the mouth) and Squamish (14 m) — already resolved by `tidal_words` but missed; Illiance, Kitsault,
+  Wilauks (DFO triangular signs near the mouth, medium); Ksi Gingolx (Gingolx Highway / Kincolith River Bridge = the
+  only road crossing, 1567 m, medium); Oyster ("yellow triangle signs at the estuary" → the mouth, low). "Locate"
+  group: 0. Counts: words name it 35, default high 1124 (bulk-acceptable 1117), default conflict 9, conflicts 17.
+- DFO Tidal Waters Sport Fishing Guide 2015 cached (`data/source/dfo_tidal_areas/2026-10-28/waves-vagues/Library/
+  359784.pdf`): its "Tidal Water Boundaries" table is 14 Region 2 rivers + Fraser–Pitt, Squamish, Skeena — every one
+  already in `tidal_words.LANDMARKS`. It also says "the Mamquam blind channel [is] considered tidal" — Mamquam is
+  not a T212 candidate (a Squamish tributary): open.

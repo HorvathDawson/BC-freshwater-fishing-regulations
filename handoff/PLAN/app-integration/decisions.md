@@ -1603,3 +1603,8 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   as its own line beside the gear lines, never deciding chum.
 - Q5: a tributary entering exactly at a cut belongs to BOTH sides (kept).
 - Q6: the ~30 undrawn Skeena places go to the DFO review queue (T164).
+- **Later 2026-10-28 (Serpentine fall-through):** the mouth default applies ONLY when no source names a boundary in
+  words. Words naming a boundary but not located → "Words name it — locate" (never the default, never bulk-accepted
+  at the mouth). Mentions that only place something relative to "the tidal boundary" (Mamin, Deena) or name no
+  landmark (Dean, Marble) are not boundary words. DFO's triangular boundary signs "near / at the mouth / at the X
+  Bridge" on the freshwater pages are boundary words (the definitions page: "a triangular sign near the mouth").
