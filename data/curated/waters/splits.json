@@ -2865,6 +2865,26 @@
       -122.7794,
       49.01609
      ]
+    },
+    {
+     "id": "campbell_river__burlington_northern_railway_brid",
+     "label": "Burlington Northern Railway Bridge (tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.777938,
+       49.012794
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:356331018 — \"Campbell River: Burlington Northern Railway Bridge\"",
+     "_coord": [
+      -122.777938,
+      49.012794
+     ],
+     "tidal": true
     }
    ]
   },
