@@ -28,6 +28,8 @@ export interface Report {
   id: string; created: string; received: string; reason: Reason; text: string; email: string | null;
   /** (owner 2026-10-29) the reporter ticked "You may contact me" */
   contact?: boolean;
+  /** (T291) sent by a tool (the test bed, smoke runs): hidden unless "show test reports" is ticked */
+  test?: boolean;
   /** the backend's mailto: draft (reports.reply_mailto) — only when contact is allowed */
   reply?: string | null;
   context: { screen?: string; tab?: string; place?: string; water?: string; part?: number; partLabel?: string;
@@ -56,6 +58,7 @@ export function ReportsView() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<Filter>("open");
+  const [showTest, setShowTest] = useState(false);
   const [selected, setSelected] = useState<string | null>(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
     return h.startsWith(REPORTS_HASH) ? h.slice(REPORTS_HASH.length) || null : null;
@@ -73,7 +76,10 @@ export function ReportsView() {
       .then((b) => {
         // merge: a report the worker no longer lists (older than its window) stays here with its status
         setReports((old) => {
-          const byId = new Map(old.map((x) => [x.id, x]));
+          // (T291) a cached report inside the window the worker answers for, but no longer listed, was deleted there: dropped here too
+          const windowStart = new Date(Date.now() - 90 * 86_400_000).toISOString();
+          const listed = new Set(b.reports.map((x) => x.id));
+          const byId = new Map(old.filter((x) => listed.has(x.id) || x.received < windowStart).map((x) => [x.id, x]));
           for (const x of b.reports) byId.set(x.id, x);
           const next = [...byId.values()].sort((a, c) => (a.received < c.received ? 1 : a.received > c.received ? -1 : 0));
           writeLS(KEY_REPORTS, next);
@@ -91,20 +97,23 @@ export function ReportsView() {
     setStatusMap((m) => { const next = { ...m, [id]: s }; writeLS(KEY_STATUS, next); return next; });
   }, []);
 
+  // (T291) test reports are hidden unless asked for, and never counted
+  const shown = useMemo(() => (showTest ? reports : reports.filter((r) => !r.test)), [reports, showTest]);
+  const hiddenTests = reports.length - reports.filter((r) => !r.test).length;
   const counts = useMemo(() => {
     const c: Record<ReportStatus, number> = { new: 0, looking: 0, fixed: 0, wontfix: 0 };
-    for (const r of reports) c[st(r.id)]++;
+    for (const r of reports) if (!r.test) c[st(r.id)]++;
     return c;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reports, status]);
   useEffect(() => { setBadge("reports", String(counts.new + counts.looking)); }, [counts]);
 
-  const rows = useMemo(() => reports.filter((r) => {
+  const rows = useMemo(() => shown.filter((r) => {
     const s = st(r.id);
     return filter === "all" || (filter === "open" ? s === "new" || s === "looking" : s === filter);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [reports, status, filter]);
-  const row = reports.find((r) => r.id === selected) ?? null;
+  }), [shown, status, filter]);
+  const row = shown.find((r) => r.id === selected) ?? null;
 
   const open = useCallback((id: string) => {
     setSelected(id);
@@ -138,6 +147,10 @@ export function ReportsView() {
             {STATUSES.map((s) => <option key={s.k} value={s.k}>{s.t}</option>)}
             <option value="all">all</option>
           </select>
+          <label className="dim" style={{ fontSize: 12, display: "inline-flex", gap: 4, alignItems: "center" }}
+            title="reports sent by our own tools (test bed, smoke runs); the staging worker deletes them after 7 days">
+            <input type="checkbox" data-testid="reports-show-test" checked={showTest} onChange={(e) => setShowTest(e.target.checked)} />
+            show test reports{hiddenTests ? ` (${hiddenTests})` : ""}</label>
           <button className="btn small primary" data-testid="reports-sync" disabled={busy} onClick={sync}
             title="pull the reports from staging R2 (private/reports/) through the feeds worker">
             {busy ? "Syncing…" : "Sync"}</button>
@@ -147,7 +160,7 @@ export function ReportsView() {
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setError("")}>dismiss</button></div>}
       <div className="main">
         <div className="queue" data-testid="reports-queue">
-          <div className="queue-group">{rows.length} report{rows.length === 1 ? "" : "s"}{reports.length ? "" : " — press Sync"}</div>
+          <div className="queue-group">{rows.length} report{rows.length === 1 ? "" : "s"}{shown.length ? "" : " — press Sync"}</div>
           {rows.map((r) => {
             const s = STATUSES.find((x) => x.k === st(r.id))!;
             return (

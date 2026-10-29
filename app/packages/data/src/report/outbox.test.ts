@@ -110,3 +110,15 @@ describe("the report outbox (T237)", () => {
     svc.stop();
   });
 });
+
+describe("a tool's build tags its reports (T291)", () => {
+  it("test: true adds `test` to what is POSTed; an ordinary build adds nothing", async () => {
+    const bodies: any[] = [];
+    const fetch = (async (_u: unknown, i?: RequestInit) => { bodies.push(JSON.parse(String(i?.body))); return new Response("{}", { status: 201 }); }) as never;
+    const p = { format: "report/1", id: "0123456789abcdef", created: "2026-10-29T00:00:00Z", reason: "rule", text: "x", email: null, context: {} } as never;
+    await createReportOutbox({ url: "u", fetch, test: true }).send(p);
+    await createReportOutbox({ url: "u", fetch }).send(p);
+    expect(bodies[0].test).toBe(true);
+    expect(bodies[1].test).toBeUndefined();
+  });
+});

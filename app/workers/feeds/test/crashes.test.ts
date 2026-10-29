@@ -109,3 +109,24 @@ describe("POST /crash (T242)", () => {
     expect([...BUCKET.m.keys()].filter((k) => !k.includes("/limits/"))).toHaveLength(1);
   });
 });
+
+describe("the test tag (T291)", () => {
+  it("is honoured on staging only: stored apart, not in the digest, listed with ?test=1, purged after 7 days", async () => {
+    const BUCKET = new MemBucket();
+    await handleCrash(post(crash({ test: true })), { BUCKET, FEEDS_ENV: "staging" }, at("2026-10-29T20:00:00Z"));
+    expect([...BUCKET.m.keys()].filter((k) => k.startsWith("private/crashes-test/"))).toHaveLength(1);
+    expect([...BUCKET.m.keys()].filter((k) => /^private\/crashes\/[0-9a-f]{16}/.test(k))).toEqual([]);
+    expect(await crashEvents(BUCKET, () => false, at("2026-10-29T21:00:00Z"), "x")).toEqual([]);
+    const env = { BUCKET, RUN_TOKEN: "tok", FEEDS_ENV: "staging" } as never;
+    const get = async (q: string) => ((await (await worker.fetch(new Request(`https://w.example/crashes?since=2000-01-01${q}`, { headers: { authorization: "Bearer tok" } }), env)).json()) as { crashes: { test?: boolean }[] }).crashes;
+    expect(await get("")).toHaveLength(0);
+    expect((await get("&test=1"))[0]!.test).toBe(true);
+    expect((await purgeCrashes(BUCKET, at("2026-11-10T00:00:00Z"))).deleted).toBe(1);
+  });
+  it("a production worker (or none) ignores the tag: the kind is an ordinary one and the digest tells it", async () => {
+    const BUCKET = new MemBucket();
+    await handleCrash(post(crash({ test: true })), { BUCKET, FEEDS_ENV: "production" }, at("2026-10-29T20:00:00Z"));
+    expect([...BUCKET.m.keys()].filter((k) => k.includes("crashes-test"))).toEqual([]);
+    expect(await crashEvents(BUCKET, () => false, at("2026-10-29T21:00:00Z"), "x")).toHaveLength(1);
+  });
+});

@@ -20,6 +20,8 @@ import { CORS, listKeys, rateLimit, sha256hex, type ReportEnv } from "./reports"
 export const CRASHES_PREFIX = "private/crashes/";
 const LIMITS_PREFIX = `${CRASHES_PREFIX}limits/`;
 export const CRASH_FORMAT = "crash/1";
+/** (T291) error kinds a TOOL sent (`test: true`): stored apart, not in the digest, deleted 7 days after last seen. Staging only. */
+export const TEST_CRASHES_PREFIX = "private/crashes-test/";
 export const CRASH_KINDS = ["js", "promise", "render", "native"] as const;
 export const ROUTE_KINDS = ["map", "conditions", "runs", "spots", "menu", "water", "other"] as const;
 export const CRASH_LIMITS = { bytes: 8192, name: 60, message: 200, stack: 2000, field: 100 } as const;
@@ -37,9 +39,11 @@ export interface CrashPayload {
   route: (typeof ROUTE_KINDS)[number];
   app: string; env: string; platform: string; release: string;
   name: string; message: string; stack: string;
+  test?: boolean;
 }
 export interface CrashKind {
   format: "crash-kind/1";
+  test?: true;
   hash: string;
   first: string;
   last: string;
@@ -55,11 +59,12 @@ const json = (body: unknown, status: number) =>
 export function validateCrash(raw: unknown): { ok: true; crash: CrashPayload } | { ok: false; error: string } {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, error: "not a crash report" };
   const r = raw as Record<string, unknown>;
-  const known = new Set(["format", "created", "kind", "fatal", "route", "name", "message", "stack", ...STR_FIELDS]);
+  const known = new Set(["format", "created", "kind", "fatal", "route", "name", "message", "stack", "test", ...STR_FIELDS]);
   for (const k of Object.keys(r)) if (!known.has(k)) return { ok: false, error: `unknown ${k}` };
   if (r.format !== CRASH_FORMAT) return { ok: false, error: `format must be ${CRASH_FORMAT}` };
   if (typeof r.created !== "string" || r.created.length > 40 || Number.isNaN(Date.parse(r.created))) return { ok: false, error: "bad created" };
   if (!(CRASH_KINDS as readonly string[]).includes(r.kind as string)) return { ok: false, error: "bad kind" };
+  if (r.test !== undefined && typeof r.test !== "boolean") return { ok: false, error: "bad test" };
   if (typeof r.fatal !== "boolean") return { ok: false, error: "bad fatal" };
   if (!(ROUTE_KINDS as readonly string[]).includes(r.route as string)) return { ok: false, error: "bad route" };
   for (const k of STR_FIELDS) if (typeof r[k] !== "string" || (r[k] as string).length > CRASH_LIMITS.field) return { ok: false, error: `bad ${k}` };
@@ -93,9 +98,10 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   const refused = await rateLimit(env, ip, now, { prefix: LIMITS_PREFIX, gapMs: CRASH_GAP_MS, perDay: CRASH_PER_DAY, edge: false });
   if (refused) return json({ ok: false, error: refused }, 429);
   const hash = await crashHash(v.crash);
-  const key = crashKey(hash);
+  const isTest = v.crash.test === true && env.FEEDS_ENV === "staging";   // honoured on staging only
+  const key = isTest ? `${TEST_CRASHES_PREFIX}${hash}.json` : crashKey(hash);
   const at = now.toISOString();
-  const { format: _format, ...sample } = v.crash;
+  const { format: _format, test: _test, ...sample } = v.crash;
   let kind: CrashKind = { format: "crash-kind/1", hash, first: at, last: at, count: 0, versions: {}, sample };
   try {
     const o = await env.BUCKET.get(key);
@@ -116,14 +122,15 @@ const kindKeys = async (bucket: R2BucketLike, max: number) =>
   (await listKeys(bucket, CRASHES_PREFIX, max)).filter((k) => !k.startsWith(LIMITS_PREFIX));
 
 /** GET /crashes (authed): the kinds last seen on or after `since` (YYYY-MM-DD), newest first. */
-export async function listCrashes(bucket: R2BucketLike, since: string, max = 500): Promise<CrashKind[]> {
+export async function listCrashes(bucket: R2BucketLike, since: string, max = 500, withTest = false): Promise<CrashKind[]> {
   const out: CrashKind[] = [];
-  for (const k of await kindKeys(bucket, max)) {
+  const keys = [...await kindKeys(bucket, max), ...(withTest ? await listKeys(bucket, TEST_CRASHES_PREFIX, max) : [])];
+  for (const k of keys) {
     const o = await bucket.get(k);
     if (!o) continue;
     try {
       const c = JSON.parse(await o.text()) as CrashKind;
-      if (c.last.slice(0, 10) >= since) out.push(c);
+      if (c.last.slice(0, 10) >= since) out.push(k.startsWith(TEST_CRASHES_PREFIX) ? { ...c, test: true } : c);
     } catch { /* skipped */ }
   }
   return out.sort((a, b) => (a.last < b.last ? 1 : a.last > b.last ? -1 : 0));
@@ -164,12 +171,14 @@ export function crashEvent(c: CrashKind, at: string): FeedEvent {
 /** The daily purge: delete every kind not seen for CRASH_RETENTION_DAYS. */
 export async function purgeCrashes(bucket: R2BucketLike, now: Date = new Date()): Promise<{ ok: boolean; deleted: number; failed: number }> {
   const cutoff = now.getTime() - CRASH_RETENTION_DAYS * 86_400_000;
+  const testCutoff = now.getTime() - 7 * 86_400_000;
   const res = { ok: true, deleted: 0, failed: 0 };
   try {
-    for (const k of await kindKeys(bucket, Infinity)) {
+    for (const k of [...await kindKeys(bucket, Infinity), ...await listKeys(bucket, TEST_CRASHES_PREFIX, Infinity)]) {
+      const lim = k.startsWith(TEST_CRASHES_PREFIX) ? testCutoff : cutoff;
       let last = NaN;
       try { const o = await bucket.get(k); if (o) last = Date.parse(JSON.parse(await o.text()).last); } catch { /* unreadable: deleted below */ }
-      if (Number.isFinite(last) && last >= cutoff) continue;
+      if (Number.isFinite(last) && last >= lim) continue;
       try { await bucket.delete(k); res.deleted++; } catch { res.failed++; }
     }
   } catch { res.ok = false; }

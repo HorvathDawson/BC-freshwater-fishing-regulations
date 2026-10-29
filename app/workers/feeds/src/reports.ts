@@ -18,6 +18,11 @@ import type { FeedEvent } from "./events";
 import type { R2BucketLike } from "./io";
 
 export const REPORTS_PREFIX = "private/reports/";
+/** (T291) reports a TOOL sent (the test bed, smoke runs) carry `test: true` and are stored apart: not in the digest, not in the
+ *  default review list, deleted after TEST_RETENTION_DAYS. Honoured only by the staging worker (FEEDS_ENV = "staging"); a
+ *  production worker ignores the field, so a real user can never tag a report. */
+export const TEST_REPORTS_PREFIX = "private/reports-test/";
+export const TEST_RETENTION_DAYS = 7;
 const LIMITS_PREFIX = `${REPORTS_PREFIX}limits/`;
 export const REPORT_FORMAT = "report/1";
 export const REASONS = ["rule", "place", "missing", "name", "other"] as const;
@@ -44,12 +49,16 @@ export interface StoredReport {
   /** (owner 2026-10-29) the reporter ticked "You may contact me" — true only with an email */
   contact: boolean;
   context: Record<string, unknown>;
+  /** (T291) sent by a tool: stored under reports-test/, hidden from review by default */
+  test?: true;
 }
 
 export interface ReportEnv {
   BUCKET: R2BucketLike;
   /** Cloudflare rate-limit binding ([[ratelimits]] in wrangler.toml); absent under test */
   REPORT_LIMITER?: { limit(o: { key: string }): Promise<{ success: boolean }> };
+  /** "staging" on the staging worker: the only place the `test` tag is honoured (T291) */
+  FEEDS_ENV?: string;
   /** salts the IP hash (a secret; a fixed fallback keeps the hash stable when unset) */
   REPORT_SALT?: string;
 }
@@ -79,6 +88,7 @@ export function validateReport(raw: unknown): { ok: true; report: Omit<StoredRep
     email = r.email.trim();
   }
   if (r.contact !== undefined && typeof r.contact !== "boolean") return { ok: false, error: "bad contact" };
+  if (r.test !== undefined && typeof r.test !== "boolean") return { ok: false, error: "bad test" };
   const contact = !!email && r.contact === true;
   const c = r.context;
   if (!c || typeof c !== "object" || Array.isArray(c)) return { ok: false, error: "bad context" };
@@ -96,7 +106,7 @@ export function validateReport(raw: unknown): { ok: true; report: Omit<StoredRep
       ctx[k] = v;
     } else return { ok: false, error: `unknown context.${k}` };
   }
-  return { ok: true, report: { format: REPORT_FORMAT, id: r.id, created: r.created, reason: r.reason as StoredReport["reason"], text: r.text.trim(), email, contact, context: ctx } };
+  return { ok: true, report: { format: REPORT_FORMAT, id: r.id, created: r.created, reason: r.reason as StoredReport["reason"], text: r.text.trim(), email, contact, context: ctx, ...(r.test === true ? { test: true as const } : {}) } };
 }
 
 export async function sha256hex(s: string): Promise<string> {
@@ -149,7 +159,10 @@ export async function handleReport(req: Request, env: ReportEnv, now: Date = new
   const v = validateReport(body);
   if (!v.ok) return json({ ok: false, error: v.error }, 400);
   const day = now.toISOString().slice(0, 10);
-  const key = reportKey(day, v.report.id);
+  // (T291) the tag counts on staging only; anywhere else it is dropped and the report is an ordinary one
+  const isTest = v.report.test === true && env.FEEDS_ENV === "staging";
+  if (!isTest) delete (v.report as { test?: true }).test;
+  const key = isTest ? `${TEST_REPORTS_PREFIX}${day}/${v.report.id}.json` : reportKey(day, v.report.id);
   // the app's outbox re-sending after a lost answer: already stored, the same answer, nothing counted
   if (await env.BUCKET.get(key)) return json({ ok: true, id: v.report.id }, 200);
   const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
@@ -217,12 +230,13 @@ export async function purgeReports(bucket: R2BucketLike, now: Date = new Date())
 }
 
 /** GET /reports (authed): every report received on or after `since` (YYYY-MM-DD), newest first, at most `max`. */
-export async function listReports(bucket: R2BucketLike, since: string, now: Date = new Date(), max = 500): Promise<StoredReport[]> {
+export async function listReports(bucket: R2BucketLike, since: string, now: Date = new Date(), max = 500, withTest = false): Promise<StoredReport[]> {
   const today = now.toISOString().slice(0, 10);
   const n = Math.min(366, Math.max(1, Math.round((Date.parse(today) - Date.parse(since)) / 86_400_000) + 1));
   const keys: string[] = [];
   for (const d of days(now, Number.isFinite(n) ? n : 30)) {
     keys.push(...(await listKeys(bucket, `${REPORTS_PREFIX}${d}/`)));
+    if (withTest) keys.push(...(await listKeys(bucket, `${TEST_REPORTS_PREFIX}${d}/`)));
     if (keys.length >= max) break;
   }
   const out: StoredReport[] = [];
@@ -230,7 +244,9 @@ export async function listReports(bucket: R2BucketLike, since: string, now: Date
     const o = await bucket.get(k);
     if (!o) continue;
     try {
-      out.push(JSON.parse(await o.text()));
+      const rep = JSON.parse(await o.text()) as StoredReport;
+      if (k.startsWith(TEST_REPORTS_PREFIX)) rep.test = true;
+      out.push(rep);
     } catch { /* a broken object is skipped */ }
   }
   return out.sort((a, b) => (a.received < b.received ? 1 : a.received > b.received ? -1 : 0));
@@ -274,4 +290,16 @@ export function reportEvent(r: StoredReport, at: string): FeedEvent {
       `Review: the review app's Reports tab (Sync).`,
     at,
   };
+}
+
+/** (T291) delete test reports received more than TEST_RETENTION_DAYS ago (by their day folder). */
+export async function purgeTestReports(bucket: R2BucketLike, now: Date = new Date()): Promise<number> {
+  if (!bucket.list) return 0;
+  const cutoff = now.getTime() - TEST_RETENTION_DAYS * 86_400_000;
+  let n = 0;
+  for (const k of await listKeys(bucket, TEST_REPORTS_PREFIX, Infinity)) {
+    const day = k.slice(TEST_REPORTS_PREFIX.length).match(/^(\d{4}-\d{2}-\d{2})\//)?.[1];
+    if (day && Date.parse(day) + 86_400_000 < cutoff) { try { await bucket.delete(k); n++; } catch { /* next day */ } }
+  }
+  return n;
 }

@@ -38,6 +38,8 @@ export function createReportOutbox(o: {
   store?: ReportStore;
   fetch?: typeof fetch;
   online?: () => boolean;
+  /** (T291) a tool's build: every report it sends is tagged `test` (the staging worker stores those apart and ignores them) */
+  test?: boolean;
 }): ReportOutbox {
   const f = o.fetch ?? ((u: RequestInfo | URL, i?: RequestInit) => fetch(u, i));
   let queue: ReportPayload[] = [];
@@ -73,7 +75,8 @@ export function createReportOutbox(o: {
 
   let flushing: Promise<number> | null = null;
   return {
-    async send(p) {
+    async send(p0) {
+      const p = o.test ? { ...p0, test: true as const } : p0;
       // a report already queued goes after them, in order
       if (queue.length) {
         queue.push(p);

@@ -27,7 +27,7 @@ import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
 import { runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./backup";
 import { crashEvents, handleCrash, listCrashes, purgeCrashes } from "./crashes";
-import { CORS as REPORT_CORS, handleReport, listReports, purgeReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
+import { CORS as REPORT_CORS, handleReport, listReports, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 export interface Env extends ReportEnv {
   BUCKET: R2BucketLike;
@@ -377,6 +377,7 @@ async function backup(env: Env, now = new Date()) {
 /** (T271) the daily report purge (reports older than 180 days); the count is kept for /status, a failure rides the daily digest */
 async function purge(env: Env, now = new Date()) {
   const r = await purgeReports(env.BUCKET, now);
+  try { await purgeTestReports(env.BUCKET, now); } catch { /* the next day's run tries again */ }   // (T291) test reports after 7 days
   try { await purgeCrashes(env.BUCKET, now); } catch { /* the next day's run tries again */ }   // (T242) error kinds unseen for 90 days
   try {
     await env.BUCKET.put(RETENTION_STATUS_KEY, JSON.stringify(r), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
@@ -413,13 +414,13 @@ export default {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const since = url.searchParams.get("since") ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(since)) return new Response("since must be YYYY-MM-DD", { status: 400 });
-      return Response.json({ crashes: await listCrashes(env.BUCKET, since) }, { headers: { "Cache-Control": "no-store" } });
+      return Response.json({ crashes: await listCrashes(env.BUCKET, since, 500, url.searchParams.get("test") === "1") }, { headers: { "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/reports" && req.method === "GET") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const since = url.searchParams.get("since") ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(since)) return new Response("since must be YYYY-MM-DD", { status: 400 });
-      return Response.json({ reports: await listReports(env.BUCKET, since) }, { headers: { "Cache-Control": "no-store" } });
+      return Response.json({ reports: await listReports(env.BUCKET, since, new Date(), 500, url.searchParams.get("test") === "1") }, { headers: { "Cache-Control": "no-store" } });
     }
     if (req.method === "GET" && (url.pathname === "/status" || url.pathname === "/status.json")) {
       const now = new Date();

@@ -156,6 +156,8 @@ export interface ReportContext {
 
 export interface ReportPayload {
   format: typeof REPORT_FORMAT;
+  /** (T291) set only by a tool's build (`EXPO_PUBLIC_TEST_REPORTS=1`): the staging worker stores it apart and ignores it */
+  test?: true;
   /** made on the device, so a queued report re-sent after a lost answer is stored once */
   id: string;
   /** when the reader pressed Send (ISO) */

@@ -87,6 +87,8 @@ export const ENDPOINTS = endpointsFor(APP_ENV.origin, UPDATE_CHANNEL);
 
 /** (T237) Where "Send report" posts (null: email / share only). */
 export const REPORT_URL = reportUrlFor(APP_ENV.env, process.env.EXPO_PUBLIC_REPORT_URL);
+/** (T291) a TOOL's build (the test bed: EXPO_PUBLIC_TEST_REPORTS=1) or a local dev build (env "local"): its reports and crash reports are tagged `test`. Never a store or production build. */
+export const TEST_REPORTS = process.env.EXPO_PUBLIC_TEST_REPORTS === "1" || APP_ENV.env === "local";
 /** (T242) where an app error is sent (the same worker); null: none */
 export const CRASH_URL = crashUrlFor(REPORT_URL, process.env.EXPO_PUBLIC_CRASH_URL);
 

@@ -91,7 +91,7 @@ def test_the_list_asks_the_worker_with_the_token_and_resolves_this_vintage(env):
     env["mp"].setattr(reports.urllib.request, "urlopen", opener)
     got = env["client"].get("/api/reports?since=2026-10-01")
     assert got.status_code == 200, got.text
-    assert seen == {"url": "https://worker.invalid/reports?since=2026-10-01", "auth": "Bearer tok"}
+    assert seen == {"url": "https://worker.invalid/reports?since=2026-10-01&test=1", "auth": "Bearer tok"}
     same, other = got.json()["reports"]
     assert same["section"]["vintage"] == "same" and same["section"]["node"] and item in same["section"]["items"]
     assert same["item"]["id"] == same["section"]["items"][0]          # no water named: the section's

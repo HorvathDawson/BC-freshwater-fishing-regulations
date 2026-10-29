@@ -150,6 +150,8 @@ export function createCrashReporter(o: {
   fetch?: typeof fetch;
   now?: () => Date;
   maxPerRun?: number;
+  /** (T291) a tool's build: payloads are tagged `test` (the staging worker stores those apart and ignores them) */
+  test?: boolean;
 }): CrashReporter {
   const f = o.fetch ?? ((u: RequestInfo | URL, i?: RequestInit) => fetch(u, i));
   const now = o.now ?? (() => new Date());
@@ -157,7 +159,8 @@ export function createCrashReporter(o: {
   const max = o.maxPerRun ?? 5;
   const clearKept = () => { try { o.store?.write(""); } catch { /* nothing kept */ } };
 
-  async function post(p: CrashPayload): Promise<boolean> {
+  async function post(p0: CrashPayload): Promise<boolean> {
+    const p = o.test ? { ...p0, test: true } : p0;
     try {
       const r = await f(o.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p), keepalive: true });
       return r.ok;

@@ -165,3 +165,25 @@ describe("the owner's digest (T237: a report is a digest line, never urgent)", (
     expect(await reportEvents(BUCKET, () => false, at("2026-10-30T10:00:00Z"), "x")).toHaveLength(0);
   });
 });
+
+describe("the test tag (T291)", () => {
+  it("staging stores a tagged report under reports-test/, outside the digest and the default list; production ignores the tag", async () => {
+    const { purgeTestReports, listReports } = await import("../src/reports");
+    const BUCKET = new MemBucket();
+    expect((await handleReport(post(report({ test: true })), { BUCKET, FEEDS_ENV: "staging" }, at("2026-10-29T20:00:05Z"))).status).toBe(201);
+    expect([...BUCKET.m.keys()].some((k) => k.startsWith("private/reports-test/2026-10-29/"))).toBe(true);
+    expect([...BUCKET.m.keys()].some((k) => /^private\/reports\/2026/.test(k))).toBe(false);
+    expect(await reportEvents(BUCKET, () => false, at("2026-10-29T21:00:00Z"), "x")).toEqual([]);
+    expect(await listReports(BUCKET, "2026-10-29", at("2026-10-29T21:00:00Z"))).toHaveLength(0);
+    const all = await listReports(BUCKET, "2026-10-29", at("2026-10-29T21:00:00Z"), 500, true);
+    expect(all).toHaveLength(1);
+    expect(all[0]!.test).toBe(true);
+    expect(await purgeTestReports(BUCKET, at("2026-11-10T00:00:00Z"))).toBe(1);
+    const P = new MemBucket();
+    await handleReport(post(report({ test: true }), "198.51.100.7"), { BUCKET: P, FEEDS_ENV: "production" }, at("2026-10-29T20:00:05Z"));
+    expect([...P.m.keys()].some((k) => k.includes("reports-test"))).toBe(false);
+    expect(await reportEvents(P, () => false, at("2026-10-29T21:00:00Z"), "x")).toHaveLength(1);
+    const stored = JSON.parse([...P.m.entries()].find(([k]) => /private\/reports\/2026/.test(k))![1]);
+    expect(stored.test).toBeUndefined();
+  });
+});

@@ -41,7 +41,7 @@ import { startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
 import { releaseSplash } from "./splash";
 
-import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, pickChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
+import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
 /*
  * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
@@ -97,7 +97,7 @@ const crashSetting = createCrashSetting(openCrashSettingStore());
 const crashContext = { release: "none" };
 if (CRASH_URL) {
   const reporter = createCrashReporter({
-    url: CRASH_URL, setting: crashSetting, online: () => connectivity.online(), store: openCrashPendingStore(),
+    url: CRASH_URL, test: TEST_REPORTS, setting: crashSetting, online: () => connectivity.online(), store: openCrashPendingStore(),
     context: () => ({ app: MENU_INFO.appBuild, env: APP_ENV.env, platform: WEB ? "web" : `${Platform.OS} ${Platform.Version}`,
                      release: crashContext.release }),
     route: () => routeKind(place.route),
@@ -241,7 +241,7 @@ export default function App() {
   const updateLog = useMemo(() => (UPDATES_LOG ? createUpdateLog({ store: openUpdateLogStore() }) : null), []);
   // (T237) problem reports: POSTed to the report endpoint, or kept on the device and sent with the service's retry
   const reportOutbox = useMemo(() => (REPORT_URL ? createReportOutbox({
-    url: REPORT_URL, store: openReportOutboxStore(), online: () => !devOffline.on && connectivity.online() }) : null), []);
+    url: REPORT_URL, test: TEST_REPORTS, store: openReportOutboxStore(), online: () => !devOffline.on && connectivity.online() }) : null), []);
   const updates = useMemo(() => createUpdateService({
     fetch: DATA_FETCH,
     outbox: reportOutbox,

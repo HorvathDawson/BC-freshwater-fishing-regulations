@@ -57,12 +57,13 @@ def _token() -> str | None:
 
 
 def fetch(since: str | None = None, opener=None) -> list[dict]:
-    """Every report the worker holds since `since` (YYYY-MM-DD; default 90 days back), newest first."""
+    """Every report the worker holds since `since` (YYYY-MM-DD; default 90 days back), newest first. (T291) Reports a tool sent come
+    back too, flagged `test: true`: the Reports tab hides them by default and a toggle shows them."""
     since = since or (date.today() - timedelta(days=90)).isoformat()
     tok = _token()
     if not tok:
         raise ReportsUnavailable(f"no run token (set CURATION_REPORTS_TOKEN or write {_TOKEN_FILE})")
-    req = urllib.request.Request(f"{_url()}?since={since}", headers={"Authorization": f"Bearer {tok}",
+    req = urllib.request.Request(f"{_url()}?since={since}&test=1", headers={"Authorization": f"Bearer {tok}",
                                                                      "User-Agent": "curation-review/reports"})
     try:
         with (opener or urllib.request.urlopen)(req, timeout=30) as r:
