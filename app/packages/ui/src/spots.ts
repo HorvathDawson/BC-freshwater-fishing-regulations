@@ -65,32 +65,56 @@ export interface OnlineLike {
   subscribe(on: (online: boolean) => void): () => void;
 }
 
+/** (T255) After a reconnect: the first try waits for the line to settle, then retries while a spot still waits. */
+export const RECONNECT_TRIES_MS = [3_000, 20_000, 60_000] as const;
+
 /**
  * (T255) BACK ONLINE, THE SPOTS FILL IN BY THEMSELVES. A spot made with no signal holds no weather, no week before and no
  * day's flow (`needsRefresh`); until now only the Spots page's Refresh filled them. When the device comes back online
- * — or a spot is waiting while it is online (the app opened online, or the list just loaded) — the same refresh the
- * button runs (`refresh`, App's) is run once, quietly. One at a time; its failure is the refresh's own to say; the next
- * offline → online tries again. `pending` false: nothing is asked.
+ * the same refresh the button runs (`refresh`, App's) is run — first after `RECONNECT_TRIES_MS[0]` (a phone says
+ * "connected" before its line carries anything: the emulator's first try failed), then again at each later delay while
+ * a spot still waits. A spot waiting while the app opens online (or the list loads) is tried at once. One at a time;
+ * its failure is the refresh's own to say; the next offline → online starts the tries again. `pending` false: nothing
+ * is asked.
  */
-export function useRefreshOnReconnect(c: OnlineLike | null, pending: boolean, refresh: () => Promise<void>): void {
+export function useRefreshOnReconnect(c: OnlineLike | null, pending: boolean, refresh: () => Promise<void>,
+                                      tries: readonly number[] = RECONNECT_TRIES_MS): void {
   const pendingRef = useRef(pending);
   pendingRef.current = pending;
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
+  const cRef = useRef(c);
+  cRef.current = c;
   const busy = useRef(false);
-  const run = useRef(() => {
-    if (busy.current || !pendingRef.current) return;
-    busy.current = true;
-    refreshRef.current().catch(() => undefined).finally(() => { busy.current = false; });
-  }).current;
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const api = useRef({
+    run() {
+      if (busy.current || !pendingRef.current || !cRef.current?.online()) return;
+      busy.current = true;
+      refreshRef.current().catch(() => undefined).finally(() => { busy.current = false; });
+    },
+    /** try at `tries[n]`, then the next delay, while a spot waits and the device is online */
+    from(n: number) {
+      if (timer.current) clearTimeout(timer.current);
+      if (n >= tries.length) { timer.current = null; return; }
+      timer.current = setTimeout(() => {
+        timer.current = null;
+        if (!pendingRef.current || !cRef.current?.online()) return;
+        api.current.run();
+        api.current.from(n + 1);
+      }, tries[n]);
+    },
+  });
   // a spot waiting while online: once per change of `pending` (a refresh that cannot fill it does not loop)
-  useEffect(() => { if (pending && c?.online()) run(); }, [pending, c, run]);
+  useEffect(() => { if (pending && c?.online()) api.current.run(); }, [pending, c]);
   useEffect(() => {
     if (!c) return;
     let was = c.online();
-    return c.subscribe((on) => {
-      if (on && !was) run();
+    const off = c.subscribe((on) => {
+      if (on && !was) api.current.from(0);
+      if (!on && timer.current) { clearTimeout(timer.current); timer.current = null; }
       was = on;
     });
-  }, [c, run]);
+    return () => { off(); if (timer.current) clearTimeout(timer.current); };
+  }, [c]);
 }

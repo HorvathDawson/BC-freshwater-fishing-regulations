@@ -1,5 +1,5 @@
 /** P01: useSpots awaits every write and hands a failure back, said whole; the list never empties on a bad file. */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import { leadUpDays } from "@app/core";
 import type { WaterSource } from "@app/data";
@@ -105,59 +105,86 @@ describe("useRefreshOnReconnect (T255)", () => {
     return { c, set(o: boolean) { online = o; subs.forEach((f) => f(o)); } };
   }
   function R({ c, pending, refresh }: { c: OnlineLike; pending: boolean; refresh: () => Promise<void> }) {
-    useRefreshOnReconnect(c, pending, refresh);
+    useRefreshOnReconnect(c, pending, refresh, [100, 1000]);
     return null;
   }
+  const tick = (ms: number) => act(async () => { vi.advanceTimersByTime(ms); for (let i = 0; i < 4; i++) await Promise.resolve(); });
+  afterEach(() => vi.useRealTimers());
 
-  it("offline with a spot waiting: nothing; back online: one refresh; again on the next reconnect", async () => {
+  it("offline with a spot waiting: nothing; back online: a try after the line settles, a retry while it still waits", async () => {
+    vi.useFakeTimers();
     const n = net(false);
     let calls = 0;
     const refresh = async () => { calls++; };
     render(<R c={n.c} pending refresh={refresh} />);
-    await settle();
+    await tick(5000);
     expect(calls).toBe(0);
     await act(async () => { n.set(true); });
-    await settle();
+    expect(calls).toBe(0);                                       // not at the instant the phone says "connected"
+    await tick(100);
     expect(calls).toBe(1);
-    await act(async () => { n.set(true); });                     // still online: no second refresh
-    await settle();
-    expect(calls).toBe(1);
+    await tick(1000);
+    expect(calls).toBe(2);                                       // still waiting: tried again
+    await tick(60_000);
+    expect(calls).toBe(2);                                       // the tries are spent until the next reconnect
+    await act(async () => { n.set(true); });                     // still online: no new round
+    await tick(2000);
+    expect(calls).toBe(2);
     await act(async () => { n.set(false); });
     await act(async () => { n.set(true); });
-    await settle();
+    await tick(100);
+    expect(calls).toBe(3);
+  });
+
+  it("filled in: no retry; offline again: the pending try is dropped", async () => {
+    vi.useFakeTimers();
+    const n = net(false);
+    let calls = 0;
+    const refresh = async () => { calls++; };
+    const { rerender } = render(<R c={n.c} pending refresh={refresh} />);
+    await act(async () => { n.set(true); });
+    await tick(100);
+    expect(calls).toBe(1);
+    rerender(<R c={n.c} pending={false} refresh={refresh} />);  // the refresh filled it
+    await tick(5000);
+    expect(calls).toBe(1);
+    rerender(<R c={n.c} pending refresh={refresh} />);           // another spot made, while online: at once
+    await tick(0);
+    expect(calls).toBe(2);
+    await act(async () => { n.set(false); });
+    await act(async () => { n.set(true); });
+    await act(async () => { n.set(false); });                   // dropped before its try
+    await tick(5000);
     expect(calls).toBe(2);
   });
 
-  it("online when a spot starts waiting: one refresh; none when nothing waits", async () => {
+  it("nothing waits: a reconnect asks nothing", async () => {
+    vi.useFakeTimers();
     const n = net(true);
     let calls = 0;
-    const refresh = async () => { calls++; };
-    const { rerender } = render(<R c={n.c} pending={false} refresh={refresh} />);
-    await settle();
-    expect(calls).toBe(0);
+    render(<R c={n.c} pending={false} refresh={async () => { calls++; }} />);
     await act(async () => { n.set(false); });
     await act(async () => { n.set(true); });
-    await settle();
-    expect(calls).toBe(0);                                       // nothing waits: a reconnect asks nothing
-    rerender(<R c={n.c} pending refresh={refresh} />);
-    await settle();
-    expect(calls).toBe(1);
+    await tick(5000);
+    expect(calls).toBe(0);
   });
 
-  it("one at a time: a reconnect during a refresh does not start another", async () => {
+  it("one at a time: a try while a refresh runs does not start another", async () => {
+    vi.useFakeTimers();
     const n = net(false);
     let calls = 0;
     let finish: () => void = () => {};
     const refresh = () => { calls++; return new Promise<void>((ok) => { finish = ok; }); };
     render(<R c={n.c} pending refresh={refresh} />);
     await act(async () => { n.set(true); });
-    await act(async () => { n.set(false); });
-    await act(async () => { n.set(true); });
+    await tick(100);
+    expect(calls).toBe(1);
+    await tick(1000);                                            // the retry lands while the first still runs
     expect(calls).toBe(1);
     await act(async () => { finish(); });
-    await settle();
     await act(async () => { n.set(false); });
     await act(async () => { n.set(true); });
+    await tick(100);
     expect(calls).toBe(2);
   });
 });
