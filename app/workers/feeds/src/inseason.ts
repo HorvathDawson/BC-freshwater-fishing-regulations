@@ -8,6 +8,7 @@
 // User-Agent; a refusal is a failed run (status page + health alert), never an empty snapshot.
 //
 // Private: inseason/latest.json (the snapshot), inseason/history/<stamp>.json (each changed snapshot).
+import { classOfStatus, SourceError } from "./health";
 import type { Fetch, Meter, Store } from "./io";
 import { contentHash, loadManifest, skipSameStore } from "./io";
 import type { FeedEvent } from "./events";
@@ -121,6 +122,9 @@ export interface InSeasonResult {
   events: FeedEvent[];
 }
 
+const SUSPECT = "suspect.json";
+export const SUSPECT_RUNS = 3;
+
 export async function runInSeason(deps: {
   fetch: Fetch;
   priv: Store;
@@ -136,16 +140,42 @@ export async function runInSeason(deps: {
   let html = deps.html;
   if (html === undefined) {
     const r = await deps.fetch(SOURCE_URL, { headers: { "User-Agent": UA, Accept: "text/html,application/xhtml+xml", "Accept-Language": "en-CA,en;q=0.9" } });
-    if (!r.ok) throw new Error(`in-season: HTTP ${r.status} from ${SOURCE_URL}`);
+    if (!r.ok) throw new SourceError(classOfStatus(r.status) ?? "http_4xx", `in-season: HTTP ${r.status} from ${SOURCE_URL}`, "inseason-page");
     html = await r.text();
   }
-  const rows = parseInSeason(html);
+  const looksBlocked = (t: string) => /access denied|request rejected|captcha|are you a robot|reference #\d/i.test(t);
+  let rows: Row[];
+  try {
+    rows = parseInSeason(html);
+  } catch (e) {
+    throw new SourceError(looksBlocked(html) ? "blocked" : "parse", String((e as Error)?.message ?? e), "inseason-page");
+  }
   const sha = contentHash(JSON.stringify(rows));
   let prev: Snapshot | null = null;
   try {
     prev = JSON.parse((await deps.priv.get("latest.json")) ?? "null");
   } catch {
     prev = null;
+  }
+  // ROBUSTNESS (owner 2026-10-28): a page that reads as empty — or lost most of its rows at once — is a block page or a
+  // redesign, not "everything was rescinded": nothing is written (the last good feed stands) and the run fails `parse`
+  // (or `blocked` when the body says so). A real mass removal (the same non-empty reading SUSPECT_RUNS runs running) is
+  // then accepted; an empty page never is.
+  const prevN = prev?.rows?.length ?? 0;
+  const drop = prevN >= 8 && rows.length < prevN * 0.4;
+  let suspect: { sha: string; runs: number } | null = null;
+  if (rows.length && drop) {
+    try {
+      suspect = JSON.parse((await deps.priv.get(SUSPECT)) ?? "null");
+    } catch {
+      suspect = null;
+    }
+    suspect = { sha, runs: suspect?.sha === sha ? suspect.runs + 1 : 1 };
+    await deps.priv.put(SUSPECT, JSON.stringify(suspect));
+  }
+  if (!rows.length || (drop && suspect!.runs < SUSPECT_RUNS)) {
+    const blocked = looksBlocked(html);
+    throw new SourceError(blocked ? "blocked" : "parse", `in-season: page read ${rows.length} row(s) (last good ${prevN})${blocked ? " — looks like a block page" : ""}; nothing written`, "inseason-page");
   }
   const snap: Snapshot = { format: "inseason/1", at: now.toISOString(), url: SOURCE_URL, sha, rows };
   const sections = new Set(rows.map((r) => r.section)).size;

@@ -432,9 +432,19 @@ export interface GaugeSummary {
   notify: { sent: string[]; failed: string[]; off: boolean };
   /** change-aware: no new forecast issuance, the last forecast output was reused */
   forecastReused?: boolean;
+  /** asked stations with no usable answer this run (fetch failed / unparseable) */
+  failed?: string[];
+  /** of those, how many kept their last good index entry, marked `stale` */
+  carried?: number;
+  /** forecast models whose summary query failed (their last good runs were carried) */
+  forecastFailed?: string[];
+  /** no station answered: index.json was NOT rewritten (the last good one stands) */
+  indexKept?: boolean;
 }
 
 const JSON_CT = { contentType: "application/json" };
+/** a failed station's last entry is carried while its observation is younger than this (then it drops out) */
+export const CARRY_MAX_MS = 3 * DAY_MS;
 /** private (T225 follow-up; Python: in the published feed dir) */
 export const TEMP_HISTORY = "temp_history.json";
 
@@ -546,12 +556,23 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
   };
 
   let fcast: Summary = {};
+  let forecastFailed: string[] = [];
   if (reuse) {
     fcast = fstate!.summary;
     log(`  forecast: no new issuance since ${fstate!.at} (layer edit dates unchanged) — last forecast output reused`);
   } else if (!deps.noForecast) {
     try {
-      fcast = await fetchSummary(fetch, log);
+      const failedModels: string[] = [];
+      fcast = await fetchSummary(fetch, log, undefined, failedModels);
+      if (failedModels.length) {
+        forecastFailed = failedModels;
+        // a model whose summary failed keeps its LAST GOOD runs (the last forecast state) instead of vanishing
+        if (aware && fstate?.summary) {
+          for (const [st, runs] of Object.entries(fstate.summary))
+            for (const m of failedModels) if (runs[m]) ((fcast[st] ??= {})[m] = runs[m]!);
+          log(`  forecast: ${failedModels.join(", ")} unavailable — their last good runs carried`);
+        }
+      }
       const have: Record<string, Runs> = {};
       const sts = Object.keys(fcast);
       const prevs = await pool(sts, WORKERS, (st) => stationFile(st));
@@ -561,7 +582,7 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
       });
       fcast = await withSeries(fetch, fcast, new Set(ids), have, now, log);
       for (const f of prevs) if (f) delete f.keep; // carried series now live in `fcast`; the rest is garbage
-      if (aware && sig && Object.keys(fcast).length)
+      if (aware && sig && Object.keys(fcast).length && !forecastFailed.length) // a partial answer is not saved for reuse
         await priv.put(FORECAST_STATE, JSON.stringify({ rev: GAUGE_REV, sig, day: dayOf(centreWall(now)), at: wallIso(now) + "Z", summary: stripSeries(fcast) }));
     } catch (e) {
       log(`  forecast unavailable: ${String(e)}`);
@@ -573,7 +594,7 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
   log(`  ✅ ${summary.answered}/${summary.asked} answered, ${summary.withPercentile} with a percentile; ${runs} model runs across ${Object.keys(fcast).length} stations`);
   for (const n of summary.maintenance) if (n.kind === "hydat") log(`  ⚠️  A NEWER HYDAT IS OUT: ${n.latest} (envelope is on ${n.current}, noticed ${n.since}). Refresh with: ${n.action}`);
   const notify = await sendDue(summary.maintenance as any, { url: deps.notifyUrl, fetch, state: priv, stateKey: "notified.json", log });
-  return { ...summary, listSource: source, forecastRuns: runs, notify, forecastReused: reuse };
+  return { ...summary, listSource: source, forecastRuns: runs, notify, forecastReused: reuse, ...(forecastFailed.length ? { forecastFailed } : {}) };
 }
 
 // ── forecast reuse ───────────────────────────────────────────────────────────────────────────────────────────────────
@@ -719,9 +740,12 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   const { fetch, feed, priv, clim, now, log } = a;
   const forecast = a.forecast || {};
   let before: unknown = null;
+  let prevStations: Record<string, any> = {};
   try {
     const t = await feed.get("index.json");
-    before = t === null ? null : (JSON.parse(t).maintenance ?? null);
+    const j = t === null ? null : JSON.parse(t);
+    before = j?.maintenance ?? null;
+    if (j && j.stations && typeof j.stations === "object") prevStations = j.stations;
   } catch {
     before = null;
   }
@@ -951,7 +975,25 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     }
   }
   await Promise.all(inflight);
-  if (a.aware) await priv.put(STATION_CACHE, JSON.stringify(nextCache));
+  // ROBUSTNESS (owner 2026-10-28, change-aware runs only; the Python drops them): a station asked but not answered this
+  // run keeps its last good index entry, marked `stale` (+ `staleSince`), for up to CARRY_MAX_MS of observation age;
+  // its station file is untouched and its cache entry kept (next run asks with the same validators).
+  const answered = new Set(got.map((r) => r.station));
+  const failed = [...a.ids].filter((st) => !answered.has(st)).sort();
+  let carried = 0;
+  if (a.aware) {
+    for (const st of failed) {
+      const p = prevStations[st];
+      const obs = p && typeof p.observedAt === "string" ? Date.parse(/(Z|[+-]\d\d:?\d\d)$/i.test(p.observedAt) ? p.observedAt : p.observedAt + "Z") : NaN;
+      if (!p || !(now - obs < CARRY_MAX_MS)) continue;
+      index[st] = { ...p, stale: true, staleSince: p.staleSince ?? fetchedAt };
+      if (cache?.st[st]) nextCache.st[st] = cache.st[st]!;
+      carried++;
+    }
+    if (failed.length) log(`  ⚠️  ${failed.length} station(s) not answered; ${carried} kept their last good entry (stale)`);
+  }
+  const indexKept = a.aware && got.length === 0;
+  if (a.aware && !indexKept) await priv.put(STATION_CACHE, JSON.stringify(nextCache));
 
   let archived: Record<string, any>;
   try {
@@ -963,7 +1005,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
 
   const staleRelease = Boolean(a.latest && release && a.latest !== release);
   const maintenance = maintenanceNotices({ release, latest: a.latest, drift: a.drift, previous: before, at: fetchedAt, roster: a.roster });
-  await feed.put("index.json", JSON.stringify({
+  if (!indexKept) await feed.put("index.json", JSON.stringify({
     fetchedAt,
     // T225 follow-up: written ONCE. Python's dict literal names it twice and the second (T52: the newest issue among the
     // runs with a `change` block) silently replaced the first; the app's Forecasts line (T68) means the newest run
@@ -982,5 +1024,6 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     archive: { asked: gappy.length, filled },
     runArchive: archived,
     gapsBeyondWindow: beyondWindow,
+    ...(a.aware ? { failed, carried, indexKept } : {}),
   };
 }

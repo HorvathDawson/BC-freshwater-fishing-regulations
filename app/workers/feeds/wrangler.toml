@@ -1,5 +1,5 @@
-# T225 STAGING ONLY, MEASURING ONLY. Deploy: npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml
-# No [triggers] on purpose: nothing runs unattended until the owner switches it on. No production env in this file.
+# T225 STAGING ONLY. Deploy: npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml
+# The feed schedule is ON for staging (owner 2026-10-28). No production env in this file.
 name = "bc-fishing-feeds-staging"
 main = "src/index.ts"
 compatibility_date = "2025-09-01"
@@ -23,3 +23,19 @@ name = "EMAIL"
 [vars]
 NOTIFY_EMAIL_FROM = "status@canifishthis.ca"
 NOTIFY_DIGEST = "daily"          # DFO + in-season are urgent (at once); the rest one digest a day, only on a day with an issue
+
+# T225 Phase A (owner 2026-10-28): the schedule. Cron times are UTC; the MINUTE names the job (src/index.ts `scheduled`):
+#   :05 gauges   hourly 13–05 UTC (06–22 PDT / 05–21 PST), 3-hourly at night (06, 09, 12 UTC)
+#   :15 DFO      every 6 h Jun–Oct (salmon season), daily 14 UTC (07 PDT) Nov–May
+#   :45 in-season  as DFO
+# HYDAT (a new release, asked once a day) and ECCC roster drift are checked inside the gauge run — no cron of their own.
+# Status: GET /status on the worker; stale = no success for 2.5 cadences (gauges 60 min by day, 180 min at night).
+[triggers]
+crons = [
+  "5 0-5,13-23 * * *",
+  "5 6,9,12 * * *",
+  "15 */6 * 6-10 *",
+  "15 14 * 1-5,11-12 *",
+  "45 */6 * 6-10 *",
+  "45 14 * 1-5,11-12 *",
+]

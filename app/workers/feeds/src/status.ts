@@ -3,6 +3,7 @@
 // state change of a feed (ok → degraded / failing / stale and back), never once per run.
 import type { Fetch, Meter, Store } from "./io";
 import { body as notifyBody } from "./notify";
+import { fmtErrors, foldHealth, summarize, type FeedHealth, type RunHealth, type SourceRun } from "./health";
 
 export type Job = "gauges" | "dfo" | "inseason";
 export type FeedState = "ok" | "degraded" | "failing" | "stale" | "never";
@@ -26,6 +27,8 @@ export interface RunRecord {
   held: Held[];
   error: string | null;
   meter: Meter | null;
+  /** this run's outcomes per upstream source (src/health.ts): ok / fail / retries / errors by class / last error */
+  sources?: Record<string, SourceRun>;
 }
 
 export interface FeedStatus {
@@ -42,6 +45,8 @@ export interface FeedStatus {
   announced: FeedState | null;
   /** "checked at": when the sources were last read, even when nothing changed */
   checkedAt: string | null;
+  /** rolling per-source record (hourly buckets, 7 days) + the parts failing now; served summarized (`servedStatus`) */
+  health?: FeedHealth;
 }
 
 export interface Status {
@@ -56,8 +61,9 @@ export const STALE_CADENCES = 2.5;
 
 /** The cadence wanted (T225 Q-T225c / Q145): gauges hourly; DFO every 6 h Jun 1–Oct 31, daily otherwise. */
 export function cadenceMin(job: Job, now: Date): number {
-  if (job === "gauges") return 60;
-  if (job === "inseason") return 360; // as main's update-in-season.yml
+  // wrangler.toml [triggers]: hourly 13–05 UTC (06–22 PDT), 3-hourly 06/09/12 UTC at night
+  if (job === "gauges") return now.getUTCHours() >= 6 && now.getUTCHours() <= 12 ? 180 : 60;
+  // DFO and in-season (as DFO): every 6 h Jun–Oct, daily otherwise
   const m = now.getUTCMonth() + 1;
   return m >= 6 && m <= 10 ? 360 : 1440;
 }
@@ -96,6 +102,25 @@ export interface Alert {
   from: FeedState | null;
   to: FeedState;
   text: string;
+}
+
+/** fold a run's per-source tally into the feed's rolling record; returns the sources that just reached 3 failed runs */
+export function recordHealth(s: Status, job: Job, run: RunHealth, at: string): string[] {
+  const f = s.feeds[job];
+  if (!f) return [];
+  const { health, newlyDown } = foldHealth(f.health, run, at);
+  f.health = health;
+  return newlyDown;
+}
+
+/** status.json as served: each feed's rolling health summarized (24 h / 7 d windows), hourly buckets left out */
+export function servedStatus(s: Status, now: Date) {
+  const feeds: Record<string, unknown> = {};
+  for (const [j, f] of Object.entries(s.feeds)) {
+    const { health, ...rest } = f!;
+    feeds[j] = { ...rest, sources: summarize(health, now), failingParts: health?.parts ?? {} };
+  }
+  return { ...s, feeds };
 }
 
 /** Fold one run into the status, return the alerts due (state changes not yet announced). */
@@ -141,7 +166,7 @@ function alertText(f: FeedStatus): string {
     case "degraded":
       return `${name} published with ${f.lastRun!.held.length} held: ${f.lastRun!.held.slice(0, 5).map((h) => `${h.where}${h.place ? ` ${h.place}` : ""} (${h.why.slice(0, 80)})`).join("; ")}`;
     case "failing":
-      return `${name} FAILED ${f.failures} run(s) in a row: ${(f.lastError?.error ?? "").slice(0, 200)}`;
+      return `${name} FAILED ${f.failures} run(s) in a row: ${(f.lastError?.error ?? "").slice(0, 200)}${sourceLine(f)}`;
     case "stale":
       return `${name} is STALE: last success ${f.lastSuccess ?? "never"} (cadence ${f.cadenceMin} min).`;
     default:
@@ -170,6 +195,14 @@ export async function sendAlerts(s: Status, alerts: Alert[], url: string | null 
     }
   }
   return sent;
+}
+
+/** "; last 24 h: eccc-hourly 98.1% ok (timeout 12, http_5xx 3), …" — the sources with a failure */
+function sourceLine(f: FeedStatus): string {
+  const sum = summarize(f.health, new Date(f.lastRun?.at ?? Date.now()));
+  const bad = Object.entries(sum).filter(([, w]) => w.last24h.fail > 0);
+  if (!bad.length) return "";
+  return `; last 24 h: ${bad.map(([n, w]) => `${n} ${w.last24h.successRate === null ? "-" : (w.last24h.successRate * 100).toFixed(1) + "%"} ok (${fmtErrors(w.last24h.errors)})`).join("; ")}`;
 }
 
 // ── the page ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -208,5 +241,42 @@ small{color:var(--mut)}.ok{color:#2a7}.degraded{color:#c80}.failing,.stale{color
 ul{margin:0;padding-left:16px}.wrap{overflow-x:auto}
 </style></head><body><h1>Feeds status</h1><p><small>${esc(now.toISOString())} · updated ${esc(s.updated)} · <a href="/status.json">status.json</a></small></p>
 <div class="wrap"><table><tr><th>feed</th><th>state</th><th>last run</th><th>last success</th><th>counts</th><th>held</th><th>last error</th></tr>
-${rows.join("\n")}</table></div></body></html>`;
+${rows.join("\n")}</table></div>
+<h2>Sources</h2><p><small>per upstream request (after retries): success rate and failures by class; "down" = runs in a row with nothing usable</small></p>
+<div class="wrap"><table><tr><th>feed</th><th>source</th><th>this run</th><th>24 h</th><th>7 d</th><th>down</th><th>last ok</th><th>last error</th></tr>
+${sourceRows(s, now)}</table></div>
+${partsHtml(s, now)}</body></html>`;
+}
+
+const pct = (r: number | null) => (r === null ? "–" : `${(r * 100).toFixed(1)}%`);
+function sourceRows(s: Status, now: Date): string {
+  const out: string[] = [];
+  for (const j of ["gauges", "dfo", "inseason"] as Job[]) {
+    const f = s.feeds[j];
+    if (!f) continue;
+    const sum = summarize(f.health, now);
+    const run = f.lastRun?.sources ?? {};
+    for (const [name, w] of Object.entries(sum)) {
+      const r = run[name];
+      const cls = w.consecutiveFailedRuns ? "failing" : w.last24h.fail ? "degraded" : "ok";
+      out.push(`<tr><td>${j}</td><td><code>${esc(name)}</code></td>
+<td>${r ? `${r.ok} ok / ${r.fail} fail${r.retries ? ` · ${r.retries} retries` : ""}${r.fail ? `<br><small>${esc(fmtErrors(r.errors))}</small>` : ""}` : "<small>not asked</small>"}</td>
+<td class="${w.last24h.fail ? cls : "ok"}">${pct(w.last24h.successRate)}<br><small>${w.last24h.ok + w.last24h.fail} req · ${esc(fmtErrors(w.last24h.errors))}</small></td>
+<td>${pct(w.last7d.successRate)}<br><small>${w.last7d.ok + w.last7d.fail} req · ${esc(fmtErrors(w.last7d.errors))}</small></td>
+<td class="${w.consecutiveFailedRuns ? "failing" : ""}">${w.consecutiveFailedRuns || ""}</td>
+<td><small>${ago(w.lastOk, now)}</small></td>
+<td>${w.lastError ? `<small>${esc(w.lastError.cls)} · ${ago(w.lastError.at, now)}<br>${esc(w.lastError.detail.slice(0, 160))}</small>` : ""}</td></tr>`);
+    }
+  }
+  return out.join("\n") || `<tr><td colspan="8"><small>no measurements yet</small></td></tr>`;
+}
+function partsHtml(s: Status, now: Date): string {
+  const items: string[] = [];
+  for (const j of ["gauges", "dfo", "inseason"] as Job[]) {
+    for (const [p, v] of Object.entries(s.feeds[j]?.health?.parts ?? {}).sort((a, b) => b[1].runs - a[1].runs)) {
+      items.push(`<li>${j} <code>${esc(p)}</code>: ${esc(v.cls)} · ${v.runs} run(s) in a row since ${ago(v.since, now)} <small>${esc(v.detail)}</small></li>`);
+    }
+  }
+  if (!items.length) return "<h2>Failing parts</h2><p><small>none: every station / region answered on its last run</small></p>";
+  return `<h2>Failing parts (${items.length})</h2><p><small>their last good data is kept and marked stale</small></p><ul>${items.slice(0, 200).join("")}</ul>`;
 }

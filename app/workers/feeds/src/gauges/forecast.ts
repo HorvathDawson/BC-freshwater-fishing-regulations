@@ -116,7 +116,7 @@ export function timeout(ms: number): AbortSignal | undefined {
 }
 
 /** forecast.fetch: `{station: {model: run}}`, every model running. A model that fails is skipped. */
-export async function fetchSummary(fetch: Fetch, log: (s: string) => void, models?: string[]): Promise<Summary> {
+export async function fetchSummary(fetch: Fetch, log: (s: string) => void, models?: string[], failed?: string[]): Promise<Summary> {
   const out: Summary = {};
   for (const name of models ?? Object.keys(MODELS)) {
     const cfg = MODELS[name]!;
@@ -125,6 +125,7 @@ export async function fetchSummary(fetch: Fetch, log: (s: string) => void, model
       rows = await query(fetch, cfg.service);
     } catch (e) {
       log(`  ${name}: unavailable (${String(e)})`);
+      failed?.push(name);
       continue;
     }
     let kept = 0;

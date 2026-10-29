@@ -1,6 +1,6 @@
 # T225 — Feeds: where they live, how they are triggered, how they fail (design, then build)
 
-Status: OPEN — ported to TS + measured on staging (see "Port + measurements"); prod switch-on is the owner's. Was: design first; owner picks the host (owner 2026-10-28: "how to make the feeds work the best as possible,
+Status: OPEN — STAGING SCHEDULE ON (2026-10-28, Phase A below); acceptance = a week with no hand runs; prod switch-on is the owner's. Was: design first; owner picks the host (owner 2026-10-28: "how to make the feeds work the best as possible,
 where they should live, how they are triggered etc").
 
 Source: owner 2026-10-28. Today every feed runs only when someone runs it on this Mac; OWNER-TODO carries "set up the
@@ -234,6 +234,38 @@ Staging redeployed (b8715797), every job run by hand with `?dryNotify=1`; `vites
   page version before the last change) + `previous`, `firstSeen`, `changedAt`. Matching to waters is a separate,
   optional step (not built: all 32 rows publish `matched: false`). Written only when its content changes (+24 h
   heartbeat). /status shows rows, unmatched, new, changed, removed.
+
+## Phase A (owner 2026-10-28): schedule on, robustness, failure measures, R2 inputs
+Staging only; `bc-fishing-feeds-staging` version d5181571; `vitest run --root app/workers/feeds` 115 tests.
+- **Schedule** (`wrangler.toml [triggers]`, UTC; the minute names the job): gauges `:05` hourly 13–05 UTC (06–22 PDT) +
+  06/09/12 UTC at night; DFO `:15` every 6 h Jun–Oct, 14 UTC daily Nov–May; in-season `:45` as DFO. HYDAT (asked once a
+  day) and roster drift ride the gauge run. Stale = 2.5 cadences (gauges 60 min by day, 180 at night; DFO/in-season 360 /
+  1440).
+- **Robustness** (`src/health.ts` `resilientFetch`, wraps every job's network): per-attempt timeout; bounded retries with
+  exponential backoff + jitter on network/timeout/5xx (429 only with Retry-After ≤ 10 s; never 403/404); a per-host
+  breaker (6 hard failures in a row → the rest of that host's requests this run fail fast as `circuit`); failed bodies
+  cancelled (6-connection limit). DFO keeps its own 4-attempt fetch (1 attempt per wrapper call). Per-part isolation:
+  a gauge station that fails keeps its last good index entry marked `stale` + `staleSince` (≤ 3 days of observation age;
+  change-aware runs only — the parity mode keeps Python's drop); every station failing → index.json NOT rewritten (last
+  good stands) and the run fails; a forecast model whose summary fails carries its last good runs and the partial answer
+  is not saved for reuse. DFO regions were already isolated (stale region keeps its answers). In-season: an empty page, a
+  page without the accordion, or one that lost > 60 % of its rows writes nothing and fails `parse` / `blocked` (a real mass
+  removal is accepted once the same reading repeats 3 runs).
+- **Measures** (status.json + /status): per run `lastRun.sources` {ok, fail, retries, errors by class, last}; rolling per
+  source (hourly buckets, 7 d): 24 h / 7 d counts by class, success rate, consecutive whole-source failed runs, last ok,
+  last error; `failingParts` (station / region: since, runs in a row, class). Classes: http_404, http_4xx, http_5xx,
+  blocked (403/451), rate_limited (429), timeout, network, parse, circuit. A source with nothing usable in a run, > 10 % of
+  stations failing, or a forecast model down → the feed is `degraded`.
+- **Email**: a WHOLE feed failing / stale is urgent (at once, with the 24 h source line); degraded, recoveries and "source
+  down 3 runs in a row" (one per streak) go in the daily digest.
+- **R2 inputs**: `deploy/staging/sync-inputs.sh` (no secrets; rclone, writes only what differs) puts the DFO entry files,
+  the slim roster and the in-season links (`python -m pipeline.regs.inseason.publish` → PUBLIC `feeds/inseason/matches.json`).
+  Run 2026-10-28: entries same (9), roster replaced (newline only), matches.json new (22 matches). `feeds-sync-inputs.yml`
+  gains `inseason-matches` (setup-python + pydantic/pyyaml; `both` = everything). Not triggered; secrets listed in OWNER-TODO.
+- **upload.sh** no longer wipes the worker's state: the clear spares `feeds/**` + `private/**`, local feed copies only seed a
+  missing key, clim.json goes up when it differs, then sync-inputs.sh.
+- First runs on the new code (dry notify): in-season 1.2 s, DFO 5.4 s (9/9 regions ok), gauges 85 s wall, 437/440 hourly
+  CSVs (3 × 404: 08CG001, 08NH115, 10BE001 — listed by ECCC, no file; shown as failing parts).
 
 ## Acceptance
 Feeds update on schedule on staging for a week with no hand runs; a forced source failure alerts once and the app

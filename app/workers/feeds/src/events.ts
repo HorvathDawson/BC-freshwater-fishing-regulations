@@ -9,6 +9,8 @@
 // NOTIFY_DIGEST=daily everything else (HYDAT, roster drift, feed health) waits for ONE digest a day (first run at/after
 // NOTIFY_DIGEST_HOUR_UTC, default 15 = 08:00 PDT), sent ONLY when the day holds at least one issue or action — a
 // "recovered" health event alone (`fine`) never makes a digest; current state is /status's job, not email's.
+// Owner 2026-10-28 (Phase A): a WHOLE feed failing or going stale is the exception — `urgent`, emailed at once; a
+// degraded feed (some stations / a region / a source failing) and a source down 3 runs running wait for the digest.
 // Dry run: nothing sent, nothing recorded — the messages are returned (POST /run/<job>?dryNotify=1, /notify/preview).
 //
 // State (private): notify/state.json — {told: {key: at}, pending: [...], lastDigest}. A key is forgotten after a year.
@@ -26,6 +28,8 @@ export interface FeedEvent {
   at: string;
   /** good news only (a feed recovered): rides along in a digest, never the reason for one */
   fine?: boolean;
+  /** sent at once even in digest mode (a whole feed failing / stale; owner 2026-10-28) */
+  urgent?: boolean;
 }
 /** emailed at once even in digest mode */
 export const URGENT: readonly EventKind[] = ["dfo", "inseason"];
@@ -147,8 +151,9 @@ export async function deliver(
     fresh.push(e);
   }
   const digest = !!o.config.digest;
-  const now: FeedEvent[] = digest ? fresh.filter((e) => URGENT.includes(e.kind)) : fresh;
-  const later = digest ? fresh.filter((e) => !URGENT.includes(e.kind)) : [];
+  const isUrgent = (e: FeedEvent) => URGENT.includes(e.kind) || !!e.urgent;
+  const now: FeedEvent[] = digest ? fresh.filter(isUrgent) : fresh;
+  const later = digest ? fresh.filter((e) => !isUrgent(e)) : [];
   const pending = [...st.pending, ...later];
   const hour = o.config.digestHourUtc ?? 15;
   const due =

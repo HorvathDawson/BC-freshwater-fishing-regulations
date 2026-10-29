@@ -70,5 +70,5 @@ Release **r-46be3c135e68** (LATEST; tiles db853e9556df81a6.16b3906b04bf, basemap
 - `/favicon.ico` 404 on every page (no favicon in the app export or the SEO build).
 
 ## Redo
-`deploy/staging/upload.sh <release>` (clears the bucket), rebuild the two dist folders as in 3, `deploy/staging/site.sh`.
+`deploy/staging/upload.sh <release>` (clears the bucket EXCEPT `feeds/**` + `private/**` — the feeds worker's output and state, T225 Phase A — then runs `deploy/staging/sync-inputs.sh`), rebuild the two dist folders as in 3, `deploy/staging/site.sh`.
 `npx --prefix app wrangler deploy -c deploy/staging/data.wrangler.toml` only if the data worker changes.

@@ -134,16 +134,18 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   T215: a release now also carries OUR synopsis PDF (`synopsis-<sha12>.pdf`, ~24 MB, raw, immutable; named in the manifest's
   `synopsis`): the same publish command uploads it, and the bucket's CORS must allow GET from the web origin (the app fetches it
   once per release to draw the highlight). Until a release with it is uploaded, "open the PDF" stays the plain gov.bc.ca link.
-- **`FEED_NOTIFY_URL`**: set it where the feed cron runs to get one message per new HYDAT release
-  (ntfy / Discord / Slack). Off until set.
-- **`scripts/update-hydat.sh`**: run it when that message arrives.
-- **DFO salmon feed cron + R2 sync (T211 part 2):** on the feed host, every 6 h Jun 1–Oct 31 and daily otherwise:
-  `.venv/bin/python -m pipeline.regs.dfo_salmon.live` (no credits, no secrets; ~15 s; writes
-  `data/generated/regs/dfo_salmon/feed/index.json` + `unplaced.json`), then sync ONLY that `feed/` dir to R2
-  `feeds/dfo/` (never `feed.notified.json`, which sits beside it). Same `FEED_NOTIFY_URL` as the gauges: one message
-  per held new / reworded DFO place, per region held (structural change, page that will not parse, two failed fetches).
-  When one arrives: `python -m pipeline.regs.dfo_salmon.live queue --regions <n>` (or ask Claude), commit the entry
-  files, and the place shows in the review app's DFO mode. Local dry run: `... live --offline` (cached pages).
+- **Feeds (T225)**: the gauges, DFO salmon and in-season feeds now run on the Cloudflare Worker `bc-fishing-feeds-staging`
+  on a schedule (STAGING, switched on 2026-10-28; status: https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status).
+  Emails go to your verified address: DFO places / in-season changes / a whole feed failing at once, the rest in one daily
+  digest. When a DFO email arrives: `python -m pipeline.regs.dfo_salmon.live queue --regions <n>`, commit the entry files,
+  then sync them (below). Production switch-on (worker + prod bucket) is yours.
+- **GitHub secrets for the feed sync workflows** (`feeds-sync-inputs.yml`: DFO entries + roster + in-season matches;
+  `feeds-hydat.yml`): `CLOUDFLARE_ACCOUNT_ID`, `STAGING_R2_ACCESS_KEY_ID`, `STAGING_R2_SECRET_ACCESS_KEY` (an R2 API token,
+  Object Read & Write, scoped to `bc-fishing-regulations-staging`). Not set yet; the workflows are manual
+  (`workflow_dispatch`) and list in the Actions tab only once on `main` — until then
+  `gh workflow run feeds-sync-inputs.yml --ref redesign/stream-sections -f what=both -f dry_run=true`. The Mac twin needs
+  no secrets: `deploy/staging/sync-inputs.sh`.
+- **`scripts/update-hydat.sh`**: run it when the "New HYDAT" email arrives (after the HYDAT action).
 - **Phone testing** (T77, Q9), **production hosting** (T86, Q26: R2 bucket, contact address, app name), **iOS build**
   (T88).
   - Gesture/navigation parity on the phone (T50, T77; owner 2026-10-27; same RNGH code as web, not seen on a device):

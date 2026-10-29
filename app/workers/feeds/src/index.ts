@@ -1,7 +1,7 @@
 // T225: the feeds Worker — gauges (pipeline/gauges/feed/publish.py), DFO salmon (pipeline/regs/dfo_salmon/live.py) and
-// the provincial in-season changes (archive/pipeline/recurring/in_season) in TypeScript. STAGING ONLY for now:
-// wrangler.toml declares NO cron trigger; a run is started by hand through `POST /run/gauges|dfo|inseason` with
-// `Authorization: Bearer <RUN_TOKEN>` (a wrangler secret). `scheduled` is wired so switching on is a [triggers] block.
+// the provincial in-season changes (archive/pipeline/recurring/in_season) in TypeScript. STAGING ONLY for now: runs on
+// wrangler.toml's [triggers] (owner 2026-10-28), or by hand through `POST /run/gauges|dfo|inseason` with
+// `Authorization: Bearer <RUN_TOKEN>` (a wrangler secret). Network: src/health.ts (retries, timeouts, breaker, measures).
 //
 // GET /status (HTML) and GET /status.json (no auth): every feed's last run, last success, counts, held rows / places,
 // staleness against its cadence, last error — from private/feeds/status.json, which each run writes (src/status.ts).
@@ -19,7 +19,9 @@ import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
 import { runInSeason } from "./inseason";
 import { compose, deliver, readState, sendTest, type FeedEvent, type NotifyConfig } from "./events";
-import { readStatus, record, refresh, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
+import { readStatus, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
+import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
+import { pageUrl } from "./dfo/fetch";
 
 export interface Env {
   BUCKET: R2BucketLike;
@@ -114,12 +116,37 @@ export function healthEvents(alerts: Alert[], at: string): FeedEvent[] {
   return alerts.map((a) => ({
     key: `health:${a.job}:${a.from ?? "-"}>${a.to}:${at}`, kind: "health" as const, title: a.text.slice(0, 160),
     text: `${a.text}\n\nStatus: /status on the feeds worker.`, at, ...(a.to === "ok" ? { fine: true } : {}),
+    // owner 2026-10-28: a WHOLE feed failing / stale is emailed at once; degraded and recoveries wait for the digest
+    ...(a.to === "failing" || a.to === "stale" ? { urgent: true } : {}),
   }));
 }
 
+/** a source that answered nothing usable 3 runs running → one digest line (key: the streak) */
+export function sourceDownEvents(job: Job, names: string[], st: Awaited<ReturnType<typeof readStatus>>, at: string): FeedEvent[] {
+  const sum = summarize(st.feeds[job]?.health, new Date(at));
+  return names.map((n) => {
+    const w = sum[n]!;
+    return {
+      key: `source-down:${job}:${n}:${at}`, kind: "health" as const,
+      title: `${job}: ${n} failed 3 runs in a row (${w.lastError?.cls ?? "error"})`,
+      text: `${job} source ${n} answered nothing usable on its last 3 runs; the rest of the feed still updates and its last good data is kept (marked stale).\n` +
+        `Last 24 h: ${w.last24h.ok} ok / ${w.last24h.fail} failed (${fmtErrors(w.last24h.errors)}); last ok ${w.lastOk ?? "never"}.\n` +
+        `Last error: ${w.lastError ? `${w.lastError.cls} — ${w.lastError.detail}` : "?"}\n\nStatus: /status on the feeds worker.`,
+      at,
+    };
+  });
+}
+
+const HOURLY = (st: string) => `https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_${st}_hourly_hydrometric.csv`;
+/** share of asked stations that may fail before the gauge feed counts as degraded */
+export const GAUGE_DEGRADED_SHARE = 0.1;
+
+
 async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: number; dryNotify?: boolean } = {}) {
   const m: Meter = newMeter();
-  const fetch_ = meteredFetch((u, i) => fetch(u, i), m);
+  // every request: metered (each attempt is a subrequest), then retried / timed out / measured per source (src/health.ts)
+  const health = new RunHealth();
+  const fetch_ = resilientFetch(meteredFetch((u, i) => fetch(u, i), m), health);
   const logs: string[] = [];
   const log = (s: string) => logs.push(s);
   const t0 = Date.now(); // Workers' clock advances only across I/O: this is wall time, not CPU (CPU: tail / observability)
@@ -145,7 +172,20 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       summary = { asked: s.asked, answered: s.answered, withPercentile: s.withPercentile, maintenance: s.maintenance, runArchive: s.runArchive, forecastReused: s.forecastReused };
       counts = { stations: s.answered, asked: s.asked, withPercentile: s.withPercentile, forecastRuns: s.forecastRuns, unchanged: m.sourcesUnchanged, forecastReused: s.forecastReused ? 1 : 0 };
       events.push(...gaugeEvents(s.maintenance as any[], at));
-      if (s.answered === 0) throw new Error(`no station answered (asked ${s.asked})`);
+      counts.failed = s.failed?.length ?? 0;
+      counts.carriedStale = s.carried ?? 0;
+      for (const st of s.failed ?? []) {
+        const cls = health.failedUrls.get(HOURLY(st));
+        if (cls) health.part(`station ${st}`, cls, health.sources["eccc-hourly"]?.last?.url === HOURLY(st) ? health.sources["eccc-hourly"]!.last!.detail : cls);
+        else {
+          health.demote("eccc-hourly", "parse", `station ${st}: CSV had no readable rows`, HOURLY(st));
+          health.part(`station ${st}`, "parse", "CSV had no readable rows");
+        }
+      }
+      if ((s.failed?.length ?? 0) > GAUGE_DEGRADED_SHARE * s.asked)
+        held.push({ where: "stations", why: `${s.failed!.length} of ${s.asked} not answered this run; ${s.carried ?? 0} kept their last good entry (stale)` });
+      if (s.forecastFailed?.length) held.push({ where: "forecast", why: `${s.forecastFailed.join(", ")} summary unavailable; last good runs carried` });
+      if (s.answered === 0) throw new Error(`no station answered (asked ${s.asked}); index.json ${s.indexKept ? "kept (last good)" : "rewritten"}`);
     } else if (job === "dfo") {
       const s = await runDfo({
         fetch: fetch_,
@@ -158,6 +198,22 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       });
       const regions = (s.index as any).regions ?? {};
       held = dfoHeld(regions);
+      for (const [slug, r] of Object.entries<any>(regions)) {
+        const src = `dfo-region-${slug}`;
+        const url = pageUrl(slug);
+        if (r.stale && (opts.regions == null || opts.regions.includes(slug))) {
+          const cls = health.failedUrls.get(url);
+          if (cls) health.part(`region ${slug}`, cls, health.sources[src]?.last?.detail ?? cls);
+          else if (health.sources[src]) {
+            // every attempt answered 200 but no body passed validation
+            health.demote(src, "parse", "page failed validation on every attempt", url);
+            health.part(`region ${slug}`, "parse", "page failed validation");
+          }
+        } else if (r.held && health.sources[src]?.ok) {
+          health.demote(src, "parse", String(r.held).slice(0, 200), url);
+          health.part(`region ${slug}`, "parse", String(r.held));
+        }
+      }
       counts = {
         locations: Object.keys((s.index as any).locs ?? {}).length, regions: Object.keys(regions).length, unplaced: s.unplaced.length,
         notices: s.notices.length, unchangedRegions: (s.skipped ?? []).length,
@@ -182,6 +238,12 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     }
   } catch (e) {
     error = String((e as Error)?.stack ?? e).slice(0, 2000);
+    // a body the job refused after the fetch itself succeeded (in-season block page / empty read)
+    if (e instanceof SourceError && e.source && (health.sources[e.source]?.ok ?? 0) > 0) {
+      health.demote(e.source, e.cls, e.message);
+      health.part(e.source, e.cls, e.message);
+    } else if (e instanceof SourceError && e.source) health.part(e.source, e.cls, e.message);
+    else summary = { ...summary, errorClass: classOfError(e) };
   }
   const wallMs = Date.now() - t0;
   // the status (private/feeds/status.json) and the outbox — never fail the run
@@ -189,15 +251,20 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
   try {
     const priv = r2Store(env.BUCKET, STATUS_PREFIX);
     const st = await readStatus(priv);
-    const alerts = record(st, job, { at, ok: error === null, wallMs, cpuMs: null, counts, held, error, meter: { ...m } }, new Date());
+    // a source that answered nothing usable this run (and is not expected to): the feed published without it → degraded
+    for (const [n, r] of Object.entries(health.sources))
+      if (r.ok === 0 && r.fail > 0 && !held.some((h) => h.where === `source ${n}`))
+        held.push({ where: `source ${n}`, why: `nothing usable this run (${fmtErrors(r.errors)}); last good data kept` });
+    const alerts = record(st, job, { at, ok: error === null, wallMs, cpuMs: null, counts, held, error, meter: { ...m }, sources: health.sources }, new Date());
+    const down = recordHealth(st, job, health, at);
     if (!opts.dryNotify) for (const a of alerts) st.feeds[a.job]!.announced = a.to; // the outbox retries a failed send
-    events.push(...healthEvents(alerts, at));
+    events.push(...healthEvents(alerts, at), ...sourceDownEvents(job, down, st, at));
     notify = await deliver(events, { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now: new Date(), dryRun: opts.dryNotify, log });
     await priv.put(STATUS_KEY, JSON.stringify(st), { contentType: "application/json", cacheControl: "no-store" });
   } catch (e) {
     log(`status/notify: not written (${String(e)})`);
   }
-  return { job, ok: error === null, error, wallMs, meter: m, summary, notify, log: logs.slice(-40) };
+  return { job, ok: error === null, error, wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, log: logs.slice(-40) };
 }
 
 /** what a DFO run left held: whole regions (page / structure), stale regions (fetch failed), single places */
@@ -219,7 +286,7 @@ export default {
     if (req.method === "GET" && (url.pathname === "/status" || url.pathname === "/status.json")) {
       const now = new Date();
       const st = refresh(await readStatus(r2Store(env.BUCKET, STATUS_PREFIX)), now);
-      if (url.pathname === "/status.json") return Response.json(st, { headers: { "Cache-Control": "no-store" } });
+      if (url.pathname === "/status.json") return Response.json(servedStatus(st, now), { headers: { "Cache-Control": "no-store" } });
       return new Response(statusHtml(st, now), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/notify/test" && req.method === "POST") {
@@ -244,7 +311,7 @@ export default {
     return Response.json(r, { status: r.ok ? 200 : 500 });
   },
   async scheduled(ev: { cron: string }, env: Env, ctx: { waitUntil(p: Promise<unknown>): void }): Promise<void> {
-    // cron strings are chosen in wrangler.toml [triggers] (none yet): the minute field names the job
+    // cron strings are in wrangler.toml [triggers]: the minute field names the job
     //   "15 …" DFO, "45 …" in-season, anything else the gauges
     const job: Job = ev.cron.startsWith("15 ") ? "dfo" : ev.cron.startsWith("45 ") ? "inseason" : "gauges";
     ctx.waitUntil(run(job, env).then((r) => console.log(JSON.stringify({ job, ok: r.ok, wallMs: r.wallMs, meter: r.meter }))));
