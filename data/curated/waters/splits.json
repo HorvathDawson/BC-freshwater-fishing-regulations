@@ -10030,6 +10030,34 @@
      "tidal": true
     }
    ]
+  },
+  {
+   "name": "WEST CREEK",
+   "applies_to": {
+    "gnis_id": "26057"
+   },
+   "splits": [
+    {
+     "id": "west_creek__cn_railway_bridge_tidal_boundary",
+     "label": "CN Railway Bridge (tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.530933,
+       49.162668
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:356294262 — \"West Creek: CN Railway Bridge\"",
+     "_coord": [
+      -122.530933,
+      49.162668
+     ],
+     "tidal": true
+    }
+   ]
   }
  ]
 }
