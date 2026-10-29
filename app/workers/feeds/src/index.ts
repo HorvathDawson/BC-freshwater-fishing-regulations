@@ -20,6 +20,7 @@ import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
 import { runInSeason } from "./inseason";
 import { compose, deliver, readState, sendTest, type FeedEvent, type NotifyConfig } from "./events";
+import { sampleDfoEvents } from "./email";
 import { readStatus, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
 import { pageUrl } from "./dfo/fetch";
@@ -37,6 +38,9 @@ export interface Env extends ReportEnv {
   /** "daily": one digest a day (health stays immediate) */
   NOTIFY_DIGEST?: string;
   NOTIFY_DIGEST_HOUR_UTC?: string;
+  /** the env tag every email carries ("staging" | "production") and the status page link (vars) */
+  FEEDS_ENV?: string;
+  STATUS_URL?: string;
 }
 
 const STATUS_PREFIX = "private/feeds/";
@@ -44,6 +48,7 @@ const JOBS: readonly Job[] = ["gauges", "dfo", "inseason"];
 
 export function notifyConfig(env: Env): NotifyConfig {
   return {
+    ctx: { env: env.FEEDS_ENV || "staging", statusUrl: env.STATUS_URL || null },
     emailTo: env.NOTIFY_EMAIL_TO || undefined,
     emailFrom: env.NOTIFY_EMAIL_FROM || undefined,
     webhook: env.FEED_NOTIFY_URL || undefined,
@@ -73,6 +78,7 @@ export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
             `2. On the Mac: scripts/update-hydat.sh --upload — the bundle and release (the build needs the atlas).\n\n` +
             `Noticed ${n.since}.`,
           at,
+          data: { latest: n.latest, current: n.current, since: n.since },
         }
       : {
           key: `${n.kind}:${n.latest}`,
@@ -80,13 +86,14 @@ export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
           title: n.kind === "roster" ? "ECCC's real-time station list changed — refresh the roster" : `${n.kind}: ${n.latest} is due`,
           text: `${n.kind}: ${n.latest} (feed on ${n.current}). Run: ${n.action}\nThen sync it to R2: Actions → "feeds — sync curated inputs → R2 private/" (what: roster).`,
           at,
+          data: { latest: n.latest, current: n.current, action: n.action },
         },
   );
 }
 
 /** DFO notices (unplaced / held / moved / header names / fetch failures) → events naming the review-app tab to open
  *  (the review app runs on the owner's machine: no link, just where to go) and the queue command to run first */
-export function dfoEvents(notices: { key: string; text: string }[], at: string): FeedEvent[] {
+export function dfoEvents(notices: { key: string; text: string; data?: unknown }[], at: string): FeedEvent[] {
   return notices.map((n) => {
     const m = /DFO Region (\w+):/.exec(n.text);
     const lid = /\b(\d[ab]?:[a-z0-9-]+:[a-z0-9-]+)\b/.exec(n.text)?.[1];
@@ -99,6 +106,9 @@ export function dfoEvents(notices: { key: string; text: string }[], at: string):
         (m ? `First: python -m pipeline.regs.dfo_salmon.live queue --regions ${m[1]}\n` : "") +
         `Then: Review app → DFO → Extents: ${lid ?? placeOf(n.text) ?? "the new rows"}`,
       at,
+      // the email template renders `data` (region · water · the place in full · what it affects); the text above is the
+      // webhook / log fallback
+      data: n.data ?? { region: m?.[1] ?? "?", kind: "other", place: lid ?? placeOf(n.text) ?? undefined, affects: n.text },
     };
   });
 }
@@ -118,6 +128,7 @@ export function healthEvents(alerts: Alert[], at: string): FeedEvent[] {
   return alerts.map((a) => ({
     key: `health:${a.job}:${a.from ?? "-"}>${a.to}:${at}`, kind: "health" as const, title: a.text.slice(0, 160),
     text: `${a.text}\n\nStatus: /status on the feeds worker.`, at, ...(a.to === "ok" ? { fine: true } : {}),
+    data: { job: a.job, from: a.from, to: a.to, detail: a.text },
     // owner 2026-10-28: a WHOLE feed failing / stale is emailed at once; degraded and recoveries wait for the digest
     ...(a.to === "failing" || a.to === "stale" ? { urgent: true } : {}),
   }));
@@ -357,7 +368,10 @@ export default {
     if (url.pathname === "/notify/test" && req.method === "POST") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const lines: string[] = [];
-      const via = await sendTest(notifyConfig(env), fetch, new Date(), "staging", (s) => lines.push(s));
+      // {"sample": "dfo"}: the real template on a recorded DFO payload (marked TEST)
+      const body = (await req.json().catch(() => ({}))) as { sample?: string };
+      const sample = body.sample === "dfo" ? sampleDfoEvents() : [];
+      const via = await sendTest(notifyConfig(env), fetch, new Date(), env.FEEDS_ENV || "staging", (s) => lines.push(s), sample);
       return Response.json({ via, log: lines }, { status: via ? 200 : 502 });
     }
     if (url.pathname === "/notify/preview" && req.method === "POST") {
@@ -365,7 +379,7 @@ export default {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const s = await readState(r2Store(env.BUCKET, STATUS_PREFIX));
       const c = notifyConfig(env);
-      return Response.json({ channel: c.emailTo && c.emailFrom && c.sendEmail ? "email" : c.webhook ? "webhook" : "log", digest: !!c.digest, pending: s.pending.length, told: Object.keys(s.told).length, lastDigest: s.lastDigest, messages: compose(s.pending, true) });
+      return Response.json({ channel: c.emailTo && c.emailFrom && c.sendEmail ? "email" : c.webhook ? "webhook" : "log", digest: !!c.digest, pending: s.pending.length, told: Object.keys(s.told).length, lastDigest: s.lastDigest, messages: compose(s.pending, true, c.ctx) });
     }
     const job = url.pathname.match(/^\/run\/(gauges|dfo|inseason)$/)?.[1] as Job | undefined;
     if (!job || req.method !== "POST") return new Response("Not Found", { status: 404 });

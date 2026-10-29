@@ -103,7 +103,7 @@ export const ROW_HELD_VERDICT = { s: "check", t: "DFO's row for this place could
 export interface DfoResult {
   index: Record<string, unknown>;
   unplaced: Record<string, unknown>[];
-  notices: { key: string; text: string }[];
+  notices: Notice[];
   sent: { sent: string[]; failed: string[]; off: boolean };
   /** change-aware: the regions whose typing was skipped (page + entries unchanged) */
   skipped?: string[];
@@ -210,7 +210,26 @@ function join(
   return [rules, unplaced];
 }
 
-export function unplacedNotice(u: Json): { key: string; text: string } {
+/** What the owner email renders (robust mode; stripped in pythonParity so the notices stay the Python's). */
+export interface NoticeData {
+  region: string;
+  /** new | new_water | drift (a place to place) · held | fetch | row-held | moved | header | header-name */
+  kind: string;
+  water?: string;
+  /** the place as DFO prints it, in full */
+  place?: string;
+  /** what it affects / why, one short phrase */
+  affects: string;
+  /** a drift's likely match */
+  likely?: string;
+}
+export interface Notice {
+  key: string;
+  text: string;
+  data?: NoticeData;
+}
+
+export function unplacedNotice(u: Json): Notice {
   const slug = u.region;
   const n = u.rules.length;
   const held = `${n} rule${n !== 1 ? "s" : ""} held unplaced`;
@@ -223,7 +242,12 @@ export function unplacedNotice(u: Json): { key: string; text: string } {
   } else if (u.kind === "new_water")
     text = `DFO Region ${slug}: a water no entry knows, ${repr(u.water)}: ${repr(u.scope)} — ${held}. Bind it in DFO review after: ${act}`;
   else text = `DFO Region ${slug}: new location on ${u.water}: ${repr(u.scope)} — ${held}. Place it in DFO review after: ${act}`;
-  return { key: `dfo-${u.kind}:${slug}:${u.fingerprint}`, text };
+  const likely = u.kind === "drift" && u.candidates.length ? String(u.candidates[0].location_id) : undefined;
+  return {
+    key: `dfo-${u.kind}:${slug}:${u.fingerprint}`,
+    text,
+    data: { region: slug, kind: u.kind, water: u.water || undefined, place: u.scope || undefined, affects: held.replace(" unplaced", ""), ...(likely ? { likely } : {}) },
+  };
 }
 
 function carry(prev: Json, slug: string, verdicts: Interner<unknown>, gears: Interner<unknown>, only: Set<string> | null = null): Record<string, Json> {
@@ -292,7 +316,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   const locs: Record<string, Json> = {};
   const regionOut: Record<string, Json> = {};
   const unplaced: Json[] = [];
-  const notices: { key: string; text: string }[] = [];
+  const notices: Notice[] = [];
   const prevRegions = prev.regions || {};
 
   const entryCache = new Map<string, EntryFile>();
@@ -340,7 +364,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
       reg.held = why;
       Object.assign(locs, carry(prev, slug, verdicts, gears));
       unplaced.push(...prevUnplacedOf(slug));
-      notices.push({ key: `dfo-held:${slug}:${k}`, text: `DFO Region ${slug} held at the last feed: ${why}` });
+      notices.push({ key: `dfo-held:${slug}:${k}`, text: `DFO Region ${slug} held at the last feed: ${why}`, data: { region: slug, kind: "held", affects: `the whole region is held at the last feed: ${why}` } });
     };
 
     let html: string;
@@ -357,6 +381,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
         notices.push({
           key: `dfo-fetch:${slug}:${was.checked || "never"}`,
           text: `DFO Region ${slug}: ${reg.failures} fetches in a row failed (${pyStrOf(e)}); the feed shows the page of ${reg.asof || "no date"}`,
+          data: { region: slug, kind: "fetch", affects: `${reg.failures} fetches in a row failed (${pyStrOf(e)}); the app shows the page of ${reg.asof || "no date"}` },
         });
       continue;
     }
@@ -439,6 +464,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
         notices.push({
           key: `dfo-row-held:${slug}:${h.fingerprint}:${sha.slice(0, 12)}`,
           text: `DFO Region ${slug}: the row for ${lid} did not read (${[...h.why].slice(0, 160).join("")}); ${how === "carried" ? "its last answers stand" : "it reads 'check DFO'"}, the rest of the region is published`,
+          data: { region: slug, kind: "row-held", place: lid, affects: `its row did not read (${h.why.split("\n")[0]}); ${how === "carried" ? "its last answers stand" : "it reads 'check DFO'"}` },
         });
       }
       reg.holds = kept;
@@ -450,6 +476,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
           notices.push({
             key: `dfo-section:${slug}:${o.fingerprint}`,
             text: `DFO Region ${slug}: ${o.location_id} moved section (${o.detail}); its last answers stand until it is reviewed in DFO mode`,
+            data: { region: slug, kind: "moved", place: o.location_id ?? undefined, affects: `moved section (${o.detail}); its last answers stand` },
           });
     }
     for (const u of held) {
@@ -483,7 +510,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     if (skipped.length) log(`unchanged (page + entries): region ${skipped.join(", ")} — typing skipped, last answers carried`);
   }
   if (live) await live.flush();
-  const sent = await sendDue(notices, {
+  const sent = await sendDue(notices as unknown as Record<string, unknown>[], {
     url: deps.notifyUrl,
     fetch: deps.fetch,
     state: deps.priv,
@@ -492,7 +519,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     messageOf: (n) => n.text,
     log,
   });
-  return { index, unplaced, notices, sent, skipped };
+  return { index, unplaced, notices: robust ? notices : notices.map(({ key, text }) => ({ key, text })), sent, skipped };
 }
 
 function canonical(locs: Record<string, Json>, vs: unknown[], gs: unknown[]): [unknown[], unknown[]] {
@@ -517,7 +544,7 @@ function canonical(locs: Record<string, Json>, vs: unknown[], gs: unknown[]): [u
   return [vOut, gOut];
 }
 
-function readHeader(slug: string, html: string, reg: Json, was: Json, ef: EntryFile, notices: { key: string; text: string }[]): void {
+function readHeader(slug: string, html: string, reg: Json, was: Json, ef: EntryFile, notices: Notice[]): void {
   let notes: Note[];
   try {
     notes = parseHeader(html, slug);
@@ -525,6 +552,7 @@ function readHeader(slug: string, html: string, reg: Json, was: Json, ef: EntryF
     notices.push({
       key: `dfo-header-parse:${slug}:${reg.sha256.slice(0, 12)}`,
       text: `DFO Region ${slug}: the region header did not parse (${pyTypeName(e)}); the last one stands`,
+      data: { region: slug, kind: "header", affects: `the region header did not parse (${pyTypeName(e)}); the last one stands` },
     });
     return;
   }
@@ -532,6 +560,7 @@ function readHeader(slug: string, html: string, reg: Json, was: Json, ef: EntryF
     notices.push({
       key: `dfo-header-empty:${slug}:${reg.sha256.slice(0, 12)}`,
       text: `DFO Region ${slug}: the page has no region header any more; the last one stands`,
+      data: { region: slug, kind: "header", affects: "the page has no region header any more; the last one stands" },
     });
     return;
   }
@@ -544,6 +573,7 @@ function readHeader(slug: string, html: string, reg: Json, was: Json, ef: EntryF
     notices.push({
       key: `dfo-header:${slug}:${d}`,
       text: `DFO Region ${slug}: the region header changed (+${plus} / -${minus} notes); the card's Region rules now read the new words`,
+      data: { region: slug, kind: "header", affects: `the region header changed (+${plus} / -${minus} notes); the app reads the new words` },
     });
   }
   const [, unresolved] = resolve(notes, ef);
@@ -551,6 +581,7 @@ function readHeader(slug: string, html: string, reg: Json, was: Json, ef: EntryF
     notices.push({
       key: `dfo-header-name:${slug}:${u.name}`,
       text: `DFO Region ${slug}: the header names ${repr(u.name)}, which no curated DFO water binds — its note shows on no water until it is bound (DFO review)`,
+      data: { region: slug, kind: "header-name", water: u.name, affects: "named in the region header, bound to no water: its note shows nowhere" },
     });
   reg.notes = notes;
   reg.header = d;

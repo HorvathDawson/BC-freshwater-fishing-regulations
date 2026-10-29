@@ -29,6 +29,8 @@ name = "EMAIL"
 [vars]
 NOTIFY_EMAIL_FROM = "status@canifishthis.ca"
 NOTIFY_DIGEST = "daily"          # DFO + in-season are urgent (at once); the rest one digest a day, only on a day with an issue
+FEEDS_ENV = "staging"            # the [staging] subject tag + footer of every email (src/email.ts)
+STATUS_URL = "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status"
 
 # T225 Phase A (owner 2026-10-28): the schedule. Cron times are UTC; the MINUTE names the job (src/index.ts `scheduled`):
 #   :05 + :35 gauges   every 30 min 13–05 UTC (06–22 PDT / 05–21 PST), hourly (:05) at night 06–12 UTC (owner 2026-10-28)

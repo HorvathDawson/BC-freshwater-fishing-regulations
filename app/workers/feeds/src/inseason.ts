@@ -201,6 +201,7 @@ export async function runInSeason(deps: {
           title: `${d.added.length} added, ${d.changed.length} changed, ${d.removed.length} removed on the provincial in-season page`,
           text: `${diffText(d)}\n\nSource: ${SOURCE_URL}\n(The in-season rows are not in the app yet: bind any that matter in curation.)`,
           at: now.toISOString(),
+          data: { added: d.added, changed: d.changed, removed: d.removed, source: SOURCE_URL },
         },
       ]
     : [];

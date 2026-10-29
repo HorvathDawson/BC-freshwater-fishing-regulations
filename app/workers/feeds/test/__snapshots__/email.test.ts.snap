@@ -1,0 +1,220 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the email template > DFO (the owner's first email, redone): every place once, in full; one queue command; no truncation > dfo.html 1`] = `"<!doctype html><html><body style="margin:0;padding:16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#111827"><div style="max-width:680px"><h2 style="margin:0 0 12px;font-size:18px">DFO salmon: 2 new places to place — Region 1</h2><div style="margin:14px 0 4px;font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#374151">Region 1</div><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>Nanaimo River</b><br>in Subarea 17-14 (tidal portions of the Nanaimo River), that portion of the Nanaimo River from the Cedar Bridge to the white square boundary signs approximately 400 m downstream of the Cedar Bridge<br><span style="color:#6b7280;font-size:13px">1 rule held</span></td></tr><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>Nanaimo River</b><br>in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream<br><span style="color:#6b7280;font-size:13px">1 rule held</span></td></tr></table><div style="margin:16px 0 4px;font-weight:600">What to do</div><ol style="margin:0;padding-left:20px"><li style="margin:4px 0">Queue the new rows for review:<br><code style="display:inline-block;margin-top:4px;padding:4px 6px;background:#f3f4f6;border-radius:4px;font-size:13px">python -m pipeline.regs.dfo_salmon.live queue --regions 1</code></li><li style="margin:4px 0">Review app → DFO → Extents: Nanaimo River (2 places)</li></ol><hr style="border:0;border-top:1px solid #e5e7eb;margin:20px 0 8px"><p style="color:#6b7280;font-size:13px;margin:0">Feed status: <a href="https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status">https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status</a><br>Why you got this: DFO's salmon pages changed in a way the feed will not publish on its own (new or reworded places, or a held region). DFO items are emailed at once.<br>Environment: <b>STAGING</b></p></div></body></html>"`;
+
+exports[`the email template > DFO (the owner's first email, redone): every place once, in full; one queue command; no truncation > dfo.txt 1`] = `
+"DFO salmon: 2 new places to place — Region 1
+============================================
+
+REGION 1
+  * Nanaimo River
+    in Subarea 17-14 (tidal portions of the Nanaimo River), that portion of
+    the Nanaimo River from the Cedar Bridge to the white square boundary signs
+    approximately 400 m downstream of the Cedar Bridge
+    → 1 rule held
+  * Nanaimo River
+    in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge
+    downstream
+    → 1 rule held
+
+WHAT TO DO
+  1. Queue the new rows for review:
+       python -m pipeline.regs.dfo_salmon.live queue --regions 1
+  2. Review app → DFO → Extents: Nanaimo River (2 places)
+
+-- 
+Feed status: https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
+Why you got this: DFO's salmon pages changed in a way the feed will not
+publish on its own (new or reworded places, or a held region). DFO items are
+emailed at once.
+Environment: STAGING
+"
+`;
+
+exports[`the email template > feed health, HYDAT, roster drift, a problem report > health.html 1`] = `"<!doctype html><html><body style="margin:0;padding:16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#111827"><div style="max-width:680px"><h2 style="margin:0 0 12px;font-size:18px">Gauge feed failing</h2><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>Gauge feed</b><br>FAILED 2 run(s) in a row: Error: no station answered (asked 438)<br><span style="color:#6b7280;font-size:13px">was ok</span></td></tr></table><div style="margin:16px 0 4px;font-weight:600">What to do</div><ol style="margin:0;padding-left:20px"><li style="margin:4px 0">Open the feed status: https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status</li><li style="margin:4px 0">Read the run's error in the worker's logs:<br><code style="display:inline-block;margin-top:4px;padding:4px 6px;background:#f3f4f6;border-radius:4px;font-size:13px">npx --prefix app wrangler tail bc-fishing-feeds-staging</code></li></ol><hr style="border:0;border-top:1px solid #e5e7eb;margin:20px 0 8px"><p style="color:#6b7280;font-size:13px;margin:0">Feed status: <a href="https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status">https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status</a><br>Why you got this: A feed's state changed (ok, degraded, failing or stale). Current state is always on the status page.<br>Environment: <b>STAGING</b></p></div></body></html>"`;
+
+exports[`the email template > feed health, HYDAT, roster drift, a problem report > health.txt 1`] = `
+"Gauge feed failing
+==================
+
+  * Gauge feed
+    FAILED 2 run(s) in a row: Error: no station answered (asked 438)
+    → was ok
+
+WHAT TO DO
+  1. Open the feed status:
+     https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
+  2. Read the run's error in the worker's logs:
+       npx --prefix app wrangler tail bc-fishing-feeds-staging
+
+-- 
+Feed status: https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
+Why you got this: A feed's state changed (ok, degraded, failing or stale).
+Current state is always on the status page.
+Environment: STAGING
+"
+`;
+
+exports[`the email template > feed health, HYDAT, roster drift, a problem report > hydat.html 1`] = `"<!doctype html><html><body style="margin:0;padding:16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#111827"><div style="max-width:680px"><h2 style="margin:0 0 12px;font-size:18px">New HYDAT 20261015 is out</h2><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>HYDAT 20261015</b><br>The gauge envelope (clim.json) is on 20250115.<br><span style="color:#6b7280;font-size:13px">noticed 2026-10-28T09:00:00Z</span></td></tr></table><div style="margin:16px 0 4px;font-weight:600">What to do</div><ol style="margin:0;padding-left:20px"><li style="margin:4px 0">GitHub → Actions → &quot;feeds — HYDAT → climatology → R2&quot;, with upload: true (the feeds worker's clim.json).</li><li style="margin:4px 0">Then, on the Mac, the bundle and release:<br><code style="display:inline-block;margin-top:4px;padding:4px 6px;background:#f3f4f6;border-radius:4px;font-size:13px">scripts/update-hydat.sh --upload</code></li></ol><hr style="border:0;border-top:1px solid #e5e7eb;margin:20px 0 8px"><p style="color:#6b7280;font-size:13px;margin:0">Feed status: <a href="https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status">https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status</a><br>Why you got this: The HYDAT listing is checked once a day; a newer release than the envelope's is out.<br>Environment: <b>STAGING</b></p></div></body></html>"`;
+
+exports[`the email template > feed health, HYDAT, roster drift, a problem report > hydat.txt 1`] = `
+"New HYDAT 20261015 is out
+=========================
+
+  * HYDAT 20261015
+    The gauge envelope (clim.json) is on 20250115.
+    → noticed 2026-10-28T09:00:00Z
+
+WHAT TO DO
+  1. GitHub → Actions → "feeds — HYDAT → climatology → R2", with upload: true
+     (the feeds worker's clim.json).
+  2. Then, on the Mac, the bundle and release:
+       scripts/update-hydat.sh --upload
+
+-- 
+Feed status: https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
+Why you got this: The HYDAT listing is checked once a day; a newer release
+than the envelope's is out.
+Environment: STAGING
+"
+`;
+
+exports[`the email template > feed health, HYDAT, roster drift, a problem report > report.html 1`] = `"<!doctype html><html><body style="margin:0;padding:16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#111827"><div style="max-width:680px"><h2 style="margin:0 0 12px;font-size:18px">Problem reports from the app: 1</h2><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>Wrong rule: Elk River</b><br>The closure dates are a year out.<br>Where: Elk River · map regs</td></tr></table><div style="margin:16px 0 4px;font-weight:600">What to do</div><ol style="margin:0;padding-left:20px"><li style="margin:4px 0">Review app → Reports (Sync), then fix or dismiss each.</li></ol><hr style="border:0;border-top:1px solid #e5e7eb;margin:20px 0 8px"><p style="color:#6b7280;font-size:13px;margin:0">Feed status: <a href="https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status">https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status</a><br>Why you got this: Someone used Report a problem in the app.<br>Environment: <b>STAGING</b></p></div></body></html>"`;
+
+exports[`the email template > feed health, HYDAT, roster drift, a problem report > report.txt 1`] = `
+"Problem reports from the app: 1
+===============================
+
+  * Wrong rule: Elk River
+    The closure dates are a year out.
+    Where: Elk River · map regs
+
+WHAT TO DO
+  1. Review app → Reports (Sync), then fix or dismiss each.
+
+-- 
+Feed status: https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
+Why you got this: Someone used Report a problem in the app.
+Environment: STAGING
+"
+`;
+
+exports[`the email template > feed health, HYDAT, roster drift, a problem report > roster.html 1`] = `"<!doctype html><html><body style="margin:0;padding:16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#111827"><div style="max-width:680px"><h2 style="margin:0 0 12px;font-size:18px">ECCC's real-time station list changed</h2><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>2 stations ECCC now lists</b><br>07FA008, 08DA013<br><span style="color:#6b7280;font-size:13px">the roster calls them silent</span></td></tr><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>1 station ECCC no longer lists</b><br>08NM050<br><span style="color:#6b7280;font-size:13px">the roster calls them live</span></td></tr></table><div style="margin:16px 0 4px;font-weight:600">What to do</div><ol style="margin:0;padding-left:20px"><li style="margin:4px 0">Refresh the roster and rebuild:<br><code style="display:inline-block;margin-top:4px;padding:4px 6px;background:#f3f4f6;border-radius:4px;font-size:13px">rm data/source/bc_hydrometric_stations.json &amp;&amp; (cd data &amp;&amp; PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations)</code></li><li style="margin:4px 0">Then GitHub → Actions → &quot;feeds — sync curated inputs → R2 private/&quot; (what: roster).</li></ol><hr style="border:0;border-top:1px solid #e5e7eb;margin:20px 0 8px"><p style="color:#6b7280;font-size:13px;margin:0">Feed status: <a href="https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status">https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status</a><br>Why you got this: The gauge feed compares ECCC's real-time list with the roster on every run.<br>Environment: <b>STAGING</b></p></div></body></html>"`;
+
+exports[`the email template > feed health, HYDAT, roster drift, a problem report > roster.txt 1`] = `
+"ECCC's real-time station list changed
+=====================================
+
+  * 2 stations ECCC now lists
+    07FA008, 08DA013
+    → the roster calls them silent
+  * 1 station ECCC no longer lists
+    08NM050
+    → the roster calls them live
+
+WHAT TO DO
+  1. Refresh the roster and rebuild:
+       rm data/source/bc_hydrometric_stations.json && (cd data && PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations)
+  2. Then GitHub → Actions → "feeds — sync curated inputs → R2 private/"
+     (what: roster).
+
+-- 
+Feed status: https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
+Why you got this: The gauge feed compares ECCC's real-time list with the
+roster on every run.
+Environment: STAGING
+"
+`;
+
+exports[`the email template > in-season: added / changed (before → after) / removed, per region > inseason.html 1`] = `"<!doctype html><html><body style="margin:0;padding:16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#111827"><div style="max-width:680px"><h2 style="margin:0 0 12px;font-size:18px">In-season regulation changes: 1 added, 1 changed, 1 removed — Regions 1, 4, 7B</h2><div style="margin:14px 0 4px;font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#374151">Region 1</div><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>Cowichan River</b><br>No fishing upstream of Skutz Falls<br><span style="color:#6b7280;font-size:13px">was: <s>No fishing</s></span><br><span style="color:#6b7280;font-size:13px">changed · effective July 4, 2025 to August 31, 2025 → July 4, 2025 to September 15, 2025</span></td></tr></table><div style="margin:14px 0 4px;font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#374151">Region 4</div><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>Elk River</b><br>No fishing September 1 to October 31, including tributaries.<br><span style="color:#6b7280;font-size:13px">added · effective October 28, 2026</span></td></tr></table><div style="margin:14px 0 4px;font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#374151">Region 7B</div><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>Peace River</b><br>No fishing between Peace Canyon Dam and Hwy 29 Bridge<br><span style="color:#6b7280;font-size:13px">removed from the page · effective May 2, 2025</span></td></tr></table><div style="margin:16px 0 4px;font-weight:600">What to do</div><ol style="margin:0;padding-left:20px"><li style="margin:4px 0">Read the rows on the province's page: https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations</li><li style="margin:4px 0">The app's in-season feed already lists them (unmatched to waters); bind any that matter in curation.</li></ol><hr style="border:0;border-top:1px solid #e5e7eb;margin:20px 0 8px"><p style="color:#6b7280;font-size:13px;margin:0">Feed status: <a href="https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status">https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status</a><br>Why you got this: The provincial in-season changes page differs from the last check. In-season changes are emailed at once.<br>Environment: <b>STAGING</b></p></div></body></html>"`;
+
+exports[`the email template > in-season: added / changed (before → after) / removed, per region > inseason.txt 1`] = `
+"In-season regulation changes: 1 added, 1 changed, 1 removed — Regions 1, 4, 7B
+==============================================================================
+
+REGION 1
+  * Cowichan River
+    No fishing upstream of Skutz Falls
+    was: No fishing
+    → changed · effective July 4, 2025 to August 31, 2025 → July 4, 2025 to
+      September 15, 2025
+
+REGION 4
+  * Elk River
+    No fishing September 1 to October 31, including tributaries.
+    → added · effective October 28, 2026
+
+REGION 7B
+  * Peace River
+    No fishing between Peace Canyon Dam and Hwy 29 Bridge
+    → removed from the page · effective May 2, 2025
+
+WHAT TO DO
+  1. Read the rows on the province's page:
+     https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations
+  2. The app's in-season feed already lists them (unmatched to waters); bind
+     any that matter in curation.
+
+-- 
+Feed status: https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
+Why you got this: The provincial in-season changes page differs from the last
+check. In-season changes are emailed at once.
+Environment: STAGING
+"
+`;
+
+exports[`the email template > the daily digest: one section per kind, each with its own what-to-do > digest.html 1`] = `"<!doctype html><html><body style="margin:0;padding:16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#111827"><div style="max-width:680px"><h2 style="margin:0 0 12px;font-size:18px">Daily digest — 3 items</h2><h3 style="margin:20px 0 6px;font-size:15px">Gauge feed failing</h3><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>Gauge feed</b><br>FAILED 2 run(s) in a row: Error: no station answered (asked 438)<br><span style="color:#6b7280;font-size:13px">was ok</span></td></tr></table><div style="margin:16px 0 4px;font-weight:600">What to do</div><ol style="margin:0;padding-left:20px"><li style="margin:4px 0">Open the feed status: https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status</li><li style="margin:4px 0">Read the run's error in the worker's logs:<br><code style="display:inline-block;margin-top:4px;padding:4px 6px;background:#f3f4f6;border-radius:4px;font-size:13px">npx --prefix app wrangler tail bc-fishing-feeds-staging</code></li></ol><h3 style="margin:20px 0 6px;font-size:15px">New HYDAT 20261015 is out</h3><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>HYDAT 20261015</b><br>The gauge envelope (clim.json) is on 20250115.<br><span style="color:#6b7280;font-size:13px">noticed 2026-10-28T09:00:00Z</span></td></tr></table><div style="margin:16px 0 4px;font-weight:600">What to do</div><ol style="margin:0;padding-left:20px"><li style="margin:4px 0">GitHub → Actions → &quot;feeds — HYDAT → climatology → R2&quot;, with upload: true (the feeds worker's clim.json).</li><li style="margin:4px 0">Then, on the Mac, the bundle and release:<br><code style="display:inline-block;margin-top:4px;padding:4px 6px;background:#f3f4f6;border-radius:4px;font-size:13px">scripts/update-hydat.sh --upload</code></li></ol><h3 style="margin:20px 0 6px;font-size:15px">ECCC's real-time station list changed</h3><table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>2 stations ECCC now lists</b><br>07FA008, 08DA013<br><span style="color:#6b7280;font-size:13px">the roster calls them silent</span></td></tr><tr><td style="padding:8px 0;border-top:1px solid #e5e7eb"><b>1 station ECCC no longer lists</b><br>08NM050<br><span style="color:#6b7280;font-size:13px">the roster calls them live</span></td></tr></table><div style="margin:16px 0 4px;font-weight:600">What to do</div><ol style="margin:0;padding-left:20px"><li style="margin:4px 0">Refresh the roster and rebuild:<br><code style="display:inline-block;margin-top:4px;padding:4px 6px;background:#f3f4f6;border-radius:4px;font-size:13px">rm data/source/bc_hydrometric_stations.json &amp;&amp; (cd data &amp;&amp; PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations)</code></li><li style="margin:4px 0">Then GitHub → Actions → &quot;feeds — sync curated inputs → R2 private/&quot; (what: roster).</li></ol><hr style="border:0;border-top:1px solid #e5e7eb;margin:20px 0 8px"><p style="color:#6b7280;font-size:13px;margin:0">Feed status: <a href="https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status">https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status</a><br>Why you got this: Everything that is not urgent (HYDAT, roster drift, feed health) comes once a day, and only on a day with something to do.<br>Environment: <b>STAGING</b></p></div></body></html>"`;
+
+exports[`the email template > the daily digest: one section per kind, each with its own what-to-do > digest.txt 1`] = `
+"Daily digest — 3 items
+======================
+
+Gauge feed failing
+------------------
+
+  * Gauge feed
+    FAILED 2 run(s) in a row: Error: no station answered (asked 438)
+    → was ok
+
+What to do:
+  1. Open the feed status:
+     https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
+  2. Read the run's error in the worker's logs:
+       npx --prefix app wrangler tail bc-fishing-feeds-staging
+
+New HYDAT 20261015 is out
+-------------------------
+
+  * HYDAT 20261015
+    The gauge envelope (clim.json) is on 20250115.
+    → noticed 2026-10-28T09:00:00Z
+
+What to do:
+  1. GitHub → Actions → "feeds — HYDAT → climatology → R2", with upload: true
+     (the feeds worker's clim.json).
+  2. Then, on the Mac, the bundle and release:
+       scripts/update-hydat.sh --upload
+
+ECCC's real-time station list changed
+-------------------------------------
+
+  * 2 stations ECCC now lists
+    07FA008, 08DA013
+    → the roster calls them silent
+  * 1 station ECCC no longer lists
+    08NM050
+    → the roster calls them live
+
+What to do:
+  1. Refresh the roster and rebuild:
+       rm data/source/bc_hydrometric_stations.json && (cd data && PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations)
+  2. Then GitHub → Actions → "feeds — sync curated inputs → R2 private/"
+     (what: roster).
+
+-- 
+Feed status: https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
+Why you got this: Everything that is not urgent (HYDAT, roster drift, feed
+health) comes once a day, and only on a day with something to do.
+Environment: STAGING
+"
+`;

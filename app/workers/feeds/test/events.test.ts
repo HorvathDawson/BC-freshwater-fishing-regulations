@@ -8,7 +8,16 @@ import { dfoEvents, gaugeEvents, healthEvents } from "../src/index";
 import { buildFeed, diff, effectiveDates, parseChange, parseInSeason, regionOf, runInSeason, type InSeasonFeed } from "../src/inseason";
 import { MemStore } from "./dfo.scenario";
 
-const ev = (key: string, kind: FeedEvent["kind"] = "dfo", title = key): FeedEvent => ({ key, kind, title, text: `about ${key}`, at: "2026-10-28T12:00:00Z" });
+/** a test event with the `data` its kind's template renders */
+const ev = (key: string, kind: FeedEvent["kind"] = "dfo", title = key): FeedEvent => ({
+  key, kind, title, text: `about ${key}`, at: "2026-10-28T12:00:00Z",
+  data:
+    kind === "dfo" ? { region: "6", kind: "new", water: "Skeena River", place: `place ${key}`, affects: "1 rule held" }
+    : kind === "hydat" ? { latest: key.split(":")[1], current: "20250115", since: "2026-10-28T00:00:00Z" }
+    : kind === "health" ? { job: "dfo", from: /OK again/.test(title) ? "stale" : "ok", to: /OK again/.test(title) ? "ok" : "stale", detail: title }
+    : kind === "inseason" ? { added: [{ section: "Region 4 - Kootenay", water: "Elk River", change: `No fishing (${key})`, effective: "October 1, 2026" }], changed: [], removed: [], source: "https://example/inseason" }
+    : undefined,
+});
 const T = (iso: string) => new Date(iso);
 const okFetch = async () => new Response("ok");
 
@@ -17,7 +26,12 @@ function mailbox() {
   const cfg: NotifyConfig = { emailTo: "owner@example.com", emailFrom: "feeds@example.com", sendEmail: async (from, to, raw) => void sent.push({ from, to, raw }) };
   return { sent, cfg };
 }
-const bodyOf = (raw: string) => new TextDecoder().decode(Uint8Array.from(atob(raw.split("\r\n\r\n")[1]!.replace(/\r\n/g, "")), (c) => c.charCodeAt(0)));
+const unb64 = (b: string) => new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\r\n/g, "")), (c) => c.charCodeAt(0)));
+/** the text/plain part (multipart or not) */
+const bodyOf = (raw: string) => {
+  const m = /Content-Type: text\/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n([A-Za-z0-9+/=\r\n]+?)(?:\r\n--|$)/.exec(raw);
+  return unb64(m![1]!);
+};
 
 describe("the outbox", () => {
   it("emails once per event: HYDAT on its own, DFO places as one list; a repeat is not told again", async () => {
@@ -31,12 +45,10 @@ describe("the outbox", () => {
       const m = /^=\?UTF-8\?B\?(.*)\?=$/.exec(v);
       return m ? new TextDecoder().decode(Uint8Array.from(atob(m[1]!), (c) => c.charCodeAt(0))) : v;
     };
-    expect(sent.map((s) => subj(s.raw))).toEqual([
-      "BC fishing feeds — New HYDAT 20261015 — run the HYDAT action",
-      "BC fishing feeds — DFO salmon: places to review: 2 new",
-    ]);
+    expect(sent.map((s) => subj(s.raw))).toEqual(["[staging] DFO: 2 new places to place (Region 6)", "[staging] New HYDAT 20261015 — run the HYDAT action"]);
     expect(sent[0]!.raw).toMatch(/\r\nMessage-ID: <[^>]+@example\.com>\r\n/);
-    expect(bodyOf(sent[1]!.raw)).toContain("* dfo-new:6:a");
+    expect(bodyOf(sent[0]!.raw)).toContain("place dfo-new:6:a");
+    expect(sent[0]!.raw).toMatch(/Content-Type: multipart\/alternative/);
     const again = await deliver([...events, ev("dfo-new:6:c")], { store, config: cfg, fetch: okFetch, now: T("2026-10-28T13:00:00Z") });
     expect(again.messages.map((m) => m.keys)).toEqual([["dfo-new:6:c"]]);
   });
@@ -55,7 +67,7 @@ describe("the outbox", () => {
     webhookUp = true;
     const r2 = await deliver([], { store, config: cfg, fetch, now: T("2026-10-28T14:00:00Z") });
     expect(r2.sentVia).toEqual(["webhook"]);
-    expect(posts.at(-1)).toMatch(/hydat:2/);
+    expect(posts.at(-1)).toMatch(/New HYDAT 2 /);
     expect((await readState(store)).pending).toEqual([]);
   });
 
@@ -73,14 +85,14 @@ describe("the outbox", () => {
     const { sent, cfg } = mailbox();
     const c = { ...cfg, digest: true, digestHourUtc: 15 };
     const r1 = await deliver([ev("dfo-a"), ev("health:gauges:ok>failing:t", "health", "Gauge feed FAILED")], { store, config: c, fetch: okFetch, now: T("2026-10-28T09:00:00Z") });
-    expect(r1.messages.map((m) => m.subject)).toEqual(["BC fishing feeds — DFO salmon: places to review: 1 new"]);
+    expect(r1.messages.map((m) => m.subject)).toEqual(["[staging] DFO: 1 new place to place (Region 6)"]);
     expect(r1.queued).toBe(1);
     const r2 = await deliver([ev("inseason:h", "inseason"), ev("hydat:20261015", "hydat")], { store, config: c, fetch: okFetch, now: T("2026-10-28T12:00:00Z") });
-    expect(r2.messages.map((m) => m.subject)).toEqual(["BC fishing feeds — In-season regulation changes: 1 new"]);
+    expect(r2.messages.map((m) => m.subject)).toEqual(["[staging] In-season: 1 added (Region 4)"]);
     const r3 = await deliver([], { store, config: c, fetch: okFetch, now: T("2026-10-28T15:05:00Z") });
     expect(r3.messages).toHaveLength(1);
-    expect(r3.messages[0]!.subject).toBe("BC fishing feeds — daily digest: 2 items");
-    expect(bodyOf(sent.at(-1)!.raw)).toMatch(/== HYDAT \(1\) ==[\s\S]*== Feed health \(1\) ==|== Feed health \(1\) ==[\s\S]*== HYDAT \(1\) ==/);
+    expect(r3.messages[0]!.subject).toMatch(/^\[staging\] Daily digest: /);
+    expect(bodyOf(sent.at(-1)!.raw)).toMatch(/Daily digest — 2 items[\s\S]*Gauge feed FAILED[\s\S]*New HYDAT 20261015 is out/);
     // the next digest is a day later, not the next run
     await deliver([ev("hydat:x", "hydat")], { store, config: c, fetch: okFetch, now: T("2026-10-28T18:00:00Z") });
     expect(sent).toHaveLength(3);

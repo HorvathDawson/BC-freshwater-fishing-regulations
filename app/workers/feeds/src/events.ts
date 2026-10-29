@@ -16,6 +16,7 @@
 // State (private): notify/state.json — {told: {key: at}, pending: [...], lastDigest}. A key is forgotten after a year.
 import { body as webhookBody } from "./notify";
 import type { Fetch, Store } from "./io";
+import { render, sectionFor, type RenderCtx } from "./email";
 
 export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health" | "report";
 export interface FeedEvent {
@@ -30,12 +31,16 @@ export interface FeedEvent {
   fine?: boolean;
   /** sent at once even in digest mode (a whole feed failing / stale; owner 2026-10-28) */
   urgent?: boolean;
+  /** what the email template renders (src/email.ts), per kind; absent → the title + text, once */
+  data?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 /** emailed at once even in digest mode */
 export const URGENT: readonly EventKind[] = ["dfo", "inseason"];
 export interface Message {
   subject: string;
   text: string;
+  /** the HTML part (multipart/alternative with `text`) */
+  html?: string;
   keys: string[];
 }
 export interface NotifyConfig {
@@ -44,6 +49,8 @@ export interface NotifyConfig {
   webhook?: string;
   digest?: boolean;
   digestHourUtc?: number;
+  /** the env tag and the status link every email carries */
+  ctx?: RenderCtx;
   /** sends one RFC 5322 message through the EMAIL binding (index.ts wires cloudflare:email) */
   sendEmail?: (from: string, to: string, raw: string) => Promise<void>;
 }
@@ -73,51 +80,57 @@ export async function readState(store: Store): Promise<NotifyState> {
   return { told: {}, pending: [], lastDigest: null };
 }
 
-/** Events → messages: HYDAT, roster and health one per event; in-season and DFO one per kind (a list). */
-export function compose(events: FeedEvent[], digest = false): Message[] {
-  if (!events.length) return [];
-  if (digest) {
-    const kinds = [...new Set(events.map((e) => e.kind))];
-    const text = kinds
-      .map((k) => {
-        const es = events.filter((e) => e.kind === k);
-        return `== ${KIND_TITLE[k]} (${es.length}) ==\n\n${es.map((e) => `* ${e.title}\n${indent(e.text)}`).join("\n\n")}`;
-      })
-      .join("\n\n");
-    return [{ subject: `BC fishing feeds — daily digest: ${events.length} item${events.length > 1 ? "s" : ""}`, text, keys: events.map((e) => e.key) }];
-  }
-  const out: Message[] = [];
-  for (const e of events.filter((x) => x.kind === "hydat" || x.kind === "roster" || x.kind === "health" || x.kind === "report"))
-    out.push({ subject: `BC fishing feeds — ${e.title}`, text: e.text, keys: [e.key] });
-  for (const k of ["inseason", "dfo"] as const) {
-    const es = events.filter((e) => e.kind === k);
-    if (!es.length) continue;
-    out.push({
-      subject: `BC fishing feeds — ${KIND_TITLE[k]}: ${es.length} new`,
-      text: es.map((e) => `* ${e.title}\n${indent(e.text)}`).join("\n\n"),
-      keys: es.map((e) => e.key),
-    });
-  }
-  return out;
-}
-const indent = (t: string) => t.split("\n").map((l) => (l ? `  ${l}` : l)).join("\n");
+const ORDER: EventKind[] = ["dfo", "inseason", "health", "report", "hydat", "roster"];
+const DEFAULT_CTX: RenderCtx = { env: "staging", statusUrl: null };
 
-/** RFC 5322 text/plain message, UTF-8, base64 body (Cloudflare's send_email needs a Message-ID). */
+/** Events → messages through the one template (src/email.ts): one email per kind per run (all DFO places, all in-season
+ *  rows, all health changes together), or — digest — one email with a section per kind. */
+export function compose(events: FeedEvent[], digest = false, ctx: RenderCtx = DEFAULT_CTX): Message[] {
+  if (!events.length) return [];
+  const kinds = ORDER.filter((k) => events.some((e) => e.kind === k));
+  if (digest) {
+    const r = render(kinds.map((k) => sectionFor(k, events.filter((e) => e.kind === k), ctx)), ctx, true);
+    return [{ ...r, keys: events.map((e) => e.key) }];
+  }
+  return kinds.map((k) => {
+    const es = events.filter((e) => e.kind === k);
+    return { ...render([sectionFor(k, es, ctx)], ctx), keys: es.map((e) => e.key) };
+  });
+}
+void KIND_TITLE;
+
+/** RFC 5322 multipart/alternative (text + HTML), UTF-8, base64 parts (Cloudflare's send_email needs a Message-ID). */
 export function mime(from: string, to: string, m: Message, now: Date): string {
   const enc = (s: string) => (/^[\x20-\x7e]*$/.test(s) ? s : `=?UTF-8?B?${b64(s)}?=`);
-  const body = b64(m.text).replace(/.{76}/g, "$&\r\n");
+  const part = (t: string) => b64(t).replace(/.{76}/g, "$&\r\n");
   const domain = from.split("@")[1] ?? "localhost";
-  return [
+  const id = `${now.getTime().toString(36)}.${Math.random().toString(36).slice(2)}`;
+  const head = [
     `From: BC fishing feeds <${from}>`,
     `To: ${to}`,
     `Subject: ${enc(m.subject)}`,
     `Date: ${now.toUTCString()}`,
-    `Message-ID: <${now.getTime().toString(36)}.${Math.random().toString(36).slice(2)}@${domain}>`,
+    `Message-ID: <${id}@${domain}>`,
     "MIME-Version: 1.0",
+  ];
+  if (!m.html) return [...head, "Content-Type: text/plain; charset=utf-8", "Content-Transfer-Encoding: base64", "", part(m.text)].join("\r\n");
+  const b = `=_feeds_${id}`;
+  return [
+    ...head,
+    `Content-Type: multipart/alternative; boundary="${b}"`,
+    "",
+    `--${b}`,
     "Content-Type: text/plain; charset=utf-8",
     "Content-Transfer-Encoding: base64",
     "",
-    body,
+    part(m.text),
+    `--${b}`,
+    "Content-Type: text/html; charset=utf-8",
+    "Content-Transfer-Encoding: base64",
+    "",
+    part(m.html),
+    `--${b}--`,
+    "",
   ].join("\r\n");
 }
 function b64(s: string): string {
@@ -161,7 +174,7 @@ export async function deliver(
     digest &&
     pending.some((e) => !e.fine) &&
     (o.flushDigest || ((!st.lastDigest || o.now.getTime() - Date.parse(st.lastDigest) >= 20 * 3600_000) && o.now.getUTCHours() >= hour));
-  const messages = [...compose(now), ...(due ? compose(pending, true) : [])];
+  const messages = [...compose(now, false, o.config.ctx), ...(due ? compose(pending, true, o.config.ctx) : [])];
   const res: NotifyResult = { messages, sentVia: [], queued: due ? 0 : pending.length, failed: 0, dryRun: !!o.dryRun };
   if (o.dryRun) return res;
   // a day that held only good news sends nothing: drop it once the digest hour has passed
@@ -187,7 +200,7 @@ export async function deliver(
   if (due && !res.failed) st.lastDigest = nowIso;
   if (!digest && st.pending.length) {
     // retry of earlier failures in instant mode
-    const retry = compose(st.pending.filter((e) => !failedKeys.has(e.key)));
+    const retry = compose(st.pending.filter((e) => !failedKeys.has(e.key)), false, o.config.ctx);
     for (const m of retry) {
       const via = await send(m, o.config, o.fetch, o.now, log);
       if (via) {
@@ -206,15 +219,19 @@ export async function deliver(
 }
 
 /** One clearly-labelled test message through the configured channel (POST /notify/test): no dedupe, no state. */
-export async function sendTest(c: NotifyConfig, fetch: Fetch, now: Date, label: string, log: (s: string) => void = () => {}): Promise<"email" | "webhook" | "log" | null> {
-  return send(
-    {
-      subject: `BC fishing feeds — TEST (${label}): notifications are wired`,
-      text: `This is a TEST message from the ${label} feeds worker, sent ${now.toISOString()}.\n\nPolicy: DFO places to review and in-season changes are emailed at once; HYDAT, roster drift and feed health come in one daily digest, sent only on a day with an issue. Current state: /status on the worker.\n\nNothing needs doing.`,
-      keys: [],
-    },
-    c, fetch, now, log,
-  );
+export async function sendTest(c: NotifyConfig, fetch: Fetch, now: Date, label: string, log: (s: string) => void = () => {}, sample: FeedEvent[] = []): Promise<"email" | "webhook" | "log" | null> {
+  // `sample` events render through the real template, the subject marked TEST
+  const m: Message = sample.length
+    ? (() => {
+        const r = compose(sample, false, c.ctx)[0]!;
+        return { ...r, subject: r.subject.replace(/^(\[[^\]]+\] )?/, (t) => `${t}TEST — `) };
+      })()
+    : {
+        subject: `[${label}] TEST — notifications are wired`,
+        text: `This is a TEST message from the ${label} feeds worker, sent ${now.toISOString()}.\n\nPolicy: DFO places to review and in-season changes are emailed at once; HYDAT, roster drift and feed health come in one daily digest, sent only on a day with an issue. Current state: /status on the worker.\n\nNothing needs doing.\n`,
+        keys: [],
+      };
+  return send(m, c, fetch, now, log);
 }
 
 async function send(m: Message, c: NotifyConfig, fetch: Fetch, now: Date, log: (s: string) => void): Promise<"email" | "webhook" | "log" | null> {
