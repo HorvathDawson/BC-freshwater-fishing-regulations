@@ -2,7 +2,7 @@
  * THE BROWSE TABS' BODIES: the Map and Conditions tabs' ONE map, the Spots tab and the More tab (T62 3.4: out of the
  * Shell, unchanged). The top bar, the search sheet, the legend and the tab bar are the Shell's, drawn over these.
  */
-import { dayLabel, salmonLegendSource, type DayRange, type SectionKey } from "@app/core";
+import { dayLabel, salmonCheckedLine, type DayRange, type SectionKey } from "@app/core";
 import { useCallback, type MutableRefObject } from "react";
 import { Platform, Text, View } from "react-native";
 import { TYPE } from "../type";
@@ -116,11 +116,11 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
           // (T276) the mode switch, and under it — in Salmon — whose rules these are (it was the legend's last line)
           <View style={{ gap: 6, alignItems: "flex-start", flexShrink: 1 }} pointerEvents="box-none">
             <RegsLayerToggle col={col} palette={palette} />
-            {col.regsLayer === "salmon" && (
+            {col.regsLayer === "salmon" && salmonCheckedLine(col.salmonFacts) && (
               <View style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.chip,
-                             paddingHorizontal: 8, paddingVertical: 5, maxWidth: 300 }} pointerEvents="none">
+                             paddingHorizontal: 8, paddingVertical: 5, alignSelf: "flex-start" }} pointerEvents="none">
                 <Text testID="salmon-legend-source" style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>
-                  {salmonLegendSource(col.salmonFacts)}
+                  {salmonCheckedLine(col.salmonFacts)}
                 </Text>
               </View>
             )}

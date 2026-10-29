@@ -130,6 +130,18 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
   return out;
 }
 
+/**
+ * (T276, owner 2026-10-29) THE ONE LINE BY THE MODE SWITCH: when we last fetched DFO's pages — the feed's own time (`at`),
+ * not the pages' dates. Null when the salmon file is the release's own (no feed read: the bundle holds no fetch time).
+ */
+export function salmonCheckedLine(f: SalmonFacts | null): string | null {
+  const at = salmonFeedOf(f)?.at;
+  const d = at ? new Date(at) : null;
+  if (!d || Number.isNaN(d.getTime())) return null;
+  const m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getUTCMonth()];
+  return `DFO rules checked ${m} ${d.getUTCDate()}`;
+}
+
 /** The feed a salmon file was read through, or null (the release's own). */
 export const salmonFeedOf = (f: SalmonFacts | null): SalmonFeedFacts | null => (f as WithFeed | null)?.[FEED] ?? null;
 

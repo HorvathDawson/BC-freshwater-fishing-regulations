@@ -8,11 +8,11 @@
  */
 import { CHANGE_LEGEND, changeMarkWords, closedLegend, FLOW_LEGEND, TEMP_LEGEND, unprovenLine, WATER_STATUS,
          WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND, METHOD_WORDS,
-         RUN_STATES, RUN_WORDS, runCreditShort, slotsFor }
+         RUN_WORDS, slotsFor }
   from "@app/core";
-import { gearEdgeColour, runStateColour, salmonStatusColour } from "@app/map";
-import { useMemo } from "react";
-import { Text, View } from "react-native";
+import { gearEdgeColour, salmonStatusColour } from "@app/map";
+import { useMemo, useState } from "react";
+import { Pressable, Text, View } from "react-native";
 import { RunDayCaption, RunDaySlider } from "../RunsControls";
 import { LegendCount, LegendRamp, LegendStrip } from "../Chrome";
 import { legendColour } from "../LayersSheet";
@@ -119,37 +119,31 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
 }
 
 /**
- * (T261) THE RUNS TAB'S FOOT: the date slider (the days shown, Today, Play, the season behind the track), then what the
- * colours mean — lines for the streams zoomed in (passing dashed), fills for the watershed groups zoomed out — the
- * run-size key the tap sheet's bars are drawn on, and whose data it is (or why nothing is drawn).
+ * (T261, T276) THE RUNS TAB'S FOOT: the day and species line with a "?" that replays the tutorial, and the date slider.
+ * That is all: the colour key and the count scale are the tutorial's, the credit is the Sources page's, and the one
+ * line below appears only when something is wrong (or loading) — never the routine offline line. Tap it for the whole text.
  */
-export function RunsLegend({ col, palette, theme }: { col: MapColouring; palette: Palette; theme: string }) {
+export function RunsLegend({ col, palette, theme, onHelp }: { col: MapColouring; palette: Palette; theme: string; onHelp?: () => void }) {
   const r = col.runs;
-  const field = col.mm.fieldOn;
   const slots = useMemo(() => (r.facts ? slotsFor(r.facts, r.chosen, r.year) : []), [r.facts, r.chosen, r.year]);
   const season = useMemo(() => (r.facts ? r.facts.season(slots) : []), [r.facts, slots]);
-  const note = { ...TYPE.small, fontSize: 13, lineHeight: 18, color: palette.sub };
+  const [open, setOpen] = useState(false);
+  const note = r.problem ? (r.problem === "stale" ? RUN_WORDS.stale : RUN_WORDS.failed) : r.loading ? RUN_WORDS.loading : null;
   return (
     <View testID="runs-legend" style={{ borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
                                         paddingHorizontal: 14, paddingTop: 8, paddingBottom: 8, gap: 6 }}>
       <View style={{ width: "100%", maxWidth: 760, alignSelf: "center", gap: 6 }}>
         <RunDayCaption pentad={r.pentad} today={r.today} title={r.chosen.length ? RUN_WORDS.legendTitle(r.chosen.map((s) => s.name)) : null}
-                       onToday={() => r.setPentad(r.today)} palette={palette} />
+                       onToday={() => r.setPentad(r.today)} onHelp={onHelp} palette={palette} />
         <RunDaySlider pentad={r.pentad} today={r.today} playing={r.playing} onPentad={r.setPentad} onPlay={r.setPlaying}
                       season={season} theme={theme} palette={palette} />
-        <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 16, rowGap: 6 }}>
-          {RUN_STATES.map((s) => (
-            <LegendCount key={s} palette={palette} colour={runStateColour(theme, s)} line={!field}
-                         dotted={!field && s === "pass"} label={RUN_WORDS.legend[s]} big />
-          ))}
-          <LegendCount palette={palette} colour={runStateColour(theme, "none")} line={!field} label={RUN_WORDS.legend.none} big />
-        </View>
-        {field && <Text testID="runs-legend-field" style={note}>{RUN_WORDS.field}</Text>}
-        {r.loading && <Text testID="runs-legend-loading" style={note}>{RUN_WORDS.loading}</Text>}
-        {r.problem && <Text testID="runs-legend-problem" style={note}>
-          {r.problem === "stale" ? RUN_WORDS.stale : RUN_WORDS.failed}</Text>}
-        {r.captured && r.facts && <Text testID="runs-legend-captured" style={note}>{RUN_WORDS.captured(r.facts.builtAt)}</Text>}
-        {r.facts && <Text testID="runs-legend-source" style={note}>{runCreditShort(r.facts)}</Text>}
+        {note && (
+          <Pressable testID={r.problem ? "runs-legend-problem" : "runs-legend-loading"} onPress={() => setOpen((o) => !o)}
+                     accessibilityRole="button" accessibilityLabel={note}>
+            <Text numberOfLines={open ? undefined : 1}
+                  style={{ ...TYPE.small, fontSize: 13, lineHeight: 18, color: palette.sub }}>{note}</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );

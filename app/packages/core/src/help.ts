@@ -81,7 +81,7 @@ export const WALKTHROUGH_WORDS = {
         + "because seasons and closures change through the year." },
     { key: "modes", targets: ["modes"], title: "Regulations or salmon",
       body: `${SALMON_WORDS.toggle.standard} shows what the regulations allow on each water. ${SALMON_WORDS.toggle.salmon} `
-        + "paints DFO's salmon rules instead." },
+        + "paints DFO's salmon rules instead; waters DFO does not list are closed to salmon." },
     { key: "map", targets: ["map"], title: "Tap a water",
       body: "Tap any stream or lake to open its regulations for the day you chose." },
     { key: "conditions", targets: ["tab:conditions"], title: "See what the river is doing",
@@ -123,7 +123,8 @@ export const TAB_TOUR_WORDS = {
       body: "Drag the slider, or press Play, to watch the runs come and go. Today jumps you back to now. "
         + "The shaded curve behind the track is how much of the province has these runs in the water." },
     { key: "read", targets: ["map"], title: "Reading the colours",
-      body: `${RUN_WORDS.legend.spawn}; ${RUN_WORDS.legend.pass.toLowerCase()}; ${RUN_WORDS.legend.off.toLowerCase()}. `
+      body: `${RUN_WORDS.legend.spawn}; ${RUN_WORDS.legend.pass.toLowerCase()}; ${RUN_WORDS.legend.off.toLowerCase()}; `
+        + `${RUN_WORDS.legend.none.toLowerCase()}. ${RUN_WORDS.field} `
         + "Tap a stream to see its runs and how many spawners DFO counted there, from 10 up to 100,000 on a log scale. "
         + `${RUN_WORDS.scale.none}.` },
   ] satisfies readonly WalkthroughCard[],
