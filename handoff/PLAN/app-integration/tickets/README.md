@@ -137,7 +137,7 @@ use that as the sole source of future work."
 | T90 | Chehalis closure reaches Harrison side channels | DONE | ca9aa451, 9eb7d92f, 9d305ebf, 8fa32076, c8c72d6f | live; T102 part B |
 | T91 | Atnarko campsite split location | DONE | c357fcdb 94599d8b | closed under the lake-boundary rule: campsite end = owner pin; Tenas Lake outlet @630.47 (edge facing the extent); 96/96 ambiguous_cut picks nearest the other end, nothing moved |
 | T92 | gear omission check | DONE | de0581e1, b931f93d, 750ba2ad, 9c78ef20 | — |
-| T93 | gauge ↔ section relationship table (policy) | DONE | 0e31959c, b4ca30d9 | `rel` + distance bucket on section_gauge (conditions 870,919 B ≤ 950,000), `gauge_relation` candidates (bundle), POLICIES with default `drainage` = today's gate (107,799 rows identical); app says "about 11 km downstream"; Vedder finding → Q31 |
+| T93 | gauge ↔ section relationship table (policy) | DONE | 0e31959c, b4ca30d9 | `rel` + distance bucket on section_gauge (conditions 870,919 B ≤ 950,000), `gauge_relation` candidates (bundle), POLICIES; default `drainage_continued` (Q31, owner 2026-10-28): the gate + gauges across a `water_continue` link (Vedder → 08MH001; +8 / ~4 sections, Slesse unchanged); app says "about 11 km downstream" |
 | T94 | gauge promote: `--only`, demotion guard | DONE | 969ec8fe, 28f03711, 01bf3873, 6753fd6f | first real match+promote dry-run is the owner's |
 | T95 | salmon (DFO) regulations: the plan | DROPPED | — | plan exists (pipeline/regs/dfo_salmon/PLAN.md); work → T164 |
 | T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | DONE | 3e841e31, 3760fd5f, f0228e09, 15723b83 | — |
@@ -312,7 +312,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q26 | T86 | R2 bucket, contact address (domain decided: canifishthis.ca, .com redirects; name "Can I Fish This?") (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
 | Q27 | T87 | Sign-off: the app looks right; delete app/design | hold until the owner walks it | owner |
 | Q28 | T88 | When to build iOS | after the Android ship | owner |
-| Q31 | T93 | Gauge representativeness policy — now a one-line choice (`shed.GAUGE_POLICY`: drainage / same_watercourse / ungated, measured in T93); also: admit `up_branch` across a `water_continue` link so the Vedder hears 08MH001? | the current drainage gate stays default | owner |
+| Q31 | T93 | Gauge representativeness policy — ANSWERED 2026-10-28: "drainage, plus tributary gauges across a continuation link" (`drainage_continued`, decisions.md) | — | owner |
 | Q42 | T98 | Lift the tidal-spec hold? | ANSWERED 2026-10-28: tidal pieces are removed from the freshwater map with the T212/T166 cuts (decisions.md) | owner |
 | Q47 | T78 | Tidal sentence: closed "Notes and sources" fold, or open under the Level headline? | in the fold | owner |
 | Q79 | T116 | Regs page says "river" for a stream ("this river's rule", "Whole river") while search rows say "Stream" — switch the page to "stream"? | keep "river" on the page | owner |

@@ -1,7 +1,7 @@
 # T93 — The data records how a gauge relates to each section it speaks for
 
-Status: DONE (0e31959c, b4ca30d9) — relationship + pluggable policy built, default = today's gate (identical); the
-choice of a different policy stays the owner's (Q31). Reaches readers with the next deliver (bundle + release).
+Status: DONE (0e31959c, b4ca30d9, Q31 default: see below) — relationship + pluggable policy built; owner 2026-10-28 (Q31)
+made the default "drainage, plus tributary gauges across a continuation link". Reaches readers with the next deliver (bundle + release).
 
 Source: memory `gauge-representativeness-is-policy`; owner 2026-09-02: the gauge rule should be a tunable policy.
 `section_gauge` is still `(sid PK, station, trust, mag)` — no up/downstream, channel distance or same-watercourse;
@@ -90,3 +90,41 @@ words), `capture.test.ts`, and conformance "a gauge link says where the station 
 **Release lane.** The next deliver writes the new columns, and nothing extra needs to run.
 `test_release.py::test_a_built_release_is_exactly_the_contract` fails on a pre-T93 bundle and passes after the
 rebuild.
+
+## Q31 answered (owner 2026-10-28): the default is `drainage_continued`
+
+A candidate is `joined` when the section's water and the gauge's water are DIFFERENT waters of one `water_continue`
+system. `water_of` is the bundle's section → water owner; `continues` is `continuation.item_pairs`, read through
+`panels.systems` exactly as the donor panels read T76.
+
+What the policy admits:
+- **The drainage gate.**
+- **`up_branch`, but only when joined.** It is never admitted otherwise, so Slesse Creek's `up_branch` candidates are
+  not joined and stay off the Chilliwack.
+- **Own gauge first.** A joined gauge never outranks an admitted gauge on the section's own watercourse
+  (on/up/down). Measured: without this rule, 5 Bella Coola side reaches swapped 08FB011 (on the Bella Coola) for
+  08FB006 (Atnarko, 72 km) on ratio alone.
+
+What the app is told: `section_gauge.rel` carries such a gauge as `up` (`shed.shown_rel`), while `gauge_relation`
+keeps `up_branch` and gains a `joined` column (bundle only).
+
+**Province-wide diff** against the T93 default. These are the check bundle's 174,791 candidates, re-chosen; the
+re-chosen `drainage` result equals the bundle's `section_gauge`, 107,799 rows.
+
+| water | sections | before → after |
+|---|---:|---|
+| Vedder River | 4 | 08MH024 Fraser at Mission (`down_trunk`, ratio 0.007) → 08MH001 Chilliwack at Vedder Crossing (ratio 0.99–1.0, 0–8 km) |
+| Vedder River | 1 | none → 08MH016 Chilliwack outlet of Chilliwack Lake (weak, 36 km) |
+| Bella Coola River | 7 | none → 08FB006 Atnarko near the mouth (weak, ratio 0.001, 24–72 km) |
+
+8 sections gain a gauge, 4 change and 0 lose: 107,799 → 107,807. Only 17 `water_continue` links exist, and just these
+two systems have a gauge across the link. No Chilliwack or Slesse section changes.
+
+**Size:** conditions is about 871,236 B gzip (gate 950,000) and conditions_open about 983,600 (gate 1,150,000).
+
+**Tests:** `test_t93_gauge_relation.py` covers:
+- the Vedder taking 08MH001 across the link, while the gate alone gives it the Fraser;
+- Slesse staying off the Chilliwack;
+- a water not being joined to itself;
+- own gauge first;
+- `shown_rel`.

@@ -76,8 +76,12 @@ class TestRelate:
         for up, hops in itertools.product((True, False), (0, 3)):
             assert (relate(sec, gauge, hops=hops, upstream_walk=up) in DRAINS_THROUGH) == drains_through(sec, gauge)
 
-    def test_the_default_is_the_drainage_gate(self):
-        assert GAUGE_POLICY == "drainage" and POLICIES["drainage"].admits == DRAINS_THROUGH
+    def test_the_default_is_the_gate_plus_continuations(self):
+        # owner 2026-10-28 (Q31): the drainage gate, plus `up_branch` across a `water_continue` link — nothing else
+        pol = POLICIES[GAUGE_POLICY]
+        assert GAUGE_POLICY == "drainage_continued"
+        assert pol.admits == DRAINS_THROUGH == POLICIES["drainage"].admits
+        assert pol.admits_joined == frozenset({REL_UP_BRANCH})
 
 
 class TestChilliwack:
@@ -123,8 +127,9 @@ class TestChilliwack:
         # the Vedder is the Chilliwack's own watercourse: unchanged
         assert strict["vedder_2"].station == "08MH001"
 
-    def test_the_default_policy_is_what_build_gauge_sheds_always_did(self):
-        # explicit default == implicit default, and every admitted link drains through its gauge (the old filter)
+    def test_without_continuations_the_default_is_the_gate(self):
+        # no `water_continue` link given: nothing is joined, so the default answers exactly as `drainage`, and every
+        # admitted link drains through its gauge (the old filter)
         g = _chilliwack()
         a = build_gauge_sheds(g, STATIONS, AT)
         b = build_gauge_sheds(g, STATIONS, AT, policy="drainage")
@@ -155,3 +160,78 @@ class TestShippedEncoding:
     def test_distance_buckets(self, metres, bucket):
         from pipeline.gauges.consume.shed import dist_bucket
         assert dist_bucket(metres) == bucket
+
+
+# ---- Q31: the Vedder and the Chilliwack as FWA codes them — the Chilliwack a BRANCH of the Vedder ---------------------
+VEDDER = "100-001000"
+CHW = VEDDER + "-005000"
+SLS = CHW + "-002000"
+WATER = {"chw_upper": "chilliwack", "chw_below_slesse": "chilliwack", "chw_vedder_xing": "chilliwack",
+         "slesse": "slesse", "vedder_1": "vedder", "vedder_2": "vedder", "fraser": "fraser"}
+CONTINUES = [("chilliwack", "vedder")]      # the Chilliwack goes on as the Vedder (a settled `water_continue`)
+
+
+def _fwa_vedder() -> StreamGraph:
+    return _graph({
+        "chw_upper": (60, CHW, 5_000.0),
+        "slesse": (10, SLS, 2_000.0),
+        "chw_below_slesse": (70, CHW, 4_000.0),
+        "chw_vedder_xing": (80, CHW, 3_000.0),       # 08MH001
+        "vedder_1": (82, VEDDER, 6_000.0),
+        "vedder_2": (85, VEDDER, 7_000.0),
+        "fraser": (500, "100", 10_000.0),            # 08MH024, the Fraser below
+    }, [("chw_upper", "chw_below_slesse"), ("slesse", "chw_below_slesse"), ("chw_below_slesse", "chw_vedder_xing"),
+        ("chw_vedder_xing", "vedder_1"), ("vedder_1", "vedder_2"), ("vedder_2", "fraser")])
+
+
+class TestContinuation:
+    ST = [{"station": "08MH001"}, {"station": "08MH024"}, {"station": "08MH056"}]
+
+    def test_the_vedder_takes_the_chilliwack_gauge_across_the_link(self):
+        at = {"08MH001": "chw_vedder_xing", "08MH024": "fraser"}
+        g = _fwa_vedder()
+        gate = _by_section(build_gauge_sheds(g, self.ST, at, policy="drainage", water_of=WATER, continues=CONTINUES))
+        dflt = _by_section(build_gauge_sheds(g, self.ST, at, water_of=WATER, continues=CONTINUES))
+        # the gate: 08MH001 is up a branch of the Vedder, so the Fraser speaks for it
+        assert gate["vedder_2"].station == "08MH024" and gate["vedder_2"].rel == REL_DOWN_TRUNK
+        # the default: one river under two names — the Chilliwack's own gauge
+        assert dflt["vedder_2"].station == "08MH001"
+        assert (dflt["vedder_2"].rel, dflt["vedder_2"].joined) == (REL_UP_BRANCH, True)
+        # nothing else moves
+        assert {s: l.station for s, l in dflt.items() if not s.startswith("vedder")} == \
+               {s: l.station for s, l in gate.items() if not s.startswith("vedder")}
+
+    def test_slesse_still_stays_off_the_chilliwack(self):
+        # Slesse Creek is a tributary, not a continuation: its `up_branch` candidates are not joined, so refused
+        at = {"08MH056": "slesse"}
+        cands: list = []
+        dflt = _by_section(build_gauge_sheds(_fwa_vedder(), self.ST, at, water_of=WATER, continues=CONTINUES,
+                                             candidates=cands))
+        assert "chw_below_slesse" not in dflt and "chw_vedder_xing" not in dflt
+        c = {(x.section_id, x.station): x for x in cands}[("chw_below_slesse", "08MH056")]
+        assert (c.rel, c.joined) == (REL_UP_BRANCH, False)
+
+    def test_a_water_and_itself_is_not_joined(self):
+        cands: list = []
+        build_gauge_sheds(_fwa_vedder(), self.ST, {"08MH001": "chw_vedder_xing"}, water_of=WATER,
+                          continues=CONTINUES, candidates=cands)
+        assert not any(c.joined for c in cands if WATER[c.section_id] == "chilliwack")
+
+
+
+def test_a_continuation_never_outranks_the_waters_own_gauge():
+    # the Bella Coola case, measured: a side reach of the Bella Coola with its own river's gauge (`up`, ratio 0.018)
+    # kept it rather than taking the Atnarko's (`up_branch` across the link, ratio 0.029)
+    from pipeline.gauges.consume.shed import GaugeLink, REL_UP, choose
+    own = GaugeLink("s", "08FB011", "fair", 0.018, 9, REL_UP, 37_100)
+    cont = GaugeLink("s", "08FB006", "fair", 0.029, 20, REL_UP_BRANCH, 72_200, joined=True)
+    assert choose({"s": [own, cont]}, {}, "drainage_continued")[0].station == "08FB011"
+    assert choose({"s": [cont]}, {}, "drainage_continued")[0].station == "08FB006"      # a gap is filled
+    assert choose({"s": [cont]}, {}, "drainage") == []
+
+
+def test_the_app_hears_a_continued_rivers_gauge_as_upstream():
+    from pipeline.gauges.consume.shed import GaugeLink, REL_UP, shown_rel
+    assert shown_rel(GaugeLink("v", "08MH001", "good", 0.99, 2, REL_UP_BRANCH, 200, joined=True)) == REL_UP
+    assert shown_rel(GaugeLink("c", "08MH056", "fair", 0.14, 2, REL_UP_BRANCH, 200)) == REL_UP_BRANCH
+    assert shown_rel(GaugeLink("t", "08MH001", "good", 0.5, 2, REL_DOWN_TRUNK, 200)) == REL_DOWN_TRUNK

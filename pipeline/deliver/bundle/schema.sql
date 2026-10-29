@@ -825,19 +825,22 @@ CREATE TABLE gauge (station TEXT PRIMARY KEY, name TEXT NOT NULL,
 -- this reach's water flows into, ...); `dist_b` a distance bucket from the near end of this section to the station
 -- (0 < 500 m, 1 < 1 km, b >= 2 about 1 km x 1.5^(b-2); a station stands at the downstream end of its own section).
 -- The app says it ("the gauge is about 11 km downstream"). Which relationships may speak is the build's POLICY
--- (`pipeline/gauges/consume/shed.py` POLICIES / GAUGE_POLICY, default 'drainage' = today's gate); every candidate,
+-- (`pipeline/gauges/consume/shed.py` POLICIES / GAUGE_POLICY, default 'drainage_continued', Q31); every candidate,
 -- admitted or not, is in `gauge_relation` below. ADDED LAST, nullable: still conditions/1, an older release has none.
 CREATE TABLE section_gauge (sid INTEGER PRIMARY KEY, station TEXT NOT NULL,
                             trust TEXT NOT NULL, mag INTEGER, rel INTEGER, dist_b INTEGER);
 
 -- EVERY (section, gauge) CANDIDATE the shed walk reached (T93), with the facts a policy chooses over: `rel` as TEXT
--- (the GAUGE_RELS words), `dist_m` exact metres to 100 m, plus 'up_branch' (the gauge is on a TRIBUTARY of this water — Slesse Creek's gauge seen from the Chilliwack, which
--- the default policy refuses), 'apart' and 'unknown' (the codes cannot say); `hops` along the walk; `ratio` the
--- symmetric magnitude ratio behind `trust`. BUILD-SIDE ONLY: no release file carries it (the release contract lists the
--- tables each file ships). Changing the policy is a bundle rebuild, never a re-match or an atlas rebuild.
+-- (the GAUGE_RELS words, including 'up_branch' — the gauge is on a TRIBUTARY of this water, Slesse Creek's gauge seen
+-- from the Chilliwack — and 'apart' / 'unknown', where the codes cannot say); `dist_m` exact metres to 100 m; `hops`
+-- along the walk; `ratio` the symmetric magnitude ratio behind `trust`; `joined` 1 where the section's water and the
+-- gauge's are different waters of one `water_continue` system (the Vedder and the Chilliwack: the default policy,
+-- Q31, admits 'up_branch' there and nowhere else). BUILD-SIDE ONLY: no release file carries it (the release contract
+-- lists the tables each file ships). Changing the policy is a bundle rebuild, never a re-match or an atlas rebuild.
 CREATE TABLE gauge_relation (sid INTEGER NOT NULL, station TEXT NOT NULL, rel TEXT NOT NULL,
                              dist_m INTEGER NOT NULL, hops INTEGER NOT NULL, ratio REAL NOT NULL,
-                             trust TEXT NOT NULL, PRIMARY KEY (sid, station)) WITHOUT ROWID;
+                             trust TEXT NOT NULL, joined INTEGER NOT NULL DEFAULT 0,
+                             PRIMARY KEY (sid, station)) WITHOUT ROWID;
 
 -- THE DONOR PANEL ------------------------------------------------------------------
 --

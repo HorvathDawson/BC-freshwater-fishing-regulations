@@ -136,6 +136,9 @@ class GaugeLink:
     hops: int
     rel: str = ""
     dist_m: int = 0
+    #: (Q31) the section's water and the gauge's are DIFFERENT waters of one continued system — a `water_continue` link
+    #: joins them (the Vedder goes on as... the Chilliwack under another name). Only a policy can make it matter.
+    joined: bool = False
 
     @property
     def drains(self) -> bool:
@@ -168,6 +171,13 @@ DIST_STEP = 1.5
 
 def rel_code(rel: str) -> int:
     return GAUGE_RELS.index(rel)
+
+
+def shown_rel(link: "GaugeLink") -> str:
+    """What the app is told (`section_gauge.rel`). Across a continuation (Q31) the gauge is up THIS river under its other
+    name — the Vedder's 08MH001 is "upstream", not "on a tributary" (FWA's code shape); `gauge_relation` keeps the
+    candidate's own `up_branch`."""
+    return REL_UP if (link.joined and link.rel == REL_UP_BRANCH) else link.rel
 
 
 def dist_bucket(metres: int | float) -> int:
@@ -212,15 +222,26 @@ class GaugePolicy:
     name: str
     admits: frozenset
     doc: str
+    #: relationships admitted ONLY across a continuation (`GaugeLink.joined`) — and only for a section with no admitted
+    #: gauge on its OWN watercourse: a continuation fills a gap, it never outranks the water's own gauge (measured: the
+    #: Bella Coola's side channels swapped 08FB011, on the Bella Coola, for the Atnarko's 08FB006 72 km away on ratio)
+    admits_joined: frozenset = frozenset()
 
     def admit(self, link: GaugeLink) -> bool:
-        return link.rel in self.admits
+        return link.rel in self.admits or (link.joined and link.rel in self.admits_joined)
 
 
 POLICIES: dict[str, GaugePolicy] = {p.name: p for p in (
     # TODAY'S GATE, unchanged: the reach's water drains through the gauge (`drains_through`).
     GaugePolicy("drainage", DRAINS_THROUGH,
                 "the reach's water drains through the gauge (the FWA-code gate since Slesse Creek)"),
+    # THE DEFAULT (owner 2026-10-28, Q31): the gate, plus a gauge on a water this one CONTINUES as under another name.
+    # FWA codes the Chilliwack as a branch of the Vedder, so 08MH001 at Vedder Crossing is `up_branch` from the Vedder
+    # and the gate gave the Vedder the Fraser at Mission; across the `water_continue` link it is the Vedder's own river.
+    # Slesse Creek is a tributary, not a continuation: its gauge stays off the Chilliwack.
+    GaugePolicy("drainage_continued", DRAINS_THROUGH,
+                "the drainage gate, plus a gauge up a water this one continues as (Vedder <- Chilliwack)",
+                admits_joined=frozenset({REL_UP_BRANCH})),
     # Stricter: one watercourse only — a tributary reach is not told its trunk river's flow.
     GaugePolicy("same_watercourse", frozenset({REL_ON, REL_DOWN, REL_UP}),
                 "only a gauge on this reach's own watercourse (same FWA code), up or down"),
@@ -230,8 +251,9 @@ POLICIES: dict[str, GaugePolicy] = {p.name: p for p in (
                 "any gauge the walk reaches whose code relationship is known (pre-gate; Slesse speaks for the Chilliwack)"),
 )}
 
-#: The policy every build uses. `drainage` is today's gate (owner default, T93: "keep the current gate as the default").
-GAUGE_POLICY = "drainage"
+#: The policy every build uses (owner 2026-10-28, Q31: "drainage, plus tributary gauges across a continuation link").
+#: `drainage` alone was the default until then (T93), byte-identical to the gate before it.
+GAUGE_POLICY = "drainage_continued"
 
 
 def _walk(graph, start: str, adj: dict[str, list[int]], forward: bool,
@@ -367,9 +389,13 @@ def choose(found: dict[str, list[GaugeLink]], by_id: dict[str, dict],
     def rank(l: GaugeLink) -> tuple:
         return (-l.ratio, 0 if speaks_now(by_id.get(l.station, {})) else 1, l.station)
 
+    own = frozenset({REL_ON, REL_DOWN, REL_UP})
     out = []
     for sec in sorted(found):
         admitted = [l for l in found[sec] if pol.admit(l)]
+        if pol.admits_joined and any(l.rel in own and not l.joined for l in admitted):
+            admitted = [l for l in admitted if not (l.joined and l.rel in pol.admits_joined
+                                                    and l.rel not in pol.admits)]
         if admitted:
             out.append(min(admitted, key=rank))
     return out
@@ -379,12 +405,16 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
                       prefer: set[str] | None = None,
                       *, report: list[str] | None = None, registry=None,
                       policy: str = GAUGE_POLICY,
-                      candidates: list[GaugeLink] | None = None) -> list[GaugeLink]:
+                      candidates: list[GaugeLink] | None = None,
+                      water_of: dict[str, str] | None = None, continues=()) -> list[GaugeLink]:
     """Every (section, gauge) pair worth storing — ONE gauge per section, the policy's best.
 
     ``policy`` (T93): which relationships may speak — `POLICIES`, default `GAUGE_POLICY` (today's drainage gate).
     ``candidates``: when a list, receives EVERY pair the walks reached, admitted or not, with its relationship and
     distance, sorted by (section, station) — the bundle's `gauge_relation` table.
+    ``water_of`` (section -> water item) and ``continues`` (the settled `water_continue` item pairs,
+    `continuation.item_pairs`) mark a candidate `joined` when its section's water and the gauge's are different waters
+    of one continued system (`panels.systems`, the donor panels' own reading of T76). Without them nothing is joined.
 
     ``node_for_station`` comes from the spatial match (``pipeline.gauges.generate.match``) and is kept
     a separate argument on purpose: matching needs geometry and a 5 GB atlas, this needs
@@ -429,6 +459,8 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
     ``is_lake_station`` for why mixing them is not a rounding error.
     """
     by_id = {s["station"]: s for s in stations}
+    from pipeline.gauges.consume.panels import systems      # lazily: panels is the heavier module
+    system = systems(continues)
     found: dict[str, list[GaugeLink]] = {}
     # Why each station produced nothing. Every `continue` below records itself: a station
     # that silently vanishes here is a river the app calls ungauged, and the only way that
@@ -468,6 +500,8 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
             _walk(graph, node_id, graph.up_adj, True, keep),    # its tributaries
             _walk(graph, node_id, graph.down_adj, False, keep),  # what it flows into
         )
+        gauge_water = (water_of or {}).get(node_id)
+        gauge_system = system.get(gauge_water) if gauge_water else None
         mine: dict[str, GaugeLink] = {}
         for upstream_walk, walk in zip((True, False), walks):
             for sec, hops, metres in walk:
@@ -487,7 +521,10 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
                 # difference, because it is symmetric and the question is not. See `drains_through`.
                 rel = relate(_trim(getattr(graph.nodes[sec], "wsc", "")), gauge_wsc,
                              hops=hops, upstream_walk=upstream_walk)
-                link = GaugeLink(sec, station, band, lo / hi, hops, rel, int(round(metres / 100.0)) * 100)
+                sec_water = (water_of or {}).get(sec)
+                joined = bool(gauge_system and sec_water and sec_water != gauge_water
+                              and system.get(sec_water) == gauge_system)
+                link = GaugeLink(sec, station, band, lo / hi, hops, rel, int(round(metres / 100.0)) * 100, joined)
                 # one candidate per (section, station): a braid can reach a section from both walks — the nearer wins
                 # (the ratio, and so the band and the gate, are the same either way)
                 if sec not in mine or hops < mine[sec].hops:

@@ -1620,3 +1620,11 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   fetched: "PSCIS Habitat Confirmations" 572595ab-0a25-452a-a857-1b6bb9c30495, "PSCIS Design Proposal"
   0c9df95f-a2da-4a7d-b9cb-fea3e8926661, "PSCIS Remediation" 1596afbf-f427-4f26-9bca-d78bceddf485. Fetched over the open
   WFS (https://openmaps.gov.bc.ca/geo/pub/wfs). The tap sheet carries the same OGL-BC attribution line as FISS / WRIS.
+- **Owner 2026-10-28 (Q31, T93 gauge policy):** the default gauge policy is "drainage, plus tributary gauges across a
+  continuation link" (`shed.GAUGE_POLICY = "drainage_continued"`). A water that continues into another under a
+  different name (a settled `water_continue` link: the Chilliwack goes on as the Vedder) takes that water's gauges,
+  even where FWA codes one as a branch of the other (`up_branch`). Slesse Creek is a tributary, not a continuation,
+  so its gauge stays off the Chilliwack. A continuation only fills a gap and never outranks a gauge on the section's own
+  watercourse. The app hears such a gauge as "upstream". Province: 8 sections gain a gauge, 4 change, 0 lose
+  (Vedder: 4 x Fraser at Mission 08MH024 -> 08MH001, 1 new 08MH016; Bella Coola: 7 new, weak, 08FB006).
+
