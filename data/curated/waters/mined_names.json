@@ -3925,6 +3925,35 @@
   {
    "target": {
     "blks": [
+     "356500859"
+    ]
+   },
+   "names": [
+    {
+     "name": "Negro Creek",
+     "source": "osm",
+     "source_label": "OpenStreetMap (app basemap, OSM 2026-03-05)",
+     "source_ref": "data/source/bc.pmtiles",
+     "official": false,
+     "evidence": {
+      "blk_overlap": 1.0,
+      "source_overlap": 1.0,
+      "near_m": 10050,
+      "source_len_m": 9736,
+      "lonlat": [
+       -115.9818,
+       49.45044
+      ]
+     },
+     "accepted": "auto 2026-10-28 (owner rule: high confidence, one candidate, no rival)",
+     "candidate": "blk:356500859~negro-creek",
+     "confidence": "high"
+    }
+   ]
+  },
+  {
+   "target": {
+    "blks": [
      "356520700"
     ]
    },

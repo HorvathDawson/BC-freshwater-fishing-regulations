@@ -1646,3 +1646,5 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   pentad where >= 25 % of surveyed years saw fish; a tap under Run timing opens the runs sheet (with "Open this water"),
   not the water page; a CU's own main drainage is never dropped as "spill" (+16 PSF runs bound, 312 of 329).
 - **Owner 2026-10-28 (T235, ODbL):** no separate `osm-derived.json`. OpenStreetMap is credited through the map attribution (the basemap pmtiles already come from OSM) and on Sources and licences; the "OSM-derived data on request / offered under ODbL" line is removed. ODbL's share-alike for derived databases is an owner-accepted risk, not legal advice. The four city stream layers (Abbotsford, Burnaby, Port Moody, Squamish) each have their own row with licence, link and wording.
+- **Owner 2026-10-28: names are shown as sourced; no name filtering.** The deny-list of offensive terms on mined names
+  (0d6940a7) is reverted, "Negro Creek" (OSM, blk 356500859) is restored to mined_names.json and the atlas registry.
