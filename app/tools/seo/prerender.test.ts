@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { LayoutStyles, mergeLayouts, parse } from "./layouts";
-import { appDocument, asLink, HANDOFF, linkHeader, mergeThemes, ThemeVars } from "./prerender";
+import { appDocument, asLink, HANDOFF, linkHeader, mergeThemes, shortHash, ThemeVars } from "./prerender";
 import { BARE_APP } from "./build";
 
 /** test colours made at run time: the colour gate (check-colours.mjs) keeps literals in the palette */
@@ -16,9 +16,16 @@ describe("mergeThemes", () => {
     const v = new ThemeVars();
     const light = `<div style="color:${A};border-color:${G}">Open</div><svg><rect fill="${W}"></rect></svg>`;
     const dark = `<div style="color:${B};border-color:${G}">Open</div><svg><rect fill="${K}"></rect></svg>`;
-    expect(mergeThemes(light, dark, v)).toBe(`<div style="color:var(--c0);border-color:${G}">Open</div><svg><rect style="fill:var(--c1)"></rect></svg>`);
-    expect(v.css()).toBe(`:root{--c0:${A};--c1:${W}}@media (prefers-color-scheme:dark){:root{--c0:${B};--c1:${K}}}`);
-    expect(v.name(A, B)).toBe("--c0");   // the same pair is the same variable everywhere
+    // a pair's variable is named by the pair (T279: every build thread names it alike)
+    const [c0, c1] = [`--c${shortHash(`${A}|${B}`)}`, `--c${shortHash(`${W}|${K}`)}`];
+    expect(mergeThemes(light, dark, v)).toBe(`<div style="color:var(${c0});border-color:${G}">Open</div><svg><rect style="fill:var(${c1})"></rect></svg>`);
+    const [x, y] = [c0, c1].sort();
+    const val = (n: string, dark: boolean) => (n === c0 ? (dark ? B : A) : (dark ? K : W));
+    expect(v.css()).toBe(`:root{${x}:${val(x!, false)};${y}:${val(y!, false)}}@media (prefers-color-scheme:dark){:root{${x}:${val(x!, true)};${y}:${val(y!, true)}}}`);
+    const other = new ThemeVars();
+    expect(other.name(A, B)).toBe(c0);   // the same pair is the same variable in every renderer
+    other.add(v.keys());
+    expect(other.css()).toBe(v.css());
   });
   it("MUTATION: renders that differ in words or structure are refused (the caller ships both)", () => {
     const v = new ThemeVars();
@@ -40,8 +47,9 @@ describe("mergeLayouts", () => {
   it("a style that differs by layout becomes per-layout classes under that layout's width", () => {
     const s = new LayoutStyles();
     const out = mergeLayouts(new Map([["phone", '<p style="a:1">x</p>'], ["desktop", '<p style="a:2">x</p>']]), s);
-    expect(out).toBe('<p class="ls0 ls1">x</p>');
-    expect(s.css()).toBe("@media (max-width:899.98px){#prerender .ls0{a:1}}@media (min-width:1280px){#prerender .ls1{a:2}}");
+    const [p, d] = [`ls${shortHash("phone|a:1")}`, `ls${shortHash("desktop|a:2")}`];
+    expect(out).toBe(`<p class="${p} ${d}">x</p>`);
+    expect(s.css()).toBe(`@media (max-width:899.98px){#prerender .${p}{a:1}}@media (min-width:1280px){#prerender .${d}{a:2}}`);
   });
   it("text only one layout draws is wrapped to be hidden; React's text separators are kept bare", () => {
     expect(mergeLayouts(new Map([["phone", "<p>a<!-- -->b</p>"], ["desktop", "<p>a<!-- -->c</p>"]]), new LayoutStyles()))

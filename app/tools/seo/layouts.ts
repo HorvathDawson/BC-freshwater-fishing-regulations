@@ -14,6 +14,7 @@
  * node (an ARIA state, a touch slop) is the first layout's: it is not drawn, and the app's own pane replaces it.
  */
 import { LAYOUT_BREAKPOINTS, type LayoutClass } from "@app/ui";
+import { shortHash } from "./prerender";
 
 type Attr = readonly [name: string, value: string | null];
 interface El { readonly t: "el"; readonly tag: string; readonly attrs: Map<LayoutClass, readonly Attr[]>; children: Node[]; on: Set<LayoutClass>; contents: Set<LayoutClass> }
@@ -129,20 +130,27 @@ function gap(xa: readonly Node[], xb: readonly Node[], la: ReadonlySet<LayoutCla
 
 /** Every (layout, style) a merged node wears by layout, each one class (`#prerender .ls<n>` under that layout's width). */
 export class LayoutStyles {
-  private readonly styles = new Map<string, number>();
+  /** (layout|style) → its class, named by its own hash (T279: the build's threads name one alike) */
+  private readonly styles = new Map<string, string>();
   name(layout: LayoutClass, style: string): string {
     const k = `${layout}|${style}`;
     let n = this.styles.get(k);
-    if (n === undefined) this.styles.set(k, (n = this.styles.size));
-    return `ls${n}`;
+    if (n === undefined) this.styles.set(k, (n = `ls${shortHash(k)}`));
+    return n;
+  }
+  keys(): string[] { return [...this.styles.keys()]; }
+  add(keys: readonly string[]): void {
+    for (const k of keys) this.name(k.slice(0, k.indexOf("|")) as LayoutClass, k.slice(k.indexOf("|") + 1));
   }
   css(): string {
     const by = new Map<LayoutClass, string[]>();
-    for (const [k, n] of this.styles) {
+    const sorted = [...this.styles].sort((a, b) => a[1].localeCompare(b[1]));
+    if (new Set(sorted.map(([, n]) => n)).size !== sorted.length) throw new Error("seo: two layout styles share a class name");
+    for (const [k, n] of sorted) {
       const [l, s] = [k.slice(0, k.indexOf("|")) as LayoutClass, k.slice(k.indexOf("|") + 1)];
-      by.set(l, [...(by.get(l) ?? []), `#prerender .ls${n}{${s}}`]);
+      by.set(l, [...(by.get(l) ?? []), `#prerender .${n}{${s}}`]);
     }
-    return [...by].map(([l, rules]) => `@media ${MEDIA[l]}{${rules.join("")}}`).join("");
+    return (Object.keys(MEDIA) as LayoutClass[]).filter((l) => by.has(l)).map((l) => `@media ${MEDIA[l]}{${by.get(l)!.join("")}}`).join("");
   }
 }
 

@@ -19,10 +19,18 @@ import { pageSize, type PageSize } from "./budget";
 
 export interface PageRec {
   readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "weekend" | "calendar" | "changes" | "about" | "privacy";
-  /** the page; "" for a water page handed to `sink` (written out at once: 19,000 prerendered panes are not held) */
+  /** the page; "" for a water page the build wrote out itself (T279: compressed, by a render thread; 19,000 panes are not held) */
   readonly html: string; readonly hash: string;
   readonly title: string; readonly description: string; readonly size: PageSize;
 }
+/**
+ * (T279) A water page as made: its HTML (kept in `files`, checked here) — or, written out by a render thread (compressed),
+ * only its numbers and what the thread's gates found (the same `checkWaterPage`).
+ */
+export type WaterMade = { readonly html: string } | { readonly html: null; readonly size: PageSize; readonly problems: readonly string[] };
+/** The gate a water page's HTML must pass (JSON-LD held to the page; a water page, the app's pane, carries no breadcrumb). */
+export const checkWaterPage = (html: string, origin: string): string[] => checkJsonLd(html, origin, ["WebPage", "Place"]);
+
 export interface Snapshot {
   readonly release: string; readonly asOf: string;
   readonly pages: Readonly<Record<string, { readonly hash: string; readonly lastmod: string }>>;
@@ -37,9 +45,7 @@ export interface BuildOpts {
    * (T269) THE WATER PAGE: the app's own document with the water's regs pane prerendered in it (build.ts over pane.tsx and
    * prerender.ts), given the page's head tags. There is no other water page.
    */
-  readonly waterPage: (m: WaterModel, head: string) => Promise<string>;
-  /** where a water page goes as soon as it is made (its file name, its text); absent: kept in `files` (a test's few) */
-  readonly sink?: (file: string, text: string) => void;
+  readonly waterPage: (m: WaterModel, head: string, file: string) => Promise<WaterMade>;
   /** build only these waters (item ids): a sample to look at, never a release's site */
   readonly only?: ReadonlySet<string>;
 }
@@ -117,13 +123,11 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const pages: PageRec[] = [];
   const files = new Map<string, string>();
   const add = (kind: PageRec["kind"], path: string, html: string, hash = sha(stable(html))) => {
-    // the gates that read a page's HTML run here, as it is made: JSON-LD (a water page, the app's pane, carries no
-    // breadcrumb — the pane draws none, and the JSON-LD says only what the page shows), its title and description
-    bad.push(...checkJsonLd(html, site.origin, kind === "water" ? ["WebPage", "Place"] : undefined).map((x) => `${path}: ${x}`));
+    // the gates that read a page's HTML run here, as it is made: JSON-LD held to the page, its title and description
+    bad.push(...(kind === "water" ? checkWaterPage(html, site.origin) : checkJsonLd(html, site.origin)).map((x) => `${path}: ${x}`));
     const title = /<title>([^<]*)<\/title>/.exec(html)?.[1] ?? "", description = /<meta name="description" content="([^"]*)">/.exec(html)?.[1] ?? "";
-    const out = kind === "water" && o.sink;
-    pages.push({ path, kind, html: out ? "" : html, hash, title, description, size: pageSize(path, html) });
-    if (out) o.sink!(outFile(path), html); else files.set(outFile(path), html);
+    pages.push({ path, kind, html, hash, title, description, size: pageSize(path, html) });
+    files.set(outFile(path), html);
   };
   const shellOf = (path: string, title: string, description: string, body: string, ld: string, image?: string) =>
     shell({ title, description, path, body: body + regionFooter(), jsonld: ld, cssHref, ...(image ? { image } : {}) }, site);
@@ -138,6 +142,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     what.set(v, path);
   };
   const waterHash = new Map<string, string>();
+  const made: { path: string; hash: string; title: string; description: string; page: Promise<WaterMade> }[] = [];
   const waterTopics = new Map<string, Map<TopicKey, string[]>>();
   const nameCount = new Map<string, number>(), sameQual = new Map<string, WaterModel[]>();
   for (const m of models) {
@@ -159,8 +164,15 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     // the topic lines feed the hubs (each a sentence the water's own pane shows)
     waterTopics.set(m.id, topicLines(m));
     const head = headOf({ title, description, path, jsonld: waterLd(m, path, title, site), image: `/share/${slugOf(m.id)}.svg` }, site);
-    add("water", path, await o.waterPage(m, head), hash);
+    // (T279) asked at once, all of them: the build's render threads take them in parallel; kept in order below
+    made.push({ path, hash, title, description, page: o.waterPage(m, head, outFile(path)) });
     files.set(`share/${slugOf(m.id)}.svg`, shareSvg(m, site));
+  }
+  for (const w of made) {
+    const p = await w.page;
+    if (p.html !== null) { add("water", w.path, p.html, w.hash); continue; }
+    bad.push(...p.problems.map((x) => `${w.path}: ${x}`));
+    pages.push({ path: w.path, kind: "water", html: "", hash: w.hash, title: w.title, description: w.description, size: p.size });
   }
 
   // ── topic hubs: waters by what their rules say (steelhead, salmon, trout, bait ban, fly only, closed, boats) ──────────────────

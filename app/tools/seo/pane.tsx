@@ -133,16 +133,15 @@ export class PaneRenderer {
   }
 
   /**
-   * The shared stylesheet of every water page: react-native-web's sheet (every class any render used), the theme
-   * variables, the app's faces, and the fallback for a water shipped in both themes.
+   * What this renderer's pages need of the shared stylesheet (T279: each build thread has its own renderer; the build
+   * merges their parts into one sheet with `paneCss`): react-native-web's sheet (the classes its renders used), the colour
+   * pairs and the per-layout styles met.
    */
-  css(fontFaces: string): string {
+  parts(): PaneCssParts {
     const app = registry.getApplication(APP_KEY, {});
-    const rnw = renderToStaticMarkup(app.getStyleElement()).replace(/^<style[^>]*>/, "").replace(/<\/style>$/, "");
-    const bg = this.vars.name(THEMES.light.card, THEMES.dark.card);
-    return `${fontFaces}${this.vars.css()}:root{--cift-bg:var(${bg})}html,body{background:var(--cift-bg)}` +
-      `.th{display:flex;flex:1;min-width:0}.th-dark{display:none}@media (prefers-color-scheme:dark){.th-light{display:none}.th-dark{display:flex}}\n${rnw}\n` +
-      `${layoutCss()}${this.layoutStyles.css()}`;
+    this.vars.name(THEMES.light.card, THEMES.dark.card);   // the page's ground
+    return { rnw: renderToStaticMarkup(app.getStyleElement()).replace(/^<style[^>]*>/, "").replace(/<\/style>$/, ""),
+             vars: this.vars.keys(), styles: this.layoutStyles.keys(), unmerged: [...this.unmerged] };
   }
 
   /** The inlined part: the box the pane stands in. */
@@ -158,4 +157,35 @@ export function fontFaceCss(font: (face: string) => string | null): { css: strin
     return `@font-face{font-family:"${f}";src:url(${url}) format("truetype");font-display:swap}`;
   }).join("");
   return { css, missing };
+}
+
+export interface PaneCssParts { readonly rnw: string; readonly vars: readonly string[]; readonly styles: readonly string[]; readonly unmerged: readonly string[] }
+
+/**
+ * react-native-web's sheets from several renderers as one: its rules come in ordered groups (`[stylesheet-group="N"]{}`,
+ * a later group wins), so each group keeps every rule any sheet had, first seen first, and the groups their order.
+ */
+export function mergeRnwSheets(sheets: readonly string[]): string {
+  const groups = new Map<number, string[]>(), seen = new Set<string>();
+  for (const sheet of sheets) {
+    let g = -1;
+    for (const line of sheet.split("\n")) {
+      const m = /^\[stylesheet-group="(\d+)"\]\{\}$/.exec(line);
+      if (m) { g = Number(m[1]); if (!groups.has(g)) groups.set(g, []); continue; }
+      if (!line || seen.has(`${g}|${line}`)) continue;
+      seen.add(`${g}|${line}`);
+      (groups.get(g) ?? groups.set(g, []).get(g)!).push(line);
+    }
+  }
+  return [...groups].sort((a, b) => a[0] - b[0]).map(([g, rules]) => [`[stylesheet-group="${g}"]{}`, ...rules].join("\n")).join("\n");
+}
+
+/** THE SHARED STYLESHEET of every water page: the faces, the theme variables, the page ground, react-native-web's rules, the layout switch. */
+export function paneCss(fontFaces: string, parts: readonly PaneCssParts[]): string {
+  const vars = new ThemeVars(), styles = new LayoutStyles();
+  for (const p of parts) { vars.add(p.vars); styles.add(p.styles); }
+  const bg = vars.name(THEMES.light.card, THEMES.dark.card);
+  return `${fontFaces}${vars.css()}:root{--cift-bg:var(${bg})}html,body{background:var(--cift-bg)}` +
+    `.th{display:flex;flex:1;min-width:0}.th-dark{display:none}@media (prefers-color-scheme:dark){.th-light{display:none}.th-dark{display:flex}}\n` +
+    `${mergeRnwSheets(parts.map((p) => p.rnw))}\n${layoutCss()}${styles.css()}`;
 }

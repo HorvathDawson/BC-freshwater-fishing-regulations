@@ -74,4 +74,28 @@ describe("v1 redirects on the fixture release", () => {
     expect(await mod.default.fetch(new Request("https://canifishthis.ca/water/anything"), env)).toBe("asset");
     expect(legacyRedirects({ x: null }, new Map(), new Set()).counts.home).toBe(1);
   });
+
+  it("(T279) /water/<slug> is answered with the stored compressed page the browser takes; a slash 301s; no page is the 404", async () => {
+    const { brotliCompressSync, gzipSync } = await import("node:zlib");
+    const html = "<!doctype html><title>Vedder</title>";
+    const stored: Record<string, Uint8Array> = { "/water/vedder-river/index.html.br": brotliCompressSync(html), "/water/vedder-river/index.html.gz": gzipSync(html) };
+    const asked: string[] = [];
+    const env = { ASSETS: { fetch: async (r: Request) => {
+      const p = new URL(r.url).pathname; asked.push(p);
+      return stored[p] ? new Response(new Blob([Buffer.from(stored[p]!)]), { status: 200, headers: { "content-type": "application/octet-stream" } }) : new Response("404 page", { status: 404 });
+    } } };
+    const mod = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(built.files.get("_worker.js")!).toString("base64")}`);
+    const get = (path: string, ae: string | null) => mod.default.fetch(new Request(`https://canifishthis.ca${path}`, { headers: ae ? { "accept-encoding": ae } : {} }), env);
+    const br = await get("/water/vedder-river", "gzip, deflate, br");
+    expect([br.status, br.headers.get("content-encoding"), br.headers.get("content-type"), br.headers.get("vary")]).toEqual([200, "br", "text/html; charset=utf-8", "Accept-Encoding"]);
+    expect(Buffer.from(await br.arrayBuffer()).equals(Buffer.from(stored["/water/vedder-river/index.html.br"]!))).toBe(true);
+    const gz = await get("/water/vedder-river", "gzip");
+    expect(gz.headers.get("content-encoding")).toBe("gzip");
+    const plain = await get("/water/vedder-river", null);
+    expect([plain.headers.get("content-encoding"), await plain.text()]).toEqual([null, html]);
+    const slash = await get("/water/vedder-river/?part=1", "br");
+    expect([slash.status, slash.headers.get("location")]).toEqual([301, "https://canifishthis.ca/water/vedder-river?part=1"]);
+    expect((await get("/water/no-such-water", "br")).status).toBe(404);
+    expect(asked).not.toContain("/water/vedder-river/index.html");   // the raw page is never asked for: it is not uploaded
+  });
 });

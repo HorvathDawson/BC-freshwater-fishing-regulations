@@ -19,20 +19,34 @@ const PAINT_ATTR = /\s(fill|stroke|stop-color|flood-color|lighting-color)="([^"]
 
 /** Every (light, dark) colour pair the build has met, each a CSS variable `--c<n>`; the same pair is one variable everywhere. */
 export class ThemeVars {
-  private readonly pairs = new Map<string, number>();
+  /** pair → its name. The name is the pair's own hash (T279: the build's threads name a pair alike without talking). */
+  private readonly pairs = new Map<string, string>();
   name(light: string, dark: string): string {
     const k = `${light}|${dark}`;
     let n = this.pairs.get(k);
-    if (n === undefined) this.pairs.set(k, (n = this.pairs.size));
-    return `--c${n}`;
+    if (n === undefined) this.pairs.set(k, (n = `--c${shortHash(k)}`));
+    return n;
   }
   get size(): number { return this.pairs.size; }
-  /** The variables, light by default and dark under `prefers-color-scheme: dark`. */
-  css(): string {
-    const all = [...this.pairs].map(([k, n]) => { const [l, d] = k.split("|") as [string, string]; return { n, l, d }; });
-    return `:root{${all.map((v) => `--c${v.n}:${v.l}`).join(";")}}` +
-      `@media (prefers-color-scheme:dark){:root{${all.map((v) => `--c${v.n}:${v.d}`).join(";")}}}`;
+  /** the pairs met, to merge a thread's into the build's (`add`) */
+  keys(): string[] { return [...this.pairs.keys()]; }
+  add(keys: readonly string[]): void {
+    for (const k of keys) { const [l, d] = k.split("|") as [string, string]; this.name(l, d); }
   }
+  /** The variables, light by default and dark under `prefers-color-scheme: dark`. Throws on two pairs with one name. */
+  css(): string {
+    const all = [...this.pairs].sort((a, b) => a[1].localeCompare(b[1])).map(([k, n]) => { const [l, d] = k.split("|") as [string, string]; return { n, l, d }; });
+    if (new Set(all.map((v) => v.n)).size !== all.length) throw new Error("seo: two colour pairs share a variable name");
+    return `:root{${all.map((v) => `${v.n}:${v.l}`).join(";")}}` +
+      `@media (prefers-color-scheme:dark){:root{${all.map((v) => `${v.n}:${v.d}`).join(";")}}}`;
+  }
+}
+
+/** FNV-1a, base 36: a short stable name for a key (a colour pair, a layout's style). */
+export function shortHash(s: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(36);
 }
 
 const split = (html: string): string[] => html.split(/(<[^>]+>)/);
