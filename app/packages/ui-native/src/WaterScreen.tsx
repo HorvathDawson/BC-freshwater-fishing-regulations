@@ -264,7 +264,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
           </>
         : <>
             <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />
-            <RegsWaiting palette={palette} />
+            <RegsWaiting palette={palette} align="left" />
           </>}
     </WaterInset>
   );

@@ -20,6 +20,8 @@ export interface Download {
 export interface NetActivity {
   queued(key: string, priority: FetchPriority, total: number | null): void;
   started(key: string): void;
+  /** a download queued ahead that the reader now needs: it is the reader's now (the waiting lines count it) */
+  raise(key: string, priority: FetchPriority): void;
   progress(key: string, loaded: number, total: number | null): void;
   retry(key: string, attempt: number): void;
   done(key: string): void;
@@ -50,6 +52,7 @@ export function createNetActivity(): NetActivity {
       set();
     },
     started: (key) => patch(key, { waiting: false }),
+    raise(key, priority) { const d = map.get(key); if (d && priority < d.priority) patch(key, { priority }); },
     progress: (key, loaded, total) => patch(key, { loaded, ...(total !== null ? { total } : {}) }),
     retry: (key, attempt) => patch(key, { attempt }),
     done(key) { if (map.delete(key)) set(); },

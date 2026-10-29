@@ -302,3 +302,29 @@ describe("a release file through the gate, the download and the check (fetchVeri
     expect(order).toEqual(["water", "salmon"]);
   });
 });
+
+describe("the web source through the net (T254)", () => {
+  it("a file prefetched ahead that the reader then asks for is the reader's: raised in the gate and in the activity", async () => {
+    const { releaseSource } = await import("../release/drivers/source.web");
+    const { parseManifest } = await import("../manifest");
+    const raw = new TextEncoder().encode("core-bytes");
+    const m = parseManifest({ format: "app-manifest/2", data_release: "r-1", published: "2026-10-29",
+      regulations: { valid_until: null, versions: {} }, tiles: { compatible: [], current: null, assets: null, mask: null },
+      files: { core: { url: "r-1/core-x.sqlite.gz", bytes: raw.length, sha256: sha256Hex(raw), format: "core/1", section_handles: "h" } } });
+    const net = createNet();
+    net.setMode({ low: true, why: "setting", offline: false });
+    let release!: () => void;
+    const gate = new Promise<void>((r) => { release = r; });
+    const src = releaseSource(m, { base: "https://r2.test/release/", held: null, net,
+      cache: { kind: "memory", get: async () => null, put: async () => {} },
+      fetch: (async () => { await gate; return new Response(gzipSync(raw) as BodyInit); }) as typeof fetch });
+    const ahead = src.bytes("core", { ahead: true });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(net.activity.snapshot().downloads.map((d) => [d.key, d.priority])).toEqual([["core", 2]]);
+    const now = src.bytes("core");
+    expect(net.activity.snapshot().downloads.map((d) => [d.key, d.priority])).toEqual([["core", 0]]);
+    release();
+    expect(await now).toEqual(raw);
+    expect(await ahead).toEqual(raw);
+  });
+});

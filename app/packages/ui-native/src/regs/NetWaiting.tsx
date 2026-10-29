@@ -23,7 +23,7 @@ function useSayAfter(now: boolean): boolean {
 }
 
 /** Under a Regulations spinner: how far the files the page is built from have come. Nothing while nothing is coming. */
-export function RegsWaiting({ palette }: { palette: Palette }) {
+export function RegsWaiting({ palette, align = "center" }: { palette: Palette; align?: "center" | "left" }) {
   const { net, mode } = useNet();
   const act = useNetActivity(net);
   const say = useSayAfter(mode.low || mode.offline);
@@ -33,7 +33,8 @@ export function RegsWaiting({ palette }: { palette: Palette }) {
   if (!say || (!p.files && !mode.offline)) return null;
   return (
     <Text testID="regs-slow" accessibilityLiveRegion="polite"
-          style={{ ...TYPE.small, color: palette.sub, textAlign: "center", marginTop: SPACE.s3, paddingHorizontal: SPACE.s4 }}>
+          style={{ ...TYPE.small, color: palette.sub, textAlign: align, marginTop: SPACE.s3,
+                   paddingHorizontal: align === "center" ? SPACE.s4 : 0 }}>
       {waitingLine({ loaded: p.loaded, total: p.total, offline: mode.offline, attempt })}
     </Text>
   );

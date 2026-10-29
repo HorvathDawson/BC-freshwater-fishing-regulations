@@ -44,6 +44,7 @@ export function releaseSource(m: Manifest, at: SourceAt): ReleaseSource {
       } else if (!ahead && net) {
         // a file queued ahead that the reader now needs: raise it to the reader's turn (joins the same download)
         void net.gate.run(name, priorityOf(name), () => p!).catch(() => {});
+        net.activity.raise(name, priorityOf(name));
       }
       return p;
     },
