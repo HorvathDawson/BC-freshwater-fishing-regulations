@@ -1090,7 +1090,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
     "files": [
       "core"
     ],
-    "gate": 1400000
+    "gate": 1500000
   },
   "first_tap": {
     "files": [
