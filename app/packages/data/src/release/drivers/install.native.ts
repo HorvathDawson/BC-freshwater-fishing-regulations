@@ -75,6 +75,17 @@ const fs: ReleaseFs & PartFs = {
       h.close();
     }
   },
+  // (T272) the follower's read: the bytes the native download has put on disk so far, a megabyte at a time
+  readAt: async (path, offset, length) => {
+    const h = fileAt(path).open(FileMode.ReadOnly);
+    try {
+      const size = h.size ?? 0;
+      h.offset = offset;
+      return h.readBytes(Math.max(0, Math.min(length, size - offset)));
+    } finally {
+      h.close();
+    }
+  },
 };
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -100,10 +111,11 @@ function appendFile(from: string, to: string): void {
  * the whole file instead replaces the `.part`). A dropped line or a DNS miss is tried again (from what is on disk)
  * before it is thrown; the `.part` stays for the next launch either way.
  */
-const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBytes) => {
+const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBytes, onRewrite) => {
   let last: unknown = null;
   for (let i = 0; i < tries; i++) {
-    if (i > 0) await wait(1500 * 2 ** (i - 1));
+    // (T272) a retry: the hash that followed the `.part` is not trusted (it is hashed off disk once it is whole)
+    if (i > 0) { onRewrite?.(); await wait(1500 * 2 ** (i - 1)); }
     ensureParent(part);
     const f = fileAt(part);
     const have = f.exists ? f.size : 0;
@@ -120,7 +132,7 @@ const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBy
       if (!done) throw new Error(`${url}: the download stopped`);
       if (have > 0) {
         const got = tail.size;
-        if (got === total) { f.delete(); tail.move(f); }                       // the server sent it whole
+        if (got === total) { onRewrite?.(); f.delete(); tail.move(f); }        // the server sent it whole
         else if (got === total - have) appendFile(`${part}.tail`, part);
         else { tail.delete(); throw new Error(`${url}: ${got} bytes for the ${total - have} after ${have}`); }
       }

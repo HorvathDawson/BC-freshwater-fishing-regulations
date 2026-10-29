@@ -35,6 +35,42 @@ const mb = (bytes: number) => {
 /** (T238) a size in words: "1.2 MB" */
 export const megabytes = (bytes: number): string => `${mb(bytes)} MB`;
 
+/** (T272) The download's share done, 0..1 (the first bar). */
+export function downloadFraction(p: { bytes: number; of: number }): number {
+  return p.of > 0 ? Math.min(1, Math.max(0, p.bytes / p.of)) : 0;
+}
+
+/**
+ * (T272) THE SECOND STAGE of a first install: after the last byte, the files are checked (sha256 of the map files),
+ * the map's labels and symbols placed, and the set opened. Its own bar and words, so a bar never sits at 100 % with
+ * nothing moving.
+ */
+export const SETUP_WORDS = {
+  title: "Setting up on this device",
+  verify: "Checking the downloaded files",
+  assets: "Fetching the map's labels and symbols",
+  open: "Opening the map",
+} as const;
+
+export interface SetupStep { step: "verify" | "assets" | "open"; done: number; of: number }
+
+/** Where each step sits on the second bar (by its measured share of the wait on the emulator, T272: the map assets now load beside the download). */
+const SETUP_SPAN: Readonly<Record<SetupStep["step"], readonly [number, number]>> = {
+  verify: [0, 0.85], assets: [0.85, 0.95], open: [0.95, 1],
+};
+
+/** (T272) The second bar's share done, 0..1: the step's span, filled by its own count. */
+export function setupFraction(s: SetupStep): number {
+  const [a, b] = SETUP_SPAN[s.step];
+  const f = s.of > 0 ? Math.min(1, Math.max(0, s.done / s.of)) : 1;
+  return a + (b - a) * f;
+}
+
+/** (T272) "Checking the downloaded files · 62 %" */
+export function setupLine(s: SetupStep): string {
+  return `${SETUP_WORDS[s.step]} · ${Math.floor(setupFraction(s) * 100)} %`;
+}
+
 /** "12.5 of 1,461.2 MB downloaded"; nothing when nothing is fetched (an update that only copies held files). */
 export function installLine(p: { bytes: number; of: number }): string {
   return p.of > 0 ? `${mb(p.bytes)} of ${mb(p.of)} MB downloaded` : "";

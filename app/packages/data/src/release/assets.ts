@@ -45,6 +45,10 @@ export function assetsDigest(files: Readonly<Record<string, string>>): string {
 /** The on-disk folder of an assets block (`release/<url>`, ending in "/"). */
 export const assetsDir = (a: Pick<AssetsBlock, "url">) => `release/${a.url.replace(/\/?$/, "/")}`;
 
+/** (T272) Map asset files fetched at once, and started per second at most (under the data host's 30/s per IP, T249). */
+const ASSET_FETCHES = 6;
+const ASSET_RATE = 22;
+
 const encodePath = (rel: string) => rel.split("/").map(encodeURIComponent).join("/");
 
 async function place(fs: ReleaseFs, path: string, bytes: Uint8Array): Promise<void> {
@@ -61,7 +65,8 @@ const hasSha = async (fs: ReleaseFs, path: string, sha: string) =>
  * manifest's; what was placed before stays, verified, for the next attempt.
  */
 export async function installAssets(fs: ReleaseFs, raw: RawFetch, base: string, a: AssetsBlock,
-                                    from: string | null = null): Promise<void> {
+                                    from: string | null = null,
+                                    onFile?: (done: number, of: number) => void): Promise<void> {
   if (!a.files_sha256) throw new VerifyError(`assets ${a.id ?? a.url}: the manifest names no files_sha256`);
   const dir = assetsDir(a), src = `${base}${a.url.replace(/\/?$/, "/")}`;
   const listPath = `${dir}assets.json`;
@@ -80,15 +85,51 @@ export async function installAssets(fs: ReleaseFs, raw: RawFetch, base: string, 
       throw new VerifyError(`${src}assets.json: files ${got.slice(0, 12)}…, the manifest says ${a.files_sha256.slice(0, 12)}…`);
   }
   const files = filesOf(listBytes);
-  for (const rel of Object.keys(files).sort()) {
+  const names = Object.keys(files).sort();
+  const one = async (rel: string) => {
     const sha = files[rel]!, path = `${dir}${rel}`;
-    if (await hasSha(fs, path, sha)) continue;                                  // resumed: already there
+    if (await hasSha(fs, path, sha)) return;                                    // resumed: already there
     const held = from ? `${from.replace(/\/?$/, "/")}${rel}` : null;
-    if (held && held !== path && await hasSha(fs, held, sha)) { await place(fs, path, await fs.read(held)); continue; }
+    if (held && held !== path && await hasSha(fs, held, sha)) { await place(fs, path, await fs.read(held)); return; }
     const url = `${src}${encodePath(rel)}`, b = await raw(url), got = sha256Hex(b);
     if (got !== sha) throw new VerifyError(`${url}: sha256 ${got.slice(0, 12)}…, assets.json says ${sha.slice(0, 12)}…`);
     await place(fs, path, b);
-  }
+  };
+  // (T272) SEVERAL AT ONCE, PACED: ~780 small files (glyph ranges, sprites). One at a time they took ~80 s of a first
+  // install on the emulator; eight at once ran into the data host's per-IP limit (300 requests / 10 s, T249: HTTP 429).
+  // So `ASSET_FETCHES` in flight, no more than `ASSET_RATE` started per second, and a refused or failed file is tried
+  // again after a pause (a 429 waits longer) before the install fails; the first failure stops the rest (what was placed
+  // stays, verified, for the next attempt). `install` runs this beside the big downloads, so it is mostly hidden.
+  let next = 0, done = 0, failed: unknown = null;
+  const t0 = Date.now();
+  let started = 0;
+  const paced = async () => {
+    const at = t0 + (started++ * 1000) / ASSET_RATE;
+    if (at > Date.now()) await new Promise<void>((r) => setTimeout(r, at - Date.now()));
+  };
+  onFile?.(0, names.length);
+  const worker = async () => {
+    while (failed === null && next < names.length) {
+      const rel = names[next++]!;
+      let err: unknown = null;
+      for (let t = 0; t < 4; t++) {
+        if (t > 0) {
+          const limited = err instanceof Error && /HTTP 429/.test(err.message);
+          await new Promise<void>((r) => setTimeout(r, (limited ? 3000 : 500) * t));
+        }
+        await paced();
+        try { await one(rel); err = null; break; } catch (e) {
+          err = e;
+          console.warn(`[setup] map asset ${rel}: try ${t + 1} failed: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+      if (err !== null) { failed ??= err; return; }
+      if (++done % 8 === 0) onFile?.(done, names.length);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(ASSET_FETCHES, names.length) }, worker));
+  if (failed !== null) throw failed;
+  onFile?.(names.length, names.length);
   // the list last: a folder with its assets.json is whole
   await place(fs, listPath, listBytes);
 }

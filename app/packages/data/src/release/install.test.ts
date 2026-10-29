@@ -94,3 +94,49 @@ describe("partDownload (T262: any transport, e.g. Android's native one, held to 
     expect(fs.files.get("t")).toEqual(body);
   });
 });
+
+describe("partDownload's follower (T272: the .part hashed while it downloads, not after)", () => {
+  const body = new Uint8Array(3 * (1 << 20) + 17).map((_, i) => (i * 7) & 0xff);   // a little over 3 follower chunks
+  const want = { bytes: body.length, sha256: sha256Hex(body) };
+  const tick = (ms = 5) => new Promise<void>((r) => setTimeout(r, ms));
+  /** memParts with `readAt`, counting reads from the first byte: the follower's is one, an off-disk re-hash another. */
+  function followed() {
+    const fs = memParts();
+    let fromStart = 0;
+    return Object.assign(fs, {
+      readAt: async (p: string, at: number, n: number) => { if (at === 0) fromStart++; return fs.files.get(p)!.slice(at, at + n); },
+      wholeReads: () => fromStart - 1,
+    });
+  }
+  /** A transport that appends in 1 MB pieces with a pause between: the follower hashes as it goes. */
+  const slowFill = (fs: PartFs, rewrite = false, ms = 5) => async (_u: string, part: string, have: number, total: number,
+                                                           _on?: (n: number) => void, onRewrite?: () => void) => {
+    for (let at = have; at < total; at += 1 << 20) { await fs.append(part, body.subarray(at, Math.min(total, at + (1 << 20)))); await tick(ms); }
+    if (rewrite) onRewrite?.();
+  };
+
+  it("a clean fill is verified by the hash that followed it: no second read of the whole file", async () => {
+    const fs = followed(), hashed: number[] = [];
+    await partDownload(fs, slowFill(fs))("u", "t", want, undefined, (n) => hashed.push(n));
+    expect(fs.files.get("t")).toEqual(body);
+    expect(fs.wholeReads()).toBe(0);
+    expect(hashed.at(-1)).toBe(body.length);
+    expect(hashed.length).toBeGreaterThan(2);                                // progress all the way
+  });
+
+  it("a fill that rewrote the .part (a retry, a whole body) is hashed again off disk", async () => {
+    const fs = followed();
+    await partDownload(fs, slowFill(fs, true, 120))("u", "t", want);
+    expect(fs.wholeReads()).toBe(1);
+    expect(fs.files.get("t")).toEqual(body);
+  });
+
+  it("wrong bytes are still refused (the off-disk hash has the last word) and the .part dropped", async () => {
+    const fs = followed();
+    const bad = body.slice(); bad[5] = bad[5]! ^ 1;
+    const fill = async (_u: string, part: string) => { await fs.append(part, bad); };
+    await expect(partDownload(fs, fill)("u", "t", want)).rejects.toThrow(/sha256/);
+    expect(fs.wholeReads()).toBe(1);
+    expect([...fs.files.keys()]).toEqual([]);
+  });
+});

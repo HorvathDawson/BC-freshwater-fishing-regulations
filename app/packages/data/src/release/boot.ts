@@ -210,6 +210,9 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
 
   // THE PHONE: the held set first; the network only to install it once and to look for a newer one
   let held = await heldFrom(dev.fs);
+  /** (T272) A first run's last install progress, and its second stage's open steps (none on a later launch). */
+  let last: Progress | null = null;
+  let openStep: (done: number) => void = () => {};
   const latest = await timeout(loadManifest(o.manifestUrl, undefined, f), o.manifestTimeoutMs ?? 5000)
     .catch(() => null);
   const allowed = (m: Manifest) => !o.appVersion || releaseAllowed(m.minAppVersion, o.appVersion).ok;
@@ -217,13 +220,25 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     if (!latest) throw new BootError("first run: the manifest could not be read", true);
     if (!allowed(latest)) throw new BootError(UPDATE_WORDS.row.appTooOld);
     o.onStage?.("install");
-    held = await install(latest, dev.fs, dev.download, o.releaseBase, null, o.onProgress, dev.toDisk, undefined,
-                         rawFetch(f));
+    const t0 = Date.now();
+    let downAt = 0;
+    held = await install(latest, dev.fs, dev.download, o.releaseBase, null, (p) => {
+      if (!downAt && p.of > 0 && p.bytes >= p.of) { downAt = Date.now(); console.info(`[setup] downloaded in ${downAt - t0} ms`); }
+      last = p;
+      o.onProgress?.(p);
+    }, dev.toDisk, undefined, rawFetch(f));
+    console.info(`[setup] installed ${Date.now() - (downAt || t0)} ms after the last byte`);
+    // (T272) THE SECOND STAGE goes on through opening the set: the manifest, paint, core (the steps below)
+    const p = last as Progress | null;    // set by the callback above
+    if (p) openStep = (done) => o.onProgress?.({ ...p, setup: { step: "open", done, of: 3 } });
   }
   /** Open a held set: its manifest, paint decoded against its handles, core opened and checked, its tiles paired. */
   const cache = await o.platform.releaseCache();
   const openSet = async (h: Held) => {
+    const t0 = Date.now();
+    openStep(0);
     const m = await heldManifest(dev.fs, h);
+    openStep(1);
     const t = m.tiles.current;
     if (t && !(t.id && compatible(m.tiles.compatible, t.id)))
       throw new ReleaseError(`release ${m.data_release}: tiles ${t.id ?? "(no id)"} are not in ${m.tiles.compatible}`);
@@ -239,7 +254,11 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       }));
     o.onStage?.("paint");
     const paint = await loader.paint();
+    openStep(2);
+    const tPaint = Date.now();
     await loader.db("core");                      // opened in place on a phone: the first file any question needs
+    openStep(3);
+    console.info(`[setup] opened ${h.release}: manifest + paint ${tPaint - t0} ms, core ${Date.now() - tPaint} ms`);
     return { m, loader, paint };
   };
 

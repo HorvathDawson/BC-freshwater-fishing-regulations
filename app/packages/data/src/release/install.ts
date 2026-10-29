@@ -39,7 +39,7 @@ export type Download = (url: string, expect: { bytes: number; sha256: string }) 
  * the `.part` for the next attempt, when the bytes are not the manifest's. `install.native.ts` is the phone's.
  */
 export type DownloadTo = (url: string, path: string, expect: { bytes: number; sha256: string },
-                          onBytes?: (n: number) => void) => Promise<void>;
+                          onBytes?: (n: number) => void, onHashed?: (n: number) => void) => Promise<void>;
 /** What `rangedDownload` needs of a file system: a `.part` it can grow, and read back a bounded chunk at a time. */
 export interface PartFs {
   /** Bytes already in `path` (0 when it is absent). */
@@ -47,6 +47,11 @@ export interface PartFs {
   append(path: string, bytes: Uint8Array): Promise<void>;
   /** Feed the whole file to `each`, a bounded chunk at a time (never the whole file in memory). */
   chunks(path: string, each: (bytes: Uint8Array) => void): Promise<void>;
+  /**
+   * (T272) `length` bytes of `path` from `offset` (fewer at its end). With it, `partDownload` hashes the `.part` WHILE it
+   * downloads; without it, the whole file is hashed once it is down.
+   */
+  readAt?(path: string, offset: number, length: number): Promise<Uint8Array>;
   rename(from: string, to: string): Promise<void>;
   remove(path: string): Promise<void>;
 }
@@ -56,7 +61,11 @@ export interface PartFs {
  * `onBytes` with the length so far. A transport: `rangedFill` (JS fetch, by ranges) or the phone's native downloader.
  */
 export type PartFill = (url: string, part: string, have: number, total: number,
-                        onBytes?: (n: number) => void) => Promise<void>;
+                        onBytes?: (n: number) => void, onRewrite?: () => void) => Promise<void>;
+
+/** (T272) How much of a growing `.part` the follower reads and hashes at a time. */
+const FOLLOW_CHUNK = 1 << 20;
+const nextTick = () => new Promise<void>((r) => setTimeout(r, 0));
 
 /**
  * THE RESUMABLE DOWNLOAD (MINIMAL-PACKAGING §5): `fill` grows `${path}.part`. The `.part` IS the resume state — a crash
@@ -64,28 +73,84 @@ export type PartFill = (url: string, part: string, have: number, total: number,
  * be saved. When it is whole it is hashed off disk (`Sha256`, chunk by chunk) and renamed onto `path`; bytes that are not
  * the manifest's drop the `.part`.
  */
+/**
+ * (T272) The sha256 of a whole file off disk. With `readAt`, a megabyte at a time with a turn for the screen between
+ * (its progress is drawn); without, `chunks` in one go.
+ */
+async function hashFile(fs: PartFs, path: string, onHashed?: (n: number) => void): Promise<string> {
+  const h = new Sha256();
+  if (!fs.readAt) {
+    let n = 0;
+    await fs.chunks(path, (b) => { h.update(b); n += b.length; onHashed?.(n); });
+    return h.hex();
+  }
+  const size = await fs.size(path);
+  for (let at = 0; at < size;) {
+    const b = await fs.readAt(path, at, Math.min(FOLLOW_CHUNK, size - at));
+    if (!b.length) break;
+    h.update(b); at += b.length; onHashed?.(at);
+    await nextTick();
+  }
+  return h.hex();
+}
+
 export function partDownload(fs: PartFs, fill: PartFill): DownloadTo {
-  return async (url, path, e, onBytes) => {
+  return async (url, path, e, onBytes, onHashed) => {
     const part = `${path}.part`;
     // already in place from a stage that failed after it (the file is named by its content): kept when it verifies
     if (await fs.size(path) === e.bytes) {
-      const h = new Sha256();
-      await fs.chunks(path, (b) => { h.update(b); });
-      if (h.hex() === e.sha256) { onBytes?.(e.bytes); return; }
+      // (T272) its bytes are down: the bar says so, and the re-check is the second stage's (~40 s for both map files)
+      onBytes?.(e.bytes);
+      if (await hashFile(fs, path, onHashed) === e.sha256) { onHashed?.(e.bytes); return; }
     }
     let have = await fs.size(part);
     if (have > e.bytes) { await fs.remove(part); have = 0; }
-    if (have < e.bytes) await fill(url, part, have, e.bytes, onBytes);
+    // (T272) THE FOLLOWER: the `.part` is hashed while it downloads, a megabyte behind the writer, so the wait after the
+    // last byte is what the hash has left, not the whole file (on the emulator 274 MB took 23 s to hash AFTER the
+    // download). Only bytes on disk are hashed, in order; it is trusted only for ONE clean fill — the writer only ever
+    // appended. A fill that rewrote the `.part` (a retry, a server that sent it whole) says so (`onRewrite`) and the file
+    // is hashed again off disk, as before.
+    const readAt = fs.readAt?.bind(fs);
+    let rewritten = false, filling = true;
+    const fh = new Sha256();
+    let hashed = 0;
+    const follow = async () => {
+      if (!readAt) return;
+      for (;;) {
+        if (rewritten) return;
+        const size = await fs.size(part);
+        if (size < hashed) { rewritten = true; return; }
+        if (size > hashed) {
+          const b = await readAt(part, hashed, Math.min(FOLLOW_CHUNK, size - hashed));
+          if (rewritten) return;
+          fh.update(b); hashed += b.length; onHashed?.(hashed);
+          await nextTick();                       // the download's progress and the screen get their turn
+          continue;
+        }
+        if (!filling) return;
+        await new Promise<void>((r) => setTimeout(r, 100));
+      }
+    };
+    const following = follow().catch(() => { rewritten = true; });     // a read that failed: hashed off disk
+    const t0 = Date.now();
+    try {
+      if (have < e.bytes) await fill(url, part, have, e.bytes, onBytes, () => { rewritten = true; });
+    } finally {
+      filling = false;
+    }
+    const tFill = Date.now();
+    await following;
     const got = await fs.size(part);
     if (got !== e.bytes) {
       if (got > e.bytes) await fs.remove(part);
       throw new VerifyError(`${url}: ${got} bytes on disk, the manifest says ${e.bytes}`);
     }
-    const h = new Sha256();
-    const t0 = Date.now();
-    await fs.chunks(part, (b) => { h.update(b); });
-    const sha = h.hex();
-    console.info(`[download] ${url}: sha256 of ${got} bytes in ${Date.now() - t0} ms`);
+    let sha = !rewritten && hashed === got ? fh.hex() : null;
+    const tail = Date.now() - tFill;
+    // not followed (no readAt, a rewrite), or a follower hash that does not match: the whole file, off disk, decides
+    if (sha !== e.sha256) sha = await hashFile(fs, part, onHashed);
+    console.info(`[download] ${url}: sha256 of ${got} bytes — ${Date.now() - tFill} ms after the download ` +
+                 `(${hashed === got && !rewritten ? `followed, ${tail} ms to catch up` : "hashed off disk"}; fill ${tFill - t0} ms)`);
     if (sha !== e.sha256) {
       await fs.remove(part);
       throw new VerifyError(`${url}: sha256 ${sha.slice(0, 12)}…, the manifest says ${e.sha256.slice(0, 12)}…`);
@@ -123,8 +188,17 @@ export function rangedDownload(fs: PartFs, fetchImpl: typeof fetch = fetch, chun
   return partDownload(fs, rangedFill(fs, fetchImpl, chunk));
 }
 
-/** `done`/`total` count files; `bytes`/`of` count what is fetched (copies from the held set cost nothing). */
-export interface Progress { done: number; total: number; file: string; bytes: number; of: number }
+/**
+ * (T272) THE SECOND STAGE of a first install, after the last byte is down: `verify` the big files' sha256 (`done`/`of` in
+ * bytes hashed), `assets` the map's glyphs and sprites (files), `open` the set (steps: manifest, paint, core).
+ */
+export interface SetupProgress { step: "verify" | "assets" | "open"; done: number; of: number }
+
+/**
+ * `done`/`total` count files; `bytes`/`of` count what is fetched (copies from the held set cost nothing). `setup`: set
+ * once everything is downloaded and what is left is setting it up on the device (T272).
+ */
+export interface Progress { done: number; total: number; file: string; bytes: number; of: number; setup?: SetupProgress }
 
 export const POINTER = "release/current";
 
@@ -217,24 +291,52 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
     const e = m.files[name]!, path = `${dir}/${e.url.split("/").pop()!.replace(/\.gz$/, "")}`;
     if (sha256Hex(await fs.read(path)) !== e.sha256) throw new Error(`release: ${path} does not match the manifest`);
   }
+  // THE MAP ASSETS (glyphs + sprites): always made whole — their folder lives under the tile version, so new tiles move
+  // it even when its id does not. Files already there are kept, the held folder's are copied; the rest fetched.
+  // (T272) Started NOW, beside the big downloads: ~780 small requests are paced by the data host's rate limit, not by
+  // bandwidth, so they cost a first install almost nothing while the map files stream. Their bar is the second stage's
+  // once the last byte of the big files is down and hashed.
+  const a = m.tiles.assets;
+  if (a && !raw) throw new VerifyError(`assets ${a.id ?? a.url}: no way to fetch them`);
+  let bigDone = false, assetsFailed: unknown = null;
+  const assetsAt: { n: number; all: number } = { n: 0, all: 0 };
+  const assetsStep = () => assetsAt.all > 0 && onProgress({ done, total, file: "assets", bytes, of,
+                                                    setup: { step: "assets", done: assetsAt.n, of: assetsAt.all } });
+  const assetsRun = a && raw ? (async () => {
+    const heldA = held ? (await heldManifest(fs, held).catch(() => null))?.tiles.assets ?? null : null;
+    const tA = Date.now();
+    await installAssets(fs, raw, base, a, heldA ? assetsDir(heldA) : null, (n, all) => {
+      assetsAt.n = n; assetsAt.all = all;
+      if (bigDone) assetsStep();
+    });
+    console.info(`[setup] map assets (${assetsAt.all} files) in ${Date.now() - tA} ms`);
+  })().catch((e: unknown) => { assetsFailed = e ?? new Error("assets failed"); }) : null;
+  // (T272) what the big files' hashes have left once the last byte is down: the second stage's bar
+  const verifyOf = big.reduce((n, b) => n + b.e.bytes, 0);
+  let verifiedBefore = 0;
   for (const b of big) {
     if (toDisk) {
-      const at = bytes;
-      await toDisk(`${base}${b.url}`, b.path, b.e, (n) => onProgress({ done, total, file: b.file, bytes: at + n, of }));
+      const at = bytes, vAt = verifiedBefore;
+      let down = at;
+      await toDisk(`${base}${b.url}`, b.path, b.e, (n) => { down = at + n; onProgress({ done, total, file: b.file, bytes: down, of }); },
+                   (n) => {
+                     if (down >= of)
+                       onProgress({ done, total, file: b.file, bytes: of, of, setup: { step: "verify", done: vAt + n, of: verifyOf } });
+                   });
+      verifiedBefore += b.e.bytes;
     } else {
       await fetchInto(fs, dl, `${base}${b.url}`, b.path, b.e);
     }
     bytes += b.e.bytes;
-    onProgress({ done: ++done, total, file: b.file, bytes, of });
+    // (T272) the last byte down and its hash done: the second stage stays on screen (never back to the download line)
+    onProgress({ done: ++done, total, file: b.file, bytes, of,
+                 ...(toDisk && bytes >= of ? { setup: { step: "verify" as const, done: verifiedBefore, of: verifyOf } } : {}) });
   }
-  // THE MAP ASSETS (glyphs + sprites): always made whole — their folder lives under the tile version, so new tiles move
-  // it even when its id does not. Files already there are kept, the held folder's are copied; the rest fetched.
-  const a = m.tiles.assets;
-  if (a) {
-    if (!raw) throw new VerifyError(`assets ${a.id ?? a.url}: no way to fetch them`);
-    const heldA = held ? (await heldManifest(fs, held).catch(() => null))?.tiles.assets ?? null : null;
-    await installAssets(fs, raw, base, a, heldA ? assetsDir(heldA) : null);
-    onProgress({ done, total, file: "assets", bytes, of });
+  bigDone = true;
+  if (assetsRun) {
+    assetsStep();
+    await assetsRun;
+    if (assetsFailed !== null) throw assetsFailed;
   }
   // the manifest the set was installed from: an offline launch opens the set with it (`heldManifest`)
   const mb = new TextEncoder().encode(JSON.stringify(m));
