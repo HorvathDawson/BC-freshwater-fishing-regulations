@@ -105,7 +105,8 @@ def test_curated_variants_are_labelled_with_their_real_source():
             note = n.get("note") or ""
             assert not (n["source"] == "alias" and ("City of Burnaby" in note or "FWA gazetted name" in note)), n
     added = json.loads((REPO / "data/curated/waters/added_streams.json").read_text())
-    assert all(v.get("source") in CITY_LABELS for v in added["name_variants"])
+    # every variant names its city, or (T222) OpenStreetMap for a stream taken from OSM (osm_streams.geojson)
+    assert all(v.get("source") in CITY_LABELS or v.get("source") == "osm" for v in added["name_variants"])
     dead = {"356101591", "356116640", "356311092", "356206901", "356216839", "356093488", "356189846"}
     assert not any(set(e["target"].get("blks") or ()) & dead for e in nv)
 

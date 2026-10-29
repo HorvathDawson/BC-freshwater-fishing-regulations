@@ -613,9 +613,14 @@ def add_waters(b: _Build) -> None:
     # be applied the moment the graph exists. So the pass is split in two, and `protected_blks` goes.
     from pipeline.atlas.graph.names import apply_name_variants, load_name_variants
     _nv_path = args.name_variants or CURATED.waters.name_variants
-    # T224: + the mined names the owner accepted (city layers, OSM, ECCC…), each with its real source
-    _nv_all = (load_name_variants(_nv_path) + load_name_variants(CURATED.waters.mined_names)
-               + _added_name_variant_entries(add_nv))
+    # T224's mined names (city layers, OSM, ECCC…) are NOT graph names (owner 2026-10-28): a name the owner
+    # accepted from a mined source is a display/search LABEL only. On a graph node it changed what the braid
+    # prune keeps (409 braid pieces kept), which item a feature joins (a named ditch stayed in its river's
+    # item: the Quinsam diversion headpond) and what a slough absorbs (an unnamed lake polygon became the
+    # "Silverstream Slough" stream). So they are attached to the finished registry instead
+    # (`registry.mined.add_mined_names`), never to the graph.
+    b._mined = load_name_variants(CURATED.waters.mined_names)
+    _nv_all = load_name_variants(_nv_path) + _added_name_variant_entries(add_nv)
     _nv_reach = [e for e in _nv_all if e.get("reach") or (e.get("target") or {}).get("reach")]
     _nv_now = [e for e in _nv_all if e not in _nv_reach]
     if _nv_now:
@@ -1378,6 +1383,12 @@ def build_registry(b: _Build) -> None:
           f"{sum(len(x['polygons']) for x in _mrep['unnamed_polygons'])} unnamed polygon(s) "
           f"taken by a slough")
     (out / "merge_report.json").write_text(json.dumps(_mrep, indent=1) + "\n", encoding="utf-8")
+    # T224 mined names: labels on the item that already owns the feature, after every grouping pass
+    from pipeline.atlas.registry.mined import add_mined_names
+    _mined_rep: dict = {}
+    registry = add_mined_names(registry, graph, getattr(b, "_mined", []) or [], _mined_rep)
+    print(f"  mined names: {_mined_rep['labelled']} on an existing item, {_mined_rep['own_items']} item(s) of "
+          f"their own, {_mined_rep['absent']} on a feature not in the atlas (pruned or absent)")
     # Which curated lake PART belongs to which lake (`item.part_of` in the bundle): written here,
     # once, from the polygons the ingest read; refused when they and this build disagree. A lake
     # with parts owns no section of its own (`add_lake_parts`).
