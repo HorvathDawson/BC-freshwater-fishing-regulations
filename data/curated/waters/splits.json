@@ -3347,6 +3347,26 @@
       -122.47204,
       49.134
      ]
+    },
+    {
+     "id": "nathan__cn_railway_bridge_tidal_boundary",
+     "label": "CN Railway Bridge (tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.488443,
+       49.165347
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:356350005 — \"Nathan Creek: CN Railway Bridge | Nathan Creek: CNR Bridge\"",
+     "_coord": [
+      -122.488443,
+      49.165347
+     ],
+     "tidal": true
     }
    ]
   },
