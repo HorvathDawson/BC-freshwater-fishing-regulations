@@ -78,6 +78,16 @@ export function openReportOutboxStore(): { read(): string | null; write(text: st
   return keyStore("canifishthis.reportOutbox.v1");
 }
 
+/** (T242) The "Send crash reports" switch ("on" | "off"; nothing stored = on), one key of its own. */
+export function openCrashSettingStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.crashReports.v1");
+}
+
+/** (T242) A fatal error kept for the next start (one JSON payload, or empty), one key of its own. */
+export function openCrashPendingStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.crashPending.v1");
+}
+
 /** (T236) The first-run notice's accepted version (`FIRST_RUN_VERSION`), one key of its own. */
 export function openFirstRunStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.firstRun.v1");

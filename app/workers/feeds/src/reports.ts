@@ -99,19 +99,21 @@ export function validateReport(raw: unknown): { ok: true; report: Omit<StoredRep
   return { ok: true, report: { format: REPORT_FORMAT, id: r.id, created: r.created, reason: r.reason as StoredReport["reason"], text: r.text.trim(), email, contact, context: ctx } };
 }
 
-async function sha256hex(s: string): Promise<string> {
+export async function sha256hex(s: string): Promise<string> {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 /** The per-IP gate: null = allowed (and recorded), else the refusal. */
-export async function rateLimit(env: ReportEnv, ip: string, now: Date): Promise<string | null> {
-  if (env.REPORT_LIMITER) {
+export async function rateLimit(env: ReportEnv, ip: string, now: Date,
+  o: { prefix?: string; gapMs?: number; perDay?: number; edge?: boolean } = {}): Promise<string | null> {
+  const prefix = o.prefix ?? LIMITS_PREFIX, gapMs = o.gapMs ?? MIN_GAP_MS, perDay = o.perDay ?? PER_DAY;
+  if (env.REPORT_LIMITER && o.edge !== false) {
     try {
       if (!(await env.REPORT_LIMITER.limit({ key: `report:${ip}` })).success) return "too many reports; try again in a minute";
     } catch { /* the binding failing never blocks a report: the R2 gate still holds */ }
   }
-  const key = `${LIMITS_PREFIX}${(await sha256hex(`${env.REPORT_SALT ?? "bc-fishing-report"}:${ip}`)).slice(0, 32)}.json`;
+  const key = `${prefix}${(await sha256hex(`${env.REPORT_SALT ?? "bc-fishing-report"}:${ip}`)).slice(0, 32)}.json`;
   const day = now.toISOString().slice(0, 10);
   let st: { last: number; day: string; n: number } = { last: 0, day, n: 0 };
   try {
@@ -119,8 +121,8 @@ export async function rateLimit(env: ReportEnv, ip: string, now: Date): Promise<
     if (o) st = JSON.parse(await o.text());
   } catch { /* fresh */ }
   if (st.day !== day) st = { last: st.last, day, n: 0 };
-  if (now.getTime() - st.last < MIN_GAP_MS) return "too many reports; try again in a minute";
-  if (st.n >= PER_DAY) return "too many reports today";
+  if (now.getTime() - st.last < gapMs) return "too many reports; try again in a minute";
+  if (st.n >= perDay) return "too many reports today";
   await env.BUCKET.put(key, JSON.stringify({ last: now.getTime(), day, n: st.n + 1 }), { httpMetadata: { contentType: "application/json" } });
   return null;
 }
@@ -164,7 +166,7 @@ export async function handleReport(req: Request, env: ReportEnv, now: Date = new
 
 const days = (from: Date, n: number) => Array.from({ length: n }, (_, i) => new Date(from.getTime() - i * 86_400_000).toISOString().slice(0, 10));
 
-async function listKeys(bucket: R2BucketLike, prefix: string, max = 1000): Promise<string[]> {
+export async function listKeys(bucket: R2BucketLike, prefix: string, max = 1000): Promise<string[]> {
   if (!bucket.list) return [];
   const out: string[] = [];
   let cursor: string | undefined;

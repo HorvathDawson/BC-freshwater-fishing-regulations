@@ -1,6 +1,6 @@
 # T237 — report a problem: an endpoint and a review-app queue
 
-Status: PARTIAL — 12a75940 (web + worker + review tab done, e2e on staging; native device not run).
+Status: DONE — 12a75940 (web + worker + review tab, e2e on staging), native device check via the T255 test bed 2026-10-29 (b6ac5f2af, report scenario PASS 6/6). Left to the owner: production endpoint, privacy wording sign-off.
 
 Source: owner 2026-10-28 — approved proposal P3 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -68,8 +68,15 @@ Owner: yes — where reports go (default: R2 `private/reports/` + daily digest e
   subject "Your report about <water> — canifishthis", their words quoted, a "[your question here]" line; the Reports
   tab shows "reply ok" and a "Reply by email" link that opens the owner's own mail client. Shot `review-03-reply-by-email.png`.
 
+## Native device check (2026-10-29, T242 lane)
+- The T255 test bed's `report` scenario runs the real Android build on the `n1_pixel` emulator: Report a problem OFFLINE -> "saved on this
+  device and will be sent" -> not on the server -> app killed and reopened offline (the outbox is on disk: `report-outbox.json`) ->
+  network back -> flushed by the update service -> the staging feeds worker holds it (`GET /reports`). Last run
+  `T255-shots/run-final/` (report 6/6 PASS, stored `58e8e30b56bb30a8`); the APK was built after the "You may contact me" change (the
+  contact commit is 00:35, the test bed's 07:09), so the native outbox store, NetInfo and the POST are covered on a device. Not
+  re-run in the T242 lane (another lane holds the emulator; no APK build asked).
+
 ## Not done
-- Native (phone) not run on a device; the outbox's native store and NetInfo path are covered only by the shared code.
 - Production endpoint (owner: where reports go in prod; T86/T240). Privacy wording is Claude's draft (owner to approve).
 - A section-target (unnamed water) report not sent e2e; resolution covered by the backend test.
 - Test reports on staging R2 (ids e2e0000000000001, 6ed6aef2d971b275, 8a29a81206c5b9ce) left in place; delete if wanted.

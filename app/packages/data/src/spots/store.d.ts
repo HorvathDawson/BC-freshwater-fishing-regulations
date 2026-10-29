@@ -35,6 +35,10 @@ export declare function openWalkthroughStore(): { read(): string | null; write(t
 export declare function openRecentSearchStore(): { read(): string | null; write(text: string): void };
 /** (T237) Problem reports waiting to be sent (offline), as whole text (a JSON list). */
 export declare function openReportOutboxStore(): { read(): string | null; write(text: string): void };
+/** (T242) The "Send crash reports" switch ("on" | "off"; nothing stored = on), as whole text. */
+export declare function openCrashSettingStore(): { read(): string | null; write(text: string): void };
+/** (T242) A fatal error kept for the next start (one JSON payload, or empty), as whole text. */
+export declare function openCrashPendingStore(): { read(): string | null; write(text: string): void };
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), as whole text. */
 export declare function openDataModeStore(): { read(): string | null; write(text: string): void };
 /** (T261) The species the Runs tab paints (a JSON list of names), as whole text; device-only. */

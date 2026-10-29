@@ -110,7 +110,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `It has no accounts, no ads and no tracking. This page says what the app and this website do with your information.</p>` +
     `<h2>The short version</h2><ul>` +
     `<li>Your location, your photos and the spots you save stay on your device. We never receive them.</li>` +
-    `<li>The only thing the app sends us is a problem report, and only when you press Send.</li>` +
+    `<li>The app sends us two things: a problem report, only when you press Send, and, unless you switch it off, a short error report when the app itself fails.</li>` +
     `<li>We do not sell or share your information, and we use no advertising or analytics services.</li></ul>` +
     `<h2>Location</h2><p>If you allow it, the app uses your location while it is open, to show where you are on the map, ` +
     `to show what is near you, and to pin a spot where you are standing. It is used on your device and is not sent to us. ` +
@@ -140,6 +140,18 @@ export function privacyBody(site: Site, asOf: string): string {
     `We do not store your IP address with a report: to limit abuse we keep only a salted one-way hash of it, which cannot be turned back into an address. ` +
     `Reports are deleted automatically 180 days after they are received, including any email in them. ` +
     `To have your report or email deleted sooner, write to ${mail}.</p>` +
+    `<h2>App errors (crash reports)</h2><p>When the app hits an error it did not expect, it sends one short report to our own server on Cloudflare. ` +
+    `We use no third-party crash-reporting service. This is on by default and you can turn it off at any time in More → Data → “Send crash reports”; ` +
+    `when it is off nothing is sent. An error report holds only:</p><ul>` +
+    `<li>the app version, whether it is a test or live build, your phone’s system name and version (or “web”), and the data release the app was using;</li>` +
+    `<li>the kind of screen you were on — map, conditions, runs, spots, menu or a water page — and never which water, where you were or what you searched for;</li>` +
+    `<li>the error itself: its type, its message with any quoted text, web address, e-mail address, coordinates and long numbers removed, and the app’s own code trace (file names and line numbers);</li>` +
+    `<li>whether the error stopped the app, and the time.</li></ul>` +
+    `<p>It never includes your location, spots, photos, notes, searches, e-mail address or any device or advertising identifier. ` +
+    `Each different error is sent once per time the app runs, and only while you are online; an error that happens offline is not saved to send later, ` +
+    `except one that stops the app, which is kept on your device and sent the next time the app starts (and deleted from your device if you have switched crash reports off). ` +
+    `We keep one stored record per kind of error, with a count and the app versions it was seen in; we do not store your IP address, ` +
+    `and to limit abuse we keep only a salted one-way hash of it for a day’s counting. Error records are deleted automatically 90 days after the error was last seen.</p>` +
     `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no analytics, advertising or tracking scripts. ` +
     `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
     `<h2>No selling, no sharing</h2><p>We do not sell your information, and we do not share it for advertising. ` +

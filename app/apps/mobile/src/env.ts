@@ -44,6 +44,18 @@ export function reportUrlFor(env: AppEnv, override?: string | undefined): string
   return o || REPORT_URLS[env];
 }
 
+/**
+ * (T242) WHERE AN APP ERROR IS SENT: the same worker as the problem reports (its `POST /crash`), so wherever a build has
+ * a report address it has a crash address; none (production, until its worker exists) → nothing is sent.
+ * `EXPO_PUBLIC_CRASH_URL` overrides ("off" disables).
+ */
+export function crashUrlFor(reportUrl: string | null, override?: string | undefined): string | null {
+  const o = override?.trim();
+  if (o === "off") return null;
+  if (o) return o;
+  return reportUrl && /\/report$/.test(reportUrl) ? reportUrl.replace(/\/report$/, "/crash") : null;
+}
+
 const isAppEnv = (v: unknown): v is AppEnv => typeof v === "string" && (APP_ENVS as readonly string[]).includes(v);
 
 const trimBase = (u: string) => u.trim().replace(/\/+$/, "");

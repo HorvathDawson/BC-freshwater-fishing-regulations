@@ -192,3 +192,15 @@ export const MENU_WORDS = {
     },
   },
 } as const;
+
+/**
+ * (T242) More → Data, "Send crash reports": a switch, on by default. The hint says what goes (the privacy page says it in
+ * full, and the code in `ui/crashReport.ts` is what it describes): the error and where in the code, never your location,
+ * spots, photos or the waters you look at.
+ */
+export const CRASH_WORDS = {
+  label: "Send crash reports",
+  on: "On",
+  off: "Off",
+  hint: "When the app hits an error it sends the error, the app version and the kind of screen to our own server. Nothing else.",
+} as const;

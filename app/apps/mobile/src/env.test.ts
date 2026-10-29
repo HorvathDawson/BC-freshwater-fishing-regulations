@@ -75,3 +75,13 @@ describe("(T251) the update channel", () => {
     expect(() => resolveChannel({ named: "tset", switchable: false })).toThrow();
   });
 });
+
+describe("crashUrlFor (T242)", () => {
+  it("is the report worker's /crash; none where there is no report address; the override wins", async () => {
+    const { crashUrlFor, reportUrlFor } = await import("./env");
+    expect(crashUrlFor(reportUrlFor("staging"))).toBe("https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/crash");
+    expect(crashUrlFor(reportUrlFor("production"))).toBeNull();
+    expect(crashUrlFor("https://x.example/report", "off")).toBeNull();
+    expect(crashUrlFor(null, "https://y.example/c")).toBe("https://y.example/c");
+  });
+});

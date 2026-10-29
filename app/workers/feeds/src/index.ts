@@ -26,6 +26,7 @@ import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summar
 import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
 import { runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./backup";
+import { crashEvents, handleCrash, listCrashes, purgeCrashes } from "./crashes";
 import { CORS as REPORT_CORS, handleReport, listReports, purgeReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 export interface Env extends ReportEnv {
@@ -239,6 +240,8 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         const ns = await readState(r2Store(env.BUCKET, STATUS_PREFIX));
         const pend = new Set(ns.pending.map((e) => e.key));
         events.push(...(await reportEvents(env.BUCKET, (k) => !!ns.told[k] || pend.has(k), started, at)));
+        // (T242) and the app's NEW error kinds (one line each, once)
+        events.push(...(await crashEvents(env.BUCKET, (k) => !!ns.told[k] || pend.has(k), started, at)));
       } catch (e) {
         log(`reports: not read (${String(e)})`);
       }
@@ -374,6 +377,7 @@ async function backup(env: Env, now = new Date()) {
 /** (T271) the daily report purge (reports older than 180 days); the count is kept for /status, a failure rides the daily digest */
 async function purge(env: Env, now = new Date()) {
   const r = await purgeReports(env.BUCKET, now);
+  try { await purgeCrashes(env.BUCKET, now); } catch { /* the next day's run tries again */ }   // (T242) error kinds unseen for 90 days
   try {
     await env.BUCKET.put(RETENTION_STATUS_KEY, JSON.stringify(r), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
     if (!r.ok) {
@@ -398,6 +402,18 @@ export default {
       if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: REPORT_CORS });
       if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: REPORT_CORS });
       return handleReport(req, env);
+    }
+    // (T242) app error reports: public POST (validated, rate-limited, folded into one object per error kind), authed GET
+    if (url.pathname === "/crash") {
+      if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: REPORT_CORS });
+      if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: REPORT_CORS });
+      return handleCrash(req, env);
+    }
+    if (url.pathname === "/crashes" && req.method === "GET") {
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const since = url.searchParams.get("since") ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(since)) return new Response("since must be YYYY-MM-DD", { status: 400 });
+      return Response.json({ crashes: await listCrashes(env.BUCKET, since) }, { headers: { "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/reports" && req.method === "GET") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });

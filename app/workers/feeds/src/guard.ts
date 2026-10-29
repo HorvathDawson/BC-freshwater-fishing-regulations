@@ -18,7 +18,7 @@ export type RouteClass = "public" | "auth";
 
 /** which limiter a path answers to */
 export function routeClass(pathname: string): RouteClass {
-  return /^\/(run|notify)\//.test(pathname) || pathname === "/reports" ? "auth" : "public";
+  return /^\/(run|notify)\//.test(pathname) || pathname === "/reports" || pathname === "/crashes" ? "auth" : "public";
 }
 
 /** a 429 when `rl` says this IP is over its limit for `cls`, else null (go on) */

@@ -77,6 +77,16 @@ export function openReportOutboxStore(): { read(): string | null; write(text: st
   return fileStore("report-outbox.json");
 }
 
+/** (T242) The "Send crash reports" switch ("on" | "off"; nothing stored = on), a small file of its own. */
+export function openCrashSettingStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("crash-reports.txt");
+}
+
+/** (T242) A fatal error kept for the next start (one JSON payload, or empty), a small file of its own. */
+export function openCrashPendingStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("crash-pending.json");
+}
+
 /** (T236) The first-run notice's accepted version (`FIRST_RUN_VERSION`), a small file of its own. */
 export function openFirstRunStore(): { read(): string | null; write(text: string): void } {
   return fileStore("first-run.txt");

@@ -18,8 +18,8 @@
  */
 import { createContext, useContext } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
-import { useLayoutClass, useNet, useNetBps } from "@app/ui";
-import { dataModeLine, menuVM, NET_WORDS, UPDATE_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
+import { useCrashSetting, useLayoutClass, useNet, useNetBps } from "@app/ui";
+import { CRASH_WORDS, dataModeLine, menuVM, NET_WORDS, UPDATE_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName, round } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
@@ -171,7 +171,7 @@ function DataBlock({ vm, palette, metered }: { vm: MoreVM["data"]; palette: Pale
           {vm.rows.map((r, i) => {
             const stale = r.badge.kind === "stale";
             return (
-              <View key={r.k} testID={`data-row-${r.k}`} accessible accessibilityLabel={r.label}
+              <View key={r.k} testID={`data-row-${r.k}`} accessible role="group" accessibilityLabel={r.label}
                     style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s3, minHeight: ruled ? 34 : 32,
                              borderTopWidth: ruled && i ? 1 : 0, borderTopColor: palette.line }}>
                 <FreshDot palette={palette} kind={r.badge.kind} />
@@ -190,6 +190,8 @@ function DataBlock({ vm, palette, metered }: { vm: MoreVM["data"]; palette: Pale
         {vm.updates && <UpdatesRow vm={vm.updates} palette={palette} metered={metered ?? null} />}
         {/* (T254) low-bandwidth mode: Automatic / On / Off, and what it is doing now */}
         <LowDataRow palette={palette} />
+        {/* (T242) crash reports: one switch, on by default */}
+        <CrashRow palette={palette} />
         {/* (T253) the web's background prefetch, quietly: which regions an unnamed-stream tap reads from the device */}
         {vm.offline && (
           <Text testID="data-offline" style={{ ...TYPE.small, color: palette.faint, paddingHorizontal: GUTTER,
@@ -213,7 +215,7 @@ function UpdatesRow({ vm, palette, metered }: { vm: NonNullable<MoreVM["data"]["
   return (
     <View testID="data-updates" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3,
                                          borderTopWidth: 1, borderTopColor: palette.line, gap: 2 }}>
-      <View accessible accessibilityLabel={vm.label}
+      <View accessible role="group" accessibilityLabel={vm.label}
             style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s3, minHeight: 32 }}>
         <Icon name="sync" colour={palette.sub} size={14} />
         <Text style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink, flexShrink: 0 }}>{vm.title}</Text>
@@ -272,6 +274,28 @@ function LowDataRow({ palette }: { palette: Palette }) {
       <Text testID="data-low-now" style={{ ...TYPE.small, color: mode.low ? palette.ink : palette.faint }}>
         {dataModeLine(mode, bps)}
       </Text>
+    </View>
+  );
+}
+
+/**
+ * (T242) THE CRASH-REPORT SWITCH: on by default; off sends nothing (and forgets an error kept for the next start). Not
+ * drawn where the app has no reporter (a screen mounted alone in a test, a build with no report address).
+ */
+function CrashRow({ palette }: { palette: Palette }) {
+  const crash = useCrashSetting();
+  if (!crash) return null;
+  const W = CRASH_WORDS;
+  return (
+    <View testID="data-crash" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3, gap: SPACE.s1,
+                                       borderTopWidth: 1, borderTopColor: palette.line }}>
+      <Pressable {...hitProps({ w: 200, h: 40 })} testID="data-crash-switch" onPress={() => crash.set(!crash.on)}
+                 accessibilityRole="switch" aria-checked={crash.on} accessibilityLabel={W.label} accessibilityHint={W.hint}
+                 style={{ flexDirection: "row", alignItems: "center", minHeight: 40 }}>
+        <Text style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink, flex: 1 }}>{W.label}</Text>
+        <Text style={{ ...TYPE.metaBold, color: crash.on ? palette.accent : palette.sub }}>{crash.on ? W.on : W.off}</Text>
+      </Pressable>
+      <Text style={{ ...TYPE.small, color: palette.sub }}>{W.hint}</Text>
     </View>
   );
 }

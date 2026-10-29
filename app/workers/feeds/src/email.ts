@@ -214,7 +214,7 @@ export function rosterSection(events: FeedEvent[]): Section {
 }
 
 const KIND_NAME: Record<string, string> = {
-  dfo: "DFO salmon", inseason: "In-season changes", health: "Feed health", hydat: "HYDAT", roster: "Gauge stations", report: "Problem reports from the app",
+  dfo: "DFO salmon", inseason: "In-season changes", health: "Feed health", hydat: "HYDAT", roster: "Gauge stations", report: "Problem reports from the app", crash: "New app errors",
 };
 
 export function sectionFor(kind: string, events: FeedEvent[], ctx: RenderCtx): Section {
@@ -247,6 +247,14 @@ export function sectionFor(kind: string, events: FeedEvent[], ctx: RenderCtx): S
         blocks: [{ items: events.map(generic) }],
         steps: [{ text: "Review app → Reports (Sync), then fix or dismiss each." }],
         why: "Someone used Report a problem in the app.",
+      };
+    case "crash":
+      return {
+        heading: `New app errors: ${events.length}`,
+        subject: `${plural(events.length, "new app error")}`,
+        blocks: [{ items: events.map(generic) }],
+        steps: [{ text: "Read them all with GET /crashes (Bearer RUN_TOKEN), fix or ignore each." }],
+        why: "The app reported an error kind it had not reported before (Send crash reports, More → Data).",
       };
     default:
       return { heading: events[0]!.title, subject: events[0]!.title, blocks: [{ items: events.map((e) => ({ text: e.text })) }], steps: [], why: "" };

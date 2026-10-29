@@ -20,7 +20,7 @@ import { body as webhookBody } from "./notify";
 import type { Fetch, Store } from "./io";
 import { apkSection, render, sectionFor, type ApkInfo, type RenderCtx } from "./email";
 
-export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health" | "report";
+export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health" | "report" | "crash";
 export interface FeedEvent {
   key: string;
   kind: EventKind;
@@ -70,6 +70,7 @@ const KIND_TITLE: Record<EventKind, string> = {
   dfo: "DFO salmon: places to review",
   health: "Feed health",
   report: "Problem reports from the app",
+  crash: "New app errors",
 };
 
 export async function readState(store: Store): Promise<NotifyState> {
@@ -82,7 +83,7 @@ export async function readState(store: Store): Promise<NotifyState> {
   return { told: {}, pending: [], lastDigest: null };
 }
 
-const ORDER: EventKind[] = ["dfo", "inseason", "health", "report", "hydat", "roster"];
+const ORDER: EventKind[] = ["dfo", "inseason", "health", "report", "crash", "hydat", "roster"];
 const DEFAULT_CTX: RenderCtx = { env: "staging", statusUrl: null };
 
 /** Events → messages through the one template (src/email.ts): one email per kind per run (all DFO places, all in-season

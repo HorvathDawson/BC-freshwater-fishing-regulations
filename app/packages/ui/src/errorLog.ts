@@ -2,7 +2,8 @@
  * THE RECENT ERROR LOG: a small in-memory ring of the last errors the app logged, for a problem report's diagnostics
  * (core/menu/report.ts `Diagnostics.errors`). It lives in memory only — never written to disk, never sent anywhere. The
  * reader sees every line in the report form and can switch the whole log off before sending; NOTHING here reports
- * on its own (owner 2026-10-21: no background telemetry).
+ * on its own. (T242: uncaught errors are sent separately, scrubbed and under a Data switch — `crashReport.ts`; this ring
+ * is not what is sent.)
  *
  * The app shell tees `console.error` into it once (`teeConsoleErrors`), so every error the app already logs — the map's
  * `onError`, a failed fetch, a refused release — is in the ring without each screen knowing about it.
