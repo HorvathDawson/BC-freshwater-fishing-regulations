@@ -18,8 +18,8 @@ const WALK = read('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const SIZES = { desktop: { width: 1280, height: 800, dpr: 1, mobile: false }, phone: { width: 390, height: 844, dpr: 2, mobile: true } };
-// Math.random pinned: the search field's placeholder is picked at random, and a diff should see only real changes
-const seed = (firstRun, walk) => `Math.random = () => 0.42; try { ${firstRun ? `localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(FIRST_RUN)});` : "localStorage.removeItem('canifishthis.firstRun.v1');"}
+// Math.random seeded (mulberry32, NOT a constant: a constant collides MapLibre's worker ids and the map goes grey): the search field's placeholder is picked at random, and a diff should see only real changes
+const seed = (firstRun, walk) => `{ let a = 0x2f6e2b1; Math.random = () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; } try { ${firstRun ? `localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(FIRST_RUN)});` : "localStorage.removeItem('canifishthis.firstRun.v1');"}
   ${walk ? `localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify(WALK)});` : "localStorage.removeItem('canifishthis.walkthrough.v1');"}
   localStorage.setItem('canifishthis.inseasonSeen.v1', '["*"]'); } catch {}`;
 
