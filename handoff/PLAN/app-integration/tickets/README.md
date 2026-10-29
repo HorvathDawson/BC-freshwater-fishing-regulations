@@ -277,6 +277,22 @@ use that as the sole source of future work."
 | T230 | provincial in-season changes: curated matches (+ auto 22/32), banners on matched waters, unmatched notice + badge, review In-season tab | DONE | 03fc2eb2 + app commit | owner 2026-10-28; feed = T225 `feeds/inseason/index.json`; R2 matches.json upload is the owner's; shots T230-shots/ |
 | T231 | update service: feeds + release checked on the origin (ETag/sha), verified downloads, atomic staged swap applied at a safe moment; sync button states + bell sync section | DONE | 5681f6b8, 5c2b9cfb | native device run not done (tested over the in-memory phone); worker weak-ETag compare (T225) |
 | T234 | push notifications: regulation changes on followed waters + condition/forecast alerts | OPEN | — | not started; owner questions Q-T234a–c (device-only v1, alert kinds, timing) |
+| T235 | data attribution: map credits naming what is drawn (web + native), source credits on the sheets, About → Sources & licences (ODbL / OGL-BC / OGL-Canada / DFO / PSF / Esri) | IN PROGRESS | — | owner 2026-10-28 (P1); ODbL share-alike offer for OSM-derived names/streams = owner call |
+| T236 | legal disclaimer (About, first run, regs foot) + "Regulations as of … · salmon feed … · in-season …" on each water page | IN PROGRESS | — | owner 2026-10-28 (P2) |
+| T237 | report a problem: endpoint + review-app queue (today mailto/share only) | OPEN | — | owner 2026-10-28 (P3); owner: where reports go |
+| T238 | offline regions manager (phone): keep/delete regions, storage used | OPEN | — | owner 2026-10-28 (P4); needs a per-region tile split (T85/T202) |
+| T239 | annual synopsis update: runbook + book diff tool + dry run | OPEN | — | owner 2026-10-28 (P5); the parse is human-run |
+| T240 | production launch checklist (data-worker fix, prod R2, feeds prod + crons, retire old cron/workflows, DNS 301s, Search Console, noindex off, CF bot/robots, secrets, smoke, env) | OPEN | — | owner 2026-10-28 (P6); list written; ★ lines are the owner's; body of T86 |
+| T241 | staging smoke tests after every deploy (Playwright vs staging) | OPEN | — | owner 2026-10-28 (P7) |
+| T242 | crash + error reporting (privacy-light) | OPEN | — | owner 2026-10-28 (P8); owner: Sentry vs own endpoint (default own) |
+| T243 | accessibility pass (native) | OPEN | — | owner 2026-10-28 (P9) |
+| T244 | app store readiness (icon, splash, listing, privacy labels, internal tracks) | OPEN | — | owner 2026-10-28 (P10); owner: accounts, listing text |
+| T245 | low-end Android performance budgets + fixes | OPEN | — | owner 2026-10-28 (P11) |
+| T246 | backups / disaster recovery (R2 + inventory + restore test) | OPEN | — | owner 2026-10-28 (P12); owner: backup bucket |
+| T247 | search upgrades (fuzzy, MU/region/town, recents) | OPEN | — | owner 2026-10-28 (P13) |
+| T248 | first-run walkthrough + help page (after T236's disclaimer notice) | OPEN | — | owner 2026-10-28 (P14) |
+| T249 | feeds/worker security (rate limits, token rotation, private/ never public, secrets inventory) | OPEN | — | owner 2026-10-28 (P15) |
+| T250 | Expo SDK / dependency upgrade window (MapLibre RN patch re-apply) | OPEN | — | owner 2026-10-28 (P16); before T244 |
 
 ## Order for open tickets
 
