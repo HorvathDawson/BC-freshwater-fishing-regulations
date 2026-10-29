@@ -22,9 +22,9 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { bellLabel, dayRange, placeholderFor, runSheet, syncVM } from "@app/core";
+import { bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM } from "@app/core";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { View } from "react-native";
+import { Linking, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
          BackLayerContext, InSeasonContext, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
@@ -184,6 +184,25 @@ export function Shell(p: ShellProps) {
     askedApply.current = releaseReady;
     p.onSafeToApply?.();
   }, [releaseReady, safe, p.onSafeToApply]);
+  /*
+   * (T263) THE BELL'S "DATA UPDATE" ROW: the release's state (waiting for Wi-Fi, downloading, ready, needs a newer app).
+   * "Download now" turns on large updates over mobile data (the sheet asked first); "Apply now" is the safe-moment
+   * apply, asked for; "Update the app" opens the store listing, or in a dev/staging build the APK page (EXPO_PUBLIC_DEV_APK_URL).
+   */
+  // staging / dev builds (any environment but production): the APK page; production: the store listing by platform
+  // (placeholder listings until the real ones exist; the build's EXPO_PUBLIC_* values win)
+  const devBuild = (process.env.EXPO_PUBLIC_APP_ENV || "") !== "production";
+  const storeUrl = Platform.OS === "ios"
+    ? process.env.EXPO_PUBLIC_APP_STORE_URL || "https://apps.apple.com/ca/app/canifishthis/id0000000000"
+    : process.env.EXPO_PUBLIC_PLAY_STORE_URL || "https://play.google.com/store/apps/details?id=ca.canifishthis.app";
+  const appUrl = devBuild ? process.env.EXPO_PUBLIC_DEV_APK_URL || "" : storeUrl;
+  const releaseVM = releaseNoticeVM(syncState.updates?.release ?? null, { devBuild });
+  const releaseCount = releaseVM?.counts ? 1 : 0;
+  const onReleaseAction = (kind: "download" | "apply" | "update-app") => {
+    if (kind === "download") syncState.allowMetered?.(true);
+    else if (kind === "apply") p.onSafeToApply?.();
+    else if (appUrl) void Linking.openURL(appUrl);
+  };
   const barBottom = topBarBottom();
   /*
    * (T230) THE PROVINCIAL IN-SEASON CHANGES: read once here and handed to every Regulations page (`InSeasonContext`:
@@ -283,8 +302,8 @@ export function Shell(p: ShellProps) {
         {topBar && (
           <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={onSync}
                   // (T231, owner 2026-10-28) one bell: the in-season changes not on the map, and the updates that failed
-                  notices={{ count: notice.count + syncState.failed.length,
-                             label: bellLabel(notice.count ? notice.label : null, syncState.failed.length),
+                  notices={{ count: notice.count + syncState.failed.length + releaseCount,
+                             label: bellLabel(notice.count ? notice.label : null, syncState.failed.length, releaseVM?.counts ? releaseVM : null),
                              onPress: () => setBellOpen(true) }}
                   open={searching}
                   query={searchMemory.q} onQuery={search.searchType}
@@ -341,9 +360,11 @@ export function Shell(p: ShellProps) {
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
                    mapDay={mapDay} theme={theme} onWalkthrough={replayTour} sync={syncState} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
-      <InSeasonNotice open={(notice.open && !firstRun.open && !walkthrough.open) || (bellOpen && notice.count + syncState.failed.length > 0)} rows={notice.rows}
+      <InSeasonNotice open={(notice.open && !firstRun.open && !walkthrough.open) || (bellOpen && notice.count + syncState.failed.length + (releaseVM ? 1 : 0) > 0)} rows={notice.rows}
                       palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}
-                      sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }} />
+                      sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }}
+                      release={releaseVM ? { vm: releaseVM.phase === "app-too-old" && !appUrl ? { ...releaseVM, action: null } : releaseVM,
+                                             onAction: onReleaseAction } : null} />
       {/* (T236) not legal advice: once per device, before anything else */}
       {/* (T257) its "Sources and licences" opens that page: the notice steps aside while a page is up and is back after */}
       <FirstRunNotice state={{ ...firstRun, open: firstRun.open && menu.state.page === null }} palette={palette}

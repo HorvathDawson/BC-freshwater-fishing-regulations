@@ -306,7 +306,7 @@ use that as the sole source of future work."
 | T260 | shared components part 2: Chip/Badge, SegmentedControl, EmptyState, Banner, SectionHeader, caption token, icon ladder, IconButton (rest of the T257 sweep) | OPEN | — | owner 2026-10-29 polish pass |
 | T261 | run timing v2: its own Runs tab (bell stays), date slider by pentad (Play, today, season), watershed groups zoomed out, multi-species chips with fish art (kept), DFO counts in the sheet ("No counts" otherwise), feed `n` + `basins` on staging | PARTIAL | — | owner 2026-10-29; follows T199; counts coverage + native run open |
 | T262 | Android first install crashes (OutOfMemoryError in expo fetch, 8 MB range bodies on the Java heap); resumes on relaunch | OPEN | — | found by T255 |
-| T263 | the bell says a data update is waiting for Wi-Fi / ready / needs a newer app (today: failures + in-season only) | OPEN | — | owner 2026-10-29 via T255 |
+| T263 | the bell says a data update is waiting for Wi-Fi / ready / needs a newer app (today: failures + in-season only) | DONE | — | owner 2026-10-29 via T255 |
 | T264 | "Could not read what is near this town" on Android, intermittent (first town read after a cold start) | OPEN | — | found by T255 |
 | T265 | a big update held for Wi-Fi does not start when Wi-Fi returns (low mode still "cellular" when the metered change lands; nothing re-asks) | OPEN | — | found by T255 |
 

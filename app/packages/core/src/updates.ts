@@ -16,6 +16,8 @@ import { isoDayWords, MENU_WORDS } from "./menu";
 
 export type UpdateSourceKey = "gauges" | "dfo" | "inseason" | "release";
 
+const UPDATE_WORDS_CELLULAR_LABEL = "Large updates on mobile data";
+
 export const UPDATE_WORDS = {
   names: {
     gauges: MENU_WORDS.sources.names.feed,
@@ -56,7 +58,7 @@ export const UPDATE_WORDS = {
     notOpen: "The release is not open yet",
   },
   cellular: {
-    label: "Large updates on mobile data",
+    label: UPDATE_WORDS_CELLULAR_LABEL,
     on: "Allowed",
     off: "Wi-Fi only",
     hint: "Map and regulation updates can be hundreds of megabytes",
@@ -65,6 +67,24 @@ export const UPDATE_WORDS = {
   bell: {
     count: (n: number) => (n === 1 ? "1 update failed" : `${n} updates failed`),
     title: "Notices",
+    /** (T263) the "Data update" section: a release of regulations, map and salmon data, by state */
+    release: {
+      title: "Data update",
+      waiting: (mb: number) => `New regulations ready to download — waiting for Wi-Fi (${mb} MB).`,
+      download: "Download now",
+      confirm: (mb: number) => `Download ${mb} MB over mobile data? This turns on "${UPDATE_WORDS_CELLULAR_LABEL}" in More.`,
+      confirmYes: "Download",
+      confirmNo: "Not now",
+      downloading: (pct: number) => `Downloading new regulations… ${pct}%`,
+      ready: "New regulations downloaded — they'll apply next time you return to the map.",
+      apply: "Apply now",
+      tooOld: "New regulations need a newer version of the app.",
+      updateApp: "Update the app",
+      getBuild: "Get the new test build",
+      /** the bell's label aloud for this section (it is a count of one) */
+      label: { waiting: "New regulations waiting for Wi-Fi", ready: "New regulations ready to apply",
+               tooOld: "The app needs an update for new regulations" },
+    },
   },
   /** (T253) More → Data's quiet line: the regions the background prefetch holds for an unnamed-stream tap */
   offline: {
@@ -189,8 +209,52 @@ export function updatedToast(day: string | null): string {
  * (T231, owner 2026-10-28: "the notification bell should also list sync failures") The bell's label aloud, over its two
  * sections: the in-season changes not on the map (`inseason`: T230's own words for them) and the sources that failed.
  */
-export function bellLabel(inseason: string | null, failed: number): string {
-  return [inseason, failed > 0 ? UPDATE_WORDS.bell.count(failed) : null].filter(Boolean).join("; ");
+export function bellLabel(inseason: string | null, failed: number, release: ReleaseNoticeVM | null = null): string {
+  return [release?.label ?? null, inseason, failed > 0 ? UPDATE_WORDS.bell.count(failed) : null]
+    .filter(Boolean).join("; ");
+}
+
+export interface ReleaseNoticeVM {
+  readonly phase: "waiting-wifi" | "downloading" | "ready" | "app-too-old";
+  readonly title: string;
+  readonly text: string;
+  /** the bell's label aloud */
+  readonly label: string;
+  /** counts toward the bell (a plain download under way does not) */
+  readonly counts: boolean;
+  /** the one button, or null */
+  readonly action: { readonly kind: "download" | "apply" | "update-app"; readonly label: string;
+                     /** download only: asked first, in these words */
+                     readonly confirm?: { readonly text: string; readonly yes: string; readonly no: string } } | null;
+}
+
+/**
+ * (T263, owner 2026-10-29: Claude decides the wording) THE BELL'S "DATA UPDATE" ROW: the release's state in plain
+ * words — waiting for Wi-Fi (Download now, asked first because it spends mobile data), downloading (progress only),
+ * downloaded and waiting for a pause (Apply now), or needing a newer app (Update the app). Null for a release in use
+ * or none. `devBuild`: the staging test APK's page rather than the store.
+ */
+export function releaseNoticeVM(r: UpdateReleaseInput | null, o: { devBuild?: boolean } = {}): ReleaseNoticeVM | null {
+  const B = UPDATE_WORDS.bell.release;
+  if (!r || r.phase === "current") return null;
+  const mb = Math.max(1, Math.round((r.progress?.of ?? 0) / 1048576));
+  switch (r.phase) {
+    case "waiting-wifi":
+      return { phase: r.phase, title: B.title, text: B.waiting(mb), label: B.label.waiting, counts: true,
+               action: { kind: "download", label: B.download,
+                         confirm: { text: B.confirm(mb), yes: B.confirmYes, no: B.confirmNo } } };
+    case "downloading": {
+      const pct = r.progress && r.progress.of > 0 ? Math.round((100 * r.progress.bytes) / r.progress.of) : 0;
+      return { phase: r.phase, title: B.title, text: B.downloading(pct), label: B.downloading(pct), counts: false,
+               action: null };
+    }
+    case "ready":
+      return { phase: r.phase, title: B.title, text: B.ready, label: B.label.ready, counts: true,
+               action: { kind: "apply", label: B.apply } };
+    case "app-too-old":
+      return { phase: r.phase, title: B.title, text: B.tooOld, label: B.label.tooOld, counts: true,
+               action: { kind: "update-app", label: o.devBuild ? B.getBuild : B.updateApp } };
+  }
 }
 
 /**
