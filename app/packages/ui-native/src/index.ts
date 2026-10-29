@@ -36,6 +36,8 @@ export * from "./type";
 export type { AdiposeImages, FishImages } from "./regs/types";
 export { setSynopsisSource, setSynopsisNet } from "./regs/synopsisSource";
 export { SheetHost, type SheetHostProps } from "./regs/SheetHost";
+// (T269) the SEO prerender's width for the year bars (it never lays out); 0 in the app
+export { StripWidthHint } from "./regs/YearStrip";
 export { Hydrograph } from "./Hydrograph";
 export { Credits } from "./Credits";
 export { GaugeTrace } from "./GaugeTrace";
