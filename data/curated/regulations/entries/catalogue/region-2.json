@@ -9848,11 +9848,10 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "whole",
+       "item_id": "wsc:100-046202-028692-080600"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the spawning channel is not in the atlas. Checked 2026-10-27 (owner: find the existing splits): the Ruskin and Northrop channels below Ruskin Dam are FWA side channels (blks 355993381-355993384, 355997566-355997567, Stave watershed code 100-046202) that carry NO sections in the atlas and belong to no item, so no existing cut draws them; the only existing cut there is Ruskin Dam (stave_river__hayward_lake), and binding below it would widen the closure to the mainstem.",
-     "undrawn_part": "Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its tributaries containg the fishway"
+     ]
     }
    ]
   },
