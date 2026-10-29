@@ -181,3 +181,6 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   entry's row highlighted: it loads the 24 MB release PDF and adds one `/Highlight` annotation per source box
   (`ui-native/src/regs/highlightPdf.ts`), the same on web and phone. Costs ~0.5 MB of JS and 1-2 s to rewrite the PDF at the
   first open; nothing is bundled into the paint path.
+- `axe-core` — **not installed.** (T243) `tools/a11y-walk.mjs` fetches axe-core 4.10.2 from cdnjs at run time (`AXE_URL`)
+  and injects it into the running web app for a WCAG A/AA check; nothing ships, nothing is in a lockfile. A dev tool run
+  by hand (needs Chrome and the app on :39218).

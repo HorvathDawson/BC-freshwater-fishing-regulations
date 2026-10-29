@@ -63,5 +63,5 @@ goes through `scripts/heavy.sh`. `tools/vintage-pins.test.ts` refuses an id lite
 The gates (`check-*.mjs`, `build-style.mjs`, `emit-*.mjs`), the consistency auditors (`one-*.test.ts`, `consistency.ts`),
 the local server (`serve-tiles.mjs`, `pnpm tiles`), and the browser drivers for shots and walks (`regs-web/`,
 `regs-census.mjs`, `regs-walk.mjs`, and `request-walk.mjs` — T129's pinned list of what a web visitor
-fetches per moment, `request-walk.pin.json`, priced against the release's `WEB_BUDGET` by `release-budget.test.ts`; they
+fetches per moment, `request-walk.pin.json`, priced against the release's `WEB_BUDGET` by `release-budget.test.ts`, and `a11y-walk.mjs` (T243: axe-core WCAG A/AA + a Tab focus walk per scene); they
 need Chrome and the running app).
