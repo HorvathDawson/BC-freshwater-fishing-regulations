@@ -1,6 +1,6 @@
 # T269 — Water pages ARE the app (prerendered regs pane), the separate text site retires
 
-Status: DONE (f0357560b, e9ae79c82; owner approved 2026-10-29: "yes that sounds good lets change the seo stuff to this").
+Status: DONE (f0357560b, e9ae79c82, 9573da40c; owner approved 2026-10-29: "yes that sounds good lets change the seo stuff to this").
 
 Source: owner 2026-10-29: "make it so that all the regulation/condition pages that open when we click on a item double as seo
 pages … i just dont want users here they should be in the app instead"; "it shouldnt change look of pane".
@@ -35,7 +35,8 @@ Depends: T192–T198 (built). Size: L. Owner: no.
 - **App side:** `/water/<slug>` is a start link (`startLink.web.ts`, item from `<meta name="cift:item">`); the address bar
   writes `/water/<slug>` for a named water (`systemBack.web.ts` + `waterSlugs.ts` over `water-slugs/<0..63>.json`, FNV shard
   `@app/ui` `slugShard`), `/` + `?regs=` otherwise (unnamed stays unindexed). **Owner add-on:** a page that started on a
-  water (or `?show=<item>`) returns to the map framed on that water, lit (`useShellSearch` `landOn`, `arriveAt` prop); before
+  water (or `?show=<item>`) returns to the map framed on that water, nothing lit — as closing a tapped pane leaves it (owner
+  correction 2026-10-29; `useShellSearch` `landOn`, `arriveAt` prop; 9573da40c); before
   the script runs the pane's ‹ and × are plain links to `/?show=<item>`.
 - Two app components changed without changing their look: `YearStrip` takes a width hint when unmeasured (`StripWidthHint`, 0 in
   the app; viewBox + percent marker), PinBar / RegsHeader give `useSyncExternalStore` a server snapshot. Faces' back has
@@ -49,7 +50,7 @@ Depends: T192–T198 (built). Size: L. Owner: no.
 - **Staging** (version 74d9bd2f, release r-62e2f3a8c81e): pairs in `T269-shots/` (`<water>-<phone|desktop>-page.png` =
   `/water/<slug>` with JS off vs `-tapped.png` = the app): 0.12–0.53 % pixels differ, all in the year bars' hatch phase (a desktop
   browser's 15 px scrollbar vs the phone hint). Hand-over 1.1–1.2 s; ‹ from a direct landing → `/`, map at the water, lit
-  (`vedder-river-*-back-to-map.png`); a tap writes `/water/elk-creek-r2-near-rosedale`.
+  (`vedder-river-phone-back-to-map.png`, re-shot after the correction: staging 5de003db); a tap writes `/water/elk-creek-r2-near-rosedale`.
 - Known differences until the app takes over: live feeds (DFO salmon feed, in-season banners) are the release's at build time
   — e.g. Kootenay Lake's Salmon row says "check DFO" on the page, "closed" once the app reads today's DFO feed; first-time
   visitors then get the app's own "Before you fish" sheet.

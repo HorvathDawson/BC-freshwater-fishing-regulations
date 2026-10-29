@@ -312,7 +312,7 @@ use that as the sole source of future work."
 | T266 | marks are review state; decided data in per-domain files via one exporter (tidal, DFO extents, sloughs, ponds, names) | OPEN | — | owner idea 2026-10-29; not started |
 | T267 | Google Play internal testing for dev/staging builds: upload key (~/.canifishthis), config-plugin release signing, `build-apk.sh --play` (versionCode bump, AAB, API upload to internal, email) | BLOCKED | 022ca080b, c66f90a4d | owner 2026-10-29; blocked on T268 (owner) |
 | T268 | OWNER: Google Play setup when account verification completes — create app ca.canifishthis.app, Play App Signing, first AAB by hand, internal testers + opt-in link, app content (data safety, rating, privacy policy), service-account JSON | OPEN (owner) | — | owner 2026-10-29; unblocks T267 |
-| T269 | Water pages ARE the app: `/water/<slug>` prerendered with the app's own regs pane (same look), app hydrates; hubs/sitemap/legacy 301s point at it; separate text-only water pages retired | DONE | f0357560b, e9ae79c82 | staging 74d9bd2f: page vs tap 0.1–0.5 % px; p95 9.6 KB gzip; back → map at the water, lit |
+| T269 | Water pages ARE the app: `/water/<slug>` prerendered with the app's own regs pane (same look), app hydrates; hubs/sitemap/legacy 301s point at it; separate text-only water pages retired | DONE | f0357560b, e9ae79c82, 9573da40c | staging 74d9bd2f: page vs tap 0.1–0.5 % px; p95 9.6 KB gzip; back → map at the water, lit |
 | T270 | Map fonts + symbols (glyphs/sprites) from our own data host only, offline-capable; audit every third-party request | DONE | b43039fe5 | owner 2026-10-29 |
 | T271 | Problem reports auto-deleted after 180 days (feeds worker cron); privacy page wording + privacy@ address | DONE (deploy: owner) | b43039fe5 | owner 2026-10-29 |
 | T274 | Past-day flow (HYDAT daily means) stored on our data host; dayFlow.ts no longer calls ECCC GeoMet | DONE (staging seeded; prod upload human) | 1719acb57 | owner 2026-10-29 |
@@ -322,7 +322,7 @@ use that as the sole source of future work."
 | T276 | DFO line by the mode switch; Runs tab legible on phones (bigger slider); spawner legend + Conditions → first-open tutorials; local /runtiming/ | DONE | 9f0b0a113, f3e0bde78 | owner 2026-10-29 |
 | T277 | Satellite imagery draws in the Android app whenever online; offline toggle says why | DONE | a7673eff4 | not reproduced (HEAD + owner APK draw it on the emulator); probe retries once and logs why it failed |
 | T278 | Re-cut golden regs fixtures after the tidal cuts: PART_TIDAL declaration + renumbered parts (Fraser, Campbell, Brunette, Coquitlam…) | PARTIAL | — | c1029 lane 2026-10-29; parity green on r-62e2f3a8c81e; owner: tidal part still listed in the water map (Skeena fork test) |
-| T279 | Water pages stored pre-compressed (br/gzip served by encoding), all three layouts kept; SEO build across ≤4 cores | OPEN | — | owner 2026-10-29 |
+| T279 | Water pages stored pre-compressed (br/gzip served by encoding), all three layouts kept; SEO build across ≤4 cores | DONE | 86947fe9f | 1.5 GB → 473 MB, 26.5 → 17 min; 59,381 files of 100,000; staging 11996b77 br, smoke 18/0/0 |
 | T280 | Basemap two stages: raw Protomaps source via range requests → pruned + simplified ship copy (forest/green-space simplification, visual gate); fixes pan hitches | OPEN | — | owner 2026-10-29 |
 | T281 | Draw the lake area an in-part rule holds on (François map 1, Shuswap A/B/C, Mahood, Canim) | POSTPONED | — | from T208; waits on lake splits (owner deferral, Q142) |
 
