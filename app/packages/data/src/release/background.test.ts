@@ -66,9 +66,9 @@ describe("what and in which order", () => {
       ["core", "water", "access", "regs-2", "regs-sid", "down"]);
   });
 
-  it("the region in view and its neighbours — never the rest of the province (owner 2026-10-28)", () => {
-    expect(regionOrder(["2"])).toEqual(["2", "1", "3", "5", "8"]);
-    expect(regionOrder(["7b"])).toEqual(["7b", "6", "7a"]);
+  it("the region in view, its neighbours, then every other region (T238, owner 2026-10-29: regs of ALL regions)", () => {
+    expect(regionOrder(["2"])).toEqual(["2", "1", "3", "5", "8", "4", "6", "7a", "7b"]);
+    expect(regionOrder(["7b"])).toEqual(["7b", "6", "7a", "1", "2", "3", "4", "5", "8"]);
     expect(regionOrder([])).toEqual([]);
   });
 
@@ -152,19 +152,16 @@ describe("createBackgroundPrefetch: scheduling", () => {
     expect(f.pending.length).toBe(2);
   });
 
-  it("capped at view + neighbours: done there, the rest of the province never fetched", async () => {
+  it("(T238) every region's regs over time: the view and its neighbours first, then the rest of the province", async () => {
     const f = fakeLoader(manifest(["core", "water", "access", "regs-sid", "down", ...REGIONS.map((r) => `regs-${r}`)]));
     const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" } });
     bg.view(["7b"]); bg.start();
-    while (f.pending.length) await f.finish();
+    const order: string[] = [];
+    while (f.pending.length) order.push(await f.finish());
     const s = bg.snapshot();
-    expect([s.state, s.ready, s.total, s.files, s.bytes]).toEqual(["done", ["7b", "6", "7a"], 9, 8, 8_000]);
-    expect(f.held.has("regs-2")).toBe(false);
-    // the view moves: that region + its neighbours, same gate; what was ready stays ready
-    bg.view(["2"]);
-    while (f.pending.length) await f.finish();
-    expect(bg.snapshot().ready).toEqual(["2", "1", "3", "5", "8", "6", "7a", "7b"]);
-    expect(f.held.has("regs-4")).toBe(false);
+    expect([s.state, s.ready, s.total, s.files, s.bytes]).toEqual(
+      ["done", ["7b", "6", "7a", "1", "2", "3", "4", "5", "8"], 9, 14, 14_000]);
+    expect(order.filter((n) => n.startsWith("regs-") && n !== "regs-sid")).toEqual(["regs-7b", "regs-6", "regs-7a", "regs-1", "regs-2", "regs-3", "regs-4", "regs-5", "regs-8"]);
   });
 
   it("no region in view: nothing", () => {

@@ -6,9 +6,9 @@
  *   WHAT        `WEB_BUDGET.first_tap_unnamed` (the contract's own list: core, water, access, regs-<r>, regs-sid,
  *               down, salmon, salmon-<r>), per region; a file the manifest does not name is skipped, one already
  *               prefetched or opened costs nothing. A region is READY when every one of its files is held.
- *   ORDER       the region in view, then its neighbours (`REGION_NEAR`) — never the rest of the province (owner
- *               2026-10-28: cap at view + neighbours). When the view moves to another region, that region and its
- *               neighbours. The shared files (water, regs-sid, down …) come with the first region, so the next costs
+ *   ORDER       the region in view, then its neighbours (`REGION_NEAR`), then every other region (T238, owner
+ *               2026-10-29: the regulations of ALL regions over time, the view's first; this replaces the 10-28 cap at
+ *               view + neighbours). When the view moves to another region, that region and its neighbours go next. The shared files (water, regs-sid, down …) come with the first region, so the next costs
  *               only its own regs + salmon slice.
  *   HOW         `ReleaseLoader.prefetch` — the SAME verified, cached path the update service warms a new release
  *               through (`Booted.stage` on the web) and the tap later reads (Cache Storage by immutable url, sha-checked
@@ -51,12 +51,17 @@ const MEASURE_MIN_MS = 150;
 /** At or under this battery level, not charging: hold. */
 export const LOW_BATTERY = 0.2;
 
-/** The regions fetched, in order: those in view, then their neighbours (owner 2026-10-28: nothing further). */
+/**
+ * The regions fetched, in order: those in view, then their neighbours, then (T238, owner 2026-10-29: "regs for ALL
+ * regions still get fetched over time") every other region — the regulations are never per region. Only data files
+ * are fetched here (the tap's list); the map's tiles stay with the view. Nothing before the map reports a region.
+ */
 export function regionOrder(view: readonly Region[]): Region[] {
   const out: Region[] = [];
   const add = (r: Region) => { if (!out.includes(r)) out.push(r); };
   view.forEach(add);
   for (const r of view) REGION_NEAR[r].forEach(add);
+  if (out.length) REGIONS.forEach(add);
   return out;
 }
 

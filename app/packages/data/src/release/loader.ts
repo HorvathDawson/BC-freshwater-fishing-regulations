@@ -36,8 +36,6 @@ export interface ReleaseSource {
   /** (T238) Whether the file is KEPT on this device between visits (the web's release cache); absent: the source keeps
    *  nothing it can be asked about (a phone's installed set, a test). */
   stored?(name: FileName): Promise<boolean>;
-  /** (T238) Drop a kept file (a region removed on the Offline maps page). */
-  drop?(name: FileName): Promise<void>;
 }
 /**
  * Open one SQLite file. `bytes` fetches the verified file (the web opens it in sql.js); an opener that reads the file
@@ -88,8 +86,6 @@ export interface ReleaseLoader {
    * when the source cannot say (a phone holds its whole installed set; a test). Optional: a fake loader says nothing.
    */
   stored?(name: FileName): Promise<boolean | null>;
-  /** (T238) Drop a kept file and forget it was prefetched, so a later prefetch fetches it again (the page's Remove). */
-  drop?(name: FileName): Promise<void>;
 }
 
 export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener): ReleaseLoader {
@@ -232,10 +228,6 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
     async stored(name) {
       if (!m.files[name] || !source.stored) return null;
       return source.stored(name);
-    },
-    async drop(name) {
-      ahead.delete(name);
-      await source.drop?.(name);
     },
   };
   return loader;

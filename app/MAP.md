@@ -26,8 +26,8 @@ data/release/r-*/ (R2 in production)
                    ├─ WaterSource (release/source.ts): core, near, paint, conditions, flow-area …
                    ├─ salmon (T211, `loader.salmon`): the Salmon card (`@app/ui` `useSalmonCard`) and the map's
                    │    Standard / Salmon toggle (`useSalmonColour` → the colouring engine's `salmon` channel)
-                   ├─ offline (T238, `release/offline.ts`): More → Offline maps — each region's size and what this
-                   │    device keeps (web: the release cache, Save / Remove; phone: the installed set), `@app/ui` `useOfflineMaps`
+                   ├─ offline (T238, `release/offline.ts`): More → Offline maps — the regulations for all of B.C. (never
+                   │    per region; web: what the release cache holds), the province map, `@app/ui` `useOfflineMaps`
                    └─ RegsStore (regs/store.ts): water + regs-<region> + regs-sid
                          └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx
 gauge feed (index.json, per-station) ─▶ data/src/feed/http.ts ─▶ panels / conditions

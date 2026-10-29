@@ -1,11 +1,11 @@
 /**
- * (T238) THE OFFLINE MAPS PAGE, drawn: on the web over the real release source and a Cache Storage stand-in — Save a
- * region (the shared data saved with it, storage used grows), Remove it, Remove everything; on a phone every region "On
- * this phone", no per-region actions, the release download's progress and Resume, the Wi-Fi-only switch (T231's setting,
+ * (T238, owner 2026-10-29: regulations never per region) THE OFFLINE MAPS PAGE, drawn: on the web over the real release
+ * source and a Cache Storage stand-in — the regulations' fixed row with what the browser holds, no Save / Remove; on a
+ * phone the regulations always on it, the regions part of the province map, the release download's progress and Resume, the Wi-Fi-only switch (T231's setting,
  * inverted). Every press named and reaching 44 × 44 (the T40 audits).
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { parseManifest, sha256Hex, type UpdateSnapshot } from "@app/data";
 import { releaseLoader, type ReleaseLoader } from "@app/data/release";
 import { useOfflineMaps } from "@app/ui";
@@ -52,31 +52,19 @@ function Harness(p: Parameters<typeof useOfflineMaps>[0]) {
 }
 const text = (id: string) => screen.getByTestId(id).textContent;
 
-describe("the web: the release cache, region by region", () => {
-  it("Save Region 2: saved with the shared data; storage used grows; Remove takes it and the shared with it", async () => {
-    render(<Harness loader={await webLoader()} open platform="web" />);
-    await waitFor(() => expect(screen.getByLabelText("Save Region 2 · Lower Mainland")).toBeTruthy());
-    expect([text("offline-total"), text("offline-state-2"), text("offline-state-map")])
-      .toEqual(["Storage used0.0 MB", "0.3 MB · Not saved", "459.0 MB · Read online as you move the map"]);
+describe("the web: the regulations kept so far, never an action", () => {
+  it("the fixed first row says all of B.C., always offline, and how much this browser holds; no Save / Remove anywhere", async () => {
+    const L = await webLoader();
+    await L.prefetch("regs-2");
+    render(<Harness loader={L} open platform="web" />);
+    await waitFor(() => expect(text("offline-total")).toBe("Storage used0.3 MB"));
+    expect([text("offline-state-regs"), text("offline-state-map"), text("offline-state-5")]).toEqual([
+      "Always available offline · 0.3 MB of 0.9 MB kept in this browser so far", "Read online as you move the map",
+      "Part of the province map"]);
+    expect(screen.getByTestId("offline-row-regs").getAttribute("aria-label"))
+      .toBe("Regulations: all of B.C.: 0.9 MB. Always available offline · 0.3 MB of 0.9 MB kept in this browser so far.");
+    expect(screen.queryAllByRole("button")).toEqual([]);
     expect(pressAudit(screen.getByTestId("offline-page")).bad).toEqual([]);
-    await act(async () => { fireEvent.click(screen.getByLabelText("Save Region 2 · Lower Mainland")); });
-    await waitFor(() => expect(text("offline-state-2")).toBe("0.3 MB · Saved"));
-    expect([text("offline-total"), text("offline-state-shared"), text("offline-state-5")])
-      .toEqual(["Storage used0.7 MB", "0.4 MB · Saved", "0.2 MB · Not saved"]);
-    expect(screen.getByTestId("offline-clear")).toBeTruthy();
-    await act(async () => { fireEvent.click(screen.getByLabelText("Remove Region 2 · Lower Mainland")); });
-    await waitFor(() => expect(text("offline-state-2")).toBe("0.3 MB · Not saved"));
-    expect([text("offline-total"), store.size]).toEqual(["Storage used0.0 MB", 0]);
-  });
-
-  it("Remove everything saved drops every file", async () => {
-    render(<Harness loader={await webLoader()} open platform="web" />);
-    await waitFor(() => screen.getByLabelText("Save Region 5 · Cariboo"));
-    await act(async () => { fireEvent.click(screen.getByLabelText("Save Region 5 · Cariboo")); });
-    await waitFor(() => expect(text("offline-state-5")).toBe("0.2 MB · Saved"));
-    await act(async () => { fireEvent.click(screen.getByTestId("offline-clear")); });
-    await waitFor(() => expect(store.size).toBe(0));
-    expect(screen.queryByTestId("offline-clear")).toBeNull();
   });
 });
 
@@ -90,8 +78,8 @@ describe("the phone: the installed set", () => {
     const set: boolean[] = [];
     render(<Harness loader={await webLoader()} open platform="phone" updates={snap(null)} check={() => {}}
                     allowMetered={(on) => set.push(on)} />);
-    expect([text("offline-total"), text("offline-state-2"), screen.queryByLabelText(/^Save /)])
-      .toEqual(["Storage used459.9 MB", "0.3 MB · On this phone", null]);
+    expect([text("offline-total"), text("offline-state-regs"), text("offline-state-2"), screen.queryAllByRole("button")])
+      .toEqual(["Storage used459.9 MB", "Always available offline", "Part of the province map · on this phone", []]);
     const sw = screen.getByTestId("offline-wifi");
     expect([sw.getAttribute("role"), sw.getAttribute("aria-checked")]).toEqual(["switch", "true"]);
     fireEvent.click(sw);

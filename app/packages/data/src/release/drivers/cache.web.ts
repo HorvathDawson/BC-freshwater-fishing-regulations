@@ -15,7 +15,6 @@ function memory(): ByteCache {
     get: async (url) => held.get(url) ?? null,
     put: async (url, bytes) => { held.set(url, bytes); },
     has: async (url) => held.has(url),
-    remove: async (url) => { held.delete(url); },
   };
 }
 
@@ -53,10 +52,6 @@ export async function releaseCache(name = "release-v1"): Promise<ByteCache> {
       } catch {
         return fallback.has!(url);
       }
-    },
-    async remove(url) {
-      await fallback.remove!(url);
-      try { await cache.delete(url); } catch { /* nothing held there */ }
     },
   };
 }

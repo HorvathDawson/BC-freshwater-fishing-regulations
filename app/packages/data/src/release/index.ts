@@ -10,4 +10,4 @@ export { bootRelease, releaseTiles, BootError, type BootOptions, type Booted, ty
 export { prefetchPlan, regionOfTile, runPrefetch, type PrefetchSignals } from "./prefetch";
 export { createBackgroundPrefetch, LOW_BATTERY, type BackgroundPrefetch, type NetSignals, type PrefetchSnapshot }
   from "./background";
-export { createOfflineStore, offlineSizes, type OfflineSnapshot } from "./offline";
+export { offlineSizes, regsKept } from "./offline";

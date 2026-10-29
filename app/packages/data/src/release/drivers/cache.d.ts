@@ -16,8 +16,6 @@ export interface ByteCache {
   put(url: string, bytes: Uint8Array): Promise<void>;
   /** (T238) Whether `url` is held, without reading its bytes (the Offline maps page asks this of every file). */
   has?(url: string): Promise<boolean>;
-  /** (T238) Drop `url` (a region removed on the Offline maps page); nothing when it is not held. */
-  remove?(url: string): Promise<void>;
 }
 
 export declare function releaseCache(name?: string): Promise<ByteCache>;

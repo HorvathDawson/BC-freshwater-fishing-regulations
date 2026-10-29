@@ -1,6 +1,6 @@
 # T238 — offline regions manager (phone)
 
-Status: PARTIAL — b55c20c7b. Page + web per-region save/remove built; per-region TILES and per-region removal on a phone wait on a tile split (T85/T202).
+Status: PARTIAL — b55c20c7b + rework (owner 2026-10-29: regulations never per region). Page built; per-region MAP choices wait on a tile split (T85/T202).
 
 Source: owner 2026-10-28 — approved proposal P4 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -16,38 +16,43 @@ on → it downloads; tests over the in-memory phone store.
 Depends: T231, T85/T202 (tile split). Size: M.
 Owner: yes — default region set on first install (default: all, ~434 MB, with the choice offered on first run, T248).
 
-## Outcome (2026-10-29, overnight lane; b55c20c7b)
-- **More → Offline maps** (first row of the More pages; `MenuPageKey "offline"`). Core `offline.ts` `offlineVM` (words +
-  view model, whole strings pinned in `offline.test.ts`); `@app/data` `release/offline.ts` (`offlineSizes`,
-  `createOfflineStore`); `@app/ui` `useOfflineMaps`; `ui-native` `menu/OfflinePage.tsx` (wired through `ShellSheets` →
-  `MenuHost`; Shell passes `sync={syncState}`).
-- **What a region is:** its own slices `regs-<r>` + `salmon-<r>` (0.3–1.6 MB each on r-0fa7927b16e5). Every other data
-  file is "Province-wide data" (≈33 MB) and the map is "Map of BC" (tiles + mask + basemap ≈ 460 MB, ONE file each for the
-  province) — both shown as what they are, never as a region's.
-- **Web:** state read from the release cache (`ByteCache.has/remove`, `ReleaseSource.stored/drop`,
-  `ReleaseLoader.stored/drop` — new, optional). Save a region = its slices + any missing shared file through
-  `ReleaseLoader.prefetch` (the same verified path as T253/T231), one file at a time with a progress bar; a failure stops
-  with what was saved kept and the row offers Resume (fetches only the rest). Remove = the region's slices (shared go with
-  the last region); "Remove everything saved". Province-wide data gets its own Save when partly kept. Storage used = what
-  the cache holds. A region reads "Saved" when its own slices are kept (otherwise the background prefetch's regions never
-  read as saved). Tests: `data/src/release/offline.test.ts` (Cache Storage stand-in, real web source),
-  `ui-native/src/menu/OfflinePage.test.tsx` (drawn, pressAudit clean: every press named, ≥ 44×44).
-- **Phone:** the whole set is installed, so every region reads "On this phone", no per-region action; storage used = the
-  held manifest (map + data); the T231 release download shows on the page (progress bar; "waiting for Wi-Fi" → Resume
-  now = a check); **Wi-Fi only** switch = T231's large-updates-on-mobile-data setting inverted (same store). Tested over the
-  hook with an UpdateSnapshot; NOT run on a device (no emulator this lane).
-- Shots `../T238-shots/`: phone-web-offline (all saved), -removed (7B removed), -saved-shared (bottom: Remove everything,
-  note), desktop-web-offline. Phone-native layout not shot (no emulator).
+## Outcome (2026-10-29, overnight lane; b55c20c7b, reworked — see the commit after 6f3fc912f)
+Owner change (2026-10-29, relayed): REGULATIONS ARE NEVER PER REGION; only map data is a choice by region.
+- **More → Offline maps** (first of the More pages). Core `offline.ts` `offlineVM` (whole strings pinned);
+  `@app/data` `release/offline.ts` (`offlineSizes`, `regsKept`); `@app/ui` `useOfflineMaps`; `ui-native`
+  `menu/OfflinePage.tsx` (Shell → `ShellSheets` → `MenuHost`, Shell passes `sync={syncState}`).
+- **Fixed first row "Regulations: all of B.C." — "Always available offline" (N MB)**, N = every data file the manifest
+  names (regs, salmon, answers, core, water …; ≈ 39 MB on the live release). No action on it, none anywhere that drops
+  regulations (the earlier per-region Save / Remove / Remove-everything were removed, with the loader/cache drop path).
+  Web adds what the release cache holds so far ("… · 12.5 MB of 41.0 MB kept in this browser so far" / "All kept").
+- **Map:** "Map of B.C." one row (tiles + mask + basemap ≈ 460 MB); "Map by region" lists the nine regions as "Part of
+  the province map" with NO size and NO action — there is no per-region tile split (T85/T202), and a per-region size
+  would be invented. The rows become choices when the split lands.
+- **Phone:** storage used = map + regulations of the installed set; the T231 release download (progress bar; waiting for
+  Wi-Fi → "Resume now" = a check); "Download large updates on Wi-Fi only" = T231's mobile-data setting inverted.
+- **Install keeps every region's regs** (item 3): verified — `install`/`diff` iterate every manifest file, no region
+  filter; pinned by `data/src/release/install.regs.test.ts` (all nine regions' regs + salmon on first install and through an
+  update that changes one region; the rest copied, none dropped).
+- **Web prefetch walks every region's regs** (item 4): `background.ts` `regionOrder` is now view → neighbours → every
+  other region (replaces the 10-28 view + neighbours cap); only data files (the tap list) — no tiles; low-bandwidth mode,
+  Save-Data, metered, hidden, battery still hold it (`prefetchHold`). Test: `background.test.ts` "every region's regs over
+  time" (14 files, all nine ready, regs order view-first).
+- The bell next to the sync button is untouched.
+- Tests: `core/src/offline.test.ts`, `data/src/release/offline.test.ts`, `install.regs.test.ts`, `background.test.ts`,
+  `ui-native/src/menu/OfflinePage.test.tsx` (no buttons on the web page; phone switch + Resume; pressAudit clean).
+- Shots `../T238-shots/`: phone-web-offline.png (390×844), desktop-web-offline.png (1280×900), from :39218. Native
+  layout not shot (no emulator this lane).
 
 ## Calls made (owner asleep)
-- Region slices only per region; tiles honest as province-wide. Removing a region on a phone NOT offered (it would save
-  ≤ 1.6 MB of 490 MB and needs install/boot to tolerate a partial set) — the page says so.
-- No Wi-Fi toggle on the web (the web has no metered setting; a Save is the reader's own tap).
-- Removed regions on the web can come back: the background prefetch (T253) still fetches the view + neighbours.
+- Map by region shown as the province map's parts with no size/action until the tile split (rather than one row only),
+  so the shape of the future choice is visible without stating a size the data does not have.
+- No Wi-Fi toggle on the web (no metered setting there).
+- The web's "always available offline" is literal on a phone; on the web the row says how much the browser holds so far,
+  filled by the background prefetch (which now walks the whole province on a good connection).
 
 ## Left (for new tickets)
-1. Per-region tile extracts (pmtiles by region) so a phone can keep/drop regions and storage really drops (T85/T202);
-   then install/boot/update-service download only kept regions and the map draws "not downloaded" offline (Work 2–4).
-2. Owner: default region set on first install (Default: all) — still open, ties to T248 first run.
-3. Web: the background prefetch ignores the page (a removed region in view comes back); decide whether a removal should
-   exclude it from the prefetch.
+1. Per-region map tiles (pmtiles extracts by region, T85/T202), then the region rows become Save / Remove with sizes;
+   install / update service fetch only kept regions' MAP (never regs); the map says "not downloaded" offline there.
+2. Owner: default map regions on first install (Default: all) — ties to T248 first run.
+3. The whole-province web prefetch adds the remaining regions' regs + salmon slices (not measured) over the 10-28 cap's 6.15 MB; measure with
+   `tools/prefetch-measure.mjs` and the request walk (background off there) if the budget matters.

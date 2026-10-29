@@ -1,8 +1,9 @@
 /**
- * (T238) MORE → OFFLINE MAPS: storage used, the province-wide parts (the map, the shared data), then one row per fishing
- * region — its size, kept or not, and on the web Save / Remove / Resume with a progress bar while saving; on a phone the
- * release download (progress, Resume now) and the Wi-Fi-only setting. Draws `offlineVM` (core offline.ts) through
- * `useOfflineMaps` (@app/ui); decides nothing. Every press is named with what it acts on and reaches 44 × 44.
+ * (T238, owner 2026-10-29) MORE → OFFLINE MAPS: storage used; the fixed first row "Regulations: all of B.C." (always
+ * available offline — no action, ever); the map (one province-wide file today) and the regions listed as parts of it
+ * until the map is split by region (T85/T202); on a phone the release download (progress, Resume now) and the Wi-Fi-only
+ * setting. Draws `offlineVM` (core offline.ts) through `useOfflineMaps` (@app/ui); decides nothing. Every press is named
+ * and reaches 44 × 44.
  */
 import { Pressable, Text, View } from "react-native";
 import type { OfflineControls } from "@app/ui";
@@ -22,38 +23,19 @@ function Bar({ value, palette }: { value: number; palette: Palette }) {
   );
 }
 
-function Row({ r, palette, onAct, first }: { r: OfflineRowVM; palette: Palette; onAct?: (k: string, kind: string) => void;
-                                             first: boolean }) {
-  const kept = r.kept;
-  const a = r.action;
+function Row({ r, palette, first, strong }: { r: OfflineRowVM; palette: Palette; first: boolean; strong?: boolean }) {
   return (
-    <View testID={`offline-row-${r.k}`}
-          style={{ paddingVertical: SPACE.s2, borderTopWidth: first ? 0 : 1, borderTopColor: palette.line, minHeight: 52,
-                   justifyContent: "center" }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s3 }}>
-        <View accessible accessibilityLabel={r.aloud} style={{ flex: 1, gap: 2 }}>
-          <Text style={{ ...TYPE.bodyStrong, fontSize: 14.5, color: palette.ink }}>{r.name}</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s1, flexWrap: "wrap" }}>
-            {kept && <Icon name="check" colour={palette.open} size={13} />}
-            <Text testID={`offline-state-${r.k}`} style={{ ...TYPE.small, color: kept ? palette.ink : palette.sub }}>
-              {`${r.size} · ${r.state}`}
-            </Text>
-          </View>
-        </View>
-        {a && onAct && (
-          <Pressable testID={`offline-${a.kind}-${r.k}`} onPress={a.busy ? undefined : () => onAct(r.k, a.kind)}
-                     disabled={a.busy} aria-disabled={a.busy} accessibilityRole="button" accessibilityLabel={a.aloud}
-                     {...hitProps({ w: 72, h: 36 })}
-                     style={({ pressed }) => ({ minWidth: 72, height: 36, paddingHorizontal: SPACE.s3, alignItems: "center",
-                                                justifyContent: "center", borderWidth: 1.5,
-                                                borderColor: a.kind === "remove" ? palette.line2 : palette.accent,
-                                                backgroundColor: pressed ? palette.tint : palette.card,
-                                                opacity: a.busy ? 0.45 : 1 })}>
-            <Text style={{ ...TYPE.metaBold, color: a.kind === "remove" ? palette.ink : palette.accent }}>{a.label}</Text>
-          </Pressable>
-        )}
+    <View testID={`offline-row-${r.k}`} accessible accessibilityLabel={r.aloud}
+          style={{ paddingVertical: SPACE.s2, borderTopWidth: first ? 0 : 1, borderTopColor: palette.line, minHeight: strong ? 52 : 44,
+                   justifyContent: "center", gap: 2 }}>
+      <View style={{ flexDirection: "row", alignItems: "baseline", gap: SPACE.s3 }}>
+        <Text style={{ ...TYPE.bodyStrong, fontSize: strong ? 15.5 : 14.5, color: palette.ink, flex: 1 }}>{r.name}</Text>
+        {r.size && <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{r.size}</Text>}
       </View>
-      {r.progress !== null && <Bar value={r.progress} palette={palette} />}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s1, flexWrap: "wrap" }}>
+        {r.kept && <Icon name="check" colour={palette.open} size={13} />}
+        <Text testID={`offline-state-${r.k}`} style={{ ...TYPE.small, color: r.kept ? palette.ink : palette.sub }}>{r.state}</Text>
+      </View>
     </View>
   );
 }
@@ -64,15 +46,20 @@ function Kicker({ palette, children }: { palette: Palette; children: string }) {
 
 export function OfflinePage({ c, palette }: { c: OfflineControls; palette: Palette }) {
   const v = c.vm;
-  const act = (k: string, kind: string) => (kind === "remove" ? c.remove(k) : c.save(k));
   return (
     <View testID="offline-page" style={{ gap: SPACE.s4 }}>
       <Text style={{ ...TYPE.body, color: palette.ink }}>{v.intro}</Text>
-      <View testID="offline-total" accessible accessibilityLabel={v.total.aloud}
-            style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", paddingVertical: SPACE.s2,
-                     borderTopWidth: 1.5, borderBottomWidth: 1, borderTopColor: palette.ink, borderBottomColor: palette.line }}>
-        <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{v.total.label}</Text>
-        <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{v.total.value}</Text>
+      {v.total && (
+        <View testID="offline-total" accessible accessibilityLabel={v.total.aloud}
+              style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", paddingVertical: SPACE.s2,
+                       borderTopWidth: 1.5, borderBottomWidth: 1, borderTopColor: palette.ink, borderBottomColor: palette.line }}>
+          <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{v.total.label}</Text>
+          <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{v.total.value}</Text>
+        </View>
+      )}
+      {/* the fixed first row: the regulations for all of B.C. — always kept, never a choice */}
+      <View style={{ paddingHorizontal: SPACE.s3, borderLeftWidth: 3, borderLeftColor: palette.open, backgroundColor: palette.tint }}>
+        <Row r={v.regs} palette={palette} first strong />
       </View>
       {v.update && (
         <View testID="offline-update" style={{ gap: SPACE.s1, paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,
@@ -88,20 +75,11 @@ export function OfflinePage({ c, palette }: { c: OfflineControls; palette: Palet
           )}
         </View>
       )}
-      {v.failed && (
-        <Text testID="offline-failed" accessibilityRole="alert"
-              style={{ ...TYPE.small, color: palette.ink, paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,
-                       borderLeftWidth: 3, borderLeftColor: palette.attention, backgroundColor: palette.tint }}>
-          {v.failed}
-        </Text>
-      )}
-      <View>
-        {v.parts.map((r, i) => <Row key={r.k} r={r} palette={palette} onAct={act} first={i === 0} />)}
-      </View>
+      <Row r={v.map} palette={palette} first />
       <View style={{ gap: SPACE.s1 }}>
         <Kicker palette={palette}>{v.regionsHead}</Kicker>
         <View>
-          {v.regions.map((r, i) => <Row key={r.k} r={r} palette={palette} onAct={act} first={i === 0} />)}
+          {v.regions.map((r, i) => <Row key={r.k} r={r} palette={palette} first={i === 0} />)}
         </View>
       </View>
       {v.wifi && (
@@ -115,15 +93,6 @@ export function OfflinePage({ c, palette }: { c: OfflineControls; palette: Palet
             <Text style={{ ...TYPE.small, color: palette.sub }}>{v.wifi.hint}</Text>
           </View>
           <Text style={{ ...TYPE.metaBold, color: v.wifi.on ? palette.accent : palette.sub }}>{v.wifi.value}</Text>
-        </Pressable>
-      )}
-      {v.clear && (
-        <Pressable testID="offline-clear" onPress={c.clear} accessibilityRole="button" accessibilityLabel={v.clear}
-                   {...hitProps({ w: 200, h: 36 })}
-                   style={({ pressed }) => ({ alignSelf: "flex-start", height: 36, paddingHorizontal: SPACE.s3,
-                                              justifyContent: "center", borderWidth: 1.5, borderColor: palette.line2,
-                                              backgroundColor: pressed ? palette.tint : palette.card })}>
-          <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{v.clear}</Text>
         </Pressable>
       )}
       <Text style={{ ...TYPE.small, color: palette.sub }}>{v.note}</Text>
