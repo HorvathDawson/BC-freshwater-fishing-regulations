@@ -4,7 +4,7 @@ import { act, cleanup, render } from "@testing-library/react";
 import { leadUpDays } from "@app/core";
 import type { WaterSource } from "@app/data";
 import { needsRefresh, openSpotsWith, refreshSpot, type Spot, type SpotsFs } from "@app/data/spots";
-import { spotSaveFailed, useSpots, type SpotsStoreLike } from "./spots";
+import { spotSaveFailed, useRefreshOnReconnect, useSpots, type OnlineLike, type SpotsStoreLike } from "./spots";
 
 afterEach(cleanup);
 const settle = () => act(async () => { for (let i = 0; i < 4; i++) await Promise.resolve(); });
@@ -94,5 +94,70 @@ describe("useSpots (P01)", () => {
     await settle();
     expect(container.textContent).toBe("failed:|" + corrupt.message);
     expect(spotSaveFailed(corrupt)).toBe(corrupt.message);
+  });
+});
+
+describe("useRefreshOnReconnect (T255)", () => {
+  function net(start: boolean) {
+    let online = start;
+    const subs = new Set<(o: boolean) => void>();
+    const c: OnlineLike = { online: () => online, subscribe: (f) => { subs.add(f); return () => { subs.delete(f); }; } };
+    return { c, set(o: boolean) { online = o; subs.forEach((f) => f(o)); } };
+  }
+  function R({ c, pending, refresh }: { c: OnlineLike; pending: boolean; refresh: () => Promise<void> }) {
+    useRefreshOnReconnect(c, pending, refresh);
+    return null;
+  }
+
+  it("offline with a spot waiting: nothing; back online: one refresh; again on the next reconnect", async () => {
+    const n = net(false);
+    let calls = 0;
+    const refresh = async () => { calls++; };
+    render(<R c={n.c} pending refresh={refresh} />);
+    await settle();
+    expect(calls).toBe(0);
+    await act(async () => { n.set(true); });
+    await settle();
+    expect(calls).toBe(1);
+    await act(async () => { n.set(true); });                     // still online: no second refresh
+    await settle();
+    expect(calls).toBe(1);
+    await act(async () => { n.set(false); });
+    await act(async () => { n.set(true); });
+    await settle();
+    expect(calls).toBe(2);
+  });
+
+  it("online when a spot starts waiting: one refresh; none when nothing waits", async () => {
+    const n = net(true);
+    let calls = 0;
+    const refresh = async () => { calls++; };
+    const { rerender } = render(<R c={n.c} pending={false} refresh={refresh} />);
+    await settle();
+    expect(calls).toBe(0);
+    await act(async () => { n.set(false); });
+    await act(async () => { n.set(true); });
+    await settle();
+    expect(calls).toBe(0);                                       // nothing waits: a reconnect asks nothing
+    rerender(<R c={n.c} pending refresh={refresh} />);
+    await settle();
+    expect(calls).toBe(1);
+  });
+
+  it("one at a time: a reconnect during a refresh does not start another", async () => {
+    const n = net(false);
+    let calls = 0;
+    let finish: () => void = () => {};
+    const refresh = () => { calls++; return new Promise<void>((ok) => { finish = ok; }); };
+    render(<R c={n.c} pending refresh={refresh} />);
+    await act(async () => { n.set(true); });
+    await act(async () => { n.set(false); });
+    await act(async () => { n.set(true); });
+    expect(calls).toBe(1);
+    await act(async () => { finish(); });
+    await settle();
+    await act(async () => { n.set(false); });
+    await act(async () => { n.set(true); });
+    expect(calls).toBe(2);
   });
 });

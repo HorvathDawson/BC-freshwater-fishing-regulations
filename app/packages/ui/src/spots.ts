@@ -3,7 +3,7 @@
  * it and keeps the sheet open. The list is re-read after each write. A weather refresh writes through `patch`, so it
  * fills a spot only if nobody changed or deleted it meanwhile.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Spot } from "@app/data/spots";
 import { useAsync, type Async } from "./async";
 
@@ -57,4 +57,40 @@ export function useSpots(store: SpotsStoreLike): {
       }
     }),
   };
+}
+
+/** What the reconnect refresh needs of the platform's connectivity (`Connectivity`, imagery.ts). */
+export interface OnlineLike {
+  online(): boolean;
+  subscribe(on: (online: boolean) => void): () => void;
+}
+
+/**
+ * (T255) BACK ONLINE, THE SPOTS FILL IN BY THEMSELVES. A spot made with no signal holds no weather, no week before and no
+ * day's flow (`needsRefresh`); until now only the Spots page's Refresh filled them. When the device comes back online
+ * — or a spot is waiting while it is online (the app opened online, or the list just loaded) — the same refresh the
+ * button runs (`refresh`, App's) is run once, quietly. One at a time; its failure is the refresh's own to say; the next
+ * offline → online tries again. `pending` false: nothing is asked.
+ */
+export function useRefreshOnReconnect(c: OnlineLike | null, pending: boolean, refresh: () => Promise<void>): void {
+  const pendingRef = useRef(pending);
+  pendingRef.current = pending;
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+  const busy = useRef(false);
+  const run = useRef(() => {
+    if (busy.current || !pendingRef.current) return;
+    busy.current = true;
+    refreshRef.current().catch(() => undefined).finally(() => { busy.current = false; });
+  }).current;
+  // a spot waiting while online: once per change of `pending` (a refresh that cannot fill it does not loop)
+  useEffect(() => { if (pending && c?.online()) run(); }, [pending, c, run]);
+  useEffect(() => {
+    if (!c) return;
+    let was = c.online();
+    return c.subscribe((on) => {
+      if (on && !was) run();
+      was = on;
+    });
+  }, [c, run]);
 }

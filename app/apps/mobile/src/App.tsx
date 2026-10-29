@@ -28,11 +28,11 @@ import { createNet, createReportOutbox, createUpdateLog, createUpdateService, ve
          type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { connectivity, FishSpinner, setSynopsisNet, setSynopsisSource, Shell, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeUrl, systemBack } from "./systemBack";
@@ -93,6 +93,8 @@ const devOffline = { on: false };
  */
 const NET = createNet({ online: { online: () => !devOffline.on && connectivity.online(),
                                   subscribe: (on) => connectivity.subscribe(on) } });
+/** (T255) the spots' reconnect refresh: the device's word, the Updates log's simulated offline included */
+const SPOT_NET = { online: () => !devOffline.on && connectivity.online(), subscribe: (on: (o: boolean) => void) => connectivity.subscribe(on) };
 setSynopsisNet({ low: () => NET.mode().low, bps: () => NET.meter.bps(), meter: NET.meter, online: NET.online,
                  waitOnline: NET.waitOnline });
 
@@ -305,6 +307,21 @@ export default function App() {
              loader: b.loader };
   }, [boot]);
 
+  const dataSource = data?.source ?? null;
+  const refreshSpots = useCallback(async () => {
+    if (!dataSource) return;
+    setRefreshing(true);
+    // through `patch`: a spot deleted or edited meanwhile is never overwritten (P01)
+    // the source reads the station's daily means for a spot's week before (S1); the feed's index tells a
+    // station it does not carry (settled) from a feed not reached (asked again)
+    // (T170) and HYDAT for the visit day's own flow where the reading is not the day's
+    try { await spotsHook.refresh((s) => refreshSpot(s, weather, dataSource, feed, { hydat })); }
+    catch { /* said by spotsHook.error; the list keeps what was saved */ }
+    finally { setRefreshing(false); }
+  }, [dataSource, spotsHook, weather, feed, hydat]);
+  // (T255) back online (or opened online) with a spot made offline: its weather and gauge context fill in by themselves
+  useRefreshOnReconnect(dataSource ? SPOT_NET : null, spots.some(needsRefresh), refreshSpots);
+
   const failed = boot.state === "failed" ? boot.error.message : null;
   const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
   const stage = boot.state === "loading" ? boot.stage : "paint";
@@ -408,16 +425,7 @@ export default function App() {
                runTiming={runTiming}
                refreshing={refreshing}
                onDeleteSpot={spotsHook.remove}
-               onRefreshSpots={async () => {
-                 setRefreshing(true);
-                 // through `patch`: a spot deleted or edited meanwhile is never overwritten (P01)
-                 // the source reads the station's daily means for a spot's week before (S1); the feed's index tells a
-                 // station it does not carry (settled) from a feed not reached (asked again)
-                 // (T170) and HYDAT for the visit day's own flow where the reading is not the day's
-                 try { await spotsHook.refresh((s) => refreshSpot(s, weather, data.source, feed, { hydat })); }
-                 catch { /* said by spotsHook.error; the list keeps what was saved */ }
-                 finally { setRefreshing(false); }
-               }}
+               onRefreshSpots={refreshSpots}
                hydat={hydat}
                onDayFlow={async (spot) => {
                  // T170 "Get the flow for that day": that one spot, through the same fill a refresh uses; the others
