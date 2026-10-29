@@ -59,8 +59,12 @@ function kindOf(url) {
 /** The page says Save-Data (T186): what a reader who asked the browser to save data gets. */
 const SAVE_DATA = `try { Object.defineProperty(Navigator.prototype, 'connection', { configurable: true, get: () => ({ saveData: true, effectiveType: '4g' }) }); } catch {}`;
 
+/** (T253) The background prefetch (every file an unnamed tap reads, after idle) is off in the walk: each moment pins
+ *  what a COLD visitor fetches. `tools/prefetch-measure.mjs` measures the tap with it on. */
+const NO_BACKGROUND = `globalThis.__releasePrefetchBackground = false;`;
+
 async function session(url, { seedSpot = false, saveData = false } = {}) {
-  const init = (seedSpot ? `try { if (!localStorage.getItem('canifishthis.spots.v1')) localStorage.setItem('canifishthis.spots.v1', ${JSON.stringify(JSON.stringify([SPOT]))}); } catch {}` : '')
+  const init = NO_BACKGROUND + (seedSpot ? `try { if (!localStorage.getItem('canifishthis.spots.v1')) localStorage.setItem('canifishthis.spots.v1', ${JSON.stringify(JSON.stringify([SPOT]))}); } catch {}` : '')
     + (saveData ? SAVE_DATA : '');
   const b = await open(url, { width: 390, height: 844, network: true, init });
   const take = () => b.requests.splice(0).filter((r) => /^https?:/.test(r.url));

@@ -32,7 +32,7 @@ const NONE_PINS: readonly never[] = [];
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate,
                              photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
-                             onDay, onOpenDay, dayRange, onObstacle, onTidal, onRuns }: {
+                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onRuns }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -54,6 +54,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   onRuns?: (sid: number) => void;
   /** (T186) The region under the map's centre, for the web prefetch (`useReleasePrefetch`); absent on a phone. */
   onRegion?: (regionId: string | null) => void;
+  /** (T253) The regions the web's background prefetch holds for an unnamed-stream tap (More → Data); null: none runs. */
+  offline?: { ready: readonly string[]; total: number } | null;
 }) {
   const { route, go, browse, tab, back, opener } = nav;
   const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, mapStatus, noteVisible, setZoomedOut,
@@ -133,7 +135,9 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                     data={{ ...dataFacts, newRelease: syncState.newRelease,
                             // (T231) the update service's sources and download, for the Updates row
                             updates: syncState.updates
-                              ? { sources: syncState.sources, release: syncState.updates.release } : null }}
+                              ? { sources: syncState.sources, release: syncState.updates.release } : null,
+                            // (T253) "Offline data: Region 2 ready"
+                            offline }}
                     // (T231) a phone downloads whole sets: the large-updates-on-mobile-data setting
                     metered={syncState.updates && syncState.allowMetered && Platform.OS !== "web"
                       ? { on: syncState.updates.allowMetered, set: syncState.allowMetered } : null}

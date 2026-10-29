@@ -338,6 +338,8 @@ export default function App() {
                // T129: the boot's manifest read seeds the service's first release check (`seedRelease`): no second request
                // (T186, Q164) the web fetches ahead after first paint; a phone holds the release installed
                prefetch={Platform.OS === "web"}
+               // (T253) its background tier's steps go to the Updates log (development and staging builds)
+               prefetchLog={updateLog ? updateLog.append : null}
                layerStore={layerStore} likeStore={likeStore}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={data.tiles}

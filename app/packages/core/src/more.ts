@@ -24,7 +24,7 @@ import {
 } from "./menu";
 import { agoWords } from "./freshness";
 import { byCadence } from "./staleness";
-import { updateSourcesVM, type UpdateReleaseInput, type UpdateSourceInput, type UpdatesVM } from "./updates";
+import { offlineDataLine, updateSourcesVM, type UpdateReleaseInput, type UpdateSourceInput, type UpdatesVM } from "./updates";
 
 export const MORE_WORDS = {
   /** the back control at the top: where it goes, aloud */
@@ -94,6 +94,8 @@ export interface DataBlockVM {
   readonly newRelease: string | null;
   /** (T231) the update service's line (last checked, a download, a failure) and one line per source; null: no service */
   readonly updates: UpdatesVM | null;
+  /** (T253) "Offline data: Region 2 ready" (the web's background prefetch), or null */
+  readonly offline: string | null;
 }
 
 export interface DataInput extends SourcesInput {
@@ -101,6 +103,8 @@ export interface DataInput extends SourcesInput {
   newRelease: string | null;
   /** (T231) the update service's sources and release download, or absent (no service) */
   updates?: { sources: readonly UpdateSourceInput[]; release: UpdateReleaseInput | null } | null;
+  /** (T253) the background prefetch: the regions ready for an unnamed-stream tap, of how many; absent: none runs */
+  offline?: { ready: readonly string[]; total: number } | null;
 }
 
 /** A row's date or age in few words — what the release states, or what the app fetched; never a guess. */
@@ -158,6 +162,7 @@ export function dataVM(s: DataInput): DataBlockVM {
     rows,
     newRelease: s.newRelease !== null ? W.newRelease : null,
     updates: s.updates ? updateSourcesVM({ ...s.updates, now: s.now }) : null,
+    offline: s.offline ? offlineDataLine(s.offline.ready, s.offline.total) : null,
   };
 }
 

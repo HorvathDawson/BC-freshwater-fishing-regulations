@@ -1,6 +1,7 @@
 /**
  * THE SHELL'S INPUTS: everything the app hands the Shell (T62 3.4: the props type, out of Shell.tsx unchanged).
  */
+import type { UpdateEvent } from "@app/core";
 import type { WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import type { LayerStore, Locate, PairingInput, RegsStart, Route, SpotPhotos, StatusSource, SystemBack } from "@app/ui";
@@ -108,6 +109,11 @@ export interface ShellProps {
    * it there): a phone holds the release installed.
    */
   prefetch?: boolean;
+  /**
+   * (T253) Where the background prefetch (every file an unnamed-stream tap reads, the region in view first) tells each
+   * step: the Updates log's `append` (T251, development and staging builds). Absent: not logged.
+   */
+  prefetchLog?: ((e: UpdateEvent) => void) | null;
   /**
    * Where the Layers sheet's choice is kept across a reload (`@app/data/spots` `openLayerStore`): the Spots switch and
    * every other (owner 2026-10-22). Absent: the defaults, kept for the session only.

@@ -188,6 +188,13 @@ function DataBlock({ vm, palette, metered }: { vm: MoreVM["data"]; palette: Pale
           })}
         </View>
         {vm.updates && <UpdatesRow vm={vm.updates} palette={palette} metered={metered ?? null} />}
+        {/* (T253) the web's background prefetch, quietly: which regions an unnamed-stream tap reads from the device */}
+        {vm.offline && (
+          <Text testID="data-offline" style={{ ...TYPE.small, color: palette.faint, paddingHorizontal: GUTTER,
+                                               paddingBottom: SPACE.s3, ...(vm.updates ? {} : { paddingTop: SPACE.s2 }) }}>
+            {vm.offline}
+          </Text>
+        )}
       </Group>
     </>
   );

@@ -3,10 +3,11 @@
  * once and core only when the browser says it is idle — never on Save-Data or a slow connection; a phone (null loader)
  * gets no callback at all, so its map is not asked.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render } from "@testing-library/react";
-import type { ReleaseLoader } from "@app/data/release";
-import { connectionSignals, useReleasePrefetch } from "./prefetch";
+import type { BackgroundPrefetch, PrefetchSnapshot, ReleaseLoader } from "@app/data/release";
+import { BACKGROUND_DELAY_MS, batteryLow, connectionSignals, useBackgroundPrefetch, useReleasePrefetch,
+         webNetSignals } from "./prefetch";
 
 afterEach(cleanup);
 
@@ -99,5 +100,79 @@ describe("useReleasePrefetch", () => {
     expect([connectionSignals(undefined), connectionSignals({}), connectionSignals({ connection: { saveData: true, effectiveType: "2g" } })])
       .toEqual([{ saveData: false, effectiveType: null }, { saveData: false, effectiveType: null },
                 { saveData: true, effectiveType: "2g" }]);
+  });
+});
+
+describe("(T253) the background tier", () => {
+  function fakeBg() {
+    const calls: string[] = [];
+    const bg = {
+      start: () => calls.push("start"), view: (r: readonly string[]) => calls.push(`view ${r.join()}`),
+      signals: () => {}, cancel: () => calls.push("cancel"), subscribe: () => () => {},
+      snapshot: () => ({}) as PrefetchSnapshot,
+    } as unknown as BackgroundPrefetch;
+    return { bg, calls };
+  }
+  function BgProbe({ loader, bg, out }: { loader: ReleaseLoader; bg: BackgroundPrefetch; out: { cb?: (r: unknown) => void } }) {
+    out.cb = useReleasePrefetch(loader, undefined, bg);
+    return null;
+  }
+
+  it("told each region the map settles in; started BACKGROUND_DELAY_MS after the idle tier, never before", () => {
+    vi.useFakeTimers();
+    try {
+      const idle: (() => void)[] = [];
+      withGlobals(idle, { effectiveType: "4g" }, () => {
+        const { loader } = fakeLoader(), { bg, calls } = fakeBg(), out: { cb?: (r: unknown) => void } = {};
+        render(<BgProbe loader={loader} bg={bg} out={out} />);
+        out.cb!("2");
+        expect(calls).toEqual(["view 2"]);
+        vi.advanceTimersByTime(BACKGROUND_DELAY_MS * 3);
+        expect(calls).toEqual(["view 2"]);                     // not idle yet: not started
+        idle[0]!();
+        vi.advanceTimersByTime(BACKGROUND_DELAY_MS - 1);
+        expect(calls).toEqual(["view 2"]);
+        vi.advanceTimersByTime(1);
+        out.cb!("7A");
+        expect(calls).toEqual(["view 2", "start", "view 7a"]);
+      });
+    } finally { vi.useRealTimers(); }
+  });
+
+  function StatusProbe({ loader, out }: { loader: ReleaseLoader | null; out: { s?: ReturnType<typeof useBackgroundPrefetch> } }) {
+    out.s = useBackgroundPrefetch(loader);
+    return null;
+  }
+
+  it("useBackgroundPrefetch: a scheduler for a loader; none on a phone (no loader) or with the walk's switch off", () => {
+    const { loader } = fakeLoader();
+    (loader as unknown as { manifest: unknown }).manifest = { files: {} };
+    const out: { s?: ReturnType<typeof useBackgroundPrefetch> } = {};
+    const r = render(<StatusProbe loader={loader} out={out} />);
+    expect(out.s!.scheduler).not.toBeNull();
+    expect(out.s!.status.state).toBe("waiting");
+    r.unmount();
+    expect(out.s!.scheduler!.snapshot().state).toBe("cancelled");   // the screen went: cancelled
+    render(<StatusProbe loader={null} out={out} />);
+    expect(out.s!.scheduler).toBeNull();
+    const g = globalThis as { __releasePrefetchBackground?: boolean };
+    g.__releasePrefetchBackground = false;
+    try {
+      render(<StatusProbe loader={loader} out={out} />);
+      expect(out.s!.scheduler).toBeNull();
+    } finally { delete g.__releasePrefetchBackground; }
+  });
+
+  it("webNetSignals: online, Save-Data, speed, cellular = metered (the web has no mobile-data setting), hidden", () => {
+    expect(webNetSignals({} as never)).toEqual({ online: true, saveData: false, effectiveType: null, metered: false,
+                                                  allowMetered: false, hidden: false });
+    expect(webNetSignals({ navigator: { onLine: false, connection: { saveData: true, effectiveType: "3g", type: "cellular" } },
+                           document: { visibilityState: "hidden" } } as never))
+      .toEqual({ online: false, saveData: true, effectiveType: "3g", metered: true, allowMetered: false, hidden: true });
+  });
+
+  it("batteryLow: at or under 20 % and not charging", () => {
+    expect([batteryLow({ charging: false, level: 0.2 }), batteryLow({ charging: true, level: 0.05 }),
+            batteryLow({ charging: false, level: 0.5 })]).toEqual([true, false, false]);
   });
 });

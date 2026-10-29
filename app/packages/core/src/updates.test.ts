@@ -1,7 +1,8 @@
 /** (T231) The data updates in words, and the sync icon's states over them — whole strings pinned. */
 import { describe, expect, it } from "vitest";
-import { syncVM } from "./more";
-import { bellLabel, failedSources, failureWords, syncErrorVM, updatedToast, updateSourcesVM,
+import { dataVM, syncVM, type DataInput } from "./more";
+import { updateLogText, updateLogVM } from "./updateLog";
+import { bellLabel, failedSources, failureWords, offlineDataLine, syncErrorVM, updatedToast, updateSourcesVM,
          type UpdateSourceInput } from "./updates";
 
 const NOW = Date.parse("2026-10-28T20:00:00Z");
@@ -73,5 +74,34 @@ describe("the sources' words", () => {
     expect(bellLabel("2 in-season changes not on the map yet", 1))
       .toBe("2 in-season changes not on the map yet; 1 update failed");
     expect(bellLabel(null, 2)).toBe("2 updates failed");
+  });
+});
+
+describe("(T253) the background prefetch in words", () => {
+  it("More → Data's quiet line: the regions ready, upper-cased; every one; nothing while none is", () => {
+    expect([offlineDataLine([], 9), offlineDataLine(["2"], 9), offlineDataLine(["2", "7a"], 9),
+            offlineDataLine(["1", "2", "3", "4", "5", "6", "7a", "7b", "8"], 9)])
+      .toEqual([null, "Offline data: Region 2 ready", "Offline data: Regions 2, 7A ready", "Offline data: every region ready"]);
+  });
+
+  it("the Data block carries it only when a prefetch runs", () => {
+    const base = { newRelease: null, now: NOW } as unknown as DataInput;
+    expect(dataVM({ ...base, offline: { ready: ["2"], total: 9 } }).offline).toBe("Offline data: Region 2 ready");
+    expect([dataVM(base).offline, dataVM({ ...base, offline: { ready: [], total: 9 } }).offline]).toEqual([null, null]);
+  });
+
+  it("the Updates log names the prefetch's steps", () => {
+    const at = Date.parse("2026-10-28T20:00:01Z");
+    const rows = updateLogVM([
+      { at, source: "prefetch", kind: "prefetched", bytes: 2_209_024, ms: 1840, note: "water" },
+      { at, source: "prefetch", kind: "paused", note: "background" },
+      { at, source: "prefetch", kind: "resumed", note: "after background" },
+    ]);
+    expect(rows.map((r) => [r.source, r.result, r.detail])).toEqual([
+      ["Prefetch", "resumed", "after background"], ["Prefetch", "paused", "background"],
+      ["Prefetch", "prefetched", "2.2 MB · 1840 ms · water"]]);
+    expect(updateLogText([{ at, source: "prefetch", kind: "paused", note: "slow" }],
+                         { version: "v", platform: "web", env: "local", origin: "o", channel: "live", release: null }, at))
+      .toContain("prefetch | paused | slow");
   });
 });

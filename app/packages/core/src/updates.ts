@@ -66,6 +66,12 @@ export const UPDATE_WORDS = {
     count: (n: number) => (n === 1 ? "1 update failed" : `${n} updates failed`),
     title: "Notices",
   },
+  /** (T253) More → Data's quiet line: the regions the background prefetch holds for an unnamed-stream tap */
+  offline: {
+    one: (r: string) => `Offline data: Region ${r} ready`,
+    some: (rs: string) => `Offline data: Regions ${rs} ready`,
+    all: "Offline data: every region ready",
+  },
   toast: (day: string) => `Updated to ${day}`,
   toastNoDate: "Data updated",
 } as const;
@@ -185,4 +191,17 @@ export function updatedToast(day: string | null): string {
  */
 export function bellLabel(inseason: string | null, failed: number): string {
   return [inseason, failed > 0 ? UPDATE_WORDS.bell.count(failed) : null].filter(Boolean).join("; ");
+}
+
+/**
+ * (T253) More → Data's quiet line for the background prefetch: which regions an unnamed-stream tap now reads from the
+ * device ("Offline data: Region 2 ready"); null while none is (nothing is said of a prefetch under way or held).
+ * `ready`: release region words ("2", "7a"), in the order they became ready; `total`: how many regions there are.
+ */
+export function offlineDataLine(ready: readonly string[], total: number): string | null {
+  const W = UPDATE_WORDS.offline;
+  if (!ready.length) return null;
+  if (total > 0 && ready.length >= total) return W.all;
+  const names = ready.map((r) => r.toUpperCase());
+  return names.length === 1 ? W.one(names[0]!) : W.some(names.join(", "));
 }

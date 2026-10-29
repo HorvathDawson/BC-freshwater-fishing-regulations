@@ -8,3 +8,5 @@ export { makeReleaseSource } from "./source";
 export { assetsDigest } from "./assets";
 export { bootRelease, releaseTiles, BootError, type BootOptions, type Booted, type ReleasePlatform } from "./boot";
 export { prefetchPlan, regionOfTile, runPrefetch, type PrefetchSignals } from "./prefetch";
+export { createBackgroundPrefetch, LOW_BATTERY, type BackgroundPrefetch, type NetSignals, type PrefetchSnapshot }
+  from "./background";

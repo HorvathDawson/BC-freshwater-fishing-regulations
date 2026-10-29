@@ -25,12 +25,19 @@ export type UpdateEventKind =
   /** a release this app is too old for: not applied, the data in use kept */
   | "app-too-old"
   /** a tester's action from the log page (force re-download, clear cache, simulate offline) */
-  | "action";
+  | "action"
+  /** (T253) the background prefetch: a file put in the release cache (note: its name), or a region ready */
+  | "prefetched"
+  /** (T253) the background prefetch held (note: why — offline, save-data, slow, metered, background, battery) */
+  | "paused"
+  /** (T253) the hold ended */
+  | "resumed";
 
 export type UpdateErrorClass = "offline" | "http-404" | "http-4xx" | "http-5xx" | "sha-mismatch" | "size-mismatch"
   | "parse" | "apply" | "other";
 
-export type UpdateLogSource = UpdateSourceKey | "app";
+/** (T253) `prefetch`: the background prefetch of the files an unnamed-stream tap reads */
+export type UpdateLogSource = UpdateSourceKey | "app" | "prefetch";
 
 export interface UpdateEvent {
   /** epoch ms, this device's clock */
@@ -72,10 +79,11 @@ export const UPDATE_LOG_WORDS = {
   aboutLinkShown: "Updates log ›",
   intro: "Every check for new data on this device, newest first. Development and staging builds only.",
   sources: { gauges: "Gauges", dfo: MENU_WORDS.sources.names.dfo, inseason: "In-season", release: "Release",
-             app: "App" } satisfies Record<UpdateLogSource, string>,
+             app: "App", prefetch: "Prefetch" } satisfies Record<UpdateLogSource, string>,
   kinds: {
     unchanged: "unchanged", changed: "changed", failed: "failed", offline: "offline", staged: "staged",
     applied: "applied", "app-too-old": "app too old", action: "action",
+    prefetched: "prefetched", paused: "paused", resumed: "resumed",
   } satisfies Record<UpdateEventKind, string>,
   actions: {
     check: "Check now",

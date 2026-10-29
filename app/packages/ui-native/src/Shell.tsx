@@ -26,7 +26,7 @@ import { bellLabel, dayRange, placeholderFor, runSheet, syncVM } from "@app/core
 import { useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
-         BackLayerContext, InSeasonContext, useInSeason, useInSeasonNotice, useReleasePrefetch, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { connectivity } from "./connectivity";
 import { SearchSheet } from "./SearchSheet";
@@ -68,7 +68,9 @@ export function Shell(p: ShellProps) {
   /** (T186) the map's region reports drive the web prefetch; undefined (a phone): the map is not asked. (T182) The
    *  Salmon / Bait & fly files wait for its idle start on the web (`settled`), so first paint fetches paint alone. */
   const [settled, setSettled] = useState(!(p.prefetch && loader));
-  const onRegion = useReleasePrefetch(p.prefetch ? loader : null, () => setSettled(true));
+  // (T253) and the background tier after it: every file an unnamed-stream tap reads, the region in view first
+  const background = useBackgroundPrefetch(p.prefetch ? loader : null, { onEvent: p.prefetchLog ?? undefined });
+  const onRegion = useReleasePrefetch(p.prefetch ? loader : null, () => setSettled(true), background.scheduler);
   const { route, go, tab, frame, adding, openSpot, back, backLayers } = nav;
   /*
    * EVERY SURFACE IS UNDER THE ONE BACK (app/HANDOFF-ui.md "Back, everywhere"): whatever the Shell returns — the spot,
@@ -222,6 +224,7 @@ export function Shell(p: ShellProps) {
                   onDay={setMapDay} onOpenDay={() => setDayOpen(true)}
                   dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
+                  offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onRuns={setRunsAt} />;
 
   /** (T48) The top bar — the search field — is the maps': on the Map and Conditions tabs while browsing. */
