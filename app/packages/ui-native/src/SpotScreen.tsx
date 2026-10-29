@@ -37,6 +37,7 @@ import { DayFlowBlock } from "./spot/DayFlow";
 import { Block, Link } from "./spot/parts";
 import { WaterRecord, WeatherRecord } from "./spot/Record";
 import { SpotPhotos } from "./spot/SpotPhotos";
+import { hitProps } from "./regs/hit";
 
 
 export type SpotMode = "draft" | "view" | "edit";
@@ -172,8 +173,8 @@ export function SpotScreen(p: SpotScreenProps) {
               is worth offering, because the list shows this and a coordinate is hard to
               pick out of twenty. */}
           {!editable && isUntitled(spot) && p.onEdit && (
-            <Pressable onPress={p.onEdit} accessibilityRole="button"
-                       accessibilityLabel={W.addTitle}>
+            <Pressable {...hitProps({ w: 80, h: 44 })} onPress={p.onEdit} accessibilityRole="button"
+                       accessibilityLabel={W.addTitle} style={{ minHeight: 44, justifyContent: "center" }}>
               <Text style={{ ...TYPE.small, color: palette.accent }}>{W.addTitle}</Text>
             </Pressable>
           )}
@@ -195,7 +196,7 @@ export function SpotScreen(p: SpotScreenProps) {
             <Text style={{ ...TYPE.small, flex: 1, color: palette.sub }}>
               {refreshReason(spot)}
             </Text>
-            <Pressable onPress={p.onRefresh} disabled={p.refreshing}
+            <Pressable {...hitProps({ w: 80, h: 37 })} onPress={p.onRefresh} disabled={p.refreshing}
                        accessibilityRole="button" accessibilityLabel={W.refreshSpot}
                        style={{ borderRadius: palette.r.pill, paddingVertical: 8, paddingHorizontal: 14,
                                 backgroundColor: palette.card, borderWidth: 1,
@@ -215,7 +216,7 @@ export function SpotScreen(p: SpotScreenProps) {
         )}
 
         {p.onShowOnMap && (
-          <Pressable onPress={p.onShowOnMap} accessibilityRole="button"
+          <Pressable {...hitProps({ w: 120, h: 44 })} onPress={p.onShowOnMap} accessibilityRole="button"
                      accessibilityLabel={W.showOnMap}
                      style={{ flexDirection: "row", alignItems: "center", gap: 10,
                               paddingVertical: 12, paddingHorizontal: 14, borderRadius: palette.r.box,

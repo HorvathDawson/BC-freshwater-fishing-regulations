@@ -5,6 +5,7 @@ import { WATER_STATUS, type WaterStatus } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
+import { hitProps } from "../regs/hit";
 
 /**
  * One result. SELECT, THEN GO (`searchStep`): a tap (or Enter) on the row selects it — the main map frames and lights
@@ -52,7 +53,7 @@ export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, sel
                    backgroundColor: band ? palette.placeBand : selected ? palette.wash : palette.card }}>
       {/* The edge bar: a town's colour always, a water's only while it is selected. */}
       <View style={{ width: 4, backgroundColor: bar ? tone : selected ? tone : "transparent" }} />
-      <Pressable onPress={onPress} accessibilityRole="button"
+      <Pressable {...hitProps({ w: 200, h: 50 })} onPress={onPress} accessibilityRole="button"
                  accessibilityLabel={status ? `${label}. ${WATER_STATUS[status].label}` : label}
                  aria-pressed={!!selected}
                  onPressIn={press}
@@ -87,10 +88,9 @@ export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, sel
       */}
       {selected && onGo && goLabel ? (
         <View style={{ justifyContent: "center", paddingRight: 14, paddingLeft: 4 }}>
-          <Pressable onPress={onGo} accessibilityRole="button" accessibilityLabel={goLabel}
+          <Pressable {...hitProps({ w: 44, h: 44 })} onPress={onGo} accessibilityRole="button" accessibilityLabel={goLabel}
                      onPressIn={press}
                      onFocus={onFocusOf("go")} onBlur={blur}
-                     hitSlop={6}
                      style={({ pressed }) => ({
                        width: 44, height: 44, alignItems: "center", justifyContent: "center",
                        borderWidth: 1.5, borderColor: tone, borderRadius: palette.r.box,

@@ -36,7 +36,7 @@
  *   - Markers are native view annotations (`Marker`), not maplibre-gl's DOM markers.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, Text, View, type LayoutChangeEvent } from "react-native";
+import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
   Camera, GeoJSONSource, Images, Map as MLMap, Marker, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
@@ -58,6 +58,7 @@ import { MARK_LABEL_FONT, labelShift } from "./marks";
 import { metricScale } from "./scale";
 import type { MapProps } from "./map-props";
 import { COPY_SOURCE, WaterCopy, copyIds, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
+import { cameraMs, setReducedMotion } from "./motion";
 
 /** A mark label's widest line (the web's `max-width`, `marks.ts`). */
 const MARK_LABEL_WIDTH = 180;
@@ -85,6 +86,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
+  // (T243) the camera's own glides jump while the OS asks for reduced motion (`motion.ts`)
+  useEffect(() => {
+    let live = true;
+    AccessibilityInfo.isReduceMotionEnabled?.().then((v) => { if (live) setReducedMotion(v); }, () => {});
+    const sub = AccessibilityInfo.addEventListener?.("reduceMotionChanged", (v: boolean) => setReducedMotion(v));
+    return () => { live = false; sub?.remove?.(); };
+  }, []);
   const adapter = useRef(baseAdapter("native"));
   const mapRef = useRef<MapRef | null>(null);
   const camRef = useRef<CameraRef | null>(null);
@@ -315,7 +323,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
           : null;
         if (next !== null) {
           rounds += 1;
-          renderer.easeTo(zoomAround(at0, lineAt.current, at0.zoom, next), { duration: 300 });
+          renderer.easeTo(zoomAround(at0, lineAt.current, at0.zoom, next), { duration: cameraMs(300) });
         }
       } finally { busy = false; }
     };
@@ -345,10 +353,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       const p = Math.max(8, Math.round(Math.min(56, (width || 400) * 0.12, (height || 800) * 0.12)));
       moved = true;
       // the binding's fitBounds has no maxZoom, and the camera now goes to z18: widen the box to what FIT_MAX_ZOOM shows
-      renderer.fitBounds(fitAtMost(b, FIT_MAX_ZOOM, width, height, p), { padding: p, duration: 450 });
+      renderer.fitBounds(fitAtMost(b, FIT_MAX_ZOOM, width, height, p), { padding: p, duration: cameraMs(450) });
     };
     // (T48) an exact camera to return to (search's cancel): put back as it was, nothing measured
-    if (fit.camera) { renderer.easeTo(fit.camera, { duration: 450 }); refine.current = null; return () => { alive = false; }; }
+    if (fit.camera) { renderer.easeTo(fit.camera, { duration: cameraMs(450) }); refine.current = null; return () => { alive = false; }; }
     if (fit.bbox) go(fit.bbox);
     if (!fit.refine) { refine.current = null; return () => { alive = false; }; }
     refine.current = async () => {

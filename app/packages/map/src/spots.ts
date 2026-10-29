@@ -6,6 +6,7 @@
  */
 import { spotPress, type SpotMarker, type SpotPoint } from "@app/core";
 import type { MapSpots } from "./map-props";
+import { cameraMs } from "./motion";
 
 /** How long the camera takes into a group (the fit's own 450 ms). */
 export const SPOT_EASE_MS = 450;
@@ -15,7 +16,7 @@ export function pressSpot(m: SpotMarker, spots: Pick<MapSpots, "onOpen" | "onLis
                           ease: (c: { lat: number; lon: number; zoom: number }, o: { duration: number }) => void): void {
   const p = spotPress(m);
   if (p.kind === "open") spots.onOpen(p.id);
-  else if (p.kind === "zoom") ease(p.camera, { duration: SPOT_EASE_MS });
+  else if (p.kind === "zoom") ease(p.camera, { duration: cameraMs(SPOT_EASE_MS) });
   else spots.onList(p.ids);
 }
 

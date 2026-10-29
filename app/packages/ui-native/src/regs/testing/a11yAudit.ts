@@ -98,3 +98,28 @@ export function scaleOf(root: Element): { id: string; afs: string; mfm: string }
     afs: e.getAttribute("data-afs")!, mfm: e.getAttribute("data-mfm") ?? "",
   }));
 }
+
+/**
+ * (T243) THE SHELL'S PRESSES — the same rule as `pressAudit`, over the rest of the app (map controls, bars, sheets,
+ * menus, spots) and its extra roles (switch, checkbox): every press has a name and declares its box through `hitProps`
+ * (its `data-hitslop`), which must reach 44 × 44. jsdom has no layout and react-native-web's computed styles do not
+ * carry min-height, so the declared box is the only proof a test can read. A platform switch (react-native's `Switch`,
+ * an `<input>`) is the platform's own control and is skipped; a run inside a sentence is `pressAudit`'s business.
+ */
+const SHELL_PRESS = [...PRESS, "switch", "checkbox"].map((r) => `[role="${r}"]`).join(", ");
+
+export function shellPressAudit(root: Element): { bad: PressOffence[]; checked: number } {
+  const bad: PressOffence[] = [];
+  let checked = 0;
+  for (const el of root.querySelectorAll(SHELL_PRESS)) {
+    if (hidden(el) || el.tagName === "INPUT" || isInlineRun(el)) continue;
+    const role = el.getAttribute("role")!, name = nameOf(el);
+    checked++;
+    if (!name) { bad.push({ role, name, why: "no accessible name" }); continue; }
+    const data = el.getAttribute("data-hitslop");
+    const a = data === null ? null : hitArea(data);
+    if (!a) bad.push({ role, name, why: "no data-hitslop: give it hitProps(its box)" });
+    else if (a.w < MIN_HIT || a.h < MIN_HIT) bad.push({ role, name, why: `reaches ${a.w}×${a.h}` });
+  }
+  return { bad, checked };
+}

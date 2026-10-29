@@ -6,6 +6,7 @@ import { useEffect, useRef, type MutableRefObject } from "react";
 import type { MapProps } from "../map-props";
 import { syncSize } from "../size";
 import type { WebMapRefs } from "./refs";
+import { cameraMs } from "../motion";
 
 /**
  * SEND THE CAMERA to a subject, then let the water's own shape frame it.
@@ -44,7 +45,7 @@ export function useFit({ map, renderer, refit }: WebMapRefs, fit: MapProps["fit"
       syncSize(m);
       const el = m.getContainer();
       const pad = Math.round(Math.min(56, el.clientWidth * 0.12, el.clientHeight * 0.12));
-      r.fitBounds(b, { padding: Math.max(pad, 8), duration: 450 });
+      r.fitBounds(b, { padding: Math.max(pad, 8), duration: cameraMs(450) });
     };
     const done = () => { alive = false; m.off("movestart", touched); };
     // A route overlay already drawn is part of the subject: "fit" frames the routes' own
@@ -55,7 +56,7 @@ export function useFit({ map, renderer, refit }: WebMapRefs, fit: MapProps["fit"
     // search brings the legend strip back, so the map's box has just shrunk, and GL JS's easeTo pins the centre to the
     // canvas's middle as it was when the ease began — eased on the stale (taller) canvas, the map came back half the
     // strip low, and drifted further with every search.
-    if (fit.camera) { syncSize(m); r.easeTo(fit.camera, { duration: 450 }); return done; }
+    if (fit.camera) { syncSize(m); r.easeTo(fit.camera, { duration: cameraMs(450) }); return done; }
     const first = fit.bbox ? withTrace([...fit.bbox] as Bbox) : null;
     if (first) go(first);
     if (!fit.refine) return done;

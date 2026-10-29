@@ -8,6 +8,7 @@
 import { Pressable, Text, View } from "react-native";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
+import { hitProps } from "./regs/hit";
 
 export interface Option {
   k: string;
@@ -33,7 +34,7 @@ export function OptionRow({ palette, options, value, onChange, shape, label }: {
         const on = o.k === value;
         const off = o.disabled === true;
         return (
-          <Pressable key={o.k} onPress={off ? undefined : () => onChange(o.k)} disabled={off}
+          <Pressable {...hitProps({ w: 60, h: 51 })} key={o.k} onPress={off ? undefined : () => onChange(o.k)} disabled={off}
                      accessibilityRole="radio" aria-checked={on} aria-disabled={off} accessibilityLabel={o.t}
                      style={{ flex: 1, alignItems: "center", gap: 7, borderRadius: palette.r.box,
                               // greyed as the app's other disabled controls are (Button: 0.4)

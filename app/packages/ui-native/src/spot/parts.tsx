@@ -5,6 +5,7 @@ import { observedLine } from "@app/data/spots";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import { IconText, type IconName } from "../icons";
+import { hitProps } from "../regs/hit";
 
 /** When a value was observed, and whether it was filled in after the fact. */
 export function Meta({ palette, at, backfilled, station }: {
@@ -34,7 +35,7 @@ export function Link({ palette, label, text, onPress, tone, icon }: {
 }) {
   const style = { ...TYPE.micro, fontSize: 13, color: tone ?? palette.accent };
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
+    <Pressable {...hitProps({ w: 60, h: 44 })} onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={{ minHeight: 44, justifyContent: "center" }}>
       {icon ? <IconText name={icon} text={text} style={style} /> : <Text style={style}>{text}</Text>}
     </Pressable>
   );

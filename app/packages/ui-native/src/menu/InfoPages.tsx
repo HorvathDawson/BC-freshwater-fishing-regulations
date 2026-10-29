@@ -8,8 +8,12 @@ import { Credits } from "../Credits";
 import { LicencesList } from "./Licences";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
+import { hitProps } from "../regs/hit";
 
 const open = (url: string) => { void Linking.openURL(url); };
+
+/** (T243) a link on its own line is a 44 px row (the touch-target floor), its words centred in it */
+const LINK_ROW = { minHeight: 44, justifyContent: "center" } as const;
 
 export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onReport }: { vm: AboutVM; palette: Palette;
                             onEnv?: (env: AppEnv) => void;
@@ -25,16 +29,16 @@ export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onRepor
                                                  backgroundColor: palette.tint }}>
         <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{vm.notOfficial}</Text>
       </View>
-      <Pressable onPress={() => open(vm.official.url)} accessibilityRole="link" accessibilityLabel={vm.official.label}>
+      <Pressable {...hitProps({ w: 120, h: 44 })} onPress={() => open(vm.official.url)} accessibilityRole="link" accessibilityLabel={vm.official.label} style={LINK_ROW}>
         <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{`${vm.official.label} ${WORDS.LINK_OUT}`}</Text>
       </Pressable>
       {onSources && (
-        <Pressable testID="about-sources" onPress={onSources} accessibilityRole="link" accessibilityLabel={LICENCE_WORDS.fromAbout}>
+        <Pressable {...hitProps({ w: 120, h: 44 })} testID="about-sources" onPress={onSources} accessibilityRole="link" accessibilityLabel={LICENCE_WORDS.fromAbout} style={LINK_ROW}>
           <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{LICENCE_WORDS.fromAboutLink}</Text>
         </Pressable>
       )}
       {onReport && (
-        <Pressable testID="about-report" onPress={onReport} accessibilityRole="link" accessibilityLabel={MENU_WORDS.report.fromAbout}>
+        <Pressable {...hitProps({ w: 120, h: 44 })} testID="about-report" onPress={onReport} accessibilityRole="link" accessibilityLabel={MENU_WORDS.report.fromAbout} style={LINK_ROW}>
           <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{MENU_WORDS.report.fromAbout}</Text>
         </Pressable>
       )}
@@ -51,8 +55,8 @@ export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onRepor
       </View>
       {vm.env && <EnvBlock vm={vm.env} palette={palette} onEnv={onEnv} />}
       {onUpdatesLog && (
-        <Pressable testID="about-updates-log" onPress={onUpdatesLog} accessibilityRole="link"
-                   accessibilityLabel={UPDATE_LOG_WORDS.aboutLink}>
+        <Pressable {...hitProps({ w: 120, h: 44 })} testID="about-updates-log" onPress={onUpdatesLog} accessibilityRole="link"
+                   accessibilityLabel={UPDATE_LOG_WORDS.aboutLink} style={LINK_ROW}>
           <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{UPDATE_LOG_WORDS.aboutLinkShown}</Text>
         </Pressable>
       )}
@@ -85,7 +89,7 @@ function EnvBlock({ vm, palette, onEnv }: { vm: AboutEnvVM; palette: Palette; on
           <Text style={{ ...TYPE.small, color: palette.sub }}>{vm.choose.title}</Text>
           <View style={{ flexDirection: "row", gap: SPACE.s2 }}>
             {vm.choose.choices.map((c) => (
-              <Pressable key={c.k} testID={`about-env-${c.k}`} onPress={() => onEnv(c.k)} accessibilityRole="radio"
+              <Pressable {...hitProps({ w: 60, h: 34 })} key={c.k} testID={`about-env-${c.k}`} onPress={() => onEnv(c.k)} accessibilityRole="radio"
                          aria-checked={c.on} accessibilityLabel={c.label}
                          style={{ flex: 1, alignItems: "center", paddingVertical: SPACE.s2, borderWidth: c.on ? 1.5 : 1,
                                   borderColor: c.on ? palette.ink : palette.line,

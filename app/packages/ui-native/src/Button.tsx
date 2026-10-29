@@ -18,6 +18,7 @@
  * screen reader, rather than silently ignoring a tap.
  */
 import { Pressable, Text, type ViewStyle } from "react-native";
+import { hitProps } from "./regs/hit";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
@@ -39,6 +40,8 @@ export function Button({ palette, label, onPress, kind = "solid", grow = true, s
   return (
     <Pressable onPress={onPress} disabled={off} accessibilityRole="button"
                accessibilityLabel={label} aria-disabled={off}
+               // (T243) 14 + 14 padding round a 21 px line
+               {...hitProps({ w: 44, h: 49 })}
                style={{ flexGrow: grow ? 1 : 0, alignItems: "center", borderRadius: palette.r.box,
                         paddingVertical: 14, paddingHorizontal: 20, opacity: off ? 0.4 : 1,
                         backgroundColor: bg,

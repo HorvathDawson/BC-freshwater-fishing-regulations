@@ -12,6 +12,7 @@ import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyIds, pr
 import { copyTarget } from "./handles";
 import { whenCopy } from "./ready";
 import type { WebMapRefs } from "./refs";
+import { cameraMs } from "../motion";
 
 export function useWaterCopy({ map, renderer, copy }: WebMapRefs,
                              { highlight, water, waterLine, at, onError }:
@@ -81,7 +82,7 @@ export function useWaterCopy({ map, renderer, copy }: WebMapRefs,
         if (next !== null) {
           rounds += 1;
           const cam = zoomAround({ lon: ctr.lng, lat: ctr.lat }, lineAt.current, z, next);
-          m.easeTo({ center: [cam.lon, cam.lat], zoom: cam.zoom, duration: 300 });
+          m.easeTo({ center: [cam.lon, cam.lat], zoom: cam.zoom, duration: cameraMs(300) });
         }
       } catch (e) {
         onError?.(e instanceof Error ? e : new Error(String(e)));

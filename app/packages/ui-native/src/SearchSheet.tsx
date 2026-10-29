@@ -45,6 +45,7 @@ import type { Palette } from "./theme";
 import { count } from "./format";
 import { sheetRows } from "./search/rows";
 import { SheetRow } from "./search/SheetRow";
+import { hitProps } from "./regs/hit";
 
 /** How far down the sheet sits at HALF: this share of its full height goes below the screen's edge. */
 export const HALF_DROP = 0.45;
@@ -147,8 +148,8 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
             {!pick.town && total !== undefined && (
               <Text style={{ ...TYPE.section, color: palette.faint }}>{count(total, SEARCH_BAR.namedWaters)}</Text>
             )}
-            <Pressable testID="search-panel-close" onPress={onClose} accessibilityRole="button"
-                       accessibilityLabel={SEARCH_BAR.close} hitSlop={4}
+            <Pressable {...hitProps({ w: 44, h: 44 })} testID="search-panel-close" onPress={onClose} accessibilityRole="button"
+                       accessibilityLabel={SEARCH_BAR.close}
                        style={({ pressed }) => ({ width: 44, height: 44, alignItems: "center", justifyContent: "center",
                                                   borderRadius: palette.r.box,
                                                   backgroundColor: pressed ? palette.wash : "transparent" })}>

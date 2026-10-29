@@ -6,8 +6,12 @@ import { Linking, Pressable, Text, View } from "react-native";
 import { LICENCE_WORDS, WORDS, type LicencesVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
+import { hitProps } from "../regs/hit";
 
 const open = (url: string) => { void Linking.openURL(url); };
+
+/** (T243) a link on its own line is a 44 px row (the touch-target floor), its words centred in it */
+const LINK_ROW = { minHeight: 44, justifyContent: "center" } as const;
 
 export function LicencesList({ vm, palette }: { vm: LicencesVM; palette: Palette }) {
   return (
@@ -22,8 +26,8 @@ export function LicencesList({ vm, palette }: { vm: LicencesVM; palette: Palette
             <Text style={{ ...TYPE.small, color: palette.sub }}>{r.from}</Text>
             <Text style={{ ...TYPE.small, color: palette.sub }}>{`${LICENCE_WORDS.shows}: ${r.shows}`}</Text>
             {r.licenceUrl ? (
-              <Pressable onPress={() => open(r.licenceUrl!)} accessibilityRole="link"
-                         accessibilityLabel={LICENCE_WORDS.licenceFor(r.name, r.licenceLabel)}>
+              <Pressable {...hitProps({ w: 120, h: 44 })} onPress={() => open(r.licenceUrl!)} accessibilityRole="link"
+                         accessibilityLabel={LICENCE_WORDS.licenceFor(r.name, r.licenceLabel)} style={LINK_ROW}>
                 <Text style={{ ...TYPE.small, color: palette.accent }}>
                   {`${LICENCE_WORDS.licence}: ${r.licenceLabel} ${WORDS.LINK_OUT}`}
                 </Text>
@@ -37,7 +41,7 @@ export function LicencesList({ vm, palette }: { vm: LicencesVM; palette: Palette
               </Text>
             )}
             {r.url !== null && (
-              <Pressable onPress={() => open(r.url!)} accessibilityRole="link" accessibilityLabel={`${LICENCE_WORDS.open}: ${r.name}`}>
+              <Pressable {...hitProps({ w: 120, h: 44 })} onPress={() => open(r.url!)} accessibilityRole="link" accessibilityLabel={`${LICENCE_WORDS.open}: ${r.name}`} style={LINK_ROW}>
                 <Text style={{ ...TYPE.small, color: palette.accent }}>{`${LICENCE_WORDS.open} ${WORDS.LINK_OUT}`}</Text>
               </Pressable>
             )}
@@ -45,8 +49,8 @@ export function LicencesList({ vm, palette }: { vm: LicencesVM; palette: Palette
               <View testID={`licence-files-${r.k}`} style={{ gap: 2 }}>
                 <Text style={{ ...TYPE.small, color: palette.sub }}>{LICENCE_WORDS.files}</Text>
                 {r.files.map((f) => (
-                  <Pressable key={f.url} onPress={() => open(f.url)} accessibilityRole="link"
-                             accessibilityLabel={LICENCE_WORDS.filesFor(r.name, f.label)}>
+                  <Pressable {...hitProps({ w: 120, h: 44 })} key={f.url} onPress={() => open(f.url)} accessibilityRole="link"
+                             accessibilityLabel={LICENCE_WORDS.filesFor(r.name, f.label)} style={LINK_ROW}>
                     <Text style={{ ...TYPE.small, color: palette.accent }}>{`${f.label} ${WORDS.LINK_OUT}`}</Text>
                   </Pressable>
                 ))}

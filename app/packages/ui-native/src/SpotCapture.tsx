@@ -37,6 +37,7 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
 import { Icon, IconText, type IconName } from "./icons";
+import { hitProps } from "./regs/hit";
 
 type Step = "water" | "point" | "when" | "details" | "saving";
 /** Where one back goes from each step: the step before it (a read in flight goes back to the hour it was asked for). */
@@ -211,7 +212,8 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card, padding: 20, gap: 26 }}>
-      <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={CW.back}>
+      <Pressable {...hitProps({ w: 60, h: 44 })} onPress={onBack} accessibilityRole="button" accessibilityLabel={CW.back}
+                 style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}>
         <IconText name="back" text={CW.back} style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }} />
       </Pressable>
       {error ? <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed }}>{error}</Text> : null}
@@ -229,7 +231,7 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
                        color: palette.faint }}>DAY</Text>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           {VISIT_QUICK_DAYS.map(([label, off]) => (
-            <Pressable key={label} accessibilityRole="button" accessibilityLabel={label}
+            <Pressable {...hitProps({ w: 60, h: 36 })} key={label} accessibilityRole="button" accessibilityLabel={label}
                        onPress={() => onDay(off)}
                        style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: palette.r.pill,
                                 borderWidth: 1,
@@ -268,7 +270,7 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
       </View>
 
       <View style={{ flex: 1 }} />
-      <Pressable onPress={onNext} accessibilityRole="button" accessibilityLabel={CW.next}
+      <Pressable {...hitProps({ w: 200, h: 51 })} onPress={onNext} accessibilityRole="button" accessibilityLabel={CW.next}
                  style={{ borderRadius: palette.r.box, paddingVertical: 15, alignItems: "center",
                           backgroundColor: palette.accent }}>
         <Text style={{ ...TYPE.bodyStrong, color: palette.onAccent }}>{CW.next}</Text>
@@ -281,7 +283,7 @@ function Step({ palette, label, icon, onPress, disabled }: {
   palette: Palette; label: string; icon: IconName; onPress: () => void; disabled?: boolean;
 }) {
   return (
-    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button"
+    <Pressable {...hitProps({ w: 44, h: 44 })} onPress={onPress} disabled={disabled} accessibilityRole="button"
                accessibilityLabel={label} aria-disabled={!!disabled}
                style={{ width: 44, height: 44, borderRadius: palette.r.box, alignItems: "center",
                         justifyContent: "center", borderWidth: 1, borderColor: palette.line2,

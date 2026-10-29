@@ -25,6 +25,7 @@ import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName } from "
 import { FreshDot, FreshBadge } from "./Fresh";
 import { DottedSwatch } from "../Chrome";
 import { Icon } from "../icons";
+import { hitProps } from "../regs/hit";
 
 export interface MoreScreenProps {
   palette: Palette;
@@ -89,8 +90,7 @@ function Head({ vm, palette, onBack }: { vm: MoreVM; palette: Palette; onBack: (
     <View style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       <View style={{ width: "100%", maxWidth: wide ? MORE_WIDE.maxWidth + 2 * GUTTER : undefined, alignSelf: "center",
                      paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s3, gap: SPACE.s1 }}>
-        <Pressable testID="more-back" onPress={onBack} accessibilityRole="button" accessibilityLabel={vm.back.label}
-                   hitSlop={8} style={{ alignSelf: "flex-start", minHeight: 32, flexDirection: "row", alignItems: "center", gap: 2 }}>
+        <Pressable {...hitProps({ w: 60, h: 32 })} testID="more-back" onPress={onBack} accessibilityRole="button" accessibilityLabel={vm.back.label} style={{ alignSelf: "flex-start", minHeight: 32, flexDirection: "row", alignItems: "center", gap: 2 }}>
           <Icon name="back" colour={palette.accent} size={16} />
           <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{vm.back.to}</Text>
         </Pressable>
@@ -161,8 +161,8 @@ function DataBlock({ vm, palette, metered }: { vm: MoreVM["data"]; palette: Pale
                        gap: 2, borderLeftWidth: 3, borderLeftColor: palette.attention, backgroundColor: palette.tint }}>
           <Text style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink }}>{vm.inseason.title}</Text>
           <Text style={{ ...TYPE.small, color: palette.ink }}>{vm.inseason.text}</Text>
-          <Pressable testID="data-inseason-link" onPress={() => { void Linking.openURL(vm.inseason.link.url); }}
-                     accessibilityRole="link" accessibilityLabel={vm.inseason.link.label} hitSlop={6}
+          <Pressable {...hitProps({ w: 120, h: 28 })} testID="data-inseason-link" onPress={() => { void Linking.openURL(vm.inseason.link.url); }}
+                     accessibilityRole="link" accessibilityLabel={vm.inseason.link.label}
                      style={{ alignSelf: "flex-start", minHeight: 28, justifyContent: "center" }}>
             <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{`${vm.inseason.link.label} ${WORDS.LINK_OUT}`}</Text>
           </Pressable>
@@ -226,7 +226,7 @@ function UpdatesRow({ vm, palette, metered }: { vm: NonNullable<MoreVM["data"]["
         </Text>
       ))}
       {metered && (
-        <Pressable testID="data-updates-metered" onPress={() => metered.set(!metered.on)}
+        <Pressable {...hitProps({ w: 200, h: 40 })} testID="data-updates-metered" onPress={() => metered.set(!metered.on)}
                    accessibilityRole="switch" aria-checked={metered.on} accessibilityLabel={C.label}
                    accessibilityHint={C.hint}
                    style={{ flexDirection: "row", alignItems: "center", minHeight: 40, marginTop: SPACE.s1 }}>
@@ -258,7 +258,7 @@ function LowDataRow({ palette }: { palette: Palette }) {
         {(["auto", "on", "off"] as const).map((k) => {
           const on = setting === k;
           return (
-            <Pressable key={k} testID={`data-low-${k}`} onPress={() => setSetting(k)} accessibilityRole="radio"
+            <Pressable {...hitProps({ w: 64, h: 40 })} key={k} testID={`data-low-${k}`} onPress={() => setSetting(k)} accessibilityRole="radio"
                        aria-checked={on} accessibilityLabel={`${W.label}: ${W.choices[k]}`}
                        style={({ pressed }) => ({ minHeight: 40, minWidth: 64, paddingHorizontal: SPACE.s3, justifyContent: "center",
                                                   alignItems: "center", borderWidth: 1.5,
@@ -283,7 +283,7 @@ function Pages({ vm, palette, onPick }: { vm: MoreVM; palette: Palette; onPick: 
       <View style={{ height: SPACE.s4 + SPACE.s2 }} />
       <Group palette={palette}>
         {vm.rows.map((it, i) => (
-          <Pressable key={it.k} testID={`menu-item-${it.k}`} onPress={() => onPick(it.k)}
+          <Pressable {...hitProps({ w: 300, h: 56 })} key={it.k} testID={`menu-item-${it.k}`} onPress={() => onPick(it.k)}
                      accessibilityRole="button" accessibilityLabel={it.label} accessibilityHint={it.hint}
                      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: SPACE.s3,
                                                 paddingVertical: SPACE.s3, paddingHorizontal: GUTTER, minHeight: 56,
@@ -320,7 +320,7 @@ function DisplayTiles({ vm, palette, theme, onTheme }: {
               const on = o.k === theme;
               const p = THEMES[o.k];
               return (
-                <Pressable key={o.k} testID={`theme-${o.k}`} onPress={() => onTheme(o.k)} accessibilityRole="radio"
+                <Pressable {...hitProps({ w: 90, h: 60 })} key={o.k} testID={`theme-${o.k}`} onPress={() => onTheme(o.k)} accessibilityRole="radio"
                            aria-checked={on} accessibilityLabel={o.t}
                            style={{ flex: 1, minWidth: 0, borderWidth: on ? 2 : 1, borderColor: on ? palette.accent : palette.line,
                                     padding: on ? 0 : 1, backgroundColor: palette.card }}>
@@ -369,7 +369,7 @@ function ContactBlock({ vm, palette }: { vm: MoreVM["contact"]; palette: Palette
           {c.kind === "none"
             ? <Text testID="contact-placeholder" style={{ ...TYPE.small, color: palette.sub }}>{c.text}</Text>
             : (
-              <Pressable onPress={() => { void Linking.openURL(c.url); }} accessibilityRole="link"
+              <Pressable {...hitProps({ w: 120, h: 32 })} onPress={() => { void Linking.openURL(c.url); }} accessibilityRole="link"
                          accessibilityLabel={`${c.label}: ${c.value}`}
                          style={{ flexDirection: "row", alignItems: "baseline", gap: SPACE.s2, minHeight: 32 }}>
                 <Text style={{ ...TYPE.section, color: palette.sub }}>{c.label}</Text>

@@ -16,6 +16,7 @@ import { usePhotoUris, type SpotsMenuAddKind, type SpotsMenuRow, type SpotsMenuV
 import { Icon } from "./icons";
 import { TYPE } from "./type";
 import { GUTTER, type Palette } from "./theme";
+import { hitProps } from "./regs/hit";
 
 export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore }: {
   palette: Palette; vm: SpotsMenuVM;
@@ -50,7 +51,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 16,
                          backgroundColor: palette.tint }}>
             <Text testID="spots-stale" style={{ ...TYPE.small, flex: 1, color: palette.sub }}>{vm.stale}</Text>
-            <Pressable onPress={onRefresh} disabled={refreshing}
+            <Pressable {...hitProps({ w: 80, h: 37 })} onPress={onRefresh} disabled={refreshing}
                        accessibilityRole="button" accessibilityLabel={SPOTS_MENU.refreshLabel}
                        style={{ borderRadius: palette.r.pill, paddingVertical: 8, paddingHorizontal: 14,
                                 backgroundColor: palette.card, borderWidth: 1,
@@ -70,7 +71,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
                                                    paddingTop: 12 }}>{error}</Text>
         ) : null}
         {vm.adds.map((a, i) => (
-          <Pressable key={a.k} onPress={() => onAdd(a.k)} accessibilityRole="button" accessibilityLabel={a.label}
+          <Pressable {...hitProps({ w: 300, h: 46 })} key={a.k} onPress={() => onAdd(a.k)} accessibilityRole="button" accessibilityLabel={a.label}
                      style={({ pressed }) => ({
                        flexDirection: "row", alignItems: "center", gap: 13, paddingVertical: 13,
                        paddingHorizontal: 20, backgroundColor: pressed ? palette.wash : palette.card,
@@ -102,7 +103,7 @@ function SpotRow({ row, palette, onOpen, onShow, photoStore }: {
   const thumb = usePhotoUris(photoStore, first).get(row.photo ?? "") ?? null;
   return (
     <View style={{ flexDirection: "row", alignItems: "stretch", borderTopWidth: 1, borderTopColor: palette.line }}>
-      <Pressable onPress={onOpen} accessibilityRole="button" accessibilityLabel={row.title}
+      <Pressable {...hitProps({ w: 200, h: 46 })} onPress={onOpen} accessibilityRole="button" accessibilityLabel={row.title}
                  style={({ pressed }) => ({
                    flex: 1, flexDirection: "row", gap: 13, paddingVertical: 13, paddingLeft: 20, paddingRight: 8,
                    alignItems: "flex-start", backgroundColor: pressed ? palette.wash : palette.card,
@@ -126,7 +127,7 @@ function SpotRow({ row, palette, onOpen, onShow, photoStore }: {
           </Text>
         </View>
       </Pressable>
-      <Pressable onPress={onShow} accessibilityRole="button" accessibilityLabel={row.showLabel}
+      <Pressable {...hitProps({ w: 64, h: 46 })} onPress={onShow} accessibilityRole="button" accessibilityLabel={row.showLabel}
                  style={({ pressed }) => ({
                    width: 64, alignItems: "center", justifyContent: "center", gap: 3,
                    borderLeftWidth: 1, borderLeftColor: palette.line,

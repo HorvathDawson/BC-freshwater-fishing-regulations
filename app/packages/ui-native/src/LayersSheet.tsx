@@ -20,6 +20,7 @@ import { Sheet } from "./Sheet";
 import { OptionRow, type Option } from "./OptionRow";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
+import { hitProps } from "./regs/hit";
 
 /** A legend swatch's colour, from the theme's map tokens (never restated): what the map draws for it. */
 export function legendColour(p: Palette, s: LegendSwatch): string {
@@ -133,7 +134,7 @@ function Section({ palette, title, children }: { palette: Palette; title: string
 function SwitchRow({ palette, row, onPress }: { palette: Palette; row: LayerTileVM; onPress: () => void }) {
   const off = !row.enabled;
   return (
-    <Pressable onPress={off ? undefined : onPress} disabled={off} testID={`layer-${row.id}`}
+    <Pressable {...hitProps({ w: 300, h: 40 })} onPress={off ? undefined : onPress} disabled={off} testID={`layer-${row.id}`}
                accessibilityRole="switch" aria-checked={row.chosen} aria-disabled={off} accessibilityLabel={row.label}
                style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10,
                         borderTopWidth: 1, borderTopColor: palette.line, opacity: off ? 0.45 : 1 }}>

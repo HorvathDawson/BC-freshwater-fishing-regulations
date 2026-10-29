@@ -8,6 +8,7 @@ import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import { Hit } from "./Hit";
 import type { Row } from "./rows";
+import { hitProps } from "../regs/hit";
 
 export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, today, onRecent, onClearRecents }: {
   r: Row; palette: Palette; pick: SearchPick; act: (a: SearchAction) => void; onOpenWater: (item: ItemId) => void;
@@ -25,7 +26,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
                      borderTopColor: palette.line,
                      backgroundColor: r.band ? palette.placeBand : undefined }}>
         {r.back ? (
-          <Pressable onPress={() => act({ t: "back" })} accessibilityRole="button"
+          <Pressable {...hitProps({ w: 80, h: 14 })} onPress={() => act({ t: "back" })} accessibilityRole="button"
                      accessibilityLabel={SEARCH_BAR.backToAll}>
             <IconText name="back" text={r.label} size={14} gap={2}
                       style={{ ...TYPE.section, color: palette.accent }} />
@@ -37,8 +38,8 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
           </Text>
         )}
         {r.right && r.action === "clear-recents" ? (
-          <Pressable testID="search-clear-recents" onPress={onClearRecents} accessibilityRole="button"
-                     accessibilityLabel={SEARCH_FIND.clearLabel} hitSlop={10} style={{ marginLeft: "auto" }}>
+          <Pressable {...hitProps({ w: 40, h: 14 })} testID="search-clear-recents" onPress={onClearRecents} accessibilityRole="button"
+                     accessibilityLabel={SEARCH_FIND.clearLabel} style={{ marginLeft: "auto" }}>
             <Text style={{ ...TYPE.section, color: palette.accent }}>{r.right}</Text>
           </Pressable>
         ) : r.right ? (
@@ -58,7 +59,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
     );
   if (r.t === "recent")
     return (
-      <Pressable testID={`search-recent-${r.q}`} onPress={() => onRecent?.(r.q)} accessibilityRole="button"
+      <Pressable {...hitProps({ w: 300, h: 48 })} testID={`search-recent-${r.q}`} onPress={() => onRecent?.(r.q)} accessibilityRole="button"
                  accessibilityLabel={SEARCH_FIND.again(r.q)}
                  style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 48,
                                             paddingHorizontal: 18, borderTopWidth: 1, borderTopColor: palette.line,
@@ -80,7 +81,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
         <Text style={{ ...TYPE.body, color: palette.ink }}>{r.line}</Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {r.see.filter((t) => t.item !== null).map((t) => (
-            <Pressable key={`${t.item}:${t.name}`} onPress={() => onOpenWater(t.item!)}
+            <Pressable {...hitProps({ w: 80, h: 44 })} key={`${t.item}:${t.name}`} onPress={() => onOpenWater(t.item!)}
                        accessibilityRole="button" accessibilityLabel={SEARCH_BAR.open(t.name)}
                        style={({ pressed }) => ({
                          flexDirection: "row", alignItems: "center", gap: 2, minHeight: 44,

@@ -33,8 +33,9 @@ import { Icon } from "./icons";
 import { SyncRing } from "./SyncRing";
 import { CLOSE_KEEPS_FOCUS, closedFieldClick } from "./searchFocus";
 import { NATIVE_DRIVER, useReducedMotion } from "./motion";
-import { TYPE } from "./type";
+import { TYPE, CAPPED_SCALE } from "./type";
 import type { Palette } from "./theme";
+import { hitProps } from "./regs/hit";
 
 /** The bar's measures: inset from the screen's edges, the field, the slab under it, the sync slot and its dot. */
 export const TOP_BAR = { top: 10, side: 14, field: 44, slab: 3, wide: 720, panel: 440, slot: 40, dot: 8,
@@ -89,7 +90,7 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
           {/* THE SAME 40 PX SLOT before and after focus: the magnifier, or (phone) the ‹ that closes search — no jump.
               A wide screen keeps the magnifier: its close is the results panel's ✕, by the results (`SearchSheet`). */}
           {open && panel === null ? (
-            <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SEARCH_BAR.close} hitSlop={4}
+            <Pressable {...hitProps({ w: TOP_BAR.slot, h: TOP_BAR.field })} onPress={onClose} accessibilityRole="button" accessibilityLabel={SEARCH_BAR.close}
                        style={{ width: TOP_BAR.slot, alignSelf: "stretch", alignItems: "center", justifyContent: "center" }}>
               <Icon name="back" colour={palette.ink} size={22} />
             </Pressable>
@@ -121,6 +122,8 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
                      placeholder={placeholder}
                      placeholderTextColor={palette.faint}
                      accessibilityLabel={SEARCH_BAR.label}
+                     // (T243) the field is a fixed 44 px row: its words follow the OS text size to 2× (a 42 px line)
+                     maxFontSizeMultiplier={CAPPED_SCALE}
                      autoCorrect={false} autoCapitalize="none" returnKeyType="search"
                      // the field's own edge (accent while open) is its focus mark: no second browser ring inside it
                      style={{ ...TYPE.body, fontSize: 16, lineHeight: 21, color: palette.ink, flex: 1, minWidth: 0,
@@ -128,7 +131,7 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
                               paddingVertical: 0, paddingRight: query.length > 0 || (!open && sync) ? 0 : 12,
                               height: TOP_BAR.field }} />
           {query.length > 0 ? (
-            <Pressable onPress={() => onQuery("")} accessibilityRole="button" accessibilityLabel={SEARCH_BAR.clear}
+            <Pressable {...hitProps({ w: TOP_BAR.slot, h: TOP_BAR.field })} onPress={() => onQuery("")} accessibilityRole="button" accessibilityLabel={SEARCH_BAR.clear}
                        style={{ width: TOP_BAR.slot, alignSelf: "stretch", alignItems: "center", justifyContent: "center" }}>
               <Icon name="close" colour={palette.sub} size={18} />
             </Pressable>
@@ -149,7 +152,7 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
  */
 function NoticeButton({ palette, count, label, onPress }: { palette: Palette; count: number; label: string; onPress: () => void }) {
   return (
-    <Pressable testID="inseason-bell" onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={2}
+    <Pressable {...hitProps({ w: TOP_BAR.slot + 4, h: TOP_BAR.field })} testID="inseason-bell" onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
                style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
                                           justifyContent: "center", borderLeftWidth: 1, borderLeftColor: palette.line,
                                           backgroundColor: pressed ? palette.wash : "transparent" })}>
@@ -186,9 +189,9 @@ export function BellGlyph({ palette, count }: { palette: Palette; count: number 
  */
 function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM; onPress?: () => void }) {
   return (
-    <Pressable testID="sync-button" onPress={onPress} disabled={sync.kind === "checking"}
+    <Pressable {...hitProps({ w: TOP_BAR.slot + 4, h: TOP_BAR.field })} testID="sync-button" onPress={onPress} disabled={sync.kind === "checking"}
                accessibilityRole="button" accessibilityLabel={sync.label} accessibilityHint={sync.hint}
-               aria-busy={sync.kind === "checking" || sync.kind === "downloading"} hitSlop={2}
+               aria-busy={sync.kind === "checking" || sync.kind === "downloading"}
                style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
                                           justifyContent: "center", borderLeftWidth: 1, borderLeftColor: palette.line,
                                           backgroundColor: pressed ? palette.wash : "transparent" })}>

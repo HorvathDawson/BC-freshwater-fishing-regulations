@@ -13,6 +13,7 @@ import { Platform, Pressable, Text, View } from "react-native";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
+import { hitProps } from "./regs/hit";
 
 /** One button of the stack: 40 px square, reaching 48 with its slop (a thumb's target). */
 const SIZE = 40;
@@ -56,8 +57,7 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, childre
                    borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.box, overflow: "hidden",
                    ...palette.lift }}>
       {buttons.map((b, i) => (
-        <Pressable key={b.k} onPress={b.onPress} accessibilityRole="button" accessibilityLabel={b.label}
-                   hitSlop={4}
+        <Pressable {...hitProps({ w: SIZE, h: SIZE })} key={b.k} onPress={b.onPress} accessibilityRole="button" accessibilityLabel={b.label}
                    style={({ pressed }) => ({
                      width: SIZE, height: SIZE, alignItems: "center", justifyContent: "center",
                      backgroundColor: pressed ? palette.tint : palette.card,

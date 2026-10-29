@@ -18,10 +18,11 @@
  * needs a real DOM node to attach a canvas to, and on this platform RNW is producing divs
  * anyway. The native renderer is a different file for exactly this reason.
  */
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./controls.css";
 import { mapChrome } from "./chrome";
+import { setReducedMotion } from "./motion";
 import type { MapMark, MapProps } from "./map-props";
 import { MARK_LABEL_FONT } from "./marks";
 import { useMapInstance } from "./web/useMapInstance";
@@ -45,6 +46,15 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
                       zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, insetTop = 0, onRegion }: MapProps) {
   const refs = useWebMapRefs(onError);
+  // (T243) the camera's own glides jump while the OS asks for reduced motion (`motion.ts`)
+  useEffect(() => {
+    const mq = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+    if (!mq) return;
+    const on = () => setReducedMotion(mq.matches);
+    on();
+    mq.addEventListener?.("change", on);
+    return () => mq.removeEventListener?.("change", on);
+  }, []);
   // Confines the BASEMAP's labels to British Columbia — see `useOutsideMask`. Absent on the
   // first frame and present a moment later, which is why it is applied by an effect after the map is made
   // rather than only in the constructor.

@@ -24,6 +24,7 @@ import { BROWSE_TABS } from "@app/core";
 import { Icon, type IconName } from "./icons";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
+import { hitProps } from "./regs/hit";
 
 /** The tabs and their names are core's (`BROWSE_TABS`, T60): each key is also the icon that draws it. */
 export const TABS = BROWSE_TABS satisfies readonly { k: IconName; t: string }[];
@@ -31,6 +32,8 @@ export const TABS = BROWSE_TABS satisfies readonly { k: IconName; t: string }[];
 export type TabKey = (typeof TABS)[number]["k"];
 
 /** The bar's measures: 20 px icons (22 before T48), 3 px to the label, 5 / 4 px above and below (9 / 10 before). */
+/** (T243) how far a tab's label follows the OS text size (the bar's quarter-width holds no more) */
+const TAB_LABEL_SCALE = 1.3;
 export const TAB_BAR = { icon: 20, gap: 3, padTop: 5, padBottom: 4, minHit: 44 } as const;
 
 export function TabBar({ active, onChange, palette }:
@@ -45,14 +48,17 @@ export function TabBar({ active, onChange, palette }:
       {TABS.map(({ k, t }) => {
         const on = k === active;
         return (
-          <Pressable key={k} onPress={() => onChange(k)}
+          <Pressable {...hitProps({ w: 80, h: TAB_BAR.minHit })} key={k} onPress={() => onChange(k)}
                      accessibilityRole="tab" aria-selected={on}
                      accessibilityLabel={t}
                      style={{ flex: 1, alignItems: "center", gap: TAB_BAR.gap, paddingVertical: 2,
                               minHeight: TAB_BAR.minHit, justifyContent: "center" }}>
             <Icon name={k} colour={on ? palette.ink : palette.sub} size={TAB_BAR.icon} />
             {/* the label is always there: an icon alone is a guess */}
-            <Text style={{ ...TYPE.tab, color: on ? palette.ink : palette.sub }}>{t}</Text>
+            {/* (T243) the label grows with the OS text size to TAB_LABEL_SCALE, as the platforms' own tab bars hold theirs: a
+                quarter of a phone holds "CONDITIONS" no larger; the tab's name is still said in full by a screen reader */}
+            <Text maxFontSizeMultiplier={TAB_LABEL_SCALE} numberOfLines={1}
+                  style={{ ...TYPE.tab, color: on ? palette.ink : palette.sub }}>{t}</Text>
             {/* THE SELECTED TAB IS UNDERSCORED, not just tinted. Colour alone carries the
                 state nowhere a reader is colour-blind or the screen is in sunlight, and a
                 solid bar under the label is how a printed index marks its page. */}

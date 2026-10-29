@@ -18,6 +18,7 @@ import { Button } from "../Button";
 import { Choice } from "../Sheet";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
+import { hitProps } from "../regs/hit";
 
 export function ReportPage({ diagnostics, contact, palette, sender = null }: {
   diagnostics: Diagnostics; contact: string | null; palette: Palette;
@@ -97,7 +98,7 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
           <Text testID={emailBad ? "report-email-bad" : undefined}
                 style={{ ...TYPE.small, color: emailBad ? palette.closed : palette.sub }}>{emailBad ?? w.emailHint}</Text>
           {contactShown && (
-            <Pressable testID="report-contact" onPress={() => setMayContact((c) => !c)} accessibilityRole="checkbox"
+            <Pressable {...hitProps({ w: 200, h: 44 })} testID="report-contact" onPress={() => setMayContact((c) => !c)} accessibilityRole="checkbox"
                        aria-checked={mayContact} accessibilityLabel={w.contact}
                        style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, minHeight: 44 }}>
               <View style={{ width: 22, height: 22, borderWidth: 1.5, borderColor: palette.ink, borderRadius: 4,

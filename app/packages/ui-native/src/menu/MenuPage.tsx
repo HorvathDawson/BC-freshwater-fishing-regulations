@@ -11,6 +11,7 @@ import { useBackLayer, useLayoutClass } from "@app/ui";
 import { IconText } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, type Palette } from "../theme";
+import { hitProps } from "../regs/hit";
 
 export function MenuPage({ open, title, onBack, palette, children, scroll = true, testID, backLabel }: {
   open: boolean; title: string; onBack: () => void; palette: Palette; children: React.ReactNode;
@@ -50,7 +51,7 @@ function MenuPageHead({ title, onBack, palette, backLabel = MENU_WORDS.back, col
   return (
     <View style={{ borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s3, gap: SPACE.s1, ...column }}>
-        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={backLabel} hitSlop={8}
+        <Pressable {...hitProps({ w: 60, h: 32 })} onPress={onBack} accessibilityRole="button" accessibilityLabel={backLabel}
                    style={{ alignSelf: "flex-start", minHeight: 32, justifyContent: "center" }}>
           <IconText name="back" text={backLabel} style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }} />
         </Pressable>
