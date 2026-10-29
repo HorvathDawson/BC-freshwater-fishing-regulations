@@ -59,7 +59,7 @@ sinkers, or attracting devices may not be attached to the line when fishing is r
 
 **hatchery trout**: in some waters, hatchery trout may be harvested but wild trout must be
 released. In these waters, hatchery trout are marked before stocking by removal of their adipose
-fin. Therefore, these hatchery trout must have a healed scar in place of the missing fin.
+fin (see centre colour section). Therefore, these hatchery trout must have a healed scar in place of the missing fin.
 
 **kokanee**: a land-locked sockeye salmon.
 
@@ -67,9 +67,12 @@ fin. Therefore, these hatchery trout must have a healed scar in place of the mis
 
 **licence year**: the period beginning April 1 and ending March 31.
 
-**Management Unit**: a subdivision of a region.
+**Management Unit**: a Management Unit is a subdivision of a region. For detailed maps of Management
+Units, the British Columbia Recreational Atlas is available at many bookstores.
 
-**max**: abbreviation for maximum. · **min**: abbreviation for minimum.
+**max**: abbreviation for maximum.
+
+**min**: abbreviation for minimum.
 
 **non-resident**: means you are not a "resident", but (a) you are a Canadian citizen or landed
 immigrant, OR (b) your primary residence is in Canada, AND you have resided in Canada for the
@@ -84,7 +87,7 @@ one is registered to vote. A motor home or vessel at a campsite or marina is not
 be an ordinary residence.
 
 **possession quota**: the number of fish of any species that an angler may have in their
-possession at any given time, **EXCEPT at place of ordinary residence**. In most instances, the
+possession at any given time, **EXCEPT at place of ordinary residence** (see above). In most instances, the
 possession quota is two times the daily quota. See Tables for exceptions.
 
 **resident**: means your primary residence is in British Columbia, AND (a) you are a Canadian
@@ -133,7 +136,7 @@ the named waterbody itself.
 
 **wild trout**: in some waters, hatchery trout may be harvested but wild trout must be released.
 In these waters, wild trout will not be marked as hatchery fish and will have a normal adipose
-fin, or will have an unhealed scar in place of that fin, if missing.
+fin (see illustration on page 13), or will have an unhealed scar in place of that fin, if missing.
 
 ---
 

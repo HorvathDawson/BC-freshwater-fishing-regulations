@@ -28,6 +28,7 @@ from pipeline.common import entry_id as EID
 #: 3 (ROUND20g 3): the possession quota in one short line and one short example (the book's words stay in `quote`)
 #: 4 (ROUND20h 2): the possession term says only WHERE it holds — the rule's plain line says the number and the exception
 #: 5 (ROUND20i 4): fly fishing only names the gear the p.80 definitions exclude
+#: (T288, still 5: same term shape, more terms) every p.80 definition is a term — `t_definitions`
 VERSION = 5
 
 
@@ -408,6 +409,31 @@ def t_regions(B: Book, D: Data) -> List[dict]:
     return out
 
 
+#: T288: the p.80 terms a written term above already explains under its own name (its `term` is that word) — every
+#: other p.80 definition becomes a term of its own, in the book's words (`t_definitions`). The completeness test
+#: (`pipeline/tests/test_glossary_complete.py`) pins that every term the page prints is one or the other.
+COVERED = {"daily quota": "daily_quota", "possession quota": "possession_quota", "fly fishing": "fly_fishing",
+           "artificial fly": "artificial_fly", "tributaries": "tributaries", "steelhead": "steelhead",
+           "set line": "set_line", "management unit": "management_unit", "licence year": "licence_year",
+           "classified waters": "classified_waters", "streams": "stream"}
+
+
+def _slug(term: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", term.lower()).strip("_")
+
+
+def t_definitions(B: Book, D: Optional[Data] = None) -> List[dict]:
+    """T288: every p.80 definition no written term covers, VERBATIM — the book's words are the plain words (`says` and
+    `quote` alike); its page is p.80, plus any page the definition sends the reader to ("see page 13")."""
+    out = []
+    for term, text in sorted(B.defs.items()):
+        if term in COVERED:
+            continue
+        pages = [80] + [int(n) for n in re.findall(r"\bpages? (\d{1,3})\b", text)]
+        out.append(_term(f"def_{_slug(term)}", term[:1].upper() + term[1:], text, pages, text, "definitions p.80"))
+    return out
+
+
 GENERATORS = (t_daily, t_possession, t_release, t_no_fishing_for, t_hook, t_fly_fishing,
               t_artificial_fly, t_bait, t_tributaries, t_hatchery, t_steelhead, t_stamp, t_surcharge,
               t_classified, t_set_line, t_guided, t_under_16, t_stream, t_mu, t_year)
@@ -417,7 +443,7 @@ def build(doc: dict, book: Book) -> dict:
     """The glossary: {version, terms} — every term generated from the export (`doc`, decoded) and
     the book's text (`book`: `Book.from_bundle(<the bundle>)`)."""
     B, D = book, Data(doc)
-    terms = [g(B, D) for g in GENERATORS] + t_regions(B, D)
+    terms = [g(B, D) for g in GENERATORS] + t_regions(B, D) + t_definitions(B, D)
     ids = [t["id"] for t in terms]
     if len(set(ids)) != len(ids):
         raise AnswersError("glossary: two terms share an id")
