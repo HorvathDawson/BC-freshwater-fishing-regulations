@@ -303,7 +303,10 @@ use that as the sole source of future work."
 | T257 | polish pass: coach-mark tour, "Before you fish" sheet, one delayed FishSpinner for every wait, shared components + guards | IN PROGRESS | — | owner 2026-10-29 polish pass |
 | T258 | accessibility leftovers: T257's screens into the shell gate, web text-row labels, web targets, owner TalkBack/VoiceOver walk | OPEN | — | after T257 |
 | T259 | offline map by region: per-region tiles, Save/Remove map regions, install/update fetch kept maps only | OPEN | — | needs T85/T202 tile split; owner default regions |
+| T260 | shared components part 2: Chip/Badge, SegmentedControl, EmptyState, Banner, SectionHeader, caption token, icon ladder, IconButton (rest of the T257 sweep) | OPEN | — | owner 2026-10-29 polish pass |
 | T261 | run timing v2: its own Runs tab (bell stays), date slider by pentad (Play, today, season), watershed groups zoomed out, multi-species chips with fish art (kept), DFO counts in the sheet ("No counts" otherwise), feed `n` + `basins` on staging | PARTIAL | — | owner 2026-10-29; follows T199; counts coverage + native run open |
+| T262 | Android first install crashes (OutOfMemoryError in expo fetch, 8 MB range bodies on the Java heap); resumes on relaunch | OPEN | — | found by T255 |
+| T263 | the bell says a data update is waiting for Wi-Fi / ready / needs a newer app (today: failures + in-season only) | OPEN | — | owner 2026-10-29 via T255 |
 
 ## Order for open tickets
 
