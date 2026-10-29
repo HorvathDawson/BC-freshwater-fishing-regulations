@@ -34,6 +34,7 @@
  * Safe areas are the app's (`apps/mobile` App.tsx wraps everything in a SafeAreaView); the frame adds none of its own.
  */
 import { useContext, useRef } from "react";
+import { WATER_TITLE_WORDS } from "@app/core";
 import { Animated, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { FaceBar, type Face } from "./Faces";
 import { SwipeFollow, SwipeOffsetContext, ViewSwipe, WaterViewsContext } from "./ViewSwipe";
@@ -98,7 +99,7 @@ export function WaterFrame({ palette, face, onBack, backLabel, title, bleed = fa
  * `name` null: the row is held empty (the name is still loading) so nothing under it moves when it arrives.
  */
 /** (T224) the line under a name that is not the official one: where it came from */
-const WATER_NAME_SOURCE = (source: string) => `Name from ${source}`;
+const WATER_NAME_SOURCE = WATER_TITLE_WORDS.nameSource;
 
 export function WaterTitle({ name, palette, source = null, children }: {
   name: string | null; palette: Palette;

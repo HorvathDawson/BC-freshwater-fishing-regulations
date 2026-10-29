@@ -42,7 +42,7 @@ export const MORE_WORDS = {
     newRelease: "A newer data release is available. Reopen the app to use it.",
     /** In-season changes (T230): shown where placed; the warning stays for rows not yet placed (owner 2026-10-29 reword) */
     inseason: {
-      title: "In-season changes",
+      title: MENU_WORDS.sources.names.inseason,
       text: "Shown on the waters they apply to. Some may not be placed on the map yet, so check the Province's notices before you fish.",
       link: "Province's in-season changes",
     },

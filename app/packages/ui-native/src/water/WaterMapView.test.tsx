@@ -88,8 +88,8 @@ describe("<WaterMapView>", () => {
     expect(bar()).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
       + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
-      highlight: [60253, 60254, 60255, 62264, 62560, 62679, 62933, 1236836, 1236837, 1236882],
-      water: [1236838, 1236883, 1236884, 59930, 59936, 61252, 62969, 1236839, 1236840, 1236841, 1236842] });
+      highlight: [60258, 60259, 60260, 62269, 62565, 62684, 62938, 1236841, 1236842, 1236887],
+      water: [1236843, 1236888, 1236889, 59931, 59937, 61257, 62974, 1236844, 1236845, 1236846, 1236847] });
     expect(seen.props?.fit).toEqual({ key: "gnis:8634:1", bbox: [-121.966394, 49.071523, -121.836034, 49.097385], refine: false });
     expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual([
       "(ring) Boundary: Chilliwack River Ecological Reserve boundary",
@@ -99,8 +99,8 @@ describe("<WaterMapView>", () => {
     expect(bar()).toBe("Part 4 of 4 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source"
       + " | Downstream | Highest part (off)");
     // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it; T206,
-    // r-f6918815ca78: 380887781:58646; T220 re-cut it to 1236842)
-    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1236842], "gnis:8634:3"]);
+    // r-f6918815ca78: 380887781:58646; T220 re-cut it to 1236842; T222 r-445850b69ae1 to 1236847, handles +5)
+    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1236847], "gnis:8634:3"]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
@@ -141,11 +141,11 @@ describe("<WaterMapView>", () => {
     expect(seen.props?.marks?.[2]?.on).toBe(true);
     fireEvent.click(pop.getByRole("button", { name: "Close" }));
     expect(screen.queryByTestId("water-map-mark")).toBeNull();
-    act(() => seen.props!.onPressFeature!("stream", 1236842));
+    act(() => seen.props!.onPressFeature!("stream", 1236847));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
-    act(() => seen.props!.onPressFeature!("stream", 62516));   // the Vedder's 355999181:0 (T206)
+    act(() => seen.props!.onPressFeature!("stream", 62521));   // the Vedder's 355999181:0 (T206)
     expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual(["Part 4 of 4 · Chilliwack River",
-      ["part gnis:8634 3", "other 62516"]]);
+      ["part gnis:8634 3", "other 62521"]]);
   }, 30_000);
 
   // (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more (E15's mark is gone); the
@@ -259,10 +259,10 @@ describe("<WaterMapView>", () => {
   }, 30_000);
 
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {
-    mount("gnis:12227", null, 59304);   // CNR Bridge -> Greendale (354155148:41391; T206, r-f6918815ca78; T185 r-ea426985a467: two cuts ahead, +2; T220 r-46be3c135e68: 59296 -> 59304)
+    mount("gnis:12227", null, 59305);   // CNR Bridge -> Greendale (354155148:41391; T206, r-f6918815ca78; T185 r-ea426985a467: two cuts ahead, +2; T220 r-46be3c135e68: 59296 -> 59304; T222 r-445850b69ae1: -> 59305)
     await ready();
     expect(bar()).toBe("Part 3 of 4 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream");
-    expect(lit().highlight).toEqual([59304]);   // the tapped handle given to mount()
+    expect(lit().highlight).toEqual([59305]);   // the tapped handle given to mount()
   }, 30_000);
 
   it("KLWA from the Main Body: the three closure areas; Show regulations for another area names that water", async () => {

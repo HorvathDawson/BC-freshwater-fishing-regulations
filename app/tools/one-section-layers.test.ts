@@ -146,8 +146,8 @@ describe("one per-section layer list: perSectionLayers() decides, everything els
                              (e) => why.push(e.message)))
       .toEqual({ stream: { 1: { other: 2 } }, lake: { 1: { other: 2 } }, wetland: { 1: { other: 2 } },
                  basin: { B: { other: 1 } } });
-    // refused once, under the key the caller used — not once per fanned-out layer
-    expect(why.map((m) => m.slice(0, m.indexOf(" refused")))).toEqual(['pushed p/standing/status/stocked/survey/sp/salmon/gm on "sections"']);
+    // refused once, under the key the caller used — not once per fanned-out layer (T199 added the run-timing key `rt`)
+    expect(why.map((m) => m.slice(0, m.indexOf(" refused")))).toEqual(['pushed p/standing/status/stocked/survey/sp/salmon/gm/rt on "sections"']);
     // every key the web map can hand setData is a style layer the adapter knows
     expect(Object.keys(withoutEngineKeys({ sections: { 1: { other: 2 } } }, () => {}))
       .filter((l) => !STYLE_META.colorModes[l])).toEqual([]);

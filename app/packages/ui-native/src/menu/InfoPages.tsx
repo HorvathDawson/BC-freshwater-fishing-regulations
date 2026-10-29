@@ -29,7 +29,7 @@ export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog }: { vm:
       </Pressable>
       {onSources && (
         <Pressable testID="about-sources" onPress={onSources} accessibilityRole="link" accessibilityLabel={LICENCE_WORDS.fromAbout}>
-          <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{`${LICENCE_WORDS.fromAbout} ›`}</Text>
+          <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{LICENCE_WORDS.fromAboutLink}</Text>
         </Pressable>
       )}
       <View style={{ gap: SPACE.s2 }}>

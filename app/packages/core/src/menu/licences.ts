@@ -6,6 +6,7 @@
  *
  * Words only, no dates: each source's freshness is the More tab's (freshness.ts).
  */
+import { MENU_WORDS } from "./words";
 
 /** The licences, named and linked once. */
 export const LICENCES = {
@@ -97,7 +98,7 @@ export const LICENCE_ROWS: readonly LicenceRow[] = [
     wording: "Reproduced from Fisheries and Oceans Canada. This is not an official version, and it was not made in "
       + "affiliation with, or with the endorsement of, the Government of Canada.",
     url: "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/index-eng.html" },
-  { k: "fwa", name: "Freshwater Atlas", from: "Province of British Columbia",
+  { k: "fwa", name: MENU_WORDS.sources.names.fwa, from: "Province of British Columbia",
     shows: "Every stream, lake and wetland on the map, and their names.", licence: "oglBc", wording: OGL_BC_WORDS,
     url: "https://www2.gov.bc.ca/gov/content/data/geographic-data-services/topographic-data/freshwater" },
   { k: "gnis", name: "BC Geographical Names", from: "Province of British Columbia",
@@ -175,9 +176,13 @@ export const LICENCE_WORDS = {
   words: "Required wording",
   /** (ODbL) the row's files in the app's public repository */
   files: "Files (in the app's public repository)",
+  /** a file link's spoken name: per row, as `licenceFor` (two rows link the same LICENSE-ODbL.md) */
+  filesFor: (name: string, file: string) => `Files for ${name}: ${file}`,
   open: "Open the publisher's page",
   /** the About page's link here */
   fromAbout: "Sources and licences",
+  /** the About page's link, with its go mark */
+  fromAboutLink: "Sources and licences ›",
 } as const;
 
 export interface LicenceRowVM extends LicenceRow {

@@ -17,7 +17,7 @@ export function InSeasonBanners({ banners, palette }: { banners: readonly InSeas
       {banners.map((b) => (
         <View key={b.id} testID="inseason-banner"
               style={{ marginTop: 10, marginBottom: 2, marginHorizontal: GUTTER, borderRadius: RADIUS.box,
-                       backgroundColor: palette.wash, borderLeftWidth: 6, borderLeftColor: palette.attention,
+                       backgroundColor: palette.tint, borderLeftWidth: 6, borderLeftColor: palette.attention,
                        paddingTop: 10, paddingBottom: 4, paddingLeft: 12, paddingRight: 14 }}>
           <Text accessibilityRole="alert" style={[TYPE.regsBody, { color: palette.ink }]}>
             <Text style={TYPE.regsBodyBold}>{b.head}: </Text>

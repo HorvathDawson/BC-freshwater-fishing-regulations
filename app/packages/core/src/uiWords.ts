@@ -11,3 +11,6 @@ export const CREDITS_WORDS = { label: "Sources" } as const;
 
 /** The loading fish's default name aloud (`FishSpinner`). */
 export const SPINNER_WORDS = { loading: "Loading" } as const;
+
+/** (T224) The water title's line under a name that is not the official one: where it came from. */
+export const WATER_TITLE_WORDS = { nameSource: (source: string) => `Name from ${source}` } as const;

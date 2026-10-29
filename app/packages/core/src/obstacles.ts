@@ -10,6 +10,8 @@
  */
 
 /** Every type a mark can have — held equal to `pipeline/deliver/tiles/obstacles.py` OBSTACLE_TYPES (obstacles.test.ts). */
+import { monthAbbr } from "./flow";
+
 export const OBSTACLE_TYPES = ["falls", "cascade", "canyon", "velocity", "culvert", "dam"] as const;
 export type ObstacleType = (typeof OBSTACLE_TYPES)[number];
 export type ObstacleSource = "fiss" | "wris" | "pscis";
@@ -71,12 +73,11 @@ const isSource = (v: unknown): v is ObstacleSource => v === "fiss" || v === "wri
 const isBarrier = (v: unknown): v is ObstacleBarrier =>
   typeof v === "string" && (OBSTACLE_BARRIERS as readonly string[]).includes(v);
 const isHabitat = (v: unknown): v is ObstacleHabitat => v === "high" || v === "medium" || v === "low";
-const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 
 /** "Sep 10, 2008" from "2008-09-10"; anything else, null. */
 export function dateWords(v: unknown): string | null {
   const m = typeof v === "string" ? /^(\d{4})-(\d{2})-(\d{2})/.exec(v.trim()) : null;
-  const mon = m ? MON[Number(m[2]) - 1] : undefined;
+  const mon = m ? monthAbbr(Number(m[2]) - 1) : undefined;   // "" past December
   return m && mon ? `${mon} ${Number(m[3])}, ${m[1]}` : null;
 }
 
