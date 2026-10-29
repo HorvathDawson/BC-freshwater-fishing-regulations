@@ -266,6 +266,10 @@ Staging only; `bc-fishing-feeds-staging` version d5181571; `vitest run --root ap
   missing key, clim.json goes up when it differs, then sync-inputs.sh.
 - First runs on the new code (dry notify): in-season 1.2 s, DFO 5.4 s (9/9 regions ok), gauges 85 s wall, 437/440 hourly
   CSVs (3 × 404: 08CG001, 08NH115, 10BE001 — listed by ECCC, no file; shown as failing parts).
+- **Listed, no data** (coordinator 2026-10-28): a station whose hourly CSV 404s for `NODATA_DAYS` = 3 days running
+  (`private/feeds/gauges/nodata.json`, first-404 per station) leaves the failure counts (`expected` in the source tally),
+  the failing parts and the degraded share; one roster note per streak goes in the daily digest; any answer (or a non-404
+  failure) ends the streak, so a station whose file appears is back by itself. `counts.listedNoData` on /status.
 
 ## Acceptance
 Feeds update on schedule on staging for a week with no hand runs; a forced source failure alerts once and the app

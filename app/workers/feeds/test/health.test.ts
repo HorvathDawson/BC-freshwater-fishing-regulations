@@ -8,7 +8,7 @@ import type { Fetch } from "../src/io";
 import { runGauges } from "../src/gauges/publish";
 import { runInSeason } from "../src/inseason";
 import { cadenceMin, servedStatus, statusHtml, recordHealth, record, type Status } from "../src/status";
-import { healthEvents } from "../src/index";
+import { healthEvents, noDataStations, NODATA_DAYS } from "../src/index";
 import { dirStore, fixtureFetch, loadRecording } from "../parity/gauges/node";
 import { MemStore } from "./dfo.scenario";
 
@@ -191,5 +191,36 @@ describe("in-season: an empty / gutted page is refused, the last good feed stand
     await priv.put("latest.json", JSON.stringify({ format: "inseason/1", at: "x", url: "u", sha: "s", rows: Array.from({ length: 30 }, () => ({})) }));
     await expect(runInSeason({ fetch: async () => new Response(""), priv, feed, html: "<html>Access Denied. Reference #18.abc</html>" })).rejects.toMatchObject({ cls: "blocked" });
     expect(await feed.get("index.json")).toBeNull();
+  });
+});
+
+describe("listed, no data: a station that 404s for NODATA_DAYS", () => {
+  const HOURLY = (st: string) => `https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_${st}_hourly_hydrometric.csv`;
+  const runAt = async (priv: MemStore, at: string, sts: Record<string, number>) => {
+    const h = new RunHealth();
+    const f = resilientFetch(async (u) => new Response("", { status: sts[/BC_(\w+)_hourly/.exec(u)![1]!]! }), h, { sleep: noSleep });
+    for (const st of Object.keys(sts)) await f(HOURLY(st));
+    const failed = Object.keys(sts).filter((st) => sts[st] !== 200);
+    return { h, ...(await noDataStations(priv, failed, 440, h, at)) };
+  };
+  it("counts as a failure until N days, then is forgiven + told once per streak; an answer ends the streak", async () => {
+    const priv = new MemStore();
+    const d0 = Date.parse("2026-10-20T13:05:00Z");
+    const day = (n: number) => new Date(d0 + n * 86_400_000).toISOString();
+    let r = await runAt(priv, day(0), { A: 404, B: 503, C: 200 });
+    expect(r.listedNoData.size).toBe(0);
+    expect(r.h.sources["eccc-hourly"]!.errors.http_404).toBe(1);
+    r = await runAt(priv, day(NODATA_DAYS), { A: 404, B: 503, C: 200 });
+    expect([...r.listedNoData]).toEqual(["A"]);
+    expect(r.h.sources["eccc-hourly"]).toMatchObject({ ok: 1, fail: 1, expected: 1, errors: { http_5xx: 1 } });
+    expect(r.events.map((e) => e.kind)).toEqual(["roster"]);
+    const key = r.events[0]!.key;
+    r = await runAt(priv, day(NODATA_DAYS + 1), { A: 404, C: 200 });
+    expect(r.events[0]!.key).toBe(key); // same streak: the outbox dedupes it (told once)
+    r = await runAt(priv, day(NODATA_DAYS + 2), { A: 200, C: 200 }); // a file appeared: back in
+    expect(r.listedNoData.size).toBe(0);
+    r = await runAt(priv, day(NODATA_DAYS + 3), { A: 404, C: 200 }); // a new streak starts from zero
+    expect(r.listedNoData.size).toBe(0);
+    expect(r.h.sources["eccc-hourly"]!.fail).toBe(1);
   });
 });

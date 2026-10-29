@@ -137,6 +137,44 @@ export function sourceDownEvents(job: Job, names: string[], st: Awaited<ReturnTy
   });
 }
 
+/** days of 404 in a row after which a listed station is "listed, no data" (out of failures; one digest note) */
+export const NODATA_DAYS = 3;
+export const NODATA_KEY = "nodata.json";
+/** Track station 404 streaks (private/feeds/gauges/nodata.json: {station: first404 ISO}). A station past NODATA_DAYS
+ *  has its 404 taken back out of the run's failure counts (`forgive`), is not a failing part, and is told ONCE per
+ *  streak in the digest as roster drift; any answer (or a non-404 failure) ends the streak, so it re-enters by itself. */
+export async function noDataStations(
+  priv: { get(k: string): Promise<string | null>; put(k: string, b: string, o?: any): Promise<void> },
+  failed: string[], asked: number, health: RunHealth, at: string, dry = false,
+): Promise<{ listedNoData: Set<string>; events: FeedEvent[] }> {
+  const out = new Set<string>();
+  const events: FeedEvent[] = [];
+  if (!asked) return { listedNoData: out, events }; // a run where nothing answered says nothing about single stations
+  let was: Record<string, string> = {};
+  try {
+    was = JSON.parse((await priv.get(NODATA_KEY)) ?? "{}") ?? {};
+  } catch {
+    was = {};
+  }
+  const next: Record<string, string> = {};
+  for (const st of failed) {
+    if (health.failedUrls.get(HOURLY(st)) !== "http_404") continue;
+    const first = was[st] ?? at;
+    next[st] = first;
+    if (Date.parse(at) - Date.parse(first) >= NODATA_DAYS * 86_400_000) {
+      out.add(st);
+      health.forgive("eccc-hourly", "http_404", HOURLY(st));
+      events.push({
+        key: `nodata:${st}:${first}`, kind: "roster", at,
+        title: `Gauge ${st}: ECCC lists it but has published no data for ${NODATA_DAYS}+ days`,
+        text: `${st} is on ECCC's real-time station list, but its hourly CSV has answered 404 since ${first}. It is no longer counted as a failure; it comes back by itself when a file appears.\nIf it stays dark, refresh the roster (realtime: false), then sync it: deploy/staging/sync-inputs.sh or Actions → "feeds — sync curated inputs → R2 private/" (what: roster).`,
+      });
+    }
+  }
+  if (!dry && JSON.stringify(next) !== JSON.stringify(was)) await priv.put(NODATA_KEY, JSON.stringify(next), { contentType: "application/json" });
+  return { listedNoData: out, events };
+}
+
 const HOURLY = (st: string) => `https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_${st}_hourly_hydrometric.csv`;
 /** share of asked stations that may fail before the gauge feed counts as degraded */
 export const GAUGE_DEGRADED_SHARE = 0.1;
@@ -172,9 +210,14 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       summary = { asked: s.asked, answered: s.answered, withPercentile: s.withPercentile, maintenance: s.maintenance, runArchive: s.runArchive, forecastReused: s.forecastReused };
       counts = { stations: s.answered, asked: s.asked, withPercentile: s.withPercentile, forecastRuns: s.forecastRuns, unchanged: m.sourcesUnchanged, forecastReused: s.forecastReused ? 1 : 0 };
       events.push(...gaugeEvents(s.maintenance as any[], at));
-      counts.failed = s.failed?.length ?? 0;
+      // owner 2026-10-28: a station ECCC lists but has 404'd for NODATA_DAYS is "listed, no data" — not a failure
+      const nd = await noDataStations(r2Store(env.BUCKET, "private/feeds/gauges/"), s.answered ? s.failed ?? [] : [], s.answered ? s.asked : 0, health, at, opts.dryNotify);
+      events.push(...nd.events);
+      const failed = (s.failed ?? []).filter((st) => !nd.listedNoData.has(st));
+      counts.failed = failed.length;
+      counts.listedNoData = nd.listedNoData.size;
       counts.carriedStale = s.carried ?? 0;
-      for (const st of s.failed ?? []) {
+      for (const st of failed) {
         const cls = health.failedUrls.get(HOURLY(st));
         if (cls) health.part(`station ${st}`, cls, health.sources["eccc-hourly"]?.last?.url === HOURLY(st) ? health.sources["eccc-hourly"]!.last!.detail : cls);
         else {
@@ -182,8 +225,8 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
           health.part(`station ${st}`, "parse", "CSV had no readable rows");
         }
       }
-      if ((s.failed?.length ?? 0) > GAUGE_DEGRADED_SHARE * s.asked)
-        held.push({ where: "stations", why: `${s.failed!.length} of ${s.asked} not answered this run; ${s.carried ?? 0} kept their last good entry (stale)` });
+      if (failed.length > GAUGE_DEGRADED_SHARE * s.asked)
+        held.push({ where: "stations", why: `${failed.length} of ${s.asked} not answered this run; ${s.carried ?? 0} kept their last good entry (stale)` });
       if (s.forecastFailed?.length) held.push({ where: "forecast", why: `${s.forecastFailed.join(", ")} summary unavailable; last good runs carried` });
       if (s.answered === 0) throw new Error(`no station answered (asked ${s.asked}); index.json ${s.indexKept ? "kept (last good)" : "rewritten"}`);
     } else if (job === "dfo") {

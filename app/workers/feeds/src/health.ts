@@ -64,6 +64,8 @@ export interface SourceRun {
   fail: number;
   /** extra attempts spent on retries */
   retries: number;
+  /** answers that are failures in form but expected (listed stations with no data): out of ok / fail */
+  expected?: number;
   errors: Partial<Record<ErrorClass, number>>;
   last?: { cls: ErrorClass; detail: string; url: string };
 }
@@ -125,6 +127,17 @@ export class RunHealth {
     const s = this.src(source);
     if (s.ok > 0) s.ok -= 1;
     this.fail(source, cls, detail, url);
+  }
+  /** take a recorded failure back out (an expected answer, e.g. a station ECCC lists but never publishes) */
+  forgive(source: string, cls: ErrorClass, url = "") {
+    const s = this.sources[source];
+    if (!s || !(s.errors[cls] ?? 0)) return;
+    s.fail -= 1;
+    s.errors[cls]! -= 1;
+    if (!s.errors[cls]) delete s.errors[cls];
+    s.expected = (s.expected ?? 0) + 1;
+    if (url && s.last?.url === url) delete s.last;
+    if (url) this.failedUrls.delete(url);
   }
   part(name: string, cls: ErrorClass, detail: string) {
     this.parts[name] = { cls, detail: detail.slice(0, 200) };
