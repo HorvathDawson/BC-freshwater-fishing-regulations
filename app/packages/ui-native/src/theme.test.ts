@@ -152,3 +152,21 @@ describe("the attention dot (sync icon, a stale source) is no water's status", (
     }
   });
 });
+
+describe("(T243) every text tone reads on every ground, in every theme", () => {
+  // WCAG AA for body text (4.5:1). The grounds are the four the app paints behind words; the tones are the ones drawn AS
+  // TEXT (quiet, warning and attention are dots / bars, never words). `faint` failed on the wash/page/tint grounds
+  // (4.05:1) and `live` (the gauge's figures) on all of them (3.7–4.3:1) before T243 moved their token values.
+  for (const [name, p] of [["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const)
+    it(name, () => {
+      const tones = { ink: p.ink, sub: p.sub, faint: p.faint, accent: p.accent, live: p.live, place: p.place,
+                      closed: p.closed, restricted: p.restricted, open: p.open };
+      const grounds = { card: p.card, wash: p.wash, page: p.page, tint: p.tint };
+      const bad: string[] = [];
+      for (const [t, c] of Object.entries(tones))
+        for (const [g, b] of Object.entries(grounds))
+          if (contrast(c, b) < 4.5) bad.push(`${t} ${c} on ${g} ${b}: ${contrast(c, b).toFixed(2)}`);
+      if (contrast(p.onAccent, p.accent) < 4.5) bad.push(`onAccent on accent: ${contrast(p.onAccent, p.accent).toFixed(2)}`);
+      expect(bad).toEqual([]);
+    });
+});
