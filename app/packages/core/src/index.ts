@@ -44,6 +44,8 @@ export * from "./pairing";
 export * from "./menu";
 export * from "./iconSet";
 export * from "./more";
+// (T238) More → Offline maps: each region's size, kept or not, save / remove, storage used
+export * from "./offline";
 // (T248) the first-run walkthrough and the Help page, generated from the legend tokens
 export * from "./help";
 // (T231) the data updates in words: the sources' lines, the sync icon's failure sheet, the toast

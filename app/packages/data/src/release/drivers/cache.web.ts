@@ -14,6 +14,8 @@ function memory(): ByteCache {
     kind: "memory",
     get: async (url) => held.get(url) ?? null,
     put: async (url, bytes) => { held.set(url, bytes); },
+    has: async (url) => held.has(url),
+    remove: async (url) => { held.delete(url); },
   };
 }
 
@@ -44,6 +46,17 @@ export async function releaseCache(name = "release-v1"): Promise<ByteCache> {
       } catch {
         await fallback.put(url, bytes);            // quota or a refused origin: keep it for this session
       }
+    },
+    async has(url) {
+      try {
+        return !!(await cache.match(url)) || await fallback.has!(url);
+      } catch {
+        return fallback.has!(url);
+      }
+    },
+    async remove(url) {
+      await fallback.remove!(url);
+      try { await cache.delete(url); } catch { /* nothing held there */ }
     },
   };
 }

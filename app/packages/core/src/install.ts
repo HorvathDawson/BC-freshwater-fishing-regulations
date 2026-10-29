@@ -29,6 +29,9 @@ const mb = (bytes: number) => {
   return `${whole!.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${tenth}`;
 };
 
+/** (T238) a size in words: "1.2 MB" */
+export const megabytes = (bytes: number): string => `${mb(bytes)} MB`;
+
 /** "12.5 of 1,461.2 MB downloaded"; nothing when nothing is fetched (an update that only copies held files). */
 export function installLine(p: { bytes: number; of: number }): string {
   return p.of > 0 ? `${mb(p.bytes)} of ${mb(p.of)} MB downloaded` : "";

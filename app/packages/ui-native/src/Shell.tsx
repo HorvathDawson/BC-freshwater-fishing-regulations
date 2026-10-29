@@ -327,7 +327,7 @@ export function Shell(p: ShellProps) {
                    void nav.opener.tap(sid as never, null, "regs");
                  }} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
-                   mapDay={mapDay} theme={theme} onWalkthrough={walkthrough.reopen} />
+                   mapDay={mapDay} theme={theme} onWalkthrough={walkthrough.reopen} sync={syncState} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
       <InSeasonNotice open={(notice.open && !firstRun.open && !walkthrough.open) || (bellOpen && notice.count + syncState.failed.length > 0)} rows={notice.rows}
                       palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}

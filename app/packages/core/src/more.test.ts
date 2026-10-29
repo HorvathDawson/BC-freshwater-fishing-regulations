@@ -247,6 +247,7 @@ describe("the More tab, top to bottom", () => {
                  note: "The colour-blind palette changes the hues and nothing else. It has a light ground only.",
                  options: [{ k: "light", t: "Light" }, { k: "dark", t: "Dark" }, { k: "cvd", t: "Colour-blind" }] },
       rows: [
+        { k: "offline", label: "Offline maps", hint: "What is kept on this device, region by region" },
         { k: "help", label: "Help", hint: "What the colours, lines and symbols mean" },
         { k: "glossary", label: "Glossary", hint: "What the regulations' words mean" },
         { k: "sources", label: "Sources and licences", hint: "Who publishes the data, and under which licence" },

@@ -42,6 +42,8 @@ export * from "./imagery";
 export * from "./sync";
 export * from "./inseason";
 export * from "./prefetch";
+// (T238) More → Offline maps, headless
+export * from "./offline";
 // (T254) low-bandwidth mode: the Data setting, the platform's word and the meter as one mode; what is downloading
 export * from "./net";
 

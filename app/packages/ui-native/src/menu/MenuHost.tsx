@@ -14,12 +14,13 @@ import { Platform } from "react-native";
 import { getSynopsisSource } from "../regs/synopsisSource";
 import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
-import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type ReportSender, type Route } from "@app/ui";
+import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type OfflineControls, type ReportSender, type Route } from "@app/ui";
 import type { Palette } from "../theme";
 import { HelpPage } from "./HelpPage";
 import { GlossaryPage } from "./GlossaryPage";
 import { AboutPage, SourcesPage } from "./InfoPages";
 import { MenuPage } from "./MenuPage";
+import { OfflinePage } from "./OfflinePage";
 import { ReportPage } from "./ReportPage";
 import { UpdatesLogPage, type UpdatesLogControls } from "./UpdatesLogPage";
 
@@ -44,7 +45,10 @@ export interface MenuInfo {
 /** No build facts: the build states none and the owner has supplied no contact yet. */
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
-export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader, info = NO_MENU_INFO, tiles, route, day, mode = null }: {
+export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader, info = NO_MENU_INFO, tiles, route, day, mode = null,
+                           offline = null }: {
+  /** (T238) the Offline maps page's view and actions (`useOfflineMaps`); null: no release open, the page says nothing */
+  offline?: OfflineControls | null;
   menu: MenuControls; palette: Palette;
   /** (T248) the map theme's name (the Help page resolves its swatches through it) */
   theme?: string;
@@ -86,7 +90,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
     errors: ERROR_LOG.recent(),
   }), [reportOpen, s.report]);     // frozen at open, deliberately: a report states what was true when it was asked
 
-  const page = (k: "help" | "sources" | "about" | "report" | "updates", node: React.ReactNode) => (
+  const page = (k: "offline" | "help" | "sources" | "about" | "report" | "updates", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
               testID={`menu-page-${k}`}>
       {s.page === k ? node : null}
@@ -103,6 +107,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
                         palette={palette} />
         )}
       </MenuPage>
+      {page("offline", offline ? <OfflinePage c={offline} palette={palette} /> : null)}
       {page("help", <HelpPage palette={palette} theme={theme}
                               onWalkthrough={onWalkthrough ? () => { menu.closePage(); onWalkthrough(); } : undefined} />)}
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({

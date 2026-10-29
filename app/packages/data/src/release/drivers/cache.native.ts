@@ -7,5 +7,6 @@ import type { ByteCache } from "./cache";
 export type { ByteCache } from "./cache";
 
 export async function releaseCache(_name = "release-v1"): Promise<ByteCache> {
-  return { kind: "none", get: async () => null, put: async () => {} };
+  return { kind: "none", get: async () => null, put: async () => {},
+           has: async () => false, remove: async () => {} };
 }

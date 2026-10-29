@@ -34,7 +34,17 @@ export function releaseSource(m: Manifest, at: SourceAt): ReleaseSource {
     await at.cache.put(url, raw);
     return raw;
   };
+  const urlOf = (name: FileName) => { const spec = m.files[name]; return spec ? `${at.base}${spec.url}` : null; };
   return {
+    // (T238) what the Offline maps page asks: is a file kept in the release cache, and drop it
+    async stored(name) {
+      const url = urlOf(name);
+      return !!url && !!at.cache.has && at.cache.kind === "cache-storage" && await at.cache.has(url);
+    },
+    async drop(name) {
+      const url = urlOf(name);
+      if (url) await at.cache.remove?.(url);
+    },
     bytes(name, o) {
       const ahead = o?.ahead === true;
       let p = inflight.get(name);
