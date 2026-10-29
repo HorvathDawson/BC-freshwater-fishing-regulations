@@ -35021,21 +35021,21 @@
    "station_name": "STILL CREEK AT BURNABY",
    "status": "matched",
    "resolved_by": "name+radius",
-   "distance_m": 63.1,
+   "distance_m": 61.8,
    "reason": null,
    "lon": -123.01361083984376,
    "lat": 49.2622184753418,
    "wbk": [],
    "wsc": [
-    "100-019698-999999"
+    "100-019698-961269"
    ],
    "also": [],
    "name": "Still Creek",
-   "blk": "-2000000335",
+   "blk": "356328804",
    "evidence": {
     "name_agrees": true,
     "name_is_exact": true,
-    "distance_m": 63.1,
+    "distance_m": 61.8,
     "area_km2": 10.920000076293944,
     "mag": 35,
     "area_agrees": true,
@@ -35942,21 +35942,21 @@
    "station_name": "STONEY CREEK NEAR BURNABY",
    "status": "matched",
    "resolved_by": "name+radius",
-   "distance_m": 109.4,
+   "distance_m": 110.8,
    "reason": null,
    "lon": -122.90750122070312,
    "lat": 49.25,
    "wbk": [],
    "wsc": [
-    "100-019698-561100"
+    "100-019698-561179"
    ],
    "also": [],
    "name": "Stoney Creek",
-   "blk": "-2000000336",
+   "blk": "356205674",
    "evidence": {
     "name_agrees": true,
     "name_is_exact": true,
-    "distance_m": 109.4,
+    "distance_m": 110.8,
     "area_km2": 6.610000133514404,
     "mag": 26,
     "area_agrees": true,

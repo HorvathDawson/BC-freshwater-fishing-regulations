@@ -2871,24 +2871,24 @@
    "station_name": "DEER LAKE BROOK AT BURNABY",
    "status": "matched",
    "resolved_by": "name+radius",
-   "distance_m": 129.3,
+   "distance_m": 137.2,
    "reason": null,
    "lon": -122.9625015258789,
    "lat": 49.24250030517578,
    "wbk": [],
    "wsc": [
-    "100-019698-972600"
+    "100-019698-933296"
    ],
    "also": [],
    "name": "Deer Lake Brook",
-   "blk": "-2000000185",
+   "blk": "356297118",
    "evidence": {
     "name_agrees": true,
     "name_is_exact": true,
-    "distance_m": 129.3,
+    "distance_m": 137.2,
     "area_km2": 12.420000076293944,
-    "mag": 36,
-    "area_agrees": true,
+    "mag": null,
+    "area_agrees": null,
     "stated_kind": "Lake",
     "kind_agrees": false
    },
