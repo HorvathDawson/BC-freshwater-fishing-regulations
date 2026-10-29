@@ -6,8 +6,9 @@
  *   WHAT        `WEB_BUDGET.first_tap_unnamed` (the contract's own list: core, water, access, regs-<r>, regs-sid,
  *               down, salmon, salmon-<r>), per region; a file the manifest does not name is skipped, one already
  *               prefetched or opened costs nothing. A region is READY when every one of its files is held.
- *   ORDER       the region in view, then its neighbours (`REGION_NEAR`), then the rest of the province (`REGIONS`
- *               order). The shared files (water, regs-sid, down …) come with the first region, so the second costs
+ *   ORDER       the region in view, then its neighbours (`REGION_NEAR`) — never the rest of the province (owner
+ *               2026-10-28: cap at view + neighbours). When the view moves to another region, that region and its
+ *               neighbours. The shared files (water, regs-sid, down …) come with the first region, so the next costs
  *               only its own regs + salmon slice.
  *   HOW         `ReleaseLoader.prefetch` — the SAME verified, cached path the update service warms a new release
  *               through (`Booted.stage` on the web) and the tap later reads (Cache Storage by immutable url, sha-checked
@@ -50,13 +51,12 @@ const MEASURE_MIN_MS = 150;
 /** At or under this battery level, not charging: hold. */
 export const LOW_BATTERY = 0.2;
 
-/** The regions in the order they are fetched: those in view, their neighbours, then the rest. */
+/** The regions fetched, in order: those in view, then their neighbours (owner 2026-10-28: nothing further). */
 export function regionOrder(view: readonly Region[]): Region[] {
   const out: Region[] = [];
   const add = (r: Region) => { if (!out.includes(r)) out.push(r); };
   view.forEach(add);
   for (const r of view) REGION_NEAR[r].forEach(add);
-  REGIONS.forEach(add);
   return out;
 }
 
@@ -167,7 +167,8 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
   const held = (f: FileName) => loader.prefetched(f) && !active.has(f);
   const order = () => regionOrder(view);
   // a region the release holds no regs file for is never "ready" (nothing to tap there)
-  const ready = () => order().filter((r) => !!m.files[`regs-${r}`] && unnamedTapFiles(m, r).every(held));
+  // every region the release holds that is held whole — a region from an earlier view stays ready
+  const ready = () => [...new Set([...order(), ...REGIONS])].filter((r) => !!m.files[`regs-${r}`] && unnamedTapFiles(m, r).every(held));
   const next = (): FileName | null => {
     for (const r of order())
       for (const f of unnamedTapFiles(m, r))

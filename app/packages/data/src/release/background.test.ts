@@ -66,10 +66,10 @@ describe("what and in which order", () => {
       ["core", "water", "access", "regs-2", "regs-sid", "down"]);
   });
 
-  it("the region in view, its neighbours, then the rest of the province", () => {
-    expect(regionOrder(["2"])).toEqual(["2", "1", "3", "5", "8", "4", "6", "7a", "7b"]);
-    expect(regionOrder([])).toEqual([...REGIONS]);
-    expect(new Set(regionOrder(["7b"]))).toEqual(new Set(REGIONS));
+  it("the region in view and its neighbours — never the rest of the province (owner 2026-10-28)", () => {
+    expect(regionOrder(["2"])).toEqual(["2", "1", "3", "5", "8"]);
+    expect(regionOrder(["7b"])).toEqual(["7b", "6", "7a"]);
+    expect(regionOrder([])).toEqual([]);
   });
 
   it("the neighbours are symmetric and every region has some", () => {
@@ -146,17 +146,30 @@ describe("createBackgroundPrefetch: scheduling", () => {
   it("concurrency: at most N in flight", () => {
     const f = fakeLoader();
     const bg = createBackgroundPrefetch({ loader: f.loader, concurrency: 2, signals: { effectiveType: "4g" } });
-    bg.start();
+    bg.view(["2"]); bg.start();
     expect(f.pending.length).toBe(2);
   });
 
-  it("everything held: done, every region ready", async () => {
+  it("capped at view + neighbours: done there, the rest of the province never fetched", async () => {
     const f = fakeLoader(manifest(["core", "water", "access", "regs-sid", "down", ...REGIONS.map((r) => `regs-${r}`)]));
     const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" } });
-    bg.start();
+    bg.view(["7b"]); bg.start();
     while (f.pending.length) await f.finish();
     const s = bg.snapshot();
-    expect([s.state, s.ready.length, s.total, s.files, s.bytes]).toEqual(["done", 9, 9, 14, 14_000]);
+    expect([s.state, s.ready, s.total, s.files, s.bytes]).toEqual(["done", ["7b", "6", "7a"], 9, 8, 8_000]);
+    expect(f.held.has("regs-2")).toBe(false);
+    // the view moves: that region + its neighbours, same gate; what was ready stays ready
+    bg.view(["2"]);
+    while (f.pending.length) await f.finish();
+    expect(bg.snapshot().ready).toEqual(["2", "1", "3", "5", "8", "6", "7a", "7b"]);
+    expect(f.held.has("regs-4")).toBe(false);
+  });
+
+  it("no region in view: nothing", () => {
+    const f = fakeLoader();
+    const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" } });
+    bg.start();
+    expect([f.pending.length, bg.snapshot().state]).toEqual([0, "done"]);
   });
 });
 
@@ -165,7 +178,7 @@ describe("createBackgroundPrefetch: holds, cancellation, failures", () => {
     const f = fakeLoader();
     const events: UpdateEvent[] = [];
     const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" }, onEvent: (e) => events.push(e) });
-    bg.start();
+    bg.view(["2"]); bg.start();
     bg.signals({ hidden: true });
     expect(await f.finish()).toBe("core");          // in flight: lands in the cache
     expect(f.pending.length).toBe(0);
@@ -182,21 +195,22 @@ describe("createBackgroundPrefetch: holds, cancellation, failures", () => {
     for (const s of [{ saveData: true }, { metered: true }, { online: false }, { lowBattery: true }] as const) {
       const f = fakeLoader();
       const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g", ...s } });
-      bg.start();
+      bg.view(["2"]); bg.start();
       expect([f.pending.length, bg.snapshot().state]).toEqual([0, "paused"]);
     }
   });
 
   it("metered with the T231 setting on: goes", () => {
     const f = fakeLoader();
-    createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g", metered: true, allowMetered: true } }).start();
+    const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g", metered: true, allowMetered: true } });
+    bg.view(["2"]); bg.start();
     expect(f.pending.length).toBe(1);
   });
 
   it("cancel: nothing new after it, the file in flight still lands", async () => {
     const f = fakeLoader();
     const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" } });
-    bg.start();
+    bg.view(["2"]); bg.start();
     bg.cancel();
     await f.finish();
     expect([f.pending.length, bg.snapshot().state]).toEqual([0, "cancelled"]);
@@ -208,7 +222,7 @@ describe("createBackgroundPrefetch: holds, cancellation, failures", () => {
     const f = fakeLoader();
     const events: UpdateEvent[] = [];
     const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" }, onEvent: (e) => events.push(e) });
-    bg.start();
+    bg.view(["2"]); bg.start();
     expect(await f.finish(true)).toBe("core");
     expect(f.pending.map((p) => p.name)).toEqual(["water"]);
     expect(events.find((e) => e.kind === "failed")).toMatchObject({ source: "prefetch", note: "core", error: "HTTP 503" });
@@ -222,7 +236,7 @@ describe("createBackgroundPrefetch: holds, cancellation, failures", () => {
     let t = 0;
     const f = fakeLoader(manifest(ALL, 100_000));
     const bg = createBackgroundPrefetch({ loader: f.loader, now: () => t, signals: { effectiveType: null } });
-    bg.start();
+    bg.view(["2"]); bg.start();
     t += 200;                                       // 100 kB in 200 ms = 500 kB/s: fast
     await f.finish();
     expect(f.pending.length).toBe(1);
