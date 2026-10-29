@@ -1501,6 +1501,27 @@
      },
      "note": "DFO r1: 'from the powerline crossing upstream of the Nitinat River Hatchery water intake, downstream to the lowest point of confluence with the Little Nitinat River'.",
      "_note": "[authored 2026-09-29, curator pin] 2 m off the mainstem at m 30,027 — 323 m above the Little Nitinat confluence (m 29,704), below the road bridge (m 32,268). No powerline layer is held."
+    },
+    {
+     "id": "nitinat_river__head_of_nitinat_lake_tidal_bound",
+     "label": "head of Nitinat Lake (tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -124.681897,
+       48.821445
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "low",
+     "_note": "[T185 proposal 2026-10-29] proposed in review marks on tidal:354155007",
+     "_coord": [
+      -124.681897,
+      48.821445
+     ],
+     "tidal": true
     }
    ]
   },
