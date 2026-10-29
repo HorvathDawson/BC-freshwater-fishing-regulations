@@ -145,7 +145,8 @@ describe("<SpotDropSheet>", () => {
     expect([screen.getByText("New spot").textContent, screen.getByTestId("spot-drop-where").textContent,
             screen.getByText("Next you pick the water it is on, then when you were there.").textContent, buttons()])
       .toEqual(["New spot", "49.0974, -121.9675", "Next you pick the water it is on, then when you were there.",
-                ["Done", "Cancel", "Continue"]]);
+                // (T243) the scrim is said as a "Close" button, first in the page (it lies behind the sheet)
+                ["Close", "Done", "Cancel", "Continue"]]);
     for (const name of ["Cancel", "Done", "Close", "Continue"])
       fireEvent.click(screen.getByLabelText(name));       // Close: the scrim behind the sheet
     expect(calls).toEqual(["cancel", "cancel", "cancel", "continue"]);
