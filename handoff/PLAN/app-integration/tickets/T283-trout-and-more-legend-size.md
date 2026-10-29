@@ -1,6 +1,6 @@
 # T283 — "Standard" mode renamed "Trout & more"; map legend text larger
 
-Status: DONE 2026-10-29, commit  (owner 2026-10-29: "the name standard keeps irritating me" → "trout & more i think is good"; "the legend text
+Status: DONE 2026-10-29, commit 0438013fa (owner 2026-10-29: "the name standard keeps irritating me" → "trout & more i think is good"; "the legend text
 should be a bit bigger for each map too. rn it is hard to read").
 
 ## Work
