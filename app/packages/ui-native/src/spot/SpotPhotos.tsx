@@ -2,7 +2,7 @@
 import { ErrorState } from "../ErrorState";
 import { LoadingState } from "../LoadingState";
 import { Image, Pressable, Text, View } from "react-native";
-import { PHOTO_WORDS, removePhotoLabel } from "@app/data/spots";
+import { PHOTO_WORDS, photoLabel, removePhotoLabel } from "@app/data/spots";
 import type { PhotoEdit } from "@app/ui";
 import { TYPE } from "../type";
 import { round, type Palette } from "../theme";
@@ -16,16 +16,16 @@ export function SpotPhotos({ photos, uris, pe, palette }: {
 }) {
   return (
     <Block palette={palette} title={PHOTO_WORDS.heading}>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+      <View testID="spot-photo-grid" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {photos.map((ref, i) => {
           const uri = uris.get(ref);
           return (
-            <View key={ref} style={{ width: 104, height: 104, borderRadius: palette.r.box,
+            <View key={ref} style={{ flexGrow: 1, flexBasis: 104, maxWidth: 220, aspectRatio: 1, borderRadius: palette.r.box,
                                      overflow: "hidden", backgroundColor: palette.tint,
                                      alignItems: "center", justifyContent: "center" }}>
               {uri ? (
-                <Image source={{ uri }} accessibilityLabel=""
-                       style={{ width: 104, height: 104 }} resizeMode="cover" />
+                <Image source={{ uri }} accessibilityRole="image" accessibilityLabel={photoLabel(i + 1, photos.length)}
+                       style={{ width: "100%", height: "100%" }} resizeMode="cover" />
               ) : uri === null ? (
                 <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint, padding: 8,
                                textAlign: "center" }}>{PHOTO_WORDS.missing}</Text>

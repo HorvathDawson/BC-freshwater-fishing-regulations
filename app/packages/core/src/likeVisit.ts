@@ -81,6 +81,8 @@ export interface LikeFactor {
   share: number;
   /** The factor said whole: both values, how far apart, how alike, its share — or why it was left out. */
   line: string;
+  /** (T284) The plain reason, short: "Air temperature: 4° cooler" / "Flow: the same"; null when it was left out. */
+  plain: string | null;
 }
 
 export interface LikeDay {
@@ -119,7 +121,9 @@ const LABELS: Readonly<Record<LikeFactorKey, string>> =
 export const LIKE_WORDS = {
   heading: "Like your visit?",
   intro: "How alike each of the next five days looks to the day you were here. Flow counts most, then the air and "
-    + "the rain in the three days before, then wind and cloud. Tap a day to see why.",
+    + "the rain in the three days before, then wind and cloud.",
+  /** The mark on the day that looks most like the visit (T284). */
+  best: "Closest to your visit",
   visit: "Your visit",
   today: "Today",
   tomorrow: "Tomorrow",
@@ -193,14 +197,14 @@ export function likeDay(then: LikeConditions, that: LikeConditions & { date: str
       const why = a === null
         ? (k === "flow" ? "no flow then to compare" : "not recorded at the visit")
         : (k === "flow" ? "no flow forecast for this day" : "no forecast for this day");
-      return { key: k, likeness: null, share: 0, line: `${label}: ${why}. Not scored.` };
+      return { key: k, likeness: null, share: 0, line: `${label}: ${why}. Not scored.`, plain: null };
     }
     const l = likeness(k, a, b);
     const share = LIKE_WEIGHTS[k] / total;
     // a low-water day names its model: "5th percentile forecast by ELF" (T171)
     const flowWhen = o.today ? "now" : that.flowLowWater ? `forecast by ${that.flowModel ?? "a low-water model"}` : "forecast";
     const when = k === "flow" ? flowWhen : k === "rain" ? "forecast" : `forecast${at}`;
-    return { key: k, likeness: l, share,
+    return { key: k, likeness: l, share, plain: `${label}: ${apart(k, a, b)}`,
              line: `${label}: ${said(k, a)} then, ${said(k, b)} ${when}. ${cap(apart(k, a, b))}: ${pct(l)} alike, `
                + `${pct(share)} of the score.` };
   });

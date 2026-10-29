@@ -279,6 +279,11 @@ export function removePhotoLabel(n: number): string {
   return `${PHOTO_WORDS.remove} ${n}`;
 }
 
+/** (T284) A photograph in the grid, named for a screen reader: "Photo 2 of 3". */
+export function photoLabel(n: number, of: number): string {
+  return `Photo ${n} of ${of}`;
+}
+
 /** A photo that could not be added, said whole. The spot and its other photos are untouched. */
 export function photoFailed(e: unknown): string {
   const why = e instanceof Error ? e.message : String(e);

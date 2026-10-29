@@ -30,6 +30,22 @@ export function Block({ palette, title, children }: {
   );
 }
 
+/**
+ * (T284) One of the spot page's three headed blocks — That day, What you added, The next few days. A heading in the
+ * screen-title face over a rule, then its parts a section-gap apart; `Block` stays the small-caps sub-heading inside it.
+ */
+export function Section({ palette, title, testID, children }: {
+  palette: Palette; title: string; testID: string; children: ReactNode;
+}) {
+  return (
+    <View testID={testID} style={{ gap: 18 }}>
+      <Text accessibilityRole="header" style={{ ...TYPE.screen, color: palette.ink, paddingBottom: 6,
+                                                borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>{title}</Text>
+      {children}
+    </View>
+  );
+}
+
 export function Link({ palette, label, text, onPress, tone, icon }: {
   palette: Palette; label: string; text: string; onPress: () => void; tone?: string; icon?: IconName;
 }) {

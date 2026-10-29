@@ -327,7 +327,7 @@ use that as the sole source of future work."
 | T281 | Draw the lake area an in-part rule holds on (François map 1, Shuswap A/B/C, Mahood, Canim) | POSTPONED | — | from T208; waits on lake splits (owner deferral, Q142) |
 | T282 | Web app bundle 4 MB → lazy chunks so the app takes over fast on slow lines (43 s on Fast 3G today) | OPEN | — | T269 finding 2026-10-29 |
 | T283 | "Standard" map mode renamed "Trout & more"; legend text larger in every mode | DONE | 0438013fa | owner 2026-10-29 |
-| T284 | Spot page restructured: That day · What you added · The next few days (similarity + why); phone + desktop layouts | OPEN | — | owner 2026-10-29 |
+| T284 | Spot page restructured: That day · What you added · The next few days (similarity + why); phone + desktop layouts | DONE | (this commit) | owner 2026-10-29 |
 | T285 | Synopsis PDF fails to open in the Android app ("couldn't load synopsis") | OPEN | — | owner 2026-10-29 |
 | T286 | Tap → regulations instant on phones (≤150 ms to content, never a spinner): measure, batch reads, cache, prefetch on settle | OPEN | — | owner 2026-10-29 |
 

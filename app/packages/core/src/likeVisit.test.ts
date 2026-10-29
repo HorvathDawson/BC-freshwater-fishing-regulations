@@ -15,15 +15,15 @@ describe("likeDay — the score", () => {
     expect(likeDay(THEN, same(), { hour: "09:00" })).toEqual({
       date: "2026-10-24", score: 100, read: "very similar", basis: "all", note: null, caveat: null,
       factors: [
-        { key: "flow", likeness: 1, share: 0.45,
+        { key: "flow", plain: "Flow: the same", likeness: 1, share: 0.45,
           line: "Flow: 42nd percentile then, 42nd percentile forecast. The same: 100% alike, 45% of the score." },
-        { key: "temp", likeness: 1, share: 0.2,
+        { key: "temp", plain: "Air temperature: the same", likeness: 1, share: 0.2,
           line: "Air temperature: 14°C then, 14°C forecast at 09:00. The same: 100% alike, 20% of the score." },
-        { key: "rain", likeness: 1, share: 0.2,
+        { key: "rain", plain: "Rain in the 3 days before: the same", likeness: 1, share: 0.2,
           line: "Rain in the 3 days before: 2 mm then, 2 mm forecast. The same: 100% alike, 20% of the score." },
-        { key: "wind", likeness: 1, share: 0.1,
+        { key: "wind", plain: "Wind: the same", likeness: 1, share: 0.1,
           line: "Wind: 8 km/h then, 8 km/h forecast at 09:00. The same: 100% alike, 10% of the score." },
-        { key: "cloud", likeness: 1, share: 0.05,
+        { key: "cloud", plain: "Cloud: the same", likeness: 1, share: 0.05,
           line: "Cloud: 40% then, 40% forecast at 09:00. The same: 100% alike, 5% of the score." },
       ],
     });
@@ -141,5 +141,14 @@ describe("the words around it", () => {
     expect([likeAgeLine(t, NOW, false), likeAgeLine(t - 3 * 3_600_000, NOW, true), likeAgeLine(null, NOW, true)])
       .toEqual(["Forecast checked 2h ago.", "Offline: showing the forecast checked 5h ago.",
                 "The forecast has not been fetched yet. It is fetched when you are online."]);
+  });
+});
+
+describe("(T284) the plain reasons", () => {
+  it("each scored factor says how far apart it is, in a few words; a left-out one says nothing", () => {
+    const d = likeDay({ flow: null, tempC: 14, rainMm: 5, windKph: 9, cloudPct: 40 },
+                      { date: "2026-10-30", flow: null, tempC: 10, rainMm: 5, windKph: 6, cloudPct: null });
+    expect(d.factors.map((f) => f.plain)).toEqual([null, "Air temperature: 4° cooler", "Rain in the 3 days before: the same",
+      "Wind: 3 km/h calmer", null]);
   });
 });

@@ -22,7 +22,7 @@
  */
 import { ErrorState } from "./ErrorState";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { isUntitled, needsRefresh, refreshReason, spotHeadline, spotLabel, type PhotoStore, type Spot } from "@app/data/spots";
 import { SPOT_WORDS as W } from "@app/core";
 import { leadUpView, useBackLayer, usePhotoUris, type DayFlowView, type LikeVisitView, type PhotoEdit } from "@app/ui";
@@ -35,7 +35,8 @@ import { Button } from "./Button";
 import { Icon } from "./icons";
 import { Confirm } from "./spot/Confirm";
 import { DayFlowBlock } from "./spot/DayFlow";
-import { Block, Link } from "./spot/parts";
+import { Block, Link, Section } from "./spot/parts";
+import { WIDE_PANEL } from "./DonorPanel";
 import { WaterRecord, WeatherRecord } from "./spot/Record";
 import { SpotPhotos } from "./spot/SpotPhotos";
 import { hitProps } from "./regs/hit";
@@ -88,14 +89,19 @@ export interface SpotScreenProps {
 }
 
 /**
- * A SPOT READS AS ONE COLUMN AT EVERY WIDTH (owner 2026-10-21: "desktop falls apart"). It is a record — a title, the
- * water's answer that day, the weather, the notes, the photographs — not a dashboard, so on a desktop it keeps a
- * reading measure and centres, with its header over the same column. Its donor panel stays one column inside it.
+ * THREE HEADED BLOCKS (T284, owner 2026-10-29): That day (the record: water, weather, the week before), What you added
+ * (notes, photographs), The next few days (how alike each looks to that day, and why). A phone reads them in that order
+ * in ONE column; from `WIDE_PANEL` up the first two stack in the left column and the third sits beside them, so the
+ * comparison is on screen with the day it compares to. The page keeps a reading measure and centres, its header over
+ * the same width. The donor panel measures its own column and stays one column inside it.
  */
 const MEASURE = { width: "100%", maxWidth: 760, alignSelf: "center" } as const;
+const MEASURE_WIDE = { width: "100%", maxWidth: 1120, alignSelf: "center" } as const;
 
 export function SpotScreen(p: SpotScreenProps) {
   const { spot, palette, mode = "view" } = p;
+  const wide = useWindowDimensions().width >= WIDE_PANEL;
+  const MEASURE_NOW = wide ? MEASURE_WIDE : MEASURE;
   const editable = mode === "draft" || mode === "edit";
   const [confirm, setConfirm] = useState<"delete" | "discard" | null>(null);
 
@@ -118,11 +124,60 @@ export function SpotScreen(p: SpotScreenProps) {
    */
   useBackLayer(shown !== null || mode === "edit", () => (shown ? keep() : leaveEdit()));
 
+  const thatDay = (
+    <Section palette={palette} title={W.thatDay} testID="spot-that-day">
+    <WaterRecord spot={spot} palette={palette} />
+
+    {/* the trip day's own flow; in the draft too, where a spot added for an earlier day shows what it read */}
+    {df && (mode !== "draft" || df.line || df.status) && (
+      <DayFlowBlock df={df} onAsk={p.dayFlow?.onAsk} palette={palette} />
+    )}
+
+    {spot.trace && <GaugeTrace trace={spot.trace} palette={palette} />}
+
+    <WeatherRecord spot={spot} palette={palette} />
+
+    {lead && (
+      <Block palette={palette} title={lead.heading}>
+        <LeadUpStrip view={lead} palette={palette} />
+      </Block>
+    )}
+
+    </Section>
+  );
+  const added = (
+    <Section palette={palette} title={W.added} testID="spot-added">
+    <Block palette={palette} title={W.notes}>
+      {editable && p.onNotes ? (
+        <TextInput value={p.notes ?? ""} onChangeText={p.onNotes} multiline
+                   placeholder={W.notesHint}
+                   placeholderTextColor={palette.faint} accessibilityLabel={W.notes}
+                   style={{ ...TYPE.body, color: palette.ink, minHeight: 96,
+                            textAlignVertical: "top", borderWidth: 1,
+                            borderColor: palette.line, borderRadius: palette.r.box, padding: 12 }} />
+      ) : spot.notes.trim() !== "" ? (
+        <Text style={{ ...TYPE.body, color: palette.ink }}>{spot.notes}</Text>
+      ) : (
+        <Text style={{ ...TYPE.small, color: palette.faint }}>{W.noNotes}</Text>
+      )}
+    </Block>
+
+    {(photos.length > 0 || (pe && pe.sources.length > 0)) && (
+      <SpotPhotos photos={photos} uris={uris} pe={pe} palette={palette} />
+    )}
+    </Section>
+  );
+  const nextDays = mode !== "draft" && p.likeVisit && (
+      <Section palette={palette} title={W.nextDays} testID="spot-next-days">
+        <LikeVisitStrip view={p.likeVisit} palette={palette} />
+      </Section>
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ flexDirection: "row", alignItems: "center",
                      justifyContent: "space-between",
-                     paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6, ...MEASURE }}>
+                     paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6, ...MEASURE_NOW }}>
         {mode === "edit" ? (
           <Link palette={palette} label={W.cancelEditing} text={W.cancel} onPress={leaveEdit} />
         ) : p.onBack ? (
@@ -158,7 +213,7 @@ export function SpotScreen(p: SpotScreenProps) {
       )}
 
       <ScrollView contentContainerStyle={{ padding: 18, paddingTop: 6, gap: 22,
-                                           paddingBottom: 40, ...MEASURE }}>
+                                           paddingBottom: 40, ...MEASURE_NOW }}>
         <View style={{ gap: 4 }}>
           {editable && p.onTitle ? (
             <TextInput value={p.title ?? ""} onChangeText={p.onTitle}
@@ -199,13 +254,6 @@ export function SpotScreen(p: SpotScreenProps) {
           </View>
         )}
 
-        <WaterRecord spot={spot} palette={palette} />
-
-        {/* the trip day's own flow; in the draft too, where a spot added for an earlier day shows what it read */}
-        {df && (mode !== "draft" || df.line || df.status) && (
-          <DayFlowBlock df={df} onAsk={p.dayFlow?.onAsk} palette={palette} />
-        )}
-
         {p.onShowOnMap && (
           <Pressable {...hitProps({ w: 120, h: 44 })} onPress={p.onShowOnMap} accessibilityRole="button"
                      accessibilityLabel={W.showOnMap}
@@ -219,40 +267,12 @@ export function SpotScreen(p: SpotScreenProps) {
           </Pressable>
         )}
 
-        {spot.trace && <GaugeTrace trace={spot.trace} palette={palette} />}
-
-        <WeatherRecord spot={spot} palette={palette} />
-
-        {lead && (
-          <Block palette={palette} title={lead.heading}>
-            <LeadUpStrip view={lead} palette={palette} />
-          </Block>
-        )}
-
-        {mode !== "draft" && p.likeVisit && (
-          <Block palette={palette} title={p.likeVisit.heading}>
-            <LikeVisitStrip view={p.likeVisit} palette={palette} />
-          </Block>
-        )}
-
-        <Block palette={palette} title={W.notes}>
-          {editable && p.onNotes ? (
-            <TextInput value={p.notes ?? ""} onChangeText={p.onNotes} multiline
-                       placeholder={W.notesHint}
-                       placeholderTextColor={palette.faint} accessibilityLabel={W.notes}
-                       style={{ ...TYPE.body, color: palette.ink, minHeight: 96,
-                                textAlignVertical: "top", borderWidth: 1,
-                                borderColor: palette.line, borderRadius: palette.r.box, padding: 12 }} />
-          ) : spot.notes.trim() !== "" ? (
-            <Text style={{ ...TYPE.body, color: palette.ink }}>{spot.notes}</Text>
-          ) : (
-            <Text style={{ ...TYPE.small, color: palette.faint }}>{W.noNotes}</Text>
-          )}
-        </Block>
-
-        {(photos.length > 0 || (pe && pe.sources.length > 0)) && (
-          <SpotPhotos photos={photos} uris={uris} pe={pe} palette={palette} />
-        )}
+        {wide ? (
+          <View style={{ flexDirection: "row", gap: 36, alignItems: "flex-start" }}>
+            <View style={{ flex: 1, minWidth: 0, gap: 28 }}>{thatDay}{added}</View>
+            <View style={{ flex: 1, minWidth: 0 }}>{nextDays}</View>
+          </View>
+        ) : (<>{thatDay}{added}{nextDays}</>)}
       </ScrollView>
 
       {editable && p.onSave && (

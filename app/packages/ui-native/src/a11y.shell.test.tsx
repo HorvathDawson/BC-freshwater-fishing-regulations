@@ -154,6 +154,28 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     render(<ConditionsPanel source={GAUGE_SOURCE} section={SEC} palette={LIGHT} feed={GAUGE_FEED} scroll={false} day={new Date(2026, 8, 4, 12)} />);
     await screen.findByText("AT LEAD CREEK NEAR TOWN");
   }, /Lead Creek/],
+  ["(T284) a spot's three blocks: that day, what you added, the next few days", async (w) => {
+    Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
+    Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: 900 });
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: w });
+    act(() => { window.dispatchEvent(new Event("resize")); });
+    const { SpotScreen } = await import("./SpotScreen");
+    const day = (date: string, best: boolean) => ({ date, top: "Sat", sub: "31 Oct", score: "72%", read: "Similar",
+      basis: "weather only", best, reasons: ["Air temperature: 4° cooler", "Wind: 3 km/h calmer"], label: "Sat, 31 Oct: 72%, similar to your visit.", why: [] });
+    const photo = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
+    render(<SpotScreen spot={{ ...TAMIHI, notes: "Three rainbow below the bridge.", photos: ["photos/s1-1.png", "photos/s1-2.png"] }}
+      palette={LIGHT} onBack={() => {}} onEdit={() => {}} onDelete={() => {}} onShowOnMap={() => {}}
+      photoStore={{ uri: async () => photo }}
+      likeVisit={{ heading: "Like your visit?", intro: "How alike each of the next five days looks.", note: null,
+        visit: { top: "Your visit", sub: "30 Aug", label: "Your visit, 30 Aug: the day the others are compared with." },
+        days: [day("2026-10-30", false), day("2026-10-31", true)], age: "Forecast checked just now." }} />);
+    await settle();
+    // phone: one column (the three blocks share a parent); desktop: the next days beside the other two
+    const col = (id: string) => screen.getByTestId(id).parentElement!;
+    const same = col("spot-that-day") === col("spot-next-days");
+    expect(same).toBe(w < 880);
+    expect(col("spot-that-day")).toBe(col("spot-added"));
+  }, /That day[\s\S]*What you added[\s\S]*The next few days/],
 ];
 
 describe.each([["phone", 390], ["desktop", 1280]] as const)("(T258) %s: the leftover states", (_l, width) => {

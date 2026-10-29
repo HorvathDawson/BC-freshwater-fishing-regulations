@@ -27,6 +27,10 @@ export const SPOT_WORDS = {
   notesHint: "What happened, what you used, what the water looked like",
   noNotes: "None.",
   save: "Save spot", saveChanges: "Save changes",
+  /** (T284) the page's three headed blocks: the day as it was, what the person added, how the next days compare */
+  thatDay: "That day", added: "What you added", nextDays: "The next few days",
+  /** where a spot has nothing added yet */
+  nothingAdded: "No notes or photos yet.",
 } as const;
 
 /** Adding a spot: the coach's steps, the when-were-you-there page and its steppers, the way on and back. */

@@ -36,12 +36,13 @@ describe("likeVisitView", () => {
     expect(likeVisitView(spot, FETCHED, false, NOW)).toEqual({
       heading: "Like your visit?",
       intro: "How alike each of the next five days looks to the day you were here. Flow counts most, then the air and "
-        + "the rain in the three days before, then wind and cloud. Tap a day to see why.",
+        + "the rain in the three days before, then wind and cloud.",
       visit: { top: "Your visit", sub: "30 Aug", label: "Your visit, 30 Aug: the day the others are compared with." },
       age: "Forecast checked 2h ago.",
       note: null,
       days: [
-        { date: "2026-10-22", top: "Today", sub: "22 Oct", score: "100%", read: "Very similar", basis: null,
+        { date: "2026-10-22", top: "Today", sub: "22 Oct", score: "100%", read: "Very similar", basis: null, best: true,
+          reasons: ["Flow: the same", "Air temperature: the same", "Rain in the 3 days before: the same", "Wind: the same", "Cloud: the same"],
           label: "Today, 22 Oct: 100%, very similar to your visit.",
           why: [
             "Flow: 42nd percentile then, 42nd percentile now. The same: 100% alike, 45% of the score.",
@@ -50,7 +51,8 @@ describe("likeVisitView", () => {
             "Wind: 8 km/h then, 8 km/h forecast at 09:00. The same: 100% alike, 10% of the score.",
             "Cloud: 40% then, 40% forecast at 09:00. The same: 100% alike, 5% of the score.",
           ] },
-        { date: "2026-10-23", top: "Tomorrow", sub: "23 Oct", score: "68%", read: "Similar", basis: null,
+        { date: "2026-10-23", top: "Tomorrow", sub: "23 Oct", score: "68%", read: "Similar", basis: null, best: false,
+          reasons: ["Flow: 25 points higher", "Air temperature: 6° cooler", "Rain in the 3 days before: the same", "Wind: the same", "Cloud: the same"],
           label: "Tomorrow, 23 Oct: 68%, similar to your visit.",
           why: [
             "Flow: 42nd percentile then, 67th percentile forecast. 25 points higher: 50% alike, 45% of the score.",
@@ -59,7 +61,8 @@ describe("likeVisitView", () => {
             "Wind: 8 km/h then, 8 km/h forecast at 09:00. The same: 100% alike, 10% of the score.",
             "Cloud: 40% then, 40% forecast at 09:00. The same: 100% alike, 5% of the score.",
           ] },
-        { date: "2026-10-24", top: "Sat", sub: "24 Oct", score: "100%", read: "Very similar", basis: "weather only",
+        { date: "2026-10-24", top: "Sat", sub: "24 Oct", score: "100%", read: "Very similar", basis: "weather only", best: false,
+          reasons: ["Air temperature: the same", "Rain in the 3 days before: the same", "Wind: the same", "Cloud: the same"],
           label: "Sat, 24 Oct: 100%, very similar to your visit, on the weather only.",
           why: [
             "No flow forecast for this day: scored on the weather only.",

@@ -24,6 +24,10 @@ export interface LikeDayVM {
   read: string | null;
   /** "weather only" when flow is not in the score; "low-water model" when ELF forecast the day's flow (T171). */
   basis: string | null;
+  /** (T284) The day that looks most like the visit (the highest score; the earlier on a tie); at most one. */
+  best: boolean;
+  /** (T284) One short plain reason per factor that was scored: "Air temperature: 4° cooler". */
+  reasons: string[];
   /** The day said whole (a screen reader, a test). */
   label: string;
   /** What a tap shows: why flow is out (if it is), then each factor's line. */
@@ -56,13 +60,17 @@ export function likeVisitView(spot: Spot, f: LikeFetched, offline: boolean, now:
   const hour = visitHour(spot);
   const days = likeDays(now);
   // "now" only for the day the gauge's reading is for — never a forecast for today read off yesterday's feed
-  const vms = comingConditions(f, days, hour).map((c): LikeDayVM => {
-    const d = likeDay(then, c, { today: !!f.flowNow && c.date === f.flowNow, hour });
+  const scored = comingConditions(f, days, hour).map((c) => likeDay(then, c, { today: !!f.flowNow && c.date === f.flowNow, hour }));
+  const top = scored.reduce<number | null>((m, d) => (d.score !== null && (m === null || d.score > m) ? d.score : m), null);
+  const bestDate = top === null ? null : scored.find((d) => d.score === top)!.date;
+  const vms = scored.map((d): LikeDayVM => {
     const h = likeDayHead(d.date, now);
     return { date: d.date, top: h.top, sub: h.sub, score: likeScoreText(d),
              read: d.read ? LIKE_WORDS.reads[d.read] : null,
              // under the score: "weather only" with no flow, "low-water model" when ELF forecast the flow (T171)
              basis: d.basis === "weather" ? LIKE_WORDS.weatherOnly : d.caveat ? LIKE_WORDS.lowWater : null,
+             best: d.date === bestDate,
+             reasons: d.factors.flatMap((x) => (x.plain === null ? [] : [x.plain])),
              label: likeDayLabel(d, now),
              why: [...(d.note ? [d.note] : []), ...d.factors.map((x) => x.line), ...(d.caveat ? [d.caveat] : [])] };
   });
