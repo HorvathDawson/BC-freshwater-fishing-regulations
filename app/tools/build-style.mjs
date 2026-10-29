@@ -503,15 +503,27 @@ for (const l of src.layers ?? []) {
     const values = Object.keys(ic.images ?? {});
     for (const v of ic.sortOrder ?? []) if (!values.includes(v)) err(`${iw}: sortOrder names "${v}", which has no image`);
     const size = ["interpolate", ["linear"], ["zoom"], ...(ic.size ?? []).flat()];
+    /* DENSITY PER ZOOM (T173): `fromZoom` is value -> the first zoom that value draws at (`fallbackFromZoom` for the
+     * fallback). The image becomes a zoom step over per-tier matches, an empty name drawing nothing and holding no
+     * collision box, so z10-12 keeps only the significant marks. `padding` may be [[zoom, px], ...], tapering with zoom. */
+    const fz = ic.fromZoom ?? {};
+    for (const v of Object.keys(fz)) if (!values.includes(v)) err(`${iw}: fromZoom names "${v}", which has no image`);
+    const tier = (z) => ["match", ["get", ic.by],
+      ...values.filter((v) => (fz[v] ?? 0) <= z).flatMap((v) => [v, ic.images[v]]),
+      (ic.fallbackFromZoom ?? 0) <= z ? ic.fallback : ""];
+    const zs = [...new Set([...Object.values(fz), ic.fallbackFromZoom ?? 0])].filter((z) => z > (l.minzoom ?? 0)).sort((a, b) => a - b);
+    const image = zs.length ? ["step", ["zoom"], tier(l.minzoom ?? 0), ...zs.flatMap((z) => [z, tier(z)])]
+      : ["match", ["get", ic.by], ...values.flatMap((v) => [v, ic.images[v]]), ic.fallback];
+    const padding = Array.isArray(ic.padding) ? ["interpolate", ["linear"], ["zoom"], ...ic.padding.flat()] : (ic.padding ?? 2);
     outLayers.push({ id: l.id, type: "symbol", ...geom,
       ...(l.filter ? { filter: l.filter } : {}),
       layout: {
         ...geom.layout,
-        "icon-image": ["match", ["get", ic.by], ...values.flatMap((v) => [v, ic.images[v]]), ic.fallback],
+        "icon-image": image,
         "icon-size": size,
         "icon-allow-overlap": false,
         "icon-ignore-placement": false,
-        "icon-padding": ic.padding ?? 2,
+        "icon-padding": padding,
         "symbol-sort-key": ["match", ["get", ic.by],
           ...(ic.sortOrder ?? []).flatMap((v, i) => [v, i]), (ic.sortOrder ?? []).length],
       } });

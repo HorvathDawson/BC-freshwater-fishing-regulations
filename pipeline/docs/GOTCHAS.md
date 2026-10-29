@@ -6,6 +6,29 @@ code now handles belong in the code's comments, not here.
 
 ---
 
+## Kept city-layer names that are not real names (and labels that look wrong)
+
+**2026-10-29 · owner review · city layers (Burnaby, Port Moody, Squamish) · `handoff/PLAN/audit/c1029-owner-review.md`**
+
+Names are shown **as sourced** (owner rule). City layers keep any feature that carries a name, so some kept
+"names" are asset codes or design designations, and some labels land on the wrong FWA line. This is a
+known-issue note, not a filter: do not "fix" these by dropping or renaming them.
+
+- **Designations, not names:** 154 Burnaby "X Trib.N" (e.g. "Stoney Trib.3-1-1-2-2-1"); 17 Port Moody and
+  16 Squamish "Trib" names.
+- **Codes as names (Burnaby):** Slvt2; Jr 1-1, Jr 4-1, Jr 4-1-1, Jr 4-1-2, JR Trib. 4; Crabtown Creek T1.
+- **Not streams / odd spelling (Squamish):** Mamquam Blind Channel Wetland (a wetland); Logger's Lane
+  Connector and Loggers Lane Creek (two spellings, one a "Connector"); Mashiter Side Channel.
+- **Labels that look wrong on an FWA line:** Evans Creek on the Squamish River; Dragonfly Creek on Still
+  Creek; Lost Trib.1 on Austin Creek; Stoney Trib.4 on Stoney Creek.
+- **Several names on one unnamed FWA line:** Thunderbird + Newport on `360305166`; Beaver Creek + Beaver
+  Creek BioPond North + Deer Lake Brook on `356297118`; Beecher + Sunken Engine on `356093488`.
+- **Already there before:** the Seymour River item holds the city's Tunnel Creek (`-2000000390`).
+
+Seeing one of these on the map is the data as sourced, not a regression.
+
+---
+
 ## Book errata: an MU printed wrong (Mackenzie Creek "4-21" is 4-31)
 
 **2026-10-26 · owner ruling · Region 4, `r4:mackenzie_creek@4-21` · `data/curated/regulations/overrides.json`**

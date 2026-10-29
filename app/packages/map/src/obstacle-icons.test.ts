@@ -49,4 +49,18 @@ describe("obstacle icons", () => {
     for (const n of names) expect(isGeneratedImage(n)).toBe(true);
     expect(MAP_STYLE.layers.some((l) => l.id === "obstacle_ring")).toBe(false);
   });
+
+  it("density per zoom: the image steps up through the tiers, and the padding tapers", () => {
+    const layer = MAP_STYLE.layers.find((l) => l.id === "obstacle") as unknown as { layout: Record<string, unknown[]> };
+    const img = layer.layout["icon-image"]!;
+    const names = (m: unknown) => (JSON.stringify(m).match(/obstacle-[a-z]+/g) ?? []).map((n) => n.slice(9)).sort();
+    expect([img[0], img[3], img[5], img[7]]).toEqual(["step", 12, 13, 14]);
+    expect(names(img[2])).toEqual(["dam", "falls"]);                                              // z10-11
+    expect(names(img[4])).toEqual(["canyon", "cascade", "dam", "falls", "velocity"]);             // z12
+    expect(names(img[6])).toEqual(["canyon", "cascade", "culvert", "dam", "falls", "velocity"]);  // z13
+    expect(names(img[8])).toEqual(["canyon", "cascade", "culvert", "dam", "falls", "other", "velocity"]); // z14+
+    const pad = layer.layout["icon-padding"]!;
+    expect(pad.slice(0, 3)).toEqual(["interpolate", ["linear"], ["zoom"]]);
+    expect(pad[4]).toBeGreaterThan(pad[8] as number);
+  });
 });

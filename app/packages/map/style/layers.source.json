@@ -2414,7 +2414,7 @@
           }
         }
       },
-      "$comment": "(T173) FISH OBSTACLES, as small icons, one drawing per type (falls, cascade, canyon, velocity barrier, dam, culvert; any other type is a dot): neutral ink in a paper halo, 14 px at z10 to 18 px at z16. The drawings are `@app/core` `OBSTACLE_ICON_SHAPES`, rasterised per theme by `@app/map` `obstacle-icons.ts` and added like the hatches (`addImage` on the web, the binding's `Images` on a phone); the style only names them (`icon.images`, by the tile's `type`). Overlap is OFF and the sort key ranks the type (`icon.sortOrder`: a dam is placed before a culvert), so a crowded reach drops the lesser mark instead of stacking them. COLOURLESS ON PURPOSE: the colours on this map are answers (a status, a gauge's reading), and a mark that wore one would read as one. Distinct from a gauge (a coloured dot, the Conditions map's) and a spot (a pin). Tapped before the water under it (`sections.ts` OBSTACLE_LAYERS, `MapProps.onPressObstacle`). From z10, the tile layer's own minzoom.",
+      "$comment": "(T173) FISH OBSTACLES, as small icons, one drawing per type (falls, cascade, canyon, velocity barrier, dam, culvert; any other type is a dot): neutral ink in a paper halo, 14 px at z10 to 18 px at z16. The drawings are `@app/core` `OBSTACLE_ICON_SHAPES`, rasterised per theme by `@app/map` `obstacle-icons.ts` and added like the hatches (`addImage` on the web, the binding's `Images` on a phone); the style only names them (`icon.images`, by the tile's `type`). Overlap is OFF and the sort key ranks the type (`icon.sortOrder`: a dam is placed before a culvert), so a crowded reach drops the lesser mark instead of stacking them. COLOURLESS ON PURPOSE: the colours on this map are answers (a status, a gauge's reading), and a mark that wore one would read as one. Distinct from a gauge (a coloured dot, the Conditions map's) and a spot (a pin). Tapped before the water under it (`sections.ts` OBSTACLE_LAYERS, `MapProps.onPressObstacle`). From z10, the tile layer's own minzoom. DENSITY PER ZOOM: dams + falls from z10, canyons/cascades/velocity barriers from z12, culverts from z13, unknown dots from z14 (`icon.fromZoom`), and the collision padding tapers 16 px at z10 to 3 px at z14 (`icon.padding`), so z10-12 shows only the significant marks.",
       "icon": {
         "by": "type",
         "images": {
@@ -2448,7 +2448,29 @@
             1.125
           ]
         ],
-        "padding": 3
+        "padding": [
+          [
+            10,
+            16
+          ],
+          [
+            12,
+            10
+          ],
+          [
+            14,
+            3
+          ]
+        ],
+        "fromZoom": {
+          "dam": 10,
+          "falls": 10,
+          "canyon": 12,
+          "cascade": 12,
+          "velocity": 12,
+          "culvert": 13
+        },
+        "fallbackFromZoom": 14
       }
     }
   ],
