@@ -55,6 +55,9 @@ export interface RunRecord {
   /** (T261) DFO: the spawners counted, [year, count], the latest 12 counted years ascending; absent: no counts (every
    *  PSF run — its permission covers the timing, not abundance) */
   readonly n?: readonly (readonly [number, number])[];
+  /** (T261, owner 2026-10-29) DFO: the ADULT spawners counted (NATURAL_ADULT_SPAWNERS), same shape, a separate series —
+   *  never summed or merged with `n`; it leads the sheet only where `n` is missing */
+  readonly na?: readonly (readonly [number, number])[];
 }
 
 export interface RunSource {
@@ -71,7 +74,9 @@ export interface RunsDoc {
   readonly sources: Readonly<Record<string, RunSource>>;
   readonly runs: readonly RunRecord[];
   /** (T261) which source's runs carry counts, and the words for them */
-  readonly counts?: { readonly dfo?: { readonly field: string; readonly words: string; readonly years: number } };
+  readonly counts?: { readonly dfo?: {
+    readonly field: string; readonly words: string; readonly years: number;
+    readonly adult?: { readonly field: string; readonly words: string } } };
 }
 
 export interface PaintProfile { readonly r: readonly number[]; readonly s: number; readonly m: readonly (readonly [number, number, number])[] }
@@ -438,7 +443,7 @@ export const RUN_WORDS = {
   slider: { label: "Day of the year", today: "Today", play: "Play through the year", pause: "Pause",
             value: (p: number, today: boolean) => (today ? `${pentadLabel(p)} (today)` : pentadLabel(p)) },
   /** the run-size key: the sheet's bars are on this scale */
-  scale: { title: "Spawners counted (DFO) — tap a stream", ticks: ["10", "100", "1k", "10k", "100k"] as const,
+  scale: { title: "Spawners counted (DFO; total, else adults) — tap a stream", ticks: ["10", "100", "1k", "10k", "100k"] as const,
            none: "No counts: shown as such, never guessed" },
   sheetTitle: "Fish runs here",
   none: (species: readonly string[]) =>
@@ -449,11 +454,14 @@ export const RUN_WORDS = {
   km: (n: number) => `This water is about ${n} km from the sea, so they reach it later.`,
   surveyed: (y: readonly [number, number, number]) => `DFO surveys: ${y[0]} years, ${y[1]}–${y[2]}`,
   noCounts: "No counts",
+  /** the two series' labels: DFO's total and its adult-only estimate, side by side, never added */
+  series: { total: "Total spawners", adult: "Adult spawners" },
   latest: (year: number, n: number) => `Latest count ${countWords(n)} (${year})`,
   trend: { up: "Recent counts are higher than the years before",
            down: "Recent counts are lower than the years before",
            flat: "Recent counts are about the same as the years before" },
-  countsNote: "Counts are DFO's spawner estimates for the surveyed stream. PSF runs carry no counts here.",
+  countsNote: "Counts are DFO's spawner estimates for the surveyed stream: total spawners and adult spawners are "
+    + "separate estimates, shown apart. PSF runs carry no counts here.",
   captured: (built: string) => `Offline: the run timing saved on this device (built ${built.slice(0, 10)}).`,
   stale: "Run timing was made for another map version — it is not drawn.",
   failed: "Run timing could not be loaded.",
@@ -480,8 +488,17 @@ export function runDates(r: Pick<RunRecord, "src" | "window" | "peak">): string 
 /** One year's count as a bar: its height on the log scale the legend keys (10 → 0.2 … 100k → 1). */
 export interface CountBar { readonly year: number; readonly n: number; readonly h: number; readonly label: string }
 
-/** A run's counts, worded: the bars, the latest, the trend — or null (the sheet then says "No counts"). */
-export interface RunCountsVM { readonly bars: readonly CountBar[]; readonly latest: string; readonly trend: string | null }
+/** One labelled series of counts, worded: the bars, the latest, the trend. */
+export interface CountSeriesVM {
+  readonly label: string;
+  readonly bars: readonly CountBar[];
+  readonly latest: string;
+  readonly trend: string | null;
+}
+
+/** A run's counts: its series, the headline one first (total spawners; adult spawners when there is no total) — or null
+ *  (the sheet then says "No counts"). Two series stay two: they are different estimates and are never combined. */
+export interface RunCountsVM { readonly series: readonly CountSeriesVM[] }
 
 /** Where a count sits on the run-size scale: log10, 10 → 0.2, 100k and over → 1; zero is no bar at all. */
 export function countHeight(n: number): number {
@@ -497,19 +514,22 @@ const median = (xs: readonly number[]) => {
  * THE RUN'S SIZE, from DFO's counts only (never a PSF number, never guessed): every counted year as a bar, the latest,
  * and with six counted years or more a trend — the median of the last three against the median of up to six before.
  */
-export function runCounts(r: Pick<RunRecord, "n">): RunCountsVM | null {
-  const n = r.n;
-  if (!n || n.length === 0) return null;
-  const bars = n.map(([year, c]) => ({ year, n: c, h: countHeight(c), label: `${year}: ${countWords(c)}` }));
-  const [ly, lc] = n[n.length - 1]!;
-  let trend: string | null = null;
-  if (n.length >= 6) {
-    const recent = median(n.slice(-3).map((x) => x[1]));
-    const before = median(n.slice(-9, -3).map((x) => x[1]));
-    trend = before === 0 ? (recent === 0 ? RUN_WORDS.trend.flat : RUN_WORDS.trend.up)
-      : recent / before >= 1.5 ? RUN_WORDS.trend.up : recent / before <= 2 / 3 ? RUN_WORDS.trend.down : RUN_WORDS.trend.flat;
-  }
-  return { bars, latest: RUN_WORDS.latest(ly, lc), trend };
+export function runCounts(r: Pick<RunRecord, "n"> & { readonly na?: RunRecord["na"] }): RunCountsVM | null {
+  const one = (n: RunRecord["n"], label: string): CountSeriesVM | null => {
+    if (!n || n.length === 0) return null;
+    const bars = n.map(([year, c]) => ({ year, n: c, h: countHeight(c), label: `${year}: ${countWords(c)}` }));
+    const [ly, lc] = n[n.length - 1]!;
+    let trend: string | null = null;
+    if (n.length >= 6) {
+      const recent = median(n.slice(-3).map((x) => x[1]));
+      const before = median(n.slice(-9, -3).map((x) => x[1]));
+      trend = before === 0 ? (recent === 0 ? RUN_WORDS.trend.flat : RUN_WORDS.trend.up)
+        : recent / before >= 1.5 ? RUN_WORDS.trend.up : recent / before <= 2 / 3 ? RUN_WORDS.trend.down : RUN_WORDS.trend.flat;
+    }
+    return { label, bars, latest: RUN_WORDS.latest(ly, lc), trend };
+  };
+  const series = [one(r.n, RUN_WORDS.series.total), one(r.na, RUN_WORDS.series.adult)].filter((x): x is CountSeriesVM => x !== null);
+  return series.length ? { series } : null;
 }
 
 /** One run on the tap sheet, worded. */

@@ -125,6 +125,18 @@ def test_dfo_counts_come_from_every_row_capped_to_the_latest_years():
     assert rep["records_with_counts"] == 1
 
 
+def test_adult_spawners_are_a_second_series_never_merged():
+    rows = [nuseds("1", "Coho", y) for y in (2001, 2002, 2003)]
+    for r, (t, a) in zip(rows, (("120", "100"), ("", "7"), ("5", ""))):
+        r["NATURAL_SPAWNERS_TOTAL"], r["NATURAL_ADULT_SPAWNERS"] = t, a
+    out, rep = P.dfo_records(rows, {"1": (-121.7, 49.1, "Stream")})
+    (rec,) = out
+    assert rec["counts"] == [[2001, 120], [2003, 5]]
+    assert rec["adults"] == [[2001, 100], [2002, 7]]
+    assert [rep[k] for k in ("records_with_counts", "records_with_adults", "records_with_both")] == [1, 1, 1]
+    assert P.spawners({"NATURAL_ADULT_SPAWNERS": "9"}, P.ADULT_FIELD) == 9 and P.spawners({"NATURAL_ADULT_SPAWNERS": "9"}) is None
+
+
 def test_spawners_reads_numbers_only():
     assert [P.spawners({"NATURAL_SPAWNERS_TOTAL": v}) for v in ("0", "12.0", " 7 ", "", "x", "-1", "nan")] == \
         [0, 12, 7, None, None, None, None]
@@ -136,9 +148,10 @@ def test_counts_round_trip_and_never_ride_a_psf_run(tmp_path):
     curve = [0] * 73
     curve[40] = 100
     dfo = {"key": "dfo:1:Coho:-", "source": "dfo", "species": "Coho", "slot": "Coho", "name": "n", "label": None,
-           "curve": curve, "peak": None, "window": None, "counts": [[2001, 5], [2002, 0]]}
+           "curve": curve, "peak": None, "window": None, "counts": [[2001, 5], [2002, 0]], "adults": [[2001, 4]]}
     write_timing(tmp_path / "t.json", [], [dfo], {})
     assert read_timing(tmp_path / "t.json").dfo[0].counts == ((2001, 5), (2002, 0))
+    assert read_timing(tmp_path / "t.json").dfo[0].adults == ((2001, 4),)
     psf = {**dfo, "key": "psf:1", "source": "psf"}
     with pytest.raises(ValueError, match="only DFO"):
         write_timing(tmp_path / "u.json", [psf], [], {})

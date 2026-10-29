@@ -62,7 +62,7 @@ def make_inputs(tmp_path):
     dfo = [{"key": "dfo:9:Coho:-", "source": "dfo", "species": "Coho", "slot": "Coho", "name": "Test Creek",
             "label": None, "curve": curve([9]), "peak": "Oct 10", "window": ["Oct 1", "Oct 30"], "years": 10,
             "first_year": 2010, "last_year": 2024, "wsc": "100-000001-000100", "lon": -122.0, "lat": 49.5,
-            "site_kind": "Stream", "counts": [[2023, 40], [2024, 0]]}]
+            "site_kind": "Stream", "counts": [[2023, 40], [2024, 0]], "adults": [[2023, 30], [2024, 0]]}]
     sources = {"psf": {"title": "t", "dataset": "d", "updated": "2024-09-10", "fetched": "2026-10-28"},
                "dfo": {"title": "t", "dataset": "d", "updated": "20260601", "fetched": "2026-10-28",
                        "licence": "Open Government Licence – Canada"}}
@@ -140,9 +140,12 @@ def test_dfo_runs_carry_their_counts_and_psf_runs_none(built):
     docs, *_ = built
     runs = {r["id"]: r for r in docs["runs"]["runs"]}
     assert runs["dfo:9:Coho:-"]["n"] == [[2023, 40], [2024, 0]]
-    assert "n" not in runs["psf:7"]
+    assert runs["dfo:9:Coho:-"]["na"] == [[2023, 30], [2024, 0]]          # the adult series, beside the total
+    assert "n" not in runs["psf:7"] and "na" not in runs["psf:7"]
     assert docs["runs"]["counts"] == {"dfo": {"field": "NATURAL_SPAWNERS_TOTAL",
-                                              "words": "spawners counted (DFO estimate)", "years": 12}}
+                                              "words": "total spawners (DFO estimate)", "years": 12,
+                                              "adult": {"field": "NATURAL_ADULT_SPAWNERS",
+                                                        "words": "adult spawners (DFO estimate)"}}}
 
 
 def test_a_base_without_wg_paints_no_basins(built):
@@ -165,7 +168,7 @@ def test_basins_or_the_runs_of_their_painted_sections(tmp_path):
     assert paint["basins"]["ids"] == ["AAAA", "BBBB"]
     assert paint["basins"]["m"] == [[[steel, pent["psf:7"], pent["psf:7"]]],
                                     [[coho, pent["dfo:9:Coho:-"], zero], [steel, pent["psf:7"], zero]]]
-    assert report["basins_painted"] == 2 and report["dfo_runs_with_counts"] == 1
+    assert report["basins_painted"] == 2 and report["dfo_runs_with_counts"] == 1 and report["dfo_runs_with_both"] == 1
     B.check(files, index)
     bad = json.loads(files["paint"])
     bad["basins"]["m"][0][0][1] = "f" * 19                  # bits past pentad 72

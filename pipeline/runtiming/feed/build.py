@@ -14,6 +14,9 @@ surveyed years saw fish in the stream.
 ADDED IN T261 (optional keys; every format stays /1 and a reader that ignores them reads the files as before):
   runs   a DFO run's `n`: [[year, spawners counted], ...] ascending (DFO's NATURAL_SPAWNERS_TOTAL, the most recent 12
          counted years; `parse.COUNT_YEARS`), and the doc's top-level `counts` saying what `n` is. PSF runs never carry
+         one. Owner 2026-10-29: also `na`, the same shape from NATURAL_ADULT_SPAWNERS, a SECOND series kept beside `n`
+         (never summed or merged; the doc's `counts.dfo.adult` names it). `n` is preferred for the headline; `na` stands
+         in when `n` is missing. PSF runs never carry
          one: PSF's permission covers the timing curves and CU reach assignments, not its abundance series.
   paint  `basins` (only when the base has its `wg` column): the ZOOMED-OUT FIELD — per FWA watershed group (the tiles'
          `basin` layer, `basin_id`), per slot, the pentads (19-hex, `pentads_of`'s 73 bits) a LOCAL run (spawning or
@@ -87,7 +90,8 @@ def pentads_of(r: TimedRun) -> str:
 # ---- the files -----------------------------------------------------------------------------------------------------
 
 #: what a DFO run's `n` is (the runs doc's `counts`); PSF has none — see the module docstring
-COUNTS = {"dfo": {"field": "NATURAL_SPAWNERS_TOTAL", "words": "spawners counted (DFO estimate)", "years": 12}}
+COUNTS = {"dfo": {"field": "NATURAL_SPAWNERS_TOTAL", "words": "total spawners (DFO estimate)", "years": 12,
+                  "adult": {"field": "NATURAL_ADULT_SPAWNERS", "words": "adult spawners (DFO estimate)"}}}
 
 
 def run_record(r: TimedRun) -> dict:
@@ -96,7 +100,9 @@ def run_record(r: TimedRun) -> dict:
     for k, v in (("label", r.label), ("peak", r.peak), ("window", list(r.window) if r.window else None),
                  ("q", r.quality), ("years", [r.years, r.first_year, r.last_year] if r.years else None),
                  # DFO only: a PSF run's abundance is never read (its permission covers timing alone)
-                 ("n", [[y, c] for y, c in r.counts] if r.counts and r.source == "dfo" else None)):
+                 ("n", [[y, c] for y, c in r.counts] if r.counts and r.source == "dfo" else None),
+                 # the adult-spawner series beside it, never merged: the app prefers `n` and falls back to `na`
+                 ("na", [[y, c] for y, c in r.adults] if r.adults and r.source == "dfo" else None)):
         if v is not None:
             d[k] = v
     return d
@@ -259,6 +265,8 @@ def build(timing_path: Path, polygons_path: Path, base_path: Path) -> Tuple[Dict
     report.update({"runs": len(runs), "runs_unbound": len(all_runs) - len(runs), "profiles": len(profiles),
                    "painted_sections": len(sids), "base_sections": len(a.sids),
                    "dfo_runs_with_counts": sum(1 for r in runs if r.source == "dfo" and r.counts),
+                   "dfo_runs_with_adults": sum(1 for r in runs if r.source == "dfo" and r.adults),
+                   "dfo_runs_with_both": sum(1 for r in runs if r.source == "dfo" and r.counts and r.adults),
                    "basins_painted": len(paint_doc["basins"]["ids"]) if "basins" in paint_doc else None,
                    "raw_bytes": {k: len(v) for k, v in files.items()},
                    "gz_bytes": {k: len(gzip.compress(v, mtime=0)) for k, v in files.items()}})
@@ -287,12 +295,13 @@ def check(files: Dict[str, bytes], index: dict) -> None:
     for pr in paint["profiles"]:
         if not pr["r"] or any(x // 3 >= n for x in pr["r"]):
             raise SystemExit("check: a profile names a run the runs file lacks")
-    if any("n" in r and r["src"] != "dfo" for r in runs["runs"]):
+    if any(("n" in r or "na" in r) and r["src"] != "dfo" for r in runs["runs"]):
         raise SystemExit("check: a non-DFO run carries counts")
     for r in runs["runs"]:
-        ys = [y for y, _ in r.get("n", [])]
-        if ys != sorted(set(ys)) or any(c < 0 for _, c in r.get("n", [])):
-            raise SystemExit(f"check: {r['id']}'s counts are not one per year, ascending, >= 0")
+        for key in ("n", "na"):
+            ys = [y for y, _ in r.get(key, [])]
+            if ys != sorted(set(ys)) or any(c < 0 for _, c in r.get(key, [])):
+                raise SystemExit(f"check: {r['id']}'s {key} is not one count per year, ascending, >= 0")
     if "basins" in paint:
         ids, m = paint["basins"]["ids"], paint["basins"]["m"]
         if ids != sorted(set(ids)) or len(ids) != len(m):

@@ -49,7 +49,7 @@ const RUNS: RunsDoc = {
     { id: "psf:1", src: "psf", sp: "Steelhead", slot: 6, name: "Chilliwack Winter", label: "winter", months: 0,
       pentads: hex([56, 57, 58, 59]) },
     { id: "dfo:9:Coho:-", src: "dfo", sp: "Coho", slot: 2, name: "Chilliwack River", months: 0, pentads: hex([58, 60]),
-      years: [12, 2001, 2024], n: [[2020, 2600], [2021, 3100], [2022, 2900]] },
+      years: [12, 2001, 2024], n: [[2020, 2600], [2021, 3100], [2022, 2900]], na: [[2021, 1500], [2022, 800]] },
   ],
 };
 const PAINT: PaintDoc = {
@@ -149,7 +149,7 @@ describe("(T261) the Runs tab", () => {
       "Oct 18–22 (today)",
       "1 | 1 run of another species here",
       "CohoIn the water Oct 18–22Chilliwack River · Seen in this stream (DFO spawner surveys)|months|"
-        + "DFO surveys: 12 years, 2001–20242020–2022Latest count 2,900 (2022)",
+        + "DFO surveys: 12 years, 2001–2024Total spawners2020–2022Latest count 2,900 (2022)Adult spawners2021–2022Latest count 800 (2022)",
       "Steelhead — winterIn the water Oct 18–22Chilliwack Winter · Passes through here|months|No counts",
     ]);
   }, 40_000);

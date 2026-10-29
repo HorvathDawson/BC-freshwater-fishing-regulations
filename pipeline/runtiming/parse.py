@@ -40,6 +40,8 @@ MAX_YEARS = 25
 COUNT_YEARS = 12
 #: the NuSEDS column counted: DFO's estimate of all natural spawners (the one column filled across every species)
 COUNT_FIELD = "NATURAL_SPAWNERS_TOTAL"
+#: the second series (owner 2026-10-29): adult spawners only (no jacks). Kept beside the total, never summed into it
+ADULT_FIELD = "NATURAL_ADULT_SPAWNERS"
 #: a survey year whose dates span more than this is a typo (or two runs entered as one), not a season
 MAX_SPAN_DAYS = 200
 #: the season starts Mar 1 for medians and spans (coho spawn into January; spring chinook arrive in April)
@@ -138,9 +140,9 @@ def presence_curve(windows: List[Tuple[int, int]]) -> List[int]:
     return [int(round(100 * h / n)) for h in hits]
 
 
-def spawners(row: dict) -> Optional[int]:
-    """The row's `COUNT_FIELD`, or None (empty, or not a number). 0 is a real count."""
-    t = (row.get(COUNT_FIELD) or "").strip().replace(",", "")
+def spawners(row: dict, field: str = COUNT_FIELD) -> Optional[int]:
+    """The row's `field` (the total by default), or None (empty, or not a number). 0 is a real count."""
+    t = (row.get(field) or "").strip().replace(",", "")
     try:
         v = float(t)
     except ValueError:
@@ -156,6 +158,7 @@ def dfo_records(rows: Iterable[dict], sites: Dict[str, Tuple[float, float, str]]
     record."""
     by: Dict[tuple, Dict[int, tuple]] = defaultdict(dict)
     counted: Dict[tuple, Dict[int, int]] = defaultdict(dict)
+    adults: Dict[tuple, Dict[int, int]] = defaultdict(dict)
     names: Dict[tuple, str] = {}
     seen = 0
     for row in rows:
@@ -175,6 +178,9 @@ def dfo_records(rows: Iterable[dict], sites: Dict[str, Tuple[float, float, str]]
         n = spawners(row)
         if n is not None:                                   # every row counts, dated or not (one per year: the last)
             counted[k][year] = n
+        na = spawners(row, ADULT_FIELD)
+        if na is not None:
+            adults[k][year] = na
         w = year_window(row)
         if w is None:
             continue
@@ -193,6 +199,7 @@ def dfo_records(rows: Iterable[dict], sites: Dict[str, Tuple[float, float, str]]
         peaks = [w[2] for w in ws if w[2] is not None]
         ll = sites.get(gfe)
         counts = sorted(counted.get(k, {}).items())[-COUNT_YEARS:]
+        adult = sorted(adults.get(k, {}).items())[-COUNT_YEARS:]
         out.append({
             "key": f"dfo:{gfe}:{slot}:{run or '-'}", "source": "dfo", "species": sp, "slot": slot,
             "name": titled(names[k]), "label": RUN_LABELS.get(run),
@@ -202,9 +209,13 @@ def dfo_records(rows: Iterable[dict], sites: Dict[str, Tuple[float, float, str]]
                        fmt_day(unseason(statistics.median(w[1] for w in ws)))],
             "years": len(years), "first_year": years[0], "last_year": years[-1], "wsc": wsc,
             "lon": ll[0] if ll else None, "lat": ll[1] if ll else None, "site_kind": ll[2] if ll else None,
-            "counts": [list(c) for c in counts] or None})
+            "counts": [list(c) for c in counts] or None,
+            "adults": [list(c) for c in adult] or None})
     return out, {"dated_survey_rows": seen, "records": len(out), f"under_{MIN_YEARS}_years": dropped,
-                 "records_with_counts": sum(1 for r in out if r["counts"])}
+                 "records_with_counts": sum(1 for r in out if r["counts"]),
+                 "records_with_adults": sum(1 for r in out if r["adults"]),
+                 "records_with_both": sum(1 for r in out if r["counts"] and r["adults"]),
+                 "records_with_either": sum(1 for r in out if r["counts"] or r["adults"])}
 
 
 _SMALL = {"of", "and", "the", "de"}

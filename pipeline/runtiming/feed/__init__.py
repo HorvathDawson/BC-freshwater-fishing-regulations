@@ -29,7 +29,7 @@ WHAT THE APP READS (`runtiming/`, every file but the index named by its content 
                  its months (12 bits) and pentads (73 bits) in the water, its source; the sources and credits; the
                  slots (Pink split by brood line) and the default (steelhead). T261, additive: a DFO run's `n`
                  [[year, spawners counted], ...] (NuSEDS NATURAL_SPAWNERS_TOTAL, the latest 12 counted years,
-                 ascending) and the doc's `counts` {"dfo": {field, words, years}} naming it. PSF runs carry NO
+                 ascending) and the doc's `counts` {"dfo": {field, words, years}} naming it. `na` (NATURAL_ADULT_SPAWNERS, same shape, a separate series, `counts.dfo.adult`). PSF runs carry NO
                  counts: PSF's written permission covers run-timing curves and CU reach assignments only.
     paint-<sha12>.json    runtiming-paint/1 — the PAINT INDEX, against ONE atlas (`section_handles`): profiles (each a
                  set of run x relation, with its species bitmask and per slot the months local / passing) and per

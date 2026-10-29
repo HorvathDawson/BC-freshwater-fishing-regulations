@@ -102,22 +102,28 @@ function YearChart({ r, pentad, palette, theme }: { r: RunRowVM; pentad: number;
   );
 }
 
-/** The run's size: a bar per counted year on the legend's scale, the latest and the trend — or "No counts". */
+/** The run's size: each labelled series (total, adult) as a bar per counted year on the legend's scale, its latest and
+ *  trend, one under the other, never combined — or "No counts". */
 function Counts({ c, palette }: { c: RunCountsVM | null; palette: Palette }) {
   if (!c) return <Text testID="runs-no-counts" style={{ ...TYPE.small, color: palette.sub }}>{RUN_WORDS.noCounts}</Text>;
   return (
-    <View testID="runs-counts" style={{ gap: 3, marginTop: 2 }}>
-      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 3, height: 26 }}
-            accessibilityLabel={c.bars.map((b) => b.label).join(", ")}>
-        {c.bars.map((b) => (
-          <View key={b.year} style={{ width: 12, height: Math.max(1, Math.round(b.h * 24)), backgroundColor: palette.ink,
-                                      opacity: b.n > 0 ? 0.75 : 0.25 }} />
-        ))}
-        <Text style={{ ...TYPE.month, fontSize: 9, color: palette.sub, marginLeft: 4 }}>
-          {`${c.bars[0]!.year}–${c.bars[c.bars.length - 1]!.year}`}</Text>
-      </View>
-      <Text style={{ ...TYPE.small, color: palette.ink }}>{c.latest}</Text>
-      {c.trend && <Text style={{ ...TYPE.small, color: palette.sub }}>{c.trend}</Text>}
+    <View testID="runs-counts" style={{ gap: 8, marginTop: 2 }}>
+      {c.series.map((s) => (
+        <View key={s.label} testID="runs-series" style={{ gap: 3 }}>
+          <Text style={{ ...TYPE.small, color: palette.ink, fontWeight: "600" }}>{s.label}</Text>
+          <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 3, height: 26 }}
+                accessibilityLabel={`${s.label}: ${s.bars.map((b) => b.label).join(", ")}`}>
+            {s.bars.map((b) => (
+              <View key={b.year} style={{ width: 12, height: Math.max(1, Math.round(b.h * 24)), backgroundColor: palette.ink,
+                                          opacity: b.n > 0 ? 0.75 : 0.25 }} />
+            ))}
+            <Text style={{ ...TYPE.month, fontSize: 9, color: palette.sub, marginLeft: 4 }}>
+              {`${s.bars[0]!.year}–${s.bars[s.bars.length - 1]!.year}`}</Text>
+          </View>
+          <Text style={{ ...TYPE.small, color: palette.ink }}>{s.latest}</Text>
+          {s.trend && <Text style={{ ...TYPE.small, color: palette.sub }}>{s.trend}</Text>}
+        </View>
+      ))}
     </View>
   );
 }

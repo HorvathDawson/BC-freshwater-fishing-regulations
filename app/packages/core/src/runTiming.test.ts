@@ -22,7 +22,8 @@ const runs: RunsDoc = {
     // coho, DFO in the stream Oct–Nov
     { id: "dfo:9:Coho:-", src: "dfo", sp: "Coho", slot: 2, name: "Kitwanga River", months: (1 << 9) | (1 << 10),
       pentads: hex([58, 60]), years: [12, 2001, 2024], window: ["Oct 1", "Nov 30"],
-      n: [[2016, 900], [2017, 1100], [2018, 1000], [2019, 1200], [2020, 2600], [2021, 3100], [2022, 2900]] },
+      n: [[2016, 900], [2017, 1100], [2018, 1000], [2019, 1200], [2020, 2600], [2021, 3100], [2022, 2900]],
+      na: [[2020, 1800], [2021, 2200], [2022, 410]] },
   ],
 };
 // profile 0: steelhead spawning; profile 1: steelhead passing + coho observed
@@ -108,16 +109,26 @@ describe("run timing", () => {
 
   it("sizes a run from DFO's counts only: bars on the log scale, the latest, a trend from six years", () => {
     expect(runCounts(runs.runs[0]!)).toBeNull();                       // a PSF run: no counts, never guessed
-    const c = runCounts(runs.runs[1]!)!;
+    const c = runCounts(runs.runs[1]!)!.series[0]!;
     expect(c.latest).toBe("Latest count 2,900 (2022)");
     expect(c.trend).toBe("Recent counts are higher than the years before");
     expect(c.bars.map((b) => b.label)[0]).toBe("2016: 900");
     expect([countHeight(0), countHeight(10), countHeight(100_000), countHeight(5_000_000)]).toEqual([0, 0.2, 1, 1]);
-    expect(runCounts({ n: [[2020, 5], [2021, 6]] })!.trend).toBeNull();
-    expect(runCounts({ n: [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0]] })!.trend)
+    expect(runCounts({ n: [[2020, 5], [2021, 6]] })!.series[0]!.trend).toBeNull();
+    expect(runCounts({ n: [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0]] })!.series[0]!.trend)
       .toBe("Recent counts are about the same as the years before");
-    expect(runCounts({ n: [[1, 100], [2, 100], [3, 100], [4, 40], [5, 50], [6, 60]] })!.trend)
+    expect(runCounts({ n: [[1, 100], [2, 100], [3, 100], [4, 40], [5, 50], [6, 60]] })!.series[0]!.trend)
       .toBe("Recent counts are lower than the years before");
+  });
+
+  it("keeps DFO's total and adult spawners as two labelled series, total first, adults alone when no total", () => {
+    const both = runCounts({ n: [[2020, 500], [2021, 600]], na: [[2020, 300], [2021, 20]] })!;
+    expect(both.series.map((s) => [s.label, s.latest])).toEqual([
+      ["Total spawners", "Latest count 600 (2021)"], ["Adult spawners", "Latest count 20 (2021)"]]);
+    const adultOnly = runCounts({ na: [[2019, 40]] })!;
+    expect(adultOnly.series.map((s) => s.label)).toEqual(["Adult spawners"]);
+    expect(runCounts({ n: [[2019, 40]] })!.series.map((s) => s.label)).toEqual(["Total spawners"]);
+    expect(runCounts({ na: [] })).toBeNull();
   });
 
   it("dates a day by its pentad on the common year", () => {
@@ -132,18 +143,19 @@ describe("run timing", () => {
     const sp = runSpecies(facts)[0]!;
     const vm = runSheet(facts, 15, [sp], 37);
     expect(vm.rows.map((r) => [r.title, r.code, r.population, r.relation, r.kind, r.dates, r.nowWords, r.survey,
-                               r.counts?.latest ?? "No counts"])).toEqual([
+                               r.counts?.series.map((x) => `${x.label}: ${x.latest}`).join("; ") ?? "No counts"])).toEqual([
       ["Steelhead — summer", "ST", "Skeena Summer", "Passes through here", "pass",
        "Enters fresh water Jul 2 – Sep 20, peak Aug 11", "In the water Jul 5–9", null, "No counts"],
       ["Coho", "CO", "Kitwanga River", "Seen in this stream (DFO spawner surveys)", "spawn", "In the stream Oct 1 – Nov 30",
-       "Not in the water Jul 5–9", "DFO surveys: 12 years, 2001–2024", "Latest count 2,900 (2022)"],
+       "Not in the water Jul 5–9", "DFO surveys: 12 years, 2001–2024", "Total spawners: Latest count 2,900 (2022); Adult spawners: Latest count 410 (2022)"],
     ]);
     expect(vm.rows[0]!.year.filter(Boolean).length).toBe(3);
     expect([vm.mine, vm.moreWords]).toEqual([1, "1 run of another species here"]);
     expect(vm.noneOfSpecies).toBeNull();
     expect(`${vm.riverEntry} ${vm.km}`).toBe("PSF dates are when fish enter fresh water. This water is about 120 km "
       + "from the sea, so they reach it later.");
-    expect(vm.countsNote).toBe("Counts are DFO's spawner estimates for the surveyed stream. PSF runs carry no counts here.");
+    expect(vm.countsNote).toBe("Counts are DFO's spawner estimates for the surveyed stream: total spawners and adult spawners are "
+      + "separate estimates, shown apart. PSF runs carry no counts here.");
     expect(vm.credit).toBe("Run timing: Fisheries and Oceans Canada — Contains information licensed under the Open "
       + "Government Licence – Canada. Pacific Salmon Foundation (Salmon Watersheds Program) — Used with the written "
       + "permission of the Pacific Salmon Foundation.");

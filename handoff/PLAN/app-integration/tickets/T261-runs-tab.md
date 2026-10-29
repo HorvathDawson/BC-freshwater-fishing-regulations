@@ -53,9 +53,12 @@ the sheet with counts and the fold), tab-bar strings in MapRail / WaterMode / ba
 dark; zoomed in / out / sheet), web against the local dev server with the new feed.
 
 ## Open / owner
-- Counts are thin: NATURAL_SPAWNERS_TOTAL is filled on 19.7k of 421k NuSEDS rows (1,651 of 4,944 records). Adding
-  NATURAL_ADULT_SPAWNERS as a fallback would give 3,627 records counts (adults only, no jacks) — one line in
-  `parse.spawners()` plus the words; owner's call.
+- DONE 2026-10-29 (owner: yes): DFO's NATURAL_ADULT_SPAWNERS ships as a SECOND series (`na`, doc `counts.dfo.adult`),
+  beside the total (`n`), never summed or merged. Sheet: "Total spawners" / "Adult spawners", each with bars, latest,
+  trend; the total leads, adults alone where no total. Legend note says "total, else adults". Runs with total 1,519,
+  adult 3,353, both 1,492 (either 3,380; of 4,886 runs; parse records 1,651 / 3,596 / 1,620 of 4,944). Staging:
+  paint-8af119a9e0b2, runs-989e47c3c739, waters-c8a289a39afb (handles 10cbcb72e9f907cf = LATEST r-0fa7927b16e5).
+  Shots: phone-dark-sheet-two-series, phone-dark-legend-scale-note.
 - PSF spawner abundance (steelhead and every CU) would need PSF's permission extended; not shipped.
 - Native device run not done (web + phone-web only); on a phone the zoomed-out field's states go through the style
   (a style swap per throttled pentad) — measure on a device.
