@@ -13,7 +13,24 @@ notifications for specific condition changes or forecasted changes."
    flow will cross X in the next N days" (T225 gauge feed + forecasts), "opens tomorrow".
 3. **Settings:** per-water follow, per-alert rules, quiet hours, a global off; everything opt-in.
 
-## Shape (defaults, owner to confirm)
+## Owner direction 2026-10-28
+- Native phone push (APNs / FCM via Expo Notifications), configured by the user inside the app: which waters/systems,
+  which kinds, thresholds and reasons. (Web: optional later.)
+- Regulation changes: notify that new data is available, with a notification action to download it right away
+  (background download), or download automatically (user setting); otherwise it downloads on next open (T231).
+
+## Proposed design (hybrid, rules stay on the device)
+- The feeds worker sends a small push ("data changed: gauges / DFO region 2 / in-season / release r-…") to devices that
+  follow anything affected — topic-style, only device token + followed water ids stored server-side (KV/D1).
+- The device wakes (silent/background push where the OS allows), fetches the changed feed (T231 update service),
+  evaluates the user's own alert rules LOCALLY (thresholds, forecasts, followed waters), and shows a local notification
+  only when a rule fires. Rules never leave the phone; the server never computes per-user conditions.
+- Release/regulation updates: notification with an "Update now" action (background download + apply) — or auto per
+  setting; on iOS background time is limited, so large downloads continue on next open with progress.
+- Why not purely on-device background fetch: iOS/Android schedule it loosely (hours), too slow for "opens tomorrow"
+  or a flow threshold; why not purely server-side rules: needs every user's thresholds on our server.
+
+## Shape (earlier defaults, superseded where they conflict)
 - Native: Expo Notifications (APNs/FCM). Web: Web Push (service worker) where supported.
 - Delivery: the T225 feeds worker evaluates changes after each run and sends pushes; device tokens + follows +
   alert rules stored server-side (Cloudflare D1/KV) — this needs a minimal per-device record, no account (T223) required;
