@@ -70,6 +70,11 @@ env switch + T251 stamp, signed with Expo's debug keystore (`android/app/debug.k
 updates install over). Needs Android Studio's JBR + the SDK (paths defaulted). Uploads to the STAGING bucket under
 `app/android/` (`canifishthis-staging-<ver>-<sha>.apk`, `latest.apk`, `index.html` with link + install steps), served at
 `https://data-staging.canifishthis.ca/app/android/index.html`. `upload.sh`'s clear spares `app/android/**`.
+Builds committed HEAD only (2026-10-29): a temporary `git worktree` at HEAD in `$TMPDIR` (removed by a trap, also on failure),
+so other lanes' uncommitted edits never enter an APK; it prints the sha. In the worktree: `pnpm install --offline
+--frozen-lockfile`, `expo prebuild` (android/ is gitignored), then the repo's `debug.keystore` is copied in (same signing key)
+and `local.properties` rewritten. Output/`last-sha` stay in the main checkout's `app/dist/apk`. `--dry-run` prints the steps
+and builds nothing. Commit before you build. Flags `--no-upload` / `--no-email` unchanged.
 Rebuild: bump `expo.android.versionCode` (+ version) in app.json when you want a visible new version.
 
 ## Acceptance
