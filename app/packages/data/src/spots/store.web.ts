@@ -54,6 +54,14 @@ export function openSalmonFeedStore(): { read(): string | null; write(text: stri
   return keyStore("canifishthis.dfoFeed.v1");
 }
 
+/** (T230) The last captured in-season feed + links, and the in-season ids this device has been shown. */
+export function openInSeasonStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.inseasonFeed.v1");
+}
+export function openInSeasonSeenStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.inseasonSeen.v1");
+}
+
 function keyStore(LAYERS_KEY: string): { read(): string | null; write(text: string): void } {
   return {
     read: () => { try { return globalThis.localStorage?.getItem(LAYERS_KEY) ?? null; } catch { return null; } },

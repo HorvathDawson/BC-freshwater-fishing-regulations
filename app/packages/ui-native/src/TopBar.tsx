@@ -27,7 +27,7 @@
  * always called "Search waters and towns" aloud, whatever the line says.
  */
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, TextInput, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { SEARCH_BAR, type SyncVM } from "@app/core";
 import { Icon } from "./icons";
 import { CLOSE_KEEPS_FOCUS, closedFieldClick } from "./searchFocus";
@@ -56,6 +56,8 @@ export interface TopBarProps {
   sync: SyncVM | null;
   /** The sync icon's tap: refresh what can be refreshed. */
   onSync?: () => void;
+  /** (T230) the in-season notice's bell: the count of changes not on the map yet (none: no bell) and its tap */
+  notices?: { count: number; label: string; onPress: () => void } | null;
   /** Search is open (route `search`): the ‹ in the magnifier's place, the accent edge. */
   open: boolean;
   query: string;
@@ -67,7 +69,7 @@ export interface TopBarProps {
 }
 
 export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
-  { palette, placeholder, sync, onSync, open, query, onQuery, onOpen, onClose }, ref) {
+  { palette, placeholder, sync, onSync, notices = null, open, query, onQuery, onOpen, onClose }, ref) {
   const panel = searchPanelWidth(useWindowDimensions().width);
   // the field holds the focus (open, or focused but closed): its edge turns accent either way — its one focus mark
   const [focused, setFocused] = useState(false);
@@ -127,14 +129,39 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
                        style={{ width: TOP_BAR.slot, alignSelf: "stretch", alignItems: "center", justifyContent: "center" }}>
               <Icon name="close" colour={palette.sub} size={18} />
             </Pressable>
-          ) : !open && sync ? (
-            <SyncButton palette={palette} sync={sync} onPress={onSync} />
           ) : null}
+          {query.length === 0 && !open && notices && notices.count > 0 && (
+            <NoticeButton palette={palette} count={notices.count} label={notices.label} onPress={notices.onPress} />
+          )}
+          {query.length === 0 && !open && sync && <SyncButton palette={palette} sync={sync} onPress={onSync} />}
         </View>
       </View>
     </View>
   );
 });
+
+/**
+ * (T230) THE IN-SEASON BELL: the provincial in-season changes not placed on the map yet — a bell with their count, in
+ * `attention` (never a water-status colour); its tap re-opens the notice. Shown only while there is one.
+ */
+function NoticeButton({ palette, count, label, onPress }: { palette: Palette; count: number; label: string; onPress: () => void }) {
+  return (
+    <Pressable testID="inseason-bell" onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={2}
+               style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
+                                          justifyContent: "center", borderLeftWidth: 1, borderLeftColor: palette.line,
+                                          backgroundColor: pressed ? palette.wash : "transparent" })}>
+      <View importantForAccessibility="no-hide-descendants" aria-hidden>
+        <Icon name="bell" colour={palette.sub} size={18} />
+        <View testID="inseason-count"
+              style={{ position: "absolute", top: -7, right: -9, minWidth: 16, height: 16, paddingHorizontal: 3,
+                       borderRadius: 8, backgroundColor: palette.attention, borderWidth: 1.5, borderColor: palette.card,
+                       alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ ...TYPE.metaBold, fontSize: 10, lineHeight: 12, color: palette.card }}>{count > 99 ? "99+" : count}</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
 
 /**
  * The sync icon: a hairline divides it from the field (it is a control, not part of what is typed); the dot sits on

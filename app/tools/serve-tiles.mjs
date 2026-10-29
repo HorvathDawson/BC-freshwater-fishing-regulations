@@ -95,6 +95,10 @@ createServer((req, res) => {
     // (T211) THE DFO SALMON FEED: whatever `python -m pipeline.regs.dfo_salmon.live` last wrote (R2 `feeds/dfo/` in prod)
     ?? (/^\/feeds\/dfo\/[\w-]+\.json$/.test(route)
           ? `${repo}data/generated/regs/dfo_salmon/feed/${route.split("/").pop()}` : undefined)
+    // (T230) THE IN-SEASON CHANGES: index.json (a captured T225 feed) + matches.json, as `python -m
+    // pipeline.regs.inseason.publish [--feed …]` last wrote them (R2 `feeds/inseason/` in prod)
+    ?? (/^\/feeds\/inseason\/[\w-]+\.json$/.test(route)
+          ? `${repo}data/generated/inseason/feed/${route.split("/").pop()}` : undefined)
     ?? releaseFile(route);
   if (!file || !existsSync(file)) return res.writeHead(404).end("no such archive");
 

@@ -49,6 +49,8 @@ export const ENDPOINTS = {
   feed: `${BASE}/feeds/live`,
   /** (T211) The live DFO salmon feed (`python -m pipeline.regs.dfo_salmon.live`; R2 `feeds/dfo/`). */
   dfoFeed: `${BASE}/feeds/dfo`,
+  /** (T230) The provincial in-season changes (T225 worker's index.json) + their curated links (matches.json; R2 `feeds/inseason/`). */
+  inSeason: `${BASE}/feeds/inseason`,
   /** Where sql.js finds its engine on the web: the same origin as the release files it opens. */
   sqlWasm: `${BASE}/`,
 } as const;

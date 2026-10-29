@@ -18,3 +18,8 @@ export declare function openLikeStore(): { read(): string | null; write(text: st
 
 /** (T211) The last captured DFO salmon feed, as whole text under one name (`../feed/salmon` `SalmonFeedStore`). */
 export declare function openSalmonFeedStore(): { read(): string | null; write(text: string): void };
+
+/** (T230) The last captured in-season feed + links (`../feed/inseason`), as whole text under one name. */
+export declare function openInSeasonStore(): { read(): string | null; write(text: string): void };
+/** (T230) The in-season row ids this device has been shown in the notice (a JSON list). */
+export declare function openInSeasonSeenStore(): { read(): string | null; write(text: string): void };

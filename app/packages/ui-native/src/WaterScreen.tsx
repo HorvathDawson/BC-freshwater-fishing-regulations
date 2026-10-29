@@ -27,7 +27,7 @@ import { ScrollView, Text, View } from "react-native";
 import { dayRange, gearIfFished, gearTabsFor, regsLapsedNote, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { mapDayOf, regsDay, useAccessNotice, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
+import { mapDayOf, regsDay, useAccessNotice, useInSeasonBanners, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useSalmonCard,
          useRegsTarget, useRegulations, useWater, type RegsStart } from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
@@ -109,6 +109,12 @@ export function WaterScreen({ source, item, palette, onBack,
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity
     [inputs.value?.partIx, pageItem?.id, pageItem?.ord, part, section, inputs.value?.key?.akey]);
   const salmon = useSalmonCard(loader, store.value ?? null, salmonPage, day);
+  // (T230) the provincial in-season changes matched to this water / part, in effect on THE day (informational)
+  const inSeasonPage = useMemo(() => (pageItem && inputs.value
+    ? { item: pageItem.id, ord: pageItem.ord, partIx: inputs.value.partIx, parts: pageItem.parts.length } : null),
+    // the page's identity
+    [pageItem?.id, pageItem?.ord, inputs.value?.partIx, pageItem?.parts.length]);
+  const inSeason = useInSeasonBanners(store.value ?? null, inSeasonPage, day);
   // (T227) the day's book gear as if open, for a day only salmon may be fished (core `gearIfFished`)
   const gearAnyway = useMemo(() => (inputs.value ? gearIfFished(inputs.value, d.today) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the inputs and the day
@@ -173,6 +179,7 @@ export function WaterScreen({ source, item, palette, onBack,
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, Date.now())}
                   // (T54) the access notice; its link moves to the water's Map view, where the area is drawn
                   access={access.value ?? null}
+                  inSeason={inSeason}
                   salmon={salmon.value ? ({ actions, images }) => <SalmonCard card={salmon.value!} palette={palette} actions={actions} images={images} /> : undefined}
                   glance={glance ? { salmon: salmon.value ? salmonGlance(salmon.value) : null } : null}
                   salmonStrip={salmonStrip}

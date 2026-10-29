@@ -29,6 +29,7 @@ data/release/r-*/ (R2 in production)
                    └─ RegsStore (regs/store.ts): water + regs-<region> + regs-sid
                          └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx
 gauge feed (index.json, per-station) ─▶ data/src/feed/http.ts ─▶ panels / conditions
+in-season feed + links (feeds/inseason/, T230) ─▶ data/src/feed/inseason.ts ─▶ ui inseason.ts ─▶ banners, notice
 tiles (atlas.pmtiles + basemap) ─▶ @app/map
 ```
 

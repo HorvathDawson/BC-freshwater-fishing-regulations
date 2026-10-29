@@ -19,8 +19,9 @@
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Platform, ScrollView, Text, View } from "react-native";
-import { creditsFor, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type GlanceRowVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
+import { creditsFor, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
+import { InSeasonBanners } from "./InSeasonBanner";
 import { Credits } from "../Credits";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
@@ -115,11 +116,14 @@ export interface RegsScreenProps {
   access?: AccessNotice | null;
   /** (T54) the notice's link: show the area on the water's map. Absent → no link. */
   onAccessMap?: () => void;
+  /** (T230) the provincial in-season changes on this water / part on the page's day (`useInSeasonBanners`), drawn
+   *  right under the access notice; informational, they change no answer. */
+  inSeason?: readonly InSeasonBannerVM[];
 }
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
                              gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
-                             lapsed = null, access = null, onAccessMap, glance = null, salmonStrip = null,
+                             lapsed = null, access = null, onAccessMap, inSeason = [], glance = null, salmonStrip = null,
                              nameSource = null }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
@@ -194,6 +198,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
     <View ref={content} collapsable={false} testID="regs-content">
       {/* (T147) the access fact LEADS the page: first in the scroll, before the lapsed line and the rules */}
       {access && <AccessNoticeBlock notice={access} palette={palette} onMap={onAccessMap} />}
+      <InSeasonBanners banners={inSeason} palette={palette} />
       {lapsed && (
         <WaterInset testID="regs-lapsed" style={{ paddingTop: 12, flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
           <View style={{ paddingTop: 4 }}><FreshDot palette={palette} kind="stale" /></View>

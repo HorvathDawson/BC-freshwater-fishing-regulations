@@ -20,7 +20,7 @@ import { OBSTACLE_ICON_GRID, OBSTACLE_ICON_HALO, OBSTACLE_ICON_SHAPES, obstacleI
 
 export type IconName =
   | "map" | "conditions" | "spots" | "more" | "layers"
-  | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse" | "sync";
+  | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse" | "sync" | "bell";
 
 /** Which Lucide icon (lucide-static@0.460.0, `icons/<name>.svg`) each app icon is a copy of. */
 export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
@@ -38,6 +38,7 @@ export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
   expand: "chevron-down",
   collapse: "chevron-up",
   sync: "refresh-cw",
+  bell: "bell",
 };
 
 /** The owner's stroke (Lucide ships 2): round caps and joins on the 24 grid. */
@@ -106,6 +107,11 @@ export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
   ],
   expand: [{ path: "m6 9 6 6 6-6" }],
   collapse: [{ path: "m18 15-6-6-6 6" }],
+  // (T230) the in-season changes' notice
+  bell: [
+    { path: "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" },
+    { path: "M10.3 21a1.94 1.94 0 0 0 3.4 0" },
+  ],
 };
 
 /** One icon from the table, `size` px square, stroked in `colour` (a palette token). Decorative: its button speaks. */

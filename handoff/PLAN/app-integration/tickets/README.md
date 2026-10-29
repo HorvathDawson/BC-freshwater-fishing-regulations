@@ -274,7 +274,7 @@ use that as the sole source of future work."
 | T227 | closed-to-game-fish waters open for salmon: the salmon year bar at the top, region closure, species notes, plain closed row | DONE | 4f2e22a3, 6af1ffa5, f35fdc75, 3dd41b02 | owner 2026-10-28 (Cowichan); shots T227-shots/; `salmonTimelineKey` for the merge lane |
 | T228 | no-access land and salmon break a water's pieces (live salmon merge on the map); dormant gauges attach to nothing; trout includes char (C4) | DONE | a757756b | live r-c331a7a3c2cf: 34 waters gain a part (Coquitlam 4), no rule set moved; 1,618 dormant matched stations out of Conditions; owner re-cuts sync.mjs + regs-fixture |
 | T229 | DFO salmon cascade on the Skeena: plain explanation + Cascade map (review app, DFO mode); the order read from the Region 6 page | DONE | 808784f1, e20796648, 29326f97f | release r-6e96911055ce: more specific place wins within a tier (Kitsumkalum mouth closed Jul 1–Aug 31, Morice Forks), tidal-Area rows section E only, eulachon its own line; Q3/Q6 to T164 |
-| T230 | provincial in-season changes: curated matches, banners on matched waters, unmatched notice + badge, review In-season tab | IN PROGRESS | — | owner 2026-10-28; feed = T225 `feeds/inseason/index.json` |
+| T230 | provincial in-season changes: curated matches (+ auto 22/32), banners on matched waters, unmatched notice + badge, review In-season tab | DONE | 03fc2eb2 + app commit | owner 2026-10-28; feed = T225 `feeds/inseason/index.json`; R2 matches.json upload is the owner's; shots T230-shots/ |
 
 ## Order for open tickets
 

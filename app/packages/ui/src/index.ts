@@ -38,6 +38,7 @@ export * from "./mapRail";
 export * from "./layerChoice";
 export * from "./imagery";
 export * from "./sync";
+export * from "./inseason";
 export * from "./prefetch";
 
 export * from "./layout";

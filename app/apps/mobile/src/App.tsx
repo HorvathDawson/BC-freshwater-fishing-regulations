@@ -23,10 +23,10 @@ import {
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage } from "@app/core";
-import { httpFeed, httpSalmonFeed, loadManifest, type WaterSource } from "@app/data";
+import { httpFeed, httpInSeason, httpSalmonFeed, loadManifest, type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openMeteo, openPhotos, openSpots, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openMeteo, openPhotos, openSpots, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { FishSpinner, setSynopsisSource, Shell, THEMES, type ThemeName } from "@app/ui-native";
 import { LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
@@ -96,6 +96,9 @@ export default function App() {
   const feed = useMemo(() => httpFeed(FEED), []);
   // T211: the live DFO salmon rules, the last capture kept on the device for offline
   const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore()), []);
+  // T230: the provincial in-season changes and where each applies, the last capture kept for offline; the ids shown
+  const inSeason = useMemo(() => httpInSeason(ENDPOINTS.inSeason, openInSeasonStore()), []);
+  const inSeasonSeen = useMemo(() => openInSeasonSeenStore(), []);
 
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell
   const boot = useReleaseBoot(useMemo(() => ({
@@ -212,6 +215,7 @@ export default function App() {
                onSaveSpot={spotsHook.save}
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
+               inSeason={inSeason} inSeasonSeen={inSeasonSeen}
                refreshing={refreshing}
                onDeleteSpot={spotsHook.remove}
                onRefreshSpots={async () => {

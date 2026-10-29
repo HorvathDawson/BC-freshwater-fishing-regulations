@@ -26,7 +26,7 @@ import { dayRange, placeholderFor, syncVM } from "@app/core";
 import { useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
-         BackLayerContext, useReleasePrefetch, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useInSeason, useInSeasonNotice, useReleasePrefetch, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { connectivity } from "./connectivity";
 import { SearchSheet } from "./SearchSheet";
@@ -40,6 +40,7 @@ import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
 import { ObstacleSheet } from "./ObstacleSheet";
 import { TidalSheet } from "./TidalSheet";
+import { InSeasonNotice } from "./InSeasonNotice";
 import { DaySheet } from "./regs/DaySheet";
 import { WaterViewsContext } from "./ViewSwipe";
 import { MenuContext } from "./menu/MenuContext";
@@ -138,6 +139,13 @@ export function Shell(p: ShellProps) {
                checking: syncState.checking, newRelease: syncState.newRelease, now: Date.now() })
     : null;
   const barBottom = topBarBottom();
+  /*
+   * (T230) THE PROVINCIAL IN-SEASON CHANGES: read once here and handed to every Regulations page (`InSeasonContext`:
+   * the banners); the ones not on the map yet are the notice, which opens by itself once per row per device and from
+   * the top bar's bell. Informational: nothing here changes an answer.
+   */
+  const inSeason = useInSeason(p.inSeason ?? null);
+  const notice = useInSeasonNotice(inSeason.unmatched, p.inSeasonSeen ?? null);
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port; asked
@@ -145,6 +153,7 @@ export function Shell(p: ShellProps) {
   const like = useLikeVisit(viewing, { weather, feed }, p.likeStore, Date.now, connectivity);
   // T170: the visit day's own flow, and the action that asks for it (waits offline, asks again when back)
   const dayFlow = useDayFlow(viewing, p.onDayFlow, connectivity);
+  const withInSeason = (n: React.ReactNode) => <InSeasonContext.Provider value={inSeason}>{n}</InSeasonContext.Provider>;
   if (viewing)
     return layered(
       <SpotHost viewing={viewing} spotEdit={spotEdit} nav={nav} palette={palette} camera={camera} like={like}
@@ -191,7 +200,7 @@ export function Shell(p: ShellProps) {
     && (tab === "conditions"
         || (tab === "map" && (col.layers.water.drawn !== "regulations" || col.statusOk)));
 
-  return layered(
+  return layered(withInSeason(
     // a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink)
     <MenuContext.Provider value={menu}>
     <View style={{ flex: 1, backgroundColor: palette.card }}>
@@ -212,6 +221,7 @@ export function Shell(p: ShellProps) {
           */}
         {topBar && (
           <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={syncState.refresh}
+                  notices={{ count: notice.count, label: notice.label, onPress: notice.show }}
                   open={searching}
                   query={searchMemory.q} onQuery={search.searchType}
                   onOpen={search.onFieldFocus}
@@ -255,7 +265,9 @@ export function Shell(p: ShellProps) {
       <TidalSheet open={route.mode === "browse" && tidalOpen} palette={palette} onClose={() => setTidalOpen(false)} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
                    mapDay={mapDay} />
+      {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
+      <InSeasonNotice open={notice.open} rows={notice.rows} palette={palette} onClose={notice.close} />
     </View>
     </MenuContext.Provider>
-  );
+  ));
 }

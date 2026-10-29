@@ -53,6 +53,14 @@ export function openSalmonFeedStore(): { read(): string | null; write(text: stri
   return fileStore("dfo-feed.json");
 }
 
+/** (T230) The last captured in-season feed + links, and the in-season ids this device has been shown — files of their own. */
+export function openInSeasonStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("inseason-feed.json");
+}
+export function openInSeasonSeenStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("inseason-seen.json");
+}
+
 function fileStore(name: string): { read(): string | null; write(text: string): void } {
   const dir = new Directory(Paths.document, "spots");
   const file = () => new File(dir, name);
