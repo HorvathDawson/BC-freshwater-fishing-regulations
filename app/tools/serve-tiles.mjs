@@ -60,6 +60,21 @@ for (const [route, file] of Object.entries(ARCHIVES)) {
  * No path may climb out of it.
  */
 const RELEASE_ROOT = process.env.RELEASE_ROOT ? `${process.env.RELEASE_ROOT.replace(/\/$/, "")}/` : `${repo}data/release/`;
+/**
+ * (T270) THE MAP'S FONTS AND SPRITES at a fixed path, `/map-assets/v1/{fonts,sprites}/…` — the folder the newest release
+ * names (`tiles.assets.url`), so the map never reaches for a third-party host. Staging holds the same files at the same
+ * path (deploy/staging/upload.sh). A release names its own folder too; this is the fallback a build without one reads.
+ */
+function mapAssetFile(route) {
+  if (!route.startsWith("/map-assets/v1/")) return undefined;
+  const rel = decodeURIComponent(route.slice("/map-assets/v1/".length));
+  if (rel.split("/").includes("..")) return undefined;
+  const manifest = releaseFile("/release/manifest.json");
+  if (!manifest || !existsSync(manifest)) return undefined;
+  const url = JSON.parse(readFileSync(manifest, "utf8")).tiles?.assets?.url;
+  return url ? `${RELEASE_ROOT}${url.replace(/\/?$/, "/")}${rel}` : undefined;
+}
+
 function releaseFile(route) {
   if (!route.startsWith("/release/")) return undefined;
   const rel = decodeURIComponent(route.slice("/release/".length));
@@ -103,6 +118,7 @@ createServer((req, res) => {
     // data/generated/runtiming/feed/out` last wrote them (R2 `runtiming/` in prod)
     ?? (/^\/runtiming\/[\w.-]+\.json(\.gz)?$/.test(route)
           ? `${repo}data/generated/runtiming/feed/out/runtiming/${route.split("/").pop()}` : undefined)
+    ?? mapAssetFile(route)
     ?? releaseFile(route);
   if (!file || !existsSync(file)) return res.writeHead(404).end("no such archive");
 

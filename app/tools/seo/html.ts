@@ -197,13 +197,14 @@ export function privacyBody(site: Site, asOf: string): string {
     `If you pinned the spot where you were standing, those coordinates are where you were. ` +
     `Open-Meteo’s servers see your device’s IP address as any website would; we do not control their records. ` +
     `Nothing else about you is sent with the request.</p>` +
+    `<p>When you ask for the flow on a past day at a spot, the app may ask Environment and Climate Change Canada (api.weather.gc.ca) ` +
+    `for that river gauge’s record of that day. The request names the gauge station and the date, not your location or your spot.</p>` +
     `<h2>Downloads from our servers</h2><p>The app downloads the regulations, the map and river-gauge and salmon notices from our servers, ` +
     `which run on Cloudflare. Each request carries the app’s version (so we can tell old versions from new) ` +
     `and, as with any web request, your IP address, which Cloudflare handles to serve the request. ` +
     `These downloads are the same for everyone and do not include your location, your spots or any identifier. ` +
     `Our servers, not the app, fetch the underlying data from Environment and Climate Change Canada and Fisheries and Oceans Canada.</p>` +
-    `<h2>Map and satellite imagery</h2><p>The map is drawn from files on our servers. Its fonts and symbols come from our servers or from ` +
-    `the public Protomaps asset host (GitHub Pages). When you turn satellite imagery on, the app asks Esri for the picture tiles of the area ` +
+    `<h2>Map and satellite imagery</h2><p>The map is drawn from files on our servers. Its fonts and symbols come from our servers too. When you turn satellite imagery on, the app asks Esri for the picture tiles of the area ` +
     `you are looking at, so Esri sees those tile requests and your IP address. Imagery is shown only while online and is not stored.</p>` +
     `<h2>Reporting a problem</h2><p>Sending a report is your choice, and the form shows exactly what will go. A report holds:</p><ul>` +
     `<li>the kind of problem and the words you wrote;</li>` +
@@ -212,12 +213,12 @@ export function privacyBody(site: Site, asOf: string): string {
     `<li>your email address, only if you type one. It is used only to reply, and only if you tick “You may contact me”.</li></ul>` +
     `<p>Reports are stored privately on Cloudflare, are read only by the people who run the app, and are not published. ` +
     `We do not store your IP address with a report: to limit abuse we keep only a salted one-way hash of it, which cannot be turned back into an address. ` +
-    `We keep a report, including any email, only as long as it takes to look into it and reply, then delete it. ` +
+    `Reports are deleted automatically 180 days after they are received, including any email in them. ` +
     `To have your report or email deleted sooner, write to ${mail}.</p>` +
     `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no analytics, advertising or tracking scripts. ` +
     `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
     `<h2>No selling, no sharing</h2><p>We do not sell your information, and we do not share it for advertising. ` +
-    `The services named above (Cloudflare, Open-Meteo, Esri, GitHub Pages) receive only the requests described here.</p>` +
+    `The services named above (Cloudflare, Open-Meteo, Esri) receive only the requests described here.</p>` +
     `<h2>Children</h2><p>The app is not aimed at children under 13 and does not knowingly collect their information. ` +
     `It asks for none beyond the optional report.</p>` +
     `<h2>Changes</h2><p>If this policy changes, this page will carry the new text and a new effective date.</p>` +

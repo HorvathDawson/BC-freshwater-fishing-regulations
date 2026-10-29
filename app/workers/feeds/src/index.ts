@@ -26,7 +26,7 @@ import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summar
 import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
 import { runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./backup";
-import { CORS as REPORT_CORS, handleReport, listReports, reportEvents, type ReportEnv } from "./reports";
+import { CORS as REPORT_CORS, handleReport, listReports, purgeReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 export interface Env extends ReportEnv {
   BUCKET: R2BucketLike;
@@ -371,6 +371,21 @@ async function backup(env: Env, now = new Date()) {
   return r;
 }
 
+/** (T271) the daily report purge (reports older than 180 days); the count is kept for /status, a failure rides the daily digest */
+async function purge(env: Env, now = new Date()) {
+  const r = await purgeReports(env.BUCKET, now);
+  try {
+    await env.BUCKET.put(RETENTION_STATUS_KEY, JSON.stringify(r), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
+    if (!r.ok) {
+      await deliver([{ key: `report-purge:${r.at.slice(0, 10)}`, kind: "health", title: `Report purge ${r.at.slice(0, 10)} failed`, urgent: false, at: r.at,
+        text: `The daily deletion of problem reports older than ${RETENTION_DAYS} days failed (${r.deleted} deleted, ${r.failed} not): ${r.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }],
+        { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now });
+    }
+  } catch { /* logged below */ }
+  console.log(JSON.stringify({ job: "purge-reports", ok: r.ok, deleted: r.deleted, kept: r.kept, failed: r.failed }));
+  return r;
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
@@ -395,7 +410,9 @@ export default {
       const st = refresh(await readStatus(r2Store(env.BUCKET, STATUS_PREFIX)), now);
       // (T246) the last backup run beside the feeds (null: none yet)
       const bk = await (async () => { try { return JSON.parse((await env.BUCKET.get(BACKUP_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
-      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), backup: bk }, { headers: { "Cache-Control": "no-store" } });
+      // (T271) the last report purge: when, and how many reports it deleted
+      const rt = await (async () => { try { return JSON.parse((await env.BUCKET.get(RETENTION_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
+      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), backup: bk, reportRetention: rt }, { headers: { "Cache-Control": "no-store" } });
       return new Response(statusHtml(st, now), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/notify/test" && req.method === "POST") {
@@ -423,6 +440,11 @@ export default {
       const c = notifyConfig(env);
       return Response.json({ channel: c.emailTo && c.emailFrom && c.sendEmail ? "email" : c.webhook ? "webhook" : "log", digest: !!c.digest, pending: s.pending.length, told: Object.keys(s.told).length, lastDigest: s.lastDigest, messages: compose(s.pending, true, c.ctx) });
     }
+    if (url.pathname === "/run/purge-reports" && req.method === "POST") {
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const r = await purge(env);
+      return Response.json(r, { status: r.ok ? 200 : 500 });
+    }
     if (url.pathname === "/run/backup" && req.method === "POST") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const r = await backup(env);
@@ -438,8 +460,8 @@ export default {
   },
   async scheduled(ev: { cron: string }, env: Env, ctx: { waitUntil(p: Promise<unknown>): void }): Promise<void> {
     // cron strings are in wrangler.toml [triggers]: the minute field names the job
-    //   "15 …" DFO, "45 …" in-season, "25 …" the daily backup (T246), anything else the gauges
-    if (ev.cron.startsWith("25 ")) { ctx.waitUntil(backup(env)); return; }
+    //   "15 …" DFO, "45 …" in-season, "25 …" the daily backup (T246) + report purge (T271), anything else the gauges
+    if (ev.cron.startsWith("25 ")) { ctx.waitUntil(Promise.allSettled([backup(env), purge(env)])); return; }
     const job: Job = ev.cron.startsWith("15 ") ? "dfo" : ev.cron.startsWith("45 ") ? "inseason" : "gauges";
     ctx.waitUntil(run(job, env).then((r) => console.log(JSON.stringify({ job, ok: r.ok, wallMs: r.wallMs, meter: r.meter }))));
   },

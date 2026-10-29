@@ -128,6 +128,8 @@ export function endpointsFor(base: string, channel: UpdateChannel = "live") {
       atlas: `${base}/atlas.pmtiles`,
       basemap: `${base}/basemap.pmtiles`,
       outside: `${base}/bc_outside.geojson`,
+      /** (T270) our glyphs + sprites, when the release names no assets folder */
+      assets: `${base}/map-assets/v1/`,
     },
     /** The live gauge feed: real ECCC data from `python -m pipeline.gauges.feed.publish`, matching the release. */
     feed: `${base}/feeds/live`,

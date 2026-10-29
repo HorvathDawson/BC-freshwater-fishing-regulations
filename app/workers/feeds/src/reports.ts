@@ -176,6 +176,44 @@ async function listKeys(bucket: R2BucketLike, prefix: string, max = 1000): Promi
   return out;
 }
 
+/** (T271) reports are deleted this many days after they are received (privacy page: "180 days after receipt") */
+export const RETENTION_DAYS = 180;
+export const RETENTION_STATUS_KEY = "private/feeds/report-retention.json";
+
+export interface PurgeResult { ok: boolean; at: string; deleted: number; kept: number; failed: number; error?: string }
+
+/**
+ * (T271) The daily purge: delete every stored report received more than RETENTION_DAYS ago. Age is the stored `received`
+ * timestamp (the day folder only narrows the listing; a report whose body cannot be read ages by its folder's day).
+ * Rate-limit counters (limits/) hold only a salted IP hash and are not reports; they are left to their own day roll.
+ */
+export async function purgeReports(bucket: R2BucketLike, now: Date = new Date()): Promise<PurgeResult> {
+  const at = now.toISOString();
+  if (!bucket.list) return { ok: false, at, deleted: 0, kept: 0, failed: 0, error: "bucket cannot list" };
+  const cutoff = now.getTime() - RETENTION_DAYS * 86_400_000;
+  const res: PurgeResult = { ok: true, at, deleted: 0, kept: 0, failed: 0 };
+  try {
+    const keys = await listKeys(bucket, REPORTS_PREFIX, Infinity);
+    for (const k of keys) {
+      const day = k.slice(REPORTS_PREFIX.length).match(/^(\d{4}-\d{2}-\d{2})\/[^/]+\.json$/)?.[1];
+      if (!day) continue;                                   // limits/ and anything else is not a report
+      if (Date.parse(day) > cutoff) { res.kept++; continue; } // the folder day starts after the cutoff: certainly newer
+      let received = Date.parse(day) + 86_400_000 - 1;
+      try {
+        const o = await bucket.get(k);
+        const t = o ? Date.parse(JSON.parse(await o.text()).received) : NaN;
+        if (Number.isFinite(t)) received = t;
+      } catch { /* unreadable: the folder day decides */ }
+      if (received >= cutoff) { res.kept++; continue; }
+      try { await bucket.delete(k); res.deleted++; } catch { res.failed++; }
+    }
+    if (res.failed) { res.ok = false; res.error = `${res.failed} report(s) could not be deleted`; }
+  } catch (e) {
+    res.ok = false; res.error = e instanceof Error ? e.message : String(e);
+  }
+  return res;
+}
+
 /** GET /reports (authed): every report received on or after `since` (YYYY-MM-DD), newest first, at most `max`. */
 export async function listReports(bucket: R2BucketLike, since: string, now: Date = new Date(), max = 500): Promise<StoredReport[]> {
   const today = now.toISOString().slice(0, 10);

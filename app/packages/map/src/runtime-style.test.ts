@@ -1,6 +1,6 @@
 /**
  * P11: the map's glyphs and sprites come from the release's map assets when it names them (`releaseTiles` → `assets`:
- * the installed folder on a phone, the release url on the web), and from the Protomaps CDN only when it names none.
+ * the installed folder on a phone, the release url on the web), and from our own data host only when it names none.
  */
 import { describe, expect, it } from "vitest";
 import { runtimeStyle } from "./runtime-style";
@@ -16,10 +16,10 @@ describe("runtimeStyle: glyphs and sprites", () => {
     expect(dark.sprite).toBe("file:///doc/release/tiles/v1/map-assets-1/sprites/v4/dark");
   });
 
-  it("falls back to the Protomaps CDN only when no assets folder is named", () => {
+  it("falls back to OUR data host (never a third-party CDN) only when no assets folder is named", () => {
     const s = runtimeStyle(AT, "dark");
-    expect(s.glyphs).toBe("https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf");
-    expect(s.sprite).toBe("https://protomaps.github.io/basemaps-assets/sprites/v4/dark");
+    expect(s.glyphs).toBe("https://data-staging.canifishthis.ca/map-assets/v1/fonts/{fontstack}/{range}.pbf");
+    expect(s.sprite).toBe("https://data-staging.canifishthis.ca/map-assets/v1/sprites/v4/dark");
   });
 });
 

@@ -120,7 +120,7 @@ export type MapTiles = ReturnType<typeof releaseTiles>;
  * stamped `tile_version` (`pairingOf`), never assumed.
  */
 export function releaseMapInput(b: Pick<Booted, "manifest" | "held" | "locate">,
-                                 dev: { atlas: string; basemap: string; outside: string }):
+                                 dev: { atlas: string; basemap: string; outside: string; assets?: string }):
     { tiles: MapTiles; pairing: PairingInput } {
   const tiles = releaseTiles(b, dev);
   return { tiles, pairing: { kind: "release", manifest: b.manifest, held: b.held, atlasUrl: tiles.atlas } };

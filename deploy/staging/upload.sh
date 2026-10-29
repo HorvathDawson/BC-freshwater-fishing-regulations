@@ -23,6 +23,11 @@ rclone copy "$R/tiles/$TILES" "$D/release/tiles/$TILES" --s3-no-check-bucket --t
   --exclude "*.pbf"
 rclone copy "$R/tiles/$TILES" "$D/release/tiles/$TILES" --s3-no-check-bucket --transfers 16 --header-upload "$IMM" \
   --include "*.pbf" --header-upload "Content-Type: application/x-protobuf"
+# (T270) the map's fonts + sprites at the fixed path the app falls back to (data host /map-assets/v1/), from the release's own folder
+rclone copy "$R/$(q "m['tiles']['assets']['url']")" "$D/map-assets/v1" --s3-no-check-bucket --transfers 16 --header-upload "$IMM" \
+  --exclude "assets.json" --exclude "*.pbf"
+rclone copy "$R/$(q "m['tiles']['assets']['url']")" "$D/map-assets/v1" --s3-no-check-bucket --transfers 16 --header-upload "$IMM" \
+  --include "*.pbf" --header-upload "Content-Type: application/x-protobuf"
 BM=$(q "m['basemap']['url']"); cp_ "$R/$BM" "release/$BM" --header-upload "$IMM"
 rclone copy "$R/$REL" "$D/release/$REL" --s3-no-check-bucket --transfers 16 --include "*.gz" --header-upload "$IMM" \
   --header-upload "Content-Encoding: gzip" --header-upload "Content-Type: application/octet-stream"

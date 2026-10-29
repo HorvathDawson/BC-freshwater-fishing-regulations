@@ -18,7 +18,7 @@
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
-import { PM_ASSETS, type TileEndpoints } from "./endpoints";
+import { OUR_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
@@ -132,8 +132,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
 
   return {
     version: 8 as const,
-    glyphs: at.glyphs ?? `${at.assets ?? `${PM_ASSETS}/`}fonts/{fontstack}/{range}.pbf`,
-    sprite: at.sprite ?? `${at.assets ?? `${PM_ASSETS}/`}sprites/v4/${theme === "dark" ? "dark" : "light"}`,
+    glyphs: at.glyphs ?? `${at.assets ?? `${OUR_ASSETS}`}fonts/{fontstack}/{range}.pbf`,
+    sprite: at.sprite ?? `${at.assets ?? `${OUR_ASSETS}`}sprites/v4/${theme === "dark" ? "dark" : "light"}`,
     sources: {
       // EACH SOURCE STOPS WHERE ITS ARCHIVE STOPS, so the camera can go past it (CAMERA_MAX_ZOOM, z18) and MapLibre
       // overzooms the last real tile instead of asking the archive for tiles it does not hold — a blank map. Stated

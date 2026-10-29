@@ -10,7 +10,7 @@ export interface TileEndpoints {
   atlas: string;
   basemap: string;
   /**
-   * Label glyphs and icons. Protomaps hosts these; a shipped app needs its own copy, since
+   * Label glyphs and icons. a shipped app serves its own copy (never a third-party CDN), since
    * a map that silently loses every label when offline is worse than one with no labels.
    */
   glyphs?: string;
@@ -18,7 +18,7 @@ export interface TileEndpoints {
   /**
    * The release's map assets folder (P11/P18, ending in "/"): `fonts/{fontstack}/{range}.pbf` and
    * `sprites/v4/<light|dark>` under it. The installed folder on a phone (always offline), the
-   * release url on the web. `glyphs`/`sprite` win when given; absent, the Protomaps CDN.
+   * release url on the web. `glyphs`/`sprite` win when given; absent, our data host's `/map-assets/v1/`.
    */
   assets?: string;
   /**
@@ -57,5 +57,11 @@ export function imageryTiles(key: string | null): string {
   return `${ESRI_KEYED}${query}${query ? "&" : "?"}token=${encodeURIComponent(key)}`;
 }
 
-/** The Protomaps CDN's glyphs and sprites, when the release names no assets folder. */
-export const PM_ASSETS = "https://protomaps.github.io/basemaps-assets";
+/**
+ * (T270) OUR glyphs and sprites at a fixed path under a data origin, for a build whose release names no assets folder
+ * (a release normally does: `tiles.assets`). The local tile server and the R2 bucket serve the same folder.
+ */
+export const MAP_ASSETS_PATH = "/map-assets/v1/";
+export const mapAssetsUrl = (origin: string) => `${origin.replace(/\/+$/, "")}${MAP_ASSETS_PATH}`;
+/** The last-resort default (tests, a caller that names nothing): staging's data host — a build never defaults to production. */
+export const OUR_ASSETS = mapAssetsUrl("https://data-staging.canifishthis.ca");
