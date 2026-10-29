@@ -5,6 +5,9 @@ import { MENU_WORDS } from "./words";
  * (T232) WHERE A BUILD READS ITS DATA: the local dev server, staging (data-staging.canifishthis.ca) or production. The
  * origins themselves are the app's config (`apps/mobile/src/env.ts`); core names the three and says them.
  */
+/** (owner 2026-10-29) the privacy policy: a static page of the site (Google Play asks for this URL; production). */
+export const PRIVACY_URL = "https://canifishthis.ca/privacy";
+
 export type AppEnv = "local" | "staging" | "production";
 export const APP_ENVS: readonly AppEnv[] = ["local", "staging", "production"];
 

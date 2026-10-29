@@ -170,6 +170,61 @@ export function aboutBody(site: Site, asOf: string): string {
     `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
 }
 
+/** where privacy questions go: a placeholder until the owner sets the mailbox up (OWNER-TODO) */
+export const PRIVACY_EMAIL = "privacy@canifishthis.ca";
+export const PRIVACY_EFFECTIVE = "2026-10-29";
+
+/** (owner 2026-10-29) THE PRIVACY POLICY. Every claim here is checked against the code (see T268): change the app, change this. */
+export function privacyBody(site: Site, asOf: string): string {
+  const mail = `<a href="mailto:${PRIVACY_EMAIL}">${PRIVACY_EMAIL}</a>`;
+  return `<nav class="crumbs"><a href="/">Home</a> › Privacy policy</nav><h1>Privacy policy</h1>` +
+    `<p class="asof">Effective ${PRIVACY_EFFECTIVE}. Page last built <time datetime="${esc(asOf)}">${esc(asOf)}</time>.</p>` +
+    `<p>${esc(site.name)} is a free, non-profit app and website that shows BC freshwater fishing regulations. ` +
+    `It has no accounts, no ads and no tracking. This page says what the app and this website do with your information.</p>` +
+    `<h2>The short version</h2><ul>` +
+    `<li>Your location, your photos and the spots you save stay on your device. We never receive them.</li>` +
+    `<li>The only thing the app sends us is a problem report, and only when you press Send.</li>` +
+    `<li>We do not sell or share your information, and we use no advertising or analytics services.</li></ul>` +
+    `<h2>Location</h2><p>If you allow it, the app uses your location while it is open, to show where you are on the map, ` +
+    `to show what is near you, and to pin a spot where you are standing. It is used on your device and is not sent to us. ` +
+    `The app never uses your location in the background. You can turn the permission off in your phone settings; the map still works.</p>` +
+    `<h2>Camera and photos</h2><p>The app asks for the camera or your photos only so you can attach a picture to a spot you saved. ` +
+    `The pictures stay on your device and are not uploaded.</p>` +
+    `<h2>Saved spots</h2><p>Spots, notes and photos are stored only on your device, and there is no account. ` +
+    `If you delete the app or clear its data, they are gone; we cannot recover them.</p>` +
+    `<h2>Weather for a spot</h2><p>To show the weather at a spot you saved, the app sends that spot’s coordinates and the date to ` +
+    `<a href="https://open-meteo.com" rel="noopener">Open-Meteo</a>, a weather service, and shows what comes back. ` +
+    `If you pinned the spot where you were standing, those coordinates are where you were. ` +
+    `Open-Meteo’s servers see your device’s IP address as any website would; we do not control their records. ` +
+    `Nothing else about you is sent with the request.</p>` +
+    `<h2>Downloads from our servers</h2><p>The app downloads the regulations, the map and river-gauge and salmon notices from our servers, ` +
+    `which run on Cloudflare. Each request carries the app’s version (so we can tell old versions from new) ` +
+    `and, as with any web request, your IP address, which Cloudflare handles to serve the request. ` +
+    `These downloads are the same for everyone and do not include your location, your spots or any identifier. ` +
+    `Our servers, not the app, fetch the underlying data from Environment and Climate Change Canada and Fisheries and Oceans Canada.</p>` +
+    `<h2>Map and satellite imagery</h2><p>The map is drawn from files on our servers. Its fonts and symbols come from our servers or from ` +
+    `the public Protomaps asset host (GitHub Pages). When you turn satellite imagery on, the app asks Esri for the picture tiles of the area ` +
+    `you are looking at, so Esri sees those tile requests and your IP address. Imagery is shown only while online and is not stored.</p>` +
+    `<h2>Reporting a problem</h2><p>Sending a report is your choice, and the form shows exactly what will go. A report holds:</p><ul>` +
+    `<li>the kind of problem and the words you wrote;</li>` +
+    `<li>the details under “Include with your report” that you leave switched on (the water and part you were viewing, the day, the screen, ` +
+    `the map colouring, the app version, data release, platform and recent app errors);</li>` +
+    `<li>your email address, only if you type one. It is used only to reply, and only if you tick “You may contact me”.</li></ul>` +
+    `<p>Reports are stored privately on Cloudflare, are read only by the people who run the app, and are not published. ` +
+    `We do not store your IP address with a report: to limit abuse we keep only a salted one-way hash of it, which cannot be turned back into an address. ` +
+    `We keep a report, including any email, only as long as it takes to look into it and reply, then delete it. ` +
+    `To have your report or email deleted sooner, write to ${mail}.</p>` +
+    `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no analytics, advertising or tracking scripts. ` +
+    `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
+    `<h2>No selling, no sharing</h2><p>We do not sell your information, and we do not share it for advertising. ` +
+    `The services named above (Cloudflare, Open-Meteo, Esri, GitHub Pages) receive only the requests described here.</p>` +
+    `<h2>Children</h2><p>The app is not aimed at children under 13 and does not knowingly collect their information. ` +
+    `It asks for none beyond the optional report.</p>` +
+    `<h2>Changes</h2><p>If this policy changes, this page will carry the new text and a new effective date.</p>` +
+    `<h2>Contact</h2><p>Questions, or a request to delete a report: ${mail}.</p>` +
+    `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
+}
+
 export function notFoundBody(site: Site, regions: readonly number[]): string {
   return `<h1>Page not found</h1><p>That page is not here. Try a region:</p><ul>` +
     regions.map((r) => `<li><a href="/region/${r}">${esc(regionLabel(r))}</a></li>`).join("") +
@@ -196,5 +251,5 @@ export function shell(s: Shell, site: Site): string {
     `${img}${ver}<style>${CRITICAL}</style><link rel="stylesheet" href="${esc(s.cssHref)}">` +
     `${s.jsonld ? `<script type="application/ld+json">${s.jsonld}</script>` : ""}</head><body>` +
     `<header class="top"><div><a href="/">${esc(site.name)}</a><a href="/about">About</a></div></header>` +
-    `<main>${s.body}</main><footer>${esc(NOT_LEGAL)}</footer></body></html>`;
+    `<main>${s.body}</main><footer>${esc(NOT_LEGAL)} <a href="/privacy">Privacy policy</a></footer></body></html>`;
 }

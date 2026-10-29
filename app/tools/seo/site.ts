@@ -8,14 +8,14 @@
  */
 import { createHash } from "node:crypto";
 import type { RegsStore } from "@app/data/regs";
-import { aboutBody, CSS, SHARE_GROUND, SHARE_INK, clip, descriptionOf, esc, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, waterBody, type Release, type Site } from "./html";
+import { aboutBody, privacyBody, CSS, SHARE_GROUND, SHARE_INK, clip, descriptionOf, esc, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, waterBody, type Release, type Site } from "./html";
 import { aboutLd, checkJsonLd, pageLd, waterLd } from "./jsonld";
 import { appPage, buildDayOf, listWaterOrds, managementUnits, nearestTowns, statusOn, waterModel, type BuildDay, type WaterModel, type WaterStatus } from "./model";
 import { faqOf, TOPICS, topicLines, type TopicKey } from "./topics";
 import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
 
-export interface PageRec { readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "weekend" | "calendar" | "changes" | "about"; readonly html: string; readonly hash: string }
+export interface PageRec { readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "weekend" | "calendar" | "changes" | "about" | "privacy"; readonly html: string; readonly hash: string }
 export interface Snapshot {
   readonly release: string; readonly asOf: string;
   readonly pages: Readonly<Record<string, { readonly hash: string; readonly lastmod: string }>>;
@@ -270,6 +270,13 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const title = `About ${site.name}`, description = `${site.name} is a free, non-profit app that says whether a BC freshwater water is open and what you can keep, from the provincial synopsis.`;
     unique(titles, title, "/about"); unique(descriptions, description, "/about");
     add("about", "/about", shellOf("/about", title, description, aboutBody(site, asOf), aboutLd(site, title, asOf)));
+  }
+
+  // ── Privacy policy (owner 2026-10-29; Google Play's required URL) ──────────────────────────────────────────────────
+  {
+    const title = "Privacy policy", description = `What ${site.name} does and does not do with your information: no accounts, no ads, no tracking; location, photos and spots stay on your device.`;
+    unique(titles, `${title} · ${site.name}`, "/privacy"); unique(descriptions, description, "/privacy");
+    add("privacy", "/privacy", shellOf("/privacy", `${title} · ${site.name}`, description, privacyBody(site, asOf), pageLd(site, "/privacy", `${title} · ${site.name}`, asOf, [["Home", "/"], ["Privacy policy", "/privacy"]])));
   }
 
   // ── gates over the HTML ────────────────────────────────────────────────────────────────────────────────────────────

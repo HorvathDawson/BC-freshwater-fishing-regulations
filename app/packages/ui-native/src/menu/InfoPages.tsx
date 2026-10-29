@@ -3,7 +3,7 @@
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
 import { Linking, Pressable, Text, View } from "react-native";
-import { LICENCE_WORDS, licencesVM, MENU_WORDS, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
+import { LICENCE_WORDS, licencesVM, MENU_WORDS, PRIVACY_URL, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
 import { Credits } from "../Credits";
 import { LicencesList } from "./Licences";
 import { TYPE } from "../type";
@@ -37,6 +37,10 @@ export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onRepor
           <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{LICENCE_WORDS.fromAboutLink}</Text>
         </Pressable>
       )}
+      <Pressable {...hitProps({ w: 120, h: 44 })} testID="about-privacy" onPress={() => open(PRIVACY_URL)} accessibilityRole="link"
+                 accessibilityLabel={MENU_WORDS.about.privacy} style={LINK_ROW}>
+        <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{`${MENU_WORDS.about.privacy} ${WORDS.LINK_OUT}`}</Text>
+      </Pressable>
       {onReport && (
         <Pressable {...hitProps({ w: 120, h: 44 })} testID="about-report" onPress={onReport} accessibilityRole="link" accessibilityLabel={MENU_WORDS.report.fromAbout} style={LINK_ROW}>
           <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{MENU_WORDS.report.fromAbout}</Text>
@@ -134,6 +138,10 @@ export function SourcesPage({ vm, palette }: { vm: SourcesVM; palette: Palette }
       <Credits palette={palette} ink={palette.sub} lines={vm.icons.lines} label={vm.icons.label} testID="sources-icon-credits" />
       {/* (T235) every dataset's licence and the words it asks for */}
       <LicencesList vm={licencesVM()} palette={palette} />
+      <Pressable {...hitProps({ w: 120, h: 44 })} testID="sources-privacy" onPress={() => open(PRIVACY_URL)} accessibilityRole="link"
+                 accessibilityLabel={MENU_WORDS.about.privacy} style={LINK_ROW}>
+        <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{`${MENU_WORDS.about.privacy} ${WORDS.LINK_OUT}`}</Text>
+      </Pressable>
     </>
   );
 }

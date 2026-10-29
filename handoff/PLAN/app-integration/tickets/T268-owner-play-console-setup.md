@@ -23,7 +23,8 @@ SHA-256 `79:50:98:B4:34:AD:FE:E7:D8:F5:35:8B:F4:28:16:C5:1F:67:41:5B:51:B9:06:36
 4. **Testers** tab: create an email list with your Gmail, save; copy the **opt-in link** ("Join on the web") and put it
    in `~/.canifishthis/play-test-url` (one line). Open it on the phone once and accept.
 5. **App content** (Policy → App content) — Play blocks or warns until these are done; our answers:
-   - Privacy policy URL: needed (the app asks for location/camera). A short page on canifishthis.ca: no account, no
+   - **Privacy policy URL (built 2026-10-29): `https://canifishthis.ca/privacy`** (production; live once the site is on the .ca; staging copy: https://staging.canifishthis.ca/privacy). Static page from the SEO build (`tools/seo/html.ts` `privacyBody`), linked from the site footer, About, Sources and licences and the report form. Contact on it is the placeholder privacy@canifishthis.ca (OWNER-TODO).
+   - (original note) Privacy policy URL: needed (the app asks for location/camera). A short page on canifishthis.ca: no account, no
      tracking, spots/photos stay on the device; location used only on the device to pin a spot or show what is near;
      the optional problem report sends the text you type and, only if you add it, your email, used only to reply.
    - App access: all functionality available without login.

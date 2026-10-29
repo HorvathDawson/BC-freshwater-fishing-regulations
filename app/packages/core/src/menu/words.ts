@@ -68,6 +68,8 @@ export const MENU_WORDS = {
     failed: (why: string) => `The glossary could not be read: ${why}`,
   },
   about: {
+    /** (owner 2026-10-29) the link to the privacy policy page */
+    privacy: "Privacy policy",
     what: `${APP_NAME} reads British Columbia's freshwater fishing regulations onto a map: tap a stream or a `
       + "lake and it says what the regulations allow there on the day you choose, alongside what the water is doing.",
     notOfficial: "This app is not the official regulations. It is built from the B.C. Freshwater Fishing Regulations "

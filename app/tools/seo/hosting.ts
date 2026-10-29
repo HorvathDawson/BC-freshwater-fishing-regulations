@@ -55,7 +55,7 @@ export function headersFile(): string {
     block("/*", ...all),
     block("/assets/*", "Cache-Control: public, max-age=31536000, immutable"),
     block("/share/*", "Cache-Control: public, max-age=86400"),
-    ...["/water/*", "/region/*", "/about", "/changes", "/sitemap.xml", "/sitemap-*.xml", "/robots.txt"].map((p) => block(p, HTML_CACHE)),
+    ...["/water/*", "/region/*", "/about", "/privacy", "/changes", "/sitemap.xml", "/sitemap-*.xml", "/robots.txt"].map((p) => block(p, HTML_CACHE)),
   ].join("\n");
 }
 

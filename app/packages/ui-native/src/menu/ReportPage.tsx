@@ -12,7 +12,7 @@
 import { ErrorState } from "../ErrorState";
 import { useMemo, useState } from "react";
 import { Linking, Pressable, Share, Switch, Text, TextInput, View } from "react-native";
-import { contactVM, diagnosticRows, emailProblem, mailtoUrl, MENU_WORDS, REPORT_REASONS, reportMessage, type DiagKey,
+import { contactVM, diagnosticRows, emailProblem, mailtoUrl, MENU_WORDS, PRIVACY_URL, REPORT_REASONS, reportMessage, type DiagKey,
          type Diagnostics, type ReportReason } from "@app/core";
 import { useReportSend, type ReportSender } from "@app/ui";
 import { Button } from "../Button";
@@ -143,6 +143,10 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
             <ErrorState palette={palette} testID="report-refused" message={w.refused(tx.state.error)} />
           )}
           <Text testID="report-privacy" style={{ ...TYPE.small, color: palette.sub }}>{w.privacy}</Text>
+          <Pressable {...hitProps({ w: 120, h: 44 })} testID="report-privacy-link" onPress={() => { void Linking.openURL(PRIVACY_URL); }}
+                     accessibilityRole="link" accessibilityLabel={MENU_WORDS.about.privacy} style={{ minHeight: 44, justifyContent: "center" }}>
+            <Text style={{ ...TYPE.small, color: palette.accent }}>{MENU_WORDS.about.privacy}</Text>
+          </Pressable>
           <Text style={{ ...TYPE.small, color: palette.sub }}>{w.orEmail}</Text>
         </View>
       )}

@@ -83,6 +83,14 @@ describe("T193 water pages and About", () => {
     expect(about.html).not.toMatch(/mailto:/);                 // site.json contact is null until the owner sets it
   });
 
+  it("the privacy policy is a page, linked from every footer, and says what leaves the device", () => {
+    const pv = built.build.pages.find((p) => p.path === "/privacy")!;
+    expect(text(pv.html)).toMatch(/Open-Meteo/);
+    expect(text(pv.html)).toMatch(/salted one-way hash/);
+    expect(pv.html).toMatch(/href="\/privacy"/);
+    expect(built.build.pages.every((p) => p.html.includes('<a href="/privacy">Privacy policy</a>'))).toBe(true);
+  });
+
   it("pages refresh with each release: a new release id and date are in the page", async () => {
     const next = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 10, 3, 12)) });
     const a = waters()[0]!, b = next.build.pages.find((p) => p.path === a.path)!;
