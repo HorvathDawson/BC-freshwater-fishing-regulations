@@ -30,7 +30,8 @@ import { createHash } from "node:crypto";
  */
 const MAPLIBRE_TYPE = { line: "line", polygon: "fill", point: "circle", raster: "raster" };
 
-const dir = new URL("../packages/map/style/", import.meta.url).pathname;
+// STYLE_SRC_DIR: a copy of the style folder to build instead (tools/build-style-errors.test.ts runs the refusals on one)
+const dir = process.env.STYLE_SRC_DIR ?? new URL("../packages/map/style/", import.meta.url).pathname;
 const src = JSON.parse(readFileSync(dir + "layers.source.json", "utf8"));
 const tok = JSON.parse(readFileSync(dir + "tokens.json", "utf8"));
 const tokens = tok.tokens, enums = tok.$enums ?? {};
