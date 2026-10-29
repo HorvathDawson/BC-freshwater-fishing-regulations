@@ -323,6 +323,7 @@ use that as the sole source of future work."
 | T277 | Satellite imagery draws in the Android app whenever online; offline toggle says why | DONE | a7673eff4 | not reproduced (HEAD + owner APK draw it on the emulator); probe retries once and logs why it failed |
 | T278 | Re-cut golden regs fixtures after the tidal cuts: PART_TIDAL declaration + renumbered parts (Fraser, Campbell, Brunette, Coquitlam…) | OPEN | — | c1029 lane 2026-10-29 |
 | T279 | Water pages stored pre-compressed (br/gzip served by encoding), all three layouts kept; SEO build across ≤4 cores | OPEN | — | owner 2026-10-29 |
+| T280 | Basemap two stages: raw Protomaps source via range requests → pruned + simplified ship copy (forest/green-space simplification, visual gate); fixes pan hitches | OPEN | — | owner 2026-10-29 |
 
 ## Order for open tickets
 
