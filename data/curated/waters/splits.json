@@ -1272,7 +1272,8 @@
      "_coord": [
       -123.88045,
       49.11625
-     ]
+     ],
+     "tidal": true
     },
     {
      "id": "nanaimo_river__hwy_19_bridge",
