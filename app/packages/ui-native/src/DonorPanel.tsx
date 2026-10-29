@@ -351,7 +351,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
 /**
  * The panel header's horizon chips — drawn from the VM's `horizons` (decided in @app/ui), as ONE compact segmented row
  * (the map's own day strip, `CornerStrip`), never a wrapping run of chips: on a phone "Now · +1d · +3d · +5d · +10d ·
- * Change" was two lines. Change is the calendar glyph at the end, said aloud as its label.
+ * Change" was two lines. Change (the delta view, not a date) is a trend glyph at the end, a mode toggle set off by a heavier divider, said aloud as its label.
  */
 function HorizonHeader({ palette, chips, onPick }: {
   palette: Palette; chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void;
@@ -361,7 +361,7 @@ function HorizonHeader({ palette, chips, onPick }: {
       <CornerStrip palette={palette} testID="panel-horizons"
                    segments={chips.map((h) => ({
                      key: String(h.day), chip: h.day === "change" ? "" : h.chip, label: h.label, on: h.on,
-                     ...(h.note ? { note: h.note } : {}), ...(h.day === "change" ? { icon: "calendar" as const } : {}),
+                     ...(h.note ? { note: h.note } : {}), ...(h.day === "change" ? { icon: "delta" as const, mode: true } : {}),
                      onPress: () => onPick(h.day) }))} />
     </View>
   );

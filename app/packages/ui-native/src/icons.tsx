@@ -20,7 +20,7 @@ import { OBSTACLE_ICON_GRID, OBSTACLE_ICON_HALO, OBSTACLE_ICON_SHAPES, obstacleI
 
 export type IconName =
   | "map" | "conditions" | "spots" | "more" | "layers"
-  | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse" | "sync" | "bell" | "check" | "fish";
+  | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse" | "sync" | "bell" | "check" | "fish" | "delta";
 
 /** Which Lucide icon (lucide-static@0.460.0, `icons/<name>.svg`) each app icon is a copy of. */
 export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
@@ -41,6 +41,7 @@ export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
   bell: "bell",
   check: "check",
   fish: "fish",
+  delta: "trending-up-down",
 };
 
 /** The owner's stroke (Lucide ships 2): round caps and joins on the 24 grid. */
@@ -98,6 +99,12 @@ export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
     { path: "M16 2v4" },
     { rect: [3, 4, 18, 18, 2] },
     { path: "M3 10h18" },
+  ],
+  delta: [
+    { path: "M14.828 14.828 21 21" },
+    { path: "M21 16v5h-5" },
+    { path: "m21 3-9 9-4-4-6 6" },
+    { path: "M21 8V3h-5" },
   ],
   parts: [
     { path: "M3 12h.01" },

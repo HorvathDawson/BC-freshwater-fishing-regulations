@@ -23,6 +23,8 @@ export interface CornerSegment {
   /** (T130) a second, greyed line: a day this segment does not answer */
   readonly note?: string;
   readonly icon?: IconName;
+  /** a MODE, not a day: set off from the days by a heavier divider (Conditions' Change) */
+  readonly mode?: boolean;
   /** false: shown, refused (`aria-disabled`) */
   readonly enabled?: boolean;
   readonly onPress: () => void;
@@ -49,7 +51,7 @@ export function CornerStrip({ palette, segments, testID, label, radio = false }:
             <View style={{ minWidth: 46, paddingVertical: h.note ? 4 : 8, paddingHorizontal: 10, flexDirection: "row",
                            gap: 5, alignItems: "center", justifyContent: "center",
                            backgroundColor: h.on ? palette.accent : palette.card, opacity: enabled ? 1 : 0.45,
-                           borderLeftWidth: i ? 1 : 0, borderLeftColor: palette.line2 }}>
+                           borderLeftWidth: i ? (h.mode ? 2 : 1) : 0, borderLeftColor: h.mode ? palette.ink : palette.line2 }}>
               {h.icon && <Icon name={h.icon} colour={ink} size={h.chip ? 15 : 17} />}
               <View style={{ alignItems: "center" }}>
                 {h.chip ? (

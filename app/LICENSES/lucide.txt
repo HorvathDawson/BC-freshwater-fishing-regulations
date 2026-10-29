@@ -1,7 +1,7 @@
 Lucide icons (https://lucide.dev), lucide-static v0.460.0
 
 Used by: app/packages/ui-native/src/icons.tsx (path data copied verbatim, drawn at a 1.75 stroke).
-Icons copied: map, waves, map-pin, ellipsis, layers, search, chevron-left, chevron-right, x, calendar, list, chevron-down, chevron-up, refresh-cw, bell, check, fish.
+Icons copied: map, waves, map-pin, ellipsis, layers, search, chevron-left, chevron-right, x, calendar, list, chevron-down, chevron-up, refresh-cw, bell, check, fish, trending-up-down.
 Credited in the app: More > Data sources & dates > Icons (@app/core ICON_CREDIT).
 
 ----------------------------------------------------------------------------
