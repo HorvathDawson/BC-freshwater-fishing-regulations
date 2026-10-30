@@ -62,30 +62,26 @@ export const install = {
       const upAt = Date.now();
       const took = Math.round((upAt - t0) / 1000);
       // (T272) the app's own timings (logcat): the download, verify and set-up lines, kept beside the report
-      let timeline = '';
+      await ctx.device.sleep(5000);   // (T287) the map's first seconds are part of the finish
+      let timeline = '', finish = '';
       try {
-        const js = ctx.device.logcatJs().split('\n').filter((l) => /\[download\]|\[setup\]/.test(l));
+        const all = ctx.device.logcatJs().split('\n');
+        const js = all.filter((l) => /\[download\]|\[setup\]/.test(l));
         fs.writeFileSync(path.join(ctx.dir, 'T272-install-timeline.txt'), js.join('\n') + '\n');
+        // (T287) THE FIRST-INSTALL FINISH: the JS stalls (test-bed build: `[stall]`) from the set installed to the map
+        // up, with the timed decodes (`[work]`) and set-up lines between them — kept beside the report
+        const from = all.findIndex((l) => /\[setup\] installed/.test(l));
+        const tail = from < 0 ? [] : all.slice(from).filter((l) => /\[(stall|work|setup|swap)\]/.test(l));
+        fs.writeFileSync(path.join(ctx.dir, 'T287-first-install.txt'), tail.join('\n') + '\n');
+        const ms = tail.map((l) => /\[stall\] (\{.*\})/.exec(l)).filter(Boolean).map((m) => JSON.parse(m[1]).ms);
+        finish = from < 0 ? ' · install finish: not in the log'
+          : ` · install finish → map: ${ms.length} stalls >50 ms${ms.length ? ` (worst ${Math.max(...ms)} ms: ${ms.sort((a, b) => b - a).slice(0, 5).join(', ')})` : ''}`;
         const done = js.filter((l) => /: done\b.*\d+ bytes/.test(l)).pop();
         if (done) timeline = ` · last download done ${done.slice(0, 18)}`;
       } catch { /* no log */ }
       const after = (t) => (t ? `${Math.round((upAt - t) / 1000)} s` : 'not seen');
       const wait = ` · 100 % → map ${after(seen.full)}, "Setting up" → map ${after(seen.setup)}${timeline}`;
       await appUp(ctx, { launch: false, ms: 60_000 });
-      // (T287) THE FIRST-INSTALL FINISH: the JS stalls (test-bed build: `[stall]`) from the set installed to the map up,
-      // with the timed decodes (`[work]`) and set-up lines between them — kept beside the report
-      let finish = '';
-      try {
-        // filtered by logcat itself: the whole JS log (the pan probe's line a second) outgrows execSync's buffer
-        const js = ctx.device.adb(['logcat', '-d', '-s', 'ReactNativeJS:*', '-e', '\\[(stall|work|setup|swap)\\]']).toString().split('\n');
-        const from = js.findIndex((l) => /\[setup\] installed/.test(l));
-        if (from >= 0) {
-          const tail = js.slice(from).filter((l) => /\[(stall|work|setup|swap)\]/.test(l));
-          fs.writeFileSync(path.join(ctx.dir, 'T287-first-install.txt'), tail.join('\n') + '\n');
-          const ms = tail.map((l) => /\[stall\] (\{.*\})/.exec(l)).filter(Boolean).map((m) => JSON.parse(m[1]).ms);
-          finish = ` · install finish → map: ${ms.length} stalls >50 ms${ms.length ? ` (worst ${Math.max(...ms)} ms: ${ms.sort((a, b) => b - a).slice(0, 5).join(', ')})` : ''}`;
-        }
-      } catch (e) { finish = ` · install finish: no log (${String(e?.message ?? e).slice(0, 60)})`; }
       ctx.flow('dismiss-first-run');
       const mb = (kb) => `${Math.round(kb / 1024)} MB`;
       return `downloaded and up in ${took} s after launch${relaunched ? ` — the app died ${relaunched}× and was relaunched (resumed)` : ''}${killed ? ` — killed at ${killed} and resumed` : ''}` +
