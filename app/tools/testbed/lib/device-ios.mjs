@@ -87,7 +87,7 @@ export function logSince(since, re) {
   const t = new Date(since).toISOString().replace('T', ' ').slice(0, 19);
   try {
     const out = simctl(['spawn', udid(), 'log', 'show', '--style', 'compact', '--start', t,
-      '--predicate', `process == "canifishthis"`], { timeout: 120_000 }).toString();
+      '--predicate', `process == "CanIFish"`], { timeout: 120_000 }).toString();
     return out.split('\n').filter((l) => !re || re.test(l));
   } catch { return []; }
 }
