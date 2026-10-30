@@ -6,9 +6,20 @@
                                                 #   its parity report; stops there
     python -m pipeline build --atlas --promote  # ... and promote it, then run the rest
     python -m pipeline build --force reach      # rerun a stage (and everything after it)
+    python -m pipeline build --graph            # the stage graph: what each stage reads, runs and writes
+    python -m pipeline build --side DIR [--atlas]   # EVERY stage into DIR, nothing live touched (a proof run)
 
-Every stage runs as its own process, one after another (peak ~12 GB; workers <= 4: memory
-`heavy-jobs-one-at-a-time`). A stage is UP TO DATE when its key — a digest of everything it reads:
+THE STAGE GRAPH (`STAGE_GRAPH`, T297): clim, reach and tiles read only the atlas and the curated / source
+data, so they are independent; deliver reads the reach run and the tiles (and clim.json by content):
+
+    [atlas --promote]  ->  clim ─────────────(content)──┐
+                           reach ───────────────────────┼─> deliver -> vintage check
+                           tiles ───────────────────────┘
+
+Every stage runs as its own process. `--jobs N` (default 2, at most 4: memory `heavy-jobs-one-at-a-time`)
+runs independent stages side by side — clim and reach start together, tiles as soon as a slot frees —
+each logging to `build-logs/<run>/<stage>.log` beside the manifest; `--jobs 1` is one after another, on
+the console. A stage is UP TO DATE when its key — a digest of everything it reads:
 the atlas's handles and registry, the corpus, the curated tree, the source stamps, its own code —
 equals the key of its last successful run in the manifest and its outputs exist. Any stage that
 runs makes every later stage run. The atlas is never rebuilt to check it (it is not
@@ -23,17 +34,33 @@ download: `scripts/update-hydat.sh` / `data/fetch_data.py --layers hydat`); the 
 without it.
 
 The manifest (`data/generated/build-manifest.json`) records, per run, each stage's command, key,
-status and seconds; per stage, its last successful key. Durations are never part of a key.
-The last stage is the strict vintage check: tiles and bundle from one atlas and one registry.
+status, seconds and peak memory (its process tree's summed RSS, sampled); per stage, its last
+successful key and the digest of each INPUT, so the plan says WHY a stage runs (`--dry-run`: "inputs
+changed: code, curated"). Durations are never part of a key. The run ends with a timings table and
+the strict vintage check: tiles and bundle from one atlas and one registry.
+
+THE MARKS ARE NOT A BUILD INPUT (T266): `marks.jsonl` is the review log and `data/curated/decided/`
+its export (`pipeline.regs.review.export`); both feed the apply paths, which land the decided edits in
+the curated files the stages read. Neither is in any key (`NOT_BUILD_INPUTS`), and a build runs with
+marks.jsonl absent.
+
+SIDE RUNS (`--side DIR`, T297): every stage writes under DIR (atlas/<build>_next, reaches/, tiles/,
+clim.json, deliver/ with its release/) with its own manifest; the promoted atlas is what reach, tiles
+and deliver read (a side run never promotes); the live tiles, bundle, release and LATEST are not
+touched. A side clim.json that differs from the live one is refused (deliver reads the live one).
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
+import threading
 import time
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
@@ -41,23 +68,47 @@ from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
 from pipeline.gauges.consume.bundle_tables import CLIM_PATH
 
 MANIFEST = GENERATED.bundle.parent / "build-manifest.json"
-# TILES BEFORE DELIVER: tiles read only the atlas, and `pipeline.deliver all` ends with the vintage
-# check against the shipped tiles — after an atlas promote, deliver-then-tiles failed that check every time.
-STAGES = ("clim", "reach", "tiles", "deliver")
-WORKERS = 4
+#: `--side DIR` (T297): every stage's outputs go under it; None = the live homes
+SIDE: Path | None = None
+#: at most this many stages at once (memory `heavy-jobs-one-at-a-time`: <= 4 workers)
+MAX_JOBS = 4
 
-# What each stage's CODE is: a change to any .py file under these (tests excluded) reruns it.
-CODE = {
-    "clim": ("pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/record.py"),
-    "reach": ("pipeline/atlas/reach", "pipeline/atlas/graph", "pipeline/atlas/registry", "pipeline/regs",
-              "pipeline/common"),     # graph/: the tributary walk the reach run uses
-    "deliver": ("pipeline",),
+
+@dataclass(frozen=True)
+class Stage:
+    """One node of the stage graph. `depends`: stages whose RUN reruns this one; `reads_content`: stages
+    whose output this one keys by content (it is re-keyed after they run, and runs only if that moved);
+    `code`: the .py roots whose change reruns it (tests excluded); `does`: one line for `--graph`."""
+    name: str
+    depends: tuple[str, ...]
+    reads_content: tuple[str, ...]
+    code: tuple[str, ...]
+    does: str
+
+
+#: THE STAGE GRAPH, in run order (T297: the one table; STAGES / CODE / DEPENDS / READS_CONTENT are views of it).
+#: TILES BEFORE DELIVER: deliver reads the tiles' polygons and section geometry for `section_access` (T54), and
+#: `pipeline.deliver all` ends with the vintage check against the shipped tiles.
+STAGE_GRAPH: tuple[Stage, ...] = (
+    Stage("clim", (), (), ("pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/record.py"),
+          "the gauge envelope clim.json from HYDAT (N9)"),
+    Stage("reach", (), (), ("pipeline/atlas/reach", "pipeline/atlas/graph", "pipeline/atlas/registry", "pipeline/regs",
+                            "pipeline/common"),     # graph/: the tributary walk the reach run uses
+          "every rule bound to its sections (deterministic)"),
     # P18: GEOMETRY ONLY. The tile code and the area cutter; names and registry changes are a data release, and the
     # tile labels catch up with `--labels` (MINIMAL-PACKAGING §6.1).
-    "tiles": ("pipeline/deliver/tiles", "pipeline/atlas/splits",
-              # T166: the tidal pieces the tiles leave off are the reach's own set (`tiles/tidal.py`)
-              "pipeline/atlas/reach/outside.py", "pipeline/atlas/reach/extent.py"),
-}
+    Stage("tiles", (), (), ("pipeline/deliver/tiles", "pipeline/atlas/splits",
+                            # T166: the tidal pieces the tiles leave off are the reach's own set (`tiles/tidal.py`)
+                            "pipeline/atlas/reach/outside.py", "pipeline/atlas/reach/extent.py"),
+          "atlas.pmtiles + layers/ + the released tile folder"),
+    Stage("deliver", ("reach", "tiles"), ("clim",), ("pipeline",),
+          "bundle -> verdicts -> status index -> export -> answers -> card gate -> store -> release"),
+)
+STAGES = tuple(st.name for st in STAGE_GRAPH)
+# What each stage's CODE is: a change to any .py file under these (tests excluded) reruns it.
+CODE = {st.name: st.code for st in STAGE_GRAPH}
+#: (T266) curated paths that are REVIEW STATE or its export, read by the apply paths and never by a stage: in no key
+NOT_BUILD_INPUTS = ("regulations.review.marks", "decided")
 
 
 def _sha(obj) -> str:
@@ -94,16 +145,38 @@ def curated_digest() -> str:
         elif isinstance(v, Path):
             paths.add(v)
     walk(CURATED.model_dump())
+    skip = not_build_inputs()           # T266: the review log and its export (also under `base`)
+    paths -= skip
     h = hashlib.sha256()
     for root in sorted(paths):
-        files = [root] if root.is_file() else sorted(q for q in root.rglob("*") if q.is_file())
         if not root.exists():
             raise FileNotFoundError(f"curated path {root} is missing")
+        files = [root] if root.is_file() else _files_under(root, skip)
         for q in files:
-            if q.name != ".DS_Store":
+            if q.name != ".DS_Store" and q not in skip:
                 h.update(str(q.relative_to(REPO_ROOT)).encode())
                 h.update(q.read_bytes())
     return h.hexdigest()[:16]
+
+
+def _files_under(root: Path, skip: set[Path]) -> list[Path]:
+    """Every file under `root`, sorted, never descending into a `skip` directory (it is not even listed)."""
+    out = []
+    for d, dirs, files in os.walk(root):
+        dirs[:] = [x for x in dirs if Path(d, x) not in skip]
+        out += [Path(d, f) for f in files if Path(d, f) not in skip]
+    return sorted(out)
+
+
+def not_build_inputs() -> set[Path]:
+    """The curated paths in no stage key (`NOT_BUILD_INPUTS`): the marks store and the decided-data dir (T266)."""
+    out = set()
+    for dotted in NOT_BUILD_INPUTS:
+        v = CURATED
+        for part in dotted.split("."):
+            v = getattr(v, part)
+        out.add(Path(v))
+    return out
 
 
 def stamp(path: Path) -> list:
@@ -219,27 +292,65 @@ def obstacles_source() -> Path:
     return Path(SOURCE / GPKG)
 
 
+@dataclass(frozen=True)
+class Homes:
+    """Where the stages write: the live homes, or everything under a side directory (`--side`)."""
+    clim: Path
+    reaches: Path              # the reach run's directory
+    tiles: Path
+    deliver: Path | None       # `deliver all --out-dir`; None = the canonical homes
+    release: Path              # the release root (r-* folders, LATEST, tiles/)
+
+    @classmethod
+    def of(cls, build_dir: Path, side: Path | None = None) -> "Homes":
+        if side is None:
+            return cls(Path(CLIM_PATH), GENERATED.reaches / build_dir.name, Path(GENERATED.tiles), None,
+                       Path(GENERATED.release))
+        side = Path(side)
+        return cls(side / "clim.json", side / "reaches" / build_dir.name, side / "tiles", side / "deliver",
+                   side / "deliver" / "release")
+
+    def bundle_dir(self) -> Path:
+        return self.deliver if self.deliver is not None else Path(GENERATED.bundle)
+
+
 def outputs(build_dir: Path) -> dict[str, list[Path]]:
-    reach = GENERATED.reaches / build_dir.name
-    return {"clim": [Path(CLIM_PATH)],
-            "reach": [reach / "report.json", reach / "rule_section.jsonl.gz",  # T73: the gzip form
-                      reach / "dfo_salmon.jsonl.gz"],                              # T211
-            "deliver": [GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "verdicts.sqlite",
-                        GENERATED.bundle / "status_index.bin", GENERATED.release / "LATEST"],
-            "tiles": [GENERATED.tiles / "atlas.pmtiles", GENERATED.tiles / "atlas.meta.json"]}
+    h = Homes.of(build_dir, SIDE)
+    return {"clim": [h.clim],
+            "reach": [h.reaches / "report.json", h.reaches / "rule_section.jsonl.gz",  # T73: the gzip form
+                      h.reaches / "dfo_salmon.jsonl.gz"],                              # T211
+            "deliver": [h.bundle_dir() / "bundle.sqlite", h.bundle_dir() / "verdicts.sqlite",
+                        h.bundle_dir() / "status_index.bin", h.release / "LATEST"],
+            "tiles": [h.tiles / "atlas.pmtiles", h.tiles / "atlas.meta.json"]}
 
 
 def commands(build_dir: Path) -> dict[str, list[str]]:
     py = [sys.executable, "-m"]
+    h = Homes.of(build_dir, SIDE)
+    side = SIDE is not None
     return {
         "clim": py + ["pipeline.gauges.feed.climatology", "--hydat", str(SOURCE / "hydat.sqlite3"),
-                      "--out", str(CLIM_PATH)],
-        "reach": py + ["pipeline.atlas.reach.cli", "--build", str(build_dir),
-                       "--out", str(GENERATED.reaches / build_dir.name)],
-        "deliver": py + ["pipeline.deliver", "all", "--build", str(build_dir)],
-        "tiles": py + ["pipeline.deliver.tiles", "--build", str(build_dir),
-                       "--out", str(GENERATED.tiles)],
+                      "--out", str(h.clim)],
+        "reach": py + ["pipeline.atlas.reach.cli", "--build", str(build_dir), "--out", str(h.reaches)],
+        "deliver": py + ["pipeline.deliver", "all", "--build", str(build_dir)]
+        + (["--reaches", str(h.reaches), "--tiles", str(h.tiles), "--out-dir", str(h.deliver)] if side else []),
+        "tiles": py + ["pipeline.deliver.tiles", "--build", str(build_dir), "--out", str(h.tiles)]
+        + (["--release-root", str(h.release)] if side else []),
     }
+
+
+def prepare_side(build_dir: Path) -> None:
+    """A side run's tree: the basemap the release names is the live one (its sidecar beside the side tiles, its
+    released folder linked under the side release root) — a side run builds no basemap."""
+    h = Homes.of(build_dir, SIDE)
+    for d in (h.tiles, h.release, h.reaches.parent):
+        d.mkdir(parents=True, exist_ok=True)
+    live_meta = Path(GENERATED.tiles) / "basemap.meta.json"
+    if live_meta.exists() and not (h.tiles / "basemap.meta.json").exists():
+        (h.tiles / "basemap.meta.json").write_bytes(live_meta.read_bytes())
+    bm = Path(GENERATED.release) / "basemap"
+    if bm.is_dir() and not (h.release / "basemap").exists():
+        (h.release / "basemap").symlink_to(bm.resolve(), target_is_directory=True)
 
 
 def load_manifest() -> dict:
@@ -271,69 +382,217 @@ def preflight(want_tiles: bool) -> None:
 # What each stage READS from an earlier stage: a stage reruns when one of THESE reran, not every later
 # one. Tiles read only the atlas (no reach input), so a reach-only change no longer rebuilds them. Deliver reads the
 # tiles' polygons and section geometry for `section_access` (T54), so a tile rebuild re-runs it.
-DEPENDS = {"clim": (), "reach": (), "tiles": (), "deliver": ("reach", "tiles")}
+DEPENDS = {st.name: st.depends for st in STAGE_GRAPH}
 #: What a stage reads from an earlier stage BY CONTENT, in its own key: after that stage runs, the key is taken again
 #: and the stage runs only if it moved. Deliver keys `clim.json`'s bytes (N7), so a `clim` run that rewrote the same
 #: envelope does not rebuild the bundle.
-READS_CONTENT = {"deliver": ("clim",)}
+READS_CONTENT = {st.name: st.reads_content for st in STAGE_GRAPH if st.reads_content}
 
 
-def plan(build_dir: Path, force: set[str]) -> list[tuple[str, str, bool]]:
+def input_digests(k: dict) -> dict[str, str]:
+    """A stage key's inputs, each as its own digest: what the manifest keeps so the plan can say WHICH changed."""
+    return {name: _sha(v) for name, v in sorted(k.items())}
+
+
+def plan(build_dir: Path, force: set[str], why: dict | None = None) -> list[tuple[str, str, bool]]:
     """[(stage, key, run?)] in order; a stage runs when its key changed, its outputs are missing, it is
-    forced, or a stage it DEPENDS on runs."""
+    forced, or a stage it DEPENDS on runs. `why`, when given, gets {stage: reason} and {"inputs": {stage:
+    input_digests}} — the reason a stage runs, printed up front."""
     m, k, out = load_manifest(), keys(build_dir, missing_ok=True), outputs(build_dir)
     rows, runs = [], set()
     for s in STAGES:
         key = _sha(k[s])
-        last = (m["stages"].get(s) or {}).get("key")
-        go = (s in force or key != last or not all(p.exists() for p in out[s])
-              or any(d in runs for d in DEPENDS[s]))
+        rec = m["stages"].get(s) or {}
+        last = rec.get("key")
+        missing = [p for p in out[s] if not p.exists()]
+        after = [d for d in DEPENDS[s] if d in runs]
+        go = s in force or key != last or bool(missing) or bool(after)
         if go:
             runs.add(s)
         rows.append((s, key, go))
+        if why is not None:
+            now = input_digests(k[s])
+            why.setdefault("inputs", {})[s] = now
+            if s in force:
+                why[s] = "forced"
+            elif last is None:
+                why[s] = "never built"
+            elif key != last:
+                was = rec.get("inputs") or {}
+                moved = sorted(n for n in now if was.get(n) != now[n]) if was else []
+                why[s] = "inputs changed: " + (", ".join(moved) if moved else "(no per-input record yet)")
+            elif missing:
+                why[s] = f"output missing: {missing[0].name}"
+            elif after:
+                why[s] = f"after {', '.join(after)}"
     return rows
 
 
-def execute(build_dir: Path, rows, cmds: dict, run: dict, m: dict, skip=()) -> set[str]:
-    """Run the plan's stages in order; a stage that reads an earlier one BY CONTENT (`READS_CONTENT`) is keyed again
-    once that one ran, and runs only if its key moved. Returns the stages that ran."""
+_LOCK = threading.RLock()
+
+
+def execute(build_dir: Path, rows, cmds: dict, run: dict, m: dict, skip=(), jobs: int = 1,
+            inputs: dict | None = None, logs: Path | None = None) -> set[str]:
+    """Run the plan's stages, at most `jobs` at once, each as soon as every stage it reads (`DEPENDS`,
+    `READS_CONTENT`) is done; a stage that reads an earlier one BY CONTENT is keyed again once that one ran, and
+    runs only if its key moved. With `jobs` > 1 each stage logs to `logs/<stage>.log`. A failed stage stops new
+    launches; the ones running finish, then the build stops. Returns the stages that ran."""
+    jobs = max(1, min(int(jobs), MAX_JOBS))
+    plan_go = {s: g for s, _k, g in rows}
+    plan_key = {s: k for s, k, _g in rows}
+    todo = [s for s, _k, _g in rows if s not in skip]
+    done: set[str] = set(skip)
     ran: set[str] = set()
-    for s, key, go in rows:
-        if s in skip:
-            continue
-        if any(d in ran for d in READS_CONTENT.get(s, ())):
-            key = _sha(keys(build_dir)[s])          # taken again: it reads that stage's output by content
-            go = go or key != (m["stages"].get(s) or {}).get("key")
-            print(f"  {s:<8} {key}  {'RUN' if go else 'up to date'} (re-keyed after {', '.join(READS_CONTENT[s])})")
-        if go:
-            run_stage(s, cmds[s], key, run, m)
-            ran.add(s)
+    failures: list[BaseException] = []
+    running: dict = {}
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        while todo or running:
+            for s in list(todo):
+                if len(running) >= jobs:
+                    break
+                ups = set(DEPENDS.get(s, ())) | set(READS_CONTENT.get(s, ()))
+                if not ups <= done:
+                    continue
+                todo.remove(s)
+                if failures:
+                    done.add(s)                     # not started: a stage failed
+                    continue
+                key, go = plan_key[s], plan_go[s] or any(d in ran for d in DEPENDS.get(s, ()))
+                if any(d in ran for d in READS_CONTENT.get(s, ())):
+                    k_now = keys(build_dir)[s]      # taken again: it reads that stage's output by content
+                    key = _sha(k_now)
+                    if inputs is not None:
+                        inputs[s] = input_digests(k_now)
+                    go = go or key != (m["stages"].get(s) or {}).get("key")
+                    print(f"  {s:<8} {key}  {'RUN' if go else 'up to date'} "
+                          f"(re-keyed after {', '.join(READS_CONTENT[s])})", flush=True)
+                if not go:
+                    done.add(s)
+                    continue
+                log = (logs / f"{s}.log") if (logs is not None and jobs > 1) else None
+                kw = {}
+                if inputs is not None and s in inputs:
+                    kw["inputs"] = inputs[s]
+                if log is not None:
+                    kw["log"] = log
+                running[pool.submit(run_stage, s, cmds[s], key, run, m, **kw)] = s
+            if not running:
+                if todo and not failures:
+                    raise RuntimeError(f"build: no stage can start ({todo}) — the stage graph has a cycle")
+                continue
+            finished, _ = wait(list(running), return_when=FIRST_COMPLETED)
+            for f in finished:
+                s = running.pop(f)
+                done.add(s)
+                try:
+                    f.result()
+                    ran.add(s)
+                except BaseException as ex:  # noqa: BLE001 — SystemExit from run_stage; stop launching
+                    failures.append(ex)
+    if failures:
+        raise failures[0]
     return ran
 
 
-def run_stage(stage: str, cmd: list[str], key: str, run: dict, m: dict) -> None:
-    print(f"\n=== {stage}: {' '.join(cmd)}", flush=True)
+def _tree_rss_kb(root: int) -> int:
+    """The summed RSS (KB) of `root` and every process under it (`ps`; 0 when it cannot be read)."""
+    try:
+        out = subprocess.run(["ps", "-A", "-o", "pid=,ppid=,rss="], capture_output=True, text=True,
+                             timeout=10).stdout
+    except (OSError, subprocess.SubprocessError):
+        return 0
+    kids: dict[int, list[int]] = {}
+    rss: dict[int, int] = {}
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) != 3:
+            continue
+        pid, ppid, r = (int(x) for x in parts)
+        kids.setdefault(ppid, []).append(pid)
+        rss[pid] = r
+    total, stack = 0, [root]
+    while stack:
+        p = stack.pop()
+        total += rss.get(p, 0)
+        stack.extend(kids.get(p, ()))
+    return total
+
+
+def _run(cmd: list[str], log: Path | None = None, every: float = 5.0) -> tuple[int, int]:
+    """Run `cmd` from the repo root (console, or `log`); returns (returncode, peak tree RSS in MB, sampled)."""
+    fh = open(log, "w", encoding="utf-8") if log is not None else None
+    try:
+        p = subprocess.Popen(cmd, cwd=REPO_ROOT, stdout=fh, stderr=subprocess.STDOUT if fh else None)
+        peak = 0
+        while True:
+            try:
+                rc = p.wait(timeout=every)
+                break
+            except subprocess.TimeoutExpired:
+                peak = max(peak, _tree_rss_kb(p.pid))
+        return rc, round(peak / 1024)
+    finally:
+        if fh is not None:
+            fh.close()
+
+
+def run_stage(stage: str, cmd: list[str], key: str, run: dict, m: dict, *, inputs: dict | None = None,
+              log: Path | None = None) -> None:
+    where = f" (log: {log})" if log is not None else ""
+    print(f"\n=== {stage}: {' '.join(cmd)}{where}", flush=True)
+    if log is not None:
+        log.parent.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
-    rc = subprocess.run(cmd, cwd=REPO_ROOT).returncode
+    rc, peak = _run(cmd, log)
+    secs = round(time.time() - t0)
     rec = {"stage": stage, "cmd": cmd, "key": key, "status": "ok" if rc == 0 else f"rc={rc}",
-           "seconds": round(time.time() - t0)}
-    run["stages"].append(rec)
-    if rc:
-        run["status"] = f"failed at {stage}"
+           "seconds": secs, "peak_mb": peak}
+    print(f"=== {stage}: {'ok' if rc == 0 else f'rc={rc}'} in {secs // 60}m{secs % 60:02d}s, peak {peak / 1024:.1f} GB",
+          flush=True)
+    with _LOCK:
+        run["stages"].append(rec)
+        if rc:
+            run["status"] = f"failed at {stage}"
+            save_manifest(m)
+            tail = ("\n" + "".join(log.read_text(encoding="utf-8", errors="replace").splitlines(True)[-30:])
+                    if log is not None and log.exists() else "")
+            raise SystemExit(f"build: {stage} failed (rc={rc}); the manifest says so: {MANIFEST}{tail}")
+        m["stages"][stage] = {"key": key, "at": run["started"], **({"inputs": inputs} if inputs else {})}
         save_manifest(m)
-        raise SystemExit(f"build: {stage} failed (rc={rc}); the manifest says so: {MANIFEST}")
-    m["stages"][stage] = {"key": key, "at": run["started"]}
-    save_manifest(m)
+
+
+def timings(run: dict) -> str:
+    """The run's per-stage table: seconds and peak memory (T295)."""
+    rows = [f"  {r['stage']:<8} {r['seconds'] // 60:>3}m{r['seconds'] % 60:02d}s  "
+            f"{(r.get('peak_mb') or 0) / 1024:5.1f} GB  {r['status']}" for r in run["stages"]]
+    wall = run.get("wall_seconds")
+    return "\n".join(["build: stage timings (wall clock per stage; peak = summed RSS of its process tree)"] + rows
+                     + ([f"  total    {wall // 60:>3}m{wall % 60:02d}s wall"] if wall is not None else []))
+
+
+def graph_text() -> str:
+    lines = ["the stage graph (python -m pipeline build), in run order:"]
+    for st in STAGE_GRAPH:
+        reads = ", ".join([*st.depends, *(f"{d} (content)" for d in st.reads_content)]) or "the atlas + curated/source"
+        lines.append(f"  {st.name:<8} reads {reads}\n           does  {st.does}\n"
+                     f"           code  {', '.join(st.code)}")
+    lines.append("  (atlas)  only with --atlas: a side atlas <build>_next + its parity; --promote adopts it")
+    return "\n".join(lines)
 
 
 def atlas_stage(build_dir: Path, promote: bool, run: dict, m: dict) -> bool:
     """Build `<build>_next`, print its parity, and promote it only when asked. Returns whether
     the rest of the build should go on (it reads the PROMOTED atlas)."""
-    nxt = build_dir.with_name(build_dir.name + "_next")
+    nxt = (SIDE / "atlas" / (build_dir.name + "_next")) if SIDE is not None else \
+        build_dir.with_name(build_dir.name + "_next")
     run_stage("atlas", [sys.executable, "-m", "pipeline.atlas.build", "--full", "--out", str(nxt)],
               "-", run, m)
     run_stage("parity", [sys.executable, "-m", "pipeline.atlas.promote", str(nxt), "--dry-run"],
               "-", run, m)
+    if SIDE is not None:
+        print(f"\nbuild (side): {nxt} is built and its parity printed above; it is NOT promoted — the rest of "
+              f"the side run reads the promoted atlas {build_dir}.")
+        return True
     if not promote:
         print(f"\nbuild: {nxt} is built and its parity printed above. Promote it with\n"
               f"    python -m pipeline build --promote   (or: python -m pipeline.atlas.promote {nxt})\n"
@@ -354,12 +613,44 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--labels", action="store_true",
                     help="rebuild the tiles to refresh their labels (names are not in the tiles stage key, P18)")
     ap.add_argument("--dry-run", action="store_true", help="print the plan and stop")
+    ap.add_argument("--jobs", type=int, default=2,
+                    help=f"independent stages at once (default 2, at most {MAX_JOBS}; 1 = one after another)")
+    ap.add_argument("--side", type=Path, default=None, metavar="DIR",
+                    help="every stage into DIR with its own manifest; the live outputs and LATEST are not touched")
+    ap.add_argument("--graph", action="store_true", help="print the stage graph and stop")
+    ap.add_argument("--status", action="store_true",
+                    help="the last run: each stage's time, memory and status, and its logs (with --side: that run's)")
     a = ap.parse_args(argv)
+    global SIDE, MANIFEST
+    if a.graph:
+        print(graph_text())
+        return 0
+    if a.status:
+        mf = (a.side.resolve() / "build-manifest.json") if a.side else MANIFEST
+        if not mf.exists():
+            print(f"build: no manifest at {mf}")
+            return 1
+        last = json.loads(mf.read_text(encoding="utf-8"))["runs"][-1]
+        print(f"build: last run {last['started']} {' '.join(last.get('argv') or [])} — {last['status']}")
+        print(timings(last))
+        logs = mf.parent / "build-logs" / last["started"].replace(":", "")
+        for log in sorted(logs.glob("*.log")) if logs.is_dir() else []:
+            tail = log.read_text(encoding="utf-8", errors="replace").splitlines()[-1:] or [""]
+            print(f"  {log}: {tail[0][:140]}")
+        return 0
 
     build_dir = GENERATED.build()
+    if a.side is not None:
+        if a.promote:
+            raise SystemExit("build: a side run never promotes (--side with --promote)")
+        SIDE = a.side.resolve()
+        MANIFEST = SIDE / "build-manifest.json"
+        SIDE.mkdir(parents=True, exist_ok=True)
+        prepare_side(build_dir)
     m = load_manifest()
     run = {"started": time.strftime("%Y-%m-%dT%H:%M:%S"), "stages": [], "status": "running",
            "argv": sys.argv[1:]}
+    t_start = time.time()
     if not a.dry_run:
         preflight(want_tiles=not a.no_tiles)
         m["runs"].append(run)
@@ -373,19 +664,37 @@ def main(argv: list[str] | None = None) -> int:
             run_stage("promote", [sys.executable, "-m", "pipeline.atlas.promote", str(nxt)], "-",
                       run, m)
 
-    rows = plan(build_dir, set(a.force) | ({"tiles"} if a.labels else set()))
+    why: dict = {}
+    rows = plan(build_dir, set(a.force) | ({"tiles"} if a.labels else set()), why)
     cmds = commands(build_dir)
-    print(f"build: atlas {build_dir}")
+    print(f"build: atlas {build_dir}" + (f" — SIDE run into {SIDE}" if SIDE is not None else ""))
     for s, key, go in rows:
         skip = a.no_tiles and s == "tiles"
-        print(f"  {s:<8} {key}  {'skip (--no-tiles)' if skip else 'RUN' if go else 'up to date'}")
+        print(f"  {s:<8} {key}  {'skip (--no-tiles)' if skip else 'RUN' if go else 'up to date'}"
+              + (f"  ({why[s]})" if go and not skip and s in why else ""))
     if a.dry_run:
         return 0
-    execute(build_dir, rows, cmds, run, m, skip={"tiles"} if a.no_tiles else set())
+    logs = MANIFEST.parent / "build-logs" / run["started"].replace(":", "")
+    try:
+        execute(build_dir, rows, cmds, run, m, skip={"tiles"} if a.no_tiles else set(), jobs=a.jobs,
+                inputs=why.get("inputs"), logs=logs)
+    finally:
+        run["wall_seconds"] = round(time.time() - t_start)
+        save_manifest(m)
+        print("\n" + timings(run))
+    h = Homes.of(build_dir, SIDE)
+    if SIDE is not None and h.clim.exists() and Path(CLIM_PATH).exists() \
+            and h.clim.read_bytes() != Path(CLIM_PATH).read_bytes():
+        run["status"] = "side clim.json differs from the live one"
+        save_manifest(m)
+        raise SystemExit(f"build (side): {h.clim} differs from {CLIM_PATH}, which the side deliver read — "
+                         "the envelope moved; run the live clim stage first")
 
     # P07: every artifact of the delivery, not only tiles <-> bundle
     from pipeline.common.vintage import Artifacts, report_all
-    ok, msg = report_all(GENERATED.tiles, Artifacts.canonical(), strict=not a.no_tiles)
+    arts = Artifacts.canonical() if SIDE is None else Artifacts(
+        h.deliver / "bundle.sqlite", h.deliver / "status_index.bin", h.deliver / "ui-rules-export.json")
+    ok, msg = report_all(h.tiles, arts, strict=not a.no_tiles)
     print(msg)
     run["status"] = "ok" if ok else "vintage mismatch"
     save_manifest(m)

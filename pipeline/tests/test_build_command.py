@@ -66,7 +66,7 @@ def test_force_reruns_from_that_stage(world):
 
 
 def test_a_failed_stage_is_recorded_and_not_marked_done(world, monkeypatch, tmp_path):
-    monkeypatch.setattr(B.subprocess, "run", lambda *a, **kw: type("R", (), {"returncode": 3})())
+    monkeypatch.setattr(B, "_run", lambda *a, **kw: (3, 0))
     m, run = {"stages": {}, "runs": []}, {"started": "t", "stages": [], "status": "running"}
     m["runs"].append(run)
     with pytest.raises(SystemExit, match="reach failed"):
@@ -180,3 +180,94 @@ def test_a_bare_python_m_pipeline_refuses():
     r = subprocess.run([sys.executable, "-m", "pipeline"], capture_output=True, text=True,
                        cwd=Path(B.__file__).resolve().parents[1])
     assert r.returncode != 0 and "python -m pipeline build" in r.stderr
+
+
+# ------------------------------------------------------------------ T295 / T297: parallel stages, reasons, side runs
+
+def test_independent_stages_run_side_by_side_and_deliver_waits_for_them(world, monkeypatch):
+    """--jobs 2: clim, reach and tiles read only the atlas, so they overlap; deliver starts only after reach AND
+    tiles (DEPENDS) and clim (READS_CONTENT) are done."""
+    import threading
+    import time as _t
+    events, lock = [], threading.Lock()
+
+    def fake(s, *_a, **_kw):
+        with lock:
+            events.append(("start", s))
+        _t.sleep(0.05)
+        with lock:
+            events.append(("end", s))
+    monkeypatch.setattr(B, "run_stage", fake)
+    rows = B.plan(Path("atlas"), set())
+    ran = B.execute(Path("atlas"), rows, {s: [s] for s in B.STAGES}, {}, B.load_manifest(), jobs=2)
+    assert ran == set(B.STAGES)
+    starts = [s for e, s in events if e == "start"]
+    assert starts[:2] == ["clim", "reach"]                       # two at once, in run order
+    i_deliver = events.index(("start", "deliver"))
+    assert all(events.index(("end", s)) < i_deliver for s in ("clim", "reach", "tiles"))
+    first_end = min(i for i, e in enumerate(events) if e[0] == "end")
+    assert events.index(("start", "reach")) < first_end          # reach began before clim finished
+
+
+def test_a_failed_stage_stops_new_launches(world, monkeypatch):
+    started = []
+
+    def fake(s, *_a, **_kw):
+        started.append(s)
+        if s == "clim":
+            raise SystemExit("build: clim failed")
+    monkeypatch.setattr(B, "run_stage", fake)
+    rows = B.plan(Path("atlas"), set())
+    with pytest.raises(SystemExit, match="clim failed"):
+        B.execute(Path("atlas"), rows, {s: [s] for s in B.STAGES}, {}, B.load_manifest(), jobs=1)
+    assert started == ["clim"]
+
+
+def test_the_plan_says_which_input_moved(world):
+    k, _o, _seal = world
+    B.save_manifest({"stages": {s: {"key": B._sha(k[s]), "inputs": B.input_digests(k[s])} for s in B.STAGES},
+                     "runs": []})
+    k["reach"]["in"] = "edited"
+    why: dict = {}
+    B.plan(Path("atlas"), set(), why)
+    assert why["reach"] == "inputs changed: in" and why["deliver"] == "after reach"
+
+
+def test_a_side_run_writes_nothing_live(monkeypatch, tmp_path):
+    """--side DIR: every stage's command and output names DIR; the live homes and LATEST are not in them."""
+    monkeypatch.setattr(B, "SIDE", tmp_path / "side")
+    build = Path("data/generated/atlas/full")
+    cmds = B.commands(build)
+    outs = B.outputs(build)
+    for s in B.STAGES:
+        assert all(str(tmp_path / "side") in str(p) for p in outs[s]), s
+    assert cmds["deliver"][cmds["deliver"].index("--out-dir") + 1] == str(tmp_path / "side" / "deliver")
+    assert cmds["tiles"][cmds["tiles"].index("--release-root") + 1] == str(tmp_path / "side" / "deliver" / "release")
+    assert cmds["reach"][cmds["reach"].index("--out") + 1] == str(tmp_path / "side" / "reaches" / "full")
+    assert cmds["clim"][cmds["clim"].index("--out") + 1] == str(tmp_path / "side" / "clim.json")
+
+
+def test_the_marks_are_in_no_stage_key(monkeypatch):
+    """T266: the review log and its export feed the apply paths, never a stage — not even through `base`, the
+    whole curated tree: the digest never opens them."""
+    from pipeline.common.curated import CURATED
+    nb = B.not_build_inputs()
+    assert Path(CURATED.regulations.review.marks) in nb and Path(CURATED.decided) in nb
+    opened = []
+    real = Path.read_bytes
+    monkeypatch.setattr(Path, "read_bytes", lambda self: (opened.append(self), real(self))[1])
+    B.curated_digest()
+    assert opened and not [p for p in opened if any(p == x or x in p.parents for x in nb)]
+
+
+def test_the_curated_tree_loads_without_the_marks_store(tmp_path):
+    """T266: a build runs with marks.jsonl absent — the curated model no longer requires it to exist."""
+    import yaml
+    from pipeline.common import curated as C
+    blob = yaml.safe_load(C.CONFIG.read_text(encoding="utf-8"))
+    gone = tmp_path / "no-marks.jsonl"
+    blob["curated"]["regulations"]["review"]["marks"] = str(gone)
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text(yaml.safe_dump(blob))
+    got = C.load(cfg)
+    assert got.regulations.review.marks == gone and not gone.exists()

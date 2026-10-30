@@ -66,8 +66,11 @@ def _export(bundle: Path, out: Path) -> Path:
 def _step(args: list) -> None:
     """One step of the chain, as `python -m pipeline.deliver <step> …` in a fresh process."""
     import subprocess
+    import time
     print(f"pipeline.deliver: {' '.join(args)}", flush=True)
+    t0 = time.time()
     subprocess.run([sys.executable, "-m", "pipeline.deliver", *args], check=True)
+    print(f"pipeline.deliver: {args[0]} done in {time.time() - t0:.0f}s", flush=True)   # T295: per-step timings
 
 
 def canonical_homes(debug: bool = False) -> dict:
