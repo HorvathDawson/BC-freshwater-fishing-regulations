@@ -24,7 +24,7 @@ const held = (s: SynopsisSource) => new File(Paths.document, synopsisPath(s.sha2
 export const synopsisHeld = (s: SynopsisSource): boolean => { try { return held(s).exists; } catch { return false; } };
 
 /** (T285) thrown when the device has no app that opens a PDF: the card says so (and still offers gov.bc.ca) */
-export class NoPdfViewerError extends Error { constructor(cause?: unknown) { super(`no app on this device opens a PDF${cause ? `: ${String(cause)}` : ""}`); this.name = "NoPdfViewer"; } }
+class NoPdfViewerError extends Error { constructor(cause?: unknown) { super(`no app on this device opens a PDF${cause ? `: ${String(cause)}` : ""}`); this.name = "NoPdfViewer"; } }
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -34,7 +34,7 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
  * Java heap (the T262 OOM; a phone with a small heap failed the open as "couldn't load"). Tried again with backoff; an
  * offline spell is waited out; a file of the wrong size is thrown away, never kept.
  */
-export async function downloadSynopsis(s: SynopsisSource, hooks: Partial<LoadHooks> = {}, tries = 3): Promise<File> {
+async function downloadSynopsis(s: SynopsisSource, hooks: Partial<LoadHooks> = {}, tries = 3): Promise<File> {
   const f = held(s);
   if (f.exists) return f;
   const net = getSynopsisNet();

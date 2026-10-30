@@ -29,8 +29,10 @@ const at = liveReleaseAt();
 // (T222, r-0fa7927b16e5: the Ruskin/Northrop channels + T224 own-item names) 10cbcb72e9f907cf: 1, 5 and 1 lines later
 // (T278, r-62e2f3a8c81e: the tidal cuts + the FWA restore of the city streams) 07f861e5422be466: 61, 55 and 56 lines EARLIER
 // (atlas full.prev -> full section_handles.txt: the city's minted lines that sorted ahead of them are gone)
-const H_ATLAS = "07f861e5422be466";
-const H = { eve: 1357, salmon: 64096, base: 59467 } as const;
+// (T289, r-ce76b4ed3624: the Thomas / Angelo lake stubs re-joined, -2000000382 and -2000000096 one section each, not two)
+// 20f93c1ffb5fd829: all three 2 lines EARLIER
+const H_ATLAS = "20f93c1ffb5fd829";
+const H = { eve: 1355, salmon: 64094, base: 59465 } as const;
 /** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 

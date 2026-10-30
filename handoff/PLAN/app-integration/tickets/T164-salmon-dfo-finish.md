@@ -92,3 +92,39 @@ fix; a confluence + a sign by map click) were taken on :18918, not committed.
   tributaries, Shegunia, Pinkut, Zymoetz / Zymagotitz / Exchamsiks / Exstew / Kasiks / Khyex / Gitnadoix reaches,
   Redsand Lake, Scotia, Ecstall above the signs, Bear. The review app's DFO → Cascade map shows each (dashed legend
   swatch, dotted water on the map).
+
+## Step 2 splits: every locator has a proposal or a reason (2026-10-29)
+
+Everything below is a PROPOSAL. Nothing was written to data/curated, splits.json, marks.jsonl or a build. Review in the
+review app: **DFO salmon extents** → open a location → the violet suggestion + "split hunt" evidence; **accept
+suggestion** only pre-fills the editor, and **Save extent** (your mark) is the only write.
+Splitwork today: 94 ACTIVE locators need a cut (90 "coordinate" + 4 confluence; the ticket's 96 + 7 have shrunk as
+bindings landed) + 49 dormant.
+- **Confluence (4 active, 2 dormant):** all 6 are on existing confluence cuts from FWA topology: Bulkley/Morice,
+  Dean/Crag ×2, Nass/Meziadin, San Juan/Fleet. Taku "including tributaries" = whole water.
+- **Coordinate, active (90):** 17 on existing cuts (13 high, 4 medium) · 28 NEW splits with source + snap distance +
+  why (10 high, 9 medium, 9 low) · **39 need no cut at all.** splitwork files every unclassified row as
+  "coordinate", including "including tributaries" and "all open portions", which mean the whole water · 6 unplaced.
+- **Dormant (47 coordinate):** 15 existing, 21 new (8 high, 8 medium, 5 low), 4 whole, 7 unplaced.
+- **"maybe?" vs existing cuts:** 36 confirmed (the suggestion uses the maybe-cut). 18 not used: the cut is a
+  different place (Brunette Cariboo Dam is 262 m above the Cariboo Rd bridge; Lakelse CNR is 9 km away), or the cut is
+  reused with an offset (Pinkut +25 m). **One conflict:** Puntledge `signs_75_m_downstream_of_…_hatchery_fence` sits
+  at FWA measure 4075. That is 74 m ABOVE the OSM lower-hatchery weir (4001), so it cannot be "75 m below the weir".
+  It is noted on that location.
+- **New today:** Nanaimo Subarea 17-14 ×2 (live wording, new on the 10-28 scrape): downstream of the curated Cedar
+  Road bridge (high), and the bridge plus signs 400 m below it (medium); the caveat says it is tidal (T212).
+  Corroborated from the FTEN forest-road layer: Shegunia bridge (BABINE SLIDE FSR passes 14 m away) and Lakelse
+  Whitebottom bridge (LAKELSE MAIN passes 30 m away).
+- **Sheldens Creek (dossier's 1 open), proposed:** the unnamed FWA line blk 360846083 (950-016367) into Sheldens Bay.
+  Its roads are all named for it (FTEN R06206 "SP 19(1) TO SHELDONS", SHEL100–103). It is a REVIEW row in the
+  **Names** mode (`blk:360846083~sheldens-creek`, medium, never auto-accepted; mine.py `DFO_UNMATCHED_LEADS`).
+  Accepting it names the line, and the matcher can then bind the water. The cut is ready: "SP 19(1) TO SHELDONS"
+  crosses the line at 53.12968,-131.78224, FWA measure 3402 m (exact road × stream intersection).
+- **Unplaced, active (6):** Kasiks ×2 (the "Upper Pool" is named nowhere public; ask DFO Terrace) · Sheldens
+  (waits on the name above) · Quesnel Horsefly Bay, Mabel Lake, Osoyoos North Basin (areas of a lake: lake splits are
+  deferred by owner rule). Dormant (7): Sakinaw ×2, Babine 400 m radius ×2, Quesnel, Osoyoos (lake areas), and the
+  Ruskin spawning channel (a side channel FWA does not draw).
+- Regenerated `dfo-suggestions.json/.md`, `dfo-split-hunt.md` and `dfo-coverage.md`. 10 other rows changed
+  confidence: the owner's newer tidal proposals (T212) now sit at the same places, e.g. Fraser at the Mission CPR
+  bridge, Qualicum Hwy 19A and the Dean mouth, and the matcher reports that as a near-tie. Tests:
+  `test_dfo_suggest`, `test_names`, `test_name_sources_t224` pass.

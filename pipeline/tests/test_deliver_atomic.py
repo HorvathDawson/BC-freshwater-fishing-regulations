@@ -16,7 +16,8 @@ import pytest
 from pipeline.deliver import __main__ as D
 
 #: what each step writes, by the names `deliver all` gives them
-WRITES = {"bundle": ["bundle.sqlite"], "verdicts": ["verdicts.sqlite"], "status_index": ["status_index.bin"],
+WRITES = {"bundle": ["bundle.sqlite", "continuations_held.json"],   # (8f69a2f4c) the held continuations beside it
+          "verdicts": ["verdicts.sqlite"], "status_index": ["status_index.bin"],
           "export": ["ui-rules-export.json", "ui-rules-guide.json"],
           "answers": ["ui-rules-answers.json"], "card_check": ["card-check.json"],
           "store": ["regs.sqlite"], "release": []}

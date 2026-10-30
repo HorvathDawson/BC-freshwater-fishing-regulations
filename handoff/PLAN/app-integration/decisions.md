@@ -1669,3 +1669,24 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - Bear River (Stewart): no written boundary exists; the tidal boundary is the mouth, where the river line meets the coast.
 - A stream whose FWA line runs on through a lake or the sea to join another line: its mouth is where the line leaves the
   water body (the shore / lake-edge crossing), not the line's far end (Caycuse, Dempster).
+
+## OWNER 2026-10-29 — T224 mined names: the auto-accepts confirmed
+- Every auto-accepted name that came in by LINE COVERAGE (>= 80 %) is accepted by the owner (177 rows; their record
+  says "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)", `names.COVERAGE_ACCEPTED`).
+- A name that came in by an ECCC STATION is accepted when the station's own name plainly names this water, and is
+  credited to that gauge ("Name from the Environment Canada gauge 08NM012 (Inkaneep Creek near Oliver)",
+  `names.gauge_label`): Inkaneep Creek (08NM012), Noble Creek (08HA028); Lonzo Creek (North Fork) (08MH079, 10-28).
+- HELD, not applied, pending the owner (`names.OWNER` call "hold"): Meadow Creek Diversion (08NH128 "MEADOW CREEK
+  DIVERSION BELOW JOHN CREEK") and Quinsam River Diversion Headpond (08HD034) — a diversion / headpond name may name a
+  structure, not the water.
+
+## OWNER 2026-10-29 — Noons Creek tidal boundary
+- "The railway bridge crossing Noons Creek serves as the definitive boundary separating tidal from freshwater
+  regulations." The existing split `noons_creek__railway_bridge` (Ioco Spur rail bridge, 58 m up) is flagged tidal.
+- (later 2026-10-29) The two held gauge names are ACCEPTED as names, credited to their gauges: Meadow Creek Diversion
+  (08NH128), Quinsam River Diversion Headpond (08HD034).
+
+## OWNER 2026-10-29 — Fraser-code waters below Mission are tidal
+- Bedford Channel, Enterprise Channel, Gilmour Slough, Sapperton Channel, Tilbury Slough, Williamson Slough (exact Fraser
+  code, below the CPR bridge at Mission) are tidal along their whole length (`tidal_waters.json`). Ewen Slough (its own
+  code) stays freshwater.

@@ -24,6 +24,8 @@ from shapely.geometry import LineString, Point
 from shapely.ops import substring, unary_union
 from shapely.strtree import STRtree
 
+from pipeline.common.fwa_edge_types import SECONDARY_FLOW
+
 from pipeline.atlas.waters.added_streams import coastal
 from pipeline.atlas.waters.added_streams.fwa_match import _FwaIndex, classify, NameCandidate
 from pipeline.atlas.waters.added_streams.ingest import ConnectorSpec, added_fidrows
@@ -660,7 +662,7 @@ FWA_EXCLUDE_BY_SOURCE: dict[str, tuple] = {}
 #: tributary walk from the channel never climbs into the river (`THE_WALK_NEVER_ENTERS_A_PARENT`), while the river's
 #: own walk reaches it as before; the river is never upstream of it as a tributary.
 SIDE_CHANNELS: dict[tuple[str, str], dict] = {
-    ("osm", "osm-1"): {"edge_type": "1350", "intake_blk": "356362384"},   # Northrop Channel <- Stave River
+    ("osm", "osm-1"): {"edge_type": SECONDARY_FLOW, "intake_blk": "356362384"},   # Northrop Channel <- Stave River
 }
 _INTAKE_TOL = 150.0       # the head must lie this near the river's blue line (Northrop: 111 m, across the bank)
 

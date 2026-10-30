@@ -26,7 +26,7 @@ describe.skipIf(!LIVE)(`T286 a tap's SQLite calls on the live release (${LIVE ??
   const counted = (_: string, d: Db): Db => ({
     all: (sql, ...p) => { calls += 1; return d.all(sql, ...p); },
     get: (sql, ...p) => { calls += 1; return d.get(sql, ...p); },
-    close: () => d.close(),
+    close: () => d.close?.(),
   });
 
   it.each(CASES)("$id: within its budget", async (c) => {

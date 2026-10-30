@@ -23,8 +23,9 @@ EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.
 GOLDEN = Path(__file__).resolve().parents[2] / "app" / "fixtures" / "golden"
 HYDRATE = json.loads((GOLDEN / "hydrate.json").read_text())
 TAPS = json.loads((GOLDEN / "taps.json").read_text())
-#: (T115) the hydrated states the store taps: not the 4 whose part the release merged away (taps.json `gone`)
-IDS = sorted(i for i in HYDRATE["states"] if i not in TAPS["gone"])
+#: (T115) the hydrated states the store taps: not the 4 whose part the release merged away (taps.json `gone`), nor
+#: (T278) the 2 whose golden part is tidal water now (taps.json `tidal`: x15p3, x37p1)
+IDS = sorted(i for i in HYDRATE["states"] if i not in TAPS["gone"] and i not in TAPS.get("tidal", {}))
 
 
 @pytest.fixture(scope="module")
@@ -38,8 +39,8 @@ def built(request):
 
 @pytest.mark.needs_bundle
 def test_the_oracle_is_page_v38_over_134_states():
-    assert (HYDRATE["meta"]["version"], HYDRATE["meta"]["year"], len(HYDRATE["states"]), len(IDS)) == ("v38", 2026, 134, 123)  # T183: 127 ids, not 128 (straddlers carry both regions); 2026-10-27: 126 (Columbia x18p3 split); r-0fa7927b16e5: 123 (taps.json gone 11: T220 Dean x13p2 + Kootenay x9p2, T228 Coquitlam x37p0)
-    assert sorted(set(HYDRATE["states"]) - set(IDS)) == sorted(TAPS["gone"])
+    assert (HYDRATE["meta"]["version"], HYDRATE["meta"]["year"], len(HYDRATE["states"]), len(IDS)) == ("v38", 2026, 134, 121)  # T183: 127 ids, not 128 (straddlers carry both regions); 2026-10-27: 126 (Columbia x18p3 split); r-0fa7927b16e5: 123 (taps.json gone 11: T220 Dean x13p2 + Kootenay x9p2, T228 Coquitlam x37p0); T278: 121 (taps.json tidal 2: Fraser x15p3, Coquitlam x37p1)
+    assert sorted(set(HYDRATE["states"]) - set(IDS)) == sorted([*TAPS["gone"], *TAPS.get("tidal", {})])
 
 
 @pytest.mark.needs_bundle

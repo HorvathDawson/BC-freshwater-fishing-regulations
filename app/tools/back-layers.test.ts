@@ -203,6 +203,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
       "packages/ui-native/src/InSeasonNotice.tsx#InSeasonNotice: takes onClose",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
+      // (T292) a tapped not-fished water's sheet (sewage lagoon, tailings pond, dump): a <Sheet>, so it registers
+      "packages/ui-native/src/NotFishingSheet.tsx#NotFishingSheet: takes onClose",
       // (T173) a tapped fish obstacle mark's sheet, drawn by the Shell over the map: a <Sheet>, so it registers
       "packages/ui-native/src/ObstacleSheet.tsx#ObstacleSheet: takes onClose",
       // (T199) a tapped run-timing mark's sheet: a <Sheet>, so it registers

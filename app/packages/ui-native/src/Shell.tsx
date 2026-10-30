@@ -257,15 +257,16 @@ export function Shell(p: ShellProps) {
    */
   useEffect(() => {
     if (!releaseReady || !safe || askedApply.current === releaseReady) return;
+    // a 250 ms poll, re-armed by setTimeout (no interval timer on the JS thread: tools/no-per-frame-animation.test.ts)
     let seen = camera.current, still = Date.now();
-    const t = setInterval(() => {
-      if (camera.current !== seen) { seen = camera.current; still = Date.now(); return; }
-      if (Date.now() - still < APPLY_STILL_MS) return;
-      clearInterval(t);
-      askedApply.current = releaseReady;
-      p.onSafeToApply?.();
-    }, 250);
-    return () => clearInterval(t);
+    let t: ReturnType<typeof setTimeout>;
+    const poll = () => {
+      if (camera.current !== seen) { seen = camera.current; still = Date.now(); }
+      else if (Date.now() - still >= APPLY_STILL_MS) { askedApply.current = releaseReady; p.onSafeToApply?.(); return; }
+      t = setTimeout(poll, 250);
+    };
+    t = setTimeout(poll, 250);
+    return () => clearTimeout(t);
   }, [releaseReady, safe, p.onSafeToApply]);
   /*
    * (T263) THE BELL'S "DATA UPDATE" ROW: the release's state (waiting for Wi-Fi, downloading, ready, needs a newer app).

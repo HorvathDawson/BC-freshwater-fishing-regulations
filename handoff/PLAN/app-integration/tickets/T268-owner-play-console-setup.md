@@ -49,3 +49,6 @@ SHA-256 `79:50:98:B4:34:AD:FE:E7:D8:F5:35:8B:F4:28:16:C5:1F:67:41:5B:51:B9:06:36
 `.venv/bin/python deploy/staging/play-upload.py --package ca.canifishthis.app --max-version-code` prints a number (the
 service account works), then `deploy/staging/build-apk.sh --play` uploads and the phone gets the update from Play.
 Tell Claude; T267 closes on that first API upload.
+
+## Gotcha (owner 2026-10-29)
+"Item not found" on the internal test: the Play Store app had defaulted to a different Google account. Switch the Play Store to the tester account BEFORE opening the opt-in link. Tell every future tester this.

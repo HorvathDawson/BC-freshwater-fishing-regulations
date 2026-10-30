@@ -109,9 +109,9 @@ describe("the pinned walk fetches what the budget prices", () => {
     expect(PIN["tap named (save-data) | prefetch after paint"]).toEqual(["regs-2"]);
     expect(Object.entries(PIN).filter(([k, f]) => /\| (first paint|prefetch after paint)$/.test(k) && f.includes("salmon"))
       .map(([k]) => k)).toEqual([]);
-    // (T228) geo (the water map's boxes) is read with the tap
+    // (T228) geo (the water map's boxes) is read with the tap; (T256) the web tap reads the region's answer slices
     expect(PIN["tap named (save-data) | map tap: a named water (R2)"])
-      .toEqual(["access", "core", "geo", "method", "salmon", "salmon-2", "wasm", "water"]);
+      .toEqual(["access", "core-2", "geo", "method", "salmon", "salmon-2", "wasm", "water-2"]);
   });
 
   it("T186: no file is fetched twice — a moment after the prefetch asks for none of what it took", () => {
@@ -121,7 +121,8 @@ describe("the pinned walk fetches what the budget prices", () => {
     // the named tap in the prefetched region: no region file, no core, no engine — water and access are its own, and
     // (T182) salmon for the page's Salmon card (the web no longer reads it up front) — (owner 2026-10-28) the head and
     // the page's own region's slice only
-    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "geo", "salmon", "salmon-2", "water"]);
+    // (T256) the region's water slice, not the whole water file
+    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "geo", "salmon", "salmon-2", "water-2"]);
   });
 
   it("before the first question nothing but the manifest, paint and the mask (and the feed's index) — every walk", () => {

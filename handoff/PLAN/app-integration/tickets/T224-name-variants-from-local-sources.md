@@ -168,3 +168,10 @@ Every one of the 181 applied auto-accepts meets the owner rule (decisions.md "T2
 Stream (blk 354128296, near Nanaimo) is one of them — applied and shown — because a second OSM way named "Cat Stream"
 covers 95 % of the FWA line (3,037 m, 100 % of the way on it); the 4 % row the spot-check list first quoted was its
 other, 285 m way. Nothing removed or renamed (ask-first rule): a Names-tab reject takes it out.
+
+### Owner 2026-10-29: close-out
+- Coverage names (177): accepted by the owner (`names.COVERAGE_ACCEPTED`). Gauge names: Inkaneep Creek (08NM012), Noble
+  Creek (08HA028), and — after a hold — Meadow Creek Diversion (08NH128) and Quinsam River Diversion Headpond (08HD034);
+  each credited to its gauge ("Name from the Environment Canada gauge 08NM012 (Inkaneep Creek near Oliver)",
+  `names.gauge_label`). 183 accepted names. The two re-accepted items were put back into the live atlas registry
+  surgically (same items as before, gauge labels) rather than by an atlas rebuild.

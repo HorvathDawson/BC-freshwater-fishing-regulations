@@ -33,6 +33,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -98,8 +99,11 @@ def compile_places(doc: M.Matches, rel: Path, log=print) -> tuple[str, dict[str,
     build = GENERATED.require_build()
     manifest = _json.loads((rel / "manifest.json").read_text(encoding="utf-8"))
     with tempfile.TemporaryDirectory() as t:
-        core = _sqlite(next(rel.glob("core-*.sqlite.gz")), Path(t))
-        water = _sqlite(next(rel.glob("water-*.sqlite.gz")), Path(t))
+        # the WHOLE core / water, not T256's per-region slices (core-<region>-<sha>.sqlite.gz)
+        whole = lambda n: next(p for p in rel.glob(f"{n}-*.sqlite.gz")  # noqa: E731
+                               if re.fullmatch(rf"{n}-[0-9a-f]{{12}}\.sqlite\.gz", p.name))
+        core = _sqlite(whole("core"), Path(t))
+        water = _sqlite(whole("water"), Path(t))
         meta = dict(core.execute("SELECT k, v FROM meta").fetchall())
         if meta.get("section_handles") != H.digest_for(build):
             log(f"places skipped: release {rel.name} handles {meta.get('section_handles')} != atlas {H.digest_for(build)}")

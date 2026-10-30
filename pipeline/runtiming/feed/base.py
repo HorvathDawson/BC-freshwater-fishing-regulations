@@ -28,6 +28,7 @@ import datetime as dt
 import gzip
 import json
 import math
+import re
 import pickle
 import sqlite3
 import subprocess
@@ -106,7 +107,8 @@ def section_points(layers: Path, want: set) -> Iterator[Tuple[int, float, float]
 
 def item_of(release: Path) -> Tuple[str, Dict[int, str]]:
     """(section_handles, {sid: item_id}) from the release's core (`item_section` + `item`)."""
-    core = sorted(release.glob("core-*.sqlite.gz"))
+    # the whole core, not T256's per-region slices (core-<region>-<sha>.sqlite.gz)
+    core = sorted(p for p in release.glob("core-*.sqlite.gz") if re.fullmatch(r"core-[0-9a-f]{12}\.sqlite\.gz", p.name))
     if len(core) != 1:
         raise SystemExit(f"base: expected one core-*.sqlite.gz in {release}, found {[p.name for p in core]}")
     with tempfile.TemporaryDirectory() as td:

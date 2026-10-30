@@ -4,9 +4,9 @@
  * (floating over the app) and inside the sheet host (a sheet's Modal covers the Shell). Nothing while idle, and nothing in
  * the first SHOW_AFTER_MS of a load (a cached copy opens without a flash). The app's tokens only.
  */
-import { useEffect } from "react";
-import { BackHandler, Linking, Platform, Pressable, Text, View } from "react-native";
+import { Linking, Pressable, Text, View } from "react-native";
 import { NET_WORDS, SYNOPSIS_PDF } from "@app/core";
+import { useBackLayer } from "@app/ui";
 import { LoadingState } from "../LoadingState";
 import { BottomInset } from "../WindowInset";
 import { SPACE, type Palette } from "../theme";
@@ -27,11 +27,8 @@ export function SynopsisLoading({ palette, floating = false }: { palette: Palett
   const s = useSynopsisLoad();
   // (T285) the failed card closes without opening anything: its Close, the Android back button, a tap outside (floating)
   const failing = s.phase === "error";
-  useEffect(() => {
-    if (!failing || Platform.OS === "web") return undefined;
-    const sub = BackHandler.addEventListener("hardwareBackPress", () => { dismissSynopsisError(); return true; });
-    return () => sub.remove();
-  }, [failing]);
+  // (one mechanism, tools/back-layers.test.ts) the failed card is a back layer: system back dismisses it
+  useBackLayer(failing, dismissSynopsisError);
   if (s.phase === "idle" || (s.phase === "loading" && !s.visible)) return null;
   const offer = s.phase === "offer" ? s : null;
   const err = s.phase === "error";

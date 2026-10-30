@@ -400,7 +400,34 @@ def dfo() -> list[dict]:
                                 "evidence": {"water_id": w["water_id"], "match_via": via, "region": w["region"],
                                              "alias": nm != w["name"]},
                                 "confidence": conf, "flags": []})
+    out += dfo_unmatched()
     print(f"  dfo: {len(out)} candidates", flush=True)
+    return out
+
+
+#: T164 (2026-10-29): DFO waters the matcher cannot bind because FWA leaves their line UNNAMED — a hand-researched
+#: lead per water. Each becomes a REVIEW candidate (medium, never auto-accepted): the owner's accept names the line
+#: (the existing name apply path), and only then can the DFO matcher bind the water by name.
+DFO_UNMATCHED_LEADS = [
+    {"water_id": "6:sheldens-creek", "name": "Sheldens Creek", "region": "6", "blk": "360846083",
+     "wsc": "950-016367-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-"
+            "000000-000000-000000-000000-000000-000000",
+     "length_m": 3692, "lonlat": [-131.78224, 53.12968],
+     "why": "the only stream into Sheldens Bay (Moresby Island; mouth 53.14874,-131.76677); the FTEN roads around it "
+            "are named for it ('SP 19(1) TO SHELDONS', 'SP 19H TO SHELDONS', SHEL100-SHEL103, file R06206), and "
+            "'SP 19(1) TO SHELDONS' crosses it at 53.12968,-131.78224 — the DFO notice's 'Spur 19 Bridge site'"},
+]
+
+
+def dfo_unmatched() -> list[dict]:
+    out = []
+    for ld in DFO_UNMATCHED_LEADS:
+        out.append({"target": {"kind": "stream", "blk": ld["blk"], "wsc": ld["wsc"], "length_m": ld["length_m"]},
+                    "current_names": [], "registry_items": [], "proposed": ld["name"], "relation": "unnamed",
+                    "source": "dfo",
+                    "evidence": {"water_id": ld["water_id"], "match_via": "unmatched (T164 hand lead)",
+                                 "region": ld["region"], "alias": False, "lonlat": ld["lonlat"], "why": ld["why"]},
+                    "confidence": "medium", "flags": ["dfo_unmatched_lead"]})
     return out
 
 

@@ -25,18 +25,18 @@ function gfx(t) {
 }
 
 /** The map's own surface (MapLibre draws into a SurfaceView, which gfxinfo does not see): its SurfaceFlinger layer. */
-function mapLayer(ctx) {
+export function mapLayer(ctx) {
   // Android 15 lists `RequestedLayerState{<name> parentId=…}`; the BLAST layer is the one frames are queued to
   const m = /(SurfaceView\[ca\.canifishthis[^\]]*\]\(BLAST\)#\d+)/.exec(ctx.device.sh('dumpsys SurfaceFlinger --list'));
   return m ? m[1] : null;
 }
 /** The present times (ns) SurfaceFlinger holds for that layer (its last ~128 frames). */
-function presents(ctx, layer) {
+export function presents(ctx, layer) {
   const out = ctx.device.sh(`dumpsys SurfaceFlinger --latency '${layer}'`).split('\n').slice(1);
   return out.map((l) => l.trim().split(/\s+/).map(Number)).filter((c) => c.length === 3 && c[1] > 0 && c[1] < 9e18).map((c) => c[1]);
 }
 /** The map's frame intervals while it moves (gaps over 250 ms are the map at rest, not a frame). */
-function mapFrames(times) {
+export function mapFrames(times) {
   const t = [...new Set(times)].sort((a, b) => a - b);
   const gaps = [];
   for (let i = 1; i < t.length; i++) { const ms = (t[i] - t[i - 1]) / 1e6; if (ms < 250) gaps.push(ms); }

@@ -86,5 +86,12 @@ export const openProbe = {
     const t = cur;
     setTimeout(() => { if (!t.done) write(t); }, 400);
   },
+  /** `end(stage)` on the next drawn frame (the screen's commit has reached the screen). Here, not in the component:
+   *  the phone components ask the JS thread for no frames (tools/no-per-frame-animation.test.ts). */
+  endOnFrame(stage: string): void {
+    if (!cur || cur.done) return;
+    const raf = (globalThis as { requestAnimationFrame?: (f: () => void) => unknown }).requestAnimationFrame;
+    if (raf) raf(() => openProbe.end(stage)); else setTimeout(() => openProbe.end(stage), 0);
+  },
 };
 const NOOP = { run() {}, done() {} };

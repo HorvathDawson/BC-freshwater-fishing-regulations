@@ -231,6 +231,8 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/registry/flowing.py", "folding_polygon_wbks.neighbours"):
         "T179 (1991e487): a polygon's neighbours, one level — the fold's rule 1/2 read before split placement",
     # placement on a cut's own line (AGENTS 11: by measure, never a flow walk)
+    # (T230, 7322da366) in-season pick-points: the named tributaries meeting a water's own stem, one level
+    ("pipeline/regs/inseason/points.py", "points"): "a stem's named confluences, one level (in-season pick-points)",
     ("pipeline/atlas/reach/extent.py", "_across_the_junction"): "pieces meeting a line end, one level",
     ("pipeline/atlas/reach/extent.py", "_by_measure._nbrs"): "braid neighbours inside the universe",
     ("pipeline/atlas/reach/extent.py", "_flow_reach"): "a detached piece's flow path to its own water",

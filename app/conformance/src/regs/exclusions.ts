@@ -181,6 +181,14 @@ export const SHEET_SUBST: readonly SheetSubst[] = [
     reason: "owner rule 2026-10-21: the record-retention rule's role is the STORE's (rows 31 `stored_role`: duty — the pipeline took over page v36's ladderHtml record_retention → duty move); page v36's openRowSources read the pre-move role (floor). The app reads the stored role" },
   { ids: "*", key: /^parts$/, from: "This prototype has no map of this water, so its parts are listed here. ", to: "",
     reason: "decisions D1: the prototype's own note about its missing water map is never ported (the app frames every named part on the map); the rows after it are compared whole" },
+  { ids: "*", key: /^pos:.*\|pos$/,
+    from: "possession quota: the number of fish of any species that an angler may have in their possession at any given time, EXCEPT at place of ordinary residence.",
+    to: "possession quota: the number of fish of any species that an angler may have in their possession at any given time, EXCEPT at place of ordinary residence (see above).",
+    reason: "T288 (732f100f1, r-ce76b4ed3624): the glossary transcription corrected to the rule book's p.80 words — possession quota gains \"(see above)\"; page v36 quoted the old transcription" },
+  { ids: "*", key: /^hatch$/,
+    from: "hatchery trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, hatchery trout are marked before stocking by removal of their adipose fin. Therefore, these hatchery trout must have a healed scar in place of the missing fin. wild trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, wild trout will not be marked as hatchery fish and will have a normal adipose fin, or will have an unhealed scar in place of that fin, if missing.",
+    to: "hatchery trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, hatchery trout are marked before stocking by removal of their adipose fin (see centre colour section). Therefore, these hatchery trout must have a healed scar in place of the missing fin. wild trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, wild trout will not be marked as hatchery fish and will have a normal adipose fin (see illustration on page 13), or will have an unhealed scar in place of that fin, if missing.",
+    reason: "T288 (732f100f1, r-ce76b4ed3624): the glossary transcription corrected to the rule book's p.80 words — hatchery trout gains \"(see centre colour section)\", wild trout \"(see illustration on page 13)\"; page v36 quoted the old transcription" },
 ];
 
 /** (T36 part 2) The Other fish rows page v36 draws on its legacy pooled card path (a pool with stored conditions:

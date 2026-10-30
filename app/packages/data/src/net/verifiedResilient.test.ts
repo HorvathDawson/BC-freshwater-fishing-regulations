@@ -2,7 +2,7 @@
  * (T256 item 4) A phone's first install fetches its data files through `fetchVerifiedResilient`: a dropped request is
  * tried again (no app `Net` needed), the bytes are held to the manifest, and bytes that never verify are refused.
  */
-import { gzipSync } from "node:zlib";
+import { gzipSync } from "fflate";
 import { describe, expect, it } from "vitest";
 import { VerifyError } from "../fetchVerified";
 import { sha256Hex } from "../sha256";
