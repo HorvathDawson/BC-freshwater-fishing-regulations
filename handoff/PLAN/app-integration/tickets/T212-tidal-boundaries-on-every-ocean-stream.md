@@ -221,3 +221,17 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
 
 - 2026-10-29 owner: Caycuse River and Dempster Creek "are good where they are" — their marks stay as made; the build makes no cut for either (each item already starts at the lake edge).
 - 2026-10-29 owner: Bear River "was fine how it was" — no re-mark; the build already makes no cut (mouth).
+
+## Owner 2026-10-29 (later)
+- **Noons Creek (Port Moody): the railway bridge is the tidal boundary** (owner's words in decisions.md). The curated
+  split `noons_creek__railway_bridge` (58 m up; the Ioco Spur rail bridge in the OSM basemap is 0.2 m from it) is flagged
+  `tidal` with the owner's statement. The Tidal-tab mark still says "mouth" (auto-accept) — the curated flag decides.
+- **Fraser-code waters below Mission — DRY RUN, not applied** (owner: "all items with same wsc as the fraser below
+  mission should be dropped as tidal"). Exact FWA code 100-000000-… (the Fraser's own), west of the CPR bridge
+  (-122.30047): 50 lines. 23 are already tidal (Fraser braids in gnis:39325 below the cut + Annacis/Cannery/Morey/
+  Parsons); 21 unnamed lines are in no registry item (not drawn, no rules); **6 items would newly go tidal**, each one
+  section, no row of its own (92 zone rules each): Bedford Channel gnis:11566 (5.4 km, Fort Langley), Enterprise
+  Channel gnis:17368 (3.9 km), Gilmour Slough gnis:14010 (1.7 km), Sapperton Channel gnis:21224 (3.1 km), Tilbury
+  Slough gnis:25152 (4.7 km), Williamson Slough gnis:8341 (3.2 km). All Region 2. Flags: Ewen Slough (the owner's
+  example) has its own code 100-002200 — exact match misses it; the Fraser item itself (gnis:39325) shares the code and
+  is handled by the CPR-bridge cut. Applying = add the 6 to `tidal_waters.json` (reach-only rerun), after the owner's OK.
