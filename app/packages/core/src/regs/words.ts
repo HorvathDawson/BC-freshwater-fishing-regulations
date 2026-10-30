@@ -116,6 +116,9 @@ export const WORDS = Object.freeze({
   SIDE_TITLE: "⚠ On one side of the channel only",
   HALF_ONLY: (side: string) => side + " half only",
   TIMED_TITLE: "⚠ At certain times",
+  /** (T318) a closure of some hours of every day, said under the year bar: "Daylight only: closed from 1 h after sunset to 1 h before sunrise" */
+  TIMED_DAYLIGHT: (after: string, before: string) => `Daylight only: closed from ${after} after sunset to ${before} before sunrise`,
+  TIMED_H: (min: number) => (min % 60 === 0 ? `${min / 60} h` : `${min} min`),
   ANGLER_TITLE: "⚠ Closed to some anglers",
   UNCERTAIN_TITLE: "? Check: rules for parts of this water that couldn’t be placed on the map",
   UNPLACED_WHY: "the regulations don’t say exactly where",

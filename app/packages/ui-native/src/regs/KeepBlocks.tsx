@@ -6,7 +6,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Image, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import { GLANCE_WORDS, WORDS, type BannerVM, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
+import { GLANCE_WORDS, WORDS, timedLineText, type BannerVM, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -138,6 +138,29 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
                                         borderLeftWidth: 3, borderLeftColor: palette.restricted }}>
       <Text testID={`kicker:${caveat.kind}`} accessibilityRole="header" style={[TYPE.metaBold, { color: palette.sub, marginBottom: 2 }]}>{head}</Text>
       {body}
+    </View>
+  );
+}
+
+/**
+ * (T318, owner 2026-10-31) THE TIMED CLOSURES AS LINES right under the year bar they apply to — no box, no heading: "Daylight
+ * only: closed from 1 h after sunset to 1 h before sunrise", the rule-book link inline, the line opening its rule's sheet.
+ * Core `timedLineText` words it.
+ */
+export function TimedLines({ caveat, palette, actions }: { caveat: CaveatVM; palette: Palette; actions: KeepActions }) {
+  return (
+    <View testID="keep-timed" style={{ marginHorizontal: GUTTER, marginTop: 6, rowGap: 2 }}>
+      {[...caveat.items, ...(caveat.later ?? [])].map((x, i) => {
+        const words = <Text selectable testID="keep-timed-line" style={[TYPE.metaSemi, { color: palette.ink }]}>{timedLineText(x)}</Text>;
+        return (
+          <View key={i} testID="keep-timed-item" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 8 }}>
+            {x.rule ? (
+              <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(`rule:${x.rule}`)} box={ROW} style={{ flexShrink: 1, minHeight: 32, justifyContent: "center" }}>{words}</RegsPress>
+            ) : words}
+            {x.book.length > 0 && <LineText line={x.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
+          </View>
+        );
+      })}
     </View>
   );
 }

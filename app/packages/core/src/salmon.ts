@@ -307,6 +307,13 @@ export const SALMON_WORDS = {
   ruleKinds: { closed: "Closed", daylight: "Daylight", daily: "Daily limit", possession: "Possession", aggregate: "Combined limit",
                min_size: "Size", adult: "Adult", jack: "Jack", bait_ban: "Bait", measure: "Measuring", facility: "Facility",
                other: "Rule" } as Readonly<Record<string, string>>,
+  /** (T318) the species table, the DFO words under it, and the places folded */
+  tableSpecies: "Species today",
+  tableDfoSays: "DFO says",
+  placesHead: "Other places on this water (DFO)",
+  placeClosed: "Closed to salmon fishing",
+  placeShow: "Show rules",
+  placeHide: "Hide rules",
   ruleFullWording: "Full wording",
   ruleHideWording: "Hide wording",
   ruleCopy: "Copy",
@@ -807,4 +814,80 @@ export function gearTabsFor(page: { readonly status: string; readonly gear: Gear
   if (salmonOpen) return { gear: anyway?.gear ?? EMPTY_GEAR, methods: anyway?.methods ?? null,
                            salmonGear: { lead: SALMON_WORDS.gearSalmonOnly, lines: dfo } };
   return { gear: null, methods: null, salmonGear: null };
+}
+
+
+// ── (T318) THE SALMON TABLE ──────────────────────────────────────────────────────────────────────────────────────────
+
+/** One species of the table: today's status and its sizes line (DFO's header), null when the header sets none. */
+export interface SalmonTableRowVM {
+  readonly code: SalmonSpecies;
+  readonly name: string;
+  readonly status: SalmonVerdictStatus | "varies";
+  readonly statusLabel: string;
+  readonly limit: string | null;
+}
+/** DFO's own words for a group of species, said ONCE (a row grouping species alike), under the table. */
+export interface SalmonSaysVM { readonly label: string | null; readonly lines: readonly string[] }
+export interface SalmonPlaceTableVM {
+  readonly label: string;
+  readonly tag: string;
+  /** one line while folded: "Closed to salmon fishing", or each group's status */
+  readonly summary: string;
+  readonly status: SalmonVerdictStatus | "varies";
+  readonly species: readonly SalmonTableRowVM[];
+  readonly says: readonly SalmonSaysVM[];
+  readonly gear: readonly string[];
+}
+export interface SalmonTableVM {
+  /** one row per salmon species, SALMON_SPECIES order */
+  readonly species: readonly SalmonTableRowVM[];
+  readonly says: readonly SalmonSaysVM[];
+  readonly places: readonly SalmonPlaceTableVM[];
+}
+
+const tableRows = (rows: readonly SalmonRowVM[]): SalmonTableRowVM[] =>
+  SALMON_SPECIES.flatMap((code) => {
+    const r = rows.find((x) => x.species.includes(code));
+    return r ? [{ code, name: cap(SPECIES_NAME[code]), status: r.status, statusLabel: r.statusLabel,
+                  limit: r.species.length === 1 ? r.sizes ?? null : null }] : [];
+  });
+const tableSays = (rows: readonly SalmonRowVM[], allClosed: boolean): SalmonSaysVM[] =>
+  rows.map((r) => ({ label: allClosed || rows.length === 1 ? null : r.label, lines: [...r.notes, ...(r.species.length > 1 && r.sizes ? [r.sizes] : []), ...(r.speciesNotes ?? [])] }))
+    .filter((x) => x.lines.length);
+
+/**
+ * (T318, owner 2026-10-31) THE CARD AS A TABLE: one row per species with today's status and sizes, DFO's words for the
+ * rows said once under it (never repeated per picture), then each DFO place on the water not drawn yet FOLDED to one
+ * line, its own species and words inside. The same facts as `salmonCard`, re-shaped: `salmonTableTexts` lists every
+ * string a card holds, and a test pins that all of them are still here.
+ */
+export function salmonTable(card: SalmonCardVM): SalmonTableVM {
+  return {
+    species: tableRows(card.rows),
+    says: tableSays(card.rows, card.allClosed),
+    places: card.unmapped.map((u) => ({
+      label: u.label, tag: u.tag,
+      summary: u.block.allClosed ? SALMON_WORDS.placeClosed
+        : u.block.rows.map((r) => `${r.label} ${r.statusLabel.toLowerCase()}`).join(" · "),
+      status: u.block.allClosed ? "closed" : u.block.rows.length === 1 ? u.block.rows[0]!.status : "varies",
+      species: u.block.allClosed ? [] : tableRows(u.block.rows),
+      says: tableSays(u.block.rows, u.block.allClosed),
+      gear: u.block.gear,
+    })),
+  };
+}
+
+/** Every DFO string a card holds on a water's rows and places (rows' words, sizes, species notes; each place's). */
+export function salmonRowTexts(card: SalmonCardVM): string[] {
+  const of = (rows: readonly SalmonRowVM[]) => rows.flatMap((r) => [...r.notes, ...(r.sizes ? [r.sizes] : []), ...(r.speciesNotes ?? [])]);
+  return [...of(card.rows), ...card.unmapped.flatMap((u) => [u.label, ...of(u.block.rows), ...u.block.gear]), ...card.gear];
+}
+
+/** Every string the table can show (its rows' limits, the words under it, each place's label, summary, rows, words). */
+export function salmonTableTexts(t: SalmonTableVM, gear: readonly string[] = []): string[] {
+  const species = (rs: readonly SalmonTableRowVM[]) => rs.flatMap((r) => (r.limit ? [r.limit] : []));
+  const says = (xs: readonly SalmonSaysVM[]) => xs.flatMap((x) => x.lines);
+  return [...species(t.species), ...says(t.says), ...gear,
+          ...t.places.flatMap((p) => [p.label, ...species(p.species), ...says(p.says), ...p.gear])];
 }

@@ -13,7 +13,7 @@ import type { ReactNode } from "react";
 import { View } from "react-native";
 import { groupGlance, type GlanceRowVM, type KeepVM, type SalmonStripVM } from "@app/core";
 import type { Palette } from "../theme";
-import { ClosedBanner, CaveatBlock, InheritedLine, OtherFish, OutsideFoot, PossessionRow, WhereNot, type GlanceFold } from "./KeepBlocks";
+import { ClosedBanner, CaveatBlock, TimedLines, InheritedLine, OtherFish, OutsideFoot, PossessionRow, WhereNot, type GlanceFold } from "./KeepBlocks";
 import { GroupCard } from "./GroupCard";
 import { PlainRow } from "./PlainRow";
 import { SalmonYearStrip, YearStrip } from "./YearStrip";
@@ -44,6 +44,9 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   // no row for the table: it goes after the leading blocks (strip, inherited line, banner, caveats), never above the bar
   const lead = keep.order.findIndex((b) => !(b === "strip" || b === "inherited" || b === "banner" || (typeof b === "object" && "caveat" in b)));
   const tableAt = at >= 0 ? at : lead >= 0 ? lead : keep.order.length;
+  // (T318) the timed closures are lines under the game-fish bar (which they apply to), not a boxed note further down
+  const timedAt = keep.order.findIndex((b) => typeof b === "object" && "caveat" in b && keep.caveats[b.caveat]?.kind === "timed");
+  const timed = timedAt >= 0 && keep.strip && keep.order.includes("strip") ? keep.caveats[(keep.order[timedAt] as { caveat: number }).caveat]! : null;
   const salmonBar = salmonStrip && (
     <SalmonYearStrip key="salmon-strip" strip={salmonStrip} todayAt={keep.strip?.todayAt ?? 0} months={keep.strip?.months ?? []}
                      dateLabel={dateLabel} palette={palette} />
@@ -55,13 +58,15 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         const before = glance && at < 0 && folds.length > 0 && i === tableAt ? table(-1) : null;
         const block = ((): ReactNode => {
         if (glance && (b === "otherFish" || (typeof b === "object" && "group" in b))) return i === at ? table(i) : null;
-        if (b === "strip") return [<YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={salmonStrip ? salmonStrip.generalTitle : null} />, salmonBar];
+        if (b === "strip") return [<YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={salmonStrip ? salmonStrip.generalTitle : null} />,
+          timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} />, salmonBar];
         if (b === "inherited") return <InheritedLine key={i} inherited={keep.inherited!} palette={palette} actions={actions} />;
         if (b === "banner") return <ClosedBanner key={i} banner={keep.banner!} palette={palette} actions={actions} />;
         if (b === "otherFish") return <OtherFish key={i} rows={keep.otherFish!} keys={keep.otherFishKey} palette={palette} actions={actions} images={images} />;
         if (b === "possession") return <PossessionRow key={i} possession={keep.possession!} palette={palette} actions={actions} />;
         if (b === "whereNot") return <WhereNot key={i} whereNot={keep.whereNot!} palette={palette} actions={actions} />;
         if (b === "outside") return <OutsideFoot key={i} text={keep.outside!} palette={palette} />;
+        if ("caveat" in b && i === timedAt && timed) return null;
         if ("caveat" in b) return <CaveatBlock key={i} caveat={keep.caveats[b.caveat]!} palette={palette} actions={actions} />;
         if ("group" in b) return <GroupCard key={i} g={keep.groups[b.group]!} palette={palette} actions={actions} images={images} />;
         return <PlainRow key={i} row={keep.plainRows[b.plain]!} palette={palette} actions={actions} images={images} />;

@@ -10,7 +10,8 @@
  * (DFO's words: what an "adult chinook" is …), which the region block then leaves out. No logic and no words of its own: everything is core `salmonCard`'s.
  */
 import { Image, Linking, Text, View } from "react-native";
-import { FISH, SALMON_WORDS, WORDS, type SalmonCardVM, type SalmonRowVM } from "@app/core";
+import { useState } from "react";
+import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonPlaceTableVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
@@ -31,91 +32,99 @@ function Chip({ status, label, palette }: { status: SalmonRowVM["status"]; label
   );
 }
 
-/** Each species' pictures — its ocean look and its spawning look side by side — and a link to its fish sheet. */
-function Looks({ species, palette, actions, images }: { species: SalmonRowVM["species"]; palette: Palette; actions?: KeepActions; images?: FishImages }) {
+/** The species' OCEAN picture only (the spawning look, and the tips, are in its fish sheet); null when it has none. */
+function oceanOf(code: SalmonSpecies, images?: FishImages) {
+  const looks = FISH[code] ?? [];
+  const i = Math.max(0, looks.findIndex((l) => l.phase === "ocean"));
+  return { look: looks[i], src: images?.[code]?.[i], name: looks[i]?.caption ?? code };
+}
+
+/** One species of the table: its ocean picture (opens its fish sheet, both looks), its name, today's status, its sizes. */
+function SpeciesRow({ r, palette, actions, images, pictures }: {
+  r: SalmonTableRowVM; palette: Palette; actions?: KeepActions; images?: FishImages; pictures: boolean }) {
+  const o = oceanOf(r.code, images);
+  const body = (
+    <View style={{ flexDirection: "row", alignItems: "center", columnGap: 10, flex: 1 }}>
+      {pictures && (o.src ? <Image source={o.src} testID="salmon-look" style={{ width: 56, height: 30 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        : <View testID="salmon-look" style={{ width: 56, height: 30, backgroundColor: palette.line2 }} />)}
+      <View style={{ flex: 1 }}>
+        <Text style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{r.name}{pictures && <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{" ›"}</Text>}</Text>
+        {r.limit && <Text selectable testID="salmon-limit" style={{ ...TYPE.meta, color: palette.sub }}>{r.limit}</Text>}
+      </View>
+    </View>
+  );
   return (
-    <View testID="salmon-looks" style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 12, marginTop: 6 }}>
-      {species.map((code) => {
-        const looks = FISH[code] ?? [];
-        const name = looks[0]?.caption ?? code;
-        return (
-          <RegsPress key={code} testID={`pic:${code}`} accessibilityRole="button" accessibilityLabel={WORDS.LOOKS_LIKE(name)}
-                     box={{ w: 80, h: 44 }} onPress={() => actions?.onSheet(`sp:${code}`)} style={{ paddingVertical: 4, minHeight: 44 }}>
-            <View style={{ flexDirection: "row", columnGap: 4 }}>
-              {looks.map((l, i) => {
-                const src = images?.[code]?.[i];
-                return (
-                  <View key={l.file} testID="salmon-look">
-                    {src ? <Image source={src} style={{ width: 80, height: 40 }} resizeMode="contain" accessibilityIgnoresInvertColors />
-                      : <View style={{ width: 80, height: 40, backgroundColor: palette.line2 }} />}
-                    {l.phase && <Text style={[TYPE.micro, { color: palette.sub, textAlign: "center" }]}>{l.phase}</Text>}
-                  </View>
-                );
-              })}
-            </View>
-            <Text style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.accent, marginTop: 2 }]}>{name} ›</Text>
-          </RegsPress>
-        );
-      })}
+    <View testID="salmon-species-row" style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, minHeight: 44,
+                                               paddingVertical: 4, borderTopWidth: 1, borderTopColor: palette.line2 }}>
+      {pictures ? (
+        <RegsPress testID={`pic:${r.code}`} accessibilityRole="button" accessibilityLabel={WORDS.LOOKS_LIKE(o.name)} box={{ w: 120, h: 44 }}
+                   onPress={() => actions?.onSheet(`sp:${r.code}`)} style={{ flex: 1, minHeight: 44, justifyContent: "center" }}>{body}</RegsPress>
+      ) : body}
+      <Text testID="salmon-species-status" style={{ ...TYPE.metaBold, color: chipColour(palette, r.status) }}>{r.statusLabel}</Text>
     </View>
   );
 }
 
-/** One answer row of the table: its status rail and chip, DFO's words, the sizes, the species' pictures. `place`: a DFO
- *  place on this water not drawn yet (its words and the tag), said inside the row (T221: one table, owner 2026-10-28). */
-function Row({ r, allClosed, first, place, palette, testID, actions, images }: {
-  r: SalmonRowVM; allClosed: boolean; first: boolean; place?: { label: string; tag: string }; palette: Palette; testID: string;
-  actions?: KeepActions; images?: FishImages }) {
+/** DFO's own words for a group of species, once each. */
+function Says({ says, palette }: { says: readonly SalmonSaysVM[]; palette: Palette }) {
+  if (!says.length) return null;
   return (
-    <View testID={`${testID}-row`}
-          style={{ marginTop: first ? 8 : 0, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: palette.line2,
-                   borderTopWidth: first ? 1 : 0, borderLeftWidth: 5, borderLeftColor: chipColour(palette, r.status) }}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-        <Text selectable style={{ ...TYPE.regsBodySemi, color: palette.ink, flex: 1 }}>
-          {allClosed ? `${r.label} — ${r.statusLabel.toLowerCase()}` : r.label}
-        </Text>
-        <Chip status={r.status} label={r.statusLabel} palette={palette} />
-      </View>
-      {place && (
-        <View testID="salmon-unmapped" style={{ marginTop: 2 }}>
-          <Text selectable style={{ ...TYPE.metaSemi, color: palette.ink }}>{place.label}</Text>
-          <Text testID="salmon-unmapped-tag" style={{ ...TYPE.kicker, color: palette.sub }}>{place.tag}</Text>
+    <View testID="salmon-says" style={{ paddingTop: 8 }}>
+      {says.map((x, i) => (
+        <View key={i} style={{ marginTop: i ? 6 : 0 }}>
+          {x.label && <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{x.label}</Text>}
+          {x.lines.map((l) => <Text selectable key={l} testID="salmon-says-line" style={{ ...TYPE.meta, color: palette.sub, marginTop: 2 }}>{l}</Text>)}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/** A DFO place on this water not drawn yet, folded to one line (its place, the tag, what it says); opened: its species and DFO's words. */
+function Place({ p, palette }: { p: SalmonPlaceTableVM; palette: Palette }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <View testID="salmon-place" style={{ borderTopWidth: 1, borderTopColor: palette.line2, borderLeftWidth: 5, borderLeftColor: chipColour(palette, p.status), paddingLeft: 10 }}>
+      <RegsPress testID="salmon-place-fold" accessibilityRole="button" aria-expanded={open} box={{ w: 120, h: 44 }} onPress={() => setOpen(!open)}
+                 style={{ minHeight: 44, justifyContent: "center", paddingVertical: 6 }}>
+        <View testID="salmon-unmapped">
+          <Text selectable style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{p.label}</Text>
+          <Text testID="salmon-unmapped-tag" style={{ ...TYPE.kicker, color: palette.sub }}>{p.tag}</Text>
+          <Text testID="salmon-place-summary" style={{ ...TYPE.meta, color: palette.sub }}>{p.summary}</Text>
+        </View>
+        <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{open ? SALMON_WORDS.placeHide : SALMON_WORDS.placeShow} ›</Text>
+      </RegsPress>
+      {open && (
+        <View testID="salmon-place-body" style={{ paddingBottom: 8 }}>
+          {p.species.map((r) => <SpeciesRow key={r.code} r={r} palette={palette} pictures={false} />)}
+          <Says says={p.says} palette={palette} />
+          {p.gear.map((g) => <Text key={g} testID="salmon-unmapped-block-gear" style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>)}
         </View>
       )}
-      {r.notes.map((n) => <Text selectable key={n} style={{ ...TYPE.meta, color: palette.sub, marginTop: 2 }}>{n}</Text>)}
-      {r.sizes && <Text selectable testID={`${testID}-sizes`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{r.sizes}</Text>}
-      {(r.speciesNotes ?? []).map((n) => (
-        <Text selectable key={`sn:${n}`} testID={`${testID}-species-note`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{n}</Text>
-      ))}
-      <Looks species={r.species} palette={palette} actions={actions} images={images} />
     </View>
   );
 }
 
 /**
- * (T221, owner 2026-10-28: "make salmon one table total") THE TABLE: the water's own rows, then each DFO place on it not
- * drawn yet, its rows in the SAME table (the place said in the row) — one table, never a second box under the first.
- * The blocks' gear lines follow it.
+ * (T318, owner 2026-10-31) THE TABLE: one row per species (its ocean picture, today's status, sizes), DFO's words said once
+ * under it, the blocks' gear lines, then the places not drawn yet each folded to one line. Core `salmonTable`'s.
  */
 function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette: Palette; actions?: KeepActions; images?: FishImages }) {
-  // the partial-coverage line above is the table's lead row: the first answer row joins it
-  let n = card.partial ? 1 : 0;
+  const t = salmonTable(card);
   return (
     <View testID="salmon-card-block">
-      {card.rows.map((r) => (
-        <Row key={r.key} r={r} allClosed={card.allClosed} first={n++ === 0} palette={palette} testID="salmon-card-block"
-             actions={actions} images={images} />
-      ))}
-      {card.unmapped.map((u, i) => u.block.rows.map((r) => (
-        <Row key={`${u.label}#${i}:${r.key}`} r={r} allClosed={u.block.allClosed} first={n++ === 0} place={{ label: u.label, tag: u.tag }}
-             palette={palette} testID="salmon-unmapped-block" actions={actions} images={images} />
-      )))}
+      <Text accessibilityRole="header" style={{ ...TYPE.kicker, color: palette.sub, marginTop: 10, marginBottom: 2 }}>{SALMON_WORDS.tableSpecies}</Text>
+      {t.species.map((r) => <SpeciesRow key={r.code} r={r} palette={palette} actions={actions} images={images} pictures />)}
+      <Says says={t.says} palette={palette} />
       {card.gear.map((g) => (
         <Text key={g} testID="salmon-card-block-gear" style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>
       ))}
-      {card.unmapped.flatMap((u) => u.block.gear).filter((g) => !card.gear.includes(g)).map((g) => (
-        <Text key={`u:${g}`} testID="salmon-unmapped-block-gear" style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>
-      ))}
+      {t.places.length > 0 && (
+        <View testID="salmon-places" style={{ marginTop: 12 }}>
+          <Text accessibilityRole="header" style={{ ...TYPE.kicker, color: palette.sub, marginBottom: 2 }}>{SALMON_WORDS.placesHead}</Text>
+          {t.places.map((p, i) => <Place key={`${p.label}#${i}`} p={p} palette={palette} />)}
+        </View>
+      )}
     </View>
   );
 }
@@ -123,8 +132,7 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
 export function SalmonCard({ card, palette, actions, images }: {
   card: SalmonCardVM & { readonly checked?: string | null }; palette: Palette; actions?: KeepActions; images?: FishImages }) {
   // every outside picture is credited where shown (T43): the looks drawn here, once each
-  const shown = [...new Set(card.rows.flatMap((r) => r.species).concat(card.unmapped.flatMap((u) => u.block.rows.flatMap((r) => r.species)))
-    .flatMap((c) => (FISH[c] ?? []).map((l) => `${l.credit} (${l.source})`)))];
+  const shown = [...new Set(salmonTable(card).species.flatMap((r) => { const l = oceanOf(r.code).look; return l ? [`${l.credit} (${l.source})`] : []; }))];
   return (
     <WaterInset style={{ paddingTop: SPACE.s4 }}>
       <View testID="salmon-card" accessibilityLabel={`${card.title}, ${card.badge}: ${card.headline}`}>

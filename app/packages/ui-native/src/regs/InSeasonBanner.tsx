@@ -10,7 +10,9 @@ import { TYPE } from "../type";
 import { GUTTER, RADIUS, type Palette } from "../theme";
 import { RegsPress } from "./RegsPress";
 
-export function InSeasonBanners({ banners, palette }: { banners: readonly InSeasonBannerVM[]; palette: Palette }) {
+export function InSeasonBanners({ banners: all, palette }: { banners: readonly InSeasonBannerVM[]; palette: Palette }) {
+  // (T318) a change with no words of its own is never drawn as an empty card with only its link (owner's phone, 0.3.0)
+  const banners = all.filter((b) => b.text.trim());
   if (!banners.length) return null;
   return (
     <View testID="inseason-banners">

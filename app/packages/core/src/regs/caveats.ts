@@ -216,3 +216,15 @@ export function caveatsOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: numbe
   return [inPartOf(s, inp, KEEP_FAMS), sideOf(s, KEEP_FAMS), anglerOf(s), timedOf(inp, s, settledAtSeg), uncertainOf(inp, KEEP_FAMS)]
     .filter((c): c is CaveatVM => c !== null);
 }
+
+/**
+ * (T318, owner 2026-10-31) A TIMED ITEM AS ONE LINE under the year bar (not a boxed note): a closure of the hours around
+ * sunset ("No fishing for any game fish" · "60 min after sunset–60 min before sunrise") reads "Daylight only: closed from
+ * 1 h after sunset to 1 h before sunrise"; any other timed item reads its words and its moment, "<what>: <when>".
+ */
+export function timedLineText(x: CaveatItemVM): string {
+  const what = x.what.map((r) => (r.t === "text" ? r.s : "")).join("").trim();
+  const m = x.where ? /^(\d+) min after sunset\s*[–-]\s*(\d+) min before sunrise$/.exec(x.where.trim()) : null;
+  if (m && /^no fishing/i.test(what)) return WORDS.TIMED_DAYLIGHT(WORDS.TIMED_H(+m[1]!), WORDS.TIMED_H(+m[2]!));
+  return x.where ? `${what}: ${x.where}` : what;
+}

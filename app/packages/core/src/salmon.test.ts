@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { decodeSalmon, decodeSalmonHead, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel,
-         SALMON_WORDS, SalmonError, salmonStatusFromSpecies, gearTabsFor, salmonStripOf, salmonTimelineKey } from "./salmon";
+         SALMON_WORDS, SalmonError, salmonTable, salmonTableTexts, salmonRowTexts, salmonStatusFromSpecies, gearTabsFor, salmonStripOf, salmonTimelineKey } from "./salmon";
 import { salmonGlance } from "./glance";
 
 const HANDLES = "147b20dce7d8576c";
@@ -275,5 +275,36 @@ describe("(T227, owner 2026-10-28) a region-wide closure is the answer", () => {
       ["Salmon", "closed", ["There is no fishing for salmon in Region 4 - Kootenays until further notice."]]]);
     expect(salmonGlance(c).fold).toBe(false);
     expect(salmonChainStatus(f4(), 3, salmonDayIndex(JUL20))).toBe("closed");           // the map says the same
+  });
+});
+
+const SALMON_ORDER = (c: ReturnType<typeof salmonCard>) => (["CH", "CO", "SK", "PK", "CM"] as const).map((k) => c.rows.find((r) => r.species.includes(k))!.status);
+describe("(T318) the salmon table keeps every DFO word", () => {
+  const withNotes = () => {
+    const f = facts();
+    return { ...f, payload: { ...f.payload, regions: { ...f.payload.regions, "6": { ...f.payload.regions["6"]!, notes: [
+      { id: "6:daylight:a", k: "daylight", t: "Daylight only." },
+      { id: "6:min_size:b", k: "min_size", t: "All retained coho must measure 25 cm or more.", sp: ["CO"], cm: 25 },
+      { id: "6:annual:c", k: "annual", t: "The annual coho limit is 10.", sp: ["CO"], n: 10 },
+    ] } } } } as never as ReturnType<typeof facts>;
+  };
+  const cases: [string, Date, number[], string | null][] = [
+    ["an open coho with a place not drawn", JUL20, [101], "gnis:4674"], ["the same, release only in the fall", SEP15, [101], "gnis:4674"],
+    ["a water with no undrawn place", JUL20, [101], null], ["the Cowichan", SEP15, [200], null], ["an unlisted water", JUL20, [7], null]];
+  for (const [what, day, sids, item] of cases) it(`${what}: every row word, size, species note and place word is in the table`, () => {
+    const c = salmonCard(withNotes(), { sids, item }, day), t = salmonTable(c);
+    const have = new Set(salmonTableTexts(t, c.gear));
+    for (const s of salmonRowTexts(c)) expect(have, s).toContain(s);
+    // one species row each, in order, nothing repeated per picture
+    expect(t.species.map((r) => r.code)).toEqual(["CH", "CO", "SK", "PK", "CM"]);
+    expect(t.places.map((p) => p.label)).toEqual(c.unmapped.map((u) => u.label));
+  });
+
+  it("the species rows carry today's status; a place folds to one line and keeps its own words", () => {
+    const c = salmonCard(withNotes(), { sids: [101], item: "gnis:4674" }, SEP15), t = salmonTable(c);
+    expect(t.species.map((r) => r.name)).toEqual(["Chinook", "Coho", "Sockeye", "Pink", "Chum"]);
+    expect(t.species.map((r) => r.status)).toEqual(SALMON_ORDER(c));
+    expect(t.places[0]).toMatchObject({ label: "Kispiox River — above the resort signs", tag: "Location not yet mapped" });
+    expect(t.places[0]!.summary).toMatch(/closed|release/i);
   });
 });
