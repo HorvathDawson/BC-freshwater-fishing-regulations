@@ -6,7 +6,9 @@ import path from 'node:path';
 import { appUp, coldStart, toMap } from './common.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
-export const LAKE = { lon: -121.9870, lat: 49.0535 };           // Cultus Lake's middle: any tap near the pin picks the lake
+export const LAKE = { lon: -121.9870, lat: 49.0535 };
+/** SPOTS_AT="lon,lat" (T314): save the spot elsewhere — e.g. on a gauged river, so its gauges are pending offline too */
+const AT = process.env.SPOTS_AT ? (([lon, lat]) => ({ lon, lat }))(process.env.SPOTS_AT.split(',').map(Number)) : LAKE;           // Cultus Lake's middle: any tap near the pin picks the lake
 
 /** Walk the capture from where it is to its "Save spot": pick the water near the pin, the point, the time, Next. */
 export async function capture(ctx) {
@@ -41,7 +43,7 @@ export const spots = {
     await ctx.step(`setup: ${ctx.sync.name} sync adapter, a photo in the gallery, GPS on Cultus Lake`, async () => {
       await ctx.sync.setup();
       d.addPhoto(path.join(HERE, '..', 'media', 'testbed-photo.jpg'), `testbed-${Date.now()}.jpg`);
-      d.geo(LAKE.lon, LAKE.lat);
+      d.geo(AT.lon, AT.lat);
       await d.net('wifi');
       await coldStart(ctx);   // every scenario starts from a fresh launch (the data stays)
     }, { shot: false });
