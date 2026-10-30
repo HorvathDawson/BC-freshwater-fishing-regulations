@@ -7,6 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { coldStart, openLog, toMap } from './common.mjs';
+import { capture, LAKE } from './spots.mjs';
 
 const SWIPES = Number(process.env.PAN_SWIPES ?? 16);
 const ROUNDS = Number(process.env.PAN_ROUNDS ?? 2);
@@ -14,6 +15,9 @@ const ROUNDS = Number(process.env.PAN_ROUNDS ?? 2);
 const GROUND = process.env.PAN_GROUND ?? 'map';
 /** PAN_UPDATE=1 (T280): first take the live staging release (test channel reset → staged → applied), e.g. a new basemap. */
 const UPDATE = process.env.PAN_UPDATE === '1';
+/** PAN_SPOTS=n (T316): first save n spots round Cultus Lake (offline capture: instant) and pan from "Show on map" over
+ *  them — the spot marks are what lagged a pan (view annotations); deleted again after the rounds. */
+const SPOTS = Number(process.env.PAN_SPOTS ?? 0);
 
 /** `dumpsys gfxinfo <app>`'s summary: frames, janky share, the 50/90/95/99th percentile frame times (ms). */
 function gfx(t) {
@@ -81,6 +85,33 @@ export const pan = {
         await ctx.device.sleep(6000);
       });
     }
+    const made = [];
+    if (SPOTS > 0) {
+      await ctx.step(`${SPOTS} spots saved round Cultus Lake, the map shown on the last (PAN_SPOTS)`, async () => {
+        const d = ctx.device;
+        await d.net('offline');
+        for (let i = 0; i < SPOTS; i++) {
+          const title = `Pan ${i + 1} ${Date.now().toString(36).slice(-4)}`;
+          d.geo(LAKE.lon + ((i % 3) - 1) * 0.006, LAKE.lat + (Math.floor(i / 3) - 0.5) * 0.004);
+          await d.sleep(1500);
+          ctx.flow('tab', { TAB: 'Spots' });
+          ctx.flow('tap-text', { TEXT: 'At my location' });
+          await d.sleep(3000);
+          await capture(ctx);
+          ctx.flow('spot-name-save', { TITLE: title });
+          await d.sleep(2500);
+          made.push(title);
+        }
+        await d.net('wifi');
+        ctx.flow('tab', { TAB: 'Spots' });
+        ctx.flow('tap-text', { TEXT: made.at(-1) });
+        await d.sleep(2000);
+        ctx.flow('scroll-to', { TEXT: 'Show on map' });
+        ctx.flow('tap-text', { TEXT: 'Show on map' });
+        await d.sleep(6000);
+        return made.join(', ');
+      });
+    }
     const [w, h] = (/(\d+)x(\d+)/.exec(ctx.device.sh('wm size'))?.slice(1) ?? ['1080', '2400']).map(Number);
     const cx = Math.round(w / 2), cy = Math.round(h * 0.45), dx = Math.round(w * 0.35), dy = Math.round(h * 0.18);
     // the same path every run: east, north, west, south, … so the camera ends near where it started
@@ -120,6 +151,17 @@ export const pan = {
           `p50 ${g.p50} / p90 ${g.p90} / p95 ${g.p95} / p99 ${g.p99} ms, slow UI ${g.slowUi}, slow draw ${g.slowDraw}` +
           probe;
       });
+    }
+    if (made.length) {
+      await ctx.step('clean up: the PAN_SPOTS spots deleted', async () => {
+        for (const title of made) {
+          ctx.flow('tab', { TAB: 'Spots' });
+          ctx.flow('tap-text', { TEXT: title });
+          await ctx.device.sleep(1500);
+          ctx.flow('spot-delete');
+          await ctx.device.sleep(1500);
+        }
+      }, { shot: false });
     }
     if (GROUND === 'satellite') {
       await ctx.step('ground back to the map', async () => {

@@ -6,10 +6,10 @@ import path from 'node:path';
 import { appUp, coldStart, toMap } from './common.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
-const LAKE = { lon: -121.9870, lat: 49.0535 };           // Cultus Lake's middle: any tap near the pin picks the lake
+export const LAKE = { lon: -121.9870, lat: 49.0535 };           // Cultus Lake's middle: any tap near the pin picks the lake
 
 /** Walk the capture from where it is to its "Save spot": pick the water near the pin, the point, the time, Next. */
-async function capture(ctx) {
+export async function capture(ctx) {
   const { device: d } = ctx;
   const [W, H] = d.sh('wm size').match(/(\d+)x(\d+)/).slice(1).map(Number);
   const pin = [Math.round(W / 2), Math.round(H * 0.4367)];  // where the capture map centres the pin (above the sheet)
@@ -133,6 +133,9 @@ export const spots = {
       ctx.flow('tab', { TAB: 'Spots' });
       ctx.flow('tap-text', { TEXT: spot.title });
       await d.sleep(2500);
+      // (T314) its gauges filled too, not only its weather: no "not read yet" / "not recorded" line left on the page
+      const left = d.screenText().find((w) => /have not been read from their record yet|was not recorded — it can be filled in/.test(w));
+      if (left) throw new Error(`the spot's gauges did not fill on reconnect: "${left}"`);
       return d.screenText().filter((w) => /°|km\/h|Weather|m³\/s|gauge/i.test(w)).slice(0, 4).join(' · ');
     });
     await ctx.step('clean up: delete the spot', async () => {

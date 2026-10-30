@@ -18,5 +18,6 @@ import { bgInstall } from './bg-install.mjs';
 import { locate } from './locate.mjs';
 import { gestures } from './gestures.mjs';
 import { walkthrough } from './walkthrough.mjs';
+import { gaugeOffline } from './gauge-offline.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline];
