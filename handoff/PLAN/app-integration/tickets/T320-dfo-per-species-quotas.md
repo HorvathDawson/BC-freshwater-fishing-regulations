@@ -53,3 +53,6 @@ Depends: T164, T318. Size: M–L. Owner: spot-check a few extents.
 ## To ship
 `python -m pipeline.regs.dfo_salmon.feed` (typed feed), then the bundle + release build (via scripts/heavy.sh), and the
 feeds worker deploy (owner command if refused) so the live feed carries `q`, `bucket` and `texts`.
+
+## Owner spot-check (2026-10-30)
+Owner reviewed the 5 extents (Chilliwack/Vedder, Stave, Kispiox, Stamp, Quesnel 5A): DFO words read correctly, interpretations confirmed.
