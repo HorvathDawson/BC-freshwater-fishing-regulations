@@ -7,6 +7,7 @@ import type * as maplibregl from "maplibre-gl";
 import { longPressWatch } from "../longPress";
 import type { MapProps } from "../map-props";
 import type { WebMapRefs } from "./refs";
+import { hitMark } from "./markers";
 
 export function useMoved({ map }: WebMapRefs, onMoved: MapProps["onMoved"]) {
   useEffect(() => {
@@ -74,7 +75,8 @@ export function useMapPoint({ map, longPress }: WebMapRefs, onMapPoint: MapProps
     if (!m || !onMapPoint) return;
     // the click a long press may leave behind is not also a tap
     const onTap = (e: maplibregl.MapMouseEvent) => {
-      if (!longPress.current?.fired()) onMapPoint(e.lngLat.lat, e.lngLat.lng);
+      // (T317) nor is a tap on a boundary mark: the mark's layer took it (`useMarks`)
+      if (!longPress.current?.fired() && hitMark(m, e.point.x, e.point.y) === null) onMapPoint(e.lngLat.lat, e.lngLat.lng);
     };
     m.on("click", onTap);
     return () => { m.off("click", onTap); };
@@ -90,6 +92,7 @@ export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPres
     if (!m || !r || (!onPressFeature && !onPressObstacle && !onPressTidal && !onPressNotFishing)) return;
     const onClick = (e: maplibregl.MapMouseEvent) => {
       if (longPress.current?.fired()) return;       // the click a long press may leave behind is not a tap
+      if (hitMark(m, e.point.x, e.point.y) !== null) return;   // (T317) a boundary mark's: it opens no water under it
       /**
        * A BOX, not a point.
        *

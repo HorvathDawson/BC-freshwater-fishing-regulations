@@ -33,7 +33,8 @@
  *     as it is requested, as GL JS's `sourcedata` does on the web. No colour is pushed through `data`.
  *   - The scale bar is drawn here (`metricScale`): the binding's is top-left only on Android and in the device's
  *     units, so it sat under the status bar in miles. Updated when the camera settles, not per frame of a pinch.
- *   - Markers are native view annotations (`Marker`), not maplibre-gl's DOM markers.
+ *   - (T317) The marker, pins and boundary marks are GeoJSON layers (`point-marks.ts`); only the spots (T316) are still
+ *     view annotations (`Marker`).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
@@ -54,7 +55,9 @@ import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
 import { colourProbe } from "./native/probe";
-import { MARK_LABEL_FONT, labelShift } from "./marks";
+import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
+         marksLayers, pinDotLayer, pinsData, shiftedLabels } from "./point-marks";
+import { pngDataUri } from "./png";
 import { metricScale } from "./scale";
 import { ESRI_BADGE, SHOW_SCALE } from "./chrome";
 import type { MapProps } from "./map-props";
@@ -62,8 +65,8 @@ import { COPY_SOURCE, WaterCopy, copyIds, probeZoom, zoomAround, type CopyTarget
 import { cameraMs, setReducedMotion } from "./motion";
 import { ME_SOURCE, meData, mePaint } from "./native/me";
 
-/** A mark label's widest line (the web's `max-width`, `marks.ts`). */
-const MARK_LABEL_WIDTH = 180;
+/** (T317) a style-spec layer as the binding's `Layer` takes it (its source is the enclosing `GeoJSONSource`) */
+type LayerSpec = React.ComponentProps<typeof Layer>;
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives (as on the web). */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -123,6 +126,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onVisible, onLongPress };
   const report = useCallback((e: unknown) =>
     cb.current.onError?.(e instanceof Error ? e : new Error(String(e))), []);
+  /** (T317) the boundary marks and their press, read by the tap (`onPress`) and the label measure (`shiftMarks`) */
+  const marksNow = useRef(marks);
+  marksNow.current = marks;
+  const pressMarkNow = useRef(onPressMark);
+  pressMarkNow.current = onPressMark;
 
   /** The contract's renderer (`adapters/native.ts`) over the binding's refs, read when called: they come and go. */
   const renderer = useMemo(() => {
@@ -182,7 +190,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
      JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, ceil.line, ceil.fill,
      cv.status, cv.salmon, cv.method, cv.stocked, cv.survey, basinKey]);
-  const images = useMemo(() => nativeImages(theme), [theme]);
+  // (T317) and the boundary mark label's box, named by its colours (the binding adds a name once and never replaces it)
+  const markBoxName = `${MARK_BOX_IMAGE}.${furniture.card}.${furniture.ink}`.replace(/#/g, "");
+  const images = useMemo(() => {
+    const g = markBoxImage(furniture.card, furniture.ink);
+    return { ...nativeImages(theme), [markBoxName]: { source: { uri: pngDataUri(g.width, g.height, g.data), scale: g.pixelRatio },
+                                                      stretchX: g.stretchX, stretchY: g.stretchY, content: g.content } };
+  }, [theme, markBoxName]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
 
   const gaugeData = useMemo(() => JSON.parse(gauges ?? EMPTY_FC) as GeoJSON.FeatureCollection, [gauges]);
@@ -437,6 +451,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // (T145) a tap on a spot is the spot's (its annotation's press): never ALSO the map's — no water opens under it,
     // and the off-spot tap that clears the selection does not clear the one this tap makes
     if (spotUnder(spotsAt.current.marks, lat, lon, spotsAt.current.zoom)) return;
+    // (T317) a boundary mark's 44 px target: the mark's layers, asked first; the tap opens no water under it
+    if (marksNow.current?.length && rendered.current) {
+      const hit = markHit(await mapRef.current?.queryRenderedFeatures(markBox(x, y), { layers: [MARK_RING, MARK_LABEL] })
+        .catch(() => []) ?? []);
+      if (hit !== null) { pressMarkNow.current?.(hit); return; }
+    }
     cb.current.onMapPoint?.(lat, lon);
     const press = cb.current.onPressFeature, obstacle = cb.current.onPressObstacle, tidal = cb.current.onPressTidal;
     const notFishing = cb.current.onPressNotFishing;
@@ -476,19 +496,19 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     wanted: (id) => { const st = statusNow.current; return !!st && profileLabel(st.index, id) !== undefined; },
   }), [colouring.coloured]);
 
-  /** (T50) each mark label's sideways shift, kept inside the map as the web's `markers.ts` does (`labelShift`): measured
-   *  where the camera settles, from each ring's screen x */
-  const [markShift, setMarkShift] = useState<readonly number[]>([]);
-  const marksNow = useRef(marks);
-  marksNow.current = marks;
+  /** (T50) where each mark's label is centred, kept inside the map as the web's `markers.ts` does (`labelShift`):
+   *  measured where the camera settles, from each ring's screen x, and moved as a point of the marks' source (T317) */
+  const [labelAt, setLabelAt] = useState<{ key: string; at: readonly ([number, number] | null)[] }>({ key: "", at: [] });
   const shiftMarks = useCallback(async () => {
     const ms = marksNow.current ?? [], w = size.current.width, map = mapRef.current;
-    if (!ms.length || !w || !map) return;
-    const xs = await Promise.all(ms.map((k) => map.project([k.lon, k.lat]).then((pt) => pt[0], () => null)));
-    const next = xs.map((x) => (x === null ? 0 : labelShift(x, w)));
-    setMarkShift((was) => (was.length === next.length && was.every((v, i) => v === next[i]) ? was : next));
+    if (!ms.some((k) => k.label) || !w || !map) return;
+    const next = await shiftedLabels(ms, w, (lon, lat) => map.project([lon, lat]).then((p) => [p[0], p[1]] as [number, number], () => null),
+                                     (x, y) => map.unproject([x, y]).then((l) => [l[0], l[1]] as [number, number], () => null));
+    const key = JSON.stringify(ms);
+    if (JSON.stringify(marksNow.current ?? []) !== key) return;
+    setLabelAt((was) => (was.key === key && JSON.stringify(was.at) === JSON.stringify(next) ? was : { key, at: next }));
   }, []);
-  useEffect(() => { void shiftMarks(); }, [marks, shiftMarks]);
+  useEffect(() => { void shiftMarks(); }, [JSON.stringify(marks ?? []), shiftMarks]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const onRegionDidChange = useCallback((e: RegionEvent) => {
     probe?.settled();
@@ -536,6 +556,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [spotKey, scaleAt.zoom]);
   spotsAt.current = { marks: spotMarks, zoom: scaleAt.zoom };
+  const marksKey = JSON.stringify(marks ?? []);
+  const markJson = useMemo(() => marksData(marks, labelAt.key === marksKey ? labelAt.at : undefined), [marksKey, labelAt]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const markLook = useMemo(() => marksLayers(furniture, markBoxName), [furniture, markBoxName]);
+  const pinKey = `${marker ? `${marker.lon},${marker.lat}` : ""}|${(pins ?? []).map((p) => `${p.lon},${p.lat},${p.tone ?? ""}`).join("|")}`;
+  const pinJson = useMemo(() => pinsData(marker, pins, furniture.accent), [pinKey, furniture.accent]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const pinLook = useMemo(() => pinDotLayer(furniture.card), [furniture.card]);
   return (
     <>
       <MLMap
@@ -577,16 +603,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
           <Layer id="me-accuracy" type="circle" paint={meLook.accuracy as never} />
           <Layer id="me-dot" type="circle" paint={meLook.dot as never} />
         </GeoJSONSource>
-        {marker ? (
-          <Marker id="marker" lngLat={[marker.lon, marker.lat]}>
-            <View style={dot(furniture.accent, furniture.card, 16)} />
-          </Marker>
-        ) : null}
-        {(pins ?? []).map((p, i) => (
-          <Marker key={`${i}:${p.lon},${p.lat}`} id={`pin-${i}`} lngLat={[p.lon, p.lat]}>
-            <View style={dot(p.tone ?? furniture.accent, furniture.card, 12)} accessibilityLabel={p.title} />
-          </Marker>
-        ))}
+        {/* (T317) the "where I tapped" marker and a panel's named points: dots drawn by the map, not view annotations */}
+        <GeoJSONSource id={PIN_SOURCE} data={pinJson as never}>
+          <Layer {...(pinLook as unknown as LayerSpec)} />
+        </GeoJSONSource>
         {/* (T131) YOUR SPOTS: `spotMarkers` at the zoom the camera settled at, each the app's face in a 44 px box (a view
             annotation: its press is the face's, never the map's) */}
         {spots ? spotMarks.map((mk) => (
@@ -596,39 +616,20 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
             </View>
           </Marker>
         )) : null}
-        {/* THE BOUNDARY MARKS (P15): the web's `markElement` as a view annotation — a 44 px target, a 16 px ring
-            (filled when open), the label above it */}
-        {(marks ?? []).map((k, i) => (
-          <Marker key={`mark-${i}:${k.lon},${k.lat}`} id={`mark-${i}`} lngLat={[k.lon, k.lat]}>
-            {/* the root is the label's 180 px band, the 44 px target centred in it: Android's view annotation lays its
-                content out no wider than the ROOT, so a label hung off a 44 px root wrapped to 44 px ("fish / ing b /
-                ou…", T50 emulator walk). The label stays inside the button (its words are the button's) on a band of
-                its own width; `markShift` keeps it inside the map as the web's `labelShift` does. */}
-            <View pointerEvents="box-none"
-                  style={{ width: MARK_LABEL_WIDTH, height: 44, alignItems: "center", justifyContent: "center" }}>
-              <Pressable onPress={() => onPressMark?.(i)} accessibilityRole="button" aria-label={k.a11y}
-                         style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
-                {k.label ? (
-                  <View pointerEvents="none"
-                        style={{ position: "absolute", bottom: 38, left: (44 - MARK_LABEL_WIDTH) / 2,
-                                 width: MARK_LABEL_WIDTH, alignItems: "center",
-                                 transform: [{ translateX: markShift[i] ?? 0 }] }}>
-                    <Text numberOfLines={3}
-                          style={{ paddingHorizontal: 7, paddingVertical: 3, textAlign: "center",
-                                   backgroundColor: furniture.card, color: furniture.ink, borderWidth: 1.5,
-                                   borderColor: furniture.ink, fontSize: 12, lineHeight: 15,
-                                   fontFamily: MARK_LABEL_FONT.native }}>
-                      {k.label}
-                    </Text>
-                  </View>
-                ) : null}
-                <View style={{ width: 16, height: 16, borderRadius: 8, borderWidth: 3, borderColor: furniture.ink,
-                               backgroundColor: k.on ? furniture.ink : furniture.card }} />
-              </Pressable>
-            </View>
-          </Marker>
-        ))}
+        {/* THE BOUNDARY MARKS (P15): the ring (filled when open) and its label above it in a box — map layers (T317), so
+            they move with the map; a tap is the layers' (`onPress`, `markHit`) */}
+        <GeoJSONSource id={MARK_SOURCE} data={markJson as never}>
+          {markLook.map((l) => <Layer key={l.id} {...(l as unknown as LayerSpec)} />)}
+        </GeoJSONSource>
       </MLMap>
+      {/* (T317) the marks' buttons, for a screen reader only: 1 px, out of the way, never moved with the map */}
+      {marks?.length ? (
+        <View style={{ position: "absolute", left: 0, top: 0, width: 1, height: 1, overflow: "hidden" }}>
+          {marks.map((k, i) => (
+            <Pressable key={i} onPress={() => onPressMark?.(i)} accessibilityRole="button" aria-label={k.a11y}>
+              <Text>{k.label ?? ""}</Text>
+            </Pressable>))}
+        </View>) : null}
       {!bare && basemap === "satellite" && (
         // (T275) Esri's credit stays visible while its imagery is drawn, above the foot block
         <View pointerEvents="none" style={{ position: "absolute", left: 8, bottom: 8 + insetBottom, paddingHorizontal: 5,
@@ -657,10 +658,4 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       )}
     </>
   );
-}
-
-/** A marker's dot: the colour with a ring in the theme's card colour, so it reads on water and on land. */
-function dot(colour: string, ring: string, d: number) {
-  return { width: d, height: d, borderRadius: d / 2, backgroundColor: colour, borderWidth: 2,
-           borderColor: ring } as const;
 }

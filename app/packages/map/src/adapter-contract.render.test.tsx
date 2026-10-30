@@ -17,6 +17,7 @@ import { MAP_GESTURES } from "@app/core";
 import type { MapProps } from "./map-props";
 import { maplibreGestures, nativeMapGestures } from "./gestures";
 import { colour } from "./chrome";
+import { MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_DOT, PIN_SOURCE } from "./point-marks";
 
 /** Every SDK call that matters to the contract, in order, as one string each. */
 const log: string[] = [];
@@ -24,13 +25,15 @@ const log: string[] = [];
 const atlasLog = () => log.filter((x) => !x.includes("water-copy"));
 const fmt = (id: unknown) => `${typeof id}:${String(id)}`;
 /** What a query answers: by the layers it asked for, and whether the asker is the phone (string ids) or the web. */
-let answer: (layers: readonly string[], phone: boolean) => { id?: unknown }[] = () => [];
+let answer: (layers: readonly string[], phone: boolean) => { id?: unknown; properties?: unknown }[] = () => [];
 
 // ---- maplibre-gl, recorded -------------------------------------------------------------------------------------------
 type Handler = (e?: unknown) => void;
 const web: { map: FakeGl | null; opts: Record<string, unknown> | null; rotationOff: boolean;
-             keyboardRotationOff: boolean; tilesIn: boolean; fitOpts: unknown[]; canvasH: number } =
-  { map: null, opts: null, rotationOff: false, keyboardRotationOff: false, tilesIn: true, fitOpts: [], canvasH: 800 };
+             keyboardRotationOff: boolean; tilesIn: boolean; fitOpts: unknown[]; canvasH: number;
+             /** (T317) what each runtime GeoJSON source was last given (`addSource` or `setData`) */
+             data: Record<string, unknown> } =
+  { map: null, opts: null, rotationOff: false, keyboardRotationOff: false, tilesIn: true, fitOpts: [], canvasH: 800, data: {} };
 class FakeGl {
   private on_ = new Map<string, Set<Handler>>();
   private style: { layers: { id: string; source?: string }[]; sources: Record<string, unknown> };
@@ -50,7 +53,11 @@ class FakeGl {
   isStyleLoaded() { return web.tilesIn; }
   getStyle() { return this.style; }
   getLayer(id: string) { return this.style.layers.find((l) => l.id === id); }
-  getSource() { return { setData: () => {} }; }
+  getSource(id: string) { return { setData: (d: unknown) => { web.data[id] = d; } }; }
+  /** (T317) the point marks' runtime sources and layers, over the style's */
+  addSource(id: string, s: { data: unknown }) { web.data[id] = s.data; this.style.sources[id] = s; }
+  addLayer(l: { id: string; source?: string }) { this.style.layers.push(l); }
+  removeLayer(id: string) { this.style.layers = this.style.layers.filter((l) => l.id !== id); }
   setPaintProperty() {} setLayoutProperty() {} setLayerZoomRange() {} setFilter() {}
   addControl() {} hasImage() { return false; } addImage() {} removeImage() {} remove() {}
   getContainer() { return { clientWidth: 400, clientHeight: 800 }; }
@@ -177,7 +184,7 @@ afterEach(() => {
   log.length = 0;
   answer = () => [];
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
-  web.fitOpts = []; web.canvasH = 800;
+  web.fitOpts = []; web.canvasH = 800; web.data = {};
   native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {};
 });
 
@@ -445,36 +452,75 @@ describe("web only", () => {
                             `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt on "basin" refused: ${why}`]);
   });
 
-  it("P15 review: a mark's element is left to GL JS's absolute placement — nothing inline stacks it in normal flow", async () => {
-    // maplibre-gl.css: `.maplibregl-marker{position:absolute;top:0;left:0}`; GL JS then only sets a translate. An inline
-    // `position` on the element beats the class, so the marks stacked 44 px apart (a mark drawn 44 px × its index low).
-    const css = document.createElement("style");
-    css.textContent = ".maplibregl-marker{position:absolute;top:0;left:0}";
-    document.head.appendChild(css);
-    try {
-      render(<WebMap {...base({ data: undefined, marks: [
-        { lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false },
-        { lon: -121.70, lat: 49.02, label: "Slesse Creek", a11y: "Boundary: Slesse Creek", on: true }] })} />);
-      await waitFor(() => expect(document.querySelectorAll(".maplibregl-marker").length).toBe(2));
-      for (const root of document.querySelectorAll<HTMLElement>(".maplibregl-marker")) {
-        expect(root.style.position).toBe("");
-        expect(getComputedStyle(root).position).toBe("absolute");
-      }
-      // the label still sits over its own ring: its containing block is the 44 px button inside the root
-      const b = screen.getByLabelText("Boundary: Slesse Creek");
-      expect([b.style.position, b.querySelector("span")!.style.position]).toEqual(["relative", "absolute"]);
-    } finally { css.remove(); }
+  it("T317: the marks are map layers — a ring each, a label each labelled one — and no DOM marker moves with the map", async () => {
+    render(<WebMap {...base({ data: undefined, marks: [
+      { lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false },
+      { lon: -121.70, lat: 49.02, label: null, a11y: "Boundary: Slesse Creek", on: true }] })} />);
+    await waitFor(() => expect(web.map!.getLayer(MARK_LABEL)).toBeTruthy());
+    expect([web.map!.getLayer(MARK_RING)?.source, web.map!.getLayer(MARK_LABEL)?.source]).toEqual([MARK_SOURCE, MARK_SOURCE]);
+    const fc = web.data[MARK_SOURCE] as { features: { properties: Record<string, unknown> }[] };
+    expect(fc.features.map((f) => f.properties)).toEqual([
+      { i: 0, kind: "ring", on: false }, { i: 0, kind: "label", label: "Tamihi Rapids Bridge" }, { i: 1, kind: "ring", on: true }]);
+    expect(document.querySelectorAll(".maplibregl-marker").length).toBe(0);
   });
 
-  it("P15: a mark's label near the map's edge is moved in, and again when the map moves", async () => {
+  it("P15/T317: a mark's label near the map's edge is moved in where the camera settles — never per frame", async () => {
     render(<WebMap {...base({ data: undefined, marks: [
       { lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false }] })} />);
-    const span = () => screen.getByLabelText("Boundary: Tamihi Rapids Bridge").querySelector("span")!;
-    await waitFor(() => expect(span().style.transform).toBe("translateX(calc(-50% + -62px))"));    // x 362 of 400
+    type Fc = { features: { properties: { kind: string }; geometry: { coordinates: number[] } }[] };
+    const labelAt = () => (web.data[MARK_SOURCE] as Fc | undefined)?.features.find((f) => f.properties.kind === "label")
+      ?.geometry.coordinates;
+    // x 362 of 400: 62 px in, the label's point at x 300 (`unproject`: lng = x / 1000 - 122.2)
+    await waitFor(() => expect(labelAt()?.[0]).toBeCloseTo(-121.9, 6));
     const project = web.map!.project.bind(web.map);
     web.map!.project = (l) => ({ ...project(l), x: 30 });
     act(() => web.map!.fire("move"));
-    expect(span().style.transform).toBe("translateX(calc(-50% + 70px))");
+    expect(labelAt()?.[0]).toBeCloseTo(-121.9, 6);
+    act(() => web.map!.fire("moveend"));
+    await waitFor(() => expect(labelAt()?.[0]).toBeCloseTo(-122.1, 6));      // 70 px the other way: x 100
+  });
+
+  it("T317: the marker and a panel's pins are one GeoJSON source with the pin image per tone, not DOM markers", async () => {
+    render(<WebMap {...base({ data: undefined, marker: { lat: 49.1, lon: -122.1 },
+                             pins: [{ lat: 49.2, lon: -122.2, tone: "#AA3300", title: "Hope" }] })} />);
+    await waitFor(() => expect(web.data[PIN_SOURCE]).toBeTruthy());
+    const fc = web.data[PIN_SOURCE] as { features: { properties: Record<string, unknown> }[] };
+    expect(fc.features.map((f) => [f.properties.kind, f.properties.tone, f.properties.img])).toEqual([
+      ["pin", "#AA3300", "t317-pin-AA3300"], ["marker", colour("light", "color.ui.accent"), `t317-pin-${colour("light", "color.ui.accent").slice(1)}`]]);
+    expect(document.querySelectorAll(".maplibregl-marker").length).toBe(0);
+  });
+});
+
+describe.each(Object.entries(PLATFORMS))("T317 point marks: %s", (_name, P) => {
+  it("a tap within 22 px of a mark is the mark's (its layers asked), and opens no water under it", async () => {
+    const press = vi.fn();
+    const feature = vi.fn();
+    answer = (layers) => (layers.includes(MARK_RING) ? [{ properties: { i: 1 } }] : [{ id: 311274 }]);
+    render(<P.Map {...base({ data: undefined, highlight: undefined, onPressMark: press, onPressFeature: feature, marks: [
+      { lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false },
+      { lon: -121.710609, lat: 49.078392, label: null, a11y: "Boundary: Slesse", on: true }] })} />);
+    await waitFor(() => expect(native.props ?? web.map).toBeTruthy());
+    if (_name === "web") await waitFor(() => expect(web.map!.getLayer(MARK_RING)).toBeTruthy());
+    log.length = 0;
+    P.tap(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(press.mock.calls).toEqual([[1]]));
+    await act(async () => {});
+    expect(feature.mock.calls).toEqual([]);
+    expect(log).toContain(`query [[78,178],[122,222]] ${MARK_RING},${MARK_LABEL}`);
+  });
+});
+
+describe("native only (T317)", () => {
+  it("the marker, pins and marks are GeoJSON sources with layers, not view annotations", async () => {
+    render(<NativeMap {...base({ data: undefined, marker: { lat: 49.1, lon: -122.1 }, pins: [{ lat: 49.2, lon: -122.2 }],
+                                marks: [{ lon: -121.8, lat: 49.07, label: "Bridge", a11y: "Boundary: Bridge", on: true }] })} />);
+    await waitFor(() => expect(native.layers?.[MARK_LABEL]).toBeTruthy());
+    expect(Object.keys(native.layers!).filter((k) => k.startsWith("t317-")).sort())
+      .toEqual([MARK_LABEL, MARK_RING, PIN_DOT].sort());
+    const pins = native.geojson[PIN_SOURCE] as { features: { properties: { kind: string } }[] };
+    const marks = native.geojson[MARK_SOURCE] as { features: { properties: { kind: string } }[] };
+    expect([pins.features.map((f) => f.properties.kind), marks.features.map((f) => f.properties.kind)])
+      .toEqual([["pin", "marker"], ["ring", "label"]]);
   });
 });
 
@@ -602,7 +648,7 @@ it("no listener, no long press: the binding is handed no handler (its long press
     expect(pt.features.map((f: { geometry: unknown }) => f.geometry))
       .toEqual([{ type: "Point", coordinates: [-121.95, 49.1] }]);
     // the circle under the dot, both in the theme's location blue; the circle's radius grows with the zoom
-    expect(Object.keys(native.layers!)).toEqual(["me-accuracy", "me-dot"]);
+    expect(Object.keys(native.layers!).filter((k) => k.startsWith("me-"))).toEqual(["me-accuracy", "me-dot"]);
     const acc = native.layers!["me-accuracy"]!.paint as Record<string, unknown>;
     const dot = native.layers!["me-dot"]!.paint as Record<string, unknown>;
     expect([acc["circle-color"], dot["circle-color"], (acc["circle-radius"] as unknown[]).slice(0, 3)])

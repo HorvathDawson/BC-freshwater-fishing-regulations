@@ -1,87 +1,138 @@
 /**
- * THE WEB MAP'S DOM MARKERS: the one marker (`marker`), the named points a panel describes (`pins`) and a water's
- * boundary marks (`marks`) — MapLibre markers, in this map's chrome.
+ * THE WEB MAP'S POINT MARKS (T317): the one marker (`marker`), the named points a panel describes (`pins`) and a water's
+ * boundary marks (`marks`) — GeoJSON sources with layers over the map (`../point-marks.ts`), drawn by maplibre-gl with
+ * the map. They were DOM markers, moved by GL JS on every frame, and the marks' labels were measured on every `move`.
+ * Taps are the layers': a click hit-tests the marks first (`hitMark`), and the map's other click handlers skip a tap a
+ * mark took (it opens no water under it).
  */
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
 import type { mapChrome } from "../chrome";
-import type { MapMark, MapProps } from "../map-props";
-import { labelShift } from "../marks";
+import type { MapProps } from "../map-props";
+import { hereImage } from "../here-mark";
+import {
+  MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_ICON, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
+  marksLayers, pinIconLayer, pinsData, shiftedLabels,
+} from "../point-marks";
+import { afterLoad } from "./ready";
 import type { WebMapRefs } from "./refs";
 
 type Furniture = ReturnType<typeof mapChrome>;
+type Layer = Parameters<maplibregl.Map["addLayer"]>[0];
+const EMPTY = { type: "FeatureCollection" as const, features: [] };
 
-export function useMarker({ map }: WebMapRefs, marker: MapProps["marker"], furniture: Furniture) {
-  const pin = useRef<maplibregl.Marker | null>(null);
-  useEffect(() => {
-    const m = map.current;
-    if (!m) return;
-    if (!marker) { pin.current?.remove(); pin.current = null; return; }
-    if (!pin.current)
-      pin.current = new maplibregl.Marker({ color: furniture.accent });
-    pin.current.setLngLat([marker.lon, marker.lat]).addTo(m);
-    return () => { pin.current?.remove(); pin.current = null; };
-  }, [marker?.lat, marker?.lon]);
+/** The source with `data`, its layers (re-added: a theme change re-colours them) on top of the map. */
+function put(m: maplibregl.Map, source: string, data: unknown, layers: readonly unknown[]) {
+  const src = m.getSource(source) as { setData?: (d: unknown) => void } | undefined;
+  if (src?.setData) src.setData(data);
+  else m.addSource(source, { type: "geojson", data: data as never });
+  for (const l of layers as Layer[]) {
+    if (m.getLayer(l.id)) m.removeLayer(l.id);
+    m.addLayer(l);
+  }
+}
+
+/** The index of the mark under a click at `(x, y)` (its 44 px target), or null — and null on a map with no marks. */
+export function hitMark(m: maplibregl.Map, x: number, y: number): number | null {
+  const layers = [MARK_RING, MARK_LABEL].filter((id) => m.getLayer(id));
+  return layers.length ? markHit(m.queryRenderedFeatures(markBox(x, y), { layers })) : null;
 }
 
 /**
- * The named points a panel is describing — both ends of a route, typically.
- *
- * Rebuilt wholesale rather than diffed: there are two or three of them and they all move
- * together when the subject changes. Keyed on the COORDINATES rather than on the array,
- * because every render produces a new array and a new marker would blink.
+ * The marker and the named points (both ends of a route, typically): one source, the teardrop pin image per tone. A pin
+ * with a title says it on a click (GL JS's popup, as the DOM marker's was). Keyed on the coordinates and tones, not on
+ * the array: every render makes a new one.
  */
-export function usePins({ map }: WebMapRefs, pins: MapProps["pins"], furniture: Furniture) {
-  const pinned = useRef<maplibregl.Marker[]>([]);
+export function usePins({ map }: WebMapRefs, marker: MapProps["marker"], pins: MapProps["pins"], furniture: Furniture) {
+  const pinsNow = useRef(pins);
+  pinsNow.current = pins;
+  const key = `${marker ? `${marker.lon},${marker.lat}` : ""}|${(pins ?? []).map((p) => `${p.lon},${p.lat},${p.tone ?? ""},${p.title ?? ""}`).join("|")}`;
   useEffect(() => {
     const m = map.current;
     if (!m) return;
-    for (const mk of pinned.current) mk.remove();
-    pinned.current = (pins ?? []).map((p) => {
-      const mk = new maplibregl.Marker({ color: p.tone ?? furniture.accent,
-                                        scale: 0.72 });
-      if (p.title) mk.setPopup(new maplibregl.Popup({ closeButton: false }).setText(p.title));
-      return mk.setLngLat([p.lon, p.lat]).addTo(m);
+    return afterLoad(m, () => {
+      const data = pinsData(marker, pinsNow.current, furniture.accent);
+      if (!data.features.length && !m.getLayer(PIN_ICON)) return;     // none yet: nothing to add
+      for (const f of data.features as { properties: { tone: string; img: string } }[]) {
+        if (m.hasImage(f.properties.img)) continue;
+        const g = hereImage(f.properties.tone, furniture.card);
+        m.addImage(f.properties.img, g as unknown as ImageData, { pixelRatio: g.pixelRatio });
+      }
+      put(m, PIN_SOURCE, data, [pinIconLayer()]);
     });
-    return () => {
-      for (const mk of pinned.current) mk.remove();
-      pinned.current = [];
+  }, [key, furniture.accent, furniture.card, map.current]);
+  // a titled pin's words on a click
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    const onClick = (e: maplibregl.MapMouseEvent) => {
+      if (!m.getLayer(PIN_ICON)) return;
+      const { x, y } = e.point;
+      const f = m.queryRenderedFeatures([[x - 12, y - 12], [x + 12, y + 12]], { layers: [PIN_ICON] })
+        .find((g) => typeof g.properties?.title === "string" && g.properties.title);
+      const p = f ? pinsNow.current?.[Number(f.properties?.i)] : undefined;
+      if (p?.title) new maplibregl.Popup({ closeButton: false }).setLngLat([p.lon, p.lat]).setText(p.title).addTo(m);
     };
-  }, [(pins ?? []).map((p) => `${p.lon},${p.lat},${p.tone ?? ""}`).join("|")]);
+    m.on("click", onClick);
+    return () => { m.off("click", onClick); };
+  }, [map.current]);
+  useEffect(() => () => {
+    const m = map.current;
+    (m?.getSource(PIN_SOURCE) as { setData?: (d: unknown) => void } | undefined)?.setData?.(EMPTY);
+  }, []);
 }
 
 /**
- * THE BOUNDARY MARKS (P15): DOM markers, so a ring stays finger-sized at any zoom and a label sits over it — the
- * prototype's `.mk` (a 44 px button, a 16 px ring, the label above). Rebuilt when any mark changes: a water has a few.
- * Each mark's element is made by `markElement` (`Map.web.tsx`: building DOM is the web variant's alone).
+ * THE BOUNDARY MARKS (P15): a 16 px ring (filled when open) and its label above it in a box, the prototype's `.mk`, now
+ * map layers. A tap within 22 px of a mark is the mark's. EACH LABEL KEPT INSIDE THE MAP (the prototype's `--dx`): the
+ * label's point is moved sideways by what would hang over an edge, measured where the camera SETTLES (`moveend`), never
+ * per frame.
  */
 export function useMarks({ map }: WebMapRefs, marks: MapProps["marks"], onPressMark: MapProps["onPressMark"],
-                         furniture: Furniture,
-                         markElement: (k: MapMark, c: { ink: string; card: string }, press: () => void) => HTMLElement) {
-  const marked = useRef<maplibregl.Marker[]>([]);
+                         furniture: Furniture) {
   const pressMark = useRef(onPressMark);
   pressMark.current = onPressMark;
+  const key = JSON.stringify(marks ?? []);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
-    for (const mk of marked.current) mk.remove();
-    marked.current = (marks ?? []).map((k, i) =>
-      new maplibregl.Marker({ element: markElement(k, furniture, () => pressMark.current?.(i)) })
-        .setLngLat([k.lon, k.lat]).addTo(m));
-    // KEEP EACH LABEL INSIDE THE MAP (the prototype's `--dx`): shifted sideways by what would hang over an edge
-    const inside = () => {
-      const w = m.getContainer().clientWidth;
-      for (const mk of marked.current) {
-        const span = mk.getElement().querySelector("span");
-        if (span) span.style.transform = `translateX(calc(-50% + ${labelShift(m.project(mk.getLngLat()).x, w)}px))`;
-      }
+    const ms = marks ?? [];
+    let alive = true;
+    let last = "";
+    const place = () => {
+      if (!alive) return;
+      void shiftedLabels(ms, m.getContainer().clientWidth,
+                         (lon, lat) => { const p = m.project({ lng: lon, lat }); return [p.x, p.y]; },
+                         (x, y) => { const l = m.unproject([x, y]); return [l.lng, l.lat]; })
+        .then((at) => {
+          const data = marksData(ms, at);
+          const sig = JSON.stringify(at);
+          if (!alive || sig === last) return;
+          last = sig;
+          (m.getSource(MARK_SOURCE) as { setData?: (d: unknown) => void } | undefined)?.setData?.(data);
+        });
     };
-    inside();
-    m.on("move", inside);
+    const undo = afterLoad(m, () => {
+      if (!alive || (!ms.length && !m.getLayer(MARK_RING))) return;
+      if (m.hasImage(MARK_BOX_IMAGE)) m.removeImage(MARK_BOX_IMAGE);
+      const g = markBoxImage(furniture.card, furniture.ink);
+      m.addImage(MARK_BOX_IMAGE, g as unknown as ImageData,
+                 { pixelRatio: g.pixelRatio, stretchX: g.stretchX, stretchY: g.stretchY, content: g.content });
+      put(m, MARK_SOURCE, marksData(ms), marksLayers(furniture, MARK_BOX_IMAGE));
+      place();
+    });
+    if (ms.some((k) => k.label)) m.on("moveend", place);
+    const onClick = (e: maplibregl.MapMouseEvent) => {
+      const i = hitMark(m, e.point.x, e.point.y);
+      if (i !== null) pressMark.current?.(i);
+    };
+    m.on("click", onClick);
     return () => {
-      m.off("move", inside);
-      for (const mk of marked.current) mk.remove();
-      marked.current = [];
+      alive = false;
+      undo();
+      m.off("moveend", place);
+      m.off("click", onClick);
+      (m.getSource(MARK_SOURCE) as { setData?: (d: unknown) => void } | undefined)?.setData?.(EMPTY);
     };
-  }, [JSON.stringify(marks ?? []), furniture.ink, furniture.card]);
+  }, [key, furniture.ink, furniture.card, map.current]);
 }

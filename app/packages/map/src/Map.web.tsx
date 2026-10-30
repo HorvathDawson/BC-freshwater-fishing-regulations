@@ -9,7 +9,7 @@
  *
  * ONE HOOK PER CONCERN, in `web/` (T62): the map itself (`useMapInstance`), the basemap labels confined to BC
  * (`outsideMask`), the look and pushed data (`useLook`), what the reader does (`useInput`), the DOM markers
- * (`markers`), the highlight (`useHighlight`), the spots (`useSpots`), the colouring channels (`useChannels`), the fit
+ * (`markers`: map layers since T317), the highlight (`useHighlight`), the spots (`useSpots`), the colouring channels (`useChannels`), the fit
  * (`useFit`), the gauges and the route overlay (`useOverlays`), the water copy (`useWaterCopy`) and the visible set
  * (`useVisible`). They are CALLED IN THIS ORDER ON PURPOSE: React runs effects in the order they are declared, and the
  * map has to exist (`useMapInstance`) before anything that writes to it.
@@ -23,13 +23,12 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./controls.css";
 import { ESRI_BADGE, mapChrome } from "./chrome";
 import { setReducedMotion } from "./motion";
-import type { MapMark, MapProps } from "./map-props";
-import { MARK_LABEL_FONT } from "./marks";
+import type { MapProps } from "./map-props";
 import { useMapInstance } from "./web/useMapInstance";
 import { useLabelsInBC, useOutsideMask } from "./web/outsideMask";
 import { useLook, usePushedData } from "./web/useLook";
 import { useLongPress, useMapPoint, useMoved, usePressFeature } from "./web/useInput";
-import { useMarker, useMarks, usePins } from "./web/markers";
+import { useMarks, usePins } from "./web/markers";
 import { useHighlight } from "./web/useHighlight";
 import { useSpots } from "./web/useSpots";
 import { useChannels } from "./web/useChannels";
@@ -70,11 +69,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useMoved(refs, onMoved);
   useLongPress(refs, onLongPress, at);
   useMapPoint(refs, onMapPoint);
-  useMarker(refs, marker, furniture);
   useMe(refs, me, theme);
-  usePins(refs, pins, furniture);
+  usePins(refs, marker, pins, furniture);
   const lit = useHighlight(refs, { highlight, water, selection });
-  useMarks(refs, marks, onPressMark, furniture, markElement);
+  useMarks(refs, marks, onPressMark, furniture);
   const spotLayer = useSpots(refs, spots, at);
   useChannels(refs, lit, { at, theme, data, status, standing, lakes, salmon, method, runs });
   const traceBox = useFit(refs, fit, highlight);
@@ -114,6 +112,14 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   return <>
     <div ref={refs.host} style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />
     {spotLayer}
+    {/* (T317) the boundary marks are map layers now; their buttons stay, for the keyboard and a screen reader only —
+        out of sight and never moved with the map (a tap on the map is the layer's: `useMarks`) */}
+    {marks?.length ? (
+      <div data-marks-a11y="" style={SR_ONLY}>
+        {marks.map((k, i) => (
+          <button key={i} type="button" aria-label={k.a11y} data-mark={k.on ? "on" : ""}
+                  onClick={() => onPressMark?.(i)}>{k.label ?? ""}</button>))}
+      </div>) : null}
     {/* (T275) Esri's required credit, visible while its imagery is drawn (the full text is in the attribution's (i)) */}
     {!bare && basemap === "satellite" && (
       <div data-testid="esri-badge" style={{ position: "absolute", left: 8, bottom: 8 + insetBottom,
@@ -123,34 +129,6 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   </>;
 }
 
-/**
- * One boundary mark's element: a 44 px button holding a 16 px ring (filled when open), its label above it. The ROOT
- * is a bare wrapper GL JS owns: `.maplibregl-marker{position:absolute;top:0;left:0}` places it and a translate moves
- * it. Nothing inline may set its `position` — an inline `relative` beat the class and stacked the marks in normal
- * flow, each drawn 44 px × its index below its point (P15 review). The button inside is the label's containing block.
- */
-function markElement(k: MapMark, c: { ink: string; card: string }, press: () => void): HTMLElement {
-  const root = document.createElement("div");
-  const b = document.createElement("button");
-  root.appendChild(b);
-  b.type = "button";
-  b.setAttribute("aria-label", k.a11y);
-  b.setAttribute("data-mark", k.on ? "on" : "");
-  b.style.cssText = "width:44px;height:44px;padding:0;border:0;background:transparent;display:flex;"
-    + "align-items:center;justify-content:center;cursor:pointer;position:relative";
-  const ring = document.createElement("i");
-  ring.style.cssText = `width:16px;height:16px;border-radius:50%;box-sizing:border-box;border:3px solid ${c.ink};`
-    + `background:${k.on ? c.ink : c.card}`;
-  b.appendChild(ring);
-  if (k.label) {
-    const t = document.createElement("span");
-    t.textContent = k.label;
-    t.style.cssText = "position:absolute;bottom:38px;left:50%;transform:translateX(-50%);max-width:180px;"
-      + `width:max-content;padding:3px 7px;background:${c.card};color:${c.ink};border:1.5px solid ${c.ink};`
-      // (T151) normal weight: a mark's words name a place, they are not an emphasis competing with the water's colours
-      + `font:${MARK_LABEL_FONT.web};white-space:normal;pointer-events:none`;
-    b.appendChild(t);
-  }
-  b.addEventListener("click", (e) => { e.stopPropagation(); press(); });
-  return root;
-}
+/** Out of sight, still read and focused (the usual visually-hidden recipe). */
+const SR_ONLY = { position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden",
+                  clip: "rect(0 0 0 0)", whiteSpace: "nowrap", border: 0 } as const;
