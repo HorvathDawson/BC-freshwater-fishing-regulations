@@ -13,7 +13,7 @@ export function ParkingBlock({ palette, parking, editable, notice, onHere, onPic
   return (
     <Block palette={palette} title={W.parking}>
       <View testID="spot-parking" style={{ gap: 10 }}>
-        <Text style={{ ...TYPE.body, color: parking ? palette.ink : palette.faint }}>
+        <Text selectable style={{ ...TYPE.body, color: parking ? palette.ink : palette.faint }}>
           {parking ? `${parking.lat.toFixed(5)}, ${parking.lon.toFixed(5)}` : W.noParking}
         </Text>
         {notice && <Text style={{ ...TYPE.small, color: palette.sub }}>{notice}</Text>}

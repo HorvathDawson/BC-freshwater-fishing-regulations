@@ -181,7 +181,7 @@ export function SpotScreen(p: SpotScreenProps) {
                             textAlignVertical: "top", borderWidth: 1,
                             borderColor: palette.line, borderRadius: palette.r.box, padding: 12 }} />
       ) : spot.notes.trim() !== "" ? (
-        <Text style={{ ...TYPE.body, color: palette.ink }}>{spot.notes}</Text>
+        <Text selectable style={{ ...TYPE.body, color: palette.ink }}>{spot.notes}</Text>
       ) : (
         <Text style={{ ...TYPE.small, color: palette.faint }}>{W.noNotes}</Text>
       )}

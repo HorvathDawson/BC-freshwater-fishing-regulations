@@ -1,6 +1,6 @@
 # T309 — Region salmon rules readable (not walls of text); text in the app can be copied
 
-Status: PARTIAL (cbbd809d4; region rules done, selectable text on the salmon card only, phone long-press copy + the other texts not yet) (owner 2026-10-31: "improve the way the region salmon regs show up right now they are walls of text. Also we
+Status: DONE (cbbd809d4, 69e5ab5 selectable text; phone long-press copy to be checked on the next APK) (owner 2026-10-31: "improve the way the region salmon regs show up right now they are walls of text. Also we
 want to make it so we can copy text on the app").
 
 ## Work
@@ -21,3 +21,5 @@ Depends: none. Size: M. Owner: no.
 - Selectable (`selectable`) on the salmon card's rows, notes, sizes, partial line. NOT yet: glossary, water names, gauge numbers, coordinates, spot notes (spots lane is separate) - leftover.
 - Shots: ../T309-shots/before-/after-salmon-region-{phone,desktop}.png (+ wording-open). Long-press copy needs a phone check (no APK).
 - Owner bug, legend vs the attribution: the Runs map's key sat at the same corner as the attribution (bottom + 10); it now starts above the attribution and scale (CORNER_CLEAR). Trout, Salmon, Conditions, satellite were already clear (insetBottom). Shots before-/after-{runs,...}-{phone,narrow,desktop}.png (satellite shots show the Layers sheet; Esri badge clear in T275-shots).
+
+- Selectable text finished: rule/line text (LineText, so every rule line and its glossary terms), glossary definitions, water names (WaterFrame), the spot Record (gauge numbers, readings), parking coordinates, visit detail, spot notes. Buttons and links are not selectable.

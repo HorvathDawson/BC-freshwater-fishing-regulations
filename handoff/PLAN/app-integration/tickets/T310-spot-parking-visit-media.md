@@ -1,6 +1,6 @@
 # T310 — Spots: a parking spot; notes and photos belong to visits
 
-Status: IN REVIEW (owner 2026-10-31: "for spots it would be nice to have the option to add a parking spot to it. Also the pictures
+Status: PARTIAL (in review, phone shots pending; owner 2026-10-31: "for spots it would be nice to have the option to add a parking spot to it. Also the pictures
 and text should instead be linked to the visits not to the spot overall").
 
 ## Work

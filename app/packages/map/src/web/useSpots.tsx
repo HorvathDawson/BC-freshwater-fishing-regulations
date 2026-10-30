@@ -24,16 +24,21 @@ export function useSpots({ map, renderer }: WebMapRefs, spots: MapProps["spots"]
   useEffect(() => {
     const m = map.current;
     if (!m) return;
+    // (T312) the clusters depend on the points, the selection and the zoom only: a pan moves the pins, never regroups them.
+    // `regroup` (clusters, signature, state) runs on data change and on zoom; `place` (a transform per pin) on every move.
+    let marks: readonly SpotMarker[] = [];
+    const place = () => { for (const mk of marks) { const el = spotBoxes.current.get(mk.key); if (el) placeSpot(el, mk); } };
     const regroup = () => {
       const s = spotsNow.current;
-      const next = s ? spotMarkers(s.points, m.getZoom(), s.selected) : [];
-      const sig = JSON.stringify(next);
-      if (sig !== spotSig.current) { spotSig.current = sig; setSpotMarks(next); }
-      for (const mk of next) { const el = spotBoxes.current.get(mk.key); if (el) placeSpot(el, mk); }
+      marks = s ? spotMarkers(s.points, m.getZoom(), s.selected) : [];
+      const sig = JSON.stringify(marks);
+      if (sig !== spotSig.current) { spotSig.current = sig; setSpotMarks(marks); }
+      place();
     };
     regroup();
-    m.on("move", regroup);
-    return () => { m.off("move", regroup); };
+    m.on("move", place);
+    m.on("zoomend", regroup);
+    return () => { m.off("move", place); m.off("zoomend", regroup); };
   }, [spotKey, at.atlas, at.basemap, at.glyphs, at.sprite, at.assets]);
   return spots && spotMarks.length ? (
     <div data-spots="" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>

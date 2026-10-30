@@ -60,7 +60,7 @@ export function RateBlock({ view, palette, onRate }: {
           <Text testID="visit-rate-word" style={{ ...TYPE.bodyStrong, color: view.value === null ? palette.faint : palette.ink,
                                                   paddingLeft: 8 }}>{view.word}</Text>
         </View>
-        <Text style={{ ...TYPE.small, color: palette.sub }}>{view.detail}</Text>
+        <Text selectable style={{ ...TYPE.small, color: palette.sub }}>{view.detail}</Text>
       </Block>
     </View>
   );

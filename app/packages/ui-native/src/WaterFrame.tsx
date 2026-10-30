@@ -120,13 +120,13 @@ export function WaterTitle({ name, palette, source = null, children }: {
                    flexDirection: "row", alignItems: "center" }}>
       {source && name ? (
         <View style={{ flex: 1 }}>
-          <Text accessibilityRole="header" numberOfLines={lines} maxFontSizeMultiplier={CAPPED_SCALE}
+          <Text selectable accessibilityRole="header" numberOfLines={lines} maxFontSizeMultiplier={CAPPED_SCALE}
                 style={[TYPE.headerName, { color: palette.ink }]}>{name}</Text>
           <Text testID="water-name-source" maxFontSizeMultiplier={CAPPED_SCALE}
                 style={[TYPE.meta, { color: palette.sub }]}>{WATER_NAME_SOURCE(source)}</Text>
         </View>
       ) : (
-        <Text accessibilityRole={name ? "header" : undefined} numberOfLines={lines} maxFontSizeMultiplier={CAPPED_SCALE}
+        <Text selectable accessibilityRole={name ? "header" : undefined} numberOfLines={lines} maxFontSizeMultiplier={CAPPED_SCALE}
               style={[TYPE.headerName, { flex: 1, color: palette.ink }]}>{name ?? ""}</Text>
       )}
       {children}

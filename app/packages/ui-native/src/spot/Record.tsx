@@ -34,11 +34,11 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
         re-forecast the past.
       */}
       {gauges === "pending" ? (
-        <Text testID="spot-gauges-pending" style={{ ...TYPE.small, color: palette.sub }}>
+        <Text selectable testID="spot-gauges-pending" style={{ ...TYPE.small, color: palette.sub }}>
           {DAY_PANEL_WORDS.pending(visitDay(spot))}
         </Text>
       ) : gauges === "flow" ? (
-        <Text testID="spot-gauges-flow" style={{ ...TYPE.small, color: palette.sub }}>
+        <Text selectable testID="spot-gauges-flow" style={{ ...TYPE.small, color: palette.sub }}>
           {DAY_PANEL_WORDS.flowOnly}
         </Text>
       ) : spot.panel ? (
@@ -46,7 +46,7 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
           <DonorPanel palette={palette} value={spot.panel}
                       day={new Date(spot.visitedAt)} />
           {gauges === "day" ? (
-            <Text testID="spot-gauges-day" style={{ ...TYPE.small, color: palette.sub }}>
+            <Text selectable testID="spot-gauges-day" style={{ ...TYPE.small, color: palette.sub }}>
               {DAY_PANEL_WORDS.ofTheDay(visitDay(spot))}
             </Text>
           ) : r && <Meta palette={palette} at={r.at} backfilled={r.backfilled}
@@ -58,12 +58,12 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
         <>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8,
                          flexWrap: "wrap" }}>
-            <Text style={{ ...TYPE.figureBig, fontSize: 32, color: palette.live }}>
+            <Text selectable style={{ ...TYPE.figureBig, fontSize: 32, color: palette.live }}>
               {fig.figure}
             </Text>
-            <Text style={{ ...TYPE.figure, color: palette.sub }}>{fig.unit}</Text>
+            <Text selectable style={{ ...TYPE.figure, color: palette.sub }}>{fig.unit}</Text>
             {r.percentile != null && (
-              <Text style={{ ...TYPE.figure, color: palette.sub }}>
+              <Text selectable style={{ ...TYPE.figure, color: palette.sub }}>
                 {SPOT_RECORD_WORDS.standing(percentileOrdinal(r.percentile))}
               </Text>
             )}
@@ -71,7 +71,7 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
           <Meta palette={palette} at={r.at} backfilled={r.backfilled} station={r.station} />
         </>
       ) : (
-        <Text style={{ ...TYPE.small, color: palette.sub }}>
+        <Text selectable style={{ ...TYPE.small, color: palette.sub }}>
           {SPOT_RECORD_WORDS.noReading}
         </Text>
       )}
@@ -88,16 +88,16 @@ export function WeatherRecord({ spot, palette }: { spot: Spot; palette: Palette 
         <>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 12,
                          flexWrap: "wrap" }}>
-            <Text style={{ ...TYPE.figureBig, fontSize: 32, color: palette.ink }}>
+            <Text selectable style={{ ...TYPE.figureBig, fontSize: 32, color: palette.ink }}>
               {w.tempC}°C
             </Text>
             {w.windKph != null && (
-              <Text style={{ ...TYPE.figure, color: palette.sub }}>
+              <Text selectable style={{ ...TYPE.figure, color: palette.sub }}>
                 wind {Math.round(w.windKph)} km/h
               </Text>
             )}
             {w.rain3h != null && (
-              <Text style={{ ...TYPE.figure, color: palette.sub }}>
+              <Text selectable style={{ ...TYPE.figure, color: palette.sub }}>
                 rain {w.rain3h} mm
               </Text>
             )}
@@ -106,7 +106,7 @@ export function WeatherRecord({ spot, palette }: { spot: Spot; palette: Palette 
           <Meta palette={palette} at={w.at} backfilled={w.backfilled} />
         </>
       ) : (
-        <Text style={{ ...TYPE.small, color: palette.sub }}>
+        <Text selectable style={{ ...TYPE.small, color: palette.sub }}>
           {SPOT_RECORD_WORDS.noWeather}
         </Text>
       )}

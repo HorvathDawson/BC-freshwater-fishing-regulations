@@ -226,7 +226,7 @@ function TermRow({ r, first, palette, onTerm }: {
         {r.cite ? <Text accessibilityLabel={MENU_WORDS.glossary.pages(r.cite)}
                         style={{ ...TYPE.caption, color: palette.faint }}>{r.cite}</Text> : null}
       </View>
-      <Text numberOfLines={3} style={{ ...TYPE.body, color: palette.sub }}>
+      <Text selectable numberOfLines={3} style={{ ...TYPE.body, color: palette.sub }}>
         <Marked s={r.says} marks={r.saysMarks} palette={palette} />
       </Text>
     </Pressable>

@@ -25,3 +25,5 @@ Depends: T273, T280. Size: S–M. Owner: feel check on the phone.
   per mark). `useMe` sizes on `zoom` only. Fix not made here: `useSpots.tsx` is the spots lane's file (T307/T308).
 - Next: run `node app/tools/testbed/run.mjs pan` (T273 scenario) under scripts/heavy.sh for the before numbers, then try
   the native fling tuning and re-measure.
+
+- 2026-10-31: web `useSpots` now places pins on `move` and regroups (clusters + signature) only on data change and `zoomend`. Native fling tuning and the pan measurement wait for the emulator (owner: `sudo xcodebuild -runFirstLaunch` first).

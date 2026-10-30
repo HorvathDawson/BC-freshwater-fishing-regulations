@@ -49,7 +49,7 @@ export function LineText({ line, style, color, palette, actions, num = TYPE.nume
   inlineBig?: boolean;
 }) {
   return (
-    <Text style={[style, { color }]} testID={testID} numberOfLines={numberOfLines}>
+    <Text selectable style={[style, { color }]} testID={testID} numberOfLines={numberOfLines}>
       {line.map((r, i) => {
         switch (r.t) {
           case "text": return <Text key={i}>{r.s}</Text>;
