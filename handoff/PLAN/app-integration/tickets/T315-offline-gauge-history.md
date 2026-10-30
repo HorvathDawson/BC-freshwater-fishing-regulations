@@ -11,3 +11,5 @@ cache with an "as of <time>" note instead of an empty chart. Optionally prefetch
 chart still shows the measured line.
 
 Depends: T254, T256. Size: S–M. Owner: no.
+
+- Owner 2026-10-31 extension: store ALL gauges' observed values on the phone as each feed update arrives (a small delta per update), building a rolling on-device history (≥7 days) for every station — not only viewed ones — separate from the stored HYDAT history.
