@@ -6,7 +6,7 @@
  * in the water, `RunTimingFacts.season`). Every word is core's (`RUN_WORDS`); every colour a palette or map token.
  */
 import { MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, TAB_TOUR_WORDS, pentadLabel, sliderKey, type RunSpecies } from "@app/core";
-import { runStateColour } from "@app/map";
+import { runStateColour } from "@app/map/colours";
 import { useMemo, useRef, useState } from "react";
 import { Image, PanResponder, Pressable, ScrollView, Text, View } from "react-native";
 import { useCoachTarget } from "./CoachMarks";

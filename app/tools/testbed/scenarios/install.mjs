@@ -76,7 +76,8 @@ export const install = {
       // with the timed decodes (`[work]`) and set-up lines between them — kept beside the report
       let finish = '';
       try {
-        const js = ctx.device.logcatJs().split('\n');
+        // filtered by logcat itself: the whole JS log (the pan probe's line a second) outgrows execSync's buffer
+        const js = ctx.device.adb(['logcat', '-d', '-s', 'ReactNativeJS:*', '-e', '\\[(stall|work|setup|swap)\\]']).toString().split('\n');
         const from = js.findIndex((l) => /\[setup\] installed/.test(l));
         if (from >= 0) {
           const tail = js.slice(from).filter((l) => /\[(stall|work|setup|swap)\]/.test(l));
@@ -84,7 +85,7 @@ export const install = {
           const ms = tail.map((l) => /\[stall\] (\{.*\})/.exec(l)).filter(Boolean).map((m) => JSON.parse(m[1]).ms);
           finish = ` · install finish → map: ${ms.length} stalls >50 ms${ms.length ? ` (worst ${Math.max(...ms)} ms: ${ms.sort((a, b) => b - a).slice(0, 5).join(', ')})` : ''}`;
         }
-      } catch { /* no log */ }
+      } catch (e) { finish = ` · install finish: no log (${String(e?.message ?? e).slice(0, 60)})`; }
       ctx.flow('dismiss-first-run');
       const mb = (kb) => `${Math.round(kb / 1024)} MB`;
       return `downloaded and up in ${took} s after launch${relaunched ? ` — the app died ${relaunched}× and was relaunched (resumed)` : ''}${killed ? ` — killed at ${killed} and resumed` : ''}` +

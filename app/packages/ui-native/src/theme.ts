@@ -1,4 +1,4 @@
-import { colour, tempBandColour, translucent, waterStatusColour, STYLE_META } from "@app/map";
+import { colour, tempBandColour, translucent, waterStatusColour, STYLE_META } from "@app/map/colours";
 import { TEMP_BANDS, WATER_STATUSES, type TempBand, type WaterStatus } from "@app/core";
 /**
  * The palette the phone components paint with.

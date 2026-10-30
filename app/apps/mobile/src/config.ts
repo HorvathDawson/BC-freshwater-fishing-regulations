@@ -14,7 +14,7 @@
  */
 import { Platform } from "react-native";
 import { resolveAppVersion, versionLine, type AppEnv } from "@app/core";
-import { imageryTiles } from "@app/map";
+import { imageryTiles } from "@app/map/colours";
 import { crashUrlFor, endpointsFor, reportUrlFor, resolveChannel, resolveEnv } from "./env";
 import { channelStore, envStore, restart } from "./envStore";
 

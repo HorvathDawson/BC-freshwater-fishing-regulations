@@ -8,7 +8,7 @@
  */
 import type { RunCountsVM, RunRowVM, RunSheetVM } from "@app/core";
 import { MONTH_PENTADS, RUN_WORDS } from "@app/core";
-import { runStateColour } from "@app/map";
+import { runStateColour } from "@app/map/colours";
 import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { Sheet } from "./Sheet";

@@ -10,7 +10,8 @@ import { useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, la
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
          useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type RunSpeciesStore,
          type StatusSource } from "@app/ui";
-import { FIELD_HANDOVER_Z, type Camera, type TileEndpoints, imageryTiles } from "@app/map";
+import type { Camera, TileEndpoints } from "@app/map";
+import { FIELD_HANDOVER_Z, imageryTiles } from "@app/map/colours";
 import { connectivity } from "../connectivity";
 import { imageryProbe } from "../imageryProbe";
 

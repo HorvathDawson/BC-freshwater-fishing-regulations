@@ -60,12 +60,17 @@ export function declarations(src: string): Decl[] {
   const head = /^(?:export\s+)?(?:default\s+)?(?:declare\s+)?(?:async\s+)?(function|const|let|var|class|interface|type|enum)\s+(\w+)/gm;
   const at: { i: number; kw: string; name: string }[] = [];
   for (const m of src.matchAll(head)) at.push({ i: m.index!, kw: m[1]!, name: m[2]! });
-  return at.map((d, k) => ({
-    name: d.name,
-    kind: d.kw === "interface" || d.kw === "type" ? "type"
-      : /^[A-Z]/.test(d.name) && d.kw !== "enum" ? "component" : "other",
-    src: src.slice(d.i, k + 1 < at.length ? at[k + 1]!.i : src.length),
-  }));
+  return at.map((d, k) => {
+    const body = src.slice(d.i, k + 1 < at.length ? at[k + 1]!.i : src.length);
+    return {
+      name: d.name,
+      // (T282) `const X = part(() => import(...))` names a component loaded later: the component itself is scanned in
+      // its own file, the alias draws nothing of its own
+      kind: d.kw === "interface" || d.kw === "type" ? "type"
+        : /^[A-Z]/.test(d.name) && d.kw !== "enum" && !/^const\s+\w+\s*=\s*part\(/.test(body) ? "component" : "other",
+      src: body,
+    };
+  });
 }
 
 /** The names that mean a component can be closed or stepped back out of. */

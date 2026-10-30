@@ -7,6 +7,7 @@
  * page's own query — part, view — kept), and knows that water's slug from then on (`waterSlugs.ts`).
  */
 import { parseStartLink, setRegsFirstStart, WATER_PATH, type StartLink } from "@app/ui";
+import { preloadParts } from "@app/ui-native";
 import { slugSeen } from "./waterSlugs";
 
 function search(): string {
@@ -25,6 +26,9 @@ export function startLink(): StartLink | null {
     const link = parseStartLink(search());
     // (T256) a start on a Regulations page draws it before the map's paint
     setRegsFirstStart(link?.route.mode === "water");
+    // (T282) the map's code is in the later chunk (`@app/ui-native` later.ts): any start but a water's own page asks for
+    // it now, beside the release's first files; a water's page is handed to the app without it (fetched once idle)
+    if (link?.route.mode !== "water") void preloadParts();
     return link;
   }
   catch (e) { console.error(e instanceof Error ? e.message : String(e)); return null; }

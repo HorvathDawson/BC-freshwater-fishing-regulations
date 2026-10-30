@@ -7,7 +7,7 @@
  */
 import { Platform, Text, View } from "react-native";
 import { HELP_WORDS, TAB_TOUR_WORDS, WALKTHROUGH_WORDS, helpRowAloud, helpVM, type HelpRow, type HelpSwatch } from "@app/core";
-import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour, tidalColours } from "@app/map";
+import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour, tidalColours } from "@app/map/colours";
 import { Button } from "../Button";
 import { DottedSwatch } from "../Chrome";
 import { BellGlyph, SyncGlyph } from "../TopBar";

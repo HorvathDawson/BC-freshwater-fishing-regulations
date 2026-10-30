@@ -12,9 +12,9 @@ import type { ReleaseLoader } from "@app/data/release";
 import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
          type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
-import { hiddenLayers, shownLayers, type Camera, type MapSpots, type TileEndpoints } from "@app/map";
+import type { Camera, MapSpots, TileEndpoints } from "@app/map";
+import { hiddenLayers, shownLayers } from "@app/map/colours";
 import { MapDayStrip } from "../DayCalendar";
-import { MapScreen } from "../MapScreen";
 import { TABS } from "../TabBar";
 import type { MenuInfo } from "../menu/MenuHost";
 import type { Palette, ThemeName } from "../theme";
@@ -27,6 +27,7 @@ import type { ShellSearch } from "./useShellSearch";
 import { part } from "../part";
 
 // (T282) loaded later on the web (`part`): not on the first screen's path
+const MapScreen = part(() => import("../later").then((m) => m.MapScreen));
 const SpotsScreen = part(() => import("../later").then((m) => m.SpotsScreen));
 const MoreScreen = part(() => import("../later").then((m) => m.MoreScreen));
 

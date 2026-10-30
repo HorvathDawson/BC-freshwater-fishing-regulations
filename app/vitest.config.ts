@@ -53,6 +53,7 @@ const alias = [
   { find: "@app/data/regs", replacement: pkg("data", "src/regs/index.ts") },
   { find: "@app/data", replacement: pkg("data") },
   { find: "@app/ui", replacement: pkg("ui") },
+  { find: "@app/map/colours", replacement: pkg("map", "src/colours.ts") },
   { find: "@app/map", replacement: pkg("map") },
   { find: "@app/ui-native", replacement: pkg("ui-native") },
 ];

@@ -10,7 +10,7 @@ import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, TEMP_LEGEND, unprovenLine,
          WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND,
          RUN_WORDS, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
-import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map";
+import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map/colours";
 import { ObstacleIcon } from "../icons";
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
