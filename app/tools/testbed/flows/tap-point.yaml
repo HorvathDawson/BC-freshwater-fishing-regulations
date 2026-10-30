@@ -1,0 +1,5 @@
+# Tap a point on screen, as percentages ("50%,50%": the middle) — the map itself, where no element names the water.
+appId: ca.canifishthis.app
+---
+- tapOn: { point: "${POINT}" }
+- waitForAnimationToEnd: { timeout: 3000 }

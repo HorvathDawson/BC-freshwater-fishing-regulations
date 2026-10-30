@@ -1,0 +1,5 @@
+# (T313) iOS has no system Back: the app's own edge-back (EdgeBack.tsx), a drag in from the left edge.
+appId: ca.canifishthis.app
+---
+- swipe: { start: "1%, 50%", end: "75%, 50%", duration: 400 }
+- waitForAnimationToEnd: { timeout: 3000 }

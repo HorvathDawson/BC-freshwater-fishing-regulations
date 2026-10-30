@@ -1,0 +1,4 @@
+# (T313) an iOS system alert's button (notifications / location prompts are SpringBoard's, not the app's): BUTTON, a regex.
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "${BUTTON}", optional: true }

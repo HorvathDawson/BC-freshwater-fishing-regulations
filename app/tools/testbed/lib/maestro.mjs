@@ -4,7 +4,11 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { serial } from './device.mjs';
+import { serial as androidSerial } from './device.mjs';
+import { udid } from './device-ios.mjs';
+
+// (T313) the iOS simulator target: TESTBED_PLATFORM=ios (session-ios.sh) — the same flows on the booted simulator
+const serial = () => (process.env.TESTBED_PLATFORM === 'ios' ? udid() : androidSerial());
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 export const FLOWS = path.join(HERE, '..', 'flows');

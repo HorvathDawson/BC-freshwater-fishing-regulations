@@ -20,6 +20,9 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to pin a spot where you are standing. It stays on this device.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false,
           "isAndroidBackgroundLocationEnabled": false
         }
       ],
