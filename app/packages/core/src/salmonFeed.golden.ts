@@ -165,6 +165,37 @@ export const SALMON_FEED_GOLDEN = {
       "t": "Reminder: There is no fishing for eulachon in Region 6."
      }
     ],
+    "bucket": {
+     "node": "tier",
+     "tier": "total",
+     "n": 4,
+     "says": "Up to 4 salmon a day in total",
+     "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply.",
+     "ids": [
+      "6:daily:3edbbbb8",
+      "6:possession:0483d6ff"
+     ],
+     "possession": 8,
+     "tp": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence.",
+     "min_cm": {
+      "CO": 25,
+      "CH": 30,
+      "SK": 30,
+      "PK": 30,
+      "CM": 30
+     },
+     "per": [
+      {
+       "k": "annual",
+       "sp": [
+        "CH"
+       ],
+       "over_cm": 50,
+       "n": 10,
+       "t": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined."
+      }
+     ]
+    },
     "unresolved": [
      {
       "note": "6:adult:a721861e",
@@ -185,7 +216,10 @@ export const SALMON_FEED_GOLDEN = {
    },
    {
     "s": "open",
-    "t": "4 per day (Apr 1\u2013Mar 31)"
+    "t": "4 per day (Apr 1\u2013Mar 31)",
+    "q": {
+     "d": 4
+    }
    },
    {
     "s": "closed",
@@ -193,7 +227,16 @@ export const SALMON_FEED_GOLDEN = {
    },
    {
     "s": "open",
-    "t": "4 per day, only 2 over 50 cm (Jul 15\u2013Aug 23)"
+    "t": "4 per day, only 2 over 50 cm (Jul 15\u2013Aug 23)",
+    "q": {
+     "d": 4,
+     "o": [
+      [
+       50,
+       2
+      ]
+     ]
+    }
    }
   ],
   "gears": [
@@ -496,7 +539,10 @@ export const SALMON_FEED_GOLDEN = {
    },
    {
     "s": "open",
-    "t": "4 per day (Apr 1\u2013Mar 31)"
+    "t": "4 per day (Apr 1\u2013Mar 31)",
+    "q": {
+     "d": 4
+    }
    },
    {
     "s": "closed",
@@ -504,7 +550,16 @@ export const SALMON_FEED_GOLDEN = {
    },
    {
     "s": "open",
-    "t": "4 per day, only 2 over 50 cm (Aug 1\u2013Sep 15)"
+    "t": "4 per day, only 2 over 50 cm (Aug 1\u2013Sep 15)",
+    "q": {
+     "d": 4,
+     "o": [
+      [
+       50,
+       2
+      ]
+     ]
+    }
    }
   ],
   "gears": [

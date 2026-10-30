@@ -8,7 +8,7 @@
 import { readDates } from "./dates";
 import { getCloseMatches } from "./difflib";
 import { PyFloat } from "./pyjson";
-import { capitalize, floatRepr, fullmatch, PyError, pyInt, pyRe, repr, rstrip, search, split, splitWs, strip, sub, translate } from "./py";
+import { capitalize, findall, floatRepr, fullmatch, PyError, pyInt, pyRe, repr, rstrip, search, split, splitWs, strip, sub, translate } from "./py";
 
 // ── the calendar (pipeline.common.calendar_spec) ─────────────────────────────────────────────────────────────────────
 export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -211,25 +211,39 @@ const SPECIES: Record<string, string[]> = {
 const SALMON_CODES = new Set(["SA", "CH", "CO", "SK", "PK", "CM"]);
 export const OTHER_FISH = "another fish, not salmon: ";
 const RE_NO_FISHING_FOR = pyRe("\\bno\\s+fishing\\s+for\\s+([a-z]+)\\b", "i");
-const RE_ONLY_OVER = pyRe("only\\s+(\\d+)\\s+(?:of\\s+which\\s+may\\s+be\\s+)?(?:over|greater\\s+than|more\\s+than)\\s+(\\d+)\\s*cm", "i");
+// (T320) a count in digits or words ("only two over 50 cm", archived pages)
+const NUM = "(\\d+|one|two|three|four|five|six)";
+const NUM_WORDS: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+const num = (s: string): number => NUM_WORDS[s.toLowerCase()] ?? pyInt(s);
+const RE_ONLY_OVER = pyRe("only\\s+" + NUM + "\\s+(?:of\\s+which\\s+may\\s+be\\s+)?(?:over|greater\\s+than|more\\s+than)\\s+(\\d+)\\s*cm", "i");
+/** (T320) "Daily limit of 4 of which 1 may be over 65 cm" — the count after "of which" */
+const RE_OF_WHICH_N = pyRe("of\\s+which\\s+(\\d+)\\s+may\\s+be\\s+(?:over|more\\s+than|greater\\s+than)\\s+(\\d+)\\s*cm", "i");
+/** (T320) "2 per day, 1 of which can be unmarked — FN1013": a wild allowance inside the count (`origin: wild`) */
+const RE_UNMARKED = pyRe("(\\d+)\\s+of\\s+which\\s+(?:can|may)\\s+be\\s+unmarked", "i");
+/** (T320) "Monthly Quota = 1 over 65 cm." — a monthly sub-limit (`period: monthly`) */
+const RE_MONTHLY = pyRe("monthly\\s+(?:quota|limit)\\s*(?:=|of|is)?\\s*(\\d+)\\s+over\\s+(\\d+)\\s*cm", "i");
+/** (T320) "Daily limit of 4 …" */
+const RE_DAILY_OF = pyRe("\\bdaily\\s+limit\\s+of\\s+(\\d+)\\b", "i");
 const RE_WHICH_MAY = pyRe("(\\d+)\\s+of\\s+which\\s+may\\s+be\\s+(?:more\\s+than|greater\\s+than|over)\\s+(\\d+)\\s*cm", "i");
 const RE_NONE_OVER = pyRe("none\\s+over\\s+(\\d+)\\s*cm", "i");
 const RE_MAX_SIZE = pyRe("(?:maximum\\s+size\\s+(\\d+)\\s*cm|(\\d+)\\s*cm\\s+or\\s+less)", "i");
 const RE_TIMES = pyRe("from\\s+(\\d{1,2}:\\d{2})\\s*h?\\s+(?:until|to)\\s+(\\d{1,2}:\\d{2})\\s*h?", "i");
-const RE_GAP = pyRe("less\\s+than\\s+(\\d+)\\s*mm\\s+from\\s+point\\s+to\\s+shank", "i");
+const RE_GAP = pyRe("less\\s+than\\s+(\\d+)\\s*mm(?:\\s+from\\s+point\\s+to\\s+shank)?", "i");
 const RE_FLY = pyRe("fly[- ]fishing\\s+only", "i");
 const RE_FN = pyRe("\\bFN\\s*(\\d{3,4})\\b", "i");
 const RE_TBD = pyRe("to\\s+be\\s+determined", "i");
 const QUALIFIER = "(?:(?:hatchery[- ]marked|only|chinook|coho|sockeye|pink|chum|salmon)\\s+)*";
 const RE_DAILY = pyRe(`\\b(\\d+)\\s+${QUALIFIER}per\\s+day\\b`, "i");
-const RE_NO_FISHING = pyRe("\\bno\\s+fish(?:ing|inf)\\b|\\bfinfish\\s+closure\\b", "i");
+const RE_NO_FISHING = pyRe("\\bno\\s+fish(?:ing|inf)\\b|\\bfinfish\\s+closure\\b|\\bclosed\\s+to\\s+fishing\\b|\\bno\\s+angling\\b", "i");
 const RE_NON_RETENTION = pyRe("\\bnon[- ]retention\\b|\\bno\\s+retention\\s+of\\b|\\bcatch\\s+and\\s+release\\b", "i");
 const RE_HATCHERY = pyRe("hatchery[- ]marked", "i");
-const RE_BAIT_BAN = pyRe("\\bbait\\s+ban\\b|\\bno\\s+natural\\s+bait\\b", "i");
+const RE_BAIT_BAN = pyRe("\\bbait\\s+ban\\b|\\bno\\s+natural\\s+bait\\b|\\bnatural\\s+bait\\s+not\\s+allowed\\b", "i");
+/** (T320) "Natural bait allowed — FN1038": a permission no rule type states */
+const RE_BAIT_ALLOWED = pyRe("\\bnatural\\s+bait\\s+allowed\\b", "i");
 const RE_BARBLESS = pyRe("\\bsingle,?\\s+barbless\\s+hook\\b", "i");
 const RE_OPEN_ENDED = pyRe("\\buntil\\s+fu\\w*\\s+notice\\b", "i");
 const RE_QUOTA_SPAN = pyRe("\\b\\d+\\s+(?:hatchery[- ]marked\\s+)?per\\s+day", "i");
-const RE_BAIT_SPAN = pyRe("no\\s+natural\\s+bait[\\w\\s]*|bait\\s+ban", "i");
+const RE_BAIT_SPAN = pyRe("no\\s+natural\\s+bait[\\w\\s]*|bait\\s+ban|natural\\s+bait\\s+not\\s+allowed", "i");
 const RE_HOOK_SPAN = pyRe("single,?\\s+barbless\\s+hook[\\w\\s,.]*", "i");
 
 interface Says {
@@ -243,7 +257,7 @@ interface Says {
 export function decode(limits: string): Says {
   const text = limits || "";
   let daily: number | null = null;
-  const m = search(RE_DAILY, text);
+  const m = search(RE_DAILY, text) ?? search(RE_DAILY_OF, text);
   if (m) daily = pyInt(m[1]!);
   else if (search(RE_NON_RETENTION, text) || search(RE_NO_FISHING, text)) daily = 0;
   return {
@@ -294,7 +308,38 @@ function interpretDates(text: string): { parsed: boolean; repaired: boolean } {
   return { parsed: firstPassParses(raw), repaired };
 }
 
-const speciesFor = (text: string): string[] => [...(SPECIES[strip(text || "").toLowerCase()] ?? [])];
+const RE_SPECIES_SEP = pyRe("\\s*(?:,|&|\\band\\b)\\s*");
+/** typed.species_for — (T320) a list the table does not spell ("Chinook, Sockeye, Pink, Chum") when every part names one */
+function speciesFor(text: string): string[] {
+  const key = strip(text || "").toLowerCase();
+  if (SPECIES[key]) return [...SPECIES[key]!];
+  const parts = split(RE_SPECIES_SEP, key).filter((x) => x);
+  if (parts.length > 1 && parts.every((x) => SPECIES[x] && x !== "all")) return parts.flatMap((x) => SPECIES[x]!);
+  return [];
+}
+
+// ── (T320) what a limits cell's numbers are: the residue no reading accounts for, and its named reason ──────────────
+const SPANS = [RE_DAILY, RE_DAILY_OF, RE_ONLY_OVER, RE_WHICH_MAY, RE_OF_WHICH_N, RE_UNMARKED, RE_MONTHLY, RE_NONE_OVER,
+               RE_MAX_SIZE, RE_TIMES, RE_GAP, RE_FN, pyRe("\\b(?:Region|Area)s?\\s+\\d+[A-Za-z]?\\b", "i")];
+const RE_DIGITS = pyRe("\\d+(?:\\.\\d+)?");
+/** quota.residue */
+export function residue(text: string): string[] {
+  let t = text || "";
+  for (const rx of SPANS) t = sub(rx, " ", t);
+  return findall(RE_DIGITS, t) as string[];
+}
+const REASONS: [ReturnType<typeof pyRe>, string][] = [
+  [pyRe("\\b(?:shall|must)\\s+be\\s+recorded\\b", "i"), "a recording rule (fish here count toward another water's quota)"],
+  [pyRe("\\bno\\s+fishing\\s+for\\s+\\w+\\s+(?:from|between|within)\\b", "i"), "a closure of part of the water inside the limits cell"],
+  [pyRe("\\d+\\s*cm\\s+or\\s+less\\s+and\\b", "i"), "a size band the reading does not model"],
+];
+/** quota.unread_reason: "" when every number in the cell is read, else the named reason */
+export function unreadReason(text: string): string {
+  const left = residue(text);
+  if (!left.length) return "";
+  for (const [rx, why] of REASONS) if (search(rx, text || "")) return `${why}: numbers not read: ${left.join(", ")}`;
+  return `limits text has numbers the scrape did not read: ${left.join(", ")}`;
+}
 const span = (hay: string, re: ReturnType<typeof pyRe>): string | null => {
   const m = search(re, hay || "");
   return m ? m[0] : null;
@@ -467,6 +512,7 @@ export interface TypedRule {
   take?: number;
   may_target?: boolean;
   origin?: string;
+  period?: string;
   review_reason?: string;
   lengths?: LengthBand[];
   within?: string;
@@ -582,18 +628,18 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
           origin: says.hatchery_marked_only ? "hatchery" : undefined,
           review_reason: zeroQuota
             ? "a bare '0 per day' says the quota is zero but not whether you may fish at all; published closed, confirm against the page"
-            : "",
+            : unreadReason(gear),
           verbatim: quoted || gear || rec.species || "row",
         },
         times,
       ),
     );
-    const sub = search(RE_ONLY_OVER, gear) ?? search(RE_WHICH_MAY, gear);
+    const sub = search(RE_ONLY_OVER, gear) ?? search(RE_WHICH_MAY, gear) ?? search(RE_OF_WHICH_N, gear);
     const noneOver = sub ? null : search(RE_NONE_OVER, gear);
     const mx = sub || noneOver ? null : search(RE_MAX_SIZE, gear);
     if (sub)
       out.push(
-        make({ rule_id: `${rid}b`, type: "retention_limit", species: codes, take: pyInt(sub[1]!), lengths: [{ min_cm: pyInt(sub[2]!) }], within: rid, verbatim: sub[0] }),
+        make({ rule_id: `${rid}b`, type: "retention_limit", species: codes, take: num(sub[1]!), lengths: [{ min_cm: pyInt(sub[2]!) }], within: rid, verbatim: sub[0] }),
       );
     else if (noneOver)
       out.push(
@@ -613,6 +659,14 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
     }
   }
 
+  // (T320) a wild allowance and a monthly sub-limit, each its own rule under the day's count
+  if (take) {
+    const wild = search(RE_UNMARKED, gear);
+    if (wild) out.push(make({ rule_id: `${rid}w`, type: "retention_limit", species: codes, take: pyInt(wild[1]!), origin: "wild", within: rid, verbatim: wild[0] }));
+    const mo = search(RE_MONTHLY, gear);
+    if (mo)
+      out.push(make({ rule_id: `${rid}m`, type: "retention_limit", species: codes, take: pyInt(mo[1]!), period: "monthly", lengths: [{ min_cm: pyInt(mo[2]!) }], within: rid, verbatim: mo[0] }));
+  }
   if (says.bait_ban) {
     const quoted = span(gear, RE_BAIT_SPAN);
     out.push(make({ rule_id: `${rid}_bait`, type: "bait_restriction", gear: [{ slot: "bait", ban: ["any_bait"] }], when_targeting: codes, verbatim: quoted || gear }));
@@ -638,7 +692,10 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
         type: "advisory",
         review_reason: unparsedDates
           ? `dates do not parse to a calendar window: ${repr(rawDates)}`
-          : "row states no limit, closure or gear rule the scrape could type",
+          : unreadReason(gear) ||
+            (search(RE_BAIT_ALLOWED, gear)
+              ? "a gear permission (natural bait allowed): no rule type states it"
+              : "row states no limit, closure or gear rule the scrape could type"),
       }),
     );
   return out;

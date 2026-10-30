@@ -44,7 +44,24 @@ export type SalmonMapStatus = typeof SALMON_MAP_STATUSES[number];
 /** The file's map codes, in its order (0 "none" is a chain with no verdict at all — never built). */
 const MAP_CODES: readonly (SalmonMapStatus | "none")[] = ["none", "open", "release", "closed", "check"];
 
-interface Verdict { readonly s: SalmonVerdictStatus; readonly t: string; readonly n?: string; readonly d?: 1 }
+/** (T320) A species' numbers on an open day (`pipeline/regs/dfo_salmon/quota.py`): `d` a day, `h` hatchery-marked only,
+ *  `w` up to w of the d may be unmarked (wild), `o` [over cm, how many of the d], `mx` none over (cm), `mo` [over cm,
+ *  how many a month], `a` an all-salmon row (combined at that place), `u` not one reading — the app shows DFO's words
+ *  (`t`) and no number. */
+export interface SalmonQuota {
+  readonly d?: number; readonly h?: 1; readonly w?: number; readonly o?: readonly (readonly [number, number])[];
+  readonly mx?: number; readonly mo?: readonly (readonly [number, number])[]; readonly a?: 1; readonly u?: 1;
+}
+/** (T320) THE SALMON BUCKET: the region header's combined limit (the game-fish quota tree's total tier), DFO's words in
+ *  `t` / `tp`; `possession` the total DFO prints (owner 2026-10-31: no per-species possession); `min_cm` per species. */
+export interface SalmonBucket {
+  readonly node: "tier"; readonly tier: "total"; readonly n: number; readonly says: string; readonly t: string;
+  readonly possession?: number; readonly tp?: string;
+  readonly min_cm?: Readonly<Record<string, number>>;
+  readonly per?: readonly { readonly k: string; readonly sp: readonly string[]; readonly over_cm?: number | null; readonly n?: number | null; readonly t: string }[];
+  readonly ids?: readonly string[];
+}
+interface Verdict { readonly s: SalmonVerdictStatus; readonly t: string; readonly n?: string; readonly d?: 1; readonly q?: SalmonQuota }
 interface Chain {
   readonly r: readonly string[]; readonly w: string; readonly l: readonly string[];
   /** per species (SALMON_SPECIES order) runs [start, verdict index, …] */
@@ -63,8 +80,11 @@ export interface SalmonNote {
   readonly x?: readonly { readonly n: string; readonly ws: boolean; readonly key: string }[];
   readonly xp?: readonly string[];
   readonly on?: readonly (readonly number[])[];
+  /** (T320) an `aggregate` note's "hatchery-marked" */
+  readonly hatchery?: boolean;
 }
-interface Region { readonly name: string; readonly asof: string | null; readonly url: string; readonly notes?: readonly SalmonNote[] }
+interface Region { readonly name: string; readonly asof: string | null; readonly url: string; readonly notes?: readonly SalmonNote[];
+                  readonly bucket?: SalmonBucket }
 interface Unmapped { readonly items: readonly string[]; readonly r: string; readonly w: string; readonly chain: number; readonly d?: number }
 interface Payload {
   readonly format: string; readonly credit: string; readonly default: number;
@@ -307,6 +327,22 @@ export const SALMON_WORDS = {
   ruleKinds: { closed: "Closed", daylight: "Daylight", daily: "Daily limit", possession: "Possession", aggregate: "Combined limit",
                min_size: "Size", adult: "Adult", jack: "Jack", bait_ban: "Bait", measure: "Measuring", facility: "Facility",
                other: "Rule" } as Readonly<Record<string, string>>,
+  /** (T320) a species' numbers and the bucket, words */
+  quota: {
+    daily: (n: number) => `${n} a day`,
+    dailyHatchery: (n: number) => `${n} a day, hatchery-marked only`,
+    dailyAll: (n: number) => `${n} a day, all salmon combined here`,
+    wild: (w: number, d: number) => (w >= d ? "marked or unmarked" : `up to ${w} unmarked (wild), the rest hatchery-marked`),
+    monthly: (n: number, cm: number) => `${n} over ${cm}\u00a0cm a month`,
+    possession: (n: number) => `${n} in possession`,
+    /** a header's combined limit on one water system (Squamish), shown while that species is open there */
+    waterBucket: (water: string, n: number, hatchery: boolean, species: string) =>
+      `${water} and its tributaries: up to ${n}${hatchery ? " hatchery-marked" : ""} ${species} a day in total`,
+    over: (n: number, cm: number) => `only ${n} over ${cm}\u00a0cm`,
+    noneOver: (cm: number) => `none over ${cm}\u00a0cm`,
+  },
+  /** (T320) a species whose DFO row is not one reading: no number, DFO's words under the table */
+  quotaUnread: "Limit: see DFO's words below",
   /** (T318) the species table, the DFO words under it, and the places folded */
   tableSpecies: "Species today",
   tableDfoSays: "DFO says",
@@ -360,6 +396,8 @@ export interface SalmonRowVM {
    *  limit …), DFO's words, beside the species — not repeated in the region block. A size the `sizes` line already says
    *  is left out. Only on a row that may be fished (open, release, check, varies). */
   readonly speciesNotes?: readonly string[];
+  /** (T320) per species of the row, its numbers when every verdict it has here says the same, else null */
+  readonly quota?: Readonly<Partial<Record<SalmonSpecies, SalmonQuota | null>>>;
 }
 
 /** (T309) One region rule as a row: its kind chip, the species it is about (chips), one line, and DFO's whole wording
@@ -417,6 +455,11 @@ export interface SalmonCardVM extends SalmonBlockVM {
   readonly closedOnly: boolean;
   /** (T227) DFO's year for the page, one bar per DFO place (see `SalmonYearVM`); empty when DFO has no salmon rules here */
   readonly year: SalmonYearVM;
+  /** (T320) the salmon bucket of the page's DFO region(s) — null when none prints one, or two print different ones */
+  readonly bucket?: SalmonBucket | null;
+  /** (T320, owner 2026-10-31) a header's combined limit on a water system this page is in (Squamish), while that
+   *  species is open here — else none */
+  readonly waterBuckets?: readonly SalmonBucketVM[];
 }
 
 /** (T227) A bar's day: the map's four, or `varies` — the part's sections differ that day. */
@@ -477,11 +520,17 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
     g.sp.push(sp);
     groups.set(key, g);
   });
+  // (T320) a species' numbers: one reading where every verdict it has on these chains carries the same, else null
+  const quotaOf = (k: number): SalmonQuota | null => {
+    const qs = [...new Set(per[k]!.map((ix) => JSON.stringify(verdictOf(ix).q ?? null)))];
+    return qs.length === 1 ? (JSON.parse(qs[0]!) as SalmonQuota | null) : null;
+  };
   const rows = [...groups.entries()].map(([key, g]) => {
     const st = statusOf(g.ixs);
+    const quota = Object.fromEntries(g.sp.map((sp) => [sp, quotaOf(SALMON_SPECIES.indexOf(sp))]));
     return { key, species: g.sp, label: cap(g.sp.map((s) => SPECIES_NAME[s]).join(" · ")), status: st,
              statusLabel: SALMON_WORDS.status[st],
-             notes: st === "varies" ? [SALMON_WORDS.varies] : notesOf(g.ixs) };
+             notes: st === "varies" ? [SALMON_WORDS.varies] : notesOf(g.ixs), quota };
   });
   return { allClosed: false, gear, rows };
 }
@@ -572,8 +621,16 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const headlineStatus: SalmonVerdictStatus | "varies" =
     sts.includes("open") ? "open" : sts.includes("release") ? "release" : sts.includes("varies") ? "varies"
       : sts.includes("check") ? "check" : "closed";
+  const buckets = [...new Map(regionsUsed.flatMap((r) => (P.regions[r]?.bucket ? [P.regions[r]!.bucket!] : []))
+    .map((b) => [JSON.stringify([b.n, b.possession ?? null, b.min_cm ?? null]), b])).values()];
   return {
     ...block, rows, regionRules, gearProvincial,
+    bucket: buckets.length === 1 ? buckets[0]! : null,
+    waterBuckets: hn.water.filter((n) => n.k === "aggregate" && typeof n.n === "number"
+        && rows.some((r) => r.status === "open" && !!n.sp?.some((x) => r.species.includes(x as SalmonSpecies))))
+      .map((n) => ({ line: SALMON_WORDS.quota.waterBucket(n.w?.[0]?.n ?? "", n.n!, !!n.hatchery,
+                                                         (n.sp ?? []).map((x) => SPECIES_NAME[x as SalmonSpecies] ?? x).join(", ")),
+                     words: [n.t] })),
     waterRules: hn.water.filter((n) => !placed.has(n.id)).map((n) => n.t),
     title: SALMON_WORDS.title, badge: SALMON_WORDS.badge,
     headline: SALMON_WORDS.headline[headlineStatus], headlineStatus,
@@ -826,7 +883,14 @@ export interface SalmonTableRowVM {
   readonly status: SalmonVerdictStatus | "varies";
   readonly statusLabel: string;
   readonly limit: string | null;
+  /** (T320) the species' numbers today, words: "2 a day · 4 in possession · only 1 over 50 cm" (null: none to say, or
+   *  `quotaUnread`) */
+  readonly quota?: string | null;
+  /** (T320) DFO's row could not be read as one number: its words are under the table, no number is shown */
+  readonly quotaUnread?: boolean;
 }
+/** (T320) The bucket line over the species rows: "Up to 4 salmon a day in total · 8 in possession", DFO's words. */
+export interface SalmonBucketVM { readonly line: string; readonly words: readonly string[] }
 /** DFO's own words for a group of species, said ONCE (a row grouping species alike), under the table. */
 export interface SalmonSaysVM { readonly label: string | null; readonly lines: readonly string[] }
 export interface SalmonPlaceTableVM {
@@ -840,18 +904,42 @@ export interface SalmonPlaceTableVM {
   readonly gear: readonly string[];
 }
 export interface SalmonTableVM {
+  /** (T320) the bucket total over the rows (shown when a species may be kept), else null */
+  readonly bucket?: SalmonBucketVM | null;
+  /** (T320) a water system's own combined limit (Squamish), while that species is open here */
+  readonly waterBuckets?: readonly SalmonBucketVM[];
   /** one row per salmon species, SALMON_SPECIES order */
   readonly species: readonly SalmonTableRowVM[];
   readonly says: readonly SalmonSaysVM[];
   readonly places: readonly SalmonPlaceTableVM[];
 }
 
+/** (T320) A species' numbers as words, from the pipeline's reading; null when there is nothing to say (or `u`: DFO's
+ *  words stand instead). Decides nothing: every count is DFO's (`q`). No per-species possession (owner 2026-10-31). */
+export function quotaWords(q: SalmonQuota | null | undefined): string | null {
+  if (!q || q.u || q.d === undefined) return null;
+  const W = SALMON_WORDS.quota;
+  const bits = [q.h ? W.dailyHatchery(q.d) : q.a ? W.dailyAll(q.d) : W.daily(q.d)];
+  if (q.w !== undefined) bits.push(W.wild(q.w, q.d));
+  for (const [cm, n] of q.o ?? []) bits.push(W.over(n, cm));
+  if (q.mx !== undefined) bits.push(W.noneOver(q.mx));
+  for (const [cm, n] of q.mo ?? []) bits.push(W.monthly(n, cm));
+  return bits.join(" · ");
+}
 const tableRows = (rows: readonly SalmonRowVM[]): SalmonTableRowVM[] =>
   SALMON_SPECIES.flatMap((code) => {
     const r = rows.find((x) => x.species.includes(code));
-    return r ? [{ code, name: cap(SPECIES_NAME[code]), status: r.status, statusLabel: r.statusLabel,
-                  limit: r.species.length === 1 ? r.sizes ?? null : null }] : [];
+    if (!r) return [];
+    const q = r.status === "open" ? r.quota?.[code] : undefined;
+    return [{ code, name: cap(SPECIES_NAME[code]), status: r.status, statusLabel: r.statusLabel,
+              limit: r.species.length === 1 ? r.sizes ?? null : null,
+              quota: quotaWords(q), ...(q?.u ? { quotaUnread: true } : {}) }];
   });
+/** (T320) the bucket line, when a species of the table may be kept today */
+const bucketOf = (b: SalmonBucket | null | undefined, rows: readonly SalmonRowVM[]): SalmonBucketVM | null =>
+  !b || !rows.some((r) => r.status === "open") ? null
+    : { line: [b.says, ...(b.possession ? [SALMON_WORDS.quota.possession(b.possession)] : [])].join(" · "),
+        words: [b.t, ...(b.tp ? [b.tp] : [])] };
 const tableSays = (rows: readonly SalmonRowVM[], allClosed: boolean): SalmonSaysVM[] =>
   rows.map((r) => ({ label: allClosed || rows.length === 1 ? null : r.label, lines: [...r.notes, ...(r.species.length > 1 && r.sizes ? [r.sizes] : []), ...(r.speciesNotes ?? [])] }))
     .filter((x) => x.lines.length);
@@ -863,7 +951,10 @@ const tableSays = (rows: readonly SalmonRowVM[], allClosed: boolean): SalmonSays
  * string a card holds, and a test pins that all of them are still here.
  */
 export function salmonTable(card: SalmonCardVM): SalmonTableVM {
+  const b = card.bucket ?? null;
   return {
+    bucket: card.allClosed ? null : bucketOf(b, [...card.rows, ...card.unmapped.flatMap((u) => u.block.rows)]),
+    waterBuckets: card.allClosed ? [] : card.waterBuckets ?? [],
     species: tableRows(card.rows),
     says: tableSays(card.rows, card.allClosed),
     places: card.unmapped.map((u) => ({
@@ -886,8 +977,8 @@ export function salmonRowTexts(card: SalmonCardVM): string[] {
 
 /** Every string the table can show (its rows' limits, the words under it, each place's label, summary, rows, words). */
 export function salmonTableTexts(t: SalmonTableVM, gear: readonly string[] = []): string[] {
-  const species = (rs: readonly SalmonTableRowVM[]) => rs.flatMap((r) => (r.limit ? [r.limit] : []));
+  const species = (rs: readonly SalmonTableRowVM[]) => rs.flatMap((r) => [...(r.limit ? [r.limit] : []), ...(r.quota ? [r.quota] : [])]);
   const says = (xs: readonly SalmonSaysVM[]) => xs.flatMap((x) => x.lines);
-  return [...species(t.species), ...says(t.says), ...gear,
+  return [...(t.bucket ? [t.bucket.line] : []), ...(t.waterBuckets ?? []).map((w) => w.line), ...species(t.species), ...says(t.says), ...gear,
           ...t.places.flatMap((p) => [p.label, ...species(p.species), ...says(p.says), ...p.gear])];
 }

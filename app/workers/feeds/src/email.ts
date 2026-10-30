@@ -57,21 +57,28 @@ export function dfoSection(events: FeedEvent[]): Section {
   const toPlace = ds.filter((d) => PLACE_KINDS.has(d.kind));
   const held = ds.filter((d) => ["held", "row-held", "fetch", "moved"].includes(d.kind));
   const header = ds.filter((d) => d.kind === "header" || d.kind === "header-name");
+  // (T320) the page's general text changed: the feed reads no rule out of it — a human reviews old vs new
+  const texts = ds.filter((d) => d.kind === "text");
   const parts: string[] = [];
   if (toPlace.length) parts.push(`${plural(toPlace.length, "new place")} to place`);
   if (held.length) parts.push(`${plural(held.length, "item")} held`);
   if (header.length) parts.push(`${plural(header.length, "header note")}`);
+  if (texts.length) parts.push(`header text changed in ${plural(texts.length, "region")}`);
   const blocks: Block[] = regions.map((r) => ({
     title: regionLabel(r),
     items: ds
       .filter((d) => d.region === r)
-      .map((d) => ({
+      .flatMap((d) => d.kind === "text"
+        ? [...(d.was ?? []).map((t: string) => ({ name: "Was", text: t, note: "" })),
+           ...(d.now ?? []).map((t: string) => ({ name: "Now", text: t, note: "" })),
+           { name: "Whole region", text: undefined, note: d.affects }]
+        : [{
         name: d.water ?? (d.kind === "held" || d.kind === "fetch" || d.kind === "header" ? "Whole region" : undefined),
         text: d.place,
         note: [d.kind === "new_water" ? "a water no entry knows" : d.kind === "drift" ? `new wording${d.likely ? `, likely ${d.likely}` : ""}` : "", d.affects]
           .filter(Boolean)
           .join(" · "),
-      })),
+      }]),
   }));
   const steps: Step[] = [];
   if (toPlace.length || header.some((d) => d.kind === "header-name")) {
@@ -80,6 +87,8 @@ export function dfoSection(events: FeedEvent[]): Section {
     for (const d of [...toPlace, ...header.filter((h) => h.kind === "header-name")]) names.set(d.water ?? "(unnamed)", (names.get(d.water ?? "(unnamed)") ?? 0) + 1);
     steps.push({ text: `Review app → DFO → Extents: ${[...names].map(([n, k]) => (k > 1 ? `${n} (${k} places)` : n)).join("; ")}` });
   }
+  if (texts.length)
+    steps.push({ text: `Review the header / general text of DFO's page for ${listRegions(sortRegions(texts.map((d) => d.region)))} (was / now above): the feed shows the new words but reads no rule from them — if it opens, closes or changes a limit, change the region's rules by hand (pipeline/regs/dfo_salmon/header.py, quota.py).` });
   if (held.length) steps.push({ text: "Held items keep their last answers in the app; check the feed status, then the DFO page if a fetch keeps failing." });
   return {
     heading: `DFO salmon: ${parts.join(", ")} — ${listRegions(regions)}`,

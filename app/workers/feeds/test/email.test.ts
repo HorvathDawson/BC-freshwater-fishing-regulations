@@ -107,3 +107,19 @@ describe("new APK email", () => {
     expect(rp.text).not.toContain("unknown apps");
   });
 });
+
+describe("(T320) a DFO page's general text changed", () => {
+  it("is urgent, lists was / now in full and says what a human must do", async () => {
+    const { dfoEvents } = await import("../src/index");
+    const ev = dfoEvents([{ key: "dfo-text:2:abc", text: "DFO Region 2: the page's general text changed — review the header; the feed reads no rule from it (1 gone, 1 new)",
+                            data: { region: "2", kind: "text", was: ["The daily limit … combined is 4."], now: ["The daily limit … combined is 2."],
+                                    affects: "the region header / general text: review it" } }], at);
+    const [m] = compose(ev, false, ctx);
+    expect(m!.subject).toContain("header text changed in 1 region");
+    expect(m!.text).toContain("The daily limit … combined is 4.");
+    expect(m!.text).toContain("The daily limit … combined is 2.");
+    expect(m!.text).toContain("Review the header / general text of DFO's page");
+    const { URGENT } = await import("../src/events");
+    expect(URGENT).toContain(ev[0]!.kind);
+  });
+});

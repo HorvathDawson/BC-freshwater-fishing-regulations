@@ -30,6 +30,7 @@ import { key } from "./names";
 import { parseRegion } from "./parse";
 import { cmpStr, cmpTuple, formatFixed, pyStrOf, pyTypeName, repr } from "./py";
 import { feedText, loads, PyFloat } from "./pyjson";
+import { bucket, headerClosure } from "./quota";
 import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
 
@@ -222,6 +223,9 @@ export interface NoticeData {
   affects: string;
   /** a drift's likely match */
   likely?: string;
+  /** (T320) kind "text": the page's general text that went, and what replaced it */
+  was?: string[];
+  now?: string[];
 }
 export interface Notice {
   key: string;
@@ -357,7 +361,10 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
       notes: was.notes || [],
       header: was.header ?? null,
       unresolved: was.unresolved || [],
+      // (T320) the page's general text, kept to tell the owner what changed (readTexts)
+      texts: was.texts || [],
     };
+    setBucket(reg);
     if (robust) reg.holds = was.holds || [];
     regionOut[slug] = reg;
     const hold = (why: string, k: string) => {
@@ -431,6 +438,8 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
       continue;
     }
     readHeader(slug, html, reg, was, ef, notices);
+    readTexts(slug, html, reg, was, notices);
+    const closure = headerClosure(reg.notes || [], slug); // T320: the header's closure wins over the table's rows
     const rowHolds = new Map<string, { fingerprint: string; why: string }>();
     const [rules, held] = join(slug, ef, typed, found, rep, rowHolds);
     if (aware) inputsOut[slug] = { page: sha, entries: contentHash((await rawEntries(slug)) ?? "") };
@@ -438,11 +447,11 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     for (const lid of [...rules.keys()].sort(cmpStr)) {
       if (moved.has(lid) || rowHolds.has(lid)) continue;
       if (!robust) {
-        locs[lid] = { r: slug, ...locationCalendar(rules.get(lid)!, verdicts, gears) };
+        locs[lid] = { r: slug, ...locationCalendar(closure && rules.get(lid)!.length ? closure : rules.get(lid)!, verdicts, gears) };
         continue;
       }
       try {
-        locs[lid] = { r: slug, ...locationCalendar(rules.get(lid)!, verdicts, gears, true) };
+        locs[lid] = { r: slug, ...locationCalendar(closure && rules.get(lid)!.length ? closure : rules.get(lid)!, verdicts, gears, true) };
       } catch (e) {
         const fp = typed.locators.find((l) => byFingerprint(ef).get(l.fingerprint)?.location_id === lid)?.fingerprint ?? "";
         rowHolds.set(lid, { fingerprint: fp, why: `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 200).join("")}` });
@@ -565,17 +574,6 @@ function readHeader(slug: string, html: string, reg: Json, was: Json, ef: EntryF
     return;
   }
   const d = digest(notes).slice(0, 16);
-  if (was.header && was.header !== d) {
-    const oldIds = new Set<string>((was.notes || []).map((n: Note) => n.id));
-    const newIds = new Set<string>(notes.map((n) => n.id!));
-    const plus = [...newIds].filter((i) => !oldIds.has(i)).length;
-    const minus = [...oldIds].filter((i) => !newIds.has(i)).length;
-    notices.push({
-      key: `dfo-header:${slug}:${d}`,
-      text: `DFO Region ${slug}: the region header changed (+${plus} / -${minus} notes); the card's Region rules now read the new words`,
-      data: { region: slug, kind: "header", affects: `the region header changed (+${plus} / -${minus} notes); the app reads the new words` },
-    });
-  }
   const [, unresolved] = resolve(notes, ef);
   for (const u of unresolved)
     notices.push({
@@ -586,4 +584,44 @@ function readHeader(slug: string, html: string, reg: Json, was: Json, ef: EntryF
   reg.notes = notes;
   reg.header = d;
   reg.unresolved = unresolved;
+  setBucket(reg);
+}
+
+/** (T320) the salmon bucket — the header's combined daily / possession — beside the notes it is read from */
+function setBucket(reg: Json): void {
+  const b = bucket(reg.notes || []);
+  if (b) reg.bucket = b;
+  else delete reg.bucket;
+}
+
+/** live.page_texts: every sentence above the table, the section banners and the notes under it, in page order */
+export function pageTexts(html: string, slug: string): string[] {
+  const p = parseRegion(html, slug);
+  const out = [...p.preamble, ...p.sections.map((s) => s.title), ...p.notes.map((n) => n.text || "")];
+  return [...new Set(out.filter((t) => t))];
+}
+
+/** live._read_texts (T320, owner 2026-10-31): a change in the page's general text is for a human — the feed reads no
+ *  rule out of it. One URGENT notice per new text, old vs new, with what to do. The first read only stores it. */
+function readTexts(slug: string, html: string, reg: Json, was: Json, notices: Notice[]): void {
+  let texts: string[];
+  try {
+    texts = pageTexts(html, slug);
+  } catch {
+    return;
+  }
+  const old: string[] = was.texts || [];
+  if (old.length && JSON.stringify(texts) !== JSON.stringify(old)) {
+    const gone = old.filter((t) => !texts.includes(t));
+    const fresh = texts.filter((t) => !old.includes(t));
+    const d = sha256(texts.join("\n")).slice(0, 16);
+    const lines = [...gone.map((t) => `- was: ${t}`), ...fresh.map((t) => `+ now: ${t}`)];
+    notices.push({
+      key: `dfo-text:${slug}:${d}`,
+      text: `DFO Region ${slug}: the page's general text changed — review the header; the feed reads no rule from it (${gone.length} gone, ${fresh.length} new)\n` + lines.join("\n"),
+      data: { region: slug, kind: "text", was: gone, now: fresh,
+              affects: "the region header / general text: review it (the feed does not read it into rules); the card shows the new words" },
+    });
+  }
+  reg.texts = texts;
 }

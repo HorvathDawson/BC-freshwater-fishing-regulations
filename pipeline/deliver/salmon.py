@@ -171,6 +171,13 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
             else:
                 s, why = "closed", own
             out = {"s": s, "t": _text(why, subs)}
+            if s == "open":
+                # T320: the species' numbers under the region's bucket (`regs.dfo_salmon.quota`); `u` where they are
+                # not one reading — the app then shows `t`, DFO's words, and no number
+                from pipeline.regs.dfo_salmon.quota import species_quota
+                q = species_quota(why, subs)
+                if q:
+                    out["q"] = q
             n = _notice(why)
             if n:
                 out["n"] = n
@@ -288,6 +295,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     coho non-retention answered for a river whose own coho opening sits on an undrawn stretch)."""
     # THE REGION HEADER: `headers` slug -> the page's notes (`header.parse_header`), resolved to items here
     from pipeline.regs.dfo_salmon import header as H
+    from pipeline.regs.dfo_salmon import quota as Q
     rules_of: Dict[str, List[dict]] = {}
     locs: Dict[str, object] = {}
     regions: Dict[str, dict] = {}
@@ -299,16 +307,20 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         # the scopes are resolved for the release's notes AND the newest page's (`scope_headers`): the feed's notes
         # name waters by these keys, so a page newer than the release's rules still finds its waters here
         sc, unresolved = H.resolve([*notes, *((scope_headers or {}).get(slug) or [])], ef, upstream)
+        b = Q.bucket(notes)
         regions[slug] = {"name": getattr(ef, "region_name", slug), "asof": feed.get("date_modified"),
-                         "url": PAGE_URL.format(slug=slug), "notes": notes,
+                         "url": PAGE_URL.format(slug=slug), "notes": notes, **({"bucket": b} if b else {}),
                          **({"unresolved": unresolved} if unresolved else {})}
         if sc:
             scopes[slug] = sc
+        closure = Q.header_closure(notes, slug)
         for loc in ef.locations:
             # EVERY location, ruled today or not (T211 part 2): a dormant one says nothing today (no rules, so it never
             # answers in its chain), but it is IN its chains, so the live feed (`regs.dfo_salmon.live`) can paint it
             # the day DFO lists it again — without a rebuild.
             rules_of[loc.location_id] = [r for fp in loc.fingerprints for r in by_fp.get(fp, [])]
+            if closure and rules_of[loc.location_id]:
+                rules_of[loc.location_id] = closure         # T320: the header's closure wins over the table's rows
             locs[loc.location_id] = (slug, loc, ef)
 
     placed = list(placed)

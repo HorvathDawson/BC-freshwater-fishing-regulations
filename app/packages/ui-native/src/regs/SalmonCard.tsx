@@ -49,6 +49,8 @@ function SpeciesRow({ r, palette, actions, images, pictures }: {
         : <View testID="salmon-look" style={{ width: 56, height: 30, backgroundColor: palette.line2 }} />)}
       <View style={{ flex: 1 }}>
         <Text style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{r.name}{pictures && <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{" ›"}</Text>}</Text>
+        {r.quota && <Text selectable testID="salmon-quota" style={{ ...TYPE.metaSemi, color: palette.ink }}>{r.quota}</Text>}
+        {r.quotaUnread && <Text testID="salmon-quota-unread" style={{ ...TYPE.meta, color: palette.sub }}>{SALMON_WORDS.quotaUnread}</Text>}
         {r.limit && <Text selectable testID="salmon-limit" style={{ ...TYPE.meta, color: palette.sub }}>{r.limit}</Text>}
       </View>
     </View>
@@ -114,6 +116,14 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
   return (
     <View testID="salmon-card-block">
       <Text accessibilityRole="header" style={{ ...TYPE.kicker, color: palette.sub, marginTop: 10, marginBottom: 2 }}>{SALMON_WORDS.tableSpecies}</Text>
+      {t.bucket && (
+        <View testID="salmon-bucket" style={{ paddingVertical: 6 }}>
+          <Text selectable testID="salmon-bucket-line" style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{t.bucket.line}</Text>
+        </View>
+      )}
+      {(t.waterBuckets ?? []).map((w) => (
+        <Text selectable key={w.line} testID="salmon-water-bucket" style={{ ...TYPE.metaSemi, color: palette.ink, paddingBottom: 4 }}>{w.line}</Text>
+      ))}
       {t.species.map((r) => <SpeciesRow key={r.code} r={r} palette={palette} actions={actions} images={images} pictures />)}
       <Says says={t.says} palette={palette} />
       {card.gear.map((g) => (

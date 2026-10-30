@@ -308,3 +308,57 @@ describe("(T318) the salmon table keeps every DFO word", () => {
     expect(t.places[0]!.summary).toMatch(/closed|release/i);
   });
 });
+
+describe("(T320) the salmon bucket and each species' numbers", () => {
+  const BUCKET = { node: "tier", tier: "total", n: 4, says: "Up to 4 salmon a day in total", possession: 8,
+                   t: "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4.",
+                   tp: "The possession limit for all salmon from all waters is twice the daily limit." };
+  const withQuota = (q: object) => {
+    const P = PAYLOAD as never as { verdicts: object[]; regions: Record<string, object> };
+    const verdicts = P.verdicts.map((v, i) => (i === 2 ? { ...v, q } : v));
+    const regions = { ...P.regions, "6": { ...P.regions["6"]!, bucket: BUCKET } };
+    return decodeSalmon(encode({ ...PAYLOAD, verdicts, regions }), HANDLES, SHARDS);
+  };
+
+  it("an open coho says its daily and size sub-limit under the bucket total; possession is the bucket's only", () => {
+    const t = salmonTable(salmonCard(withQuota({ d: 4, o: [[50, 2]] }), { sids: [101], item: null }, JUL20));
+    expect(t.bucket?.line).toBe("Up to 4 salmon a day in total · 8 in possession");
+    expect(t.species.find((r) => r.code === "CO")!.quota).toBe("4 a day · only 2 over 50 cm");
+    expect(t.species.filter((r) => r.code !== "CO").map((r) => r.quota ?? null)).toEqual([null, null, null, null]);
+  });
+
+  it("hatchery-marked only and a maximum size are said; an unread row shows no number, flagged", () => {
+    const t = salmonTable(salmonCard(withQuota({ d: 1, h: 1, mx: 35 }), { sids: [101], item: null }, JUL20));
+    expect(t.species.find((r) => r.code === "CO")!.quota).toBe("1 a day, hatchery-marked only · none over 35 cm");
+    const u = salmonTable(salmonCard(withQuota({ u: 1 }), { sids: [101], item: null }, JUL20)).species.find((r) => r.code === "CO")!;
+    expect([u.quota, u.quotaUnread]).toEqual([null, true]);
+  });
+
+  it("a wild allowance and a monthly quota are said; 'N of N unmarked' is marked or unmarked", () => {
+    const co = (q: object) => salmonTable(salmonCard(withQuota(q), { sids: [101], item: null }, JUL20)).species.find((r) => r.code === "CO")!.quota;
+    expect(co({ d: 2, w: 1 })).toBe("2 a day · up to 1 unmarked (wild), the rest hatchery-marked");
+    expect(co({ d: 2, w: 2 })).toBe("2 a day · marked or unmarked");
+    expect(co({ d: 4, o: [[65, 1]], mo: [[65, 1]] })).toBe("4 a day · only 1 over 65\u00a0cm · 1 over 65\u00a0cm a month");
+  });
+
+  it("a water system's own combined limit (Squamish) shows only while its species is open here", () => {
+    const squamish = (q: object, day: Date) => {
+      const f = withQuota(q);
+      const P = f.payload as never as { regions: Record<string, { notes?: object[] }> };
+      const notes = [{ id: "6:aggregate:s", k: "aggregate", sp: ["CO"], n: 1, hatchery: true,
+                       t: "Squamish watershed: the aggregate daily limit of hatchery-marked coho in the entire Squamish non-tidal systems combined is one (1).",
+                       w: [{ n: "Squamish River", ws: true, key: "squamish river+ws" }] }];
+      const payload = { ...f.payload, regions: { ...P.regions, "6": { ...P.regions["6"]!, notes } },
+                        scopes: { "6": { "squamish river+ws": ["gnis:sq"] } } };
+      return salmonTable(salmonCard({ ...f, payload } as never, { sids: [101], item: "gnis:sq" }, day));
+    };
+    expect(squamish({ d: 4, h: 1 }, JUL20).waterBuckets?.map((w) => w.line)).toEqual(
+      ["Squamish River and its tributaries: up to 1 hatchery-marked coho a day in total"]);
+    expect(squamish({ d: 4, h: 1 }, SEP15).waterBuckets ?? []).toEqual([]);
+  });
+
+  it("no bucket line when nothing may be kept today", () => {
+    const t = salmonTable(salmonCard(withQuota({ d: 4 }), { sids: [101], item: null }, SEP15));
+    expect(t.bucket ?? null).toBeNull();
+  });
+});

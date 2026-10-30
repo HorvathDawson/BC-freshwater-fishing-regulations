@@ -234,17 +234,51 @@ def _read_header(slug: str, html: str, reg: dict, was: dict, entries_dir: Option
                         "text": f"DFO Region {slug}: the page has no region header any more; the last one stands"})
         return
     d = H.digest(notes)[:16]
-    if was.get("header") and was["header"] != d:
-        old_ids, new_ids = {n["id"] for n in was.get("notes") or []}, {n["id"] for n in notes}
-        notices.append({"key": f"dfo-header:{slug}:{d}",
-                        "text": f"DFO Region {slug}: the region header changed (+{len(new_ids - old_ids)} / "
-                                f"-{len(old_ids - new_ids)} notes); the card's Region rules now read the new words"})
     _, unresolved = H.resolve(notes, E.load(slug, entries_dir or E.ENTRIES_DIR))
     for u in unresolved:
         notices.append({"key": f"dfo-header-name:{slug}:{u['name']}",
                         "text": f"DFO Region {slug}: the header names {u['name']!r}, which no curated DFO water binds — "
                                 "its note shows on no water until it is bound (DFO review)"})
     reg["notes"], reg["header"], reg["unresolved"] = notes, d, unresolved
+    _set_bucket(reg)
+
+
+def _set_bucket(reg: dict) -> None:
+    """(T320) the salmon bucket — the header's combined daily / possession — beside the notes it is read from."""
+    from pipeline.regs.dfo_salmon.quota import bucket
+    b = bucket(reg.get("notes") or [])
+    if b:
+        reg["bucket"] = b
+    else:
+        reg.pop("bucket", None)
+
+
+def page_texts(html: str, slug: str) -> List[str]:
+    """(T320) THE PAGE'S GENERAL TEXT: every sentence above the table (the header, the "unless otherwise stated" lines),
+    the section banners and the notes under the table — what the feed does NOT read into rules, in page order."""
+    from pipeline.regs.dfo_salmon.parse import parse_region
+    p = parse_region(html, slug)
+    out = [*p.preamble, *(s.title for s in p.sections), *(n.get("text") or "" for n in p.notes)]
+    return list(dict.fromkeys(t for t in out if t))
+
+
+def _read_texts(slug: str, html: str, reg: dict, was: dict, notices: List[dict]) -> None:
+    """(T320, owner 2026-10-31) A change in the page's general text (`page_texts`) is for a human: the feed reads no rule
+    out of it. One URGENT notice per new text, old vs new, with what to do. The first read only stores the text."""
+    try:
+        texts = page_texts(html, slug)
+    except Exception:                                          # noqa: BLE001 — the page's own parse failure is told
+        return
+    old = list(was.get("texts") or [])
+    if old and texts != old:
+        gone = [t for t in old if t not in texts]
+        new = [t for t in texts if t not in old]
+        d = hashlib.sha256("\n".join(texts).encode("utf-8")).hexdigest()[:16]
+        lines = [f"- was: {t}" for t in gone] + [f"+ now: {t}" for t in new]
+        notices.append({"key": f"dfo-text:{slug}:{d}",
+                        "text": f"DFO Region {slug}: the page's general text changed — review the header; the feed "
+                                f"reads no rule from it ({len(gone)} gone, {len(new)} new)\n" + "\n".join(lines)})
+    reg["texts"] = texts
 
 
 def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None, entries_dir: Optional[Path] = None,
@@ -279,7 +313,10 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
                "stale": False, "held": None, "failures": 0,
                # THE REGION HEADER (owner 2026-10-28): DFO's region-wide rules as typed notes (`header.py`), the last
                # read's kept through a failed fetch or a held page like the answers
-               "notes": was.get("notes") or [], "header": was.get("header"), "unresolved": was.get("unresolved") or []}
+               "notes": was.get("notes") or [], "header": was.get("header"), "unresolved": was.get("unresolved") or [],
+               # (T320) the page's general text, kept to tell the owner what changed (`_read_texts`)
+               "texts": was.get("texts") or []}
+        _set_bucket(reg)
         region_out[slug] = reg
 
         def hold(why: str, key: str) -> None:
@@ -320,11 +357,14 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
             hold("; ".join(rep.structural), sha[:12])
             continue
         _read_header(slug, html, reg, was, entries_dir, notices)    # a held page keeps its last header
+        _read_texts(slug, html, reg, was, notices)
         rules, held = join(slug, ef, typed, found, rep)
         moved = {o.location_id for o in rep.outcomes if o.status == "section_moved" and o.location_id}
+        from pipeline.regs.dfo_salmon.quota import header_closure
+        closure = header_closure(reg.get("notes") or [], slug)     # T320: the header's closure wins
         for lid, rs in sorted(rules.items()):
             if lid not in moved:
-                locs[lid] = {"r": slug, **location_calendar(rs, verdicts, gears)}
+                locs[lid] = {"r": slug, **location_calendar(closure if closure and rs else rs, verdicts, gears)}
         if moved:
             locs.update(_carry(prev, slug, verdicts, gears, only=moved))
             for o in rep.outcomes:

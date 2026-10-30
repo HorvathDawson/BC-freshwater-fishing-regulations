@@ -15,7 +15,7 @@
  * than the capture (`pickSalmon`).
  */
 import { MONTHS } from "./calendar.generated";
-import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote } from "./salmon";
+import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
@@ -29,6 +29,8 @@ export interface SalmonFeedRegion {
   readonly checked: string | null; readonly stale: boolean; readonly held: string | null;
   /** (owner 2026-10-28) the region page's header as typed notes — the feed's win over the release's */
   readonly notes?: readonly SalmonNote[];
+  /** (T320) the salmon bucket read from those notes (`quota.bucket`) */
+  readonly bucket?: SalmonBucket;
 }
 export interface SalmonFeedLocation { readonly r: string; readonly sp: readonly (readonly number[])[]; readonly g: readonly number[] }
 export interface SalmonFeed {
@@ -115,7 +117,7 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
   const P = f.payload;
   const regions = Object.fromEntries(Object.entries(P.regions).map(([slug, r]) => {
     const fr = feed.regions[slug];
-    return [slug, fr ? { ...r, asof: fr.asof ?? r.asof, notes: fr.notes ?? r.notes } : r];
+    return [slug, fr ? { ...r, asof: fr.asof ?? r.asof, notes: fr.notes ?? r.notes, bucket: fr.bucket ?? r.bucket } : r];
   }));
   const payload: Payload = {
     ...P, regions, verdicts: feed.verdicts, gears: feed.gears,

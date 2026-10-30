@@ -1,6 +1,7 @@
 // T225 port of the pieces of pipeline/deliver/salmon.py the live feed uses: reading a rule on a day (verdict_on,
 // gear_on), the map status, runs, and the interner — plus live.location_calendar / compose on top.
 import { dumps } from "./pyjson";
+import { speciesQuota, type Quota } from "./quota";
 import type { TypedRule } from "./typed";
 import { DATES_UNPARSED, MONTHS, monthDay, OTHER_FISH, YEAR } from "./typed";
 
@@ -109,6 +110,7 @@ export interface Verdict {
   t: string;
   n?: string;
   d?: number;
+  q?: Quota;
 }
 
 /** One location's rules, read once: what verdict_on / gear_on look at for every day. */
@@ -182,6 +184,11 @@ function verdictOn(chain: Loc[], k: number, md: number, robust = false): Verdict
       let out = loc.verdicts.get(key);
       if (!out) {
         out = { s, t: loc.text(why) };
+        if (s === "open") {
+          // T320: the species' numbers under the region's bucket (quota.speciesQuota)
+          const q = speciesQuota(why, loc.subs);
+          if (q) out.q = q;
+        }
         const n = notice(why);
         if (n) out.n = n;
         loc.verdicts.set(key, out);

@@ -42,6 +42,21 @@ const page = { ...(vedder1010 as unknown as RegsPage), sheet: () => null } as Re
 const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
 
 describe("the Salmon card", () => {
+  it("(T320) the bucket total over the species rows, and each open species' numbers on its row", () => {
+    const P = FACTS.payload;
+    const facts = { ...FACTS, payload: { ...P,
+      regions: { "6": { ...P.regions["6"]!, bucket: { node: "tier", tier: "total", n: 4, says: "Up to 4 salmon a day in total", possession: 8,
+                                                     t: "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4." } } },
+      verdicts: P.verdicts.map((v, i) => (i === 2 ? { ...v, q: { d: 4, o: [[50, 2]] } } : v)) } } as SalmonFacts;
+    render(<SalmonCard card={salmonCard(facts, { sids: [101], item: null }, JUL20)} palette={LIGHT} />);
+    expect(screen.getByTestId("salmon-bucket-line").textContent).toBe("Up to 4 salmon a day in total · 8 in possession");
+    expect(screen.getAllByTestId("salmon-quota").map((e) => e.textContent)).toEqual(["4 a day · only 2 over 50\u00a0cm"]);
+    // nothing kept today: no bucket line
+    cleanup();
+    render(<SalmonCard card={salmonCard(facts, { sids: [101], item: null }, SEP15)} palette={LIGHT} />);
+    expect(screen.queryByTestId("salmon-bucket-line")).toBeNull();
+  });
+
   it("draws under the provincial rules, framed, with its own source and as-of line", () => {
     const card = salmonCard(FACTS, { sids: [101], item: null }, JUL20);
     render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}

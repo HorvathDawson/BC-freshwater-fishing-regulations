@@ -44,6 +44,7 @@ from pipeline.regs.parsing.catalogue import (
     Hours,
     LengthBand,
     Origin,
+    Period,
     RuleType,
     When,
     parse_clock,
@@ -74,10 +75,30 @@ OTHER_FISH = "another fish, not salmon: "
 #: is its own line).
 _RE_NO_FISHING_FOR = re.compile(r"\bno\s+fishing\s+for\s+([a-z]+)\b", re.I)
 
+#: a count, in digits or (archived pages, "only two over 50 cm") in words
+_NUM = r"(\d+|one|two|three|four|five|six)"
+_WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6}
+
+
+def _num(s: str) -> int:
+    return _WORDS[s.lower()] if s.lower() in _WORDS else int(s)
+
+
 #: "N per day, only M over X cm" and its wordings. The sub-limit keeps its own count.
 _RE_ONLY_OVER = re.compile(
-    r"only\s+(\d+)\s+(?:of\s+which\s+may\s+be\s+)?(?:over|greater\s+than|more\s+than)\s+(\d+)\s*cm",
+    rf"only\s+{_NUM}\s+(?:of\s+which\s+may\s+be\s+)?(?:over|greater\s+than|more\s+than)\s+(\d+)\s*cm",
     re.I)
+#: (T320, archived pages) "Daily limit of 4 of which 1 may be over 65 cm in length" — the count AFTER "of which"
+_RE_OF_WHICH_N = re.compile(
+    r"of\s+which\s+(\d+)\s+may\s+be\s+(?:over|more\s+than|greater\s+than)\s+(\d+)\s*cm", re.I)
+#: (T320) "2 per day, 1 of which can be unmarked — FN1013": of the day's fish, up to N may be WILD (unmarked); the
+#: rest hatchery-marked. A wild allowance inside the count, its own rule (`origin: wild`, `within` the parent).
+_RE_UNMARKED = re.compile(r"(\d+)\s+of\s+which\s+(?:can|may)\s+be\s+unmarked", re.I)
+#: (T320, archived pages) "Monthly Quota = 1 over 65 cm.", "Monthly limit=1 over 65 cm", "Monthly limit of 6 over 50 cm
+#: from the South Thompson River" — a monthly sub-limit, its own rule (`period: monthly`, `within` the parent)
+_RE_MONTHLY = re.compile(r"monthly\s+(?:quota|limit)\s*(?:=|of|is)?\s*(\d+)\s+over\s+(\d+)\s*cm", re.I)
+#: (T320, archived pages) "Daily limit of 4 …" — the day's count written as a noun
+_RE_DAILY_OF = re.compile(r"\bdaily\s+limit\s+of\s+(\d+)\b", re.I)
 #: "…, 1 of which may be more than 77 cm. in length" — the same sub-limit, written as a clause.
 _RE_WHICH_MAY = re.compile(
     r"(\d+)\s+of\s+which\s+may\s+be\s+(?:more\s+than|greater\s+than|over)\s+(\d+)\s*cm",
@@ -89,7 +110,7 @@ _RE_MAX_SIZE = re.compile(r"(?:maximum\s+size\s+(\d+)\s*cm|(\d+)\s*cm\s+or\s+les
 #: "from 05:00 h until 22:00 h only"
 _RE_TIMES = re.compile(r"from\s+(\d{1,2}:\d{2})\s*h?\s+(?:until|to)\s+(\d{1,2}:\d{2})\s*h?", re.I)
 #: "single barbless hook less than 15mm from point to shank"
-_RE_GAP = re.compile(r"less\s+than\s+(\d+)\s*mm\s+from\s+point\s+to\s+shank", re.I)
+_RE_GAP = re.compile(r"less\s+than\s+(\d+)\s*mm(?:\s+from\s+point\s+to\s+shank)?", re.I)
 _RE_FLY = re.compile(r"fly[- ]fishing\s+only", re.I)
 #: The in-season notice that set the row. Kept as provenance, never as identity — these turn over.
 _RE_FN = re.compile(r"\bFN\s*(\d{3,4})\b", re.I)
@@ -117,14 +138,17 @@ _QUALIFIER = r"(?:(?:hatchery[- ]marked|only|chinook|coho|sockeye|pink|chum|salm
 _RE_DAILY = re.compile(rf"\b(\d+)\s+{_QUALIFIER}per\s+day\b", re.I)
 #: "No fishing", DFO's own typo for it, and the banner wording. A "Finfish closure" is a closure
 #: of everything, and 10 rows of them decoded to nothing — an open-looking water the page closes.
-_RE_NO_FISHING = re.compile(r"\bno\s+fish(?:ing|inf)\b|\bfinfish\s+closure\b", re.I)
+_RE_NO_FISHING = re.compile(r"\bno\s+fish(?:ing|inf)\b|\bfinfish\s+closure\b"
+                            r"|\bclosed\s+to\s+fishing\b|\bno\s+angling\b", re.I)   # the last two: archived pages (T320)
 #: Release, written four ways. Only "Non-retention" was matched; "No retention of coho",
 #: "No retention of salmon" and "Open for salmon catch and release" say the same thing and were
 #: dropped. The distinction they carry is exactly the one `may_target` turns on.
 _RE_NON_RETENTION = re.compile(r"\bnon[- ]retention\b|\bno\s+retention\s+of\b|"
                                r"\bcatch\s+and\s+release\b", re.I)
 _RE_HATCHERY = re.compile(r"hatchery[- ]marked", re.I)
-_RE_BAIT_BAN = re.compile(r"\bbait\s+ban\b|\bno\s+natural\s+bait\b", re.I)
+_RE_BAIT_BAN = re.compile(r"\bbait\s+ban\b|\bno\s+natural\s+bait\b|\bnatural\s+bait\s+not\s+allowed\b", re.I)
+#: (T320, archived pages) "Natural bait allowed — FN1038": a permission (a bait ban lifted), no rule type states it
+_RE_BAIT_ALLOWED = re.compile(r"\bnatural\s+bait\s+allowed\b", re.I)
 #: "Single, barbless hook in tidal and non-tidal portions of all streams" — the comma cost the flag.
 _RE_BARBLESS = re.compile(r"\bsingle,?\s+barbless\s+hook\b", re.I)
 
@@ -133,7 +157,7 @@ def decode(limits: str) -> dict:
     """What the limits cell says, read once. The source text is never replaced by this."""
     text = limits or ""
     daily: Optional[int] = None
-    if (m := _RE_DAILY.search(text)):
+    if (m := _RE_DAILY.search(text) or _RE_DAILY_OF.search(text)):
         daily = int(m.group(1))
     elif _RE_NON_RETENTION.search(text) or _RE_NO_FISHING.search(text):
         daily = 0
@@ -259,7 +283,15 @@ def interpret_dates(text: str) -> dict:
 
 def species_for(text: str) -> List[str]:
     """DFO's species cell -> catalogue codes. Empty when the cell names something unmapped."""
-    return list(SPECIES.get((text or "").strip().lower(), []))
+    key = (text or "").strip().lower()
+    if key in SPECIES:
+        return list(SPECIES[key])
+    # (T320, archived pages) a list the table above does not spell: "Chinook, Sockeye, Pink, Chum", "Sockeye, Pink &
+    # Chum" — every part a species name, else unmapped (never a guess)
+    parts = [x for x in re.split(r"\s*(?:,|&|\band\b)\s*", key) if x]
+    if len(parts) > 1 and all(SPECIES.get(x) and x != "all" for x in parts):
+        return [c for x in parts for c in SPECIES[x]]
+    return []
 
 
 def _span(haystack: str, pattern: re.Pattern) -> Optional[str]:
@@ -389,17 +421,20 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
             origin=Origin.hatchery if says["hatchery_marked_only"] else None,
             review_reason=("a bare '0 per day' says the quota is zero but not whether you may "
                            "fish at all; published closed, confirm against the page")
-                          if zero_quota else "",
+                          if zero_quota else
+                          # T320: a number in the cell no reading accounts for — the row keeps its words, flagged,
+                          # and the app shows them instead of a number (`quota.residue`)
+                          _unread(gear),
             **base(times=times, verbatim=quoted or gear or (rec.get("species") or "row"))))
 
         # --- the size sub-limit, as its own rule pointing at the parent ----
         # ("none over 50 cm" is a SIZE rule: its band carries its own take 0 and the rule none —
         # `CatalogueRule` refuses a `take` no band uses, 2026-09-29.)
-        sub = _first(_RE_ONLY_OVER.search(gear), _RE_WHICH_MAY.search(gear))
+        sub = _first(_RE_ONLY_OVER.search(gear), _RE_WHICH_MAY.search(gear), _RE_OF_WHICH_N.search(gear))
         if sub:
             out.append(CatalogueRule(
                 rule_id=f"{rid}b", type=RuleType.retention_limit, species=codes,
-                take=int(sub.group(1)), lengths=[LengthBand(min_cm=int(sub.group(2)))],
+                take=_num(sub.group(1)), lengths=[LengthBand(min_cm=int(sub.group(2)))],
                 within=parent_id,
                 **base(verbatim=sub.group(0))))
         elif (none_over := _RE_NONE_OVER.search(gear)):
@@ -416,10 +451,22 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
                 within=parent_id,
                 **base(verbatim=mx.group(0))))
 
+    # --- (T320) a wild allowance and a monthly sub-limit, each its own rule under the day's count ---------
+    if parent_id and take:
+        if (wild := _RE_UNMARKED.search(gear)):
+            out.append(CatalogueRule(
+                rule_id=f"{rid}w", type=RuleType.retention_limit, species=codes, take=int(wild.group(1)),
+                origin=Origin.wild, within=parent_id, **base(verbatim=wild.group(0))))
+        if (mo := _RE_MONTHLY.search(gear)):
+            out.append(CatalogueRule(
+                rule_id=f"{rid}m", type=RuleType.retention_limit, species=codes, take=int(mo.group(1)),
+                period=Period.monthly, lengths=[LengthBand(min_cm=int(mo.group(2)))], within=parent_id,
+                **base(verbatim=mo.group(0))))
+
     # --- gear. Never scoped by `species` — a hook rule binds everything you
     # --- may catch. What it IS scoped by is what you are fishing FOR.
     if says["bait_ban"]:
-        quoted = _span(gear, re.compile(r"no\s+natural\s+bait[\w\s]*|bait\s+ban", re.I))
+        quoted = _span(gear, re.compile(r"no\s+natural\s+bait[\w\s]*|bait\s+ban|natural\s+bait\s+not\s+allowed", re.I))
         out.append(CatalogueRule(
             rule_id=f"{rid}_bait", type=RuleType.bait_restriction,
             gear=[{"slot": "bait", "ban": ["any_bait"]}],
@@ -445,9 +492,17 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     if not out:
         out.append(CatalogueRule(
             rule_id=rid, type=RuleType.advisory,
-            review_reason="row states no limit, closure or gear rule the scrape could type",
+            review_reason=_unread(gear) or ("a gear permission (natural bait allowed): no rule type states it"
+                                             if _RE_BAIT_ALLOWED.search(gear) else
+                                             "row states no limit, closure or gear rule the scrape could type"),
             **base()))
     return out
+
+
+def _unread(text: str) -> str:
+    """(T320) why a limits cell is not fully read ("" when every number in it is): `quota.unread_reason`."""
+    from pipeline.regs.dfo_salmon.quota import unread_reason
+    return unread_reason(text)
 
 
 def row_text(rec: dict) -> str:

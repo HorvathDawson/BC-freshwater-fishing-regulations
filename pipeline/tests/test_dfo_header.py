@@ -162,15 +162,21 @@ def test_the_feed_carries_the_header_and_a_change_tells_once(tmp_path, monkeypat
                 sender=lambda u, t: sent.append(t), entries_dir=tmp_path / "none")
     reg = one["index"]["regions"]["6"]
     assert _kinds(reg["notes"])[:2] == ["daylight", "facility"] and reg["header"]
-    assert not any("header changed" in t for t in sent)
+    assert not any("general text changed" in t for t in sent)
+    assert reg["bucket"]["n"] == 4 and reg["texts"]                       # T320: the bucket and the kept text
     changed = HEADER.replace("is 4. Individual", "is 2. Individual")
     two = L.run(tmp_path, fetcher=fetch(changed), regions=["6"], now="2026-10-28T06:00:00Z", notify_url="http://n",
                 sender=lambda u, t: sent.append(t), entries_dir=tmp_path / "none")
     assert [n["n"] for n in two["index"]["regions"]["6"]["notes"] if n["k"] == "daily"] == [2]
-    assert sum("header changed" in t for t in sent) == 1
+    assert sum("general text changed" in t for t in sent) == 1
+    # T320 (owner 2026-10-31): old vs new, for a human — the feed reads no rule from it
+    told = next(t for t in sent if "general text changed" in t)
+    assert "- was: The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4." in told
+    assert "+ now: The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 2." in told
+    assert two["index"]["regions"]["6"]["bucket"]["n"] == 2
     L.run(tmp_path, fetcher=fetch(changed), regions=["6"], now="2026-10-28T12:00:00Z", notify_url="http://n",
           sender=lambda u, t: sent.append(t), entries_dir=tmp_path / "none")
-    assert sum("header changed" in t for t in sent) == 1
+    assert sum("general text changed" in t for t in sent) == 1
     # a failed fetch keeps the header
     three = L.run(tmp_path, fetcher=lambda s: (_ for _ in ()).throw(OSError("down")), regions=["6"],
                   now="2026-10-28T18:00:00Z", notify_url="http://n", sender=lambda u, t: sent.append(t),
