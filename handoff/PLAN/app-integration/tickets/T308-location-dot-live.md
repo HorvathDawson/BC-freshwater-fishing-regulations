@@ -1,6 +1,6 @@
 # T308 — Your location dot keeps moving with you (not stuck at the first fix)
 
-Status: IN REVIEW (owner 2026-10-31, on 0.3.0: "the location doesn't change and update with where the user is. It locks to the
+Status: PARTIAL (in review) (owner 2026-10-31, on 0.3.0: "the location doesn't change and update with where the user is. It locks to the
 first location it seems").
 
 ## Work
