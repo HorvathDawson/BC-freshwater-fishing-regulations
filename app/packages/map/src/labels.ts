@@ -18,8 +18,6 @@
  * blue, a pale grey region name); left as they were, half the names on a screen came from a second label style.
  */
 import { MAP_STYLE, STYLE_META, type Tokens } from "./style";
-import { BC_OUTLINE } from "./bc-outline.generated";
-import { toExpression } from "./legacy-filter";
 
 export type Ground = "map" | "satellite";
 
@@ -81,21 +79,6 @@ export function placesByImportance<L extends { id: string; filter?: unknown; lay
     layout: { ...l.layout,
               "symbol-sort-key": ["-", ["*", PLACE_TIER, 100], ["coalesce", ["get", "population_rank"], 0]] },
   };
-}
-
-/**
- * (T299) THE BASEMAP'S NAMES, ONLY INSIDE BRITISH COLUMBIA — in the style, on every platform, from the first frame.
- *
- * The basemap ship stage drops them (cut 7), but a phone draws whatever basemap it holds, and one from before that cut
- * named Seattle (owner, app 0.3.0). The web confined them with the fetched mask (`web/outsideMask.ts`); the phone had
- * nothing. So every basemap symbol layer also asks `within` BC's outline (`bc-outline.generated.ts`, from the same
- * boundary, pushed out 500 m so a border town stays). The layer's own filter is converted first (`toExpression`):
- * Protomaps writes legacy filters, and `["all", <expression>, <legacy>]` parses as legacy.
- */
-export function inBC<L extends { type?: string; source?: string; filter?: unknown }>(l: L): L {
-  if (l.type !== "symbol" || l.source !== "basemap") return l;
-  const within = ["within", BC_OUTLINE as unknown];
-  return { ...l, filter: l.filter ? ["all", within, toExpression(l.filter)] : within };
 }
 
 /** (T299) The names that outrank the basemap's (placed before a town's): a river's and a lake's. `runtime-style.ts`. */

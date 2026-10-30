@@ -75,3 +75,5 @@ places outside BC at Blaine z7) renders 0 with the new style alone (`T299-shots/
 `packages/map/src/bc-outline.test.ts` (border towns in, Seattle/Bellingham/Spokane/Calgary/Juneau/Oroville/Hyder out;
 every basemap symbol layer confined in `runtimeStyle` and `nativeStyle`). Ships in the APK; no tile build. Emulator
 check for the APK batch: no basemap label outside BC at z6 over Seattle.
+
+- 2026-10-31 owner: the phone outside-BC label filter (03df0cf4e) is "overkill" — reverted; the basemap ship stage already drops names outside BC.
