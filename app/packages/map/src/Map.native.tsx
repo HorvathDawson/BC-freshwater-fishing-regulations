@@ -338,6 +338,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    * draws, the `highlight` features the tiles have delivered are measured and the camera re-fits while `refineFit` says
    * there is more to see. Bounded rounds. Waits for the camera to exist: the binding mounts it with the map.
    */
+  /** (test bed only) the map's rect in the window, dp, and the pending `[target]` search — see `findTarget` */
+  const winRect = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
+  const targetAt = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const findTarget = useRef<(() => Promise<void>) | null>(null);
   const lit = useRef(highlight);
   lit.current = highlight;
   const refine = useRef<(() => Promise<void>) | null>(null);
@@ -371,6 +375,30 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     };
     return () => { alive = false; refine.current = null; };
   }, [fit?.key, styled, renderer]);
+
+  /*
+   * (test bed only: the open probe's build, `__openProbe`) THE TAP TARGET of the selected water: once the camera rests,
+   * points on a 24 dp grid (nearest the middle first, clear of the top bar and the bottom chrome) are hit-tested as a tap
+   * would be (`renderer.press`) until one answers with a highlighted section; logged as `[target] {x, y, win}` (dp, in
+   * the map view and the map's rect in the window). A scenario taps there: never a colour hunted on screen, which the
+   * "has its own regulations" lines share with the highlight.
+   */
+  findTarget.current = async () => {
+    const ids = new Set((lit.current ?? []).map(Number).filter(Number.isFinite));
+    const { width: w, height: h } = size.current;
+    if (!ids.size || !w || !h || !rendered.current) return;
+    const pts: [number, number][] = [];
+    for (let y = Math.round(h * 0.18); y < h * 0.78; y += 24) for (let x = 24; x < w - 24; x += 24) pts.push([x, y]);
+    pts.sort((a, b) => Math.hypot(a[0] - w / 2, a[1] - h / 2) - Math.hypot(b[0] - w / 2, b[1] - h / 2));
+    for (const [x, y] of pts.slice(0, 400)) {
+      const hit = await renderer.press(x, y).catch(() => null);
+      if (hit && ids.has(Number(hit.id))) {
+        console.log(`[target] ${JSON.stringify({ x, y, win: winRect.current })}`);
+        return;
+      }
+    }
+    console.log(`[target] ${JSON.stringify({ none: true, win: winRect.current })}`);
+  };
 
   /** A tap: the 24 px box, streams first, the section as a number (`MapRenderer.press`). */
   const onPress = useCallback(async (e: PressEvent) => {
@@ -444,6 +472,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if (ne?.center && ne.zoom !== undefined) {
       cb.current.onMoved?.({ lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom });
       camNow.current = { lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom };
+      // (test bed only, the open probe's build) once the camera rests: a point the selected water answers a tap at
+      if ((globalThis as { __openProbe?: boolean }).__openProbe) {
+        if (targetAt.current) clearTimeout(targetAt.current);
+        targetAt.current = setTimeout(() => { void findTarget.current?.(); }, 1200);
+      }
       const next = { lat: ne.center[1], zoom: ne.zoom };
       setScaleAt((was) => (was.lat === next.lat && was.zoom === next.zoom ? was : next));
     }
@@ -467,6 +500,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, [renderer, colouring]);
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     size.current = { width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height };
+    if ((globalThis as { __openProbe?: boolean }).__openProbe) {
+      const t = e.currentTarget as unknown as { measureInWindow?: (f: (x: number, y: number, w: number, h: number) => void) => void };
+      t?.measureInWindow?.((x, y, w, h) => { winRect.current = { x, y, w, h }; });
+    }
   }, []);
 
   const scale = metricScale(scaleAt.lat, scaleAt.zoom, SCALE_MAX_WIDTH);

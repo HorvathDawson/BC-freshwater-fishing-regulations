@@ -1,5 +1,7 @@
 // (T277) SATELLITE ON A PHONE: on Wi-Fi, Satellite chosen in Layers → the imagery is drawn (screenshot, the Layers
-// sheet's words, logcat's imagery lines); in airplane mode the sheet says it needs a connection. Satellite is left off.
+// sheet's words, logcat's imagery lines); in airplane mode the sheet says it needs a connection. The map is put back
+// at the end (the base map is a choice of Map or Satellite, not a toggle: tapping Satellite again left it on for every
+// later scenario).
 //
 //   node app/tools/testbed/run.mjs satellite
 import fs from 'node:fs';
@@ -45,11 +47,19 @@ export const satellite = {
       const w = ctx.device.screenText();
       ctx.device.screenshot(path.join(ctx.dir, 'T277-layers-offline.png'));
       const said = w.find((x) => NEEDS.test(x));
-      ctx.flow('tap-text', { TEXT: 'Satellite' });                    // left off for the next run
       ctx.flow('tap-text', { TEXT: 'Done' });
       await ctx.device.net('wifi');
       if (!said) throw new Error('offline with Satellite on: nothing says it needs a connection');
       return said;
+    });
+    await ctx.step('the Map base put back (later scenarios start on the drawn map)', async () => {
+      ctx.flow('tap-text', { TEXT: 'Choose layers.*' });
+      await ctx.device.sleep(1200);
+      ctx.flow('tap-text', { TEXT: 'Map · Drawn.*|Map' });
+      await ctx.device.sleep(800);
+      const w = ctx.device.screenText();
+      ctx.flow('tap-text', { TEXT: 'Done' });
+      return w.filter((x) => /^(Map|Satellite)\b/.test(x)).join(' | ').slice(0, 200);
     });
   },
 };

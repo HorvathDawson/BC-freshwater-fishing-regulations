@@ -35,6 +35,9 @@ class BgDownloadModule : Module() {
       dm.query(DownloadManager.Query()).use { c ->
         while (c.moveToNext()) {
           val id = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_ID))
+          // the file the job wrote, still there? (the app's data cleared deletes it; the system's record of the job stays)
+          val local = c.getString(c.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+          val present = local != null && Uri.parse(local).path?.let { File(it).exists() } == true
           out.add(mapOf(
             "id" to id.toDouble(),
             "url" to c.getString(c.getColumnIndexOrThrow(DownloadManager.COLUMN_URI)),
@@ -43,6 +46,7 @@ class BgDownloadModule : Module() {
             "bytes" to c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)).toDouble(),
             "total" to c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)).toDouble(),
             "metered" to prefs.getBoolean("metered:$id", true),
+            "present" to present,
           ))
         }
       }

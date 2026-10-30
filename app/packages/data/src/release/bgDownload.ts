@@ -26,7 +26,15 @@ export interface BgJob {
   total: number;
   /** queued to use mobile data (false: waits for an unmetered network) */
   metered: boolean;
+  /**
+   * its file is on disk. A "done" job without one is stale: the app's data was cleared (the file with it) while the
+   * system kept its record of the job — it is queued again, never claimed.
+   */
+  present?: boolean;
 }
+
+/** A finished job whose file is gone (see `BgJob.present`). */
+const stale = (j: BgJob) => j.status === "done" && j.present === false;
 
 /** The platform's downloader (Android: `BgDownload`, the system's DownloadManager). */
 export interface BackgroundNative {
@@ -83,10 +91,10 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
       for (const it of items) {
         kinds.set(it.url, it.file);
         const job = jobs.find((j) => j.url === it.url) ?? null;
-        if (job?.status === "done") continue;                                     // claimed when the install reaches it
+        if (job?.status === "done" && !stale(job)) continue;                      // claimed when the install reaches it
         if (await fs.size(it.path) === it.bytes) continue;                        // in place (verified by the install)
         if (!job && await fs.size(`${it.path}.part`) > 0) continue;               // an older app's .part: resumed as before
-        if (job && job.status !== "failed" && job.metered === allowMetered) continue;
+        if (job && job.status !== "failed" && !stale(job) && job.metered === allowMetered) continue;
         if (job) await bg.remove(job.id);
         await enqueue(it.url, it.bytes);
       }
@@ -102,7 +110,8 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
         const job = (await bg.jobs()).find((j) => j.id === id) ?? null;
         const bad = !job ? "is gone" : job.status === "failed" ? `failed (reason ${job.reason})`
           : job.total > 0 && job.total !== total ? `is ${job.total} bytes, the manifest says ${total}`
-          : job.status === "done" && job.bytes !== total ? `ended at ${job.bytes} of ${total} bytes` : null;
+          : job.status === "done" && job.bytes !== total ? `ended at ${job.bytes} of ${total} bytes`
+          : stale(job) ? "finished, but its file is gone (the app's data was cleared)" : null;
         if (bad) {
           // failed, the wrong size, or cancelled from the system's Downloads: queued again, a few times
           if (++failures > tries) throw new Error(`${url}: the download ${bad}`);

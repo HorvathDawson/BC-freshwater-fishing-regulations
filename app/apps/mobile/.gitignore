@@ -5,3 +5,5 @@
 /ios
 /.expo
 /dist
+# local Expo modules: Gradle output
+/modules/*/android/build

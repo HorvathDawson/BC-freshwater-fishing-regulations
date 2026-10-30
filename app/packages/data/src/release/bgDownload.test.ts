@@ -115,6 +115,23 @@ describe("background (T298): the system's downloader carries the big files", () 
     expect(fs.files.has("f")).toBe(false);
   });
 
+  it("a finished job whose file is gone (the app's data cleared) is queued again, never claimed", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const fs = memFs(), { dm, jobs, log } = fakeDm(fs, { [URL]: BODY });
+    jobs.set(99, { id: 99, url: URL, status: "done", reason: 0, bytes: BODY.length, total: BODY.length, metered: true, present: false });
+    const bg = background(dm, fs, never, { pollMs: 0 });
+    await bg.queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "f" }], true);
+    expect(log.slice(0, 2).map((l) => l.split(" ").slice(0, 2).join(" "))).toEqual(["remove 99", `enqueue ${URL}`]);
+    // and the install that reaches such a job: queued again, downloaded, verified
+    const X = new Uint8Array([1, 2, 3]);
+    const fx = fakeDm(fs, { "https://r2.test/x": X });
+    fx.jobs.set(98, { id: 98, url: "https://r2.test/x", status: "done", reason: 0, bytes: 3, total: 3, metered: true, present: false });
+    await partDownload({ ...fs, hash: (p) => fx.dm.sha256(fs.uri(p)) }, background(fx.dm, fs, never, { pollMs: 0 }).fill)(
+      "https://r2.test/x", "x", { bytes: 3, sha256: sha256Hex(X) });
+    expect(fs.files.get("x")).toEqual(X);
+    expect(fx.log[0]).toBe("remove 98");
+  }, 15_000);
+
   it("a .part an older app left, with no job: resumed the old way (the fallback), not thrown away", async () => {
     const fs = memFs(), { dm, log } = fakeDm(fs, { [URL]: BODY });
     fs.files.set("f.part", BODY.slice(0, 4));

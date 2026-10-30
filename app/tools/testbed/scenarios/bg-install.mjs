@@ -16,6 +16,11 @@ export const bgInstall = {
     const d = ctx.device;
     const shot = (name) => { try { d.screenshot(path.join(ctx.dir, `T298-${name}.png`)); } catch { /* no shot */ } };
     const words = () => d.screenText();
+    // `pidof` exits 1 when the app is not running: that is a no, not a failure
+    const alive = () => { try { return !!d.pidOf(); } catch { return false; } };
+    // what the system's downloader has on disk for us (its folder in the app's external files)
+    const onDisk = () => { try { return d.sh('ls -l /sdcard/Android/data/ca.canifishthis.app/files/bg-download/ 2>&1').trim().split('\n')
+      .map((l) => l.trim().split(/\s+/)).filter((c) => c.length > 5).map((c) => `${c.at(-1)} ${Math.round(Number(c[4]) / 1e6)} MB`).join(', '); } catch { return '?'; } };
     await ctx.step('test channel reset to the live release', () => `test/ = ${ctx.updates('reset').release.data_release}`, { shot: false });
     await ctx.step('clean app on MOBILE DATA: asked before the download', async () => {
       d.stop(); d.clearData();
@@ -41,12 +46,14 @@ export const bgInstall = {
     });
     let atKill = '';
     await ctx.step('Wi-Fi back: the download starts by itself', async () => {
+      // a phone-like line (the emulator's own is ~1 Gbit/s: the whole set lands before the app could be closed)
+      d.link('hsdpa', 'none');
       await d.net('wifi');
       const end = Date.now() + 120_000;
       for (;;) {
         const line = words().find((x) => /MB downloaded/.test(x)) ?? '';
         const got = Number((/^([\d,.]+) of/.exec(line)?.[1] ?? '0').replace(/,/g, ''));
-        if (got > 40) { shot('3-downloading'); atKill = line; return line; }
+        if (got > 15) { shot('3-downloading'); atKill = line; return line; }
         if (Date.now() > end) throw new Error(`no progress on Wi-Fi in 120 s (${line || words().slice(0, 6).join(' | ')})`);
         await d.sleep(1000);
       }
@@ -60,16 +67,18 @@ export const bgInstall = {
       await d.sleep(2000);
       const pct = () => {
         d.sh('cmd statusbar expand-notifications');
-        return words().filter((x) => /Downloading BC fishing rules|\d+%|MB$/.test(x));
+        return words().filter((x) => /Downloading BC fishing rules|·|\d+ ?%/.test(x));
       };
-      await d.sleep(15_000);
+      const disk0 = onDisk();
+      await d.sleep(10_000);
       notes = pct(); shot('4-notification-a');
       await d.sleep(20_000);
       const later = pct(); shot('4-notification-b');
+      const disk1 = onDisk();
       d.sh('cmd statusbar collapse');
-      if (!notes.some((x) => /Downloading BC fishing rules/.test(x))) throw new Error(`no download notification (saw ${notes.join(' | ')})`);
-      if (d.pidOf()) throw new Error('the app is running: it was meant to be closed');
-      return `app closed at "${atKill}" · notification: ${notes.join(' | ')} → ${later.join(' | ')}`;
+      if (alive()) throw new Error('the app is running: it was meant to be closed');
+      if (!notes.some((x) => /Downloading BC fishing rules/.test(x))) throw new Error(`no download notification (saw ${notes.join(' | ')}; on disk ${disk0} → ${disk1})`);
+      return `app closed at "${atKill}" · on disk ${disk0} → ${disk1} · notification: ${notes.join(' | ')} → ${later.join(' | ')}`;
     });
     await ctx.step('a tap on the notification opens the app; setup finishes and the map opens', async () => {
       d.sh('cmd statusbar expand-notifications');
@@ -77,19 +86,20 @@ export const bgInstall = {
       let opened = 'tap';
       try { ctx.flow('tap-text', { TEXT: 'Downloading BC fishing rules' }); } catch { opened = 'launch'; }
       await d.sleep(4000);
-      if (!d.pidOf()) { opened = 'launch (the tap did not open it)'; d.sh('cmd statusbar collapse'); d.launch(); }
+      if (!alive()) { opened = 'launch (the tap did not open it)'; d.sh('cmd statusbar collapse'); d.launch(); }
       const t0 = Date.now();
       let setupShot = false;
       while (Date.now() - t0 < 15 * 60_000) {
         const w = words();
         if (w.includes('More') || w.includes('MORE') || w.some((x) => /^(Before you fish|I understand|Skip)$/.test(x))) break;
         if (!setupShot && w.some((x) => /^Setting up|MB downloaded/.test(x))) { shot('5-reopened'); setupShot = true; }
-        if (!d.pidOf()) d.launch();
+        if (!alive()) d.launch();
         await d.sleep(2000);
       }
       await appUp(ctx, { launch: false, ms: 60_000 });
       ctx.flow('dismiss-first-run');
       shot('6-map');
+      d.link('full', 'none');
       try {
         const js = d.logcatJs().split('\n').filter((l) => /\[download\]|\[setup\]/.test(l));
         fs.writeFileSync(path.join(ctx.dir, 'T298-install-timeline.txt'), js.join('\n') + '\n');
