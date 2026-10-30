@@ -4,7 +4,7 @@
 //
 //   node app/tools/bad-net.mjs [--url http://localhost:39260] [--profiles slow-3g,2g,flaky,offline-back]
 //                              [--steps paint,named,unnamed,link,conditions,pdf] [--json out.json] [--md out.md]
-//                              [--seed 254] [--low on|off] [--shots <dir>] [--desktop]
+//                              [--seed 254] [--low on|off] [--shots <dir>] [--desktop] [--water <slug>]
 //
 //   --url      a local production web build (`expo export --platform web`, served statically: `--serve <dir>` does
 //              it on :39260) or staging (https://staging.canifishthis.ca). Never production.
@@ -52,10 +52,13 @@ export const PROFILES = {
   '2g': { label: '2G-ish', down: 100e3 / 8, up: 50e3 / 8, latency: 800, type: 'cellular2g', cap: 600_000 },
   flaky: { label: 'Flaky', down: 1e6 / 8, up: 384e3 / 8, latency: 300, type: 'cellular3g', cap: 300_000,
            fail: 0.08, stall: 0.05, stallMs: 45_000, blackout: { every: 30_000, for: 4_000 } },
+  // (T282) DevTools' "Fast 3G" preset (1.44 Mbit/s down after its 0.9 factor, 675 kbit/s up, 562.5 ms)
+  'fast-3g': { label: 'Fast 3G', down: 1.44e6 / 8, up: 675e3 / 8, latency: 562.5, type: 'cellular3g', cap: 240_000 },
   'offline-back': { label: 'Offline, then back', down: 400e3 / 8, up: 400e3 / 8, latency: 400, type: 'cellular3g',
                     cap: 240_000, offlineBack: true },
 };
 const STEPS = ['paint', 'named', 'unnamed', 'link', 'conditions', 'chart', 'pdf'];
+// (T282) not in the default set: `--steps takeover` (a water page needs the SEO site: staging, or a served site dir)
 
 /** A small seeded RNG (mulberry32): the flaky profile's drops are the same each run. */
 export function rng(seed) {
@@ -99,7 +102,11 @@ window.__t254 = { seen: {}, pdfAt: null, pdfBytes: null };
 (() => {
   const ids = ${JSON.stringify(WATCH)};
   const look = () => { for (const id of ids) if (!(id in window.__t254.seen) && document.querySelector('[data-testid="' + id + '"]'))
-    window.__t254.seen[id] = performance.now(); };
+    window.__t254.seen[id] = performance.now();
+    // (T282) a water page's prerendered pane: seen, then dropped by the hand-over once the app's own pane is up
+    const pre = document.getElementById('prerender');
+    if (pre && !('prerender' in window.__t254.seen)) window.__t254.seen.prerender = performance.now();
+    if (!pre && 'prerender' in window.__t254.seen && !('handover' in window.__t254.seen)) window.__t254.seen.handover = performance.now(); };
   new MutationObserver(look).observe(document, { subtree: true, childList: true });
   const make = URL.createObjectURL.bind(URL);
   URL.createObjectURL = (b) => { if (b && b.type === 'application/pdf') { window.__t254.pdfAt = performance.now(); window.__t254.pdfBytes = b.size; } return make(b); };
@@ -302,6 +309,28 @@ const STEP = {
                ...(await s.tally()) };
     } finally { await s.close(); }
   },
+  /**
+   * (T282) WHEN THE APP TAKES OVER: a water's own page (`/water/<slug>`, `--water`) → its prerendered pane handed over
+   * to the app's (the hand-over drops `#prerender`), and `/` → the app's map chrome. ms from the navigation, plus the
+   * app's own bytes fetched (JS + CSS: kind `app`).
+   */
+  async takeover(site, profile, o) {
+    const out = {};
+    const w = await session(site, `${site}/water/${o.water}`, profile, o);
+    try {
+      const ok = await w.until(`'handover' in window.__t254.seen`, w.P.cap);
+      const seen = await w.seen(), t = await w.tally();
+      out.water = ok ? { status: 'ok', ms: Math.round(seen.handover), paneMs: Math.round(seen.prerender ?? NaN), appKB: t.kB.app }
+                     : { status: 'timeout', note: (await w.text()).slice(0, 120), appKB: t.kB.app };
+    } finally { await w.close(); }
+    const h = await session(site, `${site}/`, profile, o);
+    try {
+      const ok = await h.until(`!!document.querySelector('[data-testid=map-day]')`, h.P.cap);
+      const seen = await h.seen(), t = await h.tally();
+      out.home = ok ? { status: 'ok', ms: Math.round(seen['map-day']), appKB: t.kB.app } : { status: 'timeout', appKB: t.kB.app };
+    } finally { await h.close(); }
+    return out;
+  },
   async pdf(site, profile, o) {
     const s = await session(site, `${site}/?regs=${LINK.item}`, profile, o);
     try {
@@ -408,7 +437,7 @@ async function main() {
   if (/^https:\/\/(www\.)?canifishthis\.ca/.test(site)) throw new Error('never production: use a local build or staging');
   const dir = opt('--serve', null);
   const srv = dir ? await serve(path.resolve(dir), Number(new URL(site).port || 39260)) : null;
-  const o = { seed, low: opt('--low', null), shots: opt('--shots', null), desktop: has('--desktop') };
+  const o = { seed, low: opt('--low', null), shots: opt('--shots', null), desktop: has('--desktop'), water: opt('--water', 'vedder-river') };
   const profiles = opt('--profiles', 'slow-3g,2g,flaky,offline-back').split(',');
   const steps = opt('--steps', STEPS.join(',')).split(',');
   const rows = [];

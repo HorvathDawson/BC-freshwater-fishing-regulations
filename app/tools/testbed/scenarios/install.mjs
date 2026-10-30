@@ -38,7 +38,7 @@ export const install = {
         const w = ctx.device.screenText();
         // (T298) a first install asks to notify (Android 13+): allowed, as a reader would
         if (w.some((x) => /send you notifications/i.test(x))) { ctx.flow('tap-text', { TEXT: 'Allow' }); continue; }
-        if (w.includes('More') || w.includes('MORE') || w.some((x) => /^(Before you fish|I understand|Skip)$/.test(x))) break;
+        if (w.includes('More') || w.includes('MORE') || w.some((x) => /^(Before you fish|I understand|Skip|Got it)$/.test(x))) break;
         const line = /([\d,.]+) of ([\d,.]+) MB downloaded/.exec(w.join(' '));
         if (line && !seen.shotDl && Number(line[1].replace(/,/g, '')) > 20) { shot('stage-download'); seen.shotDl = true; }
         if (line && line[1] === line[2] && !seen.full) seen.full = Date.now();

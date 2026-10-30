@@ -15,9 +15,7 @@ import type { Spot } from "@app/data/spots";
 import { hiddenLayers, shownLayers, type Camera, type MapSpots, type TileEndpoints } from "@app/map";
 import { MapDayStrip } from "../DayCalendar";
 import { MapScreen } from "../MapScreen";
-import { SpotsScreen } from "../SpotsScreen";
 import { TABS } from "../TabBar";
-import { MoreScreen } from "../menu/MoreScreen";
 import type { MenuInfo } from "../menu/MenuHost";
 import type { Palette, ThemeName } from "../theme";
 import { HANDOVER_Z, HOME, type MapColouring } from "./useMapColouring";
@@ -26,6 +24,11 @@ import { RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
 import type { ShellNav } from "./useShellNav";
 import type { ShellSearch } from "./useShellSearch";
+import { part } from "../part";
+
+// (T282) loaded later on the web (`part`): not on the first screen's path
+const SpotsScreen = part(() => import("../later").then((m) => m.SpotsScreen));
+const MoreScreen = part(() => import("../later").then((m) => m.MoreScreen));
 
 /** No highlight — one frozen empty list, so the map's effect is not re-run every render. */
 const NONE: readonly SectionKey[] = [];

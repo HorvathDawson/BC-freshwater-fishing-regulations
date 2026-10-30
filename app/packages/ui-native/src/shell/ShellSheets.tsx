@@ -8,10 +8,14 @@ import { Platform } from "react-native";
 import type { ReleaseLoader } from "@app/data/release";
 import { useOfflineMaps, type MapRail, type MenuControls, type SyncState } from "@app/ui";
 import { SpotDropSheet } from "../SpotDropSheet";
-import { MenuHost, type MenuInfo } from "../menu/MenuHost";
+import type { MenuInfo } from "../menu/MenuHost";
 import type { Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 import type { ShellNav } from "./useShellNav";
+import { part } from "../part";
+
+// (T282) loaded later on the web (`part`): not on the first screen's path
+const MenuHost = part(() => import("../later").then((m) => m.MenuHost));
 
 export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, onTabTour, sync = null }: {
   theme?: string; onWalkthrough?: () => void; onTabTour?: (k: "runs" | "conditions" | "salmon") => void;

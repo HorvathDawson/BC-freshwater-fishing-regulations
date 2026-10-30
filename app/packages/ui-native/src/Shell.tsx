@@ -33,19 +33,13 @@ import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
 import { SearchSheet } from "./SearchSheet";
 import { TopBar, topBarBottom } from "./TopBar";
-import { SpotCapture } from "./SpotCapture";
 import { SpotPickBanner } from "./SpotPickBanner";
 import { SynopsisLoading } from "./regs/SynopsisLoading";
 import { SpotPin } from "./SpotPin";
 import { TabBar } from "./TabBar";
 import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
-import { ObstacleSheet } from "./ObstacleSheet";
-import { TidalSheet } from "./TidalSheet";
-import { NotFishingSheet } from "./NotFishingSheet";
-import { RunsSheet } from "./RunsSheet";
 import { InSeasonNotice } from "./InSeasonNotice";
-import { SyncErrorSheet } from "./SyncErrorSheet";
 import { DaySheet } from "./regs/DaySheet";
 import { WaterViewsContext } from "./ViewSwipe";
 import { MenuContext } from "./menu/MenuContext";
@@ -53,7 +47,7 @@ import { BrowseHost } from "./shell/BrowseHost";
 import { MapLegend, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
 import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
-import { SpotHost, useSpotEdit } from "./shell/SpotHost";
+import { useSpotEdit } from "./shell/useSpotEdit";
 import { WaterModeHost } from "./shell/WaterModeHost";
 import type { ShellProps } from "./shell/props";
 import { HOME, useMapColouring } from "./shell/useMapColouring";
@@ -63,6 +57,16 @@ import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
 import { GUIDE_STEPS, GuideCard, TabTourSheet, useGuide, useTabTour, type GuideActs, type GuideFacts } from "./Walkthrough";
 import { CoachContext, useCoachRegistry } from "./CoachMarks";
+import { part, preloadParts } from "./part";
+
+// (T282) loaded later on the web (`part`): not on the first screen's path
+const SpotCapture = part(() => import("./later").then((m) => m.SpotCapture));
+const ObstacleSheet = part(() => import("./later").then((m) => m.ObstacleSheet));
+const TidalSheet = part(() => import("./later").then((m) => m.TidalSheet));
+const NotFishingSheet = part(() => import("./later").then((m) => m.NotFishingSheet));
+const RunsSheet = part(() => import("./later").then((m) => m.RunsSheet));
+const SyncErrorSheet = part(() => import("./later").then((m) => m.SyncErrorSheet));
+const SpotHost = part(() => import("./later").then((m) => m.SpotHost));
 
 export type { ShellProps } from "./shell/props";
 
@@ -135,6 +139,10 @@ export function Shell(p: ShellProps) {
   const onRegion = useReleasePrefetch(p.prefetch ? loader : null, () => setSettled(true), background.scheduler,
                                       () => lowNow.current);
   const quietLine = useNetQuiet(GEAR_QUIET_MS);
+  // (T282) the parts loaded later (`part`): fetched once the map's own data has started (`settled`) or the line is
+  // quiet, the browser idle — so a later tap on More, Conditions or a spot finds its code here
+  const partsIdle = useIdleOnce(Platform.OS === "web" && (settled || quietLine));
+  useEffect(() => { if (partsIdle) void preloadParts(); }, [partsIdle]);
   const { route, go, tab, frame, adding, openSpot, back, backLayers } = nav;
   /*
    * EVERY SURFACE IS UNDER THE ONE BACK (app/HANDOFF-ui.md "Back, everywhere"): whatever the Shell returns — the spot,

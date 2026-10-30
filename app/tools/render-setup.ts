@@ -59,3 +59,11 @@ if (typeof URL.createObjectURL !== "function") {
  * load. False here: what it guards is dev-only warnings, and every other reader treats a missing one as false too.
  */
 (globalThis as { __DEV__?: boolean }).__DEV__ ??= false;
+
+/**
+ * (T282) The parts the web loads later (`ui-native` part.tsx) are in before a test renders: a render test reads the
+ * screen as it stands once its code is here, as a phone does (its parts are asked for at once).
+ */
+import { beforeAll } from "vitest";
+// imported here, after the test file's own imports (a static import would load react-native before a test's setup)
+beforeAll(async () => { await (await import("../packages/ui-native/src/part")).preloadParts(); });

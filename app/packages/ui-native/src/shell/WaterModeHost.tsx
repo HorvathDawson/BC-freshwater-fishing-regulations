@@ -10,12 +10,16 @@ import { crossAction, exitAction, mapPointTap, partAction, showRegsActions, wate
          type RegsStart } from "@app/ui";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
 import { WaterScreen } from "../WaterScreen";
-import { WaterConditions, WaterMap } from "../WaterViews";
-import { WaterMapView } from "../water/WaterMapView";
 import type { AdiposeImages, FishImages } from "../regs/types";
 import type { Palette } from "../theme";
 import type { ShellNav } from "./useShellNav";
 import type { MapColouring } from "./useMapColouring";
+import { part } from "../part";
+
+// (T282) loaded later on the web (`part`): not on the first screen's path
+const WaterConditions = part(() => import("../later").then((m) => m.WaterConditions));
+const WaterMap = part(() => import("../later").then((m) => m.WaterMap));
+const WaterMapView = part(() => import("../later").then((m) => m.WaterMapView));
 
 export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles, theme, feed, rail, spotLayer, camera,
                                 waterCamera, fishImages, adiposeImages, mapDay, onDay, start, onStarted }: {
