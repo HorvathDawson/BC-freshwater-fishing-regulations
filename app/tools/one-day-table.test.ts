@@ -43,8 +43,7 @@ describe("the day tables", () => {
     const files = ["packages", "apps"].flatMap((d) => { try { return walk(`${APP}/${d}`); } catch { return []; } });
     const rel = (f: string) => f.slice(APP.length + 1);
     expect(files.filter((f) => LISTS.test(readFileSync(f, "utf8"))).map(rel).sort())
-      .toEqual(["packages/core/src/calendar.generated.ts", "packages/core/src/flow.ts",
-              "packages/core/src/salmonFeed.ts"]); // (T276) salmonFeed: the one "DFO rules checked <Mon d>" line
+      .toEqual(["packages/core/src/calendar.generated.ts", "packages/core/src/flow.ts"]);   // salmonFeed reads MONTHS now
     expect(files.filter((f) => ISO.test(readFileSync(f, "utf8"))).map(rel)).toEqual(["packages/core/src/day.ts"]);
     // the scans can fail: each pattern catches the copy it exists for
     expect(LISTS.test('const W = ["Sun", "Mon", "Tue"];') && ISO.test("const D = /^\\d{4}-\\d{2}-\\d{2}$/;")).toBe(true);
