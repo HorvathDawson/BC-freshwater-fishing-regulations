@@ -8,13 +8,13 @@ write. Nothing touched splits.json, the catalogue or marks.jsonl. Input:
 `handoff/PLAN/curation-review/dfo-split-hunt.json`; regenerate with
 `python -m pipeline.regs.dfo_salmon.suggest`.
 
-## Counts (91 locations)
+## Counts (93 locations)
 
 | locations | high | medium | low | not found |
 |---|---|---|---|---|
-| 91 | 26 | 34 | 16 | 15 |
+| 93 | 25 | 34 | 19 | 15 |
 
-A location's confidence is its weakest end. Distinct hunted cuts: high 22, medium 14, low 17.
+A location's confidence is its weakest end. Distinct hunted cuts: high 22, medium 15, low 17.
 
 ## Found
 
@@ -24,6 +24,8 @@ A location's confidence is its weakest end. Distinct hunted cuts: high 22, mediu
 | `1:cowichan-river:from-the-white-triangle-boundary-s` | downstream of white triangle boundary sign located in Sandy Pool Regional Park | high | curated cuts only |
 | `1:cowichan-river:including-tributaries-and-cowichan` | the whole water | medium | curated cuts only |
 | `1:nanaimo-river:from-500-m-below-the-lower-power-l` | between 500 m below the power line at Bore Hole and Boulder Creek → Nanaimo River | medium | 500 m below the power line at Bore Hole (medium · 0 m) |
+| `1:nanaimo-river:in-subarea-17-14-tidal-portions-of` | downstream of Cedar Road bridge | high | curated cuts only |
+| `1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2` | between Cedar Road bridge and signs 400 m below the Cedar Road bridge | medium | signs 400 m below the Cedar Road bridge (medium · 0 m) |
 | `1:puntledge-river:from-the-weir-at-the-lower-hatcher` | between Puntledge lower hatchery weir and signs 75 m below the Puntledge lower hatchery weir | medium | Puntledge lower hatchery weir (high · 3 m); signs 75 m below the Puntledge lower hatchery weir (medium · 3 m) |
 | `1:quatse-river:100m-upstream-and-downstream-of-th` | between 100 m above the Quatse River Hatchery weir and 100 m below the Quatse River Hatchery weir | low | 100 m above the Quatse River Hatchery weir (low · 36 m); 100 m below the Quatse River Hatchery weir (low · 36 m) |
 | `1:san-juan-river:that-portion-of-the-san-juan-river` | between San Juan hatchery counting fence and signs 150 m below the San Juan hatchery fence | low | San Juan hatchery counting fence (low · 4 m); signs 150 m below the San Juan hatchery fence (low · 4 m) |
@@ -41,10 +43,10 @@ A location's confidence is its weakest end. Distinct hunted cuts: high 22, mediu
 | `2:birkenhead-river:from-the-birkenhead-bridge-located` | between Birkenhead Bridge (Portage Road) and Birkenhead canyon (foot) | medium | Birkenhead Bridge (Portage Road) (high · 1 m); Birkenhead canyon (foot) (medium · 1 m) |
 | `2:brunette-river:downstream-of-cariboo-road` | downstream of Cariboo Road bridge | high | Cariboo Road bridge (high · 1 m) |
 | `2:chapman-creek:upstream-of-tidal-water-fishing-bo` | between Chapman Creek Hwy 101 bridge (tidal signs below it) and 100 m below the Chapman Creek falls (below the power line) | low | Chapman Creek Hwy 101 bridge (tidal signs below it) (low · 0 m); 100 m below the Chapman Creek falls (below the power line) (low · 19 m) |
-| `2:fraser-river:from-the-downstream-side-of-the-cp` | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | high | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m) |
-| `2:fraser-river:from-the-downstream-side-of-the-cp~2` | between the CPR Bridge at Mission and Alexandra Bridge (Hwy 1) | medium | Alexandra Bridge (Hwy 1) (medium · 77 m) |
+| `2:fraser-river:from-the-downstream-side-of-the-cp` | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | low | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m) |
+| `2:fraser-river:from-the-downstream-side-of-the-cp~2` | between the CPR Bridge at Mission and Alexandra Bridge (Hwy 1) | low | Alexandra Bridge (Hwy 1) (medium · 77 m) |
 | `2:fraser-river:from-the-highway-1-bridge-at-hope` | between Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) and Alexandra Bridge (Hwy 1) | medium | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m); Alexandra Bridge (Hwy 1) (medium · 77 m) |
-| `2:fraser-river:mainstem-waters-from-the-downstrea` | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | high | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m) |
+| `2:fraser-river:mainstem-waters-from-the-downstrea` | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | low | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m) |
 | `2:fraser-river:upstream-from-the-highway-1-bridge` | upstream of Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | high | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m) |
 | `2:harrison-river:from-the-highway-7-bridge-downstre` | downstream of Hwy 7 bridge over the Harrison | high | Hwy 7 bridge over the Harrison (high · 165 m) |
 | `2:harrison-river:from-the-outlet-of-harrison-lake-d` | between Harrison Lake and Hwy 7 bridge over the Harrison | high | Hwy 7 bridge over the Harrison (high · 165 m) |
@@ -72,7 +74,7 @@ A location's confidence is its weakest end. Distinct hunted cuts: high 22, mediu
 | `6:bulkley-river:all-tributaries-of-the-bulkley-riv~2` | the whole water | medium | curated cuts only |
 | `6:exchamsiks-river:upstream-of-highway-16-bridge` | upstream of Hwy 16 bridge over the Exchamsiks | high | Hwy 16 bridge over the Exchamsiks (high · 42 m) |
 | `6:exstew-river:upstream-of-highway-16-bridge` | upstream of Hwy 16 bridge over the Exstew | high | Hwy 16 bridge over the Exstew (high · 38 m) |
-| `6:gitnadoix-river:upstream-of-powerline-crossing-nea` | upstream of Gitnadoix powerline crossing near the mouth | low | Gitnadoix powerline crossing near the mouth (low · 324 m) ⚠ |
+| `6:gitnadoix-river:upstream-of-powerline-crossing-nea` | upstream of Gitnadoix powerline crossing near the mouth | low | Gitnadoix powerline crossing near the mouth (low · 304 m) ⚠ |
 | `6:illiance-river:upstream-of-white-triangular-fishi` | upstream of signs near the Illiance mouth | low | signs near the Illiance mouth (low · 0 m) |
 | `6:kasiks-river:upstream-of-highway-16-bridge` | upstream of Hwy 16 bridge over the Kasiks | high | Hwy 16 bridge over the Kasiks (high · 30 m) |
 | `6:khyex-river:upstream-of-highway-16-bridge` | upstream of Hwy 16 bridge over the Khyex | high | Hwy 16 bridge over the Khyex (high · 48 m) |
@@ -112,7 +114,7 @@ A location's confidence is its weakest end. Distinct hunted cuts: high 22, mediu
 | `6:babine-lake:within-a-400m-radius-of-the-mouth` | a 400 m radius around the Pinkut Creek mouth: a lake area — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area. |
 | `6:kasiks-river:downstream-of-fishing-boundary-sig` | the Kasiks 'Upper Pool' — not found (as above). |
 | `6:kasiks-river:upstream-of-fishing-boundary-signs` | 'the Upper Pool' is named nowhere public (DFO pages, FWA, FISS: no lake or falls in the lower 12 km). Ask DFO Terrace or a local guide. |
-| `6:sheldens-creek:upstream-of-white-triangular-fishi` | the water is not matched to the registry (FWA has no 'Sheldens Creek'). Best lead: the creek into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677, FWA code 950-016367); Spur 19 (FTEN 'SP 19(1) TO SHELDONS') crosses it ≈ 53.12968,-131.78224, ~3.1 km above the mouth (medium). Match the water first (T164 dossier), then this cut. |
+| `6:sheldens-creek:upstream-of-white-triangular-fishi` | (T164 2026-10-29) the WATER is the open question, not the cut. Proposed match: the unnamed FWA stream blk 360846083 (code 950-016367) into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677) — the forest roads around it are all named for it (FTEN R06206 'SP 19(1) TO SHELDONS', 'SP 19H TO SHELDONS', SHEL100–SHEL103). The cut: FTEN road 'SP 19(1) TO SHELDONS' (R06206 sec 331, ACTIVE) crosses that line at 53.12968,-131.78224, FWA measure 3402 m (exact road×stream intersection) — the Spur 19 bridge site, medium. The name is a REVIEW row in the Names mode (candidate `blk:360846083~sheldens-creek`, never auto-accepted): accepting it names the line, the DFO matcher then binds the water, and this cut becomes placeable here. |
 | `8:mabel-lake:northerly-of-a-line-drawn-from-a-w` | lake areas (a line from Mabel Lake Provincial Park's north edge to a western point; signs ~1 km from Wap Creek) — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area. |
 | `8:osoyoos-lake:in-the-waters-in-the-portion-of-os` | Osoyoos Lake north of the Hwy 3 bridge (the North Basin): a lake part — the bridge (Hwy 3, Osoyoos narrows) is a line across the lake, curate as a lake split by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area. |
 | `8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2` | same North Basin lake part — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area. |

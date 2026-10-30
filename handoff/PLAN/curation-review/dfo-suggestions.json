@@ -1,29 +1,29 @@
 {
  "_about": "DFO extent SUGGESTIONS (T164 / T210 follow-up) — never applied. The review app's DFO mode shows each one; 'accept suggestion' pre-fills the extent-fix editor and the owner saves it as their mark. Regenerate: python -m pipeline.regs.dfo_salmon.suggest",
- "generated": "2026-10-28",
+ "generated": "2026-10-29",
  "counts": {
-  "existing": 66,
-  "new_high": 26,
-  "new_low": 16,
+  "existing": 67,
+  "new_high": 24,
+  "new_low": 19,
   "new_medium": 23,
   "none": 15,
   "whole": 50
  },
  "outcomes": {
-  "existing_high": 46,
-  "existing_low": 1,
+  "existing_high": 45,
+  "existing_low": 3,
   "existing_medium": 19,
-  "new_high": 26,
-  "new_low": 16,
+  "new_high": 24,
+  "new_low": 19,
   "new_medium": 23,
   "unresolvable": 15,
   "whole": 50
  },
  "why": {
   "lake_area": 12,
-  "needs_split": 58,
+  "needs_split": 59,
   "no_water": 1,
-  "review_pending": 99,
+  "review_pending": 100,
   "side_channel": 3,
   "tributary_set": 3,
   "unknown_landmark": 2,
@@ -136,6 +136,18 @@
       "split_id": "cowichan_river__white_triangle_boundary_sign_loc"
      },
      "item_id": "gnis:12227"
+    },
+    {
+     "phrase": "the tidal boundary",
+     "kind": "proposed",
+     "confidence": "medium",
+     "reason": "\"tidal\" -> the proposed cut `tidal-354155148` (Cowichan River: mouth (tidal boundary) (medium confidence))",
+     "label": "Cowichan River: mouth (tidal boundary) (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "tidal-354155148"
+     },
+     "item_id": "gnis:12227"
     }
    ],
    "points": [
@@ -155,7 +167,7 @@
     ],
     "matcher": {
      "matched": "existing",
-     "reason": "low: \"park, pool, regional, sandy\" -> the curated cut `cowichan_river__white_triangle_boundary_sign_loc` (white triangle boundary sign located in Sandy Pool Regional Park); as close: `n1` (white triangle boundary sign located in Sandy Pool Regional Park (medium confidence)); the other end is the water's mouth, so downstream of it"
+     "reason": "low: \"park, pool, regional, sandy\" -> the curated cut `cowichan_river__white_triangle_boundary_sign_loc` (white triangle boundary sign located in Sandy Pool Regional Park); as close: `n1` (white triangle boundary sign located in Sandy Pool Regional Park (medium confidence)); medium: \"tidal\" -> the proposed cut `tidal-354155148` (Cowichan River: mouth (tidal boundary) (medium confidence))"
     }
    },
    "state": "needs_cut",
@@ -811,7 +823,7 @@
    },
    "confidence": "medium",
    "matched": "new",
-   "reason": "split hunt: 'from the weir at the lower hatchery to signs ~75 m downstream': the weir, then 75 m below it.; high: the weir across the Puntledge beside the Puntledge River Hatchery (lower hatchery); medium: boundary signs ~75 m downstream of the lower hatchery weir",
+   "reason": "split hunt: 'from the weir at the lower hatchery to signs ~75 m downstream': the weir, then 75 m below it. (T164 2026-10-29) MAYBE an existing cut: the curated `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence` (synopsis) sits at FWA measure 4075 m — 74 m ABOVE the OSM weir (4001 m), so it cannot be '75 m below the weir' as placed. If the synopsis' fence is this weir, one of the two is misplaced: confirm the weir on the map, then either reuse/move the curated cut or keep the two new ones.; high: the weir across the Puntledge beside the Puntledge River Hatchery (lower hatchery); medium: boundary signs ~75 m downstream of the lower hatchery weir",
    "endpoints": [
     {
      "phrase": "the weir at the lower hatchery",
@@ -848,7 +860,7 @@
    ],
    "hunt": {
     "status": "found",
-    "notes": "'from the weir at the lower hatchery to signs ~75 m downstream': the weir, then 75 m below it.",
+    "notes": "'from the weir at the lower hatchery to signs ~75 m downstream': the weir, then 75 m below it. (T164 2026-10-29) MAYBE an existing cut: the curated `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence` (synopsis) sits at FWA measure 4075 m — 74 m ABOVE the OSM weir (4001 m), so it cannot be '75 m below the weir' as placed. If the synopsis' fence is this weir, one of the two is misplaced: confirm the weir on the map, then either reuse/move the curated cut or keep the two new ones.",
     "proposals": [
      {
       "ref": "puntledge_lower_weir",
@@ -1192,9 +1204,9 @@
     "new_splits": [],
     "words": "between boundary signs = QFN and Hwy 19A bridge"
    },
-   "confidence": "medium",
+   "confidence": "low",
    "matched": "existing",
-   "reason": "medium: \"qfn\" -> the curated cut `qualicum_river__boundary_signs_qfn` (boundary signs = QFN); high: \"19a, bridge, hwy\" -> the curated cut `qualicum_river__hwy_19a_bridge` (Hwy 19A bridge)",
+   "reason": "medium: \"qfn\" -> the curated cut `qualicum_river__boundary_signs_qfn` (boundary signs = QFN); low: \"19a, bridge, hwy\" -> the curated cut `qualicum_river__hwy_19a_bridge` (Hwy 19A bridge); as close: `tidal-354152785` (Qualicum River: Hwy 19A bridge)",
    "endpoints": [
     {
      "phrase": "below the QFN boundary fence",
@@ -1211,8 +1223,8 @@
     {
      "phrase": "the Hwy 19A bridge",
      "kind": "split",
-     "confidence": "high",
-     "reason": "\"19a, bridge, hwy\" -> the curated cut `qualicum_river__hwy_19a_bridge` (Hwy 19A bridge)",
+     "confidence": "low",
+     "reason": "\"19a, bridge, hwy\" -> the curated cut `qualicum_river__hwy_19a_bridge` (Hwy 19A bridge); as close: `tidal-354152785` (Qualicum River: Hwy 19A bridge)",
      "label": "Hwy 19A bridge",
      "fix": {
       "kind": "split",
@@ -1238,7 +1250,7 @@
    "state": "needs_cut",
    "status": "active",
    "why": "review_pending",
-   "outcome": "existing_medium"
+   "outcome": "existing_low"
   },
   "1:qualicum-river:all-open-portions-of-the-qualicum": {
    "location_id": "1:qualicum-river:all-open-portions-of-the-qualicum",
@@ -3904,6 +3916,216 @@
    "why": "needs_split",
    "outcome": "new_medium"
   },
+  "1:nanaimo-river:in-subarea-17-14-tidal-portions-of": {
+   "location_id": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of",
+   "water": "Nanaimo River",
+   "text": "in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream",
+   "notice_op": "downstream_of",
+   "items": [
+    "gnis:16505"
+   ],
+   "suggestion": {
+    "op": "downstream_of",
+    "points": [
+     {
+      "kind": "split",
+      "split_id": "nanaimo_river__cedar_road_bridge"
+     }
+    ],
+    "items": [
+     "gnis:16505"
+    ],
+    "tributaries": null,
+    "new_splits": [],
+    "words": "downstream of Cedar Road bridge"
+   },
+   "confidence": "high",
+   "matched": "existing",
+   "reason": "split hunt: (T164 2026-10-29) 'in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream': the curated Cedar Road bridge cut, downstream to the mouth.; high: the curated cut `nanaimo_river__cedar_road_bridge` — 'Cedar Bridge' is the curated Cedar Road bridge (OSM-confirmed, tidal: true)",
+   "endpoints": [
+    {
+     "phrase": "in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream",
+     "kind": "split",
+     "confidence": "low",
+     "reason": "\"bridge, cedar\" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge); as close: `tidal-354154938` (Nanaimo River: tidal boundary (medium confidence))",
+     "label": "Cedar Road bridge",
+     "fix": {
+      "kind": "split",
+      "split_id": "nanaimo_river__cedar_road_bridge"
+     },
+     "item_id": "gnis:16505"
+    }
+   ],
+   "points": [
+    {
+     "label": "Cedar Road bridge",
+     "coord": null,
+     "kind": "split",
+     "split_id": "nanaimo_river__cedar_road_bridge"
+    }
+   ],
+   "caveat": "tidal Subarea 17-14: the reach below Cedar Bridge is tidal water — check the extent should bind the freshwater line at all (the tidal boundary rule, T212).",
+   "hunt": {
+    "status": "found",
+    "notes": "(T164 2026-10-29) 'in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream': the curated Cedar Road bridge cut, downstream to the mouth.",
+    "proposals": [],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
+    ],
+    "matcher": {
+     "matched": "existing",
+     "reason": "low: \"bridge, cedar\" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge); as close: `tidal-354154938` (Nanaimo River: tidal boundary (medium confidence))"
+    }
+   },
+   "state": "needs_cut",
+   "status": "dormant",
+   "cluster": {
+    "id": "1:nanaimo-river#4",
+    "members": [
+     "1:nanaimo-river:in-subarea-17-14-tidal-portions-of",
+     "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2"
+    ],
+    "placed": [],
+    "canonical": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of",
+    "role": "canonical",
+    "links": {
+     "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2": "text 1.00"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
+  },
+  "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2": {
+   "location_id": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2",
+   "water": "Nanaimo River",
+   "text": "in Subarea 17-14 (tidal portions of the Nanaimo River), that portion of the Nanaimo River from the Cedar Bridge to the white square boundary signs approximately 400 m downstream of the Cedar Bridge",
+   "notice_op": "between",
+   "items": [
+    "gnis:16505"
+   ],
+   "suggestion": {
+    "op": "between",
+    "points": [
+     {
+      "kind": "split",
+      "split_id": "nanaimo_river__cedar_road_bridge"
+     },
+     {
+      "kind": "new",
+      "split_id": "nanaimo_cedar_bridge_d400"
+     }
+    ],
+    "items": [
+     "gnis:16505"
+    ],
+    "tributaries": null,
+    "new_splits": [
+     {
+      "ref": "nanaimo_cedar_bridge_d400",
+      "anchor": "split",
+      "name": "signs 400 m below the Cedar Road bridge",
+      "split_id": "nanaimo_river__cedar_road_bridge",
+      "on_item": "gnis:16505",
+      "offset_m": -400.0,
+      "note": "[split hunt medium] white square boundary signs ~400 m downstream of the Cedar (Road) Bridge — the curated Cedar Road bridge cut moved 400 m down, the notice's own distance. Sources: data/curated/waters/splits.json#nanaimo_river__cedar_road_bridge. (T164 2026-10-29) the bridge is the curated, OSM-confirmed cut (tidal: true); the signs' distance is the notice's 'approximately 400 m'."
+     }
+    ],
+    "words": "between Cedar Road bridge and signs 400 m below the Cedar Road bridge"
+   },
+   "confidence": "medium",
+   "matched": "new",
+   "reason": "split hunt: (T164 2026-10-29) 'from the Cedar Bridge to the white square boundary signs ~400 m downstream': the curated bridge cut, then 400 m below it.; high: the curated cut `nanaimo_river__cedar_road_bridge` — 'Cedar Bridge' is the curated Cedar Road bridge; medium: white square boundary signs ~400 m downstream of the Cedar (Road) Bridge — the curated Cedar Road bridge cut moved 400 m down, the notice's own distance",
+   "endpoints": [
+    {
+     "phrase": "in Subarea 17-14 (tidal portions of the Nanaimo River), that portion of the Nanaimo River from the Cedar Bridge",
+     "kind": "split",
+     "confidence": "low",
+     "reason": "\"bridge, cedar\" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge); as close: `tidal-354154938` (Nanaimo River: tidal boundary (medium confidence))",
+     "label": "Cedar Road bridge",
+     "fix": {
+      "kind": "split",
+      "split_id": "nanaimo_river__cedar_road_bridge"
+     },
+     "item_id": "gnis:16505"
+    },
+    {
+     "phrase": "the white",
+     "kind": "none",
+     "confidence": "none",
+     "reason": "no curated cut, proposal or data point names this place"
+    }
+   ],
+   "points": [
+    {
+     "label": "Cedar Road bridge",
+     "coord": null,
+     "kind": "split",
+     "split_id": "nanaimo_river__cedar_road_bridge"
+    },
+    {
+     "label": "signs 400 m below the Cedar Road bridge",
+     "coord": [
+      -123.880448,
+      49.11625
+     ],
+     "kind": "new",
+     "split_id": "nanaimo_cedar_bridge_d400"
+    }
+   ],
+   "caveat": "tidal Subarea 17-14 — as the sibling row: check the freshwater extent should bind tidal water (T212).",
+   "hunt": {
+    "status": "found",
+    "notes": "(T164 2026-10-29) 'from the Cedar Bridge to the white square boundary signs ~400 m downstream': the curated bridge cut, then 400 m below it.",
+    "proposals": [
+     {
+      "ref": "nanaimo_cedar_bridge_d400",
+      "anchor": "split",
+      "name": "signs 400 m below the Cedar Road bridge",
+      "confidence": "medium",
+      "description": "white square boundary signs ~400 m downstream of the Cedar (Road) Bridge — the curated Cedar Road bridge cut moved 400 m down, the notice's own distance",
+      "sources": [
+       "data/curated/waters/splits.json#nanaimo_river__cedar_road_bridge"
+      ],
+      "notes": "(T164 2026-10-29) the bridge is the curated, OSM-confirmed cut (tidal: true); the signs' distance is the notice's 'approximately 400 m'.",
+      "lat": 49.11625,
+      "lon": -123.88045,
+      "coord": [
+       -123.880448,
+       49.11625
+      ],
+      "offset_m": -400,
+      "split_id": "nanaimo_river__cedar_road_bridge",
+      "snap_m": 0.2,
+      "blk": null,
+      "measure": null
+     }
+    ],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
+    ],
+    "matcher": {
+     "matched": "partial",
+     "reason": "low: \"bridge, cedar\" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge); as close: `tidal-354154938` (Nanaimo River: tidal boundary (medium confidence)); none: no curated cut, proposal or data point names this place"
+    }
+   },
+   "state": "needs_cut",
+   "status": "dormant",
+   "cluster": {
+    "id": "1:nanaimo-river#4",
+    "members": [
+     "1:nanaimo-river:in-subarea-17-14-tidal-portions-of",
+     "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2"
+    ],
+    "placed": [],
+    "canonical": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of",
+    "role": "member",
+    "links": {
+     "1:nanaimo-river:in-subarea-17-14-tidal-portions-of": "text 1.00"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_medium"
+  },
   "2:alouette-river-and-tributaries:above-216th-street-including-the-n": {
    "location_id": "2:alouette-river-and-tributaries:above-216th-street-including-the-n",
    "water": "Alouette River and tributaries",
@@ -4413,9 +4635,15 @@
    "endpoints": [
     {
      "phrase": "upstream of tidal water fishing boundary signs located below the Hwy 101 Bridge",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "split",
+     "confidence": "low",
+     "reason": "\"tidal\" -> the curated cut `chapman_creek__tidal_boundary` (tidal boundary); as close: `tidal-360857589` (Chapman Creek: tidal boundary (medium confidence))",
+     "label": "tidal boundary",
+     "fix": {
+      "kind": "split",
+      "split_id": "chapman_creek__tidal_boundary"
+     },
+     "item_id": "gnis:12936"
     },
     {
      "phrase": "100 m below the falls. The falls are located approximately 550 m upstream of the powerline crossing",
@@ -4505,8 +4733,8 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
     ],
     "matcher": {
-     "matched": "partial",
-     "reason": "none: no curated cut, proposal or data point names this place; high: \"100m-down, crossing, falls, powerline\" -> the curated cut `chapman_creek__100_m_below_lower_falls` (100 m below the falls (below the power line crossing))"
+     "matched": "existing",
+     "reason": "low: \"tidal\" -> the curated cut `chapman_creek__tidal_boundary` (tidal boundary); as close: `tidal-360857589` (Chapman Creek: tidal boundary (medium confidence)); high: \"100m-down, crossing, falls, powerline\" -> the curated cut `chapman_creek__100_m_below_lower_falls` (100 m below the falls (below the power line crossing))"
     }
    },
    "state": "needs_cut",
@@ -4759,15 +4987,15 @@
     ],
     "words": "between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)"
    },
-   "confidence": "high",
+   "confidence": "low",
    "matched": "new",
-   "reason": "split hunt: CPR bridge at Mission (curated) up to the Hwy 1 bridge at Hope.; high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
+   "reason": "split hunt: CPR bridge at Mission (curated) up to the Hwy 1 bridge at Hope.; low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
    "endpoints": [
     {
      "phrase": "the downstream side of the CPR Bridge at Mission",
      "kind": "split",
-     "confidence": "high",
-     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
+     "confidence": "low",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
      "label": "the CPR Bridge at Mission",
      "fix": {
       "kind": "split",
@@ -4831,7 +5059,7 @@
     ],
     "matcher": {
      "matched": "partial",
-     "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
+     "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
     }
    },
    "state": "needs_cut",
@@ -4852,7 +5080,7 @@
     }
    },
    "why": "needs_split",
-   "outcome": "new_high"
+   "outcome": "new_low"
   },
   "2:fraser-river:upstream-from-the-highway-1-bridge": {
    "location_id": "2:fraser-river:upstream-from-the-highway-1-bridge",
@@ -7109,15 +7337,15 @@
     ],
     "words": "between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)"
    },
-   "confidence": "high",
+   "confidence": "low",
    "matched": "new",
-   "reason": "split hunt: 'mainstem waters' CPR Mission to Hope: no tributaries.; high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
+   "reason": "split hunt: 'mainstem waters' CPR Mission to Hope: no tributaries.; low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
    "endpoints": [
     {
      "phrase": "the downstream side of the CPR Bridge at Mission, BC",
      "kind": "split",
-     "confidence": "high",
-     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
+     "confidence": "low",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
      "label": "the CPR Bridge at Mission",
      "fix": {
       "kind": "split",
@@ -7181,7 +7409,7 @@
     ],
     "matcher": {
      "matched": "partial",
-     "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
+     "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
     }
    },
    "state": "needs_cut",
@@ -7202,7 +7430,7 @@
     }
    },
    "why": "needs_split",
-   "outcome": "new_high"
+   "outcome": "new_low"
   },
   "2:nicomekl-river:within-23-m-downstream-of-the-floo": {
    "location_id": "2:nicomekl-river:within-23-m-downstream-of-the-floo",
@@ -7502,15 +7730,15 @@
     "new_splits": [],
     "words": "upstream of the CPR Bridge at Mission"
    },
-   "confidence": "high",
+   "confidence": "low",
    "matched": "existing",
-   "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
+   "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
    "endpoints": [
     {
      "phrase": "upstream of the CPR Bridge at Mission, BC",
      "kind": "split",
-     "confidence": "high",
-     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
+     "confidence": "low",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
      "label": "the CPR Bridge at Mission",
      "fix": {
       "kind": "split",
@@ -7530,7 +7758,7 @@
    "state": "needs_cut",
    "status": "active",
    "why": "review_pending",
-   "outcome": "existing_high"
+   "outcome": "existing_low"
   },
   "2:fraser-river:from-the-downstream-side-of-the-cp~2": {
    "location_id": "2:fraser-river:from-the-downstream-side-of-the-cp~2",
@@ -7583,15 +7811,15 @@
     ],
     "words": "between the CPR Bridge at Mission and Alexandra Bridge (Hwy 1)"
    },
-   "confidence": "medium",
+   "confidence": "low",
    "matched": "new",
-   "reason": "split hunt: two reaches back to back (Mission–Hope, Hope–Alexandra) = Mission to the Alexandra Bridge.; high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); medium: the downstream side of the Alexandra Bridge (Hwy 1) in the Fraser Canyon",
+   "reason": "split hunt: two reaches back to back (Mission–Hope, Hope–Alexandra) = Mission to the Alexandra Bridge.; low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); medium: the downstream side of the Alexandra Bridge (Hwy 1) in the Fraser Canyon",
    "endpoints": [
     {
      "phrase": "the downstream side of the CPR Bridge at Mission",
      "kind": "split",
-     "confidence": "high",
-     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
+     "confidence": "low",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
      "label": "the CPR Bridge at Mission",
      "fix": {
       "kind": "split",
@@ -7655,7 +7883,7 @@
     ],
     "matcher": {
      "matched": "partial",
-     "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
+     "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
     }
    },
    "state": "needs_cut",
@@ -7676,7 +7904,7 @@
     }
    },
    "why": "needs_split",
-   "outcome": "new_medium"
+   "outcome": "new_low"
   },
   "2:harrison-river:from-the-outlet-of-harrison-lake-d~2": {
    "location_id": "2:harrison-river:from-the-outlet-of-harrison-lake-d~2",
@@ -9194,11 +9422,15 @@
     "gnis:16075"
    ],
    "suggestion": {
-    "op": "downstream_of",
+    "op": "between",
     "points": [
      {
       "kind": "split",
       "split_id": "dean_river__crag_creek_into_dean_river"
+     },
+     {
+      "kind": "new",
+      "split_id": "tidal-360883982"
      }
     ],
     "items": [
@@ -9206,11 +9438,11 @@
     ],
     "tributaries": null,
     "new_splits": [],
-    "words": "downstream of Crag Creek → Dean River"
+    "words": "between Crag Creek → Dean River and Dean River: mouth (tidal boundary) (medium confidence)"
    },
-   "confidence": "high",
+   "confidence": "medium",
    "matched": "existing",
-   "reason": "high: confluence of Crag Creek: the curated cut `dean_river__crag_creek_into_dean_river` (Crag Creek → Dean River); the other end is the water's mouth, so downstream of it",
+   "reason": "high: confluence of Crag Creek: the curated cut `dean_river__crag_creek_into_dean_river` (Crag Creek → Dean River); medium: \"tidal\" -> the proposed cut `tidal-360883982` (Dean River: mouth (tidal boundary) (medium confidence))",
    "endpoints": [
     {
      "phrase": "the confluence with Crag Creek",
@@ -9223,6 +9455,18 @@
       "split_id": "dean_river__crag_creek_into_dean_river"
      },
      "item_id": "gnis:16075"
+    },
+    {
+     "phrase": "the tidal boundary",
+     "kind": "proposed",
+     "confidence": "medium",
+     "reason": "\"tidal\" -> the proposed cut `tidal-360883982` (Dean River: mouth (tidal boundary) (medium confidence))",
+     "label": "Dean River: mouth (tidal boundary) (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "tidal-360883982"
+     },
+     "item_id": "gnis:16075"
     }
    ],
    "points": [
@@ -9231,12 +9475,18 @@
      "coord": null,
      "kind": "split",
      "split_id": "dean_river__crag_creek_into_dean_river"
+    },
+    {
+     "label": "Dean River: mouth (tidal boundary) (medium confidence)",
+     "coord": null,
+     "kind": "proposed",
+     "split_id": "tidal-360883982"
     }
    ],
    "state": "needs_cut",
    "status": "active",
    "why": "review_pending",
-   "outcome": "existing_high"
+   "outcome": "existing_medium"
   },
   "5b:dean-river:from-signs-located-approx-500-m-up": {
    "location_id": "5b:dean-river:from-signs-located-approx-500-m-up",
@@ -9906,7 +10156,7 @@
    "endpoints": [],
    "hunt": {
     "status": "not_found",
-    "why": "the water is not matched to the registry (FWA has no 'Sheldens Creek'). Best lead: the creek into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677, FWA code 950-016367); Spur 19 (FTEN 'SP 19(1) TO SHELDONS') crosses it ≈ 53.12968,-131.78224, ~3.1 km above the mouth (medium). Match the water first (T164 dossier), then this cut.",
+    "why": "(T164 2026-10-29) the WATER is the open question, not the cut. Proposed match: the unnamed FWA stream blk 360846083 (code 950-016367) into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677) — the forest roads around it are all named for it (FTEN R06206 'SP 19(1) TO SHELDONS', 'SP 19H TO SHELDONS', SHEL100–SHEL103). The cut: FTEN road 'SP 19(1) TO SHELDONS' (R06206 sec 331, ACTIVE) crosses that line at 53.12968,-131.78224, FWA measure 3402 m (exact road×stream intersection) — the Spur 19 bridge site, medium. The name is a REVIEW row in the Names mode (candidate `blk:360846083~sheldens-creek`, never auto-accepted): accepting it names the line, the DFO matcher then binds the water, and this cut becomes placeable here.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
@@ -11460,7 +11710,7 @@
       ],
       "blk": "360875115",
       "measure": 3452.5,
-      "note": "[split hunt low] signs above the Salmon River Rd bridge (~2.6 km above the Skeena) (placed 50 m upstream of the anchor, offset applied). Sources: https://www.openstreetmap.org/#map=17/55.34740/-127.63210. the bridge is exact (the only road crossing of the Shegunia in the road atlas / FTEN); the signs' distance above it is not published — 50 m is a guess."
+      "note": "[split hunt low] signs above the Salmon River Rd bridge (~2.6 km above the Skeena) (placed 50 m upstream of the anchor, offset applied). Sources: https://www.openstreetmap.org/#map=17/55.34740/-127.63210 ; data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN 4841 BABINE SLIDE FSR). the bridge is exact (the only road crossing of the Shegunia in the road atlas / FTEN); the signs' distance above it is not published — 50 m is a guess. (T164 2026-10-29) corroborated: the FTEN road BABINE SLIDE FSR (file 4841) passes 14 m from this bridge point."
      },
      {
       "ref": "shegunia_bridge_d50",
@@ -11473,7 +11723,7 @@
       ],
       "blk": "360875115",
       "measure": 3352.5,
-      "note": "[split hunt low] signs below the Salmon River Rd bridge (placed 50 m downstream of the anchor, offset applied). Sources: https://www.openstreetmap.org/#map=17/55.34740/-127.63210. as above: bridge exact, 50 m guessed."
+      "note": "[split hunt low] signs below the Salmon River Rd bridge (placed 50 m downstream of the anchor, offset applied). Sources: https://www.openstreetmap.org/#map=17/55.34740/-127.63210 ; data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN 4841 BABINE SLIDE FSR). as above: bridge exact, 50 m guessed. (T164 2026-10-29) corroborated: the FTEN road BABINE SLIDE FSR (file 4841) passes 14 m from this bridge point."
      }
     ],
     "words": "between signs above the Shegunia logging road bridge and signs below the Shegunia logging road bridge"
@@ -11526,9 +11776,10 @@
       "confidence": "low",
       "description": "signs above the Salmon River Rd bridge (~2.6 km above the Skeena)",
       "sources": [
-       "https://www.openstreetmap.org/#map=17/55.34740/-127.63210"
+       "https://www.openstreetmap.org/#map=17/55.34740/-127.63210",
+       "data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN 4841 BABINE SLIDE FSR)"
       ],
-      "notes": "the bridge is exact (the only road crossing of the Shegunia in the road atlas / FTEN); the signs' distance above it is not published — 50 m is a guess.",
+      "notes": "the bridge is exact (the only road crossing of the Shegunia in the road atlas / FTEN); the signs' distance above it is not published — 50 m is a guess. (T164 2026-10-29) corroborated: the FTEN road BABINE SLIDE FSR (file 4841) passes 14 m from this bridge point.",
       "lat": 55.3474,
       "lon": -127.6321,
       "coord": [
@@ -11548,9 +11799,10 @@
       "confidence": "low",
       "description": "signs below the Salmon River Rd bridge",
       "sources": [
-       "https://www.openstreetmap.org/#map=17/55.34740/-127.63210"
+       "https://www.openstreetmap.org/#map=17/55.34740/-127.63210",
+       "data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN 4841 BABINE SLIDE FSR)"
       ],
-      "notes": "as above: bridge exact, 50 m guessed.",
+      "notes": "as above: bridge exact, 50 m guessed. (T164 2026-10-29) corroborated: the FTEN road BABINE SLIDE FSR (file 4841) passes 14 m from this bridge point.",
       "lat": 55.3474,
       "lon": -127.6321,
       "coord": [
@@ -12268,10 +12520,10 @@
       "name": "Gitnadoix powerline crossing near the mouth",
       "on_item": "gnis:3508",
       "coord": [
-       -129.207645,
-       54.317405
+       -129.210187,
+       54.317562
       ],
-      "blk": "360887399",
+      "blk": "360215450",
       "measure": 0.0,
       "note": "[split hunt low] where BC Hydro line 2L101 passes closest to the Gitnadoix mouth. Sources: https://www.openstreetmap.org/way/130625073. neither the OSM nor the provincial transmission line crosses the FWA Gitnadoix line; it passes ~360 m north of the mouth. The 'crossing' may be over the mouth slough or a distribution line.",
       "side": "upstream"
@@ -12294,8 +12546,8 @@
     {
      "label": "Gitnadoix powerline crossing near the mouth",
      "coord": [
-      -129.207645,
-      54.317405
+      -129.210187,
+      54.317562
      ],
      "kind": "new",
      "split_id": "gitnadoix_powerline"
@@ -12318,15 +12570,15 @@
       "lat": 54.3202,
       "lon": -129.209,
       "coord": [
-       -129.207645,
-       54.317405
+       -129.210187,
+       54.317562
       ],
       "offset_m": null,
       "split_id": null,
-      "snap_m": 324.2,
-      "blk": "360887399",
+      "snap_m": 304.3,
+      "blk": "360215450",
       "measure": 0.0,
-      "warning": "the point is 324 m from the water's FWA line — check the snap"
+      "warning": "the point is 304 m from the water's FWA line — check the snap"
      }
     ],
     "sources": [
@@ -13022,7 +13274,7 @@
       ],
       "blk": "360879877",
       "measure": 2004.8,
-      "note": "[split hunt medium] the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site. Sources: https://www.openstreetmap.org/way/50848288. the crossing nearest the mouth; the other one (~3.4 km up, 54.43969,-128.75106) is the curated `lakelse_river__power_line_crossing`.",
+      "note": "[split hunt medium] the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site. Sources: https://www.openstreetmap.org/way/50848288 ; data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN R05922 / R15826 LAKELSE MAIN). the crossing nearest the mouth; the other one (~3.4 km up, 54.43969,-128.75106) is the curated `lakelse_river__power_line_crossing`. (T164 2026-10-29) corroborated: the FTEN road LAKELSE MAIN (R05922 / R15826) passes 30 m from this bridge point.",
       "side": "downstream"
      }
     ],
@@ -13061,9 +13313,10 @@
       "confidence": "medium",
       "description": "the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site",
       "sources": [
-       "https://www.openstreetmap.org/way/50848288"
+       "https://www.openstreetmap.org/way/50848288",
+       "data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN R05922 / R15826 LAKELSE MAIN)"
       ],
-      "notes": "the crossing nearest the mouth; the other one (~3.4 km up, 54.43969,-128.75106) is the curated `lakelse_river__power_line_crossing`.",
+      "notes": "the crossing nearest the mouth; the other one (~3.4 km up, 54.43969,-128.75106) is the curated `lakelse_river__power_line_crossing`. (T164 2026-10-29) corroborated: the FTEN road LAKELSE MAIN (R05922 / R15826) passes 30 m from this bridge point.",
       "lat": 54.44437,
       "lon": -128.76248,
       "coord": [
@@ -13122,7 +13375,7 @@
       ],
       "blk": "360879877",
       "measure": 2004.8,
-      "note": "[split hunt medium] the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site. Sources: https://www.openstreetmap.org/way/50848288. the crossing nearest the mouth; the other one (~3.4 km up, 54.43969,-128.75106) is the curated `lakelse_river__power_line_crossing`.",
+      "note": "[split hunt medium] the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site. Sources: https://www.openstreetmap.org/way/50848288 ; data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN R05922 / R15826 LAKELSE MAIN). the crossing nearest the mouth; the other one (~3.4 km up, 54.43969,-128.75106) is the curated `lakelse_river__power_line_crossing`. (T164 2026-10-29) corroborated: the FTEN road LAKELSE MAIN (R05922 / R15826) passes 30 m from this bridge point.",
       "side": "upstream"
      }
     ],
@@ -13161,9 +13414,10 @@
       "confidence": "medium",
       "description": "the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site",
       "sources": [
-       "https://www.openstreetmap.org/way/50848288"
+       "https://www.openstreetmap.org/way/50848288",
+       "data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN R05922 / R15826 LAKELSE MAIN)"
       ],
-      "notes": "the crossing nearest the mouth; the other one (~3.4 km up, 54.43969,-128.75106) is the curated `lakelse_river__power_line_crossing`.",
+      "notes": "the crossing nearest the mouth; the other one (~3.4 km up, 54.43969,-128.75106) is the curated `lakelse_river__power_line_crossing`. (T164 2026-10-29) corroborated: the FTEN road LAKELSE MAIN (R05922 / R15826) passes 30 m from this bridge point.",
       "lat": 54.44437,
       "lon": -128.76248,
       "coord": [
@@ -15012,8 +15266,8 @@
      -124.983276,
      51.986316
     ],
-    "down_sid": 1235548,
-    "up_sid": 766566,
+    "down_sid": 1235560,
+    "up_sid": 766562,
     "places": {
      "below": [
       [
@@ -15052,8 +15306,8 @@
       -124.983276,
       51.986316
      ],
-     "down_sid": 1235548,
-     "up_sid": 766566,
+     "down_sid": 1235560,
+     "up_sid": 766562,
      "places": {
       "below": [
        [

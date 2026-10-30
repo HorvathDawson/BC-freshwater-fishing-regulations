@@ -411,9 +411,10 @@
    "confidence": "low",
    "description": "signs above the Salmon River Rd bridge (~2.6 km above the Skeena)",
    "sources": [
-    "https://www.openstreetmap.org/#map=17/55.34740/-127.63210"
+    "https://www.openstreetmap.org/#map=17/55.34740/-127.63210",
+    "data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN 4841 BABINE SLIDE FSR)"
    ],
-   "notes": "the bridge is exact (the only road crossing of the Shegunia in the road atlas / FTEN); the signs' distance above it is not published — 50 m is a guess."
+   "notes": "the bridge is exact (the only road crossing of the Shegunia in the road atlas / FTEN); the signs' distance above it is not published — 50 m is a guess. (T164 2026-10-29) corroborated: the FTEN road BABINE SLIDE FSR (file 4841) passes 14 m from this bridge point."
   },
   "shegunia_bridge_d50": {
    "anchor": "sign",
@@ -424,9 +425,10 @@
    "confidence": "low",
    "description": "signs below the Salmon River Rd bridge",
    "sources": [
-    "https://www.openstreetmap.org/#map=17/55.34740/-127.63210"
+    "https://www.openstreetmap.org/#map=17/55.34740/-127.63210",
+    "data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN 4841 BABINE SLIDE FSR)"
    ],
-   "notes": "as above: bridge exact, 50 m guessed."
+   "notes": "as above: bridge exact, 50 m guessed. (T164 2026-10-29) corroborated: the FTEN road BABINE SLIDE FSR (file 4841) passes 14 m from this bridge point."
   },
   "zymoetz_hwy16": {
    "anchor": "bridge",
@@ -544,9 +546,10 @@
    "confidence": "medium",
    "description": "the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site",
    "sources": [
-    "https://www.openstreetmap.org/way/50848288"
+    "https://www.openstreetmap.org/way/50848288",
+    "data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN R05922 / R15826 LAKELSE MAIN)"
    ],
-   "notes": "the crossing nearest the mouth; the other one (~3.4 km up, 54.43969,-128.75106) is the curated `lakelse_river__power_line_crossing`."
+   "notes": "the crossing nearest the mouth; the other one (~3.4 km up, 54.43969,-128.75106) is the curated `lakelse_river__power_line_crossing`. (T164 2026-10-29) corroborated: the FTEN road LAKELSE MAIN (R05922 / R15826) passes 30 m from this bridge point."
   },
   "skeena_dudley_little": {
    "anchor": "bridge",
@@ -678,6 +681,20 @@
     "OSM waterfall (the matcher's point, 0 m from the FWA line)"
    ],
    "notes": "the matcher's OSM waterfall point; BC GNIS places the falls 27 m away (dfo-preverify). Snaps 0 m onto blk 354155148 at 34.2 km, between the curated 66 Mile Trestle (30.5 km) and the CNR mile-70.2 bridge (41.4 km) — the order the notice implies."
+  },
+  "nanaimo_cedar_bridge_d400": {
+   "anchor": "split",
+   "split_id": "nanaimo_river__cedar_road_bridge",
+   "name": "signs 400 m below the Cedar Road bridge",
+   "lat": 49.11625,
+   "lon": -123.88045,
+   "offset_m": -400,
+   "confidence": "medium",
+   "description": "white square boundary signs ~400 m downstream of the Cedar (Road) Bridge — the curated Cedar Road bridge cut moved 400 m down, the notice's own distance",
+   "sources": [
+    "data/curated/waters/splits.json#nanaimo_river__cedar_road_bridge"
+   ],
+   "notes": "(T164 2026-10-29) the bridge is the curated, OSM-confirmed cut (tidal: true); the signs' distance is the notice's 'approximately 400 m'."
   }
  },
  "locations": {
@@ -691,7 +708,7 @@
      "cut": "puntledge_lower_weir_d75"
     }
    ],
-   "notes": "'from the weir at the lower hatchery to signs ~75 m downstream': the weir, then 75 m below it."
+   "notes": "'from the weir at the lower hatchery to signs ~75 m downstream': the weir, then 75 m below it. (T164 2026-10-29) MAYBE an existing cut: the curated `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence` (synopsis) sits at FWA measure 4075 m — 74 m ABOVE the OSM weir (4001 m), so it cannot be '75 m below the weir' as placed. If the synopsis' fence is this weir, one of the two is misplaced: confirm the weir on the map, then either reuse/move the curated cut or keep the two new ones."
   },
   "1:quatse-river:100m-upstream-and-downstream-of-th": {
    "op": "between",
@@ -1165,7 +1182,7 @@
    "notes": "'downstream of Nisga'a Hwy Bridge'."
   },
   "6:sheldens-creek:upstream-of-white-triangular-fishi": {
-   "not_found": "the water is not matched to the registry (FWA has no 'Sheldens Creek'). Best lead: the creek into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677, FWA code 950-016367); Spur 19 (FTEN 'SP 19(1) TO SHELDONS') crosses it ≈ 53.12968,-131.78224, ~3.1 km above the mouth (medium). Match the water first (T164 dossier), then this cut.",
+   "not_found": "(T164 2026-10-29) the WATER is the open question, not the cut. Proposed match: the unnamed FWA stream blk 360846083 (code 950-016367) into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677) — the forest roads around it are all named for it (FTEN R06206 'SP 19(1) TO SHELDONS', 'SP 19H TO SHELDONS', SHEL100–SHEL103). The cut: FTEN road 'SP 19(1) TO SHELDONS' (R06206 sec 331, ACTIVE) crosses that line at 53.12968,-131.78224, FWA measure 3402 m (exact road×stream intersection) — the Spur 19 bridge site, medium. The name is a REVIEW row in the Names mode (candidate `blk:360846083~sheldens-creek`, never auto-accepted): accepting it names the line, the DFO matcher then binds the water, and this cut becomes placeable here.",
    "category": "no_water"
   },
   "6:illiance-river:upstream-of-white-triangular-fishi": {
@@ -1553,6 +1570,33 @@
     }
    ],
    "notes": "'from CNR Trestle at mile 70.2 to Skutz Falls' (T227 2026-10-28): curated bridge (41.4 km) down to Skutz Falls (34.2 km)."
+  },
+  "1:nanaimo-river:in-subarea-17-14-tidal-portions-of": {
+   "op": "downstream_of",
+   "ends": [
+    {
+     "split": "nanaimo_river__cedar_road_bridge",
+     "confidence": "high",
+     "note": "'Cedar Bridge' is the curated Cedar Road bridge (OSM-confirmed, tidal: true)"
+    }
+   ],
+   "notes": "(T164 2026-10-29) 'in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream': the curated Cedar Road bridge cut, downstream to the mouth.",
+   "caveat": "tidal Subarea 17-14: the reach below Cedar Bridge is tidal water — check the extent should bind the freshwater line at all (the tidal boundary rule, T212)."
+  },
+  "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2": {
+   "op": "between",
+   "ends": [
+    {
+     "split": "nanaimo_river__cedar_road_bridge",
+     "confidence": "high",
+     "note": "'Cedar Bridge' is the curated Cedar Road bridge"
+    },
+    {
+     "cut": "nanaimo_cedar_bridge_d400"
+    }
+   ],
+   "notes": "(T164 2026-10-29) 'from the Cedar Bridge to the white square boundary signs ~400 m downstream': the curated bridge cut, then 400 m below it.",
+   "caveat": "tidal Subarea 17-14 — as the sibling row: check the freshwater extent should bind tidal water (T212)."
   }
  },
  "synopsis": {
