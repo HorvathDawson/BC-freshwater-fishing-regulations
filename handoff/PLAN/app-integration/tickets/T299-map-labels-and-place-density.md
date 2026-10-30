@@ -63,3 +63,15 @@ z11); the tidal Fraser is named "Tidal water" by the `tidal_water` layer (not th
    `stream_name` from the current layer files; new tile version, same sid space).
 3. Release + APK: the style change ships in the app. A new app over old tiles draws no stream names (no `stream_name`
    layer) — ship them together.
+
+## Follow-up: "Seattle" on a phone (owner, app 0.3.0, staging r-51d80e68f056)
+The shipped basemap (basemap-6960ed933a82, same bytes on staging R2) carries no US name (decoded z0–9) and the composed
+style draws none over it, so the phone was drawing an older basemap; the phone had no style-side guard (only the web
+confined basemap labels, `web/outsideMask.ts`). Fix: every basemap symbol layer now also filters `within` BC's outline,
+in the style itself, on web and phone (`labels.ts` `inBC`; the outline is generated, `python -m
+pipeline.tools.emit.bc_outline [--check]` → `app/packages/map/src/bc-outline.generated.ts`, 438 vertices, simplified
+1 km and pushed out 500 m so White Rock and Osoyoos stay). Proof: the pre-T299 basemap (b515359fc62f, which named 39
+places outside BC at Blaine z7) renders 0 with the new style alone (`T299-shots/old-basemap-guard/`). Tests:
+`packages/map/src/bc-outline.test.ts` (border towns in, Seattle/Bellingham/Spokane/Calgary/Juneau/Oroville/Hyder out;
+every basemap symbol layer confined in `runtimeStyle` and `nativeStyle`). Ships in the APK; no tile build. Emulator
+check for the APK batch: no basemap label outside BC at z6 over Seattle.

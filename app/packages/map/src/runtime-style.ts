@@ -23,7 +23,7 @@ import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY } from "./water-copy";
-import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
+import { BASEMAP_LABELS, basemapLabelPaint, inBC, placesByImportance, WATER_NAMES } from "./labels";
 import { ATLAS_CREDIT, BASEMAP_CREDIT, creditLayers, creditSources } from "./credits";
 
 /** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
@@ -72,7 +72,7 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Token
    */
   const named = all.map((l) => (BASEMAP_LABELS.includes(l.id)
     ? { ...l, paint: { ...(l as { paint?: Record<string, unknown> }).paint, ...basemapLabelPaint(l.id, tokens, "map") } }
-    : l)).map(placesByImportance);
+    : l)).map(placesByImportance).map(inBC);
   const i = named.findIndex((l) => l.type === "symbol");
   return i < 0 ? { below: named, labels: [] as typeof named }
                : { below: named.slice(0, i), labels: named.slice(i) };
@@ -435,9 +435,9 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        * The basemap's own labels, AFTER ours — see the split above. They still draw; they
        * just no longer get first refusal on every position on the map.
        *
-       * CONFINING THEM TO BC IS NOT DONE HERE. It needs the mask as a literal (a `within`
-       * expression cannot reference a source) and the mask is fetched, so it is applied in
-       * `web/outsideMask.ts` once it lands — in ONE place, through `toExpression`, because
+       * (T299) CONFINED TO BC HERE TOO, by `inBC` (labels.ts): a `within` BC's outline, carried in the
+       * style, so a phone holding an old basemap still names nothing outside the province. The web
+       * ALSO narrows them to the fetched mask's exact edge in `web/outsideMask.ts` once it lands — in ONE place, through `toExpression`, because
        * Protomaps writes most of these filters in the legacy syntax and combining a legacy
        * filter with an expression under `all` makes MapLibre parse the whole thing as
        * legacy.
