@@ -85,9 +85,12 @@ export function dataModeLine(m: { low: boolean; why: LowWhy | null }, bps: numbe
 }
 
 /** The banner over the app, or null: offline first; then a slow line the app found itself (not the reader's own "On"). */
-export function netBanner(m: { low: boolean; why: LowWhy | null; offline: boolean }): string | null {
+export function netBanner(m: { low: boolean; why: LowWhy | null; offline: boolean },
+                          o: { live?: boolean } = {}): string | null {
   if (m.offline) return NET_WORDS.banner.offline;
-  if (m.low && m.why !== "setting") return NET_WORDS.banner.slow;
+  // (T298, owner 2026-10-30) on a phone the regulations are on the device: a slow line is said only while something
+  // live is loading (gauges, forecasts, weather) — `live` false; absent (the web): whenever the mode is low
+  if (m.low && m.why !== "setting" && o.live !== false) return NET_WORDS.banner.slow;
   return null;
 }
 

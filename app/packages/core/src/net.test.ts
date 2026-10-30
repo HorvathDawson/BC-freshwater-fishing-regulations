@@ -38,3 +38,13 @@ describe("bad connections in words", () => {
     expect(NET_WORDS.pdf.offer(25_041_728, null)).toBe("The rule book is 25.0 MB.");
   });
 });
+
+describe("(T298) a phone's slow-line banner: only while live data loads", () => {
+  const slow = { low: true, why: "measured" as const, offline: false };
+  it("the web says it whenever the mode is low; a phone only while something live is loading; offline always", () => {
+    expect(netBanner(slow)).toBe(NET_WORDS.banner.slow);
+    expect(netBanner(slow, { live: true })).toBe(NET_WORDS.banner.slow);
+    expect(netBanner(slow, { live: false })).toBeNull();
+    expect(netBanner({ ...slow, offline: true }, { live: false })).toBe(NET_WORDS.banner.offline);
+  });
+});

@@ -32,7 +32,7 @@ import { fillDayFlow, storedHydat, openLayerStore, openLikeStore, openSalmonFeed
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, reportPastExits, routeKind, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, reportPastExits, routeKind, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeUrl, systemBack } from "./systemBack";
@@ -187,7 +187,8 @@ export default function App() {
   const likeStore = useMemo(() => openLikeStore(), []);
   // Open-Meteo: no key, and it has an archive endpoint — which is what lets a spot pinned
   // with no signal be filled in later from the day it was actually made.
-  const weather = useMemo(() => openMeteo(), []);
+  // (T298) live data counts as loading (the phone's slow-line banner is said only while it does)
+  const weather = useMemo(() => openMeteo(liveFetch(fetch)), []);
   // T170/T274: HYDAT's daily means from our data host, for a spot's visit day older than the feed's record (one small file per station)
   const hydat = useMemo(() => storedHydat(ENDPOINTS.hydat), []);
   // S1: a spot's photographs — files beside the spots file on a phone, IndexedDB in a browser — and the platform's
@@ -199,7 +200,7 @@ export default function App() {
   const spotsHook = useSpots(spotStore);
   const spots: Spot[] = spotsHook.spots.state === "ready" ? spotsHook.spots.value : [];
   // (T231) the gauge index is the update service's to renew: once read it is held until the service offers a newer one
-  const feed = useMemo(() => httpFeed(FEED, SHARED_FETCH, { indexHeld: true }), []);
+  const feed = useMemo(() => httpFeed(FEED, liveFetch(SHARED_FETCH), { indexHeld: true }), []);
   // T211: the live DFO salmon rules, the last capture kept on the device for offline
   const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore()), []);
   // T230: the provincial in-season changes and where each applies, the last capture kept for offline; the ids shown

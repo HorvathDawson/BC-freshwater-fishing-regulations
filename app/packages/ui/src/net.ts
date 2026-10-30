@@ -130,6 +130,25 @@ export function useNetBps(net: Net | null): number | null {
 const EMPTY: ActivitySnapshot = { downloads: [], failed: {} };
 const NO_SUB = () => () => {};
 
+/**
+ * (T298) LIVE DATA LOADING NOW (a phone's gauges, forecasts, weather): `liveFetch` wraps the fetch those use and counts
+ * what is in flight; `useLiveLoading` is true while any is. On a phone the slow-line banner is said only then — the
+ * regulations are on the device, so a slow line costs nothing else.
+ */
+const live = { n: 0, subs: new Set<() => void>() };
+const liveEmit = () => { for (const s of [...live.subs]) s(); };
+export function liveFetch(f: typeof fetch): typeof fetch {
+  return (async (u: Parameters<typeof fetch>[0], i?: Parameters<typeof fetch>[1]) => {
+    live.n += 1; liveEmit();
+    try { return await f(u, i); } finally { live.n -= 1; liveEmit(); }
+  }) as typeof fetch;
+}
+const liveSub = (on: () => void) => { live.subs.add(on); return () => { live.subs.delete(on); }; };
+const liveRead = () => live.n > 0;
+export function useLiveLoading(): boolean {
+  return useSyncExternalStore(liveSub, liveRead, liveRead);
+}
+
 /** What is downloading now (the release files), re-read on every change. */
 export function useNetActivity(net: Net | null): ActivitySnapshot {
   const sub = useCallback((on: () => void) => net?.activity.subscribe(on) ?? (() => {}), [net]);

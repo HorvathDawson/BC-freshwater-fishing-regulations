@@ -17,7 +17,7 @@
  * not copied: there is one list of these pages in the app (tools/one-menu.test.ts).
  */
 import { createContext, useContext } from "react";
-import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useCrashSetting, useLayoutClass, useNet, useNetBps } from "@app/ui";
 import { CRASH_WORDS, dataModeLine, menuVM, MOBILE_DATA_WORDS, NET_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MobileDataSetting, type MoreVM } from "@app/core";
 import { TYPE } from "../type";
@@ -265,7 +265,9 @@ function UpdatesRow({ vm, palette, metered }: { vm: NonNullable<MoreVM["data"]["
 function LowDataRow({ palette }: { palette: Palette }) {
   const { net, mode, setting, setSetting } = useNet();
   const bps = useNetBps(net);
-  if (!net) return null;
+  // (T298, owner 2026-10-30) a website setting: on a phone every regulation is on the device, and large downloads are
+  // the "Download over mobile data" setting's
+  if (!net || Platform.OS !== "web") return null;
   const W = NET_WORDS.setting;
   return (
     <View testID="data-low" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3, gap: SPACE.s1,
