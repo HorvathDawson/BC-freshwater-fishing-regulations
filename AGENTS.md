@@ -659,6 +659,13 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     (`rules.check_corpus`) and records both; the tile sidecar records the registry and the vintage check
     compares registries. The gauge review queue is curated (`curated.gauges.candidates`); only ACTIVE
     stations need a match decision (`check_curated`, user 2026-10-09).
+    **T295/T297 (2026-10-31):** the stages are ONE table (`build.STAGE_GRAPH`, `--graph`); clim / reach / tiles are
+    independent and run side by side (`--jobs`, default 2, max 4); the manifest keeps per-stage seconds, peak tree
+    RSS and per-input digests (the plan prints which input moved; `--status`); `--side DIR` runs every stage into
+    DIR without touching live outputs or LATEST. **T266:** `marks.jsonl` is the review LOG; what it decides is
+    exported by `python -m pipeline.regs.review.export` to `data/curated/decided/` (provenance per record), and the
+    apply paths (`apply_proposals`, `tools.mined_names`, `dfo_salmon.suggest`) read only that. No stage reads either
+    (they are in no key — `build.NOT_BUILD_INPUTS`); a build runs with marks.jsonl absent.
 63. **A tributary walk never enters the entry's own water** (`tributaries.THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`,
     2026-10-11). Every non-area item the entry matches is governed by the rule's extents, never collected by the walk —
     even when FWA codes it as a tributary (the Chilliwack is a "tributary" of the Vedder: after the Vedder's cut moved

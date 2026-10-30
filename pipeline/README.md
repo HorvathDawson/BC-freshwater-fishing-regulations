@@ -6,13 +6,31 @@ are what it runs, for when you need one alone.
 ## The rebuild
 
 ```bash
-python -m pipeline build --dry-run        # each stage, its key, run or up to date
-python -m pipeline build                  # reach → tiles → deliver, whatever is out of date
+python -m pipeline build --graph          # the stage graph: what each stage reads, runs, writes
+python -m pipeline build --dry-run        # each stage, its key, run or up to date — and WHY it runs
+python -m pipeline build                  # clim + reach + tiles side by side (--jobs 2), then deliver
+python -m pipeline build --jobs 1         # one stage after another, output on the console
+python -m pipeline build --status         # the last run: per-stage time, peak memory, status, logs
 python -m pipeline build --atlas          # + a side atlas data/generated/atlas/<build>_next and its parity
 python -m pipeline build --promote        # adopt <build>_next, then rebuild against it
+python -m pipeline build --side DIR [--atlas]   # every stage into DIR; nothing live, no LATEST (a proof run)
 ```
 
-See `pipeline/build.py` and AGENTS rule 62. Heavy (peak ~12 GB): one heavy job at a time.
+See `pipeline/build.py` and AGENTS rule 62. Heavy: run it through `scripts/heavy.sh` (one heavy job at a
+time; heavy.sh is re-entrant for its own lock holder). Each stage is skipped while its inputs' digests
+(atlas, corpus, curated tree, source stamps, its own code) match its last successful run
+(`data/generated/build-manifest.json`). With `--jobs 2` a stage logs to `build-logs/<run>/<stage>.log`.
+
+## Review marks → decided data → curated files (T266)
+
+```bash
+python -m pipeline.regs.review.export            # marks.jsonl (review log) -> data/curated/decided/*.json
+python -m pipeline.regs.review.export --check    # is the export current?
+python -m pipeline.regs.review.apply_proposals   # land the decided edits (reads decided/, never the marks)
+python -m pipeline.tools.mined_names             # accepted names (reads decided/names.json)
+```
+
+No build stage reads `marks.jsonl` or `decided/`; they read the curated files the apply paths write.
 
 ## The stages alone
 
