@@ -128,7 +128,7 @@ if [[ -n $PLAY ]]; then
   if [[ " $* " != *" --no-email "* ]]; then
     export V=$VER B=$CODE S=$SHA D=$DATE SZ="$MB MB" U="$TEST_URL" CH
     BODY=$(python3 -c 'import json,os;e=os.environ;print(json.dumps({"channel":"play","version":e["V"],"build":e["B"],"sha":e["S"],"date":e["D"],"size":e["SZ"],"url":e["U"],"changes":e["CH"].splitlines()}))')
-    TOK=$(tr -d '\n' < app/workers/feeds/.run-token 2>/dev/null || true)
+    TOK=$(tr -d '\n' < "$REPO/app/workers/feeds/.run-token" 2>/dev/null || true)   # the REPO's: the build worktree has no gitignored token
     code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $TOK" -H "Content-Type: application/json" \
       -d "$BODY" https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/notify/apk || true)
     echo "email: HTTP $code (200 = sent)"
@@ -170,7 +170,7 @@ if [[ " $* " != *" --no-email "* ]]; then
   export V=$VER B=$CODE S=$SHA D=$DATE SZ="$MB MB" U="$BASE/latest.apk"
   export CH=$(git log $RANGE --no-merges -10 --format=%s | cut -c1-160)
   BODY=$(python3 -c 'import json,os;e=os.environ;print(json.dumps({"version":e["V"],"build":e["B"],"sha":e["S"],"date":e["D"],"size":e["SZ"],"url":e["U"],"changes":e["CH"].splitlines()}))')
-  TOK=$(tr -d '\n' < app/workers/feeds/.run-token 2>/dev/null || true)
+  TOK=$(tr -d '\n' < "$REPO/app/workers/feeds/.run-token" 2>/dev/null || true)   # the REPO's: the build worktree has no gitignored token
   code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $TOK" -H "Content-Type: application/json" \
     -d "$BODY" https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/notify/apk || true)
   echo "email: HTTP $code (200 = sent)"
