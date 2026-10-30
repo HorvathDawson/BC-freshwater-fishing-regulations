@@ -1,0 +1,86 @@
+pages 75  distinct cells 267  distinct clause templates 85
+ 1823  60     n per day
+  943  29     no fishing for chinook
+  801  50     only n over n cm
+  609  45     no fishing for salmon
+  441  39     fn#
+  332  22     no fishing for coho
+  246  14     n hatchery marked per day
+  235  24     no fishing for sockeye
+  210   9  !  no natural bait allowed   [allowed]
+  192  25     non-retention
+  139  30     bait ban
+  134  23     finfish closure
+  121  13     no fishing
+  104  22     hatchery marked only
+   98  23     no fishing for chum
+   73  19     no fishing for pink
+   65  13     to be determined
+   53  11     n per day only n over n cm
+   47  14     none over n cm
+   42  12     single barbless hook
+   31  11     maximum size n cm
+   28   4     monthly quota = n over n cm
+   27  10     only n of which may be greater than n cm
+   26  22     fly-fishing only
+   22   4     only n over ncm
+   21  11  !  hook restriction   [hook restriction]
+   19   2     n sockeye per day
+   18   8     single barbless hook less than nmm from point to shank
+   17  13  !  pink or chum salmon   [pink or chum salmon]
+   17  12  !  unless otherwise stated below   [unless otherwise stated below]
+   17  13  !  single   [single]
+   17  13  !  pink   [pink]
+   17  13  !  chum   [chum]
+   17  13  !  f   [f]
+   17  13  !  fraser river watershed   [fraser river watershed]
+   17  13  !  there is no fishing for salmon in the portions of the fraser river watershed in region n   [there portions fraser river watershed]
+   16   7     n hatchery-marked coho per day
+   15  11  !  hatchery marked fish only   [fish]
+   15  12  !  no retention of coho   [coho]
+   14   2  !  one hour before sunrise to one hour after sunset   [one hour before sunrise one hour]
+   13  11     n cm or less
+   12  11  !  n of which may be more than ncm in length   [length]
+   12  11  !  no retention of salmon   [salmon]
+   12  11     n of which may be more than n cm
+   12  11  !  in length   [length]
+   10   9  !  barbless hook in tidal and non-tidal portions of all streams   [barbless hook tidal non tidal portions]
+   10   2     n hatchery-marked per day
+    9   7  !  anglers may now fish this river with either a yukon or bc angling licence   [anglers now fish this river either]
+    9   6     — fn#
+    9   3     n of which can be unmarked
+    8   7  !  open for salmon catch and release   [open salmon]
+    8   7  !  (see exception below)   [see exception below]
+    8   7  !  only n over n cm (see exception below)   [see exception below]
+    7   6     from n h until n h only
+    7   6  !  no fishinf for chinook   [chinook]
+    7   6     no fishing for eulachon
+    7   4  !  barbless hook in tidal and non tidal portions of all streams   [barbless hook tidal non tidal portions]
+    7   1     natural bait allowed
+    6   3  !  sockeye   [sockeye]
+    6   1     single barbless hook only
+    6   5  !  n coho per day in the aggregate   [aggregate]
+    6   5  !  must be hatchery marked   [must]
+    5   3  !  chinook salmon over n cm caught and retained in this portion of the nass river shall be recorded as being caug   [chinook salmon over cm caught retained]
+    4   1     n hatchery marked only per day
+    4   3  !  daily limit of n of which n may be over n cm in length   [length]
+    4   2     only two over n cm
+    4   3  !  no fishing for chinook from a point n m above fort babine bridge to nichyeskwa creek   [point m above fort babine bridge]
+    3   2     n pink per day
+    3   3     single barbless hook less than nmm
+    3   1     natural bait not allowed
+    2   1     hatchery marked only fn#
+    2   1  !  non-retention of coho   [coho]
+    2   1  !  only n ncm or less and n over n cm   [over cm]
+    2   1     closed to fishing
+    2   1     no angling
+    2   1     monthly limit=n over n cm
+    2   1     —
+    2   1  !  adult chinook caught and retained from these waters must be recorded on your licence as having been caught fro   [adult chinook caught retained these waters]
+    2   1     n hatchery marked coho per day
+    2   1     n hatchery marked coho per day fn#
+    1   1     n of which may be greater than n cm
+    1   1  !  no retention of sockeye   [sockeye]
+    1   1  !  monthly limit of n over n cm from the south thompson river   [south thompson river]
+    1   1  !  chinook salmon over n cm caught and retained in this portion of the nass river shall be recorded as being caug   [chinook salmon over cm caught retained]
+    1   1     none over ncm
