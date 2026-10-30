@@ -157,3 +157,13 @@ describe("spotPress: what a tap on a mark does", () => {
     ]);
   });
 });
+
+describe("(T310) a spot's parking mark", () => {
+  it("is its own P mark beside its spot, never grouped with it, and a tap opens the spot", () => {
+    const pts = [{ id: "a", lat: 49, lon: -122, title: "Run" }, { id: "a", lat: 49.00001, lon: -122, title: "Run", parking: true as const }];
+    const marks = spotMarkers(pts, 14, null);
+    expect(marks.map((m) => [m.key, m.count, !!m.parking])).toEqual([["spot:a", 1, false], ["parking:a", 1, true]]);
+    expect(spotPress(marks[1]!)).toEqual({ kind: "open", id: "a" });
+    expect(marks[1]!.a11y).toContain("Parking");
+  });
+});

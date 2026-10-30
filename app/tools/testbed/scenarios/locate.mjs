@@ -72,6 +72,28 @@ export const locate = {
       if (b < 150 || wh < 40) throw new Error(`no blue dot at the middle — ${note}`);
       return note;
     });
+    await ctx.step('(T308) a series of mock fixes WITHOUT following: the dot moves, the camera stays', async () => {
+      const base = readPng(shot('series-0'));
+      const m = middle(base);
+      if (count(base, m, blue) < 150) throw new Error('no dot at the middle to start from');
+      const seen = [];
+      for (let i = 1; i <= 3; i++) {
+        ctx.device.geo(LON + 0.004 * i, LAT + 0.002 * i);                     // ~300 m further north-east each time
+        await ctx.device.sleep(4000);
+        const img = readPng(shot(`series-${i}`));
+        seen.push(count(img, m, blue));
+      }
+      const last = readPng(path.join(ctx.dir, 'T303-series-3.png'));
+      const mapMoved = changed(base, last, { x: 0, y: Math.round(last.h * 0.15), w: last.w, h: Math.round(last.h * 0.6) });
+      const l = railLabel(ctx.device.screenText());
+      const note = `middle blue after each fix: ${seen.join(', ')} · map changed ${(mapMoved * 100).toFixed(0)} % · button: ${l}`;
+      if (seen[seen.length - 1] > 60) throw new Error(`the dot stayed at the middle (stuck at the first fix) — ${note}`);
+      if (l !== 'Follow my location') throw new Error(`the button changed without a tap — ${note}`);
+      // the dot is somewhere on the map now: blue + white ring anywhere in the map area
+      const area = { x: 0, y: Math.round(last.h * 0.15), w: last.w, h: Math.round(last.h * 0.6) };
+      if (count(last, area, blue) < 150) throw new Error(`no dot anywhere on the map after the fixes — ${note}`);
+      return note;
+    });
     await ctx.step('tap 2 → following: a moved fix moves the map; the button says Stop following', async () => {
       ctx.flow('tap-text', { TEXT: 'Follow my location' });
       await ctx.device.sleep(1500);

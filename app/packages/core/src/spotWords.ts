@@ -31,6 +31,13 @@ export const SPOT_WORDS = {
   thatDay: "That day", added: "What you added", nextDays: "The next few days",
   /** where a spot has nothing added yet */
   nothingAdded: "No notes or photos yet.",
+  /** (T310) where to park: a fact of the spot (every visit's), shown on the page and as a P on the map */
+  parking: "Parking", noParking: "No parking added.",
+  parkingHere: "Use my location", parkingPick: "Pick on the map", parkingRemove: "Remove parking",
+  directions: "Directions", directionsLabel: "Directions to the parking, in your maps app",
+  parkingNoFix: "Could not find your location.",
+  pickParking: "Where do you park?", pickParkingDetail: "Tap the map where you leave the car.",
+  parkingUse: "Use this point",
 } as const;
 
 /** Adding a spot: the coach's steps, the when-were-you-there page and its steppers, the way on and back. */

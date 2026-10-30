@@ -554,3 +554,16 @@ describe("<SpotScreen> photographs (S1)", () => {
       .toBe("The photo was not added (camera permission refused). Nothing else changed.");
   });
 });
+
+describe("(T310) <SpotScreen> parking", () => {
+  it("a viewed spot with parking shows it and Directions; none: nothing", () => {
+    const go = vi.fn();
+    const { getByText, queryByTestId, rerender } = render(
+      <SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} parking={{ lat: 49.1, lon: -121.96 }} onDirections={go} />);
+    expect(queryByTestId("spot-parking")).not.toBeNull();
+    fireEvent.click(getByText("Directions"));
+    expect(go).toHaveBeenCalled();
+    rerender(<SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} parking={null} />);
+    expect(queryByTestId("spot-parking")).toBeNull();
+  });
+});

@@ -44,6 +44,9 @@ export function SpotPin({ m, palette, press }: { m: SpotMarker; palette: Palette
               style={{ width: face, height: face, borderWidth: SPOT_PIN.frame, borderColor: ground,
                        borderRadius: palette.r.chip, backgroundColor: mark, alignItems: "center",
                        justifyContent: "center" }}>
+          {m.parking && (
+            <Text testID="spot-parking-mark" style={{ fontFamily: FACE.textHeavy, fontSize: 11, lineHeight: 13, color: ground }}>P</Text>
+          )}
           {m.count > 1 && (
             <Text testID="spot-count" style={{ fontFamily: FACE.textHeavy, fontSize: 10, lineHeight: 12, color: ground }}>
               {String(m.count)}

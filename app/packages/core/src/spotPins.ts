@@ -52,6 +52,7 @@ export const SPOT_PIN_WORDS = {
   open: (title: string) => `Open spot ${title}`,
   zoom: (n: number) => `${n} spots here. Zoom in to see them`,
   list: (n: number) => `${n} spots at this place. Open the Spots list`,
+  parking: (title: string) => `Parking for ${title}. Open the spot`,
 } as const;
 
 /**
@@ -64,7 +65,9 @@ export function spotBack(overTab: string | null): string {
 }
 
 /** A saved spot as a map receives it: its id, place, and the name its Spots row shows. */
-export interface SpotPoint { id: string; lat: number; lon: number; title: string }
+export interface SpotPoint { id: string; lat: number; lon: number; title: string;
+  /** (T310) this point is the spot's PARKING (`id` is the spot's): drawn as a P, never grouped, a tap opens the spot */
+  parking?: true }
 
 export interface SpotMarker {
   /** Stable while the mark's members are: `spot:<id>` or `group:<ids>`. */
@@ -81,6 +84,8 @@ export interface SpotMarker {
   /** A group: the zoom at which it parts; null for a spot, and for a group no zoom parts (spots on one point). */
   splitZoom: number | null;
   a11y: string;
+  /** (T310) a spot's parking mark: a single P, never part of a group */
+  parking?: true;
 }
 
 /**
@@ -88,8 +93,8 @@ export interface SpotMarker {
  * selected ring included). From the mark's kind and selection only — there is no zoom here, so no zoom can grow it
  * past `SPOT_PIN.max`. The ONE size: names are placed against `extent` here, and `SpotPin` draws both.
  */
-export function spotFace(m: Pick<SpotMarker, "selected" | "count">): { face: number; extent: number } {
-  const face = m.count > 1 ? SPOT_PIN.groupFace : SPOT_PIN.face;
+export function spotFace(m: Pick<SpotMarker, "selected" | "count"> & { parking?: true }): { face: number; extent: number } {
+  const face = m.count > 1 || m.parking ? SPOT_PIN.groupFace : SPOT_PIN.face;
   return { face, extent: face + (m.selected ? 2 * SPOT_PIN.ring : 0) };
 }
 
@@ -114,7 +119,8 @@ const crosses = (a: Box, b: Box) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] &&
  * depend on the order the spots arrive in, and a group's `splitZoom` — where its farthest member is `groupPx` from the
  * anchor, on the half zoom — really parts it there (distances only grow with zoom, so no anchor changes).
  */
-export function spotMarkers(points: readonly SpotPoint[], zoom: number, selected: string | null): SpotMarker[] {
+export function spotMarkers(all: readonly SpotPoint[], zoom: number, selected: string | null): SpotMarker[] {
+  const points = all.filter((p) => !p.parking);
   const sorted = [...points].sort(byId);
   const groups: { anchor: [number, number]; members: SpotPoint[] }[] = [];
   for (const p of sorted) {
@@ -139,6 +145,10 @@ export function spotMarkers(points: readonly SpotPoint[], zoom: number, selected
              selected: isSelected, count: members.length, splitZoom,
              a11y: splitZoom === null ? SPOT_PIN_WORDS.list(members.length) : SPOT_PIN_WORDS.zoom(members.length) };
   });
+  // (T310) each spot's parking: its own mark, never grouped (a P beside its spot is not "2 spots"), and unnamed
+  for (const p of [...all].filter((x) => x.parking).sort(byId))
+    marks.push({ key: `parking:${p.id}`, ids: [p.id], lat: p.lat, lon: p.lon, label: null, count: 1, splitZoom: null,
+                 selected: false, parking: true, a11y: SPOT_PIN_WORDS.parking(p.title) });
   if (zoom < SPOT_PIN.labelZoom) return marks;
 
   // NAMES, the selected first: each above its face, kept only where it crosses no name kept and no other face
@@ -150,7 +160,7 @@ export function spotMarkers(points: readonly SpotPoint[], zoom: number, selected
   const order = marks.map((_, i) => i).sort((a, b) => Number(marks[b]!.selected) - Number(marks[a]!.selected) || a - b);
   for (const i of order) {
     const m = marks[i]!;
-    if (m.count !== 1) continue;
+    if (m.count !== 1 || m.parking) continue;
     const title = sorted.find((p) => p.id === m.ids[0])!.title;
     const [x, y] = px(m, zoom);
     const w = labelWidth(title);

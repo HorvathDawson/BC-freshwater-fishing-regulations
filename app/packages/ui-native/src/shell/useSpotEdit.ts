@@ -10,7 +10,7 @@ import type { TabKey } from "../TabBar";
 export function useSpotEdit(photos: SpotPhotos | undefined, openSpot: string | null) {
   // Non-null only while editing. The draft lives here rather than in SpotScreen so that
   // leaving the screen cannot strand half an edit inside an unmounted component.
-  const [edit, setEdit] = useState<{ title: string; notes: string } | null>(null);
+  const [edit, setEdit] = useState<{ title: string; notes: string; parking: { lat: number; lon: number } | null } | null>(null);
   // S1: the photos of the spot being edited; files added in an edit that is not saved are deleted with it
   const photoEdit = usePhotoEdit(photos);
   // P01: a failed save or delete, said on the spot's screen; and a tab change asked for while an edit is unsaved

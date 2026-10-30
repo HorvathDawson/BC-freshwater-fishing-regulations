@@ -21,6 +21,10 @@ async function capture(ctx) {
       d.sh(`input tap ${pin[0]} ${pin[1] + 40}`);
       await d.sleep(1500);
       ctx.flow('tap-text', { TEXT: 'Next' });
+      // (T307) how long the read of the water takes to land on the save step (offline it must not wait on the network)
+      const t0 = Date.now();
+      while (Date.now() - t0 < 15_000 && !d.screenText().some((w) => /^(Save spot|Save)$/.test(w))) await d.sleep(200);
+      ctx.captureMs = Date.now() - t0;
     } else if (words.includes('Continue')) ctx.flow('tap-text', { TEXT: 'Continue' });
     else if (words.includes('Next')) ctx.flow('tap-text', { TEXT: 'Next' });
     await d.sleep(2500);
@@ -47,6 +51,9 @@ export const spots = {
       ctx.flow('tap-text', { TEXT: 'At my location' });
       await d.sleep(3000);
       await capture(ctx);
+      // each screen read costs ~1 s itself, so < 3 s here means the capture did not wait on the network (was 10 s+)
+      if (ctx.captureMs != null && ctx.captureMs > 3000) throw new Error(`the capture took ${ctx.captureMs} ms offline (T307: should be instant)`);
+      return `Next → Save spot in ${ctx.captureMs ?? '?'} ms (T307)`;
     });
     await ctx.step('add a photo from the gallery (the system photo picker)', async () => {
       ctx.flow('spot-add-photo');

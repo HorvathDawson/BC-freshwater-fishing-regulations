@@ -199,3 +199,22 @@ describe("captureVisit — a new visit to a saved spot", () => {
     expect(v.panel?.rows.map((r) => r.percentile)).toEqual([0.375, 0.75]);
   });
 });
+
+describe("(T310) parking is the spot's, notes and photos are each visit's", () => {
+  const P = { lat: 49.1, lon: -121.96 };
+  it("a stored spot with parking round-trips; every visit reads the same parking; a visit edit leaves it alone", async () => {
+    const two: Spot = addVisit({ ...OLD, parking: P }, later("v2", T(20), { notes: "Second trip", photos: ["photos/v2-1.jpg"] }), T(21));
+    const fs = memFs({ "s.json": JSON.stringify([two]) });
+    const [loaded] = await openSpotsWith(fs, "s.json").list();
+    expect(loaded).toEqual(two);
+    expect(visitSpot(loaded!, "v2").parking).toEqual(P);
+    expect(visitSpot(loaded!, "v2").notes).toBe("Second trip");
+    expect(visitSpot(loaded!, "s1").notes).toBe("Two on a bead.");           // the old spot-level notes stayed on visit 1
+    expect(visitSpot(loaded!, "s1").photos).toEqual(OLD.photos);
+    const edited = withVisit(loaded!, "v2", { ...visitSpot(loaded!, "v2"), notes: "Edited" });
+    expect(edited.parking).toEqual(P);
+    expect(spotVisits(edited).find((v) => v.id === "v2")!.notes).toBe("Edited");
+    expect(spotVisits(edited).find((v) => v.id === "s1")!.notes).toBe("Two on a bead.");
+    expect("parking" in spotVisits(edited)[0]!).toBe(false);                 // not a visit field: never copied into one
+  });
+});

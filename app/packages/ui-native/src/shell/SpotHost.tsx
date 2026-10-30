@@ -3,15 +3,18 @@
  * (T62 3.4: out of the Shell, unchanged). The edit draft is held by the Shell (`useSpotEdit`), so leaving the screen
  * cannot strand half an edit inside an unmounted component.
  */
-import { spotBack } from "@app/core";
+import { SPOT_WORDS, spotBack } from "@app/core";
 import type { MutableRefObject } from "react";
-import { View } from "react-native";
+import { useState } from "react";
+import { Linking, View } from "react-native";
 import { nextRating, spotSaveFailed, useAddVisit, useBackLayer, useDayFlow, useLikeVisit, visitsView,
          type AddVisitOptions, type SpotPhotos } from "@app/ui";
 import { photoOwner, rateVisit, removeVisit, visitSpot, withVisit, type Spot } from "@app/data/spots";
 import { VISIT_WORDS } from "@app/core";
 import { Busy, WhenScreen } from "../SpotCapture";
-import type { Camera } from "@app/map";
+import type { Camera, TileEndpoints } from "@app/map";
+import { ParkingPick } from "../spot/ParkingPick";
+import type { Locate } from "@app/ui";
 import { SpotScreen } from "../SpotScreen";
 import { TABS, TabBar, type TabKey } from "../TabBar";
 import type { Palette } from "../theme";
@@ -22,7 +25,7 @@ import type { useSpotEdit } from "./useSpotEdit";
 type DayFlowBlock = ReturnType<typeof useDayFlow>;
 
 export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlow, photos, onSaveSpot, onDeleteSpot,
-                           onRefreshSpots, refreshing, show, visitSources }: {
+                           onRefreshSpots, refreshing, show, visitSources, tiles, theme, locate }: {
   viewing: Spot; spotEdit: ReturnType<typeof useSpotEdit>; nav: ShellNav; palette: Palette;
   camera: MutableRefObject<Camera>;
   like: ReturnType<typeof useLikeVisit>; dayFlow: DayFlowBlock;
@@ -35,6 +38,8 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
   show: (s: Spot) => void;
   /** (T294) what "Add a visit" reads the water with; absent: no Add a visit. */
   visitSources?: AddVisitOptions | null;
+  /** (T310) the parking picker's map, and the phone's location for "Use my location" */
+  tiles?: TileEndpoints; theme?: string; locate?: Locate | null;
 }) {
   const { edit, setEdit, photoEdit, spotError, setSpotError, pendingTab, setPendingTab, shownVisit, setShownVisit,
           addingVisit, setAddingVisit } = spotEdit;
@@ -44,15 +49,28 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
   const shown = visitSpot(viewing, shownVisit);
   const visits = visitsView(viewing, shown.visitId, Date.now());
   const add = useAddVisit(visitSources ?? null);
+  const [pickingParking, setPickingParking] = useState<{ lat: number; lon: number } | null | false>(false);
+  const [parkingNotice, setParkingNotice] = useState<string | null>(null);
+  const same = (a?: { lat: number; lon: number } | null, b?: { lat: number; lon: number } | null) =>
+    (a?.lat ?? null) === (b?.lat ?? null) && (a?.lon ?? null) === (b?.lon ?? null);
   const dirty = edit !== null
     && (edit.title !== viewing.title || edit.notes !== shown.notes
-        || photoEdit.refs.join("\n") !== shown.photos.join("\n"));
+        || photoEdit.refs.join("\n") !== shown.photos.join("\n")
+        || !same(edit.parking, viewing.parking));
   const saveOr = async (next: Spot) => {
     try { await onSaveSpot!(next); setSpotError(null); }
     catch (e) { setSpotError(spotSaveFailed(e)); }
   };
   // (T294) a back on "Add a visit" goes back to the spot, as its ‹ does
   useBackLayer(addingVisit, () => setAddingVisit(false));
+  if (pickingParking !== false && edit && tiles && theme) {
+    return (
+      <ParkingPick palette={palette} tiles={tiles} theme={theme} point={pickingParking}
+                   camera={edit.parking ? { ...edit.parking, zoom: 15 } : { lat: viewing.lat, lon: viewing.lon, zoom: 15 }}
+                   onPoint={setPickingParking} onCancel={() => setPickingParking(false)}
+                   onUse={() => { if (pickingParking) setEdit({ ...edit, parking: pickingParking }); setPickingParking(false); }} />
+    );
+  }
   if (addingVisit && visitSources && onSaveSpot) {
     if (add.busy) return <Busy palette={palette} label={VISIT_WORDS.reading} />;
     return (
@@ -84,6 +102,15 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                     mode={edit ? "edit" : "view"} likeVisit={like} dayFlow={dayFlow}
                     photoStore={photos?.store} photoEdit={edit ? photoEdit : undefined}
                     title={edit?.title} notes={edit?.notes}
+                    parking={edit ? edit.parking : viewing.parking ?? null} parkingNotice={parkingNotice}
+                    onDirections={() => { const q = viewing.parking; if (q) void Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${q.lat},${q.lon}`); }}
+                    onParkingPick={edit && tiles && theme ? () => setPickingParking(edit.parking ?? null) : undefined}
+                    onParkingHere={edit && locate ? () => {
+                      setParkingNotice(null);
+                      locate.here().then((f) => setEdit({ ...edit, parking: { lat: f.lat, lon: f.lon } }),
+                                         () => setParkingNotice(SPOT_WORDS.parkingNoFix));
+                    } : undefined}
+                    onParkingRemove={edit ? () => setEdit({ ...edit, parking: null }) : undefined}
                     onTitle={edit ? (t) => setEdit({ ...edit, title: t }) : undefined}
                     onNotes={edit ? (n) => setEdit({ ...edit, notes: n }) : undefined}
                     dirty={dirty}
@@ -91,7 +118,8 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                     // (T131) the ‹ names where back goes: the tab the spot is over, or Back over a water
                     back={spotBack(route.mode === "water" ? null : TABS.find((t) => t.k === tab)!.t)}
                     onEdit={onSaveSpot && (() => {
-                      setEdit({ title: viewing.title, notes: shown.notes });
+                      setEdit({ title: viewing.title, notes: shown.notes, parking: viewing.parking ?? null });
+                      setParkingNotice(null);
                       // a later visit's new photos are named after the visit, the first's after the spot (as always)
                       photoEdit.begin(photoOwner(viewing, shown.visitId), shown.photos);
                     })}
@@ -101,7 +129,9 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                     onKeepEditing={() => setPendingTab(null)}
                     onSave={edit && onSaveSpot ? async () => {
                       try {
-                        await onSaveSpot(withVisit({ ...viewing, title: edit.title || viewing.title, updatedAt: Date.now() },
+                        const { parking: _was, ...rest } = viewing;
+                        await onSaveSpot(withVisit({ ...rest, ...(edit.parking ? { parking: edit.parking } : {}),
+                                                     title: edit.title || viewing.title, updatedAt: Date.now() },
                                                    shown.visitId,
                                                    { ...shown, notes: edit.notes, photos: [...photoEdit.refs] }));
                         photoEdit.committed();

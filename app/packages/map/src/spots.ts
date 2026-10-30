@@ -22,5 +22,5 @@ export function pressSpot(m: SpotMarker, spots: Pick<MapSpots, "onOpen" | "onLis
 
 /** What the marks are made of: every spot's id, place and name, and the selected one. "" for none. */
 export function spotsKey(points: readonly SpotPoint[] | undefined, selected: string | null): string {
-  return points ? JSON.stringify([points.map((p) => [p.id, p.lat, p.lon, p.title]), selected]) : "";
+  return points ? JSON.stringify([points.map((p) => [p.id, p.lat, p.lon, p.title, p.parking ?? false]), selected]) : "";
 }

@@ -41,6 +41,7 @@ import { WIDE_PANEL } from "./DonorPanel";
 import { WaterRecord, WeatherRecord } from "./spot/Record";
 import { SpotPhotos } from "./spot/SpotPhotos";
 import { RateBlock, VisitsBlock } from "./spot/Visits";
+import { ParkingBlock } from "./spot/Parking";
 import { hitProps } from "./regs/hit";
 
 
@@ -99,6 +100,17 @@ export interface SpotScreenProps {
   onAddVisit?: () => void;
   /** Remove the shown visit (asked first); offered only while the spot has another. */
   onRemoveVisit?: () => void;
+  /**
+   * (T310) The spot's parking (view: shown with Directions; edit: set / pick / remove). Absent `parking` and no edit
+   * actions: nothing is drawn (a draft has no parking yet).
+   */
+  parking?: { lat: number; lon: number } | null;
+  onParkingHere?: () => void;
+  onParkingPick?: () => void;
+  onParkingRemove?: () => void;
+  onDirections?: () => void;
+  /** a line when "Use my location" found nothing */
+  parkingNotice?: string | null;
 }
 
 /**
@@ -279,6 +291,13 @@ export function SpotScreen(p: SpotScreenProps) {
             </Text>
             <Icon name="next" colour={palette.accent} size={18} />
           </Pressable>
+        )}
+
+        {/* (T310) where to park: the spot's own, not a visit's */}
+        {mode !== "draft" && (p.parking || (editable && p.onParkingPick)) && (
+          <ParkingBlock palette={palette} parking={p.parking ?? null} editable={editable} notice={p.parkingNotice ?? null}
+                        onHere={p.onParkingHere} onPick={p.onParkingPick} onRemove={p.onParkingRemove}
+                        onDirections={p.onDirections} />
         )}
 
         {/* (T294) the spot's visits: pick one (the page shows it), add another, remove the one shown */}

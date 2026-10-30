@@ -41,5 +41,10 @@ export function useLayerChoice(store?: LayerStore):
  * `@app/core` `spotMarkers` (grouped, named, selected) and `@app/ui-native` `SpotPin`, in the spot tokens.
  */
 export function spotPins(spots: readonly Spot[], shown: boolean): readonly SpotPoint[] {
-  return shown ? spots.map((s) => ({ id: s.id, lat: s.lat, lon: s.lon, title: spotLabel(s) })) : [];
+  if (!shown) return [];
+  // (T310) a spot's parking is a second point (a P) that opens the same spot
+  return spots.flatMap((s): SpotPoint[] => [
+    { id: s.id, lat: s.lat, lon: s.lon, title: spotLabel(s) },
+    ...(s.parking ? [{ id: s.id, lat: s.parking.lat, lon: s.parking.lon, title: spotLabel(s), parking: true as const }] : []),
+  ]);
 }

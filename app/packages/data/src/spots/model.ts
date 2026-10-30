@@ -217,6 +217,12 @@ export interface Spot {
   /** What the water was called when it was pinned. Kept even if the registry renames it. */
   waterName: string | null;
 
+  /**
+   * (T310) WHERE TO PARK, optional: the spot's own fact, shared by every visit (not a visit field), so it is neither
+   * moved nor copied by the visits' migration. Absent: none recorded.
+   */
+  parking?: { lat: number; lon: number };
+
   /** May be empty. `spotLabel()` decides what to show; never render this raw. */
   title: string;
   notes: string;
