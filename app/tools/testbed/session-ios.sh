@@ -31,15 +31,8 @@ while (( $# )); do
   esac; shift
 done
 log() { echo "[testbed-ios $(date +%T)] $*"; }
-DIRECT=/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/Resources/bin/simctl
-SHIM="$OUT/xcrun-shim"; mkdir -p "$SHIM"
-cat > "$SHIM/xcrun" <<EOF
-#!/bin/bash
-[[ \$1 == simctl && -x $DIRECT ]] && { shift; exec $DIRECT "\$@"; }
-exec /usr/bin/xcrun "\$@"
-EOF
-chmod +x "$SHIM/xcrun"
-export PATH="$SHIM:$HOME/.maestro/maestro/bin:$PATH"
+source "$HERE/lib/xcrun-shim.sh"
+export PATH="$HOME/.maestro/maestro/bin:$PATH"
 export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Contents/Home"}
 export TESTBED_PLATFORM=ios
 SIMCTL="xcrun simctl"

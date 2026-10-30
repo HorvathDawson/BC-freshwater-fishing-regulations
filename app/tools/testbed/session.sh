@@ -31,6 +31,7 @@ export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Con
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.maestro/maestro/bin:$PATH"
 log() { echo "[testbed $(date +%T)] $*"; }
+source "$HERE/lib/xcrun-shim.sh"   # (T313) Maestro's startup `xcrun simctl list -j` must not hang on Xcode's first launch
 
 EMU_PID=""
 cleanup() {
