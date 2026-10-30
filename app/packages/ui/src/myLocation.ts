@@ -53,7 +53,8 @@ export function useMyLocation(locate: Locate | null): MyLocation | null {
   const watchNow = () => {
     unwatch();
     stop.current = locate?.watch?.((f) => { if (alive.current) setFix(f); },
-                                   (e) => { if (alive.current) setNotice(refusedLine(e)); }) ?? null;
+                                   // a missed reading while following is not worth a line (the dot stays at the last one); a refusal is
+                                   (e) => { if (alive.current && refusedLine(e) === MY_LOCATION.denied) setNotice(MY_LOCATION.denied); }) ?? null;
   };
 
   const press = useCallback(() => {

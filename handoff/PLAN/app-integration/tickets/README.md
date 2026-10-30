@@ -346,7 +346,7 @@ use that as the sole source of future work."
 | T300 | Conditions/Runs/legend polish: no ELF default, model text + credits collapsed at bottom, gauge-map gestures, Runs heat legend, obstacles in legend, shorter legend words, More-tab sync button | DONE (emulator gesture pass pending: lock held) | — | owner 2026-10-30 |
 | T301 | New HYDAT release: refresh stored daily flows + normals | OPEN | — | owner 2026-10-30 |
 | T302 | Web Spots tab → notice: spots live in the phone app, no web sync yet, accounts coming; web save entry points + walkthrough spot steps adjusted | DONE | — | owner 2026-10-30; web Spots tab + add → notice (Get the app), walk skips spots on web; shots T302-shots/ |
-| T303 | Show your current location on the map: my-location button, blue dot, centre/follow, asks only on tap | OPEN | — | owner 2026-10-30 |
+| T303 | Show your current location on the map: my-location button, blue dot, centre/follow, asks only on tap | DONE on web (emulator pass pending: lock held) | 1b74740 | owner 2026-10-30 |
 
 ## Order for open tickets
 
