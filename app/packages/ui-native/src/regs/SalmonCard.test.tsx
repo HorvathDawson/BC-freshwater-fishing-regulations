@@ -6,7 +6,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { salmonCard, type RegsPage, type SalmonFacts } from "@app/core";
+import { salmonCard, salmonRowTexts, type RegsPage, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
 import { SPINNER_TIMING } from "../LoadingState";
 import { RegsScreen } from "./RegsScreen";
@@ -50,13 +50,13 @@ describe("the Salmon card", () => {
     // ABOVE the Keep tab (owner 2026-10-28)
     expect(screen.getByTestId("keep-tab").compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
     expect(el.getAttribute("aria-label")).toBe("Salmon, DFO: Open today");
-    const rows = screen.getAllByTestId("salmon-card-block-row").map((r) => r.textContent!);
-    expect(rows.map((r, i) => [r.startsWith(["Chinook · sockeye · pink", "Coho", "Chum"][i]!), r.includes(["Closed", "Open", "Closed"][i]!)]))
-      .toEqual([[true, true], [true, true], [true, true]]);
-    expect(rows[1]).toContain("4 per day, only 2 over 50 cm (Jul 15–Aug 23)");
-    // each species of a row is pictured, both looks, and opens its fish sheet
-    expect(within(screen.getAllByTestId("salmon-card-block-row")[0]!).getAllByTestId("salmon-look").length).toBe(6);
-    expect(screen.getByTestId("pic:CO").textContent).toBe("oceanspawningCoho salmon ›");
+    // (T318) ONE row per species, today's status; DFO's words once under the table; ONE picture each (the ocean look)
+    const rows = screen.getAllByTestId("salmon-species-row").map((r) => r.textContent!);
+    expect(rows.map((r, i) => [r.startsWith(["Chinook", "Coho", "Sockeye", "Pink", "Chum"][i]!), r.endsWith(["Closed", "Open", "Closed", "Closed", "Closed"][i]!)]))
+      .toEqual([[true, true], [true, true], [true, true], [true, true], [true, true]]);
+    expect(screen.getAllByTestId("salmon-says-line").map((e) => e.textContent)).toContain("4 per day, only 2 over 50 cm (Jul 15–Aug 23)");
+    expect(screen.getAllByTestId("salmon-look").length).toBe(5);
+    expect(screen.getByTestId("pic:CO").textContent).toBe("Coho ›");
     expect(screen.getByTestId("salmon-card-block-gear").textContent).toBe("No natural bait allowed (Jan 1–Dec 31)");
     expect([screen.getByTestId("salmon-source").textContent, screen.getByTestId("salmon-asof").textContent])
       .toEqual(["Fisheries and Oceans Canada · Region 6 Skeena", "DFO page dated Aug 28, 2026"]);
@@ -71,19 +71,17 @@ describe("the Salmon card", () => {
     expect(screen.getByTestId("salmon-checked").textContent).toBe("Checked with DFO Oct 27, 2026, 11:04 am");
   });
 
-  it("every species closed: ONE 'Salmon — closed' row", () => {
+  it("every species closed: five closed species rows and DFO's closed words said ONCE (not per picture)", () => {
     render(<SalmonCard card={salmonCard(FACTS, { sids: [101], item: null }, SEP15)} palette={LIGHT} />);
-    const rows = screen.getAllByTestId("salmon-card-block-row");
-    expect(rows.length).toBe(1);
-    expect(rows[0]!.textContent!.startsWith("Salmon — closed")).toBe(true);
-    expect(within(rows[0]!).getAllByTestId("salmon-look").length).toBe(10);       // five species, two looks each
+    expect(screen.getAllByTestId("salmon-species-status").map((e) => e.textContent)).toEqual(Array(5).fill("Closed"));
+    expect(screen.getAllByTestId("salmon-says-line").length).toBe(2);               // the chinook line and the not-opened line, once
     expect(screen.getByTestId("salmon-card").getAttribute("aria-label")).toBe("Salmon, DFO: Closed today");
   });
 
   it("A WATER DFO DOES NOT LIST reads 'Salmon — closed', and says why (owner 2026-10-27)", () => {
     render(<SalmonCard card={salmonCard(FACTS, { sids: [7], item: "gnis:1" }, JUL20)} palette={LIGHT} />);
-    expect(screen.getAllByTestId("salmon-card-block-row").map((r) => r.textContent))
-      .toEqual([expect.stringMatching(/^Salmon — closedClosedNot opened by DFO: closed to salmon fishing/)]);
+    expect(screen.getAllByTestId("salmon-species-status").map((e) => e.textContent)).toEqual(Array(5).fill("Closed"));
+    expect(screen.getAllByTestId("salmon-says-line").map((e) => e.textContent)).toEqual(["Not opened by DFO: closed to salmon fishing"]);
     expect(screen.getByTestId("salmon-not-listed").textContent)
       .toBe("DFO does not list this water for salmon. It is closed to salmon fishing.");
   });
@@ -92,6 +90,11 @@ describe("the Salmon card", () => {
     render(<SalmonCard card={salmonCard(FACTS, { sids: [101], item: "gnis:4674" }, JUL20)} palette={LIGHT} />);
     expect(screen.getByTestId("salmon-unmapped-tag").textContent).toBe("Location not yet mapped");
     expect(screen.getByTestId("salmon-unmapped").textContent).toContain("Kispiox River — at the resort");
+    // folded to one line; opened, its own species and DFO's words are there
+    expect(screen.queryByTestId("salmon-place-body")).toBeNull();
+    fireEvent.click(screen.getByTestId("salmon-place-fold"));
+    expect(screen.getByTestId("salmon-place-summary").textContent).toBe("Closed to salmon fishing");   // every species closed: said once
+    expect(screen.getByTestId("salmon-place-body").textContent).toContain("No fishing for chinook (Apr 1–Mar 31)");
     expect(FACTS.chainOf(999)).toBe(0);     // its chain is placed on no section: the map draws the water unlisted
   });
 });
@@ -128,6 +131,27 @@ describe("the Standard / Salmon switch (beside the day strip, top left)", () => 
   });
 });
 
+describe("(T318) every DFO rule on a water is still reachable in the table layout", () => {
+  it("each row word, size, species note, place word, region rule and water rule is on the card (places once opened)", () => {
+    const n = (id: string, k: string, t: string, extra: object = {}) => ({ id, k, t, ...extra });
+    const f: SalmonFacts = { ...FACTS, payload: { ...FACTS.payload, regions: { "6": { ...FACTS.payload.regions["6"]!, notes: [
+      n("6:daylight:a", "daylight", "You can only fish for salmon in Region 6 during daylight hours."),
+      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], cm: 25 }),
+      n("6:annual:c", "annual", "The annual coho limit is 10.", { sp: ["CO"], n: 10 }),
+    ] } } } };
+    for (const [day, item] of [[JUL20, "gnis:4674"], [SEP15, "gnis:4674"], [JUL20, null]] as const) {
+      const card = salmonCard(f, { sids: [101], item }, day);
+      render(<SalmonCard card={card} palette={LIGHT} />);
+      screen.queryAllByTestId("salmon-place-fold").forEach((b) => fireEvent.click(b));
+      const text = screen.getByTestId("salmon-card").textContent!;
+      for (const t of salmonRowTexts(card)) expect(text, t).toContain(t);
+      for (const g of card.regionRules) for (const r of g.rules) expect(text, r.id).toContain(r.line);
+      for (const t of card.waterRules) expect(text, t).toContain(t);
+      cleanup();
+    }
+  });
+});
+
 describe("a species' picture opens its fish sheet", () => {
   it("sp:CO on a press", () => {
     const opened: string[] = [];
@@ -154,9 +178,8 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
     const block = screen.getByTestId("salmon-region-rules");
     expect(within(block).getByText("Region rules (DFO) · Region 6 Skeena")).toBeTruthy();
     expect(within(block).getByText("You can only fish for salmon in Region 6 during daylight hours.")).toBeTruthy();
-    const coho = screen.getAllByTestId("salmon-card-block-row").find((r) => r.textContent!.startsWith("Coho"))!;
-    expect(within(coho).getByText(/Kispiox watershed: the aggregate daily limit/)).toBeTruthy();
-    expect(within(coho).getByTestId("salmon-card-block-sizes").textContent).toBe("Sizes (DFO): coho 25 cm or more to keep");
+    expect(screen.getByText(/Kispiox watershed: the aggregate daily limit/)).toBeTruthy();
+    expect(screen.getByTestId("salmon-limit").textContent).toBe("Sizes (DFO): coho 25 cm or more to keep");
     expect(screen.getByTestId("salmon-gear-provincial").textContent).toBe("B.C. rules, also for salmon: Bait ban: no bait of any kind.");
   });
 
@@ -179,8 +202,7 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
     const f: SalmonFacts = { ...WITH_HEADER, payload: { ...WITH_HEADER.payload, regions: { "6": { ...WITH_HEADER.payload.regions["6"]!,
       notes: [...WITH_HEADER.payload.regions["6"]!.notes!, n("6:annual:d", "annual", "The annual coho limit is 10.", { sp: ["CO"], n: 10 })] } } } };
     render(<SalmonCard card={salmonCard(f, { sids: [101], item: "gnis:9" }, JUL20)} palette={LIGHT} />);
-    const coho = screen.getAllByTestId("salmon-card-block-row").find((r) => r.textContent!.startsWith("Coho"))!;
-    expect(within(coho).getByTestId("salmon-card-block-species-note").textContent).toBe("The annual coho limit is 10.");
+    expect(screen.getAllByTestId("salmon-says-line").map((e) => e.textContent)).toContain("The annual coho limit is 10.");
     expect(screen.getByTestId("salmon-region-rules").textContent).not.toContain("annual coho");
     expect(screen.getByTestId("salmon-region-rules").textContent).not.toContain("25 cm");
   });

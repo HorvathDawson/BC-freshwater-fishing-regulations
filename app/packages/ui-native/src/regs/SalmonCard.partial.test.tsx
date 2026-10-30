@@ -3,7 +3,7 @@
  * parts of this water aren't mapped yet — check DFO" and DFO's page, and no row says a confident status.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { salmonCard, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
 import { SalmonCard } from "./SalmonCard";
@@ -41,13 +41,11 @@ describe("the Salmon card on a partly mapped water", () => {
     expect(screen.getByTestId("salmon-partial-link").getAttribute("role")).toBe("link");
     expect(card.partial?.url).toBe("https://example/region6");
     expect(screen.getByTestId("salmon-card").getAttribute("aria-label")).toBe("Salmon, DFO: Check DFO today");
-    const rows = screen.getAllByTestId("salmon-card-block-row").map((r) => r.textContent!);
+    const rows = screen.getAllByTestId("salmon-species-row").map((r) => r.textContent!);
     expect(rows.some((r) => r.includes("Release only"))).toBe(false);
-    // DFO's own words for the undrawn place still show, tagged
-    // (T221) in the same table, tagged with its place: one table, never a second box
-    const undrawn = screen.getAllByTestId("salmon-unmapped-block-row");
-    expect(undrawn.some((r) => r.textContent!.includes("4 per day, only 2 over 50 cm"))).toBe(true);
-    expect(undrawn.every((r) => r.parentElement === screen.getByTestId("salmon-card-block"))).toBe(true);
-    expect(within(undrawn[0]!).getByTestId("salmon-unmapped-tag").textContent).toBe("Location not yet mapped");
+    // DFO's own words for the undrawn place still show, tagged, folded in the same card (T318: one line until opened)
+    expect(within(screen.getByTestId("salmon-place")).getByTestId("salmon-unmapped-tag").textContent).toBe("Location not yet mapped");
+    fireEvent.click(screen.getByTestId("salmon-place-fold"));
+    expect(screen.getByTestId("salmon-place-body").textContent).toContain("4 per day, only 2 over 50 cm");
   });
 });

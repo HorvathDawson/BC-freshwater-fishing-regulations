@@ -101,25 +101,24 @@ describe("10. an unnamed section (D11 a)", () => {
 
 describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
   const page = asPage(x15p2), caveat = page.keep.caveats[0]!;
-  it("'⚠ At certain times' as the block's label, in the sub grey; the block marked by a restricted rule on its left", () => {
-    expect(caveat.kind).toBe("timed");
+  it("(T318) the timed closure is ONE line under the game-fish bar: no box, no heading, said in words", () => {
     for (const palette of [LIGHT, DARK]) {
       render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={{ ...NOOP, onTab() {} }} />);
-      const k = screen.getByTestId("kicker:timed");
-      expect(k.textContent).toBe("⚠ At certain times");
-      expect(getComputedStyle(k).color).toBe(rgb(palette.sub));
-      const block = screen.getByTestId("keep-caveat");
-      expect([getComputedStyle(block).borderLeftColor, getComputedStyle(block).borderLeftWidth]).toEqual([rgb(palette.restricted), "3px"]);
+      expect(screen.queryByTestId("keep-caveat")).toBeNull();
+      expect(screen.queryByTestId("kicker:timed")).toBeNull();
+      expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
+      const strip = screen.getByTestId("keep-strip"), line = screen.getByTestId("keep-timed");
+      expect(strip.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      // directly under the bar: nothing between the strip and the line
+      expect(strip.nextElementSibling).toBe(line);
       cleanup();
     }
   });
-  it("each item a button opening its rule's sheet; the Rule book link after it, not inside it", () => {
+  it("(T318) the line opens its rule's sheet; the Rule book link sits inline after it", () => {
     const { sheets, books } = mountKeep(page);
-    const items = screen.getAllByTestId("keep-caveat-item");
-    expect(items.map((e) => e.textContent)).toEqual(["No fishing for any game fish60 min after sunset–60 min before sunriseRule book p.23 ↗"]);
-    const btn = within(items[0]!).getByRole("button");
-    expect(btn.textContent).toBe("No fishing for any game fish60 min after sunset–60 min before sunrise");
-    fireEvent.click(btn);
+    const items = screen.getAllByTestId("keep-timed-item");
+    expect(items.map((e) => e.textContent)).toEqual(["Daylight only: closed from 1 h after sunset to 1 h before sunriseRule book p.23 ↗"]);
+    fireEvent.click(screen.getByTestId("keep-timed-line"));
     expect(sheets).toEqual([`rule:${caveat.items[0]!.rule}`]);
     fireEvent.click(within(items[0]!).getByText("Rule book p.23 ↗"));
     expect([sheets.length, books.length]).toEqual([1, 1]);
