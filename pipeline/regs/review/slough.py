@@ -76,8 +76,17 @@ def premark(row: dict) -> Optional[dict]:
 WETLAND_TYPES = frozenset({"Marsh", "Swamp", "Marsh / Swamp", "Flooded Land-Inundated"})
 
 
+#: FWA man-made types nobody fishes (owner 2026-10-29): sewage settling basins, mine tailing ponds, dumps — off the queue
+NOT_FISHED_TYPES = frozenset({"Settling Basin-Sewage", "Mine-Tailing Pond", "Dump"})
+
+
 def unnamed_wetland(row: dict) -> bool:
     return row.get("fwa") in WETLAND_TYPES and not row.get("name")
+
+
+def off_queue(row: dict) -> bool:
+    """A known candidate the queue never shows: an unnamed wetland, or a man-made pond nobody fishes."""
+    return unnamed_wetland(row) or row.get("fwa") in NOT_FISHED_TYPES
 
 
 def group(row: dict) -> str:
@@ -110,7 +119,7 @@ def _load(a: str, f: str, _ma: float, _mf: float) -> dict:
         return (rank[group(r)], pm.get("basis") == "wide marsh", r.get("owner_rank") or 10**6,
                 r.get("width_m") or 0, r["id"])
     # an unnamed wetland stays a known candidate (its old marks are not orphans) but is never queued
-    order = sorted((r for r in rows if not unnamed_wetland(r)), key=key)
+    order = sorted((r for r in rows if not off_queue(r)), key=key)
     return {"by_id": {r["id"]: r for r in rows}, "order": [r["id"] for r in order], "finder": fin}
 
 

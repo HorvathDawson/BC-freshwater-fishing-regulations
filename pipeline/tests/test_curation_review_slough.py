@@ -28,7 +28,9 @@ ROWS = [
     _row("3", "owner_list", 80.0, fwa="Marsh", wide_wetland=True, owner_rank=2, name="Quarry Slough"),  # named wide marsh -> pre-mark
     _row("4", "owner_list", 90.0, wide_wetland=False, owner_rank=1),      # wide lake -> owner list
     _row("5", "owner", 12.0, verdict="stream", by="owner"),               # the review page's mark
-    _row("6", "default", 70.0, fwa="Settling Basin-Sewage"),
+    _row("6", "default", 70.0, fwa="Lake-Definite"),
+    # (owner 2026-10-29) a sewage basin / tailing pond / dump never reaches the queue
+    _row("8", "default", 60.0, fwa="Settling Basin-Sewage"),
     # (owner 2026-10-29) an UNNAMED wetland-layer piece never reaches the queue: its call changes nothing
     _row("7", "owner_list", 85.0, fwa="Swamp", wide_wetland=True, owner_rank=3),
 ]
