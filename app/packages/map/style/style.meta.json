@@ -87,6 +87,7 @@
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
+        "park__edge": "plain",
         "park_closed__edge": "plain",
         "tidal_water__edge": "plain",
         "basin__edge": "standing",
@@ -153,6 +154,7 @@
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
+        "park__edge": "plain",
         "park_closed__edge": "plain",
         "tidal_water__edge": "plain",
         "basin__edge": "plain",
@@ -208,6 +210,7 @@
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
+        "park__edge": "plain",
         "park_closed__edge": "plain",
         "tidal_water__edge": "plain",
         "basin__edge": "plain",
@@ -263,6 +266,7 @@
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
+        "park__edge": "plain",
         "park_closed__edge": "plain",
         "tidal_water__edge": "plain",
         "basin__edge": "plain",
@@ -376,6 +380,7 @@
     "no_access__edge": "access",
     "no_access_permit__edge": "access",
     "eco_reserve__edge": "protected",
+    "park__edge": "protected",
     "park_closed__edge": "protected",
     "tidal_water__edge": "water",
     "basin__edge": "water",
@@ -1531,6 +1536,15 @@
         }
       }
     },
+    "park__edge": {
+      "plain": {
+        "label": "park outline",
+        "scale": "static",
+        "color": {
+          "token": "color.park.edge"
+        }
+      }
+    },
     "park_closed__edge": {
       "plain": {
         "label": "park_closed outline",
@@ -2360,6 +2374,28 @@
         ]
       ]
     },
+    "park__edge": {
+      "token": "width.park.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          7,
+          0.6
+        ],
+        [
+          10,
+          1
+        ],
+        [
+          13,
+          1.5
+        ],
+        [
+          16,
+          2
+        ]
+      ]
+    },
     "park_closed__edge": {
       "token": "width.closure.edge",
       "mode": "zoom",
@@ -2644,6 +2680,7 @@
     "no_access__edge": "opacity.closure.edge",
     "no_access_permit__edge": "opacity.closure.edge",
     "eco_reserve__edge": "opacity.closure.edge",
+    "park__edge": "opacity.park.edge",
     "park_closed__edge": "opacity.closure.edge",
     "sign_zone__edge": "opacity.closure.edge"
   },
@@ -2777,7 +2814,7 @@
       ],
       "color.contour.line": "#000040",
       "color.park.fill": "#cfe3b4",
-      "color.park.edge": "#7d9c5c",
+      "color.park.edge": "#5F8A3C",
       "color.reserve.fill": "#AA7BF6",
       "color.noaccess.fill": "#3B6568",
       "color.mu.edge": "#8B857F",
@@ -2830,12 +2867,13 @@
       ],
       "color.indigenous.fill": "#6F5D00",
       "opacity.closure": 0.55,
-      "opacity.park": 0.12,
+      "opacity.park": 0.32,
       "color.watershed.fill": "#2F5E2A",
       "opacity.watershed": 0.16,
       "opacity.sign_zone": 0.14,
       "opacity.admin.area": 0.14,
       "width.closure.edge": 1,
+      "width.park.edge": 1,
       "width.basin.seam": 1,
       "opacity.admin.edge": 0.35,
       "opacity.basin": 0.55,
@@ -2877,6 +2915,7 @@
       "opacity.ui.scrim": 0.28,
       "opacity.parcel.edge": 0.5,
       "opacity.closure.edge": 0.85,
+      "opacity.park.edge": 0.9,
       "color.ui.imagery.label": "#FAFBF8",
       "color.ui.imagery.label-water": "#B4DCFF",
       "color.ui.imagery.halo": "#0B0E10",
@@ -2986,12 +3025,13 @@
       ],
       "color.indigenous.fill": "#C9945E",
       "opacity.closure": 0.6,
-      "opacity.park": 0.14,
+      "opacity.park": 0.3,
       "color.watershed.fill": "#1C5A2E",
       "opacity.watershed": 0.24,
       "opacity.sign_zone": 0.18,
       "opacity.admin.area": 0.16,
       "width.closure.edge": 1,
+      "width.park.edge": 1,
       "width.basin.seam": 1,
       "opacity.admin.edge": 0.45,
       "opacity.basin": 0.55,
@@ -3033,6 +3073,7 @@
       "opacity.ui.scrim": 0.28,
       "opacity.parcel.edge": 0.42,
       "opacity.closure.edge": 0.85,
+      "opacity.park.edge": 0.75,
       "color.ui.imagery.label": "#FAFBF8",
       "color.ui.imagery.label-water": "#B4DCFF",
       "color.ui.imagery.halo": "#0B0E10",
@@ -3089,7 +3130,7 @@
       ],
       "color.contour.line": "#000040",
       "color.park.fill": "#cfe3b4",
-      "color.park.edge": "#7d9c5c",
+      "color.park.edge": "#5F8A3C",
       "color.reserve.fill": "#e0b48c",
       "color.noaccess.fill": "#d2a2a2",
       "color.mu.edge": "#7F7C79",
@@ -3142,12 +3183,13 @@
       ],
       "color.indigenous.fill": "#8B5A2B",
       "opacity.closure": 0.55,
-      "opacity.park": 0.12,
+      "opacity.park": 0.32,
       "color.watershed.fill": "#2F5E2A",
       "opacity.watershed": 0.16,
       "opacity.sign_zone": 0.14,
       "opacity.admin.area": 0.14,
       "width.closure.edge": 1,
+      "width.park.edge": 1,
       "width.basin.seam": 1,
       "opacity.admin.edge": 0.35,
       "opacity.basin": 0.55,
@@ -3189,6 +3231,7 @@
       "opacity.ui.scrim": 0.28,
       "opacity.parcel.edge": 0.5,
       "opacity.closure.edge": 0.85,
+      "opacity.park.edge": 0.9,
       "color.ui.imagery.label": "#FAFBF8",
       "color.ui.imagery.label-water": "#B4DCFF",
       "color.ui.imagery.halo": "#0B0E10",
@@ -3553,7 +3596,7 @@
     "opacity.park": {
       "type": "number",
       "themeable": true,
-      "$comment": "Provincial parks: open water, so the quietest tint on the map."
+      "$comment": "Provincial parks: open water, so a quiet tint — but one a reader can find. At 0.12 the park was invisible on the basemap (T311, owner 2026-10-31: \"the parks like Garibaldi park ... didn't show up\"); the edge (`opacity.park.edge`) now carries the boundary and this carries the area."
     },
     "color.watershed.fill": {
       "type": "color",
@@ -3577,7 +3620,12 @@
     "width.closure.edge": {
       "type": "number",
       "themeable": false,
-      "$comment": "Scales the closure edge's zoom curve (`outline.width.ramp` on the closed and permit layers): a hairline where the edge first appears at z10, firm by street scale. Heavier than an ordinary admin edge close in — crossing this line changes what you may do; crossing a provincial park's does not, which is why that one has no edge at all."
+      "$comment": "Scales the closure edge's zoom curve (`outline.width.ramp` on the closed and permit layers): a hairline where the edge first appears at z10, firm by street scale. Heavier than an ordinary admin edge close in — crossing this line changes what you may do; a provincial park's is a lighter green line (`width.park.edge`)."
+    },
+    "width.park.edge": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "Scales a provincial park's edge (`outline.width.ramp` on `park`): finer than a closure edge at every zoom, because it says where the park is, not that the rules change at it (T311)."
     },
     "width.basin.seam": {
       "type": "number",
@@ -3793,6 +3841,11 @@
       "type": "number",
       "themeable": true,
       "$comment": "A CLOSED OR PERMIT AREA'S EDGE, close in: crisp, because crossing it changes what you may do. The hatch carries the area at a distance; from z10 the edge says exactly where it runs."
+    },
+    "opacity.park.edge": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "A PROVINCIAL PARK'S EDGE (T311, owner 2026-10-31): the park is drawn so it can be found and named — Garibaldi carries the upper Pitt closure — in its own green, never the closure crimson."
     },
     "color.label.minor": {
       "type": "color",

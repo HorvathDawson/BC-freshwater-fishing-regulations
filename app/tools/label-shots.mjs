@@ -25,7 +25,11 @@ export const PLACES = {
   "lower-mainland": [-122.75, 49.2],
   "osoyoos": [-119.47, 49.03],
   "blaine": [-122.75, 49.0],
+  // (T311) Garibaldi Park, and its south edge where the upper Pitt closes — not in the default set
+  "garibaldi": [-122.8, 49.95],
+  "upper-pitt": [-122.7, 49.74],
 };
+const DEFAULT_PLACES = ["lower-mainland", "osoyoos", "blaine"];
 
 const arg = (name, dflt) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -122,7 +126,7 @@ async function main() {
   const out = resolve(arg("out", "label-shots"));
   const themes = arg("themes", "light,dark").split(",");
   const zooms = arg("zooms", "7,9,11,13").split(",").map(Number);
-  const places = Object.fromEntries(arg("places", Object.keys(PLACES).join(",")).split(",").map((p) => [p, PLACES[p]]));
+  const places = Object.fromEntries(arg("places", DEFAULT_PLACES.join(",")).split(",").map((p) => [p, PLACES[p]]));
   const basemap = resolve(arg("basemap", join(REPO, "data/generated/tiles/basemap.pmtiles")));
   const atlas = resolve(arg("atlas", join(REPO, "data/generated/tiles/atlas.pmtiles")));
   const assets = assetsDir();

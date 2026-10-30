@@ -196,6 +196,24 @@
       ]
     },
     {
+      "id": "park__edge",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "park",
+      "layout": {
+        "visibility": "visible"
+      },
+      "minzoom": 7,
+      "filter": [
+        "==",
+        [
+          "get",
+          "kind"
+        ],
+        "provincial"
+      ]
+    },
+    {
       "id": "park_closed",
       "type": "fill",
       "source": "atlas",

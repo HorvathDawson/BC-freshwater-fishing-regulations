@@ -588,6 +588,38 @@
       "opacity": {
         "token": "opacity.park"
       },
+      "outline": {
+        "color": {
+          "token": "color.park.edge"
+        },
+        "width": {
+          "token": "width.park.edge",
+          "mode": "zoom",
+          "ramp": [
+            [
+              7,
+              0.6
+            ],
+            [
+              10,
+              1.0
+            ],
+            [
+              13,
+              1.5
+            ],
+            [
+              16,
+              2.0
+            ]
+          ]
+        },
+        "minzoom": 7,
+        "opacity": {
+          "token": "opacity.park.edge"
+        },
+        "$comment": "(T311) A GREEN HAIRLINE from z7, finer than a closure edge at every zoom, so the park can be found and named without reading as a boundary where the rules change."
+      },
       "label": {
         "field": "name",
         "placement": "point",
@@ -621,7 +653,7 @@
         "haloWidth": 1.4,
         "trimId": true
       },
-      "$comment": "PROVINCIAL PARKS AND PROTECTED AREAS — open water, in v1's green. NO OUTLINE, deliberately: a border is an assertion that the line matters, and here it does not. You may fish on both sides of it. Every bordered area on this map is one where crossing the line changes what you may do, and provincial parks would have been the only exception, which is exactly how a reader learns to stop trusting borders."
+      "$comment": "PROVINCIAL PARKS AND PROTECTED AREAS — open water, in v1's green. OUTLINED (T311, owner 2026-10-31: \"the parks like Garibaldi park and other provincial parks didn't show up. Garibaldi is the important one at least because it closes the Pitt river\"). This layer used to have no outline on purpose, because you may fish on both sides of most park boundaries, and its fill was a 0.12 tint. Together that made every provincial park invisible, Garibaldi included, whose boundary is where the upper Pitt closes. The edge is a fine green hairline (`color.park.edge`, `width.park.edge`), never the closure crimson: it says where the park is, and the water's own colour still says whether it is open."
     },
     {
       "id": "park_closed",
