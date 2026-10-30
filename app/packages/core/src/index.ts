@@ -67,6 +67,7 @@ export * from "./waterNav";
 export * from "./mapRail";
 export * from "./spotPins";
 export * from "./layers";
+export * from "./mapKey";
 export * from "./obstacles";
 export * from "./obstacleIcons";
 export * from "./tidal";

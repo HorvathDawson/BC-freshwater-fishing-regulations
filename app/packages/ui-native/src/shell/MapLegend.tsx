@@ -6,11 +6,12 @@
  * LEGEND ONLY WHEN SOMETHING IS COLOURED BY A VALUE: the day's status (once the index is in), or the lakes' Stocked
  * colouring. Plain water needs no key. Whether it is shown is the Shell's call; what it says is here.
  */
-import { CHANGE_LEGEND, changeMarkWords, closedLegend, FLOW_LEGEND, NOT_FISHING_WORDS, TEMP_LEGEND, unprovenLine, WATER_STATUS,
-         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND, METHOD_WORDS,
-         RUN_WORDS, slotsFor }
+import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, TEMP_LEGEND, unprovenLine,
+         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND,
+         RUN_WORDS, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
-import { gearEdgeColour, notFishingColours, salmonStatusColour } from "@app/map";
+import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map";
+import { ObstacleIcon } from "../icons";
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { RunDayCaption, RunDaySlider } from "../RunsControls";
@@ -63,15 +64,12 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
           // THE EXPECTED CHANGE (T52): the same map mode's change stops, its words from core — falling · steady ·
           // rising, the bracket over "little change" — and the gauges on screen as marks, like the flow legend
           <>
+            {/* (T300) the ELF low-water statement is not on the map: it lives in the chart's collapsed Sources and notes */}
             <LegendRamp palette={palette} title={CHANGE_LEGEND.title}
                         low={CHANGE_LEGEND.low} mid={CHANGE_LEGEND.mid} high={CHANGE_LEGEND.high}
                         band={CHANGE_LEGEND.steady} markWords={changeMarkWords}
                         describe={CHANGE_LEGEND.describe}
                         stops={changeRampStops(theme)} marks={visibleMarks} />
-            {/* (T157) the low-water caveat on the map: what a dot's "low-water model" mark means */}
-            <Text testID="change-legend-low-water" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>
-              {CHANGE_LEGEND.lowWater}
-            </Text>
           </>
         ) : (
           <LegendRamp palette={palette}
@@ -81,8 +79,9 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
         )
       ) : layers.water.drawn !== "regulations" ? (
         // ONE COLOURING FOR ALL WATER: the measure's key, ending with what draws neutral and why
-        waterLegend(layers.water.drawn).map((r) => (
-          <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)} label={r.label} />
+        waterLegend(layers.water.drawn).map((r, i) => (
+          <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)}
+                       label={waterKeyWords(layers.water.drawn)[i] ?? r.label} />
         ))
       ) : col.regsLayer === "salmon" ? (
         // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
@@ -90,12 +89,12 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
         <>
           {salmonLegend().map((r) => (
             <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line
-                         label={r.label} />
+                         label={MAP_KEY.salmon[r.status]} />
           ))}
           {/* (owner 2026-10-28) the provincial gear marks hold for salmon too: the same two rows as Standard */}
           {col.gearMarked && GEAR_LEGEND.map((m) => (
             <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"}
-                         label={METHOD_WORDS.legend[m]} />
+                         label={MAP_KEY.gear[m]} />
           ))}
         </>
       ) : (
@@ -106,18 +105,56 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
           {WATER_STATUSES.map((s) => (
             <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
                          line dotted={WATER_STATUS_LINE[s] === "dotted"}
-                         label={s === "closed" ? closedLegend(mapDay) : WATER_STATUS[s].label} />
+                         label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} />
           ))}
           {col.gearMarked && GEAR_LEGEND.map((m) => (
             <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"}
-                         label={METHOD_WORDS.legend[m]} />
+                         label={MAP_KEY.gear[m]} />
           ))}
           {/* (T292) sewage lagoons, tailings ponds, dumps: the off colour and its dashed rim, no status at all */}
           <LegendCount palette={palette} colour={notFishingColours(theme).fill} rim={notFishingColours(theme).edge}
-                       label={NOT_FISHING_WORDS.legend} />
+                       label={MAP_KEY.notFishing} />
         </>
       )}
+      {/* (T300) FISH OBSTACLES ON: their marks join the key, one icon and a word each (the same drawings the map wears) */}
+      {!conditions && layers.effective.groups.obstacles === true && (
+        <View testID="legend-obstacles" style={{ width: "100%", flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 12, rowGap: 4 }}>
+          {OBSTACLE_ICON_KINDS.map((k) => (
+            <View key={k} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+              <ObstacleIcon type={k} ink={palette.ink} size={16} />
+              <Text style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: palette.sub }}>{MAP_KEY.obstacle[k]}</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </LegendStrip>
+  );
+}
+
+/**
+ * (T300) THE RUNS MAP'S KEY: a vertical bar down the right of the map, one band per state in the colour the stream wears,
+ * each with a tick and a plain label. An overlay on the map (T275: it takes no room, the map rect does not move), never in
+ * the way of a tap (`pointerEvents` none). The colours are the map's own (`runStateColour`).
+ */
+export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Palette; bottom: number }) {
+  const K = MAP_KEY.runs;
+  return (
+    <View testID="runs-key" accessibilityRole="image" accessibilityLabel={K.describe}
+          style={{ pointerEvents: "none", position: "absolute", right: 8, bottom: bottom + 10, flexDirection: "row", alignItems: "stretch", gap: 5,
+                   paddingVertical: 6, paddingLeft: 7, paddingRight: 8, borderRadius: palette.r.chip, borderWidth: 1,
+                   borderColor: palette.line, backgroundColor: palette.card, opacity: 0.96 }}>
+      <View style={{ width: 8, borderRadius: 4, overflow: "hidden" }}>
+        {K.rows.map((r) => <View key={r.state} style={{ flex: 1, backgroundColor: runStateColour(theme, r.state) }} />)}
+      </View>
+      <View style={{ justifyContent: "space-between", gap: 8 }}>
+        {K.rows.map((r) => (
+          <View key={r.state} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <View style={{ width: 5, height: 1.5, backgroundColor: palette.sub }} />
+            <Text style={{ ...TYPE.small, fontSize: 12, lineHeight: 15, color: palette.ink }}>{r.label}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
   );
 }
 

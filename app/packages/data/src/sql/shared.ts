@@ -3,12 +3,18 @@
  * `makeReleaseSource` (`../release/source.ts`) asks the release's files and hands the rows here; a test may hand rows
  * from any SQLite with the pipeline bundle's columns. (Its second reader, the dev bundle's, was retired in T61.)
  */
-import { bandAt, boxOfParts, calendarDayOfYear, describeBy, metresOfBucket, rankPointers, rankWaters, relOfCode, shownParameter, type Band,
+import { bandAt, boxOfParts, CHANGE_POLICY, calendarDayOfYear, describeBy, metresOfBucket, rankPointers, rankWaters, relOfCode, shownParameter, type Band,
          type Bbox, type NearPlace } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { Aged, GaugeLink, GaugeWaters, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId,
               Series, StationId } from "../index";
 import { num, str, type Cell, type Row } from "./db";
+
+/** (T300) a model's place in the publisher's order (CLEVER, COFFEE, ELF); a model outside it comes after. */
+const modelRank = (m: string): number => {
+  const i = (CHANGE_POLICY.order as readonly string[]).indexOf(m);
+  return i < 0 ? CHANGE_POLICY.order.length : i;
+};
 
 /**
  * A section handle out of SQLite.
@@ -199,9 +205,11 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
     .filter((f): f is NonNullable<typeof f> => f !== null && f.series !== null)
     .sort((a, b) => a.model.localeCompare(b.model));
   const chosen = (model ? runs.find((f) => f.model === model) : null)
-    // No preference: the freshest run. Which is a UI default, not a judgement about
-    // which model is right — that is the reader's, and both are offered.
-    ?? [...runs].sort((a, b) => (b.issuedAt ?? "").localeCompare(a.issuedAt ?? ""))[0]
+    // No preference (T300, owner 2026-10-30: never default to ELF): the publisher's order of models (CLEVER, COFFEE, ELF),
+    // the freshest of a model's runs first; a model outside the order comes after those in it. ELF is drawn by default
+    // only when it is the only one that has a run for this quantity (the panel then says so).
+    ?? [...runs].sort((a, b) => modelRank(a.model) - modelRank(b.model)
+                              || (b.issuedAt ?? "").localeCompare(a.issuedAt ?? ""))[0]
     ?? null;
 
   if (span === "year") {

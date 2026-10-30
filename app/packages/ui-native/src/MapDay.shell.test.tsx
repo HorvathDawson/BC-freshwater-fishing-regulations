@@ -73,7 +73,7 @@ const slidOut = () => act(() => {
 const look = () => {
   slidOut();
   const button = screen.queryAllByRole("button").find((b) => /^Map coloured for /.test(b.getAttribute("aria-label") ?? ""));
-  const closed = screen.queryByText(/^Closed (today|on )/)?.textContent ?? "no legend";
+  const closed = screen.queryAllByText(/^Closed( Oct \d+)?$/)[0]?.textContent ?? "no legend";
   const sheet = screen.queryByText("Which day?") ? `sheet: ${screen.getByText(/^Showing /).textContent}` : "no sheet";
   return `map ${screen.queryByTestId("map-status")?.textContent ?? "gone"} | button ${button?.textContent ?? "none"}`
     + ` | ${closed} | ${sheet}`;
@@ -121,16 +121,16 @@ describe("the one day, from the map's calendar and the page's pill", () => {
     seen.push(look());
 
     expect(seen).toEqual([
-      "map Wed Oct 21 2026 | button Date | Closed today | no sheet",
-      "map Wed Oct 21 2026 | button Date | Closed today | sheet: Showing today, Wednesday, October 21",
-      "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed on Oct 10 | sheet: Showing Saturday, October 10",
-      "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed on Oct 10 | no sheet",
+      "map Wed Oct 21 2026 | button Date | Closed | no sheet",
+      "map Wed Oct 21 2026 | button Date | Closed | sheet: Showing today, Wednesday, October 21",
+      "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed Oct 10 | sheet: Showing Saturday, October 10",
+      "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed Oct 10 | no sheet",
       "pill SatOct 10",
       "map gone | button none | no legend | sheet: Showing Saturday, October 10",
       "pill TodayOct 21",
       "back true: map gone | button none | no legend | no sheet | on the water",
       "back true",
-      "map Wed Oct 21 2026 | button Date | Closed today | no sheet",
+      "map Wed Oct 21 2026 | button Date | Closed | no sheet",
     ]);
   }, 40_000);
 });

@@ -19,7 +19,8 @@
 import { createContext, useContext } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { useCrashSetting, useLayoutClass, useNet, useNetBps } from "@app/ui";
-import { CRASH_WORDS, dataModeLine, menuVM, NET_WORDS, UPDATE_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
+import { CRASH_WORDS, dataModeLine, menuVM, NET_WORDS, UPDATE_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM, type SyncVM } from "@app/core";
+import { SyncButton } from "../TopBar";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName, round } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
@@ -41,6 +42,9 @@ export interface MoreScreenProps {
   onTheme: (t: ThemeName) => void;
   /** open a page over the tab */
   onPick: (page: MenuPageKey) => void;
+  /** (T300) the SYNC BUTTON of the map's top bar — its state (`syncVM`) and its tap — beside the sources; absent: none */
+  sync?: SyncVM | null;
+  onSync?: () => void;
   /**
    * (T231) the large-updates-on-mobile-data setting: its state and how to change it — a phone only (the web downloads
    * no large set); absent: no row
@@ -51,10 +55,10 @@ export interface MoreScreenProps {
 /** A wide screen: the blocks are boxed cards in columns, not edge-to-edge bands. */
 const Wide = createContext(false);
 
-export function MoreScreen({ palette, data, back, onBack, contact, theme, onTheme, onPick, metered = null }: MoreScreenProps) {
+export function MoreScreen({ palette, data, back, onBack, contact, theme, onTheme, onPick, metered = null, sync = null, onSync }: MoreScreenProps) {
   const vm = menuVM({ data, back, contact });
   const wide = useLayoutClass() !== "phone";
-  const dataBlock = <DataBlock vm={vm.data} palette={palette} metered={metered} />;
+  const dataBlock = <DataBlock vm={vm.data} palette={palette} metered={metered} sync={sync} onSync={onSync} />;
   const rest = (
     <>
       <DisplayTiles vm={vm.display} palette={palette} theme={theme} onTheme={onTheme} />
@@ -137,8 +141,9 @@ function Chevron({ palette }: { palette: Palette }) {
  * its date or age, with the state in words after it when stale (drawn in ink so the eye finds it). Each row says its
  * state aloud in full ("Live gauge readings: 4h ago. Likely out of date.").
  */
-function DataBlock({ vm, palette, metered }: { vm: MoreVM["data"]; palette: Palette;
-                                              metered: { on: boolean; set: (on: boolean) => void } | null | undefined }) {
+function DataBlock({ vm, palette, metered, sync, onSync }: { vm: MoreVM["data"]; palette: Palette;
+                                              metered: { on: boolean; set: (on: boolean) => void } | null | undefined;
+                                              sync: SyncVM | null; onSync?: () => void }) {
   // a wide row is long from name to date: a hairline between rows carries the eye across (a phone's rows are short)
   const ruled = useContext(Wide);
   return (
@@ -149,6 +154,14 @@ function DataBlock({ vm, palette, metered }: { vm: MoreVM["data"]; palette: Pale
         {vm.title}
       </Kicker>
       <Group palette={palette} testID="more-data">
+        {/* (T300) THE MAP'S SYNC BUTTON, the same component in the same states, beside the list of what it keeps fresh;
+            its words (`sync.label`) say the state, and a tap checks now (or opens what failed) */}
+        {sync && (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, paddingLeft: GUTTER, paddingTop: SPACE.s2 }}>
+            <SyncButton palette={palette} sync={sync} onPress={onSync} bare />
+            <Text testID="more-sync-label" numberOfLines={2} style={{ ...TYPE.small, color: palette.sub, flex: 1 }}>{sync.label}</Text>
+          </View>
+        )}
         {vm.newRelease !== null && (
           <View testID="data-new-release"
                 style={{ marginHorizontal: GUTTER, marginTop: SPACE.s3, paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,

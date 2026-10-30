@@ -2,7 +2,7 @@
  * THE BROWSE TABS' BODIES: the Map and Conditions tabs' ONE map, the Spots tab and the More tab (T62 3.4: out of the
  * Shell, unchanged). The top bar, the search sheet, the legend and the tab bar are the Shell's, drawn over these.
  */
-import { dayLabel, salmonCheckedLine, type DayRange, type NotFishingKind, type SectionKey } from "@app/core";
+import { dayLabel, salmonCheckedLine, type DayRange, type NotFishingKind, type SectionKey, type SyncVM } from "@app/core";
 import { useCallback, type MutableRefObject } from "react";
 import { Platform, Text, View } from "react-native";
 import { TYPE } from "../type";
@@ -33,13 +33,15 @@ const NONE_PINS: readonly never[] = [];
 
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate,
-                             photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
+                             photos, loader, syncState, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
                              offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages, regsPrefetch = null, tourFit = null }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
   spotsError?: string | null; onRefreshSpots?: () => void | Promise<void>; refreshing?: boolean;
   locate: Locate | null; photos?: SpotPhotos; loader: ReleaseLoader | null; syncState: SyncState;
+  /** (T300) the top bar's sync icon state and tap, for the More tab's button */
+  sync?: SyncVM | null; onSync?: () => void;
   menu: MenuControls; menuInfo?: MenuInfo; mapDay: Date | null;
   onSaveSpot?: (spot: Spot) => void | Promise<void>;
   /** Open the Layers sheet (the Shell's). */
@@ -171,7 +173,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                     metered={syncState.updates && syncState.allowMetered && Platform.OS !== "web"
                       ? { on: syncState.updates.allowMetered, set: syncState.allowMetered } : null}
                     back={TABS.find((t) => t.k === (browse.prev ?? "map"))!.t} onBack={back}
-                    contact={menuInfo?.contact ?? null}
+                    contact={menuInfo?.contact ?? null} sync={sync} onSync={onSync}
                     theme={themeName} onTheme={onTheme}
                     onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null))
                                     : menu.show(k))} />
