@@ -71,6 +71,15 @@ def premark(row: dict) -> Optional[dict]:
     return None
 
 
+#: FWA wetland-layer types (owner 2026-10-29): an UNNAMED wetland is never a water of its own (the stream line through
+#: it carries the stream's rules; only named wetlands are kept as waters), so its call changes nothing: off the queue
+WETLAND_TYPES = frozenset({"Marsh", "Swamp", "Marsh / Swamp", "Flooded Land-Inundated"})
+
+
+def unnamed_wetland(row: dict) -> bool:
+    return row.get("fwa") in WETLAND_TYPES and not row.get("name")
+
+
 def group(row: dict) -> str:
     if row.get("decision") == "owner":
         return "owner"
@@ -91,7 +100,7 @@ def _load(a: str, f: str, _ma: float, _mf: float) -> dict:
         fin = {c["id"]: c for c in json.load(gzip.open(f)).get("candidates") or []}
     except OSError:
         fin = {}
-    rows = doc.get("rows") or []
+    rows = [r for r in doc.get("rows") or [] if not unnamed_wetland(r)]
     rank = {g: i for i, g in enumerate(GROUPS)}
     # review order: group; within the owner list its own rank; else the narrowest first
     # review order: group; pre-marks narrow before wide marsh; the owner list in its own rank, the

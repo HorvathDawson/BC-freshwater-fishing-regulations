@@ -16,7 +16,7 @@ BACKEND = REPO / "curation-review" / "backend"
 
 
 def _row(i, decision, width, fwa="Lake-Definite", **kw):
-    return {"id": i, "name": None, "stream": f"Creek {i}", "region": "3", "rule_class": "LIKELY_STREAM",
+    return {"id": i, "name": kw.pop("name", None), "stream": f"Creek {i}", "region": "3", "rule_class": "LIKELY_STREAM",
             "fwa": fwa, "area_ha": 1.0, "width_m": width, "img_veg": 0.5, "img_water": 0.1, "p_stream": 0.9,
             "impact": None, "complex": None, "lat": 50.0, "lon": -120.0, "decision": decision,
             "verdict": kw.pop("verdict", None), "by": kw.pop("by", None), "why": "w", **kw}
@@ -25,10 +25,12 @@ def _row(i, decision, width, fwa="Lake-Definite", **kw):
 ROWS = [
     _row("1", "auto", 18.0, confidence="very_high"),                       # narrow -> pre-mark
     _row("2", "auto", 30.0, fwa="Lake-Intermittent", confidence="high"),   # intermittent -> owner list
-    _row("3", "owner_list", 80.0, fwa="Marsh", wide_wetland=True, owner_rank=2),   # wide marsh -> pre-mark
+    _row("3", "owner_list", 80.0, fwa="Marsh", wide_wetland=True, owner_rank=2, name="Quarry Slough"),  # named wide marsh -> pre-mark
     _row("4", "owner_list", 90.0, wide_wetland=False, owner_rank=1),      # wide lake -> owner list
     _row("5", "owner", 12.0, verdict="stream", by="owner"),               # the review page's mark
     _row("6", "default", 70.0, fwa="Settling Basin-Sewage"),
+    # (owner 2026-10-29) an UNNAMED wetland-layer piece never reaches the queue: its call changes nothing
+    _row("7", "owner_list", 85.0, fwa="Swamp", wide_wetland=True, owner_rank=3),
 ]
 
 
