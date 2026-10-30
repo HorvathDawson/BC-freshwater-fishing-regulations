@@ -1,0 +1,5 @@
+# Tap the element whose testID is ID (RN testID → Maestro id).
+appId: ca.canifishthis.app
+---
+- tapOn: { id: "${ID}" }
+- waitForAnimationToEnd: { timeout: 3000 }

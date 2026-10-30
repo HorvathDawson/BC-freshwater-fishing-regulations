@@ -30,12 +30,18 @@ function targetPoint(ctx) {
   const t = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[target] '))
     .map((l) => { try { return JSON.parse(l.slice(l.indexOf('[target] ') + 9)); } catch { return null; } }).filter(Boolean).at(-1);
   if (!t || t.none) return null;
-  const k = density(ctx), win = t.win ?? { x: 0, y: 0 };
-  return { x: Math.round((win.x + t.x) * k), y: Math.round((win.y + t.y) * k) };
+  // the map view's top-left on screen, px: from the accessibility tree (MapLibre's view names itself), else the app's
+  // own measure (dp)
+  const k = density(ctx);
+  let org = null;
+  try {
+    ctx.device.sh('uiautomator dump /sdcard/tb-map.xml');
+    const m = /content-desc="Showing a Map[^"]*"[^>]*bounds="\[(\d+),(\d+)\]/.exec(ctx.device.sh('cat /sdcard/tb-map.xml'));
+    if (m) org = { x: Number(m[1]), y: Number(m[2]) };
+  } catch { /* no dump */ }
+  org ??= { x: (t.win?.x ?? 0) * k, y: (t.win?.y ?? 0) * k };
+  return { x: Math.round(org.x + t.x * k), y: Math.round(org.y + t.y * k) };
 }
-
-/** The map root: the tab bar up and no water's page over it (Back there would leave the app). */
-const atRoot = (ctx, title) => { const w = ctx.device.screenText(); return (w.includes('MORE') || w.includes('More')) && !w.some((x) => title.test(x)); };
 
 const opens = (ctx) => ctx.device.logcatJs().split('\n').filter((l) => l.includes('[open] '))
   .map((l) => { try { return JSON.parse(l.slice(l.indexOf('[open] ') + 7)); } catch { return null; } }).filter(Boolean);
@@ -76,6 +82,7 @@ export const regsOpen = {
       });
       if (!at) continue;
       for (let i = 1; i <= TAPS; i++) {
+        let opened = false;
         await ctx.step(`${c.id}: tap ${i}/${TAPS} on the map → its regulations`, async () => {
           // what the settle read ahead (`[prefetch]`, the waters on screen), before this tap
           const pre = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[prefetch] ')).map((l) => l.slice(l.indexOf('[prefetch] ') + 11)).at(-1);
@@ -86,6 +93,7 @@ export const regsOpen = {
           while (Date.now() < end && !o) { await ctx.device.sleep(700); o = opens(ctx).at(-1) ?? null; }
           const w = ctx.device.screenText();
           if (!o) throw new Error(`no [open] line in 20 s (saw: ${w.slice(0, 10).join(' | ').slice(0, 300)})`);
+          opened = true;
           lines.push(`${c.id} #${i} ${JSON.stringify(o)}`);
           fs.writeFileSync(path.join(ctx.dir, 'T286-open.txt'), `${lines.join('\n')}\n`);
           const named = w.some((x) => c.title.test(x));
@@ -93,8 +101,9 @@ export const regsOpen = {
           if (o.marks.spinner) throw new Error(`a spinner was shown at ${o.marks.spinner[0]} ms — ${note}`);
           return note;
         });
-        // back to the map at the same framing (the water's frame closed) — never Back at the root: it leaves the app
-        if (!atRoot(ctx, c.title)) { ctx.device.sh('input keyevent 4'); await ctx.device.sleep(2000); }
+        // back to the map at the same framing (the water's frame closed) — only when the tap opened one: Back at the map
+        // root leaves the app (the search bar keeps the water's name, so the screen's words cannot tell)
+        if (opened) { ctx.device.sh('input keyevent 4'); await ctx.device.sleep(2000); }
       }
     }
   },

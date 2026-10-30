@@ -55,11 +55,15 @@ export const satellite = {
     await ctx.step('the Map base put back (later scenarios start on the drawn map)', async () => {
       ctx.flow('tap-text', { TEXT: 'Choose layers.*' });
       await ctx.device.sleep(1200);
-      ctx.flow('tap-text', { TEXT: 'Map · Drawn.*|Map' });
+      ctx.flow('tap-id', { ID: 'layer-ground.map' });                 // by its id: a "Map" text also names the tab
       await ctx.device.sleep(800);
-      const w = ctx.device.screenText();
       ctx.flow('tap-text', { TEXT: 'Done' });
-      return w.filter((x) => /^(Map|Satellite)\b/.test(x)).join(' | ').slice(0, 200);
+      await ctx.device.sleep(1500);
+      // the layers button's count goes with satellite (it counts the layers on beyond the defaults)
+      const w = ctx.device.screenText();
+      const badge = w.find((x) => /^Choose layers/.test(x)) ?? '';
+      if (/\d/.test(badge)) throw new Error(`a layer is still on: ${badge}`);
+      return badge || 'layers: defaults';
     });
   },
 };

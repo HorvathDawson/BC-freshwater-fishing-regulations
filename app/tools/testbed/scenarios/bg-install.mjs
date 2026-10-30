@@ -44,41 +44,33 @@ export const bgInstall = {
       if (before) throw new Error(`downloading on mobile data while told to wait: ${before}`);
       return `${a} → ${b}`;
     });
-    let atKill = '';
+    let atKill = '', killedAt = '';
     await ctx.step('Wi-Fi back: the download starts by itself', async () => {
-      // a phone-like line (the emulator's own is ~1 Gbit/s: the whole set lands before the app could be closed)
-      d.link('hsdpa', 'none');
       await d.net('wifi');
       const end = Date.now() + 120_000;
       for (;;) {
         const line = words().find((x) => /MB downloaded/.test(x)) ?? '';
         const got = Number((/^([\d,.]+) of/.exec(line)?.[1] ?? '0').replace(/,/g, ''));
-        if (got > 15) { shot('3-downloading'); atKill = line; return line; }
+        // early: the emulator's Wi-Fi is not throttled (the whole set lands in about a minute)
+        if (got > 2) { shot('3-downloading'); atKill = line; return line; }
         if (Date.now() > end) throw new Error(`no progress on Wi-Fi in 120 s (${line || words().slice(0, 6).join(' | ')})`);
-        await d.sleep(1000);
+        await d.sleep(500);
       }
     });
     let notes = [];
     await ctx.step('app CLOSED mid-download: the system download goes on, in the notification bar', async () => {
       d.background();
-      await d.sleep(1000);
       // the process killed as the system kills a closed app (never force-stop: that also stops its receivers)
       d.sh(`am kill ${d.APP_ID}`);
-      await d.sleep(2000);
-      const pct = () => {
-        d.sh('cmd statusbar expand-notifications');
-        return words().filter((x) => /Downloading BC fishing rules|·|\d+ ?%/.test(x));
-      };
-      const disk0 = onDisk();
-      await d.sleep(10_000);
-      notes = pct(); shot('4-notification-a');
-      await d.sleep(20_000);
-      const later = pct(); shot('4-notification-b');
-      const disk1 = onDisk();
-      d.sh('cmd statusbar collapse');
-      if (alive()) throw new Error('the app is running: it was meant to be closed');
-      if (!notes.some((x) => /Downloading BC fishing rules/.test(x))) throw new Error(`no download notification (saw ${notes.join(' | ')}; on disk ${disk0} → ${disk1})`);
-      return `app closed at "${atKill}" · on disk ${disk0} → ${disk1} · notification: ${notes.join(' | ')} → ${later.join(' | ')}`;
+      killedAt = d.sh('date +%m-%d\\ %H:%M:%S').trim();
+      await d.sleep(1500);
+      if (alive()) throw new Error('the app is still running after the kill');
+      d.sh('cmd statusbar expand-notifications');
+      await d.sleep(1500);
+      notes = words().filter((x) => /Downloading BC fishing rules|·|\d+ ?%/.test(x));
+      shot('4-notification');
+      if (!notes.some((x) => /Downloading BC fishing rules/.test(x))) throw new Error(`no download notification with the app closed (saw ${notes.join(' | ')})`);
+      return `app closed at "${atKill}" (${killedAt}) · notification: ${notes.join(' | ')}`;
     });
     await ctx.step('a tap on the notification opens the app; setup finishes and the map opens', async () => {
       d.sh('cmd statusbar expand-notifications');
@@ -100,15 +92,19 @@ export const bgInstall = {
       ctx.flow('dismiss-first-run');
       shot('6-map');
       d.link('full', 'none');
+      let after = '';
       try {
         const js = d.logcatJs().split('\n').filter((l) => /\[download\]|\[setup\]/.test(l));
-        fs.writeFileSync(path.join(ctx.dir, 'T298-install-timeline.txt'), js.join('\n') + '\n');
+        // the system's downloader's own lines: which jobs finished, and when (against the kill)
+        const dm = d.adb(['logcat', '-d', '-s', 'DownloadManager:*']).toString().split('\n').filter((l) => /Finished|Starting/.test(l));
+        fs.writeFileSync(path.join(ctx.dir, 'T298-install-timeline.txt'), [`app killed ${killedAt}`, ...dm, ...js].join('\n') + '\n');
+        after = ` · system downloads finished: ${dm.filter((l) => /Finished/.test(l)).map((l) => l.slice(6, 14)).join(', ')} (app killed ${killedAt.slice(6)})`;
       } catch { /* no log */ }
-      return `opened by ${opened}; map up ${Math.round((Date.now() - t0) / 1000)} s later`;
+      return `opened by ${opened}; map up ${Math.round((Date.now() - t0) / 1000)} s later${after}`;
     }, { stop: true });
     await ctx.step('More → Data: "Download over mobile data" shows the saved Wi-Fi only', async () => {
       ctx.flow('tab', { TAB: 'More' });
-      try { ctx.flow('scroll-to', { TEXT: 'Download over mobile data' }); } catch { /* already in view */ }
+      try { ctx.flow('scroll-to', { TEXT: 'Wi-Fi only' }); } catch { /* already in view */ }
       await ctx.waitText(/^Download over mobile data$/, 10_000);
       shot('7-more-setting');
       return 'shown';
