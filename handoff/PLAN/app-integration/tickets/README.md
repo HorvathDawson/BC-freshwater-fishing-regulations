@@ -350,6 +350,9 @@ use that as the sole source of future work."
 | T304 | Water-page landing focuses its own region so slow lines read the small region files (Vedder Fast-3G ~37 s today) | OPEN | — | T282 finding 2026-10-31 |
 | T307 | Adding a spot/visit offline is instant: fail fast on network, backfill later | OPEN | — | owner 2026-10-31 |
 | T308 | Location dot keeps updating with you (not stuck at first fix) | OPEN | — | owner 2026-10-31 |
+| T309 | Region salmon rules readable (rows, chips, wording folded); copyable text in the app | OPEN | — | owner 2026-10-31 |
+| T310 | Spots: parking location + directions; notes/photos belong to visits (lossless migration) | OPEN | — | owner 2026-10-31 |
+| T311 | Provincial parks missing — Garibaldi (closes upper Pitt): draw parks, bind park-scoped rules | OPEN | — | owner 2026-10-31 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |
 
