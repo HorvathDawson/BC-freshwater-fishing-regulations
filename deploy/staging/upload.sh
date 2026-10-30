@@ -12,6 +12,21 @@ D="r2:$BUCKET"
 REL=${1:-$(cat data/release/LATEST)}
 R=data/release; M=$R/$REL/manifest.json
 q() { python3 -c "import json,sys;m=json.load(open('$M'));print(eval(sys.argv[1]))" "$1"; }
+# (guard, 2026-10-30) an unstamped paint/5 release reached staging and broke 0.2.0, which reads paint/4 at most: refuse a
+# release whose paint format needs a newer app than the oldest the manifest lets apply it. PAINT_NEEDS: format -> first
+# app that reads it (add a row whenever paint.py's FORMAT moves). MIN_APP_VERSION (or an existing stamp) must reach it.
+MIN_APP_VERSION=${MIN_APP_VERSION-} python3 - "$M" <<'PY'
+import json, os, sys
+PAINT_NEEDS = {5: "0.3.0"}
+m = json.load(open(sys.argv[1]))
+fmt = int(m["files"]["paint"]["format"].split("/")[1])
+need = max((v for k, v in PAINT_NEEDS.items() if fmt >= k), default=None, key=lambda s: tuple(map(int, s.split("."))))
+have = os.environ.get("MIN_APP_VERSION") or m.get("minAppVersion")
+ver = lambda s: tuple(int(x) for x in s.split("-")[0].split("+")[0].split("."))
+if need and (not have or ver(have) < ver(need)):
+    sys.exit(f"upload: refused — paint/{fmt} needs app >= {need} but the oldest app allowed is {have or 'any'}; "
+             f"rerun with MIN_APP_VERSION={need} (or newer)")
+PY
 IMM="Cache-Control: public, max-age=31536000, immutable"
 cp_() { rclone copyto "$1" "$D/$2" --s3-no-check-bucket "${@:3}"; }
 # (T199) runtiming/ is the run-timing feed's (feeds-runtiming.yml / pipeline.runtiming.feed.publish): never cleared here
