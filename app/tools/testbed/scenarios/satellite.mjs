@@ -55,7 +55,7 @@ export const satellite = {
     await ctx.step('the Map base put back (later scenarios start on the drawn map)', async () => {
       ctx.flow('tap-text', { TEXT: 'Choose layers.*' });
       await ctx.device.sleep(1200);
-      ctx.flow('tap-id', { ID: 'layer-ground.map' });                 // by its id: a "Map" text also names the tab
+      ctx.flow('tap-id', { ID: 'option-ground\\.map' });                 // by its id: a "Map" text also names the tab
       await ctx.device.sleep(800);
       ctx.flow('tap-text', { TEXT: 'Done' });
       await ctx.device.sleep(1500);

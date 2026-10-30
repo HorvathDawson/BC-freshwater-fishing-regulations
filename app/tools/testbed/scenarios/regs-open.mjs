@@ -26,9 +26,24 @@ function density(ctx) {
 }
 
 /** The last `[target]` the app logged, as a screen pixel (null: none yet, or the water answered nowhere). */
+const targets = (ctx) => ctx.device.logcatJs().split('\n').filter((l) => l.includes('[target] '))
+  .map((l) => { try { return JSON.parse(l.slice(l.indexOf('[target] ') + 9)); } catch { return null; } }).filter(Boolean);
+
+/** Wait until the camera has rested (no new `[target]` for `quietMs`), then the last one as a screen pixel. */
+async function settledTarget(ctx, ms = 30_000, quietMs = 5000) {
+  const end = Date.now() + ms;
+  let n = 0, since = Date.now();
+  while (Date.now() < end) {
+    await ctx.device.sleep(1000);
+    const now = targets(ctx).length;
+    if (now !== n) { n = now; since = Date.now(); continue; }
+    if (n > 0 && Date.now() - since >= quietMs) return targetPoint(ctx);
+  }
+  return null;
+}
+
 function targetPoint(ctx) {
-  const t = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[target] '))
-    .map((l) => { try { return JSON.parse(l.slice(l.indexOf('[target] ') + 9)); } catch { return null; } }).filter(Boolean).at(-1);
+  const t = targets(ctx).at(-1);
   if (!t || t.none) return null;
   // the map view's top-left on screen, px: from the accessibility tree (MapLibre's view names itself), else the app's
   // own measure (dp)
@@ -75,8 +90,7 @@ export const regsOpen = {
         // ahead while it is still (T286 prefetch)
         if (ctx.device.screenText().some((x) => /NAMED WATERS/i.test(x))) { ctx.device.sh('input keyevent 4'); await ctx.device.sleep(3000); }
         // the camera at rest: the app's own word on where the water answers a tap
-        const end = Date.now() + 20_000;
-        while (!at && Date.now() < end) { await ctx.device.sleep(1500); at = targetPoint(ctx); }
+        at = await settledTarget(ctx);
         if (!at) throw new Error('the app named no tap target for the water (no [target] line)');
         return `target at ${at.x},${at.y} px`;
       });

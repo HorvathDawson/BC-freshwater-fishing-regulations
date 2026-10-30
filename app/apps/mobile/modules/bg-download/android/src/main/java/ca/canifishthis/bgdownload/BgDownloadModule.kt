@@ -1,8 +1,12 @@
 package ca.canifishthis.bgdownload
 
+import android.Manifest
 import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import expo.modules.interfaces.permissions.PermissionsStatus
+import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
@@ -88,6 +92,17 @@ class BgDownloadModule : Module() {
       }
       dm.remove(id.toLong())
       prefs.edit().remove("metered:${id.toLong()}").apply()
+    }
+
+    // (Android 13+) the system shows a download's progress notification only for an app allowed to notify
+    AsyncFunction("notificationsAllowed") {
+      Build.VERSION.SDK_INT < 33 || appContext.permissions?.hasGrantedPermissions(Manifest.permission.POST_NOTIFICATIONS) == true
+    }
+    AsyncFunction("askNotifications") { promise: Promise ->
+      val perms = appContext.permissions
+      if (Build.VERSION.SDK_INT < 33 || perms == null) { promise.resolve(Build.VERSION.SDK_INT < 33); return@AsyncFunction }
+      perms.askForPermissions({ r -> promise.resolve(r[Manifest.permission.POST_NOTIFICATIONS]?.status == PermissionsStatus.GRANTED) },
+                              Manifest.permission.POST_NOTIFICATIONS)
     }
 
     // the sha256 of a file, hex

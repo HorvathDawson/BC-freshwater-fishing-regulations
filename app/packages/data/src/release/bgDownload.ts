@@ -46,6 +46,10 @@ export interface BackgroundNative {
   claim(id: number, toUri: string): Promise<void>;
   /** The sha256 (hex) of a file, natively. */
   sha256(uri: string): Promise<string>;
+  /** (Android 13+) may the app notify — the system's download notification shows only then */
+  notificationsAllowed?(): Promise<boolean>;
+  /** Ask for it (the system's dialog); resolves whether it was granted. */
+  askNotifications?(): Promise<boolean>;
 }
 
 /** A big file to queue: its absolute url, what it is (the notification says), its size and where it is installed. */

@@ -12,6 +12,8 @@ const native = requireOptionalNativeModule<{
   remove(id: number): Promise<void>;
   claim(id: number, toUri: string): Promise<void>;
   sha256(uri: string): Promise<string>;
+  notificationsAllowed(): Promise<boolean>;
+  askNotifications(): Promise<boolean>;
 }>("BgDownload");
 
 export const backgroundDownloads: BackgroundNative | null = native ? {
@@ -20,4 +22,6 @@ export const backgroundDownloads: BackgroundNative | null = native ? {
   remove: (id) => native.remove(id),
   claim: (id, to) => native.claim(id, to),
   sha256: (uri) => native.sha256(uri),
+  notificationsAllowed: () => native.notificationsAllowed(),
+  askNotifications: () => native.askNotifications(),
 } : null;

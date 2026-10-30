@@ -36,6 +36,7 @@ export function OptionRow({ palette, options, value, onChange, shape, label }: {
         return (
           <Pressable {...hitProps({ w: 60, h: 51 })} key={o.k} onPress={off ? undefined : () => onChange(o.k)} disabled={off}
                      accessibilityRole="radio" aria-checked={on} aria-disabled={off} accessibilityLabel={o.t}
+                     testID={`option-${o.k}`}
                      style={{ flex: 1, alignItems: "center", gap: 7, borderRadius: palette.r.box,
                               // greyed as the app's other disabled controls are (Button: 0.4)
                               opacity: off && !o.tag ? 0.4 : 1,

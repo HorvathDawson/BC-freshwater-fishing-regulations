@@ -27,9 +27,23 @@ export const bgInstall = {
       try { d.adb(['logcat', '-G', '16M']); d.logcatClear(); } catch { /* none yet */ }
       await d.net('cellular'); d.link('full', 'none');
       d.launch();
-      const w = await ctx.waitText(/using mobile data\?/, 90_000);
+      // (Android 13+) first the system asks to allow notifications (the download's progress after the app is closed)
+      let notify = 'not asked';
+      const end = Date.now() + 90_000;
+      while (Date.now() < end) {
+        const w = words();
+        if (w.some((x) => /send you notifications/i.test(x))) {
+          shot('0-notify-ask');
+          notify = w.find((x) => /^Allow notifications/.test(x)) ? 'asked, with the reason on screen' : 'asked';
+          ctx.flow('tap-text', { TEXT: 'Allow' });
+          continue;
+        }
+        if (w.some((x) => /using mobile data\?/.test(x))) break;
+        await d.sleep(1000);
+      }
+      const w = await ctx.waitText(/using mobile data\?/, 10_000);
       shot('1-mobile-prompt');
-      return w;
+      return `${w} · notifications ${notify}`;
     });
     await ctx.step('"Wait for Wi-Fi": waiting, the choice saved and said, the sayings take turns', async () => {
       ctx.flow('tap-text', { TEXT: 'Wait for Wi-Fi' });
@@ -61,16 +75,20 @@ export const bgInstall = {
     await ctx.step('app CLOSED mid-download: the system download goes on, in the notification bar', async () => {
       d.background();
       // the process killed as the system kills a closed app (never force-stop: that also stops its receivers)
+      await d.sleep(2000);
       d.sh(`am kill ${d.APP_ID}`);
+      await d.sleep(1000);
+      // the system may keep it a moment (a visible process is not killed): then stopped outright
+      let how = 'killed';
+      if (alive()) { d.stop(); how = 'force-stopped (am kill left it)'; await d.sleep(1000); }
       killedAt = d.sh('date +%m-%d\\ %H:%M:%S').trim();
-      await d.sleep(1500);
       if (alive()) throw new Error('the app is still running after the kill');
       d.sh('cmd statusbar expand-notifications');
       await d.sleep(1500);
       notes = words().filter((x) => /Downloading BC fishing rules|·|\d+ ?%/.test(x));
       shot('4-notification');
       if (!notes.some((x) => /Downloading BC fishing rules/.test(x))) throw new Error(`no download notification with the app closed (saw ${notes.join(' | ')})`);
-      return `app closed at "${atKill}" (${killedAt}) · notification: ${notes.join(' | ')}`;
+      return `app ${how} at "${atKill}" (${killedAt}) · notification: ${notes.join(' | ')}`;
     });
     await ctx.step('a tap on the notification opens the app; setup finishes and the map opens', async () => {
       d.sh('cmd statusbar expand-notifications');

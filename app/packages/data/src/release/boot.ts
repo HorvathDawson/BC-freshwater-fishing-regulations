@@ -82,6 +82,11 @@ export interface BootOptions {
   onProgress?: (p: Progress) => void;
   /** (T298) a phone's system downloader (Android's DownloadManager): the first install's big files go on with the app closed */
   background?: BackgroundNative | null;
+  /**
+   * (T298) Before the first install's big files go to the system's downloader: the app asks to notify where the system
+   * needs it (Android 13+: its download notification shows only then). Never throws; absent: nothing is asked.
+   */
+  beforeBackground?: () => Promise<void>;
   /** (T298) a phone's first install asks before a large download on mobile data (absent: it just goes) */
   mobileData?: MobileDataGate | null;
   /**
@@ -253,6 +258,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
                                                                  bytes: b.e.bytes, path: b.path }));
     const queue = (metered: boolean) => dev.background?.queue(big, metered)
       .catch((e: unknown) => console.warn(`[download] queue failed: ${e instanceof Error ? e.message : String(e)}`));
+    if (dev.background) await o.beforeBackground?.().catch(() => {});
     let metered = true;
     const choice = o.mobileData ? await o.mobileData.decide(installBytes(latest, null)) : "go";
     console.info(`[download] mobile data: ${choice} (${installBytes(latest, null)} bytes)`);

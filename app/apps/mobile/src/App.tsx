@@ -22,7 +22,7 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+import { DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
          type UpdateService, type WaterSource } from "@app/data";
@@ -232,6 +232,14 @@ export default function App() {
   const [mobileAsk, setMobileAsk] = useState<{ bytes: number; answer: (a: "now" | "wifi") => void } | null>(null);
   const [mobileSaved, setMobileSaved] = useState(false);
   const [wifiWait, setWifiWait] = useState<(() => void) | null>(null);
+  // (T298) Android 13+: the system's download notification needs the app's leave to notify — asked once, with why
+  const [askingNotify, setAskingNotify] = useState(false);
+  const beforeBackground = useCallback(async () => {
+    const bg = backgroundDownloads;
+    if (!bg?.notificationsAllowed || !bg.askNotifications || await bg.notificationsAllowed()) return;
+    setAskingNotify(true);
+    try { await bg.askNotifications(); } finally { setAskingNotify(false); }
+  }, []);
   const mobileGate = useMemo((): MobileDataGate | null => WEB ? null : {
     decide: async (bytes) => {
       const u = updatesRef.current;
@@ -256,11 +264,11 @@ export default function App() {
   }, []);
   const boot = useReleaseBoot(useMemo(() => ({
     manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
-    salmonFeed, deferUpdate: true, net: NET, background: backgroundDownloads, mobileData: mobileGate,
+    salmonFeed, deferUpdate: true, net: NET, background: backgroundDownloads, mobileData: mobileGate, beforeBackground,
     // (T251) a phone's requests name the app; its first install is gated by the release's minAppVersion (the web's app
     // ships with its data: never gated)
     ...(WEB ? {} : { fetch: DATA_FETCH, appVersion: APP_VERSION }),
-  }), [feed, salmonFeed, mobileGate]), generation, attempt);
+  }), [feed, salmonFeed, mobileGate, beforeBackground]), generation, attempt);
   const booted = boot.state === "ready" ? boot.booted : null;
   const bootedRef = useRef(booted);
   bootedRef.current = booted;
@@ -571,6 +579,10 @@ export default function App() {
                         onPress={() => mobileAsk.answer("wifi")} />
               </View>
             </View>
+          )}
+          {askingNotify && (
+            <Text testID="boot-notify-why" style={{ color: palette.sub, fontSize: 13, textAlign: "center", paddingHorizontal: 24 }}>
+              {DOWNLOAD_NOTE_WORDS.why}</Text>
           )}
           {stage === "wifi" && (
             <View testID="boot-wifi-wait" style={{ alignItems: "center", gap: 10, paddingHorizontal: 24 }}>

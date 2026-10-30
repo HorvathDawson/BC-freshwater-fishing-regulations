@@ -94,6 +94,8 @@ export const DOWNLOAD_NOTE_WORDS = {
   title: "Downloading BC fishing rules",
   files: { tiles: "Map of the waters", mask: "Map outline", basemap: "Base map", synopsis: "Rule book (PDF)" },
   other: "Map and regulations",
+  /** (Android 13+) said on the boot screen as the system asks to allow notifications, once, before the first download */
+  why: "Allow notifications to see the download's progress after you close the app.",
   text: (what: string, bytes: number) => `${what} · ${megabytes(bytes)}`,
 } as const;
 

@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <!-- (T298) the system download manager carries the first install's big files; its notification is the system's -->
   <uses-permission android:name="android.permission.INTERNET" />
+  <!-- Android 13+: the system's download notification shows only for an app allowed to notify (asked before the download) -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
   <application>
     <!-- a tap on the download's notification opens the app (the download manager sends this to our package only) -->
     <receiver android:name="ca.canifishthis.bgdownload.NotificationClickReceiver" android:exported="true">
