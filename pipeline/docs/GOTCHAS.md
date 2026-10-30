@@ -153,3 +153,19 @@ the fingerprint is taken over the raw text, one character retires a locator and 
 
 Same family as the entry above, smaller blast radius: it shows up as a locator that has "vanished"
 alongside an identical one that has "appeared", on the same water, in the same run.
+
+---
+
+## Sheldens Creek is a name we assumed
+
+**2026-10-29 · names / DFO salmon · `pipeline/regs/review/names.py` (`OWNER`), `pipeline/atlas/registry/mine.py` (`DFO_UNMATCHED_LEADS`)**
+
+DFO's Region 6 rules name "Sheldens Creek" (Moresby Island, Haida Gwaii), but no Freshwater Atlas water carries that
+name. We named the unnamed FWA line blk 360846083 (code 950-016367) into Sheldens Bay "Sheldens Creek" because the
+forest roads around it are named for it ("SP 19(1) TO SHELDONS", "SP 19H TO SHELDONS", SHEL100–SHEL103). The owner
+accepted it on 2026-10-29 knowing it is **low confidence and an assumption** — no map, gazetteer or DFO source names
+this line. The DFO salmon rule and its cut (Spur 19 road crossing, 53.12968,-131.78224) bind to it through that name.
+
+If a source ever names a different stream "Sheldens Creek" (BC Geographical Names, a DFO map, a local), or DFO's
+wording points elsewhere, this is the first thing to recheck: drop the `OWNER` row and the rule unbinds on the next
+build. Don't treat it as a confirmed name in audits or when matching other sources.
