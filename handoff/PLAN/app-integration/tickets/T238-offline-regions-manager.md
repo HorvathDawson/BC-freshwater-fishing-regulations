@@ -1,6 +1,6 @@
 # T238 — offline regions manager (phone)
 
-Status: PARTIAL — b55c20c7b + rework (owner 2026-10-29: regulations never per region). Page built; per-region MAP choices wait on a tile split (T85/T202).
+Status: DONE (b55c20c7b, 342454f7b, 685197125) — what does not depend on per-region tiles; the per-region map is T259 (deferred by owner 2026-10-29 to after this APK).
 
 Source: owner 2026-10-28 — approved proposal P4 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -56,3 +56,12 @@ Owner change (2026-10-29, relayed): REGULATIONS ARE NEVER PER REGION; only map d
 2. Owner: default map regions on first install (Default: all) — ties to T248 first run.
 3. The whole-province web prefetch adds the remaining regions' regs + salmon slices (not measured) over the 10-28 cap's 6.15 MB; measure with
    `tools/prefetch-measure.mjs` and the request walk (background off there) if the budget matters.
+
+## Finish (2026-10-29)
+Owner: the per-region map (T259) waits for after this APK; regulations are always all of B.C. The page stays honest that
+the map is all-or-nothing for now (one "Map of B.C." row; the regions listed as part of it, no size, no action; the note
+says choosing map regions comes with the split). Added (685197125): the RULE BOOK row — the synopsis PDF is now part of a
+phone's first download (fa9e82b57, owner 2026-10-29): "Rule book (synopsis PDF): 25.0 MB. On this phone · opens offline."
+(counted in storage used); web: "Downloaded when you open it". Tests: `core/src/offline.test.ts`,
+`data/src/release/offline.test.ts`. The web regs prefetch vs `WEB_BUDGET` (T238 left 3) moves with T259.
+

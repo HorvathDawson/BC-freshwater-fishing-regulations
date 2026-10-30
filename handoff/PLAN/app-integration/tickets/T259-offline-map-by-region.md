@@ -1,6 +1,6 @@
 # T259 — offline map by region (T238 leftovers)
 
-Status: OPEN.
+Status: OPEN — deferred by owner 2026-10-29 to after this APK.
 
 Source: T238 (2026-10-29 overnight) "Left"; owner 2026-10-29: regulations are never per region — only the MAP may be
 chosen per region.
@@ -16,3 +16,11 @@ chosen per region.
 On a phone: drop 3 regions' maps → storage falls by their size, regs still answer there offline, the map says "not
 downloaded"; take one back → it downloads. Tests over the in-memory phone store.
 Depends: T85/T202 (tile split). Size: M. Owner: yes — default map regions on first install. Default: all (T248 first run).
+
+## Note (2026-10-29)
+Deferred by owner 2026-10-29 to after this APK; nothing built. A design sketched while scoping it (not decided, for when it
+is picked up): keep ONE province archive per map file, re-laid so each region's tile data is one contiguous byte range
+(a tile touching two regions, and the low zooms, in an always-kept shared range); the manifest names each range (offset,
+bytes, sha256); a phone downloads the header + directories and its kept ranges and rewrites the directory offsets into a
+compact local archive (a missing tile is then simply absent). The web reads the same archive unchanged.
+
