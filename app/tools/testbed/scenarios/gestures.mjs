@@ -77,7 +77,12 @@ async function drive(ctx, label, size, ts) {
   else if (boxMoved !== 0) fail = `the page moved under the drag (${boxMoved} px)`;
   if (ts) {
     const d0 = Math.round(Math.min(box.w, box.h) * 0.2), d1 = Math.round(Math.min(box.w, box.h) * 0.7);
-    pinch(ctx, ts, size, cx, cy, d0, d1);
+    try { pinch(ctx, ts, size, cx, cy, d0, d1); } catch (e) {
+      // sendevent needs root on a Google Play image: the pinch cannot be driven, say so (the pan result stands)
+      out.push(`pinch: not driven (${String(e.message ?? e).split('\n').pop().slice(0, 80)})`);
+      if (fail) throw new Error(`${fail} — ${out.join(' · ')}`);
+      return out.join(' · ');
+    }
     await ctx.device.sleep(2000);
     const c = shot('pinch');
     const pinchMoved = changed(b, c, inner), box2 = smallMap(ctx, size);

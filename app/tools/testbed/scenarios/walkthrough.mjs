@@ -20,6 +20,7 @@ export const walkthrough = {
       await toMap(ctx);
       ctx.flow('tab', { TAB: 'More' });
       await ctx.device.sleep(1500);
+      ctx.flow('scroll-to', { TEXT: 'Help' });                                 // below the Data list on the More tab
       ctx.flow('tap-text', { TEXT: 'Help' });
       await ctx.device.sleep(1500);
       ctx.flow('scroll-to', { TEXT: 'Replay the walkthrough' });
@@ -49,6 +50,7 @@ export const walkthrough = {
         ctx.flow('tap-id', { ID: 'guide-primary' });
         await ctx.device.sleep(at === 1 ? 2500 : 3500);                     // a Show me moves the route and the camera
       }
+      if (!seen.length) throw new Error('no walkthrough card was up');
       if (!closed) throw new Error(`the card never closed (${seen.length} steps: ${seen.slice(-3).join(' / ')})`);
       if (reached < total) throw new Error(`closed at ${reached} of ${total}: ${seen.join(' / ')}`);
       return `${reached} of ${total} · ${seen.join(' / ').slice(0, 900)}`;
