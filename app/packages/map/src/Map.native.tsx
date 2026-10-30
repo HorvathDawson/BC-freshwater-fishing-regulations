@@ -33,18 +33,19 @@
  *     as it is requested, as GL JS's `sourcedata` does on the web. No colour is pushed through `data`.
  *   - The scale bar is drawn here (`metricScale`): the binding's is top-left only on Android and in the device's
  *     units, so it sat under the status bar in miles. Updated when the camera settles, not per frame of a pinch.
- *   - (T317) The marker, pins and boundary marks are GeoJSON layers (`point-marks.ts`); only the spots (T316) are still
- *     view annotations (`Marker`).
+ *   - (T317) The marker, pins and boundary marks are GeoJSON layers (`point-marks.ts`); (T316) the spots too
+ *     (`spot-marks.ts`): no view annotation is left.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
-  Camera, GeoJSONSource, Images, Layer, Map as MLMap, Marker, VectorSource,
+  Camera, GeoJSONSource, Images, Layer, Map as MLMap, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, fitAtMost, padBbox, refineFit, spotMarkers,
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, fitAtMost, padBbox, refineFit, spotMarkers,
          spotUnder, profileLabel, type Bbox, type SpotMarker, type SectionKey } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
+import { SPOT_SOURCE, spotBoxImage, spotBoxName, spotImages, spotsData, spotsLayers } from "./spot-marks";
 import { baseAdapter } from "./adapters/contract";
 import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
@@ -70,6 +71,7 @@ type LayerSpec = React.ComponentProps<typeof Layer>;
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives (as on the web). */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
+const EMPTY_FC_OBJ = { type: "FeatureCollection" as const, features: [] as unknown[] };
 /** `CAMERA_BOUNDS` (`[[w, s], [e, n]]`) in the binding's flat `[w, s, e, n]`. */
 const MAX_BOUNDS: [number, number, number, number] =
   [CAMERA_BOUNDS[0][0], CAMERA_BOUNDS[0][1], CAMERA_BOUNDS[1][0], CAMERA_BOUNDS[1][1]];
@@ -192,11 +194,22 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
      cv.status, cv.salmon, cv.method, cv.stocked, cv.survey, basinKey]);
   // (T317) and the boundary mark label's box, named by its colours (the binding adds a name once and never replaces it)
   const markBoxName = `${MARK_BOX_IMAGE}.${furniture.card}.${furniture.ink}`.replace(/#/g, "");
+  // (T316) and the spot faces and their name strip, named by the spot colours
+  const spotColours = spots?.colours;
+  const spotColourKey = spotColours ? `${spotColours.mark}|${spotColours.ground}` : "";
   const images = useMemo(() => {
     const g = markBoxImage(furniture.card, furniture.ink);
-    return { ...nativeImages(theme), [markBoxName]: { source: { uri: pngDataUri(g.width, g.height, g.data), scale: g.pixelRatio },
-                                                      stretchX: g.stretchX, stretchY: g.stretchY, content: g.content } };
-  }, [theme, markBoxName]);  // eslint-disable-line react-hooks/exhaustive-deps
+    const spotImgs: Record<string, unknown> = {};
+    if (spotColours) {
+      for (const f of spotImages(spotColours))
+        spotImgs[f.name] = { source: { uri: pngDataUri(f.width, f.height, f.data), scale: f.pixelRatio } };
+      const b = spotBoxImage(spotColours);
+      spotImgs[spotBoxName(spotColours)] = { source: { uri: pngDataUri(b.width, b.height, b.data), scale: b.pixelRatio } };
+    }
+    return { ...nativeImages(theme), ...spotImgs,
+             [markBoxName]: { source: { uri: pngDataUri(g.width, g.height, g.data), scale: g.pixelRatio },
+                              stretchX: g.stretchX, stretchY: g.stretchY, content: g.content } };
+  }, [theme, markBoxName, spotColourKey]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
 
   const gaugeData = useMemo(() => JSON.parse(gauges ?? EMPTY_FC) as GeoJSON.FeatureCollection, [gauges]);
@@ -205,6 +218,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const [scaleAt, setScaleAt] = useState({ lat: initial.lat, zoom: initial.zoom });
   /** (T145) The spot marks drawn, and the zoom they were placed at: what a tap is checked against (`spotUnder`). */
   const spotsAt = useRef<{ marks: readonly SpotMarker[]; zoom: number }>({ marks: [], zoom: initial.zoom });
+  const spotsNow = useRef(spots);
+  spotsNow.current = spots;
 
   // The FIRST attach is news (the binding mounts the source only once the map is ready, maybe after the style
   // loaded); later ones are the binding re-creating its handle (`useImperativeHandle` with no deps), which must not
@@ -448,9 +463,15 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if (probe.__openProbe) probe.__openPressAt = globalThis.performance?.now?.() ?? Date.now();
     const [x, y] = Array.isArray(ne.point) ? ne.point : [ne.point.x, ne.point.y];
     const [lon, lat] = ne.lngLat;
-    // (T145) a tap on a spot is the spot's (its annotation's press): never ALSO the map's — no water opens under it,
-    // and the off-spot tap that clears the selection does not clear the one this tap makes
-    if (spotUnder(spotsAt.current.marks, lat, lon, spotsAt.current.zoom)) return;
+    // (T145) a tap on a spot is the spot's: never ALSO the map's — no water opens under it, and the off-spot tap that
+    // clears the selection does not clear the one this tap makes. (T316) the marks are map layers: their 44 px target is
+    // `spotUnder` at the zoom they were placed at, and the press is `pressSpot`
+    const spotHit = spotUnder(spotsAt.current.marks, lat, lon, spotsAt.current.zoom);
+    if (spotHit) {
+      const sp = spotsNow.current;
+      if (sp) pressSpot(spotHit, sp, (c, o) => renderer.easeTo(c, o));
+      return;
+    }
     // (T317) a boundary mark's 44 px target: the mark's layers, asked first; the tap opens no water under it
     if (marksNow.current?.length && rendered.current) {
       const hit = markHit(await mapRef.current?.queryRenderedFeatures(markBox(x, y), { layers: [MARK_RING, MARK_LABEL] })
@@ -556,6 +577,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [spotKey, scaleAt.zoom]);
   spotsAt.current = { marks: spotMarks, zoom: scaleAt.zoom };
+  const spotJson = useMemo(() => (spotColours ? spotsData(spotMarks, spotColours) : EMPTY_FC_OBJ),
+    [spotMarks, spotColourKey]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const spotLook = useMemo(() => (spotColours ? spotsLayers(spotColours) : []), [spotColourKey]);  // eslint-disable-line react-hooks/exhaustive-deps
   const marksKey = JSON.stringify(marks ?? []);
   const markJson = useMemo(() => marksData(marks, labelAt.key === marksKey ? labelAt.at : undefined), [marksKey, labelAt]);  // eslint-disable-line react-hooks/exhaustive-deps
   const markLook = useMemo(() => marksLayers(furniture, markBoxName), [furniture, markBoxName]);
@@ -607,21 +631,26 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         <GeoJSONSource id={PIN_SOURCE} data={pinJson as never}>
           <Layer {...(pinLook as unknown as LayerSpec)} />
         </GeoJSONSource>
-        {/* (T131) YOUR SPOTS: `spotMarkers` at the zoom the camera settled at, each the app's face in a 44 px box (a view
-            annotation: its press is the face's, never the map's) */}
-        {spots ? spotMarks.map((mk) => (
-          <Marker key={mk.key} id={mk.key} lngLat={[mk.lon, mk.lat]}>
-            <View style={{ width: SPOT_PIN.hit, height: SPOT_PIN.hit }}>
-              {spots.face(mk, () => pressSpot(mk, spots, (c, o) => renderer.easeTo(c, o)))}
-            </View>
-          </Marker>
-        )) : null}
+        {/* (T131) YOUR SPOTS: `spotMarkers` at the zoom the camera settled at — (T316) map layers, not view annotations,
+            so they move with the map; a tap is the map's (`onPress`: `spotUnder` → `pressSpot`) */}
+        <GeoJSONSource id={SPOT_SOURCE} data={spotJson as never}>
+          {spotLook.map((l) => <Layer key={l.id} {...(l as unknown as LayerSpec)} />)}
+        </GeoJSONSource>
         {/* THE BOUNDARY MARKS (P15): the ring (filled when open) and its label above it in a box — map layers (T317), so
             they move with the map; a tap is the layers' (`onPress`, `markHit`) */}
         <GeoJSONSource id={MARK_SOURCE} data={markJson as never}>
           {markLook.map((l) => <Layer key={l.id} {...(l as unknown as LayerSpec)} />)}
         </GeoJSONSource>
       </MLMap>
+      {/* (T316) the spot marks' buttons, for a screen reader only, as the boundary marks' below */}
+      {spots && spotMarks.length ? (
+        <View style={{ position: "absolute", left: 0, top: 0, width: 1, height: 1, overflow: "hidden" }}>
+          {spotMarks.map((mk) => (
+            <Pressable key={mk.key} testID={`spot-mark:${mk.key}`} accessibilityRole="button" aria-label={mk.a11y}
+                       onPress={() => pressSpot(mk, spots, (c, o) => renderer.easeTo(c, o))}>
+              <Text>{mk.label ?? ""}</Text>
+            </Pressable>))}
+        </View>) : null}
       {/* (T317) the marks' buttons, for a screen reader only: 1 px, out of the way, never moved with the map */}
       {marks?.length ? (
         <View style={{ position: "absolute", left: 0, top: 0, width: 1, height: 1, overflow: "hidden" }}>

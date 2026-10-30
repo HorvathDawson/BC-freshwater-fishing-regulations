@@ -604,16 +604,18 @@ it("no listener, no long press: the binding is handed no handler (its long press
 });
 
   it("(T145 review) a tap in a spot's 44 px target is the spot's alone: the map neither reports the point (it would " +
-     "clear the selection the tap makes) nor opens the water under it; just outside, both as ever", async () => {
+     "clear the selection the tap makes) nor opens the water under it — (T316) it opens the spot; just outside, both " +
+     "as ever", async () => {
     const press = vi.fn();
+    const open = vi.fn();
     const point = vi.fn();
     answer = (layers) => (layers.includes("stream") ? [{ id: "311274" }] : []);
     const z = 14, east = (px: number) => -122 + (px / (512 * 2 ** z)) * 360;
     render(<NativeMap {...base({ data: undefined, highlight: undefined, initial: { lon: -122, lat: 49, zoom: z },
                                  onPressFeature: press, onMapPoint: point,
                                  spots: { points: [{ id: "s1", lat: 49, lon: -122, title: "Tamihi run" }],
-                                          selected: "s1", onOpen: () => {}, onList: () => {},
-                                          face: () => null } })} />);
+                                          selected: "s1", onOpen: open, onList: () => {},
+                                          colours: { mark: "#c2410c", ground: "#fff7ed" } } })} />);
     await waitFor(() => expect(native.props).toBeTruthy());
     log.length = 0;
     PLATFORMS.native.tap(200, 400, -122, 49);          // on the mark
@@ -622,7 +624,8 @@ it("no listener, no long press: the binding is handed no handler (its long press
     const onSpot = { point: point.mock.calls.length, press: press.mock.calls.length, queries: log.length };
     PLATFORMS.native.tap(230, 400, east(30), 49);      // off it
     await waitFor(() => expect(press.mock.calls.length).toBe(1));
-    expect([onSpot, point.mock.calls]).toEqual([{ point: 0, press: 0, queries: 0 }, [[49, east(30)]]]);
+    expect([onSpot, point.mock.calls, open.mock.calls]).toEqual([{ point: 0, press: 0, queries: 0 }, [[49, east(30)]],
+                                                                 [["s1"], ["s1"]]]);
   });
 
   it("is handed the style with nothing promoted, and a camera held to the province's zooms and bounds", async () => {

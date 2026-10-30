@@ -25,7 +25,7 @@ type Stub = { onLayers?: () => void; spots?: MapSpots; layersChanged?: number;
               marker?: { lat: number; lon: number } | null; onMapPoint?: (lat: number, lon: number) => void };
 /**
  * (T131) The map draws what the real renderers draw for `spots`: the marks `spotMarkers` gives (at z14 here, every spot
- * its own), each the Shell's own face, its press the map's `pressSpot` — so a tap here is the tap a reader makes.
+ * its own), each a named button, its press the map's `pressSpot` — so a tap here is the tap a reader makes.
  */
 vi.mock("./MapScreen", async () => {
   const { spotMarkers } = await import("@app/core");
@@ -40,7 +40,9 @@ vi.mock("./MapScreen", async () => {
         </Text>
         <Text testID="map-selected">{`selected ${p.spots?.selected ?? "-"} marker ${p.marker ? "yes" : "no"}`}</Text>
         {p.spots && spotMarkers(p.spots.points, 14, p.spots.selected).map((m) => (
-          <View key={m.key}>{p.spots!.face(m, () => pressSpot(m, p.spots!, () => {}))}</View>))}
+          // (T316) the renderers draw the marks as map layers and keep one named button per mark (a screen reader's)
+          <Pressable key={m.key} accessibilityRole="button" aria-label={m.a11y}
+                     onPress={() => pressSpot(m, p.spots!, () => {})}><Text>{m.label ?? ""}</Text></Pressable>))}
         <Text testID="map-changed">{`changed ${p.layersChanged ?? 0}`}</Text>
         {/* (T145) a tap on the map itself, off every spot: what the renderers hand `onMapPoint` */}
         <Pressable accessibilityRole="button" accessibilityLabel="Tap the map off the spots"

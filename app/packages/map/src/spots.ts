@@ -1,7 +1,7 @@
 /**
  * T131 — YOUR SPOTS ON A MAP, the half both renderers share (`MapProps.spots`): what a tap on a mark does, and what
  * makes a map regroup. Which marks there are at a zoom, and their words, are `@app/core` `spotMarkers` / `spotPress`;
- * how a face looks is the app's (`@app/ui-native` `SpotPin`, passed in as `MapSpots.face`). Platform-free, so it is a
+ * how a mark looks is `./spot-marks.ts` (T316: map layers, in the app's `MapSpots.colours`). Platform-free, so it is a
  * test (`spots.test.ts`).
  */
 import { spotPress, type SpotMarker, type SpotPoint } from "@app/core";

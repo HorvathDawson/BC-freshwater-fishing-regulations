@@ -4,8 +4,7 @@
  */
 // A feature id on our own layers IS a section handle — an integer. `SectionKey` keeps
 // this honest without `map` having to know which artifact minted it.
-import type { NotFishingKind, SectionKey, SpotMarker, SpotPoint } from "@app/core";
-import type { ReactNode } from "react";
+import type { NotFishingKind, SectionKey, SpotPoint } from "@app/core";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./endpoints";
 import type { TraceProp } from "./trace-overlay";
@@ -31,10 +30,10 @@ export interface MapSpots {
   /** A group no zoom parts (spots on one point) was tapped: its spots. */
   onList(ids: readonly string[]): void;
   /**
-   * Draws one mark's face, inside the map's 44 px target (centred on the point). The app's: the icon set lives above
-   * the map. `press` is the map's (`pressSpot`), to be called by the face's one button.
+   * (T316) The colours the map draws the marks in: the app's spot tokens (`palette.spot`). The marks are map layers
+   * (`spot-marks.ts`), drawn as the old `SpotPin` view drew them; a tap is the map's (`spotUnder` → `pressSpot`).
    */
-  face(m: SpotMarker, press: () => void): ReactNode;
+  colours: { mark: string; ground: string };
 }
 
 export interface Camera {

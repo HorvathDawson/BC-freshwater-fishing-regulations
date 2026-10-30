@@ -35,7 +35,6 @@ import { SearchSheet } from "./SearchSheet";
 import { TopBar, topBarBottom } from "./TopBar";
 import { SpotPickBanner } from "./SpotPickBanner";
 import { SynopsisLoading } from "./regs/SynopsisLoading";
-import { SpotPin } from "./SpotPin";
 import { TabBar } from "./TabBar";
 import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
@@ -233,14 +232,15 @@ export function Shell(p: ShellProps) {
   }, [runsAt, col.runs.facts, col.runs.chosen, col.runs.pentad]);
   /*
    * YOUR SPOTS ON EVERY MAP (owner 2026-10-22: "toggle our spots on and off in the layer menu"), while the Layers
-   * sheet's Spots switch is on (default on); (T131) each a mark that opens its spot, drawn by `SpotPin`, the selected
+   * sheet's Spots switch is on (default on); (T131) each a mark that opens its spot, drawn by the map (T316 `spot-marks`), the selected
    * one the rail's; a group no zoom parts opens the Spots list.
    */
   const spotsShown = col.layers.effective.pins.spots;
   const spotPoints = useMemo(() => spotPins(spots, spotsShown), [spots, spotsShown]);
   const spotLayer: MapSpots | undefined = spotPoints.length === 0 ? undefined : {
     points: spotPoints, selected: rail.selected, onOpen: rail.openPin, onList: () => rail.listSpots(),
-    face: (m, press) => <SpotPin m={m} palette={palette} press={press} />,
+    // (T316) the marks are map layers, drawn in the spot tokens
+    colours: palette.spot,
   };
   /** The SYNC ICON's state (`syncVM`): fresh, needs a refresh, checking — none when there is nothing to sync. */
   const sync = feed || checkRelease || updates

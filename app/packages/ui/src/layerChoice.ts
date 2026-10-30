@@ -38,7 +38,7 @@ export function useLayerChoice(store?: LayerStore):
  * THE SAVED SPOTS A MAP IS HANDED (owner 2026-10-22: "toggle our spots on and off in the layer menu"): every spot, at
  * its place, under the name its row in the Spots tab shows, by its id (T131: a tap on its pin opens it) — while the
  * Layers sheet's Spots switch is on (`layersVM(...).effective.pins.spots`); none while it is off. How each is drawn is
- * `@app/core` `spotMarkers` (grouped, named, selected) and `@app/ui-native` `SpotPin`, in the spot tokens.
+ * `@app/core` `spotMarkers` (grouped, named, selected) drawn by the map engine (`@app/map` `spot-marks`, T316), in the spot tokens.
  */
 export function spotPins(spots: readonly Spot[], shown: boolean): readonly SpotPoint[] {
   if (!shown) return [];

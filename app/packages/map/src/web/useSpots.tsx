@@ -1,54 +1,101 @@
 /**
- * (T131) YOUR SPOTS on the web map: the marks `spotMarkers` gives at this zoom, each the app's face (`spots.face`) in a
- * 44 px box over the map — a layer of its own above the canvas, so a tap on one never reaches the map (the water under
- * it does not open). Regrouped as the camera moves, re-rendered only when the marks change; each frame only moves the
- * boxes. Returns the layer, drawn as the map's sibling.
+ * (T131) YOUR SPOTS on the web map: the marks `spotMarkers` gives at the zoom the camera settled at — (T316) drawn by
+ * maplibre-gl as a GeoJSON source with symbol layers (`../spot-marks.ts`), not DOM boxes moved on every `move`. Regrouped
+ * when the points, the selection or the zoom change (`zoomend`), never on a pan. A click within a mark's 44 px target is
+ * the mark's (`spotUnder` → `pressSpot`), and the map's other click handlers skip it (`hitSpot`): no water opens under
+ * it. Returns the marks' buttons for the keyboard and a screen reader (1 px, out of the way; never moved with the map).
  */
-import { SPOT_PIN, spotMarkers, type SpotMarker } from "@app/core";
+import { spotMarkers, spotUnder, type SpotMarker } from "@app/core";
 import { useEffect, useRef, useState } from "react";
+import type * as maplibregl from "maplibre-gl";
 import type { MapProps } from "../map-props";
 import { pressSpot, spotsKey } from "../spots";
+import { SPOT_SOURCE, spotBoxImage, spotBoxName, spotImages, spotsData, spotsLayers } from "../spot-marks";
+import { afterLoad } from "./ready";
 import type { WebMapRefs } from "./refs";
+
+type Layer = Parameters<maplibregl.Map["addLayer"]>[0];
+const EMPTY = { type: "FeatureCollection" as const, features: [] };
+
+/** The marks each map drew, and the zoom they were placed at: what a click is checked against. */
+const placed = new WeakMap<maplibregl.Map, { marks: readonly SpotMarker[]; zoom: number }>();
+
+/** The spot mark under a click at this place, or null — for the map's other click handlers to leave it alone. */
+export function hitSpot(m: maplibregl.Map, lat: number, lon: number): SpotMarker | null {
+  const p = placed.get(m);
+  return p && p.marks.length ? spotUnder(p.marks, lat, lon, p.zoom) : null;
+}
 
 export function useSpots({ map, renderer }: WebMapRefs, spots: MapProps["spots"], at: MapProps["at"]) {
   const spotsNow = useRef(spots);
   spotsNow.current = spots;
   const [spotMarks, setSpotMarks] = useState<readonly SpotMarker[]>([]);
-  const spotSig = useRef("");
-  const spotBoxes = useRef(new globalThis.Map<string, HTMLDivElement>());
-  const placeSpot = (el: HTMLDivElement, mk: SpotMarker) => {
-    const p = map.current?.project([mk.lon, mk.lat]);
-    if (p) el.style.transform = `translate(${p.x - SPOT_PIN.hit / 2}px, ${p.y - SPOT_PIN.hit / 2}px)`;
-  };
+  const colours = spots?.colours;
+  const colourKey = colours ? `${colours.mark}|${colours.ground}` : "";
   const spotKey = spotsKey(spots?.points, spots?.selected ?? null);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
-    // (T312) the clusters depend on the points, the selection and the zoom only: a pan moves the pins, never regroups them.
-    // `regroup` (clusters, signature, state) runs on data change and on zoom; `place` (a transform per pin) on every move.
-    let marks: readonly SpotMarker[] = [];
-    const place = () => { for (const mk of marks) { const el = spotBoxes.current.get(mk.key); if (el) placeSpot(el, mk); } };
+    let alive = true;
+    // `sig`: the marks last handed to React (the first regroup always renders once, as it always did: the web map's
+    // later hooks first see the map on a render after it is made); `drawn`: the marks last written to the source (an
+    // empty set is no change — a map with no spots writes nothing)
+    let sig = "";
+    let drawn = "[]";
     const regroup = () => {
       const s = spotsNow.current;
-      marks = s ? spotMarkers(s.points, m.getZoom(), s.selected) : [];
-      const sig = JSON.stringify(marks);
-      if (sig !== spotSig.current) { spotSig.current = sig; setSpotMarks(marks); }
-      place();
+      if (!alive) return;
+      const zoom = m.getZoom();
+      const marks = s ? spotMarkers(s.points, zoom, s.selected) : [];
+      placed.set(m, { marks, zoom });
+      const next = JSON.stringify(marks);
+      if (next !== sig) { sig = next; setSpotMarks(marks); }
+      if (next === drawn) return;
+      drawn = next;
+      const src = m.getSource(SPOT_SOURCE) as { setData?: (d: unknown) => void } | undefined;
+      src?.setData?.(s && colours ? spotsData(marks, colours) : EMPTY);
     };
     regroup();
-    m.on("move", place);
+    const undo = afterLoad(m, () => {
+      if (!alive) return;
+      const s = spotsNow.current;
+      if ((!s || !colours) && !m.getSource(SPOT_SOURCE)) return;            // none yet: nothing to add
+      if (colours) {
+        for (const f of spotImages(colours))
+          if (!m.hasImage(f.name)) m.addImage(f.name, f as unknown as ImageData, { pixelRatio: f.pixelRatio });
+        const b = spotBoxImage(colours);
+        if (!m.hasImage(spotBoxName(colours))) m.addImage(spotBoxName(colours), b as unknown as ImageData, { pixelRatio: b.pixelRatio });
+      }
+      if (!m.getSource(SPOT_SOURCE)) m.addSource(SPOT_SOURCE, { type: "geojson", data: EMPTY as never });
+      for (const l of (colours ? spotsLayers(colours) : []) as Layer[]) {
+        if (m.getLayer(l.id)) m.removeLayer(l.id);
+        m.addLayer(l);
+      }
+      drawn = "[]";
+      regroup();
+    });
     m.on("zoomend", regroup);
-    return () => { m.off("move", place); m.off("zoomend", regroup); };
-  }, [spotKey, at.atlas, at.basemap, at.glyphs, at.sprite, at.assets]);
+    const onClick = (e: maplibregl.MapMouseEvent) => {
+      const s = spotsNow.current;
+      const hit = s ? hitSpot(m, e.lngLat.lat, e.lngLat.lng) : null;
+      if (hit && s) pressSpot(hit, s, (c, o) => renderer.current?.easeTo(c, o));
+    };
+    m.on("click", onClick);
+    return () => {
+      alive = false;
+      undo();
+      m.off("zoomend", regroup);
+      m.off("click", onClick);
+      placed.delete(m);
+      if (drawn !== "[]") (m.getSource(SPOT_SOURCE) as { setData?: (d: unknown) => void } | undefined)?.setData?.(EMPTY);
+    };
+  }, [spotKey, colourKey, at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, map.current]);  // eslint-disable-line react-hooks/exhaustive-deps
   return spots && spotMarks.length ? (
-    <div data-spots="" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+    <div data-spots="" style={{ position: "absolute", left: 0, top: 0, width: 1, height: 1, overflow: "hidden" }}>
       {spotMarks.map((mk) => (
-        <div key={mk.key} data-spot={mk.key}
-             ref={(el) => { if (el) { spotBoxes.current.set(mk.key, el); placeSpot(el, mk); } else spotBoxes.current.delete(mk.key); }}
-             style={{ position: "absolute", left: 0, top: 0, width: SPOT_PIN.hit, height: SPOT_PIN.hit,
-                      pointerEvents: "auto", zIndex: mk.selected ? 1 : 0 }}>
-          {spots.face(mk, () => pressSpot(mk, spotsNow.current ?? spots,
-                                          (c, o) => renderer.current?.easeTo(c, o)))}
-        </div>))}
+        <button key={mk.key} type="button" data-spot={mk.key} aria-label={mk.a11y}
+                onClick={() => pressSpot(mk, spotsNow.current ?? spots, (c, o) => renderer.current?.easeTo(c, o))}>
+          {mk.label ?? ""}
+        </button>))}
     </div>) : null;
 }

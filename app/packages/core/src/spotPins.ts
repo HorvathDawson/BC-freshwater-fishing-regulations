@@ -3,7 +3,7 @@
  * spot"); T145 — reworked SMALL (owner 2026-10-23: "the new spot markers look really bad and take up a ton of space and
  * dont deselect if click off them … they get way too big too"). Every map that shows your spots (the Map tab, the
  * Conditions map, a water's map) asks THIS file which marks to draw at its zoom, how big each is drawn, and what a tap
- * on one does; `@app/map` places them and `@app/ui-native` `SpotPin` draws the face.
+ * on one does; `@app/map` draws them as map layers (`spot-marks.ts`, T316).
  *
  *   SPOT_PIN        the one set of numbers: the 44 px target (invisible), the small square faces, the selected ring,
  *                   the cap no face passes at any zoom, how close two spots may be on screen before they are one group,
@@ -91,7 +91,7 @@ export interface SpotMarker {
 /**
  * HOW BIG A MARK IS DRAWN, px: `face` the filled square (a spot's, or a group's larger one), `extent` all of it (the
  * selected ring included). From the mark's kind and selection only — there is no zoom here, so no zoom can grow it
- * past `SPOT_PIN.max`. The ONE size: names are placed against `extent` here, and `SpotPin` draws both.
+ * past `SPOT_PIN.max`. The ONE size: names are placed against `extent` here, and `@app/map` `spot-marks` draws both.
  */
 export function spotFace(m: Pick<SpotMarker, "selected" | "count"> & { parking?: true }): { face: number; extent: number } {
   const face = m.count > 1 || m.parking ? SPOT_PIN.groupFace : SPOT_PIN.face;
