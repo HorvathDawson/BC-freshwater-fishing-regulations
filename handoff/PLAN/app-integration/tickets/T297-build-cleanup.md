@@ -1,6 +1,6 @@
 # T297 — Build clean-up, done together with T295 (faster full rebuild) and T266 (marks → data exporter)
 
-Status: OPEN (owner 2026-10-29: "the build cleanup should come after all the loose end tickets. then build cleanup with
+Status: IN REVIEW (2026-10-31) — one STAGE_GRAPH (--graph), --status replaces build-progress.sh, --side proof runs, heavy.sh re-entrant, docs; proof run byte-identical but for tiles' random tippecanoe temp path (`handoff/PLAN/app-integration/build-pass-2026-10-31.md`). Was OPEN (owner 2026-10-29: "the build cleanup should come after all the loose end tickets. then build cleanup with
 the optimizing it (requiring big long builds) can happen together").
 
 ## Order

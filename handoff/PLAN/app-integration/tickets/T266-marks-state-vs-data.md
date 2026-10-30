@@ -1,6 +1,6 @@
 # T266 — Marks are review state; decided data lives in its own files (one exporter)
 
-Status: OPEN — not started (owner 2026-10-29 idea).
+Status: IN REVIEW (2026-10-31, ec2d60bdd) — exporter + apply paths on the export; a sandboxed full build with marks.jsonl unreadable passed and matched r-51d80e68f056 (`handoff/PLAN/app-integration/build-pass-2026-10-31.md`). Owner: confirm the one-directory split `data/curated/decided/`.
 
 Source: owner 2026-10-29: "should we get tidal marks into a separate file to simplify? so marks is just state of review
 then data goes into the individual files? could use a single exporter."

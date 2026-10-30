@@ -1,6 +1,8 @@
 # T295 — Faster full rebuild (do it the next time a full run is needed)
 
-Status: OPEN (owner 2026-10-29: "maybe there are obvious ways to speed up the full rebuild for future? should be done the
+Status: IN REVIEW (2026-10-31, ea9cade2a) — stage timings + peak RSS + per-input reasons in the manifest, parallel independent stages (--jobs 2), cached rerun skips; full run 59 → 47.5 min (`handoff/PLAN/app-integration/build-pass-2026-10-31.md`). Not done: atlas DEM/FWA memoisation; tile_version determinism (tippecanoe temp path) proposed.
+
+Was: OPEN (owner 2026-10-29: "maybe there are obvious ways to speed up the full rebuild for future? should be done the
 next time a full run is needed").
 
 Source: the 10-29 data rebuild took ~3.5 h: a full atlas rebuild (added-streams topology change) then reach, tiles, deliver;
