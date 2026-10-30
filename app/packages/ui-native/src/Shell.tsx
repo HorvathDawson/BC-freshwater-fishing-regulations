@@ -307,10 +307,9 @@ export function Shell(p: ShellProps) {
     addSpot: () => {
       go({ type: "close" });
       if (!guideWater) { go({ type: "addSpot" }); return; }
-      // a point ON the water (a gauge on one of its reaches) when the release knows one, else the middle of its box
-      const item = guideWater.item as ItemId;
-      void Promise.all([source.locate(item).catch(() => null), source.waterBox(item).catch(() => null)]).then(([fix, b]) =>
-        go({ type: "addSpot", at: fix?.on[0] ?? (b ? { lat: (b[1] + b[3]) / 2, lon: (b[0] + b[2]) / 2 } : null) }));
+      // the pin ON the water: its own line's point nearest the middle of it (`waterPoint`); none known, no pin
+      void (source.waterPoint?.(guideWater.item as ItemId) ?? Promise.resolve(null)).catch(() => null)
+        .then((at) => go({ type: "addSpot", at }));
     },
     cancelAdd: () => { if (adding) go({ type: "back" }); },
     toSpots: () => go({ type: "tab", tab: "spots" }),

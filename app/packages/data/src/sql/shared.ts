@@ -530,6 +530,22 @@ export function boxOfGeoRows(rows: readonly Row[], perDegree: 1 | 1_000_000): Bb
                                        midLat: Number(r.mid_lat) / perDegree })));
 }
 
+/**
+ * (T293) A POINT ON A WATER from its `part_geo` rows: each part's `mid` is a point on that part's own line (the middle of
+ * its main stem; a polygon's representative point — `topology.point_on`); of those, the one nearest the middle of the
+ * water's box. Null with no rows. The same units as `boxOfGeoRows`.
+ */
+export function pointOfGeoRows(rows: readonly Row[], perDegree: 1 | 1_000_000): { lat: number; lon: number } | null {
+  const box = boxOfGeoRows(rows, perDegree);
+  const mids = rows.map((r) => ({ lon: Number(r.mid_lon) / perDegree, lat: Number(r.mid_lat) / perDegree }))
+    .filter((m) => Number.isFinite(m.lon) && Number.isFinite(m.lat) && !(m.lon === 0 && m.lat === 0));
+  if (!mids.length) return null;
+  if (!box) return mids[0]!;
+  const cx = (box[0] + box[2]) / 2, cy = (box[1] + box[3]) / 2, k = Math.cos((cy * Math.PI) / 180);
+  const d = (m: { lon: number; lat: number }) => ((m.lon - cx) * k) ** 2 + (m.lat - cy) ** 2;
+  return mids.reduce((a, b) => (d(b) < d(a) ? b : a));
+}
+
 function lastIndex(values: readonly (number | null)[]): number {
   for (let i = values.length - 1; i >= 0; i--)
     if (values[i] !== null && Number.isFinite(values[i]!)) return i;

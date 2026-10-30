@@ -26,7 +26,7 @@
 import { describeBy, shownParameter, type IndexWater, type NearPlace, type SearchIndexData, type WaterFix } from "@app/core";
 import { num, str, type Db, type Row } from "../sql/db";
 import * as BQ from "../sql/queries";
-import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, seriesOf, sid,
+import { boxOfGeoRows, pointOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, seriesOf, sid,
          traceDown, withNear, decodeLen, type DownOf, type RouteFacts } from "../sql/shared";
 import type { Observations } from "../feed/http";
 import type { Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
@@ -374,6 +374,13 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
       if (!ords.length) return null;
       return boxOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000);
+    },
+
+    async waterPoint(item) {
+      if (!loader.manifest.files[at(CROSS.PART_GEO_FOR_ORDS(1))]) return null;
+      const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
+      if (!ords.length) return null;
+      return pointOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000);
     },
 
     async gaugeForSection(id): Promise<GaugeLink | null> {
