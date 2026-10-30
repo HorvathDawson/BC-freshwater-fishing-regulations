@@ -15,7 +15,7 @@ import type { ShellNav } from "./useShellNav";
 import { part } from "../part";
 
 // (T282) loaded later on the web (`part`): not on the first screen's path
-const MenuHost = part(() => import("../later").then((m) => m.MenuHost));
+const MenuHost = part(() => import("../later").then((m) => m.MenuHost), (p) => p.menu.state.page !== null);
 
 export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, onTabTour, sync = null }: {
   theme?: string; onWalkthrough?: () => void; onTabTour?: (k: "runs" | "conditions" | "salmon") => void;

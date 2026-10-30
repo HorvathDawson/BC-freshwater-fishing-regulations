@@ -12,7 +12,12 @@ import { Platform } from "react-native";
 
 const all: (() => Promise<void>)[] = [];
 
-export function part<P extends object>(load: () => Promise<ComponentType<P>>):
+/**
+ * `when`: whether these props draw anything (a sheet's open state). An always-mounted closed sheet must not fetch its
+ * code the moment the Shell mounts — on a water's own page that competes with the files the hand-over waits for.
+ * Absent: drawn whenever mounted.
+ */
+export function part<P extends object>(load: () => Promise<ComponentType<P>>, when?: (props: P) => boolean):
     ((props: P) => ReturnType<typeof createElement> | null) & { preload(): Promise<void> } {
   let C: ComponentType<P> | null = null;
   let p: Promise<void> | null = null;
@@ -22,12 +27,13 @@ export function part<P extends object>(load: () => Promise<ComponentType<P>>):
   if (Platform.OS !== "web") void preload().catch(() => undefined);
   function Part(props: P) {
     const [, loaded] = useState(C !== null);
+    const wanted = !when || when(props);
     useEffect(() => {
-      if (C) return;
+      if (C || !wanted) return;
       let live = true;
       preload().then(() => { if (live) loaded(true); }, () => undefined);
       return () => { live = false; };
-    }, []);
+    }, [wanted]);
     return C ? createElement(C, props) : null;
   }
   return Object.assign(Part, { preload });

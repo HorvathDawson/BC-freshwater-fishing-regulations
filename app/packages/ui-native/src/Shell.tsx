@@ -61,11 +61,11 @@ import { part, preloadParts } from "./part";
 
 // (T282) loaded later on the web (`part`): not on the first screen's path
 const SpotCapture = part(() => import("./later").then((m) => m.SpotCapture));
-const ObstacleSheet = part(() => import("./later").then((m) => m.ObstacleSheet));
-const TidalSheet = part(() => import("./later").then((m) => m.TidalSheet));
-const NotFishingSheet = part(() => import("./later").then((m) => m.NotFishingSheet));
-const RunsSheet = part(() => import("./later").then((m) => m.RunsSheet));
-const SyncErrorSheet = part(() => import("./later").then((m) => m.SyncErrorSheet));
+const ObstacleSheet = part(() => import("./later").then((m) => m.ObstacleSheet), (p) => p.props !== null);
+const TidalSheet = part(() => import("./later").then((m) => m.TidalSheet), (p) => p.open);
+const NotFishingSheet = part(() => import("./later").then((m) => m.NotFishingSheet), (p) => p.kind !== undefined);
+const RunsSheet = part(() => import("./later").then((m) => m.RunsSheet), (p) => p.vm !== null);
+const SyncErrorSheet = part(() => import("./later").then((m) => m.SyncErrorSheet), (p) => p.open);
 const SpotHost = part(() => import("./later").then((m) => m.SpotHost));
 
 export type { ShellProps } from "./shell/props";
@@ -139,9 +139,10 @@ export function Shell(p: ShellProps) {
   const onRegion = useReleasePrefetch(p.prefetch ? loader : null, () => setSettled(true), background.scheduler,
                                       () => lowNow.current);
   const quietLine = useNetQuiet(GEAR_QUIET_MS);
-  // (T282) the parts loaded later (`part`): fetched once the map's own data has started (`settled`) or the line is
-  // quiet, the browser idle — so a later tap on More, Conditions or a spot finds its code here
-  const partsIdle = useIdleOnce(Platform.OS === "web" && (settled || quietLine));
+  // (T282) the parts loaded later (`part`): fetched once the line is quiet and the browser idle — so a later tap on
+  // More, Conditions or a spot finds its code here. Not sooner: on a water's own page the chunk would compete with the
+  // release files the hand-over waits for (any other start asked for it at once: startLink.web)
+  const partsIdle = useIdleOnce(Platform.OS === "web" && quietLine);
   useEffect(() => { if (partsIdle) void preloadParts(); }, [partsIdle]);
   const { route, go, tab, frame, adding, openSpot, back, backLayers } = nav;
   /*

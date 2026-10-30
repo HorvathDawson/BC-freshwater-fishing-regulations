@@ -320,7 +320,11 @@ const STEP = {
     try {
       const ok = await w.until(`'handover' in window.__t254.seen`, w.P.cap);
       const seen = await w.seen(), t = await w.tally();
-      out.water = ok ? { status: 'ok', ms: Math.round(seen.handover), paneMs: Math.round(seen.prerender ?? NaN), appKB: t.kB.app }
+      // what the line carried before the hand-over: each file's kind, name, kB and when it finished (ms, node clock)
+      const by = (r) => `${kindOf(r.url, site)} ${new URL(r.url).pathname.split('/').pop()}`;
+      const trail = w.b.requests.filter((r) => r.doneAt !== null && r.bytes > 20_000)
+        .map((r) => `${by(r)} ${Math.round(r.bytes / 1000)} kB @${Math.round((r.doneAt - w.t0) / 1000)} s`);
+      out.water = ok ? { status: 'ok', ms: Math.round(seen.handover), paneMs: Math.round(seen.prerender ?? NaN), appKB: t.kB.app, trail }
                      : { status: 'timeout', note: (await w.text()).slice(0, 120), appKB: t.kB.app };
     } finally { await w.close(); }
     const h = await session(site, `${site}/`, profile, o);
