@@ -43,8 +43,10 @@ export function releaseOpener(at: OpenAt): Opener {
       // (T254) with the app's `net`, the wasm comes through `fetchResilient`: a tap made while offline waits for the line
       // (and opens by itself when it is back) instead of failing at once on the engine's own one-shot fetch
       const net = at.net ?? null;
+      // (T256) its deadline is sized by the RAW wasm (659 kB): a host that sends it uncompressed (the local data server)
+      // cut every 2G try at the 330 kB gzip size's deadline; a moving download is never cut either way
       const sql = net
-        ? fetchResilient(`${at.wasmBase}sql-wasm-browser.wasm`, { wireBytes: 330_000, meter: net.meter, isOnline: net.online,
+        ? fetchResilient(`${at.wasmBase}sql-wasm-browser.wasm`, { wireBytes: 660_000, meter: net.meter, isOnline: net.online,
                                                                    waitOnline: net.waitOnline })
             .then((b) => initSqlJs({ wasmBinary: b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer }))
         : initSqlJs({ locateFile: (f: string) => `${at.wasmBase}${f}` });
