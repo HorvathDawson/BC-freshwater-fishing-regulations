@@ -100,7 +100,7 @@ def _load(a: str, f: str, _ma: float, _mf: float) -> dict:
         fin = {c["id"]: c for c in json.load(gzip.open(f)).get("candidates") or []}
     except OSError:
         fin = {}
-    rows = [r for r in doc.get("rows") or [] if not unnamed_wetland(r)]
+    rows = doc.get("rows") or []
     rank = {g: i for i, g in enumerate(GROUPS)}
     # review order: group; within the owner list its own rank; else the narrowest first
     # review order: group; pre-marks narrow before wide marsh; the owner list in its own rank, the
@@ -109,7 +109,8 @@ def _load(a: str, f: str, _ma: float, _mf: float) -> dict:
         pm = premark(r) or {}
         return (rank[group(r)], pm.get("basis") == "wide marsh", r.get("owner_rank") or 10**6,
                 r.get("width_m") or 0, r["id"])
-    order = sorted(rows, key=key)
+    # an unnamed wetland stays a known candidate (its old marks are not orphans) but is never queued
+    order = sorted((r for r in rows if not unnamed_wetland(r)), key=key)
     return {"by_id": {r["id"]: r for r in rows}, "order": [r["id"] for r in order], "finder": fin}
 
 
