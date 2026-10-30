@@ -30,8 +30,8 @@ if [[ -n $DRY ]]; then
   echo "[dry-run] git worktree add --detach $WT $SHA_FULL"
   echo "[dry-run] (cd \$WT/app && pnpm install --offline --frozen-lockfile)"
   echo "[dry-run] (cd \$WT/$M && npx expo prebuild --platform ios --no-install); (cd ios && pod install)"
-  echo "[dry-run] xcodebuild -workspace ios/canifishthis.xcworkspace -scheme canifishthis -configuration Release -sdk iphonesimulator ARCHS=arm64 CODE_SIGNING_ALLOWED=NO"
-  echo "[dry-run] copy canifishthis.app -> $OUT/"
+  echo "[dry-run] xcodebuild -workspace ios/<Name>.xcworkspace -scheme <Name> -configuration Release -sdk iphonesimulator ARCHS=arm64 CODE_SIGNING_ALLOWED=NO"
+  echo "[dry-run] copy <Name>.app as canifishthis.app -> $OUT/"
   exit 0
 fi
 cleanup() { cd "$REPO" && git worktree remove --force "$WT" 2>/dev/null || rm -rf "$WT"; git worktree prune; }
@@ -52,11 +52,13 @@ echo "export NODE_BINARY=$(command -v node)" > ios/.xcode.env.local
 t0=$(date +%s)
 DD=$WT/$M/ios/build-dd
 # no -destination: CoreSimulator need not answer (an Xcode whose first launch is pending hangs in simctl)
-xcodebuild -workspace ios/canifishthis.xcworkspace -scheme canifishthis -configuration Release \
+# the project is named from expo.name ("Can I Fish?" → CanIFish), not the slug: found, never assumed
+WS=$(ls -d ios/*.xcworkspace | head -1); SCHEME=$(basename "$WS" .xcworkspace)
+xcodebuild -workspace "$WS" -scheme "$SCHEME" -configuration Release \
   -sdk iphonesimulator -derivedDataPath "$DD" -jobs 4 \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build >>"$LOG" 2>&1 \
   || { echo "xcodebuild failed ($LOG):" >&2; grep -E "error:|BUILD FAILED" "$LOG" | head -30 >&2; exit 1; }
-APP=$DD/Build/Products/Release-iphonesimulator/canifishthis.app
+APP=$(ls -d "$DD"/Build/Products/Release-iphonesimulator/*.app | head -1)
 [[ -d $APP ]] || { echo "no $APP" >&2; exit 1; }
 rm -rf "$OUT/canifishthis.app"; cp -R "$APP" "$OUT/canifishthis.app"
 NAME="canifishthis-staging-$VER-$SHA.app.zip"
