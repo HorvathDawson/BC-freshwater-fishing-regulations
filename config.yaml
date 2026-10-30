@@ -105,6 +105,9 @@ data_tree:
 
 curated:
   base: "data/curated"
+  # T266: what the review marks decide, per domain with provenance — written ONLY by
+  # `python -m pipeline.regs.review.export` from marks.jsonl (the review log); apply paths read it
+  decided: "data/curated/decided"
 
   # --- the shape of the atlas itself ---------------------------------------------
   waters:

@@ -1098,11 +1098,12 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
     sj = json.loads(Path(CURATED.waters.splits).read_text())
     smeta = {sp["id"]: sp for wb in sj.get("waterbodies") or [] for sp in wb.get("splits") or []
              if isinstance(sp, dict) and sp.get("id")}
-    mp = Path(marks_path or CURATED.regulations.review.marks)
+    from pipeline.regs.review import export as E
+    # T266: the proposed cuts from the decided data (`review.export`); a marks path given is exported in memory
+    decided = E.decide(M.load(Path(marks_path))) if marks_path else E.load()
     props = [{"id": p["id"], "split": json.loads(p["split"].model_dump_json()),
               "confidence": p["confidence"]}
-             for p in M.proposals(M.load(mp), M.load_overrides(
-                 CURATED.regulations.review.proposal_overrides))] if mp.exists() else []
+             for p in decided.shared(M.load_overrides(CURATED.regulations.review.proposal_overrides))]
     if gpkg is None:
         from project_config import get_config
         gpkg = str(get_config().fwa_data_gpkg)

@@ -28,6 +28,15 @@ from pipeline.common.curated import CURATED
 from pipeline.regs.review import apply_proposals as A
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
+from pipeline.regs.review import export as E
+
+
+def _decided_args(store: Path) -> list[str]:
+    """T266: apply_proposals reads the EXPORT of the marks (never the store): export `store` beside it (no
+    pre-Tab tidal calls in a test) and name both — the store only for the "export is current" guard."""
+    d = store.parent / "decided"
+    E.write(E.decide(M.load(store), tidal_decisions=None), d)
+    return ["--marks", str(store), "--decided", str(d)]
 from pipeline.regs.review.tickets import ticketed
 
 SHA = "0" * 64
@@ -289,7 +298,7 @@ def test_apply_lands_each_proposal_from_the_marks_as_its_own_commit(src, tmp_pat
     monkeypatch.setattr(P.Sources, "live", classmethod(
         lambda cls, build=None: P.Sources(src.entries_dir, src.dfo_dir, src.splits_path, src.build)))
     # no side rebuild yet: only the proposal that changes no cut lands, after its binding check
-    assert A.main(["--marks", str(store)]) == 0
+    assert A.main(_decided_args(store)) == 0
     assert _git(repo, "log", "--format=%s").splitlines() == [
         f"T185 apply {hz['id']}: {hz['title']}"[:200], "base"]
     assert checked == [hz["id"]]
@@ -297,7 +306,7 @@ def test_apply_lands_each_proposal_from_the_marks_as_its_own_commit(src, tmp_pat
     assert "the marks are the decision" in body and "r1: 4 -> 92 sections" in body
     # the side rebuilds made: the new splits land first, then the extents that name them
     side["ready"] = True
-    assert A.main(["--marks", str(store)]) == 0
+    assert A.main(_decided_args(store)) == 0
     log = _git(repo, "log", "--format=%s").splitlines()
     assert log == [f"T185 apply {q['id']}: {q['title']}"[:200]
                    for q in (cow, camp_a, camp_b, by["split-n1"], by["split-n2"], hz)] + ["base"]
@@ -310,7 +319,7 @@ def test_apply_lands_each_proposal_from_the_marks_as_its_own_commit(src, tmp_pat
     assert got[by["split-n1"]["split_id"]]["confidence"] == "medium"
     assert _git(repo, "status", "--porcelain", "--", "data") == ""
     # nothing more to land: every proposal is in the files now
-    assert A.main(["--marks", str(store)]) == 0
+    assert A.main(_decided_args(store)) == 0
     assert len(_git(repo, "log", "--format=%s").splitlines()) == 7
 
 
@@ -323,7 +332,7 @@ def test_a_dry_run_lands_nothing(src, tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(P.Sources, "live", classmethod(
         lambda cls, build=None: P.Sources(src.entries_dir, src.dfo_dir, src.splits_path, src.build)))
     before = src.text(src.splits_path)
-    assert A.main(["--marks", str(store), "--dry-run"]) == 0
+    assert A.main(_decided_args(store) + ["--dry-run"]) == 0
     out = capsys.readouterr().out
     assert "== would apply" in out and "a cut changes" in out
     assert src.splits_path.read_text() == before

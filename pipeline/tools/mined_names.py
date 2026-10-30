@@ -2,7 +2,8 @@
 decisions. Deterministic; rerun after the owner marks more rows in the review app's Names tab.
 
 Accepted = (the auto-accepted rows, owner 2026-10-28) + (the owner's single-row decisions, `names.OWNER`) + (every
-row whose latest name mark is verified `accept`) − (every row whose latest name mark is verified `reject`).
+row whose latest name mark is verified `accept`) − (every row whose latest name mark is verified `reject`). The name
+marks are read from their export (`data/curated/decided/names.json`, `review.export`, T266), never marks.jsonl.
 
 Each accepted row becomes a `name_variants`-shaped entry: its target and one name per source, each with its REAL
 source code, label, ref and evidence (`names.name_records`). Nothing else is written.
@@ -20,10 +21,14 @@ from pipeline.regs.review import marks as M
 from pipeline.regs.review import names as N
 
 
-def decisions(marks_path: Path) -> dict[str, tuple[str, str]]:
-    """candidate id -> (call, who) from the latest VERIFIED, non-stale name mark."""
+def decisions(decided) -> dict[str, tuple[str, str]]:
+    """candidate id -> (call, who) from the latest VERIFIED, non-stale name mark — read from the decided data
+    (`review.export`, T266; a marks path is exported in memory first)."""
+    from pipeline.regs.review import export as E
+    if not isinstance(decided, E.Decided):
+        decided = E.decide(M.load(decided))
     out = {}
-    for m in M.latest(M.load(marks_path)).values():
+    for m in decided.scope("name"):
         if m.scope != "name" or m.verdict != "verified" or m.call not in ("accept", "reject"):
             continue
         now = N.prints_of(m.target)
@@ -33,9 +38,9 @@ def decisions(marks_path: Path) -> dict[str, tuple[str, str]]:
     return out
 
 
-def build(marks_path: Path) -> list[dict]:
+def build(decided) -> list[dict]:
     doc = N.load()
-    marked = decisions(marks_path)
+    marked = decisions(decided)
     entries = []
     for i in sorted(doc["by_id"]):
         c = doc["by_id"][i]
@@ -72,10 +77,9 @@ def document(got: list[dict]) -> dict:
 
 
 def main(argv: list[str]) -> int:
-    from pipeline.common.curated import CURATED as C
-    marks_path = C.regulations.review.marks
+    from pipeline.regs.review import export as E
     out = CURATED.waters.mined_names
-    got = build(marks_path)
+    got = build(E.load())
     text = json.dumps(document(got), indent=1, ensure_ascii=False) + "\n"
     if "--check" in argv:
         same = out.read_text() == text

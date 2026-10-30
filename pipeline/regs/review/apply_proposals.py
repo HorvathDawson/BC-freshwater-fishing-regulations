@@ -4,7 +4,8 @@
     python -m pipeline.regs.review.apply_proposals [--only ID]   # land each, `git commit -- <paths>`
 
 THE MARKS ARE THE DECISIONS (owner 2026-10-27): there is no accept step. Every applicable proposal
-the marks in force make is landed, rebuilt from the marks and the curated files NOW
+the marks in force make is landed — read from their export (`review.export`, T266: data/curated/decided/,
+refused while it is behind marks.jsonl), never from the marks store itself — rebuilt from the marks and the curated files NOW
 (`proposals.build`), never read from the written patches. To change or stop one, the owner changes
 the mark. New splits land first; a proposal naming a new split lands only once that split is in
 splits.json (applied in this run, or before). After each commit the proposals are rebuilt, so the
@@ -99,13 +100,16 @@ def plan(props: list[dict], tried: set[str], landed_sids: set[str] = frozenset()
 
 
 def main(argv: list[str] | None = None) -> int:
-    from pipeline.common.curated import CURATED
     from pipeline.regs.parsing.io import atomic_write
-    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import export as E
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.apply_proposals",
                                  description="apply the owner's marks (T185 proposals), one commit "
                                              "each, after the binding check")
-    ap.add_argument("--marks", type=Path, default=CURATED.regulations.review.marks)
+    ap.add_argument("--decided", type=Path, default=None,
+                    help="the decided-data dir (`review.export`, T266; default CURATED.decided)")
+    ap.add_argument("--marks", type=Path, default=None,
+                    help="the marks store the decided data must be the export of (default CURATED's); "
+                         "only checked, never applied from")
     ap.add_argument("--build", type=Path, help="the atlas whose registry names new anchors")
     ap.add_argument("--only", action="append", default=[], metavar="ID",
                     help="land only these proposals (repeatable)")
@@ -114,12 +118,19 @@ def main(argv: list[str] | None = None) -> int:
                          "diff read elsewhere (its side atlas is not at the default path)")
     ap.add_argument("--dry-run", action="store_true", help="print the diffs and checks, write nothing")
     a = ap.parse_args(argv)
+    # T266: the decided data is what lands; marks the owner made since its export are not in it yet
+    behind = E.stale(a.decided, a.marks)
+    if behind:
+        print(f"apply_proposals: the decided data is behind the marks ({', '.join(behind)}) — export first:\n"
+              "    python -m pipeline.regs.review.export", file=sys.stderr)
+        return 2
+    decided = E.load(a.decided)
     tried: set[str] = set()
     landed_sids: set[str] = set()
     landed, rc, blocked = [], 0, []
     while True:
         src = P.Sources.live(a.build)                      # the files as they are now
-        props = P.build(M.load(a.marks), src)
+        props = P.build(decided, src)
         if a.only:
             props_pick = [p for p in props if p["id"] in a.only or any(
                 p["id"] in q["depends_on"] for q in props if q["id"] in a.only)]

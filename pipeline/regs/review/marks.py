@@ -976,29 +976,38 @@ def confidence_of(group: Sequence[NewSplit], overrides: Sequence[ConfidenceOverr
     return default_confidence(group[0].anchor)
 
 
-def proposals(marks: Iterable[Mark], overrides: Sequence[ConfidenceOverride] = ()) -> list[dict]:
-    """THE PROPOSED SPLITS, SHARED AND DEDUPED: every `new_splits` entry of EVERY mark (superseded
-    ones too — the store is the history), one proposal per distinct cut (`same_anchor`), in the
-    order first proposed. Each is {id, split (the FIRST proposal's `NewSplit`, so its first name),
-    marks: [{target, ref, reviewer, date}], confidence (`confidence_of`, `overrides` first)}. `id` is the first proposal's ref, made unique with a
-    `-2` suffix when another cut already holds it. Read only; the store is never edited."""
+def proposal_groups(marks: Iterable[Mark]) -> list[dict]:
+    """THE PROPOSED SPLITS, SHARED AND DEDUPED, before any confidence: every `new_splits` entry of
+    EVERY mark (superseded ones too — the store is the history), one group per distinct cut
+    (`same_anchor`), in the order first proposed: {id, split (the FIRST proposal's `NewSplit`),
+    members (every `NewSplit` that named it), marks: [{target, ref, reviewer, date}]}. `id` is the
+    first proposal's ref, made unique with a `-2` suffix when another cut already holds it. What
+    `review.export` writes (T266); `proposals` adds the confidence."""
     out: list[dict] = []
-    seen: list[list[NewSplit]] = []
     for m in uncleared(marks):              # a cleared mark's proposals are taken back with it
         for n in m.new_splits:
-            i = next((k for k, grp in enumerate(seen) if any(same_anchor(n, q) for q in grp)), None)
+            i = next((k for k, p in enumerate(out) if any(same_anchor(n, q) for q in p["members"])), None)
             if i is None:
                 pid, k = n.ref, 1
                 while any(p["id"] == pid for p in out):
                     k += 1
                     pid = f"{n.ref}-{k}"
-                out.append({"id": pid, "split": n, "marks": []})
-                seen.append([])
+                out.append({"id": pid, "split": n, "members": [], "marks": []})
                 i = len(out) - 1
-            seen[i].append(n)
+            out[i]["members"].append(n)
             who = {"target": m.target, "ref": n.ref, "reviewer": m.reviewer, "date": m.date}
             if who not in out[i]["marks"]:
                 out[i]["marks"].append(who)
-    for p, grp in zip(out, seen):
-        p["confidence"] = confidence_of(grp, overrides)
     return out
+
+
+def with_confidence(groups: Iterable[dict], overrides: Sequence[ConfidenceOverride] = ()) -> list[dict]:
+    """`proposal_groups` rows as proposals: {id, split, marks, confidence (`confidence_of`, `overrides` first)}."""
+    return [{"id": g["id"], "split": g["split"], "marks": [dict(w) for w in g["marks"]],
+             "confidence": confidence_of(g["members"], overrides)} for g in groups]
+
+
+def proposals(marks: Iterable[Mark], overrides: Sequence[ConfidenceOverride] = ()) -> list[dict]:
+    """THE PROPOSED SPLITS, SHARED AND DEDUPED (`proposal_groups`), each with its confidence
+    (`confidence_of`, `overrides` first). Read only; the store is never edited."""
+    return with_confidence(proposal_groups(marks), overrides)

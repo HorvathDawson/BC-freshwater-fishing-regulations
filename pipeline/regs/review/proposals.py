@@ -1,6 +1,6 @@
 """T185: REVIEW MARKS -> PROPOSED EDITS -> applied by Claude, never by the review tool.
 
-    marks.jsonl (read only)  ->  proposals (one per mark, one per new split)  ->  the review app's
+    marks.jsonl -> `review.export` -> data/curated/decided/ (read only, T266)  ->  proposals (one per mark, one per new split)  ->  the review app's
     read-only "waiting to apply" list  ->  `apply_proposals` (Claude runs it) lands each as its own
     commit, after the binding check (and the side rebuild where a cut changes)
 
@@ -628,20 +628,24 @@ def _tidal_flag(sid: str, have: Mapping, src: Sources, marks: list, water: str) 
              "split_id": sid, "confidence": None}]
 
 
-def build(marks: Iterable, src: Sources, *, applied: Optional[set] = None) -> list[dict]:
-    """EVERY PROPOSAL the marks make against the files NOW, new splits first. Pure: reads `src`.
+def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]:
+    """EVERY PROPOSAL the decided data makes against the files NOW, new splits first. Pure: reads `src`.
+    `decided`: the exported decided data (`review.export.load`, T266 — what apply paths read), or an
+    iterable of marks, exported in memory first (`review.export.decide`, the owner's earlier tidal
+    calls `src.tidal_decisions` folded in before them, so a mark made since supersedes one).
     `applied`, when given, collects the key of every mark whose extent / tributary fix the files
     already say (landed: no proposal is made for it) — `applied_keys`."""
     from pipeline.regs.review import marks as M
-    # T166: the owner's earlier tidal calls first, so a mark made since supersedes one
-    marks = tidal_decision_marks(src.tidal_decisions) + list(marks)
-    latest = M.latest(marks).values()
+    from pipeline.regs.review import export as E
+    if not isinstance(decided, E.Decided):
+        decided = E.decide(decided, tidal_decisions=src.tidal_decisions)
+    latest = decided.inforce
     inforce = [m for m in latest if _proposes(m)]
     tidal_in = [m for m in latest if _tidal_decides(m)]
     # T166: where each tidal stream's atlas line starts (its lowest section), from the build's handles
     line_starts = _line_starts(src.build, {str(x.new_splits[0].blk or "") for x in tidal_in})
     tidal_open = [m for m in latest if _tidal_followup(m)]
-    shared = M.proposals(marks, src.overrides)          # T210: one per distinct cut, every mark
+    shared = decided.shared(src.overrides)             # T210: one per distinct cut, every mark
     splits_doc = src.doc(src.splits_path)
     have = {sp["id"]: sp for wb in splits_doc.get("waterbodies") or []
             for sp in wb.get("splits") or [] if sp.get("id")}
@@ -1164,8 +1168,6 @@ def _summary(props: list[dict]) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    from pipeline.common.curated import CURATED
-    from pipeline.regs.review import marks as M
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.proposals",
                                  description="review marks -> proposed edits (T185); writes only "
                                              "the proposals dir (and side copies)")
@@ -1178,13 +1180,15 @@ def main(argv: list[str] | None = None) -> int:
                               "(T166: one side atlas for all the tidal boundaries)")
     s.add_argument("--out", type=Path, required=True)
     for x in (b, s):
-        x.add_argument("--marks", type=Path, default=CURATED.regulations.review.marks)
+        x.add_argument("--decided", type=Path, default=None,
+                       help="the decided-data dir (`review.export`, T266; default CURATED.decided)")
         x.add_argument("--build", type=Path, help="the atlas whose registry names new anchors")
         x.add_argument("--dir", type=Path, default=OUT_DIR, help="the proposals dir")
     a = ap.parse_args(argv)
+    from pipeline.regs.review import export as E
     src = Sources.live(a.build)
-    marks = M.load(a.marks)
-    props = build(marks, src)
+    decided_dir = Path(a.decided or E.default_dir())
+    props = build(E.load(decided_dir), src)
     if a.cmd == "side" and a.id == "tidal":
         tid = tidal_props(props)
         if not tid:
@@ -1205,7 +1209,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if a.check:
         check(props, src)
-    idx = write(props, a.dir, src, marks_path=a.marks)
+    idx = write(props, a.dir, src, marks_path=decided_dir)
     print(_summary(props))
     print(f"{len(props)} proposal(s) -> {_rel(idx)}", file=sys.stderr)
     return 0

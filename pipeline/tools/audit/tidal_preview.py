@@ -45,10 +45,9 @@ def _ends(handles: Path, blks: set[str]) -> dict[str, list[float]]:
 
 def cuts_now(build: Path) -> list[dict]:
     """The tidal cuts the marks in force make: {proposal, kind, split, blk, measure}."""
-    from pipeline.common.curated import CURATED
-    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import export as E
     from pipeline.regs.review import proposals as P
-    props = P.build(M.load(CURATED.regulations.review.marks), P.Sources.live(build))
+    props = P.build(E.load(), P.Sources.live(build))
     resolved = json.loads((Path(build) / "splits.resolved.json").read_text(encoding="utf-8"))
     out = []
     for p in P.tidal_props(props):

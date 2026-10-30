@@ -121,11 +121,15 @@ class Entries(BaseModel):
 
 class Review(BaseModel):
     """The curation review's REVIEWED data (T97): `marks` is the append-only store of every
-    reviewer's mark (`pipeline.regs.review.marks`), checked in empty before the first mark."""
+    reviewer's mark (`pipeline.regs.review.marks`), checked in empty before the first mark.
+
+    T266: the marks are REVIEW STATE. No build reads them: what they decide is exported to
+    `Curated.decided` (`pipeline.regs.review.export`), so the path is NOT required to exist here
+    (a build runs with it absent); `marks.load` still raises on a missing store for its readers."""
 
     model_config = ConfigDict(frozen=True)
 
-    marks: FilePath
+    marks: Path
     #: owner calls on PROPOSED splits the marks cannot carry (the store is append-only, never
     #: edited): a cut's confidence (`marks.ConfidenceOverride`, owner 2026-10-27)
     proposal_overrides: FilePath
@@ -218,8 +222,11 @@ class Curated(BaseModel):
     bathymetry: Domain
     runtiming: RunTiming
     inseason: InSeason
+    #: T266: WHAT THE REVIEW MARKS DECIDE, one file per domain with provenance — written only by
+    #: `python -m pipeline.regs.review.export`, read by the apply paths (never marks.jsonl)
+    decided: DirectoryPath
 
-    _abs = field_validator("base", mode="before")(_absolute)
+    _abs = field_validator("base", "decided", mode="before")(_absolute)
 
     def domain(self, name: str) -> Domain:
         """`c.domain("gauges")` — for tools that loop over all three."""
