@@ -1,6 +1,6 @@
 # T287 — No freeze when a download finishes: updates apply in the background
 
-Status: PARTIAL 2026-10-29 (owner 2026-10-29: "after a download finishes the app freezes for a tiny bit. this feels really bad. it should
+Status: PARTIAL 2026-10-29 — a3cc1f269 (owner 2026-10-29: "after a download finishes the app freezes for a tiny bit. this feels really bad. it should
 not freeze. it should update in background cleanly").
 
 ## Work

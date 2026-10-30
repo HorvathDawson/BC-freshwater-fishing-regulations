@@ -1,6 +1,6 @@
 # T286 — Tapping a water opens its regulations instantly on phones (never needs a spinner)
 
-Status: DONE 2026-10-29 (owner 2026-10-29: "should make the regulation opening faster when a click happens on mobile too. it should
+Status: DONE 2026-10-29 — a3cc1f269 (owner 2026-10-29: "should make the regulation opening faster when a click happens on mobile too. it should
 never be slow enough to need a loading icon").
 
 ## Work
