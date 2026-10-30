@@ -59,8 +59,6 @@ with the default Claude uses until you answer). Newest first inside each section
   the matcher rerun + `promote --only 08MH079` follow.
 - **T204 phone check:** Kanaka Creek's map now has two marks (112 Avenue bridge, Cliff Park Falls) and its lower part is
   two separately selectable stretches ("… · stretch 1 of 2"); say if the stretch wording should differ.
-- **Cranberry canyon cuts:** the bottom is a DEM estimate (low). In the review app, **Low-confidence cuts** queue (with
-  White River and Chuckwalla River, the other `low` cuts).
 - **Map look (T64, T85, T113, T152; all built and live):** look at the map (wetland-heavy Fort Nelson and the
   Chilcotin without unnamed wetlands; z13–z18 bends on the Fraser/Vedder now overzoomed from z13; Vancouver's dense z13
   tiles; no OSM creeks under ours at z14+) and say if the look suffers — the basemap's OSM wetland fill is one style layer
