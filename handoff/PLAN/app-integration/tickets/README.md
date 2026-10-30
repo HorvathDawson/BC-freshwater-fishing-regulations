@@ -358,6 +358,7 @@ use that as the sole source of future work."
 | T314 | Spot data refresh doesn't work in 0.3.0 (pending weather/flow never fill) | OPEN | — | owner 2026-10-31 |
 | T315 | Offline: keep the last week of gauge readings so charts still show the measured line | OPEN | — | owner 2026-10-31 |
 | T316 | Spot + parking pins as map-engine GeoJSON layers (no lag on pan), clustering in the source | OPEN | — | owner 2026-10-31 |
+| T317 | Audit: every map feature drawn by the map engine (no lagging overlays); once-over for per-frame JS / hot-path waste | OPEN | — | owner 2026-10-31 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |
 
