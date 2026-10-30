@@ -59,10 +59,10 @@ function Harness({ store, start = BROWSE, blocked = false, reg, log, out }: {
 
 describe("the guided walkthrough (T293)", () => {
   it("is the owner's walk, in his order: find it, its rules, its conditions, a spot and its coming days", () => {
-    expect([...new Set(GUIDE_STEPS.map((s) => s.phase))]).toEqual(["find", "rules", "conditions", "layers", "spot", "days", "end"]);
+    // (T302) this is the web's walk (jsdom is the web): no spot steps — spots live in the phone app
+    expect([...new Set(GUIDE_STEPS.map((s) => s.phase))]).toEqual(["find", "rules", "conditions", "layers", "end"]);
     expect(GUIDE_STEPS.map((s) => s.key)).toEqual(["welcome", "search", "pick", "map", "regs", "answer", "day", "keep", "gear",
-      "part", "book", "conditions", "reading", "forecast", "change", "layers", "ground", "obstacles", "restore", "spot",
-      "capture", "open", "days", "reasons", "done"]);
+      "part", "book", "conditions", "reading", "forecast", "change", "layers", "ground", "obstacles", "restore", "done"]);
   });
 
   it("opens on a new device once nothing blocks it, names the water, and walks to the end with real taps and Show me", async () => {
@@ -84,8 +84,7 @@ describe("the guided walkthrough (T293)", () => {
     expect(screen.queryByTestId("guide")).toBeNull();
     expect(store.v).toBe(WALKTHROUGH_VERSION);                           // seen, and no resume line left
     // each DO step done by Show me, through the app's own moves; "regs" was passed (the water opened on its Regulations)
-    expect(log).toEqual(["search", "select", "open:regs", "view:conditions", "layers", "ground", "obstacles", "restore", "add",
-                         "cancel", "openSpot"]);
+    expect(log).toEqual(["search", "select", "open:regs", "view:conditions", "layers", "ground", "obstacles", "restore"]);
    }, 20_000);
 
   it("a DO step done by the reader ticks, then moves on by itself", async () => {
@@ -143,7 +142,7 @@ describe("the guided walkthrough (T293)", () => {
     press(w.showMe);
     await waitFor(() => expect(keyAt()).toBe("restore"), { timeout: 2000 });
     press(w.next);
-    expect(keyAt()).toBe("spot");
+    expect(keyAt()).toBe("done");
     expect(log).toEqual(["layers", "ground", "obstacles", "restore"]);
   });
 

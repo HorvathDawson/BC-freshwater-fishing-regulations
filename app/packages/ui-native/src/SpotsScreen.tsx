@@ -13,6 +13,7 @@ import { ErrorState } from "./ErrorState";
 import { Button } from "./Button";
 import { EmptyState } from "./EmptyState";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { WebSpotsNotice, webSpotsNotice } from "./WebSpotsNotice";
 import { SPOTS_LIST_WORDS, SPOTS_MENU } from "@app/core";
 import type { PhotoStore } from "@app/data/spots";
 import { usePhotoUris, type SpotsMenuAddKind, type SpotsMenuRow, type SpotsMenuVM } from "@app/ui";
@@ -34,6 +35,8 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
   /** S1: where a spot's first photo is drawn from. Absent -> the row says NO PHOTO. */
   photoStore?: Pick<PhotoStore, "uri">;
 }) {
+  // (T302) the web keeps no spots: they live in the phone app, said in the list's place (spots saved here earlier stay, unshown)
+  if (webSpotsNotice()) return <WebSpotsNotice palette={palette} />;
   return (
     <View testID="spots-screen" style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ paddingHorizontal: GUTTER, paddingTop: 16, paddingBottom: 12,

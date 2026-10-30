@@ -114,75 +114,72 @@ const step = (key: string, phase: GuidePhase, kind: "show" | "do", targets: read
 
 const GUIDE_STEPS: readonly GuideStepWords[] = [
   step("welcome", "find", "show", [], "Let's find a water",
-    "This walkthrough uses the real app on a real water, the {water}. Do each step yourself, or press Show me. "
-    + "Skip it any time; More → Help replays it."),
+    "We'll look up the {water} together, using the app for real. Do each step yourself, or tap Show me. You can "
+    + "skip at any time, and replay this later from More → Help."),
   step("search", "find", "do", ["search"], "Search for it",
-    "Tap the search bar and type the first few letters: “{letters}”."),
+    "Tap this search bar and type the first few letters: “{letters}”."),
   step("pick", "find", "do", [], "Pick it from the list",
-    "Tap {water} in the results. The map moves to it and lights it up; nothing opens yet."),
+    "Tap {water} in the list. The map moves to it and lights it up."),
   step("map", "find", "do", [], "Now tap it on the map",
-    "Tap the lit line on the map. A tap on any stream or lake opens its regulations for the day the map shows."),
-  step("regs", "rules", "do", ["view:regs"], "Open its regulations",
-    "Tap Regulations at the top of the water."),
-  step("answer", "rules", "show", ["regs:answer"], "Today's answer",
-    "Open or closed for the day shown, in the colour the map draws it. The bar under it is the whole year, so you can "
-    + "see when seasons open and close."),
-  step("day", "rules", "show", ["regs:date"], "Any other day",
-    `Tap the date to read the rules for ${DAY_PICKER.tomorrowSaid} or any other day. The map follows the same day.`),
+    "Tap the lit line on the map. Tapping any river or lake opens its fishing rules."),
+  step("regs", "rules", "do", ["view:regs"], "Open its rules",
+    "Tap Regulations at the top."),
+  step("answer", "rules", "show", ["regs:answer"], "Can you fish here today?",
+    "This tells you if the water is open or closed today. The bar under it is the whole year: you can see when it "
+    + "opens and closes."),
+  step("day", "rules", "show", ["regs:date"], "Pick another day",
+    `Tap this date to see the rules for ${DAY_PICKER.tomorrowSaid}, or any day you plan to go. The map changes with it.`),
   step("keep", "rules", "show", ["regs:keep"], "What you can keep",
-    "Each fish with its daily quota. Tap one for its sizes and season, and how to tell it apart."),
-  step("gear", "rules", "show", ["regs:tabs"], "Gear and methods",
-    "These jump down the page: Gear and Methods say what you may fish with and how (bait, hooks, fly only, boats); "
-    + "Licence says what you need."),
-  step("part", "rules", "show", ["regs:place"], "Which part of the water",
-    "A long water can have different rules on different parts. This line says which part you are reading, from where "
-    + "to where. A rule that holds on only part of it says so, and the Map view shows the parts."),
-  step("book", "rules", "show", ["regs:book"], "The rule book decides",
-    "The synopsis is the authority. Its link opens the page these rules come from, so you can check the wording."),
-  step("conditions", "conditions", "do", ["view:conditions"], "Now its conditions",
-    "Tap Conditions at the top to see what the river is doing."),
-  step("reading", "conditions", "show", ["cond:headline"], "Against normal",
-    "How the flow compares with past years on this date: low, normal (the middle half of past years) or high. A "
-    + "number alone says little; against normal it says whether the river is up or down for the time of year."),
-  step("forecast", "conditions", "show", ["cond:horizons"], "The days ahead",
-    "Pick +1d to +10d for the forecast flow on that day. The last button, the arrow, is the change expected over the "
-    + "coming days: rising, steady or dropping."),
-  step("change", "conditions", "show", ["cond:chart"], "What a change means",
-    "Rising after rain usually means higher, cloudier water; dropping and clearing is often when fishing picks up. "
-    + "Very high for the date can make wading unsafe; very low and warm is hard on fish. A guide, not a promise."),
-  // (owner 2026-10-29) the map's layers: open the menu, switch the ground, the fish obstacles; then back as they were
-  step("layers", "layers", "do", ["layers"], "The map's layers",
-    "Back on the map, the layers button on its side chooses what the map shows. Tap it."),
-  step("ground", "layers", "do", ["layers:ground"], "Switch the ground",
-    "Satellite lays aerial photos under the water (it needs a connection); Map is the drawn map. Pick the one you "
-    + "are not on."),
-  step("obstacles", "layers", "do", ["layers:obstacles"], "Fish obstacles",
-    "Turn on Fish obstacles: waterfalls, dams and other barriers fish may not get past, each with its own mark. Tap "
-    + "one on the map for what it is."),
-  step("restore", "layers", "show", [], "Back as you had it",
-    "Next puts the layers back the way you had them and closes the menu. Change them any time.", "top"),
-  step("spot", "spot", "do", ["tab:spots"], "Save a spot",
-    "Spots keeps the places you fish. Tap Spots and pick a way to add one."),
-  step("capture", "spot", "do", [], "Where, when and what",
-    "Pick the water and the place, then the day and hour you were there: the spot keeps that day's flow and weather. "
-    + "Add a note or a photo, then Save.", "top"),
-  step("open", "days", "do", ["tab:spots"], "Open it again",
-    "Your spots are kept under Spots. Tap Spots, then a spot, to open it."),
-  step("days", "days", "show", ["spot:days"], "The next few days",
-    "Why save the day's conditions: each coming day gets a score for how much it looks like a day you fished here. The "
-    + "river's flow and the rain in the days before count most, then cloud and air pressure, then air temperature and wind."),
-  step("reasons", "days", "show", ["spot:best"], "The reasons, and the closest day",
-    "Each day lists its reasons: what matches and what differs. The day marked “Closest to your visit” is the best "
-    + "match. Alike conditions, not a promise of fish."),
-  step("done", "end", "show", [], "You're set",
-    "The regulations are kept on this phone, so the map works with no signal. More → Help says how updates and "
-    + "offline work, and replays this walkthrough."),
+    "Each fish and how many you can keep in a day. Tap a fish for its sizes, its season and how to tell it apart."),
+  step("gear", "rules", "show", ["regs:tabs"], "Gear and how you fish",
+    "Tap these to jump down the page. Gear and Methods say what you can use, like bait, hooks or fly only. Licence "
+    + "says what you need to buy."),
+  step("part", "rules", "show", ["regs:place"], "Which stretch you're reading",
+    "A long river can have different rules in different places. This line tells you which stretch these rules are for. "
+    + "Tap Map at the top to see the stretches."),
+  step("book", "rules", "show", ["regs:book"], "Check the rule book",
+    "The official rule book has the final say. Tap this link to open the page these rules come from."),
+  step("conditions", "conditions", "do", ["view:conditions"], "How is the river doing?",
+    "Tap Conditions at the top."),
+  step("reading", "conditions", "show", ["cond:headline"], "Higher or lower than usual",
+    "This tells you if the river is low, normal or high compared with other years at this time of year. Normal is how "
+    + "it usually runs now."),
+  step("forecast", "conditions", "show", ["cond:horizons"], "The next few days",
+    "Tap +1d to +10d to see how the river should look on those days. The arrow at the end shows if it's going up or "
+    + "down."),
+  step("change", "conditions", "show", ["cond:chart"], "What it means for fishing",
+    "A river rising after rain is often high and muddy. As it drops and clears, fishing often gets better. Very high "
+    + "water can be unsafe to wade. Use it as a guide, not a promise."),
+  step("layers", "layers", "do", ["layers"], "Change what the map shows",
+    "Back on the map, tap this button to choose what the map shows."),
+  step("ground", "layers", "do", ["layers:ground"], "Try the satellite view",
+    "Satellite shows photos from the air (you need a signal). Map shows a drawn map. Tap the one you're not using."),
+  step("obstacles", "layers", "do", ["layers:obstacles"], "Falls and dams",
+    "Turn this on to see waterfalls, dams and other places fish can't get past. Tap one on the map to see what it is."),
+  step("restore", "layers", "show", [], "Back to how it was",
+    "Tap Next to put the map back how you had it. You can change these any time.", "top"),
+  step("spot", "spot", "do", ["tab:spots"], "Save a fishing spot",
+    "Tap Spots to save a place you fish, then pick how to add it."),
+  step("capture", "spot", "do", [], "Where and when",
+    "Tap the water and the place, then the day and time you were there. The app saves how the river and the weather "
+    + "were that day. Add a note or a photo, then tap Save.", "top"),
+  step("open", "days", "do", ["tab:spots"], "Find your spot again",
+    "Your spots are kept here. Tap Spots, then tap a spot."),
+  step("days", "days", "show", ["spot:days"], "Days like the day you fished",
+    "Here's why you save a spot: each of the next few days gets a score for how much it looks like a day you fished "
+    + "here. The river and the rain count most, then clouds and air pressure, then temperature and wind."),
+  step("reasons", "days", "show", ["spot:best"], "Why, and the best match",
+    "Each day says what's the same and what's different. The day marked “Closest to your visit” is the best match. "
+    + "Similar weather, not a promise of fish."),
+  step("done", "end", "show", [], "You're all set",
+    "The rules are saved on your phone, so the map works with no signal. More → Help explains updates and offline "
+    + "use, and can replay this tour."),
 ];
 
 /** The web's last step: a browser keeps no offline copy, so it says where updates and Help are instead. */
-const WEB_DONE = step("done", "end", "show", [], "You're set",
-  "More → Help says how the refresh button and the bell keep the regulations and gauges current, and replays this "
-  + "walkthrough.");
+const WEB_DONE = step("done", "end", "show", [], "You're all set",
+  "The refresh button at the top gets the latest rules and river levels, and the bell shows changes. To save fishing "
+  + "spots, get the phone app. More → Help explains it all, and can replay this tour.");
 
 export const WALKTHROUGH_WORDS = {
   /** the walkthrough's name aloud */
@@ -211,7 +208,10 @@ export const WALKTHROUGH_WORDS = {
 
 /** (T293) The walkthrough's steps for the platform: the app's last step says works-offline, the web's does not. */
 export function guideSteps(platform: "web" | "app"): readonly GuideStepWords[] {
-  return platform === "web" ? GUIDE_STEPS.map((s) => (s.key === "done" ? WEB_DONE : s)) : GUIDE_STEPS;
+  // (T302) the web keeps no spots (they live in the phone app): its walk has no spot steps
+  return platform === "web"
+    ? GUIDE_STEPS.filter((s) => s.phase !== "spot" && s.phase !== "days").map((s) => (s.key === "done" ? WEB_DONE : s))
+    : GUIDE_STEPS;
 }
 
 /** A step's words with the chosen water's name in (`{water}`) and the letters to type (`{letters}`). */
@@ -231,11 +231,10 @@ export const TAB_TOUR_WORDS: {
   label: { runs: "How to read Runs", conditions: "Reading the Conditions map", salmon: "How to read Salmon" },
   again: { runs: "How to read the Runs tab", conditions: "Tour the Conditions map", salmon: "How to read Salmon" },
   runs: [
-    { key: "read", targets: ["map"], title: "Reading the colours",
-      body: `${RUN_WORDS.legend.spawn}; ${RUN_WORDS.legend.pass.toLowerCase()}; ${RUN_WORDS.legend.off.toLowerCase()}; `
-        + `${RUN_WORDS.legend.none.toLowerCase()}. ${RUN_WORDS.field} `
-        + "Drag the slider or press Play to move through the year. Tap a stream for its runs and how many spawners DFO "
-        + `counted there. ${RUN_WORDS.scale.none}.` },
+    { key: "read", targets: ["map"], title: "When the fish are in",
+      body: "The colours show where fish are in the water now: spawning, passing through, or due at another time of "
+        + "year. Drag the slider or tap Play to move through the year. Tap a stream to see its runs and how many fish "
+        + "were counted there." },
   ] satisfies readonly WalkthroughCard[],
   /**
    * (T293, owner 2026-10-29) THE CONDITIONS MAP, a short tour with the real camera: out to the watershed of a gauge near
@@ -244,23 +243,23 @@ export const TAB_TOUR_WORDS: {
    */
   conditions: [
     { key: "watershed", targets: ["map"], camera: "watershed", title: "Whole watersheds",
-      body: "Zoomed out, each watershed is coloured by its gauges: how their flow compares with past years on this date." },
-    { key: "gauge", targets: ["map"], camera: "gauge", title: "The rivers a gauge speaks for",
-      body: "Closer in, each river takes the colour of the gauge that speaks for it: the one on it, or one up or down "
-        + "the same system. The dot is the gauge itself." },
+      body: "Zoomed out like this, each area shows if its rivers are low, normal or high for this time of year." },
+    { key: "gauge", targets: ["map"], camera: "gauge", title: "Each river",
+      body: "Zoomed in, each river takes its colour from the nearest river gauge on the same river. The dot is the "
+        + "gauge." },
     { key: "colours", targets: ["map"], title: "What the colours mean",
-      body: "Low, normal (the middle half of past years) or high, for this date. A river no gauge speaks for stays "
-        + "plain. The key at the bottom shows the scale." },
+      body: "This legend shows the colours, from low to high compared with other years at this time of year. A river "
+        + "with no gauge nearby stays plain." },
     { key: "tap", targets: ["map"], title: "Tap for more",
-      body: "Tap a gauge for its chart and forecast; tap a river for its own Conditions, beside its regulations." },
-    { key: "change", targets: ["horizons"], title: "Rising or dropping",
-      body: "The days ahead colour the rivers by forecast flow. The arrow, Change, colours them by how much they are "
-        + "expected to rise or drop: a whole watershed turning to rising usually means rain is on the way into it." },
+      body: "Tap a gauge dot for its chart and forecast. Tap a river to see how it's doing, next to its rules." },
+    { key: "change", targets: ["horizons"], title: "Going up or down",
+      body: "Tap a day here to see the forecast. Tap Change to see which rivers are expected to rise or drop. When a "
+        + "whole area turns to rising, rain is usually on the way." },
   ] satisfies readonly (WalkthroughCard & { camera?: "watershed" | "gauge" })[],
   salmon: [
-    { key: "salmon", targets: ["modes"], title: "Salmon colours",
-      body: `${SALMON_WORDS.toggle.salmon} paints DFO's salmon rules instead of the provincial ones; waters DFO does not `
-        + `list are closed to salmon. ${SALMON_WORDS.toggle.standard} goes back.` },
+    { key: "salmon", targets: ["modes"], title: "Salmon rules",
+      body: `${SALMON_WORDS.toggle.salmon} shows the federal salmon rules instead. A water that isn't listed is closed `
+        + `to salmon. Tap ${SALMON_WORDS.toggle.standard} to go back.` },
   ] satisfies readonly WalkthroughCard[],
 } as const;
 
@@ -333,6 +332,7 @@ export const HELP_WORDS = {
     web: [
       "A browser keeps no offline copy: the page reads the regulations and the map as you go. To fish without signal, "
         + "use the app, which keeps everything on the phone.",
+      "Fishing spots are saved in the phone app only, for now. Accounts are coming, so your spots will show here too.",
     ],
     /** the button to the Offline maps page (the app only) */
     open: "Offline maps",

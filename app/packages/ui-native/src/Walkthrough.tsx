@@ -316,9 +316,11 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
       setHole((h) => (off ? null : h && Math.abs(h.x - r.x) < 1 && Math.abs(h.y - r.y) < 1 && Math.abs(h.w - r.w) < 1
         && Math.abs(h.h - r.h) < 1 ? h : r));
     };
-    void look();
-    const t = setInterval(() => { void look(); }, 400);
-    return () => { gone = true; clearInterval(t); };
+    // looked at again every 400 ms (a timeout chain, not a frame loop): sheets slide and pages scroll under it
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const again = () => { t = setTimeout(() => { void look().then(() => { if (!gone) again(); }); }, 400); };
+    void look(); again();
+    return () => { gone = true; if (t) clearTimeout(t); };
   }, [guide.open, guide.at, registry, win.h]);   // eslint-disable-line react-hooks/exhaustive-deps -- per step
 
   // (a phone) each step said aloud as it comes up; on the web the live region says it

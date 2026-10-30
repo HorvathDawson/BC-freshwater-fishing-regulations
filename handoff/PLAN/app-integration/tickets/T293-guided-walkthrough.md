@@ -59,3 +59,7 @@ score (flow and lead-up rain first, then cloud/pressure, then air/wind), the rea
   (card + Salmon hint), back-layers entry. Pre-existing fails NOT from T293: back-layers SynopsisLoading BackHandler,
   NotFishingSheet missing from the surfaces list (T292).
 - Emulator: not run — no emulator up and the APK is being cut; verify on the next APK (first run, Android back).
+
+Owner 2026-10-30: every step, the Conditions tour and the mode tips rewritten in everyday words (short sentences, "you",
+pointing at what is on screen; no app-internal terms — a test refuses them). Phone shots re-taken. Web walk has no spot
+steps (T302). The card's 400 ms re-measure is a timeout chain, not setInterval (no-per-frame test).
