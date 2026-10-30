@@ -38,7 +38,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
-  Camera, GeoJSONSource, Images, Map as MLMap, Marker, VectorSource,
+  Camera, GeoJSONSource, Images, Map as MLMap, Marker, UserLocation, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, fitAtMost, padBbox, refineFit, spotMarkers,
@@ -82,7 +82,7 @@ type Data = NonNullable<MapProps["data"]>;
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, chrome, onError,
                       onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs,
-                      basemap, marks, onPressMark, spots, onImageryError: _noTileErrors,
+                      basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
                       onRegion: _noPrefetch, insetBottom = 0 }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
@@ -346,7 +346,16 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   lit.current = highlight;
   const refine = useRef<(() => Promise<void>) | null>(null);
   const fitted = useRef<string | null>(null);
+  // (T303) My location: the camera goes to the fix each time the button asks (the dot itself is MapLibre's UserLocation)
+  const centred = useRef(0);
   useEffect(() => {
+    if (!me?.on || !me.fix || me.centre === centred.current) return;
+    centred.current = me.centre;
+    renderer.easeTo({ lon: me.fix.lon, lat: me.fix.lat, zoom: Math.max(camNow.current.zoom, 15) }, { duration: cameraMs(500) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me?.centre, me?.on, me?.fix]);
+  useEffect(() => {
+    if (!fit || !camRef.current || fitted.current === fit.key) return;
     if (!fit || !camRef.current || fitted.current === fit.key) return;
     fitted.current = fit.key;
     let rounds = 0;
@@ -541,7 +550,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         onDidFailLoadingMap={() => report(new Error("map failed to load"))}
       >
         <Camera ref={camRef} initialViewState={camera0.current} minZoom={MIN_ZOOM} maxZoom={CAMERA_MAX_ZOOM}
-                maxBounds={MAX_BOUNDS} />
+                maxBounds={MAX_BOUNDS}
+                trackUserLocation={me?.on && me.following ? "default" : undefined}
+                // the reader's own drag drops the camera's tracking: following stops, the dot stays
+                onTrackUserLocationChange={(e) => { if (me?.following && !e.nativeEvent.trackUserLocation) me.onRelease?.(); }} />
+        {me?.on ? <UserLocation accuracy animated /> : null}
         <VectorSource id="atlas" ref={atlasAttached} />
         {/* (T74) the hatches, the gauge pill and the route's pin, in this theme */}
         <Images images={images as never} />

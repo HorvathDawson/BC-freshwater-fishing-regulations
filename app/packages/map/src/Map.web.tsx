@@ -38,13 +38,14 @@ import { useGauges, useTrace } from "./web/useOverlays";
 import { useWaterCopy } from "./web/useWaterCopy";
 import { useRegion, useVisible } from "./web/useVisible";
 import { useWebMapRefs } from "./web/refs";
+import { useMe } from "./web/useMe";
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing,
                      chrome,
                       onError, onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, insetTop = 0, insetBottom = 0, onRegion }: MapProps) {
+                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion }: MapProps) {
   const refs = useWebMapRefs(onError);
   // (T243) the camera's own glides jump while the OS asks for reduced motion (`motion.ts`)
   useEffect(() => {
@@ -70,6 +71,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useLongPress(refs, onLongPress, at);
   useMapPoint(refs, onMapPoint);
   useMarker(refs, marker, furniture);
+  useMe(refs, me);
   usePins(refs, pins, furniture);
   const lit = useHighlight(refs, { highlight, water, selection });
   useMarks(refs, marks, onPressMark, furniture, markElement);

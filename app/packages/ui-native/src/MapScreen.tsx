@@ -11,7 +11,7 @@ import type { SectionKey } from "@app/core";
 import type { ReactNode } from "react";
 import { View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
-import type { Horizon, HorizonChipVM } from "@app/ui";
+import type { Horizon, HorizonChipVM, MyLocation } from "@app/ui";
 import { CornerStrip } from "./CornerStrip";
 import { MapRail } from "./MapRail";
 import type { Palette } from "./theme";
@@ -21,7 +21,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, status, standing, lakes, salmon, method, runs, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, marks, onPressMark, spots,
-                            insetTop = 0, insetBottom = 0, onRegion, corner }: {
+                            insetTop = 0, insetBottom = 0, onRegion, corner, me = null }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -99,6 +99,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   insetTop?: number;
   /** (T275) the foot block over the map, px: the credits and scale sit above it (MapProps.insetBottom). */
   insetBottom?: number;
+  /** (T303) My location (the rail's button, the dot): `useMyLocation`'s state, absent where the platform has none. */
+  me?: MyLocation | null;
   /** (T186) The region under the centre, each settle — see MapProps.onRegion (the web prefetch's). */
   onRegion?: MapProps["onRegion"];
 }) {
@@ -106,7 +108,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   const coachTarget = useCoachTarget("map");
   return (
     <View ref={coachTarget} collapsable={false} style={{ flex: 1, backgroundColor: palette.tint }}>
-      <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
+      <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onPressObstacle={onPressObstacle} onPressTidal={onPressTidal} onPressNotFishing={onPressNotFishing} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
            highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}
@@ -149,7 +151,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         THE RAIL (owner 2026-10-21): Layers moved here from a bottom-left pill — the map's own buttons in one stack on the
         right, under MapLibre's zoom stack (`MapRail`). Layers alone since T48: Spots is a bottom-bar tab again.
       */}
-      <MapRail palette={palette} onLayers={onLayers} layersChanged={layersChanged} top={insetTop} />
+      <MapRail palette={palette} me={me} onLayers={onLayers} layersChanged={layersChanged} top={insetTop} />
     </View>
   );
 }

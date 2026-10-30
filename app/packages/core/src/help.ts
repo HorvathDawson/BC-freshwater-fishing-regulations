@@ -63,7 +63,8 @@ export const withGuideAt = (stored: string | null | undefined, key: string | nul
  * (T276, T293) THE MODE HINTS shown once, on first use of a mode: the Runs tab (its colour key), the Conditions map (its
  * gauge colours) and Salmon (DFO's colours). Short — one step each. Bump a version to show one again.
  */
-export const TAB_TOURS = { runs: "tour-runs-1", conditions: "tour-conditions-1", salmon: "tour-salmon-1" } as const;
+export const TAB_TOURS = { runs: "tour-runs-1", conditions: "tour-conditions-1", salmon: "tour-salmon-1",
+                            locate: "tour-locate-1" } as const;
 export type TabTourKey = keyof typeof TAB_TOURS;
 export const tabTourSeen = (stored: string | null | undefined, k: TabTourKey): boolean => seenIn(stored, TAB_TOURS[k]);
 
@@ -77,7 +78,7 @@ export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "t
   | "regs:answer" | "regs:date" | "regs:keep" | "regs:tabs" | "regs:place" | "regs:book"
   | "cond:headline" | "cond:horizons" | "cond:chart"
   | "spot:days" | "spot:best"
-  | "layers" | "layers:ground" | "layers:obstacles";
+  | "locate" | "layers" | "layers:ground" | "layers:obstacles";
 
 export interface WalkthroughCard {
   readonly key: string;
@@ -228,8 +229,16 @@ export function guideText(s: string, water: { name: string; letters: string } | 
 export const TAB_TOUR_WORDS: {
   readonly label: Readonly<Record<TabTourKey, string>>; readonly again: Readonly<Record<TabTourKey, string>>;
 } & Readonly<Record<TabTourKey, readonly (WalkthroughCard & { readonly camera?: "watershed" | "gauge" })[]>> = {
-  label: { runs: "How to read Runs", conditions: "Reading the Conditions map", salmon: "How to read Salmon" },
-  again: { runs: "How to read the Runs tab", conditions: "Tour the Conditions map", salmon: "How to read Salmon" },
+  label: { runs: "How to read Runs", conditions: "Reading the Conditions map", salmon: "How to read Salmon",
+           locate: "Finding yourself on the map" },
+  again: { runs: "How to read the Runs tab", conditions: "Tour the Conditions map", salmon: "How to read Salmon",
+           locate: "Find yourself on the map" },
+  /** (T303) once, on the Map tab: the my-location button under the zoom */
+  locate: [
+    { key: "locate", targets: ["locate"], title: "Where you are",
+      body: "Tap this to show where you are on the map. The first time, your phone asks if the app may use your "
+        + "location. Tap again to keep the map on you, and once more to stop. Your location stays on your device." },
+  ] satisfies readonly WalkthroughCard[],
   runs: [
     { key: "read", targets: ["map"], title: "When the fish are in",
       body: "The colours show where fish are in the water now: spawning, passing through, or due at another time of "

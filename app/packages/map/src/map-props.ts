@@ -355,6 +355,14 @@ export interface MapProps {
    */
   marker?: { lat: number; lon: number } | null;
   /**
+   * (T303) The reader's own location, shown after they asked for it (the rail's My location button; this map never asks).
+   * `fix`: the last reading (the web draws the blue dot and its accuracy circle from it; a phone's map draws its own
+   * with MapLibre's user location and uses `fix` to centre). `centre` counts up each time the camera should go to it;
+   * `following` keeps it in view; `onRelease` says the reader moved the map by hand, so following should stop.
+   */
+  me?: { on: boolean; fix: { lat: number; lon: number; accuracy?: number } | null; following: boolean; centre: number;
+         onRelease?: () => void } | null;
+  /**
    * Several marked points at once, each with its own colour and label.
    *
    * `marker` answers "where did I tap"; this answers "where are the ENDS of the thing I am

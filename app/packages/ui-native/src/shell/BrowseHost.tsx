@@ -9,7 +9,7 @@ import { TYPE } from "../type";
 import { useCoachTarget } from "../CoachMarks";
 import { openProbe, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MapRail, type MenuControls, type RegsPrefetch,
+import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
          type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import { hiddenLayers, shownLayers, type Camera, type MapSpots, type TileEndpoints } from "@app/map";
@@ -32,14 +32,17 @@ const NONE: readonly SectionKey[] = [];
 const NONE_PINS: readonly never[] = [];
 
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom,
-                             spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate,
+                             spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate, me = null,
                              photos, loader, syncState, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
                              offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages, regsPrefetch = null, tourFit = null }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
   spotsError?: string | null; onRefreshSpots?: () => void | Promise<void>; refreshing?: boolean;
-  locate: Locate | null; photos?: SpotPhotos; loader: ReleaseLoader | null; syncState: SyncState;
+  locate: Locate | null;
+  /** (T303) my location on the map (the rail's button and the dot) */
+  me?: MyLocation | null;
+  photos?: SpotPhotos; loader: ReleaseLoader | null; syncState: SyncState;
   /** (T300) the top bar's sync icon state and tap, for the More tab's button */
   sync?: SyncVM | null; onSync?: () => void;
   menu: MenuControls; menuInfo?: MenuInfo; mapDay: Date | null;
@@ -178,7 +181,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                     onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null))
                                     : menu.show(k))} />
       : tab === "map" || tab === "conditions" || tab === "runs"
-        ? <MapScreen at={tiles} palette={palette} theme={theme}
+        ? <MapScreen at={tiles} palette={palette} theme={theme} me={me}
                      camera={camera.current}
                      // (T48) the top bar over the map: the corner's chips, the rail and the web map's controls go under it
                      insetTop={insetTop} insetBottom={insetBottom}

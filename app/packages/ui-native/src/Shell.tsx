@@ -26,7 +26,7 @@ import { GUIDE_WATER, TAB_TOUR_WORDS, bellLabel, releaseNoticeVM, dayRange, plac
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Platform, View } from "react-native";
-import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
+import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useMenu, useDataFacts, useSync,
          BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
@@ -188,6 +188,8 @@ export function Shell(p: ShellProps) {
    * map — `@app/ui` `useMapRail`. Every way of adding a spot ends in the route's `addSpot` at a point: one capture.
    */
   const rail = useMapRail(go, locate, route);
+  /** (T303) my location on the browse maps: asked on the button's tap, never before */
+  const me = useMyLocation(locate);
   /** THE MENU (owner 2026-10-21): its pages, listed by the More tab (T48), mounted below as back layers (menu/MenuHost). */
   const menu = useMenu();
   /*
@@ -381,6 +383,8 @@ export function Shell(p: ShellProps) {
   const condTour = useTabTour(p.walkthrough ?? null, "conditions", route.mode === "browse" && tab === "conditions", tabBusy);
   const salmonTour = useTabTour(p.walkthrough ?? null, "salmon",
                                 onMapTab && col.regsLayer === "salmon" && !col.salmonLoading, tabBusy);
+  // (T303) one hint at the my-location button, on the Map tab
+  const locateTour = useTabTour(me ? p.walkthrough ?? null : null, "locate", onMapTab, tabBusy);
   /*
    * (T293, owner 2026-10-29) THE CONDITIONS TOUR MOVES THE REAL CAMERA: out to the watershed of a gauge near where the
    * map is (its catchment's size sets how far: about twice the width of a square of that area), then in to the gauge.
@@ -474,7 +478,7 @@ export function Shell(p: ShellProps) {
     ? <BrowseHost nav={nav} col={col} search={search} rail={rail} palette={palette} theme={theme}
                   themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footH}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
-                  onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} photos={photos}
+                  onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} me={me} photos={photos}
                   loader={loader} syncState={syncState} sync={sync} onSync={onSync} menu={menu} menuInfo={menuInfo} mapDay={mapDay} regsPrefetch={regsPrefetch}
                   onDay={setMapDay} onOpenDay={() => setDayOpen(true)}
                   dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
@@ -610,6 +614,7 @@ export function Shell(p: ShellProps) {
       <TabTourSheet tour={runsTour} which="runs" palette={palette} registry={coach} />
       <TabTourSheet tour={condTour} which="conditions" palette={palette} registry={coach} onStep={onCondStep} />
       <TabTourSheet tour={salmonTour} which="salmon" palette={palette} registry={coach} />
+      <TabTourSheet tour={locateTour} which="locate" palette={palette} registry={coach} />
       {!layersOpen && guideCard}
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}

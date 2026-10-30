@@ -23,6 +23,13 @@ export const locate: Locate | null = geo ? {
     }
   },
   here: () => new Promise((resolve, reject) => {
-    geo.getCurrentPosition((p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude }), reject, OPTIONS);
+    geo.getCurrentPosition((p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude, accuracy: p.coords.accuracy }),
+                           reject, OPTIONS);
   }),
+  // (T303) following: only after the reader's own tap has been allowed (`here()`), stopped by the returned function
+  watch: (on, failed) => {
+    const id = geo.watchPosition((p) => on({ lat: p.coords.latitude, lon: p.coords.longitude, accuracy: p.coords.accuracy }),
+                                 failed, { enableHighAccuracy: true, maximumAge: 5_000 });
+    return () => geo.clearWatch(id);
+  },
 } : null;

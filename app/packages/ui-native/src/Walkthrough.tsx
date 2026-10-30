@@ -437,7 +437,7 @@ const tabSteps = (k: TabTourKey): readonly CoachStep[] => TAB_TOUR_WORDS[k].map(
   key: c.key, targets: c.targets, title: c.title, body: c.body,
   ...(c.targets[0] === "map" && k === "runs" ? { shape: "spot" as const } : {}),
 }));
-const TAB_STEPS = { runs: tabSteps("runs"), conditions: tabSteps("conditions"), salmon: tabSteps("salmon") };
+const TAB_STEPS = { runs: tabSteps("runs"), conditions: tabSteps("conditions"), salmon: tabSteps("salmon"), locate: tabSteps("locate") };
 
 export function TabTourSheet({ tour, which, palette, registry, onStep }: {
   tour: TabTour; which: TabTourKey; palette: Palette; registry: CoachRegistry;

@@ -12,6 +12,22 @@ export const MAP_RAIL = {
   layersLabel: "Choose layers",
 } as const;
 
+/**
+ * (T303) MY LOCATION, the rail's button under the zoom: the first tap asks (never before) and shows the blue dot with its
+ * accuracy circle, centred; the next follows you; the next stops following. Foreground only; where you are never leaves
+ * the device (the map draws it, nothing sends it).
+ */
+export const MY_LOCATION = {
+  label: "My location",
+  /** the button's label while the dot is shown and the map is, or is not, following it */
+  labelOn: "Follow my location",
+  labelFollowing: "Stop following my location",
+  /** said when it was refused, or location is switched off: how to turn it on; the button stays usable to retry */
+  denied: "Location is off for this app. Turn it on in your device settings, then tap again.",
+  /** a fix did not arrive (no signal, timed out) */
+  noFix: "Your location could not be found. Try again outside, or check location is on.",
+} as const;
+
 /** The Spots tab (T48; the rail's Spots menu before it): your saved spots, and the ways to add one. */
 export const SPOTS_MENU = {
   title: "Spots",

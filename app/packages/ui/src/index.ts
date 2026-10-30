@@ -58,3 +58,4 @@ export * from "./report";
 export * from "./errorLog";
 export * from "./crashReport";
 export * from "./startLink";
+export * from "./myLocation";

@@ -30,7 +30,12 @@ export interface Locate {
   /** What the platform says now — no prompt is raised by asking this. */
   permission(): Promise<LocatePermission>;
   /** Where the device is. May raise the platform's own prompt: called only from the reader's own tap. */
-  here(): Promise<LatLon>;
+  here(): Promise<LatLon & { accuracy?: number }>;
+  /**
+   * (T303) Keep telling where the device is (the map's following). Called only after `here()` has been allowed; returns the
+   * stop. Absent: the platform's map draws its own location (the phone's), or follows by `here()` alone.
+   */
+  watch?(on: (fix: LatLon & { accuracy?: number }) => void, failed: (e: unknown) => void): () => void;
 }
 
 export interface SpotsMenuRow {

@@ -8,7 +8,7 @@
  * has none. An icon alone is a guess, so every button says its name aloud; the words are `@app/core` `MAP_RAIL`.
  */
 import type { ReactNode } from "react";
-import { LAYER_WORDS, MAP_RAIL } from "@app/core";
+import { LAYER_WORDS, MAP_RAIL, MY_LOCATION } from "@app/core";
 import { Platform, Pressable, Text, View } from "react-native";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
@@ -28,7 +28,7 @@ export const RAIL_BELOW = Platform.OS === "web" ? 84 : 8;
 /** On the web its right edge lines up with that zoom stack's (MapLibre's 10 px control margin); 14 elsewhere. */
 export const RAIL_RIGHT = Platform.OS === "web" ? 10 : 14;
 
-export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, children }: {
+export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, me, children }: {
   palette: Palette;
   /** (T48) the bottom edge of the bar over the map (the search field), in px: the rail starts `RAIL_BELOW` under it */
   top?: number;
@@ -40,15 +40,25 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, childre
   /** Absent: no Layers button. Both browse maps pass it (owner 2026-10-22): each opens the sheet with its own entries. */
   onLayers?: () => void;
   /**
+   * (T303) My location, above Layers (under the zoom): the dot is `on` once asked, the map `following` it; the line says why
+   * it could not be shown. Absent: no button (no location on this platform).
+   */
+  me?: { on: boolean; following: boolean; busy: boolean; notice: string | null; press: () => void; dismiss: () => void } | null;
+  /**
    * any further map switch, stacked under the rail, right-aligned with it. None today: Standard / Salmon moved to the
    * top-left corner beside the day strip (owner 2026-10-28).
    */
   children?: ReactNode;
 }) {
   const buttons = [
+    me && { k: "locate",
+            label: me.following ? MY_LOCATION.labelFollowing : me.on ? MY_LOCATION.labelOn : MY_LOCATION.label,
+            onPress: me.press,
+            icon: <Icon name="locate" colour={me.on ? palette.accent : palette.ink} size={RAIL_ICON} />, badge: 0,
+            selected: me.following },
     onLayers && { k: "layers", label: LAYER_WORDS.railLabel(layersChanged), onPress: onLayers,
                   icon: <Icon name="layers" colour={palette.ink} size={RAIL_ICON} />, badge: layersChanged },
-  ].filter((b): b is Exclude<typeof b, undefined> => !!b);
+  ].filter((b): b is Exclude<typeof b, undefined | null> => !!b);
   const coach = useCoachRefs();   // (T293) the walkthrough points at the layers button (`layers`)
   if (buttons.length === 0) return null;
   return (
@@ -60,9 +70,10 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, childre
                    ...palette.lift }}>
       {buttons.map((b, i) => (
         <Pressable {...hitProps({ w: SIZE, h: SIZE })} key={b.k} ref={coach(b.k)} onPress={b.onPress} accessibilityRole="button" accessibilityLabel={b.label}
+                   accessibilityState={"selected" in b ? { selected: b.selected } : undefined}
                    style={({ pressed }) => ({
                      width: SIZE, height: SIZE, alignItems: "center", justifyContent: "center",
-                     backgroundColor: pressed ? palette.tint : palette.card,
+                     backgroundColor: pressed || ("selected" in b && b.selected) ? palette.tint : palette.card,
                      borderTopWidth: i === 0 ? 0 : 1, borderTopColor: palette.line,
                    })}>
           {b.icon}
@@ -76,6 +87,14 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, childre
         </Pressable>
       ))}
     </View>
+    {me?.notice && (
+      // why it is not shown, and how to turn it on; a tap on the line puts it away, the button retries
+      <Pressable testID="my-location-notice" onPress={me.dismiss} accessibilityRole="alert"
+                 style={{ maxWidth: 220, padding: 8, backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2,
+                          borderRadius: palette.r.box, ...palette.lift }}>
+        <Text style={{ ...TYPE.small, color: palette.ink }}>{me.notice}</Text>
+      </Pressable>
+    )}
     {children}
     </View>
   );

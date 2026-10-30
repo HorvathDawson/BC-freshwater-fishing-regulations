@@ -26,6 +26,7 @@ export const locate: Locate | null = {
     // a recent fix is good enough to pin a spot by (as the web's maximumAge 60 s); otherwise a fresh one
     const last = await Location.getLastKnownPositionAsync({ maxAge: 60_000, requiredAccuracy: 100 });
     const fix = last ?? await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-    return { lat: fix.coords.latitude, lon: fix.coords.longitude };
+    return { lat: fix.coords.latitude, lon: fix.coords.longitude, accuracy: fix.coords.accuracy ?? undefined };
   },
+  // (T303) no `watch`: the phone's map draws and follows its own location (MapLibre's user location)
 };

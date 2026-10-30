@@ -19,7 +19,7 @@ import Svg, { Circle, Ellipse, Path, Polygon, Rect } from "react-native-svg";
 import { OBSTACLE_ICON_GRID, OBSTACLE_ICON_HALO, OBSTACLE_ICON_SHAPES, obstacleIconKind, type IconShape, type ObstacleIconKind } from "@app/core";
 
 export type IconName =
-  | "map" | "conditions" | "spots" | "more" | "layers"
+  | "map" | "conditions" | "spots" | "more" | "layers" | "locate"
   | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse" | "sync" | "bell" | "check" | "fish" | "delta"
   | "runs" | "play" | "pause"
   // (T284) the sky, for a day of weather
@@ -32,6 +32,7 @@ export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
   spots: "map-pin",
   more: "ellipsis",
   layers: "layers",
+  locate: "locate-fixed",
   search: "search",
   back: "chevron-left",
   next: "chevron-right",
@@ -86,6 +87,11 @@ export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
     { path: "m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" },
     { path: "m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" },
     { path: "m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" },
+  ],
+  locate: [
+    { path: "M2 12h3" }, { path: "M19 12h3" }, { path: "M12 2v3" }, { path: "M12 19v3" },
+    { circle: [12, 12, 7] },
+    { circle: [12, 12, 3] },
   ],
   search: [
     { circle: [11, 11, 8] },

@@ -295,3 +295,26 @@ describe("the rail's Layers badge (layers menu B)", () => {
     ]);
   });
 });
+
+describe("the rail's My location button (T303)", () => {
+  it("sits above Layers, is named for its state, presses, and shows why it failed", async () => {
+    const { MapRail } = await import("./MapRail");
+    const { MY_LOCATION } = await import("@app/core");
+    const press = vi.fn(), dismiss = vi.fn();
+    const base = { on: false, following: false, busy: false, notice: null as string | null, press, dismiss };
+    const names = (me: typeof base) => {
+      render(<MapRail palette={LIGHT} onLayers={() => {}} me={me} />);
+      const out = screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"));
+      cleanup();
+      return out;
+    };
+    expect(names(base)).toEqual([MY_LOCATION.label, "Choose layers"]);
+    expect(names({ ...base, on: true })[0]).toBe(MY_LOCATION.labelOn);
+    expect(names({ ...base, on: true, following: true })[0]).toBe(MY_LOCATION.labelFollowing);
+    render(<MapRail palette={LIGHT} onLayers={() => {}} me={{ ...base, notice: MY_LOCATION.denied }} />);
+    expect(screen.getByTestId("my-location-notice").textContent).toBe(MY_LOCATION.denied);
+    fireEvent.click(screen.getByLabelText(MY_LOCATION.label));
+    expect(press).toHaveBeenCalledTimes(1);
+    cleanup();
+  });
+});
