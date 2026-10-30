@@ -1,6 +1,6 @@
 # T287 — No freeze when a download finishes: updates apply in the background
 
-Status: PARTIAL 2026-10-29 — a3cc1f269 (owner 2026-10-29: "after a download finishes the app freezes for a tiny bit. this feels really bad. it should
+Status: PARTIAL 2026-10-30 — a3cc1f269, b3ca664cf, f1e2d5abc (left: the commit's re-render + the map's relabel; see "Swap work cut") (owner 2026-10-29: "after a download finishes the app freezes for a tiny bit. this feels really bad. it should
 not freeze. it should update in background cleanly").
 
 ## Work
@@ -44,3 +44,29 @@ Left (why PARTIAL): the swap's own work still holds the JS thread 60–180 ms, n
 decodePaint in one go (156 ms) and the re-render onto the new loader; a sliced paint decode / preparing the new set's
 decodes before the swap would remove it. The first-install finish (T272 path) and a region/offline download finishing
 were not measured here.
+
+## Swap work cut (2026-10-30, b3ca664cf, f1e2d5abc)
+- **Decodes in slices.** paint (with its status index), method and each salmon slice are generators (`@app/core`
+  `sliced.ts`: `yield` every 2048 rows; `runSliced` runs 8 ms at a time with a turn between, a MessageChannel on the
+  web, a 0 ms timer on Hermes); the loader uses them (`decodePaintAsync`, `decodeMethodAsync`, `decodeSalmonShardAsync`;
+  the `EXPO_PUBLIC_T287_BEFORE` build still decodes in one go). Same answers (`sliced.test.ts`).
+- **Warmed before the commit.** An applied update decodes, on the new set and before it replaces the old one, every file
+  the set on screen had decoded (`warmLike`: paint, method, the salmon slices read, lakes, access, flow-area), so the new
+  set lands with nothing left to decode (`ui/boot.ts`).
+- Measured (test bed `update-freeze`, `runs/2026-10-30T07-51-09`; same-files update):
+
+| | panning through the finish | map still, at the swap |
+|---|---|---|
+| before (a3cc1f269) | 0 | 138 (paint decode, one go) · 247 · 79 ms |
+| after | 1 × 65 ms | **124 · 152 ms**; every decode now sliced (paint 448 ms wall, method 158, salmon-6 163 — no stall) |
+
+- **First install (T272/T298 path), measured for the first time** (`install`, `runs/` 2026-10-30 08:3x, `T287-first-install.txt`):
+  installed → map: paint sliced (402 ms wall, no stall), then 66 · 62 · **275 ms** — the 275 is the app's first mount
+  of the map screen (Shell + colouring), not a decode.
+- **Left (why still PARTIAL):** the swap's commit re-renders every screen on the new loader in one React commit
+  (~124 ms) and the map then relabels/rebuilds its style for the new status/method/salmon values (~150 ms: MapLibre
+  "source in use" warnings = a style swap; map package). The same first-mount cost is the 275 ms at a first install.
+  Next steps: hand the map the same feed objects when a file's sha256 is unchanged (no style swap for unchanged data),
+  and split the commit (map colouring first, the rest a turn later).
+- Test bed: `install` now records the first-install finish (`T287-first-install.txt`, note `install finish → map`) and
+  dismisses T303's locate hint ("Got it") — it covered the map and failed `install` / smoke taps.
