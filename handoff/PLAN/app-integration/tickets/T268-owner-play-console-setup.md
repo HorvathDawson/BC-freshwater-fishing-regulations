@@ -1,6 +1,6 @@
 # T268 — OWNER: set up Google Play internal testing (when Play account verification completes)
 
-Status: DONE — owner set up Play 2026-10-29: app created, AAB versionCode 4 on internal testing, testers opt-in link saved, service account play-uploader@canifishthis.iam.gserviceaccount.com invited; `play-upload.py --max-version-code` answered 4 from the API (no hash: owner console work).
+Status: DONE (9046ffa63) — owner set up Play 2026-10-29: app created, AAB versionCode 4 on internal testing, testers opt-in link saved, service account play-uploader@canifishthis.iam.gserviceaccount.com invited; `play-upload.py --max-version-code` answered 4 from the API (no hash: owner console work).
 
 Unblocks T267 (Claude side, done: upload key, `deploy/staging/build-apk.sh --play`). Only the owner can do these, in
 Play Console and Google Cloud. Package **ca.canifishthis.app**.
