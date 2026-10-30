@@ -1,0 +1,652 @@
+{
+  "basemap": "/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations/data/generated/tiles/basemap.pmtiles",
+  "atlas": "/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations/data/generated/tiles/atlas.pmtiles",
+  "shots": [
+    {
+      "theme": "light",
+      "place": "lower-mainland",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 60,
+        "places_locality": 111,
+        "roads_shields": 2,
+        "earth_label_islands": 1
+      },
+      "outside": [
+        "places_locality:South Pass",
+        "places_locality:Sooes",
+        "places_locality:Clallam Bay",
+        "places_locality:Dickey Camp (Site)",
+        "places_locality:Gettysburg Ranch",
+        "places_locality:Lakedale",
+        "places_locality:Portage",
+        "places_locality:Waldron",
+        "places_locality:Diablo",
+        "places_locality:Dewey",
+        "places_locality:Uncas",
+        "places_locality:Sauk",
+        "places_locality:Robe",
+        "places_locality:Rena",
+        "places_locality:Kennedy Hot Springs",
+        "places_locality:Winnies Slide",
+        "places_locality:Samish Island",
+        "places_locality:Mineral City",
+        "places_locality:Cherry Point",
+        "places_locality:Mazama Park",
+        "places_locality:Thornwood",
+        "places_locality:Windy Arm",
+        "places_locality:Keystone",
+        "places_locality:Warnick",
+        "places_locality:Ehrlich",
+        "places_locality:Bayview",
+        "places_locality:Harmony",
+        "places_locality:Andron",
+        "places_locality:Comar",
+        "places_locality:OSO",
+        "places_locality:Everett",
+        "places_locality:Bellingham"
+      ]
+    },
+    {
+      "theme": "light",
+      "place": "lower-mainland",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 20,
+        "places_locality": 43,
+        "roads_shields": 13,
+        "earth_label_islands": 3,
+        "water_label_ocean": 1,
+        "indigenous_land__label": 3,
+        "tidal_water__label": 1,
+        "no_access__label": 4,
+        "park__label": 6,
+        "mu__label": 3,
+        "lake__label": 4
+      },
+      "outside": [
+        "places_locality:Lynden",
+        "places_locality:Haynie",
+        "places_locality:Hampton",
+        "places_locality:South Pass",
+        "places_locality:Greenwood",
+        "places_locality:Custer"
+      ]
+    },
+    {
+      "theme": "light",
+      "place": "lower-mainland",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 21,
+        "places_locality": 13,
+        "places_subplace": 1,
+        "roads_labels_major": 3,
+        "roads_shields": 8,
+        "earth_label_islands": 2,
+        "indigenous_land__label": 3,
+        "tidal_water__label": 1,
+        "no_access__label": 2,
+        "mu__label": 2,
+        "lake__label": 2,
+        "stream__label": 1
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "lower-mainland",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 35,
+        "places_subplace": 1,
+        "roads_labels_major": 14,
+        "roads_shields": 2,
+        "tidal_water__label": 1,
+        "mu__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "osoyoos",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 56,
+        "places_locality": 77,
+        "roads_shields": 1
+      },
+      "outside": [
+        "places_locality:Danville",
+        "places_locality:Smith Point",
+        "places_locality:Deer Park",
+        "places_locality:Velvet",
+        "places_locality:Portage",
+        "places_locality:Diablo",
+        "places_locality:Sauk",
+        "places_locality:Robe",
+        "places_locality:Startup",
+        "places_locality:Kennedy Hot Springs",
+        "places_locality:Winnies Slide",
+        "places_locality:Mineral City",
+        "places_locality:Mazama Park",
+        "places_locality:Warnick",
+        "places_locality:Andron",
+        "places_locality:Comar",
+        "places_locality:OSO"
+      ]
+    },
+    {
+      "theme": "light",
+      "place": "osoyoos",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 27,
+        "places_locality": 17,
+        "roads_shields": 2,
+        "indigenous_land__label": 5,
+        "no_access_permit__label": 1,
+        "park__label": 6,
+        "mu__label": 2
+      },
+      "outside": [
+        "places_locality:Nighthawk",
+        "places_locality:Goodenough Park",
+        "places_locality:Deer Park",
+        "places_locality:Old Molson",
+        "places_locality:Chesaw",
+        "places_locality:Boundary Point",
+        "places_locality:Smith Point"
+      ]
+    },
+    {
+      "theme": "light",
+      "place": "osoyoos",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 15,
+        "places_locality": 3,
+        "roads_shields": 7,
+        "indigenous_land__label": 2,
+        "park__label": 5,
+        "eco_reserve__label": 1,
+        "mu__label": 4,
+        "lake__label": 6
+      },
+      "outside": [
+        "places_locality:Boundary Point",
+        "places_locality:Smith Point"
+      ]
+    },
+    {
+      "theme": "light",
+      "place": "osoyoos",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 14,
+        "places_locality": 1,
+        "roads_labels_major": 9,
+        "roads_shields": 2,
+        "indigenous_land__label": 2,
+        "park__label": 3,
+        "mu__label": 1,
+        "lake__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "blaine",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 49,
+        "places_locality": 109,
+        "roads_shields": 3
+      },
+      "outside": [
+        "places_locality:South Pass",
+        "places_locality:Sooes",
+        "places_locality:Mora",
+        "places_locality:Clallam Bay",
+        "places_locality:Dickey Camp (Site)",
+        "places_locality:Gettysburg Ranch",
+        "places_locality:Oil City",
+        "places_locality:Lakedale",
+        "places_locality:Portage",
+        "places_locality:Waldron",
+        "places_locality:Diablo",
+        "places_locality:Berne",
+        "places_locality:Dewey",
+        "places_locality:Uncas",
+        "places_locality:Sauk",
+        "places_locality:Robe",
+        "places_locality:Rena",
+        "places_locality:Startup",
+        "places_locality:Kennedy Hot Springs",
+        "places_locality:Winnies Slide",
+        "places_locality:Samish Island",
+        "places_locality:Mineral City",
+        "places_locality:Shine-Gri-La",
+        "places_locality:Cherry Point",
+        "places_locality:Grand Valley",
+        "places_locality:Mazama Park",
+        "places_locality:Thornwood",
+        "places_locality:Windy Arm",
+        "places_locality:Keystone",
+        "places_locality:Warnick",
+        "places_locality:Ehrlich",
+        "places_locality:Bayview",
+        "places_locality:Harmony",
+        "places_locality:Andron",
+        "places_locality:Grace",
+        "places_locality:Comar",
+        "places_locality:OSO",
+        "places_locality:Everett",
+        "places_locality:Bellingham"
+      ]
+    },
+    {
+      "theme": "light",
+      "place": "blaine",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 11,
+        "places_locality": 41,
+        "roads_shields": 12,
+        "earth_label_islands": 4,
+        "water_label_ocean": 2,
+        "indigenous_land__label": 4,
+        "tidal_water__label": 3,
+        "no_access__label": 1,
+        "park__label": 3,
+        "mu__label": 3,
+        "lake__label": 1
+      },
+      "outside": [
+        "places_locality:Lynden",
+        "places_locality:Haynie",
+        "places_locality:Hampton",
+        "places_locality:South Pass",
+        "places_locality:Mountain View",
+        "places_locality:Agate Bay",
+        "places_locality:Greenwood",
+        "places_locality:Buckhorn",
+        "places_locality:Victor",
+        "places_locality:Custer",
+        "places_locality:Dewey",
+        "places_locality:Lummi",
+        "places_locality:Beach",
+        "places_locality:Wahl",
+        "places_locality:Cherry Point",
+        "places_locality:Bellingham",
+        "water_label_ocean:Boundary Pass"
+      ]
+    },
+    {
+      "theme": "light",
+      "place": "blaine",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 8,
+        "places_locality": 12,
+        "roads_labels_major": 1,
+        "roads_shields": 10,
+        "water_label_ocean": 3,
+        "indigenous_land__label": 1,
+        "tidal_water__label": 1,
+        "mu__label": 1
+      },
+      "outside": [
+        "places_locality:Blaine",
+        "places_locality:Cottonwood Beach",
+        "places_locality:Hillsdale",
+        "places_locality:Semiahmoo",
+        "places_locality:Haynie",
+        "water_label_ocean:Drayton Harbor",
+        "water_label_ocean:Semiahmoo Bay"
+      ]
+    },
+    {
+      "theme": "light",
+      "place": "blaine",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 18,
+        "places_locality": 3,
+        "places_subplace": 2,
+        "roads_labels_major": 17,
+        "roads_shields": 6,
+        "indigenous_land__label": 2,
+        "tidal_water__label": 3,
+        "park__label": 1
+      },
+      "outside": [
+        "places_locality:Blaine",
+        "places_locality:Semiahmoo"
+      ]
+    },
+    {
+      "theme": "dark",
+      "place": "lower-mainland",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 60,
+        "places_locality": 111,
+        "roads_shields": 2,
+        "earth_label_islands": 1
+      },
+      "outside": [
+        "places_locality:South Pass",
+        "places_locality:Sooes",
+        "places_locality:Clallam Bay",
+        "places_locality:Dickey Camp (Site)",
+        "places_locality:Gettysburg Ranch",
+        "places_locality:Lakedale",
+        "places_locality:Portage",
+        "places_locality:Waldron",
+        "places_locality:Diablo",
+        "places_locality:Dewey",
+        "places_locality:Uncas",
+        "places_locality:Sauk",
+        "places_locality:Robe",
+        "places_locality:Rena",
+        "places_locality:Kennedy Hot Springs",
+        "places_locality:Winnies Slide",
+        "places_locality:Samish Island",
+        "places_locality:Mineral City",
+        "places_locality:Cherry Point",
+        "places_locality:Mazama Park",
+        "places_locality:Thornwood",
+        "places_locality:Windy Arm",
+        "places_locality:Keystone",
+        "places_locality:Warnick",
+        "places_locality:Ehrlich",
+        "places_locality:Bayview",
+        "places_locality:Harmony",
+        "places_locality:Andron",
+        "places_locality:Comar",
+        "places_locality:OSO",
+        "places_locality:Everett",
+        "places_locality:Bellingham"
+      ]
+    },
+    {
+      "theme": "dark",
+      "place": "lower-mainland",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 20,
+        "places_locality": 43,
+        "roads_shields": 13,
+        "earth_label_islands": 3,
+        "water_label_ocean": 1,
+        "indigenous_land__label": 3,
+        "tidal_water__label": 1,
+        "no_access__label": 4,
+        "park__label": 6,
+        "mu__label": 3,
+        "lake__label": 4
+      },
+      "outside": [
+        "places_locality:Lynden",
+        "places_locality:Haynie",
+        "places_locality:Hampton",
+        "places_locality:South Pass",
+        "places_locality:Greenwood",
+        "places_locality:Custer"
+      ]
+    },
+    {
+      "theme": "dark",
+      "place": "lower-mainland",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 21,
+        "places_locality": 13,
+        "places_subplace": 1,
+        "roads_labels_major": 3,
+        "roads_shields": 8,
+        "earth_label_islands": 2,
+        "indigenous_land__label": 3,
+        "tidal_water__label": 1,
+        "no_access__label": 2,
+        "mu__label": 2,
+        "lake__label": 2,
+        "stream__label": 1
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "lower-mainland",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 35,
+        "places_subplace": 1,
+        "roads_labels_major": 14,
+        "roads_shields": 2,
+        "tidal_water__label": 1,
+        "mu__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "osoyoos",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 56,
+        "places_locality": 77,
+        "roads_shields": 1
+      },
+      "outside": [
+        "places_locality:Danville",
+        "places_locality:Smith Point",
+        "places_locality:Deer Park",
+        "places_locality:Velvet",
+        "places_locality:Portage",
+        "places_locality:Diablo",
+        "places_locality:Sauk",
+        "places_locality:Robe",
+        "places_locality:Startup",
+        "places_locality:Kennedy Hot Springs",
+        "places_locality:Winnies Slide",
+        "places_locality:Mineral City",
+        "places_locality:Mazama Park",
+        "places_locality:Warnick",
+        "places_locality:Andron",
+        "places_locality:Comar",
+        "places_locality:OSO"
+      ]
+    },
+    {
+      "theme": "dark",
+      "place": "osoyoos",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 27,
+        "places_locality": 17,
+        "roads_shields": 2,
+        "indigenous_land__label": 5,
+        "no_access_permit__label": 1,
+        "park__label": 6,
+        "mu__label": 2
+      },
+      "outside": [
+        "places_locality:Nighthawk",
+        "places_locality:Goodenough Park",
+        "places_locality:Deer Park",
+        "places_locality:Old Molson",
+        "places_locality:Chesaw",
+        "places_locality:Boundary Point",
+        "places_locality:Smith Point"
+      ]
+    },
+    {
+      "theme": "dark",
+      "place": "osoyoos",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 15,
+        "places_locality": 3,
+        "roads_shields": 7,
+        "indigenous_land__label": 2,
+        "park__label": 5,
+        "eco_reserve__label": 1,
+        "mu__label": 4,
+        "lake__label": 6
+      },
+      "outside": [
+        "places_locality:Boundary Point",
+        "places_locality:Smith Point"
+      ]
+    },
+    {
+      "theme": "dark",
+      "place": "osoyoos",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 14,
+        "places_locality": 1,
+        "roads_labels_major": 9,
+        "roads_shields": 2,
+        "indigenous_land__label": 2,
+        "park__label": 3,
+        "mu__label": 1,
+        "lake__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "blaine",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 49,
+        "places_locality": 109,
+        "roads_shields": 3
+      },
+      "outside": [
+        "places_locality:South Pass",
+        "places_locality:Sooes",
+        "places_locality:Mora",
+        "places_locality:Clallam Bay",
+        "places_locality:Dickey Camp (Site)",
+        "places_locality:Gettysburg Ranch",
+        "places_locality:Oil City",
+        "places_locality:Lakedale",
+        "places_locality:Portage",
+        "places_locality:Waldron",
+        "places_locality:Diablo",
+        "places_locality:Berne",
+        "places_locality:Dewey",
+        "places_locality:Uncas",
+        "places_locality:Sauk",
+        "places_locality:Robe",
+        "places_locality:Rena",
+        "places_locality:Startup",
+        "places_locality:Kennedy Hot Springs",
+        "places_locality:Winnies Slide",
+        "places_locality:Samish Island",
+        "places_locality:Mineral City",
+        "places_locality:Shine-Gri-La",
+        "places_locality:Cherry Point",
+        "places_locality:Grand Valley",
+        "places_locality:Mazama Park",
+        "places_locality:Thornwood",
+        "places_locality:Windy Arm",
+        "places_locality:Keystone",
+        "places_locality:Warnick",
+        "places_locality:Ehrlich",
+        "places_locality:Bayview",
+        "places_locality:Harmony",
+        "places_locality:Andron",
+        "places_locality:Grace",
+        "places_locality:Comar",
+        "places_locality:OSO",
+        "places_locality:Everett",
+        "places_locality:Bellingham"
+      ]
+    },
+    {
+      "theme": "dark",
+      "place": "blaine",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 11,
+        "places_locality": 41,
+        "roads_shields": 12,
+        "earth_label_islands": 4,
+        "water_label_ocean": 2,
+        "indigenous_land__label": 4,
+        "tidal_water__label": 3,
+        "no_access__label": 1,
+        "park__label": 3,
+        "mu__label": 3,
+        "lake__label": 1
+      },
+      "outside": [
+        "places_locality:Lynden",
+        "places_locality:Haynie",
+        "places_locality:Hampton",
+        "places_locality:South Pass",
+        "places_locality:Mountain View",
+        "places_locality:Agate Bay",
+        "places_locality:Greenwood",
+        "places_locality:Buckhorn",
+        "places_locality:Victor",
+        "places_locality:Custer",
+        "places_locality:Dewey",
+        "places_locality:Lummi",
+        "places_locality:Beach",
+        "places_locality:Wahl",
+        "places_locality:Cherry Point",
+        "places_locality:Bellingham",
+        "water_label_ocean:Boundary Pass"
+      ]
+    },
+    {
+      "theme": "dark",
+      "place": "blaine",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 8,
+        "places_locality": 12,
+        "roads_labels_major": 1,
+        "roads_shields": 10,
+        "water_label_ocean": 3,
+        "indigenous_land__label": 1,
+        "tidal_water__label": 1,
+        "mu__label": 1
+      },
+      "outside": [
+        "places_locality:Blaine",
+        "places_locality:Cottonwood Beach",
+        "places_locality:Hillsdale",
+        "places_locality:Semiahmoo",
+        "places_locality:Haynie",
+        "water_label_ocean:Drayton Harbor",
+        "water_label_ocean:Semiahmoo Bay"
+      ]
+    },
+    {
+      "theme": "dark",
+      "place": "blaine",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 18,
+        "places_locality": 3,
+        "places_subplace": 2,
+        "roads_labels_major": 17,
+        "roads_shields": 6,
+        "indigenous_land__label": 2,
+        "tidal_water__label": 3,
+        "park__label": 1
+      },
+      "outside": [
+        "places_locality:Blaine",
+        "places_locality:Semiahmoo"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,400 @@
+{
+  "basemap": "/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations/data/generated/scratch/basemap-T299.pmtiles",
+  "atlas": "/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations/data/generated/scratch/atlas-T299-names.pmtiles",
+  "shots": [
+    {
+      "theme": "light",
+      "place": "lower-mainland",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 60,
+        "places_locality": 8,
+        "roads_shields": 5,
+        "earth_label_islands": 2,
+        "water_label_ocean": 1,
+        "park_closed__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "lower-mainland",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 20,
+        "stream__label": 9,
+        "lake__label": 15,
+        "places_locality": 7,
+        "roads_shields": 16,
+        "earth_label_islands": 2,
+        "water_label_ocean": 1,
+        "mu__label": 6,
+        "eco_reserve__label": 1,
+        "park__label": 8,
+        "no_access__label": 3,
+        "tidal_water__label": 4,
+        "indigenous_land__label": 4
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "lower-mainland",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 21,
+        "stream__label": 8,
+        "lake__label": 2,
+        "places_locality": 4,
+        "places_subplace": 1,
+        "roads_labels_major": 5,
+        "roads_shields": 11,
+        "earth_label_islands": 2,
+        "mu__label": 2,
+        "no_access__label": 2,
+        "tidal_water__label": 1,
+        "indigenous_land__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "lower-mainland",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 35,
+        "places_subplace": 1,
+        "roads_labels_major": 14,
+        "roads_shields": 2,
+        "mu__label": 2,
+        "tidal_water__label": 1
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "osoyoos",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 56,
+        "places_locality": 4,
+        "roads_shields": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "osoyoos",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 27,
+        "stream__label": 12,
+        "lake__label": 2,
+        "places_locality": 2,
+        "roads_shields": 4,
+        "mu__label": 4,
+        "park__label": 4,
+        "indigenous_land__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "osoyoos",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 15,
+        "stream__label": 4,
+        "lake__label": 11,
+        "roads_shields": 6,
+        "mu__label": 3,
+        "park__label": 6,
+        "indigenous_land__label": 1
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "osoyoos",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 14,
+        "stream__label": 2,
+        "lake__label": 2,
+        "places_locality": 1,
+        "roads_labels_major": 9,
+        "roads_shields": 2,
+        "mu__label": 1,
+        "park__label": 3,
+        "indigenous_land__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "blaine",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 49,
+        "places_locality": 8,
+        "roads_shields": 4,
+        "earth_label_islands": 1,
+        "water_label_ocean": 1,
+        "park_closed__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "blaine",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 11,
+        "stream__label": 4,
+        "lake__label": 4,
+        "places_locality": 7,
+        "roads_shields": 13,
+        "earth_label_islands": 5,
+        "water_label_ocean": 1,
+        "mu__label": 6,
+        "park_closed__label": 1,
+        "park__label": 2,
+        "no_access__label": 3,
+        "tidal_water__label": 5,
+        "indigenous_land__label": 4
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "blaine",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 8,
+        "stream__label": 3,
+        "lake__label": 1,
+        "places_locality": 1,
+        "roads_labels_major": 1,
+        "roads_shields": 4,
+        "water_label_ocean": 1,
+        "mu__label": 1,
+        "tidal_water__label": 1
+      },
+      "outside": []
+    },
+    {
+      "theme": "light",
+      "place": "blaine",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 18,
+        "stream__label": 4,
+        "places_locality": 1,
+        "places_subplace": 2,
+        "roads_labels_major": 9,
+        "roads_shields": 3,
+        "park__label": 1,
+        "tidal_water__label": 3,
+        "indigenous_land__label": 1
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "lower-mainland",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 60,
+        "places_locality": 8,
+        "roads_shields": 5,
+        "earth_label_islands": 2,
+        "water_label_ocean": 1,
+        "park_closed__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "lower-mainland",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 20,
+        "stream__label": 9,
+        "lake__label": 15,
+        "places_locality": 7,
+        "roads_shields": 16,
+        "earth_label_islands": 2,
+        "water_label_ocean": 1,
+        "mu__label": 6,
+        "eco_reserve__label": 1,
+        "park__label": 8,
+        "no_access__label": 3,
+        "tidal_water__label": 4,
+        "indigenous_land__label": 4
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "lower-mainland",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 21,
+        "stream__label": 8,
+        "lake__label": 2,
+        "places_locality": 4,
+        "places_subplace": 1,
+        "roads_labels_major": 5,
+        "roads_shields": 11,
+        "earth_label_islands": 2,
+        "mu__label": 2,
+        "no_access__label": 2,
+        "tidal_water__label": 1,
+        "indigenous_land__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "lower-mainland",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 35,
+        "places_subplace": 1,
+        "roads_labels_major": 14,
+        "roads_shields": 2,
+        "mu__label": 2,
+        "tidal_water__label": 1
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "osoyoos",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 56,
+        "places_locality": 4,
+        "roads_shields": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "osoyoos",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 27,
+        "stream__label": 12,
+        "lake__label": 2,
+        "places_locality": 2,
+        "roads_shields": 4,
+        "mu__label": 4,
+        "park__label": 4,
+        "indigenous_land__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "osoyoos",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 15,
+        "stream__label": 4,
+        "lake__label": 11,
+        "roads_shields": 6,
+        "mu__label": 3,
+        "park__label": 6,
+        "indigenous_land__label": 1
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "osoyoos",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 14,
+        "stream__label": 2,
+        "lake__label": 2,
+        "places_locality": 1,
+        "roads_labels_major": 9,
+        "roads_shields": 2,
+        "mu__label": 1,
+        "park__label": 3,
+        "indigenous_land__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "blaine",
+      "z": 7,
+      "byLayer": {
+        "route-arrows": 49,
+        "places_locality": 8,
+        "roads_shields": 4,
+        "earth_label_islands": 1,
+        "water_label_ocean": 1,
+        "park_closed__label": 2
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "blaine",
+      "z": 9,
+      "byLayer": {
+        "route-arrows": 11,
+        "stream__label": 4,
+        "lake__label": 4,
+        "places_locality": 7,
+        "roads_shields": 13,
+        "earth_label_islands": 5,
+        "water_label_ocean": 1,
+        "mu__label": 6,
+        "park_closed__label": 1,
+        "park__label": 2,
+        "no_access__label": 3,
+        "tidal_water__label": 5,
+        "indigenous_land__label": 4
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "blaine",
+      "z": 11,
+      "byLayer": {
+        "route-arrows": 8,
+        "stream__label": 3,
+        "lake__label": 1,
+        "places_locality": 1,
+        "roads_labels_major": 1,
+        "roads_shields": 4,
+        "water_label_ocean": 1,
+        "mu__label": 1,
+        "tidal_water__label": 1
+      },
+      "outside": []
+    },
+    {
+      "theme": "dark",
+      "place": "blaine",
+      "z": 13,
+      "byLayer": {
+        "route-arrows": 18,
+        "stream__label": 4,
+        "places_locality": 1,
+        "places_subplace": 2,
+        "roads_labels_major": 9,
+        "roads_shields": 3,
+        "park__label": 1,
+        "tidal_water__label": 3,
+        "indigenous_land__label": 1
+      },
+      "outside": []
+    }
+  ]
+}
