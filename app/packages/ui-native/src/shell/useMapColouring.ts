@@ -205,7 +205,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   // the map labels each tile with the salmon chains on the Map tab whatever the toggle says (instant toggle)
   const salmonFeed = mapTab === "map" ? salmon.feed : null;
   const methodFeed = mapTab === "map" ? method.feed : null;
-  return { noteVisible, setZoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
+  return { noteVisible, setZoomedOut, zoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
            mapStatus, salmonFeed, salmonOffered, salmonLoading, methodFeed, gearMarked,
            regsLayer: salmonLoading ? "salmon" as RegsLayer : regsShown,

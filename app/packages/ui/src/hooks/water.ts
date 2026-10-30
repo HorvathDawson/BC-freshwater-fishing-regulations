@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import type { ItemId, NameHit, PlaceHit, PointerHit, WaterSource, SectionId, Water } from "@app/data";
 import { buildSearchIndex, queryIndex, type AreaAsk, type IndexWater, type SearchIndex } from "@app/core";
 import { useAsync, useDebounced, type Async } from "../async";
+import { askOnce, peekAnswer } from "../answers";
 
 /**
  * One water — its name and its sections. What the water sheet titles itself with.
@@ -13,11 +14,19 @@ import { useAsync, useDebounced, type Async } from "../async";
  * No regulations: they are not integrated (see `regulations.ts` in @app/core). The sheet
  * renders a placeholder where they will go.
  */
+/** (T286) Held, except in the test bed's "before" build (`EXPO_PUBLIC_REGS_ONE_BY_ONE=1`). */
+const held = (): boolean => (globalThis as { __regsOneByOne?: boolean }).__regsOneByOne !== true;
+
 export function useWater(source: WaterSource, item: ItemId | null): Async<Water | null> {
+  // (T286) asked once per source and held: a water opened again (its Regulations, its Conditions, its Map) names
+  // itself in the very first render
+  const key = `water-item:${item}`;
   return useAsync(
-    () => (item ? source.water(item) : Promise.resolve(null)),
-    `water-item:${item}`,
+    () => (!item ? Promise.resolve(null) : held() ? askOnce(source, key, () => source.water(item), Infinity) : source.water(item)),
+    key,
     item !== null,
+    undefined,
+    () => (item && held() ? peekAnswer<Water | null>(source, key, Infinity) : null),
   );
 }
 

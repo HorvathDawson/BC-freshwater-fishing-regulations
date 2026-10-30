@@ -168,6 +168,23 @@ const STATICS: Readonly<Record<keyof StoreStatics, string>> = {
 };
 
 type YearStrip = RowsValue["rows"][number]["year"];
+/** (T286) The test bed's "before" build: batching off (apps/mobile index.js, `EXPO_PUBLIC_REGS_ONE_BY_ONE=1`). */
+const ONE_BY_ONE = (): boolean => (globalThis as { __regsOneByOne?: boolean }).__regsOneByOne === true;
+/** (T287) Rules inflated per turn of the JS thread, and the turn (a macrotask: the screen draws between). */
+const RULES_SLICE = 250;
+const turnOf = () => new Promise<void>((r) => setTimeout(r, 0));
+/** (T286) The most keys one batched read names (SQLite's bound-parameter limit is far above it). */
+const BATCH = 500;
+/**
+ * (T286) Run `f` once the asks made with this one have been made: a few promise hops later, so asks one or two `await`s
+ * behind it (a `Promise.all` of reads that each await a cached one) join the same batch. Microtasks only — no timer,
+ * so a test's fake clock never holds a read back.
+ */
+const afterHops = (f: () => void, hops = 8): void => {
+  let p = Promise.resolve();
+  for (let i = 0; i < hops; i++) p = p.then();
+  void p.then(f);
+};
 const damaged = (what: string) => new RegsStoreError("damaged", `regs store: ${what}`);
 const n = (c: Cell): number => Number(c);
 const nn = (c: Cell): number | null => (c === null || c === undefined ? null : Number(c));
@@ -194,9 +211,102 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
     if (!r) throw damaged(`no ${what} ${key}`);
     return r;
   };
+  /**
+   * (T286) ONE CALL FOR MANY KEYS. A tap reads a few hundred rows, most of them one keyed row at a time (a part's
+   * strings, a ladder's verdicts, a rows frame's rows); on a phone each read is a native round trip through T264's
+   * one-at-a-time queue, so the count WAS the time. Asks made together — in the same turn of the JS thread, give or
+   * take a few promise hops — are read in one `WHERE <key> IN (…)` per file. The cache is still per key (`once`), the
+   * values exactly what one-row reads gave; a key the file does not hold rejects its own asker (damaged), and a failed
+   * read rejects every asker of that batch (and, uncached, is asked again next time).
+   */
+  type Waiter<T> = { resolve: (v: T) => void; reject: (e: unknown) => void };
+  const batched = <K extends number | string, T>(name: string, what: string,
+                                                  readMany: (keys: K[]) => Promise<ReadonlyMap<K, T>>) => {
+    let pending: Map<K, Waiter<T>> | null = null;
+    const flush = async (b: Map<K, Waiter<T>>) => {
+      try {
+        const keys = [...b.keys()];
+        const got = new Map<K, T>();
+        for (let i = 0; i < keys.length; i += BATCH) for (const [k, v] of await readMany(keys.slice(i, i + BATCH))) got.set(k, v);
+        for (const [k, w] of b) if (got.has(k)) w.resolve(got.get(k)!); else w.reject(damaged(`no ${what} ${k}`));
+      } catch (e) { for (const w of b.values()) w.reject(e); }
+    };
+    return (key: K): Promise<T> => once(name, key, () => new Promise<T>((resolve, reject) => {
+      // the test bed's "before" build (`EXPO_PUBLIC_REGS_ONE_BY_ONE=1`): every key its own read, as before T286
+      if (ONE_BY_ONE()) { void flush(new Map([[key, { resolve, reject }]])); return; }
+      if (!pending) {
+        const b = pending = new Map();
+        afterHops(() => { pending = null; void flush(b); });
+      }
+      pending.set(key, { resolve, reject });
+    }));
+  };
+  /** The rows of `sql` (its `?` the key list) on one file, by their `id` column. */
+  const byKey = async <K extends number | string>(d: Db, sql: (marks: string) => string, keys: K[], col = "id") =>
+    new Map((await d.all(sql(keys.map(() => "?").join(", ")), ...keys)).map((r) => [r[col] as K, r] as const));
+
+  /** A frame family's blobs by id, batched per region file (an id is the same frame in every file that holds it). */
+  const families = new Map<Family, (akey: number, id: number) => Promise<unknown>>();
+  const familyOf = (t: Family) => {
+    let f = families.get(t);
+    if (!f) {
+      const akeyOf = new Map<number, number>();         // id → the key it was reached from (its region file)
+      const load = batched<number, unknown>(t, t, async (ids) => {
+        const byDb = new Map<Db, number[]>();
+        for (const id of ids) {
+          const d = await base.region(akeyOf.get(id)!);
+          byDb.set(d, [...(byDb.get(d) ?? []), id]);
+        }
+        const out = new Map<number, unknown>();
+        for (const [d, some] of byDb) {
+          for (const [id, r] of await byKey(d, (m) => `SELECT id, j FROM ${t} WHERE id IN (${m})`, some)) out.set(n(id), base.val(t, r.j));
+        }
+        return out;
+      });
+      families.set(t, f = (akey, id) => { if (!akeyOf.has(id)) akeyOf.set(id, akey); return load(id); });
+    }
+    return f;
+  };
   /** One blob of a family, by id, from the region file holding the key's frames. */
-  const blob = <T>(t: Family, akey: number, id: number): Promise<T> =>
-    once(t, id, async () => base.val<T>(t, (await row(base.region(akey), `SELECT j FROM ${t} WHERE id = ?`, id, t)).j));
+  const blob = <T>(t: Family, akey: number, id: number): Promise<T> => familyOf(t)(akey, id) as Promise<T>;
+  /** Every cell of a key (`s` order), batched per region file. */
+  const keyCells = batched<number, Row[]>("keyCells", "cells of akey", async (keys) => {
+    const byDb = new Map<Db, number[]>();
+    for (const k of keys) { const d = await base.region(k); byDb.set(d, [...(byDb.get(d) ?? []), k]); }
+    const out = new Map<number, Row[]>(keys.map((k) => [k, []]));
+    for (const [d, some] of byDb) {
+      const rs = await d.all(`SELECT akey, s, ladder, rows, gear, licence, display FROM cell WHERE akey IN (${some.map(() => "?").join(", ")}) `
+        + "ORDER BY akey, s", ...some);
+      for (const r of rs) out.get(n(r.akey))?.push(r);
+    }
+    return out;
+  });
+  /** water `str`, batched. */
+  const strs = batched<number, string>("str", "str", async (ids) => {
+    const rs = await byKey(await base.water(), (m) => `SELECT id, text FROM str WHERE id IN (${m})`, ids);
+    return new Map([...rs].map(([id, r]) => [n(id), String(r.text)]));
+  });
+  /** water `akey` rows, batched (decoded by `reads.akey`). */
+  const akeyRows = batched<number, Row>("akeyRow", "akey", async (keys) => {
+    const rs = await byKey(await base.water(), (m) =>
+      "SELECT akey, ruleset, licensing_set, steelhead_water, steelhead, steelhead_rules, kind, tidal, seg, mom, nseg " +
+      `FROM akey WHERE akey IN (${m})`, keys, "akey");
+    return new Map([...rs].map(([k, r]) => [n(k), r]));
+  });
+  /** water `segmom` and `ruleset` rows, batched. */
+  const segMoms = batched<number, Row>("segmomRow", "segmom", async (keys) => {
+    const rs = await byKey(await base.water(), (m) => `SELECT mom, ix FROM segmom WHERE mom IN (${m})`, keys, "mom");
+    return new Map([...rs].map(([k, r]) => [n(k), r]));
+  });
+  const rulesets = batched<number, Row>("rulesetRow", "ruleset", async (keys) => {
+    const rs = await byKey(await base.water(), (m) => `SELECT set_id, j FROM ruleset WHERE set_id IN (${m})`, keys, "set_id");
+    return new Map([...rs].map(([k, r]) => [n(k), r]));
+  });
+  /** water `seglist` starts, batched. */
+  const segLists = batched<number, Row>("seglistRow", "seglist", async (keys) => {
+    const rs = await byKey(await base.water(), (m) => `SELECT seg, starts FROM seglist WHERE seg IN (${m})`, keys, "seg");
+    return new Map([...rs].map(([k, r]) => [n(k), r]));
+  });
   /** rows 30: every distinct year strip, once (water static `rows.strips`; a rows frame names its rows' strips). */
   const yearStrips = (): Promise<readonly YearStrip[]> => once("strips", 0, async () =>
     base.val<YearStrip[]>("static", (await row(base.water(), "SELECT j FROM static WHERE k = ?", "rows.strips", "static")).j));
@@ -227,9 +337,11 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       return Promise.all(rows.map(async (p, i): Promise<PartRow> => {
         if (n(p.part_ix) !== i) throw damaged(`item ${ord}'s parts are out of sequence`);
         const s = (c: Cell) => reads.str(n(c));
+        // (T286) every part's strings asked at once: one read for the whole water
+        const [label, short, runs, place, hint] = p.ord === null || p.ord === undefined ? [] : await Promise.all([
+          s(p.label_s), s(p.short_s), s(p.runs_s), p.place_s === null ? null : s(p.place_s), s(p.hint_s)]);
         const facts: PartFacts | null = p.ord === null || p.ord === undefined ? null : {
-          order: n(p.ord), label: await s(p.label_s), short: await s(p.short_s), runs: await s(p.runs_s),
-          place: p.place_s === null ? null : await s(p.place_s), hint: await s(p.hint_s), km: nn(p.km),
+          order: n(p.ord), label: label!, short: short!, runs: runs!, place: place ?? null, hint: hint!, km: nn(p.km),
           closed_all_year: n(p.closed_all_year) === 1, paper_licence: json<number[]>(p.paper_licence),
         };
         const xp = p.akey === null && p.xj !== null && p.xj !== undefined
@@ -243,9 +355,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       base.val<Picker>("picker", (await row(base.water(), "SELECT j FROM picker WHERE id = ?", id, "picker")).j)),
 
     akey: (akey) => once("akey", akey, async () => {
-      const r = await row(base.water(),
-        "SELECT akey, ruleset, licensing_set, steelhead_water, steelhead, steelhead_rules, kind, tidal, seg, mom, nseg " +
-        "FROM akey WHERE akey = ?", akey, "akey");
+      const r = await akeyRows(akey);
       return {
         akey: n(r.akey), ruleset: n(r.ruleset), licensingSet: nn(r.licensing_set), steelheadWater: n(r.steelhead_water) === 1,
         steelhead: nn(r.steelhead) as 1 | 2 | null, steelheadRules: n(r.steelhead_rules) === 1, kind: await reads.str(n(r.kind)),
@@ -253,11 +363,10 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       };
     }),
 
-    segStarts: (seg) => once("seglist", seg, async () =>
-      json<number[]>((await row(base.water(), "SELECT starts FROM seglist WHERE seg = ?", seg, "seglist")).starts)),
+    segStarts: (seg) => once("seglist", seg, async () => json<number[]>((await segLists(seg)).starts)),
 
     segMoments: (mom) => once("segmom", mom, async () => {
-      const [r, st] = await Promise.all([row(base.water(), "SELECT ix FROM segmom WHERE mom = ?", mom, "segmom"), reads.statics()]);
+      const [r, st] = await Promise.all([segMoms(mom), reads.statics()]);
       return json<number[]>(r.ix).map((i) => {
         const m = st.moments[i];
         if (!m) throw damaged(`segmom ${mom} names moment ${i}, which is not in answers.moments`);
@@ -265,16 +374,15 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       });
     }),
 
+    // (T286) a key's cells are read whole (a key has a handful), batched across keys: one read per region file
     cell: (akey, s) => once("cell", `${akey}:${s}`, async () => {
-      const r = await (await base.region(akey)).get(
-        "SELECT ladder, rows, gear, licence, display FROM cell WHERE akey = ? AND s = ?", akey, s);
+      const r = (await keyCells(akey)).find((c) => n(c.s) === s);
       if (!r) throw damaged(`no cell (${akey}, ${s})`);
       return cellOf(r);
     }),
 
     cells: (akey) => once("cells", akey, async () => {
-      const rs = await (await base.region(akey)).all(
-        "SELECT s, ladder, rows, gear, licence, display FROM cell WHERE akey = ? ORDER BY s", akey);
+      const rs = await keyCells(akey);
       rs.forEach((r, i) => { if (n(r.s) !== i) throw damaged(`akey ${akey}'s cells are out of sequence`); });
       if (!rs.length) throw damaged(`akey ${akey} has no cells`);
       return rs.map(cellOf);
@@ -313,10 +421,12 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       // rows 33 (T161): [decided h, decided w, lead] — the lead is the pipeline's leading origin, carried as stored
       for (const [S, x] of Object.entries(fs)) {
         if (!Array.isArray(x) || x.length !== 3) throw damaged(`rows frame ${id} holds ${S} as ${JSON.stringify(x)}, not [h, w, lead]`);
-        const [h, w, lead] = x;
-        fish[S] = { hatchery: await decided(h), wild: await decided(w), lead };
       }
-      const rows = await Promise.all(rs.map((r) => blob<Omit<RowsValue["rows"][number], "year">>(FAMILY.rowsRow, akey, r)));
+      // (T286) every decided row and every row asked at once (one read each family), then put back in order
+      const [decidedOf, rows] = await Promise.all([
+        Promise.all(Object.entries(fs).map(async ([S, [h, w, lead]]) => [S, { hatchery: await decided(h), wild: await decided(w), lead }] as const)),
+        Promise.all(rs.map((r) => blob<Omit<RowsValue["rows"][number], "year">>(FAMILY.rowsRow, akey, r)))]);
+      for (const [S, f] of decidedOf) fish[S] = f;
       return { spp, fish, rows: rows.map((r, i) => ({ ...r, year: strips[ys[i]!]! })), steelhead_line: line };
     }),
 
@@ -342,8 +452,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
     },
 
     ruleset: (setId) => once("ruleset", setId, async () => {
-      const j = base.val<{ sections: number; reach: number[]; trib?: number[] }>("ruleset",
-        (await row(base.water(), "SELECT j FROM ruleset WHERE set_id = ?", setId, "ruleset")).j);
+      const j = base.val<{ sections: number; reach: number[]; trib?: number[] }>("ruleset", (await rulesets(setId)).j);
       return { sections: j.sections, reach: j.reach, trib: j.trib ?? [] };     // the store leaves out an empty trib list
     }),
 
@@ -351,11 +460,15 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       const rs = await (await base.water()).all(
         "SELECT r.rix AS rix, r.j AS e, d.j AS f FROM rule r LEFT JOIN display_rule d ON d.id = r.rix ORDER BY r.rix");
       const out = new Map<number, StoredRule>();
-      rs.forEach((r, i) => {
+      // (T286/T287) every rule is inflated and parsed here, once: a few hundred at a time with the screen's turn between,
+      // never one long hold of the JS thread (all at once it was a ~0.3 s freeze on the emulator)
+      for (let i = 0; i < rs.length; i++) {
+        if (i && i % RULES_SLICE === 0) await turnOf();
+        const r = rs[i]!;
         if (n(r.rix) !== i) throw damaged(`the rules are out of sequence at ${i}`);
         if (r.f === null || r.f === undefined) throw damaged(`rule ${i} has no display_rule`);
         out.set(i, { rix: i, export: base.val<ExportRule>("rule", r.e), facts: base.val<RuleFacts>("display_rule", r.f) });
-      });
+      }
       return out as ReadonlyMap<number, StoredRule>;
     }),
 
@@ -376,8 +489,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       return out as unknown as StoreStatics;
     }),
 
-    str: (id) => once("str", id, async () =>
-      String((await row(base.water(), "SELECT text FROM str WHERE id = ?", id, "str")).text)),
+    str: (id) => strs(id),
 
     sectionAkey: async (h) => {
       const b = await block("section_akey", h);

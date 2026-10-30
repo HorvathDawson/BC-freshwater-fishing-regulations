@@ -45,3 +45,5 @@ export { sha256Hex } from "./sha256";
 export * from "./update";
 // (T254) BAD CONNECTIONS: the low-bandwidth policy, the meter, the order (gate), the resilient download, what is downloading
 export * from "./net";
+// (T286) the open probe: a map tap to its drawn regulations, timed (test bed only; a no-op elsewhere)
+export { openProbe } from "./openProbe";

@@ -90,3 +90,24 @@ export class Sha256 {
 export function sha256Hex(data: Uint8Array): string {
   return new Sha256().update(data).hex();
 }
+
+/** (T287) How much one turn of `sha256HexAsync` hashes: ~20 ms of the JS thread on Hermes (~12 MB/s, T272). */
+export const HASH_SLICE = 1 << 18;
+const turn = () => new Promise<void>((r) => setTimeout(r, 0));
+/** (T287) The test bed's "before" build (`EXPO_PUBLIC_T287_BEFORE=1`): every hash and inflate in one go, as before. */
+export const oneShot = (): boolean => (globalThis as { __hashOneShot?: boolean }).__hashOneShot === true;
+
+/**
+ * (T287) `sha256Hex` that never holds the JS thread for long: a slice at a time, the screen's turn between. A release
+ * file is up to ~6 MB; hashed in one go on a phone that is a ~0.5 s freeze, felt as the app hanging when a download
+ * finishes. Same answer as `sha256Hex`.
+ */
+export async function sha256HexAsync(data: Uint8Array, slice = HASH_SLICE): Promise<string> {
+  if (oneShot()) return sha256Hex(data);
+  const h = new Sha256();
+  for (let at = 0; at < data.length; at += slice) {
+    if (at) await turn();
+    h.update(data.subarray(at, at + slice));
+  }
+  return h.hex();
+}

@@ -17,7 +17,8 @@
  * ONE MAP ENTRY (T71, owner call 3, 2026-10-22): the regs header has no Map button; the water's Map view is offered once,
  * by the view strip the frame draws.
  */
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { openProbe } from "@app/data";
 import { AccessibilityInfo, Animated, Platform, ScrollView, Text, View } from "react-native";
 import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
@@ -136,6 +137,9 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
                              gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = null, onAccessMap, inSeason = [], glance = null, salmonStrip = null,
                              nameSource = null, asOf = null, scrollKey = null }: RegsScreenProps) {
+  // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
+  openProbe.mark("regsRender");
+  useLayoutEffect(() => { openProbe.mark("layout"); }, []);
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);

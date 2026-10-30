@@ -26,7 +26,7 @@ import { bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM,
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
-         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { connectivity } from "./connectivity";
 import { SearchSheet } from "./SearchSheet";
@@ -67,6 +67,9 @@ export type { ShellProps } from "./shell/props";
 /** (owner 2026-10-29) the map readied behind a landing's water: the whole box, unseen (painted, not shown) */
 const BEHIND = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 } as const;
 
+/** (T287) How long the map must stand still before a downloaded release is swapped in. */
+const APPLY_STILL_MS = 3000;
+
 /** (T254) How long low-bandwidth mode waits with nothing downloading before the map's bait & fly marks are fetched. */
 const GEAR_QUIET_MS = 15_000;
 
@@ -99,6 +102,8 @@ export function Shell(p: ShellProps) {
   const layered = (n: React.ReactNode) => <BackLayerContext.Provider value={backLayers}>{n}</BackLayerContext.Provider>;
   /** The day the map's status colours answer for; null is today. */
   const [mapDay, setMapDay] = useState<Date | null>(p.initialDay ?? null);
+  // (T286) the waters on screen, their regulations read while the map is still (the Map tab, zoomed in)
+  const regsPrefetch = useRegsPrefetch(loader, source, mapDay);
   /** (T41) the start link's page start, until the page it opened has applied it (a later water never sees it) */
   const [start, setStart] = useState<RegsStart | null>(p.regsStart ?? null);
   const [dayOpen, setDayOpen] = useState(false);
@@ -201,10 +206,24 @@ export function Shell(p: ShellProps) {
   const releaseReady = syncState.updates?.release?.phase === "ready" ? syncState.updates.release.target : null;
   const safe = route.mode === "browse" && frame === null && openSpot === null && !adding && !searching;
   const askedApply = useRef<string | null>(null);
+  /*
+   * (T287, owner 2026-10-29: "after a download finishes the app freezes for a tiny bit … it should update in background
+   * cleanly") AND THE READER STILL: opening the new set (its paint decoded, every screen re-keyed onto it) holds the JS
+   * thread for a few hundred ms — felt as a freeze when it lands mid-pan, the moment the download finishes. So the
+   * swap also waits for the map to have stood still `APPLY_STILL_MS` (the camera unchanged); a pan restarts the wait.
+   * Back from the background stays the other safe moment (App).
+   */
   useEffect(() => {
     if (!releaseReady || !safe || askedApply.current === releaseReady) return;
-    askedApply.current = releaseReady;
-    p.onSafeToApply?.();
+    let seen = camera.current, still = Date.now();
+    const t = setInterval(() => {
+      if (camera.current !== seen) { seen = camera.current; still = Date.now(); return; }
+      if (Date.now() - still < APPLY_STILL_MS) return;
+      clearInterval(t);
+      askedApply.current = releaseReady;
+      p.onSafeToApply?.();
+    }, 250);
+    return () => clearInterval(t);
   }, [releaseReady, safe, p.onSafeToApply]);
   /*
    * (T263) THE BELL'S "DATA UPDATE" ROW: the release's state (waiting for Wi-Fi, downloading, ready, needs a newer app).
@@ -297,7 +316,7 @@ export function Shell(p: ShellProps) {
                   themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footH}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} photos={photos}
-                  loader={loader} syncState={syncState} menu={menu} menuInfo={menuInfo} mapDay={mapDay}
+                  loader={loader} syncState={syncState} menu={menu} menuInfo={menuInfo} mapDay={mapDay} regsPrefetch={regsPrefetch}
                   onDay={setMapDay} onOpenDay={() => setDayOpen(true)}
                   dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}

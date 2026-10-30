@@ -7,8 +7,8 @@
  * server, R2 with the header set) has the client decode it; one that sends the `.gz` bytes as they are leaves the gzip
  * magic on them, and this decodes them. Either way the check is on the raw file.
  */
-import { gunzipSync } from "fflate";
-import { sha256Hex } from "./sha256";
+import { Gunzip, gunzipSync } from "fflate";
+import { HASH_SLICE, oneShot, sha256Hex, sha256HexAsync } from "./sha256";
 
 export class VerifyError extends Error {}
 
@@ -28,9 +28,37 @@ export function verify(url: string, body: Uint8Array, expect: { bytes: number; s
   return raw;
 }
 
+/** (T287) `ungzip` a slice at a time, the screen's turn between (a 2 MB member inflates for ~0.1–0.3 s on a phone). */
+export async function ungzipAsync(bytes: Uint8Array, slice = HASH_SLICE): Promise<Uint8Array> {
+  if (!(bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b)) return bytes;
+  if (oneShot()) return gunzipSync(bytes);
+  const parts: Uint8Array[] = [];
+  const g = new Gunzip((chunk) => { parts.push(chunk); });
+  for (let at = 0; at < bytes.length; at += slice) {
+    if (at) await new Promise<void>((r) => setTimeout(r, 0));
+    g.push(bytes.subarray(at, at + slice), at + slice >= bytes.length);
+  }
+  if (parts.length === 1) return parts[0]!;
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}
+
+/** (T287) `verify` without holding the JS thread: the same checks, the same errors, a slice at a time. */
+export async function verifyAsync(url: string, body: Uint8Array, expect: { bytes: number; sha256: string }): Promise<Uint8Array> {
+  const raw = await ungzipAsync(body);
+  if (raw.length !== expect.bytes)
+    throw new VerifyError(`${url}: ${raw.length} bytes, the manifest says ${expect.bytes}`);
+  const got = await sha256HexAsync(raw);
+  if (got !== expect.sha256)
+    throw new VerifyError(`${url}: sha256 ${got.slice(0, 12)}…, the manifest says ${expect.sha256.slice(0, 12)}…`);
+  return raw;
+}
+
 export async function fetchVerified(url: string, expect: { bytes: number; sha256: string },
                                     signal?: AbortSignal, fetchImpl: typeof fetch = fetch): Promise<Uint8Array> {
   const res = await fetchImpl(url, { signal });
   if (!res.ok) throw new VerifyError(`${url}: HTTP ${res.status}`);
-  return verify(url, new Uint8Array(await res.arrayBuffer()), expect);
+  return verifyAsync(url, new Uint8Array(await res.arrayBuffer()), expect);
 }

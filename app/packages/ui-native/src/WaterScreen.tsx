@@ -26,7 +26,7 @@ import { ErrorState } from "./ErrorState";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView } from "react-native";
 import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, regsLapsedNote, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
-import type { ItemId, WaterSource, SectionId } from "@app/data";
+import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotice, useInSeasonBanners, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useSalmonCard, useNet,
@@ -171,6 +171,27 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
               // the same days the map's date sheet offers: this calendar year, cut at the release's last day
               range={dayRange(new Date(), loader.manifest?.regulations?.valid_until ?? null)} />
   );
+
+  // (T286) the open probe (test bed only): when each stage first arrives, and when the page is drawn
+  const drawn = !(item !== null && (sheet.state !== "ready" || sheetWait.pending || !sheet.value))
+    && !!loader && !!regs && !regsError && !regsWait.pending;
+  if (openProbe.on()) {
+    openProbe.mark("screen");
+    if (sheet.state === "ready") openProbe.mark("sheet");
+    if (store.value) openProbe.mark("store");
+    if (found.value) openProbe.mark("target");
+    if (inputs.value) openProbe.mark("inputs");
+    if (regs) openProbe.mark("page");
+    if (sheetWait.shown || regsWait.shown) openProbe.mark("spinner");
+    if (salmon.state !== "loading") openProbe.mark("salmon");
+    if (access.state !== "loading") openProbe.mark("access");
+  }
+  useEffect(() => { openProbe.mark("shell"); }, []);
+  useEffect(() => {
+    if (!drawn || !openProbe.on()) return;
+    openProbe.mark("commit");
+    requestAnimationFrame(() => openProbe.end("frame"));
+  }, [drawn]);
 
   // EVERY STATE IS DRAWN IN THE WATER FRAME (T44): the header (back, the view strip) and the name row sit where they sit
   // on the Conditions and Map views; this view draws only its content.

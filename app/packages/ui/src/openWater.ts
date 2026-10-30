@@ -14,7 +14,7 @@
  * the same frame either way; the water Map stays a named water's (asked for it, the frame's first view, Regulations).
  */
 import { useMemo } from "react";
-import type { ItemId, WaterSource, SectionId } from "@app/data";
+import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import { frameViews, type LatLon, type Route, type RouteAction, type View } from "./route";
 
 export interface WaterOpen {
@@ -117,6 +117,7 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
       ? (item: ItemId) => o.group!(item).catch(() => undefined) : undefined;
     const a = await ask(groupOf);
     if (a === null || mine !== latest || (o.now && o.now() !== start)) return;
+    openProbe.mark("go");
     go(a);
   };
   return {

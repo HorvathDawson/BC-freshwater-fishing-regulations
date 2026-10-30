@@ -289,6 +289,7 @@ export default function App() {
   const apply = useCallback(() => {
     if (updates.snapshot().release?.phase !== "ready") return;
     applying.current = { from: bootedRef.current?.held.release ?? null, at: Date.now() };
+    if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log("[swap] apply");
     setGeneration((g) => g + 1);
   }, [updates]);
   // back from the background with an update ready: the safest moment there is
@@ -306,6 +307,9 @@ export default function App() {
     if (boot.applyError) return;
     const a = applying.current;
     applying.current = null;
+    // (T287) the test bed's stall log reads the swap off this line
+    if ((globalThis as { __openProbe?: boolean }).__openProbe)
+      console.log(`[swap] the new set committed, ${a ? Date.now() - a.at : "?"} ms after apply`);
     updates.applied(boot.booted.manifest.data_release, a ? { from: a.from, ms: Date.now() - a.at } : undefined);
     setToast(updatedToast(manifestDate(boot.booted.manifest)));
   }, [boot, updates]);

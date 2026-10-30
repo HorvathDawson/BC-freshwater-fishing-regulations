@@ -377,6 +377,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // READ THE EVENT BEFORE ANY await: React Native recycles it, and `nativeEvent` is null afterwards (N1 §3)
     const ne = e.nativeEvent;
     if (!ne) return;
+    // (T286) the open probe's zero (test bed only: `@app/data` openProbe), before the hit test
+    const probe = globalThis as { __openProbe?: boolean; __openPressAt?: number };
+    if (probe.__openProbe) probe.__openPressAt = globalThis.performance?.now?.() ?? Date.now();
     const [x, y] = Array.isArray(ne.point) ? ne.point : [ne.point.x, ne.point.y];
     const [lon, lat] = ne.lngLat;
     // (T145) a tap on a spot is the spot's (its annotation's press): never ALSO the map's — no water opens under it,

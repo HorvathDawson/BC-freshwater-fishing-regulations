@@ -1,8 +1,8 @@
 /** P10: fetchVerified, the manifest's diff and pairing, and the hash they all rest on. */
 import { describe, expect, it } from "vitest";
 import { gzipSync } from "fflate";
-import { Sha256, sha256Hex } from "./sha256";
-import { fetchVerified, VerifyError } from "./fetchVerified";
+import { Sha256, sha256Hex, sha256HexAsync } from "./sha256";
+import { fetchVerified, ungzipAsync, verify, verifyAsync, VerifyError } from "./fetchVerified";
 import { diff, pair, parseManifest, type Held, type Manifest } from "./manifest";
 
 const enc = (s: string) => new TextEncoder().encode(s);
@@ -24,6 +24,25 @@ describe("sha256", () => {
       expect([step, h.hex()]).toEqual([step, "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0"]);
     }
     expect(new Sha256().hex()).toBe("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+  });
+});
+
+describe("(T287) hashing and inflating a slice at a time", () => {
+  const big = new Uint8Array(1_234_567).map((_, i) => (i * 31 + (i >> 9)) & 0xff);
+  it("sha256HexAsync is sha256Hex, at any slice size", async () => {
+    for (const slice of [1, 63, 64, 65, 4096, 1 << 18, 1 << 22]) {
+      const data = big.subarray(0, slice < 4096 ? 3000 : big.length);     // small slices: a small file (one turn each)
+      expect(await sha256HexAsync(data, slice)).toBe(sha256Hex(data));
+    }
+  });
+  it("ungzipAsync / verifyAsync give verify's bytes and verify's errors", async () => {
+    const gz = gzipSync(big);
+    const want = { bytes: big.length, sha256: sha256Hex(big) };
+    expect(await ungzipAsync(gz, 1000)).toEqual(big);
+    expect(await ungzipAsync(big)).toBe(big);
+    expect(await verifyAsync("u", gz, want)).toEqual(verify("u", gz, want));
+    await expect(verifyAsync("u", gz, { ...want, sha256: "0".repeat(64) })).rejects.toThrow(VerifyError);
+    await expect(verifyAsync("u", gz, { ...want, bytes: 1 })).rejects.toThrow(`u: ${big.length} bytes, the manifest says 1`);
   });
 });
 

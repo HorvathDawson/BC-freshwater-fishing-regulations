@@ -224,7 +224,8 @@ describe("cells and frames: routed to the key's region file", () => {
                                        { ladder: 5, rows: 6, gear: 5, licence: 6, display: 6 }]);
     expect(await st.display(1, 5)).toEqual({ status: "closed", closing: [[0, ["RB"]]], strip: 1 });
     expect(asked.filter((a) => a.startsWith("regs-")))
-      .toEqual(["regs-2: meta", "regs-2: cell", "regs-2: cell", "regs-1: meta", "regs-1: display_frame"]);
+      // (T286) a key's cells are read whole, once: `cell` and `cells` share that read
+      .toEqual(["regs-2: meta", "regs-2: cell", "regs-1: meta", "regs-1: display_frame"]);
   });
 
   it("ladder: wire verdicts; a 2-element row is one verdict for all three origins; fish index → code", async () => {
@@ -284,7 +285,7 @@ describe("cells and frames: routed to the key's region file", () => {
     asked.length = 0;
     await Promise.all([st.rows(2, 5), st.rows(2, 5), st.rows(2, 5)]);
     expect(asked.filter((a) => a === "regs-2: rows_frame")).toEqual(["regs-2: rows_frame"]);
-    expect(asked.filter((a) => a === "regs-2: rows_row")).toEqual(["regs-2: rows_row", "regs-2: rows_row"]);   // ids 3, 4
+    expect(asked.filter((a) => a === "regs-2: rows_row")).toEqual(["regs-2: rows_row"]);   // ids 3, 4 in one read (T286)
     const bad = await openRegsStore(seed({ badCells: true }).loader);
     await expect(bad.cells(2)).rejects.toThrow(new RegsStoreError("damaged", "regs store: akey 2's cells are out of sequence"));
   });
@@ -317,6 +318,22 @@ describe("regs-sid: section handles", () => {
     st.close();
     asked.length = 0;
     await st.item(3);
-    expect(asked).toEqual(["water: item", "water: str", "water: str"]);
+    expect(asked).toEqual(["water: item", "water: str"]);   // (T286) its two strings in one read
+  });
+
+  it("(T286) asks made together are one read per file; a key the file lacks rejects its own asker only", async () => {
+    const { loader, asked } = seed();
+    const st = await openRegsStore(loader);
+    await st.item(3);
+    st.close();
+    asked.length = 0;
+    const [a, b, gone] = await Promise.allSettled([st.str(0), st.str(1), st.str(999_999)]);
+    expect(asked).toEqual(["water: str"]);
+    expect([a.status, b.status]).toEqual(["fulfilled", "fulfilled"]);
+    expect(gone.status === "rejected" && gone.reason).toEqual(new RegsStoreError("damaged", "regs store: no str 999999"));
+    // the failed key is not cached: asked again, it is read again
+    asked.length = 0;
+    await expect(st.str(999_999)).rejects.toThrow(RegsStoreError);
+    expect(asked).toEqual(["water: str"]);
   });
 });

@@ -7,9 +7,9 @@ import { useCallback, type MutableRefObject } from "react";
 import { Platform, Text, View } from "react-native";
 import { TYPE } from "../type";
 import { useCoachTarget } from "../CoachMarks";
-import type { SectionId } from "@app/data";
+import { openProbe, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MapRail, type MenuControls,
+import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MapRail, type MenuControls, type RegsPrefetch,
          type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import { hiddenLayers, shownLayers, type Camera, type MapSpots, type TileEndpoints } from "@app/map";
@@ -34,7 +34,7 @@ const NONE_PINS: readonly never[] = [];
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate,
                              photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
-                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages }: {
+                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages, regsPrefetch = null }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -60,6 +60,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   fishImages?: FishImages;
   /** (T186) The region under the map's centre, for the web prefetch (`useReleasePrefetch`); absent on a phone. */
   onRegion?: (regionId: string | null) => void;
+  /** (T286) The regulations of the waters on screen, read while the map is still (`useRegsPrefetch`); null: none. */
+  regsPrefetch?: RegsPrefetch | null;
   /** (T253) The regions the web's background prefetch holds for an unnamed-stream tap (More → Data); null: none runs. */
   offline?: { ready: readonly string[]; total: number } | null;
 }) {
@@ -90,9 +92,11 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
     const conditions = tab === "conditions";
     if (!tapOpensWater({ tab, flowParam, zoom: camera.current?.zoom ?? HOME.zoom, handover: HANDOVER_Z })) return;
     // The tile's feature id IS the section handle — converted, not cast (see noteVisible).
+    openProbe.start(`sid ${featureId}`);
+    regsPrefetch?.stop();
     await opener.tap(Number(featureId) as SectionId,
                      lat !== undefined && lon !== undefined ? { lat, lon } : null, conditions ? "conditions" : "regs");
-  }, [tab, flowParam, opener, picking, col.runsFeed, onRuns]);
+  }, [tab, flowParam, opener, picking, col.runsFeed, onRuns, regsPrefetch]);
   /** What More's Data block reads (T167: the only place a source's date and freshness are drawn): the release's dates, the pair, the feed's age. */
   const dataFacts = {
     sources: loader?.manifest?.sources ?? null, validUntil: loader?.manifest?.regulations?.valid_until ?? null,
@@ -204,7 +208,11 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // choice, which is a question about the stations themselves and so
                      // must be answerable from the map without changing tab.
                      gauges={onConditions ? gauges ?? undefined : undefined}
-                     onVisible={mm.asksVisible ? noteVisible : undefined}
+                     onVisible={mm.asksVisible ? noteVisible
+                       // (T286) the Map tab, zoomed in to where taps open waters: the waters on screen read ahead (a
+                       // phone: every file is on it; the web fetches region files, and prefetches them its own way, T186)
+                       : Platform.OS !== "web" && tab === "map" && !col.zoomedOut && !searching && regsPrefetch
+                         ? regsPrefetch.onVisible : undefined}
                      onRegion={onRegion}
                      onMoved={(at) => {
                        camera.current = at;

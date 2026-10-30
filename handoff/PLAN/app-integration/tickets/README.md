@@ -329,8 +329,8 @@ use that as the sole source of future work."
 | T283 | "Standard" map mode renamed "Trout & more"; legend text larger in every mode | DONE | 0438013fa | owner 2026-10-29 |
 | T284 | Spot page restructured: That day · What you added · The next few days (similarity + why); phone + desktop layouts | DONE | 85e854da2 | owner 2026-10-29 |
 | T285 | Synopsis PDF fails to open in the Android app ("couldn't load synopsis") | DONE | 0e5f33dc8 | cause: replaced release's PDF 404; native download + live-manifest alternate, About via openBook, Close on the failed card |
-| T286 | Tap → regulations instant on phones (≤150 ms to content, never a spinner): measure, batch reads, cache, prefetch on settle | OPEN | — | owner 2026-10-29 |
-| T287 | No freeze when a download finishes: verify/unzip off the JS thread, prepare then swap at idle, minimal re-render | OPEN | — | owner 2026-10-29 |
+| T286 | Tap → regulations instant on phones (≤150 ms to content, never a spinner): measure, batch reads, cache, prefetch on settle | DONE | (this commit) | regs-open bench: first tap small 992→151 ms (spinner gone), Fraser 309→118–123, lake 163→44–95 to commit; reopen drawn in first render; SQL calls/page 100–207 → 26–34 (pinned) |
+| T287 | No freeze when a download finishes: verify/unzip off the JS thread, prepare then swap at idle, minimal re-render | PARTIAL | (this commit) | update-freeze bench: stalls while panning through the finish 4 (worst 366 ms) → 0; swap waits for a still map; left: paint decode 156 ms + re-render at the (still) swap, first-install finish unmeasured |
 | T288 | Glossary: every Synopsis definition (printed p.80), A–Z scrubber, modern layout, fuzzy search | DONE | 732f100f1, 64ae838bf | terms ship with the next release from ≥732f100f1 |
 | T289 | Added-stream lake stub makes a false lake outlet (Thomas Creek open under Burnaby Lake tribs) | DONE | 852ecc4f | generic connector re-join inside the lake; Thomas + Angelo; binding diff = expected only |
 | T290 | Remove the Names, Proposals and Low-confidence cuts tabs from the curation review tool | DONE | — | owner 2026-10-29 |

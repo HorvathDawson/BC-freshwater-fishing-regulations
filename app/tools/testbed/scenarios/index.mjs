@@ -10,6 +10,9 @@ import { report } from './report.mjs';
 import { crash } from './crash.mjs';
 import { nearCold } from './near-cold.mjs';
 import { pan } from './pan.mjs';
+import { perf } from './perf.mjs';
 import { satellite } from './satellite.mjs';
+import { regsOpen } from './regs-open.mjs';
+import { updateFreeze } from './update-freeze.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze];

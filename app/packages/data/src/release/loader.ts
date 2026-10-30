@@ -10,6 +10,7 @@
  *
  * Every SQLite file is checked on open: its meta.format is the manifest's and its meta.section_handles the release's.
  */
+import { openProbe } from "../openProbe";
 import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodePaint, decodeFlowArea, decodeSalmonHead, decodeSalmonShard,
          salmonFacts, type LakeFacts, type MethodFacts, type Paint, type SalmonFacts, type SalmonShard,
          type SectionAccess } from "@app/core";
@@ -148,7 +149,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
     paint() {
       if (!paint) {
         touch("paint");
-        paint = source.bytes("paint").then((b) => decodePaint(b, handles));
+        paint = source.bytes("paint").then((b) => openProbe.work("decode paint", () => decodePaint(b, handles)));
         paint.catch(() => { paint = null; });
       }
       return paint;
@@ -156,7 +157,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
     async flowArea() {
       if (!area) {
         touch("flow-area");
-        area = Promise.all([loader.paint(), source.bytes("flow-area")]).then(([p, b]) => decodeFlowArea(b, p.sectionCount));
+        area = Promise.all([loader.paint(), source.bytes("flow-area")]).then(([p, b]) => openProbe.work("decode flow-area", () => decodeFlowArea(b, p.sectionCount)));
         area.catch(() => { area = null; });
       }
       return area;
@@ -165,7 +166,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
       if (!lakes) {
         if (!m.files.lakes) return Promise.resolve(null);
         touch("lakes");
-        lakes = source.bytes("lakes").then((b) => decodeLakeFacts(b, handles));
+        lakes = source.bytes("lakes").then((b) => openProbe.work("decode lakes", () => decodeLakeFacts(b, handles)));
         lakes.catch(() => { lakes = null; });
       }
       return lakes;
@@ -174,7 +175,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
       if (!m.files.salmon) return null;
       if (!salmonHead) {
         touch("salmon");
-        salmonHead = source.bytes("salmon").then((b) => decodeSalmonHead(b, handles));
+        salmonHead = source.bytes("salmon").then((b) => openProbe.work("decode salmon", () => decodeSalmonHead(b, handles)));
         salmonHead.catch(() => { salmonHead = null; });
       }
       const head = await salmonHead;
@@ -185,7 +186,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
         let p = slices.get(r);
         if (!p) {
           touch(name);
-          p = source.bytes(name).then((b) => decodeSalmonShard(b, handles));
+          p = source.bytes(name).then((b) => openProbe.work(`decode ${name}`, () => decodeSalmonShard(b, handles)));
           p.catch(() => slices.delete(r));
           slices.set(r, p);
         }
@@ -197,7 +198,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
       if (!method) {
         if (!m.files.method) return Promise.resolve(null);
         touch("method");
-        method = source.bytes("method").then((b) => decodeMethod(b, handles));
+        method = source.bytes("method").then((b) => openProbe.work("decode method", () => decodeMethod(b, handles)));
         method.catch(() => { method = null; });
       }
       return method;
@@ -206,7 +207,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
       if (!access) {
         if (!m.files.access) return Promise.resolve(null);
         touch("access");
-        access = source.bytes("access").then((b) => decodeAccessFile(b, handles));
+        access = source.bytes("access").then((b) => openProbe.work("decode access", () => decodeAccessFile(b, handles)));
         access.catch(() => { access = null; });
       }
       return access;

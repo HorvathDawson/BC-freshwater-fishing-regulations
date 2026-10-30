@@ -10,12 +10,18 @@ import type { Db, Row } from "../../sql/db";
 import type { Opener } from "../loader";
 import type { OpenAt } from "./open";
 import { serialQueue } from "./serial";
+import { openProbe } from "../../openProbe";
 
 export type { OpenAt } from "./open";
 
 /** (T264) Every expo-sqlite call, one at a time app-wide: a burst of concurrent calls races expo's shared-object
  *  registry on Android (`serial.ts` says how). */
-const one = serialQueue();
+const queue = serialQueue();
+/** Every call through the queue; (T286) the open probe counts each one's wait and run (a no-op outside the test bed). */
+const one = <T>(run: () => Promise<T>, what = ""): Promise<T> => {
+  const p = openProbe.sql(what);
+  return queue(() => { p.run(); return run(); }).finally(p.done);
+};
 
 /** (T264) A failed read names its file and query: expo-sqlite's own words name neither. */
 function named(name: string, sql: string, e: unknown): Error {
@@ -27,11 +33,11 @@ function wrap(name: string, db: SQLiteDatabase): Db {
   return {
     // the ASYNC API: the sync one needs SharedArrayBuffer on the web build of expo-sqlite (engine.native.ts)
     all: async (sql, ...params) => {
-      try { return (await one(() => db.getAllAsync(sql, params as never))) as unknown as Row[]; }
+      try { return (await one(() => db.getAllAsync(sql, params as never), `${name}: ${sql.slice(0, 40)}`)) as unknown as Row[]; }
       catch (e) { throw named(name, sql, e); }
     },
     get: async (sql, ...params) => {
-      try { return ((await one(() => db.getFirstAsync(sql, params as never))) as unknown as Row | null) ?? undefined; }
+      try { return ((await one(() => db.getFirstAsync(sql, params as never), `${name}: ${sql.slice(0, 40)}`)) as unknown as Row | null) ?? undefined; }
       catch (e) { throw named(name, sql, e); }
     },
     close: () => { void one(() => db.closeAsync()); },
@@ -44,6 +50,6 @@ export function releaseOpener(at: OpenAt): Opener {
     // a new connection per file: two release files must never share one (each is its own database)
     const data = file ? null : await bytes();
     return wrap(name, await one(() => file ? openDatabaseAsync(file.file, { useNewConnection: true }, file.dir)
-                                           : deserializeDatabaseAsync(data!)));
+                                           : deserializeDatabaseAsync(data!), `open ${name}`));
   };
 }

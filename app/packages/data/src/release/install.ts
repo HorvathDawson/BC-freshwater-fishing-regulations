@@ -19,7 +19,7 @@
 import { diff, parseManifest, withoutSlices, type Held, type Manifest } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts); TextEncoder it has
 import { utf8 } from "../regs/blob";
-import { Sha256, sha256Hex } from "../sha256";
+import { Sha256, sha256Hex, sha256HexAsync } from "../sha256";
 import { VerifyError } from "../fetchVerified";
 import { assetsDir, installAssets, type RawFetch } from "./assets";
 
@@ -215,7 +215,7 @@ async function place(fs: ReleaseFs, path: string, bytes: Uint8Array): Promise<vo
 
 async function fetchInto(fs: ReleaseFs, dl: Download, url: string, path: string,
                          expect: { bytes: number; sha256: string }): Promise<void> {
-  if (await fs.exists(path) && sha256Hex(await fs.read(path)) === expect.sha256) return;     // resumed: already there
+  if (await fs.exists(path) && await sha256HexAsync(await fs.read(path)) === expect.sha256) return;     // resumed: already there
   await place(fs, path, await dl(url, expect));
 }
 
@@ -288,10 +288,12 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
     const e = m.files[name]!, path = `${dir}/${e.url.split("/").pop()!.replace(/\.gz$/, "")}`;
     const from = !d.files.includes(name) && held?.release ? `${dirOf(held.release)}/${path.split("/").pop()}` : null;
     // unchanged: copied from the held set, never downloaded — unless the held copy is no longer the manifest's bytes
-    let copied = from !== null && await fs.exists(path) && sha256Hex(await fs.read(path)) === e.sha256;
+    // (T287) every hash here a slice at a time (`sha256HexAsync`): ~40 MB hashed in one go per file froze the app for
+    // ~0.5 s a file as an update finished
+    let copied = from !== null && await fs.exists(path) && await sha256HexAsync(await fs.read(path)) === e.sha256;
     if (!copied && from !== null && await fs.exists(from)) {
       const b = await fs.read(from);
-      if (sha256Hex(b) === e.sha256) { await place(fs, path, b); copied = true; }
+      if (await sha256HexAsync(b) === e.sha256) { await place(fs, path, b); copied = true; }
     }
     if (!copied) { await fetchInto(fs, dl, `${base}${e.url}`, path, e); bytes += e.bytes; }
     onProgress({ done: ++done, total, file: name, bytes, of });
@@ -299,7 +301,7 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
   // every file of the new set, re-verified on disk before anything points at it
   for (const name of names) {
     const e = m.files[name]!, path = `${dir}/${e.url.split("/").pop()!.replace(/\.gz$/, "")}`;
-    if (sha256Hex(await fs.read(path)) !== e.sha256) throw new Error(`release: ${path} does not match the manifest`);
+    if (await sha256HexAsync(await fs.read(path)) !== e.sha256) throw new Error(`release: ${path} does not match the manifest`);
   }
   // THE MAP ASSETS (glyphs + sprites): always made whole — their folder lives under the tile version, so new tiles move
   // it even when its id does not. Files already there are kept, the held folder's are copied; the rest fetched.

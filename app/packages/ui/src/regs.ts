@@ -15,15 +15,19 @@
  * `@app/data/regs`. `useRegsTarget` / `useRegulations` take them as their last argument (a test injects its own) and
  * default to T09's two functions (T21 bound them when it drew the page).
  */
-import { useMemo, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { accessNotice, buildRegsPage, leadingAccessNotice, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who } from "@app/core";
-import { downstreamWater, type ItemId, type WaterSource, type SectionId } from "@app/data";
+import { downstreamWater, openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { loadRegsInputs, loadWaterGroup, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
+import { itemsOfSections, loadRegsInputs, loadWaterGroup, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
          type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
+import { askOnce, peekAnswer } from "./answers";
+
+/** (T286) The test bed's "before" build (`EXPO_PUBLIC_REGS_ONE_BY_ONE=1`): no page held, every open read afresh. */
+const oneByOne = (): boolean => (globalThis as { __regsOneByOne?: boolean }).__regsOneByOne === true;
 import { useFeedVersion } from "./feedVersion";
 
 // ── the store ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -58,6 +62,21 @@ export function loadRegsStore(loader: RegsLoader, expect: RegsExpect = {}): Prom
            (e: unknown) => { if (!(e instanceof RegsStoreError)) byKey!.delete(key); });
   }
   return p;
+}
+
+/**
+ * (T286) THE FIRST TAP AS FAST AS THE NEXT: what any tap's page needs, done before the reader taps — the store opened and
+ * paired, its statics, rules and licensing read (all of them, once), regs-sid / core / geo opened, and (`files`, a
+ * phone, where every file is already on the device) every region file opened too. Before this the first tap of a
+ * session paid for all of it (~0.5 s on the emulator, the spinner's threshold). A failure is dropped: the tap asks again.
+ */
+export async function prewarmRegs(loader: RegsLoader, { files = false }: { files?: boolean } = {}): Promise<void> {
+  const st = await loadRegsStore(loader);
+  await Promise.all([st.statics(), st.rules(), st.lics(), st.sid(), st.core(),
+                    loader.manifest.files.geo ? loader.db("geo").catch(() => null) : null]);
+  if (!files) return;
+  for (const name of Object.keys(loader.manifest.files))
+    if (/^regs-(?!sid$)/.test(name)) await loader.db(name as never).catch(() => null);
 }
 
 /**
@@ -104,8 +123,12 @@ export function useRegsTarget(store: RegsStore | null, item: ItemId | null, sect
                               targetForPart: TargetFor = targetFor): Async<RegsTarget | null> {
   const key = `regs-target:${store ? idOf(store) : ""}:${item ?? ""}:${section ?? ""}`;
   const asks = !!store && (item !== null || section !== null);
-  return useAsync(async () => (!store ? null : item ? targetForPart(store, item, section)
-    : section !== null ? { kind: "section", handle: section } as RegsTarget : null), key, asks);
+  // (T286) asked once per store and held (`askOnce`): a water opened again has its target in the very first render
+  const fresh = targetForPart === targetFor;
+  return useAsync(async () => (!store ? null : item
+    ? (fresh && !oneByOne() ? askOnce(store, key, () => targetForPart(store, item, section), Infinity) : targetForPart(store, item, section))
+    : section !== null ? { kind: "section", handle: section } as RegsTarget : null), key, asks, undefined,
+    () => (store && item && fresh && !oneByOne() ? peekAnswer<RegsTarget>(store, key, Infinity) : null));
 }
 
 /**
@@ -240,7 +263,15 @@ export function useRegulations(store: RegsStore | null, target: RegsTarget | nul
                                load: LoadRegsInputs = loadRegsInputs): Async<RegsInputs | null> {
   const d = regsDay(mapDay);
   const key = `regs:${store ? idOf(store) : ""}:${target ? regsTargetKey(target) : ""}:${isoDay(d.day, d.calendarYear)}`;
-  return useAsync(async () => (store && target ? load(store, target, d.day, d.weekday, d.calendarYear) : null), key, !!store && !!target);
+  // (T286) THE PAGES ALREADY READ, per release and day: the store's answers are fixed for a release, so a tap's inputs
+  // are asked once (`askOnce`, the most recent `ANSWER_CAP` kept per store) and a water opened again is drawn in the
+  // very render it is opened — no read, no loading frame
+  const fresh = load === loadRegsInputs;
+  return useAsync(async () => (store && target
+    ? (fresh && !oneByOne() ? askOnce(store, key, () => load(store, target, d.day, d.weekday, d.calendarYear), Infinity)
+      : load(store, target, d.day, d.weekday, d.calendarYear))
+    : null), key, !!store && !!target, undefined,
+    () => (store && target && fresh && !oneByOne() ? peekAnswer<RegsInputs>(store, key, Infinity) : null));
 }
 
 /**
@@ -249,8 +280,73 @@ export function useRegulations(store: RegsStore | null, target: RegsTarget | nul
  */
 export function useRegsPage(inputs: RegsInputs | null, who: Who, today: Day, downstream: string | null = null): RegsPage | null {
   // (T53) `downstream`: an unnamed reach's named water down its flow — the header's label slot (core `downstreamLabel`)
-  return useMemo(() => (inputs ? buildRegsPage(inputs, { today, who, downstream }) : null),
+  return useMemo(() => {
+    if (!inputs) return null;
+    const t = openProbe.on() ? performance.now() : 0;
+    const page = buildRegsPage(inputs, { today, who, downstream });
+    if (t) openProbe.span("build", performance.now() - t);
+    return page;
+  },
     [inputs, who, today.month, today.day, downstream]);
+}
+
+// ── (T286) the waters on screen, read before they are tapped ─────────────────────────────────────────────────────────────
+
+/** How long the map must stay still before its waters are read (a pan that goes on cancels it). */
+export const PREFETCH_IDLE_MS = 400;
+/** At most this many waters per settle: the ones with the most sections on screen, the likeliest taps. */
+export const PREFETCH_MAX = 8;
+
+/**
+ * (T286) THE PAGES OF THE WATERS ON SCREEN, read while the reader looks: when the map settles, the waters with the most
+ * sections in view (`PREFETCH_MAX`) have their water sheet, target and inputs read into the same held answers a tap reads
+ * (`useWater`, `useRegsTarget`, `useRegulations` — the keys are theirs), one water at a time, idle only: a move of the
+ * map, or a new settle, stops it between waters. A tap on one of them then draws its page in the very first render.
+ * Null: no release.
+ */
+export function useRegsPrefetch(loader: RegsLoader | null, source: Pick<WaterSource, "water">,
+                                mapDay: Date | null): RegsPrefetch | null {
+  const live = useRef({ gen: 0, timer: null as ReturnType<typeof setTimeout> | null });
+  const day = useRef(mapDay);
+  day.current = mapDay;
+  useEffect(() => () => { live.current.gen += 1; if (live.current.timer) clearTimeout(live.current.timer); }, []);
+  const cb = useCallback((ids: readonly (string | number)[]) => {
+    if (!loader || oneByOne()) return;
+    const l = live.current, gen = ++l.gen;
+    if (l.timer) clearTimeout(l.timer);
+    l.timer = setTimeout(() => { void prefetchPages(loader, source, ids.map(Number), day.current, () => l.gen !== gen).catch(() => {}); },
+                         PREFETCH_IDLE_MS);
+  }, [loader, source]);
+  /** A tap: what is still to read waits (the tap's own reads go first through the one SQLite queue). */
+  const stop = useCallback(() => { const l = live.current; l.gen += 1; if (l.timer) clearTimeout(l.timer); }, []);
+  return useMemo(() => (loader ? { onVisible: cb, stop } : null), [loader, cb, stop]);
+}
+
+/** (T286) `useRegsPrefetch`'s handle: the map's `onVisible`, and `stop` (a tap). */
+export interface RegsPrefetch { onVisible(sids: readonly (string | number)[]): void; stop(): void }
+
+async function prefetchPages(loader: RegsLoader, source: Pick<WaterSource, "water">, sids: readonly number[],
+                             mapDay: Date | null, stale: () => boolean): Promise<void> {
+  const store = await loadRegsStore(loader);
+  if (stale()) return;
+  const owner = await itemsOfSections(store, sids);
+  const by = new Map<string, { n: number; sid: number }>();
+  for (const [sid, item] of owner) { const b = by.get(item); if (b) b.n += 1; else by.set(item, { n: 1, sid }); }
+  const d = regsDay(mapDay);
+  const top = [...by].sort((a, b) => b[1].n - a[1].n).slice(0, PREFETCH_MAX);
+  const t0 = Date.now();
+  let done = 0;
+  for (const [item, { sid }] of top) {
+    if (stale()) break;
+    await askOnce(source, `water-item:${item}`, () => source.water(item as ItemId), Infinity);
+    const tKey = `regs-target:${idOf(store)}:${item}:${sid}`;
+    const target = await askOnce(store, tKey, () => targetFor(store, item, sid), Infinity);
+    const key = `regs:${idOf(store)}:${regsTargetKey(target)}:${isoDay(d.day, d.calendarYear)}`;
+    await askOnce(store, key, () => loadRegsInputs(store, target, d.day, d.weekday, d.calendarYear), Infinity);
+    done += 1;
+  }
+  // the test bed's open probe: what the settle read
+  if (openProbe.on()) console.log(`[prefetch] ${done}/${top.length} waters of ${sids.length} sections in ${Date.now() - t0} ms`);
 }
 
 // ── the one day ──────────────────────────────────────────────────────────────────────────────────────────────────────
