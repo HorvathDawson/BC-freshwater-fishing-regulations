@@ -33,6 +33,12 @@ def feed_stations(feeds: Path) -> list[str]:
     return sorted(p.stem for p in feeds.glob("*.json") if p.stem not in SKIP and not p.stem.startswith("feed"))
 
 
+def index_stations(index: Path) -> list[str]:
+    """(T301) the stations a feed's `index.json` publishes: what a runner without the local feed dir reads (the
+    workflow fetches staging `feeds/live/index.json`)."""
+    return sorted(json.loads(index.read_text())["stations"])
+
+
 def build(hydat: Path, stations: list[str], release: str) -> dict[str, dict]:
     db = sqlite3.connect(f"file:{hydat}?mode=ro", uri=True)
     cols = ", ".join(f"FLOW{d}" for d in range(1, 32))
@@ -64,10 +70,12 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--hydat", type=Path, default=Path("data/source/hydat.sqlite3"))
     ap.add_argument("--feeds", type=Path, default=Path("data/generated/gauges/feeds"))
+    ap.add_argument("--index", type=Path, default=None,
+                    help="take the stations from this feed index.json instead of --feeds (T301: the GitHub workflow)")
     ap.add_argument("--out", type=Path, default=Path("data/generated/gauges/hydat_daily"))
     a = ap.parse_args()
     release = (a.hydat.parent / "hydat.release").read_text().strip()
-    files = build(a.hydat, feed_stations(a.feeds), release)
+    files = build(a.hydat, index_stations(a.index) if a.index else feed_stations(a.feeds), release)
     a.out.mkdir(parents=True, exist_ok=True)
     for old in a.out.glob("*.json"):
         if old.stem not in files:

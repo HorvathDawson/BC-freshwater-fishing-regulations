@@ -28,3 +28,11 @@ def test_build(tmp_path):
     assert d["q"][0][59] == 3.5                       # 29 Feb 1996: slot 59
     assert d["q"][1][60] == 12350.0 and d["q"][1][90] == 1.0     # 1 Mar = slot 60 (4 sig. figs), 31 Mar = slot 90
     assert sum(v is not None for v in d["q"][1]) == 2
+
+
+def test_index_stations_are_the_feed_index_keys(tmp_path):
+    # (T301) the GitHub workflow has no local feed dir: it reads the staging feed's index.json
+    import json
+    p = tmp_path / "index.json"
+    p.write_text(json.dumps({"fetchedAt": "x", "hydat": {}, "stations": {"08MH024": {}, "07EA004": {}}}))
+    assert h.index_stations(p) == ["07EA004", "08MH024"]
