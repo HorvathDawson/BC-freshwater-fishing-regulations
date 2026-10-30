@@ -29,6 +29,7 @@ export { WaterConditions, WaterMap } from "./WaterViews";
 export { LayersSheet, legendColour } from "./LayersSheet";
 export { OptionRow, type Option } from "./OptionRow";
 export { Button, type ButtonKind } from "./Button";
+export { SayingLine } from "./SayingLine";
 export { ago, count, plural } from "./format";
 export { MiniMap } from "./MiniMap";
 export { Icon, IconText, ICONS, ICON_STROKE, LUCIDE_NAME, type IconName } from "./icons";

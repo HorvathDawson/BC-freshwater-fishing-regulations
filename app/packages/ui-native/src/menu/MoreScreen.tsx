@@ -19,7 +19,7 @@
 import { createContext, useContext } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { useCrashSetting, useLayoutClass, useNet, useNetBps } from "@app/ui";
-import { CRASH_WORDS, dataModeLine, menuVM, NET_WORDS, UPDATE_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
+import { CRASH_WORDS, dataModeLine, menuVM, MOBILE_DATA_WORDS, NET_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MobileDataSetting, type MoreVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName, round } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
@@ -42,11 +42,14 @@ export interface MoreScreenProps {
   /** open a page over the tab */
   onPick: (page: MenuPageKey) => void;
   /**
-   * (T231) the large-updates-on-mobile-data setting: its state and how to change it — a phone only (the web downloads
-   * no large set); absent: no row
+   * (T231, T298) the mobile-data setting — Always / Ask / Wi-Fi only — and how to change it: a phone only (the web
+   * downloads no large set); absent: no row
    */
-  metered?: { on: boolean; set: (on: boolean) => void } | null;
+  metered?: MobileDataControl | null;
 }
+
+/** (T298) The mobile-data setting as More shows it: the choice, and how to change it. */
+export interface MobileDataControl { value: MobileDataSetting; set: (s: MobileDataSetting) => void }
 
 /** A wide screen: the blocks are boxed cards in columns, not edge-to-edge bands. */
 const Wide = createContext(false);
@@ -138,7 +141,7 @@ function Chevron({ palette }: { palette: Palette }) {
  * state aloud in full ("Live gauge readings: 4h ago. Likely out of date.").
  */
 function DataBlock({ vm, palette, metered }: { vm: MoreVM["data"]; palette: Palette;
-                                              metered: { on: boolean; set: (on: boolean) => void } | null | undefined }) {
+                                              metered: MobileDataControl | null | undefined }) {
   // a wide row is long from name to date: a hairline between rows carries the eye across (a phone's rows are short)
   const ruled = useContext(Wide);
   return (
@@ -210,8 +213,8 @@ function DataBlock({ vm, palette, metered }: { vm: MoreVM["data"]; palette: Pale
  * large updates on mobile data.
  */
 function UpdatesRow({ vm, palette, metered }: { vm: NonNullable<MoreVM["data"]["updates"]>; palette: Palette;
-                                                metered: { on: boolean; set: (on: boolean) => void } | null }) {
-  const C = UPDATE_WORDS.cellular;
+                                                metered: MobileDataControl | null }) {
+  const C = MOBILE_DATA_WORDS;
   return (
     <View testID="data-updates" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3,
                                          borderTopWidth: 1, borderTopColor: palette.line, gap: 2 }}>
@@ -227,14 +230,28 @@ function UpdatesRow({ vm, palette, metered }: { vm: NonNullable<MoreVM["data"]["
           {s.shown}
         </Text>
       ))}
+      {/* (T298, owner 2026-10-29) the mobile-data setting: Always / Ask / Wi-Fi only (the first download's answer lands here) */}
       {metered && (
-        <Pressable {...hitProps({ w: 200, h: 40 })} testID="data-updates-metered" onPress={() => metered.set(!metered.on)}
-                   accessibilityRole="switch" aria-checked={metered.on} accessibilityLabel={C.label}
-                   accessibilityHint={C.hint}
-                   style={{ flexDirection: "row", alignItems: "center", minHeight: 40, marginTop: SPACE.s1 }}>
-          <Text style={{ ...TYPE.small, color: palette.ink, flex: 1 }}>{C.label}</Text>
-          <Text style={{ ...TYPE.metaBold, color: metered.on ? palette.accent : palette.sub }}>{metered.on ? C.on : C.off}</Text>
-        </Pressable>
+        <View testID="data-updates-metered" style={{ marginTop: SPACE.s1, gap: SPACE.s1 }}>
+          <Text style={{ ...TYPE.small, color: palette.ink }}>{C.label}</Text>
+          <View accessibilityRole="radiogroup" accessibilityLabel={C.label}
+                style={{ flexDirection: "row", gap: SPACE.s2, flexWrap: "wrap" }}>
+            {(["always", "ask", "wifi"] as const).map((k) => {
+              const on = metered.value === k;
+              return (
+                <Pressable {...hitProps({ w: 64, h: 40 })} key={k} testID={`data-mobile-${k}`} onPress={() => metered.set(k)}
+                           accessibilityRole="radio" aria-checked={on} accessibilityLabel={`${C.label}: ${C.choices[k]}`}
+                           accessibilityHint={C.hint}
+                           style={({ pressed }) => ({ minHeight: 40, minWidth: 64, paddingHorizontal: SPACE.s3,
+                                                      justifyContent: "center", alignItems: "center", borderWidth: 1.5,
+                                                      borderColor: on ? palette.accent : palette.line,
+                                                      backgroundColor: on || pressed ? palette.tint : palette.card })}>
+                  <Text style={{ ...(on ? TYPE.metaBold : TYPE.meta), color: on ? palette.accent : palette.ink }}>{C.choices[k]}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
       )}
     </View>
   );

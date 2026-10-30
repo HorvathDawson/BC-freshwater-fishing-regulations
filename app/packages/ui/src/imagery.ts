@@ -35,6 +35,11 @@ export interface Connectivity {
   /** (T231) Every change of `metered`; returns the unsubscribe. */
   watchMetered?(on: (metered: boolean) => void): () => void;
   /**
+   * (T298) Metered, as the platform says it NOW (asked, not the last report — at a first start nothing has been
+   * reported yet). Resolves false where it cannot say within a moment.
+   */
+  meteredNow?(): Promise<boolean>;
+  /**
    * (T254) What the platform says about the link's speed (`@app/data` `NetHints`: the browser's `navigator.connection`,
    * a phone's NetInfo cellular generation and its Data Saver word). Absent: it says nothing.
    */

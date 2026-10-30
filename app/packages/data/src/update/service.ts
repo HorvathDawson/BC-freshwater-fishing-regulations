@@ -23,7 +23,7 @@
  *
  * `snapshot()` is a new object on every change (for `useSyncExternalStore`); `subscribe` is told after each.
  */
-import { errorClassOf, releaseAllowed, type AppVersion, type UpdateEvent } from "@app/core";
+import { errorClassOf, mobileDataFrom, releaseAllowed, type AppVersion, type MobileDataSetting, type UpdateEvent } from "@app/core";
 import { diff, parseManifest, type Held, type Manifest } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts)
 import { utf8 } from "../regs/blob";
@@ -178,6 +178,10 @@ export interface UpdateSnapshot {
   readonly feeds: readonly SourceStatus[];
   readonly release: ReleaseStatus | null;
   readonly allowMetered: boolean;
+  /** (T298) the reader's mobile-data setting: Always / Ask / Wi-Fi only (`allowMetered` is "always") */
+  readonly mobileData: MobileDataSetting;
+  /** (T298) the setting was never answered (still the default "ask"): the first prompt's answer is kept */
+  readonly mobileDataAnswered: boolean;
 }
 
 export interface UpdateService {
@@ -193,8 +197,10 @@ export interface UpdateService {
   applied(release: string, info?: { from?: string | null; ms?: number }): void;
   /** (T251) Forget every validator (ETag, sha) and the manifest last read: the next check downloads each object whole. */
   forget(): void;
-  /** Large release downloads over a metered connection (the reader's setting). */
+  /** Large release downloads over a metered connection: on is the setting's "always", off its "wifi". */
   allowMetered(on: boolean): void;
+  /** (T298) The mobile-data setting (More → Data, or the first install's prompt). Large updates go on mobile data only on "always". */
+  setMobileData(s: MobileDataSetting): void;
   /** Feed changes, by id: what re-asks its readers (the map's colouring) keys on it. */
   onFeedChange(on: (id: FeedId) => void): () => void;
 }
@@ -204,6 +210,8 @@ interface Persisted {
   seen: Partial<Record<FeedId, Seen>>;
   at: Partial<Record<SourceId, { checkedAt: number | null; updatedAt: number | null }>>;
   allowMetered?: boolean;
+  /** (T298) the three-way setting; absent: from `allowMetered` (true → "always"), else "ask" */
+  mobileData?: MobileDataSetting;
 }
 
 const STORE_VERSION = 1;
@@ -272,14 +280,17 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     : null;
   let checking = false;
   let manual: UpdateSnapshot["manual"] = null;
-  let allowMetered = kept.allowMetered ?? false;
+  let mobileData: MobileDataSetting = kept.mobileData ? mobileDataFrom(kept.mobileData)
+    : kept.allowMetered ? "always" : "ask";
+  let mobileDataAnswered = kept.mobileData !== undefined || kept.allowMetered !== undefined;
+  let allowMetered = mobileData === "always";
 
   // ── snapshot + listeners ────────────────────────────────────────────────────────────────────────────────────────────
   const listeners = new Set<() => void>();
   const feedListeners = new Set<(id: FeedId) => void>();
   let snap: UpdateSnapshot;
   const publish = () => {
-    snap = { checking, manual, feeds: o.feeds.map((s) => feeds.get(s.id)!), release, allowMetered };
+    snap = { checking, manual, feeds: o.feeds.map((s) => feeds.get(s.id)!), release, allowMetered, mobileData, mobileDataAnswered };
     for (const l of [...listeners]) l();
   };
   publish();
@@ -586,11 +597,17 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
       emit({ source: "app", kind: "action", note: "validators forgotten: the next check downloads everything whole" });
     },
     allowMetered(on) {
-      allowMetered = on;
-      kept.allowMetered = on;
+      service.setMobileData(on ? "always" : "wifi");
+    },
+    setMobileData(next) {
+      mobileData = next;
+      mobileDataAnswered = true;
+      allowMetered = next === "always";
+      kept.mobileData = next;
+      kept.allowMetered = allowMetered;
       save();
       publish();
-      if (on) maybeStage();
+      if (allowMetered) maybeStage();
     },
     onFeedChange(on) { feedListeners.add(on); return () => { feedListeners.delete(on); }; },
   };

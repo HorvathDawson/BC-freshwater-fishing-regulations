@@ -24,7 +24,7 @@
  */
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { failedSources, hydatNotice as noticeOf, UPDATE_WORDS, type HydatNotice, type SyncInput, type UpdateSourceInput,
-         type UpdateSourceKey } from "@app/core";
+         type MobileDataSetting, type UpdateSourceKey } from "@app/core";
 import { FEED_TTL_MS, type GaugeFeed, type UpdateService, type UpdateSnapshot } from "@app/data";
 import { usePoll } from "./async";
 import { feedMoved } from "./feedVersion";
@@ -79,6 +79,8 @@ export interface SyncState {
   readonly inSeasonEpoch: number;
   /** (T231) the reader's setting: large release downloads over a metered connection; null: no service */
   readonly allowMetered: ((on: boolean) => void) | null;
+  /** (T298) the three-way mobile-data setting (Always / Ask / Wi-Fi only); null: no service */
+  readonly setMobileData: ((s: MobileDataSetting) => void) | null;
 }
 
 /** (T231) The service's sources as the words read them: the feeds in order, then the release. */
@@ -160,7 +162,7 @@ export function useSync({ feed, release, checkRelease, named = null, updates = n
     const newRelease = st.latest !== null && release !== null && st.latest !== release ? st.latest : null;
     return { feedFetchedAt: st.feedFetchedAt, checkedAt: st.checkedAt, newRelease, hydatNotice: st.hydatNotice,
              forecastIssuedAt: st.forecastIssuedAt, checking: st.checking, epoch, refresh, updates: null,
-             update: undefined, sources: [], failed: [], allowMetered: null, inSeasonEpoch };
+             update: undefined, sources: [], failed: [], allowMetered: null, setMobileData: null, inSeasonEpoch };
   }
   const sources = sourcesOf(snap);
   const manualFailed = snap.manual !== null && !snap.manual.ok;
@@ -176,5 +178,5 @@ export function useSync({ feed, release, checkRelease, named = null, updates = n
   return { feedFetchedAt: st.feedFetchedAt, checkedAt: gauges ? gauges.checkedAt : st.checkedAt, newRelease: null,
            hydatNotice: st.hydatNotice, forecastIssuedAt: st.forecastIssuedAt, checking: snap.checking, epoch, refresh,
            updates: snap, update, sources, failed, allowMetered: (on) => updates!.allowMetered(on),
-           inSeasonEpoch };
+           setMobileData: (s) => updates!.setMobileData(s), inSeasonEpoch };
 }

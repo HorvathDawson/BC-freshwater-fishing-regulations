@@ -24,9 +24,10 @@ import { compatible, loadManifest, ManifestError, parseManifest, type Held, type
 import { sha256Hex } from "../sha256";
 import type { WaterSource } from "../index";
 import type { SourceOptions } from "./source";
-import { heldFrom, heldManifest, heldPath, install, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
+import { bigFiles, heldFrom, heldManifest, heldPath, install, installBytes, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
          writeHeld, type Progress, type ReleaseFs } from "./install";
 import { rawFetch } from "./assets";
+import type { BackgroundNative, BgItem } from "./bgDownload";
 import { withLiveSalmon, type SalmonFeedSource } from "../feed/salmon";
 import { releaseLoader, ReleaseError, type DbName, type Opener, type ReleaseLoader,
          type ReleaseSource } from "./loader";
@@ -39,17 +40,29 @@ export interface ReleasePlatform {
                                          put(url: string, bytes: Uint8Array): Promise<void> }>;
   releaseSource(m: Manifest, at: { base: string; cache: Awaited<ReturnType<ReleasePlatform["releaseCache"]>>;
                                    held: Held | null; fetch?: typeof fetch; net?: Net | null }): ReleaseSource;
-  device(fetchImpl?: typeof fetch): {
+  device(fetchImpl?: typeof fetch, bg?: BackgroundNative | null): {
     fs: ReleaseFs;
     download: (url: string, expect: { bytes: number; sha256: string }) => Promise<Uint8Array>;
     toDisk: (url: string, path: string, expect: { bytes: number; sha256: string },
              onBytes?: (n: number) => void) => Promise<void>;
     dirUri(path: string): string;
     fileUri(path: string): string;
+    background?: { queue(items: BgItem[], metered: boolean): Promise<void> };
   } | null;
 }
 
-export type BootStage = "manifest" | "install" | "paint";
+/** (T298) "wifi": a first install held for Wi-Fi by the reader's mobile-data choice. */
+export type BootStage = "manifest" | "wifi" | "install" | "paint";
+
+/**
+ * (T298) THE FIRST INSTALL'S MOBILE-DATA GATE, the app's (it asks the reader and keeps the answer as the setting).
+ */
+export interface MobileDataGate {
+  /** May a download of `bytes` use mobile data: "go", or "wifi" (it waits for Wi-Fi). Asks when the setting says Ask. */
+  decide(bytes: number): Promise<"go" | "wifi">;
+  /** After "wifi": resolves "wifi" once an unmetered line is up (at once if it is), or "now" if the reader chose to go. */
+  untilAllowed(): Promise<"wifi" | "now">;
+}
 
 export interface BootOptions {
   /** `ENDPOINTS.manifest`. */
@@ -67,6 +80,10 @@ export interface BootOptions {
   net?: Net | null;
   onStage?: (s: BootStage) => void;
   onProgress?: (p: Progress) => void;
+  /** (T298) a phone's system downloader (Android's DownloadManager): the first install's big files go on with the app closed */
+  background?: BackgroundNative | null;
+  /** (T298) a phone's first install asks before a large download on mobile data (absent: it just goes) */
+  mobileData?: MobileDataGate | null;
   /**
    * (T256) The web waits for paint before the Shell draws (default). False: a start that opens a Regulations page first
    * (`?regs=`, a water's own page) draws it without paint — the map's status asks for paint when it is shown. Native
@@ -179,7 +196,7 @@ export async function provenDefect(e: unknown, fs: ReleaseFs, h: Held): Promise<
 
 export async function bootRelease(o: BootOptions): Promise<Booted> {
   const f = o.fetch ?? fetch;
-  const dev = o.platform.device(f);
+  const dev = o.platform.device(f, o.background ?? null);
   o.onStage?.("manifest");
 
   if (!dev) {
@@ -230,6 +247,22 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   if (!held) {
     if (!latest) throw new BootError("first run: the manifest could not be read", true);
     if (!allowed(latest)) throw new BootError(UPDATE_WORDS.row.appTooOld);
+    // (T298) every big file handed to the system's downloader BEFORE anything else downloads, so closing the app a moment
+    // later still fetches all of them; on mobile data the reader's setting decides first (ask / go / wait for Wi-Fi)
+    const big: BgItem[] = bigFiles(latest, null).map((b) => ({ url: `${o.releaseBase}${b.url}`, file: b.file,
+                                                                 bytes: b.e.bytes, path: b.path }));
+    const queue = (metered: boolean) => dev.background?.queue(big, metered)
+      .catch((e: unknown) => console.warn(`[download] queue failed: ${e instanceof Error ? e.message : String(e)}`));
+    let metered = true;
+    const choice = o.mobileData ? await o.mobileData.decide(installBytes(latest, null)) : "go";
+    console.info(`[download] mobile data: ${choice} (${installBytes(latest, null)} bytes)`);
+    if (choice === "wifi" && o.mobileData) {
+      metered = false;
+      await queue(false);                      // they start on Wi-Fi by themselves, the app open or not
+      o.onStage?.("wifi");
+      if (await o.mobileData.untilAllowed() === "now") metered = true;
+    }
+    await queue(metered);
     o.onStage?.("install");
     const t0 = Date.now();
     let downAt = 0;

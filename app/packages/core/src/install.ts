@@ -16,6 +16,7 @@ export const INSTALL_WORDS = {
 
 const STAGES: Readonly<Record<string, string>> = {
   manifest: "Checking for the latest regulations…",
+  wifi: "Waiting for Wi-Fi",
   install: "Downloading the map and regulations for offline use",
   paint: "Opening the map…",
   fonts: "Loading type…",
@@ -83,4 +84,81 @@ export function installLine(p: { bytes: number; of: number }): string {
 export function rolledBackLine(r: { refused: string | null; using: string | null }): string {
   const refused = r.refused ? ` (${r.refused})` : "", using = r.using ? ` (${r.using})` : "";
   return `The newest map data${refused} would not open, so the app is using the data it had before${using}.`;
+}
+
+/**
+ * (T298) THE SYSTEM DOWNLOAD'S NOTIFICATION while the first install's big files download (on with the app closed):
+ * its title, and a line per file.
+ */
+export const DOWNLOAD_NOTE_WORDS = {
+  title: "Downloading BC fishing rules",
+  files: { tiles: "Map of the waters", mask: "Map outline", basemap: "Base map", synopsis: "Rule book (PDF)" },
+  other: "Map and regulations",
+  text: (what: string, bytes: number) => `${what} · ${megabytes(bytes)}`,
+} as const;
+
+/**
+ * (T298, owner 2026-10-29) THE MOBILE-DATA SETTING: a large download (the first install, a big update) on a metered
+ * line — always go, ask first, or wait for Wi-Fi. "ask" until the reader answers the prompt once; the answer is saved
+ * (More → Data) and can be changed there any time.
+ */
+export type MobileDataSetting = "always" | "ask" | "wifi";
+
+/** A download below this never asks (owner: "small updates (< ~5 MB) don't ask"). */
+export const SMALL_DOWNLOAD_BYTES = 5_000_000;
+
+export const MOBILE_DATA_WORDS = {
+  label: "Download over mobile data",
+  hint: "The first download is about 500 MB; map and regulation updates can be hundreds of megabytes",
+  choices: { always: "Always", ask: "Ask", wifi: "Wi-Fi only" } as Record<MobileDataSetting, string>,
+  /** the prompt before a large download on mobile data */
+  prompt: (bytes: number) => `Download about ${megabytes(bytes)} using mobile data?`,
+  now: "Download now",
+  wait: "Wait for Wi-Fi",
+  /** said once the answer is kept */
+  saved: "Saved. Change this any time in More → Data.",
+  /** the first install, held for Wi-Fi */
+  waiting: "Waiting for Wi-Fi — the download starts by itself when you connect.",
+  closeOk: "You can close the app: the download carries on.",
+} as const;
+
+/** A stored setting read back: anything unknown is "ask". */
+export function mobileDataFrom(text: string | null | undefined): MobileDataSetting {
+  const t = (text ?? "").trim();
+  return t === "always" || t === "wifi" ? t : "ask";
+}
+
+/**
+ * What a download of `bytes` does now: "go", "ask" the reader first, or "wait" for an unmetered line. Off mobile data,
+ * or a small download, always goes.
+ */
+export function mobileDataDecision(setting: MobileDataSetting, metered: boolean, bytes: number): "go" | "ask" | "wait" {
+  if (!metered || bytes < SMALL_DOWNLOAD_BYTES || setting === "always") return "go";
+  return setting === "ask" ? "ask" : "wait";
+}
+
+/**
+ * (T298, owner 2026-10-29) THE FISH SAYINGS: short lines that take turns under the bars while the first install
+ * downloads (`SAYING_MS` apart; with reduced motion they swap without a fade). The search placeholders' spirit; about
+ * the waiting and the gear, never a promise of fish.
+ */
+export const DOWNLOAD_SAYINGS = [
+  "Untangling the leader…",
+  "Checking the tackle box…",
+  "Waiting for the bite… of data",
+  "Reading the water…",
+  "Tying a better knot…",
+  "Patience is half of fishing…",
+  "Sorting the fly box…",
+  "Letting the line drift…",
+  "Checking which way the current runs…",
+  "Waders on, almost there…",
+] as const;
+
+export const SAYING_MS = 4000;
+
+/** The saying for turn `n` (any integer; wraps). */
+export function sayingAt(n: number): string {
+  const L = DOWNLOAD_SAYINGS.length;
+  return DOWNLOAD_SAYINGS[((Math.floor(n) % L) + L) % L]!;
 }

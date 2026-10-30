@@ -63,6 +63,14 @@ export function netInfoConnectivity(load: () => NetInfoLike): Connectivity {
     probeWhileUp: true,
     online: () => last,
     metered: () => { track(); return metered; },
+    // (T298) the listener reports the current state first: the first report is the answer (2 s, then "not metered")
+    meteredNow: () => new Promise<boolean>((resolve) => {
+      track();
+      let off: (() => void) | null = null, done = false;
+      const end = (m: boolean) => { if (done) return; done = true; clearTimeout(t); off?.(); resolve(m); };
+      const t = setTimeout(() => end(false), 2000);
+      try { off = ni.addEventListener((s) => end(meteredFrom(s))); if (done) off(); } catch { end(false); }
+    }),
     hints: () => { track(); return { cellularGeneration: generation }; },
     watchHints(on) {
       track();

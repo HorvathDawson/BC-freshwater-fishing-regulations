@@ -13,10 +13,12 @@
  */
 import { agoWords } from "./freshness";
 import { isoDayWords, MENU_WORDS } from "./menu";
+import { MOBILE_DATA_WORDS } from "./install";
 
 export type UpdateSourceKey = "gauges" | "dfo" | "inseason" | "release";
 
-const UPDATE_WORDS_CELLULAR_LABEL = "Large updates on mobile data";
+// (T298) one mobile-data setting for the first download and the updates: Always / Ask / Wi-Fi only (`MOBILE_DATA_WORDS`)
+const UPDATE_WORDS_CELLULAR_LABEL = MOBILE_DATA_WORDS.label;
 
 export const UPDATE_WORDS = {
   names: {
@@ -57,12 +59,6 @@ export const UPDATE_WORDS = {
     aloud: (name: string, problem: string, last: string) => `${name}: ${problem}. ${last}.`,
     notOpen: "The release is not open yet",
   },
-  cellular: {
-    label: UPDATE_WORDS_CELLULAR_LABEL,
-    on: "Allowed",
-    off: "Wi-Fi only",
-    hint: "Map and regulation updates can be hundreds of megabytes",
-  },
   /** (T231, owner 2026-10-28) the top bar's bell: its sync section, and the bell's title when it holds both kinds */
   bell: {
     count: (n: number) => (n === 1 ? "1 update failed" : `${n} updates failed`),
@@ -76,7 +72,7 @@ export const UPDATE_WORDS = {
       title: "Data update",
       waiting: (mb: number) => `New regulations ready to download — waiting for Wi-Fi (${mb} MB).`,
       download: "Download now",
-      confirm: (mb: number) => `Download ${mb} MB over mobile data? This turns on "${UPDATE_WORDS_CELLULAR_LABEL}" in More.`,
+      confirm: (mb: number) => `Download ${mb} MB over mobile data? This sets "${UPDATE_WORDS_CELLULAR_LABEL}" to ${MOBILE_DATA_WORDS.choices.always} in More.`,
       confirmYes: "Download",
       confirmNo: "Not now",
       downloading: (pct: number) => `Downloading new regulations… ${pct}%`,

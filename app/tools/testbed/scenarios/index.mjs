@@ -14,5 +14,6 @@ import { perf } from './perf.mjs';
 import { satellite } from './satellite.mjs';
 import { regsOpen } from './regs-open.mjs';
 import { updateFreeze } from './update-freeze.mjs';
+import { bgInstall } from './bg-install.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall];

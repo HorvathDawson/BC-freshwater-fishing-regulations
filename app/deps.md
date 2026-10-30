@@ -161,6 +161,21 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   `apps/mobile` for autolinking (it needs a rebuilt development build, like the map). Not used on the web
   (`navigator.onLine` does that job). Cost: a small native module (Android/iOS) and ~25 KB of TypeScript source before minification. Not a data package:
   the owner's "minimal prod packages" rule (2026-10-20) is about the release's data files and is untouched.
+- **No package — `apps/mobile/modules/bg-download` (local Expo module, Kotlin, Android only; T298).** The first install's
+  big files (tiles, mask, basemap, rule book: ~95 % of the ~500 MB) go to **Android's own `DownloadManager`**, so they keep
+  downloading with the app swiped away or the screen off, with the system's progress notification, its resume of a
+  dropped line, and its "Wi-Fi only" hold (`setAllowedOverMetered(false)`) for the mobile-data setting. Chosen over a
+  foreground service / WorkManager (`dataSync`): those need `FOREGROUND_SERVICE_DATA_SYNC` + a Play Console declaration
+  (with a video), the Android 13 notification permission, a 6-hour cap on Android 15, and our own resume and Wi-Fi
+  wait — DownloadManager needs no permission beyond INTERNET and is maintained by the platform. Chosen over
+  `@kesha-antonov/react-native-background-downloader` (a third-party package over the same DownloadManager / iOS
+  background URLSession) to add no package for ~150 lines of Kotlin. Cost: one notification per file (the system's,
+  not one combined bar); files land in the app's external files folder and are moved into the install root; the
+  module also hashes natively (sha256, ~1 s for the basemap where JS took 23 s). JS half: `packages/data/src/release/
+  bgDownload.ts` (platform-free, tested), bound in `apps/mobile/src/bgDownload.ts` (`requireOptionalNativeModule`: a
+  client built without it downloads in the app, as before). iOS: no module (not built yet) — expo-file-system's `DownloadTask` already runs
+  on a background `URLSession` by default (it goes on while the app is suspended; a swipe-away cancels it, iOS's rule)
+  and the next open resumes from the `.part`.
 - `expo-image-picker` — pinned 57.0.20 (the SDK 57 line; `npx expo install` names `~57.0.14`). Adds a photograph to
   a spot on iOS and Android, from the library or the camera, through the system picker — so the app draws no picker
   of its own. Used ONLY by `apps/mobile/src/pickPhoto.native.ts`; the web side is a plain

@@ -325,6 +325,8 @@ describe("the release", () => {
     await flush();
     expect(staged).toEqual(["v2"]);
     expect(JSON.parse(store.text!).allowMetered).toBe(true);
+    expect(JSON.parse(store.text!).mobileData).toBe("always");
+    expect(s.snapshot()).toMatchObject({ mobileData: "always", mobileDataAnswered: true });
     s.stop();
 
     // and without the setting, Wi-Fi coming back lets it through
@@ -339,6 +341,19 @@ describe("the release", () => {
     await flush();
     expect(staged).toEqual(["v2", "s2 v2"]);
     s2.stop();
+  });
+
+  it("T298: the three-way mobile-data setting — Ask until answered, kept, and an older allowMetered read as Always", () => {
+    const fresh = createUpdateService({ feeds: [], store: memStore() });
+    expect(fresh.snapshot()).toMatchObject({ mobileData: "ask", mobileDataAnswered: false, allowMetered: false });
+    const store = memStore();
+    const s = createUpdateService({ feeds: [], store });
+    s.setMobileData("wifi");
+    expect(s.snapshot()).toMatchObject({ mobileData: "wifi", mobileDataAnswered: true, allowMetered: false });
+    expect(createUpdateService({ feeds: [], store }).snapshot()).toMatchObject({ mobileData: "wifi", mobileDataAnswered: true });
+    const old = memStore();
+    old.write(JSON.stringify({ v: 1, seen: {}, at: {}, allowMetered: true }));
+    expect(createUpdateService({ feeds: [], store: old }).snapshot()).toMatchObject({ mobileData: "always", allowMetered: true });
   });
 
   it("T265: held on a slow mobile line; Wi-Fi returns while the slow mode is still on, then the mode clears: it starts", async () => {

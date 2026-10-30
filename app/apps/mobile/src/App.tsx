@@ -22,15 +22,15 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { downloadFraction, INSTALL_WORDS, MAP_CREDITS, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+import { downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
-         type WaterSource } from "@app/data";
-import type { ReleaseLoader } from "@app/data/release";
+         type UpdateService, type WaterSource } from "@app/data";
+import type { MobileDataGate, ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { connectivity, ErrorState, LoadingState, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
+import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, reportPastExits, routeKind, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
@@ -39,6 +39,7 @@ import { routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
+import { backgroundDownloads } from "./bgDownload";
 import { releaseSplash } from "./splash";
 
 import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
@@ -148,8 +149,8 @@ function BootNetLine({ colour }: { colour: string }) {
  * once the fish is laid out.
  */
 const BOOT_FISH = 110;
-function BootScreen({ palette, line, words, children }: {
-  palette: (typeof THEMES)[ThemeName]; line: string; words: string; children?: React.ReactNode;
+function BootScreen({ palette, line, words, saying = false, children }: {
+  palette: (typeof THEMES)[ThemeName]; line: string; words: string; saying?: boolean; children?: React.ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const onLayout = useCallback(() => {
@@ -163,7 +164,9 @@ function BootScreen({ palette, line, words, children }: {
         <LoadingState palette={palette} size={BOOT_FISH} label={words} immediate />
       </View>
       <View style={{ position: "absolute", top: "50%", marginTop: BOOT_FISH / 2 + 8, left: 0, right: 0, alignItems: "center", gap: 10 }}>
-        <Text testID="boot-line" style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }}>{line}</Text>
+        {saying
+          ? <SayingLine style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }} />
+          : <Text testID="boot-line" style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }}>{line}</Text>}
         <Text style={{ color: palette.sub, fontSize: 13 }}>{words}</Text>
         {children}
       </View>
@@ -219,13 +222,45 @@ export default function App() {
   // (T262) a failed first start is tried again: twice by itself (a DNS miss, a dropped line), then on the reader's Retry
   const [attempt, setAttempt] = useState(0);
   const [autoTries, setAutoTries] = useState(0);
+  /*
+   * (T298) THE FIRST INSTALL ON MOBILE DATA: the reader's setting (the update service keeps it: Always / Ask / Wi-Fi
+   * only) decides; on Ask the boot screen asks once — "Download now" / "Wait for Wi-Fi" — and the answer is SAVED as
+   * the setting (owner 2026-10-29), said in one line with where to change it. Held for Wi-Fi, the screen offers
+   * "Download now" (this time only); the system's downloader starts by itself on Wi-Fi, the app open or not.
+   */
+  const updatesRef = useRef<UpdateService | null>(null);
+  const [mobileAsk, setMobileAsk] = useState<{ bytes: number; answer: (a: "now" | "wifi") => void } | null>(null);
+  const [mobileSaved, setMobileSaved] = useState(false);
+  const [wifiWait, setWifiWait] = useState<(() => void) | null>(null);
+  const mobileGate = useMemo((): MobileDataGate | null => WEB ? null : {
+    decide: async (bytes) => {
+      const u = updatesRef.current;
+      const metered = (await connectivity.meteredNow?.()) ?? false;
+      const d = mobileDataDecision(u?.snapshot().mobileData ?? "ask", metered, bytes);
+      if (d !== "ask") return d === "go" ? "go" : "wifi";
+      const a = await new Promise<"now" | "wifi">((answer) => setMobileAsk({ bytes, answer }));
+      setMobileAsk(null);
+      u?.setMobileData(a === "now" ? "always" : "wifi");
+      setMobileSaved(true);
+      return a === "now" ? "go" : "wifi";
+    },
+    untilAllowed: async () => {
+      if (!((await connectivity.meteredNow?.()) ?? false)) return "wifi";
+      return new Promise<"wifi" | "now">((resolve) => {
+        let off: (() => void) | undefined;
+        const end = (r: "wifi" | "now") => { off?.(); setWifiWait(null); resolve(r); };
+        off = connectivity.watchMetered?.((m) => { if (!m) end("wifi"); });
+        setWifiWait(() => () => end("now"));
+      });
+    },
+  }, []);
   const boot = useReleaseBoot(useMemo(() => ({
     manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
-    salmonFeed, deferUpdate: true, net: NET,
+    salmonFeed, deferUpdate: true, net: NET, background: backgroundDownloads, mobileData: mobileGate,
     // (T251) a phone's requests name the app; its first install is gated by the release's minAppVersion (the web's app
     // ships with its data: never gated)
     ...(WEB ? {} : { fetch: DATA_FETCH, appVersion: APP_VERSION }),
-  }), [feed, salmonFeed]), generation, attempt);
+  }), [feed, salmonFeed, mobileGate]), generation, attempt);
   const booted = boot.state === "ready" ? boot.booted : null;
   const bootedRef = useRef(booted);
   bootedRef.current = booted;
@@ -275,6 +310,7 @@ export default function App() {
       },
     },
   }), [feed, salmonFeed, inSeason, updateLog, reportOutbox]);
+  updatesRef.current = updates;
   // started once the release is open (the service compares against the set in use); the boot's manifest read seeds it
   const started = useRef(false);
   useEffect(() => {
@@ -521,7 +557,31 @@ export default function App() {
         </View>
       ) : (
         // THE LOADING SCREEN, and on a phone's first run the download screen: which step, and how much is down
-        <BootScreen palette={palette} line={splashLine} words={bootWords}>
+        <BootScreen palette={palette} line={splashLine} words={bootWords}
+                    // (T298) the fish sayings take turns while the first install downloads or waits
+                    saying={(stage === "install" || stage === "wifi") && !setup}>
+          {/* (T298) on mobile data, asked once before the first download; the answer is kept as the setting */}
+          {mobileAsk && (
+            <View testID="boot-mobile-ask" style={{ alignItems: "center", gap: 10, paddingHorizontal: 24 }}>
+              <Text style={{ color: palette.ink, fontSize: 15, textAlign: "center" }}>{MOBILE_DATA_WORDS.prompt(mobileAsk.bytes)}</Text>
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <Button palette={palette} label={MOBILE_DATA_WORDS.now} testID="boot-mobile-now" grow={false}
+                        onPress={() => mobileAsk.answer("now")} />
+                <Button palette={palette} label={MOBILE_DATA_WORDS.wait} kind="ghost" testID="boot-mobile-wait" grow={false}
+                        onPress={() => mobileAsk.answer("wifi")} />
+              </View>
+            </View>
+          )}
+          {stage === "wifi" && (
+            <View testID="boot-wifi-wait" style={{ alignItems: "center", gap: 10, paddingHorizontal: 24 }}>
+              <Text style={{ color: palette.sub, fontSize: 13, textAlign: "center" }}>{MOBILE_DATA_WORDS.waiting}</Text>
+              {wifiWait && <Button palette={palette} label={MOBILE_DATA_WORDS.now} kind="ghost" grow={false}
+                                   testID="boot-wifi-now" onPress={wifiWait} />}
+            </View>
+          )}
+          {mobileSaved && !setup && (
+            <Text testID="boot-mobile-saved" style={{ color: palette.faint, fontSize: 12, textAlign: "center" }}>{MOBILE_DATA_WORDS.saved}</Text>
+          )}
           {/* (T254) on a slow or missing line: said, and how far the map's first file has come */}
           {stage !== "install" && !setup && <BootNetLine colour={palette.faint} />}
           {/* (T272) the first bar: the download; it stays (full) under the second stage's bar */}
@@ -529,7 +589,9 @@ export default function App() {
             <>
               <StageBar palette={palette} value={downloadFraction(progress)} testID="boot-download-bar" />
               <Text style={{ color: palette.sub, fontSize: 13 }}>{installLine(progress)}</Text>
-              {!setup && <Text style={{ color: palette.faint, fontSize: 12 }}>{INSTALL_WORDS.wifi}</Text>}
+              {/* (T298) with the system's downloader the download carries on with the app closed: said */}
+              {!setup && <Text style={{ color: palette.faint, fontSize: 12 }}>
+                {backgroundDownloads ? MOBILE_DATA_WORDS.closeOk : INSTALL_WORDS.wifi}</Text>}
             </>
           )}
           {setup && (

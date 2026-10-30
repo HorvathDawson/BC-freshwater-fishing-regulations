@@ -13,6 +13,7 @@ import { Directory, DownloadTask, File, FileMode, Paths } from "expo-file-system
 import { VerifyError } from "../../fetchVerified";
 import { fetchVerifiedResilient } from "../../net/verified";
 import { partDownload, type PartFill, type PartFs, type ReleaseFs } from "../install";
+import { background, type BackgroundNative } from "../bgDownload";
 import type { Device } from "./install";
 
 export type { Device } from "./install";
@@ -150,13 +151,21 @@ const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBy
   throw last instanceof Error ? last : new Error(String(last));
 };
 
-export function device(fetchImpl: typeof fetch = fetch): Device | null {
+/**
+ * `bg`: (T298) the system's downloader (Android's DownloadManager, `apps/mobile/modules/bg-download`) — the big files
+ * download in its process (on with the app closed, its own notification) and are hashed natively. Absent (iOS, a client
+ * built before the module): `nativeFill` as before, which stops when the app does and resumes from the `.part`.
+ */
+export function device(fetchImpl: typeof fetch = fetch, bg?: BackgroundNative | null): Device | null {
+  const sys = bg ? background(bg, { ...fs, uri: (p) => fileAt(p).uri }, nativeFill()) : null;
+  const partFs: PartFs = bg ? { ...fs, hash: (p) => bg.sha256(fileAt(p).uri) } : fs;
   return {
     fs,
     // (T256 item 4) the data files of a first install over a poor line: timeouts by size, retries, resume (the big
     // files are the native transport's, `nativeFill`, which already retries and resumes)
     download: (url, expect) => fetchVerifiedResilient(url, expect, { fetchImpl }),
-    toDisk: partDownload(fs, nativeFill()),
+    toDisk: partDownload(partFs, sys ? sys.fill : nativeFill()),
+    ...(sys ? { background: { queue: sys.queue } } : {}),
     dirUri: (path) => dirAt(path).uri,
     fileUri: (path) => fileAt(path).uri,
   };

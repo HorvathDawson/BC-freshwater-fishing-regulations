@@ -165,9 +165,9 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                               ? { sources: syncState.sources, release: syncState.updates.release } : null,
                             // (T253) "Offline data: Region 2 ready"
                             offline }}
-                    // (T231) a phone downloads whole sets: the large-updates-on-mobile-data setting
-                    metered={syncState.updates && syncState.allowMetered && Platform.OS !== "web"
-                      ? { on: syncState.updates.allowMetered, set: syncState.allowMetered } : null}
+                    // (T231, T298) a phone downloads whole sets: the mobile-data setting (Always / Ask / Wi-Fi only)
+                    metered={syncState.updates && syncState.setMobileData && Platform.OS !== "web"
+                      ? { value: syncState.updates.mobileData, set: syncState.setMobileData } : null}
                     back={TABS.find((t) => t.k === (browse.prev ?? "map"))!.t} onBack={back}
                     contact={menuInfo?.contact ?? null}
                     theme={themeName} onTheme={onTheme}

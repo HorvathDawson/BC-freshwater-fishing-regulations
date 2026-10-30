@@ -5,6 +5,6 @@ import type { Device } from "./install";
 
 export type { Device } from "./install";
 
-export function device(_fetchImpl?: typeof fetch): Device | null {
+export function device(_fetchImpl?: typeof fetch, _bg?: unknown): Device | null {
   return null;
 }

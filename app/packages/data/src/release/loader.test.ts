@@ -137,8 +137,9 @@ describe("install / update (native, always offline)", () => {
       `https://r2/tiles/${H}.aaa/atlas-${H}.aaa.pmtiles -> release/tiles/${H}.aaa/atlas-${H}.aaa.pmtiles`,
       `https://r2/tiles/${H}.aaa/bc_outside.geojson -> release/tiles/${H}.aaa/bc_outside.geojson`]);
     const T = 2 + tile.length + mask.length;
-    // each streamed file reports while it streams (here: once, whole) and again when it is in place
-    expect(progress).toEqual([`core 2/${T}`, `tiles 15/${T}`, `tiles 15/${T}`, `mask ${T}/${T}`, `mask ${T}/${T}`]);
+    // each streamed file reports while it streams (here: once, whole) and again when it is in place; (T298) the big
+    // files stream side by side and the bar counts the bytes of all of them
+    expect(progress).toEqual([`core 2/${T}`, `tiles 15/${T}`, `mask ${T}/${T}`, `tiles ${T}/${T}`, `mask ${T}/${T}`]);
     expect(held.tiles).toBe(`${H}.aaa`);
     streamed.length = 0;
     const m2 = { ...manifest({ core: "c2" }, "r-2"), tiles: tiles(`${H}.aaa`) } as Manifest;

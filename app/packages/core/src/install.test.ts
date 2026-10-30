@@ -1,6 +1,7 @@
 /** P11: the start-up and first-run words, composed here and pinned whole (AGENTS 33). */
 import { describe, expect, it } from "vitest";
-import { downloadFraction, INSTALL_WORDS, installLine, rolledBackLine, SETUP_WORDS, setupFraction, setupLine, startStage } from "./install";
+import { downloadFraction, DOWNLOAD_NOTE_WORDS, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
+         rolledBackLine, SAYING_MS, sayingAt, SETUP_WORDS, setupFraction, setupLine, SMALL_DOWNLOAD_BYTES, startStage } from "./install";
 
 describe("the first-run download line", () => {
   it("says how much of how much, in MB to one decimal, grouped", () => {
@@ -53,5 +54,38 @@ describe("the second stage of a first install (T272)", () => {
     expect(downloadFraction({ bytes: 5, of: 10 })).toBe(0.5);
     expect(downloadFraction({ bytes: 11, of: 10 })).toBe(1);
     expect(downloadFraction({ bytes: 0, of: 0 })).toBe(0);
+  });
+});
+
+describe("(T298) the first download: mobile data, the notification, the fish sayings", () => {
+  it("asks only for a large download on a metered line, and only on Ask", () => {
+    const big = 498_000_000;
+    expect(mobileDataDecision("ask", true, big)).toBe("ask");
+    expect(mobileDataDecision("wifi", true, big)).toBe("wait");
+    expect(mobileDataDecision("always", true, big)).toBe("go");
+    expect(mobileDataDecision("ask", false, big)).toBe("go");
+    expect(mobileDataDecision("wifi", true, SMALL_DOWNLOAD_BYTES - 1)).toBe("go");
+    expect(mobileDataFrom(null)).toBe("ask");
+    expect(mobileDataFrom("wifi\n")).toBe("wifi");
+    expect(mobileDataFrom("sometimes")).toBe("ask");
+  });
+
+  it("the prompt names the size, and the saved line says where to change it", () => {
+    expect(MOBILE_DATA_WORDS.prompt(498_812_345)).toBe("Download about 498.8 MB using mobile data?");
+    expect(MOBILE_DATA_WORDS.saved).toBe("Saved. Change this any time in More → Data.");
+    expect(Object.values(MOBILE_DATA_WORDS.choices)).toEqual(["Always", "Ask", "Wi-Fi only"]);
+    expect(DOWNLOAD_NOTE_WORDS.text(DOWNLOAD_NOTE_WORDS.files.basemap, 274_500_000)).toBe("Base map · 274.5 MB");
+  });
+
+  it("the sayings take turns, wrap both ways, and never promise fish", () => {
+    expect(sayingAt(0)).toBe(DOWNLOAD_SAYINGS[0]);
+    expect(sayingAt(DOWNLOAD_SAYINGS.length)).toBe(DOWNLOAD_SAYINGS[0]);
+    expect(sayingAt(-1)).toBe(DOWNLOAD_SAYINGS.at(-1));
+    expect(new Set(DOWNLOAD_SAYINGS).size).toBe(DOWNLOAD_SAYINGS.length);
+    for (const s of DOWNLOAD_SAYINGS) {
+      expect(s.length).toBeLessThan(40);
+      expect(s).not.toMatch(/\b(catch|caught|limit|guarantee|will bite|fish on)\b/i);
+    }
+    expect(SAYING_MS).toBeGreaterThanOrEqual(3000);
   });
 });

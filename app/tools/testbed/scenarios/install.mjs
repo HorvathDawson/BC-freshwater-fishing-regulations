@@ -64,7 +64,7 @@ export const install = {
       try {
         const js = ctx.device.logcatJs().split('\n').filter((l) => /\[download\]|\[setup\]/.test(l));
         fs.writeFileSync(path.join(ctx.dir, 'T272-install-timeline.txt'), js.join('\n') + '\n');
-        const done = js.filter((l) => /: done, \d+ bytes/.test(l)).pop();
+        const done = js.filter((l) => /: done\b.*\d+ bytes/.test(l)).pop();
         if (done) timeline = ` · last download done ${done.slice(0, 18)}`;
       } catch { /* no log */ }
       const after = (t) => (t ? `${Math.round((upAt - t) / 1000)} s` : 'not seen');

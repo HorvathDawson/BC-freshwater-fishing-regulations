@@ -70,7 +70,8 @@ describe("the web: the regulations kept so far, never an action", () => {
 
 describe("the phone: the installed set", () => {
   const snap = (release: UpdateSnapshot["release"], allowMetered = false): UpdateSnapshot =>
-    ({ checking: false, manual: null, feeds: [], release, allowMetered });
+    ({ checking: false, manual: null, feeds: [], release, allowMetered, mobileData: allowMetered ? "always" : "ask",
+       mobileDataAnswered: allowMetered });
   const status = { id: "release" as const, checkedAt: null, updatedAt: null, error: null, failedAt: null, offline: false,
                    failures: 0, target: "r-2", targetDate: null };
 

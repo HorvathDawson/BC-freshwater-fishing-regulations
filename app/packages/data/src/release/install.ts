@@ -52,6 +52,11 @@ export interface PartFs {
    * downloads; without it, the whole file is hashed once it is down.
    */
   readAt?(path: string, offset: number, length: number): Promise<Uint8Array>;
+  /**
+   * (T298) The sha256 (hex) of a whole file, computed natively (Android: ~1 s for the 274 MB basemap). With it, a
+   * `.part` is not followed while it downloads (the system's download manager writes it elsewhere) and is hashed once whole.
+   */
+  hash?(path: string): Promise<string>;
   rename(from: string, to: string): Promise<void>;
   remove(path: string): Promise<void>;
 }
@@ -78,6 +83,11 @@ const nextTick = () => new Promise<void>((r) => setTimeout(r, 0));
  * (its progress is drawn); without, `chunks` in one go.
  */
 async function hashFile(fs: PartFs, path: string, onHashed?: (n: number) => void): Promise<string> {
+  if (fs.hash) {
+    const hex = await fs.hash(path);
+    onHashed?.(await fs.size(path));
+    return hex;
+  }
   const h = new Sha256();
   if (!fs.readAt) {
     let n = 0;
@@ -110,7 +120,8 @@ export function partDownload(fs: PartFs, fill: PartFill): DownloadTo {
     // download). Only bytes on disk are hashed, in order; it is trusted only for ONE clean fill — the writer only ever
     // appended. A fill that rewrote the `.part` (a retry, a server that sent it whole) says so (`onRewrite`) and the file
     // is hashed again off disk, as before.
-    const readAt = fs.readAt?.bind(fs);
+    // (T298) a native hash: nothing to follow (the system's downloader fills the file elsewhere), hashed once whole
+    const readAt = fs.hash ? undefined : fs.readAt?.bind(fs);
     let rewritten = false, filling = true;
     const fh = new Sha256();
     let hashed = 0;
@@ -251,6 +262,38 @@ export async function writeHeld(fs: ReleaseFs, path: string, h: Held): Promise<v
   await place(fs, path, new TextEncoder().encode(JSON.stringify(h)));
 }
 
+/** (T298) One of the big files a set needs: streamed to disk, never held (`DownloadTo`). `url` is release-relative. */
+export interface BigFile { file: "tiles" | "mask" | "basemap" | "synopsis"; url: string; path: string;
+                           e: { bytes: number; sha256: string } }
+
+/**
+ * The big files `m` needs beside `held` (all of them when `held` is null): the tiles and their mask, the basemap and
+ * (owner 2026-10-29) THE RULE BOOK, which is part of the first download so it opens offline from the start — kept where
+ * the book opens it (`synopsisPath`) and fetched again only when a release names other bytes.
+ */
+export function bigFiles(m: Manifest, held: Held | null): BigFile[] {
+  m = withoutSlices(m);
+  const d = held ? diff(held, m) : { tiles: true, basemap: true, synopsis: true };
+  const big: BigFile[] = [];
+  const t = m.tiles.current, mask = m.tiles.mask, bm = m.basemap, book = m.synopsis;
+  if (d.tiles && t?.sha256 && t.bytes)
+    big.push({ file: "tiles", url: t.url, path: `release/${t.url}`, e: { bytes: t.bytes, sha256: t.sha256 } });
+  if (d.tiles && mask?.sha256 && mask.bytes)
+    big.push({ file: "mask", url: mask.url, path: `release/${mask.url}`, e: { bytes: mask.bytes, sha256: mask.sha256 } });
+  if (d.basemap && bm?.sha256 && bm.bytes)
+    big.push({ file: "basemap", url: bm.url, path: `release/${bm.url}`, e: { bytes: bm.bytes, sha256: bm.sha256 } });
+  if (d.synopsis && book?.sha256 && book.bytes)
+    big.push({ file: "synopsis", url: book.url, path: synopsisPath(book.sha256), e: { bytes: book.bytes, sha256: book.sha256 } });
+  return big;
+}
+
+/** (T298) What installing `m` beside `held` downloads, in bytes (copies from the held set cost nothing). */
+export function installBytes(m: Manifest, held: Held | null): number {
+  const w = withoutSlices(m);
+  const files = held ? diff(held, w).files : Object.keys(w.files);
+  return files.reduce((n, k) => n + (w.files[k]?.bytes ?? 0), 0) + bigFiles(w, held).reduce((n, b) => n + b.e.bytes, 0);
+}
+
 /**
  * Download what `m` needs beside `held` (everything when `held` is null) and swap the pointer. `toDisk` streams the
  * tiles and their mask (a test or the web may leave it out: they are then fetched whole through `dl`). `beforeSwap`
@@ -266,21 +309,7 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
                                      synopsis: true };
   const names = Object.keys(m.files).sort();
   const dir = dirOf(m.data_release);
-  const big: { file: string; url: string; path: string; e: { bytes: number; sha256: string } }[] = [];
-  const t = m.tiles.current, mask = m.tiles.mask;
-  if (d.tiles && t?.sha256 && t.bytes)
-    big.push({ file: "tiles", url: t.url, path: `release/${t.url}`, e: { bytes: t.bytes, sha256: t.sha256 } });
-  if (d.tiles && mask?.sha256 && mask.bytes)
-    big.push({ file: "mask", url: mask.url, path: `release/${mask.url}`, e: { bytes: mask.bytes, sha256: mask.sha256 } });
-  const bm = m.basemap;
-  if (d.basemap && bm?.sha256 && bm.bytes)
-    big.push({ file: "basemap", url: bm.url, path: `release/${bm.url}`, e: { bytes: bm.bytes, sha256: bm.sha256 } });
-  // (owner 2026-10-29) THE RULE BOOK IS PART OF THE FIRST DOWNLOAD, so it opens offline from the start: streamed to disk
-  // as the map files are (T262/T272), sha-verified, kept where the book opens it (`synopsisPath`), and fetched again only
-  // when a release names other bytes
-  const book = m.synopsis;
-  if (d.synopsis && book?.sha256 && book.bytes)
-    big.push({ file: "synopsis", url: book.url, path: synopsisPath(book.sha256), e: { bytes: book.bytes, sha256: book.sha256 } });
+  const big = bigFiles(m, held);
   const of = d.files.reduce((n, k) => n + (m.files[k]?.bytes ?? 0), 0) + big.reduce((n, b) => n + b.e.bytes, 0);
   let done = 0, bytes = 0;
   const total = names.length + big.length;
@@ -325,25 +354,28 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
   })().catch((e: unknown) => { assetsFailed = e ?? new Error("assets failed"); }) : null;
   // (T272) what the big files' hashes have left once the last byte is down: the second stage's bar
   const verifyOf = big.reduce((n, b) => n + b.e.bytes, 0);
-  let verifiedBefore = 0;
-  for (const b of big) {
-    if (toDisk) {
-      const at = bytes, vAt = verifiedBefore;
-      let down = at;
-      await toDisk(`${base}${b.url}`, b.path, b.e, (n) => { down = at + n; onProgress({ done, total, file: b.file, bytes: down, of }); },
-                   (n) => {
-                     if (down >= of)
-                       onProgress({ done, total, file: b.file, bytes: of, of, setup: { step: "verify", done: vAt + n, of: verifyOf } });
-                   });
-      verifiedBefore += b.e.bytes;
-    } else {
-      await fetchInto(fs, dl, `${base}${b.url}`, b.path, b.e);
-    }
-    bytes += b.e.bytes;
-    // (T272) the last byte down and its hash done: the second stage stays on screen (never back to the download line)
-    onProgress({ done: ++done, total, file: b.file, bytes, of,
-                 ...(toDisk && bytes >= of ? { setup: { step: "verify" as const, done: verifiedBefore, of: verifyOf } } : {}) });
-  }
+  // (T298) THE BIG FILES DOWNLOAD SIDE BY SIDE: on a phone the system's download manager already holds every one of them
+  // (queued before the install began, so they go on with the app closed); the bar counts the bytes of all of them
+  const downs = big.map(() => 0), hashed = big.map(() => 0);
+  const sum = (a: number[]) => a.reduce((n, x) => n + x, 0);
+  const report = (file: string) => {
+    const down = bytes + sum(downs);
+    // (T272) the last byte down: the second stage (the hashes' catch-up) stays on screen, never back to the download line
+    onProgress(down >= of && toDisk
+      ? { done, total, file, bytes: of, of, setup: { step: "verify", done: sum(hashed), of: verifyOf } }
+      : { done, total, file, bytes: down, of });
+  };
+  const runs = await Promise.allSettled(big.map(async (b, i) => {
+    if (toDisk) await toDisk(`${base}${b.url}`, b.path, b.e, (n) => { downs[i] = n; report(b.file); },
+                             (n) => { hashed[i] = n; report(b.file); });
+    else await fetchInto(fs, dl, `${base}${b.url}`, b.path, b.e);
+    downs[i] = hashed[i] = b.e.bytes;
+    done++;
+    report(b.file);
+  }));
+  const failed = runs.find((r): r is PromiseRejectedResult => r.status === "rejected");
+  if (failed) throw failed.reason;
+  bytes += sum(big.map((b) => b.e.bytes));
   bigDone = true;
   if (assetsRun) {
     assetsStep();
