@@ -347,6 +347,7 @@ use that as the sole source of future work."
 | T301 | New HYDAT release: refresh stored daily flows + normals | OPEN | — | owner 2026-10-30 |
 | T302 | Web Spots tab → notice: spots live in the phone app, no web sync yet, accounts coming; web save entry points + walkthrough spot steps adjusted | DONE | — | owner 2026-10-30; web Spots tab + add → notice (Get the app), walk skips spots on web; shots T302-shots/ |
 | T303 | Show your current location on the map: my-location button, blue dot, centre/follow, asks only on tap | DONE on web (emulator pass pending: lock held) | 1b74740 | owner 2026-10-30 |
+| T304 | Water-page landing focuses its own region so slow lines read the small region files (Vedder Fast-3G ~37 s today) | OPEN | — | T282 finding 2026-10-31 |
 
 ## Order for open tickets
 
