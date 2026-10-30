@@ -26,6 +26,7 @@ export * from "./inseason";
 export * from "./glance";
 export * from "./method";
 export * from "./paint";
+export * from "./sliced";
 export * from "./search";
 export * from "./searchGeometry";
 // (T247) the in-memory search index: typos, management units, regions, towns

@@ -11,8 +11,9 @@
  * Every SQLite file is checked on open: its meta.format is the manifest's and its meta.section_handles the release's.
  */
 import { openProbe } from "../openProbe";
-import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodePaint, decodeFlowArea, decodeSalmonHead, decodeSalmonShard,
-         salmonFacts, type LakeFacts, type MethodFacts, type Paint, type SalmonFacts, type SalmonShard,
+import { oneShot } from "../sha256";
+import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodeMethodAsync, decodePaint, decodePaintAsync, decodeFlowArea,
+         decodeSalmonHead, decodeSalmonShard, decodeSalmonShardAsync, salmonFacts, type LakeFacts, type MethodFacts, type Paint, type SalmonFacts, type SalmonShard,
          type SectionAccess } from "@app/core";
 import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
@@ -101,6 +102,15 @@ export interface ReleaseLoader {
   stored?(name: FileName): Promise<boolean | null>;
 }
 
+/**
+ * (T287) A big decode (paint ~150 ms on a phone, method ~50, a salmon slice ~35) runs IN SLICES (`@app/core` sliced.ts):
+ * the JS thread is never held for long, so a release swapped in or a first install opening never freezes the screen.
+ * The test bed's "before" build (`oneShot`) decodes in one go, as before.
+ */
+function decoded<T>(label: string, now: () => T, sliced: () => Promise<T>): Promise<T> {
+  return oneShot() ? Promise.resolve(openProbe.work(label, now)) : openProbe.workAsync(label, sliced);
+}
+
 export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener): ReleaseLoader {
   const handles = Object.values(m.files)[0]?.section_handles ?? "";
   const dbs = new Map<DbName, Promise<Db>>();
@@ -149,7 +159,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
     paint() {
       if (!paint) {
         touch("paint");
-        paint = source.bytes("paint").then((b) => openProbe.work("decode paint", () => decodePaint(b, handles)));
+        paint = source.bytes("paint").then((b) => decoded("decode paint", () => decodePaint(b, handles), () => decodePaintAsync(b, handles)));
         paint.catch(() => { paint = null; });
       }
       return paint;
@@ -186,7 +196,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
         let p = slices.get(r);
         if (!p) {
           touch(name);
-          p = source.bytes(name).then((b) => openProbe.work(`decode ${name}`, () => decodeSalmonShard(b, handles)));
+          p = source.bytes(name).then((b) => decoded(`decode ${name}`, () => decodeSalmonShard(b, handles), () => decodeSalmonShardAsync(b, handles)));
           p.catch(() => slices.delete(r));
           slices.set(r, p);
         }
@@ -198,7 +208,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
       if (!method) {
         if (!m.files.method) return Promise.resolve(null);
         touch("method");
-        method = source.bytes("method").then((b) => openProbe.work("decode method", () => decodeMethod(b, handles)));
+        method = source.bytes("method").then((b) => decoded("decode method", () => decodeMethod(b, handles), () => decodeMethodAsync(b, handles)));
         method.catch(() => { method = null; });
       }
       return method;
@@ -265,4 +275,24 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
     },
   };
   return loader;
+}
+
+/**
+ * (T287) WARM THE NEW SET LIKE THE OLD ONE, BEFORE THE SWAP: every decoded file the set in use had read (the Bait & fly
+ * marks, the salmon slices on screen, the lake values, …) is decoded on the new set too, in slices, while the old one
+ * is still on screen — so the moment the new set is committed nothing is left to decode, and the screens re-key onto
+ * answers that are already there (one map relabel, not one per file as each decode lands). Failures are left for the
+ * screen that asks (it says so, as it would have).
+ */
+export async function warmLike(next: ReleaseLoader, prev: ReleaseLoader): Promise<void> {
+  const had = new Set(prev.opened());
+  const regions = [...had].filter((n) => n.startsWith("salmon-")).map((n) => n.slice("salmon-".length) as Region);
+  // one after another: each is sliced, and two at once would only interleave their slices
+  const steps: (() => Promise<unknown>)[] = [() => next.paint()];
+  if (had.has("method")) steps.push(() => next.method());
+  if (had.has("salmon")) steps.push(() => next.salmon(regions));
+  if (had.has("lakes")) steps.push(() => next.lakes());
+  if (had.has("access")) steps.push(() => next.access());
+  if (had.has("flow-area")) steps.push(() => next.flowArea());
+  for (const s of steps) await s().catch(() => undefined);
 }

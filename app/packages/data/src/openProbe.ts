@@ -78,6 +78,14 @@ export const openProbe = {
     if (ms >= 20) console.log(`[work] ${label} ${r1(ms)} ms`);
     return out;
   },
+  /** (T287) Time a piece of work done in slices: one `[work] <label> sliced <ms>` line (wall time, first slice to last;
+   *  test bed only). */
+  async workAsync<T>(label: string, f: () => Promise<T>): Promise<T> {
+    if (!g.__openProbe) return f();
+    const t = now(), out = await f();
+    console.log(`[work] ${label} sliced ${r1(now() - t)} ms`);
+    return out;
+  },
   /** The open is drawn: the trace is written, 400 ms later (what still lands then — the Salmon card, the access
    *  notice, the JS thread's stalls — is in it too). */
   end(stage: string): void {

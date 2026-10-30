@@ -22,6 +22,9 @@
  *     nRuns, then gap[], count[], profile[]                 sid runs (absent: none)
  */
 import { readingDayOf } from "./statusIndex";
+import { runNow, runSliced, YIELD_EVERY, type Steps } from "./sliced";
+const YM = YIELD_EVERY - 1;
+
 
 export const METHOD_CLASSES = ["none", "bait", "fly"] as const;
 export type MethodClass = typeof METHOD_CLASSES[number];
@@ -41,6 +44,16 @@ export interface MethodFacts {
 export class MethodError extends Error {}
 
 export function decodeMethod(b: Uint8Array, handles: string): MethodFacts {
+  return runNow(methodSteps(b, handles));
+}
+
+/** (T287) `decodeMethod` in slices (`sliced.ts`): ~50 ms in one piece on a phone. Same answer. */
+export function decodeMethodAsync(b: Uint8Array, handles: string): Promise<MethodFacts> {
+  return runSliced(methodSteps(b, handles));
+}
+
+/** The decoder as steps (`runNow` / `runSliced`). */
+export function* methodSteps(b: Uint8Array, handles: string): Steps<MethodFacts> {
   if (b.length < 13 || b[0] !== 0x42 || b[1] !== 0x43 || b[2] !== 0x4d || b[3] !== 0x54 || b[4] !== 1)
     throw new MethodError("method: not a method/1 file");
   let digest = "";
@@ -60,6 +73,7 @@ export function decodeMethod(b: Uint8Array, handles: string): MethodFacts {
   const nProfiles = varint();
   const days = new Uint8Array(nProfiles * DAYS);
   for (let p = 0; p < nProfiles; p++) {
+    if ((p & YM) === YM) yield;
     let d = 0;
     for (let r = varint(); r > 0; r--) {
       const x = varint(), len = Math.floor(x / 4), code = x & 3;
@@ -73,14 +87,16 @@ export function decodeMethod(b: Uint8Array, handles: string): MethodFacts {
   const count = varint();
   const starts = new Float64Array(count), ends = new Float64Array(count), prof = new Int32Array(count);
   const gaps = new Float64Array(count);
-  for (let k = 0; k < count; k++) gaps[k] = varint();
+  for (let k = 0; k < count; k++) { gaps[k] = varint(); if ((k & YM) === YM) yield; }
   let end = 0;
   for (let k = 0; k < count; k++) {
+    if ((k & YM) === YM) yield;
     starts[k] = end + gaps[k]!;
     ends[k] = starts[k]! + varint();
     end = ends[k]!;
   }
   for (let k = 0; k < count; k++) {
+    if ((k & YM) === YM) yield;
     const p = varint();
     if (p >= nProfiles) throw new MethodError("method: a run names no profile");
     prof[k] = p;

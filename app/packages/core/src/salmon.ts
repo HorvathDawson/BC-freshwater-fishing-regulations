@@ -27,6 +27,7 @@ import { METHOD_WORDS, type MethodClass } from "./method";
 import type { GearVM, MethodsVM } from "./regs/model";
 import { BOOK_DAYS, fmtDay } from "./regs/strip";
 import { WORDS } from "./regs/words";
+import { runNow, runSliced, YIELD_EVERY, type Steps } from "./sliced";
 
 export const SALMON_SPECIES = ["CH", "CO", "SK", "PK", "CM"] as const;
 export type SalmonSpecies = typeof SALMON_SPECIES[number];
@@ -109,6 +110,16 @@ export interface SalmonShard {
 }
 
 export function decodeSalmonShard(b: Uint8Array, handles: string): SalmonShard {
+  return runNow(salmonShardSteps(b, handles));
+}
+
+/** (T287) `decodeSalmonShard` in slices (`sliced.ts`): ~35 ms in one piece on a phone. Same answer. */
+export function decodeSalmonShardAsync(b: Uint8Array, handles: string): Promise<SalmonShard> {
+  return runSliced(salmonShardSteps(b, handles));
+}
+
+/** The decoder as steps (`runNow` / `runSliced`). */
+export function* salmonShardSteps(b: Uint8Array, handles: string): Steps<SalmonShard> {
   if (b.length < 15 || b[0] !== 0x42 || b[1] !== 0x43 || b[2] !== 0x53 || b[3] !== 0x52 || b[4] !== 1)
     throw new SalmonError("salmon: not a salmon-shard/1 file");
   const digest = digestOf(b);
@@ -130,6 +141,7 @@ export function decodeSalmonShard(b: Uint8Array, handles: string): SalmonShard {
   const starts = new Float64Array(count), ends = new Float64Array(count), chain = new Int32Array(count);
   let end = 0;
   for (let r = 0; r < count; r++) {
+    if ((r & (YIELD_EVERY - 1)) === YIELD_EVERY - 1) yield;
     const s0 = end + varint(), c = varint();
     starts[r] = s0; ends[r] = s0 + c; chain[r] = varint();
     end = s0 + c;

@@ -13,7 +13,10 @@
  * status channel's `profileLabel`) draws the fourth colour from the same file, with no second feed.
  */
 import { accessOf, ACCESS_TIERS, type AccessArea, type SectionAccess } from "./access";
-import { decodeStatusIndex, type StatusIndex } from "./statusIndex";
+import { statusIndexSteps, type StatusIndex } from "./statusIndex";
+import { runNow, runSliced, YIELD_EVERY, type Steps } from "./sliced";
+
+const YM = YIELD_EVERY - 1;
 import type { RecordYears } from "./trust";
 
 export class PaintError extends Error {}
@@ -100,6 +103,19 @@ function readAccess(r: Reader): SectionAccess {
 }
 
 export function decodePaint(bytes: Uint8Array, expectHandles: string | null, expectReach: string | null = null): Paint {
+  return runNow(paintSteps(bytes, expectHandles, expectReach));
+}
+
+/**
+ * (T287) `decodePaint` in slices (`sliced.ts`): ~150 ms in one piece on a phone, the freeze felt when a downloaded
+ * release is swapped in or a first install opens. Same answer.
+ */
+export function decodePaintAsync(bytes: Uint8Array, expectHandles: string | null, expectReach: string | null = null): Promise<Paint> {
+  return runSliced(paintSteps(bytes, expectHandles, expectReach));
+}
+
+/** The decoder as steps (`runNow` / `runSliced`). */
+export function* paintSteps(bytes: Uint8Array, expectHandles: string | null, expectReach: string | null = null): Steps<Paint> {
   if (bytes[0] !== 0x42 || bytes[1] !== 0x43 || bytes[2] !== 0x50 || bytes[3] !== 0x54) throw new PaintError("paint: not a paint file");
   // paint/2 added each member's `lead`, paint/3 the access half, paint/4 the record per quantity (T110), paint/5 each
   // member's `lake` (T296): 4 and 5 are read (4 says nothing of lakes), another version is refused here
@@ -108,19 +124,21 @@ export function decodePaint(bytes: Uint8Array, expectHandles: string | null, exp
   const lakes = version === 5;
   const r = new Reader(bytes, 5);
   const n = r.u32();
-  const status = decodeStatusIndex(r.bytes(n), expectHandles, expectReach);
+  const status = yield* statusIndexSteps(r.bytes(n), expectHandles, expectReach);
   const ln = r.u32();
   const stations = ln ? utf8(r.bytes(ln)).split("\n") : [];
   const nr = r.uv();
   const starts = new Uint32Array(nr), counts = new Uint32Array(nr), panels = new Uint32Array(nr);
   let end = 0, sections = 0;
   for (let i = 0; i < nr; i++) {
+    if ((i & YM) === YM) yield;
     starts[i] = end + r.uv(); counts[i] = r.uv(); panels[i] = r.uv();
     end = starts[i]! + counts[i]!; sections += counts[i]!;
   }
   const members: PanelMember[] = [];
   let pid = 0;
   for (let i = 0, m = r.uv(); i < m; i++) {
+    if ((i & YM) === YM) yield;
     pid += r.uv();
     const ord = r.uv(), si = r.uv(), role = r.uv(), area = r.uv(), discharge = r.uv(), level = r.uv(), reg = r.uv(),
           same = r.uv(), lead = r.uv(), lake = lakes ? r.uv() : 0;
@@ -130,12 +148,14 @@ export function decodePaint(bytes: Uint8Array, expectHandles: string | null, exp
   }
   const basins: BasinMember[] = [];
   for (let i = 0, m = r.uv(); i < m; i++) {
+    if ((i & YM) === YM) yield;
     const basin = utf8(r.bytes(r.u16()));
     const si = r.uv(), has = r.uv();
     const areaKm2 = has ? r.f64() : null;
     const discharge = r.uv(), level = r.uv();
     basins.push({ basin, station: stations[si] ?? r.fail(`station ${si}`), areaKm2, years: { discharge, level } });
   }
+  yield;
   const access = readAccess(r);
   if (r.i !== bytes.length) throw new PaintError(`paint: ${bytes.length - r.i} trailing bytes`);
   const panelOf = (sid: number): number | null => {

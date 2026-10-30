@@ -72,10 +72,23 @@ export const install = {
       const after = (t) => (t ? `${Math.round((upAt - t) / 1000)} s` : 'not seen');
       const wait = ` · 100 % → map ${after(seen.full)}, "Setting up" → map ${after(seen.setup)}${timeline}`;
       await appUp(ctx, { launch: false, ms: 60_000 });
+      // (T287) THE FIRST-INSTALL FINISH: the JS stalls (test-bed build: `[stall]`) from the set installed to the map up,
+      // with the timed decodes (`[work]`) and set-up lines between them — kept beside the report
+      let finish = '';
+      try {
+        const js = ctx.device.logcatJs().split('\n');
+        const from = js.findIndex((l) => /\[setup\] installed/.test(l));
+        if (from >= 0) {
+          const tail = js.slice(from).filter((l) => /\[(stall|work|setup|swap)\]/.test(l));
+          fs.writeFileSync(path.join(ctx.dir, 'T287-first-install.txt'), tail.join('\n') + '\n');
+          const ms = tail.map((l) => /\[stall\] (\{.*\})/.exec(l)).filter(Boolean).map((m) => JSON.parse(m[1]).ms);
+          finish = ` · install finish → map: ${ms.length} stalls >50 ms${ms.length ? ` (worst ${Math.max(...ms)} ms: ${ms.sort((a, b) => b - a).slice(0, 5).join(', ')})` : ''}`;
+        }
+      } catch { /* no log */ }
       ctx.flow('dismiss-first-run');
       const mb = (kb) => `${Math.round(kb / 1024)} MB`;
       return `downloaded and up in ${took} s after launch${relaunched ? ` — the app died ${relaunched}× and was relaunched (resumed)` : ''}${killed ? ` — killed at ${killed} and resumed` : ''}` +
-        ` · peak heap: Java ${mb(peak.java)}, native ${mb(peak.native)}, total PSS ${mb(peak.total)}` + wait;
+        ` · peak heap: Java ${mb(peak.java)}, native ${mb(peak.native)}, total PSS ${mb(peak.total)}` + wait + finish;
     }, { stop: true });
     await ctx.step('Updates log: every source checked on start', async () => {
       openLog(ctx);

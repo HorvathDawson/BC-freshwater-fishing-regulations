@@ -24,6 +24,7 @@
 import type { SectionAccess } from "./access";
 import { CALENDAR_DAYS, readingDay } from "./calendar.generated";
 import type { SectionKey } from "./section";
+import { runNow, runSliced, YIELD_EVERY, type Steps } from "./sliced";
 
 /** What the file can say about a section on a day. `tidal` and `outside` are not statuses. */
 export type StatusCode = "base" | "own" | "closed" | "tidal" | "outside";
@@ -78,6 +79,9 @@ export interface StatusIndex {
   readonly access?: SectionAccess | null;
 }
 
+/** (T287) The rows between a decoder's offers to yield, as a mask. */
+const YM = YIELD_EVERY - 1;
+
 export class StatusIndexError extends Error {}
 
 /**
@@ -105,6 +109,18 @@ function utf8(b: Uint8Array): string {
  */
 export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | null,
                                   expectReach: string | null = null): StatusIndex {
+  return runNow(statusIndexSteps(bytes, expectHandles, expectReach));
+}
+
+/** (T287) `decodeStatusIndex` in slices (`sliced.ts`): the JS thread is never held for long. Same answer. */
+export function decodeStatusIndexAsync(bytes: Uint8Array, expectHandles: string | null,
+                                       expectReach: string | null = null): Promise<StatusIndex> {
+  return runSliced(statusIndexSteps(bytes, expectHandles, expectReach));
+}
+
+/** The decoder as steps: it yields every `YIELD_EVERY` rows (`runNow` / `runSliced`). */
+export function* statusIndexSteps(bytes: Uint8Array, expectHandles: string | null,
+                                  expectReach: string | null = null): Steps<StatusIndex> {
   let pos = 0;
   const fail = (why: string): never => { throw new StatusIndexError(`status index: ${why}`); };
   const byte = (): number => (pos < bytes.length ? bytes[pos++]! : fail("truncated"));
@@ -132,6 +148,7 @@ export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | nul
   if (nProfiles > 65534) fail("too many profiles");
   const days = new Uint8Array(nProfiles * DAYS);
   for (let p = 0; p < nProfiles; p++) {
+    if ((p & YM) === YM) yield;
     let d = 0;
     for (let r = v(); r > 0; r--) {
       const x = v(), code = x & 7, len = Math.floor(x / 8);
@@ -144,9 +161,10 @@ export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | nul
 
   const nRuns = v();
   const gaps = new Array<number>(nRuns), counts = new Array<number>(nRuns);
-  for (let i = 0; i < nRuns; i++) gaps[i] = v();
+  for (let i = 0; i < nRuns; i++) { gaps[i] = v(); if ((i & YM) === YM) yield; }
   let top = 0, listed = 0;
   for (let i = 0; i < nRuns; i++) {
+    if ((i & YM) === YM) yield;
     counts[i] = v();
     top += gaps[i]! + counts[i]!;
     listed += counts[i]!;
@@ -155,6 +173,7 @@ export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | nul
   const bySection = nProfiles < 255 ? new Uint8Array(top) : new Uint16Array(top);
   let end = 0;
   for (let i = 0; i < nRuns; i++) {
+    if ((i & YM) === YM) yield;
     const p = v();
     if (p >= nProfiles) fail("a section names no profile");
     const start = end + gaps[i]!;
@@ -164,11 +183,12 @@ export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | nul
 
   const nItems = v();
   const shared = new Array<number>(nItems), lens = new Array<number>(nItems);
-  for (let i = 0; i < nItems; i++) shared[i] = v();
-  for (let i = 0; i < nItems; i++) lens[i] = v();
+  for (let i = 0; i < nItems; i++) { shared[i] = v(); if ((i & YM) === YM) yield; }
+  for (let i = 0; i < nItems; i++) { lens[i] = v(); if ((i & YM) === YM) yield; }
   const ids = new Array<string>(nItems);
   let prev = new Uint8Array(0);
   for (let i = 0; i < nItems; i++) {
+    if ((i & YM) === YM) yield;
     if (shared[i]! > prev.length || pos + lens[i]! > bytes.length) fail("bad water ids");
     const id = new Uint8Array(shared[i]! + lens[i]!);
     id.set(prev.subarray(0, shared[i]!));
@@ -179,6 +199,7 @@ export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | nul
   }
   const byWater = new Map<string, number>();
   for (let i = 0; i < nItems; i++) {
+    if ((i & YM) === YM) yield;
     const p = v();
     if (p >= nProfiles) fail("a water names no profile");
     byWater.set(ids[i]!, p);

@@ -3,8 +3,8 @@
  * held for the loading screen. The app shell passes the platform half in (`@app/data/release/platform`), so this hook,
  * like every hook, runs under both renderers.
  */
-import { useEffect, useState } from "react";
-import { bootRelease, BootError, type BootOptions, type Booted, type Progress } from "@app/data/release";
+import { useEffect, useRef, useState } from "react";
+import { bootRelease, BootError, warmLike, type BootOptions, type Booted, type Progress } from "@app/data/release";
 
 export type BootState =
   | { state: "loading"; stage: string; progress: Progress | null }
@@ -31,6 +31,8 @@ export function setRegsFirstStart(on: boolean): void { regsFirst = on; }
 export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt = 0): BootState {
   const [s, set] = useState<BootState>({ state: "loading", stage: "manifest", progress: null });
   const on = opts !== null;
+  /** (T287) The set on screen: an applied update is warmed like it before it replaces it (`warmLike`). */
+  const inUse = useRef<Booted | null>(null);
   useEffect(() => {
     if (!opts) return;
     let live = true;
@@ -55,7 +57,15 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
         pending = setTimeout(draw, Math.max(0, PROGRESS_MS - (Date.now() - drawn)));
       },
     }).then(
-      (booted) => { if (pending) clearTimeout(pending); if (live) set({ state: "ready", booted, generation }); },
+      async (booted) => {
+        if (pending) clearTimeout(pending);
+        // (T287) an applied update: decoded like the set on screen, in slices, before it is committed
+        const prev = inUse.current;
+        if (again && prev && prev.loader !== booted.loader) await warmLike(booted.loader, prev.loader);
+        if (!live) return;
+        inUse.current = booted;
+        set({ state: "ready", booted, generation });
+      },
       (e: unknown) => {
         if (pending) clearTimeout(pending);
         if (!live) return;
