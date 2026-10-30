@@ -43,3 +43,15 @@ describe("the web", () => {
     expect(offlineVM({ ...WEB, regs: { bytes: 41_000_000, held: null } }).total).toBeNull();
   });
 });
+
+describe("the rule book (owner 2026-10-29: part of a phone's first download)", () => {
+  it("phone: its own row, on the phone, opens offline, counted in storage; web: fetched when opened; none: no row", () => {
+    const p = offlineVM({ ...PHONE, book: 25_041_728 });
+    expect([p.book!.aloud, p.book!.kept, p.total!.value]).toEqual([
+      "Rule book (synopsis PDF): 25.0 MB. On this phone · opens offline.", true, "525.8 MB"]);
+    const w = offlineVM({ ...WEB, book: 25_041_728 });
+    expect([w.book!.aloud, w.book!.kept, w.total!.value]).toEqual([
+      "Rule book (synopsis PDF): 25.0 MB. Downloaded when you open it.", false, "12.5 MB"]);
+    expect(offlineVM(PHONE).book).toBeNull();
+  });
+});

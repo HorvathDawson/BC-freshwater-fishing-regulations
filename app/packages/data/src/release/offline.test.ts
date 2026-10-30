@@ -47,7 +47,9 @@ async function loader() {
 
 describe("the regulations are all of B.C.; the map is one province-wide file", () => {
   it("regs = every data file (every region's slices among them); map = tiles + mask, basemap", () => {
-    expect(offlineSizes(manifest())).toEqual({ regs: 26, map: { tiles: 1010, basemap: 2000 } });
+    expect(offlineSizes(manifest())).toEqual({ regs: 26, map: { tiles: 1010, basemap: 2000 }, book: null });
+    // (owner 2026-10-29) the rule book: its own size, part of a phone's install
+    expect(offlineSizes({ ...manifest(), synopsis: { url: "r/s.pdf", bytes: 25, sha256: "x" } }).book).toBe(25);
   });
 
   it("the web reads what its cache keeps of them, file by file, whatever fetched it", async () => {

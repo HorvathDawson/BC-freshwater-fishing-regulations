@@ -17,6 +17,8 @@ export interface OfflineSizes {
   readonly regs: number;
   /** the map: tiles (+ their mask) and the basemap, one file each for the whole province */
   readonly map: { readonly tiles: number; readonly basemap: number };
+  /** (owner 2026-10-29) the synopsis PDF: part of a phone's install set */
+  readonly book: number | null;
 }
 
 /** What a manifest says each part costs (bytes as kept on the device: raw, as `install` writes and the cache holds). */
@@ -25,6 +27,7 @@ export function offlineSizes(m: Manifest): OfflineSizes {
     // (T256) not the answer slices: a subset of core / water for the web, never kept beside them on a phone
     regs: Object.values(m.files).reduce((n, f) => n + (f?.slice_of ? 0 : f?.bytes ?? 0), 0),
     map: { tiles: (m.tiles.current?.bytes ?? 0) + (m.tiles.mask?.bytes ?? 0), basemap: m.basemap?.bytes ?? 0 },
+    book: m.synopsis?.bytes ?? null,
   };
 }
 

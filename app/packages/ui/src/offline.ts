@@ -42,7 +42,7 @@ export function useOfflineMaps(o: {
   const regions = Object.keys(loader.manifest.files).filter((f) => /^regs-(?!sid$)/.test(f)).map((f) => f.slice(5)).sort();
   const u = o.updates ?? null;
   const vm = offlineVM({
-    platform, regions, regs: { bytes: sizes.regs, held: web ? held : null }, map: sizes.map,
+    platform, regions, regs: { bytes: sizes.regs, held: web ? held : null }, map: sizes.map, book: sizes.book,
     ...(web ? {} : {
       update: u?.release ? { phase: u.release.phase, bytes: u.release.progress?.bytes ?? 0, of: u.release.progress?.of ?? 0 } : null,
       wifiOnly: u && o.allowMetered ? !u.allowMetered : null,

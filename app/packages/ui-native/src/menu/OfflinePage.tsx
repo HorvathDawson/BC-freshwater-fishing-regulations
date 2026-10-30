@@ -75,6 +75,7 @@ export function OfflinePage({ c, palette }: { c: OfflineControls; palette: Palet
           )}
         </View>
       )}
+      {v.book && <Row r={v.book} palette={palette} first />}
       <Row r={v.map} palette={palette} first />
       <View style={{ gap: SPACE.s1 }}>
         <Kicker palette={palette}>{v.regionsHead}</Kicker>

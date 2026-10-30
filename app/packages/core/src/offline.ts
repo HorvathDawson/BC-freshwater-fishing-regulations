@@ -8,6 +8,8 @@
  *   MAP           today ONE province-wide file (tiles + basemap): no per-region tile split exists yet (T85/T202), so
  *                 the map is one row and the regions are listed as part of it, no size and no action of their own —
  *                 a size per region would be made up (AGENTS 32). The rows become choices when the split lands.
+ *   RULE BOOK     (owner 2026-10-29) the synopsis PDF is part of a phone's first download: a row of its own, kept on the
+ *                 phone (counted in storage used); on the web it is fetched when it is opened.
  *   PHONE         storage used is the installed set; a release download (T231) shows its progress, a paused one Resume;
  *                 "Download large updates on Wi-Fi only" is T231's mobile-data setting, inverted.
  */
@@ -26,6 +28,11 @@ export const OFFLINE_WORDS = {
     /** web: what the release cache holds of them so far */
     webHeld: (held: string, of: string) => `${held} of ${of} kept in this browser so far`,
     webAll: "All kept in this browser",
+  },
+  book: {
+    name: "Rule book (synopsis PDF)",
+    phone: "On this phone · opens offline",
+    web: "Downloaded when you open it",
   },
   map: {
     name: "Map of B.C.",
@@ -61,6 +68,8 @@ export interface OfflineInput {
   /** every data file the release names, bytes; `held`: what the web's release cache keeps of them (null: not known yet) */
   readonly regs: { readonly bytes: number; readonly held: number | null };
   readonly map: { readonly tiles: number; readonly basemap: number };
+  /** the release's synopsis PDF, bytes (null / absent: the release names none) */
+  readonly book?: number | null;
   /** phone: the release download (the update service's release phase and progress) */
   readonly update?: { readonly phase: string; readonly bytes: number; readonly of: number } | null;
   /** phone: large downloads wait for Wi-Fi (the inverse of T231's allow-on-mobile-data); null: no setting here */
@@ -85,6 +94,8 @@ export interface OfflineVM {
   readonly total: { readonly label: string; readonly value: string; readonly aloud: string } | null;
   /** the fixed first row: the regulations for all of B.C. — never an action */
   readonly regs: OfflineRowVM;
+  /** the rule book (null: the release names none) */
+  readonly book: OfflineRowVM | null;
   readonly map: OfflineRowVM;
   readonly regionsHead: string;
   readonly regions: readonly OfflineRowVM[];
@@ -106,9 +117,11 @@ export function offlineVM(i: OfflineInput): OfflineVM {
     : `${W.regs.state} · ${W.regs.webHeld(megabytes(held), megabytes(i.regs.bytes))}`;
   const regs = row("regs", W.regs.name, megabytes(i.regs.bytes), regsState, phone || (held !== null && held >= i.regs.bytes));
   const map = row("map", W.map.name, megabytes(mapBytes), phone ? W.map.phone : W.map.web, phone);
+  const bookBytes = i.book ?? 0;
+  const book = bookBytes > 0 ? row("book", W.book.name, megabytes(bookBytes), phone ? W.book.phone : W.book.web, phone) : null;
   const regions = i.regions.map((r) =>
     row(r, W.region(r, REGION_NAMES[r] ?? null), null, phone ? W.regionPart.phone : W.regionPart.web, phone));
-  const used = phone ? mapBytes + i.regs.bytes : held;
+  const used = phone ? mapBytes + i.regs.bytes + bookBytes : held;
   const u = phone ? i.update ?? null : null;
   const update = !u || u.phase === "current" || u.phase === "app-too-old" ? null
     : u.phase === "downloading"
@@ -121,6 +134,6 @@ export function offlineVM(i: OfflineInput): OfflineVM {
     title: W.title,
     intro: phone ? W.intro.phone : W.intro.web,
     total: used === null ? null : { label: W.total, value: megabytes(used), aloud: `${W.total}: ${megabytes(used)}` },
-    regs, map, regionsHead: W.regionsHead, regions, update, wifi, note: W.note,
+    regs, book, map, regionsHead: W.regionsHead, regions, update, wifi, note: W.note,
   };
 }
