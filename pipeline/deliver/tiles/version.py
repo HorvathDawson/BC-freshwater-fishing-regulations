@@ -60,12 +60,19 @@ _TMP_DIR = re.compile(r"\S*?/tiles-(?:lowband|ids)-[^/\s']+")
 TMP_TOKEN = "<tmp>"
 
 
-def normalised_metadata(meta: dict) -> dict:
-    """The metadata with no build-specific temp path in it (T305) — nothing else changed."""
+OUT_TOKEN = "<out>"
+
+
+def normalised_metadata(meta: dict, archive: Path | None = None) -> dict:
+    """The metadata with no build-specific path in it (T305): the temp dir, and the archive's own path (a side run
+    and a live run write the same tiles to different places) — nothing else changed."""
     opts = meta.get("generator_options")
     if not isinstance(opts, str):
         return meta
-    return {**meta, "generator_options": _TMP_DIR.sub(TMP_TOKEN, opts)}
+    opts = _TMP_DIR.sub(TMP_TOKEN, opts)
+    if archive is not None:
+        opts = opts.replace(str(Path(archive).resolve()), OUT_TOKEN).replace(str(archive), OUT_TOKEN)
+    return {**meta, "generator_options": opts}
 
 
 def _edit_metadata(archive: Path, meta: dict) -> None:
@@ -83,8 +90,8 @@ def stamp(archive: Path, build_dir: Path) -> str:
     from pipeline.common.section_handles import digest_for, registry_digest_for
     handles16 = digest_for(build_dir)
     raw = read_metadata(archive)
-    if normalised_metadata(raw) != raw:
-        _edit_metadata(archive, normalised_metadata(raw))
+    if normalised_metadata(raw, archive) != raw:
+        _edit_metadata(archive, normalised_metadata(raw, archive))
     version = version_id(handles16, sha256_file(archive, 12))
     meta = stamped_metadata(read_metadata(archive), version, handles16, registry_digest_for(build_dir))
     _edit_metadata(archive, meta)

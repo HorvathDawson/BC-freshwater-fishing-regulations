@@ -534,3 +534,8 @@ def test_the_temp_dir_tippecanoe_records_never_reaches_the_tile_version():
     got = normalised_metadata(a)["generator_options"]
     assert got == f"tippecanoe -o {TMP_TOKEN}/low.mbtiles --force '--name=atlas' {TMP_TOKEN}/stream.geojsonl"
     assert normalised_metadata({"name": "x"}) == {"name": "x"}
+    # the archive's own path: a side run and a live run of the same tiles hash alike
+    side = {"generator_options": "tile-join -o /r/side/x/tiles/atlas.pmtiles a"}
+    live = {"generator_options": "tile-join -o /r/tiles/atlas.pmtiles a"}
+    assert normalised_metadata(side, Path("/r/side/x/tiles/atlas.pmtiles")) == \
+        normalised_metadata(live, Path("/r/tiles/atlas.pmtiles"))
