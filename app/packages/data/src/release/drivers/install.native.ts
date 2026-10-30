@@ -10,7 +10,8 @@
  * and resumed) and `big-update`.
  */
 import { Directory, DownloadTask, File, FileMode, Paths } from "expo-file-system";
-import { fetchVerified, VerifyError } from "../../fetchVerified";
+import { VerifyError } from "../../fetchVerified";
+import { fetchVerifiedResilient } from "../../net/verified";
 import { partDownload, type PartFill, type PartFs, type ReleaseFs } from "../install";
 import type { Device } from "./install";
 
@@ -152,7 +153,9 @@ const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBy
 export function device(fetchImpl: typeof fetch = fetch): Device | null {
   return {
     fs,
-    download: (url, expect) => fetchVerified(url, expect, undefined, fetchImpl),
+    // (T256 item 4) the data files of a first install over a poor line: timeouts by size, retries, resume (the big
+    // files are the native transport's, `nativeFill`, which already retries and resumes)
+    download: (url, expect) => fetchVerifiedResilient(url, expect, { fetchImpl }),
     toDisk: partDownload(fs, nativeFill()),
     dirUri: (path) => dirAt(path).uri,
     fileUri: (path) => fileAt(path).uri,

@@ -5,7 +5,7 @@
  * joined two different files can never be accepted: the sha says so), then refused.
  */
 import { verify, VerifyError } from "../fetchVerified";
-import { fetchResilient } from "./fetch";
+import { fetchResilient, type ResilientOptions } from "./fetch";
 import type { FetchPriority } from "./policy";
 import type { Net } from "./index";
 
@@ -21,6 +21,20 @@ export interface VerifiedVia {
   priority: FetchPriority;
   fetchImpl?: typeof fetch;
   signal?: AbortSignal;
+}
+
+/**
+ * (T256 item 4) THE SAME DOWNLOAD WITHOUT AN APP `Net` (a phone's first install, `install.native.ts`): per-size timeouts,
+ * retries with backoff, Range resume of a stored gzip body, then `verify`; bytes that do not verify are fetched once
+ * more whole, then refused. `isOnline` / `waitOnline`: an offline spell is waited out instead of spending tries.
+ */
+export async function fetchVerifiedResilient(url: string, expect: { bytes: number; sha256: string },
+                                             o: Pick<ResilientOptions, "fetchImpl" | "signal" | "isOnline" | "waitOnline" |
+                                                       "sleep" | "rand" | "onRetry" | "onProgress"> = {}): Promise<Uint8Array> {
+  const once = async (resumable: boolean) => verify(url, await fetchResilient(url, {
+    ...o, wireBytes: Math.round(expect.bytes * GZ_RATIO), resumable: (head) => resumable && isGzip(head) }), expect);
+  try { return await once(true); }
+  catch (e) { if (!(e instanceof VerifyError)) throw e; return once(false); }
 }
 
 export async function fetchVerifiedVia(url: string, expect: { bytes: number; sha256: string }, o: VerifiedVia): Promise<Uint8Array> {
