@@ -104,3 +104,5 @@ only after the prod app reads `feeds/`.
 
 Depends: T86 (POSTPONED — this list is its body), T198, T225, T232, T241, T249. Size: S (Claude's part) + owner time.
 Owner: yes — every ★ line. Default: the defaults stated on each line.
+
+- Launch item (owner 2026-10-31): T319 — store screenshots that sell the app, auto-generated, before the public listing.
