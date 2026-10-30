@@ -348,6 +348,8 @@ use that as the sole source of future work."
 | T302 | Web Spots tab → notice: spots live in the phone app, no web sync yet, accounts coming; web save entry points + walkthrough spot steps adjusted | DONE | 8c0337a3e, 7e752a935 | owner 2026-10-30; web Spots tab + add → notice (Get the app), walk skips spots on web; shots T302-shots/ |
 | T303 | Show your current location on the map: my-location button, blue dot, centre/follow, asks only on tap | DONE on web (emulator pass pending: lock held) | 1b74740 | owner 2026-10-30 |
 | T304 | Water-page landing focuses its own region so slow lines read the small region files (Vedder Fast-3G ~37 s today) | OPEN | — | T282 finding 2026-10-31 |
+| T307 | Adding a spot/visit offline is instant: fail fast on network, backfill later | OPEN | — | owner 2026-10-31 |
+| T308 | Location dot keeps updating with you (not stuck at first fix) | OPEN | — | owner 2026-10-31 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |
 

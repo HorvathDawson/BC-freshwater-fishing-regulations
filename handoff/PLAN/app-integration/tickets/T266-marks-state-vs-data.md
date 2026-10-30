@@ -26,3 +26,5 @@ A build with marks.jsonl absent but data files present produces the same release
 mark-health 0 orphans.
 
 Depends: none. Size: M. Owner: confirm the file split (default as above).
+
+- Owner 2026-10-31: one `data/curated/decided/` folder is fine (approved).
