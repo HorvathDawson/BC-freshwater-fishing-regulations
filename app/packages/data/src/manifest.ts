@@ -46,8 +46,17 @@ export async function loadManifest(url: string, signal?: AbortSignal,
   return parseManifest(await res.json());
 }
 
+/**
+ * (T256) The manifest a PHONE installs from: every file but the answer slices (`slice_of`: web only — a phone holds the
+ * whole core and water, and the regulations are always all of B.C. on it).
+ */
+export function withoutSlices(m: Manifest): Manifest {
+  if (!Object.values(m.files).some((f) => f.slice_of)) return m;
+  return { ...m, files: Object.fromEntries(Object.entries(m.files).filter(([, f]) => !f.slice_of)) };
+}
+
 export function diff(held: Held, m: Manifest): { files: FileName[]; tiles: boolean; basemap: boolean; assets: boolean } {
-  const files = Object.keys(m.files).filter((k) => held.files[k] !== m.files[k]!.sha256).sort();
+  const files = Object.keys(m.files).filter((k) => !m.files[k]!.slice_of && held.files[k] !== m.files[k]!.sha256).sort();
   const tileId = m.tiles.current?.id ?? null;
   return {
     files,

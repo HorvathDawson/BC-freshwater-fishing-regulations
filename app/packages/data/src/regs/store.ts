@@ -35,7 +35,8 @@ import { makeReads, type RegsReads } from "./reads";
 export { asBytes, RegsStoreError } from "./errors";
 
 /** What the store is opened through: the release loader (P11), or any object with its shape (tests). */
-export type RegsLoader = Pick<ReleaseLoader, "release" | "manifest" | "db" | "regionsOf" | "regionDb">;
+export type RegsLoader = Pick<ReleaseLoader, "release" | "manifest" | "db" | "regionsOf" | "regionDb">
+  & Partial<Pick<ReleaseLoader, "routed">>;
 
 /**
  * What the store is held to beyond the release itself. `tiles`: the tile version the map DRAWS (`<handles16>.<build>`);
@@ -88,8 +89,12 @@ const DIGESTS = [["section_handles", "atlas"], ["reach_digest", "rule bindings"]
 export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {}): Promise<RegsStore> {
   if (!loader.manifest.files.water)
     throw new RegsStoreError("missing", `regs store: release ${loader.release} has no water file — refused`);
-  const water = await loader.db("water").catch((e) => { throw asRefusal(e, false); });
-  const m = await metaOf(water);
+  // (T256) water and core are read ROUTED where the loader can (`release/focus.ts`): each read from the whole file or the
+  // focus region's answer slice that covers it — the same rows either way. The meta below is the whole file's, copied
+  // into every slice (its own `format` is the slice's: `whole_format` is the water's).
+  const water = loader.routed ? loader.routed("water") : await loader.db("water").catch((e) => { throw asRefusal(e, false); });
+  const m = await metaOf(water).catch((e) => { throw asRefusal(e, false); });
+  if (m.get("slice_of") === "water") m.set("format", m.get("whole_format") ?? "");
   const need = (k: string): string => {
     const v = m.get(k);
     if (v === undefined || v === "") throw new RegsStoreError("missing", `regs store: water has no meta.${k} — refused`);
@@ -194,7 +199,11 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
       return hold("regs-sid", await opened(loader.db("regs-sid"), !loader.manifest.files["regs-sid"]), REGS_FORMATS.sid);
     },
     /** core: only `itemOrd` (item_id -> ord, its UNIQUE index); the loader holds it to the manifest. */
-    async core(): Promise<Db> { live(); return opened(loader.db("core"), !loader.manifest.files.core); },
+    async core(): Promise<Db> {
+      live();
+      if (!loader.manifest.files.core) return opened(loader.db("core"), true);
+      return loader.routed ? loader.routed("core") : opened(loader.db("core"), false);
+    },
     /** (T182) the water map's boxes (`part_geo`): the geo file, or water in a release cut before the move. */
     async geo(): Promise<Db> { live(); return loader.manifest.files.geo ? opened(loader.db("geo"), false) : water; },
   };

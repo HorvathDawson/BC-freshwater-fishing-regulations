@@ -145,6 +145,510 @@ export const PACK_FILES: Record<string, PackFile> = {
       ]
     }
   },
+  "core-1": {
+    "format": "core-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "cover_sid": [
+        "block",
+        "b"
+      ],
+      "item": [
+        "ord",
+        "item_id",
+        "name",
+        "kind",
+        "part_of",
+        "area_ha",
+        "name_key",
+        "size",
+        "gauged",
+        "has_rows",
+        "pieces"
+      ],
+      "item_area": [
+        "ord",
+        "regions",
+        "mus"
+      ],
+      "item_near": [
+        "ord",
+        "place_id",
+        "ckm"
+      ],
+      "item_section": [
+        "sid",
+        "ord"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "name_source": [
+        "item_id",
+        "name",
+        "src",
+        "label"
+      ],
+      "place": [
+        "place_id",
+        "osm",
+        "name",
+        "kind",
+        "pop",
+        "lat",
+        "lon"
+      ]
+    }
+  },
+  "core-2": {
+    "format": "core-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "cover_sid": [
+        "block",
+        "b"
+      ],
+      "item": [
+        "ord",
+        "item_id",
+        "name",
+        "kind",
+        "part_of",
+        "area_ha",
+        "name_key",
+        "size",
+        "gauged",
+        "has_rows",
+        "pieces"
+      ],
+      "item_area": [
+        "ord",
+        "regions",
+        "mus"
+      ],
+      "item_near": [
+        "ord",
+        "place_id",
+        "ckm"
+      ],
+      "item_section": [
+        "sid",
+        "ord"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "name_source": [
+        "item_id",
+        "name",
+        "src",
+        "label"
+      ],
+      "place": [
+        "place_id",
+        "osm",
+        "name",
+        "kind",
+        "pop",
+        "lat",
+        "lon"
+      ]
+    }
+  },
+  "core-3": {
+    "format": "core-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "cover_sid": [
+        "block",
+        "b"
+      ],
+      "item": [
+        "ord",
+        "item_id",
+        "name",
+        "kind",
+        "part_of",
+        "area_ha",
+        "name_key",
+        "size",
+        "gauged",
+        "has_rows",
+        "pieces"
+      ],
+      "item_area": [
+        "ord",
+        "regions",
+        "mus"
+      ],
+      "item_near": [
+        "ord",
+        "place_id",
+        "ckm"
+      ],
+      "item_section": [
+        "sid",
+        "ord"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "name_source": [
+        "item_id",
+        "name",
+        "src",
+        "label"
+      ],
+      "place": [
+        "place_id",
+        "osm",
+        "name",
+        "kind",
+        "pop",
+        "lat",
+        "lon"
+      ]
+    }
+  },
+  "core-4": {
+    "format": "core-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "cover_sid": [
+        "block",
+        "b"
+      ],
+      "item": [
+        "ord",
+        "item_id",
+        "name",
+        "kind",
+        "part_of",
+        "area_ha",
+        "name_key",
+        "size",
+        "gauged",
+        "has_rows",
+        "pieces"
+      ],
+      "item_area": [
+        "ord",
+        "regions",
+        "mus"
+      ],
+      "item_near": [
+        "ord",
+        "place_id",
+        "ckm"
+      ],
+      "item_section": [
+        "sid",
+        "ord"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "name_source": [
+        "item_id",
+        "name",
+        "src",
+        "label"
+      ],
+      "place": [
+        "place_id",
+        "osm",
+        "name",
+        "kind",
+        "pop",
+        "lat",
+        "lon"
+      ]
+    }
+  },
+  "core-5": {
+    "format": "core-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "cover_sid": [
+        "block",
+        "b"
+      ],
+      "item": [
+        "ord",
+        "item_id",
+        "name",
+        "kind",
+        "part_of",
+        "area_ha",
+        "name_key",
+        "size",
+        "gauged",
+        "has_rows",
+        "pieces"
+      ],
+      "item_area": [
+        "ord",
+        "regions",
+        "mus"
+      ],
+      "item_near": [
+        "ord",
+        "place_id",
+        "ckm"
+      ],
+      "item_section": [
+        "sid",
+        "ord"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "name_source": [
+        "item_id",
+        "name",
+        "src",
+        "label"
+      ],
+      "place": [
+        "place_id",
+        "osm",
+        "name",
+        "kind",
+        "pop",
+        "lat",
+        "lon"
+      ]
+    }
+  },
+  "core-6": {
+    "format": "core-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "cover_sid": [
+        "block",
+        "b"
+      ],
+      "item": [
+        "ord",
+        "item_id",
+        "name",
+        "kind",
+        "part_of",
+        "area_ha",
+        "name_key",
+        "size",
+        "gauged",
+        "has_rows",
+        "pieces"
+      ],
+      "item_area": [
+        "ord",
+        "regions",
+        "mus"
+      ],
+      "item_near": [
+        "ord",
+        "place_id",
+        "ckm"
+      ],
+      "item_section": [
+        "sid",
+        "ord"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "name_source": [
+        "item_id",
+        "name",
+        "src",
+        "label"
+      ],
+      "place": [
+        "place_id",
+        "osm",
+        "name",
+        "kind",
+        "pop",
+        "lat",
+        "lon"
+      ]
+    }
+  },
+  "core-7a": {
+    "format": "core-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "cover_sid": [
+        "block",
+        "b"
+      ],
+      "item": [
+        "ord",
+        "item_id",
+        "name",
+        "kind",
+        "part_of",
+        "area_ha",
+        "name_key",
+        "size",
+        "gauged",
+        "has_rows",
+        "pieces"
+      ],
+      "item_area": [
+        "ord",
+        "regions",
+        "mus"
+      ],
+      "item_near": [
+        "ord",
+        "place_id",
+        "ckm"
+      ],
+      "item_section": [
+        "sid",
+        "ord"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "name_source": [
+        "item_id",
+        "name",
+        "src",
+        "label"
+      ],
+      "place": [
+        "place_id",
+        "osm",
+        "name",
+        "kind",
+        "pop",
+        "lat",
+        "lon"
+      ]
+    }
+  },
+  "core-7b": {
+    "format": "core-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "cover_sid": [
+        "block",
+        "b"
+      ],
+      "item": [
+        "ord",
+        "item_id",
+        "name",
+        "kind",
+        "part_of",
+        "area_ha",
+        "name_key",
+        "size",
+        "gauged",
+        "has_rows",
+        "pieces"
+      ],
+      "item_area": [
+        "ord",
+        "regions",
+        "mus"
+      ],
+      "item_near": [
+        "ord",
+        "place_id",
+        "ckm"
+      ],
+      "item_section": [
+        "sid",
+        "ord"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "name_source": [
+        "item_id",
+        "name",
+        "src",
+        "label"
+      ],
+      "place": [
+        "place_id",
+        "osm",
+        "name",
+        "kind",
+        "pop",
+        "lat",
+        "lon"
+      ]
+    }
+  },
+  "core-8": {
+    "format": "core-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "cover_sid": [
+        "block",
+        "b"
+      ],
+      "item": [
+        "ord",
+        "item_id",
+        "name",
+        "kind",
+        "part_of",
+        "area_ha",
+        "name_key",
+        "size",
+        "gauged",
+        "has_rows",
+        "pieces"
+      ],
+      "item_area": [
+        "ord",
+        "regions",
+        "mus"
+      ],
+      "item_near": [
+        "ord",
+        "place_id",
+        "ckm"
+      ],
+      "item_section": [
+        "sid",
+        "ord"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "name_source": [
+        "item_id",
+        "name",
+        "src",
+        "label"
+      ],
+      "place": [
+        "place_id",
+        "osm",
+        "name",
+        "kind",
+        "pop",
+        "lat",
+        "lon"
+      ]
+    }
+  },
   "down": {
     "format": "down/1",
     "kind": "sqlite",
@@ -1057,6 +1561,1248 @@ export const PACK_FILES: Record<string, PackFile> = {
         "d"
       ]
     }
+  },
+  "water-1": {
+    "format": "water-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "akey": [
+        "akey",
+        "ruleset",
+        "licensing_set",
+        "steelhead_water",
+        "steelhead",
+        "steelhead_rules",
+        "province_except",
+        "home_region",
+        "kind",
+        "tidal",
+        "seg",
+        "mom",
+        "nseg"
+      ],
+      "akey_region": [
+        "akey",
+        "region"
+      ],
+      "display_rule": [
+        "id",
+        "j"
+      ],
+      "item": [
+        "item_ord",
+        "item_id",
+        "shown",
+        "picker",
+        "unresolved",
+        "name",
+        "kind",
+        "sections",
+        "outside_bc",
+        "entries",
+        "steelhead",
+        "x"
+      ],
+      "lic": [
+        "lix",
+        "j"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "part": [
+        "item_ord",
+        "part_ix",
+        "akey",
+        "ord",
+        "label_s",
+        "short_s",
+        "runs_s",
+        "place_s",
+        "hint_s",
+        "km",
+        "closed_all_year",
+        "paper_licence",
+        "xp",
+        "sections",
+        "xruns"
+      ],
+      "part_mark": [
+        "ord",
+        "mark_ix",
+        "lon",
+        "lat",
+        "label",
+        "down_part",
+        "up_parts",
+        "confidence",
+        "down_stretch",
+        "up_stretches"
+      ],
+      "part_section": [
+        "ord",
+        "sid",
+        "part_ix"
+      ],
+      "picker": [
+        "id",
+        "j"
+      ],
+      "place": [
+        "place",
+        "regions",
+        "label",
+        "names"
+      ],
+      "rule": [
+        "rix",
+        "j"
+      ],
+      "ruleset": [
+        "set_id",
+        "j"
+      ],
+      "seglist": [
+        "seg",
+        "starts"
+      ],
+      "segmom": [
+        "mom",
+        "ix"
+      ],
+      "static": [
+        "k",
+        "j"
+      ],
+      "str": [
+        "id",
+        "text"
+      ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
+      "water_exit": [
+        "ord",
+        "down_ord",
+        "down_part"
+      ],
+      "xpart": [
+        "id",
+        "j"
+      ],
+      "zdict": [
+        "tbl",
+        "d"
+      ]
+    }
+  },
+  "water-2": {
+    "format": "water-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "akey": [
+        "akey",
+        "ruleset",
+        "licensing_set",
+        "steelhead_water",
+        "steelhead",
+        "steelhead_rules",
+        "province_except",
+        "home_region",
+        "kind",
+        "tidal",
+        "seg",
+        "mom",
+        "nseg"
+      ],
+      "akey_region": [
+        "akey",
+        "region"
+      ],
+      "display_rule": [
+        "id",
+        "j"
+      ],
+      "item": [
+        "item_ord",
+        "item_id",
+        "shown",
+        "picker",
+        "unresolved",
+        "name",
+        "kind",
+        "sections",
+        "outside_bc",
+        "entries",
+        "steelhead",
+        "x"
+      ],
+      "lic": [
+        "lix",
+        "j"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "part": [
+        "item_ord",
+        "part_ix",
+        "akey",
+        "ord",
+        "label_s",
+        "short_s",
+        "runs_s",
+        "place_s",
+        "hint_s",
+        "km",
+        "closed_all_year",
+        "paper_licence",
+        "xp",
+        "sections",
+        "xruns"
+      ],
+      "part_mark": [
+        "ord",
+        "mark_ix",
+        "lon",
+        "lat",
+        "label",
+        "down_part",
+        "up_parts",
+        "confidence",
+        "down_stretch",
+        "up_stretches"
+      ],
+      "part_section": [
+        "ord",
+        "sid",
+        "part_ix"
+      ],
+      "picker": [
+        "id",
+        "j"
+      ],
+      "place": [
+        "place",
+        "regions",
+        "label",
+        "names"
+      ],
+      "rule": [
+        "rix",
+        "j"
+      ],
+      "ruleset": [
+        "set_id",
+        "j"
+      ],
+      "seglist": [
+        "seg",
+        "starts"
+      ],
+      "segmom": [
+        "mom",
+        "ix"
+      ],
+      "static": [
+        "k",
+        "j"
+      ],
+      "str": [
+        "id",
+        "text"
+      ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
+      "water_exit": [
+        "ord",
+        "down_ord",
+        "down_part"
+      ],
+      "xpart": [
+        "id",
+        "j"
+      ],
+      "zdict": [
+        "tbl",
+        "d"
+      ]
+    }
+  },
+  "water-3": {
+    "format": "water-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "akey": [
+        "akey",
+        "ruleset",
+        "licensing_set",
+        "steelhead_water",
+        "steelhead",
+        "steelhead_rules",
+        "province_except",
+        "home_region",
+        "kind",
+        "tidal",
+        "seg",
+        "mom",
+        "nseg"
+      ],
+      "akey_region": [
+        "akey",
+        "region"
+      ],
+      "display_rule": [
+        "id",
+        "j"
+      ],
+      "item": [
+        "item_ord",
+        "item_id",
+        "shown",
+        "picker",
+        "unresolved",
+        "name",
+        "kind",
+        "sections",
+        "outside_bc",
+        "entries",
+        "steelhead",
+        "x"
+      ],
+      "lic": [
+        "lix",
+        "j"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "part": [
+        "item_ord",
+        "part_ix",
+        "akey",
+        "ord",
+        "label_s",
+        "short_s",
+        "runs_s",
+        "place_s",
+        "hint_s",
+        "km",
+        "closed_all_year",
+        "paper_licence",
+        "xp",
+        "sections",
+        "xruns"
+      ],
+      "part_mark": [
+        "ord",
+        "mark_ix",
+        "lon",
+        "lat",
+        "label",
+        "down_part",
+        "up_parts",
+        "confidence",
+        "down_stretch",
+        "up_stretches"
+      ],
+      "part_section": [
+        "ord",
+        "sid",
+        "part_ix"
+      ],
+      "picker": [
+        "id",
+        "j"
+      ],
+      "place": [
+        "place",
+        "regions",
+        "label",
+        "names"
+      ],
+      "rule": [
+        "rix",
+        "j"
+      ],
+      "ruleset": [
+        "set_id",
+        "j"
+      ],
+      "seglist": [
+        "seg",
+        "starts"
+      ],
+      "segmom": [
+        "mom",
+        "ix"
+      ],
+      "static": [
+        "k",
+        "j"
+      ],
+      "str": [
+        "id",
+        "text"
+      ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
+      "water_exit": [
+        "ord",
+        "down_ord",
+        "down_part"
+      ],
+      "xpart": [
+        "id",
+        "j"
+      ],
+      "zdict": [
+        "tbl",
+        "d"
+      ]
+    }
+  },
+  "water-4": {
+    "format": "water-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "akey": [
+        "akey",
+        "ruleset",
+        "licensing_set",
+        "steelhead_water",
+        "steelhead",
+        "steelhead_rules",
+        "province_except",
+        "home_region",
+        "kind",
+        "tidal",
+        "seg",
+        "mom",
+        "nseg"
+      ],
+      "akey_region": [
+        "akey",
+        "region"
+      ],
+      "display_rule": [
+        "id",
+        "j"
+      ],
+      "item": [
+        "item_ord",
+        "item_id",
+        "shown",
+        "picker",
+        "unresolved",
+        "name",
+        "kind",
+        "sections",
+        "outside_bc",
+        "entries",
+        "steelhead",
+        "x"
+      ],
+      "lic": [
+        "lix",
+        "j"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "part": [
+        "item_ord",
+        "part_ix",
+        "akey",
+        "ord",
+        "label_s",
+        "short_s",
+        "runs_s",
+        "place_s",
+        "hint_s",
+        "km",
+        "closed_all_year",
+        "paper_licence",
+        "xp",
+        "sections",
+        "xruns"
+      ],
+      "part_mark": [
+        "ord",
+        "mark_ix",
+        "lon",
+        "lat",
+        "label",
+        "down_part",
+        "up_parts",
+        "confidence",
+        "down_stretch",
+        "up_stretches"
+      ],
+      "part_section": [
+        "ord",
+        "sid",
+        "part_ix"
+      ],
+      "picker": [
+        "id",
+        "j"
+      ],
+      "place": [
+        "place",
+        "regions",
+        "label",
+        "names"
+      ],
+      "rule": [
+        "rix",
+        "j"
+      ],
+      "ruleset": [
+        "set_id",
+        "j"
+      ],
+      "seglist": [
+        "seg",
+        "starts"
+      ],
+      "segmom": [
+        "mom",
+        "ix"
+      ],
+      "static": [
+        "k",
+        "j"
+      ],
+      "str": [
+        "id",
+        "text"
+      ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
+      "water_exit": [
+        "ord",
+        "down_ord",
+        "down_part"
+      ],
+      "xpart": [
+        "id",
+        "j"
+      ],
+      "zdict": [
+        "tbl",
+        "d"
+      ]
+    }
+  },
+  "water-5": {
+    "format": "water-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "akey": [
+        "akey",
+        "ruleset",
+        "licensing_set",
+        "steelhead_water",
+        "steelhead",
+        "steelhead_rules",
+        "province_except",
+        "home_region",
+        "kind",
+        "tidal",
+        "seg",
+        "mom",
+        "nseg"
+      ],
+      "akey_region": [
+        "akey",
+        "region"
+      ],
+      "display_rule": [
+        "id",
+        "j"
+      ],
+      "item": [
+        "item_ord",
+        "item_id",
+        "shown",
+        "picker",
+        "unresolved",
+        "name",
+        "kind",
+        "sections",
+        "outside_bc",
+        "entries",
+        "steelhead",
+        "x"
+      ],
+      "lic": [
+        "lix",
+        "j"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "part": [
+        "item_ord",
+        "part_ix",
+        "akey",
+        "ord",
+        "label_s",
+        "short_s",
+        "runs_s",
+        "place_s",
+        "hint_s",
+        "km",
+        "closed_all_year",
+        "paper_licence",
+        "xp",
+        "sections",
+        "xruns"
+      ],
+      "part_mark": [
+        "ord",
+        "mark_ix",
+        "lon",
+        "lat",
+        "label",
+        "down_part",
+        "up_parts",
+        "confidence",
+        "down_stretch",
+        "up_stretches"
+      ],
+      "part_section": [
+        "ord",
+        "sid",
+        "part_ix"
+      ],
+      "picker": [
+        "id",
+        "j"
+      ],
+      "place": [
+        "place",
+        "regions",
+        "label",
+        "names"
+      ],
+      "rule": [
+        "rix",
+        "j"
+      ],
+      "ruleset": [
+        "set_id",
+        "j"
+      ],
+      "seglist": [
+        "seg",
+        "starts"
+      ],
+      "segmom": [
+        "mom",
+        "ix"
+      ],
+      "static": [
+        "k",
+        "j"
+      ],
+      "str": [
+        "id",
+        "text"
+      ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
+      "water_exit": [
+        "ord",
+        "down_ord",
+        "down_part"
+      ],
+      "xpart": [
+        "id",
+        "j"
+      ],
+      "zdict": [
+        "tbl",
+        "d"
+      ]
+    }
+  },
+  "water-6": {
+    "format": "water-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "akey": [
+        "akey",
+        "ruleset",
+        "licensing_set",
+        "steelhead_water",
+        "steelhead",
+        "steelhead_rules",
+        "province_except",
+        "home_region",
+        "kind",
+        "tidal",
+        "seg",
+        "mom",
+        "nseg"
+      ],
+      "akey_region": [
+        "akey",
+        "region"
+      ],
+      "display_rule": [
+        "id",
+        "j"
+      ],
+      "item": [
+        "item_ord",
+        "item_id",
+        "shown",
+        "picker",
+        "unresolved",
+        "name",
+        "kind",
+        "sections",
+        "outside_bc",
+        "entries",
+        "steelhead",
+        "x"
+      ],
+      "lic": [
+        "lix",
+        "j"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "part": [
+        "item_ord",
+        "part_ix",
+        "akey",
+        "ord",
+        "label_s",
+        "short_s",
+        "runs_s",
+        "place_s",
+        "hint_s",
+        "km",
+        "closed_all_year",
+        "paper_licence",
+        "xp",
+        "sections",
+        "xruns"
+      ],
+      "part_mark": [
+        "ord",
+        "mark_ix",
+        "lon",
+        "lat",
+        "label",
+        "down_part",
+        "up_parts",
+        "confidence",
+        "down_stretch",
+        "up_stretches"
+      ],
+      "part_section": [
+        "ord",
+        "sid",
+        "part_ix"
+      ],
+      "picker": [
+        "id",
+        "j"
+      ],
+      "place": [
+        "place",
+        "regions",
+        "label",
+        "names"
+      ],
+      "rule": [
+        "rix",
+        "j"
+      ],
+      "ruleset": [
+        "set_id",
+        "j"
+      ],
+      "seglist": [
+        "seg",
+        "starts"
+      ],
+      "segmom": [
+        "mom",
+        "ix"
+      ],
+      "static": [
+        "k",
+        "j"
+      ],
+      "str": [
+        "id",
+        "text"
+      ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
+      "water_exit": [
+        "ord",
+        "down_ord",
+        "down_part"
+      ],
+      "xpart": [
+        "id",
+        "j"
+      ],
+      "zdict": [
+        "tbl",
+        "d"
+      ]
+    }
+  },
+  "water-7a": {
+    "format": "water-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "akey": [
+        "akey",
+        "ruleset",
+        "licensing_set",
+        "steelhead_water",
+        "steelhead",
+        "steelhead_rules",
+        "province_except",
+        "home_region",
+        "kind",
+        "tidal",
+        "seg",
+        "mom",
+        "nseg"
+      ],
+      "akey_region": [
+        "akey",
+        "region"
+      ],
+      "display_rule": [
+        "id",
+        "j"
+      ],
+      "item": [
+        "item_ord",
+        "item_id",
+        "shown",
+        "picker",
+        "unresolved",
+        "name",
+        "kind",
+        "sections",
+        "outside_bc",
+        "entries",
+        "steelhead",
+        "x"
+      ],
+      "lic": [
+        "lix",
+        "j"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "part": [
+        "item_ord",
+        "part_ix",
+        "akey",
+        "ord",
+        "label_s",
+        "short_s",
+        "runs_s",
+        "place_s",
+        "hint_s",
+        "km",
+        "closed_all_year",
+        "paper_licence",
+        "xp",
+        "sections",
+        "xruns"
+      ],
+      "part_mark": [
+        "ord",
+        "mark_ix",
+        "lon",
+        "lat",
+        "label",
+        "down_part",
+        "up_parts",
+        "confidence",
+        "down_stretch",
+        "up_stretches"
+      ],
+      "part_section": [
+        "ord",
+        "sid",
+        "part_ix"
+      ],
+      "picker": [
+        "id",
+        "j"
+      ],
+      "place": [
+        "place",
+        "regions",
+        "label",
+        "names"
+      ],
+      "rule": [
+        "rix",
+        "j"
+      ],
+      "ruleset": [
+        "set_id",
+        "j"
+      ],
+      "seglist": [
+        "seg",
+        "starts"
+      ],
+      "segmom": [
+        "mom",
+        "ix"
+      ],
+      "static": [
+        "k",
+        "j"
+      ],
+      "str": [
+        "id",
+        "text"
+      ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
+      "water_exit": [
+        "ord",
+        "down_ord",
+        "down_part"
+      ],
+      "xpart": [
+        "id",
+        "j"
+      ],
+      "zdict": [
+        "tbl",
+        "d"
+      ]
+    }
+  },
+  "water-7b": {
+    "format": "water-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "akey": [
+        "akey",
+        "ruleset",
+        "licensing_set",
+        "steelhead_water",
+        "steelhead",
+        "steelhead_rules",
+        "province_except",
+        "home_region",
+        "kind",
+        "tidal",
+        "seg",
+        "mom",
+        "nseg"
+      ],
+      "akey_region": [
+        "akey",
+        "region"
+      ],
+      "display_rule": [
+        "id",
+        "j"
+      ],
+      "item": [
+        "item_ord",
+        "item_id",
+        "shown",
+        "picker",
+        "unresolved",
+        "name",
+        "kind",
+        "sections",
+        "outside_bc",
+        "entries",
+        "steelhead",
+        "x"
+      ],
+      "lic": [
+        "lix",
+        "j"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "part": [
+        "item_ord",
+        "part_ix",
+        "akey",
+        "ord",
+        "label_s",
+        "short_s",
+        "runs_s",
+        "place_s",
+        "hint_s",
+        "km",
+        "closed_all_year",
+        "paper_licence",
+        "xp",
+        "sections",
+        "xruns"
+      ],
+      "part_mark": [
+        "ord",
+        "mark_ix",
+        "lon",
+        "lat",
+        "label",
+        "down_part",
+        "up_parts",
+        "confidence",
+        "down_stretch",
+        "up_stretches"
+      ],
+      "part_section": [
+        "ord",
+        "sid",
+        "part_ix"
+      ],
+      "picker": [
+        "id",
+        "j"
+      ],
+      "place": [
+        "place",
+        "regions",
+        "label",
+        "names"
+      ],
+      "rule": [
+        "rix",
+        "j"
+      ],
+      "ruleset": [
+        "set_id",
+        "j"
+      ],
+      "seglist": [
+        "seg",
+        "starts"
+      ],
+      "segmom": [
+        "mom",
+        "ix"
+      ],
+      "static": [
+        "k",
+        "j"
+      ],
+      "str": [
+        "id",
+        "text"
+      ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
+      "water_exit": [
+        "ord",
+        "down_ord",
+        "down_part"
+      ],
+      "xpart": [
+        "id",
+        "j"
+      ],
+      "zdict": [
+        "tbl",
+        "d"
+      ]
+    }
+  },
+  "water-8": {
+    "format": "water-slice/1",
+    "kind": "sqlite",
+    "tables": {
+      "akey": [
+        "akey",
+        "ruleset",
+        "licensing_set",
+        "steelhead_water",
+        "steelhead",
+        "steelhead_rules",
+        "province_except",
+        "home_region",
+        "kind",
+        "tidal",
+        "seg",
+        "mom",
+        "nseg"
+      ],
+      "akey_region": [
+        "akey",
+        "region"
+      ],
+      "display_rule": [
+        "id",
+        "j"
+      ],
+      "item": [
+        "item_ord",
+        "item_id",
+        "shown",
+        "picker",
+        "unresolved",
+        "name",
+        "kind",
+        "sections",
+        "outside_bc",
+        "entries",
+        "steelhead",
+        "x"
+      ],
+      "lic": [
+        "lix",
+        "j"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "part": [
+        "item_ord",
+        "part_ix",
+        "akey",
+        "ord",
+        "label_s",
+        "short_s",
+        "runs_s",
+        "place_s",
+        "hint_s",
+        "km",
+        "closed_all_year",
+        "paper_licence",
+        "xp",
+        "sections",
+        "xruns"
+      ],
+      "part_mark": [
+        "ord",
+        "mark_ix",
+        "lon",
+        "lat",
+        "label",
+        "down_part",
+        "up_parts",
+        "confidence",
+        "down_stretch",
+        "up_stretches"
+      ],
+      "part_section": [
+        "ord",
+        "sid",
+        "part_ix"
+      ],
+      "picker": [
+        "id",
+        "j"
+      ],
+      "place": [
+        "place",
+        "regions",
+        "label",
+        "names"
+      ],
+      "rule": [
+        "rix",
+        "j"
+      ],
+      "ruleset": [
+        "set_id",
+        "j"
+      ],
+      "seglist": [
+        "seg",
+        "starts"
+      ],
+      "segmom": [
+        "mom",
+        "ix"
+      ],
+      "static": [
+        "k",
+        "j"
+      ],
+      "str": [
+        "id",
+        "text"
+      ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
+      "water_exit": [
+        "ord",
+        "down_ord",
+        "down_part"
+      ],
+      "xpart": [
+        "id",
+        "j"
+      ],
+      "zdict": [
+        "tbl",
+        "d"
+      ]
+    }
   }
 };
 
@@ -1095,19 +2841,32 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
   "first_tap": {
     "files": [
       "core",
-      "water",
+      "water-{region}",
       "geo",
       "access",
       "regs-{region}",
       "salmon",
       "salmon-{region}"
     ],
-    "gate": 5500000
+    "gate": 4200000
+  },
+  "first_tap_low": {
+    "files": [
+      "core-{region}",
+      "water-{region}",
+      "geo",
+      "access",
+      "regs-{region}",
+      "salmon",
+      "salmon-{region}",
+      "method"
+    ],
+    "gate": 3400000
   },
   "first_tap_unnamed": {
     "files": [
       "core",
-      "water",
+      "water-{region}",
       "access",
       "regs-{region}",
       "regs-sid",
@@ -1115,7 +2874,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
       "salmon",
       "salmon-{region}"
     ],
-    "gate": 7200000
+    "gate": 6200000
   },
   "conditions_open": {
     "files": [
@@ -1171,6 +2930,8 @@ export const PACK_UNITS: Record<string, string> = {
 /** One file in the manifest (`files.<name>`): the url of its gzip form, raw and gzip bytes, the raw sha256. */
 export interface ManifestFile {
   url: string; bytes: number; gz: number; sha256: string; format: string; section_handles: string;
+  /** (T256) An ANSWER SLICE (web only): the whole file it is cut from and its region. A phone never installs one. */
+  slice_of?: string; region?: string;
 }
 export interface TileRef { id?: string; url: string; bytes?: number; sha256?: string }
 

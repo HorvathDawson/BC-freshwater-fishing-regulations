@@ -61,6 +61,8 @@ export const PACK_UNITS: Record<string, string> = {json.dumps(C.UNITS, indent=2,
 /** One file in the manifest (`files.<name>`): the url of its gzip form, raw and gzip bytes, the raw sha256. */
 export interface ManifestFile {{
   url: string; bytes: number; gz: number; sha256: string; format: string; section_handles: string;
+  /** (T256) An ANSWER SLICE (web only): the whole file it is cut from and its region. A phone never installs one. */
+  slice_of?: string; region?: string;
 }}
 export interface TileRef {{ id?: string; url: string; bytes?: number; sha256?: string }}
 

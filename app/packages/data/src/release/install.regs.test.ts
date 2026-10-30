@@ -54,4 +54,23 @@ describe("install keeps every region's regulations", () => {
     expect(fetched).toEqual(["regs-3"]);                     // the rest copied from the held set, none dropped
     expect(regional.filter((f) => !next.files[f] || !fs.files.has(`release/r-2/${f}-x.bin`))).toEqual([]);
   });
+
+  it("(T256) the web's answer slices are never installed: the phone holds the whole core and water", async () => {
+    const fs = memFs();
+    const bodies = { ...BODIES, "core-2": "core of 2", "water-2": "water of 2" };
+    const base = manifest("r-1", bodies);
+    const m = { ...base, files: { ...base.files, "core-2": { ...base.files["core-2"]!, slice_of: "core", region: "2" },
+                                  "water-2": { ...base.files["water-2"]!, slice_of: "water", region: "2" } } };
+    const asked: string[] = [];
+    const dl = async (url: string) => {
+      const n = url.replace(/^.*\/r-1\//, "").replace(/-x\.bin\.gz$/, "");
+      asked.push(n);
+      return enc(bodies[n as keyof typeof bodies]!);
+    };
+    const held = await install(m, fs, dl, "https://r2.test/");
+    expect(asked.filter((n) => n.includes("-2") && !n.startsWith("regs") && !n.startsWith("salmon"))).toEqual([]);
+    expect(Object.keys(held.files).sort()).toEqual(Object.keys(BODIES).sort());
+    expect(asked).toContain("core");
+    expect(asked).toContain("water");
+  });
 });

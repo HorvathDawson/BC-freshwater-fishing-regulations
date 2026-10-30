@@ -22,7 +22,8 @@ export interface OfflineSizes {
 /** What a manifest says each part costs (bytes as kept on the device: raw, as `install` writes and the cache holds). */
 export function offlineSizes(m: Manifest): OfflineSizes {
   return {
-    regs: Object.values(m.files).reduce((n, f) => n + (f?.bytes ?? 0), 0),
+    // (T256) not the answer slices: a subset of core / water for the web, never kept beside them on a phone
+    regs: Object.values(m.files).reduce((n, f) => n + (f?.slice_of ? 0 : f?.bytes ?? 0), 0),
     map: { tiles: (m.tiles.current?.bytes ?? 0) + (m.tiles.mask?.bytes ?? 0), basemap: m.basemap?.bytes ?? 0 },
   };
 }
@@ -35,7 +36,7 @@ export async function regsKept(loader: ReleaseLoader): Promise<number | null> {
   if (!loader.stored) return null;
   const m = loader.manifest;
   let held = 0;
-  for (const f of Object.keys(m.files) as FileName[]) {
+  for (const f of Object.keys(m.files).filter((k) => !m.files[k]!.slice_of) as FileName[]) {
     const a = await loader.stored(f).catch(() => false);
     if (a === null) return null;
     if (a) held += m.files[f]?.bytes ?? 0;

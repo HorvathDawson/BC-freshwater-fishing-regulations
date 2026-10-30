@@ -49,6 +49,7 @@ from pipeline.deliver import lake_facts as LF
 from pipeline.deliver.release import contract as C
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
+from pipeline.deliver.release import slices as SLICES
 
 #: every file and its format (bumped when a reader must refuse an older one)
 FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
@@ -69,7 +70,10 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_450_000, "lakes": 100_000, "salmon": 60_000,
               **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "method": 600_000,
               "water": 2_500_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 950_000,
-              "down": 1_250_000, "geo": 700_000, "flow-area": 220_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
+              "down": 1_250_000, "geo": 700_000, "flow-area": 220_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS},
+              # (T256) the answer slices (slices.py), web-only: measured on r-fa1915a56adb's tables, core-<r> 197-287 kB,
+              # water-<r> ~0.75 MB (rules, display rules and the dictionaries are whole in every one)
+              **{f"core-{r}": 400_000 for r in SH.REGIONS}, **{f"water-{r}": 1_100_000 for r in SH.REGIONS}}
 #: (T182) The release total is no longer the web's cap — a web visitor never fetches the whole release (the cold load is
 #: `WEB_BUDGET["cold_load"]`); it is what a PHONE holds offline, beside ~450 MB of tiles + basemap. It stays as a
 #: runaway-growth backstop, raised 15 → 20 MB so the last band's files (T199 runs ~0.87 MB, T200, T201/T218) fit.
@@ -337,7 +341,8 @@ def gate_problems(release_dir: Path) -> List[str]:
     sz = sizes(release_dir)
     out = [f"{k}: no size gate (build.SIZE_GATES)" for k in sz if k not in SIZE_GATES]
     out += [f"{k}: {v['gz']:,} B gzip > {SIZE_GATES[k]:,}" for k, v in sz.items() if k in SIZE_GATES and v["gz"] > SIZE_GATES[k]]
-    total = sum(v["gz"] for v in sz.values())
+    # (T256) the answer slices are web-only (a phone installs the whole files): not in what a phone holds
+    total = sum(v["gz"] for k, v in sz.items() if k not in SLICES.slice_marks())
     if total > OFFLINE_GATE:
         out.append(f"offline total: {total:,} B gzip > {OFFLINE_GATE:,}")
     return out + [f"web {k}: {n:,} B > {C.WEB_BUDGET[k]['gate']:,} ({', '.join(f)})"
@@ -361,6 +366,9 @@ def web_moments(release_dir: Path) -> Dict[str, tuple]:
         if name == "mask":
             return name, int(((m.get("tiles") or {}).get("mask") or {}).get("bytes") or 0)
         name = region if name == "regs-{region}" else salmon_r if name == "salmon-{region}" else name
+        if name in ("core-{region}", "water-{region}"):                # (T256) the largest region's slice
+            stem = name.split("-")[0]
+            name = max((k for k in files if k.startswith(stem + "-")), key=lambda k: files[k]["gz"], default=name)
         if name == "salmon-{all}":                               # the Salmon map: every slice
             return name, sum(int(f["gz"]) for k, f in files.items() if k.startswith("salmon-"))
         return name, int(files[name]["gz"]) if name in files else 0
@@ -470,6 +478,8 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                                            {**regs, "format": FORMATS[f"regs-{r}"], "region": r})
         files["regs-sid"] = copy_file(work / "regs-sid.sqlite", {"s": store}, [("s", t, None) for t in SH.SID_TABLES],
                                       {**regs, "format": FORMATS["regs-sid"]})
+        # (T256) the answer slices: a web tap in region r reads core-<r> + water-<r>, not the whole files
+        files.update(SLICES.build_slices(work, files["core"], files["water"], _sid_regions))
         # (T213) bait ban / fly fishing only per section and day: a projection of the store's open-days strips
         from pipeline.deliver import method as METHOD
         p = work / "method.bin"
@@ -541,7 +551,8 @@ def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, da
         fname = f"{name}-{sha[:12]}{raw.suffix}.gz"
         (work / fname).write_bytes(gz)
         entries[name] = {"url": fname, "bytes": raw.stat().st_size, "gz": len(gz), "sha256": sha,
-                         "format": FORMATS[name], "section_handles": handles}
+                         "format": FORMATS[name], "section_handles": handles,
+                         **SLICES.slice_marks().get(name, {})}       # (T256) web-only: what it is cut from
         raw.unlink()
     # T215: OUR COPY of the synopsis PDF, beside the data files (raw: a PDF is already compressed), named by content. The
     # boxes `rules[].book_box` were cut from these bytes; the app opens THIS file with the highlight, never gov.bc.ca's.

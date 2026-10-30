@@ -16,7 +16,7 @@
  *   prune      after the new set has opened and paired, everything of the old set the new one does not name is deleted
  *              (never before): its release folder, its manifest, and its tile version folder, mask, basemap, assets.
  */
-import { diff, parseManifest, type Held, type Manifest } from "../manifest";
+import { diff, parseManifest, withoutSlices, type Held, type Manifest } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts); TextEncoder it has
 import { utf8 } from "../regs/blob";
 import { Sha256, sha256Hex } from "../sha256";
@@ -224,6 +224,7 @@ const manifestPath = (m: Manifest, bytes: Uint8Array) => `${dirOf(m.data_release
 
 /** The pointer a set installed from `m` is held by. */
 export function pointerFor(m: Manifest, manifest?: string): Held {
+  m = withoutSlices(m);
   return { release: m.data_release, tiles: m.tiles.current?.id ?? null, basemap: m.basemap?.id ?? null,
            assets: m.tiles.assets?.id ?? null,
            files: Object.fromEntries(Object.entries(m.files).map(([k, v]) => [k, v.sha256])),
@@ -259,6 +260,7 @@ export async function writeHeld(fs: ReleaseFs, path: string, h: Held): Promise<v
 export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: string, held: Held | null = null,
                               onProgress: (p: Progress) => void = () => {}, toDisk?: DownloadTo,
                               beforeSwap?: () => Promise<void>, raw?: RawFetch): Promise<Held> {
+  m = withoutSlices(m);                          // (T256) the answer slices are the web's: a phone holds the whole files
   const d = held ? diff(held, m) : { files: Object.keys(m.files).sort(), tiles: true, basemap: true, assets: true };
   const names = Object.keys(m.files).sort();
   const dir = dirOf(m.data_release);

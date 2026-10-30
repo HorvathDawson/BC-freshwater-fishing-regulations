@@ -24,6 +24,8 @@ data/release/r-*/ (R2 in production)
                    after first paint prefetch the region in view's regs file + core/sql-wasm on idle — T186,
                    `release/prefetch.ts`, `@app/ui` `useReleasePrefetch`, the map's `onRegion`)
                    ├─ WaterSource (release/source.ts): core, near, paint, conditions, flow-area …
+                   ├─ answer slices (T256, `release/focus.ts`): web only — core / water read ROUTED: a read the map's
+                   │    region's `core-<r>` / `water-<r>` covers goes there, anything else to the whole file
                    ├─ salmon (T211, `loader.salmon`): the Salmon card (`@app/ui` `useSalmonCard`) and the map's
                    │    Standard / Salmon toggle (`useSalmonColour` → the colouring engine's `salmon` channel)
                    ├─ offline (T238, `release/offline.ts`): More → Offline maps — the regulations for all of B.C. (never

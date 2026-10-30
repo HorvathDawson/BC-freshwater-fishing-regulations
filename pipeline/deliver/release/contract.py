@@ -129,6 +129,30 @@ FILES = {
         "xpart": _FRAME,
         "zdict": ["tbl", "d"]}},
     **{f"regs-{r}": {"format": "regs-region/1", "kind": "sqlite", "tables": _REGION_TABLES} for r in SH.REGIONS},
+    # (T256) THE ANSWER SLICES (slices.py), web-only: per region, the rows of core / water a tap there reads, complete
+    # for what they cover; the manifest marks each (`slice_of`, `region`) and a phone never installs one
+    **{f"core-{r}": {"format": "core-slice/1", "kind": "sqlite", "tables": {
+        "cover_sid": ["block", "b"],
+        "item": ["ord", "item_id", "name", "kind", "part_of", "area_ha", "name_key", "size", "gauged", "has_rows",
+                 "pieces"],
+        "item_area": ["ord", "regions", "mus"], "item_near": ["ord", "place_id", "ckm"],
+        "item_section": ["sid", "ord"], "meta": ["k", "v"], "name_source": ["item_id", "name", "src", "label"],
+        "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"]}} for r in SH.REGIONS},
+    **{f"water-{r}": {"format": "water-slice/1", "kind": "sqlite", "tables": {
+        "akey": ["akey", "ruleset", "licensing_set", "steelhead_water", "steelhead", "steelhead_rules",
+                 "province_except", "home_region", "kind", "tidal", "seg", "mom", "nseg"],
+        "akey_region": ["akey", "region"], "display_rule": _FRAME,
+        "item": ["item_ord", "item_id", "shown", "picker", "unresolved", "name", "kind", "sections", "outside_bc",
+                 "entries", "steelhead", "x"],
+        "lic": ["lix", "j"], "meta": ["k", "v"],
+        "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "short_s", "runs_s", "place_s", "hint_s", "km",
+                 "closed_all_year", "paper_licence", "xp", "sections", "xruns"],
+        "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
+                      "up_stretches"],
+        "part_section": ["ord", "sid", "part_ix"], "picker": _FRAME, "place": ["place", "regions", "label", "names"],
+        "rule": ["rix", "j"], "ruleset": ["set_id", "j"], "seglist": ["seg", "starts"], "segmom": ["mom", "ix"],
+        "static": ["k", "j"], "str": ["id", "text"], "water_continue": ["ord", "part", "next_ord", "next_part"],
+        "water_exit": ["ord", "down_ord", "down_part"], "xpart": _FRAME, "zdict": ["tbl", "d"]}} for r in SH.REGIONS},
     "regs-sid": {"format": "regs-sid/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "section_akey": ["block", "b"], "section_place": ["block", "b"]}},
 }
@@ -200,17 +224,30 @@ WEB_BUDGET = {
     # (T182, 2026-10-28) + salmon: the page's Salmon card (T211) reads it — the prefetch no longer hides it (5,053,227)
     # (owner 2026-10-28) the card reads the salmon head and its region's slice (`salmon-{region}`, priced as the largest,
     # R6 305,569): r-70f3ce0effc2 4,987,754 (was 5,061,679 with the whole file; an R2 tap reads 26 kB of salmon, not 405)
-    "first_tap": {"files": ["core", "water", "geo", "access", "regs-{region}", "salmon", "salmon-{region}"],
-                  "gate": 5_500_000},
+    # (T256) THE ANSWER SLICES (slices.py): the tap reads its region's `water-{region}` (priced as the largest, R6) instead
+    # of the whole water — r-fa1915a56adb's tables: water 2,221,528 → water-6 858,978 (an R2 tap: water-2 777,894). Core
+    # is the idle prefetch's whole file here (a visit on a good line has it before it taps); `first_tap_low` is the tap
+    # with nothing ahead of it.
+    "first_tap": {"files": ["core", "water-{region}", "geo", "access", "regs-{region}", "salmon", "salmon-{region}"],
+                  "gate": 4_200_000},
+    # (T256) THE TAP WITH NOTHING AHEAD OF IT — Save-Data or the low-bandwidth mode (T254): no idle prefetch of core, the
+    # Bait & fly marks (`method`) come with the tap; the tap reads its region's `core-{region}` + `water-{region}`, never the
+    # whole files. Priced as the largest region (R6): ~3,090,000 (it was core + water + … ≈ 5,300,000)
+    "first_tap_low": {"files": ["core-{region}", "water-{region}", "geo", "access", "regs-{region}", "salmon",
+                                "salmon-{region}", "method"],
+                      "gate": 3_400_000},
     # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and the flow pointers (down) the header's
     # "Tributary of ..." walks — no longer all of conditions (8,590,503 → 5,892,308, regs-6)
     # (T182, 2026-10-28) + salmon for the page's Salmon card, as the named tap (6,282,328)
-    "first_tap_unnamed": {"files": ["core", "water", "access", "regs-{region}", "regs-sid", "down", "salmon",
+    # (T256) water → the region's `water-{region}` (its rules, statics and keys are whole in every slice): ~6,715,000 →
+    # ~5,550,000. The background prefetch (T253) reads this list as WHOLE files (it walks the province): `water`.
+    "first_tap_unnamed": {"files": ["core", "water-{region}", "access", "regs-{region}", "regs-sid", "down", "salmon",
                                     "salmon-{region}"],
                           # (owner 2026-10-28) r-70f3ce0effc2 6,216,855 (was 6,290,780)
                           # (T252) + ~498 kB on `down` (closed downstream, named panel seeds, reach lengths: 624,913 →
                           # 1,122,957) ≈ 6,715,000: the gate 6,850,000 → 7,200,000
-                          "gate": 7_200_000},
+                          # (T256) water-{region}: 7,200,000 → 6,200,000
+                          "gate": 6_200_000},
     # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
     # climatology (climate) waits for a chart (4,151,534 → 997,511)
     "conditions_open": {"files": ["flow-area", "conditions"], "gate": 1_150_000},

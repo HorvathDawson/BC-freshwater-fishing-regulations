@@ -37,7 +37,8 @@ const releaseFiles = (moment: string): string[] => {
   const files = PIN[moment];
   if (!files) throw new Error(`the walk pins no moment "${moment}" (node tools/request-walk.mjs --pin)`);
   return files.filter((f) => !/^(feed:|wasm$)/.test(f)).map((f) => (/^regs-(\d|7[ab])/.test(f) ? "regs-{region}"
-    : /^salmon-(\d|7[ab]|x)/.test(f) ? "salmon-{region}" : f));
+    : /^salmon-(\d|7[ab]|x)/.test(f) ? "salmon-{region}"
+    : /^(core|water)-(\d|7[ab])$/.test(f) ? `${f.split("-")[0]}-{region}` : f));       // (T256) the answer slices
 };
 /** Priced into a gate but fetched only when the tapped page needs it. Empty since T228: `geo` is read with every named
  *  tap now (the pin shows it), so the gate prices exactly what the walk fetches. */
@@ -51,6 +52,8 @@ const GATED: Record<string, string> = {
   cold_load: "visit | prefetch after paint",
   first_search: "visit | first search",
   first_tap: "tap named | map tap: a named water (R2)",
+  // (T256) the tap with nothing ahead of it: no idle core, the region's answer slices
+  first_tap_low: "tap named (save-data) | map tap: a named water (R2)",
   first_tap_unnamed: "tap unnamed | map tap: an unnamed stream (R2)",
   conditions_open: "conditions | open Conditions",
 };
@@ -70,14 +73,24 @@ const withPrefetch = (moment: string, gate: readonly string[]): string[] => mome
  * is held instead to "re-cut me as soon as the live release is split" (below).
  */
 const PIN_SPLIT = (PIN["tap unnamed | map tap: an unnamed stream (R2)"] ?? []).includes("down");
+/**
+ * (T256) Whether the pin was cut on a release with the answer slices (`water-<r>`): a walk over a release cut before them
+ * reads the whole core / water where the budget prices a region's slice, and is held to the same moments with each slice
+ * read as its whole file (`unsliced`) until it is re-cut on a sliced release.
+ */
+const PIN_SLICED = Object.values(PIN).some((fs) => fs.some((f) => /^(core|water)-(\d|7[ab])$/.test(f)));
+const unsliced = (files: readonly string[]): string[] =>
+  [...new Set(files.map((f) => (f === "core-{region}" || f === "water-{region}" ? f.split("-")[0]! : f)))];
 const LIVE_SPLIT = (dir: string | null) =>
   !!dir && !!(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")) as Manifest).files.down;
 
 describe("the pinned walk fetches what the budget prices", () => {
   it.skipIf(!PIN_SPLIT)("every gate names a pinned moment, and that moment (with its prefetch) fetches exactly the gate's files, once each", () => {
     expect(sorted(Object.keys(WEB_BUDGET))).toEqual(sorted(Object.keys(GATED)));
-    for (const [gate, moment] of Object.entries(GATED))
-      expect([gate, sorted(withPrefetch(moment, WEB_BUDGET[gate]!.files))]).toEqual([gate, sorted(WEB_BUDGET[gate]!.files.filter((f) => !CONDITIONAL.includes(f)))]);
+    for (const [gate, moment] of Object.entries(GATED)) {
+      const files = PIN_SLICED ? WEB_BUDGET[gate]!.files : unsliced(WEB_BUDGET[gate]!.files);
+      expect([gate, sorted(withPrefetch(moment, files))]).toEqual([gate, sorted(files.filter((f) => !CONDITIONAL.includes(f)))]);
+    }
   });
 
   it("T182: a pin cut before the split files is only accepted while the live release predates them too", () => {
@@ -131,7 +144,11 @@ function price(dir: string, files: readonly string[]): { bytes: number; files: s
   // (owner 2026-10-28) a page's salmon slice, priced as the largest (`web_moments`)
   const slice = Object.keys(m.files).filter((k) => k.startsWith("salmon-"))
     .sort((a, b) => m.files[b]!.gz - m.files[a]!.gz)[0] ?? "salmon-{region}";
-  const name = (f: string) => (f === "regs-{region}" ? region : f === "salmon-{region}" ? slice : f);
+  // (T256) an answer slice, priced as the largest region's
+  const largest = (stem: string) => Object.keys(m.files).filter((k) => new RegExp(`^${stem}-(\\d|7[ab])$`).test(k))
+    .sort((a, b) => m.files[b]!.gz - m.files[a]!.gz)[0] ?? `${stem}-{region}`;
+  const name = (f: string) => (f === "regs-{region}" ? region : f === "salmon-{region}" ? slice
+    : f === "core-{region}" || f === "water-{region}" ? largest(f.split("-")[0]!) : f);
   const priced = files.map((f): [string, number] =>
     f === "manifest" ? [f, statSync(join(dir, "manifest.json")).size]
     : f === "mask" ? [f, m.tiles.mask?.bytes ?? 0]

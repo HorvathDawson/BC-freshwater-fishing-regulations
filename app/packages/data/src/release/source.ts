@@ -24,7 +24,7 @@
  * goes the old way (`fileFor`; the two has-table checks below).
  */
 import { describeBy, shownParameter, type IndexWater, type NearPlace, type SearchIndexData, type WaterFix } from "@app/core";
-import { num, str, type Row } from "../sql/db";
+import { num, str, type Db, type Row } from "../sql/db";
 import * as BQ from "../sql/queries";
 import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, seriesOf, sid,
          traceDown, withNear, decodeLen, type DownOf, type RouteFacts } from "../sql/shared";
@@ -69,7 +69,9 @@ export interface SourceOptions {
 }
 
 export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {}): WaterSource {
-  const db = (n: DbName) => loader.db(n);
+  // (T256) core and water are read routed: each read from the whole file or the focus region's answer slice covering it
+  const db = (n: DbName): Promise<Db> =>
+    (n === "core" || n === "water") && loader.routed ? Promise.resolve(loader.routed(n)) : loader.db(n);
   /** The file a query's table is in, in this release (T182 `MOVED_FROM`). */
   const at = (q: { file: string }) => fileFor(loader.manifest.files, q.file as PackName) as DbName;
   const all = async (q: { file: string; sql: string }, ...p: (string | number | null)[]) =>

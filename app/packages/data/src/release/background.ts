@@ -68,7 +68,8 @@ export function regionOrder(view: readonly Region[]): Region[] {
 /** The files an unnamed tap in region `r` reads, as the contract lists them, that this manifest names. */
 export function unnamedTapFiles(m: Pick<Manifest, "files">, r: Region): FileName[] {
   return WEB_BUDGET.first_tap_unnamed!.files
-    .map((f) => f.replace("{region}", r) as FileName)
+    // (T256) the answer slices as their WHOLE files: this walks the province, and the whole water answers every region
+    .map((f) => (f === "core-{region}" || f === "water-{region}" ? f.split("-")[0]! : f.replace("{region}", r)) as FileName)
     .filter((f) => !!m.files[f]);
 }
 

@@ -318,21 +318,29 @@ def test_the_web_budget_prices_each_moment_and_fails_a_crossed_gate(tmp_path):
     one region file grown past the tap gate's headroom fails `first_tap` (and the unnamed tap), nothing else."""
     from pipeline.deliver.release import contract as C
     names = {f for spec in C.WEB_BUDGET.values() for f in spec["files"]} - {"manifest", "mask", "regs-{region}",
-                                                                          "salmon-{region}"}
+                                                                          "salmon-{region}", "core-{region}",
+                                                                          "water-{region}"}
     files = {n: {"bytes": 1, "gz": 1000} for n in names} | {f"regs-{r}": {"bytes": 1, "gz": 100 + i}
                                                             for i, r in enumerate(SH.REGIONS)} \
-        | {f"salmon-{r}": {"bytes": 1, "gz": 10 + i} for i, r in enumerate(SH.REGIONS)}   # (owner 2026-10-28) slices
+        | {f"salmon-{r}": {"bytes": 1, "gz": 10 + i} for i, r in enumerate(SH.REGIONS)} \
+        | {f"core-{r}": {"bytes": 1, "gz": 200 + i} for i, r in enumerate(SH.REGIONS)} \
+        | {f"water-{r}": {"bytes": 1, "gz": 300 + i} for i, r in enumerate(SH.REGIONS)}   # (T256) the answer slices
     m = {"files": files, "tiles": {"mask": {"bytes": 62}}}
     (tmp_path / "manifest.json").write_text(json.dumps(m))
     size = (tmp_path / "manifest.json").stat().st_size
     got = B.web_moments(tmp_path)
     assert got["first_paint"] == (size + 1000 + 62, ["manifest", "paint", "mask"])
-    assert got["first_tap"][1][-3:] == ["regs-8", "salmon", "salmon-8"] and got["first_tap"][0] == 5 * 1000 + 108 + 18
+    # (T256) the named tap: the LARGEST region's water slice (core is the idle prefetch's); with nothing ahead of it
+    # (`first_tap_low`), the largest region's core and water slices — never the whole files
+    assert got["first_tap"] == (1000 + 308 + 3 * 1000 + 108 + 18,
+                                ["core", "water-8", "geo", "access", "regs-8", "salmon", "salmon-8"])
+    assert got["first_tap_low"] == (208 + 308 + 4 * 1000 + 108 + 18,
+                                    ["core-8", "water-8", "geo", "access", "regs-8", "salmon", "salmon-8", "method"])
     assert not [p for p in B.gate_problems(tmp_path) if p.startswith("web ")]
     files["regs-3"]["gz"] = C.WEB_BUDGET["first_tap_unnamed"]["gate"]
     (tmp_path / "manifest.json").write_text(json.dumps(m))
     assert sorted(p.split(":")[0] for p in B.gate_problems(tmp_path) if p.startswith("web ")) == \
-        ["web cold_load", "web first_tap", "web first_tap_unnamed"]
+        ["web cold_load", "web first_tap", "web first_tap_low", "web first_tap_unnamed"]
 
 
 def test_t182_every_file_has_its_own_gate_and_the_total_is_the_phones(tmp_path):
@@ -368,7 +376,8 @@ def test_t182_each_moment_fetches_only_the_files_holding_what_it_reads():
     conditions' own `lake_section`), not core and not the climatology; the first search reads core alone. Pinned on the
     contract, so a table moved back fails here before a release is cut."""
     from pipeline.deliver.release import contract as C
-    where = {t: f for f, spec in C.FILES.items() for t in spec["tables"] if t != "meta"}
+    from pipeline.deliver.release.slices import slice_marks
+    where = {t: f for f, spec in C.FILES.items() if f not in slice_marks() for t in spec["tables"] if t != "meta"}
     assert (where["section_down"], where["gauge_clim"], where["part_geo"], where["lake_section"], where["item_near"]) \
         == ("down", "climate", "geo", "conditions", "core")
     assert "conditions" not in C.WEB_BUDGET["first_tap_unnamed"]["files"]

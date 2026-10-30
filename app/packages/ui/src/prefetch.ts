@@ -67,7 +67,8 @@ export function useReleasePrefetch(loader: ReleaseLoader | null, onIdle?: () => 
     if (!loader) return;
     const r = regionOfTile(regionId);
     // a settle over no region (the sea, outside B.C., a view that hides the region layer) forgets nothing
-    if (r) { s.current.region = r; bg.current?.view([r]); }
+    // (T256) and the reader's region: a tap there reads its answer slices (`core-<r>`, `water-<r>`), not the whole files
+    if (r) { s.current.region = r; bg.current?.view([r]); loader.focus?.(r); }
     if (!s.current.painted) {
       s.current.painted = true;
       const g = globalThis as typeof globalThis & IdleHost;

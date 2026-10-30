@@ -16,6 +16,7 @@ import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodePaint, decodeFlo
 import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
 import { type Region } from "../pack.generated";
+import { covers, routedDb, sliceKeys, type SliceKeys, type Sliced } from "./focus";
 
 /** (T211) the DFO salmon: a head (`salmon/2`) and one slice per bundle region (`salmon-<r>`, `x`: a section in none —
  *  owner 2026-10-28); (T213) bait ban / fly only per day (`method/1`) */
@@ -23,6 +24,7 @@ export type SalmonSlice = `salmon-${Region}` | "salmon-x";
 type BinName = "salmon" | SalmonSlice | "method";
 
 export type FileName = "paint" | "flow-area" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
+  | `core-${Region}` | `water-${Region}`
   | BinName
   | "conditions" | "down" | "climate" | "geo";
 export type DbName = Exclude<FileName, "paint" | "flow-area" | "lakes" | "access" | BinName>;
@@ -72,6 +74,16 @@ export interface ReleaseLoader {
   regionsOf(akey: number): Promise<Region[]>;
   /** The region file holding an akey's frames (the first of its regions; every one of them holds them). */
   regionDb(akey: number): Promise<Db>;
+  /**
+   * (T256) The region the reader is looking at (web: the map's), or null. A read of core / water through `routed` that
+   * its slice covers (`focus.ts`) reads `core-<r>` / `water-<r>` instead of the whole file, unless the whole file is
+   * already here. A release cut without slices, or a phone, ignores it.
+   */
+  focus(region: Region | null): void;
+  /** (T256) core or water, each read routed to the whole file or a slice that covers it (`focus.ts`). */
+  routed(name: Sliced): Db;
+  /** (T256) The file a read naming `keys` goes to: the whole file when it is here or no slice covers the keys. */
+  dbFor(name: Sliced, keys: SliceKeys | null): Promise<Db>;
   /** Which files have been opened so far (the web's lazy-load test reads this). */
   opened(): readonly FileName[];
   /**
@@ -101,6 +113,13 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
   let regions: Promise<Map<number, Region[]>> | null = null;
   const touch = (n: FileName) => { if (!order.includes(n)) order.push(n); };
   const ahead = new Map<FileName, Promise<void>>();
+  let focused: Region | null = null;
+  /** (T256) the slices opened so far, per file, in the order opened (a slice once read keeps answering what it covers) */
+  const slicesOpen: Record<Sliced, Region[]> = { core: [], water: [] };
+  const sliceOf = (name: Sliced, r: Region) => `${name}-${r}` as DbName;
+  /** Whether the whole file is here or on its way (opened, asked ahead, or kept in this browser): then it is read. */
+  const wholeHere = async (name: Sliced): Promise<boolean> =>
+    dbs.has(name) || ahead.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
 
   const db = (name: DbName): Promise<Db> => {
     const spec = m.files[name];
@@ -194,7 +213,8 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
     },
     async regionsOf(akey) {
       if (!regions) {
-        regions = db("water").then(async (w) => {
+        // akey_region: whole in every water slice (T256), so the focus region's slice answers it as well as water
+        regions = loader.dbFor("water", {}).then(async (w) => {
           const out = new Map<number, Region[]>();
           for (const r of await w.all("SELECT akey, region FROM akey_region ORDER BY akey, region")) {
             const a = Number(r.akey);
@@ -212,6 +232,19 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
       // a region already opened that holds this key wins: a tap in a region the reader is already in fetches nothing
       const held = rs.find((r) => dbs.has(`regs-${r}`));
       return db(`regs-${held ?? rs[0]!}`);
+    },
+    focus(region) { focused = region; },
+    routed(name) { return routedDb((sql, p) => loader.dbFor(name, sliceKeys(name, sql, p))); },
+    async dbFor(name, keys) {
+      if (keys === null || await wholeHere(name)) return db(name);
+      const tries = [...slicesOpen[name]];
+      if (focused && !tries.includes(focused) && m.files[sliceOf(name, focused)]) tries.push(focused);
+      for (const r of tries) {
+        const d = await db(sliceOf(name, r));
+        if (!slicesOpen[name].includes(r)) slicesOpen[name].push(r);
+        if (await covers(name, d, keys)) return d;
+      }
+      return db(name);
     },
     opened: () => order.slice(),
     prefetch(name) {

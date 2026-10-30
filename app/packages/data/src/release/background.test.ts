@@ -58,7 +58,8 @@ function fakeLoader(m = manifest()) {
 describe("what and in which order", () => {
   it("an unnamed tap's files are the contract's list, per region, the manifest's only", () => {
     expect(WEB_BUDGET.first_tap_unnamed!.files).toEqual(
-      ["core", "water", "access", "regs-{region}", "regs-sid", "down", "salmon", "salmon-{region}"]);
+      ["core", "water-{region}", "access", "regs-{region}", "regs-sid", "down", "salmon", "salmon-{region}"]);
+    // (T256) the answer slice is read as its WHOLE file: this walks the province
     expect(unnamedTapFiles(manifest(), "7a")).toEqual(
       ["core", "water", "access", "regs-7a", "regs-sid", "down", "salmon", "salmon-7a"]);
     // a release cut without salmon: those are skipped, not asked for

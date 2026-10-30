@@ -99,7 +99,7 @@ export const PRIORITY = { answer: 0, extra: 1, ahead: 2 } as const;
  */
 export function isAnswerFile(name: FileName): boolean {
   return name === "paint" || name === "core" || name === "water" || name === "regs-sid" || name === "down"
-    || /^regs-[0-9a-z]+$/.test(name);
+    || /^(regs|core|water)-[0-9a-z]+$/.test(name);            // (T256) + the answer slices core-<r>, water-<r>
 }
 
 /** A release file's place in the order when the page asks for it (prefetch is `PRIORITY.ahead`, whatever the file). */
@@ -110,7 +110,8 @@ export const priorityOf = (name: FileName): FetchPriority => (isAnswerFile(name)
  * order a low-bandwidth app lets it through.
  */
 export const DEFERRAL_ORDER: readonly { readonly what: string; readonly priority: FetchPriority }[] = [
-  { what: "the tapped water's regulations (paint, core, water, regs-<region>, regs-sid, down)", priority: 0 },
+  { what: "the tapped water's regulations (paint, core, water or their region's slices, regs-<region>, regs-sid, down)",
+    priority: 0 },
   { what: "what the page adds: salmon slices, access note, bait & fly, Conditions, history, place names", priority: 1 },
   { what: "anything ahead of need: the idle and background prefetch, the next region", priority: 2 },
 ];
