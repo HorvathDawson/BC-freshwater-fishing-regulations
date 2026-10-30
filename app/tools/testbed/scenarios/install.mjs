@@ -36,6 +36,8 @@ export const install = {
       while (Date.now() - t0 < 20 * 60_000) {
         // the map's tab bar, or the first-run notice over it (a cleared app): the download is done
         const w = ctx.device.screenText();
+        // (T298) a first install asks to notify (Android 13+): allowed, as a reader would
+        if (w.some((x) => /send you notifications/i.test(x))) { ctx.flow('tap-text', { TEXT: 'Allow' }); continue; }
         if (w.includes('More') || w.includes('MORE') || w.some((x) => /^(Before you fish|I understand|Skip)$/.test(x))) break;
         const line = /([\d,.]+) of ([\d,.]+) MB downloaded/.exec(w.join(' '));
         if (line && !seen.shotDl && Number(line[1].replace(/,/g, '')) > 20) { shot('stage-download'); seen.shotDl = true; }

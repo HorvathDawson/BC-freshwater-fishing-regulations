@@ -85,9 +85,10 @@ export const bgInstall = {
       if (alive()) throw new Error('the app is still running after the kill');
       d.sh('cmd statusbar expand-notifications');
       await d.sleep(1500);
-      notes = words().filter((x) => /Downloading BC fishing rules|·|\d+ ?%/.test(x));
+      notes = words().filter((x) => /Downloading BC fishing rules|files? downloading|·|\d+ ?%/i.test(x));
       shot('4-notification');
-      if (!notes.some((x) => /Downloading BC fishing rules/.test(x))) throw new Error(`no download notification with the app closed (saw ${notes.join(' | ')})`);
+      // ours, or the system's group of them ("2 files downloading")
+      if (!notes.some((x) => /Downloading BC fishing rules|files? downloading/i.test(x))) throw new Error(`no download notification with the app closed (saw ${notes.join(' | ')})`);
       return `app ${how} at "${atKill}" (${killedAt}) · notification: ${notes.join(' | ')}`;
     });
     await ctx.step('a tap on the notification opens the app; setup finishes and the map opens', async () => {

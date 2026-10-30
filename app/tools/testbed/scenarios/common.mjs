@@ -12,8 +12,10 @@ export async function appUp(ctx, { launch = true, ms = 120_000 } = {}) {
   while (Date.now() < end) {
     w = ctx.device.screenText();
     if (w.includes('More') || w.includes('MORE')) break;
+    // (T298) a first install asks to notify (Android 13+): allowed, as a reader would
+    if (w.some((x) => /send you notifications/i.test(x))) ctx.flow('tap-text', { TEXT: 'Allow' });
     // a cleared app shows the first-run notice and the tour over the map: closed as a reader would
-    if (w.some((x) => /^(I understand|Skip|Before you fish|Welcome)$/.test(x))) ctx.flow('dismiss-first-run');
+    else if (w.some((x) => /^(I understand|Skip|Before you fish|Welcome)$/.test(x))) ctx.flow('dismiss-first-run');
     else if (!ctx.device.pidOf()) ctx.device.launch();
     await ctx.device.sleep(3000);
   }
