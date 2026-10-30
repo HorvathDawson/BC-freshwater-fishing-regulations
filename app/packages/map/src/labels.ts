@@ -55,6 +55,32 @@ export function basemapLabelPaint(layerId: string, tokens: Tokens, ground: Groun
            "text-halo-width": HALO_PX, "text-halo-blur": HALO_BLUR };
 }
 
+/**
+ * (T299) PLACE NAMES BY IMPORTANCE (owner 2026-10-30: "it puts a ton of names on the screen but should show most
+ * important first and hide a lot until zoomed in a lot more").
+ *
+ * Protomaps' `places_locality` draws every settlement point its tile carries, and at z7 a tile carries a hundred
+ * hamlets and OSM `place=locality` names ("Suicide Hill", "The Missing Link") beside Vancouver. So each kind of place
+ * waits for its own zoom — a city always, a town from z7, a village from z9, a hamlet from z10, everything else
+ * (localities, farms, isolated dwellings) from z12 — and among what is shown the bigger kind, then the bigger
+ * population, is placed first (`symbol-sort-key`, lowest first).
+ */
+const PLACE_TIER = ["match", ["get", "kind_detail"], "city", 0, "town", 1, "village", 2, "hamlet", 3, 4];
+/** The zoom each tier is first named at, by tier (city, town, village, hamlet, other). */
+export const PLACE_TIER_ZOOM = [0, 7, 9, 10, 12] as const;
+
+export function placesByImportance<L extends { id: string; filter?: unknown; layout?: Record<string, unknown> }>(l: L): L {
+  if (l.id !== "places_locality") return l;
+  const [, town, village, hamlet, other] = PLACE_TIER_ZOOM;
+  return {
+    ...l,
+    filter: ["all", ["==", ["get", "kind"], "locality"],
+             ["<=", PLACE_TIER, ["step", ["zoom"], 0, town, 1, village, 2, hamlet, 3, other, 4]]],
+    layout: { ...l.layout,
+              "symbol-sort-key": ["-", ["*", PLACE_TIER, 100], ["coalesce", ["get", "population_rank"], 0]] },
+  };
+}
+
 /** Our own name layers (the generated `__label` companions) — every symbol layer with a label halo that is not an arrow. */
 export const OWN_LABELS: readonly string[] = MAP_STYLE.layers.map((l) => l.id)
   .filter((id) => id.endsWith("__label") && (STYLE_META.labelHalos ?? {})[id] !== undefined);

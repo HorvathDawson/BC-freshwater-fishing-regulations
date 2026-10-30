@@ -232,7 +232,7 @@ describe("the basin/river handover", () => {
     expect(floor).toEqual({
       // T130: the handover (z8) or the layer's own floor where that is later — a release, never a second rule
       stream: 8, "selection-casing": 8, stream__arrows: 10, lake: 8, lake__edge: 8,
-      "stream-nobaseline": 8, water_river: 9, stream__label: 11, lake__label: 8, lake_flowing: 8,
+      "stream-nobaseline": 8, water_river: 9, stream__label: 8, lake__label: 8, lake_flowing: 8,
       not_fishing_water: 8, not_fishing_water__edge: 8, wetland: 8, wetland_flowing: 8, under_lake: 8, contour: 8,
       // and the areas and the gauges (review 2026-10-22: hatches at Liumchen and gauge dots drawn on the field)
       indigenous_land: 8, indigenous_land__edge: 11, indigenous_land__label: 9,

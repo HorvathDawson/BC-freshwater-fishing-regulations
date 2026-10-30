@@ -60,6 +60,16 @@ describe("the style and the tiles agree", () => {
     }
   });
 
+  it("a label that reads its own tile layer reads one the tiles carry, with the field it draws (T299)", () => {
+    for (const l of source.layers) {
+      const lab = (l as { label?: { sourceLayer?: string; field?: string; sortBy?: string } }).label;
+      if (!lab?.sourceLayer) continue;
+      const t = contract.layers[lab.sourceLayer];
+      expect(t, `${l.id} label -> sourceLayer "${lab.sourceLayer}"`).toBeDefined();
+      for (const k of [lab.field, lab.sortBy].filter(Boolean)) expect(t!.attrs, `${l.id} label reads "${k}"`).toContain(k);
+    }
+  });
+
   it("every featureIdProperty is a property the tile actually carries", () => {
     // The one that was wrong. A feature id naming a property that is not on the feature
     // means setFeatureState silently addresses nothing.
@@ -191,24 +201,30 @@ describe("the style and the tiles agree", () => {
     // Draw order IS array order, and it decides two things at once: what paints over what,
     // and which symbol layer wins a collision. A label emitted beside its own geometry sits
     // eighth of ten, so every river drawn afterwards crosses out the lake names underneath.
+    //
+    // (T299) AND MAPLIBRE PLACES FROM THE TOP DOWN: the LAST symbol layer is placed first and
+    // keeps its ground. This test used to demand the opposite order and so pinned the bug that
+    // left the rivers unnamed under park and reserve names.
     const ids = MAP_STYLE.layers.map((l) => l.id);
-    const firstLabel = ids.findIndex((id) => id.endsWith("__label"));
-    expect(firstLabel, "no label layer in the built style").toBeGreaterThan(-1);
-    // The flow arrows are symbols too, and come after EVERY name: a name placed first keeps
-    // its spot, and an arrow that would land on it is the one dropped.
-    const firstArrow = ids.findIndex((id) => id.endsWith("__arrows"));
-    for (const id of ids.slice(firstLabel))
+    const firstSymbol = ids.findIndex((id) => id.endsWith("__label") || id.endsWith("__arrows"));
+    expect(firstSymbol, "no label layer in the built style").toBeGreaterThan(-1);
+    for (const id of ids.slice(firstSymbol))
       expect(id.endsWith("__label") || id.endsWith("__arrows"), `${id} is drawn after a label`).toBe(true);
-    expect(ids.slice(firstArrow).every((id) => id.endsWith("__arrows")), "an arrow is drawn before a name")
+    // The flow arrows come UNDER every name, so they are placed after them: a name keeps its
+    // spot, and an arrow that would land on it is the one dropped.
+    const firstLabel = ids.findIndex((id) => id.endsWith("__label"));
+    expect(ids.slice(firstSymbol, firstLabel).every((id) => id.endsWith("__arrows")), "an arrow is drawn over a name")
       .toBe(true);
+    expect(ids.slice(firstLabel).some((id) => id.endsWith("__arrows")), "an arrow is drawn over a name").toBe(false);
 
-    // And among themselves, in DECLARED priority order — not in whatever order the source
-    // happens to list the geometry. A river name beats a lake name, as v1 had it.
+    // And among themselves, in DECLARED priority order — the winner (lowest number) LAST, on
+    // top, placed first. A river name beats a lake name, as v1 had it.
     const prio = new Map(source.layers.filter((l) => l.label)
       .map((l) => [`${l.id}__label`, (l.label as { priority?: number }).priority ?? 0]));
-    const drawn = ids.slice(firstLabel, firstArrow).map((id) => prio.get(id) ?? 0);
+    const drawn = ids.slice(firstLabel).map((id) => prio.get(id) ?? 0);
     expect(drawn, "labels are not in priority order")
-      .toEqual([...drawn].sort((a, b) => a - b));
+      .toEqual([...drawn].sort((a, b) => b - a));
+    expect(ids.at(-1), "the stream's name is placed first").toBe("stream__label");
   });
 
   it("every generated edge draws over the same source-layer as its fill", () => {
@@ -228,7 +244,9 @@ describe("the style and the tiles agree", () => {
     //
     //   wma  built for regulation scopes; only Creston Valley ships (T202, owner 2026-10-27), and nothing in the app
     //        draws it yet. `sign_zone` (dashed closure ring) and `watershed` (the Liard wash) are drawn since T202.
-    const drawn = new Set(source.layers.map((l) => l.sourceLayer));
+    // A label's own tile layer (`label.sourceLayer`: `stream_name`, T299) counts as drawn.
+    const drawn = new Set(source.layers.flatMap((l) =>
+      [l.sourceLayer, (l as { label?: { sourceLayer?: string } }).label?.sourceLayer].filter(Boolean)));
     const undrawn = Object.keys(contract.layers).filter((n) => !drawn.has(n));
     expect(undrawn).toEqual(["wma"]);
   });

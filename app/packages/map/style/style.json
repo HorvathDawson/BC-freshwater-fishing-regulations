@@ -610,19 +610,17 @@
       }
     },
     {
-      "id": "stream__label",
+      "id": "stream__arrows",
       "type": "symbol",
       "source": "atlas",
       "source-layer": "stream",
       "layout": {
-        "visibility": "visible",
+        "visibility": "none",
         "symbol-placement": "line",
-        "text-field": [
-          "get",
-          "name"
-        ],
+        "symbol-spacing": 140,
+        "text-field": "◀",
         "text-font": [
-          "Noto Sans Italic"
+          "Noto Sans Regular"
         ],
         "text-size": [
           "interpolate",
@@ -632,102 +630,24 @@
           [
             "zoom"
           ],
-          11,
-          11,
-          13,
-          12.5,
-          15,
-          14
-        ],
-        "text-letter-spacing": 0.08,
-        "text-max-angle": 25,
-        "symbol-spacing": 300,
-        "text-allow-overlap": false,
-        "text-padding": 6
-      },
-      "minzoom": 11,
-      "filter": [
-        "all",
-        [
-          "has",
-          "name"
-        ],
-        [
-          "!=",
-          [
-            "get",
-            "name"
-          ],
-          ""
-        ]
-      ]
-    },
-    {
-      "id": "lake__label",
-      "type": "symbol",
-      "source": "atlas",
-      "source-layer": "lake",
-      "layout": {
-        "visibility": "visible",
-        "symbol-placement": "point",
-        "text-field": [
-          "get",
-          "name"
-        ],
-        "text-font": [
-          "Noto Sans Italic"
-        ],
-        "text-size": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          8,
-          10.5,
+          9,
+          10,
           12,
-          12.5,
-          15,
+          13,
+          14,
           15
         ],
-        "text-letter-spacing": 0.06,
-        "text-max-width": 9,
-        "symbol-sort-key": [
-          "-",
-          0,
-          [
-            "get",
-            "area_m2"
-          ]
-        ],
+        "text-keep-upright": false,
+        "text-rotation-alignment": "map",
+        "text-pitch-alignment": "map",
+        "text-max-angle": 30,
         "text-allow-overlap": false,
-        "text-padding": 3
+        "text-ignore-placement": true,
+        "text-padding": 2
       },
-      "minzoom": 8,
+      "minzoom": 10,
       "filter": [
         "all",
-        [
-          "has",
-          "name"
-        ],
-        [
-          "!=",
-          [
-            "get",
-            "name"
-          ],
-          ""
-        ],
-        [
-          "!=",
-          [
-            "get",
-            "water"
-          ],
-          "stream"
-        ],
         [
           "any",
           [
@@ -735,7 +655,7 @@
             [
               "zoom"
             ],
-            11
+            13
           ],
           [
             "all",
@@ -750,9 +670,9 @@
               ">=",
               [
                 "get",
-                "area_m2"
+                "ord"
               ],
-              100000
+              5
             ]
           ],
           [
@@ -762,15 +682,15 @@
               [
                 "zoom"
               ],
-              9
+              11
             ],
             [
               ">=",
               [
                 "get",
-                "area_m2"
+                "ord"
               ],
-              1000000
+              4
             ]
           ],
           [
@@ -780,470 +700,25 @@
               [
                 "zoom"
               ],
-              8
+              12
             ],
             [
               ">=",
               [
                 "get",
-                "area_m2"
+                "ord"
               ],
-              5000000
+              3
             ]
           ]
         ]
       ]
     },
     {
-      "id": "region__label",
+      "id": "indigenous_land__label",
       "type": "symbol",
       "source": "atlas",
-      "source-layer": "region",
-      "layout": {
-        "visibility": "visible",
-        "symbol-placement": "point",
-        "text-field": [
-          "get",
-          "region_id"
-        ],
-        "text-font": [
-          "Noto Sans Medium"
-        ],
-        "text-size": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          4,
-          13,
-          6,
-          16
-        ],
-        "text-allow-overlap": false,
-        "text-padding": 3
-      },
-      "minzoom": 4,
-      "maxzoom": 7,
-      "filter": [
-        "all",
-        [
-          "has",
-          "region_id"
-        ],
-        [
-          "!=",
-          [
-            "get",
-            "region_id"
-          ],
-          ""
-        ]
-      ]
-    },
-    {
-      "id": "mu__label",
-      "type": "symbol",
-      "source": "mus",
-      "source-layer": "mu",
-      "minzoom": 8,
-      "layout": {
-        "visibility": "visible",
-        "symbol-placement": "point",
-        "text-field": [
-          "get",
-          "mu_id"
-        ],
-        "text-font": [
-          "Noto Sans Medium"
-        ],
-        "text-size": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          8,
-          11,
-          10,
-          12.5,
-          13,
-          14
-        ],
-        "text-allow-overlap": false,
-        "text-padding": 3
-      },
-      "filter": [
-        "all",
-        [
-          "has",
-          "mu_id"
-        ],
-        [
-          "!=",
-          [
-            "get",
-            "mu_id"
-          ],
-          ""
-        ]
-      ]
-    },
-    {
-      "id": "park_closed__label",
-      "type": "symbol",
-      "source": "atlas",
-      "source-layer": "park",
-      "layout": {
-        "visibility": "visible",
-        "symbol-placement": "point",
-        "text-field": [
-          "case",
-          [
-            "all",
-            [
-              ">",
-              [
-                "index-of",
-                " [",
-                [
-                  "get",
-                  "name"
-                ]
-              ],
-              0
-            ],
-            [
-              "==",
-              [
-                "slice",
-                [
-                  "get",
-                  "name"
-                ],
-                [
-                  "-",
-                  [
-                    "length",
-                    [
-                      "get",
-                      "name"
-                    ]
-                  ],
-                  1
-                ]
-              ],
-              "]"
-            ]
-          ],
-          [
-            "slice",
-            [
-              "get",
-              "name"
-            ],
-            0,
-            [
-              "index-of",
-              " [",
-              [
-                "get",
-                "name"
-              ]
-            ]
-          ],
-          [
-            "get",
-            "name"
-          ]
-        ],
-        "text-font": [
-          "Noto Sans Regular"
-        ],
-        "text-size": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          7,
-          10.5,
-          11,
-          12,
-          15,
-          13.5
-        ],
-        "text-letter-spacing": 0.03,
-        "text-max-width": 8,
-        "text-allow-overlap": false,
-        "text-padding": 3
-      },
-      "minzoom": 7,
-      "filter": [
-        "all",
-        [
-          "has",
-          "name"
-        ],
-        [
-          "!=",
-          [
-            "get",
-            "name"
-          ],
-          ""
-        ],
-        [
-          "in",
-          [
-            "get",
-            "kind"
-          ],
-          [
-            "literal",
-            [
-              "national",
-              "historic"
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "id": "eco_reserve__label",
-      "type": "symbol",
-      "source": "atlas",
-      "source-layer": "eco_reserve",
-      "layout": {
-        "visibility": "visible",
-        "symbol-placement": "point",
-        "text-field": [
-          "case",
-          [
-            "all",
-            [
-              ">",
-              [
-                "index-of",
-                " [",
-                [
-                  "get",
-                  "name"
-                ]
-              ],
-              0
-            ],
-            [
-              "==",
-              [
-                "slice",
-                [
-                  "get",
-                  "name"
-                ],
-                [
-                  "-",
-                  [
-                    "length",
-                    [
-                      "get",
-                      "name"
-                    ]
-                  ],
-                  1
-                ]
-              ],
-              "]"
-            ]
-          ],
-          [
-            "slice",
-            [
-              "get",
-              "name"
-            ],
-            0,
-            [
-              "index-of",
-              " [",
-              [
-                "get",
-                "name"
-              ]
-            ]
-          ],
-          [
-            "get",
-            "name"
-          ]
-        ],
-        "text-font": [
-          "Noto Sans Regular"
-        ],
-        "text-size": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          8,
-          10,
-          12,
-          11.5,
-          15,
-          13
-        ],
-        "text-letter-spacing": 0.03,
-        "text-max-width": 8,
-        "text-allow-overlap": false,
-        "text-padding": 3
-      },
-      "minzoom": 8,
-      "filter": [
-        "all",
-        [
-          "has",
-          "name"
-        ],
-        [
-          "!=",
-          [
-            "get",
-            "name"
-          ],
-          ""
-        ]
-      ]
-    },
-    {
-      "id": "park__label",
-      "type": "symbol",
-      "source": "atlas",
-      "source-layer": "park",
-      "layout": {
-        "visibility": "visible",
-        "symbol-placement": "point",
-        "text-field": [
-          "case",
-          [
-            "all",
-            [
-              ">",
-              [
-                "index-of",
-                " [",
-                [
-                  "get",
-                  "name"
-                ]
-              ],
-              0
-            ],
-            [
-              "==",
-              [
-                "slice",
-                [
-                  "get",
-                  "name"
-                ],
-                [
-                  "-",
-                  [
-                    "length",
-                    [
-                      "get",
-                      "name"
-                    ]
-                  ],
-                  1
-                ]
-              ],
-              "]"
-            ]
-          ],
-          [
-            "slice",
-            [
-              "get",
-              "name"
-            ],
-            0,
-            [
-              "index-of",
-              " [",
-              [
-                "get",
-                "name"
-              ]
-            ]
-          ],
-          [
-            "get",
-            "name"
-          ]
-        ],
-        "text-font": [
-          "Noto Sans Regular"
-        ],
-        "text-size": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          8,
-          10,
-          12,
-          11.5,
-          15,
-          13
-        ],
-        "text-letter-spacing": 0.03,
-        "text-max-width": 8,
-        "text-allow-overlap": false,
-        "text-padding": 3
-      },
-      "minzoom": 8,
-      "filter": [
-        "all",
-        [
-          "has",
-          "name"
-        ],
-        [
-          "!=",
-          [
-            "get",
-            "name"
-          ],
-          ""
-        ],
-        [
-          "==",
-          [
-            "get",
-            "kind"
-          ],
-          "provincial"
-        ]
-      ]
-    },
-    {
-      "id": "no_access__label",
-      "type": "symbol",
-      "source": "atlas",
-      "source-layer": "no_access",
+      "source-layer": "indigenous_land",
       "layout": {
         "visibility": "visible",
         "symbol-placement": "point",
@@ -1344,14 +819,6 @@
             "name"
           ],
           ""
-        ],
-        [
-          "==",
-          [
-            "get",
-            "kind"
-          ],
-          "closed"
         ]
       ]
     },
@@ -1524,10 +991,10 @@
       ]
     },
     {
-      "id": "indigenous_land__label",
+      "id": "no_access__label",
       "type": "symbol",
       "source": "atlas",
-      "source-layer": "indigenous_land",
+      "source-layer": "no_access",
       "layout": {
         "visibility": "visible",
         "symbol-placement": "point",
@@ -1628,19 +1095,85 @@
             "name"
           ],
           ""
+        ],
+        [
+          "==",
+          [
+            "get",
+            "kind"
+          ],
+          "closed"
         ]
       ]
     },
     {
-      "id": "stream__arrows",
+      "id": "park__label",
       "type": "symbol",
       "source": "atlas",
-      "source-layer": "stream",
+      "source-layer": "park",
       "layout": {
-        "visibility": "none",
-        "symbol-placement": "line",
-        "symbol-spacing": 140,
-        "text-field": "◀",
+        "visibility": "visible",
+        "symbol-placement": "point",
+        "text-field": [
+          "case",
+          [
+            "all",
+            [
+              ">",
+              [
+                "index-of",
+                " [",
+                [
+                  "get",
+                  "name"
+                ]
+              ],
+              0
+            ],
+            [
+              "==",
+              [
+                "slice",
+                [
+                  "get",
+                  "name"
+                ],
+                [
+                  "-",
+                  [
+                    "length",
+                    [
+                      "get",
+                      "name"
+                    ]
+                  ],
+                  1
+                ]
+              ],
+              "]"
+            ]
+          ],
+          [
+            "slice",
+            [
+              "get",
+              "name"
+            ],
+            0,
+            [
+              "index-of",
+              " [",
+              [
+                "get",
+                "name"
+              ]
+            ]
+          ],
+          [
+            "get",
+            "name"
+          ]
+        ],
         "text-font": [
           "Noto Sans Regular"
         ],
@@ -1652,24 +1185,438 @@
           [
             "zoom"
           ],
-          9,
+          8,
           10,
           12,
-          13,
-          14,
-          15
+          11.5,
+          15,
+          13
         ],
-        "text-keep-upright": false,
-        "text-rotation-alignment": "map",
-        "text-pitch-alignment": "map",
-        "text-max-angle": 30,
+        "text-letter-spacing": 0.03,
+        "text-max-width": 8,
         "text-allow-overlap": false,
-        "text-ignore-placement": true,
-        "text-padding": 2
+        "text-padding": 3
       },
-      "minzoom": 10,
+      "minzoom": 8,
       "filter": [
         "all",
+        [
+          "has",
+          "name"
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "name"
+          ],
+          ""
+        ],
+        [
+          "==",
+          [
+            "get",
+            "kind"
+          ],
+          "provincial"
+        ]
+      ]
+    },
+    {
+      "id": "eco_reserve__label",
+      "type": "symbol",
+      "source": "atlas",
+      "source-layer": "eco_reserve",
+      "layout": {
+        "visibility": "visible",
+        "symbol-placement": "point",
+        "text-field": [
+          "case",
+          [
+            "all",
+            [
+              ">",
+              [
+                "index-of",
+                " [",
+                [
+                  "get",
+                  "name"
+                ]
+              ],
+              0
+            ],
+            [
+              "==",
+              [
+                "slice",
+                [
+                  "get",
+                  "name"
+                ],
+                [
+                  "-",
+                  [
+                    "length",
+                    [
+                      "get",
+                      "name"
+                    ]
+                  ],
+                  1
+                ]
+              ],
+              "]"
+            ]
+          ],
+          [
+            "slice",
+            [
+              "get",
+              "name"
+            ],
+            0,
+            [
+              "index-of",
+              " [",
+              [
+                "get",
+                "name"
+              ]
+            ]
+          ],
+          [
+            "get",
+            "name"
+          ]
+        ],
+        "text-font": [
+          "Noto Sans Regular"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          10,
+          12,
+          11.5,
+          15,
+          13
+        ],
+        "text-letter-spacing": 0.03,
+        "text-max-width": 8,
+        "text-allow-overlap": false,
+        "text-padding": 3
+      },
+      "minzoom": 8,
+      "filter": [
+        "all",
+        [
+          "has",
+          "name"
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "name"
+          ],
+          ""
+        ]
+      ]
+    },
+    {
+      "id": "park_closed__label",
+      "type": "symbol",
+      "source": "atlas",
+      "source-layer": "park",
+      "layout": {
+        "visibility": "visible",
+        "symbol-placement": "point",
+        "text-field": [
+          "case",
+          [
+            "all",
+            [
+              ">",
+              [
+                "index-of",
+                " [",
+                [
+                  "get",
+                  "name"
+                ]
+              ],
+              0
+            ],
+            [
+              "==",
+              [
+                "slice",
+                [
+                  "get",
+                  "name"
+                ],
+                [
+                  "-",
+                  [
+                    "length",
+                    [
+                      "get",
+                      "name"
+                    ]
+                  ],
+                  1
+                ]
+              ],
+              "]"
+            ]
+          ],
+          [
+            "slice",
+            [
+              "get",
+              "name"
+            ],
+            0,
+            [
+              "index-of",
+              " [",
+              [
+                "get",
+                "name"
+              ]
+            ]
+          ],
+          [
+            "get",
+            "name"
+          ]
+        ],
+        "text-font": [
+          "Noto Sans Regular"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          7,
+          10.5,
+          11,
+          12,
+          15,
+          13.5
+        ],
+        "text-letter-spacing": 0.03,
+        "text-max-width": 8,
+        "text-allow-overlap": false,
+        "text-padding": 3
+      },
+      "minzoom": 7,
+      "filter": [
+        "all",
+        [
+          "has",
+          "name"
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "name"
+          ],
+          ""
+        ],
+        [
+          "in",
+          [
+            "get",
+            "kind"
+          ],
+          [
+            "literal",
+            [
+              "national",
+              "historic"
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "mu__label",
+      "type": "symbol",
+      "source": "mus",
+      "source-layer": "mu",
+      "minzoom": 8,
+      "layout": {
+        "visibility": "visible",
+        "symbol-placement": "point",
+        "text-field": [
+          "get",
+          "mu_id"
+        ],
+        "text-font": [
+          "Noto Sans Medium"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          11,
+          10,
+          12.5,
+          13,
+          14
+        ],
+        "text-allow-overlap": false,
+        "text-padding": 3
+      },
+      "filter": [
+        "all",
+        [
+          "has",
+          "mu_id"
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "mu_id"
+          ],
+          ""
+        ]
+      ]
+    },
+    {
+      "id": "region__label",
+      "type": "symbol",
+      "source": "atlas",
+      "source-layer": "region",
+      "layout": {
+        "visibility": "visible",
+        "symbol-placement": "point",
+        "text-field": [
+          "get",
+          "region_id"
+        ],
+        "text-font": [
+          "Noto Sans Medium"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          4,
+          13,
+          6,
+          16
+        ],
+        "text-allow-overlap": false,
+        "text-padding": 3
+      },
+      "minzoom": 4,
+      "maxzoom": 7,
+      "filter": [
+        "all",
+        [
+          "has",
+          "region_id"
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "region_id"
+          ],
+          ""
+        ]
+      ]
+    },
+    {
+      "id": "lake__label",
+      "type": "symbol",
+      "source": "atlas",
+      "source-layer": "lake",
+      "layout": {
+        "visibility": "visible",
+        "symbol-placement": "point",
+        "text-field": [
+          "get",
+          "name"
+        ],
+        "text-font": [
+          "Noto Sans Italic"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          10.5,
+          12,
+          12.5,
+          15,
+          15
+        ],
+        "text-letter-spacing": 0.06,
+        "text-max-width": 9,
+        "symbol-sort-key": [
+          "-",
+          0,
+          [
+            "get",
+            "area_m2"
+          ]
+        ],
+        "text-allow-overlap": false,
+        "text-padding": 3
+      },
+      "minzoom": 8,
+      "filter": [
+        "all",
+        [
+          "has",
+          "name"
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "name"
+          ],
+          ""
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "water"
+          ],
+          "stream"
+        ],
         [
           "any",
           [
@@ -1677,7 +1624,7 @@
             [
               "zoom"
             ],
-            13
+            11
           ],
           [
             "all",
@@ -1692,9 +1639,9 @@
               ">=",
               [
                 "get",
-                "ord"
+                "area_m2"
               ],
-              5
+              100000
             ]
           ],
           [
@@ -1704,7 +1651,134 @@
               [
                 "zoom"
               ],
+              9
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "area_m2"
+              ],
+              1000000
+            ]
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
+              8
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "area_m2"
+              ],
+              5000000
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "stream__label",
+      "type": "symbol",
+      "source": "atlas",
+      "source-layer": "stream_name",
+      "layout": {
+        "visibility": "visible",
+        "symbol-placement": "line",
+        "text-field": [
+          "get",
+          "name"
+        ],
+        "text-font": [
+          "Noto Sans Italic"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          10,
+          11,
+          11,
+          13,
+          12.5,
+          15,
+          14
+        ],
+        "text-letter-spacing": 0.08,
+        "text-max-angle": 25,
+        "symbol-spacing": 300,
+        "symbol-sort-key": [
+          "-",
+          0,
+          [
+            "get",
+            "ord"
+          ]
+        ],
+        "text-allow-overlap": false,
+        "text-padding": 6
+      },
+      "minzoom": 8,
+      "filter": [
+        "all",
+        [
+          "has",
+          "name"
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "name"
+          ],
+          ""
+        ],
+        [
+          "any",
+          [
+            ">=",
+            [
+              "zoom"
+            ],
+            12
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
               11
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "ord"
+              ],
+              3
+            ]
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
+              10
             ],
             [
               ">=",
@@ -1722,7 +1796,7 @@
               [
                 "zoom"
               ],
-              12
+              9
             ],
             [
               ">=",
@@ -1730,7 +1804,25 @@
                 "get",
                 "ord"
               ],
-              3
+              5
+            ]
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
+              8
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "ord"
+              ],
+              6
             ]
           ]
         ]

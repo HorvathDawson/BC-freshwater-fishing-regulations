@@ -31,7 +31,7 @@ def test_the_filter_keeps_drawn_landuse_and_river_lines_and_drops_the_wetland():
 def _mock(tmp_path, monkeypatch):
     calls = []
     monkeypatch.setattr(B.shutil, "which", lambda t: f"/bin/{t}")
-    monkeypatch.setattr(B, "_boundary_4326", lambda src, out: out)
+    monkeypatch.setattr(B, "_boundary_4326", lambda src, out, buffer_m=0: out)
     monkeypatch.setattr(R, "roads_geojsonl", lambda archive, out, zoom=14: 1)
 
     def grid(src, out, tmp, workers=4, **kw):

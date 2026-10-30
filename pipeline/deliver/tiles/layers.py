@@ -83,6 +83,11 @@ class LayerSpec:
     """Built in a tippecanoe pass of its own, z9 to this layer's `maxzoom`, so that maxzoom is
     the pass's TOP zoom and keeps the finer top-zoom tolerance (`tippe.OWN_PASS`). For a layer
     that stops short of the archive and is overzoomed by the app from its last zoom (`mu`)."""
+    alone: bool = False
+    """Built in ONE tippecanoe pass of its own over its whole zoom range, apart from every other
+    layer (`tippe.ALONE`). For a layer that REPEATS another's geometry (`stream_name`): in a shared
+    pass `--no-simplification-of-shared-nodes` would read its vertices as shared with the layer it
+    repeats and pin theirs, changing how the regulated water itself is simplified."""
 
 
 WATER: tuple[LayerSpec, ...] = (
@@ -98,6 +103,19 @@ WATER: tuple[LayerSpec, ...] = (
             "Strahler order and sets line weight; it is read by the style, not by app code. "
             "(`alt`, `mus` and `areas` were carried and read by nothing — search is the "
             "bundle's — so they are gone, 2026-10-03; containment is the bundle's `area:` items.)",
+    ),
+    LayerSpec(
+        name="stream_name", geometry="line", ladder="none", minzoom=8, decorative=True, alone=True,
+        attrs=("name", "ord"),
+        why="(T299) WHERE A STREAM'S NAME IS WRITTEN — the named `stream` sections of one water, MERGED into "
+            "the longest lines they make (`export.export_stream_names`), drawn by nothing but the along-the-line "
+            "label (`stream__label`). A section is cut at every regulation boundary and confluence, so most are "
+            "shorter on screen than their own name, and MapLibre places a line label only where ONE feature is "
+            "long enough: the Serpentine, the Salmon and the Coquitlam went unnamed at every zoom. v1's tiles "
+            "carried whole waters; this carries their names the same way without giving up the sections. "
+            "Merged per (name, the zoom it is first drawn at), so a name never runs along water not yet drawn. "
+            "`ord` is the largest Strahler order merged in: the label's zoom ladder and collision sort key.\n\n"
+            "DECORATIVE: no identity, not tapped, not highlighted. Built in a pass of its own (`alone`).",
     ),
     LayerSpec(
         name="lake", geometry="polygon", ladder="area", mvt_id=True,

@@ -161,3 +161,34 @@ def test_a_fetch_never_overwrites_the_source_unasked(tmp_path, monkeypatch):
         S.fetch("https://build.protomaps.com/20261029.pmtiles", out)
     S.fetch("https://build.protomaps.com/20261029.pmtiles", out, replace=True)
     assert (tmp_path / "bc.pmtiles.prev").read_bytes() == b"old"
+
+
+# --- ship stage: cut 7, no names outside British Columbia (T299) -------------------------------------------------------
+
+def test_names_outside_the_province_are_dropped_and_roads_keep_their_ground():
+    import mapbox_vector_tile
+    from shapely.geometry import box
+    # z1 tile (0, 0) spans lon -180..0, lat 0..85; "BC" is its western half (lon < -90)
+    inside = box(-180, -10, -90, 86)
+    down = {"y_coord_down": True}
+    tile = mapbox_vector_tile.encode([
+        {"name": "places", "features": [
+            {"geometry": "POINT (1000 2000)", "properties": {"kind": "locality", "name": "In"}},
+            {"geometry": "POINT (3000 2000)", "properties": {"kind": "locality", "name": "Out"}}]},
+        {"name": "roads", "features": [
+            {"geometry": "LINESTRING (2500 100, 3500 200)", "properties": {"kind": "highway", "name": "I-5",
+                                                                           "name:en": "I-5", "shield_text": "5"}},
+            {"geometry": "LINESTRING (1000 100, 3500 200)", "properties": {"kind": "highway", "name": "Hwy 99"}}]},
+        {"name": "landuse", "features": [{"geometry": "POLYGON ((3000 3000, 3500 3000, 3500 3500, 3000 3000))",
+                                          "properties": {"kind": "wood"}}]},
+    ], default_options=down)
+    out = mapbox_vector_tile.decode(G.confine_tile(tile, 1, 0, 0, inside), default_options=down)
+    assert [f["properties"]["name"] for f in out["places"]["features"]] == ["In"]
+    roads = out["roads"]["features"]
+    assert roads[0]["properties"] == {"kind": "highway"}                   # drawn, not named or shielded
+    assert roads[1]["properties"]["name"] == "Hwy 99"                       # enters BC: keeps its name
+    assert len(out["landuse"]["features"]) == 1                             # ground is never cut
+    # a tile wholly inside is copied byte for byte; one wholly outside loses every name
+    assert G.confine_tile(tile, 1, 0, 0, box(-181, -90, 1, 90)) == tile
+    gone = mapbox_vector_tile.decode(G.confine_tile(tile, 1, 0, 0, box(10, 10, 20, 20)), default_options=down)
+    assert gone["places"]["features"] == [] and all("name" not in f["properties"] for f in gone["roads"]["features"])

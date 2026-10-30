@@ -324,21 +324,137 @@ def requantize_tile(raw: bytes, shifts: dict = GRID_SHIFT, zoom: int | None = No
                     for f, _w, v, r in _fields(raw))
 
 
+# --- cut 7: no names outside British Columbia -------------------------------------------------------------------------
+#
+# (T299, owner 2026-10-30: "the names of places etc outside of BC (the BC polygon) should have been filtered out of the
+# base tile".) The archive is clipped to tiles that TOUCH the province (+5 km), and at low zoom one tile is enormous:
+# a z7 tile over the Lower Mainland carries Seattle, Bellingham and a hundred Washington hamlets, and the map named
+# them all. The web map hid them with a `within` filter (`web/outsideMask.ts`); the phone never did.
+#
+# So, in the same re-encode as cuts 5 and 6, against BC's own outline (`bc_boundary.geojson`, unbuffered — the
+# buffer is for ground, not names):
+#   - every POINT of a label layer (`places`; `earth`'s island points; `water`'s sea points) outside BC is dropped;
+#   - every road LINE with no vertex in BC loses its name keys (`name`, `name:*`, `pgf:name*`, `ref`, `shield_text`),
+#     so the road is still drawn but neither labelled nor shielded. A road that enters BC keeps its name.
+# A tile wholly inside BC is copied untouched; one wholly outside drops/strips without a per-feature test.
+LABEL_POINT_LAYERS = ("places", "earth", "water")
+NAMED_LINE_LAYERS = ("roads",)
+
+
+def _is_name_key(k: str) -> bool:
+    return k.startswith(("name", "pgf:name")) or k in ("ref", "shield_text")
+
+
+def _lonlat(z: int, x: int, y: int, extent: int):
+    """Tile units (y down) -> lon/lat arrays, vectorised."""
+    import numpy as np
+    n = float(1 << z)
+
+    def f(px, py):
+        px, py = np.asarray(px, float), np.asarray(py, float)
+        lon = (x + px / extent) / n * 360.0 - 180.0
+        lat = np.degrees(np.arctan(np.sinh(np.pi * (1 - 2 * (y + py / extent) / n))))
+        return lon, lat
+    return f
+
+
+def _tile_box(z: int, x: int, y: int):
+    import math
+    from shapely.geometry import box
+    n = 1 << z
+    lat = lambda t: math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * t / n))))  # noqa: E731
+    return box(x / n * 360 - 180, lat(y + 1), (x + 1) / n * 360 - 180, lat(y))
+
+
+def _confine_layer(lb: bytes, z: int, x: int, y: int, inside, whole_out: bool) -> bytes:
+    import shapely
+    fields = list(_fields(lb))
+    name = next((v.decode() for f, _w, v, _r in fields if f == 1), "")
+    if name not in LABEL_POINT_LAYERS and name not in NAMED_LINE_LAYERS:
+        return lb
+    extent = next((v for f, _w, v, _r in fields if f == 5), 4096)
+    keys = [v.decode() for f, _w, v, _r in fields if f == 3]
+    name_keys = {i for i, k in enumerate(keys) if _is_name_key(k)}
+    to_ll = _lonlat(z, x, y, extent)
+    out, changed = [], False
+    for f, _w, v, raw in fields:
+        if f != 2:
+            out.append(raw)
+            continue
+        geom_type, cmds, tags = 0, [], None
+        for ff, _ww, vv, _rr in _fields(v):
+            if ff == 3:
+                geom_type = vv
+            elif ff == 4:
+                cmds = _packed(vv)
+            elif ff == 2:
+                tags = _packed(vv)
+        pts = [p for part in _parts(cmds) for p in part] if geom_type in (1, 2) else []
+        if not pts or (geom_type == 1 and name not in LABEL_POINT_LAYERS) or (geom_type == 2 and name not in NAMED_LINE_LAYERS):
+            out.append(raw)
+            continue
+        outside = whole_out or not shapely.contains_xy(inside, *to_ll([p[0] for p in pts], [p[1] for p in pts])).any()
+        if not outside:
+            out.append(raw)
+            continue
+        changed = True
+        if geom_type == 1:
+            continue                                      # a label point outside BC: gone
+        kept = [t for i in range(0, len(tags or []), 2) for t in tags[i:i + 2] if tags[i] not in name_keys]
+        nf = b"".join(r for ff, _ww, _vv, r in _fields(v) if ff != 2)
+        if kept:
+            nf = _bytes_field(2, b"".join(_enc(t) for t in kept)) + nf
+        out.append(_bytes_field(2, nf))
+    return b"".join(out) if changed else lb
+
+
+def confine_tile(raw: bytes, z: int, x: int, y: int, inside) -> bytes:
+    """Cut 7 on one MVT tile (uncompressed): label points outside `inside` (a lon/lat shapely geometry) dropped, road
+    lines wholly outside it stripped of their names. Untouched when the tile lies inside."""
+    tb = _tile_box(z, x, y)
+    if inside.contains(tb):
+        return raw
+    whole_out = not inside.intersects(tb)
+    return b"".join(_bytes_field(3, _confine_layer(v, z, x, y, inside, whole_out)) if f == 3 else r
+                    for f, _w, v, r in _fields(raw))
+
+
+_INSIDE: dict = {}
+
+
+def _inside(path: str):
+    """The province's outline (a GeoJSON geometry in lon/lat), loaded and prepared once per worker."""
+    if path not in _INSIDE:
+        import shapely
+        from shapely.geometry import shape
+        g = shape(json.loads(Path(path).read_text()))
+        shapely.prepare(g)
+        _INSIDE[path] = g
+    return _INSIDE[path]
+
+
 def _work(job: tuple) -> bytes:
-    zoom, blob, shifts, simplify = job
+    zoom, blob, shifts, simplify, *rest = job
     raw = gzip.decompress(blob) if blob[:2] == b"\x1f\x8b" else blob
+    tile = requantize_tile(raw, shifts, zoom, simplify)
+    if rest and rest[1]:
+        (x, y), names_inside = rest
+        tile = confine_tile(tile, zoom, x, y, _inside(names_inside))
     c = zlib.compressobj(6, zlib.DEFLATED, 31)
-    return c.compress(requantize_tile(raw, shifts, zoom, simplify)) + c.flush()
+    return c.compress(tile) + c.flush()
 
 
 def requantize_archive(src: Path, out: Path, tmp: Path, workers: int = 4,
                        name: str = "Protomaps Basemap (British Columbia)", shifts: dict | None = None,
-                       simplify: dict | None = None, extra_meta: dict | None = None) -> None:
-    """`src` -> `out` with every tile re-encoded (`requantize_tile`: GRID_SHIFT and SIMPLIFY unless given), gzip-6,
-    through an MBTiles and `pmtiles convert`. The metadata is carried over, with a clean name and description (tile-join
-    leaves temp paths in them), plus `extra_meta` (the source's provenance, T280)."""
+                       simplify: dict | None = None, extra_meta: dict | None = None,
+                       names_inside: Path | None = None) -> None:
+    """`src` -> `out` with every tile re-encoded (`requantize_tile`: GRID_SHIFT and SIMPLIFY unless given; with
+    `names_inside`, a lon/lat GeoJSON geometry of the province, cut 7 `confine_tile`), gzip-6, through an MBTiles and
+    `pmtiles convert`. The metadata is carried over, with a clean name and description (tile-join leaves temp paths in
+    them), plus `extra_meta` (the source's provenance, T280)."""
     shifts = GRID_SHIFT if shifts is None else shifts
     simplify = SIMPLIFY if simplify is None else simplify
+    inside = str(names_inside) if names_inside else None
     from pipeline.deliver.tiles.basemap_roads import all_tiles, header_and_metadata
     hdr, meta = header_and_metadata(src)
     mb = tmp / "grid.mbtiles"
@@ -357,7 +473,7 @@ def requantize_archive(src: Path, out: Path, tmp: Path, workers: int = 4,
     batch: list[tuple] = []
 
     def flush(pool):
-        jobs = [(b[0][0], b[1], shifts, simplify) for b in batch]
+        jobs = [(b[0][0], b[1], shifts, simplify, b[0][1:], inside) for b in batch]
         for (z, x, y), data in zip([b[0] for b in batch], pool.map(_work, jobs, chunksize=64)):
             db.execute("INSERT INTO tiles VALUES (?, ?, ?, ?)", (z, x, (1 << z) - 1 - y, data))
         batch.clear()

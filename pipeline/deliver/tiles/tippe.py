@@ -268,6 +268,11 @@ def _run(cmd: list[str]) -> None:
 #: maxzoom back to `ladder.MAX_ZOOM` and drop its `own_pass` (it then rides the high band again: this tuple is read
 #: from the specs), and point the style's `mu` layer back at `atlas` (dropping `sources.mus`).
 OWN_PASS = tuple(s.name for s in ALL if s.own_pass)
+#: (T299) THE LAYERS BUILT ALONE: one pass each over the layer's own zoom range, in neither band (`LayerSpec.alone`).
+#: `stream_name` repeats the named streams' geometry; in their pass its vertices would count as shared nodes and pin
+#: theirs. Built with the bands' own tolerances (SIMPLIFICATION below the top, SIMPLIFICATION_AT_MAX on TOP_DETAIL at
+#: it), so a name runs along the line as drawn.
+ALONE = tuple(s.name for s in ALL if s.alone)
 OWN_PASS_SIMPLIFICATION_AT_MAX = 5
 OWN_PASS_DETAIL = 12
 
@@ -302,10 +307,14 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
         high_dir = Path(tmp) / "high"
         low_dir.mkdir()
         high_dir.mkdir()
-        low_files, kept_total = _inputs(files, low_dir, LOW_BAND_MAX)
-        high_all, _ = _inputs(files, high_dir, None)
+        banded = [f for f in files if f.stem not in ALONE]
+        low_files, kept_total = _inputs(banded, low_dir, LOW_BAND_MAX)
+        high_all, _ = _inputs(banded, high_dir, None)
         own = [f for f in high_all if f.stem in OWN_PASS]
         high_files = [f for f in high_all if f.stem not in OWN_PASS]
+        alone_dir = Path(tmp) / "alone"
+        alone_dir.mkdir()
+        alone, _ = _inputs([f for f in files if f.stem in ALONE], alone_dir, None)
 
         low = Path(tmp) / "low.mbtiles"
         high = Path(tmp) / "high.mbtiles"
@@ -337,6 +346,17 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
                   f"--attribution={attribution}",
                   *_common(LOW_BAND_MAX + 1, top, OWN_PASS_SIMPLIFICATION_AT_MAX, verbose,
                            full_detail=OWN_PASS_DETAIL),
+                  str(f)])
+            passes.append(mb)
+        for f in alone:
+            spec = BY_NAME[f.stem]
+            lo, top = max(minzoom, spec.minzoom), min(maxzoom, spec.maxzoom)
+            mb = Path(tmp) / f"{f.stem}.mbtiles"
+            print(f"  tippecanoe -> z{lo}-{top}  ({f.stem}, alone)")
+            _run(["tippecanoe", "-o", str(mb), "--force", f"--name={name}",
+                  f"--attribution={attribution}",
+                  *_common(lo, top, SIMPLIFICATION_AT_MAX if top == maxzoom else SIMPLIFICATION, verbose,
+                           full_detail=TOP_DETAIL if top == maxzoom else LOW_DETAIL),
                   str(f)])
             passes.append(mb)
 

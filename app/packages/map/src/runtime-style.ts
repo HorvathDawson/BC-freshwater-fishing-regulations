@@ -23,7 +23,7 @@ import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY } from "./water-copy";
-import { BASEMAP_LABELS, basemapLabelPaint } from "./labels";
+import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance } from "./labels";
 import { ATLAS_CREDIT, BASEMAP_CREDIT, creditLayers, creditSources } from "./credits";
 
 /** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
@@ -72,7 +72,7 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Token
    */
   const named = all.map((l) => (BASEMAP_LABELS.includes(l.id)
     ? { ...l, paint: { ...(l as { paint?: Record<string, unknown> }).paint, ...basemapLabelPaint(l.id, tokens, "map") } }
-    : l));
+    : l)).map(placesByImportance);
   const i = named.findIndex((l) => l.type === "symbol");
   return i < 0 ? { below: named, labels: [] as typeof named }
                : { below: named.slice(0, i), labels: named.slice(i) };
@@ -129,6 +129,157 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
   const paper = resolveTheme(theme)["color.outside"] as string;
   // A lake's outline takes the lake's mode on the FIRST frame too — see `withFollowers`.
   const layerModes = withFollowers(modes);
+  // Our layers, painted for the first frame. Their GEOMETRY goes over the basemap's ground; their NAMES go over the
+  // basemap's names (see `...baseLabels` below).
+  const ours = MAP_STYLE.layers.filter((l) => !isRaster(l as { type?: string })).flatMap((l) => {
+    const view = defaultView();
+    const mode = layerModes[l.id] ?? view?.modes[l.id];
+    const coloured = mode ? { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) } : l;
+    // THE FIELD IS NOT DRAWN outside the modes it draws in — on the first frame too (`fieldMoved` in the adapter)
+    const painted = l.id === STYLE_META.field?.layer && !(STYLE_META.field.drawnIn).includes(mode ?? "")
+      ? { ...coloured, layout: { ...(coloured as { layout?: Record<string, unknown> }).layout, visibility: "none" } } as unknown as typeof coloured
+      : coloured;
+    /*
+     * THE GLOW IS GONE, AND THE FIELD IS WHY.
+     *
+     * It was a wide blurred line under each river, drawn below z9, colouring the
+     * province by flow at the zooms where a river is a hairline. That is exactly the
+     * job the basin field now does — same question, same band (the glow stopped at z9,
+     * the field runs z4–8), same ramp — and two answers to one question stacked on one
+     * another is the failure this app keeps producing. The field does it better: a
+     * catchment is the shape a percentile is a claim about, where a blurred line is a
+     * claim about a corridor of arbitrary width.
+     *
+     * It was also on EVERY view, so the Regulations map was lit by flow it was not
+     * showing a legend for.
+     */
+    /*
+     * THE SELECTION'S OUTLINE (owner 2026-10-21): what is selected keeps its colour and is ringed — a ring over a
+     * lake's / wetland's own polygons (after the last layer drawing that source-layer), a casing directly UNDER the
+     * stream line so the line's colour stays on top. Shown by feature-state `selected` only; see `SELECTION_CASING`.
+     */
+    const ring = (id: string, sourceLayer: string) => ({
+      id, type: "line" as const, source: "atlas", "source-layer": sourceLayer,
+      layout: { "line-join": "round" as const }, paint: ringPaint(resolveTheme(theme)) });
+    // FOUND, NOT NAMED: the lake's last layer moved from `lake_flowing` to `lake__edge` when the shoreline was drawn
+    // over the boundaries (T83), and a ring placed by name would have slid under the shoreline it rings.
+    const ringed = l.id === lastDrawing("lake") ? ring(SELECTION_RINGS.lake, "lake")
+      : l.id === lastDrawing("wetland") ? ring(SELECTION_RINGS.wetland, "wetland") : undefined;
+    /*
+     * (T213) THE GEAR MARKS ROUND A LAKE (`gearPaint`): a solid ink ring for fly fishing only, a dashed one for a bait
+     * ban, over the lake's own outline and under the selection's ring. Built with no day: nothing is marked until the
+     * adapter paints them with the status and method days.
+     */
+    const gear = (lid: "stream" | "lake", widthOf?: unknown) => (["fly", "bait"] as const).map((mark) => ({
+      id: GEAR_LAYERS[lid][mark], type: "line" as const, source: "atlas", "source-layer": lid,
+      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+      paint: gearPaint(lid, layerModes[lid] ?? view?.modes[lid] ?? "plain", mark, resolveTheme(theme), NO_VALUES, widthOf),
+    }));
+    if (ringed && l.id === lastDrawing("lake")) return [painted, ...gear("lake"), ringed];
+    if (ringed) return [painted, ringed];
+    /*
+     * (T175) THE WATER COPY, directly UNDER the water's own layers: where the atlas draws the water the atlas wins,
+     * and below the zoom it does (the copy's ceiling, set by the map) the copy is the water. Under every label and
+     * pin. Painted with the lake's and the stream's own paint (`copyFillPaint`, `copyLinePaint`) in every view.
+     */
+    const tk = resolveTheme(theme);
+    if (l.id === "lake") return [{
+      id: COPY_FILL, type: "fill" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "lake"],
+      paint: copyFillPaint((painted as { paint?: Record<string, unknown> }).paint ?? {}) }, painted];
+    if (l.id !== "stream") return [painted];
+    const copyLine = copyLinePaint((painted as { paint?: Record<string, unknown> }).paint
+                                   ?? paintFor("stream", "plain", tk), tk);
+    const copied = [
+      { id: COPY_CASING, type: "line" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "stream"],
+        layout: { "line-cap": "round" as const, "line-join": "round" as const },
+        paint: casingPaint(copyLine["line-width"], tk) },
+      { id: COPY_LINE, type: "line" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "stream"],
+        layout: { "line-cap": "round" as const, "line-join": "round" as const }, paint: copyLine },
+    ];
+    const casing = {
+      id: SELECTION_CASING, type: "line" as const, source: "atlas", "source-layer": "stream",
+      layout: { "line-cap": "round" as const, "line-join": "round" as const },
+      paint: casingPaint((painted as { paint?: Record<string, unknown> }).paint?.["line-width"]
+                         ?? paintFor("stream", "plain", resolveTheme(theme))["line-width"], resolveTheme(theme)),
+    };
+    /*
+     * ONLY IN THE MODE THAT MEANS ANYTHING BY IT.
+     *
+     * This overlay was emitted for every mode, and its opacity reads `feature-state`
+     * "standing" — which MapLibre keeps until something clears it. So leaving the
+     * Conditions map for the Regulations map left the states behind, and rivers with no
+     * baseline stayed dashed on a map where "no baseline" is not a thing being asked
+     * about. Tapping one rewrote its state and the dash vanished, which is what made it
+     * look like a rendering glitch rather than a stale layer.
+     *
+     * It was then built only for the standing mode — at map CREATION. The map is created on
+     * whichever tab the app opens and is not remounted between tabs, so a reader who
+     * started on the Map tab never saw a dash on Conditions (the one-pathway audit,
+     * 2026-10-21). Now it is ALWAYS built and its opacity is the adapter's, painted with
+     * the stream's own mode (`nobaselineOpacity`): every flow mode reads the number its
+     * colour reads, every other mode is 0 — so nothing can leak, and nothing is missing.
+     */
+    return [...copied, casing,
+      // (T213) the gear edges: under the line (its colour stays the read), over the selection casing
+      ...gear("stream", (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]
+                        ?? paintFor("stream", "plain", tk)["line-width"]),
+      painted,
+    /*
+     * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.
+     *
+     * That state was a purple on the flow ramp, which is the one thing a sequential
+     * scale must not carry: every other colour on it means a POSITION between low and
+     * high, and this one means the axis does not exist here. A reader with any form of
+     * colour blindness had no way to tell it from a value at all, and a reader without
+     * had to learn a hue that appears nowhere else.
+     *
+     * A DASH IS NOT A COLOUR. It reads as "this line is provisional" without competing
+     * for a place on the ramp, it survives any palette, and it needs no legend entry to
+     * be understood.
+     *
+     * ITS OWN LAYER, because `line-dasharray` is not data-driven in MapLibre — it
+     * cannot be varied per feature. What CAN be is opacity, so this layer covers every
+     * stream and shows only where the feature-state says -1. The base `stream` layer
+     * paints that same state the neutral ungauged grey underneath, so the dash carries
+     * the whole distinction and the colour carries none of it.
+     */
+    {
+      id: "stream-nobaseline", type: "line" as const, source: "atlas",
+      "source-layer": "stream",
+      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+      paint: {
+        "line-color": resolveTheme(theme)["color.water.ungauged"] as string,
+        // Slightly heavier than the river under it, so the gaps read as gaps rather
+        // than as a thin line that failed to draw.
+        "line-width": ["interpolate", ["linear"], ["zoom"],
+                       6, 1.2, 10, 2, 14, 3.2],
+        "line-dasharray": [2.5, 2],
+        "line-opacity": nobaselineOpacity(mode ?? "plain"),
+      }},
+    /*
+     * (T165) NO PUBLIC ACCESS — DRAWN DOTTED GREY (owner 2026-10-23), the under-lake route's idea a little
+     * stronger. Its own layer for the same reason as the dash above; the stream layer hides the section under it
+     * (`paintFor`), and the adapter repaints it with the stream's mode and day (`noaccessPaint`). Built with no day
+     * (nothing is no-access until a day is installed), so the first frame draws no dots.
+     */
+    {
+      id: NOACCESS_LAYER, type: "line" as const, source: "atlas",
+      "source-layer": "stream",
+      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+      paint: noaccessPaint(mode ?? "plain", resolveTheme(theme)),
+    },
+    /*
+     * (T199) A PASSING RUN, DASHED (`runsPassPaint`): over the stream line, shown only in the Run timing mode where
+     * the section's `rt` label is `pass`. Its own layer for the same reason as the dots above.
+     */
+    {
+      id: RUNS_PASS_LAYER, type: "line" as const, source: "atlas",
+      "source-layer": "stream",
+      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+      paint: runsPassPaint(mode ?? "plain", resolveTheme(theme),
+                           (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]),
+    }];
+  }) as { id: string; type?: string }[];
 
   return {
     version: 8 as const,
@@ -277,155 +428,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
                            8, resolveTheme(theme)["opacity.outside"] as number],
         },
       }] : []),
-      ...MAP_STYLE.layers.filter((l) => !isRaster(l as { type?: string })).flatMap((l) => {
-        const view = defaultView();
-        const mode = layerModes[l.id] ?? view?.modes[l.id];
-        const coloured = mode ? { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) } : l;
-        // THE FIELD IS NOT DRAWN outside the modes it draws in — on the first frame too (`fieldMoved` in the adapter)
-        const painted = l.id === STYLE_META.field?.layer && !(STYLE_META.field.drawnIn).includes(mode ?? "")
-          ? { ...coloured, layout: { ...(coloured as { layout?: Record<string, unknown> }).layout, visibility: "none" } } as unknown as typeof coloured
-          : coloured;
-        /*
-         * THE GLOW IS GONE, AND THE FIELD IS WHY.
-         *
-         * It was a wide blurred line under each river, drawn below z9, colouring the
-         * province by flow at the zooms where a river is a hairline. That is exactly the
-         * job the basin field now does — same question, same band (the glow stopped at z9,
-         * the field runs z4–8), same ramp — and two answers to one question stacked on one
-         * another is the failure this app keeps producing. The field does it better: a
-         * catchment is the shape a percentile is a claim about, where a blurred line is a
-         * claim about a corridor of arbitrary width.
-         *
-         * It was also on EVERY view, so the Regulations map was lit by flow it was not
-         * showing a legend for.
-         */
-        /*
-         * THE SELECTION'S OUTLINE (owner 2026-10-21): what is selected keeps its colour and is ringed — a ring over a
-         * lake's / wetland's own polygons (after the last layer drawing that source-layer), a casing directly UNDER the
-         * stream line so the line's colour stays on top. Shown by feature-state `selected` only; see `SELECTION_CASING`.
-         */
-        const ring = (id: string, sourceLayer: string) => ({
-          id, type: "line" as const, source: "atlas", "source-layer": sourceLayer,
-          layout: { "line-join": "round" as const }, paint: ringPaint(resolveTheme(theme)) });
-        // FOUND, NOT NAMED: the lake's last layer moved from `lake_flowing` to `lake__edge` when the shoreline was drawn
-        // over the boundaries (T83), and a ring placed by name would have slid under the shoreline it rings.
-        const ringed = l.id === lastDrawing("lake") ? ring(SELECTION_RINGS.lake, "lake")
-          : l.id === lastDrawing("wetland") ? ring(SELECTION_RINGS.wetland, "wetland") : undefined;
-        /*
-         * (T213) THE GEAR MARKS ROUND A LAKE (`gearPaint`): a solid ink ring for fly fishing only, a dashed one for a bait
-         * ban, over the lake's own outline and under the selection's ring. Built with no day: nothing is marked until the
-         * adapter paints them with the status and method days.
-         */
-        const gear = (lid: "stream" | "lake", widthOf?: unknown) => (["fly", "bait"] as const).map((mark) => ({
-          id: GEAR_LAYERS[lid][mark], type: "line" as const, source: "atlas", "source-layer": lid,
-          layout: { "line-cap": "butt" as const, "line-join": "round" as const },
-          paint: gearPaint(lid, layerModes[lid] ?? view?.modes[lid] ?? "plain", mark, resolveTheme(theme), NO_VALUES, widthOf),
-        }));
-        if (ringed && l.id === lastDrawing("lake")) return [painted, ...gear("lake"), ringed];
-        if (ringed) return [painted, ringed];
-        /*
-         * (T175) THE WATER COPY, directly UNDER the water's own layers: where the atlas draws the water the atlas wins,
-         * and below the zoom it does (the copy's ceiling, set by the map) the copy is the water. Under every label and
-         * pin. Painted with the lake's and the stream's own paint (`copyFillPaint`, `copyLinePaint`) in every view.
-         */
-        const tk = resolveTheme(theme);
-        if (l.id === "lake") return [{
-          id: COPY_FILL, type: "fill" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "lake"],
-          paint: copyFillPaint((painted as { paint?: Record<string, unknown> }).paint ?? {}) }, painted];
-        if (l.id !== "stream") return [painted];
-        const copyLine = copyLinePaint((painted as { paint?: Record<string, unknown> }).paint
-                                       ?? paintFor("stream", "plain", tk), tk);
-        const copied = [
-          { id: COPY_CASING, type: "line" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "stream"],
-            layout: { "line-cap": "round" as const, "line-join": "round" as const },
-            paint: casingPaint(copyLine["line-width"], tk) },
-          { id: COPY_LINE, type: "line" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "stream"],
-            layout: { "line-cap": "round" as const, "line-join": "round" as const }, paint: copyLine },
-        ];
-        const casing = {
-          id: SELECTION_CASING, type: "line" as const, source: "atlas", "source-layer": "stream",
-          layout: { "line-cap": "round" as const, "line-join": "round" as const },
-          paint: casingPaint((painted as { paint?: Record<string, unknown> }).paint?.["line-width"]
-                             ?? paintFor("stream", "plain", resolveTheme(theme))["line-width"], resolveTheme(theme)),
-        };
-        /*
-         * ONLY IN THE MODE THAT MEANS ANYTHING BY IT.
-         *
-         * This overlay was emitted for every mode, and its opacity reads `feature-state`
-         * "standing" — which MapLibre keeps until something clears it. So leaving the
-         * Conditions map for the Regulations map left the states behind, and rivers with no
-         * baseline stayed dashed on a map where "no baseline" is not a thing being asked
-         * about. Tapping one rewrote its state and the dash vanished, which is what made it
-         * look like a rendering glitch rather than a stale layer.
-         *
-         * It was then built only for the standing mode — at map CREATION. The map is created on
-         * whichever tab the app opens and is not remounted between tabs, so a reader who
-         * started on the Map tab never saw a dash on Conditions (the one-pathway audit,
-         * 2026-10-21). Now it is ALWAYS built and its opacity is the adapter's, painted with
-         * the stream's own mode (`nobaselineOpacity`): every flow mode reads the number its
-         * colour reads, every other mode is 0 — so nothing can leak, and nothing is missing.
-         */
-        return [...copied, casing,
-          // (T213) the gear edges: under the line (its colour stays the read), over the selection casing
-          ...gear("stream", (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]
-                            ?? paintFor("stream", "plain", tk)["line-width"]),
-          painted,
-        /*
-         * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.
-         *
-         * That state was a purple on the flow ramp, which is the one thing a sequential
-         * scale must not carry: every other colour on it means a POSITION between low and
-         * high, and this one means the axis does not exist here. A reader with any form of
-         * colour blindness had no way to tell it from a value at all, and a reader without
-         * had to learn a hue that appears nowhere else.
-         *
-         * A DASH IS NOT A COLOUR. It reads as "this line is provisional" without competing
-         * for a place on the ramp, it survives any palette, and it needs no legend entry to
-         * be understood.
-         *
-         * ITS OWN LAYER, because `line-dasharray` is not data-driven in MapLibre — it
-         * cannot be varied per feature. What CAN be is opacity, so this layer covers every
-         * stream and shows only where the feature-state says -1. The base `stream` layer
-         * paints that same state the neutral ungauged grey underneath, so the dash carries
-         * the whole distinction and the colour carries none of it.
-         */
-        {
-          id: "stream-nobaseline", type: "line" as const, source: "atlas",
-          "source-layer": "stream",
-          layout: { "line-cap": "butt" as const, "line-join": "round" as const },
-          paint: {
-            "line-color": resolveTheme(theme)["color.water.ungauged"] as string,
-            // Slightly heavier than the river under it, so the gaps read as gaps rather
-            // than as a thin line that failed to draw.
-            "line-width": ["interpolate", ["linear"], ["zoom"],
-                           6, 1.2, 10, 2, 14, 3.2],
-            "line-dasharray": [2.5, 2],
-            "line-opacity": nobaselineOpacity(mode ?? "plain"),
-          }},
-        /*
-         * (T165) NO PUBLIC ACCESS — DRAWN DOTTED GREY (owner 2026-10-23), the under-lake route's idea a little
-         * stronger. Its own layer for the same reason as the dash above; the stream layer hides the section under it
-         * (`paintFor`), and the adapter repaints it with the stream's mode and day (`noaccessPaint`). Built with no day
-         * (nothing is no-access until a day is installed), so the first frame draws no dots.
-         */
-        {
-          id: NOACCESS_LAYER, type: "line" as const, source: "atlas",
-          "source-layer": "stream",
-          layout: { "line-cap": "butt" as const, "line-join": "round" as const },
-          paint: noaccessPaint(mode ?? "plain", resolveTheme(theme)),
-        },
-        /*
-         * (T199) A PASSING RUN, DASHED (`runsPassPaint`): over the stream line, shown only in the Run timing mode where
-         * the section's `rt` label is `pass`. Its own layer for the same reason as the dots above.
-         */
-        {
-          id: RUNS_PASS_LAYER, type: "line" as const, source: "atlas",
-          "source-layer": "stream",
-          layout: { "line-cap": "butt" as const, "line-join": "round" as const },
-          paint: runsPassPaint(mode ?? "plain", resolveTheme(theme),
-                               (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]),
-        }];
-      }),
+      ...ours.filter((l) => l.type !== "symbol"),
       /*
        * The basemap's own labels, AFTER ours — see the split above. They still draw; they
        * just no longer get first refusal on every position on the map.
@@ -443,6 +446,15 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        * the mask already cached and took the constructor path instead of the effect.
        */
       ...baseLabels,
+      /*
+       * (T299) OUR NAMES, OVER THE BASEMAP'S — and so placed FIRST. MapLibre places symbols from the TOP of the style
+       * down (`PauseablePlacement` walks the layer order from the last layer), and a placed label keeps its spot. With
+       * ours under the basemap's, every town, road and island name claimed its ground before a river was named, and on a
+       * phone the Fraser went unlabelled under "Cape Horn Interchange". v1 put the water names last for exactly this
+       * reason (`archive/webapp/src/components/Map.tsx`: "this must come after ... so lake/wetland/manmade/stream names
+       * win collision priority"). The basemap's names fill in around ours.
+       */
+      ...ours.filter((l) => l.type === "symbol"),
       /**
        * WHICH WAY THE WATER GOES, on a highlighted route only.
        *

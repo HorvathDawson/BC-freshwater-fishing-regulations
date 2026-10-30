@@ -176,6 +176,10 @@ def test_no_layer_ships_an_attribute_nothing_declares():
             # still carries the order that sets its width. What it may not carry is
             # anything that names it — an id, a registry item, a name to search for.
             identity = {"section_id", "area_id", "mu_id", "item", "name", "alt"}
+            # (T299) except the one layer that exists only to be WRITTEN ON: `stream_name` carries the text its label
+            # draws, and still nothing that selects it (no id, no item; the contract gives it no featureId).
+            if spec.name == "stream_name":
+                identity -= {"name"}
             assert not (set(spec.attrs) & identity), (
                 f"{spec.name} is decorative but ships "
                 f"{sorted(set(spec.attrs) & identity)} — nothing can select it, so a "
@@ -315,7 +319,7 @@ def test_every_waterbody_becomes_a_node_so_zone_rules_can_reach_it():
 #: compatibility key) and the administrative geography; `name` is for map labels only. Adding a property, above all a
 #: status, a rule or anything a data release changes, must be a decision made here, so it fails until this list moves.
 TILE_INVENTORY = {
-    "stream": ("section_id", "name", "ord"), "lake": ("section_id", "name", "water", "area_m2"), "under_lake": (),
+    "stream": ("section_id", "name", "ord"), "stream_name": ("name", "ord"), "lake": ("section_id", "name", "water", "area_m2"), "under_lake": (),
     "wetland": ("section_id", "name", "water"), "not_fishing_water": ("kind",), "contour": ("item", "depth_m", "index"),
     "park": ("area_id", "name", "kind"), "eco_reserve": ("area_id", "name"), "sign_zone": ("area_id", "name", "cuts"),
     "wma": ("area_id", "name"), "indigenous_land": ("area_id", "name", "name_indigenous", "group"),
@@ -329,6 +333,30 @@ TILE_INVENTORY = {
 
 def test_the_tile_properties_are_exactly_the_inventory():
     assert {s.name: tuple(s.attrs) for s in ALL} == TILE_INVENTORY
+
+
+def test_stream_names_are_the_named_sections_merged_per_name_and_first_zoom(tmp_path):
+    """T299: a name is written along whole lines, never along a section too short to hold it, and never along water
+    not yet drawn at the zoom the line starts at."""
+    import json as _json
+    from pipeline.deliver.tiles import export as E
+
+    def f(sid, coords, name, ord_, z):
+        props = {"section_id": sid, "ord": ord_, **({"name": name} if name else {})}
+        return _json.dumps({"type": "Feature", "geometry": {"type": "LineString", "coordinates": coords},
+                            "properties": props, "tippecanoe": {"layer": "stream", "minzoom": z, "maxzoom": 13}})
+    lines = [f(1, [[0, 0], [1, 0]], "Serpentine River", 3, 9), f(2, [[1, 0], [2, 0]], "Serpentine River", 4, 9),
+             f(3, [[2, 0], [3, 0]], "Serpentine River", 4, 11),          # drawn later: its own line
+             f(4, [[1, 0], [1, 1]], "Hyland Creek", 2, 11), f(5, [[5, 5], [6, 6]], None, 1, 12)]
+    (tmp_path / "stream.geojsonl").write_text("\n".join(lines) + "\n")
+    assert E.export_stream_names(tmp_path) == {"stream_name": 3}
+    got = [_json.loads(x) for x in (tmp_path / "stream_name.geojsonl").read_text().splitlines()]
+    by = {(g["properties"]["name"], g["tippecanoe"]["minzoom"]): g for g in got}
+    assert sorted(by) == [("Hyland Creek", 11), ("Serpentine River", 9), ("Serpentine River", 11)]
+    s9 = by[("Serpentine River", 9)]
+    assert s9["geometry"]["type"] == "LineString" and len(s9["geometry"]["coordinates"]) == 3
+    assert s9["properties"] == {"name": "Serpentine River", "ord": 4}
+    assert all("section_id" not in g["properties"] for g in got)
 
 
 def test_a_tile_version_is_the_sid_space_plus_the_tile_build():

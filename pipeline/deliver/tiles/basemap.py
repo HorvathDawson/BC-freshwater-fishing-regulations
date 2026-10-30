@@ -50,6 +50,10 @@ WHAT GOES
        (`basemap_grid.SIMPLIFY`). T273 traced the pan hitches to new tiles' wood polygons. Gated by
        the render diff `app/tools/basemap-shots.mjs`.
 
+    7. (T299, owner 2026-10-30) NO NAMES OUTSIDE BRITISH COLUMBIA, in the same pass: label points (`places`, island
+       and sea points) outside BC's own unbuffered outline dropped, and road lines wholly outside it stripped of their
+       names and shields (`basemap_grid.confine_tile`). The +5 km clip and every fill are untouched.
+
 TWO STAGES (T280): this module is the SHIP stage. Its input is the SOURCE stage's untouched upstream extract,
 `data/source/bc.pmtiles` with its sidecar (`basemap_source`: fetched by range requests, sha256-pinned). The build
 refuses a source that is not the file its sidecar names, and stamps that provenance into the shipped archive's
@@ -127,13 +131,15 @@ def feature_filter() -> dict:
 BUFFER_M = 5_000
 
 
-def _boundary_4326(src: Path, out: Path) -> Path:
-    """BC's outline in WGS84, buffered. `pmtiles extract` needs lon/lat; ours is BC Albers."""
+def _boundary_4326(src: Path, out: Path, buffer_m: float = BUFFER_M) -> Path:
+    """BC's outline in WGS84, buffered by `buffer_m` (0: the outline itself, cut 7's). `pmtiles extract` needs
+    lon/lat; ours is BC Albers."""
     import geopandas as gpd
 
     gdf = gpd.read_file(src)
     gdf = gdf.to_crs(3005)                       # buffer in metres, not degrees
-    gdf["geometry"] = gdf.geometry.buffer(BUFFER_M)
+    if buffer_m:
+        gdf["geometry"] = gdf.geometry.buffer(buffer_m)
     gdf = gdf.to_crs(4326)
     # pmtiles wants a bare Polygon/MultiPolygon, not a FeatureCollection.
     geom = gdf.geometry.union_all()
@@ -151,6 +157,7 @@ def build(src: Path, out: Path, boundary: Path, maxzoom: int = MAX_ZOOM, provena
 
     with tempfile.TemporaryDirectory() as tmp:
         region = _boundary_4326(boundary, Path(tmp) / "bc.geojson")
+        names_inside = _boundary_4326(boundary, Path(tmp) / "bc-names.geojson", buffer_m=0)
         print(f"  {src.name}  {before / 1e9:.2f} GB")
         print(f"  1. clipping to British Columbia (+{BUFFER_M / 1000:.0f} km) and z<={maxzoom}")
         print(f"  2. dropping {', '.join(DROP)}")
@@ -162,7 +169,8 @@ def build(src: Path, out: Path, boundary: Path, maxzoom: int = MAX_ZOOM, provena
         print(f"  5. coarser grid for {', '.join(f'{k} {4096 >> v}' for k, v in GRID_SHIFT.items()) or 'nothing'}")
         from pipeline.deliver.tiles.basemap_grid import SIMPLIFY
         print(f"  6. simplifying {', '.join(f'{k} {v}' for k, v in SIMPLIFY.items()) or 'nothing'}")
-        _trim(src, out, Path(tmp), [f"--region={region}"], maxzoom, provenance)
+        print("  7. no names outside British Columbia (label points dropped, road names stripped)")
+        _trim(src, out, Path(tmp), [f"--region={region}"], maxzoom, provenance, names_inside)
 
     after = out.stat().st_size
     print(f"  ✅ {after / 1e9:.2f} GB  ({100 * (1 - after / before):.0f}% smaller overall)")
@@ -179,7 +187,8 @@ def _tools() -> None:
 THREADS = "4"
 
 
-def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int, provenance: dict | None = None) -> None:
+def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int, provenance: dict | None = None,
+          names_inside: Path | None = None) -> None:
     """Cuts 1-4 of the build, over `clip` (`--region=<geojson>` for the province, `--bbox=...` for an audit
     extent): the ONE code path the build and the zoom-cap audit share, so the audit measures what ships.
 
@@ -195,7 +204,7 @@ def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int, proven
     joined = tmp / f"joined-z{maxzoom}.pmtiles"
     if maxzoom >= SOURCE_ZOOM:
         _run([*join, "-o", str(joined), *[a for lyr in KEEP for a in ("-l", lyr)], str(clipped)])
-        _grid(joined, out, tmp, provenance)
+        _grid(joined, out, tmp, provenance, names_inside)
         return
     from pipeline.deliver.tiles.basemap_roads import roads_geojsonl
     low, top, roads = (tmp / f"{p}-z{maxzoom}.pmtiles" for p in ("low", "top", "roads"))
@@ -211,17 +220,19 @@ def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int, proven
               "--no-tile-size-limit", "--no-feature-limit", "-P", str(lines)])
         parts.append(roads)
     _run(["tile-join", "-f", "--no-tile-size-limit", "-o", str(joined), *map(str, parts)])
-    _grid(joined, out, tmp, provenance)
+    _grid(joined, out, tmp, provenance, names_inside)
 
 
-def _grid(joined: Path, out: Path, tmp: Path, provenance: dict | None = None) -> None:
-    """Cuts 5 and 6 (T202, T280): the fills and coastline on a coarser grid (`basemap_grid.GRID_SHIFT`; roads keep
-    4096) and the green fills simplified (`SIMPLIFY`), in one re-encode, with the source's provenance in the metadata."""
+def _grid(joined: Path, out: Path, tmp: Path, provenance: dict | None = None, names_inside: Path | None = None) -> None:
+    """Cuts 5, 6 and 7 (T202, T280, T299): the fills and coastline on a coarser grid (`basemap_grid.GRID_SHIFT`; roads
+    keep 4096), the green fills simplified (`SIMPLIFY`) and, given `names_inside`, no names outside it, in one
+    re-encode, with the source's provenance in the metadata."""
     from pipeline.deliver.tiles.basemap_grid import GRID_SHIFT, SIMPLIFY, requantize_archive
-    if not GRID_SHIFT and not SIMPLIFY:
+    if not GRID_SHIFT and not SIMPLIFY and not names_inside:
         shutil.move(str(joined), str(out))
         return
-    requantize_archive(joined, out, tmp, workers=int(THREADS), extra_meta=source_meta(provenance))
+    requantize_archive(joined, out, tmp, workers=int(THREADS), extra_meta=source_meta(provenance),
+                       names_inside=names_inside)
 
 
 def source_meta(provenance: dict | None) -> dict:

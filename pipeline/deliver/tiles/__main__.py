@@ -72,6 +72,8 @@ def main() -> None:
         if not any(layer_dir.glob("*.geojsonl")):
             raise SystemExit(f"--tiles-only: no layer files in {layer_dir}. "
                              "Run without it once to export them.")
+        # (T299) derived from the stream layer file alone, so it is derived again here
+        print(f"  stream_name    {export.export_stream_names(layer_dir)['stream_name']:>9,}")
         out = tippe.build(layer_dir, out_dir / "atlas.pmtiles",
                           minzoom=a.minzoom, maxzoom=a.maxzoom, verbose=a.verbose)
         print(f"\n{out}  {out.stat().st_size / 1e6:,.1f} MB   "
@@ -100,6 +102,7 @@ def main() -> None:
         tgeoms: list = []
         counts |= export.export_streams(build_dir, layer_dir, limit=a.limit, tidal=pieces,
                                         tidal_geoms=tgeoms)
+        counts |= export.export_stream_names(layer_dir)
         counts |= export.export_waterbodies(build_dir, a.gpkg, layer_dir, tidal=pieces,
                                             tidal_geoms=tgeoms)
         counts |= _tidal.export_tidal(a.gpkg, layer_dir, tgeoms)

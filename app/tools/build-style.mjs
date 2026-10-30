@@ -285,13 +285,17 @@ const labels = new Map();
  * TWO REASONS, and the second is the one that bites. Draw order is array order, so a label
  * emitted next to its own geometry is painted UNDER every layer after it — the lake sits
  * eighth and the streams tenth, so lake names would be crossed out by every river drawn
- * over them. And MapLibre decides symbol COLLISION priority by the same order: whichever
- * label layer comes first gets the ground, and the later one is dropped where they overlap.
- * v1 hit exactly this and fixed it the same way (see `fwaLabels` in
- * archive/webapp/src/map/styles.ts) — water names were losing to park labels.
+ * over them. And MapLibre decides symbol COLLISION priority by the same order — from the TOP
+ * down: it places the LAST symbol layer first, and a placed label keeps its ground, so the
+ * earlier layer is the one dropped where they overlap. v1 hit exactly this and fixed it the
+ * same way (see `fwaLabels` in archive/webapp/src/map/styles.ts: "later layers win") — water
+ * names were losing to park labels.
  *
  * So they are appended at the end, ordered by a declared `priority` rather than by where
- * the layer happens to sit in the source. Lower goes first and therefore wins.
+ * the layer happens to sit in the source. Lower priority number wins: it goes LAST in the
+ * array (on top, placed first). (T299: this said "lower goes first and therefore wins" and
+ * sorted that way, which handed every collision to the Indigenous-land and park names and
+ * left the rivers almost unnamed.)
  */
 const labelLayers = [];
 /** Generated flow-arrow symbol layers: arrow layer id -> the line layer it marks. */
@@ -617,9 +621,6 @@ for (const l of src.layers ?? []) {
     if (!lab.field) err(`${lw}: needs "field" — the tile property holding the name`);
     if (!["line", "point"].includes(lab.placement))
       err(`${lw}: placement must be "line" or "point"`);
-    if (lab.sortBy && lab.placement !== "point")
-      err(`${lw}: sortBy orders collision priority between POINT labels; a line label is ` +
-          `placed along its own geometry and has nothing to sort against`);
     if (lab.showAbove && !lab.sortBy)
       err(`${lw}: showAbove filters on a magnitude, so it must be the same property ` +
           `sortBy ranks — otherwise the layer shows one set and prioritises another`);
@@ -654,6 +655,12 @@ for (const l of src.layers ?? []) {
     labelLayers.push({
       $priority: lab.priority ?? 0,
       id, type: "symbol", ...geom,
+      /*
+       * (T299) A LABEL MAY READ ITS OWN TILE LAYER (`sourceLayer`): the stream's name is written along `stream_name`,
+       * the named sections merged into whole lines (pipeline/deliver/tiles/layers.py), because a section is mostly
+       * shorter on screen than its own name and MapLibre places a line label only along one feature.
+       */
+      ...(lab.sourceLayer ? { "source-layer": lab.sourceLayer } : {}),
       ...(lab.minzoom !== undefined ? { minzoom: lab.minzoom } : {}),
       // A label may STOP as well as start. The region number is drawn while the region is
       // the thing on screen and hands over to the unit numbers at z7; without a maxzoom it
@@ -729,8 +736,8 @@ for (const l of src.layers ?? []) {
       : null;
     if (a.showAbove && !a.by) err(`${aw}: showAbove needs "by", the tile attribute it ranks on`);
     labelLayers.push({
-      // AFTER every name: a name placed first keeps its spot, and an arrow that would sit on
-      // it is dropped (`text-ignore-placement` keeps the arrow from blocking anything).
+      // UNDER every name, so PLACED after them: a name placed first keeps its spot, and an arrow
+      // that would sit on it is dropped (`text-ignore-placement` keeps the arrow from blocking anything).
       $priority: 1000,
       id, type: "symbol", ...geom,
       ...(a.minzoom !== undefined ? { minzoom: a.minzoom } : {}),
@@ -976,8 +983,8 @@ if (errs.length) {
   process.exit(1);
 }
 
-// Labels last, and among themselves in priority order. See `labelLayers`.
-labelLayers.sort((a, b) => a.$priority - b.$priority);
+// Labels last, and among themselves in priority order, the winner (lowest number) on top. See `labelLayers`.
+labelLayers.sort((a, b) => b.$priority - a.$priority);
 for (const l of labelLayers) { const { $priority, ...rest } = l; outLayers.push(rest); }
 
 const style = {

@@ -2350,12 +2350,17 @@
       },
       "label": {
         "field": "name",
+        "sourceLayer": "stream_name",
         "placement": "line",
-        "minzoom": 11,
+        "minzoom": 8,
         "font": [
           "Noto Sans Italic"
         ],
         "size": [
+          [
+            8,
+            10
+          ],
           [
             11,
             11
@@ -2379,8 +2384,28 @@
           "token": "color.outside"
         },
         "haloWidth": 1.5,
-        "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. Nothing below z11 — at z10 the province is a network, not a set of named rivers, and every label would be a collision.",
-        "priority": 0
+        "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. (T299) BIG RIVERS NAMED FIRST, small creeks only when zoomed in: the Strahler order `ord` is the ladder (order 6+ from z8, 5+ from z9, 4+ from z10, 3+ from z11, every named stream from z12) and the sort key, so where two names compete the bigger river is placed first.",
+        "priority": 0,
+        "sortBy": "ord",
+        "showAll": 12,
+        "showAbove": [
+          [
+            11,
+            3
+          ],
+          [
+            10,
+            4
+          ],
+          [
+            9,
+            5
+          ],
+          [
+            8,
+            6
+          ]
+        ]
       },
       "arrows": {
         "follow": true,

@@ -15,6 +15,20 @@
       "ladder": "magnitude",
       "flows": "mouth_to_source"
     },
+    "stream_name": {
+      "geometry": "line",
+      "attrs": [
+        "name",
+        "ord"
+      ],
+      "featureId": null,
+      "decorative": true,
+      "mvtId": false,
+      "minzoom": 8,
+      "maxzoom": 13,
+      "ladder": "none",
+      "flows": null
+    },
     "lake": {
       "geometry": "polygon",
       "attrs": [

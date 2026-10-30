@@ -282,6 +282,44 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
     return {"stream": n, "under_lake": n_ul}
 
 
+def export_stream_names(out_dir: Path) -> dict:
+    """(T299) The `stream_name` layer, DERIVED FROM THE WRITTEN `stream` LAYER FILE and nothing else: the named sections
+    grouped by (name, the zoom they are first drawn at), each group line-merged into the longest lines it makes, each
+    line carrying the name and the largest `ord` merged into it. A pure function of `stream.geojsonl`, so the tiles-only
+    rebuild derives it again and it can never disagree with the streams it names (see `layers.stream_name`)."""
+    from collections import defaultdict
+
+    from shapely import line_merge
+    from shapely.geometry import MultiLineString, shape
+
+    src = out_dir / f"{BY_NAME['stream'].name}.geojsonl"
+    groups: dict[tuple[str, int], list] = defaultdict(list)
+    ords: dict[tuple[str, int], dict[tuple[float, float], int]] = defaultdict(dict)
+    with src.open() as fh:
+        for line in fh:
+            f = json.loads(line)
+            name = (f.get("properties") or {}).get("name")
+            if not name:
+                continue
+            key = (name, int(f.get("tippecanoe", {}).get("minzoom", 0)))
+            g = shape(f["geometry"])
+            parts = [p for p in (g.geoms if g.geom_type == "MultiLineString" else [g])
+                     if p.geom_type == "LineString" and len(p.coords) >= 2]
+            o = int(f["properties"].get("ord") or 0)
+            for p in parts:
+                groups[key].append(p)
+                for c in (p.coords[0], p.coords[-1]):
+                    ords[key][c] = max(ords[key].get(c, 0), o)
+    write, close = _writer(out_dir, BY_NAME["stream_name"])
+    for (name, minzoom), parts in groups.items():
+        merged = line_merge(MultiLineString([p.coords for p in parts])) if len(parts) > 1 else parts[0]
+        for ln in [x for x in getattr(merged, "geoms", [merged]) if x.geom_type == "LineString"]:
+            o = max((ords[(name, minzoom)].get(c, 0) for c in ln.coords), default=0)
+            write({"type": "LineString", "coordinates": [list(c) for c in ln.coords]},
+                  {"name": name, "ord": o or None}, minzoom)
+    return {"stream_name": close()}
+
+
 #: THE UNDRAWN LIST (T64): the section handles the tile export left out on purpose, by layer, in
 #: `<layers>/UNDRAWN_FILE`. The bundle build reads it (`bundle.undrawn.check`) and refuses one a
 #: water rule, an item or a gauge would need on the map; `atlas.meta.json` states the counts.
