@@ -24,11 +24,11 @@ import {
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine } from "@app/core";
-import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
+import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
          type UpdateService, type WaterSource } from "@app/data";
 import type { MobileDataGate, ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
@@ -200,7 +200,12 @@ export default function App() {
   const spotsHook = useSpots(spotStore);
   const spots: Spot[] = spotsHook.spots.state === "ready" ? spotsHook.spots.value : [];
   // (T231) the gauge index is the update service's to renew: once read it is held until the service offers a newer one
-  const feed = useMemo(() => httpFeed(FEED, liveFetch(SHARED_FETCH), { indexHeld: true }), []);
+  // (T315) and every station's last week kept on the phone (each station file read, and the publisher's feed-wide
+  // newest rows on each feed update): offline, a Conditions chart still draws its measured line, "as of" its age
+  const feed = useMemo(() => httpFeed(FEED, liveFetch(SHARED_FETCH), {
+    indexHeld: true, history: gaugeHistory(openGaugeHistoryStore()),
+    online: () => !devOffline.on && connectivity.online() }), []);
+  useEffect(() => { void feed.syncObservations?.(); }, [feed]);
   // T211: the live DFO salmon rules, the last capture kept on the device for offline
   const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore()), []);
   // T230: the provincial in-season changes and where each applies, the last capture kept for offline; the ids shown
@@ -294,7 +299,8 @@ export default function App() {
     // with its data, so it is never gated — save `EXPO_PUBLIC_RELEASE_GATE=1`, the browser test's way to see the gate
     appVersion: WEB && process.env.EXPO_PUBLIC_RELEASE_GATE !== "1" ? null : APP_VERSION,
     feeds: [
-      { id: "gauges", url: ENDPOINTS.checks.gauges, apply: (text) => feed.offer!(JSON.parse(text)) },
+      { id: "gauges", url: ENDPOINTS.checks.gauges,
+        apply: (text) => { feed.offer!(JSON.parse(text)); void feed.syncObservations?.(); } },
       { id: "dfo", url: ENDPOINTS.checks.dfo, apply: (text) => salmonFeed.offer!(text) },
       { id: "inseason", url: ENDPOINTS.checks.inseason, apply: () => inSeason.refresh?.() },
     ],

@@ -146,6 +146,10 @@ export const CONDITIONS_WORDS = {
   loadingRecord: "Loading the record",
   /** (T256) the chart drawn from the feed before the release's climatology (its normal-range band) has landed */
   envelopeLoading: "Loading the normal range for this time of year",
+  /** (T315) offline, the chart drawn from the readings kept on the phone: as of when they were last fetched */
+  keptAsOf: (fetchedAt: number | null) => (fetchedAt !== null && Number.isFinite(fetchedAt)
+    ? `Offline — measured line as of ${localStamp(fetchedAt)}, saved on this phone`
+    : "Offline — measured line saved on this phone, age unknown"),
   controls: { quantity: "Quantity", span: "Span", model: "Forecast model", gauge: "Gauge" },
   /** The gauge switcher's kicker, right above the chart it switches (owner 2026-10-21). */
   chartGauge: "CHART THIS GAUGE",

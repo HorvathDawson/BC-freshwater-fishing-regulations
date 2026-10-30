@@ -23,6 +23,7 @@ import { shownParameter, standing, type SourceChange } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
 import { fetchJsonResilient } from "../net/fetch";
+import type { GaugeHistory, ObsFile } from "./history";
 
 /** The forecast exactly as the publisher writes it — both quantities, unpicked. */
 interface RawForecast extends Omit<Forecast, "series" | "disclaimer"> {
@@ -108,8 +109,10 @@ interface IndexFile {
   }>;
 }
 
-interface StationFile {
+export interface StationFile {
   fetchedAt: string;
+  /** (T315) This answer is the phone's kept copy (`./history`), not a read of the network. Never in a published file. */
+  kept?: true;
   station: string;
   now: { discharge: number | null; level: number | null; at: string | null;
          percentile: number | null; parameter?: Parameter };
@@ -141,6 +144,8 @@ interface StationFile {
 export interface Observations {
   /** When our copy was fetched; null when the file does not say (P02: unknown age, never "now"). */
   fetchedAt: number | null;
+  /** (T315) From the phone's kept week (offline), not the network: the chart says "as of" `fetchedAt`. */
+  kept?: true;
   from: string;
   /** Which quantity the station itself leads with, when the caller did not pick one. */
   parameter: Parameter;
@@ -221,6 +226,11 @@ export interface GaugeFeed {
    * moved are forgotten, so they are read again on the next ask). Throws when it is not an index: nothing is changed.
    */
   offer?(index: unknown): void;
+  /**
+   * (T315) Read the publisher's feed-wide newest rows (`obs.json`) into the phone's kept week: every station's, not
+   * only the ones viewed. A feed with no history (or offline, or a publisher that does not write it yet) does nothing.
+   */
+  syncObservations?(): Promise<void>;
 }
 
 type Row = readonly [string, number | null, number | null];
@@ -244,7 +254,11 @@ export function lastReportAt(f: { now?: { at?: string | null } | null; recent?: 
 const FEED_LIMITS = { firstByteMs: 45_000, stallMs: 45_000, totalMs: 45_000 };
 
 export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
-                         opts: { indexHeld?: boolean; limits?: { firstByteMs: number; stallMs: number; totalMs: number } } = {}): GaugeFeed {
+                         opts: { indexHeld?: boolean; limits?: { firstByteMs: number; stallMs: number; totalMs: number };
+                                 /** (T315) the phone's kept week: fed by every station file read, answering offline */
+                                 history?: GaugeHistory;
+                                 /** (T315) the device's online word: offline, no request is made — the kept copy answers */
+                                 online?: () => boolean } = {}): GaugeFeed {
   const trimmed = base.replace(/\/+$/, "");
   /** (T231) the update service owns the index: once read it is held until the service offers a newer one (`offer`) */
   const held = (url: string) => !!opts.indexHeld && url === `${trimmed}/index.json`;
@@ -255,10 +269,23 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
   /** (T254) the last good copy of each file this session read: what a dead line answers with (a refresh keeps it) */
   const good = new Map<string, unknown>();
 
+  /** (T315) a station file's name → its station; the index and obs files are not one */
+  const stationOf = (path: string): string | null =>
+    path === "index.json" || path === "obs.json" || !path.endsWith(".json") ? null : path.slice(0, -5);
+  /** (T315) the session's last good copy, else (a station file) the phone's kept week */
+  const fallback = <T>(path: string, url: string): T | null => {
+    const g = good.get(url) as T | undefined;
+    if (g !== undefined) return g;
+    const st = stationOf(path);
+    return st && opts.history ? (opts.history.file(st) as T | null) : null;
+  };
+
   async function load<T>(path: string): Promise<T | null> {
     const url = `${trimmed}/${path}`;
     const hit = cache.get(url);
     if (hit && (held(url) || Date.now() - hit.at < FEED_TTL_MS)) return hit.value as T;
+    // (T315) offline: no request (it would only wait out its timeouts); what this session or the phone holds answers
+    if (opts.online && !opts.online()) return fallback<T>(path, url);
 
     let p = inflight.get(url) as Promise<T | null> | undefined;
     if (!p) {
@@ -272,11 +299,14 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
           if (!got.ok) return null;          // 404 = this station is not transmitting
           cache.set(url, { at: Date.now(), value: got.value });
           good.set(url, got.value);
+          const st = stationOf(path);
+          if (st && opts.history) { try { opts.history.noteFile(st, got.value as StationFile); } catch { /* a cache */ } }
           return got.value;
         } catch {
           // (T254) offline or a dead line — an answer, not an exception: the last good copy if this session has one
           // (its own fetchedAt says how old it is, P02), else nothing
-          return (good.get(url) as T | undefined) ?? null;
+          // (T315) and across launches, the phone's kept week of a station
+          return fallback<T>(path, url);
         } finally {
           inflight.delete(url);
         }
@@ -297,6 +327,16 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
 
     // in-flight requests are left to finish: the next ask after them is a fresh fetch
     refresh() { cache.clear(); },
+
+    async syncObservations() {
+      if (!opts.history || (opts.online && !opts.online())) return;
+      const url = `${trimmed}/obs.json`;
+      try {
+        const got = await fetchJsonResilient<ObsFile>(url, { fetchImpl, attempts: 1, limits: opts.limits ?? FEED_LIMITS,
+                                                              cache: "no-store" });
+        if (got.ok && got.value && typeof got.value.stations === "object") opts.history.noteObs(got.value);
+      } catch { /* offline or not published yet: the next feed update asks again */ }
+    },
 
     offer(index) {
       const i = index as Partial<IndexFile> | null;
@@ -343,6 +383,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
       if (!f?.now || (f.now.discharge === null && f.now.level === null)) return null;
       return {
         fetchedAt: stamp(f.fetchedAt),
+        ...(f.kept ? { kept: true as const } : {}),
         value: {
           discharge: f.now.discharge, level: f.now.level,
           at: f.now.at ?? "", percentile: f.now.percentile,
@@ -359,6 +400,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
       if (!rows.length) return null;
       return {
         fetchedAt: stamp(f?.fetchedAt),
+        ...(f?.kept ? { kept: true as const } : {}),
         from: rows[0]![0],
         // The publisher already decided which quantity this station's percentile is about,
         // against the envelope it actually has. Re-deciding here would be a second opinion

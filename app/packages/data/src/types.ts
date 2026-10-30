@@ -77,6 +77,8 @@ export interface BundleCounts {
 export interface Aged<T> {
   value: T;
   fetchedAt: number | null;
+  /** (T315) Answered from the phone's kept copy (offline), not the network: the chart says "as of" its `fetchedAt`. */
+  kept?: true;
 }
 
 export interface Reading {

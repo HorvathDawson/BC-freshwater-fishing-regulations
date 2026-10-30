@@ -76,6 +76,14 @@ export function normalizeIntended(py: Map<string, string>, ts: Map<string, strin
     ts.set("temp_history.json", th);
     notes.push("temp_history.json: private");
   }
+  // (T315) obs.json is the worker's alone (the Python publisher has no phones to feed): checked, then set aside
+  const obs = ts.get("obs.json");
+  if (obs !== undefined) {
+    const o = JSON.parse(obs);
+    if (typeof o.fetchedAt !== "string" || typeof o.stations !== "object") throw new Error("obs.json: not an obs file");
+    ts.delete("obs.json");
+    notes.push(`obs.json: ${Object.keys(o.stations).length} station(s), worker only`);
+  }
   ts.delete("priv/runs/state.json");
   ts.delete("priv/stations.cache.json");
   const pieces = [...ts.keys()].filter((k) => /^priv\/runs\/\d{4}-\d{2}\//.test(k)).sort();

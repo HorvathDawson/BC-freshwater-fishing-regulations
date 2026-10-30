@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { contentHash, newMeter, type Fetch } from "../src/io";
-import { newestForecastIssue, runGauges } from "../src/gauges/publish";
+import { newestForecastIssue, OBS_FILE, OBS_WINDOW_MS, runGauges } from "../src/gauges/publish";
 import { appendRuns, RUNS_STATE } from "../src/gauges/skill";
 import { dirStore, fixtureFetch, loadRecording, memStore } from "../parity/gauges/node";
 
@@ -48,6 +48,27 @@ describe("gauge feed fixes", () => {
     const hist = JSON.parse((await priv.get("temp_history.json"))!);
     const old = JSON.parse(legacy);
     for (const st of Object.keys(old)) for (const p of Object.keys(old[st])) expect(hist[st][p].slice(0, old[st][p].length)).toEqual(old[st][p].slice(-hist[st][p].length));
+  });
+});
+
+describe("(T315) obs.json: the run's newest rows, feed-wide", () => {
+  it("every station written carries its station file's rows of the last OBS_WINDOW_MS, and no other", async () => {
+    const dir = seeded();
+    const rec = loadRecording(FIX);
+    const { feed } = await runOn(dir, fixtureFetch(rec).fetch, { changeAware: false });
+    const obs = JSON.parse((await feed.get(OBS_FILE))!);
+    const idx = JSON.parse((await feed.get("index.json"))!);
+    expect(obs.fetchedAt).toBe(idx.fetchedAt);
+    const now = Date.parse(rec.now);
+    const ids = Object.keys(obs.stations);
+    expect(ids.length).toBeGreaterThan(0);
+    for (const st of Object.keys(idx.stations)) {
+      const file = JSON.parse((await feed.get(`${st}.json`))!);
+      const want = (file.recent ?? []).filter((r: [string]) => now - Date.parse(r[0]) <= OBS_WINDOW_MS);
+      expect(obs.stations[st] ?? []).toEqual(want);
+    }
+    // the delta is small: a few hundred bytes a station at most
+    expect((await feed.get(OBS_FILE))!.length / Math.max(1, ids.length)).toBeLessThan(1_500);
   });
 });
 
@@ -141,7 +162,7 @@ describe("change-aware gauge runs", () => {
     const withRuns = Object.keys(idx1.stations).filter((st) => idx1.stations[st].forecast);
     expect(withRuns.length).toBeGreaterThan(0);
     for (const st of withRuns) expect(second.puts).toContain(`${st}.json`);
-    expect(m.sourcesUnchanged).toBe(Object.keys(idx1.stations).length - second.puts.filter((k) => /^\w+\.json$/.test(k) && k !== "index.json").length);
+    expect(m.sourcesUnchanged).toBe(Object.keys(idx1.stations).length - second.puts.filter((k) => /^\w+\.json$/.test(k) && k !== "index.json" && k !== OBS_FILE).length);
   });
 });
 

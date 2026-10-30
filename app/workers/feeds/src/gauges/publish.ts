@@ -447,6 +447,14 @@ const JSON_CT = { contentType: "application/json" };
 export const CARRY_MAX_MS = 3 * DAY_MS;
 /** private (T225 follow-up; Python: in the published feed dir) */
 export const TEMP_HISTORY = "temp_history.json";
+/**
+ * (T315) THE RUN'S NEWEST ROWS, FEED-WIDE: `obs.json` beside the index — every station written this run, its `recent`
+ * rows of the last `OBS_WINDOW_MS`. A phone reads it on each feed update and keeps every station's last week (the app's
+ * `gaugeHistory`), so a gauge it never opened still draws a measured line offline. The window lets a phone that missed
+ * a few runs still join its week up. A station not written this run (ECCC said 304) has no new rows to give.
+ */
+export const OBS_FILE = "obs.json";
+export const OBS_WINDOW_MS = 6 * 3_600_000;
 
 /** `python -m pipeline.gauges.feed.publish` as one call: list, HYDAT check, forecasts, publish, archive, notify. */
 export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
@@ -876,6 +884,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   log(`  water temperature: ${temps.size} of ${got.length} stations  (${Object.keys(tEnv).length} now have enough history for an envelope)`);
 
   const index: Record<string, any> = {};
+  const obs: Record<string, unknown[]> = {};
   let newest: string | null = null;
   // station files are PUT as they are made, 8 at a time, never buffered (17 MB for the province)
   const inflight = new Set<Promise<void>>();
@@ -975,6 +984,8 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     });
     if (reuseF) text = text.replace(JSON.stringify(FC), () => prevFile!.forecastsText!); // the stored block, verbatim
     await put(`${st}.json`, text);
+    const newRows = (r.recent ?? []).filter((row: any) => now - Date.parse(row[0]) <= OBS_WINDOW_MS);
+    if (newRows.length) obs[st] = newRows;
     if (prevFile) delete prevFile.forecastsText;
     prior.delete(st);
     seenBy.delete(st);
@@ -1038,6 +1049,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     stations: index,
     ...(a.listed !== null ? { listed: [...a.listed].sort() } : {}),
   }), JSON_CT);
+  if (!indexKept) await feed.put(OBS_FILE, JSON.stringify({ fetchedAt, windowHours: OBS_WINDOW_MS / 3_600_000, stations: obs }), JSON_CT);
 
   return {
     asked: a.ids.length, answered: got.length, release, stale: staleRelease, latest: a.latest, maintenance,

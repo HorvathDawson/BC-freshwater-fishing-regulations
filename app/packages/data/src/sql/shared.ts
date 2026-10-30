@@ -267,6 +267,7 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
       .sort((a, b) => b.year - a.year);
     return {
       fetchedAt: obs?.fetchedAt ?? null,         // P02: no observations, no age; never "now"
+      ...(obs?.kept ? { kept: true as const } : {}),
       value: {
         step: "1d", from: `${year}-01-01`, parameter: param,
         at: stamps, values, band, yearBand,
@@ -284,6 +285,7 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
   const idx = lastIndex(values);
   return {
     fetchedAt: obs.fetchedAt,
+    ...(obs.kept ? { kept: true as const } : {}),
     value: {
       step: "1h", from: obs.from, parameter: param,
       at: obs.at, values, band,

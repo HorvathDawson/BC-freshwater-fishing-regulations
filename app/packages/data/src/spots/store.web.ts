@@ -54,6 +54,11 @@ export function openSalmonFeedStore(): { read(): string | null; write(text: stri
   return keyStore("canifishthis.dfoFeed.v1");
 }
 
+/** (T315) The gauges' kept week is a phone's: a few MB would crowd browser storage, so the web keeps it per session. */
+export function openGaugeHistoryStore(): { read(): string | null; write(text: string): void } | null {
+  return null;
+}
+
 /** (T230) The last captured in-season feed + links, and the in-season ids this device has been shown. */
 export function openInSeasonStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.inseasonFeed.v1");

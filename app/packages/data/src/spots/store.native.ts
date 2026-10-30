@@ -53,6 +53,11 @@ export function openSalmonFeedStore(): { read(): string | null; write(text: stri
   return fileStore("dfo-feed.json");
 }
 
+/** (T315) The gauges' last week, kept for offline (`@app/data` `gaugeHistory`) — a cache file of its own. */
+export function openGaugeHistoryStore(): { read(): string | null; write(text: string): void } | null {
+  return fileStore("gauge-history.json");
+}
+
 /** (T230) The last captured in-season feed + links, and the in-season ids this device has been shown — files of their own. */
 export function openInSeasonStore(): { read(): string | null; write(text: string): void } {
   return fileStore("inseason-feed.json");

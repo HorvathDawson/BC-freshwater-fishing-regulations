@@ -82,6 +82,8 @@ export interface ChartView {
   draft: boolean;
   /** The window is narrower than the whole record — "Whole chart" has something to do. */
   zoomed: boolean;
+  /** (T315) Drawn from the readings kept on the phone (offline): "as of" when they were fetched. Null: read live. */
+  asOf: string | null;
   /** The value under the finger, placed and said; null when nothing is being read. */
   readout: { x: number; y: number; line: string; kind: "reading" | "forecast" } | null;
   /** + and − : one step about the middle. */
@@ -156,6 +158,9 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
   const whole = series.state === "ready" ? series.value?.value ?? null : null;
   const early = series.state === "loading" && wantsDraft && drafted.state === "ready" ? drafted.value?.value ?? null : null;
   const s = whole ?? early;
+  const aged = series.state === "ready" && series.value ? series.value
+    : series.state === "loading" && wantsDraft && drafted.state === "ready" ? drafted.value : null;
+  const asOf = aged?.kept ? CONDITIONS_WORDS.keptAsOf(aged.fetchedAt) : null;
   const box = chartBox(width);
   const full = useMemo(() => extentOf(s), [s]);
 
@@ -212,8 +217,8 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     } : null;
     return { state: "ready", error: null,
              value: { shape, readout, zoomed: !!(shape.view && shape.full && isZoomed(shape.view, shape.full)),
-                      pending: false, draft: s === early, ...actions } };
-  }, [series, s, early, span, box.width, box.height, st.domain, st.probe, actions]);
+                      pending: false, draft: s === early, asOf, ...actions } };
+  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions]);
 
   // The last chart drawn, for the frames between a switch and its answer.
   const last = useRef<ChartView | null>(null);

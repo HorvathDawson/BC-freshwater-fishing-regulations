@@ -233,6 +233,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       {view?.pending && (
         <Text style={{ ...TYPE.meta, color: palette.faint }} accessibilityLiveRegion="polite">{W.loadingRecord}</Text>
       )}
+      {view?.asOf && (
+        <Text testID="chart-kept-as-of" style={{ ...TYPE.meta, color: palette.sub }}>{view.asOf}</Text>
+      )}
       {view && !view.pending && view.draft && (
         <Text style={{ ...TYPE.meta, color: palette.faint }} accessibilityLiveRegion="polite">{W.envelopeLoading}</Text>
       )}
