@@ -46,6 +46,7 @@ import { useDonorView, type DonorRowVM, type GaugeSides, type Horizon, type Hori
          type Quantity } from "@app/ui";
 import { DonorMap, routeMapHeight } from "./DonorMap";
 import { CornerStrip } from "./CornerStrip";
+import { useCoachTarget } from "./CoachMarks";
 import { GaugeGroups } from "./GaugeGroups";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
@@ -176,7 +177,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           {vm.silent ? <Silent palette={palette}>{vm.silent}</Silent> : null}
           {detail}
         </Block>
-        {chart && <Block palette={palette}>{chart}</Block>}
+        {chart && <Block palette={palette} coach="cond:chart">{chart}</Block>}
         {foot && <Fold palette={palette}>{foot}</Fold>}
       </View>
     );
@@ -248,7 +249,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           headline it changes, never under it. */}
       {onHorizon && <HorizonHeader palette={palette} chips={vm.horizons} onPick={onHorizon} />}
 
-      <Block palette={palette} first>
+      <Block palette={palette} first coach="cond:headline">
         {/* ONE LINE, ALWAYS: a heading that wraps moves everything under it as the reader
             steps through the horizons. */}
         <Kicker palette={palette} oneLine>{vm.heading}</Kicker>
@@ -359,7 +360,7 @@ function HorizonHeader({ palette, chips, onPick }: {
 }) {
   return (
     <View style={{ flexDirection: "row" }}>
-      <CornerStrip palette={palette} testID="panel-horizons"
+      <CornerStrip palette={palette} testID="panel-horizons" coach="cond:horizons"
                    segments={chips.map((h) => ({
                      key: String(h.day), chip: h.day === "change" ? "" : h.chip, label: h.label, on: h.on,
                      ...(h.note ? { note: h.note } : {}), ...(h.day === "change" ? { icon: "delta" as const, mode: true } : {}),
@@ -382,11 +383,14 @@ export function Kicker({ palette, children, oneLine }: {
  * One block in the reading order. A hairline and the same step above every block but the
  * first, so the panel reads as a stack of parts rather than one run of text.
  */
-export function Block({ palette, children, first }: {
+export function Block({ palette, children, first, coach }: {
   palette: Palette; children: ReactNode; first?: boolean;
+  /** (T293) the key the walkthrough points at this block by */
+  coach?: string;
 }) {
+  const target = useCoachTarget(coach);
   return (
-    <View style={{ gap: SPACE.s2,
+    <View ref={target} collapsable={false} style={{ gap: SPACE.s2,
                    ...(first ? {} : { paddingTop: SPACE.s4, borderTopWidth: 1,
                                       borderTopColor: palette.line }) }}>
       {children}

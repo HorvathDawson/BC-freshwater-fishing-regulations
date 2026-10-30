@@ -336,7 +336,7 @@ use that as the sole source of future work."
 | T290 | Remove the Names, Proposals and Low-confidence cuts tabs from the curation review tool | DONE | 92f0583cb | owner 2026-10-29 |
 | T291 | Test-tag problem/crash reports from tools, ignore them in digest + review, clean up staging reports | PARTIAL | 16fc227fc | built + staging cleaned (7 reports, 7 crash kinds deleted); verified live on the deployed worker 2026-10-29 (tagged report + crash land in reports-test/ and crashes-test/, none in the real prefixes); left: confirm with the next `session.sh --build` APK |
 | T292 | Sewage basins, tailing ponds, dumps: off "not a fishing water" colour, no regs, tap says what it is, not in search | PARTIAL | — | owner 2026-10-29; app + pipeline done (off colour, dashed edge, legend, tap sheet); left: tiles export rerun for the `kind` attribute |
-| T293 | One hands-on walkthrough: find a water (search + map), read its rules, read conditions and what change means, save a spot; Help pages for sync/offline | OPEN | — | owner 2026-10-29 |
+| T293 | One hands-on walkthrough: find a water (search + map), read its rules, read conditions and what change means, save a spot; Help pages for sync/offline | PARTIAL | — | owner 2026-10-29; web done (21-step hands-on walk on the Vedder, Show me, resume, back, mode hints, Help pages; shots T293-shots/); left: emulator check on the next APK |
 
 ## Order for open tickets
 

@@ -17,6 +17,7 @@ import { ClosedBanner, CaveatBlock, InheritedLine, OtherFish, OutsideFoot, Posse
 import { GroupCard } from "./GroupCard";
 import { PlainRow } from "./PlainRow";
 import { SalmonYearStrip, YearStrip } from "./YearStrip";
+import { CoachSpot } from "../CoachMarks";
 import type { KeepActions } from "./LineText";
 import type { FishImages } from "./types";
 
@@ -33,9 +34,12 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
     }] : []),
   ];
   const at = keep.order.findIndex((b) => b === "otherFish" || (typeof b === "object" && "group" in b));
+  // (T293) the walkthrough's "what you can keep" points at the species table
   const table = (key: number) => (
-    <OtherFish key={key} rows={keep.otherFish ?? []} keys={keep.otherFishKey} palette={palette} actions={actions} images={images}
-               folds={folds} />
+    <CoachSpot key={key} k="regs:keep">
+      <OtherFish rows={keep.otherFish ?? []} keys={keep.otherFishKey} palette={palette} actions={actions} images={images}
+                 folds={folds} />
+    </CoachSpot>
   );
   // no row for the table: it goes after the leading blocks (strip, inherited line, banner, caveats), never above the bar
   const lead = keep.order.findIndex((b) => !(b === "strip" || b === "inherited" || b === "banner" || (typeof b === "object" && "caveat" in b)));
