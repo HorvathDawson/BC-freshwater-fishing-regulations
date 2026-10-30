@@ -8,9 +8,16 @@
 # - While it runs, kills the job's whole process group if free memory falls below KILL_PCT (default 6 %),
 #   so the Mac and VS Code never go down (the 2026-10-06 crash: overlapping atlas/reach/pytest/16-proc jobs).
 # Heavy = atlas build, reach run, pipeline.deliver, full pytest suites, golden regeneration, answers build.
+# - RE-ENTRANT for the lock holder: a heavy.sh run INSIDE a heavy job (build-apk.sh wrapped in heavy.sh calls heavy.sh
+#   itself) sees HEAVY_HELD naming the lock's owner and runs its command straight away under the outer job's lock and
+#   memory guard — it never waits on the lock its own parent holds (the 2026-10-31 build-apk deadlock).
 set -u
 label=$1; need=$2; shift 2; [[ $1 == -- ]] && shift
 LOCK=${HEAVY_LOCK:-$HOME/.claude/heavy-job.lock}
+if [[ -n ${HEAVY_HELD:-} && -d $LOCK && "$(cut -d' ' -f1 "$LOCK/owner" 2>/dev/null)" == "$HEAVY_HELD" ]]; then
+  echo "[heavy:$label] inside heavy job $HEAVY_HELD — running under its lock: $*"
+  exec "$@"
+fi
 KILL_PCT=${KILL_PCT:-6}
 free_pct() { memory_pressure -Q 2>/dev/null | awk -F': ' '/free percentage/ {gsub("%","",$2); print int($2)}'; }
 
@@ -24,6 +31,7 @@ while ! mkdir "$LOCK" 2>/dev/null; do
 done
 echo "$$ $label $(date '+%F %T')" > "$LOCK/owner"
 trap 'rm -rf "$LOCK"' EXIT INT TERM
+export HEAVY_HELD=$$        # a nested heavy.sh in the command runs under this lock (re-entrant, above)
 
 while (( $(free_pct) < need )); do echo "[heavy:$label] free $(free_pct)% < $need% — waiting"; sleep 20; done
 echo "[heavy:$label] start (free $(free_pct)%): $*"
