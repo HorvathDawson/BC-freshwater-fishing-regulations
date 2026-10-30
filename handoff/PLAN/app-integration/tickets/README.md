@@ -342,6 +342,9 @@ use that as the sole source of future work."
 | T296 | Gauge reached through a lake down-weighted when a closer no-lake gauge exists; caution line | PARTIAL | 635862b83 | 10-29: rule both languages (`lakeDamped`/`lake_damped`, 0.05), route `throughLake`, sheet re-weights + "Measured below Pitt Lake …" line; `section_down.lake` rides the next bundle + release |
 | T297 | Build clean-up together with T266 + T295 in one build-focused pass, after the loose ends; one full rebuild proves it | OPEN | — | owner 2026-10-29 |
 | T298 | First download continues in background with a notification, asks before using mobile data, fish sayings while downloading | OPEN | — | owner 2026-10-29 |
+| T299 | Water names on the map again (streams + lakes by size); basemap place names by importance; nothing outside BC | OPEN | — | owner 2026-10-30 |
+| T300 | Conditions/Runs/legend polish: no ELF default, model text + credits collapsed at bottom, gauge-map gestures, Runs heat legend, obstacles in legend, shorter legend words | OPEN | — | owner 2026-10-30 |
+| T301 | New HYDAT release: refresh stored daily flows + normals | OPEN | — | owner 2026-10-30 |
 
 ## Order for open tickets
 
