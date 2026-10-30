@@ -185,4 +185,3 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **SEO, v1 pages (2026-10-27):** keep your existing Search Console property; when the new site is live add the new sitemap
   beside the old one, and for two months watch Pages > Not found (404) and Redirect error (the 19,331 old `/waterbody/` URLs
   should show as Page with redirect). Deploy the generated `_worker.js` with `run_worker_first = ["/waterbody/*"]` (T86 hosting).
-- **Continuations re-review (2026-10-30):** 5 stream continuation links you reviewed now point at city-stream items re-keyed by the T289 rebuild; the bundle holds them back as stale (not shipped, not lost). Re-review them in the review app (continuations view, "stale").
