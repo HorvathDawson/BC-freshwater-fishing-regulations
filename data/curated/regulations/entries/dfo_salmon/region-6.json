@@ -494,34 +494,16 @@
       "sections": [
         "D"
       ],
-      "item_ids": [],
+      "item_ids": [
+        "blk:360846083"
+      ],
       "tributaries": null,
       "match": {
-        "status": "unmatched",
-        "via": "",
-        "reason": "no name/variant match",
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
         "candidates": [],
-        "suggestions": [
-          {
-            "kind": "spelling",
-            "name": "shields creek",
-            "why": "ratio 0.889",
-            "item_ids": [
-              "gnis:22826",
-              "gnis:3417"
-            ],
-            "resolves_to": "Shields Creek"
-          },
-          {
-            "kind": "spelling",
-            "name": "helen creek",
-            "why": "ratio 0.88",
-            "item_ids": [
-              "gnis:4160"
-            ],
-            "resolves_to": "Helen Creek"
-          }
-        ]
+        "suggestions": []
       },
       "resolution": "pending",
       "resolution_reason": "",
