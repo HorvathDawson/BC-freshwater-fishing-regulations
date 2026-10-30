@@ -64,4 +64,10 @@ says choosing map regions comes with the split). Added (685197125): the RULE BOO
 phone's first download (fa9e82b57, owner 2026-10-29): "Rule book (synopsis PDF): 25.0 MB. On this phone · opens offline."
 (counted in storage used); web: "Downloaded when you open it". Tests: `core/src/offline.test.ts`,
 `data/src/release/offline.test.ts`. The web regs prefetch vs `WEB_BUDGET` (T238 left 3) moves with T259.
+Emulator (test bed, n1_pixel, staging r-164ca35636ea, 2026-10-29): install PASS. The first run streamed the rule book with
+the release (`synopsis-08f58537261f.pdf`, 25,041,728 bytes, native transport, followed sha256 443 ms after the last byte;
+up in 77 s, peak heap Java 16 MB). The offline scenario's cold start in airplane mode, its banner and the offline search
+PASS. Its later steps FAIL on a stale Maestro selector ("Lake · near Lindell Beach", but the row now reads "Lake · Region 2 ·
+MU 2-3 · near Lindell Beach", T247), not on the data, so opening the book offline was not driven through the UI. The test-bed
+APK is a release build (`run-as` refused), so the file was proven by the app's own download log.
 
