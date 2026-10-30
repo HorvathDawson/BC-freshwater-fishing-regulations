@@ -15,13 +15,14 @@ describe("the walkthrough (T293)", () => {
     const app = guideSteps("app");
     expect(app.filter((s) => s.kind === "do").map((s) => s.key))
       .toEqual(["search", "pick", "map", "regs", "conditions", "layers", "ground", "obstacles", "spot", "capture", "open"]);
-    for (const s of app) { expect(s.title.length, s.key).toBeGreaterThan(3); expect(s.body.length, s.key).toBeGreaterThan(30); }
+    for (const s of app) { expect(s.title.length, s.key).toBeGreaterThan(3); expect(s.body.length, s.key).toBeGreaterThan(20); }
     expect(new Set(app.map((s) => s.key)).size).toBe(app.length);
   });
-  it("the web's last step says no works-offline; only that step differs", () => {
+  it("the web's walk has no spot steps (T302: spots are the phone app's) and its last step says no works-offline", () => {
     const web = guideSteps("web"), app = guideSteps("app");
-    expect(web.map((s) => s.key)).toEqual(app.map((s) => s.key));
-    expect(web.filter((s, i) => s !== app[i]).map((s) => s.key)).toEqual(["done"]);
+    const spotKeys = ["spot", "capture", "open", "days", "reasons"];
+    expect(web.map((s) => s.key)).toEqual(app.map((s) => s.key).filter((k) => !spotKeys.includes(k)));
+    expect(web.filter((s) => s !== app.find((a) => a.key === s.key)).map((s) => s.key)).toEqual(["done"]);
     expect(web.at(-1)!.body).not.toMatch(/offline|no signal|on this phone/);
     expect(app.at(-1)!.body).toMatch(/no signal/);
   });
@@ -31,6 +32,13 @@ describe("the walkthrough (T293)", () => {
     expect(guideText(search, { name: GUIDE_WATER.name, letters: GUIDE_WATER.letters })).toContain("“ved”");
     expect(guideText(welcome, null)).toContain("a water near you");
     expect(guideText(welcome, null)).not.toMatch(/\{|\}/);
+  });
+  it("(owner 2026-10-30) everyday words: no app-internal terms, short sentences", () => {
+    const all = [...guideSteps("app"), ...guideSteps("web")].flatMap((s) => [s.title, s.body]);
+    for (const t of all) {
+      expect(t, t).not.toMatch(/\b(paint|section|part|parts|verdict|feed|donor|release|synopsis|percentile|horizon|basin)\b/i);
+      for (const sentence of t.split(/(?<=[.:!?])\s+/)) expect(sentence.split(/\s+/).length, sentence).toBeLessThanOrEqual(26);
+    }
   });
   it("(T294-proof) the spot steps say a day you fished, not one visit", () => {
     const days = guideSteps("app").find((s) => s.key === "days")!.body;

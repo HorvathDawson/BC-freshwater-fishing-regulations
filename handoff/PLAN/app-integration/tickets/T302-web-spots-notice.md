@@ -1,6 +1,6 @@
 # T302 — Spots on the web app: a notice instead (phone app only for now; accounts coming)
 
-Status: OPEN (owner 2026-10-30: "make it so spots in the webapp instead just say something about how they work locally on
+Status: DONE (web; owner 2026-10-30: "make it so spots in the webapp instead just say something about how they work locally on
 the phone app but they don't sync to web yet. Coming soon will be accounts etc").
 
 ## Work
@@ -17,3 +17,13 @@ Words in core tables; phone app unchanged.
 Web screenshots (phone + desktop) of the Spots tab and a save attempt; walkthrough on web skips spots; phone unchanged.
 
 Depends: T293, T294. Size: S. Owner: no.
+
+## Done
+- Web only (`webSpotsNotice()`, WebSpotsNotice.tsx): the Spots tab is a notice — spots are saved in the phone app, they
+  don't show on the website yet, accounts are coming — with "Get the app" (the Play listing). Words: core `WEB_SPOTS_WORDS`.
+- Every web way of adding a spot (the map's right-click / long-press "New spot" → Continue, the route's add) lands on the
+  same notice, with "Back to the map". The phone app is unchanged (the capture flow is `SpotCaptureFlow`).
+- The T293 walkthrough has no spot steps on the web (20 steps); its last step and Help → Offline say spots are in the app.
+- Spots saved in a browser before this stay in its storage, untouched and unshown.
+- Shots: T302-shots/ (phone + desktop: the tab, the right-click "New spot", the notice after Continue). Test:
+  WebSpotsNotice.test.tsx.

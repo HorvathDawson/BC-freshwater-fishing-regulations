@@ -26,6 +26,7 @@ import { ErrorState } from "./ErrorState";
 import { SPOT_CAPTURE_AT, SPOT_CAPTURE_WORDS as CW, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
 import { useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { WebSpotsNotice, webSpotsNotice } from "./WebSpotsNotice";
 import type { WaterSource, SectionId } from "@app/data";
 import type { HydatDaily, Spot, WeatherSource } from "@app/data/spots";
 import { dayFlowView, useBackLayer, useCaptureSpot, type CaptureWater, type SpotPhotos } from "@app/ui";
@@ -77,7 +78,12 @@ export interface SpotCaptureProps {
   onSaved: (spot: Spot) => void | Promise<void>;
 }
 
+/** (T302) On the web a spot is not saved here: the notice that spots live in the phone app, and the way back. */
 export function SpotCapture(props: SpotCaptureProps) {
+  return webSpotsNotice() ? <WebSpotsNotice palette={props.palette} onDone={props.onCancel} /> : <SpotCaptureFlow {...props} />;
+}
+
+function SpotCaptureFlow(props: SpotCaptureProps) {
   const { palette, tiles, theme, camera, source, feed } = props;
   const [step, setStep] = useState<Step>("water");
   const [water, setWater] = useState<CaptureWater | null>(null);

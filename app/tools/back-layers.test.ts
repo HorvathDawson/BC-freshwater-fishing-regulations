@@ -132,6 +132,7 @@ const registeredSurfaces = () => new Set(drawing().flatMap((p) =>
  * decision, said in app/HANDOFF-ui.md's table — not a way past the scan.
  */
 const COVERED: Record<string, string> = {
+  "packages/ui-native/src/SpotCapture.tsx#SpotCapture: takes onCancel (SpotCaptureProps)": "(T302) it draws the web's spots notice (system back is the route's: it leaves the add) or the capture flow (SpotCaptureFlow), which registers its own steps",
   "packages/ui-native/src/Walkthrough.tsx#TabTourSheet: draws TabTourSheet": "(T276, T293) the Runs, Conditions and Salmon mode hints draw the same CoachMarks.CoachTour, which registers its own back layer (back skips the tour)",
   "packages/ui-native/src/WaterScreen.tsx#WaterScreenBody: takes onBack": "the on-screen ‹; system back is the Shell's route layer (water → tab)",
   "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack": "T44: hands the on-screen ‹ to the FaceBar it draws (a view mounted alone); system back is the Shell's route layer",

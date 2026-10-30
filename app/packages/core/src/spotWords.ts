@@ -80,3 +80,22 @@ export const SPOT_RECORD_WORDS = {
 
 /** The Spots list: a row whose spot has no photo. */
 export const SPOTS_LIST_WORDS = { noPhoto: "NO PHOTO" } as const;
+
+/**
+ * (T302, owner 2026-10-30: "spots in the webapp instead just say something about how they work locally on the phone app
+ * but they don't sync to web yet. Coming soon will be accounts etc") THE WEB'S SPOTS: a short notice in the Spots tab's
+ * place and the capture's, and a link to the app. Spots saved in a browser earlier are left where they are, not shown.
+ */
+export const WEB_SPOTS_WORDS = {
+  title: "Spots",
+  lead: "Save your fishing spots in the phone app",
+  body: [
+    "Spots are saved on your phone in the Can I Fish This? app. There you can mark a place, add notes and photos, and "
+      + "see which coming days look like the day you fished.",
+    "Spots don't show up on the website yet. Accounts are coming, so your spots will be on your phone and here.",
+  ],
+  getApp: "Get the app",
+  /** the Play listing (the app's own store link); spelled here so the web has one place for it */
+  appUrl: "https://play.google.com/store/apps/details?id=ca.canifishthis.app",
+  back: "Back to the map",
+} as const;
