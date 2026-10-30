@@ -114,7 +114,7 @@ describe("the guard fires (mutation)", () => {
     const readme = real.readme.replace(row, `${row}\n${withStatus(row, "MAYBE")}`);
     expect(checkLedger({ ...noGit, readme })).toEqual([
       'T84: ledger row appears more than once',
-      'T84: ledger status "MAYBE" is not one of IN PROGRESS, BLOCKED, POSTPONED, PARTIAL, DROPPED, OPEN, DONE',
+      'T84: ledger status "MAYBE" is not one of IN PROGRESS, IN REVIEW, BLOCKED, POSTPONED, PARTIAL, DROPPED, OPEN, DONE',
     ]);
   });
 });
