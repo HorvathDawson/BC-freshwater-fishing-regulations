@@ -348,10 +348,10 @@ use that as the sole source of future work."
 | T302 | Web Spots tab → notice: spots live in the phone app, no web sync yet, accounts coming; web save entry points + walkthrough spot steps adjusted | DONE | 8c0337a3e, 7e752a935 | owner 2026-10-30; web Spots tab + add → notice (Get the app), walk skips spots on web; shots T302-shots/ |
 | T303 | Show your current location on the map: my-location button, blue dot, centre/follow, asks only on tap | DONE on web (emulator pass pending: lock held) | 1b74740 | owner 2026-10-30 |
 | T304 | Water-page landing focuses its own region so slow lines read the small region files (Vedder Fast-3G ~37 s today) | OPEN | — | T282 finding 2026-10-31 |
-| T307 | Adding a spot/visit offline is instant: fail fast on network, backfill later | OPEN | — | owner 2026-10-31 |
-| T308 | Location dot keeps updating with you (not stuck at first fix) | OPEN | — | owner 2026-10-31 |
+| T307 | Adding a spot/visit offline is instant: fail fast on network, backfill later | IN REVIEW (d5e3fcf8e; emulator check pending) | — | owner 2026-10-31 |
+| T308 | Location dot keeps updating with you (not stuck at first fix) | IN REVIEW (d5e3fcf8e; emulator check pending) | — | owner 2026-10-31 |
 | T309 | Region salmon rules readable (rows, chips, wording folded); copyable text in the app | OPEN | — | owner 2026-10-31 |
-| T310 | Spots: parking location + directions; notes/photos belong to visits (lossless migration) | OPEN | — | owner 2026-10-31 |
+| T310 | Spots: parking location + directions; notes/photos belong to visits (lossless migration) | IN REVIEW (fd36533e3; phone shots pending) | — | owner 2026-10-31 |
 | T311 | Provincial parks missing — Garibaldi (closes upper Pitt): draw parks, bind park-scoped rules | DONE | 60c285d22 | owner 2026-10-31; parks were in tiles but 0.12 tint + no edge: green edge from z7 + stronger tint, style only (no tiles rebuild); rules unchanged (owner); no legend row (owner) |
 | T312 | Map panning feels slow: 1:1 finger tracking, natural fling, no JS work per camera tick | OPEN | — | owner 2026-10-31 |
 | T313 | iOS simulator build + basic tests (install, map/regs, offline, satellite, location, walkthrough, PDF) | OPEN | — | owner 2026-10-31 |

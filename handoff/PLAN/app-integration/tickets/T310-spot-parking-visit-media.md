@@ -1,6 +1,6 @@
 # T310 — Spots: a parking spot; notes and photos belong to visits
 
-Status: OPEN (owner 2026-10-31: "for spots it would be nice to have the option to add a parking spot to it. Also the pictures
+Status: IN REVIEW (owner 2026-10-31: "for spots it would be nice to have the option to add a parking spot to it. Also the pictures
 and text should instead be linked to the visits not to the spot overall").
 
 ## Work
@@ -15,3 +15,6 @@ and text should instead be linked to the visits not to the spot overall").
 Migration test; phone shots: spot with parking + 2 visits each with notes/photos; directions opens maps.
 
 Depends: T294. Size: M. Owner: no.
+
+## Done (fd36533e3)
+Parking: `Spot.parking {lat,lon}` (the spot's own, not a visit field). Spot page Parking block: coordinates + Directions (opens the maps app via a Google Maps dir URL); edit: Use my location / Pick on the map (map picker) / Remove. Map: a P mark per parking (core `spotMarkers`, never grouped, tap opens the spot). Notes/photos per visit: already so since T294 (first visit = the spot's own fields, nothing moved) — new test pins the old spot-level notes/photos staying on visit 1, later visits own theirs, parking untouched by visit edits. Phone shots pending (emulator batch).
