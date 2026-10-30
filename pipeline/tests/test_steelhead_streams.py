@@ -481,7 +481,10 @@ def test_a_stream_in_a_qualifying_region_gets_them(db):
     """Capilano River (Region 2) carries all three provincial steelhead rules and the stamp."""
     secs = _sections(db, "gnis:5922")
     assert secs
-    for sid in secs:
+    # (T212) the piece below the CN railway bridge is tidal water: it leaves every binding (bundle `tidal`)
+    tidal = {sid for (sid,) in db.execute("SELECT sid FROM tidal")}
+    assert set(secs) & tidal and set(secs) - tidal
+    for sid in sorted(set(secs) - tidal):
         assert PROVINCE <= _rules_on(db, sid), sid
         assert STAMP in _requirements_on(db, sid), sid
 
@@ -1611,10 +1614,15 @@ def test_steelhead_rules_false_is_exactly_the_known_parts_no_steelhead_rule_appl
                 assert "steelhead_rules" not in p, i
     flagged = {(i, n) for i, w in W.items() for n, p in enumerate(w["parts"])
                if p.get("steelhead_rules") is False and p.get("steelhead") == "known"}
+    # (T278/T212) a tidal part has no rule set (no freshwater rules at all): it says nothing about steelhead rules
     want = {(i, n) for i, w in W.items() for n, p in enumerate(w["parts"])
-            if p.get("steelhead") == "known" and not export_steelhead.steelhead_rules_apply(doc, p)}
+            if p.get("steelhead") == "known" and p["ruleset"] is not None
+            and not export_steelhead.steelhead_rules_apply(doc, p)}
     assert flagged == want and flagged
-    assert {i for i, w in W.items() if w.get("steelhead_rules") is False} == {
+    # (T212, r-fa1915a56adb / r-ce76b4ed3624) a WHOLE tidal water (every part without a rule set: the delta channels
+    # Annacis, Bedford, Cannery, Enterprise, Morey, Parsons, Sapperton) is known and carries no rules, so it says false too
+    whole_tidal = {i for i, w in W.items() if w["parts"] and all(p["ruleset"] is None for p in w["parts"])}
+    assert {i for i, w in W.items() if w.get("steelhead_rules") is False} - whole_tidal == {
         OKANAGAN, INKANEEP, "gnis:29653"}
     fraser = W["gnis:39325"]
     assert "steelhead_rules" not in fraser

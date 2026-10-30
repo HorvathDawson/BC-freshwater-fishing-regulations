@@ -14,6 +14,8 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.tests.conftest import need
+
 from pipeline.deliver.release import shards as SH
 from pipeline.deliver.release import slices as SL
 
@@ -203,12 +205,13 @@ def _live():
     return root, m
 
 
-def test_on_the_live_release_a_slice_is_the_whole_file_for_what_it_covers(tmp_path):
+@pytest.mark.needs_bundle
+def test_on_the_live_release_a_slice_is_the_whole_file_for_what_it_covers(tmp_path, request):
     """For Regions 2 and 7B (the small and the far): every covered water's rows in every sliced table equal the whole
     file's; every covered sid's water (or none) is the whole core's; every str a kept row names is the whole's."""
+    need(request, "bundle", REPO / "data" / "release" / "LATEST", "python -m pipeline.deliver (writes data/release/<r-id> + LATEST)")
     live = _live()
-    if live is None:
-        pytest.skip("no live release on disk")
+    assert live is not None, "the live release has no core / water / regs-sid (an older release: re-run pipeline.deliver)"
     root, m = live
     paths = {}
     for n in ("core", "water", "regs-sid"):

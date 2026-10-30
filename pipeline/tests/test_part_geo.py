@@ -218,9 +218,12 @@ def test_kanaka_has_a_mark_at_the_bridge_and_at_the_falls_and_two_stretches(requ
     marks = db.execute("SELECT label, down_part, up_parts, down_stretch, up_stretches FROM part_mark WHERE ord = ? "
                        "ORDER BY mark_ix", o).fetchall()
     labels = sorted(m[0] for m in marks)
-    assert labels == ["112 Avenue bridge", "Cliff Park Falls"], marks
-    stretches = db.execute("SELECT part_ix, stretch_ix, rank FROM part_stretch WHERE ord = ? ORDER BY rank",
-                           o).fetchall()
+    # (T185/T212, split:kanaka_creek__cpr_bridge_tidal_boundary) below the CPR Bridge is tidal: its own unkeyed part
+    # (2), met at the bridge — the freshwater parts and their marks are as before
+    assert labels == ["112 Avenue bridge", "CPR Bridge (tidal boundary)", "Cliff Park Falls"], marks
+    tidal = {m[1] for m in marks if m[0] == "CPR Bridge (tidal boundary)"}
+    stretches = [r for r in db.execute("SELECT part_ix, stretch_ix, rank FROM part_stretch WHERE ord = ? ORDER BY rank",
+                                       o).fetchall() if r[0] not in tidal]
     assert len(stretches) == 3 and sorted({p for p, _, _ in stretches}) == [0, 1], stretches
     by = {m[0]: m for m in marks}
     two = [p for p, k, _ in stretches if k == 1][0]           # the part with two stretches

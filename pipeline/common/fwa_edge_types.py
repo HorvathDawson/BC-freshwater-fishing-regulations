@@ -30,6 +30,8 @@ CONNECTOR = "2300"
 
 MAIN_FLOW = frozenset({"1000", "1050", "1200", "1250"})
 SIDE_CHANNEL = frozenset({"1100", "1350"})
+#: the secondary-flow side channel (the Ruskin channels; an owner-named added side channel carries it too)
+SECONDARY_FLOW = "1350"
 
 
 def _types(x) -> frozenset[str]:

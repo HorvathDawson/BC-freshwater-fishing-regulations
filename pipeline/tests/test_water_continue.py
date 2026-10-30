@@ -457,10 +457,17 @@ def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
     # refused, and any new candidate is held, not shipped
     item = dict(b.execute("SELECT ord, item_id FROM item"))
     decided = C.Decided.load()
-    assert {(item[a], item[n]) for a, _, n, _ in rows} == decided.reviewed
+    # a reviewed link whose waters the registry no longer holds (FWA restore re-keyed city streams) is HELD as `stale`
+    # beside the bundle (continuations_held.json), never shipped — the owner re-reviews it
+    import json
+    held = Path(bundle).with_name("continuations_held.json")
+    stale = {(h["from"], h["to"]) for h in (json.loads(held.read_text()) if held.exists() else [])
+             if h.get("status") == "stale"}
+    assert stale <= decided.reviewed
+    assert {(item[a], item[n]) for a, _, n, _ in rows} == decided.reviewed - stale
     assert not {(item[a], item[n]) for a, _, n, _ in rows} & decided.refused
     assert ("gnis:27273", "blk:356368998") in decided.refused
-    assert len(rows) == 17
+    assert len(rows) == 17 - len(stale)   # 12 on r-ce76b4ed3624: 5 municipal links stale (held)
     atn, bc = ordof["gnis:17209"], ordof["gnis:11611"]
     assert [r for r in rows if atn in (r[0], r[2]) or bc in (r[0], r[2])] == [(atn, 3, bc, 0)]
 

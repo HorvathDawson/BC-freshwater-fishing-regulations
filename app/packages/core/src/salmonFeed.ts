@@ -138,7 +138,7 @@ export function salmonCheckedLine(f: SalmonFacts | null): string | null {
   const at = salmonFeedOf(f)?.at;
   const d = at ? new Date(at) : null;
   if (!d || Number.isNaN(d.getTime())) return null;
-  const m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getUTCMonth()];
+  const m = MONTHS[d.getUTCMonth()];   // the calendar spec's month names (gate 4: one calendar spec)
   return `DFO rules checked ${m} ${d.getUTCDate()}`;
 }
 

@@ -17,8 +17,15 @@ from pipeline.common.synopsis_definitions import definitions
 from pipeline.common.synopsis_pages import default_pdf
 from pipeline.deliver.answers import glossary as G
 from pipeline.deliver.bundle.glossary_source import rows_from_book
+from pipeline.tests.conftest import need
 
-pytestmark = pytest.mark.skipif(not default_pdf().exists(), reason="the repo synopsis PDF is not here")
+# no silent skips (conftest): the repo synopsis PDF is source data — a run without it FAILS naming it
+pytestmark = pytest.mark.needs_source
+
+
+@pytest.fixture(autouse=True)
+def _the_pdf(request):
+    need(request, "source", default_pdf(), "the repo synopsis PDF (data/source; see pipeline.common.synopsis_pages)")
 
 
 def _q(s: str) -> str:
