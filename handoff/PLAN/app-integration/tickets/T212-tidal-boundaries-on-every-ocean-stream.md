@@ -234,4 +234,4 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   Channel gnis:17368 (3.9 km), Gilmour Slough gnis:14010 (1.7 km), Sapperton Channel gnis:21224 (3.1 km), Tilbury
   Slough gnis:25152 (4.7 km), Williamson Slough gnis:8341 (3.2 km). All Region 2. Flags: Ewen Slough (the owner's
   example) has its own code 100-002200 — exact match misses it; the Fraser item itself (gnis:39325) shares the code and
-  is handled by the CPR-bridge cut. Applying = add the 6 to `tidal_waters.json` (reach-only rerun), after the owner's OK.
+  is handled by the CPR-bridge cut. **Owner 2026-10-29: YES** — the 6 are in `tidal_waters.json` (5ee1f591); Ewen Slough stays out. Release **r-ce76b4ed3624** (local LATEST): 10 whole tidal waters, 100 tidal rows, no rule left without water.
