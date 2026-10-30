@@ -50,7 +50,7 @@ import { DaySheet } from "./regs/DaySheet";
 import { WaterViewsContext } from "./ViewSwipe";
 import { MenuContext } from "./menu/MenuContext";
 import { BrowseHost } from "./shell/BrowseHost";
-import { MapLegend, PairBanner, RunsLegend } from "./shell/MapLegend";
+import { MapLegend, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
 import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
 import { SpotHost, useSpotEdit } from "./shell/SpotHost";
@@ -475,7 +475,7 @@ export function Shell(p: ShellProps) {
                   themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footH}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} photos={photos}
-                  loader={loader} syncState={syncState} menu={menu} menuInfo={menuInfo} mapDay={mapDay} regsPrefetch={regsPrefetch}
+                  loader={loader} syncState={syncState} sync={sync} onSync={onSync} menu={menu} menuInfo={menuInfo} mapDay={mapDay} regsPrefetch={regsPrefetch}
                   onDay={setMapDay} onOpenDay={() => setDayOpen(true)}
                   dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
@@ -559,6 +559,7 @@ export function Shell(p: ShellProps) {
             <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
           )}
           {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
+          {route.mode === "browse" && tab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footH} />}
           {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} onHelp={runsTour.reopen} />}
         </View>
       </View>

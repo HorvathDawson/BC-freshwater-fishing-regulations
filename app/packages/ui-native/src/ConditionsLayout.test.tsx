@@ -236,20 +236,25 @@ describe("P16: one reading order", () => {
       expect(precedes(order[i - 1]!, order[i]!), `item ${i} after item ${i - 1}`).toBe(true);
   });
 
-  it("keeps the chart's disclaimer in view under the forecast, and says the run's time local and labelled", async () => {
+  it("(T300) shuts the model's information and the Centre's disclaimer; ELF alone is said, and both open on a press", async () => {
     await draw("forecast");
     const DISCLAIMER = "USERS OF THIS DATA MUST ACCEPT ALL RESPONSIBILITY FOR THE USE AND "
       + "INTERPRETATION.";
-    // The forecast IS drawn (its run line is under the chart) …
-    await waitFor(() => expect(screen.getByText(forecastRunLine(
-      { model: "ELF", issuedAt: "2026-08-30T00:00:00Z", horizonDays: 30 }))).toBeTruthy());
+    const run = forecastRunLine({ model: "ELF", issuedAt: "2026-08-30T00:00:00Z", horizonDays: 30 });
+    // The forecast IS drawn, and ELF is the only model with one here: said, not hidden …
+    await waitFor(() => expect(screen.getByTestId("only-elf").textContent).toBe(CONDITIONS_WORDS.onlyModel("ELF")));
+    // … but the model's information and the disclaimer are shut: one "About this forecast", one "Sources and notes"
+    expect(screen.queryByText(DISCLAIMER)).toBeNull();
+    expect(screen.queryByTestId("about-forecast")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: CONDITIONS_WORDS.aboutForecast }));
     // the fixture's run is weeks old on any real clock: past the forecast's 36 h line (core staleness.ts), it says so
-    const runLine = screen.getByText(
-      `ELF run issued ${localStamp(Date.parse("2026-08-30T00:00:00Z"))} · 30-day outlook · likely out of date`);
-    // … and its disclaimer is on screen with the fold SHUT (required wherever a forecast appears), right after it.
+    const runLine = screen.getByText(run);
+    expect(run).toContain("likely out of date");
+    expect(screen.getByTestId("about-forecast").textContent).toContain("ELF is a low-water model");
+    fireEvent.click(screen.getByRole("button", { name: CONDITIONS_WORDS.fold }));
     const disclaimer = screen.getByText(DISCLAIMER);
     expect(precedes(runLine, disclaimer)).toBe(true);
-    expect(precedes(disclaimer, screen.getByRole("button", { name: CONDITIONS_WORDS.fold }))).toBe(true);
+    expect(CONDITIONS_WORDS.fold).toBe("Sources and notes");
   });
 
 

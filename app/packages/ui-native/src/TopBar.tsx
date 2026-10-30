@@ -192,14 +192,19 @@ export function BellGlyph({ palette, count }: { palette: Palette; count: number 
  * "ERROR badge (red)"): a badge in `closed` — the app's error red, as the failed-boot screen and a danger button use
  * it — with a "!" in `onAccent`, where the dot sits; the tap then opens what failed (the Shell's `SyncErrorSheet`).
  */
-function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM; onPress?: () => void }) {
+export function SyncButton({ palette, sync, onPress, bare = false }: {
+  palette: Palette; sync: SyncVM; onPress?: () => void;
+  /** (T300) the More tab's: the same button and states, a plain square with no field edge, and not the tour's target */
+  bare?: boolean;
+}) {
   const target = useCoachTarget("sync");   // (T257) the first-run tour points at it
   return (
-    <Pressable {...hitProps({ w: TOP_BAR.slot + 4, h: TOP_BAR.field })} ref={target} testID="sync-button" onPress={onPress} disabled={sync.kind === "checking"}
+    <Pressable {...hitProps({ w: TOP_BAR.slot + 4, h: TOP_BAR.field })} ref={bare ? undefined : target} testID={bare ? "more-sync-button" : "sync-button"} onPress={onPress} disabled={sync.kind === "checking"}
                accessibilityRole="button" accessibilityLabel={sync.label} accessibilityHint={sync.hint}
                aria-busy={sync.kind === "checking" || sync.kind === "downloading"}
                style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
-                                          justifyContent: "center", borderLeftWidth: 1, borderLeftColor: palette.line,
+                                          justifyContent: "center", borderLeftWidth: bare ? 0 : 1, borderLeftColor: palette.line,
+                                          ...(bare ? { height: TOP_BAR.field, borderRadius: palette.r.chip } : {}),
                                           backgroundColor: pressed ? palette.wash : "transparent" })}>
       <SyncGlyph palette={palette} sync={sync} />
     </Pressable>

@@ -138,7 +138,11 @@ export const CONDITIONS_WORDS = {
   byThen: "by then",
   readingWater: "Reading the water",
   /** The one fold under the donor list (P16): the working's working and the credits. */
-  fold: "Notes and sources",
+  fold: "Sources and notes",
+  /** (T300) the model's own information under the chart, shut until asked for */
+  aboutForecast: "About this forecast",
+  /** (T300) said when the one model drawn is ELF because it is the only one with a forecast here */
+  onlyModel: (model: string) => `Only ${model} forecasts this gauge.`,
   loadingRecord: "Loading the record",
   /** (T256) the chart drawn from the feed before the release's climatology (its normal-range band) has landed */
   envelopeLoading: "Loading the normal range for this time of year",

@@ -13,7 +13,7 @@
  */
 import { useContext, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
-import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
+import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
@@ -21,6 +21,7 @@ import { changeChartModel, changeView, chartParameter, useChartView, useConditio
          usePrefetchGauges, useSeries, type ChangeVM, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed } from "@app/ui";
 import { GaugeGroups } from "./GaugeGroups";
+import { Icon } from "./icons";
 import Svg, { Circle, Path } from "react-native-svg";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
@@ -238,22 +239,32 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       {chart.state === "ready" && !view && (
         <Text style={{ ...TYPE.body, color: palette.sub }}>{noChartSentence(span)}</Text>
       )}
-      {/* WHEN the run was made, beside what it says — local and labelled (core). */}
-      {run?.series && run.issuedAt && (
-        <Text style={{ ...TYPE.meta, color: palette.faint }}>
-          {forecastRunLine({ model: run.model, issuedAt: run.issuedAt,
-                             horizonDays: run.horizonDays })}
-        </Text>
+      {/* (T300) ONLY ELF: the one model drawn is the low-water one because no other has a forecast here — said, not hidden */}
+      {run && forecast && run.model === "ELF" && runs.length === 1 && (
+        <Text testID="only-elf" style={{ ...TYPE.meta, color: palette.sub }}>{W.onlyModel(run.model)}</Text>
       )}
-      {/* THE CENTRE'S DISCLAIMER STAYS IN VIEW, under the forecast it is about: the Province requires it verbatim
-          "wherever a forecast appears" (App.tsx attribution, pipeline/hydro/forecast.py). A fold would hide a required
-          notice, so it is not folded unless the owner rules otherwise (p16/README). */}
-      {disclaimer && <Text style={{ ...TYPE.meta, color: palette.faint }}>{disclaimer}</Text>}
+      {/* (T300) THE MODEL'S OWN INFORMATION, shut by default: when the run was made (local, labelled — core), and for ELF
+          what it is. The Centre's disclaimer and the credits are under Sources and notes at the foot of the page. */}
+      {run?.series && run.issuedAt && (
+        <About palette={palette} label={W.aboutForecast}>
+          <Text style={{ ...TYPE.meta, color: palette.sub }}>
+            {forecastRunLine({ model: run.model, issuedAt: run.issuedAt, horizonDays: run.horizonDays })}
+          </Text>
+          {run.model === "ELF" && <Text style={{ ...TYPE.meta, color: palette.sub }}>{CHANGE_LOW_WATER}</Text>}
+        </About>
+      )}
     </View>
   ) : null;
 
-  /* THE FOLD'S FOOT: the credits. (The Centre's disclaimer is under the chart, never folded — see above.) */
-  const small = credits?.length ? <Credits palette={palette} lines={credits} /> : undefined;
+  /* (T300) THE FOLD'S FOOT, under "Sources and notes" at the bottom of the page (owner 2026-10-30, who rules that the
+     Centre's disclaimer and the credits may be folded): the Centre's disclaimer verbatim while its forecast is drawn, the
+     Province's attribution, ELF's low-water statement under Change, then the data credits. */
+  const notes: React.ReactNode[] = [];
+  if (disclaimer) notes.push(<Text key="disclaimer" testID="forecast-disclaimer" style={{ ...TYPE.meta, color: palette.faint }}>{disclaimer}</Text>);
+  if (change?.attribution) notes.push(<Text key="attribution" style={{ ...TYPE.meta, color: palette.faint }}>{change.attribution}</Text>);
+  if (horizon === "change") notes.push(<Text key="lowwater" testID="change-legend-low-water" style={{ ...TYPE.meta, color: palette.faint }}>{CHANGE_LEGEND.lowWater}</Text>);
+  if (credits?.length) notes.push(<Credits key="credits" palette={palette} lines={credits} />);
+  const small = notes.length ? <View style={{ gap: SPACE.s3 }}>{notes}</View> : undefined;
 
   /* ONE READING ORDER, decided in `DonorPanel`: header → headline → detail → chart →
      donors → the fold (which holds the credits; the disclaimer stays under the chart). */
@@ -282,6 +293,21 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
         </ScrollView>
       : <ScrollView contentContainerStyle={pad}>{body}</ScrollView>
     : <View style={{ gap: SPACE.s4 }}>{body}</View>;
+}
+
+/** (T300) A shut-by-default line of detail: one toggle, its text when opened. */
+function About({ palette, label, children }: { palette: Palette; label: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <View style={{ gap: SPACE.s2 }}>
+      <Pressable {...hitProps({ w: 200, h: 36 })} onPress={() => setOpen(!open)} accessibilityRole="button" aria-expanded={open}
+                 style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, alignSelf: "flex-start" }}>
+        <Text style={{ ...TYPE.metaBold, color: palette.sub }}>{label}</Text>
+        <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={14} />
+      </Pressable>
+      {open && <View testID="about-forecast" style={{ gap: SPACE.s1 }}>{children}</View>}
+    </View>
+  );
 }
 
 /**
@@ -372,7 +398,6 @@ function ChangeBlock({ palette, change, colour }: { palette: Palette; change: Ch
         <Text testID="change-caveat" style={{ ...TYPE.body, color: palette.ink }}>{change.caveat}</Text>
       )}
       {change.none && <NoneLine palette={palette} size="body">{change.none}</NoneLine>}
-      {change.attribution && <Text style={{ ...TYPE.meta, color: palette.faint }}>{change.attribution}</Text>}
     </View>
   );
 }

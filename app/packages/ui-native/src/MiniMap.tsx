@@ -8,11 +8,20 @@
  * screen it sits under.
  */
 import type { SectionKey } from "@app/core";
-import { Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import { TYPE } from "./type";
 import { useSwipeShield } from "./ViewSwipe";
 import type { Palette } from "./theme";
+
+/**
+ * (T300) A MAP KEEPS ITS OWN TOUCHES ON THE WEB. A water's views wrap their body in a detector whose `touch-action` is
+ * `pan-y pinch-zoom` (`WEB_PAGE_PROPS`), and a browser takes the intersection of every element up to the nearest scroll
+ * container: so MapLibre's canvas, which asks for pan-x pan-y, was left with `pan-y` — a vertical drag scrolled the page
+ * out from under the map, a pinch zoomed the page, and the map got pointercancel half-way: a pan that stopped, a pinch
+ * that did nothing. `none` on the map's own box takes them back; the page scrolls from the text around the map.
+ */
+const OWN_TOUCHES = (Platform.OS === "web" ? { touchAction: "none" } : {}) as object;
 
 export function MiniMap({ at, palette, theme, camera, height = 190, view = "plain",
                           hint, standing, highlight, marker, pins, bare, groups, fit,
@@ -45,7 +54,7 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "plai
   const shield = useSwipeShield();
   return (
     <View {...shield} style={[style ? null : { height },
-                  { backgroundColor: palette.tint, overflow: "hidden" }, style]}>
+                  { backgroundColor: palette.tint, overflow: "hidden" }, OWN_TOUCHES, style]}>
       <Map at={at} theme={theme} view={view} initial={camera} standing={standing}
            highlight={highlight} marker={marker} pins={pins} bare={bare} groups={groups}
            fit={fit} basemap={basemap} trace={trace} zoomControls={zoomControls} waterLine={waterLine} />
