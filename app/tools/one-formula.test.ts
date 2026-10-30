@@ -152,6 +152,12 @@ const PANELS: [number | null, C[]][] = [
   // review: without this panel a Python `<` passed beside the app's `<=`.
   [100, [c(0.9, 100, { sameRiver: false }), c(0.95, 100, { reserve: true, sameRiver: false }),
          c(0.05, 100, { reserve: true, sameRiver: false })]],
+  // (T296) a gauge reached through a lake: damped (and stripped of its lead) while a no-lake vote reports; untouched
+  // when every vote crosses a lake (the upper Pitt); the floor still asks the undamped total
+  [100, [c(0.1, 100, { throughLake: true, lead: 1 }), c(0.8, 130)]],
+  [100, [c(0.1, 100, { throughLake: true, lead: 1 }), c(0.8, 130, { throughLake: true })]],
+  [100, [c(0.2, 100, { throughLake: true }), c(0.9, 50_000, { years: 4, sameRiver: false })]],
+  [100, [c(0.2, 100, { throughLake: true }), c(0.7, 90, { sameRiver: false }), c(0.75, 300, { role: "down" })]],
   ...[0.05, 0.3, 0.5, 0.7, 0.95].flatMap((p): [number, C[]][] => [10, 1000, 25_000].map((a) =>
     [a, [c(p, a * 2.5), c(1 - p / 2, a / 7, { role: "down", years: 12 }), c(p / 3, a * 40, { sameRiver: false, lead: 2 })]])),
 ];
@@ -165,7 +171,8 @@ from pipeline.gauges.consume.panel import Contribution, answering
 out = []
 for target, cs in json.loads(${JSON.stringify(JSON.stringify(PANELS))}):
     got, stood = answering(target, [Contribution(x["percentile"], x["role"], x["areaKm2"], x["years"],
-                                                 x.get("sameRiver", True), x.get("lead", 0), x.get("reserve", False))
+                                                 x.get("sameRiver", True), x.get("lead", 0), x.get("reserve", False),
+                                                 x.get("throughLake", False))
                                     for x in cs])
     if got["ok"]:
         v = got["value"]

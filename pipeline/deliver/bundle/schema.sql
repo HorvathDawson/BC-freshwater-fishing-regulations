@@ -996,7 +996,10 @@ CREATE TABLE lake_gauge (item_id TEXT NOT NULL, station TEXT NOT NULL,
 -- upper Pitt never reached the Alouette's gauge). `len`: the reach's length along the flow path in units of
 -- `shed.DOWN_LEN_UNIT_M` (a lake: its through-line's measure window, else inflow-to-outlet straight line), summed by the
 -- app for "about N km along the river". ADDED LAST, nullable: still down/1, an older release has none.
-CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER NOT NULL, len INTEGER);
+-- (T296) `lake`: 1 where the reach is a LAKE (`shed.lake_reaches`: a lake polygon not a stream water's), NULL otherwise —
+-- a gauge whose route crosses one is reached through standing water and the app weighs it so (`lakeDamped`). ADDED
+-- LAST, nullable: still down/1; an older release has none and the app reads a route's lake from its water's kind.
+CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER NOT NULL, len INTEGER, lake INTEGER);
 
 -- Pentad-sampled percentiles. p0 and p100 are absent on purpose: they do not interpolate
 -- (82% error, measured), and a wrong extreme is worse than no extreme.

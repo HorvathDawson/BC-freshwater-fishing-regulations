@@ -37,7 +37,7 @@ const LAT: Record<string, number> = { LEAD: 49.2, STALE: 49.3, SECOND: 49.0, COA
 const NAME: Record<string, string> = { LEAD: "Lead Creek", STALE: "Liard River at Upper Crossing",
   SECOND: "Second Creek", COAL: "Coal River", RANKLESS: "Rankless Creek", GONE: "Gone Creek" };
 
-/** Every member placed on the map with its own one-reach route, as `usePanelRoutes` hands them over. */
+/** Every member placed on the map with its own one-reach route, as `useRoutes` hands them over. */
 function routed(a: PanelAnswer): PanelAnswer {
   return { ...a, routesReady: true, rows: a.rows.map((r): DonorRow => ({ ...r, route: {
     station: r.station, name: NAME[r.station]!, lat: LAT[r.station]!, lon: -121.5, role: r.role,

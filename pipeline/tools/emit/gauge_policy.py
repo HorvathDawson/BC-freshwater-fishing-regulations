@@ -54,7 +54,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from pipeline.gauges.consume.panel import MIN_TOTAL_WEIGHT
+from pipeline.gauges.consume.panel import MIN_TOTAL_WEIGHT, THROUGH_LAKE_FACTOR
 from pipeline.gauges.consume.shed import DIST_STEP, GAUGE_RELS, TRUST_BANDS
 from pipeline.gauges.feed import change as _change
 from pipeline.gauges.feed.climatology import PCTILES
@@ -187,6 +187,11 @@ export const MIN_TOTAL_WEIGHT = {_num(MIN_TOTAL_WEIGHT)};
 
 /** The days ahead the publisher ranks a forecast for (now, 0, is the app's own). */
 export const FORECAST_DAYS = [{days}] as const;
+
+// A gauge reached through a lake (T296, owner 2026-10-29), from THROUGH_LAKE_FACTOR in pipeline/gauges/consume/panel.py.
+
+/** What a vote whose path crosses a lake keeps of its weight while a vote with no lake on its path reports. */
+export const THROUGH_LAKE_FACTOR = {_num(THROUGH_LAKE_FACTOR)};
 '''
 
 
@@ -208,7 +213,7 @@ def main(argv=None) -> int:
                   "pipeline/gauges/feed/publish.py :: _TEMP_BANDS / "
                   "pipeline/gauges/feed/change.py / "
                   "pipeline/gauges/feed/record.py / climatology.py PCTILES / "
-                  "pipeline/gauges/consume/panel.py MIN_TOTAL_WEIGHT / publish.py HORIZONS", file=sys.stderr)
+                  "pipeline/gauges/consume/panel.py MIN_TOTAL_WEIGHT, THROUGH_LAKE_FACTOR / publish.py HORIZONS", file=sys.stderr)
         print("  run: python -m pipeline.tools.emit.gauge_policy", file=sys.stderr)
         return 1
     for p, want in stale:

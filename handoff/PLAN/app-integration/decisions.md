@@ -1690,3 +1690,23 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - Bedford Channel, Enterprise Channel, Gilmour Slough, Sapperton Channel, Tilbury Slough, Williamson Slough (exact Fraser
   code, below the CPR bridge at Mission) are tidal along their whole length (`tidal_waters.json`). Ewen Slough (its own
   code) stays freshwater.
+
+## OWNER 2026-10-29 — a gauge reached through a lake (T296)
+- Owner: "if no gauge is downstream I agree that is fine but if there are other gauges closer they should take almost
+  full amount of the prediction because through a lake acts as a natural dampening system for the measurement."
+- RULE (gauge representativeness is owner policy): where a water's answer draws on several gauges, a gauge whose ROUTE
+  to the water crosses a lake keeps `THROUGH_LAKE_FACTOR` (0.05) of its usual weight and may not lead WHENEVER another
+  reporting gauge reaches the water with no lake between — that one takes ~95%+ of the answer. Where every counted
+  gauge crosses a lake, nothing changes (they are the best there is) and the Conditions panel says, beside the answer:
+  "Measured below Pitt Lake — the lake smooths changes, so read it loosely." (`THROUGH_LAKE_WORDS`, core).
+- One formula: `lake_damped` (pipeline/gauges/consume/panel.py) ↔ `lakeDamped` (core/trust.ts), run side by side by
+  app/tools/one-formula.test.ts; the constant is generated into core (`gauge-policy.generated`). The panel's floor
+  (`MIN_TOTAL_WEIGHT`) still asks the undamped total — the rule says who is heard, not how much is known.
+- Where the lake comes from: the donor ROUTE (`section_down` pointers), its reaches between the two ends, a reach being a
+  lake by `section_down.lake` (build: `shed.lake_reaches`, the donor walk's own `flowing` definition — a lake polygon
+  not a stream water's) or, on a release cut before that column, by its water's kind. Not on `panel_member`: one panel
+  serves sections on both sides of a lake, and paint's format would have to change (an installed APK refuses a new
+  paint version). So the rule applies on the SHEET once the routes are walked; the map's colour and a saved spot
+  weigh as before (measured 2026-10-29 on the live bundle: of 60,010 named panel sections with routes, 0 mix a
+  through-lake gauge with a no-lake one; 673 — the upper Pitt, Lillooet, Bowser, Shuswap… — have only through-lake
+  gauges and get the caution line).

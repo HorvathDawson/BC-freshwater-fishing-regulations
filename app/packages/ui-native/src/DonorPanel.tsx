@@ -268,6 +268,10 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         {vm.lowWater && (
           <Text testID="section-low-water" style={{ ...TYPE.meta, color: palette.ink }}>{vm.lowWater}</Text>
         )}
+        {/* (T296) read only through a lake: the caution beside the answer it qualifies (never folded) */}
+        {vm.throughLake && (
+          <Text testID="section-through-lake" style={{ ...TYPE.meta, color: palette.ink }}>{vm.throughLake}</Text>
+        )}
       </Block>
 
       {detail && <Block palette={palette}>{detail}</Block>}

@@ -1,11 +1,11 @@
 /**
  * THE PANEL READS: every panel fetched once per section through one cache, handed to the arithmetic — the route map's
  * standings (`usePanelStandings`) and the sheet's answer (`usePanel`, `useSpeaker`,
- * `usePanelRoutes`) are one calculation over different numbers of sections.
+ * `useJoinedRoutes`) are one calculation over different numbers of sections.
  */
 import { useMemo } from "react";
-import { answerFrom, sectionStanding, speakerFor, type Horizon, type Panel,
-         type PanelAnswer, type Quantity, type WaterSource, type SectionId, type Speaker } from "@app/data";
+import { answerFrom, sectionStanding, speakerFor, withThroughLake, type Horizon, type Panel, type PanelAnswer,
+         type PanelRoute, type Quantity, type WaterSource, type SectionId, type Speaker, type StationId } from "@app/data";
 import { useAsync, type Async } from "../async";
 import { useFeedVersion } from "../feedVersion";
 
@@ -152,9 +152,14 @@ export function usePanel(
   section: SectionId | null,
   quantity: Quantity = "discharge",
   horizon: Horizon = 0,
+  /** (T296) the members whose route crosses a lake (`throughLakeStations`), once walked; null or empty: none known. */
+  lakes: ReadonlySet<StationId> | null = null,
 ): PanelAnswer {
   // (owner 2026-10-29) the open Conditions view re-reads a feed the update service took, in place
   const v = useFeedVersion("gauges");
+  // (T296) a REFRESH of the same question when the lakes arrive (same `sameAs`): the first answer stays until the
+  // through-lake one replaces it, never a loading frame
+  const lakeKey = lakes?.size ? `:lakes=${[...lakes].sort().join(",")}` : "";
   const got = useAsync(
     async () => {
       if (!section) return null;
@@ -165,9 +170,9 @@ export function usePanel(
         cached(source, [section]),
         feed ? feed.index() : Promise.resolve(null),
       ]);
-      return answerFrom(panels.get(section), idx, quantity, horizon);
+      return answerFrom(withThroughLake(panels.get(section), lakes), idx, quantity, horizon);
     },
-    `panel:${section ?? ""}:${quantity}:${horizon}#${v}`,
+    `panel:${section ?? ""}:${quantity}:${horizon}${lakeKey}#${v}`,
     section !== null,
     `panel:${section ?? ""}:${quantity}:${horizon}`,
   );
@@ -199,24 +204,28 @@ export function useSpeaker(source: WaterSource, section: SectionId | null):
 }
 
 /**
- * The same answer, with each donor placed on the map.
+ * The panel's routes for a section (`WaterSource.panelRoutes`); null while walking — `useJoinedRoutes` places each
+ * donor on the map with them, and (T296) their lake crossings go back into `usePanel`.
  *
  * SEPARATE FROM `usePanel` AND NOT FOLDED INTO IT, because the routes are several walks
  * down the pointer table and the panel is one indexed read. The number and the table must
  * appear as soon as the reading does; the map catching up a moment later costs nothing,
  * whereas making the headline wait on a graph walk would be visible on every tap.
- *
- * Rows keep the weight ORDER `usePanel` produced, so the map's key, the table and the
- * arithmetic are all the same list in the same sequence.
  */
-export function usePanelRoutes(source: WaterSource, section: SectionId | null,
-                               panel: PanelAnswer): PanelAnswer {
+export function useRoutes(source: WaterSource, section: SectionId | null): readonly PanelRoute[] | null {
   const got = useAsync(
     async () => (section ? await source.panelRoutes(section) : []),
     `routes:${section ?? ""}`,
     section !== null,
   );
-  const routes = got.state === "ready" ? got.value : null;
+  return got.state === "ready" ? got.value : null;
+}
+
+/**
+ * The same answer, with each donor placed on the map. Rows keep the weight ORDER `usePanel` produced, so the map's key,
+ * the table and the arithmetic are all the same list in the same sequence.
+ */
+export function useJoinedRoutes(panel: PanelAnswer, routes: readonly PanelRoute[] | null): PanelAnswer {
   return useMemo<PanelAnswer>(() => {
     if (!routes) return panel;                    // still walking; `routesReady` stays false
     const by = new Map(routes.map((r) => [r.station as string, r]));

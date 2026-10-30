@@ -5,6 +5,7 @@ import { changeLowWaterNote, CONDITIONS_WORDS, disagreeNote, donorBecause, donor
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorSilent, donorVotes, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
          panelCamera, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
+         throughLakeNote,
          backwaterNote, unplacedNote, type SectionKey } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, joinMapLabel, ROUTE_MAP_WORDS, routeLegend } from "@app/core";
 import { gaugeSides, groupGauges, isDonorSide, stateAt, type GaugeGroup, type GaugeSide } from "@app/core";
@@ -145,6 +146,8 @@ export type DonorVM =
       /** A lake's standing backwater (T160): one sentence, Level only, where a reporting member's station is backed
        *  up by a lake below it; else null. */
       backwater: string | null;
+      /** (T296) Every counted gauge reaches this water through a lake: "Measured below Pitt Lake — …"; else null. */
+      throughLake: string | null;
       disagree: string | null;
       /**
        * Under Change, where a counted gauge's change is ELF's alone (T157, core `changeLowWaterNote`): the low-water
@@ -328,6 +331,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     regulated: regulatedNote(rows),
     tidal: o.quantity ? tidalNote(rows, o.quantity) : null,
     backwater: o.quantity ? backwaterNote(rows, o.quantity) : null,
+    throughLake: throughLakeNote(rows),
     disagree: disagreeNote(e, o.horizon),
     lowWater: o.horizon === "change" ? lowWaterNote(shown) : null,
     explainer: o.horizon === "change" ? `${CONDITIONS_WORDS.changeExplainer} ${CONDITIONS_WORDS.explainer}`

@@ -660,7 +660,8 @@ export const PACK_FILES: Record<string, PackFile> = {
       "section_down": [
         "sid",
         "down_sid",
-        "len"
+        "len",
+        "lake"
       ]
     }
   },

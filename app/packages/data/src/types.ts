@@ -179,6 +179,12 @@ export interface PanelMember {
    * `estimate` (`leaderOf`, `leadShares`). Optional so a panel written by hand without it means "nothing leads".
    */
   lead?: number;
+  /**
+   * (T296) `true` only: this member's path to the section crosses a LAKE (its route's `throughLake`). Not in the
+   * release — a panel is shared by sections on both sides of a lake — so it is set on a sheet once the routes are
+   * walked (`withThroughLake`); absent on the map's colour and a saved spot. Core's `lakeDamped` applies it.
+   */
+  throughLake?: true;
 }
 
 
@@ -261,6 +267,15 @@ export interface PanelRoute {
    */
   joinSide?: "spot" | "gauge";
   joinWater?: string;
+  /**
+   * (T296) `true` only: `path` crosses a LAKE between the spot and the gauge (`section_down.lake`, else the water's kind
+   * on a release cut before it) — a lake smooths the gauge's signal on its way here. Absent otherwise, and when the path
+   * is not drawable. `lakeName` names the first such lake, absent when it is unnamed.
+   */
+  throughLake?: true;
+  lakeName?: string;
+  /** (T296) With `throughLake`: the gauge stands `below` the lake (on the spot's way down) or `above` it. */
+  lakeSide?: "below" | "above";
 }
 
 /** Which quantity a chart is about. Never mixed — see `Series.parameter`. */

@@ -95,7 +95,8 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     from pipeline.gauges import build_gauge_sheds, lake_gauge_links
     from pipeline.gauges.consume.place import nodes_for, summarise
     from pipeline.gauges.matches import check_record, read_match
-    from pipeline.gauges.consume.shed import DOWN_LEN_UNIT_M, downstream_map, load_stations, section_lengths
+    from pipeline.gauges.consume.shed import (DOWN_LEN_UNIT_M, downstream_map, lake_reaches, load_stations,
+                                              section_lengths)
     from pipeline.gauges.liveness import dormant, may_speak, speaks_now
 
     from pipeline.common.section_handles import read as _read_handles
@@ -389,8 +390,12 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     down = downstream_map(graph, [*(l.section_id for l in links),
                                   *(s for s in panels.by_section if s in owner)])
     lens = section_lengths(graph, down)
-    db.executemany("INSERT INTO section_down (sid, down_sid, len) VALUES (?,?,?)",
-                   [(sid[s], sid[down[s]], round(lens[s] / DOWN_LEN_UNIT_M)) for s in sorted(down)])
+    # (T296) `lake`: 1 where the reach is a lake (`shed.lake_reaches`, the donor walk's own definition), NULL otherwise —
+    # the app weighs a gauge whose route crosses one as reached through standing water (`lakeDamped`)
+    lakes = lake_reaches(graph, down, owner, {i["id"]: i.get("kind") for i in registry_items if is_water(i)})
+    db.executemany("INSERT INTO section_down (sid, down_sid, len, lake) VALUES (?,?,?,?)",
+                   [(sid[s], sid[down[s]], round(lens[s] / DOWN_LEN_UNIT_M), 1 if s in lakes else None)
+                    for s in sorted(down)])
     cov.filled("section_down", len(down))
 
     bands: dict[str, int] = {}

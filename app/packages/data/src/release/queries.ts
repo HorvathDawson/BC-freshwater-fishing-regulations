@@ -138,6 +138,13 @@ export const CROSS = {
   HAS_DOWN_LEN: { file: "down", sql: "SELECT 1 AS x FROM pragma_table_info('section_down') WHERE name = 'len'" },
   /** (T252) down: one reach's length along the flow path, in `DOWN_LEN_UNIT_M` units (`sql/shared` decodes it). */
   LEN_OF: { file: "down", sql: "SELECT len FROM section_down WHERE sid = ?" },
+  /**
+   * (T296) down: whether `section_down` carries `lake` (1 where the reach is a lake polygon, ADDITIVE, still down/1); a
+   * release cut before it says a route's lake by its water's kind instead.
+   */
+  HAS_DOWN_LAKE: { file: "down", sql: "SELECT 1 AS x FROM pragma_table_info('section_down') WHERE name = 'lake'" },
+  /** (T296) down: whether one reach is a lake (`lake` 1; NULL or no row: not). */
+  LAKE_OF: { file: "down", sql: "SELECT lake FROM section_down WHERE sid = ?" },
   HAS_LAKE_SECTION: { file: "conditions", sql:
     "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'lake_section'" },
   /** conditions: stations standing on these sections. */
