@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -52,18 +53,41 @@ def read_metadata(archive: Path) -> dict:
     return json.loads(_pmtiles("show", "--metadata", str(archive)) or "{}")
 
 
-def stamp(archive: Path, build_dir: Path) -> str:
-    """Stamp the version into `archive` (in place) and return it."""
-    from pipeline.common.section_handles import digest_for, registry_digest_for
-    handles16 = digest_for(build_dir)
-    version = version_id(handles16, sha256_file(archive, 12))
-    meta = stamped_metadata(read_metadata(archive), version, handles16, registry_digest_for(build_dir))
+#: tippecanoe writes its own command line into the metadata (`generator_options`), and that names the build's
+#: RANDOM temp dir (`tempfile.TemporaryDirectory(prefix="tiles-lowband-")`, tippe.py): every tile build of the
+#: same tiles hashed to a new version (T305). The temp dir is replaced by this token before the hash.
+_TMP_DIR = re.compile(r"\S*?/tiles-(?:lowband|ids)-[^/\s']+")
+TMP_TOKEN = "<tmp>"
+
+
+def normalised_metadata(meta: dict) -> dict:
+    """The metadata with no build-specific temp path in it (T305) — nothing else changed."""
+    opts = meta.get("generator_options")
+    if not isinstance(opts, str):
+        return meta
+    return {**meta, "generator_options": _TMP_DIR.sub(TMP_TOKEN, opts)}
+
+
+def _edit_metadata(archive: Path, meta: dict) -> None:
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
         json.dump(meta, fh)
     try:
         _pmtiles("edit", str(archive), "--metadata", fh.name)
     finally:
         Path(fh.name).unlink(missing_ok=True)
+
+
+def stamp(archive: Path, build_dir: Path) -> str:
+    """Stamp the version into `archive` (in place) and return it. The temp path tippecanoe recorded is normalised
+    first (T305), so the same tiles always hash to the same version."""
+    from pipeline.common.section_handles import digest_for, registry_digest_for
+    handles16 = digest_for(build_dir)
+    raw = read_metadata(archive)
+    if normalised_metadata(raw) != raw:
+        _edit_metadata(archive, normalised_metadata(raw))
+    version = version_id(handles16, sha256_file(archive, 12))
+    meta = stamped_metadata(read_metadata(archive), version, handles16, registry_digest_for(build_dir))
+    _edit_metadata(archive, meta)
     got = read_metadata(archive)
     if got.get("tile_version") != version:
         raise RuntimeError(f"tiles: the version stamp did not stick in {archive} ({got.get('tile_version')!r})")

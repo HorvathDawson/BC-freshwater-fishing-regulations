@@ -45,9 +45,9 @@ the curated files the stages read. Neither is in any key (`NOT_BUILD_INPUTS`), a
 marks.jsonl absent.
 
 SIDE RUNS (`--side DIR`, T297): every stage writes under DIR (atlas/<build>_next, reaches/, tiles/,
-clim.json, deliver/ with its release/) with its own manifest; the promoted atlas is what reach, tiles
-and deliver read (a side run never promotes); the live tiles, bundle, release and LATEST are not
-touched. A side clim.json that differs from the live one is refused (deliver reads the live one).
+clim.json, deliver/ with its release/) with its own manifest; reach, tiles and deliver read the side
+atlas when `--atlas` built one, else the promoted atlas (a side run never promotes); the live tiles,
+bundle, release and LATEST are not touched. A side clim.json that differs from the live one is refused (deliver reads the live one).
 """
 from __future__ import annotations
 
@@ -591,7 +591,7 @@ def atlas_stage(build_dir: Path, promote: bool, run: dict, m: dict) -> bool:
               "-", run, m)
     if SIDE is not None:
         print(f"\nbuild (side): {nxt} is built and its parity printed above; it is NOT promoted — the rest of "
-              f"the side run reads the promoted atlas {build_dir}.")
+              f"the side run reads it (a side rebuild proves the whole chain on the new atlas).")
         return True
     if not promote:
         print(f"\nbuild: {nxt} is built and its parity printed above. Promote it with\n"
@@ -659,6 +659,11 @@ def main(argv: list[str] | None = None) -> int:
                 run["status"] = "atlas built, not promoted"
                 save_manifest(m)
                 return 0
+            if SIDE is not None:
+                # A SIDE RUN WITH --atlas READS ITS OWN ATLAS (T306/Sheldens 2026-10-30): a change that lives in the
+                # atlas (a registry name) could not otherwise be proven end to end without promoting it.
+                build_dir = SIDE / "atlas" / (build_dir.name + "_next")
+                prepare_side(build_dir)
         elif a.promote:
             nxt = build_dir.with_name(build_dir.name + "_next")
             run_stage("promote", [sys.executable, "-m", "pipeline.atlas.promote", str(nxt)], "-",

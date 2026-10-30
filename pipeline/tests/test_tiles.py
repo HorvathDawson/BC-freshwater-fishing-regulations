@@ -521,3 +521,16 @@ def test_a_side_channel_run_draws_whole_from_its_biggest_pieces_zoom():
     assert out["S1"] == out["S2"] == out["S3"] == zoom("S1") < zoom("S2")
     assert "M" not in out and "C" not in out            # main flow keeps the ladder's own zoom
     assert out["X"] == zoom("X")                          # a separate run (joined only through M)
+
+
+def test_the_temp_dir_tippecanoe_records_never_reaches_the_tile_version():
+    """T305: tippecanoe writes its command line (with the build's RANDOM temp dir) into `generator_options`; two
+    builds of the same tiles must hash alike, so the temp path is normalised before the hash — and nothing else."""
+    from pipeline.deliver.tiles.version import TMP_TOKEN, normalised_metadata
+    a = {"name": "atlas", "generator_options": "tippecanoe -o /var/folders/s6/x/T/tiles-lowband-el8yz08o/low.mbtiles "
+                                               "--force '--name=atlas' /tmp/tiles-ids-k2_9a/stream.geojsonl"}
+    b = {**a, "generator_options": a["generator_options"].replace("el8yz08o", "q1w2e3r4").replace("k2_9a", "zz")}
+    assert normalised_metadata(a) == normalised_metadata(b)
+    got = normalised_metadata(a)["generator_options"]
+    assert got == f"tippecanoe -o {TMP_TOKEN}/low.mbtiles --force '--name=atlas' {TMP_TOKEN}/stream.geojsonl"
+    assert normalised_metadata({"name": "x"}) == {"name": "x"}
