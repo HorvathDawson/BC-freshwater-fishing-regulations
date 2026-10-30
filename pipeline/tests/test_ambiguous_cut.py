@@ -374,8 +374,19 @@ def test_mohun_between_the_bridge_and_morton_lake_ends_at_the_outlet(real):
 @pytest.mark.needs_atlas
 @pytest.mark.slow
 def test_cayoosh_below_the_falls_starts_at_the_lower_crossing(real):
-    amb = _amb(real, CAYOOSH, "cayoosh_creek.r2")["cayoosh_creek__cayoosh_falls"]
-    assert round(amb["used"]) == 1771 and amb["toward"] == "mouth"
+    """The falls point was moved by the owner (2026-10-25, splits.json) onto the lower crossing,
+    the downstream edge of polygon wbk 329505890 (measure 1771.30): the cut has ONE candidate now,
+    so it is no longer ambiguous — and the stretch below the falls still ends at 1,771 m."""
+    from pipeline.atlas.reach.build import build_reach
+    g, reg, corpus = real
+    e = corpus[CAYOOSH]
+    b, diags = build_reach(e, next(r for r in e["rules"] if r["rule_id"] == "cayoosh_creek.r2"), reg, g)
+    assert "cayoosh_creek__cayoosh_falls" not in {d.payload.get("split_id") for d in diags
+                                                  if d.kind == "ambiguous_cut"}
+    main = [g.nodes[s] for s in b.sections if s.startswith("356364387:")]
+    top = max(main, key=lambda n: n.up_m)
+    assert round(top.up_m) == 1771
+    assert top.upper_bound.boundary_id == "split:cayoosh_creek__cayoosh_falls"
 
 
 MOHUN = "r1:mohun_creek@1-10"

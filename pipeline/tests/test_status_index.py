@@ -209,6 +209,49 @@ def test_the_index_agrees_with_effective_rules_on_6000_section_days(built):
 
 @pytest.mark.needs_bundle
 @pytest.mark.slow
+def test_every_rule_key_tidal_and_outside_section_agrees_with_effective_rules(built):
+    """T306 (owner: the colouring and the full rule calculation are ONE logic): not a sample of
+    sections — EVERY rule key the bundle binds (one section carrying it, on each day its code
+    changes, the day before, and mid-run), EVERY tidal section and EVERY outside-B.C. section
+    (with or without a rule set: 99 of 100 tidal sections carry none, and the old parallel copy in
+    `compute` read them base). 0 disagreements with `status_by_reader`."""
+    db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
+    try:
+        one_per_key = dict(db.execute("SELECT key_ix, min(sid) FROM section_ruleset GROUP BY key_ix"))
+        tidal, outside = SI.special_sections(db)
+    finally:
+        db.close()
+    pairs = []
+    for sid in sorted(one_per_key.values()):
+        pi = built.sections.get(sid)
+        runs = SI.runs_of(built.profiles[pi]) if pi is not None else [(366, SI.BASE)]
+        d = 1
+        for length, _ in runs:
+            for x in {d, d + length // 2, d + length - 1}:
+                m, dd = CAL.month_day(x)
+                pairs.append((sid, dt.date(2024, m, dd)))
+            d += length
+    for sid in sorted(tidal | outside):
+        pairs += [(sid, dt.date(2025, 7, 14)), (sid, dt.date(2025, 12, 31)), (sid, dt.date(2024, 2, 29))]
+    bad = _mismatches(built, pairs)
+    assert not bad, f"{len(bad)} of {len(pairs)} disagree, e.g. {bad[:5]}"
+    assert all(built.code(s, dt.date(2025, 7, 14)) == SI.TIDAL for s in tidal)
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.slow
+def test_the_shipped_index_is_the_one_the_parity_tests_check(built):
+    """The file on disk beside the bundle (the release's `paint.status` is its bytes,
+    test_release) IS a fresh projection — so the parity above holds for what ships."""
+    shipped = Path(BUNDLE).with_name("status_index.bin")
+    if os.environ.get("STATUS_INDEX") or not shipped.exists():
+        pytest.skip("no shipped index beside the bundle")
+    fresh = SI.encode(SI.compute(BUNDLE, os.environ.get("UI_EXPORT_VERDICTS"), log=lambda *_: None))
+    assert shipped.read_bytes() == fresh, "status_index.bin is stale: rebuild deliver"
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.slow
 def test_an_absent_section_is_truly_base(built):
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     try:

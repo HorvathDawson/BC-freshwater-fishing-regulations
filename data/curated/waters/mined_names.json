@@ -5511,6 +5511,31 @@
   {
    "target": {
     "blks": [
+     "360846083"
+    ]
+   },
+   "names": [
+    {
+     "name": "Sheldens Creek",
+     "source": "dfo",
+     "source_label": "DFO salmon regulations",
+     "source_ref": "data/curated/regulations/entries/dfo_salmon",
+     "official": false,
+     "evidence": {
+      "lonlat": [
+       -131.78224,
+       53.12968
+      ]
+     },
+     "accepted": "owner 2026-10-29: accepted as an ASSUMPTION — the unnamed line into Sheldens Bay, named only by the forest roads around it ('SP 19(1) TO SHELDONS', SHEL100–103); low confidence, see GOTCHAS",
+     "candidate": "blk:360846083~sheldens-creek",
+     "confidence": "medium"
+    }
+   ]
+  },
+  {
+   "target": {
+    "blks": [
      "360860441"
     ]
    },

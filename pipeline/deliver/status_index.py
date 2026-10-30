@@ -129,6 +129,34 @@ from pipeline.deliver.verdicts.project import beyond_base, closes_here  # noqa: 
 
 
 # --------------------------------------------------------------------------------------------
+# THE ONE DECISION — a section's code on one day. The index (`compute`) and the reader oracle
+# (`status_by_reader`) both call these, so the map's colour and the regs pane cannot disagree by
+# deciding tidal / outside / closed / own in two places (T306: a parallel copy in `compute`
+# applied `tidal` only to sections with a rule set, and 99 of the 100 tidal sections carry none,
+# so they read base on the map and tidal in the pane).
+# --------------------------------------------------------------------------------------------
+
+def special_sections(db) -> Tuple[set, set]:
+    """The bundle's `tidal` and `outside_bc` sections — sections that are not a freshwater
+    answer. Read from these tables only, whether or not the section carries a rule set."""
+    return ({s for (s,) in db.execute("SELECT sid FROM tidal")},
+            {s for (s,) in db.execute("SELECT sid FROM outside_bc")})
+
+
+def section_code(tidal: bool, outside: bool, closed: bool, own: bool) -> int:
+    """A section's status code on one day. `closed`: every game fish's `effective_rules` answer
+    closes it that day (`closes`, stored per reading by the verdicts as `reading.closed`);
+    `own`: a water table's row binds it (`beyond_base`, stored as `key_meta.own`)."""
+    if tidal:
+        return TIDAL
+    if outside:
+        return OUTSIDE
+    if closed:
+        return CLOSED
+    return OWN if own else BASE
+
+
+# --------------------------------------------------------------------------------------------
 # One rule key's year: a PROJECTION of the stored verdicts (DATAFLOW P4)
 # --------------------------------------------------------------------------------------------
 
@@ -137,7 +165,7 @@ def moment_profiles(store, key: int) -> List[Tuple[int, ...]]:
     day whose reading at that moment is closed (`reading.closed`, the predicate computed once by
     the verdicts from the reader's stored answers), else the key's floor — OWN when a water
     table's row binds it (`key_meta.own`), BASE otherwise. No reader call."""
-    floor = OWN if store.own(key) else BASE
+    own = store.own(key)
     closed = {r.ix: r.closed for r in store.readings(key)}
     out: List[Tuple[int, ...]] = []
     for m in range(len(store.moments(key))):
@@ -145,7 +173,7 @@ def moment_profiles(store, key: int) -> List[Tuple[int, ...]]:
         runs = store.runs(key, m)
         for i, (start, reading) in enumerate(runs):
             end = runs[i + 1][0] if i + 1 < len(runs) else DAYS + 1
-            codes += [CLOSED if closed[reading] else floor] * (end - start)
+            codes += [section_code(False, False, closed[reading], own)] * (end - start)
         out.append(tuple(codes))
     return out
 
@@ -216,28 +244,32 @@ def compute(path: str, verdicts: Optional[str] = None, log=print) -> dict:
             if not meta.get(k):
                 raise SystemExit(f"status_index: {path} records no meta.{k} — rebuild the bundle")
         handles, reach = meta["section_handles"], meta["reach_digest"]
-        tidal = {s for (s,) in db.execute("SELECT sid FROM tidal")}
-        outside = {s for (s,) in db.execute("SELECT sid FROM outside_bc")}
+        tidal, outside = special_sections(db)
         by_key: Dict[int, Tuple[Tuple[int, ...], int]] = {}
         sec: Dict[int, Tuple[Tuple[int, ...], int]] = {}       # sid -> (profile, floor), not base
         base = (BASE,) * DAYS
-        n = 0
-        for sid, key in db.execute("SELECT sid, key_ix FROM section_ruleset ORDER BY sid"):
-            n += 1
-            got = by_key.get(key)
-            if got is None:
-                got = by_key[key] = (key_profile(store, key), OWN if store.own(key) else BASE)
-            if sid in tidal:
-                got = ((TIDAL,) * DAYS, got[1])
+        keyed = dict(db.execute("SELECT sid, key_ix FROM section_ruleset"))
+        n = len(keyed)
+        for sid in sorted(set(keyed) | tidal | outside):
+            key = keyed.get(sid)
+            if key is None:          # no rule set: never closed, never own (a tidal / outside one)
+                got = (base, BASE)
+            else:
+                got = by_key.get(key)
+                if got is None:
+                    got = by_key[key] = (key_profile(store, key), OWN if store.own(key) else BASE)
+            if sid in tidal or sid in outside:
+                prof, floor = got
+                # the same decision per day as the reader oracle: tidal / outside win over the rules
+                got = (tuple(section_code(sid in tidal, sid in outside, c == CLOSED, floor == OWN)
+                             for c in prof), floor)
             if got[0] != base:
                 sec[sid] = got
-        for sid in outside:
-            sec.setdefault(sid, ((OUTSIDE,) * DAYS, BASE))
         items = db.execute("SELECT i.item_id, s.sid FROM item i JOIN item_section s "
                            "ON s.ord = i.ord ORDER BY i.item_id, s.sid").fetchall()
     finally:
         db.close()
-    total = n + len(outside)            # outside B.C. carries no rule set (the bundle proves it)
+    total = len(set(keyed) | tidal | outside)
     log(f"  {len(by_key)} (ruleset, steelhead, steelhead rules) keys projected in {time.time() - t0:.1f}s")
 
     parts: Dict[str, set] = defaultdict(set)
@@ -385,20 +417,19 @@ def status_by_reader(sid: int, on, path: str) -> int:
     fish) and the section's own bindings — no rulesets shared, no days skipped, no memo."""
     db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     try:
-        if db.execute("SELECT 1 FROM tidal WHERE sid = ?", (sid,)).fetchone():
-            return TIDAL
-        if db.execute("SELECT 1 FROM outside_bc WHERE sid = ?", (sid,)).fetchone():
-            return OUTSIDE
+        tidal = bool(db.execute("SELECT 1 FROM tidal WHERE sid = ?", (sid,)).fetchone())
+        outside = bool(db.execute("SELECT 1 FROM outside_bc WHERE sid = ?", (sid,)).fetchone())
         bound = db.execute("SELECT r.entry_id, r.rule_id, r.via FROM section_ruleset s "
                            "JOIN ruleset r ON r.set_id = s.set_id WHERE s.sid = ?",
                            (sid,)).fetchall()
     finally:
         db.close()
-    if all(closes(read.effective_rules(sid, on, f, path)) for f in GAME_FISH):
-        return CLOSED
+    if tidal or outside:     # short cut only: section_code returns the same whatever the rules say
+        return section_code(tidal, outside, False, False)
     every = read._rules_of(path)
-    return OWN if any(beyond_base(every[(e, r)], v) for e, r, v in bound
-                      if (e, r) in every) else BASE
+    return section_code(False, False,
+                        all(closes(read.effective_rules(sid, on, f, path)) for f in GAME_FISH),
+                        any(beyond_base(every[(e, r)], v) for e, r, v in bound if (e, r) in every))
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:

@@ -448,13 +448,22 @@ def test_bowron_park_waters_are_bound_and_bowron_lake_is_not(db):
 def test_provincial_licences_do_not_bind_inside_national_parks(db, corpus):
     """Placed `province` (no rows), minus the national parks, which the bundle lists once — and
     the parks it lists are exactly where the park closure binds, bar TIDAL water inside a park
-    (Nitinat Lake, `CatalogueEntry.tidal`): no provincial rule binds there, the closure included."""
+    (Nitinat Lake, `CatalogueEntry.tidal`, and the tidal reach of the Nitinat River below its
+    tidal-boundary split: the bundle's `tidal` table) and water nothing binds at all (FWA
+    not-fishing polygons in Yoho: no rule set): no provincial rule binds there, the closure
+    included."""
     parks = _sections(db, "zp:superior_closures", "superior_closures.r1")
     tidal_items = [i for e in corpus.values() if e.tidal for i in e.matched]
     tidal = {s for i in tidal_items for (s,) in db.execute(
         "select s.sid from item i join item_section s on s.ord = i.ord where i.item_id = ?", (i,))}
+    tidal |= {s for (s,) in db.execute("select sid from tidal")}
     assert tidal and not tidal & parks
-    parks = parks | tidal
+    unbound = {s for (s,) in db.execute(
+        "select p.sid from province_except p where p.area_kind = 'national_parks' and not exists "
+        "(select 1 from section_ruleset r where r.sid = p.sid)")}
+    assert not unbound & parks
+    parks = parks | (tidal & {s for (s,) in db.execute(
+        "select sid from province_except where area_kind='national_parks'")}) | unbound
     placement, record = db.execute("select placement, record from requirement where "
                                    "entry_id='zp:basic_licence' and req_id='basic_licence'").fetchone()
     assert placement == "province"

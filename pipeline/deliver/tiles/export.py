@@ -227,9 +227,16 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
             # A STREAM'S OWN POLYGON: its route is the river, under the polygon's section id (the
             # same id the polygon draws with in `lake` / `wetland`), at the river's own weight.
             ord_, mag = neighbour_weight(sec)
+            # ...and NO LATER THAN a side-channel run it joins (T306): the run's lines come in
+            # together from the run's biggest piece (`side_channel_run_zooms`), so a polygon
+            # keyed on magnitude alone drew 3-5 zooms after the slough beside it (Maria Slough,
+            # Hogranch Channel).
+            run_z = [run_zoom[o] for ei in list(graph.up_adj.get(sec, ())) + list(graph.down_adj.get(sec, ()))
+                     for e in (graph.edges[ei],)
+                     for o in ((e.from_node if e.to_node == sec else e.to_node),) if o in run_zoom]
             write(_to4326(g, tf), {"section_id": sid[sec], "name": owners.label(sec, node),
                                    "ord": ord_},
-                  ladder.zoom_for_magnitude(mag, spec.minzoom))
+                  min([ladder.zoom_for_magnitude(mag, spec.minzoom)] + run_z))
             continue
         if _kind(node) != "stream":
             # A lake node's sidecar geometry is the route THROUGH the lake, not the lake.

@@ -196,7 +196,10 @@ def test_flowing_polygons_belong_to_their_water(registry):
     for name in ("Bear Creek Reservoir", "River Lakes"):
         assert {v.kind for v in water.values() if v.name == name} == {"lake"}, name
     assert all(v.kind != "stream" for v in water.values() if "OXBOWS" in v.name.upper())
-    assert sum(len(v.aliases) for v in water.values()) == 116
+    # 117 since the owner named polygon wbk 329505890 "Cayoosh Creek" (2026-10-25, name_variants.json),
+    # so the fold joins it to gnis:37767 (was 116)
+    assert sum(len(v.aliases) for v in water.values()) == 117
+    assert "wbk:329505890" in registry["gnis:37767"].aliases
 
 
 @pytest.mark.needs_bundle
@@ -282,7 +285,7 @@ def test_absorbed_id_resolves_once(db, doc):
     """No bundle row names an absorbed id; `item_alias` holds every one; the export's `absorbed`
     lists them on the water; the folded polygon's rows reach the river's `entries`."""
     aliases = dict(db.execute("SELECT alias, item_id FROM item_alias"))
-    assert len(aliases) == 116
+    assert len(aliases) == 117          # + wbk:329505890 -> Cayoosh Creek (owner 2026-10-25)
     assert aliases["wbk:329148363"] == "gnis:7836" and aliases["wbk:329707189"] == "gnis:3062"
     for (matched,) in db.execute("SELECT matched FROM entry"):
         assert not set(json.loads(matched)) & set(aliases)
