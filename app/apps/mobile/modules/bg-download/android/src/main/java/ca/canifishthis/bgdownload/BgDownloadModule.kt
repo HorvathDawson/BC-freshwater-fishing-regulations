@@ -60,6 +60,8 @@ class BgDownloadModule : Module() {
         .setAllowedOverMetered(metered)
         .setAllowedOverRoaming(metered)
         .setDestinationInExternalFilesDir(ctx, "bg-download", name)
+        // the bytes as stored: no transparent gzip (a compressed body has no length to show or resume by)
+        .addRequestHeader("Accept-Encoding", "identity")
       val id = dm.enqueue(req)
       prefs.edit().putBoolean("metered:$id", metered).apply()
       id.toDouble()
