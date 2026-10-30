@@ -72,9 +72,12 @@ describe("one history read (T170)", () => {
 
   it("flowOnDay is called in dayFlow.ts only; the fills by capture, the refresh and the app's action only", () => {
     expect(where(CALLS_READ)).toEqual(["packages/data/src/spots/dayFlow.ts"]);
+    // (T294) a visit to a saved spot for an earlier day fills its day's flow through the same one fill (visits.ts)
     expect(where(CALLS_FILL)).toEqual(["apps/mobile/src/App.tsx", "packages/data/src/spots/capture.ts",
-                                       "packages/data/src/spots/refresh.ts"]);
-    expect(where(CALLS_PANEL)).toEqual(["packages/data/src/spots/capture.ts", "packages/data/src/spots/refresh.ts"]);
+                                       "packages/data/src/spots/refresh.ts", "packages/data/src/spots/visits.ts"]);
+    // (T294) and an earlier-day visit's panel through the same capturePanelOnDay (visits.ts)
+    expect(where(CALLS_PANEL)).toEqual(["packages/data/src/spots/capture.ts", "packages/data/src/spots/refresh.ts",
+                                        "packages/data/src/spots/visits.ts"]);
   });
 
   it("capture reads no live reading for an earlier trip day: gaugeNow only on the today path", () => {
@@ -86,7 +89,9 @@ describe("one history read (T170)", () => {
   });
 
   it("a spot's dayFlow is written by the fill and the refresh only", () => {
-    expect(where(WRITES)).toEqual(["packages/data/src/spots/dayFlow.ts", "packages/data/src/spots/refresh.ts"]);
+    // (T294) visits.ts copies the fill's own dayFlow onto the visit it made (`filled.dayFlow`), never one of its own
+    expect(where(WRITES)).toEqual(["packages/data/src/spots/dayFlow.ts", "packages/data/src/spots/refresh.ts",
+                                   "packages/data/src/spots/visits.ts"]);
     expect(where(WRITES_PANEL)).toEqual(["packages/data/src/spots/dayFlow.ts"]);
   });
 });

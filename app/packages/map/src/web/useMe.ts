@@ -6,17 +6,17 @@
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
 import type { MapProps } from "../map-props";
+import { colour, translucent } from "../chrome";
 import { cameraMs } from "../motion";
 import type { WebMapRefs } from "./refs";
 
 /** the zoom a centre goes in to when the map is further out than this: street scale */
 const CENTRE_ZOOM = 15;
-const BLUE = "#1a73e8";
 
 /** Metres per CSS pixel at a latitude and zoom (512 px tiles). */
 export const metresPerPixel = (lat: number, zoom: number): number => 78271.51696 * Math.cos((lat * Math.PI) / 180) / 2 ** zoom;
 
-export function useMe({ map }: WebMapRefs, me: MapProps["me"]) {
+export function useMe({ map }: WebMapRefs, me: MapProps["me"], theme: string) {
   const mark = useRef<{ marker: maplibregl.Marker; circle: HTMLElement } | null>(null);
   const lastCentre = useRef(0);
   const release = useRef(me?.onRelease);
@@ -28,16 +28,20 @@ export function useMe({ map }: WebMapRefs, me: MapProps["me"]) {
     const m = map.current;
     if (!m || !fix) { mark.current?.marker.remove(); mark.current = null; return; }
     if (!mark.current) {
-      const el = document.createElement("div");
+      // the map's own document (this folder is the web map's; MapLibre has no other)
+      const doc = m.getContainer().ownerDocument;
+      const blue = colour(theme, "color.ui.me"), ring = colour(theme, "color.ui.me-ring");
+      const shade = translucent(theme, "color.ui.shadow", "opacity.ui.shadow");
+      const el = doc.createElement("div");
       el.setAttribute("data-testid", "my-location");
       el.setAttribute("role", "img");
       el.setAttribute("aria-label", "Your location");
       el.style.cssText = "width:18px;height:18px;pointer-events:none;position:relative";
-      const circle = document.createElement("div");
+      const circle = doc.createElement("div");
       circle.setAttribute("data-testid", "my-location-accuracy");
-      circle.style.cssText = `position:absolute;left:50%;top:50%;border-radius:50%;background:${BLUE}22;border:1px solid ${BLUE}66;transform:translate(-50%,-50%)`;
-      const dot = document.createElement("div");
-      dot.style.cssText = `position:absolute;inset:0;border-radius:50%;background:${BLUE};border:3px solid #fff;box-sizing:border-box;box-shadow:0 0 3px rgba(0,0,0,.45)`;
+      circle.style.cssText = `position:absolute;left:50%;top:50%;border-radius:50%;background:${blue}22;border:1px solid ${blue}66;transform:translate(-50%,-50%)`;
+      const dot = doc.createElement("div");
+      dot.style.cssText = `position:absolute;inset:0;border-radius:50%;background:${blue};border:3px solid ${ring};box-sizing:border-box;box-shadow:0 0 3px ${shade}`;
       el.append(circle, dot);
       mark.current = { marker: new maplibregl.Marker({ element: el, anchor: "center" }), circle };
     }

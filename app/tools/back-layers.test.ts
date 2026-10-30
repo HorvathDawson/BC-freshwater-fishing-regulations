@@ -137,6 +137,7 @@ const registeredSurfaces = () => new Set(drawing().flatMap((p) =>
  * decision, said in app/HANDOFF-ui.md's table — not a way past the scan.
  */
 const COVERED: Record<string, string> = {
+  "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss": "(T303) the rail's one-line location notice over the map (why there is no dot): a tap puts it away and the button retries; it hides nothing, so system back stays the map's",
   "packages/ui-native/src/SpotCapture.tsx#SpotCapture: takes onCancel (SpotCaptureProps)": "(T302) it draws the web's spots notice (system back is the route's: it leaves the add) or the capture flow (SpotCaptureFlow), which registers its own steps",
   "packages/ui-native/src/Walkthrough.tsx#TabTourSheet: draws TabTourSheet": "(T276, T293) the Runs, Conditions and Salmon mode hints draw the same CoachMarks.CoachTour, which registers its own back layer (back skips the tour)",
   "packages/ui-native/src/WaterScreen.tsx#WaterScreenBody: takes onBack": "the on-screen ‹; system back is the Shell's route layer (water → tab)",
@@ -209,6 +210,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
       "packages/ui-native/src/InSeasonNotice.tsx#InSeasonNotice: takes onClose",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
+      // (T303) the rail's one-line location notice (why there is no dot): a tap puts it away; not a surface (COVERED)
+      "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss",
       // (T292) a tapped not-fished water's sheet (sewage lagoon, tailings pond, dump): a <Sheet>, so it registers
       "packages/ui-native/src/NotFishingSheet.tsx#NotFishingSheet: takes onClose",
       // (T173) a tapped fish obstacle mark's sheet, drawn by the Shell over the map: a <Sheet>, so it registers

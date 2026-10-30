@@ -4,7 +4,7 @@
  * imports this, so the web's first bundle does not carry maplibre-gl (~1 MB) until a map is drawn (the map itself
  * loads with `@app/ui-native`'s later chunk). Same objects as `index.ts` (re-exported, not copied).
  */
-export { imageryTiles, type TileEndpoints } from "./endpoints";
-export { hiddenLayers, shownLayers, STYLE_META, FIELD_HANDOVER_Z, resolveTheme, waterStatusColour, tempBandColour,
+export { imageryTiles } from "./endpoints";
+export { hiddenLayers, shownLayers, STYLE_META, FIELD_HANDOVER_Z, waterStatusColour, tempBandColour,
          salmonStatusColour, gearEdgeColour, runStateColour, tidalColours, notFishingColours } from "./style";
 export { colour, translucent } from "./chrome";

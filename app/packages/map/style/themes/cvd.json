@@ -118,6 +118,8 @@
     "color.ui.warning": "@color.status.own",
     "color.ui.spot": "@color.ui.ink",
     "color.ui.spot-ground": "@color.ui.card",
+    "color.ui.me": "#1A73E8",
+    "color.ui.me-ring": "@color.ui.card",
     "color.ui.place-band": "#FBF0E6",
     "color.ui.donor.1": "#373708",
     "color.ui.donor.2": "#670848",

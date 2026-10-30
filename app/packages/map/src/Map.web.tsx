@@ -71,7 +71,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useLongPress(refs, onLongPress, at);
   useMapPoint(refs, onMapPoint);
   useMarker(refs, marker, furniture);
-  useMe(refs, me);
+  useMe(refs, me, theme);
   usePins(refs, pins, furniture);
   const lit = useHighlight(refs, { highlight, water, selection });
   useMarks(refs, marks, onPressMark, furniture, markElement);

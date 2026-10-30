@@ -1,6 +1,6 @@
 # T300 — Conditions, Runs and legend polish
 
-Status: DONE 2026-10-30, except the emulator gesture pass (heavy lock held by T298; run when free).
+Status: DONE bb242bbce, 312b365c7 2026-10-30, except the emulator gesture pass (heavy lock held by T298; run when free).
 
 ## Work
 1. **Never default to the ELF forecast** on a gauge chart (pick CLEVER/COFFEE/other first; ELF only if the user picks it or it

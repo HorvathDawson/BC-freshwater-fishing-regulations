@@ -577,8 +577,10 @@ it("no listener, no long press: the binding is handed no handler (its long press
       .toEqual({
         promote: false, url: "pmtiles://file:///d/atlas.pmtiles",
         // OVERZOOM: the camera to z18, four past the tiles (`CAMERA_MAX_ZOOM`)
+        // (T303) and not following the reader's location (no `me`), though it listens for a pan that would stop it
         camera: { initialViewState: { center: [-122, 49], zoom: 9 }, minZoom: 4, maxZoom: 18,
-                  maxBounds: [-147.1, 40.2, -106.1, 68] },
+                  maxBounds: [-147.1, 40.2, -106.1, 68],
+                  trackUserLocation: undefined, onTrackUserLocationChange: expect.any(Function) },
       });
   });
   it("a style swap (a theme change) drops feature-state on a phone: status and selection are put back", async () => {

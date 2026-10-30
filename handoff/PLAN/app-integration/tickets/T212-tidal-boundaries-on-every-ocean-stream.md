@@ -1,6 +1,6 @@
 # T212 — tidal boundaries: a tidal split on every stream that enters the ocean (research first, no data changes yet)
 
-Status: DONE 2026-10-29 — every candidate marked and answered (Caycuse, Dempster, Bear "good / fine where they are");
+Status: DONE 2026-10-29 (fe28e3d84..5ee1f591f, d99d28971) — every candidate marked and answered (Caycuse, Dempster, Bear "good / fine where they are");
 32 cuts + the Noons Creek flag + 10 whole tidal waters shipped (r-ce76b4ed3624). One owner proposal open: the Mamquam
 Blind Channel (below). Research: 41393956.
 

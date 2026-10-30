@@ -1,6 +1,6 @@
 # T298 — First download: keeps going in the background (notification), asks before using mobile data, fish sayings while it runs
 
-Status: DONE (2026-10-30) — merged into redesign/stream-sections; next APK.
+Status: DONE b75860825…e3dd669ed (2026-10-30) — merged into redesign/stream-sections; next APK.
 
 Source: owner: "for the initial download of the offline regs can we make it so it can work in background if user closes
 app? also it should ask user for permission to download off wifi if they are not connected. finally we want to add cute

@@ -627,8 +627,8 @@ export function backwaterNote(rows: readonly DonorFacts[], quantity: "discharge"
 /** (T296) The caution under an answer read only through a lake — `throughLakeNote`'s words. */
 export const THROUGH_LAKE_WORDS = {
   /** Every counted gauge on one side of one named lake: "Measured below Pitt Lake — …". */
-  named: (side: "below" | "above", lake: string) =>
-    `Measured ${side} ${lake} — the lake smooths changes, so read it loosely.`,
+  named: (side: "below" | "above", lakeName: string) =>
+    `Measured ${side} ${lakeName} — the lake smooths changes, so read it loosely.`,
   /** Otherwise (an unnamed lake, or gauges across different lakes or sides). */
   general: "Measured across a lake — the lake smooths changes, so read it loosely.",
 } as const;

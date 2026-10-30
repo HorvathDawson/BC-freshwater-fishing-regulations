@@ -54,7 +54,9 @@ describe("one place for each kind of thing (T48)", () => {
   });
 
   it("ONE capture flow: an addSpot route action is built only by mapRail.ts (and reduced by the route)", () => {
-    expect(where(/["']addSpot["']/)).toEqual(["packages/ui/src/mapRail.ts", "packages/ui/src/route.ts"]);
+    // (T293) the walkthrough's "save a spot" step goes into the same route action (Shell `guideActs.addSpot`): one flow
+    expect(where(/["']addSpot["']/)).toEqual(["packages/ui-native/src/Shell.tsx", "packages/ui/src/mapRail.ts",
+                                              "packages/ui/src/route.ts"]);
   });
 
   it("ONE search: results grouped for the one sheet, mounted only by the Shell, with the field beside it", () => {

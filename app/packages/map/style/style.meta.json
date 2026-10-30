@@ -2862,6 +2862,8 @@
       "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
       "color.ui.spot-ground": "#FFFFFF",
+      "color.ui.me": "#1A73E8",
+      "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
       "color.ui.donor.1": "#373708",
       "color.ui.donor.2": "#670848",
@@ -3016,6 +3018,8 @@
       "color.ui.warning": "#FFD307",
       "color.ui.spot": "#F0F2F0",
       "color.ui.spot-ground": "#15181B",
+      "color.ui.me": "#1A73E8",
+      "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#231A12",
       "color.ui.donor.1": "#37D6EA",
       "color.ui.donor.2": "#FF9B54",
@@ -3170,6 +3174,8 @@
       "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
       "color.ui.spot-ground": "#FFFFFF",
+      "color.ui.me": "#1A73E8",
+      "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
       "color.ui.donor.1": "#027486",
       "color.ui.donor.2": "#B5480B",
@@ -3702,6 +3708,16 @@
       "type": "color",
       "themeable": true,
       "$comment": "T131 the ground of a saved spot's pin and of its name: the card, so a pin reads as the app's own object on the map (the selected pin swaps mark and ground)."
+    },
+    "color.ui.me": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "T303 the reader's own location on the web map: the blue dot and (thinned) its accuracy circle — the blue every map app uses for you-are-here, the same in every theme. The native dot is MapLibre's UserLocation."
+    },
+    "color.ui.me-ring": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "T303 the ring around the location dot, white in every theme so the dot stands off any water or land."
     },
     "color.ui.place-band": {
       "type": "color",

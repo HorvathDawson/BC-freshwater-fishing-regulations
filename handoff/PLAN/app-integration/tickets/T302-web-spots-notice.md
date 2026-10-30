@@ -1,6 +1,6 @@
 # T302 — Spots on the web app: a notice instead (phone app only for now; accounts coming)
 
-Status: DONE (web; owner 2026-10-30: "make it so spots in the webapp instead just say something about how they work locally on
+Status: DONE 8c0337a3e, 7e752a935 (web; owner 2026-10-30: "make it so spots in the webapp instead just say something about how they work locally on
 the phone app but they don't sync to web yet. Coming soon will be accounts etc").
 
 ## Work

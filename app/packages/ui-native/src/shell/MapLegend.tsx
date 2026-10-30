@@ -18,7 +18,7 @@ import { RunDayCaption, RunDaySlider } from "../RunsControls";
 import { LegendCount, LegendRamp, LegendStrip } from "../Chrome";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
-import { changeRampStops, flowRampStops, type Palette } from "../theme";
+import { changeRampStops, flowRampStops, round, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 
 export function MapLegend({ col, conditions, palette, theme, mapDay }: {
@@ -143,7 +143,7 @@ export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Pa
           style={{ pointerEvents: "none", position: "absolute", right: 8, bottom: bottom + 10, flexDirection: "row", alignItems: "stretch", gap: 5,
                    paddingVertical: 6, paddingLeft: 7, paddingRight: 8, borderRadius: palette.r.chip, borderWidth: 1,
                    borderColor: palette.line, backgroundColor: palette.card, opacity: 0.96 }}>
-      <View style={{ width: 8, borderRadius: 4, overflow: "hidden" }}>
+      <View style={{ width: 8, borderRadius: round(8), overflow: "hidden" }}>
         {K.rows.map((r) => <View key={r.state} style={{ flex: 1, backgroundColor: runStateColour(theme, r.state) }} />)}
       </View>
       <View style={{ justifyContent: "space-between", gap: 8 }}>
