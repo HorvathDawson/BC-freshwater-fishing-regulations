@@ -6,11 +6,11 @@
  * LEGEND ONLY WHEN SOMETHING IS COLOURED BY A VALUE: the day's status (once the index is in), or the lakes' Stocked
  * colouring. Plain water needs no key. Whether it is shown is the Shell's call; what it says is here.
  */
-import { CHANGE_LEGEND, changeMarkWords, closedLegend, FLOW_LEGEND, TEMP_LEGEND, unprovenLine, WATER_STATUS,
+import { CHANGE_LEGEND, changeMarkWords, closedLegend, FLOW_LEGEND, NOT_FISHING_WORDS, TEMP_LEGEND, unprovenLine, WATER_STATUS,
          WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND, METHOD_WORDS,
          RUN_WORDS, slotsFor }
   from "@app/core";
-import { gearEdgeColour, salmonStatusColour } from "@app/map";
+import { gearEdgeColour, notFishingColours, salmonStatusColour } from "@app/map";
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { RunDayCaption, RunDaySlider } from "../RunsControls";
@@ -112,6 +112,9 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
             <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"}
                          label={METHOD_WORDS.legend[m]} />
           ))}
+          {/* (T292) sewage lagoons, tailings ponds, dumps: the off colour and its dashed rim, no status at all */}
+          <LegendCount palette={palette} colour={notFishingColours(theme).fill} rim={notFishingColours(theme).edge}
+                       label={NOT_FISHING_WORDS.legend} />
         </>
       )}
     </LegendStrip>

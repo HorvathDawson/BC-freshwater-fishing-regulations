@@ -7,7 +7,7 @@
 import { bboxOfGeometry, unionBbox, type Bbox, type SectionKey } from "@app/core";
 import { baseAdapter, type MapAdapter, type MapRenderer } from "./contract";
 import {
-  OBSTACLE_LAYERS, TAP_GROUPS, TIDAL_LAYERS, anyTidal, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstObstacle, firstSection, onceSink, sectionIdOf, stateHandle, tapBox, visibleSections,
+  NOT_FISHING_LAYERS, OBSTACLE_LAYERS, TAP_GROUPS, TIDAL_LAYERS, anyTidal, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstNotFishing, firstObstacle, firstSection, onceSink, sectionIdOf, stateHandle, tapBox, visibleSections,
 } from "../sections";
 import { mirrorSink, type CopyTarget, type LitFeature, type WaterCopy } from "../water-copy";
 
@@ -95,6 +95,10 @@ export function webRenderer(m: GlMapSlice, maxZoom: number, mirror?: CopyMirror)
     pressTidal: async (x, y) => {
       const layers = present(TIDAL_LAYERS);
       return layers.length ? anyTidal(m.queryRenderedFeatures(tapBox(x, y), { layers })) : false;
+    },
+    pressNotFishing: async (x, y) => {
+      const layers = present(NOT_FISHING_LAYERS);
+      return layers.length ? firstNotFishing(m.queryRenderedFeatures(tapBox(x, y), { layers })) : null;
     },
     visible: async () => visibleSections(m.queryRenderedFeatures({ layers: present(VISIBLE_LAYERS) })),
     // the same pick as the copy's (T175), measured

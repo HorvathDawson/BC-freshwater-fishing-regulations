@@ -51,7 +51,7 @@ describe("boundaries sit under the water's status lines and over its fills (T83)
   it("the generated style, from the lakes to the streams, whole", () => {
     const ids = geometry(MAP_STYLE.layers as { id: string; type: string }[]);
     expect(ids.slice(ids.indexOf("lake"), ids.indexOf("stream") + 1)).toEqual([
-      "lake", "lake_flowing", "not_fishing_water", "contour", "under_lake",
+      "lake", "lake_flowing", "not_fishing_water", "not_fishing_water__edge", "contour", "under_lake",
       "region", "region__edge", "mu", "mu__edge",
       "lake__edge", "sign_zone", "sign_zone__edge", "stream"]);
     expect(faults(ids)).toEqual([]);

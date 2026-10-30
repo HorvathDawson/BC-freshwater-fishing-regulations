@@ -1,13 +1,15 @@
 /**
  * Q125 (owner 2026-10-24): sewage basins, tailing ponds and dumps — T152's `not_fishing_water` tile layer — DRAW as a
- * muted fill, never as a lake, and are not a fishing water anyone can tap. Held on the web style, the native style
- * and the tap/visible sets, so a later edit cannot paint them lake-blue or make them answer a tap.
+ * muted fill, never as a lake. T292 (owner 2026-10-29, "they should be an off colour"): a near-opaque off colour with a
+ * dashed edge, so the basemap's own water under them cannot show through, and a tap names what it is (never a section,
+ * never regulations). Held on the web style, the native style and the tap/visible sets, so a later edit cannot paint
+ * them lake-blue or make them answer as a water.
  */
 import { describe, expect, it } from "vitest";
 import { paintFor } from "./paint";
 import { nativeStyle } from "./native-style";
 import { runtimeStyle } from "./runtime-style";
-import { SECTION_LAYERS, TAP_GROUPS, VISIBLE_LAYERS } from "./sections";
+import { firstNotFishing, NOT_FISHING_LAYERS, SECTION_LAYERS, TAP_GROUPS, TIDAL_LAYERS, VISIBLE_LAYERS } from "./sections";
 import { STYLE_META, resolveTheme } from "./style";
 
 type L = { id: string; type: string; source?: string; "source-layer"?: string; paint?: Record<string, unknown> };
@@ -29,6 +31,9 @@ describe("not fishing water (Q125)", () => {
       const t = resolveTheme(theme);
       expect(paintFor(ID, "plain", t)["fill-color"], theme).toBe(t["color.notfishing.fill"]);
       expect(t["color.notfishing.fill"], theme).not.toEqual(t["color.lake.fill"]);
+      // (T292) near-opaque: the basemap's OSM water under a tailing pond must not show through as blue
+      expect(t["opacity.notfishing"] as number, theme).toBeGreaterThanOrEqual(0.85);
+      expect(typeof t["color.notfishing.edge"], theme).toBe("string");
     }
   });
 
@@ -42,8 +47,10 @@ describe("not fishing water (Q125)", () => {
       const lake = s.layers.find((x) => x.id === "lake")!;
       if (platform === "native")
         expect(l.paint?.["fill-color"]).not.toEqual(lake.paint?.["fill-color"]);
-      // never a lake: no layer over the `lake` source-layer draws it, and it carries no lake filter
-      expect(s.layers.filter((x) => x["source-layer"] === ID).map((x) => x.id)).toEqual([ID]);
+      // never a lake: only its own fill and its dashed edge draw the source-layer, and no lake layer does
+      const own = s.layers.filter((x) => x["source-layer"] === ID);
+      expect(own.map((x) => [x.id, x.type])).toEqual([[ID, "fill"], [`${ID}__edge`, "line"]]);
+      expect(own[1]!.paint?.["line-dasharray"], `${platform} ${theme}: the edge is dashed`).toBeDefined();
     }
   });
 
@@ -54,5 +61,16 @@ describe("not fishing water (Q125)", () => {
     expect(TAP_GROUPS.flatMap((g) => g.layers)).not.toContain(ID);
     const web = runtimeStyle(AT, "light") as unknown as S;
     expect(Object.keys(web.sources.atlas!.promoteId ?? {})).not.toContain(ID);
+  });
+
+  it("(T292) a tap on one is its own, after the water and before tidal water: the kind, never a section", () => {
+    expect(NOT_FISHING_LAYERS).toEqual([ID]);
+    expect(TIDAL_LAYERS).not.toContain(ID);
+    expect(firstNotFishing([{ properties: { kind: "tailings" } }, { properties: { kind: "sewage" } }]))
+      .toEqual({ kind: "tailings" });
+    // an older atlas (no `kind`) or a value this app does not know: still the sheet, unnamed
+    expect(firstNotFishing([{ properties: {} }])).toEqual({ kind: null });
+    expect(firstNotFishing([{ properties: { kind: "lake" } }])).toEqual({ kind: null });
+    expect(firstNotFishing([])).toBeNull();
   });
 });

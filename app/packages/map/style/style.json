@@ -360,6 +360,15 @@
       }
     },
     {
+      "id": "not_fishing_water__edge",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "not_fishing_water",
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
       "id": "contour",
       "type": "line",
       "source": "atlas",

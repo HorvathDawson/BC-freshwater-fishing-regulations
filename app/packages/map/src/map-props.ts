@@ -4,7 +4,7 @@
  */
 // A feature id on our own layers IS a section handle — an integer. `SectionKey` keeps
 // this honest without `map` having to know which artifact minted it.
-import type { SectionKey, SpotMarker, SpotPoint } from "@app/core";
+import type { NotFishingKind, SectionKey, SpotMarker, SpotPoint } from "@app/core";
 import type { ReactNode } from "react";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./endpoints";
@@ -233,6 +233,12 @@ export interface MapProps {
    * sheet (`@app/core` `tidalSheet`). Asked last — after the obstacle mark and the water. Absent, the tap does nothing.
    */
   onPressTidal?: () => void;
+  /**
+   * (T292) A tap that hit no water section but landed on NOT FISHING WATER (the `not_fishing_water` layer: a sewage
+   * lagoon, tailings pond or dump): its `kind` (null on an older atlas), which `@app/core` `notFishingSheet` turns into
+   * words. Asked after the water and before tidal water. Absent, the tap falls through to tidal water as before.
+   */
+  onPressNotFishing?: (kind: NotFishingKind | null) => void;
   /**
    * Renderer failures. Not optional in spirit: an empty map and a map whose tiles failed
    * to load look identical, and this app's whole argument is that "we do not know" must

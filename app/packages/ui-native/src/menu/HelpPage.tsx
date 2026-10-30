@@ -6,7 +6,7 @@
  */
 import { Text, View } from "react-native";
 import { HELP_WORDS, TAB_TOUR_WORDS, WALKTHROUGH_WORDS, helpRowAloud, helpVM, type HelpRow, type HelpSwatch } from "@app/core";
-import { gearEdgeColour, runStateColour, salmonStatusColour, tidalColours } from "@app/map";
+import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour, tidalColours } from "@app/map";
 import { Button } from "../Button";
 import { DottedSwatch } from "../Chrome";
 import { BellGlyph, SyncGlyph } from "../TopBar";
@@ -30,6 +30,10 @@ export function HelpSwatchView({ swatch, palette, theme }: { swatch: HelpSwatch;
     case "tidal": {
       const t = tidalColours(theme);
       return <View testID="help-tidal" style={{ width: W, height: 16, backgroundColor: t.fill, borderWidth: 1, borderColor: t.edge }} />;
+    }
+    case "notfishing": {
+      const t = notFishingColours(theme);
+      return <View testID="help-notfishing" style={{ width: W, height: 16, backgroundColor: t.fill, borderWidth: 1, borderColor: t.edge, borderStyle: "dashed" }} />;
     }
     case "salmon": return line(salmonStatusColour(theme, swatch.status));
     case "run": {

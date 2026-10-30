@@ -23,6 +23,7 @@ from pipeline.deliver.tiles import ladder
 from pipeline.deliver.tiles.layers import BY_NAME, LayerSpec
 from pipeline.deliver.bundle.place_names import is_shouting
 from pipeline.deliver.tiles.names import display
+from pipeline.common.fishing_water import not_fishing_kind
 
 _ROUND = 6                      # ~11 cm; tippecanoe quantises to the tile grid anyway
 
@@ -355,11 +356,13 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: froz
             no_geom += 1
             continue
         if getattr(node, "not_fishing", ""):
-            # NOT FISHING WATER (T152): no water layer, no identity — the decorative layer only.
+            # NOT FISHING WATER (T152): no water layer, no identity — the decorative layer only,
+            # with WHAT it is (T292: sewage | tailings | dump) for the tap sheet.
             spec = BY_NAME["not_fishing_water"]
             if spec.name not in writers:
                 writers[spec.name] = _writer(out_dir, spec)
-            writers[spec.name][0](_to4326(g, tf), {}, ladder.zoom_for_area(g.area, spec.minzoom))
+            writers[spec.name][0](_to4326(g, tf), {"kind": not_fishing_kind(node.not_fishing)},
+                                  ladder.zoom_for_area(g.area, spec.minzoom))
             continue
         lname = "wetland" if kind == "wetland" else "lake"
         spec = BY_NAME[lname]

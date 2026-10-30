@@ -91,6 +91,7 @@
         "tidal_water__edge": "plain",
         "basin__edge": "standing",
         "lake__edge": "standing",
+        "not_fishing_water__edge": "plain",
         "region__edge": "plain",
         "mu__edge": "plain",
         "sign_zone__edge": "plain",
@@ -156,6 +157,7 @@
         "tidal_water__edge": "plain",
         "basin__edge": "plain",
         "lake__edge": "plain",
+        "not_fishing_water__edge": "plain",
         "region__edge": "plain",
         "mu__edge": "plain",
         "sign_zone__edge": "plain",
@@ -210,6 +212,7 @@
         "tidal_water__edge": "plain",
         "basin__edge": "plain",
         "lake__edge": "stocked",
+        "not_fishing_water__edge": "plain",
         "region__edge": "plain",
         "mu__edge": "plain",
         "sign_zone__edge": "plain",
@@ -264,6 +267,7 @@
         "tidal_water__edge": "plain",
         "basin__edge": "plain",
         "lake__edge": "plain",
+        "not_fishing_water__edge": "plain",
         "region__edge": "plain",
         "mu__edge": "plain",
         "sign_zone__edge": "plain",
@@ -376,6 +380,7 @@
     "tidal_water__edge": "water",
     "basin__edge": "water",
     "lake__edge": "water",
+    "not_fishing_water__edge": "water",
     "region__edge": "admin",
     "mu__edge": "admin",
     "sign_zone__edge": "access",
@@ -1903,6 +1908,15 @@
         "$comment": "(T199) RUN TIMING, the fast way of the lake modes: feature-state `rt` holds the section's state for the chosen species and month (@app/core `RunTimingFacts.state`: `spawn` a local run in the water, `pass` passing through, `off` recorded but not this month), set as each tile arrives; a species or month change RELABELS the loaded tiles (the values are the labels), so the style never changes. `pass` paints the quiet line and the dash over it (`stream-runs-pass`, paint.ts) carries it. No run recorded: `missing`, the quiet line — never 'no fish'."
       }
     },
+    "not_fishing_water__edge": {
+      "plain": {
+        "label": "not_fishing_water outline",
+        "scale": "static",
+        "color": {
+          "token": "color.notfishing.edge"
+        }
+      }
+    },
     "region__edge": {
       "plain": {
         "label": "region outline",
@@ -2435,6 +2449,24 @@
         ]
       ]
     },
+    "not_fishing_water__edge": {
+      "token": "width.notfishing.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          9,
+          0.6
+        ],
+        [
+          13,
+          1
+        ],
+        [
+          16,
+          1.4
+        ]
+      ]
+    },
     "region__edge": "width.region.edge",
     "mu__edge": "width.admin.edge",
     "sign_zone__edge": {
@@ -2553,6 +2585,7 @@
   },
   "dashes": {
     "under_lake": "dash.route",
+    "not_fishing_water__edge": "dash.notfishing",
     "mu__edge": "dash.mu",
     "sign_zone__edge": "dash.sign_zone"
   },
@@ -2572,6 +2605,7 @@
       "lake__label": 8,
       "lake_flowing": 0,
       "not_fishing_water": 0,
+      "not_fishing_water__edge": 0,
       "wetland": 0,
       "wetland_flowing": 0,
       "under_lake": 0,
@@ -2730,11 +2764,17 @@
       "color.lake.fill": "#94C9E0",
       "color.lake.edge": "#4E88A6",
       "color.wetland.fill": "#75AE8C",
-      "color.notfishing.fill": "#BDB3A0",
+      "color.notfishing.fill": "#D1C6A9",
+      "color.notfishing.edge": "#776C40",
       "color.tidal.fill": "#A9CFCB",
       "color.tidal.edge": "#5E9A97",
       "opacity.tidal": 0.4,
       "width.tidal.edge": 1,
+      "width.notfishing.edge": 1,
+      "dash.notfishing": [
+        3,
+        2
+      ],
       "color.contour.line": "#000040",
       "color.park.fill": "#cfe3b4",
       "color.park.edge": "#7d9c5c",
@@ -2745,7 +2785,7 @@
       "width.lake.edge": 0.8,
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.3,
-      "opacity.notfishing": 0.45,
+      "opacity.notfishing": 0.9,
       "opacity.lake": 0.9,
       "width.underlake": 1.6,
       "dash.route": [
@@ -2878,11 +2918,17 @@
       "color.lake.fill": "#205579",
       "color.lake.edge": "#6FA8C4",
       "color.wetland.fill": "#3F7759",
-      "color.notfishing.fill": "#9A8C75",
+      "color.notfishing.fill": "#55562E",
+      "color.notfishing.edge": "#ABAB87",
       "color.tidal.fill": "#1F5A52",
       "color.tidal.edge": "#6FA8A4",
       "opacity.tidal": 0.45,
       "width.tidal.edge": 1,
+      "width.notfishing.edge": 1,
+      "dash.notfishing": [
+        3,
+        2
+      ],
       "color.contour.line": "#000040",
       "color.park.fill": "#22371f",
       "color.park.edge": "#4e7a44",
@@ -2893,7 +2939,7 @@
       "width.lake.edge": 0.8,
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.28,
-      "opacity.notfishing": 0.35,
+      "opacity.notfishing": 0.85,
       "opacity.lake": 0.85,
       "width.underlake": 1.6,
       "dash.route": [
@@ -3026,11 +3072,17 @@
       "color.lake.fill": "#64B5F6",
       "color.lake.edge": "#4E88A6",
       "color.wetland.fill": "#81C784",
-      "color.notfishing.fill": "#BDB3A0",
+      "color.notfishing.fill": "#B1AF8B",
+      "color.notfishing.edge": "#9F9556",
       "color.tidal.fill": "#A9CFCB",
       "color.tidal.edge": "#5E9A97",
       "opacity.tidal": 0.4,
       "width.tidal.edge": 1,
+      "width.notfishing.edge": 1,
+      "dash.notfishing": [
+        3,
+        2
+      ],
       "color.contour.line": "#000040",
       "color.park.fill": "#cfe3b4",
       "color.park.edge": "#7d9c5c",
@@ -3041,7 +3093,7 @@
       "width.lake.edge": 0.8,
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.45,
-      "opacity.notfishing": 0.45,
+      "opacity.notfishing": 0.9,
       "opacity.lake": 0.6,
       "width.underlake": 1.6,
       "dash.route": [
@@ -3292,6 +3344,11 @@
       "themeable": true,
       "$comment": "sewage basins, tailing ponds, dumps (T152, Q125): a muted GROUND colour, never a water one — it holds water, and none of it is fishing water"
     },
+    "color.notfishing.edge": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T292) the dashed outline of not-fishing water, a darker step of its fill: the dash says 'not a water you fish', and survives a colour-blind palette"
+    },
     "color.tidal.fill": {
       "type": "color",
       "themeable": true,
@@ -3306,6 +3363,11 @@
       "type": "number",
       "themeable": true,
       "$comment": "(T166) A quiet wash under the freshwater: the shape says 'different rules here', the freshwater above it is the answer."
+    },
+    "width.notfishing.edge": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T292) Scales the not-fishing outline's zoom curve: a hairline."
     },
     "width.tidal.edge": {
       "type": "number",
@@ -3362,7 +3424,7 @@
     "opacity.notfishing": {
       "type": "number",
       "themeable": true,
-      "$comment": "A wash: the shape is there so the gap in the water reads as land use, not to be looked at."
+      "$comment": "(T292, owner 2026-10-29: \"they should be an off colour\") NEARLY OPAQUE: the basemap draws its own OSM water under most of these ponds, and the 0.45 wash let that blue through, so a tailing pond still read as a lake. Now the off colour covers it."
     },
     "opacity.lake": {
       "type": "number",
@@ -3461,6 +3523,11 @@
       "type": "dash",
       "themeable": false,
       "$comment": "v1's [2,3]. A unit edge is drawn dotted so it never reads as a feature of the ground, the way a solid line of the same weight would."
+    },
+    "dash.notfishing": {
+      "type": "dash",
+      "themeable": false,
+      "$comment": "(T292) Not-fishing water's edge: dashed, so the shape reads as a man-made basin and never as a lake's shore."
     },
     "dash.sign_zone": {
       "type": "dash",

@@ -27,6 +27,7 @@ import { RUN_STATES, RUN_WORDS, type RunState } from "./runTiming";
 import { SALMON_MAP_STATUSES, SALMON_WORDS, type SalmonMapStatus } from "./salmon";
 import { WATER_STATUS, WATER_STATUSES, WATER_STATUS_LINE, type WaterStatus } from "./status";
 import { TIDAL_SHEET_WORDS } from "./tidal";
+import { NOT_FISHING_WORDS } from "./notFishing";
 
 /** Stored on a device that has seen, or skipped, the walkthrough. Bump to show it again after a rewrite (T257: the tour). */
 export const WALKTHROUGH_VERSION = "walkthrough-2";
@@ -146,6 +147,7 @@ export type HelpSwatch =
   | { readonly kind: "status"; readonly status: WaterStatus; readonly dotted: boolean }
   | { readonly kind: "gear"; readonly mark: GearMark; readonly edge: "solid" | "dashed" }
   | { readonly kind: "tidal" }
+  | { readonly kind: "notfishing" }
   | { readonly kind: "salmon"; readonly status: SalmonMapStatus }
   | { readonly kind: "run"; readonly state: RunState | "none"; readonly dotted: boolean }
   | { readonly kind: "fresh"; readonly fresh: SourceFreshness }
@@ -271,6 +273,8 @@ export function helpVM(): readonly HelpSection[] {
       { key: "status-no_access", swatch: { kind: "status", status: "no_access", dotted: WATER_STATUS_LINE.no_access === "dotted" },
         name: ACCESS_WORDS.legend, text: HELP_WORDS.status.no_access },
       { key: "tidal", swatch: { kind: "tidal" }, name: TIDAL_SHEET_WORDS.title.split(" — ")[0]!, text: HELP_WORDS.tidal },
+      // (T292) sewage lagoons, tailings ponds, dumps: the muted fill, no regulations
+      { key: "not-fishing", swatch: { kind: "notfishing" }, name: NOT_FISHING_WORDS.legend, text: NOT_FISHING_WORDS.help },
     ]),
     sec("salmon", SALMON_MAP_STATUSES.map((s) => ({
       key: `salmon-${s}`, swatch: { kind: "salmon", status: s }, name: SALMON_WORDS.legend[s], text: HELP_WORDS.salmon[s] }))),

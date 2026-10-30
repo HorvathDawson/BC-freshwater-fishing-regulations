@@ -15,7 +15,8 @@ from pipeline.atlas.build import stamp_not_fishing
 from pipeline.atlas.reach import classify as C
 from pipeline.atlas.reach.build import build_reach
 from pipeline.atlas.reach.models import Outcome, Reason
-from pipeline.common.fishing_water import NOT_FISHING_WATER, is_not_fishing, not_fishing_sections
+from pipeline.common.fishing_water import (NOT_FISHING_KIND, NOT_FISHING_WATER, is_not_fishing, not_fishing_kind,
+                                            not_fishing_sections)
 from pipeline.common.models import NodeKind, StreamGraph, StreamNode
 from pipeline.common.models.registry import RegistryItem
 
@@ -24,6 +25,15 @@ def test_the_codes_are_pinned():
     assert NOT_FISHING_WATER == {"EA26700110": "sewage settling basin",
                                  "AP90300100": "mine tailing pond", "AP09200000": "dump"}
     assert is_not_fishing(" ea26700110 ") and not is_not_fishing("GB24300000")   # a reservoir is water
+
+
+def test_every_code_has_one_tile_kind():
+    """T292: the tile says WHAT it is in one word the app knows (`@app/core` `NOT_FISHING_KINDS`)."""
+    assert NOT_FISHING_KIND == {"EA26700110": "sewage", "AP90300100": "tailings", "AP09200000": "dump"}
+    assert NOT_FISHING_KIND.keys() == NOT_FISHING_WATER.keys()
+    assert not_fishing_kind(" ap09200000 ") == "dump"
+    with pytest.raises(KeyError):
+        not_fishing_kind("GB24300000")
 
 
 def _lake(wbk, **kw):
@@ -91,6 +101,6 @@ def test_the_tiles_draw_it_in_no_water_layer(tmp_path):
     counts = export_waterbodies(tmp_path, "", out)
     assert counts == {"lake": 1, "not_fishing_water": 1}
     nf = [orjson.loads(x) for x in (out / "not_fishing_water.geojsonl").read_bytes().splitlines()]
-    assert nf[0]["properties"] == {}                     # decorative: no id, nothing to tap
+    assert nf[0]["properties"] == {"kind": "tailings"}   # decorative: no id — only what it is (T292)
     lakes = [orjson.loads(x) for x in (out / "lake.geojsonl").read_bytes().splitlines()]
     assert [f["properties"]["section_id"] for f in lakes] == [1]

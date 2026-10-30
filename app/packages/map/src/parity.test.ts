@@ -190,6 +190,20 @@ describe("map parity: one op script, both renderers, the same commands", () => {
     } finally { delete WORLD.rendered.tidal_water; }
   });
 
+  it("(T292) not-fishing water under the tap: the same box, its layer only, the kind back — on both", async () => {
+    WORLD.rendered.not_fishing_water = [{ id: null, properties: { kind: "sewage" } }];
+    try {
+      const wlog: string[] = [], nlog: string[] = [];
+      const w = await webRenderer(glRecorder(wlog), 14).pressNotFishing(10, 10);
+      const n = await nativeRenderer(bindingRecorder(nlog), () => {}).pressNotFishing(10, 10);
+      expect({ n, nlog }).toEqual({ n: w, nlog: wlog });
+      expect([w, wlog]).toEqual([{ kind: "sewage" }, ["query [[-2,-2],[22,22]] not_fishing_water"]]);
+      WORLD.rendered.not_fishing_water = [];
+      expect([await webRenderer(glRecorder([]), 14).pressNotFishing(10, 10),
+              await nativeRenderer(bindingRecorder([]), () => {}).pressNotFishing(10, 10)]).toEqual([null, null]);
+    } finally { delete WORLD.rendered.not_fishing_water; }
+  });
+
   it("the phone pushes a feature-state once: the same value again is no call; forget() after a style swap re-sends", async () => {
     const log: string[] = [];
     const r = nativeRenderer(bindingRecorder(log), () => {});

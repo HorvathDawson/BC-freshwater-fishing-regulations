@@ -18,7 +18,7 @@ import type { SectionKey } from "@app/core";
 import { unionBbox, bboxOfGeometry, type Bbox } from "@app/core";
 import { baseAdapter, type MapAdapter, type MapRenderer } from "./contract";
 import {
-  OBSTACLE_LAYERS, SECTION_SOURCE_LAYERS, TAP_GROUPS, TIDAL_LAYERS, anyTidal, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstObstacle, firstSection,
+  NOT_FISHING_LAYERS, OBSTACLE_LAYERS, SECTION_SOURCE_LAYERS, TAP_GROUPS, TIDAL_LAYERS, anyTidal, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstNotFishing, firstObstacle, firstSection,
   onceSink, sectionIdOf, stateHandle,
   tapBox, visibleSections,
 } from "../sections";
@@ -107,6 +107,10 @@ export function nativeRenderer(refs: NativeRefs, report: (e: unknown) => void, m
     pressTidal: async (x, y) => {
       const m = refs.map();
       return m ? anyTidal(await m.queryRenderedFeatures(tapBox(x, y), { layers: [...TIDAL_LAYERS] })) : false;
+    },
+    pressNotFishing: async (x, y) => {
+      const m = refs.map();
+      return m ? firstNotFishing(await m.queryRenderedFeatures(tapBox(x, y), { layers: [...NOT_FISHING_LAYERS] })) : null;
     },
     visible: async () => {
       const m = refs.map();

@@ -5,7 +5,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { HELP_WORDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, helpVM } from "@app/core";
-import { tidalColours } from "@app/map";
+import { notFishingColours, tidalColours } from "@app/map";
 import { HelpPage } from "./menu/HelpPage";
 import { stepsFor, useTabTour, useWalkthrough, WalkthroughSheet, type WalkthroughStore } from "./Walkthrough";
 import { insideWindow, placeCallout, unionRect, useCoachRegistry, type CoachRegistry } from "./CoachMarks";
@@ -173,6 +173,7 @@ describe("the Help page (T248)", () => {
       const closed = screen.getByTestId("help-row-status-closed").querySelector("div[style*='height: 4px']") as HTMLElement;
       expect(closed.style.backgroundColor).toBe(hexToRgb(palette.waterStatus.closed));
       expect(screen.getByTestId("help-tidal").style.backgroundColor).toBe(hexToRgb(tidalColours(theme).fill));
+      expect(screen.getByTestId("help-notfishing").style.backgroundColor).toBe(hexToRgb(notFishingColours(theme).fill));
       expect(screen.getByTestId("help-edge-dashed")).toBeTruthy();
       expect(screen.getByTestId("help-edge-solid")).toBeTruthy();
       unmount();

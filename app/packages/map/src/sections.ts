@@ -10,6 +10,7 @@
  * with no id as `""` — which `Number()` would turn into section 0. `sectionIdOf` is the one conversion.
  */
 import type { MapHandle } from "./adapters/contract";
+import { notFishingKind, type NotFishingKind } from "@app/core";
 import { MAP_STYLE, STYLE_META } from "./style";
 
 /** The layers whose features ARE sections: the highlightable ones (`featureIdProperty: section_id`). */
@@ -43,6 +44,20 @@ export const TIDAL_LAYERS: readonly string[] = ["tidal_water"];
 
 /** True when any feature of a tidal query exists (the area carries no tap payload: it is the same sheet everywhere). */
 export const anyTidal = (features: readonly unknown[]): boolean => features.length > 0;
+
+/**
+ * (T292) NOT FISHING WATER — a sewage lagoon, tailings pond or dump (the decorative `not_fishing_water` layer, no id),
+ * asked after the water sections and before tidal water (`MapRenderer.pressNotFishing`): a tap that hits no section but
+ * lands on one opens the not-fishing sheet naming its `kind`. Never a tap group: it is no section and has no regulations.
+ */
+export const NOT_FISHING_LAYERS: readonly string[] = ["not_fishing_water"];
+
+/** The first not-fishing feature's `kind` (null when the tile has none — an older atlas), or null for no feature. */
+export function firstNotFishing(features: readonly { properties?: unknown }[]): { kind: NotFishingKind | null } | null {
+  if (!features.length) return null;
+  const p = features[0]!.properties;
+  return { kind: notFishingKind(p && typeof p === "object" ? (p as Record<string, unknown>).kind : undefined) };
+}
 
 /** The first obstacle's tile properties, or null (a feature with no properties is not one). */
 export function firstObstacle(features: readonly { properties?: unknown }[]): Readonly<Record<string, unknown>> | null {

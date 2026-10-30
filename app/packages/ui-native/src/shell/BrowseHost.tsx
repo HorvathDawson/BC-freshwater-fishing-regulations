@@ -2,7 +2,7 @@
  * THE BROWSE TABS' BODIES: the Map and Conditions tabs' ONE map, the Spots tab and the More tab (T62 3.4: out of the
  * Shell, unchanged). The top bar, the search sheet, the legend and the tab bar are the Shell's, drawn over these.
  */
-import { dayLabel, salmonCheckedLine, type DayRange, type SectionKey } from "@app/core";
+import { dayLabel, salmonCheckedLine, type DayRange, type NotFishingKind, type SectionKey } from "@app/core";
 import { useCallback, type MutableRefObject } from "react";
 import { Platform, Text, View } from "react-native";
 import { TYPE } from "../type";
@@ -34,7 +34,7 @@ const NONE_PINS: readonly never[] = [];
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate,
                              photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
-                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onRuns, fishImages }: {
+                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -52,6 +52,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   onObstacle?: (props: Readonly<Record<string, unknown>>) => void;
   /** (T166) A tap on tidal water (no water under it) on the Map tab: the Shell raises the tidal sheet. */
   onTidal?: () => void;
+  /** (T292) A tap on a sewage lagoon / tailings pond / dump (no water under it): its kind, for the not-fishing sheet. */
+  onNotFishing?: (kind: NotFishingKind | null) => void;
   /** (T199, T261) A tap on the Runs map (at or above the handover): the Shell raises the runs sheet for that section. */
   onRuns?: (sid: number) => void;
   /** (T261) The fish art per species code (apps/mobile `FISH_IMAGES`): the Runs tab's species chips. */
@@ -250,6 +252,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      onPressObstacle={picking || wideSearch || tab !== "map" ? undefined : onObstacle}
                      // (T166) tidal water, asked last (Map tab only): its sheet
                      onPressTidal={picking || wideSearch || tab !== "map" ? undefined : onTidal}
+                     // (T292) a sewage lagoon / tailings pond / dump (Map tab only): what it is, never regulations
+                     onPressNotFishing={picking || wideSearch || tab !== "map" ? undefined : onNotFishing}
                      // and anywhere off a spot, a tap clears the selected spot's pin (T145, `mapPointTap`)
                      onMapPoint={mapPointTap(rail, wideSearch ? closeSearch : null)}
                      onError={(e) => console.error("map:", e.message)} />

@@ -335,7 +335,7 @@ use that as the sole source of future work."
 | T289 | Added-stream lake stub makes a false lake outlet (Thomas Creek open under Burnaby Lake tribs) | DONE | 852ecc4f | generic connector re-join inside the lake; Thomas + Angelo; binding diff = expected only |
 | T290 | Remove the Names, Proposals and Low-confidence cuts tabs from the curation review tool | DONE | — | owner 2026-10-29 |
 | T291 | Test-tag problem/crash reports from tools, ignore them in digest + review, clean up staging reports | PARTIAL | 16fc227fc | built + staging cleaned (7 reports, 7 crash kinds deleted); verified live on the deployed worker 2026-10-29 (tagged report + crash land in reports-test/ and crashes-test/, none in the real prefixes); left: confirm with the next `session.sh --build` APK |
-| T292 | Sewage basins, tailing ponds, dumps: off "not a fishing water" colour, no regs, tap says what it is, not in search | OPEN | — | owner 2026-10-29 |
+| T292 | Sewage basins, tailing ponds, dumps: off "not a fishing water" colour, no regs, tap says what it is, not in search | PARTIAL | — | owner 2026-10-29; app + pipeline done (off colour, dashed edge, legend, tap sheet); left: tiles export rerun for the `kind` attribute |
 
 ## Order for open tickets
 

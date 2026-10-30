@@ -20,11 +20,17 @@
     "color.lake.fill": "#94C9E0",
     "color.lake.edge": "#4E88A6",
     "color.wetland.fill": "#75AE8C",
-    "color.notfishing.fill": "#BDB3A0",
+    "color.notfishing.fill": "#D1C6A9",
+    "color.notfishing.edge": "#776C40",
     "color.tidal.fill": "#A9CFCB",
     "color.tidal.edge": "#5E9A97",
     "opacity.tidal": 0.4,
     "width.tidal.edge": 1.0,
+    "width.notfishing.edge": 1.0,
+    "dash.notfishing": [
+      3,
+      2
+    ],
     "color.contour.line": "#000040",
     "color.park.fill": "#cfe3b4",
     "color.park.edge": "#7d9c5c",
@@ -35,7 +41,7 @@
     "width.lake.edge": 0.8,
     "width.admin.edge": 1.2,
     "opacity.wetland": 0.3,
-    "opacity.notfishing": 0.45,
+    "opacity.notfishing": 0.9,
     "opacity.lake": 0.9,
     "width.underlake": 1.6,
     "dash.route": [

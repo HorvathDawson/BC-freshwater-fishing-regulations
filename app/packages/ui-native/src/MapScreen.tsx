@@ -18,7 +18,7 @@ import type { Palette } from "./theme";
 
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
-                            onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressObstacle, onPressTidal, onMoved, onMapPoint, horizons,
+                            onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, status, standing, lakes, salmon, method, runs, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, marks, onPressMark, spots,
                             insetTop = 0, insetBottom = 0, onRegion, corner }: {
@@ -35,6 +35,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   onPressObstacle?: MapProps["onPressObstacle"];
   /** (T166) A tap on tidal water, where no water is under it — see MapProps.onPressTidal. */
   onPressTidal?: MapProps["onPressTidal"];
+  /** (T292) A tap on a sewage lagoon / tailings pond / dump — see MapProps.onPressNotFishing. */
+  onPressNotFishing?: MapProps["onPressNotFishing"];
   onMoved?: (at: Camera) => void;
   /** A raw tapped coordinate — for picking a PLACE rather than a feature. */
   onMapPoint?: (lat: number, lon: number) => void;
@@ -106,7 +108,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
     <View ref={coachTarget} collapsable={false} style={{ flex: 1, backgroundColor: palette.tint }}>
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
-           onPressFeature={onPressFeature} onPressObstacle={onPressObstacle} onPressTidal={onPressTidal} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
+           onPressFeature={onPressFeature} onPressObstacle={onPressObstacle} onPressTidal={onPressTidal} onPressNotFishing={onPressNotFishing} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
            highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}
            gauges={gauges}
            onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} onImageryError={onImageryError}

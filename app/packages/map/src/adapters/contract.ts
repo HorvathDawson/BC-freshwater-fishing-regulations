@@ -7,7 +7,7 @@
  * colouring comes from a view. That is what keeps the platforms looking the same.
  * What each layer is painted with is `../paint.ts`, shared with the style composer.
  */
-import type { Bbox, SectionKey } from "@app/core";
+import type { Bbox, NotFishingKind, SectionKey } from "@app/core";
 import { pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE, type TracePin } from "../trace-overlay";
 import type { TraceCollection } from "../trace-geometry";
 import { COPY_CASING, COPY_FILL, COPY_LINE, type LitFeature } from "../water-copy";
@@ -67,6 +67,11 @@ export interface MapRenderer {
   pressObstacle(x: number, y: number): Promise<Readonly<Record<string, unknown>> | null>;
   /** (T166) Whether a tap at `(x, y)` (the same box, `TIDAL_LAYERS`) lands on tidal water. Asked after the water. */
   pressTidal(x: number, y: number): Promise<boolean>;
+  /**
+   * (T292) The not-fishing water (sewage lagoon, tailings pond, dump) under a tap at `(x, y)` (the same box,
+   * `NOT_FISHING_LAYERS`): its `kind`, or null for none. Asked after the water, before tidal water.
+   */
+  pressNotFishing(x: number, y: number): Promise<{ kind: NotFishingKind | null } | null>;
   /** The sections on screen (`VISIBLE_LAYERS`), as numbers, once each. */
   visible(): Promise<number[]>;
   /** The box of the given sections' features the tiles have delivered (a searched water's own shape), or null. */

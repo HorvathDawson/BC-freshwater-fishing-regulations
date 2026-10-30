@@ -333,6 +333,14 @@ export function tidalColours(theme: string): { fill: string; edge: string } {
   return { fill, edge };
 }
 
+/** (T292) The fill and dashed edge the map paints not-fishing water with in one theme — the legend's and Help page's swatch. */
+export function notFishingColours(theme: string): { fill: string; edge: string } {
+  const t = resolveTheme(theme);
+  const fill = t["color.notfishing.fill"], edge = t["color.notfishing.edge"];
+  if (typeof fill !== "string" || typeof edge !== "string") throw new Error(`theme "${theme}" has no not-fishing colours`);
+  return { fill, edge };
+}
+
 export function waterStatusColour(theme: string, status: WaterStatus): string {
   const hex = resolveTheme(theme)[WATER_STATUS[status].token];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint ${status}`);

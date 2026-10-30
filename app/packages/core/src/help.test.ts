@@ -46,7 +46,7 @@ describe("the Help page (T248)", () => {
       ...SALMON_MAP_STATUSES.map((s) => `salmon-${s}`),
       ...RUN_STATES.map((s) => `run-${s}`), "run-none",
       ...SYNC_KINDS.map((k) => `sync-${k}`),
-      "tidal", "bell",
+      "tidal", "not-fishing", "bell",
     ];
     for (const k of want) expect(keys, k).toContain(k);
     expect(new Set(keys).size).toBe(keys.length);

@@ -22,7 +22,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM } from "@app/core";
+import { bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind } from "@app/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
@@ -40,6 +40,7 @@ import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
 import { ObstacleSheet } from "./ObstacleSheet";
 import { TidalSheet } from "./TidalSheet";
+import { NotFishingSheet } from "./NotFishingSheet";
 import { RunsSheet } from "./RunsSheet";
 import { InSeasonNotice } from "./InSeasonNotice";
 import { SyncErrorSheet } from "./SyncErrorSheet";
@@ -106,6 +107,8 @@ export function Shell(p: ShellProps) {
   const [obstacle, setObstacle] = useState<Readonly<Record<string, unknown>> | null>(null);
   /** (T166) Whether the tidal water sheet is up (a tap on tidal water, no water under it). */
   const [tidalOpen, setTidalOpen] = useState(false);
+  /** (T292) The tapped not-fishing water's kind (`undefined`: no sheet; null: a tile with no kind), while its sheet is up. */
+  const [notFishing, setNotFishing] = useState<NotFishingKind | null | undefined>(undefined);
   /** (T199) The section a tap asked about under Run timing (its runs sheet), else null. */
   // (T275) the foot block's height, for the credits and scale above it
   const [footH, setFootH] = useState(0);
@@ -299,7 +302,7 @@ export function Shell(p: ShellProps) {
                   dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
-                  onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onRuns={setRunsAt}
+                  onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onNotFishing={setNotFishing} onRuns={setRunsAt}
                   fishImages={p.fishImages} />
     : null;
   const body = (
@@ -400,6 +403,9 @@ export function Shell(p: ShellProps) {
       <ObstacleSheet props={route.mode === "browse" ? obstacle : null} palette={palette} onClose={() => setObstacle(null)} />
       {/* (T166) a tap on tidal water: why the freshwater regulations stop here (Map tab, while browsing) */}
       <TidalSheet open={route.mode === "browse" && tidalOpen} palette={palette} onClose={() => setTidalOpen(false)} />
+      {/* (T292) a tap on a sewage lagoon / tailings pond / dump: what it is, and that it is not a fishing water */}
+      <NotFishingSheet kind={route.mode === "browse" ? notFishing : undefined} palette={palette}
+                       onClose={() => setNotFishing(undefined)} />
       {/* (T199, T261) a tap on the Runs map: the runs on that section, and on to its regulations */}
       <RunsSheet vm={route.mode === "browse" && tab === "runs" ? runsVM : null} palette={palette} theme={theme}
                  fishImages={p.fishImages} onClose={() => setRunsAt(null)}

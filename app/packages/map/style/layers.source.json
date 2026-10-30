@@ -974,6 +974,7 @@
             "lake__label",
             "lake_flowing",
             "not_fishing_water",
+            "not_fishing_water__edge",
             "wetland",
             "wetland_flowing",
             "under_lake",
@@ -1852,7 +1853,33 @@
       "opacity": {
         "token": "opacity.notfishing"
       },
-      "$comment": "NOT FISHING WATER (T152, Q125 owner 2026-10-24): sewage settling basins, mine tailing ponds and dumps. They hold water and no rule speaks of them, so they are drawn as a MUTED FILL in a ground colour — never in a water colour, never as a lake: a lake-blue polygon reads as water you may fish under the region's rules. NO featureIdProperty and not highlightable, deliberately, as `under_lake`: the tile layer is `decorative` (pipeline layers.py — no attributes, no id), so it is in no tap group (src/sections.ts `TAP_GROUPS`) and a tap on one resolves to nothing. Static in every view; covered by the Conditions field like the other water fills."
+      "outline": {
+        "color": {
+          "token": "color.notfishing.edge"
+        },
+        "width": {
+          "token": "width.notfishing.edge",
+          "mode": "zoom",
+          "ramp": [
+            [
+              9,
+              0.6
+            ],
+            [
+              13,
+              1.0
+            ],
+            [
+              16,
+              1.4
+            ]
+          ]
+        },
+        "dash": {
+          "token": "dash.notfishing"
+        }
+      },
+      "$comment": "NOT FISHING WATER (T152, Q125 owner 2026-10-24; T292 owner 2026-10-29 \"they should be an off colour\"): sewage settling basins, mine tailing ponds and dumps. They hold water and no rule speaks of them, so they are drawn in an OFF COLOUR — a near-opaque khaki ground fill with a dashed edge, never a water colour, never as a lake: a lake-blue polygon reads as water you may fish under the region's rules. Near-opaque because the basemap draws OSM water under most of them and a thin wash let its blue through. NO featureIdProperty and not highlightable, deliberately, as `under_lake`: the tile layer is `decorative` (pipeline layers.py — no id; one attribute, `kind`: sewage | tailings | dump), so it is in no tap group (src/sections.ts `TAP_GROUPS`) and no status, mode or regulation ever colours it. A tap that hits no water section and lands on one opens the not-fishing sheet naming its kind (src/sections.ts `NOT_FISHING_LAYERS`, `@app/core` `notFishingSheet`), asked after the water and before tidal water. Static in every view; covered by the Conditions field like the other water fills."
     },
     {
       "id": "contour",

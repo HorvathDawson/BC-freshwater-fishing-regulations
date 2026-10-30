@@ -57,7 +57,9 @@
     },
     "not_fishing_water": {
       "geometry": "polygon",
-      "attrs": [],
+      "attrs": [
+        "kind"
+      ],
       "featureId": null,
       "decorative": true,
       "mvtId": false,
