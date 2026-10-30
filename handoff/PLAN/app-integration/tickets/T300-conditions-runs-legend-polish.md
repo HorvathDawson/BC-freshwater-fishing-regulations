@@ -15,6 +15,8 @@ Status: OPEN (owner 2026-10-30).
    means, with ticks/labels; plain words.
 7. **Legend:** when Fish obstacles is on, its symbols appear in the legend; shorten every legend item's words (fewer,
    clearer words) so the legend takes less space; keep T275 (legend overlays, map rect fixed).
+8. **More tab sync** (owner 2026-10-30): the More tab gets the same sync / check-for-updates button as the map (same
+   component, same states), next to the data freshness list.
 
 ## Acceptance
 Phone + desktop screenshots before/after for each item; gestures checked on the emulator.
