@@ -203,7 +203,8 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     for (const m of [...p.members].sort((a, b) => a.panel - b.panel || a.ord - b.ord)) {
       const list = out.get(m.panel) ?? [];
       list.push({ station: m.station as StationId, role: m.role, areaKm2: m.areaKm2, years: m.years,
-                  regulated: m.regulated, sameRiver: m.sameRiver, ...(m.lead ? { lead: m.lead } : {}) });
+                  regulated: m.regulated, sameRiver: m.sameRiver, ...(m.lead ? { lead: m.lead } : {}),
+                  ...(m.lake ? { throughLake: true as const } : {}) });
       out.set(m.panel, list);
     }
     return out;
@@ -401,7 +402,8 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
         const panel = paint.panelOf(s);
         if (panel === null) continue;                     // no panel: ABSENT, never an empty one (see WaterSource)
         const i = at(s);
-        out.set(s, { areaKm2: i === null ? null : area[i]!, members: members.get(panel) ?? [] });
+        out.set(s, { areaKm2: i === null ? null : area[i]!, members: members.get(panel) ?? [],
+                     ...(paint.lakes ? { lakeKnown: true as const } : {}) });
       }
       return out;
     },

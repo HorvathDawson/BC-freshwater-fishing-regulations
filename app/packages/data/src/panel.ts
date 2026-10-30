@@ -36,6 +36,8 @@ export interface DonorRow {
   regulated: boolean;
   /** On the same blue line as this reach — see `PanelMember.sameRiver`. */
   sameRiver: boolean;
+  /** (T296) `true` only: its route crosses a lake (`PanelMember.throughLake`) — so a frozen answer keeps it. */
+  throughLake?: true;
   /**
    * Why this donor is worth what it is worth, before normalising — the three factors the
    * model multiplies. Carried so a screen can show the working rather than assert a
@@ -263,6 +265,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
     raw.push({ station: m.station, role: m.role, percentile: own, weight: 0,
                areaRatio: ratio, areaKm2: m.areaKm2, trust: trustFor(ratio).klass,
                years, regulated: m.regulated, sameRiver: m.sameRiver,
+               ...(m.throughLake ? { throughLake: true as const } : {}),
                factors: f, _w: w,
                ...(row?.observedAt ? { observedAt: row.observedAt } : {}),
                ...(listed && !listed.has(m.station) ? { realtime: false as const } : {}),
@@ -306,11 +309,13 @@ export function answerFrom(panel: Panel | undefined, index: Index,
 
 
 /**
- * (T296) THE PANEL WITH EACH MEMBER'S LAKE CROSSING, from its route (`PanelRoute.throughLake`): the same panel object
- * when no route crosses a lake, so a caller's memo holds. Only a sheet has routes; the map colours without them.
+ * (T296) THE PANEL WITH EACH MEMBER'S LAKE CROSSING, from its route (`PanelRoute.throughLake`) — only for a paint/4
+ * release, which says nothing of lakes. A release that does (`Panel.lakeKnown`) is returned as it is: the sheet then
+ * weighs exactly what the map colours by (owner 2026-10-29, "the map should match the data in the click"). The same
+ * panel object when nothing changes, so a caller's memo holds.
  */
 export function withThroughLake(panel: Panel | undefined, lakes: ReadonlySet<StationId> | null): Panel | undefined {
-  if (!panel || !lakes?.size || !panel.members.some((m) => lakes.has(m.station))) return panel;
+  if (!panel || panel.lakeKnown || !lakes?.size || !panel.members.some((m) => lakes.has(m.station))) return panel;
   return { ...panel, members: panel.members.map((m) => (lakes.has(m.station) ? { ...m, throughLake: true as const } : m)) };
 }
 

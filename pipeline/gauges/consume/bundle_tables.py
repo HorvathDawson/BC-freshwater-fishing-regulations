@@ -18,7 +18,7 @@ from pathlib import Path
 from pipeline.atlas.graph.drainage import AreaModel, fit_area_model
 from pipeline.common.curated import GENERATED, SOURCE
 from pipeline.common.registry_kinds import is_water
-from pipeline.gauges.consume.panels import build as build_panels
+from pipeline.gauges.consume.panels import build as build_panels, through_lake_panels
 from pipeline.gauges.feed.record import MIN_RECORD_YEARS, QUANTITIES, record_years
 
 #: The envelope, written by `pipeline.gauges.feed.climatology` and read by BOTH the feed publisher
@@ -330,9 +330,27 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
                               measures=measures,
                               published={s["station"]: s["area_km2"] for s in stations
                                          if s.get("area_km2")})
+        # CLOSED DOWNSTREAM, WITH EACH REACH'S LENGTH (T252): a lake's pointer carries the walk on to its outlet, and
+        # `len` (in DOWN_LEN_UNIT_M) lets the app say "about N km along the river" by summing a route's reaches.
+        # SEEDED with shed members and every NAMED section a donor panel speaks for (T252): a named water's braid or
+        # side channel (the upper Pitt's, beside Pitt Lake) is no shed member, and without a pointer of its own its
+        # donor map said "no mapped path". Unnamed panel sections stay out: 64k more rows (+470 kB gz) for little.
+        # Built HERE, before the panels are written, because the panels' lake flags are read off these routes.
+        down = downstream_map(graph, [*(l.section_id for l in links),
+                                      *(s for s in panels.by_section if s in owner)])
+        lens = section_lengths(graph, down)
+        # (T296) `lake`: 1 where the reach is a lake (`shed.lake_reaches`, the donor walk's own definition) — and each
+        # panel member whose route crosses one is flagged (`through_lake_panels`, owner 2026-10-29: "the map should
+        # match the data in the click"): the map, the sheet and a saved spot weigh it down alike (`lakeDamped`).
+        lakes = lake_reaches(graph, down, owner, {i["id"]: i.get("kind") for i in registry_items if is_water(i)})
+        before = len(panels.members)
+        panels = through_lake_panels(panels, down, lakes, dict(matched))
+        flagged = sum(1 for ms in panels.members.values() if any(m.lake for m in ms))
+        print(f"     lakes: {len(lakes):,} lake reaches on the routes; {flagged:,} panels carry a member across one "
+              f"({before:,} -> {len(panels.members):,} panels)")
         db.executemany("INSERT INTO section_panel (sid, panel_id, area_km2) VALUES (?,?,?)",
                        [(sid[_s], _p, _a) for _s, _p, _a in panels.section_rows()])
-        db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?,?,?,?,?)",
+        db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                        panels.member_rows())
         cov.filled("section_panel", len(panels.by_section))
         cov.filled("panel_member", sum(len(v) for v in panels.members.values()))
@@ -382,17 +400,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         # bundle built "fine" with no basins. It stops the build now, naming the cause.
         raise SystemExit(f"basin_member: not built: {_exc}") from _exc
 
-    # CLOSED DOWNSTREAM, WITH EACH REACH'S LENGTH (T252): a lake's pointer carries the walk on to its outlet, and
-    # `len` (in DOWN_LEN_UNIT_M) lets the app say "about N km along the river" by summing a route's reaches.
-    # SEEDED with shed members and every NAMED section a donor panel speaks for (T252): a named water's braid or side
-    # channel (the upper Pitt's, beside Pitt Lake) is no shed member, and without a pointer of its own its donor map
-    # said "no mapped path". Unnamed panel sections stay out: 64k more rows (+470 kB gz) for little.
-    down = downstream_map(graph, [*(l.section_id for l in links),
-                                  *(s for s in panels.by_section if s in owner)])
-    lens = section_lengths(graph, down)
-    # (T296) `lake`: 1 where the reach is a lake (`shed.lake_reaches`, the donor walk's own definition), NULL otherwise —
-    # the app weighs a gauge whose route crosses one as reached through standing water (`lakeDamped`)
-    lakes = lake_reaches(graph, down, owner, {i["id"]: i.get("kind") for i in registry_items if is_water(i)})
+    # the pointers, their lengths and lakes, built with the panels above (T252, T296)
     db.executemany("INSERT INTO section_down (sid, down_sid, len, lake) VALUES (?,?,?,?)",
                    [(sid[s], sid[down[s]], round(lens[s] / DOWN_LEN_UNIT_M), 1 if s in lakes else None)
                     for s in sorted(down)])

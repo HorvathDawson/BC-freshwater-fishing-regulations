@@ -1,7 +1,7 @@
 # T296 — A gauge reached through a lake counts for little when a closer gauge (no lake between) exists
 
-Status: PARTIAL — code done 2026-10-29; `section_down.lake` rides the next bundle + release (the app falls back to the
-water's kind until then, so the rule already works on named lakes).
+Status: PARTIAL — code done 2026-10-30 (owner accepted the rule; map + saved spots added); rides the next bundle +
+release (paint/5) + APK.
 
 Source: owner: "the condition gauge through a lake we need to be careful of. if no gauge is downstream I agree that is fine
 but if there are other gauges closer they should take almost full amount of the prediction because through a lake acts as
@@ -45,8 +45,26 @@ first, unnamed lake, a 0 overruling the kind; untouched weights + own gauge stil
 lake >90% and the arithmetic exact; the caution words); `app/tools/one-formula.test.ts` (4 lake panels, Python ↔ TS);
 `pipeline/tests/test_gauge_shed.py::TestLakeReaches`.
 
+## Map + saved spots (owner 2026-10-29: "the map should match the data in the click")
+- ONE implementation: the build flags each member whose route crosses a lake — `panels.through_lake_panels`
+  (`route_interior` mirrors `routesOf`, over the release's own `section_down` + `lake` rows; a lake reach with no row
+  is none, as the app reads it) → `Member.lake` → `panel_member.lake` → paint/5 (one varint per member). Panels are
+  re-interned on the flag (split only where a section passes a lake). The app reads it into `PanelMember.throughLake`
+  + `Panel.lakeKnown`; the map's `panelStanding`, the sheet's `answerFrom` and a saved spot (`captureSpot`,
+  `panelOnDay`, `panelOfAnswer`) all go through `contributionsOf` → core `estimate`/`answering` (`lakeDamped` inside)
+  — the same function the one-formula test pins to Python. No weight is precomputed.
+- On paint/5 the sheet ignores route-derived lakes (`withThroughLake` returns the panel when `lakeKnown`); on paint/4
+  (older releases, readable) the map knows no lakes and the sheet uses its routes as before.
+- Paint: core decoder reads 4 and 5 (`Paint.lakes`); an older APK refuses 5 by its version byte, so the release is
+  published with `--min-app-version` = the new APK's version (older apps keep their data and ask to update).
+- Tests: `throughLake.test.ts` "the map's colour is the sheet's answer" (upper Pitt: only through-lake, and with a
+  no-lake gauge; release flags beat route lakes); `paint.test.ts` (v5 fixture, `lakes`); `test_gauge_shed.py::
+  TestThroughLakePanels`; `test_release.py` paint round trip + regenerated app fixture.
+
 ## Left
-- Next bundle + release: `section_down.lake` ships; until then `test_release.py::test_a_built_release_is_exactly_the_contract`
-  fails on the LATEST release (contract has `lake`, release has not) — the same as T252's `len` did.
-- Not applied (proposal, owner): the map's colour and a saved spot (no routes there; `panel_member` would need the flag
-  per section, a paint format change). 0 mixed sections measured, so nothing differs today.
+- Build: `python -m pipeline.deliver bundle` (writes `section_down.lake`, `panel_member.lake`, prints "lakes: … panels
+  carry a member across one") → release build → publish with `--min-app-version <new APK version>` → APK. Until the
+  bundle is rebuilt, `test_release.py::test_paint_reproduces_the_status_index_and_the_flow_tables` errors (the paint
+  encoder refuses a bundle without `panel_member.lake`) and `test_a_built_release_is_exactly_the_contract` fails on
+  LATEST (no `section_down.lake`). Check the paint web gate in `release-budget.test.ts` on the new release (+1 byte
+  per member, a few more panels).

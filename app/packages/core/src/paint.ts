@@ -24,6 +24,8 @@ export interface PanelMember {
   areaKm2: number; years: RecordYears; regulated: boolean; sameRiver: boolean;
   /** The section's own gauge, which may lead the answer: its rank, 0 not (paint/2; `Contribution.lead`). */
   lead: number;
+  /** (paint/5, T296) Its route to the section crosses a lake (`Contribution.throughLake`); false on paint/4. */
+  lake: boolean;
 }
 export interface BasinMember { basin: string; station: string; areaKm2: number | null; years: RecordYears }
 
@@ -38,6 +40,9 @@ export interface Paint {
   /** Every section with a panel, in sid order (the order flow-area's values follow). */
   sectionCount: number;
   members: readonly PanelMember[];
+  /** (T296) Whether the members carry their lake crossing (paint/5): the map and the sheet then read it from here,
+   *  never from a route; false on a paint/4 release, which says nothing of lakes. */
+  lakes: boolean;
   basins: readonly BasinMember[];
   /** The panel speaking for a section, or null (binary search over the runs). */
   panelOf(sid: number): number | null;
@@ -96,9 +101,11 @@ function readAccess(r: Reader): SectionAccess {
 
 export function decodePaint(bytes: Uint8Array, expectHandles: string | null, expectReach: string | null = null): Paint {
   if (bytes[0] !== 0x42 || bytes[1] !== 0x43 || bytes[2] !== 0x50 || bytes[3] !== 0x54) throw new PaintError("paint: not a paint file");
-  // paint/2 added each member's `lead`, paint/3 the access half, paint/4 the record per quantity (T110): another
-  // version is refused here
-  if (bytes[4] !== 4) throw new PaintError(`paint: version ${bytes[4]} is not 4`);
+  // paint/2 added each member's `lead`, paint/3 the access half, paint/4 the record per quantity (T110), paint/5 each
+  // member's `lake` (T296): 4 and 5 are read (4 says nothing of lakes), another version is refused here
+  const version = bytes[4];
+  if (version !== 4 && version !== 5) throw new PaintError(`paint: version ${version} is not 4 or 5`);
+  const lakes = version === 5;
   const r = new Reader(bytes, 5);
   const n = r.u32();
   const status = decodeStatusIndex(r.bytes(n), expectHandles, expectReach);
@@ -116,10 +123,10 @@ export function decodePaint(bytes: Uint8Array, expectHandles: string | null, exp
   for (let i = 0, m = r.uv(); i < m; i++) {
     pid += r.uv();
     const ord = r.uv(), si = r.uv(), role = r.uv(), area = r.uv(), discharge = r.uv(), level = r.uv(), reg = r.uv(),
-          same = r.uv(), lead = r.uv();
+          same = r.uv(), lead = r.uv(), lake = lakes ? r.uv() : 0;
     members.push({ panel: pid, ord, station: stations[si] ?? r.fail(`station ${si}`), role: role ? "down" : "up",
                    areaKm2: area / 1000, years: { discharge, level }, regulated: reg === 1, sameRiver: same === 1,
-                   lead });
+                   lead, lake: lake === 1 });
   }
   const basins: BasinMember[] = [];
   for (let i = 0, m = r.uv(); i < m; i++) {
@@ -148,7 +155,7 @@ export function decodePaint(bytes: Uint8Array, expectHandles: string | null, exp
     codeOn: (s, on) => status.codeOn(s, on), profileOf: (s) => status.profileOf(s),
     profileCodeOn: (p, on) => status.profileCodeOn(p, on), waterCodeOn: (i, on) => status.waterCodeOn(i, on),
   };
-  return { status: withAccess, access, stations, runs: { starts, counts, panels }, sectionCount: sections, members,
+  return { status: withAccess, access, stations, runs: { starts, counts, panels }, sectionCount: sections, members, lakes,
            basins, panelOf };
 }
 

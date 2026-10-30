@@ -64,6 +64,10 @@ class Member:
     #: Depends on the target, unlike the facts above — and is interned with them anyway: it changes only where a
     #: section passes from near its gauge to far, so a stretch of river still shares one panel.
     lead: int = 0
+    #: (T296, owner 2026-10-29) this donor's ROUTE to the section crosses a lake (`through_lake_panels`): the app
+    #: weighs it down while a member with no lake between reports (`lakeDamped`). Depends on the target like `lead`,
+    #: and interned with it: it changes only where a section passes a lake.
+    lake: bool = False
 
 
 @dataclass(frozen=True)
@@ -85,11 +89,11 @@ class Panels:
             yield (sec, pid, None if area is None else round(area, 3))
 
     def member_rows(self):
-        """`(panel_id, ord, station, role, area_km2, discharge_years, level_years, regulated, same_river, lead)`."""
+        """`(panel_id, ord, station, role, area_km2, discharge_years, level_years, regulated, same_river, lead, lake)`."""
         for pid, ms in sorted(self.members.items()):
             for i, m in enumerate(ms):
                 yield (pid, i, m.station, m.role, round(m.area_km2, 3), *m.years,
-                       1 if m.regulated else 0, 1 if m.same_river else 0, m.lead)
+                       1 if m.regulated else 0, 1 if m.same_river else 0, m.lead, 1 if m.lake else 0)
 
 
 def _kind(node) -> str:
@@ -1112,3 +1116,83 @@ def build(graph, model: AreaModel,
         else:
             by_section[sec] = by_section[end]
     return Panels(by_section=by_section, members=members)
+
+
+def _route_chain(down: dict[str, str], start: str) -> list[str]:
+    """`start` and every section below it, nearest first, stopping at the end of the pointers or a loop — the app's
+    `routesOf` `chain` (5000 steps at most)."""
+    out, seen = [start], {start}
+    for _ in range(5000):
+        nxt = down.get(out[-1])
+        if nxt is None or nxt in seen:
+            break
+        seen.add(nxt)
+        out.append(nxt)
+    return out
+
+
+def route_interior(down: dict[str, str], section: str, gauge: str | None, role: str,
+                   gauge_chain: list[str] | None = None, spot_chain: list[str] | None = None) -> list[str] | None:
+    """THE REACHES BETWEEN A SECTION AND A DONOR'S GAUGE on the route the app draws (`routesOf` in
+    app/packages/data/src/sql/shared.ts, mirrored step for step so the map's weighting and the sheet's agree): the
+    gauge walked down to the section (role up) or the section down to the gauge (role down), else down from both to
+    where they meet. Both ends excluded; None when the route cannot be drawn (no gauge section, no meeting)."""
+    if gauge is None:
+        return None
+    if gauge == section:
+        return []
+    spot = spot_chain if spot_chain is not None else _route_chain(down, section)
+    theirs = gauge_chain if gauge_chain is not None else _route_chain(down, gauge)
+    if role == "up":
+        if section in theirs:
+            return theirs[1:theirs.index(section)]
+    elif gauge in spot:
+        return spot[1:spot.index(gauge)]
+    at = {x: i for i, x in enumerate(theirs)}
+    for i, x in enumerate(spot):
+        if x in at:
+            return spot[1:i + 1] + theirs[1:at[x]]
+    return None
+
+
+def through_lake_panels(panels: Panels, down: dict[str, str], lakes, gauge_section: dict[str, str]) -> Panels:
+    """(T296, owner 2026-10-29: "the map should match the data in the click") EVERY SECTION'S PANEL WITH EACH MEMBER'S
+    LAKE CROSSING: `Member.lake` where the member's route (`route_interior`, over the release's own `section_down`
+    pointers) crosses a reach in `lakes` (the release's `section_down.lake` rows — only pointered reaches, as the app
+    reads them). Re-interned on the flag, so a panel shared across a lake splits there and nowhere else; a section
+    whose members cross no lake keeps its panel id. The map's colour, the sheet and a saved spot all read the flag."""
+    lakes = {s for s in lakes if s in down}
+    chains: dict[str, list[str]] = {}
+    members = dict(panels.members)
+    intern = {_panel_key(ms): pid for pid, ms in members.items()}
+    by_section = dict(panels.by_section)
+    on_a_route = set(down) | set(down.values())
+    for sec, (pid, area) in panels.by_section.items():
+        if sec not in on_a_route:
+            # no pointer to or from it: a route to it is the gauge standing on it or none — never across a lake
+            continue
+        spot = _route_chain(down, sec)
+        flags = []
+        for m in members[pid]:
+            g = gauge_section.get(m.station)
+            if g is not None and g not in chains:
+                chains[g] = _route_chain(down, g)
+            mid = route_interior(down, sec, g, m.role, chains.get(g), spot)
+            flags.append(bool(mid) and any(x in lakes for x in mid))
+        if not any(flags):
+            continue
+        chosen = tuple(dataclasses.replace(m, lake=f) for m, f in zip(members[pid], flags))
+        key = _panel_key(chosen)
+        new = intern.get(key)
+        if new is None:
+            new = intern[key] = max(members) + 1
+            members[new] = chosen
+        by_section[sec] = (new, area)
+    used = {pid for pid, _a in by_section.values()}
+    return Panels(by_section=by_section, members={pid: ms for pid, ms in members.items() if pid in used})
+
+
+def _panel_key(ms) -> tuple:
+    return tuple(sorted((m.station, m.role, round(m.area_km2, 3), m.years, m.regulated, m.same_river, m.lead, m.lake)
+                        for m in ms))
+

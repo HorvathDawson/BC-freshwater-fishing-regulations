@@ -929,6 +929,12 @@ CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
                            -- set anyway: it changes only where a river passes from near its
                            -- gauge to far.
                            lead INTEGER NOT NULL DEFAULT 0,
+                           -- (T296, owner 2026-10-29) THIS DONOR'S ROUTE TO THE SECTION CROSSES A LAKE (1; 0 not):
+                           -- the route the app draws, over `section_down` and its `lake` rows
+                           -- (`panels.through_lake_panels`). A through-lake donor counts for little while one with
+                           -- no lake between reports (trust.ts `lakeDamped`) — on the map, the sheet and a saved
+                           -- spot alike. Target-dependent like `lead`, interned with the set.
+                           lake INTEGER NOT NULL DEFAULT 0,
                            PRIMARY KEY (panel_id, ord)) WITHOUT ROWID;
 
 -- WHICH STATION SPEAKS FOR EACH CATCHMENT, for the zoomed-out field.

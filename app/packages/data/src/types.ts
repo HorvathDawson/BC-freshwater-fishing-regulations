@@ -180,9 +180,9 @@ export interface PanelMember {
    */
   lead?: number;
   /**
-   * (T296) `true` only: this member's path to the section crosses a LAKE (its route's `throughLake`). Not in the
-   * release — a panel is shared by sections on both sides of a lake — so it is set on a sheet once the routes are
-   * walked (`withThroughLake`); absent on the map's colour and a saved spot. Core's `lakeDamped` applies it.
+   * (T296) `true` only: this member's route to the section crosses a LAKE — the release's `panel_member.lake`
+   * (paint/5), read alike by the map's colour, the sheet and a saved spot; on a paint/4 release the sheet sets it from
+   * its walked routes (`withThroughLake`) and the map knows nothing of lakes. Core's `lakeDamped` applies it.
    */
   throughLake?: true;
 }
@@ -210,6 +210,11 @@ export interface Panel {
   /** The target's own catchment, km². Null where the graph had no magnitude for it. */
   areaKm2: number | null;
   members: readonly PanelMember[];
+  /**
+   * (T296) `true` only: the release says each member's lake crossing (paint/5, `PanelMember.throughLake`), so the
+   * sheet reads it from here as the map does and never from a route (`withThroughLake`). Absent on a paint/4 release.
+   */
+  lakeKnown?: true;
 }
 
 /**

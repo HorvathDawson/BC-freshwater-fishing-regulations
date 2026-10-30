@@ -12,7 +12,7 @@
 import { describe, expect, it } from "vitest";
 import { THROUGH_LAKE_FACTOR, THROUGH_LAKE_WORDS, throughLakeNote } from "@app/core";
 import type { Panel, SectionId, StationId } from "./index";
-import { answerFrom, contributionsOf, throughLakeStations, withThroughLake } from "./panel";
+import { answerFrom, contributionsOf, panelStanding, throughLakeStations, withThroughLake } from "./panel";
 import { placesOf, routesOf } from "./sql/shared";
 
 const s = (n: number) => n as unknown as SectionId;
@@ -84,7 +84,11 @@ describe("the weighting (answerFrom, core's lakeDamped)", () => {
 
   it("leaves the upper Pitt as it is: every gauge crosses the lake, so each keeps its weight", () => {
     for (const q of ["discharge", "level"] as const)
-      expect(answerFrom(withThroughLake(UPPER_PITT, lakes), INDEX, q)).toEqual(answerFrom(UPPER_PITT, INDEX, q));
+    {
+      const [a, b] = [answerFrom(withThroughLake(UPPER_PITT, lakes), INDEX, q), answerFrom(UPPER_PITT, INDEX, q)];
+      expect(a.answer).toEqual(b.answer);
+      expect(a.rows.map((r) => [r.station, r.weight])).toEqual(b.rows.map((r) => [r.station, r.weight]));
+    }
     // the own gauge still leads Level, across the lake: it is the best there is
     expect(shares(withThroughLake(UPPER_PITT, lakes), "level")["08MH035"]).toBeGreaterThanOrEqual(0.7);
   });
@@ -136,5 +140,38 @@ describe("the caution line (core's throughLakeNote)", () => {
     // a quiet gauge with no lake between does not count, so the caution stands
     expect(throughLakeNote([row("A", below), row("B", { path: [1, 2] }, null)])).not.toBeNull();
     expect(throughLakeNote([row("A", undefined)])).toBeNull();
+  });
+});
+
+describe("the map's colour is the sheet's answer (owner 2026-10-29: \"the map should match the data in the click\")", () => {
+  // the release's own flags (paint/5 `lake`, `Panel.lakeKnown`): the map's `panelStanding` and the sheet's `answerFrom`
+  // are one call into core's `estimate` over `contributionsOf` — no second weighting
+  const m = (station: string, o: object = {}) => ({ station: st(station), role: "up" as const, areaKm2: 1191.3,
+    years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true, ...o });
+  const INDEX = { stations: {
+    "08MH035": { percentile: 0.05, parameter: "level" as const, level: 0.05, discharge: 0.05 },
+    "08MH006": { percentile: 0.2, parameter: "discharge" as const, discharge: 0.2, level: 0.3 },
+    "08MH017": { percentile: 0.8, parameter: "level" as const, discharge: 0.8, level: 0.8 },
+  } };
+  const ONLY_LAKE: Panel = { areaKm2: 1191.3, lakeKnown: true, members: [
+    m("08MH035", { lead: 1, throughLake: true }), m("08MH006", { areaKm2: 26.4, sameRiver: false, throughLake: true })] };
+  const MIXED: Panel = { ...ONLY_LAKE, members: [...ONLY_LAKE.members, m("08MH017", { areaKm2: 508.3 })] };
+
+  for (const [name, panel] of [["only through-lake gauges", ONLY_LAKE], ["a gauge with no lake between", MIXED]] as const)
+    it(`paints the upper Pitt as its sheet says, ${name}`, () => {
+      for (const q of ["discharge", "level"] as const) {
+        const sheet = answerFrom(panel, INDEX, q).answer;
+        if (!sheet.ok) throw new Error("expected an answer");
+        expect(panelStanding(panel, INDEX, q, 0)).toBe(sheet.value.percentile);
+      }
+    });
+
+  it("weighs the release's flags, not a route's, once the release carries them", () => {
+    // a route that (wrongly) says no lake, or a lake the release does not, never moves the sheet off the map
+    expect(withThroughLake(MIXED, new Set([st("08MH017")]))).toBe(MIXED);
+    const a = answerFrom(MIXED, INDEX, "level").answer;
+    if (!a.ok) throw new Error("expected an answer");
+    expect(a.value.percentile).toBeGreaterThan(0.7);           // Alvin, no lake between, carries it
+    expect(panelStanding(MIXED, INDEX, "level", 0)).toBe(a.value.percentile);
   });
 });

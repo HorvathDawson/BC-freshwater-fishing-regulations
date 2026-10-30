@@ -10,13 +10,14 @@ describe("decodePaint", () => {
   it("decodes the flow half exactly as the pipeline does", () => {
     expect(p.stations).toEqual(F.stations);
     expect(p.members.map((m) => [m.panel, m.ord, m.station, m.role, m.areaKm2, m.years.discharge, m.years.level,
-                                 m.regulated ? 1 : 0, m.sameRiver ? 1 : 0, m.lead]))
+                                 m.regulated ? 1 : 0, m.sameRiver ? 1 : 0, m.lead, m.lake ? 1 : 0]))
       .toEqual(F.panel_member);
     expect(p.basins.map((b) => [b.basin, b.station, b.areaKm2, b.years.discharge, b.years.level])).toEqual(F.basin_member);
     expect(F.section_panel.map(([sid]) => [sid, p.panelOf(sid!)])).toEqual(F.section_panel);
     expect(p.panelOf(0)).toBeNull();
     expect(p.panelOf(6)).toBeNull();                 // between runs
     expect(p.sectionCount).toBe(F.section_panel.length);
+    expect(p.lakes).toBe(true);                       // (T296) paint/5 carries each member's lake crossing
   });
   it("carries the status index whole, held to its handles", () => {
     expect(p.status.handles).toBe(F.handles);
@@ -29,7 +30,7 @@ describe("decodePaint", () => {
   it("refuses a paint/3 file, which carries one record length for both quantities", () => {
     const old = b64(F.paint).slice();
     old[4] = 3;
-    expect(() => decodePaint(old, F.handles)).toThrow(new PaintError("paint: version 3 is not 4"));
+    expect(() => decodePaint(old, F.handles)).toThrow(new PaintError("paint: version 3 is not 4 or 5"));
   });
   it("(T54) decodes the no-access half exactly as the pipeline does, and hands it to the status it carries", () => {
     const rows = (a: ReturnType<typeof decodeAccessFile>, sids: number[], areas: string[][]) =>

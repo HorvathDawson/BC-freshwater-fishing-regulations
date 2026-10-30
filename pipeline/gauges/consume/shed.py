@@ -664,13 +664,14 @@ def lake_reaches(graph, down: dict[str, str], water_of: dict[str, str] | None = 
     """(T296) The pointered sections that are LAKES — `section_down.lake`: a gauge whose path to a water crosses one
     is reached through standing water, which smooths its signal (owner 2026-10-29), and the app weighs it so
     (`lakeDamped`). The one definition the donor walk uses (`panels.flowing`): a lake polygon, unless it is a STREAM
-    water's (a slough's or canal's polygon is the river's own water); a line is never one, whoever owns it. Both ends of
-    every pointer are asked, so a route's last reach (the edge of the pointers) is known too."""
+    water's (a slough's or canal's polygon is the river's own water); a line is never one, whoever owns it. Each
+    pointered section is asked — a reach with no row of its own reads as no lake in the app (`LAKE_OF`), so it is
+    none here either (`panels.through_lake_panels` holds the map to the same answer)."""
     from pipeline.gauges.consume.panels import _kind, flowing
 
     is_stream = flowing(graph, water_of, kind_of)
     out: set[str] = set()
-    for sec in {*down, *down.values()}:
+    for sec in down:
         node = graph.nodes.get(sec)
         if node is not None and _kind(node) == "lake" and not is_stream(sec):
             out.add(sec)

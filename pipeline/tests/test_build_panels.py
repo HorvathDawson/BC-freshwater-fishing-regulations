@@ -139,7 +139,7 @@ def test_the_rows_carry_facts_rather_than_anything_derived():
     rows = {sec: (pid, area) for sec, pid, area in got.section_rows()}
     pid, area = rows["target"]
     assert area == 200.0
-    (mpid, ordinal, station, role, donor_area, discharge_years, level_years, regulated, same_river, lead), = [
+    (mpid, ordinal, station, role, donor_area, discharge_years, level_years, regulated, same_river, lead, _lake), = [
         r for r in got.member_rows() if r[0] == pid]
     # the record per quantity (T110): one int from a synthetic caller is the same record in both
     assert (mpid, ordinal, station, role, donor_area, discharge_years, level_years) == (pid, 0, "S", "up", 100.0, 40, 40)
@@ -190,7 +190,7 @@ def test_a_gauge_speaks_for_the_reach_it_stands_in():
     graph = g([N("gauged", 100), N("target", 110)], [E("gauged", "target")])
     got = build(graph, MODEL, [("S", "gauged", 40, False)])
     assert "gauged" in got.by_section
-    (_pid, _ord, station, role, area, _dy, _ly, _reg, _same, _lead), = [
+    (_pid, _ord, station, role, area, _dy, _ly, _reg, _same, _lead, _lake), = [
         r for r in got.member_rows()
         if r[0] == got.by_section["gauged"][0]]
     assert station == "S"

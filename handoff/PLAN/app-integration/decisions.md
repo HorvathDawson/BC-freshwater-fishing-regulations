@@ -1702,14 +1702,15 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - One formula: `lake_damped` (pipeline/gauges/consume/panel.py) ↔ `lakeDamped` (core/trust.ts), run side by side by
   app/tools/one-formula.test.ts; the constant is generated into core (`gauge-policy.generated`). The panel's floor
   (`MIN_TOTAL_WEIGHT`) still asks the undamped total — the rule says who is heard, not how much is known.
-- Where the lake comes from: the donor ROUTE (`section_down` pointers), its reaches between the two ends, a reach being a
-  lake by `section_down.lake` (build: `shed.lake_reaches`, the donor walk's own `flowing` definition — a lake polygon
-  not a stream water's) or, on a release cut before that column, by its water's kind. Not on `panel_member`: one panel
-  serves sections on both sides of a lake, and paint's format would have to change (an installed APK refuses a new
-  paint version). So the rule applies on the SHEET once the routes are walked; the map's colour and a saved spot
-  weigh as before (measured 2026-10-29 on the live bundle: of 60,010 named panel sections with routes, 0 mix a
-  through-lake gauge with a no-lake one; 673 — the upper Pitt, Lillooet, Bowser, Shuswap… — have only through-lake
-  gauges and get the caution line).
+- Where the lake comes from: the donor ROUTE the app draws (`section_down` pointers), its reaches strictly between the
+  two ends, a reach being a lake by `section_down.lake` (`shed.lake_reaches`: a lake polygon not a stream water's).
+- OWNER 2026-10-29 (later): "the map should match the data in the click" — the rule applies to the map's colour and
+  saved spots too, by ONE implementation: the build flags each panel member whose route crosses a lake
+  (`panels.through_lake_panels`, mirroring `routesOf` over the same pointers; `panel_member.lake`, paint/5), and the
+  map (`panelStanding`), the sheet (`answerFrom`) and a saved spot (`captureSpot`, `panelOnDay`) all hand those members
+  to core's one `estimate`/`answering` (`lakeDamped` inside it; Python twin `panel.answering`, pinned by
+  one-formula.test.ts). The pipeline ships a fact (the crossing), never a weight. On a paint/4 release the map knows no
+  lakes and the sheet falls back to its walked routes; a paint/5 release needs the new APK (`minAppVersion`).
 
 ## OWNER 2026-10-29 — spot visit rating scale (T294)
 - (T294, owner 2026-10-29) A spot visit's rating is 1–5 stars (words Poor / Fair / OK / Good / Great; core `RATING`),
