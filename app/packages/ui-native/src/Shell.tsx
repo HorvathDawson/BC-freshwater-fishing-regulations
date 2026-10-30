@@ -28,6 +28,7 @@ import { Linking, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
          BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
+import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
 import { SearchSheet } from "./SearchSheet";
 import { TopBar, topBarBottom } from "./TopBar";
@@ -270,15 +271,22 @@ export function Shell(p: ShellProps) {
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port; asked
   // again when the device comes back online
-  const like = useLikeVisit(viewing, { weather, feed }, p.likeStore, Date.now, connectivity);
+  // (T294) the visit the page shows (null: the latest): the strip compares with it while no visit is rated, and the
+  // day's flow is that visit's
+  const shownVisit = viewing ? visitSpot(viewing, spotEdit.shownVisit) : null;
+  const like = useLikeVisit(viewing, { weather, feed }, p.likeStore, Date.now, connectivity, shownVisit?.visitId ?? null);
   // T170: the visit day's own flow, and the action that asks for it (waits offline, asks again when back)
-  const dayFlow = useDayFlow(viewing, p.onDayFlow, connectivity);
+  const dayFlow = useDayFlow(shownVisit, p.onDayFlow, connectivity);
   const withInSeason = (n: React.ReactNode) => <InSeasonContext.Provider value={inSeason}>{n}</InSeasonContext.Provider>;
   if (viewing)
     return layered(
       <SpotHost viewing={viewing} spotEdit={spotEdit} nav={nav} palette={palette} camera={camera} like={like}
                 dayFlow={dayFlow} photos={photos} onSaveSpot={onSaveSpot} onDeleteSpot={p.onDeleteSpot}
-                onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} show={rail.show} />);
+                onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} show={rail.show}
+                // (T294) "Add a visit" reads the water the way adding a spot does
+                visitSources={{ source, weather, feed,
+                                history: { ...(hydat ? { hydat } : {}),
+                                           ...(connectivity.watches ? { online: connectivity.online } : {}) } }} />);
 
   if (adding && onSaveSpot)
     return layered(

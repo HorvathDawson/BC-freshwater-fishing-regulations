@@ -21,9 +21,26 @@ export function stripRoutes(p: PanelAnswer): PanelAnswer {
 type Raw = Record<string, unknown>;
 const isObj = (v: unknown): v is Raw => typeof v === "object" && v !== null && !Array.isArray(v);
 
-/** One stored spot as the current model has it: no section id anywhere. */
+/**
+ * One stored spot as the current model has it: no section id anywhere.
+ *
+ * T294: a spot is its first visit's record plus `visits` (the later ones), so a spot saved before visits existed loads
+ * as a spot of ONE visit with nothing moved or rewritten (`./visits`). Each later visit is cleaned the same way the
+ * first is (no section handles); a `visits` that is not a list, or an entry that is not a visit, is not one.
+ */
 export function fromDisk(raw: unknown): Spot {
   if (!isObj(raw)) return raw as Spot;
+  const spot = clean(raw);
+  if ("visits" in spot) {
+    if (!Array.isArray(spot.visits)) delete spot.visits;
+    else spot.visits = spot.visits.filter((v) => isObj(v) && typeof v.id === "string" && typeof v.visitedAt === "number")
+      .map((v) => clean(v as Raw));
+  }
+  return spot as unknown as Spot;
+}
+
+/** One visit's record (the spot's own first visit, or a later one) with its section handles dropped. */
+function clean(raw: Raw): Raw {
   const { section: _section, ...spot } = raw;
   const trace = spot.trace;
   if (isObj(trace) && "path" in trace) {
@@ -35,5 +52,5 @@ export function fromDisk(raw: unknown): Spot {
   // S1: `photos` is read as a list everywhere (the store deletes the ones a save drops), so a record without one reads
   // as having none. `leadUp` is NOT added: absent reads as "not recorded", which is what it is, and a refresh fills it.
   if ("photos" in spot && !Array.isArray(spot.photos)) spot.photos = [];
-  return spot as unknown as Spot;
+  return spot;
 }

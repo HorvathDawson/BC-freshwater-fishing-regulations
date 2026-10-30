@@ -1669,3 +1669,5 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - Bear River (Stewart): no written boundary exists; the tidal boundary is the mouth, where the river line meets the coast.
 - A stream whose FWA line runs on through a lake or the sea to join another line: its mouth is where the line leaves the
   water body (the shore / lake-edge crossing), not the line's far end (Caycuse, Dempster).
+- (T294, owner 2026-10-29) A spot visit's rating is 1–5 stars (words Poor / Fair / OK / Good / Great; core `RATING`),
+  stored as the whole number. A later scale change must map the stored numbers.

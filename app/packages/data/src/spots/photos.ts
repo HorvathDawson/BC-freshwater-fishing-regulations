@@ -11,6 +11,7 @@
  *     (`openSpotsWith`'s `photos`, in `./core`).
  *   - The user's own data: never in a release, never uploaded.
  */
+import type { Spot } from "./model";
 
 /** What a picker hands back. A phone gives a `uri` in the picker's cache; a browser gives the chosen file's bytes. */
 export interface PickedPhoto {
@@ -97,3 +98,7 @@ export function openPhotosWith(files: PhotoFiles,
     uri: (ref) => (isPhotoRef(ref) ? files.uri(ref) : Promise.resolve(ref)),
   };
 }
+
+/** T294: every photo reference a spot holds, across all its visits (the store deletes the ones a save drops). */
+export const allPhotos = (spot: Pick<Spot, "photos" | "visits"> | null | undefined): string[] =>
+  spot ? [...(spot.photos ?? []), ...(spot.visits ?? []).flatMap((v) => v.photos ?? [])] : [];

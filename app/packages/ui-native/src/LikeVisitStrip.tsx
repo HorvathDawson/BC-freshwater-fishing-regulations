@@ -7,7 +7,6 @@
  * Draws `LikeVisitView` (@app/ui) and nothing else: every string is core's.
  */
 import { Text, View } from "react-native";
-import { LIKE_WORDS } from "@app/core";
 import type { LikeVisitView } from "@app/ui";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
@@ -41,7 +40,7 @@ export function LikeVisitStrip({ view, palette }: { view: LikeVisitView; palette
                     {d.read ? <Text style={{ ...TYPE.small, color: palette.sub }}>{d.read}</Text> : null}
                   </View>
                 </View>
-                {d.best ? <Text style={{ ...TYPE.section, color: palette.accent }}>{LIKE_WORDS.best.toUpperCase()}</Text> : null}
+                {d.best ? <Text style={{ ...TYPE.section, color: palette.accent }}>{view.best.toUpperCase()}</Text> : null}
                 {d.basis ? <Text style={{ ...TYPE.caption, color: palette.faint }}>{d.basis}</Text> : null}
                 {d.reasons.length ? (
                   <View style={{ gap: 2, paddingTop: 4, borderTopWidth: 1, borderTopColor: palette.line }}>
@@ -53,6 +52,7 @@ export function LikeVisitStrip({ view, palette }: { view: LikeVisitView; palette
           </View>
         </>
       ) : view.note ? small("like-note", view.note) : null}
+      {view.hint ? small("like-hint", view.hint) : null}
       <Text testID="like-age" style={{ ...TYPE.caption, color: palette.faint }}>{view.age}</Text>
     </View>
   );

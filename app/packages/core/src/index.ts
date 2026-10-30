@@ -57,6 +57,7 @@ export * from "./imagery";
 export * from "./staleness";
 export * from "./freshness";
 export * from "./likeVisit";
+export * from "./spotVisits";
 export * from "./gestures";
 export * from "./waterViews";
 export * from "./tabs";

@@ -261,6 +261,30 @@ export interface Spot {
    * refilled for its day by a refresh, `needsDayPanel`).
    */
   panelDay?: PanelDay | null;
+  /**
+   * T294: THE FIRST VISIT'S RATING, 1 … core `RATING.max`; absent or null: not rated. The fields above, from `visitedAt`
+   * to `panelDay` (with `notes` and `photos`), ARE the first visit — a spot saved before T294 is a spot of one visit
+   * exactly as it was stored, nothing moved (`./visits`).
+   */
+  rating?: number | null;
+  /** T294: the visits after the first, oldest first. Absent: the spot has one visit. */
+  visits?: Visit[];
+  /** T294: the first visit's own id once a later visit has been promoted into the fields above; absent: the spot's id. */
+  visitId?: string;
+}
+
+/**
+ * T294: ONE MORE VISIT TO THE SAME SPOT — the same frozen record a spot's first visit holds (the water, the weather, the
+ * week before, the trip day's flow and panel), its own notes and photos, and its rating. Captured the way a spot is
+ * (`captureVisit`), refreshed the way a spot is (`refreshSpot`), never recomputed.
+ */
+export interface Visit extends Pick<Spot, "visitedAt" | "notes" | "photos" | "reading" | "weather" | "trace" | "panel"
+  | "leadUp" | "dayFlow" | "panelDay"> {
+  id: string;
+  /** When this visit was recorded (bookkeeping), as `Spot.createdAt` is for the first. */
+  createdAt: number;
+  /** 1 … core `RATING.max`; null: not rated. */
+  rating: number | null;
 }
 
 /**
