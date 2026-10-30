@@ -163,6 +163,13 @@ export function privacyBody(site: Site, asOf: string): string {
     `<h2>Children</h2><p>The app is not aimed at children under 13 and does not knowingly collect their information. ` +
     `It asks for none beyond the optional report.</p>` +
     `<h2>Changes</h2><p>If this policy changes, this page will carry the new text and a new effective date.</p>` +
+    // (owner 2026-10-29) Google Play's "delete data URL": the app's name, the steps, what is deleted and what is kept
+    `<h2 id="delete">Deleting your data (Can I Fish This?)</h2>` +
+    `<p>Spots, photos, notes and settings live only on your device: delete them in the app, or uninstall the app, and they are gone.</p>` +
+    `<p>To delete a problem report you sent (and any email address in it): write to ${mail} from that address, or with the date ` +
+    `and the words of the report, and ask for it to be deleted. We delete it within 30 days and reply to confirm.</p>` +
+    `<p>Crash reports hold no name, email or place, so we cannot find one person’s; they are deleted automatically 90 days after the error was last seen. ` +
+    `Problem reports we are not asked to delete are deleted automatically 180 days after they are received. We keep nothing else about you.</p>` +
     `<h2>Contact</h2><p>Questions, or a request to delete a report: ${mail}.</p>` +
     `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
 }
