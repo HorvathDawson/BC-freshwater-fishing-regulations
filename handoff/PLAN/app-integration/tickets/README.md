@@ -352,7 +352,7 @@ use that as the sole source of future work."
 | T308 | Location dot keeps updating with you (not stuck at first fix) | OPEN | — | owner 2026-10-31 |
 | T309 | Region salmon rules readable (rows, chips, wording folded); copyable text in the app | OPEN | — | owner 2026-10-31 |
 | T310 | Spots: parking location + directions; notes/photos belong to visits (lossless migration) | OPEN | — | owner 2026-10-31 |
-| T311 | Provincial parks missing — Garibaldi (closes upper Pitt): draw parks, bind park-scoped rules | DONE | COMMIT | owner 2026-10-31; parks were in tiles but 0.12 tint + no edge: green edge from z7 + stronger tint, style only (no tiles rebuild); rules unchanged (owner); no legend row (owner) |
+| T311 | Provincial parks missing — Garibaldi (closes upper Pitt): draw parks, bind park-scoped rules | DONE | 60c285d22 | owner 2026-10-31; parks were in tiles but 0.12 tint + no edge: green edge from z7 + stronger tint, style only (no tiles rebuild); rules unchanged (owner); no legend row (owner) |
 | T312 | Map panning feels slow: 1:1 finger tracking, natural fling, no JS work per camera tick | OPEN | — | owner 2026-10-31 |
 | T313 | iOS simulator build + basic tests (install, map/regs, offline, satellite, location, walkthrough, PDF) | OPEN | — | owner 2026-10-31 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
