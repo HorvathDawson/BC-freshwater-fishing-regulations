@@ -17,6 +17,7 @@ import { stripRoutes } from "./migrate";
 import { leadUpFor } from "./leadup";
 import { capturePanelOnDay, fillDayFlow, type DayFlowPorts } from "./dayFlow";
 import type { WeatherAhead } from "./likeVisit";
+import { fastPorts } from "./fastFail";
 
 /**
  * Weather, from wherever weather comes from.
@@ -91,7 +92,9 @@ async function panelFor(source: WaterSource, section: SectionId | null,
   }
 }
 
-export async function captureSpot(input: CaptureInput): Promise<Spot> {
+export async function captureSpot(raw: CaptureInput): Promise<Spot> {
+  // (T307) offline the network asks are not made, flaky they are cut short: the spot saves with what the device holds
+  const input: CaptureInput = { ...raw, ...fastPorts(raw, raw.history?.online) } as CaptureInput;
   const { source, at, item, section, waterName } = input;
   const now = input.now ?? Date.now();
   const visitedAt = input.visitedAt ?? now;

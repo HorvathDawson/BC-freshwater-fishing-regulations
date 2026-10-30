@@ -8,6 +8,7 @@
  * unchanged, and `withVisit` writes what it changed back to that visit alone. The spot's own facts (place, water, name)
  * are shared by every visit.
  */
+import { fastPorts } from "./fastFail";
 import { isRating, leadUpDays, localDate } from "@app/core";
 import { answerFrom } from "../panel";
 import type { Spot, Visit } from "./model";
@@ -157,7 +158,9 @@ export interface CaptureVisitInput {
  * day's record (`flowOnDay`, Q161), offline saved as pending and filled by a refresh. Nothing invented: what could not
  * be read is null, and said.
  */
-export async function captureVisit(spot: Spot, input: CaptureVisitInput): Promise<Visit> {
+export async function captureVisit(spot: Spot, raw: CaptureVisitInput): Promise<Visit> {
+  // (T307) offline the network asks are not made, flaky they are cut short; the reconnect refresh fills the rest
+  const input: CaptureVisitInput = { ...raw, ...fastPorts(raw, raw.history?.online) } as CaptureVisitInput;
   const now = input.now ?? Date.now();
   const visitedAt = input.visitedAt ?? now;
   const earlier = localDate(visitedAt) < localDate(now);

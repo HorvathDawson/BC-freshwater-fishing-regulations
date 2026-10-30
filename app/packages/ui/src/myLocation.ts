@@ -60,12 +60,13 @@ export function useMyLocation(locate: Locate | null): MyLocation | null {
   const press = useCallback(() => {
     if (!locate || busy) return;
     setNotice(null);
-    if (on && !following) { setFollowing(true); setCentre((n) => n + 1); watchNow(); return; }
-    if (on && following) { setFollowing(false); unwatch(); return; }
+    if (on && !following) { setFollowing(true); setCentre((n) => n + 1); return; }
+    if (on && following) { setFollowing(false); return; }
     setBusy(true);
     locate.here().then((f) => {
       if (!alive.current) return;
       setFix(f); setOn(true); setCentre((n) => n + 1); setBusy(false);
+      watchNow(); // (T308) the dot keeps moving with every fix while shown, following or not
     }, (e) => {
       if (!alive.current) return;
       setOn(false); setBusy(false); setNotice(refusedLine(e));
@@ -73,7 +74,7 @@ export function useMyLocation(locate: Locate | null): MyLocation | null {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locate, busy, on, following]);
 
-  const release = useCallback(() => { setFollowing(false); unwatch(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  const release = useCallback(() => { setFollowing(false); }, []);
   const dismiss = useCallback(() => setNotice(null), []);
   return locate ? { on, following, fix, centre, notice, busy, press, release, dismiss } : null;
 }

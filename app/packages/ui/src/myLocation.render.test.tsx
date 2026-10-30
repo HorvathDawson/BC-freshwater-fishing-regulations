@@ -28,6 +28,20 @@ describe("(T303) my location", () => {
     expect(loc.watch).toHaveBeenCalledTimes(1);
     act(() => result.current!.press());
     expect(result.current).toMatchObject({ on: true, following: false });
+    expect(stop).not.toHaveBeenCalled(); // (T308) the dot keeps moving; only unmount stops the watch
+  });
+
+  it("(T308) the dot moves with every fix without following; unmount stops the watch", async () => {
+    const stop = vi.fn();
+    let push: (f: typeof fix) => void = () => {};
+    const loc: Locate = { ...make(async () => fix), watch: vi.fn((on) => { push = on; return stop; }) };
+    const { result, unmount } = renderHook(() => useMyLocation(loc));
+    await act(async () => { result.current!.press(); });
+    expect(loc.watch).toHaveBeenCalledTimes(1);
+    const next = { ...fix, lat: fix.lat + 0.001 };
+    act(() => push(next));
+    expect(result.current).toMatchObject({ following: false, fix: next, centre: 1 });
+    unmount();
     expect(stop).toHaveBeenCalled();
   });
 
