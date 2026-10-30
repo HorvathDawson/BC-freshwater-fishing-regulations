@@ -10,11 +10,9 @@
  */
 import { fastPorts } from "./fastFail";
 import { isRating, leadUpDays, localDate } from "@app/core";
-import { answerFrom } from "../panel";
 import type { Spot, Visit } from "./model";
-import { stripRoutes } from "./migrate";
 import { leadUpFor } from "./leadup";
-import { capturePanelOnDay, dayFlowStation, fillDayFlow, panelOfAnswer, type DayFlowPorts } from "./dayFlow";
+import { capturePanelOnDay, dayFlowStation, fillDayFlow, livePanel, panelOfAnswer, pendingPanel, type DayFlowPorts } from "./dayFlow";
 import type { CaptureInput, WeatherSource } from "./capture";
 
 /** The fields that are one visit's record. Everything else on a spot belongs to the spot. */
@@ -174,8 +172,9 @@ export async function captureVisit(spot: Spot, raw: CaptureVisitInput): Promise<
     try {
       if (earlier) return await capturePanelOnDay(members, localDate(visitedAt), ports);
       if (!members || !input.feed) return { panel: null };
-      const got = answerFrom(members, await input.feed.index(), "discharge");
-      return { panel: got.answer.ok || got.rows.length ? stripRoutes(got) : null };
+      // (T314) the index unreadable (offline): the members kept pending, read by a refresh
+      const idx = await input.feed.index().then((i) => i ?? null, () => null);
+      return idx ? { panel: livePanel(members, idx) } : pendingPanel(members, localDate(visitedAt));
     } catch {
       return { panel: null };                                     // a visit must save; a missing estimate is the smaller loss
     }

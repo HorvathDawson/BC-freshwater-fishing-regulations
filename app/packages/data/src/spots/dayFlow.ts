@@ -252,8 +252,11 @@ export async function capturePanelOnDay(panel: Panel | undefined, date: string, 
  * or one saved before Q161 holding a panel read when it was saved. Never a spot whose reading is the trip day's own.
  */
 export function needsDayPanel(spot: Spot): boolean {
-  if (!isBackdated(spot) || readingIsTheDays(spot)) return false;
-  return spot.panelDay ? spot.panelDay.state === "pending" : !!spot.panel;
+  if (readingIsTheDays(spot)) return false;
+  // (T314) a spot saved OFFLINE on its own day holds its members pending too (`pendingPanel`): filled live that day
+  // (`fillLive`), from the day's record after it
+  if (spot.panelDay) return spot.panelDay.state === "pending";
+  return isBackdated(spot) && !!spot.panel;
 }
 
 /** Read the trip day's panel onto a spot that needs it (`needsDayPanel`); the same spot back when nothing is learned. */
@@ -275,8 +278,65 @@ export async function fillDayPanel(spot: Spot, ports: DayFlowPorts, now: number 
  *   flow     a backdated spot with no panel: the gauge's own flow that day is under "Flow that day".
  */
 export function savedGauges(spot: Spot): "live" | "day" | "pending" | "flow" {
-  if (!isBackdated(spot) || readingIsTheDays(spot)) return "live";
+  if (readingIsTheDays(spot)) return "live";
   if (spot.panelDay?.state === "day" && spot.panel) return "day";
-  if (spot.panelDay?.state === "pending" || spot.panel) return "pending";
-  return "flow";
+  if (spot.panelDay?.state === "pending") return "pending";      // (T314) a same-day spot saved offline too
+  if (!isBackdated(spot)) return "live";
+  return spot.panel ? "pending" : "flow";
+}
+
+/* ---- T314: a spot saved OFFLINE on its own day ---------------------------------------------------------------------- */
+/*
+ * owner 2026-10-31 ("the refresh for spot data isn't working"): a spot saved with no signal kept its station but no
+ * reading and, the feed's index unreachable, no panel — and nothing ever asked again. Its weather and week before
+ * filled; its gauges never did (the day's flow is "not over" all that day, and the panel was not even kept). Now the
+ * capture keeps the panel's MEMBERS pending (`pendingPanel`, on-device), and a refresh on the visit day reads them and
+ * the lead station LIVE (`fillLive`), marked filled in; after the day, the day's record fills them (`fillDayPanel`,
+ * `fillDayFlow`), as for a backdated spot.
+ */
+
+/** The live index the capture freezes the estimate from (`httpFeed().index()`); null when it could not be read. */
+export interface LiveIndex { index(): Promise<Parameters<typeof answerFrom>[1] | null> }
+
+/** A panel answered over the live index: only a real answer is frozen (a "no panel" is a fact about the app). */
+export function livePanel(members: Panel, idx: Parameters<typeof answerFrom>[1]): PanelAnswer | null {
+  const got = answerFrom(members, idx, "discharge");
+  return got.answer.ok || got.rows.length ? stripRoutes(got) : null;
+}
+
+/** The section's panel, its index unreadable (offline): its members kept to read again, never an empty answer. */
+export const pendingPanel = (members: Panel | undefined, date: string): Pick<Spot, "panel" | "panelDay"> =>
+  members && members.members.length ? { panel: null, panelDay: { state: "pending", date, members } } : { panel: null };
+
+/** Saved on its own day, which is still today, with gauges still to read: a live read now is that day's. */
+export function liveFillable(spot: Spot, now: number = Date.now()): boolean {
+  if (isBackdated(spot) || visitDay(spot) !== localDate(now) || readingIsTheDays(spot)) return false;
+  return spot.panelDay?.state === "pending" || !!spot.reading?.station;
+}
+
+/**
+ * Read a same-day spot's gauges LIVE: the pending panel over the live index, and the lead station's reading when it
+ * was taken on the visit day (marked filled in). The same spot back when nothing could be read.
+ */
+export async function fillLive(spot: Spot, source: WaterSource, feed: LiveIndex | undefined,
+                               now: number = Date.now()): Promise<Spot> {
+  if (!liveFillable(spot, now)) return spot;
+  let next = spot;
+  if (spot.panelDay?.state === "pending" && feed) {
+    const idx = await feed.index().catch(() => null);
+    const panel = idx ? livePanel(spot.panelDay.members, idx) : null;
+    if (panel) { const { panelDay: _, ...rest } = next; next = { ...rest, panel }; }
+  }
+  const station = spot.reading?.station;
+  if (station) {
+    const got = await source.gaugeNow(station as StationId).catch(() => null);
+    const t = got?.value.at ? Date.parse(got.value.at) : NaN;
+    if (got && Number.isFinite(t) && localDate(t) === visitDay(spot)
+        && (got.value.discharge !== null || got.value.level !== null)) {
+      next = { ...next, reading: { station, discharge: got.value.discharge, level: got.value.level,
+                                   parameter: got.value.parameter, percentile: got.value.percentile ?? null,
+                                   at: got.value.at, backfilled: true } };
+    }
+  }
+  return next === spot ? spot : { ...next, updatedAt: now };
 }

@@ -51,7 +51,8 @@ export function useSpots(store: SpotsStoreLike): {
     remove: (id) => write(() => store.remove(id)),
     refresh: (fill) => write(async () => {
       for (const s of await store.list()) {
-        const filled = await fill(s);
+        // (T314) one spot's failed fill never stops the rest: it keeps what it holds and is asked again next time
+        const filled = await fill(s).catch(() => s);
         // only onto the spot as it was read: an edit made meanwhile wins, and the next refresh fills it
         if (filled !== s) await store.patch(s.id, (cur) => (cur.updatedAt === s.updatedAt ? filled : cur));
       }

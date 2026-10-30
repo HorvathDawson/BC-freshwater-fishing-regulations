@@ -9,13 +9,12 @@
  * which is the truth, and a later backfill can fill it in and mark itself as backfilled.
  */
 import { freezeTrace, leadUpDays, localDate, type FrozenTrace } from "@app/core";
-import { answerFrom, type PanelAnswer } from "../panel";
+import type { answerFrom } from "../panel";
 import { sheetLead, speakerFor, speaks, type Speaker } from "../standing";
 import type { ItemId, WaterSource, SectionId, StationId } from "../index";
 import type { DailyWeather, Spot, SpotReading, SpotWeather } from "./model";
-import { stripRoutes } from "./migrate";
 import { leadUpFor } from "./leadup";
-import { capturePanelOnDay, fillDayFlow, type DayFlowPorts } from "./dayFlow";
+import { capturePanelOnDay, fillDayFlow, livePanel, pendingPanel, type DayFlowPorts } from "./dayFlow";
 import type { WeatherAhead } from "./likeVisit";
 import { fastPorts } from "./fastFail";
 
@@ -77,18 +76,21 @@ export interface CaptureInput {
 }
 
 /** The estimate as the app had it, or null when there is no feed or no panel. */
-async function panelFor(source: WaterSource, section: SectionId | null,
-                        feed: CaptureInput["feed"]): Promise<PanelAnswer | null> {
-  if (!feed || !section) return null;
+async function panelFor(source: WaterSource, section: SectionId | null, feed: CaptureInput["feed"],
+                        date: string): Promise<Pick<Spot, "panel" | "panelDay">> {
+  if (!feed || !section) return { panel: null };
   try {
-    const [panels, idx] = await Promise.all([source.panelsFor([section]), feed.index()]);
-    const got = answerFrom(panels.get(section), idx, "discharge");
+    const [panels, idx] = await Promise.all([source.panelsFor([section]),
+                                             feed.index().then((i) => i ?? null, () => null)]);
+    const members = panels.get(section);
+    // (T314) the index unreadable (offline): the panel's members are kept, and a refresh reads them
+    if (!idx) return pendingPanel(members, date);
     // Only a real answer is worth freezing: "no panel" is not a fact about that day, it is
     // a fact about the app, and it would read as one on a spot opened a year later.
-    return got.answer.ok || got.rows.length ? stripRoutes(got) : null;
+    return { panel: members ? livePanel(members, idx) : null };
   } catch {
     // A spot must save. A missing estimate is a smaller loss than a lost record.
-    return null;
+    return { panel: null };
   }
 }
 
@@ -119,7 +121,7 @@ export async function captureSpot(raw: CaptureInput): Promise<Spot> {
     // Without a feed there is nothing to freeze and the spot keeps only the reading.
     // An earlier trip day: the same panel, each member's daily mean that day (Q161).
     earlier ? panelOnTripDay(source, section, localDate(visitedAt), ports)
-            : panelFor(source, section, input.feed).then((p): Pick<Spot, "panel" | "panelDay"> => ({ panel: p })),
+            : panelFor(source, section, input.feed, localDate(visitedAt)),
   ]);
   const { panel, ...onDay } = panelled;     // `panelDay` only on an earlier trip day (Q161)
   // THE SHEET'S STATION (`sheetLead`): never the station `section_gauge` matched to the reach unless it speaks here, so

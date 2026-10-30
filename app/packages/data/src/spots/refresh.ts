@@ -24,7 +24,8 @@ import type { WeatherSource } from "./capture";
 import { declaredQuantity, fillDays, gaugeDayPending, leadUpMissing, leadUpUnread, weatherDayPending, weekGauge, weekWeather,
          type FeedIndex } from "./leadup";
 import { DAY_FLOW_WORDS, DAY_PANEL_WORDS, LEAD_UP_WORDS } from "./words";
-import { dayFlowAskable, fillDayFlow, fillDayPanel, needsDayFlow, needsDayPanel, type HydatDaily } from "./dayFlow";
+import { dayFlowAskable, fillDayFlow, fillDayPanel, fillLive, liveFillable, needsDayFlow, needsDayPanel,
+         type HydatDaily, type LiveIndex } from "./dayFlow";
 import { spotVisits, visitSpot, withVisit } from "./visits";
 
 /**
@@ -106,7 +107,12 @@ async function refreshVisit(spot: Spot, weather: WeatherSource, source?: WaterSo
     const filled = await fillLeadUp(spot, weather, source, feed);
     if (filled) next = { ...next, leadUp: filled };
   }
-  if (source && dayFlowAskable(spot)) {
+  if (source && liveFillable(next)) {
+    // (T314) SAVED OFFLINE, STILL ITS DAY: the gauges read live now are that day's (marked filled in); first, so a
+    // reading of the day settles the day's flow and panel below
+    next = await fillLive(next, source, feed as LiveIndex | undefined);
+  }
+  if (source && dayFlowAskable(next)) {
     // THE DAY'S OWN FLOW (T170), through the one read; a reading taken on the day is never touched (`dayFlowAskable`)
     const got = await fillDayFlow(next, { source, ...history });
     if (got.spot !== next) next = { ...next, dayFlow: got.spot.dayFlow };
