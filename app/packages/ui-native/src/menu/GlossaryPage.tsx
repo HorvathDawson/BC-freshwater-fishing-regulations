@@ -197,7 +197,7 @@ function Rail({ rail, palette, onLetter, onEnd }: {
       {rail.map((r) => (
         <Pressable key={r.letter} testID={`glossary-rail-${r.letter}`} {...hitProps({ w: RAIL_W, h: 18 })}
                    accessibilityRole="button" accessibilityLabel={MENU_WORDS.glossary.jump(r.letter)}
-                   accessibilityState={{ disabled: !r.has }} disabled={!r.has}
+                   aria-disabled={!r.has} disabled={!r.has}
                    onPress={() => { onLetter(r.letter); onEnd(); }}
                    style={{ height: h, minHeight: 14, alignItems: "center", justifyContent: "center" }}>
           <Text style={{ ...TYPE.micro, fontSize: 11.5, color: r.has ? palette.accent : palette.faint,

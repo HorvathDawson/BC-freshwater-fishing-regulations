@@ -2,9 +2,9 @@
  * (T256 item 1) Which reads a slice may answer, read off their SQL (`sliceKeys`) — pinned on the app's own queries — and
  * `covers` on a hand-cut slice. A read the table does not know (search, counts, a scan) is the whole file's.
  */
-import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 import type { Db } from "../sql/db";
+import { openInMemory } from "../sql/drivers/node";
 import * as B from "../sql/queries";
 import { covers, sliceKeys } from "./focus";
 import { CROSS, RELEASE_QUERIES as R } from "./queries";
@@ -56,14 +56,8 @@ describe("sliceKeys", () => {
   });
 });
 
-function db(sql: string): Db {
-  const d = new DatabaseSync(":memory:");
-  d.exec(sql);
-  return {
-    all: async (q, ...p) => d.prepare(q).all(...p) as never,
-    get: async (q, ...p) => d.prepare(q).get(...p) as never,
-  };
-}
+// (layers.json: data may not name node:sqlite; the node driver layer opens it)
+const db = (sql: string): Db => openInMemory(sql, "");
 
 describe("covers", () => {
   const bits = new Uint8Array(512);

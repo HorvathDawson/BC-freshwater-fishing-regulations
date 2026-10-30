@@ -89,8 +89,8 @@ describe("<WaterMapView>", () => {
       + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
       // (T278, regs fixture on r-62e2f3a8c81e) re-pinned by section id (atlas full.prev -> full section_handles.txt): the same sections
-      highlight: [60202, 60203, 60204, 62214, 62510, 62629, 62883, 1236851, 1236852, 1236897],
-      water: [1236853, 1236898, 1236899, 59875, 59881, 61202, 62919, 1236854, 1236855, 1236856, 1236857] });
+      highlight: [60200, 60201, 60202, 62212, 62508, 62627, 62881, 1236849, 1236850, 1236895],
+      water: [1236851, 1236896, 1236897, 59873, 59879, 61200, 62917, 1236852, 1236853, 1236854, 1236855] });
     expect(seen.props?.fit).toEqual({ key: "gnis:8634:1", bbox: [-121.966394, 49.071523, -121.836034, 49.097385], refine: false });
     expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual([
       "(ring) Boundary: Chilliwack River Ecological Reserve boundary",
@@ -100,8 +100,8 @@ describe("<WaterMapView>", () => {
     expect(bar()).toBe("Part 4 of 4 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source"
       + " | Downstream | Highest part (off)");
     // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it; T206,
-    // r-f6918815ca78: 380887781:58646; T220 re-cut it to 1236842; T222 r-445850b69ae1 to 1236847, handles +5)
-    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1236857], "gnis:8634:3"]);
+    // r-f6918815ca78: 380887781:58646; T220 re-cut it to 1236842; T222 r-445850b69ae1 to 1236847, handles +5; T289 r-ce76b4ed3624: handles -2, the Thomas / Angelo lake stubs re-joined)
+    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1236855], "gnis:8634:3"]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
@@ -142,11 +142,11 @@ describe("<WaterMapView>", () => {
     expect(seen.props?.marks?.[2]?.on).toBe(true);
     fireEvent.click(pop.getByRole("button", { name: "Close" }));
     expect(screen.queryByTestId("water-map-mark")).toBeNull();
-    act(() => seen.props!.onPressFeature!("stream", 1236857));
+    act(() => seen.props!.onPressFeature!("stream", 1236855));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
-    act(() => seen.props!.onPressFeature!("stream", 62466));   // the Vedder's 355999181:0 (T206)
+    act(() => seen.props!.onPressFeature!("stream", 62464));   // the Vedder's 355999181:0 (T206)
     expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual(["Part 4 of 4 · Chilliwack River",
-      ["part gnis:8634 3", "other 62466"]]);
+      ["part gnis:8634 3", "other 62464"]]);
   }, 30_000);
 
   // (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more (E15's mark is gone); the
@@ -260,10 +260,10 @@ describe("<WaterMapView>", () => {
   }, 30_000);
 
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {
-    mount("gnis:12227", null, 59249);   // (T278 r-62e2f3a8c81e: same section, -> 59249) CNR Bridge -> Greendale (354155148:41391; T206, r-f6918815ca78; T185 r-ea426985a467: two cuts ahead, +2; T220 r-46be3c135e68: 59296 -> 59304; T222 r-445850b69ae1: -> 59305)
+    mount("gnis:12227", null, 59247);   // (T289 r-ce76b4ed3624: -> 59247; T278 r-62e2f3a8c81e: same section, -> 59249) CNR Bridge -> Greendale (354155148:41391; T206, r-f6918815ca78; T185 r-ea426985a467: two cuts ahead, +2; T220 r-46be3c135e68: 59296 -> 59304; T222 r-445850b69ae1: -> 59305)
     await ready();
     expect(bar()).toBe("Part 3 of 4 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream");
-    expect(lit().highlight).toEqual([59249]);   // the tapped handle given to mount()
+    expect(lit().highlight).toEqual([59247]);   // the tapped handle given to mount()
   }, 30_000);
 
   it("KLWA from the Main Body: the three closure areas; Show regulations for another area names that water", async () => {

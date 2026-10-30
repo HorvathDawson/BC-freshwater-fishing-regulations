@@ -171,6 +171,10 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
 // curly quotes dropped on both sides: the prototype's `q.sq` draws its quotes in CSS (not in the golden's textContent), the
 // app draws them as text (T41: a source row's book words, quoted under its title)
 const bare = (s: string) => s.replace(/\s+/g, "").replace(/[“”]/g, "");
+/** (T288, r-ce76b4ed3624) the glossary transcription now says the rule book's p.80 words; page v36 quoted the old one */
+const t288 = (l: string) => l.replace("ordinary residence. In most", "ordinary residence (see above). In most")
+  .replace("adipose fin. Therefore", "adipose fin (see centre colour section). Therefore")
+  .replace("normal adipose fin, or will", "normal adipose fin (see illustration on page 13), or will");
 
 describe("C. golden mount: every vedder_1010 sheet draws every golden line, in order", () => {
   type G = { title: string; lines: string[] };
@@ -189,7 +193,7 @@ describe("C. golden mount: every vedder_1010 sheet draws every golden line, in o
       let at = 0;
       for (const line of want.lines) {
         // the release ships the printed → PDF map (export.pdf_pages): glossary and hatch pages are links, as on the page
-        const l = bare(line);
+        const l = bare(t288(line));
         const i = text.indexOf(l, at);
         if (i < 0) { missing.push(`${gk}: ${line}`); continue; }
         at = i + l.length;

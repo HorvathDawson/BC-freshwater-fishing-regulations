@@ -20,12 +20,30 @@ export const offline = {
       return ctx.waitText(/^Cultus Lake/, 20_000);
     });
     await ctx.step("a water's regulations open offline", async () => {
-      ctx.flow('open-result', { LINE: 'Lake · near Lindell Beach.*' });
+      ctx.flow('open-result', { LINE: 'Lake · Region 2 · MU 2-3 · near Lindell Beach.*' });
       await ctx.waitText(/Regulations/, 20_000);
       const words = ctx.device.screenText();
       const stuck = words.find((w) => /not available offline|Loading the regulations|this will load when/.test(w));
       if (stuck) throw new Error(`the installed set should answer offline: "${stuck}"`);
       return words.find((w) => /Open|Closed|open|closed/.test(w)) ?? 'regulations drawn';
+    });
+    // (T238/T285) the rule book came with the first install: a "Rule book p.N ↗" link opens it offline — a PDF app in
+    // front, or (an emulator with none) the "No app on this device opens PDFs" card; never "Couldn't load the synopsis."
+    await ctx.step('the rule book opens offline (a "Rule book p.N ↗" link on the page)', async () => {
+      ctx.flow('scroll-to', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
+      ctx.device.logcatClear();
+      ctx.flow('tap-text', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
+      await ctx.device.sleep(5000);
+      const front = ctx.device.sh('dumpsys activity activities | grep -m1 -E "mResumedActivity|topResumedActivity"').trim();
+      const words = ctx.device.screenText();
+      if (words.some((w) => /Couldn.t load the synopsis/.test(w))) throw new Error('the installed rule book did not open offline: "Couldn’t load the synopsis."');
+      if (words.some((w) => /Loading the synopsis/.test(w))) throw new Error('the rule book is being downloaded offline (not held from the install)');
+      const other = front && !front.includes('ca.canifishthis.app');
+      const noViewer = words.find((w) => /No app on this device opens PDFs/.test(w));
+      if (!other && !noViewer) throw new Error(`nothing opened (front: ${front}; saw: ${words.slice(0, 8).join(' | ')})`);
+      ctx.device.sh('input keyevent KEYCODE_BACK');
+      await ctx.device.sleep(1500);
+      return other ? `opened in ${front.split(/\s+/).find((x) => x.includes('/')) ?? front}` : `held offline; ${noViewer}`;
     });
     await ctx.step('a town offline: the waters near it (read from the installed set)', async () => {
       await toMap(ctx);
@@ -44,7 +62,7 @@ export const offline = {
     await ctx.step('back to the water: Conditions view', async () => {
       await toMap(ctx);
       ctx.flow('search', { Q: 'Cultus' });
-      ctx.flow('open-result', { LINE: 'Lake · near Lindell Beach.*' });
+      ctx.flow('open-result', { LINE: 'Lake · Region 2 · MU 2-3 · near Lindell Beach.*' });
       await ctx.waitText(/Regulations/, 20_000);
     });
     await ctx.step('Conditions offline: last captured readings or "not available offline", never a spinner', async () => {

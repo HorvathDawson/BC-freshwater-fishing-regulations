@@ -81,12 +81,12 @@ describe("manifest", () => {
     expect(() => parseManifest({ format: "app-manifest/1" })).toThrow(/format/);
   });
   it("a data-only release lists only the changed files and no tiles", () => {
-    expect(diff(HELD, M())).toEqual({ files: ["core"], tiles: false, basemap: false, assets: false });
+    expect(diff(HELD, M())).toEqual({ files: ["core"], tiles: false, basemap: false, assets: false, synopsis: false });
   });
   it("a geometry release lists the tiles with the data; the basemap only when its id moves", () => {
     const geo = M({ tiles: { compatible: ["ffffffffffffffff.*"], current: { id: "ffffffffffffffff.bbbbbbbbbbbb", url: "t" },
                              assets: { id: "map-assets-1", url: "a" }, mask: null } });
-    expect(diff(HELD, geo)).toEqual({ files: ["core"], tiles: true, basemap: false, assets: false });
+    expect(diff(HELD, geo)).toEqual({ files: ["core"], tiles: true, basemap: false, assets: false, synopsis: false });
     expect(diff(HELD, M({ basemap: { id: "protomaps-2026-01-01", url: "b" } })).basemap).toBe(true);
   });
   it("same tiles + new data pairs; incompatible tiles keep the last good pair", () => {
