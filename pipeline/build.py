@@ -46,7 +46,7 @@ marks.jsonl absent.
 
 SIDE RUNS (`--side DIR`, T297): every stage writes under DIR (atlas/<build>_next, reaches/, tiles/,
 clim.json, deliver/ with its release/) with its own manifest; reach, tiles and deliver read the side
-atlas when `--atlas` built one, else the promoted atlas (a side run never promotes); the live tiles,
+atlas DIR/atlas/<build>_next when there is one (`--atlas` builds it), else the promoted atlas (a side run never promotes); the live tiles,
 bundle, release and LATEST are not touched. A side clim.json that differs from the live one is refused (deliver reads the live one).
 """
 from __future__ import annotations
@@ -659,16 +659,17 @@ def main(argv: list[str] | None = None) -> int:
                 run["status"] = "atlas built, not promoted"
                 save_manifest(m)
                 return 0
-            if SIDE is not None:
-                # A SIDE RUN WITH --atlas READS ITS OWN ATLAS (T306/Sheldens 2026-10-30): a change that lives in the
-                # atlas (a registry name) could not otherwise be proven end to end without promoting it.
-                build_dir = SIDE / "atlas" / (build_dir.name + "_next")
-                prepare_side(build_dir)
         elif a.promote:
             nxt = build_dir.with_name(build_dir.name + "_next")
             run_stage("promote", [sys.executable, "-m", "pipeline.atlas.promote", str(nxt)], "-",
                       run, m)
 
+    if SIDE is not None and (SIDE / "atlas" / (build_dir.name + "_next")).is_dir():
+        # A SIDE RUN READS ITS OWN ATLAS when it has one (built now with --atlas, or by an earlier run into the same
+        # DIR) (2026-10-30, Sheldens): a change that lives in the atlas (a registry name) is proven end to end
+        # without promoting it.
+        build_dir = SIDE / "atlas" / (build_dir.name + "_next")
+        prepare_side(build_dir)
     why: dict = {}
     rows = plan(build_dir, set(a.force) | ({"tiles"} if a.labels else set()), why)
     cmds = commands(build_dir)
