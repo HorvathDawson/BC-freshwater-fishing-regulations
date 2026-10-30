@@ -304,8 +304,10 @@ def test_a_rule_on_a_whole_tidal_water_is_unresolved_and_listed(estuary):
     assert res.report.tidal_emptied == [{"entry_id": "r1:one@1-1", "rule_id": "c", "splits": ["water:gnis:2"]}]
 
 
-def test_the_curated_whole_tidal_waters_are_the_owners_four_channels():
-    assert O.tidal_waters() == ("gnis:10494", "gnis:14905", "gnis:17805", "gnis:22631")
+def test_the_curated_whole_tidal_waters_are_the_owners_ten_fraser_delta_waters():
+    """The 4 channels the owner marked (2026-10-29) + the 6 Fraser-code items below Mission he confirmed the same day."""
+    assert O.tidal_waters() == ("gnis:10494", "gnis:11566", "gnis:14010", "gnis:14905", "gnis:17368", "gnis:17805",
+                                "gnis:21224", "gnis:22631", "gnis:25152", "gnis:8341")
 
 
 def test_a_row_marked_tidal_keeps_its_own_water_when_a_cut_exists_elsewhere(estuary):

@@ -1683,3 +1683,10 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 ## OWNER 2026-10-29 — Noons Creek tidal boundary
 - "The railway bridge crossing Noons Creek serves as the definitive boundary separating tidal from freshwater
   regulations." The existing split `noons_creek__railway_bridge` (Ioco Spur rail bridge, 58 m up) is flagged tidal.
+- (later 2026-10-29) The two held gauge names are ACCEPTED as names, credited to their gauges: Meadow Creek Diversion
+  (08NH128), Quinsam River Diversion Headpond (08HD034).
+
+## OWNER 2026-10-29 — Fraser-code waters below Mission are tidal
+- Bedford Channel, Enterprise Channel, Gilmour Slough, Sapperton Channel, Tilbury Slough, Williamson Slough (exact Fraser
+  code, below the CPR bridge at Mission) are tidal along their whole length (`tidal_waters.json`). Ewen Slough (its own
+  code) stays freshwater.

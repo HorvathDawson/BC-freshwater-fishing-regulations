@@ -48,6 +48,48 @@
     "date": "2026-10-29",
     "note": "this entire channel is tidal"
    }
+  },
+  {
+   "item_id": "gnis:11566",
+   "name": "Bedford Channel",
+   "blk": "355994855",
+   "decided": "owner 2026-10-29: yes — \"all items with same wsc as the fraser below mission should be dropped as tidal\"; confirmed from the dry run (exact Fraser code 100-000000, below the CPR bridge at Mission); Ewen Slough stays out",
+   "mark": null
+  },
+  {
+   "item_id": "gnis:17368",
+   "name": "Enterprise Channel",
+   "blk": "355991837",
+   "decided": "owner 2026-10-29: yes — \"all items with same wsc as the fraser below mission should be dropped as tidal\"; confirmed from the dry run (exact Fraser code 100-000000, below the CPR bridge at Mission); Ewen Slough stays out",
+   "mark": null
+  },
+  {
+   "item_id": "gnis:14010",
+   "name": "Gilmour Slough",
+   "blk": "355997605",
+   "decided": "owner 2026-10-29: yes — \"all items with same wsc as the fraser below mission should be dropped as tidal\"; confirmed from the dry run (exact Fraser code 100-000000, below the CPR bridge at Mission); Ewen Slough stays out",
+   "mark": null
+  },
+  {
+   "item_id": "gnis:21224",
+   "name": "Sapperton Channel",
+   "blk": "355996434",
+   "decided": "owner 2026-10-29: yes — \"all items with same wsc as the fraser below mission should be dropped as tidal\"; confirmed from the dry run (exact Fraser code 100-000000, below the CPR bridge at Mission); Ewen Slough stays out",
+   "mark": null
+  },
+  {
+   "item_id": "gnis:25152",
+   "name": "Tilbury Slough",
+   "blk": "355994616",
+   "decided": "owner 2026-10-29: yes — \"all items with same wsc as the fraser below mission should be dropped as tidal\"; confirmed from the dry run (exact Fraser code 100-000000, below the CPR bridge at Mission); Ewen Slough stays out",
+   "mark": null
+  },
+  {
+   "item_id": "gnis:8341",
+   "name": "Williamson Slough",
+   "blk": "355991975",
+   "decided": "owner 2026-10-29: yes — \"all items with same wsc as the fraser below mission should be dropped as tidal\"; confirmed from the dry run (exact Fraser code 100-000000, below the CPR bridge at Mission); Ewen Slough stays out",
+   "mark": null
   }
  ]
 }
