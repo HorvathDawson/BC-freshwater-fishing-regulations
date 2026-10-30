@@ -349,13 +349,18 @@ def test_stream_names_are_the_named_sections_merged_per_name_and_first_zoom(tmp_
              f(3, [[2, 0], [3, 0]], "Serpentine River", 4, 11),          # drawn later: its own line
              f(4, [[1, 0], [1, 1]], "Hyland Creek", 2, 11), f(5, [[5, 5], [6, 6]], None, 1, 12)]
     (tmp_path / "stream.geojsonl").write_text("\n".join(lines) + "\n")
-    assert E.export_stream_names(tmp_path) == {"stream_name": 3}
+    assert E.export_stream_names(tmp_path) == {"stream_name": 8}
     got = [_json.loads(x) for x in (tmp_path / "stream_name.geojsonl").read_text().splitlines()]
     by = {(g["properties"]["name"], g["tippecanoe"]["minzoom"]): g for g in got}
-    assert sorted(by) == [("Hyland Creek", 11), ("Serpentine River", 9), ("Serpentine River", 11)]
-    s9 = by[("Serpentine River", 9)]
-    assert s9["geometry"]["type"] == "LineString" and len(s9["geometry"]["coordinates"]) == 3
-    assert s9["properties"] == {"name": "Serpentine River", "ord": 4}
+    # one set of lines per zoom band, each holding only what that zoom draws; the last band serves to the top zoom
+    assert sorted(by) == [("Hyland Creek", 11), ("Hyland Creek", 12), ("Hyland Creek", 13), ("Serpentine River", 9),
+                          ("Serpentine River", 10), ("Serpentine River", 11), ("Serpentine River", 12),
+                          ("Serpentine River", 13)]
+    # merged, then smoothed for its zoom: a straight run keeps its two ends
+    assert [by[("Serpentine River", z)]["geometry"]["coordinates"] for z in (9, 11)] == [[[0, 0], [2, 0]], [[0, 0], [3, 0]]]
+    assert by[("Serpentine River", 9)]["tippecanoe"]["maxzoom"] == 9
+    assert by[("Serpentine River", 13)]["tippecanoe"]["maxzoom"] == 13
+    assert by[("Serpentine River", 9)]["properties"] == {"name": "Serpentine River", "ord": 4}
     assert all("section_id" not in g["properties"] for g in got)
 
 

@@ -151,17 +151,18 @@ def check() -> None:
 
 
 def _common(minzoom: int, maxzoom: int, simplify_at_max: float, verbose: bool, *,
-            full_detail: int = LOW_DETAIL) -> list[str]:
+            full_detail: int = LOW_DETAIL, low_detail: int = LOW_DETAIL,
+            simplification: float = SIMPLIFICATION) -> list[str]:
     """The flags every pass shares. `full_detail` is the grid at the pass's OWN top zoom (tippecanoe's
     `--full-detail`); every zoom below it is drawn on `LOW_DETAIL`."""
     cmd = [
         f"--minimum-zoom={minzoom}", f"--maximum-zoom={maxzoom}",
-        f"--full-detail={full_detail}", f"--low-detail={LOW_DETAIL}",
+        f"--full-detail={full_detail}", f"--low-detail={low_detail}",
         # per-feature tippecanoe.minzoom from the ladder is the ONLY thinning we accept
         "--no-feature-limit", "--no-tile-size-limit",
         "--no-simplification-of-shared-nodes",
         "--detect-shared-borders",
-        f"--simplification={SIMPLIFICATION}",
+        f"--simplification={simplification}",
         f"--simplification-at-maximum-zoom={simplify_at_max}",
         # a line whose every point coincides at low zoom is still a real river
         "--no-tiny-polygon-reduction",
@@ -270,9 +271,17 @@ def _run(cmd: list[str]) -> None:
 OWN_PASS = tuple(s.name for s in ALL if s.own_pass)
 #: (T299) THE LAYERS BUILT ALONE: one pass each over the layer's own zoom range, in neither band (`LayerSpec.alone`).
 #: `stream_name` repeats the named streams' geometry; in their pass its vertices would count as shared nodes and pin
-#: theirs. Built with the bands' own tolerances (SIMPLIFICATION below the top, SIMPLIFICATION_AT_MAX on TOP_DETAIL at
-#: it), so a name runs along the line as drawn.
+#: theirs.
 ALONE = tuple(s.name for s in ALL if s.alone)
+#: AND ON A FINE GRID, SMOOTHED. A name is placed only where the line bends less than `text-max-angle` along it, and on
+#: the bands' coarse grids (2,048 below the top, 1,024 at it) every diagonal is a staircase of right angles: measured
+#: on the Lower Mainland at z11/z13, one stream of ten named with the label's 25 degrees, all ten at 180. So the name
+#: lines are cut on the full 4,096 grid (`ALONE_DETAIL`) and simplified enough to take the stairs out
+#: (`ALONE_SIMPLIFICATION`, 8 units = 1 px of a 512 px tile; 4 at the overzoomed top): a label runs within a pixel of
+#: the water at its own zoom.
+ALONE_DETAIL = 12
+ALONE_SIMPLIFICATION = 8
+ALONE_SIMPLIFICATION_AT_MAX = 4
 OWN_PASS_SIMPLIFICATION_AT_MAX = 5
 OWN_PASS_DETAIL = 12
 
@@ -355,8 +364,8 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
             print(f"  tippecanoe -> z{lo}-{top}  ({f.stem}, alone)")
             _run(["tippecanoe", "-o", str(mb), "--force", f"--name={name}",
                   f"--attribution={attribution}",
-                  *_common(lo, top, SIMPLIFICATION_AT_MAX if top == maxzoom else SIMPLIFICATION, verbose,
-                           full_detail=TOP_DETAIL if top == maxzoom else LOW_DETAIL),
+                  *_common(lo, top, ALONE_SIMPLIFICATION_AT_MAX, verbose, full_detail=ALONE_DETAIL,
+                           low_detail=ALONE_DETAIL, simplification=ALONE_SIMPLIFICATION),
                   str(f)])
             passes.append(mb)
 

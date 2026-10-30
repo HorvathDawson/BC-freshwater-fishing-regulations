@@ -1716,7 +1716,7 @@
           14
         ],
         "text-letter-spacing": 0.08,
-        "text-max-angle": 25,
+        "text-max-angle": 45,
         "symbol-spacing": 300,
         "symbol-sort-key": [
           "-",

@@ -39,7 +39,7 @@ def _writer(out_dir: Path, spec: LayerSpec):
     n = 0
     shouting: list[str] = []
 
-    def write(geom: dict, props: dict, minzoom: int) -> None:
+    def write(geom: dict, props: dict, minzoom: int, maxzoom: int | None = None) -> None:
         nonlocal n
         clean = {k: v for k, v in props.items()
                  if k in allowed and v is not None and v != ""}
@@ -52,7 +52,7 @@ def _writer(out_dir: Path, spec: LayerSpec):
             "type": "Feature", "geometry": geom, "properties": clean,
             "tippecanoe": {"layer": spec.name,
                            "minzoom": max(spec.minzoom, min(minzoom, spec.maxzoom)),
-                           "maxzoom": spec.maxzoom},
+                           "maxzoom": spec.maxzoom if maxzoom is None else maxzoom},
         }, separators=(",", ":")) + "\n")
         n += 1
 
@@ -282,41 +282,80 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
     return {"stream": n, "under_lake": n_ul}
 
 
+#: (T299) The zooms a stream name's lines are merged for: one set of lines per zoom, the last one serving every zoom up
+#: to the archive's top. `stream__label` starts at the first.
+NAME_BANDS = (8, 9, 10, 11, 12, 13)
+#: AND SMOOTHED FOR THAT ZOOM. MapLibre places a line label only where the line turns less than `text-max-angle` within
+#: a few characters (`checkMaxAngle` sums every corner under the window), and a river at the label's own scale is all
+#: corners: measured on the Lower Mainland at z11, every vertex of the Coquitlam, Alouette, Salmon and Serpentine lines
+#: turned more than 20 degrees, 10 px apart, and one stream of ten on screen was named. So each line is simplified by
+#: `NAME_SIMPLIFY_PX` at its zoom (Douglas-Peucker) and its corners then rounded (`NAME_CHAIKIN` passes of Chaikin's
+#: corner cutting): a name runs along the water's course, within a few pixels of the drawn line, never across it.
+NAME_SIMPLIFY_PX = 4.0
+NAME_CHAIKIN = 3
+_M_PER_PX_Z0 = 102_700            # metres per pixel of a 512 px tile at z0, at 49 N
+
+
+def _chaikin(pts: list[tuple[float, float]], passes: int) -> list[list[float]]:
+    """Chaikin's corner cutting, ends kept: each pass replaces every inner corner with two points a quarter of the way
+    along its edges, halving the turn at each vertex."""
+    for _ in range(passes):
+        if len(pts) < 3:
+            break
+        out = [pts[0]]
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            out += [(0.75 * x0 + 0.25 * x1, 0.75 * y0 + 0.25 * y1), (0.25 * x0 + 0.75 * x1, 0.25 * y0 + 0.75 * y1)]
+        pts = [out[0], *out[2:-1], pts[-1]]
+    return [[round(x, _ROUND), round(y, _ROUND)] for x, y in pts]
+
+
 def export_stream_names(out_dir: Path) -> dict:
-    """(T299) The `stream_name` layer, DERIVED FROM THE WRITTEN `stream` LAYER FILE and nothing else: the named sections
-    grouped by (name, the zoom they are first drawn at), each group line-merged into the longest lines it makes, each
-    line carrying the name and the largest `ord` merged into it. A pure function of `stream.geojsonl`, so the tiles-only
-    rebuild derives it again and it can never disagree with the streams it names (see `layers.stream_name`)."""
+    """(T299) The `stream_name` layer, DERIVED FROM THE WRITTEN `stream` LAYER FILE and nothing else: for each zoom band
+    (`NAME_BANDS`), the named sections drawn by that zoom, grouped by name and line-merged into the longest lines they
+    make, each line carrying the name and the largest `ord` merged into it, and drawn at that band only. Per band, not
+    per section's own first zoom: the ladder gives neighbouring sections of one river different first zooms, so merging
+    by first zoom left 54,195 lines of 56,443 sections. A pure function of `stream.geojsonl`, so the tiles-only rebuild
+    derives it again and it can never disagree with the streams it names (see `layers.stream_name`)."""
     from collections import defaultdict
 
     from shapely import line_merge
     from shapely.geometry import MultiLineString, shape
 
+    spec = BY_NAME["stream_name"]
     src = out_dir / f"{BY_NAME['stream'].name}.geojsonl"
-    groups: dict[tuple[str, int], list] = defaultdict(list)
-    ords: dict[tuple[str, int], dict[tuple[float, float], int]] = defaultdict(dict)
+    pieces: dict[str, list[tuple[int, object]]] = defaultdict(list)
+    ords: dict[str, dict[tuple[float, float], int]] = defaultdict(dict)
     with src.open() as fh:
         for line in fh:
             f = json.loads(line)
             name = (f.get("properties") or {}).get("name")
             if not name:
                 continue
-            key = (name, int(f.get("tippecanoe", {}).get("minzoom", 0)))
+            z = int(f.get("tippecanoe", {}).get("minzoom", 0))
             g = shape(f["geometry"])
-            parts = [p for p in (g.geoms if g.geom_type == "MultiLineString" else [g])
-                     if p.geom_type == "LineString" and len(p.coords) >= 2]
             o = int(f["properties"].get("ord") or 0)
-            for p in parts:
-                groups[key].append(p)
+            for p in (g.geoms if g.geom_type == "MultiLineString" else [g]):
+                if p.geom_type != "LineString" or len(p.coords) < 2:
+                    continue
+                pieces[name].append((z, p))
                 for c in (p.coords[0], p.coords[-1]):
-                    ords[key][c] = max(ords[key].get(c, 0), o)
-    write, close = _writer(out_dir, BY_NAME["stream_name"])
-    for (name, minzoom), parts in groups.items():
-        merged = line_merge(MultiLineString([p.coords for p in parts])) if len(parts) > 1 else parts[0]
-        for ln in [x for x in getattr(merged, "geoms", [merged]) if x.geom_type == "LineString"]:
-            o = max((ords[(name, minzoom)].get(c, 0) for c in ln.coords), default=0)
-            write({"type": "LineString", "coordinates": [list(c) for c in ln.coords]},
-                  {"name": name, "ord": o or None}, minzoom)
+                    ords[name][c] = max(ords[name].get(c, 0), o)
+    write, close = _writer(out_dir, spec)
+    for name, parts in pieces.items():
+        for i, band in enumerate(NAME_BANDS):
+            top = NAME_BANDS[i + 1] - 1 if i + 1 < len(NAME_BANDS) else spec.maxzoom
+            drawn = [p for z, p in parts if z <= (band if top < spec.maxzoom else spec.maxzoom)]
+            if not drawn:
+                continue
+            merged = line_merge(MultiLineString([p.coords for p in drawn])) if len(drawn) > 1 else drawn[0]
+            tol = NAME_SIMPLIFY_PX * _M_PER_PX_Z0 / 2 ** band / 111_000    # degrees, near enough
+            for ln in [x for x in getattr(merged, "geoms", [merged]) if x.geom_type == "LineString"]:
+                o = max((ords[name].get(c, 0) for c in ln.coords), default=0)
+                ln = ln.simplify(tol, preserve_topology=False)
+                if ln.is_empty or len(ln.coords) < 2:
+                    continue
+                write({"type": "LineString", "coordinates": _chaikin([tuple(c) for c in ln.coords], NAME_CHAIKIN)},
+                      {"name": name, "ord": o or None}, band, top)
     return {"stream_name": close()}
 
 

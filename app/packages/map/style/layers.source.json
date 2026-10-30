@@ -2375,7 +2375,7 @@
           ]
         ],
         "letterSpacing": 0.08,
-        "maxAngle": 25,
+        "maxAngle": 45,
         "spacing": 300,
         "color": {
           "token": "color.label.water"
@@ -2384,7 +2384,7 @@
           "token": "color.outside"
         },
         "haloWidth": 1.5,
-        "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. (T299) BIG RIVERS NAMED FIRST, small creeks only when zoomed in: the Strahler order `ord` is the ladder (order 6+ from z8, 5+ from z9, 4+ from z10, 3+ from z11, every named stream from z12) and the sort key, so where two names compete the bigger river is placed first.",
+        "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. (T299) BIG RIVERS NAMED FIRST, small creeks only when zoomed in: the Strahler order `ord` is the ladder (order 6+ from z8, 5+ from z9, 4+ from z10, 3+ from z11, every named stream from z12) and the sort key, so where two names compete the bigger river is placed first. `maxAngle` 45 (T299): with 25 a river's own bends refused almost every placement, even on the smoothed `stream_name` lines.",
         "priority": 0,
         "sortBy": "ord",
         "showAll": 12,

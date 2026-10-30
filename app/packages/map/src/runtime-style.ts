@@ -23,7 +23,7 @@ import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY } from "./water-copy";
-import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance } from "./labels";
+import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
 import { ATLAS_CREDIT, BASEMAP_CREDIT, creditLayers, creditSources } from "./credits";
 
 /** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
@@ -429,6 +429,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         },
       }] : []),
       ...ours.filter((l) => l.type !== "symbol"),
+      // our other names and marks (areas, units, obstacles) UNDER the basemap's: a town's name outranks a park's
+      ...ours.filter((l) => l.type === "symbol" && !WATER_NAMES.includes(l.id)),
       /*
        * The basemap's own labels, AFTER ours — see the split above. They still draw; they
        * just no longer get first refusal on every position on the map.
@@ -447,14 +449,15 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        */
       ...baseLabels,
       /*
-       * (T299) OUR NAMES, OVER THE BASEMAP'S — and so placed FIRST. MapLibre places symbols from the TOP of the style
+       * (T299) OUR WATER NAMES, OVER THE BASEMAP'S — and so placed FIRST. MapLibre places symbols from the TOP of the style
        * down (`PauseablePlacement` walks the layer order from the last layer), and a placed label keeps its spot. With
        * ours under the basemap's, every town, road and island name claimed its ground before a river was named, and on a
        * phone the Fraser went unlabelled under "Cape Horn Interchange". v1 put the water names last for exactly this
        * reason (`archive/webapp/src/components/Map.tsx`: "this must come after ... so lake/wetland/manmade/stream names
-       * win collision priority"). The basemap's names fill in around ours.
+       * win collision priority"). The basemap's names fill in around them. Only the water's names: over the towns, the
+       * tidal area's "Tidal water" took Vancouver's place at z9, so the area names stay under the basemap's (above).
        */
-      ...ours.filter((l) => l.type === "symbol"),
+      ...ours.filter((l) => WATER_NAMES.includes(l.id)),
       /**
        * WHICH WAY THE WATER GOES, on a highlighted route only.
        *

@@ -81,6 +81,9 @@ export function placesByImportance<L extends { id: string; filter?: unknown; lay
   };
 }
 
+/** (T299) The names that outrank the basemap's (placed before a town's): a river's and a lake's. `runtime-style.ts`. */
+export const WATER_NAMES: readonly string[] = ["stream__label", "lake__label"];
+
 /** Our own name layers (the generated `__label` companions) — every symbol layer with a label halo that is not an arrow. */
 export const OWN_LABELS: readonly string[] = MAP_STYLE.layers.map((l) => l.id)
   .filter((id) => id.endsWith("__label") && (STYLE_META.labelHalos ?? {})[id] !== undefined);
