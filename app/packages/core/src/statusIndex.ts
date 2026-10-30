@@ -24,7 +24,7 @@
 import type { SectionAccess } from "./access";
 import { CALENDAR_DAYS, readingDay } from "./calendar.generated";
 import type { SectionKey } from "./section";
-import { runNow, runSliced, YIELD_EVERY, type Steps } from "./sliced";
+import { runNow, YIELD_EVERY, type Steps } from "./sliced";
 
 /** What the file can say about a section on a day. `tidal` and `outside` are not statuses. */
 export type StatusCode = "base" | "own" | "closed" | "tidal" | "outside";
@@ -112,13 +112,7 @@ export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | nul
   return runNow(statusIndexSteps(bytes, expectHandles, expectReach));
 }
 
-/** (T287) `decodeStatusIndex` in slices (`sliced.ts`): the JS thread is never held for long. Same answer. */
-export function decodeStatusIndexAsync(bytes: Uint8Array, expectHandles: string | null,
-                                       expectReach: string | null = null): Promise<StatusIndex> {
-  return runSliced(statusIndexSteps(bytes, expectHandles, expectReach));
-}
-
-/** The decoder as steps: it yields every `YIELD_EVERY` rows (`runNow` / `runSliced`). */
+/** (T287) The decoder as steps: it yields every `YIELD_EVERY` rows (`runNow`; `runSliced` through `decodePaintAsync`). */
 export function* statusIndexSteps(bytes: Uint8Array, expectHandles: string | null,
                                   expectReach: string | null = null): Steps<StatusIndex> {
   let pos = 0;
