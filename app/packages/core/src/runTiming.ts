@@ -18,6 +18,7 @@
  * NOTHING HERE DECIDES A TIMING: the pipeline bound and dated every run; this module looks a section's runs up for a
  * species and a day and words them. PSF dates are RIVER ENTRY and are said to be.
  */
+import { MONTH_LAST_DAY } from "./calendar.generated";
 import { monthAbbr, PENTADS } from "./flow";
 
 export const RUNTIMING_FORMAT = { index: "runtiming-index/1", runs: "runtiming-runs/1",
@@ -359,7 +360,8 @@ export function pentadOf(day: Date): number {
   return Math.min(72, Math.floor(d / 5));
 }
 
-const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+// a common year's month lengths, from the calendar spec (gate 4: one calendar spec; February 28 here)
+const MONTH_DAYS = MONTH_LAST_DAY.map((d, m) => (m === 1 ? 28 : d));
 const SHORT = MONTH_DAYS.map((_, m) => monthAbbr(m));
 
 /** [month 0..11, day of month] of a day of the common year (0..364). */

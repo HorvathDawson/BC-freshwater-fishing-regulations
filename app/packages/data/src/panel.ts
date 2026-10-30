@@ -12,7 +12,7 @@
  * ordering the screen displays in — which is the SAME ordering the arithmetic used, so the
  * table and the number above it can never disagree.
  */
-import { answering, CORE_MEMBERS, estimate, isAhead, leaderOf, leadShares, recordYears, shownParameter, trustFor, weightFactors, type Answer,
+import { answering, CORE_MEMBERS, estimate, isAhead, lakeDamped, leaderOf, leadShares, recordYears, shownParameter, trustFor, weightFactors, type Answer,
          type AheadWhy, type Contribution, type TrustClass } from "@app/core";
 import type { Panel, PanelRoute, StationId } from "./index";
 
@@ -42,7 +42,7 @@ export interface DonorRow {
    * percentage: `share × role × record`, then divided by the panel's total.
    */
   factors: { share: number; role: number; record: number };
-  /** Where it is and how the water reaches it. Absent until `usePanelRoutes` resolves. */
+  /** Where it is and how the water reaches it. Absent until `useRoutes` resolves. */
   route?: PanelRoute;
   /**
    * When the station last reported, as the feed's index says (ISO). Absent where the index does not carry the
@@ -291,8 +291,12 @@ export function answerFrom(panel: Panel | undefined, index: Index,
   // THE SAME SHARES `estimate` USES: the usual weights of the members REPORTING now (a quiet one weighs 0, so the rest
   // re-normalise among themselves), with the leading own gauge — the best-ranked own one reporting — raised to its
   // share. A table that showed the plain weights under a led answer would contradict the number above it.
-  const ws = raw.map((r) => r._w);
-  const shares = leadShares(ws, leaderOf(panel.members.map((m) => m.lead ?? 0), ws));
+  // (T296) and the through-lake rule `estimate` applied: a member whose path crosses a lake counts for little (and
+  // cannot lead) while one with no lake on its path reports
+  const damped = lakeDamped(raw.map((r) => r._w), panel.members.map((m) => m.throughLake === true),
+                            panel.members.map((m) => m.lead ?? 0));
+  const ws = damped.weights;
+  const shares = leadShares(ws, leaderOf(damped.leads, ws));
   const rows = raw
     .map(({ _w, ...r }, i) => ({ ...r, weight: shares[i]! }))
     .sort((a, b) => b.weight - a.weight);
@@ -300,6 +304,20 @@ export function answerFrom(panel: Panel | undefined, index: Index,
            areaKm2: panel.areaKm2, routesReady: false };
 }
 
+
+/**
+ * (T296) THE PANEL WITH EACH MEMBER'S LAKE CROSSING, from its route (`PanelRoute.throughLake`): the same panel object
+ * when no route crosses a lake, so a caller's memo holds. Only a sheet has routes; the map colours without them.
+ */
+export function withThroughLake(panel: Panel | undefined, lakes: ReadonlySet<StationId> | null): Panel | undefined {
+  if (!panel || !lakes?.size || !panel.members.some((m) => lakes.has(m.station))) return panel;
+  return { ...panel, members: panel.members.map((m) => (lakes.has(m.station) ? { ...m, throughLake: true as const } : m)) };
+}
+
+/** (T296) The stations whose route crosses a lake; null while the routes are walking. */
+export function throughLakeStations(routes: readonly PanelRoute[] | null): ReadonlySet<StationId> | null {
+  return routes ? new Set(routes.filter((r) => r.throughLake).map((r) => r.station)) : null;
+}
 
 /**
  * WHY A PANEL WITH GAUGES AND AN AREA HAS NOTHING TO SAY at this quantity and horizon — the one decision `answerFrom`
@@ -358,7 +376,8 @@ export function contributionsOf(panel: Panel, index: NonNullable<Index>, quantit
     if (own !== null)
       out.push({ percentile: own, role: m.role, areaKm2: m.areaKm2, years: recordYears(m.years, quantity),
                  sameRiver: m.sameRiver,
-                 ...(m.lead ? { lead: m.lead } : {}), ...(i >= CORE_MEMBERS ? { reserve: true } : {}) });
+                 ...(m.lead ? { lead: m.lead } : {}), ...(i >= CORE_MEMBERS ? { reserve: true } : {}),
+                 ...(m.throughLake ? { throughLake: true } : {}) });
   });
   return out;
 }

@@ -1,8 +1,8 @@
 # T212 — tidal boundaries: a tidal split on every stream that enters the ocean (research first, no data changes yet)
 
-Status: PARTIAL — 2026-10-29 (later): 3 owner re-marks left (Caycuse, Dempster, Bear at the mouth); delta channels
-built (r-fa1915a56adb). Earlier 10-29: every candidate marked (1,168/1,168); the 32 cut/flag proposals applied (T185, splits.json)
-and shipped in r-62e2f3a8c81e; 8 tidal marks are follow-ups that make no cut (below). Research: 41393956.
+Status: DONE 2026-10-29 — every candidate marked and answered (Caycuse, Dempster, Bear "good / fine where they are");
+32 cuts + the Noons Creek flag + 10 whole tidal waters shipped (r-ce76b4ed3624). One owner proposal open: the Mamquam
+Blind Channel (below). Research: 41393956.
 
 Source: owner 2026-10-27 — "critical"; start in the next work window.
 
@@ -221,3 +221,26 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
 
 - 2026-10-29 owner: Caycuse River and Dempster Creek "are good where they are" — their marks stay as made; the build makes no cut for either (each item already starts at the lake edge).
 - 2026-10-29 owner: Bear River "was fine how it was" — no re-mark; the build already makes no cut (mouth).
+
+## Owner 2026-10-29 (later)
+- **Noons Creek (Port Moody): the railway bridge is the tidal boundary** (owner's words in decisions.md). The curated
+  split `noons_creek__railway_bridge` (58 m up; the Ioco Spur rail bridge in the OSM basemap is 0.2 m from it) is flagged
+  `tidal` with the owner's statement. The Tidal-tab mark still says "mouth" (auto-accept) — the curated flag decides.
+- **Fraser-code waters below Mission — DRY RUN, not applied** (owner: "all items with same wsc as the fraser below
+  mission should be dropped as tidal"). Exact FWA code 100-000000-… (the Fraser's own), west of the CPR bridge
+  (-122.30047): 50 lines. 23 are already tidal (Fraser braids in gnis:39325 below the cut + Annacis/Cannery/Morey/
+  Parsons); 21 unnamed lines are in no registry item (not drawn, no rules); **6 items would newly go tidal**, each one
+  section, no row of its own (92 zone rules each): Bedford Channel gnis:11566 (5.4 km, Fort Langley), Enterprise
+  Channel gnis:17368 (3.9 km), Gilmour Slough gnis:14010 (1.7 km), Sapperton Channel gnis:21224 (3.1 km), Tilbury
+  Slough gnis:25152 (4.7 km), Williamson Slough gnis:8341 (3.2 km). All Region 2. Flags: Ewen Slough (the owner's
+  example) has its own code 100-002200 — exact match misses it; the Fraser item itself (gnis:39325) shares the code and
+  is handled by the CPR-bridge cut. **Owner 2026-10-29: YES** — the 6 are in `tidal_waters.json` (5ee1f591); Ewen Slough stays out. Release **r-ce76b4ed3624** (local LATEST): 10 whole tidal waters, 100 tidal rows, no rule left without water.
+
+## Close-out (2026-10-29)
+- The open items above are closed: Caycuse / Dempster / Bear answered by the owner (no cut); Marchand / Taquat / Campus /
+  Doobah / Hobiton start at a lake edge = the mouth, no atlas work (T166 close-out); Skagit leaves BC; Nelson Creek is
+  added-streams (mouth, no item); Tlell and Deena stand as marked.
+- **PROPOSAL (owner, not applied):** the DFO 2015 Tidal Waters guide says "the Mamquam blind channel [is] considered
+  tidal". The atlas has `wsc:900-103611` "Mamquam Blind Channel Wetland" (added streams, 2 sections, an ocean-entering
+  code) and `wsc:900-103612` "Mamquam Blind Channel Trib 1" (1 section). Proposed: the first into `tidal_waters.json`
+  (whole tidal water, off the map), the tributary stays freshwater (a creek entering tidal water keeps its water).

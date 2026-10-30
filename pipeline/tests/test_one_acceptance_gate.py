@@ -240,6 +240,8 @@ def test_only_gate_calls_a_check():
 def test_ingest_and_the_app_call_the_gate():
     assert _calls({"gate"}) == [
         ("curation-review/backend/model_api.py", "check", "gate"),
+        # (8f69a2f4c) not the catalogue's gate: continuation.py's own `gate` (only the owner's reviewed links ship)
+        ("pipeline/deliver/bundle/continuation.py", "gate_bundle", "gate"),
         ("pipeline/regs/parsing/ingest_catalogue.py", "ingest", "gate")]
 
 

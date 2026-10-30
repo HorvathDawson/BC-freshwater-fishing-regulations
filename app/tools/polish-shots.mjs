@@ -41,7 +41,7 @@ const MAP_READY = `!!document.querySelector('[role=tablist]')`;
 export const SCENES = {
   map: ['', true, true, async () => {}],
   firstrun: ['', false, false, async (b) => { await until(b, `!!document.querySelector('[data-testid=first-run-notice]')`); }],
-  tour: ['', true, false, async (b) => { await until(b, `!!document.querySelector('[data-testid=walkthrough], [data-testid^=coach-step-]')`); }],
+  tour: ['', true, false, async (b) => { await until(b, `!!document.querySelector('[data-testid^=guide-step-]')`); }],
   regs: ['?regs=gnis:3062&date=2026-06-15', true, true, async () => {}],
   conditions: ['', true, true, async (b) => { await click(b, tab('Conditions')); }],
   spots: ['', true, true, async (b) => { await click(b, tab('Spots')); }],
@@ -50,7 +50,7 @@ export const SCENES = {
   layers: ['', true, true, async (b) => { await click(b, `document.querySelector('[aria-label^="Choose layers"]')`); }],
   // the tour's later steps (after only: the cards had no such steps)
   ...Object.fromEntries([2, 3, 4, 5].map((n) => [`tour${n}`, ['', true, false, async (b) => {
-    await until(b, `!!document.querySelector('[data-testid^=coach-step-]')`);
+    await until(b, `!!document.querySelector('[data-testid^=guide-step-]')`);
     for (let i = 1; i < n; i++) { await click(b, byText('[role=button]', 'Next')); await sleep(700); }
   }]])),
 };

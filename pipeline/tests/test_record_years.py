@@ -110,7 +110,9 @@ def test_the_member_rows_carry_the_record_per_quantity():
 #: is the reader; climatology.py is the producer (its run summary prints the median); the bundle COPIES clim stats into
 #: `gauge_stats` once. Anything else is a second opinion about how long a record is.
 ALLOWED = {"pipeline/gauges/feed/record.py": 1, "pipeline/gauges/feed/climatology.py": 1,
-           "pipeline/gauges/consume/bundle_tables.py": 1}
+           "pipeline/gauges/consume/bundle_tables.py": 1,
+           # (T274, 1719acb57) not a record length: the stored daily means' own window (the latest WINDOW_YEARS years held)
+           "pipeline/gauges/feed/hydat_daily.py": 2}
 #: `max(m.years)` / `max(discharge_years, level_years)`: a reduction of the per-quantity record back to one number
 #: (adversarial review: the first pattern missed a reduction of a `Member.years` tuple).
 READS = re.compile(r"""\.get\(\s*["']years["']|\[\s*["']years["']\s*\]|"""

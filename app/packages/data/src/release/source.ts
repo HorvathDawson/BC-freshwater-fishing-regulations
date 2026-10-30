@@ -26,7 +26,7 @@
 import { describeBy, shownParameter, type IndexWater, type NearPlace, type SearchIndexData, type WaterFix } from "@app/core";
 import { num, str, type Db, type Row } from "../sql/db";
 import * as BQ from "../sql/queries";
-import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, seriesOf, sid,
+import { boxOfGeoRows, pointOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, seriesOf, sid,
          traceDown, withNear, decodeLen, type DownOf, type RouteFacts } from "../sql/shared";
 import type { Observations } from "../feed/http";
 import type { Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
@@ -93,9 +93,11 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     return r ? sid(r.down_sid) : null;
   };
   /** (T252) a route's facts beyond its path: reach lengths (down, when the release has them) and water names (core). */
-  const hasDownLen = has(CROSS.HAS_DOWN_LEN);
+  const hasDownLen = has(CROSS.HAS_DOWN_LEN), hasDownLake = has(CROSS.HAS_DOWN_LAKE);
   const routeFacts = async (): Promise<RouteFacts> => ({
     ...((await hasDownLen()) ? { lenOf: async (s: SectionId) => decodeLen((await get(CROSS.LEN_OF, s))?.len) } : {}),
+    // (T296) which reaches are lakes; a release cut before `section_down.lake` leaves it to the water's kind
+    ...((await hasDownLake()) ? { lakeOf: async (s: SectionId) => Number((await get(CROSS.LAKE_OF, s))?.lake ?? 0) === 1 } : {}),
     nameOf: async (s: SectionId) => {
       const r = await get(R.ITEM_FOR_SECTION!, s);
       const item = r ? await get(R.ITEM!, str(r.item_id)) : null;
@@ -374,6 +376,13 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
       if (!ords.length) return null;
       return boxOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000);
+    },
+
+    async waterPoint(item) {
+      if (!loader.manifest.files[at(CROSS.PART_GEO_FOR_ORDS(1))]) return null;
+      const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
+      if (!ords.length) return null;
+      return pointOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000);
     },
 
     async gaugeForSection(id): Promise<GaugeLink | null> {

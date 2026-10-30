@@ -34,7 +34,8 @@ describe("the water map's group from the fixture release", () => {
     // (T220, r-46be3c135e68) a restored braid piece joined part 0 (9 -> 10 sections; taps.py PART_RECOUNTED chw1_1010)
     // (T222, regs fixture r-445850b69ae1) same sections, handles +5 (the Ruskin/Northrop channels sort before them)
     // (T278, regs fixture on r-62e2f3a8c81e: tidal cuts + FWA restore) the same section ids (atlas full.prev -> full), new handles
-    expect(navSections(g, 0).selected).toEqual([60202, 60203, 60204, 62214, 62510, 62629, 62883, 1236851, 1236852, 1236897]);
+    // (T289, regs fixture on r-ce76b4ed3624: Thomas / Angelo lake stubs re-joined, 2 fewer sections ahead) same sections, handles -2
+    expect(navSections(g, 0).selected).toEqual([60200, 60201, 60202, 62212, 62508, 62627, 62881, 1236849, 1236850, 1236895]);
     expect(g.parts[0]!.box).toEqual([-121.966394, 49.071523, -121.836034, 49.097385]);
   });
 
@@ -42,7 +43,7 @@ describe("the water map's group from the fixture release", () => {
     const g = await loadWaterGroup(st, "gnis:3062");
     // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas; T206, r-f6918815ca78: 355993454:0… and the 380887781/380887817 added streams; Vedder 355999181:0, 356363467:0/4738/12723, lake:329707189)
     expect([names(g), steps(g), navSections(g, 0).selected]).toEqual([
-      ["Vedder River"], ["-|-"], [62466, 313955, 313956, 313957, 1958167]]);   // (T222, r-445850b69ae1) same sections, handles +5; (T278, r-62e2f3a8c81e) same sections, re-pinned
+      ["Vedder River"], ["-|-"], [62464, 313953, 313954, 313955, 1958165]]);   // (T222, r-445850b69ae1) same sections, handles +5; (T278, r-62e2f3a8c81e) same sections, re-pinned; (T289, r-ce76b4ed3624) handles -2
   });
 
   it("Cowichan: four parts in a line", async () => {

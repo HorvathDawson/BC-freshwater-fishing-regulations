@@ -18,7 +18,7 @@ from pipeline.gauges.consume.shed import (
     build_gauge_sheds,
     downstream_map,
     lake_gauge_links,
-    section_lengths,
+    lake_reaches, section_lengths,
     trust_for,
 )
 from pipeline.common.models.enums import NodeKind
@@ -231,6 +231,22 @@ class TestDownstreamThroughLakes:
         lens = section_lengths(g, downstream_map(g, ["P:28000"]))
         # no line both enters and leaves: polygon_window gives a one-sided window, so the edges' points are used
         assert lens["lake:1"] == 25000
+
+
+class TestLakeReaches:
+    """T296: `section_down.lake` — which pointered reaches are lakes, the donor walk's own definition."""
+
+    def test_the_lake_on_the_upper_pitts_way_down_is_flagged_and_the_river_is_not(self):
+        g = _pitt()
+        down = downstream_map(g, ["P:28000", "A:0"])
+        assert lake_reaches(g, down) == {"lake:1"}
+
+    def test_a_stream_waters_polygon_is_not_a_lake(self):
+        # a slough's or canal's polygon is the river's own water (`panels.flowing`): walked through, never a lake
+        g = _pitt()
+        down = downstream_map(g, ["P:28000"])
+        assert lake_reaches(g, down, {"lake:1": "gnis:canal"}, {"gnis:canal": "stream"}) == set()
+        assert lake_reaches(g, down, {"lake:1": "wbk:pitt"}, {"wbk:pitt": "lake"}) == {"lake:1"}
 
 
 class TestStationNames:

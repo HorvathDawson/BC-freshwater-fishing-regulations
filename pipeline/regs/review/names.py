@@ -44,10 +44,14 @@ OWNER = {
                                      "near Oliver) names this water"},
     "blk:354151912~noble-creek": {"call": "accept", "why": "owner 2026-10-29: the gauge 08HA028 (Noble Creek at the "
                                   "mouth) names this water"},
-    "blk:356368998~meadow-creek-diversion": {"call": "hold", "why": "owner 2026-10-29: held — the gauge 08NH128 "
-                                             "(Meadow Creek Diversion below John Creek) may name a structure"},
-    "blk:354088905~quinsam-river-diversion-headpond": {"call": "hold", "why": "owner 2026-10-29: held — the gauge "
-                                                       "08HD034 (Quinsam River Diversion Headpond) names a structure"},
+    # owner 2026-10-29: accepted though LOW confidence — an assumption from the forest roads named for it (GOTCHAS.md)
+    "blk:360846083~sheldens-creek": {"call": "accept", "why": "owner 2026-10-29: accepted as an ASSUMPTION — the "
+                                     "unnamed line into Sheldens Bay, named only by the forest roads around it "
+                                     "('SP 19(1) TO SHELDONS', SHEL100–103); low confidence, see GOTCHAS"},
+    "blk:356368998~meadow-creek-diversion": {"call": "accept", "why": "owner 2026-10-29 (after a hold): accepted, "
+                                             "credited to the gauge 08NH128 (Meadow Creek Diversion below John Creek)"},
+    "blk:354088905~quinsam-river-diversion-headpond": {"call": "accept", "why": "owner 2026-10-29 (after a hold): "
+                                                       "accepted, credited to the gauge 08HD034"},
 }
 #: owner 2026-10-29: every auto-accepted row that came in by LINE COVERAGE (>= 80 %) is the owner's accept
 COVERAGE_ACCEPTED = "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)"

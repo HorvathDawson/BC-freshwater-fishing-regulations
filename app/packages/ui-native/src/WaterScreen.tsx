@@ -190,7 +190,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   useEffect(() => {
     if (!drawn || !openProbe.on()) return;
     openProbe.mark("commit");
-    requestAnimationFrame(() => openProbe.end("frame"));
+    openProbe.endOnFrame("frame");
   }, [drawn]);
 
   // EVERY STATE IS DRAWN IN THE WATER FRAME (T44): the header (back, the view strip) and the name row sit where they sit

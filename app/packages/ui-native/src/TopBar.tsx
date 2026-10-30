@@ -79,13 +79,14 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
   const panel = searchPanelWidth(useWindowDimensions().width);
   // the field holds the focus (open, or focused but closed): its edge turns accent either way — its one focus mark
   const [focused, setFocused] = useState(false);
+  const coach = useCoachTarget("search");   // (T293) the walkthrough's first step points at it
   return (
     // drawn BEFORE the results sheet, so Tab reaches the bar before the panel under it (T69: the order the eye reads);
     // raised over the sheet and its dim so it still paints on top
     <View testID="top-bar" pointerEvents="box-none"
           style={{ position: "absolute", top: TOP_BAR.top, left: TOP_BAR.side, zIndex: 2,
                    ...(panel === null ? { right: TOP_BAR.side } : { width: panel }) }}>
-      <View testID="search-field"
+      <View testID="search-field" ref={coach} collapsable={false}
             style={{ backgroundColor: palette.card, borderWidth: 1.5, borderRadius: palette.r.box,
                      borderColor: open || focused ? palette.accent : palette.ink, ...palette.lift }}>
         <View style={{ height: TOP_BAR.field, flexDirection: "row", alignItems: "center" }}>

@@ -9,6 +9,7 @@ import Svg, { Defs, Line as SvgLine, Pattern, Rect } from "react-native-svg";
 import { WORDS, type SalmonDrawn, type SalmonStripVM, type StripVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
+import { useCoachTarget } from "../CoachMarks";
 
 const GAP = 2, H = 10;
 
@@ -81,8 +82,9 @@ export function YearStrip({ strip, dateLabel, palette, title = null }: { strip: 
   const rects = strip.runs.map((r, i) => { const rw = (room * r.days) / total, at = x; x += rw + GAP; return { at, rw, bits: r.bits, i }; });
   const tone = strip.status === "open" ? palette.open : palette.closed;
   const [status, ...rest] = strip.line;
+  const coach = useCoachTarget("regs:answer");   // (T293) the walkthrough: today's answer and the year
   return (
-    <View style={{ paddingTop: 10, paddingHorizontal: GUTTER, paddingBottom: 2 }} testID="keep-strip">
+    <View ref={coach} collapsable={false} style={{ paddingTop: 10, paddingHorizontal: GUTTER, paddingBottom: 2 }} testID="keep-strip">
       {title && <BarTitle text={title} palette={palette} testID="keep-strip-title" />}
       <View style={{ flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 8 }}>
         <Text testID={`st:${strip.status}`} style={[TYPE.answer, { color: tone }]}>{(strip.status === "open" ? WORDS.CHECK.trim() : WORDS.CLOSED_MARK) + (status?.text ?? "")}</Text>

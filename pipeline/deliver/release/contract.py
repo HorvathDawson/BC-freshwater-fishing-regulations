@@ -87,8 +87,9 @@ FILES = {
         # no distance
         "section_gauge": ["sid", "station", "trust", "mag", "rel", "dist_b"]}},
     "down": {"format": "down/1", "kind": "sqlite", "tables": {
-        # `len` (T252): ADDITIVE, last, nullable — still down/1; an older release has none (no along-river distance)
-        "meta": ["k", "v"], "section_down": ["sid", "down_sid", "len"]}},
+        # `len` (T252): ADDITIVE, last, nullable — still down/1; an older release has none (no along-river distance).
+        # `lake` (T296): the same — an older release has none (the app reads a route's lake from its water's kind)
+        "meta": ["k", "v"], "section_down": ["sid", "down_sid", "len", "lake"]}},
     "climate": {"format": "climate/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "gauge_clim": ["station", "parameter", "bands"]}},
     "geo": {"format": "geo/1", "kind": "sqlite", "tables": {

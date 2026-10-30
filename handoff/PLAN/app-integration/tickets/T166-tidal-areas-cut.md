@@ -1,6 +1,7 @@
 # T166 — Tidal areas cut: turn the DFO tidal polygon into clean cuts across each stream
 
-Status: PARTIAL — step 5's build path is in (Phase 1, 2026-10-28); the owner is marking; apply + atlas rebuild next.
+Status: DONE 2026-10-29 — built and shipped (r-ce76b4ed3624: 33 tidal cuts + 10 whole tidal waters off the freshwater
+map); the phase-1 leftovers closed below. One owner proposal open (Mamquam Blind Channel, T212).
 
 Source: owner 2026-10-23: "another ticket to add is doing a tidal areas cut. this will be a little bit tricky because our
 dfo tidal layer was cut mostly to the right spot but has a lot of areas where it cuts away only some of the stream
@@ -107,3 +108,21 @@ split ids. Tests: `test_tidal_cut.py` (+3), tile inventory / feature-id / stage-
 **Owner 2026-10-28: the DFO tidal polygon is for drawing only.** It may draw the labelled tidal area on the map
 (`tidal_water`), never a cut: tidal cuts come from located words or the DFO default (the mouth). See decisions.md
 "tidal splits: words or the DFO default" and T212.
+
+## Close-out (2026-10-29)
+- **Review app reads all the tidal water** (`curation-review/backend/reuse.py` `_tidal`): rows marked tidal + the piece
+  below every tidal split this atlas resolved + every whole tidal water, WITH owners (`outside.tidal_water`'s parts;
+  pieces cached on `splits.resolved.json` + `tidal_waters.json`). It read the rows alone (a frozenset), so a rule
+  reviewed there kept water below a cut that ships without it. Loads when the review backend restarts.
+  Test: `test_curation_review_tidal_water.py`.
+- **Proposals tab words**: moot — the tab was removed (T290).
+- **RULINGS**: K7 says what is built, K8 RETIRED, C-2 RESOLVED, §16 has nothing unenforced (pipeline/docs/RULINGS.md).
+- **Acceptance pin**: `test_tidal_pinned.py` (bundle) — the Fraser at Mission, Squamish, Skeena: one tidal cut owns
+  every tidal section of each, the river keeps water above it and flows into it, nothing tidal above freshwater; the
+  Cowichan (mouth, DFO default) has nothing tidal.
+- **"The atlas no longer carries the lower ~400 m"** (T212 mark audit: Marchand, Taquat, Campus, Doobah, Hobiton, and
+  Caycuse / Dempster): not a polygon trim — nothing in the atlas reads `tidal_boundary`. Each FWA line runs on through
+  a lake (Nitinat Lake; Clowhom Lake for Taquat / Dempster) on a lake construction line, and the item starts at the
+  lake edge = the real mouth (the owner accepted this for Caycuse / Dempster 10-29). The proposals already treat a
+  point at the line's own lower end as the mouth (`proposals.TIDAL_POINT_TOL_M`, `line_end` → `tidal_mouth`), which
+  also answers the "mouth-noted cut snapped up the line" guard. No atlas work.

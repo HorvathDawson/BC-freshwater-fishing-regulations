@@ -14,6 +14,7 @@ import type { Palette } from "../theme";
 import { lineRun, MIN_HIT } from "./hit";
 import { openBook } from "./openBook";
 import { RegsPress } from "./RegsPress";
+import { useCoachTarget } from "../CoachMarks";
 import { useBookLoadingWords } from "./SynopsisLoading";
 
 export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, box, style, alone = false }: {
@@ -31,6 +32,8 @@ export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, b
   alone?: boolean;
 }) {
   const loading = useBookLoadingWords(pdf);
+  // (T293) the walkthrough points at the first link drawn on its own (a source line's page)
+  const coach = useCoachTarget(alone ? "regs:book" : undefined);
   const words = loading ?? bookText({ printed, pdf, bare });
   const face = style ?? { fontFamily: TYPE.metaBold.fontFamily, fontSize: TYPE.metaBold.fontSize };
   // unlinked: not the link colour — inside a line it takes the line's colour (prototype `<span>`), alone the quiet one
@@ -38,7 +41,7 @@ export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, b
   if (alone) return (
     <RegsPress accessibilityRole="link" accessibilityLabel={WORDS.BOOK_A11Y(printed)} onPress={() => { void (box ? onBook(pdf, box) : onBook(pdf)); }}
                box={{ w: bare ? 24 : MIN_HIT, h: TYPE.metaBold.lineHeight }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <View ref={coach} collapsable={false} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
         {loading !== null && <LoadingState palette={palette} size={22} label={loading} />}
         <Text style={[face, { color: palette.accent }]}>{words}</Text>
       </View>

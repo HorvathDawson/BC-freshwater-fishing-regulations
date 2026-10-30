@@ -282,12 +282,30 @@ def _rowed_waters() -> dict[str, tuple[str, ...]]:
     return rowed_waters([e for _, e in _all_entries()])
 
 
-def _tidal() -> frozenset[str]:
-    """The sections of the rows marked `tidal` (Nitinat Lake), read from the corpus as it is NOW —
-    the same derivation the reach CLI makes (`outside.tidal_sections`), so the app takes the same
-    tidal water out of every other row as what ships."""
-    from pipeline.atlas.reach.outside import tidal_sections
-    return tidal_sections([e for _, e in _all_entries()], _registry())
+def _tidal() -> dict[str, str]:
+    """ALL THE TIDAL WATER the reach CLI takes out of every binding (`outside.tidal_water`), `{section: owner}`: the rows
+    marked `tidal` (Nitinat Lake) read from the corpus as it is NOW, then the piece below every tidal split this atlas
+    resolved (T166, `split:<id>`) and every whole tidal water (T212, `water:<item_id>`). The owners matter: a row marked
+    tidal keeps its own water only (`build.tidal_limit`). It read the rows alone while the owner was still marking
+    (T166 phase 1), so a rule reviewed here kept water below a tidal cut that ships without it."""
+    from pipeline.atlas.reach.outside import tidal_owner
+    out = dict(tidal_owner([e for _, e in _all_entries()], _registry(), strict=False))
+    from pipeline.common.curated import CURATED
+    for s, o in _tidal_pieces_for(_stamp((SPLITS_RESOLVED_PATH, CURATED.waters.tidal_waters))).items():
+        out.setdefault(s, o)
+    return out
+
+
+@lru_cache(maxsize=1)
+def _tidal_pieces_for(_key: tuple) -> dict[str, str]:
+    """The atlas's tidal pieces (below each tidal split) and the curated whole tidal waters — keyed on the resolved
+    splits and `tidal_waters.json`, so a reflagged split or a new whole water is read on the next request. Not strict:
+    a piece the run would refuse is left freshwater here, as the review app reads a corpus mid-edit."""
+    from pipeline.atlas.reach.outside import tidal_cut_owner, tidal_splits, tidal_waters, tidal_whole_owner
+    out = dict(tidal_cut_owner(_registry(), _graph(), tidal_splits(_BUILD), strict=False))
+    for s, o in tidal_whole_owner(_registry(), tidal_waters(), strict=False).items():
+        out.setdefault(s, o)
+    return out
 
 
 @lru_cache(maxsize=1)
@@ -2569,7 +2587,7 @@ def check_entry(entry_dict: dict) -> dict:
 
 
 #: Every cache read from the served build — what `invalidate_caches` drops.
-_BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs,
+_BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs, _tidal_pieces_for,
                  _blk_to_item, _graph, _geoms, _wbk_polys,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
                  _run_facts_for, _boundary_index,

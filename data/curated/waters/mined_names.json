@@ -40,6 +40,33 @@
   {
    "target": {
     "blks": [
+     "354088905"
+    ]
+   },
+   "names": [
+    {
+     "name": "Quinsam River Diversion Headpond",
+     "source": "gauge",
+     "source_label": "the Environment Canada gauge 08HD034 (Quinsam River Diversion Headpond)",
+     "source_ref": "ECCC station 08HD034 (QUINSAM RIVER DIVERSION HEADPOND)",
+     "official": false,
+     "evidence": {
+      "trust": "reviewed",
+      "distance_m": 5.7,
+      "lonlat": [
+       -125.52055,
+       49.93
+      ]
+     },
+     "accepted": "owner 2026-10-29 (after a hold): accepted, credited to the gauge 08HD034",
+     "candidate": "blk:354088905~quinsam-river-diversion-headpond",
+     "confidence": "high"
+    }
+   ]
+  },
+  {
+   "target": {
+    "blks": [
      "354089003"
     ]
    },
@@ -3750,6 +3777,33 @@
      },
      "accepted": "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)",
      "candidate": "blk:356364390~lakes-creek",
+     "confidence": "high"
+    }
+   ]
+  },
+  {
+   "target": {
+    "blks": [
+     "356368998"
+    ]
+   },
+   "names": [
+    {
+     "name": "Meadow Creek Diversion",
+     "source": "gauge",
+     "source_label": "the Environment Canada gauge 08NH128 (Meadow Creek Diversion below John Creek)",
+     "source_ref": "ECCC station 08NH128 (MEADOW CREEK DIVERSION BELOW JOHN CREEK)",
+     "official": false,
+     "evidence": {
+      "trust": "reviewed",
+      "distance_m": 13.1,
+      "lonlat": [
+       -116.9975,
+       50.25417
+      ]
+     },
+     "accepted": "owner 2026-10-29 (after a hold): accepted, credited to the gauge 08NH128 (Meadow Creek Diversion below John Creek)",
+     "candidate": "blk:356368998~meadow-creek-diversion",
      "confidence": "high"
     }
    ]

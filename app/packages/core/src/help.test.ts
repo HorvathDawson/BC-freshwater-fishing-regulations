@@ -7,31 +7,45 @@ import { GEAR_LEGEND } from "./method";
 import { RUN_STATES } from "./runTiming";
 import { SALMON_MAP_STATUSES } from "./salmon";
 import { WATER_STATUSES } from "./status";
-import { HELP_WORDS, SYNC_KINDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, helpVM, walkthroughCards, walkthroughSeen } from "./help";
+import { GUIDE_WATER, HELP_WORDS, SYNC_KINDS, TAB_TOURS, WALKTHROUGH_VERSION, guideResumeAt, guideSteps, guideText, helpVM,
+         walkthroughSeen, withGuideAt, withSeen } from "./help";
 
-describe("the walkthrough (T248)", () => {
-  it("(T257) is six steps, each pointing at a control, in the order the owner listed", () => {
-    expect(WALKTHROUGH_WORDS.cards.map((c) => c.key)).toEqual(["days", "modes", "map", "conditions", "runs", "sync"]);
-    expect(WALKTHROUGH_WORDS.cards.map((c) => c.targets))
-      .toEqual([["days"], ["modes"], ["map"], ["tab:conditions"], ["tab:runs"], ["sync", "bell"]]);
-    for (const c of WALKTHROUGH_WORDS.cards) { expect(c.title.length).toBeGreaterThan(3); expect(c.body.length).toBeGreaterThan(40); }
+describe("the walkthrough (T293)", () => {
+  it("one walk in the owner's order, every step with words; DO steps are the reader's taps", () => {
+    const app = guideSteps("app");
+    expect(app.filter((s) => s.kind === "do").map((s) => s.key))
+      .toEqual(["search", "pick", "map", "regs", "conditions", "layers", "ground", "obstacles", "spot", "capture", "open"]);
+    for (const s of app) { expect(s.title.length, s.key).toBeGreaterThan(3); expect(s.body.length, s.key).toBeGreaterThan(30); }
+    expect(new Set(app.map((s) => s.key)).size).toBe(app.length);
   });
-  it("(owner 2026-10-29) the web's tour says what its refresh button does there; the app's keeps works-offline", () => {
-    const web = walkthroughCards("web"), app = walkthroughCards("app");
-    expect(web.map((c) => [c.key, c.targets])).toEqual(app.map((c) => [c.key, c.targets]));
-    const sync = (l: typeof web) => l.find((c) => c.key === "sync")!;
-    expect(sync(web).body).toContain("checks for new gauge data and regulations");
-    expect(sync(web).body).not.toMatch(/offline|Wi-Fi|on your device/);
-    expect(sync(app).title).toBe("Works offline");
-    expect(web.filter((c, i) => c !== app[i]).map((c) => c.key)).toEqual(["sync"]);
+  it("the web's last step says no works-offline; only that step differs", () => {
+    const web = guideSteps("web"), app = guideSteps("app");
+    expect(web.map((s) => s.key)).toEqual(app.map((s) => s.key));
+    expect(web.filter((s, i) => s !== app[i]).map((s) => s.key)).toEqual(["done"]);
+    expect(web.at(-1)!.body).not.toMatch(/offline|no signal|on this phone/);
+    expect(app.at(-1)!.body).toMatch(/no signal/);
   });
-  it("names the map's modes by the words the app already uses (Run timing is its own tab, T255)", () => {
-    const b = WALKTHROUGH_WORDS.cards.find((c) => c.key === "modes")!.body;
-    expect(["Trout & more", "Salmon"].every((w) => b.includes(w))).toBe(true);
+  it("names the chosen water, or any water when the release has none by that name", () => {
+    const welcome = guideSteps("app")[0]!.body, search = guideSteps("app")[1]!.body;
+    expect(guideText(welcome, { name: GUIDE_WATER.name, letters: GUIDE_WATER.letters })).toContain("the Vedder River");
+    expect(guideText(search, { name: GUIDE_WATER.name, letters: GUIDE_WATER.letters })).toContain("“ved”");
+    expect(guideText(welcome, null)).toContain("a water near you");
+    expect(guideText(welcome, null)).not.toMatch(/\{|\}/);
+  });
+  it("(T294-proof) the spot steps say a day you fished, not one visit", () => {
+    const days = guideSteps("app").find((s) => s.key === "days")!.body;
+    expect(days).toContain("a day you fished here");
   });
   it("seen only when the stored text is the current version", () => {
-    expect([walkthroughSeen(null), walkthroughSeen(""), walkthroughSeen("walkthrough-1"), walkthroughSeen(WALKTHROUGH_VERSION),
+    expect([walkthroughSeen(null), walkthroughSeen(""), walkthroughSeen("walkthrough-2"), walkthroughSeen(WALKTHROUGH_VERSION),
             walkthroughSeen(` ${WALKTHROUGH_VERSION}\n`)]).toEqual([false, false, false, true, true]);
+  });
+  it("keeps where an unfinished walk was left, one line beside the others, and forgets it", () => {
+    const s = withGuideAt(withSeen(null, TAB_TOURS.runs), "keep");
+    expect([s, guideResumeAt(s)]).toEqual([`${TAB_TOURS.runs}\nguide-at:keep`, "keep"]);
+    const moved = withGuideAt(s, "book");
+    expect([guideResumeAt(moved), moved.split("\n").length]).toEqual(["book", 2]);
+    expect([guideResumeAt(withGuideAt(moved, null)), withGuideAt(moved, null)]).toEqual([null, TAB_TOURS.runs]);
   });
 });
 

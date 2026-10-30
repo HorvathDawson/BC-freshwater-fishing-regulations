@@ -14,7 +14,7 @@ import type { MapColouring } from "./useMapColouring";
 import type { ShellNav } from "./useShellNav";
 
 export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, onTabTour, sync = null }: {
-  theme?: string; onWalkthrough?: () => void; onTabTour?: (k: "runs" | "conditions") => void;
+  theme?: string; onWalkthrough?: () => void; onTabTour?: (k: "runs" | "conditions" | "salmon") => void;
   /** (T238) the sync state: a phone's release download and its mobile-data setting, for the Offline maps page */
   sync?: SyncState | null;
   nav: ShellNav; col: MapColouring; rail: MapRail; menu: MenuControls; palette: Palette; loader: ReleaseLoader | null;

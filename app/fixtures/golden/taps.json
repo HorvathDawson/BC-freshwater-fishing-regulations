@@ -3,11 +3,11 @@
   "generator": "app/tools/regs-recut/taps.py",
   "store": {
    "format": "regs-store/4",
-   "section_handles": "07f861e5422be466",
-   "reach_digest": "8d65ae34ac23962a",
+   "section_handles": "20f93c1ffb5fd829",
+   "reach_digest": "23d061371a128622",
    "rule_ids_sha256": "ddafd3cfc412bdae",
-   "answers_sha256": "876c4106054fe2068bf51faecc0443f1b1b2cafba1aa23998a11feb4be6e9f5f",
-   "store_digest": "3c79d5112cb52901",
+   "answers_sha256": "4e2017f797b401dbf8b464ca7a1bc4318fa80e0b39ab7661a94b187ae4435ebc",
+   "store_digest": "548a5ab4c9a6c377",
    "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":18}}"
   },
   "golden": "d7b1ed353",
@@ -49304,121 +49304,121 @@
  },
  "unnamed": [
   {
-   "handle": 578,
+   "handle": 576,
    "akey": 2118,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 30355,
+   "handle": 30353,
    "akey": 2118,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 67626,
+   "handle": 67624,
    "akey": 2161,
    "place": 2,
    "name": "Unnamed stream \u00b7 Region 2"
   },
   {
-   "handle": 350160,
+   "handle": 350158,
    "akey": 2183,
    "place": 9,
    "name": "Unnamed stream \u00b7 Region 4"
   },
   {
-   "handle": 768640,
+   "handle": 768638,
    "akey": 2198,
    "place": 12,
    "name": "Unnamed stream \u00b7 Region 5"
   },
   {
-   "handle": 839075,
+   "handle": 839073,
    "akey": 2117,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 911268,
+   "handle": 911266,
    "akey": 2202,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
-   "handle": 985955,
+   "handle": 985953,
    "akey": 2206,
    "place": 12,
    "name": "Unnamed stream \u00b7 Region 5"
   },
   {
-   "handle": 1056194,
+   "handle": 1056192,
    "akey": 2205,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
-   "handle": 1124801,
+   "handle": 1124799,
    "akey": 2117,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 1237406,
+   "handle": 1237404,
    "akey": 2235,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1277161,
+   "handle": 1277159,
    "akey": 2235,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1309570,
+   "handle": 1309568,
    "akey": 2235,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1386925,
+   "handle": 1386923,
    "akey": 2235,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1472148,
+   "handle": 1472146,
    "akey": 2235,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1566525,
+   "handle": 1566523,
    "akey": 2235,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1662563,
+   "handle": 1662561,
    "akey": 2235,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1697322,
+   "handle": 1697320,
    "akey": 2235,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1836115,
+   "handle": 1836113,
    "akey": 2235,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1908373,
+   "handle": 1908371,
    "akey": 2235,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"

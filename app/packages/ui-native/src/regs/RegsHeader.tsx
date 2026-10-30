@@ -21,6 +21,7 @@ import { WaterTitle } from "../WaterFrame";
 import { GUTTER, type Palette } from "../theme";
 import { RegsPress } from "./RegsPress";
 import { Icon } from "../icons";
+import { CoachSpot, useCoachTarget } from "../CoachMarks";
 
 /** The selected tab, from the pin store (T29) or any source with the same two methods. */
 export interface TabSource { subscribe(fn: () => void): () => void; getTab(): Tab }
@@ -77,6 +78,7 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = fal
 export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette; onDate: () => void }) {
   const dot = h.dot === "open" ? palette.open : h.dot === "closed" ? palette.closed : palette.sub;
   return (
+    <CoachSpot k="regs:date">
     <RegsPress testID="regs-date" onPress={onDate} accessibilityRole="button" accessibilityLabel={h.dateAria} box={{ w: 44, h: 44 }}
                style={{ minHeight: 44, paddingHorizontal: 6, gap: 6, flexDirection: "row", alignItems: "center" }}>
       <View testID="regs-dot" style={{ width: 8, height: 8, backgroundColor: dot }} />
@@ -88,6 +90,7 @@ export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette
         <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{h.date}</Text>
       </View>
     </RegsPress>
+    </CoachSpot>
   );
 }
 
@@ -104,8 +107,9 @@ function Place({ place, palette }: { place: HeaderVM["place"]; palette: Palette 
   // from the text's length (no jump for the common short name); the measure then settles it.
   const wraps = place ? (measured ? measured > lh * 1.5 : place.full.length * scale > ONE_LINE_CHARS) : false;
   const lines = wraps ? 2 : 1;
+  const coach = useCoachTarget("regs:place");   // (T293) the walkthrough: which part of the water this is
   return (
-    <View style={{ paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, marginTop: -2 }}>
+    <View ref={coach} collapsable={false} style={{ paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, marginTop: -2 }}>
       <Text testID="regs-place" numberOfLines={lines} accessibilityLabel={place?.full} maxFontSizeMultiplier={CAPPED_SCALE}
             style={[TYPE.metaSemi, { height: lh * lines, color: palette.sub }]}>{shown}</Text>
       {place && (
@@ -124,8 +128,9 @@ function Place({ place, palette }: { place: HeaderVM["place"]; palette: Palette 
  */
 export function SectionList({ h, tabs, palette, onTab }: { h: HeaderVM; tabs: TabSource; palette: Palette; onTab: (t: Tab) => void }) {
   const selected = useSyncExternalStore(tabs.subscribe, tabs.getTab, tabs.getTab);
+  const coach = useCoachTarget("regs:tabs");
   return (
-    <View testID="regs-section-list" accessibilityRole="tablist" accessibilityLabel={WORDS.TABS_LABEL} aria-orientation="vertical"
+    <View testID="regs-section-list" ref={coach} collapsable={false} accessibilityRole="tablist" accessibilityLabel={WORDS.TABS_LABEL} aria-orientation="vertical"
           style={{ gap: 4 }}>
       {h.tabs.map((t) => {
         const on = t.tab === selected;
@@ -149,9 +154,10 @@ export const TAB_BOX = { w: 28, h: 34 } as const, TAB_BOX_SIDE = { w: 28, h: 36 
 
 function TabRow({ h, tabs, palette, onTab }: { h: HeaderVM; tabs: TabSource; palette: Palette; onTab: (t: Tab) => void }) {
   const selected = useSyncExternalStore(tabs.subscribe, tabs.getTab, tabs.getTab);
+  const coach = useCoachTarget("regs:tabs");   // (T293) the walkthrough: Gear, Methods, Licence
   return (
     // (T40) the row wraps: at 2× text the four tabs are wider than a phone (one row at 1×, as before)
-    <View accessibilityRole="tablist" accessibilityLabel={WORDS.TABS_LABEL}
+    <View ref={coach} collapsable={false} accessibilityRole="tablist" accessibilityLabel={WORDS.TABS_LABEL}
           style={{ paddingHorizontal: GUTTER, columnGap: 16, flexDirection: "row", flexWrap: "wrap" }}>
       {h.tabs.map((t) => {
         const on = t.tab === selected;

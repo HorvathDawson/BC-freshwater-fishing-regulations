@@ -26,6 +26,10 @@ const sheetPage = (f: unknown): RegsPage => { const p = f as Frozen; return { ..
 const VEDDER = sheetPage(vedder1010);
 const ADIPOSE = { wild: { uri: "adipose-wild.webp" }, clipped: { uri: "adipose-clipped.webp" } };
 const G = (golden as unknown as { sheets: Record<string, { lines: string[]; pages: { text: string; pdf: number }[]; folds: { summary: string; open: boolean }[] }> }).sheets.hatch!;
+/** (T288, r-ce76b4ed3624) the glossary transcription now says the rule book's p.80 words; page v36 quoted the old one */
+const t288 = (l: string) => l.replace("ordinary residence. In most", "ordinary residence (see above). In most")
+  .replace("adipose fin. Therefore", "adipose fin (see centre colour section). Therefore")
+  .replace("normal adipose fin, or will", "normal adipose fin (see illustration on page 13), or will");
 
 function hatch({ adipose = ADIPOSE as typeof ADIPOSE | null, palette = LIGHT } = {}) {
   const onBook = vi.fn(), opened: SheetKey[] = [];
@@ -82,7 +86,7 @@ describe("T38 How to tell: the hatch sheet", () => {
 
   it("3. the term's fold starts closed: the book's words appear only when pressed", () => {
     hatch();
-    const quote = G.lines[6]!;
+    const quote = t288(G.lines[6]!);
     expect(quote.startsWith("hatchery trout: in some waters, hatchery trout may be harvested")).toBe(true);
     const fold = screen.getByRole("button", { name: "In the book’s words" });
     expect([fold.getAttribute("aria-expanded"), screen.queryByText(quote)]).toEqual(["false", null]);

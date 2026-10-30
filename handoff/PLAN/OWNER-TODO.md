@@ -24,6 +24,11 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+- **T296 + tidal close-out (2026-10-29), two yes/no proposals:** (1) Mamquam Blind Channel — the DFO 2015 tidal guide
+  calls it tidal; make `wsc:900-103611` "Mamquam Blind Channel Wetland" whole tidal water (its "Trib 1" stays fresh)?
+  (2) The through-lake rule applies on the Conditions sheet only; the map's colour and saved spots weigh as before
+  (0 sections mix a through-lake gauge with a no-lake one today). Leave it so, or also carry it into the map (a paint
+  format change: needs a new APK first)? Rule recorded in decisions.md "a gauge reached through a lake".
 - **T227 DFO places not on the map (2026-10-28): review app → DFO, open each, "accept suggestion", Save extent.**
   - accept in review app → DFO: Cowichan — Sandy Pool sign → tidal boundary (= FWA mouth; active, high); weir/Cowichan Lake → 66 Mile Trestle (high); CNR mile 70.2 → Skutz Falls (high, new Skutz cut); "incl. tributaries and Cowichan Lake" = whole river + lake + tributaries (medium: lake's inflows counted). Last three dormant.
   - accept in review app → DFO: Capilano — "including tributaries" = whole + tributaries (high).

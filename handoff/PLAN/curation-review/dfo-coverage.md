@@ -1,6 +1,6 @@
 # DFO extent coverage — every historic location (owner 2026-10-27)
 
-346 historic DFO salmon locations (all scrapes, active + dormant); 150 have a curated extent; the other **196** are below — each with a proposal + confidence + evidence in the review app's DFO mode (`accept suggestion` pre-fills the editor; **Save extent** — your mark — is the only write). Nothing touched splits.json, the catalogue or marks.jsonl.
+348 historic DFO salmon locations (all scrapes, active + dormant); 150 have a curated extent; the other **198** are below — each with a proposal + confidence + evidence in the review app's DFO mode (`accept suggestion` pre-fills the editor; **Save extent** — your mark — is the only write). Nothing touched splits.json, the catalogue or marks.jsonl.
 
 Regenerate: `python -m pipeline.regs.dfo_salmon.suggest` (matcher → split hunt `dfo-split-hunt.json` → this pass, `pipeline/regs/dfo_salmon/coverage.py`).
 
@@ -8,19 +8,19 @@ Regenerate: `python -m pipeline.regs.dfo_salmon.suggest` (matcher → split hunt
 
 | outcome | high | medium | low | total |
 |---|---|---|---|---|
-| matched to EXISTING cuts | 46 | 19 | 1 | 66 |
+| matched to EXISTING cuts | 45 | 19 | 3 | 67 |
 | the whole water (no cut) | | | | 50 |
-| NEW split proposed | 26 | 23 | 16 | 65 |
+| NEW split proposed | 24 | 23 | 19 | 66 |
 | unresolvable (why below) | | | | 15 |
 
-Clusters of rewordings with an unplaced member: **24** (covering 55 locations, placed members included). Unplaced members: inherit a curated extent 2, adopt the cluster's better suggestion 0, already agree 22, canonical 23, member (own reading kept — differs in meaning) 6.
+Clusters of rewordings with an unplaced member: **25** (covering 57 locations, placed members included). Unplaced members: inherit a curated extent 2, adopt the cluster's better suggestion 0, already agree 22, canonical 24, member (own reading kept — differs in meaning) 7.
 
 ## Why each was unplaced
 
 | why | n | meaning |
 |---|---|---|
-| review_pending | 99 | existing cuts (or the whole water) say it — never curated, owner review pending |
-| needs_split | 58 | the water lacks a cut it needs — a NEW split is proposed |
+| review_pending | 100 | existing cuts (or the whole water) say it — never curated, owner review pending |
+| needs_split | 59 | the water lacks a cut it needs — a NEW split is proposed |
 | variant | 16 | a rewording of another unplaced location (one decision covers the cluster) |
 | lake_area | 12 | a part of a lake (a line across it / a radius) — not a cut on a line; lake splits are deferred |
 | side_channel | 3 | a side channel FWA does not draw — needs an added stream or an area |
@@ -42,7 +42,7 @@ Clusters of rewordings with an unplaced member: **24** (covering 55 locations, p
 | `8:mabel-lake:northerly-of-a-line-drawn-from-a-w` | lake_area | lake areas (a line from Mabel Lake Provincial Park's north edge to a western point; signs ~1 km from Wap Creek) — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area. |
 | `8:osoyoos-lake:in-the-waters-in-the-portion-of-os` | lake_area | Osoyoos Lake north of the Hwy 3 bridge (the North Basin): a lake part — the bridge (Hwy 3, Osoyoos narrows) is a line across the lake, curate as a lake split by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area. |
 | `8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2` | lake_area | same North Basin lake part — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area. |
-| `6:sheldens-creek:upstream-of-white-triangular-fishi` | no_water | the water is not matched to the registry (FWA has no 'Sheldens Creek'). Best lead: the creek into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677, FWA code 950-016367); Spur 19 (FTEN 'SP 19(1) TO SHELDONS') crosses it ≈ 53.12968,-131.78224, ~3.1 km above the mouth (medium). Match the water first (T164 dossier), then this cut. |
+| `6:sheldens-creek:upstream-of-white-triangular-fishi` | no_water | (T164 2026-10-29) the WATER is the open question, not the cut. Proposed match: the unnamed FWA stream blk 360846083 (code 950-016367) into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677) — the forest roads around it are all named for it (FTEN R06206 'SP 19(1) TO SHELDONS', 'SP 19H TO SHELDONS', SHEL100–SHEL103). The cut: FTEN road 'SP 19(1) TO SHELDONS' (R06206 sec 331, ACTIVE) crosses that line at 53.12968,-131.78224, FWA measure 3402 m (exact road×stream intersection) — the Spur 19 bridge site, medium. The name is a REVIEW row in the Names mode (candidate `blk:360846083~sheldens-creek`, never auto-accepted): accepting it names the line, the DFO matcher then binds the water, and this cut becomes placeable here. |
 | `2:stave-river:in-that-portion-of-the-stave-river` | side_channel | Ruskin + Northrop spawning channels — both side channels off the FWA Stave (Ruskin: OSM 1485091713, inlet 49.1950,-122.4085; Northrop: OSM 72823766, intake 49.1938,-122.4120, joins the mainstem ≈ 49.1892,-122.4121). |
 | `2:stave-river:that-portion-of-the-stave-river-kn` | side_channel | the Ruskin Spawning Channel is a side channel on the east bank, not on the FWA Stave line. Mapped (OSM 1485091713 'Ruskin Channel'): inlet near the dam 49.1950,-122.4085, boat-ramp crossing ≈ 49.1921,-122.4070, joins the Stave ≈ 49.1864,-122.4092 — needs an added channel or an area, by hand. |
 | `2:stave-river:the-ruskin-spawning-channel-on-the` | side_channel | same Ruskin Spawning Channel (side channel, not on the FWA Stave): inlet 49.1950,-122.4085, boat-ramp crossing ≈ 49.1921,-122.4070 (OSM 1485091713). |
@@ -51,6 +51,8 @@ Clusters of rewordings with an unplaced member: **24** (covering 55 locations, p
 
 ## Caveats on a proposal (read before accepting)
 
+- `1:nanaimo-river:in-subarea-17-14-tidal-portions-of` — tidal Subarea 17-14: the reach below Cedar Bridge is tidal water — check the extent should bind the freshwater line at all (the tidal boundary rule, T212).
+- `1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2` — tidal Subarea 17-14 — as the sibling row: check the freshwater extent should bind tidal water (T212).
 - `5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola` — TRIBUTARIES ONLY (not the Bella Coola mainstem; the water excludes the Atnarko). A mark can only say whole + tributaries — on save, note tributaries_only.
 - `6:babine-lake:babine-lake-excluding-tributaries` — the lake LESS 400 m radii around the named creek mouths — those carve-outs are not geometry: keep them as the binding's notes / spatial_caveat (DFO doc 19 §3.1), the map shows the whole lake.
 - `6:babine-lake:babine-lake-excluding-tributaries~2` — the lake LESS 400 m radii around the named creek mouths and the part east of a line from Gullwing Creek to the south shore — those carve-outs are not geometry: keep them as the binding's notes / spatial_caveat (DFO doc 19 §3.1), the map shows the whole lake.
@@ -64,6 +66,7 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 
 - `1:nanaimo-river:from-the-cedar-road-bridge-crossin` (canonical) · `1:nanaimo-river:cedar-road-bridge-upstream-approx` (agrees)
 - `1:nanaimo-river:from-the-power-line-crossing-at-bo` (canonical) · `1:nanaimo-river:from-500-m-below-the-lower-power-l` (member)
+- `1:nanaimo-river:in-subarea-17-14-tidal-portions-of` (canonical) · `1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2` (member)
 - `1:sproat-river:from-sproat-lake-to-approx-300m-be` (canonical) · `1:sproat-river:sproat-river-from-sproat-lake-to-f` (agrees)
 - `1:stamp-river:stamp-river-downstream-of-girl-gui` (canonical) · `1:stamp-river:downstream-of-signs-at-girl-guide` (agrees)
 - `1:stamp-river:from-the-confluence-of-the-ash-riv~2` (canonical) · `1:stamp-river:from-the-confluence-of-the-ash-riv` (member)
@@ -106,6 +109,8 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `1:nanaimo-river:from-the-cedar-road-bridge-crossin` | active | review_pending | between Cedar Road bridge and Hwy 19 bridge | high |
 | `1:nanaimo-river:from-the-power-line-crossing-at-bo` | dormant | review_pending | between power line at Bore Hole and Boulder Creek → Nanaimo River | high |
 | `1:nanaimo-river:from-the-upstream-side-of-the-ceda` | active | review_pending | between Cedar Road bridge and Hwy 1 bridge | medium |
+| `1:nanaimo-river:in-subarea-17-14-tidal-portions-of` | dormant | review_pending | downstream of Cedar Road bridge | high |
+| `1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2` | dormant | needs_split | between Cedar Road bridge and signs 400 m below the Cedar Road bridge | medium |
 | `1:nanaimo-river:including-tributaries-except-in-th` | active | review_pending | the whole water with its tributaries | medium |
 | `1:puntledge-river:downstream-from-a-fishing-boundary` | dormant | review_pending | downstream of signs 75 m downstream of Puntledge River hatchery fence | medium |
 | `1:puntledge-river:downstream-from-the-base-of-stotan` | active | review_pending | downstream of base of Stotan Falls | high |
@@ -115,7 +120,7 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `1:qualicum-river:all-open-portions-of-the-qualicum` | active | review_pending | the whole water | medium |
 | `1:qualicum-river:downstream-of-the-upper-weir-locat` | active | review_pending | between upper hatchery weir (125 m downstream) and boundary signs = QFN | medium |
 | `1:qualicum-river:those-waters-upstream-of-the-big-q` | active | review_pending | upstream of upper hatchery weir (125 m downstream) | high |
-| `1:qualicum-river:waters-below-the-qfn-boundary-fenc` | active | review_pending | between boundary signs = QFN and Hwy 19A bridge | medium |
+| `1:qualicum-river:waters-below-the-qfn-boundary-fenc` | active | review_pending | between boundary signs = QFN and Hwy 19A bridge | low |
 | `1:quatse-river:100m-upstream-and-downstream-of-th` | active | needs_split | between 100 m above the Quatse River Hatchery weir and 100 m below the Quatse River Hatchery weir | low |
 | `1:san-juan-river:that-portion-of-the-san-juan-river` | dormant | needs_split | between San Juan hatchery counting fence and signs 150 m below the San Juan hatchery fence | low |
 | `1:san-juan-river:waters-of-the-san-juan-river-and-i` | dormant | review_pending | downstream of Fleet River → San Juan River | high |
@@ -151,11 +156,11 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3` | active | review_pending | downstream of fishing boundary signs 100 m below the Slesse Creek confluence | high |
 | `2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis` | dormant | review_pending | upstream of fishing boundary signs 100 m below the Slesse Creek confluence | high |
 | `2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2` | dormant | variant | downstream of fishing boundary signs 100 m below the Slesse Creek confluence | high |
-| `2:fraser-river:from-the-downstream-side-of-the-cp` | dormant | needs_split | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | high |
-| `2:fraser-river:from-the-downstream-side-of-the-cp~2` | dormant | needs_split | between the CPR Bridge at Mission and Alexandra Bridge (Hwy 1) | medium |
+| `2:fraser-river:from-the-downstream-side-of-the-cp` | dormant | needs_split | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | low |
+| `2:fraser-river:from-the-downstream-side-of-the-cp~2` | dormant | needs_split | between the CPR Bridge at Mission and Alexandra Bridge (Hwy 1) | low |
 | `2:fraser-river:from-the-highway-1-bridge-at-hope` | dormant | needs_split | between Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) and Alexandra Bridge (Hwy 1) | medium |
-| `2:fraser-river:mainstem-waters-from-the-downstrea` | dormant | needs_split | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | high |
-| `2:fraser-river:mainstem-waters-upstream-of-the-cp` | active | review_pending | upstream of the CPR Bridge at Mission | high |
+| `2:fraser-river:mainstem-waters-from-the-downstrea` | dormant | needs_split | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | low |
+| `2:fraser-river:mainstem-waters-upstream-of-the-cp` | active | review_pending | upstream of the CPR Bridge at Mission | low |
 | `2:fraser-river:upstream-from-the-highway-1-bridge` | dormant | needs_split | upstream of Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | high |
 | `2:harrison-river:from-the-highway-7-bridge-downstre` | active | needs_split | downstream of Hwy 7 bridge over the Harrison | high |
 | `2:harrison-river:from-the-outlet-of-harrison-lake-d` | active | needs_split | between Harrison Lake and Hwy 7 bridge over the Harrison | high |
@@ -196,7 +201,7 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `5b:atnarko-river:downstream-of-the-fishing-boundary` | active | needs_split | downstream of signs near Tweedsmuir Park Lodge (Stuie) | medium |
 | `5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola` | active | tributary_set | the whole water | medium |
 | `5b:dean-river:from-signs-located-approx-500-m-up` | active | review_pending | between signs ~0.5 km above the canyon (500 m upstream) and signs ~100 m below the canyon (100 m downstream) | high |
-| `5b:dean-river:from-the-confluence-with-crag-cree` | active | review_pending | downstream of Crag Creek → Dean River | high |
+| `5b:dean-river:from-the-confluence-with-crag-cree` | active | review_pending | between Crag Creek → Dean River and Dean River: mouth (tidal boundary) (medium confidence) | medium |
 | `5b:dean-river:upstream-of-the-confluence-with-cr` | active | review_pending | upstream of Crag Creek → Dean River | high |
 | `5b:long-lake:including-tributaries` | active | review_pending | the whole water with its tributaries | high |
 | `6:babine-lake:babine-lake-excluding-tributaries` | dormant | lake_area | the whole water | medium |

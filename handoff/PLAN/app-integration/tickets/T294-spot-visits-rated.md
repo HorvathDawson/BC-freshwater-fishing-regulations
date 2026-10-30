@@ -1,6 +1,6 @@
 # T294 — A spot holds several visits, each rated; the coming days are predicted from your rated visits
 
-Status: IN PROGRESS — built and verified in worktree `bcfr-t294` (branch t294-spot-visits), held for the NEXT APK (owner 2026-10-29: "add a way to update a spot with additional visits and you can rank the visit then we can
+Status: DONE 2026-10-29, ef431b717 (owner 2026-10-29: "add a way to update a spot with additional visits and you can rank the visit then we can
 use that to instead predict how good the day will be").
 
 ## Work
@@ -20,7 +20,7 @@ Tests: migration, prediction math (weights, ties, one visit, no rating), words; 
 
 Depends: T284. Size: M. Owner: rating scale — DECIDED 2026-10-29: 1–5 stars (approved).
 
-## Built (2026-10-29, uncommitted until the current APK is cut)
+## Done
 - **Model, lossless by construction** (`data/spots/visits.ts`): a spot's own fields ARE its first visit, `rating?` is that
   visit's rating, `visits?: Visit[]` the later ones (same frozen record + own notes/photos/rating). Nothing is moved on
   disk, so an old spot loads as one visit byte-for-byte and saves back unchanged (test). `visitSpot` reads any visit as a

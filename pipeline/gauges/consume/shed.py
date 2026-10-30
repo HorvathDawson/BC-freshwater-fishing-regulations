@@ -659,6 +659,24 @@ def section_lengths(graph, down: dict[str, str]) -> dict[str, float]:
     return out
 
 
+def lake_reaches(graph, down: dict[str, str], water_of: dict[str, str] | None = None,
+                 kind_of: dict[str, str] | None = None) -> set[str]:
+    """(T296) The pointered sections that are LAKES — `section_down.lake`: a gauge whose path to a water crosses one
+    is reached through standing water, which smooths its signal (owner 2026-10-29), and the app weighs it so
+    (`lakeDamped`). The one definition the donor walk uses (`panels.flowing`): a lake polygon, unless it is a STREAM
+    water's (a slough's or canal's polygon is the river's own water); a line is never one, whoever owns it. Both ends of
+    every pointer are asked, so a route's last reach (the edge of the pointers) is known too."""
+    from pipeline.gauges.consume.panels import _kind, flowing
+
+    is_stream = flowing(graph, water_of, kind_of)
+    out: set[str] = set()
+    for sec in {*down, *down.values()}:
+        node = graph.nodes.get(sec)
+        if node is not None and _kind(node) == "lake" and not is_stream(sec):
+            out.add(sec)
+    return out
+
+
 def load_stations(path: Path) -> list[dict]:
     """Read the fetched roster: EVERY station, live or not.
 

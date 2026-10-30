@@ -167,3 +167,18 @@ describe("makeReleaseSource.waterBox: every water placed by its own geometry", (
     expect(loader.opened()).toEqual([]);
   });
 });
+
+describe("(T293) makeReleaseSource.waterPoint: a point on the water itself", () => {
+  it("a one-part water: its part's midpoint, on its own line", async () => {
+    const loader = releaseLoader(manifest(["core", "water"]), bytes, openGeo);
+    expect(await makeReleaseSource(loader).waterPoint!("wbk:328972518" as ItemId)).toEqual({ lon: -129.984551, lat: 53.344782 });
+  });
+  it("Kootenay Lake: of its areas' midpoints, the one nearest the middle of the whole box", async () => {
+    const loader = releaseLoader(manifest(["core", "water"]), bytes, openGeo);
+    expect(await makeReleaseSource(loader).waterPoint!("wbk:328974235" as ItemId)).toEqual({ lon: -116.808854, lat: 49.64012 });
+  });
+  it("no geometry: null", async () => {
+    expect(await makeReleaseSource(releaseLoader(manifest(["core"]), bytes, openGeo)).waterPoint!("wbk:328972518" as ItemId)).toBeNull();
+    expect(await makeReleaseSource(releaseLoader(manifest(["core", "water"]), bytes, openGeo)).waterPoint!("gnis:0" as ItemId)).toBeNull();
+  });
+});

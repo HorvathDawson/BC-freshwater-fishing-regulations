@@ -22,7 +22,8 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind } from "@app/core";
+import { GUIDE_WATER, TAB_TOUR_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind } from "@app/core";
+import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
@@ -60,13 +61,54 @@ import { useShellNav } from "./shell/useShellNav";
 import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
-import { TabTourSheet, useTabTour, useWalkthrough, WalkthroughSheet } from "./Walkthrough";
+import { GUIDE_STEPS, GuideCard, TabTourSheet, useGuide, useTabTour, type GuideActs, type GuideFacts } from "./Walkthrough";
 import { CoachContext, useCoachRegistry } from "./CoachMarks";
 
 export type { ShellProps } from "./shell/props";
 
 /** (owner 2026-10-29) the map readied behind a landing's water: the whole box, unseen (painted, not shown) */
 const BEHIND = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 } as const;
+
+/** (T293) The Conditions tour's gauge: of the bigger-river gauges, the nearest to the camera, with its catchment's area. */
+async function nearGauge(source: ShellProps["source"], at: Camera): Promise<{ lon: number; lat: number; km2: number } | null> {
+  try {
+    const pts = await source.gaugePoints();
+    if (!pts.length) return null;
+    const mags = pts.map((p) => p.mag ?? 0).sort((a, b) => a - b);
+    const floor = mags[Math.floor(mags.length * 0.75)] ?? 0;
+    const k = Math.cos((at.lat * Math.PI) / 180);
+    const d = (p: { lon: number; lat: number }) => ((p.lon - at.lon) * k) ** 2 + (p.lat - at.lat) ** 2;
+    const big = pts.filter((p) => (p.mag ?? 0) >= floor);
+    const g = (big.length ? big : pts).reduce((a, b) => (d(b) < d(a) ? b : a));
+    let km2 = 0;
+    for (const ms of (await source.basinMembers().catch(() => new Map())).values())
+      for (const m of ms) if (m.station === g.station && (m.areaKm2 ?? 0) > km2) km2 = m.areaKm2 ?? 0;
+    return { lon: g.lon, lat: g.lat, km2: km2 || 1000 };
+  } catch { return null; }
+}
+
+/** (T293) The fish obstacles' switch in the Layers sheet (`@app/core` layers). */
+const OBSTACLES = "overlay.obstacles";
+
+/** (T293) The room the bottom tab bar takes, kept clear by the walkthrough's card docked at the foot. */
+const TAB_BAR_ROOM = 64;
+
+/**
+ * (T293) THE WALKTHROUGH'S WATER (`GUIDE_WATER`): found by its name in the release once, a stream of exactly that name.
+ * Not found (a release without it): null, and the walkthrough takes any water the reader picks.
+ */
+function useGuideWater(source: ShellProps["source"]): { item: string; name: string } | null {
+  const [w, setW] = useState<{ item: string; name: string } | null>(null);
+  useEffect(() => {
+    let live = true;
+    void source.searchNames(GUIDE_WATER.name, 10).then((hits) => {
+      const h = hits.find((x) => x.name === GUIDE_WATER.name && x.kind === GUIDE_WATER.kind) ?? hits.find((x) => x.name === GUIDE_WATER.name);
+      if (live && h) setW({ item: h.item, name: h.name });
+    }).catch(() => {});
+    return () => { live = false; };
+  }, [source]);
+  return w;
+}
 
 /** (T287) How long the map must stand still before a downloaded release is swapped in. */
 const APPLY_STILL_MS = 3000;
@@ -216,15 +258,16 @@ export function Shell(p: ShellProps) {
    */
   useEffect(() => {
     if (!releaseReady || !safe || askedApply.current === releaseReady) return;
+    // a 250 ms poll, re-armed by setTimeout (no interval timer on the JS thread: tools/no-per-frame-animation.test.ts)
     let seen = camera.current, still = Date.now();
-    const t = setInterval(() => {
-      if (camera.current !== seen) { seen = camera.current; still = Date.now(); return; }
-      if (Date.now() - still < APPLY_STILL_MS) return;
-      clearInterval(t);
-      askedApply.current = releaseReady;
-      p.onSafeToApply?.();
-    }, 250);
-    return () => clearInterval(t);
+    let t: ReturnType<typeof setTimeout>;
+    const poll = () => {
+      if (camera.current !== seen) { seen = camera.current; still = Date.now(); }
+      else if (Date.now() - still >= APPLY_STILL_MS) { askedApply.current = releaseReady; p.onSafeToApply?.(); return; }
+      t = setTimeout(poll, 250);
+    };
+    t = setTimeout(poll, 250);
+    return () => clearTimeout(t);
   }, [releaseReady, safe, p.onSafeToApply]);
   /*
    * (T263) THE BELL'S "DATA UPDATE" ROW: the release's state (waiting for Wi-Fi, downloading, ready, needs a newer app).
@@ -255,18 +298,126 @@ export function Shell(p: ShellProps) {
   const notice = useInSeasonNotice(inSeason.unmatched, p.inSeasonSeen ?? null);
   // (T236) the first-run notice (not legal advice) comes first: nothing else opens by itself while it is up
   const firstRun = useFirstRun(p.firstRun ?? null);
-  // (T248) the first-run walkthrough comes SECOND: held while the notice is up, and the in-season notice waits for it.
-  // (T257) It is a tour of the Map tab's own controls, so it is held, too, while the Map tab is not what is browsed;
-  // More → Help's "show it again" goes to the Map tab first.
+  /*
+   * (T293) THE GUIDED WALKTHROUGH comes SECOND: held while the notice is up, and the in-season notice waits for it. It
+   * starts on the Map tab (where its first step, search, is) and, once started, follows the reader wherever its steps
+   * take them — a water, its Conditions, the spot capture, a spot. It reads what is on screen (`guideFacts`) and does a
+   * step on request ("Show me", `guideActs`) through the route, search and the opener: nothing of its own. More → Help
+   * replays it from the Map tab.
+   */
   const coach = useCoachRegistry();
   const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
-  const walkthrough = useWalkthrough(p.walkthrough ?? null, firstRun.open || !onMapTab);
-  const replayTour = () => { nav.toTab("map"); walkthrough.reopen(); };
-  // (T276) the Runs and Conditions tutorials: on each tab's first open, after the notice and the welcome tour; More → Help replays
-  const tabBusy = firstRun.open || walkthrough.open || walkthrough.pending || searching;
+  const guideWater = useGuideWater(source);
+  const picked = searchMemory.pick.selected;
+  // the layers as the reader had them when the walk reached its Layers steps: put back at the last of them (or a skip)
+  const groundNow = col.layers.ground.tiles.find((t) => t.chosen)?.id ?? "";
+  const obstaclesNow = !!col.layers.overlays.rows.find((r) => r.id === OBSTACLES)?.chosen;
+  const [layersWas, setLayersWas] = useState<{ ground: string; obstacles: boolean } | null>(null);
+  const guideFacts: GuideFacts = {
+    water: guideWater, searching, query: searchMemory.q,
+    selected: picked?.kind === "water" ? picked.item : null,
+    open: frame ? { item: frame.item, view: frame.view } : null,
+    adding: adding !== null, viewing: openSpot, spots: spots.length,
+    layersOpen, ground: groundNow, obstacles: obstaclesNow, layersWas,
+  };
+  const restoreLayers = () => {
+    if (layersWas) {
+      if (groundNow !== layersWas.ground) col.onChooseLayer(layersWas.ground);
+      if (obstaclesNow !== layersWas.obstacles) col.onChooseLayer(OBSTACLES);
+    }
+    setLayersWas(null); setLayersOpen(false);
+  };
+  const guideActs: GuideActs = {
+    search: () => { go({ type: "close" }); if (tab !== "map") nav.toTab("map"); go({ type: "search", open: true });
+                    search.searchType(guideWater?.name ?? GUIDE_WATER.name); },
+    select: () => {
+      if (guideWater) search.searchAct({ t: "select", target: { kind: "water", item: guideWater.item as ItemId, name: guideWater.name } });
+    },
+    openWater: (v) => {
+      if (!guideWater) return;
+      if (searching) { go({ type: "search", open: false }); search.searchType(""); }
+      nav.opener.item(guideWater.item as ItemId, v);
+    },
+    view: (v) => go({ type: "view", view: v }),
+    addSpot: () => {
+      go({ type: "close" });
+      if (!guideWater) { go({ type: "addSpot" }); return; }
+      // the pin ON the water: its own line's point nearest the middle of it (`waterPoint`); none known, no pin
+      void (source.waterPoint?.(guideWater.item as ItemId) ?? Promise.resolve(null)).catch(() => null)
+        .then((at) => go({ type: "addSpot", at }));
+    },
+    cancelAdd: () => { if (adding) go({ type: "back" }); },
+    toSpots: () => go({ type: "tab", tab: "spots" }),
+    openSpot: () => {
+      const newest = [...spots].sort((a, b) => b.createdAt - a.createdAt)[0];
+      if (newest) go({ type: "openSpot", id: newest.id as never });
+    },
+    openLayers: () => {
+      go({ type: "close" }); if (tab !== "map") nav.toTab("map");
+      if (!layersWas) setLayersWas({ ground: groundNow, obstacles: obstaclesNow });
+      setLayersOpen(true);
+    },
+    otherGround: () => {
+      const other = col.layers.ground.tiles.find((t) => !t.chosen && t.enabled);
+      if (other) col.onChooseLayer(other.id);
+    },
+    obstaclesOn: () => { if (!obstaclesNow) col.onChooseLayer(OBSTACLES); },
+    restoreLayers,
+  };
+  const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);
+  // the Layers sheet opened by the reader at the walk's Layers step: what they had is kept from that moment
+  const atKey = guide.open ? GUIDE_STEPS[guide.at]?.key : undefined;
+  useEffect(() => {
+    if (atKey === "layers" && layersOpen && !layersWas) setLayersWas({ ground: groundNow, obstacles: obstaclesNow });
+  }, [atKey, layersOpen]);   // eslint-disable-line react-hooks/exhaustive-deps -- at the moment it opens
+  // the walk left (skipped, or Back out of it) mid-Layers: the layers go back as they were
+  useEffect(() => { if (!guide.open && layersWas) restoreLayers(); }, [guide.open]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // from the start, on the Map tab, with no water open and nothing typed in search
+  const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); guide.reopen(); };
+  // (T276, T293) the mode hints — Runs, the Conditions map, Salmon: on a mode's first use, after the notice and the
+  // walkthrough; More → Help replays each
+  const tabBusy = firstRun.open || guide.open || guide.pending || searching;
   const runsTour = useTabTour(p.walkthrough ?? null, "runs", route.mode === "browse" && tab === "runs", tabBusy);
   const condTour = useTabTour(p.walkthrough ?? null, "conditions", route.mode === "browse" && tab === "conditions", tabBusy);
-  const replayTab = (k: "runs" | "conditions") => { nav.toTab(k); (k === "runs" ? runsTour : condTour).reopen(); };
+  const salmonTour = useTabTour(p.walkthrough ?? null, "salmon",
+                                onMapTab && col.regsLayer === "salmon" && !col.salmonLoading, tabBusy);
+  /*
+   * (T293, owner 2026-10-29) THE CONDITIONS TOUR MOVES THE REAL CAMERA: out to the watershed of a gauge near where the
+   * map is (its catchment's size sets how far: about twice the width of a square of that area), then in to the gauge.
+   * The gauge: of the bigger-river gauges (stream magnitude in the top quarter), the nearest to the map's centre.
+   */
+  const [tourFit, setTourFit] = useState<{ key: string; camera: Camera } | null>(null);
+  const tourGauge = useRef<Promise<{ lon: number; lat: number; km2: number } | null> | null>(null);
+  const onCondStep = (key: string) => {
+    const kind = TAB_TOUR_WORDS.conditions.find((c) => c.key === key)?.camera;
+    if (!kind) return;
+    tourGauge.current ??= nearGauge(source, camera.current);
+    void tourGauge.current.then((g) => {
+      if (!g) return;
+      const width = Math.max(320, Platform.OS === "web" && typeof window !== "undefined" ? window.innerWidth : 390);
+      const spanM = 2.2 * Math.sqrt(g.km2) * 1000;
+      const fitZ = Math.log2((156543 * Math.cos((g.lat * Math.PI) / 180) * width) / spanM);
+      const zoom = kind === "watershed" ? Math.max(6, Math.min(8.5, fitZ)) : 10.5;
+      setTourFit({ key: `tour:${key}:${Date.now()}`, camera: { lon: g.lon, lat: g.lat, zoom } });
+    });
+  };
+  useEffect(() => { if (!condTour.open) { setTourFit(null); tourGauge.current = null; } }, [condTour.open]);
+  const replayTab = (k: "runs" | "conditions" | "salmon") => {
+    go({ type: "close" });
+    if (k === "salmon") { nav.toTab("map"); col.setRegsLayer("salmon"); salmonTour.reopen(); return; }
+    nav.toTab(k); (k === "runs" ? runsTour : condTour).reopen();
+  };
+  /** the walkthrough's card, over whatever is on screen (a spot and the capture included) */
+  const guideCard = (
+    <GuideCard guide={guide} facts={guideFacts} acts={guideActs} palette={palette} registry={coach}
+               top={(route.mode === "browse" && !adding && !openSpot ? topBarBottom() : 0) + 8}
+               bottom={bottomBarShown(route) ? TAB_BAR_ROOM : 0} />
+  );
+  const withGuide = (n: React.ReactNode) => (
+    <CoachContext.Provider value={coach}>
+      <View style={{ flex: 1 }}>{n}{guideCard}</View>
+    </CoachContext.Provider>
+  );
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port; asked
@@ -279,17 +430,17 @@ export function Shell(p: ShellProps) {
   const dayFlow = useDayFlow(shownVisit, p.onDayFlow, connectivity);
   const withInSeason = (n: React.ReactNode) => <InSeasonContext.Provider value={inSeason}>{n}</InSeasonContext.Provider>;
   if (viewing)
-    return layered(
+    return layered(withGuide(
       <SpotHost viewing={viewing} spotEdit={spotEdit} nav={nav} palette={palette} camera={camera} like={like}
                 dayFlow={dayFlow} photos={photos} onSaveSpot={onSaveSpot} onDeleteSpot={p.onDeleteSpot}
                 onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} show={rail.show}
                 // (T294) "Add a visit" reads the water the way adding a spot does
                 visitSources={{ source, weather, feed,
                                 history: { ...(hydat ? { hydat } : {}),
-                                           ...(connectivity.watches ? { online: connectivity.online } : {}) } }} />);
+                                           ...(connectivity.watches ? { online: connectivity.online } : {}) } }} />));
 
   if (adding && onSaveSpot)
-    return layered(
+    return layered(withGuide(
       <SpotCapture source={source} weather={weather} tiles={tiles} palette={palette} photos={photos}
                    // started at a point (a long press, a tap in pick mode, your location): the pin is already down
                    at={adding.at}
@@ -304,7 +455,7 @@ export function Shell(p: ShellProps) {
                    // awaited: a rejection reaches SpotCapture, which shows it and stays open (P01)
                    // saved: the spot itself, over the map it was added from (back returns to that map)
                    onSaved={async (s) => { await onSaveSpot(s); go({ type: "openSpot", id: s.id }); }} />
-    );
+    ));
 
   const water = frame !== null
     ? <WaterModeHost frame={frame} nav={nav} col={col} source={source} palette={palette} loader={loader} tiles={tiles}
@@ -330,7 +481,7 @@ export function Shell(p: ShellProps) {
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onNotFishing={setNotFishing} onRuns={setRunsAt}
-                  fishImages={p.fishImages} />
+                  fishImages={p.fishImages} tourFit={tourFit} />
     : null;
   const body = (
     <View style={{ flex: 1 }}>
@@ -417,7 +568,9 @@ export function Shell(p: ShellProps) {
       <SynopsisLoading palette={palette} floating />
       {/* G1: an open sheet is a back layer — every platform's back closes it before it pops the route */}
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
-                   vm={col.layers} onChoose={col.onChooseLayer} />
+                   vm={col.layers} onChoose={col.onChooseLayer}
+                   // (T293) while the sheet is up the walkthrough's card is drawn in its window (a Modal is on top)
+                   overlay={layersOpen ? guideCard : undefined} />
       {/*
         * (T49) The map's date sheet: its calendar button opens the SAME sheet the Regulations page's date pill does
         * (`regs/DaySheet`), on this one `mapDay` — and the days it offers are the data's calendar year, cut at the
@@ -444,7 +597,7 @@ export function Shell(p: ShellProps) {
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
                    mapDay={mapDay} theme={theme} onWalkthrough={replayTour} onTabTour={replayTab} sync={syncState} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
-      <InSeasonNotice open={(notice.open && !firstRun.open && !walkthrough.open) || bellOpen} rows={notice.rows}
+      <InSeasonNotice open={(notice.open && !firstRun.open && !guide.open) || bellOpen} rows={notice.rows}
                       palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}
                       sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }}
                       release={releaseVM ? { vm: releaseVM.phase === "app-too-old" && !appUrl ? { ...releaseVM, action: null } : releaseVM,
@@ -453,9 +606,10 @@ export function Shell(p: ShellProps) {
       {/* (T257) its "Sources and licences" opens that page: the notice steps aside while a page is up and is back after */}
       <FirstRunNotice state={{ ...firstRun, open: firstRun.open && menu.state.page === null }} palette={palette}
                       onSources={() => menu.show("sources")} />
-      <WalkthroughSheet state={walkthrough} palette={palette} registry={coach} />
       <TabTourSheet tour={runsTour} which="runs" palette={palette} registry={coach} />
-      <TabTourSheet tour={condTour} which="conditions" palette={palette} registry={coach} />
+      <TabTourSheet tour={condTour} which="conditions" palette={palette} registry={coach} onStep={onCondStep} />
+      <TabTourSheet tour={salmonTour} which="salmon" palette={palette} registry={coach} />
+      {!layersOpen && guideCard}
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />
