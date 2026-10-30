@@ -15,3 +15,8 @@ Source: owner 2026-10-28 — approved proposal P5 in handoff/PLAN/proposed-ticke
 Runbook committed; the dry run's diff is empty/explained; every step names its command and who runs it.
 Depends: none. Size: L.
 Owner: yes — runs the parse (credits) and reviews changed entries. Default: dry run uses the current book.
+
+## Owner 2026-10-29: scope (later, not this credits batch)
+The book's changes may be small but its FORMATTING changes a lot each year, so step 1 is decoding the new PDF to text again
+with updated extraction code. Then a tool that takes the newly decoded items with arbitrary additions / removals / changes
+against last year's and lets the owner handle each change (review queue of differences only). Soon, not now.

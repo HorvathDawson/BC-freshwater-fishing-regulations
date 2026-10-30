@@ -338,6 +338,8 @@ use that as the sole source of future work."
 | T292 | Sewage basins, tailing ponds, dumps: off "not a fishing water" colour, no regs, tap says what it is, not in search | PARTIAL | — | owner 2026-10-29; app + pipeline done (off colour, dashed edge, legend, tap sheet); left: tiles export rerun for the `kind` attribute |
 | T293 | One hands-on walkthrough: find a water (search + map), read its rules, read conditions and what change means, save a spot; Help pages for sync/offline | OPEN | — | owner 2026-10-29 |
 | T294 | Spot visits: add visits, rate each, predict how good coming days look from your rated visits (similarity-weighted) | OPEN | — | owner 2026-10-29 |
+| T295 | Faster full rebuild: stage timings, input-hash caching, parallel stages; do on the next full run | OPEN | — | owner 2026-10-29 |
+| T296 | Gauge reached through a lake down-weighted when a closer no-lake gauge exists; caution line | OPEN | — | owner 2026-10-29 |
 
 ## Order for open tickets
 
