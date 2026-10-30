@@ -1,6 +1,6 @@
 # T311 — Provincial parks missing (Garibaldi closes the Pitt)
 
-Status: DONE (style; ships with the next app build) — owner 2026-10-31: "the parks like Garibaldi park and other provincial parks didn't show up. Garibaldi is the
+Status: DONE (60c285d22; style, ships with the next app build) — owner 2026-10-31: "the parks like Garibaldi park and other provincial parks didn't show up. Garibaldi is the
 important one at least because it closes the Pitt river". Scope narrowed by the owner: "The rules are correct there just no park polygon" — drawing only; no legend entry (the legend is for regulation items only).
 
 ## Work
