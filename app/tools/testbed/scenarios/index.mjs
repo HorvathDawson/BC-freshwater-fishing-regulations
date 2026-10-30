@@ -15,5 +15,8 @@ import { satellite } from './satellite.mjs';
 import { regsOpen } from './regs-open.mjs';
 import { updateFreeze } from './update-freeze.mjs';
 import { bgInstall } from './bg-install.mjs';
+import { locate } from './locate.mjs';
+import { gestures } from './gestures.mjs';
+import { walkthrough } from './walkthrough.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough];

@@ -122,8 +122,11 @@ const NO_POPUP = `(() => { window.__pdf = null; window.open = (u) => { if (u) wi
 /** a fresh profile gets the "Before you fish" notice (T236) and the coach-mark tour (T257/T248): seed both as seen, from
  *  the versions in the source (the way a11y-walk.mjs does), and the in-season sheet as seen */
 const rd = (f, re) => re.exec(fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '..', f), 'utf8'))?.[1];
+// (T276, T303) the mode hints and the my-location hint are lines of the same seen-store (help.ts TAB_TOURS): all seen
+const TOURS = [...(/TAB_TOURS = \{([^}]+)\}/.exec(fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '..',
+  'packages/core/src/help.ts'), 'utf8'))?.[1] ?? '').matchAll(/"(tour-[\w-]+)"/g)].map((m) => m[1]);
 const SEEN = `try { localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(rd('packages/core/src/menu/legal.ts', /FIRST_RUN_VERSION = "([^"]+)"/) ?? 'disclaimer-1')});
-  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify(rd('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/) ?? '1')});
+  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify([rd('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/) ?? '1', ...TOURS].join('\n'))});
   localStorage.setItem('canifishthis.inseasonSeen.v1', '["*"]'); } catch {}`;
 const tidQ = (id) => `document.querySelector('[data-testid=${JSON.stringify(id)}]')`;
 async function until(b, expr, ms, what) {
