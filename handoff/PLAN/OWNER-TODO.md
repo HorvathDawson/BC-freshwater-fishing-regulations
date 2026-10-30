@@ -187,3 +187,5 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **SEO, v1 pages (2026-10-27):** keep your existing Search Console property; when the new site is live add the new sitemap
   beside the old one, and for two months watch Pages > Not found (404) and Redirect error (the 19,331 old `/waterbody/` URLs
   should show as Page with redirect). Deploy the generated `_worker.js` with `run_worker_first = ["/waterbody/*"]` (T86 hosting).
+- **Gauge 08MH044 moved (HYDAT 2026-10-19):** ECCC renamed FRASER RIVER AT WHONOCK → AT ALBION and moved it ~6 km
+  downstream. Its frozen match still points at Whonock. Re-match it to the Albion location, or keep as is?
