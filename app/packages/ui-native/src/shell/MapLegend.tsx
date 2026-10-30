@@ -136,11 +136,15 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
  * each with a tick and a plain label. An overlay on the map (T275: it takes no room, the map rect does not move), never in
  * the way of a tap (`pointerEvents` none). The colours are the map's own (`runStateColour`).
  */
+/** (T309) the map's own furniture at its bottom-right corner — the ⓘ attribution (≤ 36 px) and the scale above it — sits
+ *  `insetBottom` over the foot block; an overlay on the map's right edge starts above both, so none covers another. */
+const CORNER_CLEAR = 56;
+
 export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Palette; bottom: number }) {
   const K = MAP_KEY.runs;
   return (
     <View testID="runs-key" accessibilityRole="image" accessibilityLabel={K.describe}
-          style={{ pointerEvents: "none", position: "absolute", right: 8, bottom: bottom + 10, flexDirection: "row", alignItems: "stretch", gap: 5,
+          style={{ pointerEvents: "none", position: "absolute", right: 8, bottom: bottom + CORNER_CLEAR, flexDirection: "row", alignItems: "stretch", gap: 5,
                    paddingVertical: 6, paddingLeft: 7, paddingRight: 8, borderRadius: palette.r.chip, borderWidth: 1,
                    borderColor: palette.line, backgroundColor: palette.card, opacity: 0.96 }}>
       <View style={{ width: 8, borderRadius: round(8), overflow: "hidden" }}>

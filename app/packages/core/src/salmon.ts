@@ -303,6 +303,14 @@ export const SALMON_WORDS = {
   partial: "Salmon rules on parts of this water aren't mapped yet — check DFO",
   /** (owner 2026-10-28) the region page's header, compact */
   regionRules: "Region rules (DFO)",
+  /** (T309) a region rule's kind, said as its chip; a kind not listed reads "Rule" */
+  ruleKinds: { closed: "Closed", daylight: "Daylight", daily: "Daily limit", possession: "Possession", aggregate: "Combined limit",
+               min_size: "Size", adult: "Adult", jack: "Jack", bait_ban: "Bait", measure: "Measuring", facility: "Facility",
+               other: "Rule" } as Readonly<Record<string, string>>,
+  ruleFullWording: "Full wording",
+  ruleHideWording: "Hide wording",
+  ruleCopy: "Copy",
+  ruleCopied: "Copied",
   regionRulesOf: (r: string, name: string) => `Region ${r.toUpperCase()} ${name}`.trim(),
   waterRules: "On this water (DFO)",
   /** a header size line on an open row, derived from DFO's header (min size, what an adult is) */
@@ -347,6 +355,26 @@ export interface SalmonRowVM {
   readonly speciesNotes?: readonly string[];
 }
 
+/** (T309) One region rule as a row: its kind chip, the species it is about (chips), one line, and DFO's whole wording
+ *  (`full`, null when the line already is all of it). Nothing is dropped. */
+export interface SalmonRuleVM {
+  readonly id: string;
+  readonly kind: string;
+  readonly kindLabel: string;
+  readonly species: readonly string[];
+  readonly line: string;
+  readonly full: string | null;
+  /** DFO's words, whole, for the Copy action */
+  readonly text: string;
+}
+
+/** The first sentence of DFO's words (up to ~110 chars) as the row's line; null `full` when it is all of them. */
+export function ruleLine(t: string): { line: string; full: string | null } {
+  const m = /^.{20,110}?[.;:](?=\s|$)/s.exec(t.trim());
+  const line = m ? m[0].replace(/[;:]$/, "").trim() : t.trim().length > 110 ? `${t.trim().slice(0, 107).replace(/\s+\S*$/, "")}…` : t.trim();
+  return { line, full: line === t.trim() ? null : t.trim() };
+}
+
 export interface SalmonBlockVM {
   readonly rows: readonly SalmonRowVM[];
   /** Every species closed: the block is the one "Salmon — closed" row (owner 2026-10-27). */
@@ -372,7 +400,7 @@ export interface SalmonCardVM extends SalmonBlockVM {
   readonly credit: string;
   readonly note: string;
   /** (owner 2026-10-28) the page's DFO regions' header rules, compact: one group per region, DFO's words */
-  readonly regionRules: readonly { readonly label: string; readonly notes: readonly string[] }[];
+  readonly regionRules: readonly { readonly label: string; readonly notes: readonly string[]; readonly rules: readonly SalmonRuleVM[] }[];
   /** header notes naming this water that no row took (DFO's words), e.g. an "adult chinook" length here */
   readonly waterRules: readonly string[];
   /** (owner 2026-10-28) the provincial bait ban / fly only on the page that day — it applies to salmon too — else null */
@@ -517,10 +545,17 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     const speciesNotes = regionMine.filter((n) => !said.has(n.k)).map((n) => n.t);
     return { ...r, notes: [...r.notes, ...mine.map((n) => n.t)], sizes, ...(speciesNotes.length ? { speciesNotes } : {}) };
   });
-  const regionRules = regionsUsed.map((r) => ({
-    label: SALMON_WORDS.regionRulesOf(r, P.regions[r]?.name ?? ""),
-    notes: hn.region.filter((n) => n.id.startsWith(`${r}:`) && !placedRegion.has(n.id)).map((n) => n.t),
-  })).filter((g) => g.notes.length);
+  const regionRules = regionsUsed.map((r) => {
+    const mine = hn.region.filter((n) => n.id.startsWith(`${r}:`) && !placedRegion.has(n.id));
+    return {
+      label: SALMON_WORDS.regionRulesOf(r, P.regions[r]?.name ?? ""),
+      notes: mine.map((n) => n.t),
+      rules: mine.map((n): SalmonRuleVM => ({
+        id: n.id, kind: n.k, kindLabel: SALMON_WORDS.ruleKinds[n.k] ?? SALMON_WORDS.ruleKinds.other!,
+        species: (n.sp ?? []).filter((x): x is SalmonSpecies => (SALMON_SPECIES as readonly string[]).includes(x)).map((x) => cap(SPECIES_NAME[x])),
+        ...ruleLine(n.t), text: n.t })),
+    };
+  }).filter((g) => g.notes.length);
   const gear = page.gear ?? [];
   const marks = (["fly", "bait"] as const).filter((m) => gear.includes(m));
   const gearProvincial = block.allClosed || !marks.length ? null

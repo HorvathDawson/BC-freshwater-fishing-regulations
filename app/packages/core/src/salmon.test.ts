@@ -255,7 +255,7 @@ describe("(T227) region notes about a species sit with that species", () => {
     const c = salmonCard(withNotes(), { sids: [101], item: null }, JUL20);
     const coho = c.rows.find((r) => r.species.includes("CO"))!;
     expect([coho.sizes, coho.speciesNotes]).toEqual(["Sizes (DFO): coho 25 cm or more to keep", ["The annual coho limit is 10."]]);
-    expect(c.regionRules).toEqual([{ label: "Region 6 Skeena", notes: ["Daylight only.", "An \"adult chinook\" is over 50 cm."] }]);
+    expect(c.regionRules.map(({ label, notes }) => ({ label, notes }))).toEqual([{ label: "Region 6 Skeena", notes: ["Daylight only.", "An \"adult chinook\" is over 50 cm."] }]);
   });
 });
 

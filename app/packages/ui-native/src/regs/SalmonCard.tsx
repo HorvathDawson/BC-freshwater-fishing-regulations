@@ -15,6 +15,7 @@ import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
 import { RegsPress } from "./RegsPress";
+import { RegionRules } from "./RegionRules";
 import type { KeepActions } from "./LineText";
 import type { FishImages } from "./types";
 
@@ -70,21 +71,21 @@ function Row({ r, allClosed, first, place, palette, testID, actions, images }: {
           style={{ marginTop: first ? 8 : 0, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: palette.line2,
                    borderTopWidth: first ? 1 : 0, borderLeftWidth: 5, borderLeftColor: chipColour(palette, r.status) }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-        <Text style={{ ...TYPE.regsBodySemi, color: palette.ink, flex: 1 }}>
+        <Text selectable style={{ ...TYPE.regsBodySemi, color: palette.ink, flex: 1 }}>
           {allClosed ? `${r.label} — ${r.statusLabel.toLowerCase()}` : r.label}
         </Text>
         <Chip status={r.status} label={r.statusLabel} palette={palette} />
       </View>
       {place && (
         <View testID="salmon-unmapped" style={{ marginTop: 2 }}>
-          <Text style={{ ...TYPE.metaSemi, color: palette.ink }}>{place.label}</Text>
+          <Text selectable style={{ ...TYPE.metaSemi, color: palette.ink }}>{place.label}</Text>
           <Text testID="salmon-unmapped-tag" style={{ ...TYPE.kicker, color: palette.sub }}>{place.tag}</Text>
         </View>
       )}
-      {r.notes.map((n) => <Text key={n} style={{ ...TYPE.meta, color: palette.sub, marginTop: 2 }}>{n}</Text>)}
-      {r.sizes && <Text testID={`${testID}-sizes`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{r.sizes}</Text>}
+      {r.notes.map((n) => <Text selectable key={n} style={{ ...TYPE.meta, color: palette.sub, marginTop: 2 }}>{n}</Text>)}
+      {r.sizes && <Text selectable testID={`${testID}-sizes`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{r.sizes}</Text>}
       {(r.speciesNotes ?? []).map((n) => (
-        <Text key={`sn:${n}`} testID={`${testID}-species-note`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{n}</Text>
+        <Text selectable key={`sn:${n}`} testID={`${testID}-species-note`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{n}</Text>
       ))}
       <Looks species={r.species} palette={palette} actions={actions} images={images} />
     </View>
@@ -138,7 +139,7 @@ export function SalmonCard({ card, palette, actions, images }: {
         {card.partial && (
           <View testID="salmon-partial" style={{ marginTop: 8, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1,
                                                   borderColor: palette.line2, borderLeftWidth: 5, borderLeftColor: palette.sub }}>
-            <Text style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{card.partial.text}</Text>
+            <Text selectable style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{card.partial.text}</Text>
             <Text testID="salmon-partial-link" accessibilityRole="link" onPress={() => { void Linking.openURL(card.partial!.url); }}
                   style={{ ...TYPE.metaSemi, color: palette.accent, marginTop: 4, paddingVertical: 4 }}>{card.partial.link} ›</Text>
           </View>
@@ -150,21 +151,13 @@ export function SalmonCard({ card, palette, actions, images }: {
         {card.waterRules.length > 0 && (
           <View testID="salmon-water-rules" style={{ paddingTop: 8 }}>
             <Text style={{ ...TYPE.kicker, color: palette.sub }}>{SALMON_WORDS.waterRules}</Text>
-            {card.waterRules.map((t) => <Text key={t} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{t}</Text>)}
+            {card.waterRules.map((t) => <Text selectable key={t} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{t}</Text>)}
           </View>
         )}
         {card.notListed && (
           <Text testID="salmon-not-listed" style={{ ...TYPE.meta, color: palette.ink, paddingTop: 8 }}>{card.notListed}</Text>
         )}
-        {card.regionRules.map((g) => (
-          <View key={g.label} testID="salmon-region-rules"
-                style={{ marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
-            <Text style={{ ...TYPE.kicker, color: palette.sub }}>{`${SALMON_WORDS.regionRules} · ${g.label}`}</Text>
-            {g.notes.map((t) => (
-              <Text key={t} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{`• ${t}`}</Text>
-            ))}
-          </View>
-        ))}
+        {card.regionRules.map((g) => <RegionRules key={g.label} group={g} palette={palette} />)}
         <View style={{ marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
           <Text testID="salmon-source" style={{ ...TYPE.metaBold, color: palette.accent }}>{card.source}</Text>
           <Text testID="salmon-asof" style={{ ...TYPE.meta, color: palette.sub }}>{card.asOf}</Text>

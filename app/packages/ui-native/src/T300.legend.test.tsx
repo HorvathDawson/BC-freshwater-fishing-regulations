@@ -50,6 +50,15 @@ describe("the Runs map's key (T300)", () => {
     expect(key.getAttribute("aria-label")).toBe(MAP_KEY.runs.describe);
     expect(getComputedStyle(key).pointerEvents).toBe("none");
   });
+
+  it("(T309) starts above the map's corner furniture (the attribution and the scale), whatever the foot's height", () => {
+    for (const foot of [120, 260]) {
+      const { unmount } = render(<RunsKey theme="light" palette={LIGHT} bottom={foot} />);
+      // the attribution sits 8 + foot up and is up to 36 px tall; the scale 24 + foot up and ~16 tall
+      expect(parseFloat(getComputedStyle(screen.getByTestId("runs-key")).bottom)).toBeGreaterThanOrEqual(foot + 8 + 36);
+      unmount();
+    }
+  });
 });
 
 describe("the More tab's sync button (T300)", () => {

@@ -153,11 +153,26 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
     render(<SalmonCard card={salmonCard(WITH_HEADER, { sids: [101], item: "gnis:77", gear: ["bait"] }, JUL20)} palette={LIGHT} />);
     const block = screen.getByTestId("salmon-region-rules");
     expect(within(block).getByText("Region rules (DFO) · Region 6 Skeena")).toBeTruthy();
-    expect(within(block).getByText("• You can only fish for salmon in Region 6 during daylight hours.")).toBeTruthy();
+    expect(within(block).getByText("You can only fish for salmon in Region 6 during daylight hours.")).toBeTruthy();
     const coho = screen.getAllByTestId("salmon-card-block-row").find((r) => r.textContent!.startsWith("Coho"))!;
     expect(within(coho).getByText(/Kispiox watershed: the aggregate daily limit/)).toBeTruthy();
     expect(within(coho).getByTestId("salmon-card-block-sizes").textContent).toBe("Sizes (DFO): coho 25 cm or more to keep");
     expect(screen.getByTestId("salmon-gear-provincial").textContent).toBe("B.C. rules, also for salmon: Bait ban: no bait of any kind.");
+  });
+
+  it("(T309) region rules are rows: kind chip, species tag, one line; the whole wording folds; Copy", () => {
+    const long = "Region 6 Skeena: all retained coho must measure 25 cm or more. Measure from the tip of the snout to the fork of the tail.";
+    const f: SalmonFacts = { ...WITH_HEADER, payload: { ...WITH_HEADER.payload, regions: { "6": { ...WITH_HEADER.payload.regions["6"]!,
+      notes: [n("6:other:z", "other", long, { sp: ["CH"] })] } } } };
+    render(<SalmonCard card={salmonCard(f, { sids: [101], item: "gnis:77" }, JUL20)} palette={LIGHT} />);
+    const row = screen.getByTestId("salmon-rule");
+    expect(within(row).getByTestId("salmon-rule-kind").textContent).toBe("Rule");
+    expect(within(row).getByText("Chinook")).toBeTruthy();
+    expect(within(row).getByTestId("salmon-rule-line").textContent).toBe("Region 6 Skeena: all retained coho must measure 25 cm or more.");
+    expect(within(row).queryByTestId("salmon-rule-full")).toBeNull();
+    fireEvent.click(within(row).getByTestId("salmon-rule-fold"));
+    expect(within(row).getByTestId("salmon-rule-full").textContent).toBe(long);
+    expect(within(row).getByTestId("salmon-rule-copy")).toBeTruthy();
   });
 
   it("(T227) a region note about the coho sits on the coho row, not in the region block", () => {
