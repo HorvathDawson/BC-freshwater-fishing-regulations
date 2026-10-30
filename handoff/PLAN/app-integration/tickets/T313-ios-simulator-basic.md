@@ -1,6 +1,6 @@
 # T313 — iOS: build for the simulator and run the basic tests
 
-Status: OPEN (owner 2026-10-31: "Xcode is installed. Could you set it up and do basic iOS tests and make sure it works as expected?").
+Status: IN PROGRESS — build works, scenarios not yet run (owner 2026-10-31: "Xcode is installed. Could you set it up and do basic iOS tests and make sure it works as expected?").
 
 ## Work
 1. `expo prebuild --platform ios` in a temp worktree (like build-apk.sh), pods, build a Debug/Release app for the iOS
@@ -15,3 +15,21 @@ Status: OPEN (owner 2026-10-31: "Xcode is installed. Could you set it up and do 
 iOS simulator build launches against staging; the basic scenarios pass or each failure is ticketed; screenshot pairs.
 
 Depends: T217, T88. Size: M–L. Owner: no (App Store needs a $99 account later).
+
+## Progress (2026-10-30, paused for a machine restart)
+- `deploy/staging/build-ios-sim.sh`: committed HEAD in a temp worktree → pnpm offline → `expo prebuild -p ios` → pods →
+  `xcodebuild` Release, iphonesimulator, arm64, no signing; STAGING + env switch (`--testbed` adds the test-bed flags).
+  **Built in 120 s** (ba2217d58): `app/dist/ios-sim/canifishthis.app` (+ zip). The project is `CanIFish` (from expo.name).
+- iOS fixes (app.json): the unused Always-location and motion usage strings dropped; prompts say "Can I Fish?" (the
+  Xcode product name `CanIFish` showed via `$(PRODUCT_NAME)`). `exit-info` / `bg-download` already
+  `requireOptionalNativeModule` (null on iOS): no code change.
+- Test bed iOS target: `app/tools/testbed/session-ios.sh` (boot "iPhone 17" iOS 26.5, install, capped command, shut
+  down only what it booted), `run-ios.mjs` (first-open, map, tap-water + edge-back, offline via "Simulate offline",
+  satellite, location via `simctl location`/`privacy`, walkthrough, pdf), `lib/device-ios.mjs`, flows `tap-point`,
+  `edge-back`, `ios-alert`.
+- Found: Xcode 27.2 was installed without its first launch; `xcrun simctl` then hangs on `xcodebuild -runFirstLaunch`
+  (admin password), and Maestro calls it at start even for Android — every Android flow hung. Owner ran the first
+  launch; `lib/xcrun-shim.sh` (sourced by both sessions) stays as insurance.
+- RESUME (one heavy job):
+  `scripts/heavy.sh testbed-ios 25 -- bash -c 'deploy/staging/build-ios-sim.sh && bash app/tools/testbed/session-ios.sh --fresh --max-min 40 -- node app/tools/testbed/run-ios.mjs all --out app/tools/testbed/out/runs/ios-t313'`
+  then shots → handoff/PLAN/app-integration/T313-shots/ beside the Android ones (T255/T277/T293/T303/T215-shots).
