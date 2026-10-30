@@ -29,7 +29,7 @@ export const TICKETS_DIR = "handoff/PLAN/app-integration/tickets";
 export const STATUS_WITHIN = 6;
 
 /** The status keywords README.md "How the system works" defines. Longest first: IN PROGRESS before a prefix match. */
-export const STATUSES = ["IN PROGRESS", "BLOCKED", "POSTPONED", "PARTIAL", "DROPPED", "OPEN", "DONE"];
+export const STATUSES = ["IN PROGRESS", "IN REVIEW", "BLOCKED", "POSTPONED", "PARTIAL", "DROPPED", "OPEN", "DONE"];
 
 const ID = /^T\d+[a-z]?/;
 const HASH = /\b[0-9a-f]{7,40}\b/;

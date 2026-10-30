@@ -1,6 +1,6 @@
 # T307 — Adding a spot offline is instant (no waiting on network that isn't there)
 
-Status: IN REVIEW (owner 2026-10-31: "When offline adding a spot takes a long time because it doesn't fast fail the trying to get data").
+Status: PARTIAL (in review) (owner 2026-10-31: "When offline adding a spot takes a long time because it doesn't fast fail the trying to get data").
 
 ## Work
 Find every fetch the spot capture waits on (weather/Open-Meteo, gauge reading, day flow, hydat history, place lookup) and
