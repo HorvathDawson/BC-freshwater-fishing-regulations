@@ -9,6 +9,7 @@ import { Linking, Platform, Share } from "react-native";
 import { DownloadTask, File, Paths } from "expo-file-system";
 import { startActivityAsync } from "expo-intent-launcher";
 import type { SourceBox } from "@app/core";
+import { synopsisPath } from "@app/data/release";
 import { highlightPdf } from "./highlightPdf";
 import { getSynopsisNet, type SynopsisSource } from "./synopsisSource";
 import type { LoadHooks } from "./synopsisLoad";
@@ -17,7 +18,8 @@ import type { LoadHooks } from "./synopsisLoad";
 const GRANT_READ_URI = 0x1;
 
 // (T285) the document directory, not the cache: the OS may empty the cache, and the rule book must open offline
-const held = (s: SynopsisSource) => new File(Paths.document, `synopsis-${s.sha256.slice(0, 16)}.pdf`);
+// (owner 2026-10-29) the same file a first install streams it to (`synopsisPath`): the book opens offline from the start
+const held = (s: SynopsisSource) => new File(Paths.document, synopsisPath(s.sha256));
 /** (T254) whether the release's copy is already in the cache directory (nothing to offer: it opens at once) */
 export const synopsisHeld = (s: SynopsisSource): boolean => { try { return held(s).exists; } catch { return false; } };
 

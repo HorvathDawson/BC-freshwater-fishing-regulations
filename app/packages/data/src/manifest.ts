@@ -20,6 +20,8 @@ export interface Held {
   tiles: TileVersion | null;
   basemap: string | null;
   assets?: string | null;
+  /** (owner 2026-10-29) the sha256 of the synopsis PDF installed with the set (native): replaced only when it moves. */
+  synopsis?: string | null;
   /** The release the files came from, and each file's sha256. */
   release?: string | null;
   files: Readonly<Record<FileName, string>>;
@@ -55,7 +57,8 @@ export function withoutSlices(m: Manifest): Manifest {
   return { ...m, files: Object.fromEntries(Object.entries(m.files).filter(([, f]) => !f.slice_of)) };
 }
 
-export function diff(held: Held, m: Manifest): { files: FileName[]; tiles: boolean; basemap: boolean; assets: boolean } {
+export function diff(held: Held, m: Manifest):
+  { files: FileName[]; tiles: boolean; basemap: boolean; assets: boolean; synopsis: boolean } {
   const files = Object.keys(m.files).filter((k) => !m.files[k]!.slice_of && held.files[k] !== m.files[k]!.sha256).sort();
   const tileId = m.tiles.current?.id ?? null;
   return {
@@ -63,6 +66,8 @@ export function diff(held: Held, m: Manifest): { files: FileName[]; tiles: boole
     tiles: tileId !== null && tileId !== held.tiles,
     basemap: (m.basemap?.id ?? null) !== null && m.basemap!.id !== held.basemap,
     assets: (m.tiles.assets?.id ?? null) !== null && m.tiles.assets!.id !== (held.assets ?? null),
+    // (owner 2026-10-29) the rule book rides in the install set: fetched again only when its bytes move
+    synopsis: (m.synopsis?.sha256 ?? null) !== null && m.synopsis!.sha256 !== (held.synopsis ?? null),
   };
 }
 

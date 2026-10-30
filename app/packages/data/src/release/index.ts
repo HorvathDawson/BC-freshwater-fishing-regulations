@@ -3,7 +3,7 @@
  * how a file is fetched, cached, installed and opened — is `@app/data/release/platform` (`./drivers`).
  */
 export { releaseLoader, type DbName, type ReleaseLoader } from "./loader";
-export { heldPath, POINTER, type Progress, type ReleaseFs } from "./install";
+export { heldPath, POINTER, synopsisPath, type Progress, type ReleaseFs } from "./install";
 export { makeReleaseSource } from "./source";
 export { assetsDigest } from "./assets";
 export { bootRelease, releaseTiles, BootError, type BootOptions, type Booted, type ReleasePlatform } from "./boot";

@@ -226,7 +226,7 @@ const manifestPath = (m: Manifest, bytes: Uint8Array) => `${dirOf(m.data_release
 export function pointerFor(m: Manifest, manifest?: string): Held {
   m = withoutSlices(m);
   return { release: m.data_release, tiles: m.tiles.current?.id ?? null, basemap: m.basemap?.id ?? null,
-           assets: m.tiles.assets?.id ?? null,
+           assets: m.tiles.assets?.id ?? null, synopsis: m.synopsis?.sha256 ?? null,
            files: Object.fromEntries(Object.entries(m.files).map(([k, v]) => [k, v.sha256])),
            ...(manifest ? { manifest } : {}) };
 }
@@ -236,6 +236,7 @@ export function sameSet(a: Held, b: Held): boolean {
   const fa = Object.keys(a.files).sort(), fb = Object.keys(b.files).sort();
   return (a.release ?? null) === (b.release ?? null) && (a.tiles ?? null) === (b.tiles ?? null)
     && (a.basemap ?? null) === (b.basemap ?? null) && (a.assets ?? null) === (b.assets ?? null)
+    && (a.synopsis ?? null) === (b.synopsis ?? null)
     && fa.length === fb.length && fa.every((k, i) => k === fb[i] && a.files[k] === b.files[k]);
 }
 
@@ -261,7 +262,8 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
                               onProgress: (p: Progress) => void = () => {}, toDisk?: DownloadTo,
                               beforeSwap?: () => Promise<void>, raw?: RawFetch): Promise<Held> {
   m = withoutSlices(m);                          // (T256) the answer slices are the web's: a phone holds the whole files
-  const d = held ? diff(held, m) : { files: Object.keys(m.files).sort(), tiles: true, basemap: true, assets: true };
+  const d = held ? diff(held, m) : { files: Object.keys(m.files).sort(), tiles: true, basemap: true, assets: true,
+                                     synopsis: true };
   const names = Object.keys(m.files).sort();
   const dir = dirOf(m.data_release);
   const big: { file: string; url: string; path: string; e: { bytes: number; sha256: string } }[] = [];
@@ -273,6 +275,12 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
   const bm = m.basemap;
   if (d.basemap && bm?.sha256 && bm.bytes)
     big.push({ file: "basemap", url: bm.url, path: `release/${bm.url}`, e: { bytes: bm.bytes, sha256: bm.sha256 } });
+  // (owner 2026-10-29) THE RULE BOOK IS PART OF THE FIRST DOWNLOAD, so it opens offline from the start: streamed to disk
+  // as the map files are (T262/T272), sha-verified, kept where the book opens it (`synopsisPath`), and fetched again only
+  // when a release names other bytes
+  const book = m.synopsis;
+  if (d.synopsis && book?.sha256 && book.bytes)
+    big.push({ file: "synopsis", url: book.url, path: synopsisPath(book.sha256), e: { bytes: book.bytes, sha256: book.sha256 } });
   const of = d.files.reduce((n, k) => n + (m.files[k]?.bytes ?? 0), 0) + big.reduce((n, b) => n + b.e.bytes, 0);
   let done = 0, bytes = 0;
   const total = names.length + big.length;
@@ -352,8 +360,15 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
 
 /** The big files a manifest names, as install puts them: `release/<url>` (an assets url is a folder). */
 const bigPaths = (m: Manifest | null): string[] =>
-  !m ? [] : [m.tiles.current?.url, m.tiles.mask?.url, m.basemap?.url, m.tiles.assets?.url]
-    .filter((u): u is string => !!u).map((u) => `release/${u.replace(/\/$/, "")}`);
+  !m ? [] : [...[m.tiles.current?.url, m.tiles.mask?.url, m.basemap?.url, m.tiles.assets?.url]
+    .filter((u): u is string => !!u).map((u) => `release/${u.replace(/\/$/, "")}`),
+    ...(m.synopsis?.sha256 ? [synopsisPath(m.synopsis.sha256)] : [])];
+
+/**
+ * (owner 2026-10-29) Where the installed rule book is: under the document directory, named by its content — the file
+ * `synopsisPdf.native.ts` (T285) opens (`synopsis-<sha16>.pdf`), so the book opens offline from the first install.
+ */
+export const synopsisPath = (sha256: string): string => `synopsis-${sha256.slice(0, 16)}.pdf`;
 
 /**
  * After the new set has opened and paired: delete everything of the set it replaced that the new one does not name —
