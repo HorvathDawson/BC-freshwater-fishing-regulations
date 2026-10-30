@@ -134,13 +134,15 @@ const GAP = 14;       // spotlight to callout
 const CARET = 14;
 const RING = 2;
 
-export function CoachTour({ open, steps, palette, registry, onFinish, words }: {
+export function CoachTour({ open, steps, palette, registry, onFinish, words, onStep }: {
   open: boolean;
   steps: readonly CoachStep[];
   palette: Palette;
   registry: CoachRegistry;
   onFinish: () => void;
   words: { next: string; back: string; skip: string; done: string; step: (i: number, n: number) => string; label: string };
+  /** (T293) told each step's key as it comes up (the Conditions tour moves the map's camera for its step) */
+  onStep?: (key: string) => void;
 }) {
   const reduced = useReducedMotion();
   // the layer's own size once laid out; the window's until then (and where layout is never reported)
@@ -183,6 +185,8 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words }: {
 
   const n = shown?.length ?? 0;
   const at = shown && n > 0 ? shown[Math.min(i, n - 1)]! : null;
+  const stepKey = open ? at?.step.key : undefined;
+  useEffect(() => { if (stepKey) onStep?.(stepKey); }, [stepKey]);   // eslint-disable-line react-hooks/exhaustive-deps -- per step
   useEffect(() => {
     if (!open || !at) return;
     fade.setValue(0);
@@ -201,7 +205,11 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words }: {
   const onLayout = (e: LayoutChangeEvent) => setWin({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height });
   // kept inside the window, ring and all (a tab at the window's foot: its room below would fall off the screen)
   const hole = at?.hole && win ? insideWindow(at.hole, win) : null;
-  const place = win ? placeCallout(hole, win) : null;
+  // (T293) a spotlight that is most of the window (the whole map): the callout sits inside it, at its foot
+  const big = !!hole && !!win && hole.h > win.h * 0.5;
+  const place = win ? (big ? { width: Math.min(360, win.w - 2 * GUTTER), left: (win.w - Math.min(360, win.w - 2 * GUTTER)) / 2,
+                               top: null, bottom: win.h - (hole!.y + hole!.h) + SPACE.s4 + 56, caret: null, below: false }
+                          : placeCallout(hole, win)) : null;
   const rise = reduced ? 0 : fade.interpolate({ inputRange: [0, 1], outputRange: [place?.below === false ? -8 : 8, 0] });
 
   return (

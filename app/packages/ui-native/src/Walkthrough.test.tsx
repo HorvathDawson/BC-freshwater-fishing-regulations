@@ -21,7 +21,8 @@ const memory = (v: string | null = null): WalkthroughStore & { v: string | null 
 };
 const w = WALKTHROUGH_WORDS;
 const WATER = { item: "w-vedder", name: "Vedder River" };
-const BROWSE: GuideFacts = { water: WATER, searching: false, query: "", selected: null, open: null, adding: false, viewing: null, spots: 0 };
+const BROWSE: GuideFacts = { water: WATER, searching: false, query: "", selected: null, open: null, adding: false, viewing: null, spots: 0,
+                             layersOpen: false, ground: "ground.map", obstacles: false, layersWas: null };
 const keyAt = () => screen.getByTestId(/^guide-step-/).getAttribute("data-testid")!.slice("guide-step-".length);
 const press = (label: string) => act(() => { fireEvent.click(screen.getByText(label)); });
 
@@ -46,6 +47,10 @@ function Harness({ store, start = BROWSE, blocked = false, reg, log, out }: {
     cancelAdd: () => { log.push("cancel"); setF((x) => ({ ...x, adding: false })); },
     toSpots: () => { log.push("spots"); setF((x) => ({ ...x, viewing: null })); },
     openSpot: () => { log.push("openSpot"); setF((x) => ({ ...x, viewing: "s1" })); },
+    openLayers: () => { log.push("layers"); setF((x) => ({ ...x, open: null, layersOpen: true, layersWas: x.layersWas ?? { ground: x.ground!, obstacles: !!x.obstacles } })); },
+    otherGround: () => { log.push("ground"); setF((x) => ({ ...x, ground: x.ground === "ground.map" ? "ground.satellite" : "ground.map" })); },
+    obstaclesOn: () => { log.push("obstacles"); setF((x) => ({ ...x, obstacles: true })); },
+    restoreLayers: () => { log.push("restore"); setF((x) => ({ ...x, layersOpen: false, ground: x.layersWas?.ground ?? x.ground, obstacles: x.layersWas?.obstacles ?? x.obstacles, layersWas: null })); },
   };
   const guide = useGuide(store, blocked, f, acts);
   out.guide = guide; out.set = setF;
@@ -54,9 +59,10 @@ function Harness({ store, start = BROWSE, blocked = false, reg, log, out }: {
 
 describe("the guided walkthrough (T293)", () => {
   it("is the owner's walk, in his order: find it, its rules, its conditions, a spot and its coming days", () => {
-    expect([...new Set(GUIDE_STEPS.map((s) => s.phase))]).toEqual(["find", "rules", "conditions", "spot", "days", "end"]);
+    expect([...new Set(GUIDE_STEPS.map((s) => s.phase))]).toEqual(["find", "rules", "conditions", "layers", "spot", "days", "end"]);
     expect(GUIDE_STEPS.map((s) => s.key)).toEqual(["welcome", "search", "pick", "map", "regs", "answer", "day", "keep", "gear",
-      "part", "book", "conditions", "reading", "forecast", "change", "spot", "capture", "open", "days", "reasons", "done"]);
+      "part", "book", "conditions", "reading", "forecast", "change", "layers", "ground", "obstacles", "restore", "spot",
+      "capture", "open", "days", "reasons", "done"]);
   });
 
   it("opens on a new device once nothing blocks it, names the water, and walks to the end with real taps and Show me", async () => {
@@ -78,8 +84,9 @@ describe("the guided walkthrough (T293)", () => {
     expect(screen.queryByTestId("guide")).toBeNull();
     expect(store.v).toBe(WALKTHROUGH_VERSION);                           // seen, and no resume line left
     // each DO step done by Show me, through the app's own moves; "regs" was passed (the water opened on its Regulations)
-    expect(log).toEqual(["search", "select", "open:regs", "view:conditions", "add", "cancel", "openSpot"]);
-  });
+    expect(log).toEqual(["search", "select", "open:regs", "view:conditions", "layers", "ground", "obstacles", "restore", "add",
+                         "cancel", "openSpot"]);
+   }, 20_000);
 
   it("a DO step done by the reader ticks, then moves on by itself", async () => {
     const out: { guide?: Guide; set?: (f: (x: GuideFacts) => GuideFacts) => void } = {};
@@ -112,7 +119,7 @@ describe("the guided walkthrough (T293)", () => {
     expect(keyAt()).toBe("reading");
     press(w.back);
     expect(keyAt()).toBe("conditions");
-    expect(screen.getByText(`${w.tick} ${GUIDE_STEPS[11]!.title}`)).toBeTruthy();   // done already: Done, not Show me
+    expect(screen.getByText(`${w.tick} ${GUIDE_STEPS.find((s) => s.key === "conditions")!.title}`)).toBeTruthy();   // done already
     press(w.back);
     expect(keyAt()).toBe("book");
     expect(log).toEqual(["view:regs"]);                                 // its Regulations back in front
@@ -124,6 +131,20 @@ describe("the guided walkthrough (T293)", () => {
     render(<Harness store={first} reg={useRegistry()} log={[]} out={out2} />);
     act(() => out2.guide!.back());                                      // the system back, on the first step
     expect([screen.queryByTestId("guide"), first.v]).toEqual([null, WALKTHROUGH_VERSION]);
+  });
+
+  it("(owner 2026-10-29) Layers: open, switch the ground, fish obstacles on — then Next puts them back as they were", async () => {
+    const log: string[] = [], out: { set?: (f: (x: GuideFacts) => GuideFacts) => void } = {};
+    render(<Harness store={memory("guide-at:layers")} reg={useRegistry()} log={log} out={out} start={{ ...BROWSE, obstacles: false }} />);
+    expect(log).toEqual(["layers"]);                                     // resumed on it: the sheet is opened for it
+    await waitFor(() => expect(keyAt()).toBe("ground"), { timeout: 2000 });
+    press(w.showMe);
+    await waitFor(() => expect(keyAt()).toBe("obstacles"), { timeout: 2000 });
+    press(w.showMe);
+    await waitFor(() => expect(keyAt()).toBe("restore"), { timeout: 2000 });
+    press(w.next);
+    expect(keyAt()).toBe("spot");
+    expect(log).toEqual(["layers", "ground", "obstacles", "restore"]);
   });
 
   it("rings the control a step is about, and keeps the card beside it", async () => {
@@ -244,8 +265,10 @@ describe("the mode hints (T276, T293)", () => {
     act(() => again.result.current.reopen());          // More → Help
     expect(again.result.current.open).toBe(true);
   });
-  it("(T293) one step each, Salmon's among them", () => {
-    expect([TAB_TOUR_WORDS.runs.length, TAB_TOUR_WORDS.conditions.length, TAB_TOUR_WORDS.salmon.length]).toEqual([1, 1, 1]);
+  it("(T293) Runs and Salmon one step each; the Conditions map a short tour that moves the camera out, then in", () => {
+    expect([TAB_TOUR_WORDS.runs.length, TAB_TOUR_WORDS.salmon.length]).toEqual([1, 1]);
+    expect(TAB_TOUR_WORDS.conditions.map((c) => [c.key, c.camera ?? null]))
+      .toEqual([["watershed", "watershed"], ["gauge", "gauge"], ["colours", null], ["tap", null], ["change", null]]);
     expect(TAB_TOUR_WORDS.salmon[0]!.targets).toEqual(["modes"]);
   });
   it("wait while something else holds the screen, and never open with no store", () => {

@@ -1,4 +1,4 @@
-// T293 shots: the guided walkthrough end to end on the web app (headless), every step, then Help, replay, back, Skip, the Salmon hint.
+// T293 shots: the guided walkthrough end to end on the web app (headless), every step, then Help, replay, back, Skip, the Salmon hint, the Conditions map tour.
 //   node shots.mjs <width> <height> <out dir>   (app at http://localhost:39301; Playwright from the main checkout's .venv)
 import { createRequire } from "node:module";
 import { existsSync, readdirSync } from "node:fs";
@@ -82,4 +82,13 @@ await p.goBack(); await wait(1500); console.log("system back ->", await step());
 await p.locator('[data-testid="guide-skip"]').click(); await wait(1000); console.log("skip ->", await step());
 await p.getByRole("radio", { name: /Salmon/ }).first().click(); await wait(6000);
 console.log("salmon hint:", await p.evaluate(() => !!document.querySelector('[data-testid^="coach-step-salmon"]'))); await shot("salmon-hint");
+await p.getByText("Got it").click().catch(() => {}); await wait(800);
+// THE CONDITIONS MAP'S TOUR: the camera out to a watershed, in to its gauge, then the colours, taps and change
+await p.getByRole("tab", { name: /^Conditions/ }).first().click(); await wait(4000);
+for (let k = 0; k < 6; k++) {
+  const key = await p.evaluate(() => document.querySelector('[data-testid^="coach-step-"]')?.getAttribute("data-testid")?.slice(11) ?? null);
+  if (!key) break;
+  await wait(4500); await shot("conditions-tour-" + key); console.log("cond tour", key);
+  const btn = p.getByRole("button", { name: /^(Next|Got it)$/ }).last(); await btn.click(); await wait(1200);
+}
 await b.close();

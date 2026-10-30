@@ -22,7 +22,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { GUIDE_WATER, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind } from "@app/core";
+import { GUIDE_WATER, TAB_TOUR_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Platform, View } from "react-native";
@@ -60,13 +60,34 @@ import { useShellNav } from "./shell/useShellNav";
 import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
-import { GuideCard, TabTourSheet, useGuide, useTabTour, type GuideActs, type GuideFacts } from "./Walkthrough";
+import { GUIDE_STEPS, GuideCard, TabTourSheet, useGuide, useTabTour, type GuideActs, type GuideFacts } from "./Walkthrough";
 import { CoachContext, useCoachRegistry } from "./CoachMarks";
 
 export type { ShellProps } from "./shell/props";
 
 /** (owner 2026-10-29) the map readied behind a landing's water: the whole box, unseen (painted, not shown) */
 const BEHIND = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 } as const;
+
+/** (T293) The Conditions tour's gauge: of the bigger-river gauges, the nearest to the camera, with its catchment's area. */
+async function nearGauge(source: ShellProps["source"], at: Camera): Promise<{ lon: number; lat: number; km2: number } | null> {
+  try {
+    const pts = await source.gaugePoints();
+    if (!pts.length) return null;
+    const mags = pts.map((p) => p.mag ?? 0).sort((a, b) => a - b);
+    const floor = mags[Math.floor(mags.length * 0.75)] ?? 0;
+    const k = Math.cos((at.lat * Math.PI) / 180);
+    const d = (p: { lon: number; lat: number }) => ((p.lon - at.lon) * k) ** 2 + (p.lat - at.lat) ** 2;
+    const big = pts.filter((p) => (p.mag ?? 0) >= floor);
+    const g = (big.length ? big : pts).reduce((a, b) => (d(b) < d(a) ? b : a));
+    let km2 = 0;
+    for (const ms of (await source.basinMembers().catch(() => new Map())).values())
+      for (const m of ms) if (m.station === g.station && (m.areaKm2 ?? 0) > km2) km2 = m.areaKm2 ?? 0;
+    return { lon: g.lon, lat: g.lat, km2: km2 || 1000 };
+  } catch { return null; }
+}
+
+/** (T293) The fish obstacles' switch in the Layers sheet (`@app/core` layers). */
+const OBSTACLES = "overlay.obstacles";
 
 /** (T293) The room the bottom tab bar takes, kept clear by the walkthrough's card docked at the foot. */
 const TAB_BAR_ROOM = 64;
@@ -286,11 +307,23 @@ export function Shell(p: ShellProps) {
   const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
   const guideWater = useGuideWater(source);
   const picked = searchMemory.pick.selected;
+  // the layers as the reader had them when the walk reached its Layers steps: put back at the last of them (or a skip)
+  const groundNow = col.layers.ground.tiles.find((t) => t.chosen)?.id ?? "";
+  const obstaclesNow = !!col.layers.overlays.rows.find((r) => r.id === OBSTACLES)?.chosen;
+  const [layersWas, setLayersWas] = useState<{ ground: string; obstacles: boolean } | null>(null);
   const guideFacts: GuideFacts = {
     water: guideWater, searching, query: searchMemory.q,
     selected: picked?.kind === "water" ? picked.item : null,
     open: frame ? { item: frame.item, view: frame.view } : null,
     adding: adding !== null, viewing: openSpot, spots: spots.length,
+    layersOpen, ground: groundNow, obstacles: obstaclesNow, layersWas,
+  };
+  const restoreLayers = () => {
+    if (layersWas) {
+      if (groundNow !== layersWas.ground) col.onChooseLayer(layersWas.ground);
+      if (obstaclesNow !== layersWas.obstacles) col.onChooseLayer(OBSTACLES);
+    }
+    setLayersWas(null); setLayersOpen(false);
   };
   const guideActs: GuideActs = {
     search: () => { go({ type: "close" }); if (tab !== "map") nav.toTab("map"); go({ type: "search", open: true });
@@ -317,8 +350,26 @@ export function Shell(p: ShellProps) {
       const newest = [...spots].sort((a, b) => b.createdAt - a.createdAt)[0];
       if (newest) go({ type: "openSpot", id: newest.id as never });
     },
+    openLayers: () => {
+      go({ type: "close" }); if (tab !== "map") nav.toTab("map");
+      if (!layersWas) setLayersWas({ ground: groundNow, obstacles: obstaclesNow });
+      setLayersOpen(true);
+    },
+    otherGround: () => {
+      const other = col.layers.ground.tiles.find((t) => !t.chosen && t.enabled);
+      if (other) col.onChooseLayer(other.id);
+    },
+    obstaclesOn: () => { if (!obstaclesNow) col.onChooseLayer(OBSTACLES); },
+    restoreLayers,
   };
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);
+  // the Layers sheet opened by the reader at the walk's Layers step: what they had is kept from that moment
+  const atKey = guide.open ? GUIDE_STEPS[guide.at]?.key : undefined;
+  useEffect(() => {
+    if (atKey === "layers" && layersOpen && !layersWas) setLayersWas({ ground: groundNow, obstacles: obstaclesNow });
+  }, [atKey, layersOpen]);   // eslint-disable-line react-hooks/exhaustive-deps -- at the moment it opens
+  // the walk left (skipped, or Back out of it) mid-Layers: the layers go back as they were
+  useEffect(() => { if (!guide.open && layersWas) restoreLayers(); }, [guide.open]);   // eslint-disable-line react-hooks/exhaustive-deps
   // from the start, on the Map tab, with no water open and nothing typed in search
   const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); guide.reopen(); };
   // (T276, T293) the mode hints — Runs, the Conditions map, Salmon: on a mode's first use, after the notice and the
@@ -328,6 +379,27 @@ export function Shell(p: ShellProps) {
   const condTour = useTabTour(p.walkthrough ?? null, "conditions", route.mode === "browse" && tab === "conditions", tabBusy);
   const salmonTour = useTabTour(p.walkthrough ?? null, "salmon",
                                 onMapTab && col.regsLayer === "salmon" && !col.salmonLoading, tabBusy);
+  /*
+   * (T293, owner 2026-10-29) THE CONDITIONS TOUR MOVES THE REAL CAMERA: out to the watershed of a gauge near where the
+   * map is (its catchment's size sets how far: about twice the width of a square of that area), then in to the gauge.
+   * The gauge: of the bigger-river gauges (stream magnitude in the top quarter), the nearest to the map's centre.
+   */
+  const [tourFit, setTourFit] = useState<{ key: string; camera: Camera } | null>(null);
+  const tourGauge = useRef<Promise<{ lon: number; lat: number; km2: number } | null> | null>(null);
+  const onCondStep = (key: string) => {
+    const kind = TAB_TOUR_WORDS.conditions.find((c) => c.key === key)?.camera;
+    if (!kind) return;
+    tourGauge.current ??= nearGauge(source, camera.current);
+    void tourGauge.current.then((g) => {
+      if (!g) return;
+      const width = Math.max(320, Platform.OS === "web" && typeof window !== "undefined" ? window.innerWidth : 390);
+      const spanM = 2.2 * Math.sqrt(g.km2) * 1000;
+      const fitZ = Math.log2((156543 * Math.cos((g.lat * Math.PI) / 180) * width) / spanM);
+      const zoom = kind === "watershed" ? Math.max(6, Math.min(8.5, fitZ)) : 10.5;
+      setTourFit({ key: `tour:${key}:${Date.now()}`, camera: { lon: g.lon, lat: g.lat, zoom } });
+    });
+  };
+  useEffect(() => { if (!condTour.open) { setTourFit(null); tourGauge.current = null; } }, [condTour.open]);
   const replayTab = (k: "runs" | "conditions" | "salmon") => {
     go({ type: "close" });
     if (k === "salmon") { nav.toTab("map"); col.setRegsLayer("salmon"); salmonTour.reopen(); return; }
@@ -400,7 +472,7 @@ export function Shell(p: ShellProps) {
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onNotFishing={setNotFishing} onRuns={setRunsAt}
-                  fishImages={p.fishImages} />
+                  fishImages={p.fishImages} tourFit={tourFit} />
     : null;
   const body = (
     <View style={{ flex: 1 }}>
@@ -487,7 +559,9 @@ export function Shell(p: ShellProps) {
       <SynopsisLoading palette={palette} floating />
       {/* G1: an open sheet is a back layer — every platform's back closes it before it pops the route */}
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
-                   vm={col.layers} onChoose={col.onChooseLayer} />
+                   vm={col.layers} onChoose={col.onChooseLayer}
+                   // (T293) while the sheet is up the walkthrough's card is drawn in its window (a Modal is on top)
+                   overlay={layersOpen ? guideCard : undefined} />
       {/*
         * (T49) The map's date sheet: its calendar button opens the SAME sheet the Regulations page's date pill does
         * (`regs/DaySheet`), on this one `mapDay` — and the days it offers are the data's calendar year, cut at the
@@ -524,9 +598,9 @@ export function Shell(p: ShellProps) {
       <FirstRunNotice state={{ ...firstRun, open: firstRun.open && menu.state.page === null }} palette={palette}
                       onSources={() => menu.show("sources")} />
       <TabTourSheet tour={runsTour} which="runs" palette={palette} registry={coach} />
-      <TabTourSheet tour={condTour} which="conditions" palette={palette} registry={coach} />
+      <TabTourSheet tour={condTour} which="conditions" palette={palette} registry={coach} onStep={onCondStep} />
       <TabTourSheet tour={salmonTour} which="salmon" palette={palette} registry={coach} />
-      {guideCard}
+      {!layersOpen && guideCard}
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />

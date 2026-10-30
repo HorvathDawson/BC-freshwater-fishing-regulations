@@ -76,7 +76,8 @@ export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "t
   | "view:regs" | "view:conditions"
   | "regs:answer" | "regs:date" | "regs:keep" | "regs:tabs" | "regs:place" | "regs:book"
   | "cond:headline" | "cond:horizons" | "cond:chart"
-  | "spot:days" | "spot:best";
+  | "spot:days" | "spot:best"
+  | "layers" | "layers:ground" | "layers:obstacles";
 
 export interface WalkthroughCard {
   readonly key: string;
@@ -96,7 +97,7 @@ export interface WalkthroughCard {
  * `{water}` in a title or body is the chosen water's name, `{letters}` the first letters to type (`guideText`). The
  * spot steps say "a day you fished here", never "your visit" alone, so they hold when a spot keeps several visits (T294).
  */
-export type GuidePhase = "find" | "rules" | "conditions" | "spot" | "days" | "end";
+export type GuidePhase = "find" | "rules" | "conditions" | "layers" | "spot" | "days" | "end";
 export interface GuideStepWords extends Omit<WalkthroughCard, "targets"> {
   readonly phase: GuidePhase;
   readonly kind: "show" | "do";
@@ -149,8 +150,19 @@ const GUIDE_STEPS: readonly GuideStepWords[] = [
   step("change", "conditions", "show", ["cond:chart"], "What a change means",
     "Rising after rain usually means higher, cloudier water; dropping and clearing is often when fishing picks up. "
     + "Very high for the date can make wading unsafe; very low and warm is hard on fish. A guide, not a promise."),
+  // (owner 2026-10-29) the map's layers: open the menu, switch the ground, the fish obstacles; then back as they were
+  step("layers", "layers", "do", ["layers"], "The map's layers",
+    "Back on the map, the layers button on its side chooses what the map shows. Tap it."),
+  step("ground", "layers", "do", ["layers:ground"], "Switch the ground",
+    "Satellite lays aerial photos under the water (it needs a connection); Map is the drawn map. Pick the one you "
+    + "are not on."),
+  step("obstacles", "layers", "do", ["layers:obstacles"], "Fish obstacles",
+    "Turn on Fish obstacles: waterfalls, dams and other barriers fish may not get past, each with its own mark. Tap "
+    + "one on the map for what it is."),
+  step("restore", "layers", "show", [], "Back as you had it",
+    "Next puts the layers back the way you had them and closes the menu. Change them any time.", "top"),
   step("spot", "spot", "do", ["tab:spots"], "Save a spot",
-    "Spots keeps the places you fish. Close this water, tap Spots and pick a way to add one."),
+    "Spots keeps the places you fish. Tap Spots and pick a way to add one."),
   step("capture", "spot", "do", [], "Where, when and what",
     "Pick the water and the place, then the day and hour you were there: the spot keeps that day's flow and weather. "
     + "Add a note or a photo, then Save.", "top"),
@@ -191,7 +203,7 @@ export const WALKTHROUGH_WORDS = {
   doneStep: "Done",
   step: (i: number, n: number) => `${i} of ${n}`,
   /** each phase's name, over its steps */
-  phases: { find: "Find a water", rules: "Read the rules", conditions: "Conditions", spot: "Save a spot",
+  phases: { find: "Find a water", rules: "Read the rules", conditions: "Conditions", layers: "Layers", spot: "Save a spot",
             days: "Your spot", end: "That's it" } satisfies Record<GuidePhase, string>,
   /** the Help page's button that starts the walkthrough again */
   again: "Replay the walkthrough",
@@ -213,9 +225,11 @@ export function guideText(s: string, water: { name: string; letters: string } | 
  * (T276, T293) THE MODE HINTS: one step each, the first time a mode is used — how to read the Runs tab's colours, the
  * Conditions map's gauge colours, and Salmon's. Re-opened from More → Help (`again`); the Runs panel's "?" replays its own.
  */
-export const TAB_TOUR_WORDS = {
-  label: { runs: "How to read Runs", conditions: "How to read Conditions", salmon: "How to read Salmon" },
-  again: { runs: "How to read the Runs tab", conditions: "How to read the Conditions map", salmon: "How to read Salmon" },
+export const TAB_TOUR_WORDS: {
+  readonly label: Readonly<Record<TabTourKey, string>>; readonly again: Readonly<Record<TabTourKey, string>>;
+} & Readonly<Record<TabTourKey, readonly (WalkthroughCard & { readonly camera?: "watershed" | "gauge" })[]>> = {
+  label: { runs: "How to read Runs", conditions: "Reading the Conditions map", salmon: "How to read Salmon" },
+  again: { runs: "How to read the Runs tab", conditions: "Tour the Conditions map", salmon: "How to read Salmon" },
   runs: [
     { key: "read", targets: ["map"], title: "Reading the colours",
       body: `${RUN_WORDS.legend.spawn}; ${RUN_WORDS.legend.pass.toLowerCase()}; ${RUN_WORDS.legend.off.toLowerCase()}; `
@@ -223,12 +237,26 @@ export const TAB_TOUR_WORDS = {
         + "Drag the slider or press Play to move through the year. Tap a stream for its runs and how many spawners DFO "
         + `counted there. ${RUN_WORDS.scale.none}.` },
   ] satisfies readonly WalkthroughCard[],
+  /**
+   * (T293, owner 2026-10-29) THE CONDITIONS MAP, a short tour with the real camera: out to the watershed of a gauge near
+   * the reader, in to its rivers, the colours, the taps, and change across the watershed. `camera` says where the map is
+   * sent for the step (`watershed`: out, the basins painted; `gauge`: in, at the gauge).
+   */
   conditions: [
-    { key: "colours", targets: ["map"], title: "Reading the colours",
-      body: "Each dot is a gauge, coloured by how its flow or level compares with past years on this date: low, normal "
-        + "(the middle half of past years) or high. The chips at the top pick now, the days ahead or the expected change. "
-        + "Tap a gauge for its chart." },
-  ] satisfies readonly WalkthroughCard[],
+    { key: "watershed", targets: ["map"], camera: "watershed", title: "Whole watersheds",
+      body: "Zoomed out, each watershed is coloured by its gauges: how their flow compares with past years on this date." },
+    { key: "gauge", targets: ["map"], camera: "gauge", title: "The rivers a gauge speaks for",
+      body: "Closer in, each river takes the colour of the gauge that speaks for it: the one on it, or one up or down "
+        + "the same system. The dot is the gauge itself." },
+    { key: "colours", targets: ["map"], title: "What the colours mean",
+      body: "Low, normal (the middle half of past years) or high, for this date. A river no gauge speaks for stays "
+        + "plain. The key at the bottom shows the scale." },
+    { key: "tap", targets: ["map"], title: "Tap for more",
+      body: "Tap a gauge for its chart and forecast; tap a river for its own Conditions, beside its regulations." },
+    { key: "change", targets: ["horizons"], title: "Rising or dropping",
+      body: "The days ahead colour the rivers by forecast flow. The arrow, Change, colours them by how much they are "
+        + "expected to rise or drop: a whole watershed turning to rising usually means rain is on the way into it." },
+  ] satisfies readonly (WalkthroughCard & { camera?: "watershed" | "gauge" })[],
   salmon: [
     { key: "salmon", targets: ["modes"], title: "Salmon colours",
       body: `${SALMON_WORDS.toggle.salmon} paints DFO's salmon rules instead of the provincial ones; waters DFO does not `

@@ -149,7 +149,8 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     const noop = () => {};
     render(<GuideCard guide={{ open: true, pending: true, at: 1, reopen: noop, finish: noop, next: noop, back: noop }}
       facts={{ water: { item: "w", name: "Vedder River" }, searching: false, query: "", selected: null, open: null, adding: false, viewing: null, spots: 0 }}
-      acts={{ search: noop, select: noop, openWater: noop, view: noop, addSpot: noop, cancelAdd: noop, toSpots: noop, openSpot: noop }}
+      acts={{ search: noop, select: noop, openWater: noop, view: noop, addSpot: noop, cancelAdd: noop, toSpots: noop, openSpot: noop,
+              openLayers: noop, otherGround: noop, obstaclesOn: noop, restoreLayers: noop }}
       palette={LIGHT} registry={reg} top={60} bottom={64} />);
     await screen.findByTestId("guide-ring", {}, { timeout: 3000 });
   }, /Show me/],

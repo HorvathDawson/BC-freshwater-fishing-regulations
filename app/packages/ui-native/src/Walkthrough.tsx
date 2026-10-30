@@ -55,6 +55,12 @@ export interface GuideFacts {
   readonly viewing: string | null;
   /** how many spots are saved */
   readonly spots: number;
+  /** (owner 2026-10-29) the Layers sheet is up; the ground chosen; the fish obstacles shown */
+  readonly layersOpen?: boolean;
+  readonly ground?: string;
+  readonly obstacles?: boolean;
+  /** the layers as the reader had them when the walk reached Layers (put back at its last Layers step) */
+  readonly layersWas?: { readonly ground: string; readonly obstacles: boolean } | null;
 }
 
 /** What "Show me" and a step's set-up can do: each one the app's own route move. */
@@ -67,6 +73,14 @@ export interface GuideActs {
   cancelAdd(): void;
   toSpots(): void;
   openSpot(): void;
+  /** the Layers sheet, on the map */
+  openLayers(): void;
+  /** the other ground (Satellite, or Map from Satellite) */
+  otherGround(): void;
+  /** the fish obstacles on */
+  obstaclesOn(): void;
+  /** the layers back as they were (`layersWas`), and the sheet closed */
+  restoreLayers(): void;
 }
 
 /** The walk's state: open or not, the step, and the moves. */
@@ -109,6 +123,7 @@ const onWater = (view: "regs" | "conditions") => (f: GuideFacts, a: GuideActs) =
 const PHASE_NEEDS: Partial<Record<GuidePhase, StepRule["ensure"]>> = {
   rules: onWater("regs"),
   conditions: onWater("conditions"),
+  layers: (f, a) => { if (!f.layersOpen) a.openLayers(); },
 };
 
 const RULES: Readonly<Record<string, StepRule>> = {
@@ -131,6 +146,19 @@ const RULES: Readonly<Record<string, StepRule>> = {
   conditions: {
     done: (f) => f.open?.view === "conditions",
     show: (f, a) => { if (f.open) a.view("conditions"); else if (f.water) a.openWater("conditions"); },
+  },
+  layers: {
+    done: (f) => !!f.layersOpen,
+    show: (_f, a) => a.openLayers(),
+    ensure: (f, a) => { if (!f.layersOpen) a.openLayers(); },
+  },
+  ground: {
+    done: (f) => !!f.layersWas && f.ground !== undefined && f.ground !== f.layersWas.ground,
+    show: (_f, a) => a.otherGround(),
+  },
+  obstacles: {
+    done: (f) => !!f.obstacles,
+    show: (_f, a) => a.obstaclesOn(),
   },
   spot: {
     done: (f) => f.adding,
@@ -318,6 +346,7 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
     if (done) { guide.next(); return; }
     if (showMe) { rule.show!(facts, acts); return; }
     if (step.key === "capture" && facts.adding) acts.cancelAdd();
+    if (step.key === "restore") acts.restoreLayers();
     if (last) guide.finish(); else guide.next();
   };
 
@@ -401,12 +430,20 @@ export function useTabTour(store: WalkthroughStore | null, tour: TabTourKey, act
   return { open: active && !blocked && (pending || manual), finish, reopen };
 }
 
+// the Runs hint points at a spot on the map ("tap here"); the Conditions tour lights the whole map, its camera moving
 const tabSteps = (k: TabTourKey): readonly CoachStep[] => TAB_TOUR_WORDS[k].map((c) => ({
-  key: c.key, targets: c.targets, title: c.title, body: c.body, ...(c.targets[0] === "map" ? { shape: "spot" as const } : {}),
+  key: c.key, targets: c.targets, title: c.title, body: c.body,
+  ...(c.targets[0] === "map" && k === "runs" ? { shape: "spot" as const } : {}),
 }));
 const TAB_STEPS = { runs: tabSteps("runs"), conditions: tabSteps("conditions"), salmon: tabSteps("salmon") };
 
-export function TabTourSheet({ tour, which, palette, registry }: { tour: TabTour; which: TabTourKey; palette: Palette; registry: CoachRegistry }) {
+export function TabTourSheet({ tour, which, palette, registry, onStep }: {
+  tour: TabTour; which: TabTourKey; palette: Palette; registry: CoachRegistry;
+  /** (T293) each step's key as it comes up: the Conditions tour moves the camera (`TAB_TOUR_WORDS.conditions[].camera`) */
+  onStep?: (key: string) => void;
+}) {
   return <CoachTour open={tour.open} steps={TAB_STEPS[which]} palette={palette} registry={registry} onFinish={tour.finish}
-                    words={{ ...WALKTHROUGH_WORDS, done: WALKTHROUGH_WORDS.hintDone, label: TAB_TOUR_WORDS.label[which] }} />;
+                    onStep={onStep}
+                    words={{ ...WALKTHROUGH_WORDS, done: WALKTHROUGH_WORDS.hintDone,
+                             label: TAB_TOUR_WORDS.label[which] }} />;
 }

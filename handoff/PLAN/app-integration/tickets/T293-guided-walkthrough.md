@@ -32,7 +32,7 @@ score (flow and lead-up rain first, then cloud/pressure, then air/wind), the rea
 "a day you fished here" so T294's several visits per spot do not need a rewrite.
 
 ## Done (branch t293-walkthrough, merged after the APK cut)
-- ONE walk, 21 steps, phases Find a water · Read the rules · Conditions · Save a spot · Your spot · That's it
+- ONE walk, 25 steps, phases Find a water · Read the rules · Conditions · Layers · Save a spot · Your spot · That's it
   (core `guideSteps`, `GUIDE_WATER` = Vedder River found by name in the release; any water if absent). DO steps advance
   by themselves when the app gets there (search typed, row selected, water open, view, capture, spot open); "Show me"
   does them through the route/search/opener. SHOW steps: Next.
@@ -43,7 +43,15 @@ score (flow and lead-up rain first, then cloud/pressure, then air/wind), the rea
 - Once per device after the first-run notice (`walkthrough-3`); Skip at any step; resumes where left (`guide-at:` line in
   the same store); More → Help replays it. Back (system/browser/Escape) steps back one step, out from the first; stepping
   back puts the app on the step's view. Non-modal dialog, live-region title + body (phone: announced), no focus trap.
-- Mode hints cut to one step each: Runs (colour key), Conditions map (gauge colours), new Salmon (on first Salmon).
+- Mode hints: Runs (colour key) and new Salmon (on first Salmon), one step each; the Conditions map is a 5-step tour
+  that moves the real camera (owner add-on): out to the watershed of the bigger-river gauge nearest the map's centre
+  (zoom from its catchment area, basinMembers; the basin field paints below z9), in to the gauge (z10.5), then the
+  colours vs normal for the date, tapping a gauge / a river, and rising/dropping (the Change horizon) across the watershed.
+- Layers steps in the walk (owner add-on, after Conditions): open Layers, switch the ground, turn on Fish obstacles
+  (falls, dams, barriers), then Next puts the layers back as the reader had them (also on Skip mid-way). The card is drawn
+  inside the Layers sheet's window while it is up (`Sheet` `overlay`).
+- "Show me" on the spot step drops the pin ON the water (`waterPoint`: of the parts' midpoints on their own lines, the
+  one nearest the middle of the water's box).
 - Help: short pages Walkthrough (replay + the three hints) · Syncing and updates · Offline (app/web words; Offline maps
   button on the app).
 - Shots: T293-shots/ phone-* and desktop-* (every step, capture, Help, replay, back, Salmon hint); `shots.mjs` drives it.

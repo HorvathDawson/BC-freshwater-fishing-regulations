@@ -14,7 +14,7 @@ describe("the walkthrough (T293)", () => {
   it("one walk in the owner's order, every step with words; DO steps are the reader's taps", () => {
     const app = guideSteps("app");
     expect(app.filter((s) => s.kind === "do").map((s) => s.key))
-      .toEqual(["search", "pick", "map", "regs", "conditions", "spot", "capture", "open"]);
+      .toEqual(["search", "pick", "map", "regs", "conditions", "layers", "ground", "obstacles", "spot", "capture", "open"]);
     for (const s of app) { expect(s.title.length, s.key).toBeGreaterThan(3); expect(s.body.length, s.key).toBeGreaterThan(30); }
     expect(new Set(app.map((s) => s.key)).size).toBe(app.length);
   });
