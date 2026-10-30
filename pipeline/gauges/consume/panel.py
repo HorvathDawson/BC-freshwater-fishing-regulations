@@ -433,6 +433,36 @@ def lead_shares(weights: list[float], lead: int | None, own_share: float = OWN_L
     return [own if i == lead else (1.0 - own) * w / rest for i, w in enumerate(weights)]
 
 
+# ------------------------------------------------------------------ a gauge reached through a lake
+#
+# OWNER 2026-10-29 (T296, decisions.md "a gauge reached through a lake"): "if no gauge is downstream I agree that is fine
+# but if there are other gauges closer they should take almost full amount of the prediction because through a lake acts
+# as a natural dampening system for the measurement." A lake integrates the daily signal, so a gauge whose path to the
+# water crosses one says little about the water's day — but it is still the best there is when it is the only one.
+#
+# So it is a RELATIVE rule, not a gate: where a vote's path crosses a lake AND another vote with no lake on its path
+# is reporting, the through-lake vote weighs `THROUGH_LAKE_FACTOR` of its usual weight and may not lead; where every
+# vote crosses a lake (the upper Pitt above Pitt Lake: 08MH035 and 08MH006 both lie below it) nothing changes and the
+# screen says so in words. WHICH path crosses a lake is the route's (`section_down.lake`, the app's `routesOf`); the
+# walk's own `crossed_lake` is a different, older rule (`eligible`: a donor the walk reached through a lake is refused).
+# `lakeDamped` in app/packages/core/src/trust.ts is the mirror; app/tools/one-formula.test.ts runs both.
+
+#: What a through-lake vote keeps of its weight while a vote with no lake on its path reports. 0.05: two donors of
+#: equal weight split ~95/5 — "almost the full amount" to the one with no lake between.
+THROUGH_LAKE_FACTOR = 0.05
+
+
+def lake_damped(weights: list[float], through_lake: list[bool], leads: list[int]) -> tuple[list[float], list[int]]:
+    """`(weights, lead ranks)` after the through-lake rule: unchanged unless a vote with weight crosses a lake AND one
+    with weight does not; then each through-lake vote's weight is scaled by `THROUGH_LAKE_FACTOR` and its lead rank
+    cleared (a damped gauge never leads). The app's `lakeDamped`."""
+    live = [w > 0 for w in weights]
+    if not (any(l and t for l, t in zip(live, through_lake)) and any(l and not t for l, t in zip(live, through_lake))):
+        return list(weights), list(leads)
+    return ([w * THROUGH_LAKE_FACTOR if t else w for w, t in zip(weights, through_lake)],
+            [0 if t else r for r, t in zip(leads, through_lake)])
+
+
 def eligible(area_target: float | None, area_donor: float | None,
              years: int, regulated: bool, crossed_lake: bool) -> bool:
     """The four gates, in one place so the reasons cannot drift apart."""
@@ -495,6 +525,8 @@ class Contribution:
     same_river: bool = True
     lead: int = 0
     reserve: bool = False
+    #: (T296) its path to the reach crosses a lake (`lake_damped`).
+    through_lake: bool = False
 
 
 def interval(value: dict) -> tuple[float, float]:
@@ -526,7 +558,8 @@ def answering(target_area: float | None, contributions: list[Contribution],
                       c.same_river is not False)
         if w > 0:
             votes.append({"z": _probit(c.percentile), "w": w, "ratio": ratio, "same": c.same_river is not False,
-                          "lead": c.lead or 0, "reserve": bool(c.reserve), "at": at})
+                          "lead": c.lead or 0, "reserve": bool(c.reserve), "lake": bool(c.through_lake),
+                          "at": at})
     answer = _combine_votes(votes, own_share)
     if not any(not v["reserve"] for v in votes):
         return answer, frozenset(stood)
@@ -556,8 +589,11 @@ def _combine_votes(votes: list[dict], own_share: float = OWN_LEAD_SHARE) -> dict
         return {"ok": False, "why": "no-record"}
     if sum(v["w"] for v in votes) < MIN_TOTAL_WEIGHT:
         return {"ok": False, "why": "too-uncertain"}
-    ws = [v["w"] for v in votes]
-    leader = leader_of([v["lead"] for v in votes], ws)
+    # (T296) a vote through a lake counts for little while one with no lake on its path reports — AFTER the floor, which
+    # asks how much the panel knows; this only says who among them is heard
+    ws, leads = lake_damped([v["w"] for v in votes], [v.get("lake", False) for v in votes],
+                            [v["lead"] for v in votes])
+    leader = leader_of(leads, ws)
     shares = lead_shares(ws, leader, own_share)
     mean, spread = _mean_spread([v["z"] for v in votes], shares)
     plus_minus = sum(error_for(v["ratio"]) * s for v, s in zip(votes, shares))

@@ -18,7 +18,7 @@ from pipeline.gauges.consume.shed import (
     build_gauge_sheds,
     downstream_map,
     lake_gauge_links,
-    section_lengths,
+    lake_reaches, section_lengths,
     trust_for,
 )
 from pipeline.common.models.enums import NodeKind
@@ -231,6 +231,51 @@ class TestDownstreamThroughLakes:
         lens = section_lengths(g, downstream_map(g, ["P:28000"]))
         # no line both enters and leaves: polygon_window gives a one-sided window, so the edges' points are used
         assert lens["lake:1"] == 25000
+
+
+class TestLakeReaches:
+    """T296: `section_down.lake` — which pointered reaches are lakes, the donor walk's own definition."""
+
+    def test_the_lake_on_the_upper_pitts_way_down_is_flagged_and_the_river_is_not(self):
+        g = _pitt()
+        down = downstream_map(g, ["P:28000", "A:0"])
+        assert lake_reaches(g, down) == {"lake:1"}
+
+    def test_a_stream_waters_polygon_is_not_a_lake(self):
+        # a slough's or canal's polygon is the river's own water (`panels.flowing`): walked through, never a lake
+        g = _pitt()
+        down = downstream_map(g, ["P:28000"])
+        assert lake_reaches(g, down, {"lake:1": "gnis:canal"}, {"gnis:canal": "stream"}) == set()
+        assert lake_reaches(g, down, {"lake:1": "wbk:pitt"}, {"wbk:pitt": "lake"}) == {"lake:1"}
+
+
+class TestThroughLakePanels:
+    """T296 (owner 2026-10-29, "the map should match the data in the click"): each panel member's route crossing a lake
+    is carried in the panel (`Member.lake`, paint/5) — the route `routesOf` draws, over the same pointers and lakes."""
+
+    def _panels(self):
+        from pipeline.gauges.consume.panels import Member, Panels
+        mh035 = Member("08MH035", "up", 1191.3, (0, 8), lead=1)        # on the lower Pitt (P:0), below the lake
+        mh006 = Member("08MH006", "up", 26.4, (69, 15), same_river=False)   # on the Alouette (A:0)
+        return Panels(by_section={"P:28000": (0, 1191.3), "P:0": (0, 1191.3)}, members={0: (mh035, mh006)})
+
+    def test_the_upper_pitts_gauges_cross_the_lake_and_the_lower_pitts_do_not(self):
+        from pipeline.gauges.consume.panels import through_lake_panels
+        g = _pitt()
+        down = downstream_map(g, ["P:28000", "A:0"])
+        got = through_lake_panels(self._panels(), down, lake_reaches(g, down), {"08MH035": "P:0", "08MH006": "A:0"})
+        up_pid, low_pid = got.by_section["P:28000"][0], got.by_section["P:0"][0]
+        assert [m.lake for m in got.members[up_pid]] == [True, True]
+        assert low_pid == 0 and [m.lake for m in got.members[low_pid]] == [False, False]   # its panel id kept
+        assert [r[-1] for r in got.member_rows() if r[0] == up_pid] == [1, 1]
+
+    def test_no_lake_on_any_route_leaves_every_panel_as_it_was(self):
+        from pipeline.gauges.consume.panels import through_lake_panels
+        g = _pitt()
+        down = downstream_map(g, ["P:28000", "A:0"])
+        got = through_lake_panels(self._panels(), down, set(),
+                                  {"08MH035": "P:0", "08MH006": "A:0"})
+        assert got == self._panels()
 
 
 class TestStationNames:

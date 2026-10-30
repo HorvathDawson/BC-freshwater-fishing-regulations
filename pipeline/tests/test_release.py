@@ -30,12 +30,12 @@ def _tiny_bundle() -> sqlite3.Connection:
         CREATE TABLE section_panel (sid INTEGER PRIMARY KEY, panel_id INTEGER, area_km2 REAL);
         CREATE TABLE panel_member (panel_id INTEGER, ord INTEGER, station TEXT, role TEXT, area_km2 REAL,
                                    discharge_years INTEGER, level_years INTEGER, regulated INTEGER,
-                                   same_river INTEGER, lead INTEGER);
+                                   same_river INTEGER, lead INTEGER, lake INTEGER);
         CREATE TABLE basin_member (basin_id TEXT, station TEXT, area_km2 REAL, discharge_years INTEGER,
                                    level_years INTEGER);
         INSERT INTO gauge VALUES ('08MH001'), ('08MH016');
         INSERT INTO section_panel VALUES (3, 7, 1.044), (4, 7, 1.883), (5, 7, 2.659), (9, 2, 64000.5);
-        INSERT INTO panel_member VALUES (2, 0, '08MH016', 'down', 4840.015, 66, 12, 0, 1, 1), (7, 0, '08MH001', 'up', 12.5, 3, 0, 1, 0, 0);
+        INSERT INTO panel_member VALUES (2, 0, '08MH016', 'down', 4840.015, 66, 12, 0, 1, 1, 1), (7, 0, '08MH001', 'up', 12.5, 3, 0, 1, 0, 0, 0);
         INSERT INTO basin_member VALUES ('ADMS', '08MH001', 70.41000366210938, 33, 7), ('BABL', '08MH016', NULL, 0, 4);
     """)
     # (T54) section access, as pipeline/deliver/bundle/access.py writes it
@@ -60,8 +60,9 @@ def test_paint_and_flow_area_round_trip():
     assert d["section_panel"] == [(3, 7), (4, 7), (5, 7), (9, 2)]
     # `lead` (paint/2): 08MH016 is its section's own gauge and leads; 08MH001 does not. (T110, paint/4) the record per
     # quantity, discharge then level — distinct values, so a swapped or dropped column fails here
-    assert d["panel_member"] == [(2, 0, "08MH016", "down", 4840.015, 66, 12, 0, 1, 1),
-                                 (7, 0, "08MH001", "up", 12.5, 3, 0, 1, 0, 0)]
+    # (T296, paint/5) `lake`: 08MH016's route to its section crosses a lake; 08MH001's does not
+    assert d["panel_member"] == [(2, 0, "08MH016", "down", 4840.015, 66, 12, 0, 1, 1, 1),
+                                 (7, 0, "08MH001", "up", 12.5, 3, 0, 1, 0, 0, 0)]
     assert d["basin_member"] == [("ADMS", "08MH001", 70.41000366210938, 33, 7), ("BABL", "08MH016", None, 0, 4)]
     # (T54, paint/3) the no-access rows only, their areas renumbered; the gentler tiers are the `access` file's
     assert d["access"] == {"areas": [("no_access", "Coquitlam Watershed"), ("no_access", "Seymour Watershed")],
@@ -196,9 +197,9 @@ def test_paint_reproduces_the_status_index_and_the_flow_tables(rel):
     assert rows_of(P.PAINT_TIERS, paint["access"])
     acc = P.decode_access(gzip.decompress((d.parent / m["files"]["access"]["url"]).read_bytes()))
     assert acc["handles"] == m["files"]["access"]["section_handles"] and rows_of(P.FILE_TIERS, acc)
-    assert paint["panel_member"] == [tuple(r[:8]) + (int(r[8] or 0), int(r[9] or 0)) for r in b.execute(
-        "SELECT panel_id, ord, station, role, area_km2, discharge_years, level_years, regulated, same_river, lead "
-        "FROM panel_member ORDER BY panel_id, ord")]
+    assert paint["panel_member"] == [tuple(r[:8]) + (int(r[8] or 0), int(r[9] or 0), int(r[10] or 0)) for r in b.execute(
+        "SELECT panel_id, ord, station, role, area_km2, discharge_years, level_years, regulated, same_river, lead, "
+        "lake FROM panel_member ORDER BY panel_id, ord")]
     assert paint["basin_member"] == b.execute(
         "SELECT basin_id, station, area_km2, discharge_years, level_years FROM basin_member "
         "ORDER BY basin_id, station").fetchall()

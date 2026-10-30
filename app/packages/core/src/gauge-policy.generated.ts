@@ -86,3 +86,8 @@ export const MIN_TOTAL_WEIGHT = 0.05;
 
 /** The days ahead the publisher ranks a forecast for (now, 0, is the app's own). */
 export const FORECAST_DAYS = [1, 3, 5, 10] as const;
+
+// A gauge reached through a lake (T296, owner 2026-10-29), from THROUGH_LAKE_FACTOR in pipeline/gauges/consume/panel.py.
+
+/** What a vote whose path crosses a lake keeps of its weight while a vote with no lake on its path reports. */
+export const THROUGH_LAKE_FACTOR = 0.05;

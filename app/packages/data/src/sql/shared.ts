@@ -399,6 +399,7 @@ export async function routesOf(section: SectionId,
     }
     const metres = along.lenOf && path.length ? await alongMetres(path, m.role, join, along.lenOf) : null;
     const meet = join !== undefined && along.nameOf ? await joinWater(path, join, along.nameOf) : null;
+    const lake = await lakeOnPath(path, along);
     out.push({
       station: m.station, name: place?.name ?? null,
       lon: place?.lon ?? null, lat: place?.lat ?? null,
@@ -406,6 +407,12 @@ export async function routesOf(section: SectionId,
       // (T252) metres along the river, and where the two waters meet: absent on a release cut before `section_down.len`
       ...(metres !== null ? { alongM: metres } : {}),
       ...(meet ? { joinSide: meet.side, ...(meet.water ? { joinWater: meet.water } : {}) } : {}),
+      // (T296) a lake between the spot and the gauge, and its name
+      ...(lake ? { throughLake: true as const, ...(lake.name ? { lakeName: lake.name } : {}),
+                   // the gauge stands below the lake where the lake is on the spot's own way down (before the
+                   // confluence, or the whole path of a gauge downstream); above it on the gauge's water
+                   lakeSide: (join !== undefined ? lake.at <= join : m.role === "down") ? "below" as const
+                     : "above" as const } : {}),
       // `true` only (T78): a station the release flags tidal; absent otherwise, as an older release reads.
       ...(place?.tidal ? { tidal: true as const } : {}),
       // `true` only (T160): a station a lake below it backs up; absent otherwise, as an older release reads.
@@ -425,8 +432,29 @@ export const DOWN_LEN_UNIT_M = 100;
 export const decodeLen = (v: unknown): number | null =>
   v === null || v === undefined ? null : Number(v) * DOWN_LEN_UNIT_M;
 
+/**
+ * (T296) THE FIRST LAKE BETWEEN THE ENDS of a route — the spot's own reach and the gauge's are not "between" — and its
+ * index in `path`, or null.
+ * A reach is a lake by `section_down.lake` (`lakeOf`, the build's: a lake polygon, not a stream water's) where the
+ * release carries it; on one cut before it (`lakeOf` absent or null) by its water's kind (`nameOf`), which misses an
+ * unnamed lake. Its name from `nameOf`, null when unnamed.
+ */
+async function lakeOnPath(path: readonly SectionId[], facts: RouteFacts):
+    Promise<{ name: string | null; at: number } | null> {
+  for (let at = 1; at < path.length - 1; at++) {
+    const s = path[at]!;
+    const flagged = facts.lakeOf ? await facts.lakeOf(s) : null;
+    const water = facts.nameOf && flagged !== false ? await facts.nameOf(s) : null;
+    if (flagged === true || (flagged === null && water?.kind === "lake"))
+      return { name: water?.kind === "lake" ? water.name : null, at };
+  }
+  return null;
+}
+
 /** (T252) What `routesOf` may also read: each section's length along the flow path, and the water a section is on. */
 export interface RouteFacts {
+  /** (T296) Whether `s` is a lake (`section_down.lake`); null where the release does not say (one cut before it). */
+  lakeOf?: (s: SectionId) => Promise<boolean | null>;
   /** Metres a walk down the pointers covers crossing `s` (`section_down.len`); null where the release has none. */
   lenOf?: (s: SectionId) => Promise<number | null>;
   /** The water `s` is on (its name and kind); null for an unnamed section. */
@@ -528,6 +556,22 @@ export function boxOfGeoRows(rows: readonly Row[], perDegree: 1 | 1_000_000): Bb
   return boxOfParts(rows.map((r) => ({ w: deg(r.w), s: deg(r.s), e: deg(r.e), n: deg(r.n),
                                        midLon: Number(r.mid_lon) / perDegree,
                                        midLat: Number(r.mid_lat) / perDegree })));
+}
+
+/**
+ * (T293) A POINT ON A WATER from its `part_geo` rows: each part's `mid` is a point on that part's own line (the middle of
+ * its main stem; a polygon's representative point — `topology.point_on`); of those, the one nearest the middle of the
+ * water's box. Null with no rows. The same units as `boxOfGeoRows`.
+ */
+export function pointOfGeoRows(rows: readonly Row[], perDegree: 1 | 1_000_000): { lat: number; lon: number } | null {
+  const box = boxOfGeoRows(rows, perDegree);
+  const mids = rows.map((r) => ({ lon: Number(r.mid_lon) / perDegree, lat: Number(r.mid_lat) / perDegree }))
+    .filter((m) => Number.isFinite(m.lon) && Number.isFinite(m.lat) && !(m.lon === 0 && m.lat === 0));
+  if (!mids.length) return null;
+  if (!box) return mids[0]!;
+  const cx = (box[0] + box[2]) / 2, cy = (box[1] + box[3]) / 2, k = Math.cos((cy * Math.PI) / 180);
+  const d = (m: { lon: number; lat: number }) => ((m.lon - cx) * k) ** 2 + (m.lat - cy) ** 2;
+  return mids.reduce((a, b) => (d(b) < d(a) ? b : a));
 }
 
 function lastIndex(values: readonly (number | null)[]): number {

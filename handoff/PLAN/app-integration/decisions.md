@@ -1690,3 +1690,28 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - Bedford Channel, Enterprise Channel, Gilmour Slough, Sapperton Channel, Tilbury Slough, Williamson Slough (exact Fraser
   code, below the CPR bridge at Mission) are tidal along their whole length (`tidal_waters.json`). Ewen Slough (its own
   code) stays freshwater.
+
+## OWNER 2026-10-29 — a gauge reached through a lake (T296)
+- Owner: "if no gauge is downstream I agree that is fine but if there are other gauges closer they should take almost
+  full amount of the prediction because through a lake acts as a natural dampening system for the measurement."
+- RULE (gauge representativeness is owner policy): where a water's answer draws on several gauges, a gauge whose ROUTE
+  to the water crosses a lake keeps `THROUGH_LAKE_FACTOR` (0.05) of its usual weight and may not lead WHENEVER another
+  reporting gauge reaches the water with no lake between — that one takes ~95%+ of the answer. Where every counted
+  gauge crosses a lake, nothing changes (they are the best there is) and the Conditions panel says, beside the answer:
+  "Measured below Pitt Lake — the lake smooths changes, so read it loosely." (`THROUGH_LAKE_WORDS`, core).
+- One formula: `lake_damped` (pipeline/gauges/consume/panel.py) ↔ `lakeDamped` (core/trust.ts), run side by side by
+  app/tools/one-formula.test.ts; the constant is generated into core (`gauge-policy.generated`). The panel's floor
+  (`MIN_TOTAL_WEIGHT`) still asks the undamped total — the rule says who is heard, not how much is known.
+- Where the lake comes from: the donor ROUTE the app draws (`section_down` pointers), its reaches strictly between the
+  two ends, a reach being a lake by `section_down.lake` (`shed.lake_reaches`: a lake polygon not a stream water's).
+- OWNER 2026-10-29 (later): "the map should match the data in the click" — the rule applies to the map's colour and
+  saved spots too, by ONE implementation: the build flags each panel member whose route crosses a lake
+  (`panels.through_lake_panels`, mirroring `routesOf` over the same pointers; `panel_member.lake`, paint/5), and the
+  map (`panelStanding`), the sheet (`answerFrom`) and a saved spot (`captureSpot`, `panelOnDay`) all hand those members
+  to core's one `estimate`/`answering` (`lakeDamped` inside it; Python twin `panel.answering`, pinned by
+  one-formula.test.ts). The pipeline ships a fact (the crossing), never a weight. On a paint/4 release the map knows no
+  lakes and the sheet falls back to its walked routes; a paint/5 release needs the new APK (`minAppVersion`).
+
+## OWNER 2026-10-29 — spot visit rating scale (T294)
+- (T294, owner 2026-10-29) A spot visit's rating is 1–5 stars (words Poor / Fair / OK / Good / Great; core `RATING`),
+  stored as the whole number. A later scale change must map the stored numbers.

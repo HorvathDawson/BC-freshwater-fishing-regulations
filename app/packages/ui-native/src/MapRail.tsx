@@ -14,6 +14,7 @@ import { Icon } from "./icons";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { hitProps } from "./regs/hit";
+import { useCoachRefs } from "./CoachMarks";
 
 /** One button of the stack: 44 px square (T258, owner 2026-10-29: grown from 40 so the web reaches the 44 target as drawn). */
 const SIZE = 44;
@@ -48,6 +49,7 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, childre
     onLayers && { k: "layers", label: LAYER_WORDS.railLabel(layersChanged), onPress: onLayers,
                   icon: <Icon name="layers" colour={palette.ink} size={RAIL_ICON} />, badge: layersChanged },
   ].filter((b): b is Exclude<typeof b, undefined> => !!b);
+  const coach = useCoachRefs();   // (T293) the walkthrough points at the layers button (`layers`)
   if (buttons.length === 0) return null;
   return (
     <View testID="map-rail-column" pointerEvents="box-none"
@@ -57,7 +59,7 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, childre
                    borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.box, overflow: "hidden",
                    ...palette.lift }}>
       {buttons.map((b, i) => (
-        <Pressable {...hitProps({ w: SIZE, h: SIZE })} key={b.k} onPress={b.onPress} accessibilityRole="button" accessibilityLabel={b.label}
+        <Pressable {...hitProps({ w: SIZE, h: SIZE })} key={b.k} ref={coach(b.k)} onPress={b.onPress} accessibilityRole="button" accessibilityLabel={b.label}
                    style={({ pressed }) => ({
                      width: SIZE, height: SIZE, alignItems: "center", justifyContent: "center",
                      backgroundColor: pressed ? palette.tint : palette.card,

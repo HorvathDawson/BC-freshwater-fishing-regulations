@@ -28,7 +28,7 @@ import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdat
          type UpdateService, type WaterSource } from "@app/data";
 import type { MobileDataGate, ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
@@ -553,9 +553,12 @@ export default function App() {
                  let answer: DayFlowAnswer | null = null;
                  await spotsHook.refresh(async (s) => {
                    if (s.id !== spot.id) return s;
-                   const got = await fillDayFlow(s, { source: data.source, hydat });
-                   answer = got.answer;
-                   return got.spot;
+                   // (T294) the visit the page shows (`spot` is the spot read as it), written back to that visit alone
+                   return onVisit(s, visitIdOf(spot), async (v) => {
+                     const got = await fillDayFlow(v, { source: data.source, hydat });
+                     answer = got.answer;
+                     return got.spot;
+                   });
                  });
                  return answer;
                }}

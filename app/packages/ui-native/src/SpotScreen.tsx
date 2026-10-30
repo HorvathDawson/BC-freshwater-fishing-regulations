@@ -25,7 +25,8 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { isUntitled, needsRefresh, refreshReason, spotHeadline, spotLabel, type PhotoStore, type Spot } from "@app/data/spots";
 import { SPOT_WORDS as W } from "@app/core";
-import { leadUpView, useBackLayer, usePhotoUris, type DayFlowView, type LikeVisitView, type PhotoEdit } from "@app/ui";
+import { leadUpView, useBackLayer, usePhotoUris, type DayFlowView, type LikeVisitView, type PhotoEdit,
+         type VisitsView } from "@app/ui";
 import { LeadUpStrip } from "./LeadUpStrip";
 import { LikeVisitStrip } from "./LikeVisitStrip";
 import { GaugeTrace } from "./GaugeTrace";
@@ -39,6 +40,7 @@ import { Block, Link, Section } from "./spot/parts";
 import { WIDE_PANEL } from "./DonorPanel";
 import { WaterRecord, WeatherRecord } from "./spot/Record";
 import { SpotPhotos } from "./spot/SpotPhotos";
+import { RateBlock, VisitsBlock } from "./spot/Visits";
 import { hitProps } from "./regs/hit";
 
 
@@ -86,6 +88,17 @@ export interface SpotScreenProps {
    * (`useDayFlow`). Absent, or a null view: nothing to say (no station, or the reading is the day's own).
    */
   dayFlow?: { view: DayFlowView | null; onAsk: (() => void) | null };
+  /**
+   * (T294) A saved spot's visits: which is shown (`spot` is the spot read as that visit), its rating, and the actions.
+   * Absent (a draft): no visits block and no rating.
+   */
+  visits?: VisitsView | null;
+  onPickVisit?: (id: string) => void;
+  /** A star pressed (the shown visit's rating, saved at once). */
+  onRate?: (n: number) => void;
+  onAddVisit?: () => void;
+  /** Remove the shown visit (asked first); offered only while the spot has another. */
+  onRemoveVisit?: () => void;
 }
 
 /**
@@ -103,7 +116,7 @@ export function SpotScreen(p: SpotScreenProps) {
   const wide = useWindowDimensions().width >= WIDE_PANEL;
   const MEASURE_NOW = wide ? MEASURE_WIDE : MEASURE;
   const editable = mode === "draft" || mode === "edit";
-  const [confirm, setConfirm] = useState<"delete" | "discard" | null>(null);
+  const [confirm, setConfirm] = useState<"delete" | "discard" | "visit" | null>(null);
 
   // S1: the week before the visit, decided in @app/ui; and the photos — the edit's while editing, else the spot's
   const lead = leadUpView(spot.leadUp, spot.reading);
@@ -207,6 +220,7 @@ export function SpotScreen(p: SpotScreenProps) {
                  onConfirm={() => {
                    setConfirm(null);
                    if (shown === "delete") p.onDelete?.();
+                   else if (shown === "visit") p.onRemoveVisit?.();
                    else p.onDiscard?.();
                  }}
                  onSaveInstead={shown === "discard" ? p.onSave : undefined} />
@@ -266,6 +280,14 @@ export function SpotScreen(p: SpotScreenProps) {
             <Icon name="next" colour={palette.accent} size={18} />
           </Pressable>
         )}
+
+        {/* (T294) the spot's visits: pick one (the page shows it), add another, remove the one shown */}
+        {mode === "view" && p.visits && (
+          <VisitsBlock view={p.visits} palette={palette} onPick={p.onPickVisit} onAdd={p.onAddVisit}
+                       onRemove={p.onRemoveVisit && (() => setConfirm("visit"))} />
+        )}
+        {/* the shown visit's rating, under the visit it rates: one press saves it */}
+        {mode === "view" && p.visits && <RateBlock view={p.visits.rate} palette={palette} onRate={p.onRate} />}
 
         {wide ? (
           <View style={{ flexDirection: "row", gap: 36, alignItems: "flex-start" }}>

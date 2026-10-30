@@ -220,8 +220,8 @@ Never cite a PDF page without writing "PDF p.".
 | K4 | A lake fully covered by its parts is not searchable as a whole: search finds the parts. | 2026-10-03 | Kootenay, Williston, Shannon. | — | `test_export_ui_rules.py::test_a_lake_cut_into_parts_is_read_through_its_parts` |
 | K5 | A lake divided into internal closure areas (a lake split) is DEFERRED, never curated as a stream cut. | 2026-08 | Shuswap Lake's p.28 maps A/B/C. | 28 | Curation process (the review app's `deferred` status). ◐ |
 | K6 | A braid's surviving channel is chosen by principle: FWA's mainstem first, then the highest magnitude and order, then length. Never by id order. | 2026-10-06 (B8) | — | — | `nests.SURVIVOR_BY_PRINCIPLE`; `test_prune.py` |
-| K7 | TIDAL water is a different regulation system. It carries no provincial rules or licences, only the note "tidal water: see the federal (DFO) tidal waters regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence is required". | 2026-10-06 (D12) | Nitinat Lake is tidal and is the only tidal row. | 21 | `licence.TIDAL_IS_DOCUMENTED`; `test_answers_tidal.py`; `test_placement_rulings.py::test_nitinat_lake_is_tidal_and_the_only_tidal_row` ⚡ see C-2 |
-| K8 | The Fraser below the Mission CPR bridge is approved AS BUILT (Region 2 freshwater zone rules) until tidal water is specced. | 2026-10-07 | A steelhead at New Westminster on Sep 1 reads "release". | 21, 23 | **⚠ NOT ENFORCED** as tidal. Owner 2026-10-28: K8 retires when the T212/T166 tidal cuts land — the piece below each tidal split (Fraser below Mission included) is REMOVED from the freshwater map (T98 folded into T212/T166). ⚡ see C-2 |
+| K7 | TIDAL water is a different regulation system. It carries no provincial rules or licences, only the note "tidal water: see the federal (DFO) tidal waters regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence is required". | 2026-10-06 (D12); built 2026-10-29 | Nitinat Lake is the only tidal ROW; the piece below each tidal split (33 cuts, the Fraser below Mission included) and 10 whole tidal waters (`tidal_waters.json`) are tidal water too, off the freshwater map. | 21 | `licence.TIDAL_IS_DOCUMENTED`; `test_answers_tidal.py`; `test_placement_rulings.py::test_nitinat_lake_is_tidal_and_the_only_tidal_row`; `test_tidal_cut.py`; `test_tidal_pinned.py` (C-2 resolved) |
+| K8 | ~~The Fraser below the Mission CPR bridge is approved AS BUILT (Region 2 freshwater zone rules) until tidal water is specced.~~ **RETIRED 2026-10-29** (C-2): the piece below `fraser_river__the_cpr_bridge_at_mission` is tidal water (K7), off the freshwater map. | 2026-10-07; retired 2026-10-29 | A steelhead at New Westminster: tidal water, see DFO. | 21, 23 | `test_tidal_pinned.py::test_one_tidal_cut_owns_every_tidal_section_of_the_river[gnis:39325]` |
 | K9 | An unnamed part's water kind is the graph node's (`reach.water_kind.kind_of`), never a guess: "we definitely know this from the build". | 2026-10-10 (S1) | An unnamed pond on a river reads as a lake or stream from its node. | — | `read.section_kind`; `unnamed_part.kind` |
 
 ## 11. Extents and boundaries (E)
@@ -332,6 +332,9 @@ Never cite a PDF page without writing "PDF p.".
   below Mission included; K8 then retires. Tributaries: the trib walk runs on the full network before the tidal piece
   is dropped, and a stream entering tidal water stays its river's tributary (check:
   handoff/PLAN/curation-review/tidal/tributary-impact.md). T98 is folded into T212/T166.
+  **RESOLVED 2026-10-29 (built, r-ce76b4ed3624):** 33 tidal cuts and 10 whole tidal waters are off the freshwater map,
+  the Fraser below Mission included; K8 retired; no rule left without water (`report.tidal_emptied` empty). Pinned:
+  `test_tidal_cut.py`, `test_tidal_pinned.py` (Fraser at Mission, Squamish, Skeena one cut each; the Cowichan's mouth).
 - **C-3. Exact size bounds and the display (Q13): ACCEPTED 2026-10-08.** "None over 40 cm" against a
   closed "40 cm or more" band is an accepted ambiguity: the user says no one can measure a fish that
   precisely. The display wording stays as it is.
@@ -354,8 +357,7 @@ Never cite a PDF page without writing "PDF p.".
 
 ## 16. Not enforced, or held only by curated data
 
-- **⚠ NOT ENFORCED:**
-  - K8, Fraser below Mission as tidal (until T166 step 5 removes the tidal pieces; T98 folded into T212/T166 2026-10-28).
+- **⚠ NOT ENFORCED:** none (K8 retired 2026-10-29: the Fraser below Mission is tidal water, C-2).
 - **◐ PARTIAL, curated data with no test pinning it:**
   - K5 (ticket T100).
 

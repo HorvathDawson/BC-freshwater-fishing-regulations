@@ -3,7 +3,7 @@
  * its routes, the route map's colouring, the lead gauge's reading or its quiet head, and the gauge switcher.
  */
 import { useMemo, useRef, useState } from "react";
-import { speaks, sheetLead, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
+import { speaks, sheetLead, throughLakeStations, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
          type WaterSource, type SectionId, type StationId } from "@app/data";
 import { CONDITIONS_WORDS, donorLastReport, donorReads, donorSilent, freshness, gaugeCountLine, noGaugeSentence,
          readingAgeLine, readingHeading, readingIn, readingStandingLine, shownParameter, stageLine, stateAt,
@@ -11,7 +11,7 @@ import { CONDITIONS_WORDS, donorLastReport, donorReads, donorSilent, freshness, 
 import { useGaugeTrace, useStationReading } from "../hooks";
 import { routeLabels, routeValues, type RouteColourVM } from "../routeColour";
 import { useLastReports, type PanelFeed } from "./feed";
-import { usePanel, usePanelRoutes, usePanelStandings, useSpeaker } from "./standings";
+import { useJoinedRoutes, usePanel, usePanelStandings, useRoutes, useSpeaker } from "./standings";
 import { gaugeChoiceGroups, gaugeChoices, useGaugeSides, type GaugeChoiceVM, type GaugeGroupVM,
          type GaugeSides } from "./donor";
 
@@ -103,8 +103,11 @@ export function useConditionsView(
   const spoken = useSpeaker(source, section);
   const speaker = spoken.state === "ready" ? spoken.value.speaker : null;
   const traced = useGaugeTrace(source, section);
-  const panel = useLastReports(feed, usePanelRoutes(source, section,
-                                                    usePanel(source, feed, section, quantity, horizon)));
+  // (T296) the routes first: a member whose route crosses a lake is weighed as such once they are walked (the answer
+  // shows at once without them, and is refreshed in place)
+  const routes = useRoutes(source, section);
+  const lakes = useMemo(() => throughLakeStations(routes), [routes]);
+  const panel = useLastReports(feed, useJoinedRoutes(usePanel(source, feed, section, quantity, horizon, lakes), routes));
   const today = useMemo(() => day ?? new Date(), [day]);
   // THE ROUTES OF THE MEMBERS THAT SPEAK — the route map's own chain (`donorView`): a silent member has no pin, so its
   // route is not coloured either.

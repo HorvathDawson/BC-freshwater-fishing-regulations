@@ -7,17 +7,19 @@
  * Draws `LikeVisitView` (@app/ui) and nothing else: every string is core's.
  */
 import { Text, View } from "react-native";
-import { LIKE_WORDS } from "@app/core";
 import type { LikeVisitView } from "@app/ui";
 import { TYPE } from "./type";
+import { useCoachTarget } from "./CoachMarks";
 import type { Palette } from "./theme";
 
 export function LikeVisitStrip({ view, palette }: { view: LikeVisitView; palette: Palette }) {
   const small = (testID: string, s: string, colour = palette.sub) => (
     <Text testID={testID} style={{ ...TYPE.small, color: colour }}>{s}</Text>
   );
+  // (T293) the walkthrough points at the coming days, then at the day closest to the visit
+  const coach = useCoachTarget("spot:days"), best = useCoachTarget("spot:best");
   return (
-    <View testID="like-visit" style={{ gap: 12 }}>
+    <View testID="like-visit" ref={coach} collapsable={false} style={{ gap: 12 }}>
       {small("like-intro", view.intro)}
       {view.days ? (
         <>
@@ -28,7 +30,7 @@ export function LikeVisitStrip({ view, palette }: { view: LikeVisitView; palette
           </View>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
             {view.days.map((d) => (
-              <View key={d.date} testID={`like-day-${d.date}`}
+              <View key={d.date} testID={`like-day-${d.date}`} ref={d.best ? best : undefined} collapsable={false}
                     style={{ flexGrow: 1, flexBasis: 280, minWidth: 0, gap: 6, padding: 12, borderRadius: palette.r.box,
                              borderWidth: d.best ? 2 : 1, borderColor: d.best ? palette.ink : palette.line }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -41,7 +43,7 @@ export function LikeVisitStrip({ view, palette }: { view: LikeVisitView; palette
                     {d.read ? <Text style={{ ...TYPE.small, color: palette.sub }}>{d.read}</Text> : null}
                   </View>
                 </View>
-                {d.best ? <Text style={{ ...TYPE.section, color: palette.accent }}>{LIKE_WORDS.best.toUpperCase()}</Text> : null}
+                {d.best ? <Text style={{ ...TYPE.section, color: palette.accent }}>{view.best.toUpperCase()}</Text> : null}
                 {d.basis ? <Text style={{ ...TYPE.caption, color: palette.faint }}>{d.basis}</Text> : null}
                 {d.reasons.length ? (
                   <View style={{ gap: 2, paddingTop: 4, borderTopWidth: 1, borderTopColor: palette.line }}>
@@ -53,6 +55,7 @@ export function LikeVisitStrip({ view, palette }: { view: LikeVisitView; palette
           </View>
         </>
       ) : view.note ? small("like-note", view.note) : null}
+      {view.hint ? small("like-hint", view.hint) : null}
       <Text testID="like-age" style={{ ...TYPE.caption, color: palette.faint }}>{view.age}</Text>
     </View>
   );

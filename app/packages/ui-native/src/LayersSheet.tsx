@@ -21,6 +21,7 @@ import { OptionRow, type Option } from "./OptionRow";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { hitProps } from "./regs/hit";
+import { CoachSpot } from "./CoachMarks";
 
 /** A legend swatch's colour, from the theme's map tokens (never restated): what the map draws for it. */
 export function legendColour(p: Palette, s: LegendSwatch): string {
@@ -55,16 +56,18 @@ const option = (p: Palette, t: LayerTileVM): Option =>
   ({ k: t.id, t: t.label, note: t.note ?? undefined, tag: t.tag ?? undefined, swatch: swatch(p, t.id),
      disabled: !t.enabled });
 
-export function LayersSheet({ open, onClose, palette, vm, onChoose }: {
+export function LayersSheet({ open, onClose, palette, vm, onChoose, overlay }: {
   open: boolean; onClose: () => void; palette: Palette;
   /** `@app/core` layersVM — the Shell's, for the view the sheet opened on. */
   vm: LayersVM;
   /** A tile or a switch was pressed (`chooseLayer`); greyed ones never call it. */
   onChoose: (id: string) => void;
+  /** (T293) the walkthrough's card, while its step is about this sheet */
+  overlay?: React.ReactNode;
 }) {
   const chosen = (ts: readonly LayerTileVM[]) => ts.find((t) => t.chosen)?.id ?? "";
   return (
-    <Sheet open={open} onClose={onClose} title={vm.title} palette={palette} scroll>
+    <Sheet open={open} onClose={onClose} title={vm.title} palette={palette} scroll overlay={overlay}>
       {/* THE CONDITIONS MAP'S ONE QUANTITY, first: what the water is coloured by there (never two on one ramp) */}
       {vm.show.tiles.length > 0 && (
         <Section palette={palette} title={vm.show.title}>
@@ -74,8 +77,10 @@ export function LayersSheet({ open, onClose, palette, vm, onChoose }: {
       )}
       {vm.ground.tiles.length > 0 && (
         <Section palette={palette} title={vm.ground.title}>
-          <OptionRow palette={palette} shape="square" label={vm.ground.title} value={chosen(vm.ground.tiles)}
-                     options={vm.ground.tiles.map((t) => option(palette, t))} onChange={onChoose} />
+          <CoachSpot k="layers:ground">
+            <OptionRow palette={palette} shape="square" label={vm.ground.title} value={chosen(vm.ground.tiles)}
+                       options={vm.ground.tiles.map((t) => option(palette, t))} onChange={onChoose} />
+          </CoachSpot>
           {/* SATELLITE IS ONLINE-ONLY (owner 2026-10-21): the choice is kept, the map draws its own ground, and this
               says why until the imagery is back */}
           {vm.ground.note && <Fine palette={palette} testID="basemap-note">{vm.ground.note}</Fine>}
@@ -104,7 +109,10 @@ export function LayersSheet({ open, onClose, palette, vm, onChoose }: {
 
       {vm.overlays.rows.length > 0 && (
         <Section palette={palette} title={vm.overlays.title}>
-          {vm.overlays.rows.map((r) => <SwitchRow key={r.id} palette={palette} row={r} onPress={() => onChoose(r.id)} />)}
+          {vm.overlays.rows.map((r) => r.id === "overlay.obstacles"
+            // (T293) the walkthrough's fish-obstacles step points at this row
+            ? <CoachSpot key={r.id} k="layers:obstacles"><SwitchRow palette={palette} row={r} onPress={() => onChoose(r.id)} /></CoachSpot>
+            : <SwitchRow key={r.id} palette={palette} row={r} onPress={() => onChoose(r.id)} />)}
         </Section>
       )}
 

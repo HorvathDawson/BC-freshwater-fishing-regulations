@@ -55,7 +55,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
   /** (T248) re-open the first-run walkthrough from the Help page; absent: no button */
   onWalkthrough?: () => void;
   /** (T276) replay the Runs / Conditions tutorial (Help) */
-  onTabTour?: (k: "runs" | "conditions") => void;
+  onTabTour?: (k: "runs" | "conditions" | "salmon") => void;
   /** the release (null: none open — a test — so no regulations and no manifest) */
   loader: RegsLoader | null;
   info?: MenuInfo;
@@ -112,7 +112,9 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
       {page("offline", offline ? <OfflinePage c={offline} palette={palette} /> : null)}
       {page("help", <HelpPage palette={palette} theme={theme}
                               onWalkthrough={onWalkthrough ? () => { menu.closePage(); onWalkthrough(); } : undefined}
-                              onTabTour={onTabTour ? (k) => { menu.closePage(); onTabTour(k); } : undefined} />)}
+                              onTabTour={onTabTour ? (k) => { menu.closePage(); onTabTour(k); } : undefined}
+                              // (T293) Help's Offline section opens Offline maps (the app's page: none on the web)
+                              onOffline={offline ? () => menu.show("offline") : undefined} />)}
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
         edition: m?.sources?.synopsis?.title ?? null, tiles })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({

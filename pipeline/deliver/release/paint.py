@@ -1,6 +1,6 @@
-"""PAINT (P08, MINIMAL-PACKAGING §2): the one file a web reader needs before the first coloured map. Format `paint/4`:
+"""PAINT (P08, MINIMAL-PACKAGING §2): the one file a web reader needs before the first coloured map. Format `paint/5`:
 
-    "BCPT"  u8 version (4)
+    "BCPT"  u8 version (5)
     u32le   n, then the status index (BCSI v2, `pipeline.deliver.status_index`), exactly the bytes of status_index.bin
     the FLOW half, every column a run of LEB128 varints unless said otherwise:
       stations   u32le byte length, then the station ids sorted, UTF-8, joined by "\\n" (the index every column uses)
@@ -9,7 +9,8 @@
       members    count; then per row in (panel_id, ord) order: panel_id delta, ord, station index, role (0 up / 1 down),
                  round(area_km2 × 1000), discharge_years, level_years (the record per quantity, T110), regulated
                  (0/1), same_river (0/1), lead (0 none, else its rank: the
-                 section's own gauge, which leads the answer — owner 2026-10-22; panel.py "a water's own gauge")
+                 section's own gauge, which leads the answer — owner 2026-10-22; panel.py "a water's own gauge"),
+                 lake (0/1: its route to the section crosses a lake — T296, `panels.through_lake_panels`)
       basins     count; then per row in (basin_id, station) order: basin_id (u16 length + UTF-8), station index,
                  area_km2 present (0/1) + its float64 (8 bytes: the column holds float32 values rounded to 16 digits, which only a
                  double reproduces), discharge_years, level_years
@@ -33,7 +34,9 @@ column beside paint's runs, 0.19 MB.
 `basin_member` row for row, and the status half byte for byte.
 
 paint/1 had no `lead`, paint/2 no access half, paint/3 one `years` per member and basin row (the longest record, or
-the last one read) where paint/4 carries the record per quantity; a reader refuses another version by its version byte.
+the last one read) where paint/4 carries the record per quantity, paint/4 no member `lake` (T296); a reader refuses
+another version by its version byte (the app reads 4 and 5; an older app refuses 5, so a release carrying it is
+published with `minAppVersion` — the app says "update the app" and keeps its data).
 """
 from __future__ import annotations
 
@@ -45,8 +48,8 @@ from pipeline.deliver.binary import put_varint, read_varint
 from pipeline.deliver.bundle.access import TIERS as ACCESS_TIERS
 
 MAGIC = b"BCPT"
-VERSION = 4
-FORMAT = "paint/4"
+VERSION = 5
+FORMAT = "paint/5"
 
 #: Which access tiers ride in paint (the colour and the banner), and which in the `access` file (the gentle note).
 PAINT_TIERS: Tuple[str, ...] = ("no_access",)
@@ -98,15 +101,18 @@ def encode(status_index: bytes, bundle: sqlite3.Connection) -> bytes:
         _uv(out, n)
         _uv(out, pid)
         end = start + n
+    if not bundle.execute("SELECT 1 FROM pragma_table_info('panel_member') WHERE name = 'lake'").fetchone():
+        raise ValueError("paint: the bundle's panel_member has no `lake` — it predates T296; rebuild it: "
+                         "python -m pipeline.deliver bundle")
     pm = bundle.execute("SELECT panel_id, ord, station, role, area_km2, discharge_years, level_years, regulated, "
-                        "same_river, lead FROM panel_member ORDER BY panel_id, ord").fetchall()
+                        "same_river, lead, lake FROM panel_member ORDER BY panel_id, ord").fetchall()
     _uv(out, len(pm))
     prev = 0
-    for pid, o, st, role, area, dy, ly, reg, same, lead in pm:
+    for pid, o, st, role, area, dy, ly, reg, same, lead, lake in pm:
         _uv(out, pid - prev)
         prev = pid
         for v in (o, six[st], {"up": 0, "down": 1}[role], _milli(area), dy, ly, int(reg), int(same or 0),
-                  int(lead or 0)):
+                  int(lead or 0), int(lake or 0)):
             _uv(out, v)
     bm = bundle.execute("SELECT basin_id, station, area_km2, discharge_years, level_years FROM basin_member "
                         "ORDER BY basin_id, station").fetchall()
@@ -231,8 +237,8 @@ def decode(b: bytes) -> Dict[str, object]:
     panel_member, pid = [], 0
     for _ in range(r.uv()):
         pid += r.uv()
-        o, si, role, area, dy, ly, reg, same, lead = (r.uv() for _ in range(9))
-        panel_member.append((pid, o, stations[si], ("up", "down")[role], area / 1000, dy, ly, reg, same, lead))
+        o, si, role, area, dy, ly, reg, same, lead, lake = (r.uv() for _ in range(10))
+        panel_member.append((pid, o, stations[si], ("up", "down")[role], area / 1000, dy, ly, reg, same, lead, lake))
     basin_member = []
     for _ in range(r.uv()):
         (lb,) = struct.unpack("<H", r.raw(2))

@@ -179,6 +179,12 @@ export interface PanelMember {
    * `estimate` (`leaderOf`, `leadShares`). Optional so a panel written by hand without it means "nothing leads".
    */
   lead?: number;
+  /**
+   * (T296) `true` only: this member's route to the section crosses a LAKE — the release's `panel_member.lake`
+   * (paint/5), read alike by the map's colour, the sheet and a saved spot; on a paint/4 release the sheet sets it from
+   * its walked routes (`withThroughLake`) and the map knows nothing of lakes. Core's `lakeDamped` applies it.
+   */
+  throughLake?: true;
 }
 
 
@@ -204,6 +210,11 @@ export interface Panel {
   /** The target's own catchment, km². Null where the graph had no magnitude for it. */
   areaKm2: number | null;
   members: readonly PanelMember[];
+  /**
+   * (T296) `true` only: the release says each member's lake crossing (paint/5, `PanelMember.throughLake`), so the
+   * sheet reads it from here as the map does and never from a route (`withThroughLake`). Absent on a paint/4 release.
+   */
+  lakeKnown?: true;
 }
 
 /**
@@ -261,6 +272,15 @@ export interface PanelRoute {
    */
   joinSide?: "spot" | "gauge";
   joinWater?: string;
+  /**
+   * (T296) `true` only: `path` crosses a LAKE between the spot and the gauge (`section_down.lake`, else the water's kind
+   * on a release cut before it) — a lake smooths the gauge's signal on its way here. Absent otherwise, and when the path
+   * is not drawable. `lakeName` names the first such lake, absent when it is unnamed.
+   */
+  throughLake?: true;
+  lakeName?: string;
+  /** (T296) With `throughLake`: the gauge stands `below` the lake (on the spot's way down) or `above` it. */
+  lakeSide?: "below" | "above";
 }
 
 /** Which quantity a chart is about. Never mixed — see `Series.parameter`. */

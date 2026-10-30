@@ -20,7 +20,7 @@
  * spot's "Get the flow for that day" both go through `fillDayFlow`, which asks it. A reading taken ON the visit day is
  * never replaced (`readingIsTheDays`).
  */
-import { localDate, percentileInBand, placeInBand } from "@app/core";
+import { lakeDamped, localDate, percentileInBand, placeInBand } from "@app/core";
 import type { Panel, PanelMember, WaterSource, StationId } from "../index";
 import { answerFrom, type PanelAnswer } from "../panel";
 import { dayIn } from "./leadup";
@@ -220,8 +220,10 @@ export async function panelOnDay(panel: Panel, date: string, ports: DayFlowPorts
  */
 export function panelOfAnswer(p: PanelAnswer): Panel {
   // the members the frozen answer counted (weight over 0): a quiet or stood-back one weighed nothing
-  const plain = p.rows.map((r) => (!(r.weight > 0) || !r.factors ? 0
-    : r.factors.share * r.factors.role * r.factors.record));
+  // (T296) with the through-lake rule applied as the answer was: a damped member's share is not a lead's
+  const plain = lakeDamped(p.rows.map((r) => (!(r.weight > 0) || !r.factors ? 0
+    : r.factors.share * r.factors.role * r.factors.record)), p.rows.map((r) => r.throughLake === true),
+    p.rows.map(() => 0)).weights;
   const total = plain.reduce((a, w) => a + w, 0);
   const led = total > 0 ? p.rows.findIndex((r, i) => r.weight > plain[i]! / total + 1e-9) : -1;
   return { areaKm2: p.areaKm2,
@@ -229,7 +231,8 @@ export function panelOfAnswer(p: PanelAnswer): Panel {
                                             // the frozen answer is a flow panel: its rows carry the discharge
                                             // record, and the day's panel is read in discharge only
                                             years: { discharge: r.years, level: 0 }, regulated: r.regulated,
-                                            sameRiver: r.sameRiver, ...(i === led ? { lead: 1 } : {}) })) };
+                                            sameRiver: r.sameRiver, ...(i === led ? { lead: 1 } : {}),
+                                            ...(r.throughLake ? { throughLake: true as const } : {}) })) };
 }
 
 /**

@@ -929,6 +929,12 @@ CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
                            -- set anyway: it changes only where a river passes from near its
                            -- gauge to far.
                            lead INTEGER NOT NULL DEFAULT 0,
+                           -- (T296, owner 2026-10-29) THIS DONOR'S ROUTE TO THE SECTION CROSSES A LAKE (1; 0 not):
+                           -- the route the app draws, over `section_down` and its `lake` rows
+                           -- (`panels.through_lake_panels`). A through-lake donor counts for little while one with
+                           -- no lake between reports (trust.ts `lakeDamped`) — on the map, the sheet and a saved
+                           -- spot alike. Target-dependent like `lead`, interned with the set.
+                           lake INTEGER NOT NULL DEFAULT 0,
                            PRIMARY KEY (panel_id, ord)) WITHOUT ROWID;
 
 -- WHICH STATION SPEAKS FOR EACH CATCHMENT, for the zoomed-out field.
@@ -996,7 +1002,10 @@ CREATE TABLE lake_gauge (item_id TEXT NOT NULL, station TEXT NOT NULL,
 -- upper Pitt never reached the Alouette's gauge). `len`: the reach's length along the flow path in units of
 -- `shed.DOWN_LEN_UNIT_M` (a lake: its through-line's measure window, else inflow-to-outlet straight line), summed by the
 -- app for "about N km along the river". ADDED LAST, nullable: still down/1, an older release has none.
-CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER NOT NULL, len INTEGER);
+-- (T296) `lake`: 1 where the reach is a LAKE (`shed.lake_reaches`: a lake polygon not a stream water's), NULL otherwise —
+-- a gauge whose route crosses one is reached through standing water and the app weighs it so (`lakeDamped`). ADDED
+-- LAST, nullable: still down/1; an older release has none and the app reads a route's lake from its water's kind.
+CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER NOT NULL, len INTEGER, lake INTEGER);
 
 -- Pentad-sampled percentiles. p0 and p100 are absent on purpose: they do not interpolate
 -- (82% error, measured), and a wrong extreme is worse than no extreme.

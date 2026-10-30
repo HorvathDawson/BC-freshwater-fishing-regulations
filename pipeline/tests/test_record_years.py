@@ -101,7 +101,7 @@ def test_the_member_rows_carry_the_record_per_quantity():
     pid, _ = panels.by_section["s1"]
     assert rows["07ED001"][5:7] == (59, 4)
     assert [r for r in panels.member_rows() if r[0] == pid] == [(pid, 0, "07ED001", "up", rows["07ED001"][4],
-                                                                  59, 4, 0, 1, 0)]
+                                                                  59, 4, 0, 1, 0, 0)]
 
 
 # ------------------------------------------------------------------ the grep pin

@@ -24,6 +24,8 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+- **Tidal close-out (2026-10-29), one yes/no proposal:** Mamquam Blind Channel — the DFO 2015 tidal guide calls it
+  tidal; make `wsc:900-103611` "Mamquam Blind Channel Wetland" whole tidal water (its "Trib 1" stays fresh)?
 - **T227 DFO places not on the map (2026-10-28): review app → DFO, open each, "accept suggestion", Save extent.**
   - accept in review app → DFO: Cowichan — Sandy Pool sign → tidal boundary (= FWA mouth; active, high); weir/Cowichan Lake → 66 Mile Trestle (high); CNR mile 70.2 → Skutz Falls (high, new Skutz cut); "incl. tributaries and Cowichan Lake" = whole river + lake + tributaries (medium: lake's inflows counted). Last three dormant.
   - accept in review app → DFO: Capilano — "including tributaries" = whole + tributaries (high).

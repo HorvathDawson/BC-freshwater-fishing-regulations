@@ -38,12 +38,14 @@ export const offline = {
       const words = ctx.device.screenText();
       if (words.some((w) => /Couldn.t load the synopsis/.test(w))) throw new Error('the installed rule book did not open offline: "Couldn’t load the synopsis."');
       if (words.some((w) => /Loading the synopsis/.test(w))) throw new Error('the rule book is being downloaded offline (not held from the install)');
-      const other = front && !front.includes('ca.canifishthis.app');
+      // a PDF viewer may open in the app's own task (Android's viewer: "synopsis-open.pdf" over the cover page)
+      const viewer = words.find((w) => /synopsis[^ ]*\.pdf/i.test(w));
+      const other = (front && !front.includes('ca.canifishthis.app')) || viewer;
       const noViewer = words.find((w) => /No app on this device opens PDFs/.test(w));
       if (!other && !noViewer) throw new Error(`nothing opened (front: ${front}; saw: ${words.slice(0, 8).join(' | ')})`);
       ctx.device.sh('input keyevent KEYCODE_BACK');
       await ctx.device.sleep(1500);
-      return other ? `opened in ${front.split(/\s+/).find((x) => x.includes('/')) ?? front}` : `held offline; ${noViewer}`;
+      return other ? `opened: ${viewer ?? front}` : `held offline; ${noViewer}`;
     });
     await ctx.step('a town offline: the waters near it (read from the installed set)', async () => {
       await toMap(ctx);
@@ -98,7 +100,11 @@ export const offline = {
       await ctx.waitText(OFFLINE_BANNER, 20_000);
       ctx.flow('tab', { TAB: 'Conditions' });
       await ctx.device.sleep(3000);
+      // (T257) a tab's first visit shows its tour (a Modal over the tab bar): skipped as a reader would
+      if (ctx.device.screenText().some((w) => /^Skip$/.test(w))) { ctx.flow('tap-text', { TEXT: 'Skip' }); await ctx.device.sleep(1000); }
       ctx.flow('tab', { TAB: 'Spots' });
+      await ctx.device.sleep(1500);
+      if (ctx.device.screenText().some((w) => /^Skip$/.test(w))) { ctx.flow('tap-text', { TEXT: 'Skip' }); await ctx.device.sleep(1000); }
       await ctx.device.sleep(1500);
       ctx.flow('tab', { TAB: 'Map' });
       const bad = ctx.device.screenText().find((w) => /could not be loaded|Something went wrong/i.test(w));

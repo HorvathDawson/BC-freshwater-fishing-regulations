@@ -7,10 +7,12 @@
  * chooses which, in order.
  */
 import { useEffect, useMemo, useState } from "react";
-import { LIKE_WORDS, likeAgeLine, likeDay, likeDayHead, likeDayLabel, likeDays, likeNothingThen, likeScoreText,
-         likeVisitHead } from "@app/core";
-import { comingConditions, fetchLike, NOTHING_FETCHED, readLike, visitConditions, visitHour, writeLike,
-         type LikeFetched, type LikeSources, type LikeStore, type Spot } from "@app/data/spots";
+import { isRating, LIKE_WORDS, likeAgeLine, likeDay, likeDayHead, likeDayLabel, likeDays, likeNothingThen, likeScoreText,
+         likeVisitHead, PREDICT_WORDS, predictDay, predictLabel, predictReasons, predictText, ratingWord, starsText,
+         visitDateText } from "@app/core";
+import { comingConditions, fetchLike, latestVisitId, NOTHING_FETCHED, readLike, spotVisits, visitConditions, visitHour,
+         visitSpot, writeLike, type LikeFetched, type LikeSources, type LikeStore, type Spot,
+         type VisitSpot } from "@app/data/spots";
 import type { Connectivity } from "./imagery";
 
 export interface LikeDayVM {
@@ -35,8 +37,17 @@ export interface LikeDayVM {
 }
 
 export interface LikeVisitView {
+  /**
+   * (T294) "predict": the days read against EVERY rated visit, a predicted rating each (core `predictDay`); "like": no
+   * visit is rated, so the days are compared with one visit, as T51 / T284 did.
+   */
+  mode: "like" | "predict";
   heading: string;
   intro: string;
+  /** (T294) The mark on the best day: "Closest to your visit", or "Best going by your ratings". */
+  best: string;
+  /** (T294) A line under the days: how to get a prediction (nothing rated), or which visits were left out (unrated). */
+  hint: string | null;
   visit: { top: string; sub: string; label: string };
   /** Null when the visit recorded nothing to compare with (`note` says so). */
   days: LikeDayVM[] | null;
@@ -51,11 +62,55 @@ const oldest = (f: LikeFetched): number | null => {
   return t.length ? Math.min(...t) : null;
 };
 
-export function likeVisitView(spot: Spot, f: LikeFetched, offline: boolean, now: number): LikeVisitView {
+/**
+ * The strip for a spot. (T294) With any visit rated, every coming day is read against every rated visit and predicted
+ * from their ratings (`predictView`); with none, it compares the days with visit `shown` (default the latest), as before.
+ */
+export function likeVisitView(spot: Spot, f: LikeFetched, offline: boolean, now: number,
+                              shown?: string | null): LikeVisitView {
+  const visits = spotVisits(spot).map((v) => visitSpot(spot, v.id));
+  const rated = visits.filter((v) => isRating(v.rating) && !likeNothingThen(visitConditions(v)));
+  if (rated.length) return predictView(rated, visits.length - rated.length, f, offline, now);
+  const one = likeOne(visitSpot(spot, shown ?? latestVisitId(spot)), f, offline, now);
+  return { ...one, hint: PREDICT_WORDS.rateToPredict };
+}
+
+/** (T294) The coming days predicted from the rated visits, each scored with T284's `likeDay` at its own hour. */
+function predictView(rated: VisitSpot[], unrated: number, f: LikeFetched, offline: boolean, now: number): LikeVisitView {
+  const list = rated.map((v) => `${starsText(v.rating!)} ${visitDateText(v.visitedAt, now)}`).join(" · ");
+  const scored = likeDays(now).map((date) => predictDay(date, rated.map((v) => {
+    const hour = visitHour(v);
+    const that = comingConditions(f, [date], hour)[0]!;
+    return { id: v.visitId, visitedAt: v.visitedAt, rating: v.rating!,
+             day: likeDay(visitConditions(v), that, { today: !!f.flowNow && date === f.flowNow, hour }) };
+  })));
+  const top = scored.reduce<number | null>((m, d) => (d.value !== null && (m === null || d.value > m) ? d.value : m), null);
+  const bestDate = top === null ? null : scored.find((d) => d.value === top)!.date;
+  const days = scored.map((p): LikeDayVM => {
+    const h = likeDayHead(p.date, now);
+    const rests = p.value === null ? PREDICT_WORDS.noScore : PREDICT_WORDS.restsOn(p.rests);
+    return { date: p.date, top: h.top, sub: h.sub, score: predictText(p),
+             read: p.value === null ? null : ratingWord(p.value),
+             basis: p.far ? `${rests}. ${PREDICT_WORDS.far}` : rests,
+             best: p.date === bestDate,
+             reasons: predictReasons(p, now),
+             label: predictLabel(p, now),
+             why: p.top ? [...(p.top.day.note ? [p.top.day.note] : []), ...p.top.day.factors.map((x) => x.line),
+                           ...(p.top.day.caveat ? [p.top.day.caveat] : [])] : [] };
+  });
+  return { mode: "predict", heading: LIKE_WORDS.heading, intro: PREDICT_WORDS.intro, best: PREDICT_WORDS.best,
+           hint: unrated ? PREDICT_WORDS.unratedLeftOut(unrated) : null,
+           visit: { top: PREDICT_WORDS.top, sub: list, label: `${PREDICT_WORDS.top}: ${list}.` },
+           days, note: null, age: likeAgeLine(oldest(f), now, offline) };
+}
+
+/** One visit against the coming days (T51 / T284). */
+function likeOne(spot: Spot, f: LikeFetched, offline: boolean, now: number): LikeVisitView {
   const then = visitConditions(spot);
   const v = likeVisitHead(spot.visitedAt, now);
   const visit = { ...v, label: `${v.top}, ${v.sub}: the day the others are compared with.` };
-  const base = { heading: LIKE_WORDS.heading, intro: LIKE_WORDS.intro, visit, age: likeAgeLine(oldest(f), now, offline) };
+  const base = { mode: "like" as const, heading: LIKE_WORDS.heading, intro: LIKE_WORDS.intro, best: LIKE_WORDS.best,
+                 hint: null, visit, age: likeAgeLine(oldest(f), now, offline) };
   if (likeNothingThen(then)) return { ...base, days: null, note: LIKE_WORDS.nothingThen };
   const hour = visitHour(spot);
   const days = likeDays(now);
@@ -83,7 +138,9 @@ export function likeVisitView(spot: Spot, f: LikeFetched, offline: boolean, now:
  * stays as last fetched, and the view says it is offline.
  */
 export function useLikeVisit(spot: Spot | null, sources: LikeSources, store?: LikeStore,
-                             now: () => number = Date.now, connectivity?: Connectivity): LikeVisitView | null {
+                             now: () => number = Date.now, connectivity?: Connectivity,
+                             /** (T294) the visit shown, compared with while no visit is rated; absent: the latest */
+                             shown?: string | null): LikeVisitView | null {
   const id = spot?.id ?? null;
   const [state, setState] = useState<{ id: string | null; f: LikeFetched; offline: boolean }>(
     { id: null, f: NOTHING_FETCHED, offline: false });
@@ -109,6 +166,6 @@ export function useLikeVisit(spot: Spot | null, sources: LikeSources, store?: Li
     return () => { live = false; };
     // a spot's place, station and record do not change while it is open; its id is what a new fetch is for
   }, [id, weather, feed, store, retry]);
-  return useMemo(() => (spot && state.id === spot.id ? likeVisitView(spot, state.f, state.offline, now()) : null),
-                 [spot, state]);
+  return useMemo(() => (spot && state.id === spot.id ? likeVisitView(spot, state.f, state.offline, now(), shown) : null),
+                 [spot, state, shown]);
 }

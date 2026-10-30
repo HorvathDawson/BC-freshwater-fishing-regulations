@@ -1,7 +1,7 @@
 /** The spot screen's confirm: a destructive or lossy step, asked first (also SpotCapture's draft question). */
 import { Text, View } from "react-native";
 import { DRAFT_WORDS } from "@app/data/spots";
-import { SPOT_CONFIRM_WORDS } from "@app/core";
+import { SPOT_CONFIRM_WORDS, VISIT_CONFIRM_WORDS } from "@app/core";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import { Button } from "../Button";
@@ -11,7 +11,8 @@ import { Button } from "../Button";
  * put in (SpotCapture — a back or Cancel), in `DRAFT_WORDS`.
  */
 export function Confirm({ palette, kind, onCancel, onConfirm, onSaveInstead }: {
-  palette: Palette; kind: "delete" | "discard" | "draft";
+  /** (T294) `visit`: remove one visit from a spot that has others */
+  palette: Palette; kind: "delete" | "discard" | "draft" | "visit";
   onCancel: () => void; onConfirm: () => void; onSaveInstead?: () => void;
 }) {
   if (kind === "draft")
@@ -27,8 +28,8 @@ export function Confirm({ palette, kind, onCancel, onConfirm, onSaveInstead }: {
         </View>
       </View>
     );
-  const del = kind === "delete";
-  const w = del ? SPOT_CONFIRM_WORDS.delete : SPOT_CONFIRM_WORDS.discard;
+  const del = kind === "delete" || kind === "visit";
+  const w = kind === "visit" ? VISIT_CONFIRM_WORDS : del ? SPOT_CONFIRM_WORDS.delete : SPOT_CONFIRM_WORDS.discard;
   return (
     <View accessibilityLabel={w.label}
           style={{ marginHorizontal: 18, marginBottom: 8, padding: 16, borderRadius: palette.r.box,

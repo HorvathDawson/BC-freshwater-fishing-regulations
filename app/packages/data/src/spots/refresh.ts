@@ -25,9 +25,19 @@ import { declaredQuantity, fillDays, gaugeDayPending, leadUpMissing, leadUpUnrea
          type FeedIndex } from "./leadup";
 import { DAY_FLOW_WORDS, DAY_PANEL_WORDS, LEAD_UP_WORDS } from "./words";
 import { dayFlowAskable, fillDayFlow, fillDayPanel, needsDayFlow, needsDayPanel, type HydatDaily } from "./dayFlow";
+import { spotVisits, visitSpot, withVisit } from "./visits";
 
-/** Is anything on this spot still unknown, and worth another try? */
+/**
+ * Is anything on this spot still unknown, and worth another try? T294: on ANY of its visits — each visit is a record
+ * of its own day, refreshed the same way (`./visits`).
+ */
 export function needsRefresh(spot: Spot): boolean {
+  if ("visitId" in spot) return needsRefreshVisit(spot);          // a spot read as one visit: that visit
+  return spotVisits(spot).some((v) => needsRefreshVisit(visitSpot(spot, v.id)));
+}
+
+/** One visit (a spot read as that visit). */
+function needsRefreshVisit(spot: Spot): boolean {
   // A gauge reading that was never available is not the same as one that cannot exist:
   // a spot on water no station speaks for has `reading: null` forever, and asking again
   // will never change it. The weather, and the week before, are retryable.
@@ -36,8 +46,20 @@ export function needsRefresh(spot: Spot): boolean {
   return spot.weather === null || leadUpMissing(spot.leadUp) || needsDayFlow(spot) || needsDayPanel(spot);
 }
 
-/** One line for the UI. Null when there is nothing outstanding. */
+/**
+ * One line for the UI. Null when there is nothing outstanding. T294: a spot read as one visit (`visitSpot`) is that
+ * visit's; a whole spot, its first visit that has something outstanding.
+ */
 export function refreshReason(spot: Spot): string | null {
+  if ("visitId" in spot) return visitReason(spot);
+  for (const v of spotVisits(spot)) {
+    const why = visitReason(visitSpot(spot, v.id));
+    if (why) return why;
+  }
+  return null;
+}
+
+function visitReason(spot: Spot): string | null {
   if (spot.weather === null) return "No weather was recorded — it can be filled in from the day this was pinned.";
   if (leadUpUnread(spot.leadUp)) return LEAD_UP_WORDS.notRecorded;
   if (leadUpMissing(spot.leadUp)) return LEAD_UP_WORDS.someDaysPending;
@@ -58,7 +80,21 @@ export function refreshReason(spot: Spot): string | null {
 export async function refreshSpot(spot: Spot, weather: WeatherSource, source?: WaterSource,
                                   feed?: FeedIndex,
                                   history?: { hydat?: HydatDaily; online?: () => boolean }): Promise<Spot> {
-  if (!needsRefresh(spot) && !dayFlowAskable(spot)) return spot;
+  // T294: every visit, each as of its own day, written back to that visit alone
+  let next = spot;
+  for (const v of spotVisits(spot)) {
+    const before = visitSpot(next, v.id);
+    const after = await refreshVisit(before, weather, source, feed, history);
+    if (after !== before) next = withVisit(next, v.id, after);
+  }
+  return next === spot ? spot : { ...next, updatedAt: Date.now() };
+}
+
+/** One visit (a spot read as that visit), as of its own day. */
+async function refreshVisit(spot: Spot, weather: WeatherSource, source?: WaterSource,
+                            feed?: FeedIndex,
+                            history?: { hydat?: HydatDaily; online?: () => boolean }): Promise<Spot> {
+  if (!needsRefreshVisit(spot) && !dayFlowAskable(spot)) return spot;
   let next = spot;
   if (spot.weather === null) {
     // `visitedAt`, never `createdAt`: a spot typed up a week later must be backfilled with

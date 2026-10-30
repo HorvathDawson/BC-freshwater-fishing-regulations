@@ -15,7 +15,7 @@
 import type { Spot, SpotStore } from "./model";
 import { fromDisk } from "./migrate";
 import { serialised } from "./queue";
-import { photosDropped, type PhotoStore } from "./photos";
+import { allPhotos, photosDropped, type PhotoStore } from "./photos";
 
 /** What a platform must provide: whole-file text by name, in one directory. `write` throws when it cannot store. */
 export interface SpotsFs {
@@ -89,16 +89,17 @@ export function openSpotsWith(fs: SpotsFs, name: string, now: () => number = Dat
     put: (spot) => queue(async () => {
       const all = load();
       const i = all.findIndex((s) => s.id === spot.id);
-      const before = (i >= 0 ? all[i]!.photos : null) ?? [];
+      // T294: every visit's photos, so a visit removed (or a photo dropped from any visit) takes its files with it
+      const before = i >= 0 ? allPhotos(all[i]) : [];
       if (i >= 0) all[i] = spot; else all.unshift(spot);
       save(all);
-      await drop(photosDropped(before, spot.photos ?? []));
+      await drop(photosDropped(before, allPhotos(spot)));
     }),
     remove: (id) => queue(async () => {
       const all = load();
       const gone = all.find((s) => s.id === id);
       save(all.filter((s) => s.id !== id));
-      await drop(photosDropped(gone?.photos ?? [], []));
+      await drop(photosDropped(allPhotos(gone), []));
     }),
     patch: (id, change) => queue(async () => {
       const all = load();

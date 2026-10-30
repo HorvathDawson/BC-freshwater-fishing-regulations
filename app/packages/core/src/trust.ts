@@ -19,7 +19,7 @@
  * threshold.
  */
 
-import { MIN_RECORD_YEARS, MIN_TOTAL_WEIGHT, type RecordQuantity } from "./gauge-policy.generated";
+import { MIN_RECORD_YEARS, MIN_TOTAL_WEIGHT, THROUGH_LAKE_FACTOR, type RecordQuantity } from "./gauge-policy.generated";
 
 export { MIN_RECORD_YEARS, type RecordQuantity } from "./gauge-policy.generated";
 
@@ -175,6 +175,11 @@ export interface Contribution {
    * core (`answering`). Absent or false: a core member, or a caller with no panel order.
    */
   reserve?: boolean;
+  /**
+   * (T296) Its path to the reach crosses a lake — the route's (`PanelRoute.throughLake`). Absent: no lake, or not known
+   * (no route walked yet: the map's colour, a saved spot). See `lakeDamped`.
+   */
+  throughLake?: boolean;
 }
 
 /**
@@ -234,6 +239,23 @@ export function leadShares(weights: readonly number[], lead: number | null): num
   const own = Math.max(OWN_LEAD_SHARE, norm[lead]!);
   const rest = total - weights[lead]!;
   return weights.map((w, i) => (i === lead ? own : (1 - own) * w / rest));
+}
+
+/**
+ * A GAUGE REACHED THROUGH A LAKE COUNTS FOR LITTLE when another reports with no lake on its path (T296, owner
+ * 2026-10-29: "through a lake acts as a natural dampening system for the measurement"). `(weights, lead ranks)` after
+ * the rule: unchanged unless a vote with weight crosses a lake AND one with weight does not; then each through-lake
+ * vote keeps `THROUGH_LAKE_FACTOR` of its weight and may not lead. Every vote through a lake (the upper Pitt above Pitt
+ * Lake) is unchanged — the best there is — and the sheet says so (`throughLakeNote`). MIRRORS `lake_damped` in
+ * panel.py; `tools/one-formula.test.ts` runs both.
+ */
+export { THROUGH_LAKE_FACTOR };
+export function lakeDamped(weights: readonly number[], throughLake: readonly boolean[], leads: readonly number[]):
+    { weights: number[]; leads: number[] } {
+  const mixed = weights.some((w, i) => w > 0 && throughLake[i]) && weights.some((w, i) => w > 0 && !throughLake[i]);
+  if (!mixed) return { weights: [...weights], leads: [...leads] };
+  return { weights: weights.map((w, i) => (throughLake[i] ? w * THROUGH_LAKE_FACTOR : w)),
+           leads: leads.map((r, i) => (throughLake[i] ? 0 : r)) };
 }
 
 /** Mirrors `weight_of` in panel.py; `tools/trust-ladder.test.ts` holds the two together. */
@@ -384,7 +406,8 @@ export function estimate(targetAreaKm2: number | null,
   return answering(targetAreaKm2, contributions).answer;
 }
 
-type Vote = { z: number; w: number; ratio: number; sameRiver: boolean; lead: number; reserve: boolean; at: number };
+type Vote = { z: number; w: number; ratio: number; sameRiver: boolean; lead: number; reserve: boolean; lake: boolean;
+              at: number };
 
 /**
  * `estimate`, and which contributions STOOD BACK from it (their indices): the reserve members (`CORE_MEMBERS`) left
@@ -407,7 +430,7 @@ export function answering(targetAreaKm2: number | null, contributions: readonly 
     const w = weightFor(Math.min(targetAreaKm2, c.areaKm2)
                         / Math.max(targetAreaKm2, c.areaKm2), c.role, c.years, same);
     if (w > 0) votes.push({ z: probit(c.percentile), w, ratio, sameRiver: same, lead: c.lead ?? 0,
-                            reserve: c.reserve === true, at });
+                            reserve: c.reserve === true, lake: c.throughLake === true, at });
   });
   let answer = combineVotes(votes);
   if (!votes.some((v) => !v.reserve)) return { answer, stoodBack };
@@ -429,8 +452,11 @@ function combineVotes(votes: readonly Vote[]): Answer {
 
   // A WATER'S OWN GAUGE COMES FIRST (owner 2026-10-22): the shares below are the usual weights normalised, with the
   // leading own gauge — if one may lead and is reporting — raised to OWN_LEAD_SHARE. Everything after reads `shares`.
-  const leader = leaderOf(votes.map((v) => v.lead), votes.map((v) => v.w));
-  const shares = leadShares(votes.map((v) => v.w), leader);
+  // (T296) a vote through a lake counts for little while one with no lake on its path reports — after the floor above,
+  // which asks how much the panel knows; this only says who among them is heard
+  const damped = lakeDamped(votes.map((v) => v.w), votes.map((v) => v.lake), votes.map((v) => v.lead));
+  const leader = leaderOf(damped.leads, damped.weights);
+  const shares = leadShares(damped.weights, leader);
   const mean = votes.reduce((a, v, i) => a + v.z * shares[i]!, 0);
   const varZ = votes.reduce((a, v, i) => a + shares[i]! * (v.z - mean) ** 2, 0);
   const sd = Math.sqrt(varZ);

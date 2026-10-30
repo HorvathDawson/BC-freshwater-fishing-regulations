@@ -87,8 +87,9 @@ FILES = {
         # no distance
         "section_gauge": ["sid", "station", "trust", "mag", "rel", "dist_b"]}},
     "down": {"format": "down/1", "kind": "sqlite", "tables": {
-        # `len` (T252): ADDITIVE, last, nullable — still down/1; an older release has none (no along-river distance)
-        "meta": ["k", "v"], "section_down": ["sid", "down_sid", "len"]}},
+        # `len` (T252): ADDITIVE, last, nullable — still down/1; an older release has none (no along-river distance).
+        # `lake` (T296): the same — an older release has none (the app reads a route's lake from its water's kind)
+        "meta": ["k", "v"], "section_down": ["sid", "down_sid", "len", "lake"]}},
     "climate": {"format": "climate/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "gauge_clim": ["station", "parameter", "bands"]}},
     "geo": {"format": "geo/1", "kind": "sqlite", "tables": {
@@ -167,7 +168,7 @@ UNITS = {
     "geo.part_stretch.n": "microdegrees", "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
     "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
     "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
-    "paint": "paint/4: see pipeline/deliver/release/paint.py",
+    "paint": "paint/5: see pipeline/deliver/release/paint.py",
     "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
              "(sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 "

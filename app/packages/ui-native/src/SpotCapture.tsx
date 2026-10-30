@@ -204,10 +204,12 @@ export function SpotCapture(props: SpotCaptureProps) {
  * archive has nothing for tomorrow, and a spot that records a visit that has not happened
  * is not a spot.
  */
-function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, onNext, error }: {
+export function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, onNext, error, title }: {
   palette: Palette; steps: VisitSteps;
   onShiftDay: (n: number) => void; onDay: (offset: number) => void; onHour: (h: number) => void;
   water: string | null; onBack: () => void; onNext: () => void; error?: string | null;
+  /** (T294) the page's question; "Add a visit" asks it of the visit. Absent: "When were you there?" */
+  title?: string;
 }) {
   const { dayOffset } = steps;
   const { hour } = steps;
@@ -221,7 +223,7 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
       {error ? <ErrorState palette={palette} message={error} /> : null}
 
       <View style={{ gap: 6 }}>
-        <Text style={{ ...TYPE.title, color: palette.ink }}>{CW.when}</Text>
+        <Text style={{ ...TYPE.title, color: palette.ink }}>{title ?? CW.when}</Text>
         <Text style={{ ...TYPE.small, color: palette.sub }}>
           The weather, the flow and the rules are all recorded for this moment
           {water ? ` on ${water}` : ""} — so it is worth getting right.
@@ -312,7 +314,7 @@ function Coach({ palette, title, detail, chose, onCancel, onNext, onNextAsync }:
 }
 
 
-function Busy({ palette, label }: { palette: Palette; label: string }) {
+export function Busy({ palette, label }: { palette: Palette; label: string }) {
   return (
     <LoadingState palette={palette} size={96} label={label}
                   style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 14, backgroundColor: palette.card }}>

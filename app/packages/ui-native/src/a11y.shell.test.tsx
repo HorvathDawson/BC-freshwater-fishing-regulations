@@ -142,12 +142,24 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
       failed={[{ k: "gauges", checkedAt: Date.now() - 60_000, updatedAt: null, error: "HTTP 503", failedAt: Date.now() - 60_000, offline: false }]} />);
     await settle();
   }, /Retry/],
-  ["the coach marks (walkthrough)", async () => {
-    const { WalkthroughSheet } = await import("./Walkthrough");
+  ["(T293) the guided walkthrough's card, its control ringed", async () => {
+    const { GuideCard } = await import("./Walkthrough");
     const reg = await coachRegistry();
-    render(<WalkthroughSheet state={{ open: true, pending: false, finish: () => {}, reopen: () => {} }} palette={LIGHT} registry={reg} />);
+    reg.set("search", { measureInWindow: (cb: (...n: number[]) => void) => cb(14, 10, 362, 46) } as never);
+    const noop = () => {};
+    render(<GuideCard guide={{ open: true, pending: true, at: 1, reopen: noop, finish: noop, next: noop, back: noop }}
+      facts={{ water: { item: "w", name: "Vedder River" }, searching: false, query: "", selected: null, open: null, adding: false, viewing: null, spots: 0 }}
+      acts={{ search: noop, select: noop, openWater: noop, view: noop, addSpot: noop, cancelAdd: noop, toSpots: noop, openSpot: noop,
+              openLayers: noop, otherGround: noop, obstaclesOn: noop, restoreLayers: noop }}
+      palette={LIGHT} registry={reg} top={60} bottom={64} />);
+    await screen.findByTestId("guide-ring", {}, { timeout: 3000 });
+  }, /Show me/],
+  ["(T293) a mode hint (Salmon), one step", async () => {
+    const { TabTourSheet } = await import("./Walkthrough");
+    const reg = await coachRegistry();
+    render(<TabTourSheet tour={{ open: true, finish: () => {}, reopen: () => {} }} which="salmon" palette={LIGHT} registry={reg} />);
     await screen.findByTestId("coach-spotlight", {}, { timeout: 3000 });
-  }, /Next/],
+  }, /Got it/],
   ["a water's Conditions with a gauge, donors and the day", async () => {
     clearPanelCache();
     const { ConditionsPanel } = await import("./ConditionsPanel");
@@ -166,7 +178,8 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     render(<SpotScreen spot={{ ...TAMIHI, notes: "Three rainbow below the bridge.", photos: ["photos/s1-1.png", "photos/s1-2.png"] }}
       palette={LIGHT} onBack={() => {}} onEdit={() => {}} onDelete={() => {}} onShowOnMap={() => {}}
       photoStore={{ uri: async () => photo }}
-      likeVisit={{ heading: "Like your visit?", intro: "How alike each of the next five days looks.", note: null,
+      likeVisit={{ mode: "like", best: "Closest to your visit", hint: null,
+        heading: "Like your visit?", intro: "How alike each of the next five days looks.", note: null,
         visit: { top: "Your visit", sub: "30 Aug", label: "Your visit, 30 Aug: the day the others are compared with." },
         days: [day("2026-10-30", false), day("2026-10-31", true)], age: "Forecast checked just now." }} />);
     await settle();
@@ -185,6 +198,34 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     expect(screen.queryByTestId("photo-viewer")).toBeNull();
     press("Photo 2 of 2"); await settle();   // left open: the audit below sees the viewer too
   }, /That day[\s\S]*What you added[\s\S]*The next few days/],
+  ["(T294) a spot's visits, the shown visit's rating, and the days predicted from rated visits", async (w) => {
+    Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: w });
+    act(() => { window.dispatchEvent(new Event("resize")); });
+    const { SpotScreen } = await import("./SpotScreen");
+    const { visitsView } = await import("@app/ui");
+    const { addVisit } = await import("@app/data/spots");
+    const t = TAMIHI.visitedAt;
+    const v = (id: string, d: number, rating: number) => ({ id, createdAt: t + d, visitedAt: t + d, rating, notes: "",
+      photos: [], reading: null, weather: null, trace: null, panel: null });
+    const spot = addVisit(addVisit({ ...TAMIHI, rating: 5 }, v("v1", 86400e3 * 10, 2)), v("v2", 86400e3 * 20, 4));
+    const day = (date: string, best: boolean) => ({ date, top: "Sat", sub: "31 Oct", score: "4.2★", read: "Good",
+      basis: "From 3 rated visits", best, reasons: ["Most like your 5★ visit on 30 Aug (84% alike)", "Flow: the same"],
+      label: "Sat, 31 Oct: about 4.2 of 5, good, from 3 rated visits.", why: [] });
+    let rated: number | null = null;
+    render(<SpotScreen spot={{ ...TAMIHI, rating: 5 }} palette={LIGHT} onBack={() => {}} onEdit={() => {}} onDelete={() => {}}
+      visits={visitsView(spot, TAMIHI.id, Date.now())} onPickVisit={() => {}} onRate={(n) => { rated = n; }}
+      onAddVisit={() => {}} onRemoveVisit={() => {}}
+      likeVisit={{ mode: "predict", best: "Best going by your ratings", hint: null, heading: "Like your visit?",
+        intro: "How good each of the next five days may be.", note: null,
+        visit: { top: "From your ratings", sub: "5★ 30 Aug · 2★ 9 Sep · 4★ 19 Sep", label: "From your ratings." },
+        days: [day("2026-10-30", false), day("2026-10-31", true)], age: "Forecast checked just now." }} />);
+    await settle();
+    expect(screen.getAllByRole("radio").length).toBeGreaterThanOrEqual(3);
+    press("Rate this visit 3 of 5: OK");
+    expect(rated).toBe(3);
+    expect(screen.getAllByLabelText("Rated 5 of 5. Press to clear the rating").length).toBe(1);
+  }, /YOUR VISITS[\s\S]*Add a visit[\s\S]*HOW WAS THIS VISIT\?[\s\S]*Great[\s\S]*BEST GOING BY YOUR RATINGS/],
 ];
 
 describe.each([["phone", 390], ["desktop", 1280]] as const)("(T258) %s: the leftover states", (_l, width) => {

@@ -24,6 +24,7 @@ export * from "./capture";
 export * from "./photos";
 export * from "./leadUp";
 export * from "./likeVisit";
+export * from "./visits";
 export * from "./dayFlow";
 export * from "./route";
 export * from "./openWater";

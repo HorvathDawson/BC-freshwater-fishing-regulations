@@ -1,6 +1,6 @@
 # T267 — Google Play internal testing delivers dev/staging builds to the owner's phone
 
-Status: BLOCKED on T268 (owner) — Claude part done; uploads wait for the owner's Play Console / Google Cloud steps
+Status: DONE — first API upload f977bd212 (versionCode 5, 0.2.0, release r-ce76b4ed3624), 2026-10-29
 
 Source: owner 2026-10-29 paid for a Google Play developer account. Chrome's APK scan hangs on our debug-signed sideload,
 so staging builds go through Play internal testing. Package `ca.canifishthis.app`.
@@ -44,3 +44,10 @@ Check without a build: `.venv/bin/python deploy/staging/play-upload.py --package
 - The staging feeds worker must be redeployed (`cd app/workers/feeds && npx wrangler deploy`) for the Play email
   wording; until then a `--play` email arrives with the sideload steps.
 - The Play build reads staging data (`EXPO_PUBLIC_APP_ENV=staging`, env switch on); a production track is T86's job.
+
+## Done (2026-10-29)
+- `build-apk.sh --play` end to end: versionCode 4 -> 5 (f977bd212), AAB `app/dist/aab/canifishthis-0.2.0-5-f977bd212.aab`
+  (31.2 MB, upload-key signed), uploaded to internal testing; `play-upload.py --max-version-code` = 5.
+- Email: the script read the run token inside its build worktree (gitignored, absent) and got HTTP 403; fixed (2f8c1bd6c:
+  `$REPO/app/workers/feeds/.run-token`); the Play email was re-sent by hand: HTTP 200.
+- Sideload page refreshed: canifishthis-staging-0.2.0-2f8c1bd6c.apk (49.8 MB).

@@ -17,6 +17,7 @@ const spot: Spot = { id: "s1", createdAt: VISIT, visitedAt: VISIT, updatedAt: 0,
   panel: null };
 
 const VIEW: LikeVisitView = {
+  mode: "like", best: "Closest to your visit", hint: null,
   heading: "Like your visit?",
   intro: "How alike each of the next five days looks to the day you were here.",
   visit: { top: "Your visit", sub: "30 Aug", label: "Your visit, 30 Aug: the day the others are compared with." },

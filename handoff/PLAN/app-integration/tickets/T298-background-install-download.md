@@ -1,6 +1,6 @@
 # T298 — First download: keeps going in the background (notification), asks before using mobile data, fish sayings while it runs
 
-Status: DONE (2026-10-30) on branch `t298-background-download` (worktree `../bcfr-t298`), not merged — next APK.
+Status: DONE (2026-10-30) — merged into redesign/stream-sections; next APK.
 
 Source: owner: "for the initial download of the offline regs can we make it so it can work in background if user closes
 app? also it should ask user for permission to download off wifi if they are not connected. finally we want to add cute
@@ -64,4 +64,5 @@ killed at ~40 MB: "2 files downloading" in the notification bar → relaunch: se
 only. Shots: `../T298-shots/`. The emulator's Wi-Fi is not throttled (the set lands in ~1 min), so "closed" was seconds.
 Also in this branch (coordinator): test bed `regs-open` taps the water at the app's own `[target]` (test-build hook in
 Map.native) and never sends Back at the map root; `satellite` puts the Map base back (by id); `install`/`appUp` allow
-the notification dialog. Left: regs-open's stream cases still miss (the lake case passes) — see the report.
+the notification dialog. Note (not blocking): regs-open's stream cases (Norrish Creek, Fraser) still miss — the `[target]` point is off the
+highlighted line on screen (the lake case passes 3/3); cause not found yet.

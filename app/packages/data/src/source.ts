@@ -62,6 +62,12 @@ export interface WaterSource {
    * release that ships no water file); then `locate`'s evidence is all there is (`extentOf`).
    */
   waterBox(item: ItemId): Promise<Bbox | null>;
+  /**
+   * (T293) A POINT ON THE WATER ITSELF, from the same geometry: of its parts' midpoints (each on the part's own line),
+   * the one nearest the middle of its box — where the walkthrough drops a spot's pin. Null without geometry; absent on a
+   * source that has none.
+   */
+  waterPoint?(item: ItemId): Promise<{ lat: number; lon: number } | null>;
 
   // ---- conditions -----------------------------------------------------
   gaugeForSection(id: SectionId): Promise<GaugeLink | null>;

@@ -5,7 +5,11 @@
  * cannot defeat platform resolution (which is exactly what happened with the bundle
  * driver: naming the file directly handed the web build the native one).
  */
-export type { Spot, SpotReading, SpotWeather, WeatherSample, DailyWeather, DailyGauge, LeadUp } from "./model";
+export type { Spot, SpotReading, SpotWeather, WeatherSample, DailyWeather, DailyGauge, LeadUp, Visit } from "./model";
+// T294: a spot's visits, each rated; every visit reads as a spot (`visitSpot`) and is written back alone (`withVisit`)
+export { addVisit, captureVisit, firstVisitId, latestVisitId, onVisit, photoOwner, rateVisit, removeVisit, spotVisits,
+         visitIdOf, visitSpot, withVisit, type CaptureVisitInput, type VisitSpot } from "./visits";
+export { allPhotos } from "./photos";
 export { spotLabel, isUntitled } from "./model";
 export { captureSpot, type WeatherSource } from "./capture";
 export { openSpots, openLayerStore, openLikeStore, openSalmonFeedStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore,

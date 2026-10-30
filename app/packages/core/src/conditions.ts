@@ -252,7 +252,9 @@ export interface DonorFacts {
   factors: { share: number; role: number; record: number };
   /** `tidal`: the tide or a tidal river's backwater moves this station's level (`PanelRoute.tidal`, T78). */
   /** `backwater`: a lake below backs water up onto this station (`PanelRoute.backwater`, T160). */
-  route?: { path: readonly unknown[]; name?: string | null; tidal?: boolean; backwater?: boolean } | undefined;
+  /** `throughLake` / `lakeName` / `lakeSide`: the path to this gauge crosses a lake (`PanelRoute.throughLake`, T296). */
+  route?: { path: readonly unknown[]; name?: string | null; tidal?: boolean; backwater?: boolean;
+            throughLake?: boolean; lakeName?: string; lakeSide?: "below" | "above" } | undefined;
   /** When the station last reported, from the feed's index (ISO), where the feed says. */
   observedAt?: string | null;
   /**
@@ -616,6 +618,31 @@ export const BACKWATER_NOTE = "One of these gauges sits where a lake backs up in
 export function backwaterNote(rows: readonly DonorFacts[], quantity: "discharge" | "level"): string | null {
   return quantity === "level" && rows.some((r) => r.route?.backwater === true && donorCounted(r))
     ? BACKWATER_NOTE : null;
+}
+
+/** (T296) The caution under an answer read only through a lake — `throughLakeNote`'s words. */
+export const THROUGH_LAKE_WORDS = {
+  /** Every counted gauge on one side of one named lake: "Measured below Pitt Lake — …". */
+  named: (side: "below" | "above", lake: string) =>
+    `Measured ${side} ${lake} — the lake smooths changes, so read it loosely.`,
+  /** Otherwise (an unnamed lake, or gauges across different lakes or sides). */
+  general: "Measured across a lake — the lake smooths changes, so read it loosely.",
+} as const;
+
+/**
+ * A GAUGE REACHED THROUGH A LAKE, said once (T296, owner 2026-10-29): where EVERY gauge counted in the answer reaches
+ * this water through a lake, the answer is still theirs at full weight (they are all there is: the upper Pitt above Pitt
+ * Lake), and the reader is told the lake smooths what they show. Where a gauge with no lake between also counts, the
+ * through-lake ones already weigh almost nothing (`lakeDamped`) and nothing is said. Rides on the routes, so it appears
+ * once they are in.
+ */
+export function throughLakeNote(rows: readonly DonorFacts[]): string | null {
+  const counted = rows.filter(donorCounted);
+  if (!counted.length || !counted.every((r) => r.route?.throughLake === true)) return null;
+  const first = counted[0]!.route!;
+  const one = first.lakeName && first.lakeSide
+    && counted.every((r) => r.route!.lakeName === first.lakeName && r.route!.lakeSide === first.lakeSide);
+  return one ? THROUGH_LAKE_WORDS.named(first.lakeSide!, first.lakeName!) : THROUGH_LAKE_WORDS.general;
 }
 
 /** The donors disagree by more than 25 points. */

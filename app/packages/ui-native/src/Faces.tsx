@@ -22,6 +22,7 @@ import { useContext } from "react";
 import { Pressable, Text, View } from "react-native";
 import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
 import { WaterViewsContext } from "./ViewSwipe";
+import { useCoachRefs } from "./CoachMarks";
 import { Icon, IconText } from "./icons";
 import { hitProps } from "./regs/hit";
 import { TYPE } from "./type";
@@ -81,13 +82,14 @@ export function ViewTabs({ palette, views, on, onView }: {
   palette: Palette; views: readonly WaterView[]; on: WaterView; onView: (v: WaterView) => void;
 }) {
   const shown = WATER_VIEWS.filter((v) => views.includes(v));
+  const coach = useCoachRefs();   // (T293) the walkthrough points at Regulations and Conditions (`view:<view>`)
   return (
     <View accessibilityRole="tablist" accessibilityLabel={WATER_VIEWS_LABEL}
           style={{ flexDirection: "row", gap: 22, borderBottomWidth: 1, borderBottomColor: palette.line }}>
       {shown.map((v) => {
         const sel = v === on;
         return (
-          <Pressable key={v} onPress={() => { if (!sel) onView(v); }}
+          <Pressable key={v} ref={coach(`view:${v}`)} onPress={() => { if (!sel) onView(v); }}
                      accessibilityRole="tab" aria-selected={sel} accessibilityLabel={WATER_VIEW_LABEL[v]}
                      accessibilityHint={v === "regs" ? TO_REGULATIONS.hint : undefined}
                      // (T40) the strip's row is 38 tall and "Map" (14 px bold) about 30 wide: grown to 44 × 44 inside the 22 px gap
