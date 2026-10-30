@@ -4,10 +4,10 @@ import { isTyping } from "../review";
 /* THE ONE TOP BAR (owner 2026-10-28: "make the tabs easier to switch between"). Every view renders this
    as its first row: the main tabs (short label, a done/total badge, a 1-9 / g+letter key), then — only for
    the active tab — its sub-tabs on a second row. A tab's filters live in a collapsible "Filters" fold
-   (`useFold`, open/closed remembered per tab). Navigation is the URL: it sets the hash (and `?lowcuts`)
+   (`useFold`, open/closed remembered per tab). Navigation is the URL: it sets the hash
    and fires `hashchange`, which App reads, so every old link keeps working. */
 
-export type TabId = "entries" | "lowcuts" | "dfo" | "tidal" | "sloughs" | "names" | "inseason" | "proposals" | "reports";
+export type TabId = "entries" | "dfo" | "tidal" | "sloughs" | "inseason" | "reports";
 
 interface Tab { id: TabId; label: string; key: string; title: string; hash: string }
 const TABS: Tab[] = [
@@ -15,10 +15,6 @@ const TABS: Tab[] = [
   { id: "dfo", label: "DFO", key: "d", hash: "dfo/", title: "T164: every scraped DFO salmon extent (sub-tabs: Cascade, Tidal)" },
   { id: "tidal", label: "Tidal", key: "t", hash: "tidal/", title: "T212: the proposed tidal boundary on every ocean-entering stream" },
   { id: "sloughs", label: "Sloughs", key: "s", hash: "sloughs/", title: "T55: slough / canal pieces drawn as lakes (sub-tab: small ponds Q154)" },
-  { id: "names", label: "Names", key: "n", hash: "names/", title: "T224: mined names for waters — spot-check, accept / reject" },
-  { id: "lowcuts", label: "Low cuts", key: "l", hash: "",
-    title: "entries whose rules name a guessed (low-confidence) cut — check the cut on the satellite map" },
-  { id: "proposals", label: "Proposals", key: "p", hash: "proposals", title: "T185: the edits your marks propose, waiting to apply (read only)" },
   { id: "inseason", label: "In-season", key: "i", hash: "inseason/", title: "T230: the provincial in-season changes — where each applies" },
   { id: "reports", label: "Reports", key: "r", hash: "reports/", title: "T237: problem reports from the app — sync from staging, status kept here" },
 ];
@@ -43,9 +39,8 @@ const SUBS: Partial<Record<TabId, { id: string; label: string; hash: string; tit
 };
 
 /** go to a tab / sub-tab without a reload: the URL changes, App (listening to hashchange) swaps the view */
-export function navigate(hash: string, lowcuts = false) {
-  const search = lowcuts ? "?lowcuts" : "";
-  window.history.replaceState(null, "", `${window.location.pathname}${search}${hash ? `#${hash}` : ""}`);
+export function navigate(hash: string) {
+  window.history.replaceState(null, "", `${window.location.pathname}${hash ? `#${hash}` : ""}`);
   window.dispatchEvent(new HashChangeEvent("hashchange"));
 }
 
@@ -78,9 +73,7 @@ function refreshBadges() {
   read("/api/dfo/progress", (p) => setBadge("dfo", frac(p.all?.done, p.all?.total)));
   read("/api/tidal/progress", (p) => setBadge("tidal", frac(p.done, p.total)));
   read("/api/sloughs/progress", (p) => setBadge("sloughs", frac(p.done, p.total)));
-  read("/api/names/progress", (p) => setBadge("names", frac(p.review?.done, p.review?.total)));
   read("/api/inseason/queue", (q) => setBadge("inseason", frac(q.progress?.matched, q.progress?.total)));
-  read("/api/proposals", (p) => setBadge("proposals", String(p.proposals?.length ?? 0)));
   window.setTimeout(async () => { for (const job of jobs) await job(); }, 1000);
 }
 
@@ -102,7 +95,7 @@ export function TopNav({ active, sub, right }: {
     let g = 0; // a pending "g" (go to) press
     const onKey = (ev: KeyboardEvent) => {
       if (isTyping(ev.target) || ev.metaKey || ev.ctrlKey || ev.altKey) return;
-      const go = (t: Tab) => { navigate(t.hash, t.id === "lowcuts"); ev.preventDefault(); };
+      const go = (t: Tab) => { navigate(t.hash); ev.preventDefault(); };
       const n = Number(ev.key);
       if (n >= 1 && n <= TABS.length) { go(TABS[n - 1]); g = 0; return; }
       if (ev.key === "g") { g = Date.now(); return; }
@@ -121,10 +114,10 @@ export function TopNav({ active, sub, right }: {
       <div className="topnav-row">
         <div className="mode-tabs" role="tablist">
           {TABS.map((t, i) => (
-            <button key={t.id} role="tab" aria-selected={t.id === active} data-testid={`${t.id === "lowcuts" ? "low-cuts" : t.id}-tab`}
+            <button key={t.id} role="tab" aria-selected={t.id === active} data-testid={`${t.id}-tab`}
               className={`btn small topnav-tab${t.id === active ? " primary" : ""}`}
               title={`${t.title} — key ${i + 1}, or g ${t.key}`}
-              onClick={() => navigate(t.hash, t.id === "lowcuts")}>
+              onClick={() => navigate(t.hash)}>
               <kbd>{i + 1}</kbd>{t.label}{badges[t.id] ? <span className="topnav-badge">{badges[t.id]}</span> : null}
             </button>
           ))}

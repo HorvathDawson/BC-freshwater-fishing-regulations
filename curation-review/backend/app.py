@@ -367,13 +367,6 @@ def review_lake_splits():
     return M.lake_splits_later(M.load(reuse.MARKS_PATH))
 
 
-@app.get("/api/proposals")
-def get_proposals():
-    """T185: THE PROPOSED EDITS WAITING TO APPLY (`proposals build` wrote them). Read only: the
-    owner's marks are the decisions (2026-10-27); Claude's `apply_proposals` lands them."""
-    return reuse.proposals_view()
-
-
 @app.get("/api/review/tickets.md")
 def review_tickets_md():
     """The tickets as one Markdown text (`tickets.SEPARATOR` between them), to read or save."""
@@ -801,40 +794,6 @@ def q154_pond(pid: str):
     got = ponds.detail(pid)
     if got is None:
         raise HTTPException(404, f"Q154 sample pond {pid} not found")
-    return got
-
-
-# --------------------------------------------------------------------------- T224: Names review mode
-# All READS: the mined name-variant candidates (`pipeline.regs.review.names`). The owner's call is a mark
-# (scope "name", call accept / reject) through POST /api/marks.
-
-@app.get("/api/names/queue")
-def names_queue(group: str | None = None, confidence: str | None = None, source: str | None = None,
-                verify: str | None = None, q: str | None = None, spot: bool = False):
-    """THE NAMES QUEUE (`variants.queue`): `group` auto | owner | review, `confidence`, `source`, `verify`
-    (todo = unmarked or stale), `q`, `spot` (the auto-accepted spot-check sample only)."""
-    import variants
-    from pipeline.regs.review.names import GROUPS
-    if group and group not in GROUPS:
-        raise HTTPException(422, [{"path": "group", "msg": "group is one of " + ", ".join(GROUPS)}])
-    if verify and verify not in variants.VERIFIES:
-        raise HTTPException(422, [{"path": "verify", "msg": "verify is one of " + ", ".join(variants.VERIFIES)}])
-    return variants.queue(group=group, confidence=confidence, source=source, verify=verify, q=q, spot=spot)
-
-
-@app.get("/api/names/progress")
-def names_progress():
-    import variants
-    return variants.progress()
-
-
-@app.get("/api/names/candidates/{cid:path}")
-def names_candidate(cid: str):
-    """One name candidate: its row, every source with its evidence, a map point."""
-    import variants
-    got = variants.detail(cid)
-    if got is None:
-        raise HTTPException(404, f"name candidate {cid} not found")
     return got
 
 

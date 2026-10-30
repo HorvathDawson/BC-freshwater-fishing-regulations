@@ -20,8 +20,6 @@ interface Props {
   onRegion: (r: string) => void;
   onStatus: (s: Status | "") => void;
   onRefresh: () => void;
-  /** the Low cuts tab is this view with `?lowcuts` */
-  lowOnly?: boolean;
   /** in the collapsible area (tier, the per-tier progress and the output commands) */
   more?: ReactNode;
   /** filters set inside `more` (the tier), counted on the fold button */
@@ -51,7 +49,6 @@ export function FilterBar({
   onRegion,
   onStatus,
   onRefresh,
-  lowOnly = false,
   more,
   moreSet = 0,
   verify,
@@ -77,7 +74,7 @@ export function FilterBar({
   const folded = (status ? 1 : 0) + (order !== "risk" ? 1 : 0) + moreSet;
   return (
     <div className="filterbar-wrap" data-testid="filterbar">
-      <TopNav active={lowOnly ? "lowcuts" : "entries"} sub={lowOnly ? undefined : "queue"} right={<>
+      <TopNav active="entries" sub="queue" right={<>
         {current && (
           <span className="progress slim" data-testid="progress"
             title="human-reviewed: verified on every check against the book (a mark on an entry changed since does not count)">

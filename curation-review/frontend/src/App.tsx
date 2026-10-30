@@ -12,24 +12,19 @@ import { ProgressBar } from "./components/ProgressBar";
 import { isTyping, keepSelected, nextUnsure, paceSamples, recordPace } from "./review";
 import { DFO_HASH, DfoReview } from "./components/DfoReview";
 import { TIDAL_HASH, TidalReview } from "./components/TidalReview";
-import { PROPOSALS_HASH, ProposalsView } from "./components/ProposalsView";
 import { SLOUGH_HASH, SloughReview } from "./components/SloughReview";
-import { NAMES_HASH, NamesReview } from "./components/NamesReview";
 import { CASCADE_HASH, CascadeView } from "./components/CascadeView";
 import { INSEASON_HASH, InSeasonReview } from "./components/InSeasonReview";
 import { REPORTS_HASH, ReportsView } from "./components/ReportsView";
-import { setBadge, TopNav } from "./components/TopNav";
+import { TopNav } from "./components/TopNav";
 import { P1_HASH, P1Quick } from "./components/P1Quick";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
 /** T212: ... and the Tidal mode (`#tidal/<candidate id>`) */
 const inTidal = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(TIDAL_HASH);
-/** T185: `#proposals` opens the read-only Proposals view — waiting to apply (the marks are the decisions) */
 /** T55: `#sloughs/<polygon id>` opens the Slough mode (pre-marks to confirm) */
 const inSloughs = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(SLOUGH_HASH);
-/** T224: `#names/<candidate id>` opens the Names mode (mined name variants: spot-check + review) */
-const inNames = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(NAMES_HASH);
 /** T229: `#cascade/<watershed>` opens the DFO Cascade map (which DFO places apply where) */
 const inCascade = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(CASCADE_HASH);
 /** T230: `#inseason/<row id>` opens the In-season tab (the provincial in-season rows and where each applies) */
@@ -38,7 +33,6 @@ const inInseason = () => decodeURIComponent(window.location.hash.slice(1)).start
 const inReports = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(REPORTS_HASH);
 /** owner 2026-10-28: `#p1/` opens the P1 quick-confirm view (Entries sub-tab) */
 const inP1 = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(P1_HASH);
-const inProposals = () => decodeURIComponent(window.location.hash.slice(1)) === PROPOSALS_HASH;
 
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
  *  the map of each entry whose rules name it (T184), never as a target of its own. */
@@ -56,9 +50,7 @@ export default function App() {
   const [dfo, setDfo] = useState(inDfo);
   // T212: the proposed tidal boundaries — read only; accepting one records a mark
   const [tidal, setTidal] = useState(inTidal);
-  const [proposals, setProposals] = useState(inProposals);
   const [sloughs, setSloughs] = useState(inSloughs);
-  const [names, setNames] = useState(inNames);
   const [cascade, setCascade] = useState(inCascade);
   const [inseason, setInseason] = useState(inInseason);
   const [reportsTab, setReportsTab] = useState(inReports);
@@ -79,12 +71,8 @@ export default function App() {
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   // T89: only the entries whose rules bind no water (owner Q45), listed with their leads
   const [t89Only, setT89Only] = useState(false);
-  // owner 2026-10-28: the LOW-CONFIDENCE CUTS queue — entries whose rules name a guessed cut (Chapman lower
-  // falls, Deena "second bridge", Mamin "third bridge", Cranberry canyon bottom …), each checked on its map
-  const [lowOnly, setLowOnly] = useState(() => new URLSearchParams(window.location.search).has("lowcuts"));
-  const rows = useMemo(() => applyPv(allRows.filter((r) => (!t89Only || r.t89) && (!lowOnly || r.low_cuts)), pvf),
-    [allRows, pvf, t89Only, lowOnly]);
-  useEffect(() => { setBadge("lowcuts", String(allRows.filter((r) => r.low_cuts).length)); }, [allRows]);
+  const rows = useMemo(() => applyPv(allRows.filter((r) => (!t89Only || r.t89)), pvf),
+    [allRows, pvf, t89Only]);
   const [loadingRows, setLoadingRows] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<EntryDetailT | null>(null);
@@ -141,25 +129,19 @@ export default function App() {
   useEffect(() => {
     const open = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
-      const only = (m: "sloughs" | "names" | "cascade" | "dfo" | "tidal" | "proposals" | "inseason" | "reports" | "p1" | "") => {
+      const only = (m: "sloughs" | "cascade" | "dfo" | "tidal" | "inseason" | "reports" | "p1" | "") => {
         setReportsTab(m === "reports");
         setP1(m === "p1");
-        setSloughs(m === "sloughs"); setNames(m === "names"); setCascade(m === "cascade");
-        setDfo(m === "dfo"); setTidal(m === "tidal"); setProposals(m === "proposals"); setInseason(m === "inseason");
-        // the Low cuts tab is the entries view with `?lowcuts`
-        const low = m === "" && new URLSearchParams(window.location.search).has("lowcuts");
-        setLowOnly(low);
-        if (low) { setVerify(""); setSeverity("all"); setTier(""); }
+        setSloughs(m === "sloughs"); setCascade(m === "cascade");
+        setDfo(m === "dfo"); setTidal(m === "tidal"); setInseason(m === "inseason");
       };
       if (id.startsWith(SLOUGH_HASH)) { only("sloughs"); return; }
-      if (id.startsWith(NAMES_HASH)) { only("names"); return; }
       if (id.startsWith(INSEASON_HASH)) { only("inseason"); return; }
       if (id.startsWith(REPORTS_HASH)) { only("reports"); return; }
       if (id.startsWith(P1_HASH)) { only("p1"); return; }
       if (id.startsWith(CASCADE_HASH)) { only("cascade"); return; }
       if (id.startsWith(DFO_HASH)) { only("dfo"); return; }
       if (id.startsWith(TIDAL_HASH)) { only("tidal"); return; }
-      if (id === PROPOSALS_HASH) { only("proposals"); return; }
       only("");
       if (!id) return;
       setSelected(id);
@@ -247,17 +229,11 @@ export default function App() {
   if (sloughs) {
     return <SloughReview />;
   }
-  if (names) {
-    return <NamesReview />;
-  }
   if (inseason) {
     return <InSeasonReview />;
   }
   if (reportsTab) {
     return <ReportsView />;
-  }
-  if (proposals) {
-    return <ProposalsView />;
   }
   if (p1) {
     return mode ? <P1Quick mode={mode} /> : <div className="app"><TopNav active="entries" sub="p1" /><div className="empty-state">loading…</div></div>;
@@ -302,7 +278,6 @@ export default function App() {
           loadPending();
           setReloadKey((k) => k + 1);
         }}
-        lowOnly={lowOnly}
         moreSet={(tier ? 1 : 0) + (severity ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0) + (t89Only ? 1 : 0)}
         more={
           <>

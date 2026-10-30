@@ -1636,16 +1636,6 @@ def _proposals_dir() -> Path:
     return PROPOSALS_DIR or P.OUT_DIR
 
 
-def proposals_view() -> dict:
-    """THE PROPOSALS WAITING TO APPLY: every proposal (index.json) as last built, read only — each
-    with the marks behind it, its edits, its check and (a new split) its confidence."""
-    from pipeline.regs.review import proposals as P
-    idx = P.read_index(_proposals_dir())
-    return {"made": idx.get("made"), "proposals": list(idx.get("proposals") or []),
-            "commands": {"build": "python -m pipeline.regs.review.proposals build --check",
-                         "apply": "python -m pipeline.regs.review.apply_proposals --dry-run"}}
-
-
 def entry_answer_context(entry_id: str) -> dict | None:
     """The bundle's copy of this entry beside the file's: per-rule labels and section counts, and
     where each licensing record binds (`answer.entry_in_bundle`)."""

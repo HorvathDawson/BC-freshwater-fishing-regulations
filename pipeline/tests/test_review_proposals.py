@@ -11,7 +11,7 @@ The owner's MARKS ARE THE DECISIONS (2026-10-27): no accept step, no `proposal` 
   apply       Claude's CLI lands every applicable proposal as its own commit after the binding
               check, new splits first, a cut change only once its side rebuild exists (a temp git
               repo, never this one)
-  the app     GET /api/proposals reads (a read-only "waiting to apply" list); nothing to decide
+  the app     refuses a new proposal mark (the review UI for the list was removed, T290)
 
 Reads the checked-in catalogue / DFO / splits.json (copied into temp dirs) and no generated data.
 """
@@ -336,7 +336,7 @@ _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "dfo
          "evidence")
 
 
-def test_the_app_lists_proposals_read_only_and_refuses_a_decision(src, tmp_path, monkeypatch):
+def test_the_app_refuses_a_proposal_decision(src, tmp_path, monkeypatch):
     props = P.build(owner_marks(), src)
     out = tmp_path / "proposals"
     P.write(props, out, src, marks_path=tmp_path / "marks.jsonl")
@@ -352,11 +352,6 @@ def test_the_app_lists_proposals_read_only_and_refuses_a_decision(src, tmp_path,
         import app as app_mod
         from fastapi.testclient import TestClient
         c = TestClient(app_mod.app)
-        got = c.get("/api/proposals").json()
-        assert [p["id"] for p in got["proposals"]] == [p["id"] for p in props]
-        assert all("decision" not in p for p in got["proposals"])
-        assert {p["id"]: p["confidence"] for p in got["proposals"]
-                if p["kind"] == "new_split"} == {"split-n2": "high", "split-n1": "medium"}
         r = c.post("/api/marks", json={"scope": "proposal", "target": "split-n2",
                                        "answers": {"P": "y"}, "reviewer": "dawson"})
         assert r.status_code == 422 and "the marks behind it are the decision" in r.text

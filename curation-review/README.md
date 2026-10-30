@@ -46,7 +46,7 @@ turns it into a reviewed change.
   "Verify:" note), faded when the reach shown belongs to a rule that does not name it; a split
   the served atlas cannot place is listed "not on the map" with why. Each rule shows a **where**
   line with its splits by name, and the entry lists "Splits the rules name" (click to fly to one).
-- **Low-confidence cuts** (owner 2026-10-28; top bar, or `?lowcuts`): the queue narrowed to the entries whose rules
+- **Low-confidence cuts** (owner 2026-10-28; its own tab was removed in T290, the per-entry view stays): an entry whose rules
   name a cut splits.json marks `confidence: low` (queue rows carry `low_cuts`). Such an entry opens on satellite
   imagery (the map's "satellite" toggle, Esri World Imagery as in the app), flown to the cut, with the cut's `_note`
   above the rules. Place y confirms it; Place n + "split misplaced" + the extent fix's map pick moves it.

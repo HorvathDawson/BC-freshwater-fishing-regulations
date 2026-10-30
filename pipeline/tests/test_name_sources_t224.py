@@ -186,24 +186,6 @@ def _digest(d: Path) -> str:
     return h.hexdigest()
 
 
-def test_names_queue_groups_and_fates(env):
-    c = env["client"]
-    q = c.get("/api/names/queue").json()
-    by = {r["id"]: r for r in q}
-    assert [r["group"] for r in q][:2] == ["owner", "owner"]
-    assert by["blk:356314888~kilgard-creek"]["display"] and by["blk:356314888~kilgard-creek"]["fate"] == "accepted"
-    assert by["blk:356314888~lonzo-creek"]["proposed"] == "Lonzo Creek (North Fork)"
-    assert by["blk:1~auto-creek"]["group"] == "auto" and by["blk:1~auto-creek"]["fate"] == "accepted"
-    assert by["blk:2~review-creek"]["fate"] == "waiting"
-    assert by["blk:2~review-creek"]["sources"] == ["OpenStreetMap"]
-    assert c.get("/api/names/queue", params={"group": "nope"}).status_code == 422
-    d = c.get("/api/names/candidates/blk:2~review-creek").json()
-    assert d["sources"][0]["label"] == "OpenStreetMap" and d["map"]["features"]
-    assert c.get("/api/names/candidates/blk:0~x").status_code == 404
-    p = c.get("/api/names/progress").json()
-    assert p["by_group"] == {"owner": 2, "auto": 1, "review": 2} and p["spot"]["total"] == 1
-
-
 def test_a_name_mark_is_one_commit_and_decides_acceptance(env):
     c = env["client"]
     curated = _digest(REPO / "data/curated")
