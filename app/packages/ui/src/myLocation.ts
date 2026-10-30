@@ -19,7 +19,7 @@ export interface MyLocation {
   /** the dot is shown */
   on: boolean;
   following: boolean;
-  /** the last fix, for the dot and its circle (the web draws it; a phone's map draws its own, and uses this to centre) */
+  /** the last fix: both maps draw the dot and its circle from it, and centre / follow on it */
   fix: Fix | null;
   /** counts up each time the map should centre on `fix` */
   centre: number;

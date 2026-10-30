@@ -33,7 +33,7 @@ export interface Locate {
   here(): Promise<LatLon & { accuracy?: number }>;
   /**
    * (T303) Keep telling where the device is (the map's following). Called only after `here()` has been allowed; returns the
-   * stop. Absent: the platform's map draws its own location (the phone's), or follows by `here()` alone.
+   * stop. Absent: the map follows by `here()` alone.
    */
   watch?(on: (fix: LatLon & { accuracy?: number }) => void, failed: (e: unknown) => void): () => void;
 }

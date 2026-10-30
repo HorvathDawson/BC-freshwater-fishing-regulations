@@ -16,6 +16,7 @@ import { useEffect, useImperativeHandle, type ReactNode } from "react";
 import { MAP_GESTURES } from "@app/core";
 import type { MapProps } from "./map-props";
 import { maplibreGestures, nativeMapGestures } from "./gestures";
+import { colour } from "./chrome";
 
 /** Every SDK call that matters to the contract, in order, as one string each. */
 const log: string[] = [];
@@ -106,6 +107,7 @@ vi.mock("pmtiles", () => ({ Protocol: class { tile = () => {}; } }));
 type Press = { nativeEvent: { point: [number, number]; lngLat: [number, number] } | null };
 const native: { props: Record<string, unknown> | null; camera: Record<string, unknown> | null;
                 geojson: Record<string, unknown>; holdRender: boolean; watched?: string[];
+                layers?: Record<string, { type: string; paint?: unknown }>;
                 images?: Record<string, unknown> } =
   { props: null, camera: null, geojson: {}, holdRender: false };
 vi.mock("@maplibre/maplibre-react-native", () => ({
@@ -154,7 +156,15 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
     return null;
   },
   Images: ({ images }: { images: Record<string, unknown> }) => { native.images = images; return null; },
-  GeoJSONSource: ({ id, data }: { id: string; data: unknown }) => { native.geojson[id] = data; return null; },
+  GeoJSONSource: ({ id, data, children }: { id: string; data: unknown; children?: ReactNode }) => {
+    native.geojson[id] = data;
+    return <>{children}</>;
+  },
+  // (T303) a style layer the map adds over the style (the location dot's), recorded by id
+  Layer: ({ id, type, paint }: { id: string; type: string; paint?: unknown }) => {
+    (native.layers ??= {})[id] = { type, paint };
+    return null;
+  },
   // a view annotation draws its children over the map
   Marker: ({ children }: { children?: ReactNode }) => <>{children}</>,
 }));
@@ -168,7 +178,7 @@ afterEach(() => {
   answer = () => [];
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
   web.fitOpts = []; web.canvasH = 800;
-  native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false;
+  native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {};
 });
 
 const AT = { atlas: "file:///d/atlas.pmtiles", basemap: "file:///d/basemap.pmtiles" };
@@ -577,11 +587,46 @@ it("no listener, no long press: the binding is handed no handler (its long press
       .toEqual({
         promote: false, url: "pmtiles://file:///d/atlas.pmtiles",
         // OVERZOOM: the camera to z18, four past the tiles (`CAMERA_MAX_ZOOM`)
-        // (T303) and not following the reader's location (no `me`), though it listens for a pan that would stop it
+        // (T303) and never MapLibre's own location tracking: following is ours (the camera to each fix)
         camera: { initialViewState: { center: [-122, 49], zoom: 9 }, minZoom: 4, maxZoom: 18,
-                  maxBounds: [-147.1, 40.2, -106.1, 68],
-                  trackUserLocation: undefined, onTrackUserLocationChange: expect.any(Function) },
+                  maxBounds: [-147.1, 40.2, -106.1, 68] },
       });
+  });
+  it("(T303) draws your location itself from the fix, follows each new fix, and a hand pan stops following", async () => {
+    const onRelease = vi.fn();
+    const me = (p: Partial<NonNullable<MapProps["me"]>> = {}) =>
+      ({ on: true, fix: { lat: 49.1, lon: -121.95, accuracy: 20 }, following: false, centre: 1, onRelease, ...p });
+    const r = render(<NativeMap {...base({ me: me() })} />);
+    await waitFor(() => expect(log.some((l) => l.startsWith("ease [-121.95,49.1]"))).toBe(true));
+    const pt = JSON.parse(native.geojson.me as string);
+    expect(pt.features.map((f: { geometry: unknown }) => f.geometry))
+      .toEqual([{ type: "Point", coordinates: [-121.95, 49.1] }]);
+    // the circle under the dot, both in the theme's location blue; the circle's radius grows with the zoom
+    expect(Object.keys(native.layers!)).toEqual(["me-accuracy", "me-dot"]);
+    const acc = native.layers!["me-accuracy"]!.paint as Record<string, unknown>;
+    const dot = native.layers!["me-dot"]!.paint as Record<string, unknown>;
+    expect([acc["circle-color"], dot["circle-color"], (acc["circle-radius"] as unknown[]).slice(0, 3)])
+      .toEqual([colour("light", "color.ui.me"), colour("light", "color.ui.me"), ["interpolate", ["exponential", 2], ["zoom"]]]);
+    // not following: a new fix moves the dot, not the map
+    log.length = 0;
+    r.rerender(<NativeMap {...base({ me: me({ fix: { lat: 49.2, lon: -121.9 } }) })} />);
+    await act(async () => {});
+    expect(log.filter((l) => l.startsWith("ease"))).toEqual([]);
+    expect(JSON.parse(native.geojson.me as string).features[0].geometry.coordinates).toEqual([-121.9, 49.2]);
+    // following: each new fix brings the camera
+    r.rerender(<NativeMap {...base({ me: me({ fix: { lat: 49.2, lon: -121.9 }, following: true, centre: 2 }) })} />);
+    r.rerender(<NativeMap {...base({ me: me({ fix: { lat: 49.3, lon: -121.8 }, following: true, centre: 2 }) })} />);
+    await waitFor(() => expect(log.some((l) => l.startsWith("ease [-121.8,49.3]"))).toBe(true));
+    // our own ease is not the reader's: following holds; a hand pan releases it
+    const will = native.props!.onRegionWillChange as (e: unknown) => void;
+    act(() => will({ nativeEvent: { userInteraction: false } }));
+    expect(onRelease).not.toHaveBeenCalled();
+    act(() => will({ nativeEvent: { userInteraction: true } }));
+    expect(onRelease).toHaveBeenCalledTimes(1);
+    // off: no dot
+    r.rerender(<NativeMap {...base({ me: me({ on: false }) })} />);
+    await act(async () => {});
+    expect(JSON.parse(native.geojson.me as string).features).toEqual([]);
   });
   it("a style swap (a theme change) drops feature-state on a phone: status and selection are put back", async () => {
     const r = render(<NativeMap {...base()} />);

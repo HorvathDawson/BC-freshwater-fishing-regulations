@@ -38,7 +38,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
-  Camera, GeoJSONSource, Images, Map as MLMap, Marker, UserLocation, VectorSource,
+  Camera, GeoJSONSource, Images, Layer, Map as MLMap, Marker, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, fitAtMost, padBbox, refineFit, spotMarkers,
@@ -60,6 +60,7 @@ import { ESRI_BADGE, SHOW_SCALE } from "./chrome";
 import type { MapProps } from "./map-props";
 import { COPY_SOURCE, WaterCopy, copyIds, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
+import { ME_SOURCE, meData, mePaint } from "./native/me";
 
 /** A mark label's widest line (the web's `max-width`, `marks.ts`). */
 const MARK_LABEL_WIDTH = 180;
@@ -346,14 +347,28 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   lit.current = highlight;
   const refine = useRef<(() => Promise<void>) | null>(null);
   const fitted = useRef<string | null>(null);
-  // (T303) My location: the camera goes to the fix each time the button asks (the dot itself is MapLibre's UserLocation)
+  // (T303) My location: the camera goes to the fix each time the button asks and, while following, to each new fix (as
+  // the web's `useMe`). The dot is ours (`native/me.ts`), not MapLibre's UserLocation, which drew nothing on Android.
   const centred = useRef(0);
   useEffect(() => {
-    if (!me?.on || !me.fix || me.centre === centred.current) return;
+    if (!me?.on || !me.fix) return;
+    const pressed = me.centre !== centred.current;
     centred.current = me.centre;
-    renderer.easeTo({ lon: me.fix.lon, lat: me.fix.lat, zoom: Math.max(camNow.current.zoom, 15) }, { duration: cameraMs(500) });
+    if (!pressed && !me.following) return;
+    renderer.easeTo({ lon: me.fix.lon, lat: me.fix.lat, zoom: Math.max(camNow.current.zoom, 15) },
+                    { duration: cameraMs(pressed ? 500 : 300) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [me?.centre, me?.on, me?.fix]);
+  }, [me?.centre, me?.on, me?.following, me?.fix?.lat, me?.fix?.lon]);
+  const meFix = me?.on ? me.fix : null;
+  const meJson = useMemo(() => meData(meFix), [meFix?.lat, meFix?.lon]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const meLook = useMemo(() => mePaint(theme, meFix), [theme, meFix?.lat, meFix?.accuracy]);  // eslint-disable-line react-hooks/exhaustive-deps
+  /** the reader's own pan or pinch stops following (our eases are not user interaction); the dot stays */
+  const meNow = useRef(me);
+  meNow.current = me;
+  const onRegionWillChange = useCallback((e: RegionEvent) => {
+    const ne = e.nativeEvent;
+    if (ne?.userInteraction && meNow.current?.following) meNow.current.onRelease?.();
+  }, []);
   useEffect(() => {
     if (!fit || !camRef.current || fitted.current === fit.key) return;
     if (!fit || !camRef.current || fitted.current === fit.key) return;
@@ -542,7 +557,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         onPress={onPress as never}
         onLongPress={onLongPress ? onLongPressed as never : undefined}
         onRegionDidChange={onRegionDidChange as never}
-        onRegionWillChange={probe ? (() => probe.moving()) as never : undefined}
+        onRegionWillChange={probe || me?.on ? ((e: RegionEvent) => { probe?.moving(); onRegionWillChange(e); }) as never : undefined}
         onDidFinishRenderingFrame={probe ? (() => probe.frame()) as never : undefined}
         onDidFinishLoadingStyle={onStyle}
         onDidFinishRenderingMapFully={onRendered}
@@ -550,17 +565,18 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         onDidFailLoadingMap={() => report(new Error("map failed to load"))}
       >
         <Camera ref={camRef} initialViewState={camera0.current} minZoom={MIN_ZOOM} maxZoom={CAMERA_MAX_ZOOM}
-                maxBounds={MAX_BOUNDS}
-                trackUserLocation={me?.on && me.following ? "default" : undefined}
-                // the reader's own drag drops the camera's tracking: following stops, the dot stays
-                onTrackUserLocationChange={(e) => { if (me?.following && !e.nativeEvent.trackUserLocation) me.onRelease?.(); }} />
-        {me?.on ? <UserLocation accuracy animated /> : null}
+                maxBounds={MAX_BOUNDS} />
         <VectorSource id="atlas" ref={atlasAttached} />
         {/* (T74) the hatches, the gauge pill and the route's pin, in this theme */}
         <Images images={images as never} />
         <GeoJSONSource id="gauges" data={gaugeData} />
         {/* (T175) the water copy: the style's own source by id, its lines from the tiles (`keepCopy`) */}
         <GeoJSONSource id={COPY_SOURCE} ref={copyRef} data={copyData as never} />
+        {/* (T303) your location: the accuracy circle, then the dot over it, above every map layer */}
+        <GeoJSONSource id={ME_SOURCE} data={meJson}>
+          <Layer id="me-accuracy" type="circle" paint={meLook.accuracy as never} />
+          <Layer id="me-dot" type="circle" paint={meLook.dot as never} />
+        </GeoJSONSource>
         {marker ? (
           <Marker id="marker" lngLat={[marker.lon, marker.lat]}>
             <View style={dot(furniture.accent, furniture.card, 16)} />
