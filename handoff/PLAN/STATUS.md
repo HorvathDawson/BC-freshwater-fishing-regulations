@@ -4,6 +4,21 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-10-30, 23:30
+
+- **iOS** [T313]: paused until the APK ships, then one final run that includes performance.
+  - On the iPhone simulator, 5 of 8 test scenarios pass: first open (70 s to the map), map, satellite, location and the rule-book PDF.
+  - Fixed iOS bugs (none affect Android, so they ride 0.4.0):
+    - map data never downloading;
+    - the "‹ Back" button under the clock;
+    - the PDF opening at its cover;
+    - permission prompts saying "CanIFish".
+  - Open:
+    - The walkthrough card at step 17 sits over the Layers sheet where VoiceOver can't reach it [T336].
+    - One swipe-back gesture didn't go back; it's retried next run.
+- **DFO marks:** the dry run found nothing waiting; every DFO extent mark is already in the curated files.
+- **Audits and cleanup, next credit cycle:** Fable audit [T333], tests and docs audit [T334], remove `archive/` plus general cleanup [T335].
+
 ## 2026-10-30, 23:00
 
 - **DFO limits move to the same data shape as trout** [T332]. Started on its own branch; it ships after 0.4.0.
