@@ -60,7 +60,17 @@ The lane stops and reports if any check fails.
    - the 15 s offline "Save spot" [T323].
 5. Full test suite, then the APK to Play internal testing.
 
-**Sloughs join their streams** [T322]
+**Sloughs join their streams** [T322]: CODE DONE, switched off until its own side build.
+Of the 811 confirmed calls, the dry run against today's map gives:
+- 749 join one of 236 named streams.
+- 31 Okanagan oxbows become general streams in place.
+- 29 are skipped because they're isolated.
+- 1 is held: wbk 329708509 touches only unnamed lines and belongs to no registry water, and the registry has no way to mark that as a stream yet.
+- 1 was already a stream.
+
+An automatic check replaces a review. It stops the promote if any water other than these, or the creeks that now flow into them, changes its rules.
+
+What the plan said for this item:
 - Confirmed sloughs join the stream that flows through them, including unnamed streams and streams that only enter or only leave.
 - The 31 Okanagan oxbows become general streams.
 - Only polygons no stream line touches are skipped.
