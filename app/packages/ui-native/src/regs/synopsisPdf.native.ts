@@ -88,13 +88,14 @@ const openUrl = (uri: string) => Linking.openURL(uri).catch(() => Share.share({ 
 /** Open the synopsis with `boxes` highlighted. Throws when it cannot: the caller falls back to the plain link. */
 export async function openHighlighted(s: SynopsisSource, pdf: number, boxes: readonly SourceBox[],
                                       hooks: Partial<LoadHooks> = {}, os: string = Platform.OS): Promise<void> {
-  // Android's viewers open a file at its first page whatever it asks (`#page=`, /OpenAction): the entry goes first there
+  // a phone's viewer opens a file at its first page whatever it asks (`#page=`, /OpenAction): the entry goes first.
+  // (T313) iOS too: Preview (QuickLook) opened the marked book at its cover, the passage pages away
   const cached = await downloadSynopsis(s, hooks);
   // (T285) the About link: the book from its first page, nothing to mark — the held file itself is what opens
   if (!boxes.length && pdf <= 1) return os === "android" ? viewAndroid(cached) : openUrl(cached.uri);
   const f = new File(Paths.cache, "synopsis-open.pdf");
   try {
-    const out = await highlightPdf(await cached.bytes(), boxes, { entryFirst: os === "android", page: pdf });
+    const out = await highlightPdf(await cached.bytes(), boxes, { entryFirst: true, page: pdf });
     if (f.exists) f.delete();
     f.create();
     f.write(out);

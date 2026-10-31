@@ -52,7 +52,7 @@ Reports: `app/tools/testbed/out/runs/ios-t313{b,c,d}/index.html` (b: first run a
 | satellite | PASS | imagery drawn (light grey 35 % → 4 %), Map base put back |
 | location | PASS (1 skip) | revoke → "Location is off for this app…"; grant → blue dot centred, "Follow my location"; "At my location" row not in iOS search (skip, check) |
 | walkthrough | FAIL → T332 | 16 of 25 walked; step 17's card over the Layers sheet is not in the accessibility tree |
-| pdf | PASS | the rule book opens in iOS Preview (QuickLook: "synopsis-open", Back) — file:// via Linking works |
+| pdf | PASS (bug fixed) | the rule book opens in Files/Preview ("◀ Can I Fish?" back to the app) — but at its COVER: iOS was not given the entry-first copy (Android only); now entry-first on both (synopsisPdf.native.ts) |
 
 ### Triage of ios-t313b (from the artifacts)
 - Search matcher: test. iOS reads a result row as one label ("Cultus Lake, Lake · Region 2 …"), so `Lake · …` never
@@ -70,6 +70,7 @@ Reports: `app/tools/testbed/out/runs/ios-t313{b,c,d}/index.html` (b: first run a
   ask for a foreground session (Android ignores the option) — b8e33ca80.
 - **Menu pages under the status bar** ("‹ Back" under the clock: About, Updates log, …): the Modal's SafeAreaView
   measured mid-slide. iOS pads by the root provider's insets — 404a65da0 (needs the next run's shot to confirm).
+- **Rule book opened at its cover on iOS**: the marked page was pages away (entry-first was Android-only). Fixed.
 - Permission prompts said "CanIFish" and carried unused Always-location / motion strings — fixed in app.json.
 
 ## Performance scenario (ready, not yet run)
