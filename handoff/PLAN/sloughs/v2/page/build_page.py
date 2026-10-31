@@ -24,7 +24,7 @@ from pyproj import Transformer
 REPO = '/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations/'
 SP = '/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/scratchpad/'
 OUT = SP + 't149/'
-CAND = REPO + 'handoff/PLAN/sloughs/v2/candidates_v2.json.gz'
+CAND = REPO + 'data/generated/sloughs/candidates_v2.json.gz'
 GPKG = REPO + 'data/source/bc_fisheries_data.gpkg'
 POLYS = SP + 't55v2/polys_raw.parquet'
 GROUPS = OUT + 'intermittent_groups.parquet'

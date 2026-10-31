@@ -107,7 +107,7 @@ def main(argv=None):
     ap.add_argument('--dams', default=None)
     ap.add_argument('--gpkg', default=os.path.join(REPO, 'data', 'source', 'bc_fisheries_data.gpkg'))
     ap.add_argument('--polys', default=None)
-    ap.add_argument('--candidates', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'candidates_v2.json.gz'))
+    ap.add_argument('--candidates', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'data', 'generated', 'sloughs', 'candidates_v2.json.gz'))
     ap.add_argument('--out', required=True)
     a = ap.parse_args(argv)
     gp = sqlite3.connect(f'file:{a.gpkg}?mode=ro', uri=True)

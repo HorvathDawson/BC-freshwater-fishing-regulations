@@ -1,8 +1,8 @@
 """T55: THE SLOUGH / CANAL CANDIDATES as a review target — a mark of scope "slough" is held against these.
 
-Two read-only proposal files: the automark (`handoff/PLAN/curation-review/slough-automark.json`, one row per
+Two read-only proposal files: the automark (`data/generated/sloughs/slough-automark.json`, one row per
 candidate with the owner's review-page verdicts and the width rule's proposal) and the v2 finder
-(`handoff/PLAN/sloughs/v2/candidates_v2.json.gz`, the outline and evidence of each polygon).
+(`data/generated/sloughs/candidates_v2.json.gz`, the outline and evidence of each polygon).
 
 PRE-MARKS (owner 2026-10-28): a proposed answer the owner sees and confirms or changes — never a mark.
     narrow      the width rule's auto candidates (<= 44 m wide; the owner called 96% of those stream)
@@ -24,10 +24,10 @@ from pathlib import Path
 from typing import Optional
 
 ROOT = Path(__file__).resolve().parents[3]
-AUTOMARK = ROOT / "handoff/PLAN/curation-review/slough-automark.json"
-FINDER = ROOT / "handoff/PLAN/sloughs/v2/candidates_v2.json.gz"
+AUTOMARK = ROOT / "data/generated/sloughs/slough-automark.json"
+FINDER = ROOT / "data/generated/sloughs/candidates_v2.json.gz"
 #: the retired review page's database, read once (2026-10-28): the owner's free-text notes live only here
-PAGE_MARKS = ROOT / "handoff/PLAN/sloughs/marks-final-2026-10-28.json"
+PAGE_MARKS = ROOT / "data/curated/sloughs/page-marks-2026-10-28.json"
 #: the width rule's cut (slough-automark.md): at or under this the owner called it stream 96% of the time
 NARROW_M = 44.0
 

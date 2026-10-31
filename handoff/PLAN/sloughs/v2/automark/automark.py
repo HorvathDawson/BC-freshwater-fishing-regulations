@@ -20,7 +20,7 @@ from sklearn.tree import DecisionTreeClassifier, export_text
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MARKS_DIR = os.environ["MARKS_DIR"]
-cands = json.load(gzip.open(os.path.join(HERE, "..", "candidates_v2.json.gz")))["candidates"]
+cands = json.load(gzip.open(os.path.join(HERE, "..", "..", "..", "..", "..", "data", "generated", "sloughs", "candidates_v2.json.gz")))["candidates"]
 cx = json.load(open(os.path.join(HERE, "..", "page", "complexes.json")))["complexes"]
 img = json.load(open(os.path.join(HERE, "imagery.json")))
 spot = json.load(open(os.path.join(HERE, "..", "page", "spot.json")))
@@ -321,7 +321,7 @@ json.dump({"generated": "2026-10-28", "source": "handoff/PLAN/sloughs/v2/automar
            "artifact": "https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 (read-only; nothing written)",
            "policy": "owner marks never overwritten; decision in {owner, auto, owner_list, default}; by=machine on every "
                      "non-owner verdict; spot_check=true on the 25 random auto-marks; lake_probe=true on 10 optional LAKE-class probes",
-           "rows": out}, open(os.path.join(HERE, "..", "..", "..", "curation-review", "slough-automark.json"), "w"), indent=1)
+           "rows": out}, open(os.path.join(HERE, "..", "..", "..", "..", "..", "data", "generated", "sloughs", "slough-automark.json"), "w"), indent=1)
 json.dump(report, open(os.path.join(HERE, "report.json"), "w"), indent=1)
 print(json.dumps({k: report[k] for k in ("labels", "cv_chosen", "baseline_v2_rules_on_marks", "counts", "counts_verdict",
                                          "by_rule_class", "owner_list_by_impact_leaf", "owner_list_complexes", "owner_list_clicks", "owner_list_split",

@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CAND = os.path.join(HERE, "..", "candidates_v2.json.gz")
+CAND = os.path.join(HERE, "..", "..", "..", "..", "..", "data", "generated", "sloughs", "candidates_v2.json.gz")
 OUT = os.path.join(HERE, "imagery.json")
 CACHE = os.environ.get("TILE_CACHE", "/tmp/esri_tiles")
 URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false"
