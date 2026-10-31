@@ -2,7 +2,7 @@
 shown beside it so the owner can take the agreed ones first. READ ONLY — nothing here accepts
 anything: the owner's mark stays the only write.
 
-    dfo(location_id)      the DFO suggestion's check   (`handoff/PLAN/curation-review/dfo-preverify.json`,
+    dfo(location_id)      the DFO suggestion's check   (`data/generated/review/dfo-preverify.json`,
                           `pipeline.regs.dfo_salmon.preverify`)
     tidal(candidate_id)   the tidal candidate's check  (`.../tidal/tidal-preverify.json`,
                           `pipeline.tools.audit.tidal_preverify`, a DEM tidal limit)
@@ -21,9 +21,11 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+from pipeline.common.curated import GENERATED
+
 import reuse
 
-_PLAN = reuse._ROOT / "handoff/PLAN/curation-review"
+_PLAN = GENERATED.review
 FILES = {
     "dfo": Path(os.environ.get("CURATION_DFO_PREVERIFY") or _PLAN / "dfo-preverify.json"),
     "tidal": Path(os.environ.get("CURATION_TIDAL_PREVERIFY") or _PLAN / "tidal/tidal-preverify.json"),

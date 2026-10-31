@@ -1,9 +1,13 @@
 """Print summary.md's tables from candidates.json (read only)."""
 import json
 from collections import Counter
+import sys
 from pathlib import Path
 
-d = json.loads((Path(__file__).parent / "candidates.json").read_text())
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
+from pipeline.common.curated import GENERATED  # noqa: E402
+
+d = json.loads((GENERATED.review / "name-variants" / "candidates.json").read_text())
 C = d["candidates"]
 src_of = lambda s: s["source"]
 rows = Counter()

@@ -7,7 +7,7 @@
     mark_for(body)   the `Mark` a tidal payload makes (each new split snapped to the stream and stamped)
                      — `reuse.post_mark` commits it, the ONE write
 
-READ ONLY. The candidates file (`handoff/PLAN/curation-review/tidal/tidal-candidates.json`, from
+READ ONLY. The candidates file (`data/generated/review/tidal/tidal-candidates.json`, from
 `pipeline.tools.audit.tidal_candidates`) and splits.json are never written here: accepting a candidate
 is a mark (scope "tidal", Place y) carrying the cut as a `NewSplit`; T185 turns marks into reviewed
 changes.

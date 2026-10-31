@@ -1,6 +1,6 @@
 """Q154 (owner 2026-10-28): the SAMPLE the owner marks in the review app's Sloughs tab ("Small ponds (Q154)").
 
-Read-only. Builds `sample.json` beside this file from the q154-examples.md measurement (its scratch `rows.json`
+Read-only. Builds `sample.json` (data/generated/review/q154/, T330) from the q154-examples.md measurement (its scratch `rows.json`
 + `live_sel.json`, one row per `river_widenings` polygon) and the FWA gpkg (outline + stream lines):
 
     the 20 examples of q154-examples.md §3, and 60 drawn at random (seed 154), stratified:
@@ -26,6 +26,8 @@ from shapely.ops import unary_union
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[3]
+sys.path.insert(0, str(REPO))
+from pipeline.common.curated import GENERATED  # noqa: E402
 GPKG = REPO / "data/source/bc_fisheries_data.gpkg"
 MD = HERE.parent / "q154-examples.md"
 CAP_HA, CAP_RATIO = 1.0, 2.0
@@ -137,7 +139,7 @@ def main(scratch: Path) -> None:
            "cutoff": {"max_ha": CAP_HA, "max_ratio": CAP_RATIO, "caught_total": sum(caught(r) for r in R.values()),
                       "set_total": len(R)},
            "rows": rows}
-    (HERE / "sample.json").write_text(json.dumps(doc, separators=(",", ":")))
+    (GENERATED.mkdir("review", "q154") / "sample.json").write_text(json.dumps(doc, separators=(",", ":")))
     from collections import Counter
     print(len(rows), Counter((r["set"], r["stratum"]) for r in rows), Counter(r["region"] for r in rows))
 

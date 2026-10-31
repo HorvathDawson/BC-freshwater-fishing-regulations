@@ -3,9 +3,9 @@
     # 1. the edit sites (needs the DFO build gpkg from R2 + the build gpkg's streams; ~3 min, read only)
     .venv/bin/python -m pipeline.tools.audit.tidal_triage edits \
         --dfo-gpkg <DFO_TIDAL_BOUNDARY.gpkg> --gpkg <bc_fisheries_data.gpkg> \
-        --out handoff/PLAN/curation-review/tidal
+        --out data/generated/review/tidal
     # 2. the triage (seconds): candidates + edit sites + web findings -> each candidate's class
-    .venv/bin/python -m pipeline.tools.audit.tidal_triage triage --out handoff/PLAN/curation-review/tidal
+    .venv/bin/python -m pipeline.tools.audit.tidal_triage triage --out data/generated/review/tidal
 
 HOW THE EDITS ARE FOUND. The polygon the build reads (`tidal_boundary`) is `step5_simplified` of
 https://build.canifishthis.ca/DFO_TIDAL_BOUNDARY.gpkg, built by data/build_tidal_boundary.py from that
@@ -57,12 +57,14 @@ import sqlite3
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from pipeline.common.curated import GENERATED
+
 import numpy as np
 import shapely
 from shapely.geometry import LineString, Point, shape, mapping
 
 ROOT = Path(__file__).resolve().parents[3]
-OUT = ROOT / "handoff/PLAN/curation-review/tidal"
+OUT = GENERATED.review / "tidal"
 SOURCE_LAYER = "dfodfooy__dfo_bc_pfma_subareas_chs_v3_gshp"
 
 #: DFO's vertex grid in BC Albers (m) and how far off it a vertex may sit (float noise) and still be DFO's
@@ -746,7 +748,8 @@ def main(argv=None) -> None:
     edits = json.loads((a.out / "tidal-edits.json").read_text())
     wpath = a.out / "tidal-web.json"
     web = json.loads(wpath.read_text()) if wpath.exists() else None
-    dpath = a.out / OWNER_DECISIONS
+    from pipeline.regs.review.proposals import TIDAL_DECISIONS     # human-made: stays in handoff/ until T326 folds it
+    dpath = TIDAL_DECISIONS
     decisions = json.loads(dpath.read_text()) if dpath.exists() else None
     counts = triage(doc, edits, web, decisions)
     cpath.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")

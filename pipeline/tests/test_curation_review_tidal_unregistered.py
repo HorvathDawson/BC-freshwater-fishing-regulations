@@ -16,7 +16,7 @@ from pipeline.tests.conftest import ATLAS_HINT, need
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
-CANDIDATES = REPO / "handoff/PLAN/curation-review/tidal/tidal-candidates.json"
+CANDIDATES = REPO / "data/generated/review/tidal/tidal-candidates.json"
 NELSON = "tidal:356013125"
 
 pytestmark = pytest.mark.needs_atlas

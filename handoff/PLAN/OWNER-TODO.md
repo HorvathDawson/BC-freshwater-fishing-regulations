@@ -114,7 +114,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   on the satellite map with its outline and river; mark each pool / real lake / unsure (keys p / l / ?) and the tally
   shows how your calls line up with the cut — then say yes / no / another cut.
 - **T89 six waters:** Frog/Hidden/Secret/Square (5-6), Redfern (5-15), Squirrel (6-1) — nothing of those names near
-  the printed MU; if you know where any is, the proposal file `handoff/PLAN/curation-review/t89-awaiting-water.json`
+  the printed MU; if you know where any is, the proposal file `data/generated/review/t89-awaiting-water.json`
   lists the leads and the fix path.
 - **Run timing (T199, built 10-28 on staging; Q144 answered with the defaults):** (1) run
   `gh workflow run feeds-runtiming.yml --ref redesign/stream-sections -f upload=true` once (uses the repo's R2 secrets;

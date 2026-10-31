@@ -58,6 +58,11 @@ generated:
   # T226: the in-season matches compiled for the app (`pipeline.regs.inseason.publish`); the local tile server serves
   # `feed/` as /feeds/inseason/ (R2 `feeds/inseason/` in production, beside the T225 worker's index.json).
   inseason: "data/generated/inseason"
+  # T330: the curation review's MACHINE-WRITTEN inputs (tidal candidates / pre-verify / edits / web / OSM landmarks,
+  # tidal pass 2, DFO suggestions / pre-verify / split hunt, entry split suggestions, T89 awaiting-water, the Q154
+  # sample, the mined name candidates, the T185 proposals). Moved here from handoff/PLAN/curation-review/; committed
+  # (data/.gitignore) because the review app reads them. Nothing human-made lives here.
+  review: "data/generated/review"
   # THE SHIPPED SET (MINIMAL-PACKAGING §1; P08/P18), apart from every build artifact: data/release/<data_release>/,
   # data/release/tiles/<tile_version>/ (geometry-only atlas, the outside-BC mask, map assets), data/release/basemap/.
   release: "data/release"
@@ -137,6 +142,9 @@ curated:
     review:
       marks: "data/curated/regulations/review/marks.jsonl"   # reviewed — the reviewers' marks, append-only (T97)
       proposal_overrides: "data/curated/regulations/review/proposal_overrides.json"  # owner calls on proposed splits (confidence), beside the never-edited marks (T185)
+      # T325: the review domains that are CLOSED (locked) — the exporter and the review app skip them; marks.jsonl is
+      # never edited. Close = `python -m pipeline.regs.review.lock <domain>`; reopen = remove the entry (`--reopen`).
+      closed: "data/curated/regulations/review/closed.json"
     entries:
       catalogue: "data/curated/regulations/entries/catalogue"
       dfo_salmon: "data/curated/regulations/entries/dfo_salmon"

@@ -25,7 +25,7 @@ point agrees, "disagree" when one point's second method finds the landmark elsew
 when no second method reaches a point. Duplicates: same water + same points (split ids, new
 splits within 60 m) -> `duplicate_of` the canonical (the cluster's, else the active / shortest id).
 
-READ ONLY on every input; writes `handoff/PLAN/curation-review/dfo-preverify.json`. Network reads
+READ ONLY on every input; writes `data/generated/review/dfo-preverify.json`. Network reads
 (Overpass, openmaps.gov.bc.ca WFS, the warm review backend for split coordinates) are cached in
 `~/.cache/bcfish-preverify` (`PREVERIFY_CACHE` overrides). Never applies anything.
 """
@@ -45,13 +45,14 @@ from typing import Optional
 
 from pyproj import Transformer
 
+from pipeline.common.curated import GENERATED
 from pipeline.regs.dfo_salmon.suggest import GENERIC, TYPE_WORDS, _norm, coords_in, tokens
 
 ROOT = Path(__file__).resolve().parents[3]
-SUGG = ROOT / "handoff/PLAN/curation-review/dfo-suggestions.json"
-OUT = ROOT / "handoff/PLAN/curation-review/dfo-preverify.json"
+SUGG = GENERATED.review / "dfo-suggestions.json"
+OUT = GENERATED.review / "dfo-preverify.json"
 GPKG = ROOT / "data/source/bc_fisheries_data.gpkg"
-TIDAL = ROOT / "handoff/PLAN/curation-review/tidal/tidal-candidates.json"
+TIDAL = GENERATED.review / "tidal/tidal-candidates.json"
 API = os.environ.get("CURATION_API", "http://127.0.0.1:8787")
 CACHE = Path(os.environ.get("PREVERIFY_CACHE", Path.home() / ".cache" / "bcfish-preverify"))
 OVERPASS = "https://overpass-api.de/api/interpreter"

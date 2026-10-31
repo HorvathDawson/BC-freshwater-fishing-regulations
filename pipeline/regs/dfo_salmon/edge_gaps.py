@@ -5,7 +5,7 @@ The bundle build cuts a water where the DFO salmon changes only at a named split
 point with no split, it does not cut and does not name the point. It records the point as a DATA GAP
 (`salmon_edge_gap`): a DFO place edge that has not been placed as a split. This module turns those rows, plus the
 places whose placement covers a water their own words exclude ("not including Atnarko River"), into items on the
-review's DFO queue (`handoff/PLAN/curation-review/dfo-suggestions.json`, `suggestions[location_id]`). Each item says
+review's DFO queue (`data/generated/review/dfo-suggestions.json`, `suggestions[location_id]`). Each item says
 what to place. Where the edge is a polygon line (a management-unit group's edge crossing the river), it carries a
 pre-filled NEW SPLIT at the crossing, named after the area. Nothing here writes splits.json or the curated files.
 
@@ -20,8 +20,10 @@ import sqlite3
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from pipeline.common.curated import GENERATED
+
 ROOT = Path(__file__).resolve().parents[3]
-OUT = ROOT / "handoff/PLAN/curation-review/dfo-suggestions.json"
+OUT = GENERATED.review / "dfo-suggestions.json"
 _NOT_INCLUDING = re.compile(r"not including (?:the )?([A-Z][\w' .-]+?(?: River| Creek| Lake))", re.I)
 _MU_GROUP = re.compile(r"area:mu_group:management_units_(\d+)_(\d+)_to_(\d+)_(\d+)$")
 

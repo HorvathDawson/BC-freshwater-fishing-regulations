@@ -25,6 +25,8 @@ from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 
+from pipeline.common.curated import GENERATED
+
 import preverify
 import reuse
 from pipeline.regs.review import dfo as D
@@ -38,7 +40,7 @@ DFO_TYPED = Path(os.environ["CURATION_DFO_TYPED"]) if os.environ.get("CURATION_D
 #: location, never applied — "accept suggestion" only pre-fills the editor. `CURATION_DFO_SUGGESTIONS`
 #: points it at a copy (tests).
 SUGGESTIONS_PATH = (Path(os.environ["CURATION_DFO_SUGGESTIONS"]) if os.environ.get("CURATION_DFO_SUGGESTIONS")
-                    else reuse._ROOT / "handoff/PLAN/curation-review/dfo-suggestions.json")
+                    else GENERATED.review / "dfo-suggestions.json")
 
 #: how far (m) a map point may sit from the water it cuts — further is a click on another water
 SNAP_MAX_M = 500.0

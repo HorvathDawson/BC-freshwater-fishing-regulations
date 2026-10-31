@@ -174,7 +174,7 @@ targets slug to one file name are refused, never written over each other.
 
 ### Proposals (T185; the read-only list view and `GET /api/proposals` were removed in T290)
 The proposed edits the marks make (`python -m pipeline.regs.review.proposals build [--check]` writes
-`handoff/PLAN/curation-review/proposals/index.json` + one `.patch` each). The owner applies the accepted ones:
+`data/generated/review/proposals/index.json` + one `.patch` each). The owner applies the accepted ones:
 `python -m pipeline.regs.review.apply_proposals [--dry-run]` (one commit each, new splits first).
 
 ### Commit marks (T135)
@@ -397,7 +397,7 @@ The source synopsis row-crop PNG (`data/generated/regs/extraction/row_images/`).
 `[A-Za-z0-9_]+\.png`.
 
 ### Tidal mode (T212) — reads; accepting is a mark
-The proposed tidal boundaries (`handoff/PLAN/curation-review/tidal/tidal-candidates.json`, from
+The proposed tidal boundaries (`data/generated/review/tidal/tidal-candidates.json`, from
 `python -m pipeline.tools.audit.tidal_candidates`; `CURATION_TIDAL_CANDIDATES` points at a copy).
 - `GET /api/tidal/queue?confidence=&verify=&enters=&words=&q=` — one row per candidate.
 - `GET /api/tidal/progress` — marked / total, by confidence, the file's coverage.

@@ -1,5 +1,5 @@
 """T89 AWAITING-WATER entries (owner Q45, 2026-10-23): rules that bind no water because no water of the
-printed name is in the printed MU. READ ONLY: `handoff/PLAN/curation-review/t89-awaiting-water.json` is
+printed name is in the printed MU. READ ONLY: `data/generated/review/t89-awaiting-water.json` is
 shown beside the entry (leads, same-name candidates elsewhere, the fix path) so the owner can mark it
 -- the mark (POST /api/marks) is the only write; nothing is bound, curated or moved here.
 
@@ -16,10 +16,12 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
+from pipeline.common.curated import GENERATED
+
 import reuse
 
 PATH = Path(os.environ.get("CURATION_T89_AWAITING_WATER")
-            or reuse._ROOT / "handoff/PLAN/curation-review/t89-awaiting-water.json")
+            or GENERATED.review / "t89-awaiting-water.json")
 MAX_CANDIDATES = 8   # the nearest same-name waters are drawn; the full list stays in the panel
 
 

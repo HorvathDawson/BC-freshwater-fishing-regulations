@@ -27,7 +27,7 @@ picker sets it), an owner override (`proposal_overrides.json`, since the marks a
 else the anchor's default (a hand-placed point medium, a registry anchor high). It rides into the
 split record (`confidence`, absent = high, as splits.json spells it) and the proposal row.
 
-WRITES ONLY under `handoff/PLAN/curation-review/proposals/` (index.json + one .patch per proposal),
+WRITES ONLY under `data/generated/review/proposals/` (index.json + one .patch per proposal),
 and — `side` — patched COPIES in a side directory the caller names (never under data/curated).
 `apply_proposals` is the one writer of the curated files (Claude runs it, never the review app).
 
@@ -52,9 +52,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Mapping, Optional
 
+from pipeline.common.curated import GENERATED
+
 REPO = Path(__file__).resolve().parents[3]
 #: where the proposals are written (index.json + <id>.patch) — handoff, never curated data
-OUT_DIR = REPO / "handoff" / "PLAN" / "curation-review" / "proposals"
+OUT_DIR = GENERATED.review / "proposals"
 INDEX = "index.json"
 #: the review app's backend: the in-memory binding path (`reuse.binding_change`) lives there
 BACKEND = REPO / "curation-review" / "backend"

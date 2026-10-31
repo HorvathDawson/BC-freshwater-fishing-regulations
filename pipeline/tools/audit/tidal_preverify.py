@@ -1,7 +1,7 @@
 """TIDAL CANDIDATES, PRE-VERIFIED BY A SECOND METHOD (owner 2026-10-27: "so that I have to do less review").
 
     .venv/bin/python -m pipeline.tools.audit.tidal_preverify \
-        [--candidates handoff/PLAN/curation-review/tidal/tidal-candidates.json] \
+        [--candidates data/generated/review/tidal/tidal-candidates.json] \
         [--gpkg data/source/bc_fisheries_data.gpkg] [--threshold 4.0] [--calibrate]
 
 Every tidal candidate (`tidal_candidates`, made from the DFO tidal POLYGON's crossing + the words) is
@@ -22,7 +22,7 @@ DUPLICATES: rows naming the same water (name key) whose proposed points lie with
 other (a side channel or second blue line of one river) -> `duplicate_of` the best row (confidence,
 agreement, ocean-entering, longest).
 
-READ ONLY on every input; writes handoff/PLAN/curation-review/tidal/tidal-preverify.json, which the
+READ ONLY on every input; writes data/generated/review/tidal/tidal-preverify.json, which the
 curation review reads as a badge. Never a mark, never splits.json.
 """
 from __future__ import annotations
@@ -35,14 +35,16 @@ import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
+from pipeline.common.curated import GENERATED
+
 import numpy as np
 
 from pipeline.tools.audit.tidal_candidates import _gpkg_geom, _to_lonlat, point_at
 import shapely
 
 ROOT = Path(__file__).resolve().parents[3]
-CANDIDATES = ROOT / "handoff/PLAN/curation-review/tidal/tidal-candidates.json"
-OUT = ROOT / "handoff/PLAN/curation-review/tidal/tidal-preverify.json"
+CANDIDATES = GENERATED.review / "tidal/tidal-candidates.json"
+OUT = GENERATED.review / "tidal/tidal-preverify.json"
 GPKG = ROOT / "data/source/bc_fisheries_data.gpkg"
 
 THRESHOLD_M = 4.0

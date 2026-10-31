@@ -29,7 +29,7 @@ Each JSON file below holds its own licence record in a top-level `_licence` key:
 | `data/curated/waters/added_lakes.geojson` | features with `properties.source: "osm"`: ids 2 Marsh Pond, 3 Children's Fishing Pond, 4 Cheam Lake, 5 Minnekhada Marsh, 6 Cahilty Lake (their polygons) | Overpass, reviewed by hand 2026-09-03 |
 | `data/curated/waters/mined_names.json` | each `entries[].names[]` record with `source: "osm"` (182 names). The `municipal` and `gauge` records are not OSM data. | mined from the Protomaps basemap, which is OSM (T224) |
 | `data/curated/waters/splits.json` | the anchor `coord` of the 52 splits listed in `_licence.ids`. Each was placed on an OSM bridge, dam, weir, falls, rail line or road crossing. | OSM way/node named in the split's `_note`, or an `[osm-candidate]` road × river intersection |
-| `handoff/PLAN/curation-review/tidal/tidal-osm-landmarks.json` | every way in `ways` (curation working file, not shipped) | Overpass, `pipeline/tools/audit/tidal_words.py osm` |
+| `data/generated/review/tidal/tidal-osm-landmarks.json` | every way in `ways` (curation working file, not shipped) | Overpass, `pipeline/tools/audit/tidal_words.py osm` |
 
 ## Built from OpenStreetMap but not committed
 

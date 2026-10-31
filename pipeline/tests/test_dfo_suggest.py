@@ -199,7 +199,7 @@ def test_the_written_suggestions_are_valid_extent_fixes():
     """Every suggestion in the handoff file is one the mark accepts as it is: a complete one is a
     valid `ExtentFix`, every NEW split a valid `NewSplit` its points name by ref; none is applied
     (the file is read by the review app only)."""
-    p = REPO / "handoff/PLAN/curation-review/dfo-suggestions.json"
+    p = REPO / "data/generated/review/dfo-suggestions.json"
     doc = json.loads(p.read_text())
     assert doc["counts"] and doc["suggestions"]
     for lid, r in doc["suggestions"].items():
@@ -320,7 +320,7 @@ def test_the_hunt_file_covers_its_targets_and_names_real_cuts():
     """Every location the hunt names is in the suggestions and carries the hunt; every `cut` end
     names a hunted cut with a confidence, a description and a source."""
     hunt = json.loads((REPO / S.HUNT_PATH).read_text())
-    doc = json.loads((REPO / "handoff/PLAN/curation-review/dfo-suggestions.json").read_text())["suggestions"]
+    doc = json.loads((REPO / "data/generated/review/dfo-suggestions.json").read_text())["suggestions"]
     for k, c in hunt["cuts"].items():
         assert c["confidence"] in ("high", "medium", "low") and c["description"] and c["sources"], k
         assert len(k) <= 40, k

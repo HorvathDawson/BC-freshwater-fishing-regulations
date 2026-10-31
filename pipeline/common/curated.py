@@ -137,8 +137,11 @@ class Review(BaseModel):
     #: owner calls on PROPOSED splits the marks cannot carry (the store is append-only, never
     #: edited): a cut's confidence (`marks.ConfidenceOverride`, owner 2026-10-27)
     proposal_overrides: FilePath
+    #: T325: the CLOSED review domains (`pipeline.regs.review.closed`) — beside the marks, never required to exist
+    #: (absent = nothing closed); the exporter and the review app skip a domain listed here
+    closed: Path
 
-    _abs = field_validator("marks", "proposal_overrides", mode="before")(_absolute)
+    _abs = field_validator("marks", "proposal_overrides", "closed", mode="before")(_absolute)
 
 
 class Regulations(BaseModel):
@@ -327,11 +330,14 @@ class Generated(BaseModel):
     #: T226: what `pipeline.regs.inseason.publish` writes for the app (`matches.json` beside the feed; served as
     #: `/feeds/inseason/` by the local tile server, R2 `feeds/inseason/` in production)
     inseason: Path
+    #: T330: the curation review's machine-written inputs (candidates, pre-verify, suggestions, the Q154 sample, the
+    #: mined name candidates, the T185 proposals) — moved out of handoff/; the review app and `regs/review/*` read them
+    review: Path
     #: The shipped set (`data/release`), NOT a build artifact: only what an app downloads (P08/P18).
     release: Path
 
     _abs = field_validator("base", "reaches", "bundle", "tiles", "added_streams", "scratch",
-                           "runtiming", "inseason", "release", mode="before")(_absolute)
+                           "runtiming", "inseason", "review", "release", mode="before")(_absolute)
 
     # --- builds -----------------------------------------------------------------------
 

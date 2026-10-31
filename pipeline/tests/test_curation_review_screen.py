@@ -336,7 +336,7 @@ def test_a_dfo_suggestion_is_served_read_only_and_its_new_splits_land(env):
     queue says one waits; every NEW split a suggestion proposes passes the server's own anchor
     check on the real atlas (so accepting it and saving is not refused); reading writes nothing."""
     c = env["client"]
-    doc = json.loads((REPO / "handoff/PLAN/curation-review/dfo-suggestions.json").read_text())
+    doc = json.loads((REPO / "data/generated/review/dfo-suggestions.json").read_text())
     curated = _stamps(CURATED.base)
     lid = "1:nanaimo-river:from-the-cedar-road-bridge-crossin"   # campbell (the first pin) is placed now
     got = c.get(f"/api/dfo/locations/{lid}").json()["suggestion"]

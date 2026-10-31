@@ -40,8 +40,10 @@ from collections import Counter, defaultdict
 from html.parser import HTMLParser
 from pathlib import Path
 
+from pipeline.common.curated import GENERATED
+
 ROOT = Path(__file__).resolve().parents[3]
-OUT = ROOT / "handoff/PLAN/curation-review/tidal/pass2"
+OUT = GENERATED.review / "tidal/pass2"
 CACHE = ROOT / "data/source/dfo_tidal_areas/2026-10-28"
 HOST = "https://www.pac.dfo-mpo.gc.ca"
 PFMA_URL = "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2007-77/FullText.html"
@@ -905,7 +907,7 @@ def mouth_verdict(c: dict | None, m0: float, t212: float | None, mark_m: float |
 
 def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
     from pipeline.tools.audit import tidal_candidates as TC
-    cands = json.loads((ROOT / "handoff/PLAN/curation-review/tidal/tidal-candidates.json").read_text())["candidates"]
+    cands = json.loads((GENERATED.review / "tidal/tidal-candidates.json").read_text())["candidates"]
     by_blk = {str(c["blk"]): c for c in cands}
     by_name: dict[str, list] = defaultdict(list)
     for c in cands:

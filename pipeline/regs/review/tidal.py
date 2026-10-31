@@ -1,6 +1,6 @@
 """T212: THE TIDAL CANDIDATES as a review target — a mark of scope "tidal" is held against these.
 
-The candidates are a proposal file (`handoff/PLAN/curation-review/tidal/tidal-candidates.json`, written by
+The candidates are a proposal file (`data/generated/review/tidal/tidal-candidates.json`, written by
 `pipeline.tools.audit.tidal_candidates`): one per stream, where its tidal boundary would be cut. The
 curation review shows them (its Tidal mode); ACCEPTING one is a mark (scope "tidal", answer P) that carries
 the proposed cut as a `NewSplit` — never a splits.json edit (T185 turns marks into reviewed changes).
@@ -19,9 +19,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
+from pipeline.common.curated import GENERATED
+
 ROOT = Path(__file__).resolve().parents[3]
 #: the candidates file; `CURATION_TIDAL_CANDIDATES` points it at a copy (tests)
-DEFAULT_PATH = ROOT / "handoff/PLAN/curation-review/tidal/tidal-candidates.json"
+DEFAULT_PATH = GENERATED.review / "tidal/tidal-candidates.json"
 
 
 def path() -> Path:
@@ -32,7 +34,7 @@ def path() -> Path:
 #: T212 PASS 2 (`pipeline.tools.audit.tidal_pass2`): what DFO's own area / closure / PFMA / freshwater
 #: descriptions imply, per stream — merged in as EVIDENCE only; `CURATION_TIDAL_PASS2` points it at a
 #: copy ("" = none). Read alongside the default candidates file only (a test's copy gets none).
-PASS2_PATH = ROOT / "handoff/PLAN/curation-review/tidal/pass2/proposals.json"
+PASS2_PATH = GENERATED.review / "tidal/pass2/proposals.json"
 
 
 def pass2_path() -> Optional[Path]:

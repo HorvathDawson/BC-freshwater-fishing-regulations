@@ -1299,7 +1299,7 @@ export interface SplitSuggestion {
   pick: { builder: number | null; proposed: number | null; agrees: boolean } | null;
 }
 
-/** T89 (`handoff/PLAN/curation-review/t89-awaiting-water.json`, served read only by `awaiting_water.py`) */
+/** T89 (`data/generated/review/t89-awaiting-water.json`, served read only by `awaiting_water.py`) */
 export interface AwaitingWater {
   entry_id: string; name: string; printed_mu: string; rules: number; status: string;
   lead: string | null;

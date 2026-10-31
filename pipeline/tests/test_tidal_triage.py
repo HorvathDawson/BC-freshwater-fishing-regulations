@@ -10,10 +10,11 @@ from pathlib import Path
 import numpy as np
 from shapely.geometry import Polygon
 
+from pipeline.regs.review.proposals import TIDAL_DECISIONS
 from pipeline.tools.audit import tidal_triage as TT
 
 REPO = Path(__file__).resolve().parents[2]
-TIDAL = REPO / "handoff/PLAN/curation-review/tidal"
+TIDAL = REPO / "data/generated/review/tidal"     # T330: machine output
 
 
 def _ring(n=1000, r=5000.0, x0=1_000_000.0, y0=500_000.0):
@@ -141,7 +142,7 @@ def test_straight_cut_threshold_is_150_m():
 def test_an_owner_decision_wins_over_every_other_class():
     """decisions.md 2026-10-27: Capilano at the source text, Cowichan at the river mouth; owner
     2026-10-28: Nitinat River at its entry into Nitinat Lake (the lake and the river below are tidal)."""
-    dec = json.loads((TIDAL / TT.OWNER_DECISIONS).read_text())["decisions"]
+    dec = json.loads(TIDAL_DECISIONS.read_text())["decisions"]
     assert {d["water"]: d["boundary"] for d in dec} == {"Capilano River": "source_text", "Cowichan River": "river_mouth",
                                                         "Nitinat River": "source_text"}
     no = {"kind": "synopsis_box", "agrees": False}

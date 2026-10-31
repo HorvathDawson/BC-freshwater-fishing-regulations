@@ -3,7 +3,7 @@ read only, and ACCEPTING a candidate is one mark (scope "tidal", Place y + the c
 in a TEMP marks store; nothing under data/curated is written.
 
 Runs the FastAPI app with `TestClient` against a temp candidates file (one real candidate from
-`handoff/PLAN/curation-review/tidal/tidal-candidates.json`) and a temp marks store."""
+`data/generated/review/tidal/tidal-candidates.json`) and a temp marks store."""
 from __future__ import annotations
 
 import hashlib
@@ -19,7 +19,7 @@ from pipeline.tests.conftest import ATLAS_HINT, need
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
-CANDIDATES = REPO / "handoff/PLAN/curation-review/tidal/tidal-candidates.json"
+CANDIDATES = REPO / "data/generated/review/tidal/tidal-candidates.json"
 #: Pitt River: the synopsis p.21 box's CPR Bridge, the polygon and a tidal gauge all agree
 PITT = "tidal:356360869"
 

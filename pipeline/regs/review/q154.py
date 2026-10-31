@@ -4,7 +4,7 @@ Q154 (owner 2026-10-28): should a small unnamed lake polygon a river runs throug
 take the river's rules? The proposed cutoff (q154-examples.md §4): under 1 ha AND avg width <= 2 x the
 modelled river width, man-made excluded. To decide, the owner marks a SAMPLE on the satellite map: "pool"
 (river rules) or "real lake"; "unsure" is a mark with P ?. The tally against the cutoff's prediction is the
-evidence. The sample is a read-only generated file (`handoff/PLAN/curation-review/q154/sample.json`,
+evidence. The sample is a read-only generated file (`data/generated/review/q154/sample.json`,
 `sample.py`); nothing here writes it, and a mark changes no data.
 
 A q154 mark's prints: `meaning` the measures shown (area, widths, ratio, caught), `binding` the outline —
@@ -19,8 +19,10 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
+from pipeline.common.curated import GENERATED
+
 ROOT = Path(__file__).resolve().parents[3]
-SAMPLE = ROOT / "handoff/PLAN/curation-review/q154/sample.json"
+SAMPLE = GENERATED.review / "q154/sample.json"
 MEANING = ("ha", "avg_width_m", "river_width_m", "ratio", "man_made", "caught")
 
 

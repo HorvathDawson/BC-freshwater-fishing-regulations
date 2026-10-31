@@ -40,6 +40,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from pipeline.common.curated import GENERATED
+
 import shapely
 from shapely.geometry import LineString, Point
 
@@ -49,7 +51,7 @@ from pipeline.tools.audit.tidal_candidates import (AT_MOUTH_M, MOUTH_LABEL, REUS
 from pipeline.tools.audit.tidal_preverify import geoms_of, load_lines
 
 ROOT = Path(__file__).resolve().parents[3]
-OUT = ROOT / "handoff/PLAN/curation-review/tidal"
+OUT = GENERATED.review / "tidal"
 GPKG = ROOT / "data/source/bc_fisheries_data.gpkg"
 OSM_CACHE = "tidal-osm-landmarks.json"
 OVERPASS = "https://overpass-api.de/api/interpreter"

@@ -3,7 +3,7 @@
     .venv/bin/python -m pipeline.tools.audit.tidal_candidates \
         --gpkg <bc_fisheries_data.gpkg> --atlas <data/generated/atlas/full> \
         --basemap <data/source/bc.pmtiles> [--osm <overpass json> ...] \
-        --out handoff/PLAN/curation-review/tidal
+        --out data/generated/review/tidal
 
 For every stream the owner's edited DFO tidal polygon (the `tidal_boundary` layer of the build gpkg)
 crosses, and every NAMED ocean-entering FWA blue line (watershed code 9xx-NNNNNN with nothing below
@@ -34,6 +34,8 @@ import re
 import sqlite3
 from collections import Counter, defaultdict
 from pathlib import Path
+
+from pipeline.common.curated import GENERATED
 
 import numpy as np
 import shapely
@@ -1160,7 +1162,7 @@ def main(argv=None) -> None:
     ap.add_argument("--atlas", type=Path, default=ROOT / "data/generated/atlas/full")
     ap.add_argument("--osm", type=Path, action="append", default=[], help="Overpass JSON (out geom tags)")
     ap.add_argument("--basemap", type=Path, default=None, help="bc.pmtiles: OSM roads + rail from the app basemap")
-    ap.add_argument("--out", type=Path, default=ROOT / "handoff/PLAN/curation-review/tidal")
+    ap.add_argument("--out", type=Path, default=GENERATED.review / "tidal")
     a = ap.parse_args(argv)
     doc = build(a.gpkg, a.atlas, a.osm, a.basemap)
     a.out.mkdir(parents=True, exist_ok=True)

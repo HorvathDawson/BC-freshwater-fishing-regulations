@@ -4,7 +4,7 @@ binds through an ambiguous cut, propose WHERE (an existing split or a new one) w
 and an independent second check. Never applied: the review app shows each item; the owner's mark is the only
 write. Nothing here writes splits.json, the catalogue or the marks store.
 
-    .venv/bin/python -m pipeline.regs.review.split_suggest            # -> handoff/PLAN/curation-review/
+    .venv/bin/python -m pipeline.regs.review.split_suggest            # -> data/generated/review/
                                                                       #    entry-split-suggestions.json
 
 Per finding (`precheck`): undrawn_part, unresolved_locator, unresolved, unplaced_pieces, ambiguous_cut; plus
@@ -33,10 +33,12 @@ from collections import Counter
 from pathlib import Path
 from typing import Optional
 
+from pipeline.common.curated import GENERATED
+
 ROOT = Path(__file__).resolve().parents[3]
-OUT = ROOT / "handoff/PLAN/curation-review/entry-split-suggestions.json"
-DFO = ROOT / "handoff/PLAN/curation-review/dfo-suggestions.json"
-TIDAL = ROOT / "handoff/PLAN/curation-review/tidal/tidal-candidates.json"
+OUT = GENERATED.review / "entry-split-suggestions.json"
+DFO = GENERATED.review / "dfo-suggestions.json"
+TIDAL = GENERATED.review / "tidal/tidal-candidates.json"
 KINDS = {"undrawn_part": "undrawn_part", "unresolved_locator": "unresolved_locator",
          "unresolved": "unresolved", "unplaced_pieces": "unplaced", "ambiguous_cut": "ambiguous_cut"}
 #: the tolerance (m) two methods must agree within

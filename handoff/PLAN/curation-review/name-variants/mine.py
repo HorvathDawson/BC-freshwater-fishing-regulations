@@ -1,6 +1,6 @@
 """T224 NAME VARIANTS: mine every local source for names on FWA lines / lakes that lack one or are named differently.
 
-READ ONLY — writes only candidates.json / summary numbers beside this file. No curated file is touched.
+READ ONLY — writes only candidates.json (data/generated/review/name-variants/, T330) / summary numbers. No curated file is touched.
 
 Sources (each candidate carries its REAL source, never a borrowed label):
     municipal:<city>   the four municipal stream layers (data/generated/municipal/cleaned, from data/source/municipal)
@@ -29,7 +29,12 @@ from shapely.ops import substring
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parents[3]))
 import fwa_index as F  # noqa: E402
+from pipeline.common.curated import GENERATED  # noqa: E402
+
+#: T330: the candidates are machine output — data/generated/review/name-variants/, not beside this script
+OUT = GENERATED.mkdir("review", "name-variants") / "candidates.json"
 
 ROOT = F.ROOT
 BUF = 25.0          # m: a source line "is" an FWA line where it runs within this of it
@@ -670,5 +675,5 @@ if __name__ == "__main__":
                       "raw_by_source_confidence": {f"{s}|{c}": n for (s, c), n in sorted(raw.items())}},
            "existing_variants_audit": audit_existing(),
            "candidates": cands}
-    (HERE / "candidates.json").write_text(json.dumps(doc, indent=1, ensure_ascii=False))
+    OUT.write_text(json.dumps(doc, indent=1, ensure_ascii=False))
     print(json.dumps(doc["counts"], indent=1))

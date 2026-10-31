@@ -672,7 +672,7 @@ def dfo_location(location_id: str):
 
 
 # --------------------------------------------------------------------------- T212: Tidal review mode
-# All READS: the proposed tidal boundaries (`handoff/PLAN/curation-review/tidal/tidal-candidates.json`)
+# All READS: the proposed tidal boundaries (`data/generated/review/tidal/tidal-candidates.json`)
 # and the polygon's edge near each. Accepting one is a mark (scope "tidal") through POST /api/marks.
 
 @app.get("/api/tidal/queue")

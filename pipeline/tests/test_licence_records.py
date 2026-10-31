@@ -16,7 +16,7 @@ NOTICE = (ROOT / "data/LICENSE-ODbL.md").read_text(encoding="utf-8")
 LICENSED = ["data/source/bc_places.json", "data/source/municipal/osm_streams.geojson",
             "data/curated/waters/added_streams.json", "data/curated/waters/added_lakes.geojson",
             "data/curated/waters/mined_names.json", "data/curated/waters/splits.json",
-            "handoff/PLAN/curation-review/tidal/tidal-osm-landmarks.json"]
+            "data/generated/review/tidal/tidal-osm-landmarks.json"]
 
 
 def _doc(rel: str):

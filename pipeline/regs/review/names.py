@@ -25,8 +25,10 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
+from pipeline.common.curated import GENERATED
+
 ROOT = Path(__file__).resolve().parents[3]
-CANDIDATES = ROOT / "handoff/PLAN/curation-review/name-variants/candidates.json"
+CANDIDATES = GENERATED.review / "name-variants/candidates.json"
 SPOT_SAMPLE = 30
 
 #: the candidate source key -> (NameSource code, label when the candidate's own is not better)

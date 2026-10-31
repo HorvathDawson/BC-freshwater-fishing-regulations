@@ -22,7 +22,7 @@ Per location (`suggest_one`):
 
 The review app (DFO mode) shows the suggestion, draws it, and "accept suggestion" PRE-FILLS the
 extent-fix editor; the owner saves it as their mark. Nothing here writes splits.json, the catalogue
-or the marks store. `main` writes `handoff/PLAN/curation-review/dfo-suggestions.json` (+ a summary).
+or the marks store. `main` writes `data/generated/review/dfo-suggestions.json` (+ a summary).
 
 The FWA / OSM lookups are an injected `Lookup` (`FwaLookup` reads the FWA GeoPackage by bbox and one
 attribute scan); the matcher itself is pure, so the tests run it on real locations with no atlas.
@@ -35,6 +35,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Mapping, Optional, Protocol
 
+from pipeline.common.curated import GENERATED
 from pipeline.common.names import key as name_key
 from pipeline.common.utils.wsc import groups, is_strictly_below
 
@@ -689,7 +690,7 @@ def suggest_one(loc: Mapping, water: Water, cuts: list[Cut], look: Lookup | None
 
 #: THE SPLIT HUNT (owner 2026-10-27): hand research for the locations the matcher could not place —
 #: each cut a PROPOSAL with an anchor, a lat/lon, a confidence, a description, sources and notes.
-HUNT_PATH = Path("handoff/PLAN/curation-review/dfo-split-hunt.json")
+HUNT_PATH = GENERATED.review / "dfo-split-hunt.json"
 
 
 def _hunt_new(key: str, c: Mapping, water: Water, look: Lookup) -> tuple[dict, dict]:
@@ -852,7 +853,7 @@ def _hunt_md(rows: list[dict], hunt: Mapping) -> str:
          "with their confidence, description, sources and notes; **accept suggestion** pre-fills the",
          "editor (the research travels in each new split's note); **Save extent** (your mark) is the only",
          "write. Nothing touched splits.json, the catalogue or marks.jsonl. Input:",
-         "`handoff/PLAN/curation-review/dfo-split-hunt.json`; regenerate with",
+         "`data/generated/review/dfo-split-hunt.json`; regenerate with",
          "`python -m pipeline.regs.dfo_salmon.suggest`.", "",
          f"## Counts ({len(hr)} locations)", "",
          "| locations | high | medium | low | not found |", "|---|---|---|---|---|",
@@ -1081,7 +1082,7 @@ class FwaLookup:
 
 # --------------------------------------------------------------------------- write
 
-OUT_DIR = Path("handoff/PLAN/curation-review")
+OUT_DIR = GENERATED.review
 
 
 def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Optional[str] = None,
