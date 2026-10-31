@@ -119,6 +119,11 @@ def _hash(page) -> str:
 def test_j_opens_the_next_entry_with_no_question(site):
     """No editor, so nothing to guard: `j` moves on at once (the draft dialog is gone with fix mode)."""
     page = _open(site, ADAM)
+    # `j` reads the QUEUE, which loads after the entry (its region is learnt from the entry, then
+    # the list is fetched): pressed before the list is there, `j` has no next to open — the flake
+    # on a cold backend (slow suite, 2026-10-31). The "next entry" button is enabled from exactly
+    # the same `nav.onNext`, so wait for it, as a reviewer waits for the list to show.
+    page.wait_for_selector('button[aria-label="next entry"]:not([disabled])', timeout=180_000)
     page.locator('[data-testid="raw-name"]').click()
     asked: list[str] = []
     page.on("dialog", lambda d: (asked.append(d.message), d.dismiss()))
