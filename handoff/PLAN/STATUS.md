@@ -4,6 +4,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-10-30, 23:00
+
+- **DFO limits move to the same data shape as trout** [T332]. Started on its own branch; it ships after 0.4.0.
+  - The DFO wording list gets tidied: the 2 split scraps are fixed.
+  - All 85 wordings are checked against real DFO cells, then accepted.
+  - Salmon limits will use the same quota tree and size-range types as the game-fish rules, shown by the same display code.
+  - The salmon-only shape built in T320 gets removed.
+- **Big Fable audit** [T333]: planned for the next credit cycle. It hunts duplicate data types, duplicate paths and bad practices, checks each finding, ranks them, and turns them into cleanup tickets.
+- **Stuck rebuild stopped** (owner OK). A bug in `heavy.sh` meant a stop freed the slot but didn't end the job; fixed. The rebuild is re-queued at 60% free memory.
+- **DFO extents from now on:** saving an extent mark in the review app updates the DFO curated file a moment later. Nothing to run.
+
 ## 2026-10-30, 22:40
 
 - **Hatzic:** the vessel speed rules do NOT include tributaries. Changed that one mark (owner-allowed). The catalogue
