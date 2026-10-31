@@ -372,7 +372,7 @@ use that as the sole source of future work."
 | T328 | Lock sloughs after T322 approval | OPEN | T322, T325 | owner 2026-10-30 |
 | T329 | Ponds (Q154): close the domain, no export (owner: pond = lake default, build never uses) | DONE | 62ff4d515 (needs T325) | owner 2026-10-30; closed.json lists ponds, decided/ponds.json deleted, tab locked |
 | T330 | Generated review files out of handoff/ into data/generated/review/ | DONE | 3909ada9e | owner 2026-10-30; 16 files git-mv'd, read via GENERATED.review |
-| T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | PARTIAL | — | owner 2026-10-30; 1,3–7 done (proposals domain closed); 2 done for INSEASON_MATCHES + SLOUGH_PAGE_MARKS (review-app sandbox overrides need a design); 8 after the batch (main checkout) |
+| T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | PARTIAL | — | owner 2026-10-30; 1,3–7 done (proposals domain closed); 2 done for INSEASON_MATCHES + SLOUGH_PAGE_MARKS (review-app sandbox overrides need a design); 8 done 2026-10-31 (kept r-4e709418ebd8 + r-038e6818e80f; prod has none) |
 | T332 | DFO salmon quotas in the same quota/lengths model as game-fish rules; wording list tidied, checked, accepted | OPEN | T320, T321 | owner 2026-10-30 |
 | T333 | Big Fable audit: duplicate data types / pathways / bad practices, verified + ranked → cleanup tickets | POSTPONED (next credit cycle) | T324, T331 | owner 2026-10-30 |
 | T334 | Audit all tests and documentation (dead tests, gaps, stale/duplicate docs) → fix tickets | POSTPONED (next credit cycle) | T333 | owner 2026-10-30 |

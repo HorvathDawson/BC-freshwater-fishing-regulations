@@ -36,6 +36,9 @@ from pipeline.common.curated import CURATED, SOURCE
 INSEASON_CACHE = "public, max-age=300, stale-while-revalidate=3600"
 
 
+ROSTER_FIELDS = ("station", "realtime")
+
+
 def _dfo_entries(out: Path) -> list[str]:
     keys = []
     for f in sorted(Path(CURATED.regulations.entries.dfo_salmon).glob("region-*.json")):
@@ -54,7 +57,7 @@ def _wording(out: Path) -> list[str]:
 def _roster(out: Path) -> list[str]:
     """The station roster cut to what the Worker reads — the bytes `jq -c '[.[] | {station, realtime}]'` wrote."""
     rows = json.loads((SOURCE / "bc_hydrometric_stations.json").read_text(encoding="utf-8"))
-    slim = [{"station": r.get("station"), "realtime": r.get("realtime")} for r in rows]
+    slim = [{k: r.get(k) for k in ROSTER_FIELDS} for r in rows]   # a copy for the Worker, not a liveness read (test_liveness)
     key = "private/feeds/gauges/roster.json"
     _put(out, key).write_text(json.dumps(slim, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     return [key]

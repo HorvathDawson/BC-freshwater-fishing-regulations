@@ -397,6 +397,7 @@ def test_closing_one_domain_moves_no_byte_of_another(tmp_path):
 
 def test_only_ponds_are_closed_in_the_curated_list():
     got = C.entries()
-    assert set(got) == {"ponds"} and got["ponds"]["scopes"] == ["q154"] and got["ponds"]["final"] is None
+    assert set(got) == {"ponds", "proposals"} and got["ponds"]["scopes"] == ["q154"] and got["ponds"]["final"] is None
+    assert got["proposals"]["scopes"] == ["proposal"] and got["proposals"]["final"] is None   # T331 item 6
     assert not (Path(CURATED.decided) / "ponds.json").exists()
     assert C.path() == Path(CURATED.regulations.review.marks).parent / "closed.json"

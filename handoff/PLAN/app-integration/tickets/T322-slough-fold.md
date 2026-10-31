@@ -65,3 +65,35 @@ scripts/heavy.sh t322-gate 40 -- .venv/bin/python -m pipeline.tools.audit.slough
 
 ## Owner 2026-10-30: no separate review
 "I don't think we need to review the slough stuff, we did the work in the review app already." The side build + binding diff stay as a MECHANICAL gate run by Claude (only the folded sloughs/oxbows and the waters they join may change; anything else stops the promote); no owner review step. Oxbows (31) re-kind to general streams; only polygons no line touches are skipped.
+
+## RESUME (2026-10-31, stopped on low credits — nothing of T322 started)
+State: cleanup/t327-t331 merged (3f28d0e80); data/release pruned to r-4e709418ebd8 (LATEST, on staging; prod has no
+release) + r-038e6818e80f. FOLD_CONFIRMED still False. dfo/t332-shared-quota NOT merged.
+```sh
+# 1. flowing.py FOLD_CONFIRMED = True; commit -- pipeline/atlas/registry/flowing.py
+scripts/heavy.sh t322-side 60 -- .venv/bin/python -m pipeline build --side data/generated/side/t322 --atlas --jobs 3 \
+  > data/generated/side/t322.log 2>&1
+.venv/bin/python -m pipeline.tools.audit.build_parity data/generated/atlas/full data/generated/side/t322/atlas/full_next
+SIDE_REACH=$(find data/generated/side/t322/reaches -mindepth 1 -maxdepth 1 -type d | head -1)
+.venv/bin/python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full "$SIDE_REACH" --json handoff/PLAN/audit/binding-diff-t322.json
+scripts/heavy.sh t322-gate 60 -- .venv/bin/python -m pipeline.tools.audit.slough_fold_gate data/generated/reaches/full "$SIDE_REACH" \
+  data/generated/side/t322/atlas/full_next --json handoff/PLAN/audit/slough-fold-gate-t322.json   # must exit 0
+# 2. DFO re-match on the SIDE registry (T337: item_ids is a cache no stage refreshes; Park Rill oxbow absorbed).
+#    apply never rewrites existing item_ids, so ALSO check every existing item_id still resolves in the side registry.
+cp -R data/curated/regulations/entries/dfo_salmon /tmp/dfo-t322 && .venv/bin/python -m pipeline.regs.dfo_salmon.match apply \
+  --registry data/generated/side/t322/atlas/full_next/registry.json --entries-dir /tmp/dfo-t322
+diff -r data/curated/regulations/entries/dfo_salmon /tmp/dfo-t322   # any changed/unresolved binding: STOP before staging
+# 3. promote + live build + staging
+.venv/bin/python -m pipeline.atlas.promote data/generated/side/t322/atlas/full_next
+scripts/heavy.sh t322-live 60 -- .venv/bin/python -m pipeline build --jobs 3 > data/generated/side/t322-live.log 2>&1
+MIN_APP_VERSION=0.3.0 deploy/staging/upload.sh
+scripts/heavy.sh rt-base 60 -- .venv/bin/python -m pipeline.runtiming.feed.base --upload --yes
+.venv/bin/python -m pipeline.runtiming.parse        # DFO counts re-parse
+.venv/bin/python -m pipeline.runtiming.feed.build --timing data/source/runtiming/timing.json \
+  --polygons data/generated/runtiming/cu_polygons.geojson --base data/generated/runtiming/feed/base-<handles>.json.gz --out /tmp/rt-out
+.venv/bin/python -m pipeline.runtiming.feed.publish --dir /tmp/rt-out/runtiming --via wrangler --yes   # staging only
+node app/tools/smoke-staging.mjs      # 18/18; then STATUS.md
+```
+Then T332: merge dfo/t332-shared-quota (no release); add an upload.sh guard SALMON_NEEDS = {3: "0.5.0"} beside
+PAINT_NEEDS (app version lives in app/apps/mobile/app.json + package.json, now 0.4.0; T332 app = 0.5.0); note in
+OWNER-TODO + T332: next release MIN_APP_VERSION=0.5.0, feeds worker deploy + sync-inputs only AFTER that app ships.
