@@ -4,6 +4,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-10-30, 23:45
+
+- **DFO limits now use the trout data shape** [T332]: built on branch `dfo/t332-shared-quota`; it merges after 0.4.0.
+  - Salmon quotas are now the same quota tree the trout card uses. Size limits are the same size bands, and the app draws them with the trout display code. The salmon-only shape is deleted.
+  - Added one shared field, `period` (monthly or annual). The tree had no way to say "per month".
+  - Across all 329 open DFO limits, the wording shown is unchanged. Your 5 spot-checks read the same.
+  - **Wording list:** the sentence-split bug is fixed, which leaves 78 wordings (the scraps are gone). 77 are checked against real DFO cells and accepted.
+    - 1 is left for later: an old Fort Babine part-closure ("100 m above the bridge to Nichyeskwa Creek"). The code reads it as the whole river closed. It only appears on archived pages and never shows a number.
+  - **Release order:** the release file and live feed get new versions. Old apps refuse them rather than misread them, so the release after 0.4.0 must set the minimum app version first, and only then the worker deploy.
+
 ## 2026-10-30, 23:30
 
 - **iOS** [T313]: paused until the APK ships, then one final run that includes performance.
