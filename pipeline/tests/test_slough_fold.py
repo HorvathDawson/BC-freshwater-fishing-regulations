@@ -1,8 +1,9 @@
 """T322: the owner-confirmed slough calls — the apply step (`tools.slough_calls`) and the registry fold
 (`registry.flowing.fold_confirmed_sloughs`). Synthetic graphs; the committed file is checked against the decided data.
 
-Owner 2026-10-30: a confirmed polygon with a stream flowing through it joins that stream; with no stream through it,
-it is ignored (it is not a stream). Never a new unnamed stream."""
+Owner 2026-10-30 (corrected): only an ISOLATED confirmed polygon (no line touches it) is skipped. A named stream
+through it, or on only one side of it, takes it; with only unnamed lines, the item holding it becomes a stream on that
+line (never a new item). Two different named streams are never picked."""
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -17,9 +18,10 @@ from pipeline.tools import slough_calls as SC
 
 def _creek():
     """X Creek: x2 -> lake:5 (unnamed polygon) -> x1 -> lake:6 -> x0. lake:7 is a polygon an unnamed line (u1)
-    runs through; lake:8 is where X Creek's head piece x3 ENDS (nothing leaves); Y Creek y1 feeds lake:6."""
+    runs through; lake:8 is where X Creek's head piece x3 ENDS (nothing leaves); Y Creek y1 feeds lake:6; lake:9 is
+    isolated (no edge)."""
     g = _graph({"x2": S, "lake:5": L, "x1": S, "lake:6": L, "x0": S, "u2": S, "lake:7": L, "u1": S,
-                "x3": S, "lake:8": W, "y1": S},
+                "x3": S, "lake:8": W, "y1": S, "lake:9": L},
                [("x2", "lake:5"), ("lake:5", "x1"), ("x1", "lake:6"), ("lake:6", "x0"),
                 ("u2", "lake:7"), ("lake:7", "u1"), ("u1", "x2"), ("x3", "lake:8"), ("y1", "lake:6")])
     reg = {
@@ -46,17 +48,52 @@ def test_a_confirmed_polygon_a_stream_flows_through_joins_that_stream():
     assert len(out) == len(reg)                                        # no item made
 
 
-def test_confirmed_with_no_stream_through_it_is_ignored_never_a_new_stream():
-    """lake:7 has only an unnamed line through it; lake:8 is where X Creek ends. Mutation: make an item -> red."""
+def test_only_an_isolated_polygon_is_skipped():
+    """lake:9 no line touches; lake:7 only an unnamed line and no item holds it (held, never a new item); 999 is not in
+    the graph. Mutation: make an item -> red."""
     g, reg = _creek()
     rep: dict = {}
-    out = fold_confirmed_sloughs(reg, g, {"7", "8", "999"}, rep)
+    out = fold_confirmed_sloughs(reg, g, {"7", "9", "999"}, rep)
     assert out == reg
     why = {r["wbk"]: r["why"] for r in rep["rows"]}
-    assert why["7"].startswith("no stream through it (only unnamed lines)")
-    assert why["8"].startswith("no stream through it (a stream ends in it")
+    assert why["9"].startswith("isolated")
+    assert why["7"].startswith("unnamed, no item")
     assert why["999"] == "not in the graph"
     assert rep["counts"] == {"ignored": 3}
+
+
+def test_a_stream_on_one_side_takes_it():
+    """lake:8: X Creek ends in it, nothing leaves. Mutation: require in AND out -> red."""
+    g, reg = _creek()
+    rep: dict = {}
+    out = fold_confirmed_sloughs(reg, g, {"8"}, rep)
+    assert "lake:8" in out["gnis:1"].section_ids
+    assert rep["rows"][0]["via"] == "ends in it"
+    # two named streams on its one side are never picked
+    reg2 = dict(reg)
+    reg2["gnis:1"] = _item("gnis:1", "X Creek", "stream", ["x0", "x1", "x2"])
+    reg2["gnis:4"] = _item("gnis:4", "W Creek", "stream", ["x3"])
+    g2 = _graph({"x3": S, "w3": S, "lake:8": W}, [("x3", "lake:8"), ("w3", "lake:8")])
+    reg2["gnis:5"] = _item("gnis:5", "V Creek", "stream", ["w3"])
+    rep2: dict = {}
+    assert fold_confirmed_sloughs(reg2, g2, {"8"}, rep2) == reg2
+    assert rep2["rows"][0]["why"].startswith("two streams")
+
+
+def test_only_unnamed_lines_make_its_own_item_a_stream_on_that_line():
+    """lake:7 held by an oxbow lake item: the item becomes kind stream, same id, nothing new; the line stays unnamed.
+    Mutation: skip it, or mint an item -> red."""
+    g, reg = _creek()
+    reg = dict(reg, **{"wbk:7": _item("wbk:7", "OXBOWS", "lake", ["lake:7"], boundaries=[
+        RegistryBoundary("oxbows__lake_7", "lake 7", "lake", ref="lake:7", wbk="7")])})
+    rep: dict = {}
+    out = fold_confirmed_sloughs(reg, g, {"7"}, rep)
+    assert set(out) == set(reg)
+    assert out["wbk:7"].kind == "stream" and out["wbk:7"].section_ids == ("lake:7",)
+    assert out["wbk:7"].boundaries == ()                               # F6: its own polygon is not another water
+    assert "u1" not in out["wbk:7"].section_ids                         # the unnamed line is not taken
+    assert rep["rows"][0]["via"] == "unnamed line" and rep["own_streams"] == {"wbk:7": {"name": "OXBOWS",
+                                                                                       "polygons": 1}}
 
 
 def test_unconfirmed_polygons_are_untouched():
@@ -95,10 +132,11 @@ def test_a_run_of_confirmed_polygons_folds_as_one():
     out = fold_confirmed_sloughs(reg, g, {"1", "2"}, rep)
     assert {"lake:1", "lake:2"} <= set(out["gnis:1"].section_ids)
     assert rep["counts"] == {"folded": 2}
-    # one of the two unconfirmed: the other has X on one side only -> ignored
+    # one of the two unconfirmed: X enters the confirmed one only -> it still joins X (one side); lake:2 stays
     rep = {}
-    assert fold_confirmed_sloughs(reg, g, {"1"}, rep) == reg
-    assert rep["counts"] == {"ignored": 1}
+    out = fold_confirmed_sloughs(reg, g, {"1"}, rep)
+    assert "lake:1" in out["gnis:1"].section_ids and "lake:2" not in out["gnis:1"].section_ids
+    assert rep["rows"][0]["via"] == "ends in it"
 
 
 def test_a_confirmed_lake_item_is_absorbed_but_never_split():
@@ -164,3 +202,17 @@ def test_the_committed_file_is_apply_of_the_decided_data():
     rows, _ = SC.build(E.load())
     assert CURATED.waters.slough_calls.read_text(encoding="utf-8") == SC.document(rows)
     assert len(rows) == 811
+
+
+def test_an_isolated_item_is_rekinded_a_general_stream_in_place():
+    """Owner 2026-10-30: the Okanagan oxbows are general streams even cut off from the river. lake:9 (no edge) held by
+    an oxbow lake item -> kind stream, same id, joined to nothing; an isolated polygon with no item stays skipped.
+    Mutation: skip it, join it to a river, or mint an item -> red."""
+    g, reg = _creek()
+    reg = dict(reg, **{"wbk:9": _item("wbk:9", "OKANAGAN RIVER OXBOWS", "lake", ["lake:9"])})
+    rep: dict = {}
+    out = fold_confirmed_sloughs(reg, g, {"9"}, rep)
+    assert set(out) == set(reg)
+    assert out["wbk:9"].kind == "stream" and out["wbk:9"].section_ids == ("lake:9",) and not out["wbk:9"].aliases
+    assert out["gnis:1"] == reg["gnis:1"]
+    assert rep["rows"][0]["via"] == "isolated item"

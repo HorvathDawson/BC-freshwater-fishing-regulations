@@ -466,18 +466,27 @@ def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, repor
     """THE OWNER'S CONFIRMED CALLS (T322, owner 2026-10-30). Runs AFTER `merge_flowing_polygons`; returns a NEW dict.
 
     Each confirmed wbk is a polygon node (`lake:<wbk>`, lake or wetland). Confirmed polygons joined to each other by a
-    graph edge are ONE run (a slough drawn as several polygons). A run with ONE stream item flowing IN and OUT of it
-    (an item owning a piece that flows into some member and a piece some member flows into) JOINS that stream: its
-    polygons become the stream's sections, a lake / wetland item that held them is absorbed (an alias, as the
-    flowing fold does). EVERYTHING ELSE IS IGNORED — left exactly as it was, and listed with why:
+    graph edge are ONE run (a slough drawn as several polygons). Owner rule (2026-10-30, corrected): ONLY AN ISOLATED
+    polygon is skipped; every other one is a stream:
+        through      ONE stream item flows in AND out of the run -> joins it
+        one side     a stream item only enters it, or only leaves it (and no other named stream touches it) -> joins it
+        unnamed line only unnamed lines touch it -> the lake / wetland item that holds it becomes kind `stream` under its
+                     own id (it joins the unnamed line; nothing new is made, the line stays unnamed)
+        isolated item  no line touches it but a lake / wetland item holds it (the 31 OKANAGAN RIVER OXBOWS, owner
+                     2026-10-30: "general streams") -> that item is re-kinded `stream` in place: zone / region stream
+                     rules reach it, no named river's do, nothing new is made
+    Joining a stream: the polygons become its sections and a lake / wetland item that held them is absorbed (an alias,
+    as the flowing fold does). Everything else is left exactly as it was, and listed with why:
+        isolated               no line touches it and no item holds it (skipped by the rule)
         not in the graph       no polygon node carries the wbk (drawn over a line, or pruned)
         already stream         a stream item owns it (the flowing fold or an earlier build took it)
-        no stream through it   in only, out only, nothing, or only UNNAMED lines (never a new unnamed stream)
-        two streams            different items in and out, or more than one through (never picked)
+        two streams            different named items in and out, two through, or two on its one side (never picked)
+        unnamed, no item       only unnamed lines touch it and no item holds it: nothing to make a stream without
+                               inventing an item, so it is HELD for the owner
         item not confirmed     a lake item holding it has polygons the owner did not confirm (never split)
         cut on its edge        a curated cut is aliased onto a lake edge the fold would drop (give it an anchor)
     F6 as in the flowing fold: the stream's own lake boundaries onto a folded polygon are dropped, and ANOTHER
-    water's lake boundary onto it becomes a `confluence` labelled with the stream."""
+    water's lake boundary onto a polygon that JOINED a stream becomes a `confluence` labelled with the stream."""
     rep = report if report is not None else {}
     nodes = graph.nodes
     wbks = {str(w) for w in wbks}
@@ -527,6 +536,7 @@ def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, repor
     out = dict(registry)
     folded_wbks: dict[str, str] = {}                        # wbk -> the stream it joined
     joined: dict[str, dict] = {}                            # stream id -> {secs, items}
+    streams_own: list[str] = []                             # lake items made streams under their own id
     for members in sorted(runs.values(), key=lambda ms: sorted(ms)[0]):
         members.sort()
         mset = set(members)
@@ -551,31 +561,51 @@ def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, repor
                     un_out += 1
         thru = ins & outs
         base = {"wbks": run_wbks, "in": sorted(ins), "out": sorted(outs)}
-        why = ""
-        if len(thru) > 1:
-            why = "two streams through it"
-        elif not thru:
-            if ins and outs:
-                why = "two streams (different in and out)"
-            elif not ins and not outs:
-                why = ("no stream through it (only unnamed lines)" if un_in or un_out
-                       else "no stream through it (no line touches it)")
-            elif ins:
-                why = "no stream through it (a stream ends in it" + (", an unnamed line leaves)" if un_out else ")")
-            else:
-                why = "no stream through it (a stream leaves it" + (", an unnamed line enters)" if un_in else ")")
         items = sorted({owner[s] for s in members if s in owner})
+        why, via, tgt = "", "", ""
+        if len(thru) == 1:
+            via, tgt = "through", next(iter(thru))
+        elif len(thru) > 1:
+            why = "two streams through it"
+        elif ins and outs:
+            why = "two streams (different in and out)"
+        elif ins or outs:
+            side = ins | outs
+            if len(side) == 1:
+                via, tgt = ("ends in it" if ins else "leaves it"), next(iter(side))
+            else:
+                why = "two streams (" + ("both end in it)" if ins else "both leave it)")
+        elif un_in or un_out:
+            if items and all(m in owner for m in members):
+                via = "unnamed line"
+            else:
+                why = "unnamed, no item (held: only unnamed lines touch it and no item holds it)"
+        elif items and all(m in owner for m in members):
+            via = "isolated item"                    # owner 10-30: the oxbows are general streams, cut off or not
+        else:
+            why = "isolated (no line touches it)"
         if not why:
             loose = [i for i in items if not set(registry[i].section_ids) <= mset]
             if loose:
                 why = "item not confirmed: " + ", ".join(f"{i} ({registry[i].name})" for i in loose)
-        tgt = next(iter(thru)) if not why else ""
-        if tgt:
+        if not why:
             mine = {cand[s] for s in members}
-            lost = [b.id for p in [out[tgt], *(registry[i] for i in items)] for b in p.boundaries
+            holders = [out[tgt]] if tgt else []
+            lost = [b.id for p in [*holders, *(registry[i] for i in items)] for b in p.boundaries
                     if b.kind == "lake" and b.wbk in mine and b.aliases]
             if lost:
                 why = f"cut on its edge: {sorted(set(lost))}"
+        if not why and not tgt:                      # unnamed line / isolated item: each item holding it is a stream now
+            for i in items:
+                it = out[i]
+                own = _own_polygon_wbks(it.section_ids)
+                out[i] = replace(it, kind="stream", boundaries=tuple(
+                    b for b in it.boundaries if not (b.kind == "lake" and b.wbk in own)))
+            for w in run_wbks:
+                rows.append({"wbk": w, "outcome": "folded", "via": via, "stream": items[0] if len(items) == 1
+                             else items, "name": registry[items[0]].name, "absorbed": [], **base})
+            streams_own.extend(i for i in items if i not in streams_own)
+            continue
         if why:
             for w in run_wbks:
                 rows.append({"wbk": w, "outcome": "ignored", "why": why, **base})
@@ -585,7 +615,7 @@ def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, repor
         j["items"] += [i for i in items if i not in j["items"]]
         for w in run_wbks:
             folded_wbks[w] = tgt
-            rows.append({"wbk": w, "outcome": "folded", "stream": tgt, "name": registry[tgt].name,
+            rows.append({"wbk": w, "outcome": "folded", "via": via, "stream": tgt, "name": registry[tgt].name,
                          "absorbed": items, **base})
 
     for tgt, j in sorted(joined.items()):
@@ -632,6 +662,8 @@ def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, repor
     rep.update(confirmed=len(wbks), counts=dict(sorted(count.items())), rows=rows,
                streams={t: {"name": out[t].name, "polygons": len(j["secs"]), "absorbed": j["items"]}
                         for t, j in sorted(joined.items())},
+               own_streams={i: {"name": out[i].name, "polygons": len(out[i].section_ids)}
+                            for i in sorted(streams_own)},
                boundaries_rewritten=rewritten)
     return out
 

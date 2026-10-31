@@ -22,8 +22,11 @@ def summary(rep: dict, top: int = 40) -> str:
     lines = [f"confirmed calls: {rep['confirmed']}",
              "outcomes: " + ", ".join(f"{k} {v}" for k, v in rep["counts"].items())]
     folded = [r for r in rows if r["outcome"] == "folded"]
-    lines.append(f"FOLD: {len(folded)} polygon(s) into {len(rep['streams'])} stream(s); "
-                 f"{sum(len(s['absorbed']) for s in rep['streams'].values())} registry item(s) absorbed")
+    lines.append(f"FOLD: {len(folded)} polygon(s) into {len(rep['streams'])} named stream(s) "
+                 f"({sum(len(s['absorbed']) for s in rep['streams'].values())} registry item(s) absorbed) + "
+                 f"{len(rep.get('own_streams', {}))} lake / wetland item(s) re-kinded stream in place "
+                 f"(on an unnamed line, or isolated: general streams)")
+    lines.append("  by how: " + ", ".join(f"{k} {v}" for k, v in Counter(r.get("via") for r in folded).most_common()))
     by = sorted(rep["streams"].items(), key=lambda kv: (-kv[1]["polygons"], kv[0]))
     for sid, s in by[:top]:
         ab = f"  absorbs {', '.join(s['absorbed'])}" if s["absorbed"] else ""
@@ -31,9 +34,15 @@ def summary(rep: dict, top: int = 40) -> str:
     if len(by) > top:
         lines.append(f"  ... {len(by) - top} more stream(s) (see the JSON)")
     why = Counter(r["why"].split(":")[0] for r in rows if r["outcome"] == "ignored")
-    lines.append(f"IGNORED: {sum(why.values())}")
+    lines.append(f"NOT FOLDED: {sum(why.values())}")
     for w, n in why.most_common():
         lines.append(f"  {n:4d}  {w}")
+    for r in rows:
+        if r["outcome"] == "ignored" and not r["why"].startswith("isolated"):
+            lines.append(f"    {r['wbk']}: {r['why']}  in {r.get('in')} out {r.get('out')}")
+    own = rep.get("own_streams", {})
+    if own:
+        lines.append("RE-KINDED STREAM IN PLACE: " + ", ".join(f"{i} {o['name']}" for i, o in own.items()))
     st = [r for r in rows if r["outcome"] == "already stream"]
     if st:
         lines.append(f"ALREADY STREAM (no change): {len(st)} — " +
