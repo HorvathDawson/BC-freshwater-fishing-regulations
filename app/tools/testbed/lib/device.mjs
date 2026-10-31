@@ -59,10 +59,13 @@ export function link(speed = 'full', delay = 'none') {
 
 /** What the device's connectivity service says is active: "WIFI" | "MOBILE" | "none". */
 export function netState() {
-  const out = sh('dumpsys connectivity | grep -m1 "Active default network"');
+  let out = '';
+  try { out = sh('dumpsys connectivity | grep -m1 "Active default network"'); } catch { return 'none'; }
   const id = out.match(/network:\s*(\d+)/)?.[1];
   if (!id) return 'none';
-  const nai = sh(`dumpsys connectivity | grep -m1 "NetworkAgentInfo{network{${id}}"`);
+  let nai = '';
+  try { nai = sh(`dumpsys connectivity | grep -m1 "NetworkAgentInfo{network{${id}}"`); }
+  catch { return 'none'; }      // the network went away between the two reads (grep found nothing: exit 1)
   return /WIFI/.test(nai) ? 'WIFI' : /MOBILE|CELLULAR/.test(nai) ? 'MOBILE' : 'other';
 }
 

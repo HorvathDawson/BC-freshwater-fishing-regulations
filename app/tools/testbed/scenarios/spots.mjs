@@ -150,7 +150,9 @@ export const spots = {
       ctx.flow('tap-text', { TEXT: spot.title });
       await d.sleep(2500);
       // (T314) its gauges filled too, not only its weather: no "not read yet" / "not recorded" line left on the page
-      const left = d.screenText().find((w) => /have not been read from their record yet|was not recorded — it can be filled in/.test(w));
+      // (the visit day's own flow "can be filled in from the day's record" stays until the day is over: not a refresh's)
+      const left = d.screenText().find((w) => /have not been read from their record yet|was not recorded — it can be filled in/.test(w)
+                                              && !/from the day's record/.test(w));
       if (left) throw new Error(`the spot's gauges did not fill on reconnect: "${left}"`);
       return d.screenText().filter((w) => /°|km\/h|Weather|m³\/s|gauge/i.test(w)).slice(0, 4).join(' · ');
     });

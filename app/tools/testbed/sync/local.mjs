@@ -10,6 +10,8 @@ export const MISSING = /No weather was recorded|it can be filled in|not recorded
  * week before are not published yet ("Some days of the week before were not available yet …") — no refresh can fill
  * those until the day's record exists (seen 2026-10-31 00:50: the same page before and after a manual Refresh).
  */
+/** (T314) the visit day's own flow on its own day: filled from the day's record AFTER the day — no refresh can sooner */
+export const DAY_RECORD = /from the day's record/i;
 export const UNFILLED = /No weather was recorded|it can be filled in|not recorded|still to read|days? (are )?pending/i;
 
 export function localAdapter(ctx) {
@@ -38,7 +40,7 @@ export function localAdapter(ctx) {
       let left = null;
       while (Date.now() < end) {
         await open(spot);
-        left = ctx.device.screenText().find((w) => UNFILLED.test(w)) ?? null;
+        left = ctx.device.screenText().find((w) => UNFILLED.test(w) && !DAY_RECORD.test(w)) ?? null;
         back();
         if (!left) return 'filled in: nothing missing';
         await ctx.device.sleep(10_000);
