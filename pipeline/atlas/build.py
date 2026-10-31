@@ -1395,6 +1395,15 @@ def build_registry(b: _Build) -> None:
           f"{sum(len(x['polygons']) for x in _mrep['unnamed_polygons'])} unnamed polygon(s) "
           f"taken by a slough")
     (out / "merge_report.json").write_text(json.dumps(_mrep, indent=1) + "\n", encoding="utf-8")
+    # T322: the owner-CONFIRMED slough polygons join the one stream through them; no stream through -> ignored
+    # (`flowing.fold_confirmed_sloughs`, read from the applied file `waters/slough_calls.json`). Behind FOLD_CONFIRMED.
+    from pipeline.atlas.registry import flowing as _flowing
+    if _flowing.FOLD_CONFIRMED:
+        from pipeline.tools.slough_calls import load as _load_slough_calls
+        _srep: dict = {}
+        registry = _flowing.fold_confirmed_sloughs(registry, graph, _load_slough_calls(), _srep)
+        print(f"  confirmed sloughs (T322): {_srep['counts']}")
+        (out / "slough_fold_report.json").write_text(json.dumps(_srep, indent=1) + "\n", encoding="utf-8")
     # T224 mined names: labels on the item that already owns the feature, after every grouping pass
     from pipeline.atlas.registry.mined import add_mined_names
     _mined_rep: dict = {}

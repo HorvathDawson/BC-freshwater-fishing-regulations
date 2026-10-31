@@ -454,6 +454,188 @@ def merge_flowing_polygons(registry: dict[str, RegistryItem], graph, polys: dict
     return out
 
 
+# --------------------------------------------------------------------------- T322: owner-confirmed sloughs
+#: T322: fold the owner-CONFIRMED slough / canal polygons (`data/curated/waters/slough_calls.json`) in the atlas build
+#: and the sidecars. OFF until T322's own side build (after the 10-31 batch rebuild, which must not carry it): turn it
+#: on in that build's commit; the binding diff is reviewed before promote.
+FOLD_CONFIRMED = False
+
+
+def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, report: dict | None = None
+                           ) -> dict[str, RegistryItem]:
+    """THE OWNER'S CONFIRMED CALLS (T322, owner 2026-10-30). Runs AFTER `merge_flowing_polygons`; returns a NEW dict.
+
+    Each confirmed wbk is a polygon node (`lake:<wbk>`, lake or wetland). Confirmed polygons joined to each other by a
+    graph edge are ONE run (a slough drawn as several polygons). A run with ONE stream item flowing IN and OUT of it
+    (an item owning a piece that flows into some member and a piece some member flows into) JOINS that stream: its
+    polygons become the stream's sections, a lake / wetland item that held them is absorbed (an alias, as the
+    flowing fold does). EVERYTHING ELSE IS IGNORED — left exactly as it was, and listed with why:
+        not in the graph       no polygon node carries the wbk (drawn over a line, or pruned)
+        already stream         a stream item owns it (the flowing fold or an earlier build took it)
+        no stream through it   in only, out only, nothing, or only UNNAMED lines (never a new unnamed stream)
+        two streams            different items in and out, or more than one through (never picked)
+        item not confirmed     a lake item holding it has polygons the owner did not confirm (never split)
+        cut on its edge        a curated cut is aliased onto a lake edge the fold would drop (give it an anchor)
+    F6 as in the flowing fold: the stream's own lake boundaries onto a folded polygon are dropped, and ANOTHER
+    water's lake boundary onto it becomes a `confluence` labelled with the stream."""
+    rep = report if report is not None else {}
+    nodes = graph.nodes
+    wbks = {str(w) for w in wbks}
+    owner: dict[str, str] = {}
+    for iid, it in registry.items():
+        if it.kind in _WATER:
+            for s in it.section_ids:
+                owner.setdefault(s, iid)
+    poly_of: dict[str, list[str]] = defaultdict(list)
+    for nid, n in nodes.items():
+        if n.wbk in wbks and _kind(n) in ("lake", "wetland"):
+            poly_of[n.wbk].append(nid)
+
+    def kind_of_owner(sid: str) -> str:
+        o = owner.get(sid)
+        return registry[o].kind if o else ""
+
+    rows: list[dict] = []
+    cand: dict[str, str] = {}                               # polygon node -> its wbk
+    for w in sorted(wbks, key=lambda x: (_wbk_num(f"wbk:{x}"), x)):
+        ns = sorted(poly_of.get(w, ()))
+        if not ns:
+            rows.append({"wbk": w, "outcome": "ignored", "why": "not in the graph"})
+            continue
+        st = sorted({owner[s] for s in ns if kind_of_owner(s) == "stream"})
+        if st:
+            rows.append({"wbk": w, "outcome": "already stream", "stream": st[0], "name": registry[st[0]].name})
+            continue
+        for s in ns:
+            cand[s] = w
+
+    # runs: confirmed polygons joined by an edge
+    parent = {s: s for s in cand}
+
+    def find(s):
+        while parent[s] != s:
+            parent[s] = parent[parent[s]]
+            s = parent[s]
+        return s
+    for e in graph.edges:
+        if e.from_node in cand and e.to_node in cand:
+            parent[find(e.from_node)] = find(e.to_node)
+    runs: dict[str, list[str]] = defaultdict(list)
+    for s in cand:
+        runs[find(s)].append(s)
+
+    out = dict(registry)
+    folded_wbks: dict[str, str] = {}                        # wbk -> the stream it joined
+    joined: dict[str, dict] = {}                            # stream id -> {secs, items}
+    for members in sorted(runs.values(), key=lambda ms: sorted(ms)[0]):
+        members.sort()
+        mset = set(members)
+        run_wbks = sorted({cand[s] for s in members}, key=lambda x: (_wbk_num(f"wbk:{x}"), x))
+        ins, outs, un_in, un_out = set(), set(), 0, 0
+        for s in members:
+            for ei in graph.up_adj.get(s, ()):
+                o = graph.edges[ei].from_node
+                if o in mset:
+                    continue
+                if kind_of_owner(o) == "stream":
+                    ins.add(owner[o])
+                elif o not in owner and _kind(nodes.get(o)) == "stream":
+                    un_in += 1
+            for ei in graph.down_adj.get(s, ()):
+                o = graph.edges[ei].to_node
+                if o in mset:
+                    continue
+                if kind_of_owner(o) == "stream":
+                    outs.add(owner[o])
+                elif o not in owner and _kind(nodes.get(o)) == "stream":
+                    un_out += 1
+        thru = ins & outs
+        base = {"wbks": run_wbks, "in": sorted(ins), "out": sorted(outs)}
+        why = ""
+        if len(thru) > 1:
+            why = "two streams through it"
+        elif not thru:
+            if ins and outs:
+                why = "two streams (different in and out)"
+            elif not ins and not outs:
+                why = ("no stream through it (only unnamed lines)" if un_in or un_out
+                       else "no stream through it (no line touches it)")
+            elif ins:
+                why = "no stream through it (a stream ends in it" + (", an unnamed line leaves)" if un_out else ")")
+            else:
+                why = "no stream through it (a stream leaves it" + (", an unnamed line enters)" if un_in else ")")
+        items = sorted({owner[s] for s in members if s in owner})
+        if not why:
+            loose = [i for i in items if not set(registry[i].section_ids) <= mset]
+            if loose:
+                why = "item not confirmed: " + ", ".join(f"{i} ({registry[i].name})" for i in loose)
+        tgt = next(iter(thru)) if not why else ""
+        if tgt:
+            mine = {cand[s] for s in members}
+            lost = [b.id for p in [out[tgt], *(registry[i] for i in items)] for b in p.boundaries
+                    if b.kind == "lake" and b.wbk in mine and b.aliases]
+            if lost:
+                why = f"cut on its edge: {sorted(set(lost))}"
+        if why:
+            for w in run_wbks:
+                rows.append({"wbk": w, "outcome": "ignored", "why": why, **base})
+            continue
+        j = joined.setdefault(tgt, {"secs": [], "items": []})
+        j["secs"] += members
+        j["items"] += [i for i in items if i not in j["items"]]
+        for w in run_wbks:
+            folded_wbks[w] = tgt
+            rows.append({"wbk": w, "outcome": "folded", "stream": tgt, "name": registry[tgt].name,
+                         "absorbed": items, **base})
+
+    for tgt, j in sorted(joined.items()):
+        parts = [out[tgt]] + [registry[i] for i in j["items"]]
+        head = parts[0]
+        secs = list(dict.fromkeys([*head.section_ids, *(s for p in parts[1:] for s in p.section_ids),
+                                   *sorted(j["secs"])]))
+        own = _own_polygon_wbks(secs)
+        bounds = [b for b in _union_by_id(b for p in parts for b in p.boundaries)
+                  if not (b.kind == "lake" and b.wbk in own)]          # F6: not another water
+        refs = {f"wbk:{nodes[s].wbk}" for s in j["secs"] if nodes[s].wbk}
+        out[tgt] = replace(
+            head, section_ids=tuple(secs), boundaries=tuple(bounds),
+            variants=tuple(sorted({v for p in parts for v in p.variants})),
+            name_sources=tuple({r.name: r for p in reversed(parts) for r in p.name_sources}[n]
+                               for n in dict.fromkeys(r.name for p in parts for r in p.name_sources)),
+            mus=tuple(sorted({m for p in parts for m in p.mus})),
+            ref_ids=tuple(sorted({r for p in parts for r in p.ref_ids} | refs | set(j["items"]))),
+            aliases=tuple(sorted({a for p in parts for a in p.aliases} | set(j["items"]))),
+        )
+        for i in j["items"]:
+            out.pop(i, None)
+
+    rewritten = []
+    for iid, it in list(out.items()):
+        if it.kind not in _WATER or not it.boundaries:
+            continue
+        own = _own_polygon_wbks(it.section_ids)
+        bs, changed = [], False
+        for b in it.boundaries:
+            if b.kind == "lake" and b.wbk in folded_wbks and b.wbk not in own:
+                river = out[folded_wbks[b.wbk]]
+                bs.append(replace(b, kind="confluence", label=river.name))
+                rewritten.append({"item": iid, "boundary": b.id, "river": river.id})
+                changed = True
+            else:
+                bs.append(b)
+        if changed:
+            out[iid] = replace(it, boundaries=tuple(bs))
+
+    count: dict[str, int] = defaultdict(int)
+    for r in rows:
+        count[r["outcome"]] += 1
+    rep.update(confirmed=len(wbks), counts=dict(sorted(count.items())), rows=rows,
+               streams={t: {"name": out[t].name, "polygons": len(j["secs"]), "absorbed": j["items"]}
+                        for t, j in sorted(joined.items())},
+               boundaries_rewritten=rewritten)
+    return out
+
+
 # --------------------------------------------------------------------------- absorbed ids
 _ALIAS: dict[int, tuple[object, dict]] = {}
 

@@ -41,7 +41,7 @@ from pathlib import Path
 from pipeline.common.curated import CURATED, GENERATED
 from pipeline.atlas.splits.splits import dump_resolved, order_resolved
 
-SIDECARS = ("region_home.json", "registry.json", "item_points.json", "merge_report.json",
+SIDECARS = ("region_home.json", "registry.json", "item_points.json", "merge_report.json", "slough_fold_report.json",
             "splits.resolved.json")
 
 
@@ -126,6 +126,13 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
         f"{len(rep['merged'])} stream(s) + {len(rep['own_items'])} of their own; "
         f"{sum(len(x['polygons']) for x in rep['unnamed_polygons'])} unnamed polygon(s) taken "
         f"by a slough -> merge_report.json")
+    from pipeline.atlas.registry import flowing as _flowing
+    if _flowing.FOLD_CONFIRMED:                       # T322: the same pass the atlas build runs
+        from pipeline.tools.slough_calls import load as load_slough_calls
+        srep: dict = {}
+        registry = _flowing.fold_confirmed_sloughs(registry, graph, load_slough_calls(), srep)
+        (dest / "slough_fold_report.json").write_text(json.dumps(srep, indent=1) + "\n", encoding="utf-8")
+        log(f"  confirmed sloughs (T322): {srep['counts']} -> slough_fold_report.json")
     registry = add_lake_parts(registry, lake_parts(load_added_lakes()))
     n_parts = sum(1 for it in registry.values() if it.part_of)
     # A water outside an area its polygon touches (`areas.json` `outside_items`): the same pass

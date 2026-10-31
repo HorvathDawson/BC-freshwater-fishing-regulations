@@ -117,6 +117,7 @@ curated:
     areas: "data/curated/waters/areas.json"                        # authored
     continuations: "data/curated/waters/continuations.json"        # authored (owner-reviewed / refused water_continue links)
     tidal_waters: "data/curated/waters/tidal_waters.json"          # authored (T212: whole waters the owner calls tidal)
+    slough_calls: "data/curated/waters/slough_calls.json"          # applied (T322: owner-confirmed slough calls, from decided/sloughs.json)
     # Hand-drawn ADMIN polygons: closure zones a regulation states as an area, not a reach.
     # An areas.json def names this file in `file` instead of naming a fetched gpkg `layer`.
     added_areas: "data/curated/waters/added_areas.geojson"         # authored — hand-drawn polygons
