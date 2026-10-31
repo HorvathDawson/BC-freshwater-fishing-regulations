@@ -31,8 +31,10 @@ const at = liveReleaseAt();
 // (atlas full.prev -> full section_handles.txt: the city's minted lines that sorted ahead of them are gone)
 // (T289, r-ce76b4ed3624: the Thomas / Angelo lake stubs re-joined, -2000000382 and -2000000096 one section each, not two)
 // 20f93c1ffb5fd829: all three 2 lines EARLIER
-const H_ATLAS = "20f93c1ffb5fd829";
-const H = { eve: 1355, salmon: 64094, base: 59465 } as const;
+// (r-4e709418ebd8, the 08MH044 Albion cut: Bedford Channel + two braid tributaries gain a section each) 822db448a2851809:
+// salmon 1 line later, eve and base unchanged
+const H_ATLAS = "822db448a2851809";
+const H = { eve: 1355, salmon: 64095, base: 59465 } as const;
 /** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 

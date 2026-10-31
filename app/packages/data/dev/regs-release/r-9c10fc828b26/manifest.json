@@ -1,0 +1,129 @@
+{
+ "basemap": null,
+ "data_release": "r-9c10fc828b26",
+ "files": {
+  "core": {
+   "bytes": 77824,
+   "format": "core/1",
+   "gz": 12683,
+   "section_handles": "822db448a2851809",
+   "sha256": "52ee9350ab9fbdd789ba8a62535b485e704909ceefbd59ed2b4021577348386f",
+   "url": "r-9c10fc828b26/core-52ee9350ab9f.sqlite.gz"
+  },
+  "geo": {
+   "bytes": 45056,
+   "format": "geo/1",
+   "gz": 12857,
+   "section_handles": "822db448a2851809",
+   "sha256": "1ae605a68f2b3f902becbf092b6de7c10a0a8b305b096915eef60be58022aebe",
+   "url": "r-9c10fc828b26/geo-1ae605a68f2b.sqlite.gz"
+  },
+  "regs-1": {
+   "bytes": 90112,
+   "format": "regs-region/1",
+   "gz": 29862,
+   "section_handles": "822db448a2851809",
+   "sha256": "0cf518a4eebca3aaa1f7bd740811f2752c1a3f6d395a4ce19d626a943fe6d4ec",
+   "url": "r-9c10fc828b26/regs-1-0cf518a4eebc.sqlite.gz"
+  },
+  "regs-2": {
+   "bytes": 106496,
+   "format": "regs-region/1",
+   "gz": 36775,
+   "section_handles": "822db448a2851809",
+   "sha256": "46f7477a9b0e73377b0959b7d97037352f29eae3f2951f79ace8fc83dd4d1800",
+   "url": "r-9c10fc828b26/regs-2-46f7477a9b0e.sqlite.gz"
+  },
+  "regs-3": {
+   "bytes": 139264,
+   "format": "regs-region/1",
+   "gz": 59178,
+   "section_handles": "822db448a2851809",
+   "sha256": "ced0c8886d1a116619da80efd70071a9e364a3687e82a1160222fe1a2eb77a49",
+   "url": "r-9c10fc828b26/regs-3-ced0c8886d1a.sqlite.gz"
+  },
+  "regs-4": {
+   "bytes": 139264,
+   "format": "regs-region/1",
+   "gz": 59588,
+   "section_handles": "822db448a2851809",
+   "sha256": "f376b38a381e9b3495cb7c1241d64668e8eab3427f48e511d9cdf717e5b22dc2",
+   "url": "r-9c10fc828b26/regs-4-f376b38a381e.sqlite.gz"
+  },
+  "regs-5": {
+   "bytes": 188416,
+   "format": "regs-region/1",
+   "gz": 98045,
+   "section_handles": "822db448a2851809",
+   "sha256": "61f231eb2f28a83f3ec4e9d4c868f57f6b5b6171cec3508004c588cb1953982a",
+   "url": "r-9c10fc828b26/regs-5-61f231eb2f28.sqlite.gz"
+  },
+  "regs-6": {
+   "bytes": 184320,
+   "format": "regs-region/1",
+   "gz": 93041,
+   "section_handles": "822db448a2851809",
+   "sha256": "8d3746e50aef13999f46a0b566db6f0993a76ada2b6febbf3e4fe50df68b56a3",
+   "url": "r-9c10fc828b26/regs-6-8d3746e50aef.sqlite.gz"
+  },
+  "regs-7a": {
+   "bytes": 94208,
+   "format": "regs-region/1",
+   "gz": 32428,
+   "section_handles": "822db448a2851809",
+   "sha256": "a9a282485bac71fab7cf88a382879fb6282cf2f7f8047c1a4d30c6e3874ff705",
+   "url": "r-9c10fc828b26/regs-7a-a9a282485bac.sqlite.gz"
+  },
+  "regs-7b": {
+   "bytes": 77824,
+   "format": "regs-region/1",
+   "gz": 20085,
+   "section_handles": "822db448a2851809",
+   "sha256": "d94064b9c3203bb5291cfdae1a0d5ea5cc3e5af8dd4686aab485d7ebb93988a1",
+   "url": "r-9c10fc828b26/regs-7b-d94064b9c320.sqlite.gz"
+  },
+  "regs-8": {
+   "bytes": 69632,
+   "format": "regs-region/1",
+   "gz": 10624,
+   "section_handles": "822db448a2851809",
+   "sha256": "d4cb9cd1482dd8b0769e9fe63b7eadd03691704d41983daa8f1b54dc7052721c",
+   "url": "r-9c10fc828b26/regs-8-d4cb9cd1482d.sqlite.gz"
+  },
+  "regs-sid": {
+   "bytes": 700416,
+   "format": "regs-sid/1",
+   "gz": 6722,
+   "section_handles": "822db448a2851809",
+   "sha256": "c9e431fbe21d384608e3cf62724817e18caf647365fb0e7bcda808b062451be0",
+   "url": "r-9c10fc828b26/regs-sid-c9e431fbe21d.sqlite.gz"
+  },
+  "water": {
+   "bytes": 2678784,
+   "format": "water/1",
+   "gz": 1287451,
+   "section_handles": "822db448a2851809",
+   "sha256": "0d2644f7b579eb70192b178b0b3684d21cb705288ed73b2a88ae5193fe946e22",
+   "url": "r-9c10fc828b26/water-0d2644f7b579.sqlite.gz"
+  }
+ },
+ "format": "app-manifest/2",
+ "regulations": {
+  "valid_until": "2027-03-31",
+  "versions": {
+   "display": 18,
+   "gear": 12,
+   "ladder": 1,
+   "licence": 7,
+   "rows": 33
+  }
+ },
+ "tiles": {
+  "assets": null,
+  "compatible": [
+   "822db448a2851809.*"
+  ],
+  "current": null,
+  "mask": null
+ }
+}

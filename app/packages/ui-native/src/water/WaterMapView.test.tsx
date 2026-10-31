@@ -89,8 +89,8 @@ describe("<WaterMapView>", () => {
       + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
       // (T278, regs fixture on r-62e2f3a8c81e) re-pinned by section id (atlas full.prev -> full section_handles.txt): the same sections
-      highlight: [60200, 60201, 60202, 62212, 62508, 62627, 62881, 1236849, 1236850, 1236895],
-      water: [1236851, 1236896, 1236897, 59873, 59879, 61200, 62917, 1236852, 1236853, 1236854, 1236855] });
+      highlight: [60200, 60201, 60202, 62213, 62509, 62628, 62882, 1236851, 1236852, 1236897],   // (regs fixture on r-4e709418ebd8: the 08MH044 Albion cut) same sections, handles +1..+2
+      water: [1236853, 1236898, 1236899, 59873, 59879, 61201, 62918, 1236854, 1236855, 1236856, 1236857] });
     expect(seen.props?.fit).toEqual({ key: "gnis:8634:1", bbox: [-121.966394, 49.071523, -121.836034, 49.097385], refine: false });
     expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual([
       "(ring) Boundary: Chilliwack River Ecological Reserve boundary",
@@ -101,7 +101,7 @@ describe("<WaterMapView>", () => {
       + " | Downstream | Highest part (off)");
     // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it; T206,
     // r-f6918815ca78: 380887781:58646; T220 re-cut it to 1236842; T222 r-445850b69ae1 to 1236847, handles +5; T289 r-ce76b4ed3624: handles -2, the Thomas / Angelo lake stubs re-joined)
-    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1236855], "gnis:8634:3"]);
+    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1236857], "gnis:8634:3"]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
@@ -142,11 +142,11 @@ describe("<WaterMapView>", () => {
     expect(seen.props?.marks?.[2]?.on).toBe(true);
     fireEvent.click(pop.getByRole("button", { name: "Close" }));
     expect(screen.queryByTestId("water-map-mark")).toBeNull();
-    act(() => seen.props!.onPressFeature!("stream", 1236855));
+    act(() => seen.props!.onPressFeature!("stream", 1236857));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
-    act(() => seen.props!.onPressFeature!("stream", 62464));   // the Vedder's 355999181:0 (T206)
+    act(() => seen.props!.onPressFeature!("stream", 62465));   // the Vedder's 355999181:0 (T206)
     expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual(["Part 4 of 4 · Chilliwack River",
-      ["part gnis:8634 3", "other 62464"]]);
+      ["part gnis:8634 3", "other 62465"]]);
   }, 30_000);
 
   // (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more (E15's mark is gone); the
