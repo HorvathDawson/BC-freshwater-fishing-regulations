@@ -40,6 +40,8 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
       ctx.flow('ios-alert', { BUTTON: alerts === 'Allow' ? 'Allow.*' : "Don.t Allow" });
     } else if (w.some((x) => /^(I understand|Skip|Before you fish|Welcome|Got it)$/.test(x) || GUIDE.test(x))) {
       ctx.flow('dismiss-first-run');                     // the notice, the walkthrough (it reopens itself until skipped)
+    } else if (w.includes('Regulations') && w.includes('Conditions') && !hasTabs(w)) {
+      ctx.flow('tap-point', { POINT: PAGE_BACK });          // a cold start reopened the water's page: back to the map
     } else if (!hasTabs(w) && w.includes('Layers') && w.includes('Done')) {
       // (T313 finding, T332) a walk left at its Layers step reopens the sheet, and the card over it is not in the
       // accessibility tree: the sheet's Done first, then the card can be skipped
@@ -146,15 +148,15 @@ const SCENARIOS = [
         }
         throw new Error(`the edge drag did not go back (${tried.join(' · ')})`);
       });
-      await ctx.step('framed on Cultus Lake, a tap on the map\'s middle → that water\'s page', async () => {
+      await ctx.step('framed on Cultus Lake, a tap on the lake on the map → its page', async () => {
         await toMap(ctx);
         ctx.flow('search', { Q: 'Cultus' });
         ctx.flow('tap-text', { TEXT: '.*Lindell Beach.*' });           // the row previews: the map frames the lake
         await sleep(3500);
-        ctx.flow('tap-point', { POINT: SEARCH_BACK });                       // the search closed, the framing kept
-        await sleep(2500);
+        // the map above the results is framed on the lake: a tap on the lake there (closing the search with its ‹ puts
+        // the camera back where it was on iOS, so the tap is made with the results up)
         shot(ctx, 'framed');
-        ctx.flow('tap-point', { POINT: '50%,50%' });
+        ctx.flow('tap-point', { POINT: '60%,40%' });
         await sleep(4000);
         const w = device.screenText();
         shot(ctx, 'regs-tap');
@@ -380,22 +382,20 @@ const SCENARIOS = [
       }
       try { fs.unlinkSync(tmp); } catch { /* none */ }
       await appUp(ctx, { launch: false });
-      // a tap on the map at the point the app names (`[target]`), timed by the app's `[open]` probe (T286)
+      // a tap on the map, timed by the app's `[open]` probe (T286): Hope Slough's label at the start view a cold start
+      // opens on (iPhone 17). A search's framing is not kept once the search is closed with its ‹ on iOS, so the
+      // app's own `[target]` (Android's way) cannot be used here.
       let at = null;
-      await ctx.step('search "Cultus" → framed; the app names the tap point ([target])', async () => {
-        await toMap(ctx);
-        const mark = logMark();
-        ctx.flow('search', { Q: 'Cultus' });
-        ctx.flow('tap-text', { TEXT: '.*Lindell Beach.*' });
-        await sleep(3500);
-        ctx.flow('tap-point', { POINT: SEARCH_BACK });                      // the search closed, the framing kept
-        await sleep(6000);
-        const t = logSince(mark, '[target] ').at(-1);
-        if (!t) ctx.skip('no [target] line (a build without --probes): the map tap is not timed');
-        const img = readPng(shot(ctx, 'perf-framed'));
-        const k = img.w / 402;                                              // px per point (iPhone 17: 3)
-        at = { x: Math.round(((t.win?.x ?? 0) + t.x) * k / img.w * 100), y: Math.round(((t.win?.y ?? 0) + t.y) * k / img.h * 100) };   // Maestro takes whole percents
-        return `target ${JSON.stringify(t).slice(0, 120)} → ${at.x}%, ${at.y}%`;
+      await ctx.step('the start view (cold start, the Map base)', async () => {
+        await coldStart(ctx);
+        if (device.screenText().some((x) => /Powered by Esri/.test(x))) {
+          ctx.flow('tap-text', { TEXT: 'Choose layers.*' }); await sleep(1000);
+          ctx.flow('tap-id', { ID: 'option-ground\\.map' }); ctx.flow('tap-text', { TEXT: 'Done' });
+        }
+        await coldStart(ctx); await sleep(4000);
+        shot(ctx, 'perf-start-view');
+        at = { x: 53, y: 42 };
+        return 'Hope Slough at 53%, 42%';
       });
       for (let i = 1; at && i <= TAPS; i++) {
         await ctx.step(`map tap ${i}/${TAPS} → its regulations ([open])`, async () => {
@@ -404,11 +404,12 @@ const SCENARIOS = [
           let o = null;
           for (let n = 0; n < 30 && !o; n++) { await sleep(700); o = logSince(mark, '[open] ').at(-1) ?? null; }
           if (!o) throw new Error('no [open] line in 20 s');
-          out.open.push(o); keep();
+          const named = device.screenText().find((x) => /Slough|River|Creek|Lake/.test(x));
+          out.open.push({ ...o, named }); keep();
           ctx.flow('tap-point', { POINT: PAGE_BACK }); await sleep(2000);
           const frame = o.marks?.frame?.[0] ?? o.marks?.timeout?.[0];
           if (o.marks?.spinner) throw new Error(`a spinner at ${o.marks.spinner[0]} ms · first frame ${frame} ms`);
-          return `first frame ${frame} ms · sql ${o.sql} (wait ${o.sqlWait}, run ${o.sqlRun}) · ${Object.entries(o.marks).map(([k, v]) => `${k} ${v[0]}`).join(', ')}`;
+          return `${named ?? '?'} · first frame ${frame} ms · sql ${o.sql} (wait ${o.sqlWait}, run ${o.sqlRun}) · ${Object.entries(o.marks).map(([k, v]) => `${k} ${v[0]}`).join(', ')}`;
         });
       }
       await ctx.step(`pan: ${SWIPES} travelling swipes ([pan] JS lag, [stall] > 50 ms)`, async () => {

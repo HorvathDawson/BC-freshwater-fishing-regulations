@@ -1,7 +1,8 @@
 # The top bar's search: the field cleared, then Q typed (the results sheet opens under it).
 appId: ca.canifishthis.app
 ---
-- tapOn: { text: "Search waters and towns", index: 0 }
+# (T313) by the field's id: iOS reads the input by its text (the query or a rotating placeholder), not its label
+- tapOn: { id: "search-field" }
 - eraseText: 40
 - inputText: "${Q}"
 - waitForAnimationToEnd: { timeout: 4000 }
