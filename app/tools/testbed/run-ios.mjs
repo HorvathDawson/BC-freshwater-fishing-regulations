@@ -24,7 +24,8 @@ const sleep = device.sleep;
 
 // ---------- shared steps ----------
 const hasTabs = (w) => w.some((x) => /^MORE$|^More$/.test(x)) && w.some((x) => /^MAP$|^Map$/.test(x));
-const ALERT_OK = /^(Allow|Allow While Using App|OK)$/;
+/** the walkthrough card's count line ("FIND A WATER · 1 OF 25") */
+const GUIDE = /\d+ of \d+$/i;
 
 /** The app in front with the map drawn: the first-run notice, the tour and system prompts closed as a reader would. */
 async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}) {
@@ -33,11 +34,17 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
   let w = [];
   while (Date.now() < end) {
     w = device.screenText();
-    if (hasTabs(w) && !w.some((x) => /^(I understand|Skip|Got it)$/.test(x))) break;
     if (w.some((x) => /Would Like to Send You Notifications|Allow .* to use your location/i.test(x))) {
       ctx.flow('ios-alert', { BUTTON: alerts === 'Allow' ? 'Allow.*' : "Don.t Allow" });
-    } else if (w.some((x) => /^(I understand|Skip|Before you fish|Welcome|Got it)$/.test(x))) ctx.flow('dismiss-first-run');
-    else if (!device.pidOf()) device.launch();
+    } else if (w.some((x) => /^(I understand|Skip|Before you fish|Welcome|Got it)$/.test(x) || GUIDE.test(x))) {
+      ctx.flow('dismiss-first-run');                     // the notice, the walkthrough (it reopens itself until skipped)
+    } else if (hasTabs(w)) {
+      // the walkthrough opens once the map has drawn: a beat, then a last look before calling the app up
+      await sleep(4000);
+      const again = device.screenText();
+      if (!again.some((x) => GUIDE.test(x) || /^(I understand|Got it)$/.test(x))) { w = again; break; }
+      continue;
+    } else if (!device.pidOf()) device.launch();
     await sleep(3000);
   }
   if (!hasTabs(w)) throw new Error(`the app is not up in ${ms / 1000} s (saw: ${w.slice(0, 8).join(' | ').slice(0, 300)})`);
@@ -101,7 +108,7 @@ const SCENARIOS = [
       await ctx.step('search "Cultus" → open → its regulations', async () => {
         await toMap(ctx);
         ctx.flow('search', { Q: 'Cultus' });
-        ctx.flow('open-result', { LINE: 'Lake · .*Lindell Beach.*' });
+        ctx.flow('open-result', { LINE: '.*Lindell Beach.*' });
         await ctx.waitText(/Regulations/, 30_000);
         const w = device.screenText();
         shot(ctx, 'regs-search');
@@ -118,7 +125,7 @@ const SCENARIOS = [
       await ctx.step('framed on Cultus Lake, a tap on the map\'s middle → that water\'s page', async () => {
         await toMap(ctx);
         ctx.flow('search', { Q: 'Cultus' });
-        ctx.flow('tap-text', { TEXT: 'Lake · .*Lindell Beach.*' });           // the row previews: the map frames the lake
+        ctx.flow('tap-text', { TEXT: '.*Lindell Beach.*' });           // the row previews: the map frames the lake
         await sleep(3500);
         ctx.flow('edge-back');                                               // the search closed, the framing kept
         await sleep(2500);
@@ -151,7 +158,7 @@ const SCENARIOS = [
       await ctx.step('offline: search + a water\'s regulations from the installed set', async () => {
         await toMap(ctx);
         ctx.flow('search', { Q: 'Cultus' });
-        ctx.flow('open-result', { LINE: 'Lake · .*Lindell Beach.*' });
+        ctx.flow('open-result', { LINE: '.*Lindell Beach.*' });
         await ctx.waitText(/Regulations/, 30_000);
         const w = device.screenText();
         shot(ctx, 'offline-regs');
@@ -262,8 +269,12 @@ const SCENARIOS = [
         const seen = []; let last = null, same = 0, total = 0, reached = 0, closed = false;
         for (let i = 0; i < 70; i++) {
           const w = device.screenText();
-          const c = w.find((x) => COUNT.test(x));
-          if (!c) { closed = true; break; }
+          let c = w.find((x) => COUNT.test(x));
+          if (!c) {                                          // a read mid-animation can come back empty: look twice
+            await sleep(2500);
+            c = device.screenText().find((x) => COUNT.test(x));
+            if (!c) { closed = true; break; }
+          }
           const [, at, n] = COUNT.exec(c).map(Number);
           total = n; reached = Math.max(reached, at);
           if (c !== last) { seen.push(c); shot(ctx, `walk-${String(at).padStart(2, '0')}`); last = c; same = 0; }
@@ -281,7 +292,7 @@ const SCENARIOS = [
       await ctx.step('Cultus Lake page → Rule book link → a PDF is shown', async () => {
         await toMap(ctx);
         ctx.flow('search', { Q: 'Cultus' });
-        ctx.flow('open-result', { LINE: 'Lake · .*Lindell Beach.*' });
+        ctx.flow('open-result', { LINE: '.*Lindell Beach.*' });
         await ctx.waitText(/Regulations/, 30_000);
         ctx.flow('scroll-to', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
         ctx.flow('tap-text', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });

@@ -6,6 +6,8 @@ appId: ca.canifishthis.app
     commands:
       - tapOn: { text: "I understand", optional: true }
       - tapOn: { text: "Skip", optional: true }
+      # (T313) the walkthrough card's Skip by its id: on iOS its accessibility label replaces the word
+      - tapOn: { id: "guide-skip", optional: true }
       # (T303) a mode hint over the map (the locate button's, once per device)
       - tapOn: { text: "Got it", optional: true }
       - runFlow:
