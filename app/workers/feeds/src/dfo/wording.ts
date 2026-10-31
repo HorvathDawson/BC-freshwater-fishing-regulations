@@ -4,7 +4,7 @@
 // "new wording: '…'" (no number in the app), the card shows the row in DFO's words, and the owner is emailed URGENTLY,
 // once per new template (live.ts `wordingNotices`, email.ts). Parity with the Python: test/dfo.wording.test.ts.
 import doc from "../../../../../data/curated/dfo_salmon/wording.json";
-import { repr, pyRe, split, strip, sub } from "./py";
+import { finditer, lstrip, repr, pyRe, strip, sub } from "./py";
 import { unreadReason } from "./typed";
 
 export const FORMAT = "dfo-wording/1";
@@ -23,7 +23,14 @@ export interface WordingEntry {
 }
 export type Registry = Map<string, WordingEntry>;
 
-const RE_SPLIT = pyRe("[;,]|\\s[–—-]\\s|\\.\\s");
+const RE_SPLIT = pyRe("[;,]|\\s[–—-]\\s|\\.\\s(?![a-z])");
+/** (T332) wording._TITLE: a lettered section title ("F", "F. Fraser River Watershed") — its dot and dash are no break */
+const RE_TITLE = pyRe("[A-Z](?:\\.\\s+[A-Z][A-Za-z ]*)?");
+/** (T332) wording._GLUED: DFO's comma in "Single, barbless hook …" */
+const RE_GLUED = pyRe("single", "i");
+/** (T332) wording._SPECIES_LIST: the rest of a species list stays with the clause before it */
+const RE_SPECIES_LIST = pyRe("(?:chinook|coho|sockeye|pink|chum)(?:\\s+(?:or|and)\\s+(?:chinook|coho|sockeye|pink|chum))*(?:\\s+salmon)?", "i");
+const DASHES = "–—-";
 const RE_FN = pyRe("\\bFN\\s*\\d+", "i");
 const RE_NUM = pyRe("\\d+(?:[.:]\\d+)?");
 const RE_WS = pyRe("\\s+");
@@ -35,8 +42,30 @@ export function template(clause: string): string {
   return strip(sub(RE_WS, " ", c), " .;").toLowerCase();
 }
 
-/** wording.clauses: the cell split at ";", ",", a spaced dash and ". " */
-export const clauses = (cell: string): string[] => split(RE_SPLIT, cell || "").map((c) => strip(c)).filter((c) => c);
+const clean = (c: string) => strip(lstrip(strip(c), DASHES));
+
+/** wording.clauses: the cell split at ";", ",", a spaced dash and ". " — not inside a lettered section title, not after
+ *  "Single,", not before a lower-case word; a species list stays with its clause; leading dashes dropped (T332) */
+export function clauses(cell: string): string[] {
+  const s = cell || "";
+  const spans: [number, number][] = [];
+  let start = 0;
+  for (const m of finditer(RE_SPLIT, s)) {
+    const head = strip(s.slice(start, m.index));
+    if (RE_TITLE.full.test(head) || (m[0] === "," && RE_GLUED.full.test(head))) continue;
+    spans.push([start, m.index]);
+    start = m.index + m[0].length;
+  }
+  spans.push([start, s.length]);
+  const out: [number, number][] = [];
+  for (const [a, b] of spans) {
+    const c = clean(s.slice(a, b));
+    if (!c) continue;
+    if (out.length && RE_SPECIES_LIST.full.test(strip(c, " ."))) { out[out.length - 1]![1] = b; continue; }
+    out.push([a, b]);
+  }
+  return out.map(([a, b]) => clean(s.slice(a, b)));
+}
 
 export function loadRegistry(d: { format?: string; entries: WordingEntry[] }): Registry {
   if (!d || d.format !== FORMAT || !Array.isArray(d.entries)) throw new Error(`not a ${FORMAT} registry`);

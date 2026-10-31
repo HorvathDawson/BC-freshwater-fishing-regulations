@@ -56,7 +56,7 @@ def test_the_registry_is_one_entry_per_template_each_with_a_meaning():
     doc = json.loads(W.REGISTRY.read_text(encoding="utf-8"))
     assert doc["format"] == W.FORMAT
     ts = [e["template"] for e in doc["entries"]]
-    assert len(ts) == len(set(ts)) and len(ts) >= 85                         # the 2026-10-31 baseline: 85
+    assert len(ts) == len(set(ts)) and len(ts) >= 78       # the 2026-10-31 baseline: 85; T332's split tidy: 78
     for e in doc["entries"]:
         assert e["kind"] in W.KINDS and e["status"] in W.STATUSES, e
         assert W.template(e["example"]) == e["template"], e                  # the key is the example's template
@@ -82,6 +82,37 @@ def test_a_rejected_entry_is_unknown():
     assert W.unknown("4 per day, bait ban", reg) == []
     reg["bait ban"]["status"] = "rejected"
     assert W.unknown("4 per day, bait ban", reg) == ["bait ban"]
+
+
+# ── T332: the split tidied, every entry checked ───────────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("cell,want", [
+    # a lettered section title is no clause break: Region 6's section F is a watershed SCOPE, one note
+    ("F. Fraser River Watershed - There is no fishing for salmon in the portions of the Fraser River watershed in Region 6.",
+     ["F. Fraser River Watershed - There is no fishing for salmon in the portions of the Fraser River watershed in Region 6."]),
+    ("No fishing for sockeye, pink, chum.", ["No fishing for sockeye, pink, chum."]),            # a species list
+    ("No fishing for sockeye, pink or chum salmon, unless otherwise stated below",
+     ["No fishing for sockeye, pink or chum salmon", "unless otherwise stated below"]),
+    ("Single, barbless hook in tidal and non-tidal portions of all streams.",                    # DFO's comma
+     ["Single, barbless hook in tidal and non-tidal portions of all streams."]),
+    ("2 per day, 1 of which may be more than 77 cm. in length",                                  # no break before lower case
+     ["2 per day", "1 of which may be more than 77 cm. in length"]),
+    ("No fishing for chinook. — FN0372", ["No fishing for chinook", "FN0372"]),                  # leading dashes
+    ("4 per day, only 1 over 65 cm. Monthly limit=1 over 65 cm. — — Adult chinook caught",
+     ["4 per day", "only 1 over 65 cm", "Monthly limit=1 over 65 cm", "Adult chinook caught"]),
+])
+def test_the_clause_split_makes_no_scraps(cell, want):
+    assert W.clauses(cell) == want
+
+
+def test_no_scrap_is_a_registry_entry_and_every_checked_entry_is_accepted():
+    reg = W.registry()
+    for scrap in ("f", "fraser river watershed", "in length", "single", "pink", "chum", "sockeye", "—", "— fn#"):
+        assert scrap not in reg
+    # T332 (owner 2026-10-30): accepted after a check against real cells; the one doubtful entry stays a proposal
+    assert {t for t, e in reg.items() if e["status"] != "accepted"} == \
+        {"no fishing for chinook from a point n m above fort babine bridge to nichyeskwa creek"}
+    assert all("watershed" not in t or e["kind"] == "note" for t, e in reg.items())   # a watershed is a scope, never a limit
 
 
 # ── the three silent gaps ────────────────────────────────────────────────────────────────────────────────────────────

@@ -6,7 +6,10 @@ limit, "(see exception below)" lost its pointer — and a notice that changed a 
 way. So every CLAUSE of a cell must be one DFO has used before, with a known meaning:
 
     template(clause)   numbers -> N, "FN 1281" -> FN#, spaces squashed, lower case, " .;" trimmed
-    clauses(cell)      the cell split at ";", ",", a spaced dash and ". "
+    clauses(cell)      the cell split at ";", ",", a spaced dash and ". " (T332: not inside a lettered section title
+                       "F. Fraser River Watershed - …", not after DFO's "Single,", not before a lower-case word
+                       "77 cm. in length"; a species list "sockeye, pink, chum" stays with its clause; a clause's
+                       leading dashes are not words — "— FN0372" is "FN0372", "— —" is nothing)
     unknown(cell)      the clauses whose template the registry does not hold (or holds as `rejected`)
     notes(cell)        the clauses whose meaning is `note`: shown on the card in DFO's words (`row_words`)
 
@@ -50,7 +53,17 @@ NEW_WORDING = "new wording: "
 KINDS = ("structure", "note", "provenance")
 STATUSES = ("proposed", "accepted", "rejected")
 
-_SPLIT = re.compile(r"[;,]|\s[–—-]\s|\.\s")
+_SPLIT = re.compile(r"[;,]|\s[–—-]\s|\.\s(?![a-z])")
+#: (T332) a lettered section title, "F" / "F. Fraser River Watershed": its dot and its dash are not clause breaks — the
+#: split made two scraps of Region 6's "F. Fraser River Watershed - There is no fishing for salmon in the portions of the
+#: Fraser River watershed in Region 6." (a watershed SCOPE, section F of the cascade, closed outright — not a limit)
+_TITLE = re.compile(r"[A-Z](?:\.\s+[A-Z][A-Za-z ]*)?")
+#: (T332) DFO's comma in "Single, barbless hook …": one clause
+_GLUED = re.compile(r"single", re.I)
+#: (T332) the rest of a species list, "pink, chum" in "No fishing for sockeye, pink, chum.": part of the clause before it
+_SPECIES_LIST = re.compile(r"(?:chinook|coho|sockeye|pink|chum)(?:\s+(?:or|and)\s+(?:chinook|coho|sockeye|pink|chum))*"
+                           r"(?:\s+salmon)?", re.I)
+_DASHES = "–—-"
 _FN = re.compile(r"\bFN\s*\d+", re.I)
 _NUM = re.compile(r"\d+(?:[.:]\d+)?")
 _WS = re.compile(r"\s+")
@@ -63,9 +76,32 @@ def template(clause: str) -> str:
     return _WS.sub(" ", c).strip(" .;").lower()
 
 
+def _clean(c: str) -> str:
+    return c.strip().lstrip(_DASHES).strip()
+
+
 def clauses(cell: str) -> List[str]:
-    """The cell's clauses, as printed (stripped, empty ones dropped)."""
-    return [c.strip() for c in _SPLIT.split(cell or "") if c.strip()]
+    """The cell's clauses, as printed (stripped, leading dashes and empty ones dropped)."""
+    cell = cell or ""
+    spans: List[List[int]] = []
+    start = 0
+    for m in _SPLIT.finditer(cell):
+        head = cell[start:m.start()].strip()
+        if _TITLE.fullmatch(head) or (m.group(0) == "," and _GLUED.fullmatch(head)):
+            continue
+        spans.append([start, m.start()])
+        start = m.end()
+    spans.append([start, len(cell)])
+    out: List[List[int]] = []
+    for a, b in spans:
+        c = _clean(cell[a:b])
+        if not c:
+            continue
+        if out and _SPECIES_LIST.fullmatch(c.strip(" .")):
+            out[-1][1] = b
+            continue
+        out.append([a, b])
+    return [_clean(cell[a:b]) for a, b in out]
 
 
 @functools.lru_cache(maxsize=4)
