@@ -5,8 +5,8 @@
 // app's own "Simulate offline" (Updates log, staging builds), said as such in the report.
 //
 //   node app/tools/testbed/run-ios.mjs [all | <scenario id>…] [--out <dir>]
-//   scenarios: first-open map tap-water offline satellite location walkthrough pdf
-import { spawn } from 'node:child_process';
+//   scenarios: first-open map tap-water offline satellite location walkthrough pdf perf (perf: a --probes build)
+import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as device from './lib/device-ios.mjs';
@@ -338,6 +338,90 @@ const SCENARIOS = [
         return pdf ? `shown: ${pdf}` : `see shot (words: ${w.slice(0, 6).join(' | ').slice(0, 200)})`;
       });
     } },
+  { id: 'perf', title: 'Performance, the Android measures (T245 / T286 / T273): cold start → map drawn, a map tap → its page, pan; memory',
+    // The simulator runs on the Mac's CPU/GPU: these numbers flag regressions and iOS-only stalls, not a phone's speed.
+    // The app's own probes ([open], [pan], [stall], [target]) need a `build-ios-sim.sh --probes` build; they reach the
+    // unified log (com.facebook.react.log), streamed to app-os.log beside the report. Native map frame times are not
+    // read on iOS (no gfxinfo; Instruments is the follow-up): the JS thread's lag and stalls stand in.
+    async run(ctx) {
+      const COLD = Number(process.env.PERF_COLD ?? 3), TAPS = Number(process.env.OPEN_TAPS ?? 3), SWIPES = Number(process.env.PERF_SWIPES ?? 8);
+      const out = { device: run.device, note: 'iOS Simulator on the Mac: regressions / iOS-only stalls, not phone speed', cold: [], open: [], pan: null, rssPeakMb: 0 };
+      const keep = () => fs.writeFileSync(path.join(ctx.dir, 'T313-perf.json'), `${JSON.stringify(out, null, 1)}\n`);
+      const rss = () => {
+        const pid = device.pidOf();
+        if (!pid) return null;
+        try { const kb = Number(execFileSync('ps', ['-o', 'rss=', '-p', pid], { encoding: 'utf8' }).trim()); const mb = Math.round(kb / 1024); out.rssPeakMb = Math.max(out.rssPeakMb, mb); return mb; } catch { return null; }
+      };
+      const tmp = path.join(ctx.dir, 'perf-tmp.png');
+      for (let i = 1; i <= COLD; i++) {
+        await ctx.step(`cold start ${i}/${COLD}: launch → the map drawn`, async () => {
+          device.stop(); await sleep(1500);
+          const t0 = Date.now();
+          device.launch();
+          let drawn = null;
+          while (Date.now() - t0 < 60_000) {
+            device.screenshot(tmp);
+            if (painted(tmp).colour > 0.03) { drawn = Date.now() - t0; break; }
+            await sleep(150);
+          }
+          await sleep(3000);
+          const m = rss();
+          out.cold.push({ mapDrawnMs: drawn, rssMb: m }); keep();
+          if (drawn === null) throw new Error('the map was not drawn in 60 s');
+          return `map drawn ${drawn} ms (a screenshot every ~0.3 s: ±0.3 s) · RSS ${m} MB`;
+        });
+      }
+      try { fs.unlinkSync(tmp); } catch { /* none */ }
+      await appUp(ctx, { launch: false });
+      // a tap on the map at the point the app names (`[target]`), timed by the app's `[open]` probe (T286)
+      let at = null;
+      await ctx.step('search "Cultus" → framed; the app names the tap point ([target])', async () => {
+        await toMap(ctx);
+        const mark = logMark();
+        ctx.flow('search', { Q: 'Cultus' });
+        ctx.flow('tap-text', { TEXT: '.*Lindell Beach.*' });
+        await sleep(3500);
+        ctx.flow('edge-back');
+        await sleep(6000);
+        const t = logSince(mark, '[target] ').at(-1);
+        if (!t) ctx.skip('no [target] line (a build without --probes): the map tap is not timed');
+        const img = readPng(shot(ctx, 'perf-framed'));
+        const k = img.w / 402;                                              // px per point (iPhone 17: 3)
+        at = { x: Math.round(((t.win?.x ?? 0) + t.x) * k / img.w * 1000) / 10, y: Math.round(((t.win?.y ?? 0) + t.y) * k / img.h * 1000) / 10 };
+        return `target ${JSON.stringify(t).slice(0, 120)} → ${at.x}%, ${at.y}%`;
+      });
+      for (let i = 1; at && i <= TAPS; i++) {
+        await ctx.step(`map tap ${i}/${TAPS} → its regulations ([open])`, async () => {
+          const mark = logMark();
+          ctx.flow('tap-point', { POINT: `${at.x}%,${at.y}%` });
+          let o = null;
+          for (let n = 0; n < 30 && !o; n++) { await sleep(700); o = logSince(mark, '[open] ').at(-1) ?? null; }
+          if (!o) throw new Error('no [open] line in 20 s');
+          out.open.push(o); keep();
+          ctx.flow('edge-back'); await sleep(2000);
+          const frame = o.marks?.frame?.[0] ?? o.marks?.timeout?.[0];
+          if (o.marks?.spinner) throw new Error(`a spinner at ${o.marks.spinner[0]} ms · first frame ${frame} ms`);
+          return `first frame ${frame} ms · sql ${o.sql} (wait ${o.sqlWait}, run ${o.sqlRun}) · ${Object.entries(o.marks).map(([k, v]) => `${k} ${v[0]}`).join(', ')}`;
+        });
+      }
+      await ctx.step(`pan: ${SWIPES} travelling swipes ([pan] JS lag, [stall] > 50 ms)`, async () => {
+        await toMap(ctx);
+        const mark = logMark(), t0 = Date.now();
+        const moves = [['80%, 45%', '25%, 45%'], ['80%, 45%', '25%, 45%'], ['50%, 35%', '50%, 55%'], ['50%, 35%', '50%, 55%'],
+                       ['25%, 45%', '80%, 45%'], ['25%, 45%', '80%, 45%'], ['50%, 55%', '50%, 35%'], ['50%, 55%', '50%, 35%']];
+        for (let i = 0; i < SWIPES; i++) { const [FROM, TO] = moves[i % moves.length]; ctx.flow('swipe', { FROM, TO }); rss(); }
+        await sleep(2500);
+        const ps = logSince(mark, '[pan] '), st = logSince(mark, '[stall] ');
+        const max = (k) => ps.reduce((n, p) => Math.max(n, p[k] || 0), 0), sum = (k) => ps.reduce((n, p) => n + (p[k] || 0), 0);
+        const stalls = st.map((s) => s.ms).sort((a, b) => a - b);
+        out.pan = { seconds: Math.round((Date.now() - t0) / 1000), lagMax: max('lagMax'), late: sum('late'), tiles: sum('tiles'), labels: sum('labels'),
+                    sends: sum('sends'), ackMax: max('ackMax'), renders: sum('renders'), stalls: stalls.length, stallMax: stalls.at(-1) ?? 0,
+                    stallP95: stalls[Math.floor(stalls.length * 0.95)] ?? 0 };
+        keep();
+        if (!ps.length) ctx.skip('no [pan] lines (a build without --probes)');
+        return `JS lag max ${out.pan.lagMax} ms, ${out.pan.late} ticks >100 ms late · stalls >50 ms: ${out.pan.stalls} (max ${out.pan.stallMax}, p95 ${out.pan.stallP95} ms) · tiles ${out.pan.tiles}, labels ${out.pan.labels}, sends ${out.pan.sends} (ack max ${out.pan.ackMax} ms), renders ${out.pan.renders} · RSS peak ${out.rssPeakMb} MB`;
+      });
+    } },
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------
@@ -418,6 +502,17 @@ function newCrashes() {
 const osLog = spawn(device.SIMCTL, ['spawn', device.udid(), 'log', 'stream', '--style', 'compact', '--level', 'debug',
   '--predicate', 'process == "CanIFish"'], { stdio: ['ignore', fs.openSync(path.join(dir, 'app-os.log'), 'a'), 'ignore'] });
 process.on('exit', () => { try { osLog.kill(); } catch { /* gone */ } });
+
+/** The app-os.log's length now (a mark), or -1 when the log is not being written. */
+function logMark() { try { return fs.statSync(path.join(dir, 'app-os.log')).size; } catch { return -1; } }
+/** The probe lines (`tag` "[open] ", "[pan] " …) written to app-os.log since `mark`, parsed. */
+function logSince(mark, tag) {
+  try {
+    const b = fs.readFileSync(path.join(dir, 'app-os.log'));
+    return b.subarray(Math.max(0, mark)).toString('utf8').split('\n').filter((l) => l.includes(tag))
+      .map((l) => { try { return JSON.parse(l.slice(l.indexOf(tag) + tag.length)); } catch { return null; } }).filter(Boolean);
+  } catch { return []; }
+}
 
 function execSleep(s) { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, s * 1000); }
 
