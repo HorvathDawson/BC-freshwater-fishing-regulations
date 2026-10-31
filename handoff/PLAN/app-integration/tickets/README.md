@@ -373,7 +373,7 @@ use that as the sole source of future work."
 | T329 | Ponds (Q154): close the domain, no export (owner: pond = lake default, build never uses) | DONE | T325 | owner 2026-10-30; closed.json lists ponds, decided/ponds.json deleted, tab locked |
 | T330 | Generated review files out of handoff/ into data/generated/review/ | DONE | — | owner 2026-10-30; 16 files git-mv'd, read via GENERATED.review |
 | T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | OPEN | — | owner 2026-10-30 |
-| T332 | DFO salmon quotas in the same quota/lengths model as game-fish rules; wording list tidied, checked, accepted | OPEN | T320, T321 | owner 2026-10-30 |
+| T332 | DFO salmon quotas in the same quota/lengths model as game-fish rules; wording list tidied, checked, accepted | IN REVIEW (branch dfo/t332-shared-quota, merge after 0.4.0) | a618808c2, 29ddde218, 616a3ec93 | merge; release with minAppVersion, then feeds worker deploy + sync-inputs; owner: 1 doubtful wording entry (Fort Babine) |
 | T333 | Big Fable audit: duplicate data types / pathways / bad practices, verified + ranked → cleanup tickets | PLANNED (next credit cycle) | T324, T331 | owner 2026-10-30 |
 | T332 | iOS: walkthrough card over the Layers sheet missing from the accessibility tree (VoiceOver can't reach it) | OPEN | — | T313 2026-10-30 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
