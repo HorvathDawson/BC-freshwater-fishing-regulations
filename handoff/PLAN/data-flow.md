@@ -234,7 +234,7 @@ The app reads both and draws a banner. Nothing in the build reads in-season (inf
 | run timing | `runtiming/timing.json` (Mac parse) and the workflow's own parse |
 
 ### Files no one reads
-- `decided/ponds.json` (80 decisions) — no reader; Q154 is OFF.
+- `decided/ponds.json` (80 decisions) — no reader; Q154 is OFF. **Done by T329:** ponds closed, file deleted.
 - `decided/names.json`, `decided/splits.json` — no records.
 - `regulations/cross_references.json` — only a test reads it.
 - `waters/sub_lake_areas.json` — no code reader (a worklist, not declared in config like `ungazetted.json` is).
@@ -253,6 +253,8 @@ Code reads or writes these, but they are machine output:
 `dfo-suggestions.json`, `dfo-preverify.json`, `dfo-split-hunt.json`, `entry-split-suggestions.json`,
 `t89-awaiting-water.json`, `q154/sample.json`, `name-variants/candidates.json` (+ its script `mine.py`),
 `proposals/`. Readers: the review app backend, `regs/review/*`, `regs/dfo_salmon/*`, `tools/audit/tidal_*`.
+**Done by T330 (2026-10-30):** all 16 moved with `git mv` to `data/generated/review/` (same sub-paths), read through
+`GENERATED.review`; `tidal/owner-decisions.json` stays for T326.
 
 ### Other
 - `gauges/waterbody_type.json` is scraped source data filed as curated.
@@ -272,7 +274,7 @@ loader.** Marks stay what they are for: the log of a review that is still open.
 | cuts | `waters/splits.json` (confidence folded in from `proposal_overrides.json`) | atlas (sectionizer) | exists |
 | tidal limits | **`waters/tidal.json`** (new; replaces `tidal_waters.json` + the tidal flags + `decided/tidal`) | reach (`outside.py`); tiles via the same loader | to make at lock |
 | sloughs | `waters/slough_calls.json` | atlas (registry fold) | exists (T322) |
-| ponds | **`waters/pond_calls.json`** — only if Q154 gets a reader; else archive the marks | atlas (registry `kind_of`) | owner call |
+| ponds | none — owner 2026-10-30: a pond call only confirms the lake default | — | **closed** (T329) |
 | names | `waters/mined_names.json` (owner rows move in from code) | atlas (registry) | exists |
 | DFO places | `regulations/entries/dfo_salmon/region-*.json` | reach | exists |
 | regulations | `regulations/entries/catalogue/region-*.json` | reach + deliver | exists |
@@ -310,7 +312,38 @@ That removes the tidal flag from splits.json and replaces `tidal_waters.json`.
 
 `mark` is the 12-hex sha of the mark line — enough to find the history in the archive, nothing else from the review.
 
+### Every open domain: one command (T325, owner 2026-10-30)
+
+Marking stays one click in the review app (a line appended to marks.jsonl). A finished mark reaches its final file
+through ONE command, the same for every open domain:
+
+```
+python -m pipeline.regs.review.apply [domain ...] [--dry-run]
+```
+
+It exports the marks (`review.export` → `decided/`), then runs the domain's writer:
+
+| domain | writer | final file |
+|---|---|---|
+| tidal / dfo / entries / splits | `apply_proposals --scope …` (binding check, one commit per proposal, side rebuild printed for a cut change) | `splits.json`, `entries/dfo_salmon/`, `entries/catalogue/` |
+| sloughs | `tools.slough_calls` | `waters/slough_calls.json` |
+| names | `tools.mined_names` | `waters/mined_names.json` |
+
+With no domain it runs every open one. A closed domain is skipped with a line saying so. The review app prints the
+command under its progress bar ("land finished marks in the curated files"). The older per-domain commands still
+work; `apply` only puts them behind one name.
+
 ### The lock step (once per domain, when its review is finished)
+
+**Built (T325) as option (a), owner 2026-10-30:** `python -m pipeline.regs.review.lock <domain>` never edits
+marks.jsonl. It refuses while anything is open (an unsure/wrong mark in force, the app's unmarked queue count, the
+domain's decided file behind the marks, a proposal still waiting). Otherwise it writes the final file through the
+same writer `apply` runs and prints the side-build proof (a heavy job, run by hand). Then it adds the domain to
+`data/curated/regulations/review/closed.json` (`CURATED.regulations.review.closed`) and removes
+`decided/<domain>.json`. The exporter and `apply` skip a closed domain. The review app answers 423 on its queue,
+refuses a mark on it, and shows the tab "locked". Reopen: `lock --reopen <domain>` (removes the entry). `lock
+--status` lists the closed domains. Tidal is refused until T326 gives it a writer. Steps 4–6 below are the original
+proposal; option (a) replaces step 4's archive.
 
 One tool, `python -m pipeline.regs.review.lock <domain>` (proposed), in this order:
 

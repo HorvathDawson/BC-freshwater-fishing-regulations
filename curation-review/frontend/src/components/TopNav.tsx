@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { isTyping } from "../review";
+import { useClosed } from "./Locked";
 
 /* THE ONE TOP BAR (owner 2026-10-28: "make the tabs easier to switch between"). Every view renders this
    as its first row: the main tabs (short label, a done/total badge, a 1-9 / g+letter key), then — only for
@@ -9,18 +10,19 @@ import { isTyping } from "../review";
 
 export type TabId = "entries" | "dfo" | "tidal" | "sloughs" | "inseason" | "reports";
 
-interface Tab { id: TabId; label: string; key: string; title: string; hash: string }
+/** `domain`: the review domain the tab marks (T325: a closed one shows "locked") */
+interface Tab { id: TabId; label: string; key: string; title: string; hash: string; domain?: string }
 const TABS: Tab[] = [
   { id: "entries", label: "Entries", key: "e", hash: "", title: "the synopsis entries queue" },
-  { id: "dfo", label: "DFO", key: "d", hash: "dfo/", title: "T164: every scraped DFO salmon extent (sub-tabs: Cascade, Tidal)" },
-  { id: "tidal", label: "Tidal", key: "t", hash: "tidal/", title: "T212: the proposed tidal boundary on every ocean-entering stream" },
-  { id: "sloughs", label: "Sloughs", key: "s", hash: "sloughs/", title: "T55: slough / canal pieces drawn as lakes (sub-tab: small ponds Q154)" },
+  { id: "dfo", label: "DFO", key: "d", hash: "dfo/", domain: "dfo", title: "T164: every scraped DFO salmon extent (sub-tabs: Cascade, Tidal)" },
+  { id: "tidal", label: "Tidal", key: "t", hash: "tidal/", domain: "tidal", title: "T212: the proposed tidal boundary on every ocean-entering stream" },
+  { id: "sloughs", label: "Sloughs", key: "s", hash: "sloughs/", domain: "sloughs", title: "T55: slough / canal pieces drawn as lakes (sub-tab: small ponds Q154)" },
   { id: "inseason", label: "In-season", key: "i", hash: "inseason/", title: "T230: the provincial in-season changes — where each applies" },
   { id: "reports", label: "Reports", key: "r", hash: "reports/", title: "T237: problem reports from the app — sync from staging, status kept here" },
 ];
 
 /** the sub-tabs of a main tab; `hash` is the whole target */
-const SUBS: Partial<Record<TabId, { id: string; label: string; hash: string; title?: string }[]>> = {
+const SUBS: Partial<Record<TabId, { id: string; label: string; hash: string; title?: string; domain?: string }[]>> = {
   entries: [
     { id: "queue", label: "Queue", hash: "" },
     { id: "p1", label: "P1 quick confirm", hash: "p1/",
@@ -33,7 +35,7 @@ const SUBS: Partial<Record<TabId, { id: string; label: string; hash: string; tit
   ],
   sloughs: [
     { id: "sloughs", label: "Sloughs", hash: "sloughs/" },
-    { id: "ponds", label: "Small ponds (Q154)", hash: "sloughs/q154/",
+    { id: "ponds", label: "Small ponds (Q154)", hash: "sloughs/q154/", domain: "ponds",
       title: "Q154: small unnamed ponds a river runs through — pool (river rules) or real lake?" },
   ],
 };
@@ -85,6 +87,9 @@ export function TopNav({ active, sub, right }: {
   right?: ReactNode;
 }) {
   const [, tick] = useState(0);
+  const closed = useClosed();
+  const lockedBadge = (domain?: string) =>
+    domain && closed[domain] ? <span className="topnav-badge" data-testid={`locked-${domain}`}>locked</span> : null;
   useEffect(() => {
     const l = () => tick((n) => n + 1);
     listeners.add(l);
@@ -118,7 +123,7 @@ export function TopNav({ active, sub, right }: {
               className={`btn small topnav-tab${t.id === active ? " primary" : ""}`}
               title={`${t.title} — key ${i + 1}, or g ${t.key}`}
               onClick={() => navigate(t.hash)}>
-              <kbd>{i + 1}</kbd>{t.label}{badges[t.id] ? <span className="topnav-badge">{badges[t.id]}</span> : null}
+              <kbd>{i + 1}</kbd>{t.label}{lockedBadge(t.domain) ?? (badges[t.id] ? <span className="topnav-badge">{badges[t.id]}</span> : null)}
             </button>
           ))}
         </div>
@@ -130,7 +135,7 @@ export function TopNav({ active, sub, right }: {
           {subs.map((s) => (
             <button key={s.id} role="tab" aria-selected={s.id === sub} data-testid={s.id === "ponds" ? "ponds-tab" : `sub-${s.id}`}
               className={`btn small topnav-subtab${s.id === sub ? " primary" : ""}`} title={s.title}
-              onClick={() => navigate(s.hash)}>{s.label}</button>
+              onClick={() => navigate(s.hash)}>{s.label}{lockedBadge(s.domain)}</button>
           ))}
         </div>
       )}

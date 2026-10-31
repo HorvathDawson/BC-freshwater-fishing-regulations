@@ -13,6 +13,7 @@ import { isTyping, keepSelected, nextUnsure, paceSamples, recordPace } from "./r
 import { DFO_HASH, DfoReview } from "./components/DfoReview";
 import { TIDAL_HASH, TidalReview } from "./components/TidalReview";
 import { SLOUGH_HASH, SloughReview } from "./components/SloughReview";
+import { LockedView, useClosed } from "./components/Locked";
 import { CASCADE_HASH, CascadeView } from "./components/CascadeView";
 import { INSEASON_HASH, InSeasonReview } from "./components/InSeasonReview";
 import { REPORTS_HASH, ReportsView } from "./components/ReportsView";
@@ -46,6 +47,7 @@ const SEVERITIES: EntrySeverity[] = ["high", "medium", "low", "none", "later"];
 export default function App() {
   // the checks, the problem categories and the commands the server reviews with
   const [mode, setMode] = useState<Mode | null>(null);
+  const closed = useClosed();          // T325: the closed (locked) review domains
   // T164: the DFO salmon extents review — the same app, the same one write (a mark)
   const [dfo, setDfo] = useState(inDfo);
   // T212: the proposed tidal boundaries — read only; accepting one records a mark
@@ -226,6 +228,9 @@ export default function App() {
   if (cascade) {
     return <CascadeView />;
   }
+  // T325: a closed (locked) review domain shows its notice in place of the queue
+  if (tidal && closed.tidal) return <LockedView domain="tidal" entry={closed.tidal} active="tidal" />;
+  if (dfo && closed.dfo) return <LockedView domain="dfo" entry={closed.dfo} active="dfo" sub="extents" />;
   if (sloughs) {
     return <SloughReview />;
   }

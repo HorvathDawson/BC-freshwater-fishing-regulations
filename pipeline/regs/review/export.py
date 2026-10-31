@@ -12,7 +12,7 @@ DECIDE is data, and lives in its own files, one per domain, each record with its
     entries.json          scopes entry / rule: extent fixes, tributary calls, lake-split-later
     splits.json           scope split: calls on existing cuts
     sloughs.json          scope slough: stream / not stream (T55)
-    ponds.json            scope q154: pool / real lake (Q154)
+    ponds.json            scope q154: pool / real lake (Q154) — CLOSED 2026-10-30 (T329), so not written
     names.json            scope name: accept / reject (T224)
     proposed_splits.json  every distinct cut any uncleared mark proposed (`marks.proposal_groups`,
                           the shared-cut history; superseded marks' cuts too, as the store holds them)
@@ -28,6 +28,10 @@ THE READERS (apply paths) read these files, never marks.jsonl: `proposals` / `ap
 `tools.mined_names` (names -> waters/mined_names.json), `dfo_salmon.suggest`, `tools.audit.tidal_preview`.
 The BUILDS (atlas, reach, tiles, deliver) read neither: they read the curated data those land in.
 Review-state tools (gate, tickets, precheck, carry, the review app) still read the marks.
+
+CLOSED DOMAINS (T325, `review.closed`): a domain on the closed list is not exported — its file is not written, and
+a leftover one is removed — and `load` does not ask for it. Its marks stay in marks.jsonl (never edited) and still
+count in `rank`, so closing or reopening one domain moves no byte of another's file.
 
 Deterministic and idempotent (no clock in a file); `--check` is the test that the committed files
 are export(marks). REFUSED (never written) on a conflict: two tidal decisions in force that cut the
@@ -149,10 +153,13 @@ def _dump_rows(head: dict, key: str, rows: list) -> str:
     return f"{top}, \"{key}\": [\n{body}\n]}}\n" if rows else f"{top}, \"{key}\": []}}\n"
 
 
-def documents(d: Decided) -> dict[str, str]:
-    """{file name: text} for every domain file."""
+def documents(d: Decided, closed: Iterable[str] = ()) -> dict[str, str]:
+    """{file name: text} for every domain file, a CLOSED domain's left out (T325)."""
     out = {}
+    closed = frozenset(closed)
     for dom, scopes in DOMAINS.items():
+        if dom in closed:
+            continue
         rows = [{"key": [m.scope, m.target, m.rule_id], "rank": i, "provenance": d.provenance[m.key],
                  "mark": _line_dict(m)} for i, m in enumerate(d.inforce) if m.scope in scopes]
         head = {"format": FORMAT, "domain": dom, "scopes": list(scopes), "tidal_decisions": d.tidal_decisions,
@@ -169,23 +176,35 @@ def documents(d: Decided) -> dict[str, str]:
     return out
 
 
-def write(d: Decided, out_dir: Path) -> list[Path]:
+def write(d: Decided, out_dir: Path, closed: Iterable[str] = ()) -> list[Path]:
+    """Write every open domain's file; REMOVE a closed domain's leftover file (T325 — the exporter is the one writer
+    of decided/, so it is the one that stops holding a closed domain)."""
     from pipeline.regs.parsing.io import atomic_write
     out_dir = Path(out_dir)
     written = []
-    for name, text in documents(d).items():
+    for name, text in documents(d, closed).items():
         p = out_dir / name
         if not p.exists() or p.read_text(encoding="utf-8") != text:
             atomic_write(p, text)
             written.append(p)
+    for dom in sorted(set(closed) & set(DOMAINS)):
+        p = out_dir / f"{dom}.json"
+        if p.exists():
+            p.unlink()
+            written.append(p)
     return written
 
 
-def load(out_dir: Optional[Path] = None) -> Decided:
-    """The decided data as the readers take it. A missing file RAISES (AGENTS 37), naming the command."""
+def load(out_dir: Optional[Path] = None, closed: Optional[Iterable[str]] = None) -> Decided:
+    """The decided data as the readers take it. A missing file RAISES (AGENTS 37), naming the command. A CLOSED
+    domain (`closed`; default the curated closed list, T325) is not read: it has no file, and nothing applies it."""
+    from pipeline.regs.review import closed as C
     out_dir = Path(out_dir or default_dir())
+    shut = C.domains() if closed is None else frozenset(closed)
     inforce, td = [], None
     for dom in DOMAINS:
+        if dom in shut:
+            continue
         p = out_dir / f"{dom}.json"
         if not p.exists():
             raise FileNotFoundError(f"no decided-data file {p} — make it: python -m pipeline.regs.review.export")
@@ -216,9 +235,12 @@ def stale(out_dir: Optional[Path] = None, marks_path: Optional[Path] = None) -> 
     if (out_dir / "tidal.json").exists():
         named = json.loads((out_dir / "tidal.json").read_text(encoding="utf-8")).get("tidal_decisions")
         td = REPO_ROOT / named if named else None
-    want = documents(decide(M.load(marks_path or CURATED.regulations.review.marks), tidal_decisions=td))
+    from pipeline.regs.review import closed as C
+    shut = C.domains(C.path(marks_path))
+    want = documents(decide(M.load(marks_path or CURATED.regulations.review.marks), tidal_decisions=td), shut)
     return [n for n, t in sorted(want.items())
-            if not (out_dir / n).exists() or (out_dir / n).read_text(encoding="utf-8") != t]
+            if not (out_dir / n).exists() or (out_dir / n).read_text(encoding="utf-8") != t] + [
+        f"{dom}.json (closed: remove it)" for dom in sorted(shut & set(DOMAINS)) if (out_dir / f"{dom}.json").exists()]
 
 
 def main(argv: Optional[list[str]] = None) -> int:
@@ -228,17 +250,20 @@ def main(argv: Optional[list[str]] = None) -> int:
     ap.add_argument("--out", type=Path, default=None, help="the decided-data dir (default: CURATED.decided)")
     ap.add_argument("--check", action="store_true", help="exit 1 when the files are not export(marks); write nothing")
     a = ap.parse_args(argv)
+    from pipeline.regs.review import closed as C
     out = Path(a.out or default_dir())
+    shut = C.domains(C.path(a.marks))
     d = decide(M.load(a.marks or CURATED.regulations.review.marks))
     if a.check:
         bad = stale(out, a.marks)
         print("decided data is current" if not bad else
               "decided data is OUT OF DATE: " + ", ".join(bad) + " — python -m pipeline.regs.review.export")
         return 1 if bad else 0
-    got = write(d, out)
-    n = {dom: len(d.scope(*sc)) for dom, sc in DOMAINS.items()}
+    got = write(d, out, shut)
+    n = {dom: len(d.scope(*sc)) for dom, sc in DOMAINS.items() if dom not in shut}
     print(f"review.export: {sum(n.values())} decisions in force ({', '.join(f'{k} {v}' for k, v in n.items())}), "
-          f"{len(d.groups)} proposed cuts -> {_rel(out)} ({len(got)} file(s) changed)")
+          f"{len(d.groups)} proposed cuts -> {_rel(out)} ({len(got)} file(s) changed)"
+          + (f"; closed, not exported: {', '.join(sorted(shut))}" if shut else ""))
     return 0
 
 

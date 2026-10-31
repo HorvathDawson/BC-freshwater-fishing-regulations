@@ -108,7 +108,8 @@ STAGES = tuple(st.name for st in STAGE_GRAPH)
 # What each stage's CODE is: a change to any .py file under these (tests excluded) reruns it.
 CODE = {st.name: st.code for st in STAGE_GRAPH}
 #: (T266) curated paths that are REVIEW STATE or its export, read by the apply paths and never by a stage: in no key
-NOT_BUILD_INPUTS = ("regulations.review.marks", "decided")
+#: (T325) + the closed-domains list beside the marks: review state too, read by the exporter / apply / review app only
+NOT_BUILD_INPUTS = ("regulations.review.marks", "regulations.review.closed", "decided")
 
 
 def _sha(obj) -> str:

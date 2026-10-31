@@ -688,7 +688,7 @@ export interface Mode {
   /** T135: the pre-check codes (`precheck.CHECKS`) */
   prechecks: Record<string, { severity: Severity; what: string }>;
   /** T135: what the screen PRINTS for the human to run (commit the marks, export tickets) */
-  commands: Record<"commit_marks" | "tickets" | "prechecks", string>;
+  commands: Record<"commit_marks" | "tickets" | "prechecks", string> & { apply?: string };
 }
 
 /** A pre-check's severity (`precheck.SEVERITIES`): A a fact, B a hint, I a note — nothing to fix (T207). */

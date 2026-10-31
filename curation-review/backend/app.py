@@ -49,6 +49,43 @@ async def _fresh_caches(request, call_next):
     return await call_next(request)
 
 
+#: T325: a CLOSED (locked) review domain's queue / progress / detail endpoints answer 423 — the tab shows "locked" —
+#: and a mark on its scopes is refused (`_post_mark`). The closed list is `pipeline.regs.review.closed`, read on each
+#: request (a few bytes) beside the marks store this server writes, so a lock / reopen needs no restart.
+LOCKED_PATHS = {"/api/q154/": "ponds", "/api/sloughs/queue": "sloughs", "/api/sloughs/progress": "sloughs",
+                "/api/sloughs/candidates/": "sloughs", "/api/tidal/queue": "tidal", "/api/tidal/progress": "tidal",
+                "/api/tidal/candidates/": "tidal", "/api/dfo/queue": "dfo", "/api/dfo/progress": "dfo"}
+
+
+def closed_domains() -> dict:
+    """domain -> its closed entry (`review.closed`), for the marks store this server writes."""
+    from pipeline.regs.review import closed as C
+    return C.entries(C.path(reuse.MARKS_PATH))
+
+
+def _locked_words(domain: str, e: dict) -> str:
+    return (f"the {domain} review is closed (locked {e.get('date')}: {e.get('why')}) — its marks no longer move "
+            f"anything. Reopen: python -m pipeline.regs.review.lock --reopen {domain}")
+
+
+@app.middleware("http")
+async def _locked_domains(request, call_next):
+    path = request.url.path
+    dom = next((d for pre, d in LOCKED_PATHS.items() if path.startswith(pre)), None)
+    if dom is not None:
+        shut = closed_domains()
+        if dom in shut:
+            from fastapi.responses import JSONResponse
+            return JSONResponse({"detail": _locked_words(dom, shut[dom]), "locked": dom}, status_code=423)
+    return await call_next(request)
+
+
+@app.get("/api/review/closed")
+def review_closed():
+    """T325: the closed (locked) review domains, each with its scopes — the app shows those tabs "locked"."""
+    return {"closed": closed_domains()}
+
+
 #: WARM AT STARTUP (T136, PLAN §4 phase 5): `CURATION_WARM=1` (run.sh sets it) loads every cache a
 #: first entry reads in a background thread (`reuse.warm`), so the reviewer never waits on a cold
 #: backend; `GET /api/ready` says when it is done. Off by default (tests, a one-off script).
@@ -106,6 +143,8 @@ def get_mode():
             # it runs neither (review mode writes one thing, a mark)
             "prechecks": {k: {"severity": sev, "what": what} for k, (sev, what) in PRECHECKS.items()},
             "commands": {"commit_marks": "python -m pipeline.regs.review.commit_marks",
+                         # T325: THE one command that lands finished marks in their final curated files
+                         "apply": "python -m pipeline.regs.review.apply [domain]",
                          "tickets": "python -m pipeline.regs.review.tickets --out <dir>",
                          "prechecks": "python -m pipeline.regs.review.precheck"}}
 
@@ -253,6 +292,11 @@ def _post_mark(body: MarkPayload):
     from pipeline.regs.review.marks import (CHECKS, refusal_words, unanswered_words,
                                             verdict_from_answers)
     data = body.model_dump()
+    from pipeline.regs.review.export import DOMAINS
+    shut = closed_domains()
+    dom = next((d for d in shut if body.scope in DOMAINS.get(d, ())), None)
+    if dom is not None:                              # T325: a closed domain takes no mark (not even a clear)
+        raise HTTPException(423, [{"path": "scope", "msg": _locked_words(dom, shut[dom])}])
     if body.verdict == "cleared":
         # owner 2026-10-29: TAKE BACK the mark in force (`marks.cleared_mark`) — any review scope, one
         # target or several (`targets`), one commit; the target reads unmarked again

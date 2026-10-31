@@ -3,6 +3,9 @@
     python -m pipeline.regs.review.apply_proposals --dry-run     # what would land, as diffs
     python -m pipeline.regs.review.apply_proposals [--only ID]   # land each, `git commit -- <paths>`
 
+The ONE documented command over this is `python -m pipeline.regs.review.apply [domain]` (T325): export, then the
+domain's writer — for tidal / dfo / entries / splits, this, with `--scope` naming the domain's mark scopes.
+
 THE MARKS ARE THE DECISIONS (owner 2026-10-27): there is no accept step. Every applicable proposal
 the marks in force make is landed — read from their export (`review.export`, T266: data/curated/decided/,
 refused while it is behind marks.jsonl), never from the marks store itself — rebuilt from the marks and the curated files NOW
@@ -76,6 +79,12 @@ def needs_side(p: Mapping, props: Iterable[Mapping], landed_sids: set[str]) -> b
                           else []) if isinstance(ex, Mapping) for sid in ex.get("splits") or ())
 
 
+def of_scopes(p: Mapping, scopes: Iterable[str]) -> bool:
+    """Is `p` made by a mark of one of `scopes` (its own scope, or a mark behind it — a new split's marks)?"""
+    scopes = set(scopes)
+    return p.get("scope") in scopes or any(m.get("scope") in scopes for m in p.get("marks") or ())
+
+
 def plan(props: list[dict], tried: set[str], landed_sids: set[str] = frozenset(),
          side_checked: Iterable[str] = ()) -> tuple[dict | None, list]:
     """The next proposal to land, and the ones that cannot now (id, why)."""
@@ -113,6 +122,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--build", type=Path, help="the atlas whose registry names new anchors")
     ap.add_argument("--only", action="append", default=[], metavar="ID",
                     help="land only these proposals (repeatable)")
+    ap.add_argument("--scope", action="append", default=[], metavar="SCOPE",
+                    help="land only the proposals made by marks of these scopes (repeatable; with what they wait on)")
     ap.add_argument("--side-checked", action="append", default=[], metavar="ID",
                     help="the side rebuild of this cut-changing proposal was made and its binding "
                          "diff read elsewhere (its side atlas is not at the default path)")
@@ -131,9 +142,10 @@ def main(argv: list[str] | None = None) -> int:
     while True:
         src = P.Sources.live(a.build)                      # the files as they are now
         props = P.build(decided, src)
-        if a.only:
-            props_pick = [p for p in props if p["id"] in a.only or any(
-                p["id"] in q["depends_on"] for q in props if q["id"] in a.only)]
+        if a.only or a.scope:
+            want = set(a.only) | {p["id"] for p in props if a.scope and of_scopes(p, a.scope)}
+            props_pick = [p for p in props if p["id"] in want or any(
+                p["id"] in q["depends_on"] for q in props if q["id"] in want)]
             tried |= {p["id"] for p in props if p not in props_pick}
         p, blocked = plan(props, tried, landed_sids, a.side_checked)
         if p is None:

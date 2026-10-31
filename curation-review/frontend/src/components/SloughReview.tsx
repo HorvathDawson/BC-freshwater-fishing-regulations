@@ -5,6 +5,7 @@ import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
 import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { POND_HASH, PondReview } from "./PondReview";
+import { LockedView, useClosed } from "./Locked";
 
 export const SLOUGH_HASH = "sloughs/";
 
@@ -107,7 +108,9 @@ export function SloughReview() {
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
-  return ponds ? <PondReview /> : <SloughList />;
+  const closed = useClosed();      // T325: a closed (locked) domain shows its notice, not its queue
+  if (ponds) return closed.ponds ? <LockedView domain="ponds" entry={closed.ponds} active="sloughs" sub="ponds" /> : <PondReview />;
+  return closed.sloughs ? <LockedView domain="sloughs" entry={closed.sloughs} active="sloughs" sub="sloughs" /> : <SloughList />;
 }
 
 function SloughList() {

@@ -40,6 +40,7 @@ export function ProgressBar({ progress, samples, commands }: Props) {
           <div className="dim">
             commit the marks (the marks file only): <code className="cmd">{commands.commit_marks}</code>
             <br />tickets as files: <code className="cmd">{commands.tickets}</code>
+            {commands.apply && <><br />land finished marks in the curated files (T325): <code className="cmd">{commands.apply}</code></>}
           </div>
         )}
       </details>
