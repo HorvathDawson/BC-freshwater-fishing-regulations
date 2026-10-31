@@ -71,7 +71,17 @@ Saving a mark in the review app will update that data type's final curated file 
 - There is no lock step and nothing to run.
 - If a save is refused, the mark is kept and the app shows why.
 
-**Config tidy-up** [T327, T331]
+**Config tidy-up** [T327, T331]: BUILT on branch `cleanup/t327-t331`, waiting to merge after the rebuild.
+- Owner name decisions now live in `data/curated/waters/name_calls.json`, not in code. The registry is unchanged.
+- One upload list feeds both the staging script and the GitHub job; the GitHub job now uploads `wording.json`.
+- Scraped and parsed data moved out of curated into `data/source/`:
+  - gauge water types → `data/source/bc_station_waterbody_type.json`;
+  - run timing → `data/source/runtiming/timing.json`.
+- One unused file deleted (`cross_references.json`).
+- The 7 retired marks are closed. Delivery reruns only when a file it actually reads changes.
+- Left for later: four test-only path overrides need a small design of their own.
+
+What the plan said for this item:
 This runs on a separate branch so the rebuild isn't disturbed.
 - Name decisions move out of Python code into a curated file.
 - Every curated file gets registered in the config.
