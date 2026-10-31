@@ -4,6 +4,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-10-30, 22:40
+
+- **Hatzic:** the vessel speed rules do NOT include tributaries. Changed that one mark (owner-allowed). The catalogue
+  already said so, so nothing will widen.
+- **Rebuild was stalled for 3 hours.** It held the heavy-job slot from 19:21 while waiting for 70% free memory, and
+  this Mac idles at about 67%. It has been told to re-queue at 60%, the level the last live build used.
+
 ## 2026-10-30 evening
 
 ### Finished today
