@@ -1,6 +1,8 @@
-# T329 — Ponds (Q154): give the 80 decisions a reader, or close them
+# T329 — Ponds (Q154): close the domain, no reader, no export
 
-Status: OPEN (owner 2026-10-30; T324 design approved, plan in handoff/PLAN/data-flow.md §4–5).
+Status: OPEN — DECIDED (owner 2026-10-30: "The pond marks can be not exported tho it just means lakes? They don't need
+to be saved, build will never use").
 
-`decided/ponds.json` (80 calls) has no reader. Owner decides: drive something (`waters/pond_calls.json`, read by
-the registry) or close the domain. Depends: T325. Size: S. Owner: decide.
+A pond call only confirms the default (a lake), so nothing reads it. Close the `pond` domain on the closed-domains list
+(T325, option a — marks.jsonl untouched), stop exporting `decided/ponds.json` and delete it, close the review tab.
+Depends: T325. Size: S.

@@ -370,7 +370,7 @@ use that as the sole source of future work."
 | T326 | Lock tidal: waters/tidal.json replaces 4 tidal records; split confidence folded in | OPEN | T325 (+7 marks, Mamquam) | owner 2026-10-30 |
 | T327 | Lock names: owner name table out of code into a curated file; write Sheldens | OPEN | T325 | owner 2026-10-30 |
 | T328 | Lock sloughs after T322 approval | OPEN | T322, T325 | owner 2026-10-30 |
-| T329 | Ponds (Q154): reader or close — owner decides | OPEN | T325 | owner 2026-10-30 |
+| T329 | Ponds (Q154): close the domain, no export (owner: pond = lake default, build never uses) | OPEN (decided) | T325 | owner 2026-10-30 |
 | T330 | Generated review files out of handoff/ into data/generated/review/ | OPEN | — | owner 2026-10-30 |
 | T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | OPEN | — | owner 2026-10-30 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
