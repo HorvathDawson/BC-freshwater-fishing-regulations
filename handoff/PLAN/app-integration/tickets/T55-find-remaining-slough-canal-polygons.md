@@ -69,3 +69,17 @@ reads `handoff/PLAN/curation-review/slough-automark.json` + `handoff/PLAN/slough
 - Tests: `pipeline/tests/test_curation_review_slough.py` (pre-marks never write; one call and a batch are marks in a temp
   store; data/curated untouched); `test_curation_review_safety` pin updated. Shot: `handoff/PLAN/app-integration/T55-shots/`.
 - Not done here: folding confirmed streams into their rivers (registry → atlas → binding diff → reach + deliver).
+
+## Fold: what is needed (2026-10-31, batch-rebuild prep; NOT done)
+The owner's confirmed calls are exported: `data/curated/decided/sloughs.json` holds 811 decisions, all `call: stream`, `P: y`
+(801 from "accept all visible", 10 accepted one at a time). The key is the FWA waterbody key (`target`, e.g. 329641578).
+Pre-marks are not in it and must never be folded. **No build code reads this file**: `merge_flowing_polygons`
+(`pipeline/atlas/registry/flowing.py`) folds only by name, gnis or threading rules 1–5, and nothing under
+`pipeline/atlas` reads `decided/`. To fold them:
+1. Registry step: read `decided/sloughs.json` (CURATED.decided). Make each target wbk's item `kind = stream`. Join it to the
+   stream item that both enters and leaves it (the SLOUGHLIKE rule, applied to these owner-confirmed wbks whatever the
+   river's head noun). If nothing threads it, it becomes a stream item under its own id (rule 5). Refuse a two-stream tie.
+   Report each target: joined to / own item / not found. `THREADED_JOINS` stays off; the owner's mark is the reason.
+2. Atlas rebuild (`--atlas`, side), then a binding diff before promote (memory split-fix-changes-trib-walk), then reach + deliver.
+3. Tests: a decided wbk becomes stream; an undecided pre-mark stays lake.
+This was left out of the 10-31 batch rebuild because the fold tool does not exist yet.
