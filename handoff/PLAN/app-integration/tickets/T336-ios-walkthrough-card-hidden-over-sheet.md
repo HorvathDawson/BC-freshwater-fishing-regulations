@@ -1,4 +1,4 @@
-# T332 — iOS: the walkthrough card over the Layers sheet is missing from the accessibility tree
+# T336 — iOS: the walkthrough card over the Layers sheet is missing from the accessibility tree
 
 Status: OPEN. Source: T313 (iOS simulator test bed, 2026-10-30).
 
