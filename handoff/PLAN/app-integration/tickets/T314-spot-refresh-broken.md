@@ -23,4 +23,9 @@ afterwards"); after the day, the day's record fills them (`fillDayPanel` / `fill
 **Pin:** `data/spots/refresh.offline.test.ts` — offline today → online → reading/panel/weather/week filled, needsRefresh
 false; still offline → unchanged; next day → day's record, never the live reading; a visit added offline the same.
 Mutation (no `fillLive`): 3 of 4 fail.
-**Left:** emulator: spot saved in airplane mode → online → filled (`spots` scenario), in the next heavy.sh batch.
+**Emulator (2026-10-30):** `spots` on Cultus Lake (no gauge speaks there): saved offline, weather filled by itself on
+reconnect ("filled in: nothing missing"). On a gauged river (`SPOTS_AT=-121.9675,49.0974`) not yet proven: run 1 the
+capture's "Pick the water" tap missed the river (the scenario now tries the pin and either side), run 2 the emulator's
+network toggles stuck (test-bed infra). Finding: the offline capture took 15 s to reach "Save spot" on the lake (T307's
+< 3 s check) — not traced yet (the online `history.online` is wired; may be a step the scenario waits through).
+**Left:** rerun `SPOTS_AT=-121.9675,49.0974 node app/tools/testbed/run.mjs spots` for the gauge fill on a river.

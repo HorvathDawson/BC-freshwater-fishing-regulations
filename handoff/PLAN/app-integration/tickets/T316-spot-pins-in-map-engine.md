@@ -29,6 +29,18 @@ Depends: T310, T312. Size: S–M. Owner: no.
   made; the old `useSpots` caused that render incidentally (`one-engine.render.test.tsx` relies on it). Kept here
   (`useSpots` renders once on its first regroup); a map-ready state in `useMapInstance` would be the real fix.
 
+## Pan benchmark (emulator 2026-10-30, `PAN_SPOTS=6 node app/tools/testbed/run.mjs pan`: 6 spots round Cultus Lake, pans from "Show on map")
+| build | round | map surface frames | >20 ms | p99 / max ms | UI (gfxinfo) frames | janky | slow draw |
+|---|---|---|---|---|---|---|---|
+| before (14:02, view annotations) | circling | 751 | 35 | 33.2 / 35.8 | 333 | 5.1 % | 17 |
+| before | travelling | 793 | 28 | 33.1 / 35.0 | 329 | 4.9 % | 16 |
+| after (T316 + T317 + T314/T315) | circling | 763 | 30 | 33.1 / 38.2 | 203 | 53.7 % | 107 |
+| after | travelling | 797 | 36 | 33.1 / 36.9 | 204 | 56.4 % | 113 |
+Read: the map's own surface is unchanged (it never waited on the pins); the app's UI thread draws ~40 % fewer frames
+during a pan (no views moved per frame) — the lag the owner saw cannot happen to layers. BUT the UI frames that remain
+are mostly flagged "slow issue draw commands" (5 % → 55 % janky). Not attributed: the after build also carries T317's
+conversion and other lanes' work. Next: the same pan with PAN_SPOTS=0 on the after build splits the spots' share.
+
 ## Left
-- Pan benchmark: `PAN_SPOTS=6 node app/tools/testbed/run.mjs pan` (6 spots round Cultus Lake, pans from "Show on map")
-  on the pre-T316 test-bed APK (14:02 build) vs. a fresh `--build`; numbers here when the batch lands.
+- Owner: look at the marks on a phone (same look as `SpotPin`; names in Noto Sans Medium, the glyph host has no bold).
+- The jank question above (one more pan run, PAN_SPOTS=0 vs 6, same build).

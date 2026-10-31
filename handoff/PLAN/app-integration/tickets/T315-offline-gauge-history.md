@@ -42,4 +42,7 @@ For scale: index.json 368 kB / 51 kB gz (percentiles only, no values); a station
 ## Left
 - Owner: deploy the staging feeds worker so `obs.json` is published —
   `npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml` (repo root). Until then only viewed stations are kept.
-- Emulator: view a gauge online → airplane (+ relaunch) → measured line + "as of" note, in the next heavy.sh batch.
+- Emulator (2026-10-30, `gauge-offline`): Vedder River viewed online, then airplane + cold start → the gauge's reading
+  came from the phone ("4.2 m³/s … checked 37 min ago") BUT the estimate said "The live readings did not arrive": the
+  feed INDEX was not kept. Fixed (f830bbf39: the index is kept and answered offline too). Rerun blocked by the
+  emulator's network toggle sticking; rerun `node app/tools/testbed/run.mjs gauge-offline` (needs a `--build`).
