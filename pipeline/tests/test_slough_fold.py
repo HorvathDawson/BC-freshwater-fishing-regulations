@@ -216,3 +216,27 @@ def test_an_isolated_item_is_rekinded_a_general_stream_in_place():
     assert out["wbk:9"].kind == "stream" and out["wbk:9"].section_ids == ("lake:9",) and not out["wbk:9"].aliases
     assert out["gnis:1"] == reg["gnis:1"]
     assert rep["rows"][0]["via"] == "isolated item"
+
+
+# --------------------------------------------------------------------------- the promote gate (mechanical)
+
+def test_the_gate_passes_changes_on_allowed_waters_and_stops_on_any_other():
+    """Owner 2026-10-30: only folded polygons, re-kinded items and the streams they join may change. Mutation: let a
+    rescope or a gain elsewhere through -> red."""
+    from pipeline.tools.audit.slough_fold_gate import allowed_sections, violations
+    g, reg = _creek()
+    reg = dict(reg, **{"wbk:9": _item("wbk:9", "OXBOWS", "lake", ["lake:9"])})
+    rep: dict = {}
+    out = fold_confirmed_sloughs(reg, g, {"5", "9"}, rep)
+    allowed = allowed_sections(rep, out)
+    assert {"lake:5", "lake:9", "x0", "x3"} <= allowed and "y1" not in allowed
+
+    def rows(*r):
+        return iter(sorted(((e, ru, s), sc) for e, ru, s, sc in r))
+    before = rows(("e1", "z1", "lake:5", "reach"), ("e1", "z1", "y1", "reach"))
+    after = rows(("e1", "z1", "x0", "reach"), ("e1", "z1", "y1", "reach"), ("e2", "r", "lake:9", "trib"))
+    assert violations(before, after, allowed) == (0, [])
+    before = rows(("e1", "z1", "y1", "reach"))
+    after = rows(("e1", "z1", "y1", "trib"), ("e3", "r", "u1", "reach"))
+    n, kept = violations(before, after, allowed)
+    assert n == 2 and {k["change"] for k in kept} == {"rescoped", "gained"}

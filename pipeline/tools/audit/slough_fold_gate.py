@@ -1,0 +1,105 @@
+"""T322 PROMOTE GATE (owner 2026-10-30): the slough fold's binding diff is MECHANICAL, not an owner review. The only
+waters allowed to change binding are the folded slough polygons, the re-kinded items (the oxbows) and the streams
+they join; ANY other section that gains, loses or rescopes a rule (or a licensing record), and any rule that becomes
+or stops being unresolved, STOPS the promote (exit 1).
+
+    python -m pipeline.tools.audit.slough_fold_gate BEFORE_REACHES AFTER_REACHES SIDE_ATLAS [--json OUT]
+
+`SIDE_ATLAS` is the side build's atlas (its `slough_fold_report.json` + `registry.json` name the allowed sections).
+Streams both runs side by side (`reach.binding_diff._rows`), so a 19 GB run fits.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+from typing import Iterable, Iterator
+
+#: how many offending rows the report keeps (the count is always exact)
+KEEP = 50
+
+
+def allowed_sections(report: dict, registry: dict) -> set[str]:
+    """Every section of a folded polygon, of each stream that took one, and of each item re-kinded in place."""
+    rows = report.get("rows") or []
+    out = {f"lake:{r['wbk']}" for r in rows if r.get("outcome") == "folded"}
+    for iid in [*(report.get("streams") or {}), *(report.get("own_streams") or {})]:
+        it = registry.get(iid)
+        if it is not None:
+            out.update(it.section_ids)
+    return out
+
+
+def violations(before: Iterator, after: Iterator, allowed: set[str]) -> tuple[int, list[dict]]:
+    """(count, the first KEEP) of the rows that differ between two SORTED ((entry, owner, section), scope) streams on
+    a section outside `allowed`."""
+    n, kept = 0, []
+
+    def hit(key, what):
+        nonlocal n
+        if key[2] in allowed:
+            return
+        n += 1
+        if len(kept) < KEEP:
+            kept.append({"entry": key[0], "rule": key[1], "section": key[2], "change": what})
+    ra, rb = next(before, None), next(after, None)
+    while ra is not None or rb is not None:
+        if rb is None or (ra is not None and ra[0] < rb[0]):
+            hit(ra[0], "lost")
+            ra = next(before, None)
+        elif ra is None or rb[0] < ra[0]:
+            hit(rb[0], "gained")
+            rb = next(after, None)
+        else:
+            if ra[1] != rb[1]:
+                hit(ra[0], "rescoped")
+            ra, rb = next(before, None), next(after, None)
+    return n, kept
+
+
+def gate(before: Path, after: Path, side_atlas: Path) -> dict:
+    from pipeline.atlas.reach import binding_diff as B
+    from pipeline.atlas.reach.io import rule_section_file
+    from pipeline.atlas.registry import load_registry
+    rp = Path(side_atlas) / "slough_fold_report.json"
+    if not rp.exists():
+        raise FileNotFoundError(f"no {rp} — the side atlas was built with FOLD_CONFIRMED off")
+    allowed = allowed_sections(json.loads(rp.read_text(encoding="utf-8")),
+                               load_registry(Path(side_atlas) / "registry.json"))
+    n, kept = violations(B._rows(rule_section_file(before), "rule_id"),
+                         B._rows(rule_section_file(after), "rule_id"), allowed)
+    ln, lkept = 0, []
+    lb, la = Path(before) / "licensing_section.jsonl", Path(after) / "licensing_section.jsonl"
+    if lb.exists() and la.exists():
+        ln, lkept = violations(B._rows(lb, "record_id"), B._rows(la, "record_id"), allowed)
+    ub, ua = B._unresolved(Path(before) / "rule_unresolved.jsonl"), B._unresolved(Path(after) / "rule_unresolved.jsonl")
+    unres = sorted(f"{e}::{r}: {ub.get((e, r))} -> {ua.get((e, r))}" for (e, r) in set(ub) | set(ua)
+                   if ub.get((e, r)) != ua.get((e, r)))
+    return {"allowed_sections": len(allowed), "rule_rows_outside": n, "rule_sample": kept,
+            "licensing_rows_outside": ln, "licensing_sample": lkept, "unresolved_changed": unres,
+            "ok": not (n or ln or unres)}
+
+
+def main(argv: Iterable[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(prog="python -m pipeline.tools.audit.slough_fold_gate", description=__doc__.split("\n")[0])
+    ap.add_argument("before")
+    ap.add_argument("after")
+    ap.add_argument("side_atlas")
+    ap.add_argument("--json", type=Path, default=None)
+    a = ap.parse_args(list(argv) if argv is not None else None)
+    rep = gate(Path(a.before), Path(a.after), Path(a.side_atlas))
+    if a.json:
+        a.json.write_text(json.dumps(rep, indent=1) + "\n", encoding="utf-8")
+    print(f"T322 gate: {rep['allowed_sections']:,} allowed sections; outside them: {rep['rule_rows_outside']:,} rule "
+          f"row(s), {rep['licensing_rows_outside']:,} licensing row(s), {len(rep['unresolved_changed'])} unresolved "
+          f"change(s) -> {'PASS' if rep['ok'] else 'STOP: do not promote'}")
+    for r in rep["rule_sample"][:20]:
+        print(f"  {r['change']:8} {r['section']}  {r['entry']}::{r['rule']}")
+    for u in rep["unresolved_changed"][:20]:
+        print(f"  unresolved {u}")
+    return 0 if rep["ok"] else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
