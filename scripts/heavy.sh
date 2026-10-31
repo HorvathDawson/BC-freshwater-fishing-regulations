@@ -30,7 +30,8 @@ while ! mkdir "$LOCK" 2>/dev/null; do
   echo "[heavy:$label] waiting for lock held by: $holder"; sleep 20
 done
 echo "$$ $label $(date '+%F %T')" > "$LOCK/owner"
-trap 'rm -rf "$LOCK"' EXIT INT TERM
+trap 'rm -rf "$LOCK"' EXIT
+trap 'exit 143' INT TERM    # a stop must END the job: a trap that only freed the lock let it run on unlocked (2026-10-30)
 export HEAVY_HELD=$$        # a nested heavy.sh in the command runs under this lock (re-entrant, above)
 
 while (( $(free_pct) < need )); do echo "[heavy:$label] free $(free_pct)% < $need% — waiting"; sleep 20; done
