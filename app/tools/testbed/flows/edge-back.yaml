@@ -1,5 +1,8 @@
-# (T313) iOS has no system Back: the app's own edge-back (EdgeBack.tsx), a drag in from the left edge.
+# (T313) iOS has no system Back: the app's own edge-back (EdgeBack.tsx), a drag in from the left edge at height Y.
 appId: ca.canifishthis.app
+env:
+  Y: "50%"
+  MS: "400"
 ---
-- swipe: { start: "1%, 50%", end: "75%, 50%", duration: 400 }
+- swipe: { start: "1%, ${Y}", end: "75%, ${Y}", duration: ${MS} }
 - waitForAnimationToEnd: { timeout: 3000 }

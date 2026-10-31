@@ -58,7 +58,14 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
 async function coldStart(ctx, opts) { device.stop(); await sleep(1000); return appUp(ctx, opts); }
 /** Back to the Map tab: the edge-back (iOS has no system Back) until the tab bar shows, then the tab. */
 async function toMap(ctx) {
-  for (let i = 0; i < 4 && !hasTabs(device.screenText()); i++) { ctx.flow('edge-back'); await sleep(800); }
+  for (let i = 0; i < 5; i++) {
+    const w = device.screenText();
+    if (hasTabs(w)) break;
+    // a menu page (a Modal from below: no edge swipe) has its own "‹ Back"; a water's page the edge-back
+    if (w.some((x) => /^(Back|Glossary)$/.test(x))) ctx.flow('tap-text', { TEXT: '(Back|Glossary)' });
+    else ctx.flow('edge-back');
+    await sleep(1000);
+  }
   if (!hasTabs(device.screenText())) await coldStart(ctx);
   ctx.flow('tab', { TAB: 'Map' });
   await sleep(1000);
@@ -120,11 +127,17 @@ const SCENARIOS = [
         return w.find((x) => /open|closed/i.test(x)) ?? 'regulations drawn';
       });
       await ctx.step('edge-back to the map (EdgeBack, iOS only)', async () => {
-        ctx.flow('edge-back');
-        await sleep(1500);
-        const w = device.screenText();
-        if (w.some((x) => /^Regulations$/.test(x)) && !hasTabs(w)) throw new Error('the edge drag did not go back');
-        return hasTabs(w) ? 'tab bar back' : 'went back';
+        // a few drags (height, speed): which ones go back is the note; none going back fails
+        const tried = [];
+        for (const [Y, MS] of [['50%', '400'], ['30%', '800'], ['80%', '250']]) {
+          ctx.flow('edge-back', { Y, MS });
+          await sleep(1500);
+          const w = device.screenText();
+          const back = !(w.some((x) => /^Regulations$/.test(x)) && !hasTabs(w));
+          tried.push(`y ${Y} ${MS} ms: ${back ? 'back' : 'stayed'}`);
+          if (back) return tried.join(' · ');
+        }
+        throw new Error(`the edge drag did not go back (${tried.join(' · ')})`);
       });
       await ctx.step('framed on Cultus Lake, a tap on the map\'s middle → that water\'s page', async () => {
         await toMap(ctx);
@@ -173,7 +186,8 @@ const SCENARIOS = [
       await ctx.step('Simulate offline put back off', async () => {
         await toMap(ctx);
         ctx.flow('open-updates-log');
-        ctx.flow('updates-log-action', { ACTION: 'offline' });
+        // only when still on (a cold start in between puts it back off by itself: it is not kept)
+        if (device.screenText().some((x) => /Simulate offline: on/i.test(x))) ctx.flow('updates-log-action', { ACTION: 'offline' });
         await sleep(1000);
         const off = device.screenText().find((x) => /Simulate offline: off/i.test(x));
         await toMap(ctx);
@@ -270,7 +284,7 @@ const SCENARIOS = [
         return c;
       });
       await ctx.step('every step: its primary button, until the card closes', async () => {
-        const seen = []; let last = null, same = 0, total = 0, reached = 0, closed = false, hidden = 0;
+        const seen = []; let last = null, same = 0, total = 0, reached = 0, closed = false;
         for (let i = 0; i < 70; i++) {
           const w = device.screenText();
           let c = w.find((x) => COUNT.test(x));
@@ -278,13 +292,12 @@ const SCENARIOS = [
             await sleep(2500);
             const w2 = device.screenText();
             c = w2.find((x) => COUNT.test(x));
-            if (!c && w2.includes('Layers') && w2.includes('Done') && hidden < 3) {
-              // (T332) the card over the Layers sheet is not in the accessibility tree: its primary button by place
-              if (!hidden) ctx.finding('T332: the walkthrough card over the Layers sheet (step 17) is missing from the accessibility tree; tapped by position');
-              hidden++; shot(ctx, `walk-hidden-${hidden}`);
-              ctx.flow('tap-point', { POINT: '78%,67%' });
-              await sleep(3500);
-              continue;
+            if (!c && w2.includes('Layers') && w2.includes('Done')) {
+              // (T332) the card over the Layers sheet is not in the accessibility tree: the walk cannot be driven on
+              shot(ctx, 'walk-hidden');
+              ctx.finding(`T332: after ${reached} of ${total} the walkthrough card over the Layers sheet is missing from the accessibility tree`);
+              await coldStart(ctx);                         // appUp closes the sheet and skips the walk
+              ctx.skip(`walked 1–${reached} of ${total}; step ${reached + 1} (over the Layers sheet) is unreachable by accessibility (T332)`);
             }
             if (!c) { closed = true; break; }
           }

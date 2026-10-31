@@ -11,9 +11,9 @@ outside it.
 
 ## Work
 Confirm with Accessibility Inspector on the simulator; render the card inside the sheet's modal while a sheet is up, or
-present the sheet non-modally for the walk. The test bed taps the card by position meanwhile (run-ios.mjs).
+present the sheet non-modally for the walk. Meanwhile the iOS test bed records the finding and SKIPs the rest of the walk (run-ios.mjs; 16 of 25 walked).
 
 ## Acceptance
-`node app/tools/testbed/run-ios.mjs walkthrough` walks 25 of 25 without the position tap (no T332 finding).
+`node app/tools/testbed/run-ios.mjs walkthrough` walks 25 of 25 (no T332 finding, no skip).
 
 Depends: T313. Size: S. Owner: no.
