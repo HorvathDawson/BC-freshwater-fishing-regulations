@@ -230,6 +230,8 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/registry/flowing.py", "merge_flowing_polygons.threading"): "polygon threading",
     ("pipeline/atlas/registry/flowing.py", "folding_polygon_wbks.neighbours"):
         "T179 (1991e487): a polygon's neighbours, one level — the fold's rule 1/2 read before split placement",
+    ("pipeline/atlas/registry/flowing.py", "fold_confirmed_sloughs"):
+        "T322: the streams entering a confirmed slough run, one level — through / one side / unnamed",
     # placement on a cut's own line (AGENTS 11: by measure, never a flow walk)
     # (T230, 7322da366) in-season pick-points: the named tributaries meeting a water's own stem, one level
     ("pipeline/regs/inseason/points.py", "points"): "a stem's named confluences, one level (in-season pick-points)",
@@ -244,6 +246,8 @@ UP_ADJ_READERS = {
     ("pipeline/common/io/export_gpkg.py", "export_lake_io"): "a lake's inlets, one level",
     ("pipeline/deliver/bundle/continuation.py", "graph_flow"): "edges into a top piece, one level",
     ("pipeline/deliver/tiles/export.py", "export_streams.neighbour_weight"): "neighbour weights, one level",
+    ("pipeline/deliver/tiles/export.py", "export_streams"):
+        "T306: a stream polygon's side-channel run zoom, from the pieces it touches, one level",
     ("curation-review/backend/reuse.py", "item_side_channels"): "leaves-and-rejoins test, one level",
     # the climbs: each asks `may_enter` (see WALKS above)
     ("pipeline/atlas/reach/build.py", "_stem_to_first_lake"): "may_enter",
@@ -252,6 +256,9 @@ UP_ADJ_READERS = {
     ("pipeline/gauges/consume/shed.py", "section_lengths"): "T252: a lake's inflow edges, one level (its length inflow to outlet)",
     ("pipeline/tools/audit/unnamed_trib_sweep.py", "TopoGraph.__init__"): "builds the sweep's graph view",
     ("pipeline/tools/audit/unnamed_trib_sweep.py", "_subtree"): "may_enter",
+    # an audit's ALLOWANCE, not a walk that binds: deliberately unguarded so it is a superset of any walk
+    ("pipeline/tools/audit/slough_fold_gate.py", "via_fold_sections"):
+        "T322 gate: every section draining into a folded polygon (a superset — listed, never bound)",
 }
 
 

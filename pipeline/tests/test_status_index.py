@@ -242,12 +242,16 @@ def test_every_rule_key_tidal_and_outside_section_agrees_with_effective_rules(bu
 @pytest.mark.slow
 def test_the_shipped_index_is_the_one_the_parity_tests_check(built):
     """The file on disk beside the bundle (the release's `paint.status` is its bytes,
-    test_release) IS a fresh projection — so the parity above holds for what ships."""
-    shipped = Path(BUNDLE).with_name("status_index.bin")
-    if os.environ.get("STATUS_INDEX") or not shipped.exists():
-        pytest.skip("no shipped index beside the bundle")
-    fresh = SI.encode(SI.compute(BUNDLE, os.environ.get("UI_EXPORT_VERDICTS"), log=lambda *_: None))
-    assert shipped.read_bytes() == fresh, "status_index.bin is stale: rebuild deliver"
+    test_release) IS a fresh projection — so the parity above holds for what ships.
+
+    With `STATUS_INDEX` set, the parity tests checked THAT file, so it is the one the shipped bytes
+    must equal. A missing shipped index fails naming the make-command (no silent skip)."""
+    shipped = need(None, "bundle", Path(BUNDLE).with_name("status_index.bin"),
+                   "python -m pipeline.deliver.status_index (deliver writes it beside the bundle)")
+    given = os.environ.get("STATUS_INDEX")
+    checked = (Path(given).read_bytes() if given else
+               SI.encode(SI.compute(BUNDLE, os.environ.get("UI_EXPORT_VERDICTS"), log=lambda *_: None)))
+    assert shipped.read_bytes() == checked, "status_index.bin is stale: rebuild deliver"
 
 
 @pytest.mark.needs_bundle

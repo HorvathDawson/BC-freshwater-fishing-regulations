@@ -90,7 +90,9 @@ def violations(before: Iterator, after: Iterator, allowed: set[str], via: set[st
     return n, kept
 
 
-def gate(before: Path, after: Path, side_atlas: Path) -> dict:
+def fold_gate(before: Path, after: Path, side_atlas: Path) -> dict:
+    """Named `fold_gate`, not `gate`: `validate_catalogue.gate` is THE acceptance gate, and
+    test_one_acceptance_gate lists every caller of a `gate` by name."""
     from pipeline.atlas.reach import binding_diff as B
     from pipeline.atlas.reach.io import rule_section_file
     from pipeline.atlas.registry import load_registry
@@ -126,7 +128,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     ap.add_argument("side_atlas")
     ap.add_argument("--json", type=Path, default=None)
     a = ap.parse_args(list(argv) if argv is not None else None)
-    rep = gate(Path(a.before), Path(a.after), Path(a.side_atlas))
+    rep = fold_gate(Path(a.before), Path(a.after), Path(a.side_atlas))
     if a.json:
         a.json.write_text(json.dumps(rep, indent=1) + "\n", encoding="utf-8")
     print(f"T322 gate: {rep['allowed_sections']:,} allowed sections; {rep['via_fold_rows']:,} row(s) via a folded "
