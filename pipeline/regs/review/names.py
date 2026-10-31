@@ -25,7 +25,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import CURATED, GENERATED
 
 ROOT = Path(__file__).resolve().parents[3]
 CANDIDATES = GENERATED.review / "name-variants/candidates.json"
@@ -34,27 +34,9 @@ SPOT_SAMPLE = 30
 #: the candidate source key -> (NameSource code, label when the candidate's own is not better)
 SOURCE_CODE = {"osm": "osm", "eccc": "gauge", "dfo": "dfo", "synopsis": "regulation", "bcgnis_cache": "gazette"}
 
-#: OWNER DECISIONS on single rows (2026-10-28), by candidate id: call, and optionally the name to store / display
-OWNER = {
-    "blk:356314888~kilgard-creek": {"call": "accept", "display": True,
-                                     "why": "owner 2026-10-28: 08MH079's line — Kilgard Creek shown"},
-    "blk:356314888~lonzo-creek": {"call": "accept", "name": "Lonzo Creek (North Fork)",
-                                   "why": "owner 2026-10-28: 08MH079's line — Lonzo Creek (North Fork) searchable"},
-    # owner 2026-10-29: a name that came in by an ECCC station is accepted when the station's name plainly names this
-    # water; a diversion / headpond name may name a structure, so it is HELD (not applied) until the owner says
-    "blk:356370187~inkaneep-creek": {"call": "accept", "why": "owner 2026-10-29: the gauge 08NM012 (Inkaneep Creek "
-                                     "near Oliver) names this water"},
-    "blk:354151912~noble-creek": {"call": "accept", "why": "owner 2026-10-29: the gauge 08HA028 (Noble Creek at the "
-                                  "mouth) names this water"},
-    # owner 2026-10-29: accepted though LOW confidence — an assumption from the forest roads named for it (GOTCHAS.md)
-    "blk:360846083~sheldens-creek": {"call": "accept", "why": "owner 2026-10-29: accepted as an ASSUMPTION — the "
-                                     "unnamed line into Sheldens Bay, named only by the forest roads around it "
-                                     "('SP 19(1) TO SHELDONS', SHEL100–103); low confidence, see GOTCHAS"},
-    "blk:356368998~meadow-creek-diversion": {"call": "accept", "why": "owner 2026-10-29 (after a hold): accepted, "
-                                             "credited to the gauge 08NH128 (Meadow Creek Diversion below John Creek)"},
-    "blk:354088905~quinsam-river-diversion-headpond": {"call": "accept", "why": "owner 2026-10-29 (after a hold): "
-                                                       "accepted, credited to the gauge 08HD034"},
-}
+#: OWNER DECISIONS on single rows, by candidate id (call, why, and optionally the name to store / `display`): the
+#: curated file `CURATED.waters.name_calls` (T327: moved out of this module) — read through `owner_calls()`
+NAME_CALLS_FORMAT = "name-calls/1"
 #: owner 2026-10-29: every auto-accepted row that came in by LINE COVERAGE (>= 80 %) is the owner's accept
 COVERAGE_ACCEPTED = "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)"
 _SMALL = {"near", "at", "the", "above", "below", "of", "and", "on", "in", "to"}
@@ -69,8 +51,27 @@ def gauge_label(station: str, station_name: str) -> str:
 
 GROUPS = ("owner", "auto", "review")
 CALLS = ("accept", "reject")
-#: an owner call in `OWNER` that keeps a row OUT of the accepted set pending the owner (owner 2026-10-29)
+#: an owner call that keeps a row OUT of the accepted set pending the owner (owner 2026-10-29)
 HOLD = "hold"
+OWNER_CALLS = ("accept", HOLD)
+
+
+@lru_cache(maxsize=2)
+def _owner_calls(p: str, _m: float) -> dict:
+    doc = json.loads(Path(p).read_text(encoding="utf-8"))
+    if doc.get("format") != NAME_CALLS_FORMAT:
+        raise ValueError(f"{p}: format {doc.get('format')!r}, expected {NAME_CALLS_FORMAT!r}")
+    calls = doc.get("calls") or {}
+    bad = sorted(i for i, d in calls.items() if d.get("call") not in OWNER_CALLS or not d.get("why"))
+    if bad:
+        raise ValueError(f"{p}: a call needs `call` in {OWNER_CALLS} and a `why`: {bad}")
+    return calls
+
+
+def owner_calls() -> dict:
+    """THE OWNER'S CALLS on single candidates (`CURATED.waters.name_calls`), by candidate id. A missing file raises."""
+    p = CURATED.waters.name_calls
+    return _owner_calls(str(p), p.stat().st_mtime)
 
 
 def key(s: str) -> str:
@@ -100,7 +101,7 @@ def _load(p: str, _m: float) -> dict:
     by_id = {}
     for c in rows:
         by_id.setdefault(cid(c), c)
-    auto = sorted(i for i, c in by_id.items() if c.get("auto_accept_eligible") and i not in OWNER)
+    auto = sorted(i for i, c in by_id.items() if c.get("auto_accept_eligible") and i not in owner_calls())
     spot = set(random.Random(224).sample(auto, min(SPOT_SAMPLE, len(auto))))
     rank = {"high": 0, "medium": 1, "low": 2}
 
@@ -120,7 +121,7 @@ def load() -> dict:
 
 
 def group_of(i: str, c: dict) -> str:
-    if i in OWNER:
+    if i in owner_calls():
         return "owner"
     return "auto" if c.get("auto_accept_eligible") else "review"
 
@@ -147,7 +148,7 @@ def prints_of(i: str) -> Optional[dict]:
 def name_records(i: str, c: dict, *, call_by: str) -> list[dict]:
     """The `name_variants` name entries an ACCEPTED candidate writes: one per source, each with its real source,
     label, ref and evidence (a city's or OSM's name is never official)."""
-    dec = OWNER.get(i, {})
+    dec = owner_calls().get(i, {})
     nm = dec.get("name") or c["proposed"]
     out = []
     for s in c["sources"]:

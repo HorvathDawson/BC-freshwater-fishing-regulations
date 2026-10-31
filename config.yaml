@@ -119,6 +119,7 @@ curated:
     splits: "data/curated/waters/splits.json"                      # authored
     name_variants: "data/curated/waters/name_variants.json"        # authored
     mined_names: "data/curated/waters/mined_names.json"            # promoted (T224: names from city / OSM / ECCC sources, accepted)
+    name_calls: "data/curated/waters/name_calls.json"              # authored (T327: the owner's calls on single mined-name candidates; read by tools.mined_names)
     areas: "data/curated/waters/areas.json"                        # authored
     continuations: "data/curated/waters/continuations.json"        # authored (owner-reviewed / refused water_continue links)
     tidal_waters: "data/curated/waters/tidal_waters.json"          # authored (T212: whole waters the owner calls tidal)

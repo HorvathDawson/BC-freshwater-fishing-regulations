@@ -368,7 +368,7 @@ use that as the sole source of future work."
 | T324 | One clean data flow: map every stream end to end, final curated file per data type, one-time lock of reviewed marks into it, cleanup tickets | OPEN | T266, T322 | owner 2026-10-30 |
 | T325 | Lock tool: reviewed marks → final curated file, byte-identical proof, closed-domains list (marks.jsonl never edited) | IN REVIEW | T266 | owner 2026-10-30; `review.apply [domain]` = the one command for open domains; `review.lock` + closed.json; proof printed, not run |
 | T326 | Lock tidal: waters/tidal.json replaces 4 tidal records; split confidence folded in | OPEN | T325 (+7 marks, Mamquam) | owner 2026-10-30 |
-| T327 | Lock names: owner name table out of code into a curated file; write Sheldens | OPEN | T325 | owner 2026-10-30 |
+| T327 | Lock names: owner name table out of code into a curated file; write Sheldens | DONE | — | owner 2026-10-30; `waters/name_calls.json` (read by `names.owner_calls`), mined_names --check byte-identical; Sheldens already written (f0b92de23), lands on next atlas build |
 | T328 | Lock sloughs after T322 approval | OPEN | T322, T325 | owner 2026-10-30 |
 | T329 | Ponds (Q154): close the domain, no export (owner: pond = lake default, build never uses) | DONE | T325 | owner 2026-10-30; closed.json lists ponds, decided/ponds.json deleted, tab locked |
 | T330 | Generated review files out of handoff/ into data/generated/review/ | DONE | — | owner 2026-10-30; 16 files git-mv'd, read via GENERATED.review |

@@ -1,8 +1,8 @@
 """T224: WRITE THE ACCEPTED MINED NAMES (`data/curated/waters/mined_names.json`) from the candidates + the owner's
 decisions. Deterministic; rerun after the owner marks more rows in the review app's Names tab.
 
-Accepted = (the auto-accepted rows, owner 2026-10-28) + (the owner's single-row decisions, `names.OWNER`) + (every
-row whose latest name mark is verified `accept`) − (every row whose latest name mark is verified `reject`). The name
+Accepted = (the auto-accepted rows, owner 2026-10-28) + (the owner's single-row calls, `waters/name_calls.json`
+via `names.owner_calls`, T327) + (every row whose latest name mark is verified `accept`) − (every row whose latest name mark is verified `reject`). The name
 marks are read from their export (`data/curated/decided/names.json`, `review.export`, T266), never marks.jsonl.
 
 Each accepted row becomes a `name_variants`-shaped entry: its target and one name per source, each with its REAL
@@ -41,6 +41,7 @@ def decisions(decided) -> dict[str, tuple[str, str]]:
 def build(decided) -> list[dict]:
     doc = N.load()
     marked = decisions(decided)
+    owner = N.owner_calls()
     entries = []
     for i in sorted(doc["by_id"]):
         c = doc["by_id"][i]
@@ -49,9 +50,9 @@ def build(decided) -> list[dict]:
             continue
         if call == "accept":
             by = who
-        elif i in N.OWNER and N.OWNER[i]["call"] == "accept":
-            by = N.OWNER[i]["why"]
-        elif i in N.OWNER and N.OWNER[i]["call"] == N.HOLD:
+        elif i in owner and owner[i]["call"] == "accept":
+            by = owner[i]["why"]
+        elif i in owner and owner[i]["call"] == N.HOLD:
             continue                                      # owner 2026-10-29: held, not applied
         elif c.get("auto_accept_eligible"):
             by = N.COVERAGE_ACCEPTED

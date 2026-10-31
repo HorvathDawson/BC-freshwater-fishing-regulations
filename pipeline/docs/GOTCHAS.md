@@ -158,7 +158,7 @@ alongside an identical one that has "appeared", on the same water, in the same r
 
 ## Sheldens Creek is a name we assumed
 
-**2026-10-29 · names / DFO salmon · `pipeline/regs/review/names.py` (`OWNER`), `pipeline/atlas/registry/mine.py` (`DFO_UNMATCHED_LEADS`)**
+**2026-10-29 · names / DFO salmon · `data/curated/waters/name_calls.json` (was `names.OWNER`, T327), `pipeline/atlas/registry/mine.py` (`DFO_UNMATCHED_LEADS`)**
 
 DFO's Region 6 rules name "Sheldens Creek" (Moresby Island, Haida Gwaii), but no Freshwater Atlas water carries that
 name. We named the unnamed FWA line blk 360846083 (code 950-016367) into Sheldens Bay "Sheldens Creek" because the
@@ -167,5 +167,5 @@ accepted it on 2026-10-29 knowing it is **low confidence and an assumption** —
 this line. The DFO salmon rule and its cut (Spur 19 road crossing, 53.12968,-131.78224) bind to it through that name.
 
 If a source ever names a different stream "Sheldens Creek" (BC Geographical Names, a DFO map, a local), or DFO's
-wording points elsewhere, this is the first thing to recheck: drop the `OWNER` row and the rule unbinds on the next
+wording points elsewhere, this is the first thing to recheck: drop its `name_calls.json` row (and rerun `pipeline.tools.mined_names`) and the rule unbinds on the next
 build. Don't treat it as a confirmed name in audits or when matching other sources.

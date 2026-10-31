@@ -83,6 +83,9 @@ class Waters(BaseModel):
     #: PROMOTED (T224): name variants mined from city layers, OSM, ECCC… that the owner accepted (auto rule or
     #: review mark); each name carries its real source. Written by `pipeline.tools.mined_names`.
     mined_names: FilePath
+    #: AUTHORED (T327): the owner's calls on single mined-name candidates (accept / hold, a stored name, display),
+    #: by candidate id — was `names.OWNER` in code. Read by `pipeline.regs.review.names`; an input to `mined_names`.
+    name_calls: FilePath
     #: THE OWNER-DECIDED CONTINUATION LINKS (`water_continue`): `reviewed` ship, `refused` never, anything else the
     #: topology proposes is held for review (owner 2026-10-29, `bundle.continuation.gate`).
     continuations: FilePath
