@@ -1,7 +1,7 @@
 # T331 — Curated config hygiene (small items from data-flow.md §5)
 
-Status: PARTIAL (2026-10-30, branch cleanup/t327-t331) — 1, 3, 4, 5, 7 done; 2 done for the two named overrides,
-the review-app sandbox overrides left (below); 6 waits for T325's closed list; 8 for after the batch. Was OPEN (owner
+Status: DONE except 2 (partial) and 8 (2026-10-30, branch cleanup/t327-t331) — 1, 3–7 done; 2 done for the two named overrides,
+the review-app sandbox overrides left (below); 8 for after the batch, in the main checkout. Was OPEN (owner
 2026-10-30; T324 design approved, plan in handoff/PLAN/data-flow.md §4–5).
 
 1. Declare every curated file in config (`dfo_salmon/wording.json`, sloughs page-marks, `sub_lake_areas.json`);
@@ -39,10 +39,11 @@ Size: M (each S).
    --out` default, `test_runtiming_parse`; docs (runtiming README/PLAN, data/.gitignore, AGENTS 35 example).
    Which run-timing parse the app trusts: the **workflow's** (feeds-runtiming parses in its runner and builds the
    feed from that); the Mac `timing.json` is read by no stage, only the test.
-6. **TODO (blocked on T325).** The closed-domains list (`pipeline.regs.review.closed`, `closed.json`) is not on this
-   branch yet (T325 lane, main checkout). When it lands: add a `proposal` entry (scopes `["proposal"]`, final null,
-   why "T331: the 7 retired proposal-scope marks from the old accept step; exported nowhere") — never edit marks.jsonl.
-   `grep -c '"scope": *"proposal"' marks.jsonl` = 7 today.
+6. **DONE** (after rebasing onto T325, bab1cea5b). `proposals` is an export domain (`export.DOMAINS`, scope
+   `proposal`) only so it can be closed (it feeds nothing — fits the closed list either way); `python -m pipeline.regs.review.lock proposals
+   --queue-checked` closed it (`closed.json`, by "claude (T331)"); marks.jsonl untouched (7 lines stay as history);
+   no `decided/proposals.json`. The printed side-build proof was NOT run (heavy): nothing ever read these marks
+   (export had no domain for them), so no build input moved.
 7. **DONE.** `build.curated_digest` (the deliver key's `curated`) hashes only the declared paths, no longer `base`
    (the whole tree), minus `NOT_DELIVER_INPUTS`: proposal_overrides, review.closed, gauges.candidates, sloughs
    page marks, waters.name_calls, ungazetted, sub_lake_areas (no stage reads them). Test:

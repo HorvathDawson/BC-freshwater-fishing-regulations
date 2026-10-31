@@ -372,7 +372,7 @@ use that as the sole source of future work."
 | T328 | Lock sloughs after T322 approval | OPEN | T322, T325 | owner 2026-10-30 |
 | T329 | Ponds (Q154): close the domain, no export (owner: pond = lake default, build never uses) | DONE | T325 | owner 2026-10-30; closed.json lists ponds, decided/ponds.json deleted, tab locked |
 | T330 | Generated review files out of handoff/ into data/generated/review/ | DONE | — | owner 2026-10-30; 16 files git-mv'd, read via GENERATED.review |
-| T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | PARTIAL | T325 (item 6) | owner 2026-10-30; 1,3,4,5,7 done; 2 done for INSEASON_MATCHES + SLOUGH_PAGE_MARKS (review-app sandbox overrides need a design); 6 waits for the closed list; 8 after the batch (main checkout) |
+| T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | PARTIAL | — | owner 2026-10-30; 1,3–7 done (proposals domain closed); 2 done for INSEASON_MATCHES + SLOUGH_PAGE_MARKS (review-app sandbox overrides need a design); 8 after the batch (main checkout) |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |
 
