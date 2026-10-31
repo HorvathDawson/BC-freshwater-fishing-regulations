@@ -83,3 +83,10 @@ Pre-marks are not in it and must never be folded. **No build code reads this fil
 2. Atlas rebuild (`--atlas`, side), then a binding diff before promote (memory split-fix-changes-trib-walk), then reach + deliver.
 3. Tests: a decided wbk becomes stream; an undecided pre-mark stays lake.
 This was left out of the 10-31 batch rebuild because the fold tool does not exist yet.
+Measured 2026-10-31 against the live registry (`atlas/full/registry.json`): only **33 of the 811** targets are registry
+items (29 lake, 3 wetland, 1 already stream). The other **778 are unnamed polygons that are in no item**. Folding them
+therefore needs the graph (which stream item threads each polygon, in and out). It can also create new nameless stream
+items, and it moves those sections from lake to stream zone rules: a binding change on ~800 waters. Two more obstacles:
+the atlas stage has no input key, and T266 keeps `decided/` out of every key on purpose. So the fold should be an apply
+step (decided → a curated file the registry reads), not a direct read of `decided/`. Not a small change, so it was not
+put into the 10-31 batch (coordinator asked for it; stopped and reported per brief).
