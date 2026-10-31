@@ -15,12 +15,15 @@ export async function capture(ctx) {
   const { device: d } = ctx;
   const [W, H] = d.sh('wm size').match(/(\d+)x(\d+)/).slice(1).map(Number);
   const pin = [Math.round(W / 2), Math.round(H * 0.4367)];  // where the capture map centres the pin (above the sheet)
+  let picks = 0;
   for (let i = 0; i < 10; i++) {
     const words = d.screenText();
     if (words.some((w) => /^(Save spot|Save)$/.test(w))) return words;
     if (words.some((w) => /Allow .* location/.test(w))) { ctx.flow('tap-text', { TEXT: 'While using the app' }); }
     else if (words.some((w) => /^Pick the water$|^Now the exact spot$/.test(w))) {
-      d.sh(`input tap ${pin[0]} ${pin[1] + 40}`);
+      // the lake answers a tap just below the pin; a river is a line: try on the pin, then either side of it
+      const off = [40, 0, 12, -12, 24, -24][picks++ % 6];
+      d.sh(`input tap ${pin[0]} ${pin[1] + off}`);
       await d.sleep(1500);
       ctx.flow('tap-text', { TEXT: 'Next' });
       // (T307) how long the read of the water takes to land on the save step (offline it must not wait on the network)
