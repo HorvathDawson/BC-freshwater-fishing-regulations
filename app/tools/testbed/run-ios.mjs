@@ -129,8 +129,8 @@ const SCENARIOS = [
       await ctx.step('edge-back to the map (EdgeBack, iOS only)', async () => {
         // a few drags (height, speed): which ones go back is the note; none going back fails
         const tried = [];
-        for (const [Y, MS] of [['50%', '400'], ['30%', '900'], ['80%', '400']]) {
-          ctx.flow(MS === '900' ? 'edge-back-slow' : 'edge-back', { Y });
+        for (const [f, Y, MS] of [['edge-back', '50%', 400], ['edge-back-high', '30%', 900], ['edge-back-low', '80%', 400]]) {
+          ctx.flow(f);
           await sleep(1500);
           const w = device.screenText();
           const back = !(w.some((x) => /^Regulations$/.test(x)) && !hasTabs(w));
@@ -407,9 +407,8 @@ const SCENARIOS = [
       await ctx.step(`pan: ${SWIPES} travelling swipes ([pan] JS lag, [stall] > 50 ms)`, async () => {
         await toMap(ctx);
         const mark = logMark(), t0 = Date.now();
-        const moves = [['80%, 45%', '25%, 45%'], ['80%, 45%', '25%, 45%'], ['50%, 35%', '50%, 55%'], ['50%, 35%', '50%, 55%'],
-                       ['25%, 45%', '80%, 45%'], ['25%, 45%', '80%, 45%'], ['50%, 55%', '50%, 35%'], ['50%, 55%', '50%, 35%']];
-        for (let i = 0; i < SWIPES; i++) { const [FROM, TO] = moves[i % moves.length]; ctx.flow('swipe', { FROM, TO }); rss(); }
+        const moves = ['pan-left', 'pan-left', 'pan-down', 'pan-down', 'pan-right', 'pan-right', 'pan-up', 'pan-up'];
+        for (let i = 0; i < SWIPES; i++) { ctx.flow(moves[i % moves.length]); rss(); }
         await sleep(2500);
         const ps = logSince(mark, '[pan] '), st = logSince(mark, '[stall] ');
         const max = (k) => ps.reduce((n, p) => Math.max(n, p[k] || 0), 0), sum = (k) => ps.reduce((n, p) => n + (p[k] || 0), 0);

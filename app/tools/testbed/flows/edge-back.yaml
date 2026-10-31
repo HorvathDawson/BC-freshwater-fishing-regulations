@@ -1,7 +1,5 @@
-# (T313) iOS has no system Back: the app's own edge-back (EdgeBack.tsx), a drag in from the left edge at height Y.
+# (T313) the app's edge-back (iOS has no system Back): a drag in from the left edge, mid height — Maestro validates swipe points before it fills ${…}: one literal flow per drag.
 appId: ca.canifishthis.app
-env:
-  Y: "50%"
 ---
-- swipe: { start: "1%, ${Y}", end: "75%, ${Y}", duration: 400 }
+- swipe: { start: "1%, 50%", end: "75%, 50%", duration: 400 }
 - waitForAnimationToEnd: { timeout: 3000 }

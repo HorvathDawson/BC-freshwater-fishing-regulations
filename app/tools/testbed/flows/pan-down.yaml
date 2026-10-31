@@ -1,0 +1,5 @@
+# (T313) a pan: the map dragged down — Maestro validates swipe points before it fills ${…}: one literal flow per drag.
+appId: ca.canifishthis.app
+---
+- swipe: { start: "50%, 35%", end: "50%, 55%", duration: 350 }
+- waitForAnimationToEnd: { timeout: 3000 }
