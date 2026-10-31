@@ -33,3 +33,9 @@ Depends: T217, T88. Size: M–L. Owner: no (App Store needs a $99 account later)
 - RESUME (one heavy job):
   `scripts/heavy.sh testbed-ios 25 -- bash -c 'deploy/staging/build-ios-sim.sh && bash app/tools/testbed/session-ios.sh --fresh --max-min 40 -- node app/tools/testbed/run-ios.mjs all --out app/tools/testbed/out/runs/ios-t313'`
   then shots → handoff/PLAN/app-integration/T313-shots/ beside the Android ones (T255/T277/T293/T303/T215-shots).
+
+## Performance (owner 2026-10-30: "make sure it is performant on iOS too in testing")
+Run the same timing scenarios as Android (test bed run timing / T317 pan numbers) on the iOS run: cold start → map
+drawn, search → water page, water page open from a map tap, offline install, pan/fling frame times. Report beside the
+Android numbers. Caveat in the report: the Simulator runs on the Mac's CPU/GPU, so its numbers flag regressions and
+iOS-only stalls, not real-phone speed. A real iPhone run (free personal-team signing, 7-day install) is the follow-up.
