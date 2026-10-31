@@ -4,6 +4,21 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-10-31, 06:00
+
+- **Python tests are green again.** Fast: 6136 passed. Slow: 272 passed, plus 1 skip that the rules allow.
+  - None of the failures was an app bug:
+    - `decided/` hadn't been re-exported after the Hatzic mark edit.
+    - Two DFO tests needed a real unbound water and none are left; they now build their own.
+    - New code tripped three code checks; it now complies, or is classified with a reason.
+    - One test fixture was stale after the new atlas, and one browser test was flaky.
+  - The spot banner now reads "they'll fill in once published".
+- **Now running, in this order:**
+  1. Merge the config tidy-up.
+  2. Run the slough fold through its side build. The automatic check must pass before it's promoted, then it goes to staging.
+  3. Merge the DFO-to-trout data shape, held out of every release until the next APK. App 0.4.0 can't read the new salmon format, so a guard stops it reaching testers early.
+- **iOS** final run and performance numbers: in progress.
+
 ## 2026-10-31, 04:00
 
 - **APK 0.4.0 is on Play internal testing** (versionCode 7). Staging is on release r-4e709418ebd8; smoke passes 18/18.
