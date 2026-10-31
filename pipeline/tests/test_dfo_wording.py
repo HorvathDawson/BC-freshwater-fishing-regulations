@@ -6,7 +6,7 @@
     builder keeps every entry's meaning and status (a rebuild never drops or re-guesses one);
   * the three wordings that passed T320 silently: the hours in words are structure (solar hours on the rule), "in the
     aggregate" and "(see exception below)" are notes the card shows in DFO's words;
-  * THE MUTATION: an unseen clause in a known cell flags the row (review_reason "new wording", the verdict `q.u`, no
+  * THE MUTATION: an unseen clause in a known cell flags the row (review_reason "new wording", the verdict `u`, no
     number), the location's card rows carry it, and the live run tells the owner once per template, never again.
 
 When the live feed emails a new wording: read DFO's words, add the template to the registry, and add a line to
@@ -124,7 +124,7 @@ def test_hours_in_words_are_structure():
                                           "end": {"solar": "sunset", "offset_min": 60}}
     assert not any(r.get("review_reason") for r in rules)
     v = _open_verdict(rules)
-    assert v["q"] == {"d": 4} and "one hour before sunrise to one hour after sunset" in v["t"]
+    assert Q.words(v["tree"]) == "4 a day" and "u" not in v and "one hour before sunrise to one hour after sunset" in v["t"]
     got = Q.read_limits(cell)
     assert got["hours"] == ["one hour before sunrise", "one hour after sunset"] and not got["residue"]
     assert Q.numbers(Q.read_limits(Q.render(got))) == Q.numbers(got)          # the round trip
@@ -151,7 +151,7 @@ def test_an_unseen_clause_in_a_known_cell_is_flagged_never_read():
     assert W.unknown(cell) == [NEW]
     rules = _rules(cell)
     assert rules[0]["review_reason"] == f"new wording: {NEW!r}"
-    assert _open_verdict(rules)["q"]["u"] == 1                               # no number: the app shows DFO's words
+    assert _open_verdict(rules)["u"] == 1                              # no number: the app shows DFO's words
     assert W.row_words({"species": "Coho", "dates": "", "limits_gear": cell}) == \
         {"k": "new", "sp": "Coho", "d": "", "t": cell, "new": [NEW]}
     gear = _rules(f"Bait ban, {NEW}")                                         # no limit rule: the gear rule carries it
@@ -190,7 +190,7 @@ def test_the_live_run_flags_the_row_and_tells_the_owner_once(tmp_path):
     idx = got["index"]
     for lid, rows in flagged.items():
         assert [r["k"] for r in rows] == ["new"] and NEW in rows[0]["t"]
-        assert any((idx["verdicts"][v].get("q") or {}).get("u") == 1 for runs in idx["locs"][lid]["sp"] for v in runs[1::2])
+        assert any(idx["verdicts"][v].get("u") == 1 for runs in idx["locs"][lid]["sp"] for v in runs[1::2])
 
     s2 = _Sender()                                                            # the next run: told already
     L.run(tmp_path / "b", fetcher=lambda s: (_region8(True), AT), regions=["8"], now="2026-11-01T00:00:00Z",

@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { httpSalmonFeed, withLiveSalmon } from "./salmon";
 import { salmonFeedOf, type SalmonFacts } from "@app/core";
 
-/** A whole dfo-feed/1, one location (cut from core's salmonFeed.golden.ts). */
-const FEED = {"format": "dfo-feed/1", "at": "2026-10-27T18:00:00Z", "verdicts": [{"s": "closed", "t": "Not opened by DFO: closed to salmon fishing", "d": 1}, {"s": "open", "t": "4 per day (Apr 1\u2013Mar 31)"}, {"s": "closed", "t": "No fishing for coho (Apr 1\u2013Mar 31)"}, {"s": "open", "t": "4 per day, only 2 over 50 cm (Aug 1\u2013Sep 15)"}], "gears": [["No natural bait"]], "locs": {"6:resort": {"r": "6", "sp": [[0, -1], [0, 2], [0, -1], [0, -1], [0, -1]], "g": [0, -1]}}, "unplaced": 0, "regions": {"6": {"name": "Skeena", "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html", "asof": "2026-10-20", "sha256": "x", "changed": "2026-10-27T18:00:00Z", "checked": "2026-10-27T18:00:00Z", "stale": false, "held": null, "failures": 0}}};
+/** A whole dfo-feed/2, one location (cut from core's salmonFeed.golden.ts). */
+const FEED = {"format": "dfo-feed/2", "at": "2026-10-27T18:00:00Z", "verdicts": [{"s": "closed", "t": "Not opened by DFO: closed to salmon fishing", "d": 1}, {"s": "open", "t": "4 per day (Apr 1\u2013Mar 31)"}, {"s": "closed", "t": "No fishing for coho (Apr 1\u2013Mar 31)"}, {"s": "open", "t": "4 per day, only 2 over 50 cm (Aug 1\u2013Sep 15)"}], "gears": [["No natural bait"]], "locs": {"6:resort": {"r": "6", "sp": [[0, -1], [0, 2], [0, -1], [0, -1], [0, -1]], "g": [0, -1]}}, "unplaced": 0, "regions": {"6": {"name": "Skeena", "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html", "asof": "2026-10-20", "sha256": "x", "changed": "2026-10-27T18:00:00Z", "checked": "2026-10-27T18:00:00Z", "stale": false, "held": null, "failures": 0}}};
 const RELEASE = { chains: [{ r: [], w: "", l: [], sp: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], g: [0, -1], m: [0, 3] }],
                   regions: {}, unmapped: [] };
 const mem = (t: string | null = null) => ({ t, read() { return this.t; }, write(x: string) { this.t = x; } });

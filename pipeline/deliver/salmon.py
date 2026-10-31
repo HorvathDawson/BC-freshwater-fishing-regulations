@@ -4,7 +4,7 @@ shipped as answers per day, so the app decides nothing about a salmon rule (app/
     curated  data/curated/regulations/entries/dfo_salmon/   locations: precedence, water, scope words
     feed     <generated>/regs/dfo_salmon/typed/            the typed rules, keyed by fingerprint
     reach    <reach run>/dfo_salmon.jsonl.gz               each location's sections (`pipeline.atlas.reach.dfo_salmon`)
-       └─ build() ─▶ the bundle's `salmon_doc` + `salmon_section` ─▶ the release file `salmon` (`salmon/1`, encode())
+       └─ build() ─▶ the bundle's `salmon_doc` + `salmon_section` ─▶ the release file `salmon` (`salmon/3`, encode())
 
 THE UNIT IS A CHAIN: the DFO locations that hold on a section, NARROWEST FIRST (precedence: a water 3, a tidal-area
 default 2, a section default or closure 1, the region default 0; then, within a tier, the place covering FEWER sections —
@@ -35,9 +35,11 @@ DFO's words carried whole; a note naming waters holds only on their items (`scop
 bindings, a watershed with every item upstream of it by the registry's `item_down`). The live feed carries the same
 notes and wins (the release's are the offline answer of last resort, read from the cached page its rules came from).
 
-THE FILES (`salmon/2`, split per bundle region — owner 2026-10-28: a water page's card fetches only its region's slice),
+THE FILES (`salmon/3`, split per bundle region — owner 2026-10-28: a water page's card fetches only its region's slice;
+T332: an open verdict's quota is `tree`, a TreeTier of the game-fish quota tree, and a region's `bucket.tree` its total
+tier — salmon/2's `q` and flat bucket are gone, so an old app refuses this file rather than mis-read it),
 little-endian, varints LEB128 (`pipeline.deliver.binary`):
-    salmon       magic b"BCSA", version u8 = 2, handles 8 bytes (the bundle's section_handles digest, raw), u32 JSON
+    salmon       magic b"BCSA", version u8 = 3, handles 8 bytes (the bundle's section_handles digest, raw), u32 JSON
                  length, the UTF-8 payload: {credit, regions, verdicts, gears, chains, unmapped, scopes, shards, x?}
                  (T321) x: location id -> the rows its card shows in DFO's words, {k: new|unread|note, sp, d, t}
     salmon-<r>   magic b"BCSR", version u8 = 1, handles 8 bytes, u8 region length + the region (ASCII), then a varint
@@ -57,10 +59,10 @@ from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, 
 from pipeline.common import calendar_spec
 from pipeline.deliver.binary import put_varint, read_varint
 
-FORMAT = "salmon/2"
+FORMAT = "salmon/3"
 SHARD_FORMAT = "salmon-shard/1"
 MAGIC = b"BCSA"
-VERSION = 2
+VERSION = 3
 SHARD_MAGIC = b"BCSR"
 SHARD_VERSION = 1
 #: the shard of a section in no bundle region (tidal, outside B.C.): the map reads it, no page does
@@ -173,12 +175,11 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
                 s, why = "closed", own
             out = {"s": s, "t": _text(why, subs)}
             if s == "open":
-                # T320: the species' numbers under the region's bucket (`regs.dfo_salmon.quota`); `u` where they are
-                # not one reading — the app then shows `t`, DFO's words, and no number
-                from pipeline.regs.dfo_salmon.quota import species_quota
-                q = species_quota(why, subs)
-                if q:
-                    out["q"] = q
+                # T320 / T332: the species' numbers under the region's bucket (`regs.dfo_salmon.quota`) — `tree`, a
+                # node of the game-fish quota tree; `u` where they are not one reading — the app then shows `t`,
+                # DFO's words, and no number
+                from pipeline.regs.dfo_salmon.quota import species_tree
+                out.update(species_tree(why, subs) or {})
             n = _notice(why)
             if n:
                 out["n"] = n

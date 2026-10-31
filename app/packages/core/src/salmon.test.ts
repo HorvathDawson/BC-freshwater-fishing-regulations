@@ -1,11 +1,13 @@
 /**
- * (T211) THE SALMON FILE AND THE SALMON CARD: `salmon/2` (a head + one slice per bundle region) decoded (the pipeline's encoder's layout, `pipeline/deliver/
+ * (T211) THE SALMON FILE AND THE SALMON CARD: `salmon/3` (a head + one slice per bundle region) decoded (the pipeline's encoder's layout, `pipeline/deliver/
  * salmon.py`), each section's chain (and the UNLISTED chain for a section in no run), the day's lookups, and the card's
  * words — whole strings (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
 import { decodeSalmon, decodeSalmonHead, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel,
-         SALMON_WORDS, SalmonError, salmonTable, salmonTableTexts, salmonRowTexts, salmonStatusFromSpecies, gearTabsFor, salmonStripOf, salmonTimelineKey } from "./salmon";
+         SALMON_WORDS, SalmonError, salmonTable, salmonTableTexts, salmonRowTexts, salmonStatusFromSpecies, gearTabsFor, salmonStripOf, salmonTimelineKey, quotaLine } from "./salmon";
+import { tierWords } from "./regs/tree";
+import { text } from "./regs/line";
 import { salmonGlance } from "./glance";
 
 const HANDLES = "147b20dce7d8576c";
@@ -15,7 +17,7 @@ const d = (date: Date) => salmonDayIndex(date);
 /** The Kispiox, as the pipeline built it from the Region 6 page dated 2026-08-28 (abridged): coho 4/day Jul 15–Aug 23
  *  then closed (FN0897); chinook, sockeye, pink and chum closed; no natural bait all year. */
 const PAYLOAD = {
-  format: "salmon/2", credit: "Fisheries and Oceans Canada (DFO), freshwater salmon sport fishing regulations",
+  format: "salmon/3", credit: "Fisheries and Oceans Canada (DFO), freshwater salmon sport fishing regulations",
   default: 0,
   regions: { "6": { name: "Skeena", asof: "2026-08-28", url: "https://example/region6" },
              "1": { name: "Vancouver Island", asof: "2026-08-25", url: "https://example/region1" } },
@@ -47,7 +49,7 @@ const PAYLOAD = {
 const hx = (handles: string) => Array.from({ length: 8 }, (_, i) => parseInt(handles.slice(2 * i, 2 * i + 2), 16));
 function encode(payload: object, handles = HANDLES): Uint8Array {
   const body = new TextEncoder().encode(JSON.stringify(payload));
-  return new Uint8Array([0x42, 0x43, 0x53, 0x41, 2, ...hx(handles),
+  return new Uint8Array([0x42, 0x43, 0x53, 0x41, 3, ...hx(handles),
     body.length & 255, (body.length >> 8) & 255, (body.length >> 16) & 255, (body.length >>> 24) & 255, ...body]);
 }
 function shard(region: string, runs: [number, number, number][], handles = HANDLES): Uint8Array {
@@ -62,7 +64,7 @@ const FILE = encode(PAYLOAD);
 const SHARDS = [shard("6", [[100, 5, 1]]), shard("1", [[200, 2, 2]])];
 const facts = () => decodeSalmon(FILE, HANDLES, SHARDS);
 
-describe("salmon/2", () => {
+describe("salmon/3", () => {
   it("decodes the runs: a placed section reads its chain; a section in no run reads the UNLISTED chain (closed)", () => {
     const f = facts();
     expect([f.chainOf(99), f.chainOf(100), f.chainOf(104), f.chainOf(105), f.chainOf(201), f.chainOf(5_000_000)])
@@ -309,39 +311,61 @@ describe("(T318) the salmon table keeps every DFO word", () => {
   });
 });
 
-describe("(T320) the salmon bucket and each species' numbers", () => {
-  const BUCKET = { node: "tier", tier: "total", n: 4, says: "Up to 4 salmon a day in total", possession: 8,
+describe("(T320, T332) the salmon bucket and each species' numbers — the game-fish quota tree", () => {
+  // T332: the store's nodes, as `pipeline/regs/dfo_salmon/quota.species_tree` writes them (TreeTier / TreeKind)
+  const tier = (t: "total" | "count" | "size", n: number, says: string, kids: object[] = [], more: object = {}) =>
+    ({ node: "tier", id: "t1", tier: t, n, says, by: 0, children: kids, ...more });
+  const kind = (name: string, n: number, says: string, folded: boolean, mx: number | null = null) =>
+    ({ node: "kind", species: ["CO"], name, n, says, detail: "", sizes: { cm: [[0, mx]], in: [[0, mx === null ? null : Math.round(mx / 2.54)]] },
+       also_counts: [], duties: [], sentence: says, ...(folded ? { folded: true } : {}) });
+  const size = (n: number, cm: number, says: string, period?: string) => tier("size", n, says, [], { over_cm: cm, ...(period ? { period } : {}) });
+  const count = (d: number, says: string, kids: object[] = []) => tier("count", d, says, kids, { species: ["CO"] });
+  const BUCKET = { tree: tier("total", 4, "Up to 4 salmon a day in total"), possession: 8,
                    t: "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4.",
                    tp: "The possession limit for all salmon from all waters is twice the daily limit." };
   const withQuota = (q: object) => {
     const P = PAYLOAD as never as { verdicts: object[]; regions: Record<string, object> };
-    const verdicts = P.verdicts.map((v, i) => (i === 2 ? { ...v, q } : v));
+    const verdicts = P.verdicts.map((v, i) => (i === 2 ? { ...v, ...q } : v));
     const regions = { ...P.regions, "6": { ...P.regions["6"]!, bucket: BUCKET } };
     return decodeSalmon(encode({ ...PAYLOAD, verdicts, regions }), HANDLES, SHARDS);
   };
+  const co = (q: object) => salmonTable(salmonCard(withQuota(q), { sids: [101], item: null }, JUL20)).species.find((r) => r.code === "CO")!;
 
   it("an open coho says its daily and size sub-limit under the bucket total; possession is the bucket's only", () => {
-    const t = salmonTable(salmonCard(withQuota({ d: 4, o: [[50, 2]] }), { sids: [101], item: null }, JUL20));
+    const t = salmonTable(salmonCard(withQuota({ tree: count(4, "4 a day", [size(2, 50, "only 2 over 50 cm")]) }), { sids: [101], item: null }, JUL20));
     expect(t.bucket?.line).toBe("Up to 4 salmon a day in total · 8 in possession");
     expect(t.species.find((r) => r.code === "CO")!.quota).toBe("4 a day · only 2 over 50 cm");
     expect(t.species.filter((r) => r.code !== "CO").map((r) => r.quota ?? null)).toEqual([null, null, null, null]);
   });
 
+  it("THE TROUT PRESENTER draws it: each tier by tierWords (its number big), the line's words the store's", () => {
+    const q = { tree: count(4, "4 a day", [size(2, 50, "only 2 over 50 cm")]) };
+    const r = co(q);
+    expect(r.quotaRuns).toEqual([...tierWords(q.tree as never), text(" · "), ...tierWords(q.tree.children[0] as never)]);
+    expect(r.quotaRuns!.filter((x) => x.t === "num").map((x) => x.s)).toEqual(["4", "2"]);
+    expect(quotaLine(q as never)).toEqual(r.quotaRuns);
+    const b = salmonTable(salmonCard(withQuota(q), { sids: [101], item: null }, JUL20)).bucket!;
+    expect(b.runs!.slice(0, 3)).toEqual(tierWords(BUCKET.tree as never));
+  });
+
   it("hatchery-marked only and a maximum size are said; an unread row shows no number, flagged", () => {
-    const t = salmonTable(salmonCard(withQuota({ d: 1, h: 1, mx: 35 }), { sids: [101], item: null }, JUL20));
-    expect(t.species.find((r) => r.code === "CO")!.quota).toBe("1 a day, hatchery-marked only · none over 35 cm");
-    const u = salmonTable(salmonCard(withQuota({ u: 1 }), { sids: [101], item: null }, JUL20)).species.find((r) => r.code === "CO")!;
+    const h = count(1, "1 a day, hatchery-marked only", [kind("hatchery-marked coho", 1, "1 a day, hatchery-marked only", true, 35),
+                                                         size(0, 35, "none over 35 cm")]);
+    expect(co({ tree: h }).quota).toBe("1 a day, hatchery-marked only · none over 35 cm");      // the folded kind: not said twice
+    const u = co({ u: 1 });
     expect([u.quota, u.quotaUnread]).toEqual([null, true]);
   });
 
   it("a wild allowance and a monthly quota are said; 'N of N unmarked' is marked or unmarked", () => {
-    const co = (q: object) => salmonTable(salmonCard(withQuota(q), { sids: [101], item: null }, JUL20)).species.find((r) => r.code === "CO")!.quota;
-    expect(co({ d: 2, w: 1 })).toBe("2 a day · up to 1 unmarked (wild), the rest hatchery-marked");
-    expect(co({ d: 2, w: 2 })).toBe("2 a day · marked or unmarked");
-    expect(co({ d: 4, o: [[65, 1]], mo: [[65, 1]] })).toBe("4 a day · only 1 over 65\u00a0cm · 1 over 65\u00a0cm a month");
+    expect(co({ tree: count(2, "2 a day", [kind("coho", 2, "2 a day", true), kind("unmarked (wild) coho", 1, "up to 1 unmarked (wild), the rest hatchery-marked", false)]) }).quota)
+      .toBe("2 a day · up to 1 unmarked (wild), the rest hatchery-marked");
+    expect(co({ tree: count(2, "2 a day", [kind("coho", 2, "2 a day", true), kind("unmarked (wild) coho", 2, "marked or unmarked", false)]) }).quota)
+      .toBe("2 a day · marked or unmarked");
+    expect(co({ tree: count(4, "4 a day", [size(1, 65, "only 1 over 65 cm"), size(1, 65, "1 over 65 cm a month", "monthly")]) }).quota)
+      .toBe("4 a day · only 1 over 65 cm · 1 over 65 cm a month");
   });
 
-  it("a water system's own combined limit (Squamish) shows only while its species is open here", () => {
+  it("a water system's own combined limit (Squamish) shows only while its species is open here — an OWN tier", () => {
     const squamish = (q: object, day: Date) => {
       const f = withQuota(q);
       const P = f.payload as never as { regions: Record<string, { notes?: object[] }> };
@@ -352,13 +376,15 @@ describe("(T320) the salmon bucket and each species' numbers", () => {
                         scopes: { "6": { "squamish river+ws": ["gnis:sq"] } } };
       return salmonTable(salmonCard({ ...f, payload } as never, { sids: [101], item: "gnis:sq" }, day));
     };
-    expect(squamish({ d: 4, h: 1 }, JUL20).waterBuckets?.map((w) => w.line)).toEqual(
-      ["Squamish River and its tributaries: up to 1 hatchery-marked coho a day in total"]);
-    expect(squamish({ d: 4, h: 1 }, SEP15).waterBuckets ?? []).toEqual([]);
+    const q = { tree: count(4, "4 a day, hatchery-marked only", [kind("hatchery-marked coho", 4, "4 a day, hatchery-marked only", true)]) };
+    const w = squamish(q, JUL20).waterBuckets!;
+    expect(w.map((x) => x.line)).toEqual(["Squamish River and its tributaries: up to 1 hatchery-marked coho a day in total"]);
+    expect(w[0]!.runs!.find((x) => x.t === "num")).toEqual({ t: "num", s: "1", size: "big" });
+    expect(squamish(q, SEP15).waterBuckets ?? []).toEqual([]);
   });
 
   it("no bucket line when nothing may be kept today", () => {
-    const t = salmonTable(salmonCard(withQuota({ d: 4 }), { sids: [101], item: null }, SEP15));
+    const t = salmonTable(salmonCard(withQuota({ tree: count(4, "4 a day") }), { sids: [101], item: null }, SEP15));
     expect(t.bucket ?? null).toBeNull();
   });
 });

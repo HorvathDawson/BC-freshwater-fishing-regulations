@@ -35,7 +35,7 @@ import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
 import { readRegistry, REGISTRY_PATH, template, type Registry } from "./wording";
 
-export const FORMAT = "dfo-feed/1";
+export const FORMAT = "dfo-feed/2"; // T332: a verdict's quota is `tree` (a game-fish TreeTier), a bucket `{tree, …}`
 const SPECIES_N = [...SPECIES];
 export const FAIL_NOTIFY = 2;
 const QUEUE_ACTION = (slug: string) => `python -m pipeline.regs.dfo_salmon.live queue --regions ${slug}`;
@@ -76,7 +76,7 @@ export interface DfoDeps {
 }
 
 /** Bump when a code change alters what a region's page types to: unchanged pages are re-typed once after a deploy. */
-export const DFO_REV = "2026-10-31.1"; // T321: rows in DFO's words (`x`), new-wording flags
+export const DFO_REV = "2026-10-31.2"; // T332: quotas as game-fish quota trees (`tree`), the wording split tidied
 /** published index.json is rewritten at least this often even when nothing changed (the app's "checked" age) */
 export const INDEX_HEARTBEAT_MS = 24 * 3600_000;
 
@@ -328,7 +328,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   const fetcher: Fetcher = deps.fetcher ?? live!.get;
   const keepHistory = deps.history ?? !deps.fetcher;
 
-  const prev: Json = await readJson(deps.feed, "index.json", {});
+  const prev: Json = upgrade(await readJson(deps.feed, "index.json", {}));
   const prevUnplacedList: Json[] = await readJson(deps.feed, "unplaced.json", []);
   const prevUnplaced = new Map<string, Json>();
   for (const u of prevUnplacedList) prevUnplaced.set(JSON.stringify([u.region, u.fingerprint]), u);
@@ -656,6 +656,20 @@ function readHeader(slug: string, html: string, reg: Json, was: Json, ef: EntryF
   reg.header = d;
   reg.unresolved = unresolved;
   setBucket(reg);
+}
+
+/** (T332) live._upgrade: the last feed in an older format — a carried verdict's T320 `q` is dropped (DFO's words stand
+ *  until the region is read again), each region's bucket re-read from its notes; never the old shape in a new feed */
+function upgrade(prev: Json): Json {
+  if (!prev || !Object.keys(prev).length || prev.format === FORMAT) return prev;
+  const regions: Record<string, Json> = {};
+  for (const [slug, r] of Object.entries((prev.regions || {}) as Record<string, Json>)) {
+    const copy = { ...r };
+    setBucket(copy);
+    regions[slug] = copy;
+  }
+  const verdicts = ((prev.verdicts || []) as Json[]).map((v) => Object.fromEntries(Object.entries(v).filter(([k]) => k !== "q")));
+  return { ...prev, regions, verdicts };
 }
 
 /** (T320) the salmon bucket — the header's combined daily / possession — beside the notes it is read from */

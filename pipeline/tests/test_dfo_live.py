@@ -76,13 +76,14 @@ def test_the_feed_composed_narrowest_first_is_the_release_chain():
 def test_todays_pages_join_every_location(tmp_path):
     got = L.run(tmp_path, fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())
     ix = got["index"]
-    assert ix["format"] == "dfo-feed/1" and ix["unplaced"] == 0 and not got["notices"]
+    assert ix["format"] == "dfo-feed/2" and ix["unplaced"] == 0 and not got["notices"]
     assert len(ix["locs"]) == 247
     assert ix["verdicts"][0] == S.NOT_LISTED
     assert ix["regions"]["6"]["asof"] == "2026-08-28" and ix["regions"]["6"]["checked"] == AT
     assert not any(r["stale"] or r["held"] for r in ix["regions"].values())
     assert json.loads((tmp_path / "index.json").read_text()) == ix
-    assert (tmp_path / "index.json").stat().st_size < 80_000
+    # T332: the quota trees (game-fish TreeTier nodes) add ~22 kB to the ~74 kB of T320; gzip on the wire
+    assert (tmp_path / "index.json").stat().st_size < 100_000
 
 
 def _unseen() -> str:

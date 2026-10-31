@@ -249,9 +249,9 @@ fetch → validate → hash-compare → [unchanged? stop] → parse → untangle
 1. **Bundle ingest — BUILT (T211).** The reach run places every location with an extent
    (`atlas/reach/dfo_salmon.py` → `dfo_salmon.jsonl.gz`), the bundle joins the typed feed by fingerprint and
    precomputes each chain's answers per day (`deliver/salmon.py` → `salmon_doc`, `salmon_section`), and the
-   release ships `salmon` (`salmon/1`). A water DFO does not list is CLOSED to salmon (owner 2026-10-27), stated
+   release ships `salmon` (`salmon/3`; T332: an open day's quota and the region bucket are game-fish quota-tree nodes). A water DFO does not list is CLOSED to salmon (owner 2026-10-27), stated
    as chain 0.
-   **The live feed — BUILT (T211 part 2):** `regs/dfo_salmon/live.py` writes `feed/index.json` (`dfo-feed/1`: per
+   **The live feed — BUILT (T211 part 2):** `regs/dfo_salmon/live.py` writes `feed/index.json` (`dfo-feed/2` since T332: per
    location and day, each species' verdict and the gear), which the app lays over the release's chains
    (core `salmonFeed.ts`; offline, the last capture). A fingerprint nobody curated is held in `unplaced.json` and the
    owner told once (`FEED_NOTIFY_URL`); `live queue` seeds it for DFO mode.
