@@ -60,6 +60,10 @@ async function coldStart(ctx, opts) { device.stop(); await sleep(1000); return a
 async function toMap(ctx) {
   for (let i = 0; i < 5; i++) {
     const w = device.screenText();
+    // a water's page ("‹ Map" over Regulations · Conditions): its own back link (the tab bar may still be in the tree)
+    if (w.includes('Regulations') && w.includes('Conditions') && w.includes('Map')) {
+      ctx.flow('tap-text', { TEXT: 'Map' }); await sleep(1500); continue;
+    }
     if (hasTabs(w)) break;
     // a menu page (a Modal from below: no edge swipe) has its own "‹ Back"; a water's page the edge-back
     if (w.some((x) => /^(Back|Glossary)$/.test(x))) ctx.flow('tap-text', { TEXT: '(Back|Glossary)' });
@@ -133,7 +137,7 @@ const SCENARIOS = [
           ctx.flow(f);
           await sleep(1500);
           const w = device.screenText();
-          const back = !(w.some((x) => /^Regulations$/.test(x)) && !hasTabs(w));
+          const back = w.length > 0 && !(w.includes('Regulations') && w.includes('Conditions'));   // an empty read is not "back"
           tried.push(`y ${Y} ${MS} ms: ${back ? 'back' : 'stayed'}`);
           if (back) return tried.join(' · ');
         }
@@ -387,7 +391,7 @@ const SCENARIOS = [
         if (!t) ctx.skip('no [target] line (a build without --probes): the map tap is not timed');
         const img = readPng(shot(ctx, 'perf-framed'));
         const k = img.w / 402;                                              // px per point (iPhone 17: 3)
-        at = { x: Math.round(((t.win?.x ?? 0) + t.x) * k / img.w * 1000) / 10, y: Math.round(((t.win?.y ?? 0) + t.y) * k / img.h * 1000) / 10 };
+        at = { x: Math.round(((t.win?.x ?? 0) + t.x) * k / img.w * 100), y: Math.round(((t.win?.y ?? 0) + t.y) * k / img.h * 100) };   // Maestro takes whole percents
         return `target ${JSON.stringify(t).slice(0, 120)} → ${at.x}%, ${at.y}%`;
       });
       for (let i = 1; at && i <= TAPS; i++) {
