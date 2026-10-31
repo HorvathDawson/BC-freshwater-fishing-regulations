@@ -232,3 +232,21 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
     expect(screen.queryByText(/Kispiox watershed/)).toBeNull();
   });
 });
+
+describe("(T321) DFO's words on the card", () => {
+  it("a water with an unparsed DFO row shows the 'wording changed' block: species, dates, DFO's words", () => {
+    const facts = { ...FACTS, payload: { ...FACTS.payload,
+      chains: FACTS.payload.chains.map((c, i) => (i === 1 ? { ...c, l: ["6:k"] } : c)),
+      x: { "6:k": [{ k: "new", sp: "Coho", d: "Jul 15 to Aug 23", t: "4 per day, fish from shore on Sundays" },
+                   { k: "note", sp: "Chinook", d: "", t: "No fishing for chinook. (see exception below)" }] } } } as SalmonFacts;
+    render(<SalmonCard card={salmonCard(facts, { sids: [101], item: null }, JUL20)} palette={LIGHT} />);
+    const box = screen.getByTestId("salmon-wording-changed");
+    expect(box.textContent).toContain("DFO changed the wording here — read their text");
+    expect(box.textContent).toContain("Coho · Jul 15 to Aug 23");
+    expect(within(box).getByTestId("salmon-words-text").textContent).toBe("4 per day, fish from shore on Sundays");
+    expect(screen.getByTestId("salmon-wording-notes").textContent).toContain("Chinook · All year");
+    cleanup();
+    render(<SalmonCard card={salmonCard(FACTS, { sids: [101], item: null }, JUL20)} palette={LIGHT} />);
+    expect(screen.queryByTestId("salmon-wording-changed")).toBeNull();
+  });
+});

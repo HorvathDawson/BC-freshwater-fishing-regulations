@@ -7,6 +7,7 @@
 import type { RuleRecord } from "./locations";
 import { pyStrOf, pyTypeName } from "./py";
 import { rowText, toRules, type TypedRule } from "./typed";
+import { rowWords, type RowWords } from "./wording";
 
 export interface Locator {
   fingerprint: string;
@@ -14,6 +15,8 @@ export interface Locator {
   rules: TypedRule[];
   /** robust mode: the row(s) that did not type — "ValidationError: …" (first 200 characters) */
   error?: string;
+  /** (T321) the rows the card shows in DFO's words — new wording (unparsed), an unread number, or a note */
+  words?: RowWords[];
 }
 export interface TypedFeed {
   region: string;
@@ -36,16 +39,18 @@ export function build(
   for (const [fp, recs] of byFp) {
     const rules: TypedRule[] = [];
     const rows = recs.map(rowText);
+    const words = recs.map((r) => rowWords(r)).filter((w): w is RowWords => w !== null);
+    const w = words.length ? { words } : {};
     if (!robust) {
       recs.forEach((rec, i) => rules.push(...toRules(rec, fp.slice(0, 8), i)));
-      locators.push({ fingerprint: fp, rows, rules });
+      locators.push({ fingerprint: fp, rows, rules, ...w });
       continue;
     }
     try {
       recs.forEach((rec, i) => rules.push(...toRules(rec, fp.slice(0, 8), i, true)));
-      locators.push({ fingerprint: fp, rows, rules });
+      locators.push({ fingerprint: fp, rows, rules, ...w });
     } catch (e) {
-      locators.push({ fingerprint: fp, rows, rules: [], error: `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 200).join("")}` });
+      locators.push({ fingerprint: fp, rows, rules: [], ...w, error: `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 200).join("")}` });
     }
   }
   return { region: scraped.region, date_modified: scraped.date_modified, preamble: scraped.preamble || [], locators };

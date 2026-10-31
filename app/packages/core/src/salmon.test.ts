@@ -362,3 +362,31 @@ describe("(T320) the salmon bucket and each species' numbers", () => {
     expect(t.bucket ?? null).toBeNull();
   });
 });
+
+describe("(T321) DFO's rows in DFO's words", () => {
+  const X = {
+    "6:a:region": [{ k: "new", sp: "Coho", d: "Jul 15 to Aug 23", t: "4 per day, fish from shore on Sundays" }],
+    "6:kispiox-river:whole": [{ k: "note", sp: "Chinook", d: "", t: "4 per day, only 1 over 65 cm (See exception below)." },
+                              { k: "new", sp: "Coho", d: "Jul 15 to Aug 23", t: "4 per day, fish from shore on Sundays" }],
+  } as const;
+  const withX = (x: object) => {
+    const f = facts();
+    return { handles: f.handles, chains: f.chains, chainOf: (s: number) => f.chainOf(s), loaded: f.loaded,
+             payload: { ...f.payload, x } } as typeof f;
+  };
+
+  it("a water whose rows include an unparsed one: the 'wording changed' block, species, dates, DFO's words, once each", () => {
+    const c = salmonCard(withX(X), { sids: [101], item: null }, JUL20);
+    expect(c.dfoWords).toEqual({
+      changedHead: "DFO changed the wording here — read their text",
+      changed: [{ species: "Coho", dates: "Jul 15 to Aug 23", words: "4 per day, fish from shore on Sundays" }],
+      notesHead: SALMON_WORDS.wordingNotes,
+      notes: [{ species: "Chinook", dates: "All year", words: "4 per day, only 1 over 65 cm (See exception below)." }],
+    });
+  });
+
+  it("none on another water, and none at all without rows", () => {
+    expect(salmonCard(withX(X), { sids: [200], item: null }, JUL20).dfoWords).toBeNull();
+    expect(salmonCard(facts(), { sids: [101], item: null }, JUL20).dfoWords).toBeNull();
+  });
+});

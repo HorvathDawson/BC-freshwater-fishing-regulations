@@ -11,7 +11,7 @@
  */
 import { Image, Linking, Text, View } from "react-native";
 import { useState } from "react";
-import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonPlaceTableVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM } from "@app/core";
+import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonPlaceTableVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
@@ -107,6 +107,25 @@ function Place({ p, palette }: { p: SalmonPlaceTableVM; palette: Palette }) {
   );
 }
 
+/** (T321, owner 2026-10-31) DFO's rows in DFO's words: `strong` — the wording changed and the app reads no number for
+ *  them (a boxed block above the table); else the rows whose words matter as printed. Species and dates, then DFO's text. */
+function Words({ head, rows, palette, strong, testID }: {
+  head: string; rows: readonly SalmonWordsRowVM[]; palette: Palette; strong?: boolean; testID: string }) {
+  return (
+    <View testID={testID} style={strong
+      ? { marginTop: 8, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: palette.line2, borderLeftWidth: 5, borderLeftColor: palette.restricted }
+      : { marginTop: 10 }}>
+      <Text accessibilityRole="header" style={strong ? { ...TYPE.regsBodySemi, color: palette.ink } : { ...TYPE.kicker, color: palette.sub }}>{head}</Text>
+      {rows.map((r, i) => (
+        <View key={`${r.species}|${r.dates}|${r.words}`} testID="salmon-words-row" style={{ marginTop: i ? 6 : 4 }}>
+          <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{`${r.species} · ${r.dates}`}</Text>
+          <Text selectable testID="salmon-words-text" style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{r.words}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 /**
  * (T318, owner 2026-10-31) THE TABLE: one row per species (its ocean picture, today's status, sizes), DFO's words said once
  * under it, the blocks' gear lines, then the places not drawn yet each folded to one line. Core `salmonTable`'s.
@@ -162,7 +181,13 @@ export function SalmonCard({ card, palette, actions, images }: {
                   style={{ ...TYPE.metaSemi, color: palette.accent, marginTop: 4, paddingVertical: 4 }}>{card.partial.link} ›</Text>
           </View>
         )}
+        {card.dfoWords && card.dfoWords.changed.length > 0 && (
+          <Words testID="salmon-wording-changed" head={card.dfoWords.changedHead} rows={card.dfoWords.changed} palette={palette} strong />
+        )}
         <Table card={card} palette={palette} actions={actions} images={images} />
+        {card.dfoWords && card.dfoWords.notes.length > 0 && (
+          <Words testID="salmon-wording-notes" head={card.dfoWords.notesHead} rows={card.dfoWords.notes} palette={palette} />
+        )}
         {card.gearProvincial && (
           <Text testID="salmon-gear-provincial" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: 8 }}>{card.gearProvincial}</Text>
         )}

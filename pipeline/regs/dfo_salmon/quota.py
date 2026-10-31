@@ -43,7 +43,7 @@ FORMAT = "dfo-quota/1"
 
 # the spans a limits cell's numbers live in, each read by `typed` — the residue is what none of them covers
 _SPANS = (T._RE_DAILY, T._RE_DAILY_OF, T._RE_ONLY_OVER, T._RE_WHICH_MAY, T._RE_OF_WHICH_N, T._RE_UNMARKED,
-          T._RE_MONTHLY, T._RE_NONE_OVER, T._RE_MAX_SIZE, T._RE_TIMES, T._RE_GAP,
+          T._RE_MONTHLY, T._RE_NONE_OVER, T._RE_MAX_SIZE, T._RE_TIMES, T._RE_SOLAR_TIMES, T._RE_GAP,
           T._RE_FN, re.compile(r"\b(?:Region|Area)s?\s+\d+[A-Za-z]?\b", re.I))   # a place's name, not a limit
 
 
@@ -94,8 +94,8 @@ def read_limits(text: str) -> dict:
         out["max_cm"] = int(m.group(1) or m.group(2))
     if (m := T._RE_FN.search(t)):
         out["notice"] = f"FN{int(m.group(1)):04d}"
-    if (m := T._RE_TIMES.search(t)):
-        out["hours"] = [m.group(1), m.group(2)]
+    if (m := T._RE_TIMES.search(t) or T._RE_SOLAR_TIMES.search(t)):
+        out["hours"] = [m.group(1), m.group(2)]             # "05:00", or (T321) "one hour before sunrise"
     if (m := T._RE_GAP.search(t)):
         out["gap_mm"] = int(m.group(1))
     out["residue"] = residue(t)
@@ -117,7 +117,8 @@ def render(q: Mapping) -> str:
     if q.get("max_cm") is not None:
         bits.append(f"maximum size {q['max_cm']} cm")
     if q.get("hours"):
-        bits.append(f"from {q['hours'][0]} h until {q['hours'][1]} h only")
+        a, b = q["hours"]
+        bits.append(f"from {a} h until {b} h only" if ":" in a else f"{a} to {b}")
     if q.get("gap_mm") is not None:
         bits.append(f"single barbless hook less than {q['gap_mm']}mm from point to shank")
     if q.get("notice"):

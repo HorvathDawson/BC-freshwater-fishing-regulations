@@ -28,11 +28,12 @@ import { digest, parseHeader, resolve, type Note } from "./header";
 import { extract, type Location, type Structure } from "./locations";
 import { key } from "./names";
 import { parseRegion } from "./parse";
-import { cmpStr, cmpTuple, formatFixed, pyStrOf, pyTypeName, repr } from "./py";
+import { cmpStr, cmpTuple, formatFixed, pyRe, pyStrOf, pyTypeName, repr, search } from "./py";
 import { feedText, loads, PyFloat } from "./pyjson";
 import { bucket, headerClosure } from "./quota";
 import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
+import { REGISTRY_PATH, template } from "./wording";
 
 export const FORMAT = "dfo-feed/1";
 const SPECIES_N = [...SPECIES];
@@ -75,7 +76,7 @@ export interface DfoDeps {
 }
 
 /** Bump when a code change alters what a region's page types to: unchanged pages are re-typed once after a deploy. */
-export const DFO_REV = "2026-10-28.1";
+export const DFO_REV = "2026-10-31.1"; // T321: rows in DFO's words (`x`), new-wording flags
 /** published index.json is rewritten at least this often even when nothing changed (the app's "checked" age) */
 export const INDEX_HEARTBEAT_MS = 24 * 3600_000;
 
@@ -226,6 +227,14 @@ export interface NoticeData {
   /** (T320) kind "text": the page's general text that went, and what replaced it */
   was?: string[];
   now?: string[];
+  /** (T321) kind "wording": the clause DFO never printed before, its template, the whole cell, the row's species /
+   *  dates and its in-season notice */
+  clause?: string;
+  template?: string;
+  cell?: string;
+  species?: string;
+  dates?: string;
+  fn?: string;
 }
 export interface Notice {
   key: string;
@@ -262,7 +271,7 @@ function carry(prev: Json, slug: string, verdicts: Interner<unknown>, gears: Int
     if (c.r !== slug || (only !== null && !only.has(lid))) continue;
     const sp = c.sp.map((runs: number[]) => runs.map((x, k) => (k % 2 === 0 || x < 0 ? x : verdicts.add(pv[x]))));
     const g = c.g.map((x: number, k: number) => (k % 2 === 0 || x < 0 ? x : gears.add(pg[x])));
-    out[lid] = { r: slug, sp, g };
+    out[lid] = { r: slug, sp, g, ...(c.x && c.x.length ? { x: c.x } : {}) };
   }
   return out;
 }
@@ -440,18 +449,21 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     readHeader(slug, html, reg, was, ef, notices);
     readTexts(slug, html, reg, was, notices);
     const closure = headerClosure(reg.notes || [], slug); // T320: the header's closure wins over the table's rows
+    const words = closure ? new Map<string, Json[]>() : wordsByLocation(ef, typed); // T321: a closed page's rows are not in force
+    notices.push(...wordingNotices(slug, ef, typed, robust));
     const rowHolds = new Map<string, { fingerprint: string; why: string }>();
+    const xOf = (lid: string) => (words.get(lid)?.length ? { x: words.get(lid)! } : {});
     const [rules, held] = join(slug, ef, typed, found, rep, rowHolds);
     if (aware) inputsOut[slug] = { page: sha, entries: contentHash((await rawEntries(slug)) ?? "") };
     const moved = new Set(rep.outcomes.filter((o) => o.status === "section_moved" && o.location_id).map((o) => o.location_id!));
     for (const lid of [...rules.keys()].sort(cmpStr)) {
       if (moved.has(lid) || rowHolds.has(lid)) continue;
       if (!robust) {
-        locs[lid] = { r: slug, ...locationCalendar(closure && rules.get(lid)!.length ? closure : rules.get(lid)!, verdicts, gears) };
+        locs[lid] = { r: slug, ...locationCalendar(closure && rules.get(lid)!.length ? closure : rules.get(lid)!, verdicts, gears), ...xOf(lid) };
         continue;
       }
       try {
-        locs[lid] = { r: slug, ...locationCalendar(closure && rules.get(lid)!.length ? closure : rules.get(lid)!, verdicts, gears, true) };
+        locs[lid] = { r: slug, ...locationCalendar(closure && rules.get(lid)!.length ? closure : rules.get(lid)!, verdicts, gears, true), ...xOf(lid) };
       } catch (e) {
         const fp = typed.locators.find((l) => byFingerprint(ef).get(l.fingerprint)?.location_id === lid)?.fingerprint ?? "";
         rowHolds.set(lid, { fingerprint: fp, why: `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 200).join("")}` });
@@ -529,6 +541,53 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     log,
   });
   return { index, unplaced, notices: robust ? notices : notices.map(({ key, text }) => ({ key, text })), sent, skipped };
+}
+
+/** live.words_by_location (T321): location id → the rows its card shows in DFO's words, `{k, sp, d, t}` (`locs[lid].x`) */
+export function wordsByLocation(ef: EntryFile, typed: TypedFeed): Map<string, Json[]> {
+  const index = byFingerprint(ef);
+  const out = new Map<string, Json[]>();
+  for (const loc of typed.locators || []) {
+    const hit = index.get(loc.fingerprint);
+    if (!hit || !loc.words?.length) continue;
+    const l = out.get(hit.location_id) ?? [];
+    l.push(...loc.words.map((w) => ({ k: w.k, sp: w.sp, d: w.d, t: w.t })));
+    out.set(hit.location_id, l);
+  }
+  return out;
+}
+
+const RE_CELL_FN = pyRe("\\bFN\\s*\\d{3,4}\\b", "i");
+
+/** live.wording_notices (T321, owner 2026-10-31: "It should be urgent"): a clause no saved page ever printed — one
+ *  URGENT notice per new TEMPLATE (keyed by it: never told twice, whatever the run or region). */
+export function wordingNotices(slug: string, ef: EntryFile, typed: TypedFeed, withData = true): Notice[] {
+  const index = byFingerprint(ef);
+  const out: Notice[] = [];
+  for (const loc of typed.locators || []) {
+    const hit = index.get(loc.fingerprint);
+    for (const w of loc.words ?? [])
+      for (const c of w.new ?? []) {
+        const t = template(c);
+        if (out.some((n) => n.key === `dfo-wording:${t}`)) continue; // one notice a template, wherever it is printed
+        const fn = search(RE_CELL_FN, w.t);
+        const where = hit ? hit.location_id : loc.fingerprint;
+        const text =
+          `DFO Region ${slug}: new wording in a limits cell, ${repr(c)}, on ${where} (${w.sp || "no species"}, ${w.d || "all year"}` +
+          `${fn ? ", " + fn[0] : ""}): ${repr(w.t)} — the row shows DFO's words and no number until ${REGISTRY_PATH} has an entry for ` +
+          `${repr(t)} (and pipeline/tests/test_dfo_wording.py a line for it)`;
+        out.push({
+          key: `dfo-wording:${t}`,
+          text,
+          ...(withData
+            ? { data: { region: slug, kind: "wording", place: where, clause: c, template: t, cell: w.t, species: w.sp, dates: w.d,
+                        ...(fn ? { fn: fn[0] } : {}),
+                        affects: "the row shows DFO's words and no number in the app until the wording is in the registry" } }
+            : {}),
+        });
+      }
+  }
+  return out;
 }
 
 function canonical(locs: Record<string, Json>, vs: unknown[], gs: unknown[]): [unknown[], unknown[]] {

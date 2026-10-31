@@ -12,8 +12,9 @@ lines. The app re-composes each release chain from it, narrowest location first,
 chain_calendar` does (`compose` here is the reference, pinned against it), so the app still decides nothing.
 
     index.json    {format: "dfo-feed/1", at, regions: {slug: {name, url, asof, sha256, changed, checked, stale, held,
-                   failures, notes, header, unresolved}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs}},
+                   failures, notes, header, unresolved}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs, x?}},
                    unplaced: n}      notes: the region header's typed notes (`header.py`); header: their digest
+                   x (T321): the rows the location's card shows in DFO's words ({k: new|unread|note, sp, d, t})
     unplaced.json the places the page lists that no curated location knows (part 4) — their rules HELD, never dropped
     <out>.notified.json   BESIDE the feed dir, never synced: the notices already sent (`gauges.feed.notify`)
 
@@ -41,6 +42,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -57,6 +59,8 @@ OUT_DIR = Path(GENERATED.regs.dfo_salmon) / "feed"
 #: two failed fetches in a row tell the owner (one is a blip)
 FAIL_NOTIFY = 2
 QUEUE_ACTION = "python -m pipeline.regs.dfo_salmon.live queue --regions {slug}"
+#: (T321) an in-season notice number in a cell, as printed
+Q_FN = re.compile(r"\bFN\s*\d{3,4}\b", re.I)
 
 
 def _now() -> str:
@@ -157,6 +161,44 @@ def join(slug: str, ef, typed: dict, locations: Sequence, report) -> Tuple[Dict[
     return rules, unplaced
 
 
+def words_by_location(ef, typed: dict) -> Dict[str, List[dict]]:
+    """(T321) location id -> the rows its card shows in DFO's words (`wording.row_words`: new wording, an unread number,
+    a note) as `{k, sp, d, t}` — the feed's `locs[lid].x`."""
+    index = ef.by_fingerprint()
+    out: Dict[str, List[dict]] = {}
+    for loc in typed.get("locators") or []:
+        hit = index.get(loc["fingerprint"])
+        if hit is not None and loc.get("words"):
+            out.setdefault(hit.location_id, []).extend(
+                {k: w[k] for k in ("k", "sp", "d", "t")} for w in loc["words"])
+    return out
+
+
+def wording_notices(slug: str, ef, typed: dict) -> List[dict]:
+    """(T321, owner 2026-10-31: "It should be urgent") a clause no saved page ever printed: one URGENT notice per new
+    TEMPLATE (the key is the template, so a later run, or another region, never tells it again). What it says, where,
+    the notice number, the whole cell, and what to do."""
+    from pipeline.regs.dfo_salmon import wording as W
+    index = ef.by_fingerprint()
+    out: List[dict] = []
+    for loc in typed.get("locators") or []:
+        hit = index.get(loc["fingerprint"])
+        for w in loc.get("words") or ():
+            for c in w.get("new") or ():
+                t = W.template(c)
+                fn = Q_FN.search(w["t"])
+                where = hit.location_id if hit is not None else loc["fingerprint"]
+                if any(n["key"] == f"dfo-wording:{t}" for n in out):
+                    continue                                    # one notice a template, wherever it is printed
+                out.append({"key": f"dfo-wording:{t}",
+                            "text": f"DFO Region {slug}: new wording in a limits cell, {c!r}, on {where} "
+                                    f"({w['sp'] or 'no species'}, {w['d'] or 'all year'}"
+                                    f"{', ' + fn.group(0) if fn else ''}): {w['t']!r} — the row shows DFO's words and "
+                                    f"no number until {W.REGISTRY.relative_to(W.REPO_ROOT)} has an entry for "
+                                    f"{t!r} (and pipeline/tests/test_dfo_wording.py a line for it)"})
+    return out
+
+
 # ── notices ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def notice_key(n: dict) -> str:
@@ -209,7 +251,7 @@ def _carry(prev: dict, slug: str, verdicts: S._Interner, gears: S._Interner, onl
             continue
         sp = [[x if k % 2 == 0 or x < 0 else verdicts(pv[x]) for k, x in enumerate(runs)] for runs in c["sp"]]
         g = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["g"])]
-        out[lid] = {"r": slug, "sp": sp, "g": g}
+        out[lid] = {"r": slug, "sp": sp, "g": g, **({"x": c["x"]} if c.get("x") else {})}
     return out
 
 
@@ -362,9 +404,12 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         moved = {o.location_id for o in rep.outcomes if o.status == "section_moved" and o.location_id}
         from pipeline.regs.dfo_salmon.quota import header_closure
         closure = header_closure(reg.get("notes") or [], slug)     # T320: the header's closure wins
+        words = {} if closure else words_by_location(ef, typed)    # T321: a closed page's rows are not in force
+        notices.extend(wording_notices(slug, ef, typed))
         for lid, rs in sorted(rules.items()):
             if lid not in moved:
-                locs[lid] = {"r": slug, **location_calendar(closure if closure and rs else rs, verdicts, gears)}
+                locs[lid] = {"r": slug, **location_calendar(closure if closure and rs else rs, verdicts, gears),
+                             **({"x": words[lid]} if words.get(lid) else {})}
         if moved:
             locs.update(_carry(prev, slug, verdicts, gears, only=moved))
             for o in rep.outcomes:

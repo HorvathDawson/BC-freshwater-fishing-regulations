@@ -38,7 +38,8 @@ notes and wins (the release's are the offline answer of last resort, read from t
 THE FILES (`salmon/2`, split per bundle region — owner 2026-10-28: a water page's card fetches only its region's slice),
 little-endian, varints LEB128 (`pipeline.deliver.binary`):
     salmon       magic b"BCSA", version u8 = 2, handles 8 bytes (the bundle's section_handles digest, raw), u32 JSON
-                 length, the UTF-8 payload: {credit, regions, verdicts, gears, chains, unmapped, scopes, shards}
+                 length, the UTF-8 payload: {credit, regions, verdicts, gears, chains, unmapped, scopes, shards, x?}
+                 (T321) x: location id -> the rows its card shows in DFO's words, {k: new|unread|note, sp, d, t}
     salmon-<r>   magic b"BCSR", version u8 = 1, handles 8 bytes, u8 region length + the region (ASCII), then a varint
                  run count and per run: sid gap (sid - previous run's end), count, chain index — the sections of bundle
                  region <r> (`release.shards.REGIONS`; a section in two regions is in both; `x`: a section in none)
@@ -297,12 +298,14 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     from pipeline.regs.dfo_salmon import header as H
     from pipeline.regs.dfo_salmon import quota as Q
     rules_of: Dict[str, List[dict]] = {}
+    words_of: Dict[str, List[dict]] = {}
     locs: Dict[str, object] = {}
     regions: Dict[str, dict] = {}
     scopes: Dict[str, Dict[str, List[str]]] = {}
     for slug, ef in sorted(entry_files.items()):
         feed = feeds.get(slug) or {}
         by_fp = {l["fingerprint"]: l["rules"] for l in feed.get("locators") or []}
+        words_fp = {l["fingerprint"]: l.get("words") or [] for l in feed.get("locators") or []}
         notes = list((headers or {}).get(slug) or [])
         # the scopes are resolved for the release's notes AND the newest page's (`scope_headers`): the feed's notes
         # name waters by these keys, so a page newer than the release's rules still finds its waters here
@@ -321,6 +324,11 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             rules_of[loc.location_id] = [r for fp in loc.fingerprints for r in by_fp.get(fp, [])]
             if closure and rules_of[loc.location_id]:
                 rules_of[loc.location_id] = closure         # T320: the header's closure wins over the table's rows
+            # T321: the rows the card shows in DFO's words (new wording, an unread number, a note) — not under a closure
+            ws = [] if closure else [{k: w[k] for k in ("k", "sp", "d", "t")}
+                                     for fp in loc.fingerprints for w in words_fp.get(fp, [])]
+            if ws:
+                words_of[loc.location_id] = ws
             locs[loc.location_id] = (slug, loc, ef)
 
     placed = list(placed)
@@ -382,7 +390,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         unmapped.append({"items": sorted(water.item_ids) if water else [], "r": slug, "w": _label(loc),
                          "chain": chain_for([lid]), **({} if rules_of[lid] else {"d": 1})})
     payload = {"format": FORMAT, "credit": CREDIT, "default": UNLISTED_CHAIN, "regions": regions, "verdicts": verdicts.items,
-               "gears": gears.items, "chains": chains, "unmapped": unmapped, "scopes": scopes}
+               "gears": gears.items, "chains": chains, "unmapped": unmapped, "scopes": scopes,
+               **({"x": dict(sorted(words_of.items()))} if words_of else {})}
     return payload, sections
 
 

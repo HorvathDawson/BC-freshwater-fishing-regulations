@@ -109,6 +109,10 @@ _RE_NONE_OVER = re.compile(r"none\s+over\s+(\d+)\s*cm", re.I)
 _RE_MAX_SIZE = re.compile(r"(?:maximum\s+size\s+(\d+)\s*cm|(\d+)\s*cm\s+or\s+less)", re.I)
 #: "from 05:00 h until 22:00 h only"
 _RE_TIMES = re.compile(r"from\s+(\d{1,2}:\d{2})\s*h?\s+(?:until|to)\s+(\d{1,2}:\d{2})\s*h?", re.I)
+#: (T321) "one hour before sunrise to one hour after sunset" (Region 2, 2025 in-season rows): the same hours, off the sun
+#: (`catalogue.parse_clock` reads each end as a solar `Clock`, a negative offset BEFORE the event)
+_SOLAR = r"(?:(?:one|an|\d+)\s*(?:hours?|minutes?|min)\s+(?:before|after)\s+)?(?:sunrise|sunset)"
+_RE_SOLAR_TIMES = re.compile(rf"(?:from\s+)?({_SOLAR})\s+(?:until|to)\s+({_SOLAR})", re.I)
 #: "single barbless hook less than 15mm from point to shank"
 _RE_GAP = re.compile(r"less\s+than\s+(\d+)\s*mm(?:\s+from\s+point\s+to\s+shank)?", re.I)
 _RE_FLY = re.compile(r"fly[- ]fishing\s+only", re.I)
@@ -352,6 +356,9 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     notice = f"FN{int(fn.group(1)):04d}" if fn else None     # "FN 679" and "FN0679" are one notice
     rid = f"{rule_base}.r{order}"
     out: List[CatalogueRule] = []
+    # T321: a clause the wording registry does not hold — the row is unparsed (`wording.py`)
+    from pipeline.regs.dfo_salmon.wording import reason as _wording_reason
+    new_wording = _wording_reason(gear)
 
     def base(times=None, **kw) -> dict:
         d = dict(verbatim=gear or (rec.get("species") or "row"), notice=notice)
@@ -410,7 +417,7 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
 
     parent_id = ""
     if take is not None:
-        times = _RE_TIMES.search(gear)
+        times = _RE_TIMES.search(gear) or _RE_SOLAR_TIMES.search(gear)
         # The closure wording is the whole cell; a quota's cell may also carry gear clauses, so
         # quote just the count where we can find it.
         quoted = _span(gear, re.compile(r"\b\d+\s+(?:hatchery[- ]marked\s+)?per\s+day", re.I))
@@ -423,8 +430,9 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
                            "fish at all; published closed, confirm against the page")
                           if zero_quota else
                           # T320: a number in the cell no reading accounts for — the row keeps its words, flagged,
-                          # and the app shows them instead of a number (`quota.residue`)
-                          _unread(gear),
+                          # and the app shows them instead of a number (`quota.residue`); T321: a clause DFO never
+                          # used before (`wording.reason`) — the same
+                          _unread(gear) or new_wording,
             **base(times=times, verbatim=quoted or gear or (rec.get("species") or "row"))))
 
         # --- the size sub-limit, as its own rule pointing at the parent ----
@@ -463,6 +471,9 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
                 period=Period.monthly, lengths=[LengthBand(min_cm=int(mo.group(2)))], within=parent_id,
                 **base(verbatim=mo.group(0))))
 
+    # T321: a row with new wording and no limit rule — its gear rules carry the flag
+    gear_reason = new_wording if parent_id == "" else ""
+
     # --- gear. Never scoped by `species` — a hook rule binds everything you
     # --- may catch. What it IS scoped by is what you are fishing FOR.
     if says["bait_ban"]:
@@ -470,7 +481,7 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
         out.append(CatalogueRule(
             rule_id=f"{rid}_bait", type=RuleType.bait_restriction,
             gear=[{"slot": "bait", "ban": ["any_bait"]}],
-            when_targeting=codes, **base(verbatim=quoted or gear)))
+            when_targeting=codes, review_reason=gear_reason, **base(verbatim=quoted or gear)))
 
     if says["single_barbless_hook"]:
         gap = _RE_GAP.search(gear)
@@ -479,20 +490,20 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
             rule_id=f"{rid}_hook", type=RuleType.tackle_restriction,
             gear=[{"slot": "barb", "only": ["barbless"]}, {"slot": "points_per_hook", "max": 1}]
                  + ([{"slot": "hook_gap_mm", "max": int(gap.group(1))}] if gap else []),
-            when_targeting=codes, **base(verbatim=quoted or gear)))
+            when_targeting=codes, review_reason=gear_reason, **base(verbatim=quoted or gear)))
 
     if _RE_FLY.search(gear):
         out.append(CatalogueRule(
             rule_id=f"{rid}_fly", type=RuleType.tackle_restriction,
             gear=[{"slot": "method", "only": ["fly_fishing"]}],
-            when_targeting=codes, **base(verbatim=_span(gear, _RE_FLY) or gear)))
+            when_targeting=codes, review_reason=gear_reason, **base(verbatim=_span(gear, _RE_FLY) or gear)))
 
     # A row that stated nothing the scrape could type still has to survive into the entry, or the
     # regulation silently disappears between the page and the app.
     if not out:
         out.append(CatalogueRule(
             rule_id=rid, type=RuleType.advisory,
-            review_reason=_unread(gear) or ("a gear permission (natural bait allowed): no rule type states it"
+            review_reason=_unread(gear) or new_wording or ("a gear permission (natural bait allowed): no rule type states it"
                                              if _RE_BAIT_ALLOWED.search(gear) else
                                              "row states no limit, closure or gear rule the scrape could type"),
             **base()))

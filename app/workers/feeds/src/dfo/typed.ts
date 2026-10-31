@@ -6,6 +6,7 @@
 // HOLDS THE WHOLE REGION ("the page did not parse (ValidationError: ...)") — that sentence lands in index.json, so the
 // pydantic message is reproduced (its first 120 characters are what the feed keeps).
 import { readDates } from "./dates";
+import { reason as wordingReason } from "./wording";
 import { getCloseMatches } from "./difflib";
 import { PyFloat } from "./pyjson";
 import { capitalize, findall, floatRepr, fullmatch, PyError, pyInt, pyRe, repr, rstrip, search, split, splitWs, strip, sub, translate } from "./py";
@@ -228,6 +229,9 @@ const RE_WHICH_MAY = pyRe("(\\d+)\\s+of\\s+which\\s+may\\s+be\\s+(?:more\\s+than
 const RE_NONE_OVER = pyRe("none\\s+over\\s+(\\d+)\\s*cm", "i");
 const RE_MAX_SIZE = pyRe("(?:maximum\\s+size\\s+(\\d+)\\s*cm|(\\d+)\\s*cm\\s+or\\s+less)", "i");
 const RE_TIMES = pyRe("from\\s+(\\d{1,2}:\\d{2})\\s*h?\\s+(?:until|to)\\s+(\\d{1,2}:\\d{2})\\s*h?", "i");
+/** (T321) "one hour before sunrise to one hour after sunset": the hours off the sun (parseClock reads each end) */
+const SOLAR = "(?:(?:one|an|\\d+)\\s*(?:hours?|minutes?|min)\\s+(?:before|after)\\s+)?(?:sunrise|sunset)";
+const RE_SOLAR_TIMES = pyRe(`(?:from\\s+)?(${SOLAR})\\s+(?:until|to)\\s+(${SOLAR})`, "i");
 const RE_GAP = pyRe("less\\s+than\\s+(\\d+)\\s*mm(?:\\s+from\\s+point\\s+to\\s+shank)?", "i");
 const RE_FLY = pyRe("fly[- ]fishing\\s+only", "i");
 const RE_FN = pyRe("\\bFN\\s*(\\d{3,4})\\b", "i");
@@ -320,7 +324,7 @@ function speciesFor(text: string): string[] {
 
 // ── (T320) what a limits cell's numbers are: the residue no reading accounts for, and its named reason ──────────────
 const SPANS = [RE_DAILY, RE_DAILY_OF, RE_ONLY_OVER, RE_WHICH_MAY, RE_OF_WHICH_N, RE_UNMARKED, RE_MONTHLY, RE_NONE_OVER,
-               RE_MAX_SIZE, RE_TIMES, RE_GAP, RE_FN, pyRe("\\b(?:Region|Area)s?\\s+\\d+[A-Za-z]?\\b", "i")];
+               RE_MAX_SIZE, RE_TIMES, RE_SOLAR_TIMES, RE_GAP, RE_FN, pyRe("\\b(?:Region|Area)s?\\s+\\d+[A-Za-z]?\\b", "i")];
 const RE_DIGITS = pyRe("\\d+(?:\\.\\d+)?");
 /** quota.residue */
 export function residue(text: string): string[] {
@@ -580,6 +584,8 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
   const notice = fn ? `FN${String(pyInt(fn[1]!)).padStart(4, "0")}` : null;
   const rid = `${ruleBase}.r${order}`;
   const out: TypedRule[] = [];
+  // T321: a clause the wording registry does not hold — the row is unparsed (wording.ts)
+  const newWording = wordingReason(gear);
 
   const make = (fields: Omit<TypedRule, "verbatim"> & { verbatim?: string }, times: RegExpExecArray | null = null): TypedRule => {
     // base(): verbatim / notice / when, then the kwargs (kwargs win)
@@ -615,7 +621,7 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
   }
 
   if (take !== null) {
-    const times = search(RE_TIMES, gear);
+    const times = search(RE_TIMES, gear) ?? search(RE_SOLAR_TIMES, gear);
     const quoted = span(gear, RE_QUOTA_SPAN);
     out.push(
       make(
@@ -628,7 +634,7 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
           origin: says.hatchery_marked_only ? "hatchery" : undefined,
           review_reason: zeroQuota
             ? "a bare '0 per day' says the quota is zero but not whether you may fish at all; published closed, confirm against the page"
-            : unreadReason(gear),
+            : unreadReason(gear) || newWording,
           verbatim: quoted || gear || rec.species || "row",
         },
         times,
@@ -667,9 +673,11 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
     if (mo)
       out.push(make({ rule_id: `${rid}m`, type: "retention_limit", species: codes, take: pyInt(mo[1]!), period: "monthly", lengths: [{ min_cm: pyInt(mo[2]!) }], within: rid, verbatim: mo[0] }));
   }
+  // T321: a row with new wording and no limit rule — its gear rules carry the flag
+  const gearReason = take === null ? newWording : "";
   if (says.bait_ban) {
     const quoted = span(gear, RE_BAIT_SPAN);
-    out.push(make({ rule_id: `${rid}_bait`, type: "bait_restriction", gear: [{ slot: "bait", ban: ["any_bait"] }], when_targeting: codes, verbatim: quoted || gear }));
+    out.push(make({ rule_id: `${rid}_bait`, type: "bait_restriction", gear: [{ slot: "bait", ban: ["any_bait"] }], when_targeting: codes, review_reason: gearReason, verbatim: quoted || gear }));
   }
   if (says.single_barbless_hook) {
     const gap = search(RE_GAP, gear);
@@ -679,11 +687,11 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
       { slot: "points_per_hook", max: new PyFloat(1) },
     ];
     if (gap) g.push({ slot: "hook_gap_mm", max: new PyFloat(pyInt(gap[1]!)) });
-    out.push(make({ rule_id: `${rid}_hook`, type: "tackle_restriction", gear: g, when_targeting: codes, verbatim: quoted || gear }));
+    out.push(make({ rule_id: `${rid}_hook`, type: "tackle_restriction", gear: g, when_targeting: codes, review_reason: gearReason, verbatim: quoted || gear }));
   }
   if (search(RE_FLY, gear))
     out.push(
-      make({ rule_id: `${rid}_fly`, type: "tackle_restriction", gear: [{ slot: "method", only: ["fly_fishing"] }], when_targeting: codes, verbatim: span(gear, RE_FLY) || gear }),
+      make({ rule_id: `${rid}_fly`, type: "tackle_restriction", gear: [{ slot: "method", only: ["fly_fishing"] }], when_targeting: codes, review_reason: gearReason, verbatim: span(gear, RE_FLY) || gear }),
     );
   if (!out.length)
     out.push(
@@ -693,6 +701,7 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
         review_reason: unparsedDates
           ? `dates do not parse to a calendar window: ${repr(rawDates)}`
           : unreadReason(gear) ||
+            newWording ||
             (search(RE_BAIT_ALLOWED, gear)
               ? "a gear permission (natural bait allowed): no rule type states it"
               : "row states no limit, closure or gear rule the scrape could type"),

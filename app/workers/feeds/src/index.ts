@@ -109,7 +109,8 @@ export function dfoEvents(notices: { key: string; text: string; data?: unknown }
       key: n.key,
       kind: "dfo" as const,
       title: n.text.split(";")[0]!.slice(0, 200),
-      text:
+      // (T321) a new wording is not a place to review: its own text says what to do
+      text: n.key.startsWith("dfo-wording:") ? n.text :
         `${n.text}\n\n` +
         (m ? `First: python -m pipeline.regs.dfo_salmon.live queue --regions ${m[1]}\n` : "") +
         `Then: Review app → DFO → Extents: ${lid ?? placeOf(n.text) ?? "the new rows"}`,

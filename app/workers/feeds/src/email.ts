@@ -59,16 +59,22 @@ export function dfoSection(events: FeedEvent[]): Section {
   const header = ds.filter((d) => d.kind === "header" || d.kind === "header-name");
   // (T320) the page's general text changed: the feed reads no rule out of it — a human reviews old vs new
   const texts = ds.filter((d) => d.kind === "text");
+  // (T321) a clause DFO never printed before: the row shows DFO's words, no number, until the registry knows it
+  const wording = ds.filter((d) => d.kind === "wording");
   const parts: string[] = [];
   if (toPlace.length) parts.push(`${plural(toPlace.length, "new place")} to place`);
   if (held.length) parts.push(`${plural(held.length, "item")} held`);
   if (header.length) parts.push(`${plural(header.length, "header note")}`);
   if (texts.length) parts.push(`header text changed in ${plural(texts.length, "region")}`);
+  if (wording.length) parts.push(`${plural(wording.length, "new wording", "new wordings")} in a limits cell`);
   const blocks: Block[] = regions.map((r) => ({
     title: regionLabel(r),
     items: ds
       .filter((d) => d.region === r)
-      .flatMap((d) => d.kind === "text"
+      .flatMap((d) => d.kind === "wording"
+        ? [{ name: `New wording: "${d.clause ?? ""}"`, text: d.cell,
+             note: [d.place, [d.species, d.dates || "all year", d.fn].filter(Boolean).join(", "), d.affects].filter(Boolean).join(" · ") }]
+        : d.kind === "text"
         ? [...(d.was ?? []).map((t: string) => ({ name: "Was", text: t, note: "" })),
            ...(d.now ?? []).map((t: string) => ({ name: "Now", text: t, note: "" })),
            { name: "Whole region", text: undefined, note: d.affects }]
@@ -89,6 +95,10 @@ export function dfoSection(events: FeedEvent[]): Section {
   }
   if (texts.length)
     steps.push({ text: `Review the header / general text of DFO's page for ${listRegions(sortRegions(texts.map((d) => d.region)))} (was / now above): the feed shows the new words but reads no rule from them — if it opens, closes or changes a limit, change the region's rules by hand (pipeline/regs/dfo_salmon/header.py, quota.py).` });
+  if (wording.length)
+    steps.push({
+      text: `Read DFO's words for each new wording above (DFO's page for ${listRegions(sortRegions(wording.map((d) => d.region)))}) — it may change a limit. Then add one entry per template to data/curated/dfo_salmon/wording.json: kind "structure" (teach pipeline/regs/dfo_salmon/typed.py and the Worker's src/dfo/typed.ts to read it first), "note" (the card shows the row in DFO's words) or "provenance"; add a line for it to pipeline/tests/test_dfo_wording.py; redeploy the feeds worker. Until then the row shows DFO's words and no number. Templates: ${[...new Set(wording.map((d) => d.template ?? ""))].map((t) => `"${t}"`).join(", ")}`,
+    });
   if (held.length) steps.push({ text: "Held items keep their last answers in the app; check the feed status, then the DFO page if a fetch keeps failing." });
   return {
     heading: `DFO salmon: ${parts.join(", ")} — ${listRegions(regions)}`,

@@ -119,3 +119,18 @@ describe("the line by the mode switch (T276)", () => {
     expect(salmonCheckedLine(null)).toBeNull();
   });
 });
+
+describe("(T321) the feed's rows in DFO's words", () => {
+  it("a location the feed carries answers with the feed's rows; the others keep the release's", () => {
+    const r = release();
+    const f = feed();
+    const [carried, other] = [Object.keys(f.locs)[0]!, "zz:not-in-the-feed"];
+    const rel = { ...r, chainOf: r.chainOf, payload: { ...r.payload, x: {
+      [carried]: [{ k: "note", sp: "Coho", d: "", t: "old words" }], [other]: [{ k: "new", sp: "Coho", d: "", t: "kept" }] } } } as SalmonFacts;
+    const fx = { ...f, locs: { ...f.locs, [carried]: { ...f.locs[carried]!, x: [{ k: "new", sp: "Coho", d: "", t: "new words" }] } } } as typeof f;
+    expect(withSalmonFeed(rel, fx).payload.x).toEqual({
+      [other]: [{ k: "new", sp: "Coho", d: "", t: "kept" }], [carried]: [{ k: "new", sp: "Coho", d: "", t: "new words" }] });
+    const plain = withSalmonFeed(rel, f).payload.x!;
+    expect(plain[carried]).toBeUndefined();                                       // the feed says nothing now: gone
+  });
+});

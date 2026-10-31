@@ -87,7 +87,7 @@ describe("one bad row holds only its location", () => {
   const entries = async (slug: string) => readFileSync(join(FIX, `entries/region-${slug}.json`), "utf-8");
   const clean = page("8");
   // a hook gap of 5 mm fails the catalogue (smaller than any gap the book prints) → ValidationError on that row
-  const bad = clean.replace("<td>4 per day, only 2 over 50&nbsp;cm.</td>", "<td>4 per day, single barbless hook less than 5 mm from point to shank</td>");
+  const bad = clean.replace("<td>4 per day, only 2 over 50&nbsp;cm.</td>", "<td>4 per day, single barbless hook less than 5mm from point to shank</td>"); // (T321) spelled as DFO does: no new-wording notice
   const run = (feed: MemStore, html: string, extra: Partial<Parameters<typeof runDfo>[0]> = {}) =>
     runDfo({ fetch: async () => new Response(""), feed, priv: new MemStore(), entries, now: "2026-10-28T12:00:00Z", regions: ["8"], fetcher: async () => [html, null], ...extra });
 

@@ -95,7 +95,13 @@ interface Payload {
   readonly scopes?: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>>;
   /** the bundle regions the file has a slice for */
   readonly shards?: readonly string[];
+  /** (T321) location id → its rows the card shows in DFO's words (`pipeline/regs/dfo_salmon/wording.py`) */
+  readonly x?: Readonly<Record<string, readonly SalmonWords[]>>;
 }
+/** (T321) A DFO row the app shows in DFO's words: `new` a clause DFO never printed before and `unread` a number no reading
+ *  accounts for (both: no number is shown — the row is unparsed), `note` a known clause whose meaning is DFO's words.
+ *  `sp` / `d` / `t` the species, dates and limits cells as printed. */
+export interface SalmonWords { readonly k: "new" | "unread" | "note"; readonly sp: string; readonly d: string; readonly t: string }
 
 export interface SalmonFacts {
   readonly handles: string;
@@ -343,6 +349,11 @@ export const SALMON_WORDS = {
   },
   /** (T320) a species whose DFO row is not one reading: no number, DFO's words under the table */
   quotaUnread: "Limit: see DFO's words below",
+  /** (T321, owner 2026-10-31) a water whose DFO rows include one the app cannot read (new wording) */
+  wordingChanged: "DFO changed the wording here — read their text",
+  /** (T321) rows whose DFO words matter as printed */
+  wordingNotes: "DFO's words for this water",
+  wordingAllYear: "All year",
   /** (T318) the species table, the DFO words under it, and the places folded */
   tableSpecies: "Species today",
   tableDfoSays: "DFO says",
@@ -460,6 +471,18 @@ export interface SalmonCardVM extends SalmonBlockVM {
   /** (T320, owner 2026-10-31) a header's combined limit on a water system this page is in (Squamish), while that
    *  species is open here — else none */
   readonly waterBuckets?: readonly SalmonBucketVM[];
+  /** (T321, owner 2026-10-31) the page's DFO rows in DFO's words: `changed` — the wording changed (a clause never seen
+   *  before, or a number not read): no number is shown for them, read DFO's text; `notes` — rows whose words matter as
+   *  printed ("in the aggregate", "see exception below"). Null when there are none. */
+  readonly dfoWords?: SalmonWordsVM | null;
+}
+/** (T321) one DFO row in DFO's words: its species and dates cells (dates "All year" when blank) and the limits cell */
+export interface SalmonWordsRowVM { readonly species: string; readonly dates: string; readonly words: string }
+export interface SalmonWordsVM {
+  readonly changed: readonly SalmonWordsRowVM[];
+  readonly changedHead: string;
+  readonly notes: readonly SalmonWordsRowVM[];
+  readonly notesHead: string;
 }
 
 /** (T227) A bar's day: the map's four, or `varies` — the part's sections differ that day. */
@@ -488,6 +511,20 @@ export interface SalmonYearVM {
 
 /** The provincial gear classes of a page's sections on the day (`methodClassOn`), for the card's gear line. */
 export type SalmonGearInput = readonly MethodClass[];
+
+/** (T321) the DFO rows of these locations the card shows in DFO's words, once each; null when none */
+function wordsOf(P: Payload, lids: readonly string[]): SalmonWordsVM | null {
+  const seen = new Set<string>();
+  const changed: SalmonWordsRowVM[] = [], notes: SalmonWordsRowVM[] = [];
+  for (const l of new Set(lids)) for (const w of P.x?.[l] ?? []) {
+    const k = JSON.stringify([w.k === "note", w.sp, w.d, w.t]);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    (w.k === "note" ? notes : changed).push({ species: w.sp, dates: w.d || SALMON_WORDS.wordingAllYear, words: w.t });
+  }
+  return changed.length || notes.length
+    ? { changed, changedHead: SALMON_WORDS.wordingChanged, notes, notesHead: SALMON_WORDS.wordingNotes } : null;
+}
 
 /** The species rows for a set of chains on a day: species alike grouped, every-species-closed collapsed. */
 export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: number): SalmonBlockVM {
@@ -636,6 +673,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     headline: SALMON_WORDS.headline[headlineStatus], headlineStatus,
     notListed: listed || unmapped.length ? null : SALMON_WORDS.notListedLine,
     unmapped: unmapped.map((u) => ({ label: u.w, tag: SALMON_WORDS.unmapped, block: salmonBlock(f, [u.chain], day) })),
+    dfoWords: regionClosed ? null : wordsOf(P, [...chains.flatMap((c) => [...P.chains[c]!.l, ...(P.chains[c]!.u ?? [])]),
+                                                  ...unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? [])]),
     partial: isPartial ? { text: SALMON_WORDS.partial, link: SALMON_WORDS.partialLink,
                            url: P.regions[partialRegions[0]!]?.url ?? "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/index-eng.html" } : null,
     source: [SALMON_WORDS.agency,

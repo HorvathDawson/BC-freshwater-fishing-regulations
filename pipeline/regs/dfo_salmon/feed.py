@@ -42,6 +42,7 @@ from typing import Dict, List, Optional
 from pipeline.common.curated import GENERATED
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
 from pipeline.regs.dfo_salmon.typed import row_text, to_rules
+from pipeline.regs.dfo_salmon.wording import row_words
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,8 @@ def build(scraped: dict) -> dict:
             # these, so whoever joins the feed can check the quote without the page.
             "rows": [row_text(r) for r in recs],
             "rules": [r.model_dump(mode="json", exclude_defaults=True, by_alias=True) for r in rules],
+            # T321: the rows the card shows in DFO's words — new wording (unparsed), an unread number, or a note
+            **({"words": words} if (words := [w for w in map(row_words, recs) if w]) else {}),
         })
 
     return {

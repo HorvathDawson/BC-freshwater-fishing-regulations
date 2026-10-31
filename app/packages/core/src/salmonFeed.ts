@@ -15,7 +15,7 @@
  * than the capture (`pickSalmon`).
  */
 import { MONTHS } from "./calendar.generated";
-import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket } from "./salmon";
+import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
@@ -32,7 +32,11 @@ export interface SalmonFeedRegion {
   /** (T320) the salmon bucket read from those notes (`quota.bucket`) */
   readonly bucket?: SalmonBucket;
 }
-export interface SalmonFeedLocation { readonly r: string; readonly sp: readonly (readonly number[])[]; readonly g: readonly number[] }
+export interface SalmonFeedLocation {
+  readonly r: string; readonly sp: readonly (readonly number[])[]; readonly g: readonly number[];
+  /** (T321) the location's rows in DFO's words (new wording, an unread number, a note) */
+  readonly x?: readonly SalmonWords[];
+}
 export interface SalmonFeed {
   readonly format: typeof SALMON_FEED_FORMAT;
   /** when the feed was published (UTC ISO) — the capture's as-of */
@@ -106,6 +110,13 @@ export function composeChain(lids: readonly string[], feed: SalmonFeed,
   return { sp: sp.map(runsOf), g: runsOf(g), m: partial ? [0, MAP_CODES.indexOf("check")] : runsOf(m) };
 }
 
+function wordsWithFeed(release: Readonly<Record<string, readonly SalmonWords[]>>, feed: SalmonFeed): Record<string, readonly SalmonWords[]> {
+  const out: Record<string, readonly SalmonWords[]> = {};
+  for (const [l, w] of Object.entries(release)) if (!feed.locs[l]) out[l] = w;
+  for (const [l, c] of Object.entries(feed.locs)) if (c.x?.length) out[l] = c.x;
+  return out;
+}
+
 /** What a salmon file read through a feed says about the feed (absent: the release's own file). */
 export interface SalmonFeedFacts { readonly at: string; readonly stale: readonly string[] }
 const FEED = Symbol("salmonFeed");
@@ -121,6 +132,8 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
   }));
   const payload: Payload = {
     ...P, regions, verdicts: feed.verdicts, gears: feed.gears,
+    // (T321) a location the feed carries answers with the feed's rows in DFO's words; the rest keep the release's
+    x: wordsWithFeed(P.x ?? {}, feed),
     chains: P.chains.map((c) => ({ ...c, ...composeChain(c.l, feed, c.u ?? []) })),
     // a place not drawn yet shows while DFO lists it: the feed's say, not the build's (so never dormant here)
     unmapped: P.unmapped.filter((u) => P.chains[u.chain]?.l.some((l) => !!feed.locs[l]))
