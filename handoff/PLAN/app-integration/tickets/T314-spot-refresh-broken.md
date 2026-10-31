@@ -1,6 +1,6 @@
 # T314 — Spot data refresh doesn't work in 0.3.0
 
-Status: IN REVIEW — fixed + unit-pinned (21d047df8); emulator check pending (owner 2026-10-31, on the 0.3.0 APK: "the refresh for spot data isn't working").
+Status: DONE (21d047df8, 9ce7f4079, d67341585) — emulator 2026-10-31 (`app/tools/testbed/out/runs/apk-0400`, SPOTS_AT Vedder): saved offline, back online the reconnect refresh filled weather + the 4-gauge estimate by itself; the page is identical before and after a manual Refresh. What stays on the visit day ("some days of the week before …", "the flow on the day … from the day's record") is unpublished data no refresh can fill until the day is over (harness now judges what the spot records, not the banner).
 
 ## Work
 Reproduce on the emulator (0.3.0 build, staging): a spot saved offline or with pending weather/flow, then online → refresh

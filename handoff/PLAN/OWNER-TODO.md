@@ -6,6 +6,19 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **0.4.0 on Play internal (versionCode 7, 2026-10-31, `89ebd94bf`; release r-4e709418ebd8 on staging, smoke 18/18):**
+  install from the tester link and look at (1) the T316 spot marks on the map (Noto Sans names); (2) a spot saved
+  offline on a river fills by itself back online (T314). Prod stays yours:
+  `pipeline.deliver.release.publish --release data/release/r-4e709418ebd8 --min-app-version 0.3.0 --yes`.
+  New in this release: the 08MH044 cut moved to Albion. The build's braid rule carried it across Bedford Channel and 2
+  of its tributaries. So Bedford Channel now has 2 sections and no gauge; before, it was answered "fair" by 08KA007
+  Fraser at Red Pass. On the Fraser, the length cut at Bedford Channel moved to the gauge. The cut is still labelled
+  "Fraser River At Whonock" (old HYDAT name). Say if you want any of that different.
+  Still red, not from this batch (other lanes, in flight): pytest 7 fast / 2 slow failures (T322 slough-fold gate
+  allowlists, T325 lock/write-through + DFO lock tests, review export after the Hatzic mark = `entries.json` not
+  re-exported, status_index skip, T57 sweep fixture, a flaky browser test); release-perf A5 search p95 ~9 ms vs its 8 ms
+  ceiling (same on r-038e6: the laptop, not the release); knip on the untracked `app/tools/build-play-graphics.mjs`
+  (pngjs).
 - **DFO wording registry (T321, 2026-10-31):** review the 85 PROPOSED entries in `data/curated/dfo_salmon/wording.json` (one a line: kind structure/note/provenance + what reads it; mark `accepted` or `rejected`), esp. the 15 notes. Then the feeds worker deploy (`npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml`) so new wording emails you and the card shows DFO's words. After edits: `deploy/staging/sync-inputs.sh` (or ask Claude) — no worker redeploy needed.
 - **Build pass (T266/T295/T297, 2026-10-31):** review `handoff/PLAN/app-integration/build-pass-2026-10-31.md`. The proof side run matched r-51d80e68f056 byte for byte, except the tile_version (T305) and the publish stamps. Nothing was promoted. Yours: (1) confirm the decided-data split, one dir `data/curated/decided/`; (2) `mined_names.json` lacks your 10-29 Sheldens Creek accept, so run `python -m pipeline.tools.mined_names` with the next atlas rebuild. (3) The slow suite has 8 failures on live data that predate the pass (T306; status_index 198/6000 disagree is the one to look at).
 - **App test bed (T255, 2026-10-29):** Android emulator scenarios for downloads/sync/offline — `app/tools/testbed/README.md`; last report `handoff/PLAN/app-integration/T255-shots/run-final/index.html`. Found and ticketed: the first install crash-loops on Android (T262, high), Wi-Fi return does not start a held update (T265).

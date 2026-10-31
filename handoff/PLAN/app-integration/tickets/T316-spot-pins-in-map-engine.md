@@ -36,6 +36,14 @@ Depends: T310, T312. Size: S–M. Owner: no.
 | before | travelling | 793 | 28 | 33.1 / 35.0 | 329 | 4.9 % | 16 |
 | after (T316 + T317 + T314/T315) | circling | 763 | 30 | 33.1 / 38.2 | 203 | 53.7 % | 107 |
 | after | travelling | 797 | 36 | 33.1 / 36.9 | 204 | 56.4 % | 113 |
+| 0.4.0 HEAD, PAN_SPOTS=0 (start view, 10-31) | circling | 998 | 136 | 49.8 / 198.6 | 197 | 55.8 % | 107 |
+| 0.4.0 HEAD, PAN_SPOTS=0 | travelling | 1192 | 45 | 34.1 / 200.2 | 210 | 48.1 % | 101 |
+| 0.4.0 HEAD, PAN_SPOTS=6 (Cultus, 10-31) | circling | 762 | 25 | 33.5 / 49.4 | 203 | 55.7 % | 112 |
+| 0.4.0 HEAD, PAN_SPOTS=6 | travelling | 779 | 23 | 32.9 / 39.7 | 201 | 55.2 % | 110 |
+**Jank answered (10-31): not the spots.** With no spots at all the UI thread shows the same ~50–56 % janky / ~105 slow
+draws, and so did every pre-T316 pan with no spots (t280-before/after runs 10-29/30: 53–78 %, ~110 slow draws). The 5 %
+"before" was the outlier: the view-annotation pins made the UI thread draw ~130 extra cheap frames per round, which
+diluted the ratio. The map surface (what the reader sees move) is as good or better with the layers.
 Read: the map's own surface is unchanged (it never waited on the pins); the app's UI thread draws ~40 % fewer frames
 during a pan (no views moved per frame) — the lag the owner saw cannot happen to layers. BUT the UI frames that remain
 are mostly flagged "slow issue draw commands" (5 % → 55 % janky). Not attributed: the after build also carries T317's
