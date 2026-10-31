@@ -68,9 +68,17 @@ export function netState() {
 
 async function waitOnline(want, ms = 45_000) {
   const end = Date.now() + ms;
+  let kicked = false;
   while (Date.now() < end) {
     const s = netState();
     if (s === want && probe()) return;
+    // (T314/T315 reruns) the emulator's radios sometimes stick after airplane mode (Wi-Fi never back, or up with no
+    // route): once, halfway, turn the wanted radio off and on again
+    if (!kicked && end - Date.now() < ms / 2) {
+      kicked = true;
+      const radio = want === 'WIFI' ? 'wifi' : 'data';
+      sh(`svc ${radio} disable`); await sleep(2000); sh(`svc ${radio} enable`);
+    }
     await sleep(1500);
   }
   throw new Error(`network did not reach ${want} (now ${netState()})`);

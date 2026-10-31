@@ -26,10 +26,15 @@ export async function capture(ctx) {
       d.sh(`input tap ${pin[0]} ${pin[1] + off}`);
       await d.sleep(1500);
       ctx.flow('tap-text', { TEXT: 'Next' });
-      // (T307) how long the read of the water takes to land on the save step (offline it must not wait on the network)
+    } else if (words.includes('When were you there?') && words.includes('Next')) {
+      // (T307/T323) the ONE step that reads (cap.capture: gauge, weather, the day's flow) is the "When were you there?"
+      // Next → the draft with "Save spot"; offline it must not wait on the network. (T323: this was timed from the
+      // pick-the-water Next, which lands on THIS screen, not on Save spot — so it always ran to its 15 s cap.)
+      ctx.flow('tap-text', { TEXT: 'Next' });
       const t0 = Date.now();
       while (Date.now() - t0 < 15_000 && !d.screenText().some((w) => /^(Save spot|Save)$/.test(w))) await d.sleep(200);
       ctx.captureMs = Date.now() - t0;
+      continue;
     } else if (words.includes('Continue')) ctx.flow('tap-text', { TEXT: 'Continue' });
     else if (words.includes('Next')) ctx.flow('tap-text', { TEXT: 'Next' });
     await d.sleep(2500);
