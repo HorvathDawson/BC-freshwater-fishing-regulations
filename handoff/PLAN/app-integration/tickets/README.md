@@ -365,6 +365,7 @@ use that as the sole source of future work."
 | T321 | DFO limits wording as a closed registry: unknown clause → row flagged, water card shows DFO's words, URGENT alert; closes hours-in-words / "in the aggregate" / "see exception" gaps | DONE (next release + feeds worker deploy; owner reviews 85 proposed entries) | T320 | owner 2026-10-31 |
 | T322 | Fold owner-confirmed sloughs (811) into the stream flowing through; no stream through → ignored, never a new unnamed stream; own side build + binding diff for owner review | OPEN | T55, T266 | owner 2026-10-30 |
 | T323 | Offline spot save took 15 s to reach "Save spot" (T307 target < 3 s): never wait on network | OPEN | T307 | T314 lane 2026-10-30 |
+| T324 | One clean data flow: map every stream end to end, final curated file per data type, one-time lock of reviewed marks into it, cleanup tickets | OPEN | T266, T322 | owner 2026-10-30 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |
 
