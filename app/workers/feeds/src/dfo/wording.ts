@@ -7,7 +7,9 @@ import doc from "../../../../../data/curated/dfo_salmon/wording.json";
 import { finditer, lstrip, repr, pyRe, strip, sub } from "./py";
 import { unreadReason } from "./typed";
 
-export const FORMAT = "dfo-wording/1";
+// T332: /2 — the clause split changed; a /1 registry in R2 (or a /2 one read by a pre-T332 Worker) is refused and the
+// compiled-in copy answers, so a deploy and an inputs sync in either order never flag the other split's clauses as new
+export const FORMAT = "dfo-wording/2";
 export const NEW_WORDING = "new wording: ";
 export const REGISTRY_PATH = "data/curated/dfo_salmon/wording.json";
 

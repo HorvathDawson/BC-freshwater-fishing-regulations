@@ -95,7 +95,7 @@ describe("the registry as a runtime input (priv wording.json)", () => {
   const run = (priv: MemStore, now = "2026-10-31T12:00:00Z") =>
     runDfo({ fetch: async () => new Response("ok"), notifyUrl: "http://n", feed: new MemStore(), priv, entries, now, regions: ["8"], fetcher: async () => [bad, null] });
   const wordingKeys = (r: Awaited<ReturnType<typeof run>>) => r.notices.filter((n) => n.key.startsWith("dfo-wording:")).map((n) => n.key);
-  const compiled = () => ({ format: "dfo-wording/1", entries: [...REGISTRY.values()] });
+  const compiled = () => ({ format: "dfo-wording/2", entries: [...REGISTRY.values()] });
 
   it("the R2 copy wins over the compiled-in one", async () => {
     const priv = new MemStore();
@@ -120,6 +120,14 @@ describe("the registry as a runtime input (priv wording.json)", () => {
     const inv = await run(priv);
     expect(wordingKeys(inv)).toEqual([`dfo-wording:${template(NEW)}`]);
     expect(inv.warnings![0]).toContain("invalid");
+  });
+
+  it("(T332) a dfo-wording/1 copy in R2 (the old clause split's templates) is refused: the compiled-in one answers", async () => {
+    const priv = new MemStore();
+    priv.m.set("wording.json", JSON.stringify({ ...compiled(), format: "dfo-wording/1" }));
+    const got = await run(priv);
+    expect(wordingKeys(got)).toEqual([`dfo-wording:${template(NEW)}`]);           // only the real new wording, no split scrap
+    expect(got.warnings![0]).toContain("invalid");
   });
 
   it("a new entry in the R2 copy stops the alert for that template", async () => {

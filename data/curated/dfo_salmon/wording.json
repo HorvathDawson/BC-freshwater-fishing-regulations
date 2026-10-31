@@ -1,5 +1,5 @@
 {
- "format": "dfo-wording/1",
+ "format": "dfo-wording/2",
  "about": "T321: every clause DFO has printed in a limits cell, numbers blanked, and what it means. A clause not here is NEW WORDING: the row shows DFO's words, no number, and the owner is emailed. Built by `python -m pipeline.regs.dfo_salmon.wording build`. T332 (owner 2026-10-30): each entry checked against its cells and accepted; a doubtful one stays proposed.",
  "entries": [
   {"template": "n per day", "kind": "structure", "reads": ["daily"], "status": "accepted", "rows": 1823, "pages": 60, "example": "4 per day", "cell": "4 per day"},

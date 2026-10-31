@@ -46,7 +46,9 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.common.curated import REPO_ROOT
 
-FORMAT = "dfo-wording/1"
+#: T332: /2 — the clause split changed (no section-title / species-list / "Single," / dash scraps), so a /1 registry's
+#: templates are not this split's: each reader refuses the other's format and falls back to its own compiled-in copy
+FORMAT = "dfo-wording/2"
 REGISTRY = REPO_ROOT / "data/curated/dfo_salmon/wording.json"
 #: a typed rule's `review_reason` for a row with a clause the registry does not know
 NEW_WORDING = "new wording: "
