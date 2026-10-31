@@ -96,3 +96,11 @@ on iOS (no gfxinfo; Instruments is the follow-up). Simulator numbers = regressio
 `scripts/heavy.sh testbed-ios 25 -- bash app/tools/testbed/session-ios.sh --max-min 40 -- node app/tools/testbed/run-ios.mjs tap-water offline satellite perf --out app/tools/testbed/out/runs/ios-t313e`
 Left: that run green (tap-water, offline, satellite, perf map-tap numbers), edge-back verdict (ticket if all stay),
 add the [open] numbers above, close T313. T332 stays open.
+
+## Run ios-t313e (2026-10-31 07:15, run by the main session)
+PASS: first-open, map, location, walkthrough (walks 1–16; step 17 = T336), pdf, perf (3 cold starts, search, pan).
+FAIL: tap-water step 3, offline ×3, satellite ×2 — all "element not found" (search-field / More / Choose layers) right
+after the edge-back step, which logged "y 50% 400 ms: stayed": the app was most likely left on the water's page, so
+every later flow started from the wrong screen (a cascade, not new app bugs). Next: make each scenario start from the
+map (reset/relaunch between scenarios) and settle edge-back (fast mid-height swipe stays put). Report:
+app/tools/testbed/out/runs/ios-t313e/.
