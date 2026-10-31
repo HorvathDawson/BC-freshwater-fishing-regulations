@@ -8,6 +8,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-10-31, 07:00: stopped at a safe point
+
+- **Config tidy-up merged** [T327, T331]. The 2 tests it broke are fixed; the full fast suite is re-running to confirm.
+- **Old releases pruned:** kept r-4e709418ebd8 (live on staging) and r-038e6818e80f (previous); 26 deleted.
+  - Prod has NO release yet, so 0.3.0/0.4.0 testers read staging.
+- **Not started:**
+  - Slough fold release [T322]: still off, no side build.
+  - DFO trout-shape merge [T332]: not merged.
+  - Both have exact RESUME commands in their tickets. Nothing is half-done.
+- **iOS** last scenarios and performance: running as a heavy job (spends no credits).
+- **Three staged files that aren't Claude's** sit uncommitted in the main checkout: a T215 screenshot, binding-diff-amb.json, and the T202 audit. Yours to keep or drop.
+
 ## 2026-10-31, 06:30: credits low, wrapping up safely
 
 - Both running lanes are told to finish only their current step, commit, and write a RESUME section in their ticket. Nothing is left half-merged or half-promoted.
