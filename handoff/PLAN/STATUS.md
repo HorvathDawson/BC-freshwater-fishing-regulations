@@ -66,7 +66,17 @@ The lane stops and reports if any check fails.
 - Only polygons no stream line touches are skipped.
 - After the rebuild above, this gets its own side build. Claude checks that only those waters change, then promotes it. There is no owner review step (owner's call).
 
-**Reviews save straight into curated files** [T325]
+**Reviews save straight into curated files** [T325]: DONE (1a403a926).
+Saving a mark now updates the curated file in the same save:
+- Sloughs and names: instantly.
+- DFO and regulation extents: a moment later, in the background. The app shows "saving to curated…".
+- Tidal: still uses its current path until it gets its own file [T326].
+- If a save is refused, the mark is kept and an amber "Mark saved, NOT in the curated file" list says why. The next save retries.
+- There is no lock step. An empty queue reads "done". Ponds shows "Closed — feeds nothing".
+- Catch-up command if marks were made while the app was off: `python -m pipeline.regs.review.apply`.
+- Heads-up: one of your entry decisions is waiting to apply on your next entry mark. Hatzic, with tributaries included, widens rules r2/r3 from 4 to 92 sections.
+
+What the plan said for this item:
 Saving a mark in the review app will update that data type's final curated file in the same save: tidal, sloughs, DFO extents, regulation extents, splits and names.
 - There is no lock step and nothing to run.
 - If a save is refused, the mark is kept and the app shows why.
