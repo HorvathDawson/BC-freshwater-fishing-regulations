@@ -4,6 +4,13 @@
 
 /** What a spot says while something it records is still to be read (`@app/data/spots` refreshReason words). */
 export const MISSING = /No weather was recorded|it can be filled in|not recorded|still to read|days? (are )?pending|Refresh this spot/i;
+/**
+ * (T314) What must be gone once the reconnect refresh ran: what the spot RECORDS (weather, the day's flow, its gauges).
+ * Not the Refresh button's label ("Refresh this spot"): a spot saved on its own day keeps the banner while days of the
+ * week before are not published yet ("Some days of the week before were not available yet …") — no refresh can fill
+ * those until the day's record exists (seen 2026-10-31 00:50: the same page before and after a manual Refresh).
+ */
+export const UNFILLED = /No weather was recorded|it can be filled in|not recorded|still to read|days? (are )?pending/i;
 
 export function localAdapter(ctx) {
   const open = async (spot) => {
@@ -31,7 +38,7 @@ export function localAdapter(ctx) {
       let left = null;
       while (Date.now() < end) {
         await open(spot);
-        left = ctx.device.screenText().find((w) => MISSING.test(w)) ?? null;
+        left = ctx.device.screenText().find((w) => UNFILLED.test(w)) ?? null;
         back();
         if (!left) return 'filled in: nothing missing';
         await ctx.device.sleep(10_000);

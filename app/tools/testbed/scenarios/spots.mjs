@@ -131,8 +131,14 @@ export const spots = {
         const js = d.logcatJs().split('\n').filter((l) => /ReactNativeJS/.test(l)).slice(-6).join(' / ');
         ctx.flow('tab', { TAB: 'Spots' });
         ctx.flow('tap-text', { TEXT: spot.title });
+        // (T314) what the page says BEFORE the manual Refresh and after it: did the reconnect refresh leave anything the
+        // button then fills, or only what no refresh can fill yet (the visit day's own days)?
+        await d.sleep(2000);
+        const said = () => d.screenText().filter((w) => /gauge|not available|not recorded|not been read|pending|°C|for the time of year|No weather/i.test(w)).slice(0, 8).join(' | ');
+        ctx.finding(`before manual Refresh: ${said()}`);
         ctx.flow('tap-text', { TEXT: 'Refresh' });
         await d.sleep(8000);
+        ctx.finding(`after manual Refresh: ${said()}`);
         const left = d.screenText().find((w) => /No weather was recorded/.test(w));
         ctx.finding(`spot made offline not filled after reconnect (2 min); manual Refresh ${left ? 'did NOT fill it either' : 'filled it'}${js ? ` — JS log: ${js.slice(0, 400)}` : ''}`);
         if (left) throw new Error('manual Refresh did not fill it either');
