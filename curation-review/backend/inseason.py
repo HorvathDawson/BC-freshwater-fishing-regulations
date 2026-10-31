@@ -38,8 +38,8 @@ def feed_path() -> Path:
 
 
 def matches_path() -> Path:
-    env = os.environ.get("CURATION_INSEASON_MATCHES")
-    return Path(env) if env else M.default_path()
+    # T331: the curated file, never env-overridable (tests point `matches.default_path` at a temp copy)
+    return M.default_path()
 
 
 def load_feed() -> dict | None:

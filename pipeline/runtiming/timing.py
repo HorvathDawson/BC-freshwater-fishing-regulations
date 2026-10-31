@@ -1,4 +1,5 @@
-"""THE PARSED RUN TIMINGS (`data/curated/runtiming/timing.json`): the one record `parse` writes and deliver reads.
+"""THE PARSED RUN TIMINGS (`data/source/runtiming/timing.json`: SOURCE data, moved out of curated by T331): the one
+record `parse` writes and the run-timing feed reads (the feeds-runtiming workflow parses its own copy in the runner).
 
 Two sources, one shape per run (T162, owner 2026-10-24):
 

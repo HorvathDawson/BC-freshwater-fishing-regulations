@@ -1,6 +1,6 @@
 # Run timing — integration plan (T162; owner 2026-10-24: data + plan only, the app waits for the owner)
 
-What exists: `python -m pipeline.runtiming.parse` → `data/curated/runtiming/timing.json` (tracked), from the PSF
+What exists: `python -m pipeline.runtiming.parse` → `data/source/runtiming/timing.json` (tracked; moved out of curated by T331), from the PSF
 Explorer page (gitignored) and DFO NuSEDS (`fetch/nuseds.py`, gitignored). Nothing reads it yet. This is how it would
 be fed. Every number below was measured on 2026-10-24 against the live atlas (`a1944923732ccbfc`) with a prototype
 that was then reverted; it is not in the repo.

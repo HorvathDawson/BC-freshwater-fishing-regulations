@@ -20,7 +20,7 @@ python -m pipeline.runtiming.fetch.explorer        # 3 PSF pages -> data/source/
 python -m pipeline.runtiming.fetch.boundaries      # CU vector tiles -> data/source/runtiming/cu_tiles/
 python -m pipeline.runtiming.fetch.nuseds          # NuSEDS + census sites -> data/source/runtiming/dfo/
 # seconds, no atlas
-python -m pipeline.runtiming.parse                 # -> data/curated/runtiming/timing.json (TRACKED)
+python -m pipeline.runtiming.parse                 # -> data/source/runtiming/timing.json (TRACKED; source data, T331)
                                                    #  + data/generated/runtiming/cu_polygons.geojson
 ```
 

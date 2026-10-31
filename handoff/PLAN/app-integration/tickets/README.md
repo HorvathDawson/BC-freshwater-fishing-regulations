@@ -368,11 +368,11 @@ use that as the sole source of future work."
 | T324 | One clean data flow: map every stream end to end, final curated file per data type, one-time lock of reviewed marks into it, cleanup tickets | OPEN | T266, T322 | owner 2026-10-30 |
 | T325 | Write-through: a saved mark lands in its domain's final curated file (no lock step; marks.jsonl never edited) | IN REVIEW | T266 | owner 2026-10-30 correction: no locking — backend runs the domain's apply after each mark (sloughs/names in-request, proposals debounced in background); refusal keeps the mark + shows why; `lock` removed; closed.json = ponds only |
 | T326 | Lock tidal: waters/tidal.json replaces 4 tidal records; split confidence folded in | OPEN | T325 (+7 marks, Mamquam) | owner 2026-10-30 |
-| T327 | Lock names: owner name table out of code into a curated file; write Sheldens | OPEN | T325 | owner 2026-10-30 |
+| T327 | Lock names: owner name table out of code into a curated file; write Sheldens | DONE | — | owner 2026-10-30; `waters/name_calls.json` (read by `names.owner_calls`), mined_names --check byte-identical; Sheldens already written (f0b92de23), lands on next atlas build |
 | T328 | Lock sloughs after T322 approval | OPEN | T322, T325 | owner 2026-10-30 |
 | T329 | Ponds (Q154): close the domain, no export (owner: pond = lake default, build never uses) | DONE | 62ff4d515 (needs T325) | owner 2026-10-30; closed.json lists ponds, decided/ponds.json deleted, tab locked |
 | T330 | Generated review files out of handoff/ into data/generated/review/ | DONE | 3909ada9e | owner 2026-10-30; 16 files git-mv'd, read via GENERATED.review |
-| T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | OPEN | — | owner 2026-10-30 |
+| T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | PARTIAL | — | owner 2026-10-30; 1,3–7 done (proposals domain closed); 2 done for INSEASON_MATCHES + SLOUGH_PAGE_MARKS (review-app sandbox overrides need a design); 8 after the batch (main checkout) |
 | T332 | DFO salmon quotas in the same quota/lengths model as game-fish rules; wording list tidied, checked, accepted | OPEN | T320, T321 | owner 2026-10-30 |
 | T333 | Big Fable audit: duplicate data types / pathways / bad practices, verified + ranked → cleanup tickets | POSTPONED (next credit cycle) | T324, T331 | owner 2026-10-30 |
 | T334 | Audit all tests and documentation (dead tests, gaps, stale/duplicate docs) → fix tickets | POSTPONED (next credit cycle) | T333 | owner 2026-10-30 |

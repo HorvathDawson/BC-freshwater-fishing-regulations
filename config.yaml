@@ -119,6 +119,7 @@ curated:
     splits: "data/curated/waters/splits.json"                      # authored
     name_variants: "data/curated/waters/name_variants.json"        # authored
     mined_names: "data/curated/waters/mined_names.json"            # promoted (T224: names from city / OSM / ECCC sources, accepted)
+    name_calls: "data/curated/waters/name_calls.json"              # authored (T327: the owner's calls on single mined-name candidates; read by tools.mined_names)
     areas: "data/curated/waters/areas.json"                        # authored
     continuations: "data/curated/waters/continuations.json"        # authored (owner-reviewed / refused water_continue links)
     tidal_waters: "data/curated/waters/tidal_waters.json"          # authored (T212: whole waters the owner calls tidal)
@@ -133,6 +134,20 @@ curated:
     # The worklist for minting MORE added lakes. Zero code references BY DESIGN — the
     # minting is a hand process. Do not delete it in a dead-file sweep.
     ungazetted: "data/curated/waters/ungazetted.json"
+    # The worklist for splitting a lake into the waters the book treats it as (T100). Zero code references BY DESIGN,
+    # like ungazetted.json: declared so a dead-file sweep cannot delete it (T331).
+    sub_lake_areas: "data/curated/waters/sub_lake_areas.json"
+
+  # --- DFO salmon: the limits wording registry (T321) ------------------------------
+  dfo_salmon:
+    # AUTHORED (templates reviewed by hand): `pipeline.regs.dfo_salmon.wording`; synced to the feeds worker
+    # (private/feeds/dfo/wording.json, `pipeline.deliver.sync_inputs`)
+    wording: "data/curated/dfo_salmon/wording.json"
+
+  # --- sloughs: the retired review page's database (T322) --------------------------
+  sloughs:
+    # the owner's slough page verdicts + free-text notes, read once (2026-10-28) by `pipeline.regs.review.slough`
+    page_marks: "data/curated/sloughs/page-marks-2026-10-28.json"
 
   # --- regulations ---------------------------------------------------------------
   regulations:
@@ -156,9 +171,8 @@ curated:
   # is a water an angler will look up and find nothing for — see `coverage_gaps`.
   runtiming:
     review: "data/curated/runtiming/review.json"
-    # PARSED, not authored (T162): every PSF CU curve and DFO NuSEDS stream timing, rewritten by
-    # `python -m pipeline.runtiming.parse`; tracked because the fetched pages are not.
-    timing: "data/curated/runtiming/timing.json"
+    # (T331) the PARSED timings (`python -m pipeline.runtiming.parse`) are source data now:
+    # data/source/runtiming/timing.json, tracked because the fetched pages are not.
 
   # --- in-season changes bound to waters (T226) -------------------------------------
   # AUTHORED: feed row id -> extent; written by the review app's In-season tab (its one non-mark write) or by hand.
@@ -174,7 +188,7 @@ curated:
   gauges:
     matches: "data/curated/gauges/matches.json"
     review: "data/curated/gauges/review.json"
-    waterbody_type: "data/curated/gauges/waterbody_type.json"
+    # (T331) ECCC's water-body type per station is SCRAPED source data: data/source/bc_station_waterbody_type.json
     candidates: "data/curated/gauges/candidates.json"   # the review queue `promote` writes beside matches
     tidal: "data/curated/gauges/tidal.json"             # authored: level gauges the tide moves (T78)
     backwater: "data/curated/gauges/backwater.json"     # authored: level gauges a lake below backs up (T160)

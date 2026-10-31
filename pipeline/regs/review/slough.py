@@ -23,11 +23,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
+from pipeline.common.curated import CURATED
+
 ROOT = Path(__file__).resolve().parents[3]
 AUTOMARK = ROOT / "data/generated/sloughs/slough-automark.json"
 FINDER = ROOT / "data/generated/sloughs/candidates_v2.json.gz"
 #: the retired review page's database, read once (2026-10-28): the owner's free-text notes live only here
-PAGE_MARKS = ROOT / "data/curated/sloughs/page-marks-2026-10-28.json"
+PAGE_MARKS = CURATED.sloughs.page_marks          # T331: declared in config.yaml; never env-overridable
 #: the width rule's cut (slough-automark.md): at or under this the owner called it stream 96% of the time
 NARROW_M = 44.0
 
@@ -163,7 +165,7 @@ def _page_notes(p: str, _m: float) -> dict:
 def page_note(cid: str) -> Optional[str]:
     """The owner's free-text note on the retired review page, if any (e.g. "this could actually be labelled as
     sproat lake too"); one note sits on a piece whose verdict the owner cleared (329097416)."""
-    p = Path(os.environ.get("CURATION_SLOUGH_PAGE_MARKS") or PAGE_MARKS)
+    p = Path(PAGE_MARKS)
     return _page_notes(str(p), _mtime(p)).get(cid)
 
 

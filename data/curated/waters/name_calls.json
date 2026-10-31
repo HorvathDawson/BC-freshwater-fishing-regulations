@@ -1,0 +1,36 @@
+{
+ "_about": "T327 (owner 2026-10-30): THE OWNER'S CALLS ON SINGLE MINED-NAME CANDIDATES, moved out of code (was `names.OWNER`). Keyed by candidate id (`names.cid`: '<target>~<proposed-name-slug>'). `call`: accept | hold (held: kept out of the accepted set until the owner says). Optional `name`: the name to store instead of the candidate's; `display`: show it as the water's name; `why`: who decided, when and why (carried into each accepted name's `accepted`). AUTHORED: edit by hand, then rerun `python -m pipeline.tools.mined_names`. Read only by `pipeline.regs.review.names` (CURATED.waters.name_calls).",
+ "format": "name-calls/1",
+ "calls": {
+  "blk:356314888~kilgard-creek": {
+   "call": "accept",
+   "display": true,
+   "why": "owner 2026-10-28: 08MH079's line — Kilgard Creek shown"
+  },
+  "blk:356314888~lonzo-creek": {
+   "call": "accept",
+   "name": "Lonzo Creek (North Fork)",
+   "why": "owner 2026-10-28: 08MH079's line — Lonzo Creek (North Fork) searchable"
+  },
+  "blk:356370187~inkaneep-creek": {
+   "call": "accept",
+   "why": "owner 2026-10-29: the gauge 08NM012 (Inkaneep Creek near Oliver) names this water"
+  },
+  "blk:354151912~noble-creek": {
+   "call": "accept",
+   "why": "owner 2026-10-29: the gauge 08HA028 (Noble Creek at the mouth) names this water"
+  },
+  "blk:360846083~sheldens-creek": {
+   "call": "accept",
+   "why": "owner 2026-10-29: accepted as an ASSUMPTION — the unnamed line into Sheldens Bay, named only by the forest roads around it ('SP 19(1) TO SHELDONS', SHEL100–103); low confidence, see GOTCHAS"
+  },
+  "blk:356368998~meadow-creek-diversion": {
+   "call": "accept",
+   "why": "owner 2026-10-29 (after a hold): accepted, credited to the gauge 08NH128 (Meadow Creek Diversion below John Creek)"
+  },
+  "blk:354088905~quinsam-river-diversion-headpond": {
+   "call": "accept",
+   "why": "owner 2026-10-29 (after a hold): accepted, credited to the gauge 08HD034"
+  }
+ }
+}

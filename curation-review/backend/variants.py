@@ -46,7 +46,7 @@ def _row(i: str, c: dict, m, spot: set) -> dict:
     v = _verify(i, c, m)
     g = N.group_of(i, c)
     call = getattr(m, "call", None) if m is not None and v["status"] == "verified" else None
-    owner = N.OWNER.get(i)
+    owner = N.owner_calls().get(i)
     # what will happen to it: accepted (auto / owner / your mark), rejected (your mark), or waiting
     if call == "reject":
         fate = "rejected"

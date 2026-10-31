@@ -44,7 +44,7 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import SOURCE
 from pipeline.common.curated import REPO_ROOT
 
 ROOT = REPO_ROOT
@@ -52,7 +52,7 @@ ROOT = REPO_ROOT
 #: The roster this enriches. Kept SEPARATE from `bc_hydrometric_stations.json` rather than
 #: merged into it: that file is what `data/fetch_data.py` writes, and a second writer would
 #: make "re-fetch the roster" silently destroy this.
-TYPES_FILE = CURATED.gauges.waterbody_type
+TYPES_FILE = SOURCE / "bc_station_waterbody_type.json"   # T331: scraped source data, out of curated
 STATIONS = SOURCE / "bc_hydrometric_stations.json"
 
 _URL = "https://wateroffice.ec.gc.ca/report/real_time_e.html?stn={}"

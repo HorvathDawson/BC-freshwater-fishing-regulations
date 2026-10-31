@@ -54,7 +54,9 @@ def env(tmp_path_factory):
     (tmp / "marks.jsonl").write_text("")
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_INSEASON_FEED", str(tmp / "feed.json"))
-    mp.setenv("CURATION_INSEASON_MATCHES", str(tmp / "matches.json"))
+    # T331: a curated path is never env-overridable — the test points the one reader at a temp copy
+    from pipeline.regs.inseason import matches as _M
+    mp.setattr(_M, "default_path", lambda: tmp / "matches.json")
     mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
     mp.setenv("CURATION_BACKUP_DIR", str(tmp / "backups"))
     mp.syspath_prepend(str(BACKEND))

@@ -53,6 +53,8 @@ from pipeline.regs.review import marks as M
 DOMAINS: dict[str, tuple[str, ...]] = {
     "tidal": ("tidal",), "dfo": ("dfo",), "entries": ("entry", "rule"), "splits": ("split",),
     "sloughs": ("slough",), "ponds": ("q154",), "names": ("name",),
+    # T331: the retired accept step's marks (scope "proposal", 7, 2026-10-27) — a domain only so it can be CLOSED
+    "proposals": ("proposal",),
 }
 PROPOSED = "proposed_splits"
 FILES = tuple(DOMAINS) + (PROPOSED,)

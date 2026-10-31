@@ -1,11 +1,10 @@
 #!/bin/bash
 # STAGING ONLY (T225 Phase A, owner 2026-10-28): put the feeds Worker's curated inputs and the app's in-season links into
 # bc-fishing-regulations-staging, writing only what differs (rclone --checksum). The Mac twin of
-# .github/workflows/feeds-sync-inputs.yml (same keys); upload.sh calls it after a release upload.
-#   private/feeds/dfo/entries/region-<s>.json  <- data/curated/regulations/entries/dfo_salmon/region-<s>.json
-#   private/feeds/dfo/wording.json            <- data/curated/dfo_salmon/wording.json (T321: the worker reads it per run; missing -> compiled-in copy)
-#   private/feeds/gauges/roster.json           <- data/source/bc_hydrometric_stations.json, slim [{station, realtime}]
-#   feeds/inseason/matches.json   (PUBLIC)     <- python -m pipeline.regs.inseason.publish (data/curated/inseason/matches.json)
+# .github/workflows/feeds-sync-inputs.yml; upload.sh calls it after a release upload.
+# THE LIST IS NOT HERE (T331): `python -m pipeline.deliver.sync_inputs` stages every input at <dir>/<R2 key> and prints
+# `<key>\t<cache-control|->`; both uploaders put exactly that, so they cannot drift (dfo entries, wording, roster,
+# in-season matches today — see that module's docstring).
 # Needs the rclone remote `r2:` and the repo's .venv (or python3 with pydantic + pyyaml).
 #   deploy/staging/sync-inputs.sh [--dry-run]
 set -euo pipefail
@@ -15,15 +14,12 @@ D="r2:$BUCKET"
 DRY=(); [ "${1:-}" = "--dry-run" ] && DRY=(--dry-run)
 PY=python3; [ -x .venv/bin/python ] && PY=.venv/bin/python
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
-mkdir -p "$T/entries" "$T/inseason"
-cp data/curated/regulations/entries/dfo_salmon/region-*.json "$T/entries/"
-cp data/curated/dfo_salmon/wording.json "$T/wording.json"
-jq -c '[.[] | {station, realtime}]' data/source/bc_hydrometric_stations.json > "$T/roster.json"
-"$PY" -m pipeline.regs.inseason.publish --out "$T/inseason" >/dev/null
+"$PY" -m pipeline.deliver.sync_inputs --out "$T/out" > "$T/manifest.tsv"
 JSON=(--s3-no-check-bucket --checksum --header-upload "Content-Type: application/json" ${DRY[@]+"${DRY[@]}"})
-rclone copy "$T/entries" "$D/private/feeds/dfo/entries" "${JSON[@]}" -v 2>&1 | grep -E "Copied|Skipped|ERROR" || true
-rclone copyto "$T/wording.json" "$D/private/feeds/dfo/wording.json" "${JSON[@]}" -v 2>&1 | grep -E "Copied|Skipped|ERROR" || true
-rclone copyto "$T/roster.json" "$D/private/feeds/gauges/roster.json" "${JSON[@]}" -v 2>&1 | grep -E "Copied|Skipped|ERROR" || true
-rclone copyto "$T/inseason/matches.json" "$D/feeds/inseason/matches.json" "${JSON[@]}" \
-  --header-upload "Cache-Control: public, max-age=300, stale-while-revalidate=3600" -v 2>&1 | grep -E "Copied|Skipped|ERROR" || true
-echo "inputs in sync: $D (wording, entries $(ls "$T/entries" | wc -l | tr -d ' '), roster, in-season matches $(jq '.matches|length' "$T/inseason/matches.json"))"
+n=0
+while IFS=$'\t' read -r key cache; do
+  CC=(); [ "$cache" != "-" ] && CC=(--header-upload "Cache-Control: $cache")
+  rclone copyto "$T/out/$key" "$D/$key" "${JSON[@]}" ${CC[@]+"${CC[@]}"} -v 2>&1 | grep -E "Copied|Skipped|ERROR" || true
+  n=$((n + 1))
+done < "$T/manifest.tsv"
+echo "inputs in sync: $D ($n objects, in-season matches $(jq '.matches|length' "$T/out/feeds/inseason/matches.json"))"
