@@ -1,6 +1,6 @@
-# T325 — Lock tool: reviewed marks → one final curated file per domain
+# T325 — Write-through: reviewed marks → one final curated file per domain (was: lock tool)
 
-Status: IN REVIEW (2026-10-30) — was OPEN (owner 2026-10-30; T324 design approved, plan in handoff/PLAN/data-flow.md §4–5).
+Status: IN REVIEW (2026-10-30, write-through) — was OPEN (owner 2026-10-30; T324 design approved, plan in handoff/PLAN/data-flow.md §4–5).
 
 `python -m pipeline.regs.review.lock <domain>`: refuses until the domain's review is finished; writes the final file
 (no review fields, schema in data-flow.md §4, read through `CURATED`); proves a side build is byte-identical; then CLOSES
@@ -8,7 +8,29 @@ the domain. Owner chose option (a): marks.jsonl is never edited — a closed-dom
 (`data/curated/review/closed.json`) that the exporter and review app skip (tab shows "locked"). Reopen = remove the
 entry. Tests: refuse-when-open, byte-identical proof, closed domain skipped. Depends: T266. Size: M.
 
-## Done (2026-10-30)
+## Owner correction 2026-10-30 → WRITE-THROUGH (supersedes the lock below)
+"I don't want to have to individually lock everything. It should just work naturally from marks, and when reviewing
+items it should take my reviews and add to the curated items." Done:
+- After the backend appends a mark (single or batch — one request), it runs THAT domain's apply
+  (`curation-review/backend/write_through.py` → `review.apply.run`): sloughs + names in the request; dfo / entries /
+  tidal / splits in the background, debounced 1.5 s (binding check ~20 s cold). `GET /api/review/write-through` says
+  per domain and per item: saving / saved / refused / waiting (a cut waiting on its side rebuild), and why.
+- Refused apply: the mark stays; reason in the response or on the item; amber "not in the curated file" list
+  (`CuratedSaveBanner.tsx`, `CuratedTag` on the verdict bar); logged to `data/generated/review/write-through.jsonl`.
+  All writes temp + rename.
+- On only over the curated marks store (`CURATION_WRITE_THROUGH=1/0` overrides) — no test writes curated files.
+- `lock.py` deleted; "locked" badge/notice → "closed" (ponds only: feeds nothing); a finished queue's badge says
+  "done". closed.json keeps ponds only.
+- Fixed on the way: `apply tidal` landed nothing — tidal (and new-split) proposals' marks carried no scope, so
+  `--scope` dropped them (proposals.py now stamps `scope` on each mark; digests unchanged).
+- Tidal: still on `apply_proposals --scope tidal` (decided/tidal.json + splits.json); T326 owes `waters/tidal.json`.
+  A tidal cut above the mouth waits for its side rebuild, as before (listed on the item).
+- Tests: `pipeline/tests/test_review_write_through.py` (12): per domain (sloughs, names, dfo, entries, tidal),
+  refused keeps the mark + reason + log, batch writes once, atomic write, off over a temp store, closed ponds.
+  Also run: review_export/loop/marks/proposals/tidal_proposals, slough_fold, build_command, name_sources_t224,
+  curation_review_{q154,writes,slough,api,safety} — 258 pass; frontend `tsc` clean.
+
+## Done (2026-10-30, superseded by write-through above: lock removed)
 - **One command for every open domain** (owner requirement 2026-10-30): `python -m pipeline.regs.review.apply
   [domain …] [--dry-run]` (`pipeline/regs/review/apply.py`) = export, then the domain's writer — `apply_proposals
   --scope …` for tidal / dfo / entries / splits (new `--scope` filter, every guard kept), `tools.slough_calls`, and

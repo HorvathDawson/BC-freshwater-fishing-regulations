@@ -1,3 +1,3 @@
-{"_about": "T325: review domains that are CLOSED (locked). The exporter (`pipeline.regs.review.export`), the apply command (`pipeline.regs.review.apply`) and the review app skip each one; marks.jsonl is never edited. Close: `python -m pipeline.regs.review.lock <domain>`. Reopen: remove the entry (`lock --reopen <domain>`).", "format": "closed/1", "closed": [
+{"_about": "T325: review domains that FEED NOTHING (ponds). The exporter (`pipeline.regs.review.export`), the apply (`pipeline.regs.review.apply`, run by the review app's write-through) and the review app skip each one; marks.jsonl is never edited. Every other domain stays open: its marks reach its curated file by write-through. Reopen: remove the entry.", "format": "closed/1", "closed": [
 {"by": "owner", "date": "2026-10-30", "domain": "ponds", "final": null, "scopes": ["q154"], "why": "T329 (owner 2026-10-30): a pond call only confirms the lake default; nothing reads it, the build never uses it"}
 ]}

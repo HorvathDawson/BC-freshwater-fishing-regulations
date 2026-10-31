@@ -498,7 +498,7 @@ def _tidal_off_point(m, n, water: str) -> dict:
             "title": (f"{water}: the point ({n.measure} m above the mouth) is neither a located words point nor the "
                       f"mouth (within {TIDAL_POINT_TOL_M:g} m) — no cut (owner 2026-10-28); mark it again"),
             "marks": [{"target": m.target, "rule_id": None, "reviewer": m.reviewer, "date": m.date,
-                       "note": m.note}],
+                       "note": m.note, "scope": m.scope}],
             "edits": [], "depends_on": [], "problems": [], "notes": [n.note] if n.note else [],
             "split_id": None, "confidence": None}
 
@@ -671,7 +671,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
 
     ref_group: dict[tuple, dict] = {}                    # (mark key, ref | #i) -> group
     for m in inforce:
-        who = {"target": m.target, "rule_id": m.rule_id, "reviewer": m.reviewer, "date": m.date}
+        who = {"target": m.target, "rule_id": m.rule_id, "reviewer": m.reviewer, "date": m.date, "scope": m.scope}
         for n in m.new_splits:
             if n.anchor != "split":
                 ref_group[(m.key, n.ref)] = group_for(n, who)
@@ -691,7 +691,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
     # at the mouth there is no cut and nothing is tidal (listed).
     out: list[dict] = []
     for m in sorted(tidal_in, key=lambda m: m.target):
-        who = {"target": m.target, "rule_id": None, "reviewer": m.reviewer, "date": m.date}
+        who = {"target": m.target, "rule_id": None, "reviewer": m.reviewer, "date": m.date, "scope": m.scope}
         n = m.new_splits[0]
         water = ((src.item(n.on_item) or {}).get("name") if n.on_item else None) or (
             n.name or "").partition(":")[0] or (n.on_item or "water")
@@ -734,7 +734,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                               "Place y mark") + (f" (point: {n.name}, {n.measure} m above the mouth)"
                                                  if n is not None else ""),
                     "marks": [{"target": m.target, "rule_id": None, "reviewer": m.reviewer,
-                               "date": m.date, "note": m.note}],
+                               "date": m.date, "note": m.note, "scope": m.scope}],
                     "edits": [], "depends_on": [], "problems": [], "notes": [m.note] if m.note else [],
                     "split_id": None, "confidence": None})
 

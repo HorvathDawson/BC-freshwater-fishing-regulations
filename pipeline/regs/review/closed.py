@@ -1,19 +1,17 @@
-"""T325: THE CLOSED REVIEW DOMAINS — the list the exporter and the review app skip.
+"""T325: THE CLOSED REVIEW DOMAINS — domains that FEED NOTHING, which the exporter and the review app skip.
 
-Owner 2026-10-30 (option a): marks.jsonl is NEVER edited. A finished review is closed by listing its domain here
-(`python -m pipeline.regs.review.lock <domain>`); reopened by removing the entry (`lock --reopen <domain>`, or by
-hand). A closed domain:
+Owner 2026-10-30: there is no lock step. Every domain whose marks feed a curated file stays open and its marks reach
+that file by write-through (the review app runs `review.apply.run` after each save); a domain whose queue is empty
+just shows "done". This list is ONLY for a domain nothing reads (ponds, T329: a pond call only confirms the lake
+default). marks.jsonl is never edited. A closed domain:
 
   * is not exported (`review.export` writes no `decided/<domain>.json`, and removes a leftover one);
   * is not applied (`review.apply` skips it);
-  * is read-only in the review app (its queue answers 423 "locked", a mark on its scopes is refused, the tab says
-    "locked").
+  * is read-only in the review app (its queue answers 423, a mark on its scopes is refused, the tab shows a
+    "closed" notice).
 
-Its marks stay in marks.jsonl, unchanged, as history. Its decisions live in its final curated file (or, for ponds,
-nowhere: the owner ruled nothing reads them).
-
-The list lives beside the marks store (`CURATED.regulations.review.closed`); a marks store elsewhere (a test's temp
-copy) has its own list beside it, absent = nothing closed.
+Reopen = remove the entry by hand. The list lives beside the marks store (`CURATED.regulations.review.closed`); a
+marks store elsewhere (a test's temp copy) has its own list beside it, absent = nothing closed.
 
     {"format": "closed/1", "_about": "...", "closed": [
       {"domain": "ponds", "scopes": ["q154"], "date": "2026-10-30", "by": "owner", "why": "...", "final": null}]}
@@ -25,9 +23,10 @@ from pathlib import Path
 from typing import Optional
 
 FORMAT = "closed/1"
-ABOUT = ("T325: review domains that are CLOSED (locked). The exporter (`pipeline.regs.review.export`), the apply "
-         "command (`pipeline.regs.review.apply`) and the review app skip each one; marks.jsonl is never edited. Close: "
-         "`python -m pipeline.regs.review.lock <domain>`. Reopen: remove the entry (`lock --reopen <domain>`).")
+ABOUT = ("T325: review domains that FEED NOTHING (ponds). The exporter (`pipeline.regs.review.export`), the apply "
+         "(`pipeline.regs.review.apply`, run by the review app's write-through) and the review app skip each one; "
+         "marks.jsonl is never edited. Every other domain stays open: its marks reach its curated file by "
+         "write-through. Reopen: remove the entry.")
 
 
 def path(marks: Optional[Path] = None) -> Path:

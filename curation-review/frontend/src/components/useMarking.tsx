@@ -3,6 +3,7 @@ import { api, type EntryRefused } from "../api";
 import type { Check, MarkPost, MarkView } from "../types";
 import { answerKey, checkKey, getReviewer, isTyping, nextCheck, setReviewer } from "../review";
 import { blankChecklist, type ChecklistState } from "./Checklist";
+import { CuratedTag } from "./CuratedSaveBanner";
 
 export interface MarkTarget {
   scope: "entry" | "rule";
@@ -121,7 +122,7 @@ export function useMarking({ key, mark, onRecorded, link, onToggleMap, resetOn, 
   }, [key, resetOn]);
 
   return {
-    state, setState, submit, busy, errors, done, reviewer,
+    state, setState, submit, busy, errors, done, reviewer, mark,
     setReviewer: (n: string) => { setName(n); setReviewer(n); },
   };
 }
@@ -151,6 +152,7 @@ export function VerdictBar({ checks, m, held }: BarProps) {
       <button className="btn" disabled={m.busy || !s.note.trim()} onClick={() => void m.submit(true)}
         title="defer: the reviewer's own call, with a note saying why">defer</button>
       {m.done && <span className="toast" data-testid="mark-done">{m.done}</span>}
+      {m.done && <CuratedTag scope={m.mark.scope} target={m.mark.target} ruleId={m.mark.rule_id} />}
       {m.errors.length > 0 && <span className="field-error" data-testid="mark-errors">{m.errors.join(" · ")}</span>}
       <span className="dim keys">t r p a · y n ? · ↵ · j k · u · o · m</span>
     </div>

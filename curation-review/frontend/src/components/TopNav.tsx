@@ -10,7 +10,7 @@ import { useClosed } from "./Locked";
 
 export type TabId = "entries" | "dfo" | "tidal" | "sloughs" | "inseason" | "reports";
 
-/** `domain`: the review domain the tab marks (T325: a closed one shows "locked") */
+/** `domain`: the review domain the tab marks (T325: a closed one — it feeds nothing, ponds — shows "closed") */
 interface Tab { id: TabId; label: string; key: string; title: string; hash: string; domain?: string }
 const TABS: Tab[] = [
   { id: "entries", label: "Entries", key: "e", hash: "", title: "the synopsis entries queue" },
@@ -57,7 +57,10 @@ export function setBadge(id: TabId, text: string) {
   badges = { ...badges, [id]: text };
   emit();
 }
-const frac = (done?: number, total?: number) => (total == null ? "" : `${done ?? 0}/${total}`);
+// owner 2026-10-30: a queue with nothing left to mark just says "done" (no lock step: the marks are already in the
+// curated files by write-through)
+const frac = (done?: number, total?: number) =>
+  (total == null ? "" : total > 0 && (done ?? 0) >= total ? "done" : `${done ?? 0}/${total}`);
 async function j(url: string): Promise<any> {
   const r = await fetch(url);
   if (!r.ok) throw new Error(url);
@@ -89,7 +92,7 @@ export function TopNav({ active, sub, right }: {
   const [, tick] = useState(0);
   const closed = useClosed();
   const lockedBadge = (domain?: string) =>
-    domain && closed[domain] ? <span className="topnav-badge" data-testid={`locked-${domain}`}>locked</span> : null;
+    domain && closed[domain] ? <span className="topnav-badge" data-testid={`locked-${domain}`}>closed</span> : null;
   useEffect(() => {
     const l = () => tick((n) => n + 1);
     listeners.add(l);

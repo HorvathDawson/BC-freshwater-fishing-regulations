@@ -272,7 +272,7 @@ loader.** Marks stay what they are for: the log of a review that is still open.
 | data type | final file | read by (one loader / stage) | status |
 |---|---|---|---|
 | cuts | `waters/splits.json` (confidence folded in from `proposal_overrides.json`) | atlas (sectionizer) | exists |
-| tidal limits | **`waters/tidal.json`** (new; replaces `tidal_waters.json` + the tidal flags + `decided/tidal`) | reach (`outside.py`); tiles via the same loader | to make at lock |
+| tidal limits | **`waters/tidal.json`** (new; replaces `tidal_waters.json` + the tidal flags + `decided/tidal`) | reach (`outside.py`); tiles via the same loader | to make (T326; write-through then targets it) |
 | sloughs | `waters/slough_calls.json` | atlas (registry fold) | exists (T322) |
 | ponds | none — owner 2026-10-30: a pond call only confirms the lake default | — | **closed** (T329) |
 | names | `waters/mined_names.json` (owner rows move in from code) | atlas (registry) | exists |
@@ -312,66 +312,47 @@ That removes the tidal flag from splits.json and replaces `tidal_waters.json`.
 
 `mark` is the 12-hex sha of the mark line — enough to find the history in the archive, nothing else from the review.
 
-### Every open domain: one command (T325, owner 2026-10-30)
+### Marks write through to the final file (T325, owner 2026-10-30)
 
-Marking stays one click in the review app (a line appended to marks.jsonl). A finished mark reaches its final file
-through ONE command, the same for every open domain:
+Owner: *"I don't want to have to individually lock everything. It should just work naturally from marks, and when
+reviewing items it should take my reviews and add to the curated items."* There is **no lock step**.
 
-```
-python -m pipeline.regs.review.apply [domain ...] [--dry-run]
-```
+Marking stays one click in the review app (a line appended to marks.jsonl, never edited). Right after the save, the
+server runs **that domain's apply** (`curation-review/backend/write_through.py` → `pipeline.regs.review.apply.run`):
+export the marks to `decided/`, then the domain's writer.
 
-It exports the marks (`review.export` → `decided/`), then runs the domain's writer:
-
-| domain | writer | final file |
-|---|---|---|
-| tidal / dfo / entries / splits | `apply_proposals --scope …` (binding check, one commit per proposal, side rebuild printed for a cut change) | `splits.json`, `entries/dfo_salmon/`, `entries/catalogue/` |
-| sloughs | `tools.slough_calls` | `waters/slough_calls.json` |
-| names | `tools.mined_names` | `waters/mined_names.json` |
-
-With no domain it runs every open one. A closed domain is skipped with a line saying so. The review app prints the
-command under its progress bar ("land finished marks in the curated files"). The older per-domain commands still
-work; `apply` only puts them behind one name.
-
-### The lock step (once per domain, when its review is finished)
-
-**Built (T325) as option (a), owner 2026-10-30:** `python -m pipeline.regs.review.lock <domain>` never edits
-marks.jsonl. It refuses while anything is open (an unsure/wrong mark in force, the app's unmarked queue count, the
-domain's decided file behind the marks, a proposal still waiting). Otherwise it writes the final file through the
-same writer `apply` runs and prints the side-build proof (a heavy job, run by hand). Then it adds the domain to
-`data/curated/regulations/review/closed.json` (`CURATED.regulations.review.closed`) and removes
-`decided/<domain>.json`. The exporter and `apply` skip a closed domain. The review app answers 423 on its queue,
-refuses a mark on it, and shows the tab "locked". Reopen: `lock --reopen <domain>` (removes the entry). `lock
---status` lists the closed domains. Tidal is refused until T326 gives it a writer. Steps 4–6 below are the original
-proposal; option (a) replaces step 4's archive.
-
-One tool, `python -m pipeline.regs.review.lock <domain>` (proposed), in this order:
-
-1. **Refuse unless finished**: no unsure / wrong marks in force for the domain, `review.export --check` clean, and
-   `apply_proposals --dry-run` has nothing waiting for it.
-2. **Write the final file** from the marks in force, in the shape above (review fields dropped, `mark` sha kept).
-3. **Prove it**: a side build (`pipeline build --side …`) with the domain's marks and its `decided/` file unreadable
-   gives a byte-identical release. Same proof T266 used.
-4. **Archive the marks**: the domain's lines move, unchanged, to `data/curated/archive/marks/<domain>-<date>.jsonl`
-   (read-only history); `decided/<domain>.json` and the domain's apply path are deleted.
-   *Owner decision:* this removes lines from `marks.jsonl`, which is append-only today. The alternative is to leave
-   the lines and add the domain to a `closed` list the exporter and app skip. Moving is cleaner; leaving is safer.
-5. **Close the review mode**: the review app shows the tab as locked (read-only).
-6. **After that**, a change is a direct edit of the final file, or `lock --reopen <domain>`, which seeds a new review
-   from the final file.
-
-### Lock order (by how finished each review looks)
-
-| # | domain | why here | left before locking |
+| domain | writer | final file | when |
 |---|---|---|---|
-| 1 | **tidal** | T212 DONE: 1,170 of 1,177 verified, shipped in r-ce76b4ed3624 | answer 6 unsure + 1 wrong; Mamquam Blind Channel yes/no; fold `owner-decisions.json` |
-| 2 | **names** | T224 DONE; no marks, just code to move | owner spot-check 20 (OWNER-TODO); write Sheldens Creek (needs an atlas rebuild) |
-| 3 | **sloughs** | 811 calls made; T322 writes the final file | T322 side build + binding diff approved, fold ON |
-| 4 | **ponds (Q154)** | 81 calls on a sample, all verified | owner: does anything read these? If not, archive without a file |
-| 5 | **DFO places** | T164 OPEN: 346 extents still to review | the DFO pass |
-| 6 | **regulations (entries/rules)** | the main review, 39 marks so far | the curation review |
+| sloughs | `tools.slough_calls` | `waters/slough_calls.json` | in the request (< 1 s) |
+| names | `tools.mined_names` | `waters/mined_names.json` | in the request |
+| dfo / entries / splits | `apply_proposals --scope …` (binding check, one `git commit --` per proposal) | `entries/dfo_salmon/`, `entries/catalogue/`, `splits.json` | background, debounced 1.5 s (binding check: seconds warm, ~20 s cold) |
+| tidal | `apply_proposals --scope tidal` (current path; T326 still owes `waters/tidal.json`) | `splits.json` tidal flags/cuts; `decided/tidal.json` | background |
+| ponds | — (closed: nothing reads a pond call, T329) | — | — |
 
-Gauges, in-season, run timing, continuations and the steelhead list have no marks: nothing to lock.
+- **Batch** (accept all visible) is one request → one apply.
+- **Refused** (failed binding check, uncommitted changes in the file, a stale slough mark, conflicting decisions, any
+  error): the mark stays; the reason is returned (in-request) or held per item (`GET /api/review/write-through`),
+  shown on the item and in the app's amber "not in the curated file" list, and logged to
+  `data/generated/review/write-through.jsonl`. A later save of the same domain retries it.
+- **A cut that changes** (a new split, every tidal cut above the mouth) waits for its side rebuild as before (heavy, by
+  hand); the app lists those marks as "waits for a side rebuild" with the commands.
+- **Atomic**: every curated and decided write is temp file + rename; `apply_proposals` puts a file back if its commit
+  fails.
+- **Only over the curated store**: a server on a temp marks store (tests, a second copy) writes no curated file unless
+  `CURATION_WRITE_THROUGH=1`; `=0` turns it off.
+- The file writers write their file and leave committing to the owner's normal commit; the proposal writer commits
+  per proposal (as before).
+- A tab whose queue is empty shows **done**. `closed.json` keeps only domains that feed nothing (ponds).
+
+`python -m pipeline.regs.review.apply [domain ...] [--dry-run]` is the same apply by hand — a catch-up after marks
+were made with the server off.
+
+The `lock` tool (built earlier the same day) is **removed**: no lock, no "locked" tab, no reopen command. The
+original lock proposal (refuse-until-finished, side-build proof, archive marks) is dropped; the side-build proof that
+a domain's marks are fully in its final file is still a good one-off check before deleting a domain's marks path
+(T326 tidal), but it is not a step the owner runs per domain.
+
+
 
 ---
 
@@ -379,7 +360,7 @@ Gauges, in-season, run timing, continuations and the steelhead list have no mark
 
 | # | title | one line |
 |---|---|---|
-| 1 | Lock tool | `pipeline.regs.review.lock <domain>` + side-build proof + archive + review-app "locked" tab (§4). |
+| 1 | Write-through (was: lock tool) | Marks reach their final file on save; no lock step (§4, T325, owner 2026-10-30). |
 | 2 | Lock tidal | `waters/tidal.json` replaces `tidal_waters.json`, the splits tidal flag, `decided/tidal` and handoff `owner-decisions.json`. |
 | 3 | Lock names | Move `names.OWNER` out of code into `mined_names.json`; write Sheldens Creek. |
 | 4 | Lock sloughs | After T322 is approved: archive slough marks, `page-marks` and `decided/sloughs`. |
@@ -389,9 +370,9 @@ Gauges, in-season, run timing, continuations and the steelhead list have no mark
 | 8 | No env override of curated paths | Drop `CURATION_INSEASON_MATCHES` (and any other `CURATION_*` that repoints a curated file). |
 | 9 | One sync list | `feeds-sync-inputs.yml` and `sync-inputs.sh` read the same key list; the workflow is missing `wording.json`. |
 | 10 | Dead curated files | Delete or declare `regulations/cross_references.json` (test only) and `waters/sub_lake_areas.json` (no reader). |
-| 11 | Split confidence into splits.json | Fold `review/proposal_overrides.json` into the split records at the next lock. |
+| 11 | Split confidence into splits.json | Fold `review/proposal_overrides.json` into the split records (with T326). |
 | 12 | Source data out of curated | `gauges/waterbody_type.json` (scraped) and `runtiming/timing.json` (parsed) move to `data/source/`; note which run-timing parse the app trusts. |
 | 13 | Retired marks | Archive the 7 `proposal`-scope marks from the old accept step. |
 | 14 | Narrow the deliver key | Hash only the curated files deliver reads, so a review-only file does not rerun deliver. |
 | 15 | Prune releases | 27 folders in `data/release/`; keep live + previous. |
-| 16+ | Lock DFO, lock regulations | When T164 and the curation review finish. |
+| 16+ | ~~Lock DFO, lock regulations~~ | Not needed: write-through keeps them current (owner 2026-10-30). |

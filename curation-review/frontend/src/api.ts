@@ -68,6 +68,7 @@ function asFieldErrors(detail: unknown): FieldError[] {
 }
 
 import { addRefusal, resolve as resolveRefusal } from "./refusals";
+import { noteReply } from "./curatedSave";
 
 let pageMap: Promise<Record<string, number>> | null = null;
 
@@ -142,7 +143,9 @@ export const api = {
       throw err;
     }
     resolveRefusal(mark);
-    return (await res.json()) as MarkView;
+    const got = await res.json();
+    noteReply(got?.write_through);       // T325: the mark's domain apply ran (or is running) — say what it did
+    return got as MarkView;
   },
 
   /** the app's address, the checks and the problem categories */

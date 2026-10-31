@@ -366,7 +366,7 @@ use that as the sole source of future work."
 | T322 | Fold owner-confirmed sloughs (811) into the stream flowing through; no stream through → ignored, never a new unnamed stream; own side build + mechanical binding-diff gate (no owner review, owner 10-30) | OPEN | T55, T266 | owner 2026-10-30 |
 | T323 | Offline spot save took 15 s to reach "Save spot" (T307 target < 3 s): never wait on network | OPEN | T307 | T314 lane 2026-10-30 |
 | T324 | One clean data flow: map every stream end to end, final curated file per data type, one-time lock of reviewed marks into it, cleanup tickets | OPEN | T266, T322 | owner 2026-10-30 |
-| T325 | Lock tool: reviewed marks → final curated file, byte-identical proof, closed-domains list (marks.jsonl never edited) | IN REVIEW | T266 | owner 2026-10-30; `review.apply [domain]` = the one command for open domains; `review.lock` + closed.json; proof printed, not run |
+| T325 | Write-through: a saved mark lands in its domain's final curated file (no lock step; marks.jsonl never edited) | IN REVIEW | T266 | owner 2026-10-30 correction: no locking — backend runs the domain's apply after each mark (sloughs/names in-request, proposals debounced in background); refusal keeps the mark + shows why; `lock` removed; closed.json = ponds only |
 | T326 | Lock tidal: waters/tidal.json replaces 4 tidal records; split confidence folded in | OPEN | T325 (+7 marks, Mamquam) | owner 2026-10-30 |
 | T327 | Lock names: owner name table out of code into a curated file; write Sheldens | OPEN | T325 | owner 2026-10-30 |
 | T328 | Lock sloughs after T322 approval | OPEN | T322, T325 | owner 2026-10-30 |

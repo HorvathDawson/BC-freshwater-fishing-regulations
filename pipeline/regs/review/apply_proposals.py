@@ -108,7 +108,22 @@ def plan(props: list[dict], tried: set[str], landed_sids: set[str] = frozenset()
     return None, blocked
 
 
+def _who(p: Mapping) -> list[dict]:
+    """The marks behind a proposal, as {scope, target, rule_id} (the review app shows an outcome on each)."""
+    return [{"scope": m.get("scope") or p.get("scope"), "target": m.get("target"), "rule_id": m.get("rule_id")}
+            for m in p.get("marks") or ()]
+
+
 def main(argv: list[str] | None = None) -> int:
+    return run(argv)[0]
+
+
+def run(argv: list[str] | None = None, *, fresh: bool = False) -> tuple[int, list[dict]]:
+    """`main`, returning (rc, events): one event per proposal it landed, refused or left waiting —
+    {id, status: applied | refused | waiting | would, why, sha, marks: [{scope, target, rule_id}]} — so the review
+    app's write-through (T325) can say on each marked item what became of its mark. `fresh`: the caller has just
+    exported the decided data under its own read of the marks (`review.apply.run`), so the "behind" check is skipped
+    (a mark appended since is the next run's)."""
     from pipeline.regs.parsing.io import atomic_write
     from pipeline.regs.review import export as E
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.apply_proposals",
@@ -130,11 +145,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="print the diffs and checks, write nothing")
     a = ap.parse_args(argv)
     # T266: the decided data is what lands; marks the owner made since its export are not in it yet
-    behind = E.stale(a.decided, a.marks)
+    events: list[dict] = []
+    behind = [] if fresh else E.stale(a.decided, a.marks)
     if behind:
         print(f"apply_proposals: the decided data is behind the marks ({', '.join(behind)}) — export first:\n"
               "    python -m pipeline.regs.review.export", file=sys.stderr)
-        return 2
+        return 2, events
     decided = E.load(a.decided)
     tried: set[str] = set()
     landed_sids: set[str] = set()
@@ -157,6 +173,8 @@ def main(argv: list[str] | None = None) -> int:
             c = p.get("check") or {}
             if not c.get("cheap"):
                 print(f"!! {p['id']}: the binding check failed — {c.get('why')}; not applied")
+                events.append({"id": p["id"], "status": "refused", "marks": _who(p),
+                               "why": f"the binding check failed — {c.get('why')}"})
                 rc = 1
                 continue
         texts = P.materialize([p], src)
@@ -169,11 +187,14 @@ def main(argv: list[str] | None = None) -> int:
             for path in paths:
                 sys.stdout.write(P.unified(P._rel(path), src.text(path), texts[path]))
             # a dry run lands nothing, so a proposal that waits on a new split stays waiting
+            events.append({"id": p["id"], "status": "would", "marks": _who(p), "why": p["title"]})
             continue
         dirty = _dirty(paths)
         if dirty:
             print(f"!! {p['id']}: uncommitted changes in {', '.join(dirty)} — commit or stash "
                   "them first; not applied")
+            events.append({"id": p["id"], "status": "refused", "marks": _who(p),
+                           "why": f"uncommitted changes in {', '.join(dirty)} — commit or stash them first"})
             rc = 1
             continue
         before = {path: src.text(path) for path in paths}
@@ -184,6 +205,8 @@ def main(argv: list[str] | None = None) -> int:
             for path in paths:
                 atomic_write(path, before[path])
             print(f"!! {p['id']}: git commit failed, files put back:\n{got.stderr or got.stdout}")
+            events.append({"id": p["id"], "status": "refused", "marks": _who(p),
+                           "why": f"git commit failed, files put back: {(got.stderr or got.stdout).strip()[:300]}"})
             rc = 1
             continue
         if p.get("split_id"):
@@ -191,14 +214,18 @@ def main(argv: list[str] | None = None) -> int:
         sha = _git("rev-parse", "--short", "HEAD").stdout.strip()
         landed.append((p["id"], sha))
         print(f"applied {p['id']} -> {sha}")
+        events.append({"id": p["id"], "status": "applied", "sha": sha, "marks": _who(p), "why": p["title"]})
+    last = {q["id"]: q for q in props}
     for pid, why in blocked:
         print(f"-- {pid}: {why}")
+        events.append({"id": pid, "status": "refused" if why.startswith("not applicable") else "waiting",
+                       "marks": _who(last.get(pid) or {}), "why": why})
     if landed:
         print(f"{len(landed)} commit(s). Next: the rebuild the review app lists (GET /api/build); "
               "a new split needs the atlas.")
     elif not blocked and not a.dry_run:
         print("nothing to apply")
-    return rc
+    return rc, events
 
 
 if __name__ == "__main__":

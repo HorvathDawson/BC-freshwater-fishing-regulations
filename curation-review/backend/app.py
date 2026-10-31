@@ -49,9 +49,10 @@ async def _fresh_caches(request, call_next):
     return await call_next(request)
 
 
-#: T325: a CLOSED (locked) review domain's queue / progress / detail endpoints answer 423 — the tab shows "locked" —
-#: and a mark on its scopes is refused (`_post_mark`). The closed list is `pipeline.regs.review.closed`, read on each
-#: request (a few bytes) beside the marks store this server writes, so a lock / reopen needs no restart.
+#: T325: a CLOSED review domain — one that FEEDS NOTHING (ponds, T329) — answers 423 on its queue / progress / detail
+#: endpoints (the tab shows a "closed" notice) and a mark on its scopes is refused (`_post_mark`). Every other domain
+#: is never closed: its marks reach its final curated file by WRITE-THROUGH (`write_through`, owner 2026-10-30). The
+#: closed list is `pipeline.regs.review.closed`, read on each request (a few bytes) beside the marks store.
 LOCKED_PATHS = {"/api/q154/": "ponds", "/api/sloughs/queue": "sloughs", "/api/sloughs/progress": "sloughs",
                 "/api/sloughs/candidates/": "sloughs", "/api/tidal/queue": "tidal", "/api/tidal/progress": "tidal",
                 "/api/tidal/candidates/": "tidal", "/api/dfo/queue": "dfo", "/api/dfo/progress": "dfo"}
@@ -64,8 +65,8 @@ def closed_domains() -> dict:
 
 
 def _locked_words(domain: str, e: dict) -> str:
-    return (f"the {domain} review is closed (locked {e.get('date')}: {e.get('why')}) — its marks no longer move "
-            f"anything. Reopen: python -m pipeline.regs.review.lock --reopen {domain}")
+    return (f"the {domain} review is closed ({e.get('date')}: {e.get('why')}) — nothing reads its marks. Reopen: "
+            f"remove its entry from data/curated/regulations/review/closed.json")
 
 
 @app.middleware("http")
@@ -82,8 +83,22 @@ async def _locked_domains(request, call_next):
 
 @app.get("/api/review/closed")
 def review_closed():
-    """T325: the closed (locked) review domains, each with its scopes — the app shows those tabs "locked"."""
+    """T325: the closed review domains (they feed nothing), each with its scopes — the app shows a "closed" notice."""
     return {"closed": closed_domains()}
+
+
+#: WRITE-THROUGH (T325, owner 2026-10-30): after a mark is appended, its domain's apply runs (`write_through`) — the
+#: curated final file follows the marks with no command and no lock. On only over the curated marks store (or
+#: `CURATION_WRITE_THROUGH=1`); a refused apply keeps the mark and says why on the item.
+import write_through as _wt                                     # noqa: E402
+WRITE_THROUGH = _wt.from_env(reuse.MARKS_PATH, reuse._ROOT)
+
+
+@app.get("/api/review/write-through")
+def review_write_through(target: str | None = None):
+    """What the write-through did: per domain (saving / done / refused, the files written, proposals waiting on a
+    side rebuild) and per marked item (saved / saving / refused / waiting, and why)."""
+    return WRITE_THROUGH.status(target)
 
 
 #: WARM AT STARTUP (T136, PLAN §4 phase 5): `CURATION_WARM=1` (run.sh sets it) loads every cache a
@@ -143,7 +158,8 @@ def get_mode():
             # it runs neither (review mode writes one thing, a mark)
             "prechecks": {k: {"severity": sev, "what": what} for k, (sev, what) in PRECHECKS.items()},
             "commands": {"commit_marks": "python -m pipeline.regs.review.commit_marks",
-                         # T325: THE one command that lands finished marks in their final curated files
+                         # T325: marks land in their curated files by write-through; this is the same apply by
+                         # hand (a catch-up after the server was off)
                          "apply": "python -m pipeline.regs.review.apply [domain]",
                          "tickets": "python -m pipeline.regs.review.tickets --out <dir>",
                          "prechecks": "python -m pipeline.regs.review.precheck"}}
@@ -303,12 +319,13 @@ def _post_mark(body: MarkPayload):
         if body.scope not in REVIEW_SCOPES:
             raise HTTPException(422, [{"path": "scope", "msg": f"scope is one of {list(REVIEW_SCOPES)}"}])
         try:
-            return reuse.clear_marks(data)
+            got = reuse.clear_marks(data)
         except ValidationError as ex:
             raise HTTPException(422, [{"path": "", "msg": refusal_words(
                 e["msg"], str(e["loc"][0]) if e["loc"] else None)} for e in ex.errors()])
         except ValueError as ex:
             raise HTTPException(422, [{"path": "", "msg": refusal_words(str(ex))}])
+        return _written_through(got, body)
     if body.if_last is not None:
         raise HTTPException(422, [{"path": "", "msg": "only a cleared mark says which mark it clears"}])
     data.pop("if_last")
@@ -343,7 +360,7 @@ def _post_mark(body: MarkPayload):
             raise HTTPException(422, [{"path": "", "msg": unanswered_words(
                 body.scope, awaiting=reuse.awaiting_build(body.scope, body.target))}])
     try:
-        return reuse.post_mark(data)
+        got = reuse.post_mark(data)
     except KeyError as ex:
         raise HTTPException(404, f"{body.scope} {body.target}"
                                  f"{'/' + body.rule_id if body.rule_id else ''} not found: {ex}")
@@ -352,6 +369,21 @@ def _post_mark(body: MarkPayload):
             e["msg"], str(e["loc"][0]) if e["loc"] else None)} for e in ex.errors()])
     except ValueError as ex:
         raise HTTPException(422, [{"path": "", "msg": refusal_words(str(ex))}])
+    return _written_through(got, body)
+
+
+def _written_through(got, body: MarkPayload):
+    """The mark is in the store: run its domain's apply (T325 write-through; one per request, a batch included) and
+    say what it did. Never raises — a refused apply keeps the mark and is said on the item."""
+    try:
+        wt = WRITE_THROUGH.after_mark(body.scope, list(body.targets) or [body.target], body.rule_id)
+    except Exception as ex:                                     # noqa: BLE001 — the mark is saved regardless
+        import logging
+        logging.getLogger("uvicorn.error").exception("write-through failed")
+        wt = {"state": "refused", "why": f"{type(ex).__name__}: {ex}"}
+    if isinstance(got, dict):
+        return {**got, "write_through": wt}
+    return got
 
 
 @app.get("/api/marks")
