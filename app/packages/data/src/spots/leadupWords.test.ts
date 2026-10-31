@@ -172,7 +172,7 @@ describe("the fixed words", () => {
       rows: { day: "Day", sky: "Sky", temp: "High / low", rain: "Rain", wind: "Wind" },
       notRecorded: "The week before this visit was not recorded — it can be filled in from the days themselves.",
       someDaysPending:
-        "Some days of the week before were not available yet when this was saved — they can be filled in now.",
+        "Some days of the week before were not available yet when this was saved — they'll fill in once published.",
     });
     expect(PHOTO_WORDS).toEqual({
       heading: "Photographs",

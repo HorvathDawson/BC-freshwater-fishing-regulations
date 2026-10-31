@@ -197,7 +197,7 @@ export const LEAD_UP_WORDS = {
   /** The refresh line: a whole half of the week was never read (offline, or saved before the week was kept). */
   notRecorded: "The week before this visit was not recorded — it can be filled in from the days themselves.",
   /** The refresh line: the week was read, but some of its days were not out yet (owner bug 2026-10-22). */
-  someDaysPending: "Some days of the week before were not available yet when this was saved — they can be filled in now.",
+  someDaysPending: "Some days of the week before were not available yet when this was saved — they'll fill in once published.",
 } as const;
 
 /** Under the weather row: how many of its days the service had not sent yet, and that a refresh asks again. */
