@@ -129,8 +129,8 @@ const SCENARIOS = [
       await ctx.step('edge-back to the map (EdgeBack, iOS only)', async () => {
         // a few drags (height, speed): which ones go back is the note; none going back fails
         const tried = [];
-        for (const [Y, MS] of [['50%', '400'], ['30%', '800'], ['80%', '250']]) {
-          ctx.flow('edge-back', { Y, MS });
+        for (const [Y, MS] of [['50%', '400'], ['30%', '900'], ['80%', '400']]) {
+          ctx.flow(MS === '900' ? 'edge-back-slow' : 'edge-back', { Y });
           await sleep(1500);
           const w = device.screenText();
           const back = !(w.some((x) => /^Regulations$/.test(x)) && !hasTabs(w));

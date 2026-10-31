@@ -1,0 +1,7 @@
+# (T313) the edge-back drag held longer (a reader's slow swipe), at height Y.
+appId: ca.canifishthis.app
+env:
+  Y: "50%"
+---
+- swipe: { start: "1%, ${Y}", end: "75%, ${Y}", duration: 900 }
+- waitForAnimationToEnd: { timeout: 3000 }

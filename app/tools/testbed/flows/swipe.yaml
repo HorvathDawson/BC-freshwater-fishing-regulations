@@ -1,6 +1,4 @@
-# (T313) one swipe on the map: FROM / TO as "x%, y%", over MS milliseconds (a pan).
+# (T313) one swipe on the map: FROM / TO as "x%, y%" over 350 ms (a pan).
 appId: ca.canifishthis.app
-env:
-  MS: "350"
 ---
-- swipe: { start: "${FROM}", end: "${TO}", duration: ${MS} }
+- swipe: { start: "${FROM}", end: "${TO}", duration: 350 }

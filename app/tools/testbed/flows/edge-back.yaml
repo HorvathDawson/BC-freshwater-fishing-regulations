@@ -2,7 +2,6 @@
 appId: ca.canifishthis.app
 env:
   Y: "50%"
-  MS: "400"
 ---
-- swipe: { start: "1%, ${Y}", end: "75%, ${Y}", duration: ${MS} }
+- swipe: { start: "1%, ${Y}", end: "75%, ${Y}", duration: 400 }
 - waitForAnimationToEnd: { timeout: 3000 }
