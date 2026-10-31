@@ -46,3 +46,6 @@ scripts/heavy.sh t322-side 70 -- .venv/bin/python -m pipeline build --side data/
   --json handoff/PLAN/audit/binding-diff-t322.json
 # owner reviews the binding diff, then promote as in rebuild-batch-2026-10-31.md step 3
 ```
+
+## Owner 2026-10-30: no separate review
+"I don't think we need to review the slough stuff, we did the work in the review app already." The side build + binding diff stay as a MECHANICAL gate run by Claude (only the folded sloughs/oxbows and the waters they join may change; anything else stops the promote); no owner review step. Oxbows (31) re-kind to general streams; only polygons no line touches are skipped.
