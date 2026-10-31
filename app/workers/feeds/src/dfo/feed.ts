@@ -7,7 +7,7 @@
 import type { RuleRecord } from "./locations";
 import { pyStrOf, pyTypeName } from "./py";
 import { rowText, toRules, type TypedRule } from "./typed";
-import { rowWords, type RowWords } from "./wording";
+import { rowWords, type Registry, type RowWords } from "./wording";
 
 export interface Locator {
   fingerprint: string;
@@ -28,6 +28,7 @@ export interface TypedFeed {
 export function build(
   scraped: { region: string; date_modified: string | null; preamble: string[]; rules: RuleRecord[] },
   robust = false,
+  reg?: Registry,
 ): TypedFeed {
   const byFp = new Map<string, RuleRecord[]>();
   for (const rec of scraped.rules) {
@@ -39,15 +40,15 @@ export function build(
   for (const [fp, recs] of byFp) {
     const rules: TypedRule[] = [];
     const rows = recs.map(rowText);
-    const words = recs.map((r) => rowWords(r)).filter((w): w is RowWords => w !== null);
+    const words = recs.map((r) => rowWords(r, reg)).filter((w): w is RowWords => w !== null);
     const w = words.length ? { words } : {};
     if (!robust) {
-      recs.forEach((rec, i) => rules.push(...toRules(rec, fp.slice(0, 8), i)));
+      recs.forEach((rec, i) => rules.push(...toRules(rec, fp.slice(0, 8), i, false, reg)));
       locators.push({ fingerprint: fp, rows, rules, ...w });
       continue;
     }
     try {
-      recs.forEach((rec, i) => rules.push(...toRules(rec, fp.slice(0, 8), i, true)));
+      recs.forEach((rec, i) => rules.push(...toRules(rec, fp.slice(0, 8), i, true, reg)));
       locators.push({ fingerprint: fp, rows, rules, ...w });
     } catch (e) {
       locators.push({ fingerprint: fp, rows, rules: [], ...w, error: `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 200).join("")}` });

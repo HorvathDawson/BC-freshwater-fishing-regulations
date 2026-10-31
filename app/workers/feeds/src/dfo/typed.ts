@@ -6,7 +6,7 @@
 // HOLDS THE WHOLE REGION ("the page did not parse (ValidationError: ...)") — that sentence lands in index.json, so the
 // pydantic message is reproduced (its first 120 characters are what the feed keeps).
 import { readDates } from "./dates";
-import { reason as wordingReason } from "./wording";
+import { reason as wordingReason, type Registry } from "./wording";
 import { getCloseMatches } from "./difflib";
 import { PyFloat } from "./pyjson";
 import { capitalize, findall, floatRepr, fullmatch, PyError, pyInt, pyRe, repr, rstrip, search, split, splitWs, strip, sub, translate } from "./py";
@@ -564,7 +564,7 @@ export interface ScrapedRule {
  * dates.readDates — "until further notice", "To", "until", day-month order, ordinals, years, typos — and a cell it
  * still cannot read KEEPS the row's typed rules (never the advisory that dropped the limit), each carrying
  * `when.unparsed` and `check: DATES_UNPARSED`, which the calendar shows as a `check` verdict on every day. */
-export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robust = false): TypedRule[] {
+export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robust = false, reg?: Registry): TypedRule[] {
   const gear = strip(rec.limits_gear || "");
   const says = decode(gear);
   const codes = speciesFor(rec.species || "");
@@ -585,7 +585,7 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
   const rid = `${ruleBase}.r${order}`;
   const out: TypedRule[] = [];
   // T321: a clause the wording registry does not hold — the row is unparsed (wording.ts)
-  const newWording = wordingReason(gear);
+  const newWording = wordingReason(gear, reg);
 
   const make = (fields: Omit<TypedRule, "verbatim"> & { verbatim?: string }, times: RegExpExecArray | null = null): TypedRule => {
     // base(): verbatim / notice / when, then the kwargs (kwargs win)

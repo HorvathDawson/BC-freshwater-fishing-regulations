@@ -62,6 +62,13 @@ Depends: T320. Size: M. Owner: review the seeded registry entries (proposals).
   start at a97d9e8dc (Sheldens Creek bound — the last unbound DFO water carrying suggestions). The tests need a water
   that is unbound; none is left in the curated files. Left as is (data-driven tests; fix = build a synthetic unbound
   water in the test).
+- **Runtime input (10-30):** the registry is no longer redeploy-bound. `deploy/staging/sync-inputs.sh` uploads
+  `data/curated/dfo_salmon/wording.json` to `private/feeds/dfo/wording.json`; `runDfo` reads it once per run (priv
+  `wording.json`, `readRegistry`) and passes it through `typePage` -> `build` -> `toRules` / `rowWords`. Missing or
+  invalid -> the compiled-in import (kept as the fallback) + a warning in the log and `DfoResult.warnings`. A changed
+  copy (hash in `inputs.json`) re-types every region, so an accepted entry clears cached verdicts. Alert logic
+  (`wordingNotices`, once per template) untouched. Tests: R2 copy wins, missing/invalid falls back, new entry stops the
+  alert. Owner: run `deploy/staging/sync-inputs.sh` after each registry edit; the worker needs one deploy to pick this up.
 
 ## Owner
 - Review the 85 proposed registry entries (kind / reads) — especially the 15 notes.

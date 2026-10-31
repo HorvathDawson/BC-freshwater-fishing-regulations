@@ -39,11 +39,22 @@ export function template(clause: string): string {
 export const clauses = (cell: string): string[] => split(RE_SPLIT, cell || "").map((c) => strip(c)).filter((c) => c);
 
 export function loadRegistry(d: { format?: string; entries: WordingEntry[] }): Registry {
-  if (d.format !== FORMAT) throw new Error(`not a ${FORMAT} registry`);
+  if (!d || d.format !== FORMAT || !Array.isArray(d.entries)) throw new Error(`not a ${FORMAT} registry`);
   return new Map(d.entries.map((e) => [e.template, e]));
 }
 /** the bundled registry */
 export const REGISTRY: Registry = loadRegistry(doc as { format: string; entries: WordingEntry[] });
+
+/** The registry from the R2 copy (priv `wording.json`, put there by deploy/staging/sync-inputs.sh), or the compiled-in
+ *  one with the reason it fell back. Read once per run: a missing / invalid copy never stops the run. */
+export function readRegistry(text: string | null): { reg: Registry; warning?: string } {
+  if (text === null) return { reg: REGISTRY, warning: "wording.json missing in R2: using the compiled-in registry" };
+  try {
+    return { reg: loadRegistry(JSON.parse(text)) };
+  } catch (e) {
+    return { reg: REGISTRY, warning: `wording.json in R2 invalid (${e instanceof Error ? e.message : String(e)}): using the compiled-in registry` };
+  }
+}
 
 const known = (t: string, reg: Registry): WordingEntry | null => {
   const e = reg.get(t);

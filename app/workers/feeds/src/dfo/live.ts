@@ -33,7 +33,7 @@ import { feedText, loads, PyFloat } from "./pyjson";
 import { bucket, headerClosure } from "./quota";
 import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
-import { REGISTRY_PATH, template } from "./wording";
+import { readRegistry, REGISTRY_PATH, template, type Registry } from "./wording";
 
 export const FORMAT = "dfo-feed/1";
 const SPECIES_N = [...SPECIES];
@@ -109,6 +109,8 @@ export interface DfoResult {
   sent: { sent: string[]; failed: string[]; off: boolean };
   /** change-aware: the regions whose typing was skipped (page + entries unchanged) */
   skipped?: string[];
+  /** non-fatal problems this run (e.g. the R2 wording registry missing / invalid → compiled-in copy used) */
+  warnings?: string[];
 }
 
 type Json = any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -151,12 +153,12 @@ export function liveFetcher(
 }
 
 /** The page → (typed feed, locations, structure). Throws when the page does not parse or verify. */
-export function typePage(html: string, slug: string, robust = false): [TypedFeed, Location[], Structure] {
+export function typePage(html: string, slug: string, robust = false, reg?: Registry): [TypedFeed, Location[], Structure] {
   const parsed = parseRegion(html, slug);
   const u = untangle(parsed);
   verify(parsed, u);
   const [locs, rules, structure] = extract(u);
-  const typed = build({ region: slug, date_modified: parsed.date_modified, preamble: parsed.preamble, rules }, robust);
+  const typed = build({ region: slug, date_modified: parsed.date_modified, preamble: parsed.preamble, rules }, robust, reg);
   return [typed, locs, structure];
 }
 
@@ -302,13 +304,23 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
         meter: deps.meter,
       })
     : deps.feed;
-  let inputs: { rev?: string; regions?: Record<string, { page: string; entries: string }> } = {};
+  // T321: the wording registry is a runtime input (priv `wording.json`), read once per run; missing / invalid → the compiled-in copy
+  const wordingText = await deps.priv.get("wording.json");
+  const { reg: wordingReg, warning: wordingWarning } = readRegistry(wordingText);
+  const warnings: string[] = [];
+  if (wordingWarning) {
+    warnings.push(wordingWarning);
+    log(`warning: ${wordingWarning}`);
+  }
+  const wordingHash = contentHash(wordingText ?? "");
+  let inputs: { rev?: string; wording?: string; regions?: Record<string, { page: string; entries: string }> } = {};
   if (aware)
     try {
       inputs = JSON.parse((await deps.priv.get("inputs.json")) ?? "{}");
     } catch {
       inputs = {};
     }
+  if (inputs.wording !== wordingHash) inputs = {}; // a changed registry re-types every region (cached answers carry its verdicts)
   const inputsOut: Record<string, { page: string; entries: string }> = {};
   const skipped: string[] = [];
   const entrySource: EntrySource = deps.entries ?? ((slug) => deps.priv.get(`entries/region-${slug}.json`));
@@ -434,7 +446,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     let found: Location[];
     let structure: Structure;
     try {
-      [typed, found, structure] = typePage(html, slug, robust);
+      [typed, found, structure] = typePage(html, slug, robust, wordingReg);
     } catch (e) {
       hold(`the page did not parse (${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 120).join("")})`, sha.slice(0, 12));
       continue;
@@ -525,7 +537,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     // a region not run this time keeps its last inputs; one held / failed this run has none (re-typed next run)
     const keep: Record<string, { page: string; entries: string }> = {};
     if (inputs.rev === DFO_REV) for (const [s2, v] of Object.entries(inputs.regions ?? {})) if (!todo.includes(s2)) keep[s2] = v;
-    const next = JSON.stringify({ rev: DFO_REV, regions: { ...keep, ...inputsOut } });
+    const next = JSON.stringify({ rev: DFO_REV, wording: wordingHash, regions: { ...keep, ...inputsOut } });
     if (next !== JSON.stringify(inputs)) await deps.priv.put("inputs.json", next);
     if ((feedStore as { changed?: boolean }).changed) await deps.priv.put("writes.json", JSON.stringify(writes));
     if (skipped.length) log(`unchanged (page + entries): region ${skipped.join(", ")} — typing skipped, last answers carried`);
@@ -540,7 +552,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     messageOf: (n) => n.text,
     log,
   });
-  return { index, unplaced, notices: robust ? notices : notices.map(({ key, text }) => ({ key, text })), sent, skipped };
+  return { index, unplaced, notices: robust ? notices : notices.map(({ key, text }) => ({ key, text })), sent, skipped, ...(warnings.length ? { warnings } : {}) };
 }
 
 /** live.words_by_location (T321): location id → the rows its card shows in DFO's words, `{k, sp, d, t}` (`locs[lid].x`) */

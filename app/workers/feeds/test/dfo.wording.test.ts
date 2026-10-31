@@ -88,3 +88,51 @@ describe("new wording in the Worker", () => {
     expect(again.sent.sent.filter((k) => k.startsWith("dfo-wording:"))).toEqual([]); // told once
   });
 });
+
+describe("the registry as a runtime input (priv wording.json)", () => {
+  const entries = async (slug: string) => readFileSync(join(FIX, `entries/region-${slug}.json`), "utf-8");
+  const bad = page("8").replace("<td>4 per day, only 2 over 50&nbsp;cm.</td>", `<td>4 per day, only 2 over 50&nbsp;cm, ${NEW}.</td>`);
+  const run = (priv: MemStore, now = "2026-10-31T12:00:00Z") =>
+    runDfo({ fetch: async () => new Response("ok"), notifyUrl: "http://n", feed: new MemStore(), priv, entries, now, regions: ["8"], fetcher: async () => [bad, null] });
+  const wordingKeys = (r: Awaited<ReturnType<typeof run>>) => r.notices.filter((n) => n.key.startsWith("dfo-wording:")).map((n) => n.key);
+  const compiled = () => ({ format: "dfo-wording/1", entries: [...REGISTRY.values()] });
+
+  it("the R2 copy wins over the compiled-in one", async () => {
+    const priv = new MemStore();
+    // an R2 copy that rejects a template the compiled-in one accepts: the R2 copy decides
+    const t = template("4 per day");
+    const d = compiled();
+    d.entries = d.entries.map((e) => (e.template === t ? { ...e, status: "rejected" as const } : e));
+    priv.m.set("wording.json", JSON.stringify(d));
+    expect(REGISTRY.get(t)?.status).not.toBe("rejected");
+    const got = await run(priv);
+    expect(wordingKeys(got)).toContain(`dfo-wording:${t}`);
+    expect(got.warnings).toBeUndefined();
+  });
+
+  it("a missing R2 copy falls back to the compiled-in one, with a warning", async () => {
+    const got = await run(new MemStore());
+    expect(wordingKeys(got)).toEqual([`dfo-wording:${template(NEW)}`]);
+    expect(got.warnings).toHaveLength(1);
+    expect(got.warnings![0]).toContain("compiled-in");
+    const priv = new MemStore();
+    priv.m.set("wording.json", "{not json");
+    const inv = await run(priv);
+    expect(wordingKeys(inv)).toEqual([`dfo-wording:${template(NEW)}`]);
+    expect(inv.warnings![0]).toContain("invalid");
+  });
+
+  it("a new entry in the R2 copy stops the alert for that template", async () => {
+    const priv = new MemStore();
+    const d = compiled();
+    d.entries.push({ template: template(NEW), kind: "structure", reads: ["test"], status: "accepted" });
+    priv.m.set("wording.json", JSON.stringify(d));
+    const got = await run(priv);
+    expect(wordingKeys(got)).toEqual([]);
+    // registry edits re-type regions whose page + entries did not change: the same priv, now without the entry, alerts again
+    const priv2 = new MemStore();
+    priv2.m = new Map(priv.m);
+    priv2.m.set("wording.json", JSON.stringify(compiled()));
+    expect(wordingKeys(await run(priv2, "2026-11-01T00:00:00Z"))).toEqual([`dfo-wording:${template(NEW)}`]);
+  });
+});
