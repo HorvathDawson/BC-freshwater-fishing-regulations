@@ -34648,13 +34648,13 @@
   },
   "08MH044": {
    "station": "08MH044",
-   "station_name": "FRASER RIVER AT WHONOCK",
+   "station_name": "FRASER RIVER AT ALBION",
    "status": "matched",
    "resolved_by": "name+radius",
-   "distance_m": 255.3,
+   "distance_m": 228.5,
    "reason": null,
-   "lon": -122.4754409790039,
-   "lat": 49.17229843139648,
+   "lon": -122.557022094727,
+   "lat": 49.1813087463379,
    "wbk": [],
    "wsc": [
     "100"
@@ -34665,7 +34665,7 @@
    "evidence": {
     "name_agrees": true,
     "name_is_exact": true,
-    "distance_m": 255.3,
+    "distance_m": 228.5,
     "area_km2": 229400.0,
     "mag": 292851,
     "area_agrees": true,
@@ -34673,7 +34673,7 @@
     "kind_agrees": true
    },
    "trust": "reviewed",
-   "note": "reviewed against the map and the Water Office page",
+   "note": "reviewed against the map and the Water Office page; owner 2026-10-31: point moved to HYDAT 2026-10-19 position (renamed FRASER RIVER AT WHONOCK -> AT ALBION, ~6 km downstream); still the Fraser mainstem, same section 356364114:52467 at 228.5 m",
    "reviewed": "2026-09-03"
   },
   "08MH045": {
