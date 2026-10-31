@@ -16,9 +16,6 @@ import type { WebMapRefs } from "./refs";
 const CENTRE_ZOOM = 15;
 const ME_ACCURACY = "me-accuracy", ME_DOT = "me-dot";
 
-/** Metres per CSS pixel at a latitude and zoom (512 px tiles). */
-export const metresPerPixel = (lat: number, zoom: number): number => 78271.51696 * Math.cos((lat * Math.PI) / 180) / 2 ** zoom;
-
 export function useMe({ map }: WebMapRefs, me: MapProps["me"], theme: string) {
   const lastCentre = useRef(0);
   const release = useRef(me?.onRelease);

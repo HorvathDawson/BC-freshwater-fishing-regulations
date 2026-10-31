@@ -361,6 +361,8 @@ export const SALMON_WORDS = {
   placeClosed: "Closed to salmon fishing",
   placeShow: "Show rules",
   placeHide: "Hide rules",
+  /** the link mark after a tappable line ("Show rules ›", a place with pictures) */
+  more: "›",
   ruleFullWording: "Full wording",
   ruleHideWording: "Hide wording",
   ruleCopy: "Copy",

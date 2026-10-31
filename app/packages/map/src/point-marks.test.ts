@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { colour } from "./chrome";
 import { markBoxImage, markHit, marksData, pinsData, shiftedLabels } from "./point-marks";
 
 describe("T317 point marks", () => {
   it("the label box is a square card with an ink edge, only its middle stretching", () => {
-    const g = markBoxImage("#ffffff", "#000000");
+    const card = colour("light", "color.ui.card"), ink = colour("light", "color.ui.ink");
+    const rgba = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)).concat(255);
+    const g = markBoxImage(card, ink);
     const px = (x: number, y: number) => Array.from(g.data.slice((y * g.width + x) * 4, (y * g.width + x) * 4 + 4));
-    expect([px(0, 0), px(12, 12)]).toEqual([[0, 0, 0, 255], [255, 255, 255, 255]]);
+    expect([px(0, 0), px(12, 12)]).toEqual([rgba(ink), rgba(card)]);
     expect([g.stretchX, g.content]).toEqual([[[3, 21]], [3, 3, 21, 21]]);
   });
   it("a tap's mark is the first feature's `i` (a phone may send it as a string); none is null", () => {
@@ -19,8 +22,9 @@ describe("T317 point marks", () => {
     expect(marksData(marks, at).features.length).toBe(5);
   });
   it("pins carry their tone (the accent by default) and the marker is last, over them", () => {
-    const fc = pinsData({ lat: 1, lon: 2 }, [{ lat: 3, lon: 4 }], "#5F26E0");
+    const accent = colour("light", "color.ui.accent");
+    const fc = pinsData({ lat: 1, lon: 2 }, [{ lat: 3, lon: 4 }], accent);
     expect(fc.features.map((f) => (f as { properties: { kind: string; tone: string } }).properties))
-      .toEqual([expect.objectContaining({ kind: "pin", tone: "#5F26E0" }), expect.objectContaining({ kind: "marker" })]);
+      .toEqual([expect.objectContaining({ kind: "pin", tone: accent }), expect.objectContaining({ kind: "marker" })]);
   });
 });

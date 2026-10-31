@@ -482,11 +482,11 @@ describe("web only", () => {
 
   it("T317: the marker and a panel's pins are one GeoJSON source with the pin image per tone, not DOM markers", async () => {
     render(<WebMap {...base({ data: undefined, marker: { lat: 49.1, lon: -122.1 },
-                             pins: [{ lat: 49.2, lon: -122.2, tone: "#AA3300", title: "Hope" }] })} />);
+                             pins: [{ lat: 49.2, lon: -122.2, tone: colour("light", "color.ui.spot"), title: "Hope" }] })} />);
     await waitFor(() => expect(web.data[PIN_SOURCE]).toBeTruthy());
     const fc = web.data[PIN_SOURCE] as { features: { properties: Record<string, unknown> }[] };
     expect(fc.features.map((f) => [f.properties.kind, f.properties.tone, f.properties.img])).toEqual([
-      ["pin", "#AA3300", "t317-pin-AA3300"], ["marker", colour("light", "color.ui.accent"), `t317-pin-${colour("light", "color.ui.accent").slice(1)}`]]);
+      ["pin", colour("light", "color.ui.spot"), `t317-pin-${colour("light", "color.ui.spot").slice(1)}`], ["marker", colour("light", "color.ui.accent"), `t317-pin-${colour("light", "color.ui.accent").slice(1)}`]]);
     expect(document.querySelectorAll(".maplibregl-marker").length).toBe(0);
   });
 });
@@ -615,7 +615,7 @@ it("no listener, no long press: the binding is handed no handler (its long press
                                  onPressFeature: press, onMapPoint: point,
                                  spots: { points: [{ id: "s1", lat: 49, lon: -122, title: "Tamihi run" }],
                                           selected: "s1", onOpen: open, onList: () => {},
-                                          colours: { mark: "#c2410c", ground: "#fff7ed" } } })} />);
+                                          colours: { mark: colour("light", "color.ui.spot"), ground: colour("light", "color.ui.spot-ground") } } })} />);
     await waitFor(() => expect(native.props).toBeTruthy());
     log.length = 0;
     PLATFORMS.native.tap(200, 400, -122, 49);          // on the mark

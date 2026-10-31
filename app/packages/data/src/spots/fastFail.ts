@@ -24,12 +24,6 @@ export function fastFail<T>(p: () => Promise<T>, online: (() => boolean) | undef
   });
 }
 
-export interface FastPorts {
-  source: WaterSource;
-  weather: WeatherSource | undefined;
-  feed: { index(): Promise<any> } | undefined;
-}
-
 /** The ports for a capture: the same, with the network asks failing fast. Absent ports stay absent. */
 export function fastPorts<F extends { index(): Promise<any> }>(
   ports: { source: WaterSource; weather?: WeatherSource; feed?: F }, online?: () => boolean, ms = DEADLINE_MS):

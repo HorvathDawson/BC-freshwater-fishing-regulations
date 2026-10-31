@@ -1,6 +1,6 @@
 # T324 — One clean data flow: document every stream, then lock reviewed data as final curated files
 
-Status: PLAN DONE (data-flow.md, cbfc0adc7); owner approved the design + option (a) closed-domains list 2026-10-30; work in T325–T331. (owner 2026-10-30: "I thought the marks got converted into our real curated data type? We need to document
+Status: PARTIAL — plan done (data-flow.md, cbfc0adc7); owner approved the design + option (a) closed-domains list 2026-10-30; work in T325–T331. (owner 2026-10-30: "I thought the marks got converted into our real curated data type? We need to document
 the flow of all the data streams too. … after we finish doing the review … lock all the data in curated in the format
 they will be useful like sloughs etc. … convert marks into that format for all the data types … Right now the whole flow
 feels really shitty and awkward.")

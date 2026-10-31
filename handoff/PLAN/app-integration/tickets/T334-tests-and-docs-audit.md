@@ -1,6 +1,6 @@
 # T334 — Audit all tests and documentation
 
-Status: PLANNED (next credit cycle, with T333) (owner 2026-10-30: "add another ticket to audit all tests and
+Status: POSTPONED — (next credit cycle, with T333) (owner 2026-10-30: "add another ticket to audit all tests and
 documentation").
 
 ## Tests (pipeline/tests, app packages, workers, testbed)

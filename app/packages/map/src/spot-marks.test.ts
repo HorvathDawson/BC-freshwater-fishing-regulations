@@ -6,10 +6,12 @@
 import { describe, expect, it } from "vitest";
 import { SPOT_PIN, spotFace, spotMarkers, type SpotPoint } from "@app/core";
 import { SCALE } from "./raster";
+import { colour } from "./chrome";
 import { SPOT_FACE, SPOT_LABEL, SPOT_SOURCE, SPOT_TEXT, spotFaceImage, spotImageName, spotImages, spotLabelText,
          spotsData, spotsLayers } from "./spot-marks";
 
-const C = { mark: "#c2410c", ground: "#fff7ed" };
+/** the spot tokens (lower-cased: `at` reads the pixels back as lower-case hex) */
+const C = { mark: colour("light", "color.ui.spot").toLowerCase(), ground: colour("light", "color.ui.spot-ground").toLowerCase() };
 const A: SpotPoint = { id: "s1", lat: 49.0974, lon: -121.9675, title: "Tamihi run" };
 const B: SpotPoint = { id: "s2", lat: 49.1, lon: -122.0, title: "Vedder River" };
 const P: SpotPoint = { ...A, lat: 49.2, parking: true };

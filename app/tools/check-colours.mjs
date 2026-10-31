@@ -70,9 +70,11 @@ const NAMED = new Set(("aliceblue antiquewhite aqua aquamarine azure beige bisqu
 
 /**
  * (T221) Words the app uses as NAMES that CSS also calls a colour: "salmon" is the Salmon colouring mode and the DFO
- * card (T211), never a paint here — a line saying "colour by salmon" is not a colour literal.
+ * card (T211), never a paint here — a line saying "colour by salmon" is not a colour literal. (T320) "pink" likewise: the
+ * Pink salmon species in the DFO quota table.
  */
-const NOT_A_PAINT = new Set(["salmon"]);
+// (T320) "Pink" is the salmon SPECIES (Pink, Chum, Coho …) in the DFO quota table, never a paint
+const NOT_A_PAINT = new Set(["salmon", "pink"]);
 
 /**
  * A named colour is only a colour where something is being COLOURED. `namedFlavor("black")`

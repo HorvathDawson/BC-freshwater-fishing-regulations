@@ -1,6 +1,6 @@
 # T329 — Ponds (Q154): close the domain, no reader, no export
 
-Status: DONE (2026-10-30) — was OPEN — DECIDED (owner 2026-10-30: "The pond marks can be not exported tho it just means lakes? They don't need
+Status: DONE (62ff4d515) (2026-10-30) — was OPEN — DECIDED (owner 2026-10-30: "The pond marks can be not exported tho it just means lakes? They don't need
 to be saved, build will never use").
 
 A pond call only confirms the default (a lake), so nothing reads it. Close the `pond` domain on the closed-domains list

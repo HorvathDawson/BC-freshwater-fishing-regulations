@@ -1,6 +1,6 @@
 # T320 — DFO salmon quotas per species, per water/extent, as structured data (bucket + sub-limits)
 
-Status: DONE — rides the next release + a feeds-worker deploy (owner 2026-10-31: "We should have the per species values from the table in the DFO pages for each
+Status: DONE (cf5301f59) — rides the next release + a feeds-worker deploy (owner 2026-10-31: "We should have the per species values from the table in the DFO pages for each
 water/section (Skeena has sections too) like each extent has a list of quotas etc. we need to make them interpretable …
 The 4 salmon per day combined is the overall limit for the salmon bucket with sub amounts for each species within.").
 

@@ -44,10 +44,14 @@ describe("(T150) one list of a water's parts", () => {
 });
 
 describe("(T151) a mark's label face is one value, read by both maps", () => {
-  it("Map.web and Map.native read MARK_LABEL_FONT; neither spells the label's face or weight", () => {
-    const web = read("packages/map/src/Map.web.tsx"), native = read("packages/map/src/Map.native.tsx");
-    expect([/font:\$\{MARK_LABEL_FONT\.web\}/.test(web), /fontFamily: MARK_LABEL_FONT\.native/.test(native),
-            /font:\s*\d00 12px/.test(web), /\{k\.label\}/.test(native) && /fontFamily: "Archivo_[0-9]+\w*" }}>\s*\{k\.label\}/.test(native)])
-      .toEqual([true, true, false, false]);
+  // (T317) the marks are map-engine symbol layers now (`point-marks.ts`, read by Map.native and web/markers.ts): the
+  // label face is ONE value, `MARK_LABEL_FONT_STACK`, in the layer; neither map draws a label view or spells its face
+  it("the marks' layers carry MARK_LABEL_FONT_STACK; both maps take their layers from point-marks; neither spells a label face", () => {
+    const pm = read("packages/map/src/point-marks.ts"), native = read("packages/map/src/Map.native.tsx");
+    const webMarks = read("packages/map/src/web/markers.ts"), web = read("packages/map/src/Map.web.tsx");
+    expect([/"text-font": MARK_LABEL_FONT_STACK/.test(pm), /marksLayers[^;]*from "\.\/point-marks"/.test(native),
+            /marksLayers[^;]*from "\.\.\/point-marks"/.test(webMarks),
+            /font:\s*\d00 12px/.test(web), /\{k\.label\}/.test(native)])
+      .toEqual([true, true, true, false, false]);
   });
 });

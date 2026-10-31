@@ -20,7 +20,7 @@ export function udid() {
   if (!s) throw new Error('no simulator: run through session-ios.sh (TESTBED_UDID / out/UDID)');
   return s;
 }
-export const serial = udid;
+export function serial() { return udid(); }   // the Android device module's name for the same thing
 
 const base = SIMCTL === 'simctl' ? ['xcrun', ['simctl']] : [SIMCTL, []];
 export const simctl = (args, opts = {}) =>

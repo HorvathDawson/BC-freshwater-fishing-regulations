@@ -15,7 +15,7 @@ const RING_WIDTH = 3;
 /** an accuracy circle wider than this many px is not drawn bigger (the web's cap) */
 const MAX_ACCURACY_PX = 4000;
 
-/** Metres per pixel at a latitude and zoom (512 px tiles; the web's `metresPerPixel`). */
+/** Metres per pixel at a latitude and zoom (512 px tiles). */
 const metresPerPixel = (lat: number, zoom: number): number => 78271.51696 * Math.cos((lat * Math.PI) / 180) / 2 ** zoom;
 
 type Fix = { lat: number; lon: number; accuracy?: number };

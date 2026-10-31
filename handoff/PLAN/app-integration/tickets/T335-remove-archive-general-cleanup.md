@@ -1,6 +1,6 @@
 # T335 — Remove archive/ and general cleanup
 
-Status: PLANNED — next credit cycle, together with the T333/T334 audits (owner 2026-10-30: "the clean up was for with the audit for next credit cycle not now"; original: "we can remove archive and do any more general cleanup").
+Status: POSTPONED — next credit cycle, together with the T333/T334 audits (owner 2026-10-30: "the clean up was for with the audit for next credit cycle not now"; original: "we can remove archive and do any more general cleanup").
 
 1. Delete `archive/` (211 tracked files, 22 MB: old cron-runner, mobile, pipeline, r2-worker, scripts, webapp) and
    `pipeline/docs/archive/`. First move anything still READ by live code (several app/tools/*.mjs, the feeds worker,

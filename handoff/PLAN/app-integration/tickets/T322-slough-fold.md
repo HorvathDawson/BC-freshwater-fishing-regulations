@@ -1,6 +1,6 @@
 # T322 — Fold the owner-confirmed slough/canal polygons into their streams (own side build + mechanical binding gate)
 
-Status: CODE DONE, fold OFF until its side build (2026-10-30: 762586d4d, c31772b77, a4ce0f996). Split out of T55
+Status: PARTIAL — code done, fold OFF until its side build (2026-10-30: 762586d4d, c31772b77, a4ce0f996). Split out of T55
 (measurements in T55 "Fold: what is needed", 675265492).
 
 ## Rule (owner 2026-10-30, corrected twice)

@@ -1,6 +1,6 @@
 # T318 — Regs pane: time-of-day closures in the year bar; salmon as a species/quota table; one image per species
 
-Status: DONE (no APK) (owner 2026-10-31, with phone screenshots of the Fraser on 0.3.0: T318-shots/owner-fraser-regs.png,
+Status: DONE (b7b3c1434, 048caf48a) (no APK) (owner 2026-10-31, with phone screenshots of the Fraser on 0.3.0: T318-shots/owner-fraser-regs.png,
 owner-fraser-salmon.png).
 
 ## Work

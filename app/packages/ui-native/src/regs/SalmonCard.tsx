@@ -48,7 +48,7 @@ function SpeciesRow({ r, palette, actions, images, pictures }: {
       {pictures && (o.src ? <Image source={o.src} testID="salmon-look" style={{ width: 56, height: 30 }} resizeMode="contain" accessibilityIgnoresInvertColors />
         : <View testID="salmon-look" style={{ width: 56, height: 30, backgroundColor: palette.line2 }} />)}
       <View style={{ flex: 1 }}>
-        <Text style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{r.name}{pictures && <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{" ›"}</Text>}</Text>
+        <Text style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{r.name}{pictures && <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{` ${SALMON_WORDS.more}`}</Text>}</Text>
         {r.quota && <Text selectable testID="salmon-quota" style={{ ...TYPE.metaSemi, color: palette.ink }}>{r.quota}</Text>}
         {r.quotaUnread && <Text testID="salmon-quota-unread" style={{ ...TYPE.meta, color: palette.sub }}>{SALMON_WORDS.quotaUnread}</Text>}
         {r.limit && <Text selectable testID="salmon-limit" style={{ ...TYPE.meta, color: palette.sub }}>{r.limit}</Text>}
@@ -94,7 +94,7 @@ function Place({ p, palette }: { p: SalmonPlaceTableVM; palette: Palette }) {
           <Text testID="salmon-unmapped-tag" style={{ ...TYPE.kicker, color: palette.sub }}>{p.tag}</Text>
           <Text testID="salmon-place-summary" style={{ ...TYPE.meta, color: palette.sub }}>{p.summary}</Text>
         </View>
-        <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{open ? SALMON_WORDS.placeHide : SALMON_WORDS.placeShow} ›</Text>
+        <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{open ? SALMON_WORDS.placeHide : SALMON_WORDS.placeShow} {SALMON_WORDS.more}</Text>
       </RegsPress>
       {open && (
         <View testID="salmon-place-body" style={{ paddingBottom: 8 }}>
@@ -178,7 +178,7 @@ export function SalmonCard({ card, palette, actions, images }: {
                                                   borderColor: palette.line2, borderLeftWidth: 5, borderLeftColor: palette.sub }}>
             <Text selectable style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{card.partial.text}</Text>
             <Text testID="salmon-partial-link" accessibilityRole="link" onPress={() => { void Linking.openURL(card.partial!.url); }}
-                  style={{ ...TYPE.metaSemi, color: palette.accent, marginTop: 4, paddingVertical: 4 }}>{card.partial.link} ›</Text>
+                  style={{ ...TYPE.metaSemi, color: palette.accent, marginTop: 4, paddingVertical: 4 }}>{card.partial.link} {SALMON_WORDS.more}</Text>
           </View>
         )}
         {card.dfoWords && card.dfoWords.changed.length > 0 && (

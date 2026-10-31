@@ -1,6 +1,6 @@
 # T321 — DFO limits wording as a closed registry: unknown wording is held, shown in DFO's words, and alerts urgently
 
-Status: DONE — rides the next release + a feeds-worker deploy (owner 2026-10-31: "It should be urgent yes. Because it could mean a quota changed but with a new wording.
+Status: DONE (b52942134, 86476b6e2) — rides the next release + a feeds-worker deploy (owner 2026-10-31: "It should be urgent yes. Because it could mean a quota changed but with a new wording.
 Also display a specific waters unparsed items if they exist (wording change happened). Yes make this a ticket.")
 
 ## Why

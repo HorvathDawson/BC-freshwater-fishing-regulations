@@ -248,6 +248,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/UpdatesLogPage.tsx#UpdatesLogPage: draws UpdatesLogPage",
       "packages/ui-native/src/regs/DaySheet.tsx#DaySheet: takes onClose",
       "packages/ui-native/src/spot/Confirm.tsx#Confirm: takes onCancel",
+      "packages/ui-native/src/spot/ParkingPick.tsx#ParkingPick: takes onCancel",
     "packages/ui-native/src/spot/PhotoViewer.tsx#PhotoViewer: a Modal",
       "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose",
       "packages/ui-native/src/water/WaterMapView.tsx#MarkPop: a dialog",

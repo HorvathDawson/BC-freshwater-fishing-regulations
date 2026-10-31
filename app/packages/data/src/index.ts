@@ -22,7 +22,7 @@ export type { Db, Row } from "./sql/db";
 
 export { FEED_TTL_MS, httpFeed, type GaugeFeed } from "./feed/http";
 // (T315) the gauges' last week, kept on the phone for offline
-export { gaugeHistory, type GaugeHistory } from "./feed/history";
+export { gaugeHistory } from "./feed/history";
 // (T256) the Conditions chart before its envelope: the observations and forecast, no normal range
 export { draftSeriesOf } from "./sql/shared";
 // (T211) the live DFO salmon feed, the last capture kept on the device
