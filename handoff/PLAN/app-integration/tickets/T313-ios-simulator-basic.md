@@ -51,7 +51,7 @@ Reports: `app/tools/testbed/out/runs/ios-t313{b,c,d}/index.html` (b: first run a
 | offline | 2/3 | Simulate offline on → Check now "failed (offline)", regs from the installed set PASS; "put back off" was a test bug (fixed) |
 | satellite | PASS | imagery drawn (light grey 35 % → 4 %), Map base put back |
 | location | PASS (1 skip) | revoke → "Location is off for this app…"; grant → blue dot centred, "Follow my location"; "At my location" row not in iOS search (skip, check) |
-| walkthrough | FAIL → T332 | 16 of 25 walked; step 17's card over the Layers sheet is not in the accessibility tree |
+| walkthrough | FAIL → T336 | 16 of 25 walked; step 17's card over the Layers sheet is not in the accessibility tree |
 | pdf | PASS (bug fixed) | the rule book opens in Files/Preview ("◀ Can I Fish?" back to the app) — but at its COVER: iOS was not given the entry-first copy (Android only); now entry-first on both (synopsisPdf.native.ts) |
 
 ### Triage of ios-t313b (from the artifacts)
@@ -61,7 +61,7 @@ Reports: `app/tools/testbed/out/runs/ios-t313{b,c,d}/index.html` (b: first run a
   for VoiceOver, so the text "Skip" never matched → skipped by `id: guide-skip` (dismiss-first-run.yaml, Android too).
 - Simulate offline: test. Menu pages are Modals from below (no edge swipe), the runner fell back to a cold start, which
   resets the (unkept) switch; the second press turned it on again. Menu pages now left by their "‹ Back"; the switch read first.
-- Walkthrough 16/25: real, **T332**.
+- Walkthrough 16/25: real, **T336**.
 - PDF in b: test (a resumed walk reopened the Layers sheet; appUp now closes it). Passes in d.
 
 ### iOS bugs found and fixed here
