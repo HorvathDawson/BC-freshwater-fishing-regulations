@@ -375,6 +375,8 @@ use that as the sole source of future work."
 | T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | OPEN | — | owner 2026-10-30 |
 | T332 | DFO salmon quotas in the same quota/lengths model as game-fish rules; wording list tidied, checked, accepted | OPEN | T320, T321 | owner 2026-10-30 |
 | T333 | Big Fable audit: duplicate data types / pathways / bad practices, verified + ranked → cleanup tickets | PLANNED (next credit cycle) | T324, T331 | owner 2026-10-30 |
+| T334 | Audit all tests and documentation (dead tests, gaps, stale/duplicate docs) → fix tickets | PLANNED (next credit cycle) | T333 | owner 2026-10-30 |
+| T335 | Remove archive/ + general cleanup (stray files, old side builds, releases to live+previous, dead scripts) | OPEN | — | owner 2026-10-30 |
 | T332 | iOS: walkthrough card over the Layers sheet missing from the accessibility tree (VoiceOver can't reach it) | OPEN | — | T313 2026-10-30 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |

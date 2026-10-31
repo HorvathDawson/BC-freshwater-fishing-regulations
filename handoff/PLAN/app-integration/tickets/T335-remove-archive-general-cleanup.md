@@ -1,0 +1,12 @@
+# T335 — Remove archive/ and general cleanup
+
+Status: OPEN (owner 2026-10-30: "we can remove archive and do any more general cleanup").
+
+1. Delete `archive/` (211 tracked files, 22 MB: old cron-runner, mobile, pipeline, r2-worker, scripts, webapp) and
+   `pipeline/docs/archive/`. First move anything still READ by live code (several app/tools/*.mjs, the feeds worker,
+   pipeline/__init__.py and pipeline-ci.yml mention "archive/") to its proper home, or drop the reference.
+2. General cleanup: stray root `__pycache__/`, untracked leftovers (`app/tools/build-play-graphics.mjs`,
+   `play-shots.mjs`, `store/graphics/` — commit or remove after asking what they are), old side builds and scratch
+   under data/generated, releases pruned to live + previous (T331 item 8), dead scripts.
+3. Proof: the targeted suites + app typecheck + a dry `pipeline build --graph` still pass.
+Done on a branch while the 0.4.0 chain runs; merged after it. Size: M.
