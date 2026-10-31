@@ -412,7 +412,7 @@ The proposed tidal boundaries (`data/generated/review/tidal/tidal-candidates.jso
 ### In-season mode (T230) — reads, and the one non-mark write
 The provincial in-season feed (T225 `inseason-feed/1`: `data/generated/inseason/feed/index.json`, or
 `CURATION_INSEASON_FEED`) and where each row applies, `data/curated/inseason/matches.json`
-(`CURATION_INSEASON_MATCHES`; read through `pipeline.regs.inseason.matches`). INFORMATIONAL ONLY: a match puts a
+(`CURATED.inseason.matches`, never env-overridable; read through `pipeline.regs.inseason.matches`). INFORMATIONAL ONLY: a match puts a
 banner on the water in the app, never changes an answer.
 - `GET /api/inseason/queue` → `{available, message, source, fetchedAt, rows, progress: {matched, auto, unmatched,
   total, removed, stale}}`. One row per feed row and removed row (`removed: true`, `status: "removed"`), plus a

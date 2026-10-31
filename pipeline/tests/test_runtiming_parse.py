@@ -85,8 +85,8 @@ def test_slots_split_pink_by_brood_line_and_nothing_else():
 
 
 def test_the_committed_timings_read_whole_and_credit_both_sources():
-    from pipeline.common.curated import CURATED
-    t = read_timing(CURATED.runtiming.timing)
+    from pipeline.common.curated import SOURCE
+    t = read_timing(SOURCE / "runtiming" / "timing.json")      # T331: source data, out of curated
     assert {r.source for r in t.psf} == {"psf"} and {r.source for r in t.dfo} == {"dfo"}
     assert len(t.psf) > 300 and len(t.dfo) > 4000
     assert {r.species for r in t.dfo} == {"Chinook", "Chum", "Coho", "Pink", "Sockeye"}     # no DFO steelhead

@@ -4,7 +4,7 @@
 # (app/apps/mobile/src/config.ts). Needs the rclone remote `r2:`.  Usage: deploy/staging/upload.sh [r-<id>]
 # T225 Phase A: the feeds Worker runs on a schedule and OWNS feeds/** and private/** — the clear spares them; the local
 # feed copies only SEED a key that is missing (never overwrite the worker's newer output); clim.json (the worker's input)
-# goes up when it differs; then sync-inputs.sh (DFO entries, roster, in-season matches).
+# goes up when it differs; then sync-inputs.sh (the list in pipeline.deliver.sync_inputs: DFO entries + wording, roster, in-season matches).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 BUCKET=bc-fishing-regulations-staging            # hardcoded: this script must never name a production bucket

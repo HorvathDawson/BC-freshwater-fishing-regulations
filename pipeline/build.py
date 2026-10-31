@@ -131,9 +131,20 @@ def code_digest(roots) -> str:
     return h.hexdigest()[:16]
 
 
+#: (T331) THE DELIVER KEY HASHES WHAT DELIVER CAN READ: every path the `CURATED` model declares (stage code reads
+#: curated data only through it, AGENTS 36) — not `base`, the whole tree, so an undeclared file never reruns deliver —
+#: minus these, which no stage reads: review inputs and worklists (the slough page marks, the split confidence
+#: overrides, the gauge review queue, the owner's name calls — `tools.mined_names` turns those into `mined_names.json`,
+#: which IS hashed — the closed-domains list) and the two hand worklists with zero code readers.
+NOT_DELIVER_INPUTS = ("base", "regulations.review.proposal_overrides", "regulations.review.closed",
+                      "gauges.candidates", "sloughs.page_marks", "waters.name_calls", "waters.ungazetted",
+                      "waters.sub_lake_areas")
+
+
 def curated_digest() -> str:
-    """Every curated input, by content: each path the `CURATED` model names (a file, or every
-    file under a directory). A path the model names that is missing raises (P2)."""
+    """Every curated input deliver can read, by content: each path the `CURATED` model names (a file, or every
+    file under a directory) except the review state (`NOT_BUILD_INPUTS`) and `NOT_DELIVER_INPUTS`. A path the model
+    names that is missing raises (P2)."""
     paths: set[Path] = set()
 
     def walk(v):
@@ -147,7 +158,7 @@ def curated_digest() -> str:
             paths.add(v)
     walk(CURATED.model_dump())
     skip = not_build_inputs()           # T266: the review log and its export (also under `base`)
-    paths -= skip
+    paths -= skip | not_build_inputs(NOT_DELIVER_INPUTS)
     h = hashlib.sha256()
     for root in sorted(paths):
         if not root.exists():
@@ -169,10 +180,11 @@ def _files_under(root: Path, skip: set[Path]) -> list[Path]:
     return sorted(out)
 
 
-def not_build_inputs() -> set[Path]:
-    """The curated paths in no stage key (`NOT_BUILD_INPUTS`): the marks store and the decided-data dir (T266)."""
+def not_build_inputs(dotted_keys: tuple[str, ...] | None = None) -> set[Path]:
+    """The curated paths in no stage key (`NOT_BUILD_INPUTS`): the marks store and the decided-data dir (T266).
+    `dotted_keys`: resolve another list instead (`NOT_DELIVER_INPUTS`, T331)."""
     out = set()
-    for dotted in NOT_BUILD_INPUTS:
+    for dotted in (NOT_BUILD_INPUTS if dotted_keys is None else dotted_keys):
         v = CURATED
         for part in dotted.split("."):
             v = getattr(v, part)

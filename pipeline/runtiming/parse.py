@@ -1,4 +1,4 @@
-"""The fetched run-timing sources -> `data/curated/runtiming/timing.json` (+ the CU polygons deliver binds PSF runs by).
+"""The fetched run-timing sources -> `data/source/runtiming/timing.json` (T331: source data) (+ the CU polygons deliver binds PSF runs by).
 
     python -m pipeline.runtiming.parse          # seconds; after `fetch.explorer` / `fetch.boundaries` / `fetch.nuseds`
 
@@ -316,7 +316,8 @@ if __name__ == "__main__":
     from pipeline.common.curated import CURATED, GENERATED, SOURCE
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--src", type=Path, default=SOURCE / "runtiming")
-    ap.add_argument("--out", type=Path, default=CURATED.runtiming.timing)
+    # T331: parsed source data, not curated — tracked under data/source/ because the fetched pages are not
+    ap.add_argument("--out", type=Path, default=SOURCE / "runtiming" / "timing.json")
     ap.add_argument("--polygons", type=Path, default=GENERATED.runtiming / "cu_polygons.geojson")
     ap.add_argument("--no-polygons", action="store_true", help="leave the CU polygons as they are")
     a = ap.parse_args()

@@ -41,10 +41,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
-from pipeline.common.curated import REPO_ROOT
+from pipeline.common.curated import CURATED, REPO_ROOT
 
 FORMAT = "dfo-wording/1"
-REGISTRY = REPO_ROOT / "data/curated/dfo_salmon/wording.json"
+REGISTRY = CURATED.dfo_salmon.wording            # T331: declared in config.yaml (`curated.dfo_salmon.wording`)
 #: a typed rule's `review_reason` for a row with a clause the registry does not know
 NEW_WORDING = "new wording: "
 KINDS = ("structure", "note", "provenance")

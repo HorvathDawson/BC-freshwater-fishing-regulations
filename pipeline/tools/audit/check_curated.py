@@ -128,8 +128,8 @@ ARTIFACTS = [
     Artifact(
         name="gauge water-body type",
         roster=SOURCE / "bc_hydrometric_stations.json",
-        frozen=(_C.gauges.waterbody_type
-                or SOURCE / "bc_station_waterbody_type.json"),
+        # T331: scraped from ECCC, so SOURCE data (`waterbody_type.TYPES_FILE`), still frozen against the roster
+        frozen=SOURCE / "bc_station_waterbody_type.json",
         regenerate="python -m pipeline.gauges.generate.waterbody_type",
         roster_ids="station",
         frozen_ids="stations.*",

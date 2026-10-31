@@ -77,8 +77,27 @@ def test_a_failed_stage_is_recorded_and_not_marked_done(world, monkeypatch, tmp_
 
 
 def test_the_curated_digest_sees_every_curated_file():
-    """No literal path: every path the CURATED model names, the whole tree under `base`."""
+    """No literal path: every path the CURATED model names (T331: not the whole tree under `base`)."""
     assert len(B.curated_digest()) == 16
+
+
+def test_the_deliver_key_reads_only_what_deliver_can_read(monkeypatch):
+    """T331: a review-only or undeclared curated file never reruns deliver; every declared deliver input is hashed."""
+    from pipeline.common.curated import CURATED
+    opened = []
+    real = Path.read_bytes
+    monkeypatch.setattr(Path, "read_bytes", lambda self: (opened.append(Path(self)), real(self))[1])
+    B.curated_digest()
+    got = set(opened)
+    for p in (CURATED.sloughs.page_marks, CURATED.regulations.review.proposal_overrides, CURATED.gauges.candidates,
+              CURATED.waters.name_calls, CURATED.waters.ungazetted, CURATED.waters.sub_lake_areas,
+              CURATED.base / "README.md"):
+        assert Path(p) not in got, p
+    for p in (CURATED.waters.splits, CURATED.waters.mined_names, CURATED.gauges.matches, CURATED.dfo_salmon.wording,
+              CURATED.runtiming.review, CURATED.inseason.matches):
+        assert Path(p) in got, p
+    assert any(CURATED.regulations.entries.catalogue in p.parents for p in got)
+    assert all(CURATED.base in p.parents for p in got)
 
 
 # ------------------------------------------------------------------ N7: the deliver key covers every input

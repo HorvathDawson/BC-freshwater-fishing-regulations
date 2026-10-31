@@ -58,7 +58,9 @@ def env(tmp_path_factory):
         "6": {"verdict": None, "note": "similar this can be on a lake"},     # verdict cleared, note kept
         "3": {"verdict": "stream", "note": "complex:cx-3"}}}))                # the page's own tag, not a note
     mp = pytest.MonkeyPatch()
-    mp.setenv("CURATION_SLOUGH_PAGE_MARKS", str(tmp / "page.json"))
+    # T331: a curated path is never env-overridable — the test points the module's own constant at a temp copy
+    from pipeline.regs.review import slough as _S
+    mp.setattr(_S, "PAGE_MARKS", tmp / "page.json")
     mp.setenv("CURATION_SLOUGH_AUTOMARK", str(tmp / "automark.json"))
     mp.setenv("CURATION_SLOUGH_FINDER", str(tmp / "finder.json.gz"))
     mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))

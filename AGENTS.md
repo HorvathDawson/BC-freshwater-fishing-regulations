@@ -210,7 +210,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     | kind | example | a rebuild may | losing it costs |
     |---|---|---|---|
     | **authored** | `splits.json`, `name_variants.json`, `overrides.json` | only READ it | human hours |
-    | **reviewed** | `gauge_match.json`, `bc_station_waterbody_type.json` | only READ it | human hours |
+    | **reviewed** | `gauges/matches.json`, `added_streams.json` | only READ it | human hours |
     | **generated** | anything under `data/generated/` | rewrite it freely | CPU |
 
     "Reviewed" is the one people get wrong: a machine produced it, a human then checked it,

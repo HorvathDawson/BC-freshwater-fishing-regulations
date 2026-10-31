@@ -31,7 +31,7 @@ class TestItResolves:
         # explicitly anyway: a field silently dropped from the model would still pass a bare
         # `load()`, and the point is that nothing goes missing unnoticed.
         for name in ("splits", "name_variants", "areas", "added_lakes",
-                     "added_streams", "ungazetted"):
+                     "added_streams", "ungazetted", "sub_lake_areas", "name_calls"):
             assert getattr(tree.waters, name).is_file(), name
 
     def test_ungazetted_is_declared_even_though_nothing_imports_it(self, tree):

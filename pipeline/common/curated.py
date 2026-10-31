@@ -106,6 +106,31 @@ class Waters(BaseModel):
     #: The worklist for minting more added lakes. Zero code references BY DESIGN; the
     #: minting is a hand process. Declared here so a dead-file sweep cannot delete it.
     ungazetted: FilePath
+    #: The worklist for splitting a lake into the waters the book treats it as (T100). Zero code references BY
+    #: DESIGN, like `ungazetted`; declared so a dead-file sweep cannot delete it (T331).
+    sub_lake_areas: FilePath
+
+    _abs = field_validator("*", mode="before")(_absolute)
+
+
+class DfoSalmon(BaseModel):
+    """T321: DFO's limits wording as a closed registry (`pipeline.regs.dfo_salmon.wording`), AUTHORED; the feeds
+    worker reads a synced copy (`pipeline.deliver.sync_inputs`)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    wording: FilePath
+
+    _abs = field_validator("*", mode="before")(_absolute)
+
+
+class Sloughs(BaseModel):
+    """T322: the retired slough review page's database — the owner's verdicts and free-text notes
+    (`pipeline.regs.review.slough.page_note`)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    page_marks: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 
@@ -179,8 +204,8 @@ class Domain(BaseModel):
 
     matches: FilePath | None = None
     review: FilePath | None = None
-    #: Gauges only: ECCC's stated water-body type, scraped once. An input to matching.
-    waterbody_type: FilePath | None = None
+    #: (T331) ECCC's stated water-body type is scraped SOURCE data now: `SOURCE / "bc_station_waterbody_type.json"`
+    #: (`pipeline.gauges.generate.waterbody_type.TYPES_FILE`), not a curated key.
     #: Gauges only: the REVIEW QUEUE — matches `pipeline.gauges.generate.promote` did not promote
     #: (an independent check disagreed), with their evidence. Written by promote beside `matches`
     #: and committed with it, so `check_curated --ci` sees the queue in CI too.
@@ -197,13 +222,12 @@ class Domain(BaseModel):
 
 
 class RunTiming(BaseModel):
-    """Run timing: the authored curation (`review.json`) and the parsed timings deliver reads (`timing.json`,
-    `pipeline/runtiming/timing.py`)."""
+    """Run timing: the authored curation (`review.json`). The parsed timings (`timing.json`, `pipeline/runtiming/
+    timing.py`) are source data, `SOURCE / "runtiming/timing.json"` (T331)."""
 
     model_config = ConfigDict(frozen=True)
 
     review: FilePath
-    timing: Path
 
     _abs = field_validator("*", mode="before")(_absolute)
 
@@ -232,6 +256,8 @@ class Curated(BaseModel):
     bathymetry: Domain
     runtiming: RunTiming
     inseason: InSeason
+    dfo_salmon: DfoSalmon
+    sloughs: Sloughs
     #: T266: WHAT THE REVIEW MARKS DECIDE, one file per domain with provenance — written only by
     #: `python -m pipeline.regs.review.export`, read by the apply paths (never marks.jsonl)
     decided: DirectoryPath

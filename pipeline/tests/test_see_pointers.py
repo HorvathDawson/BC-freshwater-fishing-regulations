@@ -106,7 +106,7 @@ def test_no_pointer_row_binds_a_rule(corpus):
 
 
 @pytest.mark.parametrize("eid,rel", [
-    # the 24 "self-pointers" of cross_references.json are aliases: one water, two names
+    # the 24 "self-pointers" of the retired cross_references.json (deleted, T331) are aliases: one water, two names
     ("r2:marshall_creek@2-4", "alias"), ("r2:jones_lake@2-3", "alias"),
     ("r4:revelstoke_lake@4-38", "alias"), ("r6:copper_river@6-9", "alias"),
     # another water, governed by the named row
