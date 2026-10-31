@@ -24,6 +24,8 @@ const sleep = device.sleep;
 
 // ---------- shared steps ----------
 const hasTabs = (w) => w.some((x) => /^MORE$|^More$/.test(x)) && w.some((x) => /^MAP$|^Map$/.test(x));
+// (iPhone 17 layout) the search bar's "‹" and a water page's "‹ Map": neither has words Maestro can match on iOS
+const SEARCH_BACK = '9%,11%', PAGE_BACK = '10%,10%';
 /** the walkthrough card's count line ("FIND A WATER · 1 OF 25") */
 const GUIDE = /\d+ of \d+$/i;
 
@@ -62,11 +64,12 @@ async function toMap(ctx) {
     const w = device.screenText();
     // a water's page ("‹ Map" over Regulations · Conditions): its own back link (the tab bar may still be in the tree)
     if (w.includes('Regulations') && w.includes('Conditions') && w.includes('Map')) {
-      ctx.flow('tap-text', { TEXT: 'Map' }); await sleep(1500); continue;
+      ctx.flow('tap-point', { POINT: PAGE_BACK }); await sleep(1500); continue;
     }
     if (hasTabs(w)) break;
     // a menu page (a Modal from below: no edge swipe) has its own "‹ Back"; a water's page the edge-back
     if (w.some((x) => /^(Back|Glossary)$/.test(x))) ctx.flow('tap-text', { TEXT: '(Back|Glossary)' });
+    else if (w.some((x) => /NAMED WATERS/i.test(x))) ctx.flow('tap-point', { POINT: SEARCH_BACK });   // the search open
     else ctx.flow('edge-back');
     await sleep(1000);
   }
@@ -148,7 +151,7 @@ const SCENARIOS = [
         ctx.flow('search', { Q: 'Cultus' });
         ctx.flow('tap-text', { TEXT: '.*Lindell Beach.*' });           // the row previews: the map frames the lake
         await sleep(3500);
-        ctx.flow('edge-back');                                               // the search closed, the framing kept
+        ctx.flow('tap-point', { POINT: SEARCH_BACK });                       // the search closed, the framing kept
         await sleep(2500);
         shot(ctx, 'framed');
         ctx.flow('tap-point', { POINT: '50%,50%' });
@@ -385,7 +388,7 @@ const SCENARIOS = [
         ctx.flow('search', { Q: 'Cultus' });
         ctx.flow('tap-text', { TEXT: '.*Lindell Beach.*' });
         await sleep(3500);
-        ctx.flow('edge-back');
+        ctx.flow('tap-point', { POINT: SEARCH_BACK });                      // the search closed, the framing kept
         await sleep(6000);
         const t = logSince(mark, '[target] ').at(-1);
         if (!t) ctx.skip('no [target] line (a build without --probes): the map tap is not timed');
@@ -402,7 +405,7 @@ const SCENARIOS = [
           for (let n = 0; n < 30 && !o; n++) { await sleep(700); o = logSince(mark, '[open] ').at(-1) ?? null; }
           if (!o) throw new Error('no [open] line in 20 s');
           out.open.push(o); keep();
-          ctx.flow('edge-back'); await sleep(2000);
+          ctx.flow('tap-point', { POINT: PAGE_BACK }); await sleep(2000);
           const frame = o.marks?.frame?.[0] ?? o.marks?.timeout?.[0];
           if (o.marks?.spinner) throw new Error(`a spinner at ${o.marks.spinner[0]} ms · first frame ${frame} ms`);
           return `first frame ${frame} ms · sql ${o.sql} (wait ${o.sqlWait}, run ${o.sqlRun}) · ${Object.entries(o.marks).map(([k, v]) => `${k} ${v[0]}`).join(', ')}`;
