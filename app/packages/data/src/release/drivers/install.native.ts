@@ -127,7 +127,10 @@ const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBy
     if (tail.exists) tail.delete();
     const to = have > 0 ? tail : f;
     // a Range header on a fresh start too: it keeps the client from asking for (and inflating) a gzip body
-    const task = new DownloadTask(url, to, { headers: { Range: `bytes=${have}-` },
+    // (T313) iOS: a FOREGROUND URLSession. expo's default there is a background session, which downloads out of process
+    // to a temp file moved into place only at the end (no `.part` to resume from), and whose JS side is lost when the
+    // app is killed. Android ignores the option.
+    const task = new DownloadTask(url, to, { headers: { Range: `bytes=${have}-` }, sessionType: "foreground",
                                              onProgress: (p) => onBytes?.(have + p.bytesWritten) });
     try {
       const done = await task.downloadAsync();

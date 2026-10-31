@@ -47,7 +47,7 @@ async function downloadSynopsis(s: SynopsisSource, hooks: Partial<LoadHooks> = {
     if (i > 0) await wait(1500 * 2 ** (i - 1));
     if (net?.online && !net.online()) await net.waitOnline?.(hooks.signal);
     if (part.exists) part.delete();
-    const task = new DownloadTask(url, part, { signal: hooks.signal,
+    const task = new DownloadTask(url, part, { signal: hooks.signal, sessionType: "foreground",   // (T313) iOS: as install.native.ts
       onProgress: (p) => hooks.onProgress?.(p.bytesWritten, p.totalBytes > 0 ? p.totalBytes : (s.bytes > 1 ? s.bytes : null)) });
     try {
       if (!(await task.downloadAsync())) throw new Error(`${url}: the download stopped`);

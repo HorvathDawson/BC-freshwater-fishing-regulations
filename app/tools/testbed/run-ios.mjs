@@ -6,6 +6,7 @@
 //
 //   node app/tools/testbed/run-ios.mjs [all | <scenario id>…] [--out <dir>]
 //   scenarios: first-open map tap-water offline satellite location walkthrough pdf
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as device from './lib/device-ios.mjs';
@@ -341,13 +342,11 @@ function makeCtx(sc) {
     },
     async step(title, fn) {
       const t0 = Date.now(); const s = { title, result: 'pass', ms: 0 }; ctx.lastSaid = null;
-      const pid = device.pidOf();
       try { const note = await fn(); if (typeof note === 'string') s.note = note; }
       catch (e) { s.result = e.skip ? 'skip' : 'fail'; s.error = e.message; if (!e.skip) rec.result = 'fail'; }
       s.ms = Date.now() - t0;
-      // a crash: the app gone (or a new pid) without the step having stopped it — said, never hidden
-      const now = device.pidOf();
-      if (pid && now && pid !== now && !/cold start|launch|denied|allowed|Help|Rule book|map drawn/i.test(title)) ctx.finding(`the app restarted during "${title}" (pid ${pid} → ${now})`);
+      // a crash: a new crash report for the app (the simulator's are the Mac's DiagnosticReports) — said, never hidden
+      for (const c of newCrashes()) { s.result = 'fail'; rec.result = 'fail'; ctx.finding(`crash during "${title}": ${c}`); }
       if (ctx.lastSaid && s.result === 'fail') s.said = ctx.lastSaid;
       try {
         const name = `${String(++shotN).padStart(3, '0')}-${sc.id}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}.png`;
@@ -363,6 +362,26 @@ function makeCtx(sc) {
   };
   return ctx;
 }
+// the simulator's crash reports land in the Mac's DiagnosticReports (CanIFish-<date>.ips)
+const DIAG = path.join(process.env.HOME, 'Library/Logs/DiagnosticReports');
+const crashList = () => { try { return fs.readdirSync(DIAG).filter((f) => /^CanIFish.*\.ips$/.test(f)); } catch { return []; } };
+const crashSeen = new Set(crashList());
+function newCrashes() {
+  const out = [];
+  for (const f of crashList()) if (!crashSeen.has(f)) {
+    crashSeen.add(f);
+    fs.copyFileSync(path.join(DIAG, f), path.join(dir, f));
+    let why = '';
+    try { const t = fs.readFileSync(path.join(DIAG, f), 'utf8'); why = (/"exception"\s*:\s*\{[^}]*\}/.exec(t)?.[0] ?? '').slice(0, 200); } catch { /* unreadable */ }
+    out.push(`${f} ${why}`);
+  }
+  return out;
+}
+// (T313) the app's unified log (CFNetwork, RN errors, MapLibre) for the whole run, beside the report
+const osLog = spawn(device.SIMCTL, ['spawn', device.udid(), 'log', 'stream', '--style', 'compact', '--level', 'debug',
+  '--predicate', 'process == "CanIFish"'], { stdio: ['ignore', fs.openSync(path.join(dir, 'app-os.log'), 'a'), 'ignore'] });
+process.on('exit', () => { try { osLog.kill(); } catch { /* gone */ } });
+
 function execSleep(s) { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, s * 1000); }
 
 for (const sc of SCENARIOS.filter((s) => want.includes(s.id))) {
