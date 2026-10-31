@@ -366,11 +366,11 @@ use that as the sole source of future work."
 | T322 | Fold owner-confirmed sloughs (811) into the stream flowing through; no stream through → ignored, never a new unnamed stream; own side build + mechanical binding-diff gate (no owner review, owner 10-30) | OPEN | T55, T266 | owner 2026-10-30 |
 | T323 | Offline spot save took 15 s to reach "Save spot" (T307 target < 3 s): never wait on network | OPEN | T307 | T314 lane 2026-10-30 |
 | T324 | One clean data flow: map every stream end to end, final curated file per data type, one-time lock of reviewed marks into it, cleanup tickets | OPEN | T266, T322 | owner 2026-10-30 |
-| T325 | Lock tool: reviewed marks → final curated file, byte-identical proof, closed-domains list (marks.jsonl never edited) | OPEN | T266 | owner 2026-10-30 |
+| T325 | Lock tool: reviewed marks → final curated file, byte-identical proof, closed-domains list (marks.jsonl never edited) | IN REVIEW | T266 | owner 2026-10-30; `review.apply [domain]` = the one command for open domains; `review.lock` + closed.json; proof printed, not run |
 | T326 | Lock tidal: waters/tidal.json replaces 4 tidal records; split confidence folded in | OPEN | T325 (+7 marks, Mamquam) | owner 2026-10-30 |
 | T327 | Lock names: owner name table out of code into a curated file; write Sheldens | OPEN | T325 | owner 2026-10-30 |
 | T328 | Lock sloughs after T322 approval | OPEN | T322, T325 | owner 2026-10-30 |
-| T329 | Ponds (Q154): close the domain, no export (owner: pond = lake default, build never uses) | OPEN (decided) | T325 | owner 2026-10-30 |
+| T329 | Ponds (Q154): close the domain, no export (owner: pond = lake default, build never uses) | DONE | T325 | owner 2026-10-30; closed.json lists ponds, decided/ponds.json deleted, tab locked |
 | T330 | Generated review files out of handoff/ into data/generated/review/ | DONE | — | owner 2026-10-30; 16 files git-mv'd, read via GENERATED.review |
 | T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | OPEN | — | owner 2026-10-30 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |

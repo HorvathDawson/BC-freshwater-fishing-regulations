@@ -37,10 +37,13 @@ def test_the_committed_files_are_the_export_of_the_marks():
 
 
 def test_loading_the_files_gives_back_what_the_marks_decide():
+    from pipeline.regs.review import closed as C
     want = E.decide(M.load(CURATED.regulations.review.marks))
     got = E.load()
-    assert [m.key for m in got.inforce] == [m.key for m in want.inforce]
-    assert got.inforce == want.inforce
+    shut = C.scopes()                     # T325: a CLOSED domain (ponds, T329) is not exported, so not loaded
+    open_ = [m for m in want.inforce if m.scope not in shut]
+    assert [m.key for m in got.inforce] == [m.key for m in open_]
+    assert list(got.inforce) == open_
     assert [(g["id"], g["split"], g["members"], g["marks"]) for g in got.groups] == \
         [(g["id"], g["split"], g["members"], g["marks"]) for g in want.groups]
     assert got.shared() == M.proposals(  # the shared cuts, as the marks module makes them from the history
