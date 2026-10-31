@@ -38,6 +38,10 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
       ctx.flow('ios-alert', { BUTTON: alerts === 'Allow' ? 'Allow.*' : "Don.t Allow" });
     } else if (w.some((x) => /^(I understand|Skip|Before you fish|Welcome|Got it)$/.test(x) || GUIDE.test(x))) {
       ctx.flow('dismiss-first-run');                     // the notice, the walkthrough (it reopens itself until skipped)
+    } else if (!hasTabs(w) && w.includes('Layers') && w.includes('Done')) {
+      // (T313 finding, T332) a walk left at its Layers step reopens the sheet, and the card over it is not in the
+      // accessibility tree: the sheet's Done first, then the card can be skipped
+      ctx.flow('tap-text', { TEXT: 'Done' });
     } else if (hasTabs(w)) {
       // the walkthrough opens once the map has drawn: a beat, then a last look before calling the app up
       await sleep(4000);
@@ -266,13 +270,22 @@ const SCENARIOS = [
         return c;
       });
       await ctx.step('every step: its primary button, until the card closes', async () => {
-        const seen = []; let last = null, same = 0, total = 0, reached = 0, closed = false;
+        const seen = []; let last = null, same = 0, total = 0, reached = 0, closed = false, hidden = 0;
         for (let i = 0; i < 70; i++) {
           const w = device.screenText();
           let c = w.find((x) => COUNT.test(x));
           if (!c) {                                          // a read mid-animation can come back empty: look twice
             await sleep(2500);
-            c = device.screenText().find((x) => COUNT.test(x));
+            const w2 = device.screenText();
+            c = w2.find((x) => COUNT.test(x));
+            if (!c && w2.includes('Layers') && w2.includes('Done') && hidden < 3) {
+              // (T332) the card over the Layers sheet is not in the accessibility tree: its primary button by place
+              if (!hidden) ctx.finding('T332: the walkthrough card over the Layers sheet (step 17) is missing from the accessibility tree; tapped by position');
+              hidden++; shot(ctx, `walk-hidden-${hidden}`);
+              ctx.flow('tap-point', { POINT: '78%,67%' });
+              await sleep(3500);
+              continue;
+            }
             if (!c) { closed = true; break; }
           }
           const [, at, n] = COUNT.exec(c).map(Number);
