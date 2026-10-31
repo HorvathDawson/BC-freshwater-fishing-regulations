@@ -1,5 +1,9 @@
 # Where things stand
 
+**Start the review app yourself:** `bash curation-review/run.sh`, then open http://127.0.0.1:5173. It's local only and
+spends no credits; Ctrl-C stops it. If Claude's copy is still running on port 8787, either use Claude's copy at
+http://127.0.0.1:5183, or run your own beside it with `PORT=8788 CURATION_VITE_PORT=5174 bash curation-review/run.sh`.
+
 Plain summary for the owner, updated as work lands. Newest at the top. Ticket numbers are in brackets for lookup only.
 
 ---
