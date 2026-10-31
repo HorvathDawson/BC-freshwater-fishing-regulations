@@ -4,6 +4,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-10-31, 06:30: credits low, wrapping up safely
+
+- Both running lanes are told to finish only their current step, commit, and write a RESUME section in their ticket. Nothing is left half-merged or half-promoted.
+  - **Merge and slough lane** [T322]: may stop before the slough fold is promoted. Check the T322 ticket's RESUME section.
+  - **iOS** [T313]: finishes the run already going, then stops.
+- **Found:** DFO water links are refreshed by hand, never by the build [T337]. The slough release re-runs the matcher first and stops if any DFO link changes.
+- **Next credit cycle:** Fable audit [T333], tests and docs audit [T334], `archive/` removal and cleanup [T335], DFO links in the build [T337].
+- **For you:**
+  - Accept the Sheldens Spur 19 cut.
+  - Prod publish of r-4e709418ebd8 (your command, in the 04:00 entry).
+  - Phone checks on 0.4.0: spot marks, and an offline spot filling in.
+
 ## 2026-10-31, 06:00
 
 - **Python tests are green again.** Fast: 6136 passed. Slow: 272 passed, plus 1 skip that the rules allow.
