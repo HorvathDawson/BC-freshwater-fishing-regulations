@@ -1,11 +1,13 @@
 """T322 PROMOTE GATE (owner 2026-10-30): the slough fold's binding diff is MECHANICAL, not an owner review. The only
 waters allowed to change binding are the folded slough polygons, the re-kinded items (the oxbows) and the streams
-they join; ANY other section that gains, loses or rescopes a rule (or a licensing record), and any rule that becomes
-or stops being unresolved, STOPS the promote (exit 1).
+they join — plus a creek whose path to that stream now passes THROUGH a folded / re-kinded polygon (it really is the
+stream's tributary now: `via_fold`, allowed and listed). ANY other section that gains, loses or rescopes a rule (or a
+licensing record), and any rule that becomes or stops being unresolved, STOPS the promote (exit 1).
 
     python -m pipeline.tools.audit.slough_fold_gate BEFORE_REACHES AFTER_REACHES SIDE_ATLAS [--json OUT]
 
-`SIDE_ATLAS` is the side build's atlas (its `slough_fold_report.json` + `registry.json` name the allowed sections).
+`SIDE_ATLAS` is the side build's atlas (its `slough_fold_report.json` + `registry.json` name the allowed sections, its
+`graph.pkl` the creeks that drain into a folded polygon). A heavy job: run it through scripts/heavy.sh.
 Streams both runs side by side (`reach.binding_diff._rows`), so a 19 GB run fits.
 """
 from __future__ import annotations
@@ -20,10 +22,13 @@ from typing import Iterable, Iterator
 KEEP = 50
 
 
+def folded_polygons(report: dict) -> set[str]:
+    return {f"lake:{r['wbk']}" for r in (report.get("rows") or []) if r.get("outcome") == "folded"}
+
+
 def allowed_sections(report: dict, registry: dict) -> set[str]:
     """Every section of a folded polygon, of each stream that took one, and of each item re-kinded in place."""
-    rows = report.get("rows") or []
-    out = {f"lake:{r['wbk']}" for r in rows if r.get("outcome") == "folded"}
+    out = folded_polygons(report)
     for iid in [*(report.get("streams") or {}), *(report.get("own_streams") or {})]:
         it = registry.get(iid)
         if it is not None:
@@ -31,14 +36,41 @@ def allowed_sections(report: dict, registry: dict) -> set[str]:
     return out
 
 
-def violations(before: Iterator, after: Iterator, allowed: set[str]) -> tuple[int, list[dict]]:
+def via_fold_sections(graph, polygons: set[str], allowed: set[str]) -> set[str]:
+    """Every section that drains into a folded / re-kinded polygon WITHOUT first reaching the stream it joined: walk
+    upstream from each polygon (`up_adj`), through other folded polygons, never into an allowed (stream / item)
+    section — those were the stream or its tributaries already."""
+    stop = allowed - polygons
+    out: set[str] = set()
+    q = [p for p in polygons if p in graph.nodes]
+    seen = set(q)
+    while q:
+        s = q.pop()
+        for ei in graph.up_adj.get(s, ()):
+            o = graph.edges[ei].from_node
+            if o in seen or o in stop:
+                continue
+            seen.add(o)
+            if o not in polygons:
+                out.add(o)
+            q.append(o)
+    return out
+
+
+def violations(before: Iterator, after: Iterator, allowed: set[str], via: set[str] = frozenset(),
+               via_fold: list | None = None) -> tuple[int, list[dict]]:
     """(count, the first KEEP) of the rows that differ between two SORTED ((entry, owner, section), scope) streams on
-    a section outside `allowed`."""
+    a section outside `allowed` and outside `via` (a creek that reaches its stream through a folded polygon: those rows
+    are appended to `via_fold` instead, all of them)."""
     n, kept = 0, []
 
     def hit(key, what):
         nonlocal n
         if key[2] in allowed:
+            return
+        if key[2] in via:
+            if via_fold is not None:
+                via_fold.append({"entry": key[0], "rule": key[1], "section": key[2], "change": what})
             return
         n += 1
         if len(kept) < KEEP:
@@ -62,21 +94,27 @@ def gate(before: Path, after: Path, side_atlas: Path) -> dict:
     from pipeline.atlas.reach import binding_diff as B
     from pipeline.atlas.reach.io import rule_section_file
     from pipeline.atlas.registry import load_registry
+    from pipeline.common.io.serialize import read_artifact
     rp = Path(side_atlas) / "slough_fold_report.json"
     if not rp.exists():
         raise FileNotFoundError(f"no {rp} — the side atlas was built with FOLD_CONFIRMED off")
-    allowed = allowed_sections(json.loads(rp.read_text(encoding="utf-8")),
-                               load_registry(Path(side_atlas) / "registry.json"))
+    report = json.loads(rp.read_text(encoding="utf-8"))
+    allowed = allowed_sections(report, load_registry(Path(side_atlas) / "registry.json"))
+    graph = read_artifact(str(Path(side_atlas) / "graph.pkl"))
+    via = via_fold_sections(graph, folded_polygons(report), allowed)
+    del graph
+    via_fold: list = []
     n, kept = violations(B._rows(rule_section_file(before), "rule_id"),
-                         B._rows(rule_section_file(after), "rule_id"), allowed)
+                         B._rows(rule_section_file(after), "rule_id"), allowed, via, via_fold)
     ln, lkept = 0, []
     lb, la = Path(before) / "licensing_section.jsonl", Path(after) / "licensing_section.jsonl"
     if lb.exists() and la.exists():
-        ln, lkept = violations(B._rows(lb, "record_id"), B._rows(la, "record_id"), allowed)
+        ln, lkept = violations(B._rows(lb, "record_id"), B._rows(la, "record_id"), allowed, via, via_fold)
     ub, ua = B._unresolved(Path(before) / "rule_unresolved.jsonl"), B._unresolved(Path(after) / "rule_unresolved.jsonl")
     unres = sorted(f"{e}::{r}: {ub.get((e, r))} -> {ua.get((e, r))}" for (e, r) in set(ub) | set(ua)
                    if ub.get((e, r)) != ua.get((e, r)))
-    return {"allowed_sections": len(allowed), "rule_rows_outside": n, "rule_sample": kept,
+    return {"allowed_sections": len(allowed), "via_fold_sections": len(via), "via_fold_rows": len(via_fold),
+            "via_fold": via_fold, "rule_rows_outside": n, "rule_sample": kept,
             "licensing_rows_outside": ln, "licensing_sample": lkept, "unresolved_changed": unres,
             "ok": not (n or ln or unres)}
 
@@ -91,7 +129,8 @@ def main(argv: Iterable[str] | None = None) -> int:
     rep = gate(Path(a.before), Path(a.after), Path(a.side_atlas))
     if a.json:
         a.json.write_text(json.dumps(rep, indent=1) + "\n", encoding="utf-8")
-    print(f"T322 gate: {rep['allowed_sections']:,} allowed sections; outside them: {rep['rule_rows_outside']:,} rule "
+    print(f"T322 gate: {rep['allowed_sections']:,} allowed sections; {rep['via_fold_rows']:,} row(s) via a folded "
+          f"polygon (allowed, listed); outside them: {rep['rule_rows_outside']:,} rule "
           f"row(s), {rep['licensing_rows_outside']:,} licensing row(s), {len(rep['unresolved_changed'])} unresolved "
           f"change(s) -> {'PASS' if rep['ok'] else 'STOP: do not promote'}")
     for r in rep["rule_sample"][:20]:

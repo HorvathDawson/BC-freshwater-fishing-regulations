@@ -34,17 +34,19 @@ Depends: T55, T266. Size: M–L.
   handling as the flowing fold. Report: `slough_fold_report.json` beside the registry.
 - Gate: `python -m pipeline.tools.audit.slough_fold_gate BEFORE AFTER SIDE_ATLAS` — streamed; exit 1 when any rule or
   licensing row changes on a section outside {folded polygons, re-kinded items, the streams they join}, or any rule
-  changes unresolved state. A creek entering a folded slough that now counts as the joined stream's tributary WILL
-  trip it (by design: it stops the promote and is looked at).
-- Tests: `pipeline/tests/test_slough_fold.py` (14).
+  changes unresolved state. ALLOWED and listed as `via_fold` (coordinator 10-30): a creek whose path to the stream
+  passes through a folded / re-kinded polygon (it is that stream's tributary now) — the side graph's upstream walk from
+  each polygon, never into the joined stream's own sections. Reads the side `graph.pkl`: run it under heavy.sh.
+- Tests: `pipeline/tests/test_slough_fold.py` (15).
 - DRY RUN on the live atlas (`pipeline.tools.audit.slough_fold_preview`, report
   `data/generated/scratch/slough_fold_preview.json`), 811 calls:
   - **780 become stream**: 749 join 236 named streams (through 745, a stream only leaves 3, only ends in it 1; top
     Cormier 25, Gunnell 24, Moss 24, Utahn 24, Kah 23, Trepanier 21; 1 oxbow absorbed into Park Rill, which runs
     through it) + **31 OKANAGAN RIVER OXBOWS re-kinded stream in place** (18 on an unnamed line, 13 isolated).
   - **29 skipped**: isolated, no item.
-  - **1 held**: 329708509 — only unnamed lines touch it and no item holds it; making it a stream needs either a new
-    item or a section-level kind the registry does not have. Owner/coordinator call.
+  - **1 HELD (stays held, coordinator 10-30)**: wbk 329708509 — only unnamed lines touch it and no item holds it;
+    making it a stream needs either a new item (forbidden) or a section-level kind the registry does not have. It
+    stays a lake; listed in `slough_fold_report.json` as "unnamed, no item".
   - 1 already stream (Cayoosh Creek). 0 two-stream refusals, 0 partly confirmed items, 0 cuts on an edge.
 
 ## Side build (after the 10-31 batch is promoted)
@@ -57,7 +59,7 @@ SIDE_REACH=$(ls -d data/generated/side/t322/reaches/* | head -1)
 .venv/bin/python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full "$SIDE_REACH" \
   --json handoff/PLAN/audit/binding-diff-t322.json
 # 2. THE GATE: exit 0 = promote (rebuild-batch-2026-10-31.md step 3); exit 1 = stop, explain what moved
-.venv/bin/python -m pipeline.tools.audit.slough_fold_gate data/generated/reaches/full "$SIDE_REACH" \
+scripts/heavy.sh t322-gate 40 -- .venv/bin/python -m pipeline.tools.audit.slough_fold_gate data/generated/reaches/full "$SIDE_REACH" \
   data/generated/side/t322/atlas/full_next --json handoff/PLAN/audit/slough-fold-gate-t322.json
 ```
 

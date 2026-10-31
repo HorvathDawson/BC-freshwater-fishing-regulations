@@ -240,3 +240,32 @@ def test_the_gate_passes_changes_on_allowed_waters_and_stops_on_any_other():
     after = rows(("e1", "z1", "y1", "trib"), ("e3", "r", "u1", "reach"))
     n, kept = violations(before, after, allowed)
     assert n == 2 and {k["change"] for k in kept} == {"rescoped", "gained"}
+
+
+def test_the_gate_allows_a_creek_that_reaches_its_stream_through_a_folded_polygon():
+    """c1 -> lake:5 (folded into X Creek): c1 is X's tributary now — allowed and listed as via_fold. A change on y1
+    (Y Creek, drains into lake:6, not folded) still fails. Mutation: drop the via set, or walk past X -> red."""
+    from pipeline.tools.audit.slough_fold_gate import allowed_sections, folded_polygons, via_fold_sections, violations
+    from pipeline.tests.test_registry_flowing import _graph as G
+    g = G({"x2": S, "lake:5": L, "x1": S, "c1": S, "c2": S, "x3": S, "y1": S, "lake:6": L, "x0": S},
+          [("x3", "x2"), ("x2", "lake:5"), ("c2", "c1"), ("c1", "lake:5"), ("lake:5", "x1"), ("x1", "lake:6"),
+           ("y1", "lake:6"), ("lake:6", "x0")])
+    reg = {"gnis:1": _item("gnis:1", "X Creek", "stream", ["x0", "x1", "x2", "x3"]),
+           "gnis:2": _item("gnis:2", "Y Creek", "stream", ["y1"])}
+    rep: dict = {}
+    out = fold_confirmed_sloughs(reg, g, {"5"}, rep)
+    allowed = allowed_sections(rep, out)
+    via = via_fold_sections(g, folded_polygons(rep), allowed)
+    assert via == {"c1", "c2"}                                         # never up X Creek's own line
+
+    def rows(*r):
+        return iter(sorted(((e, ru, s), sc) for e, ru, s, sc in r))
+    listed: list = []
+    before = rows(("e1", "x", "x1", "reach"))
+    after = rows(("e1", "x", "x1", "reach"), ("e1", "x", "c1", "trib"), ("e1", "x", "c2", "trib"))
+    assert violations(before, after, allowed, via, listed) == (0, [])
+    assert [r["section"] for r in listed] == ["c1", "c2"]
+    before = rows(("e1", "x", "x1", "reach"))
+    after = rows(("e1", "x", "x1", "reach"), ("e1", "x", "y1", "trib"))
+    n, kept = violations(before, after, allowed, via, [])
+    assert n == 1 and kept[0]["section"] == "y1"
