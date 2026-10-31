@@ -1643,30 +1643,86 @@ def test_only_an_exact_hit_is_ever_written():
                 assert (w.match or {}).get("reason"), f"{w.name}: a curator binding must say why"
 
 
-def test_suggestions_are_recorded_but_never_applied():
+#: Made-up names no real registry, override or entry file carries, so the shared overrides file the
+#: matcher loads can never answer one of these waters and the fixture stays hermetic.
+_FAKE_CREEK, _FAKE_EXACT = "Qzxtl Creek", "Vbnmw River"
+
+
+def _fake_match_world(tmp_path, waters):
+    """A three-item registry and a one-region DFO entry file holding only `waters`, written under
+    `tmp_path`. Returns (entries_dir, registry_path) for `match.main(["apply", ...])`.
+
+    Built here rather than read from the committed entry files: the tests below need a water that
+    is still UNBOUND and carries suggestions, and the curation answers those one by one (Cayeghle,
+    Washlawlis, then Sheldens — the last, a97d9e8dc) until none is left to point a test at."""
+    from pipeline.atlas.registry.io import write_registry
+    from pipeline.common.models import RegistryItem
+    from pipeline.regs.dfo_salmon.entries import EntryFile, save
+
+    reg = {
+        "gnis:900001": RegistryItem(id="gnis:900001", name=_FAKE_CREEK, kind="stream", mus=("6-1",)),
+        "gnis:900002": RegistryItem(id="gnis:900002", name=_FAKE_EXACT, kind="stream", mus=("6-1",)),
+        "wbk:900003": RegistryItem(id="wbk:900003", name="Qzxtl Lake", kind="lake", mus=("6-1",)),
+    }
+    reg_path = write_registry(reg, tmp_path / "registry.json")
+    entries_dir = tmp_path / "entries"
+    save(EntryFile(region="6", region_number=6, region_name="Skeena", waters=list(waters)), entries_dir)
+    return entries_dir, reg_path
+
+
+def _unbound(name):
+    from pipeline.regs.dfo_salmon.entries import WaterBinding
+    return WaterBinding(water_id="6:" + re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-"),
+                        region="6", region_number=6, name=name)
+
+
+def _assert_no_suggestion_applied(waters):
+    """The invariant itself: a water carrying suggestions is unbound. Returns how many it checked."""
+    n = 0
+    for w in waters:
+        sug = (w.match or {}).get("suggestions") or []
+        if not sug:
+            continue
+        n += 1
+        assert w.bound is False, f"{w.name}: a suggestion was applied"
+        assert w.item_ids == [], f"{w.name}: bound to {w.item_ids} off a suggestion"
+    return n
+
+
+def test_suggestions_are_recorded_but_never_applied(tmp_path):
     """The retry/spelling ladder is DISPLAY ONLY. It surfaces a candidate for a human to look at and
     never writes a binding — a River->Creek retry is how Yakoun River was once bound to Yakoun Lake.
 
-    Asserted as an INVARIANT over every region rather than against one named water: this test was
-    pinned to Cayeghle River and then to Washlawlis River, and both got answered out from under it as
-    the curation ran. The rule does not depend on which waters are still open.
+    Asserted as an INVARIANT over every committed region, and then against a match run of our own:
+    this test was pinned to Cayeghle River, then Washlawlis River, then to "whichever water is still
+    open", and the curation answered every one out from under it (Sheldens, a97d9e8dc, was the last).
+    The fixture below is a water that is unbound by construction, so the rule is always exercised.
 
     Every water resolved so far was answered EXPLICITLY — a name_variants entry, an override, or
     both — never by letting the ladder through.
     """
     from pipeline.regs.dfo_salmon.entries import load
-    from pipeline.regs.dfo_salmon.match import ENTRIES_DIR
+    from pipeline.regs.dfo_salmon.match import ENTRIES_DIR, main
 
-    seen_any = False
+    # 1. the committed files: whatever still carries suggestions is unbound
     for path in sorted(ENTRIES_DIR.glob("region-*.json")):
-        for w in load(path.stem.split("region-")[1]).waters:
-            sug = (w.match or {}).get("suggestions") or []
-            if not sug:
-                continue
-            seen_any = True
-            assert w.bound is False, f"{w.name}: a suggestion was applied"
-            assert w.item_ids == [], f"{w.name}: bound to {w.item_ids} off a suggestion"
-    assert seen_any, "expected at least one water still carrying suggestions"
+        _assert_no_suggestion_applied(load(path.stem.split("region-")[1]).waters)
+
+    # 2. a match run: one water only a River->Creek RETRY reaches, one only a near SPELLING reaches,
+    #    and one exact hit as the control that `apply` really ran and really binds
+    retry, spelling, exact = _unbound("Qzxtl River"), _unbound("Qzxtll Creek"), _unbound(_FAKE_EXACT)
+    entries_dir, reg_path = _fake_match_world(tmp_path, [retry, spelling, exact])
+    assert main(["apply", "--regions", "6", "--entries-dir", str(entries_dir),
+                 "--registry", str(reg_path)]) == 0
+    back = {w.name: w for w in load("6", entries_dir).waters}
+
+    assert back[_FAKE_EXACT].item_ids == ["gnis:900002"], "control: an exact hit must bind"
+    kinds = {name: {sg["kind"] for sg in (back[name].match or {}).get("suggestions") or []}
+             for name in ("Qzxtl River", "Qzxtll Creek")}
+    assert "retry" in kinds["Qzxtl River"], kinds
+    assert "spelling" in kinds["Qzxtll Creek"], kinds
+    seen_any = _assert_no_suggestion_applied(back.values())
+    assert seen_any == 2, "expected both fixture waters to carry suggestions"
 
 
 def test_ambiguous_names_are_left_for_a_curator():
@@ -1751,21 +1807,28 @@ def test_item_ids_is_a_list_so_one_name_can_be_several_waters():
     assert w.bound is True and len(w.item_ids) == 2
 
 
-def test_a_locked_water_is_never_overwritten_by_a_later_match_run():
-    from pipeline.regs.dfo_salmon.entries import load, save
+def test_a_locked_water_is_never_overwritten_by_a_later_match_run(tmp_path):
+    """A curator's locked answer survives the file round trip AND a re-run of `match apply` — even
+    when the matcher has an exact hit of its own to offer. Built on a fixture water (see
+    `_fake_match_world`): the committed files no longer hold an unbound water to borrow."""
+    from pipeline.regs.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.match import main
 
-    import tempfile
-    from pathlib import Path as _P
+    w = _unbound(_FAKE_EXACT)                 # the matcher WOULD bind this to gnis:900002
+    assert not w.bound
+    w.item_ids = ["gnis:curated"]
+    w.locked = True
+    entries_dir, reg_path = _fake_match_world(tmp_path, [w])
 
-    with tempfile.TemporaryDirectory() as td:
-        ef = load("6")
-        w = next(x for x in ef.waters if not x.bound)
-        w.item_ids = ["gnis:curated"]
-        w.locked = True
-        save(ef, _P(td))
-        back = load("6", _P(td))
-        got = next(x for x in back.waters if x.water_id == w.water_id)
-        assert got.item_ids == ["gnis:curated"] and got.locked is True
+    back = load("6", entries_dir)
+    got = next(x for x in back.waters if x.water_id == w.water_id)
+    assert got.item_ids == ["gnis:curated"] and got.locked is True
+
+    assert main(["apply", "--regions", "6", "--entries-dir", str(entries_dir),
+                 "--registry", str(reg_path)]) == 0
+    got = next(x for x in load("6", entries_dir).waters if x.water_id == w.water_id)
+    assert got.item_ids == ["gnis:curated"] and got.locked is True
+    assert got.match == {}, "a locked water's match block is not rewritten either"
 
 
 # ---------------------------------------------------------------------------
