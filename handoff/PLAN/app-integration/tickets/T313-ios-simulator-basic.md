@@ -80,7 +80,19 @@ Reports: `app/tools/testbed/out/runs/ios-t313{b,c,d}/index.html` (b: first run a
 swipes → JS lag / stalls / tiles / feature-state acks + RSS peak; `T313-perf.json`. Native map frame times are not read
 on iOS (no gfxinfo; Instruments is the follow-up). Simulator numbers = regressions / iOS-only stalls, not phone speed.
 
-## RESUME (after the APK 0.4.0 chain releases the lock; one heavy job)
-`scripts/heavy.sh testbed-ios 25 -- bash -c 'deploy/staging/build-ios-sim.sh --probes && bash app/tools/testbed/session-ios.sh --max-min 50 -- node app/tools/testbed/run-ios.mjs all --out app/tools/testbed/out/runs/ios-t313e'`
-then: shots → T313-shots/ beside Android (T255 run-final 002/151, T277 satellite-online-head, T303 phone-granted-03,
-T293, T215), edge-back verdict (ticket if it fails), perf numbers beside T245-perf.json, close.
+## Final run so far (ios-t313e, 0.4.0 build e5a5724b3 with --probes, 2026-10-31)
+- CONFIRMED: menu pages clear of the status bar (About shot); the rule book opens in Preview ON the marked page (p.9
+  first, then the book); first open 19 s; About "Data source: Staging".
+- PASS: first-open, map, location, pdf; walkthrough SKIP at 16/25 (T332). Edge-back: 50 % / 400 ms stayed (twice),
+  30 % / 900 ms went back — unsettled; ticket only if the next run's three drags all stay.
+- Perf (iOS sim, Mac CPU/GPU) vs Android emulator 0.4.0 (apk-0400/T245-perf.json, T273, T286):
+  cold start → map drawn ~0.61 s warm (0.77–2.8 s first) vs Android map up 3.8 s · memory RSS 420 MB (peak 665 MB while
+  panning) vs Android PSS 255–289 MB (RSS ≠ PSS) · pan: JS lag max 17 ms, 0 stalls >50 ms vs Android JS lag max 23–24 ms ·
+  map tap → page ([open]): not yet measured on iOS (Android lake: 247 ms cold, 53–78 ms warm).
+- Still failing in e = test bed, not app: tap-water step 3 / offline / satellite cascaded from leaving a water page
+  (fixed d7899d41a + the last commit: search by id, page left by its ‹, map tap with results up, perf taps Hope Slough).
+
+## RESUME (one heavy job, no rebuild needed: app/dist/ios-sim is the 0.4.0 --probes build)
+`scripts/heavy.sh testbed-ios 25 -- bash app/tools/testbed/session-ios.sh --max-min 40 -- node app/tools/testbed/run-ios.mjs tap-water offline satellite perf --out app/tools/testbed/out/runs/ios-t313e`
+Left: that run green (tap-water, offline, satellite, perf map-tap numbers), edge-back verdict (ticket if all stay),
+add the [open] numbers above, close T313. T332 stays open.
