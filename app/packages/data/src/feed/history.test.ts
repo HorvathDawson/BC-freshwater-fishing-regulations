@@ -86,6 +86,12 @@ describe("(T315) httpFeed with the kept week", () => {
     const s = seriesOf(Array.from({ length: 73 }, () => null), obs, "72h", "discharge");
     expect([s!.kept, s!.value.values.filter((v) => v !== null).length > 0]).toEqual([true, true]);
     expect((await off.now(S))!.kept).toBe(true);
+    // and the index (the panels' standings): kept from the online read, answered offline with its own fetchedAt
+    expect(await off.index()).toBeNull();                                // never read online in this test
+    h1.noteIndex({ fetchedAt: "2026-10-30T20:00:00Z", stations: { "08MH001": { percentile: 0.4 } } });
+    h1.flush();
+    const off2 = httpFeed("http://x/feeds/live", dead, { history: gaugeHistory(store, { now: () => NOW }), online: () => false });
+    expect((await off2.index())?.fetchedAt).toBe("2026-10-30T20:00:00Z");
   });
 
   it("a dead line (said online) falls back to the kept week too; a 404 stays 'not transmitting'", async () => {

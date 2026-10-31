@@ -32,7 +32,11 @@ export const gaugeOffline = {
     await ctx.step('airplane mode + cold start: the same Conditions draws the measured line, "as of" its age', async () => {
       await ctx.device.net('offline');
       await coldStart(ctx, { ms: 60_000 });
-      const w = await conditions(ctx);
+      await conditions(ctx);
+      // the note sits under the chart, below the fold
+      try { ctx.flow('scroll-to', { TEXT: 'Offline — measured line.*' }); } catch { /* said below */ }
+      const w = ctx.device.screenText();
+      if (w.some((x) => /^NO ESTIMATE$|The live readings did not arrive/.test(x))) ctx.finding('offline: the estimate said "The live readings did not arrive" (the kept index was not used)');
       const note = w.find((x) => AS_OF.test(x));
       if (!note) throw new Error(`no "as of" note: the chart was not drawn from the phone (saw: ${w.slice(0, 12).join(' | ').slice(0, 400)})`);
       if (w.some((x) => /Loading the record/.test(x))) throw new Error('the chart is still loading offline');

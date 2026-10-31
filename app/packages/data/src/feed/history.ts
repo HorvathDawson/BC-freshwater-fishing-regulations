@@ -45,6 +45,8 @@ interface Disk {
   at: Record<string, number>;
   rows: Record<string, StationRows>;
   files: Record<string, { used: number; file: StationFile }>;
+  /** the last feed index read (the panels' standings): offline, the estimate is answered from it, its own age said */
+  index?: unknown;
 }
 
 export interface GaugeHistory {
@@ -54,6 +56,10 @@ export interface GaugeHistory {
   noteObs(obs: ObsFile): void;
   /** What offline answers for a station: the kept file with the week's rows, or a file of rows alone; null: nothing. */
   file(station: string): StationFile | null;
+  /** The feed index read online (or offered by the update service): kept, so an estimate is answered offline too. */
+  noteIndex(index: unknown): void;
+  /** The kept index, or null. */
+  index(): unknown;
   /** Write anything waiting now (tests; the app writes a moment after the last change). */
   flush(): void;
 }
@@ -162,6 +168,12 @@ export function gaugeHistory(store: HistoryText | null, o: { now?: () => number;
       const base = kept ?? { station, daily: [], forecasts: null, priorYears: null };
       return { ...base, fetchedAt, station, now: nowRow, recent, daily: withDays(base.daily ?? [], recent), kept: true };
     },
+    noteIndex(index) {
+      if (!index || typeof index !== "object") return;
+      d().index = index;
+      later();
+    },
+    index() { return d().index ?? null; },
     flush: save,
   };
 }

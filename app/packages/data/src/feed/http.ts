@@ -276,8 +276,11 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
   const fallback = <T>(path: string, url: string): T | null => {
     const g = good.get(url) as T | undefined;
     if (g !== undefined) return g;
+    if (!opts.history) return null;
+    // (T315) the index too: the panels' standings offline, as of the kept index's own `fetchedAt`
+    if (path === "index.json") return (opts.history.index() as T | null) ?? null;
     const st = stationOf(path);
-    return st && opts.history ? (opts.history.file(st) as T | null) : null;
+    return st ? (opts.history.file(st) as T | null) : null;
   };
 
   async function load<T>(path: string): Promise<T | null> {
@@ -300,7 +303,10 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
           cache.set(url, { at: Date.now(), value: got.value });
           good.set(url, got.value);
           const st = stationOf(path);
-          if (st && opts.history) { try { opts.history.noteFile(st, got.value as StationFile); } catch { /* a cache */ } }
+          try {
+            if (st && opts.history) opts.history.noteFile(st, got.value as StationFile);
+            else if (path === "index.json") opts.history?.noteIndex(got.value);
+          } catch { /* a cache */ }
           return got.value;
         } catch {
           // (T254) offline or a dead line — an answer, not an exception: the last good copy if this session has one
@@ -344,6 +350,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
         throw new Error("not a gauge feed index (no stations)");
       cache.clear();
       cache.set(`${trimmed}/index.json`, { at: Date.now(), value: i });
+      try { opts.history?.noteIndex(i); } catch { /* a cache */ }
     },
 
     async lastReport(station) {
