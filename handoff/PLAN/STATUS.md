@@ -4,6 +4,20 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-10-31, 04:00
+
+- **APK 0.4.0 is on Play internal testing** (versionCode 7). Staging is on release r-4e709418ebd8; smoke passes 18/18.
+  - **Rebuild:** the only change is the 08MH044 gauge fix. The Fraser cut moved from Whonnock to Albion, with one more section on Bedford Channel and one fewer Fraser tidal section.
+  - Bedford Channel lost its "fair" gauge, Fraser at Red Pass. That's a station about 900 km upstream, so losing it is likely right.
+  - The cut still carries the old HYDAT name, "Whonock".
+  - **Android emulator checks:**
+    - Offline "Save spot" takes 1.9 s. The 15 s was a test-timer mistake.
+    - Spots fill themselves in on reconnect (15/15), and gauges work offline.
+    - Pan jank is the same with or without spots; the old 5 % figure was the outlier.
+    - Walkthrough 25/25, cold start under 4 s.
+    - Memory peak 289–325 MB (was 345–390). Pan 43 fps (was 32–35).
+  - **Caveat:** the APK lane shipped with 7 fast and 2 slow Python tests still failing. It judged them other lanes' in-progress work, outside the app. Claude is checking that call.
+
 ## 2026-10-30, 23:45
 
 - **DFO limits now use the trout data shape** [T332]: built on branch `dfo/t332-shared-quota`; it merges after 0.4.0.
