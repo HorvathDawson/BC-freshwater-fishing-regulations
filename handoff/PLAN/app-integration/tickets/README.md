@@ -386,6 +386,7 @@ use that as the sole source of future work."
 | T342 | Pane text copyable with the phone's own long-press controls; remove the salmon-only Copy button; map stays non-selectable | OPEN | — | owner 2026-10-31 |
 | T343 | Regional salmon rules cleanup: drop facility-100 m dup + measuring notes, fresh+tidal daily into the bucket line, adult-chinook size per water (default 50 cm), fold or drop every header note; spawning salmon image | OPEN | T332 | owner 2026-10-31 |
 | T344 | Species ID: a grouped species line (e.g. whitefish → lake + mountain) opens a swipeable set, one page per fish | OPEN | — | owner 2026-10-31 |
+| T345 | BUG: Coquitlam River pane — "Lougheed bridge to watershed boundary" highlight runs past the bridge (downstream section ends correctly) | OPEN | — | owner 2026-10-31 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |
 
