@@ -16,8 +16,11 @@ showing on their own. Work each into the place it belongs, or drop it:
 5. **Every other header note** — list them all (every region's page), and for each: fold into a structured place (bucket,
    size, closure, season, gear) or drop. Nothing stays as a free-floating note unless it changes what an angler may do
    and has no structured home — list those for the owner.
-6. **Salmon section image:** use the spawning-phase salmon artwork (app/apps/mobile/assets/fish/*-spawning-phase.webp,
-   e.g. chinook) as the section's image instead of the current one.
-7. Tests: the five T320 spot-check places still read correctly; no header text lost without being folded or listed as
+6. **Salmon images (owner 2026-10-31):** the COLLAPSED salmon section shows one image, the ocean-phase chinook
+   (`chinook-salmon-ocean-phase.webp`). When OPENED, each species row uses its own spawning-phase image
+   (`<species>-salmon-spawning-phase.webp`; every species has one). Assets in app/apps/mobile/assets/fish/.
+7. **DFO source-page info is one collapsible line, collapsed by default** (page link, date modified, notice numbers).
+   Opened, it shows the full source details.
+8. Tests: the five T320 spot-check places still read correctly; no header text lost without being folded or listed as
    dropped (a dropped-notes list in the ticket).
 Size: M.
