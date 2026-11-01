@@ -49,6 +49,7 @@ question for the owner.
 | T337 | DFO bindings refresh inside the build | Not a manual `match apply`. |
 
 ### 2. Small loose ends (S)
+- T343: clean up the regional salmon rules (after T332): drop duplicates, fold notes into the bucket and size tiers, spawning-salmon image.
 - T342: pane text copyable with the phone's own long-press; remove the salmon-only Copy button (owner ask).
 - T338: DFO part-closure reads as the whole river closed (Fort Babine).
 - T339: the 08MH044 cut still says "Whonock"; Bedford Channel lost its gauge.
