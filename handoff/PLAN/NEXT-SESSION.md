@@ -5,8 +5,9 @@ For the owner, opening a new chat after credits reset. Paste the prompt below an
 ## Paste this to start the new chat
 
 > Read `handoff/PLAN/NEXT-SESSION.md` and `handoff/PLAN/STATUS.md` (top entry), then follow the session rules in
-> NEXT-SESSION.md. Work the queue in order. Start ticket work without asking; ask me only for decisions. Keep updates
-> short, and keep STATUS.md current.
+> NEXT-SESSION.md. Do steps 0 and 1 (inbox, ticket check) first, then work the queue in order. Start ticket work
+> without asking; ask me only for decisions. Keep updates short, keep STATUS.md current, and tell me when it's a good
+> moment to compact or start a new chat.
 
 ## Where things stand (2026-10-31)
 
@@ -25,6 +26,18 @@ Read `handoff/PLAN/INBOX.md`.
 - Ask the owner only about notes that are unclear.
 - Owner bugs go ahead of queue item 2.
 
+## Step 1, each new chat: check the ticket ledger
+This is a quick pass, not an audit. One cheap agent (Sonnet) reads `tickets/README.md` and the ticket files, then
+reports a list of problems; it does not fix them. Look for:
+- duplicate numbers or two files for one ticket (T332 happened twice);
+- README status disagreeing with the ticket file's `Status:` line;
+- tickets marked DONE whose work isn't in git, or IN PROGRESS with nothing happening;
+- the same work in two tickets;
+- tickets blocked on something already done;
+- owner items missing from OWNER-TODO.md.
+Fix the mechanical ones directly (status, numbering, ledger rows). Batch anything that needs a decision into one
+question for the owner.
+
 ## Queue, in order
 
 ### 1. Cheap, already planned (do first)
@@ -36,6 +49,7 @@ Read `handoff/PLAN/INBOX.md`.
 | T337 | DFO bindings refresh inside the build | Not a manual `match apply`. |
 
 ### 2. Small loose ends (S)
+- T342: pane text copyable with the phone's own long-press; remove the salmon-only Copy button (owner ask).
 - T338: DFO part-closure reads as the whole river closed (Fort Babine).
 - T339: the 08MH044 cut still says "Whonock"; Bedford Channel lost its gauge.
 - T340: the test bed's stream taps fail.
@@ -56,6 +70,37 @@ Run them as one workflow, and only when the owner says go.
 - Phone checks on 0.4.0: spot marks, and an offline spot filling itself in.
 - Three staged files that aren't Claude's: the T215 png, `binding-diff-amb.json`, and the T202 audit. Keep or drop.
 - Untracked Play-listing files: `app/tools/build-play-graphics.mjs`, `play-shots.mjs`, `store/graphics/`. Commit or drop.
+
+## Managing the context (the owner steers; Claude suggests)
+
+A long chat costs more on every turn, because each message re-reads everything before it. Keeping chats short and
+focused is the biggest saving.
+
+**Claude tells the owner when it's a good moment.** It says it plainly, for example "good point to compact" or "good
+point for a new chat".
+
+**Start a NEW chat when:**
+- a ticket or batch is finished, committed, and recorded in STATUS.md, and the next one is unrelated (for example, the
+  slough release is done and next up is iOS);
+- the work changes area (pipeline/data → app UI → audits);
+- the chat has been through a compaction already and is getting long again;
+- after an APK or release ships.
+
+A new chat starts with the same paste-in prompt; NEXT-SESSION.md + STATUS.md carry everything forward.
+
+**Use `/compact` (keep going in the same chat) when:**
+- you're midway through one ticket and the earlier turns are mostly tool output (builds, logs, test runs);
+- a long debugging thread found its answer and only the conclusion matters now.
+
+Before compacting, Claude writes the current state into the ticket's RESUME section, so nothing lives only in the chat.
+
+**Don't compact or switch while:** a merge is half-done, a heavy job's result is still unread, or a decision is pending
+an answer. Finish that step first.
+
+**Keep chats lean:**
+- One area per chat.
+- Ask for the plain summary, not the full logs.
+- Park ideas in INBOX.md instead of discussing them mid-task.
 
 ## Session rules (to make the weekly limit last)
 
