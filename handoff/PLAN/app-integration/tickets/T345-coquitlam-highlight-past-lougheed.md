@@ -12,3 +12,10 @@ item/blk range rather than the section's own geometry, or rounds the measure. Co
 the cut's measure and the tile geometry for both sections. Fix at the cause; add a test that adjacent sections' highlights
 meet at the cut and never overlap (sample Coquitlam + a few other bridge-cut rivers).
 Size: S–M.
+
+## Also (owner 2026-10-31): "Show all parts" makes it worse
+With **Show all parts** on, navigating to the section **"Maryhill bypass to Lougheed bridge"** highlights only a tiny
+piece just below the Lougheed bridge, instead of the whole stretch from the Maryhill bypass up to the bridge. Same
+boundary, likely the same cause: the part around the Lougheed cut is mis-assigned. The upstream section claims the
+stretch below the bridge, so "Maryhill bypass → Lougheed" is left with a sliver. Check that both sections' parts are
+whole and meet at the bridge in both views (normal and Show all parts). The test covers both.
