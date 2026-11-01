@@ -30,9 +30,9 @@ At the Maryhill bypass section the pane says **"Flows into Fraser"**. That's rig
 To check:
 - **Find the crash.** Look in the crash report the app sent to the staging feeds worker (/crash, digest) around the
   owner's time. Reproduce with the test bed: Coquitlam → Maryhill bypass section → "Flows into" → tap the map.
-- **"Flows into" should land on the receiving water at the confluence.** That's the tidal Fraser section the Coquitlam
-  meets, framed there, not the Fraser as a whole or a stale part list. Its label should say tidal when it is
-  ("Flows into the Fraser (tidal)").
+- **No "Flows into" button when the receiving water is tidal (owner 2026-10-31: "we aren't doing tidal").** Show the
+  line as plain text ("Flows into the tidal Fraser"), with no navigation. Where the receiver is NOT tidal, the button
+  still opens that water framed at the confluence. The crash and the fake stretches still need fixing at their cause.
 - **Where the fake "2 stretches" comes from.** The likely cause is the pane carrying the Coquitlam section/part state
   (the same mis-assigned Lougheed parts) into the Fraser pane, so it builds a part list from the wrong water. The
   navigation must reset part state when it switches water.
