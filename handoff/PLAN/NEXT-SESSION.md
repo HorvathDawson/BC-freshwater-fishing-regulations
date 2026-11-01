@@ -18,6 +18,13 @@ For the owner, opening a new chat after credits reset. Paste the prompt below an
 - **Owner-facing log:** `handoff/PLAN/STATUS.md`, newest first. Every decision from 10-30/31 is in it.
 - **Ticket ledger:** `handoff/PLAN/app-integration/tickets/README.md`. Tickets are the only source of work.
 
+## Step 0, every session: empty the inbox
+Read `handoff/PLAN/INBOX.md`.
+- Turn each note under "New notes" into a ticket, or add it to an existing ticket. Check the ledger's highest number first.
+- Move the note to "Filed" with its ticket number.
+- Ask the owner only about notes that are unclear.
+- Owner bugs go ahead of queue item 2.
+
 ## Queue, in order
 
 ### 1. Cheap, already planned (do first)
