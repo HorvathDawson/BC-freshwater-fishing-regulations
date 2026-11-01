@@ -1,6 +1,6 @@
 # T345 — Coquitlam River: "Lougheed bridge to watershed boundary" highlight runs past the bridge
 
-Status: OPEN — bug (owner 2026-10-31).
+Status: OPEN — bug, HIGH (one path crashed the app) (owner 2026-10-31).
 
 On the Coquitlam River water pane, stepping along the river (upstream/downstream navigation), the highlighted stretch for
 the section "Lougheed bridge to watershed boundary" extends PAST the Lougheed bridge (downstream of it), while the
@@ -19,3 +19,22 @@ piece just below the Lougheed bridge, instead of the whole stretch from the Mary
 boundary, likely the same cause: the part around the Lougheed cut is mis-assigned. The upstream section claims the
 stretch below the bridge, so "Maryhill bypass → Lougheed" is left with a sliver. Check that both sections' parts are
 whole and meet at the bridge in both views (normal and Show all parts). The test covers both.
+
+## Also (owner 2026-10-31): "Flows into Fraser" → crash
+At the Maryhill bypass section the pane says **"Flows into Fraser"**. That's right, but it flows into the TIDAL Fraser.
+1. Tapping "Flows into Fraser" opens the Fraser pane.
+2. Then tapping the map inside the Fraser pane **crashed the app** (once).
+3. On a retry it didn't crash, but the pane showed made-up stretches: **"2 stretches · stretch 1 of 2"**, stretches the
+   Fraser doesn't have at that point.
+
+To check:
+- **Find the crash.** Look in the crash report the app sent to the staging feeds worker (/crash, digest) around the
+  owner's time. Reproduce with the test bed: Coquitlam → Maryhill bypass section → "Flows into" → tap the map.
+- **"Flows into" should land on the receiving water at the confluence.** That's the tidal Fraser section the Coquitlam
+  meets, framed there, not the Fraser as a whole or a stale part list. Its label should say tidal when it is
+  ("Flows into the Fraser (tidal)").
+- **Where the fake "2 stretches" comes from.** The likely cause is the pane carrying the Coquitlam section/part state
+  (the same mis-assigned Lougheed parts) into the Fraser pane, so it builds a part list from the wrong water. The
+  navigation must reset part state when it switches water.
+- **Regression test:** the same path — flows-into → map tap — must open the right water, never crash, and show only that
+  water's real stretches.
