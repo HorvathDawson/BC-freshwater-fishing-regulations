@@ -3624,8 +3624,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "alouette_river__216_street_bridge",
+              "alouette_river__alouette_boundary_signs"
+            ],
+            "item_id": "gnis:9630"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
