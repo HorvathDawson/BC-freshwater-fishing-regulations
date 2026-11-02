@@ -315,7 +315,9 @@ export function DfoReview({ mode }: Props) {
               </div>
               <div className="meta">
                 <span>r{r.region}{r.section ? ` · ${r.section}` : ""}</span>
-                {r.status !== "active" && <span className="chip-tag">dormant</span>}
+                {r.status !== "active" && (r.historic_only
+                  ? <span className="chip-tag" data-testid="dfo-historic-only" title="no longer on the live page and no live wording rewords it: its own place on this water">historic only</span>
+                  : <span className="chip-tag">dormant</span>)}
                 {r.new_splits > 0 && <span className="chip-tag new">+{r.new_splits} split</span>}
                 {r.group && <span className="chip-tag" data-testid="dfo-group-size"
                   title="historic rewordings of this place — one extent decision labels the group">group of {r.group.size}</span>}

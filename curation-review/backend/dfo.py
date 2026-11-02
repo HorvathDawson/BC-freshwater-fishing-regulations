@@ -165,7 +165,24 @@ def _groups() -> dict:
     return D.groups(_locations())
 
 
-def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None) -> dict:
+def _live_waters() -> set:
+    """The water ids with a location on the live page."""
+    return {l.get("water_id") for _s, l, _w in _locations().values()
+            if (l.get("status") or "active") == "active" and l.get("water_id")}
+
+
+def historic_only(loc: dict, groups: dict | None, live_waters: set) -> bool:
+    """A HISTORIC-ONLY PLACE (owner 2026-11-02, the North Alouette): a dormant location that no live
+    one rewords — in no group, or the head of a group of dormant rewordings — on a water still on the
+    live page. Its own place, so the live queue shows it (the "active" filter used to drop it)."""
+    if (loc.get("status") or "active") == "active" or loc.get("water_id") not in live_waters:
+        return False
+    g = (groups or {}).get(loc["location_id"])
+    return g is None or g["canonical"] == loc["location_id"]
+
+
+def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None,
+         live_waters: set | None = None) -> dict:
     st = loc.get("source_text") or {}
     need = D.need(loc)
     rows, rules = D.rule_rows(loc, DFO_TYPED)
@@ -191,6 +208,8 @@ def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None
             "pv": preverify.dfo(loc["location_id"]),
             "lake_area": lake_area(loc, water),
             "new_splits": len(m.new_splits) if m is not None else 0,
+            "historic_only": historic_only(loc, groups, live_waters if live_waters is not None
+                                           else _live_waters()),
             # owner 2026-10-28: historic rewordings grouped with this place (one decision labels all)
             "group": ({"id": g["id"], "size": len(g["members"]), "canonical": g["canonical"]}
                       if (g := (groups or {}).get(loc["location_id"])) else None)}
@@ -217,8 +236,8 @@ def _rows() -> list[dict]:
 
 
 def _compute_rows() -> list[dict]:
-    states, groups = _states(), _groups()
-    out = [_row(slug, loc, water, states.get(lid), groups)
+    states, groups, live = _states(), _groups(), _live_waters()
+    out = [_row(slug, loc, water, states.get(lid), groups, live)
            for lid, (slug, loc, water) in _locations().items()]
     # the review order: the live page first, then what is missing a cut, then region and water
     rank = {"needs_cut": 0, "unbound": 1, "no_water": 2, "bound": 3}
@@ -240,7 +259,9 @@ def queue(region: str | None = None, status: str | None = None, need: str | None
         rows = [r for r in rows if not r["lake_area"]]
     if region:
         rows = [r for r in rows if r["region"] == region]
-    if status:
+    if status == "active":       # the live page, and the historic-only places on its waters
+        rows = [r for r in rows if r["status"] == "active" or r["historic_only"]]
+    elif status:
         rows = [r for r in rows if r["status"] == status]
     if need:
         rows = [r for r in rows if r["state"] == need]

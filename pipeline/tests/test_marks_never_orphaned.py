@@ -190,3 +190,23 @@ def test_auto_approve_takes_only_a_bare_water_named_once(words, area, places, ok
     from pipeline.regs.review import dfo_auto as A
     loc = {"water": words, "source_text": {"waters": words, "specific_area": area, "op": "whole_water"}}
     assert (A.why_not(loc, {"item_ids": ["gnis:1"]}, places) is None) is ok
+
+
+def test_a_historic_only_place_is_its_own_item_with_its_dormant_rewordings():
+    """The North Alouette (owner 2026-11-02): a dormant place that no live place rewords stayed in
+    no group and the live queue dropped it. It is its own place, its dormant rewordings join it,
+    and the live queue keeps it while its water is live."""
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    import dfo as B
+    locs = _locs(_loc("up", "upstream of the 216th Street bridge to the signs at Allco park"),
+                 _loc("north", "above 216th Street, including the North Alouette River", status="dormant"),
+                 _loc("two", "downstream of a line between two signs in Allco Park", status="dormant"),
+                 _loc("2", "downstream of a line between 2 signs in Allco Park", status="dormant", dup="two"))
+    g = D.groups(locs)
+    assert "north" not in g and g["2"]["canonical"] == g["two"]["canonical"] == "two"
+    live = {"1:test-river"}
+    assert B.historic_only(locs["north"][1], g, live) and B.historic_only(locs["two"][1], g, live)
+    assert not B.historic_only(locs["2"][1], g, live)          # a rewording rides its place
+    assert not B.historic_only(locs["up"][1], g, live)         # live: shown anyway
+    assert not B.historic_only(locs["north"][1], g, set())     # a water off the live page: archived

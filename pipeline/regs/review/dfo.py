@@ -241,6 +241,35 @@ def groups(locs: Mapping[str, tuple[str, dict, Optional[dict]]] | None = None) -
                 best = (c, got[0], got[1])
         if best:
             joined.setdefault(best[0], []).append((h, best[1]))
+    # HISTORIC-ONLY PLACES (owner 2026-11-02, the North Alouette): a dormant place no live one
+    # rewords is still a place of its own; its dormant rewordings (DFO's duplicate_of, or alike
+    # words on the same water) group with it, so it is one item and never vanishes
+    placed = {h for ms in joined.values() for h, _w in ms}
+    rest = [h for h in hist if h not in placed]
+    canon_of = {h: h for h in rest}
+
+    def root(x: str) -> str:
+        while canon_of[x] != x:
+            x = canon_of[x]
+        return x
+    for h in rest:
+        _s, loc, water = locs[h]
+        dup = loc.get("duplicate_of")
+        if dup in canon_of and root(dup) != root(h):
+            canon_of[root(h)] = root(dup)
+            continue
+        for c in rest:
+            if c == h or root(c) == root(h):
+                continue
+            if _water_identity(loc, water) == _water_identity(locs[c][1], locs[c][2]) \
+                    and group_why(loc, locs[c][1], c):
+                canon_of[root(h)] = root(c)
+                break
+    for h in rest:
+        c = root(h)
+        if c != h:
+            why = group_why(locs[h][1], locs[c][1], c)
+            joined.setdefault(c, []).append((h, why[0] if why else "DFO lists it as a rewording (duplicate_of)"))
     out: dict[str, dict] = {}
     for c, ms in joined.items():
         g = {"id": f"grp:{c}", "canonical": c,

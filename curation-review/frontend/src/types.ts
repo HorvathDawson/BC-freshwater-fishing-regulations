@@ -970,6 +970,8 @@ export interface DfoRow {
   suggested?: SuggestConfidence | null;
   /** owner 2026-10-28: historic rewordings grouped with this place — one decision labels them all */
   group?: { id: string; size: number; canonical: string } | null;
+  /** owner 2026-11-02: a dormant place no live wording rewords, on a live water — its own item */
+  historic_only?: boolean;
 }
 /** a member of a DFO historic group (`review.dfo.groups`) and why it was grouped */
 export interface DfoGroupMember {
