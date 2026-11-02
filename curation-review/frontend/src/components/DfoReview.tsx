@@ -11,7 +11,7 @@ import type {
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel, type EditPoint } from "./MapPanel";
 import { TopNav, FoldToggle, useFold } from "./TopNav";
-import { ExtentFixEditor, ItemSearch, pointWords } from "./ExtentFixEditor";
+import { ExtentFixEditor, pointWords } from "./ExtentFixEditor";
 
 /** two clicks this close (m) are one cut — the server folds them the same way (`marks.SAME_CUT_M`) */
 const SAME_CUT_M = 10;
@@ -1030,6 +1030,64 @@ export function previewFc(pv: SplitPreview | null, mouths: Tributary[] = []): Ge
   return feats.length ? { type: "FeatureCollection", features: feats } : null;
 }
 
+/** one autocomplete choice: `key` is what is picked, `label` shown, `sub` dim beside it */
+export interface Choice { key: string; label: string; sub?: string }
+
+/** T355: AN AUTOCOMPLETE BOX — `fetch(q)` answers as you type (150 ms debounce); ↑ ↓ move, Enter or a
+ *  click picks, Esc closes. Picking hands back the choice exactly as the source spells it. */
+export function Autocomplete({ value, placeholder, fetch, onPick, onText, testid, label, minChars = 1 }: {
+  value: string; placeholder: string; fetch: (q: string) => Promise<Choice[]>; onPick: (c: Choice) => void;
+  onText?: (t: string) => void; testid?: string; label: string; minChars?: number;
+}) {
+  const [q, setQ] = useState(value);
+  const [hits, setHits] = useState<Choice[]>([]);
+  const [open, setOpen] = useState(false);
+  const [at, setAt] = useState(0);
+  useEffect(() => { setQ(value); }, [value]);
+  useEffect(() => {
+    if (!open || q.trim().length < minChars) { setHits([]); return; }
+    let live = true;
+    const t = window.setTimeout(() => fetch(q.trim()).then((h) => { if (live) { setHits(h); setAt(0); } })
+      .catch(() => live && setHits([])), 150);
+    return () => { live = false; window.clearTimeout(t); };
+  }, [q, open]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const pick = (c: Choice) => { setQ(c.label); setOpen(false); setHits([]); onPick(c); };
+  return (
+    <span className="fix-search">
+      <input className="fix-text" placeholder={placeholder} value={q} aria-label={label} data-testid={testid}
+        aria-autocomplete="list" aria-expanded={open && hits.length > 0}
+        onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+        onChange={(e) => { setQ(e.target.value); setOpen(true); onText?.(e.target.value); }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowDown") { setAt((i) => Math.min(i + 1, hits.length - 1)); e.preventDefault(); }
+          else if (e.key === "ArrowUp") { setAt((i) => Math.max(i - 1, 0)); e.preventDefault(); }
+          else if (e.key === "Enter" && open && hits[at]) { pick(hits[at]); e.preventDefault(); e.stopPropagation(); }
+          else if (e.key === "Escape") setOpen(false);
+        }} />
+      {open && hits.length > 0 && (
+        <ul className="fix-hits" role="listbox" data-testid={testid ? `${testid}-hits` : undefined}>
+          {hits.map((h, i) => (
+            <li key={h.key} role="option" aria-selected={i === at}
+              style={i === at ? { background: "#fde68a" } : undefined}
+              onMouseDown={(e) => e.preventDefault()} onMouseEnter={() => setAt(i)} onClick={() => pick(h)}>
+              {h.label} {h.sub && <span className="dim">{h.sub}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </span>
+  );
+}
+
+/** the loaded tributaries matching `q` (contained, case-insensitive), prefix first — a list filter (pure) */
+export function tribChoices(tribs: Tributary[], q: string): Choice[] {
+  const k = q.trim().toLowerCase();
+  return tribs.filter((t) => (t.name ?? "").toLowerCase().includes(k))
+    .sort((a, b) => Number(!a.name.toLowerCase().startsWith(k)) - Number(!b.name.toLowerCase().startsWith(k))
+      || a.name.localeCompare(b.name))
+    .slice(0, 15).map((t) => ({ key: t.id, label: t.name, sub: t.id }));
+}
+
 function NewSplits({ id, items, hints, quote, op, shared, value, onChange, checks, onChecked, onPick,
                      picking, onOffset, onCuts, onPreview }: {
   id: string; items: DfoDetail["items"]; hints: DfoDetail["hints"]; quote: string; op: string | null;
@@ -1297,18 +1355,17 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
               {(type === "point" || type === "border") && draft.coord &&
                 <span className="dim">{draft.coord[1].toFixed(5)}, {draft.coord[0].toFixed(5)}</span>}
               {type === "confluence" && (
-                <select aria-label="tributary" data-testid="dfo-tributary" value={draft.item_id ?? ""}
-                  onChange={(e) => { const t = (tribs ?? []).find((x) => x.id === e.target.value);
-                                     if (t) set({ item_id: t.id, name: t.name }); }}>
-                  <option value="">{tribs === null ? "loading tributaries…" : `— ${tribs.length} tributaries —`}</option>
-                  {draft.item_id && !(tribs ?? []).some((t) => t.id === draft.item_id) &&
-                    <option value={draft.item_id}>{draft.name ?? draft.item_id}</option>}
-                  {(tribs ?? []).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
+                <Autocomplete label="tributary" testid="dfo-tributary" minChars={0}
+                  value={draft.name ?? ""} placeholder={tribs === null ? "loading tributaries…" : `type a tributary (${tribs.length})`}
+                  fetch={async (q) => tribChoices(tribs ?? [], q)}
+                  onPick={(c) => set({ item_id: c.key, name: c.label })} />
               )}
               {type === "lake" && (
-                <ItemSearch kind="lake" placeholder="or lake name…"
-                  onPick={(h) => set({ item_id: h.id, name: h.name })} />
+                <Autocomplete label="lake" testid="dfo-lake" value={draft.name ?? ""} placeholder="or type the lake…"
+                  minChars={2}
+                  fetch={async (q) => (await api.searchItems(q, "lake")).slice(0, 15)
+                    .map((h) => ({ key: h.id, label: h.name, sub: `MU ${h.mus.join(", ")} · ${h.id}` }))}
+                  onPick={(c) => set({ item_id: c.key, name: c.label })} />
               )}
               {(type === "confluence" || type === "lake") && (draft.item_id || draft.name) &&
                 <span className="fix-chosen">→ {draft.name ?? draft.item_id} <span className="dim">{draft.item_id}</span></span>}
@@ -1330,8 +1387,12 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
                   {layers.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
                 <span className="k">{draft.area_field || anchors.area_layers[draft.area_layer ?? "parks_bc"]}</span>
-                <input className="fix-text" aria-label="area name" data-testid="dfo-area-name" value={draft.area ?? ""}
-                  placeholder="the polygon's name, as the layer spells it" onChange={(e) => set({ area: e.target.value || null })} />
+                <Autocomplete label="area name" testid="dfo-area-name" value={draft.area ?? ""}
+                  placeholder="type the polygon's name…"
+                  fetch={async (q) => (await api.dfoAreaNames(id, draft.area_layer ?? "parks_bc", q, draft.on_item))
+                    .map((a) => ({ key: a.name, label: a.name, sub: a.distance_km != null ? `${a.distance_km} km` : a.layer }))}
+                  onText={(t) => set({ area: t || null })}
+                  onPick={(c) => set({ area: c.key, area_field: null, name: draft.name || `${c.key} boundary` })} />
               </div>
               <div className="fix-row">
                 <span className="k">end</span>

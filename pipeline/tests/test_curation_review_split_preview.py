@@ -61,3 +61,15 @@ def test_a_confluence_is_picked_by_its_mouth_and_offset_along_the_water(sp):
     got = sp.resolve(_ns(anchor="confluence", on_item=LQ, item_id=kinkade["id"], name="Kinkade Creek", offset_m=50))
     assert got["ok"]
     assert abs(got["cuts"][0]["measure"] - got["reference"][0]["measure"] - 50.0) < 0.5
+
+
+def test_area_names_autocomplete_prefix_first_then_nearest_in_the_layer_s_spelling(sp):
+    got = sp.area_names("parks_bc", "qualicum", LQ)
+    assert got[0]["name"] == "LITTLE QUALICUM FALLS PARK" and got[0]["field"] == "PROTECTED_LANDS_NAME"
+    near = sp.area_names("parks_bc", "park", LQ)
+    assert len(near) <= sp.NAME_HITS and near[0]["name"].casefold().startswith("park")
+    rest = [r["distance_km"] for r in near if not r["name"].casefold().startswith("park")]
+    assert rest == sorted(rest)                              # after the prefix hits: nearest first
+    assert sp.area_names("parks_nat", "PACIFIC")[0]["name"].startswith("Pacific Rim")
+    with pytest.raises(ValueError):
+        sp.area_names("wmu", "x")

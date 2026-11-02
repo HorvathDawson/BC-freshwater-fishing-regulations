@@ -53,3 +53,7 @@ Size: M.
 - Tests: `pipeline/tests/test_review_split_types.py` (round trip per type, offsets, edit, guard + mutation),
   `pipeline/tests/test_curation_review_split_preview.py` (resolver vs the served atlas: Moyie border 42640.55,
   Little Qualicum park ends, offsets).
+- Follow-up (owner): the area name, lake and tributary fields are autocomplete dropdowns (150 ms, ↑↓ Enter, click):
+  area names from `GET …/area-names` (`split_preview.area_names`: contains-match, prefix first, then nearest the
+  water, cached per layer, the layer's own spelling); lakes from the registry search; tributaries filter the
+  water's loaded list. Picking runs the preview.

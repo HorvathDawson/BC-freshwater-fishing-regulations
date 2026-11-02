@@ -309,3 +309,49 @@ def pick(kind: str, on_item: Optional[str], ll: tuple[float, float]) -> dict:
             return {"ok": False, "why": f"the click is in no polygon of {', '.join(AREA_LAYERS)}", "hits": []}
         return {"ok": True, "why": None, "hits": hits}
     return {"ok": False, "why": f"pick is tributary | lake | area, not {kind!r}", "hits": []}
+
+
+# --------------------------------------------------------------------------- area-name autocomplete
+
+#: the most names an autocomplete answers
+NAME_HITS = 15
+
+
+@lru_cache(maxsize=8)
+def _layer_names(layer: str) -> tuple:
+    """((NAME, name casefolded, (x, y) of its polygon's representative point), …) — one row per
+    distinct name of the layer's name field (`marks.AREA_LAYERS`), cached per layer."""
+    from pipeline.regs.review.marks import AREA_LAYERS
+    field = AREA_LAYERS[layer]
+    fwa = _fwa()
+    if layer not in fwa.layer_names:
+        return ()
+    gdf = fwa.get_layer(layer, columns=[field])
+    seen: dict = {}
+    for name, g in zip(gdf[field], gdf.geometry):
+        if not name or g is None or g.is_empty or str(name) in seen:
+            continue
+        p = g.representative_point()
+        seen[str(name)] = (str(name), str(name).casefold(), (p.x, p.y))
+    return tuple(seen.values())
+
+
+def area_names(layer: str, q: str, on_item: Optional[str] = None, limit: int = NAME_HITS) -> list[dict]:
+    """THE AREA NAMES matching `q` (case-insensitive, contained) in `layer`, spelled as the layer spells
+    them: prefix matches first, then the nearest to the water (`on_item`), then by name. ->
+    [{name, layer, field, distance_km}]. ValueError for a layer not in `marks.AREA_LAYERS`."""
+    from pipeline.regs.review.marks import AREA_LAYERS
+    if layer not in AREA_LAYERS:
+        raise ValueError(f"layer is one of {', '.join(AREA_LAYERS)}")
+    k = " ".join((q or "").casefold().split())
+    box = _bbox([on_item]) if on_item else None
+    cx, cy = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2) if box else (None, None)
+    rows = []
+    for name, fold, (x, y) in _layer_names(layer):
+        if k and k not in fold:
+            continue
+        d = ((x - cx) ** 2 + (y - cy) ** 2) ** 0.5 if cx is not None else None
+        rows.append((not fold.startswith(k), d if d is not None else 0.0, fold, name, d))
+    rows.sort(key=lambda r: r[:3])
+    return [{"name": r[3], "layer": layer, "field": AREA_LAYERS[layer],
+             "distance_km": round(r[4] / 1000, 1) if r[4] is not None else None} for r in rows[:limit]]

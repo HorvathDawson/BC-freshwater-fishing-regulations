@@ -960,6 +960,8 @@ export interface SplitPreview {
   /** an area_boundary's polygon edge */
   outline?: GeoJSON.Feature | null;
 }
+/** T355: GET /api/dfo/locations/{id}/area-names */
+export interface AreaName { name: string; layer: string; field: string; distance_km: number | null }
 /** T355: GET /api/split-anchors */
 export interface SplitAnchors { area_layers: Record<string, string>; offset_anchors: AnchorKind[] }
 /** T355: GET /api/dfo/locations/{id}/tributaries */

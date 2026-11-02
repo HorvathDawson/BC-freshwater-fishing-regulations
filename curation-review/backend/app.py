@@ -789,6 +789,22 @@ def dfo_tributaries(location_id: str, on_item: str | None = None):
     return split_preview.tributaries(items[0]) if items else []
 
 
+@app.get("/api/dfo/locations/{location_id:path}/area-names")
+def dfo_area_names(location_id: str, layer: str = "parks_bc", q: str = "", on_item: str | None = None):
+    """T355: an area_boundary's name, as you type — up to 15 names of `layer` containing `q`, prefix
+    first, then nearest the water (`split_preview.area_names`), spelled as the layer spells them."""
+    import dfo
+    import split_preview
+    try:
+        items = [on_item] if on_item else dfo.water_items(location_id)[:1]
+    except KeyError:
+        raise HTTPException(404, f"DFO location {location_id} not found")
+    try:
+        return split_preview.area_names(layer, q, items[0] if items else None)
+    except ValueError as ex:
+        raise HTTPException(422, [{"path": "layer", "msg": str(ex)}])
+
+
 @app.get("/api/dfo/locations/{location_id:path}/split-pick")
 def dfo_split_pick(location_id: str, kind: str, lon: float, lat: float, on_item: str | None = None):
     """T355: what a map click names for a new split — `kind` tributary | lake | area (`split_preview.pick`)."""

@@ -34,6 +34,7 @@ import type {
   DfoRow,
   NewSplit,
   SplitAnchors,
+  AreaName,
   SplitPick,
   SplitPreview,
   Tributary,
@@ -238,6 +239,10 @@ export const api = {
   dfoSplitPick: (id: string, kind: "tributary" | "lake" | "area", ll: [number, number], onItem?: string | null) =>
     getJSON<SplitPick>(`/api/dfo/locations/${encodeURIComponent(id)}/split-pick?kind=${kind}`
       + `&lon=${ll[0]}&lat=${ll[1]}` + (onItem ? `&on_item=${encodeURIComponent(onItem)}` : "")),
+  /** T355: area names as you type (the layer's own spelling; prefix first, then nearest the water) */
+  dfoAreaNames: (id: string, layer: string, q: string, onItem?: string | null) =>
+    getJSON<AreaName[]>(`/api/dfo/locations/${encodeURIComponent(id)}/area-names?layer=${encodeURIComponent(layer)}`
+      + `&q=${encodeURIComponent(q)}` + (onItem ? `&on_item=${encodeURIComponent(onItem)}` : "")),
   splitAnchors: () => getJSON<SplitAnchors>("/api/split-anchors"),
   dfoExtentPreview: (id: string, fix: ExtentFix, tributaries = false) =>
     getJSON<ExtentPreview>(`/api/dfo/locations/${encodeURIComponent(id)}/extent-preview?fix=` +
