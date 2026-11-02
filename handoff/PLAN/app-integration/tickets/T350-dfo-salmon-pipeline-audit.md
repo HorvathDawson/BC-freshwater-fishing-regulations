@@ -36,3 +36,22 @@ easy to implement and quick to decode."
   rest. Targeted tests only, no rebuild.
 - **Next credit cycle, IN DEPTH.** The full pass, with the T333 Fable audit, including the worker split proposal for
   "cascade resolved in Python".
+
+## Input from T349 (2026-11-02): cascade logic the feeds worker still runs in TypeScript (left as is)
+T349 put page defaults, non-retention = closed and shared quotas in Python only. The worker was NOT changed, and its byte
+parity suites (`test/dfo.parity.test.ts`, `test/dfo.corpus.test.ts`) are `describe.skip` until this ticket decides the
+split. What `app/workers/feeds/src/dfo` resolves itself today:
+- `typed.ts` / `feed.ts`: limits cell → typed rules (take, may_target, sub-limits), per fingerprint. Does NOT emit the
+  page-default locators (`cascade.statement_locators`).
+- `entries.ts`: reconcile (fingerprint → location, drift / new / dormant). Reports T349 page defaults as "dormant"
+  (no row on the page).
+- `live.ts` `join`: rules by location. Does NOT mark shared quotas (`quota.mark_shared`), and puts no `page:` locator.
+- `salmon.ts` `locationCalendar` / verdict: per species and day the narrowest location's rule; `open` / `release` /
+  `closed` / `check`. **Still answers `release` for plain non-retention** (Python: closed unless the row says catch and
+  release).
+- `quota.ts`: `speciesTree` (no aggregate tier for R5B), `bucket` (no `shared` Squamish tier), `headerClosure` (the
+  header's closure wins over the table).
+- `header.ts`: header notes.
+The app core composes a section's live answer from the release chain's location order plus the feed's per-location
+calendars (`withSalmonFeed`). So until the worker is redeployed on a Python-resolved format, a live feed can show
+`release` where the release says `closed`.

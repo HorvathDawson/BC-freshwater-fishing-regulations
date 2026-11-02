@@ -27,7 +27,7 @@ from pipeline.regs.review import dfo as D
 
 #: the watersheds the view offers: a frame is one DFO place whose sections ARE the watershed
 FRAMES = {
-    "skeena": {"label": "Skeena watershed (DFO Region 6, section B)", "region": "6", "frame": "6:b:section"},
+    "skeena": {"label": "Skeena watershed (DFO Region 6, section B)", "region": "6", "frame": ("6:b(i):section", "6:b(ii):section")},  # T349: B is a container (its dormant row removed)
     "nass": {"label": "Nass watershed (DFO Region 6, section C)", "region": "6", "frame": "6:c:section"},
 }
 TIERS = {3: "named water", 2: "tidal-area default", 1: "section default", 0: "region default"}
@@ -64,7 +64,8 @@ def _model(name: str, _key: tuple) -> dict:
     cfg = FRAMES[name]
     placed = _placed(_key)
     locs = {lid: v for lid, v in D.locations().items() if v[0] == cfg["region"]}
-    frame = set((placed.get(cfg["frame"]) or {}).get("sections") or ())
+    fr = cfg["frame"] if isinstance(cfg["frame"], tuple) else (cfg["frame"],)
+    frame = {s for f in fr for s in ((placed.get(f) or {}).get("sections") or ())}
     rules = {lid: D.rule_rows(loc)[1] for lid, (_s, loc, _w) in locs.items()}
     rows = {lid: D.rule_rows(loc)[0] for lid, (_s, loc, _w) in locs.items()}
 

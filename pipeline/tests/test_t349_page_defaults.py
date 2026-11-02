@@ -52,19 +52,23 @@ def test_statement_locators_are_one_closed_rule_each():
         assert S.verdict_on([l["rules"]], "CH", AUG1)["s"] == "closed"
 
 
-def test_every_region_has_its_page_default_entry():
+def test_every_region_has_one_scope_entry_for_its_sentence():
+    """ONE model (owner 2026-11-02): the sentence sits on the page's own row where one prints the same scope, else on a
+    page-default entry; never two entries for one scope, never an entry with nothing to answer."""
     for slug in ("1", "2", "3", "4", "5a", "5b", "6", "7", "8"):
         ef = E.load(slug)
-        defs = [l for l in ef.locations if l.kind == E.PAGE_DEFAULT]
-        assert defs, slug
-        for l in defs:
-            assert l.precedence == E.PAGE_DEFAULT_PRECEDENCE and l.binding.extents and l.status == "active"
-    r2 = {l.location_id: l for l in E.load("2").locations if l.kind == E.PAGE_DEFAULT}
-    assert set(r2) == {"2:default:areas-28-29", "2:default:areas-13-15-16", "2:default:other"}
-    # "other" is the remainder of Region 2: every Area the other two name is subtracted, and no sentence answers it
-    other = r2["2:default:other"]
-    assert not other.fingerprints
-    assert set(other.binding.extents[0].outside_areas) == {f"area:drains_to:pfma_{n}" for n in (13, 15, 16, 28, 29)}
+        scope_ids = [l.location_id for l in ef.locations if not l.water_id]
+        assert len(scope_ids) == len(set(scope_ids))
+        holders = [l for l in ef.locations if any(f.startswith(f"page:{slug}:") for f in l.fingerprints)]
+        assert holders, slug
+        for l in ef.locations:
+            if l.kind == E.PAGE_DEFAULT:
+                assert l.precedence == E.PAGE_DEFAULT_PRECEDENCE and l.binding.extents and l.fingerprints
+    for (slug, scope), lid in E.PAGE_DEFAULT_ON.items():
+        ids = {l.location_id for l in E.load(slug).locations}
+        assert lid in ids and f"{slug}:default:{scope}" not in ids
+    r2 = {l.location_id for l in E.load("2").locations if l.kind == E.PAGE_DEFAULT}
+    assert r2 == {"2:default:areas-28-29", "2:default:areas-13-15-16"}      # the US remainder: no entry, closed
 
 
 def test_a_page_default_answers_after_every_table_row():

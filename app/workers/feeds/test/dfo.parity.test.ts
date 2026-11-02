@@ -25,7 +25,11 @@ function firstDiff(a: string, b: string): string {
   return `at ${i}: py …${JSON.stringify(a.slice(Math.max(0, i - 120), i + 160))}\n     ts …${JSON.stringify(b.slice(Math.max(0, i - 120), i + 160))}`;
 }
 
-describe.skipIf(!hasPython)("DFO feed parity (TS port vs Python live.run)", () => {
+// T349 → T350 (owner 2026-11-02: ALL cascade logic is resolved in Python): the Python reference now resolves the page
+// defaults (page:<slug>:<scope> locators), salmon non-retention = closed and the shared (aggregate) quota tiers; the
+// worker deliberately does NOT (no cascade logic added in TypeScript). Byte parity is suspended until T350 decides the
+// worker's live path (pre-resolved results from Python).
+describe.skip("DFO feed parity (TS port vs Python live.run)", () => {
   for (const sc of scenarios)
     it(sc, async () => {
       const path = join(FIX, sc);

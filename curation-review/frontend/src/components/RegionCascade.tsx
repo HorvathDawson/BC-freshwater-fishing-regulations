@@ -240,10 +240,11 @@ function Tree({ node, depth, onPick }: { node: Node; depth: number; onPick: (s: 
       </div>
       {node.quote && node.id !== "region" && <div style={{ fontStyle: "italic" }}>“{node.quote}”</div>}
       {node.unlisted && <div>no row → <b>{SAYS[node.unlisted] ?? node.unlisted}</b></div>}
-      {node.code.length === 0 && node.id !== "region" && <div style={{ color: "#b45309" }}>code: no default location</div>}
+      {node.code.length === 0 && node.id !== "region" && node.kind !== "residual" && <div style={{ color: "#b45309" }}>code: no default location</div>}
+      {node.code.length === 0 && node.kind === "residual" && <div className="muted">no entry — nothing opens it: closed</div>}
       {node.code.map((c) => (
         <div key={c.id} style={{ color: c.status === "active" ? "#374151" : "#9ca3af", marginTop: 2 }}>
-          <code>{c.id}</code> · {c.status} · {c.tier}
+          <b>{c.scope || c.id}</b> <span className="muted"><code>{c.id}</code> · {c.status} · {c.tier}</span>
           {c.extents.map((x) => <div key={x} className="muted" style={{ marginLeft: 8 }}>{x}</div>)}
           {c.status === "active" && c.rows.map((x) => <div key={x} style={{ marginLeft: 8 }}>{x}</div>)}
         </div>

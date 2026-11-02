@@ -2210,7 +2210,8 @@
       ],
       "inherits": [],
       "fingerprints": [
-        "16340060a3e2fdfd"
+        "16340060a3e2fdfd",
+        "page:6:region"
       ],
       "source_text": {
         "waters": "",
@@ -2241,62 +2242,6 @@
           {
             "op": "within",
             "area_id": "area:mu_group:management_units_6_12_and_6_13"
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:b:section",
-      "region": "6",
-      "region_number": 6,
-      "kind": "section_default",
-      "precedence": 1,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "B",
-      "section_history": [
-        "B"
-      ],
-      "inherits": [],
-      "fingerprints": [
-        "3c12577e5675ae1c"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All waters in section \"B\" – Skeena River Watershed",
-        "landmarks": [
-          "all",
-          "section",
-          "skeena",
-          "watershed"
-        ],
-        "op": "described",
-        "anchor_types": [
-          "confluence"
-        ],
-        "excludes": [],
-        "areas": []
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:basin:400-"
           }
         ],
         "tributaries": false,
@@ -2385,6 +2330,7 @@
         "A"
       ],
       "fingerprints": [
+        "d7d011f3271f96bd",
         "1b043061ae380699"
       ],
       "source_text": {
@@ -2499,162 +2445,6 @@
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:e:area:areas-5",
-      "region": "6",
-      "region_number": 6,
-      "kind": "area_default",
-      "precedence": 2,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "E",
-      "section_history": [
-        "E"
-      ],
-      "inherits": [
-        "E",
-        "A"
-      ],
-      "fingerprints": [
-        "c1d43a07d6adafd1"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All streams flowing into tidal water Area 5 (refer to the BC Tidal Waters Sport Fishing Guide for Area 5 description).",
-        "landmarks": [
-          "all",
-          "area",
-          "description",
-          "flowing",
-          "for",
-          "guide",
-          "into",
-          "refer",
-          "sport",
-          "streams",
-          "tidal"
-        ],
-        "op": "described",
-        "anchor_types": [],
-        "excludes": [],
-        "areas": [
-          5
-        ]
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_5",
-            "feature_types": [
-              "stream"
-            ],
-            "outside_areas": [
-              "area:basin:400-",
-              "area:basin:500-",
-              "area:basin:100-",
-              "area:mu_group:management_units_6_12_and_6_13"
-            ]
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [
-          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
-        ],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:e:area:areas-6",
-      "region": "6",
-      "region_number": 6,
-      "kind": "area_default",
-      "precedence": 2,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "E",
-      "section_history": [
-        "E"
-      ],
-      "inherits": [
-        "E",
-        "A"
-      ],
-      "fingerprints": [
-        "3a316477f825ecd4"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All streams flowing into tidal water Area 6 unless stated below (refer to BC Tidal Waters Sport Fishing Guide for Area 6 description).",
-        "landmarks": [
-          "all",
-          "area",
-          "description",
-          "flowing",
-          "for",
-          "guide",
-          "into",
-          "refer",
-          "sport",
-          "stated",
-          "streams",
-          "tidal",
-          "unless"
-        ],
-        "op": "described",
-        "anchor_types": [],
-        "excludes": [],
-        "areas": [
-          6
-        ]
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_6",
-            "feature_types": [
-              "stream"
-            ],
-            "outside_areas": [
-              "area:basin:400-",
-              "area:basin:500-",
-              "area:basin:100-",
-              "area:mu_group:management_units_6_12_and_6_13"
-            ]
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [
-          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
-        ],
         "spatial_caveat": false
       }
     },
@@ -5681,163 +5471,6 @@
       }
     },
     {
-      "location_id": "6:b:section~2",
-      "region": "6",
-      "region_number": 6,
-      "kind": "section_default",
-      "precedence": 1,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "B",
-      "section_history": [
-        "B"
-      ],
-      "inherits": [],
-      "fingerprints": [
-        "3590f63def65005d"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All waters in the Skeena River Watershed",
-        "landmarks": [
-          "all",
-          "skeena",
-          "watershed"
-        ],
-        "op": "named_tributaries",
-        "anchor_types": [
-          "confluence"
-        ],
-        "excludes": [],
-        "areas": []
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:basin:400-"
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:e:area:areas-3-4-5-6",
-      "region": "6",
-      "region_number": 6,
-      "kind": "area_default",
-      "precedence": 2,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "E",
-      "section_history": [
-        "E"
-      ],
-      "inherits": [
-        "E",
-        "A"
-      ],
-      "fingerprints": [
-        "5310228c8894f353"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All streams flowing into tidal water Areas 3, 4, 5 and 6.",
-        "landmarks": [
-          "all",
-          "areas",
-          "flowing",
-          "into",
-          "streams",
-          "tidal"
-        ],
-        "op": "described",
-        "anchor_types": [],
-        "excludes": [],
-        "areas": [
-          3,
-          4,
-          5,
-          6
-        ]
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_3",
-            "outside_areas": [
-              "area:basin:400-",
-              "area:basin:500-",
-              "area:basin:100-",
-              "area:mu_group:management_units_6_12_and_6_13"
-            ]
-          },
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_4",
-            "outside_areas": [
-              "area:basin:400-",
-              "area:basin:500-",
-              "area:basin:100-",
-              "area:mu_group:management_units_6_12_and_6_13"
-            ]
-          },
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_5",
-            "outside_areas": [
-              "area:basin:400-",
-              "area:basin:500-",
-              "area:basin:100-",
-              "area:mu_group:management_units_6_12_and_6_13"
-            ]
-          },
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_6",
-            "outside_areas": [
-              "area:basin:400-",
-              "area:basin:500-",
-              "area:basin:100-",
-              "area:mu_group:management_units_6_12_and_6_13"
-            ]
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [
-          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
-        ],
-        "spatial_caveat": false
-      }
-    },
-    {
       "location_id": "6:e:area:areas-5~2",
       "region": "6",
       "region_number": 6,
@@ -5855,6 +5488,7 @@
         "A"
       ],
       "fingerprints": [
+        "c1d43a07d6adafd1",
         "a7efdccc2852b478"
       ],
       "source_text": {
@@ -5927,6 +5561,7 @@
         "A"
       ],
       "fingerprints": [
+        "3a316477f825ecd4",
         "3a8f01437efb37b2"
       ],
       "source_text": {
@@ -6035,6 +5670,63 @@
       "binding": {
         "extents": [],
         "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "6:b:section",
+      "region": "6",
+      "region_number": 6,
+      "kind": "section_default",
+      "precedence": 1,
+      "water": "",
+      "water_id": null,
+      "aliases": [],
+      "section": "B",
+      "section_history": [
+        "B"
+      ],
+      "inherits": [],
+      "fingerprints": [
+        "3c12577e5675ae1c",
+        "3590f63def65005d"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "All waters in section \"B\" – Skeena River Watershed",
+        "landmarks": [
+          "all",
+          "section",
+          "skeena",
+          "watershed"
+        ],
+        "op": "described",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:basin:400-"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -11013,6 +10705,7 @@
         "A"
       ],
       "fingerprints": [
+        "5310228c8894f353",
         "74340cd540a76f89"
       ],
       "source_text": {
@@ -11403,66 +11096,6 @@
       }
     },
     {
-      "location_id": "6:d:section~2",
-      "region": "6",
-      "region_number": 6,
-      "kind": "section_default",
-      "precedence": 1,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "D",
-      "section_history": [
-        "D"
-      ],
-      "inherits": [
-        "A"
-      ],
-      "fingerprints": [
-        "d7d011f3271f96bd"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All waters in section \"D\" - Haida Gwaii Watersheds unless otherwise stated below.",
-        "landmarks": [
-          "all",
-          "gwaii",
-          "haida",
-          "otherwise",
-          "section",
-          "stated",
-          "unless",
-          "watersheds"
-        ],
-        "op": "described",
-        "anchor_types": [],
-        "excludes": [],
-        "areas": []
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:mu_group:management_units_6_12_and_6_13"
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
-      }
-    },
-    {
       "location_id": "6:babine-lake:babine-lake-excluding-tributaries~3",
       "region": "6",
       "region_number": 6,
@@ -11687,56 +11320,6 @@
         "notes": [
           "'a point above the confluence with the Babine River' is bound to gauge 08EB005."
         ],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:default:region",
-      "region": "6",
-      "region_number": 6,
-      "kind": "page_default",
-      "precedence": -1,
-      "water": "All Region 6 waters (with Haida Gwaii)",
-      "water_id": null,
-      "aliases": [],
-      "section": null,
-      "section_history": [],
-      "inherits": [],
-      "fingerprints": [
-        "page:6:region"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All Region 6 waters (with Haida Gwaii)",
-        "areas": [],
-        "statement": "limit_zero",
-        "says": "Unless otherwise stated in the table below, the daily limit for all waters in Region 6 is zero (0)",
-        "unlisted": "closed"
-      },
-      "status": "active",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "owner",
-      "reviewed_at": "2026-11-02",
-      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:region:6"
-          },
-          {
-            "op": "within",
-            "area_id": "area:mu_group:management_units_6_12_and_6_13"
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
         "spatial_caveat": false
       }
     }

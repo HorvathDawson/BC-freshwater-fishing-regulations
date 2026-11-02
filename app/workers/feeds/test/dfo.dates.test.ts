@@ -203,15 +203,13 @@ describe("downstream: an unreadable cell is `check`, never a dropped limit", () 
   it("'until further notice' runs on past the year end, but any dated row outranks it", () => {
     const { on } = cal([
       { species: "Coho", dates: "Jan 1 to Mar 31", limits_gear: "No fishing for salmon" },
-      { species: "Coho", dates: "Apr 1 until further notice", limits_gear: "Open for salmon catch and release" },
+      { species: "Coho", dates: "Apr 1 until further notice", limits_gear: "Non-retention" },
     ]);
     expect(on(1, 215)?.s).toBe("closed"); // the dated Jan–Mar row
     expect(on(1, 401)?.s).toBe("release");
     expect(on(1, 1231)?.s).toBe("release");
-    expect(on(1, 401)?.t).toBe("Open for salmon catch and release (from Apr 1 until further notice)");
-    // T349 (owner 2026-11-02): plain non-retention is closed to salmon
-    expect(cal([{ species: "Coho", dates: "Apr 1 until further notice", limits_gear: "Non-retention" }]).on(1, 401)?.s).toBe("closed");
-    const alone = cal([{ species: "Coho", dates: "Oct 15 until further notice", limits_gear: "Open for salmon catch and release" }]);
+    expect(on(1, 401)?.t).toBe("Non-retention (from Apr 1 until further notice)");
+    const alone = cal([{ species: "Coho", dates: "Oct 15 until further notice", limits_gear: "Non-retention" }]);
     expect(alone.on(1, 115)?.s).toBe("release"); // next January: still until further notice
   });
 

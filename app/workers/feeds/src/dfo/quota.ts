@@ -16,8 +16,6 @@ export interface QuotaKind {
 export interface QuotaTier {
   node: "tier"; id: string; tier: "total" | "count" | "size"; n: number; says: string; by: 0;
   children: (QuotaTier | QuotaKind)[]; over_cm?: number; species?: string[]; period?: string;
-  /** (T349) an aggregate tier's scope — the set of waters / MUs one count is shared across */
-  whose?: string; origin?: string;
 }
 export interface Quota { tree?: QuotaTier; u?: 1 }
 
@@ -44,26 +42,6 @@ function size(seq: number[], n: number, overCm: number, says: string, period: st
   if (period) t.period = period;
   return t;
 }
-
-// ── T349 port of quota.shared_scope / mark_shared / shared_buckets (owner 2026-11-02: a quota shared across waters is
-// the tree's aggregate tier — `total`, `whose` its scope; R5B's two definitions settled to the MU list) ──────────────
-const RE_AGGREGATE = /\bin the aggregate\b|\bcombined total\b/i;
-const RE_MU_RANGE = /Management Units?\s+(\d+-\d+)\s+to\s+(\d+-\d+)/i;
-
-export function sharedScope(sourceText: { specific_area?: string } | null | undefined): string | null {
-  const t = String(sourceText?.specific_area ?? "");
-  if (!RE_AGGREGATE.test(t)) return null;
-  const m = RE_MU_RANGE.exec(t);
-  return m ? `Management Units ${m[1]} to ${m[2]}` : "these waters";
-}
-
-export function markShared<T extends Record<string, unknown>>(rules: readonly T[], scope: string | null): T[] {
-  if (!scope) return [...rules];
-  return rules.map((r) => (r.type === "retention_limit" && !r.within && (((r.take as number | undefined) || 0) > 0) ? { ...r, shared: scope } : r));
-}
-
-const saysShared = (d: number, names: string, hatchery: boolean, scope: string) =>
-  `Up to ${d} ${hatchery ? "hatchery-marked " : ""}${names} a day in total, all waters of ${scope} combined`;
 
 function one(rule: R, subs: R[]): Quota {
   const d = (rule.take as number | undefined) || 0;
@@ -102,11 +80,7 @@ function one(rule: R, subs: R[]): Quota {
   for (const [cm, n] of over.sort(byPair)) kids.push(size(seq, n!, cm!, `only ${n} over ${cm} cm`));
   if (mx !== null) kids.push(size(seq, 0, mx, `none over ${mx} cm`));
   for (const [cm, n] of monthly.sort(byPair)) kids.push(size(seq, n!, cm!, `${n} over ${cm} cm a month`, "monthly"));
-  let tree: QuotaTier = { node: "tier", id: "t1", tier: "count", n: d, says, by: 0, species, children: kids };
-  if (rule.shared) {   // T349: the aggregate tier — one count over a set of waters
-    const scope = String(rule.shared);
-    tree = { ...tree, tier: "total", whose: scope, says: saysShared(d, names, hatchery, scope) };
-  }
+  const tree: QuotaTier = { node: "tier", id: "t1", tier: "count", n: d, says, by: 0, species, children: kids };
   return unread ? { tree, u: 1 } : { tree };
 }
 
@@ -160,26 +134,6 @@ export function bucket(notes: Note[]): Record<string, unknown> | null {
   for (const n of notes)
     if (n.k === "min_size" && !(n.w && n.w.length) && isInt(n.cm)) for (const sp of n.sp ?? []) if (!(sp in mins)) mins[sp] = n.cm;
   if (Object.keys(mins).length) out.min_cm = mins;
-  const sh = sharedBuckets(notes);
-  if (sh.length) out.shared = sh;
-  return out;
-}
-
-/** quota.shared_buckets (T349): a header `aggregate` note naming waters as the aggregate tier over them */
-export function sharedBuckets(notes: Note[]): Record<string, unknown>[] {
-  const out: Record<string, unknown>[] = [];
-  for (const n of notes) {
-    if (n.k !== "aggregate" || !(n.w && n.w.length) || !isInt(n.n)) continue;
-    const sp = [...(n.sp ?? [])];
-    const hatchery = !!(n as { hatchery?: unknown }).hatchery;
-    const names = sp.map((c) => NAMES[c] ?? c).join(" or ") || "salmon";
-    const ws = n.w as { n: string; ws?: boolean; key: string }[];
-    const whose = ws.map((w) => (w.ws ? `the ${w.n} watershed` : w.n)).join(" and ");
-    const tree: QuotaTier = { node: "tier", id: "t0", tier: "total", n: n.n, by: 0, children: [], species: sp, whose,
-                              says: `Up to ${n.n} ${hatchery ? "hatchery-marked " : ""}${names} a day in total across ${whose}` } as QuotaTier;
-    if (hatchery) tree.origin = "hatchery";
-    out.push({ tree, t: n.t, id: n.id ?? null, w: ws.map((w) => w.key) });
-  }
   return out;
 }
 

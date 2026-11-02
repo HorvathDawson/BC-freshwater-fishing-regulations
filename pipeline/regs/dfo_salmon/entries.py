@@ -471,12 +471,8 @@ PAGE_DEFAULTS: Dict[tuple, tuple] = {
     ("2", "areas-28-29"): ("Region 2 waters flowing into Areas 28 and 29", _drains((28, 29), "area:region:2"), True),
     ("2", "areas-13-15-16"): ("Region 2 waters flowing into Areas 13, 15 and 16",
                               _drains((13, 15, 16), "area:region:2"), True),
-    ("2", "other"): ("Region 2 waters flowing into no Area 13/15/16/28/29 (to the US: Skagit, Similkameen, Nooksack "
-                     "tributaries) or with no watershed code",
-                     [{"op": "within", "area_id": "area:region:2",
-                       "outside_areas": [f"area:drains_to:pfma_{n}" for n in _R2_AREAS]}], False),
     ("3", "region"): ("All Region 3 waters", [{"op": "within", "area_id": "area:region:3"}], True),
-    ("4", "region"): ("All Region 4 waters", [{"op": "within", "area_id": "area:region:4"}], True),
+    ("4", "region"): ("All Region 4 waters", [{"op": "within", "area_id": "area:region:4"}], True),       # on 4:region:section
     # 5A is Region 5 less 5B; 5B is Management Units 5-6 to 5-11 (T349: the one scope — see SCOPE_EXTENTS 5b)
     ("5a", "region"): ("All Region 5A waters (Region 5 less Management Units 5-6 to 5-11)",
                        [{"op": "within", "area_id": "area:region:5",
@@ -491,8 +487,16 @@ PAGE_DEFAULTS: Dict[tuple, tuple] = {
 }
 
 
+#: ONE MODEL FOR A SCOPE DEFAULT (owner 2026-11-02): where the page's table already prints a row for the same scope
+#: (Region 4's "All Region 4 waters", 5B's MU row, 6's section A), the page's sentence is attached to THAT location as
+#: another fingerprint — never a parallel entry. Region 2's remainder (to the US) has no DFO sentence and no row: no
+#: entry; it falls to `deliver.salmon.NOT_LISTED` (closed — nothing opens it).
+PAGE_DEFAULT_ON = {("4", "region"): "4:region:section", ("5b", "region"): "5b:region:section",
+                   ("6", "region"): "6:a:region"}
+
+
 def page_default_id(slug: str, scope: str) -> str:
-    return f"{slug}:default:{scope}"
+    return PAGE_DEFAULT_ON.get((slug, scope)) or f"{slug}:default:{scope}"
 
 
 def seed_page_defaults(ef: EntryFile, statements: Optional[List[dict]] = None) -> List[str]:
@@ -507,9 +511,14 @@ def seed_page_defaults(ef: EntryFile, statements: Optional[List[dict]] = None) -
         if slug != ef.region:
             continue
         lid = page_default_id(slug, scope)
-        if lid in have:
-            continue
         areas = [int(n) for n in scope.split("-")[1:]] if scope.startswith("areas-") else []
+        if lid in have:
+            loc = next(l for l in ef.locations if l.location_id == lid)
+            fp = page_fingerprint(slug, areas)
+            if printed and fp not in loc.fingerprints:     # the page's own row: its sentence joins it
+                loc.fingerprints.append(fp)
+                added.append(lid)
+            continue
         st = said.get(tuple(areas)) if printed else None
         ef.locations.append(EntryLocation(
             location_id=lid, region=slug, region_number=ef.region_number, kind=PAGE_DEFAULT,

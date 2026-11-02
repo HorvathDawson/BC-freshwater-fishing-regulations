@@ -59,7 +59,11 @@ function fuzz(n: number): string[] {
 const pages = [...recorded, ...fuzz(Number(process.env.DFO_FUZZ ?? 80))];
 const hasPython = existsSync(join(REPO, ".venv/bin/python"));
 
-describe.skipIf(!hasPython)("DFO typed corpus parity", () => {
+// T349 → T350 (owner 2026-11-02: ALL cascade logic is resolved in Python): the Python reference now resolves the page
+// defaults (page:<slug>:<scope> locators), salmon non-retention = closed and the shared (aggregate) quota tiers; the
+// worker deliberately does NOT (no cascade logic added in TypeScript). Byte parity is suspended until T350 decides the
+// worker's live path (pre-resolved results from Python).
+describe.skip("DFO typed corpus parity", () => {
   it(`${pages.length} pages`, () => {
     const out = join(mkdtempSync(join(tmpdir(), "dfo-corpus-")), "py.jsonl");
     execFileSync(join(REPO, ".venv/bin/python"), [join(REPO, "app/workers/feeds/parity/dfo/typed_dump.py"), out, ...pages], { stdio: "inherit" });

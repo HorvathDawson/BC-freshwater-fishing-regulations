@@ -77,7 +77,7 @@ def test_todays_pages_join_every_location(tmp_path):
     got = L.run(tmp_path, fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())
     ix = got["index"]
     assert ix["format"] == "dfo-feed/2" and ix["unplaced"] == 0 and not got["notices"]
-    assert len(ix["locs"]) == 257          # T349: + the 10 page defaults that print a sentence (2:default:other prints none)
+    assert len(ix["locs"]) == 254          # T349: + 7 page-default entries (R4/5B/6 carry the sentence on their own row)
     assert ix["verdicts"][0] == S.NOT_LISTED
     assert ix["regions"]["6"]["asof"] == "2026-08-28" and ix["regions"]["6"]["checked"] == AT
     assert not any(r["stale"] or r["held"] for r in ix["regions"].values())
@@ -125,7 +125,7 @@ def test_a_failed_fetch_keeps_the_last_answers_and_two_notify(tmp_path):
     one = L.run(tmp_path, fetcher=_pages({"6": OSError("down")}), now=AT, notify_url="http://n", sender=s)
     r6 = one["index"]["regions"]["6"]
     assert r6["stale"] and r6["failures"] == 1 and r6["asof"] == "2026-08-28" and s.sent == []
-    assert sum(1 for c in one["index"]["locs"].values() if c["r"] == "6") == 138
+    assert sum(1 for c in one["index"]["locs"].values() if c["r"] == "6") == 137
     two = L.run(tmp_path, fetcher=_pages({"6": OSError("down")}), now=AT, notify_url="http://n", sender=s)
     assert two["index"]["regions"]["6"]["failures"] == 2 and len(s.sent) == 1 and "Region 6" in s.sent[0]
 
@@ -135,7 +135,7 @@ def test_a_page_that_does_not_parse_holds_the_region(tmp_path):
     s = Sender()
     got = L.run(tmp_path, fetcher=_pages({"6": "<html>nothing</html>"}), now=AT, notify_url="http://n", sender=s)
     assert got["index"]["regions"]["6"]["held"]
-    assert sum(1 for c in got["index"]["locs"].values() if c["r"] == "6") == 138
+    assert sum(1 for c in got["index"]["locs"].values() if c["r"] == "6") == 137
     assert len(s.sent) == 1
 
 

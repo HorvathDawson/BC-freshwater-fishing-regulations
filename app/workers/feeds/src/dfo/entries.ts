@@ -168,8 +168,7 @@ export function reconcile(ef: EntryFile, locations: Location[], structure: Struc
     });
   }
   for (const cand of ef.locations)
-    // T349: a page default is the page's sentence, not a table row — never "absent from the page"
-    if (!matched.has(cand.location_id) && cand.status === "active" && cand.kind !== "page_default")
+    if (!matched.has(cand.location_id) && cand.status === "active")
       rep.outcomes.push({
         status: "dormant",
         fingerprint: cand.fingerprints.length ? cand.fingerprints[cand.fingerprints.length - 1]! : "",

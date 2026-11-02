@@ -48,9 +48,8 @@ R6_ORDER = [("E:areas-5", "6:e:area:areas-5~2"), ("E:areas-6", "6:e:area:areas-6
             ("E:areas-3-4-5-6", "6:e:area:areas-3-4-5-6~2"), ("B(i)", "6:b(i):section"), ("B(ii)", "6:b(ii):section"),
             ("C", "6:c:section"), ("D", "6:d:section"), ("F", "6:f:closure"), ("E", "6:e:section")]
 #: (T349) Region 2's map: scope key -> the default ENTRY that answers it
-R2_DEFAULTS = {"areas-28-29": "2:default:areas-28-29", "areas-13-15-16": "2:default:areas-13-15-16",
-               "other": "2:default:other"}
-R6_SIBLINGS = {"B": "6:b:section", "C": "6:c:section", "D": "6:d:section", "F": "6:f:closure"}
+R2_DEFAULTS = {"areas-28-29": "2:default:areas-28-29", "areas-13-15-16": "2:default:areas-13-15-16"}
+R6_SIBLINGS = {"B(i)": "6:b(i):section", "B(ii)": "6:b(ii):section", "C": "6:c:section", "D": "6:d:section", "F": "6:f:closure"}
 R6_SIBLING_PREFIX = {"100-": "Fraser (F)", "400-": "Skeena (B)", "500-": "Nass (C)"}
 
 
@@ -129,7 +128,10 @@ def _region(slug: str, locs: dict) -> dict:
         root["quote"] = whole[0]["t"]
         root["unlisted"] = whole[0]["unlisted"]
     # T349: the whole-page default entry answers on the root
-    root["code"] = [d for d in page_defaults if d["id"].endswith(":default:region")]
+    from pipeline.regs.dfo_salmon.cascade import page_fingerprint
+    # (Region 6 carries it on section A, drawn as A's node)
+    root["code"] = [] if parsed.sections else [d for d in defaults
+                                               if page_fingerprint(slug) in (mine[d["id"]].get("fingerprints") or ())]
     tree_unlisted = {"page": [{"scope": s["areas"] or "whole region", "says": s["unlisted"], "t": s["t"]} for s in stmts],
                      "code": code_unlisted}
 
@@ -147,10 +149,9 @@ def _region(slug: str, locs: dict) -> dict:
                 "proposal": (f"a tidal-area default (precedence 2) over Region {slug}'s waters draining to Areas "
                              f"{s['areas']}, answering '{s['unlisted']}' where no row does")})
         root["children"].append(node)
-    other = [d for d in page_defaults if d["id"].endswith(":default:other")]
-    if other:                       # T349: Region 2's remainder — drains to no Area 13/15/16/28/29 (to the US)
-        root["children"].append({"id": "other", "kind": "residual", "label": other[0]["scope"], "quote": None,
-                                 "unlisted": "closed", "children": [], "code": other})
+    if slug == "2":                 # T349: Region 2's remainder — no sentence, no entry: unlisted = closed
+        root["children"].append({"id": "other", "kind": "residual", "label": "waters flowing to the US (no Area "
+                                 "13/15/16/28/29)", "quote": None, "unlisted": "closed", "children": [], "code": []})
 
     # section banners (Region 6) as their containment tree
     if parsed.sections:
@@ -182,7 +183,7 @@ def _region(slug: str, locs: dict) -> dict:
             n["children"].sort(key=lambda c: (c["kind"] != "tidal_areas", c["id"]))
     elif defaults:
         for d in defaults:
-            if d in page_defaults:
+            if d in page_defaults or d in root["code"]:
                 continue
             if not (mine[d["id"]].get("source_text") or {}).get("areas"):
                 root["children"].append({"id": d["id"], "kind": "table_default", "label": d["scope"],
@@ -210,8 +211,8 @@ def _region(slug: str, locs: dict) -> dict:
                    "waters: (T349) the quota tree's aggregate tier, `total` whose MUs 5-6 to 5-11 (`quota.mark_shared`).")
     if slug == "2":
         odd.append("Region 2's scopes are keyed by the TIDAL AREA a water drains to, not by watershed or MU; "
-                   "(T349) each is a page-default entry over `area:drains_to:pfma_N` ∩ Region 2, and the remainder "
-                   "(to the US) a third, closed: unlisted = closed.")
+                   "(T349) each is a page-default entry over `area:drains_to:pfma_N` ∩ Region 2. The remainder (to the "
+                   "US: Skagit, Similkameen, Nooksack tributaries) has no DFO sentence and no entry: unlisted = closed.")
         odd.append("\"Squamish watershed: the aggregate daily limit of hatchery-marked coho in the entire Squamish "
                    "non-tidal systems combined is one (1).\" — (T349) the bucket's `shared` aggregate tier over the "
                    "Squamish watershed (`quota.shared_buckets`).")
@@ -294,7 +295,7 @@ SCOPE_STYLE = {
     "gap": ("in Region 6 but in no section", "#dc2626"),
     "areas-28-29": ("2:default:areas-28-29 — Areas 28/29: closed except listed", "#6b7280"),
     "areas-13-15-16": ("2:default:areas-13-15-16 — Areas 13/15/16: limit 0 = closed", "#2563eb"),
-    "other": ("2:default:other — other / US-draining (and uncoded lakes): closed, unlisted", "#dc2626"),
+    "other": ("no default entry — to the US (and uncoded lakes): unlisted, closed", "#dc2626"),
     "nocode": ("lake with no FWA watershed code (Area unknown)", "#a3a3a3"),
     "region": ("the whole region", "#0f766e"),
 }

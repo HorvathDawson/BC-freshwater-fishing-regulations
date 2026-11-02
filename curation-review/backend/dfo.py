@@ -264,8 +264,10 @@ def _rows() -> list[dict]:
 
 def _compute_rows() -> list[dict]:
     states, groups, live = _states(), _groups(), _live_waters()
+    # T349 (owner 2026-11-02): a SCOPE entry (region / section / tidal-area / page default — no water) is not a water
+    # place; its coverage is its scope, resolved in Python, and it is shown in the Cascade tab only
     out = [_row(slug, loc, water, states.get(lid), groups, live)
-           for lid, (slug, loc, water) in _locations().items()]
+           for lid, (slug, loc, water) in _locations().items() if loc.get("water_id")]
     # the review order: the live page first, then what is missing a cut, then region and water
     rank = {"needs_cut": 0, "unbound": 1, "no_water": 2, "bound": 3}
     out.sort(key=lambda r: (r["status"] != "active", rank[r["state"]], reuse._region_key(r["region"]),

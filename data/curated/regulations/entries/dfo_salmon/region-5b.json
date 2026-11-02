@@ -230,7 +230,8 @@
       ],
       "inherits": [],
       "fingerprints": [
-        "a99637e62e7295d7"
+        "a99637e62e7295d7",
+        "page:5b:region"
       ],
       "source_text": {
         "waters": "",
@@ -865,52 +866,6 @@
           }
         ],
         "tributaries": null,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "5b:default:region",
-      "region": "5b",
-      "region_number": 5,
-      "kind": "page_default",
-      "precedence": -1,
-      "water": "All Region 5B waters (Management Units 5-6 to 5-11)",
-      "water_id": null,
-      "aliases": [],
-      "section": null,
-      "section_history": [],
-      "inherits": [],
-      "fingerprints": [
-        "page:5b:region"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All Region 5B waters (Management Units 5-6 to 5-11)",
-        "areas": [],
-        "statement": "limit_zero",
-        "says": "Unless otherwise stated in the table below, the daily limit for all waters in Region 5B is zero (0).",
-        "unlisted": "closed"
-      },
-      "status": "active",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "owner",
-      "reviewed_at": "2026-11-02",
-      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:mu_group:management_units_5_6_to_5_11"
-          }
-        ],
-        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
