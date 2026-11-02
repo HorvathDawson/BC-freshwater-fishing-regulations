@@ -587,8 +587,27 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
 
   function setAnswer(c: Check, a: CheckAnswer) { setAnswers((x) => ({ ...x, [c]: a })); }
 
+  // A PROPOSED FIX SAYS THE PLACEMENT IS WRONG (owner 2026-11-02, Little Qualicum): the mark model refuses
+  // an extent fix or a new split on a mark whose P is y. So the moment the reviewer ADDS one (a fix that
+  // differs from the saved one, or a new split), P is set to n — visibly, labelled — unless they already
+  // answered P; set back to y, the save is held here with a warning, never refused by the server.
+  // (the model's T210 exception: a fix naming only EXISTING cuts may say P y — the cuts are right)
+  const proposing = splits.length > 0 || (fix?.points ?? []).some((p) => p.kind !== "split");
+  const addedProposal = splits.length > 0 || JSON.stringify(fix) !== JSON.stringify(saved);
+  const [autoN, setAutoN] = useState(false);
+  useEffect(() => {
+    if (addedProposal && proposing && answers.P === undefined) { setAnswers((x) => ({ ...x, P: "n" })); setAutoN(true); }
+  }, [addedProposal, proposing]);  // eslint-disable-line react-hooks/exhaustive-deps
+  /** why Save / Record is held, or "" — the server's own rules, said before the save */
+  const held = proposing && answers.P === "y"
+    ? "a new split (or a new point in the extent) says the placement is wrong: answer P n (or ?), or remove it"
+    : CHECKS.some((c) => answers[c] === "n") && !(problem && note.trim())
+      ? "an n answer needs a problem (pick one below) and a note saying what is wrong"
+      : "";
+
   async function submit(defer = false, extentOnly = false) {
     setErrors([]); setOkMsg("");
+    if (held && !defer) { setErrors([`Not saved yet — ${held}.`]); return; }
     if (!reviewer.trim()) { setErrors(["Type your name first: every mark names its reviewer."]); return; }
     setReviewer(reviewer.trim());
     setBusy(true);
@@ -874,7 +893,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
               sources={["map", "search", "new"]}
               previewFn={(f) => api.dfoExtentPreview(id, f, showTribs)} />
             <div className="fix-row" style={{ marginTop: 6 }}>
-              <button type="button" className="btn primary small" disabled={busy} data-testid="dfo-save-extent"
+              <button type="button" className="btn primary small" disabled={busy || !!held} data-testid="dfo-save-extent"
                 onClick={() => void submit(false, true)}
                 title="records a mark carrying this extent (Place ? unless you answered)">
                 {busy ? "saving…" : "Save extent"}</button>
@@ -887,7 +906,10 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             <div className="checklist-head"><strong>Review</strong> <span className="dim">y n ? answer the next check · Enter records · j k move</span></div>
             {CHECKS.map((c) => (
               <div key={c} className="check-row">
-                <strong>{c}</strong><span className="check-q">{QUESTIONS[c]}</span>
+                <strong>{c}</strong><span className="check-q">{QUESTIONS[c]}
+                  {c === "P" && proposing && answers.P === "n" && <span className="chip-tag" data-testid="dfo-p-auto"
+                    title={autoN ? "set to n when you proposed a fix — change it if you mean ?" : undefined}
+                    style={{ marginLeft: 6 }}>placement wrong — fix proposed</span>}</span>
                 <span className="check-a">
                   {(["y", "n", "?"] as CheckAnswer[]).map((a) => (
                     <button key={a} type="button" className={`ans ans-${a === "?" ? "q" : a}${answers[c] === a ? " on" : ""}`}
@@ -906,9 +928,10 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             )}
             <textarea className="check-note" placeholder="note (what is wrong, where the cut is)" value={note}
               onChange={(e) => setNote(e.target.value)} />
+            {held && <div className="warn-text" role="alert" data-testid="dfo-held">Save held: {held}.</div>}
             <div className="verdict-bar" style={{ position: "static", margin: 0 }}>
               <input placeholder="your name" value={reviewer} onChange={(e) => setName(e.target.value)} aria-label="reviewer" />
-              <button className="btn primary" disabled={busy} data-testid="dfo-record" onClick={() => void submit()}>
+              <button className="btn primary" disabled={busy || !!held} data-testid="dfo-record" onClick={() => void submit()}>
                 {busy ? "recording…" : "Record mark"}</button>
               <button className="btn small" disabled={busy} onClick={() => void submit(true)}>defer</button>
               {(fix || splits.length > 0) && <span className="dim">carries {splits.length ? `${splits.length} new split${splits.length === 1 ? "" : "s"}` : ""}{fix && splits.length ? " + " : ""}{fix ? "an extent fix" : ""} — proposals only (T185)</span>}
