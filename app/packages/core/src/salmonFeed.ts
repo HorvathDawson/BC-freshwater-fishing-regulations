@@ -130,7 +130,13 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
   const P = f.payload;
   const regions = Object.fromEntries(Object.entries(P.regions).map(([slug, r]) => {
     const fr = feed.regions[slug];
-    return [slug, fr ? { ...r, asof: fr.asof ?? r.asof, notes: fr.notes ?? r.notes, bucket: fr.bucket ?? r.bucket } : r];
+    if (!fr) return [slug, r];
+    // (T350) the bucket is read from the notes, so it goes with them: a feed region that carries notes and no bucket
+    // has none today (the page dropped its combined limit) — never the release's bucket under the feed's notes
+    const { bucket: _releaseBucket, ...rest } = r;
+    const head = fr.notes ? { notes: fr.notes, ...(fr.bucket ? { bucket: fr.bucket } : {}) }
+      : { notes: r.notes, ...(r.bucket ? { bucket: r.bucket } : {}) };
+    return [slug, { ...rest, asof: fr.asof ?? r.asof, ...head }];
   }));
   const payload: Payload = {
     ...P, regions, verdicts: feed.verdicts, gears: feed.gears,

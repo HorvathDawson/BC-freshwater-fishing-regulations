@@ -111,6 +111,27 @@ describe("the DFO feed over the release", () => {
   });
 });
 
+describe("(T350) the bucket goes with the notes it is read from", () => {
+  const BUCKET = { tree: { node: "tier", id: "t0", tier: "total", n: 4, says: "Up to 4 salmon a day in total", by: 0, children: [] }, t: "4 a day" };
+  const withRegion = (fr: object) => {
+    const f = feed();
+    return { ...f, regions: { ...f.regions, "6": { ...f.regions["6"]!, ...fr } } } as never;
+  };
+  const rel = (): SalmonFacts => {
+    const r = release();
+    return { ...r, payload: { ...r.payload, regions: { ...r.payload.regions, "6": { ...r.payload.regions["6"]!, bucket: BUCKET as never } } } };
+  };
+  it("a feed region with notes and no bucket has none (never the release's)", () => {
+    const f = withRegion({ notes: [], bucket: undefined });
+    expect(withSalmonFeed(rel(), f).payload.regions["6"]!.bucket).toBeUndefined();
+  });
+  it("a feed region without notes keeps the release's notes and bucket together", () => {
+    const f = withRegion({ notes: undefined, bucket: undefined });
+    const r6 = withSalmonFeed(rel(), f).payload.regions["6"]!;
+    expect([r6.bucket, r6.notes]).toEqual([BUCKET, rel().payload.regions["6"]!.notes]);
+  });
+});
+
 describe("the line by the mode switch (T276)", () => {
   it("says when the feed was fetched, in the feed's own time; nothing for the release's own file", () => {
     const f = feed();
