@@ -398,6 +398,7 @@ use that as the sole source of future work."
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |
 | T353 | Map fling still too weak on 0.4.0 mobile: measure, tune deceleration/velocity (see T312) | OPEN | T312 | owner 2026-11-02 |
 | T354 | Synopsis PDF takes very long to open on mobile: local copy, open at the cited page, lazy render | OPEN | — | owner 2026-11-02 |
+| T355 | Review split editor makes every split type (point, confluence, lake/outlet, area_boundary, border, offset on any) + proposal ids always become real split ids | OPEN | — | owner 2026-11-02 |
 
 ## Order for open tickets
 
