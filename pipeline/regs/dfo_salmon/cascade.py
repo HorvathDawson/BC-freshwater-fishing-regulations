@@ -206,3 +206,55 @@ def needs_new_machinery(scopes: List[Scope]) -> List[Scope]:
     Everything else is a named water plus at most two cut points.
     """
     return [s for s in scopes if s.kind == "tidal_areas"]
+
+
+# ── the page's own region-wide scopes (owner 2026-11-02) ─────────────────────────────────────────────────────────────
+#
+# Above the table every page prints, in a sentence or two, what holds for a water the table does NOT list:
+#
+#     R1, R5B, R6   "Unless otherwise stated in the table below, the daily limit for all waters in Region N is zero (0)."
+#     R3, R8        "There is no fishing for salmon in Region N except for the opportunities listed in the table below."
+#     R4, R5A, R7   "There is no fishing for salmon in Region N … until further notice."
+#     R2            TWO scopes, keyed by the tidal Area the water flows into:
+#                   "There is no fishing for salmon in waters of Region 2 flowing into Areas 28 and 29 except for the
+#                    opportunities listed in the table below."
+#                   "Unless otherwise stated in the table below, the daily limit for waters in Region 2 flowing into
+#                    Areas 13, 15, and 16 is zero (0)."
+#
+# `header.parse_header` deliberately STOPS at these sentences (they are not header notes), so until this nothing read
+# them. "limit zero" and "no fishing" are not the same answer: a zero limit leaves catch-and-release open.
+
+#: kind -> what an unlisted water gets, in the app's verdict words
+UNLISTED = {
+    "limit_zero": "release",          # daily limit 0: fishing allowed, nothing retained
+    "closed_except_listed": "closed",
+    "closed_until_notice": "closed",
+}
+
+_RE_STATEMENT = (
+    ("closed_except_listed", re.compile(r"there is no fishing for salmon in .+? except for the opportunities listed", re.I)),
+    ("limit_zero", re.compile(r"unless otherwise stated in the table below, the daily limit for .+? is zero", re.I)),
+    ("closed_until_notice", re.compile(r"there is no fishing for salmon in .+? until further notice", re.I)),
+)
+_RE_FLOWING = re.compile(r"flowing into areas?\s+(\d{1,3}(?:(?:\s*,\s*|\s*,?\s+and\s+)\d{1,3})*)", re.I)
+
+
+def page_statements(html: str) -> List[dict]:
+    """The region-wide scope sentences of one page, verbatim and in page order:
+    `[{k, t, areas, unlisted}]` — `areas` the tidal Areas the sentence is limited to ([] = the whole page)."""
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(html, "html.parser")
+    root = soup.find("main") or soup
+    out: List[dict] = []
+    for p in root.find_all("p"):
+        if p.find_parent("table"):
+            continue
+        t = re.sub(r"\s+", " ", p.get_text(" ", strip=True)).strip()
+        for k, rx in _RE_STATEMENT:
+            if rx.search(t):
+                m = _RE_FLOWING.search(t)
+                areas = [int(n) for n in re.findall(r"\d{1,3}", m.group(1))] if m else []
+                if not any(o["t"] == t for o in out):
+                    out.append({"k": k, "t": t, "areas": areas, "unlisted": UNLISTED[k]})
+                break
+    return out

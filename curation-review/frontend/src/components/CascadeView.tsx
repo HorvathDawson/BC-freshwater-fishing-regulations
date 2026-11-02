@@ -1,4 +1,5 @@
 import { TopNav, FoldToggle, useFold } from "./TopNav";
+import { REGION_PREFIX, RegionCascade, RegionOptions } from "./RegionCascade";
 import { useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -63,12 +64,19 @@ function runAt<T extends unknown[]>(runs: T[], d: number): T | null {
   return hit;
 }
 
+/** the view's frames: a watershed's chains (`skeena`, `nass`) or a region's cascade (`region:6`) */
 export function CascadeView() {
-  const fold = useFold("cascade");
   const [name, setName] = useState(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
     return (h.startsWith(CASCADE_HASH) && h.slice(CASCADE_HASH.length)) || "skeena";
   });
+  return name.startsWith(REGION_PREFIX)
+    ? <RegionCascade key="region" name={name} setName={setName} />
+    : <WatershedCascade key="ws" name={name} setName={setName} />;
+}
+
+function WatershedCascade({ name, setName }: { name: string; setName: (n: string) => void }) {
+  const fold = useFold("cascade");
   const [minOrder, setMinOrder] = useState(3);
   const [data, setData] = useState<Cascade | null>(null);
   const [error, setError] = useState("");
@@ -221,6 +229,7 @@ export function CascadeView() {
             <label>watershed</label>
             <select aria-label="watershed" value={name} onChange={(e) => setName(e.target.value)}>
               {Object.entries(data?.frames ?? { skeena: "Skeena" }).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              <RegionOptions />
             </select>
           </div>
           <div>

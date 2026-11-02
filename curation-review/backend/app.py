@@ -686,6 +686,24 @@ def dfo_progress():
     return dfo.progress()
 
 
+@app.get("/api/dfo/cascade-regions")
+def dfo_cascade_regions():
+    """Every region's DFO cascade (`region_cascade.regions`): the page's region-wide scopes and section
+    banners as an ordered tree, the code's defaults beside them, proposals quoting DFO — read only."""
+    import region_cascade
+    return region_cascade.regions()
+
+
+@app.get("/api/dfo/cascade-regions/{slug}/map")
+def dfo_cascade_region_map(slug: str, min_order: int = 4, tol: float = 60.0):
+    """One region's outline and each scope's coverage (`region_cascade.region_map`), plus its check."""
+    import region_cascade
+    try:
+        return region_cascade.region_map(slug, min_order=min_order, tol=tol)
+    except KeyError:
+        raise HTTPException(404, f"no DFO region {slug!r}")
+
+
 @app.get("/api/dfo/cascade/{name}")
 def dfo_cascade(name: str, min_order: int = 3, tol: float = 30.0):
     """T229 THE CASCADE of one watershed (`cascade.cascade`): every section coloured by the DFO
