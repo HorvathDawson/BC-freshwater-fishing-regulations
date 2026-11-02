@@ -19,3 +19,13 @@ salmon*.ts, ui-native SalmonCard / RegionRules, and the review app's DFO / casca
 with targeted tests. Bigger ones become tickets.
 
 Size: S–M, kept lean.
+
+## Principle (owner 2026-11-02)
+"All cascade logic should be resolved in Python, then distributed to the front end in a way that is cheap to store,
+easy to implement and quick to decode."
+- Check that no cascade, default or quota resolution lives in TypeScript. That covers the app (core salmon*.ts) and
+  the feeds worker's live path (dfo/typed, quota, salmon, live .ts).
+- The worker exists to pick up DFO changes between releases without Python. Find the leanest split that keeps the
+  rule there: e.g. the release ships the resolved chain/scope per section plus a fingerprint → rule-slot table, the
+  worker only swaps rule TEXT/numbers per fingerprint, and the app picks the slot.
+- Propose the format (sizes, decode cost) and the migration.
