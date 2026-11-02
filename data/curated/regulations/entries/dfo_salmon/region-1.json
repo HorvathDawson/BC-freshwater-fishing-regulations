@@ -4695,7 +4695,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls",
+              "stamp_river__signs_500_m_downstream_of_stamp_falls"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
