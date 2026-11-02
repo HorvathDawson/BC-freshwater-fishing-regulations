@@ -1094,3 +1094,11 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .p1-map { min-height: 480px; position: relative; display: flex; }
 .p1-map > * { flex: 1; }
 .p1-rest ol { margin: 4px 0; padding-left: 24px; font-size: 12px; }
+
+/* owner 2026-11-02: draggable reference / cut points on the DFO map */
+.edit-point { width: 14px; height: 14px; border-radius: 50%; cursor: grab; position: relative;
+  box-shadow: 0 0 0 2px #fff, 0 1px 4px #0008; }
+.edit-point span { position: absolute; left: 16px; top: -3px; white-space: nowrap; font-size: 11px; font-weight: 600;
+  color: #111; background: #fffd; padding: 0 3px; border-radius: 3px; pointer-events: none; }
+.edit-cut { background: #d97706; }
+.edit-reference { background: transparent; border: 3px solid #2563eb; width: 12px; height: 12px; }

@@ -927,6 +927,10 @@ export interface AnchorCheck {
   distance_m?: number;
   words?: string;
   item_id?: string;
+  /** owner 2026-11-02: the REFERENCE the cut is offset from (the anchor itself, snapped) */
+  ref?: { blk: string; measure: number; coord: [number, number] };
+  /** an area_boundary anchor: taken as written */
+  area?: boolean;
 }
 /** T210: a PROPOSED split, shared — every mark's `new_splits` deduped by anchor (`marks.proposals`),
  *  the first proposal's name kept, with the marks that proposed it */

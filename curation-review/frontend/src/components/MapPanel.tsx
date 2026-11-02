@@ -59,7 +59,13 @@ interface Props {
   /** owner 2026-10-28: open on the satellite imagery (a low-confidence cut is checked against the ground);
    *  the "satellite" button toggles it either way */
   satellite?: boolean;
+  /** owner 2026-11-02: EDITABLE POINTS — a reference (not a cut, hollow) and the cuts made off it, each
+   *  a draggable marker; dropping one calls `onMovePoint(id, lnglat)` (the caller re-resolves it) */
+  editPoints?: EditPoint[];
+  onMovePoint?: (id: string, lnglat: [number, number]) => void;
 }
+
+export interface EditPoint { id: string; coord: [number, number]; label: string; kind: "reference" | "cut" }
 
 /** the same keyless Esri World Imagery the app uses (app/packages/map/style/style.json) */
 const IMAGERY_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false";
@@ -157,7 +163,7 @@ export function MapPanel({
   onSelectSplit, reloadKey = 0, focusItemId = null,
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
   preview = null, saved = null, suggested = null, fitSuggested = false, flyTo = null, onPick = null, selectZoom = 12, fitNamed = true,
-  satellite = false,
+  satellite = false, editPoints = [], onMovePoint,
 }: Props) {
   const [sat, setSat] = useState(satellite);
   const satRef = useRef(sat);
@@ -194,6 +200,31 @@ export function MapPanel({
   const namedFc = useRef<GeoJSON.FeatureCollection | null>(null);
   const namedIds = useMemo(() => new Set((namedSplits?.features ?? []).map((f) => f.properties.split_id)),
     [namedSplits]);
+  // owner 2026-11-02: the editable points, as draggable markers (re-made when they change)
+  const moveRef = useRef(onMovePoint);
+  moveRef.current = onMovePoint;
+  const editKey = editPoints.map((p) => `${p.id}@${p.coord.join(",")}:${p.label}`).join("|");
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    const made = editPoints.map((p) => {
+      const el = document.createElement("div");
+      el.className = `edit-point edit-${p.kind}`;
+      el.title = `${p.label} — drag to move`;
+      el.dataset.testid = `edit-point-${p.id}`;
+      const lab = document.createElement("span");
+      lab.textContent = p.label;
+      el.appendChild(lab);
+      const mk = new maplibregl.Marker({ element: el, draggable: true }).setLngLat(p.coord).addTo(m);
+      mk.on("dragend", () => {
+        const ll = mk.getLngLat();
+        moveRef.current?.(p.id, [Number(ll.lng.toFixed(6)), Number(ll.lat.toFixed(6))]);
+      });
+      return mk;
+    });
+    return () => made.forEach((mk) => mk.remove());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editKey]);
   // Which rule's reach is drawn. The map owns this: it is a way of LOOKING at the geometry, so it
   // belongs with the other view controls rather than scattered down the rules list.
   const [shownReach, setShownReach] = useState<string | null>(null);

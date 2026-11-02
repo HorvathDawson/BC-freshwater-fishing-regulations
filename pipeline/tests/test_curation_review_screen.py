@@ -505,3 +505,23 @@ def test_a_dfo_extent_fix_is_saved_and_the_location_serves_it_back(env):
     assert c.get(f"/api/dfo/locations/{CAMPBELL}").json()["mark"]["extent_fix"][0]["tributaries"] is True
     refused = c.post("/api/marks", json={**body, "answers": {}})        # nothing answered
     assert refused.status_code == 422 and refused.json()["detail"][0]["msg"]
+
+
+def test_an_offset_cut_resolves_off_its_reference_and_the_mark_stamps_the_reference(env):
+    """Owner 2026-11-02: a cut N m up / down of a reference is the reference + the split's offset. The
+    anchor check answers the cut's point AND its reference; the mark stamps the reference (the split
+    adds the offset itself — stamping the offset point would offset it twice)."""
+    c = env["client"]
+    url = f"/api/dfo/locations/{CAMPBELL}/anchor"
+    at = c.get(url, params={"split": json.dumps(_QUINSAM)}).json()
+    ref = {"ref": "r1", "anchor": "bridge", "coord": at["coord"], "offset_m": -100}
+    got = c.get(url, params={"split": json.dumps(ref)}).json()
+    assert got["ok"] and got["ref"]["coord"] == at["coord"], got
+    assert abs((got["ref"]["measure"] - got["measure"]) - 100) < 0.5        # 100 m downstream, along it
+    body = {"scope": "dfo", "target": CAMPBELL, "answers": {"T": "y", "R": "y", "P": "?"},
+            "reviewer": "tester", "new_splits": [ref],
+            "extent_fix": [{"scope": "entry", "op": "downstream_of", "points": [{"kind": "new", "split_id": "r1"}]}]}
+    r = c.post("/api/marks", json=body)
+    assert r.status_code == 200, r.text
+    ns = r.json()["new_splits"][0]
+    assert ns["offset_m"] == -100 and ns["measure"] == got["ref"]["measure"] and ns["coord"] == at["coord"]

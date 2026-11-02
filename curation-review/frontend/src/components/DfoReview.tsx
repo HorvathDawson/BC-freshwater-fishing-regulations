@@ -8,7 +8,7 @@ import type {
   ExtentFix, ExtentPreview, Mode, NamedRef, NewSplit, ProposedSplit, SplitConfidence,
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
-import { MapPanel } from "./MapPanel";
+import { MapPanel, type EditPoint } from "./MapPanel";
 import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { ExtentFixEditor, pointWords } from "./ExtentFixEditor";
 
@@ -482,17 +482,31 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                       water: "", name: `PROPOSED ${p.name || p.anchor}`, rules: ["extent"], parts: [],
                       to_verify: true, grade: null, item_id: p.on_item },
       }] : []),
-      ...splits.flatMap((n) => {
-        const at = checks[n.ref]?.coord ?? n.coord;
-        return at ? [{
-          type: "Feature" as const, geometry: { type: "Point" as const, coordinates: at as [number, number] },
-          properties: { split_id: `new:${n.ref}`, label: `NEW ${n.ref}: ${anchorWords(n)}`, water: "",
-                        name: `NEW ${n.ref}`, rules: ["extent"], parts: [], to_verify: true, grade: null,
-                        item_id: n.on_item ?? null },
-        }] : [];
-      }),
     ],
-  }), [detail.splits, detail.proposed, splits, checks]);
+  }), [detail.splits, detail.proposed, splits, checks]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // owner 2026-11-02: THE EDITABLE POINTS — each new cut where it lands (an offset cut at its offset),
+  // and each REFERENCE an offset cut is measured from (hollow, not a cut); all draggable on the map
+  const editPoints = useMemo(() => editPointsOf(splits, checks), [splits, checks]);
+  const [moveErr, setMoveErr] = useState("");
+  async function movePoint(pid: string, ll: [number, number]) {
+    setMoveErr("");
+    try {
+      const got = await movedSplits(id, pid, ll, splits, checks);
+      setSplits(got.splits);
+      setChecks((m) => ({ ...m, ...got.checks }));
+    } catch (e) { setMoveErr(String(e instanceof Error ? e.message : e)); }
+  }
+  async function setOffset(ref: string, off: number | null) {
+    const n = splits.find((x) => x.ref === ref);
+    if (!n) return;
+    const ns = { ...n, offset_m: off || null };
+    const got = await api.dfoAnchor(id, ns);
+    if (!got.ok) { setMoveErr(`${ref}: ${got.why}`); return; }
+    setMoveErr("");
+    setSplits(splits.map((x) => (x.ref === ref ? ns : x)));
+    setChecks((m) => ({ ...m, [ref]: got }));
+  }
 
   const reachFc = (reach?.geojson ?? null) as GeoJSON.FeatureCollection | null;
   const preview = fixPreview ?? reachFc;
@@ -802,7 +816,17 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
           <NewSplits id={id} items={detail.items} hints={detail.hints} quote={detail.verbatim.specific_area}
             op={detail.need.op} shared={shared} value={splits} onChange={setSplits} checks={checks}
             onChecked={(ref, c) => setChecks((m) => ({ ...m, [ref]: c }))}
-            onPick={(cb) => setPick({ cb })} picking={!!pick.cb} />
+            onPick={(cb) => setPick({ cb })} picking={!!pick.cb} onOffset={setOffset}
+            onCuts={(refs) => {
+              // two cuts off one reference ("100 m up and down of the weir"): the extent between them,
+              // pre-filled in the editor (Save extent is still the write)
+              if (refs.length !== 2) return;
+              setFix({ scope: "entry", op: "between", points: refs.map((r) => ({ kind: "new" as const, split_id: r })),
+                       items: detail.items.slice(0, 1).map((i) => i.id), tributaries: fix?.tributaries ?? null });
+              setFixPreview(null);
+            }} />
+          {moveErr && <div className="fix-row warn-text inline-notice" data-testid="dfo-move-refused">
+            <span style={{ flex: 1 }}>not moved: {moveErr}</span><CloseX onClick={() => setMoveErr("")} /></div>}
 
           <div className="section">
             <ExtentFixEditor defaultOpen scope="entry" entryId={id} currentOp={detail.need.op ?? ex[0]?.op}
@@ -876,7 +900,8 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             <span style={{ color: "#7c3aed" }}>violet dashed: the suggestion</span> · amber labels: NEW splits proposed in this mark
           </div>
           <MapPanel itemId={detail.items[0]?.id ?? null} alsoItemIds={detail.items.slice(1).map((i) => i.id)}
-            namedSplits={named} preview={preview} saved={savedFc} suggested={suggestedFc} onPick={pick.cb} />
+            namedSplits={named} preview={preview} saved={savedFc} suggested={suggestedFc} onPick={pick.cb}
+            editPoints={editPoints} onMovePoint={(pid, ll) => void movePoint(pid, ll)} />
         </div>
       </div>
     </div>
@@ -907,12 +932,14 @@ export function anchorWords(n: NewSplit): string {
    shown below as proposed, reused here, never entered twice. Recorded in the mark, never in
    splits.json. */
 function NewSplits({ id, items, hints, quote, op, shared, value, onChange, checks, onChecked, onPick,
-                     picking }: {
+                     picking, onOffset, onCuts }: {
   id: string; items: DfoDetail["items"]; hints: DfoDetail["hints"]; quote: string; op: string | null;
   shared: ProposedSplit[];
   value: NewSplit[]; onChange: (v: NewSplit[]) => void;
   checks: Record<string, AnchorCheck>; onChecked: (ref: string, c: AnchorCheck) => void;
   onPick: (cb: ((ll: [number, number]) => void) | null) => void; picking: boolean;
+  onOffset: (ref: string, off: number | null) => Promise<void>;
+  onCuts: (refs: string[]) => void;
 }) {
   const sideOf = (): NewSplit["side"] =>
     op === "downstream_of" ? "downstream" : op === "upstream_of" ? "upstream" : null;
@@ -931,6 +958,11 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
   const [said, setSaid] = useState<AnchorCheck | null>(null);
   const [reusedWords, setReusedWords] = useState("");
   const [busy, setBusy] = useState(false);
+  // owner 2026-11-02: the clicked point as a REFERENCE (not a cut): the cuts are N m up / down of it,
+  // along the river (the split's own offset, `NewSplit.offset_m`)
+  const [asRef, setAsRef] = useState(false);
+  const [up, setUp] = useState("");
+  const [down, setDown] = useState("");
 
   const choose = (a: AnchorKind) => {
     setSaid(null);
@@ -943,8 +975,38 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
   };
   const reset = () => { setClicked(null); setDraft(null); setSaid(null); onPick(null); };
 
+  async function confirmOffsets() {
+    if (!draft) return;
+    const offs = [Number(up) > 0 ? Number(up) : 0, Number(down) > 0 ? -Number(down) : 0].filter((x) => x);
+    if (!offs.length) { setSaid({ ok: false, why: "give the metres upstream and / or downstream of the reference" }); return; }
+    setBusy(true);
+    const taken = [...value.map((v) => v.ref), ...shared.map((p) => p.id)];
+    const add: NewSplit[] = [];
+    try {
+      for (const off of offs) {
+        const ref = newRef([...taken, ...add.map((a) => a.ref)]);
+        const base = (draft.name || "").trim() || anchorWords(draft);
+        const ns: NewSplit = { ...draft, ref, offset_m: off,
+          name: `${base} (${Math.abs(off)} m ${off > 0 ? "upstream" : "downstream"})` };
+        const got = await api.dfoAnchor(id, ns);
+        if (!got.ok) { setSaid(got); return; }
+        onChecked(ref, got);
+        add.push(ns);
+      }
+      onChange([...value, ...add]);
+      onCuts(add.map((a) => a.ref));
+      setReusedWords(""); setAsRef(false); setUp(""); setDown("");
+      reset();
+    } catch (e) {
+      setSaid({ ok: false, why: String(e) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function confirm() {
     if (!draft) return;
+    if (asRef) { await confirmOffsets(); return; }
     setBusy(true);
     const ref = newRef([...value.map((v) => v.ref), ...shared.map((p) => p.id)]);
     const ns = { ...draft, ref, name: (draft.name || "").trim() || null };
@@ -985,6 +1047,7 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
           <span>{anchorWords(n)}</span>
           <ConfChip c={n.confidence ?? defaultConfidence(n.anchor)} />
           {checks[n.ref] && <span className="dim">→ {checks[n.ref].words} · blk {checks[n.ref].blk} @ {checks[n.ref].measure?.toFixed(0)} m</span>}
+          <OffsetInput value={n.offset_m ?? null} onSet={(v) => void onOffset(n.ref, v)} />
           <button type="button" className="btn small" onClick={() => onChange(value.filter((x) => x.ref !== n.ref))}>remove</button>
         </div>
       ))}
@@ -1044,8 +1107,19 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
                   title="how sure you are of where this cut stands — medium by default for a point you placed"
                   onClick={() => setDraft({ ...draft, confidence: c })}>{c}</button>
               ))}
+              <label className="check" title="the point is the named feature itself (a weir, a bridge); the cuts are measured along the river from it">
+                <input type="checkbox" checked={asRef} data-testid="dfo-as-reference"
+                  onChange={(e) => setAsRef(e.target.checked)} /> reference, not a cut</label>
+              {asRef && <>
+                <input className="fix-num" type="number" min={0} step={10} placeholder="m up" aria-label="metres upstream"
+                  data-testid="dfo-offset-up" value={up} onChange={(e) => setUp(e.target.value)} style={{ width: 70 }} />
+                <span className="dim">m upstream</span>
+                <input className="fix-num" type="number" min={0} step={10} placeholder="m down" aria-label="metres downstream"
+                  data-testid="dfo-offset-down" value={down} onChange={(e) => setDown(e.target.value)} style={{ width: 70 }} />
+                <span className="dim">m downstream</span>
+              </>}
               <button type="button" className="btn small primary" disabled={busy || !!needsItem}
-                data-testid="dfo-add-split" onClick={() => void confirm()}>{busy ? "checking…" : "confirm"}</button>
+                data-testid="dfo-add-split" onClick={() => void confirm()}>{busy ? "checking…" : asRef ? "add the offset cuts" : "confirm"}</button>
             </div>
           )}
         </>
@@ -1053,4 +1127,88 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
       {said && !said.ok && <div className="fix-row warn-text" data-testid="dfo-anchor-refused">not added: {said.why}</div>}
     </div>
   );
+}
+
+/** a new cut's offset along the river, edited in place: + metres upstream, - downstream of its reference */
+function OffsetInput({ value, onSet }: { value: number | null; onSet: (v: number | null) => void }) {
+  const [v, setV] = useState(value == null ? "" : String(value));
+  useEffect(() => { setV(value == null ? "" : String(value)); }, [value]);
+  const commit = () => {
+    const n = v.trim() === "" ? null : Number(v);
+    if (n !== null && !Number.isFinite(n)) return;
+    if ((n || null) !== (value || null)) onSet(n || null);
+  };
+  return (
+    <label className="dim" title="offset along the river from the reference: + upstream, - downstream (m)">
+      offset <input type="number" step={10} className="fix-num" style={{ width: 70 }} value={v}
+        data-testid="dfo-offset" onChange={(e) => setV(e.target.value)} onBlur={commit}
+        onKeyDown={(e) => { if (e.key === "Enter") commit(); }} /> m
+    </label>
+  );
+}
+
+const refKey = (c: [number, number]) => `${c[0].toFixed(6)},${c[1].toFixed(6)}`;
+
+/** THE EDITABLE POINTS (owner 2026-11-02): each new cut where it lands (`cut:<ref>`), and the reference
+ *  each offset cut is measured from (`ref:<lon,lat>`, shared by the cuts off one reference). Pure. */
+export function editPointsOf(splits: NewSplit[], checks: Record<string, AnchorCheck>): EditPoint[] {
+  const out: EditPoint[] = [];
+  const refs = new Map<string, EditPoint>();
+  for (const n of splits) {
+    const c = checks[n.ref];
+    const at = (c?.coord ?? n.coord) as [number, number] | null | undefined;
+    if (at) out.push({ id: `cut:${n.ref}`, coord: at, kind: "cut",
+      label: `NEW ${n.ref}${n.offset_m ? ` (${n.offset_m > 0 ? "+" : ""}${n.offset_m} m)` : ""}` });
+    const r = n.offset_m ? (c?.ref?.coord ?? n.coord) as [number, number] | null | undefined : null;
+    if (r && n.coord && !refs.has(refKey(n.coord as [number, number]))) {
+      refs.set(refKey(n.coord as [number, number]), { id: `ref:${refKey(n.coord as [number, number])}`, coord: r,
+        kind: "reference", label: `reference${n.name ? `: ${n.name.replace(/ \(.*\)$/, "")}` : ""}` });
+    }
+  }
+  return [...refs.values(), ...out];
+}
+
+/** A DRAGGED POINT re-resolved by the server (`api.dfoAnchor`): a reference moves every cut made off it
+ *  (their offsets kept); an offset cut keeps its reference and takes the new along-river distance as its
+ *  offset (the drop snapped to the same blue line); a plain cut moves. -> the new splits and checks. */
+export async function movedSplits(id: string, pid: string, ll: [number, number], splits: NewSplit[],
+                                  checks: Record<string, AnchorCheck>):
+    Promise<{ splits: NewSplit[]; checks: Record<string, AnchorCheck> }> {
+  const out: Record<string, AnchorCheck> = {};
+  if (pid.startsWith("ref:")) {
+    const key = pid.slice(4);
+    const next: NewSplit[] = [];
+    for (const n of splits) {
+      if (n.offset_m && n.coord && refKey(n.coord as [number, number]) === key) {
+        const ns = { ...n, coord: ll };
+        const got = await api.dfoAnchor(id, ns);
+        if (!got.ok) throw new Error(`${n.ref}: ${got.why}`);
+        out[n.ref] = got;
+        next.push(ns);
+      } else next.push(n);
+    }
+    return { splits: next, checks: out };
+  }
+  const ref = pid.slice(4);
+  const n = splits.find((x) => x.ref === ref);
+  if (!n) return { splits, checks: out };
+  if (n.offset_m && checks[ref]?.ref) {
+    const r = checks[ref].ref!;
+    const at = await api.dfoAnchor(id, { ...n, coord: ll, offset_m: null });
+    if (!at.ok) throw new Error(`${ref}: ${at.why}`);
+    if (at.blk !== r.blk) throw new Error(`${ref}: dropped on another blue line than its reference — drag it along the river`);
+    const off = Math.round((at.measure ?? 0) - r.measure);
+    if (!off) throw new Error(`${ref}: dropped on its reference — an offset cut is off it`);
+    const ns = { ...n, offset_m: off,
+      name: (n.name ?? "").replace(/ \(\d+(\.\d+)? m (upstream|downstream)\)$/, "") + ` (${Math.abs(off)} m ${off > 0 ? "upstream" : "downstream"})` };
+    const got = await api.dfoAnchor(id, ns);
+    if (!got.ok) throw new Error(`${ref}: ${got.why}`);
+    out[ref] = got;
+    return { splits: splits.map((x) => (x.ref === ref ? ns : x)), checks: out };
+  }
+  const ns = { ...n, coord: ll };
+  const got = await api.dfoAnchor(id, ns);
+  if (!got.ok) throw new Error(`${ref}: ${got.why}`);
+  out[ref] = got;
+  return { splits: splits.map((x) => (x.ref === ref ? ns : x)), checks: out };
 }
