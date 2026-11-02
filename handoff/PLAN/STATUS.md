@@ -8,6 +8,19 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-02: crash and problem reports reviewed [T346]
+
+- **The app has sent 26 reports to staging:** 25 crashes (7 kinds) and 1 problem report. Test ones are ignored.
+- **Your Coquitlam crash is in there, and it is not only Coquitlam.** 19 reports, versions 0.1.2 to 0.3.0 on web: opening a
+  linked water ("flows into") asks for a piece of code that is not in the web build. Added to [T345]. Not seen on 0.4.0.
+- **Two crashes on your Android phone (0.4.0)** with no detail to go on: [T351]. Three more reports are just Android
+  closing the app in the background, not crashes.
+- **Your problem report** (map colours stay the same when you zoom or scroll, only changing the forecast redraws them) is
+  added to [T348].
+- **The reports are missing the facts that would find causes** (which water, who sent it, readable stack): [T352].
+
+---
+
 ## 2026-10-31, 07:00: stopped at a safe point
 
 - **Config tidy-up merged** [T327, T331]. Full fast suite after the merge: 6141 passed, 0 failed.

@@ -22,3 +22,9 @@ until something else forced a redraw.
    Run the same checks for gauges, DFO and in-season.
 
 Do it together with T347. Size: S–M.
+
+## Evidence from T346 (problem report 98935871c9b7548e, 2026-11-02, 0.4.0 build 7, android 37, screen "more")
+"The number of reaches coloured in conditions doesn't change when zoom or scroll changes, only when you click a
+different forecast then back to the option you were on (change -> +5 -> change)." So colours also fail to repaint on
+zoom/pan under Conditions, and only a forecast-offset toggle redraws them. Same repaint path as this ticket; check it too.
+The report held no layer/offset/zoom (T352).

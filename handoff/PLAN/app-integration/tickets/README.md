@@ -387,11 +387,13 @@ use that as the sole source of future work."
 | T343 | Regional salmon rules cleanup: drop facility-100 m dup + measuring notes, fresh+tidal daily into the bucket line, adult-chinook size per water (default 50 cm), fold or drop every header note; spawning salmon image | OPEN | T332 | owner 2026-10-31 |
 | T344 | Species ID: a grouped species line (e.g. whitefish → lake + mountain) opens a swipeable set, one page per fish | OPEN | — | owner 2026-10-31 |
 | T345 | BUG (HIGH, crash): Coquitlam River pane — flows-into-Fraser → map tap crashed; fake "2 stretches"; — "Lougheed bridge to watershed boundary" highlight runs past the bridge (downstream section ends correctly) | OPEN | — | owner 2026-10-31 |
-| T346 | Go through every crash + problem report the feeds worker collected (not just ours): group by cause, ticket each | OPEN | — | owner 2026-10-31 |
+| T346 | Go through every crash + problem report the feeds worker collected (not just ours): group by cause, ticket each | DONE | — | owner 2026-10-31 |
 | T347 | River forecast weekday-only: stays on Conditions over weekends/holidays (staleness by publishing schedule), More-tab note | OPEN | — | owner 2026-11-02 |
 | T348 | BUG: map colours do not refresh when a new feed arrives (forecast came in, map stayed blank); one feeds-changed signal for all feeds | OPEN | T347 | owner 2026-11-02 |
 | T349 | DFO R2 tidal-area defaults (Areas 28/29 closed, 13/15/16 limit 0) + "limit 0" unlisted wording on R1/R2/R5B — PROPOSAL, owner decisions on US-draining waters | OPEN | — | owner 2026-11-02 |
 | T350 | Quick audit: DFO salmon pipeline unified with freshwater datatypes, no fallbacks / dup paths / tech debt (after T349) | OPEN | T349 | owner 2026-11-02 |
+| T351 | Native crash in the foreground, Android 37 / 0.4.0 (2 reports, no stack) | OPEN | T346 | 2026-11-02 |
+| T352 | Crash + problem reports lack context (water id, screen, module id, install id, stack normalising, background kills) | OPEN | T346 | 2026-11-02 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |
 

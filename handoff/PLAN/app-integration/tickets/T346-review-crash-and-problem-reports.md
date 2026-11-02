@@ -1,6 +1,6 @@
 # T346 — Go through every crash and problem report the feeds worker has collected
 
-Status: OPEN (owner 2026-10-31: "look if the digest collected any issues or crashes etc. with info. It should look for
+Status: DONE 2026-11-02 (was OPEN) (owner 2026-10-31: "look if the digest collected any issues or crashes etc. with info. It should look for
 more than just ours with this bug").
 
 The app sends crash reports and "Report a problem" reports to the staging feeds worker (`/crash`, the report store;
@@ -17,3 +17,13 @@ the daily digest summarises them). Test-tagged reports from tools are marked and
 5. Write a short summary into STATUS.md.
 
 No user data leaves the machine; report contents are kept to what the reports already hold. Size: S–M.
+
+## Result (2026-11-02)
+Read from the staging bucket (`private/crashes/`, `private/reports/`), read-only. 26 reports: 25 crashes in 7 stored kinds plus 1 problem report; test-tagged ones (`crashes-test/`) dropped.
+- Unknown module on a water pane, web, 19 reports, 0.1.2–0.3.0: the owner's Coquitlam crash, evidence added to T345.
+- Native foreground crash, Android 37, 0.4.0: 2 reports (owner's phone): T351.
+- Background kills (SIGNALED 9, LOW_MEMORY): 3 reports, not crashes: noted in T351.
+- Dev-build ReferenceError `useRegsPrefetch` (env local, 1 report, already fixed in regs.ts): dropped.
+- Problem report, colours not repainting on zoom/pan: owner's, evidence added to T348.
+- Missing context on all of the above: T352.
+5 groups (+ the dropped dev one); tickets created T351, T352; updated T345, T348.

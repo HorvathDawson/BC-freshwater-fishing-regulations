@@ -38,3 +38,11 @@ To check:
   navigation must reset part state when it switches water.
 - **Regression test:** the same path — flows-into → map tap — must open the right water, never crash, and show only that
   water's real stretches.
+
+## Evidence from T346 (staging crash store, 2026-11-02)
+The crash is in the store: "Error: Requiring unknown module '…'" on route "water", platform web, two hashes
+(b0eaeeb61c3d3a6c 18 reports, f1a058176d7c1a37 1), 19 in all, 2026-10-30 01:53 to 2026-10-31 07:41 UTC, versions
+0.1.2, 0.2.0, 0.3.0 (all fatal). Stack: `_e.openHighlighted` → `importAll` → `Requiring unknown module`. So opening a
+highlighted/linked water (flows-into) loads a module that is not in the web bundle (a dynamic/lazy require that Metro did
+not bundle). Likely other waters with a flows-into link crash the same way, not only Coquitlam. Not seen on 0.4.0 yet.
+Check `openHighlighted` in app/packages/ui and what it `require`s. Missing context: T352.
