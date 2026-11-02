@@ -173,8 +173,9 @@ UNITS = {
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
              "(sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 "
              "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
-    "salmon": "salmon/2: 'BCSA', u8 2, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, "
-              "regions (+ the header notes), verdicts, gears, chains, unmapped, scopes, shards) "
+    "salmon": "salmon/3: 'BCSA', u8 3, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, "
+              "regions (+ the header notes, the bucket's quota tree), verdicts (+ T332 an open day's quota tree), gears, chains, "
+              "unmapped, scopes, shards) "
               "(pipeline/deliver/salmon.py)",
     **{SALMON.shard_name(r): "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 "
                              "run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)"

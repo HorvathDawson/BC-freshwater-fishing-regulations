@@ -17,7 +17,7 @@ import { SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
 import { RegsPress } from "./RegsPress";
 import { RegionRules } from "./RegionRules";
-import type { KeepActions } from "./LineText";
+import { LineText, NO_ACTIONS, type KeepActions } from "./LineText";
 import type { FishImages } from "./types";
 
 const chipColour = (p: Palette, s: SalmonRowVM["status"]): string =>
@@ -49,7 +49,9 @@ function SpeciesRow({ r, palette, actions, images, pictures }: {
         : <View testID="salmon-look" style={{ width: 56, height: 30, backgroundColor: palette.line2 }} />)}
       <View style={{ flex: 1 }}>
         <Text style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{r.name}{pictures && <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{` ${SALMON_WORDS.more}`}</Text>}</Text>
-        {r.quota && <Text selectable testID="salmon-quota" style={{ ...TYPE.metaSemi, color: palette.ink }}>{r.quota}</Text>}
+        {/* (T332) the quota tree drawn as the trout card draws its tiers (core quotaLine: tierWords / kindWords) */}
+        {r.quotaRuns && <LineText testID="salmon-quota" line={r.quotaRuns} style={TYPE.metaSemi} color={palette.ink} palette={palette}
+                                  actions={actions ?? NO_ACTIONS} num={TYPE.metaBold} />}
         {r.quotaUnread && <Text testID="salmon-quota-unread" style={{ ...TYPE.meta, color: palette.sub }}>{SALMON_WORDS.quotaUnread}</Text>}
         {r.limit && <Text selectable testID="salmon-limit" style={{ ...TYPE.meta, color: palette.sub }}>{r.limit}</Text>}
       </View>
@@ -137,11 +139,16 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
       <Text accessibilityRole="header" style={{ ...TYPE.kicker, color: palette.sub, marginTop: 10, marginBottom: 2 }}>{SALMON_WORDS.tableSpecies}</Text>
       {t.bucket && (
         <View testID="salmon-bucket" style={{ paddingVertical: 6 }}>
-          <Text selectable testID="salmon-bucket-line" style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{t.bucket.line}</Text>
+          {/* (T332) the bucket is the quota tree's total tier: drawn by the trout presenter (core tierWords) */}
+          <LineText testID="salmon-bucket-line" line={t.bucket.runs ?? [{ t: "text", s: t.bucket.line }]} style={TYPE.regsBodySemi}
+                    color={palette.ink} palette={palette} actions={actions ?? NO_ACTIONS} num={TYPE.regsBodyBold} />
         </View>
       )}
       {(t.waterBuckets ?? []).map((w) => (
-        <Text selectable key={w.line} testID="salmon-water-bucket" style={{ ...TYPE.metaSemi, color: palette.ink, paddingBottom: 4 }}>{w.line}</Text>
+        <View key={w.line} style={{ paddingBottom: 4 }}>
+          <LineText testID="salmon-water-bucket" line={w.runs ?? [{ t: "text", s: w.line }]} style={TYPE.metaSemi}
+                    color={palette.ink} palette={palette} actions={actions ?? NO_ACTIONS} num={TYPE.metaBold} />
+        </View>
       ))}
       {t.species.map((r) => <SpeciesRow key={r.code} r={r} palette={palette} actions={actions} images={images} pictures />)}
       <Says says={t.says} palette={palette} />

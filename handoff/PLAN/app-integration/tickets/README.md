@@ -373,7 +373,7 @@ use that as the sole source of future work."
 | T329 | Ponds (Q154): close the domain, no export (owner: pond = lake default, build never uses) | DONE | 62ff4d515 (needs T325) | owner 2026-10-30; closed.json lists ponds, decided/ponds.json deleted, tab locked |
 | T330 | Generated review files out of handoff/ into data/generated/review/ | DONE | 3909ada9e | owner 2026-10-30; 16 files git-mv'd, read via GENERATED.review |
 | T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | PARTIAL | — | owner 2026-10-30; 1,3–7 done (proposals domain closed); 2 done for INSEASON_MATCHES + SLOUGH_PAGE_MARKS (review-app sandbox overrides need a design); 8 done 2026-10-31 (kept r-4e709418ebd8 + r-038e6818e80f; prod has none) |
-| T332 | DFO salmon quotas in the same quota/lengths model as game-fish rules; wording list tidied, checked, accepted | OPEN | T320, T321 | owner 2026-10-30 |
+| T332 | DFO salmon quotas in the same quota/lengths model as game-fish rules; wording list tidied, checked, accepted | MERGED (T349, 2026-11-02; staging guard SALMON_NEEDS) | a618808c2, 29ddde218, 616a3ec93 | merge; release with minAppVersion, then feeds worker deploy + sync-inputs; owner: 1 doubtful wording entry (Fort Babine) |
 | T333 | Big Fable audit: duplicate data types / pathways / bad practices, verified + ranked → cleanup tickets | POSTPONED (next credit cycle) | T324, T331 | owner 2026-10-30 |
 | T334 | Audit all tests and documentation (dead tests, gaps, stale/duplicate docs) → fix tickets | POSTPONED (next credit cycle) | T333 | owner 2026-10-30 |
 | T335 | Remove archive/ + general cleanup (stray files, old side builds, releases to live+previous, dead scripts) | POSTPONED (next credit cycle, with T333/T334) | T333 | owner 2026-10-30 |
@@ -390,7 +390,6 @@ use that as the sole source of future work."
 | T346 | Go through every crash + problem report the feeds worker collected (not just ours): group by cause, ticket each | OPEN | — | owner 2026-10-31 |
 | T347 | River forecast weekday-only: stays on Conditions over weekends/holidays (staleness by publishing schedule), More-tab note | OPEN | — | owner 2026-11-02 |
 | T348 | BUG: map colours do not refresh when a new feed arrives (forecast came in, map stayed blank); one feeds-changed signal for all feeds | OPEN | T347 | owner 2026-11-02 |
-| T348 | BUG: map colours do not refresh when a new feed arrives (forecast came in, map stayed blank) — one feeds-changed signal for all feeds | OPEN | — | owner 2026-11-02 |
 | T349 | DFO R2 tidal-area defaults (Areas 28/29 closed, 13/15/16 limit 0) + "limit 0" unlisted wording on R1/R2/R5B — PROPOSAL, owner decisions on US-draining waters | OPEN | — | owner 2026-11-02 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |

@@ -141,7 +141,7 @@ def test_salmon_2_splits_per_bundle_region_and_round_trips():
     files = S.encode_files(payload, sections, "147b20dce7d8576c", lambda sid: regions.get(sid, ()))
     from pipeline.deliver.release.shards import REGIONS
     assert sorted(files) == sorted(["salmon", *(S.shard_name(r) for r in (*REGIONS, "x"))])
-    assert files["salmon"][:5] == b"BCSA\x02" and files["salmon-6"][:5] == b"BCSR\x01"
+    assert files["salmon"][:5] == b"BCSA\x03" and files["salmon-6"][:5] == b"BCSR\x01"
     handles, back, secs = S.decode_files(files)
     assert (handles, {k: v for k, v in back.items() if k != "shards"}, secs) == ("147b20dce7d8576c", payload, sections)
     assert [s for s, _ in S.decode_shard(files["salmon-6"])[2]] == [10, 11]

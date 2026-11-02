@@ -6,7 +6,7 @@
     builder keeps every entry's meaning and status (a rebuild never drops or re-guesses one);
   * the three wordings that passed T320 silently: the hours in words are structure (solar hours on the rule), "in the
     aggregate" and "(see exception below)" are notes the card shows in DFO's words;
-  * THE MUTATION: an unseen clause in a known cell flags the row (review_reason "new wording", the verdict `q.u`, no
+  * THE MUTATION: an unseen clause in a known cell flags the row (review_reason "new wording", the verdict `u`, no
     number), the location's card rows carry it, and the live run tells the owner once per template, never again.
 
 When the live feed emails a new wording: read DFO's words, add the template to the registry, and add a line to
@@ -56,7 +56,7 @@ def test_the_registry_is_one_entry_per_template_each_with_a_meaning():
     doc = json.loads(W.REGISTRY.read_text(encoding="utf-8"))
     assert doc["format"] == W.FORMAT
     ts = [e["template"] for e in doc["entries"]]
-    assert len(ts) == len(set(ts)) and len(ts) >= 85                         # the 2026-10-31 baseline: 85
+    assert len(ts) == len(set(ts)) and len(ts) >= 78       # the 2026-10-31 baseline: 85; T332's split tidy: 78
     for e in doc["entries"]:
         assert e["kind"] in W.KINDS and e["status"] in W.STATUSES, e
         assert W.template(e["example"]) == e["template"], e                  # the key is the example's template
@@ -84,6 +84,37 @@ def test_a_rejected_entry_is_unknown():
     assert W.unknown("4 per day, bait ban", reg) == ["bait ban"]
 
 
+# ── T332: the split tidied, every entry checked ───────────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("cell,want", [
+    # a lettered section title is no clause break: Region 6's section F is a watershed SCOPE, one note
+    ("F. Fraser River Watershed - There is no fishing for salmon in the portions of the Fraser River watershed in Region 6.",
+     ["F. Fraser River Watershed - There is no fishing for salmon in the portions of the Fraser River watershed in Region 6."]),
+    ("No fishing for sockeye, pink, chum.", ["No fishing for sockeye, pink, chum."]),            # a species list
+    ("No fishing for sockeye, pink or chum salmon, unless otherwise stated below",
+     ["No fishing for sockeye, pink or chum salmon", "unless otherwise stated below"]),
+    ("Single, barbless hook in tidal and non-tidal portions of all streams.",                    # DFO's comma
+     ["Single, barbless hook in tidal and non-tidal portions of all streams."]),
+    ("2 per day, 1 of which may be more than 77 cm. in length",                                  # no break before lower case
+     ["2 per day", "1 of which may be more than 77 cm. in length"]),
+    ("No fishing for chinook. — FN0372", ["No fishing for chinook", "FN0372"]),                  # leading dashes
+    ("4 per day, only 1 over 65 cm. Monthly limit=1 over 65 cm. — — Adult chinook caught",
+     ["4 per day", "only 1 over 65 cm", "Monthly limit=1 over 65 cm", "Adult chinook caught"]),
+])
+def test_the_clause_split_makes_no_scraps(cell, want):
+    assert W.clauses(cell) == want
+
+
+def test_no_scrap_is_a_registry_entry_and_every_checked_entry_is_accepted():
+    reg = W.registry()
+    for scrap in ("f", "fraser river watershed", "in length", "single", "pink", "chum", "sockeye", "—", "— fn#"):
+        assert scrap not in reg
+    # T332 (owner 2026-10-30): accepted after a check against real cells; the one doubtful entry stays a proposal
+    assert {t for t, e in reg.items() if e["status"] != "accepted"} == \
+        {"no fishing for chinook from a point n m above fort babine bridge to nichyeskwa creek"}
+    assert all("watershed" not in t or e["kind"] == "note" for t, e in reg.items())   # a watershed is a scope, never a limit
+
+
 # ── the three silent gaps ────────────────────────────────────────────────────────────────────────────────────────────
 
 def test_hours_in_words_are_structure():
@@ -93,7 +124,7 @@ def test_hours_in_words_are_structure():
                                           "end": {"solar": "sunset", "offset_min": 60}}
     assert not any(r.get("review_reason") for r in rules)
     v = _open_verdict(rules)
-    assert v["q"] == {"d": 4} and "one hour before sunrise to one hour after sunset" in v["t"]
+    assert Q.words(v["tree"]) == "4 a day" and "u" not in v and "one hour before sunrise to one hour after sunset" in v["t"]
     got = Q.read_limits(cell)
     assert got["hours"] == ["one hour before sunrise", "one hour after sunset"] and not got["residue"]
     assert Q.numbers(Q.read_limits(Q.render(got))) == Q.numbers(got)          # the round trip
@@ -120,7 +151,7 @@ def test_an_unseen_clause_in_a_known_cell_is_flagged_never_read():
     assert W.unknown(cell) == [NEW]
     rules = _rules(cell)
     assert rules[0]["review_reason"] == f"new wording: {NEW!r}"
-    assert _open_verdict(rules)["q"]["u"] == 1                               # no number: the app shows DFO's words
+    assert _open_verdict(rules)["u"] == 1                              # no number: the app shows DFO's words
     assert W.row_words({"species": "Coho", "dates": "", "limits_gear": cell}) == \
         {"k": "new", "sp": "Coho", "d": "", "t": cell, "new": [NEW]}
     gear = _rules(f"Bait ban, {NEW}")                                         # no limit rule: the gear rule carries it
@@ -159,7 +190,7 @@ def test_the_live_run_flags_the_row_and_tells_the_owner_once(tmp_path):
     idx = got["index"]
     for lid, rows in flagged.items():
         assert [r["k"] for r in rows] == ["new"] and NEW in rows[0]["t"]
-        assert any((idx["verdicts"][v].get("q") or {}).get("u") == 1 for runs in idx["locs"][lid]["sp"] for v in runs[1::2])
+        assert any(idx["verdicts"][v].get("u") == 1 for runs in idx["locs"][lid]["sp"] for v in runs[1::2])
 
     s2 = _Sender()                                                            # the next run: told already
     L.run(tmp_path / "b", fetcher=lambda s: (_region8(True), AT), regions=["8"], now="2026-11-01T00:00:00Z",

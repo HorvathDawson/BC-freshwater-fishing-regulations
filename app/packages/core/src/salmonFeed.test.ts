@@ -74,11 +74,11 @@ describe("the DFO feed over the release", () => {
     expect(pickSalmon(r, parseSalmonFeed({ ...G.feed, locs: rest })).payload.unmapped).toEqual([]);
   });
 
-  it("refuses what is not a whole dfo-feed/1", () => {
-    expect([parseSalmonFeed(null), parseSalmonFeed({ ...G.feed, format: "x" }),
+  it("refuses what is not a whole dfo-feed/2 (a T320 dfo-feed/1 capture too)", () => {
+    expect([parseSalmonFeed(null), parseSalmonFeed({ ...G.feed, format: "x" }), parseSalmonFeed({ ...G.feed, format: "dfo-feed/1" }),
             parseSalmonFeed({ ...G.feed, locs: { a: { r: "6", sp: [[0, 99]], g: [] } } }),
             parseSalmonFeed({ ...G.feed, locs: { a: { r: "6", sp: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 999]], g: [0, -1] } } })])
-      .toEqual([null, null, null, null]);
+      .toEqual([null, null, null, null, null]);
   });
 
   it("THE REGION HEADER: the notes a page shows are the pipeline's (`notes_for`), the feed's words over the release's", () => {

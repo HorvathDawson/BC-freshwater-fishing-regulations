@@ -7913,6 +7913,22 @@
        "default": null,
        "title": "Over Cm"
       },
+      "period": {
+       "anyOf": [
+        {
+         "enum": [
+          "monthly",
+          "annual"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Period"
+      },
       "relation": {
        "anyOf": [
         {

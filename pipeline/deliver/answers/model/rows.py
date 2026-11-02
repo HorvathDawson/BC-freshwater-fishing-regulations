@@ -823,9 +823,15 @@ class TreeTier(Model):
     #: ROUND20g 1 (owner): the one-origin rule said on the share's tier where it holds on the share's water only ("From
     #: streams, keep hatchery fish only — wild trout and char go back.", Region 2 p.21); the group's `origin` is then None
     origin: Optional[StrictStr] = None
+    #: T332 (owner 2026-10-30: salmon quotas in the trout model): THE CLOCK THE TIER'S NUMBER RUNS ON, where it is not the
+    #: day — the catalogue rule's `period` (`Period.monthly` / `annual`): DFO's "Monthly quota = 1 over 65 cm", a region
+    #: header's "annual limit for chinook over 50 cm is 10". Absent: a day's number (every game-fish tier today)
+    period: Optional[Literal["monthly", "annual"]] = None
 
     @model_validator(mode="after")
     def _shape(self):
+        if self.period is not None and self.tier not in ("size", "count"):
+            raise ValueError("only a size or count tier runs on another clock than the day")
         if self.tier == "own" and self.whose is None or self.whose is not None and self.tier not in ("own", "total"):
             raise ValueError("a water's own-rule tier (or a water's own total) says whose rule it is")
         if (self.tier == "size") != (self.over_cm is not None):

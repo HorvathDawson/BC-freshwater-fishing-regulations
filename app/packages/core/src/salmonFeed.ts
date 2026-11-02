@@ -1,5 +1,5 @@
 /**
- * THE LIVE DFO SALMON FEED (T211 part 2): `feeds/dfo/index.json` (`dfo-feed/1`, `pipeline/regs/dfo_salmon/live.py`)
+ * THE LIVE DFO SALMON FEED (T211 part 2): `feeds/dfo/index.json` (`dfo-feed/2`, `pipeline/regs/dfo_salmon/live.py`)
  * laid over the release's salmon file, so a DFO rule change reaches the app without a rebuild.
  *
  * THE RELEASE OWNS WHERE, THE FEED OWNS WHAT. The release's chains (`chains[].l`: the DFO locations on a section,
@@ -21,7 +21,9 @@ type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
 type Verdict = Payload["verdicts"][number];
 
-export const SALMON_FEED_FORMAT = "dfo-feed/1";
+/** (T332) dfo-feed/2: a verdict's quota is `tree`, a node of the game-fish quota tree; a dfo-feed/1 capture (T320's `q`) is
+ *  never read — the release's salmon/3 answers until a dfo-feed/2 is fetched */
+export const SALMON_FEED_FORMAT = "dfo-feed/2";
 
 export interface SalmonFeedRegion {
   readonly name: string; readonly url: string; readonly asof: string | null;
@@ -47,7 +49,7 @@ export interface SalmonFeed {
   readonly locs: Readonly<Record<string, SalmonFeedLocation>>;
 }
 
-/** The feed as the app reads it, or null when it is not a `dfo-feed/1` it can trust (never a half-read feed). */
+/** The feed as the app reads it, or null when it is not a `dfo-feed/2` it can trust (never a half-read feed). */
 export function parseSalmonFeed(x: unknown): SalmonFeed | null {
   const f = x as Partial<SalmonFeed> | null;
   if (!f || typeof f !== "object" || f.format !== SALMON_FEED_FORMAT || typeof f.at !== "string") return null;

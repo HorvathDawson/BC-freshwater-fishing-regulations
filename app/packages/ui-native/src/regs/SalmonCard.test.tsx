@@ -42,15 +42,19 @@ const page = { ...(vedder1010 as unknown as RegsPage), sheet: () => null } as Re
 const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
 
 describe("the Salmon card", () => {
-  it("(T320) the bucket total over the species rows, and each open species' numbers on its row", () => {
+  it("(T320, T332) the bucket total over the species rows, and each open species' numbers on its row — the quota tree", () => {
     const P = FACTS.payload;
+    const tier = (t: string, n: number, says: string, more: object = {}) => ({ node: "tier", id: "t1", tier: t, n, says, by: 0, children: [], ...more });
     const facts = { ...FACTS, payload: { ...P,
-      regions: { "6": { ...P.regions["6"]!, bucket: { node: "tier", tier: "total", n: 4, says: "Up to 4 salmon a day in total", possession: 8,
+      regions: { "6": { ...P.regions["6"]!, bucket: { tree: tier("total", 4, "Up to 4 salmon a day in total"), possession: 8,
                                                      t: "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4." } } },
-      verdicts: P.verdicts.map((v, i) => (i === 2 ? { ...v, q: { d: 4, o: [[50, 2]] } } : v)) } } as SalmonFacts;
+      verdicts: P.verdicts.map((v, i) => (i === 2 ? { ...v, tree: tier("count", 4, "4 a day", { species: ["CO"],
+        children: [tier("size", 2, "only 2 over 50 cm", { over_cm: 50 })] }) } : v)) } } as SalmonFacts;
     render(<SalmonCard card={salmonCard(facts, { sids: [101], item: null }, JUL20)} palette={LIGHT} />);
     expect(screen.getByTestId("salmon-bucket-line").textContent).toBe("Up to 4 salmon a day in total · 8 in possession");
-    expect(screen.getAllByTestId("salmon-quota").map((e) => e.textContent)).toEqual(["4 a day · only 2 over 50\u00a0cm"]);
+    expect(screen.getAllByTestId("salmon-quota").map((e) => e.textContent)).toEqual(["4 a day · only 2 over 50 cm"]);
+    // the trout presenter's runs: each tier's number its own run (tierWords), the bucket's and the quota's
+    expect(screen.getAllByTestId("n:big").map((e) => e.textContent)).toEqual(["4", "4", "2"]);
     // nothing kept today: no bucket line
     cleanup();
     render(<SalmonCard card={salmonCard(facts, { sids: [101], item: null }, SEP15)} palette={LIGHT} />);

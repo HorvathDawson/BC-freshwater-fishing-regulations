@@ -20,7 +20,7 @@ import type { Manifest } from "../manifest";
 import { type Region } from "../pack.generated";
 import { covers, routedDb, sliceKeys, type SliceKeys, type Sliced } from "./focus";
 
-/** (T211) the DFO salmon: a head (`salmon/2`) and one slice per bundle region (`salmon-<r>`, `x`: a section in none —
+/** (T211) the DFO salmon: a head (`salmon/3`) and one slice per bundle region (`salmon-<r>`, `x`: a section in none —
  *  owner 2026-10-28); (T213) bait ban / fly only per day (`method/1`) */
 export type SalmonSlice = `salmon-${Region}` | "salmon-x";
 type BinName = "salmon" | SalmonSlice | "method";

@@ -9,12 +9,11 @@ Three pure functions, no model, no credits (the pages are a table):
                            `residue`: every digit the reading did not account for. A cell with residue is UNPARSED: the
                            typed rule carries `review_reason` (`typed.to_rules`), the verdict `q.u`, and the app shows
                            DFO's words, never a number it guessed.
-    species_quota(...)     the rules a species' verdict was decided by (`deliver.salmon.verdict_on`) -> the verdict's `q`:
-                           {d: daily, h: 1 hatchery-marked only, o: [[over_cm, n]] (n of the d may be over), mx: max cm,
-                           w: up to w of the d may be unmarked (wild), mo: [[over_cm, n]] a month, a: 1 an all-salmon row
-                           (combined at that place), u: 1 not readable as one number}
-    bucket(notes)          the region header's typed notes (`header.py`) -> the bucket tier {node, tier: "total", n, says,
-                           possession, min_cm, per, ids}; None where the page prints no combined daily limit
+    species_tree(...)      the rules a species' verdict was decided by (`deliver.salmon.verdict_on`) -> the verdict's
+                           `{tree}` — T332: a `TreeTier` of the game-fish quota tree (the count tier; its kinds, size
+                           tiers, a monthly tier's `period`), see THE MAPPING below — or `{u: 1}`, not one reading
+    bucket(notes)          the region header's typed notes (`header.py`) -> {tree: the TOTAL tier, t, possession, tp,
+                           min_cm, ids}; None where the page prints no combined daily limit
                            (Regions 4, 5A, 7: closed until further notice).
 
 POSSESSION (owner 2026-10-31): only the bucket's — the total DFO prints ("You cannot possess more than 8 salmon in
@@ -39,7 +38,7 @@ from typing import Dict, List, Mapping, Optional, Sequence
 
 from pipeline.regs.dfo_salmon import typed as T
 
-FORMAT = "dfo-quota/1"
+FORMAT = "dfo-quota/2"     # T332: the verdict quota is a TreeTier (was `q`)
 
 # the spans a limits cell's numbers live in, each read by `typed` — the residue is what none of them covers
 _SPANS = (T._RE_DAILY, T._RE_DAILY_OF, T._RE_ONLY_OVER, T._RE_WHICH_MAY, T._RE_OF_WHICH_N, T._RE_UNMARKED,
@@ -134,18 +133,70 @@ def numbers(q: Mapping) -> tuple:
             tuple(q.get("hours") or ()), q.get("gap_mm"))
 
 
-# ── the verdict's quota ──────────────────────────────────────────────────────────────────────────────────────────────
+# ── the verdict's quota: a node of the game-fish quota tree ──────────────────────────────────────────────────────────
+#
+# T332 (owner 2026-10-30: "the quota structure data … should have same format as trout ones for consistency like same
+# size datatype, quotas etc."): the species' numbers are a `TreeTier` of the answers model — the very node the trout
+# card's quota tree is made of (`pipeline/deliver/answers/model/rows.py`, validated by it in the tests) — and the app
+# draws it with the trout presenter (`regs/tree.ts` tierWords / kindWords). T320's bespoke `q` {d, h, w, o, mx, mo, a, u}
+# is gone. THE MAPPING (the rule -> the node; the typed rule is already the catalogue's `CatalogueRule`):
+#
+#   "4 per day"                          rule take 4              count tier n 4, says "4 a day"
+#   "hatchery marked only"               rule origin hatchery     its kind "hatchery-marked coho" (folded: the tier says it)
+#   "1 of which can be unmarked"         sub-rule origin wild     a second kind "unmarked (wild) coho", n 1
+#   "only 2 over 50 cm"                  lengths [{min_cm 50}] 2  size tier n 2, over_cm 50
+#   "none over 50 cm", "maximum size"    lengths [{min_cm 50, take 0}]   size tier n 0, over_cm 50; the kind's sizes
+#                                                                          {cm: [[0, 50]], in: [[0, 20]]}
+#   "Monthly quota = 1 over 65 cm"       period monthly           size tier n 1, over_cm 65, period "monthly" (the ONE
+#                                                                  shared field T332 adds to TreeTier)
+#   an "All" salmon row                  species [SA]             the tier's species ["SA"], "all salmon combined here"
+#   not one reading (review_reason)      —                        no tree; the verdict's `u: 1` (DFO's words stand)
+
+#: the words, the app's before T332 (`SALMON_WORDS.quota`), now the store's like every trout tier's `says`
+_NAMES = {"CH": "chinook", "CO": "coho", "SK": "sockeye", "PK": "pink", "CM": "chum", "SA": "salmon"}
+
+
+def _says_daily(d: int, hatchery: bool, all_salmon: bool) -> str:
+    if hatchery:
+        return f"{d} a day, hatchery-marked only"
+    return f"{d} a day, all salmon combined here" if all_salmon else f"{d} a day"
+
+
+def _says_wild(w: int, d: int) -> str:
+    return "marked or unmarked" if w >= d else f"up to {w} unmarked (wild), the rest hatchery-marked"
+
+
+def _kind(species: List[str], name: str, n: int, says: str, max_cm: Optional[int], folded: bool) -> dict:
+    from pipeline.deliver.answers.common import inches
+    k = {"node": "kind", "species": species, "name": name, "n": n, "says": says, "detail": "",
+         "sizes": {"cm": [[0, max_cm]], "in": [[0, None if max_cm is None else inches(max_cm)]]},
+         "also_counts": [], "duties": [], "sentence": says}
+    if folded:
+        k["folded"] = True
+    return k
+
+
+def _size(seq: List[int], n: int, over_cm: int, says: str, period: Optional[str] = None, **kw) -> dict:
+    seq[0] += 1
+    t = {"node": "tier", "id": f"t{seq[0]}", "tier": "size", "n": n, "says": says, "by": 0, "children": [],
+         "over_cm": over_cm, **kw}
+    if period:
+        t["period"] = period
+    return t
+
 
 def _one(rule: dict, subs: Sequence[dict]) -> dict:
-    q: dict = {"d": int(rule.get("take") or 0)}
-    if rule.get("origin") == "hatchery":
-        q["h"] = 1
-    if "SA" in (rule.get("species") or ()):
-        q["a"] = 1
-    over, mx, monthly = [], None, []
+    """One opening rule (and the sub-rules `within` it) -> its count tier."""
+    d = int(rule.get("take") or 0)
+    species = list(rule.get("species") or [])
+    hatchery = rule.get("origin") == "hatchery"
+    all_salmon = "SA" in species
+    seq = [1]
+    over, mx, monthly, wild, unread = [], None, [], None, bool(rule.get("review_reason"))
     for s in subs:
+        unread = unread or bool(s.get("review_reason"))
         if s.get("origin") == "wild" and s.get("take") is not None:
-            q["w"] = int(s["take"])                                # of the d, up to w may be unmarked
+            wild = int(s["take"])                                  # of the d, up to `wild` may be unmarked
             continue
         if s.get("period") == "monthly":
             monthly += [[int(b["min_cm"]), int(s["take"])] for b in s.get("lengths") or () if b.get("min_cm") is not None]
@@ -158,40 +209,74 @@ def _one(rule: dict, subs: Sequence[dict]) -> dict:
                 over.append([int(lo), int(s["take"])])
             elif hi is not None:
                 mx = hi if mx is None else min(mx, hi)
-    if over:
-        q["o"] = sorted(over)
+    says = _says_daily(d, hatchery, all_salmon)
+    names = " or ".join(_NAMES.get(c, c) for c in species) or "salmon"
+    # the kind the count holds, where it says more than the tier's species: an origin, a ceiling, its wild share
+    # (feed size: a plain "4 per day" is the tier alone — its `species` names the fish)
+    kids: List[dict] = []
+    if hatchery or wild is not None or mx is not None:
+        kids.append(_kind(species, f"hatchery-marked {names}" if hatchery else names, d, says, mx, True))
+    if wild is not None:
+        kids.append(_kind(species, f"unmarked (wild) {names}", wild, _says_wild(wild, d), mx, False))
+    kids += [_size(seq, n, cm, f"only {n} over {cm} cm") for cm, n in sorted(over)]
     if mx is not None:
-        q["mx"] = int(mx)
-    if monthly:
-        q["mo"] = sorted(monthly)
-    if rule.get("review_reason") or any(s.get("review_reason") for s in subs):
-        q["u"] = 1
-    return q
+        kids.append(_size(seq, 0, int(mx), f"none over {int(mx)} cm"))
+    kids += [_size(seq, n, cm, f"{n} over {cm} cm a month", "monthly") for cm, n in sorted(monthly)]
+    tree = {"node": "tier", "id": "t1", "tier": "count", "n": d, "says": says, "by": 0, "species": species,
+            "children": kids}
+    return {"tree": tree, **({"u": 1} if unread else {})}
 
 
-def species_quota(opens: Sequence[dict], subs: Mapping[str, Sequence[dict]]) -> Optional[dict]:
-    """The verdict's `q` from the rules that opened the species that day (each with its size sub-rules). Two rules with
-    different numbers holding on one day are NOT reconciled here: `u: 1`, and the app shows DFO's words."""
+def species_tree(opens: Sequence[dict], subs: Mapping[str, Sequence[dict]]) -> Optional[dict]:
+    """The verdict's quota from the rules that opened the species that day (each with its size sub-rules):
+    `{tree}` (a `TreeTier`, the count tier) or `{u: 1}` — a rule not fully read, or two rules with different numbers
+    holding on one day (NOT reconciled here): no number, the app shows DFO's words."""
     qs = [_one(r, subs.get(r.get("rule_id") or "", ())) for r in opens]
     if not qs:
         return None
-    first = qs[0]
-    if any(q != first for q in qs[1:]):
+    if any(q.get("u") for q in qs) or any(q != qs[0] for q in qs[1:]):
         return {"u": 1}
-    return first
+    return qs[0]
+
+
+def walk(tree: Mapping):
+    """Every node of a tree, the tier first (pre-order) — the order the app says them in."""
+    yield tree
+    for c in tree.get("children") or ():
+        yield from walk(c) if c.get("node") == "tier" else iter((c,))
+
+
+def words(tree: Optional[Mapping]) -> Optional[str]:
+    """The quota's line as the app says it ("4 a day · only 2 over 50 cm"): the tiers and the unfolded kinds, in order."""
+    if not tree:
+        return None
+    return " · ".join(x["says"] for x in walk(tree) if x["node"] == "tier" or not x.get("folded"))
 
 
 # ── the bucket ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def bucket(notes: Sequence[Mapping]) -> Optional[dict]:
-    """The region header's combined limits as the salmon bucket's total tier (None: the page prints no combined daily
-    limit). Values only from the notes' own numbers and words; `ids` the notes it was read from."""
+    """The region header's combined limits as the salmon bucket (None: the page prints no combined daily limit):
+    `tree` the TOTAL tier of the quota tree ("Up to 4 salmon a day in total"; the header's annual / monthly limits its
+    children, a size — or count — tier with `period`), DFO's words `t` / `tp`, `possession` the total DFO prints,
+    `min_cm` per species, `ids` the notes it was read from."""
     daily = [n for n in notes if n.get("k") == "daily" and not n.get("w") and isinstance(n.get("n"), int)]
     if not daily:
         return None
     d = daily[0]
-    out: dict = {"node": "tier", "tier": "total", "n": d["n"], "says": f"Up to {d['n']} salmon a day in total",
-                 "t": d["t"], "ids": [d["id"]] if d.get("id") else []}
+    seq = [0]
+    tree = {"node": "tier", "id": "t0", "tier": "total", "n": d["n"], "says": f"Up to {d['n']} salmon a day in total",
+            "by": 0, "children": []}
+    for n in notes:
+        if n.get("k") in ("annual", "monthly") and not n.get("w") and isinstance(n.get("n"), int):
+            sp = list(n.get("sp") or ())
+            if isinstance(n.get("cm"), int):
+                tree["children"].append(_size(seq, n["n"], n["cm"], n["t"], n["k"], species=sp))
+            else:
+                seq[0] += 1
+                tree["children"].append({"node": "tier", "id": f"t{seq[0]}", "tier": "count", "n": n["n"],
+                                         "says": n["t"], "by": 0, "children": [], "species": sp, "period": n["k"]})
+    out: dict = {"tree": tree, "t": d["t"], "ids": [d["id"]] if d.get("id") else []}
     poss = [n for n in notes if n.get("k") == "possession" and not n.get("w")]
     if poss:
         p = poss[0]
@@ -207,25 +292,23 @@ def bucket(notes: Sequence[Mapping]) -> Optional[dict]:
                 mins.setdefault(sp, n["cm"])
     if mins:
         out["min_cm"] = mins
-    per = [{"k": n["k"], "sp": list(n.get("sp") or ()), "over_cm": n.get("cm"), "n": n.get("n"), "t": n["t"]}
-           for n in notes if n.get("k") in ("annual", "monthly") and not n.get("w") and isinstance(n.get("n"), int)]
-    if per:
-        out["per"] = per
     return out
 
 
 def over_bucket(q: Optional[Mapping], b: Optional[Mapping]) -> List[str]:
-    """What breaks the bucket: a species' daily above the total, a size sub-limit above its species' daily."""
-    if not q or q.get("u") or "d" not in q:
+    """What breaks the bucket: a species' daily above the total, a size or wild allowance above its species' daily."""
+    tree = (q or {}).get("tree")
+    if not tree or (q or {}).get("u"):
         return []
-    bad = []
-    if b and isinstance(b.get("n"), int) and q["d"] > b["n"]:
-        bad.append(f"daily {q['d']} > the bucket's {b['n']}")
-    for cm, n in q.get("o") or ():
-        if n > q["d"]:
-            bad.append(f"{n} over {cm} cm > the species' {q['d']} a day")
-    if q.get("w", 0) > q["d"]:
-        bad.append(f"{q['w']} unmarked > the species' {q['d']} a day")
+    d, bad = tree["n"], []
+    total = ((b or {}).get("tree") or {}).get("n")
+    if isinstance(total, int) and d > total:
+        bad.append(f"daily {d} > the bucket's {total}")
+    for x in walk(tree):
+        if x is tree or x["n"] is None or x.get("period"):
+            continue
+        if x["n"] > d:
+            bad.append(f"{x['says']}: {x['n']} > the species' {d} a day")
     return bad
 
 

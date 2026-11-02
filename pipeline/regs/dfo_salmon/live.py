@@ -11,7 +11,7 @@ answers per LOCATION and day: per species the verdict index (or -1: this locatio
 lines. The app re-composes each release chain from it, narrowest location first, exactly as `deliver.salmon.
 chain_calendar` does (`compose` here is the reference, pinned against it), so the app still decides nothing.
 
-    index.json    {format: "dfo-feed/1", at, regions: {slug: {name, url, asof, sha256, changed, checked, stale, held,
+    index.json    {format: "dfo-feed/2", at, regions: {slug: {name, url, asof, sha256, changed, checked, stale, held,
                    failures, notes, header, unresolved}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs, x?}},
                    unplaced: n}      notes: the region header's typed notes (`header.py`); header: their digest
                    x (T321): the rows the location's card shows in DFO's words ({k: new|unread|note, sp, d, t})
@@ -54,7 +54,7 @@ from pipeline.regs.dfo_salmon import fetch as F
 
 logger = logging.getLogger(__name__)
 
-FORMAT = "dfo-feed/1"
+FORMAT = "dfo-feed/2"     # T332: a verdict's quota is `tree` (a game-fish TreeTier), a bucket `{tree, …}`
 OUT_DIR = Path(GENERATED.regs.dfo_salmon) / "feed"
 #: two failed fetches in a row tell the owner (one is a blip)
 FAIL_NOTIFY = 2
@@ -285,6 +285,21 @@ def _read_header(slug: str, html: str, reg: dict, was: dict, entries_dir: Option
     _set_bucket(reg)
 
 
+def _upgrade(prev: dict) -> dict:
+    """(T332) the last feed in an older format: what a run carries from it (a held or failed region's answers) is said in
+    this one — a verdict's T320 `q` is dropped (that region shows DFO's words until it is read again; never the old
+    shape in a new feed), each region's bucket re-read from its notes."""
+    if not prev or prev.get("format") == FORMAT:
+        return prev
+    regions = {}
+    for slug, r in (prev.get("regions") or {}).items():
+        r = dict(r)
+        _set_bucket(r)
+        regions[slug] = r
+    return {**prev, "regions": regions,
+            "verdicts": [{k: x for k, x in v.items() if k != "q"} for v in prev.get("verdicts") or []]}
+
+
 def _set_bucket(reg: dict) -> None:
     """(T320) the salmon bucket — the header's combined daily / possession — beside the notes it is read from."""
     from pipeline.regs.dfo_salmon.quota import bucket
@@ -333,7 +348,7 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
 
     out = Path(out)
     at = now or _now()
-    prev = _read(out / "index.json", {})
+    prev = _upgrade(_read(out / "index.json", {}))
     prev_unplaced = {(u["region"], u["fingerprint"]): u for u in _read(out / "unplaced.json", [])}
     todo = [F.normalize_slug(s) for s in regions] if regions else [s for s in F.ALL_SLUGS if not F.PAGES[s].is_stub]
     verdicts, gears = S._Interner(), S._Interner()
