@@ -733,18 +733,14 @@ def _hunt_new(key: str, c: Mapping, water: Water, look: Lookup) -> tuple[dict, d
     if off and anchor == "split":
         ns["offset_m"] = off                      # the curated cut + an offset: the anchor says it
     elif off and snap:
-        # the offset is BAKED IN: the point is where the cut goes (two cuts off one anchor would
-        # otherwise share a blk / measure and dedupe into one — `marks.same_anchor`)
+        # REFERENCE + OFFSET (owner 2026-11-02): the point stays on the named feature and the offset
+        # is the split's own attribute (`NewSplit.offset_m`, + upstream); two cuts off one anchor
+        # differ by their offset (`marks.same_anchor`). Only the DRAWN point sits at the cut.
+        ns["offset_m"] = off
         at = getattr(look, "at_measure", lambda *_: None)(snap["blk"], snap["measure"] + off)
         if at:
             drawn = at
-            ns["coord"], ns["measure"] = tuple(at), round(snap["measure"] + off, 1)
-            if anchor in ("confluence", "lake_inlet", "lake_outlet"):
-                ns["anchor"] = "sign"
-                ns.pop("item_id", None)
-            baked = f" (placed {abs(off):.0f} m {'up' if off > 0 else 'down'}stream of the anchor, offset applied)"
-        else:
-            ns["offset_m"] = off
+        baked = f" ({abs(off):.0f} m {'up' if off > 0 else 'down'}stream of the anchor, as the split's offset)"
     elif off:
         ns["offset_m"] = off
     ns["note"] = (f"[split hunt {c['confidence']}] {c.get('description', '')}{baked}. Sources: "

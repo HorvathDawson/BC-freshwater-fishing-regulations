@@ -243,7 +243,7 @@ class ExtentFix(BaseModel):
 #: `bridge`, `dam`, `sign` (a crossing, a dam or a boundary sign — placed by a map point), `coord`
 #: (a bare map point) and `split` (an existing curated split, reused for this water).
 AnchorKind = Literal["confluence", "lake_inlet", "lake_outlet", "bridge", "dam", "sign", "coord",
-                     "split"]
+                     "split", "area_boundary"]
 #: the anchors placed by a map point (the reviewer clicks where the bridge / dam / sign is)
 COORD_ANCHORS = ("bridge", "dam", "sign", "coord")
 #: the anchors found from a named registry item (the tributary, the lake)
@@ -290,6 +290,11 @@ class NewSplit(BaseModel):
     #: owner 2026-10-27: a proposed split carries its confidence everywhere; None = the anchor's
     #: default (`default_confidence`: a hand-placed point medium, a registry anchor high)
     confidence: Optional[Confidence] = None
+    #: anchor area_boundary (owner 2026-11-02, Little Qualicum Falls park): the protected area's
+    #: name as the parks layer spells it, and which end of it the cut is (`SplitAnchor.side`:
+    #: upstream = where the water enters the area, downstream = where it leaves; None = both)
+    area: Optional[str] = None
+    area_end: Optional[Side] = None
     quote: str = ""
     note: str = ""
 
@@ -310,6 +315,12 @@ class NewSplit(BaseModel):
                              + ("tributary" if self.anchor == "confluence" else "lake"))
         if self.anchor == "split" and not (self.split_id or "").strip():
             raise ValueError("a new split on an existing split names that split")
+        if (self.anchor == "area_boundary") != bool((self.area or "").strip()):
+            raise ValueError("a new split at an area's boundary names the area; no other anchor does")
+        if self.area_end and self.anchor != "area_boundary":
+            raise ValueError("area_end is the end of an area_boundary anchor")
+        if self.offset_m and self.anchor == "area_boundary":
+            raise ValueError("an area boundary takes no offset")
         return self
 
 
@@ -926,16 +937,22 @@ def _ground_m(a, b) -> float:
 def same_anchor(a: NewSplit, b: NewSplit) -> bool:
     """Do two proposed new splits name the SAME cut? The same confluence / lake anchor (the same
     tributary or lake, the same offset), or the same blk with the measure within `SAME_CUT_M`, or
-    coordinates within `SAME_CUT_M`. The name, side and quote are not part of it."""
-    if (a.offset_m or 0) == (b.offset_m or 0):
-        if a.anchor == b.anchor and a.anchor in ("confluence", "lake_inlet", "lake_outlet"):
-            if a.item_id and b.item_id:
-                return a.item_id == b.item_id and (not a.on_item or not b.on_item
-                                                   or a.on_item == b.on_item)
-            if not a.item_id and not b.item_id and _norm(a.name) and _norm(a.name) == _norm(b.name):
-                return True
-        if a.anchor == b.anchor == "split" and a.split_id == b.split_id:
+    coordinates within `SAME_CUT_M`. The name, side and quote are not part of it. Two cuts off ONE
+    reference with DIFFERENT offsets (100 m up and 100 m down of a weir) are never the same cut
+    (owner 2026-11-02: an offset is the split's own attribute, never baked into its point)."""
+    if (a.offset_m or 0) != (b.offset_m or 0):
+        return False
+    if a.anchor == b.anchor == "area_boundary":
+        return _norm(a.area) == _norm(b.area) and a.area_end == b.area_end and (
+            not a.on_item or not b.on_item or a.on_item == b.on_item)
+    if a.anchor == b.anchor and a.anchor in ("confluence", "lake_inlet", "lake_outlet"):
+        if a.item_id and b.item_id:
+            return a.item_id == b.item_id and (not a.on_item or not b.on_item
+                                               or a.on_item == b.on_item)
+        if not a.item_id and not b.item_id and _norm(a.name) and _norm(a.name) == _norm(b.name):
             return True
+    if a.anchor == b.anchor == "split" and a.split_id == b.split_id:
+        return True
     if (a.blk and a.blk == b.blk and a.measure is not None and b.measure is not None
             and abs(a.measure - b.measure) <= SAME_CUT_M):
         return True
@@ -945,15 +962,46 @@ def same_anchor(a: NewSplit, b: NewSplit) -> bool:
 
 
 class ConfidenceOverride(BaseModel):
-    """ONE OWNER CALL ON A PROPOSED SPLIT'S CONFIDENCE, kept beside the marks
-    (`proposal_overrides.json`) because the marks store is append-only and never edited: `match`
-    names the cut as a `NewSplit` would (`same_anchor`), `confidence` is the call."""
+    """ONE OWNER CALL ON A PROPOSED SPLIT, kept beside the marks (`proposal_overrides.json`) because
+    the marks store is append-only and never edited: `match` names the cut as a `NewSplit` would
+    (`same_anchor`, against any proposal of it). The call is any of:
+
+      confidence  the cut's confidence
+      set         `NewSplit` fields to change (a moved point: coord / blk / measure; another anchor:
+                  anchor / area / area_end …) — what a mark's note asked of the PROPOSED split
+      offsets     the cut is a REFERENCE, not a cut: one cut per offset off it, along the water
+                  (`NewSplit.offset_m`, + upstream, - downstream) — "100 m up and down of the weir"
+
+    The result is still a PROPOSAL (T185 lands it after its side rebuild); nothing is accepted here."""
     model_config = ConfigDict(extra="forbid", frozen=True)
     match: NewSplit
-    confidence: Confidence
+    confidence: Optional[Confidence] = None
+    set: dict = Field(default_factory=dict)
+    offsets: list[float] = Field(default_factory=list)
     by: str = Field(..., min_length=1)
     date: str
     note: str = ""
+
+    @model_validator(mode="after")
+    def _some_call(self) -> "ConfidenceOverride":
+        if not (self.confidence or self.set or self.offsets):
+            raise ValueError("an override makes a call: confidence, set or offsets")
+        if any(not o for o in self.offsets) or len(set(self.offsets)) != len(self.offsets):
+            raise ValueError("offsets are distinct and non-zero")
+        bad = set(self.set) - set(NewSplit.model_fields) | ({"ref"} & set(self.set))
+        if bad:
+            raise ValueError(f"set changes NewSplit fields other than ref, not {sorted(bad)}")
+        self.amended(self.match)                 # the change makes a valid NewSplit
+        return self
+
+    def amended(self, n: NewSplit) -> NewSplit:
+        """`n` with `set` applied (validated)."""
+        if not self.set:
+            return n
+        return NewSplit.model_validate({**n.model_dump(), **self.set})
+
+    def matches(self, members: Sequence[NewSplit]) -> bool:
+        return any(same_anchor(self.match, n) for n in members)
 
 
 def load_overrides(path: Optional[Path]) -> list[ConfidenceOverride]:
@@ -968,7 +1016,7 @@ def confidence_of(group: Sequence[NewSplit], overrides: Sequence[ConfidenceOverr
     """A PROPOSED SPLIT'S CONFIDENCE (owner 2026-10-27): an owner override naming the cut, else the
     LAST proposal of it that set one, else the first proposal's anchor default."""
     for o in overrides:
-        if any(same_anchor(o.match, n) for n in group):
+        if o.confidence and o.matches(group):
             return o.confidence
     for n in reversed(list(group)):
         if n.confidence:
@@ -1001,10 +1049,43 @@ def proposal_groups(marks: Iterable[Mark]) -> list[dict]:
     return out
 
 
+def _offset_words(off: float) -> str:
+    return f"{abs(off):g} m {'upstream' if off > 0 else 'downstream'}"
+
+
+def amend(groups: Iterable[dict], overrides: Sequence[ConfidenceOverride] = ()) -> list[dict]:
+    """`proposal_groups` rows with the owner's overrides' `set` / `offsets` applied: a moved or
+    re-anchored cut keeps its id; a REFERENCE with offsets becomes one row per offset (id
+    `<id>-u100` / `<id>-d100`, the split the reference + `offset_m`). `members` stay the proposals
+    as the marks made them, so a mark's own proposal still finds its row(s)."""
+    out: list[dict] = []
+    for g in groups:
+        members = [m if isinstance(m, NewSplit) else NewSplit.model_validate(m) for m in g["members"]]
+        split = g["split"] if isinstance(g["split"], NewSplit) else NewSplit.model_validate(g["split"])
+        o = next((o for o in overrides if (o.set or o.offsets) and o.matches(members)), None)
+        if o is not None:
+            split = o.amended(split)
+        base = {**g, "split": split, "members": members}
+        if o is None or not o.offsets:
+            out.append({**base, **({"amended": o.note or "owner override"} if o is not None else {})})
+            continue
+        for off in o.offsets:
+            nm = f"{split.name or split.anchor} ({_offset_words(off)})"
+            out.append({**base, "id": f"{g['id']}-{'u' if off > 0 else 'd'}{abs(off):g}",
+                        "split": split.model_copy(update={"offset_m": float(off), "name": nm}),
+                        "amended": o.note or "owner override", "reference": split})
+    return out
+
+
 def with_confidence(groups: Iterable[dict], overrides: Sequence[ConfidenceOverride] = ()) -> list[dict]:
-    """`proposal_groups` rows as proposals: {id, split, marks, confidence (`confidence_of`, `overrides` first)}."""
+    """`proposal_groups` rows as proposals (`amend`ed by the overrides): {id, split, marks, members,
+    confidence (`confidence_of`, `overrides` first), and `amended` / `reference` when an override
+    changed it}."""
     return [{"id": g["id"], "split": g["split"], "marks": [dict(w) for w in g["marks"]],
-             "confidence": confidence_of(g["members"], overrides)} for g in groups]
+             "members": g["members"], "confidence": confidence_of(g["members"], overrides),
+             **({"amended": g["amended"]} if g.get("amended") else {}),
+             **({"reference": g["reference"]} if g.get("reference") is not None else {})}
+            for g in amend(groups, overrides)]
 
 
 def proposals(marks: Iterable[Mark], overrides: Sequence[ConfidenceOverride] = ()) -> list[dict]:

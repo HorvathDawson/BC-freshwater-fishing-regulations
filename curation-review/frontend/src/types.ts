@@ -883,7 +883,7 @@ export interface EntryScopeWords {
 
 /** what a NEW split is anchored to (`marks.AnchorKind`) */
 export type AnchorKind = "confluence" | "lake_inlet" | "lake_outlet" | "bridge" | "dam" | "sign"
-  | "coord" | "split";
+  | "coord" | "split" | "area_boundary";
 /** T164: a NEW split proposed in a mark (`marks.NewSplit`) — the server checks its anchor and
  *  stamps where it resolved (blk, measure, coord) */
 export interface NewSplit {
@@ -902,6 +902,9 @@ export interface NewSplit {
   side?: "upstream" | "downstream" | null;
   /** + upstream, - downstream of the anchor */
   offset_m?: number | null;
+  /** anchor area_boundary: the protected area's name, and which end (upstream = enters) */
+  area?: string | null;
+  area_end?: "upstream" | "downstream" | null;
   /** how sure the proposer is of where the cut stands (owner 2026-10-27); none = the anchor's
    *  default — a hand-placed point medium, a registry anchor high (`marks.default_confidence`) */
   confidence?: SplitConfidence | null;
@@ -972,6 +975,8 @@ export interface DfoRow {
   group?: { id: string; size: number; canonical: string } | null;
   /** owner 2026-11-02: a dormant place no live wording rewords, on a live water — its own item */
   historic_only?: boolean;
+  /** a fix proposal waits on this item (`dfo_fix_proposals.json`) */
+  fix_proposed?: boolean;
 }
 /** a member of a DFO historic group (`review.dfo.groups`) and why it was grouped */
 export interface DfoGroupMember {
@@ -1059,6 +1064,18 @@ export interface DfoCount {
 }
 export interface DfoProgress { all: DfoCount; active: DfoCount; regions: Record<string, DfoCount> }
 export interface DfoExtent { op: string; splits?: string[]; item_id?: string; item_ids?: string[] }
+export interface DfoFixProposal {
+  why: string;
+  status: string;
+  date: string;
+  by: string;
+  /** the owner must answer (nothing to fix from) */
+  owner?: boolean;
+  /** an extent to pre-fill the editor with (the suggestion's shape) */
+  suggestion?: DfoSuggestion["suggestion"];
+  /** edits to existing splits, listed for the owner — never written */
+  split_edits?: { split_id: string; field: string; before: unknown; after: unknown }[];
+}
 export interface DfoDetail {
   row: DfoRow;
   location: {
@@ -1084,6 +1101,8 @@ export interface DfoDetail {
   group?: { id: string; canonical: string; members: DfoGroupMember[] } | null;
   /** the SUGGESTED extent, or null (never applied) */
   suggestion?: DfoSuggestion | null;
+  /** owner 2026-11-02: Claude's FIX PROPOSAL for this item, from the mark's note — never applied */
+  fix_proposal?: DfoFixProposal | null;
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
 }
 

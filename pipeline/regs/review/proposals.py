@@ -293,7 +293,8 @@ def _resolve_file(ed: Mapping, src: Sources) -> Path:
 # --------------------------------------------------------------------------- new splits
 
 _ANCHOR_WORDS = {"confluence": "confluence", "lake_inlet": "lake inlet", "lake_outlet": "lake outlet",
-                 "bridge": "bridge", "dam": "dam", "sign": "boundary sign", "coord": "map point"}
+                 "bridge": "bridge", "dam": "dam", "sign": "boundary sign", "coord": "map point",
+                 "area_boundary": "park boundary", "split": "offset from split"}
 
 
 def _applies_to(on_item: str) -> Optional[dict]:
@@ -334,6 +335,20 @@ def split_record(n, src: Sources, *, sid: str, provenance: str,
         else:
             notes.append(f"the registry names no single lake for {n.item_id or n.name}: placed at "
                          "the point the mark stamped")
+    elif n.anchor == "area_boundary":
+        # owner 2026-11-02 (Little Qualicum Falls park): the park's own boundary, never a hand point
+        anchor = {"type": "area_boundary", "area_layer": "parks_bc", "area_name": n.area,
+                  "area_name_field": "PROTECTED_LANDS_NAME", **({"side": n.area_end} if n.area_end else {})}
+    elif n.anchor == "split" and n.offset_m:
+        # an existing cut + an offset: that cut's own anchor, with the offset as its attribute
+        ref = next((sp for wb in src.doc(src.splits_path).get("waterbodies") or []
+                    for sp in wb.get("splits") or [] if sp.get("id") == n.split_id), None)
+        base = dict((ref or {}).get("anchor") or {})
+        if base.get("type") in ("point", "confluence", "lake") and not base.get("offset_m"):
+            anchor = {k: v for k, v in base.items() if k != "edge"}
+        else:
+            notes.append(f"the split {n.split_id} is not a point / confluence / lake without an offset: "
+                         "placed at the point the mark stamped")
     if anchor is None:
         if n.coord is None:
             raise ValueError(f"new split {n.ref} ({n.anchor}) has no point and no registry anchor")
@@ -360,14 +375,18 @@ def split_record(n, src: Sources, *, sid: str, provenance: str,
 
 # --------------------------------------------------------------------------- extents
 
-def extent_of(fix, split_of) -> tuple[Optional[dict], list[str]]:
+def extent_of(fix, split_of, siblings: Optional[list[str]] = None) -> tuple[Optional[dict], list[str]]:
     """A `marks.ExtentFix` as the catalogue's extent (the preview's own shape, T191): op, the
     splits its points name (`split_of(i, point)` -> split id or None), item(s), area. Returns
-    (extent, problems)."""
+    (extent, problems). `siblings`: what an op rest is the rest of — a DFO location's are the other
+    live places on its water (`dfo_siblings`); a catalogue rule's are a hand edit (None)."""
     problems: list[str] = []
     ex: dict = {"op": fix.op}
     if fix.op == "rest":
-        problems.append("op rest names its siblings (the entry's other rules): a hand edit")
+        if siblings:
+            ex["siblings"] = list(siblings)
+        else:
+            problems.append("op rest names its siblings (the entry's other rules): a hand edit")
     sids = []
     for i, p in enumerate(fix.points):
         sid = split_of(i, p)
@@ -387,6 +406,21 @@ def extent_of(fix, split_of) -> tuple[Optional[dict], list[str]]:
         else:
             problems.append(f"within names an area by id (area:…), not {area!r}")
     return ex, problems
+
+
+def dfo_siblings(src: "Sources", location_id: str) -> list[str]:
+    """THE PLACES A DFO "rest" IS THE REST OF (owner 2026-11-02, Stamp River "Except in those areas
+    and times listed below"): every other LIVE location on the same water, its own rewordings
+    (`duplicate_of`) left out — the notice lists them under the water, so the rest is mechanical."""
+    found = _find_location(src, location_id)
+    if found is None:
+        return []
+    path, me = found
+    doc = json.loads(src.text(path))
+    return [x["location_id"] for x in doc.get("locations") or []
+            if x.get("water_id") and x.get("water_id") == me.get("water_id")
+            and x["location_id"] != location_id and (x.get("status") or "active") == "active"
+            and not (x.get("duplicate_of") and x.get("duplicate_confirmed") is not False)]
 
 
 def _validate_catalogue(doc: dict) -> list[str]:
@@ -656,16 +690,29 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
     # the cuts the marks in force name: their new splits (by the shared group) and their NEW points
     groups: list[dict] = []                              # {gid, split (NewSplit), marks}
 
+    def _join(g: dict, n, who: dict) -> dict:
+        if who not in g["marks"]:
+            g["marks"].append(who)
+        g["members"].append(n)
+        return g
+
     def group_for(n, who: dict) -> dict:
+        # the shared row(s) this proposal is a member of — an owner override may have moved it or
+        # made it a reference with one cut per offset (`marks.amend`): every one is a cut
+        shs = [p for p in shared if any(M.same_anchor(n, q) for q in p.get("members") or [p["split"]])]
+        if shs:
+            got = []
+            for sh in shs:
+                g = next((g for g in groups if g["gid"] == sh["id"]), None)
+                if g is None:
+                    g = {"gid": sh["id"], "split": sh["split"], "marks": [], "members": []}
+                    groups.append(g)
+                got.append(_join(g, n, who))
+            return got[0]
         for g in groups:
-            if M.same_anchor(n, g["split"]):
-                if who not in g["marks"]:
-                    g["marks"].append(who)
-                g["members"].append(n)
-                return g
-        sh = next((p for p in shared if M.same_anchor(n, p["split"])), None)
-        g = {"gid": sh["id"] if sh else n.ref, "split": sh["split"] if sh else n,
-             "marks": [who], "members": [n]}
+            if any(M.same_anchor(n, q) for q in g["members"]):
+                return _join(g, n, who)
+        g = {"gid": n.ref, "split": n, "marks": [who], "members": [n]}
         groups.append(g)
         return g
 
@@ -673,7 +720,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
     for m in inforce:
         who = {"target": m.target, "rule_id": m.rule_id, "reviewer": m.reviewer, "date": m.date, "scope": m.scope}
         for n in m.new_splits:
-            if n.anchor != "split":
+            if n.anchor != "split" or n.offset_m:     # an existing cut + an offset is a new cut
                 ref_group[(m.key, n.ref)] = group_for(n, who)
         for fi, f in enumerate(m.extent_fix):
             for pi, p in enumerate(f.points):
@@ -826,7 +873,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                 return p.split_id
             if p.kind == "new":
                 n = _new.get(p.split_id)
-                if n is not None and n.anchor == "split":
+                if n is not None and n.anchor == "split" and not n.offset_m:
                     return n.split_id
                 g = ref_group.get((_m.key, p.split_id))
             else:
@@ -843,7 +890,8 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
         sets: dict[str, dict] = {}
         tri_field = "tributaries" if m.scope == "dfo" else "includes_tributaries"
         for fi, f in enumerate(m.extent_fix):
-            ex, probs = extent_of(f, lambda i, p, _fi=fi: split_of(_fi, i, p))
+            ex, probs = extent_of(f, lambda i, p, _fi=fi: split_of(_fi, i, p),
+                                  dfo_siblings(src, m.target) if m.scope == "dfo" and f.op == "rest" else None)
             problems += [f"{f.scope}: {x}" for x in probs]
             sets.setdefault(f.scope, {})["extents"] = [ex]
             if f.tributaries is not None:

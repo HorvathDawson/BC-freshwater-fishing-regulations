@@ -304,8 +304,9 @@ def test_the_split_hunt_turns_research_into_a_valid_suggestion_and_keeps_the_evi
     s = out["suggestion"]
     assert [p["split_id"] for p in s["points"]] == ["b", "b_d75"]
     a, b = (M.NewSplit.model_validate(n) for n in s["new_splits"])
-    assert not M.same_anchor(a, b)                                 # the offset is baked in
-    assert b.measure == 925.0 and b.offset_m is None and "https://example.org/b" in a.note
+    assert not M.same_anchor(a, b)                                 # different offsets: two cuts
+    # reference + offset (owner 2026-11-02): the point stays on the anchor, the offset is the split's
+    assert b.measure == 1000.0 and b.offset_m == -75 and "https://example.org/b" in a.note
     pr = out["hunt"]["proposals"]
     assert pr[0]["confidence"] == "high" and pr[0]["sources"] == ["https://example.org/b"]
     assert out["hunt"]["sources"] == ["https://dfo/page"] and out["hunt"]["matcher"]["matched"] == "none"

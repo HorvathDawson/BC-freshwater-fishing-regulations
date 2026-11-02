@@ -125,6 +125,32 @@ def suggestion(location_id: str) -> dict | None:
     return row if row and (row.get("suggestion") or row.get("hunt")) else None
 
 
+#: FIX PROPOSALS (owner 2026-11-02): Claude's proposal per unsure item, from the mark's note — shown on
+#: the item, never applied. `CURATION_DFO_FIXES` points it at a copy (tests).
+def _fixes_path() -> Path:
+    if os.environ.get("CURATION_DFO_FIXES"):
+        return Path(os.environ["CURATION_DFO_FIXES"])
+    return Path(reuse.MARKS_PATH).parent / "dfo_fix_proposals.json"
+
+
+def fix_proposal(location_id: str) -> dict | None:
+    """The FIX PROPOSED on this item (`dfo_fix_proposals.json`), or None. Read only."""
+    p = _fixes_path()
+    try:
+        mt = p.stat().st_mtime
+    except OSError:
+        return None
+    return (_fixes_at(str(p), mt).get(location_id) or None)
+
+
+@lru_cache(maxsize=2)
+def _fixes_at(path: str, _mtime: float) -> dict:
+    try:
+        return json.loads(Path(path).read_text()).get("proposals") or {}
+    except (OSError, ValueError):
+        return {}
+
+
 def _suggested(location_id: str) -> str | None:
     """The queue's "suggested · <confidence>" tag: only when there IS a suggested extent."""
     row = suggestion(location_id)
@@ -206,6 +232,7 @@ def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None
             "verify": v["status"], "reasons": v["reasons"],
             "suggested": _suggested(loc["location_id"]),
             "pv": preverify.dfo(loc["location_id"]),
+            "fix_proposed": fix_proposal(loc["location_id"]) is not None,
             "lake_area": lake_area(loc, water),
             "new_splits": len(m.new_splits) if m is not None else 0,
             "historic_only": historic_only(loc, groups, live_waters if live_waters is not None
@@ -224,7 +251,7 @@ _ROWS_MEMO = reuse._Memo()
 
 def _rows_inputs() -> tuple:
     from pipeline.common.curated import CURATED
-    return (reuse._stamp((reuse.MARKS_PATH, SUGGESTIONS_PATH, preverify.FILES["dfo"],
+    return (reuse._stamp((reuse.MARKS_PATH, SUGGESTIONS_PATH, preverify.FILES["dfo"], _fixes_path(),
                           CURATED.regulations.review.proposal_overrides)),
             D.regions(DFO_DIR), D.typed(DFO_TYPED), reuse._registry(), reuse.applied_keys(),
             _locations, _states, _groups, _row)
@@ -421,7 +448,7 @@ def detail(location_id: str) -> dict | None:
         "rows": rows, "rules": labels, "need": D.need(loc),
         "splits": _splits_fc(loc, water),
         "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
-        "suggestion": suggestion(location_id),
+        "suggestion": suggestion(location_id), "fix_proposal": fix_proposal(location_id),
         "mark": ({**json.loads(m.model_dump_json()), **v} if m is not None else None),
     })
 
@@ -445,7 +472,10 @@ def _reach_input(loc: dict, water: dict | None, extents: list[dict] | None = Non
     if water:
         names = {f.name for f in fields(E.WaterBinding)}
         wb = E.WaterBinding(**{k: v for k, v in water.items() if k in names})
-    entry, rules = E.to_reach_input(el, [{}], wb)
+    # a "rest" is the rest of the water after the places it names: they ride along (`to_reach_input`)
+    named = {x for e in el.binding.extents if e.op == "rest" for x in (e.siblings or [])}
+    sibs = {lid: E.EntryLocation.from_dict(l) for lid, (_s, l, _w) in _locations().items() if lid in named}
+    entry, rules = E.to_reach_input(el, [{}], wb, siblings=sibs)
     return entry, rules[0]
 
 
@@ -623,6 +653,9 @@ def check_anchor(location_id: str, ns) -> dict:
                "on_item": items[0] if len(items) == 1 else _item_of(s["node"], items),
                "distance_m": s["distance_m"], "words": words, **(extra or {})}
         p = s["point"]
+        # THE REFERENCE (owner 2026-11-02): an offset cut is its anchor + `offset_m` along the water;
+        # the mark stamps the reference, never the offset point (the split adds the offset itself)
+        out["ref"] = {"blk": s["blk"], "measure": s["measure"], "coord": _lonlat(p)}
         if ns.offset_m:
             q = _point_at(s["blk"], s["measure"] + ns.offset_m)
             if q is None:
@@ -679,6 +712,13 @@ def check_anchor(location_id: str, ns) -> dict:
         if len({round(e[0]) for e in ends}) < 2:
             words += " (the water touches the lake once: inlet and outlet are the same point)"
         return done(p, words, {"item_id": lake})
+    if ns.anchor == "area_boundary":
+        # a park's own boundary (owner 2026-11-02): the atlas cuts where the water crosses it; the
+        # review app does not load the parks layer, so it is taken as written (the side rebuild places it)
+        end = {"upstream": "enters", "downstream": "leaves"}.get(ns.area_end or "", "crosses")
+        return {"ok": True, "why": None, "area": True, "on_item": items[0],
+                "coord": list(ns.coord) if ns.coord else None, "blk": ns.blk, "measure": ns.measure,
+                "words": f"where {wname} {end} {ns.area} (park boundary)"}
     if ns.anchor == "split":
         sid = ns.split_id
         pt = reuse._split_point(sid) if sid in reuse._splits_meta() else None
@@ -714,8 +754,12 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
         res = check_anchor(loc["location_id"], ns)
         if not res.get("ok"):
             raise ValueError(f"new split {ns.ref}: {res.get('why')}")
-        upd = {"blk": res["blk"], "measure": res["measure"], "on_item": res.get("on_item"),
-               "coord": tuple(res["coord"])}
+        if res.get("area"):                        # a park boundary: nothing to stamp
+            stamped.append(ns.model_dump(mode="json"))
+            continue
+        at = res.get("ref") or res                 # the reference, not the offset point
+        upd = {"blk": at["blk"], "measure": at["measure"], "on_item": res.get("on_item"),
+               "coord": tuple(at["coord"])}
         if res.get("item_id") and not ns.item_id:
             upd["item_id"] = res["item_id"]
         stamped.append(ns.model_copy(update=upd).model_dump(mode="json"))

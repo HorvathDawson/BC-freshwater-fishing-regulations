@@ -323,6 +323,8 @@ export function DfoReview({ mode }: Props) {
                   title="historic rewordings of this place — one extent decision labels the group">group of {r.group.size}</span>}
                 {r.suggested && r.verify === "unmarked" && <span className="chip-tag suggested"
                   title="a suggested extent is waiting on this location">suggested · {r.suggested}</span>}
+                {r.fix_proposed && <span className="chip-tag suggested" data-testid="dfo-fix-chip"
+                  title="Claude proposed a fix from your note — open the item">fix proposed</span>}
                 {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
                 <span>{r.n_rows} row{r.n_rows === 1 ? "" : "s"}</span>
               </div>
@@ -690,6 +692,32 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             )}
           </div>
 
+          {detail.fix_proposal && (
+            <div className="section dfo-fix-proposal" data-testid="dfo-fix-proposal">
+              <div className="ext-row">
+                <span className="k" style={{ color: "#b45309" }}>{detail.fix_proposal.owner ? "needs you" : "fix proposed"}</span>
+                <span data-testid="dfo-fix-why">{detail.fix_proposal.why}</span>
+                {detail.fix_proposal.suggestion && (
+                  <button type="button" className="btn small" data-testid="dfo-use-fix"
+                    title="pre-fill the editor with this fix — nothing is saved until you Save extent"
+                    onClick={() => {
+                      const got = suggestionFix({ suggestion: detail.fix_proposal!.suggestion } as DfoSuggestion,
+                        [...splits.map((n) => n.ref), ...detail.proposed.map((p) => p.id), ...savedNew.map((n) => n.ref)]);
+                      if (!got) return;
+                      setFix(got.fix);
+                      setFixPreview(null);
+                      if (got.newSplits.length) setSplits((cur) => [...cur.filter((n) => !got.newSplits.some((x) => x.ref === n.ref)), ...got.newSplits]);
+                      setAccepted("fix proposal pre-filled in the editor below — check it, then Save extent (nothing is saved yet)");
+                    }}>use this fix</button>
+                )}
+              </div>
+              {(detail.fix_proposal.split_edits ?? []).map((e) => (
+                <div key={e.split_id + e.field} className="ext-row dim" style={{ fontSize: 12 }}>
+                  proposed split edit <code>{e.split_id}</code> {e.field}: {String(e.before)} → <strong>{String(e.after)}</strong> (not applied)
+                </div>
+              ))}
+            </div>
+          )}
           {sugg?.suggestion && (
             <div className="section dfo-suggestion" data-testid="dfo-suggestion">
               <div className="ext-row">

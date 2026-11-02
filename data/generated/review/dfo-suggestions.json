@@ -811,12 +811,13 @@
       "name": "signs 75 m below the Puntledge lower hatchery weir",
       "on_item": "gnis:27060",
       "coord": [
-       -125.03216,
-       49.684467
+       -125.0323,
+       49.685119
       ],
       "blk": "354154204",
-      "measure": 3926.1,
-      "note": "[split hunt medium] boundary signs ~75 m downstream of the lower hatchery weir (placed 75 m downstream of the anchor, offset applied). Sources: https://www.openstreetmap.org/way/152588484. the weir (exact) moved 75 m downstream along the FWA line, the notice's own approximate distance."
+      "measure": 4001.1,
+      "note": "[split hunt medium] boundary signs ~75 m downstream of the lower hatchery weir (placed 75 m downstream of the anchor, now the split's offset attribute). Sources: https://www.openstreetmap.org/way/152588484. the weir (exact) moved 75 m downstream along the FWA line, the notice's own approximate distance.",
+      "offset_m": -75.0
      }
     ],
     "words": "between Puntledge lower hatchery weir and signs 75 m below the Puntledge lower hatchery weir"
@@ -1310,12 +1311,13 @@
       "name": "100 m above the Quatse River Hatchery weir",
       "on_item": "gnis:32101",
       "coord": [
-       -127.485633,
-       50.686927
+       -127.485493,
+       50.687818
       ],
       "blk": "354150419",
-      "measure": 1724.0,
-      "note": "[split hunt low] 100 m upstream of the Quatse hatchery weir (the weir taken at the hatchery frontage, just above the Byng Rd bridge) (placed 100 m upstream of the anchor, offset applied). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/quatse-eng.html ; https://www.openstreetmap.org/way/146582668. no weir is mapped; DFO's page names only an intake and a counter. The point is the hatchery (8400 Byng Rd) frontage. The curated `quatse_river__quatse_river_fishway` is ~2 km away, so it is NOT this weir."
+      "measure": 1624.0,
+      "note": "[split hunt low] 100 m upstream of the Quatse hatchery weir (the weir taken at the hatchery frontage, just above the Byng Rd bridge) (placed 100 m upstream of the anchor, now the split's offset attribute). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/quatse-eng.html ; https://www.openstreetmap.org/way/146582668. no weir is mapped; DFO's page names only an intake and a counter. The point is the hatchery (8400 Byng Rd) frontage. The curated `quatse_river__quatse_river_fishway` is ~2 km away, so it is NOT this weir.",
+      "offset_m": 100.0
      },
      {
       "ref": "quatse_weir_d100",
@@ -1323,12 +1325,13 @@
       "name": "100 m below the Quatse River Hatchery weir",
       "on_item": "gnis:32101",
       "coord": [
-       -127.485707,
-       50.688705
+       -127.485493,
+       50.687818
       ],
       "blk": "354150419",
-      "measure": 1524.0,
-      "note": "[split hunt low] 100 m downstream of the Quatse hatchery weir (same guessed weir point) (placed 100 m downstream of the anchor, offset applied). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/quatse-eng.html. see the upstream cut: the weir point is a guess at the hatchery frontage."
+      "measure": 1624.0,
+      "note": "[split hunt low] 100 m downstream of the Quatse hatchery weir (same guessed weir point) (placed 100 m downstream of the anchor, now the split's offset attribute). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/quatse-eng.html. see the upstream cut: the weir point is a guess at the hatchery frontage.",
+      "offset_m": -100.0
      }
     ],
     "words": "between 100 m above the Quatse River Hatchery weir and 100 m below the Quatse River Hatchery weir"
@@ -1530,12 +1533,13 @@
       "name": "signs 150 m below the San Juan hatchery fence",
       "on_item": "gnis:21201",
       "coord": [
-       -124.33845,
-       48.581947
+       -124.336967,
+       48.581029
       ],
       "blk": "354154702",
-      "measure": 6790.5,
-      "note": "[split hunt low] square white signs ~150 m downstream of the counting fence (placed 150 m downstream of the anchor, offset applied). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/sanjuan-eng.html. the guessed fence moved 150 m downstream (the notice's distance)."
+      "measure": 6940.5,
+      "note": "[split hunt low] square white signs ~150 m downstream of the counting fence (placed 150 m downstream of the anchor, now the split's offset attribute). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/sanjuan-eng.html. the guessed fence moved 150 m downstream (the notice's distance).",
+      "offset_m": -150.0
      }
     ],
     "words": "between San Juan hatchery counting fence and signs 150 m below the San Juan hatchery fence"
@@ -4619,12 +4623,13 @@
       "name": "100 m below the Chapman Creek falls (below the power line)",
       "on_item": "gnis:12936",
       "coord": [
-       -123.727274,
-       49.463195
+       -123.726713,
+       49.464002
       ],
       "blk": "360857589",
-      "measure": 3849.8,
-      "note": "[split hunt low] 100 m below the cascade ~600–700 m BELOW the power-line crossing (the owner's falls) (placed 100 m downstream of the anchor, offset applied). Sources: https://www.openstreetmap.org/way/258997740 ; https://www.openstreetmap.org/way/164628560 ; https://www.vancouvertrails.com/trails/chapman-falls/. owner 2026-10-27: no falls above the power line, but one below it at about the right distance — use it, LOW. The power lines cross at 49.4686,-123.7272; the DEM shows a cascade at 49.4626–49.4652 (62→72 m). Chapman Falls proper (49.4818,-123.7140) is ~2 km ABOVE the lines, too far."
+      "measure": 3949.8,
+      "note": "[split hunt low] 100 m below the cascade ~600–700 m BELOW the power-line crossing (the owner's falls) (placed 100 m downstream of the anchor, now the split's offset attribute). Sources: https://www.openstreetmap.org/way/258997740 ; https://www.openstreetmap.org/way/164628560 ; https://www.vancouvertrails.com/trails/chapman-falls/. owner 2026-10-27: no falls above the power line, but one below it at about the right distance — use it, LOW. The power lines cross at 49.4686,-123.7272; the DEM shows a cascade at 49.4626–49.4652 (62→72 m). Chapman Falls proper (49.4818,-123.7140) is ~2 km ABOVE the lines, too far.",
+      "offset_m": -100.0
      }
     ],
     "words": "between Chapman Creek Hwy 101 bridge (tidal signs below it) and 100 m below the Chapman Creek falls (below the power line)"

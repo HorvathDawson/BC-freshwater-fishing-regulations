@@ -54,7 +54,7 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
             row = {"location_id": loc.location_id, "region": slug, "mapped": False,
                    "outcome": "no_extent", "reason": None, "sections": []}
             if target.binding.resolved:
-                entry, rules = E.to_reach_input(target, [{}], water)
+                entry, rules = E.to_reach_input(target, [{}], water, siblings=by_id)
                 entry = {**entry, "entry_id": loc.location_id}
                 binding, _ = build_reach(entry, rules[0], registry, graph, outside=outside, regional=False)
                 row["outcome"] = binding.outcome.value

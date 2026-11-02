@@ -2,11 +2,94 @@
  "_about": "Owner calls on PROPOSED splits that the marks store (append-only, never edited) cannot carry. Each override names the cut as a marks.NewSplit would (matched by marks.same_anchor) and sets its confidence; read by marks.proposals and proposals.build (T185, owner 2026-10-27).",
  "overrides": [
   {
-   "match": {"ref": "sandy-pool", "anchor": "coord", "name": "white triangle boundary sign located in Sandy Pool Regional Park", "on_item": "gnis:12227", "coord": [-123.835989, 48.757157]},
+   "match": {
+    "ref": "sandy-pool",
+    "anchor": "coord",
+    "name": "white triangle boundary sign located in Sandy Pool Regional Park",
+    "on_item": "gnis:12227",
+    "coord": [
+     -123.835989,
+     48.757157
+    ]
+   },
    "confidence": "medium",
    "by": "owner",
    "date": "2026-10-27",
    "note": "decisions.md 2026-10-27 'after the scheduled run': Sandy Pool = medium"
+  },
+  {
+   "match": {
+    "anchor": "dam",
+    "blk": "354150419",
+    "confidence": "medium",
+    "coord": [
+     -127.485538,
+     50.689494
+    ],
+    "measure": 1434.7,
+    "name": "Quatse River Hatchery weir",
+    "on_item": "gnis:32101",
+    "quote": "100m upstream and downstream of the Quatse River Hatchery weir",
+    "ref": "n2-2"
+   },
+   "offsets": [
+    100.0,
+    -100.0
+   ],
+   "by": "claude, from the owner's mark note (proposal — revert by deleting this entry)",
+   "date": "2026-11-02",
+   "note": "Quatse mark 2026-11-02: 'change the proposed location to be off this point offset up and down. i added weir point' — the weir is the REFERENCE; the cuts are it +100 m and -100 m along the river"
+  },
+  {
+   "match": {
+    "anchor": "sign",
+    "blk": "354154793",
+    "coord": [
+     -124.982162,
+     49.339141
+    ],
+    "measure": 17990.8,
+    "name": "Robertson Creek Hatchery lagoon outlet",
+    "note": "[split hunt low] the marker at the outlet of the hatchery lagoon, taken near where Robertson Creek enters. Sources: https://www.openstreetmap.org/way/650430279. guess: the lagoon's outlet sits near the Robertson Creek mouth; not mapped.",
+    "on_item": "gnis:14533",
+    "ref": "stamp_lagoon_outlet"
+   },
+   "set": {
+    "blk": "354154793",
+    "measure": 17854.0,
+    "coord": [
+     -124.980378,
+     49.339481
+    ]
+   },
+   "by": "claude, from the owner's mark note (proposal — revert by deleting this entry)",
+   "date": "2026-11-02",
+   "note": "Stamp 'from the inlet…' mark 2026-11-02: 'the split proposed for the outlet of lagoon at wrong spot. should have been here (sign on Stamp River, snapped 1 m · blk 354154793 @ 17854 m)' — moved there (was 17990.8 m)"
+  },
+  {
+   "match": {
+    "anchor": "coord",
+    "blk": "354154742",
+    "confidence": "medium",
+    "coord": [
+     -124.555678,
+     49.317797
+    ],
+    "measure": 12572.2,
+    "name": "boundary of little qualicum falls preonvincial park (use actual park boundary to make the split please later.",
+    "on_item": "gnis:10886",
+    "quote": "from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence",
+    "ref": "n1-2"
+   },
+   "set": {
+    "anchor": "area_boundary",
+    "area": "LITTLE QUALICUM FALLS PARK",
+    "area_end": "downstream",
+    "name": "Little Qualicum Falls Park boundary (downstream end)"
+   },
+   "by": "claude, from the owner's mark note (proposal — revert by deleting this entry)",
+   "date": "2026-11-02",
+   "note": "Little Qualicum 'from the falls…' mark 2026-11-02: 'make the provincial park split properly using the admin area… do not add the manual split' — re-anchored on the parks_bc boundary where the river leaves the park (name to confirm on the side rebuild)"
   }
  ]
 }

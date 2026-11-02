@@ -1,0 +1,158 @@
+{
+ "_about": "FIX PROPOSALS ON DFO ITEMS (owner 2026-11-02): what Claude proposes for each item the owner marked unsure, from the mark's own note. NEVER APPLIED: the review app shows each on its item with a one-line why; 'use this fix' pre-fills the editor and the owner's save is the decision. Split edits are listed for the owner, not written. Delete an entry to drop it.",
+ "proposals": {
+  "1:stamp-river:except-in-those-areas-and-times-li": {
+   "why": "'rest' was refused because a DFO place had no siblings; it now lands as the Stamp minus its 5 other live places — save it as rest (your last save was 'whole'). It stays unresolved until the inlet and powerline places bind.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note",
+   "suggestion": {
+    "op": "rest",
+    "points": [],
+    "items": [
+     "gnis:14533"
+    ],
+    "tributaries": null,
+    "new_splits": [],
+    "words": "the rest of the Stamp River: the water minus the 5 other live Stamp places"
+   }
+  },
+  "1:quatse-river:100m-upstream-and-downstream-of-th": {
+   "why": "The weir you added is the REFERENCE; the cuts are it +100 m and -100 m along the river (split offset attribute). Proposed cuts n2-2-u100 / n2-2-d100; use this extent and save.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note",
+   "suggestion": {
+    "op": "between",
+    "points": [
+     {
+      "kind": "new",
+      "split_id": "weir_u100"
+     },
+     {
+      "kind": "new",
+      "split_id": "weir_d100"
+     }
+    ],
+    "items": [
+     "gnis:32101"
+    ],
+    "tributaries": null,
+    "new_splits": [
+     {
+      "anchor": "dam",
+      "blk": "354150419",
+      "confidence": "medium",
+      "coord": [
+       -127.485538,
+       50.689494
+      ],
+      "measure": 1434.7,
+      "name": "Quatse River Hatchery weir (100 m upstream)",
+      "on_item": "gnis:32101",
+      "quote": "100m upstream and downstream of the Quatse River Hatchery weir",
+      "ref": "weir_u100",
+      "offset_m": 100.0
+     },
+     {
+      "anchor": "dam",
+      "blk": "354150419",
+      "confidence": "medium",
+      "coord": [
+       -127.485538,
+       50.689494
+      ],
+      "measure": 1434.7,
+      "name": "Quatse River Hatchery weir (100 m downstream)",
+      "on_item": "gnis:32101",
+      "quote": "100m upstream and downstream of the Quatse River Hatchery weir",
+      "ref": "weir_d100",
+      "offset_m": -100.0
+     }
+    ],
+    "words": "between 100 m upstream and 100 m downstream of the Quatse River Hatchery weir"
+   }
+  },
+  "1:stamp-river:from-the-inlet-upstream-of-roberst": {
+   "why": "The lagoon-outlet proposal is moved to the sign you gave (blk 354154793 @ 17854 m, was 17990.8 m); your saved extent now uses it. Waits on the side rebuild of the two new cuts.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note"
+  },
+  "1:little-qualicum-river:from-the-falls-in-little-qualicum": {
+   "why": "The hand point n1-2 is re-anchored on the Little Qualicum Falls Park boundary (parks_bc, where the river leaves the park); no manual split. Confirm the park name on the side rebuild.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note"
+  },
+  "1:sproat-river:from-sproat-lake-to-approx-300m-be": {
+   "why": "Proposed: the split's offset 300 m -> 350 m downstream of Hwy 4 (your '+50 m or so'); every extent using it moves. Not applied: an existing cut, needs your OK and a side rebuild.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note",
+   "split_edits": [
+    {
+     "split_id": "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4",
+     "field": "anchor.offset_m",
+     "before": 300,
+     "after": 350
+    }
+   ]
+  },
+  "1:stamp-river:from-approx-200-m-upstream-of-the": {
+   "why": "Proposed label additions below. Deer Creek check: the '500 m below the fishway' cut sits 164 m below the Deer Creek mouth on the atlas line, not DFO's 225 m (61 m short) — your call.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note",
+   "split_edits": [
+    {
+     "split_id": "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls",
+     "field": "label",
+     "before": "fishing boundary signs 200 m upstream of Stamp Falls",
+     "after": "fishing boundary signs 200 m upstream of Stamp Falls (50 m downstream of site 17 in Stamp River Provincial Park)"
+    },
+    {
+     "split_id": "stamp_river__signs_500_m_downstream_of_stamp_falls",
+     "field": "label",
+     "before": "signs 500 m downstream of Stamp Falls",
+     "after": "signs 500 m downstream of Stamp Falls (225 m downstream of the confluence of Deer Creek)"
+    }
+   ]
+  },
+  "1:stamp-river:from-the-powerline-crossing-downst": {
+   "why": "No note on this mark: it waits on the powerline and lagoon-inlet cuts (side rebuild). Say what is wrong if it is more than that.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note",
+   "owner": true
+  },
+  "1:campbell-river:downstream-of-the-confluence-with": {
+   "why": "Marked unsure with no note: nothing to fix from. It waits on its new split (side rebuild); say what is wrong.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note",
+   "owner": true
+  },
+  "1:campbell-river:downstream-of-the-confluence-with~2": {
+   "why": "Marked unsure with no note: nothing to fix from. It waits on its new split (side rebuild); say what is wrong.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note",
+   "owner": true
+  },
+  "1:campbell-river:from-a-fishing-boundary-sign-at-th": {
+   "why": "Marked unsure with no note: nothing to fix from. It waits on its new split (side rebuild); say what is wrong.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note",
+   "owner": true
+  },
+  "1:cowichan-river:from-66-mile-trestle-downstream-to": {
+   "why": "Marked unsure with no note: nothing to fix from. It waits on its new split (side rebuild); say what is wrong.",
+   "status": "proposed",
+   "date": "2026-11-02",
+   "by": "claude, from the owner's mark note",
+   "owner": true
+  }
+ }
+}

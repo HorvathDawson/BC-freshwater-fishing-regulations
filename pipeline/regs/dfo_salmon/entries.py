@@ -823,7 +823,8 @@ def apply_seed(ef: EntryFile, locations: List[Location], structure: dict, *,
 
 
 def to_reach_input(loc: EntryLocation, rules: List[dict],
-                   water: Optional[WaterBinding] = None) -> tuple[dict, List[dict]]:
+                   water: Optional[WaterBinding] = None,
+                   siblings: Optional[Dict[str, "EntryLocation"]] = None) -> tuple[dict, List[dict]]:
     """Shape one curated location for `pipeline.atlas.reach.build.build_reach`.
 
     Returns `(entry, rules)` in the dict form that builder consumes, so the DFO side
@@ -863,6 +864,24 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
         "tributaries_only": loc.binding.tributaries_only,
         "tributary_excludes": list(excludes),
     } for i, _ in enumerate(rules)]
+    # A "rest" (owner 2026-11-02: "Except in those areas and times listed below") is the water minus
+    # the places it names — other LOCATIONS on the water. The builder resolves a rest against the
+    # entry's rules, so each named place rides along as a rule of this entry (its own extent).
+    named = [s for e in loc.binding.extents if e.op == "rest" for s in (e.siblings or [])]
+    if named:
+        sib_rules = []
+        for sid in named:
+            sib = (siblings or {}).get(sid)
+            if sib is None:
+                continue                       # the builder says the rest is unknown
+            sib_rules.append({
+                "rule_id": sid,
+                "extents": [e.model_dump(mode="json") for e in sib.binding.extents],
+                "includes_tributaries": sib.binding.tributaries,
+                "tributaries_only": sib.binding.tributaries_only,
+                "tributary_excludes": [e.model_dump(mode="json") for e in sib.binding.tributary_excludes],
+            })
+        entry["rules"] = out + sib_rules
     return entry, out
 
 
