@@ -2467,7 +2467,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "puntledge_river__morrison_creek_into_puntledge_river_u100m",
+              "puntledge_river__morrison_creek_into_puntledge_river_d100m"
+            ],
+            "item_id": "gnis:27060"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
