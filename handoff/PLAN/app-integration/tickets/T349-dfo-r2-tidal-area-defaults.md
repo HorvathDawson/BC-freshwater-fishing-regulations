@@ -49,3 +49,33 @@ Needs an atlas rebuild (human-scheduled).
    waters flowing to Areas 28/29 — closed except listed", "R2 Areas 13/15/16 — limit 0 → closed", "R2 other / US-draining —
    closed"), resolved through the normal cascade, not hard-coded fallbacks. One clean rule: narrowest place wins, and
    an unlisted water falls to its region/scope default entry, which is closed unless a quota says otherwise.
+
+## Done (2026-11-02) — status DONE (live build local; no staging upload: salmon/3 guard)
+- **Merge:** `dfo/t332-shared-quota` merged (0c276aa10; 4 conflicts resolved: wording.py keeps the T331 registry path
+  with dfo-wording/2, SalmonCard, ledger, owner to-do). Guard `SALMON_NEEDS = {3: "0.5.0"}` in
+  `deploy/staging/upload.sh` (a2415b239): a salmon/3 release is refused on staging below app 0.5.0.
+- **One model for a scope default** (`entries.PAGE_DEFAULTS` / `PAGE_DEFAULT_ON`): the page's sentence is the rule
+  (`cascade.statement_locators`, feed key `page:<slug>:<scope>`) of one scope entry. Where the page prints its own row
+  for the same scope it joins that row (4:region:section, 5b:region:section, 6:a:region); else a `page_default` entry,
+  precedence -1 (after every table row; narrowest first among them): 1, 2 (Areas 28/29, Areas 13/15/16), 3, 5a, 7, 8.
+  R2's remainder (to the US) has no sentence → no entry → `NOT_LISTED` closed. Removed: 4/5b/6 parallel defaults,
+  2:default:other, R6 dormant duplicates (areas-5/6/3-4-5-6, d:section~2 folded into the active rows' fingerprints;
+  b:section~2 into the dormant b:section, which keeps the archived wordings).
+- **Non-retention = closed** (`deliver.salmon.says_catch_and_release`): `release` only where the row says catch and
+  release. Tests: `pipeline/tests/test_t349_page_defaults.py`.
+- **Shared quotas:** R5B's "in the aggregate" row and R2 Squamish hatchery coho are the tree's aggregate tier (`total`,
+  `whose` = MUs 5-6 to 5-11 / the Squamish River watershed) — `quota.mark_shared` / `shared_buckets`; core draws
+  `bucket.shared`. R5B settled to the MU list.
+- **R5A / R7:** stay CLOSED. History: the 2025-08-21 pages opened Horsefly Bay sockeye (FN0846) and Nechako sockeye
+  (FN0851) under "except for the opportunities listed"; the 2026-04-01 pages restored "until further notice" and kept
+  the 2025 rows. The closure is the later statement. (R7 did the same in 2022→2023, FN0955.)
+- **Atlas:** registry mints `area:drains_to:pfma_{13,15,16,28,29}`. Side build `data/generated/side/t349`: parity +5
+  items, 0 changed, 0 boundaries; handles unchanged (822db448); binding diff: no rule binding changed. Salmon vs
+  r-4e709418ebd8: release→closed 13.4M section-species-days (all non-retention), closed→open 47k and closed→check 773k
+  all on the 19 owner-reviewed DFO places applied since the 10-31 reach run. Other release files: water* differ only in
+  answers.schemas/about + meta (T332's TreeTier `period`). Promoted; live build run.
+- **Extent queue:** scope entries are not water places (curation-review `dfo._compute_rows`); they show in the Cascade
+  tab under DFO's words. Queue rows before → after (all): 1 84→83, 2 69→66, 3 10→9, 4 2→0, 5a 5→4, 5b 14→12, 6 164→147,
+  7 3→2, 8 8→7.
+- **Worker:** per owner principle (cascade resolved in Python) the worker was left as is; its byte-parity suites are
+  skipped until T350 (inventory in T350).

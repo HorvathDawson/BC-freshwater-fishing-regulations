@@ -390,7 +390,7 @@ use that as the sole source of future work."
 | T346 | Go through every crash + problem report the feeds worker collected (not just ours): group by cause, ticket each | DONE | — | owner 2026-10-31 |
 | T347 | River forecast weekday-only: stays on Conditions over weekends/holidays (staleness by publishing schedule), More-tab note | OPEN | — | owner 2026-11-02 |
 | T348 | BUG: map colours do not refresh when a new feed arrives (forecast came in, map stayed blank); one feeds-changed signal for all feeds | OPEN | T347 | owner 2026-11-02 |
-| T349 | DFO R2 tidal-area defaults (Areas 28/29 closed, 13/15/16 limit 0) + "limit 0" unlisted wording on R1/R2/R5B — PROPOSAL, owner decisions on US-draining waters | OPEN | — | owner 2026-11-02 |
+| T349 | DFO scope defaults as entries (R2 Areas 28/29, 13/15/16; every region), non-retention = closed, shared quotas (R5B MUs, Squamish) as aggregate tiers; T332 merged | DONE | T332 | owner 2026-11-02; atlas promoted (+5 drains_to areas), live build local; staging held by SALMON_NEEDS (app 0.5.0); worker parity → T350 |
 | T350 | Quick audit: DFO salmon pipeline unified with freshwater datatypes, no fallbacks / dup paths / tech debt (after T349) | OPEN | T349 | owner 2026-11-02 |
 | T351 | Native crash in the foreground, Android 37 / 0.4.0 (2 reports, no stack) | OPEN | T346 | 2026-11-02 |
 | T352 | Crash + problem reports lack context (water id, screen, module id, install id, stack normalising, background kills) | OPEN | T346 | 2026-11-02 |
