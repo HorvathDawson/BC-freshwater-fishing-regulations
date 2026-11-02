@@ -377,17 +377,15 @@ def split_record(n, src: Sources, *, sid: str, provenance: str,
 
 # --------------------------------------------------------------------------- extents
 
-def extent_of(fix, split_of, siblings: Optional[list[str]] = None) -> tuple[Optional[dict], list[str]]:
+def extent_of(fix, split_of, rest_at_build: bool = False) -> tuple[Optional[dict], list[str]]:
     """A `marks.ExtentFix` as the catalogue's extent (the preview's own shape, T191): op, the
     splits its points name (`split_of(i, point)` -> split id or None), item(s), area. Returns
-    (extent, problems). `siblings`: what an op rest is the rest of — a DFO location's are the other
-    live places on its water (`dfo_siblings`); a catalogue rule's are a hand edit (None)."""
+    (extent, problems). `rest_at_build`: a DFO place's op rest names no siblings — the build takes
+    every other placed extent on its water (`entries.to_reach_input`); a catalogue rule's are a hand edit."""
     problems: list[str] = []
     ex: dict = {"op": fix.op}
     if fix.op == "rest":
-        if siblings:
-            ex["siblings"] = list(siblings)
-        else:
+        if not rest_at_build:
             problems.append("op rest names its siblings (the entry's other rules): a hand edit")
     sids = []
     for i, p in enumerate(fix.points):
@@ -435,21 +433,6 @@ def _variant_proposal(m, pid: str, who: dict, src: "Sources") -> dict:
             "rule_id": None, "title": f"{m.target}: a wording of {m.variant_of} (variant)",
             "marks": [who], "edits": edits, "depends_on": [], "problems": problems,
             "notes": [], "split_id": None, "confidence": None}
-
-
-def dfo_siblings(src: "Sources", location_id: str) -> list[str]:
-    """THE PLACES A DFO "rest" IS THE REST OF (owner 2026-11-02, Stamp River "Except in those areas
-    and times listed below"): every other LIVE location on the same water, its own rewordings
-    (`duplicate_of`) left out — the notice lists them under the water, so the rest is mechanical."""
-    found = _find_location(src, location_id)
-    if found is None:
-        return []
-    path, me = found
-    doc = json.loads(src.text(path))
-    return [x["location_id"] for x in doc.get("locations") or []
-            if x.get("water_id") and x.get("water_id") == me.get("water_id")
-            and x["location_id"] != location_id and (x.get("status") or "active") == "active"
-            and not (x.get("duplicate_of") and x.get("duplicate_confirmed") is not False)]
 
 
 def _validate_catalogue(doc: dict) -> list[str]:
@@ -922,8 +905,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
         sets: dict[str, dict] = {}
         tri_field = "tributaries" if m.scope == "dfo" else "includes_tributaries"
         for fi, f in enumerate(m.extent_fix):
-            ex, probs = extent_of(f, lambda i, p, _fi=fi: split_of(_fi, i, p),
-                                  dfo_siblings(src, m.target) if m.scope == "dfo" and f.op == "rest" else None)
+            ex, probs = extent_of(f, lambda i, p, _fi=fi: split_of(_fi, i, p), rest_at_build=m.scope == "dfo")
             problems += [f"{f.scope}: {x}" for x in probs]
             sets.setdefault(f.scope, {})["extents"] = [ex]
             if f.tributaries is not None:

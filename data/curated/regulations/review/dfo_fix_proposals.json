@@ -2,7 +2,7 @@
  "_about": "FIX PROPOSALS ON DFO ITEMS (owner 2026-11-02): what Claude proposes for each item the owner marked unsure, from the mark's own note. NEVER APPLIED: the review app shows each on its item with a one-line why; 'use this fix' pre-fills the editor and the owner's save is the decision. Split edits are listed for the owner, not written. Delete an entry to drop it.",
  "proposals": {
   "1:stamp-river:except-in-those-areas-and-times-li": {
-   "why": "'rest' was refused because a DFO place had no siblings; it now lands as the Stamp minus its 5 other live places — save it as rest (your last save was 'whole'). It stays unresolved until the inlet and powerline places bind.",
+   "why": "'rest' was refused (a DFO place had no siblings); it now lands and is resolved at build time as the Stamp minus every other PLACED extent on it — save it as rest (your last save was 'whole'). Places placed later drop out automatically.",
    "status": "proposed",
    "date": "2026-11-02",
    "by": "claude, from the owner's mark note",
@@ -14,7 +14,7 @@
     ],
     "tributaries": null,
     "new_splits": [],
-    "words": "the rest of the Stamp River: the water minus the 5 other live Stamp places"
+    "words": "the rest of the Stamp River: the water minus every other placed extent on it"
    }
   },
   "1:quatse-river:100m-upstream-and-downstream-of-th": {

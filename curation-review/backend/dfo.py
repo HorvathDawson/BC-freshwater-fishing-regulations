@@ -498,9 +498,10 @@ def _reach_input(loc: dict, water: dict | None, extents: list[dict] | None = Non
     if water:
         names = {f.name for f in fields(E.WaterBinding)}
         wb = E.WaterBinding(**{k: v for k, v in water.items() if k in names})
-    # a "rest" is the rest of the water after the places it names: they ride along (`to_reach_input`)
-    named = {x for e in el.binding.extents if e.op == "rest" for x in (e.siblings or [])}
-    sibs = {lid: E.EntryLocation.from_dict(l) for lid, (_s, l, _w) in _locations().items() if lid in named}
+    # a "rest" is the water minus every other PLACED extent on it, resolved now (`to_reach_input`)
+    sibs = ({lid: E.EntryLocation.from_dict(l) for lid, (_s, l, _w) in _locations().items()
+             if l.get("water_id") and l.get("water_id") == el.water_id}
+            if any(e.op == "rest" for e in el.binding.extents) else {})
     entry, rules = E.to_reach_input(el, [{}], wb, siblings=sibs)
     return entry, rules[0]
 
@@ -549,10 +550,11 @@ def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool =
         return {"resolvable": False, "n_sections": None, "why": "a NEW split is not a split yet: "
                 "its point is checked on the map (check anchor); the extent resolves once T185 "
                 "builds it"}
-    if fix.op in ("rest", "steelhead_waters", "within"):
+    if fix.op in ("steelhead_waters", "within"):
         return {"resolvable": False, "n_sections": None,
                 "why": f"op {fix.op} is not previewed on a DFO location"}
-    ex: dict = {"op": fix.op, "splits": [p.split_id for p in fix.points]}
+    # a rest previews the remainder after every other PLACED extent on the water, as the build does
+    ex: dict = {"op": fix.op} if fix.op == "rest" else {"op": fix.op, "splits": [p.split_id for p in fix.points]}
     if len(fix.items) == 1:
         ex["item_id"] = fix.items[0]
     elif fix.items:

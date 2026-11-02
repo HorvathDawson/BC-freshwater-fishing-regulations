@@ -48,16 +48,60 @@ def test_a_set_override_moves_or_reanchors_the_proposed_cut():
     assert rec["anchor"]["coord"] == [-127.0, 50.0] and rec["anchor"]["offset_dir"] == "downstream"
 
 
-def test_a_dfo_rest_names_its_siblings_and_rides_them_into_the_builder():
+def _dfo(lid, ext, water="1:a"):
+    from pipeline.regs.dfo_salmon import entries as E
+    return E.EntryLocation.from_dict({"location_id": lid, "region": "1", "region_number": 1, "kind": "water",
+                                      "precedence": 3, "water": "A", "water_id": water,
+                                      "binding": {"extents": ext}})
+
+
+def test_a_dfo_rest_is_saved_unfrozen_and_resolved_against_every_placed_place_at_build():
+    """Owner 2026-11-02: "the rest-of op should be after all extents are placed; it will be the remaining
+    parts without any other extent applying"."""
+    from pipeline.regs.dfo_salmon import entries as E
     fix = M.ExtentFix(scope="entry", op="rest", items=["gnis:1"])
     assert P.extent_of(fix, lambda *_: None)[1]                          # catalogue: a hand edit
-    ex, probs = P.extent_of(fix, lambda *_: None, ["1:a:b", "1:a:c"])
-    assert not probs and ex["siblings"] == ["1:a:b", "1:a:c"]
-    from pipeline.regs.dfo_salmon import entries as E
-    loc = lambda lid, ext: E.EntryLocation.from_dict({                   # noqa: E731
-        "location_id": lid, "region": "1", "region_number": 1, "kind": "water", "precedence": 3,
-        "water": "A", "water_id": "1:a", "binding": {"extents": ext}})
-    me = loc("1:a:rest", [{"op": "rest", "item_id": "gnis:1", "siblings": ["1:a:b"]}])
-    sib = loc("1:a:b", [{"op": "whole", "item_id": "gnis:1"}])
-    entry, rules = E.to_reach_input(me, [{}], None, siblings={"1:a:b": sib})
+    ex, probs = P.extent_of(fix, lambda *_: None, rest_at_build=True)
+    assert not probs and "siblings" not in ex                            # nothing frozen
+    me = _dfo("1:a:rest", [ex])
+    placed = {x.location_id: x for x in (
+        me, _dfo("1:a:b", [{"op": "whole", "item_id": "gnis:1"}]),
+        _dfo("1:a:unplaced", []),                                          # not subtracted
+        _dfo("1:z:other", [{"op": "whole", "item_id": "gnis:9"}], water="1:z"))}
+    entry, rules = E.to_reach_input(me, [{}], None, siblings=placed)
+    assert rules[0]["extents"][0]["siblings"] == ["1:a:b"]
     assert [r["rule_id"] for r in entry["rules"]] == ["1:a:rest#0", "1:a:b"]
+    later = {**placed, "1:a:c": _dfo("1:a:c", [{"op": "whole", "item_id": "gnis:1"}])}
+    _e, rules = E.to_reach_input(me, [{}], None, siblings=later)        # placed later: out, no re-mark
+    assert rules[0]["extents"][0]["siblings"] == ["1:a:b", "1:a:c"]
+
+
+def test_the_rest_is_the_water_minus_the_union_of_the_other_placed_extents():
+    """The builder's own complement over a toy water: 3 sections, a placed sibling on 1, a second on
+    another; the unplaced one takes nothing."""
+    from pipeline.atlas.reach import build as B
+    from pipeline.regs.dfo_salmon import entries as E
+
+    class _B:
+        def __init__(self, secs):
+            self.outcome, self.sections, self.via_tributary = B.Outcome.bound, tuple(secs), ()
+            self.tributaries_pending, self.reason, self.detail = False, None, ""
+    picks = {"1:a:b": ["s1"], "1:a:c": ["s2"]}
+
+    def fake(entry, rule, *_a, **_k):
+        if rule["rule_id"] in picks:
+            return _B(picks[rule["rule_id"]]), []
+        return _B(["s1", "s2", "s3"]), []                                 # the whole water
+    me = _dfo("1:a:rest", [{"op": "rest"}])
+    sibs = {"1:a:b": _dfo("1:a:b", [{"op": "whole"}]), "1:a:c": _dfo("1:a:c", [{"op": "whole"}]),
+            "1:a:u": _dfo("1:a:u", [])}
+    import unittest.mock as um
+    with um.patch.object(B, "build_reach", side_effect=fake):
+        entry, rules = E.to_reach_input(me, [{}], None, siblings=sibs)
+        got, _d = B._build_rest(entry, rules[0], B._rest_of(rules[0]), None, None, covered=None, clip=None,
+                                outside=None, shared=None, regional=False)
+        assert set(got.sections) == {"s3"}
+        entry, rules = E.to_reach_input(me, [{}], None, siblings={k: v for k, v in sibs.items() if k != "1:a:c"})
+        got, _d = B._build_rest(entry, rules[0], B._rest_of(rules[0]), None, None, covered=None, clip=None,
+                                outside=None, shared=None, regional=False)
+        assert set(got.sections) == {"s2", "s3"}                         # fewer placed: a bigger rest

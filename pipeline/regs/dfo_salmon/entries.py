@@ -117,7 +117,8 @@ class Binding:
     def from_dict(cls, d: Optional[dict]) -> "Binding":
         d = dict(d or {})
         return cls(
-            extents=[Extent(**x) for x in d.get("extents") or []],
+            # a DFO `rest` may hold no siblings: the build takes every other placed extent on the water
+            extents=[Extent.model_validate(x, context={"rest_at_build": True}) for x in d.get("extents") or []],
             tributaries=d.get("tributaries"),
             tributaries_only=bool(d.get("tributaries_only")),
             tributary_excludes=[Extent(**x) for x in d.get("tributary_excludes") or []],
@@ -867,13 +868,23 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
     # A "rest" (owner 2026-11-02: "Except in those areas and times listed below") is the water minus
     # the places it names — other LOCATIONS on the water. The builder resolves a rest against the
     # entry's rules, so each named place rides along as a rule of this entry (its own extent).
-    named = [s for e in loc.binding.extents if e.op == "rest" for s in (e.siblings or [])]
-    if named:
+    # owner 2026-11-02: "the rest-of op should be after all extents are placed; it will be the remaining
+    # parts without any other extent applying" — so a DFO rest is resolved HERE, at build time: its
+    # siblings are EVERY other location on the same water with a placed extent (not a rest itself, not
+    # an unplaced one). A place placed later drops out of the rest without re-marking. An explicit list
+    # on the extent (older marks) is ignored for DFO: the current placements decide.
+    rests = [e for e in loc.binding.extents if e.op == "rest"]
+    if rests:
+        placed = [x for lid, x in (siblings or {}).items()
+                  if lid != loc.location_id and x.water_id and x.water_id == loc.water_id
+                  and x.binding.extents and not any(e.op == "rest" for e in x.binding.extents)
+                  and not (x.is_variant and x.duplicate_of == loc.location_id)]
+        ids = [x.location_id for x in placed]
+        for r in out:
+            r["extents"] = [({**e, "siblings": ids} if e.get("op") == "rest" else e) for e in r["extents"]]
         sib_rules = []
-        for sid in named:
-            sib = (siblings or {}).get(sid)
-            if sib is None:
-                continue                       # the builder says the rest is unknown
+        for sib in placed:
+            sid = sib.location_id
             sib_rules.append({
                 "rule_id": sid,
                 "extents": [e.model_dump(mode="json") for e in sib.binding.extents],

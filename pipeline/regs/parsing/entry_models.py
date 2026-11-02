@@ -9,7 +9,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, model_validator
 
 
 # ---------------------------------------------------------------------------
@@ -220,7 +220,7 @@ class Extent(BaseModel):
     )
 
     @model_validator(mode="after")
-    def _check_arity(self) -> "Extent":
+    def _check_arity(self, info: ValidationInfo) -> "Extent":
         n = len(self.splits)
         if self.item_id and self.item_ids:
             raise ValueError("set item_id or item_ids, not both")
@@ -252,7 +252,9 @@ class Extent(BaseModel):
             # THE COMPLEMENT OF NAMED SIBLINGS, over the rule's water (or the items it scopes).
             # Everything that would add or cut water is refused: a complement of a cut or an area
             # is a different shape, and the one the book prints is "the rest of this water".
-            if not self.siblings:
+            # a DFO place's rest (owner 2026-11-02) is resolved at BUILD time against every other
+            # placed extent on its water, so it holds no frozen list (`entries.Binding`, context dfo)
+            if not self.siblings and not (info.context or {}).get("rest_at_build"):
                 raise ValueError("op rest needs `siblings` — the rule ids whose sections it is "
                                  "the rest of")
             if len(set(self.siblings)) != len(self.siblings):
