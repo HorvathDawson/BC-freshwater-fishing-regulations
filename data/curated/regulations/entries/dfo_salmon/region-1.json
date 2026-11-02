@@ -4891,7 +4891,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace",
+              "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence"
+            ],
+            "item_id": "gnis:27060"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
