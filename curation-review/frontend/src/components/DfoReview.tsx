@@ -1,3 +1,4 @@
+import { CloseX } from "./NoticeStack";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { applyPv, PV_DEFAULT, PvBadge, PvControls, type PvFilter } from "./Preverify";
 import { api, type EntryRefused } from "../api";
@@ -296,10 +297,10 @@ export function DfoReview({ mode }: Props) {
         )}
         <div className="filterbar-line"><div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)" }} /></div>
       </div>
-      {notice && <div className="notice" data-testid="dfo-notice" style={{ margin: 8 }}>{notice}{" "}
-        <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setNotice("")}>dismiss</button></div>}
-      {error && <div className="errors" style={{ margin: 8 }}>{error}{" "}
-        <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setError("")}>dismiss</button></div>}
+      {notice && <div className="notice inline-notice" data-testid="dfo-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>
+        <span style={{ flex: 1 }}>{notice}</span><CloseX onClick={() => setNotice("")} /></div>}
+      {error && <div className="errors inline-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>
+        <span style={{ flex: 1 }}>{error}</span><CloseX onClick={() => setError("")} /></div>}
       <div className="main">
         <div className="queue" data-testid="dfo-queue">
           <div className="queue-group">{loaded ? <>{rows.length} location{rows.length === 1 ? "" : "s"} — the DFO page's reaches, one each</> : "loading…"}</div>
@@ -596,7 +597,8 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
               {errors.map((e, i) => <div key={i} style={i === 0 && e.startsWith("NOT SAVED") ? { fontWeight: 700 } : undefined}>{e}</div>)}
             </div>
           )}
-          {okMsg && <div className="notice dfo-saved" role="status" data-testid="dfo-saved">{okMsg}</div>}
+          {okMsg && <div className="notice dfo-saved inline-notice" role="status" data-testid="dfo-saved">
+            <span style={{ flex: 1 }}>{okMsg}</span><CloseX onClick={() => setOkMsg("")} /></div>}
 
           <div className="source-pin" data-testid="dfo-source">
             <div className="evidence-head">
@@ -711,6 +713,8 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                     }}>use this fix</button>
                 )}
               </div>
+              {accepted && !sugg?.suggestion && <div className="ext-row notice inline-notice" role="status">
+                <span style={{ flex: 1 }}>{accepted}</span><CloseX onClick={() => setAccepted("")} /></div>}
               {(detail.fix_proposal.split_edits ?? []).map((e) => (
                 <div key={e.split_id + e.field} className="ext-row dim" style={{ fontSize: 12 }}>
                   proposed split edit <code>{e.split_id}</code> {e.field}: {String(e.before)} → <strong>{String(e.after)}</strong> (not applied)
@@ -745,7 +749,8 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                   {sugg.suggestion.new_splits.map((n) => `${anchorWords(n)} (${n.confidence ?? defaultConfidence(n.anchor)} confidence)`).join(" · ")} — violet on the map</div>
               )}
               {sugg.hunt?.status === "found" && <HuntProposals hunt={sugg.hunt} />}
-              {accepted && <div className="ext-row notice" role="status" data-testid="dfo-suggestion-accepted">{accepted}</div>}
+              {accepted && <div className="ext-row notice inline-notice" role="status" data-testid="dfo-suggestion-accepted">
+                <span style={{ flex: 1 }}>{accepted}</span><CloseX onClick={() => setAccepted("")} /></div>}
             </div>
           )}
           {!sugg?.suggestion && detail.suggestion?.hunt?.status === "not_found" && (

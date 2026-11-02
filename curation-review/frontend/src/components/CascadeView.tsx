@@ -209,7 +209,7 @@ export function CascadeView() {
 
   const chain = data && chainSel !== null ? data.chains[chainSel] : null;
   return (
-    <div className="app" data-testid="cascade-mode" style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <div className="app" data-testid="cascade-mode" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <div className="filterbar-wrap">
         <TopNav active="dfo" sub="cascade" right={<>
           {data && <span className="muted">{data.n_sections.toLocaleString()} sections · {data.chains.length} distinct chains</span>}

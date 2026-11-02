@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import { current, drop, subscribe, type Refusal } from "../refusals";
+import { Notice } from "./NoticeStack";
 
 /* OWNER 2026-10-28: A REFUSED SAVE IS IMPOSSIBLE TO MISS. Every save the server refused (or never
    got) stays on this red banner — the item, the reason, "retry" — until a save of that item
@@ -16,15 +17,13 @@ export function RefusedSavesBanner() {
     try { await api.postMark(r.mark); } catch { /* stays listed, with the new reason */ }
     setBusy(null);
   };
+  // CRITICAL: a save NOT made — × only shrinks it to a red pill (owner 2026-11-02 notice stack)
   return (
-    <div data-testid="refused-saves" role="alert"
-      style={{ position: "fixed", top: 8, left: "50%", transform: "translateX(-50%)", zIndex: 1001,
-               maxWidth: 720, width: "calc(100% - 32px)", maxHeight: "45vh", overflow: "auto",
-               padding: "8px 12px", borderRadius: 6, fontSize: 13, background: "#b3261e", color: "#fff",
-               boxShadow: "0 2px 10px #0008" }}>
-      <strong>NOT SAVED — {list.length} save{list.length === 1 ? "" : "s"} refused.</strong>{" "}
-      These marks are not in the store until a retry succeeds.
-      <ul style={{ margin: "6px 0 0", paddingLeft: 16 }}>
+    <Notice id="refused-saves" contentKey={list.map((r) => r.key + r.at).join(",")} tone="error" critical
+      testid="refused-saves" pill={`${list.length} NOT saved`}
+      summary={<><strong>NOT SAVED — {list.length} save{list.length === 1 ? "" : "s"} refused.</strong>{" "}
+        Not in the store until a retry succeeds.</>}>
+      <ul>
         {list.map((r) => (
           <li key={r.key} data-testid="refused-save" style={{ marginBottom: 4 }}>
             <code>{r.scope}</code> <code>{r.target}</code>{r.mark.rule_id ? ` / ${r.mark.rule_id}` : ""}
@@ -39,6 +38,6 @@ export function RefusedSavesBanner() {
           </li>
         ))}
       </ul>
-    </div>
+    </Notice>
   );
 }

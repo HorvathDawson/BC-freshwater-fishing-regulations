@@ -38,8 +38,28 @@ body {
 .app {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
 }
+
+/* owner 2026-11-02: the app and ONE notice dock below it, in flow — no notice covers the map or editor */
+.shell { display: flex; flex-direction: column; height: 100%; }
+.shell-main { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.notice-dock { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; padding: 4px 8px;
+  max-height: 28vh; overflow: auto; border-top: 1px solid var(--border); background: var(--panel); font-size: 12px; }
+.notice-dock.empty { display: none; }
+.notice-card { border-radius: 6px; padding: 3px 8px; max-width: 640px; color: #fff; }
+.notice-card .notice-line { display: flex; align-items: center; gap: 6px; }
+.notice-card .notice-summary { flex: 1 1 auto; }
+.notice-card .notice-body { margin-top: 2px; max-height: 18vh; overflow: auto; }
+.notice-card .notice-body ul { margin: 2px 0 0; padding-left: 16px; }
+.tone-error { background: #b3261e; color: #fff; }
+.tone-warn { background: #7a4a00; color: #fff; }
+.tone-info { background: #1f4f7a; color: #fff; }
+.notice-x { background: transparent; border: 0; color: inherit; font-size: 15px; line-height: 1; cursor: pointer;
+  padding: 0 4px; opacity: 0.85; }
+.notice-x:hover { opacity: 1; }
+.notice-pill { border: 0; border-radius: 10px; padding: 1px 8px; font-size: 11px; cursor: pointer; }
+.inline-notice { display: flex; align-items: center; gap: 6px; }
 
 /* ---- filter bar ---- */
 /* T191: one row (~32px) + a 2px progress line; the rest folds under "filters" */
@@ -1002,7 +1022,7 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .sev-chip.sev-later { color:var(--muted); font-weight:400; font-style:italic; opacity:.7; }
 
 /* T185: the Proposals view (read only; a decision is a mark) */
-.proposals { padding: 8px 12px; overflow: auto; height: 100vh; box-sizing: border-box; }
+.proposals { padding: 8px 12px; overflow: auto; height: 100%; box-sizing: border-box; }
 .prop-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
 .prop-card { border: 1px solid var(--border, #ddd); border-radius: 6px; padding: 8px 10px; margin: 8px 0; }
 .prop-head { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
