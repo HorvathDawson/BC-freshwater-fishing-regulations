@@ -391,7 +391,7 @@ use that as the sole source of future work."
 | T347 | River forecast weekday-only: stays on Conditions over weekends/holidays (staleness by publishing schedule), More-tab note | OPEN | — | owner 2026-11-02 |
 | T348 | BUG: map colours do not refresh when a new feed arrives (forecast came in, map stayed blank); one feeds-changed signal for all feeds | OPEN | T347 | owner 2026-11-02 |
 | T349 | DFO R2 tidal-area defaults (Areas 28/29 closed, 13/15/16 limit 0) + "limit 0" unlisted wording on R1/R2/R5B — PROPOSAL, owner decisions on US-draining waters | OPEN | — | owner 2026-11-02 |
-| T350 | Quick audit: DFO salmon pipeline unified with freshwater datatypes, no fallbacks / dup paths / tech debt (after T349) | OPEN | T349 | owner 2026-11-02 |
+| T350 | Quick audit: DFO salmon pipeline unified with freshwater datatypes, no fallbacks / dup paths / tech debt (after T349) | OPEN | T349 | owner 2026-11-02; lean pass done (T356–T358), in-depth pass next cycle |
 | T351 | Native crash in the foreground, Android 37 / 0.4.0 (2 reports, no stack) | OPEN | T346 | 2026-11-02 |
 | T352 | Crash + problem reports lack context (water id, screen, module id, install id, stack normalising, background kills) | OPEN | T346 | 2026-11-02 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
@@ -399,6 +399,9 @@ use that as the sole source of future work."
 | T353 | Map fling still too weak on 0.4.0 mobile: measure, tune deceleration/velocity (see T312) | OPEN | T312 | owner 2026-11-02 |
 | T354 | Synopsis PDF takes very long to open on mobile: local copy, open at the cited page, lazy render | OPEN | — | owner 2026-11-02 |
 | T355 | Review split editor makes every split type (point, confluence, lake/outlet, area_boundary, border, offset on any) + proposal ids always become real split ids | DONE | Claude | owner 2026-11-02; build-resolver preview, edit in place via `amends`, real-id guard |
+| T356 | Salmon card: move what core salmon.ts still resolves (region closure by id string, water-bucket tier, header sizes, partial coverage) into the Python file; `shared` bucket lost without a region daily note | OPEN | T350 | T350 lean pass 2026-11-02 |
+| T357 | DFO silent fallbacks: release ships no header notes (so no header closure) when the dated page is not cached; corrupt prior feed read as none; dfo-feed/1 upgrade leftover | OPEN | T337 | T350 lean pass 2026-11-02 |
+| T358 | DFO rule fields outside the catalogue model: `shared` prose scope, header sizes as `cm` not `lengths`, worker-only `open_ended` / `check` | OPEN | T350 | T350 lean pass 2026-11-02 |
 
 ## Order for open tickets
 
