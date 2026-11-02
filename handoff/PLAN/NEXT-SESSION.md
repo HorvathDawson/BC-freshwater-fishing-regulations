@@ -52,6 +52,7 @@ question for the owner.
 - T343: clean up the regional salmon rules (after T332): drop duplicates, fold notes into the bucket and size tiers, spawning-salmon image.
 - T346: go through every crash and problem report collected (do with T345).
 - T345 (bug, HIGH: a crash): Coquitlam River "Lougheed bridge to watershed boundary" highlight runs past the bridge.
+- T347: river forecast stays on Conditions over the weekend (published weekdays only) + More-tab note.
 - T344: species ID swipes between the fish a group covers (whitefish → lake + mountain).
 - T342: pane text copyable with the phone's own long-press; remove the salmon-only Copy button (owner ask).
 - T338: DFO part-closure reads as the whole river closed (Fort Babine).

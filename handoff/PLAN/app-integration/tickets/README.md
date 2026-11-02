@@ -388,6 +388,7 @@ use that as the sole source of future work."
 | T344 | Species ID: a grouped species line (e.g. whitefish → lake + mountain) opens a swipeable set, one page per fish | OPEN | — | owner 2026-10-31 |
 | T345 | BUG (HIGH, crash): Coquitlam River pane — flows-into-Fraser → map tap crashed; fake "2 stretches"; — "Lougheed bridge to watershed boundary" highlight runs past the bridge (downstream section ends correctly) | OPEN | — | owner 2026-10-31 |
 | T346 | Go through every crash + problem report the feeds worker collected (not just ours): group by cause, ticket each | OPEN | — | owner 2026-10-31 |
+| T347 | River forecast weekday-only: stays on Conditions over weekends/holidays (staleness by publishing schedule), More-tab note | OPEN | — | owner 2026-11-02 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |
 
