@@ -388,6 +388,10 @@ class Mark(BaseModel):
     #: owner 2026-10-28: THE GROUP a DFO mark was recorded with — historic places that reword a
     #: current one (`review.dfo.groups`) take one extent decision, one mark per member, linked here
     group: Optional[str] = None
+    #: owner 2026-11-02: THIS WORDING IS A VARIANT of another DFO location (a rewording the grouping
+    #: missed): T185 writes the target's `duplicate_of` (confirmed), so the wording rides that place's
+    #: extent. A DFO mark only; its one check is T (the words name that place).
+    variant_of: Optional[str] = None
 
     @field_validator("reviewer")
     @classmethod
@@ -405,6 +409,12 @@ class Mark(BaseModel):
     @model_validator(mode="after")
     def _consistent(self) -> "Mark":
         need = CHECKS[self.scope]
+        if self.variant_of is not None:
+            if self.scope != "dfo":
+                raise ValueError("only a DFO wording is attached as a variant")
+            if self.variant_of == self.target:
+                raise ValueError("a wording is not a variant of itself")
+            need = ("T",)
         if self.group is not None and self.scope != "dfo":
             raise ValueError("only a DFO mark is recorded with a group")
         if (self.scope == "rule") != (self.rule_id is not None):
@@ -416,7 +426,7 @@ class Mark(BaseModel):
                 raise ValueError("cleared needs a note saying why")
             if (self.answers or self.call is not None or self.problem or self.tributaries
                     or self.extent_fix or self.new_splits or self.lake_split_later
-                    or self.group is not None):
+                    or self.group is not None or self.variant_of is not None):
                 raise ValueError("a cleared mark carries no answers, call or proposal")
             return self
         extra = sorted(set(self.answers) - set(need))
@@ -546,7 +556,7 @@ class Mark(BaseModel):
 #: fields a line leaves out while they hold their default (T189 added them): a mark without them
 #: is the same line it was before they existed
 _OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": [],
-                 "new_splits": [], "call": None, "group": None}
+                 "new_splits": [], "call": None, "group": None, "variant_of": None}
 
 
 def line(mark: Mark) -> str:
@@ -558,6 +568,9 @@ def line(mark: Mark) -> str:
     for n in got.get("new_splits") or ():       # a new split's unset confidence: the line it was
         if n.get("confidence") is None:
             n.pop("confidence", None)
+        for k in ("area", "area_end"):          # owner 2026-11-02: only a park-boundary cut has them
+            if n.get(k) is None:
+                n.pop(k, None)
     return json.dumps(got, ensure_ascii=False, separators=(",", ":")) + "\n"
 
 

@@ -1,4 +1,5 @@
 import { CloseX } from "./NoticeStack";
+import { DfoPlaces } from "./DfoPlaces";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { applyPv, PV_DEFAULT, PvBadge, PvControls, type PvFilter } from "./Preverify";
 import { api, type EntryRefused } from "../api";
@@ -169,6 +170,22 @@ const VERIFY: [string, string][] = [
 
 export const DFO_HASH = "dfo/";
 
+/** THE QUEUE BY WATER (owner 2026-11-02): one row per PLACE — a group member that is not its place's
+ *  canonical location is listed inside the place, not as its own row — and each water's places
+ *  together, waters in the order their first place comes in review order. Pure. */
+export function byWater(rows: DfoRow[]): DfoRow[] {
+  const places = rows.filter((r) => !r.group || r.group.canonical === r.id
+    || !rows.some((x) => x.id === r.group!.canonical));
+  const order: string[] = [];
+  const by = new Map<string, DfoRow[]>();
+  for (const r of places) {
+    const k = `${r.region}|${r.water_id ?? ""}|${r.water}`;
+    if (!by.has(k)) { by.set(k, []); order.push(k); }
+    by.get(k)!.push(r);
+  }
+  return order.flatMap((k) => by.get(k)!);
+}
+
 interface Props {
   mode: Mode;
 }
@@ -183,7 +200,9 @@ export function DfoReview({ mode }: Props) {
   // owner 2026-10-28: "loading…" until the first queue arrives, never "0 locations"
   const [loaded, setLoaded] = useState(false);
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
-  const rows = useMemo(() => applyPv(allRows, pvf), [allRows, pvf]);
+  // owner 2026-11-02: GROUPED BY WATER — one item per place (a historic rewording rides its place,
+  // listed inside it), each water's places together, waters in review order (first row's place)
+  const rows = useMemo(() => byWater(applyPv(allRows, pvf)), [allRows, pvf]);
   const [progress, setProgress] = useState<DfoProgress | null>(null);
   const fold = useFold("dfo");
   const [filters, setFilters] = useState({ region: "", status: "active", need: "", verify: "", q: "", lake: "" });
@@ -204,6 +223,15 @@ export function DfoReview({ mode }: Props) {
   const open = useCallback((id: string) => {
     setSelected(id);
     window.history.replaceState(null, "", `#${DFO_HASH}${encodeURIComponent(id)}`);
+  }, []);
+  // a link to another place (#dfo/<id>, the places panel) opens it here
+  useEffect(() => {
+    const onHash = () => {
+      const h = decodeURIComponent(window.location.hash.slice(1));
+      if (h.startsWith(DFO_HASH) && h.length > DFO_HASH.length) setSelected(h.slice(DFO_HASH.length));
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
   useEffect(() => {
     if (!selected) { setDetail(null); return; }
@@ -304,8 +332,13 @@ export function DfoReview({ mode }: Props) {
       <div className="main">
         <div className="queue" data-testid="dfo-queue">
           <div className="queue-group">{loaded ? <>{rows.length} location{rows.length === 1 ? "" : "s"} — the DFO page's reaches, one each</> : "loading…"}</div>
-          {rows.map((r) => (
-            <div key={r.id} data-dfo={r.id} className={`queue-row${r.id === selected ? " selected" : ""}`}
+          {rows.map((r, i) => (<div key={r.id}>
+            {(i === 0 || rows[i - 1].water_id !== r.water_id || rows[i - 1].water !== r.water) && (
+              <div className="queue-group dfo-water-head" data-testid="dfo-water-head">
+                {r.water || r.kind} <span className="dim">· r{r.region} · {rows.filter((x) => x.water_id === r.water_id && x.water === r.water).length} place(s)</span>
+              </div>
+            )}
+            <div data-dfo={r.id} className={`queue-row${r.id === selected ? " selected" : ""}`}
               onClick={() => open(r.id)}>
               <div className="name">
                 {r.water || r.kind}
@@ -331,7 +364,7 @@ export function DfoReview({ mode }: Props) {
               </div>
               <div className="meta dfo-text">{r.text || "(the whole water)"}</div>
             </div>
-          ))}
+          </div>))}
         </div>
         {detail ? (
           <DfoLocation key={detail.row.id} detail={detail} mode={mode}
@@ -669,7 +702,10 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                 </ul>
               </div>
             )}
-            {detail.siblings.length > 0 && (
+            {(detail.places?.length ?? 0) > 0 ? (
+              <DfoPlaces places={detail.places!} href={(x) => `#${DFO_HASH}${encodeURIComponent(x)}`}
+                onAttached={(msg) => setOkMsg(msg)} />
+            ) : detail.siblings.length > 0 && (
               <details className="ext-row">
                 <summary className="dim">{detail.siblings.length} other reach{detail.siblings.length === 1 ? "" : "es"} on this water</summary>
                 <ul className="named-splits">

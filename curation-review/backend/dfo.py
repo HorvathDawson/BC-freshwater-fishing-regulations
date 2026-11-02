@@ -442,6 +442,8 @@ def detail(location_id: str) -> dict | None:
             for x in g["members"]]}
     return reuse._json_safe({
         "row": _row(slug, loc, water, m, groups), "location": loc, "water": water, "group": group,
+        "places": water_places(loc.get("water_id"), location_id) if loc.get("water_id") else [],
+        "wordings": D.location_wordings(loc),
         "items": [_item_ref(i) for i in (water or {}).get("item_ids") or []],
         "page_url": D.page_url(slug), "verbatim": {"waters": st.get("waters") or loc.get("water"),
                                                    "specific_area": st.get("specific_area") or ""},
@@ -451,6 +453,30 @@ def detail(location_id: str) -> dict | None:
         "suggestion": suggestion(location_id), "fix_proposal": fix_proposal(location_id),
         "mark": ({**json.loads(m.model_dump_json()), **v} if m is not None else None),
     })
+
+
+def water_places(water_id: str, this: str | None = None) -> list[dict]:
+    """EVERY PLACE ON ONE WATER (owner 2026-11-02), for one view of the river: per place (`D.places`)
+    its row (verify, state, status…), and every wording of every member with the page dates, so the
+    same extent written differently is one item. Read only."""
+    locs, rows = _locations(), {r["id"]: r for r in _rows()}
+    out = []
+    for p in D.places(locs, water_id, _groups()):
+        c = p["id"]
+        r = rows.get(c) or {}
+        wordings = []
+        for lid in p["members"]:
+            l = locs[lid][1]
+            for w in D.location_wordings(l):
+                wordings.append({**w, "location_id": lid, "status": l.get("status") or "active",
+                                 "variant": bool(l.get("duplicate_of")) and l.get("duplicate_confirmed") is not False,
+                                 "verify": (rows.get(lid) or {}).get("verify")})
+        out.append({"id": c, "this": this in p["members"], "members": p["members"],
+                    "text": r.get("text") or "", "status": "active" if any(
+                        (locs[x][1].get("status") or "active") == "active" for x in p["members"]) else "dormant",
+                    "verify": r.get("verify"), "state": r.get("state"), "historic_only": r.get("historic_only"),
+                    "wordings": wordings})
+    return out
 
 
 # --------------------------------------------------------------------------- reach (read)

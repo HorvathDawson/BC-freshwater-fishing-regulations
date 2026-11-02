@@ -788,7 +788,8 @@ export interface MarkPost {
   scope: "entry" | "rule" | "dfo" | "tidal";
   target: string;
   rule_id?: string | null;
-  verdict?: "deferred";
+  /** "verified" only with `variant_of` (its one check is T) */
+  verdict?: "deferred" | "verified";
   answers: Partial<Record<Check, CheckAnswer>>;
   problem?: string | null;
   note?: string;
@@ -805,6 +806,8 @@ export interface MarkPost {
   new_splits?: NewSplit[];
   /** owner 2026-10-28: a DFO historic group — every member kept gets the same mark (one each) */
   targets?: string[];
+  /** owner 2026-11-02 (dfo): this wording is a variant of that location (T185 writes duplicate_of) */
+  variant_of?: string;
 }
 
 /** T191: the catalogue's extent ops (`marks.OP_POINTS`), by their own names */
@@ -1064,6 +1067,12 @@ export interface DfoCount {
 }
 export interface DfoProgress { all: DfoCount; active: DfoCount; regions: Record<string, DfoCount> }
 export interface DfoExtent { op: string; splits?: string[]; item_id?: string; item_ids?: string[] }
+export interface DfoWording { fingerprint: string | null; text: string; dates: string[];
+  location_id?: string; status?: string; variant?: boolean; verify?: string | null }
+export interface DfoPlace {
+  id: string; this: boolean; members: string[]; text: string; status: string;
+  verify?: string | null; state?: string | null; historic_only?: boolean | null; wordings: DfoWording[];
+}
 export interface DfoFixProposal {
   why: string;
   status: string;
@@ -1098,6 +1107,10 @@ export interface DfoDetail {
   proposed: ProposedSplit[];
   hints: { name: string; anchor: AnchorKind; items: ItemHit[] }[];
   siblings: { id: string; text: string; status: string; section: string | null }[];
+  /** owner 2026-11-02: every place on this water, each with all its wordings (current + historic) */
+  places?: DfoPlace[];
+  /** this location's own wordings with their page dates */
+  wordings?: DfoWording[];
   group?: { id: string; canonical: string; members: DfoGroupMember[] } | null;
   /** the SUGGESTED extent, or null (never applied) */
   suggestion?: DfoSuggestion | null;

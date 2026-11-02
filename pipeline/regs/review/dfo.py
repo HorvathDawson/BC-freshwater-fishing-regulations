@@ -206,8 +206,10 @@ def group_why(hist: Mapping, cur: Mapping, cur_id: str) -> Optional[tuple[str, f
     """Why a historic place is the same place as a current one on the same water, or None:
     DFO's own duplicate link, or the place words alike (`GROUP_ALIKE`) with the same numbers, the
     same direction words and the same tributary / exception call."""
-    if hist.get("duplicate_of") == cur_id:
+    if hist.get("duplicate_of") == cur_id and hist.get("duplicate_confirmed") is not False:
         return "DFO lists it as a rewording (duplicate_of)", 1.01
+    if hist.get("duplicate_of") == cur_id:               # the owner contested the link: apart
+        return None
     (a, an, ag), (b, bn, bg) = _place_facts(_place_text(hist)), _place_facts(_place_text(cur))
     if an != bn or ag != bg or not (a | b):
         return None
@@ -254,7 +256,7 @@ def groups(locs: Mapping[str, tuple[str, dict, Optional[dict]]] | None = None) -
         return x
     for h in rest:
         _s, loc, water = locs[h]
-        dup = loc.get("duplicate_of")
+        dup = loc.get("duplicate_of") if loc.get("duplicate_confirmed") is not False else None
         if dup in canon_of and root(dup) != root(h):
             canon_of[root(h)] = root(dup)
             continue
@@ -277,3 +279,95 @@ def groups(locs: Mapping[str, tuple[str, dict, Optional[dict]]] | None = None) -
         for m in g["members"]:
             out[m["id"]] = g
     return out
+
+
+# --------------------------------------------------------------------------- wordings (owner 2026-11-02)
+
+def default_history_dir() -> Path:
+    return Path(__file__).resolve().parents[3] / "cache" / "dfo_salmon" / "history"
+
+
+def _page_date(name: str) -> Optional[tuple[str, str]]:
+    import re
+    m = re.match(r"region(\w+?)_(\d{4})(\d{2})(\d{2})", name)
+    return (m.group(1), f"{m.group(2)}-{m.group(3)}-{m.group(4)}") if m else None
+
+
+@lru_cache(maxsize=2)
+def _wordings(d: str, _stamp_key: tuple) -> dict[str, dict]:
+    from pipeline.regs.dfo_salmon.locations import extract
+    from pipeline.regs.dfo_salmon.parse import parse_region
+    from pipeline.regs.dfo_salmon.untangle import untangle
+    out: dict[str, dict] = {}
+    for f in sorted(Path(d).glob("region*_*.html")):
+        got = _page_date(f.name)
+        if got is None:
+            continue
+        slug, day = got
+        try:
+            locs, _r, _s = extract(untangle(parse_region(f.read_text(encoding="utf-8", errors="replace"), slug)))
+        except Exception:  # noqa: BLE001 — an unparseable saved page dates nothing
+            continue
+        for loc in locs:
+            w = out.setdefault(loc.fingerprint, {"waters": loc.water, "specific_area": loc.specific_area,
+                                                 "dates": []})
+            if day not in w["dates"]:
+                w["dates"].append(day)
+    for w in out.values():
+        w["dates"].sort()
+    return out
+
+
+def wordings(history_dir: Path | None = None) -> dict[str, dict]:
+    """EVERY WORDING DFO EVER PRINTED, from the saved pages (`cache/dfo_salmon/history`): fingerprint
+    -> {waters, specific_area, dates: the page dates it was on}. ~1 s, cached per the dir's files."""
+    d = Path(history_dir or default_history_dir())
+    st = tuple((p.name, p.stat().st_mtime_ns) for p in sorted(d.glob("region*_*.html"))) if d.exists() else ()
+    return _wordings(str(d), st)
+
+
+def location_wordings(loc: Mapping, history_dir: Path | None = None) -> list[dict]:
+    """A location's wordings (one per fingerprint it holds): the words and the page dates. A wording
+    on no saved page (a page newer than the archive) keeps the location's own words, no dates."""
+    ws = wordings(history_dir)
+    st = loc.get("source_text") or {}
+    out = []
+    for fp in loc.get("fingerprints") or []:
+        w = ws.get(fp)
+        out.append({"fingerprint": fp,
+                    "text": (w or {}).get("specific_area") if w else (st.get("specific_area") or ""),
+                    "dates": list((w or {}).get("dates") or [])})
+    return out or [{"fingerprint": None, "text": st.get("specific_area") or "", "dates": []}]
+
+
+def places(locs: Mapping[str, tuple[str, dict, Optional[dict]]], water_id: str,
+           grouped: Mapping[str, dict] | None = None) -> list[dict]:
+    """THE PLACES ON ONE WATER (owner 2026-11-02): its locations folded into places — a place is a
+    group (`groups`: a current wording and its historic rewordings, or a historic-only place and
+    its rewordings) or a lone location; a confirmed variant (`duplicate_of`, not contested) joins the
+    place of the location it rewords. -> [{id (the canonical location), members: [location id]}],
+    live places first, in location order."""
+    grouped = grouped if grouped is not None else groups(locs)
+    on = [lid for lid, (_s, l, _w) in locs.items() if l.get("water_id") == water_id]
+    canon: dict[str, str] = {}
+    for lid in on:
+        g = grouped.get(lid)
+        canon[lid] = g["canonical"] if g else lid
+    for lid in on:                                        # a variant rides the place it rewords
+        l = locs[lid][1]
+        dup = l.get("duplicate_of")
+        if canon[lid] == lid and dup in canon and dup != lid and l.get("duplicate_confirmed") is not False:
+            seen = {lid}
+            while canon.get(dup, dup) != dup and dup not in seen:
+                seen.add(dup)
+                dup = canon[dup]
+            canon[lid] = canon.get(dup, dup)
+            for x in on:
+                if canon[x] == lid:
+                    canon[x] = canon[lid]
+    out: dict[str, list[str]] = {}
+    for lid in on:
+        out.setdefault(canon[lid], []).append(lid)
+    live = lambda c: any((locs[x][1].get("status") or "active") == "active" for x in out[c])  # noqa: E731
+    order = sorted(out, key=lambda c: (not live(c), on.index(c) if c in on else 0))
+    return [{"id": c, "members": [c] + [x for x in out[c] if x != c]} for c in order]

@@ -251,6 +251,9 @@ class MarkPayload(BaseModel):
     #: these (verdict / note / date / reviewer / call): an Undo of a batch clears exactly that
     #: batch's marks and skips a target marked again since
     if_last: dict[str, str | None] | None = None
+    #: owner 2026-11-02 (scope dfo): this wording is a variant of that DFO location — T185 writes its
+    #: `duplicate_of` (confirmed). Its one check is T.
+    variant_of: str | None = None
 
 
 #: EVERY SAVE THE SERVER REFUSES, on file (owner 2026-10-28: a refused save must be impossible to
@@ -329,6 +332,12 @@ def _post_mark(body: MarkPayload):
     if body.if_last is not None:
         raise HTTPException(422, [{"path": "", "msg": "only a cleared mark says which mark it clears"}])
     data.pop("if_last")
+    if body.scope != "dfo":                         # owner 2026-11-02: only a DFO wording is a variant
+        if body.variant_of:
+            raise HTTPException(422, [{"path": "variant_of", "msg": "only a DFO wording is attached as a variant"}])
+        data.pop("variant_of")
+    elif not body.variant_of:
+        data.pop("variant_of")
     if body.scope == "q154":
         if body.targets:
             raise HTTPException(422, [{"path": "", "msg": "a Q154 mark names one sample pond"}])

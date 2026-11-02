@@ -217,10 +217,12 @@ def _target_of(doc: dict, ed: Mapping) -> Optional[dict]:
         if e is None or ed["scope"] == "entry":
             return e
         return next((r for r in e.get("rules") or [] if r.get("rule_id") == ed["scope"]), None)
-    if ed["kind"] == "dfo":
+    if ed["kind"] in ("dfo", "dfo_loc"):
         loc = next((x for x in doc.get("locations") or []
                     if x.get("location_id") == ed["location_id"]), None)
-        return None if loc is None else loc.setdefault("binding", {})
+        if loc is None or ed["kind"] == "dfo_loc":       # a field of the location itself
+            return loc
+        return loc.setdefault("binding", {})
     return None
 
 
@@ -285,7 +287,7 @@ def _resolve_file(ed: Mapping, src: Sources) -> Path:
     name = Path(ed["file"]).name
     if ed["kind"] == "catalogue":
         return Path(src.entries_dir) / name
-    if ed["kind"] == "dfo":
+    if ed["kind"] in ("dfo", "dfo_loc"):
         return Path(src.dfo_dir) / name
     return Path(src.splits_path)
 
@@ -408,6 +410,33 @@ def extent_of(fix, split_of, siblings: Optional[list[str]] = None) -> tuple[Opti
     return ex, problems
 
 
+def _variant_proposal(m, pid: str, who: dict, src: "Sources") -> dict:
+    """A DFO wording ATTACHED AS A VARIANT (owner 2026-11-02): the target's `duplicate_of` set to the
+    place it rewords, confirmed — the entry model's own variant link (`EntryLocation.is_variant`)."""
+    problems: list[str] = []
+    edits: list[dict] = []
+    found, there = _find_location(src, m.target), _find_location(src, m.variant_of)
+    if found is None:
+        problems.append(f"no DFO location {m.target}")
+    if there is None:
+        problems.append(f"no DFO location {m.variant_of} to be a variant of")
+    elif found is not None:
+        path, loc = found
+        if there[1].get("water_id") != loc.get("water_id"):
+            problems.append(f"{m.variant_of} is on another water")
+        if (there[1].get("duplicate_of") or "") == m.target:
+            problems.append(f"{m.variant_of} is already a variant of {m.target}: no loops")
+        for fld, val in (("duplicate_of", m.variant_of), ("duplicate_confirmed", True)):
+            before = loc.get(fld, _MISSING)
+            if before != val:
+                edits.append({"file": _rel(path), "kind": "dfo_loc", "location_id": m.target,
+                              "scope": "entry", "field": fld, "before": before, "after": val})
+    return {"id": pid + "-variant", "kind": "extent", "target": m.target, "scope": m.scope,
+            "rule_id": None, "title": f"{m.target}: a wording of {m.variant_of} (variant)",
+            "marks": [who], "edits": edits, "depends_on": [], "problems": problems,
+            "notes": [], "split_id": None, "confidence": None}
+
+
 def dfo_siblings(src: "Sources", location_id: str) -> list[str]:
     """THE PLACES A DFO "rest" IS THE REST OF (owner 2026-11-02, Stamp River "Except in those areas
     and times listed below"): every other LIVE location on the same water, its own rewordings
@@ -451,7 +480,8 @@ def _provenance(m) -> dict:
 
 def _proposes(m) -> bool:
     return m.scope in ("entry", "rule", "dfo") and bool(
-        m.extent_fix or m.tributaries or m.new_splits or m.lake_split_later)
+        m.extent_fix or m.tributaries or m.new_splits or m.lake_split_later
+        or getattr(m, "variant_of", None))
 
 
 # --------------------------------------------------------------------------- tidal (T166)
@@ -862,6 +892,8 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                         "notes": ["listed by `python -m pipeline.regs.review.tickets "
                                   "--lake-splits`; no curated edit until lake splits are taken up"],
                         "split_id": None, "confidence": None})
+        if m.scope == "dfo" and getattr(m, "variant_of", None):
+            out.append(_variant_proposal(m, pid, who, src))
         if not (m.extent_fix or m.tributaries):
             continue
         problems: list[str] = []
@@ -971,7 +1003,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
             if path.parent == Path(src.entries_dir):
                 bad = _validate_catalogue(json.loads(text))
             elif path.parent == Path(src.dfo_dir):
-                bad = [x for ed in p["edits"] if ed["kind"] == "dfo"
+                bad = [x for ed in p["edits"] if ed["kind"] in ("dfo", "dfo_loc")
                        for x in _validate_dfo(next(
                            loc for loc in json.loads(text)["locations"]
                            if loc["location_id"] == ed["location_id"]))]
@@ -1041,7 +1073,7 @@ def side_commands(p: Mapping, props: Iterable[Mapping]) -> list[str]:
     live_reach = _rel(GENERATED.reaches / GENERATED.build().name)
     side = side_dir(p)
     splits = changes_cuts(p, props)
-    dfo = any(ed["kind"] == "dfo" for ed in p["edits"])
+    dfo = any(ed["kind"] in ("dfo", "dfo_loc") for ed in p["edits"])
     cmds = [f"python -m pipeline.regs.review.proposals side {p['id']} --out {side}"]
     build = live_build
     if splits:
@@ -1144,6 +1176,11 @@ def check(props: list[dict], src: Sources) -> None:
         if p["depends_on"]:
             p["check"] = {"cheap": False, "why": "names a new split (" + ", ".join(
                 p["depends_on"]) + "): bound only on the side atlas"}
+            continue
+        if p["edits"] and all(ed["kind"] == "dfo_loc" for ed in p["edits"]):
+            # a wording attached as a variant (owner 2026-11-02): no extent of its own changes — it
+            # rides the place it rewords (`resolve_all` binds a variant through its primary)
+            p["check"] = {"cheap": True, "why": None, "rules": {}, "changed": []}
             continue
         changes = [{"scope": ed["scope"], "field": ed["field"], "after": ed["after"]}
                    for ed in p["edits"]]
