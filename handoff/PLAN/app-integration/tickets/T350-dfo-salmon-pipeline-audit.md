@@ -29,3 +29,10 @@ easy to implement and quick to decode."
   rule there: e.g. the release ships the resolved chain/scope per section plus a fingerprint → rule-slot table, the
   worker only swaps rule TEXT/numbers per fingerprint, and the app picks the slot.
 - Propose the format (sizes, decode cost) and the migration.
+
+## Two passes (owner 2026-11-02)
+- **Now (this cycle), LEAN.** Run right after T349 lands: one agent, read-mostly. Only the top findings (data types
+  that differ from freshwater, cascade logic still in TS, silent fallbacks). Fix only the small, safe ones; ticket the
+  rest. Targeted tests only, no rebuild.
+- **Next credit cycle, IN DEPTH.** The full pass, with the T333 Fable audit, including the worker split proposal for
+  "cascade resolved in Python".
