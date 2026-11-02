@@ -4568,7 +4568,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "sproat_river__sproat_lake",
+              "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4"
+            ],
+            "item_id": "gnis:25640"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
