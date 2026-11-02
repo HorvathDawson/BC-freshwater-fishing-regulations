@@ -170,6 +170,26 @@ const VERIFY: [string, string][] = [
 
 export const DFO_HASH = "dfo/";
 
+/** what counts as DONE for the fold (owner 2026-11-02): a mark that decides — verified or wrong. "?"
+ *  (unsure), deferred, stale and unmarked are not done. */
+export const DONE = new Set<string>(["verified", "wrong"]);
+export const waterKey = (r: DfoRow) => `${r.region}|${r.water_id ?? ""}|${r.water}`;
+const waterCount = (rows: DfoRow[]) => new Set(rows.map(waterKey)).size;
+
+/** THE SEARCH BOX (owner 2026-11-02): the waters whose name, region, or any place wording — a
+ *  rewording or variant riding a place included (`all`: every row, members too) — holds the words,
+ *  case-insensitive; a matching water keeps all its places. Empty: the list as it is. Pure. */
+export function searchWaters(rows: DfoRow[], all: DfoRow[], q: string): DfoRow[] {
+  const want = q.trim().toLowerCase();
+  if (!want) return rows;
+  const hit = new Set<string>();
+  for (const r of all) {
+    const hay = `${r.water} ${r.text} r${r.region} region ${r.region} ${r.id}`.toLowerCase();
+    if (hay.includes(want)) hit.add(waterKey(r));
+  }
+  return rows.filter((r) => hit.has(waterKey(r)));
+}
+
 /** THE QUEUE BY WATER (owner 2026-11-02): one row per PLACE — a group member that is not its place's
  *  canonical location is listed inside the place, not as its own row — and each water's places
  *  together, waters in the order their first place comes in review order. Pure. */
@@ -202,7 +222,11 @@ export function DfoReview({ mode }: Props) {
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   // owner 2026-11-02: GROUPED BY WATER — one item per place (a historic rewording rides its place,
   // listed inside it), each water's places together, waters in review order (first row's place)
-  const rows = useMemo(() => byWater(applyPv(allRows, pvf)), [allRows, pvf]);
+  // owner 2026-11-02: a search box over the list (water name, any wording or variant, region), client side
+  const [find, setFind] = useState("");
+  const rows = useMemo(() => searchWaters(byWater(applyPv(allRows, pvf)), allRows, find), [allRows, pvf, find]);
+  // a water whose places are all done collapses to its heading; a click opens it again
+  const [opened, setOpened] = useState<Record<string, boolean>>({});
   const [progress, setProgress] = useState<DfoProgress | null>(null);
   const fold = useFold("dfo");
   const [filters, setFilters] = useState({ region: "", status: "active", need: "", verify: "", q: "", lake: "" });
@@ -331,14 +355,29 @@ export function DfoReview({ mode }: Props) {
         <span style={{ flex: 1 }}>{error}</span><CloseX onClick={() => setError("")} /></div>}
       <div className="main">
         <div className="queue" data-testid="dfo-queue">
-          <div className="queue-group">{loaded ? <>{rows.length} location{rows.length === 1 ? "" : "s"} — the DFO page's reaches, one each</> : "loading…"}</div>
-          {rows.map((r, i) => (<div key={r.id}>
-            {(i === 0 || rows[i - 1].water_id !== r.water_id || rows[i - 1].water !== r.water) && (
-              <div className="queue-group dfo-water-head" data-testid="dfo-water-head">
-                {r.water || r.kind} <span className="dim">· r{r.region} · {rows.filter((x) => x.water_id === r.water_id && x.water === r.water).length} place(s)</span>
+          <div className="dfo-find inline-notice" style={{ padding: "4px 6px" }}>
+            <input type="search" placeholder="find a water, a wording, a region…" value={find} aria-label="find a water"
+              data-testid="dfo-find" onChange={(e) => setFind(e.target.value)} style={{ flex: 1 }} />
+            {find && <span className="dim" data-testid="dfo-find-count">{waterCount(rows)} water{waterCount(rows) === 1 ? "" : "s"} · {rows.length} place{rows.length === 1 ? "" : "s"}</span>}
+          </div>
+          <div className="queue-group">{loaded ? <>{rows.length} place{rows.length === 1 ? "" : "s"} on {waterCount(rows)} water{waterCount(rows) === 1 ? "" : "s"}</> : "loading…"}</div>
+          {rows.map((r, i) => {
+            const k = waterKey(r);
+            const first = i === 0 || waterKey(rows[i - 1]) !== k;
+            const mine = rows.filter((x) => waterKey(x) === k);
+            const done = mine.every((x) => DONE.has(x.verify));
+            const shut = done && !opened[k] && !mine.some((x) => x.id === selected);
+            return (<div key={r.id}>
+            {first && (
+              <div className={`queue-group dfo-water-head${done ? " done" : ""}`} data-testid="dfo-water-head"
+                style={done ? { cursor: "pointer" } : undefined} title={done ? (shut ? "every place is marked — click to open" : "click to fold") : undefined}
+                onClick={done ? () => setOpened((o) => ({ ...o, [k]: shut })) : undefined}>
+                {done && <span>{shut ? "▸ " : "▾ "}</span>}
+                {r.water || r.kind} <span className="dim">· r{r.region} · {mine.length} place(s)</span>
+                {done && <span className="chip-tag" data-testid="dfo-water-done"> ✓ done ({mine.length})</span>}
               </div>
             )}
-            <div data-dfo={r.id} className={`queue-row${r.id === selected ? " selected" : ""}`}
+            {!shut && <div data-dfo={r.id} className={`queue-row${r.id === selected ? " selected" : ""}`}
               onClick={() => open(r.id)}>
               <div className="name">
                 {r.water || r.kind}
@@ -363,8 +402,8 @@ export function DfoReview({ mode }: Props) {
                 <span>{r.n_rows} row{r.n_rows === 1 ? "" : "s"}</span>
               </div>
               <div className="meta dfo-text">{r.text || "(the whole water)"}</div>
-            </div>
-          </div>))}
+            </div>}
+          </div>); })}
         </div>
         {detail ? (
           <DfoLocation key={detail.row.id} detail={detail} mode={mode}
