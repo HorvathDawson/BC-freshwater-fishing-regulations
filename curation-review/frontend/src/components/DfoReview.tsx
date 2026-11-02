@@ -38,7 +38,8 @@ function sameCut(list: ProposedSplit[], got: AnchorCheck): ProposedSplit | undef
 const asNewSplit = (p: ProposedSplit, quote: string): NewSplit => ({
   ref: p.id, anchor: p.anchor, name: p.name, item_id: p.item_id, split_id: p.split_id,
   on_item: p.on_item, coord: p.coord, blk: p.blk, measure: p.measure, side: p.side,
-  offset_m: p.offset_m, quote: p.quote || quote, confidence: p.confidence,
+  offset_m: p.offset_m, area: p.area, area_end: p.area_end, quote: p.quote || quote,
+  confidence: p.confidence,
 });
 /** owner 2026-10-27: a new split's confidence when none is set — a point placed by hand on the map
  *  is medium, a registry anchor (a tributary's mouth, a lake's edge) high (`marks.default_confidence`) */

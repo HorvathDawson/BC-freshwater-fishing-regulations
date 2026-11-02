@@ -86,6 +86,8 @@ def _proposal_view(p: dict) -> dict:
     return {"id": p["id"], "anchor": n.anchor, "name": n.name, "item_id": n.item_id,
             "split_id": n.split_id, "on_item": n.on_item, "coord": list(n.coord) if n.coord else None,
             "blk": n.blk, "measure": n.measure, "side": n.side, "offset_m": n.offset_m,
+            # an area_boundary names its area: dropped here, a save of it was refused (Little Qualicum)
+            "area": n.area, "area_end": n.area_end,
             "quote": n.quote, "marks": p["marks"], "n_marks": len(p["marks"]),
             # owner 2026-10-27: a proposed split carries its confidence everywhere
             "confidence": p.get("confidence") or n.confidence_now}

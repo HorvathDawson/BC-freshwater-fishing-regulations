@@ -946,6 +946,9 @@ export interface ProposedSplit {
   measure: number | null;
   side: "upstream" | "downstream" | null;
   offset_m: number | null;
+  /** anchor area_boundary: the protected area's name, and which end */
+  area?: string | null;
+  area_end?: "upstream" | "downstream" | null;
   quote: string;
   marks: { target: string; ref: string; reviewer: string; date: string }[];
   n_marks: number;
