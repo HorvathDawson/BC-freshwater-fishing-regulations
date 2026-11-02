@@ -145,6 +145,56 @@
         "notes": [],
         "spatial_caveat": false
       }
+    },
+    {
+      "location_id": "7:default:region",
+      "region": "7",
+      "region_number": 7,
+      "kind": "page_default",
+      "precedence": -1,
+      "water": "All Region 7 waters (7A and 7B)",
+      "water_id": null,
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "page:7:region"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "All Region 7 waters (7A and 7B)",
+        "areas": [],
+        "statement": "closed_until_notice",
+        "says": "There is no fishing for salmon in Region 7 until further notice.",
+        "unlisted": "closed"
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-11-02",
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:region:7a"
+          },
+          {
+            "op": "within",
+            "area_id": "area:region:7b"
+          }
+        ],
+        "tributaries": false,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
     }
   ]
 }

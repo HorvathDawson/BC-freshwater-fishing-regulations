@@ -2303,7 +2303,8 @@ def test_the_feed_revalidates_from_disk():
             for rule in loc["rules"]:
                 CatalogueRule(**rule)
                 total += 1
-    assert total == 517, f"expected the 517 typed rules on disk, got {total}"
+    # T349: + 10 page-default sentences (one rule each, `cascade.statement_locators`)
+    assert total == 527, f"expected the 527 typed rules on disk, got {total}"
 
 
 @pytest.mark.needs_source

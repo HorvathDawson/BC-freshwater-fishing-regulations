@@ -62,6 +62,9 @@ export interface SalmonBucket {
   readonly possession?: number; readonly tp?: string;
   readonly min_cm?: Readonly<Record<string, number>>;
   readonly ids?: readonly string[];
+  /** (T349) the header's aggregate limits over named waters (Squamish hatchery coho): the quota tree's aggregate tier,
+   *  `total` with `whose` its scope; `id` the note it was read from, `w` the note's water keys */
+  readonly shared?: readonly { readonly tree: TreeTier; readonly t: string; readonly id: string | null; readonly w: readonly string[] }[];
 }
 interface Verdict { readonly s: SalmonVerdictStatus; readonly t: string; readonly n?: string; readonly d?: 1; readonly tree?: TreeTier; readonly u?: 1 }
 interface Chain {
@@ -669,6 +672,12 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     waterBuckets: hn.water.filter((n) => n.k === "aggregate" && typeof n.n === "number"
         && rows.some((r) => r.status === "open" && !!n.sp?.some((x) => r.species.includes(x as SalmonSpecies))))
       .map((n) => {
+        // (T349) the store's aggregate tier over the note's waters, where the file carries it (bucket.shared)
+        const sh = regionsUsed.flatMap((r) => P.regions[r]?.bucket?.shared ?? []).find((x) => x.id === n.id);
+        if (sh) {
+          const runs = tierWords(sh.tree);
+          return { line: lineText(runs), runs, words: [n.t] };
+        }
         // (T332) a water's own combined limit is the quota tree's OWN tier (`whose` the water), drawn like the trout's
         const water = n.w?.[0]?.n ?? "";
         const says = SALMON_WORDS.quota.waterBucket(water, n.n!, !!n.hatchery,

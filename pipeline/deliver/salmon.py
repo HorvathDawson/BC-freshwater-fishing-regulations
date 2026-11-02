@@ -51,6 +51,7 @@ reader the tests hold the app's to.
 from __future__ import annotations
 
 import json
+import re
 import struct
 from collections import defaultdict
 from pathlib import Path
@@ -153,6 +154,17 @@ def _notice(rules: Sequence[dict]) -> Optional[str]:
     return ", ".join(ns) or None
 
 
+#: T349 (owner 2026-11-02): SALMON NON-RETENTION IS CLOSED TO SALMON. "Non-retention", "No retention of salmon" or a
+#: limit of 0 means the same as no fishing for salmon — catch-and-release exists only so OTHER fish (trout) may be fished
+#: where salmon are present. A row answers `release` only where DFO's words say catch and release outright.
+_RE_CATCH_AND_RELEASE = re.compile(r"\bcatch[- ]and[- ]release\b", re.I)
+
+
+def says_catch_and_release(rule: dict) -> bool:
+    """Does the rule's own text say catch-and-release (not just non-retention)?"""
+    return bool(_RE_CATCH_AND_RELEASE.search(rule.get("verbatim") or ""))
+
+
 def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[dict]:
     """The species' answer on day `md`: the narrowest location of the chain with a limit rule for it that day.
     `{s, t, n?}` — s one of open / release / closed / check; None when no location says anything that day."""
@@ -167,10 +179,11 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
         if held:
             own = [r for r in held if sp in _species_of(r)] or held     # the species' own row beats an all-salmon row
             opens = [r for r in own if (r.get("take") or 0) > 0]
+            release = [r for r in own if r.get("may_target") is True and says_catch_and_release(r)]
             if opens:
                 s, why = "open", opens
-            elif any(r.get("may_target") is True for r in own):
-                s, why = "release", [r for r in own if r.get("may_target") is True]
+            elif release:
+                s, why = "release", release
             else:
                 s, why = "closed", own
             out = {"s": s, "t": _text(why, subs)}
@@ -322,7 +335,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             # EVERY location, ruled today or not (T211 part 2): a dormant one says nothing today (no rules, so it never
             # answers in its chain), but it is IN its chains, so the live feed (`regs.dfo_salmon.live`) can paint it
             # the day DFO lists it again — without a rebuild.
-            rules_of[loc.location_id] = [r for fp in loc.fingerprints for r in by_fp.get(fp, [])]
+            rules_of[loc.location_id] = Q.mark_shared([r for fp in loc.fingerprints for r in by_fp.get(fp, [])],
+                                                      Q.shared_scope(loc.source_text))     # T349: a shared quota
             if closure and rules_of[loc.location_id]:
                 rules_of[loc.location_id] = closure         # T320: the header's closure wins over the table's rows
             # T321: the rows the card shows in DFO's words (new wording, an unread number, a note) — not under a closure

@@ -452,7 +452,7 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
         # warning in a 60-minute log is how they would vanish from a shipped atlas; the build stops, naming the fetch.
         from pipeline.atlas.splits import pfma_drainage
         try:
-            basins = pfma_drainage.basin_areas()
+            basins = pfma_drainage.basin_areas(pfma_drainage.MINTED_AREAS)     # T349: + Region 2's 13/15/16/28/29
         except Exception as exc:                      # noqa: BLE001 — re-raised, never swallowed
             raise SystemExit(f"registry: drainage areas could not be built ({exc}) — DFO section E's tidal scopes "
                              "need the PFMA layer: python -m data.fetch_data --layers pfma_areas") from exc

@@ -1,0 +1,118 @@
+"""T349 (owner 2026-11-02): region / scope defaults are ENTRIES, salmon non-retention is closed, shared quotas are the
+quota tree's aggregate tier."""
+from __future__ import annotations
+
+from pipeline.deliver import salmon as S
+from pipeline.regs.dfo_salmon import cascade as C
+from pipeline.regs.dfo_salmon import entries as E
+from pipeline.regs.dfo_salmon import quota as Q
+
+R2_28 = ("There is no fishing for salmon in waters of Region 2 flowing into Areas 28 and 29 except for the "
+         "opportunities listed in the table below.")
+R2_13 = ("Unless otherwise stated in the table below, the daily limit for waters in Region 2 flowing into Areas 13, 15, "
+         "and 16 is zero (0).")
+AUG1 = 801
+
+
+def _rule(verbatim: str, may_target: bool, take: int = 0, sp=("CO",)) -> dict:
+    return {"rule_id": "r", "type": "retention_limit", "species": list(sp), "take": take, "may_target": may_target,
+            "verbatim": verbatim}
+
+
+# ── salmon non-retention = closed ────────────────────────────────────────────────────────────────────────────────────
+
+def test_non_retention_is_closed_to_salmon():
+    for words in ("Non-retention", "No retention of coho", "0 per day"):
+        v = S.verdict_on([[_rule(words, True)]], "CO", AUG1)
+        assert v["s"] == "closed", words
+
+
+def test_only_explicit_catch_and_release_is_release():
+    v = S.verdict_on([[_rule("Open for salmon catch and release", True)]], "CO", AUG1)
+    assert v["s"] == "release"
+    # an opening still wins over both
+    v = S.verdict_on([[_rule("2 per day", None, take=2), _rule("Non-retention", True)]], "CO", AUG1)
+    assert v["s"] == "open"
+
+
+# ── the page's sentences as default locations ────────────────────────────────────────────────────────────────────────
+
+def test_statements_read_region_2s_two_scopes():
+    st = C.statements(["You can only fish for salmon in Region 2 during daylight hours.", R2_28, R2_13])
+    assert [(s["k"], s["areas"], s["unlisted"]) for s in st] == [
+        ("closed_except_listed", [28, 29], "closed"), ("limit_zero", [13, 15, 16], "closed")]
+
+
+def test_statement_locators_are_one_closed_rule_each():
+    locs = C.statement_locators("2", [R2_28, R2_13])
+    assert [l["fingerprint"] for l in locs] == ["page:2:areas-28-29", "page:2:areas-13-15-16"]
+    for l in locs:
+        (r,) = l["rules"]
+        assert r["species"] == ["SA"] and r["take"] == 0 and r["may_target"] is False and r["verbatim"] == l["rows"][0]
+        assert S.verdict_on([l["rules"]], "CH", AUG1)["s"] == "closed"
+
+
+def test_every_region_has_its_page_default_entry():
+    for slug in ("1", "2", "3", "4", "5a", "5b", "6", "7", "8"):
+        ef = E.load(slug)
+        defs = [l for l in ef.locations if l.kind == E.PAGE_DEFAULT]
+        assert defs, slug
+        for l in defs:
+            assert l.precedence == E.PAGE_DEFAULT_PRECEDENCE and l.binding.extents and l.status == "active"
+    r2 = {l.location_id: l for l in E.load("2").locations if l.kind == E.PAGE_DEFAULT}
+    assert set(r2) == {"2:default:areas-28-29", "2:default:areas-13-15-16", "2:default:other"}
+    # "other" is the remainder of Region 2: every Area the other two name is subtracted, and no sentence answers it
+    other = r2["2:default:other"]
+    assert not other.fingerprints
+    assert set(other.binding.extents[0].outside_areas) == {f"area:drains_to:pfma_{n}" for n in (13, 15, 16, 28, 29)}
+
+
+def test_a_page_default_answers_after_every_table_row():
+    order = S.chain_order({"w": 3, "a": 2, "s": 1, "r": 0, "d": E.PAGE_DEFAULT_PRECEDENCE},
+                          {"w": 10, "a": 10_000, "s": 100, "r": 1_000_000, "d": 5})
+    assert sorted("dwasr", key=order) == ["w", "a", "s", "r", "d"]
+
+
+def test_a_page_default_is_never_marked_dormant():
+    ef = E.load("3")
+    added, dormant = E.apply_seed(ef, [], {})
+    assert all(l.status == "active" for l in ef.locations if l.kind == E.PAGE_DEFAULT)
+    rep = E.reconcile(E.load("3"), [], {})
+    assert not any(o.location_id == "3:default:region" for o in rep.outcomes)
+
+
+def test_seeding_page_defaults_is_idempotent():
+    ef = E.load("2")
+    assert E.seed_page_defaults(ef, C.statements([R2_28, R2_13])) == []
+
+
+# ── shared quotas ────────────────────────────────────────────────────────────────────────────────────────────────────
+
+R5B = ("All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in "
+       "Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed).")
+
+
+def test_r5b_settles_on_the_mu_list_and_its_count_is_shared():
+    scope = Q.shared_scope({"specific_area": R5B})
+    assert scope == "Management Units 5-6 to 5-11"
+    rules = Q.mark_shared([{**_rule("4 per day", None, take=4, sp=("CH",)), "rule_id": "a.r0"},
+                           {"rule_id": "a.r0b", "type": "retention_limit", "species": ["CH"], "take": 1,
+                            "within": "a.r0", "lengths": [{"min_cm": 50}], "verbatim": "only 1 over 50 cm"}], scope)
+    assert rules[0]["shared"] == scope and "shared" not in rules[1]
+    v = S.verdict_on([rules], "CH", AUG1)
+    t = v["tree"]
+    assert v["s"] == "open" and t["tier"] == "total" and t["whose"] == scope and t["n"] == 4
+    assert [c["n"] for c in t["children"]] == [1]                 # the size tier stays under the shared count
+    assert Q.shared_scope({"specific_area": "All Region 4 waters"}) is None
+
+
+def test_squamish_hatchery_coho_is_an_aggregate_tier_over_the_watershed():
+    notes = [{"id": "2:daily:x", "k": "daily", "t": "…", "n": 4},
+             {"id": "2:aggregate:y", "k": "aggregate", "sp": ["CO"], "n": 1, "hatchery": True,
+              "t": "Squamish watershed: the aggregate daily limit of hatchery-marked coho … is one (1).",
+              "w": [{"n": "Squamish River", "ws": True, "key": "squamish river+ws"}]}]
+    (sh,) = Q.bucket(notes)["shared"]
+    assert sh["w"] == ["squamish river+ws"] and sh["id"] == "2:aggregate:y"
+    t = sh["tree"]
+    assert (t["tier"], t["n"], t["species"], t["origin"]) == ("total", 1, ["CO"], "hatchery")
+    assert t["whose"] == "the Squamish River watershed"

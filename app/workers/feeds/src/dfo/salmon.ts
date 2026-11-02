@@ -47,6 +47,9 @@ const covers = (r: R, sp: string): boolean => {
   const s = speciesOf(r);
   return s.includes(sp) || s.includes(ALL_SALMON);
 };
+/** T349 (owner 2026-11-02): salmon non-retention is closed to salmon — `release` only where DFO's words say catch and release */
+const RE_CATCH_AND_RELEASE = /\bcatch[- ]and[- ]release\b/i;
+export const saysCatchAndRelease = (r: R): boolean => RE_CATCH_AND_RELEASE.test(String(r.verbatim ?? ""));
 const isGear = (r: R): boolean => !!(r.gear && r.gear.length) || GEAR_TYPES.has(r.type);
 /** T229: a row about another fish (eulachon) — never a salmon verdict, one of the gear lines (salmon.py `_other_fish`) */
 const otherFish = (r: R): boolean => r.type === "advisory" && String(r.review_reason ?? "").startsWith(OTHER_FISH);
@@ -180,7 +183,9 @@ function verdictOn(chain: Loc[], k: number, md: number, robust = false): Verdict
       let s: string;
       let why: R[];
       if (opens.length) [s, why] = ["open", opens];
-      else if (own.some((r) => r.may_target === true)) [s, why] = ["release", own.filter((r) => r.may_target === true)];
+      // T349 (owner 2026-11-02): salmon non-retention is closed to salmon; `release` only where the row says catch and release
+      else if (own.some((r) => r.may_target === true && saysCatchAndRelease(r)))
+        [s, why] = ["release", own.filter((r) => r.may_target === true && saysCatchAndRelease(r))];
       else [s, why] = ["closed", own];
       const key = s + ":" + why.map((r) => loc.rules.indexOf(r)).join(",");
       let out = loc.verdicts.get(key);

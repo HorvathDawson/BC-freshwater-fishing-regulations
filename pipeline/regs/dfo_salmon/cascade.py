@@ -221,12 +221,17 @@ def needs_new_machinery(scopes: List[Scope]) -> List[Scope]:
 #                   "Unless otherwise stated in the table below, the daily limit for waters in Region 2 flowing into
 #                    Areas 13, 15, and 16 is zero (0)."
 #
-# `header.parse_header` deliberately STOPS at these sentences (they are not header notes), so until this nothing read
-# them. "limit zero" and "no fishing" are not the same answer: a zero limit leaves catch-and-release open.
+# `header.parse_header` deliberately STOPS at these sentences (they are not header notes). T349 reads them as the PAGE'S
+# DEFAULTS: each sentence is one first-class entry location (`entries.PAGE_DEFAULTS`, kind `page_default`) whose one rule
+# the typed feed carries under the fingerprint `page_fingerprint(slug, areas)` — so an unlisted water falls to its
+# region / scope default through the normal cascade, never to a hard-coded fallback.
+#
+# OWNER 2026-11-02: "daily limit 0" = CLOSED (salmon non-retention means the same as no fishing for salmon), and a
+# water nothing opens is closed. Every page default therefore answers closed; `UNLISTED` keeps the page's own kind.
 
-#: kind -> what an unlisted water gets, in the app's verdict words
+#: kind -> what an unlisted water gets, in the app's verdict words (owner 2026-11-02: limit 0 is closed too)
 UNLISTED = {
-    "limit_zero": "release",          # daily limit 0: fishing allowed, nothing retained
+    "limit_zero": "closed",
     "closed_except_listed": "closed",
     "closed_until_notice": "closed",
 }
@@ -239,17 +244,12 @@ _RE_STATEMENT = (
 _RE_FLOWING = re.compile(r"flowing into areas?\s+(\d{1,3}(?:(?:\s*,\s*|\s*,?\s+and\s+)\d{1,3})*)", re.I)
 
 
-def page_statements(html: str) -> List[dict]:
-    """The region-wide scope sentences of one page, verbatim and in page order:
-    `[{k, t, areas, unlisted}]` — `areas` the tidal Areas the sentence is limited to ([] = the whole page)."""
-    from bs4 import BeautifulSoup
-    soup = BeautifulSoup(html, "html.parser")
-    root = soup.find("main") or soup
+def statements(texts) -> List[dict]:
+    """The region-wide scope sentences among `texts` (a page's paragraphs, or the feed's `preamble`), verbatim and in
+    order: `[{k, t, areas, unlisted}]` — `areas` the tidal Areas the sentence is limited to ([] = the whole page)."""
     out: List[dict] = []
-    for p in root.find_all("p"):
-        if p.find_parent("table"):
-            continue
-        t = re.sub(r"\s+", " ", p.get_text(" ", strip=True)).strip()
+    for raw in texts:
+        t = re.sub(r"\s+", " ", raw or "").strip()
         for k, rx in _RE_STATEMENT:
             if rx.search(t):
                 m = _RE_FLOWING.search(t)
@@ -258,3 +258,35 @@ def page_statements(html: str) -> List[dict]:
                     out.append({"k": k, "t": t, "areas": areas, "unlisted": UNLISTED[k]})
                 break
     return out
+
+
+def page_scope(areas) -> str:
+    """`region` for a whole-page sentence, `areas-28-29` for one limited to tidal Areas."""
+    return "areas-" + "-".join(str(a) for a in areas) if areas else "region"
+
+
+def page_fingerprint(slug: str, areas=()) -> str:
+    """The feed key of a page default's sentence. STRUCTURAL, not a hash of the words: DFO rewording the sentence must
+    not orphan the default (it is the scope that is durable, like a location id)."""
+    return f"page:{slug}:{page_scope(areas)}"
+
+
+def statement_locators(slug: str, preamble) -> List[dict]:
+    """The page's default sentences as typed-feed locators (`feed.build`): one rule each, all salmon, no fishing, in
+    DFO's words. Never on a page that does not print the sentence — a default with no rule answers nothing, and the
+    water falls to `deliver.salmon.NOT_LISTED` (closed), which is the same answer."""
+    out = []
+    for st in statements(preamble):
+        fp = page_fingerprint(slug, st["areas"])
+        out.append({"fingerprint": fp, "rows": [st["t"]],
+                    "rules": [{"rule_id": fp, "type": "retention_limit", "verbatim": st["t"], "species": ["SA"],
+                               "take": 0, "may_target": False}]})
+    return out
+
+
+def page_statements(html: str) -> List[dict]:
+    """The region-wide scope sentences of one page (`statements` over its paragraphs outside the table)."""
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(html, "html.parser")
+    root = soup.find("main") or soup
+    return statements(p.get_text(" ", strip=True) for p in root.find_all("p") if not p.find_parent("table"))

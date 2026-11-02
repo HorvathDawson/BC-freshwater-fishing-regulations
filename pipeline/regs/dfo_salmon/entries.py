@@ -433,6 +433,101 @@ TIDAL_EXTENTS: Dict[tuple, List[dict]] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# T349 — THE PAGE DEFAULTS (owner 2026-11-02)
+# ---------------------------------------------------------------------------
+#
+# Every region's "not specified" answer is a first-class ENTRY: one location per region / scope, kind `page_default`,
+# resolved by the normal cascade (`deliver.salmon.chain_order`: narrowest first), never a hard-coded fallback. Its one
+# rule is the page's own sentence, carried by the typed feed under `cascade.page_fingerprint` ("There is no fishing for
+# salmon in Region 3 except …", "Unless otherwise stated …, the daily limit … is zero (0)"). Owner rulings:
+#
+#   * "daily limit 0" = CLOSED, and salmon non-retention = closed to salmon — every page default answers closed;
+#   * unlisted = closed: a water nothing gives a quota falls to its default, which is closed. Region 2's waters that
+#     drain to no BC tidal Area (Skagit, Similkameen headwaters, Nooksack tributaries — the page names only Areas
+#     13/15/16/28/29) get the "other" default, which DFO prints no sentence for: no fingerprint, no rule, so it answers
+#     `deliver.salmon.NOT_LISTED` — closed, from an entry, cleanly;
+#   * narrowest place wins.
+#
+# PRECEDENCE -1, BELOW A REGION DEFAULT. A page default is "unless otherwise stated in the table below": every table row
+# of every region answers first — including a neighbour's at a shared boundary section, where the default must not
+# out-rank a row (a straddling section of Region 6 keeps section A's answer). Among page defaults the narrower wins
+# (Region 2's three are disjoint by construction).
+
+PAGE_DEFAULT = "page_default"
+PAGE_DEFAULT_PRECEDENCE = -1
+_R2_AREAS = (13, 15, 16, 28, 29)
+
+
+def _drains(areas, within: str) -> List[dict]:
+    return [{"op": "within", "area_id": f"area:drains_to:pfma_{n}", "within_area": within} for n in areas]
+
+
+#: (slug, scope) -> (label, extents, sentence printed?). `scope` is `cascade.page_scope`: "region" or "areas-28-29".
+PAGE_DEFAULTS: Dict[tuple, tuple] = {
+    # Haida Gwaii is DFO Region 6 (section D) though the province files it under Region 1 (see HAIDA_GWAII)
+    ("1", "region"): ("All Region 1 waters (DFO: Haida Gwaii is Region 6)",
+                      [{"op": "within", "area_id": "area:region:1", "outside_areas": [HAIDA_GWAII]}], True),
+    ("2", "areas-28-29"): ("Region 2 waters flowing into Areas 28 and 29", _drains((28, 29), "area:region:2"), True),
+    ("2", "areas-13-15-16"): ("Region 2 waters flowing into Areas 13, 15 and 16",
+                              _drains((13, 15, 16), "area:region:2"), True),
+    ("2", "other"): ("Region 2 waters flowing into no Area 13/15/16/28/29 (to the US: Skagit, Similkameen, Nooksack "
+                     "tributaries) or with no watershed code",
+                     [{"op": "within", "area_id": "area:region:2",
+                       "outside_areas": [f"area:drains_to:pfma_{n}" for n in _R2_AREAS]}], False),
+    ("3", "region"): ("All Region 3 waters", [{"op": "within", "area_id": "area:region:3"}], True),
+    ("4", "region"): ("All Region 4 waters", [{"op": "within", "area_id": "area:region:4"}], True),
+    # 5A is Region 5 less 5B; 5B is Management Units 5-6 to 5-11 (T349: the one scope — see SCOPE_EXTENTS 5b)
+    ("5a", "region"): ("All Region 5A waters (Region 5 less Management Units 5-6 to 5-11)",
+                       [{"op": "within", "area_id": "area:region:5",
+                         "outside_areas": ["area:mu_group:management_units_5_6_to_5_11"]}], True),
+    ("5b", "region"): ("All Region 5B waters (Management Units 5-6 to 5-11)",
+                       [{"op": "within", "area_id": "area:mu_group:management_units_5_6_to_5_11"}], True),
+    ("6", "region"): ("All Region 6 waters (with Haida Gwaii)", SCOPE_EXTENTS[("6", "A")], True),
+    ("7", "region"): ("All Region 7 waters (7A and 7B)",
+                      [{"op": "within", "area_id": "area:region:7a"}, {"op": "within", "area_id": "area:region:7b"}],
+                      True),
+    ("8", "region"): ("All Region 8 waters", [{"op": "within", "area_id": "area:region:8"}], True),
+}
+
+
+def page_default_id(slug: str, scope: str) -> str:
+    return f"{slug}:default:{scope}"
+
+
+def seed_page_defaults(ef: EntryFile, statements: Optional[List[dict]] = None) -> List[str]:
+    """Add this region's page-default locations (`PAGE_DEFAULTS`) where missing; returns the ids added. Never edits an
+    existing one (a curator's binding stands). `statements` (`cascade.statements` of the page) supply the sentence each
+    default quotes; a sentence the page no longer prints keeps the location — it then answers nothing, i.e. closed."""
+    from pipeline.regs.dfo_salmon.cascade import UNLISTED, page_fingerprint
+    said = {tuple(st["areas"]): st for st in statements or []}
+    have = {l.location_id for l in ef.locations}
+    added = []
+    for (slug, scope), (label, exts, printed) in PAGE_DEFAULTS.items():
+        if slug != ef.region:
+            continue
+        lid = page_default_id(slug, scope)
+        if lid in have:
+            continue
+        areas = [int(n) for n in scope.split("-")[1:]] if scope.startswith("areas-") else []
+        st = said.get(tuple(areas)) if printed else None
+        ef.locations.append(EntryLocation(
+            location_id=lid, region=slug, region_number=ef.region_number, kind=PAGE_DEFAULT,
+            precedence=PAGE_DEFAULT_PRECEDENCE, water=label,
+            fingerprints=[page_fingerprint(slug, areas)] if printed else [],
+            source_text={"waters": "", "specific_area": label, "areas": areas,
+                         "statement": (st or {}).get("k") or ("unlisted" if not printed else ""),
+                         "says": (st or {}).get("t") or ("" if printed else
+                                                         "owner 2026-11-02: unlisted = closed (no DFO sentence)"),
+                         "unlisted": (st or {}).get("unlisted") or UNLISTED.get((st or {}).get("k"), "closed")},
+            binding=Binding(extents=[Extent(**e) for e in exts], tributaries=False),
+            reviewed_by="owner", reviewed_at="2026-11-02",
+            review_note="T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+        ))
+        added.append(lid)
+    return added
+
+
 def bind_scopes(ef: EntryFile) -> tuple[list, list]:
     """Write the cascade defaults' extents from `SCOPE_EXTENTS`. Returns (wrote, held).
 
@@ -748,7 +843,8 @@ def reconcile(ef: EntryFile, locations: List[Location], structure: dict) -> Repo
             candidates=cands))
 
     for cand in ef.locations:
-        if cand.location_id not in matched_ids and cand.status == "active":
+        # T349: a page default is the page's sentence, not a table row — never "absent from the page"
+        if cand.location_id not in matched_ids and cand.status == "active" and cand.kind != PAGE_DEFAULT:
             rep.outcomes.append(Outcome(
                 "dormant", cand.fingerprints[-1] if cand.fingerprints else "", cand.location_id,
                 cand.water, cand.source_text.get("specific_area", ""),
@@ -805,6 +901,8 @@ def apply_seed(ef: EntryFile, locations: List[Location], structure: dict, *,
 
     dormant = 0
     for cand in ef.locations:
+        if cand.kind == PAGE_DEFAULT:
+            continue                  # T349: kept by the page's sentence (`cascade.statement_locators`), not a row
         if cand.location_id not in present and cand.status == "active":
             if mark_dormant:
                 cand.status = "dormant"
@@ -951,7 +1049,8 @@ def _untangled(slug: str, out_dir: Path):
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["seed", "reconcile", "group", "contest", "bind-whole", "bind-scopes"])
+    ap.add_argument("command", choices=["seed", "reconcile", "group", "contest", "bind-whole", "bind-scopes",
+                                        "page-defaults"])
     ap.add_argument("--regions", nargs="+", choices=ALL_SLUGS)
     ap.add_argument("--scrape", type=Path, default=GENERATED.regs.dfo_salmon)
     ap.add_argument("--entries-dir", type=Path, default=ENTRIES_DIR)
@@ -998,6 +1097,19 @@ def main(argv: Optional[List[str]] = None) -> int:
                     print(f"      held  {lid:<44} {why}")
         print(f"\n{wrote} locator(s) bound to the whole water; {held} held for a curator"
               + (" (dry run, nothing written)" if args.dry_run else ""))
+        return 0
+
+    if args.command == "page-defaults":
+        from pipeline.regs.dfo_salmon.cascade import statements
+        for slug in todo:
+            slug = normalize_slug(slug)
+            ef = load(slug, args.entries_dir)
+            src = Path(args.scrape) / "rules" / f"region-{slug}.json"
+            pre = json.loads(src.read_text(encoding="utf-8")).get("preamble") or [] if src.exists() else []
+            added = seed_page_defaults(ef, statements(pre))
+            if added and not args.dry_run:
+                save(ef, args.entries_dir)
+            print(f"region {slug:<3} {ef.region_name:<38} page defaults +{len(added)} {added}")
         return 0
 
     if args.command == "bind-scopes":

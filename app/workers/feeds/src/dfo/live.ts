@@ -30,7 +30,7 @@ import { key } from "./names";
 import { parseRegion } from "./parse";
 import { cmpStr, cmpTuple, formatFixed, pyRe, pyStrOf, pyTypeName, repr, search } from "./py";
 import { feedText, loads, PyFloat } from "./pyjson";
-import { bucket, headerClosure } from "./quota";
+import { bucket, headerClosure, markShared, sharedScope } from "./quota";
 import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
 import { readRegistry, REGISTRY_PATH, template, type Registry } from "./wording";
@@ -188,11 +188,14 @@ function join(
       continue;
     }
     if (hit) {
+      // T349: a location whose words say "in the aggregate" shares its counts across its scope (quota.markShared)
+      const rs = markShared(loc.rules as unknown as Record<string, unknown>[], sharedScope(hit.source_text)) as unknown as typeof loc.rules;
       const l = rules.get(hit.location_id);
-      if (l) l.push(...loc.rules);
-      else rules.set(hit.location_id, [...loc.rules]);
+      if (l) l.push(...rs);
+      else rules.set(hit.location_id, [...rs]);
       continue;
     }
+    if (fp.startsWith("page:")) continue;   // T349: a page default's sentence with no default location here is not a new place
     const src = byFp.get(fp);
     const o = outcome.get(fp);
     const water = src ? src.water : "";

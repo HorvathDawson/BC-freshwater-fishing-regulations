@@ -54,5 +54,45 @@ export function build(
       locators.push({ fingerprint: fp, rows, rules: [], ...w, error: `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 200).join("")}` });
     }
   }
+  // T349: the page's default sentences, each the one rule of its page-default location (cascade.statement_locators)
+  locators.push(...statementLocators(String(scraped.region ?? ""), scraped.preamble || []));
   return { region: scraped.region, date_modified: scraped.date_modified, preamble: scraped.preamble || [], locators };
+}
+
+// ── T349 port of pipeline/regs/dfo_salmon/cascade.py `statements` / `statement_locators` ──────────────────────────
+// Owner 2026-11-02: "daily limit 0" = closed, and a water nothing opens is closed — every page default answers closed.
+const STATEMENT: readonly (readonly [string, RegExp])[] = [
+  ["closed_except_listed", /there is no fishing for salmon in .+? except for the opportunities listed/i],
+  ["limit_zero", /unless otherwise stated in the table below, the daily limit for .+? is zero/i],
+  ["closed_until_notice", /there is no fishing for salmon in .+? until further notice/i],
+];
+const FLOWING = /flowing into areas?\s+(\d{1,3}(?:(?:\s*,\s*|\s*,?\s+and\s+)\d{1,3})*)/i;
+
+export interface Statement { k: string; t: string; areas: number[]; unlisted: "closed" }
+
+export function statements(texts: readonly string[]): Statement[] {
+  const out: Statement[] = [];
+  for (const raw of texts) {
+    const t = (raw || "").replace(/\s+/g, " ").trim();
+    for (const [k, rx] of STATEMENT) {
+      if (rx.test(t)) {
+        const m = FLOWING.exec(t);
+        const areas = m ? (m[1]!.match(/\d{1,3}/g) ?? []).map(Number) : [];
+        if (!out.some((o) => o.t === t)) out.push({ k, t, areas, unlisted: "closed" });
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+export const pageFingerprint = (slug: string, areas: readonly number[] = []): string =>
+  `page:${slug}:${areas.length ? `areas-${areas.join("-")}` : "region"}`;
+
+export function statementLocators(slug: string, preamble: readonly string[]): Locator[] {
+  return statements(preamble).map((st) => {
+    const fp = pageFingerprint(slug, st.areas);
+    return { fingerprint: fp, rows: [st.t],
+             rules: [{ rule_id: fp, type: "retention_limit", verbatim: st.t, species: ["SA"], take: 0, may_target: false } as unknown as TypedRule] };
+  });
 }

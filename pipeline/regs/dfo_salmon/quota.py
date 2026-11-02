@@ -185,6 +185,47 @@ def _size(seq: List[int], n: int, over_cm: int, says: str, period: Optional[str]
     return t
 
 
+# ── T349: SHARED QUOTAS (owner 2026-11-02) ──────────────────────────────────────────────────────────────────────────
+#
+# A quota shared ACROSS waters is the quota tree's aggregate tier: tier `total` with `whose` naming its scope — a SET of
+# waters or management units, not one water. Two on the pages today:
+#
+#   R5B   "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 …"
+#         — the region row's limits are one count over every water of MUs 5-6 to 5-11 together. The page's second
+#         definition, "(i.e. Region 5 not including the Fraser River watershed)", is SETTLED to the MU list (owner:
+#         one scope): it is the operative text and what `entries.SCOPE_EXTENTS[("5b", "region")]` binds.
+#   R2    "Squamish watershed: the aggregate daily limit of hatchery-marked coho in the entire Squamish non-tidal
+#         systems combined is one (1)." — a header note naming a watershed: the bucket's `shared` tier on those waters.
+#
+# The location's rules are marked where they meet it (`mark_shared`: deliver.salmon.build, live.join), so the verdict
+# tree (`_one`) is the aggregate tier wherever that location answers.
+
+_RE_AGGREGATE = re.compile(r"\bin the aggregate\b|\bcombined total\b", re.I)
+_RE_MU_RANGE = re.compile(r"Management Units?\s+(\d+-\d+)\s+to\s+(\d+-\d+)", re.I)
+
+
+def shared_scope(source_text: Optional[Mapping]) -> Optional[str]:
+    """The scope a location's quota is shared across ("Management Units 5-6 to 5-11"), or None: its words do not say
+    "in the aggregate" / "combined total"."""
+    t = str((source_text or {}).get("specific_area") or "")
+    if not _RE_AGGREGATE.search(t):
+        return None
+    m = _RE_MU_RANGE.search(t)
+    return f"Management Units {m.group(1)} to {m.group(2)}" if m else "these waters"
+
+
+def mark_shared(rules: Sequence[dict], scope: Optional[str]) -> List[dict]:
+    """The location's rules with each top-level count (a retention limit above zero, no `within`) marked `shared`."""
+    if not scope:
+        return list(rules)
+    return [{**r, "shared": scope} if (r.get("type") == "retention_limit" and not r.get("within")
+                                       and (r.get("take") or 0) > 0) else r for r in rules]
+
+
+def _says_shared(d: int, names: str, hatchery: bool, scope: str) -> str:
+    return f"Up to {d} {'hatchery-marked ' if hatchery else ''}{names} a day in total, all waters of {scope} combined"
+
+
 def _one(rule: dict, subs: Sequence[dict]) -> dict:
     """One opening rule (and the sub-rules `within` it) -> its count tier."""
     d = int(rule.get("take") or 0)
@@ -224,6 +265,9 @@ def _one(rule: dict, subs: Sequence[dict]) -> dict:
     kids += [_size(seq, n, cm, f"{n} over {cm} cm a month", "monthly") for cm, n in sorted(monthly)]
     tree = {"node": "tier", "id": "t1", "tier": "count", "n": d, "says": says, "by": 0, "species": species,
             "children": kids}
+    if rule.get("shared"):          # T349: the aggregate tier — one count over a set of waters
+        tree = {**tree, "tier": "total", "whose": rule["shared"],
+                "says": _says_shared(d, names, hatchery, rule["shared"])}
     return {"tree": tree, **({"u": 1} if unread else {})}
 
 
@@ -292,6 +336,30 @@ def bucket(notes: Sequence[Mapping]) -> Optional[dict]:
                 mins.setdefault(sp, n["cm"])
     if mins:
         out["min_cm"] = mins
+    sh = shared_buckets(notes)
+    if sh:
+        out["shared"] = sh
+    return out
+
+
+def shared_buckets(notes: Sequence[Mapping]) -> List[dict]:
+    """(T349) a header `aggregate` note naming waters (R2's Squamish hatchery coho) as the quota tree's aggregate tier:
+    `[{tree, t, id, w}]` — `tree` a `total` tier whose scope is the named watershed(s), `w` the note's water keys (the
+    payload's `scopes` turn them into items). Only where DFO printed the number."""
+    out = []
+    for n in notes:
+        if n.get("k") != "aggregate" or not n.get("w") or not isinstance(n.get("n"), int):
+            continue
+        sp = list(n.get("sp") or ())
+        hatchery = bool(n.get("hatchery"))
+        names = " or ".join(_NAMES.get(c, c) for c in sp) or "salmon"
+        whose = " and ".join(f"the {w['n']} watershed" if w.get("ws") else w["n"] for w in n["w"])
+        tree = {"node": "tier", "id": "t0", "tier": "total", "n": n["n"], "by": 0, "children": [], "species": sp,
+                "whose": whose, "says": f"Up to {n['n']} {'hatchery-marked ' if hatchery else ''}{names} a day in "
+                                        f"total across {whose}"}
+        if hatchery:
+            tree["origin"] = "hatchery"
+        out.append({"tree": tree, "t": n["t"], "id": n.get("id"), "w": [w["key"] for w in n["w"]]})
     return out
 
 

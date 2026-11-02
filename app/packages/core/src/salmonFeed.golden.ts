@@ -203,7 +203,30 @@ export const SALMON_FEED_GOLDEN = {
       "SK": 30,
       "PK": 30,
       "CM": 30
-     }
+     },
+     "shared": [
+      {
+       "tree": {
+        "node": "tier",
+        "id": "t0",
+        "tier": "total",
+        "n": 1,
+        "by": 0,
+        "children": [],
+        "species": [
+         "CO"
+        ],
+        "whose": "the Kispiox River watershed",
+        "says": "Up to 1 hatchery-marked coho a day in total across the Kispiox River watershed",
+        "origin": "hatchery"
+       },
+       "t": "Kispiox watershed: the aggregate daily limit of hatchery-marked coho in the entire Kispiox non-tidal systems combined is one (1).",
+       "id": "6:aggregate:1ccba1c6",
+       "w": [
+        "kispiox river+ws"
+       ]
+      }
+     ]
     },
     "unresolved": [
      {

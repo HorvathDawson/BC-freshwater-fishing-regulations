@@ -300,6 +300,55 @@
         "notes": [],
         "spatial_caveat": false
       }
+    },
+    {
+      "location_id": "5a:default:region",
+      "region": "5a",
+      "region_number": 5,
+      "kind": "page_default",
+      "precedence": -1,
+      "water": "All Region 5A waters (Region 5 less Management Units 5-6 to 5-11)",
+      "water_id": null,
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "page:5a:region"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "All Region 5A waters (Region 5 less Management Units 5-6 to 5-11)",
+        "areas": [],
+        "statement": "closed_until_notice",
+        "says": "There is no fishing for salmon in Region 5A - Cariboo Part A, Fraser River Watershed until further notice.",
+        "unlisted": "closed"
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-11-02",
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:region:5",
+            "outside_areas": [
+              "area:mu_group:management_units_5_6_to_5_11"
+            ]
+          }
+        ],
+        "tributaries": false,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
     }
   ]
 }

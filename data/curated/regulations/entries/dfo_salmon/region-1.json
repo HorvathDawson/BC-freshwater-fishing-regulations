@@ -5471,6 +5471,55 @@
         "notes": [],
         "spatial_caveat": false
       }
+    },
+    {
+      "location_id": "1:default:region",
+      "region": "1",
+      "region_number": 1,
+      "kind": "page_default",
+      "precedence": -1,
+      "water": "All Region 1 waters (DFO: Haida Gwaii is Region 6)",
+      "water_id": null,
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "page:1:region"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "All Region 1 waters (DFO: Haida Gwaii is Region 6)",
+        "areas": [],
+        "statement": "limit_zero",
+        "says": "Unless otherwise stated in the table below, the daily limit for all waters in Region 1 is zero (0).",
+        "unlisted": "closed"
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-11-02",
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:region:1",
+            "outside_areas": [
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
+          }
+        ],
+        "tributaries": false,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
     }
   ]
 }

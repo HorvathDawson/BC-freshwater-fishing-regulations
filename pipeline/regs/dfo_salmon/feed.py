@@ -71,6 +71,11 @@ def build(scraped: dict) -> dict:
             **({"words": words} if (words := [w for w in map(row_words, recs) if w]) else {}),
         })
 
+    # T349: the page's default sentences ("There is no fishing for salmon in Region 3 except …"), each the one rule of
+    # its page-default location (`cascade.statement_locators`, keyed `page:<slug>:<scope>`)
+    from pipeline.regs.dfo_salmon.cascade import statement_locators
+    locators.extend(statement_locators(str(scraped.get("region") or ""), scraped.get("preamble") or []))
+
     return {
         "region": scraped.get("region"),
         "date_modified": scraped.get("date_modified"),

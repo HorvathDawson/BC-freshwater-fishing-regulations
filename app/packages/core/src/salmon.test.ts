@@ -383,6 +383,21 @@ describe("(T320, T332) the salmon bucket and each species' numbers — the game-
     expect(squamish(q, SEP15).waterBuckets ?? []).toEqual([]);
   });
 
+  it("(T349) draws the store's aggregate tier over the Squamish watershed when the bucket carries it", () => {
+    const f = withQuota({ tree: count(4, "4 a day, hatchery-marked only", [kind("hatchery-marked coho", 4, "4 a day, hatchery-marked only", true)]) });
+    const P = f.payload as never as { regions: Record<string, { notes?: object[]; bucket?: object }> };
+    const notes = [{ id: "6:aggregate:s", k: "aggregate", sp: ["CO"], n: 1, hatchery: true, t: "Squamish watershed: …",
+                     w: [{ n: "Squamish River", ws: true, key: "squamish river+ws" }] }];
+    const tree = { node: "tier", id: "t0", tier: "total", n: 1, by: 0, children: [], species: ["CO"], whose: "the Squamish River watershed",
+                   says: "Up to 1 hatchery-marked coho a day in total across the Squamish River watershed", origin: "hatchery" };
+    const r6 = P.regions["6"]!;
+    const bucket = { ...(r6.bucket ?? { tree: count(4, "Up to 4 salmon a day in total"), t: "…" }),
+                     shared: [{ tree, t: notes[0]!.t, id: "6:aggregate:s", w: ["squamish river+ws"] }] };
+    const payload = { ...f.payload, regions: { ...P.regions, "6": { ...r6, notes, bucket } }, scopes: { "6": { "squamish river+ws": ["gnis:sq"] } } };
+    const w = salmonTable(salmonCard({ ...f, payload } as never, { sids: [101], item: "gnis:sq" }, JUL20)).waterBuckets!;
+    expect(w.map((x) => x.line)).toEqual(["Up to 1 hatchery-marked coho a day in total across the Squamish River watershed"]);
+  });
+
   it("no bucket line when nothing may be kept today", () => {
     const t = salmonTable(salmonCard(withQuota({ tree: count(4, "4 a day") }), { sids: [101], item: null }, SEP15));
     expect(t.bucket ?? null).toBeNull();

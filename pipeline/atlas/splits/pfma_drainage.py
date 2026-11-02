@@ -59,6 +59,11 @@ LAYER = "pfma_areas"
 AREA_FIELD = "MANAGEMENT_AREA"
 #: The Areas DFO Region 6 section E names. Others exist; these are the ones a rule asks for.
 SECTION_E_AREAS = (3, 4, 5, 6)
+#: (T349, owner 2026-11-02) The Areas DFO Region 2's page keys its two unlisted-water scopes on: "waters of Region 2
+#: flowing into Areas 28 and 29" (no fishing except listed) and "… flowing into Areas 13, 15, and 16" (daily limit 0).
+REGION_2_AREAS = (13, 15, 16, 28, 29)
+#: Every Area the registry mints an `area:drains_to:pfma_N` for (`registry.build`).
+MINTED_AREAS = SECTION_E_AREAS + REGION_2_AREAS
 
 #: FWA's 9XX major-watershed groups — the coastal drainages, which is what a basin prefix's first
 #: group means. Kept here because it turns an opaque number into a place, and because three of

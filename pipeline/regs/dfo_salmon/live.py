@@ -148,8 +148,11 @@ def join(slug: str, ef, typed: dict, locations: Sequence, report) -> Tuple[Dict[
         fp = loc["fingerprint"]
         hit = index.get(fp)
         if hit is not None:
-            rules.setdefault(hit.location_id, []).extend(loc["rules"])
+            from pipeline.regs.dfo_salmon.quota import mark_shared, shared_scope
+            rules.setdefault(hit.location_id, []).extend(mark_shared(loc["rules"], shared_scope(hit.source_text)))
             continue
+        if fp.startswith("page:"):
+            continue                # T349: a page default's sentence with no default location here is not a new place
         src = by_fp.get(fp)
         o = outcome.get(fp)
         water = src.water if src else ""

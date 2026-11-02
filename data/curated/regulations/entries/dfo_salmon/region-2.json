@@ -4449,6 +4449,173 @@
         "notes": [],
         "spatial_caveat": false
       }
+    },
+    {
+      "location_id": "2:default:areas-28-29",
+      "region": "2",
+      "region_number": 2,
+      "kind": "page_default",
+      "precedence": -1,
+      "water": "Region 2 waters flowing into Areas 28 and 29",
+      "water_id": null,
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "page:2:areas-28-29"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "Region 2 waters flowing into Areas 28 and 29",
+        "areas": [
+          28,
+          29
+        ],
+        "statement": "closed_except_listed",
+        "says": "There is no fishing for salmon in waters of Region 2 flowing into Areas 28 and 29 except for the opportunities listed in the table below.",
+        "unlisted": "closed"
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-11-02",
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:drains_to:pfma_28",
+            "within_area": "area:region:2"
+          },
+          {
+            "op": "within",
+            "area_id": "area:drains_to:pfma_29",
+            "within_area": "area:region:2"
+          }
+        ],
+        "tributaries": false,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:default:areas-13-15-16",
+      "region": "2",
+      "region_number": 2,
+      "kind": "page_default",
+      "precedence": -1,
+      "water": "Region 2 waters flowing into Areas 13, 15 and 16",
+      "water_id": null,
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "page:2:areas-13-15-16"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "Region 2 waters flowing into Areas 13, 15 and 16",
+        "areas": [
+          13,
+          15,
+          16
+        ],
+        "statement": "limit_zero",
+        "says": "Unless otherwise stated in the table below, the daily limit for waters in Region 2 flowing into Areas 13, 15, and 16 is zero (0).",
+        "unlisted": "closed"
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-11-02",
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:drains_to:pfma_13",
+            "within_area": "area:region:2"
+          },
+          {
+            "op": "within",
+            "area_id": "area:drains_to:pfma_15",
+            "within_area": "area:region:2"
+          },
+          {
+            "op": "within",
+            "area_id": "area:drains_to:pfma_16",
+            "within_area": "area:region:2"
+          }
+        ],
+        "tributaries": false,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:default:other",
+      "region": "2",
+      "region_number": 2,
+      "kind": "page_default",
+      "precedence": -1,
+      "water": "Region 2 waters flowing into no Area 13/15/16/28/29 (to the US: Skagit, Similkameen, Nooksack tributaries) or with no watershed code",
+      "water_id": null,
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [],
+      "source_text": {
+        "waters": "",
+        "specific_area": "Region 2 waters flowing into no Area 13/15/16/28/29 (to the US: Skagit, Similkameen, Nooksack tributaries) or with no watershed code",
+        "areas": [],
+        "statement": "unlisted",
+        "says": "owner 2026-11-02: unlisted = closed (no DFO sentence)",
+        "unlisted": "closed"
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-11-02",
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:region:2",
+            "outside_areas": [
+              "area:drains_to:pfma_13",
+              "area:drains_to:pfma_15",
+              "area:drains_to:pfma_16",
+              "area:drains_to:pfma_28",
+              "area:drains_to:pfma_29"
+            ]
+          }
+        ],
+        "tributaries": false,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
     }
   ]
 }

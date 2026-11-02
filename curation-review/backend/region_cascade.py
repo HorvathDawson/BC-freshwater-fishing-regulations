@@ -10,9 +10,13 @@ writes a curated file.
     GET /api/dfo/cascade-regions/{slug}/map     the region outline + each scope's coverage + the Section E check
 
 "FLOWS INTO AREA N". A water's tidal Area is its BASIN's mouth's nearest PFMA Area (`atlas.splits.pfma_drainage`).
-The atlas mints `area:drains_to:pfma_N` only for Region 6's Areas 3-6; the province-wide basin -> Area table is
-cached at `data/generated/review/pfma_basin_areas.json` (`python region_cascade.py --basins`, ~40 s, run it under
-scripts/heavy.sh) so Region 2's Areas 13/15/16/28/29 can be told apart here without an atlas rebuild.
+The atlas mints `area:drains_to:pfma_N` for Region 6's Areas 3-6 and (T349) Region 2's 13/15/16/28/29; the province-wide
+basin -> Area table is also cached at `data/generated/review/pfma_basin_areas.json` (`python region_cascade.py
+--basins`, ~40 s, under scripts/heavy.sh) for the map's fallback before a reach run places the defaults.
+
+T349 (owner 2026-11-02): every region's "not specified" answer is a first-class ENTRY — a `page_default` location
+(`entries.PAGE_DEFAULTS`, precedence -1: after every table row) quoting the page's sentence. Each is drawn here on the
+node it answers for; Region 2's map colours each water by the default that answers it (28/29, 13/15/16, other / US).
 """
 from __future__ import annotations
 
@@ -29,7 +33,8 @@ from pipeline.regs.review import dfo as D
 
 SLUGS = ["1", "2", "3", "4", "5a", "5b", "6", "7", "8"]
 BASINS = Path(reuse.REACH_DIR).parents[1] / "review" / "pfma_basin_areas.json"
-TIERS = {0: "region default", 1: "section default", 2: "tidal-area default", 3: "named water"}
+TIERS = {-1: "page default (entry)", 0: "region default", 1: "section default", 2: "tidal-area default",
+         3: "named water"}
 
 #: the registry area each page's region is (5a / 5b split region 5 by management unit)
 REGION_AREA = {"1": "area:region:1", "2": "area:region:2", "3": "area:region:3", "4": "area:region:4",
@@ -42,6 +47,9 @@ WMU_PREFIX = {"5a": [f"5-{n}" for n in (1, 2, 3, 4, 5, 12, 13, 14, 15, 16)], "5b
 R6_ORDER = [("E:areas-5", "6:e:area:areas-5~2"), ("E:areas-6", "6:e:area:areas-6~2"),
             ("E:areas-3-4-5-6", "6:e:area:areas-3-4-5-6~2"), ("B(i)", "6:b(i):section"), ("B(ii)", "6:b(ii):section"),
             ("C", "6:c:section"), ("D", "6:d:section"), ("F", "6:f:closure"), ("E", "6:e:section")]
+#: (T349) Region 2's map: scope key -> the default ENTRY that answers it
+R2_DEFAULTS = {"areas-28-29": "2:default:areas-28-29", "areas-13-15-16": "2:default:areas-13-15-16",
+               "other": "2:default:other"}
 R6_SIBLINGS = {"B": "6:b:section", "C": "6:c:section", "D": "6:d:section", "F": "6:f:closure"}
 R6_SIBLING_PREFIX = {"100-": "Fraser (F)", "400-": "Skeena (B)", "500-": "Nass (C)"}
 
@@ -99,6 +107,7 @@ def _region(slug: str, locs: dict) -> dict:
     parsed = parse_cached(slug, CACHE)
     mine = {lid: loc for lid, (s, loc, _w) in locs.items() if s == slug}
     defaults = [_code_default(l) for l in mine.values() if l.get("precedence", 3) < 3 or not l.get("water_id")]
+    page_defaults = [d for d in defaults if mine[d["id"]].get("kind") == "page_default"]
     waters_by_sec = Counter((l.get("section") or "") for l in mine.values() if l.get("water_id"))
     code_unlisted = S.NOT_LISTED["t"]
 
@@ -119,6 +128,8 @@ def _region(slug: str, locs: dict) -> dict:
     if whole:
         root["quote"] = whole[0]["t"]
         root["unlisted"] = whole[0]["unlisted"]
+    # T349: the whole-page default entry answers on the root
+    root["code"] = [d for d in page_defaults if d["id"].endswith(":default:region")]
     tree_unlisted = {"page": [{"scope": s["areas"] or "whole region", "says": s["unlisted"], "t": s["t"]} for s in stmts],
                      "code": code_unlisted}
 
@@ -136,6 +147,10 @@ def _region(slug: str, locs: dict) -> dict:
                 "proposal": (f"a tidal-area default (precedence 2) over Region {slug}'s waters draining to Areas "
                              f"{s['areas']}, answering '{s['unlisted']}' where no row does")})
         root["children"].append(node)
+    other = [d for d in page_defaults if d["id"].endswith(":default:other")]
+    if other:                       # T349: Region 2's remainder — drains to no Area 13/15/16/28/29 (to the US)
+        root["children"].append({"id": "other", "kind": "residual", "label": other[0]["scope"], "quote": None,
+                                 "unlisted": "closed", "children": [], "code": other})
 
     # section banners (Region 6) as their containment tree
     if parsed.sections:
@@ -149,7 +164,7 @@ def _region(slug: str, locs: dict) -> dict:
         for d in defaults:
             loc = mine[d["id"]]
             areas = (loc.get("source_text") or {}).get("areas") or []
-            if areas and loc.get("section") in by:
+            if areas and loc.get("section") in by and d not in page_defaults:
                 sid = f"{loc['section']}:areas-{'-'.join(map(str, areas))}"
                 kid = next((k for k in by[loc["section"]]["children"] if k["id"] == sid), None)
                 if kid is None:
@@ -167,37 +182,39 @@ def _region(slug: str, locs: dict) -> dict:
             n["children"].sort(key=lambda c: (c["kind"] != "tidal_areas", c["id"]))
     elif defaults:
         for d in defaults:
+            if d in page_defaults:
+                continue
             if not (mine[d["id"]].get("source_text") or {}).get("areas"):
                 root["children"].append({"id": d["id"], "kind": "table_default", "label": d["scope"],
                                          "quote": d["scope"], "children": [], "code": [d]})
 
     # ── comparisons the page's own words decide ──
-    for s in stmts:
-        if s["unlisted"] == "release" and slug != "6":      # 6: section A lists every species all year
-            proposals.append({
-                "id": f"{slug}:unlisted{'-areas-' + '-'.join(map(str, s['areas'])) if s['areas'] else ''}",
-                "scope": "a water with no row" + (f" (Areas {s['areas']})" if s["areas"] else ""),
-                "quote": s["t"], "code_now": f"'{code_unlisted}' (deliver.salmon.NOT_LISTED)",
-                "proposal": "'daily limit 0' — fishing allowed, no retention (release), not 'closed'"})
+    # (owner 2026-11-02, T349) "daily limit 0" is CLOSED like "no fishing": no wording proposal; the page defaults
+    # answer it as entries (`entries.PAGE_DEFAULTS`)
     if slug == "4":
         tbl = next((d for d in defaults if d["rows"]), None)
         if tbl:
-            odd.append(f"Header: \"{stmts[0]['t']}\" but the table's only row reads \"{tbl['rows'][0]}\" — "
-                       "non-retention is not 'no fishing'.")
+            odd.append(f"Header: \"{stmts[0]['t']}\"; the table's only row reads \"{tbl['rows'][0]}\" — "
+                       "owner 2026-11-02: salmon non-retention is closed to salmon, so both say closed.")
     if slug in ("5a", "7"):
-        odd.append(f"\"{stmts[0]['t']}\" — yet the table lists in-season openings ({waters_by_sec.get('', 0)} rows on "
-                   "named waters); the closure is the default, the rows are the exceptions.")
+        odd.append(f"\"{stmts[0]['t']}\" — yet the table still lists in-season openings ({waters_by_sec.get('', 0)} rows on "
+                   "named waters). Owner 2026-11-02: assume CLOSED (the header closure wins). History (T349): the "
+                   "2025-08-21 page opened them by notice (5A: Horsefly Bay sockeye Aug 22-Sep 15, FN0846; 7: Nechako "
+                   "sockeye Aug 22-Sep 21, FN0851) under \"except for the opportunities listed\"; the 2026-04-01 page "
+                   "restored \"until further notice\" and left the 2025 rows. The closure is the later statement.")
     if slug == "5b":
         odd.append("Two definitions of 5B on one page: \"Management Units 5-6 to 5-11\" and \"(i.e. Region 5 not "
-                   "including the Fraser River watershed)\". They differ on the ground (MU lines do not follow the "
-                   "Fraser divide); the code binds the MU list.")
+                   "including the Fraser River watershed)\". SETTLED (T349, owner: one scope) to the MU list — the "
+                   "operative text, and what the code binds.")
         odd.append("\"All lakes or streams or part thereof in the aggregate (combined total)\" — a quota shared across "
-                   "waters, which the catalogue has no field for.")
+                   "waters: (T349) the quota tree's aggregate tier, `total` whose MUs 5-6 to 5-11 (`quota.mark_shared`).")
     if slug == "2":
         odd.append("Region 2's scopes are keyed by the TIDAL AREA a water drains to, not by watershed or MU; "
-                   "`header.parse_header` stops at these sentences, so nothing read them before this view.")
+                   "(T349) each is a page-default entry over `area:drains_to:pfma_N` ∩ Region 2, and the remainder "
+                   "(to the US) a third, closed: unlisted = closed.")
         odd.append("\"Squamish watershed: the aggregate daily limit of hatchery-marked coho in the entire Squamish "
-                   "non-tidal systems combined is one (1).\" — an aggregate bucket over a whole watershed.")
+                   "non-tidal systems combined is one (1).\" — (T349) the bucket's `shared` aggregate tier over the "
+                   "Squamish watershed (`quota.shared_buckets`).")
     if slug == "6":
         odd += [
             "E is a residual: \"Other Mainland Watersheds, except for the Fraser River watershed\" — region 6 minus "
@@ -275,9 +292,9 @@ SCOPE_STYLE = {
     "F": ("F Fraser (closed)", "#6b7280"), "E": ("E · other: drains to Area 7/8", "#f97316"),
     "E:transboundary": ("E · other: no BC tidal Area (Alaska / Yukon / Arctic)", "#fdba74"),
     "gap": ("in Region 6 but in no section", "#dc2626"),
-    "areas-28-29": ("Areas 28/29 — no fishing except listed", "#9ca3af"),
-    "areas-13-15-16": ("Areas 13/15/16 — daily limit 0", "#2563eb"),
-    "elsewhere": ("drains to no BC tidal Area (via the US)", "#dc2626"),
+    "areas-28-29": ("2:default:areas-28-29 — Areas 28/29: closed except listed", "#6b7280"),
+    "areas-13-15-16": ("2:default:areas-13-15-16 — Areas 13/15/16: limit 0 = closed", "#2563eb"),
+    "other": ("2:default:other — other / US-draining (and uncoded lakes): closed, unlisted", "#dc2626"),
     "nocode": ("lake with no FWA watershed code (Area unknown)", "#a3a3a3"),
     "region": ("the whole region", "#0f766e"),
 }
@@ -339,21 +356,28 @@ def _region_map(slug: str, min_order: int, tol: float, _stamp: tuple) -> dict:
                         else "E reaches into a sibling — see flagged"),
         }
     elif slug == "2":
+        # T349: each water coloured by the DEFAULT ENTRY that answers it (the reach run's placement of 2:default:*),
+        # else — before a reach run has placed them — by the cached basin -> Area table, read the same way
         r2 = _items(REGION_AREA["2"])
+        placed = _reach_rows(set(R2_DEFAULTS.values()))
         by = Counter()
         out = defaultdict(set)
+        for k, lid in R2_DEFAULTS.items():
+            for s in placed.get(lid, ()):
+                assign.setdefault(s, k)
         for s in r2:
             a = area_of(wsc(s))
-            k = ("areas-28-29" if a in (28, 29) else "areas-13-15-16" if a in (13, 15, 16)
-                 else "elsewhere" if wsc(s) else "nocode")
-            assign[s] = k
+            if s not in assign:
+                assign[s] = ("areas-28-29" if a in (28, 29) else "areas-13-15-16" if a in (13, 15, 16) else "other")
             by[str(a)] += 1
-            out[k].add(s)
+            out[assign[s]].add(s)
+        nocode = sum(1 for s in out["other"] if not wsc(s))
         check = {"R2_sections": len(r2), "by_tidal_area": dict(by.most_common()), "basins_cached": BASINS.exists(),
-                 "elsewhere_named": _named(out["elsewhere"], nodes, lambda s: True),
+                 "placed_by_entries": {k: len(placed.get(lid, ())) for k, lid in R2_DEFAULTS.items()},
+                 "elsewhere_named": _named(out["other"], nodes, lambda s: bool(wsc(s))),
                  "verdict": (f"{len(out['areas-28-29']) + len(out['areas-13-15-16']):,} of {len(r2):,} sections drain to Areas "
-                             f"13/15/16/28/29; {len(out['elsewhere']):,} drain to no BC tidal Area (via the US); "
-                             f"{len(out['nocode']):,} lakes carry no watershed code")}
+                             f"13/15/16/28/29; {len(out['other']):,} fall to the 'other' default — closed (to the US, "
+                             f"{nocode:,} of them lakes with no watershed code)")}
     else:
         aid = REGION_AREA[slug]
         secs = _items(aid)
