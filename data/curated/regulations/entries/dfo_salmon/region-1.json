@@ -3564,7 +3564,7 @@
       "binding": {
         "extents": [
           {
-            "op": "whole",
+            "op": "rest",
             "item_id": "gnis:14533"
           }
         ],
