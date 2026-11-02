@@ -83,12 +83,10 @@ _PROPOSALS_MEMO = reuse._Memo()
 
 def _proposal_view(p: dict) -> dict:
     n = p["split"]
-    return {"id": p["id"], "anchor": n.anchor, "name": n.name, "item_id": n.item_id,
-            "split_id": n.split_id, "on_item": n.on_item, "coord": list(n.coord) if n.coord else None,
-            "blk": n.blk, "measure": n.measure, "side": n.side, "offset_m": n.offset_m,
-            # an area_boundary names its area: dropped here, a save of it was refused (Little Qualicum)
-            "area": n.area, "area_end": n.area_end,
-            "quote": n.quote, "marks": p["marks"], "n_marks": len(p["marks"]),
+    # EVERY field of the split (T355): a hand-picked list dropped an area_boundary's area, and its save
+    # was refused (Little Qualicum, 59e75d36b) — a field added to `NewSplit` now travels by itself
+    fields = {k: v for k, v in n.model_dump(mode="json").items() if k not in ("ref", "note", "confidence")}
+    return {**fields, "id": p["id"], "marks": p["marks"], "n_marks": len(p["marks"]),
             # owner 2026-10-27: a proposed split carries its confidence everywhere
             "confidence": p.get("confidence") or n.confidence_now}
 
@@ -744,13 +742,25 @@ def check_anchor(location_id: str, ns) -> dict:
         if len({round(e[0]) for e in ends}) < 2:
             words += " (the water touches the lake once: inlet and outlet are the same point)"
         return done(p, words, {"item_id": lake})
-    if ns.anchor == "area_boundary":
-        # a park's own boundary (owner 2026-11-02): the atlas cuts where the water crosses it; the
-        # review app does not load the parks layer, so it is taken as written (the side rebuild places it)
-        end = {"upstream": "enters", "downstream": "leaves"}.get(ns.area_end or "", "crosses")
-        return {"ok": True, "why": None, "area": True, "on_item": items[0],
-                "coord": list(ns.coord) if ns.coord else None, "blk": ns.blk, "measure": ns.measure,
-                "words": f"where {wname} {end} {ns.area} (park boundary)"}
+    if ns.anchor in ("area_boundary", "border", "lake"):
+        # T355: an area's edge, the border, a lake's two ends — resolved by the BUILD'S OWN resolver
+        # (`split_preview.resolve`: `resolve_split_defs` on the build's chains), never by geometry here
+        import split_preview
+        got = split_preview.resolve(ns if ns.on_item else ns.model_copy(update={"on_item": items[0]}))
+        if not got.get("ok"):
+            return {"ok": False, "why": got.get("why")}
+        if ns.anchor == "area_boundary":       # an area's edge: the build cuts it, nothing to stamp
+            end = {"upstream": "enters", "downstream": "leaves"}.get(ns.area_end or "", "crosses")
+            return {"ok": True, "why": None, "area": True, "on_item": ns.on_item or items[0],
+                    "coord": got["cuts"][0]["coord"], "blk": got["cuts"][0]["blk"],
+                    "measure": got["cuts"][0]["measure"], "cuts": got["cuts"], "outline": got.get("outline"),
+                    "words": f"where {wname} {end} {ns.area} ({ns.area_layer or 'parks_bc'}): {got['words']}"}
+        cut = got["cuts"][0]
+        at = (got.get("reference") or got["cuts"])[0]       # the reference, not the offset point
+        return {"ok": True, "why": None, "blk": cut["blk"], "measure": cut["measure"], "coord": cut["coord"],
+                "on_item": ns.on_item or items[0], "words": got["words"], "cuts": got["cuts"],
+                "ref": {"blk": at["blk"], "measure": at["measure"], "coord": at["coord"]},
+                **({"item_id": ns.item_id} if ns.item_id else {})}
     if ns.anchor == "split":
         sid = ns.split_id
         pt = reuse._split_point(sid) if sid in reuse._splits_meta() else None
@@ -758,6 +768,26 @@ def check_anchor(location_id: str, ns) -> dict:
             return {"ok": False, "why": f"no split {sid!r} placed in the served atlas"}
         return done(pt, f"the existing split {sid}", {"split_id": sid})
     return {"ok": False, "why": f"unknown anchor {ns.anchor}"}
+
+
+def water_items(location_id: str) -> list[str]:
+    """The registry items of a location's water (its new splits cut the first). KeyError: no such location."""
+    got = _locations().get(location_id)
+    if got is None:
+        raise KeyError(location_id)
+    return list((got[2] or {}).get("item_ids") or [])
+
+
+def preview_split(location_id: str, ns) -> dict:
+    """T355: where the BUILD would cut a proposed split (`split_preview.resolve`) — on the location's
+    water when the split names none. KeyError: no such location."""
+    import split_preview
+    if not ns.on_item:
+        items = water_items(location_id)
+        if not items:
+            return {"ok": False, "why": "this location's water is not matched to the registry yet"}
+        ns = ns.model_copy(update={"on_item": items[0]})
+    return split_preview.resolve(ns)
 
 
 def _item_of(nid: str, items) -> str | None:
@@ -836,6 +866,13 @@ def _dedupe_against_store(stamped: list[dict]) -> tuple[list[dict], dict, list[d
     reused: list[dict] = []
     for raw in stamped:
         ns = M.NewSplit.model_validate(raw)
+        if ns.amends:
+            # T355: an EDIT of a proposed cut keeps that cut's id (`marks.proposal_groups` folds it in)
+            if not any(pid == ns.amends for pid, _q in known):
+                raise ValueError(f"new split {ns.ref}: no proposed split {ns.amends} to edit")
+            rename[ns.ref] = ns.amends
+            out.append({**raw, "ref": ns.amends})
+            continue
         hit = next(((pid, q) for pid, q in known if M.same_anchor(ns, q)), None)
         if hit is not None:
             pid, q = hit

@@ -275,11 +275,46 @@ def materialize(props: Iterable[Mapping], src: Sources, *, strict: bool = True) 
             if path not in docs:
                 docs[path] = src.doc(path)
             apply_edit(docs[path], ed, strict=strict)
+    _only_real_split_ids(props, docs.get(Path(src.splits_path)) or src.doc(src.splits_path))
     out: dict[Path, str] = {}
     for path, doc in docs.items():
         text = src.text(path)
         out[path] = _splice(text, _dump(json.loads(text), text), _dump(doc, text))
     return out
+
+
+def is_local_ref(sid) -> bool:
+    """A PROPOSAL'S LOCAL ID (T355), never a split id: the review app's "n1" / "n1-2", a hunt's
+    "stamp_lagoon_outlet", a tidal "tidal-354091024", a T191 point's "<entry>_0_1". Every real id has
+    a "__" (a curated `water__label` slug, `gauge__08HD034`) or a ":" (a minted `border:<blk>:<n>`,
+    `area:…`, `lake:<wbk>`)."""
+    return not sid or ("__" not in str(sid) and ":" not in str(sid))
+
+
+def _only_real_split_ids(props: Iterable[Mapping], splits_doc: Mapping) -> None:
+    """THE REAL-ID GUARD (T355): every split id an edit writes — an extent's `splits`, a split flagged,
+    a new split's own id — is a splits.json id once the edits are made. A mark names a new cut by its
+    local ref ("n1-2"); `build` turns each into the slug the new split lands under, and a ref that
+    slipped through (a ref no group took, an `anchor: split` naming a proposal) must never reach a
+    curated file. ValueError naming it."""
+    real = {sp.get("id") for wb in splits_doc.get("waterbodies") or [] for sp in wb.get("splits") or []}
+    for p in props:
+        for ed in p.get("edits") or ():
+            if ed.get("kind") == "split":
+                sid = (ed.get("split") or {}).get("id") or ""
+                if is_local_ref(sid):
+                    raise ValueError(f"{p.get('id')}: a new split lands under its proposal's local id {sid!r}")
+                continue
+            if ed.get("kind") == "split_flag":
+                named = [ed.get("split_id")]
+            elif ed.get("field") == "extents" and isinstance(ed.get("after"), list):
+                named = [x for ex in ed["after"] if isinstance(ex, Mapping) for x in ex.get("splits") or ()]
+            else:
+                continue
+            bad = [x for x in named if x not in real and is_local_ref(x)]
+            if bad:
+                raise ValueError(f"{p.get('id')}: names split(s) {', '.join(map(str, bad))} not in splits.json — "
+                                 "a proposal's local id never lands in a curated file")
 
 
 def _resolve_file(ed: Mapping, src: Sources) -> Path:
@@ -295,8 +330,9 @@ def _resolve_file(ed: Mapping, src: Sources) -> Path:
 # --------------------------------------------------------------------------- new splits
 
 _ANCHOR_WORDS = {"confluence": "confluence", "lake_inlet": "lake inlet", "lake_outlet": "lake outlet",
-                 "bridge": "bridge", "dam": "dam", "sign": "boundary sign", "coord": "map point",
-                 "area_boundary": "park boundary", "split": "offset from split"}
+                 "lake": "lake", "bridge": "bridge", "dam": "dam", "sign": "boundary sign",
+                 "coord": "map point", "area_boundary": "park boundary", "split": "offset from split",
+                 "border": "border"}
 
 
 def _applies_to(on_item: str) -> Optional[dict]:
@@ -327,20 +363,28 @@ def split_record(n, src: Sources, *, sid: str, provenance: str,
         else:
             notes.append(f"the registry names no single WSC / blk for {n.item_id or n.name}: "
                          "placed at the point the mark stamped")
-    elif n.anchor in ("lake_inlet", "lake_outlet"):
+    elif n.anchor in ("lake_inlet", "lake_outlet", "lake"):
         wbk = _ref(item, "wbk") or ([n.item_id.split(":", 1)[1]] if (n.item_id or "").startswith(
             "wbk:") else [])
         if len(wbk) == 1:
             anchor = {"type": "lake", "wbk": wbk[0]}
-            if not n.offset_m:
+            # T355: `lake` is both edges; an offset runs from the end it leaves (the build's rule)
+            if not n.offset_m and n.anchor != "lake":
                 anchor["edge"] = "inlet" if n.anchor == "lake_inlet" else "outlet"
         else:
             notes.append(f"the registry names no single lake for {n.item_id or n.name}: placed at "
                          "the point the mark stamped")
     elif n.anchor == "area_boundary":
         # owner 2026-11-02 (Little Qualicum Falls park): the park's own boundary, never a hand point
-        anchor = {"type": "area_boundary", "area_layer": "parks_bc", "area_name": n.area,
-                  "area_name_field": "PROTECTED_LANDS_NAME", **({"side": n.area_end} if n.area_end else {})}
+        # T355: any polygon layer (`marks.AREA_LAYERS`), the WSC subtree and the waters it leaves alone
+        anchor = {"type": "area_boundary", "area_layer": n.area_layer or "parks_bc", "area_name": n.area,
+                  "area_name_field": n.area_name_field, **({"side": n.area_end} if n.area_end else {}),
+                  **({"wsc_descendants": True} if n.wsc_descendants else {}),
+                  **({"exclude_gnis": list(n.exclude_gnis)} if n.exclude_gnis else {})}
+    elif n.anchor == "border":
+        # T355: lands ON the border pass's cut; the point only picks the crossing when there are several
+        anchor = {"type": "border", **({"coord": [round(n.coord[0], 6), round(n.coord[1], 6)],
+                                        "is_lonlat": True} if n.coord else {})}
     elif n.anchor == "split" and n.offset_m:
         # an existing cut + an offset: that cut's own anchor, with the offset as its attribute
         ref = next((sp for wb in src.doc(src.splits_path).get("waterbodies") or []

@@ -160,6 +160,7 @@ class FWADataAccessor:
         columns: Optional[List[str]] = None,
         bbox: Optional[Tuple[float, float, float, float]] = None,
         geometry: bool = True,
+        where: Optional[str] = None,
     ) -> gpd.GeoDataFrame:
         """
         Loads a full layer or a spatial subset, with a progress bar.
@@ -176,6 +177,8 @@ class FWADataAccessor:
             but one of them for a key or a name, and each was paying for 386,025 / 375,178
             polygons it discarded. `streams` is read once and does want its geometry, which
             is why this is a parameter and not a blanket change.
+        :param where: an OGR SQL attribute filter (T355: the review app's split preview reads one
+            water's blue lines inside its bbox — the rtree narrows, the filter keeps that water).
         """
         self._check_layer(layer_name)
         if not geometry:
@@ -185,7 +188,7 @@ class FWADataAccessor:
 
             df = pyogrio.read_dataframe(
                 self.gpkg_path, layer=layer_name, columns=columns, bbox=bbox,
-                read_geometry=False, use_arrow=True,
+                read_geometry=False, use_arrow=True, where=where,
             )
             df = self._normalize_columns(df)
             print(f"  loaded '{layer_name}': {len(df):,} rows (attributes only)")
@@ -197,6 +200,7 @@ class FWADataAccessor:
             use_arrow=True,
             columns=columns,
             bbox=bbox,
+            where=where,
         )
         gdf = self._normalize_columns(gdf)
 
@@ -215,6 +219,7 @@ class FWADataAccessor:
         columns: Optional[List[str]] = None,
         bbox: Optional[Tuple[float, float, float, float]] = None,
         chunk_size: int = 250_000,
+        where: Optional[str] = None,
     ):
         """Yield the layer in row chunks, normalized, so peak memory is one chunk not one layer.
 
@@ -228,8 +233,8 @@ class FWADataAccessor:
         small, so it stays a single chunk.
         """
         self._check_layer(layer_name)
-        if bbox is not None:
-            yield self.get_layer(layer_name, columns=columns, bbox=bbox)
+        if bbox is not None or where is not None:
+            yield self.get_layer(layer_name, columns=columns, bbox=bbox, where=where)
             return
         start, total = 0, 0
         while True:

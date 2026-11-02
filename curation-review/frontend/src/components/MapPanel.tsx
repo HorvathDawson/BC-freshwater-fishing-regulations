@@ -63,6 +63,10 @@ interface Props {
    *  a draggable marker; dropping one calls `onMovePoint(id, lnglat)` (the caller re-resolves it) */
   editPoints?: EditPoint[];
   onMovePoint?: (id: string, lnglat: [number, number]) => void;
+  /** T355: A NEW SPLIT'S PREVIEW from the build's own resolver (`split_preview.resolve`), drawn orange on
+   *  top: its cuts (`kind: cut`), an offset cut's reference (`kind: reference`, hollow), an area's edge
+   *  (a line), and pick candidates (`kind: mouth`, a tributary's mouth). Drawn only — nothing is computed. */
+  cutPreview?: GeoJSON.FeatureCollection | null;
 }
 
 export interface EditPoint { id: string; coord: [number, number]; label: string; kind: "reference" | "cut" }
@@ -163,7 +167,7 @@ export function MapPanel({
   onSelectSplit, reloadKey = 0, focusItemId = null,
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
   preview = null, saved = null, suggested = null, fitSuggested = false, flyTo = null, onPick = null, selectZoom = 12, fitNamed = true,
-  satellite = false, editPoints = [], onMovePoint,
+  satellite = false, editPoints = [], onMovePoint, cutPreview = null,
 }: Props) {
   const [sat, setSat] = useState(satellite);
   const satRef = useRef(sat);
@@ -292,6 +296,7 @@ export function MapPanel({
           preview: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           saved: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           suggested: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+          cutpreview: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
         layers: [
           ...layers("protomaps", LIGHT),
@@ -435,6 +440,20 @@ export function MapPanel({
                       "text-anchor": "bottom", "text-font": ["Noto Sans Medium"],
                       "text-allow-overlap": true },
             paint: { "text-color": "#9d174d", "text-halo-color": "#fff", "text-halo-width": 2 } },
+          // T355: a new split's cut as the build resolves it — orange, on top of every extent
+          { id: "cutpreview-lines", type: "line", source: "cutpreview",
+            filter: ["!=", ["geometry-type"], "Point"],
+            paint: { "line-color": "#ea580c", "line-width": 2.5, "line-dasharray": [3, 2] } },
+          { id: "cutpreview-pts", type: "circle", source: "cutpreview",
+            filter: ["==", ["geometry-type"], "Point"],
+            paint: { "circle-radius": ["case", ["==", ["get", "kind"], "mouth"], 5, 8],
+                     "circle-color": ["case", ["==", ["get", "kind"], "cut"], "#ea580c", "rgba(255,255,255,0.6)"],
+                     "circle-stroke-color": "#ea580c", "circle-stroke-width": 2.5 } },
+          { id: "cutpreview-labels", type: "symbol", source: "cutpreview",
+            filter: ["==", ["geometry-type"], "Point"],
+            layout: { "text-field": ["get", "label"], "text-size": 12, "text-offset": [0, 1.3],
+                      "text-anchor": "top", "text-font": ["Noto Sans Medium"], "text-allow-overlap": true },
+            paint: { "text-color": "#9a3412", "text-halo-color": "#fff", "text-halo-width": 2 } },
           { id: "measure-line", type: "line", source: "measure",
             filter: ["==", ["geometry-type"], "LineString"],
             paint: { "line-color": "#7c3aed", "line-width": 2, "line-dasharray": [2, 1] } },
@@ -675,6 +694,21 @@ export function MapPanel({
       }
     });
   }, [preview]);
+
+  // T355: a new split's preview (the build's resolver), orange; fly to its cuts when they change
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => {
+      const src = m.getSource("cutpreview") as maplibregl.GeoJSONSource | undefined;
+      if (!src) return;
+      src.setData((cutPreview ?? { type: "FeatureCollection", features: [] }) as GeoJSON.FeatureCollection);
+      const b = new maplibregl.LngLatBounds();
+      for (const f of cutPreview?.features ?? [])
+        if (f.geometry.type === "Point" && f.properties?.kind !== "mouth") b.extend(f.geometry.coordinates as [number, number]);
+      if (!b.isEmpty()) m.fitBounds(b, { padding: 80, maxZoom: 14, duration: 400 });
+    });
+  }, [cutPreview]);
 
   // the SAVED extent fix (DFO), teal; the view stays where the extent already put it
   useEffect(() => {

@@ -746,6 +746,61 @@ def dfo_anchor(location_id: str, split: str):
         raise HTTPException(404, f"DFO location {location_id} not found")
 
 
+@app.get("/api/split-anchors")
+def split_anchors():
+    """T355: what a new split may be — the area layers (and the field each names its polygons by) and
+    the anchor kinds the build can offset (`marks.AREA_LAYERS`, `marks.OFFSET_ANCHORS`)."""
+    from pipeline.regs.review import marks as M
+    return {"area_layers": M.AREA_LAYERS, "offset_anchors": list(M.OFFSET_ANCHORS)}
+
+
+def _new_split_param(split: str):
+    import json as _json
+    from pydantic import ValidationError
+    from pipeline.regs.review import marks as M
+    try:
+        return M.NewSplit.model_validate(_json.loads(split))
+    except (ValueError, ValidationError) as ex:
+        raise HTTPException(422, [{"path": "split", "msg": M.refusal_words(
+            ex.errors()[0]["msg"] if isinstance(ex, ValidationError) else str(ex))}])
+
+
+@app.get("/api/dfo/locations/{location_id:path}/split-preview")
+def dfo_split_preview(location_id: str, split: str):
+    """T355: A PROPOSED SPLIT'S CUT, READ ONLY, by the build's own resolver (`split_preview.resolve`):
+    {ok, why, record, cuts [{blk, measure, coord}], reference, outline, words}. 422 for a malformed split."""
+    import dfo
+    ns = _new_split_param(split)
+    try:
+        return dfo.preview_split(location_id, ns)
+    except KeyError:
+        raise HTTPException(404, f"DFO location {location_id} not found")
+
+
+@app.get("/api/dfo/locations/{location_id:path}/tributaries")
+def dfo_tributaries(location_id: str, on_item: str | None = None):
+    """T355: the streams whose mouth joins the water (a confluence split's pick list), with their mouths."""
+    import dfo
+    import split_preview
+    try:
+        items = [on_item] if on_item else dfo.water_items(location_id)[:1]
+    except KeyError:
+        raise HTTPException(404, f"DFO location {location_id} not found")
+    return split_preview.tributaries(items[0]) if items else []
+
+
+@app.get("/api/dfo/locations/{location_id:path}/split-pick")
+def dfo_split_pick(location_id: str, kind: str, lon: float, lat: float, on_item: str | None = None):
+    """T355: what a map click names for a new split — `kind` tributary | lake | area (`split_preview.pick`)."""
+    import dfo
+    import split_preview
+    try:
+        items = [on_item] if on_item else dfo.water_items(location_id)[:1]
+    except KeyError:
+        raise HTTPException(404, f"DFO location {location_id} not found")
+    return split_preview.pick(kind, items[0] if items else None, (lon, lat))
+
+
 @app.get("/api/dfo/locations/{location_id:path}/extent-preview")
 def dfo_extent_preview(location_id: str, fix: str, limit: int = 6000, tributaries: bool = False):
     """A proposed extent (`marks.ExtentFix`) on a DFO location resolved, READ ONLY."""

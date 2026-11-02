@@ -33,6 +33,10 @@ import type {
   DfoProgress,
   DfoRow,
   NewSplit,
+  SplitAnchors,
+  SplitPick,
+  SplitPreview,
+  Tributary,
   TidalDetail,
   TidalProgress,
   TidalRow,
@@ -51,6 +55,18 @@ async function getJSON<T>(url: string): Promise<T> {
   if (!res.ok) {
     throw new Error(`${res.status} ${res.statusText} for ${url}`);
   }
+  return (await res.json()) as T;
+}
+
+/** T355: a read whose 422 is an answer — `{ok: false, why}` with the server's own words (the model's
+ *  refusal: an offset on an area boundary), not an error */
+async function getOrRefused<T>(url: string): Promise<T> {
+  const res = await fetch(url);
+  if (res.status === 422) {
+    const body = await res.json().catch(() => ({}));
+    return { ok: false, why: asFieldErrors((body as { detail?: unknown }).detail).map((e) => e.msg).join("; ") } as T;
+  }
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
   return (await res.json()) as T;
 }
 
@@ -212,6 +228,17 @@ export const api = {
   dfoAnchor: (id: string, split: NewSplit) =>
     getJSON<AnchorCheck>(`/api/dfo/locations/${encodeURIComponent(id)}/anchor?split=` +
       encodeURIComponent(JSON.stringify(split))),
+  /** T355: where the BUILD's resolver would cut a proposed split (read only) */
+  dfoSplitPreview: (id: string, split: NewSplit) =>
+    getOrRefused<SplitPreview>(`/api/dfo/locations/${encodeURIComponent(id)}/split-preview?split=` +
+      encodeURIComponent(JSON.stringify(split))),
+  dfoTributaries: (id: string, onItem?: string | null) =>
+    getJSON<Tributary[]>(`/api/dfo/locations/${encodeURIComponent(id)}/tributaries`
+      + (onItem ? `?on_item=${encodeURIComponent(onItem)}` : "")),
+  dfoSplitPick: (id: string, kind: "tributary" | "lake" | "area", ll: [number, number], onItem?: string | null) =>
+    getJSON<SplitPick>(`/api/dfo/locations/${encodeURIComponent(id)}/split-pick?kind=${kind}`
+      + `&lon=${ll[0]}&lat=${ll[1]}` + (onItem ? `&on_item=${encodeURIComponent(onItem)}` : "")),
+  splitAnchors: () => getJSON<SplitAnchors>("/api/split-anchors"),
   dfoExtentPreview: (id: string, fix: ExtentFix, tributaries = false) =>
     getJSON<ExtentPreview>(`/api/dfo/locations/${encodeURIComponent(id)}/extent-preview?fix=` +
       encodeURIComponent(JSON.stringify(fix)) + (tributaries ? "&tributaries=true" : "")),

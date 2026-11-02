@@ -242,12 +242,23 @@ class ExtentFix(BaseModel):
 #: (a named tributary's mouth), `lake_inlet` / `lake_outlet` (where the water enters / leaves a lake),
 #: `bridge`, `dam`, `sign` (a crossing, a dam or a boundary sign — placed by a map point), `coord`
 #: (a bare map point) and `split` (an existing curated split, reused for this water).
-AnchorKind = Literal["confluence", "lake_inlet", "lake_outlet", "bridge", "dam", "sign", "coord",
-                     "split", "area_boundary"]
+AnchorKind = Literal["confluence", "lake_inlet", "lake_outlet", "lake", "bridge", "dam", "sign", "coord",
+                     "split", "area_boundary", "border"]
 #: the anchors placed by a map point (the reviewer clicks where the bridge / dam / sign is)
 COORD_ANCHORS = ("bridge", "dam", "sign", "coord")
-#: the anchors found from a named registry item (the tributary, the lake)
-ITEM_ANCHORS = ("confluence", "lake_inlet", "lake_outlet")
+#: the anchors found from a named registry item (the tributary, the lake; `lake` = both its edges)
+ITEM_ANCHORS = ("confluence", "lake_inlet", "lake_outlet", "lake")
+#: T355: the anchors the build can OFFSET along the water (`SplitAnchor.from_dict`: point / confluence /
+#: lake; an existing split is re-anchored on its own). An area boundary or the border cannot.
+OFFSET_ANCHORS = COORD_ANCHORS + ITEM_ANCHORS + ("split",)
+#: T355: the polygon layers an `area_boundary` split may name, and the field its name is matched on
+#: (`SplitAnchor.area_layer` / `area_name_field`; `build.get_area_polys` reads them)
+AREA_LAYERS = {"parks_bc": "PROTECTED_LANDS_NAME", "parks_nat": "ENGLISH_NAME",
+               "osm_admin_boundaries": "name"}
+#: T355: NewSplit fields left out of a mark's line (and the export) while unset, so a line written
+#: before they existed is the same line
+NEW_SPLIT_OPTIONAL = ("area", "area_end", "area_layer", "area_field", "wsc_descendants", "exclude_gnis",
+                      "amends")
 #: which side of the cut the extent lies on
 Side = Literal["upstream", "downstream"]
 #: (T207) how sure the proposer is of where a NEW cut stands — `models.splits.CONFIDENCE`; it
@@ -295,6 +306,16 @@ class NewSplit(BaseModel):
     #: upstream = where the water enters the area, downstream = where it leaves; None = both)
     area: Optional[str] = None
     area_end: Optional[Side] = None
+    #: T355 area_boundary: the polygon layer (`AREA_LAYERS`; None = parks_bc), its name field (None =
+    #: the layer's own), the WSC subtree cut too, and named waters (gnis ids) it must not cut
+    area_layer: Optional[str] = None
+    area_field: Optional[str] = None
+    wsc_descendants: Optional[bool] = None
+    exclude_gnis: Optional[tuple[str, ...]] = None
+    #: T355 EDIT IN PLACE: this proposal REPLACES the proposed cut with this id (`proposal_groups`'
+    #: id) — its type, anchor or offset changed in the review app. The mark is the only write, so the
+    #: edit is a proposal in a mark: the group keeps its id and every mark that named it now names this.
+    amends: Optional[str] = Field(default=None, min_length=1, max_length=40)
     quote: str = ""
     note: str = ""
 
@@ -319,9 +340,24 @@ class NewSplit(BaseModel):
             raise ValueError("a new split at an area's boundary names the area; no other anchor does")
         if self.area_end and self.anchor != "area_boundary":
             raise ValueError("area_end is the end of an area_boundary anchor")
+        if self.anchor != "area_boundary" and any(
+                getattr(self, k) for k in ("area_layer", "area_field", "wsc_descendants", "exclude_gnis")):
+            raise ValueError("area_layer / area_field / wsc_descendants / exclude_gnis belong to an "
+                             "area_boundary anchor")
+        if self.area_layer and self.area_layer not in AREA_LAYERS:
+            raise ValueError(f"area_layer is one of {', '.join(AREA_LAYERS)}, not {self.area_layer!r}")
+        # T355: the build offsets a point / confluence / lake cut only (`SplitAnchor.from_dict`); an
+        # area's boundary and the border are where they are
         if self.offset_m and self.anchor == "area_boundary":
-            raise ValueError("an area boundary takes no offset")
+            raise ValueError("an area boundary takes no offset (the build cannot offset one)")
+        if self.offset_m and self.anchor == "border":
+            raise ValueError("the border takes no offset (the build cannot offset one)")
         return self
+
+    @property
+    def area_name_field(self) -> str:
+        """The field an area_boundary's name is matched on: the one set, else its layer's."""
+        return self.area_field or AREA_LAYERS.get(self.area_layer or "parks_bc", "PROTECTED_LANDS_NAME")
 
 
 class RecordPrint(BaseModel):
@@ -568,7 +604,7 @@ def line(mark: Mark) -> str:
     for n in got.get("new_splits") or ():       # a new split's unset confidence: the line it was
         if n.get("confidence") is None:
             n.pop("confidence", None)
-        for k in ("area", "area_end"):          # owner 2026-11-02: only a park-boundary cut has them
+        for k in NEW_SPLIT_OPTIONAL:            # owner 2026-11-02: only a park-boundary cut has them
             if n.get(k) is None:
                 n.pop(k, None)
     return json.dumps(got, ensure_ascii=False, separators=(",", ":")) + "\n"
@@ -957,8 +993,12 @@ def same_anchor(a: NewSplit, b: NewSplit) -> bool:
         return False
     if a.anchor == b.anchor == "area_boundary":
         return _norm(a.area) == _norm(b.area) and a.area_end == b.area_end and (
+            (a.area_layer or "parks_bc") == (b.area_layer or "parks_bc")) and (
             not a.on_item or not b.on_item or a.on_item == b.on_item)
-    if a.anchor == b.anchor and a.anchor in ("confluence", "lake_inlet", "lake_outlet"):
+    if a.anchor == b.anchor == "border":                 # one water crosses the border at one place
+        return bool(a.on_item) and a.on_item == b.on_item and (
+            not a.coord or not b.coord or _ground_m(a.coord, b.coord) <= 1000.0)
+    if a.anchor == b.anchor and a.anchor in ITEM_ANCHORS:
         if a.item_id and b.item_id:
             return a.item_id == b.item_id and (not a.on_item or not b.on_item
                                                or a.on_item == b.on_item)
@@ -1047,7 +1087,13 @@ def proposal_groups(marks: Iterable[Mark]) -> list[dict]:
     out: list[dict] = []
     for m in uncleared(marks):              # a cleared mark's proposals are taken back with it
         for n in m.new_splits:
-            i = next((k for k, p in enumerate(out) if any(same_anchor(n, q) for q in p["members"])), None)
+            # T355: an EDIT of a proposed cut takes that cut's place — the group keeps its id, every
+            # member that named it, and this split is what it now is
+            i = next((k for k, p in enumerate(out) if n.amends and p["id"] == n.amends), None)
+            if i is not None:
+                out[i]["split"] = n
+            else:
+                i = next((k for k, p in enumerate(out) if any(same_anchor(n, q) for q in p["members"])), None)
             if i is None:
                 pid, k = n.ref, 1
                 while any(p["id"] == pid for p in out):
@@ -1075,7 +1121,10 @@ def amend(groups: Iterable[dict], overrides: Sequence[ConfidenceOverride] = ()) 
     for g in groups:
         members = [m if isinstance(m, NewSplit) else NewSplit.model_validate(m) for m in g["members"]]
         split = g["split"] if isinstance(g["split"], NewSplit) else NewSplit.model_validate(g["split"])
-        o = next((o for o in overrides if (o.set or o.offsets) and o.matches(members)), None)
+        # T355: a cut the owner EDITED in a mark (`NewSplit.amends`) is as the edit says: the edit is
+        # the later call, so an earlier override's set / offsets no longer apply to it
+        o = None if split.amends else next(
+            (o for o in overrides if (o.set or o.offsets) and o.matches(members)), None)
         if o is not None:
             split = o.amended(split)
         base = {**g, "split": split, "members": members}

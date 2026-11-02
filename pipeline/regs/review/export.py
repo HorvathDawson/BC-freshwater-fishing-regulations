@@ -168,8 +168,8 @@ def documents(d: Decided, closed: Iterable[str] = ()) -> dict[str, str]:
                 "_about": "T266: the review marks in force for these scopes, exported by "
                           "`python -m pipeline.regs.review.export` — never edit by hand; marks.jsonl is the review log"}
         out[f"{dom}.json"] = _dump_rows(head, "decisions", rows)
-    rows = [{"id": g["id"], "split": json.loads(g["split"].model_dump_json()),
-             "members": [json.loads(n.model_dump_json()) for n in g["members"]],
+    rows = [{"id": g["id"], "split": _split_json(g["split"]),
+             "members": [_split_json(n) for n in g["members"]],
              "marks": [dict(w) for w in g["marks"]]} for g in d.groups]
     head = {"format": FORMAT, "domain": PROPOSED, "tidal_decisions": d.tidal_decisions,
             "_about": "T266: every distinct cut an uncleared mark proposed (marks.proposal_groups), in the order "
@@ -226,6 +226,15 @@ def load(out_dir: Optional[Path] = None, closed: Optional[Iterable[str]] = None)
                     "marks": [dict(w) for w in g["marks"]]} for g in gdoc["groups"])
     return Decided(inforce=tuple(m for _r, _p, m in inforce), groups=groups,
                    provenance={m.key: pr for _r, pr, m in inforce}, tidal_decisions=td)
+
+
+def _split_json(n) -> dict:
+    """A NewSplit as the export writes it: the T355 area fields left out while unset (the file it was)."""
+    got = json.loads(n.model_dump_json())
+    for k in M.NEW_SPLIT_OPTIONAL[2:]:          # area / area_end stay as they were written
+        if got.get(k) is None:
+            got.pop(k, None)
+    return got
 
 
 def stale(out_dir: Optional[Path] = None, marks_path: Optional[Path] = None) -> list[str]:

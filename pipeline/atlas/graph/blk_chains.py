@@ -53,12 +53,13 @@ class FidRow:
 
 
 def load_stream_fids(gpkg_path: str, bbox: Optional[tuple] = None,
-                     streams_layer: str = "streams") -> list[FidRow]:
-    """Read stream fids into FidRow records. Skips sentinel WSC and degenerate geometry."""
+                     streams_layer: str = "streams", where: Optional[str] = None) -> list[FidRow]:
+    """Read stream fids into FidRow records. Skips sentinel WSC and degenerate geometry. `where`: an
+    attribute filter (T355: the review app's split preview loads one water's lines, not a bbox's)."""
     fwa = FWADataAccessor(gpkg_path)
     rows: list[FidRow] = []
     # Chunked: the whole layer at once peaks near this machine's memory ceiling (see iter_layer).
-    for gdf in fwa.iter_layer(streams_layer, columns=_STREAM_COLUMNS, bbox=bbox):
+    for gdf in fwa.iter_layer(streams_layer, columns=_STREAM_COLUMNS, bbox=bbox, where=where):
         for r in gdf.itertuples():
             wsc_raw = r.FWA_WATERSHED_CODE or ""
             if _wsc.is_no_code(wsc_raw):

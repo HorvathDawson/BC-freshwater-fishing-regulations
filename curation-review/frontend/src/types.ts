@@ -885,11 +885,19 @@ export interface EntryScopeWords {
 // --------------------------------------------------------------------------- T164: DFO review mode
 
 /** what a NEW split is anchored to (`marks.AnchorKind`) */
-export type AnchorKind = "confluence" | "lake_inlet" | "lake_outlet" | "bridge" | "dam" | "sign"
-  | "coord" | "split" | "area_boundary";
+export type AnchorKind = "confluence" | "lake_inlet" | "lake_outlet" | "lake" | "bridge" | "dam" | "sign"
+  | "coord" | "split" | "area_boundary" | "border";
+/** T355: the area_boundary fields of a new split (`marks.NewSplit`): the layer (`marks.AREA_LAYERS`),
+ *  the field its name is matched on (none = the layer's own), the WSC subtree, waters left uncut */
+export interface AreaFields {
+  area_layer?: string | null;
+  area_field?: string | null;
+  wsc_descendants?: boolean | null;
+  exclude_gnis?: string[] | null;
+}
 /** T164: a NEW split proposed in a mark (`marks.NewSplit`) — the server checks its anchor and
  *  stamps where it resolved (blk, measure, coord) */
-export interface NewSplit {
+export interface NewSplit extends AreaFields {
   ref: string;
   anchor: AnchorKind;
   name?: string | null;
@@ -911,6 +919,8 @@ export interface NewSplit {
   /** how sure the proposer is of where the cut stands (owner 2026-10-27); none = the anchor's
    *  default — a hand-placed point medium, a registry anchor high (`marks.default_confidence`) */
   confidence?: SplitConfidence | null;
+  /** T355: an EDIT of the proposed cut with this id (it replaces that cut, keeping its id) */
+  amends?: string | null;
   quote?: string;
   note?: string;
 }
@@ -929,12 +939,40 @@ export interface AnchorCheck {
   item_id?: string;
   /** owner 2026-11-02: the REFERENCE the cut is offset from (the anchor itself, snapped) */
   ref?: { blk: string; measure: number; coord: [number, number] };
-  /** an area_boundary anchor: taken as written */
+  /** an area_boundary anchor: the build cuts it (nothing stamped) */
   area?: boolean;
+  /** T355: every cut the build's resolver made of it */
+  cuts?: SplitCut[];
+}
+/** T355: one cut the build's resolver made (`split_preview.resolve`) */
+export interface SplitCut { blk: string; measure: number; coord: [number, number]; concern?: string | null }
+/** T355: GET /api/dfo/locations/{id}/split-preview — where the BUILD would cut a proposed split */
+export interface SplitPreview {
+  ok: boolean;
+  why: string | null;
+  words?: string;
+  /** the splits.json record it would land as */
+  record?: { id: string; label: string; kind: string; anchor: Record<string, unknown> };
+  notes?: string[];
+  cuts?: SplitCut[];
+  /** an offset cut's reference (the same anchor without the offset) */
+  reference?: SplitCut[];
+  /** an area_boundary's polygon edge */
+  outline?: GeoJSON.Feature | null;
+}
+/** T355: GET /api/split-anchors */
+export interface SplitAnchors { area_layers: Record<string, string>; offset_anchors: AnchorKind[] }
+/** T355: GET /api/dfo/locations/{id}/tributaries */
+export interface Tributary { id: string; name: string; mouth: [number, number]; distance_m?: number }
+/** T355: GET /api/dfo/locations/{id}/split-pick */
+export interface SplitPick {
+  ok: boolean;
+  why: string | null;
+  hits: (Tributary & { wbk?: string; in_registry?: boolean; layer?: string; field?: string })[];
 }
 /** T210: a PROPOSED split, shared — every mark's `new_splits` deduped by anchor (`marks.proposals`),
  *  the first proposal's name kept, with the marks that proposed it */
-export interface ProposedSplit {
+export interface ProposedSplit extends AreaFields {
   id: string;
   anchor: AnchorKind;
   name: string | null;
@@ -949,6 +987,8 @@ export interface ProposedSplit {
   /** anchor area_boundary: the protected area's name, and which end */
   area?: string | null;
   area_end?: "upstream" | "downstream" | null;
+  /** T355: this cut is an owner's edit of another proposal */
+  amends?: string | null;
   quote: string;
   marks: { target: string; ref: string; reviewer: string; date: string }[];
   n_marks: number;
