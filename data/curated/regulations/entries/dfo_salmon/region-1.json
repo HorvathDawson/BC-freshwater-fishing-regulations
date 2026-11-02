@@ -4634,7 +4634,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "stamp_river__ash_river_into_stamp_river"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
