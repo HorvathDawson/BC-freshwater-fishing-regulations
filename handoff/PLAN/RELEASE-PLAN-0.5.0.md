@@ -15,7 +15,7 @@ Each batch is one sitting on one area. Tickets in a batch are done together.
 
 | # | Batch | Tickets | Size | Notes |
 |---|---|---|---|---|
-| 1 | Slough fold release (data) | T322, T337 check | heavy, few credits | Running now. Local promote only (staging is held). |
+| 1 | Slough fold release (data) | T322, T337 check | heavy, few credits | DONE 2026-11-03: gate PASS, release r-4df5bccc9360 local (labels refreshed; ships T354's smaller book). |
 | 2 | Crash, memory, rule-book PDF | T360 → T351, T354, T345, T352 (app side) | M–L | One emulator sitting. T360 measures first. PDF: incremental append + image compression (T354, owner 11-03). |
 | 3 | DFO salmon clean-up | T356, T358, T357, T338, T343, T366 (T361 folded into T366; the marks stand) | L | Changes what the salmon data looks like, so it must land BEFORE 0.5.0, or we need salmon/4 later. T366 makes the live refresh safe, then pulls region 2's new Fraser notice (FN1179). |
 | 4 | Feeds and map colours | T347, T348 | S–M | One "feed changed" signal; weekday forecast rule. |

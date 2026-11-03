@@ -12,3 +12,7 @@ any binding that no longer resolves), or have deliver resolve the curated ids (`
 registry itself and drop the cache. Suggestions stay suggestions; locked waters untouched (tests in test_dfo_salmon).
 Check the T322 slough release for any stale binding first.
 Size: S–M.
+
+## T322 check (2026-11-03): no stale binding
+`match apply --registry <t322b full_next registry>` into a scratch copy of the DFO entries: 161/161 bound, `diff -r`
+empty. The slough fold left every DFO place on a live item. The fix (the match inside the build) is still open.
