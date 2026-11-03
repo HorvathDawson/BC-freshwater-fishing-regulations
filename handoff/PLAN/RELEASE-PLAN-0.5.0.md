@@ -17,7 +17,7 @@ Each batch is one sitting on one area. Tickets in a batch are done together.
 |---|---|---|---|---|
 | 1 | Slough fold release (data) | T322, T337 check | heavy, few credits | Running now. Local promote only (staging is held). |
 | 2 | Crash, memory, rule-book PDF | T360 → T351, T354, T345, T352 (app side) | M–L | One emulator sitting. T360 measures first; you pick the PDF option. |
-| 3 | DFO salmon clean-up | T356, T358, T357, T338, T343 (+ T361, yours) | L | Changes what the salmon data looks like, so it must land BEFORE 0.5.0, or we need salmon/4 later. |
+| 3 | DFO salmon clean-up | T356, T358, T357, T338, T343, T366 (+ T361, yours) | L | Changes what the salmon data looks like, so it must land BEFORE 0.5.0, or we need salmon/4 later. T366 makes the live refresh safe, then pulls region 2's new Fraser notice (FN1179). |
 | 4 | Feeds and map colours | T347, T348 | S–M | One "feed changed" signal; weekday forecast rule. |
 | 5 | Map feel (owner 2026-11-03: in 0.5.0) | T312 (T353 + T273 folded in) | M–L | One emulator gesture pass: 1:1 tracking, fling, pan lag; T273's basemap-tile choice goes to the owner. |
 | 6 | Small app fixes | T342, T344, T339, T340 | S each | Phone long-press copy, species swipe, Whonock label/Bedford gauge, test bed taps. |
