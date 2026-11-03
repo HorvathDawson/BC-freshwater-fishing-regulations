@@ -24,9 +24,10 @@ the CPR Bridge at Mission: chum 2/day Nov 3–30), which no saved page has (newe
      `test_marks_never_orphaned` to match);
    - every rule-row change goes into the DFO digest: place, old row → new row (verbatim, with the FN number) and how it
      was read (species, dates, limit, gear), for a quick skim; anything wrong is fixed after;
-   - URGENT notice (stays, T321 path) when a row cannot be read from the table structure.
+   - URGENT notice (stays, T321 path) when a row cannot be read from the table structure, or when a row's location
+     matches no curated DFO place (that one also goes to the review queue: it is a place question).
    Marks are never edited.
 5. **Run it:** region 2 refresh (FN1179), then any other region whose live page is newer. The owner re-reviews only
-   the places the preview lists as new or moved; FN1179's rows land in the digest. No credits; network only.
+   the places the preview lists as new or moved; FN1179's rows land in the digest, UNLESS the worker cannot match the notice's location to a curated DFO place (owner 2026-11-03): an unmatched location goes to the review queue as a place to curate, with an urgent notice. No credits; network only.
 
 Depends: none (T361 found the cause). Size: M.

@@ -25,6 +25,9 @@ Do it together with T347. Size: S–M.
 
 ## Evidence from T346 (problem report 98935871c9b7548e, 2026-11-02, 0.4.0 build 7, android 37, screen "more")
 "The number of reaches coloured in conditions doesn't change when zoom or scroll changes, only when you click a
-different forecast then back to the option you were on (change -> +5 -> change)." So colours also fail to repaint on
-zoom/pan under Conditions, and only a forecast-offset toggle redraws them. Same repaint path as this ticket; check it too.
+different forecast then back to the option you were on (change -> +5 -> change)." Owner 2026-11-03: the report is about the
+LEGEND'S COUNT TEXT ("12 reaches coloured", Chrome.tsx `LegendRamp`, core `legendCount`: the reaches ON SCREEN with a
+standing) and its histogram marks, NOT the map colours. The count and marks keep the old view's numbers after a pan or
+zoom and only recompute when the forecast offset changes. Fix: recompute them on the map's region-did-change (once at
+rest, not per camera tick: T312), and check the marks move with it. Test: pan/zoom under Conditions -> count changes.
 The report held no layer/offset/zoom (T352).
