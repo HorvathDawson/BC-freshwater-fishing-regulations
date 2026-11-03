@@ -73,3 +73,9 @@ Side build gate: sections 4,594,880 → 4,594,880 (handles 822db448 unchanged, s
 binding diff empty. The side build first also gave basin/region/park items a mouth boundary (+2,465); fixed in
 dc93125ab and the side registry cleaned the same way before promote. Every mouth was a natural end (0 on a standing
 boundary). Promoted; live build → r-d0ad76a6e6a1 (salmon/3, tiles and bundle same vintage).
+
+## proposal_overrides fold (2026-11-03, chat 2)
+Sandy Pool's call (medium) is already on its splits.json record (`cowichan_river__white_triangle_boundary_sign_loc`,
+`confidence: medium`). The other three overrides (Quatse weir ±100 m, Stamp lagoon-outlet move, Little Qualicum
+Falls park boundary) are Claude's PROPOSALS from the owner's notes, not yet accepted, so they cannot be folded into
+splits.json. Left: owner accepts/rejects those three in the DFO tab; then fold and retire the override file.

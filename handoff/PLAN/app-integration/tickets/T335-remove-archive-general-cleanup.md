@@ -10,3 +10,10 @@ Status: POSTPONED — next credit cycle, together with the T333/T334 audits (own
    under data/generated, releases pruned to live + previous (T331 item 8), dead scripts.
 3. Proof: the targeted suites + app typecheck + a dry `pipeline build --graph` still pass.
 Run in the next credit cycle with T333/T334. Size: M.
+
+## Scope with the owner FIRST (owner 2026-11-03)
+"Make sure the agent that eventually works on that will collaborate with me to really nail down what we want out of
+the audit." Before ANY audit work: the session that starts T333/T334/T335 sits down with the owner (one batched
+question round, then a written scope in this ticket that the owner approves): what counts as a finding, which areas
+are in/out, depth vs credits, what the output looks like (report only, or fixes too), and who decides each fix. No
+workflow or agent fan-out until that scope is approved here.

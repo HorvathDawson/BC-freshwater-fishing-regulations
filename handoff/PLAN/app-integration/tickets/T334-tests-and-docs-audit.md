@@ -14,3 +14,10 @@ documentation").
 ## Output
 Ranked findings (verified by a second reader) → fix tickets; dead docs deleted (git is the safety net).
 Depends: T333 (run together). Size: M–L (credits).
+
+## Scope with the owner FIRST (owner 2026-11-03)
+"Make sure the agent that eventually works on that will collaborate with me to really nail down what we want out of
+the audit." Before ANY audit work: the session that starts T333/T334/T335 sits down with the owner (one batched
+question round, then a written scope in this ticket that the owner approves): what counts as a finding, which areas
+are in/out, depth vs credits, what the output looks like (report only, or fixes too), and who decides each fix. No
+workflow or agent fan-out until that scope is approved here.
