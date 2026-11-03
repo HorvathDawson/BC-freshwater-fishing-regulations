@@ -21,7 +21,7 @@
  * NO GEOMETRY: the tiles draw the water; the release says which sections are which part (lit by feature-state through
  * the map adapter's one `highlight` call: `selected` on this part, `water` on the rest) and each part's box.
  */
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   crossLabel, crossDown, crossUp, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
   partName, partOfSection, partRowAria, partWhere, stepsDown, stepsUp, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
@@ -271,8 +271,9 @@ export function crossAction(item: ItemId, part: number): RouteAction {
  * A part stepped to on the map, as the frame's part (one water screen): this water's part, or — a split lake's other
  * closure area — that area, which then becomes the frame's water.
  */
-export function partAction(onScreen: ItemId, item: ItemId, partIx: number): RouteAction {
-  return item === onScreen ? { type: "part", part: partIx } : { type: "part", part: partIx, item };
+export function partAction(onScreen: ItemId, item: ItemId, partIx: number, stretch?: number): RouteAction {
+  const st = stretch ? { stretch } : {};
+  return item === onScreen ? { type: "part", part: partIx, ...st } : { type: "part", part: partIx, item, ...st };
 }
 
 // ── the hook ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -315,10 +316,30 @@ export function useSalmonKey(loader: Pick<ReleaseLoader, "salmon" | "regionsOf">
   return r.state === "ready" ? r.value : null;
 }
 
-/** Where the map starts in group `g`: the frame's part of `item`, else the regs view's target part, else the mouth. */
-export function waterMapStartIx(g: WaterGroup, item: string, part: number | null): number {
+/**
+ * Where the map starts in group `g`: the frame's part of `item` — its `stretch` there (T204, T345), else its first —
+ * else the regs view's target part, else the mouth. A pure function of the frame and the group: the ONE way the map
+ * finds its place, whatever way the frame was reached (owner 2026-11-03).
+ */
+export function waterMapStartIx(g: WaterGroup, item: string, part: number | null, stretch = 0): number {
+  if (part !== null && stretch > 0) {
+    let n = 0;
+    for (let j = 0; j < g.parts.length; j += 1)
+      if (g.parts[j]!.item === item && g.parts[j]!.partIx === part && n++ === stretch) return j;
+  }
   const i = part === null ? -1 : partAt(g, item, part);
   return i >= 0 ? i : 0;
+}
+
+/**
+ * (T204, T228, T345) Which of its part's map entries entry `i` is: 0 for the first, mouth up — a T204 stretch, or a piece
+ * a salmon split cut from its part (which carries no stretch words). The frame's `stretch`, and `waterMapStartIx`'s.
+ */
+export function pieceOf(g: WaterGroup, i: number): number {
+  const p = g.parts[i]!;
+  let n = 0;
+  for (let j = 0; j < i; j += 1) if (g.parts[j]!.item === p.item && g.parts[j]!.partIx === p.partIx) n += 1;
+  return n;
 }
 
 export interface WaterMap {
@@ -330,19 +351,21 @@ export interface WaterMap {
  * The water map of `item` on the regs store: `part` the frame's part (null: the part the Regulations view opens for
  * `tapSid`, through the same `useRegsTarget`). Loading while the group or the start part is read; ready(null) for a
  * water with no parts. `onPart`: every step to another part, handed to the caller to make it the frame's part
- * (`partAction`) — the map then starts there again, so nothing it shows disagrees with the frame.
+ * (`partAction`, with the stretch) — the map then starts there again, so nothing it shows disagrees with the frame.
  *
  * A frame moved to a SIBLING of the group (a split lake's other closure area) keeps the group already read: it is the
  * same water, so the map does not go back to loading.
  */
 export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: number | null,
                             tapSid: SectionId | null,
-                            onPart?: (item: ItemId, partIx: number) => void,
+                            onPart?: (item: ItemId, partIx: number, stretch?: number) => void,
                             /** (T203) Start framed on the whole water (a search result's Map). */
                             wholeFirst = false,
                             /** (T228) each section's salmon reading (`useSalmonKey`): pieces of a part join only where
                              *  it reads them alike; null: joined as the part */
-                            salmonKey: ((sid: number) => string) | null = null): Async<WaterMap | null> {
+                            salmonKey: ((sid: number) => string) | null = null,
+                            /** (T204, T345) the frame's stretch of `part` (absent: the first) */
+                            stretch = 0): Async<WaterMap | null> {
   const read = useRef<{ item: ItemId; g: WaterGroup } | null>(null);
   const inRead = !!item && !!read.current && read.current.g.parts.some((p) => p.item === item);
   const group = useWaterGroup(store, inRead ? read.current!.item : item, salmonKey);
@@ -352,36 +375,45 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   const waiting = part === null && target.state === "loading" && store !== null;
   const g = group.value;
   // (T228) a new salmon grouping re-indexes the pieces: the walk starts again on the frame's part
-  const key = `${group.state}:${item ?? ""}:${startPart ?? ""}:${wholeFirst ? "w" : ""}:${salmonKey ? idOf(salmonKey) : ""}`;
-  const [held, setHeld] = useState<{ key: string; s: WaterMapState } | null>(null);
+  const key = `${group.state}:${item ?? ""}:${startPart ?? ""}:${stretch}:${wholeFirst ? "w" : ""}:${salmonKey ? idOf(salmonKey) : ""}`;
+  // THIS FRAME's visit: a new number each time the key changes, so what was held on an EARLIER visit to the same frame
+  // (A → B → back to A by Show regulations and back) is never taken for this one's
+  const visit = useRef({ key, n: 0 });
+  if (visit.current.key !== key) visit.current = { key, n: visit.current.n + 1 };
+  const at = visit.current.n;
+  const [held, setHeld] = useState<{ at: number; s: WaterMapState } | null>(null);
   // the state as the last step left it, ahead of the render, so two taps before a render are two steps
-  const latest = useRef<{ key: string; s: WaterMapState } | null>(null);
-  // (T204) the stretch a step landed on, so the frame's new part reopens there, not on the part's first stretch
-  const stepped = useRef<{ item: string; partIx: number; at: number } | null>(null);
-  const startAt = (gg: WaterGroup, it: string): number => {
-    const st = stepped.current, p = st ? gg.parts[st.at] : undefined;
-    return st && p && st.item === it && st.partIx === startPart && p.item === it && p.partIx === startPart
-      ? st.at : waterMapStartIx(gg, it, startPart);
-  };
-  const s = held && held.key === key ? held.s : g && item ? waterMapStart(startAt(g, item), wholeFirst) : null;
+  const latest = useRef<{ at: number; s: WaterMapState } | null>(null);
+  // THE PLACE IS THE FRAME'S (owner 2026-11-03, one load path): the part and its stretch come from the frame alone
+  // (`waterMapStartIx`); what is held here is only what the reader opened on THIS frame (a mark, the chooser, the list,
+  // ⤢), dropped the moment the frame changes. (T204's `stepped` ref, which reopened a step's stretch and not a reload's,
+  // is gone: the stretch is on the frame.)
+  const s = held && held.at === at ? held.s : g && item ? waterMapStart(waterMapStartIx(g, item, startPart, stretch), wholeFirst) : null;
   const vm = useMemo(() => (g && s ? waterMapView(g, s) : null), [g, s]);
+  // (T345, T369) A TAPPED FRAME ADOPTS ITS PART: the part the tap resolves to (the Regulations view's own answer,
+  // `useRegsTarget`) is handed to the frame (`onPart`: the route's `part`, in place — no history entry; the tapped
+  // section stays on the frame, in memory, for the Conditions view's "you are here"). So the frame, and the URL made
+  // from it (`part=`, never a section id: AGENTS rule 5), say what is drawn, and a reload draws the same.
+  // (a search Open's whole-water frame has no tap and no part: its address is the whole water's, `?regs=…&view=map`)
+  const adopt = part === null && tapSid !== null && startPart !== null && !!g && item !== null && !!onPart;
+  useEffect(() => {
+    if (adopt) onPart!(item!, startPart!, undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per resolved part
+  }, [adopt, item, startPart]);
   // no store (no release, or not open yet: the caller says which) or no water: nothing to walk
   if (store === null || item === null) return { state: "ready", value: null, error: null };
   if (group.state === "failed") return group;
   if (group.state === "loading" || waiting) return { state: "loading", value: null, error: null };
   if (!g || !s || !vm) return { state: "ready", value: null, error: null };
   const act = (a: WaterMapAction) => {
-    const from = latest.current && latest.current.key === key ? latest.current.s : s;
+    const from = latest.current && latest.current.at === at ? latest.current.s : s;
     const next = waterMapStep(g, from, a);
     if (next === from) return;
-    latest.current = { key, s: next };
+    latest.current = { at, s: next };
     setHeld(latest.current);
-    // (T204) a step between two stretches of ONE part is no new part for the frame: the map keeps it
-    const a0 = g.parts[from.at]!, a1 = g.parts[next.at]!;
-    if (onPart && next.at !== from.at && (a0.item !== a1.item || a0.partIx !== a1.partIx)) {
-      stepped.current = { item: a1.item, partIx: a1.partIx, at: next.at };
-      onPart(a1.item as ItemId, a1.partIx);
-    }
+    // every move to another part OR stretch is the frame's (T204, T345): the frame is the one place the map is on
+    const a1 = g.parts[next.at]!;
+    if (onPart && next.at !== from.at) onPart(a1.item as ItemId, a1.partIx, pieceOf(g, next.at) || undefined);
   };
   return { state: "ready", value: { vm, act }, error: null };
 }

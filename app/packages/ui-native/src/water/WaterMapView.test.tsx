@@ -8,7 +8,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import type { ItemId, SectionId } from "@app/data";
 import type { MapProps } from "@app/map";
 import { openRegsFixture } from "@app/data/release/node";
-import { BackLayerContext, HOME, useBack, useRoute, type SystemBack } from "@app/ui";
+import { BackLayerContext, HOME, openWater, parseStartLink, partAction, reduce, routeSearch, useBack, useRoute, waterFrame,
+         type Route, type SystemBack } from "@app/ui";
 import { LIGHT } from "../theme";
 
 const seen: { props: MapProps | null } = { props: null };
@@ -338,4 +339,90 @@ describe("<WaterMapView>", () => {
     await ready();
     expect([screen.getByTestId("water-map-whole").textContent, seen.props?.fit?.key]).toEqual(["This part", "gnis:8634:whole"]);
   }, 30_000);
+
+  /*
+   * (T345, T369, owner 2026-11-03) ONE LOAD PATH: the water map draws the same whatever way the frame was reached — a
+   * reload of its URL, a search Open then a pick, a map tap (the frame holds `tapSid`), a ▼ step, a parts-list pick, and
+   * the URL each of those leaves behind, reloaded. What is compared is everything the map is TOLD: the lit sections
+   * (`selected`, `water`), the camera's key and box, the marks — and the bar. The frame is the one input (`useRoute`
+   * here, as the Shell: every step is a route action), so a held ref, a stepped index or a tapped section cannot make one
+   * way in draw what another does not. (What a phone and the web then drew from it: `@app/map`
+   * native-feature-state.test.ts and adapter-contract's mid-burst highlight.)
+   */
+  describe("(T345, T369) one load path: the same part by every way in draws the same", () => {
+    const routes: Route[] = [];
+    function Harness({ init }: { init: Route }) {
+      const [route, go] = useRoute(init);
+      routes.push(route);
+      const f = waterFrame(route);
+      if (!f || f.item === null) return null;
+      const item = f.item;
+      return <WaterMapView loader={loader} item={item} part={f.part} stretch={f.stretch} tapSid={f.tapSid} whole={f.whole}
+                           palette={LIGHT} map={MAP} onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}}
+                           onCross={() => {}} onPart={(i, p, st) => go(partAction(item, i, p, st))} />;
+    }
+    const drawn = () => JSON.stringify({
+      where: screen.getByTestId("water-map-where").textContent, name: screen.getByTestId("water-map-name").textContent,
+      highlight: lit().highlight, water: [...lit().water].sort((a, b) => Number(a) - Number(b)),
+      fit: seen.props?.fit, marks: seen.props?.marks });
+    const settle = () => act(() => new Promise((r) => setTimeout(r, 30)));
+    const open = (o: Parameters<typeof openWater>[0]) => reduce(HOME, openWater(o));
+    /** Every URL a way in's routes made (the frame at every render): none may carry a section id (AGENTS rule 5). */
+    const urls: string[] = [];
+    /** Mount the frame, do `steps`: what is drawn — and the URL the route leaves, reloaded: what that draws. */
+    async function wayIn(init: Route, steps: (() => void)[] = []): Promise<[string, string]> {
+      routes.length = 0;
+      render(<Harness init={init} />);
+      await ready();
+      for (const s of steps) { s(); await settle(); }
+      await settle();
+      const out = drawn(), url = routeSearch(routes.at(-1)!);
+      urls.push(...routes.map((r) => routeSearch(r)));
+      cleanup(); seen.props = null;
+      routes.length = 0;
+      render(<Harness init={parseStartLink(url)!.route} />);
+      await ready(); await settle();
+      const again = drawn();
+      urls.push(...routes.map((r) => routeSearch(r)));
+      cleanup(); seen.props = null;
+      return [out, again];
+    }
+    const up = () => fireEvent.click(screen.getByTestId("water-map-step-up"));
+    const down = () => fireEvent.click(screen.getByTestId("water-map-step-down"));
+    const pick = (row: number) => () => {
+      fireEvent.click(screen.getByTestId("water-map-parts-toggle"));
+      fireEvent.click(within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio")[row]!);
+    };
+    const C = "gnis:19986" as ItemId;
+
+    it("the Coquitlam's Mary Hill → Lougheed part (part_ix 2): reload, search Open + pick, tap, ▼, list pick", async () => {
+      const ways: Record<string, [string, string]> = {
+        reload: await wayIn(parseStartLink(`?regs=${C}&part=2&view=map`)!.route),
+        "search Open, then the list": await wayIn(open({ item: C, view: "map", whole: true, fromSearch: true }), [pick(0)]),
+        "tap (316504)": await wayIn(open({ item: C, tapSid: 316504 as SectionId, view: "map" })),
+        "▼ from Lougheed → boundary": await wayIn(open({ item: C, part: 0, view: "map" }), [down]),
+        "the list, from the top part": await wayIn(open({ item: C, part: 1, view: "map" }), [pick(0)]),
+        "tap, ▲, the list's lowest (the owner's)": await wayIn(open({ item: C, tapSid: 316504 as SectionId, view: "map" }), [up, pick(0)]),
+      };
+      const first = ways.reload![0];
+      expect(JSON.parse(first)).toMatchObject({ where: "Part 1 of 3 · Coquitlam River", highlight: [316504, 316505],
+                                                fit: { key: "gnis:19986:2", bbox: [-122.808104, 49.226226, -122.78, 49.269798] } });
+      for (const [way, [drew, reloaded]] of Object.entries(ways)) expect({ way, drew, reloaded }).toEqual({ way, drew: first, reloaded: first });
+      // the tapped frame ADOPTED its part: the live route's address is the part's, and no URL ever held a section id
+      const sids = new Set([...JSON.parse(first).highlight, ...JSON.parse(first).water].map(String));
+      expect(urls.length).toBeGreaterThan(0);
+      expect(urls.filter((u) => /(^|[?&])sid=/.test(u) || u.split(/[^0-9]+/).some((n) => sids.has(n)))).toEqual([]);
+      expect([...new Set(urls)].filter((u) => u.includes("view=map") && !u.includes("part="))).toEqual(
+        // only a search Open's whole-water frame has no part before its pick
+        [`?regs=${C}&view=map`]);
+    }, 60_000);
+
+    it("(T204) the Zymoetz's source part's UPPER stretch: ▲ into it and its URL reloaded draw the same (was the lower)", async () => {
+      const Z = "gnis:3137" as ItemId;
+      // part_ix 2 is "McDonell Lake (3000 m downstream) → McDonell Lake outlet"; ▲ is the source part's upper stretch
+      const [stepped, reloaded] = await wayIn(open({ item: Z, part: 2, view: "map" }), [up]);
+      expect(JSON.parse(stepped).name).toMatch(/stretch 2 of 2/);
+      expect(reloaded).toEqual(stepped);
+    }, 60_000);
+  });
 });

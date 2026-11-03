@@ -32,6 +32,8 @@ export interface WaterOpen {
   fromSearch?: boolean;
   /** (T203) With view "map": the Map opens framed on the whole water. */
   whole?: boolean;
+  /** (T204, T345) The stretch of `part` the water map opens on (a start link's `stretch`). */
+  stretch?: number;
   /** (T58) The water's split-lake areas, itself among them (`siblingItems`): another area of a lake held is that lake. */
   group?: readonly ItemId[];
   /** (T221) The water is solo (one part, no continuation, `@app/core` `soloWater`): no Map view, Regulations in front. */
@@ -48,7 +50,8 @@ export function openWater(o: WaterOpen): RouteAction {
   const views = frameViews({ item: o.item, solo });
   const a: RouteAction = { type: "openWater", item: o.item, tapSid: o.tapSid ?? null, at: o.at ?? null,
                           part: o.part ?? null, view: views.includes(asked) ? asked : views[0]!,
-                          ...(o.group ? { group: o.group } : {}), ...(solo ? { solo: true } : {}) };
+                          ...(o.group ? { group: o.group } : {}), ...(solo ? { solo: true } : {}),
+                          ...(o.stretch ? { stretch: o.stretch } : {}) };
   const w = o.whole && a.view === "map" ? { ...a, whole: true } : a;
   return o.fromSearch ? { ...w, fromSearch: true } : w;
 }

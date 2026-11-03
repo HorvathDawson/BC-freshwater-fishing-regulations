@@ -33,12 +33,14 @@ export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
 /** The place kept for the "Flows into" line: the 44 px target the line has when it is drawn. */
 const EXIT_SLOT = 44;
 
-export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
+export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
                                onCross, onPart, whole = false }: {
   loader: ReleaseLoader | null;
   item: ItemId;
   /** The frame's part (null: the part the Regulations view opens for `tapSid`). */
   part: number | null;
+  /** (T204, T345) The frame's stretch of `part` (absent: its first). */
+  stretch?: number;
   tapSid: SectionId | null;
   palette: Palette;
   map: WaterMapMapProps;
@@ -51,14 +53,14 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   /** ▲ / ▼ into the water this one goes on from or as (`water_continue`), at its part there. */
   onCross: (item: ItemId, part: number) => void;
   /** A step to another part: the frame's part from now on (a split lake's other area: that water). */
-  onPart?: (item: ItemId, partIx: number) => void;
+  onPart?: (item: ItemId, partIx: number, stretch?: number) => void;
   /** (T203) Open framed on the whole water (from a search result). */
   whole?: boolean;
 }) {
   const store = useRegsStore(loader);
   // (T228) pieces of a part join only where salmon (the live DFO feed over the release) reads them alike
   const salmonKey = useSalmonKey(loader, store.value ?? null, item);
-  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey);
+  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey, stretch);
   const vm = wm.value?.vm ?? null;
   const act = wm.value?.act ?? (() => {});
   const status = store.error || wm.error ? WATER_MAP_WORDS.unavailable

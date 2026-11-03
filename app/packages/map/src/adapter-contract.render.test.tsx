@@ -10,7 +10,7 @@
  *
  * Not proven here: the renderers themselves (no WebGL, no MapLibre Native). That is the emulator run (n2/README.md).
  */
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect, useImperativeHandle, type ReactNode } from "react";
 import { MAP_GESTURES } from "@app/core";
@@ -249,10 +249,15 @@ const PLATFORMS = {
  * The selection, once per SOURCE-layer (lake_flowing draws the lake features, wetland_flowing the wetland ones, and a
  * value a feature holds is not sent twice: `onceSink`).
  */
+const unset = (sl: string, id: number, key: string) => (platform === "native"
+  // (T345) a phone unsets a key by writing it null (`adapters/native.ts` `raw.remove`: MapLibre Native's removals)
+  ? `set atlas/${sl} number:${id} {"${key}":null}` : `remove atlas/${sl} number:${id} ${key}`);
+let platform = "";
 const selected = (id: number, on: boolean) => ["wetland", "lake", "stream"]
-  .map((sl) => (on ? `set atlas/${sl} number:${id} {"selected":true}` : `remove atlas/${sl} number:${id} selected`));
+  .map((sl) => (on ? `set atlas/${sl} number:${id} {"selected":true}` : unset(sl, id, "selected")));
 
 describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name, P) => {
+  beforeEach(() => { platform = _name; });
   it("pushed colours and the selection go to feature-state by the section's NUMBER id, on its source-layer", async () => {
     const r = render(<P.Map {...base({ data: P.data })} />);
     // on mount the pushed data and the selection are independent effects: which lands first is the renderer's business
@@ -267,7 +272,7 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
 
   it("P15: the rest of the water is `water`, set and cleared with the selection", async () => {
     const water = (id: number, on: boolean) => ["wetland", "lake", "stream"]
-      .map((sl) => (on ? `set atlas/${sl} number:${id} {"water":true}` : `remove atlas/${sl} number:${id} water`));
+      .map((sl) => (on ? `set atlas/${sl} number:${id} {"water":true}` : unset(sl, id, "water")));
     const r = render(<P.Map {...base({ data: undefined, water: [1235781] })} />);
     await waitFor(() => expect(atlasLog().sort()).toEqual([...selected(311274, true), ...water(1235781, true)].sort()));
     log.length = 0;
@@ -434,6 +439,16 @@ describe("web only", () => {
     r.rerender(<WebMap {...base({ highlight: undefined,
                                   data: { ...WEB_DATA, lake: { 1566515: { other: "digitised" } } } })} />);
     await waitFor(() => expect(log).toEqual(['set atlas/lake number:1566515 {"other":"digitised"}']));
+  });
+
+  it("(T345) a highlight moved mid tile burst is applied: a step's camera fly must not leave the old part lit", async () => {
+    const r = render(<WebMap {...base({ data: undefined, highlight: [311274], water: [1235781] })} />);
+    await waitFor(() => expect(log.length).toBeGreaterThan(0));
+    log.length = 0;
+    web.tilesIn = false;                  // ▲ / ▼: the camera flies to the new part, its tiles load, no `styledata` follows
+    r.rerender(<WebMap {...base({ data: undefined, highlight: [1235781], water: [311274] })} />);
+    await waitFor(() => expect(log.filter((l) => l.startsWith("set atlas/stream")).sort()).toEqual([
+      'set atlas/stream number:1235781 {"selected":true}', 'set atlas/stream number:311274 {"water":true}']));
   });
 
   it("ONE PATHWAY: a pushed status, standing or lake fact is REFUSED on the web and reported; the rest lands", async () => {

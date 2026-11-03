@@ -42,7 +42,10 @@ export async function loadRawWaterGroup(store: GroupStore, item: string): Promis
   const ord = await store.itemOrd(item);
   if (ord === null) throw new RegsInputsError(`water map: no water ${item} in the regs store`);
   const ords = await store.siblingOrds(ord);
-  const all = await Promise.all([ord, ...ords.filter((o) => o !== ord)].map((o) => rowsOf(store, o)));
+  // (T345, one load path) the group's items in ONE order whichever of them was opened: a split lake's areas read from
+  // any area are the same group, part for part and index for index (it was the opened item first, so a reload on one
+  // area listed and stepped the parts in another order than a step into it from its sibling)
+  const all = await Promise.all([...new Set([ord, ...ords])].sort((a, b) => a - b).map((o) => rowsOf(store, o)));
   return waterGroup(all);
 }
 

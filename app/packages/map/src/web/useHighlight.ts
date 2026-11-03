@@ -6,7 +6,7 @@ import type { SectionKey } from "@app/core";
 import { useEffect, useRef, type MutableRefObject } from "react";
 import type { MapProps } from "../map-props";
 import type { SelectionCue } from "../paint";
-import { whenStyled } from "./ready";
+import { whenAtlas } from "./ready";
 import type { WebMapRefs } from "./refs";
 
 export interface Lit {
@@ -29,8 +29,10 @@ export function useHighlight({ map, renderer, adapter }: WebMapRefs,
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r || !highlight) return;
-    // `whenStyled`, not `once("load")`: a search lights a water on a map that loaded long
-    // ago, often mid-tile-burst, and a missed `load` meant the river never lit.
+    // `whenAtlas`: feature-state needs the atlas source and nothing else. Not `once("load")` (a search lights a water
+    // on a map that loaded long ago, and a missed `load` meant the river never lit), and not `whenStyled` (T345): its
+    // `isStyleLoaded()` is false through every tile burst — a ▲ / ▼ on a water's map flies the camera, so the new part
+    // waited for a `styledata` a settled map never sends, and the OLD part stayed lit where the camera had left it.
     const apply = () => {
       // Clears ONLY the highlight's keys, per feature, from the ids this map lit last time — see `stateHandle`.
       const handle = r.states(() => [...wasLit.current, ...wasWater.current]);
@@ -39,7 +41,7 @@ export function useHighlight({ map, renderer, adapter }: WebMapRefs,
       wasWater.current = [...(water ?? [])];
       wasCue.current = selection;
     };
-    return whenStyled(m, apply);
+    return whenAtlas(m, apply);
   }, [highlight, water, selection]);
   return { wasLit, wasWater, wasCue };
 }

@@ -17,7 +17,7 @@ import { HOME, reduce, waterFrame, type Route, type View } from "./route";
 
 /** The query keys a route owns (`routeSearch` writes them; the rest — date, angler, theme — are left as they were). `show`
  *  is read once at start and gone at the first write. */
-export const ROUTE_KEYS = ["regs", "part", "view", "tab", "sheet", "scroll", "show"] as const;
+export const ROUTE_KEYS = ["regs", "part", "stretch", "view", "tab", "sheet", "scroll", "show"] as const;
 const VIEWS: readonly View[] = ["regs", "conditions", "map"];
 
 /**
@@ -33,6 +33,10 @@ export function routeSearch(r: Route, current = ""): string {
   if (f && f.item !== null) {
     q.set("regs", f.item);
     if (f.part !== null) q.set("part", String(f.part));
+    // (T204, T345) the stretch the water map is on, so a reload draws what was on screen (one load path per screen). Never
+    // the tapped section (AGENTS rule 5: a section id never leaves the bundle): a tapped frame's map ADOPTS the part the
+    // tap resolves to (`useWaterMap`), and that part is what the address carries
+    if (f.part !== null && f.stretch) q.set("stretch", String(f.stretch));
     if (f.view !== "regs") q.set("view", f.view);
   }
   const out = q.toString().replace(/%3A/gi, ":");   // an item id's colon reads as typed; a URL query allows it
@@ -41,6 +45,17 @@ export function routeSearch(r: Route, current = ""): string {
 
 /** Where the Regulations page starts: the tab scrolled to, the sheet open over it, and/or a scroll offset (px). */
 export interface RegsStart { tab: Tab; sheet: SheetKey | null; scroll: number }
+
+/**
+ * (T256, T345) WHETHER THE MAP'S STATUS WAITS FOR THE PAGE: a start on a water's REGULATIONS page draws the page first
+ * and asks the map's status (paint) after the page has applied its start. Only while that page is in front: a start
+ * link to the water's Map or Conditions view (`?regs=…&view=map`, a reload of either) has no page to wait for — the
+ * page never mounts, its start is never applied, and the held status left the water's map uncoloured (every river
+ * "Base rules" blue after a reload of the Coquitlam's Map view, owner 2026-11-03).
+ */
+export function holdsMapStatus(r: Route, start: RegsStart | null): boolean {
+  return start !== null && waterFrame(r)?.view === "regs";
+}
 
 export interface StartLink {
   route: Route;
@@ -95,6 +110,8 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
 
   const partS = q.get("part");
   const part = partS === null ? null : /^\d+$/.test(partS) ? Number(partS) : bad("part", "a part index");
+  const stretchS = q.get("stretch");
+  const stretch = stretchS === null ? undefined : /^\d+$/.test(stretchS) ? Number(stretchS) : bad("stretch", "a stretch index");
 
   const dateS = q.get("date");
   let day: Date | null = null;
@@ -125,6 +142,8 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   const themeS = q.get("theme");
   const theme = themeS === null ? null : themeS === "light" || themeS === "dark" ? themeS : bad("theme", "light|dark");
 
-  return { route: reduce(HOME, openWater({ item: item as ItemId, part, view, whole: view === "map" && part === null })), day, regs: { tab, sheet, scroll }, who, theme,
+  return { route: reduce(HOME, openWater({ item: item as ItemId, part, view, stretch,
+                                          whole: view === "map" && part === null })),
+           day, regs: { tab, sheet, scroll }, who, theme,
            arrive: item as ItemId };
 }

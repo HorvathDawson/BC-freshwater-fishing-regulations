@@ -27,7 +27,7 @@ import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useMenu, useDataFacts, useSync,
-         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -218,9 +218,10 @@ export function Shell(p: ShellProps) {
    * asked until the page it opened is drawn (`start` applied) or the reader leaves the water — on one bar the page's own
    * files are not sharing the line with the map's (the boot did not wait for paint either: `setRegsFirstStart`).
    */
-  const [statusHeld, setStatusHeld] = useState(() => !!p.regsStart && route.mode === "water");
-  useEffect(() => { if (statusHeld && (start === null || route.mode !== "water")) setStatusHeld(false); },
-            [statusHeld, start, route.mode]);
+  const [statusHeld, setStatusHeld] = useState(() => holdsMapStatus(route, p.regsStart ?? null));
+  // released once the page has applied its start, or the page is not in front (the water's Map or Conditions, another
+  // screen): released for good (T345: a start on the water's Map held it for ever)
+  useEffect(() => { if (statusHeld && !holdsMapStatus(route, start)) setStatusHeld(false); }, [statusHeld, start, route]);
   const col = useMapColouring({ source, feed, status: statusHeld ? null : p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
                                 epoch: syncState.epoch, settled, gearSettled: settled && quietLine,

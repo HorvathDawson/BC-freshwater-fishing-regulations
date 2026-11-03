@@ -12,7 +12,8 @@
  *   - only the section source-layers take feature-state (MVT ids; MapLibre Native ignores `promoteId`): an area
  *     layer's values are written into the style instead (`nativeStyle`'s `areaData`);
  *   - a feature-state already pushed is not pushed again (`onceSink`; `forget()` after a style swap, which drops them
- *     all): each is one TurboModule call per (feature, source-layer), and the status set is re-sent on every settle.
+ *     all): each is one TurboModule call per (feature, source-layer), and the status set is re-sent on every settle;
+ *   - (T345) a key is unset by a null write, never by a per-feature `removeFeatureState` (see `raw.remove`).
  */
 import type { SectionKey } from "@app/core";
 import { unionBbox, bboxOfGeometry, type Bbox } from "@app/core";
@@ -62,9 +63,15 @@ export function nativeRenderer(refs: NativeRefs, report: (e: unknown) => void, m
       const src = refs.atlas();
       if (src && ours(t)) void src.setFeatureState({ id, sourceLayer: t.sourceLayer }, s).catch(fail);
     },
+    // (T345) a key is UNSET by writing it null, never by `removeFeatureState`: MapLibre Native queues a frame's
+    // removals apart from its sets and applies them AFTER the sets, and keeps only the FIRST per-feature removal per
+    // source-layer in a frame (`SourceFeatureState::removeFeatureState`) — so moving the selection (remove `part`
+    // and `water` from the old ids, set them on the new) left 316504 at `water` and unlit, and 316505 lit AND
+    // `water` (the Coquitlam's "sliver", measured on the emulator by `getFeatureState`). A null write is a set: it
+    // goes in order with the others, and every paint reads a null state as unset (`["boolean", …, false]`).
     remove: (t: { source: string; sourceLayer: string }, id: string | number, key: string) => {
       const src = refs.atlas();
-      if (src && ours(t)) void src.removeFeatureState({ id, sourceLayer: t.sourceLayer }, key).catch(fail);
+      if (src && ours(t)) void src.setFeatureState({ id, sourceLayer: t.sourceLayer }, { [key]: null }).catch(fail);
     },
   };
   // (T175) every state for one of the water copy's sections goes to the copy as well — the one pathway, twice written

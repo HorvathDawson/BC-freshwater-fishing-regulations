@@ -55,7 +55,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
     : frame.view === "map" && item !== null
       ? <WaterMap source={source} item={item} palette={palette}>
           {/* P15: the parts, lit and framed from the release; ▼ / ▲, marks, the mouth's exit */}
-          <WaterMapView loader={loader} item={item} part={frame.part} tapSid={frame.tapSid} whole={frame.whole} palette={palette}
+          <WaterMapView loader={loader} item={item} part={frame.part} stretch={frame.stretch} tapSid={frame.tapSid} whole={frame.whole} palette={palette}
                         map={{ at: tiles, theme, camera: waterCamera.current ?? camera.current,
                                basemap: mm.basemap, status: mapStatus, spots: spotLayer,
                                // T145: a tap off every spot clears the selected spot's pin, here as on the browse maps
@@ -68,7 +68,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
                         onShowRegs={(id, p) => { for (const a of showRegsActions(item, id, p)) go(a); }}
                         // P15 follow-ups: a step is the frame's part (one water screen); ▲ / ▼ into the water this
                         // one goes on from or as opens it, Map in front (back returns here)
-                        onPart={(id, p) => go(partAction(item, id, p))}
+                        onPart={(id, p, st) => go(partAction(item, id, p, st))}
                         onCross={(id, p) => go(crossAction(id, p))}
                         // another water opens on top (back returns here)
                         onOtherSection={(sid) => opener.tap(sid, null, "regs", item)} />

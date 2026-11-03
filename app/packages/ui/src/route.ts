@@ -71,6 +71,12 @@ export interface WaterFrame {
   /** (T203) The water Map opens on the WHOLE water (a search result's: the reader picks the section there). A step to another part drops it. */
   whole?: boolean;
   /**
+   * (T204, T345) Which STRETCH of `part` the water map is on (0 first, mouth up), where the release splits the part into
+   * stretches; absent: the first. On the frame, not held by the map, so every way to the same place — a step, a list
+   * pick, a reload of its URL — draws the same (owner 2026-11-03: one load path per screen).
+   */
+  stretch?: number;
+  /**
    * (T221, owner 2026-10-28) A water of one part that goes on as / from no other (`@app/core` `soloWater`): its map has
    * nothing to choose, so the frame offers Regulations and Conditions only (`frameViews`). Set by a search result that
    * knew it, or by the Shell once the water's group is read (the `solo` action).
@@ -123,6 +129,8 @@ export type RouteAction =
       fromSearch?: boolean;
       /** (T203) The water Map opens framed on the whole water. */
       whole?: boolean;
+      /** (T204, T345) The stretch of `part` the water map is on (a start link's `stretch`). */
+      stretch?: number;
       /** (T221) The water is solo (one part, no continuation): no Map view. */
       solo?: boolean }
   /** (T48) Open or close search over the map on screen. */
@@ -133,7 +141,7 @@ export type RouteAction =
    * area — a sibling of the same water — which becomes the frame's water; the tap it was opened by was on another water,
    * so the frame forgets it.
    */
-  | { type: "part"; part: number; item?: ItemId }
+  | { type: "part"; part: number; item?: ItemId; stretch?: number }
   | { type: "flowInto"; item: ItemId; part: number }
   /**
    * (Owner 2026-10-22 late, "a river that changes its name is ONE system") ▲ / ▼ off the end of a water into the water
@@ -201,6 +209,7 @@ const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | nu
                           view: a.view ?? "regs",
                           ...(a.item !== null && a.group && a.group.length > 1 ? { group: a.group } : {}),
                           ...(a.whole && (a.view ?? "regs") === "map" ? { whole: true } : {}),
+                          ...(a.stretch && a.part !== null && a.part !== undefined ? { stretch: a.stretch } : {}),
                           ...(a.solo && a.item !== null ? { solo: true } : {}) };
   if (f.item === null && tapSid === null) return null;
   return frameViews(f).includes(f.view) ? f : null;
@@ -248,8 +257,10 @@ export function reduce(r: Route, a: RouteAction): Route {
     case "view": return frameViews(top(r)).includes(a.view) ? withTop(r, { view: a.view, whole: undefined }) : r;
     case "part":
       if (top(r).item === null) return r;
-      return a.item === undefined || a.item === top(r).item ? withTop(r, { part: a.part, whole: undefined })
-        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null, whole: undefined, solo: undefined });
+      return a.item === undefined || a.item === top(r).item
+        ? withTop(r, { part: a.part, whole: undefined, stretch: a.stretch || undefined })
+        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null, whole: undefined, solo: undefined,
+                       stretch: a.stretch || undefined });
     case "solo": {
       const t = top(r);
       if (t.item !== a.item || t.solo) return r;

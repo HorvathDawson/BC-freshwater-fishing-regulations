@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { HOME, reduce } from "./route";
 import { openWater } from "./openWater";
-import { parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, WATER_PATH } from "./startLink";
+import { holdsMapStatus, parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, WATER_PATH } from "./startLink";
 import type { ItemId } from "@app/data";
 
 const NOW = new Date(2026, 9, 22, 9, 30);   // Thu Oct 22 2026, local
@@ -84,5 +84,22 @@ describe("(T221) the address follows the route: routeSearch", () => {
     expect(routeSearch(HOME, "?regs=gnis:1&date=2026-07-01")).toBe("?date=2026-07-01");
     const reach = reduce(HOME, { type: "openWater", item: null, tapSid: 5 as never, view: "regs" });
     expect(routeSearch(reach)).toBe("");
+  });
+});
+
+// (T345, owner 2026-11-03) a reload of the Coquitlam's Map view drew every river "Base rules" blue: the map's status was
+// held for a Regulations page that the Map view never mounts, so its start was never applied and the hold never ended
+describe("(T256, T345) the map's status waits for the regulations page only while that page is in front", () => {
+  it("a start on the water's Map or Conditions view holds nothing; one on its Regulations holds until applied", () => {
+    const map = parseStartLink("?regs=gnis:19986&part=2&view=map", NOW)!;
+    const cond = parseStartLink("?regs=gnis:19986&part=2&view=conditions", NOW)!;
+    const regs = parseStartLink("?regs=gnis:19986&part=2", NOW)!;
+    // the old rule (`!!regsStart && route.mode === "water"`) held all three, and only the page's start released it
+    expect([map, cond, regs].map((l) => !!l.regs && l.route.mode === "water")).toEqual([true, true, true]);
+    expect([holdsMapStatus(map.route, map.regs), holdsMapStatus(cond.route, cond.regs),
+            holdsMapStatus(regs.route, regs.regs), holdsMapStatus(regs.route, null)]).toEqual([false, false, true, false]);
+    // the reader leaves the page for the Map view before it applied its start: the hold ends there too
+    expect(holdsMapStatus(reduce(regs.route, { type: "view", view: "map" }), regs.regs)).toBe(false);
+    expect(holdsMapStatus(HOME, regs.regs)).toBe(false);
   });
 });
