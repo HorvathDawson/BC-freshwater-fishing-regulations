@@ -95,6 +95,8 @@ async function markedCopy(s: SynopsisSource, cached: File, boxes: readonly Sourc
 export async function openHighlighted(s: SynopsisSource, pdf: number, boxes: readonly SourceBox[],
                                       hooks: Partial<LoadHooks> = {}): Promise<void> {
   const cached = await downloadSynopsis(s, hooks);
-  const f = (await markedCopy(s, cached, boxes)) ?? cached;
-  showPdf(f.uri, Math.max(1, pdf));
+  const marked = await markedCopy(s, cached, boxes);
+  // what opened, for the test bed (logcat) and a report: the page, the boxes it was handed, marked or plain
+  console.info(`[synopsis] open PDF p.${pdf}: ${boxes.length} box(es) → ${marked ? "highlighted copy" : "plain book"}`);
+  showPdf((marked ?? cached).uri, Math.max(1, pdf));
 }

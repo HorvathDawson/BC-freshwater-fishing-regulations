@@ -12,6 +12,7 @@ import { TYPE } from "../type";
 import { LineText, NO_ACTIONS } from "./LineText";
 import { openBook } from "./openBook";
 import { RuleBookLink } from "./RuleBookLink";
+import { SourceLine } from "./SourceLine";
 
 const OS = Platform.OS;
 afterEach(() => { cleanup(); vi.restoreAllMocks(); (Platform as { OS: string }).OS = OS; });
@@ -43,6 +44,17 @@ describe("<RuleBookLink> label", () => {
     expect([a.textContent, a.getAttribute("aria-label")]).toEqual(["Rule book p.8 ↗", "Rule book page 8, opens the PDF"]);
     fireEvent.click(a);
     expect(books).toEqual([10]);
+  });
+});
+
+describe("<SourceLine> pages (T215)", () => {
+  it("a page's box reaches onBook: Cultus Lake's boats line p.23 opened 0 boxes (r-4df5bccc9360)", () => {
+    const box = [{ pdf: 25, box: [35.75, 146.4, 539.75, 166.56] as [number, number, number, number], size: [576, 756] as [number, number] }];
+    const calls: unknown[][] = [];
+    render(<SourceLine src={{ who: "This water’s ›", aria: "Sources", open: "srcs:boats", pages: [{ printed: 21, pdf: 23 }, { printed: 23, pdf: 25, box }] }}
+                       palette={LIGHT} actions={{ onSheet: () => {}, onBook: (...a) => { calls.push(a); } }} />);
+    for (const a of screen.getAllByRole("link")) fireEvent.click(a);
+    expect(calls).toEqual([[23], [25, box]]);
   });
 });
 

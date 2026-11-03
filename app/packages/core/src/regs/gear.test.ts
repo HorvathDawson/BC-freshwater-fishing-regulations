@@ -77,6 +77,15 @@ describe("sourceLine (prototype itemSrc)", () => {
   it("no known rule: no line", () => {
     expect(sourceLine("srcs:bait", [7, 9], ctx)).toBeNull();
   });
+  it("(T215) a page carries its rules' boxes on that PDF page, once each; a page with none carries no box", () => {
+    // Cultus Lake, r-4df5bccc9360: "No vessels" / speed rules → the boats source line; its p.23 link opened 0 boxes
+    const box = { pdf: 25, box: [35.75, 146.4, 539.75, 166.56] as [number, number, number, number], size: [576, 756] as [number, number] };
+    const withBox = (rix: number, book: [number, number][], bb: unknown[]): RuleView =>
+      ruleView(rix, exp("w:c", 0, "Cultus Lake"), { kind: "vessel", title: "", book, applies: "", book_box: bb } as RuleFacts, BOOK, "reach");
+    const rs = index([withBox(0, [[23, 25]], [box]), withBox(1, [[23, 25]], [box]), rule(2, "z2:s", 3, "Region 2", [[21, 23]])]);
+    expect(sourceLine("srcs:boats", [0, 1, 2], { rules: rs, chips: new Map() })!.pages)
+      .toEqual([{ printed: 21, pdf: 23 }, { printed: 23, pdf: 25, box: [box] }]);
+  });
 });
 
 describe("dayLine, closedUntil, changeVM", () => {

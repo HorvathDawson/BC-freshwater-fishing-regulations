@@ -8,11 +8,14 @@
 //   node app/tools/testbed/run.mjs water-nav        (NAV_Q / NAV_LINE pick another water)
 import fs from 'node:fs';
 import path from 'node:path';
-import { toMap } from './common.mjs';
+import { coldStart, toMap } from './common.mjs';
 import { settledTarget } from './regs-open.mjs';
 
 const Q = process.env.NAV_Q ?? 'Coquitlam River';
-const ROW = process.env.NAV_ROW ?? 'Stream · Region 2.*';
+const ROW = process.env.NAV_ROW ?? '.* · Region 2 · MU 2-8.*';
+const TITLE = new RegExp(process.env.NAV_TITLE ?? '^Coquitlam River');
+/** `tap` (default): the water tapped on the map, as the owner did; `open`: the search result's Open (no tapped section) */
+const VIA = process.env.NAV_VIA ?? 'tap';
 const SEQ = ['up', 'up', 'down', 'up', 'down', 'down', 'up', 'up', 'up', 'down', 'down', 'down'];
 
 export const waterNav = {
@@ -41,21 +44,44 @@ export const waterNav = {
     /** The owner's way in (2026-11-03): the water TAPPED on the map (the frame then holds the tapped section), its
      *  regulations, then its Map view. */
     const tapIn = async () => {
+      // a water still open from before (its screen hides the tab bar): closed by its own ✕
+      for (let i = 0; i < 3; i++) {
+        ctx.device.sh('uiautomator dump /sdcard/tb-nav.xml >/dev/null 2>&1');
+        if (!ctx.device.sh('cat /sdcard/tb-nav.xml').includes('resource-id="water-close"')) break;
+        ctx.flow('tap-id', { ID: 'water-close' }); await ctx.device.sleep(1500);
+      }
       await toMap(ctx);
       ctx.device.logcatClear();
       ctx.flow('search', { Q });
-      ctx.flow('tap-text', { TEXT: ROW });
+      const rows = ctx.device.screenText().filter((w) => / · /.test(w)).slice(0, 6);
+      if (VIA === 'open') ctx.flow('open-result', { LINE: ROW });
+      else ctx.flow('tap-text', { TEXT: ROW });
       await ctx.device.sleep(3500);
-      if (ctx.device.screenText().some((x) => /NAMED WATERS/i.test(x))) { ctx.device.sh('input keyevent 4'); await ctx.device.sleep(3000); }
-      const at = await settledTarget(ctx);
-      if (!at) throw new Error('the app named no tap target for the water (no [target] line)');
-      ctx.device.sh(`input tap ${at.x} ${at.y}`);
-      await ctx.waitText(/Regulations/, 30_000);
+      if (VIA !== 'open' && ctx.device.screenText().some((x) => /NAMED WATERS/i.test(x))) { ctx.device.sh('input keyevent 4'); await ctx.device.sleep(3000); }
+      if (VIA !== 'open') {
+        const at = await settledTarget(ctx);
+        if (!at) throw new Error('the app named no tap target for the water (no [target] line)');
+        ctx.device.sh(`input tap ${at.x} ${at.y}`);
+      }
+      // the water's own screen (its view strip), and the water tapped is the one searched (not a neighbour; the search
+      // field keeps the query, so the title alone proves nothing)
+      const end = Date.now() + 30_000;
+      let words = [];
+      while (Date.now() < end) {
+        ctx.device.sh('uiautomator dump /sdcard/tb-nav.xml >/dev/null 2>&1');
+        const x = ctx.device.sh('cat /sdcard/tb-nav.xml');
+        words = ctx.device.screenText();
+        if (x.includes('resource-id="water-view-regs"') && words.some((w) => TITLE.test(w))) break;
+        await ctx.device.sleep(1500);
+      }
+      if (!words.some((w) => TITLE.test(w)) || !ctx.device.sh('cat /sdcard/tb-nav.xml').includes('water-view-regs'))
+        throw new Error(`the tap did not open ${Q} (rows: ${rows.join(' / ')}; saw: ${words.slice(0, 10).join(' | ')})`);
       const regs = await shot('regs');
-      ctx.flow('tap-text', { TEXT: 'Map' });
+      ctx.flow('tap-id', { ID: 'water-view-map' });
       await ctx.waitText(/Show all \d+ parts|Lowest part|Highest part|Upstream|Downstream/, 30_000);
       return `${regs} → ${await shot('map')}`;
     };
+    await ctx.step('a cold start (nothing left open by an earlier scenario)', () => coldStart(ctx), { stop: true });
     await ctx.step(`${Q}: tapped on the map → its regulations → Map`, tapIn, { stop: true });
     await ctx.step('one ▲ (owner: the part runs past its bounds)', async () => {
       ctx.flow('tap-id', { ID: 'water-map-step-up' });

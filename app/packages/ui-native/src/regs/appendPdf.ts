@@ -2,7 +2,9 @@
  * T354 — the row highlighted IN PLACE, without reading the book: a PDF incremental update. A PDF may be extended by
  * appending objects and a new cross-reference section that points back (/Prev) at the old one; a viewer reads the last
  * section first, so the appended objects win. The append here is a few hundred bytes:
- *   - one /Highlight per box, as `highlightPdf` draws them;
+ *   - one /Highlight per box, WITH its own appearance (/AP: a yellow fill, multiplied, half alpha): PDFKit and desktop
+ *     pdfium make one when it is missing, Android's pdfium build (react-native-pdf) draws none without it (emulator
+ *     2026-11-03: the Cultus Lake row opened unmarked);
  *   - each marked page's /Annots array again (the shipped copy makes every page's an indirect array), its own refs
  *     followed by the new ones; the page itself is never rewritten;
  *   - an xref STREAM (the book's own xref is one) whose dictionary is the new trailer.
@@ -15,8 +17,9 @@ import type { SynopsisAppend } from "@app/data";
 
 /** The index format this append reads; any other is refused (thrown). */
 export const APPEND_V = 2;
-/** As `highlightPdf`: yellow, multiplied without an appearance stream by pdfium and PDFKit. */
+/** Yellow; the appearance multiplies it over the text at half alpha (a viewer without blend modes still shows the text). */
 const COLOUR = "[1 0.9 0.2]";
+const FILL = "1 0.9 0.2 rg";
 
 const num = (x: number) => String(Math.round(x * 100) / 100);
 const nums = (xs: readonly number[]) => `[${xs.map(num).join(" ")}]`;
@@ -38,9 +41,13 @@ export function appendHighlight(ix: SynopsisAppend, bytes: number, boxes: readon
     const g = highlightGeometry(b);
     if (!g || !(b.pdf >= 1 && b.pdf <= n)) continue;
     const [pn, pg] = ix.page[b.pdf - 1]!;
-    const a = next++;
+    const a = next++, ap = next++;
+    const [x0, y0, x1, y1] = g.rect;
+    const draw = `/G gs ${FILL} ${num(x0)} ${num(y0)} ${num(x1 - x0)} ${num(y1 - y0)} re f`;
     objs.push({ at: [a, 0], body: `<</Type/Annot/Subtype/Highlight/Rect ${nums(g.rect)}/QuadPoints ${nums(g.quadPoints)}`
-      + `/C ${COLOUR}/CA 1/F 4/Border [0 0 0]/T (Source)/P ${pn} ${pg} R>>` });
+      + `/C ${COLOUR}/CA 1/F 4/Border [0 0 0]/T (Source)/P ${pn} ${pg} R/AP <</N ${ap} 0 R>>>>` });
+    objs.push({ at: [ap, 0], body: `<</Type/XObject/Subtype/Form/BBox ${nums(g.rect)}`
+      + `/Resources <</ExtGState <</G <</Type/ExtGState/BM/Multiply/ca 0.5>>>>>>/Length ${draw.length}>>\nstream\n${draw}\nendstream` });
     added.set(b.pdf, [...(added.get(b.pdf) ?? []), `${a} 0 R`]);
   }
   if (!added.size) return null;

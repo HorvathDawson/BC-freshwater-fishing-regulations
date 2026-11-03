@@ -11,6 +11,7 @@ import Pdf from "react-native-pdf";
 import { reportFailure, useBackLayer } from "@app/ui";
 import { SPACE, type Palette } from "../theme";
 import { TYPE } from "../type";
+import { WindowInsets } from "../WindowInset";
 import { MIN_HIT } from "./hit";
 import { closePdf, failPdf, usePdfView } from "./pdfView";
 import { SYNOPSIS_WORDS as W } from "./synopsisLoad";
@@ -23,6 +24,8 @@ export function PdfViewer({ palette }: { palette: Palette }) {
   if (!v) return null;
   return (
     <Modal visible animationType="slide" onRequestClose={requestClose} statusBarTranslucent={false}>
+      {/* the status bar and the gesture bar are the window's, as on a menu page (an Android 15+ Modal draws under them) */}
+      <WindowInsets style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ flex: 1, backgroundColor: palette.page }} testID="pdf-viewer">
         <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: SPACE.s3, borderBottomWidth: 1,
                        borderBottomColor: palette.line, backgroundColor: palette.card }}>
@@ -52,6 +55,7 @@ export function PdfViewer({ palette }: { palette: Palette }) {
                }} />
         )}
       </View>
+      </WindowInsets>
     </Modal>
   );
 }

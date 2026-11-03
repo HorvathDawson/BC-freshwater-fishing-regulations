@@ -15,6 +15,7 @@
  * sm, val, rowOf, notesFor, citesAt, tipFor, the rest-terms splice; the ungoverned/closed branches); gearParts' gRow chip rule set (RANK[rank].t, for the learned chip words).
  */
 import { MONTHS, WEEKDAYS } from "../calendar.generated";
+import type { BookBox } from "../answers.generated";
 import type { GearAnswer, GearValue, RegsInputs, RuleIndex, RuleView } from "./inputs";
 import type { BannerVM, ChangeVM, Day, GearLineVM, GearVM, SourceLineVM, Weekday } from "./model";
 import { ruleSub } from "./level";
@@ -100,12 +101,22 @@ export function sourceLine(open: SheetKey, rixs: readonly number[], ctx: Pick<Ge
   const rs = keep.map((ix) => ctx.rules.get(ix));
   const pages = new Map<number, number>();
   for (const r of rs) for (const [printed, pdf] of r.facts?.book ?? []) if (!pages.has(printed)) pages.set(printed, pdf);
+  // (T215) each page's highlight: every kept rule's `book_box` on that PDF page, once each (the same row cited by several
+  // rules is one box). Before this the source line's links carried no box and opened the plain book.
+  const boxesOn = (pdf: number): BookBox[] => {
+    const seen = new Map<string, BookBox>();
+    for (const r of rs) for (const b of r.facts?.book_box ?? []) if (b.pdf === pdf) seen.set(JSON.stringify(b), b);
+    return [...seen.values()];
+  };
   const who = [...new Set(rs.map((r) => whoWord(r, ctx.chips)))].filter(Boolean);
   return {
     who: `${who.join(GEAR.SUB_SEP) || GEAR.SOURCES} ${GEAR.SRC_ARROW}`,
     aria: GEAR.SOURCES_ARIA + (who.join(", ") || GEAR.SOURCES_RULES),
     open, keys: rs.map((r) => r.key),
-    pages: [...pages].sort((a, b) => a[0] - b[0]).map(([printed, pdf]) => ({ printed, pdf })),
+    pages: [...pages].sort((a, b) => a[0] - b[0]).map(([printed, pdf]) => {
+      const box = boxesOn(pdf);
+      return box.length ? { printed, pdf, box } : { printed, pdf };
+    }),
   };
 }
 

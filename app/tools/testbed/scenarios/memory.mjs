@@ -84,10 +84,14 @@ export const memory = {
       return measure('water page');
     });
     await ctx.step('the rule book: in the app, at the cited page; back closes it', async () => {
-      ctx.flow('scroll-to', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
-      const link = ctx.device.screenText().find((x) => /Rule book p\.\d+ ↗/.test(x)) ?? '';
+      // a WATER row's link (the regional tables, printed p.20 on): only those carry a box to highlight (T215; a
+      // provincial rule's p.9 opens unmarked)
+      const LINK = process.env.BOOK_LINK ?? 'Rule book p\\.[2-9][0-9] ↗.*';
+      ctx.flow('scroll-to', { TEXT: LINK });
+      const link = ctx.device.screenText().find((x) => new RegExp(LINK).test(x)) ?? '';
+      ctx.device.logcatClear();
       const t0 = Date.now();
-      ctx.flow('tap-text', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
+      ctx.flow('tap-text', { TEXT: LINK });
       let page = null, failed = null;
       while (Date.now() - t0 < 60_000) {
         const words = ctx.device.screenText();
@@ -107,7 +111,8 @@ export const memory = {
       await ctx.device.sleep(1500);
       if (ids(ctx).includes('pdf-viewer')) throw new Error('back did not close the viewer');
       if (!ctx.device.screenText().some((x) => /Regulations/.test(x))) throw new Error('back closed more than the viewer (the water page is gone)');
-      return `${link} → ${page} in ${ms} ms; back closed it · ${mem}`;
+      const said = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[synopsis] open')).map((l) => l.slice(l.indexOf('[synopsis]'))).at(-1) ?? 'no [synopsis] line';
+      return `${link} → ${page} in ${ms} ms (${said}); back closed it · ${mem}`;
     });
     await ctx.step('Conditions', async () => { await toMap(ctx); ctx.flow('tab', { TAB: 'Conditions' }); return measure('conditions', 6000); });
     await ctx.step('Salmon', async () => {

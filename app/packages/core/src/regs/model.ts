@@ -12,6 +12,7 @@ import type { PinLine } from "./pins";
 import type { RegsInputs } from "./inputs";
 import type { Weekday } from "../calendar.generated";
 import type { KeepEnv } from "./keep";
+import type { BookBox } from "../answers.generated";
 
 export type { Weekday } from "../calendar.generated";
 /** The spec's weekday names, Monday first (THE CALENDAR SPEC). */
@@ -241,7 +242,8 @@ export interface SourceLineVM {
   readonly aria: string;
   readonly open: SheetKey;                  // srcs:…
   readonly keys: readonly RuleKey[];        // feeds the srcs: sheet
-  readonly pages: readonly { printed: number; pdf: number }[];
+  /** (T215) `box`: the cited rows on that PDF page (the rules' `book_box`), for the opened PDF's highlight */
+  readonly pages: readonly { printed: number; pdf: number; box?: readonly BookBox[] }[];
 }
 export interface BaitVM { readonly label: string; readonly notes: readonly Line[];
   readonly dated: readonly ChangeVM[]; readonly list: YesNoVM; readonly src: SourceLineVM | null }

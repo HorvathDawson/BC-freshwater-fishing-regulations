@@ -110,7 +110,9 @@ describe.skipIf(gate.skip)("T32 ways, boats, reference vs golden methods", () =>
     ]);
     expect([v.ways!.src?.who, v.ways!.src?.open, v.ways!.src?.pages]).toEqual(["Province ›", "srcs:ways", [{ printed: 8, pdf: 10 }]]);
     expect([v.boats!.items, v.boats!.src?.who, v.boats!.src?.pages]).toEqual([
-      ["No powered boats — between the Goat Creek confluence and the Talchako River confluence"], "This water’s ›", [{ printed: 43, pdf: 49 }]]);
+      ["No powered boats — between the Goat Creek confluence and the Talchako River confluence"], "This water’s ›",
+      // (T215) the water's own row carries its box on that page; the province's (ways, above) has none
+      [{ printed: 43, pdf: 49, box: [{ pdf: 49, box: [36, 126.72, 540, 228.96], size: [576, 756] }] }]]);
   });
 
   it("3. klmb_1010: ice fishing's clauses and conduct; spear or bow not allowed", async () => {

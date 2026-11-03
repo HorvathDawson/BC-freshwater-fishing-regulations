@@ -55,3 +55,21 @@ rule-book PDF, then `am send-trim-memory <pkg> RUNNING_CRITICAL`), satellite on 
    TOTAL PSS / Graphics / Native Heap per step in this ticket.
 3. Repeat with `nativeVariant: "opengl"` (one prebuild + build). Compare memory and N1's pan budget (p95 ≤ ~20 ms).
 4. Put the PDF options (a/b/c above) and the Vulkan→OpenGL result to the owner; then fix what the numbers show.
+
+## Measured 2026-11-03 (emulator n1_pixel, Vulkan as shipped, local release r-4df5bccc9360; `run.mjs memory`)
+MB, `dumpsys meminfo` App Summary. Graphics reads 0 on the emulator (host GPU): a real phone adds its GPU memory on top.
+
+| step | PSS | Java | Native | Code | Other |
+|---|---|---|---|---|---|
+| boot (map drawn) | 255 | 13 | 155 | 40 | 35 |
+| 10 pans | 287 | 15 | 181 | 40 | 41 |
+| zoom +4 | 208 | 15 | 97 | 41 | 44 |
+| water page (Cultus) | 292 | 23 | 137 | 37 | 83 |
+| rule book open (in-app viewer) | 332 | 14 | 170 | 40 | 83 |
+| Conditions | **392** | 18 | **229** | 37 | 83 |
+| after trim RUNNING_CRITICAL | 375 | 18 | 214 | 34 | 80 |
+
+- Native heap (map + SQLite + Hermes) is the whole story; Java is small. Conditions is the peak, ~400 MB before any
+  GPU memory: the phone crashed at 406/435 MB. `onTrimMemory` frees ~17 MB only (nothing listens for it).
+- The rule book costs ~40 MB in the viewer now (was the 100–200 MB JS spike, T354): no longer the top item.
+- Next: the same with `nativeVariant: "opengl"`; then where Conditions' +100 MB native goes (its map + chart + feeds).

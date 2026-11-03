@@ -90,7 +90,7 @@ export function ViewTabs({ palette, views, on, onView }: {
         const sel = v === on;
         return (
           <Pressable key={v} ref={coach(`view:${v}`)} onPress={() => { if (!sel) onView(v); }}
-                     accessibilityRole="tab" aria-selected={sel} accessibilityLabel={WATER_VIEW_LABEL[v]}
+                     accessibilityRole="tab" aria-selected={sel} accessibilityLabel={WATER_VIEW_LABEL[v]} testID={`water-view-${v}`}
                      accessibilityHint={v === "regs" ? TO_REGULATIONS.hint : undefined}
                      // (T40) the strip's row is 38 tall and "Map" (14 px bold) about 30 wide: grown to 44 × 44 inside the 22 px gap
                      {...hitProps({ w: 28, h: 38 })}

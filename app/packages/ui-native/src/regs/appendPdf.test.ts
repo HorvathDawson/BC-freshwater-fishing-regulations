@@ -33,7 +33,7 @@ describe("appendHighlight (T354)", () => {
   it("highlights the box's page in place; no page moves and no other page is touched", async () => {
     const { bytes, ix } = await book();
     const tail = appendHighlight(ix, bytes.length, [BOX(2), BOX(2, 130)])!;
-    expect(tail.length).toBeLessThan(1024);
+    expect(tail.length).toBeLessThan(2048);
     const doc = await PDFDocument.load(joined(bytes, tail));
     expect(doc.getPageCount()).toBe(3);
     expect([0, 1, 2].map((i) => annots(doc, i))).toEqual([0, 2, 0]);
@@ -42,6 +42,9 @@ describe("appendHighlight (T354)", () => {
     expect(a.get(PDFName.of("P"))).toEqual(doc.getPage(1).ref);
     const rect = a.lookup(PDFName.of("Rect"), PDFArray).asArray().map((n) => (n as PDFNumber).asNumber());
     expect(rect).toEqual([36, 636, 540, 656]);
+    // its own appearance: Android's pdfium draws no highlight without one
+    const ap = a.lookup(PDFName.of("AP"), PDFDict).lookup(PDFName.of("N"));
+    expect(ap?.constructor.name).toMatch(/Stream/);
   });
   it("a page's own annotations (its links) stay, the highlight after them", async () => {
     const { bytes, ix } = await book();
@@ -55,11 +58,11 @@ describe("appendHighlight (T354)", () => {
     expect(text).toContain(`/Prev ${ix.startxref}`);
     const xrefAt = Number(/startxref\n(\d+)\n%%EOF\n$/.exec(text)![1]);
     expect(new TextDecoder("latin1").decode(joined(bytes, new TextEncoder().encode(text)).slice(xrefAt, xrefAt + 12))).toMatch(/^\d+ 0 obj/);
-    // the annot + the xref stream are new; page 3's /Annots array is overridden in place
-    expect(text).toMatch(new RegExp(`/Size ${ix.size + 2}/`));
+    // the annot, its appearance + the xref stream are new; page 3's /Annots array is overridden in place
+    expect(text).toMatch(new RegExp(`/Size ${ix.size + 3}/`));
     const runs = /\/Index \[([\d ]+)\]/.exec(text)![1]!.split(" ").map(Number);
     const covered = runs.flatMap((v, i) => (i % 2 ? [] : Array.from({ length: runs[i + 1]! }, (_, k) => v + k)));
-    expect(covered.sort((a, b) => a - b)).toEqual([ix.page[2]![2], ix.size, ix.size + 1].sort((a, b) => a - b));
+    expect(covered.sort((a, b) => a - b)).toEqual([ix.page[2]![2], ix.size, ix.size + 1, ix.size + 2].sort((a, b) => a - b));
   });
   it("nothing to mark (no box, a box off every page): null", async () => {
     const { bytes, ix } = await book();

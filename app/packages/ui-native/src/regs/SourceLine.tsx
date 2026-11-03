@@ -27,7 +27,7 @@ export function SourceLine({ src, palette, actions, pages = true, spaced = false
                  box={{ w: MIN_HIT, h: TYPE.metaBold.lineHeight }} style={{ flexShrink: 1, maxWidth: "100%" }}>
         <Text style={[TYPE.metaBold, { color: palette.accent }]}>{src.who}</Text>
       </RegsPress>
-      {pages && (src.pages ?? []).map((p) => <RuleBookLink key={p.printed} printed={p.printed} pdf={p.pdf} palette={palette} onBook={actions.onBook} alone />)}
+      {pages && (src.pages ?? []).map((p) => <RuleBookLink key={p.printed} printed={p.printed} pdf={p.pdf} box={p.box} palette={palette} onBook={actions.onBook} alone />)}
     </View>
   );
 }
