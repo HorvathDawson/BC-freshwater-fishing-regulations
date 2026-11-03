@@ -4,7 +4,7 @@
  * system back; its left-edge swipe is `@app/ui-native` `<EdgeBack>`.
  */
 import { BackHandler } from "react-native";
-import type { Route, SystemBack } from "@app/ui";
+import type { PlaceReads, Route, SystemBack } from "@app/ui";
 
 export const systemBack: SystemBack = (back) => {
   const sub = BackHandler.addEventListener("hardwareBackPress", () => back());
@@ -13,3 +13,6 @@ export const systemBack: SystemBack = (back) => {
 
 /** (T221) No address bar on a phone: the route has nothing to follow. */
 export function routeUrl(_r: Route): void {}
+
+/** (T369) No address bar: no place to make. */
+export function routeLinks(_store: PlaceReads | null): void {}

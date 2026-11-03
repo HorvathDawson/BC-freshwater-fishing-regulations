@@ -16,7 +16,7 @@ describe("regs-web states", () => {
   it("vedder_1010 → the prototype hash and the app's start link (item from taps.json), at the goldens' ref", () => {
     expect({ ...urlsOf("vedder_1010", { app: "http://x" }), ref: REF }).toEqual({
       proto: "w=vedder&d=1010&p=0&sec=keep",
-      app: "http://x/?regs=gnis%3A3062&part=0&date=2026-10-10&tab=keep",
+      app: "http://x/?regs=gnis%3A3062&ix=0&date=2026-10-10&tab=keep",
       ref: G.meta.ref,
     });
   });
@@ -25,7 +25,7 @@ describe("regs-web states", () => {
     expect(urlsOf("vedder_1010", { app: "http://x", tab: "licence", sheet: "pos:vedder_1010|pos", who: { age: "u16", res: "non_resident" }, theme: "dark" }))
       .toEqual({
         proto: "w=vedder&d=1010&p=0&sec=licence&sheet=pos%3Avedder_1010%7Cpos&age=u16&res=non_resident&theme=dark",
-        app: "http://x/?regs=gnis%3A3062&part=0&date=2026-10-10&tab=licence&sheet=pos%3Apos&age=u16&res=non_resident&theme=dark",
+        app: "http://x/?regs=gnis%3A3062&ix=0&date=2026-10-10&tab=licence&sheet=pos%3Apos&age=u16&res=non_resident&theme=dark",
       });
   });
 

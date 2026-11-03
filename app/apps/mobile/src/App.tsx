@@ -33,9 +33,10 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
-         type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
+         loadRegsStore, reportFailure, resolveStartLink, startNeedsRelease, startNoticeLine,
+         type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
-import { routeUrl, systemBack } from "./systemBack";
+import { routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
@@ -417,6 +418,27 @@ export default function App() {
              loader: b.loader };
   }, [boot]);
 
+  // (T369) THE START LINK, resolved in the release now open (`@app/ui` `resolveStartLink`: a place → the section of the
+  // stream that spans it → its water and part HERE; a water of one part named alone → that part) before the Shell
+  // opens on it, so the first frame drawn is the resolved one; and the address bar makes its places from the same
+  // release (`routeLinks`)
+  const [start, setStart] = useState<StartLink | null | undefined>(() => (startNeedsRelease(START) ? undefined : START));
+  useEffect(() => {
+    if (!data) return;
+    let live = true;
+    const store = loadRegsStore(data.loader);
+    store.then((st) => { if (live) routeLinks(st); }, () => { if (live) routeLinks(null); });
+    if (START && startNeedsRelease(START)) {
+      const link = START;
+      store.then((st) => resolveStartLink(link, st, data.source))
+        .then((l) => { if (live) setStart(l); },
+              (e: unknown) => { reportFailure(e); if (live) setStart({ ...link, place: null, notice: link.place ? "place-gone" : link.notice }); });
+    }
+    return () => { live = false; };
+  }, [data]);
+  const [noticeShut, setNoticeShut] = useState(false);
+  const startNotice = noticeShut ? null : startNoticeLine(start ?? null);
+
   const dataSource = data?.source ?? null;
   const refreshSpots = useCallback(async () => {
     if (!dataSource) return;
@@ -520,8 +542,15 @@ export default function App() {
             </Text>
           )}
         </View>
-      ) : ready && data ? (
+      ) : ready && data && start !== undefined ? (
         <View style={{ flex: 1 }}>
+        {/* (T369) a start that opened less than its link named says so (an old part number, a place gone) */}
+        {startNotice && (
+          <Text testID="start-notice" accessibilityRole="button" onPress={() => setNoticeShut(true)}
+                style={{ color: palette.sub, fontSize: 12, paddingVertical: 6, paddingHorizontal: 12 }}>
+            {startNotice}
+          </Text>
+        )}
         {rolledBack && (
           <Text style={{ color: palette.sub, fontSize: 12, paddingVertical: 6, paddingHorizontal: 12 }}>
             {rolledBackLine(rolledBack)}
@@ -543,7 +572,7 @@ export default function App() {
                fishImages={FISH_IMAGES}
                adiposeImages={ADIPOSE_IMAGES}
                systemBack={systemBack}
-               initialRoute={place.route ?? START?.route} onRoute={holdPlace} initialDay={START?.day ?? null} regsStart={START?.regs ?? null} arriveAt={START?.arrive ?? null}
+               initialRoute={place.route ?? start?.route} onRoute={holdPlace} initialDay={start?.day ?? null} regsStart={start?.regs ?? null} arriveAt={start?.arrive ?? null}
                locate={locate}
                weather={weather}
                photos={photos}

@@ -28,6 +28,7 @@ export * from "./visits";
 export * from "./dayFlow";
 export * from "./route";
 export * from "./openWater";
+export * from "./place";
 export * from "./mapModes";
 export * from "./conditionsColour";
 export * from "./lakeColour";

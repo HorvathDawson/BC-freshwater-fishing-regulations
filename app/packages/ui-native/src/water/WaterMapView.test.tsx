@@ -7,9 +7,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ItemId, SectionId } from "@app/data";
 import type { MapProps } from "@app/map";
-import { openRegsFixture } from "@app/data/release/node";
-import { BackLayerContext, HOME, openWater, parseStartLink, partAction, reduce, routeSearch, useBack, useRoute, waterFrame,
-         type Route, type SystemBack } from "@app/ui";
+import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines } from "@app/data/release/node";
+import { openRegsStore } from "@app/data/regs";
+import { BackLayerContext, HOME, linkSearch, openWater, parseStartLink, partAction, reduce, resolveStartLink, useBack, useRoute,
+         waterFrame, type Route, type StartLink, type SystemBack } from "@app/ui";
 import { LIGHT } from "../theme";
 
 const seen: { props: MapProps | null } = { props: null };
@@ -350,6 +351,19 @@ describe("<WaterMapView>", () => {
    * native-feature-state.test.ts and adapter-contract's mid-burst highlight.)
    */
   describe("(T345, T369) one load path: the same part by every way in draws the same", () => {
+    // (T369) the fixture with its stream lines (`section_line`, which the committed fixture was cut before): a link's
+    // PLACE is made and resolved in it, through the same functions the web's address bar and start use
+    const lined = openRegsFixtureWithLines();
+    const store = openRegsStore(lined);
+    /** The tap's own resolver (`WaterSource.itemForSection`: the source's ITEM_FOR_SECTION, over this release's core). */
+    const itemFor = { itemForSection: async (sid: SectionId) => {
+      const r = await (await (await store).core()).get(
+        "SELECT i.item_id FROM item_section s JOIN item i ON i.ord = s.ord WHERE s.sid = ? LIMIT 1", sid);
+      return r ? (String(r.item_id) as ItemId) : null;
+    } };
+    /** A URL as the web opens it: parsed, then resolved in the release (`resolveStartLink`). */
+    const opened = async (url: string): Promise<StartLink> => resolveStartLink(parseStartLink(url)!, await store, itemFor);
+    const addressOf = async (r: Route) => linkSearch(await store, r);
     const routes: Route[] = [];
     function Harness({ init }: { init: Route }) {
       const [route, go] = useRoute(init);
@@ -357,7 +371,7 @@ describe("<WaterMapView>", () => {
       const f = waterFrame(route);
       if (!f || f.item === null) return null;
       const item = f.item;
-      return <WaterMapView loader={loader} item={item} part={f.part} stretch={f.stretch} tapSid={f.tapSid} whole={f.whole}
+      return <WaterMapView loader={lined} item={item} part={f.part} stretch={f.stretch} tapSid={f.tapSid} whole={f.whole}
                            palette={LIGHT} map={MAP} onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}}
                            onCross={() => {}} onPart={(i, p, st) => go(partAction(item, i, p, st))} />;
     }
@@ -367,6 +381,16 @@ describe("<WaterMapView>", () => {
       fit: seen.props?.fit, marks: seen.props?.marks });
     const settle = () => act(() => new Promise((r) => setTimeout(r, 30)));
     const open = (o: Parameters<typeof openWater>[0]) => reduce(HOME, openWater(o));
+    /**
+     * What a frame's screens are drawn from: its water, part, stretch, view and ⤢ — and for an unnamed reach its section.
+     * A named water's tapped section stays on the live frame for the Conditions view's "you are here" (no URL carries
+     * it: AGENTS rule 5); the map has adopted its part, so the drawing is the part's (the `drawn` comparison).
+     */
+    const drawnFrom = (r: Route) => {
+      const f = waterFrame(r);
+      return f && { item: f.item, part: f.part, stretch: f.stretch, view: f.view, whole: f.whole,
+                    ...(f.item === null ? { tapSid: f.tapSid } : {}) };
+    };
     /** Every URL a way in's routes made (the frame at every render): none may carry a section id (AGENTS rule 5). */
     const urls: string[] = [];
     /** Mount the frame, do `steps`: what is drawn — and the URL the route leaves, reloaded: what that draws. */
@@ -376,14 +400,17 @@ describe("<WaterMapView>", () => {
       await ready();
       for (const s of steps) { s(); await settle(); }
       await settle();
-      const out = drawn(), url = routeSearch(routes.at(-1)!);
-      urls.push(...routes.map((r) => routeSearch(r)));
+      const out = drawn(), live = routes.at(-1)!, url = await addressOf(live);
+      urls.push(...await Promise.all(routes.map(addressOf)));
       cleanup(); seen.props = null;
       routes.length = 0;
-      render(<Harness init={parseStartLink(url)!.route} />);
+      const link = await opened(url);
+      // the reload's frame IS the live route's (one load path), and it says nothing (nothing was lost)
+      expect({ url, frame: drawnFrom(link.route), notice: link.notice }).toEqual({ url, frame: drawnFrom(live), notice: null });
+      render(<Harness init={link.route} />);
       await ready(); await settle();
       const again = drawn();
-      urls.push(...routes.map((r) => routeSearch(r)));
+      urls.push(...await Promise.all(routes.map(addressOf)));
       cleanup(); seen.props = null;
       return [out, again];
     }
@@ -397,7 +424,8 @@ describe("<WaterMapView>", () => {
 
     it("the Coquitlam's Mary Hill → Lougheed part (part_ix 2): reload, search Open + pick, tap, ▼, list pick", async () => {
       const ways: Record<string, [string, string]> = {
-        reload: await wayIn(parseStartLink(`?regs=${C}&part=2&view=map`)!.route),
+        // (T369) the part's own address — a place (its midpoint section's middle), never `part=2`
+        reload: await wayIn((await opened(await addressOf(open({ item: C, part: 2, view: "map" })))).route),
         "search Open, then the list": await wayIn(open({ item: C, view: "map", whole: true, fromSearch: true }), [pick(0)]),
         "tap (316504)": await wayIn(open({ item: C, tapSid: 316504 as SectionId, view: "map" })),
         "▼ from Lougheed → boundary": await wayIn(open({ item: C, part: 0, view: "map" }), [down]),
@@ -411,10 +439,51 @@ describe("<WaterMapView>", () => {
       // the tapped frame ADOPTED its part: the live route's address is the part's, and no URL ever held a section id
       const sids = new Set([...JSON.parse(first).highlight, ...JSON.parse(first).water].map(String));
       expect(urls.length).toBeGreaterThan(0);
-      expect(urls.filter((u) => /(^|[?&])sid=/.test(u) || u.split(/[^0-9]+/).some((n) => sids.has(n)))).toEqual([]);
-      expect([...new Set(urls)].filter((u) => u.includes("view=map") && !u.includes("part="))).toEqual(
-        // only a search Open's whole-water frame has no part before its pick
-        [`?regs=${C}&view=map`]);
+      expect(urls.filter((u) => /(^|[?&])(sid|part)=/.test(u) || u.split(/[^0-9]+/).some((n) => sids.has(n)))).toEqual([]);
+      expect([...new Set(urls)].filter((u) => u.includes("view=map") && !u.includes("blk="))).toEqual(
+        // only a search Open's whole-water frame has no place before its pick
+        [`?regs=${C}&view=map&whole=1`]);
+      // the part's place: the Coquitlam's stream key, the middle of its midpoint section (316504: 312–6590 m); the other
+      // places are the frames the ways in started on (parts 0 and 1)
+      expect([...new Set(urls)].filter((u) => u.includes("blk=")).sort()).toEqual([
+        `?regs=${C}&blk=356364584&m=11669&view=map`, `?regs=${C}&blk=356364584&m=3451&view=map`,
+        `?regs=${C}&blk=356364584&m=41797&view=map`]);
+    }, 60_000);
+
+    it("(T369) an UNNAMED reach: its address is its place alone (no item, no section id); reloaded, the same reach", async () => {
+      const { unnamed, lines } = regsFixtureLines();
+      const [, blk, from, to] = lines.find(([h]) => h === unnamed)!;
+      const m = Math.round((from + to) / 2);
+      const out: unknown[] = [];
+      for (const view of ["regs", "conditions"] as const) {
+        const live = open({ item: null, tapSid: unnamed as SectionId, view });
+        const url = await addressOf(live), link = await opened(url);
+        out.push([url, drawnFrom(link.route), link.notice]);
+        expect(drawnFrom(link.route)).toEqual(drawnFrom(live));
+      }
+      // the reach's stream key and its section's middle
+      expect(out).toEqual([[`?blk=${blk}&m=${m}`, drawnFrom(open({ item: null, tapSid: unnamed as SectionId })), null],
+                           [`?blk=${blk}&m=${m}&view=conditions`,
+                            drawnFrom(open({ item: null, tapSid: unnamed as SectionId, view: "conditions" })), null]]);
+      expect(String(unnamed).length > 0 && out.some((o) => String((o as string[])[0]).includes(String(unnamed)))).toBe(false);
+    }, 30_000);
+
+    it("(T369) a LAKE and a SPLIT LAKE's closure area: the item is the address (no place); its part and ⤢ reload the same", async () => {
+      const TESLIN = "wbk:328961703" as ItemId, UPPER_WEST_ARM = "wbk:-21" as ItemId;
+      const ways: Record<string, [string, string]> = {
+        "Teslin Lake": await wayIn(open({ item: TESLIN, part: 0, view: "map" })),
+        "Teslin Lake, ⤢": await wayIn(open({ item: TESLIN, view: "map", whole: true })),
+        "Kootenay Lake — Upper West Arm": await wayIn(open({ item: UPPER_WEST_ARM, part: 0, view: "map" })),
+        "the Main Body, ▼ to the Upper West Arm": await wayIn(open({ item: "wbk:-20" as ItemId, part: 0, view: "map" }), [down]),
+      };
+      for (const [way, [drew, reloaded]] of Object.entries(ways)) expect({ way, reloaded }).toEqual({ way, reloaded: drew });
+      expect(JSON.parse(ways["the Main Body, ▼ to the Upper West Arm"]![0]).name).toBe(JSON.parse(ways["Kootenay Lake — Upper West Arm"]![0]).name);
+      expect(await Promise.all([open({ item: TESLIN, part: 0, view: "map" }), open({ item: UPPER_WEST_ARM, part: 0 }),
+                                open({ item: TESLIN, view: "map", whole: true })].map(addressOf)))
+        .toEqual([`?regs=${TESLIN}&view=map`, `?regs=${UPPER_WEST_ARM}`, `?regs=${TESLIN}&view=map&whole=1`]);
+      // the Regulations view of an area: the same frame back
+      const regs = open({ item: UPPER_WEST_ARM, part: 0 });
+      expect(drawnFrom((await opened(await addressOf(regs))).route)).toEqual(drawnFrom(regs));
     }, 60_000);
 
     it("(T204) the Zymoetz's source part's UPPER stretch: ▲ into it and its URL reloaded draw the same (was the lower)", async () => {

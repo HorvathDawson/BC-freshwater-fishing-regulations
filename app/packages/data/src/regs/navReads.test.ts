@@ -100,8 +100,9 @@ describe("the water map's reads", () => {
     const r = makeReads({ core: async () => core, water: async () => w5, geo: async () => geo } as unknown as ReadBase);
     const nav = await r.navRows(5);
     expect(nav.stretches).toEqual([
-      { partIx: 0, stretch: 0, rank: 0, mid: [-123, 49], box: null, sids: [8] },
-      { partIx: 0, stretch: 1, rank: 2, mid: [-122, 49], box: [-122.1, 48.9, -121.9, 49.1], sids: [9, 10] }]);
+      // (T369) each stretch's midpoint section too: the place a link to the stretch carries
+      { partIx: 0, stretch: 0, rank: 0, midSid: 8, mid: [-123, 49], box: null, sids: [8] },
+      { partIx: 0, stretch: 1, rank: 2, midSid: 9, mid: [-122, 49], box: [-122.1, 48.9, -121.9, 49.1], sids: [9, 10] }]);
     expect(nav.marks.map((m) => [m.label, m.downStretch, m.upStretches, m.confidence])).toEqual([
       ["Bridge", undefined, undefined, undefined], ["Falls", 0, [1], "low"]]);
   });

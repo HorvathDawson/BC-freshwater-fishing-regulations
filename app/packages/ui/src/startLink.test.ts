@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { HOME, reduce } from "./route";
+import { HOME, reduce, waterFrame } from "./route";
 import { openWater } from "./openWater";
-import { holdsMapStatus, parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, WATER_PATH } from "./startLink";
+import { holdsMapStatus, parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, START_NOTICE_REACH_GONE,
+         START_NOTICE_WORDS, startNoticeLine, WATER_PATH } from "./startLink";
 import type { ItemId } from "@app/data";
 
 const NOW = new Date(2026, 9, 22, 9, 30);   // Thu Oct 22 2026, local
@@ -12,14 +13,17 @@ describe("parseStartLink (T41: the web test deep link)", () => {
   });
 
   it("the whole link → the water route (through openWater), the day at local noon, the regs start, who, theme", () => {
-    const l = parseStartLink("?regs=gnis:3062&part=1&date=2026-10-10&tab=gear&sheet=pos:pos&age=u16&res=non_resident&theme=dark&scroll=900", NOW)!;
+    const l = parseStartLink("?regs=gnis:3062&blk=356364584&m=3451&date=2026-10-10&tab=gear&sheet=pos:pos&age=u16&res=non_resident&theme=dark&scroll=900", NOW)!;
     expect({ ...l, day: l.day?.toString() }).toEqual({
-      route: reduce(HOME, openWater({ item: "gnis:3062" as ItemId, part: 1, view: "regs" })),
+      // (T369) the water whole until the place is resolved in the release (`resolveStartLink`)
+      route: reduce(HOME, openWater({ item: "gnis:3062" as ItemId, part: null, view: "regs" })),
       day: new Date(2026, 9, 10, 12).toString(),
       regs: { tab: "gear", sheet: "pos:pos", scroll: 900 },
       who: { age: "u16", residency: "non_resident" },
       theme: "dark",
       arrive: "gnis:3062",
+      place: { blk: 356364584, m: 3451, view: "regs" },
+      notice: null,
     });
   });
 
@@ -27,12 +31,28 @@ describe("parseStartLink (T41: the web test deep link)", () => {
     expect(parseStartLink("?regs=wbk:-22", NOW)).toEqual({
       route: reduce(HOME, openWater({ item: "wbk:-22" as ItemId, part: null, view: "regs" })),
       day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: "wbk:-22",
+      place: null, notice: null,
     });
+  });
+
+  it("(T369) an old `part=` link opens the WHOLE water and says so; the tools' `ix=` is a part; a place alone is a reach's", () => {
+    const old = parseStartLink("?regs=gnis:19986&part=2&view=map", NOW)!;
+    expect([waterFrame(old.route), old.notice, startNoticeLine(old)]).toEqual([
+      waterFrame(reduce(HOME, openWater({ item: "gnis:19986" as ItemId, view: "map", whole: true }))), "old-part",
+      START_NOTICE_WORDS["old-part"]]);
+    const tool = parseStartLink("?regs=gnis:3137&ix=2&stretch=1&view=map", NOW)!;
+    expect([waterFrame(tool.route), tool.notice]).toEqual([
+      waterFrame(reduce(HOME, openWater({ item: "gnis:3137" as ItemId, part: 2, stretch: 1, view: "map" }))), null]);
+    const reach = parseStartLink("?blk=356364485&m=257011&view=conditions", NOW)!;
+    expect([reach.route, reach.place, reach.arrive, reach.notice]).toEqual([
+      HOME, { blk: 356364485, m: 257011, view: "conditions" }, null, null]);
+    expect(startNoticeLine({ notice: "place-gone", route: HOME })).toBe(START_NOTICE_REACH_GONE);
   });
 
   it("(T269) `show`: the map (no water open), arriving at that water; a bad id throws; the first route write drops it", () => {
     expect(parseStartLink("?show=gnis:3062", NOW)).toEqual({
-      route: HOME, day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: "gnis:3062" });
+      route: HOME, day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: "gnis:3062",
+      place: null, notice: null });
     expect(() => parseStartLink("?show=Vedder", NOW)).toThrow("start link: show=Vedder is not an item id");
     expect(routeSearch(HOME, "?show=gnis:3062&theme=dark")).toBe("?theme=dark");
   });
@@ -50,11 +70,13 @@ describe("parseStartLink (T41: the web test deep link)", () => {
   });
 
   it("a bad value throws, naming it — a typo never opens some other page silently", () => {
-    const bad = ["?regs=Vedder", "?regs=gnis:1&part=-1", "?regs=gnis:1&date=2026-13-01", "?regs=gnis:1&date=2026-02-30",
+    const bad = ["?regs=Vedder", "?regs=gnis:1&part=-1", "?regs=gnis:1&blk=1", "?regs=gnis:1&blk=x&m=1", "?blk=1&m=-3", "?regs=gnis:1&date=2026-13-01", "?regs=gnis:1&date=2026-02-30",
                  "?regs=gnis:1&tab=cards", "?regs=gnis:1&sheet=nope", "?regs=gnis:1&age=old", "?regs=gnis:1&res=x",
                  "?regs=gnis:1&theme=blue", "?regs=gnis:1&scroll=up"];
     expect(bad.map((s) => { try { parseStartLink(s, NOW); return "no throw"; } catch (e) { return (e as Error).message; } })).toEqual([
       "start link: regs=Vedder is not an item id", "start link: part=-1 is not a part index",
+      "start link: blk=1 is not a place without m", "start link: blk=x is not a stream key",
+      "start link: m=-3 is not a distance in metres",
       "start link: date=2026-13-01 is not a YYYY-MM-DD day", "start link: date=2026-02-30 is not a YYYY-MM-DD day",
       "start link: tab=cards is not a tab", "start link: sheet=nope is not a sheet key", "start link: age=old is not adult|u16",
       "start link: res=x is not resident|non_resident|non_resident_alien", "start link: theme=blue is not light|dark",
@@ -79,11 +101,14 @@ describe("(T269) a water page's address", () => {
 describe("(T221) the address follows the route: routeSearch", () => {
   it("the water in front as a start link; its other keys kept; browse and an unnamed reach say no water", () => {
     const r = reduce(HOME, { type: "openWater", item: "gnis:4688" as never, part: 2, view: "map" });
-    expect(routeSearch(r, "?theme=dark&tab=gear")).toBe("?theme=dark&regs=gnis:4688&part=2&view=map");
-    expect(parseStartLink(routeSearch(r))!.route).toEqual(r);
+    // (T369) the part is a PLACE (made from the release: place.ts), never its index
+    expect(routeSearch(r, "?theme=dark&tab=gear&part=1", { blk: 356364584, m: 3451 }))
+      .toBe("?theme=dark&regs=gnis:4688&blk=356364584&m=3451&view=map");
+    expect(routeSearch(r)).toBe("?regs=gnis:4688&view=map");
     expect(routeSearch(HOME, "?regs=gnis:1&date=2026-07-01")).toBe("?date=2026-07-01");
-    const reach = reduce(HOME, { type: "openWater", item: null, tapSid: 5 as never, view: "regs" });
-    expect(routeSearch(reach)).toBe("");
+    const reach = reduce(HOME, { type: "openWater", item: null, tapSid: 5 as never, view: "conditions" });
+    expect([routeSearch(reach), routeSearch(reach, "", { blk: 356364485, m: 257011 })])
+      .toEqual(["", "?blk=356364485&m=257011&view=conditions"]);
   });
 });
 
@@ -91,9 +116,9 @@ describe("(T221) the address follows the route: routeSearch", () => {
 // held for a Regulations page that the Map view never mounts, so its start was never applied and the hold never ended
 describe("(T256, T345) the map's status waits for the regulations page only while that page is in front", () => {
   it("a start on the water's Map or Conditions view holds nothing; one on its Regulations holds until applied", () => {
-    const map = parseStartLink("?regs=gnis:19986&part=2&view=map", NOW)!;
-    const cond = parseStartLink("?regs=gnis:19986&part=2&view=conditions", NOW)!;
-    const regs = parseStartLink("?regs=gnis:19986&part=2", NOW)!;
+    const map = parseStartLink("?regs=gnis:19986&ix=2&view=map", NOW)!;
+    const cond = parseStartLink("?regs=gnis:19986&ix=2&view=conditions", NOW)!;
+    const regs = parseStartLink("?regs=gnis:19986&ix=2", NOW)!;
     // the old rule (`!!regsStart && route.mode === "water"`) held all three, and only the page's start released it
     expect([map, cond, regs].map((l) => !!l.regs && l.route.mode === "water")).toEqual([true, true, true]);
     expect([holdsMapStatus(map.route, map.regs), holdsMapStatus(cond.route, cond.regs),

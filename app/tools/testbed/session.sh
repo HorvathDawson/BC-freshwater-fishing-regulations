@@ -57,12 +57,13 @@ if (( BUILD )) || [[ ! -f $APK ]]; then
   log "building the APK"
   cd "$ROOT/app/apps/mobile"
   if [[ -n $VARIANT ]]; then
-    cp app.json "$OUT/app.json.keep"; trap 'cp "$OUT/app.json.keep" app.json 2>/dev/null; cleanup' EXIT INT TERM
+    MJSON="$ROOT/app/apps/mobile/app.json"
+    cp "$MJSON" "$OUT/app.json.keep"; trap 'cp "$OUT/app.json.keep" "$MJSON" 2>/dev/null; cleanup' EXIT INT TERM
     sed -i '' "s/\"nativeVariant\": \"vulkan\"/\"nativeVariant\": \"$VARIANT\"/" app.json
     grep -q "\"nativeVariant\": \"$VARIANT\"" app.json || { log "--$VARIANT: app.json not changed"; exit 1; }
   fi
   ../../node_modules/.bin/expo prebuild --platform android --no-install --clean >"$OUT/prebuild.log" 2>&1 || { log "prebuild failed (out/prebuild.log)"; exit 1; }
-  [[ -n $VARIANT ]] && cp "$OUT/app.json.keep" app.json
+  if [[ -n $VARIANT ]]; then cp "$OUT/app.json.keep" "$MJSON"; trap cleanup EXIT INT TERM; fi   # restored: the plain trap again
   # --local reads http://localhost:39217: a release build refuses cleartext unless the manifest allows it. Patched AFTER
   # prebuild (which regenerates android/), so it never reaches a store build.
   if [[ $ENV == local ]]; then

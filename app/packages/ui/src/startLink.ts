@@ -1,9 +1,16 @@
 /**
- * T41 — THE START LINK, ON THE WEB ONLY. `?regs=<item>&part=<i>&view=<view>&date=YYYY-MM-DD&tab=<tab>&sheet=<key>
- * &age=&res=&theme=&scroll=` opens the app straight on one water's Regulations page (or, T221 `view`, its Conditions or
- * Map) — the browser tools
- * (`app/tools/regs-walk.mjs`) put every golden state on screen with it. The app reads it ONCE, at
- * start (`apps/mobile` `startLink.web.ts`; native has none — D1 keeps navigation in the Shell, no route ever ships).
+ * T41 — THE START LINK, ON THE WEB ONLY. `?regs=<item>&blk=<stream key>&m=<metres>&view=<view>&date=YYYY-MM-DD&tab=<tab>
+ * &sheet=<key>&age=&res=&theme=&scroll=` opens the app straight on one water's Regulations page (or, T221 `view`, its
+ * Conditions or Map) — the browser tools (`app/tools/regs-walk.mjs`) put every golden state on screen with it. The app
+ * reads it ONCE, at start (`apps/mobile` `startLink.web.ts`; native has none — D1 keeps navigation in the Shell, no
+ * route ever ships).
+ *
+ * (T369, owner 2026-11-03) A LINK ADDRESSES A PLACE, NOT A PART NUMBER: `blk` + `m` (place.ts), the FWA stream key and a
+ * distance along it, resolved in the release the app holds (`resolveStartLink`) to the water and part there — named or
+ * not (an unnamed reach's link is `?blk=&m=` alone). A water of one part, a lake and a split lake's closure area need no
+ * place: the item is the address. An old `part=` link names an index into some release's parts: it opens the WHOLE water
+ * and says so (`notice`), never a guess. `ix=` (+ `stretch=`) is the browser tools' key — a part index in the release the
+ * tool was cut against (a test affordance; the app never writes it).
  *
  * It decides nothing: the water opens through `openWater` (the one way in), the day is the Shell's one day, the angler
  * the session's profile (D8), the sheet a `SheetKey` the page opens like any press would. A bad value throws, naming it,
@@ -12,35 +19,50 @@
 import { parseSheetKey, type SheetKey, type Tab, type Who } from "@app/core";
 import type { ItemId } from "@app/data";
 import { openWater } from "./openWater";
+import { placeOf, resolvePlace, type ItemFor, type PlaceReads, type StreamPlace } from "./place";
 import { mapDayOf } from "./regs";
 import { HOME, reduce, waterFrame, type Route, type View } from "./route";
 
 /** The query keys a route owns (`routeSearch` writes them; the rest — date, angler, theme — are left as they were). `show`
- *  is read once at start and gone at the first write. */
-export const ROUTE_KEYS = ["regs", "part", "stretch", "view", "tab", "sheet", "scroll", "show"] as const;
+ *  is read once at start and gone at the first write; `part`, `stretch` and `ix` are read, never written. */
+export const ROUTE_KEYS = ["regs", "blk", "m", "whole", "part", "stretch", "ix", "view", "tab", "sheet", "scroll", "show"] as const;
 const VIEWS: readonly View[] = ["regs", "conditions", "map"];
 
 /**
- * (T221, owner 2026-10-28) THE ADDRESS OF WHAT IS ON SCREEN: the water in front as a start link (`?regs=<item>&part=
- * &view=`), so a refresh opens the same water, part and view. `current` is the page's query string now: its other keys
- * (date, angler, theme) are kept, the route's replaced. Browsing, or an unnamed reach (no item: its section id must
- * never leave the bundle, AGENTS 5), says no water. Returns the new query string ("" or "?…").
+ * (T221, owner 2026-10-28; T369) THE ADDRESS OF WHAT IS ON SCREEN: the water in front as a start link (`?regs=<item>&blk=
+ * &m=&view=&whole=1`), so a refresh opens the same water, part and view. `place`: the frame's place (`placeOf`, from the release;
+ * null: none needed or none to be had). `current` is the page's query string now: its other keys (date, angler, theme)
+ * are kept, the route's replaced. Browsing, or an unnamed reach with no place, says no water — a section id never leaves
+ * the bundle (AGENTS 5). Returns the new query string ("" or "?…").
  */
-export function routeSearch(r: Route, current = ""): string {
+export function routeSearch(r: Route, current = "", place: StreamPlace | null = null): string {
   const q = new URLSearchParams(current);
   for (const k of ROUTE_KEYS) q.delete(k);
   const f = waterFrame(r);
-  if (f && f.item !== null) {
-    q.set("regs", f.item);
-    if (f.part !== null) q.set("part", String(f.part));
-    // (T204, T345) the stretch the water map is on, so a reload draws what was on screen (one load path per screen). Never
-    // the tapped section (AGENTS rule 5: a section id never leaves the bundle): a tapped frame's map ADOPTS the part the
-    // tap resolves to (`useWaterMap`), and that part is what the address carries
-    if (f.part !== null && f.stretch) q.set("stretch", String(f.stretch));
+  if (f && (f.item !== null || place)) {
+    if (f.item !== null) q.set("regs", f.item);
+    if (place) { q.set("blk", String(place.blk)); q.set("m", String(place.m)); }
     if (f.view !== "regs") q.set("view", f.view);
+    // (T203, T369) the map framed on the whole water (a search Open's) — said, so a water named alone is its own part
+    if (f.whole) q.set("whole", "1");
   }
   const out = q.toString().replace(/%3A/gi, ":");   // an item id's colon reads as typed; a URL query allows it
   return out ? `?${out}` : "";
+}
+
+/**
+ * (T369) THE ADDRESS, MADE FROM THE RELEASE: `routeSearch` with the frame's place. The one function the web's address
+ * bar and the tests' reload both call. A frame that needs a place the release cannot give (a release cut before
+ * `section_line`) is reported, not hidden (`onMissing`), and addressed without one (its reload opens the whole water).
+ */
+export async function linkSearch(store: PlaceReads | null, r: Route, current = "",
+                                 onMissing?: (e: Error) => void): Promise<string> {
+  let place: StreamPlace | null = null;
+  if (store) {
+    try { place = await placeOf(store, waterFrame(r)); }
+    catch (e) { onMissing?.(e instanceof Error ? e : new Error(String(e))); }
+  }
+  return routeSearch(r, current, place);
 }
 
 /** Where the Regulations page starts: the tab scrolled to, the sheet open over it, and/or a scroll offset (px). */
@@ -66,6 +88,13 @@ export interface StartLink {
   who: Who | null;
   theme: "light" | "dark" | null;
   /**
+   * (T369) The link's place, still to be resolved in the release (`resolveStartLink`); null: none (`route` is final).
+   * While it is set, `route` is the link's water whole (or the map, for a place alone) — what opens if it is not found.
+   */
+  place: LinkPlace | null;
+  /** (T369) What the start must SAY: an old `part=` link, or a place this release does not hold. Null: nothing. */
+  notice: StartNotice | null;
+  /**
    * (T269, owner 2026-10-29) THE MAP COMES BACK AT THIS WATER: a page that started on a named water (a `/water/<slug>`
    * page, `?regs=`) — or `?show=<item>`, the map at a water, the link a water page's ‹ and × are before the app runs —
    * returns to the map framed on that water (nothing lit: as closing a tapped water leaves it), never to wherever the map
@@ -89,6 +118,25 @@ export const slugShardPath = (item: string): string => `/water-slugs/${slugShard
 /** The path of the water page `/water/<slug>`; a water's start link otherwise. */
 export const WATER_PATH = /^\/water\/([a-z0-9-]+)\/?$/;
 
+/** (T369) Why a start opened less than its link named — said on screen, never a silent guess. */
+/** (T369) Whether a start link waits for the release before it opens (a place to resolve, or a water to read the parts of). */
+export const startNeedsRelease = (l: StartLink | null): boolean => !!l && (l.place !== null || l.route.mode === "water");
+
+/** (T369) A link's place and the view it asked for (a place-only link's route is the map until resolved). */
+export interface LinkPlace extends StreamPlace { readonly view: View }
+export type StartNotice = "old-part" | "place-gone";
+export const START_NOTICE_WORDS: Readonly<Record<StartNotice, string>> = {
+  "old-part": "This link names a part by its number on an older map, so the whole water is shown.",
+  "place-gone": "The place this link names is not on this version of the map, so the whole water is shown.",
+};
+/** (T369) The same, for a link to an unnamed reach (no water to show whole). */
+export const START_NOTICE_REACH_GONE = "The place this link names is not on this version of the map.";
+/** (T369) The line a start says, or null. */
+export function startNoticeLine(l: Pick<StartLink, "notice" | "route"> | null): string | null {
+  if (!l?.notice) return null;
+  return l.notice === "place-gone" && waterFrame(l.route) === null ? START_NOTICE_REACH_GONE : START_NOTICE_WORDS[l.notice];
+}
+
 const TABS: readonly Tab[] = ["keep", "gear", "methods", "licence"];
 const AGES = ["adult", "u16"] as const;
 const RESIDENCIES = ["resident", "non_resident", "non_resident_alien"] as const;
@@ -99,19 +147,31 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   const item = q.get("regs");
   const bad = (k: string, what: string): never => { throw new Error(`start link: ${k}=${q.get(k)} is not ${what}`); };
   const ITEM = /^[a-z]+:-?\d+$/;
-  if (item === null) {
+  // (T369) the place: both keys or neither
+  const blkS = q.get("blk"), mS = q.get("m");
+  if ((blkS === null) !== (mS === null)) bad(blkS === null ? "m" : "blk", `a place without ${blkS === null ? "blk" : "m"}`);
+  const where: StreamPlace | null = blkS === null ? null
+    : { blk: /^-?\d+$/.test(blkS) ? Number(blkS) : bad("blk", "a stream key"),
+        m: /^\d+$/.test(mS!) ? Number(mS) : bad("m", "a distance in metres") };
+  if (item === null && where === null) {
     // (T269) `?show=<item>`: the map, framed on that water (nothing lit)
     const show = q.get("show");
     if (show === null) return null;
     if (!ITEM.test(show)) bad("show", "an item id");
-    return { route: HOME, day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: show as ItemId };
+    return { route: HOME, day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: show as ItemId,
+             place: null, notice: null };
   }
-  if (!ITEM.test(item)) bad("regs", "an item id");
+  if (item !== null && !ITEM.test(item)) bad("regs", "an item id");
 
-  const partS = q.get("part");
-  const part = partS === null ? null : /^\d+$/.test(partS) ? Number(partS) : bad("part", "a part index");
-  const stretchS = q.get("stretch");
-  const stretch = stretchS === null ? undefined : /^\d+$/.test(stretchS) ? Number(stretchS) : bad("stretch", "a stretch index");
+  const index = (k: string, what: string): number | null => {
+    const v = q.get(k);
+    return v === null ? null : /^\d+$/.test(v) ? Number(v) : bad(k, what);
+  };
+  // `part=` (old: an index into some release's parts — read only to say so), `ix=` (+ `stretch=`: the tools' own)
+  const old = index("part", "a part index") !== null;
+  const ix = index("ix", "a part index");
+  const stretch = ix === null ? undefined : index("stretch", "a stretch index") ?? undefined;
+  const part = where === null ? ix : null;
 
   const dateS = q.get("date");
   let day: Date | null = null;
@@ -142,8 +202,46 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   const themeS = q.get("theme");
   const theme = themeS === null ? null : themeS === "light" || themeS === "dark" ? themeS : bad("theme", "light|dark");
 
-  return { route: reduce(HOME, openWater({ item: item as ItemId, part, view, stretch,
-                                          whole: view === "map" && part === null })),
-           day, regs: { tab, sheet, scroll }, who, theme,
-           arrive: item as ItemId };
+  const place: LinkPlace | null = where && { ...where, view };
+  // the whole water: asked (`whole=1`), or all an old `part=` link can honestly open
+  const whole = view === "map" && part === null && (q.get("whole") === "1" || (old && where === null));
+  const route = item === null ? HOME : reduce(HOME, openWater({ item: item as ItemId, part, view, stretch, whole }));
+  const link: StartLink = { route, day, regs: { tab, sheet, scroll }, who, theme, arrive: item as ItemId | null, place,
+                            notice: old && place === null && ix === null ? "old-part" : null };
+  return link;
+}
+
+/**
+ * (T369) THE LINK'S PLACE, RESOLVED in the release held (`resolvePlace`): the water and part it falls on there, opened
+ * the one way (`openWater`) at the link's view. A place this release does not hold opens the link's water whole (or,
+ * for a place alone, the map) and says so. A water named with no place, no part and not whole is a water whose address
+ * needs no place — one of one part (a lake, a split lake's closure area): it opens at that part.
+ */
+export async function resolveStartLink(link: StartLink, store: PlaceReads, itemFor: ItemFor): Promise<StartLink> {
+  if (!link.place) return ownPart(link, store);
+  const view = link.place.view;
+  const at = await resolvePlace(store, itemFor, link.place);
+  if (!at) {
+    const f = waterFrame(link.route);
+    return { ...link, place: null, notice: "place-gone",
+             route: f?.item ? reduce(HOME, openWater({ item: f.item, view, whole: view === "map" })) : link.route };
+  }
+  const route = reduce(HOME, openWater(at.item === null
+    ? { item: null, tapSid: at.sid, view }
+    : { item: at.item, part: at.part, view, ...(at.stretch ? { stretch: at.stretch } : {}),
+        whole: view === "map" && at.part === null }));
+  return { ...link, route, place: null, arrive: at.item ?? link.arrive };
+}
+
+
+/** (T369) A link naming a water alone: a water of one part opens at it; any other — a multi-part water whose link has
+ *  no place (a release cut before `section_line` made it) — on its Map, whole. */
+async function ownPart(link: StartLink, store: PlaceReads): Promise<StartLink> {
+  const f = waterFrame(link.route);
+  if (!f || f.item === null || f.part !== null || f.whole || f.tapSid !== null) return link;
+  const ord = await store.itemOrd(f.item);
+  const parts = ord === null ? [] : (await store.parts(ord)).filter((p) => !p.tidal);
+  if (parts.length === 1)
+    return { ...link, route: reduce(HOME, openWater({ item: f.item, part: parts[0]!.partIx, view: f.view })) };
+  return f.view === "map" ? { ...link, route: reduce(HOME, openWater({ item: f.item, view: "map", whole: true })) } : link;
 }

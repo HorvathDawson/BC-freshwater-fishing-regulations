@@ -53,7 +53,8 @@ export function urlsOf(id, { tab = 'keep', sheet = null, who = null, theme = 'li
   const s = stateOf(id);
   if (!TABS.includes(tab)) throw new Error(`no tab ${tab}`);
   const h = new URLSearchParams({ w: s.w, d: String(s.d), p: String(s.p), sec: tab });
-  const q = new URLSearchParams({ regs: s.item, part: String(s.part), date: s.date, tab });
+  // (T369) `ix`: the tools' part index, in the release these states were cut against (an app link carries a place)
+  const q = new URLSearchParams({ regs: s.item, ix: String(s.part), date: s.date, tab });
   if (sheet) { h.set('sheet', sheet); q.set('sheet', appKeyOf(sheet, id)); }
   if (who?.age && who.age !== 'adult') { h.set('age', who.age); q.set('age', who.age); }
   if (who?.res && who.res !== 'resident') { h.set('res', who.res); q.set('res', who.res); }

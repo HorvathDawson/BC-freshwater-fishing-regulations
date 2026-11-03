@@ -18,6 +18,8 @@ import type { Db, Row } from "../db";
 import { verify } from "../../fetchVerified";
 import { parseManifest, type Manifest } from "../../manifest";
 import { releaseLoader, type DbName, type Opener, type ReleaseLoader, type ReleaseSource } from "../../release/loader";
+import { encodeLineBlock, type SectionLine } from "../../regs/line";
+import { BLOCK_BITS } from "../../regs/reads";
 
 /**
  * Where the committed regs fixture release lives (the folder holds exactly one `r-*` release). `__dirname`, not
@@ -93,3 +95,63 @@ export function openReleaseDir(dir: string, tamper: ReleaseTamper = {}): Release
 
 /** The regs fixture release, opened as the app opens a release. */
 export const openRegsFixture = (): ReleaseLoader => openReleaseDir(regsFixtureDir());
+
+/** (T369) One stream section's line as the fixture lists it: [handle, stream key, from m, to m). */
+export type LineRow = readonly [number, number, number, number];
+
+/**
+ * (T369) The regs fixture's stream lines (`dev/section-lines.json`: its waters' sections and one unnamed reach) — the
+ * fixture release was cut before `section_line`, so tests add the table (`withSectionLines`).
+ */
+export function regsFixtureLines(): { unnamed: number; lines: LineRow[] } {
+  const d = JSON.parse(readFileSync(join(REGS_FIXTURE_ROOT, "..", "section-lines.json"), "utf8")) as
+    { unnamed: number; lines: LineRow[] };
+  return { unnamed: d.unnamed, lines: d.lines };
+}
+
+/**
+ * (T369) A `section_line` table (`@app/data` line.ts's format, its own writer) over `rows`, in memory. Only the blocks
+ * the rows touch are written; a slot no row names is a filler that keeps the block sorted and spans nothing (the slot
+ * before it's line, empty) — a fixture's handles are a sample of the atlas, a release's table has every stream handle.
+ */
+function sectionLineDb(rows: readonly LineRow[]): Db {
+  const db = new DatabaseSync(":memory:");
+  db.exec("CREATE TABLE section_line (block INTEGER PRIMARY KEY, n INTEGER NOT NULL, blk0 INTEGER NOT NULL, " +
+          "m0 INTEGER NOT NULL, b BLOB NOT NULL); CREATE INDEX section_line_head ON section_line (blk0, m0)");
+  const byBlock = new Map<number, Map<number, SectionLine>>();
+  for (const [h, blk, from, to] of rows) {
+    const k = h >> BLOCK_BITS;
+    if (!byBlock.has(k)) byBlock.set(k, new Map());
+    byBlock.get(k)!.set(h & ((1 << BLOCK_BITS) - 1), { blk, from, to });
+  }
+  const put = db.prepare("INSERT INTO section_line (block, n, blk0, m0, b) VALUES (?, ?, ?, ?, ?)");
+  for (const [k, slots] of byBlock) {
+    const n = Math.max(...slots.keys()) + 1, first = slots.get(Math.min(...slots.keys()))!;
+    const lines: SectionLine[] = [];
+    let prev: SectionLine = { blk: first.blk, from: first.from, to: first.from };
+    for (let i = 0; i < n; i++) {
+      const l = slots.get(i);
+      lines.push(l ?? prev);
+      prev = l ? { blk: l.blk, from: l.to, to: l.to } : prev;
+    }
+    put.run(k, n, lines[0]!.blk, lines[0]!.from, encodeLineBlock(lines));
+  }
+  return {
+    all: async (sql, ...params) => (db.prepare(sql).all(...params) as Record<string, unknown>[]).map(realm),
+    get: async (sql, ...params) => { const r = db.prepare(sql).get(...params) as Record<string, unknown> | undefined; return r && realm(r); },
+  };
+}
+
+/** (T369) `d` with `lines` answering every read of `section_line` (the regs-sid file of a release cut before it). */
+function withSectionLines(d: Db, lines: Db): Db {
+  const pick = (sql: string) => (/section_line/.test(sql) ? lines : d);
+  return { all: (sql, ...p) => pick(sql).all(sql, ...p), get: (sql, ...p) => pick(sql).get(sql, ...p), close: d.close };
+}
+
+/** (T369) The regs fixture release with stream lines (`rows`: the fixture's own unless given). */
+export function openRegsFixtureWithLines(rows: readonly LineRow[] = regsFixtureLines().lines,
+                                         tamper: ReleaseTamper = {}): ReleaseLoader {
+  const lines = sectionLineDb(rows);
+  return openReleaseDir(regsFixtureDir(), { ...tamper,
+    db: (name, d) => { const t = tamper.db ? tamper.db(name, d) : d; return name === "regs-sid" ? withSectionLines(t, lines) : t; } });
+}

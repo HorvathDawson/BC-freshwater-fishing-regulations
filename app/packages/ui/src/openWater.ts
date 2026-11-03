@@ -57,13 +57,22 @@ export function openWater(o: WaterOpen): RouteAction {
 }
 
 /**
+ * THE WATER A SECTION IS: the one place the app asks (a map tap's section here; T369, a link's PLACE resolved to its
+ * section, `place.ts` `resolvePlace` — the same rule, so a link opens what a tap on that point would). Null: an unnamed
+ * reach.
+ */
+export function waterOfSection(source: Pick<WaterSource, "itemForSection">, sid: SectionId): Promise<ItemId | null> {
+  return source.itemForSection(sid);
+}
+
+/**
  * A map tap -> the route action, or null when nothing opens: the tapped section resolved to its water HERE, once.
  * `except`: the water already on screen (a tap on a water's own map changes nothing).
  */
 export async function openTap(source: Pick<WaterSource, "itemForSection">, sid: SectionId, at: LatLon | null,
                               view: View, except: ItemId | null = null,
                               groupOf?: (item: ItemId) => Promise<readonly ItemId[] | undefined>): Promise<RouteAction | null> {
-  const item = await source.itemForSection(sid);
+  const item = await waterOfSection(source, sid);
   if (item !== null && item === except) return null;
   const group = item !== null && groupOf ? await groupOf(item) : undefined;
   return openWater({ item, tapSid: sid, at, view, group });

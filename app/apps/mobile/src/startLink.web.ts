@@ -24,11 +24,13 @@ function search(): string {
 export function startLink(): StartLink | null {
   try {
     const link = parseStartLink(search());
-    // (T256) a start on a Regulations page draws it before the map's paint
-    setRegsFirstStart(link?.route.mode === "water");
+    // (T256) a start on a Regulations page draws it before the map's paint — (T369) an unnamed reach's place too (its
+    // route is the map until the place is resolved in the release)
+    const water = link?.route.mode === "water" || !!link?.place;
+    setRegsFirstStart(water);
     // (T282) the map's code is in the later chunk (`@app/ui-native` later.ts): any start but a water's own page asks for
     // it now, beside the release's first files; a water's page is handed to the app without it (fetched once idle)
-    if (link?.route.mode !== "water") void preloadParts();
+    if (!water) void preloadParts();
     return link;
   }
   catch (e) { console.error(e instanceof Error ? e.message : String(e)); return null; }
