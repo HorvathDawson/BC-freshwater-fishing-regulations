@@ -16,10 +16,17 @@ the CPR Bridge at Mission: chum 2/day Nov 3–30), which no saved page has (newe
    season. No more reviewing last season's rows (T361's cause).
 3. **Archive the fetched page:** every live fetch saves a dated copy into `cache/dfo_salmon/history/` (as the Wayback
    seeding does), so the wording archive dates the new wording and a later "historic or new?" question is a lookup.
-4. **Rule change ≠ place change in the review app:** a mark whose rows moved but whose place and binding did not shows
-   "DFO changed the rules" with the row diff, and a one-click "rules re-checked" re-mark (P stays as the owner set it).
-   Marks are never edited; the re-mark is a new line.
-5. **Run it:** region 2 refresh (FN1179), then any other region whose live page is newer; owner re-reviews what the
-   preview listed. No credits (no `claude` CLI); network only.
+4. **Owner reviews PLACES only (owner 2026-11-03):** "only location ones we need to really really review. we can have the
+   digest say the other rule change with text and how it was interpreted ... (still want a urgent notification if the
+   rule couldnt be parsed using the table structure)". So:
+   - a mark is staled only when its PLACE or BINDING moved (new / dropped / reworded location, fingerprint or geography
+     change). A rule-row change never stales a mark: the location answer stands (T361's six close this way; fix
+     `test_marks_never_orphaned` to match);
+   - every rule-row change goes into the DFO digest: place, old row → new row (verbatim, with the FN number) and how it
+     was read (species, dates, limit, gear), for a quick skim; anything wrong is fixed after;
+   - URGENT notice (stays, T321 path) when a row cannot be read from the table structure.
+   Marks are never edited.
+5. **Run it:** region 2 refresh (FN1179), then any other region whose live page is newer. The owner re-reviews only
+   the places the preview lists as new or moved; FN1179's rows land in the digest. No credits; network only.
 
 Depends: none (T361 found the cause). Size: M.

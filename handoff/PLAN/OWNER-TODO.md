@@ -6,12 +6,9 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Plan to 0.5.0 approved (2026-11-03):** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Yours along the way: the PDF option
+- **Plan to 0.5.0 approved (2026-11-03):** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Yours along the way: a look at the compressed rule-book photo pages (T354, plan set 11-03)
   (T360/T354, batch 2); the Apple Developer account ($99) before the iOS release (T88); the feeds-worker deploy only
   after 0.5.0 (T242/T291/T315).
-- **Re-review six region-1 DFO places (T361, 2026-11-03):** Campbell, Quinsam, Nanaimo (Cedar), Puntledge, Qualicum,
-  Stamp read "rule changed". DFO's current page (in-season notices FN0937–FN1069) changed their coho dates/limits;
-  your 11-02 marks were made on older rows the review app was still showing. DFO tab → re-mark each.
 - **0.4.0 on Play internal (versionCode 7, 2026-10-31, `89ebd94bf`; release r-4e709418ebd8 on staging, smoke 18/18):**
   install from the tester link and look at (1) the T316 spot marks on the map (Noto Sans names); (2) a spot saved
   offline on a river fills by itself back online (T314). Prod stays yours:

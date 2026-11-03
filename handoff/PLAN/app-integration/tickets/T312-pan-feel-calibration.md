@@ -34,3 +34,5 @@ Depends: T273, T280. Size: S–M. Owner: feel check on the phone.
   (see T273's file).
 One gesture pass on the emulator covers all three; T317 (overlay once-over) follows. In 0.5.0 (owner 2026-11-03),
 batch 5 of RELEASE-PLAN-0.5.0.md.
+
+- 2026-11-03: T273's basemap choice is already answered: option 1 (forest simplified, still drawn at low zooms) shipped in T280 (65894d8bf, basemap-b515359fc62f, −52 % green vertices). No owner choice left; batch 5 measures pan on top of it (real phone: T245).
