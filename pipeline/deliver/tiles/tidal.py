@@ -36,11 +36,11 @@ NAME = "Tidal water"
 
 def tidal_pieces(build_dir: Path, graph=None, registry=None, whole=None) -> frozenset[str]:
     """The section (node) ids below this atlas's tidal splits, plus every section of a whole tidal water
-    (`tidal_waters.json`, T212) — the reach run's own set. Empty when there is neither."""
+    (T212; both from the atlas's tidal sidecar, T326) — the reach run's own set. Empty when there is neither."""
     from pipeline.atlas.reach.outside import tidal_cut_owner, tidal_splits, tidal_waters, tidal_whole_owner
     ids = tidal_splits(build_dir)
     if whole is None:                      # T212: whole waters the owner calls tidal, off the map too
-        whole = tidal_waters()
+        whole = tidal_waters(build_dir)
     if not ids and not whole:
         return frozenset()
     if registry is None:

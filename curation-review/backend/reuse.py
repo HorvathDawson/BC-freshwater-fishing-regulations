@@ -290,20 +290,20 @@ def _tidal() -> dict[str, str]:
     (T166 phase 1), so a rule reviewed here kept water below a tidal cut that ships without it."""
     from pipeline.atlas.reach.outside import tidal_owner
     out = dict(tidal_owner([e for _, e in _all_entries()], _registry(), strict=False))
-    from pipeline.common.curated import CURATED
-    for s, o in _tidal_pieces_for(_stamp((SPLITS_RESOLVED_PATH, CURATED.waters.tidal_waters))).items():
+    from pipeline.atlas.splits.tidal import RESOLVED
+    for s, o in _tidal_pieces_for(_stamp((Path(_BUILD) / RESOLVED,))).items():
         out.setdefault(s, o)
     return out
 
 
 @lru_cache(maxsize=1)
 def _tidal_pieces_for(_key: tuple) -> dict[str, str]:
-    """The atlas's tidal pieces (below each tidal split) and the curated whole tidal waters — keyed on the resolved
-    splits and `tidal_waters.json`, so a reflagged split or a new whole water is read on the next request. Not strict:
+    """The atlas's tidal pieces (below each tidal split) and its whole tidal waters — keyed on the atlas's tidal
+    sidecar (T326), so a rewritten sidecar is read on the next request. Not strict:
     a piece the run would refuse is left freshwater here, as the review app reads a corpus mid-edit."""
     from pipeline.atlas.reach.outside import tidal_cut_owner, tidal_splits, tidal_waters, tidal_whole_owner
     out = dict(tidal_cut_owner(_registry(), _graph(), tidal_splits(_BUILD), strict=False))
-    for s, o in tidal_whole_owner(_registry(), tidal_waters(), strict=False).items():
+    for s, o in tidal_whole_owner(_registry(), tidal_waters(_BUILD), strict=False).items():
         out.setdefault(s, o)
     return out
 

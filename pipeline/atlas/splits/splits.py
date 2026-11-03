@@ -211,6 +211,10 @@ def load_split_defs(path: str) -> list[SplitDef]:
             "the flat {\"splits\": [...]} shape is retired; put each split under a waterbody and "
             "its target in `applies_to`")
     entries, untargeted = _flatten_waterbodies(data)
+    tidal = [e["id"] for e in entries if "tidal" in e]
+    if tidal:                                # T326: which cut is tidal lives in waters/tidal.json only
+        raise ValueError(f"splits.json validation: `tidal` on {', '.join(tidal[:12])} — a tidal limit is a row of "
+                         "waters/tidal.json (limit `split`), never a flag on the cut (T326)")
     bad_labels = [(e["id"], e.get("label", ""), why) for e in entries
                   if e.get("label") and (why := label_problem(e["label"]))]
     if bad_labels:                           # the parser cannot match a cut whose label names no place
@@ -259,8 +263,7 @@ def resolve_splits(defs: list[SplitDef], chains: list[BlkChain],
 #: the build (`write_resolved`) and for the sidecars migration (`pipeline.atlas.sidecars`), so a
 #: migrated file is byte-equal to the one a fresh build writes.
 RESOLVED_KEYS = ("split_id", "blk", "route_measure", "label", "anchor_type", "offset_m",
-                 "source", "anchor_offset_m", "anchor_offset_dir", "picked_up", "concern", "confidence",
-                 "tidal")
+                 "source", "anchor_offset_m", "anchor_offset_dir", "picked_up", "concern", "confidence")
 
 
 def order_resolved(row: dict) -> dict:
@@ -296,7 +299,5 @@ def write_resolved(points: list[SplitPoint], path: str) -> None:
             row["concern"] = p.concern
         if getattr(p, "confidence", "high") != "high":       # T207: absent == high
             row["confidence"] = p.confidence
-        if getattr(p, "tidal", False):                       # T166: a tidal boundary (absent == no)
-            row["tidal"] = True
         rows.append(row)
     Path(path).write_text(dump_resolved(rows))

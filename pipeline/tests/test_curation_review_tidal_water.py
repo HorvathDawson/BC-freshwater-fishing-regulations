@@ -35,7 +35,7 @@ def test_the_app_takes_out_the_rows_the_cut_pieces_and_the_whole_waters(reuse, m
                                                                "matched": ["lake:nitinat"]})])
     monkeypatch.setattr(O, "tidal_splits", lambda _b: ("fraser__cpr",))
     monkeypatch.setattr(O, "tidal_cut_owner", lambda _r, _g, ids, strict: {"f2": f"split:{ids[0]}"})
-    monkeypatch.setattr(O, "tidal_waters", lambda: ("gnis:annacis",))
+    monkeypatch.setattr(O, "tidal_waters", lambda _b: ("gnis:annacis",))
     reuse._tidal_pieces_for.cache_clear()
     got = reuse._tidal()
     assert got == {"n1": "r1:nitinat", "f2": "split:fraser__cpr", "a1": "water:gnis:annacis"}

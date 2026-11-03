@@ -52,6 +52,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Mapping, Optional
 
+from pipeline.common import split_ids as _ids
 from pipeline.common.curated import GENERATED
 
 REPO = Path(__file__).resolve().parents[3]
@@ -66,13 +67,10 @@ KINDS = ("new_split", "tidal_flag", "extent", "lake_split_later", "tidal_mouth",
 #: T166: a tidal boundary within this many metres of the FWA mouth IS the mouth — no cut is made
 #: (a cut on a line's end breaks both halves: memory end-cut-halves-the-water) and nothing is tidal
 TIDAL_MOUTH_M = 1.0
-#: T212 owner calls made before the Tidal tab could record a mark (Capilano, Cowichan, 2026-10-27):
-#: each is the candidate's proposed boundary, accepted; a later tidal mark on the same candidate wins
-TIDAL_DECISIONS = REPO / "handoff" / "PLAN" / "curation-review" / "tidal" / "owner-decisions.json"
 
 
 def _slug(s: str, n: int = 60) -> str:
-    return re.sub(r"[^a-z0-9]+", "_", str(s).lower()).strip("_")[:n].strip("_")
+    return _ids.slug(s, n)
 
 
 def _h(obj) -> str:
@@ -99,7 +97,7 @@ class Sources:
     build: Optional[Path] = None
     #: the owner's confidence calls on proposed splits (`marks.ConfidenceOverride`)
     overrides: tuple = ()
-    #: T166: the owner's tidal calls recorded before the Tidal tab (`TIDAL_DECISIONS`); None = none
+    #: T166: the owner's tidal calls recorded before the Tidal tab (a file); None = none (T326)
     tidal_decisions: Optional[Path] = None
     _reg: Optional[dict] = field(default=None, repr=False)
     _texts: dict = field(default_factory=dict, repr=False)
@@ -113,7 +111,7 @@ class Sources:
                    splits_path=Path(CURATED.waters.splits),
                    build=Path(build) if build else GENERATED.build(),
                    overrides=tuple(load_overrides(CURATED.regulations.review.proposal_overrides)),
-                   tidal_decisions=TIDAL_DECISIONS if TIDAL_DECISIONS.exists() else None)
+                   tidal_decisions=None)
 
     def text(self, path: Path) -> str:
         p = Path(path)
@@ -611,7 +609,7 @@ def _tidal_followup(m) -> bool:
 
 
 def tidal_decision_marks(path: Optional[Path], candidates: Optional[Path] = None) -> list:
-    """THE OWNER'S EARLIER TIDAL CALLS (`TIDAL_DECISIONS`) as tidal marks: each candidate's proposed
+    """THE OWNER'S EARLIER TIDAL CALLS (a calls file) as tidal marks: each candidate's proposed
     boundary as its one new split, Place y, the call's date and note. They come BEFORE the marks
     store, so a later mark on the same candidate supersedes them (`marks.latest`). The file is
     handoff data the owner dictated (decisions.md 2026-10-27); a call naming a candidate the
@@ -733,23 +731,12 @@ def anchor_digest(n) -> str:
 
 
 def split_base(n, water: str) -> str:
-    """THE SLUG a new split lands under, before a clash suffix: `<water>__<name or anchor>` (splits.json's scheme)."""
-    return f"{_slug(water.split('(')[0], 40)}__{_slug(n.name or n.anchor, 32)}"
+    """THE SLUG a new split lands under, before a clash suffix: `<water>__<name or anchor>` (`common.split_ids`)."""
+    return _ids.base(water, n.name or n.anchor)
 
 
-def assign_ids(rows: Iterable[tuple], taken: Iterable[str]) -> dict:
-    """REAL IDS (T355): rows (key, base, digest) -> {key: id}. `base` if free, else `base_2`, `_3` … past every
-    id in `taken` (splits.json) and every other pending cut. Clashing cuts are numbered in DIGEST order, so an
-    id follows from the anchors in play, never from the order the marks were made or read."""
-    used, out = set(taken), {}
-    for key, base, _dig in sorted(rows, key=lambda r: (r[1], r[2], str(r[0]))):
-        sid, k = base, 1
-        while sid in used:
-            k += 1
-            sid = f"{base}_{k}"
-        used.add(sid)
-        out[key] = sid
-    return out
+#: the one id function (`common.split_ids.assign_ids`): the atlas mints tidal ids with it too (T326)
+assign_ids = _ids.assign_ids
 
 
 def place_groups(rows: Iterable[tuple], src: Sources, splits_doc: Optional[Mapping] = None,
@@ -805,10 +792,6 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
         decided = E.decide(decided, tidal_decisions=src.tidal_decisions)
     latest = decided.inforce
     inforce = [m for m in latest if _proposes(m)]
-    tidal_in = [m for m in latest if _tidal_decides(m)]
-    # T166: where each tidal stream's atlas line starts (its lowest section), from the build's handles
-    line_starts = _line_starts(src.build, {str(x.new_splits[0].blk or "") for x in tidal_in})
-    tidal_open = [m for m in latest if _tidal_followup(m)]
     shared = decided.shared(src.overrides)             # T210: one per distinct cut, every mark
     splits_doc = src.doc(src.splits_path)
     have = {sp["id"]: sp for wb in splits_doc.get("waterbodies") or []
@@ -860,58 +843,9 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                     n = _point_split(p, on, f"{_slug(m.target, 30)}_{fi}_{pi}")
                     ref_group[(m.key, f"#{fi}.{pi}")] = group_for(n, who)
 
-    # T166: EACH TIDAL BOUNDARY THE OWNER DECIDED. A cut above the mouth is a new split (shared with
-    # any other mark naming the same cut) flagged `tidal`; on an existing split, that split is flagged;
-    # at the mouth there is no cut and nothing is tidal (listed).
+    # T326: a tidal decision is no split proposal any more — it lands in waters/tidal.json, the one tidal truth
+    # (`pipeline.tools.tidal_limits`, the tidal write-through), and a new tidal cut is minted by the atlas from it.
     out: list[dict] = []
-    for m in sorted(tidal_in, key=lambda m: m.target):
-        who = {"target": m.target, "rule_id": None, "reviewer": m.reviewer, "date": m.date, "scope": m.scope}
-        n = m.new_splits[0]
-        water = ((src.item(n.on_item) or {}).get("name") if n.on_item else None) or (
-            n.name or "").partition(":")[0] or (n.on_item or "water")
-        if n.anchor == "split":
-            out.extend(_tidal_flag(n.split_id, have, src, [who], water))
-            continue
-        from pipeline.regs.review import tidal as T
-        cand = T.candidate(m.target) or {}
-        point = tidal_point(n, cand, line_starts.get(str(n.blk or cand.get("blk") or "")))
-        if point is None:
-            out.append(_tidal_off_point(m, n, water))
-            continue
-        if point in ("mouth", "line_end"):
-            out.append({"id": f"tidal-mouth-{_slug(m.target, 40)}", "kind": "tidal_mouth",
-                        "target": n.on_item, "scope": "tidal", "rule_id": None,
-                        "title": f"{water}: the tidal boundary is the mouth — no cut, nothing tidal",
-                        "marks": [who], "edits": [], "depends_on": [], "problems": [],
-                        "notes": ["the mouth is where the stream meets tidal water already: the "
-                                  "whole stream stays freshwater (T166)"] + (
-                            [f"the point ({n.measure} m) is the atlas line's own lower end (it starts "
-                             f"{line_starts.get(str(n.blk or cand.get('blk') or ''))} m: where the stream enters a "
-                             "lake, or crosses the border): a cut there would break both halves — no cut"]
-                            if point == "line_end" else []),
-                        "split_id": None, "confidence": None})
-            continue
-        g = group_for(n, who)
-        g["tidal"] = True
-        if cand.get("water"):
-            g.setdefault("tidal_water", cand["water"])
-        if cand.get("confidence") and n.confidence is None:
-            g.setdefault("tidal_conf", cand["confidence"])  # the candidate's grade, unless set
-    for m in sorted(tidal_open, key=lambda m: m.target):
-        n = m.new_splits[0] if m.new_splits else None
-        out.append({"id": f"tidal-open-{_slug(m.target, 40)}", "kind": "tidal_followup",
-                    "target": m.target, "scope": "tidal", "rule_id": None,
-                    "title": (f"{m.target}: a polygon point — the DFO polygon decides no tidal cut "
-                              "(owner 2026-10-28: words or the mouth); mark it again"
-                              if m.verdict == "verified" else
-                              f"{m.target}: the owner's tidal mark says {m.verdict} — no cut until a "
-                              "Place y mark") + (f" (point: {n.name}, {n.measure} m above the mouth)"
-                                                 if n is not None else ""),
-                    "marks": [{"target": m.target, "rule_id": None, "reviewer": m.reviewer,
-                               "date": m.date, "note": m.note, "scope": m.scope}],
-                    "edits": [], "depends_on": [], "problems": [], "notes": [m.note] if m.note else [],
-                    "split_id": None, "confidence": None})
-
     # ---- new splits
     gid_split: dict[str, str] = {}                       # group id -> its split id (new or existing)
     # every pending cut is placed — the ones no mark in force names too — so a clash is numbered the same

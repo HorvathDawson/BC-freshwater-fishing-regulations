@@ -69,8 +69,10 @@ def test_the_mouth_is_recorded_as_the_mouth_with_no_cut(env):
     assert ns["blk"] == row["blk"] and ns["measure"] == row["mouth"]["measure"] and ns["on_item"] is None
     assert "not in the atlas registry — no cut, nothing tidal" in ns["note"]
     assert len((env["dir"] / "marks.jsonl").read_text().splitlines()) == 1
-    # T185's path lists it as the mouth: no edit, never applied
-    from pipeline.regs.review import marks as M, proposals as P
+    # T326: the tidal writer makes it the water's `mouth` row — no cut, never a split proposal
+    from pipeline.regs.review import export as E, marks as M, proposals as P
+    from pipeline.tools import tidal_limits as TL
     src = P.Sources(entries_dir=env["dir"], dfo_dir=env["dir"], splits_path=env["dir"] / "splits.json")
-    [p] = P.build(M.load(env["dir"] / "marks.jsonl"), src)
-    assert p["kind"] == "tidal_mouth" and p["edits"] == []
+    assert P.build(M.load(env["dir"] / "marks.jsonl"), src) == []
+    [w], _ = TL.build(E.decide(M.load(env["dir"] / "marks.jsonl")), src, existing=[])
+    assert w.blk == row["blk"] and w.limit == "mouth"

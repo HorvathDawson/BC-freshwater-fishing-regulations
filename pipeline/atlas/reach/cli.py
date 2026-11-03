@@ -73,8 +73,8 @@ def main() -> int:
     # tidal water, out of every binding after the walk.
     from pipeline.atlas.reach.outside import tidal_splits, tidal_waters
     tidal_ids = tidal_splits(build)
-    # T212 (owner 2026-10-29): whole waters that are tidal (curated `tidal_waters.json`)
-    tidal_whole = tidal_waters()
+    # T212 (owner 2026-10-29): whole waters that are tidal (the sidecar's `whole` rows, T326)
+    tidal_whole = tidal_waters(build)
     result = build_reaches(entries, registry, graph, build=build.name,
                            handles=digest_for(build), steelhead_list=load_list(),
                            tidal_splits=tidal_ids, tidal_waters=tidal_whole)

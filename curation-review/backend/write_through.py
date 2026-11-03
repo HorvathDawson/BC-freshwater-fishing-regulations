@@ -7,9 +7,10 @@ After the server appends a mark (one, or a batch: one request), it runs THAT DOM
 `pipeline.regs.review.apply.run` the command line runs: export the marks to decided/, then the domain's writer.
 
   domain               writer                                   when
-  sloughs, names       file writer (slough_calls / mined_names)  IN THE REQUEST (< 1 s) — the response says done
+  sloughs, names,      file writer (slough_calls / mined_names / IN THE REQUEST (< 1 s) — the response says done
+  tidal                tidal_limits, T326)
   dfo, entries,        apply_proposals: binding check, one       IN THE BACKGROUND, debounced (`DEBOUNCE_S`): the
-  tidal, splits        commit per proposal (`git commit --`)     binding check is seconds warm, ~20 s cold. The
+  splits               commit per proposal (`git commit --`)     binding check is seconds warm, ~20 s cold. The
                                                                  response says "saving"; GET /api/review/write-through
                                                                  says when it is done and what became of each mark
   ponds                — closed (T329: nothing reads a pond call)

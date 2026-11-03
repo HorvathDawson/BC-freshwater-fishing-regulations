@@ -268,11 +268,11 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
         "reach": dict(atlas, corpus=corpus, steelhead=fingerprint(load_list()),
                       # (T211) the DFO salmon locations the run places: a curator placing one reruns the reach step
                       dfo=dfo_entries_digest(),
-                      # (T166) the tidal boundaries the run cuts the tidal pieces at: flagging a reused cut
-                      # tidal reaches the atlas through its sidecar, and reruns the reach step
+                      # (T166/T326) the tidal limits the run takes the tidal pieces out at, from the atlas's
+                      # tidal sidecar (`waters/tidal.json` reaches it through the atlas or `atlas.sidecars`)
                       tidal=_sha(tidal_splits(build_dir)),
                       # (T212) the whole waters the owner calls tidal
-                      tidal_waters=_sha(tidal_waters()),
+                      tidal_waters=_sha(tidal_waters(build_dir)),
                       code=code_digest(CODE["reach"])),
         "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
                         sources=deliver_sources(missing_ok),
@@ -294,7 +294,7 @@ def tiles_key(build_dir: Path) -> dict:
             # T166: the tidal boundaries — the pieces below them come off the map
             "tidal": _sha(tidal_splits(build_dir)),
             # T212: whole tidal waters come off the map too
-            "tidal_waters": _sha(tidal_waters()),
+            "tidal_waters": _sha(tidal_waters(build_dir)),
             "areas": hashlib.sha256(areas.read_bytes()).hexdigest()[:16], "code": code_digest(CODE["tiles"]),
             "obstacles": stamp(ob) if ob.exists() else None}
 

@@ -486,6 +486,9 @@ class _Build:
         self.area_defs: list = []
         self.catalog_polys: dict[str, dict] = {}   # {area_def id: {name: polygon}} for the lazy catalog
         self.clean_inside: dict[str, dict] = {}
+        self.tidal_limits: list = []    # T326: waters/tidal.json (gauge_cuts)
+        self.tidal_ids: dict = {}       # {blk: id} of every mouth alias and tidal cut (`tidal.ids`)
+        self.tidal_placed: dict = {}    # {blk: where each mouth alias went} (alias_tidal_mouths)
 
     def tick(self, label: str) -> None:
         now = self._clock()
@@ -827,6 +830,20 @@ def gauge_cuts(b: _Build) -> None:
         splits_doc = json.loads(_sp.read_text(encoding="utf-8"))
         splits = load_split_defs(str(_sp))
         print(f"curated splits: {len(splits)} from {_sp}")
+        # T326: THE TIDAL LIMITS (`waters/tidal.json`, read here only). A `cut` row rides in as a curated cut whose id
+        # follows from its point; a `split` row must name a cut of splits.json; a `mouth` row is never a cut (it is
+        # aliased onto the mouth boundary after every cut, `alias_tidal_mouths`).
+        from pipeline.atlas.splits import tidal as _tidal
+        b.tidal_limits = _tidal.load()
+        _have = {d.id for d in splits}
+        _stale = [f"{r.blk}: {r.split}" for r in b.tidal_limits if r.limit == "split" and r.split not in _have]
+        if _stale:
+            raise SystemExit("tidal: waters/tidal.json names split(s) splits.json does not have: " + "; ".join(_stale))
+        b.tidal_ids = _tidal.ids(b.tidal_limits, _have)
+        _tcuts = _tidal.cut_defs(b.tidal_limits, b.tidal_ids)
+        splits = list(splits) + _tcuts
+        _n = {k: sum(1 for r in b.tidal_limits if r.limit == k) for k in _tidal.LIMITS}
+        print(f"tidal limits:   {_n} ({len(_tcuts)} new cut(s) from waters/tidal.json)")
         # GAUGE CUTS RIDE IN AS ORDINARY SPLIT DEFS, SECOND.
         #
         # A section takes ONE station: the one that most nearly is that water. On a river of
@@ -914,7 +931,32 @@ def sectionize(b: _Build) -> None:
     cut_braids(b)
     cut_areas(b)
     cut_length(b)
+    alias_tidal_mouths(b)
     mark_membership(b)
+
+
+def alias_tidal_mouths(b: _Build) -> None:
+    """T326 TIDAL LIMITS, after every cut: refuse a tidal cut standing on its line's lower end (memory
+    end-cut-halves-the-water), then give each `mouth` row's tidal id to the boundary standing at its line's lower
+    end — an ALIAS (`sectionizer._coincident`), never a cut, so no section is made. A natural mouth (no boundary
+    object) is named on the registry instead (`build_registry`, `tidal.add_mouth_boundaries`).
+
+    Reads: graph, applied_splits, tidal_limits, tidal_ids. Writes: tidal_placed."""
+    if not getattr(b, "tidal_limits", None):
+        return
+    from pipeline.atlas.splits import tidal as _tidal
+    _n0 = len(b.graph.nodes)
+    _tidal.refuse_end_cuts(b.applied_splits, b.graph,
+                           [b.tidal_ids[r.blk] for r in b.tidal_limits if r.limit == "cut"])
+    b.tidal_placed = _tidal.alias_mouths(b.graph, b.tidal_limits, b.tidal_ids)
+    if len(b.graph.nodes) != _n0:
+        raise SystemExit(f"tidal: aliasing the mouths changed the section count ({_n0} -> {len(b.graph.nodes)})")
+    _on = sum(1 for v in b.tidal_placed.values() if v.get("on"))
+    _nat = sum(1 for v in b.tidal_placed.values() if "on" in v and not v["on"])
+    _abs = sum(1 for v in b.tidal_placed.values() if v.get("absent"))
+    print(f"  tidal mouths: {len(b.tidal_placed)} — {_on} aliased onto a standing boundary, {_nat} at a natural "
+          f"end (named on the registry), {_abs} not in the atlas; 0 new sections")
+    b.tick("tidal mouths")
 
 
 def cut_border(b: _Build) -> None:
@@ -1449,6 +1491,11 @@ def build_registry(b: _Build) -> None:
     print("  region units: " + ", ".join(
         f"{rid.split(':')[-1]} {len(registry[rid].mus)}" for rid in sorted(_reg_polys) if rid in registry))
     _tick("add_mu_sets")
+    # T326: a tidal mouth at a NATURAL end (no boundary object stands there) is named on its item: `<item>__mouth`,
+    # its alias the tidal id (`tidal.add_mouth_boundaries`). Last, so no later pass rebuilds the boundaries.
+    if b.tidal_placed:
+        from pipeline.atlas.splits import tidal as _tidal
+        registry = _tidal.add_mouth_boundaries(registry, b.tidal_placed)
     write_registry(registry, out / "registry.json")
     print(f"  registry -> {out / 'registry.json'}")
     # THE SECTION HANDLE TABLE, written here because this is where the set of sections is
@@ -1492,6 +1539,10 @@ def write_sidecars(b: _Build) -> None:
     if applied_splits:
         from pipeline.atlas.splits.splits import write_resolved
         write_resolved(applied_splits, str(out / "splits.resolved.json"))
+    # T326: what this atlas made of every tidal limit — the one file reach, tiles and the review app read for tidal
+    from pipeline.atlas.splits import tidal as _tidal
+    _tp = _tidal.write_resolved(out, _tidal.resolved_rows(b.tidal_limits, b.tidal_ids, b.tidal_placed))
+    print(f"  tidal limits: {len(b.tidal_limits)} -> {_tp}")
     # what this atlas was cut from, split by split: the review tool reads a split added or moved
     # since as "awaiting build" (T133)
     from pipeline.atlas.splits.splits import write_anchor_record

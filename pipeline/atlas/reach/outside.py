@@ -238,11 +238,6 @@ def tidal_owner(entries, registry, *, strict: bool = True) -> dict[str, str]:
 # T166 step 5 (owner 2026-10-28, RULINGS C-2): THE PIECE BELOW A TIDAL BOUNDARY IS TIDAL WATER.
 # ------------------------------------------------------------------------------------------------
 
-#: The resolved-cuts sidecar of an atlas (`splits.write_resolved`); a curated split flagged
-#: `tidal: true` in splits.json carries `tidal` on its rows there (the atlas build, or the
-#: `pipeline.atlas.sidecars` migration for a reused cut flagged after the build).
-RESOLVED_SPLITS = "splits.resolved.json"
-
 #: THE TIDAL PIECE IS THE WATER BELOW THE CUT, AND ONLY THAT WATER (owner 2026-10-28;
 #: handoff/PLAN/curation-review/tidal/tributary-impact.md): `downstream_of` the tidal split on the
 #: water(s) that carry it, by the same resolver a rule's extent uses (route measure on the cut's own
@@ -254,17 +249,12 @@ TIDAL_PIECE_HAS_NO_TRIBUTARIES = True
 
 
 def tidal_splits(build_dir) -> tuple[str, ...]:
-    """The split ids this atlas resolved as TIDAL BOUNDARIES (rows of `splits.resolved.json` with
-    `tidal`), sorted. An atlas with no such file is refused: a missing sidecar is not "no tidal
-    boundary" (AGENTS 37)."""
-    import json
-    from pathlib import Path
-    p = Path(build_dir) / RESOLVED_SPLITS
-    if not p.exists():
-        raise SystemExit(f"tidal: {p} is missing — the atlas writes it; without it the tidal "
-                         "boundaries cannot be read")
-    rows = json.loads(p.read_text(encoding="utf-8"))
-    return tuple(sorted({str(r["split_id"]) for r in rows if r.get("tidal")}))
+    """The split ids this atlas resolved as TIDAL LIMITS — the `split` and `cut` rows of its tidal sidecar
+    (`atlas.splits.tidal`, T326: written from `waters/tidal.json`), sorted. An atlas without the sidecar is
+    refused: a missing sidecar is not "no tidal boundary" (AGENTS 37)."""
+    from pipeline.atlas.splits.tidal import read_resolved
+    return tuple(sorted({str(r["split_id"]) for r in read_resolved(build_dir)
+                         if r["limit"] in ("split", "cut")}))
 
 
 def tidal_cut_owner(registry, graph, split_ids, *, strict: bool = True,
@@ -310,20 +300,11 @@ def tidal_cut_owner(registry, graph, split_ids, *, strict: bool = True,
     return out
 
 
-def tidal_waters(path=None) -> tuple[str, ...]:
-    """T212 (owner 2026-10-29): the registry items that are TIDAL WATER ALONG THEIR WHOLE LENGTH
-    (`data/curated/waters/tidal_waters.json`, e.g. the Fraser delta channels "this entire channel is
-    tidal"), sorted. A missing file is refused (AGENTS 37: never a silent "none")."""
-    import json
-    from pathlib import Path
-    if path is None:
-        from pipeline.common.curated import CURATED
-        path = CURATED.waters.tidal_waters
-    p = Path(path)
-    if not p.exists():
-        raise SystemExit(f"tidal: {p} is missing — the curated whole tidal waters cannot be read")
-    doc = json.loads(p.read_text(encoding="utf-8"))
-    return tuple(sorted({str(w["item_id"]) for w in doc.get("waters") or ()}))
+def tidal_waters(build_dir) -> tuple[str, ...]:
+    """T212 (owner 2026-10-29): the registry items that are TIDAL WATER ALONG THEIR WHOLE LENGTH (the Fraser
+    delta channels, "this entire channel is tidal") — the `whole` rows of the atlas's tidal sidecar (T326), sorted."""
+    from pipeline.atlas.splits.tidal import read_resolved
+    return tuple(sorted({str(r["item"]) for r in read_resolved(build_dir) if r["limit"] == "whole"}))
 
 
 def tidal_whole_owner(registry, item_ids, *, strict: bool = True,
@@ -338,7 +319,7 @@ def tidal_whole_owner(registry, item_ids, *, strict: bool = True,
         secs = sorted(getattr(it, "section_ids", ()) or ()) if it is not None else []
         if not secs:
             if strict:
-                raise SystemExit(f"tidal: whole tidal water {iid!r} (tidal_waters.json) is not in the "
+                raise SystemExit(f"tidal: whole tidal water {iid!r} (waters/tidal.json) is not in the "
                                  "registry or has no section")
             continue
         for s in secs:

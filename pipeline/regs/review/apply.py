@@ -14,7 +14,7 @@ Marking is unchanged: one click in the review app appends a mark to marks.jsonl.
   2. runs the domain's WRITER, which puts what the marks decide into the domain's final curated file:
 
      domain    writer                                        final file
-     tidal     apply_proposals --scope tidal                 waters/splits.json (tidal cuts; T326 adds waters/tidal.json)
+     tidal     tools.tidal_limits                            waters/tidal.json (T326: mouth | split | cut | whole)
      dfo       apply_proposals --scope dfo                   regulations/entries/dfo_salmon/region-*.json (+ splits.json)
      entries   apply_proposals --scope entry --scope rule    regulations/entries/catalogue/region-*.json (+ splits.json)
      splits    apply_proposals --scope split                 waters/splits.json
@@ -40,7 +40,7 @@ from typing import Callable, Optional
 from pipeline.regs.review import export as E
 
 #: the domains whose writer is `apply_proposals` (one commit per proposal, binding check, side rebuilds)
-PROPOSAL_DOMAINS = ("tidal", "dfo", "entries", "splits")
+PROPOSAL_DOMAINS = ("dfo", "entries", "splits")
 
 
 def _sloughs(decided: E.Decided) -> dict[Path, str]:
@@ -60,9 +60,18 @@ def _names(decided: E.Decided) -> dict[Path, str]:
             + "\n"}
 
 
+def _tidal(decided: E.Decided) -> dict[Path, str]:
+    from pipeline.common.curated import CURATED
+    from pipeline.tools import tidal_limits as T
+    rows, skipped = T.build(decided)
+    for s in skipped:
+        print(f"  tidal: not written {s['target']}: {s['why']}")
+    return {Path(CURATED.waters.tidal): T.document(rows)}
+
+
 #: domain -> its FILE writer: the decided data -> {final curated file: its text} (fast: the write-through runs these
 #: in the request).
-WRITERS: dict[str, Callable[[E.Decided], dict[Path, str]]] = {"sloughs": _sloughs, "names": _names}
+WRITERS: dict[str, Callable[[E.Decided], dict[Path, str]]] = {"sloughs": _sloughs, "names": _names, "tidal": _tidal}
 
 
 def _rel(p: Path) -> str:
@@ -149,6 +158,11 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None, de
                     for s in S.build(decided)[1]:
                         out["events"].append({"domain": d, "status": "refused", "why": s["why"],
                                               "marks": [{"scope": "slough", "target": s["wbk"], "rule_id": None}]})
+                if d == "tidal":                  # T326: a mark that sets no limit says why, on its item
+                    from pipeline.tools import tidal_limits as TL
+                    for s in TL.build(decided)[1]:
+                        out["events"].append({"domain": d, "status": "waiting", "why": s["why"],
+                                              "marks": [{"scope": "tidal", "target": s["target"], "rule_id": None}]})
                 changed = write_files(d, decided, dry_run=dry_run)
                 out["files"] += [str(p) for p in changed]
                 out["events"].append({"domain": d, "status": "would" if dry_run else "written",

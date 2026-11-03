@@ -2,8 +2,8 @@
 itself; there is no lock step. Closed = a domain that feeds nothing (ponds, T329).
 
   per domain   a mark saved through the API updates the curated file: sloughs, names (in the request); dfo, entries
-               (in the background, one commit per proposal, temp git repo); tidal (its proposals are new cuts: they
-               wait for the side rebuild, said on the item — T326 still owes waters/tidal.json)
+               (in the background, one commit per proposal, temp git repo); tidal (T326: a file domain — waters/tidal.json
+               in the request)
   refused      an apply that refuses keeps the mark, returns / holds the reason, and logs it
   batch        accept-all (one request, many marks) writes once
   atomic       a write that fails half way leaves the old file whole and no temp file behind
@@ -106,7 +106,6 @@ def wt(tmp_path, monkeypatch):
     monkeypatch.setattr(P, "side_ready", lambda p: False)
     monkeypatch.setattr(P.Sources, "live", classmethod(lambda cls, build=None: P.Sources(
         entries_dir=cat, dfo_dir=dfo, splits_path=repo / "data/curated/splits.json", build=tmp_path / "build")))
-    monkeypatch.setattr(P, "TIDAL_DECISIONS", tmp_path / "none.json")     # no pre-Tab tidal calls in a test
     # the file writers' final files: temp paths, the real writers
     calls = {"sloughs": 0}
     real_sloughs, real_names = AP.WRITERS["sloughs"], AP.WRITERS["names"]
@@ -117,6 +116,8 @@ def wt(tmp_path, monkeypatch):
     monkeypatch.setitem(AP.WRITERS, "sloughs", sloughs)
     monkeypatch.setitem(AP.WRITERS, "names", lambda d: {tmp_path / "mined_names.json": t
                                                        for t in real_names(d).values()})
+    from pipeline.tools import tidal_limits as TL
+    monkeypatch.setitem(AP.WRITERS, "tidal", lambda d: {tmp_path / "tidal.json": TL.document(TL.build(d, existing=[])[0])})
     monkeypatch.syspath_prepend(str(BACKEND))
     for mod in MODS:
         sys.modules.pop(mod, None)
@@ -237,9 +238,9 @@ def test_an_entry_mark_lands_in_its_catalogue_file_in_the_background(wt):
     assert wt["client"].get("/api/review/write-through").json()["outcomes"][f"entry|{HATZIC}|"]["state"] == "saved"
 
 
-def test_a_tidal_mark_is_exported_and_its_new_cut_waits_for_the_side_rebuild(wt, monkeypatch):
-    """Tidal stays on its current apply path (T326 owes waters/tidal.json): the mark is exported to decided/tidal.json
-    at once; its proposal is a new cut, which waits for the side rebuild — said on the item, never silently."""
+def test_a_tidal_mark_writes_waters_tidal_json_in_the_request(wt, monkeypatch):
+    """T326: tidal is a FILE domain — the mark is exported to decided/tidal.json and its row lands in
+    waters/tidal.json in the same request (a new cut keeps its point; the atlas mints its id)."""
     cid = "tidal:354154938"
     cands = wt["tmp"] / "tidal-candidates.json"
     cands.write_text(json.dumps({"candidates": [{
@@ -258,12 +259,15 @@ def test_a_tidal_mark_is_exported_and_its_new_cut_waits_for_the_side_rebuild(wt,
                         "anchor": "coord", "coord": [-123.880448, 49.116249], "blk": "354154938",
                         "measure": 2979.5}]})
     r = _post_built(wt, mark)
-    assert r.json()["write_through"] == {"domain": "tidal", "state": "saving"}
-    assert wt["WT"].wait_idle(30)
+    wt_ = r.json()["write_through"]
+    assert wt_["domain"] == "tidal" and wt_["state"] == "done", wt_
     T._load.cache_clear()
     assert json.loads((wt["tmp"] / "review/decided/tidal.json").read_text())["decisions"][0]["key"][1] == cid
-    o = wt["client"].get("/api/review/write-through").json()["outcomes"][f"tidal|{cid}|"]
-    assert o["state"] == "waiting" and "side rebuild" in o["why"]
+    doc = json.loads((wt["tmp"] / "tidal.json").read_text())
+    assert doc["format"] == "tidal/1"
+    [w] = doc["waters"]
+    assert w["blk"] == "354154938" and w["limit"] == "cut" and w["at"]["coord"] == [-123.880448, 49.116249]
+    assert "split" not in w and len(w["mark"]) == 12
 
 
 def test_a_refused_apply_keeps_the_mark_and_says_why(wt):

@@ -10,7 +10,6 @@ from pathlib import Path
 import numpy as np
 from shapely.geometry import Polygon
 
-from pipeline.regs.review.proposals import TIDAL_DECISIONS
 from pipeline.tools.audit import tidal_triage as TT
 
 REPO = Path(__file__).resolve().parents[2]
@@ -142,9 +141,10 @@ def test_straight_cut_threshold_is_150_m():
 def test_an_owner_decision_wins_over_every_other_class():
     """decisions.md 2026-10-27: Capilano at the source text, Cowichan at the river mouth; owner
     2026-10-28: Nitinat River at its entry into Nitinat Lake (the lake and the river below are tidal)."""
-    dec = json.loads(TIDAL_DECISIONS.read_text())["decisions"]
-    assert {d["water"]: d["boundary"] for d in dec} == {"Capilano River": "source_text", "Cowichan River": "river_mouth",
-                                                        "Nitinat River": "source_text"}
+    # T326: the calls file left handoff/ (all three superseded by marks); the triage takes the owner's own calls as
+    # given (`main` passes the rows of waters/tidal.json with no mark)
+    dec = [{"id": "tidal:360875983", "water": "Capilano River", "blk": "360875983", "boundary": "source_text",
+            "decided": "2026-10-27", "note": "use the source text"}]
     no = {"kind": "synopsis_box", "agrees": False}
     c = _c([no])
     c.update(id=dec[0]["id"], blk=dec[0]["blk"])

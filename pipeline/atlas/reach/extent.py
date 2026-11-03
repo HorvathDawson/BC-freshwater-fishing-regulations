@@ -284,6 +284,10 @@ def _crossings(g, refs: set[str], universe: set[str]
         for b in (n.lower_bound, n.upper_bound):
             if b is not None and b.boundary_id in refs:
                 at.setdefault(n.blk, set()).add(b.route_measure)
+        # T326: a NATURAL mouth named on the registry (`mouth:<blk>`, the tidal-mouth boundary): no boundary object
+        # stands there, so it is the line's open lower end — never a cut (`atlas.splits.tidal`)
+        if n.lower_bound is None and f"mouth:{n.blk}" in refs:
+            at.setdefault(n.blk, set()).add(n.down_m)
     return by_blk, at
 
 

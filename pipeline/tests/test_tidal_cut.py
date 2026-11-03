@@ -1,8 +1,7 @@
 """T166 step 5 (owner 2026-10-28, RULINGS C-2): THE PIECE BELOW A TIDAL BOUNDARY IS TIDAL WATER.
 
-  flag      a curated split carries `tidal: true` (splits.json) -> the atlas writes it on its
-            `splits.resolved.json` rows (and the sidecar migration for a reused cut) -> the reach
-            run reads the ids from the atlas (`outside.tidal_splits`)
+  limit     a `split` / `cut` row of waters/tidal.json (T326) -> the atlas's `tidal.resolved.json`
+            -> the reach run reads the ids from the atlas (`outside.tidal_splits`)
   piece     `downstream_of` the cut on every item that carries it — no tributary
             (`outside.TIDAL_PIECE_HAS_NO_TRIBUTARIES`, `tidal_cut_owner`)
   order     the tributary walk runs on the FULL network; the tidal piece leaves each binding AFTER
@@ -175,38 +174,44 @@ def test_a_row_marked_tidal_still_loses_the_piece_below_a_cut(estuary):
 
 # ------------------------------------------------------------------- the flag through the atlas
 
-def test_the_flag_rides_from_splits_json_to_the_resolved_rows(tmp_path):
-    d = SplitDef.from_dict({"id": TIDE, "gnis_id": "1", "tidal": True, "label": "tidal boundary",
-                            "anchor": {"type": "point", "coord": [-123.1, 49.3], "is_lonlat": True}})
-    assert d.tidal is True
-    assert SplitDef.from_dict({"id": "x", "gnis_id": "1", "anchor": {
-        "type": "point", "coord": [-123.1, 49.3], "is_lonlat": True}}).tidal is False
-    with pytest.raises(ValueError, match="tidal must be true"):
-        SplitDef.from_dict({"id": "x", "gnis_id": "1", "tidal": "yes", "anchor": {
-            "type": "point", "coord": [-123.1, 49.3], "is_lonlat": True}})
-    p = tmp_path / "splits.resolved.json"
-    write_resolved([SplitPoint(TIDE, "R", 1000.0, "", "tidal boundary", AnchorType.point,
-                               source="curated", tidal=True),
-                    SplitPoint("river__falls", "R", 3000.0, "", "falls", AnchorType.point,
-                               source="curated")], str(p))
-    rows = json.loads(p.read_text())
-    assert rows[0]["tidal"] is True and "tidal" not in rows[1] and "tidal" in RESOLVED_KEYS
-    assert O.tidal_splits(tmp_path) == (TIDE,)
+def _sidecar(tmp_path, rows):
+    from pipeline.atlas.splits.tidal import write_resolved as write_tidal
+    write_tidal(tmp_path, rows)
+
+
+def test_the_tidal_limits_reach_the_run_through_the_atlas_sidecar(tmp_path):
+    """T326: which cut is tidal is a row of waters/tidal.json, resolved by the atlas into `tidal.resolved.json`; the
+    run reads the `split` / `cut` ids and the `whole` items from it — never a flag on splits.json."""
+    _sidecar(tmp_path, [{"blk": "1", "limit": "split", "split_id": TIDE},
+                        {"blk": "2", "limit": "cut", "split_id": "creek__tidal_boundary"},
+                        {"blk": "3", "limit": "mouth", "alias": "x__tidal_boundary"},
+                        {"blk": "4", "limit": "whole", "item": "gnis:2"}])
+    assert O.tidal_splits(tmp_path) == ("creek__tidal_boundary", TIDE)
+    assert O.tidal_waters(tmp_path) == ("gnis:2",)
     with pytest.raises(SystemExit, match="missing"):
         O.tidal_splits(tmp_path / "nowhere")
-    assert order_resolved(rows[0])["tidal"] is True
+    assert "tidal" not in RESOLVED_KEYS
+    with pytest.raises(ValueError, match="carries"):
+        order_resolved({"split_id": TIDE, "tidal": True})
 
 
-def test_a_reused_cut_flagged_after_the_build_reaches_the_sidecar():
+def test_splits_json_may_not_flag_a_cut_tidal(tmp_path):
+    from pipeline.atlas.splits.splits import load_split_defs
+    p = tmp_path / "splits.json"
+    p.write_text(json.dumps({"waterbodies": [{"name": "R", "applies_to": {"gnis_id": "1"}, "splits": [
+        {"id": TIDE, "label": "tidal boundary", "tidal": True,
+         "anchor": {"type": "point", "coord": [-123.1, 49.3], "is_lonlat": True}}]}]}))
+    with pytest.raises(ValueError, match="waters/tidal.json"):
+        load_split_defs(str(p))
+
+
+def test_an_old_resolved_row_loses_its_tidal_key_in_the_sidecar_migration():
     from pipeline.atlas.sidecars import enrich_resolved
-    d = SplitDef.from_dict({"id": "fraser__cpr", "gnis_id": "1", "tidal": True, "label": "CPR Bridge",
+    d = SplitDef.from_dict({"id": "fraser__cpr", "gnis_id": "1", "label": "CPR Bridge",
                             "anchor": {"type": "point", "coord": [-122.3, 49.13], "is_lonlat": True}})
     got = enrich_resolved([{"split_id": "fraser__cpr", "blk": "F", "route_measure": 1.0,
-                            "label": "CPR Bridge", "anchor_type": "point"}], [d])
-    assert got[0]["tidal"] is True
-    plain = SplitDef.from_dict({**{"id": "fraser__cpr", "gnis_id": "1", "label": "CPR Bridge"},
-                                "anchor": {"type": "point", "coord": [-122.3, 49.13], "is_lonlat": True}})
-    assert "tidal" not in enrich_resolved([dict(got[0])], [plain])[0]
+                            "label": "CPR Bridge", "anchor_type": "point", "tidal": True}], [d])
+    assert "tidal" not in got[0]
 
 
 # --------------------------------------------------------------- the preview, before any lands
@@ -234,10 +239,9 @@ def test_the_preview_lists_a_rule_wholly_below_a_cut(tmp_path):
 def test_the_tiles_leave_off_the_reach_runs_own_set(estuary, tmp_path):
     from pipeline.deliver.tiles.tidal import tidal_pieces
     g, reg = estuary
-    write_resolved([SplitPoint(TIDE, "R", 1000.0, "", "tidal boundary", AnchorType.point,
-                               source="curated", tidal=True)], str(tmp_path / "splits.resolved.json"))
+    _sidecar(tmp_path, [{"blk": "R", "limit": "split", "split_id": TIDE}])
     assert tidal_pieces(tmp_path, graph=g, registry=reg, whole=()) == frozenset(O.tidal_cut_owner(reg, g, [TIDE]))
-    write_resolved([], str(tmp_path / "splits.resolved.json"))
+    _sidecar(tmp_path, [])
     assert tidal_pieces(tmp_path, graph=g, registry=reg, whole=()) == frozenset()
     # T212: a whole tidal water comes off the map too
     assert tidal_pieces(tmp_path, graph=g, registry=reg, whole=("gnis:2",)) == frozenset({"T1:0"})
@@ -305,9 +309,12 @@ def test_a_rule_on_a_whole_tidal_water_is_unresolved_and_listed(estuary):
 
 
 def test_the_curated_whole_tidal_waters_are_the_owners_ten_fraser_delta_waters():
-    """The 4 channels the owner marked (2026-10-29) + the 6 Fraser-code items below Mission he confirmed the same day."""
-    assert O.tidal_waters() == ("gnis:10494", "gnis:11566", "gnis:14010", "gnis:14905", "gnis:17368", "gnis:17805",
-                                "gnis:21224", "gnis:22631", "gnis:25152", "gnis:8341")
+    """The 4 channels the owner marked (2026-10-29) + the 6 Fraser-code items below Mission he confirmed the same day
+    (T326: `whole` rows of waters/tidal.json, the owner's own calls)."""
+    from pipeline.atlas.splits import tidal as T
+    assert sorted(r.item for r in T.load() if r.limit == "whole") == [
+        "gnis:10494", "gnis:11566", "gnis:14010", "gnis:14905", "gnis:17368", "gnis:17805", "gnis:21224",
+        "gnis:22631", "gnis:25152", "gnis:8341"]
 
 
 def test_a_row_marked_tidal_keeps_its_own_water_when_a_cut_exists_elsewhere(estuary):

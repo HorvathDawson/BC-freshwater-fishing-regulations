@@ -89,9 +89,10 @@ class Waters(BaseModel):
     #: THE OWNER-DECIDED CONTINUATION LINKS (`water_continue`): `reviewed` ship, `refused` never, anything else the
     #: topology proposes is held for review (owner 2026-10-29, `bundle.continuation.gate`).
     continuations: FilePath
-    #: T212 (owner 2026-10-29): WHOLE WATERS THAT ARE TIDAL (Fraser delta channels) — every section of each item is
-    #: tidal water, off the freshwater map (`reach.outside.tidal_whole_owner`).
-    tidal_waters: FilePath
+    #: T326: THE ONE TIDAL FILE — one row per ocean-entering water: its tidal limit at the `mouth` (an alias, no cut),
+    #: on an existing `split`, a new `cut`, or the `whole` water. Written by `pipeline.tools.tidal_limits` (review
+    #: write-through); read by the ATLAS only (`atlas.splits.tidal.load`), which writes `tidal.resolved.json`.
+    tidal: FilePath
     #: T322 (owner 2026-10-30): the owner-CONFIRMED slough / canal polygons, applied from `decided/sloughs.json` by
     #: `pipeline.tools.slough_calls`; the registry folds each into the one stream through it, else ignores it
     #: (`registry.flowing.fold_confirmed_sloughs`).

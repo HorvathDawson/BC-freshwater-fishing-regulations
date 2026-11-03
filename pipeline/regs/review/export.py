@@ -7,7 +7,7 @@
 DECIDE is data, and lives in its own files, one per domain, each record with its provenance:
 
     tidal.json            scope tidal: the tidal boundaries (+ the owner's calls made before the
-                          Tidal tab, `proposals.TIDAL_DECISIONS`, folded in first so a later mark wins)
+                          Tidal tab, folded in first when a file is given; none since T326)
     dfo.json              scope dfo: DFO locations' extent fixes and their new cuts
     entries.json          scopes entry / rule: extent fixes, tributary calls, lake-split-later
     splits.json           scope split: calls on existing cuts
@@ -103,13 +103,12 @@ class Decided:
         return M.with_confidence(self.groups, overrides)
 
 
-def decide(marks: Iterable[M.Mark], *, tidal_decisions: Optional[Path] = "default",
+def decide(marks: Iterable[M.Mark], *, tidal_decisions: Optional[Path] = None,
            source: str = "marks.jsonl", candidates: Optional[Path] = None) -> Decided:
-    """export(marks) in memory. `tidal_decisions`: the owner's pre-Tab tidal calls file
-    ("default": `proposals.TIDAL_DECISIONS` when it exists; None: none)."""
+    """export(marks) in memory. `tidal_decisions`: a file of tidal calls made before the Tidal tab, folded in
+    before the marks (None, the default since T326: the owner's calls live in `waters/tidal.json` as rows with no
+    mark, and the three pre-tab calls are all superseded by marks)."""
     from pipeline.regs.review import proposals as P
-    if tidal_decisions == "default":
-        tidal_decisions = P.TIDAL_DECISIONS if P.TIDAL_DECISIONS.exists() else None
     early = P.tidal_decision_marks(tidal_decisions, candidates) if tidal_decisions else []
     store = list(marks)
     history = early + store
@@ -242,7 +241,7 @@ def stale(out_dir: Optional[Path] = None, marks_path: Optional[Path] = None) -> 
     files name (`tidal_decisions`); with no files, the default."""
     from pipeline.common.curated import CURATED, REPO_ROOT
     out_dir = Path(out_dir or default_dir())
-    td: object = "default"
+    td: object = None
     if (out_dir / "tidal.json").exists():
         named = json.loads((out_dir / "tidal.json").read_text(encoding="utf-8")).get("tidal_decisions")
         td = REPO_ROOT / named if named else None
