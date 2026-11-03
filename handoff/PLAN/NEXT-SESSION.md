@@ -38,6 +38,35 @@ reports a list of problems; it does not fix them. Look for:
 Fix the mechanical ones directly (status, numbering, ledger rows). Batch anything that needs a decision into one
 question for the owner.
 
+## FINISH FIRST: work paused mid-flight on 2026-11-02
+
+The owner paused everything. Finish these, in order, before anything in the queue. Each has exact steps in its ticket.
+
+1. **T349: DFO region defaults as entries, non-retention = closed, shared quotas, R2 tidal-area sets.**
+   - Read T349's "RESUME" section: the side-build gate result, whether the atlas was promoted, and how far the live
+     build got.
+   - Finish only what it lists (live build, then ONE fast suite).
+   - Then update STATUS.md.
+2. **Merge branch `audit/t350-lean`** (head 0d7d2cddf: lean salmon audit fixes plus tickets T356–T358).
+   - Merge it only after the T349 live build is finished, then run the targeted tests the audit named.
+3. **Do NOT deploy the feeds worker.** The code now includes T332's dfo-feed/2, which app 0.4.0 can't read. The worker
+   and the salmon/3 release go out only with the next app (0.5.0). The `SALMON_NEEDS` guard in upload.sh enforces
+   this.
+4. **T326: tidal, as one clean file.** Decided 2026-11-02, see the ticket:
+   - `waters/tidal.json` holds one record per water, with the boundary as `mouth` | `split: <existing id>` | `new cut`.
+   - The 1,128 mouth decisions become a "tidal boundary" ALIAS on the mouth boundary (the coincident mechanism; never
+     a cut at a line end), giving 0 new sections.
+   - Ids come from the deterministic split-id function (d9b7c7c40), so no stored ids.
+   - This needs the next atlas build.
+5. **Clean up stale agent worktrees** (`git worktree list`; branches `worktree-agent-*`). Merge or drop each one
+   after checking it for unmerged work.
+
+Owner items from this round:
+- Re-save Stamp "except in those areas" as `rest`.
+- Review the proposals on the "?" DFO extents: Sproat 350 m, Stamp Deer Creek distance, Little Qualicum (now an
+  area_boundary on LITTLE QUALICUM FALLS PARK).
+- Try the new split editor in the DFO tab: type picker, live preview, autocomplete, real ids.
+
 ## Queue, in order
 
 ### 1. Cheap, already planned (do first)
@@ -52,6 +81,7 @@ question for the owner.
 - T343: clean up the regional salmon rules (after T332): drop duplicates, fold notes into the bucket and size tiers, spawning-salmon image.
 - T346: go through every crash and problem report collected (do with T345).
 - T345 (bug, HIGH: a crash): Coquitlam River "Lougheed bridge to watershed boundary" highlight runs past the bridge.
+- T348 (bug): map colours do not refresh when a new feed arrives; do with T347.
 - T347: river forecast stays on Conditions over the weekend (published weekdays only) + More-tab note.
 - T344: species ID swipes between the fish a group covers (whitefish → lake + mountain).
 - T342: pane text copyable with the phone's own long-press; remove the salmon-only Copy button (owner ask).
