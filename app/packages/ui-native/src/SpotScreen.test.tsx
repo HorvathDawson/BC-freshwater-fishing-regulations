@@ -484,8 +484,8 @@ describe("<SpotScreen> the week before (S1)", () => {
                    at: "2026-08-30T09:00", backfilled: false },
         leadUp: later,
       })} />);
-    expect(getByText("Some days of the week before were not available yet when this was saved — they can be filled " +
-                     "in now.")).toBeTruthy();
+    expect(getByText("Some days of the week before were not available yet when this was saved — they'll fill in " +
+                     "once published.")).toBeTruthy();
     expect(getByTestId("leadup-weather-pending").textContent)
       .toBe("1 day had no weather from Open-Meteo yet. Refresh fills it in.");
     expect(getByTestId("leadup-gauge-pending").textContent)

@@ -724,7 +724,7 @@ _ID_FIELDS = ("anchor", "on_item", "item_id", "split_id", "coord", "blk", "measu
               "area_end", "area_layer", "wsc_descendants", "exclude_gnis")
 
 
-def anchor_digest(n) -> str:
+def proposal_digest(n) -> str:
     """A proposed cut's anchor as a short digest — the same anchor always gives the same digest."""
     d = n.model_dump(mode="json")
     return _h({k: d.get(k) for k in _ID_FIELDS})
@@ -772,7 +772,7 @@ def place_groups(rows: Iterable[tuple], src: Sources, splits_doc: Optional[Mappi
         if dup is None and tidal:                        # T166: a tidal point ON a cut already there
             dup = _cut_already_there(n, have, src)
         out[gid] = {"dup": dup, "water": water, "split": n, "at": at, "wb": wb, "problems": problems,
-                    "base": split_base(n, water), "digest": anchor_digest(n)}
+                    "base": split_base(n, water), "digest": proposal_digest(n)}
     ids = assign_ids([(g, v["base"], v["digest"]) for g, v in out.items() if v["dup"] is None], have)
     for g, v in out.items():
         v["id"] = v["dup"] or ids[g]

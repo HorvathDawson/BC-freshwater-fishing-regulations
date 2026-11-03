@@ -1,6 +1,6 @@
 # T332 — DFO salmon quotas in the SAME quota/size model as the game-fish (trout) rules; wording list checked + accepted
 
-Status: IN REVIEW — branch `dfo/t332-shared-quota` (a618808c2, 29ddde218, 616a3ec93), merges after 0.4.0 ships. (owner 2026-10-30: "please tidy them. yes and double check them all. and how they lead to the quota
+Status: DONE (merged by T349 2026-11-02, merge 0c276aa10; staging guard SALMON_NEEDS). Ships with the next APK (salmon/3 needs app 0.5.0). Was: IN REVIEW — branch `dfo/t332-shared-quota` (a618808c2, 29ddde218, 616a3ec93). (owner 2026-10-30: "please tidy them. yes and double check them all. and how they lead to the quota
 structure data (which should have same format as trout ones for consistency like same size datatype, quotas etc.)").
 
 ## Why

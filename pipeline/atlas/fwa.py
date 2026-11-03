@@ -340,3 +340,34 @@ class FWADataAccessor:
             raise ValueError(
                 f"Layer '{layer_name}' not found. Available: {self.layer_names}"
             )
+
+
+# The two FWA reads the review app's split preview shares with the build (it may not import pipeline.atlas.build).
+
+def get_lake_wbk_kind(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
+    kind: dict[str, str] = {}
+    for layer, k in (("lakes", "lake"), ("manmade", "manmade")):
+        if layer in fwa.layer_names:
+            gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY"], bbox=bbox, geometry=False)
+            for wbk in gdf["WATERBODY_KEY"]:
+                if wbk:
+                    kind.setdefault(str(wbk), k)
+    return kind
+
+
+def get_area_polys(fwa: FWADataAccessor, area_specs, bbox=None) -> dict:
+    """Load the admin/park polygon for each area_boundary split: ``area_name -> (Multi)Polygon``.
+    ``area_specs`` = iterable of (layer, name_field, name_value); one ``unary_union`` per matched
+    name. Loaded within ``bbox`` (the build extent) — a park larger than the bbox is returned with
+    full geometry for the features that intersect it, which is all the in-frame streams can cross."""
+    from shapely.ops import unary_union
+    out: dict = {}
+    for layer, field, value in area_specs:
+        if layer not in fwa.layer_names or value in out:
+            continue
+        gdf = fwa.get_layer(layer, columns=[field], bbox=bbox)
+        polys = [g for v, g in zip(gdf[field], gdf.geometry)
+                 if str(v) == value and g is not None and not g.is_empty]
+        if polys:
+            out[value] = unary_union(polys)
+    return out

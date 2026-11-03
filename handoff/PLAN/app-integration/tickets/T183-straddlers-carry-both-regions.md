@@ -1,6 +1,6 @@
 # T183 — A piece that straddles a region line carries both regions' rules (reverses T115)
 
-Status: OPEN. Owner 2026-10-24 (braid review, then confirmed when asked about the conflict with T115): "Those straddle
+Status: DONE (64f92990..1ba63301, 1ca8bfda; promoted r-98c43091c440). Asked as: Owner 2026-10-24 (braid review, then confirmed when asked about the conflict with T115): "Those straddle
 pieces are supposed to get both regions regulations" → "Both regions (reverse T115)".
 
 ## Work

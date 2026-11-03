@@ -1,6 +1,6 @@
 # T350 — Quick audit: DFO salmon pipeline unified with the freshwater (trout) model, no fallbacks
 
-Status: OPEN, starts after T349 lands (owner 2026-11-02: "a quick audit of the salmon DFO pipeline to make sure we don't
+Status: DONE (2026-11-03, owner) — the lean pass merged (4fb701fb7, audit/t350-lean) and its findings became T356–T358; an in-depth pass belongs to the T333 audit cycle. Was: OPEN, starts after T349 lands (owner 2026-11-02: "a quick audit of the salmon DFO pipeline to make sure we don't
 have bad datatypes or tech debt deviating from other datatypes like the trout freshwater ones … unified … solid … no
 weird fallbacks").
 

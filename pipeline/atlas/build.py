@@ -17,7 +17,7 @@ from collections import Counter
 from pathlib import Path
 
 from project_config import get_config
-from pipeline.atlas.fwa import FWADataAccessor
+from pipeline.atlas.fwa import FWADataAccessor, get_area_polys, get_lake_wbk_kind
 
 from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
 from pipeline.common.io.export_gpkg import export_graph_gpkg, export_lake_io, export_tributaries
@@ -88,15 +88,6 @@ def get_all_waterbody_wbks(fwa: FWADataAccessor, bbox=None) -> set[str]:
     return out
 
 
-def get_lake_wbk_kind(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
-    kind: dict[str, str] = {}
-    for layer, k in (("lakes", "lake"), ("manmade", "manmade")):
-        if layer in fwa.layer_names:
-            gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY"], bbox=bbox, geometry=False)
-            for wbk in gdf["WATERBODY_KEY"]:
-                if wbk:
-                    kind.setdefault(str(wbk), k)
-    return kind
 
 
 def get_lake_wsc(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
@@ -209,22 +200,6 @@ def get_mu_polys(fwa: FWADataAccessor) -> dict:
             if r.WILDLIFE_MGMT_UNIT_ID and r.geometry is not None}
 
 
-def get_area_polys(fwa: FWADataAccessor, area_specs, bbox=None) -> dict:
-    """Load the admin/park polygon for each area_boundary split: ``area_name -> (Multi)Polygon``.
-    ``area_specs`` = iterable of (layer, name_field, name_value); one ``unary_union`` per matched
-    name. Loaded within ``bbox`` (the build extent) — a park larger than the bbox is returned with
-    full geometry for the features that intersect it, which is all the in-frame streams can cross."""
-    from shapely.ops import unary_union
-    out: dict = {}
-    for layer, field, value in area_specs:
-        if layer not in fwa.layer_names or value in out:
-            continue
-        gdf = fwa.get_layer(layer, columns=[field], bbox=bbox)
-        polys = [g for v, g in zip(gdf[field], gdf.geometry)
-                 if str(v) == value and g is not None and not g.is_empty]
-        if polys:
-            out[value] = unary_union(polys)
-    return out
 
 
 def bbox_from_gnis(fwa: FWADataAccessor, names: list[str], pad: float = 3000.0):

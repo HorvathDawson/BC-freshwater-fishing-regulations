@@ -1,6 +1,6 @@
 # T52 — "Expected change": a Conditions view that flags rivers about to change, spikes included
 
-Status: IN PROGRESS — BUILT in lane wf_e8f2adba-933-2 (8ad715d6 pipeline + the app commit after it), awaiting review
+Status: DONE (8ad715d6 … ee1234e0; live after the feed republish). Earlier: IN PROGRESS — BUILT in lane wf_e8f2adba-933-2 (8ad715d6 pipeline + the app commit after it), awaiting review
 and merge; live only after a feed republish (publish.py writes `change`). Ticket 6ffda443.
 
 Phase 4 · Depends on the gauge feed + forecast (pipeline/gauges/feed/forecast.py), Conditions horizons (Now · +1 · +3 · +5

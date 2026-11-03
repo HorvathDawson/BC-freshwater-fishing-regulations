@@ -43,18 +43,12 @@ question for the owner.
 T349 + T326 shipped locally as one build (release r-d0ad76a6e6a1, LATEST locally), and `audit/t350-lean` is merged.
 What is left:
 1. **Do NOT deploy the feeds worker or upload to staging**: salmon/3 waits for app 0.5.0 (the `SALMON_NEEDS` guard).
-2. **Suite reds from earlier work (not T326):** `test_curation_review_screen` (`{slug}` route param missing in the
-   test's _PARAMS), `test_curation_review_split_preview` + `test_no_silent_skips` (a skipif), `test_one_data_flow`
-   (split_preview imports pipeline.atlas.build), `test_review_vintage` (anchor_digest in proposals.py),
-   `test_wsc_relation` (region_cascade.py slices WSC codes). App: the ticket-ledger guard (T327/T331/T346/T355 DONE
-   without hashes, T332 status word) and the SpotScreen "week before" test.
+2. ~~Suite reds~~ DONE 2026-11-03 (5 Python guards + 2 app tests; see STATUS).
 3. **T326 remainder:** fold `review/proposal_overrides.json` into splits.json. The owner still has to answer the 8
    tidal follow-ups and Mamquam.
-4. **Clean up stale agent worktrees** (`git worktree list`; branches `worktree-agent-*`). Merge or drop each one after
-   checking it for unmerged work.
+4. ~~Clean up stale agent worktrees~~ DONE 2026-11-03 (6 worktrees, 17 branches).
 
 Owner items from this round:
-- Re-save Stamp "except in those areas" as `rest`.
 - Review the proposals on the "?" DFO extents: Sproat 350 m, Stamp Deer Creek distance, Little Qualicum (now an
   area_boundary on LITTLE QUALICUM FALLS PARK).
 - Try the new split editor in the DFO tab: type picker, live preview, autocomplete, real ids.

@@ -12,7 +12,7 @@ the build runs; the review app's TypeScript draws the answer and nothing else. S
      validation, so an offset on an area boundary is refused here exactly as the build refuses it);
   2. the water's blue lines as the build makes them (`load_stream_fids` + `build_blk_chains`) from the
      FWA source, for that one water (its bbox, filtered to its own lines + the tributary named);
-  3. `anchors.resolve_split_defs` on them — the area polygon by `build.get_area_polys`, the border
+  3. `anchors.resolve_split_defs` on them — the area polygon by `fwa.get_area_polys`, the border
      cuts by `border.border_split_points` on the B.C. outline, the live blue lines from the served graph.
 
 Not modelled: the added lakes / municipal streams merged at build time, and placement (`place_points`:
@@ -105,7 +105,7 @@ def _bbox(item_ids) -> Optional[tuple]:
 @lru_cache(maxsize=16)
 def _chains(where: str, bbox: Optional[tuple]):
     """The build's own blue-line chains for these FWA rows (`load_stream_fids` + `build_blk_chains`)."""
-    from pipeline.atlas.build import get_lake_wbk_kind
+    from pipeline.atlas.fwa import get_lake_wbk_kind
     from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
     fwa = _fwa()
     fids = load_stream_fids(str(fwa.gpkg_path), bbox=bbox, where=where or None)
@@ -131,7 +131,7 @@ def _lonlat(chain, measure: float) -> list[float]:
 
 
 def _area_poly(anchor: dict, bbox):
-    from pipeline.atlas.build import get_area_polys
+    from pipeline.atlas.fwa import get_area_polys
     spec = (anchor["area_layer"], anchor.get("area_name_field") or "", anchor["area_name"])
     return get_area_polys(_fwa(), [spec], bbox=bbox).get(anchor["area_name"])
 

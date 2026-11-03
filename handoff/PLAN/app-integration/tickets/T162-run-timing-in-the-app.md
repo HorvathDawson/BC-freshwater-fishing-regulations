@@ -1,6 +1,6 @@
 # T162 — Salmon and steelhead run timing in the app: refresh the data, ship it, colour the map by when fish are there
 
-Status: PARTIAL — data + plan; app integration awaits owner
+Status: DONE (24879b00; merged into T199 2026-11-03, owner). T162 did the data (timing.json) + plan; T199 carries everything left (data refinement, yearly refresh, the app mode). Was: PARTIAL — data + plan; app integration awaits owner
 
 Source: owner 2026-10-23: "add a ticket for adding run timing info that we scraped into the app too. will have to create
 the feed … we started implementing a run timing with the stream network on when fish would have to be passing through an

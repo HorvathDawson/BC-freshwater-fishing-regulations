@@ -1,6 +1,6 @@
 # T184 — Keep the local curation review app; clean it up (the artifact version is retired)
 
-Status: OPEN. Owner 2026-10-24: the review is better as "our old separate app — then we just clean it up". Phase 1's
+Status: DONE (2bacfc7d..dabd3b8b). Asked as: Owner 2026-10-24: the review is better as "our old separate app — then we just clean it up". Phase 1's
 artifact (the 30-target pilot page) was published, then deleted at the owner's request; its code goes too.
 
 ## What the review is for (owner)

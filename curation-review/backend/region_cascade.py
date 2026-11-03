@@ -29,6 +29,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import reuse
+from pipeline.common.utils import wsc as W
 from pipeline.regs.review import dfo as D
 
 SLUGS = ["1", "2", "3", "4", "5a", "5b", "6", "7", "8"]
@@ -50,7 +51,7 @@ R6_ORDER = [("E:areas-5", "6:e:area:areas-5~2"), ("E:areas-6", "6:e:area:areas-6
 #: (T349) Region 2's map: scope key -> the default ENTRY that answers it
 R2_DEFAULTS = {"areas-28-29": "2:default:areas-28-29", "areas-13-15-16": "2:default:areas-13-15-16"}
 R6_SIBLINGS = {"B(i)": "6:b(i):section", "B(ii)": "6:b(ii):section", "C": "6:c:section", "D": "6:d:section", "F": "6:f:closure"}
-R6_SIBLING_PREFIX = {"100-": "Fraser (F)", "400-": "Skeena (B)", "500-": "Nass (C)"}
+R6_SIBLING_PREFIX = {"100": "Fraser (F)", "400": "Skeena (B)", "500": "Nass (C)"}   # watershed-code roots
 
 
 CACHE = Path(__file__).resolve().parents[2] / "cache" / "dfo_salmon"
@@ -330,7 +331,7 @@ def _region_map(slug: str, min_order: int, tol: float, _stamp: tuple) -> dict:
             by_area[str(a)] += 1
             if assign.get(s) == "E" and a is None:
                 assign[s] = "E:transboundary" if wsc(s) else "nocode"
-            pre = wsc(s)[:4]
+            pre = W.root(wsc(s))
             if pre in R6_SIBLING_PREFIX:
                 flagged[s] = f"E section on {R6_SIBLING_PREFIX[pre]} code"
         overlap = {k: len(E & rows.get(lid, set())) for k, lid in R6_SIBLINGS.items()}
@@ -343,7 +344,7 @@ def _region_map(slug: str, min_order: int, tol: float, _stamp: tuple) -> dict:
             n = nodes.get(s)
             a = area_of(wsc(s))
             flagged[s] = f"in no section (drains to Area {a})" if a else "in no section"
-            gap_rows.append({"section": s, "name": getattr(n, "display_name", "") if n else "", "wsc": wsc(s)[:24],
+            gap_rows.append({"section": s, "name": getattr(n, "display_name", "") if n else "", "wsc": W.head(wsc(s), 3),
                              "area": a, "order": getattr(n, "stream_order", None) if n else None})
         coast_gaps = [g for g in gap_rows if g["area"] in (3, 4, 5, 6)]
         check = {

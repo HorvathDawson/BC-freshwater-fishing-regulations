@@ -6,14 +6,19 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.common.curated import GENERATED, SOURCE
+from pipeline.common.curated import SOURCE
 from pipeline.regs.review import marks as M
+from pipeline.tests.conftest import GPKG_HINT, need
 
 BACKEND = __import__("pathlib").Path(__file__).resolve().parents[2] / "curation-review" / "backend"
 LQ = "gnis:10886"                                          # Little Qualicum River
-pytestmark = pytest.mark.skipif(not ((SOURCE / "bc_fisheries_data.gpkg").exists()
-                                     and (GENERATED.build() / "registry.json").exists()),
-                                reason="needs the FWA source and the served atlas")
+pytestmark = [pytest.mark.needs_source, pytest.mark.needs_atlas]
+
+
+@pytest.fixture(autouse=True)
+def _the_gpkg(request):
+    """FAILS without the FWA gpkg, naming the command that fetches it (the atlas is the conftest's own check)."""
+    need(request, "source", SOURCE / "bc_fisheries_data.gpkg", GPKG_HINT)
 
 
 @pytest.fixture(scope="module")

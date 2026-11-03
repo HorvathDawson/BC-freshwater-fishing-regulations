@@ -1,6 +1,6 @@
 # T346 — Go through every crash and problem report the feeds worker has collected
 
-Status: DONE 2026-11-02 (was OPEN) (owner 2026-10-31: "look if the digest collected any issues or crashes etc. with info. It should look for
+Status: DONE 2026-11-02 (6c08121b3; was OPEN) (owner 2026-10-31: "look if the digest collected any issues or crashes etc. with info. It should look for
 more than just ours with this bug").
 
 The app sends crash reports and "Report a problem" reports to the staging feeds worker (`/crash`, the report store;

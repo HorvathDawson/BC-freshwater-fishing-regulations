@@ -8,6 +8,24 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-03 (later): housekeeping — ledger fixed, old test failures fixed, old worktrees gone
+
+- **Ticket ledger:** fixed the status lines on T52, T183, T184, T322, T324, T327, T331, T332, T346, T349 and T355.
+  T162 is merged into T199. T66 is done: every phase of its plan has its own ticket. T350 is done: the in-depth pass
+  belongs to the T333 audit. T239 (the yearly synopsis parse) is now in OWNER-TODO. The ledger checker passes.
+- **Old test failures fixed** (only the failing tests were rerun): 5 Python guards and 2 app tests.
+  - The review app no longer imports the atlas build module: its two FWA readers moved to `pipeline/atlas/fwa.py`.
+  - `proposals.anchor_digest` is renamed `proposal_digest`; the guarded `anchor_digest` is a different digest.
+  - `region_cascade` reads watershed codes through `wsc.py`.
+  - The split-preview test uses the `needs_*` markers instead of a skip.
+  - Two out-of-date tests were updated: one was missing the `{slug}` route parameter, and SpotScreen still expected
+    the old "they can be filled in now" text.
+- **Worktrees:** 6 removed and 17 old branches deleted. Each one was checked first: its work was already merged, or
+  the files it touched no longer exist.
+- **From the digest:** no new crash type; one more Android background low-memory kill, which is not a crash. Two new
+  DFO Fraser rows (region 2, first seen today) are held as unplaced: the page's wording drifted ("upstream of the CPR
+  Bridge at Mission", and chum 2/day Nov 3–30 under FN1179).
+
 ## 2026-11-03: tidal is one file; the map and the data match again [T326, T349, T350]
 
 - **What changed:** every tidal answer now lives in one file, `data/curated/waters/tidal.json`, one row per water: at

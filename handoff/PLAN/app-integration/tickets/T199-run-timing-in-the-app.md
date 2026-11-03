@@ -3,7 +3,8 @@
 Status: PARTIAL — feed + Run timing mode built and on staging (owner 2026-10-28); data refinement (step 2) open
 
 Source: owner 2026-10-25 — "implementing and refining the run timings into the app. will be at end, alongside the
-stocked and bathy maps." Follows T162 (data + plan, PARTIAL).
+stocked and bathy maps." Follows T162 (data + plan), MERGED into this ticket 2026-11-03 (owner): T162 is closed and its
+still-open items live here — data refinement (step 2), the yearly refresh (Inputs), and the attribution in credits.
 
 ## Inputs
 - `data/curated/runtiming/timing.json` (329 PSF curves, 4,944 DFO NuSEDS records), parsed by

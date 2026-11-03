@@ -153,6 +153,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   our answers in the ticket), service-account JSON to `~/.canifishthis/play-service-account.json`. Unblocks T267
   (`deploy/staging/build-apk.sh --play`). Back up `~/.canifishthis/` (upload key + password).
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
+- **Yearly synopsis update (T239, not started):** when the new synopsis comes out, Claude writes the runbook + book
+  diff and does the dry run; the parse itself is yours to run (Claude hands you the command).
 - **R2 upload** of a new release and of the gauge feed, with your credentials:
   `python -m pipeline.deliver.release.publish --release data/release/$(cat data/release/LATEST) --yes` (records
   data/release/PUBLISHED so the prune keeps it). When you set up the feed sync, upload ONLY `data/generated/gauges/feeds/`,

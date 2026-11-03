@@ -1,6 +1,6 @@
 # T355 — Review app split editor makes every split type, and proposal ids become real split ids
 
-Status: DONE 2026-11-02 (Claude) — proposals only; owner to try it in the DFO tab.
+Status: DONE 2026-11-02 (c58790450, 0732a97f2, d9b7c7c40) — proposals only; owner to try it in the DFO tab.
 
 The new-split feature in the review app should produce every kind of split that splits.json supports, not just a
 hand-placed point. splits.json today holds: point 318, confluence 102, lake 18, area_boundary 4, lake_outlet 1,
