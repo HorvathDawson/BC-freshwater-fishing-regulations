@@ -38,6 +38,10 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+- **Tidal follow-ups (T359, 2026-11-03):** review app → Tidal → Follow-ups (8). Decide: does a DEM point you
+  confirmed become a cut (Caycuse 1,925 m, Dempster 550 m)? Re-mark Annacis/Cannery/Morey/Parsons "whole water";
+  look at Skagit (US border) and Bear River (bridge).
+- **DFO tab (2026-11-03):** accept the proposed Sheldens Spur 19 cut; review the two Nanaimo "tidal portions" places.
 - **Tidal close-out (2026-10-29), one yes/no proposal:** Mamquam Blind Channel — the DFO 2015 tidal guide calls it
   tidal; make `wsc:900-103611` "Mamquam Blind Channel Wetland" whole tidal water (its "Trib 1" stays fresh)?
 - **T227 DFO places not on the map (2026-10-28): review app → DFO, open each, "accept suggestion", Save extent.**

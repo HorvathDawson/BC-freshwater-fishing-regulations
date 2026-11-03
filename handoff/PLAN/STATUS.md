@@ -8,6 +8,21 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-03 (end of chat): tidal follow-ups in the review app; app memory looked at [T359, T360, T361]
+
+- **Tidal tab → Follow-ups (T359, done):** the 8 held tidal marks now show there, each with why it is held and your
+  last note. A new button, "the whole water is tidal", writes a `whole` row. Annacis, Cannery, Morey and Parsons
+  already have your own `whole` rows from 10-29, which is why they looked done; one "whole water" re-mark confirms each.
+  **Your call:** should a DEM point you confirmed become a cut (Caycuse 1,925 m, Dempster 550 m)? Skagit (US border)
+  and Bear River (the bridge) also need a look.
+- **App memory (T360, partly done):** the code read is checked. The map's Vulkan renderer was only a provisional pick
+  and was never tried on a phone, and one crash was a segfault, so OpenGL is the first thing to try. The rule-book PDF
+  is read whole (24 MB) and parsed on every highlighted open, which is also why it opens slowly (T354). Correction: the
+  map's "ambient cache" limit is disk, not memory. Next: measure on the emulator, then put the PDF options to you.
+- **Red test (T361):** six region-1 DFO marks of yours (Quinsam, Campbell, Nanaimo, Puntledge, Qualicum, Stamp) read
+  "rule changed" after Claude re-queued region 1 for the Nanaimo places. Your marks are untouched; T361 finds what
+  moved and puts it back, or asks you to re-review if DFO really changed.
+
 ## 2026-11-03 (afternoon): your marks saved, Sheldens cut proposed, loose files committed
 
 - **Your three DFO marks** (Little Qualicum Falls, Sproat, Stamp Deer Creek) are now Place n, "split missing", with

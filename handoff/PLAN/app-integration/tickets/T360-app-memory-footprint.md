@@ -1,6 +1,6 @@
 # T360 — App memory footprint
 
-Status: OPEN (owner 2026-11-03)
+Status: PARTIAL — code read done (findings + corrections below); measurement on the emulator is next (RESUME)
 
 Owner 2026-11-03: "could we look into the memory footprint of the app". Evidence: the two 0.4.0 foreground native
 crashes (T351) happened at 406 MB and 435 MB in use (one SIGSEGV); background LOW_MEMORY kills at 169 MB (0.3.0, 0.4.0).
@@ -29,3 +29,29 @@ free paint/method decodes and close unused SQLite handles on `onTrimMemory`.
 Measurement (next): `adb shell dumpsys meminfo <pkg>` per step (boot, pan ×10, zoom, water sheet, Conditions, Salmon,
 rule-book PDF, then `am send-trim-memory <pkg> RUNNING_CRITICAL`), satellite on and off; compare Graphics + Native Heap
 (map) with Java/Hermes heap.
+
+## Checked by the main session (2026-11-03) — corrections and the plan
+- **Vulkan:** `["@maplibre/maplibre-react-native", { "android": { "nativeVariant": "vulkan" } }]` (apps/mobile/app.json).
+  It was PROVISIONAL from the N1 spike ("Vulkan provisional pending a real phone", app-data/n2/README.md, N1-SPIKE.md)
+  and was never judged on a phone. The SIGSEGV (status 11) makes the OpenGL variant the first thing to try.
+- **Correction:** MapLibre's "ambient cache" (`OfflineManager.setMaximumAmbientCacheSize`, `setTileCountLimit`) is the
+  DISK tile cache. Capping it does not lower RAM. RAM is driven by the tiles in view, overzoom depth, layer count,
+  feature-state and imagery; measure before tuning.
+- **PDF (confirmed):** `openHighlighted` (ui-native/src/regs/synopsisPdf.native.ts) reads the whole 24 MB book with
+  `cached.bytes()` and `highlightPdf` parses it with pdf-lib (`PDFDocument.load`), then writes a second copy. A
+  plain open (`pdf <= 1`, no boxes) streams the file. Same root cause as **T354** (slow open): fix them together.
+  Options to put to the owner: (a) highlight a small extract (the cited pages only, with a "whole book" link);
+  (b) pre-build the highlighted pages at release time (pipeline), the app opens a small file; (c) skip the highlight
+  above a heap budget. Each one changes what opens, so the owner decides.
+- **Release data / SQLite (not yet verified):** loader caches (data/src/release/loader.ts) and ~30 open sqlite handles
+  — confirm with the measurement before changing anything.
+
+## RESUME (next chat)
+1. Build a debug/release APK of the current tree and install it on the `n1_pixel` AVD
+   (`~/Library/Android/sdk/emulator/emulator -avd n1_pixel`, adb at `~/Library/Android/sdk/platform-tools/adb`;
+   T255 test bed: `app/tools/testbed/README.md`). Heavy: through `scripts/heavy.sh <label> 60 -- …` in the background.
+2. Measure with `dumpsys meminfo ca.canifishthis.app` per step: boot, 10 pans, zoom in to z16, satellite on, a water
+   sheet, Conditions, Salmon, a rule-book tap (highlighted PDF), `am send-trim-memory … RUNNING_CRITICAL`. Record
+   TOTAL PSS / Graphics / Native Heap per step in this ticket.
+3. Repeat with `nativeVariant: "opengl"` (one prebuild + build). Compare memory and N1's pan budget (p95 ≤ ~20 ms).
+4. Put the PDF options (a/b/c above) and the Vulkan→OpenGL result to the owner; then fix what the numbers show.

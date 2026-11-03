@@ -38,19 +38,24 @@ reports a list of problems; it does not fix them. Look for:
 Fix the mechanical ones directly (status, numbering, ledger rows). Batch anything that needs a decision into one
 question for the owner.
 
-## FINISH FIRST (updated 2026-11-03)
+## FINISH FIRST (updated 2026-11-03, end of chat)
 
-T349 + T326 shipped locally as one build (release r-d0ad76a6e6a1, LATEST locally), and `audit/t350-lean` is merged.
-What is left:
+Done this chat: ledger fixes, old test failures, worktree cleanup, loose files committed, owner marks saved (3 DFO
+→ n, Sheldens Spur 19 proposed), T359 (tidal follow-ups view, see its ticket), T360 code read.
 1. **Do NOT deploy the feeds worker or upload to staging**: salmon/3 waits for app 0.5.0 (the `SALMON_NEEDS` guard).
-2. ~~Suite reds~~ DONE 2026-11-03 (5 Python guards + 2 app tests; see STATUS).
-3. **T326 remainder:** fold `review/proposal_overrides.json` into splits.json. The owner still has to answer the 8
-   tidal follow-ups and Mamquam.
-4. ~~Clean up stale agent worktrees~~ DONE 2026-11-03 (6 worktrees, 17 branches).
+   Staging's DFO feed holds 2 Fraser rows only because its inputs are old; they are placed locally.
+2. **T360 app memory — start here.** Its RESUME: build + install on the `n1_pixel` AVD, measure `dumpsys meminfo` per
+   screen, retry with the OpenGL map variant, then put the PDF options (with T354) to the owner.
+3. **T361 (red test, Claude's own doing):** six region-1 DFO marks read "rule changed" after the 11-03 re-queue;
+   find what moved, restore it (never edit marks).
+4. **T326 remainder:** fold `review/proposal_overrides.json` into splits.json (Sandy Pool is already in; Quatse weir
+   offsets are still a proposal). Owner: re-review the tidal follow-ups in the Tidal tab (T359) and Mamquam.
 
 Owner items from this round:
-- Review the proposals on the "?" DFO extents: Sproat 350 m, Stamp Deer Creek distance, Little Qualicum (now an
-  area_boundary on LITTLE QUALICUM FALLS PARK).
+- Tidal tab → Follow-ups (T359): the 8 held tidal marks. Decide whether a confirmed DEM point becomes a cut (Caycuse,
+  Dempster); re-mark the 4 "entire channel" ones with "whole water"; Skagit (US border) and Bear River (bridge).
+- DFO tab: the Sheldens Spur 19 proposed cut; the two Nanaimo "tidal portions" places; the proposals on Sproat,
+  Stamp Deer Creek and Little Qualicum Falls (now Place n, split missing).
 - Try the new split editor in the DFO tab: type picker, live preview, autocomplete, real ids.
 
 ## Queue, in order
