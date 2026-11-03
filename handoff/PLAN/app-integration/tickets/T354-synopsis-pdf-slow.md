@@ -41,5 +41,8 @@ Both cut download time, copy time and memory; (1) alone removes the 100-200 MB s
   release has no index. Web keeps pdf-lib (`#page=` works there).
 - pikepdf added to requirements.txt (pipeline only).
 
-Left: (1) emulator time + memory of an open, before/after (the T360 sitting); (2) owner: look at photo pages 1, 43, 46,
-87, 88 (`python -m pipeline.deliver.release.synopsis` prints the gate; the copy is in data/generated/synopsis/).
+Owner 2026-11-03: the compressed photos look good (approved).
+
+Left: (1) emulator time + memory of an open, before/after (the T360 sitting); (2) owner asked whether the highlight
+should also sit on the page in place (today only the front copy is highlighted): pick front copy + in place (index
+~30 KB) or in place only.
