@@ -60,3 +60,14 @@ Check `openHighlighted` in app/packages/ui and what it `require`s. Missing conte
   WaterMapView.tsx + tests).
 - **"Requiring unknown module" crash: GONE.** It was `import("./highlightPdf")` (b214318e9), a lazy Metro web chunk;
   today's synopsisPdf.web.ts has static imports only. Same risk class: Shell.tsx lazy `./later` (T368).
+
+## Fixed 2026-11-03 (8a5b5bd)
+- Sliver + "past its bounds": MapLibre Native's feature-state queue (per-key removals mixed with sets in one frame
+  were dropped); keys now cleared by a null write. Confirmed on the emulator (t345-fix-open run).
+- Web: highlight did not follow ▲/▼ (waited for a fully loaded style during the camera's flight); fixed.
+- Reload onto `?regs=…&view=map` drew "Base rules" blue (the T256 colour hold never released); fixed.
+- One load path (T369 for the water map): six ways into Coquitlam part 1 + each URL reloaded draw the same.
+- LEFT: the 0.4.0 crash on the tapped route → close → reopen → Map: not reproduced (the emulator's map tap misses the
+  river; via Open no crash). Likely the old native feature-state path; confirm on the owner's phone with 0.5.0
+  (crash/2 carries the water + pane). Also: the same native queue affects whole-feature/whole-layer removals followed
+  by sets (useColouring.ts clear-and-relabel, the copy's feature drop) — not changed; check in T369.

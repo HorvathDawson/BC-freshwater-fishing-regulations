@@ -24,3 +24,10 @@ Every screen a route can show (map tabs, a water's Regulations / Conditions / Ma
 
 Method: as T368 — one read-only pass (screens × ways in, where state can diverge), owner sees the list once, then fixes
 with the net. Web and native one logic path.
+
+## Done for the water map (2026-11-03, 8a5b5bd)
+Frame carries the stretch; no held ref decides the drawing; a tapped frame adopts its part (URL `part=`, never a
+section id); harness in WaterMapView.test.tsx compares 6 ways in + reloads. Left for the audit: ⤢ Whole river is
+screen-held; the Regulations view's tapped frame does not adopt its part (part-less URL); Conditions' `at` not in the
+URL; MapLibre Native's queue for whole-feature/layer removals + sets (useColouring.ts). Render tests
+(WaterScreen.regs-props, WaterMode) flake under machine load: make their waits load-proof here.
