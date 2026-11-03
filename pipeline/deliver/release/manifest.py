@@ -6,6 +6,7 @@
      "files":   {"<name>": {url, bytes, gz, sha256, format, section_handles}, …},
      "regulations": {"valid_until": "<date>" | null, "versions": {…}},
      "synopsis": {id, url, bytes, sha256} | null,   (T215: OUR copy of the synopsis PDF, raw, beside the data files)
+                  (T354: + `append`, the page index the app's cited-page-first append needs; synopsis.py)
      "sources": {"synopsis": {title, date}, "dfo"|"fwa"|"basemap"|"hydat": {date}},   (only when the build passes it)
      "bundle":  {"entries_digest": "<16 hex>", "reach_digest": "<16 hex>"}}           (only when the build passes it)
 

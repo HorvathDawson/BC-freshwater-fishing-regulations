@@ -449,7 +449,7 @@ export default function App() {
   const synopsis = boot.state === "ready" ? boot.booted.manifest.synopsis : null;
   useEffect(() => {
     setSynopsisSource(synopsis?.sha256 && synopsis.bytes
-      ? { url: `${ENDPOINTS.release}${synopsis.url}`, sha256: synopsis.sha256, bytes: synopsis.bytes,
+      ? { url: `${ENDPOINTS.release}${synopsis.url}`, sha256: synopsis.sha256, bytes: synopsis.bytes, append: synopsis.append ?? null,
           // (T285) this release's files may be gone (404): the live manifest names the same synopsis under the live release
           alternate: async () => {
             const live = (await (await fetch(ENDPOINTS.manifest)).json() as { synopsis?: { sha256?: string; url?: string } }).synopsis;

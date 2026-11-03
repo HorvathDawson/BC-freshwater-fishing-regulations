@@ -3,6 +3,7 @@
 
 # PDF Processing
 pdfplumber
+pikepdf
 
 # Scientific Computing & Data Analysis
 numpy

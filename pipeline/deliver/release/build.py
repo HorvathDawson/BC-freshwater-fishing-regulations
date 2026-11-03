@@ -556,12 +556,16 @@ def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, da
         raw.unlink()
     # T215: OUR COPY of the synopsis PDF, beside the data files (raw: a PDF is already compressed), named by content. The
     # boxes `rules[].book_box` were cut from these bytes; the app opens THIS file with the highlight, never gov.bc.ca's.
+    # (T354) the caller hands the downsampled copy (`synopsis.shipped`: page boxes untouched, so the boxes hold); the
+    # manifest carries the index the app's append needs (`synopsis.append`): the cited page opens first, the book never read into JS.
     said_synopsis = None
     if synopsis is not None:
+        from pipeline.deliver.release import synopsis as SYN
         ssha = _sha(synopsis)
         sname = f"synopsis-{ssha[:12]}.pdf"
         shutil.copyfile(synopsis, work / sname)
-        said_synopsis = {"id": ssha[:12], "url": sname, "bytes": synopsis.stat().st_size, "sha256": ssha}
+        said_synopsis = {"id": ssha[:12], "url": sname, "bytes": synopsis.stat().st_size, "sha256": ssha,
+                         "append": SYN.append_index(synopsis)}
     # The id covers EVERYTHING the manifest says, not only the files: an app keeps a release by its id, so a
     # manifest-only change (valid_until, a source date, the tiles pairing) under the same id would never be fetched.
     said = {"tiles": tiles, "basemap": basemap, "valid_until": valid_until, "regs_versions": regs_versions,

@@ -1,6 +1,6 @@
 # T354 — Opening the synopsis PDF takes a very long time
 
-Status: OPEN (owner 2026-11-02, 0.4.0 mobile).
+Status: IN REVIEW (code done 2026-11-03; left: emulator timing before/after, owner looks at the photo pages).
 
 Opening the rule book (synopsis PDF) from a water page takes a very long time. Find out where the time goes:
 - downloading the whole PDF on first open (size?);
@@ -28,3 +28,18 @@ compress pdf a bit?" Plan (proposal, measure before shipping):
    the pipeline step (text and page layout untouched; printed page numbers unchanged). Expect roughly 6-9 MB.
    Render gate: page shots old vs new, owner looks at a few photo pages.
 Both cut download time, copy time and memory; (1) alone removes the 100-200 MB spike.
+
+## Done 2026-11-03 (code)
+- `pipeline/deliver/release/synopsis.py`: the shipped copy. JPEGs past 1600 px long side downsampled (9 of 59), page
+  Resources/Group made indirect, deterministic, render-gated in pdfium (every page: same text, worst mean diff 1.74/255,
+  p88). **25.0 MB -> 11.7 MB.** Cached at data/generated/synopsis/. The release CLI ships it; `ship()` writes the page
+  index into the manifest (`synopsis.append`, 4 KB).
+- `app/packages/ui-native/src/regs/appendPdf.ts`: the incremental update (front copy of the cited page + highlights, root
+  /Pages overridden, xref stream with /Prev), ~0.9 KB. On the real book: qpdf syntax check clean, pdfium 89 pages, the
+  front page renders identical to its book page without annots, the rest unchanged.
+- Native open: `cached.copy(f)` + `f.write(tail, {append: true})`, no JS read of the book; falls back to pdf-lib when the
+  release has no index. Web keeps pdf-lib (`#page=` works there).
+- pikepdf added to requirements.txt (pipeline only).
+
+Left: (1) emulator time + memory of an open, before/after (the T360 sitting); (2) owner: look at photo pages 1, 43, 46,
+87, 88 (`python -m pipeline.deliver.release.synopsis` prints the gate; the copy is in data/generated/synopsis/).

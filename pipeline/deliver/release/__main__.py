@@ -38,6 +38,9 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     from pipeline.common.synopsis_pages import default_pdf
     syn = a.synopsis or default_pdf()
+    if syn.exists():
+        from pipeline.deliver.release.synopsis import shipped
+        syn = shipped(syn)              # (T354) the downsampled copy, render-gated, cached by the source's digest
     import sqlite3
     handles = dict(sqlite3.connect(f"file:{a.bundle}?mode=ro", uri=True).execute("SELECT k, v FROM meta"))[
         "section_handles"]

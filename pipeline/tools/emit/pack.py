@@ -65,6 +65,12 @@ export interface ManifestFile {{
   slice_of?: string; region?: string;
 }}
 export interface TileRef {{ id?: string; url: string; bytes?: number; sha256?: string }}
+/** (T354) pipeline/deliver/release/synopsis.py `append_index`: what an incremental update of the shipped synopsis needs,
+ *  so the app appends to a native copy and never reads the book. Refs are [object, generation]; the rest is PDF syntax. */
+export interface SynopsisAppend {{
+  v: number; startxref: number; size: number; root: [number, number]; info: [number, number] | null;
+  id: [string, string] | null; pages: [number, number]; kids: string; count: number; box: string; page: string[];
+}}
 
 /** The sources a release dates (`sources`, pipeline/deliver/release/manifest.py SOURCE_KEYS), in the app's order. */
 export const SOURCE_KEYS = {json.dumps(list(M.SOURCE_KEYS))} as const;
@@ -77,8 +83,9 @@ export interface Manifest {{
   tiles: {{ compatible: string[]; current: TileRef | null; assets: (TileRef & {{ files_sha256?: string; pin?: string }}) | null;
            mask: TileRef | null }};
   basemap: TileRef | null;
-  /** (T215) OUR copy of the synopsis PDF (url relative to the release root, raw bytes); absent on a release built before it. */
-  synopsis?: TileRef | null;
+  /** (T215) OUR copy of the synopsis PDF (url relative to the release root, raw bytes); absent on a release built before it.
+   *  (T354) `append`: the page index the cited-page-first append needs (absent before it: the book opens the old way). */
+  synopsis?: (TileRef & {{ append?: SynopsisAppend | null }}) | null;
   files: Record<string, ManifestFile>;
   regulations: {{ valid_until: string | null; versions: Record<string, number> | null }};
   /** Absent on a release built before it (or a fixture release): every source then reads as not recorded. */

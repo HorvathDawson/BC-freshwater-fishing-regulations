@@ -20,7 +20,8 @@ vi.mock("expo-file-system", () => {
     get size() { return files.get(this.uri)?.bytes.length ?? 0; }
     get contentUri() { return `content://ca.test.FileSystemFileProvider/${this.uri}`; }
     create() { files.set(this.uri, { bytes: new Uint8Array() }); }
-    write(b: Uint8Array) { files.set(this.uri, { bytes: b }); }
+    write(b: Uint8Array, o?: { append?: boolean }) { const was = o?.append ? files.get(this.uri)?.bytes ?? new Uint8Array() : new Uint8Array(); files.set(this.uri, { bytes: new Uint8Array([...was, ...b]) }); }
+    async copy(to: File) { files.set(to.uri, { bytes: files.get(this.uri)!.bytes }); }
     delete() { files.delete(this.uri); }
     move(to: File) { files.set(to.uri, files.get(this.uri)!); files.delete(this.uri); }
     async bytes() { return files.get(this.uri)!.bytes; }
@@ -56,6 +57,16 @@ describe("synopsisPdf.native (T285)", () => {
     await openHighlighted(S, 9, BOX, {}, "android");
     expect(tasks).toBe(1);
     expect(intents).toHaveLength(2);
+  });
+  it("(T354) with the release's index: a native copy + the append, the book never read into JS", async () => {
+    const append = { v: 1, startxref: 0, size: 10, root: [1, 0], info: null, id: null, pages: [2, 0], kids: "[3 0 R]", count: 9,
+                     box: "", page: Array.from({ length: 9 }, () => "/Contents 4 0 R") } as const;
+    await openHighlighted({ ...S, append: append as never }, 9, BOX, {}, "android");
+    expect(highlight).not.toHaveBeenCalled();
+    const opened = files.get("cache/synopsis-open.pdf")!.bytes;
+    expect([...opened.slice(0, 4)]).toEqual([1, 2, 3, 4]);
+    expect(new TextDecoder("latin1").decode(opened.slice(4))).toMatch(/\/Type\/Pages\/Kids \[10 0 R 3 0 R\]\/Count 10>>[\s\S]*%%EOF\n$/);
+    expect(String((intents[0]![1] as { data: string }).data)).toMatch(/synopsis-open\.pdf$/);
   });
   it("a highlight that fails still opens the book itself", async () => {
     highlight.mockRejectedValueOnce(new Error("out of memory"));

@@ -11,7 +11,7 @@
  */
 import { MANIFEST_FORMAT, type Manifest } from "./pack.generated";
 
-export type { Manifest } from "./pack.generated";
+export type { Manifest, SynopsisAppend } from "./pack.generated";
 export type FileName = string;
 /** `<handles16>.<tilebuild12>` (pipeline/deliver/tiles/version.py). */
 export type TileVersion = string;

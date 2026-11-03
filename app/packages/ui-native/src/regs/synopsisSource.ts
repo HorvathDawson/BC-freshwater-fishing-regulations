@@ -4,6 +4,8 @@
  * THESE bytes, so the highlight is drawn on this copy and no other (the gov.bc.ca file is not byte-identical).
  * Null (no release block, e.g. the fixture release): `openBook` keeps opening the plain link.
  */
+import type { SynopsisAppend } from "@app/data";
+
 export interface SynopsisSource {
   readonly url: string; readonly sha256: string; readonly bytes: number;
   /**
@@ -12,6 +14,8 @@ export interface SynopsisSource {
    * a device still on the older release finds the file under the live release. Null: nowhere else.
    */
   readonly alternate?: () => Promise<string | null>;
+  /** (T354) the release's page index for the cited-page-first append (`appendPdf.ts`); absent: the book opens the old way. */
+  readonly append?: SynopsisAppend | null;
 }
 
 let source: SynopsisSource | null = null;

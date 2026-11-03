@@ -76,7 +76,10 @@ def _ship(tmp_path, tag, basemap):
         files[n] = work / f"{n}.raw"
         files[n].write_bytes(f"{n} bytes".encode())
     pdf = tmp_path / "synopsis.pdf"
-    pdf.write_bytes(b"%PDF")
+    import pikepdf
+    book = pikepdf.new()
+    book.add_blank_page(page_size=(576, 756))
+    book.save(pdf, deterministic_id=True)
     return ship(work, files, "d768d6e135e62b99", tmp_path / f"out-{tag}", basemap=basemap,
                 tiles={"current": {"id": "t1"}, "assets": None, "mask": None}, valid_until="2027-03-31",
                 regs_versions={"rows": 1}, sources={"basemap": {"date": "2026-03-05"}},

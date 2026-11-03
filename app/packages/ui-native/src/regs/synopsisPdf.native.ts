@@ -10,6 +10,7 @@ import { DownloadTask, File, Paths } from "expo-file-system";
 import { startActivityAsync } from "expo-intent-launcher";
 import type { SourceBox } from "@app/core";
 import { synopsisPath } from "@app/data/release";
+import { appendHighlight } from "./appendPdf";
 import { highlightPdf } from "./highlightPdf";
 import { getSynopsisNet, type SynopsisSource } from "./synopsisSource";
 import type { LoadHooks } from "./synopsisLoad";
@@ -94,6 +95,19 @@ export async function openHighlighted(s: SynopsisSource, pdf: number, boxes: rea
   // (T285) the About link: the book from its first page, nothing to mark — the held file itself is what opens
   if (!boxes.length && pdf <= 1) return os === "android" ? viewAndroid(cached) : openUrl(cached.uri);
   const f = new File(Paths.cache, "synopsis-open.pdf");
+  // (T354) the release's index: a native copy of the held book with a few KB written on its end (`appendPdf.ts`), the
+  // cited page first and highlighted; the book never enters JS. A copy or write that fails tries the old way below.
+  const tail = s.append && cached.size === s.bytes ? appendHighlight(s.append, s.bytes, boxes, pdf) : null;
+  let appended = false;
+  if (tail) {
+    try {
+      if (f.exists) f.delete();
+      await cached.copy(f);
+      f.write(tail, { append: true });
+      appended = true;
+    } catch (e) { console.warn("synopsis: the append failed; highlighting the old way", e); }
+  }
+  if (appended) return os === "android" ? viewAndroid(f) : openUrl(f.uri);
   try {
     const out = await highlightPdf(await cached.bytes(), boxes, { entryFirst: true, page: pdf });
     if (f.exists) f.delete();
