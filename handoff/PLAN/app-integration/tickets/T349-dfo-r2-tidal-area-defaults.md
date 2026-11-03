@@ -98,3 +98,7 @@ Needs an atlas rebuild (human-scheduled).
   3. Fast suite ONCE, unfiltered: `scripts/heavy.sh t349-suite 60 -- .venv/bin/python -m pytest -q -p no:cacheprovider`
      (expected new reds: none from T349; the targeted DFO / salmon / T349 tests passed).
   4. `graphify update .`
+- **t349-live2 final (2026-11-02):** tiles ok (8m26s, reused release folder 822db448a2851809.f98ea27b8e5f); deliver
+  was TERMINATED (SIGTERM, "Terminated: 15" — not by this lane) before writing a release. No new release id; LATEST
+  still r-4e709418ebd8. Resume at step 1: rerun `scripts/heavy.sh t349-live 60 -- .venv/bin/python -m pipeline build
+  --jobs 2` (reach and tiles are up to date, so only deliver runs, ~10 min).
