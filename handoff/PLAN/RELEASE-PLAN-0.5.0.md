@@ -19,12 +19,13 @@ Each batch is one sitting on one area. Tickets in a batch are done together.
 | 2 | Crash, memory, rule-book PDF | T360 → T351, T354, T345, T352 (app side) | M–L | One emulator sitting. T360 measures first; you pick the PDF option. |
 | 3 | DFO salmon clean-up | T356, T358, T357, T338, T343 (+ T361, yours) | L | Changes what the salmon data looks like, so it must land BEFORE 0.5.0, or we need salmon/4 later. |
 | 4 | Feeds and map colours | T347, T348 | S–M | One "feed changed" signal; weekday forecast rule. |
-| 5 | Small app fixes | T342, T344, T339, T340 | S each | Phone long-press copy, species swipe, Whonock label/Bedford gauge, test bed taps. |
-| 6 | Release check and cut | T307, T308, T310, T315, T316, T293 checks; full suites once | M, mostly heavy | Then APK 0.5.0 → Play internal, staging upload with `MIN_APP_VERSION=0.5.0`, feeds-worker deploy. |
+| 5 | Map feel (owner 2026-11-03: in 0.5.0) | T312 (T353 + T273 folded in) | M–L | One emulator gesture pass: 1:1 tracking, fling, pan lag; T273's basemap-tile choice goes to the owner. |
+| 6 | Small app fixes | T342, T344, T339, T340 | S each | Phone long-press copy, species swipe, Whonock label/Bedford gauge, test bed taps. |
+| 7 | Release check and cut | T307, T308, T310, T315, T316, T293 checks; full suites once | M, mostly heavy | Then APK 0.5.0 → Play internal, staging upload with `MIN_APP_VERSION=0.5.0`, feeds-worker deploy. |
 
 After 0.5.0:
 - iOS release: T313, T336, T88 (signed build + TestFlight), T362–T365 (simulator work may run earlier between batches);
-- map feel (T312 + T353 + T273, one gesture pass; T317 overlay once-over);
+- T317 overlay once-over (follows the map-feel pass);
 - pipeline hygiene (T306, T341, T305, T301, T304, T331);
 - the audits T333–T335 (you scope them first; see the tickets);
 - SEO, hosting and prod launch (T86 block) stay parked until you unpark them.

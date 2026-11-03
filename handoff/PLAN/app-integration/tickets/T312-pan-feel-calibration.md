@@ -32,4 +32,5 @@ Depends: T273, T280. Size: S–M. Owner: feel check on the phone.
 - T353: the fling is still too weak on 0.4.0 (owner 2026-11-02).
 - T273: pan lag measured (benchmark + split); the cause is the drawn basemap's tiles and the fix needs an owner choice
   (see T273's file).
-One gesture pass on the emulator covers all three; T317 (overlay once-over) follows. After 0.5.0.
+One gesture pass on the emulator covers all three; T317 (overlay once-over) follows. In 0.5.0 (owner 2026-11-03),
+batch 5 of RELEASE-PLAN-0.5.0.md.

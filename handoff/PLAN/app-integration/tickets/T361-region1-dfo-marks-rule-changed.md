@@ -40,3 +40,9 @@ older emit than the 10-27 cache gives now; or the entry meaning digest includes 
 1. **Owner:** re-review the six in the DFO tab (they show "rule changed"); `test_marks_never_orphaned` stays red until then.
 2. Follow-up (small): the review app / queue should refuse or warn when typed/ is older than the raw page it is
    built from (stamp the raw page's sha in the typed file and compare). File as its own ticket if wanted.
+
+## Owner question 2026-11-03: new places or historic?
+Historic. All six place wordings are unchanged and long known (on DFO's pages since 2023, Puntledge since 2025-03;
+the wording archive dates every one through 2026-10-28). The OLD rows match last season's page (the Jan 2026 copy,
+dateModified 2025-11-07, and earlier). The current 10-05 page carries the 2026 in-season notices. So only the
+rules (R) moved; the place and its extent (P) did not, and a re-mark is a check of the new rows only.

@@ -353,7 +353,7 @@ use that as the sole source of future work."
 | T309 | Region salmon rules readable (rows, chips, wording folded); copyable text in the app | DONE | cbbd809d4, dfecc1b89 | owner 2026-10-31 |
 | T310 | Spots: parking location + directions; notes/photos belong to visits (lossless migration) | PARTIAL (in review, phone shots pending) | fd36533e3 | owner 2026-10-31 |
 | T311 | Provincial parks missing — Garibaldi (closes upper Pitt): draw parks, bind park-scoped rules | DONE | 60c285d22 | owner 2026-10-31; parks were in tiles but 0.12 tint + no edge: green edge from z7 + stronger tint, style only (no tiles rebuild); rules unchanged (owner); no legend row (owner) |
-| T312 | Map panning feels slow: 1:1 finger tracking, natural fling, no JS work per camera tick | OPEN (map-feel home: T353 + T273 folded in) | — | owner 2026-10-31 |
+| T312 | Map panning feels slow: 1:1 finger tracking, natural fling, no JS work per camera tick | OPEN (map-feel home: T353 + T273 folded in; in 0.5.0, owner 2026-11-03) | — | owner 2026-10-31 |
 | T313 | iOS simulator build + basic tests (install, map/regs, offline, satellite, location, walkthrough, PDF) | IN PROGRESS (sim build works; scenarios to run) | — | owner 2026-10-31 |
 | T314 | Spot data refresh doesn't work in 0.3.0 (pending weather/flow never fill) | DONE (emulator 10-31: spots 15/15 on the Vedder, gauges + weather filled on reconnect; 0.4.0) | 21d047df8, 9ce7f4079, d67341585 | owner 2026-10-31 |
 | T315 | Offline: keep the last week of gauge readings so charts still show the measured line | IN REVIEW (emulator 10-31 PASS: offline cold start draws the kept measured line; left: owner deploys the feeds worker for obs.json) | b1827b9d0 | owner 2026-10-31 |
