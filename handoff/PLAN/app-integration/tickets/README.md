@@ -412,6 +412,7 @@ use that as the sole source of future work."
 | T366 | DFO live refresh made clean: dry-run preview of changed rows + marks it stales, typed stamped with its page, fetched pages archived, rule-only changes re-checked in one click; then region 2 (FN1179 Fraser chum) | OPEN | — | owner 2026-11-03 (batch 3) |
 | T367 | UI text clean-up as an owner back-and-forth (regs, conditions map, More): bad formatting, debloat top-level text; dev web app first, then the 0.5.0 APK | OPEN | — | owner 2026-11-03 (batch 6b) |
 | T368 | Failures, fallbacks and reporting app-wide: rethrow, or show + `reportFailure`, or list; one failure face; scan net (split from T333) | OPEN | — | owner 2026-11-03 (batch 6c, in 0.5.0) |
+| T369 | One load path per screen: same output whatever the way in (refresh, tab/view switch, search, map tap, step, list pick); a net comparing every way in | OPEN | — | owner 2026-11-03 (batch 6c, in 0.5.0) |
 
 ## Order for open tickets
 

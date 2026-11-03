@@ -22,7 +22,7 @@ Each batch is one sitting on one area. Tickets in a batch are done together.
 | 5 | Map feel (owner 2026-11-03: in 0.5.0) | T312 (T353 + T273 folded in) | M–L | One emulator gesture pass: 1:1 tracking, fling, pan lag; basemap already simplified (T280); measure pan on a real phone. |
 | 6 | Small app fixes | T342, T344, T339, T340 | S each | Phone long-press copy, species swipe, Whonock label/Bedford gauge, test bed taps. |
 | 6b | UI text clean-up (owner 11-03) | T367 | M, rounds | Back-and-forth: owner note → plan → fix on the dev web app → repeat. Regs, conditions map, More. Into the APK only when done. |
-| 6c | Failures, fallbacks, reporting (owner 11-03: in 0.5.0) | T368 | M | App-wide: every catch/fallback rethrown, or shown + `reportFailure`, or listed; one failure face; a scan net. Split from T333. |
+| 6c | Failures, fallbacks, reporting (owner 11-03: in 0.5.0) | T368, T369 | M | App-wide: every catch/fallback rethrown, or shown + `reportFailure`, or listed; one failure face; a scan net. Split from T333. T369: one load path per screen, same output whatever the way in (refresh, tab, search, map tap, step, pick). |
 | 7 | Release check and cut | T307, T308, T310, T315, T316, T293 checks; full suites once | M, mostly heavy | Then APK 0.5.0 → Play internal, staging upload with `MIN_APP_VERSION=0.5.0`, feeds-worker deploy. |
 
 After 0.5.0:
