@@ -7,7 +7,7 @@ shipped as answers per day, so the app decides nothing about a salmon rule (app/
        └─ build() ─▶ the bundle's `salmon_doc` + `salmon_section` ─▶ the release file `salmon` (`salmon/3`, encode())
 
 THE UNIT IS A CHAIN: the DFO locations that hold on a section, NARROWEST FIRST (precedence: a water 3, a tidal-area
-default 2, a section default or closure 1, the region default 0; then, within a tier, the place covering FEWER sections —
+default 2, a section default or closure 1, the region default 0, a T349 page default -1; then, within a tier, the place covering FEWER sections —
 T229, owner 2026-10-28: the more specific place wins; then location id — `chain_order`). Region 6 is a cascade — read flat,
 section A opens coho on the Kispiox while B(i) closes it and the water reopens a five-week window
 (`test_the_skeena_cascade_resolves_through_the_join`) — so per species and day the FIRST location of the chain with a
@@ -246,7 +246,7 @@ def extent_sizes(placed: Iterable[dict]) -> Dict[str, int]:
 
 def chain_order(precedence: Mapping[str, int], size: Mapping[str, int]) -> Callable[[str], tuple]:
     """THE SORT KEY OF A CHAIN, NARROWEST FIRST (T229, owner 2026-10-28): the tier (precedence: a water 3, a tidal-area
-    default 2, a section default or closure 1, the region default 0), then WITHIN A TIER THE MORE SPECIFIC PLACE — the
+    default 2, a section default or closure 1, the region default 0, a T349 page default -1), then WITHIN A TIER THE MORE SPECIFIC PLACE — the
     one covering fewer sections (a mouth closure before the reach around it, a reach before its whole river) — then the
     location id. It was the id alone within a tier, so "Skeena mainstem downstream of the CNR bridge" (123 sections)
     sorted before its Kitsumkalum-mouth closure (4) and opened coho, pink and sockeye the closure shuts Jul 1-Aug 31."""

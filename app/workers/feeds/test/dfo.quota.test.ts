@@ -55,3 +55,15 @@ describe("(T332) DFO quotas in the game-fish quota tree", () => {
     expect(speciesTree([a, { ...a, rule_id: "c" }] as never, new Map())?.tree?.n).toBe(4);
   });
 });
+
+describe("(T349 / T350) non-retention is closed; release only where DFO says catch and release", () => {
+  const verdictOf = (cell: string): string | undefined => {
+    const rules = toRules({ species: "Coho", dates: "Apr 1 to Mar 31", limits_gear: cell } as never, "x", 0) as never[];
+    const verdicts = new Interner<unknown>();
+    const runs = locationCalendar(rules, verdicts, new Interner<unknown>()).sp[SPECIES.indexOf("CO")]!;
+    return runs[1]! >= 0 ? (verdicts.items[runs[1]!] as Verdict).s : undefined;
+  };
+  it("plain non-retention answers closed", () => expect(verdictOf("Non-retention")).toBe("closed"));
+  it("catch and release in DFO's words answers release", () =>
+    expect(verdictOf("Open for salmon catch and release")).toBe("release"));
+});

@@ -55,3 +55,30 @@ split. What `app/workers/feeds/src/dfo` resolves itself today:
 The app core composes a section's live answer from the release chain's location order plus the feed's per-location
 calendars (`withSalmonFeed`). So until the worker is redeployed on a Python-resolved format, a live feed can show
 `release` where the release says `closed`.
+
+## Lean pass — DONE 2026-11-02 (branch `audit/t350-lean`)
+Python rule types are the catalogue's own (`typed.py` builds `CatalogueRule`s: `when`, `lengths`, `take`/`may_target`,
+`within`, `gear`). The divergences are at the edges. Ranked:
+1. **The feeds worker decides answers Python no longer does** (the deployed live path). Fixed here: `release` only
+   where DFO says catch and release (`app/workers/feeds/src/dfo/salmon.ts`, port of `says_catch_and_release`; tests in
+   `dfo.quota.test.ts`, `dfo.dates.test.ts` updated). Still TS-only: robust mode's dated-over-open-ended ranking
+   (`holdsKind`), its own date reader (`open_ended`, `check`), no `mark_shared`, no R5B aggregate tier, no page-default
+   locators, reconcile calls page defaults dormant, `headerClosure`. Worker needs a redeploy (owner) to pick up the fix.
+2. **The app core still resolves part of the card** (region closure by location-id string, water-bucket tier built in
+   TS, header sizes, partial coverage) → T356. Includes a Python bug: `shared` buckets are dropped for a page with no
+   region daily note.
+3. **Silent fallbacks**: release with no header notes when the dated page is not cached (so no header closure), corrupt
+   prior feed read as none, dfo-feed/1 upgrade leftover → T357; stale `item_ids` → T337.
+4. **Fields outside the model**: `shared` prose scope (the freshwater side removed exactly this), header sizes as `cm`,
+   worker `open_ended` / `check` → T358.
+5. Small: fixed `withSalmonFeed` keeping the release's bucket under the feed's notes when the page dropped its combined
+   limit (`salmonFeed.ts`, test in `salmonFeed.test.ts`); chain-order docs now name the T349 page-default tier (-1).
+   Dead: `MAP_CODES` "none" (never built), `describe.skip` parity suites (until the split).
+
+## For the in-depth pass (next credit cycle)
+- The worker split (Principle above): the release ships resolved chains + fingerprint → rule-slot table; the worker
+  only swaps rule text / numbers. This removes item 1's TS-only list. Re-enable or delete `dfo.parity` / `dfo.corpus`.
+- Python `live.py` and the worker are two producers of `dfo-feed/2`; keep one.
+- The review backend hard-codes Region 6's chain order (`curation-review/backend/region_cascade.py:47` `R6_ORDER`), a
+  third copy beside `deliver.salmon.chain_order`.
+- With T333: the review backend's broad excepts (`curation-review/backend/dfo.py:420, :423`), env path overrides.

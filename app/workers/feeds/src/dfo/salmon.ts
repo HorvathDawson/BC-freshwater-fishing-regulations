@@ -105,6 +105,11 @@ function notice(rules: R[]): string | null {
   return ns.join(", ") || null;
 }
 
+/** T349 (salmon.py `says_catch_and_release`): SALMON NON-RETENTION IS CLOSED TO SALMON. A row answers `release` only
+ * where DFO's own words say catch and release; plain non-retention or a limit of 0 is `closed`. */
+const RE_CATCH_AND_RELEASE = /\bcatch[- ]and[- ]release\b/i;
+const releases = (r: R): boolean => r.may_target === true && RE_CATCH_AND_RELEASE.test(r.verbatim || "");
+
 export interface Verdict {
   s: string;
   t: string;
@@ -180,7 +185,7 @@ function verdictOn(chain: Loc[], k: number, md: number, robust = false): Verdict
       let s: string;
       let why: R[];
       if (opens.length) [s, why] = ["open", opens];
-      else if (own.some((r) => r.may_target === true)) [s, why] = ["release", own.filter((r) => r.may_target === true)];
+      else if (own.some(releases)) [s, why] = ["release", own.filter(releases)];
       else [s, why] = ["closed", own];
       const key = s + ":" + why.map((r) => loc.rules.indexOf(r)).join(",");
       let out = loc.verdicts.get(key);
