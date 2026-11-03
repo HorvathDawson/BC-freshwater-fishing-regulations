@@ -85,7 +85,7 @@ use that as the sole source of future work."
 | T38 | RN `AdiposeArt` + How to tell | DONE | e924a347, 75a8505c | — |
 | T39 | dark theme + palette gate | DONE | e4a5bef9, 2ebe4055 | — |
 | T40 | a11y, 200% text, hit areas, style-token gate | DONE | d9cb96fa, cdc1edb8 | — |
-| T41 | web parity walk, side-by-sides, reader gate | PARTIAL | 279ec371, a2159a32, 5dcce89d, d9e87835, 459811a8 | reader run + O3 + O5 → T82; native walk → T50 |
+| T41 | web parity walk, side-by-sides, reader gate | DONE | 279ec371, a2159a32, 5dcce89d, d9e87835, 459811a8 | reader run + O3 + O5 → T82; native walk → T50 |
 | T42 | edge states | DONE | b2e116c6, 0e36a2d5 | — (caveat look → T82) |
 | T43 | Rule book links, fish credits | DONE | b4e5734c, 75a8505c | — |
 | T44 | one WaterFrame | DONE | 825cf1a8, f2e98e0d | — |
@@ -141,7 +141,7 @@ use that as the sole source of future work."
 | T94 | gauge promote: `--only`, demotion guard | DONE | 969ec8fe, 28f03711, 01bf3873, 6753fd6f | first real match+promote dry-run is the owner's |
 | T95 | salmon (DFO) regulations: the plan | DROPPED | — | plan exists (pipeline/regs/dfo_salmon/PLAN.md); work → T164 |
 | T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | DONE | 3e841e31, 3760fd5f, f0228e09, 15723b83 | — |
-| T97 | curation review phase 1 (marks that last) + umbrella | PARTIAL | 303f6d9d, 15c04705, 5717c9fb | phase 1 done; phases 2–5 → T133–T136 |
+| T97 | curation review phase 1 (marks that last) + umbrella | DONE | 303f6d9d, 15c04705, 5717c9fb | phase 1 done; phases 2–5 → T133–T136 |
 | T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | DROPPED | — | superseded: folded into T212/T166 (owner 2026-10-28): the tidal piece is removed from the freshwater map |
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | DONE | f8742374, 53d57288, f3bc2b4b, 857bed9a | — |
 | T100 | lakes divided into closure areas: whole lake + area caveat citing the book's map (Q43 default) | DONE | f72b57d0, 8710bdd2, 1cccc29e, da79ce4d | deliver + fixture re-cut |
@@ -176,7 +176,7 @@ use that as the sole source of future work."
 | T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | DONE | ef40ed10, 36e4b3ae, 511aadb1, 3ff84f30 | bytes table + WEB_BUDGET gates (release step + app test) + pinned request walk; splits → T182 |
 | T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | DONE | b4f3a40f, cd95bb63, b5218057, c9d48ea7 | Q-T130a/b (defaults built) |
 | T131 | spot pins look better and open the spot on tap | DONE | 00398a3b, fafcd21a, 64b96b55 | Q-T131-1..5 (defaults built); native tap with T50 |
-| T132 | curation review: salmon (DFO) pass | OPEN | — | later, after the first pass |
+| T132 | curation review: salmon (DFO) pass | DROPPED (folded into T164) | — | later, after the first pass |
 | T133 | curation review phase 2: one vintage on screen | DONE | 94e06e52, 5052824f | digests live from r-b518a2b507fa (reach rerun, no binding changed) |
 | T134 | curation review phase 3: review screen separate from fixing | DONE | 18ad4bf8, 35f6e2db, b66105e6, 32f5654f, 5a9a2243 | leftovers → T142; row_boxes sidecar run by Claude |
 | T135 | curation review phase 4: queue, pre-checks, ticket export | DONE | 8d0f5d76, 19dbc1ee, 9b8de2e3, 0a2be2da | no rebuild |

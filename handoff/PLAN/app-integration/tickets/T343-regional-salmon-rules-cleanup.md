@@ -24,3 +24,5 @@ showing on their own. Work each into the place it belongs, or drop it:
 8. Tests: the five T320 spot-check places still read correctly; no header text lost without being folded or listed as
    dropped (a dropped-notes list in the ticket).
 Size: M.
+
+Unblocked 2026-11-03: its dependency (T332 merged 0c276aa10 / T350) is DONE.

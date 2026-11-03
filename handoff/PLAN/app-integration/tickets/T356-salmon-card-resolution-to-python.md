@@ -20,3 +20,5 @@ Python and shipped pre-resolved.
   P.verdicts[0]` (:536, hides a bad index as "closed"; validate the release on decode like `parseSalmonFeed`).
 
 Format change → salmon/4 + golden. Size: M.
+
+Unblocked 2026-11-03: its dependency (T332 merged 0c276aa10 / T350) is DONE.

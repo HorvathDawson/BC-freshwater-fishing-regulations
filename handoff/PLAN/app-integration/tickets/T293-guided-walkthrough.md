@@ -1,6 +1,6 @@
 # T293 — One guided walkthrough: find a water, read its rules, read its conditions, save a spot
 
-Status: DONE on web 0d19c8881, 3150e5796, 299e048d0, 7e752a935 (headless, 390 + 1280); emulator run owed with the next APK (owner 2026-10-29: "improve the little tutorial … it wasnt multiple parts but instead walked the user through
+Status: PARTIAL — DONE on web 0d19c8881, 3150e5796, 299e048d0, 7e752a935 (headless, 390 + 1280); emulator run owed with the next APK (owner 2026-10-29: "improve the little tutorial … it wasnt multiple parts but instead walked the user through
 finding a regulation using the map and search and then how to read the regulations and how to look at conditions / what
 change means for it. also walking through adding a spot and why … then the app can have info on syncing and offline etc.").
 

@@ -15,3 +15,5 @@ beside the model (`extra="forbid"` would refuse them):
   Decide one `When` shape (with T350's worker split).
 
 Size: M.
+
+Unblocked 2026-11-03: its dependency (T332 merged 0c276aa10 / T350) is DONE.

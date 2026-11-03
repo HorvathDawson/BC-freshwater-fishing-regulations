@@ -1,6 +1,6 @@
 # T97 — Curation review, phases 1–5: marks that last, one vintage, a review screen, queue, gate
 
-Status: DONE for phase 1 — 303f6d9d (lane-T97). Umbrella open: phases 2–5 are T133–T136.
+Status: DONE — phase 1 303f6d9d; phases 2–5 were T133–T136, all DONE (ledger check 2026-11-03).
 Owner approved PLAN.md 2026-10-23 ("The review app changes seem good"), all §6 defaults (Q5, Q34–Q41).
 This ticket is now PHASE 1 (marks that last) plus the umbrella; phases 2–5 are T133–T136; a later salmon pass is T132.
 

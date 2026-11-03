@@ -1,6 +1,6 @@
 # T132 — Curation review: a salmon (DFO) pass in the review tool
 
-Status: OPEN — later; after T97–T136 (the first review pass) is running.
+Status: DROPPED — folded into T164 (the DFO review mode, umbrella over T95/T132) (ledger check 2026-11-03).
 
 Source: owner 2026-10-23, approving the curation review plan: "We could also maybe make it do salmon review. But for now
 it seems good." Q36 (default kept): DFO salmon entries, overrides, steelhead waters, cross-references and name variants
