@@ -47,7 +47,7 @@ export function SynopsisLoading({ palette, floating = false }: { palette: Palett
       {/* the bar itself waited before it showed (`visible`): its fish is there at once */}
       {!err && !offer && <View style={{ marginRight: SPACE.s2 }}><LoadingState palette={palette} size={36} label={W.loading} immediate /></View>}
       <Text accessibilityLiveRegion="polite" style={[TYPE.bodyStrong, { flex: 1, minWidth: 140, color: palette.ink, paddingVertical: SPACE.s3 }]}>
-        {offer ? NET_WORDS.pdf.offer(offer.bytes, offer.seconds) : err ? (failed?.noViewer ? W.noViewer : W.failed) : n === null ? W.loading : W.percent(n)}
+        {offer ? NET_WORDS.pdf.offer(offer.bytes, offer.seconds) : err ? W.failed : n === null ? W.loading : W.percent(n)}
       </Text>
       {/* (T254) on a slow line the rule book is offered with its size before a byte of it is fetched */}
       {offer ? (

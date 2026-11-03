@@ -218,12 +218,12 @@ importers:
       expo-file-system:
         specifier: '*'
         version: 57.0.6(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))
-      expo-intent-launcher:
-        specifier: 57.0.1
-        version: 57.0.1(expo@57.0.18)
-      pdf-lib:
-        specifier: 1.17.1
-        version: 1.17.1
+      react-native-blob-util:
+        specifier: 0.25.1
+        version: 0.25.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
+      react-native-pdf:
+        specifier: 7.0.5
+        version: 7.0.5(react-native-blob-util@0.25.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
       react-native-safe-area-context:
         specifier: 5.7.0
         version: 5.7.0(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
@@ -234,6 +234,9 @@ importers:
       '@types/react':
         specifier: ~19.2.2
         version: 19.2.18
+      pdf-lib:
+        specifier: 1.17.1
+        version: 1.17.1
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -1389,6 +1392,9 @@ packages:
     resolution: {integrity: sha512-eYIJ0es967+tePBFQDnl/gidVFxLns3fnbiK6rxscQrGodvuUO6hwxpQnfNynJ8MjbbndImXihXjcnJdc7SzJg==}
     engines: {node: ^20.19.4 || ^22.13.0 || ^24.3.0 || >= 25.0.0}
 
+  '@react-native/normalize-color@2.1.0':
+    resolution: {integrity: sha512-Z1jQI2NpdFJCVgpY+8Dq/Bt3d+YUi1928Q+/CZm/oh66fzM0RUl54vvuXlPJKybH4pdCZey1eDTPaLHkMPNgWA==}
+
   '@react-native/normalize-colors@0.74.89':
     resolution: {integrity: sha512-qoMMXddVKVhZ8PA1AbUCk83trpd6N+1nF2A6k1i6LsQObyS92fELuk8kU/lQs6M7BsMHwqyLCpQJ1uFgNvIQXg==}
 
@@ -1859,6 +1865,9 @@ packages:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
     engines: {node: 18 || 20 || >=22}
 
+  base-64@1.0.0:
+    resolution: {integrity: sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==}
+
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
@@ -2023,6 +2032,10 @@ packages:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
 
+  crypto-js@4.2.0:
+    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
+    deprecated: Active development of CryptoJS has been discontinued. This library is no longer maintained.
+
   css-in-js-utils@3.1.0:
     resolution: {integrity: sha512-fJAcud6B3rRu+KHYk+Bwf+WFL2MDCJJ1XG9x137tJQ0xYxor7XziQtuGFbWNdqrvF4Tk26O3H73nfVqXt/fW1A==}
 
@@ -2090,6 +2103,9 @@ packages:
   depd@2.0.0:
     resolution: {integrity: sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==}
     engines: {node: '>= 0.8'}
+
+  deprecated-react-native-prop-types@2.3.0:
+    resolution: {integrity: sha512-pWD0voFtNYxrVqvBMYf5gq3NA2GCpfodS1yNynTPc93AYA/KEMGeWDqqeUB6R2Z9ZofVhks2aeJXiuQqKNpesA==}
 
   dequal@2.0.3:
     resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
@@ -2228,11 +2244,6 @@ packages:
 
   expo-image-picker@57.0.20:
     resolution: {integrity: sha512-plgcGuMZMWqDchjXQW6S/WepYLB5KqfbZOzwC6xe0+j5IhY4ipvVuRZcXeP/0NgKgU0Jiu/XoTK4Bi8crtZ+sQ==}
-    peerDependencies:
-      expo: '*'
-
-  expo-intent-launcher@57.0.1:
-    resolution: {integrity: sha512-BYiPEOUeW3AkW/uxEESbS2UBw9LasJ8Heb6A8kF9Ueh6pqrXQHMNJFHzfrOP8qZfv9G2e8CTzrtzpN5p0vH5fA==}
     peerDependencies:
       expo: '*'
 
@@ -3009,6 +3020,9 @@ packages:
     resolution: {integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==}
     engines: {node: '>= 6'}
 
+  prop-types@15.8.1:
+    resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
+
   protocol-buffers-schema@3.6.1:
     resolution: {integrity: sha512-VG2K63Igkiv9p76tk1lilczEK1cT+kCjKtkdhw1dQZV3k3IXJbd3o6Ho8b9zJZaHSnT2hKe4I+ObmX9w6m5SmQ==}
 
@@ -3040,11 +3054,24 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
+  react-native-blob-util@0.25.1:
+    resolution: {integrity: sha512-HMzab2SL8h48pvfufji0TKdet/jnNvamxYmYyNqTV5YOge00V28ycdc3S4leHjGXMJ1+fS2j2SrQ3aG5pzbx1w==}
+    peerDependencies:
+      react: 19.2.3
+      react-native: 0.86.3
+
   react-native-gesture-handler@2.32.0:
     resolution: {integrity: sha512-uYIMOKlKENORq2SABE+jIjbPU+h5I/sQKcq2v16zRq848nwEp1fWRVwML4QWqijc8UcXJC25o54S8GQd4Mf2OA==}
     peerDependencies:
       react: 19.2.3
       react-native: 0.86.3
+
+  react-native-pdf@7.0.5:
+    resolution: {integrity: sha512-Dho2k2TKmplmd7XGgfW+rMAInaw6Pf6g88BSYPX423b/fCzLB5K/h+YaoW+YRUhtWO/cJ4EEnz5uD3RwwigDPQ==}
+    peerDependencies:
+      react: 19.2.3
+      react-native: 0.86.3
+      react-native-blob-util: '>=0.13.7'
 
   react-native-safe-area-context@5.7.0:
     resolution: {integrity: sha512-/9/MtQz8ODphjsLdZ+GZAIcC/RtoqW9EeShf7Uvnfgm/pzYrJ75y3PV/J1wuAV1T5Dye5ygq4EAW20RoBq0ABQ==}
@@ -4999,6 +5026,8 @@ snapshots:
 
   '@react-native/js-polyfills@0.86.3': {}
 
+  '@react-native/normalize-color@2.1.0': {}
+
   '@react-native/normalize-colors@0.74.89': {}
 
   '@react-native/normalize-colors@0.86.3': {}
@@ -5456,6 +5485,8 @@ snapshots:
 
   balanced-match@4.0.4: {}
 
+  base-64@1.0.0: {}
+
   base64-js@1.5.1: {}
 
   baseline-browser-mapping@2.11.20: {}
@@ -5631,6 +5662,8 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
+  crypto-js@4.2.0: {}
+
   css-in-js-utils@3.1.0:
     dependencies:
       hyphenate-style-name: 1.1.0
@@ -5687,6 +5720,12 @@ snapshots:
       clone: 1.0.4
 
   depd@2.0.0: {}
+
+  deprecated-react-native-prop-types@2.3.0:
+    dependencies:
+      '@react-native/normalize-color': 2.1.0
+      invariant: 2.2.4
+      prop-types: 15.8.1
 
   dequal@2.0.3: {}
 
@@ -5826,10 +5865,6 @@ snapshots:
     dependencies:
       expo: 57.0.18(@babel/core@7.29.7)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.14)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       expo-image-loader: 57.0.1(expo@57.0.18)
-
-  expo-intent-launcher@57.0.1(expo@57.0.18):
-    dependencies:
-      expo: 57.0.18(@babel/core@7.29.7)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.14)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
 
   expo-keep-awake@57.0.1(expo@57.0.18)(react@19.2.3):
     dependencies:
@@ -6747,6 +6782,12 @@ snapshots:
       kleur: 3.0.3
       sisteransi: 1.0.5
 
+  prop-types@15.8.1:
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
+      react-is: 16.13.1
+
   protocol-buffers-schema@3.6.1: {}
 
   punycode@2.3.1: {}
@@ -6774,6 +6815,12 @@ snapshots:
 
   react-is@18.3.1: {}
 
+  react-native-blob-util@0.25.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      base-64: 1.0.0
+      react: 19.2.3
+      react-native: 0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3)
+
   react-native-gesture-handler@2.32.0(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3):
     dependencies:
       '@egjs/hammerjs': 2.0.17
@@ -6782,6 +6829,14 @@ snapshots:
       invariant: 2.2.4
       react: 19.2.3
       react-native: 0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3)
+
+  react-native-pdf@7.0.5(react-native-blob-util@0.25.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      crypto-js: 4.2.0
+      deprecated-react-native-prop-types: 2.3.0
+      react: 19.2.3
+      react-native: 0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3)
+      react-native-blob-util: 0.25.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
 
   react-native-safe-area-context@5.7.0(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3):
     dependencies:

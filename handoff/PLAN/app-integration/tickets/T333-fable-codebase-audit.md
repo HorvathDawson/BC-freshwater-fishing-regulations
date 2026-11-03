@@ -27,3 +27,15 @@ the audit." Before ANY audit work: the session that starts T333/T334/T335 sits d
 question round, then a written scope in this ticket that the owner approves): what counts as a finding, which areas
 are in/out, depth vs credits, what the output looks like (report only, or fixes too), and who decides each fix. No
 workflow or agent fan-out until that scope is approved here.
+
+## Added 2026-11-03 (owner): failures, fallbacks and reporting, app-wide
+"We don't like callbacks generally they hide issues. Fallbacks ... Make sure we get reports on failures like this ...
+This and minimal fallbacks should be true universally in app ... generally reusable and the reporting and error handling
+is consistent across the app. It should be part of the audit phase later." So the audit also covers:
+- every `catch` / silent fallback / swallowed error in app/ (and the pipeline's equivalents): each either rethrows, or is
+  SHOWN to the reader and REPORTED, or is listed with why (a net like tools/back-layers.test.ts: a scan that fails on a
+  new unlisted one);
+- one shared path: `reportFailure` (app/packages/ui/src/crashReport.ts, added for T354) for every failure the app shows;
+  one way a failure is shown (a card/face with what went wrong, Retry where it makes sense);
+- callbacks that hide outcomes (stored closures, fire-and-forget) → data + named functions.
+T354's rule-book open is the first done this way (no pdf-lib or outside-app fallback; viewer failure said + reported).

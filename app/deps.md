@@ -194,14 +194,15 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   its `SafeAreaView` round the whole app); components never read insets — except a surface in its OWN window (a
   `Modal`: the sheet's foot, a menu page), through `ui-native/src/WindowInset` (native only; the web side pads nothing).
   On web the app frame pads by the browser's `env()`.
-- `expo-intent-launcher` — **57.0.1** (the SDK 57 line; `bundledNativeModules` names `~57.0.1`). (T50, owner 2026-10-27)
-  Android only: hands the highlighted synopsis copy (T215) to the reader's PDF app as a `content://` URI with a read
-  grant — `Linking` refuses `file://` and sends no grant, and `Share` drops `url` on Android. Used ONLY by
-  `ui-native/src/regs/synopsisPdf.native.ts`; iOS shares the file, web opens a blob. Native code: rebuilt dev build.
-- `pdf-lib` — **1.17.1**, pure JS, no native code. (T215, owner 2026-10-27) "open the PDF" shows our copy of the synopsis with the
-  entry's row highlighted: it loads the 24 MB release PDF and adds one `/Highlight` annotation per source box
-  (`ui-native/src/regs/highlightPdf.ts`), the same on web and phone. Costs ~0.5 MB of JS and 1-2 s to rewrite the PDF at the
-  first open; nothing is bundled into the paint path.
+- `pdf-lib` — **1.17.1**, DEV only (T354): the append tests build small books with it and read the result back. Nothing
+  ships: the app highlights by appending (`ui-native/src/regs/appendPdf.ts`), never by parsing the book.
+- `react-native-pdf` — **7.0.5**, native (Android: a pdfium-based viewer; iOS: PDFKit). (T354, owner 2026-11-03: "We don't
+  need minimal if it is better like this.") The rule book opens INSIDE the app at the cited page with the highlight on the
+  page in its place; the file is read natively (no 24 MB on the JS heap) and no outside PDF app is needed. Used only by
+  `ui-native/src/regs/PdfViewer.native.tsx`; web keeps the browser's viewer. Native code: rebuilt dev build. Replaced
+  `expo-intent-launcher` (the hand-off to an outside PDF app; removed, owner 2026-11-03: no silent fallbacks).
+- `react-native-blob-util` — **0.25.1**, native; `react-native-pdf`'s required peer (its file/URL loading). Not imported by
+  our code.
 - `axe-core` — **not installed.** (T243) `tools/a11y-walk.mjs` fetches axe-core 4.10.2 from cdnjs at run time (`AXE_URL`)
   and injects it into the running web app for a WCAG A/AA check; nothing ships, nothing is in a lockfile. A dev tool run
   by hand (needs Chrome and the app on :39218).

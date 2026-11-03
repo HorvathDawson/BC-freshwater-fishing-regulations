@@ -137,6 +137,7 @@ const registeredSurfaces = () => new Set(drawing().flatMap((p) =>
  * decision, said in app/HANDOFF-ui.md's table — not a way past the scan.
  */
 const COVERED: Record<string, string> = {
+  "packages/ui-native/src/regs/PdfViewer.web.tsx#PdfViewer: draws PdfViewer": "(T354) the web's viewer draws nothing (the browser's own PDF tab is the viewer); the native one registers its back",
   "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss": "(T303) the rail's one-line location notice over the map (why there is no dot): a tap puts it away and the button retries; it hides nothing, so system back stays the map's",
   "packages/ui-native/src/SpotCapture.tsx#SpotCapture: takes onCancel (SpotCaptureProps)": "(T302) it draws the web's spots notice (system back is the route's: it leaves the add) or the capture flow (SpotCaptureFlow), which registers its own steps",
   "packages/ui-native/src/Walkthrough.tsx#TabTourSheet: draws TabTourSheet": "(T276, T293) the Runs, Conditions and Salmon mode hints draw the same CoachMarks.CoachTour, which registers its own back layer (back skips the tour)",
@@ -179,6 +180,8 @@ describe("back, everywhere: one mechanism", () => {
     expect([users, users.filter((p) => !wired(read(p)))]).toEqual([[
       // (T257) the first-run tour's coach marks: back skips the tour
       "packages/ui-native/src/CoachMarks.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
+      // (T354) the rule book in the app, full screen
+      "packages/ui-native/src/regs/PdfViewer.native.tsx",
       // (T284) a spot photograph, full screen
       "packages/ui-native/src/spot/PhotoViewer.tsx"], []]);
   });
@@ -247,6 +250,9 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage",
       "packages/ui-native/src/menu/UpdatesLogPage.tsx#UpdatesLogPage: draws UpdatesLogPage",
       "packages/ui-native/src/regs/DaySheet.tsx#DaySheet: takes onClose",
+      // (T354) the rule book in the app, full screen (native); the web's draws nothing (COVERED)
+      "packages/ui-native/src/regs/PdfViewer.native.tsx#PdfViewer: a Modal",
+      "packages/ui-native/src/regs/PdfViewer.web.tsx#PdfViewer: draws PdfViewer",
       "packages/ui-native/src/spot/Confirm.tsx#Confirm: takes onCancel",
       "packages/ui-native/src/spot/ParkingPick.tsx#ParkingPick: takes onCancel",
     "packages/ui-native/src/spot/PhotoViewer.tsx#PhotoViewer: a Modal",

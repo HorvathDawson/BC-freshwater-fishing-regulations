@@ -2939,7 +2939,9 @@ export interface TileRef { id?: string; url: string; bytes?: number; sha256?: st
  *  so the app appends to a native copy and never reads the book. Refs are [object, generation]; the rest is PDF syntax. */
 export interface SynopsisAppend {
   v: number; startxref: number; size: number; root: [number, number]; info: [number, number] | null;
-  id: [string, string] | null; pages: [number, number]; kids: string; count: number; box: string; page: string[];
+  id: [string, string] | null;
+  /** per page: its ref, its /Annots array's ref, the refs already in that array (PDF syntax, no brackets) */
+  page: [number, number, number, number, string][];
 }
 
 /** The sources a release dates (`sources`, pipeline/deliver/release/manifest.py SOURCE_KEYS), in the app's order. */
@@ -2954,7 +2956,7 @@ export interface Manifest {
            mask: TileRef | null };
   basemap: TileRef | null;
   /** (T215) OUR copy of the synopsis PDF (url relative to the release root, raw bytes); absent on a release built before it.
-   *  (T354) `append`: the page index the cited-page-first append needs (absent before it: the book opens the old way). */
+   *  (T354) `append`: the page index the in-place highlight append needs (absent before it: the book opens the old way). */
   synopsis?: (TileRef & { append?: SynopsisAppend | null }) | null;
   files: Record<string, ManifestFile>;
   regulations: { valid_until: string | null; versions: Record<string, number> | null };

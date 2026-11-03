@@ -2,7 +2,7 @@
  * T215 — the highlight an opened synopsis PDF carries. A source row's box is what the extractor records
  * (`row_boxes.json`: pdfplumber points, ORIGIN TOP-LEFT, y down, with the page size); a PDF highlight annotation wants
  * `/Rect` and `/QuadPoints` in PDF user space (ORIGIN BOTTOM-LEFT, y up). This file is that one conversion, pure, so the
- * web (pdf-lib in the page) and native (pdf-lib to a cache file) openers share it. Nothing here reads a PDF.
+ * web and native openers share it (`ui-native/src/regs/appendPdf.ts`, T354). Nothing here reads a PDF.
  */
 
 /** A source passage on one PDF page: `box` [x0, top, x1, bottom] and `size` [width, height], both in points, top-left origin. */

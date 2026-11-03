@@ -8,6 +8,9 @@ import type { SourceBox } from "@app/core";
 import { fetchResilient } from "@app/data";
 import { getSynopsisNet, type SynopsisSource } from "./synopsisSource";
 import type { LoadHooks } from "./synopsisLoad";
+import { appendHighlight } from "./appendPdf";
+
+const joined = (a: Uint8Array, b: Uint8Array) => { const o = new Uint8Array(a.length + b.length); o.set(a); o.set(b, a.length); return o; };
 
 /** (T254) the copies opened whole this session (the HTTP cache holds them: a second open asks nothing) */
 const opened = new Set<string>();
@@ -40,12 +43,13 @@ export async function openHighlighted(s: SynopsisSource, pdf: number, boxes: rea
   // the new tab is blank until the bytes arrive: say so in it
   try { if (win) win.document.body.textContent = "Loading the synopsis…"; } catch { /* a blocked write is only a missing label */ }
   try {
-    // (T256) pdf-lib is its own chunk of the web bundle, fetched beside the PDF on the first open: no visitor who never
-    // opens the rule book downloads it
-    const lib = import("./highlightPdf");
-    lib.catch(() => {});                 // a chunk that failed is said below, where it is awaited (the plain link then)
+    // (T354) the phone's mark: the release's index, a few hundred bytes after the book (`appendPdf.ts`), the highlight
+    // on the page in its place. No index, or bytes of another size: thrown (the card says so), never the book unmarked.
+    if (!s.append) throw new Error("synopsis: this release ships no page index (synopsis.append)");
     const bytes = await loadSynopsis(s, fetch, hooks);
-    const out = await (await lib).highlightPdf(bytes, boxes);
+    if (bytes.length !== s.bytes) throw new Error(`synopsis: ${bytes.length} bytes, the index is for ${s.bytes}`);
+    const tail = appendHighlight(s.append, bytes.length, boxes);
+    const out = tail ? joined(bytes, tail) : bytes;
     const url = `${URL.createObjectURL(new Blob([out as BlobPart], { type: "application/pdf" }))}#page=${pdf}`;
     if (win) win.location.href = url; else window.open(url, "_blank");
   } catch (e) {
@@ -53,3 +57,4 @@ export async function openHighlighted(s: SynopsisSource, pdf: number, boxes: rea
     throw e;
   }
 }
+

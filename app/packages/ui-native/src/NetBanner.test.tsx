@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { NET_WORDS, type DataInput } from "@app/core";
 import { createNet, type Net } from "@app/data";
-import { NetContext, type NetState } from "@app/ui";
+import { installCrashHandlers, NetContext, type NetState } from "@app/ui";
 import { NetBanner } from "./NetBanner";
 import { LIGHT } from "./theme";
 import { MoreScreen } from "./menu/MoreScreen";
@@ -145,18 +145,22 @@ describe("a phone's NetInfo: the cellular generation", () => {
 });
 
 describe("the failed synopsis card closes without opening anything (T285)", () => {
-  it("Close, and the words for a device with no PDF app", async () => {
+  it("Close; the failure is said on the card AND reported (owner 2026-11-03)", async () => {
     setSynopsisSource({ url: "https://r2.test/synopsis.pdf", sha256: "a".repeat(64), bytes: 10 });
     setSynopsisNet(null);
     vi.spyOn(console, "warn").mockImplementation(() => {});
+    const reported: unknown[] = [];
+    const undo = installCrashHandlers({ report: (e) => { reported.push(e); }, flush: async () => false, sendExit: async () => false }, {});
     render(<SynopsisLoading palette={LIGHT} floating />);
-    const err = Object.assign(new Error("none"), { name: "NoPdfViewer" });
+    const err = new Error("synopsis: this release ships no page index (synopsis.append)");
     await act(async () => { await openBook(5, [], "android", vi.fn().mockRejectedValue(err)); });
-    expect(getSynopsisLoad()).toMatchObject({ phase: "error", noViewer: true });
-    expect(screen.getByTestId("synopsis-loading").textContent).toContain("No app on this device opens PDFs");
+    expect(getSynopsisLoad()).toMatchObject({ phase: "error" });
+    expect(screen.getByTestId("synopsis-loading").textContent).toContain("Couldn’t load the synopsis.");
+    expect(reported).toEqual([err]);
     expect(screen.getByTestId("synopsis-fallback")).toBeTruthy();
     fireEvent.click(screen.getByTestId("synopsis-close"));
     expect(getSynopsisLoad().phase).toBe("idle");
+    undo();
     setSynopsisSource(null);
   });
 });

@@ -40,11 +40,17 @@ def test_the_index_names_what_the_append_needs(tmp_path):
     out = SYN.shipped(_book(tmp_path / "book.pdf"), cache=tmp_path / "c")
     ix = SYN.append_index(out)
     pdf = pikepdf.open(out)
-    assert ix["v"] == SYN.INDEX_V and ix["count"] == 2 and len(ix["page"]) == 2
-    assert ix["pages"] == list(pdf.Root.Pages.objgen) and ix["root"] == list(pdf.trailer.Root.objgen)
+    assert ix["v"] == SYN.INDEX_V and len(ix["page"]) == 2 and ix["root"] == list(pdf.trailer.Root.objgen)
     assert out.read_bytes()[ix["startxref"]:].lstrip()[:1].isdigit()           # an xref stream object starts there
-    # shared boxes said once; every page's resources a ref (made indirect), so each entry is a few refs
-    assert "/MediaBox" in ix["box"] and all("/Resources" in p and " R" in p for p in ix["page"])
+    # every page: its ref and its /Annots array's (made indirect, empty where it had none), so the append rewrites
+    # that one array and never a page
+    for (pn, pg, an, ag, refs), page in zip(ix["page"], pdf.pages):
+        assert [pn, pg] == list(page.obj.objgen) and [an, ag] == list(page.obj.Annots.objgen) and refs == ""
+
+
+def test_a_book_that_is_not_a_shipped_copy_has_no_index(tmp_path):
+    with pytest.raises(ValueError, match="not a `shipped` copy"):
+        SYN.append_index(_book(tmp_path / "book.pdf"))
 
 
 def test_a_copy_that_renders_differently_is_refused(tmp_path, monkeypatch):

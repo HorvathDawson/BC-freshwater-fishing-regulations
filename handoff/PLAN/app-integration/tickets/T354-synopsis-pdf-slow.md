@@ -43,6 +43,19 @@ Both cut download time, copy time and memory; (1) alone removes the 100-200 MB s
 
 Owner 2026-11-03: the compressed photos look good (approved).
 
-Left: (1) emulator time + memory of an open, before/after (the T360 sitting); (2) owner asked whether the highlight
-should also sit on the page in place (today only the front copy is highlighted): pick front copy + in place (index
-~30 KB) or in place only.
+## Changed 2026-11-03 (owner): the book opens IN THE APP, highlight in place, no fallbacks
+- In-app viewer: `react-native-pdf` 7.0.5 (+ `react-native-blob-util` 0.25.1), `ui-native/src/regs/PdfViewer.native.tsx`
+  (full-screen Modal, one back, page N of M), mounted once by the Shell; store `pdfView.ts` (data only). Opens at the
+  cited PDF page. The web opens the browser tab at `#page=` with the SAME append (no pdf-lib on either side).
+- Append v2: every page's /Annots is an indirect array in the shipped copy; the append overrides that array with the
+  highlights added (page never rewritten, nothing moves). Index 5 KB. Front copy removed.
+- No fallbacks: no index / wrong size / bad version / failed write THROW (the card says so + reported); a viewer that
+  cannot draw says so on its face + reported (`reportFailure`, crashReport.ts). Removed: pdf-lib in the app (dev-only now,
+  tests), `highlightPdf.ts`, `expo-intent-launcher` (outside-app hand-off), the "no PDF app" words.
+- App-wide version of this rule: T333 (audit phase).
+
+Left: (1) DEV BUILD on the emulator (native packages: rebuild; check react-native-pdf on Expo SDK 57 / RN 0.86 new arch,
+the highlight drawn, page jump, back closes); time + memory before/after (T360 sitting); (2) the test bed's pdf/offline
+scenarios still look for an OUTSIDE viewer (tools/testbed/scenarios/offline.mjs, run-ios.mjs "No app on this device"):
+switch them to `pdf-viewer` / `pdf-viewer-failed` testIDs in that sitting; (3) release r-88c4fc7bbf1f carries the v1 index:
+the label refresh's deliver re-run (or the next build) ships v2.

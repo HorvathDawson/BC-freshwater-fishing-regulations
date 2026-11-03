@@ -1,18 +1,12 @@
 // @vitest-environment node
-// (T285) the phone's open of the synopsis: native download to disk (no fetch body on the Java heap), a VIEW intent on the
-// file's content:// URI, a clear "no PDF app" failure, and the highlight failing never failing the open.
+// (T285) the phone's open of the synopsis: native download to disk (no fetch body on the Java heap); (T354) the marked
+// copy made natively + the append, shown in the app's own viewer; a missing index or a failed write is THROWN.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const files = new Map<string, { bytes: Uint8Array }>();
-const intents: unknown[][] = [];
-let viewerPresent = true;
 let tasks = 0;
 const urls: string[] = [];
 
-vi.mock("react-native", () => ({ Platform: { OS: "android" }, Linking: { openURL: vi.fn(async () => {}) }, Share: { share: vi.fn() } }));
-vi.mock("expo-intent-launcher", () => ({
-  startActivityAsync: vi.fn(async (...a: unknown[]) => { intents.push(a); if (!viewerPresent) throw new Error("ActivityNotFoundException"); }),
-}));
 vi.mock("expo-file-system", () => {
   class File {
     uri: string; constructor(dir: string, name: string) { this.uri = `${dir}/${name}`; }
@@ -33,59 +27,50 @@ vi.mock("expo-file-system", () => {
   }
   return { File, DownloadTask, Paths: { cache: "cache", document: "doc" } };
 });
-const highlight = vi.fn(async (b: Uint8Array) => new Uint8Array([...b, 9]));
-vi.mock("./highlightPdf", () => ({ highlightPdf: (...a: [Uint8Array]) => highlight(...a) }));
 
 import { openHighlighted, synopsisHeld } from "./synopsisPdf.native";
+import { closePdf, getPdfView } from "./pdfView";
 
-const S = { url: "https://data.test/synopsis.pdf", sha256: "ab".repeat(32), bytes: 4 };
+/** an index for the 4-byte test book: 9 pages, page 9's /Annots array is object 20 and holds one link */
+const INDEX = { v: 2, startxref: 0, size: 30, root: [1, 0], info: null, id: null,
+                page: Array.from({ length: 9 }, (_, i) => [10 + i, 0, 20 + i, 0, i === 8 ? "5 0 R" : ""]) } as never;
+const S = { url: "https://data.test/synopsis.pdf", sha256: "ab".repeat(32), bytes: 4, append: INDEX };
 const BOX = [{ pdf: 9, box: [0, 0, 1, 1], size: [576, 756] }] as never;
+const text = (uri: string) => new TextDecoder("latin1").decode(files.get(uri)!.bytes);
 
-describe("synopsisPdf.native (T285)", () => {
-  beforeEach(() => { files.clear(); intents.length = 0; viewerPresent = true; tasks = 0; urls.length = 0; highlight.mockClear(); vi.spyOn(console, "warn").mockImplementation(() => {}); });
+describe("synopsisPdf.native (T285, T354)", () => {
+  beforeEach(() => { files.clear(); tasks = 0; urls.length = 0; closePdf(); vi.spyOn(console, "warn").mockImplementation(() => {}); });
 
-  it("downloads natively once, keeps the file, and views the highlighted copy by content:// URI with a read grant", async () => {
+  it("downloads natively once, keeps the file, marks a copy and shows it in the app at the page", async () => {
     expect(synopsisHeld(S)).toBe(false);
-    await openHighlighted(S, 9, BOX, {}, "android");
+    await openHighlighted(S, 9, BOX);
     expect(tasks).toBe(1);
     expect(synopsisHeld(S)).toBe(true);
-    expect(intents).toHaveLength(1);
-    expect(intents[0]![0]).toBe("android.intent.action.VIEW");
-    expect(intents[0]![1]).toMatchObject({ type: "application/pdf", flags: 1 });
-    expect(String((intents[0]![1] as { data: string }).data)).toMatch(/^content:\/\//);
+    expect(getPdfView()).toEqual({ uri: "cache/synopsis-open.pdf", page: 9, failed: null });
+    const marked = files.get("cache/synopsis-open.pdf")!.bytes;
+    expect([...marked.slice(0, 4)]).toEqual([1, 2, 3, 4]);
+    // page 9's own /Annots array again, its link kept, the highlight added; the page itself is not rewritten
+    expect(text("cache/synopsis-open.pdf")).toMatch(/\n28 0 obj\n\[5 0 R 30 0 R\]\nendobj/);
+    expect(text("cache/synopsis-open.pdf")).not.toMatch(/\n18 0 obj/);
     // offline: the held copy opens with no download
-    await openHighlighted(S, 9, BOX, {}, "android");
+    await openHighlighted(S, 9, BOX);
     expect(tasks).toBe(1);
-    expect(intents).toHaveLength(2);
   });
-  it("(T354) with the release's index: a native copy + the append, the book never read into JS", async () => {
-    const append = { v: 1, startxref: 0, size: 10, root: [1, 0], info: null, id: null, pages: [2, 0], kids: "[3 0 R]", count: 9,
-                     box: "", page: Array.from({ length: 9 }, () => "/Contents 4 0 R") } as const;
-    await openHighlighted({ ...S, append: append as never }, 9, BOX, {}, "android");
-    expect(highlight).not.toHaveBeenCalled();
-    const opened = files.get("cache/synopsis-open.pdf")!.bytes;
-    expect([...opened.slice(0, 4)]).toEqual([1, 2, 3, 4]);
-    expect(new TextDecoder("latin1").decode(opened.slice(4))).toMatch(/\/Type\/Pages\/Kids \[10 0 R 3 0 R\]\/Count 10>>[\s\S]*%%EOF\n$/);
-    expect(String((intents[0]![1] as { data: string }).data)).toMatch(/synopsis-open\.pdf$/);
+  it("no box: the held book itself, at the page", async () => {
+    await openHighlighted(S, 1, []);
+    expect(getPdfView()).toMatchObject({ uri: `doc/synopsis-${S.sha256.slice(0, 16)}.pdf`, page: 1 });
+    expect(files.has("cache/synopsis-open.pdf")).toBe(false);
   });
-  it("a highlight that fails still opens the book itself", async () => {
-    highlight.mockRejectedValueOnce(new Error("out of memory"));
-    await openHighlighted(S, 9, BOX, {}, "android");
-    expect(intents).toHaveLength(1);
-  });
-  it("the About link (no box, page 1) opens the held file as it is", async () => {
-    await openHighlighted(S, 1, [], {}, "android");
-    expect(highlight).not.toHaveBeenCalled();
-    expect(intents).toHaveLength(1);
+  it("a release with no index, or a held copy of another size: thrown, never the book quietly unmarked", async () => {
+    await expect(openHighlighted({ ...S, append: null }, 9, BOX)).rejects.toThrow(/no page index/);
+    expect(getPdfView()).toBeNull();
+    await expect(openHighlighted({ ...S, bytes: 99 }, 9, BOX)).rejects.toThrow();
+    expect(getPdfView()).toBeNull();
   });
   it("a 404 on the release's own copy (the release was replaced): the same bytes from the live release", async () => {
     const gone = { ...S, url: "https://data.test/release/gone/synopsis.pdf", alternate: async () => "https://data.test/release/live/synopsis.pdf" };
-    await openHighlighted(gone, 9, BOX, {}, "android");
+    await openHighlighted(gone, 9, BOX);
     expect(urls).toEqual([gone.url, "https://data.test/release/live/synopsis.pdf"]);
-    expect(intents).toHaveLength(1);
-  });
-  it("no PDF app: a NoPdfViewer error (the card says so)", async () => {
-    viewerPresent = false;
-    await expect(openHighlighted(S, 9, BOX, {}, "android")).rejects.toMatchObject({ name: "NoPdfViewer" });
+    expect(getPdfView()?.page).toBe(9);
   });
 });

@@ -1,20 +1,20 @@
 /**
- * T354 — the cited page first, highlighted, WITHOUT reading the book: a PDF incremental update. A PDF may be extended
- * by appending objects and a new cross-reference section that points back (/Prev) at the old one; a viewer reads the
- * last section first, so the appended objects win. The append here is a few KB:
- *   - a copy of each cited page (its contents and resources are the book's own objects, by reference), with one
- *     /Highlight per box, as `highlightPdf` draws them;
- *   - the root /Pages again, the copies at the front of its /Kids, the book following unchanged;
+ * T354 — the row highlighted IN PLACE, without reading the book: a PDF incremental update. A PDF may be extended by
+ * appending objects and a new cross-reference section that points back (/Prev) at the old one; a viewer reads the last
+ * section first, so the appended objects win. The append here is a few hundred bytes:
+ *   - one /Highlight per box, as `highlightPdf` draws them;
+ *   - each marked page's /Annots array again (the shipped copy makes every page's an indirect array), its own refs
+ *     followed by the new ones; the page itself is never rewritten;
  *   - an xref STREAM (the book's own xref is one) whose dictionary is the new trailer.
  * Everything it needs from the file is the release's index (`synopsis.append`, pipeline/deliver/release/synopsis.py),
  * so the phone copies the held file natively and writes these bytes on the end: no 24 MB on the JS heap (T351/T360).
- * Pure: index in, bytes out.
+ * The in-app viewer (`PdfViewer.native.tsx`) opens it at the page. Pure: index in, bytes out.
  */
-import { highlightGeometry, type HighlightGeometry, type SourceBox } from "@app/core";
+import { highlightGeometry, type SourceBox } from "@app/core";
 import type { SynopsisAppend } from "@app/data";
 
-/** The index format this append reads; any other: the book opens the old way (`highlightPdf`). */
-export const APPEND_V = 1;
+/** The index format this append reads; any other is refused (thrown). */
+export const APPEND_V = 2;
 /** As `highlightPdf`: yellow, multiplied without an appearance stream by pdfium and PDFKit. */
 const COLOUR = "[1 0.9 0.2]";
 
@@ -23,40 +23,31 @@ const nums = (xs: readonly number[]) => `[${xs.map(num).join(" ")}]`;
 const ref = ([n, g]: readonly [number, number]) => `${n} ${g} R`;
 
 /**
- * The bytes to write after the shipped synopsis (`bytes` long, the size the index was cut from) so it opens on the
- * page(s) `boxes` name, highlighted; with no box that fits, on PDF page `page` (2 or later) unmarked. Null when there is
- * nothing to do or the index is not one this reads.
+ * The bytes to write after the shipped synopsis (`bytes` long, the size the index was cut from) so every box shows
+ * highlighted on its own page. Null only when no box fits a page (nothing to mark). An index this does not read, or a
+ * file it was not cut from, THROWS: never a book quietly unmarked.
  */
-export function appendHighlight(ix: SynopsisAppend, bytes: number, boxes: readonly SourceBox[], page?: number): Uint8Array | null {
-  if (ix.v !== APPEND_V || !(bytes > ix.startxref)) return null;
+export function appendHighlight(ix: SynopsisAppend, bytes: number, boxes: readonly SourceBox[]): Uint8Array | null {
+  if (ix.v !== APPEND_V) throw new Error(`synopsis: page index v${ix.v}, this app reads v${APPEND_V}`);
+  if (!(bytes > ix.startxref)) throw new Error(`synopsis: ${bytes} bytes cannot hold the index's xref at ${ix.startxref}`);
   const n = ix.page.length;
-  const marks = new Map<number, HighlightGeometry[]>();
+  let next = ix.size;
+  const objs: { at: [number, number]; body: string }[] = [];
+  const added = new Map<number, string[]>();                      // page (1-based) -> its new annotations' refs
   for (const b of boxes) {
     const g = highlightGeometry(b);
     if (!g || !(b.pdf >= 1 && b.pdf <= n)) continue;
-    const at = marks.get(b.pdf);
-    if (at) at.push(g); else marks.set(b.pdf, [g]);
+    const [pn, pg] = ix.page[b.pdf - 1]!;
+    const a = next++;
+    objs.push({ at: [a, 0], body: `<</Type/Annot/Subtype/Highlight/Rect ${nums(g.rect)}/QuadPoints ${nums(g.quadPoints)}`
+      + `/C ${COLOUR}/CA 1/F 4/Border [0 0 0]/T (Source)/P ${pn} ${pg} R>>` });
+    added.set(b.pdf, [...(added.get(b.pdf) ?? []), `${a} 0 R`]);
   }
-  if (!marks.size && page && page >= 2 && page <= n) marks.set(page, []);
-  if (!marks.size) return null;
-
-  let next = ix.size;
-  const objs: { at: [number, number]; body: string }[] = [];
-  const copies: number[] = [];
-  for (const p of [...marks.keys()].sort((a, b) => a - b)) {
-    const copy = next++;
-    const annots = marks.get(p)!.map((g) => {
-      const a = next++;
-      objs.push({ at: [a, 0], body: `<</Type/Annot/Subtype/Highlight/Rect ${nums(g.rect)}/QuadPoints ${nums(g.quadPoints)}`
-        + `/C ${COLOUR}/CA 1/F 4/Border [0 0 0]/T (Source)/P ${copy} 0 R>>` });
-      return `${a} 0 R`;
-    });
-    objs.push({ at: [copy, 0], body: `<</Type/Page/Parent ${ref(ix.pages)}${ix.box}${ix.page[p - 1]}`
-      + `${annots.length ? `/Annots [${annots.join(" ")}]` : ""}>>` });
-    copies.push(copy);
+  if (!added.size) return null;
+  for (const [p, refs] of added) {
+    const [, , an, ag, had] = ix.page[p - 1]!;
+    objs.push({ at: [an, ag], body: `[${[had, ...refs].filter(Boolean).join(" ")}]` });
   }
-  const kids = ix.kids.trim().replace(/^\[/, "").replace(/\]$/, "").trim();
-  objs.push({ at: ix.pages, body: `<</Type/Pages/Kids [${copies.map((c) => `${c} 0 R`).join(" ")} ${kids}]/Count ${ix.count + copies.length}>>` });
 
   // the objects, each at its offset in the whole file (the book's bytes come first)
   let text = "\n";

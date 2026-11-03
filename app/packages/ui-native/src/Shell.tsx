@@ -35,6 +35,7 @@ import { SearchSheet } from "./SearchSheet";
 import { TopBar, topBarBottom } from "./TopBar";
 import { SpotPickBanner } from "./SpotPickBanner";
 import { SynopsisLoading } from "./regs/SynopsisLoading";
+import { PdfViewer } from "./regs/PdfViewer";
 import { TabBar } from "./TabBar";
 import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
@@ -581,6 +582,8 @@ export function Shell(p: ShellProps) {
       {bottomBarShown(route) && <TabBar active={tab} palette={palette} onChange={nav.toTab} />}
       {/* (T215) the synopsis PDF is loading / failed: progress, Cancel, Retry */}
       <SynopsisLoading palette={palette} floating />
+      {/* (T354) the rule book itself, in the app (native; the web opens the browser's tab) */}
+      <PdfViewer palette={palette} />
       {/* G1: an open sheet is a back layer — every platform's back closes it before it pops the route */}
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    vm={col.layers} onChoose={col.onChooseLayer}

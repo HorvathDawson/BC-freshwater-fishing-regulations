@@ -9,6 +9,7 @@
  */
 import { Linking, Platform } from "react-native";
 import { bookUrl, type SourceBox } from "@app/core";
+import { reportFailure } from "@app/ui";
 import { openHighlighted } from "./synopsisPdf";
 import { etaSeconds } from "@app/data";
 import { getSynopsisNet, getSynopsisSource } from "./synopsisSource";
@@ -30,8 +31,10 @@ export function openBook(pdf: number, boxes?: readonly SourceBox[], os: string =
   const go = () => {
     const run = runSynopsisLoad(pdf, bx, (h) => open(src, pdf, bx, h));
     if (!run) return Promise.resolve();
+    // the card says it failed (Retry, gov.bc.ca); (owner 2026-11-03) and we hear of it: every shown failure is reported
     return run.catch((e: unknown) => {
       console.warn(`openBook: could not open the highlighted synopsis (PDF page ${pdf})`, e);
+      reportFailure(e);
     });
   };
   // (T254, owner 2026-10-29: "no PDF auto-fetch (offer it with size)") on a slow line a rule book not yet on the device

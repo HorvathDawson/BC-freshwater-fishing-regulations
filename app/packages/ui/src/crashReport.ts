@@ -206,6 +206,20 @@ export function createCrashReporter(o: {
   };
 }
 
+// ── a failure the app shows ──────────────────────────────────────────────────────────────────────────────────────────
+
+let installed: CrashReporter | null = null;
+
+/**
+ * (owner 2026-11-03: "make sure we get reports on failures like this ... true universally in app") A failure the app
+ * CATCHES and shows the reader — a card's "Couldn't load", a viewer that cannot draw — is reported too, not only an
+ * uncaught one: through the same reporter (the Data switch, the scrubbing, the per-run cap), non-fatal. Before the
+ * handlers are installed (tests, a tool) nothing is sent. Pair it with what the reader sees; never use it to hide one.
+ */
+export function reportFailure(error: unknown): void {
+  installed?.report(error, { kind: "js", fatal: false });
+}
+
 // ── the catchers ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
 interface ErrorUtilsLike { getGlobalHandler?(): (e: unknown, fatal?: boolean) => void; setGlobalHandler?(h: (e: unknown, fatal?: boolean) => void): void }
@@ -218,7 +232,8 @@ interface ErrorUtilsLike { getGlobalHandler?(): (e: unknown, fatal?: boolean) =>
 export function installCrashHandlers(reporter: CrashReporter, g: Record<string, any> = globalThis as never): () => void { // eslint-disable-line @typescript-eslint/no-explicit-any
   if (g.__crashHandlers) return () => {};
   g.__crashHandlers = true;
-  const undo: Array<() => void> = [() => { delete g.__crashHandlers; }];
+  installed = reporter;
+  const undo: Array<() => void> = [() => { delete g.__crashHandlers; installed = null; }];
   const eu = g.ErrorUtils as ErrorUtilsLike | undefined;
   if (eu?.setGlobalHandler) {
     const prev = eu.getGlobalHandler?.();

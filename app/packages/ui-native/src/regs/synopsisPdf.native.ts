@@ -1,31 +1,22 @@
 /**
  * T215 (NATIVE) — open our copy of the synopsis with the entry highlighted. The release's PDF is downloaded ONCE per release
- * (it is named by its sha256) into the app's document directory, the highlight annotation is written, and the result is handed to the
- * system to show: on Android a VIEW intent on its content:// URI (verified on the emulator, T50); on iOS the file URL
- * first, the share sheet when no handler takes it (iOS not yet verified on a device).
+ * (it is named by its sha256) into the app's document directory, the highlight is appended, and (T354) the result
+ * opens in the app's own viewer at the page (`PdfViewer.native.tsx`).
  * `synopsisPdf.web.ts` is the browser's.
  */
-import { Linking, Platform, Share } from "react-native";
 import { DownloadTask, File, Paths } from "expo-file-system";
-import { startActivityAsync } from "expo-intent-launcher";
 import type { SourceBox } from "@app/core";
 import { synopsisPath } from "@app/data/release";
 import { appendHighlight } from "./appendPdf";
-import { highlightPdf } from "./highlightPdf";
+import { showPdf } from "./pdfView";
 import { getSynopsisNet, type SynopsisSource } from "./synopsisSource";
 import type { LoadHooks } from "./synopsisLoad";
-
-/** Android's `Intent.FLAG_GRANT_READ_URI_PERMISSION`: the viewer may read the one file it is handed. */
-const GRANT_READ_URI = 0x1;
 
 // (T285) the document directory, not the cache: the OS may empty the cache, and the rule book must open offline
 // (owner 2026-10-29) the same file a first install streams it to (`synopsisPath`): the book opens offline from the start
 const held = (s: SynopsisSource) => new File(Paths.document, synopsisPath(s.sha256));
 /** (T254) whether the release's copy is already in the cache directory (nothing to offer: it opens at once) */
 export const synopsisHeld = (s: SynopsisSource): boolean => { try { return held(s).exists; } catch { return false; } };
-
-/** (T285) thrown when the device has no app that opens a PDF: the card says so (and still offers gov.bc.ca) */
-class NoPdfViewerError extends Error { constructor(cause?: unknown) { super(`no app on this device opens a PDF${cause ? `: ${String(cause)}` : ""}`); this.name = "NoPdfViewer"; } }
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -77,55 +68,33 @@ export async function loadSynopsis(s: SynopsisSource, _fetchImpl: typeof fetch =
   return (await downloadSynopsis(s, hooks)).bytes();
 }
 
-/** Hand `f` to the system's PDF viewer (Android: a VIEW intent on its content:// URI with a read grant). */
-async function viewAndroid(f: File): Promise<void> {
-  try {
-    await startActivityAsync("android.intent.action.VIEW", { data: f.contentUri, type: "application/pdf", flags: GRANT_READ_URI });
-  } catch (e) { throw new NoPdfViewerError(e); }
+/**
+ * The held book with `boxes` highlighted on their own pages, as a cache file; null: nothing to mark (the book itself
+ * opens). (T354) The copy is made natively and a few hundred bytes are written on its end (`appendPdf.ts`): the book
+ * never enters JS. A release without the index, a held file of another size or a failed write THROWS (the card says
+ * so): never the book quietly unmarked.
+ */
+async function markedCopy(s: SynopsisSource, cached: File, boxes: readonly SourceBox[]): Promise<File | null> {
+  if (!boxes.length) return null;
+  if (!s.append) throw new Error("synopsis: this release ships no page index (synopsis.append)");
+  if (cached.size !== s.bytes) throw new Error(`synopsis: the held copy is ${cached.size} bytes, the index is for ${s.bytes}`);
+  const tail = appendHighlight(s.append, s.bytes, boxes);
+  if (!tail) return null;                          // no box on a page of the book: the page opens unmarked
+  const f = new File(Paths.cache, "synopsis-open.pdf");
+  if (f.exists) f.delete();
+  await cached.copy(f);
+  f.write(tail, { append: true });
+  return f;
 }
 
-const openUrl = (uri: string) => Linking.openURL(uri).catch(() => Share.share({ url: uri }).then(() => undefined));
-
-/** Open the synopsis with `boxes` highlighted. Throws when it cannot: the caller falls back to the plain link. */
+/**
+ * Open the synopsis at PDF page `pdf` with `boxes` highlighted, IN THE APP (T354, owner 2026-11-03): the viewer opens the
+ * file at the page, the highlight on the page in its place. Throws when the book cannot be had or marked: the caller's
+ * card says so (Retry, gov.bc.ca).
+ */
 export async function openHighlighted(s: SynopsisSource, pdf: number, boxes: readonly SourceBox[],
-                                      hooks: Partial<LoadHooks> = {}, os: string = Platform.OS): Promise<void> {
-  // a phone's viewer opens a file at its first page whatever it asks (`#page=`, /OpenAction): the entry goes first.
-  // (T313) iOS too: Preview (QuickLook) opened the marked book at its cover, the passage pages away
+                                      hooks: Partial<LoadHooks> = {}): Promise<void> {
   const cached = await downloadSynopsis(s, hooks);
-  // (T285) the About link: the book from its first page, nothing to mark — the held file itself is what opens
-  if (!boxes.length && pdf <= 1) return os === "android" ? viewAndroid(cached) : openUrl(cached.uri);
-  const f = new File(Paths.cache, "synopsis-open.pdf");
-  // (T354) the release's index: a native copy of the held book with a few KB written on its end (`appendPdf.ts`), the
-  // cited page first and highlighted; the book never enters JS. A copy or write that fails tries the old way below.
-  const tail = s.append && cached.size === s.bytes ? appendHighlight(s.append, s.bytes, boxes, pdf) : null;
-  let appended = false;
-  if (tail) {
-    try {
-      if (f.exists) f.delete();
-      await cached.copy(f);
-      f.write(tail, { append: true });
-      appended = true;
-    } catch (e) { console.warn("synopsis: the append failed; highlighting the old way", e); }
-  }
-  if (appended) return os === "android" ? viewAndroid(f) : openUrl(f.uri);
-  try {
-    const out = await highlightPdf(await cached.bytes(), boxes, { entryFirst: true, page: pdf });
-    if (f.exists) f.delete();
-    f.create();
-    f.write(out);
-  } catch (e) {
-    // (T285) the highlight could not be drawn (a big file on a small heap): open the book itself rather than fail the open
-    console.warn(`synopsis: the highlight failed (PDF page ${pdf}); opening the plain copy`, e);
-    if (os === "android") return viewAndroid(cached);
-    return openUrl(cached.uri);
-  }
-  // the page is the first the boxes name: a native viewer ignores `#page=`, so the highlight is what marks the place
-  if (os === "android") {
-    // (T50) ANDROID: `Linking` refuses a file:// URI and sends no read grant with a content:// one, and `Share` drops
-    // `url` there (the reader got an EMPTY share sheet). A VIEW intent on the file's content:// URI (expo-file-system's
-    // FileProvider) with FLAG_GRANT_READ_URI_PERMISSION opens it in the reader's PDF app; with no PDF app it throws
-    // NoPdfViewerError (the card says so).
-    return viewAndroid(f);
-  }
-  await openUrl(f.uri);
+  const f = (await markedCopy(s, cached, boxes)) ?? cached;
+  showPdf(f.uri, Math.max(1, pdf));
 }
