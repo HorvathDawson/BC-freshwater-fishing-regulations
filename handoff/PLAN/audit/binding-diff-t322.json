@@ -1,0 +1,2275 @@
+{
+ "before": "data/generated/reaches/full",
+ "after": "data/generated/side/t322b/reaches/full_next",
+ "rules_changed": 191,
+ "unresolved_changed": 0,
+ "licensing_changed": 7,
+ "rules": {
+  "zp:bait::bait.r4": {
+   "gained": 780,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328947490",
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328970956",
+    "lake:328970966"
+   ],
+   "sample_lost": []
+  },
+  "zp:barbless_single_hook_streams::barbless_single_hook_streams.r1": {
+   "gained": 780,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328947490",
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328970956",
+    "lake:328970966"
+   ],
+   "sample_lost": []
+  },
+  "zp:barbless_single_hook_streams::barbless_single_hook_streams.r3": {
+   "gained": 780,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328947490",
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328970956",
+    "lake:328970966"
+   ],
+   "sample_lost": []
+  },
+  "zp:bait::bait.r5": {
+   "gained": 0,
+   "lost": 777,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328970956",
+    "lake:328970966",
+    "lake:328971485"
+   ]
+  },
+  "zp:barbless_single_hook_streams::barbless_single_hook_streams.r2": {
+   "gained": 0,
+   "lost": 777,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328970956",
+    "lake:328970966",
+    "lake:328971485"
+   ]
+  },
+  "z7b:bait::bait.r1": {
+   "gained": 364,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328970956",
+    "lake:328970966",
+    "lake:328972250",
+    "lake:328972266",
+    "lake:328972462"
+   ],
+   "sample_lost": []
+  },
+  "z7b:daily_quotas::species_quotas.r10": {
+   "gained": 364,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328970956",
+    "lake:328970966",
+    "lake:328972250",
+    "lake:328972266",
+    "lake:328972462"
+   ],
+   "sample_lost": []
+  },
+  "z7b:daily_quotas::species_quotas.r5": {
+   "gained": 364,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328970956",
+    "lake:328970966",
+    "lake:328972250",
+    "lake:328972266",
+    "lake:328972462"
+   ],
+   "sample_lost": []
+  },
+  "z7b:daily_quotas::trout_char_quota.r3": {
+   "gained": 364,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328970956",
+    "lake:328970966",
+    "lake:328972250",
+    "lake:328972266",
+    "lake:328972462"
+   ],
+   "sample_lost": []
+  },
+  "z7b:daily_quotas::trout_char_quota.r6": {
+   "gained": 364,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328970956",
+    "lake:328970966",
+    "lake:328972250",
+    "lake:328972266",
+    "lake:328972462"
+   ],
+   "sample_lost": []
+  },
+  "z7b:ice_fishing_huts::ice_fishing_huts.r1": {
+   "gained": 0,
+   "lost": 364,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328970956",
+    "lake:328970966",
+    "lake:328972250",
+    "lake:328972266",
+    "lake:328972462"
+   ]
+  },
+  "z7b:ice_fishing_huts::ice_fishing_huts.r2": {
+   "gained": 0,
+   "lost": 364,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328970956",
+    "lake:328970966",
+    "lake:328972250",
+    "lake:328972266",
+    "lake:328972462"
+   ]
+  },
+  "z7b:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 364,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328970956",
+    "lake:328970966",
+    "lake:328972250",
+    "lake:328972266",
+    "lake:328972462"
+   ],
+   "sample_lost": []
+  },
+  "zp:steelhead::steelhead.r1": {
+   "gained": 289,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096"
+   ],
+   "sample_lost": []
+  },
+  "zp:steelhead::steelhead.r2": {
+   "gained": 289,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096"
+   ],
+   "sample_lost": []
+  },
+  "zp:steelhead::steelhead.r4": {
+   "gained": 289,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096"
+   ],
+   "sample_lost": []
+  },
+  "zp:bait::bait.r2": {
+   "gained": 0,
+   "lost": 217,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328983107"
+   ]
+  },
+  "zp:set_lining::set_lining.r1": {
+   "gained": 0,
+   "lost": 217,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328983107"
+   ]
+  },
+  "zp:set_lining::set_lining.r2": {
+   "gained": 0,
+   "lost": 217,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328983107"
+   ]
+  },
+  "zp:set_lining::set_lining.r3": {
+   "gained": 0,
+   "lost": 217,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328983107"
+   ]
+  },
+  "zp:set_lining::set_lining.r4": {
+   "gained": 0,
+   "lost": 217,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328983107"
+   ]
+  },
+  "z6:daily_quotas::species_quotas.r5": {
+   "gained": 158,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ],
+   "sample_lost": []
+  },
+  "z6:daily_quotas::trout_char_quota.r4": {
+   "gained": 158,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ],
+   "sample_lost": []
+  },
+  "z6:daily_quotas::trout_char_quota.r5": {
+   "gained": 158,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ],
+   "sample_lost": []
+  },
+  "z6:daily_quotas::trout_char_quota.r6": {
+   "gained": 158,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ],
+   "sample_lost": []
+  },
+  "z6:daily_quotas::trout_char_quota.r7": {
+   "gained": 158,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ],
+   "sample_lost": []
+  },
+  "z6:daily_quotas::trout_char_quota.r9": {
+   "gained": 158,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ],
+   "sample_lost": []
+  },
+  "z6:hatchery_steelhead_stop::hatchery_steelhead_stop.r1": {
+   "gained": 158,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ],
+   "sample_lost": []
+  },
+  "z6:set_lining::set_lining.r1": {
+   "gained": 0,
+   "lost": 158,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ]
+  },
+  "z6:set_lining::set_lining.r2": {
+   "gained": 0,
+   "lost": 158,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ]
+  },
+  "z6:set_lining::set_lining.r3": {
+   "gained": 0,
+   "lost": 158,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ]
+  },
+  "z6:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 158,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ],
+   "sample_lost": []
+  },
+  "z6:steelhead_stream_closure::steelhead_stream_closure.r1": {
+   "gained": 158,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096",
+    "lake:328977754",
+    "lake:328994675"
+   ],
+   "sample_lost": []
+  },
+  "z7a:bait_ban_streams::bait_ban_streams.r1": {
+   "gained": 65,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ],
+   "sample_lost": []
+  },
+  "z7a:daily_quotas::species_quotas.r4": {
+   "gained": 65,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ],
+   "sample_lost": []
+  },
+  "z7a:daily_quotas::trout_char_quota.r3": {
+   "gained": 65,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ],
+   "sample_lost": []
+  },
+  "z7a:daily_quotas::trout_char_quota.r5": {
+   "gained": 0,
+   "lost": 65,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ]
+  },
+  "z7a:daily_quotas::trout_char_quota.r6": {
+   "gained": 65,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ],
+   "sample_lost": []
+  },
+  "z7a:daily_quotas::trout_char_quota.r7": {
+   "gained": 0,
+   "lost": 65,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ]
+  },
+  "z7a:ice_fishing_huts::ice_fishing_huts.r1": {
+   "gained": 0,
+   "lost": 65,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ]
+  },
+  "z7a:set_lining::set_lining.r1": {
+   "gained": 0,
+   "lost": 65,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ]
+  },
+  "z7a:set_lining::set_lining.r2": {
+   "gained": 0,
+   "lost": 65,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ]
+  },
+  "z7a:set_lining::set_lining.r3": {
+   "gained": 0,
+   "lost": 65,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ]
+  },
+  "z7a:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 65,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ],
+   "sample_lost": []
+  },
+  "z7a:spring_stream_closure::spring_stream_closure.r1": {
+   "gained": 65,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ],
+   "sample_lost": []
+  },
+  "z7a:stocked_lakes::stocked_lakes.r1": {
+   "gained": 0,
+   "lost": 65,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328983107",
+    "lake:329059353",
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026"
+   ]
+  },
+  "z5:daily_quotas::species_quotas.r4": {
+   "gained": 57,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328993028",
+    "lake:328993032",
+    "lake:329022748"
+   ],
+   "sample_lost": []
+  },
+  "z5:daily_quotas::trout_char_quota.r3": {
+   "gained": 57,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328993028",
+    "lake:328993032",
+    "lake:329022748"
+   ],
+   "sample_lost": []
+  },
+  "z5:daily_quotas::trout_char_quota.r6": {
+   "gained": 57,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328993028",
+    "lake:328993032",
+    "lake:329022748"
+   ],
+   "sample_lost": []
+  },
+  "z5:daily_quotas::trout_char_quota.r8": {
+   "gained": 57,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328993028",
+    "lake:328993032",
+    "lake:329022748"
+   ],
+   "sample_lost": []
+  },
+  "z5:ice_fishing_huts::ice_fishing_huts.r1": {
+   "gained": 0,
+   "lost": 57,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328993028",
+    "lake:328993032",
+    "lake:329022748"
+   ]
+  },
+  "z5:no_minimum_size_lakes::no_minimum_size_lakes.r1": {
+   "gained": 0,
+   "lost": 57,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328993028",
+    "lake:328993032",
+    "lake:329022748"
+   ]
+  },
+  "z5:pelican_alert::pelican_alert.r1": {
+   "gained": 0,
+   "lost": 57,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328993028",
+    "lake:328993032",
+    "lake:329022748"
+   ]
+  },
+  "z5:pelican_alert::pelican_alert.r2": {
+   "gained": 0,
+   "lost": 57,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328993028",
+    "lake:328993032",
+    "lake:329022748"
+   ]
+  },
+  "z5:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 57,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328993028",
+    "lake:328993032",
+    "lake:329022748"
+   ],
+   "sample_lost": []
+  },
+  "z8:daily_quotas::species_quotas.r6": {
+   "gained": 50,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328947490",
+    "lake:328985783",
+    "lake:328985785",
+    "lake:329219298",
+    "lake:329460050"
+   ],
+   "sample_lost": []
+  },
+  "z8:daily_quotas::trout_char_quota.r3": {
+   "gained": 50,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328947490",
+    "lake:328985783",
+    "lake:328985785",
+    "lake:329219298",
+    "lake:329460050"
+   ],
+   "sample_lost": []
+  },
+  "z8:daily_quotas::trout_char_quota.r4": {
+   "gained": 50,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328947490",
+    "lake:328985783",
+    "lake:328985785",
+    "lake:329219298",
+    "lake:329460050"
+   ],
+   "sample_lost": []
+  },
+  "z8:daily_quotas::trout_char_quota.r5": {
+   "gained": 50,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328947490",
+    "lake:328985783",
+    "lake:328985785",
+    "lake:329219298",
+    "lake:329460050"
+   ],
+   "sample_lost": []
+  },
+  "z8:daily_quotas::trout_char_quota.r6": {
+   "gained": 50,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328947490",
+    "lake:328985783",
+    "lake:328985785",
+    "lake:329219298",
+    "lake:329460050"
+   ],
+   "sample_lost": []
+  },
+  "z8:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 50,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328947490",
+    "lake:328985783",
+    "lake:328985785",
+    "lake:329219298",
+    "lake:329460050"
+   ],
+   "sample_lost": []
+  },
+  "z8:spring_stream_closure::spring_stream_closure.r1": {
+   "gained": 50,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328947490",
+    "lake:328985783",
+    "lake:328985785",
+    "lake:329219298",
+    "lake:329460050"
+   ],
+   "sample_lost": []
+  },
+  "z3:daily_quotas::species_quotas.r5": {
+   "gained": 47,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329037419",
+    "lake:329037551",
+    "lake:329037566",
+    "lake:329037658",
+    "lake:329038076"
+   ],
+   "sample_lost": []
+  },
+  "z3:daily_quotas::trout_char_quota.r2": {
+   "gained": 47,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329037419",
+    "lake:329037551",
+    "lake:329037566",
+    "lake:329037658",
+    "lake:329038076"
+   ],
+   "sample_lost": []
+  },
+  "z3:daily_quotas::trout_char_quota.r5": {
+   "gained": 47,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329037419",
+    "lake:329037551",
+    "lake:329037566",
+    "lake:329037658",
+    "lake:329038076"
+   ],
+   "sample_lost": []
+  },
+  "z3:daily_quotas::trout_char_quota.r6": {
+   "gained": 47,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329037419",
+    "lake:329037551",
+    "lake:329037566",
+    "lake:329037658",
+    "lake:329038076"
+   ],
+   "sample_lost": []
+  },
+  "z3:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 47,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329037419",
+    "lake:329037551",
+    "lake:329037566",
+    "lake:329037658",
+    "lake:329038076"
+   ],
+   "sample_lost": []
+  },
+  "z3:spring_stream_closure::spring_stream_closure.r1": {
+   "gained": 47,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329037419",
+    "lake:329037551",
+    "lake:329037566",
+    "lake:329037658",
+    "lake:329038076"
+   ],
+   "sample_lost": []
+  },
+  "z5:spring_stream_closure::spring_stream_closure.r1": {
+   "gained": 40,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328964001",
+    "lake:329047926",
+    "lake:329048261",
+    "lake:329101128",
+    "lake:329128307"
+   ],
+   "sample_lost": []
+  },
+  "r7:williston_lake_in_zone_a_includes_waters_500_m_east_upstream@7-30+7-37+7-38::williston_lake.r4": {
+   "gained": 37,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329074177",
+    "lake:329103374",
+    "lake:329104026",
+    "lake:329104187",
+    "lake:329104327"
+   ],
+   "sample_lost": []
+  },
+  "z4:daily_quotas::species_quotas.r5": {
+   "gained": 18,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329094460",
+    "lake:329094751",
+    "lake:329124111",
+    "lake:329124121",
+    "lake:329220591"
+   ],
+   "sample_lost": []
+  },
+  "z4:daily_quotas::trout_char_quota.r3": {
+   "gained": 18,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329094460",
+    "lake:329094751",
+    "lake:329124111",
+    "lake:329124121",
+    "lake:329220591"
+   ],
+   "sample_lost": []
+  },
+  "z4:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 18,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329094460",
+    "lake:329094751",
+    "lake:329124111",
+    "lake:329124121",
+    "lake:329220591"
+   ],
+   "sample_lost": []
+  },
+  "z4:spring_stream_closure::spring_stream_closure.r1": {
+   "gained": 18,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329094460",
+    "lake:329094751",
+    "lake:329124111",
+    "lake:329124121",
+    "lake:329220591"
+   ],
+   "sample_lost": []
+  },
+  "z4:trout_char_winter_release::trout_char_winter_release.r1": {
+   "gained": 18,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329094460",
+    "lake:329094751",
+    "lake:329124111",
+    "lake:329124121",
+    "lake:329220591"
+   ],
+   "sample_lost": []
+  },
+  "z1:bait_ban_streams::bait_ban_streams.r1": {
+   "gained": 16,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329017035",
+    "lake:329070551",
+    "lake:329070852",
+    "lake:329162401",
+    "lake:329162522"
+   ],
+   "sample_lost": []
+  },
+  "z1:daily_quotas::species_quotas.r4": {
+   "gained": 16,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329017035",
+    "lake:329070551",
+    "lake:329070852",
+    "lake:329162401",
+    "lake:329162522"
+   ],
+   "sample_lost": []
+  },
+  "z1:daily_quotas::trout_quota.r4": {
+   "gained": 16,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329017035",
+    "lake:329070551",
+    "lake:329070852",
+    "lake:329162401",
+    "lake:329162522"
+   ],
+   "sample_lost": []
+  },
+  "z1:daily_quotas::trout_quota.r5": {
+   "gained": 16,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329017035",
+    "lake:329070551",
+    "lake:329070852",
+    "lake:329162401",
+    "lake:329162522"
+   ],
+   "sample_lost": []
+  },
+  "z1:daily_quotas::trout_quota.r6": {
+   "gained": 16,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329017035",
+    "lake:329070551",
+    "lake:329070852",
+    "lake:329162401",
+    "lake:329162522"
+   ],
+   "sample_lost": []
+  },
+  "z1:mercury_advisory::mercury_advisory.r1": {
+   "gained": 0,
+   "lost": 16,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:329017035",
+    "lake:329070551",
+    "lake:329070852",
+    "lake:329162401",
+    "lake:329162522"
+   ]
+  },
+  "z1:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 16,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329017035",
+    "lake:329070551",
+    "lake:329070852",
+    "lake:329162401",
+    "lake:329162522"
+   ],
+   "sample_lost": []
+  },
+  "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31::peace_river.r2": {
+   "gained": 13,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328976868",
+    "lake:329297113",
+    "lake:329298057",
+    "lake:329298094",
+    "lake:329626149"
+   ],
+   "sample_lost": []
+  },
+  "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31::peace_river.r3": {
+   "gained": 13,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328976868",
+    "lake:329297113",
+    "lake:329298057",
+    "lake:329298094",
+    "lake:329626149"
+   ],
+   "sample_lost": []
+  },
+  "zp:steelhead::steelhead.r1b": {
+   "gained": 0,
+   "lost": 13,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:329022748",
+    "lake:329024895",
+    "lake:329068120",
+    "lake:329603825",
+    "lake:329604368"
+   ]
+  },
+  "zp:steelhead::steelhead.r2b": {
+   "gained": 0,
+   "lost": 13,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:329022748",
+    "lake:329024895",
+    "lake:329068120",
+    "lake:329603825",
+    "lake:329604368"
+   ]
+  },
+  "zp:steelhead::steelhead.r4b": {
+   "gained": 0,
+   "lost": 13,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:329022748",
+    "lake:329024895",
+    "lake:329068120",
+    "lake:329603825",
+    "lake:329604368"
+   ]
+  },
+  "z6:iskut_fraser_closure::iskut_fraser_closure.r2": {
+   "gained": 12,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329077199",
+    "lake:329152937",
+    "lake:329153410",
+    "lake:329319552",
+    "lake:329319900"
+   ],
+   "sample_lost": []
+  },
+  "r6:skeena_river@6-10::skeena_river.r1": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328974096",
+    "lake:329030585",
+    "lake:329030607",
+    "lake:329031154",
+    "lake:329066047"
+   ],
+   "sample_lost": []
+  },
+  "r8:similkameen_river@8-2::similkameen_river.r1": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329520533",
+    "lake:329521314",
+    "lake:329521931",
+    "lake:329522001",
+    "lake:329522005"
+   ],
+   "sample_lost": []
+  },
+  "r8:similkameen_river@8-2::similkameen_river.r2": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329520533",
+    "lake:329521314",
+    "lake:329521931",
+    "lake:329522001",
+    "lake:329522005"
+   ],
+   "sample_lost": []
+  },
+  "r8:similkameen_river@8-2::similkameen_river.r3": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329520533",
+    "lake:329521314",
+    "lake:329521931",
+    "lake:329522001",
+    "lake:329522005"
+   ],
+   "sample_lost": []
+  },
+  "z2:daily_quotas::species_quotas.r5": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329292366",
+    "lake:329292514",
+    "lake:329292824",
+    "lake:329293089",
+    "lake:329522075"
+   ],
+   "sample_lost": []
+  },
+  "z2:daily_quotas::trout_char_quota.r4": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329292366",
+    "lake:329292514",
+    "lake:329292824",
+    "lake:329293089",
+    "lake:329522075"
+   ],
+   "sample_lost": []
+  },
+  "z2:daily_quotas::trout_char_quota.r6": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329292366",
+    "lake:329292514",
+    "lake:329292824",
+    "lake:329293089",
+    "lake:329522075"
+   ],
+   "sample_lost": []
+  },
+  "z2:daily_quotas::trout_char_quota.r7": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329292366",
+    "lake:329292514",
+    "lake:329292824",
+    "lake:329293089",
+    "lake:329522075"
+   ],
+   "sample_lost": []
+  },
+  "z2:daily_quotas::trout_char_quota.r8": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329292366",
+    "lake:329292514",
+    "lake:329292824",
+    "lake:329293089",
+    "lake:329522075"
+   ],
+   "sample_lost": []
+  },
+  "z2:daily_quotas::trout_char_quota.r9": {
+   "gained": 0,
+   "lost": 11,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:329292366",
+    "lake:329292514",
+    "lake:329292824",
+    "lake:329293089",
+    "lake:329522075"
+   ]
+  },
+  "z2:hatchery_steelhead_stop::hatchery_steelhead_stop.r1": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329292366",
+    "lake:329292514",
+    "lake:329292824",
+    "lake:329293089",
+    "lake:329522075"
+   ],
+   "sample_lost": []
+  },
+  "z2:single_barbless_hook::single_barbless_hook.r1": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329292366",
+    "lake:329292514",
+    "lake:329292824",
+    "lake:329293089",
+    "lake:329522075"
+   ],
+   "sample_lost": []
+  },
+  "z6:skeena_nass_bait_ban::skeena_nass_bait_ban.r1": {
+   "gained": 11,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328974096",
+    "lake:329030585",
+    "lake:329030607",
+    "lake:329031154",
+    "lake:329066047"
+   ],
+   "sample_lost": []
+  },
+  "z5:daily_quotas::trout_char_quota.r6b": {
+   "gained": 0,
+   "lost": 9,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:329022748",
+    "lake:329024895",
+    "lake:329603825",
+    "lake:329604368",
+    "lake:329605751"
+   ]
+  },
+  "z6:steelhead_stream_closure::steelhead_stream_closure.r2": {
+   "gained": 9,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328971485",
+    "lake:329190940",
+    "lake:329191044",
+    "lake:329191130",
+    "lake:329394198"
+   ],
+   "sample_lost": []
+  },
+  "z6:skeena_nass_winter_closure::skeena_nass_winter_closure.r1": {
+   "gained": 7,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329030585",
+    "lake:329030607",
+    "lake:329031154",
+    "lake:329066047",
+    "lake:329066410"
+   ],
+   "sample_lost": []
+  },
+  "r6:nass_river@6-30::nass_river.r1": {
+   "gained": 5,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328977754",
+    "lake:329263924",
+    "lake:329643789",
+    "lake:329644091",
+    "lake:329644257"
+   ],
+   "sample_lost": []
+  },
+  "z6:skeena_nass_bait_ban::skeena_nass_bait_ban.r2": {
+   "gained": 5,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328977754",
+    "lake:329263924",
+    "lake:329643789",
+    "lake:329644091",
+    "lake:329644257"
+   ],
+   "sample_lost": []
+  },
+  "r4:skookumchuck_creek@4-20::skookumchuck_creek.r2": {
+   "gained": 4,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329524675",
+    "lake:329525036",
+    "lake:329525527",
+    "lake:329525603"
+   ],
+   "sample_lost": []
+  },
+  "r4:skookumchuck_creek@4-20::skookumchuck_creek.r3": {
+   "gained": 4,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329524675",
+    "lake:329525036",
+    "lake:329525527",
+    "lake:329525603"
+   ],
+   "sample_lost": []
+  },
+  "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1": {
+   "gained": 4,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329482732",
+    "lake:329482825",
+    "lake:329482837",
+    "lake:329483189"
+   ],
+   "sample_lost": []
+  },
+  "r7:halfway_river@7-34::halfway_river.r2": {
+   "gained": 4,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329626149",
+    "lake:329626152",
+    "lake:329626156",
+    "lake:329626484"
+   ],
+   "sample_lost": []
+  },
+  "r7:halfway_river@7-34::halfway_river.r3": {
+   "gained": 4,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329626149",
+    "lake:329626152",
+    "lake:329626156",
+    "lake:329626484"
+   ],
+   "sample_lost": []
+  },
+  "z6:daily_quotas::trout_char_quota.r9b": {
+   "gained": 0,
+   "lost": 4,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:329068120",
+    "lake:329643789",
+    "lake:329644091",
+    "lake:329644257"
+   ]
+  },
+  "z6:skeena_nass_winter_closure::skeena_nass_winter_closure.r2": {
+   "gained": 4,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329263924",
+    "lake:329643789",
+    "lake:329644091",
+    "lake:329644257"
+   ],
+   "sample_lost": []
+  },
+  "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1": {
+   "gained": 3,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329247381",
+    "lake:329247475",
+    "lake:329247506"
+   ],
+   "sample_lost": []
+  },
+  "r6:bulkley_river@6-9::bulkley_river.r1": {
+   "gained": 3,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329066047",
+    "lake:329066410",
+    "lake:329068120"
+   ],
+   "sample_lost": []
+  },
+  "r6:bulkley_river@6-9::bulkley_river.r3": {
+   "gained": 3,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329066047",
+    "lake:329066410",
+    "lake:329068120"
+   ],
+   "sample_lost": []
+  },
+  "r1:eve_river@1-10::eve_river.r1": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329575816",
+    "lake:329576423"
+   ],
+   "sample_lost": []
+  },
+  "r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r10": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329220591",
+    "lake:329220975"
+   ],
+   "sample_lost": []
+  },
+  "r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r12": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329220591",
+    "lake:329220975"
+   ],
+   "sample_lost": []
+  },
+  "r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r13": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329220591",
+    "lake:329220975"
+   ],
+   "sample_lost": []
+  },
+  "r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r14": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329220591",
+    "lake:329220975"
+   ],
+   "sample_lost": []
+  },
+  "r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r3": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329220591",
+    "lake:329220975"
+   ],
+   "sample_lost": []
+  },
+  "r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r4": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329220591",
+    "lake:329220975"
+   ],
+   "sample_lost": []
+  },
+  "r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r5": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329220591",
+    "lake:329220975"
+   ],
+   "sample_lost": []
+  },
+  "r5:dean_river@5-9::dean_river.r1": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328993028",
+    "lake:328993032"
+   ],
+   "sample_lost": []
+  },
+  "r5:dean_river@5-9::dean_river.r7": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328993028",
+    "lake:328993032"
+   ],
+   "sample_lost": []
+  },
+  "r5:moffat_creek@5-2::moffat_creek.r1x": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329186967",
+    "lake:329187130"
+   ],
+   "sample_lost": []
+  },
+  "r6:kitsumkalum_kalum_river@6-15::kitsumkalum_river.r2": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328974096",
+    "lake:329243155"
+   ],
+   "sample_lost": []
+  },
+  "r6:kitsumkalum_kalum_river@6-15::kitsumkalum_river.r5": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328974096",
+    "lake:329243155"
+   ],
+   "sample_lost": []
+  },
+  "r7:burnt_river@7-22::burnt_river.r1": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329474471",
+    "lake:329476456"
+   ],
+   "sample_lost": []
+  },
+  "r7:burnt_river@7-22::burnt_river.r2": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329474471",
+    "lake:329476456"
+   ],
+   "sample_lost": []
+  },
+  "r7:moberly_river@7-32::moberly_river.r1": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329660135",
+    "lake:329660366"
+   ],
+   "sample_lost": []
+  },
+  "r7:moberly_river@7-32::moberly_river.r2": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329660135",
+    "lake:329660366"
+   ],
+   "sample_lost": []
+  },
+  "r7:willow_river@7-9::willow_river.r1": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329678016",
+    "lake:329678081"
+   ],
+   "sample_lost": []
+  },
+  "r7:willow_river@7-9::willow_river.r2": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329678016",
+    "lake:329678081"
+   ],
+   "sample_lost": []
+  },
+  "z1:summer_stream_closure::summer_stream_closure.r1": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329070551",
+    "lake:329677051"
+   ],
+   "sample_lost": []
+  },
+  "z5:steelhead_management::steelhead_management.r1": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329280891",
+    "lake:329281503"
+   ],
+   "sample_lost": []
+  },
+  "r1:ash_river@1-7::ash_river.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329017035"
+   ],
+   "sample_lost": []
+  },
+  "r1:campbell_river@1-10::campbell_river.r4": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329070551"
+   ],
+   "sample_lost": []
+  },
+  "r1:lower_campbell_lake_s_tributaries@1-6::campbell_lake_s_tributaries.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329070551"
+   ],
+   "sample_lost": []
+  },
+  "r1:mohun_creek@1-10::mohun_creek.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329501162"
+   ],
+   "sample_lost": []
+  },
+  "r1:mohun_creek@1-10::mohun_creek.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329501162"
+   ],
+   "sample_lost": []
+  },
+  "r1:stamp_river@1-7::stamp_river.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329017035"
+   ],
+   "sample_lost": []
+  },
+  "r2:brothers_creek@2-8::brothers_creek.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329533623"
+   ],
+   "sample_lost": []
+  },
+  "r2:campbell_river@2-4::campbell_river.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329293089"
+   ],
+   "sample_lost": []
+  },
+  "r2:campbell_river@2-4::campbell_river.r4": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329293089"
+   ],
+   "sample_lost": []
+  },
+  "r2:capilano_river@2-8::capilano_river.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329533623"
+   ],
+   "sample_lost": []
+  },
+  "r2:capilano_river@2-8::capilano_river.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329533623"
+   ],
+   "sample_lost": []
+  },
+  "r2:little_muddy_creek@2-1::little_muddy_creek.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329522590"
+   ],
+   "sample_lost": []
+  },
+  "r2:noons_creek@2-8::noons_creek.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329533315"
+   ],
+   "sample_lost": []
+  },
+  "r2:skagit_river_boundary_between_skagit_river_and_ross_lake_is@2-2::skagit_river.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329523019"
+   ],
+   "sample_lost": []
+  },
+  "r2:skagit_river_boundary_between_skagit_river_and_ross_lake_is@2-2::skagit_river.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329523019"
+   ],
+   "sample_lost": []
+  },
+  "r2:skagit_river_boundary_between_skagit_river_and_ross_lake_is@2-2::skagit_river.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329523019"
+   ],
+   "sample_lost": []
+  },
+  "r2:squamish_river@2-6::squamish_river.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329532980"
+   ],
+   "sample_lost": []
+  },
+  "r2:squamish_river_s_tributaries@2-6::squamish_river_tributaries.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329532980"
+   ],
+   "sample_lost": []
+  },
+  "r3:nicola_river@3-13::nicola_river.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329318173"
+   ],
+   "sample_lost": []
+  },
+  "r3:nicola_river@3-13::nicola_river.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329318173"
+   ],
+   "sample_lost": []
+  },
+  "r3:nicola_river@3-13::nicola_river.r3x": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329318173"
+   ],
+   "sample_lost": []
+  },
+  "r3:nicola_river@3-13::nicola_river.r4": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329318173"
+   ],
+   "sample_lost": []
+  },
+  "r3:nicola_river@3-13::nicola_river.r5": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329318173"
+   ],
+   "sample_lost": []
+  },
+  "r4:columbia_lake_s_tributaries@4-25::columbia_lake_s_tributaries.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329094460"
+   ],
+   "sample_lost": []
+  },
+  "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23::elk_river_s_tributaries.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329124121"
+   ],
+   "sample_lost": []
+  },
+  "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23::elk_river_s_tributaries.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329124121"
+   ],
+   "sample_lost": []
+  },
+  "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23::elk_river_s_tributaries.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329124121"
+   ],
+   "sample_lost": []
+  },
+  "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23::elk_river_s_tributaries.r4": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329124121"
+   ],
+   "sample_lost": []
+  },
+  "r4:st_mary_river@4-20::st_mary_river.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329525552"
+   ],
+   "sample_lost": []
+  },
+  "r4:st_mary_river@4-20::st_mary_river.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329525552"
+   ],
+   "sample_lost": []
+  },
+  "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934"
+   ],
+   "sample_lost": []
+  },
+  "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r12": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934"
+   ],
+   "sample_lost": []
+  },
+  "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934"
+   ],
+   "sample_lost": []
+  },
+  "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934"
+   ],
+   "sample_lost": []
+  },
+  "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934"
+   ],
+   "sample_lost": []
+  },
+  "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934"
+   ],
+   "sample_lost": []
+  },
+  "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r9": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934"
+   ],
+   "sample_lost": []
+  },
+  "r5:fraser_river@5-2::fraser_river.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329101166"
+   ],
+   "sample_lost": []
+  },
+  "r5:fraser_river@5-2::fraser_river.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329101166"
+   ],
+   "sample_lost": []
+  },
+  "r5:fraser_river@5-2::fraser_river.r4": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329101166"
+   ],
+   "sample_lost": []
+  },
+  "r5:fraser_river@5-2::fraser_river.r5": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329101166"
+   ],
+   "sample_lost": []
+  },
+  "r5:klinaklini_river@5-6::klinaklini_river.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329239450"
+   ],
+   "sample_lost": []
+  },
+  "r6:telkwa_river@6-9::telkwa_river.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329066047"
+   ],
+   "sample_lost": []
+  },
+  "r6:telkwa_river@6-9::telkwa_river.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329066047"
+   ],
+   "sample_lost": []
+  },
+  "r6:zymoetz_copper_river@6-9::zymoetz_river.r10": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329683562"
+   ],
+   "sample_lost": []
+  },
+  "r6:zymoetz_copper_river@6-9::zymoetz_river.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329683562"
+   ],
+   "sample_lost": []
+  },
+  "r6:zymoetz_copper_river@6-9::zymoetz_river.r4": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329683562"
+   ],
+   "sample_lost": []
+  },
+  "r7:bowron_river@7-7::bowron_river.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329059353"
+   ],
+   "sample_lost": []
+  },
+  "r7:bowron_river@7-7::bowron_river.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329059353"
+   ],
+   "sample_lost": []
+  },
+  "r7:finlay_river@7-40::finlay_river.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329136630"
+   ],
+   "sample_lost": []
+  },
+  "r7:salmon_river@7-15::salmon_river.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329345036"
+   ],
+   "sample_lost": []
+  },
+  "r8:kettle_river_s_tributaries@8-14::kettle_river_s_tributaries.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329219298"
+   ],
+   "sample_lost": []
+  },
+  "r8:kettle_river_s_tributaries@8-14::kettle_river_s_tributaries.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329219298"
+   ],
+   "sample_lost": []
+  },
+  "r8:kettle_river_s_tributaries@8-14::kettle_river_s_tributaries.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329219298"
+   ],
+   "sample_lost": []
+  }
+ },
+ "unresolved": {},
+ "licensing": {
+  "zp:steelhead::steelhead_targeting": {
+   "gained": 289,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328962934",
+    "lake:328964001",
+    "lake:328971485",
+    "lake:328973716",
+    "lake:328974096"
+   ],
+   "sample_lost": []
+  },
+  "zp:steelhead::steelhead_targeting_known": {
+   "gained": 0,
+   "lost": 13,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "lake:329022748",
+    "lake:329024895",
+    "lake:329068120",
+    "lake:329603825",
+    "lake:329604368"
+   ]
+  },
+  "r5:dean_river@5-9::dean_river_class_ii_upper": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328993028",
+    "lake:328993032"
+   ],
+   "sample_lost": []
+  },
+  "r4:fording_river_downstream_of_josephine_falls@4-23::elk_river": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329124121"
+   ],
+   "sample_lost": []
+  },
+  "r4:st_mary_river@4-20::st_mary_river": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329525552"
+   ],
+   "sample_lost": []
+  },
+  "r6:telkwa_river@6-9::telkwa_river": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329066047"
+   ],
+   "sample_lost": []
+  },
+  "r6:zymoetz_copper_river@6-9::zymoetz_river_b": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329683562"
+   ],
+   "sample_lost": []
+  }
+ }
+}
