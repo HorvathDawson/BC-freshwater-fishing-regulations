@@ -141,11 +141,11 @@ def test_a_run_of_confirmed_polygons_folds_as_one():
 
 def test_a_confirmed_lake_item_is_absorbed_but_never_split():
     g, reg = _creek()
-    reg = dict(reg, **{"wbk:5": _item("wbk:5", "Five Pond", "lake", ["lake:5"])})
+    reg = dict(reg, **{"wbk:5": _item("wbk:5", "X Creek", "lake", ["lake:5"], variants=["Five Pond"])})
     out = fold_confirmed_sloughs(reg, g, {"5"})
     assert "wbk:5" not in out and "wbk:5" in out["gnis:1"].aliases and "Five Pond" in out["gnis:1"].variants
     # the item holds an unconfirmed polygon too -> ignored, nothing split
-    reg2 = dict(reg, **{"wbk:5": _item("wbk:5", "Five Pond", "lake", ["lake:5", "lake:6"])})
+    reg2 = dict(reg, **{"wbk:5": _item("wbk:5", "X Creek", "lake", ["lake:5", "lake:6"])})
     rep: dict = {}
     assert fold_confirmed_sloughs(reg2, g, {"5"}, rep) == reg2
     assert rep["rows"][0]["why"].startswith("item not confirmed")
@@ -269,3 +269,20 @@ def test_the_gate_allows_a_creek_that_reaches_its_stream_through_a_folded_polygo
     after = rows(("e1", "x", "x1", "reach"), ("e1", "x", "y1", "trib"))
     n, kept = violations(before, after, allowed, via, [])
     assert n == 1 and kept[0]["section"] == "y1"
+
+
+def test_a_water_of_another_name_is_never_absorbed():
+    """Owner 2026-11-03: an Okanagan River Oxbow touching Park Rill stays its own water (a stream in place), so the
+    oxbows' rule never spreads over the rill. Mutation: drop the name check -> red."""
+    g, reg = _creek()
+    reg = dict(reg, **{"wbk:5": _item("wbk:5", "OXBOWS", "lake", ["lake:5"])})
+    rep: dict = {}
+    out = fold_confirmed_sloughs(reg, g, {"5"}, rep)
+    assert set(out) == set(reg)
+    assert out["wbk:5"].kind == "stream" and out["wbk:5"].section_ids == ("lake:5",)
+    assert "lake:5" not in out["gnis:1"].section_ids and "wbk:5" not in out["gnis:1"].aliases
+    assert rep["rows"][0]["via"] == "own name (touches gnis:1)"
+    # the same polygon under the stream's own name still joins it
+    reg["wbk:5"] = _item("wbk:5", "X Creek", "lake", ["lake:5"])
+    out = fold_confirmed_sloughs(reg, g, {"5"}, {})
+    assert "lake:5" in out["gnis:1"].section_ids and "wbk:5" not in out

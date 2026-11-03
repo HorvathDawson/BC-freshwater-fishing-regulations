@@ -475,6 +475,8 @@ def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, repor
         isolated item  no line touches it but a lake / wetland item holds it (the 31 OKANAGAN RIVER OXBOWS, owner
                      2026-10-30: "general streams") -> that item is re-kinded `stream` in place: zone / region stream
                      rules reach it, no named river's do, nothing new is made
+        own name     the item holding it carries ANOTHER name than the stream it touches (owner 2026-11-03: the oxbow
+                     on Park Rill) -> re-kinded `stream` in place, never absorbed, so its rules stay on it
     Joining a stream: the polygons become its sections and a lake / wetland item that held them is absorbed (an alias,
     as the flowing fold does). Everything else is left exactly as it was, and listed with why:
         isolated               no line touches it and no item holds it (skipped by the rule)
@@ -595,6 +597,15 @@ def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, repor
                     if b.kind == "lake" and b.wbk in mine and b.aliases]
             if lost:
                 why = f"cut on its edge: {sorted(set(lost))}"
+        if not why and tgt and items:
+            # owner 2026-11-03: a water of ANOTHER name is never absorbed (an Okanagan River Oxbow touching Park Rill:
+            # the oxbows' rule would spread over the rill) -> it is a stream in place, as an isolated item is
+            names = {key(n) for n in (registry[tgt].name, *registry[tgt].variants)}
+            if any(key(registry[i].name) not in names for i in items):
+                if all(m in owner for m in members):
+                    via, tgt = f"own name (touches {tgt})", ""
+                else:
+                    why = f"own name, partly unheld (touches {tgt})"
         if not why and not tgt:                      # unnamed line / isolated item: each item holding it is a stream now
             for i in items:
                 it = out[i]
