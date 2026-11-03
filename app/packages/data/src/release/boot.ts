@@ -246,11 +246,14 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   /** (T272) A first run's last install progress, and its second stage's open steps (none on a later launch). */
   let last: Progress | null = null;
   let openStep: (done: number) => void = () => {};
+  // no manifest is normal offline (the held set opens), but WHY is kept: a first run says it, a later one logs it
+  let unread = null as string | null;
   const latest = await timeout(loadManifest(o.manifestUrl, undefined, f), o.manifestTimeoutMs ?? 5000)
-    .catch(() => null);
+    .catch((e: unknown) => { unread = e instanceof Error ? e.message : String(e); return null; });
+  if (unread) console.warn(`[boot] the manifest could not be read: ${unread}`);
   const allowed = (m: Manifest) => !o.appVersion || releaseAllowed(m.minAppVersion, o.appVersion).ok;
   if (!held) {
-    if (!latest) throw new BootError("first run: the manifest could not be read", true);
+    if (!latest) throw new BootError(`first run: the manifest could not be read (${unread ?? "no answer"})`, true);
     if (!allowed(latest)) throw new BootError(UPDATE_WORDS.row.appTooOld);
     // (T298) every big file handed to the system's downloader BEFORE anything else downloads, so closing the app a moment
     // later still fetches all of them; on mobile data the reader's setting decides first (ask / go / wait for Wi-Fi)

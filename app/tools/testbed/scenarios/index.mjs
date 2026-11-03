@@ -19,5 +19,7 @@ import { locate } from './locate.mjs';
 import { gestures } from './gestures.mjs';
 import { walkthrough } from './walkthrough.mjs';
 import { gaugeOffline } from './gauge-offline.mjs';
+import { memory } from './memory.mjs';
+import { waterNav } from './water-nav.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav];

@@ -30,7 +30,7 @@ const targets = (ctx) => ctx.device.logcatJs().split('\n').filter((l) => l.inclu
   .map((l) => { try { return JSON.parse(l.slice(l.indexOf('[target] ') + 9)); } catch { return null; } }).filter(Boolean);
 
 /** Wait until the camera has rested (no new `[target]` for `quietMs`), then the last one as a screen pixel. */
-async function settledTarget(ctx, ms = 30_000, quietMs = 5000) {
+export async function settledTarget(ctx, ms = 30_000, quietMs = 5000) {
   const end = Date.now() + ms;
   let n = 0, since = Date.now();
   while (Date.now() < end) {

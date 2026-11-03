@@ -338,13 +338,13 @@ const SCENARIOS = [
           if (!w.some((x) => /Loading the synopsis|^\d+%$/.test(x))) break;
         }
         shot(ctx, 'pdf');
+        // (T354) the app's own viewer (PDFKit): "Page N of M" in its header, or its failure face
         if (w.some((x) => /Couldn.t load the synopsis/.test(x))) throw new Error('"Couldn’t load the synopsis."');
-        const noViewer = w.find((x) => /No app on this device opens PDFs/.test(x));
-        if (noViewer) throw new Error(noViewer);
-        const pdf = w.find((x) => /synopsis[^ ]*\.pdf|\.pdf$|PDF Document|Rule book|Fishing Synopsis/i.test(x) && !/↗/.test(x));
-        const share = w.find((x) => /^(Copy|Save to Files|AirDrop|Messages|Mail)$/.test(x));
-        if (share) return `a share sheet, not the PDF (${share}): see shot`;
-        return pdf ? `shown: ${pdf}` : `see shot (words: ${w.slice(0, 6).join(' | ').slice(0, 200)})`;
+        const failed = w.find((x) => /Couldn.t show the rule book here/.test(x));
+        if (failed) throw new Error(failed);
+        const page = w.find((x) => /^Page \d+ of \d+$/.test(x));
+        if (!page) throw new Error(`the in-app viewer did not open (words: ${w.slice(0, 6).join(' | ').slice(0, 200)})`);
+        return `shown in the app: ${page}`;
       });
     } },
   { id: 'perf', title: 'Performance, the Android measures (T245 / T286 / T273): cold start → map drawn, a map tap → its page, pan; memory',

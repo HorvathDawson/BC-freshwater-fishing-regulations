@@ -33,7 +33,7 @@ const dir = OUTDIR ?? path.join(HERE, 'out', 'runs', stamp);
 fs.mkdirSync(dir, { recursive: true });
 const run = {
   id: stamp, started: new Date().toISOString(), device: `${device.serial()} · ${device.sh('getprop ro.product.model').trim()} · Android ${device.sh('getprop ro.build.version.release').trim()}`,
-  apk: 'app/tools/testbed/out/app-testbed.apk (release, staging, channel test, env switch on)', channel: 'test (staging test/)',
+  apk: process.env.TESTBED_ENV === 'local' ? 'app/tools/testbed/out/app-testbed-local.apk (release, LOCAL data :39217, env switch on)' : 'app/tools/testbed/out/app-testbed.apk (release, staging, channel test, env switch on)', channel: 'test (staging test/)',
   sync: SYNC, scenarios: [],
 };
 // (batches) a run into a folder that already holds a report adds its scenarios to it: one report for several heavy jobs
@@ -150,7 +150,8 @@ for (const sc of SCENARIOS.filter((s) => want.includes(s.id))) {
   writeReport(dir, run);
   if (ctx.rec.result === 'fail' && !KEEP_GOING && want.length > 1) console.log('  (continuing with the next scenario; each starts from a clean app)');
 }
-try { updates('reset'); } catch (e) { console.log(`[testbed] reset of test/ failed: ${e.message}`); }
+// a `session.sh --local` APK reads this machine's release: staging's test channel is not touched
+if (process.env.TESTBED_ENV !== 'local') try { updates('reset'); } catch (e) { console.log(`[testbed] reset of test/ failed: ${e.message}`); }
 run.finished = new Date().toISOString();
 writeReport(dir, run);
 const bad = run.scenarios.filter((s) => s.result === 'fail');

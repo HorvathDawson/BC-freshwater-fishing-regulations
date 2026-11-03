@@ -6,6 +6,9 @@
 #
 #   --build        rebuild the APK (else reuse app/tools/testbed/out/app-testbed.apk when it exists)
 #   --max-min N    the command's wall-clock cap (default 45): past it the command is stopped and the session ends
+#   --local        (T354/T360) build/run an APK reading THIS machine's data server (`pnpm tiles`, :39217, as 10.0.2.2:
+#                  the emulator's own name for this machine)
+#                  instead of staging: for a release that is promoted locally but not uploaded (SALMON_NEEDS)
 #   -- <command>   run it with the emulator up (e.g. `node app/tools/testbed/run.mjs feeds offline`), then shut down
 #
 # BOUNDED, NEVER IDLE (coordinator 2026-10-29): one scenario batch per heavy.sh job; the lock is released between
@@ -16,17 +19,18 @@ set -u
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../.." && pwd)
 OUT="$HERE/out"; mkdir -p "$OUT"
-APK="$OUT/app-testbed.apk"
 AVD=${TESTBED_AVD:-n1_pixel}
-BUILD=0; MAX_MIN=45; CMD=()
+BUILD=0; MAX_MIN=45; CMD=(); ENV=staging
 while (( $# )); do
   case $1 in
     --build) BUILD=1 ;;
+    --local) ENV=local ;;
     --max-min) MAX_MIN=$2; shift ;;
     --) shift; CMD=("$@"); break ;;
     *) echo "session.sh: unknown $1" >&2; exit 2 ;;
   esac; shift
 done
+APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local).apk"
 export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Contents/Home"}
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.maestro/maestro/bin:$PATH"
@@ -51,12 +55,21 @@ if (( BUILD )) || [[ ! -f $APK ]]; then
   log "building the APK"
   cd "$ROOT/app/apps/mobile"
   ../../node_modules/.bin/expo prebuild --platform android --no-install >"$OUT/prebuild.log" 2>&1 || { log "prebuild failed (out/prebuild.log)"; exit 1; }
+  # --local reads http://localhost:39217: a release build refuses cleartext unless the manifest allows it. Patched AFTER
+  # prebuild (which regenerates android/), so it never reaches a store build.
+  if [[ $ENV == local ]]; then
+    sed -i '' 's/<application /<application android:usesCleartextTraffic="true" /' android/app/src/main/AndroidManifest.xml
+    grep -q 'usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml || { log "--local: cleartext patch failed"; exit 1; }
+  fi
   # the JS bundle task does not see EXPO_PUBLIC_* as inputs: a bundle made with another env must not be reused
   rm -rf android/app/build/generated/assets/createBundleReleaseJsAndAssets android/app/build/generated/res/createBundleReleaseJsAndAssets \
          android/app/build/intermediates/assets/release
   touch "$OUT/gradle-used"
+  CHANNEL=test
+  # --local: the emulator's name for this machine, and no update channel (the test channel is staging's `test/` prefix)
+  if [[ $ENV == local ]]; then export EXPO_PUBLIC_DATA_BASE=http://10.0.2.2:39217; CHANNEL=; fi
   t0=$(date +%s)
-  ( cd android && EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_UPDATE_CHANNEL=test EXPO_PUBLIC_PAN_PROBE=1 EXPO_PUBLIC_TEST_REPORTS=1 \
+  ( cd android && EXPO_PUBLIC_APP_ENV=$ENV EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_UPDATE_CHANNEL=$CHANNEL EXPO_PUBLIC_PAN_PROBE=1 EXPO_PUBLIC_TEST_REPORTS=1 \
       ./gradlew app:assembleRelease --max-workers=4 -PreactNativeArchitectures=arm64-v8a -x lint ) >"$OUT/gradle.log" 2>&1 \
     || { log "gradle failed (out/gradle.log)"; tail -30 "$OUT/gradle.log"; exit 1; }
   cp android/app/build/outputs/apk/release/app-release.apk "$APK"
@@ -80,12 +93,16 @@ log "booted"
 adb -s "$SERIAL" shell cmd connectivity airplane-mode disable >/dev/null 2>&1   # the AVD was left in airplane mode by N1
 adb -s "$SERIAL" shell svc wifi enable; adb -s "$SERIAL" shell svc data enable
 adb -s "$SERIAL" install -r "$APK" >/dev/null && log "installed $APK"
+if [[ $ENV == local ]]; then
+  curl -sf -o /dev/null http://localhost:39217/release/LATEST || { log "--local: no data server on :39217 (pnpm tiles)"; exit 1; }
+  log "local data: http://10.0.2.2:39217 (this machine)"
+fi
 
 # 3. THE BATCH (capped; no command: build/boot/install only, then shut down)
 (( ${#CMD[@]} )) || { log "no command: built/booted/installed only"; exit 0; }
 log "running (cap ${MAX_MIN} min): ${CMD[*]}"
 set -m
-TESTBED_SERIAL=$SERIAL "${CMD[@]}" &
+TESTBED_SERIAL=$SERIAL TESTBED_ENV=$ENV "${CMD[@]}" &
 job=$!
 end=$(( $(date +%s) + MAX_MIN * 60 ))
 while kill -0 $job 2>/dev/null; do

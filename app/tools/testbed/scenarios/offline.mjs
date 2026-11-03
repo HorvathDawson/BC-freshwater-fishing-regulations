@@ -27,25 +27,27 @@ export const offline = {
       if (stuck) throw new Error(`the installed set should answer offline: "${stuck}"`);
       return words.find((w) => /Open|Closed|open|closed/.test(w)) ?? 'regulations drawn';
     });
-    // (T238/T285) the rule book came with the first install: a "Rule book p.N ↗" link opens it offline — a PDF app in
-    // front, or (an emulator with none) the "No app on this device opens PDFs" card; never "Couldn't load the synopsis."
+    // (T238/T285/T354) the rule book came with the first install: a "Rule book p.N ↗" link opens it offline in the app's
+    // own viewer (testID pdf-viewer, "Page N of M"); never "Couldn't load the synopsis." nor the viewer's failure face
     await ctx.step('the rule book opens offline (a "Rule book p.N ↗" link on the page)', async () => {
       ctx.flow('scroll-to', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
-      ctx.device.logcatClear();
       ctx.flow('tap-text', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
-      await ctx.device.sleep(5000);
-      const front = ctx.device.sh('dumpsys activity activities | grep -m1 -E "mResumedActivity|topResumedActivity"').trim();
-      const words = ctx.device.screenText();
+      let words = [];
+      for (let i = 0; i < 30; i++) {
+        await ctx.device.sleep(1000);
+        words = ctx.device.screenText();
+        if (words.some((w) => /^Page \d+ of \d+$|Couldn.t (show|load)/.test(w))) break;
+      }
       if (words.some((w) => /Couldn.t load the synopsis/.test(w))) throw new Error('the installed rule book did not open offline: "Couldn’t load the synopsis."');
       if (words.some((w) => /Loading the synopsis/.test(w))) throw new Error('the rule book is being downloaded offline (not held from the install)');
-      // a PDF viewer may open in the app's own task (Android's viewer: "synopsis-open.pdf" over the cover page)
-      const viewer = words.find((w) => /synopsis[^ ]*\.pdf/i.test(w));
-      const other = (front && !front.includes('ca.canifishthis.app')) || viewer;
-      const noViewer = words.find((w) => /No app on this device opens PDFs/.test(w));
-      if (!other && !noViewer) throw new Error(`nothing opened (front: ${front}; saw: ${words.slice(0, 8).join(' | ')})`);
+      const failed = words.find((w) => /Couldn.t show the rule book here/.test(w));
+      if (failed) throw new Error(`the in-app viewer failed: ${words.slice(words.indexOf(failed), words.indexOf(failed) + 2).join(' ')}`);
+      const page = words.find((w) => /^Page \d+ of \d+$/.test(w));
+      if (!page) throw new Error(`the in-app viewer did not open (saw: ${words.slice(0, 8).join(' | ')})`);
       ctx.device.sh('input keyevent KEYCODE_BACK');
       await ctx.device.sleep(1500);
-      return other ? `opened: ${viewer ?? front}` : `held offline; ${noViewer}`;
+      if (ctx.device.screenText().some((w) => /^Page \d+ of \d+$/.test(w))) throw new Error('back did not close the viewer');
+      return `opened in the app: ${page}`;
     });
     await ctx.step('a town offline: the waters near it (read from the installed set)', async () => {
       await toMap(ctx);
