@@ -996,11 +996,6 @@ export function quotaLine(q: SalmonQuota | null | undefined): Line | null {
     .map((x) => (x.node === "tier" ? tierWords(x) : kindWords(x.says, x.n)));
   return parts.flatMap((p, i) => (i ? [text(SALMON_WORDS.quota.sep), ...p] : [...p]));
 }
-/** (T320) `quotaLine`'s words: "4 a day · only 2 over 50 cm". */
-export function quotaWords(q: SalmonQuota | null | undefined): string | null {
-  const l = quotaLine(q);
-  return l ? lineText(l) : null;
-}
 const tableRows = (rows: readonly SalmonRowVM[]): SalmonTableRowVM[] =>
   SALMON_SPECIES.flatMap((code) => {
     const r = rows.find((x) => x.species.includes(code));
