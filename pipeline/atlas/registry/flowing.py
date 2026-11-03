@@ -458,7 +458,7 @@ def merge_flowing_polygons(registry: dict[str, RegistryItem], graph, polys: dict
 #: T322: fold the owner-CONFIRMED slough / canal polygons (`data/curated/waters/slough_calls.json`) in the atlas build
 #: and the sidecars. OFF until T322's own side build (after the 10-31 batch rebuild, which must not carry it): turn it
 #: on in that build's commit; the binding diff is reviewed before promote.
-FOLD_CONFIRMED = False
+FOLD_CONFIRMED = True
 
 
 def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, report: dict | None = None
