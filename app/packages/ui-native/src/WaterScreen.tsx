@@ -268,8 +268,11 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   }
 
   // No "Regulations" heading: the strip's selected view already says it.
+  // (T367, owner 2026-11-03) the wait in the middle of the pane, not in its top corner; a failure keeps the top
+  const waiting = !(!loader || regsError);
   const page = (
-    <WaterInset style={{ paddingTop: SPACE.s4, paddingBottom: 32 }}>
+    <WaterInset style={waiting ? { flex: 1, alignItems: "center", justifyContent: "center", paddingBottom: 32 }
+                               : { paddingTop: SPACE.s4, paddingBottom: 32 }}>
       {!loader || regsError
         ? <>
             {/* (T254) a dead line, not a refusal: ask again (and by itself when the device comes back online) */}
@@ -278,8 +281,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                         onRetry={regsRetry ? onRetry : undefined} retryLabel={NET_WORDS.part.retry} retryTestID="regs-retry" />
           </>
         : <>
-            <LoadingState palette={palette} size={64} label={WORDS.REGS_LOADING} shown={regsWait.shown} />
-            {regsWait.shown && <RegsWaiting palette={palette} align="left" />}
+            <LoadingState palette={palette} size={96} label={WORDS.REGS_LOADING} shown={regsWait.shown} />
+            {regsWait.shown && <RegsWaiting palette={palette} align="center" />}
           </>}
     </WaterInset>
   );
