@@ -200,7 +200,11 @@ export function useMapInstance(refs: WebMapRefs,
       (globalThis as { __map?: unknown }).__map = m;
     return () => {
       m.off("sourcedata", onTile); m.off("moveend", onMoveEnd);
-      unfollow(); m.remove(); map.current = null; colouring.current = null; renderer.current = null;
+      unfollow(); map.current = null; colouring.current = null; renderer.current = null;
+      // REMOVED LAST: this hook is declared first, so its cleanup runs before the other hooks' (markers, spots) clear
+      // their sources on the same map; removed now, their `getSource` found a map with no style and threw while a
+      // water's page opened (owner 2026-11-03, web). The commit's cleanups all run in one pass, then this.
+      queueMicrotask(() => m.remove());
     };
     // Deliberately keyed on the ARCHIVES only. `theme` and `view` are recoloured by the
     // look effect rather than by rebuilding the map, because remounting would drop the
