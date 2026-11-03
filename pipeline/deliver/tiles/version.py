@@ -103,10 +103,16 @@ def stamp(archive: Path, build_dir: Path) -> str:
 
 def to_release(archive: Path, version: str, release_root: Path, boundary: Path) -> Path:
     """`data/release/tiles/<version>/`: `atlas-<version>.pmtiles` + `bc_outside.geojson`. A version folder is immutable
-    (its URL is published), so an existing one is refused rather than overwritten."""
+    (its URL is published), so it is never overwritten. The version IS the tiles' content hash (`version_id`), so an
+    existing folder whose archive carries the same stamp already holds these tiles: it is reused (T349: a rebuild that
+    drew the same tiles failed here). One carrying another stamp is refused."""
     from pipeline.deliver.tiles import boundary as B
     final = release_root / "tiles" / version
     if final.exists():
+        have = final / f"atlas-{version}.pmtiles"
+        if have.exists() and read_metadata(have).get("tile_version") == version == read_metadata(archive).get("tile_version"):
+            print(f"tiles: {final} already released with these tiles (same content hash) — reused, not rewritten")
+            return final
         raise SystemExit(f"tiles: {final} already exists — a released tile version is immutable")
     stage = final.with_name(f".{version}.staging")
     shutil.rmtree(stage, ignore_errors=True)
