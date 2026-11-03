@@ -79,3 +79,22 @@ Needs an atlas rebuild (human-scheduled).
   7 3→2, 8 8→7.
 - **Worker:** per owner principle (cascade resolved in Python) the worker was left as is; its byte-parity suites are
   skipped until T350 (inventory in T350).
+
+## RESUME (paused by owner 2026-11-02 ~17:45)
+- **Done (commits):** 0c276aa10 merge T332 · a2415b239 SALMON_NEEDS guard · f5fc9c356 page defaults / non-retention /
+  shared quotas · next commit: one scope-default model + queue cleanup + worker revert (T350) · b06ca12de ticket ·
+  latest: fix(tiles) reuse a released tile folder with the same content hash.
+- **Gate: PASSED** (side build `data/generated/side/t349`): atlas parity +5 drains_to areas, 0 changed; handles
+  822db448 unchanged; rule binding diff empty; every salmon status change explained (non-retention → closed; 19
+  owner-reviewed DFO places bound since 10-31). **Side atlas PROMOTED** (`data/generated/atlas/full`; old → full.prev).
+- **Live build:** run 1 failed at tiles (released tile folder already existed, same content — fixed). Run 2
+  (`scripts/heavy.sh t349-live2`, PID 55756, log `data/generated/side/t349-live2.log`) was left RUNNING at the pause:
+  reach up to date, tiles then deliver. Not stopped: a stop mid-tiles would leave a half-written live atlas.pmtiles.
+- **Remaining, in order:**
+  1. `tail -20 data/generated/side/t349-live2.log` — expect `deliver ok` and the vintage lines. If it failed, rerun
+     `scripts/heavy.sh t349-live 60 -- .venv/bin/python -m pipeline build --jobs 2`.
+  2. Check that the new release in `data/release` names salmon/3. LATEST may move locally; no staging upload until
+     app 0.5.0 (the SALMON_NEEDS guard refuses it).
+  3. Fast suite ONCE, unfiltered: `scripts/heavy.sh t349-suite 60 -- .venv/bin/python -m pytest -q -p no:cacheprovider`
+     (expected new reds: none from T349; the targeted DFO / salmon / T349 tests passed).
+  4. `graphify update .`
