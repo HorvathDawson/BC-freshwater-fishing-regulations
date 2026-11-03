@@ -219,7 +219,9 @@ def _registry():
     from pipeline.common.models.registry import RegistryBoundary, RegistryItem
     return {"gnis:7": RegistryItem(id="gnis:7", name="River", kind="stream", section_ids=("R:0", "R:1000"),
                                    boundaries=(RegistryBoundary(id="r__falls", label="falls", kind="split",
-                                                                ref="split:r__falls"),))}
+                                                                ref="split:r__falls"),)),
+            # an area holding the mouth section is not the water: it gains no mouth boundary
+            "area:basin:9": RegistryItem(id="area:basin:9", name="Basin", kind="area", section_ids=("R:0",))}
 
 
 MOUTH = TA.Limit(blk="7", limit="mouth", name="River")
@@ -236,7 +238,7 @@ def test_a_natural_mouth_gains_a_mouth_boundary_whose_alias_is_tidal_and_no_sect
     b = reg["gnis:7"].boundaries[-1]
     assert (b.id, b.kind, b.ref, b.label) == ("river__mouth", "outlet", "mouth:7", "mouth")
     assert b.answers_to() == ("river__mouth", "river__tidal_boundary") and b.names == ("tidal boundary",)
-    assert placed["7"]["items"] == ["gnis:7"]
+    assert placed["7"]["items"] == ["gnis:7"] and reg["area:basin:9"].boundaries == ()
     rows = TA.resolved_rows([MOUTH], ids, placed)
     assert rows == [{"blk": "7", "name": "River", "limit": "mouth", "alias": "river__tidal_boundary", "on": "",
                      "measure": 0.0, "items": ["gnis:7"]}]

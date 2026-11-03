@@ -227,6 +227,8 @@ def add_mouth_boundaries(registry: dict, placed: Mapping[str, dict]) -> dict:
         placed[blk].setdefault("items", [])
     out = dict(registry)
     for iid, it in registry.items():
+        if it.kind == "area":                  # a basin / region / park holds the section, it is not the water
+            continue
         hits = [want[s] for s in it.section_ids if s in want]
         for blk in hits:
             v = placed[blk]
