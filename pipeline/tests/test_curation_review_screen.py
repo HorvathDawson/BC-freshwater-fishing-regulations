@@ -447,7 +447,10 @@ def test_a_proposed_split_is_shared_on_the_river_and_never_entered_twice(env):
     r = c.post("/api/marks", json=first)
     assert r.status_code == 200, r.text
     seen = c.get(f"/api/dfo/locations/{other}").json()["proposed"]
-    assert [p["id"] for p in seen].count("n1") == 1 and seen[0]["coord"] and seen[0]["n_marks"] >= 1
+    # T355: shown, stored and landed under its REAL splits.json id, never the local "n1"
+    real = "campbell_river__quinsam_river"
+    assert [p["id"] for p in seen].count(real) == 1 and seen[0]["coord"] and seen[0]["n_marks"] >= 1
+    assert r.json()["new_splits"][0]["ref"] == real
     # another location proposes the same confluence under another ref and name: reused, not added
     again = {**first, "target": other, "new_splits": [{**_QUINSAM, "ref": "n7", "name": "Quinsam"}],
              "extent_fix": [{"scope": "entry", "op": "downstream_of",
@@ -455,9 +458,9 @@ def test_a_proposed_split_is_shared_on_the_river_and_never_entered_twice(env):
     r = c.post("/api/marks", json=again)
     assert r.status_code == 200, r.text
     got = r.json()
-    assert [n["ref"] for n in got["new_splits"]] == ["n1"]                  # the first one's id
-    assert got["extent_fix"][0]["points"][0]["split_id"] == "n1"            # the fix follows it
-    assert got["reused"] == [{"ref": "n7", "id": "n1", "name": "Quinsam River"}]
+    assert [n["ref"] for n in got["new_splits"]] == [real]                  # the first one's id
+    assert got["extent_fix"][0]["points"][0]["split_id"] == real            # the fix follows it
+    assert got["reused"] == [{"ref": "n7", "id": real, "name": "Quinsam River"}]
     once = [p for p in c.get(f"/api/dfo/locations/{CAMPBELL}").json()["proposed"]
             if p["anchor"] == "confluence" and p["item_id"] == "gnis:27883"]
     assert len(once) == 1 and once[0]["n_marks"] == 2 and once[0]["name"] == "Quinsam River"

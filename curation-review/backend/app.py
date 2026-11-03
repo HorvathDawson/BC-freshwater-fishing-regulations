@@ -766,13 +766,16 @@ def _new_split_param(split: str):
 
 
 @app.get("/api/dfo/locations/{location_id:path}/split-preview")
-def dfo_split_preview(location_id: str, split: str):
+def dfo_split_preview(location_id: str, split: str, others: str | None = None):
     """T355: A PROPOSED SPLIT'S CUT, READ ONLY, by the build's own resolver (`split_preview.resolve`):
-    {ok, why, record, cuts [{blk, measure, coord}], reference, outline, words}. 422 for a malformed split."""
+    {ok, why, split_id (the real id it lands as), record, cuts [{blk, measure, coord}], reference, outline,
+    words}. `others`: the mark's other new splits (JSON list). 422 for a malformed split."""
+    import json as _json
     import dfo
     ns = _new_split_param(split)
+    rest = tuple(_new_split_param(_json.dumps(o)) for o in (_json.loads(others) if others else []))
     try:
-        return dfo.preview_split(location_id, ns)
+        return dfo.preview_split(location_id, ns, rest)
     except KeyError:
         raise HTTPException(404, f"DFO location {location_id} not found")
 

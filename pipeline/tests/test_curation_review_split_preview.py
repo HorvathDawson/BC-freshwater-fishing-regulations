@@ -73,3 +73,14 @@ def test_area_names_autocomplete_prefix_first_then_nearest_in_the_layer_s_spelli
     assert sp.area_names("parks_nat", "PACIFIC")[0]["name"].startswith("Pacific Rim")
     with pytest.raises(ValueError):
         sp.area_names("wmu", "x")
+
+
+def test_every_proposal_is_shown_under_its_real_id_and_the_build_lands_the_same(sp):
+    """T355: the review app's ids (`dfo.real_ids`) are the build's (`proposals.build`) — never a local ref."""
+    import dfo
+    from pipeline.regs.review import export as E
+    from pipeline.regs.review import proposals as P
+    ids = dfo.real_ids()
+    assert ids and not [v for v in ids.values() if P.is_local_ref(v)]
+    landed = {p["split_id"] for p in P.build(E.load(None), P.Sources.live()) if p["kind"] == "new_split"}
+    assert landed <= set(ids.values())

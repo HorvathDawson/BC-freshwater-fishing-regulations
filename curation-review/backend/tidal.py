@@ -348,7 +348,7 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
         stamped.append(ns.model_copy(update={"blk": s["blk"], "measure": s["measure"],
                                              "on_item": ns.on_item or s["on_item"],
                                              "coord": s["coord"]}).model_dump(mode="json"))
-    stamped, _rename, reused = dfo._dedupe_against_store(stamped)
+    stamped, _rename, reused = dfo._dedupe_against_store(stamped, tidal=True, tidal_water=r.get("water"))
     now = T.prints(r)
     data = {**body, "rule_id": None, "new_splits": stamped, "date": date, "pdf_sha256": pdf_sha256,
             "pages": [], "prints": now}

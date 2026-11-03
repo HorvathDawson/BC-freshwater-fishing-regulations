@@ -86,7 +86,8 @@ def _proposal_view(p: dict) -> dict:
     # EVERY field of the split (T355): a hand-picked list dropped an area_boundary's area, and its save
     # was refused (Little Qualicum, 59e75d36b) — a field added to `NewSplit` now travels by itself
     fields = {k: v for k, v in n.model_dump(mode="json").items() if k not in ("ref", "note", "confidence")}
-    return {**fields, "id": p["id"], "marks": p["marks"], "n_marks": len(p["marks"]),
+    # T355: the id shown is the REAL one (the splits.json id it lands as), never the mark's local ref
+    return {**fields, "id": real_ids().get(p["id"], p["id"]), "marks": p["marks"], "n_marks": len(p["marks"]),
             # owner 2026-10-27: a proposed split carries its confidence everywhere
             "confidence": p.get("confidence") or n.confidence_now}
 
@@ -453,8 +454,28 @@ def detail(location_id: str) -> dict | None:
         "splits": _splits_fc(loc, water),
         "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
         "suggestion": suggestion(location_id), "fix_proposal": fix_proposal(location_id),
-        "mark": ({**json.loads(m.model_dump_json()), **v} if m is not None else None),
+        "mark": ({**rekeyed(json.loads(m.model_dump_json())), **v} if m is not None else None),
     })
+
+
+def rekeyed(mark: dict) -> dict:
+    """T355: A MARK AS SHOWN — each new split's local ref ("n1-2", a hunt's, a tidal one) read as the REAL id
+    of the proposed cut it is (by its anchor, `real_ids`), its extent fix's points with it. Read only: the
+    store is never edited; the same anchor always reads as the same id."""
+    from pipeline.regs.review import marks as M
+    props, ids = _proposals(), real_ids()
+    ren: dict[str, str] = {}
+    for n in mark.get("new_splits") or []:
+        ns = M.NewSplit.model_validate(n)
+        hit = next((p for p in props if any(M.same_anchor(ns, q) for q in p["members"])), None)
+        if hit is not None and hit["id"] in ids:
+            ren[n["ref"]] = ids[hit["id"]]
+    if not ren:
+        return mark
+    return {**mark, "new_splits": [{**n, "ref": ren.get(n["ref"], n["ref"])} for n in mark.get("new_splits") or []],
+            "extent_fix": [{**f, "points": [{**pt, "split_id": ren.get(pt.get("split_id"), pt.get("split_id"))}
+                                            if pt.get("kind") == "new" else pt for pt in f.get("points") or []]}
+                           for f in mark.get("extent_fix") or []]}
 
 
 def water_places(water_id: str, this: str | None = None) -> list[dict]:
@@ -778,16 +799,26 @@ def water_items(location_id: str) -> list[str]:
     return list((got[2] or {}).get("item_ids") or [])
 
 
-def preview_split(location_id: str, ns) -> dict:
+def preview_split(location_id: str, ns, others: tuple = ()) -> dict:
     """T355: where the BUILD would cut a proposed split (`split_preview.resolve`) — on the location's
-    water when the split names none. KeyError: no such location."""
+    water when the split names none — and `split_id`, the REAL id it lands under (the proposal's own when it
+    is one, an edit's when it edits one; `others`: the mark's other new splits, so a clash is numbered).
+    KeyError: no such location."""
     import split_preview
     if not ns.on_item:
         items = water_items(location_id)
         if not items:
             return {"ok": False, "why": "this location's water is not matched to the registry yet"}
         ns = ns.model_copy(update={"on_item": items[0]})
-    return split_preview.resolve(ns)
+    got = split_preview.resolve(ns)
+    try:
+        mine = [o.model_dump(mode="json") for o in others] + [ns.model_dump(mode="json")]
+        out, ren, _r = _dedupe_against_store(mine)
+        got["split_id"] = ren.get(ns.ref) or out[-1]["ref"]
+    except ValueError as ex:
+        got["split_id"] = None
+        got.setdefault("notes", []).append(str(ex))
+    return got
 
 
 def _item_of(nid: str, items) -> str | None:
@@ -855,39 +886,65 @@ def marks_for_group(body: dict, *, date: str, pdf_sha256: str) -> list:
             for t in want]
 
 
-def _dedupe_against_store(stamped: list[dict]) -> tuple[list[dict], dict, list[dict]]:
-    """The mark's stamped new splits with duplicates folded (T210): a split at an anchor already
-    proposed — by an earlier mark, or twice in this one — takes that proposal's id and is said to be
-    reused; a ref another cut holds is renamed. -> (splits, {old ref: ref}, reused)."""
+def real_ids(extra: tuple = (), *, tidal: bool = False, tidal_water: str | None = None) -> dict:
+    """T355: EVERY PROPOSED CUT'S REAL ID — {group id: the splits.json id it lands as} — by the proposals'
+    own `place_groups` (the same slug, the same clash numbering, from the anchor). `extra`: (key, NewSplit)
+    cuts not proposed yet (a draft, a mark being saved), placed beside the proposals."""
+    from pipeline.regs.review import proposals as P
+    import split_preview
+    rows = [(p["id"], p["split"], False, None) for p in _proposals()]
+    if not extra:
+        from pipeline.common.curated import CURATED
+        return _REAL_IDS_MEMO.get((reuse._stamp((reuse.MARKS_PATH, reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
+                                                 CURATED.regulations.review.proposal_overrides)),),
+                                  lambda: {g: v["id"] for g, v in P.place_groups(rows, split_preview._sources()).items()})
+    rows += [(k, n, tidal, tidal_water) for k, n in extra]
+    return {g: v["id"] for g, v in P.place_groups(rows, split_preview._sources()).items()}
+
+
+_REAL_IDS_MEMO = reuse._Memo()
+
+
+def _dedupe_against_store(stamped: list[dict], *, tidal: bool = False,
+                          tidal_water: str | None = None) -> tuple[list[dict], dict, list[dict]]:
+    """The mark's stamped new splits with duplicates folded (T210), each under its REAL id (T355: the
+    splits.json id it lands as, `real_ids` — never a local ref): a split at an anchor already proposed — by
+    an earlier mark, or twice in this one — takes that proposal's id and is said to be reused; an EDIT
+    (`amends`) takes the id of the cut it edits. -> (splits, {old ref: id}, reused)."""
     from pipeline.regs.review import marks as M
-    known = [(p["id"], p["split"]) for p in _proposals()]
+    props = _proposals()
+    ids = real_ids()
     out: list[dict] = []
     rename: dict[str, str] = {}
     reused: list[dict] = []
     for raw in stamped:
         ns = M.NewSplit.model_validate(raw)
-        if ns.amends:
+        if ns.amends is not None:
             # T355: an EDIT of a proposed cut keeps that cut's id (`marks.proposal_groups` folds it in)
-            if not any(pid == ns.amends for pid, _q in known):
-                raise ValueError(f"new split {ns.ref}: no proposed split {ns.amends} to edit")
-            rename[ns.ref] = ns.amends
-            out.append({**raw, "ref": ns.amends})
+            hit = next((p for p in props if any(M.same_anchor(ns.amends, q) for q in p["members"])), None)
+            if hit is None:
+                raise ValueError(f"new split {ns.ref}: no proposed split at that anchor to edit")
+            rid = ids[hit["id"]]
+            rename[ns.ref] = rid
+            out.append({**raw, "ref": rid, "amends": {**raw["amends"], "ref": rid}})
             continue
-        hit = next(((pid, q) for pid, q in known if M.same_anchor(ns, q)), None)
+        hit = next((p for p in props if any(M.same_anchor(ns, q) for q in p["members"])), None)
         if hit is not None:
-            pid, q = hit
-            rename[ns.ref] = pid
-            reused.append({"ref": ns.ref, "id": pid, "name": q.name or q.anchor})
-            if any(o["ref"] == pid for o in out):
+            rid = ids[hit["id"]]
+            rename[ns.ref] = rid
+            reused.append({"ref": ns.ref, "id": rid, "name": hit["split"].name or hit["split"].anchor})
+            if any(o["ref"] == rid for o in out):
                 continue
-            out.append({**raw, "ref": pid})
+            out.append({**raw, "ref": rid})
             continue
-        ref, k = ns.ref, 1
-        taken = {pid for pid, _ in known} | {o["ref"] for o in out}
-        while ref in taken:
-            k += 1
-            ref = f"{ns.ref}-{k}"
-        rename[ns.ref] = ref
-        known.append((ref, ns))
-        out.append({**raw, "ref": ref})
+        mine = next((o for o in out if M.same_anchor(ns, M.NewSplit.model_validate(o))), None)
+        if mine is not None:                       # twice in this mark: one cut
+            rename[ns.ref] = mine["ref"]
+            continue
+        # a cut nobody proposed yet: the id it will land under, placed beside every proposal and this
+        # mark's others (a clash with either is numbered)
+        rid = real_ids(tuple((o["ref"], M.NewSplit.model_validate(o)) for o in out) + (("__this__", ns),),
+                       tidal=tidal, tidal_water=tidal_water)["__this__"]
+        rename[ns.ref] = rid
+        out.append({**raw, "ref": rid})
     return out, rename, reused

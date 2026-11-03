@@ -57,3 +57,10 @@ Size: M.
   area names from `GET …/area-names` (`split_preview.area_names`: contains-match, prefix first, then nearest the
   water, cached per layer, the layer's own spelling); lakes from the registry search; tributaries filter the
   water's loaded list. Picking runs the preview.
+- Follow-up (owner): P is set to n (labelled "placement wrong — fix proposed") when a new split / new point is
+  added; P y with one is held in the screen; the refused-saves list offers "retry with P ?" / "retry with P n…".
+- Follow-up (owner): REAL IDS from the start. `proposals.place_groups` / `assign_ids` give every proposed cut its
+  splits.json slug (`<water>__<name>`, `_2`… on a clash with splits.json or another pending cut, clashes numbered
+  by anchor digest, never order); the build lands, the review app shows, new marks store, the preview returns the
+  same id. Old marks' local refs are re-keyed at read (`dfo.rekeyed`), never edited — 1,179 proposals (8 DFO,
+  1,171 tidal). `amends` names the edited cut by its anchor, not an id. The materialize guard stays.

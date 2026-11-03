@@ -919,8 +919,8 @@ export interface NewSplit extends AreaFields {
   /** how sure the proposer is of where the cut stands (owner 2026-10-27); none = the anchor's
    *  default — a hand-placed point medium, a registry anchor high (`marks.default_confidence`) */
   confidence?: SplitConfidence | null;
-  /** T355: an EDIT of the proposed cut with this id (it replaces that cut, keeping its id) */
-  amends?: string | null;
+  /** T355: an EDIT of a proposed cut — that cut, named by its anchor (it replaces it, keeping its id) */
+  amends?: NewSplit | null;
   quote?: string;
   note?: string;
 }
@@ -950,6 +950,8 @@ export interface SplitCut { blk: string; measure: number; coord: [number, number
 export interface SplitPreview {
   ok: boolean;
   why: string | null;
+  /** the REAL splits.json id it lands under (the proposal's own, or the next free slug) */
+  split_id?: string | null;
   words?: string;
   /** the splits.json record it would land as */
   record?: { id: string; label: string; kind: string; anchor: Record<string, unknown> };
@@ -989,8 +991,8 @@ export interface ProposedSplit extends AreaFields {
   /** anchor area_boundary: the protected area's name, and which end */
   area?: string | null;
   area_end?: "upstream" | "downstream" | null;
-  /** T355: this cut is an owner's edit of another proposal */
-  amends?: string | null;
+  /** T355: this cut is an owner's edit of another proposal (that proposal, by its anchor) */
+  amends?: NewSplit | null;
   quote: string;
   marks: { target: string; ref: string; reviewer: string; date: string }[];
   n_marks: number;

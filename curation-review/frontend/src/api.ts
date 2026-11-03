@@ -230,9 +230,9 @@ export const api = {
     getJSON<AnchorCheck>(`/api/dfo/locations/${encodeURIComponent(id)}/anchor?split=` +
       encodeURIComponent(JSON.stringify(split))),
   /** T355: where the BUILD's resolver would cut a proposed split (read only) */
-  dfoSplitPreview: (id: string, split: NewSplit) =>
+  dfoSplitPreview: (id: string, split: NewSplit, others: NewSplit[] = []) =>
     getOrRefused<SplitPreview>(`/api/dfo/locations/${encodeURIComponent(id)}/split-preview?split=` +
-      encodeURIComponent(JSON.stringify(split))),
+      encodeURIComponent(JSON.stringify(split)) + (others.length ? `&others=${encodeURIComponent(JSON.stringify(others))}` : "")),
   dfoTributaries: (id: string, onItem?: string | null) =>
     getJSON<Tributary[]>(`/api/dfo/locations/${encodeURIComponent(id)}/tributaries`
       + (onItem ? `?on_item=${encodeURIComponent(onItem)}` : "")),

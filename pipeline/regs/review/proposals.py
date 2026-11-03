@@ -721,6 +721,77 @@ def _tidal_flag(sid: str, have: Mapping, src: Sources, marks: list, water: str) 
              "split_id": sid, "confidence": None}]
 
 
+#: the fields that make a proposed cut THIS cut (its id's tie-break): the anchor, never the order it came in
+_ID_FIELDS = ("anchor", "on_item", "item_id", "split_id", "coord", "blk", "measure", "offset_m", "area",
+              "area_end", "area_layer", "wsc_descendants", "exclude_gnis")
+
+
+def anchor_digest(n) -> str:
+    """A proposed cut's anchor as a short digest — the same anchor always gives the same digest."""
+    d = n.model_dump(mode="json")
+    return _h({k: d.get(k) for k in _ID_FIELDS})
+
+
+def split_base(n, water: str) -> str:
+    """THE SLUG a new split lands under, before a clash suffix: `<water>__<name or anchor>` (splits.json's scheme)."""
+    return f"{_slug(water.split('(')[0], 40)}__{_slug(n.name or n.anchor, 32)}"
+
+
+def assign_ids(rows: Iterable[tuple], taken: Iterable[str]) -> dict:
+    """REAL IDS (T355): rows (key, base, digest) -> {key: id}. `base` if free, else `base_2`, `_3` … past every
+    id in `taken` (splits.json) and every other pending cut. Clashing cuts are numbered in DIGEST order, so an
+    id follows from the anchors in play, never from the order the marks were made or read."""
+    used, out = set(taken), {}
+    for key, base, _dig in sorted(rows, key=lambda r: (r[1], r[2], str(r[0]))):
+        sid, k = base, 1
+        while sid in used:
+            k += 1
+            sid = f"{base}_{k}"
+        used.add(sid)
+        out[key] = sid
+    return out
+
+
+def place_groups(rows: Iterable[tuple], src: Sources, splits_doc: Optional[Mapping] = None,
+                 have: Optional[Mapping] = None) -> dict:
+    """EACH PROPOSED CUT'S PLACE IN splits.json — (gid, NewSplit, tidal, tidal_water) rows ->
+    {gid: {id, dup, water, split, at, wb, problems}}: the water it cuts, the split as it lands (a tidal
+    cut relabelled), the existing split it already is (`dup`), else its REAL id (`assign_ids`). The one
+    function the proposals AND the review app's display take ids from, so a proposal shows the id it lands as."""
+    if splits_doc is None:
+        splits_doc = src.doc(src.splits_path)
+    if have is None:
+        have = {sp["id"]: sp for wb in splits_doc.get("waterbodies") or []
+                for sp in wb.get("splits") or [] if sp.get("id")}
+    out: dict = {}
+    for gid, n, tidal, tidal_water in rows:
+        problems: list[str] = []
+        at = _applies_to(n.on_item) if n.on_item else None
+        if at is None:
+            problems.append(f"the cut names no stream it cuts (on_item {n.on_item!r})")
+        wb = next((w for w in splits_doc.get("waterbodies") or [] if w.get("applies_to") == at),
+                  None) if at else None
+        water = (wb or {}).get("name") or ((src.item(n.on_item) or {}).get("name")
+                                           if n.on_item else None) or tidal_water or (n.on_item or "water")
+        if tidal:                                        # T166: labelled as its water's cuts are
+            n = n.model_copy(update={"name": _tidal_label(n, water)})
+        dup = None
+        try:
+            probe, _ = split_record(n, src, sid="probe", provenance="probe")
+            dup = next((sid for sid, sp in have.items() if sp.get("anchor") == probe["anchor"]
+                        and probe["anchor"]["type"] != "lake"), None)
+        except ValueError as ex:
+            problems.append(str(ex))
+        if dup is None and tidal:                        # T166: a tidal point ON a cut already there
+            dup = _cut_already_there(n, have, src)
+        out[gid] = {"dup": dup, "water": water, "split": n, "at": at, "wb": wb, "problems": problems,
+                    "base": split_base(n, water), "digest": anchor_digest(n)}
+    ids = assign_ids([(g, v["base"], v["digest"]) for g, v in out.items() if v["dup"] is None], have)
+    for g, v in out.items():
+        v["id"] = v["dup"] or ids[g]
+    return out
+
+
 def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]:
     """EVERY PROPOSAL the decided data makes against the files NOW, new splits first. Pure: reads `src`.
     `decided`: the exported decided data (`review.export.load`, T266 — what apply paths read), or an
@@ -742,7 +813,6 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
     splits_doc = src.doc(src.splits_path)
     have = {sp["id"]: sp for wb in splits_doc.get("waterbodies") or []
             for sp in wb.get("splits") or [] if sp.get("id")}
-    taken = set(have)
 
     # the cuts the marks in force name: their new splits (by the shared group) and their NEW points
     groups: list[dict] = []                              # {gid, split (NewSplit), marks}
@@ -844,50 +914,32 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
 
     # ---- new splits
     gid_split: dict[str, str] = {}                       # group id -> its split id (new or existing)
+    # every pending cut is placed — the ones no mark in force names too — so a clash is numbered the same
+    # here as in the review app (which places every proposal, `place_groups`)
+    mine = {g["gid"] for g in groups}
+    placed = place_groups([(g["gid"], g["split"], bool(g.get("tidal")), g.get("tidal_water")) for g in groups]
+                          + [(sh["id"], sh["split"], False, None) for sh in shared if sh["id"] not in mine],
+                          src, splits_doc, have)
     for g in groups:
-        n = g["split"]
+        pl = placed[g["gid"]]
+        n, water, at, wb, problems = pl["split"], pl["water"], pl["at"], pl["wb"], list(pl["problems"])
         sh = next((p for p in shared if p["id"] == g["gid"]), None)
         conf = sh["confidence"] if sh else M.confidence_of(g["members"], src.overrides)
         if g.get("tidal_conf") and not any(x.confidence for x in g["members"]) and not any(
-                M.same_anchor(o.match, n) for o in src.overrides):
+                M.same_anchor(o.match, g["split"]) for o in src.overrides):
             conf = g["tidal_conf"]                       # T166: the tidal candidate's own grade
         pid = f"split-{_slug(g['gid'], 40)}"
         targets = ", ".join(sorted({w["target"] for w in g["marks"]}))
         prov = f"proposed in review marks on {targets}"
-        problems: list[str] = []
-        at = _applies_to(n.on_item) if n.on_item else None
-        if at is None:
-            problems.append(f"the cut names no stream it cuts (on_item {n.on_item!r})")
-        wb = next((w for w in splits_doc.get("waterbodies") or [] if w.get("applies_to") == at),
-                  None) if at else None
-        water = (wb or {}).get("name") or ((src.item(n.on_item) or {}).get("name")
-                                           if n.on_item else None) or g.get("tidal_water") or (
-                                               n.on_item or "water")
-        if g.get("tidal"):                               # T166: labelled as its water's cuts are
-            n = n.model_copy(update={"name": _tidal_label(n, water)})
-        base = f"{_slug(water.split('(')[0], 40)}__{_slug(n.name or n.anchor, 32)}"
-        rec, notes = None, []
-        try:
-            probe, _ = split_record(n, src, sid="probe", provenance=prov)
-            dup = next((sid for sid, sp in have.items() if sp.get("anchor") == probe["anchor"]
-                        and probe["anchor"]["type"] != "lake"), None)
-        except ValueError as ex:
-            problems.append(str(ex))
-            dup = None
-        if dup is None and g.get("tidal"):               # T166: a tidal point ON a cut already there
-            dup = _cut_already_there(n, have, src)
+        dup = pl["dup"]
         if dup is not None:                              # already in splits.json: applied
             gid_split[g["gid"]] = dup
             if g.get("tidal"):                           # T166: ... but flagged tidal?
                 out.extend(_tidal_flag(dup, have, src, g["marks"], water))
             continue
-        sid, k = base, 1
-        while sid in taken:
-            k += 1
-            sid = f"{base}_{k}"
-        taken.add(sid)
+        sid = pl["id"]                                   # THE REAL ID, from the anchor (`place_groups`)
         gid_split[g["gid"]] = sid
-        edits = []
+        rec, notes, edits = None, [], []
         if not problems:
             rec, notes = split_record(n, src, sid=sid, provenance=prov, confidence=conf)
             if g.get("tidal"):                           # T166: the piece below it is tidal water

@@ -287,7 +287,9 @@ class NewSplit(BaseModel):
     extent lies on; `offset_m` an offset from the anchor along the water (+ upstream, - down:
     "500 m below the bridge" is -500); `quote` the notice's words it came from."""
     model_config = ConfigDict(extra="forbid", frozen=True)
-    ref: str = Field(..., min_length=1, max_length=40)
+    #: the cut's id in the mark — its REAL splits.json id (T355, `proposals.place_groups`: up to 40 + 2 + 32
+    #: + a clash suffix); older marks hold a local ref ("n1-2"), resolved to the real id when read
+    ref: str = Field(..., min_length=1, max_length=96)
     anchor: AnchorKind
     name: Optional[str] = Field(default=None, description="the tributary / lake / bridge named")
     item_id: Optional[str] = Field(default=None, description="the tributary's or lake's registry id")
@@ -312,10 +314,10 @@ class NewSplit(BaseModel):
     area_field: Optional[str] = None
     wsc_descendants: Optional[bool] = None
     exclude_gnis: Optional[tuple[str, ...]] = None
-    #: T355 EDIT IN PLACE: this proposal REPLACES the proposed cut with this id (`proposal_groups`'
-    #: id) — its type, anchor or offset changed in the review app. The mark is the only write, so the
-    #: edit is a proposal in a mark: the group keeps its id and every mark that named it now names this.
-    amends: Optional[str] = Field(default=None, min_length=1, max_length=40)
+    #: T355 EDIT IN PLACE: this proposal REPLACES the proposed cut it names — named as an override's
+    #: `match` is, by its anchor (`same_anchor`), never by an id. The mark is the only write, so the edit
+    #: is a proposal in a mark: that cut's group takes this split, and every mark that named it names this.
+    amends: Optional["NewSplit"] = None
     quote: str = ""
     note: str = ""
 
@@ -358,6 +360,9 @@ class NewSplit(BaseModel):
     def area_name_field(self) -> str:
         """The field an area_boundary's name is matched on: the one set, else its layer's."""
         return self.area_field or AREA_LAYERS.get(self.area_layer or "parks_bc", "PROTECTED_LANDS_NAME")
+
+
+NewSplit.model_rebuild()
 
 
 class RecordPrint(BaseModel):
@@ -607,6 +612,9 @@ def line(mark: Mark) -> str:
         for k in NEW_SPLIT_OPTIONAL:            # owner 2026-11-02: only a park-boundary cut has them
             if n.get(k) is None:
                 n.pop(k, None)
+        if n.get("amends"):                     # T355: the cut it edits, by its anchor — only what is set
+            n["amends"] = {k: v for k, v in n["amends"].items()
+                           if v not in (None, "") and k not in ("amends", "quote", "note")}
     return json.dumps(got, ensure_ascii=False, separators=(",", ":")) + "\n"
 
 
@@ -1089,7 +1097,8 @@ def proposal_groups(marks: Iterable[Mark]) -> list[dict]:
         for n in m.new_splits:
             # T355: an EDIT of a proposed cut takes that cut's place — the group keeps its id, every
             # member that named it, and this split is what it now is
-            i = next((k for k, p in enumerate(out) if n.amends and p["id"] == n.amends), None)
+            i = next((k for k, p in enumerate(out) if n.amends is not None
+                      and any(same_anchor(n.amends, q) for q in p["members"])), None)
             if i is not None:
                 out[i]["split"] = n
             else:

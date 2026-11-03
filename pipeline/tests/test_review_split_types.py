@@ -125,12 +125,15 @@ def test_area_fields_belong_to_an_area_boundary_and_a_known_layer():
 
 def test_an_edit_in_place_replaces_the_proposal_keeping_its_id(src):  # noqa: F811
     """T355: the owner edits a proposed cut (a map point -> the park's boundary) from another location:
-    the edit rides in a mark (`amends`), the group keeps its id, the cut lands as edited and the
-    first mark's extent names it."""
+    the edit rides in a mark (`amends`: the cut it edits, by anchor), the group keeps its key, the cut
+    lands as edited and the first mark's extent names it."""
     first = _dfo_mark({"anchor": "coord", "name": "park edge", "coord": AT})
     other = _mark(scope="dfo", target="1:cowichan-river:other", answers={"T": "y", "R": "y", "P": "?"},
-                  new_splits=[{"ref": "n1", "amends": "n1", "on_item": WATER, "anchor": "area_boundary",
-                               "area": "X PARK", "area_end": "downstream", "name": "X Park boundary"}])
+                  new_splits=[{"ref": "cowichan_river__x_park_boundary", "on_item": WATER, "anchor": "area_boundary",
+                               "area": "X PARK", "area_end": "downstream", "name": "X Park boundary",
+                               # the cut it edits, by its anchor — never by an id
+                               "amends": {"ref": "cowichan_river__park_edge", "anchor": "coord",
+                                          "on_item": WATER, "coord": list(AT)}}])
     (g,) = M.proposals([first, other])
     assert g["id"] == "n1" and g["split"].anchor == "area_boundary" and len(g["members"]) == 2
     props = P.build([first, other], src)
@@ -192,3 +195,43 @@ def test_a_tidal_flag_on_a_local_ref_writes_nothing(src):  # noqa: F811
     """The tidal path flags an EXISTING split only: a ref that is not one makes no edit."""
     (p,) = P._tidal_flag("tidal-354091024", {}, src, [], "Cowichan")
     assert p["edits"] == [] and p["problems"]
+
+
+# --------------------------------------------------------------------------- real ids from the anchor
+
+def _ns(**kw):
+    return M.NewSplit(**{"ref": "x", "on_item": WATER, **kw})
+
+
+def test_the_same_anchor_always_gets_the_same_id_whatever_the_order(src):  # noqa: F811
+    a = _ns(anchor="bridge", name="the bridge", coord=AT)
+    b = _ns(anchor="dam", name="the bridge", coord=(-123.80, 48.76))      # same name: a clash
+    c = _ns(anchor="sign", name="a sign", coord=(-123.70, 48.77))
+    one = P.place_groups([("a", a, False, None), ("b", b, False, None), ("c", c, False, None)], src)
+    two = P.place_groups([("c", c, False, None), ("b", b, False, None), ("a", a, False, None)], src)
+    assert {k: v["id"] for k, v in one.items()} == {k: v["id"] for k, v in two.items()}
+    ids = sorted(v["id"] for k, v in one.items() if k in "ab")
+    assert ids == ["cowichan_river__the_bridge", "cowichan_river__the_bridge_2"]        # a clash: a suffix
+    assert one["c"]["id"] == "cowichan_river__a_sign"
+    assert not any(P.is_local_ref(v["id"]) for v in one.values())
+
+
+def test_a_clash_with_splits_json_takes_the_next_suffix(src):  # noqa: F811
+    have = {"cowichan_river__the_bridge": {}}
+    got = P.place_groups([("a", _ns(anchor="bridge", name="the bridge", coord=AT), False, None)], src,
+                         {"waterbodies": [{"name": "COWICHAN RIVER", "applies_to": {"gnis_id": "12227"},
+                                           "splits": [{"id": "cowichan_river__the_bridge", "anchor": {"type": "point"}}]}]},
+                         have)
+    assert got["a"]["id"] == "cowichan_river__the_bridge_2"
+
+
+def test_assign_ids_numbers_clashes_by_anchor_not_order():
+    rows = [("p", "w__x", "bbb"), ("q", "w__x", "aaa"), ("r", "w__y", "ccc")]
+    assert P.assign_ids(rows, {"w__x"}) == P.assign_ids(rows[::-1], {"w__x"}) == {
+        "q": "w__x_2", "p": "w__x_3", "r": "w__y"}
+
+
+def test_a_mark_holds_a_real_id_as_its_ref():
+    long = "little_qualicum_river__little_qualicum_falls_park_bound_2"
+    m = _dfo_mark({"anchor": "area_boundary", "area": "LITTLE QUALICUM FALLS PARK"}, ref=long)
+    assert M.Mark.model_validate(json.loads(M.line(m))).new_splits[0].ref == long

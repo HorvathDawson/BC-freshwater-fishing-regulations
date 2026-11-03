@@ -1159,10 +1159,11 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
     setDraft({ ...d, ...(h ? { name: h.items[0]?.name ?? h.name ?? null, item_id: h.items[0]?.id ?? null } : {}),
                confidence: defaultConfidence(d.anchor) });
   };
-  const edit = (n: NewSplit, amends: string | null) => {
+  /** edit a cut in place: one of this mark's (by its ref), or a proposal (`amends`: that cut, by its anchor) */
+  const edit = (n: NewSplit, amends: NewSplit | null) => {
     setReusedWords(""); setSaid(null); setMsg(""); setAsRef(false); setAreaHits([]);
-    setEditing(amends ?? n.ref);
-    setDraft({ ...n, ...(amends ? { amends, ref: amends } : {}) });
+    setEditing(n.ref);
+    setDraft({ ...n, ...(amends ? { amends: { ...amends, amends: null } } : {}) });
   };
   const reset = () => {
     setDraft(null); setEditing(null); setSaid(null); setPv(null); setAreaHits([]); setMsg("");
@@ -1183,7 +1184,8 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
     let live = true;
     const t = window.setTimeout(() => {
       setPvBusy(true);
-      api.dfoSplitPreview(id, { ...draft, ref: draft.ref || "draft", name: (draft.name ?? "").trim() || null })
+      api.dfoSplitPreview(id, { ...draft, ref: draft.ref || "draft", name: (draft.name ?? "").trim() || null },
+                          value.filter((v) => v.ref !== editing))
         .then((r) => { if (!live) return; setPv(r); onPreview(previewFc(r, type === "confluence" ? tribs ?? [] : [])); })
         .catch((e) => live && setPv({ ok: false, why: String(e) }))
         .finally(() => live && setPvBusy(false));
@@ -1225,10 +1227,13 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
     const taken = [...value.map((v) => v.ref), ...shared.map((p) => p.id)];
     const add: NewSplit[] = [];
     for (const off of offs) {
-      const ref = newRef([...taken, ...add.map((a) => a.ref)]);
       const nm = (base.name || "").trim() || anchorWords(base);
-      const ns: NewSplit = { ...base, ref, amends: null, offset_m: off,
+      const cut: NewSplit = { ...base, ref: "draft", amends: null, offset_m: off,
         name: `${nm} (${Math.abs(off)} m ${off > 0 ? "upstream" : "downstream"})` };
+      // T355: the REAL id it lands under, from the server (placed beside this mark's other cuts)
+      const real = (await api.dfoSplitPreview(id, cut, [...value, ...add])).split_id;
+      const ref = real || newRef([...taken, ...add.map((a) => a.ref)]);
+      const ns: NewSplit = { ...cut, ref };
       const got = await api.dfoAnchor(id, ns);
       if (!got.ok) { setSaid(got); return; }
       onChecked(ref, got);
@@ -1247,7 +1252,9 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
       const base: NewSplit = { ...draft, name: (draft.name || "").trim() || null };
       if (asRef && canOffset && !editing) { await addOffsets(base); return; }
       const inMark = editing ? value.find((n) => n.ref === editing) : undefined;
-      const ref = editing ?? newRef([...value.map((v) => v.ref), ...shared.map((p) => p.id)]);
+      // T355: the REAL id (the preview's, from the server) — a local key only if the server gave none
+      const real = editing ? null : (pv?.split_id ?? (await api.dfoSplitPreview(id, { ...base, ref: "draft" }, value)).split_id);
+      const ref = editing ?? real ?? newRef([...value.map((v) => v.ref), ...shared.map((p) => p.id)]);
       const ns: NewSplit = { ...base, ref };
       // the check the save runs (`dfo.check_anchor`): the mark's stamp
       const got = await api.dfoAnchor(id, ns);
@@ -1295,7 +1302,7 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
           <span className="chip-tag new">{n.ref}</span>
           <span>{anchorWords(n)}</span>
           <ConfChip c={n.confidence ?? defaultConfidence(n.anchor)} />
-          {n.amends && <span className="chip-tag" title="replaces the proposed cut with this id">edit of {n.amends}</span>}
+          {n.amends && <span className="chip-tag" title="replaces the proposed cut at that anchor">edit of {anchorWords(n.amends)}</span>}
           {checks[n.ref] && <span className="dim">→ {checks[n.ref].words}{checks[n.ref].blk ? ` · blk ${checks[n.ref].blk} @ ${checks[n.ref].measure?.toFixed(0)} m` : ""}</span>}
           {offsettable.includes(n.anchor)
             ? <OffsetInput value={n.offset_m ?? null} onSet={(v) => void onOffset(n.ref, v)} />
@@ -1318,7 +1325,7 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
                 this location needs it too</button>
               <button type="button" className="btn small" data-testid={`dfo-proposed-edit-${p.id}`}
                 title="change its type, anchor or offset — recorded in this mark, it replaces the proposal (same id)"
-                onClick={() => edit(asNewSplit(p, quote), p.id)}>edit</button>
+                onClick={() => edit(asNewSplit(p, quote), asNewSplit(p, quote))}>edit</button>
             </div>
           ))}
         </div>
@@ -1477,6 +1484,11 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
                 title="how sure you are of where this cut stands — medium by default for a point you placed"
                 onClick={() => set({ confidence: c })}>{c}</button>
             ))}
+          </div>
+          <div className="fix-row" data-testid="dfo-split-id">
+            <span className="k">split id</span>
+            <code>{editing ?? pv?.split_id ?? "—"}</code>
+            <span className="dim">{editing ? "kept" : "the splits.json id it lands under"}</span>
           </div>
           <div className="fix-row" data-testid="dfo-split-preview">
             <span className="k">preview</span>
