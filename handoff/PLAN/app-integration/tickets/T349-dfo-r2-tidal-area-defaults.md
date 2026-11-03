@@ -102,3 +102,8 @@ Needs an atlas rebuild (human-scheduled).
   was TERMINATED (SIGTERM, "Terminated: 15" — not by this lane) before writing a release. No new release id; LATEST
   still r-4e709418ebd8. Resume at step 1: rerun `scripts/heavy.sh t349-live 60 -- .venv/bin/python -m pipeline build
   --jobs 2` (reach and tiles are up to date, so only deliver runs, ~10 min).
+- **State at stop (coordinator, owner request):** t349-live2 was stopped during deliver (PIDs 55756, 55766, 59839).
+  The T349 atlas IS PROMOTED (`data/generated/atlas/full`). The live tiles were rebuilt from it; the bundle / release
+  were NOT — so locally the tiles and the bundle are DIFFERENT VINTAGES until the next live build. LATEST unchanged
+  (r-4e709418ebd8); no new release folder. **Next step (owner):** ONE atlas build + live build that also includes the
+  T326 tidal changes (it supersedes step 1 above); then the fast suite once and `graphify update .`.
