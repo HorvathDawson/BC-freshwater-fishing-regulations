@@ -4,10 +4,12 @@
  *
  * (T237) And SENT: the same report as JSON (`reportPayload`) POSTed to the report endpoint (the feeds worker's
  * `POST /report`), queued on the device when offline. The payload holds what the reader wrote, the reason, an optional
- * email, and exactly the diagnostics rows they left on — never a field they switched off. Two facts ride along with a
- * row without a line of their own: the tapped SECTION HANDLE (with "Where you were"; internal — meaningful only beside the
- * release and tiles it came from, never shown) and the data ENVIRONMENT (with "App version").
+ * email, and exactly the diagnostics rows they left on — never a field they switched off. (T352, owner 2026-11-03) EVERY
+ * field that is sent is a line of the row it goes with, listed before Send: the tapped section handle ("Where you were"),
+ * the data environment ("App version"), the map's layer, forecast offset, zoom and centre ("Map view") and the random
+ * install id ("Install id", the same one a crash report carries).
  */
+import type { Horizon } from "../conditions";
 import type { HeaderVM, RegsTarget, Tab } from "../regs/model";
 import { MENU_WORDS } from "./words";
 
@@ -32,6 +34,18 @@ export interface ReportWhere {
   mode?: string | null;
 }
 
+/** (T352) The map as the reader had it when they asked to report: its layer, forecast offset, zoom and centre. */
+export interface ReportMap {
+  /** what the map was colouring and on which ground, as the Shell names it ("regulations · satellite") */
+  layer?: string | null;
+  /** the Conditions forecast offset: 0 (now), a day ahead, or "change" */
+  horizon?: Horizon | null;
+  zoom?: number | null;
+  /** the map's centre (where the map was looking, not where the reader was) */
+  lat?: number | null;
+  lon?: number | null;
+}
+
 export interface Diagnostics {
   appBuild: string | null;
   /** (T237) the data environment this run reads (local / staging / production; T232) — sent with "App version" */
@@ -40,12 +54,16 @@ export interface Diagnostics {
   release: string | null;
   tiles: string | null;
   where: ReportWhere;
+  /** (T352) the map's layer, forecast offset, zoom and centre */
+  map?: ReportMap | null;
+  /** (T352) the random install id made once on this device (`@app/ui` `installId`) — the crash reports' too */
+  install?: string | null;
   /** the recent error log, oldest first */
   errors: readonly string[];
 }
 
-export type DiagKey = "app" | "platform" | "release" | "tiles" | "where" | "errors";
-export const DIAG_KEYS: readonly DiagKey[] = ["app", "platform", "release", "tiles", "where", "errors"];
+export type DiagKey = "app" | "platform" | "release" | "tiles" | "where" | "map" | "install" | "errors";
+export const DIAG_KEYS: readonly DiagKey[] = ["app", "platform", "release", "tiles", "where", "map", "install", "errors"];
 
 export interface DiagnosticRowVM { readonly k: DiagKey; readonly label: string; readonly lines: readonly string[] }
 
@@ -82,9 +100,31 @@ export function whereLines(w: ReportWhere): string[] {
   if (w.place || w.water) out.push(say.water([w.place, w.water ? `(${w.water})` : null].filter(Boolean).join(" ")));
   const part = [w.part ?? null, w.partLabel ? `(${w.partLabel})` : null].filter((x) => x !== null).join(" ");
   if (part) out.push(say.part(part));
-  // (T237) the section handle is internal (meaningful only beside its release): sent with this row, never shown
+  // (T352) the section handle is sent with this row, so it is listed (meaningful only beside its data release)
+  if (w.section !== null && w.section !== undefined) out.push(say.section(w.section));
   if (w.mode) out.push(say.mode(MENU_WORDS.report.modes[w.mode as keyof typeof MENU_WORDS.report.modes] ?? w.mode));
   if (w.day) out.push(say.day(w.day));
+  return out;
+}
+
+/** (T352) the map's zoom and centre as they are sent: zoom to 0.1, the centre to 3 decimals (about 100 m) */
+const round = (v: number, places: number) => Math.round(v * 10 ** places) / 10 ** places;
+const mapSent = (m: ReportMap) => ({
+  zoom: typeof m.zoom === "number" && Number.isFinite(m.zoom) ? round(m.zoom, 1) : null,
+  lat: typeof m.lat === "number" && Number.isFinite(m.lat) ? round(m.lat, 3) : null,
+  lon: typeof m.lon === "number" && Number.isFinite(m.lon) ? round(m.lon, 3) : null,
+});
+
+/** (T352) "Layer: …" / "Forecast: …" / "Zoom 9.4 at 49.123, -121.95" — exactly the map facts a report sends. */
+export function mapLines(m: ReportMap | null | undefined): string[] {
+  if (!m) return [];
+  const say = MENU_WORDS.report.map;
+  const out: string[] = [];
+  if (m.layer) out.push(say.layer(m.layer));
+  if (m.horizon !== null && m.horizon !== undefined) out.push(say.horizon(m.horizon));
+  const s = mapSent(m);
+  if (s.zoom !== null) out.push(say.zoom(s.zoom));
+  if (s.lat !== null && s.lon !== null) out.push(say.centre(s.lat, s.lon));
   return out;
 }
 
@@ -96,6 +136,8 @@ export function diagnosticRows(d: Diagnostics): DiagnosticRowVM[] {
     release: d.release ? [d.release] : [],
     tiles: d.tiles ? [d.tiles] : [],
     where: whereLines(d.where),
+    map: mapLines(d.map),
+    install: d.install ? [MENU_WORDS.report.installLine(d.install)] : [],
     errors: [...d.errors],
   };
   return DIAG_KEYS.filter((k) => lines[k].length).map((k) => ({ k, label: DIAG_LABEL[k], lines: lines[k] }));
@@ -125,8 +167,8 @@ export function mailtoUrl(to: string, m: { subject: string; body: string }): str
 export type ReportReason = "rule" | "place" | "missing" | "name" | "other";
 export const REPORT_REASONS: readonly ReportReason[] = ["rule", "place", "missing", "name", "other"];
 
-/** The payload's format tag; the endpoint refuses any other. */
-export const REPORT_FORMAT = "report/1";
+/** The payload's format tag. (T352) report/2 adds the map facts and the install id; the endpoint takes report/1 too. */
+export const REPORT_FORMAT = "report/2";
 /** Limits the form and the endpoint share (the endpoint enforces them again). */
 export const REPORT_LIMITS = { text: 4000, email: 254, errors: 20, line: 300, field: 200 } as const;
 /** A pragmatic email shape (the v1 worker's): something@something.tld, no spaces. */
@@ -149,6 +191,10 @@ export interface ReportContext {
   /** the tapped section's handle: internal, only meaningful beside `release` and `tiles` */
   section?: number;
   day?: string; mode?: string;
+  /** (T352) with "Map view": the layer, the forecast offset ("0", a day, "change"), zoom (0.1) and centre (3 decimals) */
+  layer?: string; horizon?: string; zoom?: number; lat?: number; lon?: number;
+  /** (T352) with "Install id": the random id made once on this device */
+  install?: string;
   app?: string; env?: string;
   platform?: string; release?: string; tiles?: string;
   errors?: string[];
@@ -198,6 +244,14 @@ export function reportPayload(i: { id: string; created: string; reason: ReportRe
     if (d.appBuild) c.app = cut(d.appBuild);
     if (d.env) c.env = cut(d.env);
   }
+  if (on("map") && d.map) {
+    const m = d.map, s = mapSent(m);
+    if (m.layer) c.layer = cut(m.layer);
+    if (m.horizon !== null && m.horizon !== undefined) c.horizon = String(m.horizon);
+    if (s.zoom !== null) c.zoom = s.zoom;
+    if (s.lat !== null && s.lon !== null) { c.lat = s.lat; c.lon = s.lon; }
+  }
+  if (on("install") && d.install) c.install = cut(d.install);
   if (on("platform") && d.platform) c.platform = cut(d.platform);
   if (on("release") && d.release) c.release = cut(d.release);
   if (on("tiles") && d.tiles) c.tiles = cut(d.tiles);

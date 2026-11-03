@@ -130,3 +130,99 @@ describe("the test tag (T291)", () => {
     expect(await crashEvents(BUCKET, () => false, at("2026-10-29T21:00:00Z"), "x")).toHaveLength(1);
   });
 });
+
+// T352: crash/2 (the open water, its pane, the install id, `background`) beside crash/1; one hash across browsers; background
+// OS kills out of the digest and the default list; env "local" answered and never stored.
+const crash2 = (over: Record<string, unknown> = {}) => ({
+  ...crash(), format: "crash/2", background: false, install: "0123456789abcdef",
+  water: "356308001", view: "map", part: 2, whole: false, sheet: null, ...over,
+});
+const kinds = (b: MemBucket) => [...b.m.keys()].filter((k) => /^private\/crashes\/[0-9a-f]{16}\.json$/.test(k));
+
+describe("crash/2 (T352)", () => {
+  it("is taken beside crash/1, each with exactly its own keys", async () => {
+    expect(validateCrash(crash2()).ok).toBe(true);
+    expect(validateCrash(crash2({ water: null, view: null, part: null, sheet: "search" })).ok).toBe(true);
+    expect(validateCrash(crash()).ok).toBe(true);
+    const bad: [Record<string, unknown>, string][] = [
+      [crash({ install: "0123456789abcdef" }), "unknown install"],             // a crash/2 field on a crash/1
+      [crash2({ extra: 1 }), "unknown extra"],
+      [crash2({ format: "crash/3" }), "format must be one of crash/1, crash/2"],
+      [crash2({ install: "not-hex" }), "bad install"],
+      [crash2({ install: undefined }), "bad install"],
+      [crash2({ water: "Vedder River" }), "bad water"],
+      [crash2({ view: "list" }), "bad view"],
+      [crash2({ sheet: "layers" }), "bad sheet"],
+      [crash2({ part: -1 }), "bad part"],
+      [crash2({ section: 1 }), "unknown section"],
+      [crash2({ background: "no" }), "bad background"],
+      [crash2({ whole: undefined }), "bad whole"],
+    ];
+    for (const [b, e] of bad) expect(validateCrash(JSON.parse(JSON.stringify(b)))).toEqual({ ok: false, error: e });
+  });
+
+  it("stores the richer sample and counts distinct installs; crash/1 and crash/2 of one error are one kind", async () => {
+    const BUCKET = new MemBucket();
+    expect((await handleCrash(post(crash()), { BUCKET }, at("2026-11-03T10:00:00Z"))).status).toBe(201);
+    expect((await handleCrash(post(crash2(), "198.51.100.1"), { BUCKET }, at("2026-11-03T10:00:01Z"))).status).toBe(201);
+    expect((await handleCrash(post(crash2({ install: "fedcba9876543210" }), "198.51.100.2"), { BUCKET }, at("2026-11-03T10:00:02Z"))).status).toBe(201);
+    expect((await handleCrash(post(crash2(), "198.51.100.3"), { BUCKET }, at("2026-11-03T10:00:03Z"))).status).toBe(201);
+    expect(kinds(BUCKET)).toHaveLength(1);
+    const k = JSON.parse(BUCKET.m.get(kinds(BUCKET)[0]!)!);
+    expect(k).toMatchObject({ count: 4, installs: ["0123456789abcdef", "fedcba9876543210"] });
+    expect(k.sample).toMatchObject({ water: "356308001", view: "map", part: 2, install: "0123456789abcdef" });
+    expect(k.background).toBeUndefined();
+    const ev = await crashEvents(BUCKET, () => false, at("2026-11-03T11:00:00Z"), "x");
+    expect(ev[0]!.text).toMatch(/on the water screen \(water 356308001, map view, part 2\)/);
+    expect(ev[0]!.text).toMatch(/installs: 2/);
+  });
+
+  it("hashes Chrome, Safari and Firefox stacks of one error alike (function names only)", async () => {
+    const base = { name: "Error", message: "Requiring unknown module \"1234\"" };
+    const chrome = "at importAll (entry-abc.js:1:2345)\nat Object.openHighlighted (entry-abc.js:1:999)\nat entry-abc.js:1:5\nat async run (entry-abc.js:2:1)";
+    const safari = "importAll@entry-abc.js:1:2345\nopenHighlighted@entry-abc.js:1:999\n@entry-abc.js:1:5\nrun@entry-abc.js:2:1";
+    const firefox = "importAll@entry-abc.js:1:2345\nopenHighlighted/<@entry-abc.js:1:999\nrun@entry-abc.js:2:1";
+    const h = await crashHash({ ...base, stack: chrome });
+    expect(await crashHash({ ...base, stack: safari })).toBe(h);
+    expect(await crashHash({ ...base, stack: firefox })).toBe(h);
+    expect(await crashHash({ ...base, stack: "at other (entry-abc.js:1:1)" })).not.toBe(h);
+  });
+});
+
+describe("background OS kills (T352)", () => {
+  it("crash/2 background: stored marked, never in the digest, listed only with ?background=1", async () => {
+    const BUCKET = new MemBucket();
+    const kill = crash2({ kind: "native", fatal: false, background: true, name: "NativeExit", stack: "", message: "LOW_MEMORY while background, 412 MB in use",
+                          route: "other", water: null, view: null, part: null });
+    expect((await handleCrash(post(kill), { BUCKET }, at("2026-11-03T10:00:00Z"))).status).toBe(201);
+    expect(JSON.parse(BUCKET.m.get(kinds(BUCKET)[0]!)!).background).toBe(true);
+    expect(await crashEvents(BUCKET, () => false, at("2026-11-03T11:00:00Z"), "x")).toEqual([]);
+    const env = { BUCKET, RUN_TOKEN: "tok" } as never;
+    const get = async (q: string) => ((await (await worker.fetch(new Request(`https://w.example/crashes?since=2000-01-01${q}`, { headers: { authorization: "Bearer tok" } }), env)).json()) as { crashes: unknown[] }).crashes;
+    expect(await get("")).toHaveLength(0);
+    expect(await get("&background=1")).toHaveLength(1);
+  });
+  it("a crash/1 (0.4.0) kill is read from its exit line; a foreground one stays a crash", async () => {
+    const BUCKET = new MemBucket();
+    const v1 = (message: string) => crash({ kind: "native", name: "NativeExit", stack: "", route: "other", message });
+    await handleCrash(post(v1("SIGNALED while background, 300 MB in use, status 9")), { BUCKET }, at("2026-11-03T10:00:00Z"));
+    await handleCrash(post(v1("LOW_MEMORY while foreground, 900 MB in use"), "198.51.100.1"), { BUCKET }, at("2026-11-03T10:00:01Z"));
+    const ev = await crashEvents(BUCKET, () => false, at("2026-11-03T11:00:00Z"), "x");
+    expect(ev).toHaveLength(1);
+    expect(ev[0]!.title).toMatch(/LOW_MEMORY while foreground/);
+  });
+});
+
+describe("env local (T352)", () => {
+  it("is answered 202 and never stored, on staging and production alike (a test tag changes nothing)", async () => {
+    for (const FEEDS_ENV of ["staging", "production"]) {
+      const BUCKET = new MemBucket();
+      for (const body of [crash({ env: "local" }), crash2({ env: "local" }), crash2({ env: "local", test: true })]) {
+        const r = await handleCrash(post(body, `10.1.0.${Math.random() * 200 | 0}`), { BUCKET, FEEDS_ENV }, at("2026-11-03T10:00:00Z"));
+        expect(r.status).toBe(202);
+        expect(await r.json()).toEqual({ ok: true, stored: false });
+      }
+      expect([...BUCKET.m.keys()]).toEqual([]);
+    }
+  });
+});

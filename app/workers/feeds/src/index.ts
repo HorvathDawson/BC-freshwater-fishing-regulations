@@ -415,7 +415,7 @@ export default {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const since = url.searchParams.get("since") ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(since)) return new Response("since must be YYYY-MM-DD", { status: 400 });
-      return Response.json({ crashes: await listCrashes(env.BUCKET, since, 500, url.searchParams.get("test") === "1") }, { headers: { "Cache-Control": "no-store" } });
+      return Response.json({ crashes: await listCrashes(env.BUCKET, since, 500, url.searchParams.get("test") === "1", url.searchParams.get("background") === "1") }, { headers: { "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/reports" && req.method === "GET") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });

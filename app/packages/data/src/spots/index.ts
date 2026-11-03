@@ -12,7 +12,8 @@ export { addVisit, captureVisit, latestVisitId, onVisit, photoOwner, rateVisit, 
 export { spotLabel, isUntitled } from "./model";
 export { captureSpot, type WeatherSource } from "./capture";
 export { openSpots, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore,
-         openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore } from "./store";
+         openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore,
+         openInstallIdStore } from "./store";
 export { openSpotsWith, type SpotsFs } from "./core";
 export { openMeteo } from "./weather";
 export { needsRefresh, refreshReason, refreshSpot } from "./refresh";

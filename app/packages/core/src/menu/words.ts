@@ -183,14 +183,25 @@ export const MENU_WORDS = {
     /** the diagnostics' switches, in the order the form lists them */
     diag: {
       app: "App version", platform: "Platform", release: "Data release", tiles: "Map tiles",
-      where: "Where you were", errors: "Recent errors",
+      where: "Where you were", map: "Map view", install: "Install id", errors: "Recent errors",
     },
+    /** (T352) "Map view", one line per fact: what the map showed, where it looked (not where you were) */
+    map: {
+      layer: (l: string) => `Layer: ${l}`,
+      horizon: (h: number | "change") => `Forecast: ${h === 0 ? "now" : h === "change" ? "expected change" : `+${h} days`}`,
+      zoom: (z: number) => `Zoom: ${z}`,
+      centre: (lat: number, lon: number) => `Map centre: ${lat}, ${lon}`,
+    },
+    /** (T352) the random id made once on this device; the same one goes with a crash report */
+    installLine: (id: string) => `${id} (random, made on this device)`,
     /** "Where you were", one line per fact */
     where: {
       screen: (s: string) => `Screen: ${s}`,
       tab: (t: string) => `Tab: ${t}`,
       water: (w: string) => `Water: ${w}`,
       part: (p: string) => `Part: ${p}`,
+      /** (T352) the tapped section's handle, meaningful only beside the data release */
+      section: (n: number) => `Section: ${n}`,
       mode: (m: string) => `Map colours: ${m}`,
       day: (d: string) => `Day: ${d}`,
       /** the screen a regulations tab's report names */
@@ -201,12 +212,13 @@ export const MENU_WORDS = {
 
 /**
  * (T242) More → Data, "Send crash reports": a switch, on by default. The hint says what goes (the privacy page says it in
- * full, and the code in `ui/crashReport.ts` is what it describes): the error and where in the code, never your location,
- * spots, photos or the waters you look at.
+ * full, and the code in `ui/crashReport.ts` is what it describes): the error and where in the code, the screen and (T352,
+ * owner 2026-11-03) the open water's id, and a random id made on this device — never your location, spots or photos.
  */
 export const CRASH_WORDS = {
   label: "Send crash reports",
   on: "On",
   off: "Off",
-  hint: "When the app hits an error it sends the error, the app version and the kind of screen to our own server. Nothing else.",
+  hint: "When the app hits an error it sends the error, the app version, the kind of screen, the id of the water you had open "
+    + "and a random id made on this device to our own server. Never your location, spots or photos. Nothing else.",
 } as const;

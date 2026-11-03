@@ -12,7 +12,7 @@
 import { useMemo, useState } from "react";
 import { Platform } from "react-native";
 import { getSynopsisSource } from "../regs/synopsisSource";
-import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv } from "@app/core";
+import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv, type ReportMap } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type OfflineControls, type ReportSender, type Route } from "@app/ui";
 import type { Palette } from "../theme";
@@ -40,13 +40,17 @@ export interface MenuInfo {
   readonly updatesLog?: UpdatesLogControls | null;
   /** (T237) the report outbox (App.tsx): "Send report" posts through it; absent, the form offers email / share only */
   readonly report?: ReportSender | null;
+  /** (T352) the random install id made once on this device (App.tsx `installId`): listed in a report, the crash reports' too */
+  readonly install?: string | null;
 }
 
 /** No build facts: the build states none and the owner has supplied no contact yet. */
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
 export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabTour, loader, info = NO_MENU_INFO, tiles, route, day, mode = null,
-                           offline = null }: {
+                           map = null, offline = null }: {
+  /** (T352) the map as the reader has it — layer, forecast offset, zoom and centre (the Shell's): a report lists them */
+  map?: ReportMap | null;
   /** (T238) the Offline maps page's view and actions (`useOfflineMaps`); null: no release open, the page says nothing */
   offline?: OfflineControls | null;
   menu: MenuControls; palette: Palette;
@@ -88,7 +92,10 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
     platform: Platform.OS === "web" ? "web" : `${Platform.OS} ${Platform.Version}`,
     release: loader?.release ?? null,
     tiles,
-    where: { ...(s.report ?? where), ...(mode ? { mode } : {}) },
+    // (T352) the route's facts under a page's own (a regulations tab's report names its water, part and section itself)
+    where: { ...where, ...(s.report ?? {}), ...(mode ? { mode } : {}) },
+    map,
+    install: info.install ?? null,
     errors: ERROR_LOG.recent(),
   }), [reportOpen, s.report]);     // frozen at open, deliberately: a report states what was true when it was asked
 

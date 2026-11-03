@@ -613,7 +613,10 @@ export function Shell(p: ShellProps) {
                    void nav.opener.tap(sid as never, null, "regs");
                  }} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
-                   mapDay={mapDay} theme={theme} onWalkthrough={replayTour} onTabTour={replayTab} sync={syncState} />
+                   mapDay={mapDay} theme={theme} onWalkthrough={replayTour} onTabTour={replayTab} sync={syncState}
+                   // (T352) where the map was looking, read at this render (a report freezes it when it opens): the water's
+                   // own map while it is in front, else the browse map's
+                   camera={frame?.view === "map" ? waterCamera.current ?? camera.current : camera.current} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
       <InSeasonNotice open={(notice.open && !firstRun.open && !guide.open) || bellOpen} rows={notice.rows}
                       palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}

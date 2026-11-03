@@ -2,16 +2,22 @@
 // crash service, owner rule). The app sends ONE small payload per new error kind per run, only while online and only
 // while "Send crash reports" (More → Data) is on:
 //
-//   POST /crash         a `crash/1` payload (app/packages/ui/src/crashReport.ts `crashPayload`): the app build, env,
-//                       platform, data release, the route KIND (map / conditions / runs / spots / menu / water — never a
-//                       water name, coordinate or id), the error's name, a scrubbed message and the stack. Validated
-//                       (size, shape, every key known), rate-limited per IP, then folded into ONE object per error kind.
-//   one object per kind private/crashes/<hash>.json — {hash, first, last, count, versions, sample}. The hash is the
-//                       error's name + message + stack with the numbers taken out, so a kind is one object across
-//                       versions and a repeat only moves `last` and `count`. NO IP, User-Agent or country is stored.
-//   GET /crashes        (Bearer RUN_TOKEN) every kind seen since `?since=YYYY-MM-DD`, newest first.
+//   POST /crash         a `crash/2` payload (app/packages/ui/src/crashReport.ts `crashPayload`) — or a `crash/1` (0.4.0
+//                       and earlier phones keep sending it): the app build, env, platform, data release, the route KIND
+//                       (map / conditions / runs / spots / menu / water), the error's name, a scrubbed message and the
+//                       stack; (T352) crash/2 adds the open water's item id and its pane (view, part, section handle,
+//                       whole, sheet), a random install id and `background`. Validated per version (size, shape, every
+//                       key known to THAT version), rate-limited per IP, then folded into ONE object per error kind.
+//                       (T352) env "local" (a developer's build, not a tester) is answered 202 and not stored.
+//   one object per kind private/crashes/<hash>.json — {hash, first, last, count, versions, installs, sample}. The hash is
+//                       the error's name + message + the stack's function names, browser-neutral (`crashHash`), so a kind
+//                       is one object across versions and browsers and a repeat only moves `last` and `count`. NO IP,
+//                       User-Agent or country is stored.
+//   GET /crashes        (Bearer RUN_TOKEN) every kind seen since `?since=YYYY-MM-DD`, newest first; (T352) background OS
+//                       kills only with `?background=1`.
 //   the digest          `crashEvents` (the gauge run): a kind whose `first` is today or yesterday and that the outbox has not
-//                       told → one digest line (not urgent). A repeat of a known kind is never told again.
+//                       told → one digest line (not urgent). A repeat of a known kind is never told again. (T352) A
+//                       background OS kill is never told: it is not a crash.
 //   purge               kinds not seen for CRASH_RETENTION_DAYS are deleted (privacy page: "90 days after the last time").
 import type { FeedEvent } from "./events";
 import type { R2BucketLike } from "./io";
@@ -19,11 +25,18 @@ import { CORS, listKeys, rateLimit, sha256hex, type ReportEnv } from "./reports"
 
 export const CRASHES_PREFIX = "private/crashes/";
 const LIMITS_PREFIX = `${CRASHES_PREFIX}limits/`;
-export const CRASH_FORMAT = "crash/1";
+/** (T352) the newest format; `CRASH_FORMATS` are every one accepted */
+export const CRASH_FORMAT = "crash/2";
+export const CRASH_FORMATS = ["crash/1", "crash/2"] as const;
 /** (T291) error kinds a TOOL sent (`test: true`): stored apart, not in the digest, deleted 7 days after last seen. Staging only. */
 export const TEST_CRASHES_PREFIX = "private/crashes-test/";
 export const CRASH_KINDS = ["js", "promise", "render", "native"] as const;
 export const ROUTE_KINDS = ["map", "conditions", "runs", "spots", "menu", "water", "other"] as const;
+/** (T352) crash/2's pane facts */
+export const VIEWS = ["regs", "conditions", "map"] as const;
+export const SHEETS = ["search", "spot", "adding"] as const;
+/** at most this many distinct install ids kept per kind (enough to count testers; the rest only move `count`) */
+export const KIND_INSTALLS = 100;
 export const CRASH_LIMITS = { bytes: 8192, name: 60, message: 200, stack: 2000, field: 100 } as const;
 /** one crash POST per IP per this, and at most PER_DAY a day (the app sends one per new kind per run) */
 export const CRASH_GAP_MS = 1_000;
@@ -31,8 +44,8 @@ export const CRASH_PER_DAY = 40;
 export const CRASH_RETENTION_DAYS = 90;
 const STR_FIELDS = ["app", "env", "platform", "release"] as const;
 
-export interface CrashPayload {
-  format: typeof CRASH_FORMAT;
+interface CrashPayloadV1 {
+  format: "crash/1";
   created: string;
   kind: (typeof CRASH_KINDS)[number];
   fatal: boolean;
@@ -41,6 +54,18 @@ export interface CrashPayload {
   name: string; message: string; stack: string;
   test?: boolean;
 }
+/** (T352) crash/2: crash/1 and the open water, its pane, the install id and `background` */
+interface CrashPayloadV2 extends Omit<CrashPayloadV1, "format"> {
+  format: "crash/2";
+  background: boolean;
+  install: string;
+  water: string | null;
+  view: (typeof VIEWS)[number] | null;
+  part: number | null;
+  whole: boolean;
+  sheet: (typeof SHEETS)[number] | null;
+}
+export type CrashPayload = CrashPayloadV1 | CrashPayloadV2;
 export interface CrashKind {
   format: "crash-kind/1";
   test?: true;
@@ -50,18 +75,31 @@ export interface CrashKind {
   count: number;
   /** app version → times seen (at most 20 versions kept) */
   versions: Record<string, number>;
-  sample: Omit<CrashPayload, "format">;
+  /** (T352) the distinct install ids seen (at most KIND_INSTALLS kept); absent on a kind only crash/1 has reached */
+  installs?: string[];
+  /** (T352) the system closing the app in the background (not a crash): left out of the digest and the default list */
+  background?: true;
+  sample: Omit<CrashPayloadV1, "format"> | Omit<CrashPayloadV2, "format">;
 }
 
 const json = (body: unknown, status: number) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
+const V1_KEYS = ["format", "created", "kind", "fatal", "route", "name", "message", "stack", "test", ...STR_FIELDS] as const;
+const V2_KEYS = [...V1_KEYS, "background", "install", "water", "view", "part", "whole", "sheet"] as const;
+const INSTALL_RE = /^[0-9a-f]{16}$/;
+const ITEM_RE = /^[\w:.-]{1,100}$/;
+const nullOr = <T>(v: unknown, ok: (x: unknown) => x is T): boolean => v === null || ok(v);
+const isInt = (x: unknown): x is number => typeof x === "number" && Number.isInteger(x) && x >= 0 && x <= 2 ** 31;
+
 export function validateCrash(raw: unknown): { ok: true; crash: CrashPayload } | { ok: false; error: string } {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, error: "not a crash report" };
   const r = raw as Record<string, unknown>;
-  const known = new Set(["format", "created", "kind", "fatal", "route", "name", "message", "stack", "test", ...STR_FIELDS]);
+  if (!(CRASH_FORMATS as readonly unknown[]).includes(r.format)) return { ok: false, error: `format must be one of ${CRASH_FORMATS.join(", ")}` };
+  const v2 = r.format === "crash/2";
+  // every key known to THIS version: a crash/1 with a crash/2 field is refused, as is any unknown key
+  const known = new Set<string>(v2 ? V2_KEYS : V1_KEYS);
   for (const k of Object.keys(r)) if (!known.has(k)) return { ok: false, error: `unknown ${k}` };
-  if (r.format !== CRASH_FORMAT) return { ok: false, error: `format must be ${CRASH_FORMAT}` };
   if (typeof r.created !== "string" || r.created.length > 40 || Number.isNaN(Date.parse(r.created))) return { ok: false, error: "bad created" };
   if (!(CRASH_KINDS as readonly string[]).includes(r.kind as string)) return { ok: false, error: "bad kind" };
   if (r.test !== undefined && typeof r.test !== "boolean") return { ok: false, error: "bad test" };
@@ -71,14 +109,49 @@ export function validateCrash(raw: unknown): { ok: true; crash: CrashPayload } |
   for (const [k, max] of [["name", CRASH_LIMITS.name], ["message", CRASH_LIMITS.message], ["stack", CRASH_LIMITS.stack]] as const)
     if (typeof r[k] !== "string" || (r[k] as string).length > max) return { ok: false, error: `bad ${k}` };
   if (!(r.name as string).trim()) return { ok: false, error: "no error name" };
+  if (v2) {
+    // every crash/2 field is required (the app always sends them all; unknown is null)
+    if (typeof r.background !== "boolean") return { ok: false, error: "bad background" };
+    if (typeof r.whole !== "boolean") return { ok: false, error: "bad whole" };
+    if (typeof r.install !== "string" || !INSTALL_RE.test(r.install)) return { ok: false, error: "bad install" };
+    if (!nullOr(r.water, (x): x is string => typeof x === "string" && ITEM_RE.test(x))) return { ok: false, error: "bad water" };
+    if (!nullOr(r.view, (x): x is string => (VIEWS as readonly unknown[]).includes(x))) return { ok: false, error: "bad view" };
+    if (!nullOr(r.sheet, (x): x is string => (SHEETS as readonly unknown[]).includes(x))) return { ok: false, error: "bad sheet" };
+    if (!nullOr(r.part, isInt)) return { ok: false, error: "bad part" };
+  }
   return { ok: true, crash: r as unknown as CrashPayload };
 }
 
-/** the kind's identity: name + message + the stack's first function names, with every number taken out (so versions and
- *  line/column shifts are one kind); 16 hex characters */
+/**
+ * (T352) A background OS kill — the system reclaiming the app while it was not in front. crash/2 says so (`background`);
+ * a crash/1 (0.4.0 and earlier) is read from its exit line ("LOW_MEMORY while background, …"), the only place it said it.
+ */
+export function isBackgroundKill(c: CrashPayload): boolean {
+  if (c.format === "crash/2") return c.background;
+  return c.kind === "native" && /^(LOW_MEMORY|SIGNALED) while (?!foreground\b|visible\b)/.test(c.message);
+}
+
+/**
+ * A stack frame's FUNCTION NAME only, whichever browser wrote it (T352): Chrome / V8 / Hermes "at fn (file:l:c)" and
+ * "at file:l:c", Safari / Firefox "fn@file:l:c" and "@file:l:c". Qualifiers ("Object.", "async ", "new ") and an
+ * anonymous frame (no name) go, so the same error is one kind on every browser.
+ */
+export function frameName(line: string): string {
+  let l = line.trim().replace(/^at\s+/, "");
+  if (l.includes("@")) l = l.slice(0, l.lastIndexOf("@"));
+  else if (/\(.*\)\s*$/.test(l)) l = l.replace(/\s*\(.*\)\s*$/, "");
+  else return "";                                            // "at file:l:c": a frame with no name
+  l = l.replace(/^(async|new)\s+/, "").replace(/\[as [^\]]*\]/g, "").trim();
+  const last = l.split(/[.\s/<]+/).filter(Boolean).pop() ?? "";
+  return /^(anonymous|eval|global code|module code)$/.test(last) || /^[0-9]+$/.test(last) ? "" : last;
+}
+
+/** the kind's identity: name + message (numbers out) + the stack's first named frames, browser-neutral (`frameName`), so
+ *  versions, line/column shifts and browsers are one kind; 16 hex characters. (T352) Used for crash/1 and crash/2 alike:
+ *  a kind stored under the older hash ages out after 90 days, and an error still being seen is one new kind, told once. */
 export async function crashHash(c: Pick<CrashPayload, "name" | "message" | "stack">): Promise<string> {
-  const lines = c.stack.split("\n").slice(0, 6).map((l) => l.replace(/https?:\/\/\S+|\(.*\)|[0-9]+/g, "").replace(/\s+/g, " ").trim());
-  return (await sha256hex([c.name, c.message.replace(/[0-9]+/g, "#"), ...lines].join("\n"))).slice(0, 16);
+  const frames = c.stack.split("\n").map(frameName).filter(Boolean).slice(0, 5);
+  return (await sha256hex([c.name, c.message.replace(/[0-9]+/g, "#"), ...frames].join("\n"))).slice(0, 16);
 }
 
 export const crashKey = (hash: string) => `${CRASHES_PREFIX}${hash}.json`;
@@ -94,6 +167,8 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   try { body = JSON.parse(raw); } catch { return json({ ok: false, error: "not JSON" }, 400); }
   const v = validateCrash(body);
   if (!v.ok) return json({ ok: false, error: v.error }, 400);
+  // (T352) a developer's own build is not a tester: answered (so it does not retry) and not stored, wherever it was sent
+  if (v.crash.env === "local") return json({ ok: true, stored: false }, 202);
   const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
   const refused = await rateLimit(env, ip, now, { prefix: LIMITS_PREFIX, gapMs: CRASH_GAP_MS, perDay: CRASH_PER_DAY, edge: false });
   if (refused) return json({ ok: false, error: refused }, 429);
@@ -102,7 +177,9 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   const key = isTest ? `${TEST_CRASHES_PREFIX}${hash}.json` : crashKey(hash);
   const at = now.toISOString();
   const { format: _format, test: _test, ...sample } = v.crash;
-  let kind: CrashKind = { format: "crash-kind/1", hash, first: at, last: at, count: 0, versions: {}, sample };
+  const background = isBackgroundKill(v.crash);
+  let kind: CrashKind = { format: "crash-kind/1", hash, first: at, last: at, count: 0, versions: {}, sample,
+                          ...(background ? { background: true as const } : {}) };
   try {
     const o = await env.BUCKET.get(key);
     if (o) kind = JSON.parse(await o.text());
@@ -110,6 +187,12 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   kind.last = at;
   kind.count++;
   if (kind.versions[v.crash.app] !== undefined || Object.keys(kind.versions).length < 20) kind.versions[v.crash.app] = (kind.versions[v.crash.app] ?? 0) + 1;
+  if (v.crash.format === "crash/2") {
+    const ins = kind.installs ?? [];
+    if (!ins.includes(v.crash.install) && ins.length < KIND_INSTALLS) ins.push(v.crash.install);
+    kind.installs = ins;
+    if (!("install" in kind.sample)) kind.sample = sample;     // a kind first seen from crash/1: the richer sample
+  }
   try {
     await env.BUCKET.put(key, JSON.stringify(kind, null, 1), { httpMetadata: { contentType: "application/json" } });
   } catch {
@@ -122,7 +205,7 @@ const kindKeys = async (bucket: R2BucketLike, max: number) =>
   (await listKeys(bucket, CRASHES_PREFIX, max)).filter((k) => !k.startsWith(LIMITS_PREFIX));
 
 /** GET /crashes (authed): the kinds last seen on or after `since` (YYYY-MM-DD), newest first. */
-export async function listCrashes(bucket: R2BucketLike, since: string, max = 500, withTest = false): Promise<CrashKind[]> {
+export async function listCrashes(bucket: R2BucketLike, since: string, max = 500, withTest = false, withBackground = false): Promise<CrashKind[]> {
   const out: CrashKind[] = [];
   const keys = [...await kindKeys(bucket, max), ...(withTest ? await listKeys(bucket, TEST_CRASHES_PREFIX, max) : [])];
   for (const k of keys) {
@@ -130,6 +213,7 @@ export async function listCrashes(bucket: R2BucketLike, since: string, max = 500
     if (!o) continue;
     try {
       const c = JSON.parse(await o.text()) as CrashKind;
+      if (c.background && !withBackground) continue;      // (T352) not a crash: out of the counts unless asked for
       if (c.last.slice(0, 10) >= since) out.push(k.startsWith(TEST_CRASHES_PREFIX) ? { ...c, test: true } : c);
     } catch { /* skipped */ }
   }
@@ -147,6 +231,7 @@ export async function crashEvents(bucket: R2BucketLike, known: (key: string) => 
     if (!o) continue;
     let c: CrashKind;
     try { c = JSON.parse(await o.text()); } catch { continue; }
+    if (c.background) continue;                             // (T352) a background OS kill is not a crash: never told
     if (recent.has(c.first.slice(0, 10))) events.push(crashEvent(c, at));
   }
   return events;
@@ -155,14 +240,21 @@ export async function crashEvents(bucket: R2BucketLike, known: (key: string) => 
 export function crashEvent(c: CrashKind, at: string): FeedEvent {
   const s = c.sample;
   const vs = Object.keys(c.versions).join(", ");
+  // (T352) crash/2: the open water and its pane, and how many installs have seen it
+  const pane = "install" in s
+    ? [s.water ? `water ${s.water}` : null, s.view ? `${s.view} view` : null, s.part !== null ? `part ${s.part}` : null,
+       s.whole ? "whole water" : null, s.sheet ? `${s.sheet} open` : null]
+      .filter(Boolean).join(", ")
+    : "";
   return {
     key: `crash:${c.hash}`,
     kind: "crash",
     title: `${s.name}: ${s.message.slice(0, 90)}${s.message.length > 90 ? "…" : ""} (${s.platform}, ${s.route})`,
     text:
       `${s.name}: ${s.message}\n${s.stack}\n\n` +
-      `New error kind ${c.hash}${s.fatal ? " (fatal)" : ""}: ${s.kind === "native" ? "the system ended the app (Android exit record)" : `${s.kind} error`} on the ${s.route} screen.\n` +
-      `App ${s.app} (${s.env}) · ${s.platform} · release ${s.release} · versions seen: ${vs}\n` +
+      `New error kind ${c.hash}${s.fatal ? " (fatal)" : ""}: ${s.kind === "native" ? "the system ended the app (Android exit record)" : `${s.kind} error`} on the ${s.route} screen${pane ? ` (${pane})` : ""}.\n` +
+      `App ${s.app} (${s.env}) · ${s.platform} · release ${s.release} · versions seen: ${vs}` +
+      `${c.installs ? ` · installs: ${c.installs.length}` : ""}\n` +
       `First seen ${c.first} · ${c.count} so far. Read them all: GET /crashes on the feeds worker (Bearer RUN_TOKEN).`,
     at,
   };

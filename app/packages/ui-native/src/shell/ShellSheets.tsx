@@ -6,6 +6,8 @@
  */
 import { Platform } from "react-native";
 import type { ReleaseLoader } from "@app/data/release";
+import type { ReportMap } from "@app/core";
+import type { Camera } from "@app/map";
 import { useOfflineMaps, type MapRail, type MenuControls, type SyncState } from "@app/ui";
 import { SpotDropSheet } from "../SpotDropSheet";
 import type { MenuInfo } from "../menu/MenuHost";
@@ -17,7 +19,21 @@ import { part } from "../part";
 // (T282) loaded later on the web (`part`): not on the first screen's path
 const MenuHost = part(() => import("../later").then((m) => m.MenuHost), (p) => p.menu.state.page !== null);
 
-export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, onTabTour, sync = null }: {
+/**
+ * (T352) THE MAP AS A REPORT LISTS IT: what it colours (the Conditions quantity, Run timing, or the water colouring) on
+ * which ground, the Conditions forecast offset, and the camera's zoom and centre.
+ */
+function reportMapOf(col: Pick<MapColouring, "flowParam" | "horizon" | "layers" | "mm">, mapTab: ShellNav["mapTab"],
+                            camera: Camera | null): ReportMap {
+  const what = mapTab === "conditions" ? `conditions ${col.flowParam}` : mapTab === "runs" ? "run timing" : col.layers.effective.water;
+  return { layer: `${what} · ${col.mm.basemap}`, horizon: col.horizon,
+           zoom: camera?.zoom ?? null, lat: camera?.lat ?? null, lon: camera?.lon ?? null };
+}
+
+export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, onTabTour, sync = null,
+                              camera = null }: {
+  /** (T352) the camera of the map in front (the Shell's ref, read at its render) */
+  camera?: Camera | null;
   theme?: string; onWalkthrough?: () => void; onTabTour?: (k: "runs" | "conditions" | "salmon") => void;
   /** (T238) the sync state: a phone's release download and its mobile-data setting, for the Offline maps page */
   sync?: SyncState | null;
@@ -35,7 +51,7 @@ export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, m
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
       <MenuHost menu={menu} palette={palette} theme={theme} onWalkthrough={onWalkthrough} onTabTour={onTabTour} loader={loader} info={menuInfo} tiles={col.vintage.tiles ?? null}
-                route={route} day={mapDay} mode={col.regsLayer} offline={offline} />
+                route={route} day={mapDay} mode={col.regsLayer} map={reportMapOf(col, nav.mapTab, camera)} offline={offline} />
     </>
   );
 }

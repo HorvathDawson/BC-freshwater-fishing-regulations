@@ -10,7 +10,7 @@ import { createReportOutbox, reportId } from "./outbox";
 
 const URL_ = "https://feeds.example/report";
 const p = (id: string): ReportPayload =>
-  ({ format: "report/1", id, created: "2026-10-28T20:00:00.000Z", reason: "rule", text: `t${id}`, email: null, contact: false, context: {} });
+  ({ format: "report/2", id, created: "2026-10-28T20:00:00.000Z", reason: "rule", text: `t${id}`, email: null, contact: false, context: {} });
 
 function endpoint() {
   const got: { id: string }[] = [];

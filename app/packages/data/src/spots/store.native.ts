@@ -97,6 +97,11 @@ export function openCrashPendingStore(): { read(): string | null; write(text: st
   return fileStore("crash-pending.json");
 }
 
+/** (T352) The random install id crash and problem reports carry (16 hex characters, made once), one key of its own. */
+export function openInstallIdStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("install-id.txt");
+}
+
 /** (T236) The first-run notice's accepted version (`FIRST_RUN_VERSION`), a small file of its own. */
 export function openFirstRunStore(): { read(): string | null; write(text: string): void } {
   return fileStore("first-run.txt");

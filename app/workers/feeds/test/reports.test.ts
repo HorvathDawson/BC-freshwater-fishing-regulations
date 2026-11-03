@@ -89,7 +89,7 @@ describe("POST /report (T237)", () => {
     const now = at("2026-10-28T20:00:00Z");
     const cases: [unknown, number, string][] = [
       ["{not json", 400, "not JSON"],
-      [report({ format: "report/2" }), 400, "format must be report/1"],
+      [report({ format: "report/3" }), 400, "format must be one of report/1, report/2"],
       [report({ id: "../../x" }), 400, "bad id"],
       [report({ reason: "spam" }), 400, "bad reason"],
       [report({ text: "   " }), 400, "the report says nothing"],
@@ -185,5 +185,31 @@ describe("the test tag (T291)", () => {
     expect(await reportEvents(P, () => false, at("2026-10-29T21:00:00Z"), "x")).toHaveLength(1);
     const stored = JSON.parse([...P.m.entries()].find(([k]) => /private\/reports\/2026/.test(k))![1]);
     expect(stored.test).toBeUndefined();
+  });
+});
+
+// T352: report/2 adds the map's layer, forecast offset, zoom and centre and the install id; report/1 keeps its own keys.
+describe("report/2 (T352)", () => {
+  const v2 = (ctx: Record<string, unknown> = {}) => report({ format: "report/2", context: { ...report().context,
+    layer: "regulations · map", horizon: "3", zoom: 9.4, lat: 49.123, lon: -121.957, install: "0123456789abcdef", ...ctx } });
+  it("is stored as sent, beside report/1", async () => {
+    const BUCKET = new MemBucket();
+    expect((await handleReport(post(v2()), { BUCKET }, at("2026-11-03T10:00:00Z"))).status).toBe(201);
+    const stored = JSON.parse(BUCKET.m.get("private/reports/2026-11-03/0123456789abcdef.json")!);
+    expect(stored).toEqual({ ...v2(), received: "2026-11-03T10:00:00.000Z" });
+    expect(validateReport(report()).ok).toBe(true);
+    const ev = await reportEvents(BUCKET, () => false, at("2026-11-03T11:00:00Z"), "x");
+    expect(ev[0]!.text).toMatch(/Map: regulations · map · forecast 3 · zoom 9\.4 · centre 49\.123, -121\.957\n/);
+    expect(ev[0]!.text).toMatch(/install 0123456789abcdef/);
+  });
+  it("each version takes only its own context keys, and checks the new ones", () => {
+    expect(validateReport(report({ context: { zoom: 9 } }))).toEqual({ ok: false, error: "unknown context.zoom" });
+    expect(validateReport(report({ context: { install: "0123456789abcdef" } }))).toEqual({ ok: false, error: "unknown context.install" });
+    expect(validateReport(v2({ extra: 1 }))).toEqual({ ok: false, error: "unknown context.extra" });
+    expect(validateReport(v2({ zoom: 30 }))).toEqual({ ok: false, error: "bad context.zoom" });
+    expect(validateReport(v2({ lat: "49" }))).toEqual({ ok: false, error: "bad context.lat" });
+    expect(validateReport(v2({ lon: -200 }))).toEqual({ ok: false, error: "bad context.lon" });
+    expect(validateReport(v2({ install: "me@example.org" }))).toEqual({ ok: false, error: "bad context.install" });
+    expect(validateReport(v2({ layer: "x".repeat(LIMITS.field + 1) }))).toEqual({ ok: false, error: "bad context.layer" });
   });
 });

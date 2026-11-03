@@ -3,36 +3,61 @@
  * crash service, owner rule). What leaves the device, and only while "Send crash reports" (More → Data, default on) is on,
  * the device is online and the error is new this run:
  *
- *   the app build, environment, platform, data release; the screen KIND (map / conditions / runs / spots / menu / water —
- *   never a water's name, a coordinate or an id); the error's kind (js / promise / render), whether it ended the app, its
- *   name, its message with every quoted text, address, number run and coordinate taken out (`scrubMessage`) and its stack
- *   with the addresses cut to file names. No identifier of the device or the person; the server stores neither the IP
- *   address nor the user agent.
+ *   the app build, environment, platform, data release; the screen KIND (map / conditions / runs / spots / menu / water);
+ *   (T352, owner 2026-11-03) the OPEN WATER'S durable id and its pane — the view in front, the part (never a section id:
+ *   AGENTS rule 5, section ids never leave the bundle), whether the whole water is framed, which route-held sheet is up — from the route (`crashWhere`), never a
+ *   water's name or a coordinate; a random INSTALL id made once on the device (`installId`, the problem report's too);
+ *   the error's kind (js / promise / render / native), whether it ended the app, whether the system closed the app in the
+ *   background (`background`), its name, its message with every quoted text, address, number run and coordinate taken
+ *   out (`scrubMessage`; a short quoted module number kept) and its stack with the addresses cut to file names. Nothing
+ *   else about the device or the person; the server stores neither the IP address nor the user agent.
  *
  * Offline → dropped (never queued). A fatal error is kept in one slot on the device and sent at the next start (the app is
  * dying as it is caught), then cleared. At most `maxPerRun` different errors a run; the same error is sent once.
  * Switching it off sends nothing and forgets a kept one.
  */
 import { createContext, createElement, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Route } from "./route";
+import { waterFrame, type Route, type View } from "./route";
 
-export const CRASH_FORMAT = "crash/1";
+/** (T352) crash/2: the open water and its pane, the install id, `background`. The worker takes crash/1 too (0.4.0 phones). */
+export const CRASH_FORMAT = "crash/2";
+const CRASH_FORMATS: readonly string[] = ["crash/1", CRASH_FORMAT];
 export type CrashKind = "js" | "promise" | "render" | "native";
 export type RouteKind = "map" | "conditions" | "runs" | "spots" | "menu" | "water" | "other";
+/** (T352) the route-held sheet up when the error happened: search over a map, a spot open, a spot being added */
+export type CrashSheet = "search" | "spot" | "adding";
 export const CRASH_LIMITS = { name: 60, message: 200, stack: 2000, field: 100 } as const;
 
-export interface CrashPayload {
+/** (T352) Where the reader was, from the route: the screen kind and the open water's pane. Every field null when unknown. */
+export interface CrashWhere {
+  route: RouteKind;
+  /** the open water's durable item id (null: none open, or an unnamed reach) */
+  water: string | null;
+  /** the view in front of it */
+  view: View | null;
+  /** the part's index in its water */
+  part: number | null;
+  /** the water's map framed on the whole water (the route's `whole`) */
+  whole: boolean;
+  sheet: CrashSheet | null;
+}
+
+export interface CrashPayload extends CrashWhere {
   format: typeof CRASH_FORMAT;
   created: string;
   kind: CrashKind;
   fatal: boolean;
-  route: RouteKind;
+  /** (T352) the system closed the app while it was not in front (Android: low memory, a signal): not a crash */
+  background: boolean;
+  /** (T352) the random id made once on this device */
+  install: string;
   app: string; env: string; platform: string; release: string;
   name: string; message: string; stack: string;
 }
-export interface CrashContext { app: string; env: string; platform: string; release: string }
+/** What the app hands the reporter at each error: its build facts, the install id and where the reader is (`crashWhere`). */
+export interface CrashContext extends CrashWhere { app: string; env: string; platform: string; release: string; install: string }
 
-/** The screen as a KIND, never as a place: the tab, a water, or the menu's pages (the More tab). */
+/** The screen as a KIND: the tab, a water, or the menu's pages (the More tab). */
 export function routeKind(r: Route | null | undefined): RouteKind {
   if (!r) return "other";
   if (r.mode === "water") return "water";
@@ -46,21 +71,47 @@ export function routeKind(r: Route | null | undefined): RouteKind {
   }
 }
 
+/** Nowhere known: a native exit read at the next start, or no route yet. */
+export const NO_WHERE: CrashWhere = Object.freeze({ route: "other", water: null, view: null, part: null, whole: false, sheet: null });
+
+/** (T352) The route's facts a crash carries: the screen kind, the open water's id and its pane (never a name or a place). */
+export function crashWhere(r: Route | null | undefined): CrashWhere {
+  if (!r) return NO_WHERE;
+  const f = waterFrame(r);
+  const sheet: CrashSheet | null = r.mode === "water" ? (r.spot ? "spot" : null)
+    : r.adding ? "adding" : r.spot ? "spot" : r.search ? "search" : null;
+  return {
+    route: routeKind(r),
+    water: f?.item ?? null,
+    view: f?.view ?? null,
+    part: f?.part ?? null,
+    whole: !!f?.whole,
+    sheet,
+  };
+}
+
 const cut = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+
+/** (T352) A module number quoted after "module" (Metro's `Requiring unknown module "1234"`): kept, it is the code's own id. */
+const MODULE_ID = /\bmodule\s+(['"`])(\d{1,6})\1/gi;
 
 /**
  * An error's message with what could identify a person or a place taken out: e-mail addresses, web addresses, every quoted
  * text ('…', "…", `…` — a water's name, a spot's note), decimals with 3+ places (coordinates) and number runs of 5+ digits
- * (ids). What is left says what went wrong ("undefined is not an object (evaluating '…')").
+ * (ids). What is left says what went wrong ("undefined is not an object (evaluating '…')"). (T352) One exception: a short
+ * quoted NUMBER after "module" is the bundle's module id (`Requiring unknown module "1234"`), kept as it was.
  */
 export function scrubMessage(m: string): string {
-  return cut(m
+  const kept: string[] = [];
+  const held = m.replace(MODULE_ID, (_all, _q: string, id: string) => `module \u0000${kept.push(id) - 1}\u0000`);
+  return cut(held
     .replace(/[^\s@'"`]+@[^\s@'"`]+\.[^\s@'"`]+/g, "…")
     .replace(/\b[a-z][a-z0-9+.-]*:\/\/[^\s)'"`]*/gi, "…")
     .replace(/'[^']*'|"[^"]*"|`[^`]*`/g, "'…'")
     .replace(/-?\d+\.\d{3,}/g, "#")
     .replace(/\d{5,}/g, "#")
-    .replace(/\s+/g, " ").trim(), CRASH_LIMITS.message);
+    .replace(/\s+/g, " ").trim()
+    .replace(/\u0000(\d+)\u0000/g, (_all, i: string) => `"${kept[Number(i)]}"`), CRASH_LIMITS.message);
 }
 
 /** A stack with every address cut to its file name and no message line (the message is sent scrubbed, on its own). */
@@ -77,16 +128,41 @@ const nameOf = (e: unknown): string => {
 };
 
 /** THE PAYLOAD — every field, pinned by test. */
-export function crashPayload(o: { error: unknown; kind: CrashKind; fatal: boolean; route: RouteKind; ctx: CrashContext; now: Date }): CrashPayload {
-  const e = o.error;
+export function crashPayload(o: { error: unknown; kind: CrashKind; fatal: boolean; background?: boolean; ctx: CrashContext; now: Date }): CrashPayload {
+  const e = o.error, c = o.ctx;
   const message = e instanceof Error ? e.message : typeof e === "string" ? e : (() => { try { return JSON.stringify(e) ?? String(e); } catch { return String(e); } })();
   const stack = e instanceof Error && typeof e.stack === "string" ? e.stack : "";
+  const int = (n: number | null) => (typeof n === "number" && Number.isInteger(n) && n >= 0 ? n : null);
   return {
-    format: CRASH_FORMAT, created: o.now.toISOString(), kind: o.kind, fatal: o.fatal, route: o.route,
-    app: cut(o.ctx.app, CRASH_LIMITS.field), env: cut(o.ctx.env, CRASH_LIMITS.field),
-    platform: cut(o.ctx.platform, CRASH_LIMITS.field), release: cut(o.ctx.release, CRASH_LIMITS.field),
+    format: CRASH_FORMAT, created: o.now.toISOString(), kind: o.kind, fatal: o.fatal, background: !!o.background,
+    route: c.route, water: c.water === null ? null : cut(c.water, CRASH_LIMITS.field), view: c.view, part: int(c.part),
+    whole: !!c.whole, sheet: c.sheet,
+    install: cut(c.install, CRASH_LIMITS.field),
+    app: cut(c.app, CRASH_LIMITS.field), env: cut(c.env, CRASH_LIMITS.field),
+    platform: cut(c.platform, CRASH_LIMITS.field), release: cut(c.release, CRASH_LIMITS.field),
     name: nameOf(e), message: scrubMessage(message), stack: scrubStack(stack),
   };
+}
+
+// ── the install id ───────────────────────────────────────────────────────────────────────────────────────────────────
+
+const INSTALL_RE = /^[0-9a-f]{16}$/;
+
+/**
+ * (T352, owner 2026-11-03) THE INSTALL ID: 16 random hex characters made once on this device and kept in its own small
+ * text store — no personal data, nothing derived from the device. Crash reports and problem reports carry the same one, so
+ * reports from one install can be told apart from another's (the owner's from testers'; distinct installs counted). A
+ * store that cannot be read or written gives a new id for this run only (said by `kept: false`).
+ */
+export function installId(store: TextStore | null | undefined, rand: () => number = Math.random): { id: string; kept: boolean } {
+  try {
+    const was = (store?.read() ?? "").trim();
+    if (INSTALL_RE.test(was)) return { id: was, kept: true };
+  } catch { /* unreadable: a new one below */ }
+  let id = "";
+  for (let i = 0; i < 16; i++) id += Math.floor(rand() * 16).toString(16);
+  try { if (store) { store.write(id); return { id, kept: true }; } } catch { /* this run only */ }
+  return { id, kept: false };
 }
 
 // ── the switch ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -143,8 +219,8 @@ export function createCrashReporter(o: {
   url: string;
   setting: CrashSetting;
   online: () => boolean;
+  /** (T352) asked at each error: the build facts, the install id and where the reader is (`crashWhere` of the route) */
   context: () => CrashContext;
-  route: () => RouteKind;
   /** one slot for a fatal error, sent at the next start */
   store?: TextStore | null;
   fetch?: typeof fetch;
@@ -159,7 +235,7 @@ export function createCrashReporter(o: {
   const max = o.maxPerRun ?? 5;
   const clearKept = () => { try { o.store?.write(""); } catch { /* nothing kept */ } };
 
-  async function post(p0: CrashPayload): Promise<boolean> {
+  async function post(p0: { format: string }): Promise<boolean> {
     const p = o.test ? { ...p0, test: true } : p0;
     try {
       const r = await f(o.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p), keepalive: true });
@@ -171,7 +247,7 @@ export function createCrashReporter(o: {
     report(error, opt) {
       try {
         if (!o.setting.get()) return;
-        const p = crashPayload({ error, kind: opt.kind, fatal: opt.fatal, route: o.route(), ctx: o.context(), now: now() });
+        const p = crashPayload({ error, kind: opt.kind, fatal: opt.fatal, ctx: o.context(), now: now() });
         const id = `${p.name}|${p.message}|${p.stack.split("\n").slice(0, 3).join("|")}`.replace(/\d+/g, "#");
         if (seen.has(id) || seen.size >= max) return;
         seen.add(id);
@@ -186,7 +262,10 @@ export function createCrashReporter(o: {
         if (!o.setting.get() || !o.online()) return false;
         const e = new Error(`${r.reason} while ${r.importance.toLowerCase()}${r.rssKb > 0 ? `, ${Math.round(r.rssKb / 1024)} MB in use` : ""}${r.status ? `, status ${r.status}` : ""}${r.description ? `: ${r.description}` : ""}`);
         e.name = "NativeExit"; e.stack = "";
-        return await post(crashPayload({ error: e, kind: "native", fatal: true, route: "other", ctx: o.context(), now: new Date(r.timestamp) }));
+        // (T352) the screen at the time is not known (this is the next run); a background kill is sent non-fatal, marked
+        const bg = backgroundKill(r);
+        return await post(crashPayload({ error: e, kind: "native", fatal: !bg, background: bg, ctx: { ...o.context(), ...NO_WHERE },
+                                         now: new Date(r.timestamp) }));
       } catch { return false; }
     },
     async flush() {
@@ -195,9 +274,10 @@ export function createCrashReporter(o: {
         if (!text) return false;
         if (!o.setting.get()) { clearKept(); return false; }      // switched off: forgotten, nothing sent
         if (!o.online()) return false;
-        let p: CrashPayload;
-        try { p = JSON.parse(text) as CrashPayload; } catch { clearKept(); return false; }
-        if (p?.format !== CRASH_FORMAT) { clearKept(); return false; }
+        let p: { format: string };
+        try { p = JSON.parse(text) as { format: string }; } catch { clearKept(); return false; }
+        // a crash/1 kept by the version before this one is sent as it was (the worker takes both)
+        if (!CRASH_FORMATS.includes(p?.format)) { clearKept(); return false; }
         const ok = await post(p);
         if (ok) clearKept();
         return ok;
@@ -266,6 +346,15 @@ export interface ExitRecord {
   readonly description: string;
 }
 export interface ExitSource { recent(since: number): Promise<ExitRecord[]> }
+
+/**
+ * (T352) THE SYSTEM CLOSING THE APP BEHIND THE READER'S BACK — a low-memory kill or a signal (SIGNALED 9: the OS reclaiming
+ * a cached process) while the app was not in front (importance neither FOREGROUND nor VISIBLE). Not a crash: sent
+ * non-fatal and marked `background`, and the worker keeps it out of the crash counts and the digest.
+ */
+export function backgroundKill(r: Pick<ExitRecord, "reason" | "importance">): boolean {
+  return (r.reason === "LOW_MEMORY" || r.reason === "SIGNALED") && r.importance !== "FOREGROUND" && r.importance !== "VISIBLE";
+}
 
 /** exits that end the app badly; EXIT_SELF, USER_REQUESTED, USER_STOPPED, PERMISSION_CHANGE and the like are not errors */
 const BAD_EXITS: readonly string[] = ["CRASH", "CRASH_NATIVE", "ANR", "LOW_MEMORY", "EXCESSIVE_RESOURCE_USAGE", "INITIALIZATION_FAILURE", "SIGNALED", "DEPENDENCY_DIED"];

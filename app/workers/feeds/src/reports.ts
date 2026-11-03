@@ -1,7 +1,8 @@
 // T237: PROBLEM REPORTS from the app — `POST /report` (public), stored one JSON per report in the PRIVATE part of the
 // bucket, and told to the owner in the daily digest (T225 notify policy: a report is not urgent).
 //
-//   POST /report        a `report/1` payload (app/packages/core/src/menu/report.ts `reportPayload`). Validated (size,
+//   POST /report        a `report/2` payload (app/packages/core/src/menu/report.ts `reportPayload`; a queued or older
+//                       app's `report/1` is taken too — each version's own context keys, no other). Validated (size,
 //                       shape, limits — the app's limits, enforced again here since anyone can POST), rate-limited per
 //                       IP, stored at private/reports/<received day>/<id>.json. Answers {ok, id} — never the content.
 //                       The same id re-sent the same day (the app's outbox retrying after a lost answer) is stored once.
@@ -24,7 +25,9 @@ export const REPORTS_PREFIX = "private/reports/";
 export const TEST_REPORTS_PREFIX = "private/reports-test/";
 export const TEST_RETENTION_DAYS = 7;
 const LIMITS_PREFIX = `${REPORTS_PREFIX}limits/`;
-export const REPORT_FORMAT = "report/1";
+/** (T352) the newest format; report/2 adds the map facts and the install id to the context */
+export const REPORT_FORMAT = "report/2";
+export const REPORT_FORMATS = ["report/1", "report/2"] as const;
 export const REASONS = ["rule", "place", "missing", "name", "other"] as const;
 const REASON_WORDS: Record<(typeof REASONS)[number], string> = {
   rule: "Wrong rule", place: "Wrong place on the map", missing: "Missing water", name: "Wrong name", other: "Something else",
@@ -37,9 +40,13 @@ export const PER_DAY = 30;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const STR_FIELDS = ["screen", "tab", "place", "water", "partLabel", "day", "mode", "app", "env", "platform", "release", "tiles"] as const;
 const INT_FIELDS = ["part", "section"] as const;
+/** (T352) report/2's context: the map's layer and forecast offset, zoom and centre, and the install id */
+const V2_STR_FIELDS = ["layer", "horizon"] as const;
+const V2_NUM_FIELDS = { zoom: [0, 24], lat: [-90, 90], lon: [-180, 180] } as const;
+const INSTALL_RE = /^[0-9a-f]{16}$/;
 
 export interface StoredReport {
-  format: typeof REPORT_FORMAT;
+  format: (typeof REPORT_FORMATS)[number];
   id: string;
   created: string;
   received: string;
@@ -76,7 +83,8 @@ const json = (body: unknown, status: number) =>
 export function validateReport(raw: unknown): { ok: true; report: Omit<StoredReport, "received"> } | { ok: false; error: string } {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, error: "not a report" };
   const r = raw as Record<string, unknown>;
-  if (r.format !== REPORT_FORMAT) return { ok: false, error: `format must be ${REPORT_FORMAT}` };
+  if (!(REPORT_FORMATS as readonly unknown[]).includes(r.format)) return { ok: false, error: `format must be one of ${REPORT_FORMATS.join(", ")}` };
+  const v2 = r.format === "report/2";
   if (typeof r.id !== "string" || !/^[0-9a-f]{16}$/.test(r.id)) return { ok: false, error: "bad id" };
   if (typeof r.created !== "string" || Number.isNaN(Date.parse(r.created)) || r.created.length > 40) return { ok: false, error: "bad created" };
   if (typeof r.reason !== "string" || !(REASONS as readonly string[]).includes(r.reason)) return { ok: false, error: "bad reason" };
@@ -100,13 +108,23 @@ export function validateReport(raw: unknown): { ok: true; report: Omit<StoredRep
     } else if ((INT_FIELDS as readonly string[]).includes(k)) {
       if (typeof v !== "number" || !Number.isInteger(v) || v < 0) return { ok: false, error: `bad context.${k}` };
       ctx[k] = v;
+    } else if (v2 && (V2_STR_FIELDS as readonly string[]).includes(k)) {
+      if (typeof v !== "string" || v.length > LIMITS.field) return { ok: false, error: `bad context.${k}` };
+      ctx[k] = v;
+    } else if (v2 && k in V2_NUM_FIELDS) {
+      const [lo, hi] = V2_NUM_FIELDS[k as keyof typeof V2_NUM_FIELDS];
+      if (typeof v !== "number" || !Number.isFinite(v) || v < lo || v > hi) return { ok: false, error: `bad context.${k}` };
+      ctx[k] = v;
+    } else if (v2 && k === "install") {
+      if (typeof v !== "string" || !INSTALL_RE.test(v)) return { ok: false, error: "bad context.install" };
+      ctx[k] = v;
     } else if (k === "errors") {
       if (!Array.isArray(v) || v.length > LIMITS.errors || v.some((l) => typeof l !== "string" || l.length > LIMITS.line))
         return { ok: false, error: "bad context.errors" };
       ctx[k] = v;
     } else return { ok: false, error: `unknown context.${k}` };
   }
-  return { ok: true, report: { format: REPORT_FORMAT, id: r.id, created: r.created, reason: r.reason as StoredReport["reason"], text: r.text.trim(), email, contact, context: ctx, ...(r.test === true ? { test: true as const } : {}) } };
+  return { ok: true, report: { format: r.format as StoredReport["format"], id: r.id, created: r.created, reason: r.reason as StoredReport["reason"], text: r.text.trim(), email, contact, context: ctx, ...(r.test === true ? { test: true as const } : {}) } };
 }
 
 export async function sha256hex(s: string): Promise<string> {
@@ -284,9 +302,15 @@ export function reportEvent(r: StoredReport, at: string): FeedEvent {
     text:
       `${r.text}\n\n` +
       `Where: ${where}${c.day ? ` · ${c.day}` : ""}${c.mode ? ` · map ${c.mode}` : ""}\n` +
+      // (T352) report/2: the map as the reader had it
+      (c.layer || c.zoom !== undefined || c.horizon !== undefined
+        ? `Map: ${[c.layer, c.horizon !== undefined ? `forecast ${c.horizon}` : null,
+                   c.zoom !== undefined ? `zoom ${c.zoom}` : null,
+                   c.lat !== undefined && c.lon !== undefined ? `centre ${c.lat}, ${c.lon}` : null].filter(Boolean).join(" · ")}\n`
+        : "") +
       `App: ${c.app ?? "?"}${c.env ? ` (${c.env})` : ""} · ${c.platform ?? "?"} · release ${c.release ?? "?"}\n` +
       `Reply: ${r.contact && r.email ? "allowed (Review app → Reports → Reply by email)" : r.email ? "not allowed (email given, contact not ticked)" : "no email"}\n` +
-      `Received ${r.received} · id ${r.id}\n` +
+      `Received ${r.received} · id ${r.id}${c.install ? ` · install ${c.install}` : ""}\n` +
       `Review: the review app's Reports tab (Sync).`,
     at,
   };

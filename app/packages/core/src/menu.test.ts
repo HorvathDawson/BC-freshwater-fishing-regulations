@@ -422,9 +422,9 @@ describe("report a problem", () => {
 
   it("lists the place the reader was in, one line each", () => {
     expect(whereLines(d.where)).toEqual(["Screen: water · regs", "Tab: Gear", "Water: Vedder River (356308001)",
-                                         "Part: 2", "Day: Tue, Oct 21"]);
-    // (T237) the section handle is internal: sent with this row, never a line of it
-    expect(whereLines({ section: 812345 })).toEqual([]);
+                                         "Part: 2", "Section: 812345", "Day: Tue, Oct 21"]);
+    // (T352) the section handle is sent with this row, so it is listed
+    expect(whereLines({ section: 812345 })).toEqual(["Section: 812345"]);
     expect(whereLines({ mode: "salmon" })).toEqual(["Map colours: Salmon"]);
     expect(whereLines({ screen: "map" })).toEqual(["Screen: map"]);
     expect(whereLines({ part: 0 })).toEqual(["Part: 0"]);
@@ -436,7 +436,17 @@ describe("report a problem", () => {
   it("shows every diagnostic it would send, and drops the empty ones", () => {
     expect(diagnosticRows(d).map((r) => [r.k, r.label, r.lines.length])).toEqual([
       ["app", "App version", 1], ["platform", "Platform", 1], ["release", "Data release", 1], ["tiles", "Map tiles", 1],
-      ["where", "Where you were", 5], ["errors", "Recent errors", 2]]);
+      ["where", "Where you were", 6], ["errors", "Recent errors", 2]]);
+    // (T352) the map and the install id, each a row of its own, every line exactly what is sent
+    const m = diagnosticRows({ ...d, map: { layer: "conditions flow · satellite", horizon: "change", zoom: 11.26, lat: 49.0951, lon: -121.95 },
+                               install: "0123456789abcdef" });
+    expect(m.map((r) => r.k)).toEqual(["app", "platform", "release", "tiles", "where", "map", "install", "errors"]);
+    expect(m.find((r) => r.k === "map")).toEqual({ k: "map", label: "Map view", lines: [
+      "Layer: conditions flow · satellite", "Forecast: expected change", "Zoom: 11.3", "Map centre: 49.095, -121.95"] });
+    expect(m.find((r) => r.k === "install")).toEqual({ k: "install", label: "Install id",
+                                                       lines: ["0123456789abcdef (random, made on this device)"] });
+    expect(diagnosticRows({ ...d, map: { horizon: 0 } }).find((r) => r.k === "map")!.lines).toEqual(["Forecast: now"]);
+    expect(diagnosticRows({ ...d, map: { horizon: 5, lat: 49, lon: null } }).find((r) => r.k === "map")!.lines).toEqual(["Forecast: +5 days"]);
     expect(diagnosticRows({ ...d, release: null, errors: [] }).map((r) => r.k)).toEqual(["app", "platform", "tiles", "where"]);
   });
 
@@ -445,7 +455,7 @@ describe("report a problem", () => {
       subject: "Can I Fish This? problem report: Vedder River · Gear",
       body: "The closure is wrong.\n\n--\nApp version: 1.2.0 (34)\nPlatform: android 15\nData release: r-6960fe8201e3\n"
         + "Where you were:\n  Screen: water · regs\n  Tab: Gear\n  Water: Vedder River (356308001)\n  Part: 2\n"
-        + "  Day: Tue, Oct 21",
+        + "  Section: 812345\n  Day: Tue, Oct 21",
     });
   });
 
@@ -467,6 +477,8 @@ describe("report a problem, sent (T237)", () => {
     tiles: "10cbcb72e9f907cf.edc12ab96087",
     where: { screen: "water · regulations", place: "Vedder River", water: "356308001", part: 2, partLabel: "Mouth → X",
              section: 812345, day: "Today, Oct 21", mode: "salmon" },
+    map: { layer: "regulations · map", horizon: 3, zoom: 9.437, lat: 49.12345, lon: -121.95678 },
+    install: "0123456789abcdef",
     errors: ["e1", "e2"],
   };
   const base = { id: "abc", created: "2026-10-28T20:00:00.000Z", reason: "rule" as const, what: "  Wrong closure. ",
@@ -474,18 +486,19 @@ describe("report a problem, sent (T237)", () => {
 
   it("sends every field of every row left on — the section handle with Where, the environment with App version", () => {
     expect(reportPayload({ ...base, on: {} })).toEqual({
-      format: "report/1", id: "abc", created: "2026-10-28T20:00:00.000Z", reason: "rule", text: "Wrong closure.",
+      format: "report/2", id: "abc", created: "2026-10-28T20:00:00.000Z", reason: "rule", text: "Wrong closure.",
       email: null, contact: false,
       context: { screen: "water · regulations", place: "Vedder River", water: "356308001", part: 2, partLabel: "Mouth → X",
                  section: 812345, day: "Today, Oct 21", mode: "salmon", app: "0.1.0 (build 1)", env: "staging",
+                 layer: "regulations · map", horizon: "3", zoom: 9.4, lat: 49.123, lon: -121.957, install: "0123456789abcdef",
                  platform: "web", release: "r-0fa7927b16e5", tiles: "10cbcb72e9f907cf.edc12ab96087", errors: ["e1", "e2"] },
     });
   });
 
   it("sends NO field of a row the reader switched off (the payload is pinned whole)", () => {
-    const all = { app: false, platform: false, release: false, tiles: false, where: false, errors: false };
+    const all = { app: false, platform: false, release: false, tiles: false, where: false, map: false, install: false, errors: false };
     expect(reportPayload({ ...base, on: all }).context).toEqual({});
-    const noWhere = reportPayload({ ...base, on: { where: false, errors: false } });
+    const noWhere = reportPayload({ ...base, on: { where: false, errors: false, map: false, install: false } });
     expect(noWhere.context).toEqual({ app: "0.1.0 (build 1)", env: "staging", platform: "web", release: "r-0fa7927b16e5",
                                       tiles: "10cbcb72e9f907cf.edc12ab96087" });
     expect(JSON.stringify(noWhere)).not.toMatch(/812345|356308001|Vedder/);

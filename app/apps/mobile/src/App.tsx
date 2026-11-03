@@ -28,11 +28,11 @@ import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdat
          type UpdateService, type WaterSource } from "@app/data";
 import type { MobileDataGate, ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, reportPastExits, routeKind, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeUrl, systemBack } from "./systemBack";
@@ -92,16 +92,19 @@ const DATA_FETCH: typeof fetch = Object.keys(VERSION_HEADERS).length
 /**
  * (T242) APP ERRORS to our own server (the feeds worker's `POST /crash`; no third-party service): the Data switch "Send
  * crash reports" (default on), the uncaught-error catchers, and a fatal error kept from the last run, sent now.
- * The screen is reported as a KIND only (`routeKind`); nothing is sent offline or when the switch is off.
+ * The screen is reported as a KIND, with (T352) the open water's id and its pane, all read from the route the Shell
+ * last told (`crashWhere(place.route)`), and the install id; nothing is sent offline or when the switch is off.
  */
 const crashSetting = createCrashSetting(openCrashSettingStore());
 const crashContext = { release: "none" };
+/** (T352) the random install id, made once on this device: crash reports and problem reports carry the same one */
+const INSTALL = installId(openInstallIdStore());
+if (!INSTALL.kept) console.warn("[crash-reports] the install id could not be stored; this run has its own");
 if (CRASH_URL) {
   const reporter = createCrashReporter({
     url: CRASH_URL, test: TEST_REPORTS, setting: crashSetting, online: () => connectivity.online(), store: openCrashPendingStore(),
     context: () => ({ app: MENU_INFO.appBuild, env: APP_ENV.env, platform: WEB ? "web" : `${Platform.OS} ${Platform.Version}`,
-                     release: crashContext.release }),
-    route: () => routeKind(place.route),
+                     release: crashContext.release, install: INSTALL.id, ...crashWhere(place.route) }),
   });
   installCrashHandlers(reporter);
   // a kept JS fatal error first, then why earlier runs ended (Android: native crashes, ANRs, low-memory kills)
@@ -398,7 +401,7 @@ export default function App() {
       } catch { return false; }
     },
   }), [updateLog, updates, apply]);
-  const menuInfo = useMemo(() => ({ ...MENU_INFO, updatesLog, report: reportOutbox }), [updatesLog, reportOutbox]);
+  const menuInfo = useMemo(() => ({ ...MENU_INFO, updatesLog, report: reportOutbox, install: INSTALL.id }), [updatesLog, reportOutbox]);
 
   const data = useMemo((): { source: WaterSource; status: StatusSource; pairing: PairingInput;
                              tiles: MapTiles & { imagery: string }; loader: ReleaseLoader } | null => {

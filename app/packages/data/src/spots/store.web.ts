@@ -98,6 +98,11 @@ export function openCrashPendingStore(): { read(): string | null; write(text: st
   return keyStore("canifishthis.crashPending.v1");
 }
 
+/** (T352) The random install id crash and problem reports carry (16 hex characters, made once), one key of its own. */
+export function openInstallIdStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.installId.v1");
+}
+
 /** (T236) The first-run notice's accepted version (`FIRST_RUN_VERSION`), one key of its own. */
 export function openFirstRunStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.firstRun.v1");

@@ -42,6 +42,8 @@ export declare function openCrashSettingStore(): { read(): string | null; write(
 export declare function openCrashExitStore(): { read(): string | null; write(text: string): void };
 /** (T242) A fatal error kept for the next start (one JSON payload, or empty), as whole text. */
 export declare function openCrashPendingStore(): { read(): string | null; write(text: string): void };
+/** (T352) The random install id crash and problem reports carry (16 hex characters, made once), as whole text. */
+export declare function openInstallIdStore(): { read(): string | null; write(text: string): void };
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), as whole text. */
 export declare function openDataModeStore(): { read(): string | null; write(text: string): void };
 /** (T261) The species the Runs tab paints (a JSON list of names), as whole text; device-only. */

@@ -99,7 +99,7 @@ export function aboutBody(site: Site, asOf: string): string {
 
 /** where privacy questions go: a placeholder until the owner sets the mailbox up (OWNER-TODO) */
 export const PRIVACY_EMAIL = "privacy@canifishthis.ca";
-export const PRIVACY_EFFECTIVE = "2026-10-29";
+export const PRIVACY_EFFECTIVE = "2026-11-03";
 
 /** (owner 2026-10-29) THE PRIVACY POLICY. Every claim here is checked against the code (see T268): change the app, change this. */
 export function privacyBody(site: Site, asOf: string): string {
@@ -133,8 +133,9 @@ export function privacyBody(site: Site, asOf: string): string {
     `you are looking at, so Esri sees those tile requests and your IP address. Imagery is shown only while online and is not stored.</p>` +
     `<h2>Reporting a problem</h2><p>Sending a report is your choice, and the form shows exactly what will go. A report holds:</p><ul>` +
     `<li>the kind of problem and the words you wrote;</li>` +
-    `<li>the details under “Include with your report” that you leave switched on (the water and part you were viewing, the day, the screen, ` +
-    `the map colouring, the app version, data release, platform and recent app errors);</li>` +
+    `<li>the details under “Include with your report” that you leave switched on (the water, part and section you were viewing, the day, the screen, ` +
+    `the map colouring, the map’s layer, forecast day, zoom and centre (where the map was looking, not where you were), the app version, data release, platform, ` +
+    `the install id described below, and recent app errors);</li>` +
     `<li>your email address, only if you type one. It is used only to reply, and only if you tick “You may contact me”.</li></ul>` +
     `<p>Reports are stored privately on Cloudflare, are read only by the people who run the app, and are not published. ` +
     `We do not store your IP address with a report: to limit abuse we keep only a salted one-way hash of it, which cannot be turned back into an address. ` +
@@ -144,17 +145,22 @@ export function privacyBody(site: Site, asOf: string): string {
     `We use no third-party crash-reporting service. This is on by default and you can turn it off at any time in More → Data → “Send crash reports”; ` +
     `when it is off nothing is sent. An error report holds only:</p><ul>` +
     `<li>the app version, whether it is a test or live build, your phone’s system name and version (or “web”), and the data release the app was using;</li>` +
-    `<li>the kind of screen you were on — map, conditions, runs, spots, menu or a water page — and never which water, where you were or what you searched for;</li>` +
+    `<li>the kind of screen you were on — map, conditions, runs, spots, menu or a water page — and, when a water was open, that water’s id number in our data ` +
+    `and how its page was set (which view and part, whether the whole water was shown, whether a search or a spot was open); never the water’s name, where you were or what you searched for;</li>` +
+    `<li>an install id: a random number the app makes once on your device, so we can tell whether several errors came from one install or from many. ` +
+    `It is not your device’s identifier or advertising identifier and is made from nothing about you or your device; the same id goes with a problem report you send. ` +
+    `Uninstalling the app (or clearing its data) deletes it, and a new one is made;</li>` +
     `<li>the error itself: its type, its message with any quoted text, web address, e-mail address, coordinates and long numbers removed, and the app’s own code trace (file names and line numbers);</li>` +
-    `<li>whether the error stopped the app, and the time.</li></ul>` +
+    `<li>whether the error stopped the app, whether the phone closed the app while it was in the background, and the time.</li></ul>` +
     `<p>On Android the app also asks the phone, the next time it starts, why its last run ended. If the answer was a crash, a freeze (“app not responding”), ` +
     `or the system closing the app for memory or resource use, the app sends that reason, how busy the app was (foreground or background), ` +
-    `how much memory it was using, the exit code and the time. It reads no crash dump or memory contents, and no screen is named for it. ` +
+    `how much memory it was using, the exit code and the time. It reads no crash dump or memory contents, and no screen or water is named for it. ` +
+    `When the phone closed the app in the background to free memory, the report says so and is not counted as a crash. ` +
     `This follows the same switch and the same rules below. iPhones send no crash reports yet.</p>` +
-    `<p>It never includes your location, spots, photos, notes, searches, e-mail address or any device or advertising identifier. ` +
+    `<p>It never includes your location, spots, photos, notes, searches, e-mail address or any device or advertising identifier (only the random install id above). ` +
     `Each different error is sent once per time the app runs, and only while you are online; an error that happens offline is not saved to send later, ` +
     `except one that stops the app, which is kept on your device and sent the next time the app starts (and deleted from your device if you have switched crash reports off). ` +
-    `We keep one stored record per kind of error, with a count and the app versions it was seen in; we do not store your IP address, ` +
+    `We keep one stored record per kind of error, with a count, the app versions and the install ids it was seen in; we do not store your IP address, ` +
     `and to limit abuse we keep only a salted one-way hash of it for a day’s counting. Error records are deleted automatically 90 days after the error was last seen.</p>` +
     `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no analytics, advertising or tracking scripts. ` +
     `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
@@ -168,7 +174,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `<p>Spots, photos, notes and settings live only on your device: delete them in the app, or uninstall the app, and they are gone.</p>` +
     `<p>To delete a problem report you sent (and any email address in it): write to ${mail} from that address, or with the date ` +
     `and the words of the report, and ask for it to be deleted. We delete it within 30 days and reply to confirm.</p>` +
-    `<p>Crash reports hold no name, email or place, so we cannot find one person’s; they are deleted automatically 90 days after the error was last seen. ` +
+    `<p>Crash reports hold no name, email or place, only the random install id, which we cannot connect to a person; they are deleted automatically 90 days after the error was last seen. ` +
     `Problem reports we are not asked to delete are deleted automatically 180 days after they are received. We keep nothing else about you.</p>` +
     `<h2>Contact</h2><p>Questions, or a request to delete a report: ${mail}.</p>` +
     `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
