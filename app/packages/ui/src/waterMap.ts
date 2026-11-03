@@ -148,8 +148,10 @@ export interface WaterMapVM {
     readonly upLabel: string; readonly up: readonly WaterMapPartVM[];
     readonly downLabel: string; readonly down: WaterMapPartVM;
   } | null;
-  /** At the lowest part: the water its mouth flows into, opened at the part the mouth meets. */
-  readonly exit: { readonly label: string; readonly item: string; readonly part: number | null } | null;
+  /** At the lowest part: the water its mouth flows into, opened at the part the mouth meets — or, `tidal` (T345), only
+   *  said: the mouth meets tidal water, which no water map holds, so there is nothing to open. */
+  readonly exit: { readonly label: string; readonly item: string; readonly part: number | null;
+                   readonly tidal?: true } | null;
   /** (T214 item 4) The water's mouth flows into another water, at ANY part: the bar keeps a place for the line at every part, so it
    *  appearing at the mouth part (and going again one step up) never moves the steps or "Show regulations". */
   readonly exitHeld: boolean;
@@ -220,7 +222,8 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
                   upLabel: W.upstreamSide, up: open.up.map((i) => partVM(g, i)),
                   downLabel: W.downstreamSide, down: partVM(g, open.down) } : null,
     exit: !downs.length && at === 0 && g.exit
-      ? { label: exitLabel(g.exit), item: g.exit.item, part: g.exit.part } : null,
+      ? { label: exitLabel(g.exit), item: g.exit.item, part: g.exit.part, ...(g.exit.tidal ? { tidal: true as const } : {}) }
+      : null,
     exitHeld: !!g.exit,
     whole: { label: wholeLabel(g, at, s.whole), aria: wholeAria(g, at, s.whole), on: s.whole },
     bounds: s.whole ? groupBounds(g) : partBounds(g, at),

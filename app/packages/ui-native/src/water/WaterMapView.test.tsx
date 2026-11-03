@@ -109,6 +109,16 @@ describe("<WaterMapView>", () => {
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 3 of 4 · Chilliwack River");
   }, 30_000);
 
+  it("(T345) a mouth on TIDAL water: 'Flows into the tidal Fraser River' is plain words, no link, nothing opened", async () => {
+    const calls = mount("gnis:19986", 2);
+    await ready();
+    const exit = screen.getByTestId("water-map-exit");
+    expect([exit.textContent, screen.queryByRole("link", { name: /Flows into/ }), exit.closest("[role=link], [role=button]")])
+      .toEqual(["Flows into the tidal Fraser River", null, null]);
+    fireEvent.click(exit);
+    expect(calls).toEqual([]);
+  }, 30_000);
+
   it("the mouth's exit opens the receiving water at the part it meets; Show regulations names this part", async () => {
     const calls = mount("gnis:8634", 1);
     await ready();

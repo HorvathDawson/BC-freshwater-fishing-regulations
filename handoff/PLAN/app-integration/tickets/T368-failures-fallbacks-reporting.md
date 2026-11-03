@@ -23,3 +23,8 @@ Find with one read-only pass (list file:line + proposed class for each). The own
 round for the unclear ones), then fixes land together with the net. Web and native stay one logic path.
 
 Done first: T354's rule-book open (no pdf-lib or outside-app fallback; viewer failure said + reported).
+
+## Known items (found 2026-11-03)
+- `waterMapStartIx` (app/packages/ui/src/waterMap.ts): a part the map does not list → index 0, silently (T345).
+- Shell.tsx lazy `import("./later")`: a lazy web chunk; the 0.1.2–0.3.0 "Requiring unknown module" crash was one.
+- The bundle's Fraser part 2 short name "2 stretches" (no endpoints): a naming item, not a fallback — owner to see.

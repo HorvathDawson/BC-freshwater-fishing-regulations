@@ -14,12 +14,17 @@ export type GroupStore = Pick<RegsReads, "itemOrd" | "siblingOrds" | "item" | "p
 /** One item's rows for the group. */
 async function rowsOf(store: GroupStore, ord: number): Promise<ItemNavRows> {
   const [item, parts, nav] = await Promise.all([store.item(ord), store.parts(ord), store.navRows(ord)]);
+  // (T345) the part the mouth meets, when it is TIDAL (the receiving water's tidal cut piece, never a listed part): the
+  // exit says so, and the map says the line instead of opening the receiver at a part its map does not have (the
+  // Coquitlam into the Fraser's part 16 opened the Fraser on its first listed part, "2 stretches · stretch 1 of 2")
+  const ex = nav.exit;
+  const tidal = !!ex && ex.part !== null && (await store.parts(ex.ord)).some((p) => p.partIx === ex.part && p.tidal);
   return {
     ord, item: item.id, name: item.name, kind: item.kind,
     // (T278; owner T166 2026-10-28: no parts on tidal water) a tidal piece is never listed; `waterGroup` drops its
     // stretches, sections and the marks that would reach it with it
     parts: parts.filter((p) => !p.tidal).map((p) => ({ partIx: p.partIx, label: p.facts?.label ?? item.name, short: p.facts?.short ?? item.name })),
-    geo: nav.geo, marks: nav.marks, sections: nav.sections, stretches: nav.stretches, exit: nav.exit,
+    geo: nav.geo, marks: nav.marks, sections: nav.sections, stretches: nav.stretches, exit: ex && tidal ? { ...ex, tidal: true } : ex,
     continuesAs: nav.continuesAs, continuesFrom: nav.continuesFrom,
   };
 }

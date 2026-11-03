@@ -46,3 +46,17 @@ The crash is in the store: "Error: Requiring unknown module '…'" on route "wat
 highlighted/linked water (flows-into) loads a module that is not in the web bundle (a dynamic/lazy require that Metro did
 not bundle). Likely other waters with a flows-into link crash the same way, not only Coquitlam. Not seen on 0.4.0 yet.
 Check `openHighlighted` in app/packages/ui and what it `require`s. Missing context: T352.
+
+## Findings 2026-11-03 (code + data read; no device)
+- **Overlap past the bridge: NOT in the data or the pane logic.** Cut on blk 356364584 @ 7028.62; part 2 (Mary Hill →
+  Lougheed) = sids {316504, 316505}, part 0 (Lougheed → boundary) = {316506}; tiles (vintage 822db448) put 316506's start
+  exactly at the bridge. Pane parts are disjoint and meet at the mark in both views (test added, waterMap.test.ts).
+  Left suspects: the water-copy layer (map/src/water-copy.ts) or the Conditions gauge-route trace (GaugeTrace
+  `tracePath`: bridge section → 08MH002 is exactly 316505, the "sliver"). NEXT: device repro; which tab showed it?
+- **Fake "2 stretches · stretch 1 of 2": cause found.** The Coquitlam's exit is the Fraser's TIDAL part 16, which no
+  map lists; `waterMapStartIx` fell back silently to index 0 (Fraser part 2, short name "2 stretches"). FIXED via the
+  tidal exit below; the silent index-0 fall-back itself goes to T368.
+- **Tidal exit: FIXED.** "Flows into the tidal Fraser River", plain text, no link (waterNav.ts, waterGroup.ts,
+  WaterMapView.tsx + tests).
+- **"Requiring unknown module" crash: GONE.** It was `import("./highlightPdf")` (b214318e9), a lazy Metro web chunk;
+  today's synopsisPdf.web.ts has static imports only. Same risk class: Shell.tsx lazy `./later` (T368).

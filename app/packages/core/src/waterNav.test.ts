@@ -318,6 +318,12 @@ describe("the exit, the highlight and the frame", () => {
     expect(waterGroup([{ ...VEDDER, exit: { ord: 6093, part: 0, item: null, name: null } }]).exit).toBeNull();
   });
 
+  it("(T345) a mouth that meets TIDAL water keeps its exit, said as plain words with no chevron", () => {
+    const g = waterGroup([{ ...CHILLIWACK, exit: { ord: 9871, part: 16, item: "gnis:39325", name: "Fraser River", tidal: true } }]);
+    expect(g.exit).toEqual({ item: "gnis:39325", name: "Fraser River", part: 16, tidal: true });
+    expect(exitLabel(g.exit!)).toBe("Flows into the tidal Fraser River");
+  });
+
   it("selected is exactly the part's part_section rows; water is the rest of the group", () => {
     const g = waterGroup([CHILLIWACK]);
     expect(navSections(g, 0)).toEqual({

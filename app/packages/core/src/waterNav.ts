@@ -83,8 +83,10 @@ export interface NavMark {
   readonly confidence?: Confidence;
 }
 
-/** Where the group's mouth flows: the receiving water and the part of it the mouth meets (null: not stored). */
-export interface NavExit { readonly item: string; readonly name: string; readonly part: number | null }
+/** Where the group's mouth flows: the receiving water and the part of it the mouth meets (null: not stored). `tidal`
+ *  (T345, owner 2026-10-31: "we aren't doing tidal"): that part is tidal water (the release's tidal cut piece, which no
+ *  water map lists) — the line is said, never a way into the receiving water. */
+export interface NavExit { readonly item: string; readonly name: string; readonly part: number | null; readonly tidal?: boolean }
 
 /** The same watercourse going on as another water (`water_continue`): that water, its part there, and where — `at`,
  *  the index in this group's `parts` — this water meets it. */
@@ -130,7 +132,9 @@ export interface ItemNavRows {
                                   readonly sids: readonly number[] }[];
   /** `water_exit`: the receiving item's ord, the part it is met at, and — when the release names it — its id and name. */
   readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string | null;
-                   readonly name: string | null } | null;
+                   readonly name: string | null;
+                   /** (T345) the receiving part is tidal (its `part` row: no key, `province_except` "tidal") */
+                   readonly tidal?: boolean } | null;
   /** `water_continue`: the water this one goes on as (`continuesAs`) and the one it goes on from (`continuesFrom`). */
   readonly continuesAs?: ContinueRow | null;
   readonly continuesFrom?: ContinueRow | null;
@@ -217,7 +221,7 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
   }
   const low = placed[0];
   const exit = low?.exit && !byOrd.has(low.exit.ord) && low.exit.item !== null && low.exit.name !== null
-    ? { item: low.exit.item, name: low.exit.name, part: low.exit.part } : null;
+    ? { item: low.exit.item, name: low.exit.name, part: low.exit.part, ...(low.exit.tidal ? { tidal: true } : {}) } : null;
   // across waters: only into a water outside the group that the release names, from a part this group holds
   const cross = (i: ItemNavRows | undefined, c: ContinueRow | null | undefined): NavCross | null => {
     if (!i || !c || byOrd.has(c.ord) || c.item === null || c.name === null) return null;
@@ -488,6 +492,10 @@ export const WATER_MAP_WORDS = {
   partsHide: "Hide the list of parts",
   /** (T150) A row's mark: the part the map (and the Regulations view) is on. */
   partsHere: "✓",
+  /** The mouth's link into the water it flows into: "Flows into Vedder River ›". */
+  exit: (name: string) => `Flows into ${name} ›`,
+  /** (T345) The mouth meets TIDAL water: said, not linked (owner 2026-10-31: "we aren't doing tidal"). */
+  exitTidal: (name: string) => `Flows into the tidal ${name}`,
   /** (T204) One of a part's separate stretches, in its name: "stretch 1 of 2". */
   stretchOf: (k: number, n: number) => `stretch ${k} of ${n}`,
   loading: "Loading the parts of this water",
@@ -524,9 +532,10 @@ export function crossLabel(dir: "up" | "down", c: NavCross): string {
   return `${dir === "up" ? WATER_MAP_WORDS.upInto : WATER_MAP_WORDS.downInto} ${c.name}`;
 }
 
-/** The link at the lowest part to the water its mouth flows into. */
+/** The link at the lowest part to the water its mouth flows into — or, where the mouth meets tidal water (T345), the
+ *  plain words "Flows into the tidal Fraser River": no link, so no chevron. */
 export function exitLabel(e: NavExit): string {
-  return `Flows into ${e.name} ›`;
+  return e.tidal ? WATER_MAP_WORDS.exitTidal(e.name) : WATER_MAP_WORDS.exit(e.name);
 }
 
 /** What a boundary's mark says, for a screen reader. */

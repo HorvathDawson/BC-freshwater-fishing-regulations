@@ -127,7 +127,13 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                 flows into another the place is held at every part, empty or not, so nothing moves under a finger. */}
             {vm.exitHeld && (
               <View style={{ minHeight: EXIT_SLOT, marginTop: 8 }} testID="water-map-exit-slot">
-                {vm.exit && (
+                {/* (T345) the mouth meets tidal water: the line is said, with no way into it */}
+                {vm.exit?.tidal && (
+                  <View style={{ minHeight: EXIT_SLOT, justifyContent: "center" }} testID="water-map-exit">
+                    <Text numberOfLines={1} style={{ ...TYPE.body, color: palette.faint }}>{vm.exit.label}</Text>
+                  </View>
+                )}
+                {vm.exit && !vm.exit.tidal && (
                   <Pressable onPress={() => onOpenWater(vm.exit!.item as ItemId, vm.exit!.part)} accessibilityRole="link"
                              accessibilityLabel={vm.exit.label} testID="water-map-exit"
                              style={{ minHeight: EXIT_SLOT, justifyContent: "center" }}>
