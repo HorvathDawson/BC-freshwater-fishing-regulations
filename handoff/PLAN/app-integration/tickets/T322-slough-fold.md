@@ -66,7 +66,7 @@ scripts/heavy.sh t322-gate 40 -- .venv/bin/python -m pipeline.tools.audit.slough
 ## Owner 2026-10-30: no separate review
 "I don't think we need to review the slough stuff, we did the work in the review app already." The side build + binding diff stay as a MECHANICAL gate run by Claude (only the folded sloughs/oxbows and the waters they join may change; anything else stops the promote); no owner review step. Oxbows (31) re-kind to general streams; only polygons no line touches are skipped.
 
-## DONE STEPS (2026-11-03): t322b gate PASS (0 rows outside folded polygons), DFO re-match no diff (161/161), promoted; live build running (data/generated/side/t322-live.log). Left: check the live build, then local release promote only.
+## DONE STEPS (2026-11-03): t322b gate PASS (0 rows outside folded polygons), DFO re-match no diff (161/161), promoted; live build rc=0 -> release r-88c4fc7bbf1f (LATEST, local; also ships T354's 11.7 MB synopsis). Tile-label refresh running (`pipeline build --labels`, data/generated/side/t322-labels.log). Left: check it, then T337 check.
 
 ## RESUME NOW (2026-11-03, after the t322b side build)
 Use SIDE=data/generated/side/t322b. When the log ends `done rc=0`:
