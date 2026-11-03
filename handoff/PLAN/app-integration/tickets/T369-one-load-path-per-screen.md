@@ -37,6 +37,5 @@ URL; MapLibre Native's queue for whole-feature/layer removals + sets (useColouri
 carries the FWA stream key + a distance along it (the part's midpoint when made); the app resolves it in the release
 it holds: the section whose span holds that distance → its part (pure, offline, release only). UNIVERSAL (owner):
 named streams, UNNAMED streams (no item: the reach the point falls on), lakes (and split-lake areas) all open to the
-current item and part. Inside the app the frame keeps its part index (one release). An old `part=` link opens the
-whole water, said plainly. AGENTS rule 5 gets the distinction: a stream key + distance is a durable FWA location, not
+current item and part. Inside the app the frame keeps its part index (one release). No older link form (`part=`) is read (owner 2026-11-03: no old-link support). AGENTS rule 5 gets the distinction: a stream key + distance is a durable FWA location, not
 a section id.

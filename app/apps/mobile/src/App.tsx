@@ -544,7 +544,7 @@ export default function App() {
         </View>
       ) : ready && data && start !== undefined ? (
         <View style={{ flex: 1 }}>
-        {/* (T369) a start that opened less than its link named says so (an old part number, a place gone) */}
+        {/* (T369) a start that opened less than its link named says so (a place this release does not hold) */}
         {startNotice && (
           <Text testID="start-notice" accessibilityRole="button" onPress={() => setNoticeShut(true)}
                 style={{ color: palette.sub, fontSize: 12, paddingVertical: 6, paddingHorizontal: 12 }}>

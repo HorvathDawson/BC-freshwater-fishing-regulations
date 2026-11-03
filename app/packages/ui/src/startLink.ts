@@ -8,8 +8,7 @@
  * (T369, owner 2026-11-03) A LINK ADDRESSES A PLACE, NOT A PART NUMBER: `blk` + `m` (place.ts), the FWA stream key and a
  * distance along it, resolved in the release the app holds (`resolveStartLink`) to the water and part there — named or
  * not (an unnamed reach's link is `?blk=&m=` alone). A water of one part, a lake and a split lake's closure area need no
- * place: the item is the address. An old `part=` link names an index into some release's parts: it opens the WHOLE water
- * and says so (`notice`), never a guess. `ix=` (+ `stretch=`) is the browser tools' key — a part index in the release the
+ * place: the item is the address (no older link form is read: owner 2026-11-03). `ix=` (+ `stretch=`) is the browser tools' key — a part index in the release the
  * tool was cut against (a test affordance; the app never writes it).
  *
  * It decides nothing: the water opens through `openWater` (the one way in), the day is the Shell's one day, the angler
@@ -24,8 +23,8 @@ import { mapDayOf } from "./regs";
 import { HOME, reduce, waterFrame, type Route, type View } from "./route";
 
 /** The query keys a route owns (`routeSearch` writes them; the rest — date, angler, theme — are left as they were). `show`
- *  is read once at start and gone at the first write; `part`, `stretch` and `ix` are read, never written. */
-export const ROUTE_KEYS = ["regs", "blk", "m", "whole", "part", "stretch", "ix", "view", "tab", "sheet", "scroll", "show"] as const;
+ *  is read once at start and gone at the first write; `stretch` and `ix` are read, never written. */
+export const ROUTE_KEYS = ["regs", "blk", "m", "whole", "stretch", "ix", "view", "tab", "sheet", "scroll", "show"] as const;
 const VIEWS: readonly View[] = ["regs", "conditions", "map"];
 
 /**
@@ -92,7 +91,7 @@ export interface StartLink {
    * While it is set, `route` is the link's water whole (or the map, for a place alone) — what opens if it is not found.
    */
   place: LinkPlace | null;
-  /** (T369) What the start must SAY: an old `part=` link, or a place this release does not hold. Null: nothing. */
+  /** (T369) What the start must SAY: a place this release does not hold. Null: nothing. */
   notice: StartNotice | null;
   /**
    * (T269, owner 2026-10-29) THE MAP COMES BACK AT THIS WATER: a page that started on a named water (a `/water/<slug>`
@@ -124,9 +123,8 @@ export const startNeedsRelease = (l: StartLink | null): boolean => !!l && (l.pla
 
 /** (T369) A link's place and the view it asked for (a place-only link's route is the map until resolved). */
 export interface LinkPlace extends StreamPlace { readonly view: View }
-export type StartNotice = "old-part" | "place-gone";
+export type StartNotice = "place-gone";
 export const START_NOTICE_WORDS: Readonly<Record<StartNotice, string>> = {
-  "old-part": "This link names a part by its number on an older map, so the whole water is shown.",
   "place-gone": "The place this link names is not on this version of the map, so the whole water is shown.",
 };
 /** (T369) The same, for a link to an unnamed reach (no water to show whole). */
@@ -167,8 +165,7 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
     const v = q.get(k);
     return v === null ? null : /^\d+$/.test(v) ? Number(v) : bad(k, what);
   };
-  // `part=` (old: an index into some release's parts — read only to say so), `ix=` (+ `stretch=`: the tools' own)
-  const old = index("part", "a part index") !== null;
+  // `ix=` (+ `stretch=`): the browser tools' own part index
   const ix = index("ix", "a part index");
   const stretch = ix === null ? undefined : index("stretch", "a stretch index") ?? undefined;
   const part = where === null ? ix : null;
@@ -203,11 +200,11 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   const theme = themeS === null ? null : themeS === "light" || themeS === "dark" ? themeS : bad("theme", "light|dark");
 
   const place: LinkPlace | null = where && { ...where, view };
-  // the whole water: asked (`whole=1`), or all an old `part=` link can honestly open
-  const whole = view === "map" && part === null && (q.get("whole") === "1" || (old && where === null));
+  // the whole water: asked (`whole=1`)
+  const whole = view === "map" && part === null && q.get("whole") === "1";
   const route = item === null ? HOME : reduce(HOME, openWater({ item: item as ItemId, part, view, stretch, whole }));
   const link: StartLink = { route, day, regs: { tab, sheet, scroll }, who, theme, arrive: item as ItemId | null, place,
-                            notice: old && place === null && ix === null ? "old-part" : null };
+                            notice: null };
   return link;
 }
 
