@@ -21,4 +21,6 @@ Only then does it go into the 0.5.0 APK (the one APK for the batch). No APK per 
 - Keep a running list of the rounds here (note → fix → owner verdict).
 
 ## Rounds
-(none yet)
+- 0 (2026-11-03): regs loading spinner sat in the pane's top corner → centred, large size (0db30c2). Owner: OK.
+
+Start a UI chat from `handoff/PLAN/NEXT-SESSION-UI.md`.
