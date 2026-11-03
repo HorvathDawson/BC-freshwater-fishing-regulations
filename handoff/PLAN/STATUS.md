@@ -8,6 +8,26 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-03 (chat 4): batch 2 emulator sitting [T368, T354, T360, T345, T352]
+- **T368 (new, in 0.5.0, batch 6c):** the app-wide failures/fallbacks/reporting sweep, split from T333. Two found
+  today and fixed on the way: boot's `.catch(() => null)` on the manifest (it hid a 404) and the source-line
+  rule-book links dropping their boxes.
+- **T354 on the emulator:** the rule book opens in the app at the cited page, back closes it, the header now clears
+  the status bar. The highlight was missing for two reasons, both fixed: source-line links passed no box (app bug;
+  3042 of 3401 released rules do carry one), and Android's pdfium draws no highlight without an appearance stream
+  (now appended with it; checked in pdfium on the real book). Open takes ~10 s on the emulator (a copy of 11.7 MB):
+  to measure on a phone. Emulator re-check of the highlight is next.
+- **T360 measured** (emulator, Vulkan): boot 255 MB, Conditions peaks at ~392 MB before GPU memory (the phone
+  crashed at 406/435 MB); the rule book now costs ~40 MB. Table in the ticket. Next: the OpenGL variant.
+- **T345:** the tidal "Flows into" is plain text now (fixes the fake Fraser stretches). REPRODUCED the sliver: picking
+  the lowest part from "Show all 3 parts" lights/frames only 440 m below Lougheed; stepping down to it is correct. An
+  agent is on the cause. Your Coquitlam crashes are in the store (3 × Java CRASH on 0.4.0, no stack).
+- **T352 done in code:** crash/2 + report/2 (water id + pane, random install id, background kills, module id kept,
+  local env dropped, problem report lists its map facts before Send); no section id (AGENTS rule 5). Worker deploy
+  goes with the 0.5.0 APK (batch 7).
+- Test bed: `session.sh --local` runs the app against this machine's release; new scenarios `memory`, `water-nav`.
+- Live-release conformance pins (reads/regs.release, 33) are from the previous release; refresh at batch 7.
+
 ## 2026-11-03 (chat 3): batch 1 done; rule book opens in the app [T322, T337, T354, T367, T333]
 - T322 DONE locally: gate PASS, DFO re-match no change (T337 check clean), labels refreshed. LATEST = r-4df5bccc9360.
   Staging upload waits for 0.5.0 (SALMON_NEEDS).
