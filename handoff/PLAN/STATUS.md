@@ -8,6 +8,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-03 (chat 2, later): slough release re-running; PDF / DFO / basemap answered [T322, T354, T366]
+- **Slough release (T322):** the first side build stopped at its gate. One Okanagan River Oxbow got folded into Park
+  Rill, which would have spread the oxbows' spring-closure exemption over the rill. Your call: it stays its own water.
+  Fixed in code (efe94fb); the side build is re-running (`data/generated/side/t322b`). Then gate, promote, live build,
+  all local. Resume steps are in the T322 ticket.
+- **Your answers, now in tickets:** PDF = append to the file + compress its photos (T354); DFO = you review places
+  only, rule changes go to a digest, urgent on an unreadable row or unmatched location (T366; T361's six marks stand);
+  forest basemap was already simplified (T280); legend count bug = in-view count not refreshing on pan/zoom (T348).
+- **Outdated notes cleared** across tickets and your to-do list (b1accdef0).
+- **Next:** T354 code while the build runs, then batch 2 on the emulator (T360 memory, OpenGL variant).
+
 ## 2026-11-03 (chat 2): plan to 0.5.0 approved; T361 explained; slough release running [T322, T361, T326]
 
 - **Plan:** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Your calls: the salmon clean-up goes in before 0.5.0 (one format

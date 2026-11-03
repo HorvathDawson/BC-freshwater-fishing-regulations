@@ -1,6 +1,6 @@
 # T322 — Fold the owner-confirmed slough/canal polygons into their streams (own side build + mechanical binding gate)
 
-Status: PARTIAL — code done; fold ON since 9ee36a5f1 (2026-11-03), side build running (762586d4d, c31772b77, a4ce0f996). Split out of T55
+Status: PARTIAL — code done; fold ON since 9ee36a5f1 (2026-11-03), 1st side build (data/generated/side/t322) STOPPED at the gate: an Okanagan River Oxbow (wbk 329460316) folded into Park Rill and spread the oxbows' spring-closure exemption (8 sections). Owner 11-03: keep it its own water -> efe94fb (a water of another name is never absorbed). 2nd side build RUNNING into data/generated/side/t322b (log data/generated/side/t322b.log; t322/ refused a rebuild because live tiles share its handle digest). (762586d4d, c31772b77, a4ce0f996). Split out of T55
 (measurements in T55 "Fold: what is needed", 675265492).
 
 ## Rule (owner 2026-10-30, corrected twice)
@@ -65,6 +65,17 @@ scripts/heavy.sh t322-gate 40 -- .venv/bin/python -m pipeline.tools.audit.slough
 
 ## Owner 2026-10-30: no separate review
 "I don't think we need to review the slough stuff, we did the work in the review app already." The side build + binding diff stay as a MECHANICAL gate run by Claude (only the folded sloughs/oxbows and the waters they join may change; anything else stops the promote); no owner review step. Oxbows (31) re-kind to general streams; only polygons no line touches are skipped.
+
+## RESUME NOW (2026-11-03, after the t322b side build)
+Use SIDE=data/generated/side/t322b. When the log ends `done rc=0`:
+  SIDE_REACH=$SIDE/reaches/full_next
+  .venv/bin/python -m pipeline.tools.audit.build_parity data/generated/atlas/full $SIDE/atlas/full_next
+  .venv/bin/python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full $SIDE_REACH --json handoff/PLAN/audit/binding-diff-t322.json
+  scripts/heavy.sh t322-gate 60 -- .venv/bin/python -m pipeline.tools.audit.slough_fold_gate data/generated/reaches/full $SIDE_REACH $SIDE/atlas/full_next --json handoff/PLAN/audit/slough-fold-gate-t322.json   # must exit 0; oxbow rows must be gone
+  DFO re-match into a scratch copy of data/curated/regulations/entries/dfo_salmon (match apply --registry $SIDE/atlas/full_next/registry.json --entries-dir <copy>), diff -r: stop on any change
+  .venv/bin/python -m pipeline.atlas.promote $SIDE/atlas/full_next
+  scripts/heavy.sh t322-live 60 -- .venv/bin/python -m pipeline build --jobs 3 > data/generated/side/t322-live.log 2>&1
+No staging upload (SALMON_NEEDS until 0.5.0). Then delete data/generated/side/t322 (failed side). Then batch 2.
 
 ## RESUME (2026-10-31, stopped on low credits — nothing of T322 started)
 State: cleanup/t327-t331 merged (3f28d0e80); data/release pruned to r-4e709418ebd8 (LATEST, on staging; prod has no
