@@ -8,7 +8,7 @@
 //   node app/tools/testbed/run.mjs memory          (a `session.sh --local` APK reads this machine's release)
 import fs from 'node:fs';
 import path from 'node:path';
-import { coldStart, toMap } from './common.mjs';
+import { closeWaters, coldStart, toMap } from './common.mjs';
 
 /** The App Summary rows, MB (null when the app is not running). */
 function summary(ctx) {
@@ -37,8 +37,13 @@ export const memory = {
     const measure = async (what, settle = 3000) => {
       await ctx.device.sleep(settle);
       const m = summary(ctx);
-      rows.push({ step: what, ...m }); keep();
-      return line(m);
+      // (T360) the JS engine's own heap at this step (the build's `[heap]` probe, index.js): Native Heap less this is
+      // the map, SQLite and the rest
+      const h = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[heap] ')).at(-1);
+      let js = null;
+      try { const j = JSON.parse(h.slice(h.indexOf('[heap] ') + 7)); js = Math.round(j.size / 104857.6) / 10; } catch { /* no probe line */ }
+      rows.push({ step: what, ...m, js }); keep();
+      return `${line(m)} · js heap ${js ?? '?'}`;
     };
     const [w, h] = (/(\d+)x(\d+)/.exec(ctx.device.sh('wm size'))?.slice(1) ?? ['1080', '2400']).map(Number);
     const cx = Math.round(w / 2), cy = Math.round(h * 0.45);
@@ -68,6 +73,7 @@ export const memory = {
       return measure('zoom +4', 5000);
     });
     await ctx.step('satellite on, 4 pans', async () => {
+      await closeWaters(ctx); await toMap(ctx);
       ctx.flow('layers-satellite');
       ctx.device.sh('input keyevent KEYCODE_BACK');
       for (const dx of [-0.3, 0.3, -0.3, 0.3]) { ctx.device.sh(`input swipe ${cx} ${cy} ${cx + Math.round(w * dx)} ${cy} 350`); await ctx.device.sleep(1200); }
@@ -77,7 +83,7 @@ export const memory = {
       return r;
     });
     await ctx.step("a water's page (Cultus Lake)", async () => {
-      await toMap(ctx);
+      await closeWaters(ctx); await toMap(ctx);
       ctx.flow('search', { Q: 'Cultus' });
       ctx.flow('open-result', { LINE: 'Lake · .*Lindell Beach.*' });
       await ctx.waitText(/Regulations/, 30_000);
@@ -111,12 +117,26 @@ export const memory = {
       await ctx.device.sleep(1500);
       if (ids(ctx).includes('pdf-viewer')) throw new Error('back did not close the viewer');
       if (!ctx.device.screenText().some((x) => /Regulations/.test(x))) throw new Error('back closed more than the viewer (the water page is gone)');
-      const said = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[synopsis] open')).map((l) => l.slice(l.indexOf('[synopsis]'))).at(-1) ?? 'no [synopsis] line';
+      const said = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[synopsis] ')).map((l) => l.slice(l.indexOf('[synopsis]') + 11)).join('; ') || 'no [synopsis] line';
       return `${link} → ${page} in ${ms} ms (${said}); back closed it · ${mem}`;
     });
-    await ctx.step('Conditions', async () => { await toMap(ctx); ctx.flow('tab', { TAB: 'Conditions' }); return measure('conditions', 6000); });
-    await ctx.step('Salmon', async () => {
-      ctx.flow('tap-text', { TEXT: 'Salmon.*' });
+    await ctx.step('the rule book again (held): the open alone, timed', async () => {
+      ctx.device.logcatClear();
+      const t0 = Date.now();
+      ctx.flow('tap-text', { TEXT: process.env.BOOK_LINK ?? 'Rule book p\\.[2-9][0-9] ↗.*' });
+      let page = null;
+      while (Date.now() - t0 < 60_000 && !page) { page = ctx.device.screenText().find((x) => /^Page \d+ of \d+$/.test(x)) ?? null; if (!page) await ctx.device.sleep(300); }
+      const ms = Date.now() - t0;
+      ctx.device.screenshot(path.join(ctx.dir, 'T354-viewer-2.png'));
+      const said = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[synopsis] ')).map((l) => l.slice(l.indexOf('[synopsis]') + 11)).join('; ') || 'no [synopsis] line';
+      ctx.device.sh('input keyevent KEYCODE_BACK'); await ctx.device.sleep(1500);
+      if (!page) throw new Error(`the viewer never said its page in ${ms} ms (${said})`);
+      return `${page} in ${ms} ms (${said})`;
+    });
+    await ctx.step('Conditions', async () => { await closeWaters(ctx); await toMap(ctx); ctx.flow('tab', { TAB: 'Conditions' }); return measure('conditions', 6000); });
+    await ctx.step('Salmon (the map coloured by salmon)', async () => {
+      await toMap(ctx);
+      ctx.flow('tap-text', { TEXT: 'Salmon' });
       return measure('salmon', 6000);
     });
     await ctx.step('trim memory RUNNING_CRITICAL', async () => {

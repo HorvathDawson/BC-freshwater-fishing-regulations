@@ -46,7 +46,7 @@ describe("synopsisPdf.native (T285, T354)", () => {
     await openHighlighted(S, 9, BOX);
     expect(tasks).toBe(1);
     expect(synopsisHeld(S)).toBe(true);
-    expect(getPdfView()).toEqual({ uri: "cache/synopsis-open.pdf", page: 9, failed: null });
+    expect(getPdfView()).toMatchObject({ uri: "cache/synopsis-open.pdf", page: 9, failed: null });
     const marked = files.get("cache/synopsis-open.pdf")!.bytes;
     expect([...marked.slice(0, 4)]).toEqual([1, 2, 3, 4]);
     // page 9's own /Annots array again, its link kept, the highlight added; the page itself is not rewritten

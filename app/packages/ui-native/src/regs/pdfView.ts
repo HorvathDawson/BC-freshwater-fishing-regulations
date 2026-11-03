@@ -6,13 +6,15 @@
  */
 import { useSyncExternalStore } from "react";
 
-export interface PdfView { readonly uri: string; readonly page: number; readonly failed: string | null }
+export interface PdfView { readonly uri: string; readonly page: number; readonly failed: string | null;
+  /** when it was asked for (epoch ms): the viewer logs how long the page took to draw */
+  readonly at: number }
 
 let view: PdfView | null = null;
 const subs = new Set<() => void>();
 const set = (v: PdfView | null) => { view = v; subs.forEach((f) => f()); };
 
-export const showPdf = (uri: string, page: number): void => set({ uri, page, failed: null });
+export const showPdf = (uri: string, page: number): void => set({ uri, page, failed: null, at: Date.now() });
 /** the viewer could not draw the file: said on its face, never a silent hand-off */
 export const failPdf = (why: string): void => { if (view) set({ ...view, failed: why }); };
 export const closePdf = (): void => set(null);

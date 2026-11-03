@@ -73,3 +73,20 @@ MB, `dumpsys meminfo` App Summary. Graphics reads 0 on the emulator (host GPU): 
   GPU memory: the phone crashed at 406/435 MB. `onTrimMemory` frees ~17 MB only (nothing listens for it).
 - The rule book costs ~40 MB in the viewer now (was the 100–200 MB JS spike, T354): no longer the top item.
 - Next: the same with `nativeVariant: "opengl"`; then where Conditions' +100 MB native goes (its map + chart + feeds).
+
+## Measured 2026-11-03, round 2 (heap probe + Vulkan vs OpenGL; runs t360-vk / t360-gl)
+| step | Vulkan PSS | OpenGL PSS | JS heap |
+|---|---|---|---|
+| boot | 257 | 233 | 28 |
+| water page (Cultus) | 280 | 264 | 72 |
+| rule book open | 346 | 364 | 72 |
+| Conditions | 454 | 436 | 76 |
+| after trim | 414 | 411 | 72 |
+- OpenGL vs Vulkan: 5–25 MB apart on the emulator (host GPU, Graphics 0): the variant/SIGSEGV question needs a REAL phone.
+- JS: 28 MB boot → ~75 MB once a water's regs are decoded (held for good). Not the main cost.
+- Conditions adds ~150 MB NATIVE over a water page (its map + gauge layers + chart): the biggest single item. NEXT: split it.
+- The PDF viewer leaves ~60–75 MB native after it closes (react-native-pdf / pdfium not released on close). Fix: free on close.
+- RUNNING_CRITICAL frees 20–40 MB: nothing listens for trim. Fix: drop decoded caches + close idle SQLite on trim.
+- Rule-book open IN THE APP: book 3 ms (held), copy 6–39 ms, drawn in 390–680 ms. The 10 s the test bed reads is
+  Maestro's own overhead.
+Probe: `[heap]` every 2 s in test-bed builds (apps/mobile/index.js); `session.sh --opengl` builds the other variant.

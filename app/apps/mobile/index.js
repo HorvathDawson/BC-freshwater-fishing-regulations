@@ -34,6 +34,14 @@ if (process.env.EXPO_PUBLIC_PAN_PROBE === "1") {
     if (late > 50) console.log(`[stall] ${JSON.stringify({ at: now, ms: late })}`);
   }, 16);
 }
+// (T360) The heap probe, on the same test-bed switch: every 2 s, the JS engine's own heap (Hermes' instrumented stats,
+// bytes), so a `dumpsys meminfo` Native Heap can be split into JS and the rest (map, SQLite). One line `[heap] {…}`.
+if (process.env.EXPO_PUBLIC_PAN_PROBE === "1" && globalThis.HermesInternal?.getInstrumentedStats) {
+  setInterval(() => {
+    const s = globalThis.HermesInternal.getInstrumentedStats();
+    console.log(`[heap] ${JSON.stringify({ at: Date.now(), size: s.js_heapSize, used: s.js_allocatedBytes, ext: s.js_externalBytes ?? null })}`);
+  }, 2000);
+}
 // (T287) The benchmark's "before": release files hashed and inflated in one go (EXPO_PUBLIC_T287_BEFORE=1).
 if (process.env.EXPO_PUBLIC_T287_BEFORE === "1") globalThis.__hashOneShot = true;
 // (T286) The benchmark's "before": regulations read one row per call and no page held (EXPO_PUBLIC_REGS_ONE_BY_ONE=1).

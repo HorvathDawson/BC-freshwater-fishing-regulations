@@ -8,6 +8,7 @@
 #   --max-min N    the command's wall-clock cap (default 45): past it the command is stopped and the session ends
 #   --local        (T354/T360) build/run an APK reading THIS machine's data server (`pnpm tiles`, :39217, as 10.0.2.2:
 #                  the emulator's own name for this machine)
+#   --opengl       (T360) build with MapLibre's OpenGL variant instead of Vulkan (app.json changed for the build only)
 #                  instead of staging: for a release that is promoted locally but not uploaded (SALMON_NEEDS)
 #   -- <command>   run it with the emulator up (e.g. `node app/tools/testbed/run.mjs feeds offline`), then shut down
 #
@@ -20,17 +21,18 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../.." && pwd)
 OUT="$HERE/out"; mkdir -p "$OUT"
 AVD=${TESTBED_AVD:-n1_pixel}
-BUILD=0; MAX_MIN=45; CMD=(); ENV=staging
+BUILD=0; MAX_MIN=45; CMD=(); ENV=staging; VARIANT=
 while (( $# )); do
   case $1 in
     --build) BUILD=1 ;;
     --local) ENV=local ;;
+    --opengl) VARIANT=opengl ;;
     --max-min) MAX_MIN=$2; shift ;;
     --) shift; CMD=("$@"); break ;;
     *) echo "session.sh: unknown $1" >&2; exit 2 ;;
   esac; shift
 done
-APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local).apk"
+APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local)${VARIANT:+-$VARIANT}.apk"
 export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Contents/Home"}
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.maestro/maestro/bin:$PATH"
@@ -54,7 +56,13 @@ trap cleanup EXIT INT TERM
 if (( BUILD )) || [[ ! -f $APK ]]; then
   log "building the APK"
   cd "$ROOT/app/apps/mobile"
-  ../../node_modules/.bin/expo prebuild --platform android --no-install >"$OUT/prebuild.log" 2>&1 || { log "prebuild failed (out/prebuild.log)"; exit 1; }
+  if [[ -n $VARIANT ]]; then
+    cp app.json "$OUT/app.json.keep"; trap 'cp "$OUT/app.json.keep" app.json 2>/dev/null; cleanup' EXIT INT TERM
+    sed -i '' "s/\"nativeVariant\": \"vulkan\"/\"nativeVariant\": \"$VARIANT\"/" app.json
+    grep -q "\"nativeVariant\": \"$VARIANT\"" app.json || { log "--$VARIANT: app.json not changed"; exit 1; }
+  fi
+  ../../node_modules/.bin/expo prebuild --platform android --no-install --clean >"$OUT/prebuild.log" 2>&1 || { log "prebuild failed (out/prebuild.log)"; exit 1; }
+  [[ -n $VARIANT ]] && cp "$OUT/app.json.keep" app.json
   # --local reads http://localhost:39217: a release build refuses cleartext unless the manifest allows it. Patched AFTER
   # prebuild (which regenerates android/), so it never reaches a store build.
   if [[ $ENV == local ]]; then

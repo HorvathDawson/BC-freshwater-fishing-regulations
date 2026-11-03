@@ -71,3 +71,12 @@ export async function toMap(ctx) {
   if (!(w.includes('MORE') && w.includes('MAP'))) await coldStart(ctx);       // lost: start over (data stays)
   ctx.flow('tab', { TAB: 'Map' });
 }
+
+/** (T360/T345) A water left open (its screen hides the tab bar) closed by its own ✕, up to three deep. */
+export async function closeWaters(ctx) {
+  for (let i = 0; i < 3; i++) {
+    ctx.device.sh('uiautomator dump /sdcard/tb-cw.xml >/dev/null 2>&1');
+    if (!ctx.device.sh('cat /sdcard/tb-cw.xml').includes('resource-id="water-close"')) return;
+    ctx.flow('tap-id', { ID: 'water-close' }); await ctx.device.sleep(1500);
+  }
+}
