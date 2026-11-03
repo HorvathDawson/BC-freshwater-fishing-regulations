@@ -31,3 +31,12 @@ section id); harness in WaterMapView.test.tsx compares 6 ways in + reloads. Left
 screen-held; the Regulations view's tapped frame does not adopt its part (part-less URL); Conditions' `at` not in the
 URL; MapLibre Native's queue for whole-feature/layer removals + sets (useColouring.ts). Render tests
 (WaterScreen.regs-props, WaterMode) flake under machine load: make their waits load-proof here.
+
+## Decided (owner 2026-11-03): links address a PLACE on the water, not a part number
+`part=N` is an index into one release's parts; a re-split moves it. A link (URL, share, reload across an update)
+carries the FWA stream key + a distance along it (the part's midpoint when made); the app resolves it in the release
+it holds: the section whose span holds that distance → its part (pure, offline, release only). UNIVERSAL (owner):
+named streams, UNNAMED streams (no item: the reach the point falls on), lakes (and split-lake areas) all open to the
+current item and part. Inside the app the frame keeps its part index (one release). An old `part=` link opens the
+whole water, said plainly. AGENTS rule 5 gets the distinction: a stream key + distance is a durable FWA location, not
+a section id.

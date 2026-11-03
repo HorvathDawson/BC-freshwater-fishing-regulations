@@ -37,6 +37,8 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
    feeds, deep links, saved pins, bathymetry sheets — binds to `item_id`.
    **`section_id` and `dense_id` must never leave the bundle**: not in a URL, a saved
    preference, a feed, or an API contract.
+   (Owner 2026-11-03, T369) A PLACE on a water — the FWA stream key + a distance along it — is a durable FWA
+   location, not a section id: links may carry it, and the app resolves it to the section/part of the release it holds.
 6. **A durable id is not a durable answer.** 15% of surviving items changed their section
    list in one rebuild. Never cache a resolved section list across bundle versions —
    re-resolve.
