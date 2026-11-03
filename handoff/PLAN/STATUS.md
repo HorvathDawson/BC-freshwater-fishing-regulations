@@ -8,6 +8,19 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-03 (chat 2): plan to 0.5.0 approved; T361 explained; slough release running [T322, T361, T326]
+
+- **Plan:** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Your calls: the salmon clean-up goes in before 0.5.0 (one format
+  change); 0.5.0 is Android only and iOS follows as its own TestFlight release; duplicate tickets folded. Four new iOS
+  tickets (T362–T365) plus T88 re-scoped to "TestFlight".
+- **Six DFO marks (T361):** not something to undo. DFO's current page has in-season notices that changed the coho
+  dates and limits on Campbell, Quinsam, Nanaimo, Puntledge, Qualicum and Stamp; your 11-02 marks were made on older
+  rows the review app still showed. Please re-mark those six in the DFO tab.
+- **Tidal/split proposals (T326):** Sandy Pool is already in; the other three (Quatse weir, Stamp lagoon outlet,
+  Little Qualicum Falls) wait for you to accept them in the DFO tab.
+- **Audits (T333–T335):** each ticket now says the scope is agreed with you first.
+- **Running:** the slough fold side build (T322). Then its gate and a local promote; staging waits for 0.5.0.
+
 ## 2026-11-03 (end of chat): tidal follow-ups in the review app; app memory looked at [T359, T360, T361]
 
 - **Tidal tab → Follow-ups (T359, done):** the 8 held tidal marks now show there, each with why it is held and your

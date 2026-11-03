@@ -27,3 +27,9 @@ Depends: T273, T280. Size: S–M. Owner: feel check on the phone.
   the native fling tuning and re-measure.
 
 - 2026-10-31: web `useSpots` now places pins on `move` and regroups (clusters + signature) only on data change and `zoomend`. Native fling tuning and the pan measurement wait for the emulator (owner: `sudo xcodebuild -runFirstLaunch` first).
+
+## Folded in (owner 2026-11-03)
+- T353: the fling is still too weak on 0.4.0 (owner 2026-11-02).
+- T273: pan lag measured (benchmark + split); the cause is the drawn basemap's tiles and the fix needs an owner choice
+  (see T273's file).
+One gesture pass on the emulator covers all three; T317 (overlay once-over) follows. After 0.5.0.

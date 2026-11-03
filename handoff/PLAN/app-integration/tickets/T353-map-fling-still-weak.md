@@ -1,6 +1,6 @@
 # T353 — Map fling still too weak on 0.4.0 (Android)
 
-Status: OPEN (owner 2026-11-02: "the flick gesture movement on map still isn't enough on 0.4.0 mobile").
+Status: DROPPED — folded into T312, the one map-feel ticket (owner 2026-11-03). Was: OPEN (owner 2026-11-02: "the flick gesture movement on map still isn't enough on 0.4.0 mobile").
 
 After T312's fling tuning, a quick flick on the map still travels too little and stops too soon compared with Google
 Maps or Apple Maps.

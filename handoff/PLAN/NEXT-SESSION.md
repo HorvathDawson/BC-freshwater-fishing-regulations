@@ -9,7 +9,7 @@ For the owner, opening a new chat after credits reset. Paste the prompt below an
 > without asking; ask me only for decisions. Keep updates short, keep STATUS.md current, and tell me when it's a good
 > moment to compact or start a new chat.
 
-## Where things stand (2026-10-31)
+## Where things stand (2026-10-31; newer state is in STATUS.md)
 
 - **APK 0.4.0** is on Play internal testing (versionCode 7).
 - **Staging** is on release `r-4e709418ebd8`; smoke 18/18. Prod has no release.
@@ -38,62 +38,12 @@ reports a list of problems; it does not fix them. Look for:
 Fix the mechanical ones directly (status, numbering, ledger rows). Batch anything that needs a decision into one
 question for the owner.
 
-## FINISH FIRST (updated 2026-11-03, end of chat)
-
-Done this chat: ledger fixes, old test failures, worktree cleanup, loose files committed, owner marks saved (3 DFO
-→ n, Sheldens Spur 19 proposed), T359 (tidal follow-ups view, see its ticket), T360 code read.
-1. **Do NOT deploy the feeds worker or upload to staging**: salmon/3 waits for app 0.5.0 (the `SALMON_NEEDS` guard).
-   Staging's DFO feed holds 2 Fraser rows only because its inputs are old; they are placed locally.
-2. **T360 app memory — start here.** Its RESUME: build + install on the `n1_pixel` AVD, measure `dumpsys meminfo` per
-   screen, retry with the OpenGL map variant, then put the PDF options (with T354) to the owner.
-3. **T361 (red test, Claude's own doing):** six region-1 DFO marks read "rule changed" after the 11-03 re-queue;
-   find what moved, restore it (never edit marks).
-4. **T326 remainder:** fold `review/proposal_overrides.json` into splits.json (Sandy Pool is already in; Quatse weir
-   offsets are still a proposal). Owner: re-review the tidal follow-ups in the Tidal tab (T359) and Mamquam.
-
-Owner items from this round:
-- Tidal tab → Follow-ups (T359): the 8 held tidal marks. Decide whether a confirmed DEM point becomes a cut (Caycuse,
-  Dempster); re-mark the 4 "entire channel" ones with "whole water"; Skagit (US border) and Bear River (bridge).
-- DFO tab: the Sheldens Spur 19 proposed cut; the two Nanaimo "tidal portions" places; the proposals on Sproat,
-  Stamp Deer Creek and Little Qualicum Falls (now Place n, split missing).
-- Try the new split editor in the DFO tab: type picker, live preview, autocomplete, real ids.
-
-## Queue, in order
-
-### 1. Cheap, already planned (do first)
-| Ticket | What | Notes |
-|---|---|---|
-| T322 | Slough fold release | Exact RESUME commands in the ticket: `FOLD_CONFIRMED = True`, side build, DFO re-match on the side registry, gate exit 0, promote, staging, run-timing, smoke. Mostly heavy jobs, so almost no credits. |
-| T332 | Merge `dfo/t332-shared-quota` | Merge only. Add the `SALMON_NEEDS` guard in upload.sh. Ships with the NEXT APK, with `MIN_APP_VERSION` set to that app; feeds worker deploy only after that. |
-| T313 | iOS finish | Make each scenario start from the map, settle edge-back, one heavy re-run. Then T336 (walkthrough step 17 hidden from VoiceOver). |
-| T337 | DFO bindings refresh inside the build | Not a manual `match apply`. |
-
-### 2. Small loose ends (S)
-- T343: clean up the regional salmon rules (after T332): drop duplicates, fold notes into the bucket and size tiers, spawning-salmon image.
-- T346: go through every crash and problem report collected (do with T345).
-- T345 (bug, HIGH: a crash): Coquitlam River "Lougheed bridge to watershed boundary" highlight runs past the bridge.
-- T348 (bug): map colours do not refresh when a new feed arrives; do with T347.
-- T347: river forecast stays on Conditions over the weekend (published weekdays only) + More-tab note.
-- T344: species ID swipes between the fish a group covers (whitefish → lake + mountain).
-- T342: pane text copyable with the phone's own long-press; remove the salmon-only Copy button (owner ask).
-- T338: DFO part-closure reads as the whole river closed (Fort Babine).
-- T339: the 08MH044 cut still says "Whonock"; Bedford Channel lost its gauge.
-- T340: the test bed's stream taps fail.
-- T341: the A5 search budget on this laptop.
-- T331 item 2: four test-only `CURATION_*` path overrides need a temp-root design.
-
-### 3. The credit-heavy cycle (owner asked for these together)
-- T333: big Fable audit (duplicate data types, duplicate pathways, bad practices).
-- T334: audit all tests and documentation.
-- T335: remove `archive/`, plus general cleanup.
-
-Run them as one workflow, and only when the owner says go.
-
-### 4. Waiting on the owner
-- T326: tidal lock needs the 7 open tidal marks plus Mamquam.
-- Accept the proposed Sheldens Spur 19 cut in the review app (saved 11-03 as a proposal).
-- Prod publish of `r-4e709418ebd8`; the command is in OWNER-TODO. Prod is human-only.
-- No more phone checks on 0.4.0 (owner 11-03): test the next release instead.
+## THE PLAN (owner-approved 2026-11-03): `handoff/PLAN/RELEASE-PLAN-0.5.0.md`
+Work its batches in order; that file replaces the old queue. Current state is in STATUS.md's top entry.
+- Do NOT deploy the feeds worker or upload to staging until app 0.5.0 exists (`SALMON_NEEDS = {3: "0.5.0"}` in
+  deploy/staging/upload.sh). New data releases are promoted locally only.
+- Audits T333–T335: the owner scopes them first (see each ticket), only when the owner says go.
+- Ticket review with every open ticket by area/size: `handoff/PLAN/audit/ticket-review-2026-11-03.md`.
 
 ## Managing the context (the owner steers; Claude suggests)
 

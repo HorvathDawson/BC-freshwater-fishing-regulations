@@ -99,7 +99,7 @@ use that as the sole source of future work."
 | T52 | Conditions "Expected change" | DONE | 8ad715d6, 1089d4a2, be32f926, 9a050ec1, 7b47a6ab, ee1234e0 | live after the feed republish |
 | T53 | unnamed stream shows no regulations | DONE | 74c1decd, 79c74252, 46f3d2f1, 9ef5ea75, 1925ecdc | — (real-data sweep is T57) |
 | T54 | no-access streams: fourth colour + banner | DONE | a43a7122, 83f28d54, fec02c29, a5f9b5eb, e08f791b, b291b598, c155f40f, 7c0798d7, bd12dfb9, 4d20b016, 128cc4e0 | live in r-36fbc5326506; Q54/Q55 |
-| T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c, d4a22561 | review app "Sloughs" tab: 936 pre-marked stream (801 narrow ≤ 44 m + 135 wide marsh), 324 on the owner list (113 intermittent) → ★ owner confirms (one / accept all visible = marks, scope `slough`) → fold into rivers → reach + deliver |
+| T55 | sloughs/canals still drawn as lakes | BLOCKED (owner) — only the owner's slough confirmations left; the fold is T322 | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c, d4a22561 | review app "Sloughs" tab: 936 pre-marked stream (801 narrow ≤ 44 m + 135 wide marsh), 324 on the owner list (113 intermittent) → ★ owner confirms (one / accept all visible = marks, scope `slough`) → fold into rivers → reach + deliver |
 | T56 | release rebuild: Twin Lakes + stream polygons + "See X" | DONE | 78a4eed8, 020f4ca8, 794f9c07, cfe405c8, 04357dad | R2 upload (owner) |
 | T57 | unnamed streams: real-data regs sweep incl. trib rules | DONE | 9f434cd3, b846c925, a9455d40, 5dac27c8, 21289c24 | — |
 | T58 | back follow-ups | DONE | 21d41623, 9ec8114a | — |
@@ -132,7 +132,7 @@ use that as the sole source of future work."
 | T85 | native install size: z13 overzoom + landuse filter (D32) | DONE | aeba83ca, b17dfa1f, d4589cb5, 6f25c3c9 | atlas z13 + basemap landuse filter + basemap z13 under the owner 2026-10-27 rule, all via T202 (basemap 918 -> 274.5 MB; audit clean on 6 extents; shots 8cc3af7e) |
 | T86 | production hosting + ship config | POSTPONED | — | parked by owner 2026-10-28 (prod a while off; SEO prod too); includes the data-worker double-gzip fix before any prod release |
 | T87 | owner sign-off walk, then final clean-up | PARTIAL | 1267d358, 8a043348, 7e656fcb | sign-off walk (owner); clean-up done 2026-10-28 |
-| T88 | iOS build | OPEN | — | all (owner timing) |
+| T88 | iOS: signed build + TestFlight upload (re-scoped; the simulator half is T313) | OPEN | — | all (owner timing) |
 | T89 | rules that bind no water (10 unmatched + 3 no extent) | DONE | 010b5c28, 1ea79ca0, 894854c0, d47a38cd, 5f1eec34 | 6 rows / 21 rules await a located water: proposals in curation-review/t89-awaiting-water.json (Q45) |
 | T90 | Chehalis closure reaches Harrison side channels | DONE | ca9aa451, 9eb7d92f, 9d305ebf, 8fa32076, c8c72d6f | live; T102 part B |
 | T91 | Atnarko campsite split location | DONE | c357fcdb 94599d8b | closed under the lake-boundary rule: campsite end = owner pin; Tenas Lake outlet @630.47 (edge facing the extent); 96/96 ambiguous_cut picks nearest the other end, nothing moved |
@@ -317,7 +317,7 @@ use that as the sole source of future work."
 | T271 | Problem reports auto-deleted after 180 days (feeds worker cron); privacy page wording + privacy@ address | DONE (deploy: owner) | b43039fe5 | owner 2026-10-29 |
 | T274 | Past-day flow (HYDAT daily means) stored on our data host; dayFlow.ts no longer calls ECCC GeoMet | DONE (staging seeded; prod upload human) | 1719acb57 | owner 2026-10-29 |
 | T272 | First install: second progress bar after download ("Setting up on this device") with real progress; measure + cut the post-download step | DONE | abaf19343, e8db24c51, f0357560b | 100 % → map 112 s → 11 s (emulator); assets fetched beside the download, paced under the 429 limit; hash follows the download |
-| T273 | Panning lag on Android: profile, then cache per-section answers, batch viewport queries, defer work during gestures, prefetch one screen out | PARTIAL | ee62d1562 | measured: JS/SQLite clean; hitches are new basemap tiles (landuse/wood polygons) — owner choice: simplify the extract or draw wood from a higher zoom |
+| T273 | Panning lag on Android: profile, then cache per-section answers, batch viewport queries, defer work during gestures, prefetch one screen out | DROPPED (folded into T312) | ee62d1562 | measured: JS/SQLite clean; hitches are new basemap tiles (landuse/wood polygons) — owner choice: simplify the extract or draw wood from a higher zoom |
 | T275 | Mode switch (Standard/Salmon/Runs) resizes the map; only the UI block should change, map fixed | DONE | dbfeb4bf4 (+70aa5e8e9) | owner 2026-10-29 |
 | T276 | DFO line by the mode switch; Runs tab legible on phones (bigger slider); spawner legend + Conditions → first-open tutorials; local /runtiming/ | DONE | 9f0b0a113, f3e0bde78 | owner 2026-10-29 |
 | T277 | Satellite imagery draws in the Android app whenever online; offline toggle says why | DONE | a7673eff4 | not reproduced (HEAD + owner APK draw it on the emulator); probe retries once and logs why it failed |
@@ -353,7 +353,7 @@ use that as the sole source of future work."
 | T309 | Region salmon rules readable (rows, chips, wording folded); copyable text in the app | DONE | cbbd809d4, dfecc1b89 | owner 2026-10-31 |
 | T310 | Spots: parking location + directions; notes/photos belong to visits (lossless migration) | PARTIAL (in review, phone shots pending) | fd36533e3 | owner 2026-10-31 |
 | T311 | Provincial parks missing — Garibaldi (closes upper Pitt): draw parks, bind park-scoped rules | DONE | 60c285d22 | owner 2026-10-31; parks were in tiles but 0.12 tint + no edge: green edge from z7 + stronger tint, style only (no tiles rebuild); rules unchanged (owner); no legend row (owner) |
-| T312 | Map panning feels slow: 1:1 finger tracking, natural fling, no JS work per camera tick | OPEN | — | owner 2026-10-31 |
+| T312 | Map panning feels slow: 1:1 finger tracking, natural fling, no JS work per camera tick | OPEN (map-feel home: T353 + T273 folded in) | — | owner 2026-10-31 |
 | T313 | iOS simulator build + basic tests (install, map/regs, offline, satellite, location, walkthrough, PDF) | IN PROGRESS (sim build works; scenarios to run) | — | owner 2026-10-31 |
 | T314 | Spot data refresh doesn't work in 0.3.0 (pending weather/flow never fill) | DONE (emulator 10-31: spots 15/15 on the Vedder, gauges + weather filled on reconnect; 0.4.0) | 21d047df8, 9ce7f4079, d67341585 | owner 2026-10-31 |
 | T315 | Offline: keep the last week of gauge readings so charts still show the measured line | IN REVIEW (emulator 10-31 PASS: offline cold start draws the kept measured line; left: owner deploys the feeds worker for obs.json) | b1827b9d0 | owner 2026-10-31 |
@@ -396,7 +396,7 @@ use that as the sole source of future work."
 | T352 | Crash + problem reports lack context (water id, screen, module id, install id, stack normalising, background kills) | OPEN | T346 | 2026-11-02 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | OPEN | — | found by the 10-31 build pass; release id moves on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | OPEN | — | found by the 10-31 build pass; not caused by it |
-| T353 | Map fling still too weak on 0.4.0 mobile: measure, tune deceleration/velocity (see T312) | OPEN | T312 | owner 2026-11-02 |
+| T353 | Map fling still too weak on 0.4.0 mobile: measure, tune deceleration/velocity (see T312) | DROPPED (folded into T312) | T312 | owner 2026-11-02 |
 | T354 | Synopsis PDF takes very long to open on mobile: local copy, open at the cited page, lazy render | OPEN | — | owner 2026-11-02 |
 | T355 | Review split editor makes every split type (point, confluence, lake/outlet, area_boundary, border, offset on any) + proposal ids always become real split ids | DONE | c58790450, 0732a97f2, d9b7c7c40 | owner 2026-11-02; build-resolver preview, edit in place via `amends`, real-id guard |
 | T356 | Salmon card: move what core salmon.ts still resolves (region closure by id string, water-bucket tier, header sizes, partial coverage) into the Python file; `shared` bucket lost without a region daily note | OPEN | T350 | T350 lean pass 2026-11-02 |
@@ -405,6 +405,10 @@ use that as the sole source of future work."
 | T359 | Tidal follow-ups visible in the review app: a Follow-ups filter with each row's why, a "whole water is tidal" answer | DONE | c16f72eba | owner 2026-11-03; item 4 (DEM point → cut?) owner decision |
 | T360 | App memory footprint: measure Android RSS by screen/feature, find what grows past ~400 MB (T351 crashes at 406/435 MB) | PARTIAL | T351 | code read done; emulator measurement next (RESUME); PDF part = T354 |
 | T361 | Six region-1 DFO owner marks read "rule changed" after the 11-03 region-1 re-queue (test_marks_never_orphaned red) | OWNER (cause found: DFO in-season notices on the current page; marks were made on stale typed rows) | — | owner re-reviews the six |
+| T362 | iOS crash reports: no exit-info twin on iOS, so an iOS crash leaves no record (MetricKit or equivalent, into the T242 path) | OPEN | — | owner 2026-11-03 (0.5.0 plan, iOS next) |
+| T363 | iOS memory: T360's per-screen method on the Simulator, then a real iPhone (sim 420 MB, 665 MB peak panning) | OPEN | T360 | owner 2026-11-03 |
+| T364 | Real-iPhone run: location prompt, offline first download, edge-back gesture, gauge pill padding | OPEN | T313, T88 | owner 2026-11-03 |
+| T365 | App Review compliance: privacy manifest, tracking declaration, final bundle id + name (CanIFish vs Can I Fish?) | OPEN | T244 | owner 2026-11-03 |
 
 ## Order for open tickets
 

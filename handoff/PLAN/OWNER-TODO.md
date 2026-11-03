@@ -6,6 +6,9 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Plan to 0.5.0 approved (2026-11-03):** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Yours along the way: the PDF option
+  (T360/T354, batch 2); the Apple Developer account ($99) before the iOS release (T88); the feeds-worker deploy only
+  after 0.5.0 (T242/T291/T315).
 - **Re-review six region-1 DFO places (T361, 2026-11-03):** Campbell, Quinsam, Nanaimo (Cedar), Puntledge, Qualicum,
   Stamp read "rule changed". DFO's current page (in-season notices FN0937–FN1069) changed their coho dates/limits;
   your 11-02 marks were made on older rows the review app was still showing. DFO tab → re-mark each.

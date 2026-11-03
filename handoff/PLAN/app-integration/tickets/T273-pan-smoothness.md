@@ -1,6 +1,6 @@
 # T273 — Panning feels laggy on Android: preload and cache around the view
 
-Status: PARTIAL 2026-10-29 — measured (benchmark + split); the cause is the drawn basemap's tiles, fix needs an owner choice (owner 2026-10-29: "when panning around the app it feels a little bit laggy. maybe we could have better
+Status: DROPPED — folded into T312, the one map-feel ticket (owner 2026-11-03); its measurements below stay the evidence. Was: PARTIAL 2026-10-29 — measured (benchmark + split); the cause is the drawn basemap's tiles, fix needs an owner choice (owner 2026-10-29: "when panning around the app it feels a little bit laggy. maybe we could have better
 preloading in the app and caching?").
 
 ## Work
