@@ -28,7 +28,7 @@ question round, then a written scope in this ticket that the owner approves): wh
 are in/out, depth vs credits, what the output looks like (report only, or fixes too), and who decides each fix. No
 workflow or agent fan-out until that scope is approved here.
 
-## Added 2026-11-03 (owner): failures, fallbacks and reporting, app-wide
+## Added 2026-11-03 (owner): failures, fallbacks and reporting, app-wide — MOVED: the app part is T368 (in 0.5.0); the pipeline's equivalents stay here
 "We don't like callbacks generally they hide issues. Fallbacks ... Make sure we get reports on failures like this ...
 This and minimal fallbacks should be true universally in app ... generally reusable and the reporting and error handling
 is consistent across the app. It should be part of the audit phase later." So the audit also covers:
