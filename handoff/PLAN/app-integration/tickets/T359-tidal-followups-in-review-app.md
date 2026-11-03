@@ -1,6 +1,6 @@
 # T359 — Tidal follow-ups visible in the review app
 
-Status: OPEN (owner 2026-11-03)
+Status: DONE (c16f72eba) — items 1–3 built; item 4 stays an owner decision (shown as the follow-up's why)
 
 Owner 2026-11-03: "make it so the review app is able to show the tidal follow ups and I will review. I thought we
 already confirmed they were good before."
@@ -25,3 +25,13 @@ any marked row as done, so these 8 never come back to the owner:
    Until answered, the row stays a follow-up with that question as its why.
 
 Nothing is written to tidal.json by Claude; the owner's re-marks write through.
+
+## Done (2026-11-03)
+- `tools.tidal_limits.build`: a tidal mark with `call: "whole"` (Place y, no cut; `marks.TidalCall`) becomes a `whole`
+  row on the candidate's one registry item (`proposals._tidal_whole`); 0 or 2+ items are listed instead. Its `skipped`
+  whys now name a DEM point's open question (`DEM_QUESTION`) and an unsure on a water the owner's own row already holds.
+- Review app: `/api/tidal/queue?followup=true`, `followup_why` + the last mark's note/verdict/date/call on every row,
+  `progress.followups` (cached on the marks / decided / tidal.json / splits.json mtimes). Tidal tab: "Follow-ups (n)"
+  group, each row shows why and the owner's last note; the detail has a "the whole water is tidal" answer.
+- Today's 8: Caycuse + Dempster (DEM point — item 4, owner); Annacis / Cannery / Morey / Parsons (already the owner's
+  own `whole` rows from 10-29 — a "whole water" re-mark confirms them); Skagit (US border); Bear River (bridge).

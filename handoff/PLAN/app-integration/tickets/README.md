@@ -402,8 +402,8 @@ use that as the sole source of future work."
 | T356 | Salmon card: move what core salmon.ts still resolves (region closure by id string, water-bucket tier, header sizes, partial coverage) into the Python file; `shared` bucket lost without a region daily note | OPEN | T350 | T350 lean pass 2026-11-02 |
 | T357 | DFO silent fallbacks: release ships no header notes (so no header closure) when the dated page is not cached; corrupt prior feed read as none; dfo-feed/1 upgrade leftover | OPEN | T337 | T350 lean pass 2026-11-02 |
 | T358 | DFO rule fields outside the catalogue model: `shared` prose scope, header sizes as `cm` not `lengths`, worker-only `open_ended` / `check` | OPEN | T350 | T350 lean pass 2026-11-02 |
-| T359 | Tidal follow-ups visible in the review app: a Follow-ups filter with each row's why, a "whole water is tidal" answer | OPEN | T326 | owner 2026-11-03 |
-| T360 | App memory footprint: measure Android RSS by screen/feature, find what grows past ~400 MB (T351 crashes at 406/435 MB) | OPEN | T351 | owner 2026-11-03 |
+| T359 | Tidal follow-ups visible in the review app: a Follow-ups filter with each row's why, a "whole water is tidal" answer | DONE | c16f72eba | owner 2026-11-03; item 4 (DEM point → cut?) owner decision |
+| T360 | App memory footprint: measure Android RSS by screen/feature, find what grows past ~400 MB (T351 crashes at 406/435 MB) | PARTIAL | T351 | code read done; emulator measurement next (RESUME); PDF part = T354 |
 
 ## Order for open tickets
 
