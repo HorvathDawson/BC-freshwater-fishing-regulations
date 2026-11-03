@@ -86,11 +86,9 @@ Run them as one workflow, and only when the owner says go.
 
 ### 4. Waiting on the owner
 - T326: tidal lock needs the 7 open tidal marks plus Mamquam.
-- Accept the Sheldens Spur 19 cut (53.12968, -131.78224).
+- Accept the proposed Sheldens Spur 19 cut in the review app (saved 11-03 as a proposal).
 - Prod publish of `r-4e709418ebd8`; the command is in OWNER-TODO. Prod is human-only.
-- Phone checks on 0.4.0: spot marks, and an offline spot filling itself in.
-- Three staged files that aren't Claude's: the T215 png, `binding-diff-amb.json`, and the T202 audit. Keep or drop.
-- Untracked Play-listing files: `app/tools/build-play-graphics.mjs`, `play-shots.mjs`, `store/graphics/`. Commit or drop.
+- No more phone checks on 0.4.0 (owner 11-03): test the next release instead.
 
 ## Managing the context (the owner steers; Claude suggests)
 

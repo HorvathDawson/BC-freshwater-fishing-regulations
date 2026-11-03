@@ -8,6 +8,24 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-03 (afternoon): your marks saved, Sheldens cut proposed, loose files committed
+
+- **Your three DFO marks** (Little Qualicum Falls, Sproat, Stamp Deer Creek) are now Place n, "split missing", with
+  your original fixes and notes. They were saved through the review app, so they wrote through like your own saves.
+- **Sheldens Creek:** the Spur 19 bridge cut (3,402 m up the line) is a proposed split. Accept it in the review app;
+  it reaches the map with the next atlas build.
+- **DFO queue:** the two Fraser rows staging holds are already placed locally (the T349 entries). Staging shows them
+  as held only because its inputs wait for app 0.5.0. Two Nanaimo River "tidal portions" places are back in the
+  DFO tab for review.
+- **Tidal follow-ups (T359, in progress):** the Tidal tab is getting a Follow-ups filter. Two of the 8 you did confirm
+  (Caycuse, Dempster): their DEM points fit none of the writer's point kinds, which is a gap in the writer, not on
+  your side. Four say "this entire channel is tidal" and will get a "whole water" answer.
+- **App memory (T360):** a code read points at MapLibre on Vulkan with no tile-cache limit, the 24 MB PDF parsed in
+  memory on every rule-book tap, and release data kept in memory for good. A phone measurement comes next.
+- **Committed:** the T202 audit, the T215 shot, binding-diff-amb.json, the Play tools and store graphics (T244), and
+  the pngjs dev dependency; knip is clean again.
+- **0.4.0:** no more phone checks on it; testing resumes on the next release.
+
 ## 2026-11-03 (later): housekeeping — ledger fixed, old test failures fixed, old worktrees gone
 
 - **Ticket ledger:** fixed the status lines on T52, T183, T184, T322, T324, T327, T331, T332, T346, T349 and T355.
