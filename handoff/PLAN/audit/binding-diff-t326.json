@@ -1,0 +1,10 @@
+{
+ "before": "data/generated/reaches/full",
+ "after": "data/generated/side/t326/reaches/full_next",
+ "rules_changed": 0,
+ "unresolved_changed": 0,
+ "licensing_changed": 0,
+ "rules": {},
+ "unresolved": {},
+ "licensing": {}
+}

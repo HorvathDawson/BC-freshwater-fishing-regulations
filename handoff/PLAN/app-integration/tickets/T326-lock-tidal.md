@@ -1,6 +1,7 @@
 # T326 — Lock tidal: `waters/tidal.json` is the one tidal truth
 
-Status: OPEN (owner 2026-10-30; T324 design approved, plan in handoff/PLAN/data-flow.md §4–5).
+Status: PARTIAL (151b9f76a, dc93125ab: tidal.json, write-through, mouth aliases; release r-d0ad76a6e6a1). Left: the 8
+follow-up marks + Mamquam (owner), and folding proposal_overrides.json into splits.json.
 
 Replaces `tidal_waters.json`, the splits tidal flag, `decided/tidal.json` and handoff
 `curation-review/tidal/owner-decisions.json` (4 records of one fact). Also fold `review/proposal_overrides.json` (split
@@ -65,3 +66,10 @@ Three shapes were compared for the ONE tidal file and the "tidal boundary" varia
 Retired: `waters/tidal_waters.json` (folded in as `whole` rows), the `tidal` key of splits.json (moved to `split`
 rows), handoff `owner-decisions.json` (all 3 calls are superseded by later marks; the export no longer reads it).
 `decided/tidal.json` stays only as the export the tidal writer reads, like every other domain's; no build reads it.
+
+## Result (2026-11-03)
+Side build gate: sections 4,594,880 → 4,594,880 (handles 822db448 unchanged, so no old-vs-old noise), boundaries
++1,126 (one `<item>__mouth` per mouth row, alias `<water>__tidal_boundary`), 1,126 items changed, nothing else; rule
+binding diff empty. The side build first also gave basin/region/park items a mouth boundary (+2,465); fixed in
+dc93125ab and the side registry cleaned the same way before promote. Every mouth was a natural end (0 on a standing
+boundary). Promoted; live build → r-d0ad76a6e6a1 (salmon/3, tiles and bundle same vintage).

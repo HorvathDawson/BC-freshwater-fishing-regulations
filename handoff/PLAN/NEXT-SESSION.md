@@ -38,31 +38,20 @@ reports a list of problems; it does not fix them. Look for:
 Fix the mechanical ones directly (status, numbering, ledger rows). Batch anything that needs a decision into one
 question for the owner.
 
-## FINISH FIRST: work paused mid-flight on 2026-11-02
+## FINISH FIRST (updated 2026-11-03)
 
-The owner paused everything. Finish these, in order, before anything in the queue. Each has exact steps in its ticket.
-
-1. **T349 + T326 together, as ONE build.** T349's code is in, its gate passed, and its atlas is PROMOTED. The owner
-   stopped the live build during deliver on 2026-11-02, so LATEST is still r-4e709418ebd8.
-   - Locally, the live tiles were rebuilt from the T349 atlas but the bundle was not, so tiles and bundle are
-     different vintages until the next live build. Don't trust the local map until then.
-   - Next step: implement T326 (tidal, below), then run ONE atlas side build that includes T326, then gate, promote,
-     live build, and one fast suite.
-   - T349's "RESUME" section has the details.
-   - Then update STATUS.md.
-2. **Merge branch `audit/t350-lean`** (head 0d7d2cddf: lean salmon audit fixes plus tickets T356–T358).
-   - Merge it only after the T349 live build is finished, then run the targeted tests the audit named.
-3. **Do NOT deploy the feeds worker.** The code now includes T332's dfo-feed/2, which app 0.4.0 can't read. The worker
-   and the salmon/3 release go out only with the next app (0.5.0). The `SALMON_NEEDS` guard in upload.sh enforces
-   this.
-4. **T326: tidal, as one clean file.** Decided 2026-11-02, see the ticket:
-   - `waters/tidal.json` holds one record per water, with the boundary as `mouth` | `split: <existing id>` | `new cut`.
-   - The 1,128 mouth decisions become a "tidal boundary" ALIAS on the mouth boundary (the coincident mechanism; never
-     a cut at a line end), giving 0 new sections.
-   - Ids come from the deterministic split-id function (d9b7c7c40), so no stored ids.
-   - This needs the next atlas build.
-5. **Clean up stale agent worktrees** (`git worktree list`; branches `worktree-agent-*`). Merge or drop each one
-   after checking it for unmerged work.
+T349 + T326 shipped locally as one build (release r-d0ad76a6e6a1, LATEST locally), and `audit/t350-lean` is merged.
+What is left:
+1. **Do NOT deploy the feeds worker or upload to staging**: salmon/3 waits for app 0.5.0 (the `SALMON_NEEDS` guard).
+2. **Suite reds from earlier work (not T326):** `test_curation_review_screen` (`{slug}` route param missing in the
+   test's _PARAMS), `test_curation_review_split_preview` + `test_no_silent_skips` (a skipif), `test_one_data_flow`
+   (split_preview imports pipeline.atlas.build), `test_review_vintage` (anchor_digest in proposals.py),
+   `test_wsc_relation` (region_cascade.py slices WSC codes). App: the ticket-ledger guard (T327/T331/T346/T355 DONE
+   without hashes, T332 status word) and the SpotScreen "week before" test.
+3. **T326 remainder:** fold `review/proposal_overrides.json` into splits.json. The owner still has to answer the 8
+   tidal follow-ups and Mamquam.
+4. **Clean up stale agent worktrees** (`git worktree list`; branches `worktree-agent-*`). Merge or drop each one after
+   checking it for unmerged work.
 
 Owner items from this round:
 - Re-save Stamp "except in those areas" as `rest`.

@@ -8,6 +8,26 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-03: tidal is one file; the map and the data match again [T326, T349, T350]
+
+- **What changed:** every tidal answer now lives in one file, `data/curated/waters/tidal.json`, one row per water: at
+  the `mouth` (1,126), on an existing cut (`split`, 33), a new `cut` (none yet), or the `whole` water (10 Fraser delta
+  channels). The old copies are gone: `tidal_waters.json`, the `tidal` flags in splits.json, and the handoff
+  owner-decisions file.
+- **Saving a tidal mark** in the review app now updates that file straight away, like sloughs and names.
+- **Mouth waters** get "tidal boundary" as another name for their mouth. It adds no cuts and no new sections, and a
+  rule can bind it.
+- **Build:** one atlas build with T349 + T326 was checked (0 new sections, +1,126 mouth names, no rule changed what it
+  covers), promoted, then the live build ran. New local release **r-d0ad76a6e6a1** (salmon/3). Tiles and bundle are
+  the same vintage again. Nothing was uploaded: staging waits for app 0.5.0.
+- **Merged:** the lean salmon audit (`audit/t350-lean`); its tests pass.
+- **Tests:** Python 6,319 pass. 6 fail, all from earlier work (T355 split preview, region cascade; listed in
+  NEXT-SESSION). App 8,275 pass. 13 fail: the ticket-ledger guard (old ledger gaps) and one SpotScreen "week before"
+  test.
+- **For you:** your review app on :8787 had stopped before the checks, so start it again with
+  `bash curation-review/run.sh`. Claude checked a copy on :8788: the tidal, DFO and cascade endpoints all return 200.
+  The 8 open tidal marks and Mamquam are still yours.
+
 ## 2026-11-02: crash and problem reports reviewed [T346]
 
 - **The app has sent 26 reports to staging:** 25 crashes (7 kinds) and 1 problem report. Test ones are ignored.

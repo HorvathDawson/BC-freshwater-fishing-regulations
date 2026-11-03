@@ -1,5 +1,7 @@
 # T349 — DFO Region 2 tidal-area defaults + "limit 0" unlisted wording (PROPOSAL)
 
+Status: DONE (f5fc9c356, a2415b239; live build 2026-11-03 with T326 → release r-d0ad76a6e6a1)
+
 Owner 2026-11-02. Found by the Cascade tab's region view (`curation-review/backend/region_cascade.py`).
 
 ## What the pages say that the code does not encode
