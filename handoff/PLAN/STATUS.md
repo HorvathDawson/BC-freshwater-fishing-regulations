@@ -8,6 +8,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-03 (chat 3): batch 1 done; rule book opens in the app [T322, T337, T354, T367, T333]
+- T322 DONE locally: gate PASS, DFO re-match no change (T337 check clean), labels refreshed. LATEST = r-4df5bccc9360.
+  Staging upload waits for 0.5.0 (SALMON_NEEDS).
+- T354 IN REVIEW: shipped book 25 -> 11.7 MB (owner approved the photos). Opens IN THE APP (react-native-pdf) at the
+  cited page, highlight appended in place (v2 index). No fallbacks; shown failures reported (`reportFailure`). Needs a
+  dev build on the emulator (batch 2 sitting) + test bed pdf scenarios updated.
+- Owner rules saved: better package over minimal deps; no silent fallbacks/callbacks, failures reported (app-wide sweep
+  is T333, audit phase).
+- T367 filed: UI text clean-up loop with the owner (regs, conditions map, More), batch 6b, dev web app first.
+- NEXT: batch 2 emulator sitting (T360 measure -> T351, T354 dev build check, T345, T352).
+
 ## 2026-11-03 (chat 2, later): slough release re-running; PDF / DFO / basemap answered [T322, T354, T366]
 - **Slough release (T322):** the first side build stopped at its gate. One Okanagan River Oxbow got folded into Park
   Rill, which would have spread the oxbows' spring-closure exemption over the rill. Your call: it stays its own water.
