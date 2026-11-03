@@ -404,7 +404,7 @@ use that as the sole source of future work."
 | T358 | DFO rule fields outside the catalogue model: `shared` prose scope, header sizes as `cm` not `lengths`, worker-only `open_ended` / `check` | OPEN | T350 | T350 lean pass 2026-11-02 |
 | T359 | Tidal follow-ups visible in the review app: a Follow-ups filter with each row's why, a "whole water is tidal" answer | DONE | c16f72eba | owner 2026-11-03; item 4 (DEM point → cut?) owner decision |
 | T360 | App memory footprint: measure Android RSS by screen/feature, find what grows past ~400 MB (T351 crashes at 406/435 MB) | PARTIAL | T351 | code read done; emulator measurement next (RESUME); PDF part = T354 |
-| T361 | Six region-1 DFO owner marks read "rule changed" after the 11-03 region-1 re-queue (test_marks_never_orphaned red) | OPEN | — | found 2026-11-03 |
+| T361 | Six region-1 DFO owner marks read "rule changed" after the 11-03 region-1 re-queue (test_marks_never_orphaned red) | OWNER (cause found: DFO in-season notices on the current page; marks were made on stale typed rows) | — | owner re-reviews the six |
 
 ## Order for open tickets
 
