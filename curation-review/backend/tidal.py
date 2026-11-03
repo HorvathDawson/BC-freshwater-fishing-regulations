@@ -63,6 +63,46 @@ def groups(rows: list[dict]) -> dict:
     return out
 
 
+# --------------------------------------------------------------------------- T359: the follow-ups
+
+#: the follow-ups cache: (the files' mtimes, {target: why}, error or None)
+_FOLLOWUPS: dict = {"key": None, "why": {}, "error": None}
+
+
+def _decided_dir() -> Path:
+    """The decided data the tidal writer reads — `CURATION_DECIDED` (the write-through's own override), else
+    the curated decided dir."""
+    from pipeline.regs.review import export as E
+    return Path(os.environ["CURATION_DECIDED"]) if os.environ.get("CURATION_DECIDED") else E.default_dir()
+
+
+def _mtimes(paths) -> tuple:
+    return tuple((str(p), p.stat().st_mtime_ns if p.exists() else None) for p in paths)
+
+
+def followups() -> tuple[dict[str, str], str | None]:
+    """THE TIDAL FOLLOW-UPS (T359): {target: why} for every tidal mark the tidal writer leaves out of
+    waters/tidal.json — its own `skipped` list (`tools.tidal_limits.build`), never a second classifier — and the
+    error that stopped it (None). Cached on the marks store's, the decided files', tidal.json's and
+    splits.json's mtimes (a build takes ~0.3 s)."""
+    from pipeline.common.curated import CURATED
+    d = _decided_dir()
+    key = _mtimes([Path(reuse.MARKS_PATH), Path(CURATED.waters.tidal), Path(CURATED.waters.splits),
+                   *sorted(d.glob("*.json"))])
+    if _FOLLOWUPS["key"] != key:
+        from pipeline.regs.review import export as E
+        from pipeline.tools import tidal_limits as TL
+        why: dict[str, str] = {}
+        err = None
+        try:
+            for s in TL.build(E.load(d))[1]:
+                why[s["target"]] = f"{why[s['target']]}; {s['why']}" if s["target"] in why else s["why"]
+        except (FileNotFoundError, SystemExit, ValueError) as e:      # no decided data / no tidal.json
+            err = f"the tidal writer could not run: {e}"
+        _FOLLOWUPS.update(key=key, why=why, error=err)
+    return _FOLLOWUPS["why"], _FOLLOWUPS["error"]
+
+
 def _states() -> dict:
     from pipeline.regs.review import marks as M
     return {m.target: m for m in M.latest(M.load(reuse.MARKS_PATH)).values() if m.scope == "tidal"}
@@ -75,7 +115,7 @@ def _verify(m, row) -> dict:
     return M.status(m, M.Prints.model_validate(T.prints(row)))
 
 
-def _row(r: dict, m) -> dict:
+def _row(r: dict, m, why: str | None = None) -> dict:
     v = _verify(m, r)
     words = [s for s in r.get("sources") or [] if s.get("kind") != "tidal_gauge"]
     t = r.get("triage") or {}
@@ -102,17 +142,29 @@ def _row(r: dict, m) -> dict:
             "words_status": r.get("words_status"), "boundary_words": list(r.get("boundary_words") or []),
             "words_confidence": r.get("words_confidence"),
             "group": r.get("group") or "mouth",
+            # T359: the tidal writer leaves this mark out of tidal.json — why (its own words); the owner's last
+            # note, verdict and date beside it
+            "followup_why": why,
+            "mark_note": m.note if m is not None else None,
+            "mark_verdict": m.verdict if m is not None else None,
+            "mark_date": m.date if m is not None else None,
+            "mark_call": m.call if m is not None else None,
             # un-accepted by the owner (a deferred mark superseding an accept): the default bulk accept may take it
             "unaccepted": bool(m is not None and m.verdict == "deferred" and m.note.startswith(UNACCEPT_NOTE))}
 
 
 def queue(confidence: str | None = None, verify: str | None = None, enters: str | None = None,
-          words: bool = False, q: str | None = None, triage: str | None = None) -> list[dict]:
+          words: bool = False, q: str | None = None, triage: str | None = None,
+          followup: bool = False) -> list[dict]:
     """THE TIDAL QUEUE, in the proposal file's order (words first, then confidence), filtered;
-    `triage` "review" keeps missed + sanity + multi-crossing (what the owner still has to look at)."""
+    `triage` "review" keeps missed + sanity + multi-crossing (what the owner still has to look at);
+    `followup` keeps the marks the tidal writer leaves out (T359, `followup_why`)."""
     doc = T.load()
     states = _states()
-    rows = [_row(doc["by_id"][i], states.get(i)) for i in doc["order"]]
+    whys = followups()[0]
+    rows = [_row(doc["by_id"][i], states.get(i), whys.get(i)) for i in doc["order"]]
+    if followup:
+        rows = [r for r in rows if r["followup_why"]]
     if confidence:
         rows = [r for r in rows if r["confidence"] == confidence]
     if enters:
@@ -141,6 +193,8 @@ def progress() -> dict:
             "by_dfo_mouth": dict(Counter(r["dfo_mouth"] for r in rows if r.get("dfo_mouth"))),
             "by_dfo_default": dict(Counter(r["dfo_default"] for r in rows if r.get("dfo_default"))),
             "groups": groups(rows),
+            # T359: the marks the tidal writer leaves out, and why it could not say (None: it ran)
+            "followups": sum(1 for r in rows if r["followup_why"]), "followups_error": followups()[1],
             "coverage": T.load()["coverage"]}
 
 

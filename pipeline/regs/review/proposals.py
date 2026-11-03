@@ -601,6 +601,11 @@ def _tidal_decides(m) -> bool:
             and not polygon_point(m.new_splits[0]))
 
 
+def _tidal_whole(m) -> bool:
+    """T359: does a tidal mark in force say THE WHOLE WATER IS TIDAL (Place y, call "whole", no cut)?"""
+    return m.scope == "tidal" and m.verdict == "verified" and m.call == "whole" and not m.new_splits
+
+
 def _tidal_followup(m) -> bool:
     """A tidal mark in force that is not a decision but says something: wrong / unsure, or a Place y
     on a polygon point (`POLYGON_POINT_WORDS`)."""

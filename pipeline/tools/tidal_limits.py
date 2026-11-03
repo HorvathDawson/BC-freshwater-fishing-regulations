@@ -7,7 +7,9 @@ Each Place y tidal mark in force (`proposals._tidal_decides`) becomes the row of
   the mark names an existing cut, or its point IS a splits.json  -> limit `split` (that cut is the tidal limit)
   cut (same anchor, or within `proposals.TIDAL_REUSE_M`)
   the point is a located words point / a named place, new        -> limit `cut` (its point; the atlas mints the id)
-  anything else (polygon point, off point, unsure, wrong)        -> nothing written: a follow-up, listed
+  the owner's "the whole water is tidal" (Place y, call whole)  -> limit `whole` (the candidate's one registry item)
+  anything else (polygon point, off point, unsure, wrong)        -> nothing written: a follow-up, listed with why
+                                                                     (the review app's Tidal follow-ups, T359)
 
 Rows WITHOUT a mark are the owner's own calls (the whole Fraser delta channels) and are kept, unless a LATER
 decision on the same water replaces them (a mark made the same day or after the call's `decided` date). The atlas reads the file (`atlas.splits.tidal`); nothing reads decided/ or marks.
@@ -32,6 +34,16 @@ def _blk(m, n, cand) -> str:
     return got
 
 
+#: T359 item 4 — an OWNER DECISION, open: the writer does not cut at a DEM point (`proposals.tidal_point` knows the
+#: mouth, the line's end, located words and a named place only); the follow-up asks the question instead
+DEM_QUESTION = ("owner decision (T359): does a confirmed DEM point become a cut? Until answered, no tidal limit")
+
+
+def _dem_point(n) -> bool:
+    """Was this tidal cut the DEM limit the owner switched to (the Tidal tab's `altSplit` note)?"""
+    return "chosen point: dem" in (n.note or "").lower()
+
+
 def build(decided, src=None, existing: Optional[list] = None) -> tuple[list, list[dict]]:
     """(rows, skipped [{target, why}]) — the file's rows from the decided data (`review.export.Decided`), the curated
     splits and the atlas (`proposals.Sources`), keeping the owner's own rows of `existing` (no mark)."""
@@ -48,6 +60,7 @@ def build(decided, src=None, existing: Optional[list] = None) -> tuple[list, lis
     have = {sp["id"]: sp for wb in splits_doc.get("waterbodies") or [] for sp in wb.get("splits") or [] if sp.get("id")}
     latest = decided.inforce
     deciding = [m for m in latest if P._tidal_decides(m)]
+    wholes = [m for m in latest if P._tidal_whole(m)]
     starts = P._line_starts(src.build, {str(m.new_splits[0].blk or "") for m in deciding})
     rows: dict[str, T.Limit] = {}
     skipped: list[dict] = []
@@ -70,8 +83,10 @@ def build(decided, src=None, existing: Optional[list] = None) -> tuple[list, lis
             continue
         point = P.tidal_point(n, cand, starts.get(blk))
         if point is None:
-            skipped.append({"target": m.target, "why": f"the point ({n.measure} m above the mouth) is neither a "
-                                                       "located words point nor the mouth — mark it again"})
+            skipped.append({"target": m.target, "why": (
+                f"a DEM point ({n.measure} m above the mouth): {DEM_QUESTION}" if _dem_point(n) else
+                f"the point ({n.measure} m above the mouth) is neither a located words point nor the mouth — "
+                "mark it again")})
             continue
         if point in ("mouth", "line_end"):
             why = "the mouth" if point == "mouth" else (
@@ -88,15 +103,33 @@ def build(decided, src=None, existing: Optional[list] = None) -> tuple[list, lis
             continue
         at = {"coord": [round(float(c), 6) for c in n.coord], "measure": n.measure, "label": got["split"].name}
         rows[blk] = T.Limit(limit="cut", at=at, why=f"{point}: a new cut", **base)
+    for m in sorted(wholes, key=lambda m: m.target):
+        # T359: "the whole water is tidal" — a `whole` row on the candidate's one registry item
+        cand = TC.candidate(m.target) or {}
+        blk = str(cand.get("blk") or str(m.target).partition(":")[2])
+        items = list(cand.get("items") or [])
+        if not blk.isdigit() or len(items) != 1:
+            skipped.append({"target": m.target, "why": "the whole water is tidal, but the candidate has "
+                            + (f"{len(items)} registry items" if blk.isdigit() else "no blue line")
+                            + " — one item is needed"})
+            continue
+        prov = (decided.provenance.get(m.key) or {}).get("mark")
+        rows[blk] = T.Limit(blk=blk, limit="whole", item=items[0], name=cand.get("water") or "", decided=m.date,
+                            mark=prov, why="the owner: the whole water is tidal")
     for r in existing or ():
         # the owner's own call (no mark) is kept — over a decision on the same water only when it is the later one
         # (Noons Creek: auto-accepted at the mouth 10-28, then the railway bridge in the owner's words 10-29)
         if r.mark is None and (r.blk not in rows or r.decided > rows[r.blk].decided):
             rows[r.blk] = r
     for m in latest:
-        if P._tidal_followup(m) or (m.scope == "tidal" and not P._tidal_decides(m)):
-            skipped.append({"target": m.target, "why": f"a follow-up ({m.verdict}): no tidal limit until a Place "
-                                                       "y mark"})
+        if P._tidal_followup(m) or (m.scope == "tidal" and not P._tidal_decides(m) and not P._tidal_whole(m)):
+            why = f"a follow-up ({m.verdict}): no tidal limit until a Place y mark"
+            held = rows.get(str(m.target).partition(":")[2])
+            if held is not None and held.mark is None:
+                # the owner's own row already decides the water: the mark is newer words, not a decision
+                why += (f" — tidal.json already holds the owner's own `{held.limit}` row ({held.decided}); "
+                        "re-mark to confirm it")
+            skipped.append({"target": m.target, "why": why})
     return sorted(rows.values(), key=lambda r: int(r.blk)), skipped
 
 

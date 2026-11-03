@@ -348,6 +348,14 @@ def _post_mark(body: MarkPayload):
         data.pop("call")
         if not body.targets:
             data.pop("targets")
+    elif body.scope == "tidal":                     # T359: "the whole water is tidal" is a tidal call
+        if body.targets:
+            raise HTTPException(422, [{"path": "", "msg": "a tidal mark names one candidate"}])
+        if body.call not in (None, "whole"):
+            raise HTTPException(422, [{"path": "call", "msg": "a tidal call is whole (the whole water is tidal)"}])
+        data.pop("targets")
+        if body.call is None:
+            data.pop("call")
     elif body.scope not in ("slough", "name"):     # T224: a name mark may name several candidates too
         if body.targets or body.call is not None:
             raise HTTPException(422, [{"path": "", "msg": "only a slough mark carries a call or several targets"}])
@@ -854,8 +862,9 @@ def dfo_location(location_id: str):
 
 @app.get("/api/tidal/queue")
 def tidal_queue(confidence: str | None = None, verify: str | None = None, enters: str | None = None,
-                words: bool = False, q: str | None = None, triage: str | None = None):
-    """THE TIDAL QUEUE: every proposed tidal boundary (`tidal.queue`), filtered — `confidence` high |
+                words: bool = False, q: str | None = None, triage: str | None = None, followup: bool = False):
+    """THE TIDAL QUEUE: every proposed tidal boundary (`tidal.queue`), filtered — `followup` only the marks the
+    tidal writer leaves out of tidal.json (T359, each with its `followup_why`), `confidence` high |
     medium | low, `verify` the mark (todo = unmarked or stale), `enters` ocean | tidal_water, `words`
     only those a text names, `q` a substring of the stream's name, `triage` a triage class or
     "review" (missed + sanity: what the owner still has to look at)."""
@@ -867,7 +876,8 @@ def tidal_queue(confidence: str | None = None, verify: str | None = None, enters
         raise HTTPException(422, [{"path": "verify", "msg": "verify is one of " + ", ".join(tidal.VERIFIES)}])
     if triage and triage not in tidal.TRIAGES:
         raise HTTPException(422, [{"path": "triage", "msg": "triage is one of " + ", ".join(tidal.TRIAGES)}])
-    return tidal.queue(confidence=confidence, verify=verify, enters=enters, words=words, q=q, triage=triage)
+    return tidal.queue(confidence=confidence, verify=verify, enters=enters, words=words, q=q, triage=triage,
+                       followup=followup)
 
 
 @app.get("/api/tidal/progress")

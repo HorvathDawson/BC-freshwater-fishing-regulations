@@ -118,9 +118,19 @@ export const TIDAL_GROUPS: [TidalGroup, string, string][] = [
   ["locate", "Words name it — not located yet", "the words name a boundary that is not placed yet: place it"],
   ["conflict", "Conflict", "words disagree with the mouth, with each other, or with an owner mark"],
   ["done", "Done", "owner-marked"],
+  ["followup", "Follow-ups", "marked, but the tidal writer leaves them out of tidal.json — each says why (T359)"],
 ];
-type TidalGroup = "mouth" | "words" | "locate" | "conflict" | "done";
+type TidalGroup = "mouth" | "words" | "locate" | "conflict" | "done" | "followup";
 const isDone = (r: TidalRow) => r.verify !== "unmarked" && r.verify !== "stale";
+/** THE ROWS OF ONE GROUP: "followup" = the marks the tidal writer leaves out (T359, `followup_why`), whatever
+ *  their group; "done" = owner-marked; the others = unmarked rows of that group */
+export const inGroup = (r: TidalRow, g: TidalGroup) => (g === "followup" ? !!r.followup_why
+  : g === "done" ? isDone(r) : !isDone(r) && (r.group ?? "mouth") === g);
+/** "THE WHOLE WATER IS TIDAL" (T359): the mark a whole-water answer records — Place y, call whole, no cut */
+export const wholeMark = (target: string, note: string, reviewer: string, seconds: number) => ({
+  scope: "tidal" as const, target, answers: { P: "y" as CheckAnswer }, problem: null, note, reviewer, seconds,
+  call: "whole" as const,
+});
 
 interface Props {
   mode: Mode;
@@ -136,7 +146,7 @@ export function TidalReview({ mode }: Props) {
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   const [group, setGroup] = useState<TidalGroup>("words");
   const [q, setQ] = useState("");
-  const rows = useMemo(() => applyPv(allRows.filter((r) => (group === "done" ? isDone(r) : !isDone(r) && (r.group ?? "mouth") === group)
+  const rows = useMemo(() => applyPv(allRows.filter((r) => inGroup(r, group)
     && (!q.trim() || r.water.toLowerCase().includes(q.trim().toLowerCase()))), pvf), [allRows, pvf, group, q]);
   const [bulkBusy, setBulkBusy] = useState(false);
   const queueSeq = useRef(0);
@@ -232,8 +242,9 @@ export function TidalReview({ mode }: Props) {
         </>} />
         <div className="filterbar" data-testid="tidal-groups" style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
           {TIDAL_GROUPS.map(([k, w, why]) => {
-            const g = k === "done" ? progress?.groups?.done : progress?.groups?.[k];
-            const n = k === "done" ? (g?.marked ?? 0) : (g ? g.total - g.marked : 0);
+            const g = k === "followup" ? undefined : k === "done" ? progress?.groups?.done : progress?.groups?.[k];
+            const n = k === "followup" ? (progress?.followups ?? allRows.filter((r) => r.followup_why).length)
+              : k === "done" ? (g?.marked ?? 0) : (g ? g.total - g.marked : 0);
             return (
               <button key={k} className={`btn small${group === k ? " primary" : ""}`} title={why} data-testid={`tidal-group-${k}`}
                 onClick={() => setGroup(k)} style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
@@ -257,6 +268,7 @@ export function TidalReview({ mode }: Props) {
       </div>
       {notice && <div className="notice" data-testid="tidal-notice" style={{ margin: 8 }}>{notice}{" "}
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setNotice("")}>dismiss</button></div>}
+      {progress?.followups_error && <div className="errors" style={{ margin: 8 }} data-testid="tidal-followups-error">{progress.followups_error}</div>}
       {error && <div className="errors" style={{ margin: 8 }}>{error}{" "}
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setError("")}>dismiss</button></div>}
       <div className="main">
@@ -278,8 +290,13 @@ export function TidalReview({ mode }: Props) {
                 {r.group === "words" && r.words_confidence && <span className="chip-tag suggested">{r.words_confidence}</span>}
                 {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
               </div>
-              <div className="meta dfo-text">{r.group === "conflict" ? (r.words_conflict ?? [])[0]
-                : r.group === "mouth" ? "no source names a boundary in words" : (r.boundary_words ?? [])[0] ?? ""}</div>
+              {group === "followup" && <>
+                <div className="meta dfo-text" data-testid="tidal-followup-why"><span className="chip-tag new">why</span> {r.followup_why}</div>
+                <div className="meta dfo-text dim" data-testid="tidal-followup-note">
+                  last mark: {r.mark_verdict ?? "—"} {r.mark_date ?? ""}{r.mark_note ? <> — <q>{r.mark_note}</q></> : " (no note)"}</div>
+              </>}
+              {group !== "followup" && <div className="meta dfo-text">{r.group === "conflict" ? (r.words_conflict ?? [])[0]
+                : r.group === "mouth" ? "no source names a boundary in words" : (r.boundary_words ?? [])[0] ?? ""}</div>}
             </div>
           ))}
         </div>
@@ -313,6 +330,8 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
   const [note, setNote] = useState("");
   const [reviewer, setName] = useState(getReviewer);
   const [split, setSplit] = useState<NewSplit | null>(null);
+  // T359: "the whole water is tidal" — Place y with no cut (the writer makes a `whole` row)
+  const [whole, setWhole] = useState(false);
   const [accepted, setAccepted] = useState("");
   const [picking, setPicking] = useState(false);
   const alts = useMemo(() => detail.alternates ?? [], [detail.alternates]);
@@ -336,6 +355,7 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
   function accept() {
     const pa = alts.find((a) => a.proposed);
     if (pa) { choose(pa); return; }
+    setWhole(false);
     setSplit(acceptSplit(c));
     setAnswerP("y");
     setAccepted("proposal pre-filled: Place y with the cut as a new split — check it, then Record mark (nothing is saved yet)");
@@ -344,6 +364,7 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
    *  the mark's cut becomes it (its source in the note); the owner then answers y and Records. "n"
    *  stays for rejecting the candidate outright. Nothing is saved until Record mark. */
   function choose(a: TidalAlternate) {
+    setWhole(false);
     setChosen(a.id);
     setPicking(false);
     setSplit(altSplit(c, a));
@@ -351,12 +372,23 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
     setAccepted(`the cut is ${ALT_KIND[a.kind]} (${Math.round(a.above_mouth_m)} m above the mouth)`
       + `${a.proposed ? " — the proposal" : ""}: press y, then Record mark (nothing is saved yet)`);
   }
+  /** THE WHOLE WATER IS TIDAL (T359): no cut — Place y, call whole; nothing is saved until Record mark */
+  function chooseWhole() {
+    setWhole(true);
+    setSplit(null);
+    setChosen(null);
+    setPicking(false);
+    setProblem("");
+    setAnswerP("y");
+    setAccepted(`the whole of ${c.water} is tidal — no cut: Record mark (nothing is saved yet)`);
+  }
   function pickPoint() {
     setPicking(true);
   }
   const onPick = picking ? (ll: [number, number]) => {
     setPicking(false);
     api.tidalSnap(c.id, ll).then((sn) => {
+      setWhole(false);
       setChosen("custom");
       setCustomAbove(sn.above_mouth_m);
       setSplit({ ...acceptSplit(c), anchor: "coord", split_id: null, coord: sn.coord, name: `${c.water}: tidal boundary`,
@@ -396,9 +428,16 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
     setReviewer(reviewer.trim());
     setBusy(true);
     try {
+      const secs = Math.round((Date.now() - since.current) / 100) / 10;
+      if (whole && !defer) {
+        if (answer !== "y") { setErrors(["The whole water is tidal is a Place y answer: press y, or pick a point instead."]); return; }
+        await api.postMark(wholeMark(c.id, note, reviewer.trim(), secs));
+        onMarked(`saved ✓ ${c.water} — the whole water is tidal (the tidal writer makes it a whole row)`);
+        return;
+      }
       await api.postMark({
         scope: "tidal", target: c.id, answers: answer ? { P: answer } : {}, problem: problem || null, note,
-        reviewer: reviewer.trim(), seconds: Math.round((Date.now() - since.current) / 100) / 10,
+        reviewer: reviewer.trim(), seconds: secs,
         ...(split ? { new_splits: [split] } : {}),
         ...(defer ? { verdict: "deferred" as const } : {}),
       });
@@ -446,6 +485,14 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
           {errors.length > 0 && (
             <div className="errors" role="alert" data-testid="tidal-errors" style={{ position: "static", margin: "6px 0" }}>
               {errors.map((e, i) => <div key={i}>{e}</div>)}
+            </div>
+          )}
+
+          {detail.row.followup_why && (
+            <div className="section" data-testid="tidal-followup">
+              <div className="ext-row"><span className="k">follow-up</span><span className="warn-text">{detail.row.followup_why}</span></div>
+              <div className="ext-row dim" style={{ fontSize: 12 }}>last mark: {detail.row.mark_verdict ?? "—"} {detail.row.mark_date ?? ""}
+                {detail.row.mark_note ? <> — <q>{detail.row.mark_note}</q></> : " (no note)"}</div>
             </div>
           )}
 
@@ -577,7 +624,11 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
               </span>
             </div>
             <div className="fix-row">
-              {split ? <>
+              {whole ? <>
+                <span className="chip-tag new">whole</span>
+                <span>the whole of {c.water} is tidal — no cut</span>
+                <button type="button" className="btn small" onClick={() => setWhole(false)}>remove</button>
+              </> : split ? <>
                 <span className="chip-tag new">{split.ref}</span>
                 <span>{split.name} at {split.coord?.[1].toFixed(5)}, {split.coord?.[0].toFixed(5)}</span>
                 <button type="button" className="btn small" onClick={() => { setSplit(null); setChosen(null); }}>remove</button>
@@ -585,6 +636,9 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
               <button type="button" className={`btn small${picking ? " primary" : ""}`} data-testid="tidal-pick"
                 disabled={!c.items.length} onClick={() => (picking ? setPicking(false) : pickPoint())}>
                 {picking ? "click the stream on the map… (cancel)" : "the boundary is elsewhere: click it"}</button>
+              <button type="button" className={`btn small${whole ? " primary" : ""}`} data-testid="tidal-whole"
+                disabled={c.items.length !== 1} title={c.items.length !== 1 ? "a whole-water answer needs the candidate's one registry item" : "no cut: the whole water is tidal (a delta channel)"}
+                onClick={chooseWhole}>the whole water is tidal</button>
             </div>
             {answer === "n" && (
               <div className="check-wrong">
@@ -599,6 +653,8 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
             <div className="ext-row" data-testid="tidal-recording" style={{ fontSize: 13 }}>
               <span className="k">recording</span>
               <span>{(() => {
+                if (whole) return <><strong>the whole of {c.water} is tidal</strong> — no cut{" · "}
+                  <span className={answer === "y" ? "" : "warn-text"}>Place {answer ?? "—"}</span></>;
                 if (!split?.coord) return <span className="dim">no point yet — pick one above (or accept the proposal), then y</span>;
                 const a = chosen && chosen !== "custom" ? alts.find((x) => x.id === chosen) : undefined;
                 const above = a ? a.above_mouth_m : chosen === "custom" ? customAbove : c.proposed.above_mouth_m;

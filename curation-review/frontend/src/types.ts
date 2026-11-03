@@ -808,6 +808,8 @@ export interface MarkPost {
   targets?: string[];
   /** owner 2026-11-02 (dfo): this wording is a variant of that location (T185 writes duplicate_of) */
   variant_of?: string;
+  /** T359 (tidal): "whole" — the whole water is tidal (Place y, no cut; the writer makes a `whole` row) */
+  call?: "whole";
 }
 
 /** T191: the catalogue's extent ops (`marks.OP_POINTS`), by their own names */
@@ -1294,6 +1296,13 @@ export interface TidalRow {
   group?: "mouth" | "words" | "locate" | "conflict";
   /** the mark in force is the owner's un-accept (deferred): the default bulk accept may take it */
   unaccepted?: boolean;
+  /** T359: the tidal writer leaves this mark out of tidal.json — why, in its own words (null: not a follow-up) */
+  followup_why?: string | null;
+  /** T359: the mark in force — its note, verdict, date and call ("whole": the whole water is tidal) */
+  mark_note?: string | null;
+  mark_verdict?: string | null;
+  mark_date?: string | null;
+  mark_call?: string | null;
 }
 /** GET /api/tidal/progress */
 export interface TidalProgress {
@@ -1310,6 +1319,9 @@ export interface TidalProgress {
   /** the Tidal tab's progress groups: marked / total each; `default_acceptable` = what the default bulk accept takes */
   groups?: Record<"mouth" | "words" | "locate" | "conflict" | "done", { total: number; marked: number }>
     & { default_acceptable: number };
+  /** T359: the marks the tidal writer leaves out of tidal.json, and why it could not say (null: it ran) */
+  followups?: number;
+  followups_error?: string | null;
   coverage: Record<string, unknown>;
 }
 /** GET /api/tidal/candidates/{id} */

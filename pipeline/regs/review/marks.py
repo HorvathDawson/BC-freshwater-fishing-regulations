@@ -49,6 +49,9 @@ SloughCall = Literal["stream", "not stream"]
 Q154Call = Literal["pool", "real lake"]
 #: T224 (owner 2026-10-28): the owner's call on a name-variant candidate (`review.names`)
 NameCall = Literal["accept", "reject"]
+#: T359 (owner 2026-11-03): the owner's call on a tidal candidate — "whole": the whole water is tidal (a Fraser delta
+#: channel). Place y with no cut; the tidal writer (`tools.tidal_limits`) makes it a `whole` row
+TidalCall = Literal["whole"]
 #: T185 (owner 2026-10-27): THE MARKS ARE THE DECISIONS. The retired accept step wrote marks of
 #: scope `proposal` (P y / P n on a proposal's digest); the store is append-only, so a line of it
 #: may still be there — `load` skips it, and nothing makes a new one.
@@ -425,7 +428,7 @@ class Mark(BaseModel):
     #: "not stream" (it stays a lake). Only on a slough mark; a verified slough mark carries one.
     #: Q154: "pool" (takes the river's rules) or "real lake" on a q154 sample mark
     #: T224: "accept" / "reject" on a name-variant candidate (scope name)
-    call: Optional[Union[SloughCall, Q154Call, NameCall]] = None
+    call: Optional[Union[SloughCall, Q154Call, NameCall, TidalCall]] = None
     #: owner 2026-10-28: THE GROUP a DFO mark was recorded with — historic places that reword a
     #: current one (`review.dfo.groups`) take one extent decision, one mark per member, linked here
     group: Optional[str] = None
@@ -519,8 +522,14 @@ class Mark(BaseModel):
                     or self.rule_id is not None):
                 raise ValueError("a name mark carries only its call")
             return self
-        if self.call is not None:
-            raise ValueError("only a slough, q154 or name mark carries a call")
+        if self.scope == "tidal" and self.call is not None:
+            # T359: "the whole water is tidal" — Place y, and no cut (the whole item is tidal water)
+            if self.call != "whole":
+                raise ValueError("a tidal call is whole")
+            if self.verdict != "verified" or self.new_splits:
+                raise ValueError("the whole water is tidal is a Place y mark with no cut")
+        elif self.call is not None:
+            raise ValueError("only a slough, q154, name or tidal mark carries a call")
         if self.scope in ("split", "tidal"):
             if keys != [f"split:{self.target}"] or self.prints.text is not None:
                 raise ValueError(f"a {self.scope} mark holds exactly its "
@@ -572,7 +581,8 @@ class Mark(BaseModel):
                 raise ValueError("a new split is proposed on a wrong or unsure mark")
             if len(set(refs)) != len(refs):
                 raise ValueError("each new split has its own ref")
-        if self.scope == "tidal" and self.verdict == "verified" and len(self.new_splits) != 1:
+        if (self.scope == "tidal" and self.verdict == "verified" and self.call is None
+                and len(self.new_splits) != 1):
             raise ValueError("an accepted tidal boundary carries exactly its one cut as a new split")
         dangling = sorted({p.split_id for f in self.extent_fix for p in f.points
                            if p.kind == "new"} - set(refs))

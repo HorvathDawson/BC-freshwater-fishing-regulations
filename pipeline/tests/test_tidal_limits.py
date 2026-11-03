@@ -86,7 +86,7 @@ def _tidal(cid, verdict="verified", note="", **ns):
          **ns}
     return M.Mark.model_validate({
         "scope": "tidal", "target": cid, "verdict": verdict,
-        "answers": {"P": "y" if verdict == "verified" else "n"}, "reviewer": "dawson",
+        "answers": {"P": {"verified": "y", "unsure": "?"}.get(verdict, "n")}, "reviewer": "dawson",
         "date": "2026-10-28", "pdf_sha256": "0" * 64, "prints": T.prints(row),
         "note": note or ("moved" if verdict == "wrong" else ""),
         "problem": "split misplaced" if verdict == "wrong" else None, "new_splits": [n]})
@@ -180,6 +180,63 @@ def test_the_owners_own_rows_are_kept_unless_a_later_mark_decides(src):
     # a mark-made row is never kept once its mark is gone
     stale = TA.Limit(blk="1", limit="mouth", name="X", decided="2026-10-01", mark="abcdefabcdef")
     assert "1" not in _rows([], src, [stale])[0]
+
+
+def _whole(cid, date="2026-11-03", **kw):
+    """T359: the owner's "the whole water is tidal" — Place y, call whole, no cut."""
+    return M.Mark.model_validate({
+        "scope": "tidal", "target": cid, "verdict": "verified", "answers": {"P": "y"}, "reviewer": "dawson",
+        "date": date, "pdf_sha256": "0" * 64, "prints": T.prints(T.candidate(cid)), "call": "whole",
+        "note": "this entire channel is tidal", **kw})
+
+
+def test_a_whole_water_mark_is_a_whole_row_on_its_one_item_and_no_follow_up(src):
+    rows, skipped = _rows([_whole(COPPER)], src)
+    assert {b: r.to_dict() for b, r in rows.items()} == {_blk(COPPER): {
+        "blk": _blk(COPPER), "name": "Copper Creek", "limit": "whole", "item": "gnis:33991",
+        "decided": "2026-11-03", "mark": rows[_blk(COPPER)].mark, "why": "the owner: the whole water is tidal"}}
+    assert len(rows[_blk(COPPER)].mark) == 12 and skipped == []
+    # it supersedes the earlier unsure on the same candidate, and a later owner row (no mark) still wins over it
+    unsure = _tidal(COPPER, verdict="unsure")
+    assert _rows([unsure, _whole(COPPER)], src)[0][_blk(COPPER)].limit == "whole"
+    own = TA.Limit(blk=_blk(COPPER), limit="mouth", name="Copper Creek", decided="2026-11-04", why="owner")
+    assert _rows([_whole(COPPER)], src, [own])[0][_blk(COPPER)] == own
+    # a candidate with no registry item cannot be a whole row: listed, with why
+    rows, skipped = _rows([_whole(NELSON)], src)
+    assert rows == {} and skipped == [{"target": NELSON, "why": "the whole water is tidal, but the candidate has "
+                                                                "0 registry items — one item is needed"}]
+    assert TA.parse(json.loads(TA.document(_rows([_whole(COPPER)], src)[0].values())))[0].item == "gnis:33991"
+
+
+def test_a_whole_water_mark_is_place_y_with_no_cut_and_only_on_tidal():
+    base = {"scope": "tidal", "target": COPPER, "reviewer": "d", "date": "2026-11-03", "pdf_sha256": "0" * 64,
+            "prints": {"text": None, "records": [{"key": f"split:{COPPER}", "meaning": "m", "binding": "b"}]}}
+    assert M.Mark.model_validate({**base, "verdict": "verified", "answers": {"P": "y"}, "call": "whole"}).call == "whole"
+    for bad, why in [({"verdict": "unsure", "answers": {"P": "?"}}, "Place y mark with no cut"),
+                     ({"verdict": "verified", "answers": {"P": "y"}, "new_splits": [
+                         {"ref": "r", "anchor": "coord", "coord": [-123.0, 49.2]}]}, "Place y mark with no cut"),
+                     ({"verdict": "verified", "answers": {"P": "y"}, "call": "stream"}, "a tidal call is whole")]:
+        with pytest.raises(ValueError, match=why):
+            M.Mark.model_validate({**base, "call": "whole", **bad})
+    # with no call, an accepted tidal mark still needs its one cut
+    with pytest.raises(ValueError, match="exactly its one cut"):
+        M.Mark.model_validate({**base, "verdict": "verified", "answers": {"P": "y"}})
+
+
+def test_a_dem_point_and_an_owner_row_say_so_in_the_follow_up(src):
+    """T359: the follow-up's why — a DEM point asks the owner's open question (no cut either way), and an unsure
+    on a water the owner's own row already decides says that row is there."""
+    x = _tidal(NANAIMO)
+    dem = x.model_copy(update={"new_splits": [x.new_splits[0].model_copy(update={
+        "measure": 1925.0, "note": "chosen point: dem — DEM tidal limit: DEM tidal limit (pre-verify)"})]})
+    unsure = _tidal(COPPER, verdict="unsure", note="this entire channel is tidal")
+    own = TA.Limit(blk=_blk(COPPER), limit="whole", name="Copper Creek", item="gnis:33991", decided="2026-10-29")
+    rows, skipped = _rows([dem, unsure], src, [own])
+    assert list(rows) == [_blk(COPPER)] and rows[_blk(COPPER)] == own
+    assert skipped == [
+        {"target": NANAIMO, "why": f"a DEM point (1925.0 m above the mouth): {TL.DEM_QUESTION}"},
+        {"target": COPPER, "why": "a follow-up (unsure): no tidal limit until a Place y mark — tidal.json already "
+                                  "holds the owner's own `whole` row (2026-10-29); re-mark to confirm it"}]
 
 
 def test_the_file_round_trips_and_refuses_what_it_cannot_mean(src):
