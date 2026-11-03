@@ -15,7 +15,7 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   tickets (T362–T365) plus T88 re-scoped to "TestFlight".
 - **Six DFO marks (T361):** not something to undo. DFO's current page has in-season notices that changed the coho
   dates and limits on Campbell, Quinsam, Nanaimo, Puntledge, Qualicum and Stamp; your 11-02 marks were made on older
-  rows the review app still showed. Please re-mark those six in the DFO tab.
+  rows the review app still showed. Ruling: the marks stand; rule changes go to the digest (T366).
 - **Tidal/split proposals (T326):** Sandy Pool is already in; the other three (Quatse weir, Stamp lagoon outlet,
   Little Qualicum Falls) wait for you to accept them in the DFO tab.
 - **Audits (T333–T335):** each ticket now says the scope is agreed with you first.

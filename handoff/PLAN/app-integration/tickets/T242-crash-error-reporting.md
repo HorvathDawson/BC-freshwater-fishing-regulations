@@ -1,6 +1,6 @@
 # T242 — crash and error reporting (privacy-light)
 
-Status: PARTIAL — built and tested (960d2d8, 31c8d04); web forced error lands on staging (201); Android native-exit path proven up to the POST; the staging worker needs ONE MORE deploy (new `native` kind + 1 s gap) before the Android exit record is accepted: `npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml`, then `scripts/heavy.sh testbed 30 -- bash app/tools/testbed/session.sh --max-min 30 -- node app/tools/testbed/run.mjs crash` (no rebuild).
+Status: PARTIAL — built and tested (960d2d8, 31c8d04); web forced error lands on staging (201); the owner redeployed the staging worker 2026-10-29 (accepts `native`); left: run the test bed `crash` scenario (`scripts/heavy.sh testbed 30 -- bash app/tools/testbed/session.sh --max-min 30 -- node app/tools/testbed/run.mjs crash`, no rebuild); iOS is T362.
 
 Source: owner 2026-10-28 — approved proposal P8 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -62,6 +62,6 @@ Owner rule 2026-10-29: NO third-party crash service; everything from our own ser
   done. Web and iOS still report JS errors only.
 
 ## Not done / owner
-- Redeploy the feeds worker (command in Status), then re-run the `crash` scenario; read `GET /crashes` (run token) once.
+- Re-run the `crash` scenario (worker already redeployed); read `GET /crashes` (run token) once.
 - Privacy wording is Claude's draft (owner to approve, like the report wording).
 - Review-app tab for crashes (the digest + `GET /crashes` are the v1 reading).

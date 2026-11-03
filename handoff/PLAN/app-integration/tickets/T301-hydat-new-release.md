@@ -1,6 +1,6 @@
 # T301 — New HYDAT release: refresh stored daily flows and normals
 
-Status: OPEN (owner 2026-10-30: the app says a new HYDAT release is out).
+Status: DONE (fetched 2026-10-30, release r-c7e8327b781d; prod upload is the owner's; the old archive `data/source/hydat.20260717.sqlite3` can be deleted).
 
 ## Work
 Confirm the new ECCC HYDAT release (version/date), download it (resumable, checksum), rebuild what depends on it: the

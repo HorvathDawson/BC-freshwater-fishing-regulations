@@ -1,6 +1,6 @@
 # T306 — The slow suite fails 8 tests on the live data (found 2026-10-31)
 
-Status: OPEN. The full suite was run once at the end of the build pass: fast 6193 passed; slow 262 passed, 8 failed.
+Status: IN REVIEW — f0b92de23 and 876e63529 fixed some; NEXT-SESSION reports slow 272 pass; left: re-check which of the 8 are still red. The full suite was run once at the end of the build pass: fast 6193 passed; slow 262 passed, 8 failed.
 The build pass did not cause them. Every one reads LIVE generated data (the atlas, the bundle, the tiles) or a fixture,
 the pass touched no live output, and the side rebuild of the same inputs is byte-identical to the live bundle and
 release data files (`build-pass-2026-10-31.md`).

@@ -1,6 +1,6 @@
 # T291 — Test problem reports and crash reports are tagged and ignored; staging reports cleaned up
 
-Status: PARTIAL — built and tested, staging cleaned; the tag takes effect once the owner deploys the worker (owner 2026-10-29: "can we clean up reports too? can add a test tag so that we can ignore test ones").
+Status: PARTIAL — built, tested, staging cleaned; worker deployed and verified live 2026-10-29; left: an APK rebuild that sends the tag (owner 2026-10-29: "can we clean up reports too? can add a test tag so that we can ignore test ones").
 
 ## Work
 1. A `test` tag on problem reports and crash reports: set by every tool that sends one (testbed scenarios report/crash,
@@ -37,6 +37,5 @@ Depends: T237, T242. Size: S. Owner: no (worker deploy is the owner's command).
 ## Verified live (2026-10-29, worker deployed by the owner)
 curl POST /report and /crash with `test:true` -> 201 each; they landed in `private/reports-test/2026-10-29/` and `private/crashes-test/`, nothing in `private/reports/` or `private/crashes/`; both objects then deleted. `GET /reports` without `?test=1` needs the run token (not used); its filtering is pinned by `reports.test.ts`.
 
-## Left (owner)
-- Deploy the worker: `npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml`. Until then new tool reports are stored as ordinary ones (the old worker ignores `test`);
-  the test bed needs a rebuilt APK (the next `session.sh --build`) to send the tag.
+## Left
+- The test bed needs a rebuilt APK (the next `session.sh --build`) to send the tag.

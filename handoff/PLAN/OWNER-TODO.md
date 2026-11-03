@@ -8,22 +8,16 @@ with the default Claude uses until you answer). Newest first inside each section
 
 - **Plan to 0.5.0 approved (2026-11-03):** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Yours along the way: a look at the compressed rule-book photo pages (T354, plan set 11-03)
   (T360/T354, batch 2); the Apple Developer account ($99) before the iOS release (T88); the feeds-worker deploy only
-  after 0.5.0 (T242/T291/T315).
+  after 0.5.0 (T315).
 - **0.4.0 on Play internal (versionCode 7, 2026-10-31, `89ebd94bf`; release r-4e709418ebd8 on staging, smoke 18/18):**
   install from the tester link and look at (1) the T316 spot marks on the map (Noto Sans names); (2) a spot saved
   offline on a river fills by itself back online (T314). Prod stays yours:
   `pipeline.deliver.release.publish --release data/release/r-4e709418ebd8 --min-app-version 0.3.0 --yes`.
-  New in this release: the 08MH044 cut moved to Albion. The build's braid rule carried it across Bedford Channel and 2
-  of its tributaries. So Bedford Channel now has 2 sections and no gauge; before, it was answered "fair" by 08KA007
-  Fraser at Red Pass. On the Fraser, the length cut at Bedford Channel moved to the gauge. The cut is still labelled
-  "Fraser River At Whonock" (old HYDAT name). Say if you want any of that different.
-  Still red, not from this batch (other lanes, in flight): pytest 7 fast / 2 slow failures (T322 slough-fold gate
-  allowlists, T325 lock/write-through + DFO lock tests, review export after the Hatzic mark = `entries.json` not
-  re-exported, status_index skip, T57 sweep fixture, a flaky browser test); release-perf A5 search p95 ~9 ms vs its 8 ms
-  ceiling (same on r-038e6: the laptop, not the release); knip on the untracked `app/tools/build-play-graphics.mjs`
-  (pngjs).
-- **DFO wording registry (T321 → T332, 2026-10-30):** merged into redesign/stream-sections 2026-11-02 (T349): the split is tidied, 78 entries, 77 accepted after a check against their cells. ONE left for you: the Fort Babine part-water closure (`no fishing for chinook from a point n m above fort babine bridge…`, archived pages) reads as the whole river closed — reader fix or accept? Shipping T332: release with `minAppVersion` = the T332 app version (salmon/3), THEN the feeds worker deploy (`npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml`, dfo-feed/2) and `deploy/staging/sync-inputs.sh` (registry /2, either order).
-- **Build pass (T266/T295/T297, 2026-10-31):** review `handoff/PLAN/app-integration/build-pass-2026-10-31.md`. The proof side run matched r-51d80e68f056 byte for byte, except the tile_version (T305) and the publish stamps. Nothing was promoted. Yours: (1) confirm the decided-data split, one dir `data/curated/decided/`; (2) Sheldens Creek is in `mined_names.json` (f0b92de23; T327 checked it current) and reaches the map with the next atlas rebuild — nothing to run. (3) The slow suite has 8 failures on live data that predate the pass (T306; status_index 198/6000 disagree is the one to look at).
+  New in this release: the 08MH044 cut moved to Albion (Bedford Channel has 2 sections and no gauge; the Fraser length cut
+  moved to the gauge). Its label still reads "Fraser River At Whonock" (T339).
+  Still open, not from this batch: release-perf A5 search p95 ~9 ms vs its 8 ms ceiling (the laptop, not the release).
+- **DFO wording registry (T321 → T332, 2026-10-30):** merged into redesign/stream-sections 2026-11-02 (T349): the split is tidied, 78 entries, 77 accepted after a check against their cells. Shipping T332: release with `minAppVersion` = the T332 app version (salmon/3), THEN the feeds worker deploy (`npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml`, dfo-feed/2) and `deploy/staging/sync-inputs.sh` (registry /2, either order).
+- **Build pass (T266/T295/T297, 2026-10-31):** review `handoff/PLAN/app-integration/build-pass-2026-10-31.md`. The proof side run matched r-51d80e68f056 byte for byte, except the tile_version (T305) and the publish stamps. Nothing was promoted. Nothing is yours here.
 - **App test bed (T255, 2026-10-29):** Android emulator scenarios for downloads/sync/offline — `app/tools/testbed/README.md`; last report `handoff/PLAN/app-integration/T255-shots/run-final/index.html`. Found and ticketed: the first install crash-loops on Android (T262, high), Wi-Fi return does not start a held update (T265).
 - **ODbL offer (T235, 2026-10-28):** done as you asked (`data/LICENSE-ODbL.md`, `_licence` in each file). Yours: (1) the repo has no LICENSE of its own — the notice says the rest is "under its own terms"; pick one if you want it stated; (2) the app links files on the `redesign/stream-sections` branch (`licences.ts` `REPO_BLOB`) — flip to `main` when it merges; (3) the no-access land (incl. Malcolm Knapp) and reserve outlines are OSM, not the Province — now credited as OSM.
 - **Update testing on your phone (T251, 2026-10-28):** dev build → About → Updates log → channel Test → reopen; then `node deploy/staging/test-updates.mjs reset | feed-bump gauges | release 1 | corrupt | missing | feed-404 dfo | min-app 99.0.0` and Check now (steps in tickets/T251). Before prod (T86/T240): the production data worker must allow the `X-App-Version` header (copy staging's data-worker.js CORS line), or web update checks fail.
@@ -51,13 +45,9 @@ with the default Claude uses until you answer). Newest first inside each section
   - accept in review app → DFO: Cowichan — Sandy Pool sign → tidal boundary (= FWA mouth; active, high); weir/Cowichan Lake → 66 Mile Trestle (high); CNR mile 70.2 → Skutz Falls (high, new Skutz cut); "incl. tributaries and Cowichan Lake" = whole river + lake + tributaries (medium: lake's inflows counted). Last three dormant.
   - accept in review app → DFO: Capilano — "including tributaries" = whole + tributaries (high).
   - accept in review app → DFO: Kitimat — downstream / upstream of Hwy 37 bridge (high, OSM-checked); hatchery outfall signs = your 08-10 pins (high; west-bank-only width not modelled).
-- **Release r-a871447c48ba verification follow-ups (2026-10-28):** (1) run `node app/tools/regs-recut/sync.mjs`
-  (Claude may not). It re-cuts taps.json + hydrate.json only: golden.json is frozen since T87 deleted the prototype
-  (2026-10-28), so the golden re-extraction of the Q62/Q63 words is moot. (Whonnock 08MH100 and Beattie "Trout"
-  answered 10-28: T228.)
+- **Release r-a871447c48ba verification follow-ups (2026-10-28):** (Claude re-cut since; the golden re-extraction of the Q62/Q63 words is moot, golden.json is frozen since T87. Whonnock 08MH100 and Beattie "Trout" answered 10-28: T228.)
 - **T228 (2026-10-28):** two DFO queue items from T228. (1) Klinaklini: place "Management Units 5-6 to 5-11 boundary"
-  as a split (pre-filled point). (2) Bella Coola: exclude the Atnarko (gnis:17209) from its tributaries. The re-cut
-  commands come after the next release (one more rebuild is coming).
+  as a split (pre-filled point). (2) Bella Coola: exclude the Atnarko (gnis:17209) from its tributaries.
 - **T224 names (2026-10-29, live in r-62e2f3a8c81e):** review app **Names** tab (:5183, `#names/`), reject any that
   are wrong among these 20 auto-accepted names (list + why in tickets/T224 "Owner spot-check"): Cat Stream (applied: a 3 km OSM way
   matches 95 %; within your rule), The Cut Coulee, Cohen Creek, Benes Creek, College Creek, North McNaughton Creek, Brigade Bay Creek,
@@ -65,8 +55,7 @@ with the default Claude uses until you answer). Newest first inside each section
   Smith Brook (Abbotsford); Inkaneep Creek, Meadow Creek Diversion, Quinsam River Diversion Headpond, Noble Creek (ECCC).
   No rejects = done. The rest of the review list (36 high, 552 medium, 8,061 low) is optional.
 - **T202 basemap (2026-10-27):** the basemap is now z13 (918 → 274.5 MB). Look at the app at your spots, z10–z18,
-  light and dark: trail and FSR names should show from z15. Then say "delete the old basemap", and Claude removes
-  `data/generated/scratch/basemap-pre-T202-20260925.pmtiles`. Grid coarsening shipped too: the basemap is now 274.5 MB. Shots
+  light and dark: trail and FSR names should show from z15. Shots
   and numbers: `handoff/PLAN/tiles/T202-basemap-audit.md`.
 - **"Needs a split" follow-ups (2026-10-27, live in r-8b43fb267199):** (1) the three guessed `low` cuts are in the
   review app, **Low-confidence cuts** queue (top bar button; or http://127.0.0.1:5183/?lowcuts) — each entry opens on
@@ -77,9 +66,6 @@ with the default Claude uses until you answer). Newest first inside each section
   r11 "from Mud Lake": FWA names no Mud Lake, so it runs Fairmont → Columbia Lake (the outlet wetland, wbk 329093907, is
   the likely Mud Lake) — say if Mud Lake is elsewhere; (3) Stave r1/r2 (Ruskin/Northrop spawning channels) stay notes:
   the channels have no sections in the atlas — adding them is Claude's work (T222), nothing for you here.
-- **T159 08MH079 (2026-10-28):** the station sits on Kilgard Creek (FWA-unnamed, blk 356314888, a Marshall/Lonzo
-  tributary, 69 m), not on Lonzo/Marshall itself. Say yes and Claude adds the `review.json` bind (ticket T159 has it);
-  the matcher rerun + `promote --only 08MH079` follow.
 - **T204 phone check:** Kanaka Creek's map now has two marks (112 Avenue bridge, Cliff Park Falls) and its lower part is
   two separately selectable stretches ("… · stretch 1 of 2"); say if the stretch wording should differ.
 - **Map look (T64, T85, T113, T152; all built and live):** look at the map (wetland-heavy Fort Nelson and the
@@ -89,7 +75,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Q4 / T55 + T149 — slough and canal candidates: review app, Sloughs tab only** (:5183, `#sloughs/`). All 2,424
   candidates with their pre-marks; your 150 review-page verdicts show as "page: …" and your 8 free-text notes as
   "your note" (incl. 329097416 Cruickshank, the one whose verdict you cleared: "similar this can be on moat lake").
-  Confirm the pre-marks (one, or accept all visible); then Claude folds them in, dry run first.
+  811 are confirmed (folded by T322); still open: the 135 wide-marsh pre-marks and the rest of your list.
   The old slough page (artifact Es3Mokt7Fs2yNvm7JgQua8) is retired — do not mark there; its whole database (151 verdicts + 58 spot checks)
   is saved in `handoff/PLAN/sloughs/marks-final-2026-10-28.json`; nothing else reads it.
 
@@ -103,7 +89,7 @@ Answered 2026-10-24: Q125 (muted fill), T179 (400 m; a curated cut never moves; 
 splits keep every name and id), PSF permission (T162; their reply is not stored), braids marked (T67 promoted), Q7 (delete old releases — pruned to live + previous; `python -m pipeline.deliver.release.prune`).
 Answered 2026-10-23: Q5 + Q34–Q41 (curation plan approved, defaults; splits mid-review must work; salmon pass later = T132), Q13 (Claude runs the reader gate), Q44 (no Level from a side channel; Flow only if it carries a large share), Q53 (as built), Q45 (leave unbound).
 
-## Your open questions (31 listed below — each built with a default; the table in tickets/README.md has the wording)
+## Your open questions (30 listed below — each built with a default; the table in tickets/README.md has the wording)
 
 Triaged 2026-10-23: 64 smaller calls were decided by Claude and 12 were already answered or obsolete — all recorded in
 decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any). What is left needs you:
@@ -144,9 +130,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **T182 caps (built with defaults, veto if wrong):** offline total 20 MB (was 15); cold-load gate 3.35 MB (salmon on
   the first Salmon press, as you decided 10-28).
 - **Scope and big rebuilds:** Q10 imagery corridor (offline corridor + pools go/no-go; online Esri is settled).
-- **Things only you can do or know:** Q4 slough marks — now in the review app's **Sloughs** tab (`#sloughs/`): 936 pre-marked stream to confirm (801 narrow, 135 wide marsh; "accept all visible" after checking), 324 on your list (113 intermittent) · Q126 were you
+- **Things only you can do or know:** Q4 slough marks — review app **Sloughs** tab (`#sloughs/`): 811 confirmed so far; still to call: the 135 wide-marsh pre-marks and 314 on your list (113 intermittent) · Q126 were you
   on Level? · Q9 phone testing · Q26 hosting/app name ·
-  Q28 iOS timing · Q27 sign-off walk.
+  Q27 sign-off walk.
 
 ## Things only you can run or provide
 - **Store listing sign-off (T244, 2026-10-29)**: read `app-integration/store/listing-draft.md` and `store/privacy-labels-draft.md`
@@ -154,11 +140,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Look at the new splash: `app-integration/T244-shots/` (web boot screen light/dark, native art); it shows on the next native build.
 - **Production run (T240 section 11, 2026-10-29)**: the prod commands for map-assets (T270), HYDAT day flow (T274), the report-purge deploy (T271),
   and the SEO build against the prod app export (`--app`, T269/T279) are written in `tickets/T240-production-launch-checklist.md`.
-- **Google Play setup (T268), when Google finishes verifying your Play account**: create the app ca.canifishthis.app,
-  accept Play App Signing, upload the first AAB `app/dist/aab/latest.aab` by hand to Internal testing, add your Gmail as
-  tester (opt-in link into `~/.canifishthis/play-test-url`), App content (privacy policy, data safety, content rating;
-  our answers in the ticket), service-account JSON to `~/.canifishthis/play-service-account.json`. Unblocks T267
-  (`deploy/staging/build-apk.sh --play`). Back up `~/.canifishthis/` (upload key + password).
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
 - **Yearly synopsis update (T239, not started):** when the new synopsis comes out, Claude writes the runbook + book
   diff and does the dry run; the parse itself is yours to run (Claude hands you the command).
@@ -210,6 +191,4 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **SEO, v1 pages (2026-10-27):** keep your existing Search Console property; when the new site is live add the new sitemap
   beside the old one, and for two months watch Pages > Not found (404) and Redirect error (the 19,331 old `/waterbody/` URLs
   should show as Page with redirect). Deploy the generated `_worker.js` with `run_worker_first = ["/waterbody/*"]` (T86 hosting).
-- **Gauge 08MH044 moved (HYDAT 2026-10-19):** ECCC renamed FRASER RIVER AT WHONOCK → AT ALBION and moved it ~6 km
-  downstream. DECIDED 2026-10-31 (owner: use HYDAT's point): matches.json row moved (1e72e203e); lands with the next
-  `--atlas` rebuild (it moves a gauge cut).
+

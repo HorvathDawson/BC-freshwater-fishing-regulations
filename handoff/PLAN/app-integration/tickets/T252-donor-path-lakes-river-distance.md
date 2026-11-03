@@ -1,7 +1,6 @@
 # T252 — donor paths through lakes, distance along the river, station names cased
 
-Status: PARTIAL — code done 2026-10-28; rides the next bundle + release (not run here); the Pitt check on :39218 waits
-for that release.
+Status: IN REVIEW — shipped (re-cut f010a2b16, release r-0fa7927b16e5 onward); left: the Pitt check on :39218.
 
 Source: follow-ups to the Conditions donor-path work (9ea333d1), 2026-10-28: (1) a flow path stopped at a lake — the
 upper Pitt (gnis:7551) above Pitt Lake showed "no mapped path" to 08MH006 on the North Alouette below the lake;

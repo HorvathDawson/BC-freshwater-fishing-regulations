@@ -8,7 +8,7 @@ ships next as its own TestFlight release; duplicates folded. Built from the ledg
 The salmon data moved to a new format (salmon/3, T332/T349, already merged). App 0.4.0 cannot read it, so
 `deploy/staging/upload.sh` refuses to upload it until an app of 0.5.0 or later exists (the `SALMON_NEEDS` guard). Until
 0.5.0 ships, every new data release (T322's slough fold, T326 tidal, T349 DFO) is built and promoted locally only, and
-the feeds-worker deploy (T242 crash reports, T291, T315 gauge week) waits too.
+the feeds-worker deploy (T315 gauge week) waits too.
 
 ## Batches, in order
 Each batch is one sitting on one area. Tickets in a batch are done together.
@@ -16,17 +16,17 @@ Each batch is one sitting on one area. Tickets in a batch are done together.
 | # | Batch | Tickets | Size | Notes |
 |---|---|---|---|---|
 | 1 | Slough fold release (data) | T322, T337 check | heavy, few credits | Running now. Local promote only (staging is held). |
-| 2 | Crash, memory, rule-book PDF | T360 → T351, T354, T345, T352 (app side) | M–L | One emulator sitting. T360 measures first; you pick the PDF option. |
-| 3 | DFO salmon clean-up | T356, T358, T357, T338, T343, T366 (+ T361, yours) | L | Changes what the salmon data looks like, so it must land BEFORE 0.5.0, or we need salmon/4 later. T366 makes the live refresh safe, then pulls region 2's new Fraser notice (FN1179). |
+| 2 | Crash, memory, rule-book PDF | T360 → T351, T354, T345, T352 (app side) | M–L | One emulator sitting. T360 measures first. PDF: incremental append + image compression (T354, owner 11-03). |
+| 3 | DFO salmon clean-up | T356, T358, T357, T338, T343, T366 (T361 folded into T366; the marks stand) | L | Changes what the salmon data looks like, so it must land BEFORE 0.5.0, or we need salmon/4 later. T366 makes the live refresh safe, then pulls region 2's new Fraser notice (FN1179). |
 | 4 | Feeds and map colours | T347, T348 | S–M | One "feed changed" signal; weekday forecast rule. |
-| 5 | Map feel (owner 2026-11-03: in 0.5.0) | T312 (T353 + T273 folded in) | M–L | One emulator gesture pass: 1:1 tracking, fling, pan lag; T273's basemap-tile choice goes to the owner. |
+| 5 | Map feel (owner 2026-11-03: in 0.5.0) | T312 (T353 + T273 folded in) | M–L | One emulator gesture pass: 1:1 tracking, fling, pan lag; basemap already simplified (T280); measure pan on a real phone. |
 | 6 | Small app fixes | T342, T344, T339, T340 | S each | Phone long-press copy, species swipe, Whonock label/Bedford gauge, test bed taps. |
 | 7 | Release check and cut | T307, T308, T310, T315, T316, T293 checks; full suites once | M, mostly heavy | Then APK 0.5.0 → Play internal, staging upload with `MIN_APP_VERSION=0.5.0`, feeds-worker deploy. |
 
 After 0.5.0:
 - iOS release: T313, T336, T88 (signed build + TestFlight), T362–T365 (simulator work may run earlier between batches);
 - T317 overlay once-over (follows the map-feel pass);
-- pipeline hygiene (T306, T341, T305, T301, T304, T331);
+- pipeline hygiene (T306, T341, T305, T304, T331);
 - the audits T333–T335 (you scope them first; see the tickets);
 - SEO, hosting and prod launch (T86 block) stay parked until you unpark them.
 

@@ -1,9 +1,9 @@
 # T125 — Latent duplicate checks: pins and small helpers (agree today)
 
-Status: PARTIAL — 370a3978 (1), 7fcdfaab (2), bffe4431 (3), 81c05b55 (4), 4c0b6272 (5), e81ee1b7 (6), 8d720fb9 (7),
+Status: DONE — 370a3978 (1), 7fcdfaab (2), bffe4431 (3), 81c05b55 (4), 4c0b6272 (5), e81ee1b7 (6), 8d720fb9 (7),
 84525b29 + 4076c58b + 1fdecc94 + ddcd5aca + 1b106ff9 (8: matching 6/7, app 9/11, reach 9, answers 10/11), ba5d5873 (8: answers 12), 580ca3f7 (8: reach 11), 0e5baf51 (9).
 Adversarial review: 720e9a6f, 388e6f08, a97c63a0, 9835fa2e, 2b86b39f (see Adversarial review).
-Lane lane-T125 (wf_144b677f-89c-3). Left in item 8: gauges 9 only (owner-run promote; see Left). Item 7's per-quantity record years in the handoff scripts: left as recorded. Rebuild: reach rerun +
+Lane lane-T125 (wf_144b677f-89c-3). Item 8 gauges 9 done by T159 (ce1cf83c, 06b83665); Q118 decided. Item 7's per-quantity record years in the handoff scripts: left as recorded. Rebuild: reach rerun +
 deliver (items 4, 5 ride the next reach rerun; 1-3, 8 ship with deliver); app check after the regs fixture re-cut.
 
 ## As built

@@ -15,7 +15,6 @@ For the owner, opening a new chat after credits reset. Paste the prompt below an
 - **Staging** is on release `r-4e709418ebd8`; smoke 18/18. Prod has no release.
 - **Tests:** pytest fast 6141 / slow 272 pass; app checks pass.
 - **Branch:** `redesign/stream-sections`. Never `main`.
-- **Branch not yet merged:** `dfo/t332-shared-quota`. Its ticket has the plan.
 - **Owner-facing log:** `handoff/PLAN/STATUS.md`, newest first. Every decision from 10-30/31 is in it.
 - **Ticket ledger:** `handoff/PLAN/app-integration/tickets/README.md`. Tickets are the only source of work.
 

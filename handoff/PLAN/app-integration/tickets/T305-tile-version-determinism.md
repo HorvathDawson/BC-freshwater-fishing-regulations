@@ -1,6 +1,6 @@
 # T305 — A tile rebuild with unchanged inputs gets a new tile_version
 
-Status: OPEN (found in the 2026-10-31 build pass, `build-pass-2026-10-31.md`).
+Status: IN REVIEW — fix landed (4754c6f8d, 7dd2f991f); left: proof with two `--side` tile builds giving the same `tile_version` (found in the 2026-10-31 build pass, `build-pass-2026-10-31.md`).
 
 ## Problem
 tippecanoe writes its own command line into the pmtiles metadata (`generator_options`). That command line includes a

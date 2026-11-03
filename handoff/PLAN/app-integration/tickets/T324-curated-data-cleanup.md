@@ -1,6 +1,6 @@
 # T324 — One clean data flow: document every stream, then lock reviewed data as final curated files
 
-Status: PARTIAL — plan done (data-flow.md, cbfc0adc7); owner approved the design + option (a) closed-domains list 2026-10-30; work in T325–T331. (owner 2026-10-30: "I thought the marks got converted into our real curated data type? We need to document
+Status: PARTIAL — plan done (data-flow.md, cbfc0adc7); owner approved the design 2026-10-30; the lock step was replaced by write-through (T325: a saved mark updates its final curated file; lock.py deleted); work in T325–T331. (owner 2026-10-30: "I thought the marks got converted into our real curated data type? We need to document
 the flow of all the data streams too. … after we finish doing the review … lock all the data in curated in the format
 they will be useful like sloughs etc. … convert marks into that format for all the data types … Right now the whole flow
 feels really shitty and awkward.")
@@ -22,9 +22,8 @@ feels really shitty and awkward.")
 2. **End state per domain:** one final curated file per data type (sloughs, tidal, DFO extents, ponds, names, splits,
    gauges, in-season, run timing…), in the shape the build uses directly (no marks, no review fields), documented
    schema, read by exactly one stage.
-3. **Lock step:** when a domain's manual review is finished, a one-time convert of its marks into that final file;
-   the marks for that domain are then archived (read-only history), the review mode closes, and later edits are
-   direct edits of the final file (or a reopened review). A check proves the converted file reproduces today's build.
+3. **Write-through (T325, replaces the lock step):** a saved mark updates its domain's final curated file directly;
+   marks.jsonl stays history and is never edited. A check proves the final file reproduces today's build.
 4. **Cleanup list:** stray files, duplicate paths, dead readers — ticket each.
 
 Depends: T266, T322. Size: M (doc + plan), then per-domain lock tickets. Owner: approve the end-state shapes.

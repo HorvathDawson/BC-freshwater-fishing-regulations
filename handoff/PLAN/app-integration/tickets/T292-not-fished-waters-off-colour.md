@@ -1,6 +1,6 @@
 # T292 — Sewage basins, tailing ponds and dumps drawn in an off colour, never as fishing water
 
-Status: PARTIAL 2026-10-29 — app + pipeline code done; the tap names the kind once the tiles export reruns (owner 2026-10-29: "make sure they are coloured properly too in the ui. they should be a off color").
+Status: PARTIAL — app + pipeline done and the tiles carry `kind`; left: the shots of the named tap sheet (owner 2026-10-29: "make sure they are coloured properly too in the ui. they should be a off color").
 
 ## Work
 1. Find how FWA waterbodies typed Settling Basin-Sewage, Mine-Tailing Pond, Dump (and any similar man-made non-fishing
@@ -41,5 +41,4 @@ Depends: none. Size: S–M. Owner: no.
   plus the tap sheet.
 
 ## Left
-- Rerun the tiles export (`python -m pipeline.deliver.tiles`, water export + tippecanoe; no atlas/reach) so the
-  tiles carry `kind`; then shots of the named sheet.
+- Shots of the named tap sheet (the tiles carry `kind` now).

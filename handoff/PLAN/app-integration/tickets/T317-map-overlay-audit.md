@@ -1,6 +1,6 @@
 # T317 — Audit: nothing on the map drawn as a lagging overlay; a once-over for similar bad patterns
 
-Status: OPEN (owner 2026-10-31: "Make sure no other map data has the [overlay] drawing method … Do a once over on app to
+Status: PARTIAL — item 1 done (ec01c1e2e, shipped in 0.4.0); left: item 2 (once-over) and item 3 (benchmark) (owner 2026-10-31: "Make sure no other map data has the [overlay] drawing method … Do a once over on app to
 check for bad stuff like that").
 
 ## Work

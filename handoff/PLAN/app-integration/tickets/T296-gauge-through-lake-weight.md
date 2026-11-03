@@ -1,7 +1,6 @@
 # T296 — A gauge reached through a lake counts for little when a closer gauge (no lake between) exists
 
-Status: PARTIAL — code done 2026-10-30 (owner accepted the rule; map + saved spots added); rides the next bundle +
-release (paint/5) + APK.
+Status: DONE — code done 2026-10-30 (owner accepted the rule; map + saved spots added); shipped in 0.4.0 (635862b83, paint/5 live).
 
 Source: owner: "the condition gauge through a lake we need to be careful of. if no gauge is downstream I agree that is fine
 but if there are other gauges closer they should take almost full amount of the prediction because through a lake acts as
