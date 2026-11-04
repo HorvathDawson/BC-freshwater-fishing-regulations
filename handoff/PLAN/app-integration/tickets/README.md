@@ -431,7 +431,7 @@ use that as the sole source of future work."
 | T385 | Share a water: the share sheet with its website link (the reload address) | DONE | a4873c54e | owner 2026-11-04 (in 0.5.0) |
 | T386 | An unnamed reach survives a data update and opens from a link on the phone too (section_measure in the release) | DONE in code (rebuild) | fc37636d5 | owner 2026-11-04 (in 0.5.0) |
 | T387 | Every tap on a part gives the same page: per-section facts (access first) become part-level; a net over every part | DONE (point-bound: sun line, scroll memory — owner) | 2a9bd4aed, 47c5b66f0 | owner 2026-11-04 (in 0.5.0) |
-| T388 | A named water's link place never fetches `lines`: each part's runs in the water file (`part_line`, by ord, in the region slice); unnamed reaches keep `lines` | DONE in code (deliver re-run; re-cut the walk pin — its T388 test fails until then) | dfe887d6a | owner 2026-11-04 |
+| T388 | A named water's link place never fetches `lines`: each part's runs in the water file (`part_line`, by ord, in the region slice); unnamed reaches keep `lines` | DONE | dfe887d6a | owner 2026-11-04 |
 
 ## Order for open tickets
 

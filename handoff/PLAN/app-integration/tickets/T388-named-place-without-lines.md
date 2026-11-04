@@ -1,6 +1,6 @@
 # T388 — A named water's link place never fetches `lines`
 
-Status: DONE in code (dfe887d6a; owner 2026-11-04); live with the release rebuild + a re-cut of the request-walk pin.
+Status: DONE (dfe887d6a; live on r-d458fbe165ac, walk pin re-cut; owner 2026-11-04). Measured: water +79 kB gz (2,488,522), each water-<r> +4–23 kB; a Squamish River tap writes blk+m and reopens with no `lines` request.
 
 Source: owner 2026-11-04, after the 0.5.0 walk re-cut (08b263ee7): the web's address bar (T369, `systemBack.web.ts` →
 `@app/ui` place.ts `placeOf` / `linkSearch` / `resolveStartLink`) read the `lines` file (1.2 MB gz, every stream section
