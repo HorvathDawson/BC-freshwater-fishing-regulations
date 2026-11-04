@@ -34,9 +34,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   dropped (100 m facility, how to measure); the daily total says "fresh and tidal waters combined"; adult chinook 50 cm
   default (5B; R6's Fraser watershed). Yours (OWNER-TODO): daylight / R1 bait ban / eulachon notes stay as words; R6's
   "Fraser River" binds no R6 water. Images + collapsible source line → T367 (UI chat).
-- Owner 11-03: heavy.sh start gate 50% (80 was too strict). RUNNING: the emulator check of the PDF leak fix + purge
-  (t360-fix; first try failed: `mallopt` needs API 26, now looked up at run time). Next: batch 3 rebuild + release;
-  asked the owner whether to ship the queue's region-2.json (Fraser folds) unconfirmed.
+- Owner 11-03 answers done: Fraser places committed as variants of the curated ones (9d5d52553); "until further
+  notice" = all year (T358, cf7d7130a: 6 rules, typed files re-typed); daylight → the card's `hours` line, R1 bait ban
+  dropped (c706d67ac; UI chat draws `hours`, T367). Memory: purge works (~16 MB at a trim, 17d5f0dc3); the PDF leak is
+  NOT fixed (T360 round 4). RUNNING: batch 3 rebuild (`pipeline.deliver all`; stale dfo-feed/2 index moved aside).
+  Asked the owner: partial coverage per species/day — trout keeps its answer + a caveat, salmon turns the row to
+  "check DFO"; pick one rule for both.
 
 ## 2026-11-03 (chat 4): batch 2 emulator sitting [T368, T354, T360, T345, T352]
 - **T368 (new, in 0.5.0, batch 6c):** the app-wide failures/fallbacks/reporting sweep, split from T333. Two found

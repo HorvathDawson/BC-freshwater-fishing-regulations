@@ -112,3 +112,13 @@ Probe: `[heap]` every 2 s in test-bed builds (apps/mobile/index.js); `session.sh
   (`src/memoryTrim.ts`) shrinks every open SQLite connection (`ReleaseLoader.trim`, `PRAGMA shrink_memory`, through
   the one SQL queue). iOS: the same shrink on `memoryWarning` (MLNMapView handles its own). Decoded files are not
   dropped (the screens hold them). Emulator check: run t360-trim.
+
+## Round 4 (2026-11-03, t360-fix + t360-pdf runs)
+- **Purge works (17d5f0dc3):** a RUNNING_CRITICAL trim: 1 map view told, `purge 2` (M_PURGE_ALL), 14 databases shrunk;
+  PSS 394.8 → 378.5 MB (~16 MB). `mallopt` is declared from API 26 only: looked up with `dlsym` (first build failed).
+- **PDF leak NOT fixed:** the react-native-pdf patch's `recycle()` runs but finds 0 pages left in `pageMap`; pdfium still
+  holds 77.6 MB after two opens + closes, and only ONE recycle line was logged for the two closes — one viewer is
+  likely never released (not a page leak). The patch stays uncommitted (`app/patches/react-native-pdf@7.0.5.patch`,
+  package.json, lock). Next: log PdfView attach/detach + `PdfFile.dispose` per open; check the Modal unmounts the view.
+  (Symbols are stripped in this build, so heapprofd names no pdfium function.)
+- The memory scenario's "Salmon" layer tap no longer finds its text (label changed by the UI chat?) — fix the step.
