@@ -255,6 +255,13 @@ fetch → validate → hash-compare → [unchanged? stop] → parse → untangle
    location and day, each species' verdict and the gear), which the app lays over the release's chains
    (core `salmonFeed.ts`; offline, the last capture). A fingerprint nobody curated is held in `unplaced.json` and the
    owner told once (`FEED_NOTIFY_URL`); `live queue` seeds it for DFO mode.
+   **The refresh (T366):** `live run --regions N --dry-run` fetches and parses, writes nothing, and prints what the
+   page changes against the typed rows in use (`regs/dfo_salmon/refresh.py`): new / reworded / dropped / moved places
+   (the only owner re-review), rows changed per place with FN numbers and how each was read (the digest notice — a DFO
+   mark is held against its place only, `marks._place_only`), the marks that would move, and the urgent rows. The real
+   run archives every fetched page once (`fetch.archive`) and re-emits locations/ rules/ typed/ stamped with the page's
+   sha256 + dateModified and its header notes; the release reads the header from the typed file (`load_headers`,
+   none -> error); the review app's `/api/dfo/progress` `vintage` lists typed rows older than the saved page.
 2. **The geometry.** 243 of 247 locators have no extent. That is the cut-point curation, not a
    gap in the format — see the handoff.
 3. **The cron job** — the job is built (`python -m pipeline.regs.dfo_salmon.live`, §6.1); the schedule and the R2

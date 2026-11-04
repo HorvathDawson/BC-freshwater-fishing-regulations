@@ -828,6 +828,15 @@ MOVED_REASONS: dict[str, StaleReason] = {
 BUILT_PARTS = frozenset({"reach", "answer", "unbuilt"})
 
 
+def _place_only(records: Sequence[RecordPrint]) -> list[RecordPrint]:
+    """(T366, owner 2026-11-03: "only location ones we need to really really review") A DFO mark is
+    held against its PLACE — the notice's words (`text`) and the curated geography (`binding`) —
+    never the scraped rows riding on it (`meaning`): DFO turns its rows over every season (T361's
+    six went "rule changed" on in-season notices), and every row change goes to the DFO digest
+    instead (`dfo_salmon.refresh`). The stamped meaning stays in the mark; it is just not compared."""
+    return [r.model_copy(update={"meaning": ""}) for r in records]
+
+
 def moved(mark: Mark, now: Prints | Mapping | None) -> frozenset[str]:
     """THE ONE COMPARISON of a mark's prints with its target's prints NOW (`now`: from
     `fingerprint`; None when the target is gone): which parts moved (`MOVED_REASONS`' keys).
@@ -842,7 +851,10 @@ def moved(mark: Mark, now: Prints | Mapping | None) -> frozenset[str]:
         got.add("text")
     # a rule mark is held against its entry's record and ITS rule — the entry's other rules are
     # not what it answered for; its rule may have been renumbered (`match_records`)
-    pairs, gone, new = match_records(mark.prints.records, _held_against(mark, now))
+    marked, held = mark.prints.records, _held_against(mark, now)
+    if mark.scope == "dfo":                       # T366: a DFO mark answers for the PLACE only
+        marked, held = _place_only(marked), _place_only(held)
+    pairs, gone, new = match_records(marked, held)
     if gone or (new and mark.scope != "rule"):
         got.add("records")
     for was, cur in pairs:

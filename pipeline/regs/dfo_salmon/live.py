@@ -1,9 +1,19 @@
 """THE LIVE DFO SALMON FEED (T211 part 2 + part 4): the current DFO pages, typed, joined to the curated locations and
 written as ONE small file the app reads, so a rule change reaches the app without a rebuild.
 
-    python -m pipeline.regs.dfo_salmon.live                      # fetch, type, join, write <out>/index.json
-    python -m pipeline.regs.dfo_salmon.live --offline            # the local dry run: the cached pages, no network
+    python -m pipeline.regs.dfo_salmon.live run --regions 2 --dry-run  # T366: fetch + parse, WRITE NOTHING, print
+                                                                       #   what would change (`refresh.text`)
+    python -m pipeline.regs.dfo_salmon.live [run --regions 2]    # fetch, type, join, write <out>/index.json, archive
+                                                                 #   the page, re-emit typed/ — and the same summary
+    python -m pipeline.regs.dfo_salmon.live --offline            # the cached pages, no network
     python -m pipeline.regs.dfo_salmon.live queue [--regions 6]  # put the held new / reworded places in DFO mode
+
+THE REFRESH (T366, owner 2026-11-03): a run compares each page with the typed rows in use (`refresh.preview`) and prints
+new / reworded / dropped / moved PLACES (the only thing the owner re-reviews), every ROW change per place (old -> new,
+FN numbers, how it was read: one digest notice per page, `urgent: False` — no mark goes stale on it, `marks._place_only`),
+the owner marks that would move, and the URGENT rows (not read from the table; a place matching no curated place). The
+real run then re-emits locations/ rules/ typed/ from the same page (stamped with its sha256, dateModified and header
+notes), so the review app, the release and the feed read one vintage.
 
 THE SPLIT (pipeline/docs/19 §1): the geography never moves, the rules churn. The release ships the GEOMETRY — which
 sections each chain of DFO locations covers (`pipeline/deliver/salmon.py`, `chains[].l`). This feed ships the RULES as
@@ -19,7 +29,8 @@ chain_calendar` does (`compose` here is the reference, pinned against it), so th
     <out>.notified.json   BESIDE the feed dir, never synced: the notices already sent (`gauges.feed.notify`)
 
 Per region, every run (no credits, no secrets — safe on a cron):
-  * fetch (validated, atomic; `fetch.fetch_region`), a changed page kept in `cache/dfo_salmon/history/` (the corpus);
+  * fetch (validated, atomic; `fetch.fetch_region`), every page fetched kept in `cache/dfo_salmon/history/` once
+    (`fetch.archive`: the wording archive dates it);
     a failed fetch keeps the last feed's answers for the region, marked `stale`; two failures in a row notify;
   * parse → untangle → `verify()` → locations → typed (`feed.build`); a failure holds the region at the last feed and
     notifies;
@@ -30,6 +41,9 @@ Per region, every run (no credits, no secrets — safe on a cron):
     the owner is told once per (region, fingerprint) — drift (a near location on the same water), new (none) or
     new_water (the water's name is unknown too) — and `queue` seeds it into the entry files, where the review app's
     DFO mode lists it (the same queue as every other DFO location; no separate review path).
+
+Every notice carries `urgent` (T366): held / unplaced / new wording / unread rows / header and text changes are urgent;
+the row-change digest is not.
 
 Nothing here writes a curated file except `queue`, which is run by a person (the seed never edits an existing record).
 The schedule (every 6 h in season) and the R2 sync of the feed dir to `feeds/dfo/` are the owner's
@@ -125,9 +139,14 @@ def type_page(html: str, slug: str):
     u = untangle(parsed)
     verify(parsed, u)
     locs, rules, structure = extract(u)
-    typed = FD.build({"region": slug, "date_modified": parsed.date_modified, "preamble": parsed.preamble,
-                      "rules": [r.to_dict() for r in rules]})
-    return typed, locs, structure
+    scraped = {"region": slug, "date_modified": parsed.date_modified, "page": F.page_stamp(html),
+               "preamble": parsed.preamble, "rules": [r.to_dict() for r in rules]}
+    try:                                                       # T366: the header rides with its rows
+        from pipeline.regs.dfo_salmon.header import parse_header
+        scraped["notes"] = parse_header(html, slug)
+    except Exception:                                          # noqa: BLE001 — told by `_read_header`; no notes key
+        pass
+    return FD.build(scraped), locs, structure
 
 
 def _water_known(ef, water: str) -> bool:
@@ -193,7 +212,7 @@ def wording_notices(slug: str, ef, typed: dict) -> List[dict]:
                 where = hit.location_id if hit is not None else loc["fingerprint"]
                 if any(n["key"] == f"dfo-wording:{t}" for n in out):
                     continue                                    # one notice a template, wherever it is printed
-                out.append({"key": f"dfo-wording:{t}",
+                out.append({"key": f"dfo-wording:{t}", "urgent": True,
                             "text": f"DFO Region {slug}: new wording in a limits cell, {c!r}, on {where} "
                                     f"({w['sp'] or 'no species'}, {w['d'] or 'all year'}"
                                     f"{', ' + fn.group(0) if fn else ''}): {w['t']!r} — the row shows DFO's words and "
@@ -226,7 +245,8 @@ def unplaced_notice(u: dict) -> dict:
     else:
         text = (f"DFO Region {slug}: new location on {u['water']}: {u['scope']!r} — {held}. "
                 f"Place it in DFO review after: {act}")
-    return {"key": f"dfo-{u['kind']}:{slug}:{u['fingerprint']}", "text": text}
+    # T366: a row whose place matches no curated DFO place is URGENT (and a place question: `live queue`)
+    return {"key": f"dfo-{u['kind']}:{slug}:{u['fingerprint']}", "urgent": True, "text": text}
 
 
 # ── the run ──────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -270,7 +290,7 @@ def _read_header(slug: str, html: str, reg: dict, was: dict, entries_dir: Option
     try:
         notes = H.parse_header(html, slug)
     except Exception as exc:                                   # noqa: BLE001 — the last header stands
-        notices.append({"key": f"dfo-header-parse:{slug}:{reg['sha256'][:12]}",
+        notices.append({"key": f"dfo-header-parse:{slug}:{reg['sha256'][:12]}", "urgent": True,
                         "text": f"DFO Region {slug}: the region header did not parse ({type(exc).__name__}); the last "
                                 "one stands"})
         return
@@ -335,7 +355,7 @@ def _read_texts(slug: str, html: str, reg: dict, was: dict, notices: List[dict])
         new = [t for t in texts if t not in old]
         d = hashlib.sha256("\n".join(texts).encode("utf-8")).hexdigest()[:16]
         lines = [f"- was: {t}" for t in gone] + [f"+ now: {t}" for t in new]
-        notices.append({"key": f"dfo-text:{slug}:{d}",
+        notices.append({"key": f"dfo-text:{slug}:{d}", "urgent": True,
                         "text": f"DFO Region {slug}: the page's general text changed — review the header; the feed "
                                 f"reads no rule from it ({len(gone)} gone, {len(new)} new)\n" + "\n".join(lines)})
     reg["texts"] = texts
@@ -343,9 +363,17 @@ def _read_texts(slug: str, html: str, reg: dict, was: dict, notices: List[dict])
 
 def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None, entries_dir: Optional[Path] = None,
         history_dir: Optional[Path] = None, now: Optional[str] = None, notify_url: Optional[str] = None,
-        sender=None) -> dict:
+        sender=None, typed_dir: Optional[Path] = None, scrape_dir: Optional[Path] = None, dry_run: bool = False,
+        marks_path: Optional[Path] = None, with_marks: bool = True) -> dict:
     """One feed run. `fetcher(slug)` → (html, fetched_at) or raises. Writes `<out>/index.json` + `unplaced.json`,
-    sends the due notices; returns `{index, unplaced, notices}`."""
+    sends the due notices; returns `{index, unplaced, notices, sent, previews}`.
+
+    T366: `typed_dir` — the typed feed the review app and the release read: each region read is compared with it
+    (`refresh.preview`: places, rows changed, marks that would move, urgent rows) and its row changes go to ONE digest
+    notice per page (`urgent: False`); `scrape_dir` — when set, a region read and not held is RE-EMITTED there
+    (locations/, rules/, typed/: one vintage with the feed, stamped with its page and header); `dry_run` — fetch and
+    parse only: no history copy, no feed files, no re-emit, nothing sent."""
+    from pipeline.regs.dfo_salmon import refresh as R
     from pipeline.gauges.feed import notify
     from pipeline.regs.dfo_salmon import entries as E
 
@@ -360,6 +388,7 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
     region_out: Dict[str, dict] = {}
     unplaced: List[dict] = []
     notices: List[dict] = []
+    previews: Dict[str, dict] = {}
     for slug in F.ALL_SLUGS:                                   # regions not asked this run keep their last answers
         if slug not in todo and slug in (prev.get("regions") or {}):
             locs.update(_carry(prev, slug, verdicts, gears))
@@ -383,7 +412,8 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
             reg["held"] = why
             locs.update(_carry(prev, slug, verdicts, gears))
             unplaced.extend(u for (r, _), u in prev_unplaced.items() if r == slug)
-            notices.append({"key": f"dfo-held:{slug}:{key}", "text": f"DFO Region {slug} held at the last feed: {why}"})
+            notices.append({"key": f"dfo-held:{slug}:{key}", "urgent": True,
+                            "text": f"DFO Region {slug} held at the last feed: {why}"})
 
         try:
             html, fetched = fetcher(slug)
@@ -400,10 +430,8 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         sha = hashlib.sha256(html.encode("utf-8", "replace")).hexdigest()
         if sha != reg["sha256"]:
             reg["changed"] = at
-            if history_dir is not None:
-                stamp = at.replace("-", "").replace(":", "").replace("T", "")[:14]
-                Path(history_dir).mkdir(parents=True, exist_ok=True)
-                (Path(history_dir) / f"region{slug}_{stamp}.html").write_text(html, encoding="utf-8")
+        if history_dir is not None and not dry_run:            # T366 item 3: every fetch archived (one copy a page)
+            F.archive(Path(history_dir), slug, html, fetched or at)
         reg["sha256"], reg["checked"] = sha, fetched or at
         try:
             typed, found, structure = type_page(html, slug)
@@ -439,14 +467,50 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
             u["first_seen"] = (prev_unplaced.get((slug, u["fingerprint"])) or {}).get("first_seen") or at
             unplaced.append(u)
             notices.append(unplaced_notice(u))
+        # T366: what this page changes against the typed rows in use — places, rows (the digest), marks, urgent rows
+        old = _read_typed(typed_dir, slug) if typed_dir is not None else None
+        pv = R.preview(slug, ef, rep, typed, old, held, typed_dir=typed_dir, entries_dir=entries_dir,
+                       marks_path=marks_path, with_marks=with_marks and typed_dir is not None)
+        previews[slug] = pv
+        for u in pv["unread"]:
+            notices.append({"key": f"dfo-unread:{slug}:{u['fingerprint']}:{hashlib.sha256(u['t'].encode()).hexdigest()[:12]}",
+                            "urgent": True,
+                            "text": f"DFO Region {slug}: a row the table could not be read into rules ({u['k']}) on "
+                                    f"{u['location_id'] or u['fingerprint']}: {u['sp'] or '-'} | {u['d'] or '-'} | "
+                                    f"{u['t']!r} — the card shows DFO's words; read it and add the wording "
+                                    "(pipeline/regs/dfo_salmon/wording.json)"})
+        if pv["rows"]:
+            notices.append({"key": f"dfo-rows:{slug}:{sha[:12]}", "urgent": False,
+                            "text": f"DFO Region {slug}: {len(pv['rows'])} place(s) with changed rows on the page of "
+                                    f"{typed.get('date_modified') or '?'} (digest — the places stand, no re-review; "
+                                    f"fix anything misread):\n" + R.rows_text(pv)})
+        if scrape_dir is not None and not dry_run:              # one vintage: the typed rows ARE this page's
+            emit_region(slug, html, Path(scrape_dir), typed_dir)
 
     index = {"format": FORMAT, "at": at, "regions": {s: region_out[s] for s in F.ALL_SLUGS if s in region_out},
              "verdicts": verdicts.items, "gears": gears.items, "locs": dict(sorted(locs.items())),
              "unplaced": len(unplaced)}
+    if dry_run:
+        return {"index": index, "unplaced": unplaced, "notices": notices, "sent": None, "previews": previews}
     _write(out / "index.json", index)
     _write(out / "unplaced.json", sorted(unplaced, key=lambda u: (u["region"], u["fingerprint"])))
     sent = notify.send_due(notices, out, url=notify_url, sender=sender, key_of=notice_key, message_of=notice_text)
-    return {"index": index, "unplaced": unplaced, "notices": notices, "sent": sent}
+    return {"index": index, "unplaced": unplaced, "notices": notices, "sent": sent, "previews": previews}
+
+
+def _read_typed(typed_dir: Path, slug: str) -> Optional[dict]:
+    """The typed feed in use for a region, or None when there is none yet (a first emit: every row is new)."""
+    p = Path(typed_dir) / f"region-{slug}.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+
+
+def emit_region(slug: str, html: str, scrape_dir: Path, typed_dir: Optional[Path] = None) -> None:
+    """(T366) Re-emit one region from the page just read: locations/ + rules/ (`locations.emit_html`, stamped with the
+    page and its header) and typed/ (`feed.emit`) — so the typed rows, the header and the feed are one vintage."""
+    from pipeline.regs.dfo_salmon import feed as FD
+    from pipeline.regs.dfo_salmon import locations as LC
+    LC.emit_html(slug, html, scrape_dir)
+    FD.emit(slug, rules_dir=scrape_dir / "rules", out_dir=Path(typed_dir or scrape_dir / "typed"))
 
 
 def live_fetcher(cache_dir: Path) -> Fetcher:
@@ -456,6 +520,14 @@ def live_fetcher(cache_dir: Path) -> Fetcher:
         manifest[slug] = snap.to_dict()
         F._write_manifest(Path(cache_dir), manifest)
         return F.load_cached(slug, cache_dir), snap.fetched_at
+    return get
+
+
+def peek_fetcher() -> Fetcher:
+    """(T366) The preview: the live page, validated, NOTHING written (no cache, no manifest)."""
+    def get(slug: str) -> Tuple[str, Optional[str]]:
+        body, snap = F.fetch_page(slug)
+        return body, snap.fetched_at
     return get
 
 
@@ -482,9 +554,19 @@ def queue(out: Path, regions: Optional[Sequence[str]] = None, *, cache_dir: Path
     slugs = sorted({u["region"] for u in held if not regions or u["region"] in regions}, key=F.ALL_SLUGS.index)
     if not slugs:
         return []
+    from pipeline.regs.dfo_salmon import refresh as R
+    for w in R.vintage(scrape / "typed", cache_dir):                # T366: say it before the rows are replaced
+        print(f"  WARNING {w['text']}")
+    before = {s: _read_typed(scrape / "typed", s) for s in slugs}
     for s in slugs:
         L.emit(s, scrape, cache_dir)
     FD.main(["--regions", *slugs, "--rules-dir", str(scrape / "rules"), "--out", str(scrape / "typed")])
+    for s in slugs:                                                 # the rows that moved (digest: no mark stales)
+        rows = R.row_changes(E.load(s, entries_dir or E.ENTRIES_DIR), R.feed_map(before[s]),
+                             R.feed_map(_read_typed(scrape / "typed", s)))
+        if rows:
+            print(f"  region {s}: {len(rows)} place(s) with changed rows (re-emitted from the saved page):\n"
+                  + R.rows_text({"rows": rows}))
     ed = ["--entries-dir", str(entries_dir)] if entries_dir else []
     E.main(["seed", "--regions", *slugs, "--scrape", str(scrape), *ed])
     E.main(["group", "--regions", *slugs, *ed])
@@ -497,7 +579,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--regions", nargs="+", choices=F.ALL_SLUGS)
     ap.add_argument("--out", type=Path, default=OUT_DIR)
     ap.add_argument("--cache-dir", type=Path, default=F.DEFAULT_CACHE)
-    ap.add_argument("--offline", action="store_true", help="the cached pages, no network (the local dry run)")
+    ap.add_argument("--offline", action="store_true", help="the cached pages, no network")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="T366: fetch + parse, write NOTHING (no cache, history, feed, typed rows), print what would change")
+    ap.add_argument("--no-marks", action="store_true", help="skip the marks check in the summary (faster)")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
@@ -507,17 +592,36 @@ def main(argv: Optional[List[str]] = None) -> int:
               "commit the entry files")
         return 0
 
-    fetcher = cached_fetcher(args.cache_dir) if args.offline else live_fetcher(args.cache_dir)
-    got = run(args.out, fetcher=fetcher, regions=args.regions,
-              history_dir=None if args.offline else Path(args.cache_dir) / "history")
+    from pipeline.regs.dfo_salmon import feed as FD
+    from pipeline.regs.dfo_salmon import refresh as R
+    scrape = Path(GENERATED.regs.dfo_salmon)
+    fetcher = (cached_fetcher(args.cache_dir) if args.offline else
+               peek_fetcher() if args.dry_run else live_fetcher(args.cache_dir))
+    got = run(args.out, fetcher=fetcher, regions=args.regions, dry_run=args.dry_run,
+              history_dir=None if args.offline else Path(args.cache_dir) / "history",
+              typed_dir=FD.FEED_DIR, scrape_dir=scrape, with_marks=not args.no_marks)
+    for slug, pv in got["previews"].items():                    # T366: the same summary, dry or real
+        print(R.text(pv) + "\n")
+    urgent = [n for n in got["notices"] if n.get("urgent")]
+    if urgent:
+        print(f"URGENT notices ({len(urgent)}):")
+        for n in urgent:
+            print("  " + n["text"].replace("\n", "\n    "))
+        print()
     ix = got["index"]
     for slug, r in ix["regions"].items():
         n = sum(1 for c in ix["locs"].values() if c["r"] == slug)
         flag = " HELD: " + r["held"] if r["held"] else (" STALE" if r["stale"] else "")
         print(f"region {slug:<3} {r['name']:<38} page {r['asof'] or '?':<10} locations={n:<4}{flag}")
+    if args.dry_run:
+        print(f"\nDRY RUN: {len(ix['locs'])} locations, {ix['unplaced']} unplaced, {len(got['notices'])} notice(s); "
+              "nothing written. Run again without --dry-run to refresh.")
+        return 0
     size = (args.out / "index.json").stat().st_size
     print(f"\n{len(ix['locs'])} locations, {ix['unplaced']} unplaced, {len(got['notices'])} notice(s) "
-          f"-> {args.out}/index.json ({size / 1024:.1f} KB)")
+          f"-> {args.out}/index.json ({size / 1024:.1f} KB); typed rows re-emitted -> {FD.FEED_DIR}")
+    for w in R.vintage(FD.FEED_DIR, args.cache_dir):
+        print(f"  WARNING {w['text']}")
     return 0
 
 

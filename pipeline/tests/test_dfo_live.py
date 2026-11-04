@@ -203,3 +203,139 @@ def test_queue_puts_the_held_places_in_the_dfo_mode_queue(tmp_path, monkeypatch)
     assert after["unplaced"] == [] and s.sent == []
     # the real entry files were not touched
     assert not any(u["fingerprint"] in E.load("6").by_fingerprint() for u in first["unplaced"])
+
+
+# ── T366: a refresh that is clean to run ─────────────────────────────────────────────────────────────────────────────
+
+def _r2(**over) -> str:
+    """Region 2's fixture page with the Alouette's first chinook row changed (an in-season notice) — and, optionally, its
+    "Date modified"."""
+    html = (FIX / "region2-eng.html").read_text(encoding="utf-8")
+    html = html.replace("<td>Sep 1 to Nov 30</td>\n\t\t\t <td>1 per day</td>",
+                        "<td>Sep 1 to Nov 30</td>\n\t\t\t <td>2 per day — FN1179</td>", 1)
+    assert "FN1179" in html
+    if over.get("date"):
+        import re
+        html = re.sub(r'(property="dateModified"[^>]*>\s*)[0-9-]{10}', rf"\g<1>{over['date']}", html, count=1)
+    return html
+
+
+def _typed_dir(tmp_path, slug="2", html=None) -> Path:
+    """A typed dir holding the region's typed rows from `html` (default: the fixture page) — the rows in use."""
+    d = tmp_path / "typed"
+    d.mkdir(parents=True, exist_ok=True)
+    typed, _l, _s = L.type_page(html or (FIX / f"region{slug}-eng.html").read_text(encoding="utf-8"), slug)
+    (d / f"region-{slug}.json").write_text(json.dumps(typed), encoding="utf-8")
+    return d
+
+
+def test_a_dry_run_writes_nothing_and_previews_the_row_change(tmp_path):
+    typed = _typed_dir(tmp_path)
+    before = sorted(p.name for p in tmp_path.rglob("*"))
+    s = Sender()
+    got = L.run(tmp_path / "feed", fetcher=_pages({"2": _r2()}), regions=["2"], now=AT, notify_url="http://n",
+                sender=s, typed_dir=typed, scrape_dir=tmp_path / "scrape", history_dir=tmp_path / "history",
+                dry_run=True, with_marks=False)
+    assert sorted(p.name for p in tmp_path.rglob("*")) == before and s.sent == [] and got["sent"] is None
+    pv = got["previews"]["2"]
+    assert not any(pv["places"].get(k) for k in ("new", "reworded", "dropped", "section moved"))
+    (c,) = pv["rows"]
+    assert c["location_id"].startswith("2:alouette-river") and c["fns"] == ["FN1179"]
+    assert c["old"] == ["Chinook | Sep 1 to Nov 30 | 1 per day"]
+    assert c["new"] == ["Chinook | Sep 1 to Nov 30 | 2 per day — FN1179"]
+    assert c["read"][0]["read"] == ["retention_limit · CH · Sep 1–Nov 30 · take 2"]
+    # the digest notice: one per page, not urgent, old -> new verbatim with how it was read
+    (n,) = [n for n in got["notices"] if n["key"].startswith("dfo-rows:2:")]
+    assert n["urgent"] is False and "- was: Chinook | Sep 1 to Nov 30 | 1 per day" in n["text"] \
+        and "read: retention_limit" in n["text"]
+    txt = __import__("pipeline.regs.dfo_salmon.refresh", fromlist=["text"]).text(pv)
+    assert "PLACES: none new" in txt and "ROWS CHANGED (digest): 1 place(s)" in txt and "FN1179" in txt
+
+
+def test_the_real_run_archives_the_page_once_and_re_emits_one_stamped_vintage(tmp_path):
+    from pipeline.regs.dfo_salmon import fetch as F
+    from pipeline.regs.dfo_salmon import header as H
+    typed = _typed_dir(tmp_path)
+    page = _r2()
+    hist = tmp_path / "history"
+    for k in range(2):                                         # the same page twice: ONE dated copy
+        L.run(tmp_path / "feed", fetcher=_pages({"2": page}), regions=["2"], now=AT, notify_url="http://n",
+              sender=Sender(), typed_dir=typed, scrape_dir=tmp_path / "scrape", history_dir=hist, with_marks=False)
+    (copy,) = hist.glob("region2_*.html")
+    assert copy.name == "region2_20261027180000.html" and copy.read_text(encoding="utf-8") == page
+    got = json.loads((typed / "region-2.json").read_text(encoding="utf-8"))
+    assert got["page"] == F.page_stamp(page) and got["notes"] == H.parse_header(page, "2")
+    assert any("FN1179" in r for l in got["locators"] for r in l["rows"])
+    rules = json.loads((tmp_path / "scrape" / "rules" / "region-2.json").read_text(encoding="utf-8"))
+    assert rules["page"] == F.page_stamp(page)
+    # the second run compares with the re-emitted rows: nothing changed, no digest
+    again = L.run(tmp_path / "feed", fetcher=_pages({"2": page}), regions=["2"], now=AT, notify_url="http://n",
+                  sender=Sender(), typed_dir=typed, with_marks=False)
+    assert again["previews"]["2"]["rows"] == [] and not any(n["key"].startswith("dfo-rows") for n in again["notices"])
+
+
+def test_a_place_matching_no_curated_place_is_urgent_and_listed(tmp_path):
+    typed = _typed_dir(tmp_path, "6")
+    got = L.run(tmp_path / "feed", fetcher=_pages({"6": _unseen()}), regions=["6"], now=AT, notify_url="http://n",
+                sender=Sender(), typed_dir=typed, dry_run=True, with_marks=False)
+    pv = got["previews"]["6"]
+    assert {u["kind"] for u in pv["unplaced"]} == {"drift", "new_water"}
+    assert [p["likely"] for p in pv["places"]["reworded"]] and pv["places"]["new"]
+    assert all(n["urgent"] for n in got["notices"] if n["key"].startswith(("dfo-drift", "dfo-new_water")))
+
+
+def test_the_marks_check_says_no_mark_moves_on_a_row_change(tmp_path):
+    """The preview runs every owner DFO mark of the region through the one staleness decision with the new rows: a row
+    change moves none (T366); a mark on a dropped place is listed with its place."""
+    from pipeline.regs.dfo_salmon import entries as E
+    from pipeline.regs.dfo_salmon import refresh as R
+    from pipeline.regs.review import dfo as D
+    from pipeline.regs.review import marks as M
+    typed = _typed_dir(tmp_path)
+    ef = E.load("2")
+    loc = next(l for l in ef.locations if l.location_id.startswith("2:alouette-river") and l.status == "active")
+    _s, raw, water = D.locations()[loc.location_id]
+    mark = M.Mark.model_validate({
+        "scope": "dfo", "target": loc.location_id, "verdict": "verified", "answers": {"T": "y", "R": "y", "P": "y"},
+        "reviewer": "dawson", "date": "2026-11-03", "pdf_sha256": "0" * 64,
+        "prints": D.prints(raw, water, typed_dir=typed)})
+    store = tmp_path / "marks.jsonl"
+    store.write_text(M.line(mark) + "\n", encoding="utf-8")
+    old = R.feed_map(json.loads((typed / "region-2.json").read_text()))
+    new = R.feed_map(L.type_page(_r2(), "2")[0])
+    assert R.marks_moved("2", old, new, places={}, typed_dir=typed, marks_path=store) == []
+    gone = R.marks_moved("2", old, new, places={"dropped": [{"location_id": loc.location_id}]}, typed_dir=typed,
+                         marks_path=store)
+    assert gone == [{"target": loc.location_id, "verdict": "verified", "date": "2026-11-03", "reasons": [],
+                     "place": "dropped"}]
+
+
+def test_vintage_says_typed_rows_older_than_the_saved_page_and_an_old_fetch_in_season(tmp_path):
+    import datetime as dt
+    from pipeline.regs.dfo_salmon import refresh as R
+    cache = tmp_path / "cache"
+    (cache / "raw").mkdir(parents=True)
+    page = (FIX / "region2-eng.html").read_text(encoding="utf-8")
+    (cache / "raw" / "region2-eng.html").write_text(page, encoding="utf-8")
+    (cache / "manifest.json").write_text(json.dumps({"2": {"fetched_at": "2026-10-28T04:55:40+00:00"}}))
+    typed = _typed_dir(tmp_path)                               # stamped with the saved page: one vintage
+    assert R.vintage(typed, cache, today=dt.date(2026, 11, 3)) == []
+    _typed_dir(tmp_path, html=_r2(date="2026-11-02"))          # typed from another page than the saved one
+    (w,) = R.vintage(typed, cache, today=dt.date(2026, 11, 3))
+    assert w["kind"] == "typed_older" and "live run --regions 2 --dry-run" in w["text"]
+    kinds = [w["kind"] for w in R.vintage(typed, cache, today=dt.date(2026, 11, 20))]
+    assert kinds == ["typed_older", "raw_old"]
+    assert [w["kind"] for w in R.vintage(typed, cache, today=dt.date(2027, 1, 20))] == ["typed_older"]  # off season
+
+
+def test_the_release_reads_the_header_from_the_typed_feed_and_refuses_none(tmp_path):
+    from pipeline.regs.dfo_salmon import header as H
+    page = (FIX / "region2-eng.html").read_text(encoding="utf-8")
+    typed, _l, _s = L.type_page(page, "2")
+    assert S.load_headers({"2": typed}, cache_dir=tmp_path) == {"2": H.parse_header(page, "2")}
+    old = {k: v for k, v in typed.items() if k not in ("notes", "page")}     # a typed file from before T366
+    with pytest.raises(S.SalmonError, match="no header notes for region 2"):
+        S.load_headers({"2": old}, cache_dir=tmp_path)
+    (tmp_path / "raw").mkdir()
+    (tmp_path / "raw" / "region2-eng.html").write_text(page, encoding="utf-8")
+    assert S.load_headers({"2": old}, cache_dir=tmp_path) == {"2": H.parse_header(page, "2")}

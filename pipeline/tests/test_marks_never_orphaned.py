@@ -7,9 +7,10 @@ read "stale, binding moved" and dropped out of done. `proposals.applied_keys` na
 own fix the files now say; `marks.status(applied=...)` holds them. `marks.health` accounts for every
 mark in force (held / landed / stale / orphan) and the review app shows it on a banner.
 
-Pinned here: landing holds the mark; a different extent, a reworded notice or a re-scrape still
-read stale (no laundering); a target that vanished is an ORPHAN, listed; and the live store has no
-orphaned mark in any cheap scope and no stale DFO mark.
+Pinned here: landing holds the mark; a different extent or a reworded notice still read stale (no
+laundering); a re-scrape that changes only the rows stales no DFO mark (T366: the place answer
+stands, the rows go to the digest); a target that vanished is an ORPHAN, listed; and the live store
+has no orphaned mark in any cheap scope and no stale DFO mark.
 """
 from __future__ import annotations
 
@@ -87,15 +88,27 @@ def test_a_different_extent_is_not_excused(tmp_path):
     assert M.status(m, D.prints_of(LOC, ent, typed), applied=keys)["status"] == "stale"
 
 
-@pytest.mark.parametrize("change", [{"text": "between the two signs"}, {"rows": ("Coho | 1 per day",)}])
-def test_landing_never_launders_a_notice_change(tmp_path, change):
+def test_landing_never_launders_a_notice_change(tmp_path):
     ent, typed, splits = _world(tmp_path)
     m = _mark(D.prints_of(LOC, ent, typed))
-    _world(tmp_path, extents=[EXTENT], **change)
+    _world(tmp_path, extents=[EXTENT], text="between the two signs")
     keys = _applied([m], ent, splits)
     assert keys == {m.key}                                 # the extent landed ...
     st = M.status(m, D.prints_of(LOC, ent, typed), applied=keys)
-    assert st["status"] == "stale" and not st.get("landed")   # ... but the notice moved
+    assert st["status"] == "stale" and not st.get("landed")   # ... but the notice's place words moved
+
+
+def test_a_row_change_never_stales_a_dfo_mark(tmp_path):
+    """T366 / T361 (owner 2026-11-03: "only location ones we need to really really review"): DFO's rows turning over
+    (in-season notices) keep the place answer; landed or not, the mark holds. The rows go to the digest."""
+    ent, typed, splits = _world(tmp_path)
+    m = _mark(D.prints_of(LOC, ent, typed))
+    _world(tmp_path, rows=("Coho | Sept 1 to Dec 31 | 4 hatchery-marked per day — FN0939",))
+    assert M.status(m, D.prints_of(LOC, ent, typed))["status"] == "unsure"
+    _world(tmp_path, extents=[EXTENT], rows=("Coho | 1 per day",))
+    keys = _applied([m], ent, splits)
+    st = M.status(m, D.prints_of(LOC, ent, typed), applied=keys)
+    assert st["status"] == "unsure" and st.get("landed") and st["reasons"] == []
 
 
 def test_a_vanished_target_is_an_orphan_listed(tmp_path, monkeypatch):

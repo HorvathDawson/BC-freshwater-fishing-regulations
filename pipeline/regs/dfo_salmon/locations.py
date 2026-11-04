@@ -41,8 +41,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, DEFAULT_CACHE, PAGES, normalize_slug
-from pipeline.regs.dfo_salmon.parse import parse_cached
+from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, DEFAULT_CACHE, PAGES, load_cached, normalize_slug
+from pipeline.regs.dfo_salmon.parse import parse_region
 from pipeline.regs.dfo_salmon.untangle import Untangled, classify_scope, untangle
 from pipeline.common.curated import GENERATED
 
@@ -263,8 +263,17 @@ def extract(u: Untangled) -> tuple[List[Location], List[RuleRecord], dict]:
 
 
 def emit(slug: str, out_dir: Path, cache_dir: Path = DEFAULT_CACHE) -> tuple[int, int]:
-    """Write `locations/region-<slug>.json` and `rules/region-<slug>.json`."""
-    parsed = parse_cached(slug, cache_dir)
+    """Write `locations/region-<slug>.json` and `rules/region-<slug>.json` from the cached raw page."""
+    return emit_html(slug, load_cached(slug, cache_dir), out_dir)
+
+
+def emit_html(slug: str, html: str, out_dir: Path) -> tuple[int, int]:
+    """Write `locations/region-<slug>.json` and `rules/region-<slug>.json` from one page. The rules file carries the
+    page's stamp (`fetch.page_stamp`) and its header notes (`header.parse_header`) — ONE VINTAGE (T366): the typed feed
+    made from it says which page its rows came from, and the release's header can never come from another day's page."""
+    from pipeline.regs.dfo_salmon.fetch import page_stamp
+    from pipeline.regs.dfo_salmon.header import parse_header
+    parsed = parse_region(html, slug)
     u = untangle(parsed)
     locs, rules, sig = extract(u)
 
@@ -280,6 +289,7 @@ def emit(slug: str, out_dir: Path, cache_dir: Path = DEFAULT_CACHE) -> tuple[int
 
     (out_dir / "rules" / f"region-{slug}.json").write_text(json.dumps({
         "region": slug, "date_modified": parsed.date_modified,
+        "page": page_stamp(html), "notes": parse_header(html, slug),
         "preamble": parsed.preamble,
         "rules": [r.to_dict() for r in rules],
     }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

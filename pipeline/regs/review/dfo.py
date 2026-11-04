@@ -14,8 +14,9 @@ THE PRINTS a DFO mark is held against (memory dfo-salmon-churn-asymmetry: curate
 re-scrape the rules every run):
 
     text      the notice's own words for the place (water + specific area) — T
-    meaning   the scraped table rows riding on the location — R goes stale on a re-scrape that
-              changes them
+    meaning   the scraped table rows riding on the location — stamped, but NEVER compared (T366,
+              owner 2026-11-03): a re-scrape that changes them stales no DFO mark; the change goes
+              to the DFO digest (`dfo_salmon.refresh`, `marks._place_only`)
     binding   the curated geography: the water's registry items + the location's extent — P goes
               stale only when the curated geography moves, never on a re-scrape
 """
@@ -105,10 +106,12 @@ def find(location_id: str, d: Path | None = None):
     return locations(d).get(location_id)
 
 
-def rule_rows(loc: Mapping, typed_dir: Path | None = None) -> tuple[list[str], list[dict]]:
+def rule_rows(loc: Mapping, typed_dir: Path | None = None,
+              feed: Mapping[str, dict] | None = None) -> tuple[list[str], list[dict]]:
     """The scraped table rows and typed rules riding on a location (every fingerprint it holds —
-    the newest wording first is not assumed; rows are de-duplicated in order)."""
-    feed = typed(typed_dir)
+    the newest wording first is not assumed; rows are de-duplicated in order). `feed`: a
+    fingerprint -> {rows, rules} map to read instead of the typed dir (a refresh preview)."""
+    feed = feed if feed is not None else typed(typed_dir)
     rows: list[str] = []
     rules: list[dict] = []
     for fp in loc.get("fingerprints") or []:
@@ -138,10 +141,11 @@ def geography(loc: Mapping, water: Optional[Mapping]) -> dict:
             "water_tributaries": (water or {}).get("tributaries"), "binding": b}
 
 
-def prints(loc: Mapping, water: Optional[Mapping], typed_dir: Path | None = None) -> dict:
+def prints(loc: Mapping, water: Optional[Mapping], typed_dir: Path | None = None,
+           feed: Mapping[str, dict] | None = None) -> dict:
     """THE PRINTS of a DFO location NOW (`marks.Prints` shape): text, and one `entry` record whose
     meaning is the scraped rows and whose binding is the curated geography (module doc)."""
-    rows, _ = rule_rows(loc, typed_dir)
+    rows, _ = rule_rows(loc, typed_dir, feed)
     return {"text": place_text(loc),
             "records": [{"key": "entry", "meaning": _h(rows), "binding": _h(geography(loc, water))}]}
 

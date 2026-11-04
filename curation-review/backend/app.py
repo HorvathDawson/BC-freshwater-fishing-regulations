@@ -124,6 +124,9 @@ def _warm_at_startup():
                 logging.getLogger("uvicorn.error").warning(
                     "MARKS: %d orphaned, %d stale — %s", h["n_orphans"], h["n_stale"],
                     "; ".join(f"{r['scope']} {r['target']}" for r in (h["orphans"] + h["stale_rows"])[:20]))
+            import dfo                    # T366: typed rows older than the saved DFO page, said at startup
+            for w in dfo.vintage():
+                logging.getLogger("uvicorn.error").warning("DFO VINTAGE: %s", w["text"])
         threading.Thread(target=_health, name="marks-health", daemon=True).start()
 
 

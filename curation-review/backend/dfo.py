@@ -318,7 +318,19 @@ def progress() -> dict:
     regions = sorted({r["region"] for r in rows}, key=lambda s: (int(re.sub(r"\D", "", s) or 0), s))
     allc = {**count(rows), "new_splits": len(_proposals())}      # T210: distinct cuts, not copies
     return {"all": allc, "active": count([r for r in rows if r["status"] == "active"]),
-            "regions": {s: count([r for r in rows if r["region"] == s]) for s in regions}}
+            "regions": {s: count([r for r in rows if r["region"] == s]) for s in regions},
+            "vintage": vintage()}
+
+
+def vintage() -> list[dict]:
+    """(T366 item 2) ONE VINTAGE: every region whose typed rows are not from the saved DFO page, and every saved page
+    not fetched for a week in season — [{region, kind, text}] for the queue's banner (`refresh.vintage`). A check that
+    cannot run is said as one row, never as "all current"."""
+    from pipeline.regs.dfo_salmon import refresh as R
+    try:
+        return R.vintage(DFO_TYPED or D.default_typed_dir())
+    except Exception as ex:  # noqa: BLE001 — shown, not hidden
+        return [{"region": None, "kind": "error", "text": f"the DFO vintage check failed: {type(ex).__name__}: {ex}"}]
 
 
 # --------------------------------------------------------------------------- the detail

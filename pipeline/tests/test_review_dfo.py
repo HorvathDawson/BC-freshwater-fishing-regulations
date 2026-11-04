@@ -64,7 +64,9 @@ def test_a_dfo_location_is_marked_on_t_r_p(tmp_path):
         _mark({**p, "records": [*p["records"], {"key": "rule:x", "meaning": "m", "binding": "b"}]})
 
 
-def test_a_rescrape_stales_r_and_only_the_curated_geography_stales_p(tmp_path):
+def test_a_rescrape_stales_no_mark_and_only_the_curated_geography_stales_p(tmp_path):
+    """T366 (owner 2026-11-03): only a PLACE or its binding is re-reviewed — a re-scrape that changes the rows stales
+    no DFO mark (the change goes to the digest); the curated geography moving still does."""
     ent, typed = _world(tmp_path)
     m = _mark(D.prints_of(LOC, ent, typed))
     now = M.Prints.model_validate(D.prints_of(LOC, ent, typed))
@@ -72,8 +74,9 @@ def test_a_rescrape_stales_r_and_only_the_curated_geography_stales_p(tmp_path):
     (tmp_path / "b").mkdir()
     (tmp_path / "c").mkdir()
     ent2, typed2 = _world(tmp_path / "b", rows=("Coho | Oct 1 to Dec 31 | 4 per day",))
-    assert M.stale_reasons(m, M.Prints.model_validate(D.prints_of(LOC, ent2, typed2))) == \
-        [M.StaleReason.rule_changed]
+    moved = M.Prints.model_validate(D.prints_of(LOC, ent2, typed2))
+    assert moved.records[0].meaning != now.records[0].meaning      # the rows did change ...
+    assert M.stale_reasons(m, moved) == []                          # ... and the place answer stands
     ent3, typed3 = _world(tmp_path / "c",
                           extents=[{"op": "downstream_of", "splits": ["test_river__bridge"]}])
     assert M.stale_reasons(m, M.Prints.model_validate(D.prints_of(LOC, ent3, typed3))) == \

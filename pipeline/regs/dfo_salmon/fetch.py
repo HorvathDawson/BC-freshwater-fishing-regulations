@@ -196,19 +196,15 @@ def _sleep_backoff(attempt: int, retry_after: Optional[float] = None) -> None:
     time.sleep(delay)
 
 
-def fetch_region(
+def fetch_page(
     region,
     *,
-    cache_dir: Path = DEFAULT_CACHE,
-    force: bool = False,
-    write: bool = True,
     timeout: int = _REQUEST_TIMEOUT,
     max_attempts: int = _MAX_ATTEMPTS,
-) -> RegionSnapshot:
-    """Fetch one region page, validate it, and write it to `cache_dir` if it moved.
+) -> tuple[str, RegionSnapshot]:
+    """Fetch one region page and validate it; WRITE NOTHING (T366: the refresh preview). -> (body, snapshot).
 
-    Raises `FetchError` if every attempt fails validation or transport. An existing
-    good snapshot on disk is left untouched in that case.
+    Raises `FetchError` if every attempt fails validation or transport.
     """
     slug = normalize_slug(region)
     page = PAGES[slug]
@@ -285,6 +281,26 @@ def fetch_region(
         elapsed_s=round(elapsed, 3),
         warnings=warnings,
     )
+    return body, snap
+
+
+def fetch_region(
+    region,
+    *,
+    cache_dir: Path = DEFAULT_CACHE,
+    force: bool = False,
+    write: bool = True,
+    timeout: int = _REQUEST_TIMEOUT,
+    max_attempts: int = _MAX_ATTEMPTS,
+) -> RegionSnapshot:
+    """Fetch one region page, validate it, and write it to `cache_dir` if it moved.
+
+    Raises `FetchError` if every attempt fails validation or transport. An existing
+    good snapshot on disk is left untouched in that case.
+    """
+    slug = normalize_slug(region)
+    body, snap = fetch_page(slug, timeout=timeout, max_attempts=max_attempts)
+    digest = snap.sha256
 
     if write:
         cache_dir = Path(cache_dir)
@@ -375,6 +391,31 @@ def load_cached(region, cache_dir: Path = DEFAULT_CACHE) -> str:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
+def page_stamp(html: str) -> dict:
+    """(T366) WHICH PAGE a scrape came from: the sha256 of its text (as `fetch_region` and the live feed digest it) and
+    its "Date modified". The typed feed carries it, so typed rows can be checked against the raw page they claim."""
+    dm = _RE_DATE_MODIFIED.search(html)
+    return {"sha256": hashlib.sha256(html.encode("utf-8", "replace")).hexdigest(),
+            "date_modified": dm.group(1) if dm else None}
+
+
+def archive(history_dir: Path, slug: str, html: str, at: str) -> Optional[Path]:
+    """(T366 item 3) THE WORDING ARCHIVE: a fetched page saved as `history/region<slug>_<YYYYMMDDhhmmss>.html` (the
+    Wayback seeding's naming, so `review.dfo.wordings` dates it) — unless the newest saved copy of the region is the same
+    page. `at`: an ISO time. -> the file written, or None."""
+    d = Path(history_dir)
+    have = sorted(d.glob(f"region{slug}_*.html")) if d.exists() else []
+    if have and page_stamp(have[-1].read_text(encoding="utf-8", errors="replace"))["sha256"] == page_stamp(html)["sha256"]:
+        return None
+    stamp = re.sub(r"\D", "", at)[:14].ljust(14, "0")
+    d.mkdir(parents=True, exist_ok=True)
+    dest = d / f"region{slug}_{stamp}.html"
+    tmp = dest.with_suffix(".tmp")
+    tmp.write_text(html, encoding="utf-8")
+    os.replace(tmp, dest)
+    return dest
 
 
 def main(argv: Optional[List[str]] = None) -> int:

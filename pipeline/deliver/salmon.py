@@ -494,15 +494,20 @@ def load_inputs(run_dir: Path, registry=None, *, entries_dir: Optional[Path] = N
 
 
 def load_headers(feeds: Mapping[str, dict], cache_dir: Optional[Path] = None) -> Dict[str, List[dict]]:
-    """Each region's header notes, read from the cached page the typed rules came from (the raw page when its "Date
-    modified" is the feed's, else the history page of that date). A region with no such page ships no notes (said on
-    stdout): the live feed carries them, and a header is never read from another day's page than its rules."""
+    """Each region's header notes: THE TYPED FEED'S OWN (`notes`, T366 — written with its rows from the same page, so
+    the header can never go missing from the rules it belongs to). A typed file written before T366 has none: then the
+    cached page the rules came from (the raw page when its "Date modified" is the feed's, else the history page of that
+    date). Neither -> SalmonError (T357: no release without its region's header — a header closure would vanish)."""
     from pipeline.regs.dfo_salmon import header as H
     from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE
     from pipeline.regs.dfo_salmon.parse import _RE_DATE_MOD
     cache = Path(cache_dir or DEFAULT_CACHE)
     out: Dict[str, List[dict]] = {}
+    missing: List[str] = []
     for slug, feed in sorted(feeds.items()):
+        if "notes" in feed:
+            out[slug] = list(feed["notes"] or [])
+            continue
         want = feed.get("date_modified")
         pages = [cache / "raw" / f"region{slug}-eng.html",
                  *sorted((cache / "history").glob(f"region{slug}_*.html"), reverse=True)]
@@ -515,7 +520,11 @@ def load_headers(feeds: Mapping[str, dict], cache_dir: Optional[Path] = None) ->
                 out[slug] = H.parse_header(html, slug)
                 break
         else:
-            print(f"  salmon: region {slug}: no cached page dated {want} — the release carries no header notes for it")
+            missing.append(f"region {slug} (typed rows of {want or 'no date'})")
+    if missing:
+        raise SalmonError("salmon: no header notes for " + ", ".join(missing) + " — the typed feed carries none and no "
+                          "cached page has its date. Refresh the region (its rows and header from one page):\n"
+                          "    python -m pipeline.regs.dfo_salmon.live run --regions <n> --dry-run   (then without)")
     return out
 
 
