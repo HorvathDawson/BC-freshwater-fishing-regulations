@@ -110,13 +110,11 @@ export interface RegsScreenProps {
    */
   lapsed?: string | null;
   /**
-   * (T54) The section's access notice (core `accessNotice`, through `@app/ui` `useAccessNotice`; T147: the page's part's
-   * `waterAccessNotice` when no section was tapped): the no-access block or the gentle note, drawn FIRST in the scroll,
-   * above the lapsed line and the rules (T147). Null/absent: nothing to say.
+   * (T54) The section's access notices (core `accessNotices`, through `@app/ui` `useAccessNotices`; T147: the page's
+   * part's `waterAccessNotice` when no section was tapped): the no-access banner and/or the gentle note, (T367) pinned
+   * as slim strips under the header, outside the scroll. Empty/absent: nothing to say.
    */
-  access?: AccessNotice | null;
-  /** (T54) the notice's link: show the area on the water's map. Absent → no link. */
-  onAccessMap?: () => void;
+  access?: readonly AccessNotice[];
   /** (T230) the provincial in-season changes on this water / part on the page's day (`useInSeasonBanners`), drawn
    *  right under the access notice; informational, they change no answer. */
   inSeason?: readonly InSeasonBannerVM[];
@@ -135,7 +133,7 @@ export interface RegsScreenProps {
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
                              gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
-                             lapsed = null, access = null, onAccessMap, inSeason = [], glance = null, salmonStrip = null,
+                             lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
                              nameSource = null, asOf = null, scrollKey = null }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
@@ -228,8 +226,6 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   };
   const body = (
     <View ref={content} collapsable={false} testID="regs-content">
-      {/* (T147) the access fact LEADS the page: first in the scroll, before the lapsed line and the rules */}
-      {access && <AccessNoticeBlock notice={access} palette={palette} onMap={onAccessMap} />}
       <InSeasonBanners banners={inSeason} palette={palette} />
       {lapsed && (
         <WaterInset testID="regs-lapsed" style={{ paddingTop: 12, flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
@@ -282,6 +278,8 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
     <TermTitles.Provider value={page.terms}>
     <View testID="regs-view" style={{ flex: 1, backgroundColor: palette.card }}>
       {swipe ? <ViewSwipe swipe={swipe} fill={false} still testId="view-swipe-regs-header">{head}</ViewSwipe> : head}
+      {/* (T367) the access facts are pinned under the header, outside the scroll: one slim strip each */}
+      <AccessNoticeBlock notices={access} palette={palette} />
       {layout === "desktop" ? (
         <View testID="regs-columns" style={{ flex: 1, flexDirection: "row" }}>
           <RegsSide header={header} store={store} palette={palette} onDate={onDate} onTab={toTab} />

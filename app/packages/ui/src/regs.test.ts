@@ -8,7 +8,7 @@ import { openRegsFixture } from "@app/data/release/node";
 import { accessOf, type Paint } from "@app/core";
 import type { SectionId } from "@app/data";
 import { DEFAULT_WHO, loadRegsStore, mapDayOf, pageAccessNotice, regsDay, regsStoreKey, regsTargetKey,
-         sectionAccessNotice } from "./regs";
+         sectionAccessNotices } from "./regs";
 
 /** The fixture loader, counting how often the store asks it for water (once per `openRegsStore`). */
 function counted(base: RegsLoader = openRegsFixture(), fail = 0): { loader: RegsLoader; water: () => number } {
@@ -122,17 +122,16 @@ describe("(T54) a section's access notice: paint's no-access rows and the access
     access: async () => (gentle ? accessOf([PRIV], [7, 8], [0, 0], [1000, 300]) : null),
   });
 
-  it("no access wins on a section holding both; a section with only private land gets the gentle note", async () => {
-    expect(await sectionAccessNotice(loader(true), 7 as SectionId)).toEqual({
-      tier: "no_access", title: "No public access", link: "Show area on map",
-      text: "This section is inside Coquitlam Watershed. The public may not go there, so you can't fish here. "
-          + "The regulations below are the Province's; they don't give you access." });
-    expect(await sectionAccessNotice(loader(true), 8 as SectionId)).toEqual({
-      tier: "restricted", title: null, link: "See the map",
-      text: "Access may be restricted here: this section crosses private land. See the map." });
+  const BANNER = { tier: "no_access", title: "No public access", brief: "Coquitlam Watershed",
+                  text: "This section is in Coquitlam Watershed, closed to the public. The regulations below don't give you access." };
+  const NOTE = { tier: "restricted", title: "Access may be restricted", brief: "private land", text: "This section crosses private land." };
+
+  it("(T367) a section holding both gets both, banner first; a section with only private land gets the gentle note", async () => {
+    expect(await sectionAccessNotices(loader(true), 7 as SectionId)).toEqual([BANNER, NOTE]);
+    expect(await sectionAccessNotices(loader(true), 8 as SectionId)).toEqual([NOTE]);
     // a release with no access file: the no-access rows still speak, the gentle ones are silent
-    expect((await sectionAccessNotice(loader(false), 7 as SectionId))?.tier).toBe("no_access");
-    expect(await sectionAccessNotice(loader(false), 8 as SectionId)).toBeNull();
+    expect(await sectionAccessNotices(loader(false), 7 as SectionId)).toEqual([BANNER]);
+    expect(await sectionAccessNotices(loader(false), 8 as SectionId)).toEqual([]);
   });
 
   it("a failed `access` file never silences the no-access banner: paint's rows are enough for it", async () => {
@@ -142,11 +141,8 @@ describe("(T54) a section's access notice: paint's no-access rows and the access
     };
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
-      expect(await sectionAccessNotice(broken, 7 as SectionId)).toEqual({
-        tier: "no_access", title: "No public access", link: "Show area on map",
-        text: "This section is inside Coquitlam Watershed. The public may not go there, so you can't fish here. "
-            + "The regulations below are the Province's; they don't give you access." });
-      expect(await sectionAccessNotice(broken, 8 as SectionId)).toBeNull();
+      expect(await sectionAccessNotices(broken, 7 as SectionId)).toEqual([BANNER]);
+      expect(await sectionAccessNotices(broken, 8 as SectionId)).toEqual([]);
       expect(warn.mock.calls).toEqual([["access:", "offline"], ["access:", "offline"]]);
     } finally {
       warn.mockRestore();
@@ -164,12 +160,11 @@ describe("(T147) a page opened with no tapped section: its part's no-access bann
 
   it("reads only the page's part, names the water by its parts, and never notes the gentler land", async () => {
     expect(await pageAccessNotice(loader, store, { ord: 1, partIx: 0, parts: 1 })).toEqual({
-      tier: "no_access", title: "No public access", link: "Show area on map",
-      text: "This water is inside Coquitlam Watershed. The public may not go there, so you can't fish here. "
-          + "The regulations below are the Province's; they don't give you access." });
+      tier: "no_access", title: "No public access", brief: "Coquitlam Watershed",
+      text: "This water is in Coquitlam Watershed, closed to the public. The regulations below don't give you access." });
     expect((await pageAccessNotice(loader, store, { ord: 1, partIx: 1, parts: 3 }))?.text).toBe(
-      "Some of this part of the water is inside Coquitlam Watershed. The public may not go there, so you can't fish "
-      + "that stretch. The regulations below are the Province's; they don't give you access.");
+      "Some of this part of the water is in Coquitlam Watershed, closed to the public. "
+      + "The regulations below don't give you access.");
     expect(await pageAccessNotice(loader, store, { ord: 1, partIx: 2, parts: 3 })).toBeNull();
   });
 });

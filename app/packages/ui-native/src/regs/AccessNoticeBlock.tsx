@@ -1,54 +1,56 @@
 /**
- * (T54, T147) THE ACCESS NOTICE at the top of a Regulations page: the no-access banner or the gentle note (private land,
- * a reserve, permit-only land). No logic and no words of its own: core's `accessNotice` / `waterAccessNotice` say what,
- * `@app/ui` `useAccessNotice` says for which section or part; the link shows the area on the water's map.
+ * (T54, T147) THE ACCESS NOTICES of a Regulations page: the no-access banner and the gentle note (private land, a
+ * reserve, permit-only land). No logic and no words of its own: core's `accessNotices` / `waterAccessNotice` say what,
+ * `@app/ui` `useAccessNotices` says for which section or part.
  *
- * (T147, owner 2026-10-23: "make the no public access a bigger part of the regulations at the top and more obvious")
- * The banner LEADS the page as a block in the WARNING amber (T165, `palette.warning`: the map draws the water dotted
- * grey, the warning lives here): a thick bar of it down the left, its tint as the ground (`palette.noAccessBand`), the
- * legend's own swatch — the map's dotted grey line — beside a large title ("No public access", the legend's own words),
- * then the plain-words body and the link — every word in ink, which holds 7:1 on the tint (the light amber itself is
- * 3.0:1 on the card, under what words need, so it is never the words). The gentle note stays one small grey line (T54 Q1: permit-only land).
+ * (T367, owner 2026-11-03: "it should live in the stickied header since it is important info … make sure it doesnt make
+ * screen size too small") Each notice is ONE slim strip pinned under the page's header, outside the scroll: its title in
+ * bold, then what the land is by name, cut to one line; a tap opens the whole sentence under it, a second tap closes it.
+ * The banner wears the WARNING amber (T165, `palette.warning`: a bar of it down the left, its tint as the ground,
+ * `palette.noAccessBand`, and the legend's own swatch, the map's dotted grey line); the note wears the ACCENT, so the
+ * two never read as one fact. Every word in ink, which holds 7:1 on both tints. No map link (T367): a link that does
+ * not highlight the area only moved the reader.
  */
-import { Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, Text, View } from "react-native";
 import type { AccessNotice } from "@app/core";
 import { TYPE } from "../type";
-import { GUTTER, RADIUS, type Palette } from "../theme";
-import { RegsPress } from "./RegsPress";
+import { NO_ACCESS_BAND, laid, type Palette } from "../theme";
 import { DottedSwatch } from "../Chrome";
+import { Icon } from "../icons";
 
-export function AccessNoticeBlock({ notice, palette, onMap }: { notice: AccessNotice; palette: Palette; onMap?: () => void }) {
-  if (notice.tier === "no_access") {
-    const colour = palette.warning;
-    return (
-      <View testID="access-banner" style={{ marginTop: 10, marginBottom: 4, marginHorizontal: GUTTER, borderRadius: RADIUS.box,
-                                            backgroundColor: palette.noAccessBand, borderLeftWidth: 6, borderLeftColor: colour,
-                                            paddingTop: 12, paddingBottom: onMap ? 2 : 12, paddingLeft: 12, paddingRight: 14 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <View testID="access-swatch"><DottedSwatch colour={palette.waterStatus.no_access} width={22} /></View>
-          <Text testID="access-title" accessibilityRole="header" style={[TYPE.tier, { color: palette.ink, flex: 1 }]}>
-            {notice.title}
-          </Text>
-        </View>
-        <Text accessibilityRole="alert" style={[TYPE.regsBody, { color: palette.ink, marginTop: 6 }]}>{notice.text}</Text>
-        {onMap && (
-          <RegsPress accessibilityRole="link" onPress={onMap} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center" }}>
-            <Text testID="access-map" style={[TYPE.regsBodyBold, { color: palette.ink, textDecorationLine: "underline" }]}>
-              {notice.link}
-            </Text>
-          </RegsPress>
-        )}
-      </View>
-    );
-  }
+export function AccessNoticeBlock({ notices, palette }: { notices: readonly AccessNotice[]; palette: Palette }) {
+  if (!notices.length) return null;
   return (
-    <View testID="access-note" style={{ marginTop: 8, marginHorizontal: GUTTER }}>
-      <Text style={[TYPE.meta, { color: palette.sub }]}>{notice.text}</Text>
-      {onMap && (
-        <RegsPress accessibilityRole="link" onPress={onMap} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center" }}>
-          <Text testID="access-map" style={[TYPE.metaBold, { color: palette.accent }]}>{notice.link}</Text>
-        </RegsPress>
-      )}
+    <View testID="access-notices">
+      {notices.map((n) => <Strip key={n.tier} notice={n} palette={palette} />)}
     </View>
+  );
+}
+
+function Strip({ notice, palette }: { notice: AccessNotice; palette: Palette }) {
+  const [open, setOpen] = useState(false);
+  const banner = notice.tier === "no_access";
+  const [bar, ground] = banner ? [palette.warning, palette.noAccessBand]
+    : [palette.accent, laid(palette.accent, palette.card, NO_ACCESS_BAND)];
+  return (
+    <Pressable testID={banner ? "access-banner" : "access-note"} onPress={() => setOpen((o) => !o)}
+               accessibilityRole="button" accessibilityState={{ expanded: open }}
+               accessibilityLabel={`${notice.title}: ${notice.text}`}
+               style={{ backgroundColor: ground, borderLeftWidth: 4, borderLeftColor: bar, borderBottomWidth: 1,
+                        borderBottomColor: palette.line, minHeight: 36, paddingVertical: 8, paddingLeft: 12,
+                        paddingRight: 14, justifyContent: "center" }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        {banner && <View testID="access-swatch"><DottedSwatch colour={palette.waterStatus.no_access} width={18} /></View>}
+        <Text testID="access-title" numberOfLines={open ? undefined : 1} style={[TYPE.meta, { color: palette.ink, flex: 1 }]}>
+          <Text style={TYPE.metaBold}>{notice.title}</Text>{` · ${notice.brief}`}
+        </Text>
+        <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={14} />
+      </View>
+      {open && (
+        <Text testID="access-text" accessibilityRole={banner ? "alert" : undefined}
+              style={[TYPE.meta, { color: palette.ink, marginTop: 4 }]}>{notice.text}</Text>
+      )}
+    </Pressable>
   );
 }

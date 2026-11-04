@@ -14,8 +14,11 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { CONDITIONS_WORDS, donorReason, forecastRunLine, localStamp, noGaugeSentence,
-         readingHeading } from "@app/core";
+import { CONDITIONS_WORDS, donorReason, forecastRunLine, horizonDateChip, localStamp, noGaugeSentence,
+         readingHeading, type Horizon } from "@app/core";
+
+/** (T367) a forecast day's chip: its date, from the device's today */
+const chipOf = (d: number) => horizonDateChip(d as Horizon, new Date());
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { clearPanelCache } from "@app/ui";
@@ -133,9 +136,9 @@ const SAYS: Readonly<Record<"estimate" | "none", readonly string[]>> = {
     "Lower than 7 days in 10 at this time of year — fairly confident, from 2 gauges nearby.",
     "3rd–49th percentile for early September · this spot drains 50 km²",
     "Now",
-    "+1d",
-    "+3d",
-    "+5d",
+    chipOf(1),
+    chipOf(3),
+    chipOf(5),
     "TAP A GAUGE TO SEE ITS CHART",
     "LEAD",
     "Lead Creek near Town",
@@ -263,7 +266,7 @@ describe("P16: one reading order", () => {
   // has this one in its header, and both set ONE horizon state (HorizonShared.test.tsx).
   it("has one set of horizon chips in its header, ten days included", async () => {
     await draw("estimate");
-    for (const chip of ["Now", "+1d", "+3d", "+5d", "+10d"])
+    for (const chip of ["Now", ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(chipOf)])
       expect(screen.getAllByText(chip)).toHaveLength(1);
   });
 
@@ -298,6 +301,6 @@ describe("P16: one reading order", () => {
                    screen.getByRole("button", { name: CONDITIONS_WORDS.fold })];
     for (let i = 1; i < order.length; i++) expect(precedes(order[i - 1]!, order[i]!)).toBe(true);
     // No horizon control where there is no estimate to move.
-    expect(screen.queryByText("+1d")).toBeNull();
+    expect(screen.queryByText(chipOf(1))).toBeNull();
   });
 });

@@ -8,7 +8,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CONDITIONS_WORDS, chartCaption, chartFigure, chartLabel, chartReadoutLine, disagreeNote, donorBecause,
-  donorFacts, donorLastReport, donorSilent, lastDataStamp, silentLine,
+  donorFacts, donorLastReport, donorSilent, horizonDateChip, lastDataStamp, silentLine,
   donorKeyLabel, donorPinTitle, donorReads, donorReason, donorRowLabel, donorShare,
   donorWeightLine, estimateHeadline, estimateRange, estimateSentence, forecastChartLabel,
   forecastModelOption, forecastRunLine, HORIZON_LABELS, HORIZONS, horizonChipLabel,
@@ -30,9 +30,16 @@ const est = (over: Partial<Estimate> = {}): Estimate => ({
 describe("the horizons", () => {
   it("are the publisher's days, and every one has its words", () => {
     // Mirrors HORIZONS in pipeline/gauges/feed/publish.py, and the Change view after +10 (T52).
-    expect(HORIZONS).toEqual([0, 1, 3, 5, 10, "change"]);
+    expect(HORIZONS).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "change"]);
     // Object key order puts integer keys ascending, then the one string key — which is HORIZONS' own order.
     expect(Object.keys(HORIZON_LABELS)).toEqual(HORIZONS.map(String));
+  });
+
+  it("(T367) a day's chip is its date; Now and Change keep their words", () => {
+    const tue = new Date(2026, 10, 3, 9);
+    expect(HORIZONS.map((d) => horizonDateChip(d, tue))).toEqual(
+      ["Now", "Wed 4", "Thu 5", "Fri 6", "Sat 7", "Sun 8", "Mon 9", "Tue 10", "Wed 11", "Thu 12", "Fri 13", "Change"]);
+    expect(horizonDateChip(1, new Date(2026, 11, 31, 23))).toBe("Fri 1");
   });
 
   it("names ten days ahead in full (owner 2026-10-20)", () => {

@@ -4,9 +4,12 @@
  * Tomorrow · a calendar segment), in the same top-left corner, so the two maps choose a day the same way. The chosen
  * segment is FILLED, not merely tinted: it repaints the whole map, so which one is on has to read from the corner of an
  * eye. Each segment is a 44 × 44 press (`hitProps`).
+ *
+ * (T367) `scroll`: a strip with more days than the width holds (the forecast's, by date) scrolls sideways in place of
+ * squeezing or wrapping.
  */
 import { LoadingState } from "./LoadingState";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useCoachTarget } from "./CoachMarks";
 import { hitProps } from "./regs/hit";
 import { Icon, type IconName } from "./icons";
@@ -34,15 +37,17 @@ export interface CornerSegment {
   readonly busy?: boolean;
 }
 
-export function CornerStrip({ palette, segments, testID, label, radio = false, coach }: {
+export function CornerStrip({ palette, segments, testID, label, radio = false, coach, scroll = false }: {
   palette: Palette; segments: readonly CornerSegment[]; testID: string; label?: string;
   /** one choice of several (Standard / Salmon): a radiogroup of radios, `aria-checked` not `aria-pressed` */
   radio?: boolean;
   /** (T257) the key the first-run tour points at this strip by (`useCoachTarget`) */
   coach?: string;
+  /** (T367) scroll sideways when the segments are wider than the room */
+  scroll?: boolean;
 }) {
   const target = useCoachTarget(coach);
-  return (
+  const strip = (
     <View ref={target} collapsable={false} testID={testID} accessibilityLabel={label} accessibilityRole={radio ? "radiogroup" : undefined}
           style={{ flexDirection: "row", backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2,
                    borderRadius: palette.r.pill, overflow: "hidden", ...palette.lift }}>
@@ -76,5 +81,12 @@ export function CornerStrip({ palette, segments, testID, label, radio = false, c
         );
       })}
     </View>
+  );
+  if (!scroll) return strip;
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} testID={`${testID}-scroll`}
+                style={{ flexGrow: 0, maxWidth: "100%" }} contentContainerStyle={{ paddingBottom: 4 }}>
+      {strip}
+    </ScrollView>
   );
 }

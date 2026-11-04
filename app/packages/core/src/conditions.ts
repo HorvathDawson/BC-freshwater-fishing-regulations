@@ -13,6 +13,7 @@ import { catchmentLabel, confidenceWord, inTen, ordinal, percentileOrdinal, plai
          seasonPhrase, standing, standingWord, type Standing } from "./flow";
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
+import { weekdayAbbr } from "./flow";
 import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { byCadence } from "./staleness";
 import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
@@ -89,6 +90,17 @@ export const CHANGE_NEEDS_FLOW = {
 /** The chip's screen-reader name, saying which one is on. */
 export function horizonChipLabel(d: Horizon, on: boolean): string {
   return HORIZON_LABELS[d].accessible + (on ? ", showing" : "");
+}
+
+/**
+ * (T367, owner 2026-11-03: "more control … to show more days") A DAY'S CHIP BY ITS DATE: "Wed 5", never "+1d" — the
+ * reader plans by the day, and the strip can grow to every day the publisher forecasts without its words changing.
+ * Now and Change keep their words; the screen-reader name stays how far ahead it is (`horizonChipLabel`).
+ */
+export function horizonDateChip(d: Horizon, now: Date): string {
+  if (typeof d !== "number" || d === 0) return HORIZON_LABELS[d].chip;
+  const at = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d, 12);
+  return `${weekdayAbbr(at.getDay())} ${at.getDate()}`;
 }
 
 /**

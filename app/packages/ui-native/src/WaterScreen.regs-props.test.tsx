@@ -68,9 +68,9 @@ describe("<WaterScreen> regulations", () => {
   }, 30_000);
 
   /*
-   * (T147 review) THE PAGE PATH IS WIRED: a water opened with no tapped section (search, a start link) leads with its
-   * part's no-access block. `pageAccessNotice` and core's words are pinned in @app/ui and @app/core; this pins that
-   * WaterScreen hands `useAccessNotice` the store and the page — dropping them (the T54 call, section only) left every
+   * (T147 review) THE PAGE PATH IS WIRED: a water opened with no tapped section (search, a start link) carries its
+   * part's no-access strip. `pageAccessNotice` and core's words are pinned in @app/ui and @app/core; this pins that
+   * WaterScreen hands `useAccessNotices` the store and the page — dropping them (the T54 call, section only) left every
    * other ui-native test green.
    */
   it("(T147) opened with no tapped section: the part's no-access block leads the page", async () => {
@@ -82,16 +82,17 @@ describe("<WaterScreen> regulations", () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
                         loader={closedLand} day={new Date(2026, 9, 10, 12)} part={0} />);
     await waitFor(() => expect(screen.getByTestId("access-banner")).toBeTruthy(), { timeout: 20_000 });
-    expect(screen.getByTestId("access-banner").textContent).toBe("No public accessThis part of the water is inside Test "
-      + "Watershed. The public may not go there, so you can't fish here. The regulations below are the Province's; they "
-      + "don't give you access.");
-    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")).slice(0, 2))
-      .toEqual(["access-banner", "keep-tab"]);
+    expect(screen.getByTestId("access-banner").textContent).toBe("No public access · Test Watershed");
+    fireEvent.click(screen.getByTestId("access-banner"));
+    expect(screen.getByTestId("access-text").textContent).toBe("This part of the water is in Test Watershed, closed to "
+      + "the public. The regulations below don't give you access.");
+    // (T367) pinned under the header, outside the scroll
+    expect(screen.getByTestId("regs-scroll").contains(screen.getByTestId("access-banner"))).toBe(false);
   }, 30_000);
 
   /*
    * (Q140, owner 2026-10-28) A TAPPED SECTION WHOLLY OUTSIDE no-access land, on a part that runs through it, leads with
-   * the PART's banner in the same block — the page asks its part beside the tapped section (`useAccessNotice`).
+   * the PART's banner in the same block — the page asks its part beside the tapped section (`useAccessNotices`).
    */
   it("(Q140) a tapped section outside no-access land: its part's banner leads the page", async () => {
     const live = openRegsFixture();
@@ -104,9 +105,10 @@ describe("<WaterScreen> regulations", () => {
                         loader={partlyClosed} day={new Date(2026, 9, 10, 12)} part={0}
                         section={TAPPED as SectionId} />);
     await waitFor(() => expect(screen.getByTestId("access-banner")).toBeTruthy(), { timeout: 20_000 });
-    expect(screen.getByTestId("access-banner").textContent).toBe("No public accessThis part of the water is inside Test "
-      + "Watershed. The public may not go there, so you can't fish here. The regulations below are the Province's; they "
-      + "don't give you access.");
+    expect(screen.getByTestId("access-banner").textContent).toBe("No public access · Test Watershed");
+    fireEvent.click(screen.getByTestId("access-banner"));
+    expect(screen.getByTestId("access-text").textContent).toBe("This part of the water is in Test Watershed, closed to "
+      + "the public. The regulations below don't give you access.");
   }, 30_000);
 
   it("(T35) the Licence tab's pick reaches the page: Under 16 rebuilds it for that angler (useAnglerProfile, D8 a)", async () => {

@@ -4,7 +4,7 @@
  */
 import { useCallback, useMemo, useState } from "react";
 import { HORIZONS, type Horizon, type Parameter } from "@app/data";
-import { CHANGE_NEEDS_FLOW, HORIZON_LABELS, horizonChipLabel } from "@app/core";
+import { CHANGE_NEEDS_FLOW, HORIZON_LABELS, horizonChipLabel, horizonDateChip } from "@app/core";
 import type { FlowParam } from "../mapModes";
 
 export interface HorizonChipVM {
@@ -29,14 +29,15 @@ const needsFor = (d: Horizon, quantity?: FlowParam): Parameter | null =>
  * greyed with core's "Flow only", and a tap moves to Flow (`pickHorizon`). The day lit is the one answered
  * (`flowHorizon`): Change chosen under Level answers as Now, so Now is lit.
  */
-export function horizonChips(on: Horizon, quantity?: FlowParam): HorizonChipVM[] {
+export function horizonChips(on: Horizon, quantity?: FlowParam, now: Date = new Date()): HorizonChipVM[] {
   const lit = quantity === undefined ? on : flowHorizon(on, quantity);
   return HORIZONS.map((d) => {
     const needs = needsFor(d, quantity);
+    // (T367) a day's chip is its date ("Wed 5"), the device's today the count's start
     return needs
       ? { day: d, chip: HORIZON_LABELS[d].chip, label: CHANGE_NEEDS_FLOW.accessible, on: false,
           note: CHANGE_NEEDS_FLOW.note, needs }
-      : { day: d, chip: HORIZON_LABELS[d].chip, label: horizonChipLabel(d, d === lit), on: d === lit,
+      : { day: d, chip: horizonDateChip(d, now), label: horizonChipLabel(d, d === lit), on: d === lit,
           note: null, needs: null };
   });
 }

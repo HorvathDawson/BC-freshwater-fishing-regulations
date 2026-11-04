@@ -16,7 +16,7 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { accessNotice, buildRegsPage, leadingAccessNotice, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
+import { accessNotices, buildRegsPage, leadingAccessNotices, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who } from "@app/core";
 import { downstreamWater, openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
@@ -155,11 +155,10 @@ export function useDownstreamWater(source: Pick<WaterSource, "traceToGauge" | "w
 
 /**
  * (T54) WHAT A SECTION'S PAGE SAYS ABOUT ACCESS: paint's no-access rows and the `access` file's gentler ones (permit-only
- * land, reserves, private land), worded by core (`accessNotice`). Null: nothing to say, or no tapped section (a water
- * opened from search names no section, so no access is claimed for it).
+ * land, reserves, private land), worded by core (`accessNotices`: the banner, then the note). Empty: nothing to say.
  */
-export async function sectionAccessNotice(loader: Pick<ReleaseLoader, "paint" | "access">,
-                                          section: SectionId): Promise<AccessNotice | null> {
+export async function sectionAccessNotices(loader: Pick<ReleaseLoader, "paint" | "access">,
+                                           section: SectionId): Promise<AccessNotice[]> {
   // the gentle file failing (offline, a bad fetch) costs only the gentle note: the no-access banner is paint's alone,
   // and must never be silenced by it. The loader forgets a failed fetch, so the next page asks again.
   const gentleOf = loader.access().catch((e: unknown) => {
@@ -167,7 +166,7 @@ export async function sectionAccessNotice(loader: Pick<ReleaseLoader, "paint" | 
     return null;
   });
   const [paint, gentle] = await Promise.all([loader.paint(), gentleOf]);
-  return accessNotice([...paint.access.of(section), ...(gentle?.of(section) ?? [])]);
+  return accessNotices([...paint.access.of(section), ...(gentle?.of(section) ?? [])]);
 }
 
 /** (T147) The page a water opened with no tapped section shows: its item (by ord), its part, and how many parts it has. */
@@ -237,18 +236,18 @@ export function useSalmonCard(loader: SalmonLoader | null, store: Pick<RegsStore
   return useAsync(async () => (asks ? salmonCardFor(loader!, store, page!, on) : null), `${key}#${dfo}`, asks, key);
 }
 
-export function useAccessNotice(loader: Pick<ReleaseLoader, "paint" | "access"> | null,
-                                section: SectionId | null, store: Pick<RegsStore, "navRows"> | null = null,
-                                page: AccessPage | null = null): Async<AccessNotice | null> {
+export function useAccessNotices(loader: Pick<ReleaseLoader, "paint" | "access"> | null,
+                                 section: SectionId | null, store: Pick<RegsStore, "navRows"> | null = null,
+                                 page: AccessPage | null = null): Async<AccessNotice[]> {
   const bySection = !!loader && section !== null;
   // (Q140, owner 2026-10-28) the page's part is asked beside a tapped section too: a section wholly outside no-access
-  // land, on a part that runs through it, leads with the part's banner (`leadingAccessNotice`)
+  // land, on a part that runs through it, carries the part's banner (`leadingAccessNotices`)
   const byPage = !!loader && !!store && !!page;
   const asks = bySection || byPage;
   return useAsync(async () => {
-    const [s, p] = await Promise.all([bySection ? sectionAccessNotice(loader!, section!) : null,
+    const [s, p] = await Promise.all([bySection ? sectionAccessNotices(loader!, section!) : [],
                                       byPage ? pageAccessNotice(loader!, store!, page!) : null]);
-    return leadingAccessNotice(s, p);
+    return leadingAccessNotices(s, p);
   },
                   `access:${loader ? idOf(loader) : ""}:${bySection ? `s${section}` : ""}:`
                   + `${byPage ? `${idOf(store!)}:${page!.ord}:${page!.partIx}:${page!.parts}` : ""}`, asks);

@@ -28,7 +28,7 @@ import { ScrollView } from "react-native";
 import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, regsLapsedNote, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { InSeasonContext, mapDayOf, regsDay, useAccessNotice, useInSeasonBanners, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
+import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useSalmonCard, useNet,
          useRegsTarget, useRegulations, useWater, type RegsStart } from "@app/ui";
 import { LoadingState, useDelayedShow } from "./LoadingState";
@@ -120,7 +120,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const accessPage = useMemo(() => (pageItem ? { ord: pageItem.ord, partIx: inputs.value!.partIx, parts: pageItem.parts.length } : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity is its item, part and part count
     [pageItem?.ord, inputs.value?.partIx, pageItem?.parts.length]);
-  const access = useAccessNotice(loader, section, store.value ?? null, accessPage);
+  const access = useAccessNotices(loader, section, store.value ?? null, accessPage);
   // (T211) the Salmon card: DFO's salmon for the tapped section, else the page's part, on THE day
   const salmonPage = useMemo(() => (inputs.value
     ? { section: part === null ? section : null, item: pageItem?.id ?? null, ord: pageItem?.ord ?? null,
@@ -235,8 +235,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                   start={start} onStarted={onStarted} onPart={onPart} scrollKey={regsScrollKey(item, part, section)}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, Date.now())}
-                  // (T54) the access notice; its link moves to the water's Map view, where the area is drawn
-                  access={access.value ?? null}
+                  // (T54, T367) the access notices: pinned strips under the header
+                  access={access.value ?? []}
                   inSeason={inSeason}
                   asOf={asOfLine({ release: loader.manifest ?? null, inSeasonAt, now: Date.now(),
                                    salmonAt: salmon.value ? salmon.value.feedAt ?? null : undefined })}
@@ -249,7 +249,6 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                       : undefined}
                   glance={glance ? { salmon: salmon.value ? salmonGlance(salmon.value) : null } : null}
                   salmonStrip={salmonStrip}
-                  onAccessMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),

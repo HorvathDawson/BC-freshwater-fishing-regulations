@@ -82,21 +82,25 @@ export function noPublicAccess(access: SectionAccess | null | undefined, section
 /** The words, once (AGENTS 23/33: core composes the sentence, a test pins it whole). */
 export const ACCESS_WORDS = {
   legend: "No public access",
-  showOnMap: "Show area on map",
-  seeMap: "See the map",
+  restricted: "Access may be restricted",
 } as const;
 
 /**
  * The notice that opens a Regulations page: the banner (`no_access`) or the gentle note (`restricted`). (T147) The banner
  * LEADS the page: its `title` is the fact in two words, drawn large in the warning block (T165: the amber), and `text` says what it
- * means in plain words; the gentle note has no title (one small line, T54 Q1: permit-only land is this tier).
+ * means in plain words; the gentle note's title is "Access may be restricted" and its text names the causes (T54 Q1:
+ * permit-only land is this tier). (T367, owner 2026-11-03) No map link on either: a link that does not highlight the
+ * area only moved the reader; it returns when the map can highlight it.
+ *
+ * (T367, owner 2026-11-03: "it should live in the stickied header") Each is drawn as one slim line pinned under the page's
+ * header — its `title` and `brief` (what the land is, by name) — and a tap opens `text`, the whole sentence, under it.
  */
 export interface AccessNotice {
   readonly tier: "no_access" | "restricted";
-  readonly title: string | null;
+  readonly title: string;
+  /** the strip's one line after the title: the areas by name ("Capilano Watershed"; "Indian reserve (Capilano 5) and private land") */
+  readonly brief: string;
   readonly text: string;
-  /** The link under it, which shows the area on the water's map. */
-  readonly link: string;
 }
 
 const and = (xs: readonly string[]): string =>
@@ -117,6 +121,12 @@ const cause = (a: AccessArea): string =>
   : a.tier === "reserve" ? (a.name ? `an Indian reserve (${a.name})` : "an Indian reserve")
   : a.name ? `permit-only land (${a.name}), where a permit is needed` : "permit-only land, where a permit is needed";
 
+/** The strip's short name for a cause: no article, no clause ("Indian reserve (Capilano 5)", "permit-only land (UBC …)"). */
+const short = (a: AccessArea): string =>
+  a.tier === "private" ? "private land"
+  : a.tier === "reserve" ? (a.name ? `Indian reserve (${a.name})` : "Indian reserve")
+  : a.name ? `permit-only land (${a.name})` : "permit-only land";
+
 /**
  * What a notice is about: the section the reader tapped, or (T147) the page's own part of a water, or the whole water
  * when it has one part — a water opened from search names no section, and its page must still lead with the fact.
@@ -131,34 +141,41 @@ const SUBJECT: Record<AccessSubject, string> = { section: "this section", part: 
 function noAccessNotice(strong: readonly AccessArea[], mostly: boolean, subject: AccessSubject): AccessNotice {
   const names = and(strong.map((a) => a.name || "land with no public access"));
   const it = SUBJECT[subject];
-  const where = mostly
-    ? `${it[0]!.toUpperCase()}${it.slice(1)} is inside ${names}. The public may not go there, so you can't fish here.`
-    : `Some of ${it} is inside ${names}. The public may not go there, so you can't fish that stretch.`;
+  // (T367) said once, plainly: "can't fish here" read wrong where only some of it is inside
+  const where = mostly ? `${it[0]!.toUpperCase()}${it.slice(1)} is in ${names}` : `Some of ${it} is in ${names}`;
   return {
     tier: "no_access",
     title: ACCESS_WORDS.legend,
-    text: `${where} The regulations below are the Province's; they don't give you access.`,
-    link: ACCESS_WORDS.showOnMap,
+    brief: names,
+    text: `${where}, closed to the public. The regulations below don't give you access.`,
   };
 }
 
 /**
- * WHAT THE PAGE SAYS about a section's access, or null. No-access land in any share is the banner (mostly inside: "is
- * inside"; otherwise "some of … is inside"); else any gentler restriction is the note, naming its causes from the data
- * — permit-only land, then reserves, then private land.
+ * WHAT THE PAGE SAYS about a section's access: the banner when no-access land is in it in any share (mostly inside: "is
+ * in"; otherwise "some of … is in"), and (T367, owner 2026-11-03) the note too when gentler land is — the reserve is
+ * never hidden by the watershed — naming its causes from the data: permit-only land, then reserves, then private land.
+ * Banner first; empty: nothing to say.
  */
-export function accessNotice(all: readonly AccessRow[]): AccessNotice | null {
+export function accessNotices(all: readonly AccessRow[]): AccessNotice[] {
   const rows = all.filter((r) => r.share >= TOUCH_ONLY);
   const strong = uniq(rows.filter((r) => r.area.tier === "no_access"));
-  if (strong.length) return noAccessNotice(strong, noAccessShare(rows) > MOSTLY_INSIDE, "section");
-  const gentle = uniq(rows).sort((a, b) => ACCESS_TIERS.indexOf(a.tier) - ACCESS_TIERS.indexOf(b.tier));
-  if (!gentle.length) return null;
-  return {
+  const gentle = uniq(rows.filter((r) => r.area.tier !== "no_access"))
+    .sort((a, b) => ACCESS_TIERS.indexOf(a.tier) - ACCESS_TIERS.indexOf(b.tier));
+  const out: AccessNotice[] = [];
+  if (strong.length) out.push(noAccessNotice(strong, noAccessShare(rows) > MOSTLY_INSIDE, "section"));
+  if (gentle.length) out.push({
     tier: "restricted",
-    title: null,
-    text: `Access may be restricted here: this section crosses ${and(gentle.map(cause))}. See the map.`,
-    link: ACCESS_WORDS.seeMap,
-  };
+    title: ACCESS_WORDS.restricted,
+    brief: and(gentle.map(short)),
+    text: `This section crosses ${and(gentle.map(cause))}.`,
+  });
+  return out;
+}
+
+/** The notice a section's page LEADS with (`accessNotices`' first): the banner, else the note, else null. */
+export function accessNotice(all: readonly AccessRow[]): AccessNotice | null {
+  return accessNotices(all)[0] ?? null;
 }
 
 /**
@@ -176,15 +193,14 @@ export function waterAccessNotice(sections: readonly (readonly AccessRow[])[],
 }
 
 /**
- * (T147, owner 2026-10-28, Q140) THE NOTICE A REGULATIONS PAGE LEADS WITH when a section was tapped and the page's part is
+ * (T147, owner 2026-10-28, Q140) THE NOTICES A REGULATIONS PAGE CARRIES when a section was tapped and the page's part is
  * known: "unless a section is fully out of the no-access area it should have a banner", and a part that runs through
- * no-access land keeps its banner on every section of it. So: the tapped section's own banner when any of it is inside
- * ("This section is inside …" / "Some of this section is inside …"); else, when the section is wholly outside but its
- * part is not, the PART's banner ("Some of this part of the water is inside …"), in the same block; else the section's
- * gentle note, if any. One block on a page, never two.
+ * no-access land keeps its banner on every section of it. So the banner is the tapped section's own when any of it is in
+ * ("This section is in …" / "Some of this section is in …"), else the PART's ("Some of this part of the water is in …");
+ * (T367, owner 2026-11-03) and under it the section's gentle note, if any — one banner at most, one note at most.
  */
-export function leadingAccessNotice(section: AccessNotice | null, page: AccessNotice | null): AccessNotice | null {
-  if (section?.tier === "no_access") return section;
-  if (page?.tier === "no_access") return page;
-  return section;
+export function leadingAccessNotices(section: readonly AccessNotice[], page: AccessNotice | null): AccessNotice[] {
+  const banner = section.find((n) => n.tier === "no_access") ?? (page?.tier === "no_access" ? page : null);
+  const note = section.find((n) => n.tier === "restricted") ?? null;
+  return [banner, note].filter((n): n is AccessNotice => n !== null);
 }

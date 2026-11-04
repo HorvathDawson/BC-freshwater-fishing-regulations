@@ -22,6 +22,21 @@ Only then does it go into the 0.5.0 APK (the one APK for the batch). No APK per 
 
 ## Rounds
 - 0 (2026-11-03): regs loading spinner sat in the pane's top corner → centred, large size (0db30c2). Owner: OK.
+- 1 (11-03): the gentle access note was raw grey text with a "See the map" link → its own block in the accent (not the
+  amber), titled "Access may be restricted"; both map links dropped (they moved to the map without highlighting the
+  area). Superseded by round 3.
+- 2 (11-03): Runs tab: species chips → the spawning picture; the "made for another map" line → a visible bar on the map.
+  Planned, not yet built. Cause of the stale run timing: the feed was built 10-29 for handles 10cbcb72…, the release's
+  tiles are 822db448… (regs paint and conditions ship IN the release, so they always match) — owner sent it to the
+  pipeline chat.
+- 3 (11-03): (a) access → slim strips PINNED under the regs header, outside the scroll: amber "No public access ·
+  <area>" and accent "Access may be restricted · <causes>", one line each, a tap opens the sentence. Both show at once
+  (core `accessNotices` / `leadingAccessNotices`: the reserve is no longer hidden by the watershed). Banner wording
+  shortened: "… is in X, closed to the public. The regulations below don't give you access." (b) forecast chips named
+  by date ("Wed 4"), every day +1..+10 (T375's feed), the strip scrolls sideways (`CornerStrip scroll`); spoken labels
+  unchanged. Verdict pending.
+- Open (not this chat's): `WaterScreen.regs-props.test.tsx` (fixture release, T35 Licence) ×2 and `WaterMode.test.tsx`
+  (ONE MAP ENTRY) fail on HEAD without the round 3 edits too — the page shows the spinner after the keep tab appeared.
 
 Start a UI chat from `handoff/PLAN/NEXT-SESSION-UI.md`.
 

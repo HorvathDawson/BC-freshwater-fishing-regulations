@@ -4,9 +4,9 @@
  * Runs are the feed's of 2026-10-22T22:28:51Z (`pipeline/tests/fixtures/gauge_feed/forecast_change/`); today is Thu
  * 22 Oct 2026.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { answerFrom, buildStandingClasses, sectionStanding, type PanelMember, type SectionId, type StationId } from "@app/data";
-import { codedChange, type RunChange, type SourceChange } from "@app/core";
+import { HORIZONS, codedChange, horizonDateChip, type RunChange, type SourceChange } from "@app/core";
 import { classMarks, standingValues } from "./conditionsColour";
 import { changeChartModel, changeSpark, changeView, donorView, flowHorizon, horizonChips, pickHorizon } from "./panel";
 import { CHANGE_RAMP_BASE, rampPosition, routeLabels, routeValues, toRamp } from "./routeColour";
@@ -28,15 +28,20 @@ const QUIET = { stations: {
 } } as never;
 
 describe("the Change chip", () => {
+  // (T367) the day chips are dates: a fixed clock (Tuesday 2026-11-03)
+  const NOW = new Date(2026, 10, 3, 9);
+  beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(NOW); });
+  afterEach(() => { vi.useRealTimers(); });
+
   it("is offered after +10, and live under Flow", () => {
-    expect(horizonChips("change", "discharge")).toEqual([
+    const chips = horizonChips("change", "discharge");
+    expect(chips.slice(0, 2).concat(chips.slice(-2))).toEqual([
       { day: 0, chip: "Now", label: "Conditions now", on: false, note: null, needs: null },
-      { day: 1, chip: "+1d", label: "Forecast 1 day ahead", on: false, note: null, needs: null },
-      { day: 3, chip: "+3d", label: "Forecast 3 days ahead", on: false, note: null, needs: null },
-      { day: 5, chip: "+5d", label: "Forecast 5 days ahead", on: false, note: null, needs: null },
-      { day: 10, chip: "+10d", label: "Forecast 10 days ahead", on: false, note: null, needs: null },
+      { day: 1, chip: "Wed 4", label: "Forecast 1 day ahead", on: false, note: null, needs: null },
+      { day: 10, chip: "Fri 13", label: "Forecast 10 days ahead", on: false, note: null, needs: null },
       { day: "change", chip: "Change", label: "Expected change over the next 10 days, showing", on: true,
         note: null, needs: null }]);
+    expect(chips.map((c) => c.day)).toEqual(HORIZONS);
   });
 
   /*
@@ -46,8 +51,8 @@ describe("the Change chip", () => {
   it("stays under Level and Temperature, greyed: \"Flow only\", and a tap switches to Flow", () => {
     for (const q of ["level", "temperature"] as const) {
       const chips = horizonChips("change", q);
-      expect(chips.map((c) => c.chip)).toEqual(["Now", "+1d", "+3d", "+5d", "+10d", "Change"]);
-      expect(chips[5]).toEqual({
+      expect(chips.map((c) => c.chip)).toEqual(HORIZONS.map((d) => horizonDateChip(d, NOW)));
+      expect(chips.at(-1)).toEqual({
         day: "change", chip: "Change", on: false, note: "Flow only", needs: "discharge",
         label: "Expected change over the next 10 days. Flow only: a tap shows Flow" });
       // the chosen day is answered as Now, so Now is the one lit

@@ -14,16 +14,14 @@
  *   Map         the water framed and lit on the map (`focusFor`, the search's framing); the parts and their steps
  *               are P15's. The canvas pans, so here the swipe listens on the header only.
  */
-import { useContext } from "react";
 import { WATER_SCREEN_WORDS } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
-import { useAccessNotice, useRegsStore, useUnnamedName, useWater, useWaterBox, useWaterLine, useWaterName } from "@app/ui";
+import { useAccessNotices, useRegsStore, useUnnamedName, useWater, useWaterBox, useWaterLine, useWaterName } from "@app/ui";
 import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { AccessNoticeBlock } from "./regs/AccessNoticeBlock";
-import { WaterViewsContext } from "./ViewSwipe";
 import { LoadingState } from "./LoadingState";
 import { type Palette } from "./theme";
 import { WaterFrame, WaterTitle } from "./WaterFrame";
@@ -65,9 +63,8 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   const unnamed = useUnnamedName(store.value ?? null, item, tapSid);
   const name = (water.state === "ready" ? water.value?.name ?? null : null) ?? (unnamed.value ?? null);
   // (T54) the TAPPED section's no-access banner only: the gentle note is the Regulations page's
-  const access = useAccessNotice(loader, tapSid);
-  const noAccess = access.value?.tier === "no_access" ? access.value : null;
-  const views = useContext(WaterViewsContext);
+  const access = useAccessNotices(loader, tapSid);
+  const noAccess = (access.value ?? []).filter((n) => n.tier === "no_access");
 
   return (
     <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>
@@ -79,8 +76,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
       ) : (
         <>
           {/* (T54, owner Q2 default) the flow colour stays; a section in no-access land carries the banner here too */}
-          {noAccess && <AccessNoticeBlock notice={noAccess} palette={palette}
-                                          onMap={views?.views.includes("map") ? () => views.onView("map") : undefined} />}
+          <AccessNoticeBlock notices={noAccess} palette={palette} />
           <ConditionsPanel source={source} section={section} palette={palette}
                            tiles={tiles} theme={theme} feed={feed}
                            parameter={parameter} onParameter={onParameter} from={from}
