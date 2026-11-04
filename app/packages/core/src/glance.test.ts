@@ -16,12 +16,11 @@ describe("(T221) the at-a-glance rows say no count", () => {
     const kinds = [{ t: "kind", pictures: [pic("EB")] }, { t: "kind", pictures: [pic("RB")] }] as unknown as GroupVM["tree"];
     expect(groupGlance(group({}, kinds))).toEqual({ thumb: "RB", name: "Trout and char", value: null, tone: "keep" });
   });
-  it("salmon: a status word only when every row (undrawn places too) has it", () => {
+  it("salmon: a status word only when every row has it ((T372) an undrawn place is the caveat, not the answer)", () => {
     const row = (status: string) => ({ status }) as never;
-    const card = (st: string[], un: string[] = []) => ({ title: SALMON_WORDS.title, rows: st.map(row),
-      unmapped: un.length ? [{ block: { rows: un.map(row) } }] : [] }) as unknown as SalmonCardVM;
+    const card = (st: string[]) => ({ title: SALMON_WORDS.title, rows: st.map(row), caveat: null }) as unknown as SalmonCardVM;
     expect([salmonGlance(card(["check", "check"])).value, salmonGlance(card(["closed"])).tone,
-            salmonGlance(card(["check"], ["closed"])).value, salmonGlance(card(["open", "closed"])).value])
-      .toEqual(["check DFO", "closed", null, null]);
+            salmonGlance(card(["open", "closed"])).value])
+      .toEqual(["check DFO", "closed", null]);
   });
 });

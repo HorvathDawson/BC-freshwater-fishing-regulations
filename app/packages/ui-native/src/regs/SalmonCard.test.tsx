@@ -32,7 +32,7 @@ const FACTS: SalmonFacts = {
     chains: [
       { r: [], w: "", l: [], sp: all(0), g: [0, -1], m: [0, 3] },
       { r: ["6"], w: "Kispiox River", l: [], sp: [[0, 1], [0, 1, 196, 2, 236, 1], [0, 1], [0, 1], [0, 0]], g: [0, 0], m: [0, 3] },
-      { r: ["6"], w: "Kispiox River — at the resort", l: [], sp: all(1), g: [0, -1], m: [0, 3] },
+      { r: ["6"], w: "Kispiox River — at the resort", l: [], sp: all(1), g: [0, -1], m: [0, 3], n: [0, 1] },
     ],
     unmapped: [{ items: ["gnis:4674"], r: "6", w: "Kispiox River — at the resort", chain: 2 }],
   },
@@ -105,16 +105,13 @@ describe("the Salmon card", () => {
       .toBe("DFO does not list this water for salmon. It is closed to salmon fishing.");
   });
 
-  it("a DFO place on this water not drawn yet: 'Location not yet mapped', on the card — never on the map", () => {
+  it("(T372) a DFO place on this water not drawn yet: the trout card's caveat block on the card — never on the map", () => {
     render(<SalmonCard card={salmonCard(FACTS, { sids: [101], item: "gnis:4674" }, JUL20)} palette={LIGHT} />);
-    expect(screen.getByTestId("salmon-unmapped-tag").textContent).toBe("Location not yet mapped");
-    expect(screen.getByTestId("salmon-unmapped").textContent).toContain("Kispiox River — at the resort");
-    // folded to one line; opened, its own species and DFO's words are there
-    expect(screen.queryByTestId("salmon-place-body")).toBeNull();
-    fireEvent.click(screen.getByTestId("salmon-place-fold"));
-    expect(screen.getByTestId("salmon-place-summary").textContent).toBe("Closed to salmon fishing");   // every species closed: said once
-    expect(screen.getByTestId("salmon-place-body").textContent).toContain("No fishing for chinook (Apr 1–Mar 31)");
-    expect(FACTS.chainOf(999)).toBe(0);     // its chain is placed on no section: the map draws the water unlisted
+    // folded to its head; opened, the place and its day ("Closed to salmon fishing": every species closed, said once)
+    expect(screen.queryByTestId("keep-caveat-item")).toBeNull();
+    fireEvent.click(screen.getByTestId("caveat-fold"));
+    const item = screen.getByTestId("keep-caveat-item").textContent!;
+    expect([item.includes("Closed to salmon fishing"), item.includes("Where: Kispiox River — at the resort")]).toEqual([true, true]);
   });
 });
 
@@ -151,7 +148,7 @@ describe("the Standard / Salmon switch (beside the day strip, top left)", () => 
 });
 
 describe("(T318) every DFO rule on a water is still reachable in the table layout", () => {
-  it("each row word, size, species note, place word, region rule and water rule is on the card (places once opened)", () => {
+  it("each row word, size, species note, place word, region rule and water rule is on the card (the caveat once opened)", () => {
     const n = (id: string, k: string, t: string, extra: object = {}) => ({ id, k, t, ...extra });
     const f: SalmonFacts = { ...FACTS, payload: { ...FACTS.payload, regions: { "6": { ...FACTS.payload.regions["6"]!, notes: [
       n("6:daylight:a", "daylight", "You can only fish for salmon in Region 6 during daylight hours."),
@@ -161,9 +158,10 @@ describe("(T318) every DFO rule on a water is still reachable in the table layou
     for (const [day, item] of [[JUL20, "gnis:4674"], [SEP15, "gnis:4674"], [JUL20, null]] as const) {
       const card = salmonCard(f, { sids: [101], item }, day);
       render(<SalmonCard card={card} palette={LIGHT} />);
-      screen.queryAllByTestId("salmon-place-fold").forEach((b) => fireEvent.click(b));
+      screen.queryAllByTestId("caveat-fold").forEach((b) => fireEvent.click(b));
       const text = screen.getByTestId("salmon-card").textContent!;
       for (const t of salmonRowTexts(card)) expect(text, t).toContain(t);
+      for (const x of [...(card.caveat?.items ?? []), ...(card.caveat?.later ?? [])]) for (const t of [x.where!, ...(x.detail ?? [])]) expect(text, t).toContain(t);
       for (const g of card.regionRules) for (const r of g.rules) expect(text, r.id).toContain(r.line);
       for (const t of card.waterRules) expect(text, t).toContain(t);
       cleanup();

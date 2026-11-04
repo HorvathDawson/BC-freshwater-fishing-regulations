@@ -161,7 +161,7 @@ def golden() -> dict:
                               "sha256": "x", "changed": AT, "checked": AT, "stale": False, "held": None,
                               "failures": 0, "notes": feed_notes, "header": H.digest(feed_notes)[:16],
                               **S.header_answers(feed_notes)}}}
-    expect = [L.compose(c["l"], locs, verdicts, c.get("u", ())) for c in payload["chains"]]
+    expect = [L.compose(c["l"], locs, verdicts, c.get("u", ()), "n" in c) for c in payload["chains"]]
     # (T356) a feed whose header closes the region: every place with rules answers with the closure (verdict `c`), and
     # the chains it closes every day carry `c` — composed by the app exactly as `live.compose`
     from pipeline.regs.dfo_salmon import quota as Q
@@ -171,7 +171,7 @@ def golden() -> dict:
     slocs, sverdicts, sgears = _cals({"6:a": shut, "6:b(i)": shut, "6:kispiox": shut, "6:resort": shut})
     closed_feed = {**feed, "verdicts": sverdicts, "gears": sgears, "locs": slocs,
                    "regions": {"6": {**feed["regions"]["6"], "notes": shut_notes, **S.header_answers(shut_notes)}}}
-    closed_expect = [L.compose(c["l"], slocs, sverdicts, c.get("u", ())) for c in payload["chains"]]
+    closed_expect = [L.compose(c["l"], slocs, sverdicts, c.get("u", ()), "n" in c) for c in payload["chains"]]
     # which header notes a page shows (the app's `salmonNotes`): the feed's notes over the release's scopes
     merged = {**payload, "regions": {**payload["regions"], "6": {**payload["regions"]["6"], "notes": feed_notes}}}
     notes = [{"regions": rs, "item": item, "day": day, "expect": S.notes_for(merged, rs, item, day)}

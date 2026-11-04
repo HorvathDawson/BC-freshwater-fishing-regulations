@@ -96,9 +96,10 @@ function mapStatus(ss: readonly string[]): SalmonMapStatus {
 }
 
 /** One release chain's year, from the feed (the pipeline's `live.compose`). `undrawn`: the chain's `u` — a DFO place
- *  on its water not drawn yet; one the feed lists paints the map `check` every day (partial coverage). */
+ *  on its water not drawn yet; only whether the header closure `c` holds for it too. `speaks`: an undrawn place's own
+ *  chain, which carries `n` (the days DFO speaks for it). */
 export function composeChain(lids: readonly string[], feed: SalmonFeed,
-                             undrawn: readonly string[] = []): Pick<Chain, "sp" | "g" | "m" | "c"> {
+                             undrawn: readonly string[] = [], speaks = false): Pick<Chain, "sp" | "g" | "m" | "c" | "n"> {
   const cals = lids.map((l) => feed.locs[l]).filter((c): c is SalmonFeedLocation => !!c);
   const sp: number[][] = [[], [], [], [], []], g: number[] = [], m: number[] = [];
   for (let day = 0; day < DAYS; day++) {
@@ -118,8 +119,10 @@ export function composeChain(lids: readonly string[], feed: SalmonFeed,
   // (T356) closed by the region header every day, and so is every undrawn place the feed lists: `c`, never partial
   const shut = undrawn.every((l) => !feed.locs[l] || closedByHeader(feed.locs[l]!.sp, feed).length);
   const c = shut ? closedByHeader(spr, feed) : [];
-  // (T372, owner 2026-11-04: the trout way) an undrawn place never paints the map — it is the card's caveat
-  return { sp: spr, g: runsOf(g), m: runsOf(m), ...(c.length ? { c } : {}) };
+  // (T372, owner 2026-11-04: the trout way) an undrawn place never paints the map — it is the card's caveat; `n`: the
+  // pipeline's `speaks_runs`, a day some species has DFO's own verdict
+  const n = speaks ? runsOf(sp[0]!.map((_, day) => (sp.some((x) => !feed.verdicts[x[day]!]!.d) ? 1 : 0))) : null;
+  return { sp: spr, g: runsOf(g), m: runsOf(m), ...(c.length ? { c } : {}), ...(n ? { n } : {}) };
 }
 
 /** (T356) the pipeline's `deliver.salmon.closed_by_header`: the header notes answering every species every day, else [] */
@@ -165,7 +168,7 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
     // (T321) a location the feed carries answers with the feed's rows in DFO's words; the rest keep the release's
     x: wordsWithFeed(P.x ?? {}, feed),
     // the release's own closure (`c`) never outlives its verdicts: the feed's composition says whether one holds
-    chains: P.chains.map(({ c: _c, ...c }) => ({ ...c, ...composeChain(c.l, feed, c.u ?? []) })),
+    chains: P.chains.map(({ c: _c, n, ...c }) => ({ ...c, ...composeChain(c.l, feed, c.u ?? [], n !== undefined) })),
     // a place not drawn yet shows while DFO lists it: the feed's say, not the build's (so never dormant here)
     unmapped: P.unmapped.filter((u) => P.chains[u.chain]?.l.some((l) => !!feed.locs[l]))
       .map(({ d: _d, ...u }) => u),

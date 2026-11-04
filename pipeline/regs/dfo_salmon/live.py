@@ -108,12 +108,14 @@ def _at(runs: Sequence[int], day: int) -> int:
     return v
 
 
-def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[dict], undrawn: Sequence[str] = ()) -> dict:
+def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[dict], undrawn: Sequence[str] = (),
+            speaks: bool = False) -> dict:
     """A release chain's year from the feed: per species and day the FIRST location (narrowest first, the chain's own
     order) with an answer, else `NOT_LISTED` (index 0); gear the first with any; the map status from the five. The
     reference the app's `withSalmonFeed` is held to — equal to `deliver.salmon.chain_calendar` over the same rules.
     `undrawn`: the chain's `u` (DFO places on its water not drawn yet) — never the map's (T372, the trout way), only
-    whether the header closure `c` holds for them too."""
+    whether the header closure `c` holds for them too. `speaks`: an undrawn place's own chain carries `n`, the days DFO
+    speaks for it (`deliver.salmon.speaks_runs`)."""
     cals = [locs[l] for l in lids if l in locs]
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
@@ -130,7 +132,8 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
     # T356: closed by the region header every day — and so is every undrawn place the feed lists — `c`
     shut = all(S.closed_by_header(locs[l]["sp"], verdicts) for l in undrawn if l in locs)
     c = S.closed_by_header(sp, verdicts) if shut else []
-    return {"sp": sp, "g": S.runs_of(gear), "m": S.runs_of(mapc), **({"c": c} if c else {})}
+    n = S.speaks_runs(per_sp, verdicts) if speaks else None
+    return {"sp": sp, "g": S.runs_of(gear), "m": S.runs_of(mapc), **({"c": c} if c else {}), **({"n": n} if n else {})}
 
 
 # ── one region ───────────────────────────────────────────────────────────────────────────────────────────────────────

@@ -293,12 +293,14 @@ def closed_by_header(sp_runs: Sequence[Sequence[int]], verdicts: Sequence[dict])
 
 
 def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: _Interner,
-                   undrawn_closed: bool = True) -> dict:
+                   undrawn_closed: bool = True, speaks: bool = False) -> dict:
     """One chain's year: per species runs of a verdict index (`NOT_LISTED` where nothing opens it), the gear runs (-1:
     no gear line), the map-status runs. (T372, owner 2026-11-04: the trout way) a DFO place on the water not drawn yet
     never paints the map — it is the card's caveat, as an undrawn trout rule is (`status_index`: it never colours a
     section). (T356) `c`: the header notes that close the chain every day (`closed_by_header`) — set only where its
-    undrawn places, if any, are closed by their header too (`undrawn_closed`)."""
+    undrawn places, if any, are closed by their header too (`undrawn_closed`). (T372) `n`, on an undrawn place's own
+    chain (`speaks`): the days DFO speaks for it (1: some species has a verdict other than "not opened"), the trout
+    caveat's "in force today" — the card lists it first on those days."""
     per_sp: List[List[int]] = [[] for _ in SPECIES]
     gear: List[int] = []
     mapc: List[int] = []
@@ -311,7 +313,14 @@ def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: 
         mapc.append(MAP_CODES.index(map_status(vs)))
     sp = [runs_of(x) for x in per_sp]
     c = closed_by_header(sp, verdicts.items) if undrawn_closed else []
-    return {"sp": sp, "g": runs_of(gear), "m": runs_of(mapc), **({"c": c} if c else {})}
+    n = speaks_runs(per_sp, verdicts.items) if speaks else None
+    return {"sp": sp, "g": runs_of(gear), "m": runs_of(mapc), **({"c": c} if c else {}), **({"n": n} if n else {})}
+
+
+def speaks_runs(per_sp: Sequence[Sequence[int]], verdicts: Sequence[dict]) -> List[int]:
+    """(T372) Per day 1 where some species' verdict is DFO's own (not `d`, "not opened"), else 0 — as runs."""
+    return runs_of([int(any(not verdicts[per_sp[k][d]].get("d") for k in range(len(per_sp))))
+                    for d in range(len(per_sp[0]))])
 
 
 def _label(loc) -> str:
@@ -437,7 +446,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     chains: List[dict] = [{"r": [], "w": "", "l": [], **chain_calendar([], verdicts, gears)}]
     chain_ix: Dict[Tuple[Tuple[str, ...], Tuple[str, ...]], int] = {((), ()): UNLISTED_CHAIN}
 
-    def chain_for(lids: Sequence[str], u: Iterable[str] = ()) -> int:
+    def chain_for(lids: Sequence[str], u: Iterable[str] = (), speaks: bool = False) -> int:
         key = tuple(sorted(set(lids), key=order))
         uk = tuple(sorted(set(u)))
         if (key, uk) not in chain_ix:
@@ -447,7 +456,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                            "l": list(key), **({"u": list(uk)} if uk else {}),
                            **chain_calendar([rules_of[l] for l in key], verdicts, gears,
                                             undrawn_closed=all(all(r.get("header_note") for r in rules_of[l])
-                                                               for l in uk))})
+                                                               for l in uk), speaks=speaks)})
         return chain_ix[(key, uk)]
 
     # the DFO places not drawn yet, by the items of their water, onto those items' sections
@@ -467,7 +476,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         # `d: 1` — DORMANT at build (no rules on the page): carried so the live feed can show it the day DFO lists it
         # again; the app leaves it off the card until then (core `pickSalmon` / `withSalmonFeed`)
         unmapped.append({"items": sorted(water.item_ids) if water else [], "r": slug, "w": _label(loc),
-                         "chain": chain_for([lid]), **({} if rules_of[lid] else {"d": 1})})
+                         "chain": chain_for([lid], speaks=True), **({} if rules_of[lid] else {"d": 1})})
     if item_sections is not None:
         # (T343) a region's note is read only on a page whose places are that region's (core `salmonNotes`, its chains'
         # `r`): a scope keeps the items that have one — R6's "other than Fraser River Watershed" is 6,713 items across

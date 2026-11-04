@@ -31,7 +31,8 @@
  */
 import { DAYS_BEFORE_MONTH, MONTHS } from "./calendar.generated";
 import { METHOD_WORDS, type MethodClass } from "./method";
-import type { GearVM, MethodsVM } from "./regs/model";
+import type { CaveatItemVM, CaveatVM, GearVM, MethodsVM } from "./regs/model";
+import { inPartBlock } from "./regs/caveats";
 import { BOOK_DAYS, fmtDay } from "./regs/strip";
 import { WORDS } from "./regs/words";
 import { kindWords, tierWords } from "./regs/tree";
@@ -90,9 +91,12 @@ interface Chain {
   /** per species (SALMON_SPECIES order) runs [start, verdict index, …] */
   readonly sp: readonly (readonly number[])[];
   readonly g: readonly number[]; readonly m: readonly number[];
-  /** PARTIAL COVERAGE: DFO places on this section's water not drawn yet (their location ids). While one has rules the
-   *  map paints `check` and the card names no status of its own — we cannot tell which stretch they cover. */
+  /** PARTIAL COVERAGE: DFO places on this section's water not drawn yet (their location ids). (T372, the trout way) the
+   *  map and the card keep the drawn answer; the card lists these places in its "in part" caveat. */
   readonly u?: readonly string[];
+  /** (T372) on an undrawn place's own chain: runs [start, 1|0] — the days DFO speaks for it (the pipeline's
+   *  `speaks_runs`), the caveat's "in force today" */
+  readonly n?: readonly number[];
 }
 /** One header note (`pipeline/regs/dfo_salmon/header.py`): kind, DFO's words, the values derived from them. */
 export interface SalmonNote {
@@ -178,6 +182,7 @@ function checkPayload(P: Payload): Payload {
     runs(c.g, P.gears.length, `chain ${i} gear`, true);
     runs(c.m, MAP_CODES.length, `chain ${i} map`, false);
     for (const id of c.c ?? []) if (!closureNote(P, c, id)) bad(`chain ${i}: closure ${id} is no note of its regions`);
+    if (c.n !== undefined) runs(c.n, 2, `chain ${i} speaks`, false);
   });
   for (const u of P.unmapped) if (!P.chains[u.chain]) bad(`unmapped ${u.w}: chain ${u.chain}`);
   return P;
@@ -363,8 +368,8 @@ export const SALMON_WORDS = {
   allClosed: "Salmon — closed",
   gear: "Gear",
   varies: "Differs along this water. Tap a stretch on the map for its own answer.",
-  unmapped: "Location not yet mapped",
-  unmappedLead: "DFO also lists this water at a place not drawn on the map yet:",
+  /** (T372) the caveat's water noun (only a boat rule's calm line says it; salmon has none) */
+  waterNoun: "water",
   agency: "Fisheries and Oceans Canada",
   notListedLine: "DFO does not list this water for salmon. It is closed to salmon fishing.",
   noteTwoAuthorities: "Salmon are set by DFO, not the provincial regulations above. Both apply.",
@@ -380,7 +385,6 @@ export const SALMON_WORDS = {
   legend: { open: "Salmon may be kept", release: "Salmon: release only", closed: "Closed to salmon",
             check: "Check DFO (not mapped yet, or season not set)" } satisfies Record<SalmonMapStatus, string>,
   /** PARTIAL COVERAGE (owner 2026-10-28): the water has DFO places not drawn yet */
-  partial: "Salmon rules on parts of this water aren't mapped yet — check DFO",
   /** (owner 2026-10-28) the region page's header, compact */
   regionRules: "Region rules (DFO)",
   /** (T309) a region rule's kind, said as its chip; a kind not listed reads "Rule" */
@@ -421,7 +425,6 @@ export const SALMON_WORDS = {
   /** (owner 2026-10-28: "bait and fly rules also apply to salmon") the provincial gear mark on the page that day */
   gearLead: "B.C. rules, also for salmon",
   gearParts: "on parts of this water",
-  partialLink: "Open DFO's salmon page",
   /** (T227, owner 2026-10-28) the season bars at the top of the Keep tab: the provincial bar's name beside the salmon one */
   barSalmon: "Salmon (DFO)",
   barGeneral: "Game fish (B.C. rules)",
@@ -494,10 +497,9 @@ export interface SalmonCardVM extends SalmonBlockVM {
   readonly headlineStatus: SalmonVerdictStatus | "varies";
   /** The unlisted water's one line, else null. */
   readonly notListed: string | null;
-  /** DFO places on this water not drawn yet: their words, the tag, and DFO's rules for them. */
-  readonly unmapped: readonly { readonly label: string; readonly tag: string; readonly block: SalmonBlockVM }[];
-  /** DFO places on this water are not drawn yet: no status of ours is confident — the line and DFO's page, else null. */
-  readonly partial: { readonly text: string; readonly link: string; readonly url: string } | null;
+  /** (T372, owner 2026-11-03: the trout way) DFO places on this water not drawn yet: the card keeps the drawn answer and
+   *  lists them in the trout card's "in part" caveat (core `inPartBlock`) — those DFO speaks for today first — else null */
+  readonly caveat: CaveatVM | null;
   /** "Fisheries and Oceans Canada · Region 6 Skeena". */
   readonly source: string;
   /** "DFO page dated Aug 28, 2026" (the newest of the regions named). */
@@ -550,15 +552,9 @@ export interface SalmonBarVM {
   readonly todayWord: string;
   readonly runs: readonly { readonly status: SalmonBarStatus; readonly days: number }[];
 }
-/** (T227) A DFO place on the water not drawn yet: DFO's words for it and its own day. */
-export interface SalmonUnplacedVM { readonly label: string; readonly today: SalmonBarStatus; readonly todayWord: string }
 export interface SalmonYearVM {
   /** ONE bar for the viewed part / section (none where DFO has no salmon rules here) */
   readonly bars: readonly SalmonBarVM[];
-  /** the DFO places on the water not drawn yet that have rules (the bar reads "check DFO" on a day one answers otherwise) */
-  readonly unplaced: readonly SalmonUnplacedVM[];
-  /** the page reads the partial-coverage rule: today's word is "check DFO", whatever a bar shows */
-  readonly partial: boolean;
 }
 
 /** The provincial gear classes of a page's sections on the day (`methodClassOn`), for the card's gear line. */
@@ -638,11 +634,6 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const chains = [...new Set(page.sids.map((s) => f.chainOf(s)))].sort((a, b) => a - b);
   if (!chains.length) chains.push(P.default);
   const unmapped = page.item === null ? [] : P.unmapped.filter((u) => u.items.includes(page.item!));
-  // PARTIAL COVERAGE: a DFO place with rules (not dormant) on this water is not drawn — the whole water says "check DFO"
-  const active = new Set(P.unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? []));
-  const partialRegions = [...new Set([
-    ...chains.flatMap((c) => (P.chains[c]!.u ?? []).some((l) => active.has(l)) ? P.chains[c]!.r : []),
-    ...unmapped.filter((u) => !u.d).map((u) => u.r)])].sort();
   const def = P.default;
   // (T227, owner 2026-10-28) A REGION-WIDE CLOSURE: the region's header says "There is no fishing for salmon in Region 4
   // … until further notice" — the header's closure is the answer, every day: one closed row in its words, no bar, no
@@ -652,21 +643,13 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     && chains.every((c) => c === def || shut(c));
   const closedWords = regionClosed
     ? [...new Set(chains.flatMap((c) => (c === def ? [] : P.chains[c]!.c!.map((id) => closureNote(P, P.chains[c]!, id)!))))] : [];
-  const isPartial = !regionClosed && partialRegions.length > 0;
-  const raw: SalmonBlockVM = regionClosed
+  const block: SalmonBlockVM = regionClosed
     ? { allClosed: true, gear: [], rows: [{ key: "all", species: SALMON_SPECIES, label: SALMON_WORDS.all, status: "closed",
                                              statusLabel: SALMON_WORDS.status.closed, notes: closedWords.map((n) => n.t) }] }
     : salmonBlock(f, chains, day);
-  // (T227, owner 2026-10-28) PARTIAL COVERAGE, PER SPECIES AND DAY: a row keeps its answer only where every DFO place on
-  // the water not drawn yet says the same for each of its species that day (then it holds wherever the place lies);
-  // else it reads "check DFO". The undrawn places: the water's own (`unmapped`) and those its chains name (`u`).
-  const undrawn = isPartial ? undrawnChains(f, chains, unmapped) : [];
-  const agrees = (r: SalmonRowVM) => r.status !== "varies" && undrawn.every((uc) =>
-    r.species.every((sp) => speciesStatusOn(f, uc, SALMON_SPECIES.indexOf(sp), day) === r.status));
-  const block: SalmonBlockVM = !isPartial ? raw : (() => {
-    const rows = raw.rows.map((r) => (agrees(r) ? r : { ...r, status: "check" as const, statusLabel: SALMON_WORDS.status.check }));
-    return { ...raw, rows, allClosed: raw.allClosed && rows.every((r) => r.status === "closed") };
-  })();
+  // (T372, owner 2026-11-03: the trout way) PARTIAL COVERAGE: the rows keep the drawn answer; the DFO places on the
+  // water not drawn yet — the water's own (`unmapped`) and those its chains name (`u`) — are the "in part" caveat
+  const undrawn = regionClosed ? [] : undrawnChains(f, chains, unmapped);
   const listed = chains.some((c) => c !== P.default);
   const regionsUsed = [...new Set([...chains.flatMap((c) => P.chains[c]!.r), ...unmapped.map((u) => u.r)])].sort();
   const named = regionsUsed.length ? regionsUsed : Object.keys(P.regions).sort();
@@ -745,19 +728,17 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     title: SALMON_WORDS.title, badge: SALMON_WORDS.badge,
     headline: SALMON_WORDS.headline[headlineStatus], headlineStatus,
     notListed: listed || unmapped.length ? null : SALMON_WORDS.notListedLine,
-    unmapped: unmapped.map((u) => ({ label: u.w, tag: SALMON_WORDS.unmapped, block: salmonBlock(f, [u.chain], day) })),
+    caveat: inPartBlock(undrawnEntries(f, undrawn, unmapped, day), SALMON_WORDS.waterNoun),
     dfoWords: regionClosed ? null : wordsOf(P, [...chains.flatMap((c) => [...P.chains[c]!.l, ...(P.chains[c]!.u ?? [])]),
                                                   ...unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? [])]),
-    partial: isPartial ? { text: SALMON_WORDS.partial, link: SALMON_WORDS.partialLink,
-                           url: P.regions[partialRegions[0]!]?.url ?? "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/index-eng.html" } : null,
     source: [SALMON_WORDS.agency,
              ...regionsUsed.map((r) => `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim())].join(" · "),
     asOf: SALMON_WORDS.asOf(dates[dates.length - 1] ?? null),
     credit: SALMON_WORDS.credit(P.credit),
     note: SALMON_WORDS.noteTwoAuthorities,
-    year: regionClosed ? { bars: [], unplaced: [], partial: false } : salmonYear(f, chains, undrawn, unmapped, isPartial, day),
+    year: regionClosed ? { bars: [] } : salmonYear(f, chains, day),
     // one closed-all-year statement: the region's closure, or every place of the page closed every day, nothing undrawn
-    closedOnly: regionClosed || (!unmapped.some((u) => !u.d && speaks(f, u.chain))
+    closedOnly: regionClosed || (!undrawn.some((c) => speaks(f, c))
       && chains.every((c) => runsOf((i) => salmonStatusFromSpecies(f, c, i)).every((r) => r.status === "closed"))),
   };
 }
@@ -800,36 +781,19 @@ function runsOf(statusOn: (fileDayIx: number) => SalmonBarStatus): SalmonBarVM["
 /**
  * (T227) THE PAGE'S SALMON YEAR: ONE bar for the viewed part / section. A day no DFO rule speaks for is CLOSED (the
  * pipeline's `NOT_LISTED`: "closed unless DFO opens it"; the region headers set limits and sizes, never an opening). Per
- * day: the status the page's sections share, `varies` where they differ. PARTIAL COVERAGE (owner 2026-10-28): a DFO place
- * on the water not drawn yet may lie on this part, so a day it answers otherwise is "check DFO" — never ours; the places
- * are listed under the bar with their own day. Nothing DFO speaks for here (the unlisted water, "not opened"): no bar.
+ * day: the status the page's sections share, `varies` where they differ. (T372, the trout way) a DFO place on the water
+ * not drawn yet never changes the bar — it is the card's caveat. Nothing DFO speaks for here (the unlisted water, "not
+ * opened"): no bar.
  */
-function salmonYear(f: SalmonFacts, chains: readonly number[], undrawn: readonly number[], unmapped: readonly Unmapped[],
-                    partial: boolean, day: number): SalmonYearVM {
-  const P = f.payload;
-  const speakingUndrawn = undrawn.filter((c) => speaks(f, c));
-  if (!chains.some((c) => speaks(f, c)) && !speakingUndrawn.length) return { bars: [], unplaced: [], partial };
+function salmonYear(f: SalmonFacts, chains: readonly number[], day: number): SalmonYearVM {
+  if (!chains.some((c) => speaks(f, c))) return { bars: [] };
   // the page's own places: one status a day, `varies` where its sections differ
   const own = (i: number): SalmonBarStatus => {
     const ss = new Set(chains.map((c) => salmonStatusFromSpecies(f, c, i)));
     return ss.size === 1 ? [...ss][0]! : "varies";
   };
-  // an undrawn place may lie on this part: a day it answers otherwise is "check DFO", never our answer
-  const at1 = (i: number): SalmonBarStatus => {
-    const st = own(i);
-    return speakingUndrawn.every((c) => salmonStatusFromSpecies(f, c, i) === st) ? st : "check";
-  };
-  const st = at1(day);
-  const seen = new Set<string>();
-  const unplaced: SalmonUnplacedVM[] = [];
-  for (const c of speakingUndrawn) {
-    const label = unmapped.find((u) => u.chain === c)?.w ?? P.chains[c]?.w ?? "";
-    if (seen.has(label)) continue;
-    seen.add(label);
-    const t = salmonStatusFromSpecies(f, c, day);
-    unplaced.push({ label, today: t, todayWord: SALMON_WORDS.barDay[t] });
-  }
-  return { bars: [{ label: null, unmapped: false, today: st, todayWord: SALMON_WORDS.barDay[st], runs: runsOf(at1) }], unplaced, partial };
+  const st = own(day);
+  return { bars: [{ label: null, unmapped: false, today: st, todayWord: SALMON_WORDS.barDay[st], runs: runsOf(own) }] };
 }
 
 /** The chains of the DFO places on the page's water not drawn yet (not dormant): the item's own, and those the page's
@@ -843,10 +807,26 @@ function undrawnChains(f: SalmonFacts, chains: readonly number[], unmapped: read
   return [...out].sort((a, b) => a - b);
 }
 
-/** One species' verdict status on a chain's day. */
-function speciesStatusOn(f: SalmonFacts, chain: number, k: number, day: number): SalmonVerdictStatus {
-  const P = f.payload, runs = P.chains[chain]?.sp[k];
-  return runs ? P.verdicts[at(runs, day)]!.s : "closed";
+/**
+ * (T372) The undrawn places as the in-part caveat's entries (core `inPartBlock`, the trout card's): one per place (by its
+ * words), `where` the place, `what` its day as the folded place line said it, `detail` DFO's words for it (limits,
+ * sizes, notes, gear). In force: the pipeline's `n` — the days DFO speaks for the place.
+ */
+function undrawnEntries(f: SalmonFacts, undrawn: readonly number[], unmapped: readonly Unmapped[], day: number) {
+  const P = f.payload, seen = new Set<string>();
+  return undrawn.flatMap((c) => {
+    const ch = P.chains[c]!, label = unmapped.find((u) => u.chain === c)?.w ?? ch.w;
+    if (seen.has(label)) return [];
+    seen.add(label);
+    if (!ch.n) throw new SalmonError(`salmon: the undrawn place ${label} has no in-force days (n)`);
+    const b = salmonBlock(f, [c], day);
+    const what = b.allClosed ? SALMON_WORDS.placeClosed : b.rows.map((r) => `${r.label} ${r.statusLabel.toLowerCase()}`).join(" · ");
+    const detail = [...tableRows(b.rows).flatMap((r) => [...(r.quota ? [`${r.name}: ${r.quota}`] : []), ...(r.limit ? [r.limit] : [])]),
+                    ...tableSays(b.rows, b.allClosed).flatMap((x) => x.lines.map((l) => (x.label ? `${x.label}: ${l}` : l))), ...b.gear];
+    const item: CaveatItemVM = { what: [text(what)], where: WORDS.WHERE(label), rule: null, fish: null, book: [],
+                                 ...(detail.length ? { detail } : {}) };
+    return [{ item, now: at(ch.n, day) === 1 }];
+  });
 }
 
 /** (T228) A rule line as the key compares it: case and spacing never make two regulations differ. */
@@ -973,7 +953,8 @@ export function gearTabsFor(page: { readonly status: string; readonly gear: Gear
                             strip: SalmonStripVM | null, card: SalmonCardVM | null): GearTabsVM {
   if (page.status === "tidal" || page.status === "outside") return { gear: page.gear, methods: page.methods, salmonGear: null };
   const salmonOpen = !!strip && strip.status !== "closed";
-  const dfo = card ? [...new Set([...card.gear, ...card.unmapped.flatMap((u) => u.block.gear)])] : [];
+  // (T372, the trout way) the drawn answer's gear; an undrawn place's is its caveat item's detail
+  const dfo = card ? [...new Set(card.gear)] : [];
   const salmonGear = salmonOpen && dfo.length ? { lead: SALMON_WORDS.gearDfoLead, lines: dfo } : null;
   const gameOpen = !!page.gear && page.gear.closed === null && !page.gear.closedMore.length;
   if (gameOpen) return { gear: page.gear, methods: page.methods, salmonGear };
@@ -1005,16 +986,6 @@ export interface SalmonTableRowVM {
 export interface SalmonBucketVM { readonly line: string; readonly words: readonly string[]; readonly runs?: Line }
 /** DFO's own words for a group of species, said ONCE (a row grouping species alike), under the table. */
 export interface SalmonSaysVM { readonly label: string | null; readonly lines: readonly string[] }
-export interface SalmonPlaceTableVM {
-  readonly label: string;
-  readonly tag: string;
-  /** one line while folded: "Closed to salmon fishing", or each group's status */
-  readonly summary: string;
-  readonly status: SalmonVerdictStatus | "varies";
-  readonly species: readonly SalmonTableRowVM[];
-  readonly says: readonly SalmonSaysVM[];
-  readonly gear: readonly string[];
-}
 export interface SalmonTableVM {
   /** (T320) the bucket total over the rows (shown when a species may be kept), else null */
   readonly bucket?: SalmonBucketVM | null;
@@ -1023,7 +994,6 @@ export interface SalmonTableVM {
   /** one row per salmon species, SALMON_SPECIES order */
   readonly species: readonly SalmonTableRowVM[];
   readonly says: readonly SalmonSaysVM[];
-  readonly places: readonly SalmonPlaceTableVM[];
 }
 
 /** A Line's words, as drawn (no space invented, the store's U+00A0 kept). */
@@ -1070,39 +1040,30 @@ const tableSays = (rows: readonly SalmonRowVM[], allClosed: boolean): SalmonSays
 
 /**
  * (T318, owner 2026-10-31) THE CARD AS A TABLE: one row per species with today's status and sizes, DFO's words for the
- * rows said once under it (never repeated per picture), then each DFO place on the water not drawn yet FOLDED to one
- * line, its own species and words inside. The same facts as `salmonCard`, re-shaped: `salmonTableTexts` lists every
- * string a card holds, and a test pins that all of them are still here.
+ * rows said once under it (never repeated per picture). (T372) The DFO places on the water not drawn yet are the card's
+ * caveat (`caveat`), not the table's. The same facts as `salmonCard`, re-shaped: `salmonTableTexts` lists every string
+ * the rows hold, and a test pins that all of them are still here.
  */
 export function salmonTable(card: SalmonCardVM): SalmonTableVM {
   const b = card.bucket ?? null;
   return {
-    bucket: card.allClosed ? null : bucketOf(b, [...card.rows, ...card.unmapped.flatMap((u) => u.block.rows)]),
+    bucket: card.allClosed ? null : bucketOf(b, card.rows),
     waterBuckets: card.allClosed ? [] : card.waterBuckets ?? [],
     species: tableRows(card.rows),
     says: tableSays(card.rows, card.allClosed),
-    places: card.unmapped.map((u) => ({
-      label: u.label, tag: u.tag,
-      summary: u.block.allClosed ? SALMON_WORDS.placeClosed
-        : u.block.rows.map((r) => `${r.label} ${r.statusLabel.toLowerCase()}`).join(" · "),
-      status: u.block.allClosed ? "closed" : u.block.rows.length === 1 ? u.block.rows[0]!.status : "varies",
-      species: u.block.allClosed ? [] : tableRows(u.block.rows),
-      says: tableSays(u.block.rows, u.block.allClosed),
-      gear: u.block.gear,
-    })),
   };
 }
 
-/** Every DFO string a card holds on a water's rows and places (rows' words, sizes, species notes; each place's). */
+/** Every DFO string a card holds on a water's rows (rows' words, sizes, species notes) and its gear; the undrawn
+ *  places' are the caveat's (`caveat.items[].detail`). */
 export function salmonRowTexts(card: SalmonCardVM): string[] {
   const of = (rows: readonly SalmonRowVM[]) => rows.flatMap((r) => [...r.notes, ...(r.sizes ? [r.sizes] : []), ...(r.speciesNotes ?? [])]);
-  return [...of(card.rows), ...card.unmapped.flatMap((u) => [u.label, ...of(u.block.rows), ...u.block.gear]), ...card.gear];
+  return [...of(card.rows), ...card.gear];
 }
 
-/** Every string the table can show (its rows' limits, the words under it, each place's label, summary, rows, words). */
+/** Every string the table can show (its rows' limits, the words under it). */
 export function salmonTableTexts(t: SalmonTableVM, gear: readonly string[] = []): string[] {
   const species = (rs: readonly SalmonTableRowVM[]) => rs.flatMap((r) => [...(r.limit ? [r.limit] : []), ...(r.quota ? [r.quota] : [])]);
   const says = (xs: readonly SalmonSaysVM[]) => xs.flatMap((x) => x.lines);
-  return [...(t.bucket ? [t.bucket.line] : []), ...(t.waterBuckets ?? []).map((w) => w.line), ...species(t.species), ...says(t.says), ...gear,
-          ...t.places.flatMap((p) => [p.label, ...species(p.species), ...says(p.says), ...p.gear])];
+  return [...(t.bucket ? [t.bucket.line] : []), ...(t.waterBuckets ?? []).map((w) => w.line), ...species(t.species), ...says(t.says), ...gear];
 }

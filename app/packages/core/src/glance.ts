@@ -50,11 +50,11 @@ export function groupGlance(g: GroupVM): GlanceRowVM {
 
 /**
  * The Salmon card's folded row: its title, and its status word ("closed", "check DFO" …) only when every row of the
- * card — the water's and any undrawn DFO place's — has that status; else none.
+ * card has that status; else none. (T372, the trout way) an undrawn DFO place is the card's caveat, not its answer.
  */
 export function salmonGlance(card: SalmonCardVM): GlanceRowVM {
   if (card.closedOnly) return { thumb: "CO", name: card.title, value: SALMON_WORDS.status.closed.toLowerCase(), tone: "closed", fold: false };
-  const all = [...card.rows, ...card.unmapped.flatMap((u) => u.block.rows)].map((r) => r.status);
+  const all = card.rows.map((r) => r.status);
   const s = all.length && all.every((x) => x === all[0]) ? all[0]! : null;
   if (s === null || s === "varies") return { thumb: "CO", name: card.title, value: null, tone: "keep" };
   const word = SALMON_WORDS.status[s];

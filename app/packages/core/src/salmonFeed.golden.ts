@@ -683,6 +683,10 @@ export const SALMON_FEED_GOLDEN = {
     "m": [
      0,
      3
+    ],
+    "n": [
+     0,
+     1
     ]
    }
   ],
@@ -1482,6 +1486,10 @@ export const SALMON_FEED_GOLDEN = {
    "m": [
     0,
     3
+   ],
+   "n": [
+    0,
+    1
    ]
   }
  ],
@@ -2319,6 +2327,10 @@ export const SALMON_FEED_GOLDEN = {
    ],
    "c": [
     "6:closed:t356"
+   ],
+   "n": [
+    0,
+    1
    ]
   }
  ]

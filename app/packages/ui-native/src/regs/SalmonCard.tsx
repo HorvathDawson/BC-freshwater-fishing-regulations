@@ -2,22 +2,22 @@
  * (T211, restyled owner 2026-10-28) THE SALMON CARD — "Salmon · DFO", drawn like a Keep group (GroupCard): a head under
  * a heavy rule, then one boxed row per answer with a status rail and chip, the species' pictures (ocean AND spawning
  * looks) each opening its fish sheet (sp:CH … — the ID tips), then DFO's source and as-of block. Above the provincial
- * Keep tab. Every species closed: one "Salmon — closed" row. DFO places on this water not drawn yet follow IN THE SAME
- * TABLE (T221), each row tagged with its place and "Location not yet mapped". A water with DFO places not drawn yet leads with the partial-coverage line and DFO's page
- * (owner 2026-10-28). Then (owner 2026-10-28) the provincial bait ban / fly only that day (it applies to salmon too), the
+ * Keep tab. Every species closed: one "Salmon — closed" row. (T372, owner 2026-11-03: the trout way) DFO places on this
+ * water not drawn yet are the trout card's "in part" caveat block (`CaveatBlock`, core `inPartBlock`), above the table;
+ * the rows keep the drawn answer. Then (owner 2026-10-28) the provincial bait ban / fly only that day (it applies to salmon too), the
  * header notes naming this water, and the page's DFO regions' header rules in a compact "Region rules (DFO)" block; an
  * open row carries the header's sizes, and (T227) any row that may be fished carries the region notes about its species
  * (DFO's words: what an "adult chinook" is …), which the region block then leaves out. No logic and no words of its own: everything is core `salmonCard`'s.
  */
-import { Image, Linking, Text, View } from "react-native";
-import { useState } from "react";
-import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonPlaceTableVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
+import { Image, Text, View } from "react-native";
+import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
 import { RegsPress } from "./RegsPress";
 import { RegionRules } from "./RegionRules";
 import { LineText, NO_ACTIONS, type KeepActions } from "./LineText";
+import { CaveatBlock } from "./KeepBlocks";
 import type { FishImages } from "./types";
 
 const chipColour = (p: Palette, s: SalmonRowVM["status"]): string =>
@@ -84,31 +84,6 @@ function Says({ says, palette }: { says: readonly SalmonSaysVM[]; palette: Palet
   );
 }
 
-/** A DFO place on this water not drawn yet, folded to one line (its place, the tag, what it says); opened: its species and DFO's words. */
-function Place({ p, palette }: { p: SalmonPlaceTableVM; palette: Palette }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <View testID="salmon-place" style={{ borderTopWidth: 1, borderTopColor: palette.line2, borderLeftWidth: 5, borderLeftColor: chipColour(palette, p.status), paddingLeft: 10 }}>
-      <RegsPress testID="salmon-place-fold" accessibilityRole="button" aria-expanded={open} box={{ w: 120, h: 44 }} onPress={() => setOpen(!open)}
-                 style={{ minHeight: 44, justifyContent: "center", paddingVertical: 6 }}>
-        <View testID="salmon-unmapped">
-          <Text selectable style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{p.label}</Text>
-          <Text testID="salmon-unmapped-tag" style={{ ...TYPE.kicker, color: palette.sub }}>{p.tag}</Text>
-          <Text testID="salmon-place-summary" style={{ ...TYPE.meta, color: palette.sub }}>{p.summary}</Text>
-        </View>
-        <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{open ? SALMON_WORDS.placeHide : SALMON_WORDS.placeShow} {SALMON_WORDS.more}</Text>
-      </RegsPress>
-      {open && (
-        <View testID="salmon-place-body" style={{ paddingBottom: 8 }}>
-          {p.species.map((r) => <SpeciesRow key={r.code} r={r} palette={palette} pictures={false} />)}
-          <Says says={p.says} palette={palette} />
-          {p.gear.map((g) => <Text key={g} testID="salmon-unmapped-block-gear" style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>)}
-        </View>
-      )}
-    </View>
-  );
-}
-
 /** (T321, owner 2026-10-31) DFO's rows in DFO's words: `strong` — the wording changed and the app reads no number for
  *  them (a boxed block above the table); else the rows whose words matter as printed. Species and dates, then DFO's text. */
 function Words({ head, rows, palette, strong, testID }: {
@@ -155,12 +130,6 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
       {card.gear.map((g) => (
         <Text key={g} testID="salmon-card-block-gear" style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>
       ))}
-      {t.places.length > 0 && (
-        <View testID="salmon-places" style={{ marginTop: 12 }}>
-          <Text accessibilityRole="header" style={{ ...TYPE.kicker, color: palette.sub, marginBottom: 2 }}>{SALMON_WORDS.placesHead}</Text>
-          {t.places.map((p, i) => <Place key={`${p.label}#${i}`} p={p} palette={palette} />)}
-        </View>
-      )}
     </View>
   );
 }
@@ -180,14 +149,7 @@ export function SalmonCard({ card, palette, actions, images }: {
             <Chip status={card.headlineStatus} label={card.headline} palette={palette} />
           </View>
         </View>
-        {card.partial && (
-          <View testID="salmon-partial" style={{ marginTop: 8, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1,
-                                                  borderColor: palette.line2, borderLeftWidth: 5, borderLeftColor: palette.sub }}>
-            <Text selectable style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{card.partial.text}</Text>
-            <Text testID="salmon-partial-link" accessibilityRole="link" onPress={() => { void Linking.openURL(card.partial!.url); }}
-                  style={{ ...TYPE.metaSemi, color: palette.accent, marginTop: 4, paddingVertical: 4 }}>{card.partial.link} {SALMON_WORDS.more}</Text>
-          </View>
-        )}
+        {card.caveat && <CaveatBlock caveat={card.caveat} palette={palette} actions={actions ?? NO_ACTIONS} inset={false} />}
         {card.dfoWords && card.dfoWords.changed.length > 0 && (
           <Words testID="salmon-wording-changed" head={card.dfoWords.changedHead} rows={card.dfoWords.changed} palette={palette} strong />
         )}

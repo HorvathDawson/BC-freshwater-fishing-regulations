@@ -84,13 +84,34 @@ export function areaOf(r: RuleView, inp: RegsInputs): CaveatItemVM["area"] | nul
 const item = (what: Line, where: string | null, r: RuleView | null, fish: string | null = null): CaveatItemVM =>
   ({ what, where: where || null, rule: r ? r.key : null, fish, book: r ? ruleBook(r) : [] });
 
-/** page v36 inPartHtml: rules of parts the map can't draw yet, those in force today first ("Other dates (N)" folds the rest). */
-export function inPartOf(s: Settled, inp: RegsInputs, fams: readonly string[]): CaveatVM | null {
-  const u = s.inpart.filter((x) => fams.includes(family(x.rule)));
+/** (T372) One entry of the in-part block, either family's: its item, whether it is in force on the day (the pipeline's
+ *  answer: trout's stored ladder verdict, salmon's `n` runs), and whether it is a boat rule. */
+export interface InPartEntry { readonly item: CaveatItemVM; readonly now: boolean; readonly boat?: boolean }
+
+/**
+ * page v36 inPartHtml over entries: parts of the water the map can't draw yet, those in force today first ("Other dates
+ * (N)" folds the rest). (T372, owner 2026-11-03: one mechanism) trout's undrawn rules (`inPartOf`) and salmon's undrawn
+ * DFO places (core `salmonCard`) both come through here: the same selection, words and VM. `noun`: the page's water noun.
+ */
+export function inPartBlock(u: readonly InPartEntry[], noun: string): CaveatVM | null {
   if (!u.length) return null;
-  const now = u.filter((x) => x.now).map((x) => x.rule), later = u.filter((x) => !x.now).map((x) => x.rule);
+  const now = u.filter((x) => x.now), later = u.filter((x) => !x.now);
+  const hot = now.some((x) => !x.boat), onlyBoat = now.length > 0 && now.every((x) => x.boat);
+  const items = (now.length ? now : later).map((x) => x.item), rest = now.length && later.length ? later.map((x) => x.item) : null;
+  // (T208) the block's areas, said on its folded head so a rule of one area is never only behind the fold
+  const areas = [...new Set([...items, ...(rest ?? [])].flatMap((x) => (x.area ? [x.area.tag] : [])))];
+  return {
+    kind: "inpart", hot,
+    title: hot ? WORDS.INPART_HOT : onlyBoat ? WORDS.INPART_BOAT : WORDS.INPART_SOME,
+    calm: hot ? WORDS.CALM_HOT : onlyBoat ? WORDS.CALM_BOAT(noun) : WORDS.CALM_LATER,
+    items, later: rest,
+    ...(areas.length ? { areas, areaNow: items.some((x) => !!x.area) && now.length > 0 } : {}),
+  };
+}
+
+/** page v36 inPartHtml for the trout card: the stored undrawn-part rules (`settled.inpart`) of `fams` as entries. */
+export function inPartOf(s: Settled, inp: RegsInputs, fams: readonly string[]): CaveatVM | null {
   const boat = (r: RuleView) => family(r) === "vessel";
-  const hot = now.some((r) => !boat(r)), onlyBoat = now.length > 0 && now.every(boat);
   const where = (r: RuleView) => {
     const p = cap(r.part ?? "").replace(/\(map ([A-Z])\)/, WORDS.MAP_IN_REGS);
     return /various|do not identify|buoys and signs/i.test(p) ? WORDS.WHERE_SIGNS : WORDS.WHERE(p);
@@ -101,16 +122,8 @@ export function inPartOf(s: Settled, inp: RegsInputs, fams: readonly string[]): 
     const area = areaOf(r, inp);
     return area ? { ...item(words, where(r), r), area } : item(words, where(r), r);
   };
-  const items = (now.length ? now : later).map(li), rest = now.length && later.length ? later.map(li) : null;
-  // (T208) the block's areas, said on its folded head so a rule of one area is never only behind the fold
-  const areas = [...new Set([...items, ...(rest ?? [])].flatMap((x) => (x.area ? [x.area.tag] : [])))];
-  return {
-    kind: "inpart", hot,
-    title: hot ? WORDS.INPART_HOT : onlyBoat ? WORDS.INPART_BOAT : WORDS.INPART_SOME,
-    calm: hot ? WORDS.CALM_HOT : onlyBoat ? WORDS.CALM_BOAT(pageWaterNoun(inp)) : WORDS.CALM_LATER,
-    items, later: rest,
-    ...(areas.length ? { areas, areaNow: items.some((x) => !!x.area) && now.length > 0 } : {}),
-  };
+  return inPartBlock(s.inpart.filter((x) => fams.includes(family(x.rule)))
+    .map((x) => ({ item: li(x.rule), now: x.now, boat: boat(x.rule) })), pageWaterNoun(inp));
 }
 
 /** page v36 sideHtml: rules that hold on one side of the channel only. */

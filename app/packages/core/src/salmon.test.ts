@@ -39,7 +39,7 @@ const PAYLOAD = {
       sp: [[0, 1], [0, 3, 196, 2, 236, 3], [0, 4], [0, 4], [0, 5]], g: [0, 0], m: [0, 3, 196, 1, 236, 3] },
     // 2: a water whose coho are release-only in the fall, the rest not opened
     { r: ["1"], w: "Cowichan River", l: ["1:cowichan"], sp: [[0, 0], [0, 0, 244, 6, 305, 0], [0, 0], [0, 0], [0, 0]],
-      g: [0, -1], m: [0, 3, 244, 2, 305, 3] },
+      g: [0, -1], m: [0, 3, 244, 2, 305, 3], n: [0, 0, 244, 1, 305, 0] },
   ],
   unmapped: [{ items: ["gnis:4674"], r: "6", w: "Kispiox River — above the resort signs", chain: 2 }],
 };
@@ -158,11 +158,21 @@ describe("the Salmon card", () => {
     expect(c.source).toBe("Fisheries and Oceans Canada · Region 1 Vancouver Island · Region 6 Skeena");
   });
 
-  it("a DFO place on this water not drawn yet is listed under 'Location not yet mapped' with its own rules", () => {
+  it("(T372, the trout way) a DFO place on this water not drawn yet is the trout card's in-part caveat, its day and DFO's words", () => {
     const c = salmonCard(facts(), { sids: [101], item: "gnis:4674" }, SEP15);
-    expect(c.unmapped.map((u) => [u.label, u.tag, u.block.rows.map((r) => [r.label, r.statusLabel])])).toEqual([
-      ["Kispiox River — above the resort signs", "Location not yet mapped",
-       [["Chinook · sockeye · pink · chum", "Closed"], ["Coho", "Release only"]]]]);
+    // DFO speaks for the place today (its `n`): the hot block, the place in force first
+    expect(c.caveat).toEqual({ kind: "inpart", hot: true, title: "Fishing is different in some spots today",
+      calm: "Everywhere else, follow this page.", later: null, items: [{
+        what: [{ t: "text", s: "Chinook · sockeye · pink · chum closed · Coho release only" }],
+        where: "Where: Kispiox River — above the resort signs", rule: null, fish: null, book: [],
+        detail: ["Chinook · sockeye · pink · chum: Not opened by DFO: closed to salmon fishing",
+                 "Coho: Catch and release (Sep 1–Oct 31)"] }] });
+    // a day DFO says nothing for it: the same block, not in force today
+    const jul = salmonCard(facts(), { sids: [101], item: "gnis:4674" }, JUL20).caveat!;
+    expect([jul.hot, jul.title, jul.calm, jul.items.length]).toEqual([false, "Some spots have their own rules",
+      "Not in force today. The map can’t draw these places yet, so check where you are.", 1]);
+    // a water with no undrawn place: no block
+    expect(salmonCard(facts(), { sids: [101], item: null }, SEP15).caveat).toBeNull();
   });
 });
 
@@ -176,7 +186,7 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
 
   it("every place mapped: ONE bar for the page, no label; a day no rule opens is closed", () => {
     const c = salmonCard(facts(), { sids: [101], item: null }, JUL20);
-    expect(c.year).toEqual({ partial: false, unplaced: [], bars: [{ label: null, unmapped: false, today: "open", todayWord: "open",
+    expect(c.year).toEqual({ bars: [{ label: null, unmapped: false, today: "open", todayWord: "open",
       runs: [{ status: "closed", days: 195 }, { status: "open", days: 40 }, { status: "closed", days: 130 }] }] });
   });
 
@@ -189,22 +199,15 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
     expect([s.status, s.mark + s.word, s.legend.map((l) => l.label)]).toEqual(["varies", "Varies", ["see Salmon below", "✕ closed"]]);
   });
 
-  it("PARTIAL COVERAGE (owner 2026-10-28): ONE bar; a day the undrawn place answers otherwise is check DFO; one line lists the places", () => {
+  it("(T372, the trout way) PARTIAL COVERAGE: ONE bar of the DRAWN answer; the undrawn place never turns a day to check DFO", () => {
     // the Kispiox (coho open Jul 15–Aug 23, else closed) with an undrawn place (coho release Sep 1–Oct 31, else closed)
     const c = salmonCard(facts(), { sids: [101], item: "gnis:4674" }, SEP15);
-    expect(c.year.bars.map((b) => [b.label, b.today, b.runs])).toEqual([[null, "check", [
-      { status: "closed", days: 195 }, { status: "check", days: 40 }, { status: "closed", days: 8 },
-      { status: "check", days: 61 }, { status: "closed", days: 61 }]]]);
-    expect(c.year.unplaced).toEqual([{ label: "Kispiox River — above the resort signs", today: "release", todayWord: "release only" }]);
-    const s = salmonStripOf(c, { runs: [{ bits: 0 }], line: [{ kind: "status", text: "Open" }, { kind: "when", text: "on Sep 15" }],
-                                 todayAt: 257 / 365 })!;
-    expect([s.title, s.status, s.mark + s.word, s.when, s.soon, s.generalTitle, s.runs])
-      .toEqual(["Salmon (DFO)", "check", "Check DFO", "on Sep 15", null, "Game fish (B.C. rules)", [
-        { drawn: "closed", days: 195 }, { drawn: "unknown", days: 40 }, { drawn: "closed", days: 8 },
-        { drawn: "unknown", days: 61 }, { drawn: "closed", days: 61 }]]);
-    // a day both say closed: the bar says closed, and so does the card's row
-    const may = salmonCard(facts(), { sids: [101], item: "gnis:4674" }, new Date(2026, 4, 1));
-    expect([may.year.bars[0]!.today, may.rows.map((r) => r.status)]).toEqual(["closed", ["closed"]]);
+    expect(c.year.bars.map((b) => [b.label, b.today, b.runs])).toEqual([[null, "closed", [
+      { status: "closed", days: 195 }, { status: "open", days: 40 }, { status: "closed", days: 130 }]]]);
+    // the rows keep the drawn answer too (the place is the caveat): coho closed here today, never "check DFO"
+    expect(c.rows.map((r) => r.status)).toEqual(["closed"]);
+    const s = salmonStripOf(c, { runs: [{ bits: 0 }], line: [{ kind: "status", text: "Open" }], todayAt: 257 / 365 })!;
+    expect(s.status).toBe("closed");
   });
 
   it("no salmon here (DFO lists nothing): no bar — never an all-closed salmon bar; the glance row is a plain 'closed'", () => {
@@ -224,7 +227,7 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
   });
 
   it("salmon closed all year beside a provincial bar closed all year: no second bar (the two say the same)", () => {
-    const card = { headlineStatus: "closed", year: { partial: false, unplaced: [],
+    const card = { headlineStatus: "closed", year: {
       bars: [{ label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] }] } } as never;
     expect(salmonStripOf(card, { runs: [{ bits: 1 }], line: [] })).toBeNull();
     expect(salmonStripOf(card, { runs: [{ bits: 1 }, { bits: 0 }], line: [] })?.word).toBe("Closed");
@@ -234,7 +237,7 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
     const open = { closed: null, closedMore: [], day: "Today, Oct 28", mode: null, lines: [], bait: null } as never;
     const shut = { closed: "No fishing here until Nov 16.", closedMore: [], day: null, mode: null, lines: [], bait: null } as never;
     const m = { closed: null, closedMore: [], ways: null, boats: null, reference: null } as never;
-    const card = { gear: ["No natural bait allowed (Jan 1–Dec 31)"], unmapped: [] } as never;
+    const card = { gear: ["No natural bait allowed (Jan 1–Dec 31)"] } as never;
     const strip = (status: string) => ({ status }) as never;
     // game fish open: the page's tabs (DFO's gear too where salmon may be fished)
     expect(gearTabsFor({ status: "open", gear: open, methods: m }, null, strip("release"), card))
@@ -312,7 +315,7 @@ describe("(T227, owner 2026-10-28) a region-wide closure is the answer", () => {
   const f4 = () => decodeSalmon(encode(P4), HANDLES, [...SHARDS, shard("4", [[300, 2, 3]])]);
   it("a chain the header closes (any tier — a water's own row too): one closed row in the header's words, no bar, no Details", () => {
     const c = salmonCard(f4(), { sids: [300], item: "gnis:14097" }, JUL20);
-    expect([c.allClosed, c.headlineStatus, c.partial, c.closedOnly, c.year.bars, c.regionRules])
+    expect([c.allClosed, c.headlineStatus, c.caveat, c.closedOnly, c.year.bars, c.regionRules])
       .toEqual([true, "closed", null, true, [], []]);
     expect(c.rows.map((r) => [r.label, r.status, r.notes])).toEqual([
       ["Salmon", "closed", ["There is no fishing for salmon in Region 4 - Kootenays until further notice."]]]);
@@ -340,15 +343,14 @@ describe("(T318) the salmon table keeps every DFO word", () => {
     for (const s of salmonRowTexts(c)) expect(have, s).toContain(s);
     // one species row each, in order, nothing repeated per picture
     expect(t.species.map((r) => r.code)).toEqual(["CH", "CO", "SK", "PK", "CM"]);
-    expect(t.places.map((p) => p.label)).toEqual(c.unmapped.map((u) => u.label));
   });
 
-  it("the species rows carry today's status; a place folds to one line and keeps its own words", () => {
+  it("the species rows carry today's status; (T372) an undrawn place keeps its own words, in the caveat", () => {
     const c = salmonCard(withNotes(), { sids: [101], item: "gnis:4674" }, SEP15), t = salmonTable(c);
     expect(t.species.map((r) => r.name)).toEqual(["Chinook", "Coho", "Sockeye", "Pink", "Chum"]);
     expect(t.species.map((r) => r.status)).toEqual(SALMON_ORDER(c));
-    expect(t.places[0]).toMatchObject({ label: "Kispiox River — above the resort signs", tag: "Location not yet mapped" });
-    expect(t.places[0]!.summary).toMatch(/closed|release/i);
+    expect(c.caveat!.items[0]!.where).toBe("Where: Kispiox River — above the resort signs");
+    expect(c.caveat!.items[0]!.detail).toContain("Coho: Catch and release (Sep 1–Oct 31)");
   });
 });
 

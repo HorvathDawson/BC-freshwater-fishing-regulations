@@ -213,7 +213,9 @@ export interface CaveatVM {                                           // page v3
 export interface CaveatItemVM { readonly what: Line; readonly where: string | null; readonly rule: RuleKey | null; readonly fish: string | null; readonly book: Line;
   /** (T208) a rule held on an undrawn part of the water that the book shows on a map ("Outlet area only (see map 1)"): `what`
    *  stays the rule's own words (the golden's); the component draws the tag before it and sets the item apart. `map`: the link to the synopsis page that shows it. */
-  readonly area?: { readonly tag: string; readonly map: Line | null } }
+  readonly area?: { readonly tag: string; readonly map: Line | null };
+  /** (T372) a salmon caveat item's DFO words for its place (limits, sizes, notes, gear), each a line under it */
+  readonly detail?: readonly string[] }
 
 export interface OtherFishKeyVM { readonly status: "release" | "closed"; readonly says: string; readonly term: string }
 export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: string; readonly value: string;

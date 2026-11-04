@@ -121,6 +121,14 @@ def test_a_water_with_an_undrawn_place_carries_it_but_paints_its_drawn_answer():
     # the species answers stay DFO's (the card keeps them, with the caveat); a section off the water is untouched
     assert chains[by_sid[11]]["sp"] == p0["chains"][dict(s0)[11]]["sp"]
     assert "u" not in chains[by_sid[10]] and chains[by_sid[10]]["m"] != check
+    # (T372) the undrawn place's own chain says which days DFO speaks for it (`n`, the caveat's "in force today"): a
+    # day some species has DFO's own verdict; the drawn chains carry none
+    (resort,) = [u for u in payload["unmapped"] if u["w"].startswith("Kispiox River — above")]
+    rc = chains[resort["chain"]]
+    from pipeline.regs.dfo_salmon.live import _at
+    days = [int(any(not payload["verdicts"][_at(r, d)].get("d") for r in rc["sp"])) for d in range(len(S.DAYS))]
+    assert rc["n"] == S.runs_of(days) and 1 in days
+    assert all("n" not in chains[c] for c in by_sid.values())
     # a DORMANT undrawn place (no rules today) marks nothing: the feed paints it the day DFO lists it again
     files, feeds, placed, sid_of = _fixture()
     feeds["6"]["locators"] = [l for l in feeds["6"]["locators"] if l["fingerprint"] != "fr"]

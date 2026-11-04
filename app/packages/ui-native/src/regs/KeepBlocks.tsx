@@ -77,7 +77,10 @@ export function InheritedLine({ inherited, palette, actions }: { inherited: Inhe
  * tracking; `testID="kicker:<kind>"`), and each item a button (`.factbtn`) opening its rule's sheet, with the Rule book
  * link after it (prototype citeBooks — never inside the button).
  */
-export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; palette: Palette; actions: KeepActions }) {
+export function CaveatBlock({ caveat, palette, actions, inset = true }: { caveat: CaveatVM; palette: Palette; actions: KeepActions;
+  /** (T372) false inside a card that keeps its own gutter (the salmon card) */
+  inset?: boolean }) {
+  const gutter = inset ? GUTTER : 0;
   // page v36 details.inpart: folded, hot or not — except (T208) when a rule of a named area is in force on the day
   const [open, setOpen] = useState(!!caveat.areaNow);
   useEffect(() => { if (caveat.areaNow) setOpen(true); }, [caveat.areaNow]);   // a day picked into the area's dates opens it too
@@ -101,6 +104,8 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
         ) : words}
         {x.area?.map && <LineText line={x.area.map} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
         {x.book.length > 0 && <LineText line={x.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
+        {/* (T372) a salmon place's DFO words, a line each */}
+        {x.detail?.map((d) => <Text key={d} selectable testID="caveat-detail" style={[TYPE.meta, { color: palette.sub }]}>{d}</Text>)}
       </View>
     );
   };
@@ -118,8 +123,8 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
     </>
   );
   if (caveat.kind === "inpart") return (
-    <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: GUTTER }}>
-      <RegsPress accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={ROW} style={{ minHeight: 44, justifyContent: "center" }}>
+    <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: gutter }}>
+      <RegsPress testID="caveat-fold" accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={ROW} style={{ minHeight: 44, justifyContent: "center" }}>
         {/* (T60) the fold's mark is the set's expand / collapse, as every other fold's — not a typed ▶ / ▼ */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={16} />
@@ -134,7 +139,7 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
     </View>
   );
   return (
-    <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: GUTTER, paddingTop: 6, paddingBottom: 6, paddingLeft: 10,
+    <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: gutter, paddingTop: 6, paddingBottom: 6, paddingLeft: 10,
                                         borderLeftWidth: 3, borderLeftColor: palette.restricted }}>
       <Text testID={`kicker:${caveat.kind}`} accessibilityRole="header" style={[TYPE.metaBold, { color: palette.sub, marginBottom: 2 }]}>{head}</Text>
       {body}

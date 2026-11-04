@@ -1,6 +1,6 @@
 /**
- * PARTIAL COVERAGE (owner 2026-10-28, the Kitimat): a water with a DFO place not drawn yet leads with "Salmon rules on
- * parts of this water aren't mapped yet — check DFO" and DFO's page, and no row says a confident status.
+ * PARTIAL COVERAGE (the Kitimat; T372, owner 2026-11-03: the trout way): a water with a DFO place not drawn yet keeps
+ * its drawn answer and lists the place in the trout card's "in part" caveat block, with DFO's words for it.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
@@ -26,26 +26,26 @@ const FACTS: SalmonFacts = {
       { r: ["6"], w: "Kitimat River", l: ["6:kitimat-river:whole"], u: ["6:kitimat-river:downstream"],
         sp: [[0, 0], [0, 1], [0, 0], [0, 0], [0, 0]], g: [0, -1], m: [0, 4] },
       { r: ["6"], w: "Kitimat River — downstream of Highway # 37 bridge.", l: ["6:kitimat-river:downstream"],
-        sp: [[0, 0], [0, 2], [0, 0], [0, 0], [0, 0]], g: [0, -1], m: [0, 1] },
+        sp: [[0, 0], [0, 2], [0, 0], [0, 0], [0, 0]], g: [0, -1], m: [0, 1], n: [0, 1] },
     ],
     unmapped: [{ items: ["gnis:3225"], r: "6", w: "Kitimat River — downstream of Highway # 37 bridge.", chain: 2 }],
   },
 };
 
 describe("the Salmon card on a partly mapped water", () => {
-  it("says the water is not fully mapped, links DFO, and names no confident status", () => {
+  it("keeps the drawn answer and lists the undrawn place in the trout card's caveat block, with DFO's words", () => {
     const card = salmonCard(FACTS, { sids: [101], item: "gnis:3225" }, new Date(2026, 9, 28));
     render(<SalmonCard card={card} palette={LIGHT} />);
-    expect(screen.getByTestId("salmon-partial").textContent).toContain(
-      "Salmon rules on parts of this water aren't mapped yet — check DFO");
-    expect(screen.getByTestId("salmon-partial-link").getAttribute("role")).toBe("link");
-    expect(card.partial?.url).toBe("https://example/region6");
-    expect(screen.getByTestId("salmon-card").getAttribute("aria-label")).toBe("Salmon, DFO: Check DFO today");
+    // the rows are the drawn answer: coho release only — never "check DFO"
     const rows = screen.getAllByTestId("salmon-species-row").map((r) => r.textContent!);
-    expect(rows.some((r) => r.includes("Release only"))).toBe(false);
-    // DFO's own words for the undrawn place still show, tagged, folded in the same card (T318: one line until opened)
-    expect(within(screen.getByTestId("salmon-place")).getByTestId("salmon-unmapped-tag").textContent).toBe("Location not yet mapped");
-    fireEvent.click(screen.getByTestId("salmon-place-fold"));
-    expect(screen.getByTestId("salmon-place-body").textContent).toContain("4 per day, only 2 over 50 cm");
+    expect(rows.some((r) => r.includes("Release only"))).toBe(true);
+    expect(screen.getByTestId("salmon-card").getAttribute("aria-label")).not.toContain("Check DFO");
+    // the place, folded under the trout card's head; opened: where it is and what DFO says for it
+    const block = screen.getByTestId("keep-caveat");
+    expect(block.textContent).toContain("Fishing is different in some spots today");
+    fireEvent.click(within(block).getByTestId("caveat-fold"));
+    expect(block.textContent).toContain("Where: Kitimat River — downstream of Highway # 37 bridge.");
+    expect(within(block).getAllByTestId("caveat-detail").map((e) => e.textContent))
+      .toContain("Coho: 4 per day, only 2 over 50 cm (Apr 1–Oct 31)");
   });
 });

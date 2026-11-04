@@ -21,9 +21,9 @@ describe("the DFO feed over the release", () => {
   it("re-composes every release chain as the pipeline does (narrowest location first, not listed = closed)", () => {
     const f = feed();
     expect(f).not.toBeNull();
-    G.release.chains.forEach((c: { l: string[]; u?: string[] }, k: number) => expect(composeChain(c.l, f, c.u ?? [])).toEqual(G.expect[k]));
+    G.release.chains.forEach((c: { l: string[]; u?: string[]; n?: number[] }, k: number) => expect(composeChain(c.l, f, c.u ?? [], !!c.n)).toEqual(G.expect[k]));
     const live = withSalmonFeed(release(), f);
-    expect(live.payload.chains.map((c) => ({ sp: c.sp, g: c.g, m: c.m }))).toEqual(G.expect);
+    expect(live.payload.chains.map((c) => ({ sp: c.sp, g: c.g, m: c.m, ...(c.n ? { n: c.n } : {}) }))).toEqual(G.expect);
     // the geometry is the release's: same chains, same sections
     expect([live.chainOf(12), live.chains, live.payload.chains[2]!.l]).toEqual([release().chainOf(12),
       release().chains, G.release.chains[2].l]);
@@ -40,22 +40,21 @@ describe("the DFO feed over the release", () => {
     expect([salmonFeedLine(release()), salmonFeedOf(release())]).toEqual([null, null]);
   });
 
-  it("PARTIAL COVERAGE: a water with a DFO place not drawn yet says check DFO wherever that place answers otherwise", () => {
+  it("(T372, the trout way) PARTIAL COVERAGE: a water with a DFO place not drawn yet keeps its answer; the place is the caveat", () => {
     const by = new Map<number, number>(G.sections.map(([s, c]: [number, number]) => [s, c]));
     const live = withSalmonFeed(release(), feed());
     for (const f of [release(), live]) {
       // (T372, owner 2026-11-04: the trout way) the undrawn place no longer paints the map "check": the map keeps the
-      // chain's own answer, and the card carries the caveat (the headline and the partial line below)
+      // chain's own answer, and so does the card: its rows are the drawn answer, the place its in-part caveat
       expect([11, 14].map((sid) => salmonChainStatus(f, by.get(sid)!, 250))).toEqual(["open", "closed"]);
       const card = salmonCard(f, { sids: [11], item: "gnis:4674" }, new Date(2026, 8, 10));
-      expect([card.headlineStatus, card.partial?.text, card.partial?.url]).toEqual(
-        ["check", "Salmon rules on parts of this water aren't mapped yet — check DFO", G.release.regions["6"].url]);
-      // (T227) a row keeps its answer only where the undrawn place says the same for its species that day: the place
-      // closes every salmon, so the closed coho / sockeye · pink · chum stand; the open chinook reads check DFO
-      expect([card.rows.map((r) => [r.label, r.status]), card.allClosed]).toEqual(
-        [[["Chinook", "check"], ["Coho", "closed"], ["Sockeye · pink · chum", "closed"]], false]);
-      // a section off that water keeps its own answer
-      expect(salmonCard(f, { sids: [10], item: null }, new Date(2026, 8, 10)).partial).toBeNull();
+      expect([card.headlineStatus, card.rows.map((r) => [r.label, r.status]), card.allClosed]).toEqual(
+        ["open", [["Chinook", "open"], ["Coho", "closed"], ["Sockeye · pink · chum", "closed"]], false]);
+      // DFO speaks for the place that day (its `n`, composed from the feed as the pipeline does): in force, first
+      expect([card.caveat?.hot, card.caveat?.items.map((x) => x.where)]).toEqual(
+        [true, ["Where: Kispiox River — above the resort signs"]]);
+      // a section off that water keeps its own answer, and has no caveat
+      expect(salmonCard(f, { sids: [10], item: null }, new Date(2026, 8, 10)).caveat).toBeNull();
     }
   });
 
@@ -102,8 +101,11 @@ describe("the DFO feed over the release", () => {
     const rules = card.regionRules[0]!.notes;
     expect(rules.some((t) => t.startsWith("You can only fish for salmon in Region 6 during daylight"))).toBe(true);
     expect(rules.some((t) => t.startsWith("Annual bait ban"))).toBe(false);          // the Kispiox is excepted by name
-    expect(card.waterRules.some((t) => t.includes("over 62 cm: the Kispiox River"))).toBe(true);
+    // (T372) the chinook row keeps its drawn answer (open), so its sizes line says the water's 62 cm (below), never
+    // repeated in the water's lines
     const open = card.rows.filter((r) => r.status === "open");
+    expect(open.some((r) => r.species.includes("CH"))).toBe(true);
+    expect(card.waterRules.some((t) => t.includes("over 62 cm: the Kispiox River"))).toBe(false);
     for (const r of open) if (r.species.includes("CH")) expect(r.sizes).toContain("adult chinook over 62 cm");
     expect(card.gearProvincial).toBe("B.C. rules, also for salmon (on parts of this water): Bait ban: no bait of any kind.");
     // Jul 1: the window is shut — the region's 50 cm holds
@@ -162,11 +164,11 @@ describe("(T356) a header closure from the feed: the pipeline's `c`, composed as
   const closed = () => parseSalmonFeed(G.closedFeed)!;
   it("every chain the closure answers every day carries the note ids; the card is the closure, in its words", () => {
     const f = closed();
-    G.release.chains.forEach((c: { l: string[]; u?: string[] }, k: number) => expect(composeChain(c.l, f, c.u ?? [])).toEqual(G.closedExpect[k]));
+    G.release.chains.forEach((c: { l: string[]; u?: string[]; n?: number[] }, k: number) => expect(composeChain(c.l, f, c.u ?? [], !!c.n)).toEqual(G.closedExpect[k]));
     expect(G.closedExpect.filter((c: { c?: string[] }) => c.c).length).toBeGreaterThan(0);
     const live = withSalmonFeed(release(), f);
     const card = salmonCard(live, { sids: [12], item: "gnis:4674" }, new Date(2026, 6, 20));
-    expect([card.closedOnly, card.partial, card.rows.map((r) => [r.label, r.status, r.notes])]).toEqual([true, null,
+    expect([card.closedOnly, card.caveat, card.rows.map((r) => [r.label, r.status, r.notes])]).toEqual([true, null,
       [["Salmon", "closed", ["There is no fishing for salmon in Region 6 until further notice."]]]]);
   });
   it("the release's closure never outlives the feed's verdicts", () => {
