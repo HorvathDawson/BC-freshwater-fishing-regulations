@@ -13,11 +13,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   flake fixed), T382 (core clock.ts the only clock reader, B.C. UTC−7 written in code, sun card; spots on B.C. dates too),
   T386 (lines phone-held; an unnamed reach carried across a data update), T378 (dead block deleted), T377 item 4,
   T312 fling patch (base 450 ms, threshold 500), T240 closed-testing checklist, closed-day Licence/where-not.
-- Running: T387 (every tap on a part gives the same page; access first; a net over every part), T384 + T385 (open on
-  my location; share a water).
-- Next: T178 monthly score in the worker + T371 data-safety drafts (agent), T377 item 1, then ONE emulator sitting
-  (APK: fling, clock, sun, location, share; T340 fix; device checks), then ONE rebuild (+T65), suites, staging, worker,
-  AAB.
+- Also landed: T387 (every tap on a part gives the same page, net), T384 + T385 (open on my location; share), T178
+  (worker scores monthly), T371 drafts + owner answers (Open-Meteo at 0.01°, web name "Can I Fish This?"), T377 item 1
+  (forecast days by watershed: browse = map-centre group in the legend bar, a water = its own group; 5b69686c2).
+- Running: the ONE 0.5.0 rebuild (reach ok 11m37s; deliver writing the release).
+- Next: check + promote the release, re-cut pins, T65 side atlas, ONE emulator sitting (fling, clock, sun, location,
+  share, T340, launcher label fit), suites, staging, worker, AAB.
 
 ## 2026-11-04 (merged chat, evening): owner answers in, T368/T369 lanes, T370 done [T368, T369, T370, T375, T360, T77, T381]
 - Owner answered T368 (9) and T369 (3): recorded at the end of each audit file; two agent lanes implement them now.

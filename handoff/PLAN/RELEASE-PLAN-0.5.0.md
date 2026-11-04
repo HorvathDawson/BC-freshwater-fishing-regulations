@@ -70,7 +70,7 @@ map-feel ticket; T55 shrunk to "owner confirms slough marks" (T322 carries the f
    Commands (dry run 2026-11-04: clim + tiles up to date; reach + deliver run — deliver writes the release + LATEST):
    `scripts/heavy.sh build 50 -- python -m pipeline build --jobs 1`; T65 after it: `scripts/heavy.sh atlas 50 --
    python -m pipeline build --atlas` (a side atlas + its parity report vs the promoted one; never `--promote`).
-3. T178 monthly score (worker) + T371 drafts (running); T377 item 1 (day list by watershed).
+3. DONE: T178 (c97f302), T371 drafts (fd27b69, 33a84095b), T377 item 1 (5b69686c2).
 4. ONE emulator sitting on ONE APK (fling, clock + sun, open on location, share; T340 fix; T307/T308/T293/T50 checks).
 5. Full suites once; staging upload (minAppVersion 0.5.0); feeds worker deploy with the app; AAB → Play internal +
    Closed (T371; owner may start with fewer testers). No separate phone walk (owner: the testing tracks cover it).
