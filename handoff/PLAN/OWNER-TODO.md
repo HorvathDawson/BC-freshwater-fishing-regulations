@@ -13,8 +13,8 @@ with the default Claude uses until you answer). Newest first inside each section
   dormant Mission→Hope place (made active). `data/curated/regulations/entries/dfo_salmon/region-2.json` is left
   uncommitted until you have. Also yours: the staleness warning window, 7 days in Apr–Dec (`refresh.STALE_DAYS`).
 - **Plan to 0.5.0 approved (2026-11-03):** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Yours along the way: a look at the compressed rule-book photo pages (T354, plan set 11-03)
-  (T360/T354, batch 2); the Apple Developer account ($99) before the iOS release (T88); the feeds-worker deploy only
-  after 0.5.0 (T315).
+  (T360/T354, batch 2); the Apple Developer account ($99) before the iOS release (T88); the feeds-worker deploy: now Claude's
+  (owner 2026-11-03), when it makes sense (with 0.5.0: dfo-feed/3 + the ten forecast days).
 - **0.4.0 on Play internal (versionCode 7, 2026-10-31, `89ebd94bf`; release r-4e709418ebd8 on staging, smoke 18/18):**
   install from the tester link and look at (1) the T316 spot marks on the map (Noto Sans names); (2) a spot saved
   offline on a river fills by itself back online (T314). Prod stays yours:

@@ -411,6 +411,10 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     zero_quota = False
     if says["no_fishing"]:
         take, may_target = 0, False          # may not fish for it
+    elif says["non_retention"] and when.get("open_ended"):
+        # (T358, owner 2026-11-03) "Non-retention … until further notice" reads CLOSED: an open-ended row holds all
+        # year, and the owner's rule for it is closed, not release-only (a change comes as a new row)
+        take, may_target = 0, False
     elif says["non_retention"]:
         take, may_target = 0, True           # fish for it, release it
     elif says["daily_limit"] is not None:

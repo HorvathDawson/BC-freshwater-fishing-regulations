@@ -17,4 +17,10 @@ trout's (each place, its answer today, DFO's words). The pipeline ships what the
 the days an undrawn place answers otherwise (run-length like `sp`: ~6 kB raw on 134 chains, ~1–2 kB gz est.) — and
 both `live.compose` and the app's `composeChain` carry it; `agrees` / `at1` go. The map keeps painting such sections
 `check` (already Python's). One wording for both families (UI chat: the block's look, T367). Golden + salmon/5.
+**REUSE (owner 2026-11-03: "make sure code is reused as much as possible to keep consistent"):** no second
+mechanism. Salmon's undrawn places go through the SAME pipeline step and app code as trout's: the stored undrawn-part
+verdicts (`settled.inpart` / `not_yet_mapped`), the same caveat selection and words (core `regs/caveats.ts`
+`uncertainHtml` port, `describe`, `timeCond`), the same VM and component. Where salmon's shape differs (DFO places,
+chains), adapt it to the trout input in Python — never fork the caveat code. Delete what salmon then no longer needs
+(`agrees`, `at1`, `undrawnChains`' card use). Start by mapping both paths side by side (files, functions) in this ticket.
 Size: M.

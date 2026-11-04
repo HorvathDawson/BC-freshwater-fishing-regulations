@@ -206,11 +206,12 @@ describe("downstream: an unreadable cell is `check`, never a dropped limit", () 
       { species: "Coho", dates: "Apr 1 until further notice", limits_gear: "Open for salmon catch and release" },
     ]);
     expect(on(1, 215)?.s).toBe("closed"); // the dated Jan–Mar row
-    expect(on(1, 401)?.s).toBe("release");
-    expect(on(1, 1231)?.s).toBe("release");
+    // (T358, owner 2026-11-03) catch and release "until further notice" reads CLOSED, not release-only
+    expect(on(1, 401)?.s).toBe("closed");
+    expect(on(1, 1231)?.s).toBe("closed");
     expect(on(1, 401)?.t).toBe("Open for salmon catch and release (from Apr 1 until further notice)");
     const alone = cal([{ species: "Coho", dates: "Oct 15 until further notice", limits_gear: "Open for salmon catch and release" }]);
-    expect(alone.on(1, 115)?.s).toBe("release"); // next January: still until further notice
+    expect(alone.on(1, 115)?.s).toBe("closed"); // next January: still until further notice
   });
 
   it("a gear rule with an unreadable cell shows on every day, flagged", () => {

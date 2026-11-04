@@ -304,8 +304,8 @@ function repairDates(raw: string): string {
   return out;
 }
 
-/** interpret_dates, as far as to_rules reads it: {parsed, repaired_from} */
-function interpretDates(text: string): { parsed: boolean; repaired: boolean } {
+/** interpret_dates, as far as to_rules reads it: {parsed, repaired_from, open_ended} */
+function interpretDates(text: string): { parsed: boolean; repaired: boolean; openEnded?: boolean } {
   let raw = strip(text || "");
   if (!raw) return { parsed: false, repaired: false };
   let repaired = false;
@@ -316,7 +316,7 @@ function interpretDates(text: string): { parsed: boolean; repaired: boolean } {
       raw = fixed;
     }
   }
-  return { parsed: firstPassParses(raw), repaired };
+  return { parsed: firstPassParses(raw), repaired, ...(search(RE_OPEN_ENDED, raw) ? { openEnded: true } : {}) };
 }
 
 const RE_SPECIES_SEP = pyRe("\\s*(?:,|&|\\band\\b)\\s*");
@@ -578,7 +578,9 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
   const rawDates = strip(rec.dates || "");
   const cell = robust ? readDates(rawDates) : null;
   const when = robust ? { parsed: true, repaired: false } : interpretDates(rawDates);
-  const windows = robust || !rawDates ? [] : when.repaired ? [repairDates(rawDates)] : [rawDates];
+  // (T358, owner 2026-11-03) "until further notice" holds ALL YEAR (typed.to_rules): no window
+  const openEnded = robust ? cell?.kind === "ok" && cell.openEnded : !!(when as { openEnded?: boolean }).openEnded;
+  const windows = robust || !rawDates || openEnded ? [] : when.repaired ? [repairDates(rawDates)] : [rawDates];
   const unreadable = !robust && !!rawDates && !when.parsed;
   const robustWhen: When | null =
     cell === null || cell.kind === "empty"
@@ -621,6 +623,7 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
   let mayTarget: boolean | null = null;
   let zeroQuota = false;
   if (says.no_fishing) [take, mayTarget] = [0, false];
+  else if (says.non_retention && openEnded) [take, mayTarget] = [0, false]; // T358 owner: closed, not release-only
   else if (says.non_retention) [take, mayTarget] = [0, true];
   else if (says.daily_limit !== null) {
     take = says.daily_limit;
