@@ -109,7 +109,7 @@ use that as the sole source of future work."
 | T62 | cleanup wave 3: split long files | DONE | b619ca7b…bb31281e, 7b946345…66b81aa6, c6a967bc | app + pipeline lanes merged (byte-identical outputs; live r-bb4331929428); 3.9 dfo_salmon done (whatchanged archived, README index); 3.2 atlas/build.py: phased main(), --gnis parity IDENTICAL (Kennedy River) |
 | T63 | cleanup wave 4: docs, tests, knip | DONE | 341fff64, 11d29685, 9c22614a, 9867bc86 | MAP.md ×2, 16+ duplicate tests gone, knip in check, synopsis isolation fixed, 2.17 fixtures moved |
 | T64 | tiles: S2 size wins + tile rebuild | DONE | ebfbba7d, 05096efd | built and promoted with r-9b51c28ce0fe: atlas.pmtiles 548 -> 228 MB, basemap 918 -> 876 MB; map look on OWNER-TODO |
-| T65 | determinism proof (N12) | OPEN | — | all (heavy) |
+| T65 | determinism proof (N12) | DONE | 0d5d3577f | all (heavy) |
 | T66 | curation review tool | DONE | a3f66b7c (plan) | plan approved 2026-10-23; build → T96, T97, T133–T136 |
 | T67 | braid splitting as a build step | DONE | 1497beb0, ed1a5c0, cb3e0654, b91018e5, 5a6e7911 | promoted 10-24; own phase `cut_braids` 10-28 (parity + bindings identical) |
 | T68 | HYDAT / feed follow-ups | DONE | e25d05fd, 17610988, 0fa29df4, 98817665 | F1/F2 follow-ups in ticket |
