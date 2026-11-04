@@ -6,7 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { sha256Hex } from "../sha256";
-import { parseManifest, type Manifest } from "../manifest";
+import { diff, parseManifest, type Manifest } from "../manifest";
+import { offlineSizes } from "./offline";
 import { REGIONS } from "../pack.generated";
 import { install, type ReleaseFs } from "./install";
 
@@ -72,5 +73,21 @@ describe("install keeps every region's regulations", () => {
     expect(Object.keys(held.files).sort()).toEqual(Object.keys(BODIES).sort());
     expect(asked).toContain("core");
     expect(asked).toContain("water");
+  });
+
+  it("(T369) the web-only `lines` (links are web-only) is never installed, nor counted in what a phone holds", async () => {
+    const fs = memFs();
+    const bodies = { ...BODIES, lines: "lines" };
+    const base = manifest("r-1", bodies);
+    const m = { ...base, files: { ...base.files, lines: { ...base.files.lines!, web_only: true } } };
+    const asked: string[] = [];
+    const dl = async (url: string) => {
+      const n = url.replace(/^.*\/r-1\//, "").replace(/-x\.bin\.gz$/, "");
+      asked.push(n);
+      return enc(bodies[n as keyof typeof bodies]!);
+    };
+    const held = await install(m, fs, dl, "https://r2.test/");
+    expect([asked.includes("lines"), "lines" in held.files, diff(held, m).files]).toEqual([false, false, []]);
+    expect(offlineSizes(m).regs).toBe(offlineSizes(base).regs - base.files.lines!.bytes);
   });
 });

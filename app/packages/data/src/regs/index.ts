@@ -8,4 +8,4 @@ export * from "./reads";
 export * from "./inputs";
 export * from "./waterGroup";
 export * from "./visible";
-export * from "./line";
+// (T369) NOT `./line` / `./place`: a link's place is WEB-ONLY (`@app/data/regs/place`); native imports none of it

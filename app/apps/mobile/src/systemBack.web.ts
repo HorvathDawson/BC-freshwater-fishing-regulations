@@ -3,8 +3,10 @@
  * holds is a history entry, kept in step by `@app/ui` `historySync` — so the browser's back pops exactly one frame,
  * the ‹ button leaves no stranded entry, and back at the browse root is the browser's own (it leaves the app).
  */
-import { historySync, linkSearch, reportFailure, waterFrame, type HistoryPort, type PlaceReads, type Route,
-         type SystemBack } from "@app/ui";
+import type { ReleaseLoader } from "@app/data/release";
+import type { RegsStore } from "@app/data/regs";
+import { historySync, reportFailure, routeSearch, waterFrame, type HistoryPort, type Route, type SystemBack } from "@app/ui";
+import { linkSearch, placeReads, type PlaceReads } from "@app/ui/place";
 import { slugKnown, slugOf } from "./waterSlugs";
 
 /** The key this app's entries carry their back depth under, beside anything else a page keeps in `history.state`. */
@@ -43,17 +45,32 @@ let missingSaid = false;
 const onMissing = (e: Error) => { if (!missingSaid) { missingSaid = true; reportFailure(e); } };
 
 /**
- * (T269) THE ADDRESS OF A NAMED WATER IS ITS PAGE: `/water/<slug>` (what a search engine lists), with the route's other
- * keys (part, view) as a query; anything else — the map, an unnamed reach, a water whose slug is not known (yet) — is
- * `/` with the start link, as before. A slug still being fetched rewrites the address again when it lands.
+ * (T369, owner 2026-11-03) NOTHING WAITS FOR THE PLACE: the address is written at once without it (`?regs=<water>&view=…`),
+ * and the place is added once the page is drawn — `lines` is fetched then, behind the page's own files (an extra, net
+ * `priorityOf`) — by rewriting the same entry again. Only OPENING a link that carries a place waits for `lines`.
  */
 async function write(): Promise<void> {
   if (last === null) return;
   const asked = last;
+  put(asked, routeSearch(asked, window.location.search));
+  if (places === null) return;
+  await drawn();
+  if (last !== asked) return;
   const q = await linkSearch(places, asked, window.location.search, onMissing);
-  if (last !== asked) return;                      // the route moved on meanwhile: its own write follows
+  if (last === asked) put(asked, q);
+}
+
+/** After the next frame is painted: the page in front is drawn before its place is asked of the release. */
+const drawn = (): Promise<void> => new Promise((done) => requestAnimationFrame(() => setTimeout(done, 0)));
+
+/**
+ * (T269) THE ADDRESS OF A NAMED WATER IS ITS PAGE: `/water/<slug>` (what a search engine lists), with the route's other
+ * keys (part, view) as a query; anything else — the map, an unnamed reach, a water whose slug is not known (yet) — is
+ * `/` with the start link, as before. A slug still being fetched rewrites the address again when it lands.
+ */
+function put(asked: Route, q: string): void {
   const { pathname, search, hash } = window.location;
-  const f = waterFrame(last);
+  const f = waterFrame(asked);
   const item = f?.item ?? null;
   const slug = item ? slugKnown(item) : null;
   let path = "/", next = q;
@@ -78,8 +95,8 @@ export function routeUrl(r: Route): void {
   queueMicrotask(() => void write());
 }
 
-/** (T369) The release's reads the address makes places from (the open release's regs store); set once it is open. */
-export function routeLinks(store: PlaceReads | null): void {
-  places = store;
+/** (T369) The release the address makes places from (its regs store + loader: `lines`); set once it is open. */
+export function routeLinks(store: RegsStore | null, loader: ReleaseLoader | null): void {
+  places = store && loader ? placeReads(store, loader) : null;
   if (last !== null) queueMicrotask(() => void write());
 }

@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines } from "../sql/drivers/releaseDir";
 import { decodeLineBlock, encodeLineBlock, lineMid, slotAt } from "./line";
-import { openRegsStore } from "./store";
+import { openLineReads } from "./place";
 
 const COQ = 356364584;   // the Coquitlam River's FWA stream key
 
@@ -22,7 +22,7 @@ describe("section_line (T369)", () => {
   });
 
   it("the fixture with lines: a section's line, the section a place falls on, a gap (the Coquitlam's lake) holds none", async () => {
-    const st = await openRegsStore(openRegsFixtureWithLines());
+    const st = openLineReads(openRegsFixtureWithLines());
     const { unnamed } = regsFixtureLines();
     expect(await st.hasLines()).toBe(true);
     expect(await st.sectionLine(316504)).toEqual({ blk: COQ, from: 312, to: 6590 });
@@ -35,8 +35,8 @@ describe("section_line (T369)", () => {
     expect(await st.sectionLine(1236911)).toBeNull();
   }, 30_000);
 
-  it("a release cut before section_line: no lines, no place — never an error", async () => {
-    const st = await openRegsStore(openRegsFixture());
+  it("a release cut before the lines file: no lines, no place — never an error", async () => {
+    const st = openLineReads(openRegsFixture());
     expect([await st.hasLines(), await st.sectionLine(316504), await st.sectionAt(COQ, 3451)]).toEqual([false, null, null]);
   }, 30_000);
 });

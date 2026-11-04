@@ -4,7 +4,9 @@
  * root lets Android leave the app); `systemBack.web.ts` is the browser's back button and a phone browser's own
  * swipe-back, through the History API. Bundlers pick by platform extension, TypeScript does not.
  */
-import type { PlaceReads, Route, SystemBack } from "@app/ui";
+import type { ReleaseLoader } from "@app/data/release";
+import type { RegsStore } from "@app/data/regs";
+import type { Route, SystemBack } from "@app/ui";
 
 export declare const systemBack: SystemBack;
 
@@ -15,7 +17,7 @@ export declare const systemBack: SystemBack;
 export declare function routeUrl(r: Route): void;
 
 /**
- * (T369) The open release's reads the address makes a frame's PLACE from (`@app/ui` `linkSearch`): the web sets it once
- * the release is open; native has no address bar.
+ * (T369) The open release the address makes a frame's PLACE from (`@app/ui/place` `linkSearch`, web-only): its regs
+ * store and loader (the `lines` file, fetched in the background once the page is drawn); native has no address bar.
  */
-export declare function routeLinks(store: PlaceReads | null): void;
+export declare function routeLinks(store: RegsStore | null, loader: ReleaseLoader | null): void;

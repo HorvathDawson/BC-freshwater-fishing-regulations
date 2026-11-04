@@ -33,12 +33,12 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
-         loadRegsStore, reportFailure, resolveStartLink, startNeedsRelease, startNoticeLine,
+         loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
-import { startLink } from "./startLink";
+import { resolveStart, startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
 import { backgroundDownloads } from "./bgDownload";
 import { releaseSplash } from "./splash";
@@ -418,7 +418,7 @@ export default function App() {
              loader: b.loader };
   }, [boot]);
 
-  // (T369) THE START LINK, resolved in the release now open (`@app/ui` `resolveStartLink`: a place → the section of the
+  // (T369) THE START LINK, resolved in the release now open (web-only: `./startLink` `resolveStart`: a place → the section of the
   // stream that spans it → its water and part HERE; a water of one part named alone → that part) before the Shell
   // opens on it, so the first frame drawn is the resolved one; and the address bar makes its places from the same
   // release (`routeLinks`)
@@ -427,10 +427,10 @@ export default function App() {
     if (!data) return;
     let live = true;
     const store = loadRegsStore(data.loader);
-    store.then((st) => { if (live) routeLinks(st); }, () => { if (live) routeLinks(null); });
+    store.then((st) => { if (live) routeLinks(st, data.loader); }, () => { if (live) routeLinks(null, null); });
     if (START && startNeedsRelease(START)) {
       const link = START;
-      store.then((st) => resolveStartLink(link, st, data.source))
+      store.then((st) => resolveStart(link, st, data.loader, data.source))
         .then((l) => { if (live) setStart(l); },
               (e: unknown) => { reportFailure(e); if (live) setStart({ ...link, place: null, notice: link.place ? "place-gone" : link.notice }); });
     }

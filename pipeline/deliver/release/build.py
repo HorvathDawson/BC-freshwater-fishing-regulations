@@ -17,6 +17,7 @@ writes paint, derives three per-water flags for search, converts the climatology
                  (store/release.py; nothing reads regs.sqlite, P20)
   regs-<region>  cell + the frames its akeys reach (shards.py), × 9               regs store
   regs-sid       section_akey, section_place                                      regs store
+  lines          section_line (T369: the section a link's place falls on, lines.py)  bundle (section_measure)
   conditions     gauge, section_gauge, lake_gauge, lake_section (T182: the lake   bundle
                  road per section, so Conditions needs no core)
   down           section_down (T182: an unnamed tap's "Tributary of ..." walk)    bundle
@@ -47,6 +48,7 @@ from typing import Dict, Iterable, List, Optional
 
 from pipeline.deliver import lake_facts as LF
 from pipeline.deliver.release import contract as C
+from pipeline.deliver.release import lines as LINES
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 from pipeline.deliver.release import slices as SLICES
@@ -70,7 +72,11 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_450_000, "lakes": 100_000, "salmon": 60_000,
               **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "method": 600_000,
               "water": 2_500_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 950_000,
-              "down": 1_250_000, "geo": 700_000, "flow-area": 220_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS},
+              "down": 1_250_000, "geo": 700_000, "flow-area": 220_000,
+              # (T369) `lines`: ~0.99-1.08 MB gz estimated 2026-11-03 on the atlas's handles (ends proxied from the FWA
+              # stream extents; the build measures the real one); WEB-ONLY (`contract.WEB_ONLY`: not in the offline
+              # total), fetched once a page is drawn (its place in the address) or when a link with a place is opened
+              "lines": 1_250_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS},
               # (T256) the answer slices (slices.py), web-only: measured on r-fa1915a56adb's tables, core-<r> 197-287 kB,
               # water-<r> ~0.75 MB (rules, display rules and the dictionaries are whole in every one)
               **{f"core-{r}": 400_000 for r in SH.REGIONS}, **{f"water-{r}": 1_100_000 for r in SH.REGIONS}}
@@ -341,8 +347,8 @@ def gate_problems(release_dir: Path) -> List[str]:
     sz = sizes(release_dir)
     out = [f"{k}: no size gate (build.SIZE_GATES)" for k in sz if k not in SIZE_GATES]
     out += [f"{k}: {v['gz']:,} B gzip > {SIZE_GATES[k]:,}" for k, v in sz.items() if k in SIZE_GATES and v["gz"] > SIZE_GATES[k]]
-    # (T256) the answer slices are web-only (a phone installs the whole files): not in what a phone holds
-    total = sum(v["gz"] for k, v in sz.items() if k not in SLICES.slice_marks())
+    # (T256) the answer slices are web-only (a phone installs the whole files), (T369) and `lines`: not what a phone holds
+    total = sum(v["gz"] for k, v in sz.items() if k not in SLICES.slice_marks() and k not in C.WEB_ONLY)
     if total > OFFLINE_GATE:
         out.append(f"offline total: {total:,} B gzip > {OFFLINE_GATE:,}")
     return out + [f"web {k}: {n:,} B > {C.WEB_BUDGET[k]['gate']:,} ({', '.join(f)})"
@@ -386,6 +392,15 @@ def bundle_continues(b: sqlite3.Connection) -> List[tuple]:
         raise ReleaseError("release: the bundle has no water_continue table — it predates the continuation links; "
                            "rebuild it: python -m pipeline.deliver bundle")
     return b.execute("SELECT ord, part, next_ord, next_part FROM water_continue ORDER BY ord").fetchall()
+
+
+def bundle_section_measure(b: sqlite3.Connection) -> List[tuple]:
+    """(T369) `section_measure` as the bundle wrote it (`bundle/section_measure.py`, from the atlas graph): copied into
+    regs-sid `section_line`, never derived here (audit F07). A bundle without the table predates it and is refused."""
+    if not b.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'section_measure'").fetchone():
+        raise ReleaseError("release: the bundle has no section_measure table — it predates the place links (T369); "
+                           "rebuild it: python -m pipeline.deliver bundle")
+    return b.execute("SELECT sid, blk, from_m, to_m FROM section_measure ORDER BY sid").fetchall()
 
 
 def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path,
@@ -478,6 +493,12 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                                            {**regs, "format": FORMATS[f"regs-{r}"], "region": r})
         files["regs-sid"] = copy_file(work / "regs-sid.sqlite", {"s": store}, [("s", t, None) for t in SH.SID_TABLES],
                                       {**regs, "format": FORMATS["regs-sid"]})
+        # (T369) `lines`: every stream section's stream key and measure span (release/lines.py), so a link's PLACE
+        # resolves to a section of this release — packed from the bundle's `section_measure`
+        sm = bundle_section_measure(b)
+        files["lines"] = copy_file(work / "lines.sqlite", {}, [], {**base, "format": FORMATS["lines"]},
+                                   extra=lambda con: LINES.write(con, sm))
+        del sm
         # (T256) the answer slices: a web tap in region r reads core-<r> + water-<r>, not the whole files
         files.update(SLICES.build_slices(work, files["core"], files["water"], _sid_regions))
         # (T213) bait ban / fly fishing only per section and day: a projection of the store's open-days strips
@@ -552,7 +573,8 @@ def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, da
         (work / fname).write_bytes(gz)
         entries[name] = {"url": fname, "bytes": raw.stat().st_size, "gz": len(gz), "sha256": sha,
                          "format": FORMATS[name], "section_handles": handles,
-                         **SLICES.slice_marks().get(name, {})}       # (T256) web-only: what it is cut from
+                         **SLICES.slice_marks().get(name, {}),       # (T256) web-only: what it is cut from
+                         **({"web_only": True} if name in C.WEB_ONLY else {})}   # (T369) a phone never holds it
         raw.unlink()
     # T215: OUR COPY of the synopsis PDF, beside the data files (raw: a PDF is already compressed), named by content. The
     # boxes `rules[].book_box` were cut from these bytes; the app opens THIS file with the highlight, never gov.bc.ca's.

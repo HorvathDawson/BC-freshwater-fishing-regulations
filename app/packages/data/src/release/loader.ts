@@ -28,7 +28,7 @@ type BinName = "salmon" | SalmonSlice | "method";
 export type FileName = "paint" | "flow-area" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
   | `core-${Region}` | `water-${Region}`
   | BinName
-  | "conditions" | "down" | "climate" | "geo";
+  | "conditions" | "down" | "climate" | "geo" | "lines";
 export type DbName = Exclude<FileName, "paint" | "flow-area" | "lakes" | "access" | BinName>;
 
 export interface ReleaseSource {

@@ -63,6 +63,8 @@ export interface ManifestFile {{
   url: string; bytes: number; gz: number; sha256: string; format: string; section_handles: string;
   /** (T256) An ANSWER SLICE (web only): the whole file it is cut from and its region. A phone never installs one. */
   slice_of?: string; region?: string;
+  /** (T369) A file only the web fetches (`lines`: links are web-only). A phone never installs one. */
+  web_only?: boolean;
 }}
 export interface TileRef {{ id?: string; url: string; bytes?: number; sha256?: string }}
 /** (T354) pipeline/deliver/release/synopsis.py `append_index`: what an incremental update of the shipped synopsis needs,

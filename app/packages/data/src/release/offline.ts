@@ -9,7 +9,7 @@
  *                 split yet: T85/T202), so it is one row, never a region's.
  *   WEB           what the release cache holds of the regulations (`ReleaseLoader.stored`), read when the page opens.
  */
-import type { Manifest } from "../manifest";
+import { phoneHolds, type Manifest } from "../manifest";
 import type { FileName, ReleaseLoader } from "./loader";
 
 export interface OfflineSizes {
@@ -25,7 +25,8 @@ export interface OfflineSizes {
 export function offlineSizes(m: Manifest): OfflineSizes {
   return {
     // (T256) not the answer slices: a subset of core / water for the web, never kept beside them on a phone
-    regs: Object.values(m.files).reduce((n, f) => n + (f?.slice_of ? 0 : f?.bytes ?? 0), 0),
+    // (T369) nor the web-only files (`lines`)
+    regs: Object.values(m.files).reduce((n, f) => n + (f && phoneHolds(f) ? f.bytes : 0), 0),
     map: { tiles: (m.tiles.current?.bytes ?? 0) + (m.tiles.mask?.bytes ?? 0), basemap: m.basemap?.bytes ?? 0 },
     book: m.synopsis?.bytes ?? null,
   };

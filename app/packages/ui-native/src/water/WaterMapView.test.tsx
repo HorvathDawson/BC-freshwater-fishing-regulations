@@ -9,8 +9,9 @@ import type { ItemId, SectionId } from "@app/data";
 import type { MapProps } from "@app/map";
 import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines } from "@app/data/release/node";
 import { openRegsStore } from "@app/data/regs";
-import { BackLayerContext, HOME, linkSearch, openWater, parseStartLink, partAction, reduce, resolveStartLink, useBack, useRoute,
+import { BackLayerContext, HOME, openWater, parseStartLink, partAction, reduce, useBack, useRoute,
          waterFrame, type Route, type StartLink, type SystemBack } from "@app/ui";
+import { linkSearch, placeReads, resolveStartLink } from "@app/ui/place";
 import { LIGHT } from "../theme";
 
 const seen: { props: MapProps | null } = { props: null };
@@ -362,8 +363,9 @@ describe("<WaterMapView>", () => {
       return r ? (String(r.item_id) as ItemId) : null;
     } };
     /** A URL as the web opens it: parsed, then resolved in the release (`resolveStartLink`). */
-    const opened = async (url: string): Promise<StartLink> => resolveStartLink(parseStartLink(url)!, await store, itemFor);
-    const addressOf = async (r: Route) => linkSearch(await store, r);
+    const places = store.then((st) => placeReads(st, lined));
+    const opened = async (url: string): Promise<StartLink> => resolveStartLink(parseStartLink(url)!, await places, itemFor);
+    const addressOf = async (r: Route) => linkSearch(await places, r);
     const routes: Route[] = [];
     function Harness({ init }: { init: Route }) {
       const [route, go] = useRoute(init);

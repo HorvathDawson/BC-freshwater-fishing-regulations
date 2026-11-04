@@ -28,7 +28,7 @@ export * from "./visits";
 export * from "./dayFlow";
 export * from "./route";
 export * from "./openWater";
-export * from "./place";
+// (T369) NOT `./place`: links are web-only (`@app/ui/place`, imported by the app's .web.ts modules alone)
 export * from "./mapModes";
 export * from "./conditionsColour";
 export * from "./lakeColour";

@@ -432,6 +432,15 @@ CREATE TABLE part_stretch (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, stret
                            PRIMARY KEY (ord, part_ix, stretch_ix),
                            FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
 CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, label TEXT);
+-- (T369, owner 2026-11-03) WHERE EVERY STREAM SECTION LIES ON ITS OWN BLUE LINE: one row per STREAM handle (every one
+-- in B.C., named or not; a lake or wetland has no line and no row). `blk` the FWA stream key, `from_m` the section id's
+-- measure (`{blk}:{int(down_m)}`), `to_m` = int(the node's down_m + length_m) — cut to whole metres like the start, so a
+-- piece ends exactly where the next one on the line starts. Written by `pipeline/deliver/bundle/section_measure.py` while the
+-- graph is loaded; the release packs it into the `lines` file (`release/lines.py`): a link carries a PLACE
+-- (stream key + measure, AGENTS rule 5), and the app resolves it to the section of the release it holds. The graph is
+-- an atlas artifact and the release reads nothing past the bundle (audit F07).
+CREATE TABLE section_measure (sid INTEGER PRIMARY KEY, blk INTEGER NOT NULL, from_m INTEGER NOT NULL,
+                              to_m INTEGER NOT NULL CHECK (to_m >= from_m)) WITHOUT ROWID;
 -- T228 DIAGNOSTIC (owner 2026-10-28: every boundary is a named split): a salmon chain change inside a part where no
 -- named split stands — a DFO place's edge not placed as a split. Not cut (the pieces stay one); one row per (water, the
 -- two chains), at the first place they touch (`down_sid` the lower section). The review's DFO queue reads it

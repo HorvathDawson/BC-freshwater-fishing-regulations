@@ -569,6 +569,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # (audit F07: the release used to unpickle graph.pkl again just for this)
     from pipeline.common.section_handles import read as _read_handles
     _handle_ids = list(_read_handles(build_dir)[0])
+    # (T369) every stream section's span on its own blue line, for the release's place lookup (regs-sid section_line)
+    from pipeline.deliver.bundle import section_measure as _section_measure
+    _section_measure.write(db, _handle_ids, graph, cov)
     _continues = _continuation.links(db, _handle_ids, graph)
     # SETTLED NOW, BEFORE THE GAUGES (T76), with the pairings read above (`_book`), then GATED by the owner's decisions
     # (owner 2026-10-29): only a reviewed link ships; a new one is held and listed beside the bundle, not shipped

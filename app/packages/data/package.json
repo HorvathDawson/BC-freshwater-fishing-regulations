@@ -18,6 +18,7 @@
     "./release": "./src/release/index.ts",
     "./release/platform": "./src/release/drivers/platform.ts",
     "./regs": "./src/regs/index.ts",
+    "./regs/place": "./src/regs/place.ts",
     "./sql/node": "./src/sql/drivers/node.ts"
   },
   "peerDependencies": {

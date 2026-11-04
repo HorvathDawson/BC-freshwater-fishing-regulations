@@ -156,7 +156,17 @@ FILES = {
         "water_exit": ["ord", "down_ord", "down_part"], "xpart": _FRAME, "zdict": ["tbl", "d"]}} for r in SH.REGIONS},
     "regs-sid": {"format": "regs-sid/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "section_akey": ["block", "b"], "section_place": ["block", "b"]}},
+    # (T369) every stream section's stream key and measure span, so a link's PLACE resolves to a section of this release
+    # (release/lines.py; the app's regs/line.ts). Its own file, fetched only when a link is made or opened: in no
+    # WEB_BUDGET moment. A release cut before it has none, and then no link carries a place.
+    "lines": {"format": "lines/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "section_line": ["block", "n", "blk0", "m0", "b"]}},
 }
+
+#: (T369, owner 2026-11-03) FILES ONLY THE WEB FETCHES: a phone never installs or holds one (links are web-only; the
+#: manifest marks each `web_only`, the app's install set leaves it out, and the offline total does not count it). The
+#: answer slices are web-only the same way, marked by `slice_of` (slices.py).
+WEB_ONLY = frozenset({"lines"})
 
 #: what the units of the transformed columns are (the app's decoders read these)
 UNITS = {

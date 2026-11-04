@@ -73,6 +73,8 @@ export function nodeOpener(): Opener {
 export interface ReleaseTamper {
   manifest?(m: Manifest): Manifest;
   db?(name: DbName, d: Db): Db;
+  /** (T369) a file the folder lacks, served in place of its bytes (the manifest must name it: `manifest`) */
+  files?: Partial<Record<DbName, Db>>;
 }
 
 /**
@@ -89,7 +91,8 @@ export function openReleaseDir(dir: string, tamper: ReleaseTamper = {}): Release
       return verify(f.url, new Uint8Array(readFileSync(join(dir, "..", f.url))), f);
     },
   };
-  const open = nodeOpener(), wrap = tamper.db;
+  const disk = nodeOpener(), wrap = tamper.db, given = tamper.files ?? {};
+  const open: Opener = async (name, bytes) => given[name] ?? disk(name, bytes);
   return releaseLoader(m, source, wrap ? async (name, bytes) => wrap(name, await open(name, bytes)) : open);
 }
 
@@ -101,7 +104,7 @@ export type LineRow = readonly [number, number, number, number];
 
 /**
  * (T369) The regs fixture's stream lines (`dev/section-lines.json`: its waters' sections and one unnamed reach) — the
- * fixture release was cut before `section_line`, so tests add the table (`withSectionLines`).
+ * fixture release was cut before the `lines` file, so tests add it (`openRegsFixtureWithLines`).
  */
 export function regsFixtureLines(): { unnamed: number; lines: LineRow[] } {
   const d = JSON.parse(readFileSync(join(REGS_FIXTURE_ROOT, "..", "section-lines.json"), "utf8")) as
@@ -110,14 +113,17 @@ export function regsFixtureLines(): { unnamed: number; lines: LineRow[] } {
 }
 
 /**
- * (T369) A `section_line` table (`@app/data` line.ts's format, its own writer) over `rows`, in memory. Only the blocks
- * the rows touch are written; a slot no row names is a filler that keeps the block sorted and spans nothing (the slot
- * before it's line, empty) — a fixture's handles are a sample of the atlas, a release's table has every stream handle.
+ * (T369) A `lines` file (`@app/data` line.ts's format, its own writer) over `rows`, in memory, its meta `lines/1` on
+ * `handles`. Only the blocks the rows touch are written; a slot no row names is a filler that keeps the block sorted and
+ * spans nothing (the slot before it's line, empty) — a fixture's handles are a sample of the atlas, a release's table
+ * has every stream handle. Every row's end is kept as given (closed), as the fixture lists it.
  */
-function sectionLineDb(rows: readonly LineRow[]): Db {
+function sectionLineDb(rows: readonly LineRow[], handles: string): Db {
   const db = new DatabaseSync(":memory:");
   db.exec("CREATE TABLE section_line (block INTEGER PRIMARY KEY, n INTEGER NOT NULL, blk0 INTEGER NOT NULL, " +
-          "m0 INTEGER NOT NULL, b BLOB NOT NULL); CREATE INDEX section_line_head ON section_line (blk0, m0)");
+          "m0 INTEGER NOT NULL, b BLOB NOT NULL); CREATE INDEX section_line_head ON section_line (blk0, m0); " +
+          "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)");
+  db.prepare("INSERT INTO meta VALUES ('format', 'lines/1'), ('section_handles', ?)").run(handles);
   const byBlock = new Map<number, Map<number, SectionLine>>();
   for (const [h, blk, from, to] of rows) {
     const k = h >> BLOCK_BITS;
@@ -142,16 +148,15 @@ function sectionLineDb(rows: readonly LineRow[]): Db {
   };
 }
 
-/** (T369) `d` with `lines` answering every read of `section_line` (the regs-sid file of a release cut before it). */
-function withSectionLines(d: Db, lines: Db): Db {
-  const pick = (sql: string) => (/section_line/.test(sql) ? lines : d);
-  return { all: (sql, ...p) => pick(sql).all(sql, ...p), get: (sql, ...p) => pick(sql).get(sql, ...p), close: d.close };
-}
-
 /** (T369) The regs fixture release with stream lines (`rows`: the fixture's own unless given). */
 export function openRegsFixtureWithLines(rows: readonly LineRow[] = regsFixtureLines().lines,
                                          tamper: ReleaseTamper = {}): ReleaseLoader {
-  const lines = sectionLineDb(rows);
-  return openReleaseDir(regsFixtureDir(), { ...tamper,
-    db: (name, d) => { const t = tamper.db ? tamper.db(name, d) : d; return name === "regs-sid" ? withSectionLines(t, lines) : t; } });
+  const dir = regsFixtureDir();
+  const sid = parseManifest(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8"))).files["regs-sid"]!;
+  const lines = sectionLineDb(rows, sid.section_handles);
+  return openReleaseDir(dir, { ...tamper, files: { lines, ...tamper.files },
+    manifest: (m0) => {
+      const m = tamper.manifest ? tamper.manifest(m0) : m0;
+      return { ...m, files: { ...m.files, lines: { ...sid, url: "lines-fixture.sqlite.gz", format: "lines/1" } } };
+    } });
 }

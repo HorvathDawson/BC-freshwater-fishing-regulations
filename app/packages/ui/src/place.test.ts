@@ -6,9 +6,10 @@
  */
 import { describe, expect, it } from "vitest";
 import type { ItemId, SectionId } from "@app/data";
-import type { NavRows, PartRow, SectionLine } from "@app/data/regs";
-import { placeOf, resolvePlace, type PlaceReads } from "./place";
-import { parseStartLink, resolveStartLink, routeSearch } from "./startLink";
+import type { NavRows, PartRow } from "@app/data/regs";
+import type { SectionLine } from "@app/data/regs/place";
+import { placeOf, resolvePlace, resolveStartLink, type PlaceReads } from "./place";
+import { parseStartLink, routeSearch } from "./startLink";
 import { HOME, reduce, waterFrame } from "./route";
 import { openWater } from "./openWater";
 

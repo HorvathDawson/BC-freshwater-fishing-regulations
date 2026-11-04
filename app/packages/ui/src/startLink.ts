@@ -6,7 +6,7 @@
  * route ever ships).
  *
  * (T369, owner 2026-11-03) A LINK ADDRESSES A PLACE, NOT A PART NUMBER: `blk` + `m` (place.ts), the FWA stream key and a
- * distance along it, resolved in the release the app holds (`resolveStartLink`) to the water and part there — named or
+ * distance along it, resolved in the release the app holds (`@app/ui/place` `resolveStartLink`, web-only) to the water and part there — named or
  * not (an unnamed reach's link is `?blk=&m=` alone). A water of one part, a lake and a split lake's closure area need no
  * place: the item is the address (no older link form is read: owner 2026-11-03). `ix=` (+ `stretch=`) is the browser tools' key — a part index in the release the
  * tool was cut against (a test affordance; the app never writes it).
@@ -18,7 +18,7 @@
 import { parseSheetKey, type SheetKey, type Tab, type Who } from "@app/core";
 import type { ItemId } from "@app/data";
 import { openWater } from "./openWater";
-import { placeOf, resolvePlace, type ItemFor, type PlaceReads, type StreamPlace } from "./place";
+import type { StreamPlace } from "@app/data/regs/place";
 import { mapDayOf } from "./regs";
 import { HOME, reduce, waterFrame, type Route, type View } from "./route";
 
@@ -47,21 +47,6 @@ export function routeSearch(r: Route, current = "", place: StreamPlace | null = 
   }
   const out = q.toString().replace(/%3A/gi, ":");   // an item id's colon reads as typed; a URL query allows it
   return out ? `?${out}` : "";
-}
-
-/**
- * (T369) THE ADDRESS, MADE FROM THE RELEASE: `routeSearch` with the frame's place. The one function the web's address
- * bar and the tests' reload both call. A frame that needs a place the release cannot give (a release cut before
- * `section_line`) is reported, not hidden (`onMissing`), and addressed without one (its reload opens the whole water).
- */
-export async function linkSearch(store: PlaceReads | null, r: Route, current = "",
-                                 onMissing?: (e: Error) => void): Promise<string> {
-  let place: StreamPlace | null = null;
-  if (store) {
-    try { place = await placeOf(store, waterFrame(r)); }
-    catch (e) { onMissing?.(e instanceof Error ? e : new Error(String(e))); }
-  }
-  return routeSearch(r, current, place);
 }
 
 /** Where the Regulations page starts: the tab scrolled to, the sheet open over it, and/or a scroll offset (px). */
@@ -206,39 +191,4 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   const link: StartLink = { route, day, regs: { tab, sheet, scroll }, who, theme, arrive: item as ItemId | null, place,
                             notice: null };
   return link;
-}
-
-/**
- * (T369) THE LINK'S PLACE, RESOLVED in the release held (`resolvePlace`): the water and part it falls on there, opened
- * the one way (`openWater`) at the link's view. A place this release does not hold opens the link's water whole (or,
- * for a place alone, the map) and says so. A water named with no place, no part and not whole is a water whose address
- * needs no place — one of one part (a lake, a split lake's closure area): it opens at that part.
- */
-export async function resolveStartLink(link: StartLink, store: PlaceReads, itemFor: ItemFor): Promise<StartLink> {
-  if (!link.place) return ownPart(link, store);
-  const view = link.place.view;
-  const at = await resolvePlace(store, itemFor, link.place);
-  if (!at) {
-    const f = waterFrame(link.route);
-    return { ...link, place: null, notice: "place-gone",
-             route: f?.item ? reduce(HOME, openWater({ item: f.item, view, whole: view === "map" })) : link.route };
-  }
-  const route = reduce(HOME, openWater(at.item === null
-    ? { item: null, tapSid: at.sid, view }
-    : { item: at.item, part: at.part, view, ...(at.stretch ? { stretch: at.stretch } : {}),
-        whole: view === "map" && at.part === null }));
-  return { ...link, route, place: null, arrive: at.item ?? link.arrive };
-}
-
-
-/** (T369) A link naming a water alone: a water of one part opens at it; any other — a multi-part water whose link has
- *  no place (a release cut before `section_line` made it) — on its Map, whole. */
-async function ownPart(link: StartLink, store: PlaceReads): Promise<StartLink> {
-  const f = waterFrame(link.route);
-  if (!f || f.item === null || f.part !== null || f.whole || f.tapSid !== null) return link;
-  const ord = await store.itemOrd(f.item);
-  const parts = ord === null ? [] : (await store.parts(ord)).filter((p) => !p.tidal);
-  if (parts.length === 1)
-    return { ...link, route: reduce(HOME, openWater({ item: f.item, part: parts[0]!.partIx, view: f.view })) };
-  return f.view === "map" ? { ...link, route: reduce(HOME, openWater({ item: f.item, view: "map", whole: true })) } : link;
 }

@@ -28,7 +28,6 @@ import type {
 import { isConfidence } from "@app/core";
 import type { Cell, Db, Row } from "../sql/db";
 import { RegsStoreError } from "./errors";
-import { decodeLineBlock, slotAt, type LineBlock, type SectionLine } from "./line";
 
 export interface ItemRow {
   readonly ord: number; readonly id: string; readonly name: string; readonly kind: string;
@@ -105,15 +104,6 @@ export interface RegsReads {
    * the split lake itself (it owns no part), itself and its closure areas.
    */
   siblingOrds(itemOrd: number): Promise<readonly number[]>;
-  /**
-   * (T369) Whether this release carries `section_line` (regs-sid; `line.ts`): the stream key and measure span of every
-   * stream section — what a link's PLACE is made from and resolved by. A release cut before it: false (no place).
-   */
-  hasLines(): Promise<boolean>;
-  /** (T369) A stream section's line; null: a lake's handle, or no `section_line`. */
-  sectionLine(handle: number): Promise<SectionLine | null>;
-  /** (T369) The section whose span holds measure `m` of stream `blk`; null: none in this release (or no `section_line`). */
-  sectionAt(blk: number, m: number): Promise<number | null>;
 }
 
 /** `navRows`: what the water map reads of one item beyond its `item` / `part` rows. */
@@ -323,36 +313,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
   const yearStrips = (): Promise<readonly YearStrip[]> => once("strips", 0, async () =>
     base.val<YearStrip[]>("static", (await row(base.water(), "SELECT j FROM static WHERE k = ?", "rows.strips", "static")).j));
 
-  /** (T369) `section_line` is additive: a release cut before it has no table. */
-  const hasLines = () => once("hasLines", 0, async () =>
-    !!(await (await base.sid()).get("SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'section_line'")));
-  const lineBlock = (r: Row | undefined): LineBlock | null => {
-    if (!r) return null;
-    if (!(r.b instanceof Uint8Array)) throw damaged(`section_line block ${String(r.block)} is not bytes`);
-    try { return decodeLineBlock(r.b, n(r.n)); }
-    catch (e) { throw damaged(e instanceof Error ? e.message : String(e)); }
-  };
-  const lineAt = (blockIx: number): Promise<LineBlock | null> => once("lineBlock", blockIx, async () =>
-    lineBlock(await (await base.sid()).get("SELECT block, n, b FROM section_line WHERE block = ?", blockIx)));
   const reads: RegsReads = {
-    hasLines,
-    async sectionLine(h: number): Promise<SectionLine | null> {
-      if (!(await hasLines())) return null;
-      const b = await lineAt(h >> BLOCK_BITS), i = h & SLOT;
-      return b && i < b.n ? { blk: b.blk[i]!, from: b.from[i]!, to: b.to[i]! } : null;
-    },
-    sectionAt: (blk: number, m: number) => once("sectionAt", `${blk}:${m}`, async (): Promise<number | null> => {
-      if (!(await hasLines())) return null;
-      // the block: the last head at or below the place (the handles are sorted by stream key, then start)
-      const head = await (await base.sid()).get(
-        "SELECT block FROM section_line WHERE blk0 < ? OR (blk0 = ? AND m0 <= ?) ORDER BY blk0 DESC, m0 DESC LIMIT 1",
-        blk, blk, m);
-      if (!head) return null;
-      const ix = n(head.block), b = await lineAt(ix);
-      const at = b ? slotAt(b, blk, m) : -1;
-      return at < 0 ? null : (ix << BLOCK_BITS) | at;
-    }),
-
     itemOrd: (itemId) => once("itemOrd", itemId, async () => {
       const r = await (await base.core()).get("SELECT ord FROM item WHERE item_id = ?", itemId);
       return r ? n(r.ord) : null;
