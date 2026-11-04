@@ -149,7 +149,7 @@ async function walkState(id, theme) {
     // 8 sheets open: every golden sheet of the state, by its app key, through the dev hook (no reload); Done closes it
     if (SHEETS) {
       await until(b, '!!globalThis.__regsDebug', 5000, 'the dev walk hook');
-      const keys = Object.keys(golden.states[id].sheets || {});
+      const keys = Object.keys(golden.states[id].sheets || {}).filter((k) => appKeyOf(k, id) !== null);   // less removed sheets (licsrc:)
       const bad = [];
       for (const k of keys) {
         const ak = appKeyOf(k, id), want = titleOf(id, k);

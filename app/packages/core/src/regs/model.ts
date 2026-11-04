@@ -267,14 +267,13 @@ export interface LicenceVM {
   readonly question: string | null; readonly questionTerms: readonly string[];
   readonly axes: readonly { axis: "age" | "res"; aria: string; options: readonly { value: string; text: string; checked: boolean }[] }[];
   readonly label: string;                   // static licence.profile_labels[profileIx]
-  readonly blocks: readonly LicenceBlockVM[];          // draw order
-  readonly src: { who: string; aria: string; open: SheetKey } | null;   // open = `licsrc:${profileKeyOf(who)}`
+  readonly blocks: readonly LicenceBlockVM[];          // draw order (no source line: owner 2026-11-04)
 }
 export interface NeedItemVM { readonly name: string; readonly terms: readonly string[]; readonly when: string; readonly price: string | null }
 export type LicenceBlockVM =
-  | { cls: "classbox"; head: string; terms: readonly string[]; body: string; source: SheetKey | null }
+  | { cls: "classbox"; head: string; terms: readonly string[]; body: string }
   | { cls: "classbox youth"; head: string; terms: readonly string[]; body: string }
-  | { cls: "flag"; text: string } | { cls: "scopenote"; text: string; source: SheetKey | null }
+  | { cls: "flag"; text: string } | { cls: "scopenote"; text: string }
   | { cls: "needs"; label: string; items: readonly NeedItemVM[]; onlyIf: { label: string; items: readonly NeedItemVM[] } | null; priceNote: string | null }
   | { cls: "paper"; lead: string; strong: string; tail: string }
   | { cls: "nymbox"; label: string; says: string; note: string }

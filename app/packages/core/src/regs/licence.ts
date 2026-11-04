@@ -1,11 +1,12 @@
 /**
  * T33 — the Licence tab for one angler (`Who`): the question, the two choices, the profile's label, then the answer in draw
  * order (classified-water boxes, the under-16 box, the "You need" list, the paper-licence line, the not-yet-mapped box,
- * the guiding fold drawn open) and the source line that opens the `licsrc:` sheet ("Where each one comes from").
+ * the guiding fold drawn open). No source line: the prototype's `licsrc:` sheet ("Where each one comes from") only restated
+ * the items and is removed (owner 2026-11-04).
  *
- * Ports (inventory names @ 7fb6809f, regs v38): page v36 LX, DOC, AXES, whoTxt, actTxt, priceTxt, pathHtml, srcOf,
- * reqCard, otherCard, licParts (+ whenTxt, alsoTxt, docGi, fishOf, orderAct); prototype licence (+ one,
- * asNeeds), KEYOF, render (the licence-list patches).
+ * Ports (inventory names @ 7fb6809f, regs v38): page v36 LX, DOC, AXES, whoTxt, actTxt, priceTxt, pathHtml,
+ * otherCard, licParts (+ whenTxt, alsoTxt, docGi, fishOf); prototype licence (+ one,
+ * asNeeds), render (the licence-list patches).
  *
  * OWNER RULE 2026-10-21: nothing here decides a regulation. Which documents an angler needs, every requirement, exemption,
  * designation, price and path is the stored licence answer (`licence_frame` → holds / profiles / under_16); this module
@@ -17,24 +18,16 @@
  * An under-16's document is named with its stored alternatives (licence 7 `under_16[].buy[].or`), as the 16+ list names
  * its own.
  */
-import type { DocumentNeed, Path_, Prices, PrintedRequirement, RequirementPath, When } from "../answers.generated";
+import type { DocumentNeed, Path_, Prices, PrintedRequirement, When } from "../answers.generated";
 import type { Holds, LicenceValue, ProfileAnswer, RegsInputs } from "./inputs";
 import type { LicenceBlockVM, LicenceVM, NeedItemVM, Who } from "./model";
 import { cap, expand, join, lc, lcNames, type SpeciesBook } from "./names";
-import type { ProfileKey, SheetKey } from "./sheetKey";
 import { AGE_DIM, profileIndex } from "./tap";
 import { rangeTxt, whenDates, type RuleWhen } from "./time";
 import { LIC, WORDS } from "./words";
 
 
 // ── the angler ──────────────────────────────────────────────────────────────────────────────────────────────────────
-
-/** prototype KEYOF: the answer key for an age and a residency. */
-export function keyOf(who: Who): ProfileKey {
-  const u = who.age === "u16";
-  return who.residency === "non_resident" ? (u ? "u16_non" : "adult_non")
-    : who.residency === "non_resident_alien" ? (u ? "u16_alien" : "adult_alien") : (u ? "u16_res" : "adult");
-}
 
 /** The profile's index into `static licence.profiles` (guidance non_guided, status none — the app asks neither). */
 export function profileOf(who: Who, s: RegsInputs["statics"]): number {
@@ -98,12 +91,6 @@ export function priceTxt(p: Prices): string {
     ...(p.eight_days ?? []).map((x) => LIC.PER_8_DAYS(x.toFixed(2)))].filter(Boolean).join(LIC.DOT);
 }
 
-/** page v36 srcOf: who a licensing record speaks for. */
-export function srcOf(l: LicWords): string {
-  return l.placement === "province" ? LIC.SRC.province : l.placement === "on_designation" ? LIC.SRC.on_designation
-    : l.fields.authority === "superior" ? LIC.SRC.superior : LIC.SRC.water;
-}
-
 /** page v36 pathHtml, in plain words: one way to meet a requirement. */
 function pathTxt(inp: RegsInputs, p: Path_): string {
   const bits: string[] = [];
@@ -112,58 +99,6 @@ function pathTxt(inp: RegsInputs, p: Path_): string {
     + (p.quota === "counts_to_companion" ? LIC.PATH_COUNTS : ""));
   if (p.as) bits.push(LIC.PATH_AS(whoTxt(((p.as as { who?: unknown }).who ?? p.as) as Record<string, unknown>)));
   return bits.join(" ") + (p.alt != null ? LIC.PATH_ALT : "");
-}
-
-// ── the sources (the "Where each one comes from" fold → the licsrc: sheet, T36) ───────────────────────────────────────
-
-/** One requirement as page v36 reqCard draws it (the licsrc: sheet's card). */
-export interface ReqCardVM {
-  readonly key: string; readonly label: string; readonly src: string;   // src = srcOf + " +N" when the book prints it N more times
-  readonly lost: string | null;                                         // displaced: why it is not valid here
-  readonly paths: readonly string[];                                    // each way to meet it (drawn with "or" between)
-  readonly freed: string | null; readonly conduct: readonly string[];   // freed replaces conduct
-  readonly notIf: string | null;
-  readonly terms: readonly { key: string; label: string }[];
-}
-
-const orderAct = (t: string): number => t === LIC.ACT_FISHING ? 0 : t.startsWith(LIC.ACT_TARGETING("")) ? 1 : t.startsWith(LIC.ACT_RETAINING("")) ? 2 : 3;
-
-function reqCard(inp: RegsInputs, x: RequirementPath, H: Holds): ReqCardVM {
-  const l = lx(inp, x.req), also = H.also_printed?.[String(x.req)] ?? [];
-  const by = x.presumes_by != null ? lx(inp, x.presumes_by) : null;
-  return {
-    key: l.key, label: l.label, src: srcOf(l) + (also.length ? LIC.SRC_MORE(also.length) : ""),
-    lost: x.displaced_by?.length ? LIC.DISPLACED : null,
-    paths: x.paths.map((p) => pathTxt(inp, p)),
-    freed: x.presumes_freed ? LIC.FREED : null,
-    conduct: x.presumes_freed ? [] : ((l.fields.conduct ?? []) as string[]).map((c) => inp.statics.exportConduct?.[c] || c),
-    notIf: !x.presumes_freed && by ? LIC.NOT_IF(whoTxt(by.fields.who).replace(/\.$/, "")) : null,
-    terms: (x.terms ?? []).map((t) => lx(inp, t)).map((t) => ({ key: t.key, label: t.label })),
-  };
-}
-
-/** The requirement cards of the angler's answer, grouped by act and ordered as page v36 (to fish here, to fish for…,
- *  to keep…, the rest) — the prototype's licsrc: sheet body (T36 draws it, titled LIC.SOURCES_HEAD). */
-export function licenceSources(inp: RegsInputs, p: ProfileAnswer, h: Holds): readonly { act: string; cards: readonly ReqCardVM[] }[] {
-  const sp = inp.statics.exportSpecies, groups = new Map<string, RequirementPath[]>();
-  for (const x of p.requirements) { const t = actTxt(x.when, sp); if (!groups.has(t)) groups.set(t, []); groups.get(t)!.push(x); }
-  return [...groups.entries()].sort((a, b) => orderAct(a[0]) - orderAct(b[0]))
-    .map(([act, list]) => ({ act, cards: list.map((x) => reqCard(inp, x, h)) }));
-}
-
-/** The sheet's plain lines (page v36 reqCard text, one per block element) — what the golden licsrc: sheet holds. */
-export function licenceSourceLines(groups: ReturnType<typeof licenceSources>): readonly string[] {
-  return groups.flatMap((g) => [g.act, ...g.cards.flatMap((c) => [
-    `${c.label} ${c.src}`, ...(c.lost ? [c.lost] : []), ...c.paths.flatMap((x, i) => i ? [LIC.OR, x] : [x]),
-    ...(c.freed ? [c.freed] : c.conduct), ...(c.notIf ? [c.notIf] : []), ...c.terms.map((t) => t.label)])]);
-}
-
-/** The source line's words (prototype licence.one: every card's `.src` before the folds move): the requirement cards in
- *  sheet order, then the guiding cards, then the other anglers' cards — first seen, once. */
-export function licenceWho(inp: RegsInputs, p: ProfileAnswer, h: Holds): readonly string[] {
-  const words = [...licenceSources(inp, p, h).flatMap((g) => g.cards.map((c) => c.src)),
-    ...[...(p.guiding ?? []), ...(p.others ?? [])].map((o) => srcOf(lx(inp, o.req)))];
-  return words.filter((w, i) => words.indexOf(w) === i);
 }
 
 // ── the answer ──────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -177,9 +112,9 @@ export const isHolds = (h: LicenceValue["holds"]): h is Holds => !("tidal" in h)
 
 /** page v36 licParts for one stored profile answer, as typed blocks (the dropped pieces — the profile selects, "Showing
  *  the answer for:", the under-16 residency list, the "Rules for other anglers" fold, "All licence sources" — are the
- *  prototype's removals; the "Where each one comes from" fold is `licenceSources`). */
+ *  prototype's removals; so is the "Where each one comes from" fold and its sheet, owner 2026-11-04). */
 function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: Who, P: ProfileAnswer,
-                      gloss: ReadonlySet<string>, source: SheetKey): LicenceBlockVM[] {
+                      gloss: ReadonlySet<string>): LicenceBlockVM[] {
   const sp = inp.statics.exportSpecies, H = F.holds, DOC = (d: string) => docName(inp, d);
   const gi = (id: string): string[] => gloss.has(id) ? [id] : [];
   const out: LicenceBlockVM[] = [];
@@ -191,14 +126,13 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
     out.push({ cls: "classbox", head: d.period?.says ?? LIC.CLASS_HEAD(String(f.classified)), terms: gi(LIC.CLASS_TERM),
       body: LIC.UNIT(String(f.unit_name || f.unit))
         + (f.steelhead_stamp_during ? LIC.STAMP_DURING(datesOf(f.steelhead_stamp_during.when)) + (H.stamp_period ? LIC.IN_FORCE : "") + LIC.STAMP_OTHER_TIME : "")
-        + (d.stamp_waiver ? LIC.STOP + " " + d.stamp_waiver.says.replace(/\.$/, "") : f.steelhead_stamp_waived ? LIC.STAMP_WAIVED : "") + LIC.STOP,
-      source });
+        + (d.stamp_waiver ? LIC.STOP + " " + d.stamp_waiver.says.replace(/\.$/, "") : f.steelhead_stamp_waived ? LIC.STAMP_WAIVED : "") + LIC.STOP });
   }
   if (H.contested) out.push({ cls: "flag", text: LIC.CONTESTED });
   // page v36's unresolved-licensing flags ("Check: … couldn't be placed on the map") need the store's item.unresolved, which
   // T09 does not load yet (no item carries one in the current release) — not drawn
-  if (P.exempt) out.push({ cls: "scopenote", text: LIC.EXEMPT_FROM(P.exempt.from.map(DOC).join(LIC.SEP)), source });
-  if (P.none_needed) out.push({ cls: "classbox", head: LIC.NONE_HEAD, terms: [], source: null,
+  if (P.exempt) out.push({ cls: "scopenote", text: LIC.EXEMPT_FROM(P.exempt.from.map(DOC).join(LIC.SEP)) });
+  if (P.none_needed) out.push({ cls: "classbox", head: LIC.NONE_HEAD, terms: [],
     body: (who.age === "u16" ? LIC.NONE_U16 : P.exempt ? LIC.NONE_EXEMPT : LIC.NONE_ANY) + " " + LIC.NONE_TAIL });
 
   // whenTxt / alsoTxt / docGi
@@ -309,7 +243,7 @@ function selectors(who: Who, gloss: ReadonlySet<string>): Pick<LicenceVM, "quest
   };
 }
 
-const EMPTY: LicenceVM = Object.freeze({ question: null, questionTerms: [], axes: [], label: "", blocks: [], src: null });
+const EMPTY: LicenceVM = Object.freeze({ question: null, questionTerms: [], axes: [], label: "", blocks: [] });
 
 /**
  * The Licence tab for `who`. Null outside B.C. (no key), and null on a closed day: nothing is said under it, so there is
@@ -320,29 +254,27 @@ const EMPTY: LicenceVM = Object.freeze({ question: null, questionTerms: [], axes
 export function buildLicence(inp: RegsInputs, who: Who, ctx: { readonly closed: boolean; readonly glossary: ReadonlySet<string> }): LicenceVM | null {
   if (!inp.key || ctx.closed) return null;
   if (!inp.frames) return EMPTY;
-  const F = inp.frames.licence, pix = profileOf(who, inp.statics), source: SheetKey = `licsrc:${keyOf(who)}`;
+  const F = inp.frames.licence, pix = profileOf(who, inp.statics);
   const head = { ...selectors(who, ctx.glossary), label: inp.statics.profileLabels[pix] ?? "" };
   if (!isHolds(F.holds)) {
     const t = F.holds.tidal as { licence?: string; note?: string };
-    return { ...head, blocks: [{ cls: "classbox", head: LIC.TIDAL, terms: [], body: t.licence || t.note || "", source: null }], src: null };
+    return { ...head, blocks: [{ cls: "classbox", head: LIC.TIDAL, terms: [], body: t.licence || t.note || "" }] };
   }
-  const H = F.holds, P = F.profiles[pix];
-  if (!isAnswer(P)) return { ...head, blocks: [], src: null };
+  const P = F.profiles[pix];
+  if (!isAnswer(P)) return { ...head, blocks: [] };
   const FH = F as LicenceValue & { holds: Holds };
   const adultP = F.profiles[profileOf({ age: "adult", residency: "resident" }, inp.statics)];
-  const adult = isAnswer(adultP) ? answerBlocks(inp, FH, { age: "adult", residency: "resident" }, adultP, ctx.glossary, source) : null;
+  const adult = isAnswer(adultP) ? answerBlocks(inp, FH, { age: "adult", residency: "resident" }, adultP, ctx.glossary) : null;
   // (b) the "(not kokanee)" words: a stored requirement of this answer that the document meets says them in its label
   const saysNotKokanee = (doc: string): boolean => P.requirements.some((x) => x.paths.some((p) => p.need?.includes(doc))
     && lx(inp, x.req).label.includes(LIC.NOT_KOKANEE));
   const bare = (it: NeedItemVM): NeedItemVM => ({ name: it.name, terms: it.terms, when: it.when, price: it.price });
-  const blocks = asNeeds(answerBlocks(inp, FH, who, P, ctx.glossary, source), adult).map((b): LicenceBlockVM => {
+  const blocks = asNeeds(answerBlocks(inp, FH, who, P, ctx.glossary), adult).map((b): LicenceBlockVM => {
     if (b.cls !== "needs") return b;
     const p = patchNeeds(b.items as readonly Item[], (it) => (it.docs ?? []).some(saysNotKokanee));
     return { ...b, items: p.items.map(bare), onlyIf: p.onlyIf && { label: p.onlyIf.label, items: p.onlyIf.items.map(bare) } };
   });
-  const words = licenceWho(inp, P, H);
-  return { ...head, blocks,
-    src: { who: (words.join(LIC.SRC_SEP) || LIC.SOURCES) + LIC.SRC_GO, aria: LIC.SRC_ARIA(words.join(LIC.SEP)), open: source } };
+  return { ...head, blocks };
 }
 
 // ── plain lines (the golden's blocks[].lines) ───────────────────────────────────────────────────────────────────────
@@ -354,10 +286,9 @@ export const needLine = (it: NeedItemVM): string => [it.name, ...marks(it.terms)
 /** A block's plain lines, one per drawn element — the golden's `blocks[].lines`. */
 export function licenceBlockLines(b: LicenceBlockVM): readonly string[] {
   switch (b.cls) {
-    case "classbox": return [[b.head, ...marks(b.terms), b.body, b.source ? LIC.SOURCE : ""].filter(Boolean).join(" ")];
-    case "classbox youth": return [[b.head, ...marks(b.terms), b.body].filter(Boolean).join(" ")];
+    case "classbox": case "classbox youth": return [[b.head, ...marks(b.terms), b.body].filter(Boolean).join(" ")];
     case "flag": return [`${LIC.FLAG} ${b.text}`];
-    case "scopenote": return [[b.text, b.source ? LIC.SOURCE : ""].filter(Boolean).join(" ")];
+    case "scopenote": return [b.text];
     case "needs": return [b.label, ...b.items.map(needLine), ...(b.onlyIf ? [b.onlyIf.label, ...b.onlyIf.items.map(needLine)] : []),
       ...(b.priceNote ? [b.priceNote] : [])];
     case "paper": return [(b.lead + b.strong + b.tail).replace(/\s+/g, " ").trim()];

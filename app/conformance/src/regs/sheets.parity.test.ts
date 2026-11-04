@@ -3,7 +3,8 @@
  * projected by `sheetLines`, against app/fixtures/golden/golden.json (regs v38 @ 7fb6809f): title, sub, folds,
  * linked pages, body lines and nested keys. A per-state "@" is the global `golden.sheets[key]`.
  *
- * Built: every kind (rule:, gl:, pos:, hatch, srcs:, licsrc:, src:, sp:, other:, parts). `parts` reads each picker choice's
+ * Built: every kind (rule:, gl:, pos:, hatch, srcs:, src:, sp:, other:, parts). The golden's licsrc: sheets are dropped
+ * (exclusions.ts GOLDEN_LICSRC_KEY, LICSRC_REASON: owner 2026-11-04, licence sources sheet removed). `parts` reads each picker choice's
  * STORED display status on the day (T09 `choicesOnDay`); the prototype's D1 note about its missing map is substituted away.
  * The keyed exclusions (exclusions.ts) and the whole-line substitutions (SHEET_SUBST) are counted in the summary line.
  * An Other fish row drawn as a Keep group is worded by the Keep tab's own projection (keepPage.ts `groupLines`).
@@ -13,7 +14,7 @@ import { appKeyOf, goldenKeyOf, sheetLines, type SheetKey } from "@app/core";
 import { eqPlain, type GoldenSheet } from "@app/core/regs/testing";
 import { caseIds, golden, inputsOf, parityGate, parityStore, requestOf, ADULT_RESIDENT, summary } from "./golden";
 import { buildRegsPage } from "@app/core";
-import { D19_SHEET_LINES, droppedLines, excluded, keepLines, LEGACY_POOL_SHEETS, SHEET_SUBST, substIn } from "./exclusions";
+import { D19_SHEET_LINES, droppedLines, excluded, GOLDEN_LICSRC_KEY, keepLines, LEGACY_POOL_SHEETS, SHEET_SUBST, substIn } from "./exclusions";
 import { groupLines } from "./keepPage";
 import { flipsOver, renamedOrder } from "./oracles";
 
@@ -28,13 +29,17 @@ const MORE = " See every regulation line ›";
 
 const G = golden();
 const gate = await parityGate();
+/** the golden's licsrc: sheets, all states (six per state whose Licence tab answers) */
+const LICSRC_N = 642;
 const ids = caseIds("sheets");
 
 /** the sheet kinds T36 builds (the key's prefix): every kind the golden holds */
-const BUILT = ["rule", "gl", "pos", "hatch", "srcs", "licsrc", "src", "sp", "other", "parts"] as const;
+const BUILT = ["rule", "gl", "pos", "hatch", "srcs", "src", "sp", "other", "parts"] as const;
 const kindOf = (k: string) => k.split(/[:|]/)[0]!;
+/** a state's golden sheets less its licsrc: ones (owner 2026-11-04: licence sources sheet removed — asserted below) */
 const sheetsOf = (id: string): [string, GoldenSheet][] =>
-  Object.entries(G.states[id]!.sheets as Record<string, GoldenSheet | "@">).map(([k, v]) => [k, v === "@" ? G.sheets[k] as GoldenSheet : v]);
+  Object.entries(G.states[id]!.sheets as Record<string, GoldenSheet | "@">).filter(([k]) => !GOLDEN_LICSRC_KEY.test(k))
+    .map(([k, v]) => [k, v === "@" ? G.sheets[k] as GoldenSheet : v]);
 
 describe("A. sheet keys: golden ⇄ app", () => {
   it("every per-state key of every state round-trips through appKeyOf / goldenKeyOf", () => {
@@ -45,11 +50,16 @@ describe("A. sheet keys: golden ⇄ app", () => {
       expect(a.includes(id), `${id} ${k} → ${a}`).toBe(false);
       shapes.add(k.replace(id, "SID").replace(/^(rule|gl|sp):.*/, "$1:*").replace(/\|o\d+$/, "|oN").replace(/\|r\d+$/, "|rN")); n++;
     }
-    expect(n).toBe(7183);   // (T206) 7184 less x37p2's sheet of the retired z2:trout_char_quota.r3 (oracles.ts retiredRuled)
-    expect([...shapes].sort()).toEqual(["gl:*", "hatch", "licsrc:lic|SID|adult", "licsrc:lic|SID|adult_alien", "licsrc:lic|SID|adult_non",
-      "licsrc:lic|SID|u16_alien", "licsrc:lic|SID|u16_non", "licsrc:lic|SID|u16_res", "other:SID|oN", "parts", "pos:SID|pos", "rule:*",
+    // (T206) 7184 less x37p2's sheet of the retired z2:trout_char_quota.r3 (oracles.ts retiredRuled), less the LICSRC_N licsrc:
+    expect(n).toBe(7183 - LICSRC_N);
+    expect([...shapes].sort()).toEqual(["gl:*", "hatch", "other:SID|oN", "parts", "pos:SID|pos", "rule:*",
       "sp:*", "src:SID|rN", "srcs:always|SID", "srcs:bait|SID", "srcs:boats|SID", "srcs:gl|SID|hook", "srcs:gl|SID|lines",
       "srcs:gl|SID|mode", "srcs:gl|SID|weight", "srcs:ways|SID"].filter((s) => shapes.has(s)));
+  });
+  it(`the golden's ${LICSRC_N} licsrc: sheets are dropped, and the app has no key for one (owner 2026-11-04: licence sources sheet removed)`, () => {
+    const all = Object.keys(G.states).flatMap((id) => Object.keys(G.states[id]!.sheets).filter((k) => GOLDEN_LICSRC_KEY.test(k)).map((k) => [id, k] as const));
+    expect(all.length).toBe(LICSRC_N);
+    for (const [id, k] of all) expect(() => appKeyOf(k, id), `${id} ${k}`).toThrow(/not a sheet key/);
   });
   it("what is not built, by kind (golden per-state sheets): nothing; a kind the golden gains must join BUILT", () => {
     const by: Record<string, number> = {};

@@ -6,6 +6,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { buildRegsPage, type RegsPage, type SheetKey, type SheetVM, type Who } from "@app/core";
 import { loadRegsInputs } from "@app/data/regs";
+import { GOLDEN_LICSRC_KEY, goldenLicenceUnsourced } from "./exclusions";
 import { ADULT_RESIDENT, baseUnnamedStream, inputsOf, parityStore, requestOf } from "./golden";
 import { golden, REPO } from "./oracles";
 
@@ -16,13 +17,12 @@ export const UPDATE_HINT = "run UPDATE_REGS_FIXTURES=1 pnpm -C app exec vitest r
 export type FrozenRegsPage = Omit<RegsPage, "sheet"> & { readonly sheets: Readonly<Record<string, SheetVM | null>> };
 
 /**
- * A golden sheet key → the app's (contracts §6 #1: the app's keys carry no state id). `licsrc:lic|<id>|adult` →
- * `licsrc:adult`; `other:<id>|o0` → `other:o0`; `srcs:gl|<id>|hook` → `srcs:gl|hook`; `srcs:bait|<id>` → `srcs:bait`.
- * Key plumbing only, until T36's `appKeyOf` (core sheetKey.ts) replaces it.
+ * A golden sheet key → the app's (contracts §6 #1: the app's keys carry no state id). `other:<id>|o0` → `other:o0`;
+ * `srcs:gl|<id>|hook` → `srcs:gl|hook`; `srcs:bait|<id>` → `srcs:bait`. (A `licsrc:` key has no app key: the licence sources
+ * sheet is removed, owner 2026-11-04 — `goldenSheetKeys` leaves them out.) Key plumbing only, until T36's `appKeyOf` (core
+ * sheetKey.ts) replaces it.
  */
 export function appSheetKey(goldenKey: string, id: string): string {
-  const lic = new RegExp(`^licsrc:lic\\|${id}\\|(.+)$`).exec(goldenKey);
-  if (lic) return `licsrc:${lic[1]}`;
   return goldenKey.replace(`${id}|`, "").replace(`|${id}`, "");
 }
 
@@ -45,17 +45,22 @@ export function stableJson(v: unknown): string {
   return `${JSON.stringify(sort(v, ""), null, 1)}\n`;
 }
 
+/** A golden state's sheet keys, as the app's, less the licsrc: ones (exclusions LICSRC_REASON: owner 2026-11-04, licence
+ *  sources sheet removed). */
+export const goldenSheetKeys = (id: string): string[] =>
+  Object.keys(golden().states[id]!.sheets).filter((k) => !GOLDEN_LICSRC_KEY.test(k)).map((k) => appSheetKey(k, id));
+
 /** The frozen page of one fixture state, as JSON text. */
 export async function frozenJson(id: string): Promise<string> {
   const inp = await inputsOf(id);
   if (!inp) throw new Error(`frozen page ${id}: no paired regs store`);
   const page = buildRegsPage(inp, { today: requestOf(id).today, who: ADULT_RESIDENT, pid: id });
-  return stableJson(freezePage(page, Object.keys(golden().states[id]!.sheets).map((k) => appSheetKey(k, id))));
+  return stableJson(freezePage(page, goldenSheetKeys(id)));
 }
 
 /**
  * (T35) The states whose Licence tab the render test mounts for all six anglers (golden `licence["<age>|<res>"]`):
- * vedder_1010, x5p1_1010 (a classified water — the class box and its "Source", D17) and klmb_1010 (the not-yet-mapped box).
+ * vedder_1010, x5p1_1010 (a classified water — the class box, D17) and klmb_1010 (the not-yet-mapped box).
  * Between them they draw every licence block class the golden draws.
  */
 export const LICENCE_FIXTURE_STATES = ["vedder_1010", "x5p1_1010", "klmb_1010"] as const;
@@ -74,11 +79,14 @@ export async function licenceJson(id: string): Promise<string> {
 
 /**
  * (T34/T35) `golden_lines.json`: the golden's drawn lines of the Gear / Methods / Licence tabs for the fixture states,
- * copied verbatim from golden.json (a render test may not read files: layers.json) — the oracle the render mounts compare.
+ * copied verbatim from golden.json (a render test may not read files: layers.json) — the oracle the render mounts compare —
+ * except the Licence lines' sources (exclusions `goldenLicenceUnsourced`: owner 2026-11-04, licence sources sheet removed).
  */
 export function goldenLinesJson(): string {
   const G = golden().states;
-  const licence = (id: string) => Object.fromEntries(Object.entries(G[id]!.licence).map(([k, l]) => [k, (l as { lines: string[] }).lines]));
+  type GLic = Parameters<typeof goldenLicenceUnsourced>[0] & { lines: string[] };
+  const licence = (id: string) => Object.fromEntries(Object.entries(G[id]!.licence)
+    .map(([k, l]) => [k, (l as GLic).blocks ? goldenLicenceUnsourced(l as GLic).lines : (l as GLic).lines]));
   return stableJson(Object.fromEntries([
     ...FIXTURE_STATES.map((id) => {
       const s = G[id]!;

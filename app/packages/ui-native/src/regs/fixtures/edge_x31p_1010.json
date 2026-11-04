@@ -115,7 +115,6 @@
     "body": "federal Tidal Waters Sport Fishing Licence",
     "cls": "classbox",
     "head": "Tidal water",
-    "source": null,
     "terms": []
    }
   ],
@@ -123,8 +122,7 @@
   "question": "Who is fishing?",
   "questionTerms": [
    "under_16"
-  ],
-  "src": null
+  ]
  },
  "methods": {
   "boats": null,

@@ -105,12 +105,7 @@
   "question": "Who is fishing?",
   "questionTerms": [
    "under_16"
-  ],
-  "src": {
-   "aria": "Sources: Province, This water",
-   "open": "licsrc:adult_non",
-   "who": "Province · This water ›"
-  }
+  ]
  },
  "adult|non_resident_alien": {
   "axes": [
@@ -218,12 +213,7 @@
   "question": "Who is fishing?",
   "questionTerms": [
    "under_16"
-  ],
-  "src": {
-   "aria": "Sources: Province, This water",
-   "open": "licsrc:adult_alien",
-   "who": "Province · This water ›"
-  }
+  ]
  },
  "adult|resident": {
   "axes": [
@@ -331,12 +321,7 @@
   "question": "Who is fishing?",
   "questionTerms": [
    "under_16"
-  ],
-  "src": {
-   "aria": "Sources: Province, This water",
-   "open": "licsrc:adult",
-   "who": "Province · This water ›"
-  }
+  ]
  },
  "u16|non_resident": {
   "axes": [
@@ -426,12 +411,7 @@
   "question": "Who is fishing?",
   "questionTerms": [
    "under_16"
-  ],
-  "src": {
-   "aria": "Sources: Province, This water",
-   "open": "licsrc:u16_non",
-   "who": "Province · This water ›"
-  }
+  ]
  },
  "u16|non_resident_alien": {
   "axes": [
@@ -521,12 +501,7 @@
   "question": "Who is fishing?",
   "questionTerms": [
    "under_16"
-  ],
-  "src": {
-   "aria": "Sources: Province, This water",
-   "open": "licsrc:u16_alien",
-   "who": "Province · This water ›"
-  }
+  ]
  },
  "u16|resident": {
   "axes": [
@@ -602,11 +577,6 @@
   "question": "Who is fishing?",
   "questionTerms": [
    "under_16"
-  ],
-  "src": {
-   "aria": "Sources: Province, This water",
-   "open": "licsrc:u16_res",
-   "who": "Province · This water ›"
-  }
+  ]
  }
 }

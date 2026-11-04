@@ -4,23 +4,22 @@
  */
 import { describe, expect, it } from "vitest";
 import type { RegsPage } from "@app/core";
-import { appSheetKey, FIXTURE_DIR, FIXTURE_STATES, freezePage, stableJson } from "./fixtures";
-import { golden } from "./oracles";
+import { FIXTURE_DIR, FIXTURE_STATES, freezePage, goldenSheetKeys, stableJson, appSheetKey } from "./fixtures";
 
 describe("appSheetKey: the golden's state-id-bearing keys → the app's", () => {
   it("every kind the golden opens", () => {
     const id = "vedder_515";
-    expect(["licsrc:lic|vedder_515|adult_non", "other:vedder_515|o10", "pos:vedder_515|pos", "src:vedder_515|r2",
+    expect(["other:vedder_515|o10", "pos:vedder_515|pos", "src:vedder_515|r2",
             "srcs:bait|vedder_515", "srcs:gl|vedder_515|hook", "gl:bait_ban", "sp:CT", "hatch", "parts",
             "rule:r1:campbell_river@1-10::campbell_river.r1"].map((k) => appSheetKey(k, id)))
-      .toEqual(["licsrc:adult_non", "other:o10", "pos:pos", "src:r2", "srcs:bait", "srcs:gl|hook", "gl:bait_ban", "sp:CT", "hatch",
+      .toEqual(["other:o10", "pos:pos", "src:r2", "srcs:bait", "srcs:gl|hook", "gl:bait_ban", "sp:CT", "hatch",
                 "parts", "rule:r1:campbell_river@1-10::campbell_river.r1"]);
   });
 
-  it("no golden key of a fixture state keeps its state id", () => {
+  it("no golden key of a fixture state keeps its state id; none is a licsrc: (owner 2026-11-04: licence sources sheet removed)", () => {
     for (const id of FIXTURE_STATES) {
-      const keys = Object.keys(golden().states[id]!.sheets).map((k) => appSheetKey(k, id));
-      expect(keys.filter((k) => k.includes(id)), id).toEqual([]);
+      const keys = goldenSheetKeys(id);
+      expect(keys.filter((k) => k.includes(id) || k.startsWith("licsrc:")), id).toEqual([]);
       expect(keys.length, id).toBeGreaterThan(0);
     }
   });

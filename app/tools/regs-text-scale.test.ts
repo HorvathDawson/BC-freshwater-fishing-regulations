@@ -69,7 +69,7 @@ const LIC = (await import("../packages/ui-native/src/regs/fixtures/licence_vedde
 /** (T37) the vedder_1010 page with its frozen sheets, and the sheets laid out */
 type Frozen = Omit<RegsPage, "sheet"> & { sheets: Record<string, SheetVM | null> };
 const SHEETS_PAGE = ((f: Frozen): RegsPage => ({ ...f, sheet: (k: SheetKey) => f.sheets[k] ?? null }) as RegsPage)(PAGES.vedder_1010 as unknown as Frozen);
-const SHEET_KEYS = ["gl:catch_and_release", "pos:pos", "hatch", "sp:RB", "srcs:gl|hook", "rule:zp:conduct::conduct.r1", "licsrc:adult",
+const SHEET_KEYS = ["gl:catch_and_release", "pos:pos", "hatch", "sp:RB", "srcs:gl|hook", "rule:zp:conduct::conduct.r1",
   "other:o0", "src:r0"] as const;
 
 const SIZES: Partial<Record<LayoutClass, [number, number]>> = { phone: [390, 844], desktop: [1280, 800] };

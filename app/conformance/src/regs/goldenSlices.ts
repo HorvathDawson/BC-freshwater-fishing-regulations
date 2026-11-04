@@ -8,12 +8,14 @@
  *                        (pinChain `header: 0`), the viewport height minus the same; the golden strings (group line, tier
  *                        short line without "↳ "); every sample bar; and each drawn line's measured height by its words.
  *   golden-sheets-vedder_1010.json  (T206) every sheet vedder_1010 can open — title and lines, a global "@" resolved —
- *                        as golden() reads them (its load-time rulings applied: the retired r3, oracles.ts retiredRuled)
+ *                        as golden() reads them (its load-time rulings applied: the retired r3, oracles.ts retiredRuled),
+ *                        less the licsrc: ones (exclusions LICSRC_REASON: owner 2026-11-04, licence sources sheet removed)
  *
  * Written by `UPDATE_REGS_FIXTURES=1`, checked otherwise (goldenSlices.test.ts) — no store needed, so the check never skips.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import type { PinAnchor, PinLine } from "@app/core";
+import { GOLDEN_LICSRC_KEY } from "./exclusions";
 import { FIXTURE_DIR, stableJson } from "./fixtures";
 import { golden, pinsOracle } from "./oracles";
 
@@ -49,7 +51,7 @@ export function headersSlice(): Record<string, unknown> {
 export function sheetsSlice(): Record<string, { title: string; lines: string[] }> {
   const G = golden() as unknown as { states: Record<string, { sheets: Record<string, unknown> }>; sheets: Record<string, unknown> };
   const one = (v: unknown) => { const x = v as { title: string; lines: string[] }; return { title: x.title, lines: x.lines }; };
-  return Object.fromEntries(Object.entries(G.states.vedder_1010!.sheets).map(([k, v]) => [k, one(v === "@" ? G.sheets[k] : v)]));
+  return Object.fromEntries(Object.entries(G.states.vedder_1010!.sheets).filter(([k]) => !GOLDEN_LICSRC_KEY.test(k)).map(([k, v]) => [k, one(v === "@" ? G.sheets[k] : v)]));
 }
 
 export function pinsSlice(): PinsSlice {

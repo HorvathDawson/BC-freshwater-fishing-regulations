@@ -274,7 +274,7 @@ describe("parts (prototype sheetHtml parts; the status is each choice's STORED d
 });
 
 describe("every key", () => {
-  it("19. an unknown key, or one this page has nothing for, opens nothing (never throws)", () => {
+  it("19. an unknown key (licsrc: is one since owner 2026-11-04), or one this page has nothing for, opens nothing (never throws)", () => {
     for (const k of ["date", "other:o99", "other:o0", "src:r0", "srcs:bait", "licsrc:adult", "parts", "kind:o0"])
       expect(sheetOf(ctx(), k as never), k).toBeNull();
   });

@@ -2,15 +2,15 @@
  * T33 parity: the Licence tab (core buildLicence via buildRegsPage) for all six anglers (age × residency) of every golden
  * state, against app/fixtures/golden/golden.json `states[id].licence["<age>|<res>"]` (regs v38 @ 7fb6809f):
  * the question and its ⓘ, the choices (text, checked, value), the profile's label, every block as {cls, lines}
- * (`licenceBlockLines`), the source line (who, and the licsrc: key the golden embeds the state id in) — and the licsrc:
- * sheet's lines (`licenceSourceLines`) against the golden sheet. Exclusions (exclusions.ts LICENCE_*) are listed with their
- * reasons in the afterAll summary.
+ * (`licenceBlockLines`). The golden's licence sources (its source line, a class box's "Source", the licsrc: sheets) are
+ * dropped (exclusions.ts `goldenLicenceUnsourced`, LICSRC_REASON: owner 2026-11-04, licence sources sheet removed).
+ * Exclusions (exclusions.ts LICENCE_*) are listed with their reasons in the afterAll summary.
  */
 import { afterAll, describe, expect, it } from "vitest";
-import { licenceBlockLines, licenceSourceLines, licenceSources, profileOf, settle, makePlace, type LicenceVM, type Who } from "@app/core";
-import type { Holds, ProfileAnswer } from "@app/core";
+import { appKeyOf, licenceBlockLines, settle, makePlace, type LicenceVM, type Who } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, requestOf, summary } from "./golden";
-import { licenceDropped, LICENCE_PROFILES, STEELHEAD_DROP_IDS, TIDAL_LICENCE_IDS, YOUTH_ALT_IDS } from "./exclusions";
+import { GOLDEN_LICSRC_KEY, goldenLicenceUnsourced, licenceDropped, LICENCE_PROFILES, STEELHEAD_DROP_IDS, TIDAL_LICENCE_IDS,
+  YOUTH_ALT_IDS } from "./exclusions";
 import type { RegsInputs } from "@app/core";
 import { buildRegsPage } from "@app/core";
 
@@ -25,22 +25,25 @@ const gl = (id: string, k: string) => (golden().states[id]!.licence as Record<st
 const ADULT: Who = { age: "adult", residency: "resident" };
 const whoOf = (k: string): Who => { const [age, residency] = k.split("|") as [Who["age"], Who["residency"]]; return { age, residency }; };
 
-/** the VM in the golden's shape (the app's licsrc: key carries no state id; the golden's does) */
-export const projVM = (vm: LicenceVM, id: string) => ({
+/** the VM in the golden's shape */
+export const projVM = (vm: LicenceVM) => ({
   question: vm.question === null ? null : [vm.question, ...vm.questionTerms.map(() => "ⓘ")].join(" "),
   questionTerms: vm.questionTerms,
   options: vm.axes.flatMap((a) => a.options.map((o) => ({ text: o.text, checked: o.checked, value: o.value }))),
   aria: vm.axes.map((a) => a.aria),
   label: vm.label,
   blocks: vm.blocks.map((b) => ({ cls: b.cls, lines: [...licenceBlockLines(b)] })),
-  src: vm.src ? { who: vm.src.who, open: `licsrc:lic|${id}|${vm.src.open.slice("licsrc:".length)}` } : null,
 });
-const projG = (g: GLic) => ({
-  question: g.question, questionTerms: g.questionTerms,
-  options: g.axes.flatMap((a) => a.options.map((o) => ({ text: o.text, checked: o.checked, value: o.age ?? o.res }))),
-  aria: g.axes.filter((a) => a.options.length).map((a) => a.aria),
-  label: g.label, blocks: g.blocks, src: g.src ?? null,
-});
+/** the golden without its licence sources (LICSRC_REASON: owner 2026-11-04, licence sources sheet removed) */
+const projG = (g0: GLic) => {
+  const g = goldenLicenceUnsourced(g0);
+  return {
+    question: g.question, questionTerms: g.questionTerms,
+    options: g.axes.flatMap((a) => a.options.map((o) => ({ text: o.text, checked: o.checked, value: o.age ?? o.res }))),
+    aria: g.axes.filter((a) => a.options.length).map((a) => a.aria),
+    label: g.label, blocks: g.blocks,
+  };
+};
 /** a keyed exclusion's lines removed from BOTH sides of a block (the golden lacks a line the stored answer carries) */
 const drop = <T extends { blocks: readonly { cls: string; lines: readonly string[] }[] }>(p: T, re: readonly RegExp[]): T => re.length
   ? { ...p, blocks: p.blocks.map((b) => ({ ...b, lines: b.lines.filter((l) => !re.some((r) => r.test(l))) })) } : p;
@@ -55,8 +58,8 @@ it(`T33 licence parity runs against a paired regs store${gate.skip ? ` — SKIPP
 });
 
 describe.skipIf(gate.skip)("T33 Licence", () => {
-  let equal = 0, answers = 0, sheets = 0;
-  afterAll(() => console.info(`${summary("licence", equal, ids.length)} · ${answers} profile answers equal (${ids.length * 6} compared) · ${sheets} licsrc: sheets equal`));
+  let equal = 0, answers = 0, unsourced = 0;
+  afterAll(() => console.info(`${summary("licence", equal, ids.length)} · ${answers} profile answers equal (${ids.length * 6} compared) · ${unsourced} golden licsrc: sheets dropped (owner 2026-11-04: licence sources sheet removed)`));
 
   it.each(ids)("1. %s: all six anglers equal the golden licence block", async (id) => {
     // (owner 2026-11-04) a closed day has NO Licence section: the golden's empty one (D16 (a)) is not drawn
@@ -69,33 +72,28 @@ describe.skipIf(gate.skip)("T33 Licence", () => {
     for (const k of LICENCE_PROFILES) {
       const vm = (await licOf(id, whoOf(k)))!;
       const re = licenceDropped(id, k);
-      expect(drop(projVM(vm, id), re), `${id} ${k}`).toEqual(drop(projG(gl(id, k)), re));
+      expect(drop(projVM(vm), re), `${id} ${k}`).toEqual(drop(projG(gl(id, k)), re));
       answers++;
     }
     equal++;
   });
 
-  it.each(ids)("1b. %s: each angler's licsrc: sheet lines equal the golden sheet", async (id) => {
-    const inp = (await inputsOf(id))!, sh = golden().states[id]!.sheets as Record<string, { title: string; lines: string[] }>;
-    for (const k of LICENCE_PROFILES) {
-      const vm = await licOf(id, whoOf(k));           // (owner 2026-11-04) null on a closed day: no source sheet either
-      const g = vm?.src ? sh[`licsrc:lic|${id}|${vm.src.open.slice(7)}`] : undefined;
-      if (!vm?.src) { expect(Object.keys(sh).filter((x) => x.startsWith(`licsrc:lic|${id}|`)).length, `${id} ${k}`).toBe(0); continue; }
-      const L = inp.frames!.licence, P = L.profiles[profileOf(whoOf(k), inp.statics)] as ProfileAnswer;
-      expect(g?.title, `${id} ${k}`).toBe("Where each one comes from");
-      expect(licenceSourceLines(licenceSources(inp, P, L.holds as Holds)), `${id} ${k}`).toEqual(g!.lines);
-      sheets++;
-    }
+  it.each(ids)("1b. %s: the golden's licsrc: sheets (one per angler it answers) are dropped — owner 2026-11-04: licence sources sheet removed", (id) => {
+    const keys = Object.keys(golden().states[id]!.sheets).filter((k) => GOLDEN_LICSRC_KEY.test(k));
+    const opened = LICENCE_PROFILES.map((k) => gl(id, k).src?.open).filter((o): o is string => !!o);
+    expect(keys.sort(), id).toEqual([...new Set(opened)].sort());       // each golden sheet is one a source line opened
+    for (const k of keys) expect(() => appKeyOf(k, id), `${id} ${k}`).toThrow(/not a sheet key/);
+    unsourced += keys.length;
   });
 
-  const L = async (id: string, k: string) => projVM((await licOf(id, whoOf(k)))!, id);
+  const L = async (id: string, k: string) => projVM((await licOf(id, whoOf(k)))!);
 
-  it("2. vedder_1010: the six labels, keys and source words", async () => {
-    const got = await Promise.all(LICENCE_PROFILES.map((k) => L("vedder_1010", k)));
+  it("2. vedder_1010: the six labels; no source line (owner 2026-11-04), where the golden drew one for each", async () => {
+    const got = await Promise.all(LICENCE_PROFILES.map(async (k) => (await licOf("vedder_1010", whoOf(k)))!));
     expect(got.map((x) => x.label)).toEqual(["B.C. resident, 16 or older", "Canadian, other province, 16 or older", "From outside Canada, 16 or older",
       "B.C. resident, under 16", "Canadian, other province, under 16", "From outside Canada, under 16"]);
-    expect(got.map((x) => x.src!.open)).toEqual(["adult", "adult_non", "adult_alien", "u16_res", "u16_non", "u16_alien"].map((k) => `licsrc:lic|vedder_1010|${k}`));
-    expect(new Set(got.map((x) => x.src!.who))).toEqual(new Set(["Province · This water ›"]));
+    expect(got.filter((x) => "src" in x)).toEqual([]);
+    expect(LICENCE_PROFILES.map((k) => gl("vedder_1010", k).src?.who)).toEqual(LICENCE_PROFILES.map(() => "Province · This water ›"));
   });
 
   it("3. vedder_1010 adult|resident: Basic, then 'Also, only if…' the three stamps; paper line; guiding fold", async () => {
@@ -125,24 +123,23 @@ describe.skipIf(gate.skip)("T33 Licence", () => {
       "No licence needed to fish here Anglers under 16 who live in B.C. don’t need a basic angling licence. The fishing rules and limits still apply."] });
   });
 
-  it("7. x5p1_1010 adult|resident: the classified box, the Classified Waters Licence while classified, 'Classified water +1'", async () => {
+  it("7. x5p1_1010 adult|resident: the classified box (no \"Source\": owner 2026-11-04), the Classified Waters Licence while classified", async () => {
     const x = await L("x5p1_1010", "adult|resident");
-    expect(x.blocks[0]).toEqual({ cls: "classbox", lines: ["Classified (Class II) whenever this water is open ⓘ Licence unit: Elk River. Source"] });
+    expect(x.blocks[0]).toEqual({ cls: "classbox", lines: ["Classified (Class II) whenever this water is open ⓘ Licence unit: Elk River."] });
+    expect(gl("x5p1_1010", "adult|resident").blocks[0]!.lines[0]!.endsWith(". Source")).toBe(true);   // the golden's, dropped
     expect(x.blocks[1]!.lines[2]).toBe("Classified Waters Licence ⓘ Needed while it’s classified: class II whenever this water is open $17.15 a year");
-    expect(x.src!.who).toBe("Province · Classified water +1 ›");
   });
 
-  it("8. klmb_1010 adult|resident: the not-yet-mapped box; 'This water +1'", async () => {
+  it("8. klmb_1010 adult|resident: the not-yet-mapped box", async () => {
     const x = await L("klmb_1010", "adult|resident");
     expect(x.blocks.find((b) => b.cls === "nymbox")).toEqual({ cls: "nymbox", lines: ["In one part of this water",
       "Only the south end, within the Creston Valley Wildlife Management Area: you need a Creston Valley Wildlife Management Area permit to fish.",
       "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water."] });
-    expect(x.src!.who).toBe("Province · This water +1 ›");
   });
 
   it("9. x13p0_1010 u16|non_resident: the stamp-waiver box and the youth documents", async () => {
     const x = await L("x13p0_1010", "u16|non_resident");
-    expect(x.blocks[0]!.lines[0]).toMatch(/^Classified \(Class II\) Jun 16-Oct 31 ⓘ Licence unit: Dean River Class II, Anahim Lake to Iltasyuko River\. Dean River .*no Steelhead Stamp is required.* The Classified Waters Licence and the steelhead rules still apply\. Source$/);
+    expect(x.blocks[0]!.lines[0]).toMatch(/^Classified \(Class II\) Jun 16-Oct 31 ⓘ Licence unit: Dean River Class II, Anahim Lake to Iltasyuko River\. Dean River .*no Steelhead Stamp is required.* The Classified Waters Licence and the steelhead rules still apply\.$/);
     expect(x.blocks[1]!.lines[0]).toContain("(Basic angling licence, Classified Waters Licence)");
   });
 
@@ -194,11 +191,11 @@ describe.skipIf(gate.skip)("T33 Licence", () => {
         "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"]]);
   });
 
-  it("tidal x31p_1010 (excluded, D33 (b)), all six: page v36's tidal box with the stored tidal licence words, no source line", async () => {
+  it("tidal x31p_1010 (excluded, D33 (b)), all six: page v36's tidal box with the stored tidal licence words", async () => {
     expect(TIDAL_LICENCE_IDS).toEqual(["x31p_1010"]);
     for (const k of LICENCE_PROFILES) {
       const x = await L("x31p_1010", k);
-      expect([x.blocks, x.src, x.label === gl("vedder_1010", k).label]).toEqual([[{ cls: "classbox", lines: ["Tidal water federal Tidal Waters Sport Fishing Licence"] }], null, true]);
+      expect([x.blocks, x.label === gl("vedder_1010", k).label]).toEqual([[{ cls: "classbox", lines: ["Tidal water federal Tidal Waters Sport Fishing Licence"] }], true]);
     }
   });
 

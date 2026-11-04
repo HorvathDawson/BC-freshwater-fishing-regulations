@@ -1,6 +1,6 @@
 /**
  * T35 render: the Methods and Licence tabs drawn from the FROZEN golden pages (fixtures/*.json and, for all six anglers of
- * vedder_1010, x5p1_1010 (a classified water: the class box and its "Source", D17) and klmb_1010 (the not-yet-mapped box),
+ * vedder_1010, x5p1_1010 (a classified water: the class box, D17) and klmb_1010 (the not-yet-mapped box),
  * fixtures/licence_<id>.json — written by `UPDATE_REGS_FIXTURES=1` from buildRegsPage over the parity
  * store, never hand-edited) and compared line for line to the golden's own drawn lines (fixtures/golden_lines.json, copied
  * from golden.json by the same writer). Components draw the VM: every word, option and key is core's.
@@ -139,16 +139,28 @@ describe("<LicenceTab>", () => {
     expect(screen.getByText("B.C. resident, 16 or older")).toBeTruthy();
   });
 
-  it("adult|resident: 'Also, only if…' before the steelhead stamp; the basic licence's price; the source opens licsrc:adult, no pages", () => {
-    const { sheets } = mountLicence(LIC["adult|resident"]!);
+  it("adult|resident: 'Also, only if…' before the steelhead stamp; the basic licence's price; no pages", () => {
+    mountLicence(LIC["adult|resident"]!);
     const needs = domLines(screen.getByTestId("licence-needs"));
     expect(needs.indexOf("Also, only if…")).toBeLessThan(needs.findIndex((l) => l.startsWith("Steelhead Conservation Surcharge Stamp")));
     expect(needs[1]).toBe("Basic angling licence Needed to fish at all $41.15 a year · $11.43 a day · $22.86 for 8 days");
-    const src = screen.getByRole("button", { name: "Sources: Province, This water" });
-    expect(src.textContent).toBe("Province · This water ›");
     expect(within(screen.getByTestId("licence-tab")).queryAllByRole("link")).toEqual([]);
-    fireEvent.click(src);
-    expect(sheets).toEqual(["licsrc:adult"]);
+  });
+
+  it("(owner 2026-11-04: licence sources sheet removed) no angler of any licence fixture draws a sources line or a \"Source\" button", () => {
+    for (const [id, all] of [["vedder_1010", LIC], ["x5p1_1010", LIC_X5P1], ["klmb_1010", LIC_KLMB]] as const) {
+      for (const [k, vm] of Object.entries(all)) {
+        const { lines, sheets } = mountLicence(vm, whoOf(k));
+        openGuiding();
+        const tab = within(screen.getByTestId("licence-tab"));
+        const buttons = tab.queryAllByRole("button").map((b) => b.textContent ?? "");
+        expect([id, k, screen.queryByTestId("regs-src"), buttons.filter((t) => /^Source|›$/.test(t.trim())),
+          lines().filter((l) => /(^| )Sources?( |$)|›$/.test(l))]).toEqual([id, k, null, [], []]);
+        for (const b of tab.queryAllByRole("button")) fireEvent.click(b);
+        expect([id, k, sheets.filter((s) => s.startsWith("licsrc:"))]).toEqual([id, k, []]);
+        cleanup();
+      }
+    }
   });
 
   it("a pick hands up the whole angler: Under 16 keeps the residency; From outside Canada keeps the age", () => {
@@ -189,18 +201,10 @@ describe("<LicenceTab>", () => {
     expect(lines().some((l) => /angling guide licence/.test(l))).toBe(true);
   });
 
-  it("(D17) x5p1_1010: the class box draws its head, ⓘ, unit and \"Source\"; each angler's Source opens licsrc:<profile>", () => {
+  it("(D17) x5p1_1010: the class box draws its head, ⓘ and unit — no \"Source\" (owner 2026-11-04)", () => {
     const { lines } = mountLicence(LIC_X5P1["adult|resident"]!);
-    expect(lines()).toContain("Classified (Class II) whenever this water is open ⓘ Licence unit: Elk River. Source");
-    cleanup();
-    const opened: string[] = [];
-    for (const k of ["adult|resident", "adult|non_resident", "adult|non_resident_alien", "u16|resident", "u16|non_resident", "u16|non_resident_alien"]) {
-      const { sheets } = mountLicence(LIC_X5P1[k]!, whoOf(k));
-      fireEvent.click(within(screen.getByTestId("licence-answer")).getByRole("button", { name: "Source" }));
-      opened.push(...sheets);
-      cleanup();
-    }
-    expect(opened).toEqual(["licsrc:adult", "licsrc:adult_non", "licsrc:adult_alien", "licsrc:u16_res", "licsrc:u16_non", "licsrc:u16_alien"]);
+    expect(lines()).toContain("Classified (Class II) whenever this water is open ⓘ Licence unit: Elk River.");
+    expect(within(screen.getByTestId("licence-answer")).queryByRole("button", { name: "Source" })).toBeNull();
   });
 
   it("klmb_1010: the not-yet-mapped box — its label, what the part says, the note", () => {
@@ -212,16 +216,15 @@ describe("<LicenceTab>", () => {
       "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water."]);
   });
 
-  it("flag, scope note (its Source opens its key), muted: no golden state draws them — core's own words, placed as VM blocks", () => {
+  it("flag, scope note (no Source: owner 2026-11-04), muted: no golden state draws them — core's own words, placed as VM blocks", () => {
     const vm = LIC_X5P1["adult|resident"]!;
-    const extra: Block[] = [{ cls: "flag", text: LICW.CONTESTED }, { cls: "scopenote", text: LICW.EXEMPT_FROM("Basic angling licence"), source: "licsrc:adult_non" },
+    const extra: Block[] = [{ cls: "flag", text: LICW.CONTESTED }, { cls: "scopenote", text: LICW.EXEMPT_FROM("Basic angling licence") },
       { cls: "muted", text: LICW.NOTHING }];
-    const { sheets } = mountLicence({ ...vm, blocks: [...extra, ...vm.blocks.slice(1)] });
+    mountLicence({ ...vm, blocks: [...extra, ...vm.blocks.slice(1)] });
     expect(domLines(screen.getByTestId("licence-answer")).slice(0, 3)).toEqual([
-      "? Check: part of this water is also marked “not a Classified Water”.", "You’re exempt from: Basic angling licence. Source",
+      "? Check: part of this water is also marked “not a Classified Water”.", "You’re exempt from: Basic angling licence.",
       "Nothing is required of this angler here."]);
-    fireEvent.click(within(screen.getByTestId("licence-answer")).getByRole("button", { name: "Source" }));
-    expect(sheets).toEqual(["licsrc:adult_non"]);
+    expect(within(screen.getByTestId("licence-answer")).queryByRole("button", { name: "Source" })).toBeNull();
   });
 
   it("vedder_615 (closed): no Licence section at all (owner 2026-11-04; the golden drew only its heading, D16 a)", () => {

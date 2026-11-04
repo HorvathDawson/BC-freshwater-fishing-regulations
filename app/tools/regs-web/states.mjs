@@ -37,8 +37,8 @@ export const stateOf = (id) => {
 /** golden → app sheet key (core `appKeyOf`, the only bridge: T36) — mirrored here for the .mjs tools; states.test.ts
  *  holds the two equal over every golden key. */
 export function appKeyOf(goldenKey, sid) {
-  const lic = /^licsrc:lic\|([^|]+)\|(\w+)$/.exec(goldenKey);
-  if (lic) return lic[1] === sid ? `licsrc:${lic[2]}` : goldenKey;
+  // (owner 2026-11-04) the licence sources sheet is removed: a golden licsrc: key has no app key (core's throws)
+  if (/^licsrc:/.test(goldenKey)) return null;
   if (/^(rule|gl|sp):/.test(goldenKey)) return goldenKey;
   const esc = sid.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return goldenKey.replace(`:${sid}|`, ':').replace(`|${sid}|`, '|').replace(new RegExp(`\\|${esc}$`), '');

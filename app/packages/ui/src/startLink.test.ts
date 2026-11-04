@@ -62,8 +62,8 @@ describe("parseStartLink (T41: the web test deep link)", () => {
 
   it("a URL-encoded sheet key is read whole", () => {
     expect([parseStartLink("?regs=gnis:1&sheet=rule%3Azp%3Aconduct%3A%3Ar2", NOW)!.regs.sheet,
-            parseStartLink("?regs=gnis:1&sheet=licsrc:u16_res", NOW)!.regs.sheet])
-      .toEqual(["rule:zp:conduct::r2", "licsrc:u16_res"]);
+            parseStartLink("?regs=gnis:1&sheet=srcs:gl%7Chook", NOW)!.regs.sheet])
+      .toEqual(["rule:zp:conduct::r2", "srcs:gl|hook"]);
   });
 
   it("a bad value throws, naming it — a typo never opens some other page silently", () => {

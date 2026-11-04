@@ -951,7 +951,6 @@
     "body": "Licence unit: Kakweiken River. Steelhead Stamp needed Apr 1–Jun 30, whatever you fish for; at any other time only to fish for steelhead.",
     "cls": "classbox",
     "head": "Classified (Class II) Apr 1-Oct 31",
-    "source": "licsrc:adult",
     "terms": [
      "classified_waters"
     ]
@@ -1017,12 +1016,7 @@
   "question": "Who is fishing?",
   "questionTerms": [
    "under_16"
-  ],
-  "src": {
-   "aria": "Sources: Province, Classified water, This water",
-   "open": "licsrc:adult",
-   "who": "Province · Classified water · This water ›"
-  }
+  ]
  },
  "methods": {
   "boats": null,

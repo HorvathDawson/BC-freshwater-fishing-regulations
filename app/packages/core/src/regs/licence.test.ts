@@ -1,15 +1,14 @@
 /**
  * T33 unit cases over hand-built licence answers (the golden parity is conformance/src/regs/licence.parity.test.ts):
- * the word helpers (priceTxt, actTxt, whoTxt, srcOf), the angler (keyOf, profileOf), patchNeeds (the kokanee words and the
+ * the word helpers (priceTxt, actTxt, whoTxt), the angler (profileOf), patchNeeds (the kokanee words and the
  * "Also, only if…" split — and that it never DROPS a document), and buildLicence over a small LicenceValue: draw order,
- * the youth path selecting the stored 16+ profile, asNeeds, the source line, closed / outside / tidal.
+ * the youth path selecting the stored 16+ profile, asNeeds, no source line (owner 2026-11-04), closed / outside / tidal.
  */
 import { describe, expect, it } from "vitest";
 import type { LicenceValue, ProfileAnswer } from "../answers.generated";
 import type { RegsInputs, RuleView } from "./inputs";
 import {
-  actTxt, buildLicence, keyOf, licenceBlockLines, licenceSourceLines, licenceSources, licenceWho, lx, needLine, patchNeeds, priceTxt,
-  profileOf, srcOf, whoTxt,
+  actTxt, buildLicence, licenceBlockLines, lx, needLine, patchNeeds, priceTxt, profileOf, whoTxt,
 } from "./licence";
 import type { NeedItemVM, Who } from "./model";
 import type { SpeciesBook } from "./names";
@@ -105,11 +104,6 @@ describe("words", () => {
     expect(whoTxt({ residency: ["non_resident", "non_resident_alien"] })).toBe("canadian, other province or from outside Canada");
     expect(whoTxt({ residency: "resident", status: ["indian_bc_resident"] })).toBe("B.C. resident, a status First Nations person living in B.C.");
   });
-  it("srcOf: Province / Classified water / Federal / parks / This water", () => {
-    expect([1, 3].map((i) => srcOf(lx(INP(), i)))).toEqual(["Province", "This water"]);
-    expect(srcOf({ ...lx(INP(), 3), placement: "on_designation" })).toBe("Classified water");
-    expect(srcOf({ ...lx(INP(), 3), fields: { authority: "superior" } })).toBe("Federal / parks");
-  });
   it("lx: the record's key; a stand-in for a missing record", () => {
     expect(lx(INP(), 2).key).toBe("zp:salmon_stamp::salmon_stamp");
     expect([lx(INP(), 99).key, lx(INP(), 99).label]).toEqual(["#L99", "(licensing record 99: missing from the page’s data)"]);
@@ -122,9 +116,6 @@ describe("words", () => {
 });
 
 describe("the angler", () => {
-  it("keyOf: the prototype's six answer keys", () => {
-    expect(Object.values(WHO).map(keyOf)).toEqual(["adult", "adult_non", "adult_alien", "u16_res", "u16_non", "u16_alien"]);
-  });
   it("11. profileOf: adult res/non/alien, u16 res/non/alien = 0, 20, 40, 10, 30, 50", () => {
     const s = INP().statics;
     expect([WHO.adult, WHO.adult_non, WHO.adult_alien, WHO.u16_res, WHO.u16_non, WHO.u16_alien].map((w) => profileOf(w!, s))).toEqual([0, 20, 40, 10, 30, 50]);
@@ -154,7 +145,7 @@ describe("patchNeeds", () => {
 });
 
 describe("buildLicence", () => {
-  it("adult resident: choices, label, You need / Also, only if…, paper line, guiding fold; source line", () => {
+  it("adult resident: choices, label, You need / Also, only if…, paper line, guiding fold; no source line", () => {
     const vm = buildLicence(INP(), WHO.adult!, { closed: false, glossary: GLOSS })!;
     expect([vm.question, vm.questionTerms, vm.label]).toEqual(["Who is fishing?", ["under_16"], "label resident/16_plus/non_guided/none"]);
     expect(vm.axes.map((a) => [a.axis, a.aria, a.options.map((o) => `${o.value}:${o.text}:${o.checked}`)])).toEqual([
@@ -168,7 +159,7 @@ describe("buildLicence", () => {
       ["paper", "Keep an adult chinook? Carry your paper licence (16 and over) and record it right away."],
       ["lostlist lopen", "If you are guiding other anglers", "For every angler:", "You need an angling guide licence to guide anglers.",
         "angling guide licence", "or", "assistant angling guide licence"]]);
-    expect(vm.src).toEqual({ who: "Province · This water +1 ›", aria: "Sources: Province, This water +1", open: "licsrc:adult" });
+    expect("src" in vm).toBe(false);   // (owner 2026-11-04) the licence sources line and its sheet are removed
   });
   it("(not kokanee) only where the salmon stamp's own stored record says it", () => {
     const lics = new Map(LICS); lics.set(2, { ...(LICS.get(2) as object), label: "Anglers 16 and over need a Conservation Surcharge Stamp for salmon to keep salmon." });
@@ -191,15 +182,14 @@ describe("buildLicence", () => {
       ["needs", "You need", "Nothing, if you fish with a licensed adult (16 or older) What you keep counts toward their limit",
         "Basic angling licence Or, for your own limit: what a 16+ angler buys $62.87 a year · $22.86 a day · $41.15 for 8 days",
         "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"]]);
-    expect(vm.src!.who).toBe("Province ›");
   });
   it("under 16, resident (none needed): the box becomes the one 'You need' item; 'Nothing is required' is not said", () => {
     expect(lines(buildLicence(INP(), WHO.u16_res!, { closed: false, glossary: GLOSS }))).toEqual([["needs", "You need",
       "No licence needed to fish here Anglers under 16 who live in B.C. don’t need a basic angling licence. The fishing rules and limits still apply."]]);
   });
-  it("a profile with no requirement and nothing needed: 'Nothing is required of this angler here.'; the source line says 'Sources'", () => {
+  it("a profile with no requirement and nothing needed: 'Nothing is required of this angler here.'", () => {
     const vm = buildLicence(INP(), WHO.adult_alien!, { closed: false, glossary: GLOSS })!;
-    expect([lines(vm), vm.src!.who]).toEqual([[["muted", "Nothing is required of this angler here."]], "Sources ›"]);
+    expect(lines(vm)).toEqual([["muted", "Nothing is required of this angler here."]]);
   });
   it("closed day: no section (owner 2026-11-04, nothing under it); outside B.C.: null; tidal: the stored tidal words", () => {
     expect(buildLicence(INP(), WHO.adult!, { closed: true, glossary: GLOSS })).toBeNull();
@@ -207,13 +197,5 @@ describe("buildLicence", () => {
     expect(buildLicence(INP({ key: null }), WHO.adult!, { closed: false, glossary: GLOSS })).toBeNull();
     const tidal = { holds: { tidal: { tidal: true, note: "n", see: [], licence: "federal Tidal Waters Sport Fishing Licence" } }, profiles: [] } as unknown as LicenceValue;
     expect(lines(buildLicence(INP({ licence: tidal }), WHO.adult!, { closed: false, glossary: GLOSS }))).toEqual([["classbox", "Tidal water federal Tidal Waters Sport Fishing Licence"]]);
-  });
-  it("the sources: grouped by act, ordered to fish here → to fish for → to keep → the rest; the +N the book prints", () => {
-    const inp = INP(), F = inp.frames!.licence, h = F.holds as never;
-    const g = licenceSources(inp, ADULT, h);
-    expect(g.map((x) => x.act)).toEqual(["To fish here", "To fish for steelhead", "To keep salmon", "When you keep a fish you must record"]);
-    expect(licenceWho(inp, ADULT, h)).toEqual(["Province", "This water +1"]);
-    expect(licenceSourceLines(g).slice(0, 4)).toEqual(["To fish here", "Anglers 16 and over need a basic angling licence to fish. Province", "basic angling licence", "To fish for steelhead"]);
-    expect(licenceSourceLines(g)).toContain("Carry your paper licence");
   });
 });

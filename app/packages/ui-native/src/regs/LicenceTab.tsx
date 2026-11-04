@@ -1,6 +1,7 @@
 /**
  * T35 — the Licence tab drawn from `LicenceVM` (prototype `licence()`): the "Licence" section — who is fishing (two
- * choices), the profile's label, the answer's blocks, and the source line without pages (it opens `licsrc:<profile>`).
+ * choices), the profile's label and the answer's blocks — no source line (owner 2026-11-04: the licence sources sheet only
+ * restated the items, so it and every way into it are removed).
  * On a closed day there is no VM (core: nothing is said under it, so no section). No logic.
  */
 import { Text } from "../Text";
@@ -9,7 +10,6 @@ import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import { LicenceAnswer } from "./LicenceAnswer";
 import type { KeepActions } from "./LineText";
-import { SourceLine } from "./SourceLine";
 import { TabSection } from "./TabSection";
 import { WhoSelector } from "./WhoSelector";
 
@@ -21,7 +21,6 @@ export function LicenceTab({ vm, who, palette, actions, onWho }: {
       <WhoSelector vm={vm} who={who} palette={palette} onWho={onWho} actions={actions} />
       {vm.label !== "" && <Text style={[TYPE.metaBold, { color: palette.sub, marginTop: 12, marginBottom: 2 }]}>{vm.label}</Text>}
       <LicenceAnswer blocks={vm.blocks} palette={palette} actions={actions} />
-      {vm.src && <SourceLine src={vm.src} palette={palette} actions={actions} pages={false} spaced />}
     </TabSection>
   );
 }

@@ -53,7 +53,7 @@ describe("regs-web states", () => {
     const diff: string[] = [];
     for (const id of IDS as string[]) for (const k of Object.keys(G.states[id]!.sheets ?? {})) {
       let core: string; try { core = coreAppKeyOf(k, id); } catch { core = "(throws)"; }
-      const ours = appKeyOf(k, id);
+      const ours = appKeyOf(k, id) ?? "(throws)";   // null: a removed sheet (licsrc:, owner 2026-11-04)
       if (ours !== core) diff.push(`${id} ${k}: ${ours} ≠ ${core}`);
       else if (core !== "(throws)" && parseStartLink(new URL(urlsOf(id, { app: "http://x", sheet: k }).app).search, NOW)!.regs.sheet !== core)
         diff.push(`${id} ${k}: the link reads back otherwise`);

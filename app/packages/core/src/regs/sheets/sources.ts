@@ -1,14 +1,13 @@
 /**
- * T36 part 2 — the three "where it comes from" sheets: an item's Sources (`srcs:`), the licence's "Where each one comes
- * from" (`licsrc:`) and a row's every regulation line (`src:rN`).
+ * T36 part 2 — the two "where it comes from" sheets: an item's Sources (`srcs:`) and a row's every regulation line
+ * (`src:rN`). (The licence's "Where each one comes from" `licsrc:` sheet is removed, owner 2026-11-04.)
  *
  * Owner rule 2026-10-21: nothing here decides a regulation. The rules an item's source line names are T30–T32's
- * (`SourceLineVM.keys`, read off the stored gear answer); the licence groups are T33's `licenceSources` over the stored
- * licence frame; a row's rules and their roles are the stored `rows_decided.roles` and lifts, gathered by decided.ts
- * `rowSources` (page v36 rowSources). This file selects them for a key and words them as the prototype's sheet does.
+ * (`SourceLineVM.keys`, read off the stored gear answer); a row's rules and their roles are the stored
+ * `rows_decided.roles` and lifts, gathered by decided.ts `rowSources` (page v36 rowSources). This file selects them for a key and words them as the prototype's sheet does.
  *
- * Ports (regs-v11.html @ 7fb6809f): sheetHtml srcs: / licsrc: / src: branches, groupedSources, itemSrc (SRCS), levelOf,
- * downWater, LICSRC; page_v36.js openRowSources, srcCard, ROLE, WINS.
+ * Ports (regs-v11.html @ 7fb6809f): sheetHtml srcs: / src: branches, groupedSources, itemSrc (SRCS), levelOf,
+ * downWater; page_v36.js openRowSources, srcCard, ROLE, WINS.
  */
 import { ruleBook } from "../book";
 import type { CardModel } from "../card";
@@ -17,15 +16,11 @@ import { closedGate } from "../describe";
 import { downWater, levelWord } from "../gear";
 import { rowTitle } from "../grouphead";
 import type { RuleView } from "../inputs";
-import { isAnswer, isHolds, licenceSources, profileOf } from "../licence";
-import { text, type Line } from "../line";
-import type { SheetBlock, SheetCtx, SheetVM, SourceLineVM, SourceRowVM, Who } from "../model";
+import type { SheetBlock, SheetCtx, SheetVM, SourceLineVM, SourceRowVM } from "../model";
 import { clean } from "../names";
-import type { ProfileKey, SheetKey } from "../sheetKey";
+import type { SheetKey } from "../sheetKey";
 import { fmtDay } from "../strip";
-import { LIC, ROLE, WORDS } from "../words";
-
-const para = (l: Line): SheetBlock => ({ k: "para", text: l });
+import { ROLE, WORDS } from "../words";
 
 // ── srcs: ────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -51,37 +46,6 @@ export function srcsSheet(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (!src || !rules.byKey) return null;
   const rows = src.keys.map((k) => rules.byKey!(k)).filter((r): r is RuleView => !!r).map(ruleRow);
   return { key, title: WORDS.SHEET_SOURCES, sub: null, blocks: rows };
-}
-
-// ── licsrc: ──────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-const PROFILE_WHO: Readonly<Record<ProfileKey, Who>> = Object.freeze({
-  adult: { age: "adult", residency: "resident" }, adult_non: { age: "adult", residency: "non_resident" },
-  adult_alien: { age: "adult", residency: "non_resident_alien" }, u16_res: { age: "u16", residency: "resident" },
-  u16_non: { age: "u16", residency: "non_resident" }, u16_alien: { age: "u16", residency: "non_resident_alien" },
-});
-
-/** prototype LICSRC (licence.one's "Where each one comes from" fold, moved to its sheet): the stored requirements of that
- *  angler's answer, grouped by act (T33 licenceSources), one card each — the lines are `licenceSourceLines`. */
-export function licsrcSheet(ctx: SheetCtx, key: SheetKey, profile: ProfileKey): SheetVM | null {
-  const F = ctx.inp.frames?.licence;
-  if (!ctx.inp.key || !F || !isHolds(F.holds)) return null;
-  const P = F.profiles[profileOf(PROFILE_WHO[profile], ctx.inp.statics)];
-  if (!isAnswer(P)) return null;
-  const blocks: SheetBlock[] = [];
-  for (const g of licenceSources(ctx.inp, P, F.holds)) {
-    blocks.push({ k: "head", text: g.act });
-    for (const c of g.cards) {
-      blocks.push(para([text(c.label), text(" "), text(c.src)]));
-      if (c.lost) blocks.push(para([text(c.lost)]));
-      c.paths.forEach((x, i) => { if (i) blocks.push(para([text(LIC.OR)])); blocks.push(para([text(x)])); });
-      if (c.freed) blocks.push(para([text(c.freed)]));
-      else c.conduct.forEach((x) => blocks.push(para([text(x)])));
-      if (c.notIf) blocks.push(para([text(c.notIf)]));
-      c.terms.forEach((t) => blocks.push(para([text(t.label)])));
-    }
-  }
-  return { key, title: LIC.SOURCES_HEAD, sub: null, blocks };
 }
 
 // ── src:rN ───────────────────────────────────────────────────────────────────────────────────────────────────────────

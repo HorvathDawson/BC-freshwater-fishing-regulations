@@ -358,3 +358,42 @@ export function goldenKeepClosed<G extends { order: string[]; lines: string[];
   if (at < 0 || !g.order.includes("section.nofish")) throw new Error("goldenKeepClosed: the golden's where-not block is not drawn");
   return { order: g.order.filter((s) => s !== "section.nofish"), lines: [...lines.slice(0, at), ...lines.slice(at + want.length)] };
 }
+
+// ── (owner 2026-11-04) the licence sources sheet, removed ───────────────────────────────────────────────────────────
+/** Why the golden's licence sources are not compared: the `licsrc:` sheet ("Where each one comes from") only restated the
+ *  licence items, so the app draws neither it nor any way into it (the source line under the answer, a class box's or a
+ *  scope note's "Source"). */
+const LICSRC_REASON = "owner 2026-11-04: licence sources sheet removed";
+/** A golden `licsrc:` sheet key (`licsrc:lic|<state>|<profile>`): the app has no such key (core `appKeyOf` throws). */
+export const GOLDEN_LICSRC_KEY = /^licsrc:lic\|/;
+/** The golden's "Source" word after a class box's / scope note's text. */
+const SOURCE_WORD = " Source";
+const SOURCED = new Set(["classbox", "scopenote"]);
+
+/**
+ * (LICSRC_REASON) One golden licence answer (`states[id].licence["<age>|<res>"]`) without its sources: `src` dropped (and
+ * its words from the drawn `lines`), the " Source" word dropped from each class box / scope note line (in `blocks` and in
+ * `lines`). Each is ASSERTED present where it is dropped — a `src` the golden does not draw, or a "Source" with no `src`
+ * (both open the same sheet), throws — so the rule cannot go stale.
+ */
+export function goldenLicenceUnsourced<G extends { blocks: readonly { cls: string; lines: readonly string[] }[];
+                                                   src?: { who: string; open: string } | null; lines?: readonly string[] }>(g: G): G {
+  const cut = (l: string) => (l.endsWith(SOURCE_WORD) ? l.slice(0, -SOURCE_WORD.length) : l);
+  const sourced = g.blocks.filter((b) => SOURCED.has(b.cls)).flatMap((b) => b.lines).filter((l) => l.endsWith(SOURCE_WORD));
+  if (sourced.length && !g.src) throw new Error(`goldenLicenceUnsourced (${LICSRC_REASON}): a "Source" with no source line (${sourced[0]})`);
+  if (g.src && !GOLDEN_LICSRC_KEY.test(g.src.open)) throw new Error(`goldenLicenceUnsourced (${LICSRC_REASON}): the source line opens ${g.src.open}`);
+  let lines = g.lines ? [...g.lines] : undefined;
+  if (lines) {
+    if (g.src) {
+      const at = lines.lastIndexOf(g.src.who);
+      if (at < 0) throw new Error(`goldenLicenceUnsourced (${LICSRC_REASON}): the source line "${g.src.who}" is not drawn`);
+      lines.splice(at, 1);
+    }
+    for (const l of sourced) {
+      const at = lines.indexOf(l);
+      if (at < 0) throw new Error(`goldenLicenceUnsourced (${LICSRC_REASON}): "${l}" is not drawn`);
+      lines[at] = cut(l);
+    }
+  }
+  return { ...g, src: null, blocks: g.blocks.map((b) => (SOURCED.has(b.cls) ? { ...b, lines: b.lines.map(cut) } : b)), ...(lines ? { lines } : {}) };
+}

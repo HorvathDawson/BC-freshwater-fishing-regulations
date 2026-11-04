@@ -383,8 +383,8 @@ export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
 export const MONTH1: readonly string[] = MONTHS.map((m) => m[0]!);
 
 /**
- * (T33) The Licence tab's words (licence.ts), verbatim from page v36 licParts / AXES / whoTxt / actTxt / priceTxt / srcOf /
- * pathHtml / reqCard / otherCard (@ 7fb6809f) and the prototype's licence() / render() (regs v38). Data strings (licence
+ * (T33) The Licence tab's words (licence.ts), verbatim from page v36 licParts / AXES / whoTxt / actTxt / priceTxt /
+ * pathHtml / otherCard (@ 7fb6809f) and the prototype's licence() / render() (regs v38). Data strings (licence
  * names, requirement labels, period / waiver sentences, prices) are never here.
  */
 export const LIC = Object.freeze({
@@ -415,7 +415,7 @@ export const LIC = Object.freeze({
   STAMP_DURING: (dates: string) => `. Steelhead Stamp needed ${dates}, whatever you fish for`, IN_FORCE: " (in force today)",
   STAMP_OTHER_TIME: "; at any other time only to fish for steelhead",
   STAMP_WAIVED: ". Steelhead Stamp not needed here unless you fish for steelhead", STOP: ".", SEP: ", ",
-  SOURCE: "Source", FLAG: "?",
+  FLAG: "?",
   CONTESTED: "Check: part of this water is also marked “not a Classified Water”.",
   EXEMPT_FROM: (docs: string) => `You’re exempt from: ${docs}.`,
   // none needed
@@ -443,18 +443,12 @@ export const LIC = Object.freeze({
   NYM_HEAD: "In one part of this water", NYM_SAYS: (part: string, need: string, doing: string) => `${part}: you need ${need} ${doing}.`,
   NYM_DOING: "to fish", NYM_NOTE: "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water.",
   NOTHING: "Nothing is required of this angler here.",
-  // folds and cards (otherCard / reqCard / pathHtml)
+  // folds and cards (otherCard / pathHtml)
   GUIDING: "If you are guiding other anglers", FOR: (who: string) => `For ${who}:`, NOT_WHO: (who: string) => ` (not ${who})`, OR: "or",
-  SOURCES_HEAD: "Where each one comes from",
   PATH_EXEMPT: "Nothing to buy: you’re exempt",
   PATH_WITH: (who: string) => `be with someone who is ${who} and holds what this fishing needs`,
   PATH_COUNTS: " (fish you keep count toward their limit)", PATH_AS: (who: string) => `meet the rules as ${who}`,
   PATH_ALT: " (also accepted here)",
-  DISPLACED: "Not valid here: a federal or park authority’s requirement replaces provincial licences.",
-  FREED: "Not for you: you don’t need the licence this is about", NOT_IF: (who: string) => `Not needed if you are ${who}.`,
-  // the source line (srcOf; the prototype's licence source button)
-  SRC: Object.freeze({ province: "Province", on_designation: "Classified water", superior: "Federal / parks", water: "This water" }),
-  SRC_MORE: (n: number) => ` +${n}`, SRC_SEP: " · ", SRC_GO: " ›", SOURCES: "Sources", SRC_ARIA: (who: string) => `Sources: ${who}`,
   // tidal (page v36 licParts on a tidal key)
   TIDAL: "Tidal water",
   MISSING_LIC: (ix: number) => `(licensing record ${ix}: missing from the page’s data)`,

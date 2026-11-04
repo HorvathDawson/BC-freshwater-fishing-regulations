@@ -9,7 +9,7 @@
  * the export rule's label/verbatim/fields, the glossary term, the rows answers' `group.possession` examples, the Keep tab's
  * possession sentence); this file only selects them for a key and orders them as the prototype's sheet does.
  *
- * Built: `rule:`, `gl:` (one term or several), `pos:pos`, `hatch` (part 1); `srcs:`, `licsrc:`, `src:`, `sp:`, `other:`
+ * Built: `rule:`, `gl:` (one term or several), `pos:pos`, `hatch` (part 1); `srcs:`, `src:`, `sp:`, `other:`
  * (part 2: sheets/sources.ts, sheets/fish.ts, sheets/other.ts), `parts` (sheets/parts.ts: each picker choice's STORED display
  * status on the day, read by T09 as `choicesOnDay`; null when the inputs do not carry it — never a guess).
  */
@@ -17,11 +17,11 @@ import { ruleBook, ruleBookLine } from "./book";
 import type { GlossaryTerm, RegsInputs, RuleView, Statics } from "./inputs";
 import { plain, squash, text, type Line, type Run } from "./line";
 import type { GroupVM, SheetBlock, SheetCtx, SheetVM } from "./model";
-import { parseSheetKey, type ProfileKey, type SheetKey } from "./sheetKey";
+import { parseSheetKey, type SheetKey } from "./sheetKey";
 import { WORDS } from "./words";
 import { ruleSub } from "./level";
 import { clean } from "./names";
-import { licsrcSheet, srcSheet, srcsSheet } from "./sheets/sources";
+import { srcSheet, srcsSheet } from "./sheets/sources";
 import { fishSheet } from "./sheets/fish";
 import { otherSheet } from "./sheets/other";
 import { partsSheet } from "./sheets/parts";
@@ -119,7 +119,6 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (key === "pos:pos") return possessionSheet(key, ctx);
   if (key === "hatch") return hatchSheet(key, ctx.inp);
   if (key.startsWith("srcs:")) return srcsSheet(ctx, key);
-  if (key.startsWith("licsrc:")) return licsrcSheet(ctx, key, key.slice(7) as ProfileKey);
   if (key.startsWith("src:r")) return srcSheet(ctx, key, +key.slice(5));
   if (key.startsWith("other:o")) return otherSheet(ctx, key, +key.slice(7));
   if (key.startsWith("sp:")) return fishSheet(ctx.inp, key, key.slice(3), ctx.env?.fish);
