@@ -14,3 +14,10 @@ The web already opens `?blk=&m=` links from the `lines` file (T369, web-only). T
 update needs the same resolution in-app. Decision: the phone downloads `lines` too (drop it from `contract.WEB_ONLY`;
 ~1.3 MB gz on the offline total) — ONE resolver and one table for web and phone, no `section_measure`. Later, optional:
 app links (a shared https link opening the installed app).
+
+## Pipeline half done 2026-11-04
+`contract.WEB_ONLY` is empty: `lines` ships phone-held (no `web_only` mark; counted in the offline total). Live release:
+phone-held 15.90 MB gz + lines 1.28 MB = 17.19 MB (gate 20 MB). Tests: test_section_line.py. Takes effect with the one
+rebuild. LEFT (app, after the T382 clock lane leaves `ui/place.ts`): retire `tools/native-no-links.test.ts` (links are
+no longer web-only), give the phone's loader the line reads, `carry.ts` carries an unnamed reach by its place
+(old release `sectionLine` → `sectionAt` in the new), and a native start/reload of `?blk=&m=` opens it.

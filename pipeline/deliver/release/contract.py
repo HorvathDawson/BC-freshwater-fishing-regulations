@@ -174,10 +174,12 @@ FILES = {
         "meta": ["k", "v"], "section_line": ["block", "n", "blk0", "m0", "b"]}},
 }
 
-#: (T369, owner 2026-11-03) FILES ONLY THE WEB FETCHES: a phone never installs or holds one (links are web-only; the
-#: manifest marks each `web_only`, the app's install set leaves it out, and the offline total does not count it). The
-#: answer slices are web-only the same way, marked by `slice_of` (slices.py).
-WEB_ONLY = frozenset({"lines"})
+#: FILES ONLY THE WEB FETCHES: a phone never installs or holds one (the manifest marks each `web_only`, the app's install
+#: set leaves it out, and the offline total does not count it). The answer slices are web-only the same way, marked by
+#: `slice_of` (slices.py). (T386, owner 2026-11-04) EMPTY NOW: `lines` was web-only (T369, links a web thing); a phone
+#: holds it too, so an open unnamed reach is carried across a data update and a link's place resolves the same way on
+#: both (+~1.3 MB gz on the offline total). The mechanism stays for a file that is the web's alone.
+WEB_ONLY: frozenset = frozenset()
 
 #: what the units of the transformed columns are (the app's decoders read these)
 UNITS = {

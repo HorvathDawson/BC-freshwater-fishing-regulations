@@ -101,31 +101,36 @@ def test_a_bundle_without_section_measure_is_refused():
         B.bundle_section_measure(sqlite3.connect(":memory:"))
 
 
-def test_lines_is_web_only_a_phone_never_holds_it(tmp_path):
-    """(T369, owner 2026-11-03) Links are web-only: `lines` is marked `web_only` in the manifest (the app's install set
-    leaves it out: install.regs.test.ts) and the offline total — what a phone holds — does not count it."""
-    assert C.WEB_ONLY == {"lines"} and set(C.WEB_ONLY) <= set(C.FILES)
+def test_lines_is_held_by_a_phone_too(tmp_path):
+    """(T386, owner 2026-11-04) `lines` is no longer web-only (it was, T369): a phone holds it so an unnamed reach is
+    carried across a data update and a link resolves the same way on both — it counts in the offline total."""
+    assert C.WEB_ONLY == frozenset() and "lines" in C.FILES
 
     def offline(files):
         (tmp_path / "manifest.json").write_text(json.dumps({"files": files, "tiles": {"mask": {"bytes": 1}}}))
         return [p for p in B.gate_problems(tmp_path) if p.startswith("offline total")]
     files = {k: {"bytes": 1, "gz": 1} for k in C.FILES}
     files["water"]["gz"] = B.OFFLINE_GATE - len(C.FILES)          # the phone's set at its gate, one byte each else
-    files["lines"]["gz"] = B.SIZE_GATES["lines"]
     assert offline(files) == []
-    files["core"]["gz"] = 2 + B.SIZE_GATES["lines"]                 # the same bytes in a file a phone holds: over
+    files["lines"]["gz"] = B.SIZE_GATES["lines"]                    # `lines` at its size: over (it is the phone's now)
     assert len(offline(files)) == 1
 
 
-def test_ship_marks_lines_web_only(tmp_path):
-    """The manifest entry `ship` writes for `lines` carries `web_only`; every other file's does not."""
-    work = tmp_path / "w"
-    work.mkdir()
-    files = {}
-    for name in ("lines", "near"):
-        p = work / f"{name}.sqlite"
-        p.write_bytes(name.encode())
-        files[name] = p
-    d = B.ship(work, files, "h" * 16, tmp_path / "out", data_release="r-000000000000")
-    m = json.loads((d / "manifest.json").read_text())["files"]
+def test_ship_marks_a_web_only_file_and_no_other(tmp_path, monkeypatch):
+    """The mechanism, kept for a file that is the web's alone: `ship` marks a `WEB_ONLY` name `web_only`, nothing else;
+    with none listed (today) no entry carries it."""
+    def shipped(out: str, rid: str) -> dict:
+        work = tmp_path / f"w-{out}"
+        work.mkdir()
+        files = {}
+        for name in ("lines", "near"):
+            p = work / f"{name}.sqlite"
+            p.write_bytes(name.encode())
+            files[name] = p
+        d = B.ship(work, files, "h" * 16, tmp_path / out, data_release=rid)
+        return json.loads((d / "manifest.json").read_text())["files"]
+    m = shipped("out", "r-000000000000")
+    assert (m["lines"].get("web_only"), m["near"].get("web_only")) == (None, None)
+    monkeypatch.setattr(C, "WEB_ONLY", frozenset({"lines"}))
+    m = shipped("out2", "r-000000000001")
     assert (m["lines"].get("web_only"), m["near"].get("web_only")) == (True, None)

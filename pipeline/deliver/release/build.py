@@ -76,7 +76,7 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_450_000, "lakes":
               "water": 2_500_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 950_000,
               "down": 1_250_000, "geo": 700_000, "flow-area": 220_000,
               # (T369) `lines`: ~0.99-1.08 MB gz estimated 2026-11-03 on the atlas's handles (ends proxied from the FWA
-              # stream extents; the build measures the real one); WEB-ONLY (`contract.WEB_ONLY`: not in the offline
+              # stream extents; the build measures the real one); (T386) phone-held too since 2026-11-04 (in the offline
               # total), fetched once a page is drawn (its place in the address) or when a link with a place is opened
               # measured 2026-11-03 on the batch-3 bundle: 1,283,173 B gz (the estimate was low) → 1,400,000
               "lines": 1_400_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS},
