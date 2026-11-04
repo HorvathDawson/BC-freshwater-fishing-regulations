@@ -1,6 +1,6 @@
 # T340 — Test bed regs-open: stream taps fail (known since 0.3.0)
 
-Status: OPEN (loose end turned into a ticket, 2026-10-31).
+Status: DONE (2c96522; out/r050b regs-open 13/13). Closing search puts the camera back where it was (T48), so the scenario tapped where the creek had been framed; it now opens the water from its result and goes Back (the map comes back framed on it).
 
 The emulator `regs-open` scenario's STREAM taps fail on 0.3.0 and 0.4.0 alike (lake taps pass: 247/78/53 ms). A
 known test issue nobody ticketed: find why (tap point off the line? zoom?), fix the scenario so stream opens are

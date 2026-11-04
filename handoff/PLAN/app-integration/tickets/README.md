@@ -381,7 +381,7 @@ use that as the sole source of future work."
 | T337 | DFO water bindings refresh inside the build — `match apply` is a manual step today; deliver reads a cache that an atlas rebuild can leave stale | OPEN | — | 2026-10-31 |
 | T338 | DFO part-closure in a limits cell (Fort Babine) reads as whole river closed | DONE | 01919949f, 7a4d3faec | 2026-11-03 (01919949f; ships with batch 3 release) |
 | T339 | 08MH044 cut still labelled Whonock; Bedford Channel lost its gauge — confirm | DONE (live with the next bundle + release) 11-04 | e21cdbeac | 2026-10-31 |
-| T340 | Test bed regs-open stream taps fail (known since 0.3.0) | OPEN | — | 2026-10-31 |
+| T340 | Test bed regs-open stream taps fail (known since 0.3.0) | DONE | 2c96522 | 2026-10-31 |
 | T341 | release-perf A5 search p95 ~9 ms vs 8 ms ceiling — machine calibration, not a raise | OPEN | — | 2026-10-31 |
 | T342 | Pane text copyable with the phone's own long-press controls; remove the salmon-only Copy button; map stays non-selectable | DONE in code (device check in the batch 5 emulator sitting) 11-04 | e604eb5ae | owner 2026-10-31 |
 | T343 | Regional salmon rules cleanup: drop facility-100 m dup + measuring notes, fresh+tidal daily into the bucket line, adult-chinook size per water (default 50 cm), fold or drop every header note; spawning salmon image | DONE 11-04 (data side; items 6–7 → T367) | 561115e24, c706d67ac, ec5b37257 | owner 2026-10-31 |

@@ -27,8 +27,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   package exports), feeds worker deployed (T347/T375/T380/T178 cron); smoke 18/18 (gauge check moved Pitt → Vedder:
   the Pitt's one freshwater part has no gauge since T369).
 - Licence guiding folded; page foot as fine print (owner 11-04).
-- Running: 0.5.0 APK + emulator sitting (install, pan, locate, regs-open/T340, gestures, walkthrough, water-nav,
-  memory → out/r050). Then suites, AAB.
+- 0.5.0 SHIPPED to Play internal testing: versionCode 8 (AAB 981398053, 34.2 MB); the owner promotes it to Closed
+  testing. Release r-5a5999c94588 on staging (stamp glossary entries, "or Dolly Varden"); staging site redeployed;
+  DFO feed refreshed to dfo-feed/3 by hand (the worker's daily run); test channel reset. Licence sources sheet removed.
+- Emulator (out/r050b): install + regs-open PASS (T340 fixed: closing search restores the camera, T48 — the scenario
+  now opens the water from its result); gestures / memory / water-nav = test-script drift (handoff lists them).
+- Lean pre-release tests green (owner 11-04: lean, full suites right after release).
 - Owner 11-04: full suites skipped before release, run right after it. Handoff for the next chat:
   `NEXT-SESSION-after-0.5.0.md`. T389 filed (unnamed links without `lines`, after 0.5.0).
 
