@@ -1,6 +1,6 @@
 # T372 — Partial coverage: one rule for trout and salmon, resolved in Python
 
-Status: OPEN — before 0.5.0 (owner 2026-11-03: "the trout way seems more right, everything in python keeping single
+Status: DONE (part 1 4a7cb4a1d, part 2 777a4fc2b) 2026-11-04 (was: OPEN — before 0.5.0) (owner 2026-11-03: "the trout way seems more right, everything in python keeping single
 source of truth").
 
 A water with a place the map does not draw yet (salmon: a DFO place not bound, 134 of 462 chains in r-4df5bccc9360;
@@ -49,3 +49,15 @@ Size: M.
 4. Map paint: owner decision (below). Format: salmon/5 if the paint or the file changes.
 
 **Owner 2026-11-04: map paint the trout way for both** — the map shows the drawn answer; an undrawn place never paints `check` (salmon.py:314, live.compose, composeChain go). The card keeps the answer and adds the caveat.
+
+## Done (2026-11-04)
+- Part 1 (4a7cb4a1d): the map paints the drawn answer; an undrawn place never paints `check`.
+- Part 2: Python ships `n` on each undrawn place's own chain (`speaks_runs`: the days DFO speaks for it; release build
+  and `live.compose`; the app's `composeChain` the same, golden regenerated). Core `inPartBlock` (regs/caveats.ts) is
+  the one in-part builder: trout's `inPartOf` feeds it `settled.inpart`, `salmonCard` feeds it the undrawn places
+  (`caveat`: where = the place, what = its day, `detail` = DFO's words for it, in force = `n`). Gone: `agrees`, `at1`,
+  `partial`, `unmapped` on the card VM, `year.unplaced` / `year.partial`, the table's `places`; the gear tab and the
+  glance read the drawn answer. SalmonCard draws `CaveatBlock` (`inset={false}`), which learned `detail` lines.
+- The trout "couldn't be placed" block is unfed → T378.
+- **The local release's salmon file predates `n`**: the app refuses an undrawn place without it (no silent fallback),
+  so the next release build (batch 7 cut, or sooner) must include this change.
