@@ -8,6 +8,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-04 (merged chat, later): batch 5 before-run, 6c audits, owner asks [T380, T328, T370, T368, T369, T340, T312]
+- Owner asks done: T380 (Change says "from the 5th percentile today to about the 95th (about 3× today's flow)"; publisher +
+  worker carry `change.percentile`, live with the worker deploy) 528620c65; web map hand cursor over clickable
+  things (2efd849eb); closed water: stretch list folded, "Where you can't fish" not said on a closed day (cc169c9d6).
+- Batch 5: emulator before-run app/tools/testbed/out/b5-before (pan numbers; T340 stream taps fail — camera not framed
+  on the water; pinch not driven: emulator refuses sendevent). Fling tuning + T340 fix next sitting.
+- 6c: T368 + T369 read-only audits in handoff/PLAN/app-integration/T368-audit.md / T369-audit.md; owner questions
+  pending (9 + 3), fixes wait for them.
+- 6d/6e: T328 DONE (1a27dd3af); T178 checked early (staging archive, not due ~12-05); T370 measured (shared 623 kB of
+  each slice; recommendation after 0.5.0, owner decides). T50/T65/T77/T239/T240 not started.
+- Release rebuild still owed before the cut (bundle → release): T372 `n`, T376 tables, T339 names.
+
 ## 2026-11-04 (merged chat): T367 closed, T372 done [T367, T377, T372, T378]
 - **T367 closed** in the ledger (95b633c38). The full app suite had 8 reds left from it; all fixed (back button closes
   the forecast day list, the PDF viewer's ground colour, the "couldn't load" words moved to core, and so on). What
