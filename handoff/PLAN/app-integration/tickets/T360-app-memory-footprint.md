@@ -131,3 +131,8 @@ first; a load still decoding is only flagged cancelled — AndroidPdfViewer 4.0.
 (uncommitted until measured): the patch now skips a draw of the same path + page on a view not recycled since
 (`drawnKey`; the pageMap closing is gone — it found 0 pages), and `PdfViewer.native.tsx` memoizes `source`. Measuring:
 heapprof `t360-pdf2` (queued after the batch-3 rebuild).
+**Measured (t360-pdf3, t360-pdf4, same APK):** pdfium held after the rule book opened and closed: 2.5 MB, then 0.9 MB
+(was 50–77 MB). Log per open: one `drawPdf load`, two `drawPdf skipped` (the duplicate reloads that leaked), `detached`,
+`recycle`. Committed. Open question: logcat shows ONE viewer's life per trace though the step opens twice (the earlier
+patch also logged one recycle for two closes) — check the scenario's second open really happens (screens). t360-pdf2
+(the same fix, no logs) still held 50 MB — most likely a stale library build in that APK; not seen since.

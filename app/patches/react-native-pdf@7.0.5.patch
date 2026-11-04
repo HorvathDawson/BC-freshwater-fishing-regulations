@@ -1,0 +1,49 @@
+diff --git a/android/src/main/java/org/wonday/pdf/PdfView.java b/android/src/main/java/org/wonday/pdf/PdfView.java
+index c3d32451689234c3036e5ebb9340f0e49b359f8e..01ea95896cf0b3a4317c7ce46391dabb4b9d6218 100644
+--- a/android/src/main/java/org/wonday/pdf/PdfView.java
++++ b/android/src/main/java/org/wonday/pdf/PdfView.java
+@@ -318,8 +318,23 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+     // the view leaves the window — e.g. while another screen is stacked over this
+     // one on Android. Snapshot the viewport before that happens; loadComplete
+     // restores it after the re-attach reload.
++    // (canifish T360) ONE LOAD PER FILE AND PAGE. drawPdf is posted by setPath AND by every props transaction
++    // (PdfManager.onAfterUpdateTransaction), so one open loaded the book twice or more; each load recycles the view, and a
++    // load still decoding is only flagged cancelled — AndroidPdfViewer's DecodingAsyncTask never closes the PdfDocument
++    // it opened (heapprofd: ~38 MB of pdfium held per open, one recycle logged for two opens). A draw of the file and page
++    // already loaded (or loading) on a view not recycled since is skipped; a recycle (detached, closed) clears it.
++    private String drawnKey = null;
++
++    @Override
++    public void recycle() {
++        Log.i("PdfView", "T360 recycle (was " + drawnKey + ", view " + System.identityHashCode(this) + ")");
++        drawnKey = null;
++        super.recycle();
++    }
++
+     @Override
+     protected void onDetachedFromWindow() {
++        Log.i("PdfView", "T360 detached (view " + System.identityHashCode(this) + ", recycled " + this.isRecycled() + ")");
+         if (!this.isRecycled() && this.path != null) {
+             this.restorePath = this.path;
+             this.restoreZoom = this.getZoom();
+@@ -341,6 +356,11 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+ 
+     public void drawPdf() {
+         showLog(format("drawPdf path:%s %s", this.path, this.page));
++        String key = this.path + "|" + this.page;
++        if (key.equals(drawnKey) && !this.isRecycled()) {
++            Log.i("PdfView", "T360 drawPdf skipped: " + key + " already loaded (view " + System.identityHashCode(this) + ")");
++            return;
++        }
+ 
+         if (this.path != null){
+ 
+@@ -411,6 +431,8 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+             }
+ 
+             configurator.load();
++            drawnKey = key;      // (T360) after load: its recycle() cleared the old one
++            Log.i("PdfView", "T360 drawPdf load: " + key + " (view " + System.identityHashCode(this) + ")");
+         }
+     }
+ 

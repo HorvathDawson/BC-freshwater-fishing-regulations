@@ -75,8 +75,8 @@ export const heapprof = {
         }
       });
       // the viewer's close (the react-native-pdf patch): did it run, and how many pages did it find open
-      const log = ctx.device.adb(['logcat', '-d', '-s', 'PdfView:*']).toString().split('\n').filter((l) => /recycle/.test(l));
-      return `${got} · PdfView: ${log.length ? log.map((l) => l.replace(/^.*PdfView\s*:\s*/, '')).join(' | ') : 'no recycle line'}`;
+      const log = ctx.device.adb(['logcat', '-d', '-s', 'PdfView:*']).toString().split('\n').filter((l) => /T360|recycle/.test(l));
+      return `${got} · PdfView: ${log.length ? log.map((l) => l.replace(/^.*PdfView\s*:\s*/, '')).join(' | ') : 'no PdfView line'}`;
     });
   },
 };

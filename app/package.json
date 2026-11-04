@@ -61,7 +61,8 @@
       "react-native-safe-area-context": "5.7.0"
     },
     "patchedDependencies": {
-      "@maplibre/maplibre-react-native@11.5.0": "patches/@maplibre__maplibre-react-native@11.5.0.patch"
+      "@maplibre/maplibre-react-native@11.5.0": "patches/@maplibre__maplibre-react-native@11.5.0.patch",
+      "react-native-pdf@7.0.5": "patches/react-native-pdf@7.0.5.patch"
     }
   }
 }

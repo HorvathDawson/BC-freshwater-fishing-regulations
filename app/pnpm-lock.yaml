@@ -17,6 +17,9 @@ patchedDependencies:
   '@maplibre/maplibre-react-native@11.5.0':
     hash: kv2em64otojuzkwbxvuhudpl3q
     path: patches/@maplibre__maplibre-react-native@11.5.0.patch
+  react-native-pdf@7.0.5:
+    hash: fqs6fwtwbkoye2u7ztmxdfju5m
+    path: patches/react-native-pdf@7.0.5.patch
 
 importers:
 
@@ -223,7 +226,7 @@ importers:
         version: 0.25.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
       react-native-pdf:
         specifier: 7.0.5
-        version: 7.0.5(react-native-blob-util@0.25.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
+        version: 7.0.5(patch_hash=fqs6fwtwbkoye2u7ztmxdfju5m)(react-native-blob-util@0.25.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
       react-native-safe-area-context:
         specifier: 5.7.0
         version: 5.7.0(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
@@ -6830,7 +6833,7 @@ snapshots:
       react: 19.2.3
       react-native: 0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3)
 
-  react-native-pdf@7.0.5(react-native-blob-util@0.25.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3):
+  react-native-pdf@7.0.5(patch_hash=fqs6fwtwbkoye2u7ztmxdfju5m)(react-native-blob-util@0.25.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3):
     dependencies:
       crypto-js: 4.2.0
       deprecated-react-native-prop-types: 2.3.0

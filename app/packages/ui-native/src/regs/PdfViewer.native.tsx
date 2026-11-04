@@ -5,7 +5,7 @@
  * SAID on its face (`failPdf`), never handed off quietly. `PdfViewer.web.tsx` draws nothing: the browser's tab is the
  * web's viewer.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import Pdf from "react-native-pdf";
 import { reportFailure, useBackLayer } from "@app/ui";
@@ -21,6 +21,10 @@ export function PdfViewer({ palette }: { palette: Palette }) {
   const [at, setAt] = useState<{ page: number; of: number } | null>(null);
   const close = () => { setAt(null); closePdf(); };
   const requestClose = useBackLayer(v !== null, close);
+  // (T360) one `source` per file: a new object each render (the page label below re-renders it) is a props change, and
+  // react-native-pdf reloads on every props transaction (the patch skips a reload of the same file and page too)
+  const uri = v?.uri;
+  const source = useMemo(() => ({ uri }), [uri]);
   if (!v) return null;
   return (
     <Modal visible animationType="slide" onRequestClose={requestClose} statusBarTranslucent={false}>
@@ -43,7 +47,7 @@ export function PdfViewer({ palette }: { palette: Palette }) {
             <Text style={[TYPE.small, { color: palette.sub }]} selectable>{v.failed}</Text>
           </View>
         ) : (
-          <Pdf source={{ uri: v.uri }} page={v.page} enableAnnotationRendering trustAllCerts={false}
+          <Pdf source={source} page={v.page} enableAnnotationRendering trustAllCerts={false}
                style={{ flex: 1, backgroundColor: palette.wash }}
                onLoadComplete={(of) => { setAt({ page: v.page, of }); console.info(`[synopsis] drawn p.${v.page} of ${of} in ${Date.now() - v.at} ms`); }}
                onPageChanged={(page, of) => setAt({ page, of })}
