@@ -20,6 +20,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   the dev app shows an error on waters that have an undrawn DFO place. That rebuild is part of the batch 7 cut, or
   sooner if you want to check the card.
 - New ticket T378: trout's "couldn't be placed" block never gets data (found while doing T372).
+- **T347 done** (61f819c52). River forecasts now stay current over weekends and BC government holidays. A run lasts
+  until the next working day's issue plus 12 h, so Friday's run lasts until Monday evening. Before, the feeds worker
+  dropped it after 36 h, which blanked the forecast map on Saturday evenings. It takes effect when the feeds worker is
+  redeployed with 0.5.0. More → Sources now says forecasts are updated on weekdays.
+- **T348 done** (9907af3c0). The legend's "N reaches coloured" count now updates after a pan or zoom on the phone.
+  A new feed already repaints the map in place; that now has a test.
+- T376 (basin names, the map-centre basin and a water's own basin) is running in a second lane.
 
 ## 2026-11-04: chats merged for 0.5.0 [T372, T367]
 - **One chat from here:** the UI chat and the pipeline chat merge. Start from `handoff/PLAN/NEXT-SESSION-0.5.0.md`.
