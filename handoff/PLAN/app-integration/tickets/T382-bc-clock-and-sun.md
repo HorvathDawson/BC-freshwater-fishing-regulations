@@ -1,6 +1,6 @@
 # T382 — The regulations' "today" is B.C.'s; sunrise and sunset on the B.C. clock
 
-Status: OPEN (owner 2026-11-04, in 0.5.0). Core done (this ticket's first commit); wiring after T369 lands.
+Status: DONE (owner 2026-11-04, in 0.5.0) — 93b7cde1b (one clock, the sweep, the net, the sun card).
 
 ## Asks (owner 2026-11-04)
 - T368 Q6, corrected: the app's "today" was the PHONE's date (not B.C.'s as first said). Owner: "no bc time makes sense
@@ -38,3 +38,23 @@ joins UTC−7, Golden keeps Mountain) — local choice, in flux.
   with it, to learn how many phones are stale.
 - Every day-deciding read takes `bcNow()` — ONE source; the net refuses `new Date()` deciding a day (owner: "a single
   source so it is consistent and has no possibility of drift").
+
+## 2026-11-04: done — 93b7cde1b (owner: "unify this so that all clock sources are easier to find later")
+- ONE CLOCK: `app/packages/core/src/clock.ts` is the only place app source reads the device clock: `now()` (epoch ms,
+  an instant), `bcNow()` / `bcToday()` (the B.C. day; moved here from day.ts with `bcOffsetHours`, `bcClockTime`,
+  `BC_TIME_LABEL`, `BC_PERMANENT_FROM`). Injected `now` parameters kept; their defaults come from here.
+- The sweep (118 reads, 53 files): day-deciding reads → `bcNow()` (DayCalendar, SearchSheet, Shell/WaterScreen
+  `dayRange`, `regsDay`, `mapDayOf`, startLink, place `linkSearch`, useMapColouring (lake + map day), salmonColour,
+  inseason, runTiming, horizonChips, conditions day, search status day); every other read → `now()` (ages, timeouts,
+  logs, report/crash stamps as `new Date(now())`, probes, fetch timing).
+- The net: `app/tools/clock.test.ts` fails on `new Date()` (no args) or `Date.now()` outside clock.ts, with mutation
+  pins; `performance.now()` frame timers are listed per file (openProbe, Map.native, web useChannels/useMapInstance,
+  ui regs).
+- Sun: `useSunLine` (@app/ui `sun.ts`: the frame's tapped point — an unnamed reach's own — else `source.waterPoint`;
+  none, no line) → `SunCard` (ui-native `regs/SunCard.tsx`), the first small card of the Regulations page, on the
+  chosen day ("Sunrise 08:00 PT · sunset 17:42 PT"). WaterModeHost passes `frame.at`. Tests: sun.render.test.tsx,
+  SunCard.test.tsx, sun.test.ts (`bcToday`).
+- LEFT ON THE DEVICE'S CALENDAR (their clock read is `now()`; their DAY is still `localDate`): a spot's visit day and
+  its weather/day-flow days (spots/visits, dayFlow, capture, weather `today`), and a station chart's "today"
+  (sql/shared, UTC). Moving those to the B.C. day changes stored visit dates (a picked local midnight read back
+  through a B.C. clock lands a day early east of B.C.), so it needs its own decision.
