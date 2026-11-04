@@ -1,6 +1,6 @@
 # T240 — production launch checklist (one list, in order)
 
-Status: OPEN — the list is written and brought up to date 2026-10-29 (T269-T271, T274, T279, map-assets, privacy page, splash); nothing on it is started (prod is the owner's; T86 is POSTPONED until he says go).
+Status: OPEN — closed-testing checklist added 2026-11-04 (owner: production is later); the production list is written and brought up to date 2026-10-29 (T269-T271, T274, T279, map-assets, privacy page, splash); nothing on it is started (prod is the owner's; T86 is POSTPONED until he says go).
 
 Source: owner 2026-10-28 — approved proposal P6 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 Pulls together what T86 (hosting), T198 (SEO redirects / Search Console), T225 (feeds), T232 (environments),
@@ -111,3 +111,19 @@ Owner: yes — every ★ line. Default: the defaults stated on each line.
 "we could work on a checklist but we arent going to production beyond a closed testing." For 0.5.0: a CLOSED-TESTING
 checklist only (Play Closed track, staging data, the feeds worker on staging); the production switch-on list stays as
 written for later.
+
+## 0.5.0 CLOSED TESTING checklist (written 2026-11-04; the Play Console side is T371)
+The app a closed tester installs reads STAGING (`apps/mobile/src/env.ts`: a phone build is staging unless made with
+`EXPO_PUBLIC_APP_ENV=production`), so closed testing needs no production hosting. ★ = owner.
+- [ ] The one 0.5.0 rebuild promoted locally (bundle → release: T372 `n`, T376 basins, T339 names, T370 `water-shared`,
+      T386 `lines` phone-held), its test pins re-cut, the request walk re-pinned (T370).
+- [ ] The full app + pipeline suites once, green; `pnpm -C app check` green.
+- [ ] Staging R2: the release + tiles uploaded (`deploy/staging/upload.sh`), manifest `minAppVersion` 0.5.0 (an older
+      app says "Update the app"), every manifest file 200 with its sha256 (the smoke script).
+- [ ] The staging feeds worker deployed WITH the app, never ahead (T347 forecast weekdays, T375 ten days, T380 peak
+      percentile; T178's monthly score if ready); `GET /status` all fresh after one run of each job.
+- [ ] One AAB (versionCode bumped), the same build to internal and Closed; the emulator sitting on that APK first (the
+      device checks, OWNER-PHONE.md's list on the owner's phone).
+- [ ] ★ T371: the Closed track, the tester list (12 testers, 14 days), the app-content forms (Claude drafts data safety
+      and listing text from the code), rollout, every requirement the Console raises written down there.
+- [ ] Privacy page live on staging (T352 wording) — its URL is the app-content form's privacy policy.
