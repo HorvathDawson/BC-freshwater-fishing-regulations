@@ -2715,3 +2715,19 @@ def test_the_region_6_cascade_tiles_its_region():
             assert len(both) < 100, (
                 f"sections {x} and {y} share {len(both):,} sections — a water cannot sit under "
                 f"two lettered sections at once")
+
+
+def test_a_stretch_closure_in_a_limits_cell_does_not_close_the_water():
+    """(T338) "No fishing for chinook from a point 100 m above Fort Babine bridge to Nichyeskwa Creek" (archived R6
+    pages) closes that stretch only: the row keeps its 4 per day, flagged with the sentence; a plain closure still closes."""
+    from pipeline.regs.dfo_salmon.typed import to_rules
+    cell = ("4 per day, only 1 over 65 cm. No fishing for chinook from a point 100 m above Fort Babine bridge to "
+            "Nichyeskwa Creek.")
+    says = decode(cell)
+    assert (says["no_fishing"], says["daily_limit"]) == (False, 4)
+    assert says["part_closure"].startswith("No fishing for chinook from a point 100 m above Fort Babine")
+    rule = to_rules({"species": "Chinook", "dates": "Jan 1 - Dec 31", "limits_gear": cell}, "x", 0)[0]
+    assert (rule.take, rule.may_target) == (4, None)
+    assert rule.review_reason.startswith("a closure of part of the water inside the limits cell")
+    plain = decode("No fishing for chinook.")
+    assert (plain["no_fishing"], plain["daily_limit"], plain["part_closure"]) == (True, 0, None)

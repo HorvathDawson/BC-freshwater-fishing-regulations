@@ -149,6 +149,10 @@ _RE_NO_FISHING = re.compile(r"\bno\s+fish(?:ing|inf)\b|\bfinfish\s+closure\b"
 #: dropped. The distinction they carry is exactly the one `may_target` turns on.
 _RE_NON_RETENTION = re.compile(r"\bnon[- ]retention\b|\bno\s+retention\s+of\b|"
                                r"\bcatch\s+and\s+release\b", re.I)
+#: (T338) A CLOSURE OF A STRETCH, inside a limits cell: "4 per day, only 1 over 65 cm. No fishing for chinook from a point
+#: 100 m above Fort Babine bridge to Nichyeskwa Creek." closes that stretch only — never the water the row is about. It is
+#: not read as the cell's closure; the row keeps its limit and is flagged with the sentence (the app shows DFO's words).
+_RE_PART_CLOSURE = re.compile(r"\bno\s+fishing\s+for\s+[a-z ,]+?\s+from\s+[^.]+?\s+to\s+[^.]+\.?", re.I)
 _RE_HATCHERY = re.compile(r"hatchery[- ]marked", re.I)
 _RE_BAIT_BAN = re.compile(r"\bbait\s+ban\b|\bno\s+natural\s+bait\b|\bnatural\s+bait\s+not\s+allowed\b", re.I)
 #: (T320, archived pages) "Natural bait allowed — FN1038": a permission (a bait ban lifted), no rule type states it
@@ -160,13 +164,16 @@ _RE_BARBLESS = re.compile(r"\bsingle,?\s+barbless\s+hook\b", re.I)
 def decode(limits: str) -> dict:
     """What the limits cell says, read once. The source text is never replaced by this."""
     text = limits or ""
+    part = _RE_PART_CLOSURE.search(text)
+    whole = _RE_PART_CLOSURE.sub(" ", text) if part else text      # what the cell says of the WHOLE water
     daily: Optional[int] = None
     if (m := _RE_DAILY.search(text) or _RE_DAILY_OF.search(text)):
         daily = int(m.group(1))
-    elif _RE_NON_RETENTION.search(text) or _RE_NO_FISHING.search(text):
+    elif _RE_NON_RETENTION.search(text) or _RE_NO_FISHING.search(whole):
         daily = 0
     return {
-        "no_fishing": bool(_RE_NO_FISHING.search(text)),
+        "no_fishing": bool(_RE_NO_FISHING.search(whole)),
+        "part_closure": part.group(0).strip() if part else None,
         "non_retention": bool(_RE_NON_RETENTION.search(text)),
         "hatchery_marked_only": bool(_RE_HATCHERY.search(text)),
         "bait_ban": bool(_RE_BAIT_BAN.search(text)),
@@ -432,7 +439,8 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
                           # T320: a number in the cell no reading accounts for — the row keeps its words, flagged,
                           # and the app shows them instead of a number (`quota.residue`); T321: a clause DFO never
                           # used before (`wording.reason`) — the same
-                          _unread(gear) or new_wording,
+                          (f"a closure of part of the water inside the limits cell: {says['part_closure']!r}"
+                           if says.get("part_closure") else None) or _unread(gear) or new_wording,
             **base(times=times, verbatim=quoted or gear or (rec.get("species") or "row"))))
 
         # --- the size sub-limit, as its own rule pointing at the parent ----
