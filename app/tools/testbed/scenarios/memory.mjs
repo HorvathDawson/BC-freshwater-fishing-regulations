@@ -167,8 +167,9 @@ export const memory = {
     });
     await ctx.step('Salmon (the map coloured by salmon)', async () => {
       await toMap(ctx);
-      // (T367) the Standard / Salmon switch is in the legend's fishery bar now: its segment by id, not its word
-      ctx.flow('tap-id', { ID: 'regs-paint-salmon' });
+      // (T367) the Standard / Salmon switch is in the legend's fishery bar now. By its WORD: the strip is a labelled
+      // radiogroup, which on Android hides its segments' ids from the accessibility tree (r050b: shown, id not found)
+      ctx.flow('tap-text', { TEXT: 'Salmon' });
       return measure('salmon', 6000);
     });
     await ctx.step('trim memory RUNNING_CRITICAL', async () => {

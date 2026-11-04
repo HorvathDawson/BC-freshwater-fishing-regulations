@@ -33,7 +33,12 @@ for the whole tree: pipeline, worker, core, ui, ui-native, map.
    `scripts/heavy.sh pytest 50 -- .venv/bin/python -m pytest -q pipeline/tests`. Then `pnpm -C app check`. Run them
    unfiltered (`rtk proxy`). Fix what's red, or ticket it. Known flake: `Walkthrough.test.tsx` "Layers … Next puts
    them back" fails under the parallel suite and passes alone (2 s `waitFor`s).
-3. **`graphify update .`**: the graph was not updated after the 0.5.0 changes.
+3. **Test-bed drift left from the 0.5.0 sitting (out/r050b; app fine, scripts stale):** `gestures` — the Conditions
+   route map is now inside the closed "Sources and notes" fold (open it first); `water-nav` — the `[target]` tap on
+   Coquitlam River opened its unnamed tributary (pixel conversion near a confluence? log the hit id beside the tap),
+   so T345's last path (tapped route → close → reopen → Map) is still unconfirmed on the emulator; `memory` Salmon
+   now taps the word (fixed, unverified).
+4. **`graphify update .`**: the graph was not updated after the 0.5.0 changes.
 
 ## Then the work, roughly in this order
 1. **New crashes from testing:** T351 when a 0.5.0 crash report names its screen; any new one from Closed testing.
