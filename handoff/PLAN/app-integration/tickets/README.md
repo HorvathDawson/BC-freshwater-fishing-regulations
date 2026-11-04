@@ -426,6 +426,8 @@ use that as the sole source of future work."
 | T380 | Change: percentile today and at the peak beside the ratio ("from the 5th to about the 95th, about 3× today's flow"); publisher + worker carry the peak percentile from the combined series | DONE in code (worker deploy) | 528620c65 | owner 2026-11-04 (in 0.5.0) |
 | T381 | A water with no splits is one section over all its geometry (Nicomen Slough: polygons + lines) | OPEN | — | owner 2026-11-04 (in 0.5.0) |
 | T382 | The regulations' today is B.C.'s (bcNow everywhere a day is decided); sunrise / sunset on the B.C. clock at the water | OPEN | — | owner 2026-11-04 (in 0.5.0) |
+| T383 | Per-water time zones (coords → zone at build, the app's own offset rule per zone); 0.5.0 keeps one B.C. clock | OPEN | — | owner 2026-11-04 (after 0.5.0) |
+| T384 | The app opens on the reader's current location (a start link still wins; asks once; denied → today's default) | OPEN | — | owner 2026-11-04 (in 0.5.0) |
 
 ## Order for open tickets
 
