@@ -1,6 +1,6 @@
 # T369 — One load path per screen: same output whatever the way in (in 0.5.0)
 
-Status: OPEN — batch 6c of RELEASE-PLAN-0.5.0, beside T368 (owner 2026-11-03).
+Status: DONE — 75a907e3b (2026-11-04; batch 6c of RELEASE-PLAN-0.5.0, beside T368).
 
 ## The rule (owner 2026-11-03)
 "Make sure all pages have single path to load and that it produces same output regardless of the item that triggers
@@ -39,3 +39,30 @@ it holds: the section whose span holds that distance → its part (pure, offline
 named streams, UNNAMED streams (no item: the reach the point falls on), lakes (and split-lake areas) all open to the
 current item and part. Inside the app the frame keeps its part index (one release). No older link form (`part=`) is read (owner 2026-11-03: no old-link support). AGENTS rule 5 gets the distinction: a stream key + distance is a durable FWA location, not
 a section id.
+
+## Done (2026-11-04, 75a907e3b) — the audit's 14 divergences (T369-audit.md) and the owner's answers
+- ONE reading of a frame: `@app/ui` `frameView.ts` (`useFrameView`: part, release stretch, reach, "you are here"),
+  read by Regulations (`WaterScreen`), Conditions (`WaterConditions`) and Map (`useWaterMap`). Conditions shows the tap
+  in the part, else the part's / stretch's middle (`mid_sid`) and its point — owner Q1 (D1).
+- Route: a part/stretch move drops a tap of another part (D1/D2); ⤢ is the frame's (`whole` action, in the address;
+  D7); `carry` (D8, owner Q3: applied at once, carried by item + point in the new release, `carry.ts`; spinner while).
+- Opener: a tapped water opens AT its part (`regsPartOf`, the adopt effect gone: D3); a Map asked of a solo water asks
+  first (opener.item + start link: D13); the Runs sheet and a water map's other-water tap carry their point (D15).
+- Frame `stretch` = the release's `stretch_ix`; the map shows the piece HOLDING it (`stretchOf` / `waterMapStartIx`
+  over the raw group), online or offline alike (D6; the 499 multi-stretch parts).
+- Address (owner Q2): a tap's place + `here=lat,lon` / `tap=1` (D5), `browse=`, `spot=`, `date=` (not today),
+  `horizon=` (D10/D11); a place that could not be READ says so (`place-unread`, D9); cameras, day and horizon survive
+  Android recreation (`cameraHold`, `onAddress`; D12).
+- Native colouring: a layer clear is null writes in queue order (`StateQueue`), never `removeFeatureState` after
+  the frame's sets (D14) + `map/src/native-colouring-queue.test.ts` (mutation-pinned).
+- THE NET: `ui-native/src/water/oneLoadPath.test.tsx` (Regulations page text + Conditions reach/point by every way in
+  and each reloaded; mutation pins), `WaterMapView.test.tsx` (taps via `partOf`, ⤢ reload), `ui/src/frameView.test.ts`
+  (address round trip of every key, carry).
+- Load-proof: `useDelayedShow`'s show timer no longer fires over content already drawn (the T379 race); waits in
+  WaterMode / WaterScreen.regs-props given the 20 s ceiling or waiting on the element read.
+
+Left: an UNNAMED reach (or a water the new release drops) open across a data update is closed, not carried — a phone
+holds no section line (`lines` is web-only); carrying it needs `section_measure` in the native bundle (pipeline change,
+owner). A multi-section lake part's tap is not in the address (lakes have no line). Two suite failures are not T369's:
+`WaterScreen.unnamed` (desktop side tabs expect Licence) and `surfaces.test` (a stale allowlist line) — both follow
+c574bef9e (no Licence on a closed day).
