@@ -186,10 +186,26 @@ def test_an_hourly_day_is_its_highest_and_lowest_hour_on_the_pst_clock():
     assert (got["base"], got["days"]) == (14.0, [["2026-10-22", 14.0, 23.0], ["2026-10-23", 24.0, 47.0]])
 
 
-def test_a_run_past_36_hours_is_stale():
+def test_a_weekday_run_past_36_hours_is_stale():
     assert C.stale({"issuedAt": "2026-10-21T01:59:00"}, NOW) is True     # 36 h 1 min before 14:00 PST
     assert C.stale({"issuedAt": "2026-10-21T02:00:00"}, NOW) is False
     assert C.stale({"issuedAt": None}, NOW) is False
+
+
+def test_t347_the_centre_issues_on_working_days_so_fridays_run_holds_the_weekend():
+    """(T347, owner 2026-11-02) Friday's run is current through Saturday, Sunday and Monday's expected issue (+12 h);
+    a missed Monday issue makes it stale; over a holiday Monday it holds to Tuesday."""
+    fri = "2026-10-23T09:00:00"                                            # Fri 09:00 PST
+    at = lambda iso: datetime.fromisoformat(iso).replace(tzinfo=timezone(timedelta(hours=-8)))
+    assert [C.stale({"issuedAt": fri}, at(t)) for t in
+            ("2026-10-24T12:00:00", "2026-10-25T20:00:00", "2026-10-26T08:00:00", "2026-10-26T20:59:00")] == [False] * 4
+    assert C.stale({"issuedAt": fri}, at("2026-10-26T21:01:00")) is True   # Monday's issue missed, past its grace
+    # Thanksgiving Monday 2026-10-12: Friday 10-09's run holds to Tuesday 10-13 21:00
+    assert C.stale({"issuedAt": "2026-10-09T09:00:00"}, at("2026-10-13T20:59:00")) is False
+    assert C.stale({"issuedAt": "2026-10-09T09:00:00"}, at("2026-10-13T21:01:00")) is True
+    # the holidays, 2026 (Boxing Day on a Saturday is observed Monday 12-28)
+    assert {d.isoformat() for d in C.bc_holidays(2026)} >= {"2026-04-03", "2026-04-06", "2026-05-18", "2026-08-03",
+                                                           "2026-09-30", "2026-10-12", "2026-12-28"}
 
 
 def test_the_coded_value_is_the_ratio_in_probit_units():

@@ -147,7 +147,8 @@ export const LICENCE_ROWS: readonly LicenceRow[] = [
     shows: "Gauge readings, flow history and the Conditions map.", licence: "oglCanada", wording: OGL_CA_WORDS,
     url: "https://wateroffice.ec.gc.ca" },
   { k: "forecast", name: "River forecasts (CLEVER, COFFEE, ELF)", from: "BC River Forecast Centre",
-    shows: "Forecast flows on the Conditions view.", licence: "bcCopyright",
+    // (T347) the Centre issues on working days: said where the sources are explained
+    shows: "Forecast flows on the Conditions view. River forecasts are updated on weekdays.", licence: "bcCopyright",
     // REQUIRED VERBATIM wherever a forecast appears (sources.ts MAP_CREDITS holds the same words)
     wording: "Forecast data provided by the BC River Forecast Centre, Province of British Columbia, and used under the "
       + "Province's copyright terms (https://www2.gov.bc.ca/gov/content/home/copyright). Users should use the "

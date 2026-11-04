@@ -213,10 +213,10 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
     `${k} ${sourceFreshness(k, { sources: null, validUntil: null, tiles: null, feedFetchedAt: null, now, ...s }).label}`;
   const now = Date.parse("2026-10-22T18:00:00Z");
 
-  it("ONE table names every feed's rule (core staleness.ts): gauges in hours, forecasts in a day and a half, sources " +
+  it("ONE table names every feed's rule (core staleness.ts): gauges in hours, forecasts by working days (T347), sources " +
      "in days, the regulations and the map by their release", () => {
     expect(STALE_AFTER).toEqual({
-      feed: { by: "age", ms: 2 * H }, feedCheck: { by: "age", ms: 30 * 60_000 }, forecast: { by: "age", ms: 36 * H },
+      feed: { by: "age", ms: 2 * H }, feedCheck: { by: "age", ms: 30 * 60_000 }, forecast: { by: "weekdays" },
       dfo: { by: "age", ms: 120 * D }, fwa: { by: "age", ms: 730 * D }, basemap: { by: "age", ms: 365 * D },
       hydat: { by: "notice", ms: 548 * D },
       synopsis: { by: "release" }, tiles: { by: "release" },
@@ -384,7 +384,7 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
   it("MUTATION PIN: the gauges and the regulations do not share one line — a feed past its hours is stale while the " +
      "regulations and the map, months into their release, are not; a newer release dates them while the feed is fresh", () => {
     expect([STALE_AFTER.feed.by, STALE_AFTER.synopsis.by, STALE_AFTER.tiles.by]).toEqual(["age", "release", "release"]);
-    expect(STALE_AFTER.forecast.ms).not.toBe(STALE_AFTER.feed.ms);
+    expect(STALE_AFTER.forecast.by).toBe("weekdays");
     // the printing 19 months old, the edition still in force, the pair proven: only the gauge feed's 2 h has passed
     const release = { validUntil: "2027-03-31", tilesPaired: true, sources: { synopsis: { date: "2025-03-20" } } };
     const gaugeOld = { ...release, feedFetchedAt: new Date(now - 2 * H - 60_000).toISOString() };

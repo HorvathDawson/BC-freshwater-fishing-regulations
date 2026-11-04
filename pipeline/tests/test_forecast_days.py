@@ -146,7 +146,7 @@ def test_a_day_the_run_covers_only_partly_is_not_a_day():
 
 
 def test_a_stale_run_never_ranks_a_day():
-    stale = (NOW - timedelta(hours=C.STALE_HOURS + 1)).astimezone(C.CENTRE_ZONE).replace(tzinfo=None).isoformat()
+    stale = (NOW - timedelta(days=6)).astimezone(C.CENTRE_ZONE).replace(tzinfo=None).isoformat()
     runs = {"CLEVER": {"issuedAt": stale, "series": hourly(24 * 11, lambda h: 11.0)}}
     assert C.forecast_days(runs, NOW, 11.0, RANK) is None
 

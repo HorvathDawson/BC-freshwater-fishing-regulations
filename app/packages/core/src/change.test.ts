@@ -8,9 +8,9 @@ import { CHANGE_LEGEND, CHANGE_POLICY, CHANGE_STOP_RATIOS, changeDay, changeDotL
          changeLine, changeRange, changeRatio, changeReachNote, changeReads, changeSentence, changeSourceLine,
          changeSourceName, CHANGE_LOW_WATER, changeLowWaterNote, codedChange, ratioWords, type SourceChange,
          type RunChange } from "./change";
-import { CONDITIONS_WORDS, donorReads, donorReason, estimateHeadline, estimateRange, estimateSentence,
+import { CONDITIONS_WORDS, donorReads, donorReason, estimateHeadline, estimateRange, estimateSentence, forecastRunLine,
          HORIZON_LABELS, isAhead, aheadDays, silentLine, type DonorFacts } from "./conditions";
-import { STALE_AFTER } from "./staleness";
+import { byWeekdays, forecastDueBy, STALE_AFTER } from "./staleness";
 import type { Estimate } from "./trust";
 
 const TODAY = "2026-10-22";
@@ -150,8 +150,25 @@ describe("the pieces", () => {
       [0.158655, 0.308538, 0.5, 0.691462, 0.841345].map((p) => expect.closeTo(p, 5)));
   });
 
-  it("goes stale on the same line as every forecast run", () => {
-    expect(CHANGE_POLICY.staleHours * 3_600_000).toBe(STALE_AFTER.forecast.ms);
+  it("goes stale on the same line as every forecast run: (T347) the next working day's issue plus the grace", () => {
+    expect([STALE_AFTER.forecast.by, CHANGE_POLICY.staleGraceHours]).toEqual(["weekdays", 12]);
+    // a weekday run: 36 h, as the pipeline's `change.due_by`
+    const wed = Date.parse("2026-10-21T09:00:00-08:00");
+    expect(forecastDueBy(wed) - wed).toBe(36 * 3_600_000);
+  });
+
+  it("(T347, owner 2026-11-02) the Centre issues on working days: Friday's run holds the weekend and a holiday Monday", () => {
+    const fri = Date.parse("2026-10-23T09:00:00-08:00"), at = (s: string) => Date.parse(`${s}-08:00`);
+    expect(["2026-10-24T12:00:00", "2026-10-25T20:00:00", "2026-10-26T08:00:00", "2026-10-26T20:59:00", "2026-10-26T21:01:00"]
+      .map((t) => byWeekdays(fri, at(t)))).toEqual(["fresh", "fresh", "fresh", "fresh", "stale"]);
+    // Thanksgiving Monday 2026-10-12: Friday 10-09's run holds to Tuesday evening
+    const thx = Date.parse("2026-10-09T09:00:00-08:00");
+    expect([byWeekdays(thx, at("2026-10-13T20:59:00")), byWeekdays(thx, at("2026-10-13T21:01:00"))]).toEqual(["fresh", "stale"]);
+    // the day said by the run line too: Saturday, no "likely out of date"
+    expect(forecastRunLine({ model: "CLEVER", issuedAt: "2026-10-23T09:00:00-08:00", horizonDays: 5 }, "America/Vancouver",
+                           at("2026-10-24T12:00:00"))).not.toMatch(/out of date/);
+    expect(byWeekdays(null, fri)).toBe("unknown");
+    expect(() => forecastDueBy(Date.parse("2040-01-03T09:00:00Z"))).toThrow(/outside the holiday years/);
   });
 
   it("names its legend", () => {

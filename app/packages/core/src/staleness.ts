@@ -14,12 +14,17 @@
  *   by "notice"   the gauge feed's publisher SAYS whether a newer upstream release is out (its index's `maintenance`
  *                 notice, owner 2026-10-22 late): due, stale; checked and none due, fresh — never by age; only when
  *                 no word reaches the app (an index from before notices, a run that could not check) does `ms` decide
+ *   by "weekdays" (T347) issued on working days only: current until the next working day's issue plus a grace
+ *                 (`forecastDueBy`), so Friday's run holds the weekend and a holiday Monday
  *   by "notRead"  the app does not read it: unknown, the reader's to check
  *   by "live"     fetched on demand: it has no age to hold
  */
+import { CHANGE_POLICY, FORECAST_HOLIDAYS } from "./gauge-policy.generated";
+
 export type StaleRule =
   | { readonly by: "age"; readonly ms: number }
   | { readonly by: "notice"; readonly ms: number }
+  | { readonly by: "weekdays" }
   | { readonly by: "release" }
   | { readonly by: "notRead" }
   | { readonly by: "live" };
@@ -42,10 +47,10 @@ export const STALE_AFTER = {
   feedCheck: { by: "age", ms: 30 * MIN },
   /**
    * A BC River Forecast Centre run, by its `issuedAt`. The models are issued once (ELF, COFFEE) or at most twice
-   * (CLEVER) a day (pipeline/gauges/feed/forecast.py): a day plus half a day's slack for a late morning run. Past
-   * 36 h a daily run has been missed.
+   * (CLEVER) a day (pipeline/gauges/feed/forecast.py), on WORKING DAYS only (T347, owner 2026-11-02): current until the
+   * next working day's issue plus half a day's slack (`forecastDueBy`) — 36 h on a weekday, Friday's to Monday evening.
    */
-  forecast: { by: "age", ms: 36 * HOUR },
+  forecast: { by: "weekdays" },
   /** DFO's salmon notices turn over in season (~half the rules a year): a scrape older than 120 days has likely missed one. */
   dfo: { by: "age", ms: 120 * DAY },
   /** The Freshwater Atlas changes slowly; a copy two years old has likely missed a revision. */
@@ -80,6 +85,35 @@ export type AgeKey = { [K in StaleKey]: (typeof STALE_AFTER)[K] extends { ms: nu
 export function byCadence(k: AgeKey, ageMs: number | null): "fresh" | "stale" | "unknown" {
   if (ageMs === null || !Number.isFinite(ageMs)) return "unknown";
   return ageMs > STALE_AFTER[k].ms ? "stale" : "fresh";
+}
+
+/** (T347) The Forecast Centre's calendar: a fixed UTC−8 (pipeline `CENTRE_UTC_OFFSET_H`), as its stamps are read. */
+const CENTRE_OFFSET_MS = -8 * HOUR;
+const HOLIDAYS = new Set(FORECAST_HOLIDAYS);
+const HOLIDAY_YEARS = [FORECAST_HOLIDAYS[0]!.slice(0, 4), FORECAST_HOLIDAYS[FORECAST_HOLIDAYS.length - 1]!.slice(0, 4)] as const;
+
+/**
+ * (T347) WHEN A FORECAST RUN STOPS BEING CURRENT — the pipeline's `change.due_by`: its issue instant plus the whole days
+ * to the next working day on the Centre's calendar (no weekend, no `FORECAST_HOLIDAYS`) plus
+ * `CHANGE_POLICY.staleGraceHours`. A run past the emitted holiday years is an error, never a guess.
+ */
+export function forecastDueBy(issuedMs: number): number {
+  const day0 = Math.floor((issuedMs + CENTRE_OFFSET_MS) / DAY) * DAY;
+  let days = 0, d = day0;
+  do {
+    d += DAY; days++;
+    const iso = new Date(d).toISOString().slice(0, 10), wd = new Date(d).getUTCDay();
+    if (iso.slice(0, 4) < HOLIDAY_YEARS[0] || iso.slice(0, 4) > HOLIDAY_YEARS[1])
+      throw new Error(`forecast staleness: ${iso} is outside the holiday years ${HOLIDAY_YEARS.join("–")}`);
+    if (wd !== 0 && wd !== 6 && !HOLIDAYS.has(iso)) break;
+  } while (true);
+  return issuedMs + days * DAY + CHANGE_POLICY.staleGraceHours * HOUR;
+}
+
+/** (T347) A forecast run's verdict at `now` by the working-day schedule; no issue time, unknown. */
+export function byWeekdays(issuedMs: number | null, now: number): "fresh" | "stale" | "unknown" {
+  if (issuedMs === null || !Number.isFinite(issuedMs)) return "unknown";
+  return now > forecastDueBy(issuedMs) ? "stale" : "fresh";
 }
 
 /**

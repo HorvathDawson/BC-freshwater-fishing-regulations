@@ -52,9 +52,15 @@ BIG_POINTS = 0.25
 # last day, 18 of them COFFEE's five-day runs; calling them steps put "and stays up" in the panel on no evidence).
 SPIKE_BACK = 0.5
 
-# A RUN OLDER THAN THIS IS NOT A FORECAST ANY MORE (`STALE_AFTER.forecast` in core, 36 h): ELF and COFFEE issue daily,
+# A RUN PAST THE NEXT ISSUE IS NOT A FORECAST ANY MORE (`STALE_AFTER.forecast` in core): ELF and COFFEE issue daily,
 # CLEVER once or twice a day. The live feed still carried an ELF run issued 09-24 and a COFFEE run from 10-15.
-STALE_HOURS = 36.0
+# (T347, owner 2026-11-02) The Centre issues on WORKING DAYS only: a run stays current until the next working day's
+# issue, at its own clock, plus STALE_GRACE_HOURS. A weekday run so lasts 36 h, as before; Friday's lasts to Monday
+# evening, and to Tuesday evening over a holiday Monday (`bc_holidays`).
+STALE_GRACE_HOURS = 12.0
+#: The years `bc_holidays` is emitted for (the app's copy, gauge-policy.generated.ts). A run issued outside them is an
+#: error in the app, never a guess: extend this before 2036.
+HOLIDAY_YEARS = range(2025, 2036)
 
 # WHICH MODELS MAKE A STATION'S CHANGE (T144; the research, with sources, is in the ticket). The decision is
 # `change_source`, and nothing else makes it.
@@ -116,11 +122,64 @@ def issued_age_h(issued_at: str | None, now: datetime) -> float | None:
     return (now.astimezone(CENTRE_ZONE).replace(tzinfo=None) - t).total_seconds() / 3600.0
 
 
+def _easter(y: int) -> date:
+    """Easter Sunday, Gregorian (the anonymous algorithm)."""
+    a, b, c = y % 19, y // 100, y % 100
+    d, e = b // 4, b % 4
+    g = (8 * b + 13) // 25
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l_ = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 19 * l_) // 433
+    month = (h + l_ - 7 * m + 90) // 25
+    return date(y, month, (h + l_ - 7 * m + 33 * month + 19) % 32)
+
+
+def _nth_monday(y: int, month: int, n: int) -> date:
+    first = date(y, month, 1)
+    return first + timedelta(days=(7 - first.weekday()) % 7 + 7 * (n - 1))
+
+
+def bc_holidays(y: int) -> set[date]:
+    """(T347) The days the BC public service (the Forecast Centre's employer) does not work in year `y`: the statutory
+    holidays plus Easter Monday and Boxing Day, a fixed-date one on a weekend observed on the next free working day.
+    Generous on purpose: a day too many only holds Friday's run a day longer, a day too few calls it stale."""
+    moving = {_easter(y) - timedelta(days=2), _easter(y) + timedelta(days=1), _nth_monday(y, 2, 3),
+              _nth_monday(y, 8, 1), _nth_monday(y, 9, 1), _nth_monday(y, 10, 2),
+              date(y, 5, 24) - timedelta(days=date(y, 5, 24).weekday())}          # Victoria Day: Monday before May 25
+    out = set(moving)
+    for m, d in ((1, 1), (7, 1), (9, 30), (11, 11), (12, 25), (12, 26)):
+        day = date(y, m, d)
+        while day.weekday() >= 5 or day in out:
+            day += timedelta(days=1)
+        out.add(day)
+    return out
+
+
+def next_issue_day(d: date) -> date:
+    """The first working day after `d` (not a weekend, not `bc_holidays`)."""
+    n = d + timedelta(days=1)
+    while n.weekday() >= 5 or n in bc_holidays(n.year):
+        n += timedelta(days=1)
+    return n
+
+
+def due_by(issued_at: str | None) -> datetime | None:
+    """(T347) When a run stops being current: its issue instant plus the whole days to the next working day (read on the
+    Centre's calendar) plus STALE_GRACE_HOURS. None when it carries no time. Whole days on the instant (not the wall
+    clock), so the app's copy (`forecastDueBy` in core) agrees to the millisecond across a clock change."""
+    t = instant(issued_at) if issued_at else None
+    if t is None:
+        return None
+    d = t.astimezone(CENTRE_ZONE).date()
+    return t + timedelta(days=(next_issue_day(d) - d).days, hours=STALE_GRACE_HOURS)
+
+
 def stale(run: dict | None, now: datetime) -> bool:
-    """A run issued more than STALE_HOURS ago. One whose issue time is unknown is not called stale: every live run
-    carries one (`forecast._issued`), and refusing the unknown would silently drop a run on a format change."""
-    age = issued_age_h((run or {}).get("issuedAt"), now)
-    return age is not None and age > STALE_HOURS
+    """A run past `due_by`. One whose issue time is unknown is not called stale: every live run carries one
+    (`forecast._issued`), and refusing the unknown would silently drop a run on a format change."""
+    due = due_by((run or {}).get("issuedAt"))
+    return due is not None and now > due
 
 
 def daily_extremes(series: dict, start: datetime, last: date) -> list[tuple[str, float, float]]:

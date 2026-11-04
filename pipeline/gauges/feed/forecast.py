@@ -434,7 +434,7 @@ def plan_series(summary: dict[str, dict[str, dict]], stations: set[str] | None,
     """`(asked, carried, stale)`: which runs need their series fetched, and how many were carried or skipped as stale.
 
     Pure, so the politeness is pinned in a test rather than in a log. A run is ASKED only when it is in season (it is
-    in the summary at all), for a station the feed publishes, issued within `change.STALE_HOURS` of `now` (an old run is
+    in the summary at all), for a station the feed publishes, not past `change.due_by` at `now` (an old run is
     not a forecast to fetch), and not already on disk with the same issue time (then it is CARRIED, free). Capped at
     SERIES_REQUEST_CAP, in station order.
     """

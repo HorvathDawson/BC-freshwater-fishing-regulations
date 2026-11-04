@@ -2,7 +2,7 @@
 import { agoWords } from "../freshness";
 import { localDate } from "../day";
 import { monthAbbr } from "../flow";
-import { byCadence, STALE_AFTER, type AgeKey, type StaleRule } from "../staleness";
+import { byCadence, byWeekdays, STALE_AFTER, type AgeKey, type StaleRule } from "../staleness";
 import type { SourceDateKey, SourcesInput } from "./sources";
 
 /** "2026-07-15" -> "Jul 15, 2026"; anything that is not an ISO day -> null (never a guess). */
@@ -65,13 +65,12 @@ const dayAgeMs = (day: string | null | undefined, now: number): number | null =>
 const badge = (kind: SourceFreshness, label: string = FRESHNESS_WORDS[kind]): FreshnessVM => ({ kind, label });
 
 /**
- * An age-ruled source's age at `now`: the feed by its index's `fetchedAt`, the forecasts by the newest run's
+ * An age-ruled source's age at `now`: the feed by its index's `fetchedAt`, the rest
  * `forecastIssuedAt`, the rest by the release's date for them.
  */
 function ageMs(k: AgeKey, s: SourcesInput): number | null {
-  if (k === "feed" || k === "forecast") {
-    const at = k === "feed" ? s.feedFetchedAt : s.forecastIssuedAt;
-    const t = typeof at === "string" ? Date.parse(at) : NaN;
+  if (k === "feed") {
+    const t = typeof s.feedFetchedAt === "string" ? Date.parse(s.feedFetchedAt) : NaN;
     return Number.isFinite(t) ? s.now - t : null;
   }
   if (k === "dfo" || k === "fwa" || k === "basemap" || k === "hydat") return dayAgeMs(s.sources?.[k]?.date, s.now);
@@ -109,9 +108,14 @@ export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM 
   const rule: StaleRule = STALE_AFTER[k];
   switch (rule.by) {
     case "age":
-      // (T68) the feed says it holds no forecast run (out of season): known, and as fresh as the check that said so
-      if (k === "forecast" && s.forecastIssuedAt === null) return sourceFreshness("feed", s);
       return badge(byCadence(k as AgeKey, ageMs(k as AgeKey, s)));
+    case "weekdays": {
+      // (T68) the feed says it holds no forecast run (out of season): known, and as fresh as the check that said so
+      if (s.forecastIssuedAt === null) return sourceFreshness("feed", s);
+      // (T347) the newest run, by the Centre's working-day schedule
+      const t = typeof s.forecastIssuedAt === "string" ? Date.parse(s.forecastIssuedAt) : NaN;
+      return badge(byWeekdays(Number.isFinite(t) ? t : null, s.now));
+    }
     case "notice": {
       const n = s.hydatNotice ?? null;
       if (n === "due") return badge("stale", FRESHNESS_WORDS.newerRelease);

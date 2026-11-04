@@ -15,7 +15,7 @@ import { interval, type Estimate, type NoEstimate } from "./trust";
 import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
 import { weekdayAbbr } from "./flow";
 import { FORECAST_DAYS } from "./gauge-policy.generated";
-import { byCadence } from "./staleness";
+import { byWeekdays } from "./staleness";
 import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
          changeSentence } from "./change";
 
@@ -761,15 +761,15 @@ export interface ForecastRunFacts { model: string; horizonDays: number }
  * then labelled UTC; neither is the reader's clock. A time that does not parse is left out
  * rather than guessed. `zone` is for tests; left out, it is the device's.
  *
- * A run older than the forecast's line in THE ONE staleness table (`STALE_AFTER.forecast`, staleness.ts — a day and
- * a half: the models issue daily) says "likely out of date" after it, the same words the Data block's badge uses.
+ * A run past the forecast's line in THE ONE staleness table (`STALE_AFTER.forecast`, staleness.ts — (T347) the next
+ * working day's issue plus half a day: the models issue on working days) says "likely out of date" after it, the same words the Data block's badge uses.
  * `now` is for tests; left out, it is the device's clock.
  */
 export function forecastRunLine(run: ForecastRunFacts & { issuedAt: string },
                                 zone?: string, now: number = Date.now()): string {
   const t = Date.parse(run.issuedAt);
   const when = Number.isFinite(t) ? ` issued ${localStamp(t, zone)}` : "";
-  const old = Number.isFinite(t) && byCadence("forecast", now - t) === "stale" ? ` · ${CONDITIONS_WORDS.runOld}` : "";
+  const old = Number.isFinite(t) && byWeekdays(t, now) === "stale" ? ` · ${CONDITIONS_WORDS.runOld}` : "";
   return `${run.model} run${when} · ${run.horizonDays}-day outlook${old}`;
 }
 

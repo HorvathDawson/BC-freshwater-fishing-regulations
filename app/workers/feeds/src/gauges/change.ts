@@ -2,7 +2,7 @@
 // forecast day (T177) and every ranked forecast day (T171). Clocks: `now` is epoch ms; a Centre wall clock is ms "as
 // if UTC" (time.ts); a day is "YYYY-MM-DD".
 import { erf, pyRound, pySum } from "./py";
-import { addDays, centreWall, dayOf, HOUR, hours, instant } from "./time";
+import { addDays, centreWall, DAY_MS, dayMs, dayOf, HOUR, hours, instant } from "./time";
 import type { Run, Runs } from "./forecast";
 
 export const CHANGE_DAYS = 10;
@@ -10,7 +10,8 @@ export const RISE_RATIO = 2.0;
 export const FALL_RATIO = 0.5;
 export const BIG_POINTS = 0.25;
 export const SPIKE_BACK = 0.5;
-export const STALE_HOURS = 36.0;
+/** (T347) change.STALE_GRACE_HOURS: a run is current to the next working day's issue plus this */
+export const STALE_GRACE_HOURS = 12.0;
 export const FLOOD_MODELS = ["CLEVER", "COFFEE"] as const;
 export const FLOOD_WEIGHTS: Record<string, number> = { CLEVER: 1.0, COFFEE: 1.0 };
 export const LOW_WATER_MODEL = "ELF";
@@ -50,9 +51,57 @@ export function issuedAgeH(issuedAt: unknown, now: number): number | null {
   return hours(centreWall(now), t);
 }
 
+/** change._easter: Easter Sunday, Gregorian (the anonymous algorithm). */
+function easter(y: number): string {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4;
+  const g = Math.floor((8 * b + 13) / 25), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 19 * l) / 433);
+  const month = Math.floor((h + l - 7 * m + 90) / 25);
+  return `${y}-${String(month).padStart(2, "0")}-${String((h + l - 7 * m + 33 * month + 19) % 32).padStart(2, "0")}`;
+}
+const pad = (y: number, m: number, d: number) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+/** 0 = Monday … 6 = Sunday, as Python's `weekday()`. */
+const weekday = (day: string) => (Math.floor(dayMs(day)! / DAY_MS) + 3) % 7;
+const nthMonday = (y: number, month: number, n: number) => {
+  const first = pad(y, month, 1);
+  return addDays(first, (7 - weekday(first)) % 7 + 7 * (n - 1));
+};
+const holidayCache = new Map<number, Set<string>>();
+/** change.bc_holidays (T347): the BC public service's days off in year `y`, a weekend fixed date observed next. */
+export function bcHolidays(y: number): Set<string> {
+  let out = holidayCache.get(y);
+  if (out) return out;
+  const may24 = pad(y, 5, 24);
+  out = new Set([addDays(easter(y), -2), addDays(easter(y), 1), nthMonday(y, 2, 3), nthMonday(y, 8, 1), nthMonday(y, 9, 1),
+                 nthMonday(y, 10, 2), addDays(may24, -weekday(may24))]);
+  for (const [m, d] of [[1, 1], [7, 1], [9, 30], [11, 11], [12, 25], [12, 26]] as const) {
+    let day = pad(y, m, d);
+    while (weekday(day) >= 5 || out.has(day)) day = addDays(day, 1);
+    out.add(day);
+  }
+  holidayCache.set(y, out);
+  return out;
+}
+
+/** change.next_issue_day: the first working day after `day`. */
+export function nextIssueDay(day: string): string {
+  let n = addDays(day, 1);
+  while (weekday(n) >= 5 || bcHolidays(+n.slice(0, 4)).has(n)) n = addDays(n, 1);
+  return n;
+}
+
+/** change.due_by (T347): the issue instant + the whole days to the next working day (Centre calendar) + the grace. */
+export function dueBy(issuedAt: unknown): number | null {
+  const t = issuedAt ? instant(issuedAt) : null;
+  if (t === null) return null;
+  const d = dayOf(centreWall(t.ms));
+  return t.ms + (dayMs(nextIssueDay(d))! - dayMs(d)!) + STALE_GRACE_HOURS * HOUR;
+}
+
+/** change.stale: a run past `dueBy`; no issue time, not stale. */
 export function stale(run: Run | null | undefined, now: number): boolean {
-  const age = issuedAgeH((run || {}).issuedAt, now);
-  return age !== null && age > STALE_HOURS;
+  const due = dueBy((run || {}).issuedAt);
+  return due !== null && now > due;
 }
 
 function zip<A, B>(a: A[] | undefined | null, b: B[] | undefined | null): Array<[A, B]> {

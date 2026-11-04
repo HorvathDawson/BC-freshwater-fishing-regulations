@@ -404,7 +404,7 @@ def forecast_percentiles(runs: dict | None, envelopes: dict | None,
             values: dict[str, float | None] = {}
             for model, run in sorted(runs.items()):
                 series = (run or {}).get("series")
-                # A RUN PAST `change.STALE_HOURS` IS NOT TODAY'S FORECAST (T52): the feed carried ELF runs from 09-24 and
+                # A RUN PAST `change.due_by` IS NOT TODAY'S FORECAST (T52): the feed carried ELF runs from 09-24 and
                 # 10-14 that still answered +3/+5/+10 at 08CG001, a week after the Centre had stopped issuing them.
                 if not series or _stale_run(run, now):
                     continue
