@@ -1,0 +1,3 @@
+
+# native build output of local Expo modules (CMake)
+apps/mobile/modules/*/android/.cxx/

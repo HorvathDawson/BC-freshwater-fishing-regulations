@@ -12,12 +12,21 @@ import expo.modules.kotlin.modules.ModuleDefinition
 /**
  * (T360) WHEN ANDROID ASKS FOR MEMORY BACK (`onTrimMemory`), nothing in the app answered: React Native only runs a Hermes
  * GC, and maplibre-react-native never forwards the call to its MapView. On a trim this module (1) calls `onLowMemory()` on
- * every MapLibre MapView in the activity (MapLibre drops the tiles and resources the view is not drawing) and (2) sends the
- * level to JS as a `trim` event (`src/memoryTrim.ts`: the release's SQLite page caches are shrunk). The MapView is found
+ * every MapLibre MapView in the activity (MapLibre drops the tiles and resources the view is not drawing), (2) asks the
+ * allocator to give freed pages back to the OS (`memorytrim.cpp`, mallopt M_PURGE_ALL / M_PURGE) and (3) sends the level to JS as a `trim` event (`src/memoryTrim.ts`: the release's SQLite page caches are shrunk). The MapView is found
  * by its class name, so this module needs no MapLibre dependency of its own.
  */
 class MemoryTrimModule : Module() {
   private var callbacks: ComponentCallbacks2? = null
+
+  /** 2: everything purged (M_PURGE_ALL), 1: the larger part (M_PURGE), 0: the allocator refused. */
+  private external fun purge(): Int
+
+  companion object {
+    /** The library loaded (a missing one is said in every trim event as `purged: -1`, never a crash) */
+    private val loaded: Boolean = try { System.loadLibrary("memorytrim"); true }
+      catch (e: UnsatisfiedLinkError) { Log.w("MemoryTrim", "libmemorytrim did not load", e); false }
+  }
 
   override fun definition() = ModuleDefinition {
     Name("MemoryTrim")
@@ -30,8 +39,9 @@ class MemoryTrimModule : Module() {
           // RUNNING_MODERATE (5) and up, foreground or not; UI_HIDDEN (20) and the background levels too
           if (level < ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE) return
           val maps = trimMaps()
-          Log.i("MemoryTrim", "trim level $level: $maps map view(s) told")
-          sendEvent("trim", mapOf("level" to level, "maps" to maps))
+          val purged = if (loaded) purge() else -1
+          Log.i("MemoryTrim", "trim level $level: $maps map view(s) told, purge $purged")
+          sendEvent("trim", mapOf("level" to level, "maps" to maps, "purged" to purged))
         }
         override fun onConfigurationChanged(newConfig: Configuration) {}
         @Deprecated("onTrimMemory") override fun onLowMemory() {}
