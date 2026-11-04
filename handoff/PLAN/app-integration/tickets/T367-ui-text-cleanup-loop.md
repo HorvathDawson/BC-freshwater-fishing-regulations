@@ -34,3 +34,5 @@ collapsible line, collapsed by default; opened it shows the full source details.
 (c) T343: draw the salmon card's new `hours` line (core `salmonCard(...).hours`, e.g. "Salmon fishing in daylight only:
 one hour before sunrise to one hour after sunset"; null when all closed) near the gear line. Then tell the data chat (or
 change core `salmon.ts` `asWords`: drop `n.fold === "hours" ||`) so the daylight note leaves the region block. Before 0.5.0.
+(d) Forecast day chips: the every-day feed (+2, +4, +6–9) is the DATA chat's, T375. Build the chips on the days the feed
+carries (by date); the rest fill in when T375 lands.
