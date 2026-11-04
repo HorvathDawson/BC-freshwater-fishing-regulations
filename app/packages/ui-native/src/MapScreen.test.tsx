@@ -94,8 +94,7 @@ describe("<MapScreen> corner", () => {
     fireEvent.click(screen.getByLabelText("Choose a forecast day"));
     fireEvent.click(screen.getByLabelText("Forecast 10 days ahead"));
     expect(onPick).toHaveBeenCalledWith(10);
-    expect(screen.queryByTestId("map-horizons-list")).toBeNull();   // a pick closes the list
-    fireEvent.click(screen.getByLabelText("Choose a forecast day"));
+    // (T367) the list stays open: the next day is one tap away
     fireEvent.click(screen.getByLabelText("Forecast 5 days ahead"));
     expect(onPick).toHaveBeenLastCalledWith(5);
   });

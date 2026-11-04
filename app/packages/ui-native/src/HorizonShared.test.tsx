@@ -71,7 +71,8 @@ describe("the map's horizon control and the panel's share one state", () => {
     render(<Wired />);
     fireEvent.click(map().getByLabelText("Choose a forecast day"));
     fireEvent.click(map().getByLabelText("Forecast 10 days ahead"));
-    expect(map().getByLabelText("Forecast 10 days ahead, showing")).toBeTruthy();
+    // the strip's middle and the open list's day both say it (T367: the list stays open)
+    expect(map().getAllByLabelText("Forecast 10 days ahead, showing")).toHaveLength(2);
     expect(panel().getByLabelText("Forecast 10 days ahead, showing")).toBeTruthy();
     expect(screen.getByText("painted at +10")).toBeTruthy();
     expect(panel().getByText("FORECAST · 10 DAYS AHEAD")).toBeTruthy();

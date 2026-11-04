@@ -3,7 +3,8 @@
  * CONTROL, for the Conditions map's corner and the panel's header alike: one joined strip (`CornerStrip`) of
  * Now · <the forecast day> ▾ · Change. Ten dated chips in a row outgrew the width and pushed Change out of sight; now
  * the middle segment says "Forecast" (or the day chosen, filled) and opens the forecast days under the strip, two rows of
- * dated chips, a pick closing it. The chips are `horizonChips` (@app/ui), so both controls list the same days and set
+ * dated chips. (owner 2026-11-04: closing on a pick made stepping through the days clunky) The list STAYS OPEN after a
+ * pick — the day lights, the map repaints — and closes on the middle segment again, or on Now or Change. The chips are `horizonChips` (@app/ui), so both controls list the same days and set
  * ONE horizon state.
  */
 import { useState } from "react";
@@ -49,7 +50,7 @@ export function HorizonPicker({ palette, chips, onPick, testID, coach, changeIco
                        backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2,
                        borderRadius: palette.r.box, ...palette.lift }}>
           {days.map((d) => (
-            <Pressable key={String(d.day)} testID={`${testID}-day-${d.day}`} onPress={() => { setOpen(false); onPick(d.day); }}
+            <Pressable key={String(d.day)} testID={`${testID}-day-${d.day}`} onPress={() => onPick(d.day)}
                        accessibilityRole="menuitem" accessibilityLabel={d.label} aria-selected={d.on} {...DAY_HIT}>
               <View style={{ width: 58, paddingVertical: 8, alignItems: "center", borderRadius: palette.r.pill,
                              backgroundColor: d.on ? palette.accent : palette.wash }}>
