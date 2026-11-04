@@ -13,7 +13,8 @@
  "visit | search: open the water (R3)": [
   "salmon",
   "salmon-3",
-  "water-3"
+  "water-3",
+  "water-shared"
  ],
  "tap named | first paint": [
   "feed:index",
@@ -26,7 +27,8 @@
   "geo",
   "salmon",
   "salmon-2",
-  "water-2"
+  "water-2",
+  "water-shared"
  ],
  "tap unnamed | first paint": [
   "feed:index",
@@ -40,7 +42,8 @@
   "regs-sid",
   "salmon",
   "salmon-2",
-  "water-2"
+  "water-2",
+  "water-shared"
  ],
  "conditions | first paint": [
   "feed:index",
@@ -222,7 +225,8 @@
   "salmon",
   "salmon-2",
   "wasm",
-  "water-2"
+  "water-2",
+  "water-shared"
  ],
  "conditions | prefetch after paint": [
   "core",

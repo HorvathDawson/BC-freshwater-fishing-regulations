@@ -1598,32 +1598,9 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "water-1": {
-    "format": "water-slice/1",
+    "format": "water-slice/2",
     "kind": "sqlite",
     "tables": {
-      "akey": [
-        "akey",
-        "ruleset",
-        "licensing_set",
-        "steelhead_water",
-        "steelhead",
-        "steelhead_rules",
-        "province_except",
-        "home_region",
-        "kind",
-        "tidal",
-        "seg",
-        "mom",
-        "nseg"
-      ],
-      "akey_region": [
-        "akey",
-        "region"
-      ],
-      "display_rule": [
-        "id",
-        "j"
-      ],
       "item": [
         "item_ord",
         "item_id",
@@ -1637,10 +1614,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "entries",
         "steelhead",
         "x"
-      ],
-      "lic": [
-        "lix",
-        "j"
       ],
       "meta": [
         "k",
@@ -1684,32 +1657,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
-      "place": [
-        "place",
-        "regions",
-        "label",
-        "names"
-      ],
-      "rule": [
-        "rix",
-        "j"
-      ],
-      "ruleset": [
-        "set_id",
-        "j"
-      ],
-      "seglist": [
-        "seg",
-        "starts"
-      ],
-      "segmom": [
-        "mom",
-        "ix"
-      ],
-      "static": [
-        "k",
-        "j"
-      ],
       "str": [
         "id",
         "text"
@@ -1728,40 +1675,13 @@ export const PACK_FILES: Record<string, PackFile> = {
       "xpart": [
         "id",
         "j"
-      ],
-      "zdict": [
-        "tbl",
-        "d"
       ]
     }
   },
   "water-2": {
-    "format": "water-slice/1",
+    "format": "water-slice/2",
     "kind": "sqlite",
     "tables": {
-      "akey": [
-        "akey",
-        "ruleset",
-        "licensing_set",
-        "steelhead_water",
-        "steelhead",
-        "steelhead_rules",
-        "province_except",
-        "home_region",
-        "kind",
-        "tidal",
-        "seg",
-        "mom",
-        "nseg"
-      ],
-      "akey_region": [
-        "akey",
-        "region"
-      ],
-      "display_rule": [
-        "id",
-        "j"
-      ],
       "item": [
         "item_ord",
         "item_id",
@@ -1775,10 +1695,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "entries",
         "steelhead",
         "x"
-      ],
-      "lic": [
-        "lix",
-        "j"
       ],
       "meta": [
         "k",
@@ -1822,32 +1738,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
-      "place": [
-        "place",
-        "regions",
-        "label",
-        "names"
-      ],
-      "rule": [
-        "rix",
-        "j"
-      ],
-      "ruleset": [
-        "set_id",
-        "j"
-      ],
-      "seglist": [
-        "seg",
-        "starts"
-      ],
-      "segmom": [
-        "mom",
-        "ix"
-      ],
-      "static": [
-        "k",
-        "j"
-      ],
       "str": [
         "id",
         "text"
@@ -1866,40 +1756,13 @@ export const PACK_FILES: Record<string, PackFile> = {
       "xpart": [
         "id",
         "j"
-      ],
-      "zdict": [
-        "tbl",
-        "d"
       ]
     }
   },
   "water-3": {
-    "format": "water-slice/1",
+    "format": "water-slice/2",
     "kind": "sqlite",
     "tables": {
-      "akey": [
-        "akey",
-        "ruleset",
-        "licensing_set",
-        "steelhead_water",
-        "steelhead",
-        "steelhead_rules",
-        "province_except",
-        "home_region",
-        "kind",
-        "tidal",
-        "seg",
-        "mom",
-        "nseg"
-      ],
-      "akey_region": [
-        "akey",
-        "region"
-      ],
-      "display_rule": [
-        "id",
-        "j"
-      ],
       "item": [
         "item_ord",
         "item_id",
@@ -1913,10 +1776,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "entries",
         "steelhead",
         "x"
-      ],
-      "lic": [
-        "lix",
-        "j"
       ],
       "meta": [
         "k",
@@ -1960,32 +1819,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
-      "place": [
-        "place",
-        "regions",
-        "label",
-        "names"
-      ],
-      "rule": [
-        "rix",
-        "j"
-      ],
-      "ruleset": [
-        "set_id",
-        "j"
-      ],
-      "seglist": [
-        "seg",
-        "starts"
-      ],
-      "segmom": [
-        "mom",
-        "ix"
-      ],
-      "static": [
-        "k",
-        "j"
-      ],
       "str": [
         "id",
         "text"
@@ -2004,40 +1837,13 @@ export const PACK_FILES: Record<string, PackFile> = {
       "xpart": [
         "id",
         "j"
-      ],
-      "zdict": [
-        "tbl",
-        "d"
       ]
     }
   },
   "water-4": {
-    "format": "water-slice/1",
+    "format": "water-slice/2",
     "kind": "sqlite",
     "tables": {
-      "akey": [
-        "akey",
-        "ruleset",
-        "licensing_set",
-        "steelhead_water",
-        "steelhead",
-        "steelhead_rules",
-        "province_except",
-        "home_region",
-        "kind",
-        "tidal",
-        "seg",
-        "mom",
-        "nseg"
-      ],
-      "akey_region": [
-        "akey",
-        "region"
-      ],
-      "display_rule": [
-        "id",
-        "j"
-      ],
       "item": [
         "item_ord",
         "item_id",
@@ -2051,10 +1857,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "entries",
         "steelhead",
         "x"
-      ],
-      "lic": [
-        "lix",
-        "j"
       ],
       "meta": [
         "k",
@@ -2098,32 +1900,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
-      "place": [
-        "place",
-        "regions",
-        "label",
-        "names"
-      ],
-      "rule": [
-        "rix",
-        "j"
-      ],
-      "ruleset": [
-        "set_id",
-        "j"
-      ],
-      "seglist": [
-        "seg",
-        "starts"
-      ],
-      "segmom": [
-        "mom",
-        "ix"
-      ],
-      "static": [
-        "k",
-        "j"
-      ],
       "str": [
         "id",
         "text"
@@ -2142,40 +1918,13 @@ export const PACK_FILES: Record<string, PackFile> = {
       "xpart": [
         "id",
         "j"
-      ],
-      "zdict": [
-        "tbl",
-        "d"
       ]
     }
   },
   "water-5": {
-    "format": "water-slice/1",
+    "format": "water-slice/2",
     "kind": "sqlite",
     "tables": {
-      "akey": [
-        "akey",
-        "ruleset",
-        "licensing_set",
-        "steelhead_water",
-        "steelhead",
-        "steelhead_rules",
-        "province_except",
-        "home_region",
-        "kind",
-        "tidal",
-        "seg",
-        "mom",
-        "nseg"
-      ],
-      "akey_region": [
-        "akey",
-        "region"
-      ],
-      "display_rule": [
-        "id",
-        "j"
-      ],
       "item": [
         "item_ord",
         "item_id",
@@ -2189,10 +1938,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "entries",
         "steelhead",
         "x"
-      ],
-      "lic": [
-        "lix",
-        "j"
       ],
       "meta": [
         "k",
@@ -2236,32 +1981,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
-      "place": [
-        "place",
-        "regions",
-        "label",
-        "names"
-      ],
-      "rule": [
-        "rix",
-        "j"
-      ],
-      "ruleset": [
-        "set_id",
-        "j"
-      ],
-      "seglist": [
-        "seg",
-        "starts"
-      ],
-      "segmom": [
-        "mom",
-        "ix"
-      ],
-      "static": [
-        "k",
-        "j"
-      ],
       "str": [
         "id",
         "text"
@@ -2280,40 +1999,13 @@ export const PACK_FILES: Record<string, PackFile> = {
       "xpart": [
         "id",
         "j"
-      ],
-      "zdict": [
-        "tbl",
-        "d"
       ]
     }
   },
   "water-6": {
-    "format": "water-slice/1",
+    "format": "water-slice/2",
     "kind": "sqlite",
     "tables": {
-      "akey": [
-        "akey",
-        "ruleset",
-        "licensing_set",
-        "steelhead_water",
-        "steelhead",
-        "steelhead_rules",
-        "province_except",
-        "home_region",
-        "kind",
-        "tidal",
-        "seg",
-        "mom",
-        "nseg"
-      ],
-      "akey_region": [
-        "akey",
-        "region"
-      ],
-      "display_rule": [
-        "id",
-        "j"
-      ],
       "item": [
         "item_ord",
         "item_id",
@@ -2327,10 +2019,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "entries",
         "steelhead",
         "x"
-      ],
-      "lic": [
-        "lix",
-        "j"
       ],
       "meta": [
         "k",
@@ -2374,32 +2062,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
-      "place": [
-        "place",
-        "regions",
-        "label",
-        "names"
-      ],
-      "rule": [
-        "rix",
-        "j"
-      ],
-      "ruleset": [
-        "set_id",
-        "j"
-      ],
-      "seglist": [
-        "seg",
-        "starts"
-      ],
-      "segmom": [
-        "mom",
-        "ix"
-      ],
-      "static": [
-        "k",
-        "j"
-      ],
       "str": [
         "id",
         "text"
@@ -2418,40 +2080,13 @@ export const PACK_FILES: Record<string, PackFile> = {
       "xpart": [
         "id",
         "j"
-      ],
-      "zdict": [
-        "tbl",
-        "d"
       ]
     }
   },
   "water-7a": {
-    "format": "water-slice/1",
+    "format": "water-slice/2",
     "kind": "sqlite",
     "tables": {
-      "akey": [
-        "akey",
-        "ruleset",
-        "licensing_set",
-        "steelhead_water",
-        "steelhead",
-        "steelhead_rules",
-        "province_except",
-        "home_region",
-        "kind",
-        "tidal",
-        "seg",
-        "mom",
-        "nseg"
-      ],
-      "akey_region": [
-        "akey",
-        "region"
-      ],
-      "display_rule": [
-        "id",
-        "j"
-      ],
       "item": [
         "item_ord",
         "item_id",
@@ -2465,10 +2100,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "entries",
         "steelhead",
         "x"
-      ],
-      "lic": [
-        "lix",
-        "j"
       ],
       "meta": [
         "k",
@@ -2512,32 +2143,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
-      "place": [
-        "place",
-        "regions",
-        "label",
-        "names"
-      ],
-      "rule": [
-        "rix",
-        "j"
-      ],
-      "ruleset": [
-        "set_id",
-        "j"
-      ],
-      "seglist": [
-        "seg",
-        "starts"
-      ],
-      "segmom": [
-        "mom",
-        "ix"
-      ],
-      "static": [
-        "k",
-        "j"
-      ],
       "str": [
         "id",
         "text"
@@ -2556,40 +2161,13 @@ export const PACK_FILES: Record<string, PackFile> = {
       "xpart": [
         "id",
         "j"
-      ],
-      "zdict": [
-        "tbl",
-        "d"
       ]
     }
   },
   "water-7b": {
-    "format": "water-slice/1",
+    "format": "water-slice/2",
     "kind": "sqlite",
     "tables": {
-      "akey": [
-        "akey",
-        "ruleset",
-        "licensing_set",
-        "steelhead_water",
-        "steelhead",
-        "steelhead_rules",
-        "province_except",
-        "home_region",
-        "kind",
-        "tidal",
-        "seg",
-        "mom",
-        "nseg"
-      ],
-      "akey_region": [
-        "akey",
-        "region"
-      ],
-      "display_rule": [
-        "id",
-        "j"
-      ],
       "item": [
         "item_ord",
         "item_id",
@@ -2603,10 +2181,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "entries",
         "steelhead",
         "x"
-      ],
-      "lic": [
-        "lix",
-        "j"
       ],
       "meta": [
         "k",
@@ -2650,32 +2224,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
-      "place": [
-        "place",
-        "regions",
-        "label",
-        "names"
-      ],
-      "rule": [
-        "rix",
-        "j"
-      ],
-      "ruleset": [
-        "set_id",
-        "j"
-      ],
-      "seglist": [
-        "seg",
-        "starts"
-      ],
-      "segmom": [
-        "mom",
-        "ix"
-      ],
-      "static": [
-        "k",
-        "j"
-      ],
       "str": [
         "id",
         "text"
@@ -2694,40 +2242,13 @@ export const PACK_FILES: Record<string, PackFile> = {
       "xpart": [
         "id",
         "j"
-      ],
-      "zdict": [
-        "tbl",
-        "d"
       ]
     }
   },
   "water-8": {
-    "format": "water-slice/1",
+    "format": "water-slice/2",
     "kind": "sqlite",
     "tables": {
-      "akey": [
-        "akey",
-        "ruleset",
-        "licensing_set",
-        "steelhead_water",
-        "steelhead",
-        "steelhead_rules",
-        "province_except",
-        "home_region",
-        "kind",
-        "tidal",
-        "seg",
-        "mom",
-        "nseg"
-      ],
-      "akey_region": [
-        "akey",
-        "region"
-      ],
-      "display_rule": [
-        "id",
-        "j"
-      ],
       "item": [
         "item_ord",
         "item_id",
@@ -2741,10 +2262,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "entries",
         "steelhead",
         "x"
-      ],
-      "lic": [
-        "lix",
-        "j"
       ],
       "meta": [
         "k",
@@ -2788,6 +2305,62 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
+      "str": [
+        "id",
+        "text"
+      ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
+      "water_exit": [
+        "ord",
+        "down_ord",
+        "down_part"
+      ],
+      "xpart": [
+        "id",
+        "j"
+      ]
+    }
+  },
+  "water-shared": {
+    "format": "water-shared/1",
+    "kind": "sqlite",
+    "tables": {
+      "akey": [
+        "akey",
+        "ruleset",
+        "licensing_set",
+        "steelhead_water",
+        "steelhead",
+        "steelhead_rules",
+        "province_except",
+        "home_region",
+        "kind",
+        "tidal",
+        "seg",
+        "mom",
+        "nseg"
+      ],
+      "akey_region": [
+        "akey",
+        "region"
+      ],
+      "display_rule": [
+        "id",
+        "j"
+      ],
+      "lic": [
+        "lix",
+        "j"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
       "place": [
         "place",
         "regions",
@@ -2817,21 +2390,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "str": [
         "id",
         "text"
-      ],
-      "water_continue": [
-        "ord",
-        "part",
-        "next_ord",
-        "next_part"
-      ],
-      "water_exit": [
-        "ord",
-        "down_ord",
-        "down_part"
-      ],
-      "xpart": [
-        "id",
-        "j"
       ],
       "zdict": [
         "tbl",
@@ -2877,6 +2435,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
     "files": [
       "core",
       "water-{region}",
+      "water-shared",
       "geo",
       "access",
       "regs-{region}",
@@ -2889,6 +2448,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
     "files": [
       "core-{region}",
       "water-{region}",
+      "water-shared",
       "geo",
       "access",
       "regs-{region}",
@@ -2902,6 +2462,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
     "files": [
       "core",
       "water-{region}",
+      "water-shared",
       "access",
       "regs-{region}",
       "regs-sid",

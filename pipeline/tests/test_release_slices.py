@@ -158,11 +158,19 @@ def test_a_slice_covers_its_regions_waters_whole_and_what_they_name(tmp_path):
     # what a kept row names: its xpart, picker, strings and towns; nothing else
     assert _rows(w2, "SELECT id FROM xpart") == [(1,)] and _rows(w2, "SELECT id FROM picker") == [(1,)]
     assert (106,) not in _rows(w2, "SELECT id FROM str") and (120,) not in _rows(w2, "SELECT id FROM str")
-    assert {(100,), (110,), (121,), (130,), (131,)} <= set(_rows(w2, "SELECT id FROM str"))
+    assert {(100,), (110,), (121,)} <= set(_rows(w2, "SELECT id FROM str"))
     assert _rows(c2, "SELECT place_id FROM place") == [(7,)]
-    # whole: what the store reads whole; not held: what no app read asks
-    assert _rows(w2, "SELECT akey FROM akey") == [(1,), (2,)] and _rows(w2, "SELECT count(*) FROM akey_region") == [(2,)]
+    # (T370) the region-wide tables are in no slice: `water-shared` holds them whole, with the strings they name
+    sh = out[SL.WATER_SHARED]
+    assert _rows(sh, "SELECT akey FROM akey") == [(1,), (2,)] and _rows(sh, "SELECT count(*) FROM akey_region") == [(2,)]
+    assert {(130,), (131,)} <= set(_rows(sh, "SELECT id FROM str"))
     tables = {t for (t,) in _rows(w2, "SELECT name FROM sqlite_master WHERE type = 'table'")}
+    assert tables.isdisjoint(SL.WATER_SHARED_TABLES)
+    assert {t for (t,) in _rows(sh, "SELECT name FROM sqlite_master WHERE type = 'table'")} == \
+        {*SL.WATER_SHARED_TABLES, "str", "meta"}
+    assert dict(_rows(sh, "SELECT k, v FROM meta"))["format"] == SL.WATER_SHARED_FORMAT
+    assert "region" not in dict(_rows(sh, "SELECT k, v FROM meta"))
+    # not held: what no app read asks
     assert "entry" not in tables and "runs" not in tables and "lset" not in tables
     meta = dict(_rows(w2, "SELECT k, v FROM meta"))
     assert (meta["format"], meta["slice_of"], meta["region"], meta["whole_format"], meta["reach_digest"]) == \
@@ -226,6 +234,13 @@ def test_on_the_live_release_a_slice_is_the_whole_file_for_what_it_covers(tmp_pa
     sid_regions = SH.sid_regions(st)
     c = sqlite3.connect(paths["core"])
     w = sqlite3.connect(paths["water"])
+    sh = SL.water_shared(paths["water"], tmp_path / "water-shared.sqlite")      # (T370) the region-wide tables
+    for t in SL.WATER_SHARED_TABLES:
+        assert _rows(sh, f"SELECT * FROM {t} ORDER BY 1") == w.execute(f"SELECT * FROM {t} ORDER BY 1").fetchall(), t
+    sh_strs = dict(_rows(sh, "SELECT id, text FROM str"))
+    sh_used = {i for t, col in SL.STR_COLUMNS if t in SL.WATER_SHARED_TABLES
+               for (i,) in _rows(sh, f"SELECT {col} FROM {t} WHERE {col} IS NOT NULL")}
+    assert sh_used <= set(sh_strs)
     for r in ("2", "7b"):
         sids = SL.region_sids(sid_regions, r)
         ords = SL.covered_ords(c, w, sids)
@@ -239,12 +254,11 @@ def test_on_the_live_release_a_slice_is_the_whole_file_for_what_it_covers(tmp_pa
                        ("water_exit", "ord")):
             assert _rows(ws, f"SELECT * FROM {t} ORDER BY 1, 2") == \
                 w.execute(f"SELECT * FROM {t} WHERE {col} IN ({q}) ORDER BY 1, 2").fetchall(), (r, t)
-        for t in ("rule", "display_rule", "lic", "static", "zdict", "akey", "place"):
-            assert _rows(ws, f"SELECT * FROM {t} ORDER BY 1") == w.execute(f"SELECT * FROM {t} ORDER BY 1").fetchall()
         whole_sid = dict(c.execute("SELECT sid, ord FROM item_section"))
         slice_sid = dict(_rows(cs, "SELECT sid, ord FROM item_section"))
         assert all(slice_sid.get(s) == whole_sid.get(s) for s in sids), r
         strs = dict(_rows(ws, "SELECT id, text FROM str"))
-        used = {i for t, col in SL.STR_COLUMNS for (i,) in _rows(ws, f"SELECT {col} FROM {t} WHERE {col} IS NOT NULL")}
+        used = {i for t, col in SL.STR_COLUMNS if t in SL.WATER_SLICE_TABLES
+                for (i,) in _rows(ws, f"SELECT {col} FROM {t} WHERE {col} IS NOT NULL")}
         assert used <= set(strs) and all(strs[i] == w.execute("SELECT text FROM str WHERE id = ?", (i,)).fetchone()[0]
                                          for i in list(used)[:2000])

@@ -82,7 +82,10 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_450_000, "lakes":
               "lines": 1_400_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS},
               # (T256) the answer slices (slices.py), web-only: measured on r-fa1915a56adb's tables, core-<r> 197-287 kB,
               # water-<r> ~0.75 MB (rules, display rules and the dictionaries are whole in every one)
-              **{f"core-{r}": 400_000 for r in SH.REGIONS}, **{f"water-{r}": 1_100_000 for r in SH.REGIONS}}
+              # (T370) those moved to `water-shared` (623 kB measured 2026-11-04): water-<r> 1.1 MB → 400 kB (its own rows
+              # measured 100-220 kB)
+              **{f"core-{r}": 400_000 for r in SH.REGIONS}, **{f"water-{r}": 400_000 for r in SH.REGIONS},
+              "water-shared": 850_000}
 #: (T182) The release total is no longer the web's cap — a web visitor never fetches the whole release (the cold load is
 #: `WEB_BUDGET["cold_load"]`); it is what a PHONE holds offline, beside ~450 MB of tiles + basemap. It stays as a
 #: runaway-growth backstop, raised 15 → 20 MB so the last band's files (T199 runs ~0.87 MB, T200, T201/T218) fit.
@@ -377,7 +380,8 @@ def web_moments(release_dir: Path) -> Dict[str, tuple]:
         name = region if name == "regs-{region}" else salmon_r if name == "salmon-{region}" else name
         if name in ("core-{region}", "water-{region}"):                # (T256) the largest region's slice
             stem = name.split("-")[0]
-            name = max((k for k in files if k.startswith(stem + "-")), key=lambda k: files[k]["gz"], default=name)
+            name = max((k for k in files if k in {f"{stem}-{r}" for r in SH.REGIONS}), key=lambda k: files[k]["gz"],
+                       default=name)                              # (T370) never `water-shared`
         if name == "salmon-{all}":                               # the Salmon map: every slice
             return name, sum(int(f["gz"]) for k, f in files.items() if k.startswith("salmon-"))
         return name, int(files[name]["gz"]) if name in files else 0

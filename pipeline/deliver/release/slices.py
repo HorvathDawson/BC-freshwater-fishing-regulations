@@ -14,9 +14,12 @@ what it COVERS, and the app reads a slice only for keys it covers (`app/packages
             core item / item_section / item_near / item_area / name_source; water item / part (+ its xpart) /
             part_section / part_mark / water_exit / water_continue (either end) / picker.
   ids       water `str`: every string a kept row names (no blob names a str: every str id is a column's, checked
-            below); `akey`, `akey_region`, `ruleset`, `seglist`, `segmom`, `rule`, `display_rule`, `lic`, `static`,
-            `place`, `zdict` whole (the store reads rules / lics / statics whole); core `place`: the towns the kept
-            `item_near` rows name (a place_id present is that town's row).
+            below); core `place`: the towns the kept `item_near` rows name (a place_id present is that town's row).
+  shared    (T370) `water-shared`, ONE web file beside the slices: the water tables every region reads whole — `akey`,
+            `akey_region`, `ruleset`, `seglist`, `segmom`, `rule`, `display_rule`, `lic`, `static`, `place`, `zdict`
+            (the store reads rules / lics / statics whole) and the `str` rows their columns name. They were byte-
+            identical in all nine water slices (623 of ~780 kB gz each, measured 2026-11-04); a second region now costs
+            only its own rows. A water slice holds none of them.
   not held  core alias / item_alias / see_pointer (search reads the whole core); water entry / lset / runs (no app
             read: the seo build and the pipeline's store re-assembly read the whole water).
 
@@ -34,17 +37,21 @@ from typing import Dict, Iterable, List, Set
 from pipeline.deliver.release import shards as SH
 
 CORE_SLICE_FORMAT = "core-slice/1"
-WATER_SLICE_FORMAT = "water-slice/1"
+WATER_SLICE_FORMAT = "water-slice/2"
+WATER_SHARED_FORMAT = "water-shared/1"
+#: (T370) the web file the region-wide water tables live in, beside the slices
+WATER_SHARED = "water-shared"
 
 #: core tables a slice carries; keyed by ord (`ord`) or by item_id (`item_id`), `None` = whole
 CORE_SLICE_TABLES: Dict[str, str | None] = {"item": "ord", "item_section": "ord", "item_near": "ord",
                                             "item_area": "ord", "name_source": "item_id", "place": "place_id"}
-#: water tables a slice carries; the column a covered water is keyed by, `None` = whole, "*" = special (below)
-WATER_SLICE_TABLES: Dict[str, str | None] = {
+#: water tables a slice carries; the column a covered water is keyed by, "*" = special (below)
+WATER_SLICE_TABLES: Dict[str, str] = {
     "item": "item_ord", "part": "item_ord", "part_section": "ord", "part_mark": "ord", "water_exit": "ord",
-    "water_continue": "*", "xpart": "*", "picker": "*", "str": "*",
-    "akey": None, "akey_region": None, "ruleset": None, "seglist": None, "segmom": None, "rule": None,
-    "display_rule": None, "lic": None, "static": None, "place": None, "zdict": None}
+    "water_continue": "*", "xpart": "*", "picker": "*", "str": "*"}
+#: (T370) the water tables every region reads whole: in `water-shared` only, never in a slice
+WATER_SHARED_TABLES = ("akey", "akey_region", "ruleset", "seglist", "segmom", "rule", "display_rule", "lic", "static",
+                       "place", "zdict")
 #: every column of water that names a `str` id (`str` keeps only these ids' rows)
 STR_COLUMNS = (("item", "item_id"), ("item", "kind"), ("part", "label_s"), ("part", "short_s"), ("part", "runs_s"),
                ("part", "place_s"), ("part", "hint_s"), ("akey", "kind"), ("akey", "province_except"),
@@ -107,10 +114,10 @@ def _pk(con: sqlite3.Connection, src: str, t: str) -> str:
     return "ORDER BY " + ", ".join(pk or [c[1] for c in cols])
 
 
-def _meta(con: sqlite3.Connection, src: str, fmt: str, whole: str, region: str, n: int) -> None:
+def _meta(con: sqlite3.Connection, src: str, fmt: str, whole: str, region: str | None, n: int | None) -> None:
     rows = dict(con.execute(f"SELECT k, v FROM {src}.meta"))
-    rows.update({"format": fmt, "slice_of": whole, "region": region, "whole_format": rows.get("format", ""),
-                 "covers": str(n)})
+    rows.update({"format": fmt, "slice_of": whole, "whole_format": rows.get("format", ""),
+                 **({"region": region} if region is not None else {}), **({"covers": str(n)} if n is not None else {})})
     con.execute("CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL) WITHOUT ROWID")
     con.executemany("INSERT INTO meta VALUES (?, ?)", sorted(rows.items()))
 
@@ -167,7 +174,7 @@ def water_slice(whole: Path, out: Path, region: str, ords: Set[int]) -> Path:
             raise SliceError(f"slices: the whole water has no table {t}")
         if key == "*":
             continue
-        _copy(con, "s", t, "" if key is None else f"WHERE {key} IN (SELECT o FROM temp.k)", _pk(con, "s", t))
+        _copy(con, "s", t, f"WHERE {key} IN (SELECT o FROM temp.k)", _pk(con, "s", t))
     has = lambda t: con.execute("SELECT 1 FROM s.sqlite_master WHERE type='table' AND name=?", (t,)).fetchone()  # noqa: E731
     if has("water_continue"):
         _copy(con, "s", "water_continue", "WHERE ord IN (SELECT o FROM temp.k) OR next_ord IN (SELECT o FROM temp.k)",
@@ -175,10 +182,27 @@ def water_slice(whole: Path, out: Path, region: str, ords: Set[int]) -> Path:
     _copy(con, "s", "xpart", "WHERE id IN (SELECT xp FROM main.part)", _pk(con, "s", "xpart"))
     _copy(con, "s", "picker", "WHERE id IN (SELECT picker FROM main.item WHERE picker IS NOT NULL)",
           _pk(con, "s", "picker"))
-    used = " UNION ".join(f"SELECT {c} FROM main.{t} WHERE {c} IS NOT NULL" for t, c in STR_COLUMNS)
-    _copy(con, "s", "str", f"WHERE id IN ({used})", _pk(con, "s", "str"))
+    _strs(con, [(t, c) for t, c in STR_COLUMNS if t in WATER_SLICE_TABLES])
     _meta(con, "s", WATER_SLICE_FORMAT, "water", region, len(ords))
     return _finish(con, out.with_name(out.name + ".tmp"), out)
+
+
+def water_shared(whole: Path, out: Path) -> Path:
+    """(T370) `water-shared`: the region-wide water tables whole, and the `str` rows their columns name."""
+    con = _start(out, whole, set())
+    for t in WATER_SHARED_TABLES:
+        if not con.execute("SELECT 1 FROM s.sqlite_master WHERE type='table' AND name=?", (t,)).fetchone():
+            raise SliceError(f"slices: the whole water has no table {t}")
+        _copy(con, "s", t, "", _pk(con, "s", t))
+    _strs(con, [(t, c) for t, c in STR_COLUMNS if t in WATER_SHARED_TABLES])
+    _meta(con, "s", WATER_SHARED_FORMAT, "water", None, None)
+    return _finish(con, out.with_name(out.name + ".tmp"), out)
+
+
+def _strs(con: sqlite3.Connection, cols: List[tuple]) -> None:
+    """The `str` rows the kept rows of `cols` name (a str id present is that string's row)."""
+    used = " UNION ".join(f"SELECT {c} FROM main.{t} WHERE {c} IS NOT NULL" for t, c in cols)
+    _copy(con, "s", "str", f"WHERE id IN ({used})", _pk(con, "s", "str"))
 
 
 def str_ids_are_column_ids(water: sqlite3.Connection) -> List[int]:
@@ -203,6 +227,7 @@ def build_slices(work: Path, core: Path, water: Path, sid_regions: Dict[int, Lis
             ords = covered_ords(c, w, sids)
             out[f"core-{r}"] = core_slice(core, work / f"core-{r}.sqlite", r, ords, sids)
             out[f"water-{r}"] = water_slice(water, work / f"water-{r}.sqlite", r, ords)
+        out[WATER_SHARED] = water_shared(water, work / f"{WATER_SHARED}.sqlite")
         return out
     finally:
         c.close()
@@ -212,7 +237,8 @@ def build_slices(work: Path, core: Path, water: Path, sid_regions: Dict[int, Lis
 #: the manifest's mark on a slice entry (`ship`): the whole file it is cut from and its region
 def slice_marks() -> Dict[str, dict]:
     return {**{f"core-{r}": {"slice_of": "core", "region": r} for r in SH.REGIONS},
-            **{f"water-{r}": {"slice_of": "water", "region": r} for r in SH.REGIONS}}
+            **{f"water-{r}": {"slice_of": "water", "region": r} for r in SH.REGIONS},
+            WATER_SHARED: {"slice_of": "water"}}                 # (T370) no region: every one reads it
 
 
 def sid_regions_of_release(regs_sid: Path, water: Path) -> Dict[int, List[str]]:

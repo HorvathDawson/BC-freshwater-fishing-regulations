@@ -333,10 +333,12 @@ def test_the_web_budget_prices_each_moment_and_fails_a_crossed_gate(tmp_path):
     assert got["first_paint"] == (size + 1000 + 62, ["manifest", "paint", "mask"])
     # (T256) the named tap: the LARGEST region's water slice (core is the idle prefetch's); with nothing ahead of it
     # (`first_tap_low`), the largest region's core and water slices — never the whole files
-    assert got["first_tap"] == (1000 + 308 + 3 * 1000 + 108 + 18,
-                                ["core", "water-8", "geo", "access", "regs-8", "salmon", "salmon-8"])
-    assert got["first_tap_low"] == (208 + 308 + 4 * 1000 + 108 + 18,
-                                    ["core-8", "water-8", "geo", "access", "regs-8", "salmon", "salmon-8", "method"])
+    # (T370) + `water-shared` (one file, priced as itself: never taken for the largest water slice)
+    assert got["first_tap"] == (1000 + 308 + 1000 + 3 * 1000 + 108 + 18,
+                                ["core", "water-8", "water-shared", "geo", "access", "regs-8", "salmon", "salmon-8"])
+    assert got["first_tap_low"] == (208 + 308 + 1000 + 4 * 1000 + 108 + 18,
+                                    ["core-8", "water-8", "water-shared", "geo", "access", "regs-8", "salmon", "salmon-8",
+                                     "method"])
     assert not [p for p in B.gate_problems(tmp_path) if p.startswith("web ")]
     files["regs-3"]["gz"] = C.WEB_BUDGET["first_tap_unnamed"]["gate"]
     (tmp_path / "manifest.json").write_text(json.dumps(m))

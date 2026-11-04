@@ -14,7 +14,9 @@
             a release where it is not)
  *   places    core `place.place_id` present (the towns the held `item_near` rows name)
  *   strs      water `str.id` present; pickers: water `picker.id` present
- *   (none)    a read of tables the slice holds WHOLE (rules, statics, akeys, `sqlite_master`, meta …): any slice
+ *   (none)    a read of tables every region reads WHOLE (rules, statics, akeys, …): `water-shared` (T370: one web
+ *             file, cut beside the slices; they were byte-identical in all nine water slices). `meta` and `sqlite_master`
+ *             are in every one. A release cut before it holds them in each slice, and any slice answers.
  *
  * Which keys a read names is read off its SQL (`sliceKeys`): the tables it names must all be the slice's, and its first
  * WHERE predicate must be a covered key column (`= ?` or `IN (?, …)`) — anything else (search, counts, a scan, a
@@ -24,6 +26,8 @@
 import type { Db, Row } from "../sql/db";
 
 export interface SliceKeys {
+  /** (T370) the read names only region-wide water tables: `water-shared` answers it */
+  shared?: true;
   ords?: readonly number[];
   items?: readonly string[];
   sids?: readonly number[];
@@ -34,9 +38,10 @@ export interface SliceKeys {
 export type SliceKind = keyof SliceKeys;
 export type Sliced = "core" | "water";
 
-/** Per sliced file, per table it holds: the columns it is COMPLETE by (`whole`: every row; `follows`: complete for the
- *  rows that reach it — read only beside a keyed table). A table not listed is not in the slice. */
-const TABLES: Readonly<Record<Sliced, Readonly<Record<string, "whole" | "follows" | Readonly<Record<string, SliceKind>>>>>> = {
+/** Per sliced file, per table it holds: the columns it is COMPLETE by (`whole`: every row, in every slice; `shared`:
+ *  every row, in `water-shared` (T370); `follows`: complete for the rows that reach it — read only beside a keyed
+ *  table). A table not listed is not in the slice. */
+const TABLES: Readonly<Record<Sliced, Readonly<Record<string, "whole" | "shared" | "follows" | Readonly<Record<string, SliceKind>>>>>> = {
   core: {
     item: { ord: "ords", item_id: "items" }, item_section: { sid: "sids", ord: "ords" }, item_near: { ord: "ords" },
     item_area: { ord: "ords" }, name_source: { item_id: "items" }, place: { place_id: "places" },
@@ -46,8 +51,8 @@ const TABLES: Readonly<Record<Sliced, Readonly<Record<string, "whole" | "follows
     item: { item_ord: "ords" }, part: { item_ord: "ords" }, part_section: { ord: "ords" }, part_mark: { ord: "ords" },
     water_exit: { ord: "ords" }, water_continue: { ord: "ords", next_ord: "ords" }, str: { id: "strs" },
     picker: { id: "pickers" }, xpart: "follows",
-    akey: "whole", akey_region: "whole", ruleset: "whole", seglist: "whole", segmom: "whole", rule: "whole",
-    display_rule: "whole", lic: "whole", static: "whole", place: "whole", zdict: "whole", meta: "whole",
+    akey: "shared", akey_region: "shared", ruleset: "shared", seglist: "shared", segmom: "shared", rule: "shared",
+    display_rule: "shared", lic: "shared", static: "shared", place: "shared", zdict: "shared", meta: "whole",
     sqlite_master: "whole",
   },
 };
@@ -65,7 +70,10 @@ export function sliceKeys(file: Sliced, sql: string, params: readonly (string | 
   const tables = [...sql.matchAll(TABLE_RE)].map((m) => m[1]!.toLowerCase());
   if (!tables.length || tables.some((t) => !(t in spec))) return null;
   const keyed = tables.filter((t) => typeof spec[t] === "object");
-  if (!keyed.length) return tables.some((t) => spec[t] === "follows") ? null : {};
+  const shared = tables.some((t) => spec[t] === "shared");
+  // (T370) a read beside a region-wide table and a keyed one: no one web file holds both — the whole file's
+  if (shared && (keyed.length || tables.some((t) => spec[t] === "follows"))) return null;
+  if (!keyed.length) return tables.some((t) => spec[t] === "follows") ? null : shared ? { shared: true } : {};
   const m = PRED_RE.exec(sql);
   if (!m) return null;                                             // a keyed table read with no key: a scan
   const col = m[1]!.toLowerCase();

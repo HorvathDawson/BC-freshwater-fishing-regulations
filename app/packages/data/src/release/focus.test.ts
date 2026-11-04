@@ -33,12 +33,15 @@ describe("sliceKeys", () => {
       .toEqual({ ords: [9] });
   });
 
-  it("reads of tables a slice holds whole name no keys", () => {
+  it("reads of the region-wide water tables are `water-shared`'s (T370); meta is every slice's", () => {
     expect(sliceKeys("water", "SELECT r.rix AS rix, r.j AS e, d.j AS f FROM rule r LEFT JOIN display_rule d ON d.id = r.rix", []))
-      .toEqual({});
-    expect(sliceKeys("water", "SELECT j FROM static WHERE k = ?", ["rows.strips"])).toEqual({});
-    expect(sliceKeys("water", "SELECT akey, region FROM akey_region ORDER BY akey, region", [])).toEqual({});
+      .toEqual({ shared: true });
+    expect(sliceKeys("water", "SELECT j FROM static WHERE k = ?", ["rows.strips"])).toEqual({ shared: true });
+    expect(sliceKeys("water", "SELECT akey, region FROM akey_region ORDER BY akey, region", [])).toEqual({ shared: true });
     expect(sliceKeys("water", "SELECT k, v FROM meta", [])).toEqual({});
+    // MUTATION PIN: a region-wide table read beside a keyed one is in no one web file — the whole water's
+    expect(sliceKeys("water", "SELECT p.akey, a.kind FROM part p JOIN akey a ON a.akey = p.akey WHERE p.item_ord = ?", [3]))
+      .toBeNull();
   });
 
   it("anything else is the whole file's: search, counts, scans, tables or columns no slice is keyed by", () => {

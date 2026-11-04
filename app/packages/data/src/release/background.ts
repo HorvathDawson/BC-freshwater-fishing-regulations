@@ -69,8 +69,10 @@ export function regionOrder(view: readonly Region[]): Region[] {
 export function unnamedTapFiles(m: Pick<Manifest, "files">, r: Region): FileName[] {
   return WEB_BUDGET.first_tap_unnamed!.files
     // (T256) the answer slices as their WHOLE files: this walks the province, and the whole water answers every region
-    .map((f) => (f === "core-{region}" || f === "water-{region}" ? f.split("-")[0]! : f.replace("{region}", r)) as FileName)
-    .filter((f) => !!m.files[f]);
+    // (T370) — `water-shared` too: the whole water holds its tables
+    .map((f) => (f === "core-{region}" || f === "water-{region}" || f === "water-shared" ? f.split("-")[0]!
+      : f.replace("{region}", r)) as FileName)
+    .filter((f, i, all) => !!m.files[f] && all.indexOf(f) === i);
 }
 
 export interface NetSignals {

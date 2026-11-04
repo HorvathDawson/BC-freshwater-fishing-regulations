@@ -144,21 +144,27 @@ FILES = {
         "item_area": ["ord", "regions", "mus"], "item_near": ["ord", "place_id", "ckm"],
         "item_section": ["sid", "ord"], "meta": ["k", "v"], "name_source": ["item_id", "name", "src", "label"],
         "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"]}} for r in SH.REGIONS},
-    **{f"water-{r}": {"format": "water-slice/1", "kind": "sqlite", "tables": {
-        "akey": ["akey", "ruleset", "licensing_set", "steelhead_water", "steelhead", "steelhead_rules",
-                 "province_except", "home_region", "kind", "tidal", "seg", "mom", "nseg"],
-        "akey_region": ["akey", "region"], "display_rule": _FRAME,
+    # (T370) a water slice holds only its region's own rows; the tables every region reads whole are `water-shared`
+    **{f"water-{r}": {"format": "water-slice/2", "kind": "sqlite", "tables": {
         "item": ["item_ord", "item_id", "shown", "picker", "unresolved", "name", "kind", "sections", "outside_bc",
                  "entries", "steelhead", "x"],
-        "lic": ["lix", "j"], "meta": ["k", "v"],
+        "meta": ["k", "v"],
         "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "short_s", "runs_s", "place_s", "hint_s", "km",
                  "closed_all_year", "paper_licence", "xp", "sections", "xruns"],
         "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
                       "up_stretches"],
-        "part_section": ["ord", "sid", "part_ix"], "picker": _FRAME, "place": ["place", "regions", "label", "names"],
-        "rule": ["rix", "j"], "ruleset": ["set_id", "j"], "seglist": ["seg", "starts"], "segmom": ["mom", "ix"],
-        "static": ["k", "j"], "str": ["id", "text"], "water_continue": ["ord", "part", "next_ord", "next_part"],
-        "water_exit": ["ord", "down_ord", "down_part"], "xpart": _FRAME, "zdict": ["tbl", "d"]}} for r in SH.REGIONS},
+        "part_section": ["ord", "sid", "part_ix"], "picker": _FRAME, "str": ["id", "text"],
+        "water_continue": ["ord", "part", "next_ord", "next_part"],
+        "water_exit": ["ord", "down_ord", "down_part"], "xpart": _FRAME}} for r in SH.REGIONS},
+    # (T370) THE REGION-WIDE WATER TABLES, ONE WEB FILE: byte-identical in all nine water slices before (623 of ~780 kB
+    # gz each, 2026-11-04); fetched once, a second region then costs only its own rows. Web-only (`slice_of` water).
+    "water-shared": {"format": "water-shared/1", "kind": "sqlite", "tables": {
+        "akey": ["akey", "ruleset", "licensing_set", "steelhead_water", "steelhead", "steelhead_rules",
+                 "province_except", "home_region", "kind", "tidal", "seg", "mom", "nseg"],
+        "akey_region": ["akey", "region"], "display_rule": _FRAME, "lic": ["lix", "j"], "meta": ["k", "v"],
+        "place": ["place", "regions", "label", "names"], "rule": ["rix", "j"], "ruleset": ["set_id", "j"],
+        "seglist": ["seg", "starts"], "segmom": ["mom", "ix"], "static": ["k", "j"], "str": ["id", "text"],
+        "zdict": ["tbl", "d"]}},
     "regs-sid": {"format": "regs-sid/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "section_akey": ["block", "b"], "section_place": ["block", "b"]}},
     # (T369) every stream section's stream key and measure span, so a link's PLACE resolves to a section of this release
@@ -245,12 +251,13 @@ WEB_BUDGET = {
     # of the whole water — r-fa1915a56adb's tables: water 2,221,528 → water-6 858,978 (an R2 tap: water-2 777,894). Core
     # is the idle prefetch's whole file here (a visit on a good line has it before it taps); `first_tap_low` is the tap
     # with nothing ahead of it.
-    "first_tap": {"files": ["core", "water-{region}", "geo", "access", "regs-{region}", "salmon", "salmon-{region}"],
+    # (T370) + `water-shared`: the slice's region-wide tables, now one file (the same bytes, two fetches)
+    "first_tap": {"files": ["core", "water-{region}", "water-shared", "geo", "access", "regs-{region}", "salmon", "salmon-{region}"],
                   "gate": 4_200_000},
     # (T256) THE TAP WITH NOTHING AHEAD OF IT — Save-Data or the low-bandwidth mode (T254): no idle prefetch of core, the
     # Bait & fly marks (`method`) come with the tap; the tap reads its region's `core-{region}` + `water-{region}`, never the
     # whole files. Priced as the largest region (R6): ~3,090,000 (it was core + water + … ≈ 5,300,000)
-    "first_tap_low": {"files": ["core-{region}", "water-{region}", "geo", "access", "regs-{region}", "salmon",
+    "first_tap_low": {"files": ["core-{region}", "water-{region}", "water-shared", "geo", "access", "regs-{region}", "salmon",
                                 "salmon-{region}", "method"],
                       "gate": 3_400_000},
     # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and the flow pointers (down) the header's
@@ -258,7 +265,7 @@ WEB_BUDGET = {
     # (T182, 2026-10-28) + salmon for the page's Salmon card, as the named tap (6,282,328)
     # (T256) water → the region's `water-{region}` (its rules, statics and keys are whole in every slice): ~6,715,000 →
     # ~5,550,000. The background prefetch (T253) reads this list as WHOLE files (it walks the province): `water`.
-    "first_tap_unnamed": {"files": ["core", "water-{region}", "access", "regs-{region}", "regs-sid", "down", "salmon",
+    "first_tap_unnamed": {"files": ["core", "water-{region}", "water-shared", "access", "regs-{region}", "regs-sid", "down", "salmon",
                                     "salmon-{region}"],
                           # (owner 2026-10-28) r-70f3ce0effc2 6,216,855 (was 6,290,780)
                           # (T252) + ~498 kB on `down` (closed downstream, named panel seeds, reach lengths: 624,913 →

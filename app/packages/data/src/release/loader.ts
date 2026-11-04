@@ -26,7 +26,7 @@ export type SalmonSlice = `salmon-${Region}` | "salmon-x";
 type BinName = "salmon" | SalmonSlice | "method";
 
 export type FileName = "paint" | "flow-area" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
-  | `core-${Region}` | `water-${Region}`
+  | `core-${Region}` | `water-${Region}` | "water-shared"
   | BinName
   | "conditions" | "down" | "climate" | "geo" | "lines";
 export type DbName = Exclude<FileName, "paint" | "flow-area" | "lakes" | "access" | BinName>;
@@ -134,6 +134,8 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
   /** (T256) the slices opened so far, per file, in the order opened (a slice once read keeps answering what it covers) */
   const slicesOpen: Record<Sliced, Region[]> = { core: [], water: [] };
   const sliceOf = (name: Sliced, r: Region) => `${name}-${r}` as DbName;
+/** (T370) the web file of the region-wide water tables, cut beside the slices (pipeline `slices.WATER_SHARED`) */
+const WATER_SHARED: DbName = "water-shared";
   /** Whether the whole file is here or on its way (opened, asked ahead, or kept in this browser): then it is read. */
   const wholeHere = async (name: Sliced): Promise<boolean> =>
     dbs.has(name) || ahead.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
@@ -230,8 +232,9 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
     },
     async regionsOf(akey) {
       if (!regions) {
-        // akey_region: whole in every water slice (T256), so the focus region's slice answers it as well as water
-        regions = loader.dbFor("water", {}).then(async (w) => {
+        // akey_region: region-wide, so `water-shared` answers it as well as water (T370; a release cut before it: any
+        // slice, which then holds it whole)
+        regions = loader.dbFor("water", { shared: true }).then(async (w) => {
           const out = new Map<number, Region[]>();
           for (const r of await w.all("SELECT akey, region FROM akey_region ORDER BY akey, region")) {
             const a = Number(r.akey);
@@ -254,6 +257,9 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
     routed(name) { return routedDb((sql, p) => loader.dbFor(name, sliceKeys(name, sql, p))); },
     async dbFor(name, keys) {
       if (keys === null || await wholeHere(name)) return db(name);
+      // (T370) the region-wide water tables are one web file; a release cut before it holds them in every slice
+      const shared = name === "water" && m.files[WATER_SHARED] ? WATER_SHARED : null;
+      if (keys.shared && shared) return db(shared);
       const tries = [...slicesOpen[name]];
       if (focused && !tries.includes(focused) && m.files[sliceOf(name, focused)]) tries.push(focused);
       for (const r of tries) {
@@ -261,6 +267,8 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
         if (!slicesOpen[name].includes(r)) slicesOpen[name].push(r);
         if (await covers(name, d, keys)) return d;
       }
+      // a string the region-wide tables name (an akey's kind, a place's label) is held by `water-shared`
+      if (shared && keys.strs?.length && await covers(name, await db(shared), keys)) return db(shared);
       return db(name);
     },
     opened: () => order.slice(),
