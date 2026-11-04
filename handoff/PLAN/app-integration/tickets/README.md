@@ -424,6 +424,7 @@ use that as the sole source of future work."
 | T378 | Trout's "couldn't be placed" caveat block is unfed (`item.uncertain` never loaded; `item.unresolved` is licensing) | OPEN (after 0.5.0) | — | T372 survey, 2026-11-04 |
 | T379 | WaterMode "ONE MAP ENTRY" test is timing-dependent (page back to loading after the Keep tab) — pre-existing, not T342/T376 | OPEN (before the batch 7 suite) | — | found 2026-11-04 |
 | T380 | Change: percentile today and at the peak beside the ratio ("from the 5th to about the 95th, about 3× today's flow"); publisher + worker carry the peak percentile from the combined series | DONE in code (worker deploy) | 528620c65 | owner 2026-11-04 (in 0.5.0) |
+| T381 | A water with no splits is one section over all its geometry (Nicomen Slough: polygons + lines) | OPEN | — | owner 2026-11-04 (in 0.5.0) |
 
 ## Order for open tickets
 
