@@ -25,7 +25,8 @@
  * SAYS so — the factor names the model and the day carries the low-water caveat (`CHANGE_LOW_WATER`, T144).
  */
 import { monthAbbr, percentileOrdinal, weekdayAbbr } from "./flow";
-import { localDate, shiftDay } from "./day";
+import { bcNow } from "./clock";
+import { shiftDay, wallIso } from "./day";
 import { agoWords } from "./freshness";
 import { CHANGE_LOW_WATER, CHANGE_LOW_WATER_MARK } from "./change";
 
@@ -255,8 +256,8 @@ export function likeNothingThen(then: LikeConditions): boolean {
 
 /** The LIKE_DAYS local days from `now`'s day: today first. */
 export function likeDays(now: number): string[] {
-  const d = new Date(now);
-  return Array.from({ length: LIKE_DAYS }, (_, i) => localDate(shiftDay(d, i).getTime()));
+  const d = bcNow(now);
+  return Array.from({ length: LIKE_DAYS }, (_, i) => wallIso(shiftDay(d, i)));
 }
 
 /** A coming day's column head: "Today", "Tomorrow", else the weekday "Sat"; and its date, "24 Oct". */

@@ -207,10 +207,8 @@ describe("<LicenceTab>", () => {
     expect(sheets).toEqual(["licsrc:adult_non"]);
   });
 
-  it("vedder_615 (closed, D16 a): only the heading — no radiogroup, no answer, no source", () => {
-    const { lines } = mountLicence((vedder615 as unknown as RegsPage).licence!);
-    expect([lines(), GL.vedder_615!.licence["adult|resident"]]).toEqual([["Licence"], ["Licence"]]);
-    expect(screen.queryByRole("radiogroup")).toBeNull();
+  it("vedder_615 (closed): no Licence section at all (owner 2026-11-04; the golden drew only its heading, D16 a)", () => {
+    expect([(vedder615 as unknown as RegsPage).licence, GL.vedder_615!.licence["adult|resident"]]).toEqual([null, ["Licence"]]);
   });
 
   it("mutation pins: a lost price, a dropped 'only if' head or an unchecked option fails the golden mount", () => {

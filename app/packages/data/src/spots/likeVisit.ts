@@ -17,7 +17,7 @@
  * the strip says it is a low-water forecast. A feed from before T171 (no `aheadDays`) is read at its four horizons, as
  * T51 did, until it is republished.
  */
-import { reported, DAY_HORIZONS, LIKE_RAIN_DAYS, localDate, shiftDay, type LikeConditions } from "@app/core";
+import { bcHour, bcNow, reported, DAY_HORIZONS, LIKE_RAIN_DAYS, shiftDay, wallIso, type LikeConditions } from "@app/core";
 import { spotReadingFigure } from "./words";
 import { readingIsTheDays } from "./dayFlow";
 import { reading } from "../panel";
@@ -63,7 +63,7 @@ export const likeStation = (spot: Spot): string | null => spot.reading?.station 
 
 /** The visit's hour of day, local: "09:00". The weather is compared at this hour. */
 export function visitHour(spot: Pick<Spot, "visitedAt">): string {
-  return `${String(new Date(spot.visitedAt).getHours()).padStart(2, "0")}:00`;
+  return `${String(bcHour(spot.visitedAt)).padStart(2, "0")}:00`;   // (owner 2026-11-04) the B.C. hour, as everywhere
 }
 
 /** The visit's conditions, from the frozen record only. */
@@ -107,15 +107,15 @@ export function flowAhead(index: LikeIndex, station: string, now: number):
   const base = indexDay(index, now);
   const days = row.aheadDays;
   if (!days) {
-    return { flow: Object.fromEntries(DAY_HORIZONS.map((h) => [localDate(shiftDay(base, h).getTime()),
+    return { flow: Object.fromEntries(DAY_HORIZONS.map((h) => [wallIso(shiftDay(base, h)),
                                                                reading(row, "discharge", h)])), models: {} };
   }
-  const flow: Record<string, number | null> = { [localDate(base.getTime())]: reading(row, "discharge", 0) };
+  const flow: Record<string, number | null> = { [wallIso(base)]: reading(row, "discharge", 0) };
   const models: Record<string, FlowModel> = {};
   const low = new Set(days.lowWater ?? []);
   const [y, m, d] = days.from.split("-").map(Number) as [number, number, number];
   days.discharge.forEach((p, i) => {
-    const date = localDate(new Date(y, m - 1, d + i).getTime());
+    const date = wallIso(new Date(y, m - 1, d + i));
     // the index's own day keeps its READING: `from` is the Centre's (PST) tomorrow, which in the hour after local
     // midnight (PDT) is the reader's today — a forecast never stands in for the reading "now" (review)
     if (date in flow) return;
@@ -126,10 +126,10 @@ export function flowAhead(index: LikeIndex, station: string, now: number):
   return { flow, models };
 }
 
-/** The day the index's horizons count from: its own `fetchedAt`, else the device's now. */
+/** The B.C. day the index's horizons count from (a wall-clock date): its own `fetchedAt`, else now. */
 function indexDay(index: LikeIndex, now: number): Date {
   const t = index.fetchedAt ? Date.parse(index.fetchedAt) : NaN;
-  return new Date(Number.isFinite(t) ? t : now);
+  return bcNow(Number.isFinite(t) ? t : now);
 }
 
 /** The coming days' conditions, out of what was last fetched; a day it does not reach is a day of nulls. */
@@ -139,7 +139,7 @@ export function comingConditions(f: LikeFetched, days: readonly string[], hour: 
     if (!f.weather) return null;
     const before = Array.from({ length: LIKE_RAIN_DAYS }, (_, i) => {
       const [y, m, d] = date.split("-").map(Number) as [number, number, number];
-      return localDate(new Date(y, m - 1, d - LIKE_RAIN_DAYS + i).getTime());
+      return wallIso(new Date(y, m - 1, d - LIKE_RAIN_DAYS + i));
     });
     const got = before.map((b) => f.weather!.days.find((x) => x.date === b)?.precipMm ?? null);
     return got.every((v) => v !== null) ? got.reduce((s, v) => s + v!, 0) : null;
@@ -185,7 +185,7 @@ export async function fetchLike(spot: Spot, had: LikeFetched, src: LikeSources, 
     ...(ahead === undefined ? (had.flowModels !== undefined ? { flowModels: had.flowModels } : {})
       : { flowModels: ahead?.models ?? null }),
     flowAt: flow !== undefined ? now : had.flowAt,
-    flowNow: flow === undefined ? had.flowNow ?? null : flow ? localDate(indexDay(idx!, now).getTime()) : null,
+    flowNow: flow === undefined ? had.flowNow ?? null : flow ? wallIso(indexDay(idx!, now)) : null,
   };
   return { fetched, offline: (!!src.weather?.ahead && !w) || (flowAsked && !idx) };
 }

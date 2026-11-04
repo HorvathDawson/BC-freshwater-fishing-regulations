@@ -8,7 +8,7 @@
  *
  * https://open-meteo.com — CC-BY-4.0, attribution carried in the Layers panel.
  */
-import { reportFailure, now } from "@app/core";
+import { bcMidnight, localDate, reportFailure, now } from "@app/core";
 import type { DailyWeather, SpotWeather, WeatherSample } from "./model";
 import type { WeatherSource } from "./capture";
 import type { WeatherAhead } from "./likeVisit";
@@ -38,10 +38,6 @@ const ARCHIVE_LAG_MS = 5 * 86_400_000;
 const PAST_DAYS_MAX = 92;
 
 /** Midnight at the start of a local "YYYY-MM-DD". */
-const localMidnight = (d: string): number => {
-  const [y, m, day] = d.split("-").map(Number) as [number, number, number];
-  return new Date(y, m - 1, day).getTime();
-};
 
 /** T51: the hourly fields a coming day is compared at, and how many days either side of today are asked for. */
 const AHEAD_HOURLY = "temperature_2m,wind_speed_10m,cloud_cover,pressure_msl";
@@ -88,10 +84,10 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
     async days(lat, lon, days): Promise<DailyWeather[] | null> {
       const first = days[0], last = days[days.length - 1];
       if (!first || !last) return null;
-      const endOfLast = localMidnight(last) + 86_400_000;
+      const endOfLast = bcMidnight(last) + 86_400_000;
       const where = `latitude=${lat}&longitude=${lon}`;
-      const today = new Date(now()); today.setHours(0, 0, 0, 0);
-      const back = Math.round((today.getTime() - localMidnight(first)) / 86_400_000);
+      // (owner 2026-11-04) days are B.C.'s, as everywhere
+      const back = Math.round((bcMidnight(localDate(now())) - bcMidnight(first)) / 86_400_000);
       const recent = `${CURRENT}?${where}&daily=${DAILY}&timezone=auto` +
                      `&past_days=${Math.min(PAST_DAYS_MAX, Math.max(1, back))}&forecast_days=1`;
       const wanted = new Set(days);

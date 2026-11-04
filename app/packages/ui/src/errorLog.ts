@@ -8,7 +8,7 @@
  * The app shell tees `console.error` into it once (`teeConsoleErrors`), so every error the app already logs — the map's
  * `onError`, a failed fetch, a refused release — is in the ring without each screen knowing about it.
  */
-import { pad2 } from "@app/core";
+import { localDateTime } from "@app/core";
 
 export interface ErrorLog {
   /** Add one line (an Error's message, or the logged values joined). */
@@ -30,10 +30,9 @@ export function createErrorLog(size = 20, width = 240, now: () => number = Date.
   const ring: string[] = [];
   return {
     record(...values) {
-      const d = new Date(now());
       const text = values.map(word).join(" ").replace(/\s+/g, " ").trim();
       if (!text) return;
-      const line = `${pad2(d.getHours())}:${pad2(d.getMinutes())} ${text}`;
+      const line = `${localDateTime(now()).slice(-5)} ${text}`;      // the B.C. "HH:MM", as every time the app says
       ring.push(line.length > width ? `${line.slice(0, width - 1)}…` : line);
       if (ring.length > size) ring.splice(0, ring.length - size);
     },

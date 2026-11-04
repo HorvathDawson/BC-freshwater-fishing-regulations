@@ -11,7 +11,7 @@
  *
  * Pure: every function takes `now`, and a day is the reader's LOCAL calendar day (`day.ts`).
  */
-import { isIsoDay, localDate, shiftDay } from "./day";
+import { isIsoDay, shiftDay, wallIso } from "./day";
 import { MONTHS, WEEKDAY_NAMES, monthAbbr, weekdayAbbr } from "./flow";
 
 /** The picker's words: one table, so the map's button, the sheet and its cells say the same thing. */
@@ -58,12 +58,12 @@ export interface DayRange { readonly year: number; readonly first: string; reado
 
 export function dayRange(now: Date, validUntil: string | null): DayRange {
   const year = now.getFullYear();
-  const first = `${year}-01-01`, dec31 = `${year}-12-31`, today = localDate(now.getTime());
+  const first = `${year}-01-01`, dec31 = `${year}-12-31`, today = wallIso(now);
   const cut = validUntil && isIsoDay(validUntil) && validUntil >= today && validUntil < dec31 ? validUntil : null;
   return { year, first, last: cut ?? dec31, until: cut };
 }
 
-const isoOf = (d: Date) => localDate(d.getTime());
+const isoOf = (d: Date) => wallIso(d);
 export const inRange = (r: DayRange, d: Date): boolean => { const i = isoOf(d); return i >= r.first && i <= r.last; };
 /** The same local date, year included. */
 const sameDate = (a: Date, b: Date) => isoOf(a) === isoOf(b);

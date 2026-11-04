@@ -7,6 +7,7 @@
  * LOCAL, NOT UTC, throughout. A spot fished at 6 p.m. in Vancouver on the 30th is in UTC on the 31st, and the list
  * used to say so; the reader's day is the only day a reader means.
  */
+import { BC_TIME_LABEL, bcOffsetHours } from "./clock";
 import { reportOnce } from "./failure";
 import { monthAbbr } from "./flow";
 
@@ -62,16 +63,49 @@ export function shiftDay(d: Date, n: number, months = false): Date {
   return x;
 }
 
-/** "2026-08-30", the LOCAL day of an instant. */
+/**
+ * (owner 2026-11-04: "spots should use the same date/time as everything else") EVERY DAY AND HOUR AN INSTANT IS SAID IN
+ * IS B.C.'S (`clock.ts`): a spot's visit day and hour, its weather and flow days, a reading's stamp — never the phone's
+ * own calendar, so a visit, the regulations' day and the Conditions times always agree.
+ * `bcWall(ms)`: the instant as B.C.'s wall clock, read with the UTC getters.
+ */
+const HOUR_MS = 3_600_000;
+const bcWall = (ms: number): Date => new Date(ms + bcOffsetHours(ms) * HOUR_MS);
+/** The instant at B.C. wall time `wall` (ms, as if UTC). */
+function fromBcWall(wall: number): number {
+  const guess = wall + 8 * HOUR_MS;
+  return wall - bcOffsetHours(guess) * HOUR_MS;
+}
+
+/** "2026-08-30", the B.C. day of an instant. */
 export function localDate(ms: number): string {
-  const d = new Date(ms);
+  const d = bcWall(ms);
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+}
+
+/**
+ * "2026-08-30" of a WALL-CLOCK date: a Date whose own fields already hold the B.C. day (`bcNow`, `shiftDay`, a picked
+ * day) — read as they are. Never `localDate(d.getTime())` on one: that would move it through the B.C. clock twice.
+ */
+export function wallIso(d: Date): string {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
-/** "2026-08-30 at 07:05", the LOCAL day and minute of an instant. */
+/** The instant a B.C. day ("YYYY-MM-DD") begins. */
+export function bcMidnight(isoDay: string): number {
+  const [y, m, d] = isoDay.split("-").map(Number) as [number, number, number];
+  return fromBcWall(Date.UTC(y, m - 1, d));
+}
+
+/** The B.C. hour of an instant, 0–23. */
+export function bcHour(ms: number): number {
+  return bcWall(ms).getUTCHours();
+}
+
+/** "2026-08-30 at 07:05", the B.C. day and minute of an instant. */
 export function localDateTime(ms: number): string {
-  const d = new Date(ms);
-  return `${localDate(ms)} at ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  const d = bcWall(ms);
+  return `${localDate(ms)} at ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
 }
 
 /**
@@ -81,18 +115,23 @@ export function localDateTime(ms: number): string {
  * zone it is in, so a reading's "observed" and a forecast's "issued" can be read against each other and against the
  * reader's watch. They printed UTC, which is right and which nobody standing on a river is keeping.
  *
- * `zone` is for tests (an IANA name); left out, it is the device's own. Where the runtime has no `Intl` time zone
- * names the label falls back to the offset ("UTC−7") — still labelled, never bare.
+ * `zone` is for tests (an IANA name); left out, it is B.C.'s clock, labelled "PT" (owner 2026-11-04: one date/time
+ * everywhere). With a zone and no `Intl` zone names the label falls back to the offset ("UTC−7").
  */
 export function localStamp(ms: number, zone?: string): string {
   const z = zonedParts(ms, zone);
   return `${z.y}-${pad2(z.mo)}-${pad2(z.d)} at ${pad2(z.h)}:${pad2(z.mi)} ${z.tz}`;
 }
 
-/** An instant's calendar and clock in `zone` (the device's when left out), with the zone's short label. */
+/** An instant's calendar and clock in `zone` (B.C.'s when left out), with the zone's short label. */
 interface ZonedParts { y: number; mo: number; d: number; h: number; mi: number; tz: string }
 
 function zonedParts(ms: number, zone?: string): ZonedParts {
+  if (zone === undefined) {
+    const w = bcWall(ms);
+    return { y: w.getUTCFullYear(), mo: w.getUTCMonth() + 1, d: w.getUTCDate(), h: w.getUTCHours(), mi: w.getUTCMinutes(),
+             tz: BC_TIME_LABEL };
+  }
   try {
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit",
@@ -139,11 +178,15 @@ export function shortDay(isoDay: string, ref: number, zone?: string): string {
  * of daily totals would read as a whole one.
  */
 export function leadUpDays(visitedAt: number, n = 7): string[] {
-  const day = new Date(visitedAt);
-  return Array.from({ length: n }, (_, i) => localDate(shiftDay(day, i - n).getTime()));
+  const noon = startOfDay(visitedAt) + 12 * HOUR_MS;
+  return Array.from({ length: n }, (_, i) => localDate(noon + (i - n) * DAY_MS));
 }
 
-const startOfDay = (ms: number): number => new Date(ms).setHours(0, 0, 0, 0);
+/** The instant B.C.'s day holding `ms` began. */
+const startOfDay = (ms: number): number => {
+  const w = bcWall(ms);
+  return fromBcWall(Date.UTC(w.getUTCFullYear(), w.getUTCMonth(), w.getUTCDate()));
+};
 
 /**
  * The visit moved by `n` days, or the visit unchanged when that would be ahead of `now`.
@@ -152,14 +195,14 @@ const startOfDay = (ms: number): number => new Date(ms).setHours(0, 0, 0, 0);
  * not a spot.
  */
 export function shiftVisitDay(at: number, n: number, now: number): number {
-  const next = new Date(at);
-  next.setDate(next.getDate() + n);
-  return next.getTime() > now ? at : next.getTime();
+  const next = fromBcWall(bcWall(at).getTime() + n * DAY_MS);
+  return next > now ? at : next;
 }
 
-/** The visit at hour `h` of its own day, on the hour; never later than `now`. */
+/** The visit at hour `h` of its own (B.C.) day, on the hour; never later than `now`. */
 export function setVisitHour(at: number, h: number, now: number): number {
-  return Math.min(new Date(at).setHours(h, 0, 0, 0), now);
+  const w = bcWall(at);
+  return Math.min(fromBcWall(Date.UTC(w.getUTCFullYear(), w.getUTCMonth(), w.getUTCDate(), h)), now);
 }
 
 /** What the visit step shows and which of its steppers may be pressed. */
@@ -169,7 +212,7 @@ export interface VisitSteps {
   laterDay: boolean;
   earlierHour: boolean;
   laterHour: boolean;
-  /** The visit's local hour, 0-23. */
+  /** The visit's B.C. hour, 0-23. */
   hour: number;
   /** "09:00" */
   hourLabel: string;
@@ -178,19 +221,21 @@ export interface VisitSteps {
 }
 
 export function visitSteps(at: number, now: number): VisitSteps {
-  const d = new Date(at);
-  const h = d.getHours();
+  const w = bcWall(at);
+  const h = w.getUTCHours();
   const dayOffset = Math.round((startOfDay(at) - startOfDay(now)) / DAY_MS);
   return {
     dayOffset,
     laterDay: dayOffset < 0,
     earlierHour: h > 0,
-    laterHour: h < 23 && new Date(at).setHours(h + 1, 0, 0, 0) <= now,
+    laterHour: h < 23 && setVisitHour(at, h + 1, Infinity) <= now,
     hour: h,
     hourLabel: `${pad2(h)}:00`,
-    dayText: d.toDateString(),
+    dayText: `${WD[w.getUTCDay()]} ${MON[w.getUTCMonth()]} ${pad2(w.getUTCDate())} ${w.getUTCFullYear()}`,   // Date#toDateString's shape
   };
 }
+const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**
  * The days a visit is almost always on — the drive home, the evening after, the next morning — as one tap each.

@@ -10,7 +10,7 @@
  * or `buildHydrograph`'s; this holds the state and hands the component actions that only take measurements.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2, panDomain, timeAt,
+import { bcHour, localDate, CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2, panDomain, timeAt,
          zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
 import { draftSeriesOf, type GaugeFeed, type Parameter, type WaterSource, type Series, type StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
@@ -64,8 +64,10 @@ export function chartTicks(view: Domain, span: ChartSpan, n = 5): { t: number; l
     const t = view.t0 + ms * f;
     const d = new Date(t);
     if (span === "year") return { t, label: `${d.getUTCDate()} ${monthAbbr(d.getUTCMonth())}` };
-    const day = `${d.getDate()} ${monthAbbr(d.getMonth())}`;
-    return { t, label: ms <= 72 * 3_600_000 ? `${day} ${pad2(d.getHours())}h` : day };
+    // (owner 2026-11-04) the B.C. day and hour, as every other time the app says
+    const [, mo, dd] = localDate(t).split("-").map(Number) as [number, number, number];
+    const day = `${dd} ${monthAbbr(mo - 1)}`;
+    return { t, label: ms <= 72 * 3_600_000 ? `${day} ${pad2(bcHour(t))}h` : day };
   });
 }
 
