@@ -261,15 +261,18 @@ async function browser() {
       await sleep(3000);
       await shot(b, '06-conditions-map');
     });
-    await step('phone: Pitt River Conditions shows a gauge reading', async () => {
-      last = '07-conditions-pitt';
-      await navigate(b, `${SITE}/?regs=gnis:7551&view=conditions`);
+    // (2026-11-04) the Vedder, not the Pitt: since T369 a link naming a water of ONE freshwater part opens that part, and
+    // the Pitt's only one (Pitt Lake up to Garibaldi Park) has no gauge that may speak for it — its gauge is on the
+    // tidal lower Pitt, which is outside the freshwater regulations
+    await step('phone: Vedder River Conditions shows a gauge reading', async () => {
+      last = '07-conditions-vedder';
+      await navigate(b, `${SITE}/?regs=gnis:3062&view=conditions`);
       await until(b, `/observed \\d{4}-\\d{2}-\\d{2} at/.test(document.body.innerText)`, 90000, 'a gauge reading ("observed <date> at")');
       await dismiss(b);
       const txt = await b.evaluate('document.body.innerText');
       must(/m³\/s|\bm stage\b/.test(txt), 'no flow (m³/s) or stage value on the page');
       const obs = /observed (\d{4}-\d{2}-\d{2}) at ([\d:]+)/.exec(txt);
-      await shot(b, '07-conditions-pitt');
+      await shot(b, '07-conditions-vedder');
       return obs ? `observed ${obs[1]} ${obs[2]}` : '';
     });
     await step('phone: rule book link opens the synopsis PDF', async () => {
