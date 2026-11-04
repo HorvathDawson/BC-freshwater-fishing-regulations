@@ -54,8 +54,25 @@ Only then does it go into the 0.5.0 APK (the one APK for the batch). No APK per 
   (`palette.runSpecies`, tokens `color.ui.run-species.*` from the other chat, which also passed `fishImages` to
   `RunsLegend` in Shell.tsx). The web Spots notice centred. The Conditions view shows the part's place row and both
   access notices, as the Regulations view does (`useWaterPlace`). Tests re-pinned (test files only).
-- 9 (11-04, approved, in progress): Change — the colour bar back in the tile (change ramp), one readable chart (combined
-  line bold, each model thin, ×today gridlines), the model lines folded into one note, the peak's percentile said.
+- 9 (11-04): Change — the tile's colour bar back on the change ramp (`scale.ramp`); ONE Change chart in the gauge card
+  (×today gridlines, 1× solid, the station's line bold with its peak marked, each model thin, T157's handover break and
+  tick kept) in place of the sparkline AND the flow chart under it; the station's line opens on what happens ("Rises to
+  about 4× … (52nd percentile, about normal for the time of year) …"), the models in one note ("Models: CLEVER rises
+  to 4× (Tue) · COFFEE little change"); the end's percentile said whenever the station has a record. Verdict pending.
+
+## State at the end of the first UI chat (2026-11-04)
+Rounds 0–9 committed. Owner verdicts still to give on the dev web app: 3–9 (5b/7 noted OK in part).
+Open, for the next UI chat (start from `handoff/PLAN/NEXT-SESSION-UI.md`):
+- The forecast-day list by watershed (owner idea, round 3 A2): waits on the data chat's hook — the basin the browse map is
+  centred on, a water's own basin, and basin names (the note was sent). Then: a list of days with each day's standing
+  for that basin (`basinStandings`), tap a day to show it; browse uses the centre, a water its own basin, no fallback.
+- From the map-UI research (unverified sources): a tappable legend (tap a class to isolate it), a collapsible legend
+  bar, peak markers on the Runs histogram, a second cue besides colour for closed / open.
+- The hydrograph draws one model at a time (its legend entries pick it); drawing several at once needs chart logic.
+- Dead code left: `changeSpark` / `ChangeRunVM.spark` (always null now) and core `mapDayChips` are no longer drawn.
+- Not this chat's: `packages/core/src/salmonFeed.test.ts` was re-pinned by the UI chat's test sweep to the data chat's
+  uncommitted `salmonFeed.ts` (T372: an undrawn DFO place no longer paints "check"); the data chat commits it with that
+  change, or reverts it if the change does not land.
 - Open (not this chat's): `WaterScreen.regs-props.test.tsx` (fixture release, T35 Licence) ×2 and `WaterMode.test.tsx`
   (ONE MAP ENTRY) fail on HEAD without the round 3 edits too — the page shows the spinner after the keep tab appeared.
 

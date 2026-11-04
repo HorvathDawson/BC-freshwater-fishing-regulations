@@ -41,5 +41,10 @@ Into the 0.5.0 APK only when the owner calls the round done; no APK per round.
 - The walkthrough opens on a fresh browser profile: "Skip".
 - Crash reports from a LOCAL dev build are accepted and not stored (env "local"): expected.
 
-## Done already (round 0)
-- Regs loading spinner: in the middle of the pane, large size (0db30c2).
+## Done already
+- Rounds 0–9 (2026-11-03/04), listed in T367's "Rounds": access strips pinned under the regs header (both notices), the
+  forecast day picker (Now · Forecast ▾ · Change), the Conditions estimate tile and gauge card, the map's ‹ day › pill,
+  the fishery toggle heading the Map legend bar, Runs species in the Runs bar with a stacked histogram, the Change
+  chart. Open items and owner verdicts still owed: T367 "State at the end of the first UI chat".
+- Layout rule the owner settled (round 8): the map's top holds only search and the day; what the colours mean and the
+  choice that changes them live together in the bottom bar. Square corners stay (the theme's radii are 0).

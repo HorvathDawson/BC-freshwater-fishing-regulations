@@ -26,7 +26,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
 import { LoadingState } from "./LoadingState";
-import { DonorPanel, donorTone, Kicker, rampAt } from "./DonorPanel";
+import { DonorPanel, donorTone, rampAt } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { Hydrograph } from "./Hydrograph";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
@@ -133,7 +133,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // the peak marked, and the Province's attribution as the feed carries it — decided in @app/ui (`changeView`).
   const attribution = useForecastAttribution(feed);
   const change: ChangeVM | null = horizon === "change" && series.state === "ready"
-    ? changeView(runs, vm.day, attribution, { width: Math.max(160, (chartW || 300) - 8), height: 40 },
+    ? changeView(runs, vm.day, attribution, { width: Math.max(160, (chartW || 300) - CHANGE_AXIS - 2 * SPACE.s3), height: 120 },
                  series.value?.change ?? null) : null;
 
   if (vm.loading)
@@ -224,7 +224,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
         <LoadingState palette={palette} size={72} label={W.loadingRecord} style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />
       )}
       {/* THE LAST CHART STAYS UP, DIMMED, while a gauge not yet in hand loads — never a spinner in its place. */}
-      {view && (
+      {/* (T367) under Change the Change chart above is the one chart: the flow chart under it said the same twice */}
+      {view && !change && (
         <View style={{ opacity: view.pending ? 0.45 : 1 }} aria-busy={view.pending}>
           <Hydrograph shape={view.shape} palette={palette} colour={tint}
                       unit={UNIT[shown]} view={view}
@@ -385,40 +386,63 @@ function GaugeTitle({ palette, title, gauges, groups, onPick, tools }: {
  * the Province's attribution. Draws the VM and decides nothing (AGENTS 25).
  */
 function ChangeBlock({ palette, change, colour }: { palette: Palette; change: ChangeVM; colour: string }) {
+  const c = change.chart;
+  const H = 120;
   return (
     <View testID="change-block" style={{ gap: SPACE.s2 }}>
-      <Kicker palette={palette}>{W.changeKicker}</Kicker>
       {change.runs.map((r) => (
-        <View key={r.model} style={{ gap: SPACE.s1 }}>
-          <Text style={r.part ? { ...TYPE.meta, color: palette.sub } : { ...TYPE.bodyStrong, color: palette.ink }}>
-            {r.line}
-          </Text>
-          {r.spark && (
-            <View aria-label={r.spark.label} role="img" style={{ paddingHorizontal: 4 }}>
-              <Svg width="100%" height={58} viewBox={`-4 -6 ${r.spark.ends[1]!.x + 8} 58`}>
-                {/* (T157) where a joined model stops: a dashed tick in the gap the line leaves, never a fall */}
-                {r.spark.handovers.map((hv) => (
-                  <Path key={hv.model} testID="change-handover" d={`M${hv.x},-4 L${hv.x},48`} stroke={palette.faint}
+        <Text key={r.model} style={{ ...TYPE.bodyStrong, color: palette.ink }}>{r.line}</Text>
+      ))}
+      {/* (T367) the models behind it, one quiet line */}
+      {change.models && <Text testID="change-models" style={{ ...TYPE.meta, color: palette.sub }}>{change.models}</Text>}
+      {c && (
+        <View testID="change-chart" aria-label={c.label} role="img">
+          <View style={{ flexDirection: "row" }}>
+            {/* the ×today axis: each gridline's ratio at its height */}
+            <View style={{ width: CHANGE_AXIS, height: H }}>
+              {c.grid.map((g) => (
+                <Text key={g.label} style={{ ...TYPE.micro, fontSize: 11, color: palette.sub, position: "absolute",
+                                             right: 6, top: g.y - 7 }}>{g.label}</Text>
+              ))}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Svg width="100%" height={H} viewBox={`0 0 ${c.days[c.days.length - 1]!.x} ${H}`} preserveAspectRatio="none">
+                {c.grid.map((g) => (
+                  <Path key={g.label} d={`M0,${g.y} L${c.days[c.days.length - 1]!.x},${g.y}`} stroke={palette.line}
+                        strokeWidth={g.label === "1.0×" ? 1.5 : 1} strokeDasharray={g.label === "1.0×" ? undefined : "3 3"} />
+                ))}
+                {/* (T157) where a joined model stops: a dashed tick in the gap the bold line leaves, never a fall */}
+                {c.handovers.map((hv) => (
+                  <Path key={hv.model} testID="change-handover" d={`M${hv.x},0 L${hv.x},${H}`} stroke={palette.faint}
                         strokeWidth={1} strokeDasharray="2 3" />
                 ))}
-                <Path d={r.spark.path} fill="none" stroke={colour} strokeWidth={1.8} strokeLinejoin="round" />
-                <Circle cx={r.spark.mark.x} cy={r.spark.mark.y} r={3.4} fill={colour} />
+                {c.series.filter((s) => !s.bold).map((s) => (
+                  <Path key={s.model} d={s.path} fill="none" stroke={palette.sub} strokeWidth={1.2} strokeLinejoin="round" />
+                ))}
+                {c.series.filter((s) => s.bold).map((s) => (
+                  <Path key={s.model} d={s.path} fill="none" stroke={colour} strokeWidth={2.4} strokeLinejoin="round" />
+                ))}
+                {c.mark && <Circle cx={c.mark.x} cy={c.mark.y} r={4} fill={colour} />}
               </Svg>
-              {/* (T157 review) the mark's words stand toward the mark: centred, they sat under the handover tick (every
-                  5 | 5 day joined line puts it mid-line) and "Peak Sun" read as the tick's label. The two spacers
-                  share the free width as the mark divides the line (its x of the line's width, the SVG's own units). */}
-              <View style={{ flexDirection: "row" }}>
-                <Text style={{ ...TYPE.meta, color: palette.faint }}>{r.spark.ends[0]!.label}</Text>
-                <View testID="change-mark-before" style={{ flexGrow: r.spark.mark.x, flexShrink: 1, flexBasis: 0 }} />
-                <Text style={{ ...TYPE.meta, color: palette.sub }}>{r.spark.mark.label}</Text>
-                <View testID="change-mark-after"
-                      style={{ flexGrow: r.spark.ends[1]!.x - r.spark.mark.x, flexShrink: 1, flexBasis: 0 }} />
-                <Text style={{ ...TYPE.meta, color: palette.faint }}>{r.spark.ends[1]!.label}</Text>
-              </View>
+            </View>
+          </View>
+          {/* the days along the foot, and the marked day's words */}
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginLeft: CHANGE_AXIS }}>
+            {c.days.map((d) => <Text key={d.x} style={{ ...TYPE.meta, color: palette.faint }}>{d.label}</Text>)}
+          </View>
+          {(c.mark || c.series.length > 1) && (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 14, marginLeft: CHANGE_AXIS, marginTop: 4 }}>
+              {c.mark && <Text style={{ ...TYPE.meta, color: palette.ink }}>{`● ${c.mark.label}`}</Text>}
+              {c.series.map((s) => (
+                <View key={s.model} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                  <View style={{ width: 16, height: 0, borderTopWidth: s.bold ? 2.4 : 1.2, borderTopColor: s.bold ? colour : palette.sub }} />
+                  <Text style={{ ...TYPE.meta, color: palette.sub }}>{s.model}</Text>
+                </View>
+              ))}
             </View>
           )}
         </View>
-      ))}
+      )}
       {change.note && <Text style={{ ...TYPE.meta, color: palette.sub }}>{change.note}</Text>}
       {change.caveat && (
         <Text testID="change-caveat" style={{ ...TYPE.body, color: palette.ink }}>{change.caveat}</Text>
@@ -427,3 +451,6 @@ function ChangeBlock({ palette, change, colour }: { palette: Palette; change: Ch
     </View>
   );
 }
+
+/** (T367) the Change chart's ×today axis, left of the plot */
+const CHANGE_AXIS = 40;

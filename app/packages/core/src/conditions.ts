@@ -201,8 +201,6 @@ export const CONDITIONS_WORDS = {
   hydrograph: { label: "River flow against its normal range" },
   /** The ONE place the app decides what a quantity is measured in. */
   unit: { discharge: "m³/s", level: "m" },
-  /** The Change block's kicker over the lead gauge's own forecasts, one line per model (T52). */
-  changeKicker: "WHAT THE FORECASTS EXPECT HERE",
   /** The marked day under a model's line: its peak, or its lowest day when the run falls. */
   changeMark: CHANGE_MARK,
   /** Under Change, when no run for the charted gauge can say (T52). */

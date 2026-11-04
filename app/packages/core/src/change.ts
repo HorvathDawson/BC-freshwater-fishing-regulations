@@ -12,7 +12,7 @@
  * Change chip is greyed "Flow only" and a tap moves to Flow (T130, `horizonChips` / `pickHorizon` in @app/ui).
  */
 import { CHANGE_POLICY } from "./gauge-policy.generated";
-import { monthAbbr, plainStanding, standing, weekdayAbbr } from "./flow";
+import { monthAbbr, percentileOrdinal, plainStanding, standing, weekdayAbbr } from "./flow";
 import { normCdf, probit } from "./trust";
 
 export { CHANGE_POLICY };
@@ -184,9 +184,9 @@ export function changeSourceName(models: readonly string[]): string {
 }
 
 /** The station's change as the Change block's first line: "CLEVER and COFFEE together: rises to about 160× …". */
-export function changeSourceLine(c: SourceChange, today: string): string {
+export function changeSourceLine(c: SourceChange, today: string, named = true): string {
   const stops = (day: string) => c.models.filter((m) => c.reach[m] === day).join(" and ");
-  return changeLine(changeSourceName(c.models), c, today, stops);
+  return changeLine(named ? changeSourceName(c.models) : null, c, today, stops);
 }
 
 /**
@@ -225,11 +225,14 @@ export function changeReachNote(c: SourceChange, today: string): string | null {
     + `${rest.join(" and ")} alone.`;
 }
 
-/** "(high for the time of year)" when the move is big against the record; nothing otherwise. */
+/**
+ * WHERE THE END SITS AGAINST NORMAL, whenever the station has a record: "(52nd percentile, about normal for the time of
+ * year)". (T367, owner 2026-11-04: "what does it rise to percentile wise? like relative to normal") It was said only on a
+ * big move; a 4× rise that lands at normal is worth knowing too.
+ */
 function forTheDate(e: ChangeEnd): string {
-  if (e.percentile === undefined || e.points === undefined) return "";
-  if (Math.abs(e.points) < CHANGE_POLICY.bigPoints) return "";
-  return ` (${plainStanding(standing(e.percentile)).toLowerCase()})`;
+  if (e.percentile === undefined) return "";
+  return ` (${percentileOrdinal(e.percentile)} percentile, ${plainStanding(standing(e.percentile)).toLowerCase()})`;
 }
 
 /**
@@ -268,7 +271,7 @@ function fallWords(e: ChangeEnd, today: string, last: string | undefined, tail =
  *   "COFFEE: little change expected."
  * `today` is the reader's calendar day ("YYYY-MM-DD"); the run's days are the Centre's (Pacific).
  */
-export function changeLine(model: string, c: RunChange, today: string, stops?: Stops): string {
+export function changeLine(model: string | null, c: RunChange, today: string, stops?: Stops): string {
   const last = c.days.length ? c.days[c.days.length - 1]![0] : undefined;
   const said = c.dir === "rise" ? riseWords(c.peak, today, last, true, stops)
     : c.dir === "fall" ? fallWords(c.trough, today, last, true, stops)
@@ -277,7 +280,25 @@ export function changeLine(model: string, c: RunChange, today: string, stops?: S
         ? `${riseWords({ ...c.peak, back: null }, today, last, false)}, then ${fallWords(c.trough, today, last, true, stops)}`
         : `${fallWords({ ...c.trough, back: null }, today, last, false)}, then ${riseWords(c.peak, today, last, true, stops)}`)
       : "little change expected";
-  return `${model}: ${said}.`;
+  // (T367) unnamed: the station's own line, the models behind it said once in the note under it (`changeModelsNote`)
+  return model === null ? `${said[0]!.toUpperCase()}${said.slice(1)}.` : `${model}: ${said}.`;
+}
+
+/** (T367) One model's change in a few words for the note: "rises to 4× (Tue)", "falls to 0.6× (Sun 1 Nov)", "little change". */
+export function changeShort(c: RunChange, today: string): string {
+  if (c.dir === "steady") return "little change";
+  const end = c.dir === "fall" ? c.trough : c.peak;
+  const verb = c.dir === "both" ? "rises then falls" : c.dir === "rise" ? "rises to" : "falls to";
+  return c.dir === "both" ? verb : `${verb} ${ratioShort(end.ratio)} (${changeDay(end.day, today)})`;
+}
+
+/**
+ * (T367, owner 2026-11-04: the model lines "could be simplified as a note") THE MODELS BEHIND A STATION'S CHANGE, in one
+ * quiet line under it: "Models: CLEVER rises to 4× (Tue) · COFFEE little change". Null with fewer than two.
+ */
+export function changeModelsNote(parts: readonly { model: string; change: RunChange }[], today: string): string | null {
+  if (parts.length < 2) return null;
+  return `Models: ${parts.map((p) => `${p.model} ${changeShort(p.change, today)}`).join(" · ")}`;
 }
 
 /** The section's expected change, in one sentence after the headline (`estimateSentence` under Change). */

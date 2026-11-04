@@ -50,7 +50,7 @@ import { useCoachTarget } from "./CoachMarks";
 import { GaugeGroups } from "./GaugeGroups";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
-import { flowRampStops, SPACE, type Palette, round } from "./theme";
+import { changeRampStops, flowRampStops, SPACE, type Palette, round } from "./theme";
 import { hitProps } from "./regs/hit";
 
 /** The bullet's inset, so a row's detail lines align under its name and not its dot. */
@@ -261,9 +261,9 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           {onHorizon && <HorizonHeader palette={palette} chips={vm.horizons} onPick={onHorizon} />}
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
-          {vm.scale && theme ? (
+          {theme ? (
             <View testID="estimate-dot" style={{ width: 14, height: 14, borderRadius: round(14),
-                                                 backgroundColor: rampAt(flowRampStops(theme), vm.scale.at) }} />
+                                                 backgroundColor: rampAt(rampOf(theme, vm.scale.ramp), vm.scale.at) }} />
           ) : null}
           <Text style={{ ...TYPE.name, color: palette.ink, flex: 1 }}>
             {vm.headline}
@@ -272,7 +272,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
             ) : null}
           </Text>
         </View>
-        {vm.scale && theme ? <ScaleBar palette={palette} stops={flowRampStops(theme)} scale={vm.scale} /> : null}
+        {theme ? <ScaleBar palette={palette} stops={rampOf(theme, vm.scale.ramp)} scale={vm.scale} /> : null}
         <Text style={{ ...TYPE.meta, color: palette.ink }}>{vm.sentence}</Text>
         <Text style={{ ...TYPE.meta, color: palette.sub }}>{vm.range}</Text>
         {/* (T157) the low-water caveat for the spot's own Change, beside the answer it qualifies (never folded) */}
@@ -405,6 +405,9 @@ function Tile({ palette, children, coach }: { palette: Palette; children: ReactN
     </View>
   );
 }
+
+/** (T367) the map's ramp the tile's bar is drawn on: flow's, or Change's */
+const rampOf = (theme: string, ramp: "flow" | "change") => (ramp === "change" ? changeRampStops(theme) : flowRampStops(theme));
 
 /** The ramp's colour at `at` (0–1): the last stop at or below it, as the map's stepped legend reads. */
 export function rampAt(stops: readonly { at: number; colour: string }[], at: number): string {

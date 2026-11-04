@@ -171,13 +171,11 @@ describe("the Change block, mounted (T144)", () => {
     render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} horizon="change"
                             scroll={false} day={new Date(2026, 8, 4, 12)} />);
     await waitFor(() => expect(screen.getByTestId("change-block")).toBeTruthy());
-    expect(screen.getAllByTestId("change-handover").map((e) => e.getAttribute("d"))).toEqual(["M146,-4 L146,48"]);
+    expect(screen.getAllByTestId("change-handover").map((e) => e.getAttribute("d"))).toEqual(["M118,0 L118,120"]);   // (T367) the one Change chart, 120 tall: the tick spans it
     expect(screen.getByRole("img", { name: /COFFEE's forecast ends tomorrow$/ })).toBeTruthy();
-    // (T157 review) the peak's words stand toward the peak (1/3 of the line), not centred under the tick (1/2).
-    // Mutation: the label row back to `space-between` with no spacers -> fails.
-    const grow = (id: string) => Number((screen.getByTestId(id) as HTMLElement).style.flexGrow);
-    const [before, after] = [grow("change-mark-before"), grow("change-mark-after")];
-    expect(Math.round((before / (before + after)) * 100)).toBe(33);
+    // (T157 review: "Peak Sun" under the tick read as the tick's label) (T367) the mark's words are the chart's key
+    // now, beside a dot like the mark — never under the line where the tick stands
+    expect(screen.getByText("● Peak tomorrow")).toBeTruthy();
   });
 
   // T144 review — owner "no elf": the chart under a CLEVER+COFFEE change drew the freshest run, ELF.

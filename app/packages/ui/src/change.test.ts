@@ -134,27 +134,22 @@ const ATTRIBUTION = "Forecast data provided by the BC River Forecast Centre, Pro
   + "information on this website with caution and at their own risk.";
 
 describe("the Change block for the charted gauge", () => {
-  it("names each model in the publisher's order, with its line, its days and the attribution", () => {
+  it("names each model in the publisher's order, with its line, the attribution, and (T367) one chart", () => {
     const vm = changeView([{ model: "ELF", change: ELF }, { model: "COFFEE", change: null },
                            { model: "CLEVER", change: SPIKE }], TODAY, ATTRIBUTION, { width: 90, height: 40 });
     expect(vm.runs.map((r) => r.line)).toEqual([
-      "CLEVER: rises to about 25× today's flow on Mon (high for the time of year), back down by Tue.",
+      "CLEVER: rises to about 25× today's flow on Mon (77th percentile, high for the time of year), back down by Tue.",
       "ELF: little change expected."]);
-    expect(vm.none).toBeNull();
-    expect(vm.runs[1]!.spark).toBeNull();          // steady: no day worth marking
-    expect(vm.attribution).toBe(ATTRIBUTION);
-    expect(vm.runs[0]!.spark).toEqual({
-      path: "M0,40 L10,40 L20,40 L30,0 L40,0 L50,27.4 L60,39.9 L70,20.5 L80,20.5 L90,36.5",
-      mark: { x: 40, y: 0, label: "Peak Mon" },
-      ends: [{ x: 0, label: "today" }, { x: 90, label: "Sat 31 Oct" }],
-      handovers: [],
-      label: "Each day's highest forecast flow against today's, from today to Sat 31 Oct",
-    });
+    expect([vm.none, vm.attribution, vm.models, vm.runs.map((r) => r.spark)]).toEqual([null, ATTRIBUTION, null, [null, null]]);
+    // a feed from before T144: the chart is the first run's, alone (no station change to join models under)
+    expect([vm.chart?.series.map((x) => [x.model, x.bold]), vm.chart?.mark?.label, vm.chart?.days.map((d) => d.label)])
+      .toEqual([[["CLEVER", true]], "Peak Mon", ["today", "Mon", "Sat 31 Oct"]]);
   });
 
   it("says so when no run is running for the gauge — and claims no attribution for a forecast it does not show", () => {
     expect(changeView([{ model: "CLEVER", change: null }], TODAY, ATTRIBUTION)).toEqual({
-      runs: [], caveat: null, note: null, none: "No forecast is running for this gauge now.", attribution: null });
+      runs: [], caveat: null, note: null, none: "No forecast is running for this gauge now.", attribution: null,
+      models: null, chart: null });
   });
 
   // T144: the publisher's station change decides which models speak; the block only words it.
@@ -169,30 +164,18 @@ describe("the Change block for the charted gauge", () => {
   const COFFEE: RunChange = { ...SPIKE, base: 0.6,
     peak: { day: "2026-10-25", ratio: 44.1667, value: 26.5, percentile: 0.95, points: 0.85, back: null } };
 
-  it("leads with CLEVER and COFFEE together, then each one's own line — and leaves ELF out", () => {
+  it("(T367) leads with the station's change, unnamed; the models behind it are one note and thin lines on its chart — ELF left out", () => {
     const vm = changeView([{ model: "ELF", change: { ...ELF, dir: "fall" } }, { model: "COFFEE", change: COFFEE },
                            { model: "CLEVER", change: SPIKE }], TODAY, ATTRIBUTION, { width: 40, height: 40 }, JOINED);
-    expect(vm).toEqual({
-      runs: [
-        { model: "CLEVER and COFFEE together", part: false,
-          line: "CLEVER and COFFEE together: rises to about 30× today's flow on Sun (high for the time of year), "
-            + "back down by Tue.",
-          // (T157) the line breaks after COFFEE's last day drawn (Sun 25) and a tick stands in the gap
-          spark: { path: "M0,40 L10,26 L20,0 M30,28.6 L40,36.8", mark: { x: 20, y: 0, label: "Peak Sun" },
-                   ends: [{ x: 0, label: "today" }, { x: 40, label: "Sat 31 Oct" }],
-                   handovers: [{ x: 25, model: "COFFEE" }],
-                   label: "Each day's highest forecast flow against today's, from today to Sat 31 Oct; COFFEE's "
-                     + "forecast ends Mon" } },
-        { model: "CLEVER", part: true, spark: null,
-          line: "CLEVER: rises to about 25× today's flow on Mon (high for the time of year), back down by Tue." },
-        { model: "COFFEE", part: true, spark: null,
-          line: "COFFEE: rises to about 45× today's flow by Sun (very high for the time of year) and stays up." },
-      ],
-      caveat: null,
-      note: "COFFEE runs to Mon; after that, CLEVER alone.",
-      none: null,
-      attribution: ATTRIBUTION,
-    });
+    expect([vm.runs, vm.models, vm.caveat, vm.note, vm.none, vm.attribution]).toEqual([
+      [{ model: "CLEVER and COFFEE together", part: false, spark: null,
+         line: "Rises to about 30× today's flow on Sun (83rd percentile, high for the time of year), back down by Tue." }],
+      "Models: CLEVER rises to 23× (Mon) · COFFEE rises to 44× (Sun)",
+      null, "COFFEE runs to Mon; after that, CLEVER alone.", null, ATTRIBUTION]);
+    // one chart: the station's line bold first, each model thin; 1× always a gridline; the peak marked
+    const c = vm.chart!;
+    expect([c.series.map((x) => [x.model, x.bold]), c.grid.some((g) => g.label === "1.0×"), c.mark?.label])
+      .toEqual([[["CLEVER and COFFEE together", true], ["CLEVER", false], ["COFFEE", false]], true, "Peak Sun"]);
   });
 
   /*
@@ -221,14 +204,14 @@ describe("the Change block for the charted gauge", () => {
     });
   });
 
-  it("one model alone is one line, with its days", () => {
+  it("one model alone is one line, named, with its chart", () => {
     const alone: SourceChange = { ...JOINED, models: ["CLEVER"], reach: { CLEVER: "2026-10-31" } };
     const vm = changeView([{ model: "CLEVER", change: SPIKE }, { model: "ELF", change: ELF }], TODAY, ATTRIBUTION,
                           { width: 40, height: 40 }, alone);
-    expect([vm.runs.map((r) => [r.model, r.line, r.part, r.spark?.mark.label, r.spark?.handovers, r.spark?.path]),
-            vm.caveat, vm.note]).toEqual([
-      [["CLEVER", "CLEVER: rises to about 30× today's flow on Sun (high for the time of year), back down by Tue.",
-        false, "Peak Sun", [], "M0,40 L10,26 L20,0 L30,28.6 L40,36.8"]], null, null]);
+    expect([vm.runs.map((r) => [r.model, r.line, r.part]), vm.models, vm.chart?.series.map((x) => x.model),
+            vm.chart?.mark?.label, vm.caveat, vm.note]).toEqual([
+      [["CLEVER", "CLEVER: rises to about 30× today's flow on Sun (83rd percentile, high for the time of year), back down by Tue.",
+        false]], null, ["CLEVER"], "Peak Sun", null, null]);
   });
 
   it("ELF alone carries the low-water caveat", () => {

@@ -125,10 +125,11 @@ export type DonorVM =
       sentence: string;
       range: string;
       /**
-       * (T367) WHERE THE ESTIMATE SITS on the record, 0–1: the estimate and its interval, for the tile's scale bar (the
-       * map's own ramp). Null under Change, which is no percentile.
+       * (T367) WHERE THE ESTIMATE SITS, 0–1: the estimate and its interval, for the tile's scale bar on the map's own
+       * ramp — the flow ramp (a percentile), or under Change the change ramp (the change's coded ratio, falling ←
+       * steady → rising: the same number the map paints).
        */
-      scale: { at: number; lo: number; hi: number } | null;
+      scale: { at: number; lo: number; hi: number; ramp: "flow" | "change" };
       horizons: readonly HorizonChipVM[];
       /** Null until the routes are in, or when no donor can be placed. */
       map: DonorMapVM | null;
@@ -324,8 +325,8 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     headlineSuffix: isAhead(o.horizon) && o.horizon !== "change" ? CONDITIONS_WORDS.byThen : null,
     sentence: estimateSentence(e, o.horizon),
     range: estimateRange(e, o.day, o.horizon, value.areaKm2),
-    scale: o.horizon === "change" ? null
-      : { at: e.percentile, lo: interval(e)[0] / 100, hi: interval(e)[1] / 100 },
+    scale: { at: e.percentile, lo: interval(e)[0] / 100, hi: interval(e)[1] / 100,
+             ramp: o.horizon === "change" ? "change" : "flow" },
     horizons: horizonChips(o.horizon, o.quantity),
     map,
     tapToChart: CONDITIONS_WORDS.tapToChart,
