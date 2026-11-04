@@ -31,7 +31,7 @@ describe("<WaterScreen> regulations", () => {
     expect(screen.queryByTestId("keep-tab")).toBeNull();
   });
 
-  it("the fixture release (T23/T34/T35): the regs header fixed above ONE scroll — the Chilliwack's closed-all-year part on Oct 10; (T227) no Gear / Methods on a day nothing may be fished, Licence in the same scroll", async () => {
+  it("the fixture release (T23/T34/T35): the regs header fixed above ONE scroll — the Chilliwack's closed-all-year part on Oct 10; (T227) no Gear / Methods on a day nothing may be fished, and no Licence (owner 2026-11-04: nothing under it)", async () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
                         loader={openRegsFixture()} day={new Date(2026, 9, 10, 12)} part={0} />);
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
@@ -40,7 +40,7 @@ describe("<WaterScreen> regulations", () => {
     expect(within(header).getByRole("button", { name: "Change date, now Oct 10" }).textContent).toBe("SatOct 10");
     const tabs = within(screen.getByRole("tablist", { name: "Section" }));
     expect(tabs.getAllByRole("tab").map((t) => [t.textContent, t.getAttribute("aria-selected")]))
-      .toEqual([["What you can keep", "true"], ["Licence", "false"]]);
+      .toEqual([["What you can keep", "true"]]);
     // the header is not in the scroll; no "unavailable" line
     expect(screen.getByTestId("regs-scroll").contains(header)).toBe(false);
     expect(screen.queryByText(/^Regulations unavailable/)).toBeNull();
@@ -49,10 +49,10 @@ describe("<WaterScreen> regulations", () => {
     // one scroll: Keep, then the sections; (T227, owner 2026-10-28) Gear and Methods state no closure: on a part closed
     // all year with no salmon open, neither is drawn nor offered
     expect([screen.queryByTestId("gear-tab"), screen.queryByTestId("methods-tab")]).toEqual([null, null]);
-    // (T35) on a closed day the Licence section is its heading (D16 a)
-    expect(screen.getByTestId("licence-tab").textContent).toBe("Licence");
+    // (owner 2026-11-04) on a closed day there is no Licence section: nothing would be said under its heading
+    expect(screen.queryByTestId("licence-tab")).toBeNull();
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "regs-licence", "regs-legal"]);
+      .toEqual(["keep-tab", "regs-legal"]);
   }, 30_000);
 
   it("a release past its valid_until: the page leads with core's out-of-date sentence (none on an unstamped release)", async () => {
