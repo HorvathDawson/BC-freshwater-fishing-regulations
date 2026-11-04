@@ -25,8 +25,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   (`mallopt` purge). Both on the emulator now (t360-fix).
 - **T366 done, waits on you:** the DFO refresh previews before it writes; ran for regions 1, 2, 6 (no marks moved).
   Region 2's Fraser was reworded twice (FN1179 is on one): confirm the two places in DFO mode (OWNER-TODO).
-- **T338 done** (a stretch closure no longer closes the whole river), **T357 done** (Python side). T356 + T358 (one
-  salmon format change, salmon/4) running as a second lane; T343 follows them.
+- **T338 done** (a stretch closure no longer closes the whole river; worker too), **T357 done** (Python side).
+- **T356 + T358 done (481bc8266): salmon/4, dfo-feed/3.** The salmon card's closure, shared limits and sizes now come
+  pre-resolved from Python; DFO's prose "pooled across" scope is a structural field. Yours: one `When` shape (6 rules
+  read "until further notice": Python says "check DFO", the worker says open; proposal in T358), and the worker
+  redeploy (dfo-feed/3) with 0.5.0. On a closed page (5A, 7) a water's own row now shows the closure card too.
+- WAITING: the emulator check of the PDF leak fix + purge, and the batch 3 rebuild, both wait for free memory (heavy.sh
+  80% guard; the machine sits at ~70%). Next: T343 (region header notes), then the batch 3 rebuild + release.
 
 ## 2026-11-03 (chat 4): batch 2 emulator sitting [T368, T354, T360, T345, T352]
 - **T368 (new, in 0.5.0, batch 6c):** the app-wide failures/fallbacks/reporting sweep, split from T333. Two found
