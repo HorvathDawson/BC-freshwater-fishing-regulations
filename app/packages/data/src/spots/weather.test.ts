@@ -256,10 +256,10 @@ describe("(T371, owner 2026-11-04) a spot's exact point never leaves the device 
     const urls: string[] = [];
     const fake = (async (u: string) => { urls.push(u); return { ok: false } as Response; }) as unknown as typeof fetch;
     const om = openMeteo(fake);
-    await om.ahead(49.123456, -121.987654);
-    await om.at(49.123456, -121.987654, Date.UTC(2020, 5, 1));
-    await om.days(49.123456, -121.987654, ["2020-05-25", "2020-05-31"]);
-    await om.days(49.123456, -121.987654, [localDate(Date.now() - 3 * 86_400_000), localDate(Date.now() - 86_400_000)]);
+    await om.ahead!(49.123456, -121.987654);
+    await om.at(49.123456, -121.987654, new Date(Date.UTC(2020, 5, 1)));
+    await om.days!(49.123456, -121.987654, ["2020-05-25", "2020-05-31"]);
+    await om.days!(49.123456, -121.987654, [localDate(Date.now() - 3 * 86_400_000), localDate(Date.now() - 86_400_000)]);
     expect(urls.length).toBeGreaterThanOrEqual(3);
     for (const u of urls) expect(u).toContain("latitude=49.12&longitude=-121.99");
     expect(urls.some((u) => /49\.1234|121\.9876/.test(u))).toBe(false);
