@@ -379,7 +379,7 @@ use that as the sole source of future work."
 | T335 | Remove archive/ + general cleanup (stray files, old side builds, releases to live+previous, dead scripts) | POSTPONED (next credit cycle, with T333/T334) | T333 | owner 2026-10-30 |
 | T336 | iOS: walkthrough card over the Layers sheet missing from the accessibility tree (VoiceOver can't reach it) | OPEN | — | T313 2026-10-30 |
 | T337 | DFO water bindings refresh inside the build — `match apply` is a manual step today; deliver reads a cache that an atlas rebuild can leave stale | OPEN | — | 2026-10-31 |
-| T338 | DFO part-closure in a limits cell (Fort Babine) reads as whole river closed | OPEN | T332 | 2026-10-31 |
+| T338 | DFO part-closure in a limits cell (Fort Babine) reads as whole river closed | DONE | T332 | 2026-11-03 (01919949f; ships with batch 3 release) |
 | T339 | 08MH044 cut still labelled Whonock; Bedford Channel lost its gauge — confirm | OPEN | — | 2026-10-31 |
 | T340 | Test bed regs-open stream taps fail (known since 0.3.0) | OPEN | — | 2026-10-31 |
 | T341 | release-perf A5 search p95 ~9 ms vs 8 ms ceiling — machine calibration, not a raise | OPEN | — | 2026-10-31 |
@@ -403,7 +403,7 @@ use that as the sole source of future work."
 | T357 | DFO silent fallbacks: release ships no header notes (so no header closure) when the dated page is not cached; corrupt prior feed read as none; dfo-feed/1 upgrade leftover | OPEN | T337 | T350 lean pass 2026-11-02 |
 | T358 | DFO rule fields outside the catalogue model: `shared` prose scope, header sizes as `cm` not `lengths`, worker-only `open_ended` / `check` | OPEN | T350 | T350 lean pass 2026-11-02 |
 | T359 | Tidal follow-ups visible in the review app: a Follow-ups filter with each row's why, a "whole water is tidal" answer | DONE | c16f72eba | owner 2026-11-03; item 4 (DEM point → cut?) owner decision |
-| T360 | App memory footprint: measure Android RSS by screen/feature, find what grows past ~400 MB (T351 crashes at 406/435 MB) | PARTIAL | T351 | code read done; emulator measurement next (RESUME); PDF part = T354 |
+| T360 | App memory footprint: measure Android RSS by screen/feature, find what grows past ~400 MB (T351 crashes at 406/435 MB) | PARTIAL | T351 | measured (rounds 1–3); trim answered in code; Conditions +140 MB native = MapLibre, heapprofd next |
 | T361 | Six region-1 DFO owner marks read "rule changed" after the 11-03 region-1 re-queue (test_marks_never_orphaned red) | FOLDED INTO T366 (owner 11-03: historic places, marks stand; rule changes go to the digest) | — | owner re-reviews the six |
 | T362 | iOS crash reports: no exit-info twin on iOS, so an iOS crash leaves no record (MetricKit or equivalent, into the T242 path) | OPEN | — | owner 2026-11-03 (0.5.0 plan, iOS next) |
 | T363 | iOS memory: T360's per-screen method on the Simulator, then a real iPhone (sim 420 MB, 665 MB peak panning) | OPEN | T360 | owner 2026-11-03 |
