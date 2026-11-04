@@ -106,3 +106,8 @@ Depends: T86 (POSTPONED — this list is its body), T198, T225, T232, T241, T249
 Owner: yes — every ★ line. Default: the defaults stated on each line.
 
 - Launch item (owner 2026-10-31): T319 — store screenshots that sell the app, auto-generated, before the public listing.
+
+## Scope, owner 2026-11-04
+"we could work on a checklist but we arent going to production beyond a closed testing." For 0.5.0: a CLOSED-TESTING
+checklist only (Play Closed track, staging data, the feeds worker on staging); the production switch-on list stays as
+written for later.

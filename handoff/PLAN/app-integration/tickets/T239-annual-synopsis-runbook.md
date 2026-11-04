@@ -1,6 +1,6 @@
 # T239 — annual synopsis update: runbook + dry run
 
-Status: OPEN — not started.
+Status: OPEN — after 0.5.0 (owner 2026-11-04: "im not sure this needs to be done yet"). Not started.
 
 Source: owner 2026-10-28 — approved proposal P5 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 

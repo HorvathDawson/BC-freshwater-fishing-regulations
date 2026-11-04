@@ -53,3 +53,11 @@ Filed 2026-11-03:
 ## Duplicate tickets folded (done 2026-11-03)
 T132 → T164; T88 re-scoped to "ship iOS to TestFlight" (its simulator half is T313); T353 + T273 → T312, the one
 map-feel ticket; T55 shrunk to "owner confirms slough marks" (T322 carries the fold).
+
+## Owner 2026-11-04: fewest rebuilds — group the heavy work
+- ONE pipeline rebuild (atlas → reach → bundle → release), carrying every data change: T381 (one section for a water with
+  no splits), T386 (`section_measure` for unnamed reaches), and what is already waiting (T372 `n`, T376 basin tables,
+  T339 gauge names, T370 `water-shared`). T65 rides it: the atlas built twice from the same inputs, diffed.
+- ONE APK, one emulator sitting, carrying every app change: T312 fling patch, T382 B.C. clock + sun line, T384 open on my
+  location, T385 share, T340 test-bed fix, then the device checks (T342, T344, T360, T50).
+- T239 after 0.5.0; T240 = a closed-testing checklist only.

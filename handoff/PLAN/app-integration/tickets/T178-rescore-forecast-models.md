@@ -18,3 +18,13 @@ is the staging worker's: R2 `bc-fishing-regulations-staging/private/feeds/gauges
 order = Python's month file). To score: `rclone copy` it, concatenate the open month into `<feed>.runs/<YYYY-MM>.jsonl`,
 run `skill --feed <feed>`. On 11-04 it held CLEVER/COFFEE issue days 10-28, 10-29, 10-30, 11-02, 11-03 (weekdays only):
 verdict still "too few" (115 paired over 2 days). Twenty issue days ≈ early December, as planned.
+
+## Owner 2026-11-04: automatic, in the feeds worker?
+T178 scores the two flood models (CLEVER vs COFFEE) PER LEAD DAY across all stations — not per water — and sets the
+blend weights `FLOOD_WEIGHTS`. Proposal: the worker scores the archive itself on a monthly cron (the scoring is
+`skill.py`; port it like the rest, parity-tested) and REPORTS the verdict (status + email); applying new weights stays
+a reviewed change (a weight that moves on its own would change every forecast without anyone seeing why). Per-water
+scoring needs far more history (≥ a season per station).
+Worker cost (Cloudflare analytics, bc-fishing-feeds-staging, 2026-10-28 → 11-04, 8 days): 1,330 invocations, 77,490
+subrequests, 0 errors, 687 CPU-s (~86 s a day → ~2.6 M CPU-ms a month, ~9 % of the paid plan's included 30 M; a cron
+run p99 ~4 s CPU). Production adds a second worker's crons on the same account (~18 % together).
