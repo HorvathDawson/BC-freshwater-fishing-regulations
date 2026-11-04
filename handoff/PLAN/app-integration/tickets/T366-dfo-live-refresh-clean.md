@@ -73,3 +73,7 @@ Other regions newer than their typed rows: **1** (10-05 → 11-03: Cowichan chum
    Mission — confirm it is the Mission→Hope place).
 3. Review-app frontend banner for `/api/dfo/progress` `vintage` (backend only here); the staging worker's DFO job
    (app/workers/feeds) does not split digest vs urgent row notices yet.
+
+## Item 5 run (main session, 2026-11-03)
+`live run --regions 1 2 6` (rc 0, no marks moved; 2 urgent: the two reworded Fraser places), then `live queue --regions
+2` (2 variants folded). `entries/dfo_salmon/region-2.json` left UNCOMMITTED for the owner's DFO-mode check (OWNER-TODO).
