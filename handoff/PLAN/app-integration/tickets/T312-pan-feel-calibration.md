@@ -38,3 +38,8 @@ batch 5 of RELEASE-PLAN-0.5.0.md.
 - 2026-11-03: T273's basemap choice is already answered: option 1 (forest simplified, still drawn at low zooms) shipped in T280 (65894d8bf, basemap-b515359fc62f, −52 % green vertices). No owner choice left; batch 5 measures pan on top of it (real phone: T245).
 - 2026-11-04: "before" pan run on 0.5.0 code: app/tools/testbed/out/b5-before (T273-pan-1/2.txt). The gestures scenario's
   pinch is not driven on this emulator image (`sendevent: /dev/input/event1: Permission denied` — needs `adb root`).
+- 2026-11-04 fling: MapLibre Android 13.6.1 `MapGestureDetector.onFling` (javap): a fling needs hypot(v)/pixelRatio ≥
+  `flingThreshold` (default 1000), glides `v/7/tilt + flingAnimationBaseTime` ms (default 150) and moves
+  `v × time × 0.28 / 1000` — distance grows with the base time. Patched (MLRNMapView.onMapReady, the maplibre patch):
+  base 450 ms, threshold 500. ~+70 % distance at 2000 dp/s; gentler swipes fling. After-numbers on the next emulator
+  sitting (testbed `pan`, a scripted fast swipe's travel), feel on the owner's phone.
