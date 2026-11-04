@@ -29,6 +29,7 @@ from pipeline.common import entry_id as EID
 #: 4 (ROUND20h 2): the possession term says only WHERE it holds — the rule's plain line says the number and the exception
 #: 5 (ROUND20i 4): fly fishing only names the gear the p.80 definitions exclude
 #: (T288, still 5: same term shape, more terms) every p.80 definition is a term — `t_definitions`
+#: (owner 2026-11-04, still 5: same term shape, more terms) one term per Conservation Surcharge Stamp — `t_surcharge_stamps`
 VERSION = 5
 
 
@@ -291,17 +292,105 @@ def t_stamp(B: Book, D: Data) -> dict:
                  "zp:steelhead; zp:classified_waters_licence; fee zp:licence_fees#steelhead_stamp")
 
 
+#: the stamp a written term already explains (`t_stamp`): every OTHER provincial Conservation Surcharge Stamp in the
+#: export's licences gets its own generated term (`t_surcharge_stamps`)
+_OWN_TERM_STAMPS = {"steelhead_stamp"}
+_SURCHARGE = re.compile(r"(?i)conservation surcharge")
+
+
+def _surcharge_stamps(D: Data) -> List[tuple]:
+    """[(licence key, name)] of every provincial Conservation Surcharge Stamp in the export's licences."""
+    return sorted((k, v["name"]) for k, v in D.licences.items()
+                  if _SURCHARGE.search(v["name"]) and v.get("provincial"))
+
+
+def _stamp_what(name: str) -> str:
+    """What a stamp names: "Conservation Surcharge Stamp for salmon" -> "salmon"."""
+    return re.sub(r"(?i)^conservation surcharge stamp for | conservation surcharge stamp$", "", name)
+
+
+def stamp_term_id(key: str) -> str:
+    """A stamp's own glossary term id, from its licence key (the app's `docGi` builds the same id)."""
+    return f"stamp_{key}"
+
+
+def _stamp_requirement(D: Data, key: str) -> dict:
+    """The stamp's own province-wide requirement record — the one the book's stamp entry states (`zp:<entry>#<key>`,
+    satisfied by holding this stamp alone). Its `parts.doing` is the pipeline's words for when the stamp is needed
+    ("to keep salmon (not kokanee)"), the same record the Licence tab's "Only if you keep …" line is made from."""
+    got = [r for k, r in sorted(D.lic.items())
+           if r["kind"] == "requirement" and EID.is_province(r["entry_id"])
+           and r["fields"].get("satisfied_by") == [{"hold": [key]}]
+           and (r.get("parts") or {}).get("doing")]
+    doings = {r["parts"]["doing"] for r in got}
+    if len(doings) != 1:
+        raise AnswersError(f"glossary: the stamp {key} has {len(doings)} province-wide conditions ({sorted(doings)}); "
+                           f"its term needs exactly one")
+    return got[0]
+
+
+def _stamp_fee(D: Data, key: str) -> dict:
+    """The stamp's fee record (p.5): the `licence_terms` record whose `document` is the stamp."""
+    fees = [r["fields"]["fees_cad"] for _k, r in sorted(D.lic.items())
+            if r["kind"] == "licence_terms" and r["fields"].get("document") == key and r["fields"].get("fees_cad")]
+    if len(fees) != 1:
+        raise AnswersError(f"glossary: the stamp {key} has {len(fees)} fee records; its term needs exactly one")
+    f = fees[0]
+    if "resident" not in f or "non_resident" not in f:
+        raise AnswersError(f"glossary: the stamp {key}'s fee record has no resident / non-resident fee: {sorted(f)}")
+    return f
+
+
+def _recorded(D: Data, entry_id: str) -> List[str]:
+    """The fish the stamp's entry says must be recorded on the licence when kept (its `record_retention` rules, in the
+    rule's own words: "adult chinook", "rainbow trout over 50 cm")."""
+    out = []
+    for rid in D.entry(entry_id).get("rules") or []:
+        r = D.rules.get(rid)
+        if not r or not r["fields"].get("record_retention"):
+            continue
+        what = r["parts"]["what"]
+        what = what[:1].lower() + what[1:]
+        size = r["parts"].get("size")
+        out.append(f"{what} {size}" if size else what)
+    return list(dict.fromkeys(out))
+
+
+def t_surcharge_stamps(B: Book, D: Data) -> List[dict]:
+    """Owner 2026-11-04: one term per provincial Conservation Surcharge Stamp (the steelhead stamp has `t_stamp`), so
+    each stamp's ⓘ on the Licence tab explains that stamp alone. Generated from the export: the stamp's name, its own
+    requirement record's condition, its entry's record duty, its fee record — a stamp missing any of them stops the
+    build."""
+    out = []
+    for key, name in _surcharge_stamps(D):
+        if key in _OWN_TERM_STAMPS:
+            continue
+        req = _stamp_requirement(D, key)
+        f = _stamp_fee(D, key)
+        rec = _recorded(D, req["entry_id"])
+        doing = req["parts"]["doing"]
+        says = (f"An add-on to your basic licence that pays for {_stamp_what(name)} conservation. "
+                f"You need it only {doing}. ")
+        if [x.lower() for x in rec] == [doing.lower().removeprefix("to keep ")]:
+            says += "You must record each one you keep on your licence right away. "     # the fish it is needed for
+        elif rec:
+            says += f"You must record every {' or '.join(rec)} you keep on your licence right away. "
+        says += (f"{_money(f['resident'])} a year for B.C. residents, {_money(f['non_resident'])} for everyone else.")
+        e = D.entry(req["entry_id"])
+        out.append(_term(stamp_term_id(key), name, says, [5] + list(e["pages"]), _clean(e["printed"]),
+                         f"{req['id']}; {req['entry_id']}; the stamp's fee record (p.5)"))
+    return out
+
+
 def t_surcharge(B: Book, D: Data) -> dict:
-    stamps = sorted(v["name"] for k, v in D.licences.items()
-                    if "conservation surcharge" in v["name"].lower() and v.get("provincial"))
-    if not stamps:
+    """The general term (running text): what a Conservation Surcharge Stamp is; each stamp has its own term
+    (`t_surcharge_stamps`, `t_stamp`)."""
+    if not _surcharge_stamps(D):
         raise AnswersError("glossary: no Conservation Surcharge Stamp in the export's licences")
-    what = [re.sub(r"(?i)^conservation surcharge stamp for | conservation surcharge stamp$", "", s)
-            for s in stamps]
     return _term("conservation_surcharge", "Conservation Surcharge Stamp",
-                 f"An add-on to your basic licence that pays for conservation; you need one only for "
-                 f"what it names: {', '.join(what)}. Keeping some of these fish also means "
-                 f"recording them on your licence right away.",
+                 "An add-on to your basic licence that pays for the conservation of one kind of fish. Your basic "
+                 "licence can carry up to five of these stamps; you need one only for the fish it names. Keeping some "
+                 "of these fish also means recording them on your licence right away.",
                  [5, 7], "Your basic angling licence can be validated with up to five annual "
                          "Conservation Surcharge Stamps, plus a White Sturgeon Conservation Licence.",
                  "the export's licences (provincial stamps); fees p.5")
@@ -443,7 +532,8 @@ def build(doc: dict, book: Book) -> dict:
     """The glossary: {version, terms} — every term generated from the export (`doc`, decoded) and
     the book's text (`book`: `Book.from_bundle(<the bundle>)`)."""
     B, D = book, Data(doc)
-    terms = [g(B, D) for g in GENERATORS] + t_regions(B, D) + t_definitions(B, D)
+    terms = ([g(B, D) for g in GENERATORS] + t_surcharge_stamps(B, D) + t_regions(B, D)
+             + t_definitions(B, D))
     ids = [t["id"] for t in terms]
     if len(set(ids)) != len(ids):
         raise AnswersError("glossary: two terms share an id")

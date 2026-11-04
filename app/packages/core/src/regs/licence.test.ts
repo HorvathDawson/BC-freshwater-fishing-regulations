@@ -167,6 +167,11 @@ describe("buildLicence", () => {
     expect(only(INP({ lics }))).toEqual(["Only if you fish for steelhead, even to release them", "Only if you keep salmon"]);
     expect(only(INP())).toEqual(["Only if you fish for steelhead, even to release them", "Only if you keep salmon (not kokanee)"]);
   });
+  it("a stamp's ⓘ opens its own term; a release without it, the general term", () => {
+    const termsOf = (gloss: ReadonlySet<string>) => onlyIfOf(buildLicence(INP(), WHO.adult!, { closed: false, glossary: gloss })).map((x) => x.terms);
+    expect(termsOf(new Set([...GLOSS, "stamp_salmon_stamp"]))).toEqual([["steelhead_stamp"], ["stamp_salmon_stamp"]]);
+    expect(termsOf(GLOSS)).toEqual([["steelhead_stamp"], ["conservation_surcharge"]]);
+  });
   it("the glossary filters every ⓘ", () => {
     const vm = buildLicence(INP(), WHO.adult!, { closed: false, glossary: new Set() })!;
     expect([vm.questionTerms, needLine(onlyIfOf(vm)[0]!)])

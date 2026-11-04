@@ -149,8 +149,10 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
     const t = actTxt(w, sp);
     return t.startsWith(LIC.ACT_TARGETING("")) ? LIC.OTHER_TIME(lc(t.replace(/^To /, ""))) : lc(whenTxt(w));
   };
+  // a Conservation Surcharge Stamp's ⓘ opens its own term (pipeline glossary `stamp_<licence key>`, owner 2026-11-04);
+  // a release built before those terms has only the general `conservation_surcharge`, which it opens instead
   const docGi = (d: string): string[] => d === "steelhead_stamp" ? gi("steelhead_stamp") : d === "classified_waters_licence" ? gi("classified_waters")
-    : /conservation surcharge/i.test(DOC(d)) ? gi("conservation_surcharge") : [];
+    : /conservation surcharge/i.test(DOC(d)) ? (gloss.has(`stamp_${d}`) ? [`stamp_${d}`] : gi("conservation_surcharge")) : [];
   const altsOf = (b: DocumentNeed): string[] => (b.or ?? []).map((o) => o.need.map(DOC).join(LIC.PLUS));
   const buy: Item[] = P.documents.map((b) => {
     const alts = altsOf(b);
