@@ -1,6 +1,6 @@
 # T338 — DFO part-closure inside a limits cell reads as the whole river closed
 
-Status: DONE 2026-11-03 (chat 5) — in typed.py; lands in the batch 3 release (typed rows re-read).
+Status: DONE (01919949f, 7a4d3faec) 2026-11-03 (chat 5) — in typed.py; lands in the batch 3 release (typed rows re-read).
 
 "No fishing for chinook from a point 100 m above Fort Babine bridge to Nichyeskwa Creek" (archived 2020/2022 R6
 pages) closes the WHOLE river in the reader; only that stretch is closed. Row is flagged (no number shown) but its

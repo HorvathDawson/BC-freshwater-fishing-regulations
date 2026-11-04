@@ -1,6 +1,6 @@
 # T374 — The Skeena tributary walk collects 11 lake sections
 
-Status: DONE 2026-11-04 — NOT A BUG, the test was stale (found 2026-11-03 re-pinning test_dfo_salmon; failing before this session — not caused by T343/T366).
+Status: DONE (e23994f5a) 2026-11-04 — NOT A BUG, the test was stale (found 2026-11-03 re-pinning test_dfo_salmon; failing before this session — not caused by T343/T366).
 
 `test_dfo_salmon::test_a_watershed_walk_passes_through_its_lakes_but_collects_streams` fails on the current atlas: the
 walk of the Skeena collects 11 `lake:` sections (lake:328974096, lake:329030585, lake:329030607, lake:329031154,

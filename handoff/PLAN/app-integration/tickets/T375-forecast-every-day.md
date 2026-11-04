@@ -1,6 +1,6 @@
 # T375 — The forecast feed publishes every day, +1 to +10
 
-Status: DONE in code 2026-11-03 (feed size + worker redeploy left) — data chat (owner 2026-11-03: "add this to the list for us to do here"); with the UI chat's forecast day
+Status: DONE (1c735272e) in code 2026-11-03 (feed size + worker redeploy left) — data chat (owner 2026-11-03: "add this to the list for us to do here"); with the UI chat's forecast day
 chips (T367: "Now · Tue 4 · Wed 5 · … · Fri 14 · Change"), before 0.5.0.
 
 Today the feed ranks only +1, +3, +5, +10 (`pipeline/gauges/feed/publish.py` `HORIZONS`, the worker's copy

@@ -47,3 +47,5 @@ Size: M.
 3. Salmon keeps the drawn answer; `agrees`, `at1`'s downgrade and the `partial` VM go; `unmapped` rows / `unplaced`
    become caveat items. UI chat: SalmonCard draws `CaveatBlock` (T367), then the old field is deleted.
 4. Map paint: owner decision (below). Format: salmon/5 if the paint or the file changes.
+
+**Owner 2026-11-04: map paint the trout way for both** — the map shows the drawn answer; an undrawn place never paints `check` (salmon.py:314, live.compose, composeChain go). The card keeps the answer and adds the caveat.

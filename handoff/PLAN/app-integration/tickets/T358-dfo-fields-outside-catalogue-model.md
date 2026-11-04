@@ -1,6 +1,6 @@
 # T358 — DFO rule fields that are not in the catalogue model
 
-Status: DONE 2026-11-03 — items 1–2 with T356 (salmon/4); item 3 by the owner's rule (below) (found by T350 lean pass, 2026-11-02). The DFO rules are `CatalogueRule`s (typed.py), but these ride
+Status: DONE (481bc8266, cf7d7130a, 393e0eb92) 2026-11-03 — items 1–2 with T356 (salmon/4); item 3 by the owner's rule (below) (found by T350 lean pass, 2026-11-02). The DFO rules are `CatalogueRule`s (typed.py), but these ride
 beside the model (`extra="forbid"` would refuse them):
 
 - **`shared`** (`pipeline/regs/dfo_salmon/quota.py:221`, T349): a prose scope string ("Management Units 5-6 to 5-11")

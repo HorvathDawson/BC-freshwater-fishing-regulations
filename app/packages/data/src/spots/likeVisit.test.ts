@@ -48,13 +48,23 @@ describe("visitConditions — the frozen record only", () => {
   });
 });
 
+/** (T375) now and every forecast day +1..+10 from `from` (local ISO days), null where the feed says nothing */
+const everyDay = (from: string, set: Record<string, number | null>): Record<string, number | null> => {
+  const [y, m, d] = from.split("-").map(Number);
+  return Object.fromEntries(Array.from({ length: 11 }, (_, i) => {
+    const t = new Date(y!, m! - 1, d! + i);
+    const k = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+    return [k, set[k] ?? null];
+  }));
+};
+
 describe("flowAhead — the feed index's own percentiles, by day", () => {
   it("a feed from before T171 (no aheadDays): now and each horizon on the index's day; discharge only", () => {
     const idx = { fetchedAt: new Date(2026, 9, 22, 6).toISOString(), stations: {
       "08MH016": { percentile: 0.3, parameter: "level" as const, discharge: 0.5, level: 0.3,
                    ahead: { "1": { discharge: 0.55, level: 0.9 }, "3": { discharge: 0.6 }, "5": { level: 0.1 } } } } };
-    expect(flowAhead(idx, "08MH016", NOW)).toEqual({ flow: {
-      "2026-10-22": 0.5, "2026-10-23": 0.55, "2026-10-25": 0.6, "2026-10-27": null, "2026-11-01": null }, models: {} });
+    expect(flowAhead(idx, "08MH016", NOW)).toEqual({ flow: everyDay("2026-10-22", {
+      "2026-10-22": 0.5, "2026-10-23": 0.55, "2026-10-25": 0.6 }), models: {} });
     expect(flowAhead(idx, "08XX000", NOW)).toBeNull();
   });
 
@@ -173,7 +183,7 @@ describe("fetchLike — both halves over the last fetched", () => {
       feed: { index: async () => ({ stations: { "08MH016": { percentile: 0.4, discharge: 0.4 } } }) },
     }, NOW);
     expect(got).toEqual({ offline: false, fetched: { weather: w, weatherAt: NOW, flowAt: NOW, flowNow: "2026-10-22",
-      flow: { "2026-10-22": 0.4, "2026-10-23": null, "2026-10-25": null, "2026-10-27": null, "2026-11-01": null },
+      flow: everyDay("2026-10-22", { "2026-10-22": 0.4 }),
       flowModels: {} } });
   });
 
@@ -183,7 +193,7 @@ describe("fetchLike — both halves over the last fetched", () => {
       fetchedAt: new Date(2026, 9, 21, 18).toISOString(),
       stations: { "08MH016": { percentile: 0.4, discharge: 0.4, ahead: { "1": { discharge: 0.45 } } } } }) } }, NOW);
     expect([got.fetched.flowNow, got.fetched.flow]).toEqual(["2026-10-21",
-      { "2026-10-21": 0.4, "2026-10-22": 0.45, "2026-10-24": null, "2026-10-26": null, "2026-10-31": null }]);
+      everyDay("2026-10-21", { "2026-10-21": 0.4, "2026-10-22": 0.45 })]);
   });
 
   it("offline: the last fetched kept with its own age, and said offline", async () => {

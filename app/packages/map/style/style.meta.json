@@ -2831,6 +2831,12 @@
       ],
       "color.survey.digitised": "#0E7C86",
       "color.survey.sheet": "#7BA4B8",
+      "color.ui.run-species.steelhead": "#56B4E9",
+      "color.ui.run-species.chinook": "#0072B2",
+      "color.ui.run-species.chum": "#009E73",
+      "color.ui.run-species.coho": "#E69F00",
+      "color.ui.run-species.pink": "#CC79A7",
+      "color.ui.run-species.sockeye": "#D55E00",
       "color.outside": "#F8F8F2",
       "opacity.outside": 0.72,
       "color.flow.f1": "#5E2A00",
@@ -2989,6 +2995,12 @@
       ],
       "color.survey.digitised": "#30D0D4",
       "color.survey.sheet": "#617C8C",
+      "color.ui.run-species.steelhead": "#56B4E9",
+      "color.ui.run-species.chinook": "#0072B2",
+      "color.ui.run-species.chum": "#009E73",
+      "color.ui.run-species.coho": "#E69F00",
+      "color.ui.run-species.pink": "#CC79A7",
+      "color.ui.run-species.sockeye": "#D55E00",
       "color.outside": "#0A0B0D",
       "opacity.outside": 0.7,
       "color.flow.f1": "#E0466E",
@@ -3147,6 +3159,12 @@
       ],
       "color.survey.digitised": "#0E7C86",
       "color.survey.sheet": "#7BA4B8",
+      "color.ui.run-species.steelhead": "#56B4E9",
+      "color.ui.run-species.chinook": "#0072B2",
+      "color.ui.run-species.chum": "#009E73",
+      "color.ui.run-species.coho": "#E69F00",
+      "color.ui.run-species.pink": "#CC79A7",
+      "color.ui.run-species.sockeye": "#D55E00",
       "color.outside": "#F8F8F2",
       "opacity.outside": 0.72,
       "color.flow.f1": "#7A1608",
@@ -3498,6 +3516,36 @@
       "type": "color",
       "themeable": true,
       "$comment": "A scanned sheet exists but was never traced. Still a surveyed lake."
+    },
+    "color.ui.run-species.steelhead": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T367) Steelhead in the Runs bar's chips and stacked histogram: Okabe-Ito (colour-blind safe), each hue near the fish's own; the same in every theme (they sit on the card)."
+    },
+    "color.ui.run-species.chinook": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T367) Chinook in the Runs bar's chips and stacked histogram: Okabe-Ito (colour-blind safe), each hue near the fish's own; the same in every theme (they sit on the card)."
+    },
+    "color.ui.run-species.chum": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T367) Chum in the Runs bar's chips and stacked histogram: Okabe-Ito (colour-blind safe), each hue near the fish's own; the same in every theme (they sit on the card)."
+    },
+    "color.ui.run-species.coho": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T367) Coho in the Runs bar's chips and stacked histogram: Okabe-Ito (colour-blind safe), each hue near the fish's own; the same in every theme (they sit on the card)."
+    },
+    "color.ui.run-species.pink": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T367) Pink in the Runs bar's chips and stacked histogram: Okabe-Ito (colour-blind safe), each hue near the fish's own; the same in every theme (they sit on the card)."
+    },
+    "color.ui.run-species.sockeye": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T367) Sockeye in the Runs bar's chips and stacked histogram: Okabe-Ito (colour-blind safe), each hue near the fish's own; the same in every theme (they sit on the card)."
     },
     "color.outside": {
       "type": "color",

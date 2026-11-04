@@ -1,6 +1,6 @@
 # T357 — DFO release / feed: silent fallbacks that hide missing data
 
-Status: DONE (Python side) 2026-11-03; worker's dfo-feed/1 upgrade waits on a prod R2 check (found by T350 lean pass, 2026-11-02).
+Status: DONE (ece8c87f4) (Python side) 2026-11-03; worker's dfo-feed/1 upgrade waits on a prod R2 check (found by T350 lean pass, 2026-11-02).
 
 - **Header notes missing → no header closure** (`pipeline/deliver/salmon.py:518`): when no cached page matches the
   feed's `date_modified`, the release ships NO header notes for that region, said only on stdout. With no notes,

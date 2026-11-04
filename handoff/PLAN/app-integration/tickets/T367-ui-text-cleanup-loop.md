@@ -62,3 +62,12 @@ that pin the four days fail until updated with your chips: conditions.render (do
 Change chip ×2 ("after +10" still holds: +10 is last). The live feed carries every day after the feeds worker redeploy.
 (f) Forecast-day list: the centre basin, a water's own basin and the basin names are the data chat's, T376 (batch 4).
 (g) Run timing (your 11-03 finding): FIXED 2026-11-04 (T373) — the local feed is bound to 822db448 again (reload the dev app); every release now binds its own.
+(h) Your two asks (2026-11-04), DONE IN YOUR WORKING TREE, uncommitted — commit them with your files (they share them):
+  `Shell.tsx` passes `fishImages={p.fishImages}` to `<RunsLegend>`; `shell/MapLegend.tsx` `RunsLegend` takes `fishImages`
+  and hands it to `RunSpeciesChips`. The six species colours are tokens now — `color.ui.run-species.<steelhead|chinook|
+  chum|coho|pink|sockeye>` (in `color.ui.*`, not `color.runs.*`: card colours, not map paint, so the map's ΔE guard does
+  not compare them with the lake fill and the run-pass amber — it failed the style build as `color.runs.*`). `theme.ts`:
+  `Palette.runSpecies[name]` from those tokens; `RUN_SPECIES_COLOUR` is gone; `RunsControls.tsx` + `MapLegend.tsx` read
+  `palette.runSpecies[s.name]`. The tokens are committed (data chat); tsc + check-colours pass.
+  Also yours, failing on your in-progress work: panel.silent (new `title`), the gauge reading's band words ("Below normal
+  ·"), data-vs-ui's frozen list, back-layers, and the T375 horizon tests listed in (e).

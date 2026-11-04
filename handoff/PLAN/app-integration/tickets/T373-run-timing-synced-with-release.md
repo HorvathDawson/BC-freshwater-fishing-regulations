@@ -1,6 +1,6 @@
 # T373 — Run timing always matches the release's map
 
-Status: DONE 2026-11-04 (was: OPEN — before 0.5.0) (owner 2026-11-03: "we need the run timing to always be synced").
+Status: DONE (1cca5a8ff) 2026-11-04 (was: OPEN — before 0.5.0) (owner 2026-11-03: "we need the run timing to always be synced").
 
 Found by the UI chat 2026-11-03: the run-timing feed was bound on 10-29 to handles 10cbcb72…, the local release
 carries 822db448…, so Run timing paints nothing (the app refuses a paint index whose handles are not the tiles').

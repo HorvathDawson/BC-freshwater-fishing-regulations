@@ -1,6 +1,6 @@
 # T356 — Salmon card: move what core salmon.ts still resolves into the Python file
 
-Status: DONE 2026-11-03 except partial coverage per species/day (left, see Done) — salmon/4 + dfo-feed/3, needs the batch-3 rebuild (found by T350 lean pass, 2026-11-02). Owner rule: all cascade / default / quota logic is resolved in
+Status: DONE (481bc8266) 2026-11-03 except partial coverage per species/day (left, see Done) — salmon/4 + dfo-feed/3, needs the batch-3 rebuild (found by T350 lean pass, 2026-11-02). Owner rule: all cascade / default / quota logic is resolved in
 Python and shipped pre-resolved.
 
 `app/packages/core/src/salmon.ts` still decides these answers itself:
