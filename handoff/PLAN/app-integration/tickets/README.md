@@ -421,7 +421,7 @@ use that as the sole source of future work."
 | T375 | Forecast feed publishes every day +1..+10 (HORIZONS in publish.py + worker), for the UI chat's day chips | DONE in code 11-03 (worker redeploy + feed size left) | 1c735272e | owner 2026-11-03 |
 | T376 | The Conditions view's watershed (map centre / a water's own, no fallback) + basin names, for the UI chat's forecast-day list | DONE 11-04 (bundle + release rebuild owed) | e21cdbeac | UI chat via T367, 2026-11-03 |
 | T377 | T367 leftovers: forecast-day list by basin (after T376), tappable/collapsible legend, Runs peak markers, closed/open second cue, multi-model hydrograph, dead code | OPEN (day list in 0.5.0 after T376; rest after) | — | T367 close, 2026-11-04 |
-| T378 | Trout's "couldn't be placed" caveat block is unfed (`item.uncertain` never loaded; `item.unresolved` is licensing) | OPEN (after 0.5.0) | — | T372 survey, 2026-11-04 |
+| T378 | Trout's "couldn't be placed" caveat block is unfed (`item.uncertain` never loaded; `item.unresolved` is licensing) | DONE | 135828021 | T372 survey, 2026-11-04 |
 | T379 | WaterMode "ONE MAP ENTRY" test is timing-dependent (page back to loading after the Keep tab) — pre-existing, not T342/T376 | DONE | 75a907e3b | found 2026-11-04; spinner show-timer race (with T369) |
 | T380 | Change: percentile today and at the peak beside the ratio ("from the 5th to about the 95th, about 3× today's flow"); publisher + worker carry the peak percentile from the combined series | DONE in code (worker deploy) | 528620c65 | owner 2026-11-04 (in 0.5.0) |
 | T381 | A water with no splits is one section over all its geometry (Nicomen Slough: polygons + lines) | DONE (folded into T387) | 1f08e9936 | owner 2026-11-04 (in 0.5.0) |

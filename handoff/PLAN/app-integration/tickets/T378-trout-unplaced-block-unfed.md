@@ -1,6 +1,6 @@
 # T378 — Trout's "couldn't be placed" caveat block gets no data
 
-Status: DONE (owner 2026-11-04: in 0.5.0) — the block deleted (the ticket's second answer).
+Status: DONE (135828021; owner 2026-11-04: in 0.5.0) — the block deleted (the ticket's second answer).
 
 Core `uncertainOf` (regs/caveats.ts) draws "? Check: rules for parts of this water that couldn't be placed on the map"
 from `inp.item.uncertain`. Nothing fills it: the store's `item.unresolved` is unresolved LICENSING (schema.sql:97,
