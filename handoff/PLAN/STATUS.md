@@ -30,8 +30,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   pre-resolved from Python; DFO's prose "pooled across" scope is a structural field. Yours: one `When` shape (6 rules
   read "until further notice": Python says "check DFO", the worker says open; proposal in T358), and the worker
   redeploy (dfo-feed/3) with 0.5.0. On a closed page (5A, 7) a water's own row now shows the closure card too.
-- WAITING: the emulator check of the PDF leak fix + purge, and the batch 3 rebuild, both wait for free memory (heavy.sh
-  80% guard; the machine sits at ~70%). Next: T343 (region header notes), then the batch 3 rebuild + release.
+- **T343 done (561115e24, data side):** every DFO header note is folded into the limit line / sizes / closure or
+  dropped (100 m facility, how to measure); the daily total says "fresh and tidal waters combined"; adult chinook 50 cm
+  default (5B; R6's Fraser watershed). Yours (OWNER-TODO): daylight / R1 bait ban / eulachon notes stay as words; R6's
+  "Fraser River" binds no R6 water. Images + collapsible source line → T367 (UI chat).
+- Owner 11-03: heavy.sh start gate 50% (80 was too strict). RUNNING: the emulator check of the PDF leak fix + purge
+  (t360-fix; first try failed: `mallopt` needs API 26, now looked up at run time). Next: batch 3 rebuild + release;
+  asked the owner whether to ship the queue's region-2.json (Fraser folds) unconfirmed.
 
 ## 2026-11-03 (chat 4): batch 2 emulator sitting [T368, T354, T360, T345, T352]
 - **T368 (new, in 0.5.0, batch 6c):** the app-wide failures/fallbacks/reporting sweep, split from T333. Two found
