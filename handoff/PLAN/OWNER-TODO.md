@@ -168,7 +168,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   only once on `main` — until then `gh workflow run feeds-sync-inputs.yml --ref redesign/stream-sections -f what=both -f
   dry_run=true`. The Mac twin: `deploy/staging/sync-inputs.sh`.
 - **`scripts/update-hydat.sh`**: run it when the "New HYDAT" email arrives (after the HYDAT action).
-- **Phone testing** (T77, Q9), **production hosting** (T86, Q26: R2 bucket, contact address, app name), **iOS build**
+- **Phone testing** (T77, Q9; the 0.5.0 list: handoff/PLAN/OWNER-PHONE.md), **production hosting** (T86, Q26: R2 bucket, contact address, app name), **iOS build**
   (T88).
   - Gesture/navigation parity on the phone (T50, T77; owner 2026-10-27; same RNGH code as web, not seen on a device):
     Android edge-swipe back and the back button through the back table (HANDOFF-ui "Back, everywhere");
