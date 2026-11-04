@@ -72,10 +72,29 @@ def _path_words(p: "Path") -> str:
     return out
 
 
+#: (owner 2026-11-04) Fish names that keep their capitals inside a sentence: a person's name.
+_PROPER_FISH = ("Dolly Varden",)
+
+
+def _in_sentence(words: str) -> str:
+    """A species phrase inside a sentence: lower case, but a proper name keeps its capitals
+    ("lake trout or Dolly Varden/bull trout", never "dolly varden")."""
+    out = words.lower()
+    for name in _PROPER_FISH:
+        out = out.replace(name.lower(), name)
+    return out
+
+
 def _doing_words(d: "Doing") -> str:
-    sp = species_words(expand_species(d.species) if len(d.species) == 1
-                       and d.species[0] == "CHAR" else d.species,
-                       d.species_except).lower()
+    codes = expand_species(d.species) if len(d.species) == 1 and d.species[0] == "CHAR" else d.species
+    # (owner 2026-11-04) A licence is needed for ANY one of the fish it names: "to keep lake trout OR
+    # Dolly Varden/bull trout", never "and" (that reads as both at once). Each name is said alone and
+    # joined here; the exceptions stay species_words' own ("other than …").
+    if len(codes) > 1 and not d.species_except:
+        names = [species_words([c]) for c in codes]
+        sp = _in_sentence(", ".join(names[:-1]) + " or " + names[-1])
+    else:
+        sp = _in_sentence(species_words(codes, d.species_except))
     # KOKANEE IS A SALMON TO A BIOLOGIST AND NOT TO THIS GROUP. The book says "(other than
     # kokanee)" and the group already leaves it out, so the label says what the group means
     # rather than letting "salmon" read as every salmon.
