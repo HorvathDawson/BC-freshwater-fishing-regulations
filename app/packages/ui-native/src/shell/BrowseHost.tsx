@@ -62,8 +62,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   /** (T292) A tap on a sewage lagoon / tailings pond / dump (no water under it): its kind, for the not-fishing sheet. */
   onNotFishing?: (kind: NotFishingKind | null) => void;
   /** (T199, T261) A tap on the Runs map (at or above the handover): the Shell raises the runs sheet for that section. */
-  /** (T369 D15) and where on it: the water it opens from the sheet is that tap's, "you are here" and all */
-  onRuns?: (sid: number, at: { lat: number; lon: number } | null) => void;
+  onRuns?: (sid: number) => void;
   /** (T261) The fish art per species code (apps/mobile `FISH_IMAGES`): the Runs tab's species chips. */
   fishImages?: FishImages;
   /** (T186) The region under the map's centre, for the web prefetch (`useReleasePrefetch`); absent on a phone. */
@@ -94,7 +93,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
     // (T199, T261) on Runs a tap answers "which runs, when" for the section, not the regulations — and below the
     // handover it is the watershed groups, where nothing is tapped (as on Conditions)
     if (tab === "runs") {
-      if (col.runsFeed && onRuns && (camera.current?.zoom ?? HOME.zoom) >= HANDOVER_Z) onRuns(Number(featureId), lat !== undefined && lon !== undefined ? { lat, lon } : null);
+      if (col.runsFeed && onRuns && (camera.current?.zoom ?? HOME.zoom) >= HANDOVER_Z) onRuns(Number(featureId));
       return;
     }
     const conditions = tab === "conditions";
