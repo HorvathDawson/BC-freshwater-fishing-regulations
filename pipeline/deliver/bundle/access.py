@@ -7,6 +7,15 @@ they are made from, once, in the bundle:
 
     access_area     ix, tier, area_id, name — every polygon a section touches, named for a reader
     section_access  sid, area, permille     — how much of the section lies inside it (1..1000)
+    section_length  sid, m                  — (T387) each named section's length along the water, metres
+
+SECTION LENGTH (T387, owner 2026-11-04: "in the one section not all clicks are equal"): the app's Regulations page is a
+PART's, so a part's access is its sections' pooled — each area with the share of the whole part it covers, the sections
+weighed by their length along the water. Measured here from the same tile geometry as the shares: a section with a line
+feature, its line length; a section drawn only as polygons (a lake, a river drawn as a polygon), half its perimeter (a
+long river polygon's half perimeter is its length; a lake's is a little more than its width). Metres: the scaled
+lon/lat below times `METRES_PER_DEGREE`. Only the named sections (`item_section`) are written: a part is a named
+water's; the derived step copies each into `part_section.m`, which the release ships in the water file.
 
 THE POLYGONS ARE THE TILES' OWN. Read from the tile layers' geojsonl (`GENERATED.tiles / "layers"`): `no_access`
 (kind `closed` → tier `no_access`, kind `permit` → tier `permit`), `indigenous_land` (tier `reserve`) and `parcel`
@@ -51,7 +60,12 @@ CREATE TABLE section_access (sid      INTEGER NOT NULL,
                              area     INTEGER NOT NULL REFERENCES access_area (ix),
                              permille INTEGER NOT NULL CHECK (permille BETWEEN 1 AND 1000),
                              PRIMARY KEY (sid, area)) WITHOUT ROWID;
+CREATE TABLE section_length (sid INTEGER PRIMARY KEY,
+                             m   INTEGER NOT NULL CHECK (m >= 0)) WITHOUT ROWID;
 """
+
+#: (T387) Metres in one degree of latitude (a degree of longitude scaled by the cosine of its latitude is the same).
+METRES_PER_DEGREE = 111_320.0
 
 #: The tile layers holding the polygons, and those holding the sections.
 AREA_LAYERS = ("no_access", "indigenous_land", "parcel")
@@ -175,6 +189,13 @@ def _sections(layers: Path, batch: int) -> Iterator[Tuple[List[int], list]]:
 
 def compute(layers: Path, *, batch: int = 20_000) -> Tuple[List[Area], List[Tuple[int, int, int]]]:
     """(areas, rows): every (sid, area index, permille) with at least one permille of the section inside."""
+    areas, rows, _ = measure(layers, batch=batch)
+    return areas, rows
+
+
+def measure(layers: Path, *, batch: int = 20_000) -> Tuple[List[Area], List[Tuple[int, int, int]], Dict[int, int]]:
+    """(areas, rows, lengths): `compute`'s two, and (T387) every section's length along the water in whole metres (a
+    line's length; a section drawn only as polygons, half its perimeter — module docstring)."""
     import numpy as np
     import shapely
     from shapely.strtree import STRtree
@@ -182,7 +203,7 @@ def compute(layers: Path, *, batch: int = 20_000) -> Tuple[List[Area], List[Tupl
     areas, parts, part_area = load_areas(layers)
     tree = STRtree(parts)
     inside: Dict[Tuple[int, int], List[float]] = {}     # (sid, area) -> [line length in, polygon area in]
-    totals: Dict[int, List[float]] = {}                 # sid -> [line length, polygon area], summed over its features
+    totals: Dict[int, List[float]] = {}                 # sid -> [line length, polygon area, polygon perimeter], summed
 
     for sids, geoms in _sections(layers, batch):
         g = np.array(geoms, dtype=object)
@@ -192,11 +213,12 @@ def compute(layers: Path, *, batch: int = 20_000) -> Tuple[List[Area], List[Tupl
         length = _scaled_length(g, cosl)
         area = shapely.area(g)                          # a ratio of areas within one section: no scale needed
         for k, sid in enumerate(sids):
-            t = totals.setdefault(sid, [0.0, 0.0])
+            t = totals.setdefault(sid, [0.0, 0.0, 0.0])
             if dim[k] == 1:
                 t[0] += float(length[k])
             elif dim[k] == 2:
                 t[1] += float(area[k])
+                t[2] += float(length[k])                 # a polygon's length is its perimeter
         src, dst = tree.query(g, predicate="intersects")
         if not len(src):
             continue
@@ -213,7 +235,7 @@ def compute(layers: Path, *, batch: int = 20_000) -> Tuple[List[Area], List[Tupl
                 acc[1] += float(ca[j])
     rows: List[Tuple[int, int, int]] = []
     for (sid, a), (li, pi) in inside.items():
-        line, poly = totals[sid]
+        line, poly, _ = totals[sid]
         if line > 0:
             share = li / line
         elif poly > 0:
@@ -224,12 +246,15 @@ def compute(layers: Path, *, batch: int = 20_000) -> Tuple[List[Area], List[Tupl
         if pm >= 1:
             rows.append((sid, a, pm))
     rows.sort()
-    return areas, rows
+    lengths = {sid: int(round((line if line > 0 else per / 2) * METRES_PER_DEGREE))
+               for sid, (line, _, per) in totals.items()}
+    return areas, rows, lengths
 
 
 def write(db: sqlite3.Connection, tiles: Path, *, handles: str, cov=None) -> int:
-    """Measure and write `access_area` / `section_access`. `tiles` is the tile directory (`atlas.meta.json` +
-    `layers/`); it must be cut from the bundle's atlas (`handles`, the bundle's section handles digest)."""
+    """Measure and write `access_area` / `section_access`, and (T387) `section_length` for every named section
+    (`item_section`, which must be written first). `tiles` is the tile directory (`atlas.meta.json` + `layers/`); it must
+    be cut from the bundle's atlas (`handles`, the bundle's section handles digest)."""
     meta = tiles / "atlas.meta.json"
     if not meta.exists():
         raise SystemExit(f"access: {meta} not found — section access is measured against the tiles' polygons")
@@ -237,13 +262,16 @@ def write(db: sqlite3.Connection, tiles: Path, *, handles: str, cov=None) -> int
     if theirs != handles:
         raise SystemExit(f"access: the tiles at {tiles} carry section handles {theirs}, not the bundle's {handles} — "
                          "they were cut from another atlas; rebuild the tiles, or build the bundle from theirs")
-    areas, rows = compute(tiles / "layers")
+    areas, rows, lengths = measure(tiles / "layers")
+    named = sorted({s for (s,) in db.execute("SELECT sid FROM item_section")})
     db.executemany("INSERT INTO access_area (ix, tier, area_id, name) VALUES (?,?,?,?)",
                    [(i, a.tier, a.area_id, a.name) for i, a in enumerate(areas)])
     db.executemany("INSERT INTO section_access (sid, area, permille) VALUES (?,?,?)", rows)
+    db.executemany("INSERT INTO section_length (sid, m) VALUES (?,?)", [(s, lengths[s]) for s in named if s in lengths])
     if cov is not None:
         cov.filled("access_area", len(areas))
         cov.filled("section_access", len(rows))
+        cov.filled("section_length", sum(1 for s in named if s in lengths))
     return len(rows)
 
 

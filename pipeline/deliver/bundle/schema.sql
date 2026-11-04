@@ -405,6 +405,8 @@ CREATE TABLE part (ord             INTEGER NOT NULL REFERENCES item(ord),
 CREATE TABLE part_section (ord     INTEGER NOT NULL,
                            sid     INTEGER NOT NULL,
                            part_ix INTEGER NOT NULL,
+                           -- (T387) the section's length along the water, metres (`section_length`); NULL: unmeasured
+                           m       INTEGER,
                            PRIMARY KEY (ord, sid),
                            FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
 
@@ -1176,6 +1178,11 @@ CREATE TABLE section_access (sid      INTEGER NOT NULL,
                              area     INTEGER NOT NULL REFERENCES access_area (ix),
                              permille INTEGER NOT NULL CHECK (permille BETWEEN 1 AND 1000),
                              PRIMARY KEY (sid, area)) WITHOUT ROWID;
+-- (T387) each NAMED section's length along the water, whole metres, from the same tile geometry (access.py: a line's
+-- length; a section drawn only as polygons, half its perimeter). What a part's access share weighs its sections by;
+-- copied into `part_section.m` by the derived step.
+CREATE TABLE section_length (sid INTEGER PRIMARY KEY,
+                             m   INTEGER NOT NULL CHECK (m >= 0)) WITHOUT ROWID;
 
 -- THE BOOK'S OWN WORDS the glossary quotes (plan 2.14, audit F29): the p.80 definitions, the p.4 legend and each
 -- region's title, copied from the curated transcription (`CURATED.regulations.reference`) by

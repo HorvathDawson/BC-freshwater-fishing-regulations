@@ -53,6 +53,17 @@ def test_a_tiny_bundle_derives_its_keys_and_parts():
     assert [p.part_ix for p in P["gnis:1"]] == [0, 1] and P["wbk:5"][0].kind == "lake"
 
 
+def test_part_section_carries_each_sections_length():
+    """T387: `part_section.m` is the section's `section_length` (access.py), what the app weighs a part's access shares
+    by; a section the access step did not measure is NULL (the app then claims no share), never a guess."""
+    db = _db()
+    db.executemany("INSERT INTO section_length (sid, m) VALUES (?,?)", [(1, 1200), (3, 40)])
+    section_sets(db, {1: 7, 2: 7, 3: 9})
+    finish(db)
+    assert db.execute("SELECT ord, sid, part_ix, m FROM part_section ORDER BY ord, sid").fetchall() \
+        == [(1, 1, 0, 1200), (1, 2, 0, None), (2, 3, 0, 40)]
+
+
 @pytest.mark.parametrize("sql", [
     "INSERT INTO rule_key VALUES (5, 1, 1, 0, 'stream', 1, 1)",            # sw without sr
     "INSERT INTO rule_key VALUES (5, 1, 0, 0, 'pond', 1, 1)",              # not a water kind
@@ -64,7 +75,7 @@ def test_a_tiny_bundle_derives_its_keys_and_parts():
     "INSERT INTO part VALUES (1, 0, NULL, NULL, NULL, 'parks', 0, NULL, 0, '', 0, 1, 1, 0)",
     "INSERT INTO part VALUES (1, 0, NULL, NULL, NULL, '', 0, 3, 0, '', 0, 1, 1, 0)",
     "INSERT INTO part VALUES (99, 0, NULL, NULL, NULL, '', 0, NULL, 0, '', 0, 1, 1, 0)",  # no item
-    "INSERT INTO part_section VALUES (1, 1, 7)",                              # no such part
+    "INSERT INTO part_section (ord, sid, part_ix) VALUES (1, 1, 7)",                              # no such part
     "INSERT INTO rule (entry_id, rule_id, type, family, dimension, label, parts, take, may_target)"
     " VALUES ('r1:a', 'a.r1', 'retention_limit', 'retention', 'daily', 'x', '{}', 3, 0)",
     "INSERT INTO rule (entry_id, rule_id, type, family, dimension, label, parts, take, may_target,"

@@ -120,7 +120,8 @@ FILES = {
         # every one is stretch 0): ADDITIVE, last — still water/1; an older release has no columns
         "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
                       "up_stretches"],
-        "part_section": ["ord", "sid", "part_ix"],
+        # `m` (T387: the section's length along the water, metres; NULL unmeasured): ADDITIVE, last — still water/1
+        "part_section": ["ord", "sid", "part_ix", "m"],
         "picker": _FRAME,
         "place": ["place", "regions", "label", "names"],
         "rule": ["rix", "j"],
@@ -153,7 +154,7 @@ FILES = {
                  "closed_all_year", "paper_licence", "xp", "sections", "xruns"],
         "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
                       "up_stretches"],
-        "part_section": ["ord", "sid", "part_ix"], "picker": _FRAME, "str": ["id", "text"],
+        "part_section": ["ord", "sid", "part_ix", "m"], "picker": _FRAME, "str": ["id", "text"],
         "water_continue": ["ord", "part", "next_ord", "next_part"],
         "water_exit": ["ord", "down_ord", "down_part"], "xpart": _FRAME}} for r in SH.REGIONS},
     # (T370) THE REGION-WIDE WATER TABLES, ONE WEB FILE: byte-identical in all nine water slices before (623 of ~780 kB

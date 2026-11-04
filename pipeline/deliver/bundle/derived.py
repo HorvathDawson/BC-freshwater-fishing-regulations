@@ -132,8 +132,10 @@ def write(db: sqlite3.Connection, cov, places: Optional[Dict[int, Place]] = None
         "INSERT INTO part (ord, part_ix, set_id, key_ix, licensing_set, province_except, "
         "steelhead_water, steelhead, steelhead_rules, home_regions, tidal, sections, rep_sid, "
         "no_access) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [r[:14] for r in rows])
-    db.executemany("INSERT INTO part_section (ord, sid, part_ix) VALUES (?,?,?)",
-                   [(r[0], s, r[1]) for r in rows for s in r[14]])
+    # (T387) each section's length along the water (access.py `section_length`): what the app weighs a part's access by
+    length = dict(db.execute("SELECT sid, m FROM section_length"))
+    db.executemany("INSERT INTO part_section (ord, sid, part_ix, m) VALUES (?,?,?,?)",
+                   [(r[0], s, r[1], length.get(s)) for r in rows for s in r[14]])
     cov.filled("part", len(rows))
     cov.filled("part_section", sum(len(r[14]) for r in rows))
 

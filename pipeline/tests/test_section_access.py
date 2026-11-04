@@ -113,18 +113,24 @@ def test_shares_from_the_tile_layers(tmp_path):
     assert ix  # every area has an index
 
 
+def _db(named=(1, 2, 3, 4, 7)) -> sqlite3.Connection:
+    """The module's tables and the named sections (`item_section`, written before access in a build)."""
+    db = sqlite3.connect(":memory:")
+    db.executescript(A.SCHEMA + "CREATE TABLE item_section (sid INTEGER NOT NULL, ord INTEGER NOT NULL);")
+    db.executemany("INSERT INTO item_section VALUES (?, 1)", [(s,) for s in named])
+    return db
+
+
 def test_write_refuses_tiles_from_another_atlas(tmp_path):
     tiles = _layers(tmp_path, handles="ffff")
-    db = sqlite3.connect(":memory:")
-    db.executescript(A.SCHEMA)
+    db = _db()
     with pytest.raises(SystemExit, match="section handles ffff.*not the bundle's abcd"):
         A.write(db, tiles, handles="abcd")
 
 
-def test_write_fills_the_two_tables(tmp_path):
+def test_write_fills_the_tables(tmp_path):
     tiles = _layers(tmp_path)
-    db = sqlite3.connect(":memory:")
-    db.executescript(A.SCHEMA)
+    db = _db()
     n = A.write(db, tiles, handles="abcd")
     assert n == 6
     assert db.execute("SELECT ix, tier, name FROM access_area ORDER BY ix").fetchall() == [
@@ -132,6 +138,21 @@ def test_write_fills_the_two_tables(tmp_path):
         (2, "reserve", ""), (3, "reserve", "Capilano 5"), (4, "private", "")]
     assert db.execute("SELECT sid, area, permille FROM section_access ORDER BY sid, area").fetchall() == [
         (1, 0, 1000), (2, 0, 500), (3, 0, 250), (4, 3, 1000), (4, 4, 1000), (7, 0, 500)]
+    # (T387) the named sections' lengths only (5 and 6 are not named): written, whole metres
+    assert [s for (s,) in db.execute("SELECT sid FROM section_length ORDER BY sid")] == [1, 2, 3, 4, 7]
+
+
+def test_section_lengths_along_the_water(tmp_path):
+    """T387: a line's length (its longitudes scaled by the cosine of its latitude), a section drawn as two features summed,
+    and a section drawn only as a polygon by half its perimeter — metres, at `METRES_PER_DEGREE`."""
+    import math
+    _, _, lengths = A.measure(_layers(tmp_path) / "layers")
+    k = math.cos(math.radians(49.5))
+    m = A.METRES_PER_DEGREE
+    assert A.METRES_PER_DEGREE == 111_320.0
+    assert lengths[1] == round(0.6 * k * m)                          # one line, 0.6 degrees of longitude at 49.5 N
+    assert abs(lengths[3] - 0.4 * math.cos(math.radians(49.2)) * m) <= 1   # two features, one section: summed
+    assert lengths[7] == round((1.0 * k + 0.2) * m)                  # a lake 1 x 0.2 degrees: half its perimeter
 
 
 def test_mostly_inside_is_the_apps():
