@@ -8,6 +8,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-04 (merged chat, evening): owner answers in, T368/T369 lanes, T370 done [T368, T369, T370, T375, T360, T77, T381]
+- Owner answered T368 (9) and T369 (3): recorded at the end of each audit file; two agent lanes implement them now.
+- T370 DONE in code: `water-shared` beside the slices (nine regions 7.1 → 2.0 MB gz); conformance passes on a cut made
+  from the live release. Live with the rebuild; re-pin the request walk then.
+- Owner asks: Licence section + tab gone on a closed day (c574bef9e, 6fa905b56); T381 filed (Nicomen Slough: a water
+  with no splits is one section — pipeline, not started).
+- T375 feed size estimated (+5–11 kB gz); T360 Salmon step fixed (by id); T77 → OWNER-PHONE.md.
+- Not started: T50 + the second emulator sitting (fling patch, T340, T342/T344 checks, T360 viewer check), T65 (heavy),
+  T239, T240, T381.
+
 ## 2026-11-04 (merged chat, later): batch 5 before-run, 6c audits, owner asks [T380, T328, T370, T368, T369, T340, T312]
 - Owner asks done: T380 (Change says "from the 5th percentile today to about the 95th (about 3× today's flow)"; publisher +
   worker carry `change.percentile`, live with the worker deploy) 528620c65; web map hand cursor over clickable
