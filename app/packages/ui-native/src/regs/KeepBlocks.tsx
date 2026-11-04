@@ -20,6 +20,8 @@ const ROW = { w: 44, h: 44 } as const;
 
 export function ClosedBanner({ banner, palette, actions }: { banner: BannerVM; palette: Palette; actions: KeepActions }) {
   const tone = palette.closed;   // the prototype draws the tidal banner in the closed rule too (.banner)
+  // (owner 2026-11-04: "the all closed sections list is collapsed") the stretches closed all year fold under their count
+  const [open, setOpen] = useState(false);
   return (
     <View testID="keep-banner" style={{ marginTop: 8, marginHorizontal: GUTTER, paddingTop: 10, paddingBottom: 4, borderTopWidth: 1.5, borderTopColor: tone }}>
       {banner.big.map((b, i) => <Text key={i} testID="st:closed" style={[TYPE.lead, { color: tone }]}>{b}</Text>)}
@@ -40,8 +42,13 @@ export function ClosedBanner({ banner, palette, actions }: { banner: BannerVM; p
       )}
       {banner.merged && (
         <View style={{ marginTop: 8 }}>
-          <Text style={[TYPE.regsBody, { color: palette.ink }]}>{banner.merged.label}</Text>
-          {banner.merged.items.map((x, i) => (
+          <RegsPress testID="merged-fold" accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={ROW} style={{ minHeight: 44, justifyContent: "center" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={16} />
+              <Text style={[TYPE.regsBody, { color: palette.ink, flex: 1 }]}>{banner.merged.label}</Text>
+            </View>
+          </RegsPress>
+          {open && banner.merged.items.map((x, i) => (
             <View key={i} style={{ paddingVertical: 4, paddingLeft: 16 }}>
               <Text style={[TYPE.regsBody, { color: palette.ink }]}>{x.text}</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8 }}>

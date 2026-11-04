@@ -47,10 +47,13 @@ export function whereWords(r: RuleView): string {
 /**
  * The day's standing no-fishing places (page v36 whereHtml), grouped by the data's `where` heading. The prototype turns the
  * card's FIRST `.caveats` block into section.nofish, so only the first heading's group is this block (v38: every where
- * rule says "Where you can’t fish"). Drawn on every keyed, non-tidal day, open or closed (renderCard). None → null.
+ * rule says "Where you can’t fish"). Drawn on every keyed OPEN day: on a closed day the whole water is closed, so the
+ * places inside it are not said (owner 2026-11-04: "the where you cant fish is hidden on closed sections … just dont
+ * need to confusing bloat"); a tidal day has none. None → null.
  */
 export function whereNotOf(settled: Settled): WhereNotVM | null {
-  if (!settled.status || settled.status.status === "tidal") return null;
+  const st = settled.status?.status;
+  if (!st || st === "tidal" || st === "closed") return null;
   const groups = new Map<string, RuleView[]>();
   for (const r of settled.standing) {
     const w = r.facts?.where;

@@ -73,8 +73,9 @@ describe("whereNotOf: the day's standing rules with a `where` heading", () => {
     const vm = whereNotOf(settled({ standing: [near, fishway] }))!;
     expect([vm.heading, vm.scope, vm.items.map((i) => plain(i.text))]).toEqual([w, "Near the dam", ["No fishing: near the dam"]]);
   });
-  it("drawn on a closed day too; never with no status (no key) or on a tidal day; none → null", () => {
-    expect(whereNotOf(settled({ standing: [fishway], status: { status: "closed", closing: [], strip: 1 } as unknown as DisplayFrame }))).not.toBeNull();
+  it("drawn on an open day; never on a closed day (owner 2026-11-04), with no status (no key) or on a tidal day; none → null", () => {
+    expect(whereNotOf(settled({ standing: [fishway], status: { status: "own" } as unknown as DisplayFrame }))).not.toBeNull();
+    expect(whereNotOf(settled({ standing: [fishway], status: { status: "closed", closing: [], strip: 1 } as unknown as DisplayFrame }))).toBeNull();
     expect(whereNotOf(settled({ standing: [fishway], status: null }))).toBeNull();
     expect(whereNotOf(settled({ standing: [fishway], status: { status: "tidal" } as unknown as DisplayFrame }))).toBeNull();
     expect(whereNotOf(settled({ standing: [elsewhere] }))).toBeNull();
