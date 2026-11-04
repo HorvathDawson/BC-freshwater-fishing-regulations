@@ -465,8 +465,8 @@ export const RUN_WORDS = {
   countsNote: "Counts are DFO's spawner estimates for the surveyed stream: total spawners and adult spawners are "
     + "separate estimates, shown apart. PSF runs carry no counts here.",
   captured: (built: string) => `Offline: the run timing saved on this device (built ${built.slice(0, 10)}).`,
-  stale: "Run timing was made for another map version — it is not drawn.",
-  failed: "Run timing could not be loaded.",
+  stale: "Run timing is out of date for this map, so it isn't drawn.",
+  failed: "Run timing could not be loaded, so it isn't drawn.",
   openWater: "Open this water",
   more: (n: number) => (n === 1 ? "1 run of another species here" : `${n} runs of other species here`),
   fewer: "Hide the other species",

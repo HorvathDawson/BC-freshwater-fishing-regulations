@@ -212,7 +212,9 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
            regsLayer: salmonLoading ? "salmon" as RegsLayer : regsShown,
            setRegsLayer, salmonFacts: salmon.facts,
            // (T199, T261) the run timing: offered (the Runs tab), its state, and what the map paints (on Runs only)
-           runsOffered, runs, runsFeed: runsShown ? runs.feed : null };
+           runsOffered, runs, runsFeed: runsShown ? runs.feed : null,
+           // (T367) on the Runs tab, why nothing is painted: the bar over the map (`PairBanner`)
+           runsProblem: mapTab === "runs" ? runs.problem : null };
 }
 
 export type MapColouring = ReturnType<typeof useMapColouring>;

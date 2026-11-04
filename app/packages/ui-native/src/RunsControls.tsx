@@ -5,7 +5,7 @@
  * through the year, and wears the season at a glance behind its track (the share of watershed groups with these runs
  * in the water, `RunTimingFacts.season`). Every word is core's (`RUN_WORDS`); every colour a palette or map token.
  */
-import { MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, TAB_TOUR_WORDS, pentadLabel, sliderKey, type RunSpecies } from "@app/core";
+import { FISH, MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, TAB_TOUR_WORDS, pentadLabel, sliderKey, type RunSpecies } from "@app/core";
 import { runStateColour } from "@app/map/colours";
 import { useMemo, useRef, useState } from "react";
 import { Image, PanResponder, Pressable, ScrollView, Text, View } from "react-native";
@@ -31,7 +31,9 @@ export function RunSpeciesChips({ species, chosen, onToggle, fishImages, palette
             style={{ flexDirection: "row", gap: 6 }}>
         {species.map((s) => {
           const on = chosen.some((c) => c.name === s.name);
-          const art = fishImages?.[RUN_SPECIES_CODE[s.name] ?? ""]?.[0];
+          // (T367, owner 2026-11-03) the run's own look: the spawning picture, where the species has one
+          const code = RUN_SPECIES_CODE[s.name] ?? "";
+          const art = fishImages?.[code]?.[Math.max(0, (FISH[code] ?? []).findIndex((l) => l.phase === "spawning"))];
           return (
             <Pressable key={s.name} testID={`run-species-${s.name}`} onPress={() => onToggle(s.name)}
                        accessibilityRole="checkbox" aria-checked={on} accessibilityLabel={s.name} {...CHIP_HIT}>

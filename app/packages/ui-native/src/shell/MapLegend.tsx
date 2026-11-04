@@ -165,14 +165,15 @@ export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Pa
 /**
  * (T261, T276) THE RUNS TAB'S FOOT: the day and species line with a "?" that replays the tutorial, and the date slider.
  * That is all: the colour key and the count scale are the tutorial's, the credit is the Sources page's, and the one
- * line below appears only when something is wrong (or loading) — never the routine offline line. Tap it for the whole text.
+ * line below appears only while loading — never the routine offline line. Tap it for the whole text. (T367) What is
+ * WRONG (stale, failed) is the bar over the map (`PairBanner`), not a grey line here.
  */
 export function RunsLegend({ col, palette, theme, onHelp }: { col: MapColouring; palette: Palette; theme: string; onHelp?: () => void }) {
   const r = col.runs;
   const slots = useMemo(() => (r.facts ? slotsFor(r.facts, r.chosen, r.year) : []), [r.facts, r.chosen, r.year]);
   const season = useMemo(() => (r.facts ? r.facts.season(slots) : []), [r.facts, slots]);
   const [open, setOpen] = useState(false);
-  const note = r.problem ? (r.problem === "stale" ? RUN_WORDS.stale : RUN_WORDS.failed) : r.loading ? RUN_WORDS.loading : null;
+  const note = !r.problem && r.loading ? RUN_WORDS.loading : null;
   return (
     <View testID="runs-legend" style={{ borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
                                         paddingHorizontal: 14, paddingTop: 8, paddingBottom: 8, gap: 6 }}>
@@ -182,7 +183,7 @@ export function RunsLegend({ col, palette, theme, onHelp }: { col: MapColouring;
         <RunDaySlider pentad={r.pentad} today={r.today} playing={r.playing} onPentad={r.setPentad} onPlay={r.setPlaying}
                       season={season} theme={theme} palette={palette} />
         {note && (
-          <Pressable testID={r.problem ? "runs-legend-problem" : "runs-legend-loading"} onPress={() => setOpen((o) => !o)}
+          <Pressable testID="runs-legend-loading" onPress={() => setOpen((o) => !o)}
                      accessibilityRole="button" accessibilityLabel={note}>
             <Text numberOfLines={open ? undefined : 1}
                   style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: palette.sub }}>{note}</Text>
@@ -203,9 +204,19 @@ export function RunsLegend({ col, palette, theme, onHelp }: { col: MapColouring;
  * the colours mean.
  */
 export function PairBanner({ col, palette }: { col: MapColouring; palette: Palette }) {
-  const { mixedPair, unproven, vintage } = col;
+  const { mixedPair, unproven, vintage, runsProblem } = col;
   return (
     <>
+      {/* (T367, owner 2026-11-03) the Runs tab's map drawn bare says why, where the eye is: a bar over the map */}
+      {runsProblem && (
+        <View testID="runs-problem" accessibilityRole="alert"
+              style={{ paddingVertical: 8, paddingHorizontal: 12, backgroundColor: palette.noAccessBand,
+                       borderLeftWidth: 4, borderLeftColor: palette.warning }}>
+          <Text style={{ ...TYPE.metaBold, color: palette.ink }}>
+            {runsProblem === "stale" ? RUN_WORDS.stale : RUN_WORDS.failed}
+          </Text>
+        </View>
+      )}
       {mixedPair && (
         <View style={{ paddingVertical: 8, paddingHorizontal: 12,
                        backgroundColor: palette.closed }}>

@@ -35,6 +35,9 @@ Only then does it go into the 0.5.0 APK (the one APK for the batch). No APK per 
   shortened: "… is in X, closed to the public. The regulations below don't give you access." (b) forecast chips named
   by date ("Wed 4"), every day +1..+10 (T375's feed), the strip scrolls sideways (`CornerStrip scroll`); spoken labels
   unchanged. Verdict pending.
+- 4 (11-04): the strip's dotted swatch read as "…" → removed. Round 2 built: Runs species chips show the spawning
+  picture; a stale/failed run timing is an amber bar over the map (`PairBanner`, `col.runsProblem`, Runs tab only),
+  no longer a grey line in the foot; words "Run timing is out of date for this map, so it isn't drawn." Verdict pending.
 - Open (not this chat's): `WaterScreen.regs-props.test.tsx` (fixture release, T35 Licence) ×2 and `WaterMode.test.tsx`
   (ONE MAP ENTRY) fail on HEAD without the round 3 edits too — the page shows the spinner after the keep tab appeared.
 

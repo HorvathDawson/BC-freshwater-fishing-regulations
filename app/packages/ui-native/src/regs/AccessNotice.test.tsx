@@ -29,9 +29,8 @@ describe("T54/T367: the access strips on the Regulations page", () => {
     expect(screen.queryByTestId("access-text")).toBeNull();
     expect([banner.style.borderLeftColor, banner.style.backgroundColor]).toEqual([rgb(LIGHT.warning), rgb(LIGHT.noAccessBand)]);
     expect(LIGHT.warning).toBe(LIGHT.waterStatus.own);
-    const dots = [...screen.getByTestId("access-swatch").querySelector("[data-testid=swatch-dotted]")!.children]
-      .map((d) => (d as HTMLElement).style.backgroundColor);
-    expect([dots.length, [...new Set(dots)]]).toEqual([4, [rgb(LIGHT.waterStatus.no_access)]]);
+    // (T367 round 4) no dotted swatch before the title: it read as "…"
+    expect(screen.queryByTestId("access-swatch")).toBeNull();
     // pinned: not in the scroll's content
     expect(screen.getByTestId("regs-content").contains(banner)).toBe(false);
     expect(screen.getByTestId("regs-scroll").contains(banner)).toBe(false);

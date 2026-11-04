@@ -7,8 +7,8 @@
  * screen size too small") Each notice is ONE slim strip pinned under the page's header, outside the scroll: its title in
  * bold, then what the land is by name, cut to one line; a tap opens the whole sentence under it, a second tap closes it.
  * The banner wears the WARNING amber (T165, `palette.warning`: a bar of it down the left, its tint as the ground,
- * `palette.noAccessBand`, and the legend's own swatch, the map's dotted grey line); the note wears the ACCENT, so the
- * two never read as one fact. Every word in ink, which holds 7:1 on both tints. No map link (T367): a link that does
+ * `palette.noAccessBand`); the note wears the ACCENT, so the two never read as one fact. No dotted swatch before the
+ * title: at strip size it read as an ellipsis (owner, T367 round 4). Every word in ink, which holds 7:1 on both tints. No map link (T367): a link that does
  * not highlight the area only moved the reader.
  */
 import { useState } from "react";
@@ -16,7 +16,6 @@ import { Pressable, Text, View } from "react-native";
 import type { AccessNotice } from "@app/core";
 import { TYPE } from "../type";
 import { NO_ACCESS_BAND, laid, type Palette } from "../theme";
-import { DottedSwatch } from "../Chrome";
 import { Icon } from "../icons";
 
 export function AccessNoticeBlock({ notices, palette }: { notices: readonly AccessNotice[]; palette: Palette }) {
@@ -41,7 +40,6 @@ function Strip({ notice, palette }: { notice: AccessNotice; palette: Palette }) 
                         borderBottomColor: palette.line, minHeight: 36, paddingVertical: 8, paddingLeft: 12,
                         paddingRight: 14, justifyContent: "center" }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        {banner && <View testID="access-swatch"><DottedSwatch colour={palette.waterStatus.no_access} width={18} /></View>}
         <Text testID="access-title" numberOfLines={open ? undefined : 1} style={[TYPE.meta, { color: palette.ink, flex: 1 }]}>
           <Text style={TYPE.metaBold}>{notice.title}</Text>{` · ${notice.brief}`}
         </Text>
