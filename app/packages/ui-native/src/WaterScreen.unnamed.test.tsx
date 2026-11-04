@@ -130,7 +130,7 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     expect([within(screen.getByTestId("regs-header")).getByRole("heading").textContent, screen.getByTestId("regs-place").textContent,
             screen.queryByTestId("regs-action"), !!within(screen.getByTestId("regs-columns")).getByTestId("regs-reading"),
             page.header.tabs.map((t) => within(side).queryAllByText(t.label).length > 0)])
-      // (T227) closed all year with no salmon: the side list offers no Gear / Methods
-      .toEqual([page.header.name, WORDS.TRIBUTARY_OF(HARRIS), null, true, [true, false, false, true]]);
+      // (T227) closed all year with no salmon: the side list offers no Gear / Methods; (owner 2026-11-04) nor Licence
+      .toEqual([page.header.name, WORDS.TRIBUTARY_OF(HARRIS), null, true, [true, false, false]]);
   }, 30_000);
 });
