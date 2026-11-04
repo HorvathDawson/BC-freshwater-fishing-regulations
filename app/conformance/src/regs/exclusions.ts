@@ -227,6 +227,9 @@ export const PART_TIDAL_EXCLUDE: readonly Exclusion[] = PART_TIDAL_IDS.flatMap((
  *  (T278) the freshwater remainder of a part a tidal cut shortened (taps.py PART_TIDAL, `tidal` on the tap): same rows,
  *  a shorter extent. */
 export const PART_GROWN_IDS: readonly string[] = Object.entries(tapsOnce().states).filter(([, t]) => t.grown || t.tidal).map(([id]) => id);
+/** (T322, 2026-11-04) grown states whose new extent words are only in the subtitle ("through 2 lakes" -> "through 1 lake":
+ *  a slough folded into the stream): the header's place keeps the golden's words and is compared whole. */
+export const GROWN_SUBTITLE_ONLY: ReadonlySet<string> = new Set(["x5p0_1010"]);
 /** (T67) The tapped states whose part kept its label and rows while the atlas re-cut the sections under it (taps.py
  *  PART_RECOUNTED: braid cuts, a ditch leaving its river, moved length cuts): {id: the store's count, why}. header.parity
  *  holds the subtitle to the golden's with that count (`recountedSub`); every block is compared whole. */
@@ -242,13 +245,14 @@ export function recountedSub(sub: string, n: number): string {
  *  closed part is a PART_GONE state) but the sheet lists the same stretches in the same words. Their Parts sheet is
  *  compared whole; sheets.parity would otherwise demand it differ. */
 export const RECUT_SAME_PARTS: Readonly<Record<string, string>> = {
-  "gnis:16075": "T220 (owner 2026-10-28): restored braid pieces renumbered the Dean's parts (x13p2's closed part is 3 now); the stretches and their words are unchanged",
+  // (T322, 2026-11-04) the Dean left: the slough fold made x13p4 "through 24 lakes" (was 31), so its Parts sheet's words
+  // are not the golden's any more — its tapped states join the re-cut Parts sheets
 };
 /** (T115) Every tapped state of a water whose parts the release re-cut (taps.json `recut`). */
 export const RECUT_IDS: readonly string[] = Object.entries(tapsOnce().states)
   .filter(([, t]) => t.item in (tapsOnce().recut ?? {}) && !(t.item in RECUT_SAME_PARTS)).map(([id]) => id);
 export const RECUT_EXCLUDE: readonly Exclusion[] = [
-  ...(PART_GROWN_IDS.length ? [{ block: "header" as const, ids: PART_GROWN_IDS, key: /^place\.(full|short)$/,
+  ...(PART_GROWN_IDS.length ? [{ block: "header" as const, ids: PART_GROWN_IDS.filter((id) => !GROWN_SUBTITLE_ONLY.has(id)), key: /^place\.(full|short)$/,
     reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md), then T183 (owner 2026-10-24) and T67: the part's extent changed — the Skeena's section 2 starts at the Exchamsiks, the West Road's straddling pieces are parts of their own (taps.json `grown`); T278: a tidal cut shortened the Campbell's and the Brunette's part (taps.json `tidal`) — so its extent words (the header's full and short label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale). (The Parts button whose aria quoted the label is gone: T150, GOLDEN_PARTS_ACTION_IDS)",
     until: "never on this golden — a prototype re-synced on T115's data" }] : []),
   ...(RECUT_IDS.length ? [{ block: "sheets" as const, ids: RECUT_IDS, key: /^parts$/,

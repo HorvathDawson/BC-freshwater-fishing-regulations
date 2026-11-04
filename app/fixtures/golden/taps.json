@@ -4,10 +4,10 @@
   "store": {
    "format": "regs-store/4",
    "section_handles": "822db448a2851809",
-   "reach_digest": "a01d4c9afee5296c",
+   "reach_digest": "225ecb22b4520335",
    "rule_ids_sha256": "ddafd3cfc412bdae",
-   "answers_sha256": "da2a391df0deb74d2cb08d9bceedade419b054ff52d8327c964c3ad878e9276a",
-   "store_digest": "c28ce7f5630a47b6",
+   "answers_sha256": "391c4f6dc8624f4677ff9ea62f4c3fb88ca862d636772942ecca26015a46b949",
+   "store_digest": "d6ced415e2372c1c",
    "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":18}}"
   },
   "golden": "d7b1ed353",
@@ -11572,8 +11572,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4597,
-    "rows": 3648,
+    "ladder": 4598,
+    "rows": 3650,
     "gear": 838,
     "licence": 2,
     "display": 32
@@ -12346,7 +12346,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 17680,
-   "akey": 1925,
+   "akey": 1926,
    "seg": 222,
    "mom": null,
    "nseg": 6,
@@ -12361,8 +12361,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 4817,
-    "rows": 3792,
+    "ladder": 4818,
+    "rows": 3794,
     "gear": 928,
     "licence": 169,
     "display": 137
@@ -13137,6 +13137,7 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "grown": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (9 -> 10 sections; same rows)",
    "item_ord": 3807,
    "akey": 540,
    "seg": 16,
@@ -15905,6 +15906,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): sloughs on the upper Kootenay are part of its stream now, so the part has more sections under the same label and rows: 16 -> 18 sections",
+    "sections": 18
+   },
    "item_ord": 1669,
    "akey": 315,
    "seg": 13,
@@ -19877,6 +19882,7 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "grown": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows)",
    "item_ord": 2379,
    "akey": 397,
    "seg": 26,
@@ -26137,7 +26143,7 @@
    "weekday": "Saturday",
    "recounted": {
     "reason": "T220 (owner 2026-10-28, FIX \"complete\"): no channel line ends where the water goes on: braid pieces that close a kept side channel were restored: 35 -> 36 sections",
-    "sections": 36
+    "sections": 37
    },
    "item_ord": 9871,
    "akey": 1052,
@@ -34939,7 +34945,7 @@
    "weekday": "Saturday",
    "recounted": {
     "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): on the Columbia (356570372) the automatic length cuts moved off braid-spanned junctions (owner Q2): 4 cuts -> 5, 132 -> 133 sections",
-    "sections": 139
+    "sections": 141
    },
    "item_ord": 9281,
    "akey": 483,
@@ -44473,8 +44479,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4131,
-    "rows": 3331,
+    "ladder": 4132,
+    "rows": 3333,
     "gear": 681,
     "licence": 166,
     "display": 32
@@ -44870,7 +44876,7 @@
    "s": 3,
    "cell": {
     "ladder": 3623,
-    "rows": 3098,
+    "rows": 3100,
     "gear": 457,
     "licence": 2,
     "display": 196
@@ -46441,7 +46447,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 17511,
-   "akey": 1911,
+   "akey": 1912,
    "seg": 0,
    "mom": null,
    "nseg": 1,
@@ -46451,8 +46457,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4794,
-    "rows": 3779,
+    "ladder": 4795,
+    "rows": 3781,
     "gear": 916,
     "licence": 168,
     "display": 965
@@ -47741,8 +47747,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4100,
-    "rows": 3308,
+    "ladder": 4101,
+    "rows": 3310,
     "gear": 446,
     "licence": 8,
     "display": 20
@@ -49305,121 +49311,121 @@
  "unnamed": [
   {
    "handle": 576,
-   "akey": 2118,
+   "akey": 2119,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
    "handle": 30353,
-   "akey": 2118,
+   "akey": 2119,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
    "handle": 67625,
-   "akey": 2161,
+   "akey": 2162,
    "place": 2,
    "name": "Unnamed stream \u00b7 Region 2"
   },
   {
    "handle": 350070,
-   "akey": 2184,
+   "akey": 2185,
    "place": 9,
    "name": "Unnamed stream \u00b7 Region 4"
   },
   {
    "handle": 767813,
-   "akey": 2117,
+   "akey": 2118,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
    "handle": 839064,
-   "akey": 2204,
+   "akey": 2205,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
    "handle": 911177,
-   "akey": 2204,
+   "akey": 2205,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
    "handle": 985795,
-   "akey": 2201,
+   "akey": 2202,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
    "handle": 1055925,
-   "akey": 2206,
+   "akey": 2207,
    "place": 12,
    "name": "Unnamed stream \u00b7 Region 5"
   },
   {
    "handle": 1124332,
-   "akey": 2204,
+   "akey": 2205,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
    "handle": 1237398,
-   "akey": 2242,
+   "akey": 2243,
    "place": 9,
    "name": "Unnamed wetland \u00b7 Region 4"
   },
   {
-   "handle": 1277159,
-   "akey": 2235,
+   "handle": 1277161,
+   "akey": 2236,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1309567,
-   "akey": 2235,
+   "handle": 1309577,
+   "akey": 2236,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1386921,
-   "akey": 2235,
+   "handle": 1386988,
+   "akey": 2236,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1472146,
-   "akey": 2235,
+   "handle": 1472295,
+   "akey": 2236,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1566523,
-   "akey": 2235,
+   "handle": 1566597,
+   "akey": 2236,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1662561,
-   "akey": 2235,
+   "handle": 1662688,
+   "akey": 2236,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1697319,
-   "akey": 2235,
+   "handle": 1697426,
+   "akey": 2236,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1836112,
-   "akey": 2235,
+   "handle": 1836552,
+   "akey": 2236,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1908369,
-   "akey": 2235,
+   "handle": 1908577,
+   "akey": 2236,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   }
@@ -50247,10 +50253,11 @@
   "gnis:39325": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the Fraser's straddling pieces are parts of their own again (15 -> 17 parts; the golden has 19); then T278 (r-62e2f3a8c81e, tidal cut split:fraser_river__the_cpr_bridge_at_mission, gnis:39325 at 76.51 km): the Fraser below the CPR Bridge at Mission is tidal (29 sections, store part 16, unkeyed), so the golden part 'From the mouth up to the CPR Bridge at Mission' (old store part 3) has no freshwater part and the parts after it are renumbered down by one (4..16 -> 3..15)",
   "gnis:39532": "T278 (r-62e2f3a8c81e, tidal cut split:campbell_river__cement_block_boundary_sign, gnis:39532 at 1.63 km): the Campbell from the mouth up to the cement block boundary sign is tidal (5 sections, store part 10, unkeyed); the golden two-stretch part (old store part 3, 8 sections) keeps only its Maple Street -> power line stretch (store part 5, 3 sections), and John Hart Lake -> Ladore Dam and cement block -> Maple Street are renumbered 4 -> 3 and 5 -> 4 (part order follows rule-set ids)",
   "gnis:2936": "T67 (owner 2026-10-24) and T183 (owner 2026-10-24: Skeena section 2 starts at the Exchamsiks cut): the Ecological Reserve's Exchamsiks host channel above the cut, 360216952:1017, keeps the section-2 designation the rest of the Reserve lost, and is a part of its own (8 -> 9 parts)",
+  "gnis:16075": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only",
+  "gnis:19955": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only",
   "gnis:26104": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the West Road's straddling pieces are parts of their own (3 -> 5 parts)",
   "gnis:14097": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only",
   "gnis:19986": "T228 (a757756b, owner 2026-10-28): no-access land breaks a water's pieces \u2014 the Coquitlam's Lougheed -> lake outlet stretch (golden part 0, 10 sections) is cut at the Coquitlam Watershed boundary into store parts 0 (1 section) and 1 (9), so the mouth and Mary Hill parts are renumbered 1 -> 2 and 2 -> 3 (4 parts, not 3); then T278 (r-62e2f3a8c81e, tidal cut split:coquitlam_river__mary_hill_bypass_bridge, gnis:19986 at 0.31 km): the Coquitlam from the mouth up to the Mary Hill Bypass Bridge is tidal (1 section, store part 3, unkeyed), so the golden mouth part (old store part 2) has no freshwater part and the Mary Hill -> Lougheed part is renumbered 3 -> 2",
-  "gnis:16075": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only",
   "gnis:37414": "2026-10-27 (owner, decisions.md \"needs a split\"): columbia_river.r11 'Speed restriction (10 km/h) from Mud Lake to Columbia Lake' now binds the Fairmont -> Columbia Lake stretch, so the golden's two-stretch part (Kinbasket Lake -> Donald + Fairmont -> Columbia Lake outlet, 3 sections) is two parts: 3 (Fairmont, 2 sections, with the speed limit) and 7 (Kinbasket -> Donald, 1 section)",
   "gnis:14619": "T67 (owner 2026-10-24): the Peace's braids are cut at Site C, the 1,200 m signs and the Halfway, so its parts are renumbered (part order follows rule-set ids)",
   "gnis:10070": "T278 (r-62e2f3a8c81e, tidal cut split:brunette_river__burlington_northern_railway_brid, gnis:10070 at 2.86 km): the Brunette below the Burlington Northern Railway Bridge is tidal (1 section, store part 2, unkeyed), so part 0 starts at the bridge, not the mouth (2 sections, same rows)"

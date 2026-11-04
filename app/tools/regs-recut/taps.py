@@ -130,6 +130,8 @@ RECUT_WHY = {"x22p2_1010": "T67 (owner 2026-10-24): the Peace's braids are cut a
              "x37p1_1010": f"{T228}; then {COQUITLAM_TIDAL}",
              "x16p3_1010": CAMPBELL_TIDAL, "x23p0_1010": BRUNETTE_TIDAL}
 PART_GROWN = {
+    "x13p4_1010": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows)",
+    "x5p0_1010": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (9 -> 10 sections; same rows)",
     "x27p0_1010": f"{T183}: the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections",
     "x27p2_1010": f"{T183}: the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch",
     "x19p0_1010": f"{T67}: the Exchamsiks confluence cut runs straight across and {_LEN}; then T183 (owner 2026-10-24): "
@@ -176,6 +178,8 @@ PART_GONE = {
 # atlas full.prev vs the bundle of atlas full): every part below keeps its label and rows; only its section count moved.
 # {state: (store part_ix, why)} — the golden part is the store's part `ix`, same label, another section count
 PART_RECOUNTED = {
+    "x9p5_1010": (5, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): sloughs on the upper Kootenay are part of "
+                     "its stream now, so the part has more sections under the same label and rows: 16 -> 18 sections"),
     "cow0_1010": (0, "T185 (owner marks 2026-10-27): the new Sandy Pool white-triangle sign cut (DFO "
                      "'from 66 Mile Trestle downstream to the sign') lies inside this stretch: 10 -> 11 sections"),
     "x21p2_1010": (2, "T179 (owner 2026-10-24, one cut-placement pass): gauge 08NK030 stood 232 m from the curated Elko "

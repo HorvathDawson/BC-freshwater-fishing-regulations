@@ -75,12 +75,14 @@ describe("EXCLUDE", () => {
     // (T228) x37p0 gone; the Coquitlam's 2 tapped states (x37p1/2, renumbered) join the re-cut Parts sheets (40 -> 42)
     // (T278) x15p3, x37p1 tidal (whole-state, after the gone); x16p3 and x23p0 are tidal remainders (extent words:
     // 6 -> 8); the Fraser and Coquitlam lose a tapped state each, the Campbell's 9 and the Brunette's 2 join (42 -> 51)
+    // (T322, 2026-11-04, the slough fold) x5p0 and x13p4 grew (one lake fewer, 7 lakes fewer); x13p4's header words changed (8 -> 9), x5p0's only in its subtitle (GROWN_SUBTITLE_ONLY); the
+    // Dean leaves RECUT_SAME_PARTS and x5's water is re-cut, so their tapped states join the re-cut Parts sheets (51 -> 58)
     const gone = ["x13p2_1010", "x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x18p3_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010", "x37p0_1010", "x9p2_1010"].flatMap(() =>
       ["header 1 -", "keep 1 -", "gear 1 -", "methods 1 -", "licence 1 -", "sheets 1 -", "pins 1 -"]);
     const tidal = ["x15p3_1010", "x37p1_1010"].flatMap(() =>
       ["header 1 -", "keep 1 -", "gear 1 -", "methods 1 -", "licence 1 -", "sheets 1 -", "pins 1 -"]);
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual([...gone, ...tidal, "header 8 ^place\\.(full|short)$", "sheets 51 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
+      .toEqual([...gone, ...tidal, "header 9 ^place\\.(full|short)$", "sheets 58 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
         "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`,
         `header ${GOLDEN_PARTS_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",

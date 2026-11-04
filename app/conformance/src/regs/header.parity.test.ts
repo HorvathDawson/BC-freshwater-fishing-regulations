@@ -13,7 +13,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { buildModel, headerOf, makePlace, settle, stripOf, subtitleOf, type HeaderVM } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, requestOf, summary } from "./golden";
-import { excluded, PART_RECOUNTED, recountedSub } from "./exclusions";
+import { excluded, PART_RECOUNTED, recountedSub, PART_GROWN_IDS } from "./exclusions";
 
 interface GHeader { name: string; day: string; date: string; dateAria: string; dot: string;
   place: { shown: string; full: string; short: string } | null; action: { kind: string; label: string; aria: string } | null;
@@ -73,7 +73,8 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
 
   it.each(ids)("1. %s: the subtitle the full label is tested against is page v36's", async (id) => {
     // (T115) a grown part's subtitle carries its new extent and section count (exclusions PART_GROWN_IDS) — asserted to differ
-    if (excluded("header", id, "place.full")) expect(subtitleOf((await inputsOf(id))!)).not.toBe(G.states[id]!.sub);
+    // (T322) a grown part whose new words are only in the subtitle (GROWN_SUBTITLE_ONLY) is grown here too
+    if (PART_GROWN_IDS.includes(id)) expect(subtitleOf((await inputsOf(id))!)).not.toBe(G.states[id]!.sub);
     // (T67) a recounted part (taps.py PART_RECOUNTED): the golden's subtitle with the store's section count, the rest exact
     else if (PART_RECOUNTED[id]) expect(subtitleOf((await inputsOf(id))!))
       .toBe(recountedSub(G.states[id]!.sub, PART_RECOUNTED[id]!.sections));

@@ -435,6 +435,7 @@ describe("<WaterMapView>", () => {
         "tap, ▲, the list's lowest (the owner's)": await wayIn(open({ item: C, tapSid: 316504 as SectionId, view: "map" }), [up, pick(0)]),
       };
       const first = ways.reload![0];
+      // the atlas's section handles (822db448…): they move with a new ATLAS, not a new release
       expect(JSON.parse(first)).toMatchObject({ where: "Part 1 of 3 · Coquitlam River", highlight: [316504, 316505],
                                                 fit: { key: "gnis:19986:2", bbox: [-122.808104, 49.226226, -122.78, 49.269798] } });
       for (const [way, [drew, reloaded]] of Object.entries(ways)) expect({ way, drew, reloaded }).toEqual({ way, drew: first, reloaded: first });
