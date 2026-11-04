@@ -29,6 +29,8 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - Licence guiding folded; page foot as fine print (owner 11-04).
 - Running: 0.5.0 APK + emulator sitting (install, pan, locate, regs-open/T340, gestures, walkthrough, water-nav,
   memory → out/r050). Then suites, AAB.
+- Owner 11-04: full suites skipped before release, run right after it. Handoff for the next chat:
+  `NEXT-SESSION-after-0.5.0.md`. T389 filed (unnamed links without `lines`, after 0.5.0).
 
 ## 2026-11-04 (merged chat, evening): owner answers in, T368/T369 lanes, T370 done [T368, T369, T370, T375, T360, T77, T381]
 - Owner answered T368 (9) and T369 (3): recorded at the end of each audit file; two agent lanes implement them now.

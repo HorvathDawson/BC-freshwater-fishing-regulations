@@ -1,5 +1,7 @@
 # One chat to 0.5.0: start here
 
+**Superseded once 0.5.0 is on Play: start from `NEXT-SESSION-after-0.5.0.md`.**
+
 Written 2026-11-04. It replaces `NEXT-SESSION-BATCH2.md` and `NEXT-SESSION-UI.md`. The pipeline chat and the UI chat
 (T367) are now merged, so this chat owns the whole tree: pipeline, worker, core, ui, ui-native, map. The old rule about
 which chat edits which files no longer applies.
