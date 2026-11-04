@@ -417,6 +417,7 @@ use that as the sole source of future work."
 | T371 | 0.5.0 to Play Closed testing: track, listing/app-content forms, 12 testers × 14 days → production access checklist | OPEN | — | owner 2026-11-03 (batch 7) |
 | T372 | Partial coverage: one rule for trout + salmon (keep the answer + an undrawn-part caveat), resolved in Python | OPEN (before 0.5.0) | — | owner 2026-11-03 |
 | T373 | Run timing always matches the release's map: the release builds/binds it for its own handles, refuses otherwise | OPEN (before 0.5.0) | — | owner 2026-11-03 |
+| T374 | The Skeena tributary walk collects 11 lake sections (owner rule: walks pass lakes, collect streams) — may bind trout trib rules to lakes | OPEN | — | found 2026-11-03 |
 
 ## Order for open tickets
 

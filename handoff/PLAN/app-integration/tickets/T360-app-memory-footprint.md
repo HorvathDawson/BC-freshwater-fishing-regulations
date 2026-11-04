@@ -122,3 +122,12 @@ Probe: `[heap]` every 2 s in test-bed builds (apps/mobile/index.js); `session.sh
   package.json, lock). Next: log PdfView attach/detach + `PdfFile.dispose` per open; check the Modal unmounts the view.
   (Symbols are stripped in this build, so heapprofd names no pdfium function.)
 - The memory scenario's "Salmon" layer tap no longer finds its text (label changed by the UI chat?) — fix the step.
+
+## Round 5 (2026-11-03): the PDF leak's cause
+react-native-pdf posts `drawPdf` from `setPath` AND from every props transaction (`PdfManager.onAfterUpdateTransaction`),
+and our viewer passed a new `source` object each render: one open loaded the book 2+ times. Each load recycles the view
+first; a load still decoding is only flagged cancelled — AndroidPdfViewer 4.0.1's `DecodingAsyncTask.onCancelled` sets
+`cancelled` and nothing else, so the `PdfDocument` it opened (`createDocument` → `PdfFile`) is never closed (javap). Fix
+(uncommitted until measured): the patch now skips a draw of the same path + page on a view not recycled since
+(`drawnKey`; the pageMap closing is gone — it found 0 pages), and `PdfViewer.native.tsx` memoizes `source`. Measuring:
+heapprof `t360-pdf2` (queued after the batch-3 rebuild).

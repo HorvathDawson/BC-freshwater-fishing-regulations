@@ -2271,7 +2271,7 @@ def test_to_be_determined_is_a_state_not_a_parse_failure():
 
 @pytest.mark.needs_source
 def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
-    """All 438 rows convert, and every rule's verbatim is a span of its own row — the check
+    """All 461 rows convert, and every rule's verbatim is a span of its own row — the check
     that caught an invented sub-limit on the synopsis corpus's first sample."""
     from pipeline.regs.dfo_salmon.typed import row_text, to_rules
     from pipeline.regs.parsing.catalogue import squash
@@ -2287,7 +2287,7 @@ def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
                 assert squash(rule.verbatim) in haystack, f"{rule.rule_id}: verbatim is not in its row"
             rows += 1
             made += len(typed)
-    assert rows == 438, f"the corpus is 438 rows, got {rows}"
+    assert rows == 461, f"the corpus is 461 rows, got {rows}"   # T366 refresh 11-03 (R1, R2, R6)
     assert made > rows, "a bundled row states more than one rule"
 
 
@@ -2304,7 +2304,7 @@ def test_the_feed_revalidates_from_disk():
                 CatalogueRule(**rule)
                 total += 1
     # T349: + 10 page-default sentences (one rule each, `cascade.statement_locators`)
-    assert total == 527, f"expected the 527 typed rules on disk, got {total}"
+    assert total == 548, f"expected the 548 typed rules on disk, got {total}"   # T366 refresh 11-03
 
 
 @pytest.mark.needs_source
@@ -2458,7 +2458,8 @@ def test_the_skeena_cascade_resolves_through_the_join():
 
     # the water reopens coho for a window
     coho = [r for r in rules_for(water) if r.species == ["CO"] and r.take == 4]
-    assert coho and [d.words() for d in coho[0].when.dates] == ["Jul 15-Aug 23"]
+    # the page's in-season window (2026-09-02: FN0897 / FN0951 moved it from Jul 15-Aug 23)
+    assert coho and [d.words() for d in coho[0].when.dates] == ["Sep 4-Oct 15"]
 
     # the band it sits in closes coho outright
     band = next(l for l in ef.locations if l.section == "B(i)" and l.precedence == 1)

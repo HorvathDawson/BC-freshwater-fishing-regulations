@@ -4603,14 +4603,16 @@
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
-      "review_note": "owner 2026-11-03 (chat): the reworded Fraser place is the curated one; takes its extent",
+      "review_note": "",
       "binding": {
         "extents": [],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "DFO dropped \", BC\" from the same reach (upstream of the CPR Bridge at Mission); owner confirmed 2026-11-03"
+        ],
         "spatial_caveat": false
       }
     },
@@ -4654,14 +4656,16 @@
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
-      "review_note": "owner 2026-11-03 (chat): the reworded Fraser place is the curated one; takes its extent",
+      "review_note": "",
       "binding": {
         "extents": [],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "DFO reworded the Mission→Hope reach (\"downstream of the CPR Bridge at Mission to the Highway 1 Bridge at Hope\" = the reach from the downstream side of the CPR Bridge to Hope); owner confirmed 2026-11-03"
+        ],
         "spatial_caveat": false
       }
     }
