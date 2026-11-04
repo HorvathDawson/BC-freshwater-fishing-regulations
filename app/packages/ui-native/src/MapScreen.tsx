@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 import { View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import type { Horizon, HorizonChipVM, MyLocation } from "@app/ui";
-import { CornerStrip } from "./CornerStrip";
+import { HorizonPicker } from "./HorizonPicker";
 import { MapRail } from "./MapRail";
 import type { Palette } from "./theme";
 
@@ -138,10 +138,9 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14, right: 72, flexDirection: "column",
                                           gap: 8, alignItems: "flex-start" }} pointerEvents="box-none">
       {horizons && (
-        <CornerStrip palette={palette} testID="map-horizons" coach="horizons" scroll
-                     segments={horizons.chips.map((h) => ({ key: String(h.day), chip: h.chip, label: h.label, on: h.on,
-                                                            note: h.note ?? undefined,
-                                                            onPress: () => horizons.onPick(h.day) }))} />
+        // (T367) Now · <day> ▾ · Change: the forecast days open under the strip
+        <HorizonPicker palette={palette} testID="map-horizons" coach="horizons" chips={horizons.chips}
+                       onPick={horizons.onPick} />
       )}
       {/* (T213) the Map tab's day, the same strip in the same corner (`MapDayStrip`) */}
       {corner}

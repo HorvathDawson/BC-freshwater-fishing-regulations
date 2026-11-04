@@ -93,6 +93,19 @@ export function horizonChipLabel(d: Horizon, on: boolean): string {
 }
 
 /**
+ * (T367, owner 2026-11-04: "a drop down … with now and change outside the dropdown") THE DAY PICKER'S WORDS: the strip
+ * is Now · <the forecast day> ▾ · Change, and the middle opens every forecast day.
+ */
+export const HORIZON_PICK = {
+  /** the middle segment before a forecast day is chosen */
+  forecast: "Forecast",
+  /** its screen-reader name with no day chosen (a day chosen: that day's own name; `aria-expanded` says it opens) */
+  open: "Choose a forecast day",
+  /** the list's name */
+  list: "Forecast days",
+} as const;
+
+/**
  * (T367, owner 2026-11-03: "more control … to show more days") A DAY'S CHIP BY ITS DATE: "Wed 5", never "+1d" — the
  * reader plans by the day, and the strip can grow to every day the publisher forecasts without its words changing.
  * Now and Change keep their words; the screen-reader name stays how far ahead it is (`horizonChipLabel`).

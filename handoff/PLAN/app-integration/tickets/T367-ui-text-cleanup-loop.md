@@ -38,6 +38,9 @@ Only then does it go into the 0.5.0 APK (the one APK for the batch). No APK per 
 - 4 (11-04): the strip's dotted swatch read as "…" → removed. Round 2 built: Runs species chips show the spawning
   picture; a stale/failed run timing is an amber bar over the map (`PairBanner`, `col.runsProblem`, Runs tab only),
   no longer a grey line in the foot; words "Run timing is out of date for this map, so it isn't drawn." Verdict pending.
+- 5 (11-04): ten dated chips pushed Change out of sight → `HorizonPicker` (map corner + panel header): Now · Forecast ▾
+  (or the chosen day, filled) · Change; the middle opens the ten days under the strip, a pick closes it. The strip's
+  scroll option is gone. Verdict pending.
 - Open (not this chat's): `WaterScreen.regs-props.test.tsx` (fixture release, T35 Licence) ×2 and `WaterMode.test.tsx`
   (ONE MAP ENTRY) fail on HEAD without the round 3 edits too — the page shows the spinner after the keep tab appeared.
 

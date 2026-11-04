@@ -45,7 +45,7 @@ import type { StationId } from "@app/data";
 import { useDonorView, type DonorRowVM, type GaugeSides, type Horizon, type HorizonChipVM, type PanelAnswer,
          type Quantity } from "@app/ui";
 import { DonorMap, routeMapHeight } from "./DonorMap";
-import { CornerStrip } from "./CornerStrip";
+import { HorizonPicker } from "./HorizonPicker";
 import { useCoachTarget } from "./CoachMarks";
 import { GaugeGroups } from "./GaugeGroups";
 import { Icon } from "./icons";
@@ -357,19 +357,14 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
 /**
  * The panel header's horizon chips — drawn from the VM's `horizons` (decided in @app/ui), as ONE compact segmented row
  * (the map's own day strip, `CornerStrip`), never a wrapping run of chips: on a phone "Now · +1d · +3d · +5d · +10d ·
- * Change" was two lines. (T367) Each day is named by its date ("Wed 5"), and the strip scrolls sideways when it outgrows
- * the width. Change (the delta view, not a date) is a trend glyph at the end, a mode toggle set off by a heavier divider, said aloud as its label.
+ * Change" was two lines. (T367) Now · <day> ▾ · Change (`HorizonPicker`): the forecast days, named by date, open under it. Change (the delta view, not a date) is a trend glyph at the end, a mode toggle set off by a heavier divider, said aloud as its label.
  */
 function HorizonHeader({ palette, chips, onPick }: {
   palette: Palette; chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void;
 }) {
   return (
     <View style={{ flexDirection: "row" }}>
-      <CornerStrip palette={palette} testID="panel-horizons" coach="cond:horizons" scroll
-                   segments={chips.map((h) => ({
-                     key: String(h.day), chip: h.day === "change" ? "" : h.chip, label: h.label, on: h.on,
-                     ...(h.note ? { note: h.note } : {}), ...(h.day === "change" ? { icon: "delta" as const, mode: true } : {}),
-                     onPress: () => onPick(h.day) }))} />
+      <HorizonPicker palette={palette} testID="panel-horizons" coach="cond:horizons" chips={chips} onPick={onPick} changeIcon />
     </View>
   );
 }

@@ -50,11 +50,15 @@ describe("<MapScreen> corner", () => {
 
   it("offers now and every forecast day, in core's words, ten days included — and Change last (T52)", () => {
     render(<MapScreen {...BASE} horizons={horizons(0)} />);
-    // (T367) each forecast day by its date, every day the publisher forecasts
-    for (const t of HORIZONS.map((d) => horizonDateChip(d, new Date()))) expect(screen.getByText(t)).toBeTruthy();
-    // In order, left to right: the same order as the panel's header.
-    expect([...document.querySelectorAll("[aria-label]")].map((e) => e.getAttribute("aria-label")))
-      .toEqual(HORIZONS.map((d) => horizonChipLabel(d, d === 0)));
+    // (T367) Now · Forecast ▾ · Change; the drop-down holds each forecast day by its date, every day the publisher forecasts
+    const strip = () => [...screen.getByTestId("map-horizons").children].map((e) => e.getAttribute("aria-label"));
+    expect(strip()).toEqual(["Conditions now, showing", "Choose a forecast day", "Expected change over the next 10 days"]);
+    expect(screen.getByText("Forecast")).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Choose a forecast day"));
+    expect(screen.getByLabelText("Choose a forecast day").getAttribute("aria-expanded")).toBe("true");
+    const days = HORIZONS.filter((d) => typeof d === "number" && d > 0);
+    expect([...screen.getByTestId("map-horizons-list").children].map((e) => [e.textContent, e.getAttribute("aria-label")]))
+      .toEqual(days.map((d) => [horizonDateChip(d, new Date()), horizonChipLabel(d, false)]));
   });
 
   it("reports which horizon is showing to a screen reader, not only in colour", () => {
@@ -80,14 +84,18 @@ describe("<MapScreen> corner", () => {
     const segs = [...strip.children] as HTMLElement[];
     expect(segs.map((s) => [s.getAttribute("aria-label"), s.getAttribute("data-hitslop"),
                             (s.firstElementChild as HTMLElement).style.borderLeftWidth || "0px"]))
-      .toEqual(HORIZONS.map((d, i) => [horizonChipLabel(d, d === 3), "46 33 6 0 5 0", i ? "1px" : "0px"]));
+      .toEqual([["Conditions now", "46 33 6 0 5 0", "0px"], [horizonChipLabel(3, true), "46 33 6 0 5 0", "1px"],
+                ["Expected change over the next 10 days", "46 33 6 0 5 0", "1px"]]);
   });
 
   it("hands back the day that was tapped, ten included", () => {
     const onPick = vi.fn();
     render(<MapScreen {...BASE} horizons={horizons(0, onPick)} />);
+    fireEvent.click(screen.getByLabelText("Choose a forecast day"));
     fireEvent.click(screen.getByLabelText("Forecast 10 days ahead"));
     expect(onPick).toHaveBeenCalledWith(10);
+    expect(screen.queryByTestId("map-horizons-list")).toBeNull();   // a pick closes the list
+    fireEvent.click(screen.getByLabelText("Choose a forecast day"));
     fireEvent.click(screen.getByLabelText("Forecast 5 days ahead"));
     expect(onPick).toHaveBeenLastCalledWith(5);
   });

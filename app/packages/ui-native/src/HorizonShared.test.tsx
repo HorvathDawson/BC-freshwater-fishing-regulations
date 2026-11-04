@@ -69,6 +69,7 @@ describe("the map's horizon control and the panel's share one state", () => {
 
   it("choosing +10 on the map repaints the map and moves the panel with it", () => {
     render(<Wired />);
+    fireEvent.click(map().getByLabelText("Choose a forecast day"));
     fireEvent.click(map().getByLabelText("Forecast 10 days ahead"));
     expect(map().getByLabelText("Forecast 10 days ahead, showing")).toBeTruthy();
     expect(panel().getByLabelText("Forecast 10 days ahead, showing")).toBeTruthy();
@@ -78,10 +79,12 @@ describe("the map's horizon control and the panel's share one state", () => {
 
   it("choosing Now in the panel moves the map's control back", () => {
     render(<Wired />);
+    fireEvent.click(map().getByLabelText("Choose a forecast day"));
     fireEvent.click(map().getByLabelText("Forecast 3 days ahead"));
+    expect(panel().getByLabelText("Forecast 3 days ahead, showing")).toBeTruthy();
     fireEvent.click(panel().getByLabelText("Conditions now"));
     expect(map().getByLabelText("Conditions now, showing")).toBeTruthy();
-    expect(map().getByLabelText("Forecast 3 days ahead")).toBeTruthy();
+    expect(map().getByLabelText("Choose a forecast day")).toBeTruthy();
     expect(screen.getByText("painted at +0")).toBeTruthy();
   });
 });

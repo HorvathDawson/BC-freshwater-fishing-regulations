@@ -367,15 +367,17 @@ describe("the donor panel", () => {
 
   it("offers every horizon, above the number they change", () => {
     draw({ value: answer(), horizon: 3, onHorizon: () => {} });
-    // (T367) each day by its date, every day the publisher forecasts
-    for (const t of ["Now", ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((d) => horizonDateChip(d as Horizon, new Date()))])
+    // (T367) Now · the chosen day ▾ · Change; the drop-down holds each day by its date, every day the publisher forecasts
+    expect(screen.getByLabelText("Forecast 3 days ahead, showing").textContent).toBe(horizonDateChip(3, new Date()));
+    fireEvent.click(screen.getByLabelText("Forecast 3 days ahead, showing"));
+    for (const t of ["Now", ...[1, 2, 4, 5, 6, 7, 8, 9, 10].map((d) => horizonDateChip(d as Horizon, new Date()))])
       expect(screen.getByText(t)).toBeTruthy();
-    expect(screen.getByLabelText("Forecast 3 days ahead, showing")).toBeTruthy();
   });
 
   it("hands back the horizon that was tapped", () => {
     const onHorizon = vi.fn();
     draw({ value: answer(), horizon: 0, onHorizon });
+    fireEvent.click(screen.getByLabelText("Choose a forecast day"));
     fireEvent.click(screen.getByLabelText("Forecast 5 days ahead"));
     expect(onHorizon).toHaveBeenCalledWith(5);
   });

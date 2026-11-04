@@ -4,12 +4,9 @@
  * Tomorrow · a calendar segment), in the same top-left corner, so the two maps choose a day the same way. The chosen
  * segment is FILLED, not merely tinted: it repaints the whole map, so which one is on has to read from the corner of an
  * eye. Each segment is a 44 × 44 press (`hitProps`).
- *
- * (T367) `scroll`: a strip with more days than the width holds (the forecast's, by date) scrolls sideways in place of
- * squeezing or wrapping.
  */
 import { LoadingState } from "./LoadingState";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useCoachTarget } from "./CoachMarks";
 import { hitProps } from "./regs/hit";
 import { Icon, type IconName } from "./icons";
@@ -28,6 +25,10 @@ export interface CornerSegment {
   /** (T130) a second, greyed line: a day this segment does not answer */
   readonly note?: string;
   readonly icon?: IconName;
+  /** (T367) an icon AFTER the words: the day picker's chevron */
+  readonly trail?: IconName;
+  /** (T367) it opens a list: `aria-expanded` */
+  readonly expanded?: boolean;
   /** a MODE, not a day: set off from the days by a heavier divider (Conditions' Change) */
   readonly mode?: boolean;
   /** false: shown, refused (`aria-disabled`) */
@@ -37,17 +38,15 @@ export interface CornerSegment {
   readonly busy?: boolean;
 }
 
-export function CornerStrip({ palette, segments, testID, label, radio = false, coach, scroll = false }: {
+export function CornerStrip({ palette, segments, testID, label, radio = false, coach }: {
   palette: Palette; segments: readonly CornerSegment[]; testID: string; label?: string;
   /** one choice of several (Standard / Salmon): a radiogroup of radios, `aria-checked` not `aria-pressed` */
   radio?: boolean;
   /** (T257) the key the first-run tour points at this strip by (`useCoachTarget`) */
   coach?: string;
-  /** (T367) scroll sideways when the segments are wider than the room */
-  scroll?: boolean;
 }) {
   const target = useCoachTarget(coach);
-  const strip = (
+  return (
     <View ref={target} collapsable={false} testID={testID} accessibilityLabel={label} accessibilityRole={radio ? "radiogroup" : undefined}
           style={{ flexDirection: "row", backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2,
                    borderRadius: palette.r.pill, overflow: "hidden", ...palette.lift }}>
@@ -57,7 +56,8 @@ export function CornerStrip({ palette, segments, testID, label, radio = false, c
         return (
           <Pressable key={h.key} testID={`${testID}-${h.key}`} onPress={h.onPress} disabled={!enabled}
                      accessibilityRole={radio ? "radio" : "button"} accessibilityLabel={h.label} aria-disabled={!enabled}
-                     aria-busy={h.busy} {...(radio ? { "aria-checked": h.on } : { "aria-pressed": h.on })} {...SEGMENT_HIT}>
+                     aria-busy={h.busy} {...(h.expanded !== undefined ? { "aria-expanded": h.expanded } : {})}
+                     {...(radio ? { "aria-checked": h.on } : { "aria-pressed": h.on })} {...SEGMENT_HIT}>
             <View style={{ minWidth: 46, paddingVertical: h.note ? 4 : 8, paddingHorizontal: 10, flexDirection: "row",
                            gap: 5, alignItems: "center", justifyContent: "center",
                            backgroundColor: h.on ? palette.accent : palette.card, opacity: enabled ? 1 : 0.45,
@@ -76,17 +76,11 @@ export function CornerStrip({ palette, segments, testID, label, radio = false, c
                   </Text>
                 )}
               </View>
+              {h.trail && <Icon name={h.trail} colour={ink} size={13} />}
             </View>
           </Pressable>
         );
       })}
     </View>
-  );
-  if (!scroll) return strip;
-  return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} testID={`${testID}-scroll`}
-                style={{ flexGrow: 0, maxWidth: "100%" }} contentContainerStyle={{ paddingBottom: 4 }}>
-      {strip}
-    </ScrollView>
   );
 }
