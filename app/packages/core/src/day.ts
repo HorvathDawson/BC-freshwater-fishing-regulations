@@ -9,7 +9,7 @@
  */
 import { BC_TIME_LABEL, bcOffsetHours } from "./clock";
 import { reportOnce } from "./failure";
-import { monthAbbr } from "./flow";
+import { monthAbbr, weekdayAbbr } from "./flow";
 
 const DAY_MS = 86_400_000;
 
@@ -231,11 +231,10 @@ export function visitSteps(at: number, now: number): VisitSteps {
     laterHour: h < 23 && setVisitHour(at, h + 1, Infinity) <= now,
     hour: h,
     hourLabel: `${pad2(h)}:00`,
-    dayText: `${WD[w.getUTCDay()]} ${MON[w.getUTCMonth()]} ${pad2(w.getUTCDate())} ${w.getUTCFullYear()}`,   // Date#toDateString's shape
+    // Date#toDateString's shape, on the B.C. clock; the names are the one table (flow.ts)
+    dayText: `${weekdayAbbr(w.getUTCDay())} ${monthAbbr(w.getUTCMonth())} ${pad2(w.getUTCDate())} ${w.getUTCFullYear()}`,
   };
 }
-const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**
  * The days a visit is almost always on — the drive home, the evening after, the next morning — as one tap each.
