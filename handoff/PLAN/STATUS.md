@@ -16,9 +16,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - Also landed: T387 (every tap on a part gives the same page, net), T384 + T385 (open on my location; share), T178
   (worker scores monthly), T371 drafts + owner answers (Open-Meteo at 0.01°, web name "Can I Fish This?"), T377 item 1
   (forecast days by watershed: browse = map-centre group in the legend bar, a water = its own group; 5b69686c2).
-- Running: the ONE 0.5.0 rebuild (reach ok 11m37s; deliver writing the release).
-- Next: check + promote the release, re-cut pins, T65 side atlas, ONE emulator sitting (fling, clock, sun, location,
-  share, T340, launcher label fit), suites, staging, worker, AAB.
+- Release r-b86b60ca533b built + promoted (reach 11m37s, deliver 11m07s; vintages agree; test_release 24/24; app
+  release tests 4202/4202). Request walk re-cut (08b263e): it caught ~2.5 MB of SQLite on web FIRST PAINT (T293's
+  walkthrough water search + T369's address store at boot + two whole-water routes) — all fixed, a test guards it.
+- Owner decision open: the web address's place (T369) fetches `lines` (1.2 MB gz) on the FIRST water a visitor opens.
+  Unpriced by design (contract). Keep, or write the place only when Share / copy-link is used?
+- Running: T65 side atlas (`--atlas`). Next: ONE emulator sitting, suites, staging, worker, AAB.
 
 ## 2026-11-04 (merged chat, evening): owner answers in, T368/T369 lanes, T370 done [T368, T369, T370, T375, T360, T77, T381]
 - Owner answered T368 (9) and T369 (3): recorded at the end of each audit file; two agent lanes implement them now.

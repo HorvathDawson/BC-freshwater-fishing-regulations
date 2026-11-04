@@ -64,7 +64,7 @@ map-feel ticket; T55 shrunk to "owner confirms slough marks" (T322 carries the f
 
 ## Remaining, in order (2026-11-04, owner)
 1. T387 lands (every tap on a part gives the same page; the Salmon card fix found on the dev web app with it).
-2. THE ONE REBUILD, right after (owner 2026-11-04: the dev web app's data must be current — pre-T372 salmon file):
+2. DONE (r-b86b60ca533b, walk re-cut 08b263e; T65 running): THE ONE REBUILD, right after (owner 2026-11-04: the dev web app's data must be current — pre-T372 salmon file):
    bundle → release (T372 `n`, T376 basins, T339 names, T387 part data, T370 `water-shared`, T386 `lines`), promoted
    locally, release pins re-cut, the request walk re-pinned; T65 = the atlas built twice, diffed.
    Commands (dry run 2026-11-04: clim + tiles up to date; reach + deliver run — deliver writes the release + LATEST):
