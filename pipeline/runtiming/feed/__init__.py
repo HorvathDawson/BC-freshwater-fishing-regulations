@@ -1,8 +1,11 @@
 """THE RUN-TIMING FEED (T199, owner 2026-10-28): its own stream, NOT the release. Fetched, bound to the live atlas and
 uploaded to R2 `runtiming/` by `.github/workflows/feeds-runtiming.yml` (or by hand, the same commands); the app reads it
-lazily in the Map tab's Run timing mode. Nothing in the bundle, the release or `deliver` reads or writes it.
+lazily in the Map tab's Run timing mode. Nothing in the bundle or the release reads it. (T373, owner 2026-11-03: "always
+synced") `deliver all` BINDS it for every release's map (`feed.release`: the base built when missing, the parsed timings
+bound, the vintage check refusing a feed of other tiles) into `data/generated/runtiming/feed/out`, and the staging upload
+publishes that feed with its release; the workflow below keeps refreshing the runs against the same base.
 
-    # owner, on the Mac, once per atlas (after a promote: the base names the atlas's sections)
+    # by hand (deliver all does this for every release since T373; the base names the atlas's sections)
     python -m pipeline.runtiming.feed.base [--upload]              # -> data/generated/runtiming/feed/base-<handles>.json.gz
     # anywhere (the workflow does this): HTTP + the base, no atlas
     python -m pipeline.runtiming.fetch.explorer && python -m pipeline.runtiming.fetch.boundaries \\

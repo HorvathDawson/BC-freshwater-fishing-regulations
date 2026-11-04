@@ -71,6 +71,17 @@ deploy/staging/sync-inputs.sh
 for w in app/node_modules/sql.js/dist/sql-wasm-browser.wasm app/node_modules/sql.js/dist/sql-wasm.wasm; do
   cp_ "$w" "$(basename "$w")" --header-upload "Content-Type: application/wasm" --header-upload "Cache-Control: public, max-age=86400"
 done
+# (T373) THE RUN-TIMING FEED OF THIS RELEASE'S MAP (`deliver all` binds it: data/generated/runtiming/feed/out), published
+# with the release — refused when it names other tiles; its binding base goes to private/ for the scheduled refresh
+RT=data/generated/runtiming/feed/out/runtiming
+RT_TV=$(.venv/bin/python -c "import json;print(json.load(open('$RT/index.json'))['tile_version'])") \
+  || { echo "upload: no run-timing feed at $RT — run pipeline.deliver all"; exit 1; }
+[[ "$RT_TV" == "$TILES" ]] || { echo "upload: the run-timing feed is bound to $RT_TV, the release's tiles are $TILES"; exit 1; }
+RT_H=${TILES%%.*}
+if ! rclone lsf "$D/private/runtiming/base/$RT_H.json.gz" --s3-no-check-bucket 2>/dev/null | grep -q .; then
+  rclone copyto "data/generated/runtiming/feed/base-$RT_H.json.gz" "$D/private/runtiming/base/$RT_H.json.gz" --s3-no-check-bucket
+fi
+.venv/bin/python -m pipeline.runtiming.feed.publish --dir "$RT" --via wrangler --yes
 # (T251) the publish day (kept once set) and, with MIN_APP_VERSION=x.y.z, the oldest app that may apply it: stamped
 # into the manifest here, never by the build; neither moves a file, the tiles or the release id (nothing re-uploaded)
 .venv/bin/python -m pipeline.deliver.release.stamp "$M" ${MIN_APP_VERSION+--min-app-version "$MIN_APP_VERSION"}

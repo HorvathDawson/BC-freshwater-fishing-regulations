@@ -213,8 +213,11 @@ def _bytes(obj: dict) -> bytes:
     return (json.dumps(obj, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n").encode("utf-8")
 
 
-def build(timing_path: Path, polygons_path: Path, base_path: Path) -> Tuple[Dict[str, bytes], dict, dict]:
-    """({name: raw bytes} for runs / paint / waters, the index (urls + digests), a report)."""
+def build(timing_path: Path, polygons_path: Path, base_path: Path,
+          tile_version: Optional[str] = None) -> Tuple[Dict[str, bytes], dict, dict]:
+    """({name: raw bytes} for runs / paint / waters, the index (urls + digests), a report). `tile_version` (T373): the
+    tiles the feed ships beside (a release's), when they are a later cut of the base's atlas (same handles); else the
+    base's."""
     from shapely.geometry import shape
     timing = read_timing(timing_path)
     if not polygons_path.is_file():
@@ -224,6 +227,7 @@ def build(timing_path: Path, polygons_path: Path, base_path: Path) -> Tuple[Dict
                 for f in fc["features"]}
     base = BASE.read(base_path)
     a = atlas_of(base)
+    tv = tile_version or a.tile_version
     wg = wg_of(base)
     del base
     psf, dfo = list(timing.psf), list(timing.dfo)
@@ -246,7 +250,7 @@ def build(timing_path: Path, polygons_path: Path, base_path: Path) -> Tuple[Dict
                 "sources": sources, "counts": COUNTS, "runs": [run_record(r) for r in runs]}
     runs_raw = _bytes(runs_doc)
     runs_sha = hashlib.sha256(runs_raw).hexdigest()
-    paint_doc = {"format": PAINT_FORMAT, "section_handles": a.handles, "tile_version": a.tile_version,
+    paint_doc = {"format": PAINT_FORMAT, "section_handles": a.handles, "tile_version": tv,
                  "runs_sha256": runs_sha, "profiles": profiles, "sid": delta, "p": [rows[s] for s in sids],
                  "km": [int(round(km[s] / 10)) + 1 if s in psf_here and s in km else 0 for s in sids]}
     if wg is not None:
@@ -256,7 +260,7 @@ def build(timing_path: Path, polygons_path: Path, base_path: Path) -> Tuple[Dict
     files = {"runs": runs_raw, "paint": _bytes(paint_doc), "waters": _bytes(waters_doc)}
     built_at = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     index = {"format": INDEX_FORMAT, "built_at": built_at, "section_handles": a.handles,
-             "tile_version": a.tile_version, "sources": {k: {"credit": v["credit"], "updated": v["updated"],
+             "tile_version": tv, "sources": {k: {"credit": v["credit"], "updated": v["updated"],
                                                              "fetched": v["fetched"]} for k, v in sources.items()},
              "files": {}}
     for name, raw in files.items():

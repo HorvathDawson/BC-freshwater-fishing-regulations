@@ -195,3 +195,19 @@ def test_add_basins_keeps_the_handles_and_the_name(tmp_path, monkeypatch):
     assert b["section_handles"] == orig["section_handles"] and b["cols"]["x"] == orig["cols"]["x"]
     assert b["strings"]["wg"] == ["LFRA"] and b["cols"]["wg"] == [0, -1, -1, -1, -1, -1]
     assert B.wg_of(b) == {1: "LFRA"}
+
+
+def test_t373_a_release_without_its_runtiming_inputs_is_refused_not_given_an_old_feed(tmp_path):
+    """(T373) `runtiming.feed.release.bind` binds for the release's own map; missing timing / polygons stop it, with
+    the commands that make them — never a feed of another day or atlas in their place."""
+    import json
+    import pytest
+    from pipeline.runtiming.feed import release as R
+    tiles = tmp_path / "tiles"
+    tiles.mkdir()
+    (tiles / "atlas.meta.json").write_text(json.dumps({"section_handles": "h1", "tile_version": "h1.t1"}))
+    with pytest.raises(SystemExit, match="fetch and parse first"):
+        R.bind(tmp_path / "r-x", tiles, tmp_path / "out", timing=tmp_path / "none.json", polygons=tmp_path / "none.geojson")
+    (tiles / "atlas.meta.json").write_text(json.dumps({"section_handles": "h1"}))
+    with pytest.raises(SystemExit, match="no section_handles / tile_version"):
+        R.bind(tmp_path / "r-x", tiles, tmp_path / "out")

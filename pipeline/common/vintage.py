@@ -176,6 +176,7 @@ class Artifacts:
     status_index: Path
     export: Path            # ui-rules-export.json; the guide, the answers and the stamp sit beside it
     store: Optional[Path] = None   # the regs store: only in `deliver all`'s staging (P20 — none is kept)
+    runtiming: Optional[Path] = None   # (T373) the run-timing feed's index.json, bound for this release's map
 
     @property
     def guide(self) -> Path:
@@ -194,13 +195,15 @@ class Artifacts:
     def in_dir(cls, d: Path) -> "Artifacts":
         """`deliver all --out-dir d`'s layout: every file in one directory."""
         d = Path(d)
-        return cls(d / "bundle.sqlite", d / "status_index.bin", d / "ui-rules-export.json", d / "regs.sqlite")
+        return cls(d / "bundle.sqlite", d / "status_index.bin", d / "ui-rules-export.json", d / "regs.sqlite",
+                   d / "runtiming" / "runtiming" / "index.json")
 
     @classmethod
     def canonical(cls) -> "Artifacts":
         from pipeline.common.curated import GENERATED
         from pipeline.deliver.export.contract import OUT as EXPORT_OUT
-        return cls(GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "status_index.bin", EXPORT_OUT)
+        return cls(GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "status_index.bin", EXPORT_OUT,
+                   runtiming=GENERATED.runtiming / "feed" / "out" / "runtiming" / "index.json")
 
 
 def _meta(p: Path) -> dict:
@@ -277,6 +280,23 @@ def report_all(tiles_dir: Path, arts: Artifacts, *, strict: bool = False) -> tup
             fail(arts.store.name, f"rule_ids_sha256 {S.get('rule_ids_sha256')!r} ≠ the bundle's {rids!r}")
         if sha and S.get("answers_sha256") != sha:
             fail(arts.store.name, "answers_sha256 is not the answers file's: the store holds other answers")
+    # (T373) THE RUN-TIMING FEED is bound to this map: the bundle's handles and the tiles' own cut — else Run timing
+    # paints nothing on these tiles (the app refuses a paint index of another atlas)
+    if arts.runtiming is not None:
+        if not arts.runtiming.exists():
+            (fail if strict else lambda n, w: lines.append(f"  vintage: not checked — {w}"))(
+                "runtiming", "no run-timing feed bound for this release")
+        else:
+            rt = json.loads(arts.runtiming.read_text(encoding="utf-8"))
+            tv = None
+            try:
+                tv = json.loads((Path(tiles_dir) / "atlas.meta.json").read_text(encoding="utf-8")).get("tile_version")
+            except (OSError, ValueError):
+                pass
+            if rt.get("section_handles") != want["section_handles"]:
+                fail("runtiming", f"bound to {rt.get('section_handles')!r}, the bundle's {want['section_handles']!r}")
+            elif tv and rt.get("tile_version") != tv:
+                fail("runtiming", f"stamped {rt.get('tile_version')!r}, the tiles are {tv!r}")
     # THE RELEASE (P08): every shipped file names the bundle's sid space
     rel = arts.bundle.parent / "release"
     for man in sorted(rel.glob("*/manifest.json")) if rel.exists() else []:

@@ -416,7 +416,7 @@ use that as the sole source of future work."
 | T370 | Web: `water-{region}` slices each repeat ~0.7 MB of shared rules/keys; one shared web file instead (measure first) | OPEN | — | found 2026-11-03 (after 0.5.0) |
 | T371 | 0.5.0 to Play Closed testing: track, listing/app-content forms, 12 testers × 14 days → production access checklist | OPEN | — | owner 2026-11-03 (batch 7) |
 | T372 | Partial coverage: one rule for trout + salmon (keep the answer + an undrawn-part caveat), resolved in Python | OPEN (before 0.5.0) | — | owner 2026-11-03 |
-| T373 | Run timing always matches the release's map: the release builds/binds it for its own handles, refuses otherwise | OPEN (before 0.5.0) | — | owner 2026-11-03 |
+| T373 | Run timing always matches the release's map: the release builds/binds it for its own handles, refuses otherwise | DONE 11-04 | — | owner 2026-11-03 |
 | T374 | The Skeena tributary walk collects 11 lake sections (owner rule: walks pass lakes, collect streams) — may bind trout trib rules to lakes | DONE 11-04 (not a bug: the 11 are owner-confirmed sloughs folded into their creeks; test fixed) | — | found 2026-11-03 |
 | T375 | Forecast feed publishes every day +1..+10 (HORIZONS in publish.py + worker), for the UI chat's day chips | DONE in code 11-03 (worker redeploy + feed size left) | — | owner 2026-11-03 |
 | T376 | The Conditions view's watershed (map centre / a water's own, no fallback) + basin names, for the UI chat's forecast-day list | OPEN (0.5.0 batch 4) | — | UI chat via T367, 2026-11-03 |

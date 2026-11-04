@@ -155,14 +155,19 @@ H, REACH, RIDS = "147b20dce7d8576c", "ad6279cad5f3fc76", "16be720be08b0fca"
 
 
 def _delivery(d: Path, *, handles=H, reach=REACH, store_handles=None, answers_text='x', stamp_ok=True,
-              fmt="bundle/1") -> Artifacts:
+              fmt="bundle/1", rt_handles=None, rt_tiles="TV1") -> Artifacts:
     """One delivery's artifacts in `d`, every digest agreeing unless told otherwise."""
     from pipeline.deliver import status_index as SI
     from pipeline.deliver.answers.card_check import STAMP_NAME
     from pipeline.deliver.bundle.build import BUNDLE_FORMAT, schema_sha256
     d.mkdir(parents=True, exist_ok=True)
     _tiles(d / "tiles", handles)
-    (d / "tiles" / "atlas.meta.json").write_text(json.dumps({"section_handles": handles, "registry": "reg1"}))
+    (d / "tiles" / "atlas.meta.json").write_text(json.dumps({"section_handles": handles, "registry": "reg1",
+                                                             "tile_version": "TV1"}))
+    # (T373) the run-timing feed bound for this delivery's map
+    (d / "runtiming" / "runtiming").mkdir(parents=True, exist_ok=True)
+    (d / "runtiming" / "runtiming" / "index.json").write_text(json.dumps({
+        "section_handles": rt_handles or handles, "tile_version": rt_tiles}))
     db = sqlite3.connect(d / "bundle.sqlite")
     db.execute("CREATE TABLE meta (k TEXT, v TEXT)")
     db.executemany("INSERT INTO meta VALUES (?, ?)", [
@@ -207,6 +212,9 @@ def test_report_all_passes_a_delivery_whose_every_digest_agrees(tmp_path: Path):
     ("the store from another atlas", {"store_handles": "0000000000000000"}, "regs.sqlite"),
     ("a stamp with problems", {"stamp_ok": False}, "card-check.json"),
     ("an older bundle format", {"fmt": "bundle/0"}, "format"),
+    # (T373) Run timing bound to another atlas paints nothing; one stamped with an older cut is not this release's
+    ("run timing of another atlas", {"rt_handles": "0000000000000000"}, "runtiming"),
+    ("run timing of an older tile cut", {"rt_tiles": "TV0"}, "runtiming"),
 ])
 def test_report_all_refuses_one_artifact_out_of_step(tmp_path: Path, what, kw, says):
     ok, msg = report_all(tmp_path / "tiles", _delivery(tmp_path, **kw), strict=True)
@@ -222,6 +230,9 @@ def test_report_all_refuses_answers_changed_after_the_store_and_the_gate(tmp_pat
 
 def test_report_all_strict_refuses_a_missing_artifact_lenient_notes_it(tmp_path: Path):
     arts = _delivery(tmp_path)
+    arts.runtiming.unlink()                                   # (T373) a release with no run timing bound is refused
+    assert not report_all(tmp_path / "tiles", arts, strict=True)[0]
+    arts = _delivery(tmp_path / "b")
     arts.store.unlink()
     assert not report_all(tmp_path / "tiles", arts, strict=True)[0]
     ok, msg = report_all(tmp_path / "tiles", arts, strict=False)

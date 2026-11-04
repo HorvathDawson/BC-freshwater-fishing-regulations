@@ -134,6 +134,10 @@ def _all(a) -> int:
         # (T202) THE BASEMAP THE RELEASE NAMES LIVES BESIDE THE RELEASES (data/release/basemap/<id>/, T75), not in this
         # staging folder, which holds only the new r-* folder. The vintage check resolves the manifest's basemap url
         # under the staging release, so it is shown the released basemaps there; only r-* folders are promoted below.
+        # (T373) RUN TIMING BOUND FOR THIS RELEASE'S MAP (`runtiming.feed.release`), checked by the vintage below and
+        # promoted with it: a release never ships beside a feed of another atlas
+        _step(["runtiming", "--release-root", str(d / "release"), "--out", str(d / "runtiming"),
+               *(["--tiles", str(a.tiles)] if a.tiles else []), *(["--build", str(a.build)] if a.build else [])])
         bm_root, bm_here = rel_root / "basemap", d / "release" / "basemap"
         if bm_root.is_dir() and bm_here.parent.is_dir() and not bm_here.exists():
             bm_here.symlink_to(bm_root.resolve(), target_is_directory=True)
@@ -149,7 +153,7 @@ def _all(a) -> int:
         # the release folder(s) go to data/release/ (or <out-dir>/release/), whole
         # only the r-* folders: the release step's LATEST pointer is re-written below, once the folder is in place (T72)
         releases = sorted(p for p in (d / "release").glob("r-*") if p.is_dir()) if (d / "release").exists() else []
-        names = sorted(p.name for p in d.iterdir() if p.name != "release")
+        names = sorted(p.name for p in d.iterdir() if p.name not in ("release", "runtiming"))
         unknown = [n for n in names if dest is None and n not in homes]
         if unknown:
             raise SystemExit(f"pipeline.deliver: no home for {unknown} — nothing was promoted")
@@ -167,6 +171,13 @@ def _all(a) -> int:
         if releases:
             from pipeline.deliver.release.manifest import write_latest
             write_latest(rel_root, releases[-1].name)
+        # (T373) the run-timing feed of this release, whole, where the data server and the upload read it
+        rt_home = (dest / "runtiming") if dest else GENERATED.runtiming / "feed" / "out"
+        if (d / "runtiming").exists():
+            if rt_home.exists():
+                shutil.rmtree(rt_home)
+            rt_home.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(d / "runtiming", rt_home)
         print(f"pipeline.deliver: promoted {len(names)} files to {dest or 'their canonical homes'}"
               + (f" and release {', '.join(r.name for r in releases)} to {rel_root}" if releases else ""))
         return 0
@@ -223,6 +234,11 @@ def main(argv=None) -> int:
     st.add_argument("--out", type=Path, default=None,
                     help="default: pipeline.deliver.store.DEBUG_OUT (data/generated/debug/regs.sqlite)")
     st.add_argument("--blobs", default="zdict", choices=("json", "deflate", "zdict"))
+    rt = sub.add_parser("runtiming", help="(T373) the run-timing feed bound for the one release in --release-root")
+    rt.add_argument("--release-root", type=Path, required=True)
+    rt.add_argument("--out", type=Path, required=True)
+    rt.add_argument("--tiles", type=Path, default=None)
+    rt.add_argument("--build", type=Path, default=None)
     al = sub.add_parser("all", help="bundle, then the index and the export from THAT bundle")
     al.add_argument("--build", type=Path, default=None)
     al.add_argument("--reaches", type=Path, default=None)
@@ -244,6 +260,13 @@ def main(argv=None) -> int:
             a.out_dir = None
             a.debug_json = False
         return _all(a)
+    if a.step == "runtiming":
+        from pipeline.runtiming.feed.release import bind
+        rels = sorted(p for p in a.release_root.glob("r-*") if p.is_dir())
+        if len(rels) != 1:
+            raise SystemExit(f"pipeline.deliver runtiming: expected one release in {a.release_root}, found {len(rels)}")
+        bind(rels[0], a.tiles or GENERATED.tiles, a.out, a.build)
+        return 0
     if a.step == "bundle":
         _bundle(a)
     elif a.step == "verdicts":

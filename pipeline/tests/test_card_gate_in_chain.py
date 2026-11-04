@@ -45,7 +45,9 @@ def _run_all(monkeypatch, tmp_path, fail_at=None):
 
 def test_deliver_all_runs_the_card_gate_after_answers_and_before_store(monkeypatch, tmp_path):
     ran = _run_all(monkeypatch, tmp_path)
-    assert ran == ["bundle", "verdicts", "status_index", "export", "answers", "card_check", "store", "release"]
+    # (T373) then the run-timing feed bound for the release just made, before the vintage check
+    assert ran == ["bundle", "verdicts", "status_index", "export", "answers", "card_check", "store", "release",
+                   "runtiming"]
 
 
 def test_a_failing_card_gate_stops_the_chain_before_store(monkeypatch, tmp_path):
