@@ -92,3 +92,23 @@ MB, `dumpsys meminfo` App Summary. Graphics reads 0 on the emulator (host GPU): 
 Probe: `[heap]` every 2 s in test-bed builds (apps/mobile/index.js); `session.sh --opengl` builds the other variant.
 - Correction (run t360-pdf): the viewer costs ~70 MB while OPEN and keeps ~35–40 MB after it closes (273 → 345 open →
   312 closed; a RUNNING_MODERATE trim frees nothing). Not 70 retained.
+
+## Round 3 (2026-11-03, chat 5; run t360-cond)
+- **Earlier rows were over satellite:** the `memory` scenario's second Satellite tap never turned it off (the ground
+  is a choice, not a toggle), so water page / rule book / Conditions in rounds 1–2 had Esri imagery under them. Fixed:
+  the Map base is chosen by its id after the satellite step.
+- Over the drawn map: before the rule book 278 PSS / 103 native; **Conditions 422 / 245** (+140 native); Gauges off
+  421 / 239; Gauges + arrows off 418 / 238; back on the Map tab 429 / 245 (nothing given back); Conditions again
+  411 / 198; trim 394 / 188.
+- So the cost is not the Conditions layers. JS is ~17 MB of it: the `[heap]` probe's `size` left out Hermes'
+  EXTERNAL bytes (typed arrays, 37–68 MB through the run; they count as "Native"); JS total 116 → 133 MB. The rest
+  (~120 MB) is MapLibre's. Next: heapprofd (`run.mjs heapprof`, `heapprof.py`) names it by library and function.
+- **Bug found and fixed (02433a339):** Gauges off left the dots drawn (`useAsync` keeps its last answer for an
+  unchanged key when disabled).
+- **PDF:** the app holds none of the book in JS and react-native-pdf disposes the document on detach. The scenario now
+  measures after a second open + close: not growing = a one-time pdfium cost, not a leak.
+- **Trim (item 3), in code:** `modules/memory-trim` (Android) answers `onTrimMemory` (RUNNING_MODERATE and up):
+  `onLowMemory()` on every MapLibre MapView (maplibre-react-native never forwarded it) + a `trim` event; JS
+  (`src/memoryTrim.ts`) shrinks every open SQLite connection (`ReleaseLoader.trim`, `PRAGMA shrink_memory`, through
+  the one SQL queue). iOS: the same shrink on `memoryWarning` (MLNMapView handles its own). Decoded files are not
+  dropped (the screens hold them). Emulator check: run t360-trim.

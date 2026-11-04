@@ -8,6 +8,26 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-03 (chat 5): batch 2 memory, into batch 3 [T360, T366]
+- **T360 measurement fixed:** the earlier memory runs were all over satellite after the satellite step (a second tap
+  never turned it off). On the drawn map: Conditions still adds ~140 MB native and keeps it after you leave; switching
+  its gauges/arrows off changes nothing. About 17 MB of that is the app's own data; the rest is the map engine's. Next:
+  a native memory profile (heapprofd) to name it.
+- **Bug fixed:** on Conditions, Gauges off left the gauge dots drawn (02433a339).
+- **Memory given back when Android asks** (in code, emulator check running): the maps drop tiles they don't draw and
+  the databases shrink their caches. Before this nothing answered.
+- **Batch 3 started:** T366 (clean DFO refresh with a preview; region 2's FN1179) is being worked as a second lane.
+  Found: regions 2 and 6 ship no region header notes today (their rules are older than any saved page); T366 keeps the
+  header with the rules so it cannot go missing.
+- **Where the memory goes (heapprofd):** the rule book LEAKS ~25 MB of pdfium pages per open (the PDF library closes
+  the document but not its pages); patched (react-native-pdf, closes them on close). Conditions keeps only ~28 MB
+  live: the rest is memory the map engine used and freed, which Android's allocator keeps; a trim now hands it back
+  (`mallopt` purge). Both on the emulator now (t360-fix).
+- **T366 done, waits on you:** the DFO refresh previews before it writes; ran for regions 1, 2, 6 (no marks moved).
+  Region 2's Fraser was reworded twice (FN1179 is on one): confirm the two places in DFO mode (OWNER-TODO).
+- **T338 done** (a stretch closure no longer closes the whole river), **T357 done** (Python side). T356 + T358 (one
+  salmon format change, salmon/4) running as a second lane; T343 follows them.
+
 ## 2026-11-03 (chat 4): batch 2 emulator sitting [T368, T354, T360, T345, T352]
 - **T368 (new, in 0.5.0, batch 6c):** the app-wide failures/fallbacks/reporting sweep, split from T333. Two found
   today and fixed on the way: boot's `.catch(() => null)` on the manifest (it hid a 404) and the source-line
