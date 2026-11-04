@@ -253,10 +253,11 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       {sec("gear", gear)}
       {sec("methods", methods)}
       {sec("licence", licence)}
-      {/* (T236) every page's foot: not legal advice, and how current its sources are */}
-      <WaterInset testID="regs-legal" style={{ paddingTop: 20, gap: 4 }}>
-        <Text style={{ ...TYPE.small, color: palette.sub }}>{LEGAL_WORDS.footer}</Text>
-        {asOf && <Text testID="regs-as-of" style={{ ...TYPE.small, color: palette.sub }}>{asOf}</Text>}
+      {/* (T236) every page's foot: not legal advice, and how current its sources are — (owner 2026-11-04) as fine print
+          under a hairline, so it does not read as part of the page */}
+      <WaterInset testID="regs-legal" style={{ marginTop: 20, paddingTop: 10, gap: 2, borderTopWidth: 1, borderTopColor: palette.line }}>
+        <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{LEGAL_WORDS.footer}</Text>
+        {asOf && <Text testID="regs-as-of" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{asOf}</Text>}
       </WaterInset>
       {/* (T41 Q3) once, at the page's foot: the report is about the whole page (it names no tab) */}
       <ReportLink page={page} palette={palette} />

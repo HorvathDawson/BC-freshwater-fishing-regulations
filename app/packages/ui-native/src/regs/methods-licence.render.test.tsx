@@ -49,6 +49,12 @@ function mountLicence(vm: LicenceVM, who: Who = ADULT) {
   return { ...a, whos, lines: () => domLines(screen.getByTestId("licence-tab")) };
 }
 
+/** (owner 2026-11-04) the guiding block is folded, closed by default: the golden's lines are drawn once it is opened */
+function openGuiding(): void {
+  const fold = screen.queryByTestId("licence-guiding-fold");
+  if (fold) fireEvent.click(within(fold).getByRole("button"));
+}
+
 describe("<MethodsTab>", () => {
   it("bc1_501: ✓ ways with their conditions, ✕ ways, the boat rule and its source", () => {
     const { sheets } = mountMethods(methodsOf(bc1501));
@@ -165,11 +171,22 @@ describe("<LicenceTab>", () => {
     for (const [id, all] of [["vedder_1010", LIC], ["x5p1_1010", LIC_X5P1], ["klmb_1010", LIC_KLMB]] as const) {
       for (const [k, vm] of Object.entries(all)) {
         const { lines } = mountLicence(vm, whoOf(k));
+        openGuiding();
         expect([id, k, lines()]).toEqual([id, k, GL[id]!.licence[k]]);
         cleanup();
       }
       expect([id, Object.keys(all).sort()]).toEqual([id, Object.keys(GL[id]!.licence).sort()]);
     }
+  });
+
+  it("(owner 2026-11-04) guiding is folded, closed: its summary shows, its cards only once opened", () => {
+    const vm = Object.values(LIC).find((v) => JSON.stringify(v).includes("lostlist lopen"))!;
+    const { lines } = mountLicence(vm);
+    const fold = screen.getByTestId("licence-guiding-fold");
+    expect(within(fold).getByRole("button").getAttribute("aria-expanded")).toBe("false");
+    expect(lines().some((l) => /angling guide licence/.test(l))).toBe(false);
+    openGuiding();
+    expect(lines().some((l) => /angling guide licence/.test(l))).toBe(true);
   });
 
   it("(D17) x5p1_1010: the class box draws its head, ⓘ, unit and \"Source\"; each angler's Source opens licsrc:<profile>", () => {

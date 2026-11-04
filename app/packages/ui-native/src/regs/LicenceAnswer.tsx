@@ -10,6 +10,7 @@ import { LIC, type LicenceBlockVM, type NeedItemVM, type SheetKey } from "@app/c
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { TermText, type KeepActions } from "./LineText";
+import { Fold } from "./sheet/Fold";
 
 type Acts = Pick<KeepActions, "onSheet">;
 
@@ -97,9 +98,10 @@ function Block({ b, palette, actions }: { b: LicenceBlockVM; palette: Palette; a
     case "muted":
       return <Text style={[...small, { marginVertical: SPACE.s1 }]}>{b.text}</Text>;
     case "lostlist lopen":
+      // (owner 2026-11-04) guiding concerns almost no reader: folded, closed by default ("If you are guiding other anglers")
       return (
-        <View testID="licence-lostlist" style={{ marginTop: SPACE.s3, paddingTop: SPACE.s2, borderTopWidth: 1, borderTopColor: palette.line }}>
-          <Text style={[TYPE.kicker, { color: palette.sub, marginBottom: 4 }]}>{b.label}</Text>
+        <View testID="licence-lostlist" style={{ marginTop: SPACE.s3, paddingTop: SPACE.s1, borderTopWidth: 1, borderTopColor: palette.line }}>
+          <Fold summary={b.label} palette={palette} testID="licence-guiding-fold">
           {b.cards.map((c, i) => (
             <View key={i} style={{ paddingVertical: 6 }}>
               <Text style={small}>{c.forWho}</Text>
@@ -115,6 +117,7 @@ function Block({ b, palette, actions }: { b: LicenceBlockVM; palette: Palette; a
               </View>
             </View>
           ))}
+          </Fold>
         </View>
       );
   }
