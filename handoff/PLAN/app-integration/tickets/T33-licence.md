@@ -1,5 +1,7 @@
 # T33 — presenter: licence (who is fishing, label, answer, sources)
 
+(owner 2026-11-04, 92bf5516d: the sources part — `licence.src`, the `licsrc:` sheet — is REMOVED; it only restated the items.)
+
 Status: DONE — b3ab85c5, a43a0de2, cd0a2a59.
 
 Phase 3 · Depends on T00, T04 (`licence_*` codecs, statics `licence.*`, `export.licences`, `lic` words), T05
