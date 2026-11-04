@@ -1,7 +1,7 @@
 """The bundle's GAUGE TABLES, written in one place (audit F04, plan 2.7).
 
     gauge · section_gauge · lake_gauge · gauge_clim · gauge_stats · section_panel · panel_member ·
-    basin_member · section_down
+    basin_member · basin · basin_frame · basin_grid (T376, `pipeline.deliver.bundle.basin_grid`) · section_down
 
 `pipeline.deliver.bundle.build` calls `write()` while the atlas graph and geometries are loaded; nothing
 here matches a station (the frozen `matches.json` is read through `pipeline.gauges.matches` and placed
@@ -26,6 +26,17 @@ from pipeline.gauges.feed.record import MIN_RECORD_YEARS, QUANTITIES, record_yea
 #: used to resolve to `output/output/feeds/...` whenever `data_dir` was defaulted.
 CLIM_PATH = GENERATED.gauges.feeds / "clim.json"
 
+
+
+def hydat_station_names(hydat: Path, stations: list) -> dict:
+    """(T339) station -> HYDAT's STATION_NAME for every one of `stations`; a station HYDAT does not hold raises."""
+    import sqlite3
+    with sqlite3.connect(f"file:{hydat}?mode=ro", uri=True) as c:
+        got = dict(c.execute("SELECT STATION_NUMBER, STATION_NAME FROM STATIONS"))
+    missing = [s for s in stations if s not in got]
+    if missing:
+        raise SystemExit(f"gauge names: {len(missing)} stations not in HYDAT (e.g. {missing[:3]})")
+    return {s: got[s] for s in stations}
 
 def _area_model(gpkg: Path) -> AreaModel:
     """Magnitude -> catchment area, fitted per basin from the named watersheds.
@@ -172,9 +183,13 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     # caser (T113 `place_names.display_case`: Mc/Mac/O', ordinals) makes it "McGregor River at Lower Canyon", once, here
     # — the app shows `gauge.name` as it comes and no longer re-cases it ("Mcgregor").
     from pipeline.deliver.bundle.place_names import display_case
+    # (T339) THE NAME IS HYDAT'S: the Province's stations layer lags a rename (08MH044 "AT WHONOCK" is HYDAT 2026-10-19's
+    # "AT ALBION", ~6 km downstream; 08HB083 "5TH AVENUE" is "5TH STREET"). Every station of the layer is in HYDAT; one
+    # that is not stops the build rather than keep the layer's name.
+    hydat_names = hydat_station_names(Path(SOURCE) / "hydat.sqlite3", [s["station"] for s in stations])
     db.executemany("INSERT INTO gauge (station, name, item_id, sid, lon, lat, area_km2, mag, "
                    "matched_by, match_m, tidal, backwater) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [
-        (s["station"], display_case(s["name"]),
+        (s["station"], display_case(hydat_names[s["station"]]),
          owner.get(matched.get(s["station"], "")),
          sid.get(matched[s["station"]]) if s["station"] in matched else None,
          s["lon"], s["lat"], s.get("area_km2"),
@@ -395,6 +410,9 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
                   f"({100*len(_basins)/max(len(_frame),1):.0f}% of the province)")
         else:
             raise SystemExit("basin_member: no watershed groups resolved to a station")
+        # (T376) the same groups by name and by place: what the app names a group with, and finds one by a point
+        from pipeline.deliver.bundle import basin_grid as _basin_grid
+        _basin_grid.write(db, _frame, cov)
     except Exception as _exc:                                   # noqa: BLE001
         # P2 (no missing-file fallbacks): a missing groups layer used to be a skip, and the
         # bundle built "fine" with no basins. It stops the build now, naming the cause.

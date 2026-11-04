@@ -31,6 +31,8 @@ export * from "./openWater";
 // (T369) NOT `./place`: links are web-only (`@app/ui/place`, imported by the app's .web.ts modules alone)
 export * from "./mapModes";
 export * from "./conditionsColour";
+// (T376) the watershed group a Conditions view is about: the map centre's, a water's own
+export * from "./basin";
 export * from "./lakeColour";
 export * from "./salmonColour";
 export * from "./runTiming";

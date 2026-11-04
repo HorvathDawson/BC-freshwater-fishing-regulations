@@ -40,6 +40,23 @@ export const PACK_FILES: Record<string, PackFile> = {
     "format": "conditions/1",
     "kind": "sqlite",
     "tables": {
+      "basin": [
+        "ix",
+        "basin_id",
+        "name"
+      ],
+      "basin_frame": [
+        "w",
+        "s",
+        "dlon",
+        "dlat",
+        "cols",
+        "rows"
+      ],
+      "basin_grid": [
+        "row",
+        "b"
+      ],
       "gauge": [
         "station",
         "name",

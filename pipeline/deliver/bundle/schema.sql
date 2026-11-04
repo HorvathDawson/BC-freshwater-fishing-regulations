@@ -991,6 +991,17 @@ CREATE TABLE basin_member (basin_id TEXT NOT NULL,
                            level_years INTEGER NOT NULL,
                            PRIMARY KEY (basin_id, station)) WITHOUT ROWID;
 
+-- (T376) THE WATERSHED GROUPS BY NAME AND BY PLACE (pipeline/deliver/bundle/basin_grid.py): every group's
+-- name as sourced (WATERSHED_GROUP_NAME), and a grid that says which group a point is in -- the
+-- Conditions map's centre, a water's own place. Copied whole into the release's `conditions`.
+CREATE TABLE basin (ix INTEGER PRIMARY KEY,
+                    basin_id TEXT NOT NULL UNIQUE,   -- the tiles' basin_id (WATERSHED_GROUP_CODE)
+                    name TEXT NOT NULL);             -- WATERSHED_GROUP_NAME, as sourced
+CREATE TABLE basin_frame (w REAL NOT NULL, s REAL NOT NULL, dlon REAL NOT NULL, dlat REAL NOT NULL,
+                          cols INTEGER NOT NULL, rows INTEGER NOT NULL);
+-- one row per grid row, south to north: LEB128 (run length, basin.ix) pairs west to east; ix 0 = no group
+CREATE TABLE basin_grid (row INTEGER PRIMARY KEY, b BLOB NOT NULL);
+
 -- A station on a lake, linked to the lake. No trust band: there is no fraction of a level,
 -- so the gauge is either on this water or it is not.
 CREATE TABLE lake_gauge (item_id TEXT NOT NULL, station TEXT NOT NULL,

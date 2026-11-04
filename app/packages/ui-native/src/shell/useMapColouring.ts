@@ -199,9 +199,10 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   /*
    * (T376) THE WATERSHED GROUP UNDER THE CONDITIONS MAP'S CENTRE (`centreBasin`: `{ id, name }`, null in none; the id is
    * `basinStandings`' key), asked when the map comes to rest (`noteCentre`, from `onMoved`) and only on Conditions. A
-   * water's Conditions view asks its OWN group (`useWaterBasin`), never this one.
+   * water's Conditions view asks its OWN group (`useWaterBasin`), never this one. Asked on a proven pair only, as the
+   * standings are: the conditions file it reads is then already being opened for them, so it adds no fetch of its own.
    */
-  const centre = useCentreBasin(source, mm.onConditions, HOME);
+  const centre = useCentreBasin(source, mm.onConditions && paired, HOME);
   /*
    * THE DAY'S STATUS, ONLY on a proven pair with an index that matched (`statusOk`) (`statusFeed`): the map is handed
    * the index and the day and labels each tile as it arrives (colour-latency AP — no `idle`, no round trip through

@@ -7,6 +7,7 @@ import type { Bbox, IndexWater, SearchIndexData, WaterFix } from "@app/core";
 import type {
   Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, GaugeWaters, ItemId, LakeInfo, NameHit, NearHit, Panel, Parameter, PanelRoute, PlaceHit, PlaceId, PointerHit, Reading, Release, SectionId, Series, StationId, Water,
 } from "./types";
+import type { Basin } from "./basinGrid";
 
 export interface WaterSource {
   info(): Promise<BundleInfo>;
@@ -113,6 +114,14 @@ export interface WaterSource {
    * the number is not a footnote — it is what stops the field claiming more than it knows.
    */
   basinMembers(): Promise<ReadonlyMap<string, readonly BasinMember[]>>;
+  /**
+   * (T376) THE WATERSHED GROUP A POINT IS IN — its id (the `basinMembers` / `basinStandings` key, the tiles' `basin_id`)
+   * and its name as sourced — from the release's grid (`basinGrid.ts`); null where no group holds the point (the sea,
+   * outside B.C.). The Conditions map's centre and a water's own place are both asked through this. THROWS where the
+   * release carries no groups (cut before T376), so a missing answer is said, never read as "in no group". Absent on a
+   * source that has none (the fixture): the caller says so too.
+   */
+  basinAt?(at: { readonly lon: number; readonly lat: number }): Promise<Basin | null>;
   /**
    * THE CONDITIONS MAP'S STATIC HALF, for the whole release: every section's standing CLASS (a donor panel at one
    * target area, or a lake's own station) and the basins' stations — what the map reads a section's value through as

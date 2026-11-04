@@ -38,6 +38,8 @@ export { openRunTimingStore } from "./spots/runTimingStore";
 export * from "./panel";
 // The Conditions map's standings, per class of section (the static half) and per feed (the changing half) — ./standing.ts.
 export * from "./standing";
+// (T376) the watershed groups by name and by place (the release's `basin_grid`)
+export type { Basin } from "./basinGrid";
 export { downstreamWater } from "./downstream";
 // THE RELEASE (P10): verified fetches, the manifest's diff and pairing
 export { fetchVerified, verify } from "./fetchVerified";

@@ -33,6 +33,7 @@ import type { Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, Na
               PlaceHit, PlaceId, PointerHit, Reading, WaterSource, SectionId, StationId, Water } from "../index";
 import type { DbName, ReleaseLoader } from "./loader";
 import { buildStandingClasses, type StandingClasses } from "../standing";
+import { decodeBasinGrid, type BasinGrid } from "../basinGrid";
 import { CROSS, fileFor, META, RELEASE_QUERIES as R, type PackName } from "./queries";
 
 /** The lowest SQLite parameter ceiling any driver may have been compiled with. */
@@ -220,6 +221,34 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     }
     return out;
   }));
+  /**
+   * (T376) THE WATERSHED GROUPS BY NAME AND BY PLACE — conditions' `basin`, `basin_frame`, `basin_grid`, decoded once. A
+   * release cut before them is REFUSED (thrown, and asked again next time), never answered as "in no group".
+   */
+  const hasBasinGrid = has(CROSS.HAS_BASIN_GRID);
+  let gridOf: Promise<BasinGrid> | null = null;
+  const basinGrid = (): Promise<BasinGrid> => (gridOf ??= (async () => {
+    if (!(await hasBasinGrid()))
+      throw new Error("basins: this release carries no watershed groups (its conditions file has no basin_grid, cut before T376)");
+    const [f, rows, names] = await Promise.all([get(CROSS.BASIN_FRAME), all(CROSS.BASIN_GRID_ROWS), all(CROSS.BASIN_NAMES)]);
+    if (!f) throw new Error("basins: the release's basin_frame is empty");
+    const n = (v: Row[string], what: string): number => {
+      const x = num(v);
+      if (x === null || !Number.isFinite(x)) throw new Error(`basins: ${what} is not a number`);
+      return x;
+    };
+    return decodeBasinGrid(
+      { w: n(f.w, "w"), s: n(f.s, "s"), dlon: n(f.dlon, "dlon"), dlat: n(f.dlat, "dlat"), cols: n(f.cols, "cols"),
+        rows: n(f.rows, "rows") },
+      rows.map((r) => {
+        if (!(r.b instanceof Uint8Array)) throw new Error(`basins: basin_grid row ${String(r.row)} is not bytes`);
+        return { row: n(r.row, "a grid row"), b: r.b };
+      }),
+      names.map((r) => {
+        if (r.basin_id == null || r.name == null) throw new Error(`basins: basin ${String(r.ix)} has no id or name`);
+        return { ix: n(r.ix, "a basin ix"), id: str(r.basin_id), name: str(r.name) };
+      }));
+  })().catch((e: unknown) => { gridOf = null; throw e; }));
   /**
    * THE LAKE ROAD, whole: every section of a gauged lake, the lowest station over every lake holding it —
    * conditions' `lake_section` as it is (T182), or, cut before it, built from lake_gauge + core's sections.
@@ -410,6 +439,10 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
 
     async basinMembers() {
       return basinsOf();
+    },
+
+    async basinAt(p) {
+      return (await basinGrid()).at(p.lon, p.lat);
     },
 
     lakeFacts() {

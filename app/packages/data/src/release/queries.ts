@@ -147,6 +147,13 @@ export const CROSS = {
   LAKE_OF: { file: "down", sql: "SELECT lake FROM section_down WHERE sid = ?" },
   HAS_LAKE_SECTION: { file: "conditions", sql:
     "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'lake_section'" },
+  /** (T376) conditions: whether this release carries the watershed groups by name and by place (`basin_grid`). */
+  HAS_BASIN_GRID: { file: "conditions", sql:
+    "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'basin_grid'" },
+  /** (T376) conditions: the grid's frame, its rows, and every group's name as sourced, each read once (`basinGrid.ts`). */
+  BASIN_FRAME: { file: "conditions", sql: "SELECT w, s, dlon, dlat, cols, rows FROM basin_frame" },
+  BASIN_GRID_ROWS: { file: "conditions", sql: "SELECT row, b FROM basin_grid ORDER BY row" },
+  BASIN_NAMES: { file: "conditions", sql: "SELECT ix, basin_id, name FROM basin ORDER BY ix" },
   /** conditions: stations standing on these sections. */
   GAUGES_AT: (n: number) => ({ file: "conditions", sql:
     `SELECT lat, lon FROM gauge WHERE sid IN (${ids(n)}) AND lat IS NOT NULL AND lon IS NOT NULL` }),

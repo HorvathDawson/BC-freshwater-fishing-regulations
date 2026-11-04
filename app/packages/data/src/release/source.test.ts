@@ -182,3 +182,32 @@ describe("(T293) makeReleaseSource.waterPoint: a point on the water itself", () 
     expect(await makeReleaseSource(releaseLoader(manifest(["core", "water"]), bytes, openGeo)).waterPoint!("gnis:0" as ItemId)).toBeNull();
   });
 });
+
+describe("(T376) makeReleaseSource.basinAt: the watershed group a point is in, from conditions' grid", () => {
+  const ROW = Uint8Array.from([2, 1, 2, 2, 2, 0]);
+  const openBasins = (withGrid: boolean) => async (name: DbName): Promise<Db> => {
+    const all = async (sql: string): Promise<Row[]> => {
+      if (sql.startsWith("SELECT k, v FROM meta")) return [{ k: "format", v: fmt(name) }, { k: "section_handles", v: H }];
+      if (name !== "conditions") return [];
+      if (sql === CROSS.HAS_BASIN_GRID.sql) return withGrid ? [{ x: 1 }] : [];
+      if (sql === CROSS.BASIN_FRAME.sql) return [{ w: 0, s: 0, dlon: 0.5, dlat: 0.5, cols: 6, rows: 2 }];
+      if (sql === CROSS.BASIN_GRID_ROWS.sql) return [{ row: 0, b: ROW }, { row: 1, b: ROW }];
+      if (sql === CROSS.BASIN_NAMES.sql)
+        return [{ ix: 1, basin_id: "CHWK", name: "Chilliwack River" }, { ix: 2, basin_id: "LFRA", name: "Lower Fraser" }];
+      return [];
+    };
+    return { all, get: async (sql: string) => (await all(sql))[0] };
+  };
+  it("answers the group and its name as sourced, and null where no group is; conditions is the only file opened", async () => {
+    const loader = releaseLoader(manifest(["core", "conditions"]), bytes, openBasins(true));
+    const source = makeReleaseSource(loader);
+    expect(await source.basinAt!({ lon: 0.2, lat: 0.7 })).toEqual({ id: "CHWK", name: "Chilliwack River" });
+    expect(await source.basinAt!({ lon: 1.2, lat: 0.2 })).toEqual({ id: "LFRA", name: "Lower Fraser" });
+    expect(await source.basinAt!({ lon: 2.5, lat: 0.2 })).toBeNull();
+    expect(loader.opened()).toEqual(["conditions"]);
+  });
+  it("a release cut before the grid THROWS — never 'in no group'", async () => {
+    const source = makeReleaseSource(releaseLoader(manifest(["core", "conditions"]), bytes, openBasins(false)));
+    await expect(source.basinAt!({ lon: 0.2, lat: 0.7 })).rejects.toThrow("carries no watershed groups");
+  });
+});

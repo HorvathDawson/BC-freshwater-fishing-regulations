@@ -85,7 +85,12 @@ FILES = {
         # `rel`, `dist_b` (T93): where the station stands to the reach (a GAUGE_RELS index) and a channel-distance bucket
         # (shed.DIST_STEP). ADDITIVE, last, nullable — still conditions/1; an older release has neither and the app says
         # no distance
-        "section_gauge": ["sid", "station", "trust", "mag", "rel", "dist_b"]}},
+        "section_gauge": ["sid", "station", "trust", "mag", "rel", "dist_b"],
+        # (T376) the watershed groups by name and by place (pipeline/deliver/bundle/basin_grid.py): ADDITIVE — still
+        # conditions/1; a release cut before them answers no basin, and the app says so (`basinAt` throws)
+        "basin": ["ix", "basin_id", "name"],
+        "basin_frame": ["w", "s", "dlon", "dlat", "cols", "rows"],
+        "basin_grid": ["row", "b"]}},
     "down": {"format": "down/1", "kind": "sqlite", "tables": {
         # `len` (T252): ADDITIVE, last, nullable — still down/1; an older release has none (no along-river distance).
         # `lake` (T296): the same — an older release has none (the app reads a route's lake from its water's kind)

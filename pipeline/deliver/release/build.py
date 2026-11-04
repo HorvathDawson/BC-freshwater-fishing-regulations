@@ -19,7 +19,9 @@ writes paint, derives three per-water flags for search, converts the climatology
   regs-sid       section_akey, section_place                                      regs store
   lines          section_line (T369: the section a link's place falls on, lines.py)  bundle (section_measure)
   conditions     gauge, section_gauge, lake_gauge, lake_section (T182: the lake   bundle
-                 road per section, so Conditions needs no core)
+                 road per section, so Conditions needs no core); basin, basin_frame,
+                 basin_grid (T376: the watershed groups' names, and which one a
+                 point is in — bundle/basin_grid.py)
   down           section_down (T182: an unnamed tap's "Tributary of ..." walk)    bundle
   climate        gauge_clim, bands float16: clim/2 (T182: off the Conditions map) bundle
   geo            part_geo (T182: "show on the map" without the whole water file), bundle
@@ -89,7 +91,7 @@ OFFLINE_GATE = 20_000_000
 
 CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer", "name_source")
 NEAR_TABLES = ("place_water",)
-COND_TABLES = ("gauge", "section_gauge", "lake_gauge")
+COND_TABLES = ("gauge", "section_gauge", "lake_gauge", "basin", "basin_frame", "basin_grid")
 DOWN_TABLES = ("section_down",)
 CLIMATE_TABLES = ("gauge_clim",)
 WATER_BUNDLE_TABLES = ("part_section", "part_mark", "water_exit")
