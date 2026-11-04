@@ -46,9 +46,9 @@ describe("<KeepTab> over the frozen pages", () => {
     expect(tabs).toEqual(["licence"]);
   });
 
-  it("vedder_615 (closed): strip, banner, where-not; the banner's words are the VM's", () => {
+  it("vedder_615 (closed): strip and banner — no where-not on a closed day (owner 2026-11-04); the banner's words are the VM's", () => {
     const keep = keepOf(vedder615), { drawn } = mount(keep);
-    expect(drawn).toEqual(["keep-strip", "keep-banner", "keep-wherenot"]);
+    expect(drawn).toEqual(["keep-strip", "keep-banner"]);
     expect(screen.getByTestId("keep-banner").textContent).toBe(
       "No fishing for any game fish Jun 1–30.Jun 1–30. This waterSourceRule book p.22 ↗See the rules from then ›");
   });

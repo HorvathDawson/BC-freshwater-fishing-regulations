@@ -205,8 +205,9 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
     const m = measure([1, 2]);
     expect(problems(m)).toEqual([]);
     // not vacuous: every page laid out its words, every sheet its title, Done and a body (45: the date pill's typed ▾
-    // was a text box of its own until T186 drew the set's chevron, so the Vedder's shortest page went 50 → 49)
-    expect(Object.entries(m).filter(([k, v]) => v.lines < (k.startsWith("sheet ") ? 3 : 45)).map(([k, v]) => `${k} ${v.lines}`)).toEqual([]);
+    // was a text box of its own until T186 drew the set's chevron, so the Vedder's shortest page went 50 → 49; owner
+    // 2026-11-04: the closed Vedder lost its where-not lines and Licence section, 49 → 38)
+    expect(Object.entries(m).filter(([k, v]) => v.lines < (k.startsWith("sheet ") ? 3 : 36)).map(([k, v]) => `${k} ${v.lines}`)).toEqual([]);
     expect(Object.keys(m).filter((k) => k.startsWith("sheet ")).length).toBe(SHEET_KEYS.length * 2 * 2);
     // the evidence: the header's name row and place row grow with the text (two lines each at 2×), and how many line boxes
     expect(Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith("sheet ")).map(([k, v]) => [k, `title ${v.title} place ${v.place}`])))
