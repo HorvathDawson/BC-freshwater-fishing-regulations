@@ -430,6 +430,7 @@ use that as the sole source of future work."
 | T384 | The app opens on the reader's current location (a start link still wins; asks once; denied → today's default) | OPEN | — | owner 2026-11-04 (in 0.5.0) |
 | T385 | Share a water: the share sheet with its website link (the reload address) | OPEN | — | owner 2026-11-04 (in 0.5.0) |
 | T386 | An unnamed reach survives a data update and opens from a link on the phone too (section_measure in the release) | OPEN | — | owner 2026-11-04 (in 0.5.0) |
+| T387 | Every tap on a part gives the same page: per-section facts (access first) become part-level; a net over every part | OPEN | — | owner 2026-11-04 (in 0.5.0) |
 
 ## Order for open tickets
 
