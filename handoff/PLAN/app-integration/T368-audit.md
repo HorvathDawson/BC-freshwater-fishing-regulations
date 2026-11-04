@@ -296,3 +296,17 @@ reported) and **X2** (report in `useAsync`).
 
 Six different shapes (ErrorState, partLine, Note, search note, sheet, inline words) for the same "what went wrong +
 Retry"; 1 and 2 already carry Retry and could merge first.
+
+## Owner answers (2026-11-04)
+1. Environment (offline, no GPS, permission refused, share sheet dismissed): NOT reported ("we expect the app to be
+   offline a lot"); shown where it matters.
+2. Map engine errors: report; most need no face (show only what the reader can act on).
+3. Search index unreadable: NO fallback to exact/substring — show the search as failed (error face) and report.
+4. Access notes unreadable: no silent drop — report it (no fallback).
+5. Tile sidecar unreadable: a FAILURE (cannot tell the tiles match), reported.
+6. No Intl zone data: keep BC time for "today" (regs days are BC days); report once where the device lacks the zone
+   (owner asked "shouldn't we always use phone clock" — answered: no, an Alberta reader at 23:30 would get tomorrow).
+7. Spots: offline fallbacks are acceptable (save offline, resync on reconnect); not reported.
+8. Day flow: separate real failures from offline; OFFLINE IS THE ONLY STATE WITH ACCEPTABLE FALLBACKS.
+9. Bad web start link: opening the plain map is acceptable.
+X1 (phone never reports unhandled rejections): fix, part of T368.

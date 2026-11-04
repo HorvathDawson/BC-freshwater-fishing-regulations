@@ -155,3 +155,12 @@ target + access + salmon key; Conditions: section + `from`; Map: highlight/fit/s
    reset by design on a reload?
 3. **A data update applied while a water is open** (return from background): hold the update until the reader is
    back on a map (safe moment), or apply and move the open water to the same place in the new data?
+
+## Owner answers (2026-11-04)
+1. "You are here" on Conditions after a reload / non-map open: placed at the link's spot on the water (the section's
+   point at the link's distance).
+2. What the address keeps: best practice (Claude decides): the URL holds what defines the view a reader would share or
+   reload into — water + view + place, the chosen day when not today, the Conditions forecast day; an open spot by id.
+   Transient UI (folds, scroll) is not in the URL.
+3. A data update while a water is open: APPLY RIGHT AWAY and keep the same place on the water in the new data; the
+   spinner may show it is updating.
