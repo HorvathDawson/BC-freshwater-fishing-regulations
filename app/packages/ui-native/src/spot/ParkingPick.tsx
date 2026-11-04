@@ -1,5 +1,6 @@
 /** (T310) Pick the spot's parking on the map: tap the point, then "Use this point". */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { SPOT_WORDS as W, SPOT_CAPTURE_WORDS as CW } from "@app/core";
 import type { Camera, TileEndpoints } from "@app/map";
 import { useBackLayer } from "@app/ui";

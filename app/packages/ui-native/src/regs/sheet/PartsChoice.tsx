@@ -3,7 +3,8 @@
  * the one read). Pressing a row reads that part. Drawn when core builds the parts sheet's `choice` block (each choice's
  * stored display status on the day, T09 `choicesOnDay`). No logic.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../../Text";
 import { WORDS } from "@app/core";
 import { TYPE } from "../../type";
 import type { Palette } from "../../theme";

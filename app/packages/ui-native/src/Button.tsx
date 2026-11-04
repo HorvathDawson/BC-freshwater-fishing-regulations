@@ -21,7 +21,9 @@
  * screen reader, rather than silently ignoring a tap. `busy` (T257) is disabled AND waiting: the label stays (it is still
  * what the button does) and the FishSpinner shows beside it, through the one delayed show (`LoadingState`).
  */
-import { Pressable, Text, View, type ViewStyle } from "react-native";
+import { View, type ViewStyle } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { Icon, type IconName } from "./icons";
 import { LoadingState } from "./LoadingState";
 import { hitProps } from "./regs/hit";

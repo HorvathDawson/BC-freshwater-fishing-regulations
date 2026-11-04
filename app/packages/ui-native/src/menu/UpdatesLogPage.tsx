@@ -6,7 +6,9 @@
  * copied for a bug report. Draws `updateLogVM` / `updateLogText` (core updateLog.ts); decides nothing.
  */
 import { useState, useSyncExternalStore } from "react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { UPDATE_LOG_CAP, UPDATE_LOG_WORDS, UPDATE_WORDS, updateLogHead, updateLogStatus, updateLogText, updateLogVM,
          type UpdateLogHeader } from "@app/core";
 import type { UpdateLog, UpdateService } from "@app/data";

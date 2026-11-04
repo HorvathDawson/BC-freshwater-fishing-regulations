@@ -4,7 +4,8 @@
  * and any note under it. A weekday part for today carries the visible word "Today" (its tag), never colour alone.
  * No logic: every word is the VM's.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../../Text";
 import { plain, WORDS, type LadderStepVM } from "@app/core";
 import { TYPE } from "../../type";
 import type { Palette } from "../../theme";

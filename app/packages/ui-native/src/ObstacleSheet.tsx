@@ -5,7 +5,8 @@
  */
 import { obstacleSheet } from "@app/core";
 import { ObstacleIcon } from "./icons";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";

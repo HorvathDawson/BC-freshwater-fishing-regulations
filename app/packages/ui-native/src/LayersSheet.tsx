@@ -12,7 +12,9 @@
  *  - NOT HERE any more: the data sources, live data and credits (the menu's Data sources & dates page, and the map's own
  *    attribution) and the app's colours (the menu's Display page).
  */
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { LAYER_WORDS, OBSTACLE_ICON_KINDS, OBSTACLE_WORDS, STOCK_RECENCY, waterLegend, type LayerTileVM, type LayersVM, type LegendSwatch }
   from "@app/core";
 import { Icon, ObstacleIcon, type IconName } from "./icons";

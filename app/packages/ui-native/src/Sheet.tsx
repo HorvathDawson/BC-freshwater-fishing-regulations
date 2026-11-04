@@ -9,7 +9,9 @@
  * visible above it (T45 review: a 640 px dialog's scrim covered the middle of the map the Layers choices recolour).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, Modal, ScrollView, View, useWindowDimensions } from "react-native";
+import { Selectable, Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { useBackLayer, useLayoutClass, useSheetDrag, type LayoutClass } from "@app/ui";
 import { SHEET_WORDS } from "@app/core";
@@ -216,8 +218,8 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
               {scroll
                 ? <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ flexGrow: 0, flexShrink: 1, flexBasis: "auto" }}
                               keyboardShouldPersistTaps="handled" scrollEventThrottle={16}
-                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{shown.children}</ScrollView>
-                : <View style={{ paddingBottom: 28 }}>{shown.children}</View>}
+                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}><Selectable>{shown.children}</Selectable></ScrollView>
+                : <View style={{ paddingBottom: 28 }}><Selectable>{shown.children}</Selectable></View>}
               {footer}
             </View>
           </View>
@@ -275,10 +277,10 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                   <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ maxHeight: windowHeight * SHEET_BODY_CAP }}
                               keyboardShouldPersistTaps="handled" bounces={false} scrollEventThrottle={16}
                               onScroll={(e) => { scrollTop.current = e.nativeEvent.contentOffset.y; }}
-                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{shown.children}</ScrollView>
+                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}><Selectable>{shown.children}</Selectable></ScrollView>
                 </GestureDetector>
               </GestureDetector>
-            : shown.children}
+            : <Selectable>{shown.children}</Selectable>}
           {footer}
           {/* (T50) 28 px below the content, or the window's bottom inset where that is taller: a Modal is its own window,
               drawn edge-to-edge on Android, so its foot went under the 3-button bar */}

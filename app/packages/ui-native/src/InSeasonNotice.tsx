@@ -5,7 +5,8 @@
  * `inSeasonNoticeRows`). A scrolling sheet at every width (a centred dialog on a wide screen).
  */
 import { useState } from "react";
-import { Linking, Text, View } from "react-native";
+import { Linking, View } from "react-native";
+import { Text } from "./Text";
 import { INSEASON_WORDS, syncErrorVM, UPDATE_WORDS, type InSeasonNoticeRow, type ReleaseNoticeVM,
          type UpdateSourceInput } from "@app/core";
 import { SyncFailures } from "./SyncErrorSheet";

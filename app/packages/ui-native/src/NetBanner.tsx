@@ -4,7 +4,9 @@
  * showing what we have"). The reader's own "On" in More → Data is not announced (they chose it). Pressing it opens
  * More, where the Data setting is. The words are core's (`netBanner`); the app's tokens only.
  */
-import { Platform, Pressable, Text, View } from "react-native";
+import { Platform, View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { NET_WORDS, netBanner } from "@app/core";
 import { useLiveLoading, useNet } from "@app/ui";
 

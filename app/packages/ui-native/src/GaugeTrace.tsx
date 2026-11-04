@@ -12,7 +12,8 @@
  * sentence explaining it must be the same sentence everywhere. The words come from
  * `@app/core/trace`; this file only lays them out.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
 import { CONDITIONS_WORDS, hereMapLabel, reachCount, routeCamera,
          shareWord, traceSentence, tracePath, trustWord, TRACE_WORDS, whereWord,
          type AnyTrace as Trace } from "@app/core";

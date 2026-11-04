@@ -9,7 +9,8 @@
  * the global click handler's `data-open` / `data-rule` / `data-gl` / `data-fish` / `data-howtell` (here each a run or a
  * block carrying its `SheetKey`).
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { type SheetBlock, type SourceBox, type SheetKey, type SheetVM, type Tab } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";

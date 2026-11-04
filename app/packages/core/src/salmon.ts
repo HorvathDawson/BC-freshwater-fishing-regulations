@@ -416,8 +416,6 @@ export const SALMON_WORDS = {
   more: "›",
   ruleFullWording: "Full wording",
   ruleHideWording: "Hide wording",
-  ruleCopy: "Copy",
-  ruleCopied: "Copied",
   regionRulesOf: (r: string, name: string) => `Region ${r.toUpperCase()} ${name}`.trim(),
   waterRules: "On this water (DFO)",
   /** a header size line on an open row, derived from DFO's header (min size, what an adult is) */

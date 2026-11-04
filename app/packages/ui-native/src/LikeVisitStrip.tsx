@@ -6,7 +6,8 @@
  *
  * Draws `LikeVisitView` (@app/ui) and nothing else: every string is core's.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
 import type { LikeVisitView } from "@app/ui";
 import { TYPE } from "./type";
 import { useCoachTarget } from "./CoachMarks";

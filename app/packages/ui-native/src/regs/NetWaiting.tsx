@@ -7,7 +7,8 @@
 import { Button } from "../Button";
 import { LoadingState } from "../LoadingState";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { NET_WORDS, partLine, waitingLine } from "@app/core";
 import { pendingOf, PRIORITY } from "@app/data";
 import { useNet, useNetActivity } from "@app/ui";

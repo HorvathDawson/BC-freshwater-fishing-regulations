@@ -29,7 +29,9 @@
 import { LoadingState } from "./LoadingState";
 import { useCoachTarget } from "./CoachMarks";
 import { forwardRef, useState } from "react";
-import { Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { TextInput, View, useWindowDimensions } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { SEARCH_BAR, type SyncVM } from "@app/core";
 import { Icon } from "./icons";
 import { SyncRing } from "./SyncRing";

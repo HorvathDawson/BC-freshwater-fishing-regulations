@@ -13,7 +13,9 @@
  * order). The words and the grid are `@app/core` `dayPicker.ts`; this only draws them.
  */
 import { useEffect, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { chooseDay, DAY_PICKER, dayButtonVM, monthVM, showingLine, stepDay, type DayRange } from "@app/core";
 import { CornerStrip } from "./CornerStrip";
 import { Icon, type IconName } from "./icons";

@@ -5,7 +5,8 @@
  * -checked) are the caller's, as on any Pressable. No logic.
  */
 import { forwardRef } from "react";
-import { Pressable, type PressableProps, type View } from "react-native";
+import { type PressableProps, type View } from "react-native";
+import { Pressable } from "../Pressable";
 import { hitProps, type HitBox } from "./hit";
 
 export type RegsPressProps = Omit<PressableProps, "hitSlop"> & { readonly box: HitBox };

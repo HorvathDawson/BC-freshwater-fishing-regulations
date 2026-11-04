@@ -14,7 +14,8 @@
  *
  * react-native-svg draws them on the web and on a phone alike; the colour is always a palette token, passed in.
  */
-import { Text, View, type TextStyle } from "react-native";
+import { View, type TextStyle } from "react-native";
+import { Text } from "./Text";
 import Svg, { Circle, Ellipse, Path, Polygon, Rect } from "react-native-svg";
 import { OBSTACLE_ICON_GRID, OBSTACLE_ICON_HALO, OBSTACLE_ICON_SHAPES, obstacleIconKind, type IconShape, type ObstacleIconKind } from "@app/core";
 

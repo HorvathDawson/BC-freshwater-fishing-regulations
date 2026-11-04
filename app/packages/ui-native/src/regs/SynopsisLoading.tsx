@@ -4,7 +4,9 @@
  * (floating over the app) and inside the sheet host (a sheet's Modal covers the Shell). Nothing while idle, and nothing in
  * the first SHOW_AFTER_MS of a load (a cached copy opens without a flash). The app's tokens only.
  */
-import { Linking, Pressable, Text, View } from "react-native";
+import { Linking, View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { NET_WORDS, SYNOPSIS_PDF } from "@app/core";
 import { useBackLayer } from "@app/ui";
 import { LoadingState } from "../LoadingState";

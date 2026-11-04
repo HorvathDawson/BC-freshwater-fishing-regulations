@@ -5,7 +5,9 @@
  * `groupGauges` made (through @app/ui) and decides nothing: which side, which state, every word is theirs.
  */
 import { useState, type ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import type { GaugeGroupVM } from "@app/ui";
 import { Icon } from "./icons";
 import { hitProps } from "./regs/hit";

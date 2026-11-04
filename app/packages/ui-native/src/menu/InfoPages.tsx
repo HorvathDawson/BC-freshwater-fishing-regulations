@@ -2,7 +2,9 @@
  * The menu's reading pages — About, Sources and credits. Each draws one VM from core/menu/ and decides nothing; a link
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
-import { Linking, Platform, Pressable, Text, View } from "react-native";
+import { Linking, Platform, View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { LICENCE_WORDS, licencesVM, MENU_WORDS, PRIVACY_URL, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
 import { Credits } from "../Credits";
 import { LicencesList } from "./Licences";

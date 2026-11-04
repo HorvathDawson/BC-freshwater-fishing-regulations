@@ -6,7 +6,9 @@
  * web's viewer.
  */
 import { useMemo, useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import Pdf from "react-native-pdf";
 import { reportFailure, useBackLayer } from "@app/ui";
 import { SPACE, type Palette } from "../theme";

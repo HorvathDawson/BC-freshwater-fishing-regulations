@@ -3,7 +3,8 @@
  * "Methods", "Licence"; `.gpart > h3`, display face --t2), then the section's blocks. No logic.
  */
 import type { ReactNode } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { TYPE } from "../type";
 import { GUTTER, SPACE, type Palette } from "../theme";
 

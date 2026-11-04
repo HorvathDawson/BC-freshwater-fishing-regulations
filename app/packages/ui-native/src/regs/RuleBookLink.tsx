@@ -5,7 +5,8 @@
  * synopsis through `onBook` (default `openBook`: web at `#page=<pdf>`, native the bare PDF — decisions D6 a). No logic.
  * Drawn alone (SourceLine) or nested inside a line's Text (LineText's book run): it is a Text either way.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { LoadingState } from "../LoadingState";
 import { bookText, WORDS } from "@app/core";
 import type { SourceBox } from "@app/core";

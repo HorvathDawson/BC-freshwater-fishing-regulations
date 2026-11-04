@@ -2,7 +2,8 @@
  * One glossary term inside a sheet (the multi-term "What these words mean" sheet's `section.gterm`, the hatch sheet's
  * `section.htw`): its title, then its body (drawn by SheetBody). No logic.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../../Text";
 import { TYPE } from "../../type";
 import type { Palette } from "../../theme";
 

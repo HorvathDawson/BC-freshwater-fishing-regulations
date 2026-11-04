@@ -3,7 +3,8 @@
  * saved in the phone app, they don't show on the website yet, accounts are coming — with a link to the app. The phone
  * app never draws this. Spots a browser saved earlier stay where they are, unshown. Words: `@app/core` WEB_SPOTS_WORDS.
  */
-import { Linking, Platform, ScrollView, Text, View } from "react-native";
+import { Linking, Platform, ScrollView, View } from "react-native";
+import { Text } from "./Text";
 import { WEB_SPOTS_WORDS as W } from "@app/core";
 import { Button } from "./Button";
 import { TYPE } from "./type";

@@ -9,7 +9,8 @@
  * what is read). Lines wrap (v33). Each drawn line reports its height (the prototype's PIN_HC) and the bar its own.
  */
 import { useSyncExternalStore } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { boldFirst, type PinLine } from "@app/core";
 import { FACE, TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";

@@ -4,7 +4,8 @@
  * "You need" list (each item: name + ⓘ, when, price; then "Also, only if…" and its items; the price note), the paper
  * licence line, a not-yet-mapped box, a muted line, the guiding fold (open). No logic: every word is the LicenceVM's.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { LIC, type LicenceBlockVM, type NeedItemVM, type SheetKey } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";

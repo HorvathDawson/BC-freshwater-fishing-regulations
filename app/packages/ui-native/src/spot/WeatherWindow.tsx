@@ -1,5 +1,6 @@
 /** A saved spot's weather window: the three hours around the visit, and what changed across them. */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { weatherTrend, type SpotWeather, type WeatherSample } from "@app/data/spots";
 import { SPOT_WINDOW } from "@app/core";
 import { TYPE } from "../type";

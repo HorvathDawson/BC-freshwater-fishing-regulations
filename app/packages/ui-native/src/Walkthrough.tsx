@@ -24,7 +24,9 @@
  * (and, on a phone, announced), so a screen reader hears every step; focus is never moved or trapped.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Platform, Pressable, Text, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import { AccessibilityInfo, Platform, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { GUIDE_WATER, TAB_TOUR_WORDS, TAB_TOURS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, guideResumeAt, guideSteps, guideText,
          tabTourSeen, walkthroughSeen, withGuideAt, withSeen, type GuidePhase, type GuideStepWords, type TabTourKey } from "@app/core";
 import { useBackLayer } from "@app/ui";

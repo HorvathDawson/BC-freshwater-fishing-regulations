@@ -1,5 +1,6 @@
 /** (T310) THE SPOT'S PARKING: where it is (coordinates), Directions (view), and set / pick / remove (edit). */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { SPOT_WORDS as W } from "@app/core";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";

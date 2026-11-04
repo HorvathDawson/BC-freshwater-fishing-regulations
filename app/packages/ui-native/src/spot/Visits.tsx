@@ -2,7 +2,9 @@
  * (T294) A spot's visits on its page: the row of visits to pick from with "Add a visit", and the shown visit's rating.
  * Draws `VisitsView` (@app/ui) and nothing else; every string is core's.
  */
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { VISIT_WORDS } from "@app/core";
 import type { VisitsView } from "@app/ui";
 import { TYPE } from "../type";

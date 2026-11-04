@@ -2,7 +2,9 @@
  * (T235) THE LICENCES, at the foot of the Sources and licences page: each dataset, who publishes it, what the app shows
  * from it, its licence (linked) and the words the licence asks for. Draws core's `licencesVM` and decides nothing.
  */
-import { Linking, Pressable, Text, View } from "react-native";
+import { Linking, View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { LICENCE_WORDS, WORDS, type LicencesVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";

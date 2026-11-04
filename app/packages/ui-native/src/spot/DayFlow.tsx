@@ -1,6 +1,6 @@
 /** T170: the trip day's own flow from the day's record, and the action that asks for it (`useDayFlow`). */
 import { Button } from "../Button";
-import { Text } from "react-native";
+import { Text } from "../Text";
 import type { DayFlowView } from "@app/ui";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";

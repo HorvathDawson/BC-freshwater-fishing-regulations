@@ -3,7 +3,8 @@
  * the tint — round 20h keeps the changes chip tinted, tokens.md §1.1), then "<b>May 1–31:</b> fly fishing only" and, while
  * in force, "· in force today". No link, no ⓘ, no Rule book page: the change's rule is in the item's source line.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { GEAR, WORDS, type ChangeVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";

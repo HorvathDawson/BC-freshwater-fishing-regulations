@@ -7,7 +7,8 @@
  * grid of numbers.
  */
 import { useRef } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
+import { Text } from "./Text";
 import { LEAD_UP_WORDS } from "@app/data/spots";
 import type { LeadUpView } from "@app/ui";
 import { TYPE } from "./type";

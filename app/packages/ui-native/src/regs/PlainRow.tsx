@@ -6,7 +6,8 @@
  * regulation line ›". No logic.
  */
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { WORDS, type DecidedStoryVM, type LadderVM, type PlainRowVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";

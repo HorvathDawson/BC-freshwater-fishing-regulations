@@ -6,7 +6,9 @@
  * eye. Each segment is a 44 × 44 press (`hitProps`).
  */
 import { LoadingState } from "./LoadingState";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { useCoachTarget } from "./CoachMarks";
 import { hitProps } from "./regs/hit";
 import { Icon, type IconName } from "./icons";

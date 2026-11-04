@@ -5,7 +5,8 @@
  * photos, the lead-up); Cancel — and back, Done, the scrim, a drag down — removes the pin and saves nothing.
  */
 import { SPOT_DROP, type LatLon } from "@app/core";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
 import { Button } from "./Button";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";

@@ -19,7 +19,8 @@
  */
 import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { openProbe } from "@app/data";
-import { AccessibilityInfo, Animated, Platform, ScrollView, Text, View } from "react-native";
+import { AccessibilityInfo, Animated, Platform, ScrollView, View } from "react-native";
+import { Text } from "../Text";
 import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { InSeasonBanners } from "./InSeasonBanner";

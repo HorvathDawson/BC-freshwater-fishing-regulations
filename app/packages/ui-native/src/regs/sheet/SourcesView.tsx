@@ -4,7 +4,8 @@
  * "Overruled (N)", each card as page v36 drew it (the quoted words, whose, the role, ⚑ notes). No logic.
  */
 import { useContext } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../../Text";
 import { WORDS, type SourceRowVM } from "@app/core";
 import { TYPE } from "../../type";
 import type { Palette } from "../../theme";

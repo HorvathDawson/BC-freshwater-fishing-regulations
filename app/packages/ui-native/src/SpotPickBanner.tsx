@@ -8,7 +8,9 @@
  * mode, one step, with nothing made; the step after that is the route's own.
  */
 import { useEffect } from "react";
-import { Platform, Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Platform, View, useWindowDimensions } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { SPOT_PICK } from "@app/core";
 import { useBackLayer } from "@app/ui";
 import { TOP_BAR, searchPanelWidth } from "./TopBar";

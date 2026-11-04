@@ -3,7 +3,7 @@
  * choices), the profile's label, the answer's blocks, and the source line without pages (it opens `licsrc:<profile>`).
  * On a closed day (D16 a) only the heading: the VM carries no axes, blocks or source. No logic.
  */
-import { Text } from "react-native";
+import { Text } from "../Text";
 import { WORDS, type LicenceVM, type Who } from "@app/core";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";

@@ -5,7 +5,8 @@
  * wide screen, a bottom sheet on a phone. The app keeps the data it has: said under the title.
  */
 import { syncErrorVM, type SyncErrorVM, type UpdateSourceInput } from "@app/core";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
 import { Button } from "./Button";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";

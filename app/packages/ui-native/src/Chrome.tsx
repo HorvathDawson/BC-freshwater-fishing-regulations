@@ -5,7 +5,8 @@
  * map itself must never be asked to draw UI — everything here sits above it.
  */
 import { FLOW_LEGEND, legendCount, legendTickLabel, percentileOrdinal, standing } from "@app/core";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
+import { Text } from "./Text";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { LEGEND_TEXT, TYPE } from "./type";
 import type { Palette } from "./theme";

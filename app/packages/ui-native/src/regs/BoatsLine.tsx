@@ -3,7 +3,8 @@
  * motors only", "No powered boats", "Speed limit 8 km/h", "No towing"), each opening its rule's sheet. Nothing is drawn
  * for a water with no vessel rule. No logic: it draws `page.boats`.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import type { RegsPage, SheetKey } from "@app/core";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";

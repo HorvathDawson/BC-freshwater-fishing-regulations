@@ -13,7 +13,8 @@
  * prototype's 56). The name row itself is the frame's `WaterTitle` (T44), the box every view's name sits in.
  */
 import { useState, useSyncExternalStore } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { WORDS, type HeaderVM, type Tab } from "@app/core";
 import { CAPPED_SCALE, TYPE } from "../type";
 import { useCappedScale } from "../textScale";

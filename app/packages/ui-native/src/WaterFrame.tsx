@@ -35,7 +35,8 @@
  */
 import { useContext, useRef } from "react";
 import { WATER_TITLE_WORDS } from "@app/core";
-import { Animated, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { Animated, View, type StyleProp, type ViewStyle } from "react-native";
+import { Selectable, Text } from "./Text";
 import { FaceBar, type Face } from "./Faces";
 import { SwipeFollow, SwipeOffsetContext, ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import { useCappedScale } from "./textScale";
@@ -73,7 +74,8 @@ export function WaterFrame({ palette, face, onBack, backLabel, title, bleed = fa
   );
   const head = swipe ? <ViewSwipe swipe={swipe} fill={false} still testId="view-swipe-header">{header}</ViewSwipe> : header;
   // a body with no detector of its own (Map) still follows a drag on the header
-  const body = swipe && !views?.bodySwipe ? <SwipeFollow>{children}</SwipeFollow> : children;
+  // (T342) a water's views are panes: their reading text copies with the phone's own long-press (the Map view opts out)
+  const body = <Selectable>{swipe && !views?.bodySwipe ? <SwipeFollow>{children}</SwipeFollow> : children}</Selectable>;
   return (
     <SwipeOffsetContext.Provider value={offset}>
       <View testID="water-frame" style={{ flex: 1, backgroundColor: palette.card }}>

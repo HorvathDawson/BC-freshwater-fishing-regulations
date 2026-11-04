@@ -4,7 +4,9 @@
  *
  * A back layer while open (G1): the ‹, Android's back (the Modal's onRequestClose) and the browser's back all close it.
  */
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Modal, ScrollView, View } from "react-native";
+import { Selectable, Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { WindowInsets } from "../WindowInset";
 import { MENU_WORDS } from "@app/core";
 import { useBackLayer, useLayoutClass } from "@app/ui";
@@ -36,9 +38,9 @@ export function MenuPage({ open, title, onBack, palette, children, scroll = true
             // scrollable-region-focusable)
             ? <ScrollView focusable contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 40, gap: SPACE.s4,
                                                    ...column }}>
-                {children}
+                <Selectable>{children}</Selectable>
               </ScrollView>
-            : <View style={{ flex: 1, ...column }}>{children}</View>}
+            : <View style={{ flex: 1, ...column }}><Selectable>{children}</Selectable></View>}
         </View>
       </WindowInsets>
     </Modal>

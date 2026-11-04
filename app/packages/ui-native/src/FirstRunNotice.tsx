@@ -5,7 +5,8 @@
  * next start. Words are core's (`LEGAL_WORDS.firstRun`); About carries the same disclaimer for good.
  */
 import { useCallback, useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
 import { FIRST_RUN_VERSION, firstRunAccepted, LEGAL_WORDS } from "@app/core";
 import { Button } from "./Button";
 import { Sheet } from "./Sheet";

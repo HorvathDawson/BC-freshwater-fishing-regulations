@@ -2,7 +2,7 @@
  * T34 — the sentence a Gear / Methods tab says instead of its items (prototype `p.foot`): "No fishing here until Jul 1.",
  * or on tidal water the Keep banner's words, one paragraph each. No logic.
  */
-import { Text } from "react-native";
+import { Text } from "../Text";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
 

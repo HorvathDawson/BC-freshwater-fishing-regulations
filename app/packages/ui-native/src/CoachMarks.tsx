@@ -13,7 +13,9 @@
  * rises 8 px into place; under reduced motion it only fades, quickly. Only transform and opacity move (no per-frame work).
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Animated, Easing, Modal, Pressable, Text, View, useWindowDimensions, type LayoutChangeEvent, type ViewStyle } from "react-native";
+import { Animated, Easing, Modal, View, useWindowDimensions, type LayoutChangeEvent, type ViewStyle } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { useBackLayer } from "@app/ui";
 import { Button } from "./Button";
 import { NATIVE_DRIVER, useReducedMotion } from "./motion";

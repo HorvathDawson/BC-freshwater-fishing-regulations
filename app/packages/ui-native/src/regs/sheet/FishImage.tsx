@@ -9,7 +9,8 @@
  * with the window. Each look's caption is its block's `credit` — the manifest's caption · phase · credit, composed in
  * core (`fishSheet`), never written here. No ground behind a fish (T39): a picture's box paints nothing of its own.
  */
-import { Image, Text, View } from "react-native";
+import { Image, View } from "react-native";
+import { Text } from "../../Text";
 import { FISH, type SheetBlock } from "@app/core";
 import type { LayoutClass } from "@app/ui";
 import { TYPE } from "../../type";

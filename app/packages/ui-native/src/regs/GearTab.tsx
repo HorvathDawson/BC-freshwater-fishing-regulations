@@ -3,7 +3,8 @@
  * water, the Keep banner's paragraphs); otherwise the "Gear" section — the day line, the gear lines, the Bait item. No
  * logic: which blocks and every word are core's (gear.ts, bait.ts).
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { WORDS, type GearTabsVM, type GearVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";

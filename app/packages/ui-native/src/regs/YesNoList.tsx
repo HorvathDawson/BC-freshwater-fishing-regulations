@@ -3,7 +3,8 @@
  * (✓ open, ✕ closed; hidden from a screen reader, the head says it), the name, an ⓘ when the item carries terms (T35: the
  * set_line ⓘ), and its note small under the name. No logic.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import type { YesNoVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";

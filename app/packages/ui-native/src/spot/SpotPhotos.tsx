@@ -2,7 +2,9 @@
 import { ErrorState } from "../ErrorState";
 import { LoadingState } from "../LoadingState";
 import { useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { PHOTO_WORDS, photoLabel, removePhotoLabel } from "@app/data/spots";
 import type { PhotoEdit } from "@app/ui";
 import { TYPE } from "../type";

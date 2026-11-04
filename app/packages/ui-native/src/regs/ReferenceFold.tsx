@@ -4,7 +4,8 @@
  * group's head and its items, then the source line. The fold's state is local (it changes no answer). No logic.
  */
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import type { MethodsVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";

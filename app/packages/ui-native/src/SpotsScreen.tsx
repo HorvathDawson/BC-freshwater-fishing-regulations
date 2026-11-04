@@ -12,7 +12,9 @@
 import { ErrorState } from "./ErrorState";
 import { Button } from "./Button";
 import { EmptyState } from "./EmptyState";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, ScrollView, View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { WebSpotsNotice, webSpotsNotice } from "./WebSpotsNotice";
 import { SPOTS_LIST_WORDS, SPOTS_MENU } from "@app/core";
 import type { PhotoStore } from "@app/data/spots";

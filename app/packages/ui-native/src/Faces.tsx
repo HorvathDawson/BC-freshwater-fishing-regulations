@@ -19,7 +19,9 @@
  * information, and a reader who does not know Conditions exists will never go looking for it.
  */
 import { useContext } from "react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
 import { WaterViewsContext } from "./ViewSwipe";
 import { useCoachRefs } from "./CoachMarks";

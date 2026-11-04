@@ -14,7 +14,7 @@
  * and a `RegsPress` grown to 44 × 44 around its 32-tall box (the a11y gate reads its `data-hitslop`).
  */
 import { useContext } from "react";
-import { Text } from "react-native";
+import { Text } from "../Text";
 import { MENU_WORDS, regsReportWhere, type RegsPage } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, SPACE, type Palette } from "../theme";

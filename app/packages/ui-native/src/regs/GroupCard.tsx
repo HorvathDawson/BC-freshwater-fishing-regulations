@@ -5,7 +5,8 @@
  * line and "See every regulation line ›". tokens.md §5 GroupHead … HowItAddsUp. No logic.
  */
 import { Fragment, useContext, useState, useSyncExternalStore } from "react";
-import { Animated, Image, Platform, Text, View, type ViewStyle } from "react-native";
+import { Animated, Image, Platform, View, type ViewStyle } from "react-native";
+import { Text } from "../Text";
 import { WORDS, type FishPicVM, type GroupVM, type KindVM, type NotKeptVM, type TierVM, type TreeNodeVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";

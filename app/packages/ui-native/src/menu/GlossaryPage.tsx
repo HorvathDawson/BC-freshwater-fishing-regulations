@@ -14,8 +14,9 @@
  * names the term and its ‹ returns to the list.
  */
 import { useMemo, useRef, useState } from "react";
-import { FlatList, Pressable, ScrollView, Text, TextInput, View,
-         type GestureResponderEvent, type LayoutChangeEvent } from "react-native";
+import { FlatList, ScrollView, TextInput, View, type GestureResponderEvent, type LayoutChangeEvent } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { glossaryRows, glossarySections, glossBlocks, markedRuns, MENU_WORDS, type GlossaryRowVM,
          type GlossaryMark, type SheetKey } from "@app/core";
 import { useBackLayer, type Async, type Glossary } from "@app/ui";

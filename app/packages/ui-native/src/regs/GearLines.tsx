@@ -4,7 +4,8 @@
  * (each with its own ⓘ), then the row's changes (full width) and its source line (under the values). Order fixed by round
  * 20g. No logic: every word, term and key is the GearVM's.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import type { GearLineVM, GearVM } from "@app/core";
 import { TYPE, type TextStyle } from "../type";
 import { SPACE, type Palette } from "../theme";

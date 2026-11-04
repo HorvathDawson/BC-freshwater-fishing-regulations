@@ -21,7 +21,9 @@
  * which routes, which words and the camera are all made there. The tones are the palette's.
  */
 import { useMemo, useState, type ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 import type { SectionKey } from "@app/core";
 import type { MapProps, TileEndpoints, TraceProp } from "@app/map";

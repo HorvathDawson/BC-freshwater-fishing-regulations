@@ -25,7 +25,9 @@
 import { ErrorState } from "./ErrorState";
 import { SPOT_CAPTURE_AT, SPOT_CAPTURE_WORDS as CW, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
 import { useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { WebSpotsNotice, webSpotsNotice } from "./WebSpotsNotice";
 import type { WaterSource, SectionId } from "@app/data";
 import type { HydatDaily, Spot, WeatherSource } from "@app/data/spots";

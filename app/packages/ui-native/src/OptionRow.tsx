@@ -5,7 +5,9 @@
  * nothing until you see the ramp, and a reader deciding what to put on a map is deciding
  * what the map will LOOK like — so the control shows it before they commit.
  */
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { hitProps } from "./regs/hit";

@@ -3,7 +3,8 @@
  * opens the Sources sheet of exactly those rules), then one "Rule book p.N ↗" per page, wrapping. The Licence tab's line
  * has no pages. No logic: every word and key is the VM's.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import type { SourceLineVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";

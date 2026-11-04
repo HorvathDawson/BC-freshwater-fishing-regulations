@@ -5,7 +5,8 @@
  * the map no longer draws. (T293) Above them, short pages: the walkthrough (replay it, and each mode hint), syncing and
  * updates, and offline.
  */
-import { Platform, Text, View } from "react-native";
+import { Platform, View } from "react-native";
+import { Text } from "../Text";
 import { HELP_WORDS, TAB_TOUR_WORDS, WALKTHROUGH_WORDS, helpRowAloud, helpVM, type HelpRow, type HelpSwatch } from "@app/core";
 import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour, tidalColours } from "@app/map/colours";
 import { Button } from "../Button";

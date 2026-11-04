@@ -8,7 +8,9 @@
  * ONE horizon state.
  */
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { HORIZON_PICK } from "@app/core";
 import { useBackLayer, type Horizon, type HorizonChipVM } from "@app/ui";
 import { CornerStrip, type CornerSegment } from "./CornerStrip";

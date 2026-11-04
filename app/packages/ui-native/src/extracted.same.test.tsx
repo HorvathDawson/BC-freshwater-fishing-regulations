@@ -5,7 +5,10 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render } from "@testing-library/react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+// (T342) the app's own Text and Pressable, as the extracted components draw with them
+import { Pressable } from "./Pressable";
+import { Text } from "./Text";
 import { Chip } from "./Chip";
 import { EmptyState, NoneLine } from "./EmptyState";
 import { hitProps } from "./regs/hit";

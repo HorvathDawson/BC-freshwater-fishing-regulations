@@ -8,7 +8,8 @@
  * screen it sits under.
  */
 import type { SectionKey } from "@app/core";
-import { Platform, Text, View } from "react-native";
+import { Platform, View } from "react-native";
+import { Text } from "./Text";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import { TYPE } from "./type";
 import { useSwipeShield } from "./ViewSwipe";

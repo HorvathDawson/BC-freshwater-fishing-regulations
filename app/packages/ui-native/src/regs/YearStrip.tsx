@@ -4,7 +4,8 @@
  * the month initials and the legend. tokens.md §5 YearStrip. No logic: runs, marker and words are the StripVM's.
  */
 import { createContext, useContext, useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import Svg, { Defs, Line as SvgLine, Pattern, Rect } from "react-native-svg";
 import { WORDS, type SalmonDrawn, type SalmonStripVM, type StripVM } from "@app/core";
 import { TYPE } from "../type";

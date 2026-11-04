@@ -4,7 +4,8 @@
  * every width, like the tidal and obstacle sheets.
  */
 import { notFishingSheet, type NotFishingKind } from "@app/core";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";

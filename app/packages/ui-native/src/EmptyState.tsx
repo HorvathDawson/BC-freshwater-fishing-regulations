@@ -7,7 +7,8 @@
  *
  * `tools/one-button.test.ts` refuses the title-and-line typed out again.
  */
-import { Text, View, type TextStyle } from "react-native";
+import { View, type TextStyle } from "react-native";
+import { Text } from "./Text";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 

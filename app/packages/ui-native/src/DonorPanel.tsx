@@ -39,7 +39,9 @@
 import type { SectionKey } from "@app/core";
 import { CONDITIONS_WORDS } from "@app/core";
 import { useState, type ReactNode } from "react";
-import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
+import { LayoutChangeEvent, View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import type { MapProps, TileEndpoints } from "@app/map";
 import type { StationId } from "@app/data";
 import { useDonorView, type DonorRowVM, type GaugeSides, type Horizon, type HorizonChipVM, type PanelAnswer,

@@ -17,7 +17,9 @@
  * not copied: there is one list of these pages in the app (tools/one-menu.test.ts).
  */
 import { createContext, useContext } from "react";
-import { Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Platform, ScrollView, View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { useCrashSetting, useLayoutClass, useNet, useNetBps } from "@app/ui";
 import { CRASH_WORDS, dataModeLine, menuVM, MOBILE_DATA_WORDS, NET_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MobileDataSetting, type MoreVM, type SyncVM } from "@app/core";
 import { SyncButton } from "../TopBar";

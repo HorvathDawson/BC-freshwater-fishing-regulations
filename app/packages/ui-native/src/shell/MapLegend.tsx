@@ -14,7 +14,9 @@ import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour }
 import { ObstacleIcon } from "../icons";
 import { useMemo, useState } from "react";
 import { useCoachTarget } from "../CoachMarks";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
 import { RegsLayerToggle } from "./RegsLayerToggle";

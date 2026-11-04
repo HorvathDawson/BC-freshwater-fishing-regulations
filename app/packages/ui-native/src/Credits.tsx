@@ -13,7 +13,8 @@
  * rather than restated here, because the Province's wording is legally exact and a second
  * copy is a second thing to get wrong.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
 import { CREDITS_WORDS } from "@app/core";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";

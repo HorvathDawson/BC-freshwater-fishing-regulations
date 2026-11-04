@@ -4,7 +4,8 @@
  * had typed out (a page's: body words; a block's: small words), so a screen's error reads like every other screen's.
  * `tools/one-button.test.ts` refuses an error line or a retry link typed out again.
  */
-import { Text, type TextStyle } from "react-native";
+import { type TextStyle } from "react-native";
+import { Text } from "./Text";
 import { Button } from "./Button";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";

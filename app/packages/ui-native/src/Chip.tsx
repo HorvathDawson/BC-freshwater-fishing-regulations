@@ -8,7 +8,8 @@
  *
  * `tools/one-button.test.ts` refuses a chip typed out again (an accent-filled pill Pressable with the same padding).
  */
-import { Pressable, Text } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { TYPE } from "./type";
 import { hitProps } from "./regs/hit";
 import type { Palette } from "./theme";

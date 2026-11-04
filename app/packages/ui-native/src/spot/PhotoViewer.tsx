@@ -3,7 +3,9 @@
  * Draws what it is handed — the photographs' resolved uris — and keeps only which one is open.
  */
 import { useMemo } from "react";
-import { Image, Modal, PanResponder, Pressable, Text, View } from "react-native";
+import { Image, Modal, PanResponder, View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { PHOTO_WORDS, photoLabel } from "@app/data/spots";
 import { useBackLayer } from "@app/ui";
 import { TYPE } from "../type";

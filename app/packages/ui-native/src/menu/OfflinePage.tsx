@@ -5,7 +5,9 @@
  * setting. Draws `offlineVM` (core offline.ts) through `useOfflineMaps` (@app/ui); decides nothing. Every press is named
  * and reaches 44 × 44.
  */
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import type { OfflineControls } from "@app/ui";
 import type { OfflineRowVM } from "@app/core";
 import { Icon } from "../icons";

@@ -11,7 +11,9 @@
  */
 import { ErrorState } from "../ErrorState";
 import { useMemo, useState } from "react";
-import { Linking, Pressable, Share, Switch, Text, TextInput, View } from "react-native";
+import { Linking, Share, Switch, TextInput, View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { contactVM, diagnosticRows, emailProblem, mailtoUrl, MENU_WORDS, PRIVACY_URL, REPORT_REASONS, reportMessage, type DiagKey,
          type Diagnostics, type ReportReason } from "@app/core";
 import { useReportSend, type ReportSender } from "@app/ui";

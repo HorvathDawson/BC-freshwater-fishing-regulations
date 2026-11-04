@@ -9,7 +9,8 @@
  * open row carries the header's sizes, and (T227) any row that may be fished carries the region notes about its species
  * (DFO's words: what an "adult chinook" is …), which the region block then leaves out. No logic and no words of its own: everything is core `salmonCard`'s.
  */
-import { Image, Text, View } from "react-native";
+import { Image, View } from "react-native";
+import { Text } from "../Text";
 import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";

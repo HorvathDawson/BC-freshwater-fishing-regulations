@@ -217,7 +217,8 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
     expect(within(row).queryByTestId("salmon-rule-full")).toBeNull();
     fireEvent.click(within(row).getByTestId("salmon-rule-fold"));
     expect(within(row).getByTestId("salmon-rule-full").textContent).toBe(long);
-    expect(within(row).getByTestId("salmon-rule-copy")).toBeTruthy();
+    // (T342) no Copy button: the words copy with the phone's own long-press
+    expect(within(row).queryByTestId("salmon-rule-copy")).toBeNull();
   });
 
   it("(T227) a region note about the coho sits on the coho row, not in the region block", () => {

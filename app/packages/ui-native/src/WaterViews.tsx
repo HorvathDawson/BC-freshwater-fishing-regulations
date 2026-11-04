@@ -21,6 +21,7 @@ import type { TileEndpoints } from "@app/map";
 import { useRegsStore, useUnnamedName, useWater, useWaterBox, useWaterLine, useWaterName, useWaterPlace } from "@app/ui";
 import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
+import { Selectable } from "./Text";
 import { AccessNoticeBlock } from "./regs/AccessNoticeBlock";
 import { Place } from "./regs/RegsHeader";
 import { LoadingState } from "./LoadingState";
@@ -100,7 +101,8 @@ export function WaterMap({ source, item, palette, children }: {
   // the canvas goes full-bleed under the frame's header (the one difference the frame allows); the name row stays on it
   return (
     <WaterFrame palette={palette} face="regulations" title={<WaterTitle name={name} palette={palette} source={nameSource} />} bleed>
-      {children}
+      {/* (T342) the map and its chrome are never selectable text */}
+      <Selectable on={false}>{children}</Selectable>
     </WaterFrame>
   );
 }

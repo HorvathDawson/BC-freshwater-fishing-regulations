@@ -5,7 +5,9 @@
  * `updatedToast`'s.
  */
 import { useEffect } from "react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 

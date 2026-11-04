@@ -15,7 +15,9 @@
  */
 import { LoadingState } from "../LoadingState";
 import { useRef, type ComponentProps } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { WATER_MAP_WORDS } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";

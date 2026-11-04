@@ -12,7 +12,9 @@
  * core's (`conditions.ts`). What is left here is drawing, and the chart's own controls.
  */
 import { useContext, useMemo, useState, type ReactNode } from "react";
-import { Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
+import { ScrollView, View, type LayoutChangeEvent } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";

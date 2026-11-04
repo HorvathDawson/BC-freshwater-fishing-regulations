@@ -2,7 +2,8 @@
  * The text blocks of a sheet: a paragraph (its tone), the example line, a small heading, the book's exact words, a list.
  * tokens.md §5 `Sheet · says` (Archivo 400 15) and `Sheet · example` (12.48 in sub). No logic: every word is the VM's.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../../Text";
 import type { ListItem } from "@app/core";
 import type { Line } from "@app/core";
 import { TYPE, type TextStyle } from "../../type";

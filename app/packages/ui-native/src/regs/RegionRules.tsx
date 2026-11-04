@@ -1,16 +1,17 @@
 /**
  * (T309, owner 2026-10-31: "region salmon regs are walls of text") THE REGION RULES of the salmon card, drawn like the
  * game-fish rows: one row per DFO rule — its kind chip, the species it is about (small tags), one line — with DFO's whole
- * wording under a "Full wording" fold when the line is not all of it, and a Copy action. Nothing dropped. No logic and no
+ * wording under a "Full wording" fold when the line is not all of it. Nothing dropped. (T342) No Copy button: the words
+ * copy with the phone's own long-press, as every pane's do (`Text.tsx`). No logic and no
  * words of its own: core `salmonCard`'s `regionRules[].rules` and SALMON_WORDS.
  */
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { SALMON_WORDS, type SalmonRuleVM } from "@app/core";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import { RegsPress } from "./RegsPress";
-import { copyText } from "./copyText";
 
 function Tag({ label, palette }: { label: string; palette: Palette }) {
   return (
@@ -22,7 +23,6 @@ function Tag({ label, palette }: { label: string; palette: Palette }) {
 
 function RuleRow({ r, palette }: { r: SalmonRuleVM; palette: Palette }) {
   const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
   return (
     <View testID="salmon-rule" style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: palette.line2 }}>
       <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
@@ -40,10 +40,6 @@ function RuleRow({ r, palette }: { r: SalmonRuleVM; palette: Palette }) {
             <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{open ? SALMON_WORDS.ruleHideWording : SALMON_WORDS.ruleFullWording} ›</Text>
           </RegsPress>
         )}
-        <RegsPress testID="salmon-rule-copy" accessibilityRole="button" box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center" }}
-                   onPress={() => { void copyText(r.text).then((ok) => { if (ok) { setCopied(true); setTimeout(() => setCopied(false), 1500); } }); }}>
-          <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{copied ? SALMON_WORDS.ruleCopied : SALMON_WORDS.ruleCopy}</Text>
-        </RegsPress>
       </View>
     </View>
   );

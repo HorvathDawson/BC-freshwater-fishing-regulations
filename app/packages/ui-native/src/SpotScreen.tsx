@@ -22,7 +22,9 @@
  */
 import { ErrorState } from "./ErrorState";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { ScrollView, TextInput, View, useWindowDimensions } from "react-native";
+import { Selectable, Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { isUntitled, needsRefresh, refreshReason, spotHeadline, spotLabel, type PhotoStore, type Spot } from "@app/data/spots";
 import { SPOT_WORDS as W } from "@app/core";
 import { leadUpView, useBackLayer, usePhotoUris, type DayFlowView, type LikeVisitView, type PhotoEdit,
@@ -198,7 +200,9 @@ export function SpotScreen(p: SpotScreenProps) {
       </Section>
   );
 
+  // (T342) the spot screen is a pane: its reading text copies with the phone's own long-press
   return (
+    <Selectable>
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ flexDirection: "row", alignItems: "center",
                      justifyContent: "space-between",
@@ -326,5 +330,6 @@ export function SpotScreen(p: SpotScreenProps) {
         </View>
       )}
     </View>
+    </Selectable>
   );
 }

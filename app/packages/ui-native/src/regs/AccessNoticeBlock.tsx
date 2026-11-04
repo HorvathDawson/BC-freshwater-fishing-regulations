@@ -12,7 +12,9 @@
  * not highlight the area only moved the reader.
  */
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import type { AccessNotice } from "@app/core";
 import { TYPE } from "../type";
 import { NO_ACCESS_BAND, laid, type Palette } from "../theme";

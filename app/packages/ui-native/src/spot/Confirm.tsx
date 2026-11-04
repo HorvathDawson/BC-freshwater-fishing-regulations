@@ -1,5 +1,6 @@
 /** The spot screen's confirm: a destructive or lossy step, asked first (also SpotCapture's draft question). */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { DRAFT_WORDS } from "@app/data/spots";
 import { SPOT_CONFIRM_WORDS, VISIT_CONFIRM_WORDS } from "@app/core";
 import { TYPE } from "../type";

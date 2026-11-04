@@ -6,7 +6,7 @@ import { chooseLayer, chooseShow, layersVM, withImageryCredit, type SectionKey }
 import { useCallback, useMemo, useState } from "react";
 import type { GaugeFeed, RunTimingSource, WaterSource, SectionId } from "@app/data";
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
-import { useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
+import { useCentreBasin, useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
          useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type RunSpeciesStore,
          type StatusSource } from "@app/ui";
@@ -197,6 +197,12 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const gauges = useGaugeGeoJSON(source, feed, mm.onConditions && layers.effective.layers.gauges === true, mm.quantity,
                                  mm.standingHorizon);
   /*
+   * (T376) THE WATERSHED GROUP UNDER THE CONDITIONS MAP'S CENTRE (`centreBasin`: `{ id, name }`, null in none; the id is
+   * `basinStandings`' key), asked when the map comes to rest (`noteCentre`, from `onMoved`) and only on Conditions. A
+   * water's Conditions view asks its OWN group (`useWaterBasin`), never this one.
+   */
+  const centre = useCentreBasin(source, mm.onConditions, HOME);
+  /*
    * THE DAY'S STATUS, ONLY on a proven pair with an index that matched (`statusOk`) (`statusFeed`): the map is handed
    * the index and the day and labels each tile as it arrives (colour-latency AP — no `idle`, no round trip through
    * here per pan).
@@ -214,7 +220,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
            // (T199, T261) the run timing: offered (the Runs tab), its state, and what the map paints (on Runs only)
            runsOffered, runs, runsFeed: runsShown ? runs.feed : null,
            // (T367) on the Runs tab, why nothing is painted: the bar over the map (`PairBanner`)
-           runsProblem: mapTab === "runs" ? runs.problem : null };
+           runsProblem: mapTab === "runs" ? runs.problem : null,
+           centreBasin: centre.centreBasin, centreBasinError: centre.centreBasinError, noteCentre: centre.noteCentre };
 }
 
 export type MapColouring = ReturnType<typeof useMapColouring>;

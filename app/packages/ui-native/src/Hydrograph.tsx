@@ -14,7 +14,9 @@
 import { useId, useMemo, useRef } from "react";
 import { CONDITIONS_WORDS, wheelFactor } from "@app/core";
 import type { ChartView, Hydrograph as Shape } from "@app/ui";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import { chartPointer, useChartHover, useChartWheel } from "./chartInput";

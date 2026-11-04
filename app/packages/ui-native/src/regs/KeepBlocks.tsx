@@ -4,7 +4,8 @@
  * each draws its VM slice.
  */
 import { useEffect, useState, type ReactNode } from "react";
-import { Image, Text, View } from "react-native";
+import { Image, View } from "react-native";
+import { Text } from "../Text";
 import Svg, { Circle, Path } from "react-native-svg";
 import { GLANCE_WORDS, WORDS, timedLineText, type BannerVM, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { Icon } from "../icons";

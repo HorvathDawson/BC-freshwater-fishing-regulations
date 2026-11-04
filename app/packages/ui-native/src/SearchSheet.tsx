@@ -32,7 +32,9 @@
  */
 import { useEscapeCloses } from "./escapeCloses";
 import { useEffect, useRef, useState } from "react";
-import { Animated, FlatList, Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Animated, FlatList, View, useWindowDimensions } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { SEARCH_BAR, type StatusIndex } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useBackLayer, type SearchAction, type SearchPick, type SearchSession } from "@app/ui";

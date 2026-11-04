@@ -2,7 +2,8 @@
  * One rule in a Sources sheet (prototype `.prule`): its title and who says it, as one button that opens the rule's own
  * sheet, then where it applies and its Rule book pages. No logic: every word is the VM's.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../../Text";
 import type { Line, SheetKey } from "@app/core";
 import { TYPE } from "../../type";
 import type { Palette } from "../../theme";

@@ -4,7 +4,8 @@
  * whole angler up (`onWho`) and the page is rebuilt from the same inputs. On a closed day (no axes) nothing is drawn.
  * No logic: the options, their words and which is checked are the LicenceVM's.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import type { LicenceVM, Who } from "@app/core";
 import { Choice } from "../Sheet";
 import { TYPE } from "../type";

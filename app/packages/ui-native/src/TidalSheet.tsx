@@ -3,7 +3,8 @@
  * `@app/core` `tidalSheet`'s, whole; this draws them. A bottom sheet at every width, like the obstacle sheet.
  */
 import { tidalSheet } from "@app/core";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";

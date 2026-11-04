@@ -10,7 +10,8 @@
  *
  * Filled against ring is the shape difference, so the states hold apart without their hue (the CVD palette, greyscale).
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import type { SourceFreshness, FreshnessVM } from "@app/core";
 import { TYPE } from "../type";
 import { round, type Palette } from "../theme";

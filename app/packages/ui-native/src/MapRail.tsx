@@ -9,7 +9,9 @@
  */
 import type { ReactNode } from "react";
 import { LAYER_WORDS, MAP_RAIL, MY_LOCATION } from "@app/core";
-import { Platform, Pressable, Text, View } from "react-native";
+import { Platform, View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";

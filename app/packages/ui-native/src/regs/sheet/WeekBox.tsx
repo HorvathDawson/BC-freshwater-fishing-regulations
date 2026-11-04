@@ -2,7 +2,8 @@
  * A weekday row's status box (prototype weekSheet `.wkstat`): the day read ("Today · Sat") and whose row it is, the
  * weekday status ("Weekends: keep 5 · Weekdays: release"), the data's weekday sentence. No logic.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../../Text";
 import { TYPE } from "../../type";
 import type { Palette } from "../../theme";
 

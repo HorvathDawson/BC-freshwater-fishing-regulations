@@ -204,6 +204,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      onRegion={onRegion}
                      onMoved={(at) => {
                        camera.current = at;
+                       // (T376) the group under the centre, asked at rest (on Conditions only; a ref otherwise)
+                       col.noteCentre(at);
                        // The ref is deliberate — see the Shell's camera — but ONE BIT of the camera is
                        // render state: which side of the handover we are on decides whether
                        // the field is drawn and whether a tap does anything. Set only when

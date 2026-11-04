@@ -8,7 +8,9 @@
 import { FISH, MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, TAB_TOUR_WORDS, pentadLabel, sliderKey, type RunSpecies } from "@app/core";
 import { runStateColour } from "@app/map/colours";
 import { useMemo, useRef, useState, type ReactNode } from "react";
-import { Image, PanResponder, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, PanResponder, ScrollView, View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { useCoachTarget } from "./CoachMarks";
 import { Icon } from "./icons";
 import { hitProps } from "./regs/hit";

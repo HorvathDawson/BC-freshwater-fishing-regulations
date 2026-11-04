@@ -20,7 +20,9 @@
  * an ink icon — one more pair for the palette gate (T39) to hold in light, dark and the colour-blind palette.
  */
 import { useCoachRefs } from "./CoachMarks";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "./Text";
+import { Pressable } from "./Pressable";
 import { BROWSE_TABS } from "@app/core";
 import { Icon, type IconName } from "./icons";
 import { TYPE } from "./type";

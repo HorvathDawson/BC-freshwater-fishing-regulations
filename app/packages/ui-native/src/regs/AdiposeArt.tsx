@@ -13,7 +13,8 @@
  * (T46) Each figure at most the fish picture's measure; on a tablet / desktop the two sit side by side (wrapping),
  * as a fish's looks do (FishLooks); on a phone one above the other, as the prototype.
  */
-import { Image, Text, View, type ImageSourcePropType } from "react-native";
+import { Image, View, type ImageSourcePropType } from "react-native";
+import { Text } from "../Text";
 import { plain, type Line } from "@app/core";
 import type { LayoutClass } from "@app/ui";
 import { TYPE } from "../type";

@@ -1,6 +1,8 @@
 /** The spot screen's small parts: a block with its heading, a header link, and when a value was observed. */
 import type { ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { observedLine } from "@app/data/spots";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";

@@ -2,7 +2,8 @@
  * What a saved spot recorded: the water that day and the weather. EVERYTHING HERE IS A RECORD, NOT A READING — each
  * figure was copied in when the spot was made and carries its own date (see SpotScreen).
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
 import { DAY_PANEL_WORDS, savedGauges, spotReadingFigure, visitDay, type Spot } from "@app/data/spots";
 import { SPOT_RECORD_WORDS, percentileOrdinal } from "@app/core";
 import { DonorPanel } from "../DonorPanel";

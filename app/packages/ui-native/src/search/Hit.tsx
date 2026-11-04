@@ -1,6 +1,8 @@
 /** One result row of search's sheet: select, then go. */
 import { useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "../Text";
+import { Pressable } from "../Pressable";
 import { WATER_STATUS, type WaterStatus } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";

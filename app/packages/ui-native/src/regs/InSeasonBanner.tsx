@@ -4,7 +4,8 @@
  * (core `inSeasonBanner`); which changes, from `@app/ui` `useInSeasonBanners`. INFORMATIONAL: drawn above the rules,
  * never changing them; the attention bar is not a water-status colour.
  */
-import { Linking, Text, View } from "react-native";
+import { Linking, View } from "react-native";
+import { Text } from "../Text";
 import { INSEASON_WORDS, type InSeasonBannerVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, RADIUS, type Palette } from "../theme";
