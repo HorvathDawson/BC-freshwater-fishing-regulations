@@ -42,7 +42,10 @@ describe("the native map applies the gesture policy and feature-state by id", ()
             src.includes("renderer.states("),
             adapter.includes("stateHandle(sink, lit)"),
             adapter.includes("src.setFeatureState({ id, sourceLayer: t.sourceLayer }, s)"),
-            adapter.includes("src.removeFeatureState({ id, sourceLayer: t.sourceLayer }, key)"),
+            // (T345) a key is unset by a NULL WRITE, never by a per-feature removeFeatureState (Native drops all but
+            // the first removal per source-layer in a frame)
+            adapter.includes("src.setFeatureState({ id, sourceLayer: t.sourceLayer }, { [key]: null })")
+              && !adapter.includes("src.removeFeatureState("),
             // only where a phone has an id: the section source-layers (MVT ids); area values go into the style
             adapter.includes("SECTION_SOURCE_LAYERS.includes(t.sourceLayer)"),
             src.includes("areaLayer(layerId) ? area : sec"),
