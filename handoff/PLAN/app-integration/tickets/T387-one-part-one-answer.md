@@ -78,3 +78,6 @@ failed face, in both layouts; the glance-failed case fails on the old code).
    it is about where you stand; across a long part it moves by minutes. Alternative: the part's midpoint (`part_geo.mid`).
 2. **Scroll memory** (`regsScrollKey(item, part, tapSid)`): where the reader left the page, kept per tapped reach. Not a
    fact on the page; keying it by part would make every tap on a part reopen at the same place.
+
+## Owner 2026-11-04: the point-bound list
+Agreed: the sun line (at the tapped point) and the scroll memory (per tapped reach) stay per-spot. Nothing else is.
