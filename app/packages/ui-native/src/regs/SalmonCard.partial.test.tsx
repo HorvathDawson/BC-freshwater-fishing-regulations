@@ -16,7 +16,7 @@ const FACTS: SalmonFacts = {
   chainOf: (sid) => (sid === 101 ? 1 : 0),
   payload: {
     format: "salmon/1", credit: "DFO", default: 0,
-    regions: { "6": { name: "Skeena", asof: "2026-08-28", url: "https://example/region6" } },
+    regions: { "6": { name: "Skeena", asof: "2026-08-28", url: "https://example/region6", shared: [], sizes: [] } },
     verdicts: [{ s: "closed", t: "Not opened by DFO: closed to salmon fishing", d: 1 },
                { s: "release", t: "No retention of coho (Jan 1–Oct 31)" },
                { s: "open", t: "4 per day, only 2 over 50 cm (Apr 1–Oct 31)" }],

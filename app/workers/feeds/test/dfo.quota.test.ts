@@ -6,7 +6,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { Interner, locationCalendar, type Verdict } from "../src/dfo/salmon";
-import { speciesTree, walk, words, type QuotaTier } from "../src/dfo/quota";
+import { bucket, headerClosure, sharedBuckets, sizes, speciesTree, walk, words, type QuotaTier } from "../src/dfo/quota";
+import { parseHeader } from "../src/dfo/header";
 import { toRules } from "../src/dfo/typed";
 import { REPO } from "./dfo.scenario";
 
@@ -66,4 +67,19 @@ describe("(T349 / T350) non-retention is closed; release only where DFO says cat
   it("plain non-retention answers closed", () => expect(verdictOf("Non-retention")).toBe("closed"));
   it("catch and release in DFO's words answers release", () =>
     expect(verdictOf("Open for salmon catch and release")).toBe("release"));
+});
+
+// (T356, T358) the header notes (lengths as LengthBands) and what they resolve to — bucket, the region's `shared` and
+// `sizes` — are the Python's (pipeline/tests/fixtures/dfo_salmon/t356_header.json, written and checked by
+// pipeline/tests/test_dfo_header.py) on every fixture page; the closure rule carries its note id
+describe("(T356) the header's answers, as the Python resolves them", () => {
+  const FIX = JSON.parse(readFileSync(join(REPO, "pipeline/tests/fixtures/dfo_salmon/t356_header.json"), "utf-8")) as
+    Record<string, { notes: never[]; bucket?: unknown; shared: unknown[]; sizes: unknown[] }>;
+  for (const [slug, want] of Object.entries(FIX)) it(`region ${slug}`, () => {
+    const notes = parseHeader(readFileSync(join(REPO, `pipeline/tests/fixtures/dfo_salmon/region${slug}-eng.html`), "utf-8"), slug);
+    expect(JSON.parse(JSON.stringify(notes))).toEqual(want.notes);
+    expect([bucket(notes) ?? undefined, sharedBuckets(notes), sizes(notes)]).toEqual([want.bucket, want.shared, want.sizes]);
+    const closed = (notes as { k: string; id?: string }[]).find((n) => n.k === "closed");
+    if (closed) expect(headerClosure(notes, slug)![0]).toMatchObject({ header_note: closed.id });
+  });
 });

@@ -1,0 +1,1023 @@
+{
+ "1": {
+  "bucket": {
+   "ids": [
+    "1:daily:3edbbbb8",
+    "1:possession:0483d6ff"
+   ],
+   "possession": 8,
+   "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply.",
+   "tp": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence.",
+   "tree": {
+    "by": 0,
+    "children": [
+     {
+      "by": 0,
+      "children": [],
+      "id": "t1",
+      "n": 10,
+      "node": "tier",
+      "over_cm": 50,
+      "period": "annual",
+      "says": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "species": [
+       "CH"
+      ],
+      "tier": "size"
+     }
+    ],
+    "id": "t0",
+    "n": 4,
+    "node": "tier",
+    "says": "Up to 4 salmon a day in total",
+    "tier": "total"
+   }
+  },
+  "notes": [
+   {
+    "id": "1:facility:5fe48924",
+    "k": "facility",
+    "m": 100,
+    "t": "No fishing is allowed within 100 meters of any government facility operated for counting, passing or rearing fish unless otherwise stated."
+   },
+   {
+    "id": "1:min_size:81a8960d",
+    "k": "min_size",
+    "lengths": [
+     {
+      "min_cm": 30
+     }
+    ],
+    "sp": [
+     "CH",
+     "SK"
+    ],
+    "t": "All retained chinook and sockeye must measure 30 cm or more from tip of nose to tail fork"
+   },
+   {
+    "id": "1:min_size:8b84ef8d",
+    "k": "min_size",
+    "lengths": [
+     {
+      "min_cm": 25
+     }
+    ],
+    "sp": [
+     "CO"
+    ],
+    "t": "All retained coho must measure 25 cm or more from tip of nose to tail fork"
+   },
+   {
+    "id": "1:adult:35039184",
+    "k": "adult",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "sp": [
+     "CH"
+    ],
+    "t": "An \"adult chinook\" in Region 1 is defined as being over 50 cm"
+   },
+   {
+    "id": "1:daily:3edbbbb8",
+    "k": "daily",
+    "n": 4,
+    "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply."
+   },
+   {
+    "id": "1:possession:0483d6ff",
+    "k": "possession",
+    "n": 8,
+    "t": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence."
+   },
+   {
+    "id": "1:annual:abc91df0",
+    "k": "annual",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "n": 10,
+    "sp": [
+     "CH"
+    ],
+    "t": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined."
+   },
+   {
+    "id": "1:bait_ban:338a7b15",
+    "k": "bait_ban",
+    "t": "Annual bait ban in effect in all streams of Region 1 as follows: All streams in Region 1 except: Quatse River; Somass River; Sproat River; Stamp River downstream of \"Girl Guide Falls\" (approximately 275 m upstream of the mouth of Beaver Creek), unless otherwise described below.",
+    "x": [
+     {
+      "key": "quatse river",
+      "n": "Quatse River",
+      "ws": false
+     },
+     {
+      "key": "somass river",
+      "n": "Somass River",
+      "ws": false
+     },
+     {
+      "key": "sproat river",
+      "n": "Sproat River",
+      "ws": false
+     }
+    ],
+    "xp": [
+     "Stamp River downstream of \"Girl Guide Falls\" (approximately 275 m upstream of the mouth of Beaver Creek)"
+    ]
+   }
+  ],
+  "shared": [],
+  "sizes": [
+   {
+    "adult": {
+     "min_cm": 50
+    },
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "CH"
+    ]
+   },
+   {
+    "min": {
+     "min_cm": 25
+    },
+    "sp": [
+     "CO"
+    ]
+   },
+   {
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "SK"
+    ]
+   }
+  ]
+ },
+ "2": {
+  "bucket": {
+   "ids": [
+    "2:daily:3edbbbb8",
+    "2:possession:0483d6ff"
+   ],
+   "possession": 8,
+   "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply.",
+   "tp": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence.",
+   "tree": {
+    "by": 0,
+    "children": [
+     {
+      "by": 0,
+      "children": [],
+      "id": "t1",
+      "n": 10,
+      "node": "tier",
+      "over_cm": 50,
+      "period": "annual",
+      "says": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "species": [
+       "CH"
+      ],
+      "tier": "size"
+     }
+    ],
+    "id": "t0",
+    "n": 4,
+    "node": "tier",
+    "says": "Up to 4 salmon a day in total",
+    "tier": "total"
+   }
+  },
+  "notes": [
+   {
+    "id": "2:daylight:f19a3472",
+    "k": "daylight",
+    "t": "You can only fish for salmon in Region 2 during daylight hours."
+   },
+   {
+    "id": "2:facility:482d5861",
+    "k": "facility",
+    "m": 100,
+    "t": "No fishing is allowed within 100 meters of any government facility operated for counting, passing or rearing fish."
+   },
+   {
+    "id": "2:daily:3edbbbb8",
+    "k": "daily",
+    "n": 4,
+    "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply."
+   },
+   {
+    "id": "2:possession:0483d6ff",
+    "k": "possession",
+    "n": 8,
+    "t": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence."
+   },
+   {
+    "id": "2:annual:abc91df0",
+    "k": "annual",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "n": 10,
+    "sp": [
+     "CH"
+    ],
+    "t": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined."
+   },
+   {
+    "hatchery": true,
+    "id": "2:aggregate:8575ee9d",
+    "k": "aggregate",
+    "n": 1,
+    "sp": [
+     "CO"
+    ],
+    "t": "Squamish watershed: the aggregate daily limit of hatchery-marked coho in the entire Squamish non-tidal systems combined is one (1).",
+    "w": [
+     {
+      "key": "squamish river+ws",
+      "n": "Squamish River",
+      "ws": true
+     }
+    ]
+   },
+   {
+    "id": "2:measure:89e5a0b6",
+    "k": "measure",
+    "t": "Salmon measurements are taken from tip of nose to tail fork."
+   },
+   {
+    "id": "2:min_size:3e134f97",
+    "k": "min_size",
+    "lengths": [
+     {
+      "min_cm": 25
+     }
+    ],
+    "sp": [
+     "CO"
+    ],
+    "t": "All retained coho must measure 25 cm or more."
+   },
+   {
+    "id": "2:min_size:9a18cc7a",
+    "k": "min_size",
+    "lengths": [
+     {
+      "min_cm": 30
+     }
+    ],
+    "sp": [
+     "CH",
+     "SK",
+     "PK",
+     "CM"
+    ],
+    "t": "All retained chinook, chum, pink, and sockeye must measure 30 cm or more."
+   },
+   {
+    "id": "2:adult:2b17b164",
+    "k": "adult",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "sp": [
+     "CH"
+    ],
+    "t": "An \"adult chinook\" in Region 2 is defined as being over 50 cm except in the following areas where an \"adult chinook\" is defined as being over 62 cm: the Fraser River from Sep 1 to Dec 31; the Chehalis River from Sep 1 to Dec 31; the Chilliwack/Vedder River (including Sumas River) and the Capilano River."
+   },
+   {
+    "id": "2:adult:08b39806",
+    "k": "adult",
+    "lengths": [
+     {
+      "min_cm": 62
+     }
+    ],
+    "on": [
+     [
+      244,
+      365
+     ]
+    ],
+    "sp": [
+     "CH"
+    ],
+    "t": "An \"adult chinook\" in Region 2 is defined as being over 50 cm except in the following areas where an \"adult chinook\" is defined as being over 62 cm: the Fraser River from Sep 1 to Dec 31",
+    "w": [
+     {
+      "key": "fraser river",
+      "n": "Fraser River",
+      "ws": false
+     }
+    ]
+   },
+   {
+    "id": "2:adult:51424043",
+    "k": "adult",
+    "lengths": [
+     {
+      "min_cm": 62
+     }
+    ],
+    "on": [
+     [
+      244,
+      365
+     ]
+    ],
+    "sp": [
+     "CH"
+    ],
+    "t": "An \"adult chinook\" in Region 2 is defined as being over 50 cm except in the following areas where an \"adult chinook\" is defined as being over 62 cm: the Chehalis River from Sep 1 to Dec 31",
+    "w": [
+     {
+      "key": "chehalis river",
+      "n": "Chehalis River",
+      "ws": false
+     }
+    ]
+   },
+   {
+    "id": "2:adult:07de42b9",
+    "k": "adult",
+    "lengths": [
+     {
+      "min_cm": 62
+     }
+    ],
+    "sp": [
+     "CH"
+    ],
+    "t": "An \"adult chinook\" in Region 2 is defined as being over 50 cm except in the following areas where an \"adult chinook\" is defined as being over 62 cm: the Chilliwack/Vedder River (including Sumas River) and the Capilano River.",
+    "w": [
+     {
+      "key": "chilliwack vedder river including sumas river",
+      "n": "Chilliwack/Vedder River (including Sumas River)",
+      "ws": false
+     },
+     {
+      "key": "capilano river",
+      "n": "Capilano River",
+      "ws": false
+     }
+    ]
+   }
+  ],
+  "shared": [
+   {
+    "id": "2:aggregate:8575ee9d",
+    "t": "Squamish watershed: the aggregate daily limit of hatchery-marked coho in the entire Squamish non-tidal systems combined is one (1).",
+    "tree": {
+     "by": 0,
+     "children": [],
+     "id": "t0",
+     "n": 1,
+     "node": "tier",
+     "origin": "hatchery",
+     "says": "Up to 1 hatchery-marked coho a day in total across the Squamish River watershed",
+     "species": [
+      "CO"
+     ],
+     "tier": "total",
+     "whose": "the Squamish River watershed"
+    },
+    "w": [
+     "squamish river+ws"
+    ]
+   }
+  ],
+  "sizes": [
+   {
+    "adult": {
+     "min_cm": 62
+    },
+    "min": {
+     "min_cm": 30
+    },
+    "on": [
+     [
+      244,
+      365
+     ]
+    ],
+    "sp": [
+     "CH"
+    ],
+    "w": [
+     "fraser river"
+    ]
+   },
+   {
+    "adult": {
+     "min_cm": 62
+    },
+    "min": {
+     "min_cm": 30
+    },
+    "on": [
+     [
+      244,
+      365
+     ]
+    ],
+    "sp": [
+     "CH"
+    ],
+    "w": [
+     "chehalis river"
+    ]
+   },
+   {
+    "adult": {
+     "min_cm": 62
+    },
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "CH"
+    ],
+    "w": [
+     "chilliwack vedder river including sumas river",
+     "capilano river"
+    ]
+   },
+   {
+    "adult": {
+     "min_cm": 50
+    },
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "CH"
+    ]
+   },
+   {
+    "min": {
+     "min_cm": 25
+    },
+    "sp": [
+     "CO"
+    ]
+   },
+   {
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "SK",
+     "PK",
+     "CM"
+    ]
+   }
+  ]
+ },
+ "4": {
+  "notes": [
+   {
+    "id": "4:closed:21698e56",
+    "k": "closed",
+    "t": "There is no fishing for salmon in Region 4 - Kootenays until further notice."
+   }
+  ],
+  "shared": [],
+  "sizes": []
+ },
+ "5a": {
+  "notes": [
+   {
+    "id": "5a:closed:a6f26c09",
+    "k": "closed",
+    "t": "There is no fishing for salmon in Region 5A - Cariboo Part A, Fraser River Watershed until further notice."
+   }
+  ],
+  "shared": [],
+  "sizes": []
+ },
+ "5b": {
+  "bucket": {
+   "ids": [
+    "5b:daily:3edbbbb8",
+    "5b:possession:0483d6ff"
+   ],
+   "possession": 8,
+   "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply.",
+   "tp": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence.",
+   "tree": {
+    "by": 0,
+    "children": [
+     {
+      "by": 0,
+      "children": [],
+      "id": "t1",
+      "n": 10,
+      "node": "tier",
+      "over_cm": 50,
+      "period": "annual",
+      "says": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "species": [
+       "CH"
+      ],
+      "tier": "size"
+     }
+    ],
+    "id": "t0",
+    "n": 4,
+    "node": "tier",
+    "says": "Up to 4 salmon a day in total",
+    "tier": "total"
+   }
+  },
+  "notes": [
+   {
+    "id": "5b:facility:482d5861",
+    "k": "facility",
+    "m": 100,
+    "t": "No fishing is allowed within 100 meters of any government facility operated for counting, passing or rearing fish."
+   },
+   {
+    "id": "5b:min_size:efa31345",
+    "k": "min_size",
+    "lengths": [
+     {
+      "min_cm": 30
+     }
+    ],
+    "sp": [
+     "CH",
+     "CO",
+     "SK",
+     "PK",
+     "CM"
+    ],
+    "t": "All retained chinook, sockeye, pink, coho, and chum must measure 30 cm or more from tip of nose to tail fork."
+   },
+   {
+    "id": "5b:adult:1b45d1dc",
+    "k": "adult",
+    "lengths": [
+     {
+      "min_cm": 65
+     }
+    ],
+    "sp": [
+     "CH"
+    ],
+    "t": "An \"adult chinook\" is defined as being over 65 cm in the Bella Coola/Atnarko River.",
+    "w": [
+     {
+      "key": "bella coola atnarko river",
+      "n": "Bella Coola/Atnarko River",
+      "ws": false
+     }
+    ]
+   },
+   {
+    "id": "5b:adult:b1e1a86c",
+    "k": "adult",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "sp": [
+     "CO"
+    ],
+    "t": "An \"adult coho\" salmon in Region 5B is defined as being greater than 50 cm measured from the tip of the nose to the fork in the tail (fork length)."
+   },
+   {
+    "id": "5b:jack:2bdb419f",
+    "k": "jack",
+    "lengths": [
+     {
+      "max_cm": 50,
+      "min_cm": 30
+     }
+    ],
+    "sp": [
+     "CO"
+    ],
+    "t": "A \"jack\" coho salmon is defined as being a coho between 30-50 cm fork length."
+   },
+   {
+    "id": "5b:daily:3edbbbb8",
+    "k": "daily",
+    "n": 4,
+    "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply."
+   },
+   {
+    "id": "5b:possession:0483d6ff",
+    "k": "possession",
+    "n": 8,
+    "t": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence."
+   },
+   {
+    "id": "5b:annual:abc91df0",
+    "k": "annual",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "n": 10,
+    "sp": [
+     "CH"
+    ],
+    "t": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined."
+   },
+   {
+    "id": "5b:other:306c396c",
+    "k": "other",
+    "t": "Reminder: There is no fishing for eulachon in Region 5B."
+   }
+  ],
+  "shared": [],
+  "sizes": [
+   {
+    "adult": {
+     "min_cm": 65
+    },
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "CH"
+    ],
+    "w": [
+     "bella coola atnarko river"
+    ]
+   },
+   {
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "CH"
+    ]
+   },
+   {
+    "adult": {
+     "min_cm": 50
+    },
+    "jack": {
+     "max_cm": 50,
+     "min_cm": 30
+    },
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "CO"
+    ]
+   },
+   {
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "SK",
+     "PK",
+     "CM"
+    ]
+   }
+  ]
+ },
+ "6": {
+  "bucket": {
+   "ids": [
+    "6:daily:3edbbbb8",
+    "6:possession:0483d6ff"
+   ],
+   "possession": 8,
+   "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply.",
+   "tp": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence.",
+   "tree": {
+    "by": 0,
+    "children": [
+     {
+      "by": 0,
+      "children": [],
+      "id": "t1",
+      "n": 10,
+      "node": "tier",
+      "over_cm": 50,
+      "period": "annual",
+      "says": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "species": [
+       "CH"
+      ],
+      "tier": "size"
+     }
+    ],
+    "id": "t0",
+    "n": 4,
+    "node": "tier",
+    "says": "Up to 4 salmon a day in total",
+    "tier": "total"
+   }
+  },
+  "notes": [
+   {
+    "id": "6:facility:c1a069d8",
+    "k": "facility",
+    "m": 100,
+    "t": "No fishing is allowed within 100 meters of any government facility operated for counting, passing or rearing fish"
+   },
+   {
+    "id": "6:min_size:563fd02e",
+    "k": "min_size",
+    "lengths": [
+     {
+      "min_cm": 30
+     }
+    ],
+    "sp": [
+     "CH",
+     "CO",
+     "SK",
+     "PK",
+     "CM"
+    ],
+    "t": "All retained chinook, sockeye, pink, coho, and chum must measure 30 cm or more from tip of nose to tail fork"
+   },
+   {
+    "id": "6:adult:77a9fd2a",
+    "k": "adult",
+    "lengths": [
+     {
+      "min_cm": 65
+     }
+    ],
+    "sp": [
+     "CH"
+    ],
+    "t": "An \"adult chinook\" in Region 6 (other than Fraser River Watershed) is defined as being over 65 cm measured from the tip of the nose to tail fork"
+   },
+   {
+    "id": "6:adult:cef8a3e8",
+    "k": "adult",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "sp": [
+     "CO"
+    ],
+    "t": "An \"adult coho\" salmon in Region 6 is defined as being greater than 50 cm measured from the tip of the nose to the fork in the tail (fork length)"
+   },
+   {
+    "id": "6:jack:e017eb86",
+    "k": "jack",
+    "lengths": [
+     {
+      "max_cm": 50,
+      "min_cm": 30
+     }
+    ],
+    "sp": [
+     "CO"
+    ],
+    "t": "A \"jack\" coho salmon is defined as being a coho between 30-50 cm fork length"
+   },
+   {
+    "id": "6:daily:3edbbbb8",
+    "k": "daily",
+    "n": 4,
+    "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply."
+   },
+   {
+    "id": "6:possession:0483d6ff",
+    "k": "possession",
+    "n": 8,
+    "t": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence."
+   },
+   {
+    "id": "6:annual:abc91df0",
+    "k": "annual",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "n": 10,
+    "sp": [
+     "CH"
+    ],
+    "t": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined."
+   },
+   {
+    "id": "6:other:41155080",
+    "k": "other",
+    "t": "Reminder: There is no fishing for eulachon in Region 6."
+   }
+  ],
+  "shared": [],
+  "sizes": [
+   {
+    "adult": {
+     "min_cm": 65
+    },
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "CH"
+    ]
+   },
+   {
+    "adult": {
+     "min_cm": 50
+    },
+    "jack": {
+     "max_cm": 50,
+     "min_cm": 30
+    },
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "CO"
+    ]
+   },
+   {
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "SK",
+     "PK",
+     "CM"
+    ]
+   }
+  ]
+ },
+ "7": {
+  "notes": [
+   {
+    "id": "7:closed:761cfd81",
+    "k": "closed",
+    "t": "There is no fishing for salmon in Region 7 until further notice."
+   }
+  ],
+  "shared": [],
+  "sizes": []
+ },
+ "8": {
+  "bucket": {
+   "ids": [
+    "8:daily:3edbbbb8",
+    "8:possession:0483d6ff"
+   ],
+   "possession": 8,
+   "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply.",
+   "tp": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence.",
+   "tree": {
+    "by": 0,
+    "children": [
+     {
+      "by": 0,
+      "children": [],
+      "id": "t1",
+      "n": 4,
+      "node": "tier",
+      "over_cm": 50,
+      "period": "monthly",
+      "says": "There is a monthly limit of 4 chinook over 50 cm in Region 8.",
+      "species": [
+       "CH"
+      ],
+      "tier": "size"
+     },
+     {
+      "by": 0,
+      "children": [],
+      "id": "t2",
+      "n": 10,
+      "node": "tier",
+      "over_cm": 50,
+      "period": "annual",
+      "says": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "species": [
+       "CH"
+      ],
+      "tier": "size"
+     }
+    ],
+    "id": "t0",
+    "n": 4,
+    "node": "tier",
+    "says": "Up to 4 salmon a day in total",
+    "tier": "total"
+   }
+  },
+  "notes": [
+   {
+    "id": "8:daylight:45d8e305",
+    "k": "daylight",
+    "t": "You are only allowed to fish for salmon in Region 8 during daylight hours, that is, between 1 hour before sunrise and 1 hour after sunset."
+   },
+   {
+    "id": "8:facility:482d5861",
+    "k": "facility",
+    "m": 100,
+    "t": "No fishing is allowed within 100 meters of any government facility operated for counting, passing or rearing fish."
+   },
+   {
+    "id": "8:min_size:778cfd5f",
+    "k": "min_size",
+    "lengths": [
+     {
+      "min_cm": 30
+     }
+    ],
+    "sp": [
+     "CH"
+    ],
+    "t": "All retained chinook must measure 30 cm or more from tip of nose to fork in tail (fork length)."
+   },
+   {
+    "id": "8:adult:5614aae1",
+    "k": "adult",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "sp": [
+     "CH"
+    ],
+    "t": "An \"adult chinook\" in Region 8 is defined as a chinook being over 50 cm (fork length)."
+   },
+   {
+    "id": "8:monthly:94ad2ad5",
+    "k": "monthly",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "n": 4,
+    "sp": [
+     "CH"
+    ],
+    "t": "There is a monthly limit of 4 chinook over 50 cm in Region 8."
+   },
+   {
+    "id": "8:daily:3edbbbb8",
+    "k": "daily",
+    "n": 4,
+    "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply."
+   },
+   {
+    "id": "8:possession:0483d6ff",
+    "k": "possession",
+    "n": 8,
+    "t": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence."
+   },
+   {
+    "id": "8:annual:abc91df0",
+    "k": "annual",
+    "lengths": [
+     {
+      "min_cm": 50
+     }
+    ],
+    "n": 10,
+    "sp": [
+     "CH"
+    ],
+    "t": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined."
+   }
+  ],
+  "shared": [],
+  "sizes": [
+   {
+    "adult": {
+     "min_cm": 50
+    },
+    "min": {
+     "min_cm": 30
+    },
+    "sp": [
+     "CH"
+    ]
+   }
+  ]
+ }
+}

@@ -1,6 +1,6 @@
 # T358 — DFO rule fields that are not in the catalogue model
 
-Status: OPEN (found by T350 lean pass, 2026-11-02). The DFO rules are `CatalogueRule`s (typed.py), but these ride
+Status: items 1–2 DONE 2026-11-03 (with T356, salmon/4); item 3 (`When`) WAITS on an owner decision + the T350 worker split (found by T350 lean pass, 2026-11-02). The DFO rules are `CatalogueRule`s (typed.py), but these ride
 beside the model (`extra="forbid"` would refuse them):
 
 - **`shared`** (`pipeline/regs/dfo_salmon/quota.py:221`, T349): a prose scope string ("Management Units 5-6 to 5-11")
@@ -17,3 +17,19 @@ beside the model (`extra="forbid"` would refuse them):
 Size: M.
 
 Unblocked 2026-11-03: its dependency (T332 merged 0c276aa10 / T350) is DONE.
+
+## Done 2026-11-03 (with T356)
+- **Pooled across:** `CatalogueRule.pooled_across: [area ids]` (validated: `area:` ids, a retention count above zero).
+  `quota.pool_of(loc)` reads the location's own `within` areas where its words say "in the aggregate" (an aggregate
+  location with no `within` area raises); `mark_shared` sets the field; `pool_words` gives the tree's `whose`
+  ("Management Units 5-6 to 5-11", same words as before). The prose `shared` field is gone. No freshwater rule uses it.
+- **Header sizes:** a note's length is `lengths` (LengthBand, validated) instead of `cm` (`header.FORMAT` dfo-header/2,
+  worker header.ts too); the bucket's `min_cm` is gone (sizes are `regions[r].sizes`). Typed files stamp
+  `header_format`; `deliver.salmon.load_headers` re-reads an older-format header from its dated cached page. The
+  worker's `upgrade()` converts a carried note's `cm`.
+- **Not done — item 3, one `When` shape (owner decision):** Python reads "Apr 1 until further notice" as `unparsed`
+  (verdict `check`: 6 rules in the typed files on disk — R1 1, R2 1, R4 1, R8 3; the 3 "To be determined" stay `check` either way); the worker's
+  robust mode reads it as open-ended from its start (`when.open_ended`, dated rows outrank it) and flags
+  unreadable cells with `check`. Proposed: add `open_ended` to Python's `When` and port the worker's reading into
+  `typed.py` / `verdict_on` (answers change on those rows: check → open/closed after the start), drop the worker's
+  `check` (it is `when.unparsed`). Do it with the T350 worker split.

@@ -2,6 +2,8 @@
 quota tree's aggregate tier."""
 from __future__ import annotations
 
+import pytest
+
 from pipeline.deliver import salmon as S
 from pipeline.regs.dfo_salmon import cascade as C
 from pipeline.regs.dfo_salmon import entries as E
@@ -97,17 +99,27 @@ R5B = ("All lakes or streams or part thereof in the aggregate (combined total), 
 
 
 def test_r5b_settles_on_the_mu_list_and_its_count_is_shared():
-    scope = Q.shared_scope({"specific_area": R5B})
-    assert scope == "Management Units 5-6 to 5-11"
+    """(T358) the pool is STRUCTURAL: `pooled_across` the location's own `within` areas, the words the area's."""
+    from types import SimpleNamespace as NS
+    from pipeline.regs.dfo_salmon import entries as E
+    mu = "area:mu_group:management_units_5_6_to_5_11"
+    loc = next(l for l in E.load("5b").locations if l.location_id == "5b:region:section")
+    assert Q.pool_of(loc) == [mu]
+    assert Q.pool_words([mu]) == "Management Units 5-6 to 5-11"
     rules = Q.mark_shared([{**_rule("4 per day", None, take=4, sp=("CH",)), "rule_id": "a.r0"},
                            {"rule_id": "a.r0b", "type": "retention_limit", "species": ["CH"], "take": 1,
-                            "within": "a.r0", "lengths": [{"min_cm": 50}], "verbatim": "only 1 over 50 cm"}], scope)
-    assert rules[0]["shared"] == scope and "shared" not in rules[1]
+                            "within": "a.r0", "lengths": [{"min_cm": 50}], "verbatim": "only 1 over 50 cm"}], [mu])
+    assert rules[0]["pooled_across"] == [mu] and "pooled_across" not in rules[1]
     v = S.verdict_on([rules], "CH", AUG1)
     t = v["tree"]
-    assert v["s"] == "open" and t["tier"] == "total" and t["whose"] == scope and t["n"] == 4
+    assert v["s"] == "open" and t["tier"] == "total" and t["whose"] == "Management Units 5-6 to 5-11" and t["n"] == 4
     assert [c["n"] for c in t["children"]] == [1]                 # the size tier stays under the shared count
-    assert Q.shared_scope({"specific_area": "All Region 4 waters"}) is None
+    assert Q.pool_of(NS(source_text={"specific_area": "All Region 4 waters"})) == []
+    # the field is the catalogue model's own: a pooled count validates, words in it do not
+    from pipeline.regs.parsing.catalogue_parts.rule import CatalogueRule
+    CatalogueRule.model_validate({k: v for k, v in rules[0].items() if k != "when"} | {"verbatim": "4 per day"})
+    with pytest.raises(ValueError, match="not area ids"):
+        CatalogueRule.model_validate({**rules[0], "pooled_across": ["Management Units 5-6 to 5-11"]})
 
 
 def test_squamish_hatchery_coho_is_an_aggregate_tier_over_the_watershed():
@@ -115,7 +127,9 @@ def test_squamish_hatchery_coho_is_an_aggregate_tier_over_the_watershed():
              {"id": "2:aggregate:y", "k": "aggregate", "sp": ["CO"], "n": 1, "hatchery": True,
               "t": "Squamish watershed: the aggregate daily limit of hatchery-marked coho … is one (1).",
               "w": [{"n": "Squamish River", "ws": True, "key": "squamish river+ws"}]}]
-    (sh,) = Q.bucket(notes)["shared"]
+    (sh,) = Q.shared_buckets(notes)
+    assert "shared" not in Q.bucket(notes)               # T356: the region's own, not the bucket's
+    assert S.header_answers(notes[1:])["shared"] == [sh]  # and there with no combined daily limit too
     assert sh["w"] == ["squamish river+ws"] and sh["id"] == "2:aggregate:y"
     t = sh["tree"]
     assert (t["tier"], t["n"], t["species"], t["origin"]) == ("total", 1, ["CO"], "hatchery")

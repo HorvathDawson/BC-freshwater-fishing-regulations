@@ -118,6 +118,8 @@ export interface Verdict {
   /** (T332) the open day's quota, a node of the game-fish quota tree; `u` not one reading */
   tree?: QuotaTier;
   u?: 1;
+  /** (T356) the region header note whose closure this is */
+  c?: string;
 }
 
 /** One location's rules, read once: what verdict_on / gear_on look at for every day. */
@@ -197,6 +199,9 @@ function verdictOn(chain: Loc[], k: number, md: number, robust = false): Verdict
         }
         const n = notice(why);
         if (n) out.n = n;
+        // T356 (salmon.verdict_on): the region header's closure carries its note id
+        const hc = [...new Set(why.map((r) => r.header_note).filter((x): x is string => typeof x === "string"))].sort();
+        if (hc.length) out.c = hc[0];
         loc.verdicts.set(key, out);
       }
       return out;

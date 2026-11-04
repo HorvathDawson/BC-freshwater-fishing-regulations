@@ -1,5 +1,5 @@
 /**
- * (T211) THE SALMON FILE AND THE SALMON CARD: `salmon/3` (a head + one slice per bundle region) decoded (the pipeline's encoder's layout, `pipeline/deliver/
+ * (T211) THE SALMON FILE AND THE SALMON CARD: `salmon/4` (a head + one slice per bundle region) decoded (the pipeline's encoder's layout, `pipeline/deliver/
  * salmon.py`), each section's chain (and the UNLISTED chain for a section in no run), the day's lookups, and the card's
  * words — whole strings (AGENTS 33).
  */
@@ -17,10 +17,10 @@ const d = (date: Date) => salmonDayIndex(date);
 /** The Kispiox, as the pipeline built it from the Region 6 page dated 2026-08-28 (abridged): coho 4/day Jul 15–Aug 23
  *  then closed (FN0897); chinook, sockeye, pink and chum closed; no natural bait all year. */
 const PAYLOAD = {
-  format: "salmon/3", credit: "Fisheries and Oceans Canada (DFO), freshwater salmon sport fishing regulations",
+  format: "salmon/4", credit: "Fisheries and Oceans Canada (DFO), freshwater salmon sport fishing regulations",
   default: 0,
-  regions: { "6": { name: "Skeena", asof: "2026-08-28", url: "https://example/region6" },
-             "1": { name: "Vancouver Island", asof: "2026-08-25", url: "https://example/region1" } },
+  regions: { "6": { name: "Skeena", asof: "2026-08-28", url: "https://example/region6", shared: [], sizes: [] },
+             "1": { name: "Vancouver Island", asof: "2026-08-25", url: "https://example/region1", shared: [], sizes: [] } },
   verdicts: [
     { s: "closed", t: "Not opened by DFO: closed to salmon fishing", d: 1 },          // 0
     { s: "closed", t: "No fishing for chinook (Apr 1–Mar 31)" },                       // 1
@@ -49,7 +49,7 @@ const PAYLOAD = {
 const hx = (handles: string) => Array.from({ length: 8 }, (_, i) => parseInt(handles.slice(2 * i, 2 * i + 2), 16));
 function encode(payload: object, handles = HANDLES): Uint8Array {
   const body = new TextEncoder().encode(JSON.stringify(payload));
-  return new Uint8Array([0x42, 0x43, 0x53, 0x41, 3, ...hx(handles),
+  return new Uint8Array([0x42, 0x43, 0x53, 0x41, 4, ...hx(handles),
     body.length & 255, (body.length >> 8) & 255, (body.length >> 16) & 255, (body.length >>> 24) & 255, ...body]);
 }
 function shard(region: string, runs: [number, number, number][], handles = HANDLES): Uint8Array {
@@ -64,7 +64,7 @@ const FILE = encode(PAYLOAD);
 const SHARDS = [shard("6", [[100, 5, 1]]), shard("1", [[200, 2, 2]])];
 const facts = () => decodeSalmon(FILE, HANDLES, SHARDS);
 
-describe("salmon/3", () => {
+describe("salmon/4", () => {
   it("decodes the runs: a placed section reads its chain; a section in no run reads the UNLISTED chain (closed)", () => {
     const f = facts();
     expect([f.chainOf(99), f.chainOf(100), f.chainOf(104), f.chainOf(105), f.chainOf(201), f.chainOf(5_000_000)])
@@ -84,6 +84,19 @@ describe("salmon/3", () => {
     expect(() => decodeSalmonHead(new Uint8Array([...FILE, 0]), HANDLES)).toThrow(/trailing/);
     expect(() => decodeSalmon(FILE, HANDLES, [new Uint8Array([...SHARDS[0]!, 0])])).toThrow(/trailing/);
     expect(() => decodeSalmon(FILE, HANDLES, [shard("6", [], "0".repeat(16))])).toThrow(/slice built for handles/);
+  });
+
+  it("(T356) checks the file on decode: a bad index, a missing region field or a stray closure is an error, never a quiet answer", () => {
+    const bad = (p: object) => () => decodeSalmonHead(encode({ ...PAYLOAD, ...p }), HANDLES);
+    const chains = PAYLOAD.chains;
+    expect(bad({ chains: [chains[0], { ...chains[1]!, sp: [[0, 99], ...chains[1]!.sp.slice(1)] }, chains[2]] }))
+      .toThrow(/chain 1 species 0: index 99 of 7/);
+    expect(bad({ chains: [{ ...chains[0]!, g: [0, 5] }, chains[1], chains[2]] })).toThrow(/chain 0 gear: index 5 of 1/);
+    expect(bad({ default: 9 })).toThrow(/default 9 is no chain/);
+    expect(bad({ unmapped: [{ ...PAYLOAD.unmapped[0]!, chain: 9 }] })).toThrow(/unmapped .*chain 9/);
+    expect(bad({ regions: { "6": { name: "Skeena", asof: null, url: "" } } })).toThrow(/region 6 has no shared \/ sizes/);
+    expect(bad({ chains: [chains[0], { ...chains[1]!, c: ["6:closed:x"] }, chains[2]] })).toThrow(/closure 6:closed:x is no note/);
+    expect(bad({ format: "salmon/3" })).toThrow(/payload format salmon\/3/);
   });
 
   it("the day index is the calendar day with Feb 29 kept: Jul 15 is 196 in every year", () => {
@@ -248,10 +261,10 @@ describe("(T227) region notes about a species sit with that species", () => {
     const f = facts();
     return { ...f, payload: { ...f.payload, regions: { ...f.payload.regions, "6": { ...f.payload.regions["6"]!, notes: [
       n("6:daylight:a", "daylight", "Daylight only."),
-      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], cm: 25 }),
+      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], lengths: [{ min_cm: 25 }] }),
       n("6:annual:c", "annual", "The annual coho limit is 10.", { sp: ["CO"], n: 10 }),
-      n("6:adult:d", "adult", "An \"adult chinook\" is over 50 cm.", { sp: ["CH"], cm: 50 }),
-    ] } } } } as never;
+      n("6:adult:d", "adult", "An \"adult chinook\" is over 50 cm.", { sp: ["CH"], lengths: [{ min_cm: 50 }] }),
+    ], sizes: [{ sp: ["CH"], adult: { min_cm: 50 } }, { sp: ["CO"], min: { min_cm: 25 } }] } } } } as never;
   };
   it("an open coho row carries its annual note (its size is the sizes line); a closed chinook's note stays in the block", () => {
     const c = salmonCard(withNotes(), { sids: [101], item: null }, JUL20);
@@ -264,12 +277,16 @@ describe("(T227) region notes about a species sit with that species", () => {
 describe("(T227, owner 2026-10-28) a region-wide closure is the answer", () => {
   const P4 = { ...PAYLOAD,
     regions: { ...PAYLOAD.regions, "4": { name: "Kootenays", asof: "2026-08-01", url: "https://example/region4",
-      notes: [{ id: "4:closed:a", k: "closed", t: "There is no fishing for salmon in Region 4 - Kootenays until further notice." }] } },
-    verdicts: [...PAYLOAD.verdicts, { s: "check", t: "Non-retention (as printed: Apr 1 until further notice)" }],
+      notes: [{ id: "4:closed:a", k: "closed", t: "There is no fishing for salmon in Region 4 - Kootenays until further notice." }],
+      shared: [], sizes: [] } },
+    // (T356) the pipeline closes the page's places with the header's words (`quota.header_closure`): the verdict carries
+    // the note's id and the chain the ids closing it every day — the app reads them, never a location id
+    verdicts: [...PAYLOAD.verdicts, { s: "closed", t: "There is no fishing for salmon in Region 4 - Kootenays until further notice.", c: "4:closed:a" }],
     chains: [...PAYLOAD.chains,
-      { r: ["4"], w: "All Region 4 waters", l: ["4:region:section"], sp: [[0, 7], [0, 7], [0, 7], [0, 7], [0, 7]], g: [0, -1], m: [0, 4] }] };
+      { r: ["4"], w: "Kootenay River", l: ["4:kootenay-river:whole", "4:region:section"], sp: [[0, 7], [0, 7], [0, 7], [0, 7], [0, 7]], g: [0, -1], m: [0, 3],
+        c: ["4:closed:a"] }] };
   const f4 = () => decodeSalmon(encode(P4), HANDLES, [...SHARDS, shard("4", [[300, 2, 3]])]);
-  it("only the region's own rows and its header closes salmon: one closed row in the header's words, no bar, no Details", () => {
+  it("a chain the header closes (any tier — a water's own row too): one closed row in the header's words, no bar, no Details", () => {
     const c = salmonCard(f4(), { sids: [300], item: "gnis:14097" }, JUL20);
     expect([c.allClosed, c.headlineStatus, c.partial, c.closedOnly, c.year.bars, c.regionRules])
       .toEqual([true, "closed", null, true, [], []]);
@@ -286,9 +303,9 @@ describe("(T318) the salmon table keeps every DFO word", () => {
     const f = facts();
     return { ...f, payload: { ...f.payload, regions: { ...f.payload.regions, "6": { ...f.payload.regions["6"]!, notes: [
       { id: "6:daylight:a", k: "daylight", t: "Daylight only." },
-      { id: "6:min_size:b", k: "min_size", t: "All retained coho must measure 25 cm or more.", sp: ["CO"], cm: 25 },
+      { id: "6:min_size:b", k: "min_size", t: "All retained coho must measure 25 cm or more.", sp: ["CO"], lengths: [{ min_cm: 25 }] },
       { id: "6:annual:c", k: "annual", t: "The annual coho limit is 10.", sp: ["CO"], n: 10 },
-    ] } } } } as never as ReturnType<typeof facts>;
+    ], sizes: [{ sp: ["CO"], min: { min_cm: 25 } }] } } } } as never as ReturnType<typeof facts>;
   };
   const cases: [string, Date, number[], string | null][] = [
     ["an open coho with a place not drawn", JUL20, [101], "gnis:4674"], ["the same, release only in the fall", SEP15, [101], "gnis:4674"],
@@ -365,37 +382,29 @@ describe("(T320, T332) the salmon bucket and each species' numbers — the game-
       .toBe("4 a day · only 1 over 65 cm · 1 over 65 cm a month");
   });
 
-  it("a water system's own combined limit (Squamish) shows only while its species is open here — an OWN tier", () => {
-    const squamish = (q: object, day: Date) => {
-      const f = withQuota(q);
-      const P = f.payload as never as { regions: Record<string, { notes?: object[] }> };
-      const notes = [{ id: "6:aggregate:s", k: "aggregate", sp: ["CO"], n: 1, hatchery: true,
-                       t: "Squamish watershed: the aggregate daily limit of hatchery-marked coho in the entire Squamish non-tidal systems combined is one (1).",
-                       w: [{ n: "Squamish River", ws: true, key: "squamish river+ws" }] }];
-      const payload = { ...f.payload, regions: { ...P.regions, "6": { ...P.regions["6"]!, notes } },
-                        scopes: { "6": { "squamish river+ws": ["gnis:sq"] } } };
-      return salmonTable(salmonCard({ ...f, payload } as never, { sids: [101], item: "gnis:sq" }, day));
-    };
-    const q = { tree: count(4, "4 a day, hatchery-marked only", [kind("hatchery-marked coho", 4, "4 a day, hatchery-marked only", true)]) };
-    const w = squamish(q, JUL20).waterBuckets!;
-    expect(w.map((x) => x.line)).toEqual(["Squamish River and its tributaries: up to 1 hatchery-marked coho a day in total"]);
-    expect(w[0]!.runs!.find((x) => x.t === "num")).toEqual({ t: "num", s: "1", size: "big" });
-    expect(squamish(q, SEP15).waterBuckets ?? []).toEqual([]);
-  });
-
-  it("(T349) draws the store's aggregate tier over the Squamish watershed when the bucket carries it", () => {
-    const f = withQuota({ tree: count(4, "4 a day, hatchery-marked only", [kind("hatchery-marked coho", 4, "4 a day, hatchery-marked only", true)]) });
+  // (T349, T356) a water system's combined limit (Squamish) is the region's `shared` — the store's aggregate tier, with or
+  // without a bucket — shown only while its species is open here; an aggregate note with no shared limit is an error
+  const squamish = (q: object, day: Date, shared: boolean) => {
+    const f = withQuota(q);
     const P = f.payload as never as { regions: Record<string, { notes?: object[]; bucket?: object }> };
     const notes = [{ id: "6:aggregate:s", k: "aggregate", sp: ["CO"], n: 1, hatchery: true, t: "Squamish watershed: …",
                      w: [{ n: "Squamish River", ws: true, key: "squamish river+ws" }] }];
     const tree = { node: "tier", id: "t0", tier: "total", n: 1, by: 0, children: [], species: ["CO"], whose: "the Squamish River watershed",
                    says: "Up to 1 hatchery-marked coho a day in total across the Squamish River watershed", origin: "hatchery" };
-    const r6 = P.regions["6"]!;
-    const bucket = { ...(r6.bucket ?? { tree: count(4, "Up to 4 salmon a day in total"), t: "…" }),
-                     shared: [{ tree, t: notes[0]!.t, id: "6:aggregate:s", w: ["squamish river+ws"] }] };
-    const payload = { ...f.payload, regions: { ...P.regions, "6": { ...r6, notes, bucket } }, scopes: { "6": { "squamish river+ws": ["gnis:sq"] } } };
-    const w = salmonTable(salmonCard({ ...f, payload } as never, { sids: [101], item: "gnis:sq" }, JUL20)).waterBuckets!;
+    const { bucket: _b, ...r6 } = P.regions["6"]!;            // no combined daily limit on this page
+    const payload = { ...f.payload, scopes: { "6": { "squamish river+ws": ["gnis:sq"] } },
+                      regions: { ...P.regions, "6": { ...r6, notes, shared: shared ? [{ tree, t: notes[0]!.t, id: "6:aggregate:s", w: ["squamish river+ws"] }] : [] } } };
+    return () => salmonTable(salmonCard({ ...f, payload } as never, { sids: [101], item: "gnis:sq" }, day));
+  };
+  const hatchery = { tree: count(4, "4 a day, hatchery-marked only", [kind("hatchery-marked coho", 4, "4 a day, hatchery-marked only", true)]) };
+  it("(T349) draws the store's aggregate tier over the Squamish watershed — the region's own, with no bucket", () => {
+    const w = squamish(hatchery, JUL20, true)().waterBuckets!;
     expect(w.map((x) => x.line)).toEqual(["Up to 1 hatchery-marked coho a day in total across the Squamish River watershed"]);
+    expect(w[0]!.runs!.find((x) => x.t === "num")).toEqual({ t: "num", s: "1", size: "big" });
+    expect(squamish(hatchery, SEP15, true)().waterBuckets ?? []).toEqual([]);
+  });
+  it("(T356) an aggregate note the file gives no shared limit is an error, never a tier made up here", () => {
+    expect(squamish(hatchery, JUL20, false)).toThrow(/aggregate note 6:aggregate:s has no shared limit/);
   });
 
   it("no bucket line when nothing may be kept today", () => {

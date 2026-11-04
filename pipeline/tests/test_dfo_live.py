@@ -76,7 +76,7 @@ def test_the_feed_composed_narrowest_first_is_the_release_chain():
 def test_todays_pages_join_every_location(tmp_path):
     got = L.run(tmp_path, fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())
     ix = got["index"]
-    assert ix["format"] == "dfo-feed/2" and ix["unplaced"] == 0 and not got["notices"]
+    assert ix["format"] == L.FORMAT == "dfo-feed/3" and ix["unplaced"] == 0 and not got["notices"]
     assert len(ix["locs"]) == 254          # T349: + 7 page-default entries (R4/5B/6 carry the sentence on their own row)
     assert ix["verdicts"][0] == S.NOT_LISTED
     assert ix["regions"]["6"]["asof"] == "2026-08-28" and ix["regions"]["6"]["checked"] == AT
@@ -159,14 +159,26 @@ def golden() -> dict:
     feed = {"format": L.FORMAT, "at": AT, "verdicts": verdicts, "gears": gears, "locs": locs, "unplaced": 0,
             "regions": {"6": {"name": "Skeena", "url": S.PAGE_URL.format(slug="6"), "asof": "2026-10-20",
                               "sha256": "x", "changed": AT, "checked": AT, "stale": False, "held": None,
-                              "failures": 0, "notes": feed_notes, "header": H.digest(feed_notes)[:16]}}}
+                              "failures": 0, "notes": feed_notes, "header": H.digest(feed_notes)[:16],
+                              **S.header_answers(feed_notes)}}}
     expect = [L.compose(c["l"], locs, verdicts, c.get("u", ())) for c in payload["chains"]]
+    # (T356) a feed whose header closes the region: every place with rules answers with the closure (verdict `c`), and
+    # the chains it closes every day carry `c` — composed by the app exactly as `live.compose`
+    from pipeline.regs.dfo_salmon import quota as Q
+    shut_notes = [{"id": "6:closed:t356", "k": "closed",
+                   "t": "There is no fishing for salmon in Region 6 until further notice."}, *feed_notes]
+    shut = Q.header_closure(shut_notes, "6")
+    slocs, sverdicts, sgears = _cals({"6:a": shut, "6:b(i)": shut, "6:kispiox": shut, "6:resort": shut})
+    closed_feed = {**feed, "verdicts": sverdicts, "gears": sgears, "locs": slocs,
+                   "regions": {"6": {**feed["regions"]["6"], "notes": shut_notes, **S.header_answers(shut_notes)}}}
+    closed_expect = [L.compose(c["l"], slocs, sverdicts, c.get("u", ())) for c in payload["chains"]]
     # which header notes a page shows (the app's `salmonNotes`): the feed's notes over the release's scopes
     merged = {**payload, "regions": {**payload["regions"], "6": {**payload["regions"]["6"], "notes": feed_notes}}}
     notes = [{"regions": rs, "item": item, "day": day, "expect": S.notes_for(merged, rs, item, day)}
              for rs, item, day in ((["6"], "gnis:4674", 274), (["6"], "gnis:4674", 182), (["6"], "gnis:9", 274),
                                    (["6"], None, 274), (["6"], "gnis:5", 1), ([], "gnis:4674", 274))]
-    return {"release": payload, "sections": sections, "feed": feed, "expect": expect, "notes": notes}
+    return {"release": payload, "sections": sections, "feed": feed, "expect": expect, "notes": notes,
+            "closedFeed": closed_feed, "closedExpect": closed_expect}
 
 
 def test_the_apps_golden_is_current():

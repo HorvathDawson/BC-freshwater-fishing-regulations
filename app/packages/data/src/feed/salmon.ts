@@ -1,11 +1,11 @@
 /**
- * (T211 part 2) THE LIVE DFO SALMON FEED, over HTTP: `{base}/index.json` (`dfo-feed/2`, `pipeline/regs/dfo_salmon/
+ * (T211 part 2) THE LIVE DFO SALMON FEED, over HTTP: `{base}/index.json` (`dfo-feed/3`, `pipeline/regs/dfo_salmon/
  * live.py`) — the local tile server's `/feeds/dfo/` in dev, R2's `feeds/dfo/` in production, the same bytes.
  *
  * THE LAST CAPTURE IS KEPT (owner 2026-10-27). Every feed this device reads whole is written to `store` (a small file on
  * a phone, a browser storage key on the web); offline, or when the fetch fails, the last capture answers — with its own
  * time on the card. Only a device that has never captured one reads the release's salmon file alone. A capture that is
- * not a whole `dfo-feed/2` is never kept and never read.
+ * not a whole `dfo-feed/3` is never kept and never read.
  *
  * Asked once per `ttlMs` (the publisher runs every 6 h in season); every answer resolves, never rejects.
  */
@@ -18,7 +18,7 @@ export interface SalmonFeedSource {
   latest(): Promise<SalmonFeed | null>;
   /**
    * (T231) The update service fetched a changed feed whole: take it (kept as the capture, answered from now on without a
-   * fetch). Throws when it is not a whole `dfo-feed/2`: nothing is changed.
+   * fetch). Throws when it is not a whole `dfo-feed/3`: nothing is changed.
    */
   offer?(text: string): void;
   /** (T231) Bumped by every feed taken (`offer`): what holds an answer built from the feed asks again when it moves. */
@@ -57,7 +57,7 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
     },
     offer(text) {
       const f = parseSalmonFeed(JSON.parse(text));
-      if (!f) throw new Error("not a dfo-feed/2 feed");
+      if (!f) throw new Error("not a dfo-feed/3 feed");
       try { store?.write(text); } catch { /* a cache: a refused write only costs the next offline open */ }
       held = { at: now(), p: Promise.resolve(f) };
       version += 1;

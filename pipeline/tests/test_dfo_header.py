@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import glob
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -66,7 +67,8 @@ def test_every_header_sentence_is_a_typed_note_in_dfos_words():
     by = {n["k"]: n for n in notes}
     assert by["facility"]["m"] == 100 and "100 meters" in by["facility"]["t"]       # nbsp read as a space
     assert (by["daily"]["n"], by["possession"]["n"]) == (4, 8)
-    assert (by["annual"]["sp"], by["annual"]["cm"], by["annual"]["n"]) == (["CH"], 50, 10)
+    assert (by["annual"]["sp"], by["annual"]["lengths"], by["annual"]["n"]) == (["CH"], [{"min_cm": 50}], 10)
+    assert not any("cm" in n for n in notes)                  # T358: a length is `lengths` (LengthBand), never `cm`
     assert by["measure"]["t"] == "Salmon measurements are taken from tip of nose to tail fork."
     agg = by["aggregate"]
     assert (agg["sp"], agg["n"], agg["hatchery"], agg["w"]) == \
@@ -78,8 +80,8 @@ def test_every_header_sentence_is_a_typed_note_in_dfos_words():
 def test_the_adult_definition_and_its_exceptions():
     adult = [n for n in H.parse_header(HEADER, "6") if n["k"] == "adult"]
     region, kispiox, two = adult
-    assert (region["cm"], "w" in region) == (50, False)
-    assert kispiox["cm"] == 62 and [w["n"] for w in kispiox["w"]] == ["Kispiox River"]
+    assert (region["lengths"], "w" in region) == ([{"min_cm": 50}], False)
+    assert kispiox["lengths"] == [{"min_cm": 62}] and [w["n"] for w in kispiox["w"]] == ["Kispiox River"]
     assert kispiox["on"] == [[244, 365]]                                             # Sep 1 .. Dec 31, leap calendar
     assert kispiox["t"].endswith("over 62 cm: the Kispiox River from Sep 1 to Dec 31")
     # the region-wide note quotes the exceptions, as DFO lists them
@@ -194,3 +196,41 @@ def test_the_release_resolves_the_newest_pages_waters_too():
                          scope_headers={"6": H.parse_header(HEADER, "6")}, upstream=lambda i: [])
     assert payload["regions"]["6"]["notes"] == []
     assert payload["scopes"]["6"]["kispiox river"] == ["gnis:4674"]
+
+
+def test_the_header_sizes_resolve_per_species_a_water_before_its_region():
+    """(T356 / T358) `quota.sizes`: per species the header's sizes as LengthBands, ORDERED — a water's own size note an
+    entry of its own (with the region's other sizes), before the region's; the app takes the first that holds."""
+    from pipeline.regs.dfo_salmon import quota as Q
+    notes = H.parse_header(HEADER, "6")
+    got = Q.sizes(notes)
+    ch = [e for e in got if "CH" in e["sp"]]
+    assert [(e["adult"], e.get("w"), e.get("on")) for e in ch] == [
+        ({"min_cm": 62}, ["kispiox river"], [[244, 365]]),
+        ({"min_cm": 62}, ["babine river", "bulkley river"], [[244, 365]]),
+        ({"min_cm": 50}, None, None)]
+    assert ch[0]["min"] == ch[-1]["min"] == {"min_cm": 30}       # the water entry carries the region's minimum
+    with pytest.raises(ValueError, match="excepts waters"):
+        Q.sizes([{**next(n for n in notes if n["k"] == "min_size"), "x": [{"n": "A", "ws": False, "key": "a"}]}])
+
+
+T356_FIXTURE = Path(__file__).parent / "fixtures" / "dfo_salmon" / "t356_header.json"
+T356_SLUGS = ("1", "2", "4", "5a", "5b", "6", "7", "8")
+
+
+def t356_header() -> dict:
+    """(T356) per fixture page: the header notes and what they resolve to (`deliver.salmon.header_answers`) — the feeds
+    worker's port (`app/workers/feeds/test/dfo.quota.test.ts`) is held to it."""
+    from pipeline.deliver.salmon import header_answers
+    out = {}
+    for slug in T356_SLUGS:
+        notes = H.parse_header((T356_FIXTURE.parent / f"region{slug}-eng.html").read_text(encoding="utf-8"), slug)
+        out[slug] = {"notes": notes, **header_answers(notes)}
+    return out
+
+
+def test_the_worker_header_fixture_is_current():
+    want = json.dumps(t356_header(), indent=1, sort_keys=True, ensure_ascii=False) + "\n"
+    assert T356_FIXTURE.read_text(encoding="utf-8") == want, \
+        "regenerate: python -c 'from pipeline.tests.test_dfo_header import *; import json; " \
+        "T356_FIXTURE.write_text(json.dumps(t356_header(), indent=1, sort_keys=True, ensure_ascii=False) + \"\\n\")'"

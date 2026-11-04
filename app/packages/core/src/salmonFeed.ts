@@ -1,5 +1,5 @@
 /**
- * THE LIVE DFO SALMON FEED (T211 part 2): `feeds/dfo/index.json` (`dfo-feed/2`, `pipeline/regs/dfo_salmon/live.py`)
+ * THE LIVE DFO SALMON FEED (T211 part 2): `feeds/dfo/index.json` (`dfo-feed/3`, `pipeline/regs/dfo_salmon/live.py`)
  * laid over the release's salmon file, so a DFO rule change reaches the app without a rebuild.
  *
  * THE RELEASE OWNS WHERE, THE FEED OWNS WHAT. The release's chains (`chains[].l`: the DFO locations on a section,
@@ -15,15 +15,16 @@
  * than the capture (`pickSalmon`).
  */
 import { MONTHS } from "./calendar.generated";
-import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonWords } from "./salmon";
+import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
 type Verdict = Payload["verdicts"][number];
 
-/** (T332) dfo-feed/2: a verdict's quota is `tree`, a node of the game-fish quota tree; a dfo-feed/1 capture (T320's `q`) is
- *  never read — the release's salmon/3 answers until a dfo-feed/2 is fetched */
-export const SALMON_FEED_FORMAT = "dfo-feed/2";
+/** (T332) a verdict's quota is `tree`, a node of the game-fish quota tree; (T356) dfo-feed/3: a header closure's verdict
+ *  carries `c`, a region with notes its `shared` and `sizes`. An older capture is never read — the release's salmon/4
+ *  answers until a dfo-feed/3 is fetched */
+export const SALMON_FEED_FORMAT = "dfo-feed/3";
 
 export interface SalmonFeedRegion {
   readonly name: string; readonly url: string; readonly asof: string | null;
@@ -33,6 +34,9 @@ export interface SalmonFeedRegion {
   readonly notes?: readonly SalmonNote[];
   /** (T320) the salmon bucket read from those notes (`quota.bucket`) */
   readonly bucket?: SalmonBucket;
+  /** (T356) beside the notes: the scoped aggregate limits and the header sizes (`deliver.salmon.header_answers`) */
+  readonly shared?: readonly SalmonShared[];
+  readonly sizes?: readonly SalmonSizes[];
 }
 export interface SalmonFeedLocation {
   readonly r: string; readonly sp: readonly (readonly number[])[]; readonly g: readonly number[];
@@ -49,12 +53,14 @@ export interface SalmonFeed {
   readonly locs: Readonly<Record<string, SalmonFeedLocation>>;
 }
 
-/** The feed as the app reads it, or null when it is not a `dfo-feed/2` it can trust (never a half-read feed). */
+/** The feed as the app reads it, or null when it is not a `dfo-feed/3` it can trust (never a half-read feed). */
 export function parseSalmonFeed(x: unknown): SalmonFeed | null {
   const f = x as Partial<SalmonFeed> | null;
   if (!f || typeof f !== "object" || f.format !== SALMON_FEED_FORMAT || typeof f.at !== "string") return null;
   if (!Array.isArray(f.verdicts) || !f.verdicts.length || !Array.isArray(f.gears)) return null;
   if (!f.locs || typeof f.locs !== "object" || !f.regions || typeof f.regions !== "object") return null;
+  // (T356) a region's notes come with what they resolve to: never notes without their sizes and shared limits
+  for (const r of Object.values(f.regions)) if (r.notes && (!Array.isArray(r.shared) || !Array.isArray(r.sizes))) return null;
   for (const l of Object.values(f.locs)) {
     if (!l || !Array.isArray(l.sp) || l.sp.length !== 5 || !Array.isArray(l.g)) return null;
     for (const runs of [...l.sp, l.g]) for (let k = 1; k < runs.length; k += 2) {
@@ -92,7 +98,7 @@ function mapStatus(ss: readonly string[]): SalmonMapStatus {
 /** One release chain's year, from the feed (the pipeline's `live.compose`). `undrawn`: the chain's `u` — a DFO place
  *  on its water not drawn yet; one the feed lists paints the map `check` every day (partial coverage). */
 export function composeChain(lids: readonly string[], feed: SalmonFeed,
-                             undrawn: readonly string[] = []): Pick<Chain, "sp" | "g" | "m"> {
+                             undrawn: readonly string[] = []): Pick<Chain, "sp" | "g" | "m" | "c"> {
   const cals = lids.map((l) => feed.locs[l]).filter((c): c is SalmonFeedLocation => !!c);
   const sp: number[][] = [[], [], [], [], []], g: number[] = [], m: number[] = [];
   for (let day = 0; day < DAYS; day++) {
@@ -101,15 +107,30 @@ export function composeChain(lids: readonly string[], feed: SalmonFeed,
       let ix = 0;
       for (const c of cals) { const v = at(c.sp[k]!, day); if (v >= 0) { ix = v; break; } }
       sp[k]!.push(ix);
-      ss.push(feed.verdicts[ix]?.s ?? "closed");
+      ss.push(feed.verdicts[ix]!.s);          // every index checked by parseSalmonFeed
     }
     let gx = -1;
     for (const c of cals) { const v = at(c.g, day); if (v >= 0) { gx = v; break; } }
     g.push(gx);
     m.push(MAP_CODES.indexOf(mapStatus(ss)));
   }
-  const partial = undrawn.some((l) => !!feed.locs[l]);
-  return { sp: sp.map(runsOf), g: runsOf(g), m: partial ? [0, MAP_CODES.indexOf("check")] : runsOf(m) };
+  const spr = sp.map(runsOf);
+  // (T356) closed by the region header every day, and so is every undrawn place the feed lists: `c`, never partial
+  const shut = undrawn.every((l) => !feed.locs[l] || closedByHeader(feed.locs[l]!.sp, feed).length);
+  const c = shut ? closedByHeader(spr, feed) : [];
+  const partial = undrawn.some((l) => !!feed.locs[l]) && !c.length;
+  return { sp: spr, g: runsOf(g), m: partial ? [0, MAP_CODES.indexOf("check")] : runsOf(m), ...(c.length ? { c } : {}) };
+}
+
+/** (T356) the pipeline's `deliver.salmon.closed_by_header`: the header notes answering every species every day, else [] */
+function closedByHeader(sp: readonly (readonly number[])[], feed: SalmonFeed): string[] {
+  const ids = new Set<string>();
+  for (const runs of sp) for (let k = 1; k < runs.length; k += 2) {
+    const c = runs[k]! >= 0 ? feed.verdicts[runs[k]!]!.c : undefined;
+    if (!c) return [];
+    ids.add(c);
+  }
+  return [...ids].sort();
 }
 
 function wordsWithFeed(release: Readonly<Record<string, readonly SalmonWords[]>>, feed: SalmonFeed): Record<string, readonly SalmonWords[]> {
@@ -133,16 +154,18 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
     if (!fr) return [slug, r];
     // (T350) the bucket is read from the notes, so it goes with them: a feed region that carries notes and no bucket
     // has none today (the page dropped its combined limit) — never the release's bucket under the feed's notes
+    // (T356) and so are the shared limits and the sizes
     const { bucket: _releaseBucket, ...rest } = r;
-    const head = fr.notes ? { notes: fr.notes, ...(fr.bucket ? { bucket: fr.bucket } : {}) }
-      : { notes: r.notes, ...(r.bucket ? { bucket: r.bucket } : {}) };
+    const head = fr.notes ? { notes: fr.notes, ...(fr.bucket ? { bucket: fr.bucket } : {}), shared: fr.shared!, sizes: fr.sizes! }
+      : { notes: r.notes, ...(r.bucket ? { bucket: r.bucket } : {}), shared: r.shared, sizes: r.sizes };
     return [slug, { ...rest, asof: fr.asof ?? r.asof, ...head }];
   }));
   const payload: Payload = {
     ...P, regions, verdicts: feed.verdicts, gears: feed.gears,
     // (T321) a location the feed carries answers with the feed's rows in DFO's words; the rest keep the release's
     x: wordsWithFeed(P.x ?? {}, feed),
-    chains: P.chains.map((c) => ({ ...c, ...composeChain(c.l, feed, c.u ?? []) })),
+    // the release's own closure (`c`) never outlives its verdicts: the feed's composition says whether one holds
+    chains: P.chains.map(({ c: _c, ...c }) => ({ ...c, ...composeChain(c.l, feed, c.u ?? []) })),
     // a place not drawn yet shows while DFO lists it: the feed's say, not the build's (so never dormant here)
     unmapped: P.unmapped.filter((u) => P.chains[u.chain]?.l.some((l) => !!feed.locs[l]))
       .map(({ d: _d, ...u }) => u),

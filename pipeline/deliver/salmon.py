@@ -4,7 +4,7 @@ shipped as answers per day, so the app decides nothing about a salmon rule (app/
     curated  data/curated/regulations/entries/dfo_salmon/   locations: precedence, water, scope words
     feed     <generated>/regs/dfo_salmon/typed/            the typed rules, keyed by fingerprint
     reach    <reach run>/dfo_salmon.jsonl.gz               each location's sections (`pipeline.atlas.reach.dfo_salmon`)
-       └─ build() ─▶ the bundle's `salmon_doc` + `salmon_section` ─▶ the release file `salmon` (`salmon/3`, encode())
+       └─ build() ─▶ the bundle's `salmon_doc` + `salmon_section` ─▶ the release file `salmon` (`salmon/4`, encode())
 
 THE UNIT IS A CHAIN: the DFO locations that hold on a section, NARROWEST FIRST (precedence: a water 3, a tidal-area
 default 2, a section default or closure 1, the region default 0, a T349 page default -1; then, within a tier, the place covering FEWER sections —
@@ -35,11 +35,15 @@ DFO's words carried whole; a note naming waters holds only on their items (`scop
 bindings, a watershed with every item upstream of it by the registry's `item_down`). The live feed carries the same
 notes and wins (the release's are the offline answer of last resort, read from the cached page its rules came from).
 
-THE FILES (`salmon/3`, split per bundle region — owner 2026-10-28: a water page's card fetches only its region's slice;
+THE FILES (`salmon/4`, split per bundle region — owner 2026-10-28: a water page's card fetches only its region's slice;
 T332: an open verdict's quota is `tree`, a TreeTier of the game-fish quota tree, and a region's `bucket.tree` its total
-tier — salmon/2's `q` and flat bucket are gone, so an old app refuses this file rather than mis-read it),
+tier; T356 (salmon/4): what the app used to work out itself is in the file — a verdict closed by its region header
+carries `c` (the note id) and a chain closed by it every day `c` (the note ids; its map says closed, never partial),
+a region carries `shared` (the scoped aggregate limits, `quota.shared_buckets`, with or without a bucket) and `sizes`
+(the header sizes per species as `LengthBand`s, ordered, the first that holds wins — `quota.sizes`); the bucket's
+`min_cm` is gone and a header note's length is `lengths` (T358). An older app refuses this file rather than mis-read it),
 little-endian, varints LEB128 (`pipeline.deliver.binary`):
-    salmon       magic b"BCSA", version u8 = 3, handles 8 bytes (the bundle's section_handles digest, raw), u32 JSON
+    salmon       magic b"BCSA", version u8 = 4, handles 8 bytes (the bundle's section_handles digest, raw), u32 JSON
                  length, the UTF-8 payload: {credit, regions, verdicts, gears, chains, unmapped, scopes, shards, x?}
                  (T321) x: location id -> the rows its card shows in DFO's words, {k: new|unread|note, sp, d, t}
     salmon-<r>   magic b"BCSR", version u8 = 1, handles 8 bytes, u8 region length + the region (ASCII), then a varint
@@ -60,10 +64,10 @@ from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, 
 from pipeline.common import calendar_spec
 from pipeline.deliver.binary import put_varint, read_varint
 
-FORMAT = "salmon/3"
+FORMAT = "salmon/4"
 SHARD_FORMAT = "salmon-shard/1"
 MAGIC = b"BCSA"
-VERSION = 3
+VERSION = 4
 SHARD_MAGIC = b"BCSR"
 SHARD_VERSION = 1
 #: the shard of a section in no bundle region (tidal, outside B.C.): the map reads it, no page does
@@ -196,6 +200,11 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
             n = _notice(why)
             if n:
                 out["n"] = n
+            hc = sorted({r["header_note"] for r in why if r.get("header_note")})
+            if hc:
+                # T356: the region header's closure (`quota.header_closure`) — its note id, so the app reads "closed by
+                # the header" from the verdict, never from a location id
+                out["c"] = hc[0]
             return out
         unread = [r for r in rules if not r.get("within") and holds_on(r, md) is None
                   and (not _species_of(r) or _covers(r, sp))]
@@ -268,10 +277,28 @@ class _Interner:
         return self._ix[k]
 
 
-def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: _Interner, partial: bool = False) -> dict:
+def closed_by_header(sp_runs: Sequence[Sequence[int]], verdicts: Sequence[dict]) -> List[str]:
+    """(T356) The header notes closing a chain (`c`): every species, every day, answered by a region header's closure
+    (`quota.header_closure` — its verdicts carry `c`); else []. `deliver.salmon.chain_calendar` and `live.compose`
+    both read it so."""
+    ids = set()
+    for runs in sp_runs:
+        for k in range(1, len(runs), 2):
+            v = runs[k]
+            c = verdicts[v].get("c") if v >= 0 else None
+            if not c:
+                return []
+            ids.add(c)
+    return sorted(ids)
+
+
+def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: _Interner, partial: bool = False,
+                   undrawn_closed: bool = True) -> dict:
     """One chain's year: per species runs of a verdict index (`NOT_LISTED` where nothing opens it), the gear runs (-1:
     no gear line), the map-status runs. `partial`: the section's water has a DFO place with rules that is not drawn
-    yet, so no stretch of it can be answered with confidence — the map says `check` every day (PARTIAL COVERAGE)."""
+    yet, so no stretch of it can be answered with confidence — the map says `check` every day (PARTIAL COVERAGE).
+    (T356) `c`: the header notes that close the chain every day (`closed_by_header`) — set only where its undrawn
+    places, if any, are closed by their header too (`undrawn_closed`); then nothing is partial: the map says closed."""
     per_sp: List[List[int]] = [[] for _ in SPECIES]
     gear: List[int] = []
     mapc: List[int] = []
@@ -282,13 +309,26 @@ def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: 
         g = gear_on(chain, md)
         gear.append(gears(list(g)) if g else -1)
         mapc.append(MAP_CODES.index(map_status(vs)))
-    m = [0, MAP_CODES.index("check")] if partial else runs_of(mapc)
-    return {"sp": [runs_of(x) for x in per_sp], "g": runs_of(gear), "m": m}
+    sp = [runs_of(x) for x in per_sp]
+    c = closed_by_header(sp, verdicts.items) if undrawn_closed else []
+    m = [0, MAP_CODES.index("check")] if partial and not c else runs_of(mapc)
+    return {"sp": sp, "g": runs_of(gear), "m": m, **({"c": c} if c else {})}
 
 
 def _label(loc) -> str:
     area = (loc.source_text or {}).get("specific_area") or ""
     return f"{loc.water} — {area}" if loc.water and area else (loc.water or area or loc.location_id)
+
+
+def header_answers(notes: Sequence[dict]) -> dict:
+    """(T356) What a region's header notes resolve to, beside them — the release's region and the live feed's
+    (`live._set_bucket`) alike: `bucket` (the combined daily limit, `quota.bucket`; absent where none is printed),
+    `shared` (the scoped aggregate limits, `quota.shared_buckets`, whether or not there is a bucket) and `sizes` (the
+    header sizes per species, `quota.sizes`). Always `shared` and `sizes`, empty or not: the app reads them, never a
+    missing key."""
+    from pipeline.regs.dfo_salmon import quota as Q
+    b = Q.bucket(notes)
+    return {**({"bucket": b} if b else {}), "shared": Q.shared_buckets(notes), "sizes": Q.sizes(notes)}
 
 
 def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: Iterable[dict],
@@ -324,9 +364,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         # the scopes are resolved for the release's notes AND the newest page's (`scope_headers`): the feed's notes
         # name waters by these keys, so a page newer than the release's rules still finds its waters here
         sc, unresolved = H.resolve([*notes, *((scope_headers or {}).get(slug) or [])], ef, upstream)
-        b = Q.bucket(notes)
         regions[slug] = {"name": getattr(ef, "region_name", slug), "asof": feed.get("date_modified"),
-                         "url": PAGE_URL.format(slug=slug), "notes": notes, **({"bucket": b} if b else {}),
+                         "url": PAGE_URL.format(slug=slug), "notes": notes, **header_answers(notes),
                          **({"unresolved": unresolved} if unresolved else {})}
         if sc:
             scopes[slug] = sc
@@ -336,7 +375,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             # answers in its chain), but it is IN its chains, so the live feed (`regs.dfo_salmon.live`) can paint it
             # the day DFO lists it again — without a rebuild.
             rules_of[loc.location_id] = Q.mark_shared([r for fp in loc.fingerprints for r in by_fp.get(fp, [])],
-                                                      Q.shared_scope(loc.source_text))     # T349: a shared quota
+                                                      Q.pool_of(loc))     # T349 / T358: a quota pooled across areas
             if closure and rules_of[loc.location_id]:
                 rules_of[loc.location_id] = closure         # T320: the header's closure wins over the table's rows
             # T321: the rows the card shows in DFO's words (new wording, an unread number, a note) — not under a closure
@@ -383,7 +422,9 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             chains.append({"r": sorted({locs[l][0] for l in key + uk}), "w": _label(first) if key else first.water,
                            "l": list(key), **({"u": list(uk)} if uk else {}),
                            **chain_calendar([rules_of[l] for l in key], verdicts, gears,
-                                            partial=any(rules_of[l] for l in uk))})
+                                            partial=any(rules_of[l] for l in uk),
+                                            undrawn_closed=all(all(r.get("header_note") for r in rules_of[l])
+                                                               for l in uk))})
         return chain_ix[(key, uk)]
 
     # the DFO places not drawn yet, by the items of their water, onto those items' sections
@@ -495,7 +536,8 @@ def load_inputs(run_dir: Path, registry=None, *, entries_dir: Optional[Path] = N
 
 def load_headers(feeds: Mapping[str, dict], cache_dir: Optional[Path] = None) -> Dict[str, List[dict]]:
     """Each region's header notes: THE TYPED FEED'S OWN (`notes`, T366 — written with its rows from the same page, so
-    the header can never go missing from the rules it belongs to). A typed file written before T366 has none: then the
+    the header can never go missing from the rules it belongs to), in today's `header.FORMAT` (`header_format`, T358).
+    A typed file written before T366 has none, and one before T358 has them in an older shape: then the
     cached page the rules came from (the raw page when its "Date modified" is the feed's, else the history page of that
     date). Neither -> SalmonError (T357: no release without its region's header — a header closure would vanish)."""
     from pipeline.regs.dfo_salmon import header as H
@@ -505,9 +547,10 @@ def load_headers(feeds: Mapping[str, dict], cache_dir: Optional[Path] = None) ->
     out: Dict[str, List[dict]] = {}
     missing: List[str] = []
     for slug, feed in sorted(feeds.items()):
-        if "notes" in feed:
+        if "notes" in feed and feed.get("header_format") == H.FORMAT:
             out[slug] = list(feed["notes"] or [])
             continue
+        # notes in an older header format (T358: `cm` before `lengths`) are read again from the page they came from
         want = feed.get("date_modified")
         pages = [cache / "raw" / f"region{slug}-eng.html",
                  *sorted((cache / "history").glob(f"region{slug}_*.html"), reverse=True)]

@@ -7,7 +7,7 @@ facility closure, the aggregate daily / possession / annual limits, minimum size
 
 A note is `{id, k, t, ...}`: `k` its kind, `t` DFO's words verbatim (a nested item carries its lead-in: "An 'adult
 chinook' in Region 2 is ... over 62 cm: the Fraser River from Sep 1 to Dec 31"). Values are DERIVED from those words
-only (`n` a count, `cm` a length, `sp` species codes, `on` day-index windows); a sentence nothing here recognises is
+only (`n` a count, `lengths` the lengths as `LengthBand`s (T358; was `cm`), `sp` species codes, `on` day-index windows); a sentence nothing here recognises is
 kept as kind `other`, quoted, never dropped. NEVER INVENTED: a note exists only where DFO printed the sentence.
 
 REGION-WIDE vs SCOPED. A note with `w` (the waters it names: `[{n, ws, key}]`, `ws` = the whole watershed) holds only on
@@ -30,7 +30,7 @@ from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, 
 
 from pipeline.common import calendar_spec
 
-FORMAT = "dfo-header/1"
+FORMAT = "dfo-header/2"     # T358: a note's length is `lengths` (LengthBand), was `cm`
 _SP = {"chinook": "CH", "coho": "CO", "sockeye": "SK", "pink": "PK", "chum": "CM"}
 _MONTHS = {m.lower(): i for i, m in enumerate(calendar_spec.MONTHS, 1)}
 _RE_STOP = re.compile(r"<h[1-6][^>]*>\s*(?:Related links|Salmon limits, openings and closures)|<(?:p|li)[^>]*>\s*(?:This table refers to"
@@ -112,6 +112,17 @@ def _water(name: str, ws: bool = False) -> dict:
     return {"n": name, "ws": ws, "key": key(name) + ("+ws" if ws else "")}
 
 
+def _band(**kw) -> List[dict]:
+    """(T358) a note's length as the catalogue's `LengthBand` (validated), the one size type both sides carry."""
+    from pipeline.regs.parsing.catalogue_parts.lengths import LengthBand
+    return [LengthBand(**kw).model_dump(exclude_none=True)]
+
+
+def _over(cm: str) -> List[dict]:
+    """"over 50 cm", "30 cm or more": the band from that length up."""
+    return _band(min_cm=int(cm))
+
+
 def classify(text: str, lead: Optional[str] = None) -> Optional[dict]:
     """One header sentence -> a typed note (None for a bare lead-in like "You must be aware of these limits:")."""
     full = f"{lead} {text}" if lead else text
@@ -120,7 +131,7 @@ def classify(text: str, lead: Optional[str] = None) -> Optional[dict]:
         # a nested exception of an "adult" definition: the waters (and windows) where the other length holds
         m = re.search(r"(?:over|greater than)\s+(\d+)\s*cm:?\s*$", lead, re.I)
         sp = _species(lead.split("defined")[0])
-        return {"k": "adult", "t": full, "sp": sp, **({"cm": int(m.group(1))} if m else {}),
+        return {"k": "adult", "t": full, "sp": sp, **({"lengths": _over(m.group(1))} if m else {}),
                 "w": [_water(n) for n in _names(text)], **({"on": _windows(text)} if _windows(text) else {})}
     if lead and re.search(r"bait ban", lead, re.I):
         m = re.search(r"except:?\s*(.+?)(?:,?\s*unless otherwise described below)?[.:]?$", text, re.I)
@@ -157,11 +168,11 @@ def classify(text: str, lead: Optional[str] = None) -> Optional[dict]:
     m = re.search(r"(annual|monthly) limit (?:for |of )?(?:(\d+) )?(\w+)(?: salmon)? \(?over (\d+) ?cm\.?\)?(?: is (\d+))?", low)
     if m:
         n = m.group(2) or m.group(5)
-        return {"k": m.group(1), "t": text, "sp": _species(m.group(3)), "cm": int(m.group(4)),
+        return {"k": m.group(1), "t": text, "sp": _species(m.group(3)), "lengths": _over(m.group(4)),
                 **({"n": int(n)} if n else {})}
     m = re.search(r"all retained (.+?) must measure (\d+)\s*cm or more", low)
     if m:
-        return {"k": "min_size", "t": text, "sp": _species(m.group(1)), "cm": int(m.group(2))}
+        return {"k": "min_size", "t": text, "sp": _species(m.group(1)), "lengths": _over(m.group(2))}
     if re.search(r"measurements are taken from", low):
         return {"k": "measure", "t": text.split(" You must")[0]}
     m = re.search(r'"?(adult|jack)"? (chinook|coho)', low)
@@ -169,9 +180,10 @@ def classify(text: str, lead: Optional[str] = None) -> Optional[dict]:
         cls, sp = m.group(1), _SP[m.group(2)]
         if cls == "jack":
             r = re.search(r"between (\d+)\s*-\s*(\d+)\s*cm", low)
-            return {"k": "jack", "t": text, "sp": [sp], **({"cm": [int(r.group(1)), int(r.group(2))]} if r else {})}
+            return {"k": "jack", "t": text, "sp": [sp],
+                    **({"lengths": _band(min_cm=int(r.group(1)), max_cm=int(r.group(2)))} if r else {})}
         r = re.search(r"(?:over|greater than) (\d+)\s*cm", low)
-        out = {"k": "adult", "t": text, "sp": [sp], **({"cm": int(r.group(1))} if r else {})}
+        out = {"k": "adult", "t": text, "sp": [sp], **({"lengths": _over(r.group(1))} if r else {})}
         place = re.search(r"cm in the (.+?)\.?$", text)
         if place and not re.search(r"\bin region\b", low):
             out["w"] = [_water(n) for n in _names(place.group(1))]

@@ -108,6 +108,17 @@ class CatalogueRule(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def _pooled_across_areas(self) -> "CatalogueRule":
+        """(T358) a pooled count names AREAS, structurally, and is a count above zero."""
+        if self.pooled_across:
+            bad = [a for a in self.pooled_across if not a.startswith("area:")]
+            if bad:
+                raise ValueError(f"pooled_across: {bad} are not area ids — a pool is a set of areas, never words")
+            if self.type is not RuleType.retention_limit or not (self.take or 0) > 0:
+                raise ValueError("pooled_across belongs to a retention count above zero")
+        return self
+
+    @model_validator(mode="after")
     def _caught_is_a_fish_condition(self) -> "CatalogueRule":
         for c in self.caught:
             if c not in CAUGHT_HOW:
@@ -295,6 +306,13 @@ class CatalogueRule(BaseModel):
     #:
     #: The real idea underneath — a pool SHARED across entries, not a number repeated at each —
     #: wants a structural link like `within`, not a sentence. It is not in the corpus today.
+    #:
+    #: `pooled_across` IS THAT LINK (T358, 2026-11-03): the AREAS (`area:` ids) the count is pooled
+    #: across — one quota for every water of them together ("in the aggregate (combined total), in
+    #: Management Units 5-6 to 5-11"), never one each. Structural, so a reader binds it like an
+    #: extent; the words are the area's. Only on a retention count above zero. The DFO salmon rules
+    #: carry it (`regs.dfo_salmon.quota.mark_shared`); no freshwater rule does yet.
+    pooled_across: List[str] = Field(default_factory=list)
     record_retention: bool = False
 
     # --- shared scoping ----------------------------------------------------

@@ -1,5 +1,5 @@
 /**
- * THE DFO SALMON (T211, option A + the Standard / Salmon map toggle): the release file `salmon` (`salmon/3`,
+ * THE DFO SALMON (T211, option A + the Standard / Salmon map toggle): the release file `salmon` (`salmon/4`,
  * `pipeline/deliver/salmon.py`) read, and every word the Salmon card and the Salmon map legend say.
  *
  * NOTHING HERE READS A RULE. The pipeline precomputed, per CHAIN of DFO locations (narrowest first — Region 6 is a
@@ -9,10 +9,11 @@
  * CLOSED UNLESS DFO OPENS IT (owner 2026-10-27): chain 0 is the UNLISTED water — every species closed, every day — and
  * a section the file places in no run reads chain 0. Explicit in the file (`payload.default`), never an absence.
  *
- * Layout (`salmon/3`; T332: quotas as game-fish quota trees, a `salmon/2` file is refused), little-endian, varints LEB128,
+ * Layout (`salmon/4`; T332: quotas as game-fish quota trees; T356: a header closure, the scoped aggregate limits and the
+ * header sizes are in the file — an older file is refused), little-endian, varints LEB128,
  * SPLIT PER BUNDLE REGION (owner 2026-10-28: a water page's card
  * fetches its own region's slice, the Salmon map all of them):
- *   salmon       b"BCSA", u8 3, 8 bytes of the section_handles digest, u32 JSON length, the UTF-8 JSON payload
+ *   salmon       b"BCSA", u8 4, 8 bytes of the section_handles digest, u32 JSON length, the UTF-8 JSON payload
  *   salmon-<r>   b"BCSR", u8 1, 8 bytes of the digest, u8 region length + region, then a run count and per run: sid gap
  *                (from the previous run's end), count, chain — the sections of bundle region <r> (`x`: in none)
  * A section in no LOADED slice reads chain 0, so a reader asks for the slices of the sections it reads (the card: its
@@ -22,6 +23,11 @@
  * aggregate limits, sizes, what an "adult chinook" is — as typed notes on `regions[slug].notes`, DFO's words whole; one
  * naming waters holds only on their items (`scopes`). Which notes a page shows is `salmonNotes`, held to the pipeline's
  * `deliver.salmon.notes_for` by the golden.
+ *
+ * (T356) RESOLVED IN PYTHON, LOOKED UP HERE: a region header's closure is the verdict's `c` and the chain's `c` (never
+ * read from a location id); the scoped aggregate limits are `regions[r].shared`; the header sizes `regions[r].sizes`
+ * (ordered, the first that holds wins). The file is validated on decode (`checkPayload`): a bad index is an error, never
+ * a quiet "closed".
  */
 import { DAYS_BEFORE_MONTH, MONTHS } from "./calendar.generated";
 import { METHOD_WORDS, type MethodClass } from "./method";
@@ -56,19 +62,31 @@ const MAP_CODES: readonly (SalmonMapStatus | "none")[] = ["none", "open", "relea
 export interface SalmonQuota { readonly tree?: TreeTier; readonly u?: 1 }
 /** (T320, T332) THE SALMON BUCKET: the region header's combined limit — `tree` the quota tree's TOTAL tier ("Up to 4
  *  salmon a day in total"; the header's annual / monthly limits its tiers with a `period`), DFO's words in `t` / `tp`;
- *  `possession` the total DFO prints (owner 2026-10-31: no per-species possession); `min_cm` per species. */
+ *  `possession` the total DFO prints (owner 2026-10-31: no per-species possession). */
 export interface SalmonBucket {
   readonly tree: TreeTier; readonly t: string;
   readonly possession?: number; readonly tp?: string;
-  readonly min_cm?: Readonly<Record<string, number>>;
   readonly ids?: readonly string[];
-  /** (T349) the header's aggregate limits over named waters (Squamish hatchery coho): the quota tree's aggregate tier,
-   *  `total` with `whose` its scope; `id` the note it was read from, `w` the note's water keys */
-  readonly shared?: readonly { readonly tree: TreeTier; readonly t: string; readonly id: string | null; readonly w: readonly string[] }[];
 }
-interface Verdict { readonly s: SalmonVerdictStatus; readonly t: string; readonly n?: string; readonly d?: 1; readonly tree?: TreeTier; readonly u?: 1 }
+/** (T349, T356) a header's aggregate limit over named waters (Squamish hatchery coho): the quota tree's aggregate tier,
+ *  `total` with `whose` its scope; `id` the note it was read from, `w` the note's water keys. The region's own, with or
+ *  without a bucket. */
+export interface SalmonShared { readonly tree: TreeTier; readonly t: string; readonly id: string | null; readonly w: readonly string[] }
+/** (T356, T358) one length as the catalogue's `LengthBand` */
+interface SalmonBand { readonly min_cm?: number; readonly max_cm?: number }
+/** (T356) the header sizes of species alike (`pipeline/regs/dfo_salmon/quota.sizes`): the minimum to keep, what an adult
+ *  and a jack are. Ordered; the first entry of a species that holds (`w` its waters' items, `on` its windows) wins. */
+export interface SalmonSizes {
+  readonly sp: readonly string[];
+  readonly min?: SalmonBand; readonly adult?: SalmonBand; readonly jack?: SalmonBand;
+  readonly w?: readonly string[]; readonly on?: readonly (readonly number[])[];
+}
+/** `c` (T356): the region header note whose closure this verdict is */
+interface Verdict { readonly s: SalmonVerdictStatus; readonly t: string; readonly n?: string; readonly d?: 1; readonly tree?: TreeTier; readonly u?: 1; readonly c?: string }
 interface Chain {
   readonly r: readonly string[]; readonly w: string; readonly l: readonly string[];
+  /** (T356) the region header notes that close this chain every day (and its undrawn places): its card is the closure */
+  readonly c?: readonly string[];
   /** per species (SALMON_SPECIES order) runs [start, verdict index, …] */
   readonly sp: readonly (readonly number[])[];
   readonly g: readonly number[]; readonly m: readonly number[];
@@ -79,7 +97,7 @@ interface Chain {
 /** One header note (`pipeline/regs/dfo_salmon/header.py`): kind, DFO's words, the values derived from them. */
 export interface SalmonNote {
   readonly id: string; readonly k: string; readonly t: string;
-  readonly sp?: readonly string[]; readonly cm?: number | readonly number[]; readonly n?: number;
+  readonly sp?: readonly string[]; readonly lengths?: readonly SalmonBand[]; readonly n?: number;
   /** the waters it holds on (scope keys into `scopes[region]`); `x` the waters it excepts; `on` its day windows */
   readonly w?: readonly { readonly n: string; readonly ws: boolean; readonly key: string }[];
   readonly x?: readonly { readonly n: string; readonly ws: boolean; readonly key: string }[];
@@ -89,7 +107,7 @@ export interface SalmonNote {
   readonly hatchery?: boolean;
 }
 interface Region { readonly name: string; readonly asof: string | null; readonly url: string; readonly notes?: readonly SalmonNote[];
-                  readonly bucket?: SalmonBucket }
+                  readonly bucket?: SalmonBucket; readonly shared: readonly SalmonShared[]; readonly sizes: readonly SalmonSizes[] }
 interface Unmapped { readonly items: readonly string[]; readonly r: string; readonly w: string; readonly chain: number; readonly d?: number }
 interface Payload {
   readonly format: string; readonly credit: string; readonly default: number;
@@ -125,14 +143,44 @@ const digestOf = (b: Uint8Array) => { let d = ""; for (let i = 5; i < 13; i++) d
 
 /** The head (`salmon`): its handles and payload. */
 export function decodeSalmonHead(b: Uint8Array, handles: string): Payload {
-  if (b.length < 17 || b[0] !== 0x42 || b[1] !== 0x43 || b[2] !== 0x53 || b[3] !== 0x41 || b[4] !== 3)
-    throw new SalmonError("salmon: not a salmon/3 file");
+  if (b.length < 17 || b[0] !== 0x42 || b[1] !== 0x43 || b[2] !== 0x53 || b[3] !== 0x41 || b[4] !== 4)
+    throw new SalmonError("salmon: not a salmon/4 file");
   const digest = digestOf(b);
   if (digest !== handles) throw new SalmonError(`salmon: built for handles ${digest}, not ${handles}`);
   const n = b[13]! | (b[14]! << 8) | (b[15]! << 16) | (b[16]! * 0x1000000);
   if (17 + n !== b.length) throw new SalmonError(17 + n > b.length ? "salmon: truncated" : `salmon: ${b.length - 17 - n} trailing bytes`);
-  return JSON.parse(new TextDecoder().decode(b.subarray(17, 17 + n))) as Payload;
+  return checkPayload(JSON.parse(new TextDecoder().decode(b.subarray(17, 17 + n))) as Payload);
 }
+
+/** (T356) THE FILE IS CHECKED ONCE, ON DECODE (like `parseSalmonFeed`): every run's verdict / gear / map index in range,
+ *  every chain five species, `default` and every unmapped place a real chain, every region its `shared` and `sizes`, every
+ *  closure id a note of the chain's regions. A bad file is an error here — never a quiet "closed" later. */
+function checkPayload(P: Payload): Payload {
+  const bad = (why: string): never => { throw new SalmonError(`salmon: ${why}`); };
+  if (P.format !== "salmon/4") bad(`payload format ${String(P.format)}`);
+  if (!Array.isArray(P.verdicts) || !P.verdicts.length || !Array.isArray(P.gears) || !Array.isArray(P.chains)) bad("no verdicts, gears or chains");
+  if (!Number.isInteger(P.default) || !P.chains[P.default]) bad(`default ${String(P.default)} is no chain`);
+  const runs = (r: readonly number[], n: number, what: string, none: boolean) => {
+    if (!Array.isArray(r) || !r.length || r.length % 2) bad(`${what}: runs ${JSON.stringify(r)}`);
+    for (let k = 1; k < r.length; k += 2)
+      if (!Number.isInteger(r[k]) || r[k]! >= n || r[k]! < (none ? -1 : 0)) bad(`${what}: index ${r[k]} of ${n}`);
+  };
+  for (const [slug, r] of Object.entries(P.regions))
+    if (!Array.isArray(r.shared) || !Array.isArray(r.sizes)) bad(`region ${slug} has no shared / sizes`);
+  P.chains.forEach((c, i) => {
+    if (c.sp?.length !== 5) bad(`chain ${i}: ${c.sp?.length} species`);
+    c.sp.forEach((r, k) => runs(r, P.verdicts.length, `chain ${i} species ${k}`, false));
+    runs(c.g, P.gears.length, `chain ${i} gear`, true);
+    runs(c.m, MAP_CODES.length, `chain ${i} map`, false);
+    for (const id of c.c ?? []) if (!closureNote(P, c, id)) bad(`chain ${i}: closure ${id} is no note of its regions`);
+  });
+  for (const u of P.unmapped) if (!P.chains[u.chain]) bad(`unmapped ${u.w}: chain ${u.chain}`);
+  return P;
+}
+
+/** (T356) the region header note `id` of one of the chain's regions (its closure's words) */
+const closureNote = (P: Payload, c: Chain, id: string): SalmonNote | undefined =>
+  c.r.flatMap((r) => P.regions[r]?.notes ?? []).find((n) => n.id === id);
 
 /** One region's slice (`salmon-<r>`): its runs. */
 export interface SalmonShard {
@@ -183,7 +231,7 @@ export function* salmonShardSteps(b: Uint8Array, handles: string): Steps<SalmonS
 
 /** The head with the slices read: a section's chain is the first slice holding it, else chain 0 (closed). */
 export function salmonFacts(payload: Payload, handles: string, shards: readonly SalmonShard[]): SalmonFacts {
-  const dflt = payload.default ?? 0;
+  const dflt = payload.default;
   return {
     handles, chains: payload.chains.length, payload, loaded: shards.map((s) => s.region),
     chainOf(sid) {
@@ -225,24 +273,10 @@ function at(runs: readonly number[], day: number): number {
   return v;
 }
 
-/** (T227) A region header's closure of all salmon ("There is no fishing for salmon in Region 4 … until further notice"). */
-function regionClosedNote(P: Payload, r: string): SalmonNote | undefined {
-  return (P.regions[r]?.notes ?? []).find((n) => n.k === "closed" && !n.w?.length);
-}
-
-/** (T227, owner 2026-10-28) A chain that is only its regions' own rows (no water of its own, no undrawn place) in regions
- *  whose header closes salmon: the header's closure is its answer every day. */
-function regionClosedChain(P: Payload, chain: number): boolean {
-  const c = P.chains[chain];
-  return !!c && !!c.l.length && !c.u?.length && c.l.every((l) => l.split(":")[1] === "region")
-    && !!c.r.length && c.r.every((r) => !!regionClosedNote(P, r));
-}
-
 /** What the Salmon colouring paints a chain on a day. */
 export function salmonChainStatus(f: SalmonFacts, chain: number, day: number): SalmonMapStatus | null {
   const c = f.payload.chains[chain];
   if (!c) return null;
-  if (regionClosedChain(f.payload, chain)) return "closed";      // (T227) the card's region-wide closure, on the map too
   const s = MAP_CODES[at(c.m, day)];
   return s && s !== "none" ? s : null;
 }
@@ -284,19 +318,29 @@ export function salmonNotes(P: Payload, regions: readonly string[], item: string
   return { region, water };
 }
 
-/** A size line for an open row's species, from the header (a water's own "adult" length beats the region's). */
-function sizesOf(species: readonly SalmonSpecies[], notes: readonly SalmonNote[]): string | null {
+/** (T356) A species' header sizes on a page: the first entry of `regions[r].sizes` that holds (a water's own entries
+ *  before every region's, as the pipeline ordered them — `quota.sizes`), else none. */
+function sizeEntry(P: Payload, regions: readonly string[], item: string | null, day: number, sp: string): SalmonSizes | undefined {
+  const rs = [...new Set(regions)].sort();
+  const holds = (r: string, e: SalmonSizes) => !!e.w?.length && item !== null && inWindow(day, e.on)
+    && e.w.some((k) => (P.scopes?.[r]?.[k] ?? []).includes(item));
+  for (const r of rs) for (const e of P.regions[r]?.sizes ?? []) if (e.sp.includes(sp) && holds(r, e)) return e;
+  for (const r of rs) for (const e of P.regions[r]?.sizes ?? []) if (e.sp.includes(sp) && !e.w?.length) return e;
+  return undefined;
+}
+
+/** A size line for an open row's species: the header sizes the pipeline resolved (`sizeEntry`), words only. */
+function sizesOf(P: Payload, regions: readonly string[], item: string | null, day: number,
+                 species: readonly SalmonSpecies[]): string | null {
   const parts: string[] = [];
   for (const sp of species) {
-    const of = (k: string) => notes.filter((n) => n.k === k && n.sp?.includes(sp));
-    const min = of("min_size")[0]?.cm;
-    const adults = of("adult");
-    const adult = (adults.find((n) => n.w?.length) ?? adults[0])?.cm;
-    const jack = of("jack")[0]?.cm;
+    const e = sizeEntry(P, regions, item, day, sp);
+    if (!e) continue;
     const name = SPECIES_NAME[sp];
-    const bits = [typeof min === "number" ? `${name} ${min} cm or more to keep` : null,
-                  typeof adult === "number" ? `adult ${name} over ${adult} cm` : null,
-                  Array.isArray(jack) ? `jack ${name} ${jack[0]}–${jack[1]} cm` : null].filter((x): x is string => !!x);
+    const bits = [e.min?.min_cm !== undefined ? `${name} ${e.min.min_cm} cm or more to keep` : null,
+                  e.adult?.min_cm !== undefined ? `adult ${name} over ${e.adult.min_cm} cm` : null,
+                  e.jack?.min_cm !== undefined && e.jack.max_cm !== undefined ? `jack ${name} ${e.jack.min_cm}–${e.jack.max_cm} cm` : null]
+      .filter((x): x is string => !!x);
     if (bits.length) parts.push(bits.join(", "));
   }
   return parts.length ? `${SALMON_WORDS.sizes}: ${parts.join("; ")}` : null;
@@ -342,9 +386,6 @@ export const SALMON_WORDS = {
    *  like every trout tier's), drawn by the trout presenter \u2014 none are composed here */
   quota: {
     possession: (n: number) => `${n} in possession`,
-    /** a header's combined limit on one water system (Squamish), shown while that species is open there */
-    waterBucket: (water: string, n: number, hatchery: boolean, species: string) =>
-      `${water} and its tributaries: up to ${n}${hatchery ? " hatchery-marked" : ""} ${species} a day in total`,
     /** between two of a quota's lines in one cell */
     sep: " \u00b7 ",
   },
@@ -533,7 +574,7 @@ function wordsOf(P: Payload, lids: readonly string[]): SalmonWordsVM | null {
 export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: number): SalmonBlockVM {
   const P = f.payload;
   const per = SALMON_SPECIES.map((_, k) => [...new Set(chains.map((c) => at(P.chains[c]!.sp[k]!, day)))]);
-  const verdictOf = (ix: number): Verdict => P.verdicts[ix] ?? P.verdicts[0]!;
+  const verdictOf = (ix: number): Verdict => P.verdicts[ix]!;     // every index checked on decode (checkPayload)
   const statusOf = (ixs: readonly number[]): SalmonVerdictStatus | "varies" => {
     const ss = [...new Set(ixs.map((ix) => verdictOf(ix).s))];
     return ss.length === 1 ? ss[0]! : "varies";
@@ -587,21 +628,22 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
                            on: Date): SalmonCardVM {
   const P = f.payload, day = salmonDayIndex(on);
   const chains = [...new Set(page.sids.map((s) => f.chainOf(s)))].sort((a, b) => a - b);
-  if (!chains.length) chains.push(P.default ?? 0);
+  if (!chains.length) chains.push(P.default);
   const unmapped = page.item === null ? [] : P.unmapped.filter((u) => u.items.includes(page.item!));
   // PARTIAL COVERAGE: a DFO place with rules (not dormant) on this water is not drawn — the whole water says "check DFO"
   const active = new Set(P.unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? []));
   const partialRegions = [...new Set([
     ...chains.flatMap((c) => (P.chains[c]!.u ?? []).some((l) => active.has(l)) ? P.chains[c]!.r : []),
     ...unmapped.filter((u) => !u.d).map((u) => u.r)])].sort();
-  const def = P.default ?? 0;
-  // (T227, owner 2026-10-28) A REGION-WIDE CLOSURE: the page's DFO answer is only its region's own rows (no water of its
-  // own, no undrawn place) and the region's header says "There is no fishing for salmon in Region 4 … until further
-  // notice" — the header's closure is the answer, every day: one closed row in its words, no bar, no partial line.
-  const regionClosed = !unmapped.some((u) => !u.d) && chains.some((c) => c !== def)
-    && chains.every((c) => c === def || regionClosedChain(P, c));
+  const def = P.default;
+  // (T227, owner 2026-10-28) A REGION-WIDE CLOSURE: the region's header says "There is no fishing for salmon in Region 4
+  // … until further notice" — the header's closure is the answer, every day: one closed row in its words, no bar, no
+  // partial line. (T356) The pipeline says which chains it closes (`c`, `quota.header_closure`): looked up, not inferred.
+  const shut = (c: number) => !!P.chains[c]!.c?.length;
+  const regionClosed = unmapped.every((u) => u.d || shut(u.chain)) && chains.some((c) => c !== def)
+    && chains.every((c) => c === def || shut(c));
   const closedWords = regionClosed
-    ? [...new Set(chains.flatMap((c) => (c === def ? [] : P.chains[c]!.r).map((r) => regionClosedNote(P, r)!)))] : [];
+    ? [...new Set(chains.flatMap((c) => (c === def ? [] : P.chains[c]!.c!.map((id) => closureNote(P, P.chains[c]!, id)!))))] : [];
   const isPartial = !regionClosed && partialRegions.length > 0;
   const raw: SalmonBlockVM = regionClosed
     ? { allClosed: true, gear: [], rows: [{ key: "all", species: SALMON_SPECIES, label: SALMON_WORDS.all, status: "closed",
@@ -617,7 +659,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     const rows = raw.rows.map((r) => (agrees(r) ? r : { ...r, status: "check" as const, statusLabel: SALMON_WORDS.status.check }));
     return { ...raw, rows, allClosed: raw.allClosed && rows.every((r) => r.status === "closed") };
   })();
-  const listed = chains.some((c) => c !== (P.default ?? 0));
+  const listed = chains.some((c) => c !== P.default);
   const regionsUsed = [...new Set([...chains.flatMap((c) => P.chains[c]!.r), ...unmapped.map((u) => u.r)])].sort();
   const named = regionsUsed.length ? regionsUsed : Object.keys(P.regions).sort();
   const dates = named.map((r) => P.regions[r]?.asof).filter((x): x is string => !!x).sort();
@@ -638,7 +680,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
       return regionMine.length ? { ...r, speciesNotes: regionMine.map((n) => n.t) } : r;
     const mine = hn.water.filter((n) => n.k !== "adult" && ofRow(n));
     mine.forEach((n) => placed.add(n.id));
-    const sizes = sizesOf(r.species, [...hn.water, ...hn.region]);
+    const sizes = sizesOf(P, regionsUsed, page.item, day, r.species);
     // the sizes line already says the minimum, the adult and the jack lengths: those notes are not repeated
     const said = sizes ? SIZE_KINDS : new Set<string>();
     const speciesNotes = regionMine.filter((n) => !said.has(n.k)).map((n) => n.t);
@@ -665,26 +707,17 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     sts.includes("open") ? "open" : sts.includes("release") ? "release" : sts.includes("varies") ? "varies"
       : sts.includes("check") ? "check" : "closed";
   const buckets = [...new Map(regionsUsed.flatMap((r) => (P.regions[r]?.bucket ? [P.regions[r]!.bucket!] : []))
-    .map((b) => [JSON.stringify([b.tree.n, b.possession ?? null, b.min_cm ?? null]), b])).values()];
+    .map((b) => [JSON.stringify([b.tree.n, b.possession ?? null]), b])).values()];
   return {
     ...block, rows, regionRules, gearProvincial,
     bucket: buckets.length === 1 ? buckets[0]! : null,
     waterBuckets: hn.water.filter((n) => n.k === "aggregate" && typeof n.n === "number"
         && rows.some((r) => r.status === "open" && !!n.sp?.some((x) => r.species.includes(x as SalmonSpecies))))
       .map((n) => {
-        // (T349) the store's aggregate tier over the note's waters, where the file carries it (bucket.shared)
-        const sh = regionsUsed.flatMap((r) => P.regions[r]?.bucket?.shared ?? []).find((x) => x.id === n.id);
-        if (sh) {
-          const runs = tierWords(sh.tree);
-          return { line: lineText(runs), runs, words: [n.t] };
-        }
-        // (T332) a water's own combined limit is the quota tree's OWN tier (`whose` the water), drawn like the trout's
-        const water = n.w?.[0]?.n ?? "";
-        const says = SALMON_WORDS.quota.waterBucket(water, n.n!, !!n.hatchery,
-                                                    (n.sp ?? []).map((x) => SPECIES_NAME[x as SalmonSpecies] ?? x).join(", "));
-        const tier: TreeTier = { node: "tier", id: "t0", tier: "own", n: n.n!, says, by: 0, children: [], whose: water,
-                                 species: [...(n.sp ?? [])] };
-        const runs = tierWords(tier);
+        // (T349, T356) the store's aggregate tier over the note's waters: the region's `shared` (`quota.shared_buckets`)
+        const sh = regionsUsed.flatMap((r) => P.regions[r]?.shared ?? []).find((x) => x.id === n.id);
+        if (!sh) throw new SalmonError(`salmon: the aggregate note ${n.id} has no shared limit in its region`);
+        const runs = tierWords(sh.tree);
         return { line: lineText(runs), runs, words: [n.t] };
       }),
     waterRules: hn.water.filter((n) => !placed.has(n.id)).map((n) => n.t),
@@ -724,7 +757,7 @@ const BOOK_YEAR_DAYS = 365;
 export function salmonStatusFromSpecies(f: SalmonFacts, chain: number, day: number): SalmonMapStatus {
   const P = f.payload, c = P.chains[chain];
   if (!c) return "closed";
-  const ss = c.sp.map((runs) => (P.verdicts[at(runs, day)] ?? P.verdicts[0]!).s);
+  const ss = c.sp.map((runs) => P.verdicts[at(runs, day)]!.s);
   for (const st of ["open", "release", "check"] as const) if (ss.includes(st)) return st;
   return "closed";
 }
@@ -795,7 +828,7 @@ function undrawnChains(f: SalmonFacts, chains: readonly number[], unmapped: read
 /** One species' verdict status on a chain's day. */
 function speciesStatusOn(f: SalmonFacts, chain: number, k: number, day: number): SalmonVerdictStatus {
   const P = f.payload, runs = P.chains[chain]?.sp[k];
-  return runs ? (P.verdicts[at(runs, day)] ?? P.verdicts[0]!).s : "closed";
+  return runs ? P.verdicts[at(runs, day)]!.s : "closed";
 }
 
 /** (T228) A rule line as the key compares it: case and spacing never make two regulations differ. */

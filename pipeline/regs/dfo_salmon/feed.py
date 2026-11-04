@@ -82,7 +82,8 @@ def build(scraped: dict) -> dict:
         # T366 ONE VINTAGE: the page these rows came from ({sha256, date_modified}) and its header notes, so a reader
         # can tell typed rows older than the raw page, and the release ships the header of the rows' own page
         **({"page": scraped["page"]} if scraped.get("page") else {}),
-        **({"notes": scraped["notes"]} if "notes" in scraped else {}),
+        # (T358) the header format the notes are in: a reader takes notes only in today's (`header.FORMAT`)
+        **({"notes": scraped["notes"], "header_format": _header_format()} if "notes" in scraped else {}),
         "preamble": scraped.get("preamble") or [],
         "locators": locators,
     }
@@ -160,3 +161,8 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+def _header_format() -> str:
+    from pipeline.regs.dfo_salmon.header import FORMAT
+    return FORMAT

@@ -129,6 +129,9 @@ const R = {
   leadOk: pyRe("adult (chinook|coho)|bait ban", "i"),
 };
 
+/** (T358, header.py `_over`) a note's length as a LengthBand: "over 50 cm", "30 cm or more" — from that length up */
+const over = (cm: string) => [{ min_cm: pyInt(cm) }];
+
 export function classify(text: string, lead: string | null = null): Note | null {
   const full = lead ? `${lead} ${text}` : text;
   const low = text.toLowerCase();
@@ -140,7 +143,7 @@ export function classify(text: string, lead: string | null = null): Note | null 
       k: "adult",
       t: full,
       sp,
-      ...(m ? { cm: pyInt(m[1]!) } : {}),
+      ...(m ? { lengths: over(m[1]!) } : {}),
       w: names(text).map((n) => water(n)),
       ...(on.length ? { on } : {}),
     };
@@ -188,10 +191,10 @@ export function classify(text: string, lead: string | null = null): Note | null 
   m = search(R.annual, low);
   if (m) {
     const n = m[2] || m[5];
-    return { k: m[1]!, t: text, sp: species(m[3]!), cm: pyInt(m[4]!), ...(n ? { n: pyInt(n) } : {}) };
+    return { k: m[1]!, t: text, sp: species(m[3]!), lengths: over(m[4]!), ...(n ? { n: pyInt(n) } : {}) };
   }
   m = search(R.minSize, low);
-  if (m) return { k: "min_size", t: text, sp: species(m[1]!), cm: pyInt(m[2]!) };
+  if (m) return { k: "min_size", t: text, sp: species(m[1]!), lengths: over(m[2]!) };
   if (search(R.measured, low)) return { k: "measure", t: text.split(" You must")[0]! };
   m = search(R.cls, low);
   if (m) {
@@ -199,10 +202,10 @@ export function classify(text: string, lead: string | null = null): Note | null 
     const sp = SP_MAP[m[2]!]!;
     if (cls === "jack") {
       const r = search(R.jack, low);
-      return { k: "jack", t: text, sp: [sp], ...(r ? { cm: [pyInt(r[1]!), pyInt(r[2]!)] } : {}) };
+      return { k: "jack", t: text, sp: [sp], ...(r ? { lengths: [{ min_cm: pyInt(r[1]!), max_cm: pyInt(r[2]!) }] } : {}) };
     }
     const r = search(R.overCm2, low);
-    const out: Note = { k: "adult", t: text, sp: [sp], ...(r ? { cm: pyInt(r[1]!) } : {}) };
+    const out: Note = { k: "adult", t: text, sp: [sp], ...(r ? { lengths: over(r[1]!) } : {}) };
     const place = search(R.place, text);
     if (place && !search(R.inRegion, low)) out.w = names(place[1]!).map((n) => water(n));
     return out;

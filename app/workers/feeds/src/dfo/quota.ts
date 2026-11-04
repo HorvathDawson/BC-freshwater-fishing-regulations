@@ -102,7 +102,12 @@ export function* walk(t: QuotaTier): Generator<QuotaTier | QuotaKind> {
 export const words = (t: QuotaTier | null | undefined): string | null =>
   t ? [...walk(t)].filter((x) => x.node === "tier" || !x.folded).map((x) => x.says).join(" · ") : null;
 
-type Note = { id?: string; k: string; t: string; n?: unknown; cm?: unknown; sp?: string[]; w?: unknown[] };
+type Band = { min_cm?: number; max_cm?: number };
+type Water = { n: string; ws?: boolean; key: string };
+type Note = { id?: string; k: string; t: string; n?: unknown; lengths?: Band[]; sp?: string[]; w?: Water[]; x?: unknown[]; xp?: unknown[];
+              on?: number[][]; hatchery?: boolean };
+/** quota._over: a note's length floor (`lengths[0].min_cm`) */
+const overOf = (n: Note): number | undefined => n.lengths?.[0]?.min_cm;
 const isInt = (x: unknown): x is number => typeof x === "number" && Number.isInteger(x);
 
 /** quota.bucket: the header's combined limits — `tree` the TOTAL tier (its annual / monthly limits as tiers with a
@@ -116,7 +121,8 @@ export function bucket(notes: Note[]): Record<string, unknown> | null {
   for (const n of notes) {
     if (!((n.k === "annual" || n.k === "monthly") && !(n.w && n.w.length) && isInt(n.n))) continue;
     const sp = [...(n.sp ?? [])];
-    if (isInt(n.cm)) tree.children.push(size(seq, n.n, n.cm, n.t, n.k, sp));
+    const cm = overOf(n);
+    if (isInt(cm)) tree.children.push(size(seq, n.n, cm, n.t, n.k, sp));
     else {
       seq[0]! += 1;
       tree.children.push({ node: "tier", id: `t${seq[0]}`, tier: "count", n: n.n, says: n.t, by: 0, children: [], species: sp, period: n.k });
@@ -130,10 +136,62 @@ export function bucket(notes: Note[]): Record<string, unknown> | null {
     out.tp = p.t;
     if (p.id) (out.ids as string[]).push(p.id);
   }
-  const mins: Record<string, number> = {};
+  return out;
+}
+
+/** quota.shared_buckets (T349, T356): a scoped `aggregate` note -> the region's `shared` tiers, with or without a bucket */
+export function sharedBuckets(notes: Note[]): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const n of notes) {
+    if (n.k !== "aggregate" || !(n.w && n.w.length) || !isInt(n.n)) continue;
+    const sp = [...(n.sp ?? [])];
+    const hatchery = !!n.hatchery;
+    const names = sp.map((c) => NAMES[c] ?? c).join(" or ") || "salmon";
+    const whose = n.w.map((w) => (w.ws ? `the ${w.n} watershed` : w.n)).join(" and ");
+    const tree: Record<string, unknown> = { node: "tier", id: "t0", tier: "total", n: n.n, by: 0, children: [], species: sp, whose,
+      says: `Up to ${n.n} ${hatchery ? "hatchery-marked " : ""}${names} a day in total across ${whose}` };
+    if (hatchery) tree.origin = "hatchery";
+    out.push({ tree, t: n.t, id: n.id ?? null, w: n.w.map((w) => w.key) });
+  }
+  return out;
+}
+
+/** two plain values equal whatever their key order (Python's dict ==) */
+const sameJson = (a: unknown, b: unknown): boolean => {
+  const norm = (x: unknown): unknown => (Array.isArray(x) ? x.map(norm) : x && typeof x === "object"
+    ? Object.fromEntries(Object.entries(x).sort(([p], [q]) => (p < q ? -1 : 1)).map(([k, v]) => [k, norm(v)])) : x);
+  return JSON.stringify(norm(a)) === JSON.stringify(norm(b));
+};
+
+const SIZE_KEY: Record<string, string> = { min_size: "min", adult: "adult", jack: "jack" };
+const SPECIES_ORDER = ["CH", "CO", "SK", "PK", "CM"];
+
+/** quota.sizes (T356): the header sizes per species, ordered — a water's own entries first, then the region's */
+export function sizes(notes: Note[]): Record<string, unknown>[] {
   for (const n of notes)
-    if (n.k === "min_size" && !(n.w && n.w.length) && isInt(n.cm)) for (const sp of n.sp ?? []) if (!(sp in mins)) mins[sp] = n.cm;
-  if (Object.keys(mins).length) out.min_cm = mins;
+    if (n.k in SIZE_KEY && ((n.x && n.x.length) || (n.xp && n.xp.length)))
+      throw new Error(`sizes: ${n.id} excepts waters — a size exception is not modelled`);
+  const region: Record<string, Record<string, unknown>> = {};
+  for (const n of notes)
+    if (n.k in SIZE_KEY && !(n.w && n.w.length) && n.lengths?.length)
+      for (const sp of n.sp ?? []) {
+        const e = (region[sp] ??= {});
+        if (!(SIZE_KEY[n.k]! in e)) e[SIZE_KEY[n.k]!] = { ...n.lengths[0] };
+      }
+  const out: Record<string, unknown>[] = [];
+  const put = (sp: string, e: Record<string, unknown>) => {
+    const last = out[out.length - 1];
+    if (last) {
+      const { sp: lsp, ...rest } = last;
+      if (sameJson(rest, e)) { (lsp as string[]).push(sp); return; }
+    }
+    out.push({ sp: [sp], ...e });
+  };
+  for (const n of notes)
+    if (n.k in SIZE_KEY && n.w && n.w.length && n.lengths?.length)
+      for (const sp of n.sp ?? [])
+        put(sp, { ...(region[sp] ?? {}), [SIZE_KEY[n.k]!]: { ...n.lengths[0] }, w: n.w.map((w) => w.key), ...(n.on && n.on.length ? { on: n.on } : {}) });
+  for (const sp of SPECIES_ORDER) if (region[sp]) put(sp, region[sp]!);
   return out;
 }
 
@@ -141,5 +199,7 @@ export function bucket(notes: Note[]): Record<string, unknown> | null {
 export function headerClosure(notes: Note[], slug: string): R[] | null {
   const closed = notes.filter((n) => n.k === "closed" && !(n.w && n.w.length));
   if (!closed.length) return null;
-  return [{ rule_id: `${slug}:header-closed`, type: "retention_limit", verbatim: closed[0]!.t, species: ["SA"], take: 0, may_target: false } as R];
+  // T356: the note's id rides on the rule, so its verdict carries `c` (salmon.ts)
+  return [{ rule_id: `${slug}:header-closed`, type: "retention_limit", verbatim: closed[0]!.t, species: ["SA"], take: 0, may_target: false,
+            header_note: closed[0]!.id } as R];
 }

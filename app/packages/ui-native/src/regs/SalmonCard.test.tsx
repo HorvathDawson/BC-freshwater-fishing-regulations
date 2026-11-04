@@ -24,7 +24,7 @@ const FACTS: SalmonFacts = {
   payload: {
     format: "salmon/1", credit: "Fisheries and Oceans Canada (DFO), freshwater salmon sport fishing regulations",
     default: 0,
-    regions: { "6": { name: "Skeena", asof: "2026-08-28", url: "https://example/6" } },
+    regions: { "6": { name: "Skeena", asof: "2026-08-28", url: "https://example/6", shared: [], sizes: [] } },
     verdicts: [{ s: "closed", t: "Not opened by DFO: closed to salmon fishing", d: 1 },
                { s: "closed", t: "No fishing for chinook (Apr 1–Mar 31)" },
                { s: "open", t: "4 per day, only 2 over 50 cm (Jul 15–Aug 23)" }],
@@ -155,9 +155,9 @@ describe("(T318) every DFO rule on a water is still reachable in the table layou
     const n = (id: string, k: string, t: string, extra: object = {}) => ({ id, k, t, ...extra });
     const f: SalmonFacts = { ...FACTS, payload: { ...FACTS.payload, regions: { "6": { ...FACTS.payload.regions["6"]!, notes: [
       n("6:daylight:a", "daylight", "You can only fish for salmon in Region 6 during daylight hours."),
-      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], cm: 25 }),
+      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], lengths: [{ min_cm: 25 }] }),
       n("6:annual:c", "annual", "The annual coho limit is 10.", { sp: ["CO"], n: 10 }),
-    ] } } } };
+    ], sizes: [{ sp: ["CO"], min: { min_cm: 25 } }] } } } };
     for (const [day, item] of [[JUL20, "gnis:4674"], [SEP15, "gnis:4674"], [JUL20, null]] as const) {
       const card = salmonCard(f, { sids: [101], item }, day);
       render(<SalmonCard card={card} palette={LIGHT} />);
@@ -186,10 +186,15 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
   const WITH_HEADER: SalmonFacts = { ...FACTS, payload: { ...FACTS.payload,
     regions: { "6": { ...FACTS.payload.regions["6"]!, notes: [
       n("6:daylight:a", "daylight", "You can only fish for salmon in Region 6 during daylight hours."),
-      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], cm: 25 }),
+      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], lengths: [{ min_cm: 25 }] }),
       n("6:aggregate:c", "aggregate", "Kispiox watershed: the aggregate daily limit of hatchery-marked coho is one (1).",
         { sp: ["CO"], n: 1, w: [{ n: "Kispiox River", ws: true, key: "kispiox river+ws" }] }),
-    ] } },
+    ], sizes: [{ sp: ["CO"], min: { min_cm: 25 } }],
+    // (T356) the pipeline's `quota.shared_buckets` for the aggregate note
+    shared: [{ id: "6:aggregate:c", t: "Kispiox watershed: the aggregate daily limit of hatchery-marked coho is one (1).",
+               w: ["kispiox river+ws"], tree: { node: "tier", id: "t0", tier: "total", n: 1, by: 0, children: [], species: ["CO"],
+               whose: "the Kispiox River watershed", origin: "hatchery",
+               says: "Up to 1 hatchery-marked coho a day in total across the Kispiox River watershed" } as never }] } },
     scopes: { "6": { "kispiox river+ws": ["gnis:77"] } } } };   // gnis:77: a Kispiox trib (gnis:4674 has an undrawn place)
 
   it("region rules in their own block, the water's coho note and sizes on the open coho row, the gear line", () => {

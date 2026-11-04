@@ -18,8 +18,9 @@ q() { python3 -c "import json,sys;m=json.load(open('$M'));print(eval(sys.argv[1]
 MIN_APP_VERSION=${MIN_APP_VERSION-} python3 - "$M" <<'PY'
 import json, os, sys
 PAINT_NEEDS = {5: "0.3.0"}
-# (T332/T349) salmon/3 = salmon quotas in the game-fish quota tree; no shipped app reads it yet (0.4.0 reads salmon/2)
-SALMON_NEEDS = {3: "0.5.0"}
+# (T332/T349) salmon/3 = salmon quotas in the game-fish quota tree; (T356) salmon/4 = header closure, shared limits and sizes
+# resolved in the file. No shipped app reads either yet (0.4.0 reads salmon/2); 0.5.0 reads salmon/4 only
+SALMON_NEEDS = {3: "0.5.0", 4: "0.5.0"}
 m = json.load(open(sys.argv[1]))
 have = os.environ.get("MIN_APP_VERSION") or m.get("minAppVersion")
 ver = lambda s: tuple(int(x) for x in s.split("-")[0].split("+")[0].split("."))

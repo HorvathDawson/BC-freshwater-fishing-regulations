@@ -126,6 +126,42 @@ def test_a_water_with_an_undrawn_place_is_check_on_every_section_of_it():
     assert p2["chains"][dict(s2)[11]]["u"] == ["6:resort"] and p2["chains"][dict(s2)[11]]["m"] != check
 
 
+CLOSED_6 = {"id": "6:closed:abc", "k": "closed", "t": "There is no fishing for salmon in Region 6 until further notice."}
+
+
+def test_a_header_closure_is_in_the_file_on_its_verdicts_and_chains():
+    """(T356) the region header's closure is stated, not inferred by the app: every place of the page with rules answers
+    with it (`quota.header_closure`), its verdict carries the note id `c`, and a chain it closes every day carries `c`
+    (the note ids) — then its map says closed even with an undrawn place on its water, when that place is closed too.
+    `live.compose` writes the same chain `c` from a feed."""
+    from pipeline.regs.dfo_salmon import live as L
+    payload, sections = S.build(*_fixture(), {"gnis:4674": [11]}, {"6": [CLOSED_6]})
+    chains, by_sid = payload["chains"], dict(sections)
+    (closed,) = [v for v in payload["verdicts"] if v.get("c")]
+    assert (closed["s"], closed["c"], closed["t"]) == ("closed", "6:closed:abc", CLOSED_6["t"])
+    for sid in (11, 12):
+        assert chains[by_sid[sid]]["c"] == ["6:closed:abc"]
+        assert chains[by_sid[sid]]["m"] == [0, S.MAP_CODES.index("closed")]       # not `check`: the resort is shut too
+    # chain 10's first location (dormant) says nothing, 6:a answers every day with the closure: closed by the header
+    assert chains[by_sid[10]]["c"] == ["6:closed:abc"]
+    assert "c" not in chains[0]                                                  # the unlisted water: not opened
+    assert {r["sizes"] == [] and r["shared"] == [] for r in payload["regions"].values()} == {True}
+    # an open page: no `c` anywhere
+    p0, _ = S.build(*_fixture())
+    assert not any(v.get("c") for v in p0["verdicts"]) and not any(c.get("c") for c in p0["chains"])
+    # the feed's composition says the same
+    v, g = S._Interner(), S._Interner()
+    v(S.NOT_LISTED)
+    closure = [{"rule_id": "6:header-closed", "type": "retention_limit", "verbatim": CLOSED_6["t"], "species": ["SA"],
+                "take": 0, "may_target": False, "header_note": CLOSED_6["id"]}]
+    locs = {"6:a": {"r": "6", **L.location_calendar(closure, v, g)}, "6:resort": {"r": "6", **L.location_calendar(closure, v, g)}}
+    got = L.compose(["6:dormant", "6:a"], locs, v.items, ["6:resort"])
+    assert got["c"] == ["6:closed:abc"] and got["m"] == [0, S.MAP_CODES.index("closed")]
+    locs["6:resort"] = {"r": "6", **L.location_calendar(REGION, v, g)}            # an undrawn place still open
+    got = L.compose(["6:dormant", "6:a"], locs, v.items, ["6:resort"])
+    assert "c" not in got and got["m"] == [0, S.MAP_CODES.index("check")]
+
+
 def test_a_placed_section_the_handle_table_does_not_know_stops_the_build():
     files, feeds, placed, sid_of = _fixture()
     del sid_of["s3"]
@@ -141,7 +177,7 @@ def test_salmon_2_splits_per_bundle_region_and_round_trips():
     files = S.encode_files(payload, sections, "147b20dce7d8576c", lambda sid: regions.get(sid, ()))
     from pipeline.deliver.release.shards import REGIONS
     assert sorted(files) == sorted(["salmon", *(S.shard_name(r) for r in (*REGIONS, "x"))])
-    assert files["salmon"][:5] == b"BCSA\x03" and files["salmon-6"][:5] == b"BCSR\x01"
+    assert files["salmon"][:5] == b"BCSA\x04" and files["salmon-6"][:5] == b"BCSR\x01"
     handles, back, secs = S.decode_files(files)
     assert (handles, {k: v for k, v in back.items() if k != "shards"}, secs) == ("147b20dce7d8576c", payload, sections)
     assert [s for s, _ in S.decode_shard(files["salmon-6"])[2]] == [10, 11]

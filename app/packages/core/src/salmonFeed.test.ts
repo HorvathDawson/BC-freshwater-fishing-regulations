@@ -74,7 +74,7 @@ describe("the DFO feed over the release", () => {
     expect(pickSalmon(r, parseSalmonFeed({ ...G.feed, locs: rest })).payload.unmapped).toEqual([]);
   });
 
-  it("refuses what is not a whole dfo-feed/2 (a T320 dfo-feed/1 capture too)", () => {
+  it("refuses what is not a whole dfo-feed/3 (an older capture too)", () => {
     expect([parseSalmonFeed(null), parseSalmonFeed({ ...G.feed, format: "x" }), parseSalmonFeed({ ...G.feed, format: "dfo-feed/1" }),
             parseSalmonFeed({ ...G.feed, locs: { a: { r: "6", sp: [[0, 99]], g: [] } } }),
             parseSalmonFeed({ ...G.feed, locs: { a: { r: "6", sp: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 999]], g: [0, -1] } } })])
@@ -153,5 +153,27 @@ describe("(T321) the feed's rows in DFO's words", () => {
       [other]: [{ k: "new", sp: "Coho", d: "", t: "kept" }], [carried]: [{ k: "new", sp: "Coho", d: "", t: "new words" }] });
     const plain = withSalmonFeed(rel, f).payload.x!;
     expect(plain[carried]).toBeUndefined();                                       // the feed says nothing now: gone
+  });
+});
+
+describe("(T356) a header closure from the feed: the pipeline's `c`, composed as `live.compose`", () => {
+  const closed = () => parseSalmonFeed(G.closedFeed)!;
+  it("every chain the closure answers every day carries the note ids; the card is the closure, in its words", () => {
+    const f = closed();
+    G.release.chains.forEach((c: { l: string[]; u?: string[] }, k: number) => expect(composeChain(c.l, f, c.u ?? [])).toEqual(G.closedExpect[k]));
+    expect(G.closedExpect.filter((c: { c?: string[] }) => c.c).length).toBeGreaterThan(0);
+    const live = withSalmonFeed(release(), f);
+    const card = salmonCard(live, { sids: [12], item: "gnis:4674" }, new Date(2026, 6, 20));
+    expect([card.closedOnly, card.partial, card.rows.map((r) => [r.label, r.status, r.notes])]).toEqual([true, null,
+      [["Salmon", "closed", ["There is no fishing for salmon in Region 6 until further notice."]]]]);
+  });
+  it("the release's closure never outlives the feed's verdicts", () => {
+    const shut = { ...release(), payload: { ...G.release, chains: G.release.chains.map((c: object) => ({ ...c, c: ["6:closed:t356"] })) } };
+    expect(withSalmonFeed(shut, feed()).payload.chains.some((c) => c.c)).toBe(false);
+  });
+  it("a feed region with notes and without its sizes / shared limits is not read", () => {
+    const { sizes: _s, ...r6 } = G.feed.regions["6"];
+    expect(parseSalmonFeed({ ...G.feed, regions: { "6": r6 } })).toBeNull();
+    expect(parseSalmonFeed({ ...G.feed, format: "dfo-feed/2" })).toBeNull();
   });
 });

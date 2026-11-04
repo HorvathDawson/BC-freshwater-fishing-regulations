@@ -30,12 +30,14 @@ import { key } from "./names";
 import { parseRegion } from "./parse";
 import { cmpStr, cmpTuple, formatFixed, pyRe, pyStrOf, pyTypeName, repr, search } from "./py";
 import { feedText, loads, PyFloat } from "./pyjson";
-import { bucket, headerClosure } from "./quota";
+import { bucket, headerClosure, sharedBuckets, sizes } from "./quota";
 import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
 import { readRegistry, REGISTRY_PATH, template, type Registry } from "./wording";
 
-export const FORMAT = "dfo-feed/2"; // T332: a verdict's quota is `tree` (a game-fish TreeTier), a bucket `{tree, …}`
+// T332 (/2): a verdict's quota is `tree` (a game-fish TreeTier), a bucket `{tree, …}`; T356 (/3, live.py): a header
+// closure's verdict carries `c`, a region its `shared` + `sizes`, a header note's length is `lengths`
+export const FORMAT = "dfo-feed/3";
 const SPECIES_N = [...SPECIES];
 export const FAIL_NOTIFY = 2;
 const QUEUE_ACTION = (slug: string) => `python -m pipeline.regs.dfo_salmon.live queue --regions ${slug}`;
@@ -664,7 +666,7 @@ function upgrade(prev: Json): Json {
   if (!prev || !Object.keys(prev).length || prev.format === FORMAT) return prev;
   const regions: Record<string, Json> = {};
   for (const [slug, r] of Object.entries((prev.regions || {}) as Record<string, Json>)) {
-    const copy = { ...r };
+    const copy = { ...r, ...(r.notes ? { notes: (r.notes as Json[]).map(noteLengths) } : {}) };
     setBucket(copy);
     regions[slug] = copy;
   }
@@ -672,11 +674,21 @@ function upgrade(prev: Json): Json {
   return { ...prev, regions, verdicts };
 }
 
-/** (T320) the salmon bucket — the header's combined daily / possession — beside the notes it is read from */
+/** (T320) the salmon bucket — the header's combined daily / possession — beside the notes it is read from; (T356) with
+ *  the region's `shared` and `sizes` (deliver.salmon.header_answers) */
 function setBucket(reg: Json): void {
   const b = bucket(reg.notes || []);
   if (b) reg.bucket = b;
   else delete reg.bucket;
+  reg.shared = sharedBuckets(reg.notes || []);
+  reg.sizes = sizes(reg.notes || []);
+}
+
+/** (T358) a dfo-header/1 note's `cm` as `lengths` (the LengthBand header.py writes since dfo-header/2) */
+function noteLengths(n: Json): Json {
+  if (!("cm" in n)) return n;
+  const { cm, ...rest } = n;
+  return { ...rest, lengths: Array.isArray(cm) ? [{ min_cm: cm[0], max_cm: cm[1] }] : [{ min_cm: cm }] };
 }
 
 /** live.page_texts: every sentence above the table, the section banners and the notes under it, in page order */

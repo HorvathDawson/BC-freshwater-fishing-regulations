@@ -13,8 +13,10 @@ Three pure functions, no model, no credits (the pages are a table):
                            `{tree}` — T332: a `TreeTier` of the game-fish quota tree (the count tier; its kinds, size
                            tiers, a monthly tier's `period`), see THE MAPPING below — or `{u: 1}`, not one reading
     bucket(notes)          the region header's typed notes (`header.py`) -> {tree: the TOTAL tier, t, possession, tp,
-                           min_cm, ids}; None where the page prints no combined daily limit
+                           ids}; None where the page prints no combined daily limit
                            (Regions 4, 5A, 7: closed until further notice).
+    shared_buckets(notes)  (T349) a scoped `aggregate` note -> the region's `shared` tiers (with or without a bucket)
+    sizes(notes)           (T356) the header sizes per species, `LengthBand`s, ordered: the first that holds wins
 
 POSSESSION (owner 2026-10-31): only the bucket's — the total DFO prints ("You cannot possess more than 8 salmon in
 total"). No per-species possession number is derived.
@@ -195,31 +197,47 @@ def _size(seq: List[int], n: int, over_cm: int, says: str, period: Optional[str]
 #         definition, "(i.e. Region 5 not including the Fraser River watershed)", is SETTLED to the MU list (owner:
 #         one scope): it is the operative text and what `entries.SCOPE_EXTENTS[("5b", "region")]` binds.
 #   R2    "Squamish watershed: the aggregate daily limit of hatchery-marked coho in the entire Squamish non-tidal
-#         systems combined is one (1)." — a header note naming a watershed: the bucket's `shared` tier on those waters.
+#         systems combined is one (1)." — a header note naming a watershed: the region's `shared` tier on those waters.
 #
 # The location's rules are marked where they meet it (`mark_shared`: deliver.salmon.build, live.join), so the verdict
 # tree (`_one`) is the aggregate tier wherever that location answers.
 
 _RE_AGGREGATE = re.compile(r"\bin the aggregate\b|\bcombined total\b", re.I)
-_RE_MU_RANGE = re.compile(r"Management Units?\s+(\d+-\d+)\s+to\s+(\d+-\d+)", re.I)
+_RE_MU_GROUP = re.compile(r"^area:mu_group:management_units_(\d+)_(\d+)_to_(\d+)_(\d+)$")
 
 
-def shared_scope(source_text: Optional[Mapping]) -> Optional[str]:
-    """The scope a location's quota is shared across ("Management Units 5-6 to 5-11"), or None: its words do not say
-    "in the aggregate" / "combined total"."""
-    t = str((source_text or {}).get("specific_area") or "")
+def pool_of(loc) -> List[str]:
+    """(T358) The AREAS a location's quota is pooled across (`CatalogueRule.pooled_across`): its own `within` extents,
+    where its words say "in the aggregate" / "combined total"; [] where they do not. A pooled location with no `within`
+    area is an error — the pool would be words with nothing to bind (it was the prose "these waters")."""
+    t = str((getattr(loc, "source_text", None) or {}).get("specific_area") or "")
     if not _RE_AGGREGATE.search(t):
-        return None
-    m = _RE_MU_RANGE.search(t)
-    return f"Management Units {m.group(1)} to {m.group(2)}" if m else "these waters"
+        return []
+    areas = sorted({e.area_id for e in loc.binding.extents if getattr(e, "op", None) is not None
+                    and e.op.value == "within" and e.area_id})
+    if not areas:
+        raise ValueError(f"{loc.location_id}: its quota is pooled ({t[:60]!r}…) but it is bound to no `within` area")
+    return areas
 
 
-def mark_shared(rules: Sequence[dict], scope: Optional[str]) -> List[dict]:
-    """The location's rules with each top-level count (a retention limit above zero, no `within`) marked `shared`."""
-    if not scope:
+def pool_words(areas: Sequence[str]) -> str:
+    """The words of a pool's areas ("Management Units 5-6 to 5-11"). An area with no words here is an error."""
+    out = []
+    for a in areas:
+        m = _RE_MU_GROUP.match(a)
+        if not m:
+            raise ValueError(f"pool_words: no words for the pooled area {a!r} — add its kind here")
+        out.append(f"Management Units {m.group(1)}-{m.group(2)} to {m.group(3)}-{m.group(4)}")
+    return " and ".join(out)
+
+
+def mark_shared(rules: Sequence[dict], areas: Sequence[str]) -> List[dict]:
+    """The location's rules with each top-level count (a retention limit above zero, no `within`) `pooled_across` its
+    areas (`pool_of`)."""
+    if not areas:
         return list(rules)
-    return [{**r, "shared": scope} if (r.get("type") == "retention_limit" and not r.get("within")
-                                       and (r.get("take") or 0) > 0) else r for r in rules]
+    return [{**r, "pooled_across": list(areas)} if (r.get("type") == "retention_limit" and not r.get("within")
+                                                    and (r.get("take") or 0) > 0) else r for r in rules]
 
 
 def _says_shared(d: int, names: str, hatchery: bool, scope: str) -> str:
@@ -265,9 +283,9 @@ def _one(rule: dict, subs: Sequence[dict]) -> dict:
     kids += [_size(seq, n, cm, f"{n} over {cm} cm a month", "monthly") for cm, n in sorted(monthly)]
     tree = {"node": "tier", "id": "t1", "tier": "count", "n": d, "says": says, "by": 0, "species": species,
             "children": kids}
-    if rule.get("shared"):          # T349: the aggregate tier — one count over a set of waters
-        tree = {**tree, "tier": "total", "whose": rule["shared"],
-                "says": _says_shared(d, names, hatchery, rule["shared"])}
+    if rule.get("pooled_across"):   # T349 / T358: the aggregate tier — one count over a set of areas
+        whose = pool_words(rule["pooled_across"])
+        tree = {**tree, "tier": "total", "whose": whose, "says": _says_shared(d, names, hatchery, whose)}
     return {"tree": tree, **({"u": 1} if unread else {})}
 
 
@@ -299,11 +317,17 @@ def words(tree: Optional[Mapping]) -> Optional[str]:
 
 # ── the bucket ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
+def _over(n: Mapping) -> Optional[int]:
+    """A header note's length floor (`lengths[0].min_cm`: "over 50 cm", "30 cm or more"), else None."""
+    ls = n.get("lengths") or ()
+    return ls[0].get("min_cm") if ls else None
+
+
 def bucket(notes: Sequence[Mapping]) -> Optional[dict]:
     """The region header's combined limits as the salmon bucket (None: the page prints no combined daily limit):
     `tree` the TOTAL tier of the quota tree ("Up to 4 salmon a day in total"; the header's annual / monthly limits its
     children, a size — or count — tier with `period`), DFO's words `t` / `tp`, `possession` the total DFO prints,
-    `min_cm` per species, `ids` the notes it was read from."""
+    `ids` the notes it was read from. (T358) The minimum sizes are not here: they are `sizes`."""
     daily = [n for n in notes if n.get("k") == "daily" and not n.get("w") and isinstance(n.get("n"), int)]
     if not daily:
         return None
@@ -314,8 +338,8 @@ def bucket(notes: Sequence[Mapping]) -> Optional[dict]:
     for n in notes:
         if n.get("k") in ("annual", "monthly") and not n.get("w") and isinstance(n.get("n"), int):
             sp = list(n.get("sp") or ())
-            if isinstance(n.get("cm"), int):
-                tree["children"].append(_size(seq, n["n"], n["cm"], n["t"], n["k"], species=sp))
+            if isinstance(_over(n), int):
+                tree["children"].append(_size(seq, n["n"], _over(n), n["t"], n["k"], species=sp))
             else:
                 seq[0] += 1
                 tree["children"].append({"node": "tier", "id": f"t{seq[0]}", "tier": "count", "n": n["n"],
@@ -329,23 +353,15 @@ def bucket(notes: Sequence[Mapping]) -> Optional[dict]:
         out["tp"] = p["t"]
         if p.get("id"):
             out["ids"].append(p["id"])
-    mins: Dict[str, int] = {}
-    for n in notes:
-        if n.get("k") == "min_size" and not n.get("w") and isinstance(n.get("cm"), int):
-            for sp in n.get("sp") or ():
-                mins.setdefault(sp, n["cm"])
-    if mins:
-        out["min_cm"] = mins
-    sh = shared_buckets(notes)
-    if sh:
-        out["shared"] = sh
     return out
 
 
 def shared_buckets(notes: Sequence[Mapping]) -> List[dict]:
     """(T349) a header `aggregate` note naming waters (R2's Squamish hatchery coho) as the quota tree's aggregate tier:
     `[{tree, t, id, w}]` — `tree` a `total` tier whose scope is the named watershed(s), `w` the note's water keys (the
-    payload's `scopes` turn them into items). Only where DFO printed the number."""
+    payload's `scopes` turn them into items). Only where DFO printed the number. (T356) The region's own `shared`,
+    whether or not the page prints a combined daily limit (`bucket`): the app reads it for every `aggregate` note with a
+    number, and a missing one is an error there."""
     out = []
     for n in notes:
         if n.get("k") != "aggregate" or not n.get("w") or not isinstance(n.get("n"), int):
@@ -360,6 +376,53 @@ def shared_buckets(notes: Sequence[Mapping]) -> List[dict]:
         if hatchery:
             tree["origin"] = "hatchery"
         out.append({"tree": tree, "t": n["t"], "id": n.get("id"), "w": [w["key"] for w in n["w"]]})
+    return out
+
+
+# ── (T356 / T358) THE HEADER SIZES, resolved per species ─────────────────────────────────────────────────────────
+#
+# A species' sizes on a page — the minimum to keep, what an "adult" is, what a "jack" is — as `LengthBand`s (the
+# catalogue's own size type, `lengths`), resolved HERE so the app looks them up and composes nothing: `sizes(notes)` is
+# an ORDERED list of entries `{sp, min?, adult?, jack?, ids, w?, on?}` and the FIRST entry for a species that holds on
+# the page wins (`w`: only on those waters' items, like a note; `on`: its day windows). A water's own size note (Region
+# 2's "adult chinook is over 62 cm" on the Fraser, Sep 1-Dec 31) is an entry of its own, BEFORE the region's, carrying
+# the region's other sizes with it — so "a water beats its region" is the order, decided here.
+
+SIZE_KINDS = ("min_size", "adult", "jack")
+_SIZE_KEY = {"min_size": "min", "adult": "adult", "jack": "jack"}
+
+
+def sizes(notes: Sequence[Mapping]) -> List[dict]:
+    """The page's header sizes per species, ordered: water entries first (page order), then the region's. Species whose
+    sizes are alike share an entry (`sp` a list). A size note that EXCEPTS waters (`x` / `xp`) is not modelled: an
+    error, never a guess."""
+    from pipeline.deliver.salmon import SPECIES
+    for n in notes:
+        if n.get("k") in SIZE_KINDS and (n.get("x") or n.get("xp")):
+            raise ValueError(f"sizes: {n.get('id')} excepts waters — a size exception is not modelled")
+    region: Dict[str, dict] = {}
+    for n in notes:
+        if n.get("k") in SIZE_KINDS and not n.get("w") and n.get("lengths"):
+            for sp in n.get("sp") or ():
+                e = region.setdefault(sp, {})
+                e.setdefault(_SIZE_KEY[n["k"]], dict(n["lengths"][0]))   # the first note of a kind (page order)
+    out: List[dict] = []
+
+    def put(sp: str, e: dict) -> None:
+        last = out[-1] if out else None
+        if last is not None and {k: v for k, v in last.items() if k != "sp"} == e:
+            last["sp"].append(sp)
+        else:
+            out.append({"sp": [sp], **e})
+
+    for n in notes:
+        if n.get("k") in SIZE_KINDS and n.get("w") and n.get("lengths"):
+            for sp in n.get("sp") or ():
+                put(sp, {**region.get(sp, {}), _SIZE_KEY[n["k"]]: dict(n["lengths"][0]),
+                         "w": [w["key"] for w in n["w"]], **({"on": n["on"]} if n.get("on") else {})})
+    for sp in SPECIES:
+        if sp in region:
+            put(sp, region[sp])
     return out
 
 
@@ -382,9 +445,10 @@ def over_bucket(q: Optional[Mapping], b: Optional[Mapping]) -> List[str]:
 
 def header_closure(notes: Sequence[Mapping], slug: str) -> Optional[List[dict]]:
     """The rules a place of a closed page answers with (owner 2026-10-31: the header closure wins), or None: the page's
-    header has no region-wide `closed` note. One rule, all salmon, no fishing, in the header's words."""
+    header has no region-wide `closed` note. One rule, all salmon, no fishing, in the header's words; `header_note` the
+    note's id, which its verdict carries as `c` (T356: the app reads the closure from the file, never from an id)."""
     closed = [n for n in notes if n.get("k") == "closed" and not n.get("w")]
     if not closed:
         return None
     return [{"rule_id": f"{slug}:header-closed", "type": "retention_limit", "verbatim": closed[0]["t"],
-             "species": ["SA"], "take": 0, "may_target": False}]
+             "species": ["SA"], "take": 0, "may_target": False, "header_note": closed[0]["id"]}]

@@ -21,8 +21,8 @@ answers per LOCATION and day: per species the verdict index (or -1: this locatio
 lines. The app re-composes each release chain from it, narrowest location first, exactly as `deliver.salmon.
 chain_calendar` does (`compose` here is the reference, pinned against it), so the app still decides nothing.
 
-    index.json    {format: "dfo-feed/2", at, regions: {slug: {name, url, asof, sha256, changed, checked, stale, held,
-                   failures, notes, header, unresolved}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs, x?}},
+    index.json    {format: "dfo-feed/3", at, regions: {slug: {name, url, asof, sha256, changed, checked, stale, held,
+                   failures, notes, header, unresolved, bucket?, shared, sizes}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs, x?}},
                    unplaced: n}      notes: the region header's typed notes (`header.py`); header: their digest
                    x (T321): the rows the location's card shows in DFO's words ({k: new|unread|note, sp, d, t})
     unplaced.json the places the page lists that no curated location knows (part 4) — their rules HELD, never dropped
@@ -68,7 +68,9 @@ from pipeline.regs.dfo_salmon import fetch as F
 
 logger = logging.getLogger(__name__)
 
-FORMAT = "dfo-feed/2"     # T332: a verdict's quota is `tree` (a game-fish TreeTier), a bucket `{tree, …}`
+#: T332 (/2): a verdict's quota is `tree` (a game-fish TreeTier), a bucket `{tree, …}`. T356 (/3): a header closure's
+#: verdict carries `c`, a region `shared` + `sizes` (`deliver.salmon.header_answers`), a note's length is `lengths`
+FORMAT = "dfo-feed/3"
 OUT_DIR = Path(GENERATED.regs.dfo_salmon) / "feed"
 #: two failed fetches in a row tell the owner (one is a blip)
 FAIL_NOTIFY = 2
@@ -123,8 +125,12 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
             vs.append(verdicts[ix])
         gear.append(next((g for g in (_at(c["g"], day) for c in cals) if g >= 0), -1))
         mapc.append(S.MAP_CODES.index(S.map_status(vs)))
-    m = [0, S.MAP_CODES.index("check")] if any(l in locs for l in undrawn) else S.runs_of(mapc)
-    return {"sp": [S.runs_of(x) for x in per_sp], "g": S.runs_of(gear), "m": m}
+    sp = [S.runs_of(x) for x in per_sp]
+    # T356: closed by the region header every day — and so is every undrawn place the feed lists — `c`, never partial
+    shut = all(S.closed_by_header(locs[l]["sp"], verdicts) for l in undrawn if l in locs)
+    c = S.closed_by_header(sp, verdicts) if shut else []
+    m = [0, S.MAP_CODES.index("check")] if any(l in locs for l in undrawn) and not c else S.runs_of(mapc)
+    return {"sp": sp, "g": S.runs_of(gear), "m": m, **({"c": c} if c else {})}
 
 
 # ── one region ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -167,8 +173,8 @@ def join(slug: str, ef, typed: dict, locations: Sequence, report) -> Tuple[Dict[
         fp = loc["fingerprint"]
         hit = index.get(fp)
         if hit is not None:
-            from pipeline.regs.dfo_salmon.quota import mark_shared, shared_scope
-            rules.setdefault(hit.location_id, []).extend(mark_shared(loc["rules"], shared_scope(hit.source_text)))
+            from pipeline.regs.dfo_salmon.quota import mark_shared, pool_of
+            rules.setdefault(hit.location_id, []).extend(mark_shared(loc["rules"], pool_of(hit)))
             continue
         if fp.startswith("page:"):
             continue                # T349: a page default's sentence with no default location here is not a new place
@@ -315,7 +321,7 @@ def _read_header(slug: str, html: str, reg: dict, was: dict, entries_dir: Option
 
 def _same_format(prev: dict) -> dict:
     """(T357) The last feed, only in this run's format: the dfo-feed/1 upgrade is gone (the local feed and staging's are
-    dfo-feed/2), so an older one stops the run rather than being carried in a shape this feed does not write."""
+    dfo-feed/2; T356 made it /3 — remove the /2 once), so an older one stops the run rather than being carried in a shape this feed does not write."""
     if prev and prev.get("format") != FORMAT:
         raise RuntimeError(f"the last feed is {prev.get('format')!r}, not {FORMAT}: remove it (or run once with an "
                            "empty --out) to start without it")
@@ -323,13 +329,10 @@ def _same_format(prev: dict) -> dict:
 
 
 def _set_bucket(reg: dict) -> None:
-    """(T320) the salmon bucket — the header's combined daily / possession — beside the notes it is read from."""
-    from pipeline.regs.dfo_salmon.quota import bucket
-    b = bucket(reg.get("notes") or [])
-    if b:
-        reg["bucket"] = b
-    else:
-        reg.pop("bucket", None)
+    """(T320) the salmon bucket — the header's combined daily / possession — beside the notes it is read from; (T356)
+    with the region's `shared` and `sizes`, as the release's region carries them (`deliver.salmon.header_answers`)."""
+    reg.pop("bucket", None)
+    reg.update(S.header_answers(reg.get("notes") or []))
 
 
 def page_texts(html: str, slug: str) -> List[str]:

@@ -210,7 +210,9 @@ def test_the_bucket_is_the_headers_total_and_possession_only():
     TreeTier.model_validate_json(json.dumps(t))                 # T332: the bucket is the quota tree's TOTAL tier
     assert (t["node"], t["tier"], t["n"], t["says"], b["possession"]) == \
         ("tier", "total", 4, "Up to 4 salmon a day in total", 8)
-    assert b["min_cm"] == {"CO": 25, "CH": 30, "SK": 30, "PK": 30, "CM": 30}
+    assert "min_cm" not in b                                  # T358: the minimum sizes are `sizes`, LengthBands
+    assert {sp: e["min"] for e in Q.sizes(H.parse_header(_page("2"), "2")) if "w" not in e for sp in e["sp"]} == \
+        {sp: {"min_cm": cm} for sp, cm in {"CO": 25, "CH": 30, "SK": 30, "PK": 30, "CM": 30}.items()}
     assert "pm" not in b                                      # owner 2026-10-31: no per-species possession
     assert Q.bucket(H.parse_header(_page("4"), "4")) is None  # closed until further notice: no bucket
 
