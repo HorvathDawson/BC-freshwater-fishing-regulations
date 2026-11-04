@@ -28,6 +28,8 @@ export interface Db {
   all(sql: string, ...params: (string | number | null)[]): Promise<Row[]>;
   get(sql: string, ...params: (string | number | null)[]): Promise<Row | undefined>;
   close?(): void;
+  /** (T360) Give back what the connection's page cache holds (`PRAGMA shrink_memory`); the file stays open. */
+  shrink?(): Promise<void>;
 }
 
 /** Strings out of SQLite are `string | number | null`; most of ours are known to be text. */

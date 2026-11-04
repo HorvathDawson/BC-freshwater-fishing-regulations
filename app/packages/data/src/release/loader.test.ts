@@ -42,6 +42,25 @@ describe("releaseLoader", () => {
     await L.regionDb(9);                                   // a key in 5 and 7a, neither open: the first, only
     expect(L.opened()).toEqual(["core", "water", "regs-2", "regs-5"]);
   });
+  it("(T360) trim shrinks every database opened, none still opening; a failed shrink rejects (the caller reports it)", async () => {
+    const shrunk: string[] = [];
+    let hold: () => void = () => {};
+    const open = (fail?: string) => async (name: DbName): Promise<Db> => {
+      if (name === "regs-5") await new Promise<void>((r) => { hold = r; });
+      return { ...(await fakeOpen()(name)), shrink: async () => { if (name === fail) throw new Error(`${name}: no`); shrunk.push(name); } };
+    };
+    const L = releaseLoader(m, src, open());
+    expect(await L.trim()).toBe(0);
+    await L.db("core"); await L.regionDb(7);
+    const opening = L.db("regs-5");
+    await new Promise((r) => setTimeout(r, 0));
+    const t = L.trim();
+    hold(); await opening;
+    expect([await t, shrunk.sort()]).toEqual([4, ["core", "regs-2", "regs-5", "water"]]);
+    const F = releaseLoader(m, src, open("water"));
+    await F.regionDb(7);
+    await expect(F.trim()).rejects.toThrow("water: no");
+  });
   it("the lake facts: decoded once on first ask against the release's handles; null when the release has none", async () => {
     const lakes = Uint8Array.from([0x42, 0x43, 0x4c, 0x4b, 1, 0xd7, 0x68, 0xd6, 0xe1, 0x35, 0xe6, 0x2b, 0x99, 0, 1, 12, 2, 0]);
     const asked: string[] = [];

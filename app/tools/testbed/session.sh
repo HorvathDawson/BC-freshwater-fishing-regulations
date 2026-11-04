@@ -70,6 +70,10 @@ if (( BUILD )) || [[ ! -f $APK ]]; then
     sed -i '' 's/<application /<application android:usesCleartextTraffic="true" /' android/app/src/main/AndroidManifest.xml
     grep -q 'usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml || { log "--local: cleartext patch failed"; exit 1; }
   fi
+  # (T360) every test-bed APK is profileable from the shell, so Perfetto's heapprofd can say where native memory goes
+  # (`app/tools/testbed/heapprof.sh`). Patched after prebuild like the cleartext line: never in a store build.
+  sed -i '' 's#</application>#<profileable android:shell="true"/></application>#' android/app/src/main/AndroidManifest.xml
+  grep -q 'profileable android:shell="true"' android/app/src/main/AndroidManifest.xml || { log "profileable patch failed"; exit 1; }
   # the JS bundle task does not see EXPO_PUBLIC_* as inputs: a bundle made with another env must not be reused
   rm -rf android/app/build/generated/assets/createBundleReleaseJsAndAssets android/app/build/generated/res/createBundleReleaseJsAndAssets \
          android/app/build/intermediates/assets/release

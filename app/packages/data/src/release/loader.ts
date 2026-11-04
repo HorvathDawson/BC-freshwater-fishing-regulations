@@ -89,6 +89,12 @@ export interface ReleaseLoader {
   /** Which files have been opened so far (the web's lazy-load test reads this). */
   opened(): readonly FileName[];
   /**
+   * (T360) Android asked for memory back (`onTrimMemory`): every open database's page cache is shrunk (the files stay
+   * open; the next read fills it again). The decoded files are not dropped: the screens showing them hold them. Resolves
+   * to how many were shrunk; rejects with the first that failed (the caller reports it).
+   */
+  trim(): Promise<number>;
+  /**
    * (T186) Fetch a file's bytes ahead of need WITHOUT opening it: the source's own fetch, so it lands in the release
    * cache the later open reads (web; a phone's files are installed and never prefetched). Once per file per loader.
    */
@@ -258,6 +264,13 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
       return db(name);
     },
     opened: () => order.slice(),
+    async trim() {
+      // only the opened ones: a database still opening (or that failed) is not waited for
+      const open = await Promise.all([...dbs.values()].map((p) => p.then((d) => d, () => null)));
+      let n = 0;
+      for (const d of open) if (d?.shrink) { await d.shrink(); n++; }
+      return n;
+    },
     prefetch(name) {
       if (!m.files[name]) return Promise.reject(new ReleaseError(`release ${m.data_release} has no file ${name}`));
       let p = ahead.get(name);

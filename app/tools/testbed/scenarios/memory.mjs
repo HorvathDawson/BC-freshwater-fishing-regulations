@@ -28,6 +28,14 @@ function ids(ctx) {
   return [...ctx.device.sh('cat /sdcard/tb-ids.xml').matchAll(/resource-id="([^"]+)"/g)].map((m) => m[1]);
 }
 
+/** One Layers row tapped by its id (a switch flips; a ground is chosen), the sheet closed. */
+function layer(ctx, id) {
+  ctx.flow('tap-text', { TEXT: 'Choose layers.*' });
+  ctx.flow('tap-id', { ID: id.startsWith('ground.') ? `option-${id.replace('.', '\\.')}` : `layer-${id.replace('.', '\\.')}` });
+  ctx.flow('tap-text', { TEXT: 'Done' });
+}
+const groundMap = (ctx) => layer(ctx, 'ground.map');
+
 export const memory = {
   id: 'memory',
   title: 'Memory per screen (T360) and the rule book in the app (T354)',
@@ -78,8 +86,9 @@ export const memory = {
       ctx.device.sh('input keyevent KEYCODE_BACK');
       for (const dx of [-0.3, 0.3, -0.3, 0.3]) { ctx.device.sh(`input swipe ${cx} ${cy} ${cx + Math.round(w * dx)} ${cy} 350`); await ctx.device.sleep(1200); }
       const r = await measure('satellite on', 5000);
-      ctx.flow('layers-satellite');
-      ctx.device.sh('input keyevent KEYCODE_BACK');
+      // the ground is a choice of Map or Satellite, not a toggle (tapping Satellite again left it on, and every later
+      // step was measured over imagery): the Map base by its id
+      groundMap(ctx);
       return r;
     });
     await ctx.step("a water's page (Cultus Lake)", async () => {
@@ -136,9 +145,26 @@ export const memory = {
       const said = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[synopsis] ')).map((l) => l.slice(l.indexOf('[synopsis]') + 11)).join('; ') || 'no [synopsis] line';
       ctx.device.sh('input keyevent KEYCODE_BACK'); await ctx.device.sleep(1500);
       if (!page) throw new Error(`the viewer never said its page in ${ms} ms (${said})`);
-      return `${page} in ${ms} ms (${said})`;
+      // (T360) a second open + close that keeps more than the first is a leak; the same is a one-time cost
+      return `${page} in ${ms} ms (${said}) · closed again: ${await measure('rule book closed (2nd)', 5000)}`;
     });
-    await ctx.step('Conditions', async () => { await closeWaters(ctx); await toMap(ctx); ctx.flow('tab', { TAB: 'Conditions' }); return measure('conditions', 6000); });
+    // (T360) CONDITIONS, SPLIT: as shown, then its switches off one at a time (gauges, arrows), then the Map tab again
+    // (what leaving Conditions gives back). What is left over the Map tab is the flow colouring and the panel's strip.
+    await ctx.step('Conditions', async () => {
+      await closeWaters(ctx); await toMap(ctx); ctx.flow('tab', { TAB: 'Conditions' });
+      await ctx.device.sleep(2000);
+      if (ctx.device.screenText().includes('Skip')) ctx.flow('tap-text', { TEXT: 'Skip' });   // its first-use tour
+      return measure('conditions', 6000);
+    });
+    for (const [id, what] of [['overlay.gauges', 'conditions, gauges off'], ['overlay.arrows', 'conditions, gauges + arrows off']]) {
+      await ctx.step(`Conditions: ${what}`, async () => { layer(ctx, id); return measure(what, 6000); });
+    }
+    await ctx.step('the Map tab after Conditions', async () => { ctx.flow('tab', { TAB: 'Map' }); return measure('map after conditions', 6000); });
+    await ctx.step('Conditions again (switches on again)', async () => {
+      ctx.flow('tab', { TAB: 'Conditions' });
+      layer(ctx, 'overlay.gauges'); layer(ctx, 'overlay.arrows');      // the choice is kept: put back for the next run
+      return measure('conditions again', 6000);
+    });
     await ctx.step('Salmon (the map coloured by salmon)', async () => {
       await toMap(ctx);
       ctx.flow('tap-text', { TEXT: 'Salmon' });
@@ -146,8 +172,13 @@ export const memory = {
     });
     await ctx.step('trim memory RUNNING_CRITICAL', async () => {
       const pid = ctx.device.pidOf();
+      ctx.device.logcatClear();
       ctx.device.sh(`am send-trim-memory ${pid} RUNNING_CRITICAL`);
-      return measure('after trim', 5000);
+      const r = await measure('after trim', 5000);
+      // (T360) what answered: the maps told (MemoryTrim) and the databases shrunk ([trim])
+      const said = ctx.device.adb(['logcat', '-d', '-s', 'MemoryTrim:*', 'ReactNativeJS:*']).toString().split('\n')
+        .filter((l) => /MemoryTrim|\[trim\]/.test(l)).map((l) => l.replace(/^.*?: /, '')).join('; ') || 'nothing answered the trim';
+      return `${r} · ${said}`;
     });
   },
 };

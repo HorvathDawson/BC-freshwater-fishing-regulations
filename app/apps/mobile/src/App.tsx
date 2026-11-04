@@ -40,6 +40,7 @@ import { routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { resolveStart, startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
+import { trimOnPressure } from "./memoryTrim";
 import { backgroundDownloads } from "./bgDownload";
 import { releaseSplash } from "./splash";
 
@@ -436,6 +437,8 @@ export default function App() {
     }
     return () => { live = false; };
   }, [data]);
+  // (T360) Android asking for memory back: the maps drop what they do not draw (native), the databases their page caches
+  useEffect(() => (data ? trimOnPressure(data.loader, reportFailure) : undefined), [data]);
   const [noticeShut, setNoticeShut] = useState(false);
   const startNotice = noticeShut ? null : startNoticeLine(start ?? null);
 

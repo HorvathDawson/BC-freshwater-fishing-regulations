@@ -41,6 +41,11 @@ function wrap(name: string, db: SQLiteDatabase): Db {
       catch (e) { throw named(name, sql, e); }
     },
     close: () => { void one(() => db.closeAsync()); },
+    // (T360) through the same queue: never beside a read on this connection
+    shrink: async () => {
+      try { await one(() => db.execAsync("PRAGMA shrink_memory"), `${name}: shrink`); }
+      catch (e) { throw named(name, "PRAGMA shrink_memory", e); }
+    },
   };
 }
 
