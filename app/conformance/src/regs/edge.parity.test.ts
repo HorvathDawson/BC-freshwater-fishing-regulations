@@ -18,7 +18,7 @@ import { ADULT_RESIDENT, baseUnnamedStream, golden, inputsOf, parityGate, parity
 import { gearLines, methodsLines } from "./gearPage";
 import { keepLines, selectorOf } from "./keepPage";
 import { norm } from "./eq";
-import { T203_SIZE_BOX_IDS } from "./exclusions";
+import { goldenKeepClosed, T203_SIZE_BOX_IDS } from "./exclusions";
 
 const G = golden().states, T = taps();
 const gate = await parityGate();
@@ -27,7 +27,7 @@ const TIDAL_NOTE = "Tidal water: a different regulation system. The B.C. freshwa
 const MOMENT_IDS = ["klwa_1010", "klwa_1012", "x15p2_1010", "x15p7_1010", "x17p3_1010", "x17p4_1010", "x17p5_1010", "x17p7_1010",
   "x19p4_1010", "x19p6_1010", "x19p7_1010", "x32p0_1010"];
 
-interface GKeep { order: string[]; lines: string[] }
+interface GKeep { order: string[]; lines: string[]; whereNot?: { heading: string; scope: string | null; items: { text: string }[] } | null }
 const pageOf = async (id: string): Promise<RegsPage> =>
   buildRegsPage((await inputsOf(id))!, { today: requestOf(id).today, who: ADULT_RESIDENT, pid: id });
 const keepText = (p: RegsPage) => keepLines(p.keep, p.day);
@@ -89,11 +89,13 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
     expect(Object.keys(T.states).filter((id) => T.states[id]!.moments).sort()).toEqual([...MOMENT_IDS].sort());
     const bad: string[] = [];
     for (const id of MOMENT_IDS) {
-      const p = await pageOf(id), g = G[id]!.keep as GKeep;
+      const p = await pageOf(id), g0 = G[id]!.keep as GKeep;
+      // (owner 2026-11-04) a closed day draws no "Where you can't fish": the golden's block is taken out (asserted there)
+      const g = p.status === "closed" ? goldenKeepClosed(g0, norm) : { order: g0.order, lines: g0.lines.map(norm) };
       const order = p.keep.order.map((b) => selectorOf(b, p.keep));
       if (JSON.stringify(order) !== JSON.stringify(g.order)) bad.push(`${id} order: ${order.join(" ")} ≠ ${g.order.join(" ")}`);
       // (T203) Region 6's shared 1 over 50 cm is one size tier: the drawn lines are not page v36's (exclusions T203_SIZE_BOX_IDS)
-      if (!T203_SIZE_BOX_IDS.includes(id) && JSON.stringify(keepText(p)) !== JSON.stringify(g.lines.map(norm))) bad.push(`${id} lines`);
+      if (!T203_SIZE_BOX_IDS.includes(id) && JSON.stringify(keepText(p)) !== JSON.stringify(g.lines)) bad.push(`${id} lines`);
     }
     expect(bad).toEqual([]);
   });

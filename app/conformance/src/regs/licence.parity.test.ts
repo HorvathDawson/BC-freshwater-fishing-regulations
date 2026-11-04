@@ -59,6 +59,13 @@ describe.skipIf(gate.skip)("T33 Licence", () => {
   afterAll(() => console.info(`${summary("licence", equal, ids.length)} · ${answers} profile answers equal (${ids.length * 6} compared) · ${sheets} licsrc: sheets equal`));
 
   it.each(ids)("1. %s: all six anglers equal the golden licence block", async (id) => {
+    // (owner 2026-11-04) a closed day has NO Licence section: the golden's empty one (D16 (a)) is not drawn
+    const inp = (await inputsOf(id))!;
+    if (inp.key && settle(inp, makePlace(inp)).status?.status === "closed") {
+      for (const k of LICENCE_PROFILES) expect(await licOf(id, whoOf(k)), `${id} ${k}`).toBeNull();
+      equal++;
+      return;
+    }
     for (const k of LICENCE_PROFILES) {
       const vm = (await licOf(id, whoOf(k)))!;
       const re = licenceDropped(id, k);
@@ -71,9 +78,9 @@ describe.skipIf(gate.skip)("T33 Licence", () => {
   it.each(ids)("1b. %s: each angler's licsrc: sheet lines equal the golden sheet", async (id) => {
     const inp = (await inputsOf(id))!, sh = golden().states[id]!.sheets as Record<string, { title: string; lines: string[] }>;
     for (const k of LICENCE_PROFILES) {
-      const vm = (await licOf(id, whoOf(k)))!;
-      const g = vm.src ? sh[`licsrc:lic|${id}|${vm.src.open.slice(7)}`] : undefined;
-      if (!vm.src) { expect(Object.keys(sh).filter((x) => x.startsWith(`licsrc:lic|${id}|`)).length, `${id} ${k}`).toBe(0); continue; }
+      const vm = await licOf(id, whoOf(k));           // (owner 2026-11-04) null on a closed day: no source sheet either
+      const g = vm?.src ? sh[`licsrc:lic|${id}|${vm.src.open.slice(7)}`] : undefined;
+      if (!vm?.src) { expect(Object.keys(sh).filter((x) => x.startsWith(`licsrc:lic|${id}|`)).length, `${id} ${k}`).toBe(0); continue; }
       const L = inp.frames!.licence, P = L.profiles[profileOf(whoOf(k), inp.statics)] as ProfileAnswer;
       expect(g?.title, `${id} ${k}`).toBe("Where each one comes from");
       expect(licenceSourceLines(licenceSources(inp, P, L.holds as Holds)), `${id} ${k}`).toEqual(g!.lines);
@@ -139,8 +146,8 @@ describe.skipIf(gate.skip)("T33 Licence", () => {
     expect(x.blocks[1]!.lines[0]).toContain("(Basic angling licence, Classified Waters Licence)");
   });
 
-  it("10. vedder_615 (closed), all six: the empty section (D16 (a))", async () => {
-    for (const k of LICENCE_PROFILES) expect(await licOf("vedder_615", whoOf(k))).toEqual({ question: null, questionTerms: [], axes: [], label: "", blocks: [], src: null });
+  it("10. vedder_615 (closed), all six: no section (owner 2026-11-04; was the empty section, D16 (a))", async () => {
+    for (const k of LICENCE_PROFILES) expect(await licOf("vedder_615", whoOf(k))).toBeNull();
   });
 
   it("the youth box and its two items are WORDED from the stored under_16 entry, never from the 16+ answer (mutation)", async () => {

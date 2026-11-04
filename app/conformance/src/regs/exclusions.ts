@@ -337,3 +337,24 @@ export const LICENCE_PROFILES = ["adult|resident", "adult|non_resident", "adult|
 export function licenceDropped(id: string, profile: string): readonly RegExp[] {
   return droppedLines("licence", id, `${profile}.blocks`);
 }
+
+/**
+ * (owner 2026-11-04: "the where you cant fish is hidden on closed sections … just dont need to confusing bloat") A CLOSED
+ * DAY DRAWS NO "Where you can't fish" (core `whereNotOf`) — nor a Licence section (`buildLicence`) or tab (`headerOf`).
+ * The golden (regs v38) drew all three. This is the golden Keep with its where-not block taken out: its selector
+ * (`section.nofish`) from the order and its lines (heading, scope, items — `norm`ed by the caller's `n`) from the drawn
+ * lines, each ASSERTED present where the golden had a block, so the rule cannot go stale.
+ */
+export function goldenKeepClosed<G extends { order: string[]; lines: string[];
+                                             whereNot?: { heading: string; scope: string | null; items: { text: string }[] } | null }>(
+  g: G, n: (s: string) => string): { order: string[]; lines: string[] } {
+  const lines = g.lines.map(n);
+  if (!g.whereNot) {
+    if (g.order.includes("section.nofish")) throw new Error("goldenKeepClosed: an order with section.nofish and no whereNot");
+    return { order: g.order, lines };
+  }
+  const want = [g.whereNot.heading, ...(g.whereNot.scope ? [g.whereNot.scope] : []), ...g.whereNot.items.map((x) => x.text)].map(n);
+  const at = lines.findIndex((_, i) => want.every((l, j) => lines[i + j] === l));
+  if (at < 0 || !g.order.includes("section.nofish")) throw new Error("goldenKeepClosed: the golden's where-not block is not drawn");
+  return { order: g.order.filter((s) => s !== "section.nofish"), lines: [...lines.slice(0, at), ...lines.slice(at + want.length)] };
+}

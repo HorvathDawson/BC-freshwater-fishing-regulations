@@ -46,7 +46,9 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
     const bad: string[] = [];
     for await (const c of cases("keep")) {
       total++;
-      const got = project(c.id, blocks(await c.inputs())), want = goldenOf(c.g.keep as GKeep);
+      const inp = await c.inputs(), got = project(c.id, blocks(inp)), g = goldenOf(c.g.keep as GKeep);
+      // (owner 2026-11-04) a closed day draws no "Where you can't fish": the golden's is dropped (exclusions goldenKeepClosed)
+      const want = settle(inp, makePlace(inp)).status?.status === "closed" ? { ...g, whereNot: null } : g;
       const lines = (k: GKeep) => [JSON.stringify(k.inherited), JSON.stringify(k.whereNot), JSON.stringify(k.possession)];
       const eq = eqPlain(lines(got), lines(want));
       if (eq.ok) passed++; else bad.push(`${c.id}\n${eq.diff}`);

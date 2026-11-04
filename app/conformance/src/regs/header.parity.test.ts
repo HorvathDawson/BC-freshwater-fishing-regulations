@@ -65,9 +65,11 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
     // (T183) a sibling-relabelled part: the golden's label is the old one (asserted to differ, so the entry cannot go stale)
     if (RELABELED[id]) expect(g.place && { full: g.place.full, short: g.place.short }).not.toEqual(RELABELED[id]);
     const { action: _golden, ...rest } = g;
+    // (owner 2026-11-04) a closed day offers no Licence tab (no section under it): the golden's tab is dropped
+    const tabs = v.dot === "closed" ? rest.tabs.filter((t) => t.sec !== "licence") : rest.tabs;
     expect({ name: v.name, day: v.dayWord, date: v.date, dateAria: v.dateAria, dot: v.dot, place: noMap || grown ? null : v.place,
              tabs: v.tabs.map((t) => ({ sec: t.tab, text: t.label })) })
-      .toEqual({ ...rest, place: grown ? null : RELABELED[id] ?? (g.place && { full: g.place.full, short: g.place.short }) });
+      .toEqual({ ...rest, tabs, place: grown ? null : RELABELED[id] ?? (g.place && { full: g.place.full, short: g.place.short }) });
     passed++;
   });
 

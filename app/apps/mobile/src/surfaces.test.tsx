@@ -102,10 +102,9 @@ export const waysBack = (cs: readonly string[]): string[] => cs.filter((c) => BA
  * Controls that are offered more than once ON PURPOSE, by place and by name. An entry is a decision said in words, not a
  * way past the scan, and a stale one (no place shows the pair any more) fails.
  */
-const ALLOWED: { place: RegExp; control: RegExp; why: string }[] = [
-  { place: /^Water: Regulations/, control: /^link: Rule book page \d+, opens the PDF$/,
-    why: "every rule carries its own Source link (T43); several rules on one page cite the same printed page — the links are data, one per rule, not a second way to one action" },
-];
+// (owner 2026-11-04) the one entry — two "Where you can't fish" lines citing Rule book p.9 on the closed Chilliwack
+// page — went with that block on a closed day; none is needed now. A new one names its place, control and why.
+const ALLOWED: { place: RegExp; control: RegExp; why: string }[] = [];
 
 /** Every place, and how to stand there. `pushed`: not a tab's root, so a way back must show. */
 const PLACES: { place: string; route: Route; pushed: boolean; loader?: boolean; go?: () => Promise<void> }[] = [

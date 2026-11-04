@@ -17,11 +17,12 @@ import {
 } from "@app/core";
 import { eqPlain, norm } from "./eq";
 import { cases, requestOf, summary } from "./golden";
-import { D19_GROUPS, droppedLines, excluded, keepLines as dropLines } from "./exclusions";
+import { D19_GROUPS, droppedLines, excluded, goldenKeepClosed, keepLines as dropLines } from "./exclusions";
 import { groupLinesProj, keepOf as groupsOf } from "./keepGroups";
 import { keepLines, plainRowLines, selectorOf } from "./keepPage";
 
-interface GKeep { order: string[]; lines: string[]; plainRows: string[][]; groups: { lines: string[] }[] }
+interface GKeep { order: string[]; lines: string[]; plainRows: string[][]; groups: { lines: string[] }[];
+                 whereNot?: { heading: string; scope: string | null; items: { text: string }[] } | null }
 
 /** D19: the golden's pooled no-headline article (its plainRows entry and its place in order), or null. */
 function d19(id: string, g: GKeep): { article: number; lines: string[] } | null {
@@ -72,7 +73,9 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
     let groups = 0, plains = 0, caveats = 0;
     for await (const c of cases("keep")) {
       total++;
-      const g = c.g.keep as GKeep, inp = await c.inputs(), page = await c.page(), k = page.keep, kc = comparableKeep(c.id, k);
+      const g0 = c.g.keep as GKeep, inp = await c.inputs(), page = await c.page(), k = page.keep, kc = comparableKeep(c.id, k);
+      // (owner 2026-11-04) a closed day draws no "Where you can't fish": the golden's block is taken out (asserted there)
+      const g = settle(inp, makePlace(inp)).status?.status === "closed" ? { ...g0, ...goldenKeepClosed(g0, (s) => s) } : g0;
       const errs: string[] = [];
       // order
       const order = eqPlain(kc.order.map((b) => selectorOf(b, kc)), goldenOrder(c.id, g));
@@ -138,7 +141,7 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
     const o = await order("vedder_1010");
     if (!o) return;
     expect(o).toEqual(["strip", { group: 0 }, "otherFish", "possession", "whereNot"]);
-    expect(await order("vedder_615")).toEqual(["strip", "banner", "whereNot"]);
+    expect(await order("vedder_615")).toEqual(["strip", "banner"]);   // (owner 2026-11-04) closed: no where-not
     expect(await order("glenn_501")).toEqual(["strip", "inherited", { group: 0 }, "otherFish", "possession", "whereNot"]);
     expect(await order("x31p_1010")).toEqual(["banner"]);
     const x25 = (await at("x25p_1010"))!.keep.groups.map((x) => [`r${x.row}`, x.title]);
@@ -160,12 +163,13 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
     expect(p.sheet(p.keep.possession!.open)?.title).toBe("Possession");   // (T36) the possession row opens its sheet
   });
 
-  it("vedder_615 (closed) and chw0_1010 (closed all year): strip, banner, where-not — no rows, Other fish or possession", async () => {
+  it("vedder_615 (closed) and chw0_1010 (closed all year): strip and banner — no where-not (owner 2026-11-04), rows, Other fish, possession or Licence", async () => {
     for (const id of ["vedder_615", "chw0_1010"]) {
       const p = await at(id);
       if (!p) return;
-      expect([p.status, p.header.dot, p.keep.order, p.keep.groups.length, p.keep.plainRows.length, p.keep.otherFish, p.keep.possession], id)
-        .toEqual(["closed", "closed", ["strip", "banner", "whereNot"], 0, 0, null, null]);
+      expect([p.status, p.header.dot, p.keep.order, p.keep.groups.length, p.keep.plainRows.length, p.keep.otherFish, p.keep.possession,
+              p.keep.whereNot, p.licence], id)
+        .toEqual(["closed", "closed", ["strip", "banner"], 0, 0, null, null, null, null]);
     }
     expect((await at("chw0_1010"))!.keep.banner!.big).toEqual(["Closed all year"]);
   });
