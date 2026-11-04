@@ -2628,9 +2628,14 @@ def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
     assert skeena and nass
     item = set(reg["gnis:2936"].section_ids)
 
-    lakes = {s for s in skeena - item
+    # (T374) a polygon the owner CALLED a stream (T322 slough review: a slough / channel, folded into the one stream
+    # through it, `registry.flowing.fold_confirmed_sloughs`) is part of that stream, not a lake: the walk collects it
+    calls = json.loads((Path(__file__).resolve().parents[2] / "data/curated/waters/slough_calls.json").read_text())
+    streams = {f"lake:{w['wbk']}" for w in calls["waters"] if w.get("call") == "stream"}
+    lakes = {s for s in skeena - item - streams
              if str(getattr(g.nodes.get(s), "kind", "")).endswith("lake")}
     assert not lakes, f"the Skeena walk collected {len(lakes)} lake sections"
+    assert skeena & streams, "the walk should carry the folded sloughs of its tributaries (11 on 2026-11-04)"
 
     # every major lake in the system is PASSED: a stream flowing into it is in the walk
     for name in ("Babine Lake", "Lakelse Lake", "Kitsumkalum Lake", "Morice Lake", "Sustut Lake"):
