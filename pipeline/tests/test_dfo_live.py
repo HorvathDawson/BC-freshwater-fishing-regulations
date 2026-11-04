@@ -339,3 +339,23 @@ def test_the_release_reads_the_header_from_the_typed_feed_and_refuses_none(tmp_p
     (tmp_path / "raw").mkdir()
     (tmp_path / "raw" / "region2-eng.html").write_text(page, encoding="utf-8")
     assert S.load_headers({"2": old}, cache_dir=tmp_path) == {"2": H.parse_header(page, "2")}
+
+
+def test_an_unreadable_last_feed_stops_the_run_and_a_missing_one_is_none(tmp_path):
+    """(T357) Only a MISSING file means none; a truncated index.json used to read as none and drop every carried answer."""
+    import pytest
+    from pipeline.regs.dfo_salmon import live as LV
+    assert LV._read(tmp_path / "index.json", {}) == {}
+    (tmp_path / "index.json").write_text('{"format": "dfo-feed/2", "regi', encoding="utf-8")
+    with pytest.raises(RuntimeError, match="unreadable"):
+        LV._read(tmp_path / "index.json", {})
+
+
+def test_a_last_feed_in_an_older_format_stops_the_run():
+    """(T357) the dfo-feed/1 upgrade is gone: an older feed is refused, never carried in another shape."""
+    import pytest
+    from pipeline.regs.dfo_salmon import live as LV
+    assert LV._same_format({}) == {}
+    assert LV._same_format({"format": LV.FORMAT, "regions": {}})["format"] == LV.FORMAT
+    with pytest.raises(RuntimeError, match="dfo-feed/1"):
+        LV._same_format({"format": "dfo-feed/1", "regions": {}})

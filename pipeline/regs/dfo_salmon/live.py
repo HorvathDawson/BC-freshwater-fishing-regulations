@@ -252,10 +252,15 @@ def unplaced_notice(u: dict) -> dict:
 # ── the run ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def _read(p: Path, default):
+    """The last run's file, or `default` when there is none. (T357) A file that is there but unreadable STOPS the run: a
+    truncated index.json read as "none" silently dropped every answer the run carries (a held or failed region's)."""
+    if not p.exists():
+        return default
     try:
         return json.loads(p.read_text(encoding="utf-8"))
-    except Exception:                                           # noqa: BLE001 — missing or unreadable: none
-        return default
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(f"{p}: the last run's file is unreadable ({type(exc).__name__}: {exc}); "
+                           "restore it or remove it to start without it") from exc
 
 
 def _write(p: Path, obj) -> None:
@@ -308,19 +313,13 @@ def _read_header(slug: str, html: str, reg: dict, was: dict, entries_dir: Option
     _set_bucket(reg)
 
 
-def _upgrade(prev: dict) -> dict:
-    """(T332) the last feed in an older format: what a run carries from it (a held or failed region's answers) is said in
-    this one — a verdict's T320 `q` is dropped (that region shows DFO's words until it is read again; never the old
-    shape in a new feed), each region's bucket re-read from its notes."""
-    if not prev or prev.get("format") == FORMAT:
-        return prev
-    regions = {}
-    for slug, r in (prev.get("regions") or {}).items():
-        r = dict(r)
-        _set_bucket(r)
-        regions[slug] = r
-    return {**prev, "regions": regions,
-            "verdicts": [{k: x for k, x in v.items() if k != "q"} for v in prev.get("verdicts") or []]}
+def _same_format(prev: dict) -> dict:
+    """(T357) The last feed, only in this run's format: the dfo-feed/1 upgrade is gone (the local feed and staging's are
+    dfo-feed/2), so an older one stops the run rather than being carried in a shape this feed does not write."""
+    if prev and prev.get("format") != FORMAT:
+        raise RuntimeError(f"the last feed is {prev.get('format')!r}, not {FORMAT}: remove it (or run once with an "
+                           "empty --out) to start without it")
+    return prev
 
 
 def _set_bucket(reg: dict) -> None:
@@ -379,7 +378,7 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
 
     out = Path(out)
     at = now or _now()
-    prev = _upgrade(_read(out / "index.json", {}))
+    prev = _same_format(_read(out / "index.json", {}))
     prev_unplaced = {(u["region"], u["fingerprint"]): u for u in _read(out / "unplaced.json", [])}
     todo = [F.normalize_slug(s) for s in regions] if regions else [s for s in F.ALL_SLUGS if not F.PAGES[s].is_stub]
     verdicts, gears = S._Interner(), S._Interner()
