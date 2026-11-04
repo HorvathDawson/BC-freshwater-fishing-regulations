@@ -8,6 +8,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-04: chats merged for 0.5.0 [T372, T367]
+- **One chat from here:** the UI chat and the pipeline chat merge. Start from `handoff/PLAN/NEXT-SESSION-0.5.0.md`.
+- **T367 done** (owner call; last commit d3577f2e3). The new chat marks it in the ledger and runs the full app suite
+  once.
+- **T372 part 1 committed** (4a7cb4a1d): a DFO place that isn't on the map no longer paints its water "check". The map
+  shows the drawn answer, the trout way. Part 2 is next: salmon reuses trout's warning block, so the card names the
+  unmapped places.
+
 ## 2026-11-03 (chat 5): batch 2 memory, into batch 3 [T360, T366]
 - **T360 measurement fixed:** the earlier memory runs were all over satellite after the satellite step (a second tap
   never turned it off). On the drawn map: Conditions still adds ~140 MB native and keeps it after you leave; switching
