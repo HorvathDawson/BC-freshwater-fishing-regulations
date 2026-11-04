@@ -167,7 +167,8 @@ export const memory = {
     });
     await ctx.step('Salmon (the map coloured by salmon)', async () => {
       await toMap(ctx);
-      ctx.flow('tap-text', { TEXT: 'Salmon' });
+      // (T367) the Standard / Salmon switch is in the legend's fishery bar now: its segment by id, not its word
+      ctx.flow('tap-id', { ID: 'regs-paint-salmon' });
       return measure('salmon', 6000);
     });
     await ctx.step('trim memory RUNNING_CRITICAL', async () => {

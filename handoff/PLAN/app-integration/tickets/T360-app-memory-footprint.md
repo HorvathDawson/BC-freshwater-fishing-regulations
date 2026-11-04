@@ -136,3 +136,9 @@ heapprof `t360-pdf2` (queued after the batch-3 rebuild).
 `recycle`. Committed. Open question: logcat shows ONE viewer's life per trace though the step opens twice (the earlier
 patch also logged one recycle for two closes) — check the scenario's second open really happens (screens). t360-pdf2
 (the same fix, no logs) still held 50 MB — most likely a stale library build in that APK; not seen since.
+
+## Loose ends, 2026-11-04
+- The memory scenario's Salmon step taps the switch by id (`regs-paint-salmon`): T367 moved Standard / Salmon into the
+  legend's fishery bar, where the old `tap-text Salmon` found nothing. The bar shows only when salmon is offered: the
+  b5-before shots (staging data, pre-`n` salmon file) show no fishery bar — check on the next sitting.
+- "One viewer per trace": still to check on the emulator (the second open's shot + its `drawPdf` lines), next sitting.
