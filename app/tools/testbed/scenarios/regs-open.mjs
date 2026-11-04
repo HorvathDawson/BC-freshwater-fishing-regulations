@@ -83,12 +83,14 @@ export const regsOpen = {
       await ctx.step(`${c.id}: search "${c.q}", the map framed on it, the search closed`, async () => {
         await toMap(ctx);
         ctx.device.logcatClear();                         // a [target] from the water before is not this one's
+        // (T340) the water OPENED from its result, then Back: a water opened from a result consumes search and the map
+        // comes back FRAMED ON IT (useShellSearch `arrive`). Closing search instead puts the camera back where it was
+        // before search (T48) — the old step did that, then tapped where the water had been framed: the stream taps
+        // that failed since 0.3.0. Browse mode, the waters on screen read ahead while it is still (T286 prefetch).
         ctx.flow('search', { Q: c.q });
-        ctx.flow('tap-text', { TEXT: c.row });
+        ctx.flow('open-result', { LINE: c.row });
         await ctx.device.sleep(3500);
-        // the search closed (as a reader leaves it): the map keeps its framing, browse mode, the waters on screen read
-        // ahead while it is still (T286 prefetch)
-        if (ctx.device.screenText().some((x) => /NAMED WATERS/i.test(x))) { ctx.device.sh('input keyevent 4'); await ctx.device.sleep(3000); }
+        ctx.device.sh('input keyevent 4'); await ctx.device.sleep(3000);
         // the camera at rest: the app's own word on where the water answers a tap
         at = await settledTarget(ctx);
         if (!at) throw new Error('the app named no tap target for the water (no [target] line)');

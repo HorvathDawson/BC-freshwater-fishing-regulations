@@ -108,18 +108,22 @@ export const gestures = {
       ctx.flow('search', { Q: WATER });
       ctx.flow('open-result', { LINE: WATER });
       await ctx.device.sleep(4000);
-      const w = ctx.device.screenText();
-      if (!w.some((x) => x === 'Map') || !w.some((x) => /^Regulations$/.test(x))) throw new Error(`no water views (saw: ${w.slice(0, 10).join(' | ').slice(0, 300)})`);
+      // the water's own view strip by id (its words "Map" / "Conditions" are the tab bar's too)
+      ctx.device.sh('uiautomator dump /sdcard/tb-g.xml >/dev/null 2>&1');
+      if (!ctx.device.sh('cat /sdcard/tb-g.xml').includes('resource-id="water-view-map"')) {
+        const w = ctx.device.screenText();
+        throw new Error(`no water views (saw: ${w.slice(0, 10).join(' | ').slice(0, 300)})`);
+      }
       return ts ? `touchscreen ${ts.dev} (${ts.maxX}x${ts.maxY}${ts.pressure ? ', pressure' : ''})` : 'no touchscreen found';
     });
     await ctx.step('the water Map view: pan + pinch', async () => {
-      ctx.flow('tap-text', { TEXT: 'Map' });
+      ctx.flow('tap-id', { ID: 'water-view-map' });
       await ctx.device.sleep(5000);
       // the water's own map is the big one here; judge the topmost map box below the header
       return drive(ctx, 'mapview', size, ts);
     });
     await ctx.step('the Conditions route map: pan + pinch', async () => {
-      ctx.flow('tap-text', { TEXT: 'Conditions' });
+      ctx.flow('tap-id', { ID: 'water-view-conditions' });
       await ctx.device.sleep(8000);                                           // the routes in before the map mounts
       return drive(ctx, 'route', size, ts);
     });

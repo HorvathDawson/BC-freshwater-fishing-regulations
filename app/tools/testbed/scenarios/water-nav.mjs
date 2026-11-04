@@ -54,10 +54,11 @@ export const waterNav = {
       ctx.device.logcatClear();
       ctx.flow('search', { Q });
       const rows = ctx.device.screenText().filter((w) => / · /.test(w)).slice(0, 6);
-      if (VIA === 'open') ctx.flow('open-result', { LINE: ROW });
-      else ctx.flow('tap-text', { TEXT: ROW });
+      // (T340) both ways open the water from its result; a TAP then goes Back to the map, which comes back framed on it
+      // (useShellSearch `arrive`) — closing search instead restores the camera from before search (T48)
+      ctx.flow('open-result', { LINE: ROW });
       await ctx.device.sleep(3500);
-      if (VIA !== 'open' && ctx.device.screenText().some((x) => /NAMED WATERS/i.test(x))) { ctx.device.sh('input keyevent 4'); await ctx.device.sleep(3000); }
+      if (VIA !== 'open') { ctx.device.sh('input keyevent 4'); await ctx.device.sleep(3000); }
       if (VIA !== 'open') {
         const at = await settledTarget(ctx);
         if (!at) throw new Error('the app named no tap target for the water (no [target] line)');
