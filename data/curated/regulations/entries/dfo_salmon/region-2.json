@@ -2585,7 +2585,7 @@
         "excludes": [],
         "areas": []
       },
-      "status": "dormant",
+      "status": "active",
       "duplicate_of": null,
       "duplicate_score": null,
       "duplicate_confirmed": null,
@@ -4167,7 +4167,7 @@
         "excludes": [],
         "areas": []
       },
-      "status": "active",
+      "status": "dormant",
       "duplicate_of": null,
       "duplicate_score": null,
       "duplicate_confirmed": null,
@@ -4559,6 +4559,105 @@
           }
         ],
         "tributaries": false,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:fraser-river:mainstem-waters-upstream-of-the-cp~2",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "2:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "6b292a6d0efaaf8d"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "mainstem waters upstream of the CPR Bridge at Mission",
+        "landmarks": [
+          "cpr",
+          "fraser",
+          "mission"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": "2:fraser-river:mainstem-waters-upstream-of-the-cp",
+      "duplicate_score": 0.972,
+      "duplicate_confirmed": true,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "owner 2026-11-03 (chat): the reworded Fraser place is the curated one; takes its extent",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:fraser-river:mainstem-waters-downstream-of-the",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "2:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a58851c8ad05c3a3"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "mainstem waters downstream of the CPR Bridge at Mission to the Highway 1 Bridge at Hope",
+        "landmarks": [
+          "cpr",
+          "fraser",
+          "highway",
+          "hope",
+          "mission"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": "2:fraser-river:mainstem-waters-from-the-downstrea",
+      "duplicate_score": 0.897,
+      "duplicate_confirmed": true,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "owner 2026-11-03 (chat): the reworded Fraser place is the curated one; takes its extent",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
