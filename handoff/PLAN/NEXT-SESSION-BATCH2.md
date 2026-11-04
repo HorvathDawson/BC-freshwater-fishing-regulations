@@ -24,9 +24,8 @@ Runs beside the UI chat (`NEXT-SESSION-UI.md`, T367). Read `handoff/PLAN/STATUS.
   except a real-phone look.
 - **Coquitlam (T345):** sliver / past-its-bounds / web highlight / reload colouring FIXED (8a5b5bd). LEFT: the 0.4.0
   map-tap → reopen crash, not reproduced; confirm on the owner's phone with 0.5.0 (crash/2 carries water + pane).
-- **Reports (T352):** crash/2 + report/2 in code. **The staging worker is older and REJECTS crash/2 (400)**: no
-  crash/2 is stored until it is deployed. The deploy waits for 0.5.0 (SALMON_NEEDS) unless the owner says otherwise —
-  ask once. A kept fatal crash is resent each start until accepted (intended; do not drop it).
+- **Reports (T352):** crash/2 + report/2 live: the staging feeds worker was DEPLOYED 2026-11-03 (owner; version
+  fa62c851). The live DFO feed is now dfo-feed/2: 0.4.0 shows the release's salmon answers until 0.5.0 (accepted).
 - **Place links (T369):** code done, web-only `lines` file (b6588a3). NEEDS the rebuild `scripts/heavy.sh deliver 30
   -- python -m pipeline.deliver all` (reason: T369 `section_measure` → `lines`), planned WITH batch 3's release (one
   rebuild). Until then the bundle-backed `test_release` tests fail with "no section_measure" — expected.

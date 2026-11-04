@@ -31,7 +31,8 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   file — rebuild planned with batch 3. Web `getSource` crash on opening regs FIXED; a lazy web part that fails is now
   shown + reported. T360: rule book ~0.5 s in-app; viewer keeps ~35–40 MB after close; Conditions +130–150 MB native.
   New tickets: T369 (one load path), T370 (water slices repeat 0.7 MB), T371 (0.5.0 to Play Closed testing).
-  **Staging worker rejects crash/2** until deployed (waits for 0.5.0 unless the owner says now).
+  **Staging feeds worker DEPLOYED** (owner's call, fa62c851): crash/2 + report/2 stored; live DFO feed is dfo-feed/2,
+  so 0.4.0 shows the release's salmon answers until 0.5.0.
 - NEXT: two chats — batch 2 (`NEXT-SESSION-BATCH2.md`) and the UI loop (`NEXT-SESSION-UI.md`).
 - Live-release conformance pins (reads/regs.release, 33) are from the previous release; refresh at batch 7.
 

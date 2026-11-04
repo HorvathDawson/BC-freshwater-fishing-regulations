@@ -39,8 +39,7 @@ Into the 0.5.0 APK only when the owner calls the round done; no APK per round.
 - If either is down, start it in the background and kill only its own PID. Check with
   `curl -s -o /dev/null -w "%{http_code}" http://localhost:39218/` and `…:39217/release/LATEST`.
 - The walkthrough opens on a fresh browser profile: "Skip".
-- Crash reports from the dev app get 400 from staging (the new crash/2 format waits for the worker deploy, batch 7):
-  expected, ignore.
+- Crash reports from a LOCAL dev build are accepted and not stored (env "local"): expected.
 
 ## Done already (round 0)
 - Regs loading spinner: in the middle of the pane, large size (0db30c2).
