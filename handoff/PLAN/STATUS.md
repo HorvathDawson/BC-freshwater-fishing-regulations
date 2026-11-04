@@ -26,6 +26,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   local env dropped, problem report lists its map facts before Send); no section id (AGENTS rule 5). Worker deploy
   goes with the 0.5.0 APK (batch 7).
 - Test bed: `session.sh --local` runs the app against this machine's release; new scenarios `memory`, `water-nav`.
+- **Later in chat 4:** T345 map bugs FIXED (native feature-state queue, web highlight wait, reload colour hold) and
+  the water map draws the same by every way in. T369 links carry a place (stream key + distance), web-only `lines`
+  file — rebuild planned with batch 3. Web `getSource` crash on opening regs FIXED; a lazy web part that fails is now
+  shown + reported. T360: rule book ~0.5 s in-app; viewer keeps ~35–40 MB after close; Conditions +130–150 MB native.
+  New tickets: T369 (one load path), T370 (water slices repeat 0.7 MB), T371 (0.5.0 to Play Closed testing).
+  **Staging worker rejects crash/2** until deployed (waits for 0.5.0 unless the owner says now).
+- NEXT: two chats — batch 2 (`NEXT-SESSION-BATCH2.md`) and the UI loop (`NEXT-SESSION-UI.md`).
 - Live-release conformance pins (reads/regs.release, 33) are from the previous release; refresh at batch 7.
 
 ## 2026-11-03 (chat 3): batch 1 done; rule book opens in the app [T322, T337, T354, T367, T333]

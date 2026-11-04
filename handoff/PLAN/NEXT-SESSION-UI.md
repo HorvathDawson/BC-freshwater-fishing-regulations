@@ -26,8 +26,12 @@ Into the 0.5.0 APK only when the owner calls the round done; no APK per round.
   `-- <paths>` (another chat works in the same tree: never `git add -A`). Snapshot fixtures may need
   `UPDATE_REGS_FIXTURES=1` — say so in the round.
 - Owner rules in force: no silent fallbacks (T368), one load path per screen (T369), better package over minimal.
-- Don't touch the water-map pane's logic, the map package, or `regs/synopsisPdf*` / `PdfViewer*` (batch 2 is there);
-  their TEXT is fine.
+- **The two chats never collide** (the table in `NEXT-SESSION-BATCH2.md`): this chat edits words files and the regs /
+  Conditions / More PRESENTATIONAL components only. Never: `app/packages/map`, `app/packages/data`, `ui/src/{waterMap,
+  route,startLink,place,crashReport}.ts`, `ui-native/src/regs/{synopsisPdf*,PdfViewer*,pdfView,appendPdf}`,
+  `ui-native/src/{Shell,part}.tsx`, the water-map logic, `apps/mobile`, `pipeline/`, the test bed. Their TEXT is fine
+  (words files). A change that needs logic there: write it in T367 as a note for the batch 2 chat.
+- No heavy jobs, no emulator, no builds, no release work in this chat.
 
 ## The dev web app
 - http://localhost:39218 — `cd app && pnpm dev:web` (Expo, Fast Refresh: a save shows on reload).
