@@ -56,6 +56,7 @@ class FakeGl {
   setLayerZoomRange(id: string, lo: number, hi: number) { if (id.startsWith("water-copy")) log.push(`range ${id} ${lo}-${hi}`); }
   addControl() {} hasImage() { return false; } addImage() {} removeImage() {} remove() {}
   getContainer() { return { clientWidth: 400, clientHeight: 400 }; }
+  getCanvasContainer() { return { style: { cursor: "" } }; } isMoving() { return false; }
   getCanvas() { return { style: { width: "400px", height: "400px" } }; }
   resize() {}
   getCenter() { return { lng: cam.lng, lat: cam.lat }; }

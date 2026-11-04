@@ -36,3 +36,5 @@ One gesture pass on the emulator covers all three; T317 (overlay once-over) foll
 batch 5 of RELEASE-PLAN-0.5.0.md.
 
 - 2026-11-03: T273's basemap choice is already answered: option 1 (forest simplified, still drawn at low zooms) shipped in T280 (65894d8bf, basemap-b515359fc62f, −52 % green vertices). No owner choice left; batch 5 measures pan on top of it (real phone: T245).
+- 2026-11-04: "before" pan run on 0.5.0 code: app/tools/testbed/out/b5-before (T273-pan-1/2.txt). The gestures scenario's
+  pinch is not driven on this emulator image (`sendevent: /dev/input/event1: Permission denied` — needs `adb root`).

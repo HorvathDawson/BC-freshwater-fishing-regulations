@@ -27,7 +27,7 @@ import type { MapProps } from "./map-props";
 import { useMapInstance } from "./web/useMapInstance";
 import { useLabelsInBC, useOutsideMask } from "./web/outsideMask";
 import { useLook, usePushedData } from "./web/useLook";
-import { useLongPress, useMapPoint, useMoved, usePressFeature } from "./web/useInput";
+import { useHoverCursor, useLongPress, useMapPoint, useMoved, usePressFeature } from "./web/useInput";
 import { useMarks, usePins } from "./web/markers";
 import { useHighlight } from "./web/useHighlight";
 import { useSpots } from "./web/useSpots";
@@ -82,6 +82,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useVisible(refs, onVisible);
   useRegion(refs, onRegion);
   usePressFeature(refs, onPressFeature, onError, onPressObstacle, onPressTidal, onPressNotFishing);
+  useHoverCursor(refs, { feature: !!onPressFeature, obstacle: !!onPressObstacle, tidal: !!onPressTidal,
+                        notFishing: !!onPressNotFishing, mark: !!onPressMark }, onError);
 
   /**
    * THE CONTROLS' COLOURS, from the map's own theme.

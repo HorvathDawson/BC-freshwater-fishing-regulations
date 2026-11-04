@@ -59,6 +59,7 @@ class FakeGl {
   setLayerZoomRange() {} setFilter() {}
   addControl() {} hasImage() { return false; } addImage() {} removeImage() {} remove() {}
   getContainer() { return { clientWidth: 400, clientHeight: 800 }; }
+  getCanvasContainer() { return { style: { cursor: "" } }; } isMoving() { return false; }
   getCanvas() { return { style: { width: "400px", height: "800px" } }; }
   resize() {}
   getCenter() { return { lng: -122, lat: 49 }; }

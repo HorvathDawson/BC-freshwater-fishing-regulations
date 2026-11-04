@@ -9,6 +9,7 @@ import type { MapProps } from "../map-props";
 import type { WebMapRefs } from "./refs";
 import { hitMark } from "./markers";
 import { hitSpot } from "./useSpots";
+import { PIN_ICON } from "../point-marks";
 
 export function useMoved({ map }: WebMapRefs, onMoved: MapProps["onMoved"]) {
   useEffect(() => {
@@ -137,4 +138,53 @@ export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPres
     m.on("click", onClick);
     return () => { m.off("click", onClick); };
   }, [onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing]);
+}
+
+/*
+ * (owner 2026-11-04: "on webapp on a computer could we make it so clickable items change the cursor? like the map
+ * streams") THE POINTER OVER WHAT A CLICK WOULD OPEN: a mouse resting on a boundary mark, a spot, a titled pin, an
+ * obstacle, a water, a not-fishing site or tidal water shows the hand; anywhere else the map's own grab. Asked through
+ * THE SAME hit tests the clicks above ask (`hitMark`, `hitSpot`, `MapRenderer.press*`), so the hand never promises a
+ * click that does nothing. Once per frame at most, never while the map moves or a button is held (a drag), and a
+ * slower answer than the next move is dropped. A failed ask goes to `onError`, as a click's does.
+ */
+export function useHoverCursor({ map, renderer }: WebMapRefs, on: {
+  feature: boolean; obstacle: boolean; tidal: boolean; notFishing: boolean; mark: boolean },
+                               onError: MapProps["onError"]) {
+  const key = `${on.feature}${on.obstacle}${on.tidal}${on.notFishing}${on.mark}`;
+  useEffect(() => {
+    const m = map.current, r = renderer.current;
+    if (!m || !r) return;
+    const canvas = m.getCanvasContainer();
+    let frame = 0, asked = 0;
+    const set = (hand: boolean) => { canvas.style.cursor = hand ? "pointer" : ""; };
+    const ask = async (x: number, y: number, lat: number, lng: number): Promise<boolean> => {
+      if (on.mark && hitMark(m, x, y) !== null) return true;
+      if (hitSpot(m, lat, lng) !== null) return true;
+      if (m.getLayer(PIN_ICON) && m.queryRenderedFeatures([[x - 12, y - 12], [x + 12, y + 12]], { layers: [PIN_ICON] })
+        .some((g) => typeof g.properties?.title === "string" && g.properties.title)) return true;
+      if (on.obstacle && await r.pressObstacle(x, y)) return true;
+      if (on.feature && await r.press(x, y)) return true;
+      if (on.notFishing && await r.pressNotFishing(x, y)) return true;
+      return on.tidal && await r.pressTidal(x, y);
+    };
+    const move = (e: maplibregl.MapMouseEvent) => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        if (m.isMoving() || (e.originalEvent as MouseEvent).buttons) return;
+        const n = ++asked;
+        ask(e.point.x, e.point.y, e.lngLat.lat, e.lngLat.lng)
+          .then((hand) => { if (n === asked) set(hand); })
+          .catch((err: unknown) => onError?.(err instanceof Error ? err : new Error(String(err))));
+      });
+    };
+    const out = () => { asked++; set(false); };
+    m.on("mousemove", move); m.on("mouseout", out); m.on("movestart", out);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      m.off("mousemove", move); m.off("mouseout", out); m.off("movestart", out);
+      set(false);
+    };
+  }, [key, map.current]);
 }

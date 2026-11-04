@@ -61,6 +61,10 @@ class FakeGl {
   setPaintProperty() {} setLayoutProperty() {} setLayerZoomRange() {} setFilter() {}
   addControl() {} hasImage() { return false; } addImage() {} removeImage() {} remove() {}
   getContainer() { return { clientWidth: 400, clientHeight: 800 }; }
+  /** the element whose cursor the hover sets (GL JS's canvas container) */
+  container = { style: { cursor: "" } };
+  getCanvasContainer() { return this.container; }
+  isMoving() { return false; }
   /** The canvas as last sized: a test sets `web.canvasH` to leave it stale (its box changed, the observer not yet run). */
   getCanvas() { return { style: { width: "400px", height: `${web.canvasH}px` } }; }
   resize() { if (web.canvasH !== 800) log.push(`resize ${web.canvasH}->800`); web.canvasH = 800; }
@@ -393,7 +397,30 @@ describe("web only", () => {
     }
   });
 
-  it("the lift that ends a long press is cancelled, so the browser makes no click of it on the sheet now under the " +
+  it("a mouse over what a click would open shows the hand, asked by the click's own hit test; elsewhere the grab", async () => {
+  const press = vi.fn();
+  answer = (layers) => (layers.includes("stream") ? [{ id: 311274 }] : []);
+  render(<WebMap {...base({ data: undefined, highlight: undefined, onPressFeature: press })} />);
+  await waitFor(() => expect(web.map).toBeTruthy());
+  const hover = (x: number, y: number, buttons = 0) =>
+    act(() => web.map!.fire("mousemove", { point: { x, y }, lngLat: { lng: -122, lat: 49 }, originalEvent: { buttons } }));
+  log.length = 0;
+  hover(100, 200);
+  await waitFor(() => expect(web.map!.container.style.cursor).toBe("pointer"));
+  expect(log).toContain("query [[88,188],[112,212]] stream,lake_flowing,wetland_flowing");
+  answer = () => [];
+  hover(10, 10);
+  await waitFor(() => expect(web.map!.container.style.cursor).toBe(""));
+  // a drag (a button held) asks nothing; the map leaving the mouse clears it
+  answer = (layers) => (layers.includes("stream") ? [{ id: 311274 }] : []);
+  log.length = 0;
+  hover(100, 200, 1);
+  await act(async () => { await new Promise((r) => setTimeout(r, 40)); });
+  expect([log, web.map!.container.style.cursor]).toEqual([[], ""]);
+  expect(press).not.toHaveBeenCalled();
+});
+
+it("the lift that ends a long press is cancelled, so the browser makes no click of it on the sheet now under the " +
      "finger; a tap's lift is left alone", async () => {
     vi.useFakeTimers();
     try {

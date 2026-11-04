@@ -42,6 +42,7 @@ class FakeGl {
   addImage(id: string, img: Img) { added.set(id, img); }
   removeImage(id: string) { added.delete(id); }
   getContainer() { return { clientWidth: 400, clientHeight: 800 }; }
+  getCanvasContainer() { return { style: { cursor: "" } }; } isMoving() { return false; }
   getCanvas() { return { style: { width: "400px", height: "800px" } }; }
   resize() {}
   getCenter() { return { lng: -122, lat: 49 }; }
