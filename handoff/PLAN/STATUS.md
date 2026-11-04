@@ -40,10 +40,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   (partial coverage the trout way, in Python), T373 (run timing built with the release); T374 (trib walk collects lakes).
 - **Batch 3 release built + promoted locally: r-ac5a4e4f734c** (salmon/4, T369 lines; lines gate 1.25 → 1.4 MB, measured
   1.28). Not on staging yet. DFO tests re-pinned (461 rows / 548 rules).
-- Memory: purge works (17d5f0dc3). PDF leak CAUSE found (T360 round 5: a cancelled load never closes its document;
-  react-native-pdf reloads on every props transaction) — fix in the patch + memoized `source`, uncommitted until the
-  queued heapprof run (t360-pdf2) shows pdfium released.
-
+- Memory: purge works (17d5f0dc3); **PDF leak FIXED (fe0f4e659)**: pdfium held after the rule book 0.9–2.5 MB (was
+  50–77). T375 forecast every day +1..+10 in code (1c735272e); the UI chat's horizon tests are theirs to update (T367 e).
+  Next: batch 3 to staging (r-ac5a4e4f734c), then T373 / T372 before 0.5.0.
 ## 2026-11-03 (chat 4): batch 2 emulator sitting [T368, T354, T360, T345, T352]
 - **T368 (new, in 0.5.0, batch 6c):** the app-wide failures/fallbacks/reporting sweep, split from T333. Two found
   today and fixed on the way: boot's `.catch(() => null)` on the manifest (it hid a 404) and the source-line

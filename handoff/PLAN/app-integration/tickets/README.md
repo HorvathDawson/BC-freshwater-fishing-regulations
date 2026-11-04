@@ -418,7 +418,7 @@ use that as the sole source of future work."
 | T372 | Partial coverage: one rule for trout + salmon (keep the answer + an undrawn-part caveat), resolved in Python | OPEN (before 0.5.0) | — | owner 2026-11-03 |
 | T373 | Run timing always matches the release's map: the release builds/binds it for its own handles, refuses otherwise | OPEN (before 0.5.0) | — | owner 2026-11-03 |
 | T374 | The Skeena tributary walk collects 11 lake sections (owner rule: walks pass lakes, collect streams) — may bind trout trib rules to lakes | OPEN | — | found 2026-11-03 |
-| T375 | Forecast feed publishes every day +1..+10 (HORIZONS in publish.py + worker), for the UI chat's day chips | OPEN (before 0.5.0, data chat) | — | owner 2026-11-03 |
+| T375 | Forecast feed publishes every day +1..+10 (HORIZONS in publish.py + worker), for the UI chat's day chips | DONE in code 11-03 (worker redeploy + feed size left) | — | owner 2026-11-03 |
 
 ## Order for open tickets
 
