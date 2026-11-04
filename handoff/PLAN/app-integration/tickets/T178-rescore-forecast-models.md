@@ -10,3 +10,11 @@ lead has ≥ 200 paired cases over ≥ 20 issue days; then equal within 2 SE, el
 ## Work
 Run it; if the verdict says so, change `FLOOD_WEIGHTS` in pipeline/gauges/feed/change.py (one line, pinned by the policy
 test), republish, record the table in decisions.md. A per-season answer needs a full year — say so. Size: S.
+
+## 2026-11-04: checked early (not due)
+The local `data/generated/gauges/feeds.runs/` stopped on 10-24 (the pipeline no longer publishes); the archive that grows
+is the staging worker's: R2 `bc-fishing-regulations-staging/private/feeds/gauges/runs/` — a closed month is one
+`<YYYY-MM>.jsonl`, the open month is `<YYYY-MM>/<day>.jsonl` + `<YYYY-MM>/<day>/<HHMMSS>.jsonl` parts (concatenated in key
+order = Python's month file). To score: `rclone copy` it, concatenate the open month into `<feed>.runs/<YYYY-MM>.jsonl`,
+run `skill --feed <feed>`. On 11-04 it held CLEVER/COFFEE issue days 10-28, 10-29, 10-30, 11-02, 11-03 (weekdays only):
+verdict still "too few" (115 paired over 2 days). Twenty issue days ≈ early December, as planned.
