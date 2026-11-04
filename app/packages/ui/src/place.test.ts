@@ -10,7 +10,8 @@ import type { NavRows, PartRow } from "@app/data/regs";
 import type { SectionLine } from "@app/data/regs/place";
 import { placeOf, resolvePlace, resolveStartLink, type PlaceReads } from "./place";
 import { parseStartLink, routeSearch } from "./startLink";
-import { HOME, reduce, waterFrame } from "./route";
+import { HOME, reduce, waterFrame, type WaterRoute } from "./route";
+import { carryRoute } from "./carry";
 import { openWater } from "./openWater";
 
 const BLK = 360000001, RIVER = "gnis:1" as ItemId, ORD = 7;
@@ -97,5 +98,29 @@ describe("(T369) a place across a re-split", () => {
     const none: PlaceReads = { ...relA, hasLines: async () => false };
     await expect(placeOf(none, waterFrame(reduce(HOME, openWater({ item: RIVER, part: 1 })))))
       .rejects.toThrow("this release has no section_line");
+  });
+});
+
+describe("(T386, owner 2026-11-04) an unnamed reach open across a data update: carried by its place", () => {
+  const relA = release(A, { 0: 10, 1: 11, 2: 12 }), relB = release(B, { 0: 20, 1: 21, 2: 22, 3: 23 });
+  const unnamed = (sid: number): WaterRoute => ({ mode: "water", from: HOME,
+    stack: [{ item: null, part: null, tapSid: sid as SectionId, at: { lat: 49, lon: -122 }, view: "regs" }] });
+
+  it("still unnamed in the new release: the section there, the frame kept", async () => {
+    const a = await carryRoute(unnamed(13), relA, relB, { was: relA, now: relB, itemFor: itemFor(B) });
+    expect(a).toEqual({ type: "carry", stack: [
+      { item: null, part: null, stretch: undefined, tapSid: 24, at: { lat: 49, lon: -122 }, view: "regs" }] });
+  });
+
+  it("now a named water's part: opened on it; no section spans it any more: dropped; no place reads: dropped", async () => {
+    const named: Sec[] = [...B.slice(0, 4), { h: 24, from: 5000, to: 6000, part: 3 }];
+    const relN = release(named, { 0: 20, 1: 21, 2: 22, 3: 23 });
+    expect(await carryRoute(unnamed(13), relA, relN, { was: relA, now: relN, itemFor: itemFor(named) })).toEqual({ type: "carry",
+      stack: [{ item: RIVER, part: 3, stretch: undefined, tapSid: 24, at: { lat: 49, lon: -122 }, view: "regs" }] });
+    const gone = release(B.slice(0, 4), { 0: 20, 1: 21, 2: 22, 3: 23 });
+    expect(await carryRoute(unnamed(13), relA, gone, { was: relA, now: gone, itemFor: itemFor(B) }))
+      .toEqual({ type: "carry", stack: [] });
+    // MUTATION PIN: without the place reads the old rule (dropped) is what runs
+    expect(await carryRoute(unnamed(13), relA, relB)).toEqual({ type: "carry", stack: [] });
   });
 });

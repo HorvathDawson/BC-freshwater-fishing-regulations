@@ -1,6 +1,6 @@
 # T386 — An unnamed reach survives a data update and opens from a link everywhere
 
-Status: OPEN (owner 2026-11-04: "yes we want this … also make sure the links refresh opens the unnamed streams", in 0.5.0).
+Status: DONE in code (owner 2026-11-04: "yes we want this … also make sure the links refresh opens the unnamed streams", in 0.5.0); live with the one rebuild.
 
 From T369: an unnamed reach open during a data update is CLOSED, not carried — carrying it (and resolving an unnamed
 `?blk=&m=` link on the phone) needs each section's stream key + measure span in the native bundle (`section_measure`;
@@ -21,3 +21,10 @@ phone-held 15.90 MB gz + lines 1.28 MB = 17.19 MB (gate 20 MB). Tests: test_sect
 rebuild. LEFT (app, after the T382 clock lane leaves `ui/place.ts`): retire `tools/native-no-links.test.ts` (links are
 no longer web-only), give the phone's loader the line reads, `carry.ts` carries an unnamed reach by its place
 (old release `sectionLine` → `sectionAt` in the new), and a native start/reload of `?blk=&m=` opens it.
+
+## App half done 2026-11-04
+`@app/ui` `carryRoute(r, was, now, places)`: an unnamed reach is carried by its place — the old release's `lines`
+(the tapped section's middle) → `resolvePlace` in the new (still unnamed: the new section; now a named water's part:
+opened on it; spanned by nothing: dropped). The phone's update path (`useShellNav`) passes both releases' place reads
+(`placeReads`) and the source. `tools/native-no-links.test.ts` retired (its premise — links web-only — is reversed).
+The web's reload of `?blk=&m=` already opened an unnamed reach (T369 `resolveStartLink`). Tests: place.test.ts.

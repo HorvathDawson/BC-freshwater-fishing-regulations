@@ -11,6 +11,7 @@ import { carryRoute, frameViews, loadRegsStore, prewarmRegs, regsGroupOf, regsPa
          useRoute, useWaterGroup, waterFrame, type BrowseTab, type Route } from "@app/ui";
 import { backDepth, edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
 import { useRegulationKeys } from "@app/ui";
+import { placeReads } from "@app/ui/place";
 import { TABS, type TabKey } from "../TabBar";
 import type { WaterViews } from "../ViewSwipe";
 import { isTouchDevice } from "../touchDevice";
@@ -84,8 +85,9 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
     const r = routeNow.current;
     if (!was || !loader || was.release === loader.release || r.mode !== "water") { setCarried(loader); return; }
     let live = true;
+    // (T386) an unnamed reach is carried by its place: both releases' `lines` (phone-held) and the new one's waters
     void Promise.all([loadRegsStore(was), loadRegsStore(loader)])
-      .then(([a, b]) => carryRoute(r, a, b))
+      .then(([a, b]) => carryRoute(r, a, b, { was: placeReads(a, was), now: placeReads(b, loader), itemFor: source }))
       .then((a) => { if (live && routeNow.current === r) go(a); },
             (e: unknown) => { reportFailure(e); if (live && routeNow.current === r) go({ type: "close" }); })
       .finally(() => { if (live) setCarried(loader); });

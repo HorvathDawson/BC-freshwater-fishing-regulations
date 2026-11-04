@@ -6,8 +6,8 @@
  * distance → its water (named or not) → its part and stretch. Pure and offline: release reads only, no tiles, no
  * geometry. Inside the app the frame keeps its part index (one release); only the address carries the place.
  *
- * WEB-ONLY (owner 2026-11-03: a phone has no links): `@app/ui/place`, never the `@app/ui` barrel, and imported only by
- * the app's `.web.ts` modules — the native bundle holds none of it (`tools/native-no-links.test.ts`).
+ * `@app/ui/place`, never the `@app/ui` barrel. Links are the web's (its address bar, `.web.ts`); the phone reads the same
+ * places to carry an open unnamed reach across a data update (T386, owner 2026-11-04: `carry.ts`; `lines` phone-held).
  *
  * UNIVERSAL: a named stream's part or stretch (its midpoint section's middle), an UNNAMED reach (the tapped section's
  * middle; no item), a stream water of one part (no place: the item says it all), a lake and a split lake's closure

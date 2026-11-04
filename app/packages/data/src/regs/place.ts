@@ -1,8 +1,7 @@
 /**
- * `@app/data/regs/place` — (T369, owner 2026-11-03) A LINK'S PLACE, WEB-ONLY: the reads of the release's `lines` file
- * (`line.ts`), what a link's place is made from and resolved by. Links are a web thing (a phone has no address bar and
- * never holds `lines`: the manifest marks it `web_only`), so nothing on the native path imports this module — not the
- * `@app/data/regs` barrel, not the store (`tools/native-no-links.test.ts` walks the native entry's imports).
+ * `@app/data/regs/place` — (T369, owner 2026-11-03) A PLACE ON A STREAM: the reads of the release's `lines` file
+ * (`line.ts`), what a link's place is made from and resolved by — and (T386, owner 2026-11-04) how an open unnamed
+ * reach is carried across a data update on a phone (`@app/ui` `carryRoute`): `lines` is phone-held too now.
  *
  * Opened lazily: the file is fetched the first time a place is made or resolved, never on a page's way in.
  */

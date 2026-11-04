@@ -8,10 +8,14 @@
  *                   — the new entry whose box holds it, the nearest middle among them (none holds it: the nearest)
  *   the tap         dropped (a section handle is not durable): the frame is on its part, and its middle is the reach
  *   a whole water   stays whole (no part to carry)
- *   an unnamed reach, or a water the new release does not hold: dropped — no release read on a phone can say where
- *                   a section went (the web's `lines` file is web-only); an empty stack leaves for the map beneath
+ *   an unnamed reach (T386, owner 2026-11-04: "yes we want this") by its PLACE: the tapped section's stream key and
+ *                   middle measure in the old release (`lines`, phone-held since T386) → the section of the new release
+ *                   spanning it (`resolvePlace`) — still unnamed, or now a named water's part (opened on it); a place
+ *                   no section spans any more: dropped
+ *   a water the new release does not hold: dropped; an empty stack leaves for the map beneath
  */
 import type { NavRows, RegsStore } from "@app/data/regs";
+import { placeOf, resolvePlace, type ItemFor, type PlaceReads } from "./place";
 import type { LatLon, RouteAction, WaterFrame, WaterRoute } from "./route";
 
 type Reads = Pick<RegsStore, "itemOrd" | "navRows">;
@@ -44,9 +48,21 @@ export function entryAt(nav: Pick<NavRows, "geo" | "stretches">, p: LatLon): { p
   return { part: best.partIx, stretch: best.stretch };
 }
 
-/** One frame carried from `was` into `now`; null: it cannot be (an unnamed reach, a water `now` does not hold). */
-export async function carryFrame(f: WaterFrame, was: Reads, now: Reads): Promise<WaterFrame | null> {
-  if (f.item === null) return null;
+/** The place reads of both releases and the new one's section → water, for an unnamed reach (T386). */
+export interface CarryPlaces { was: PlaceReads; now: PlaceReads; itemFor: ItemFor }
+
+/** An unnamed reach carried by its place: the new release's section there (unnamed, or a named water's part); null:
+ *  no section of it spans the place. */
+async function carryUnnamed(f: WaterFrame, p: CarryPlaces): Promise<WaterFrame | null> {
+  const place = await placeOf(p.was, f);
+  const at = place && (await resolvePlace(p.now, p.itemFor, place));
+  if (!at) return null;
+  return { ...f, item: at.item, part: at.part, stretch: at.stretch, tapSid: at.sid as WaterFrame["tapSid"] };
+}
+
+/** One frame carried from `was` into `now`; null: it cannot be (a place or a water `now` does not hold). */
+export async function carryFrame(f: WaterFrame, was: Reads, now: Reads, places?: CarryPlaces): Promise<WaterFrame | null> {
+  if (f.item === null) return f.tapSid !== null && places ? carryUnnamed(f, places) : null;
   const ord = await now.itemOrd(f.item);
   if (ord === null) return null;
   const base: WaterFrame = { ...f, tapSid: null, at: null };
@@ -59,7 +75,8 @@ export async function carryFrame(f: WaterFrame, was: Reads, now: Reads): Promise
 }
 
 /** THE OPEN STACK CARRIED into the new release: the route's `carry` action (every frame by `carryFrame`). */
-export async function carryRoute(r: WaterRoute, was: Reads, now: Reads): Promise<RouteAction> {
-  const stack = (await Promise.all(r.stack.map((f) => carryFrame(f, was, now)))).filter((f): f is WaterFrame => f !== null);
+export async function carryRoute(r: WaterRoute, was: Reads, now: Reads, places?: CarryPlaces): Promise<RouteAction> {
+  const stack = (await Promise.all(r.stack.map((f) => carryFrame(f, was, now, places))))
+    .filter((f): f is WaterFrame => f !== null);
   return { type: "carry", stack };
 }
