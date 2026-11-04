@@ -16,10 +16,12 @@ export const SALMON_FEED_GOLDEN = {
       "t": "You can only fish for salmon in Region 6 during daylight hours.",
       "hours": {
        "start": {
-        "solar": "sunrise"
+        "solar": "sunrise",
+        "offset_min": -60
        },
        "end": {
-        "solar": "sunset"
+        "solar": "sunset",
+        "offset_min": 60
        }
       },
       "fold": "hours"
@@ -247,14 +249,16 @@ export const SALMON_FEED_GOLDEN = {
     "hours": {
      "hours": {
       "start": {
-       "solar": "sunrise"
+       "solar": "sunrise",
+       "offset_min": -60
       },
       "end": {
-       "solar": "sunset"
+       "solar": "sunset",
+       "offset_min": 60
       }
      },
      "id": "6:daylight:c4e3b46f",
-     "says": "Salmon fishing in daylight only: sunrise to sunset"
+     "says": "Salmon fishing in daylight only: one hour before sunrise to one hour after sunset"
     },
     "shared": [
      {
@@ -695,8 +699,7 @@ export const SALMON_FEED_GOLDEN = {
   "scopes": {
    "6": {
     "kispiox river+ws": [
-     "gnis:4674",
-     "gnis:9"
+     "gnis:4674"
     ],
     "kispiox river": [
      "gnis:4674"
@@ -941,10 +944,12 @@ export const SALMON_FEED_GOLDEN = {
       "t": "You can only fish for salmon in Region 6 during daylight hours.",
       "hours": {
        "start": {
-        "solar": "sunrise"
+        "solar": "sunrise",
+        "offset_min": -60
        },
        "end": {
-        "solar": "sunset"
+        "solar": "sunset",
+        "offset_min": 60
        }
       },
       "fold": "hours"
@@ -1135,7 +1140,7 @@ export const SALMON_FEED_GOLDEN = {
       "t": "Reminder: There is no fishing for eulachon in Region 6."
      }
     ],
-    "header": "968cd65fa91214b1",
+    "header": "eac787cad402ef22",
     "bucket": {
      "tree": {
       "node": "tier",
@@ -1173,14 +1178,16 @@ export const SALMON_FEED_GOLDEN = {
     "hours": {
      "hours": {
       "start": {
-       "solar": "sunrise"
+       "solar": "sunrise",
+       "offset_min": -60
       },
       "end": {
-       "solar": "sunset"
+       "solar": "sunset",
+       "offset_min": 60
       }
      },
      "id": "6:daylight:c4e3b46f",
-     "says": "Salmon fishing in daylight only: sunrise to sunset"
+     "says": "Salmon fishing in daylight only: one hour before sunrise to one hour after sunset"
     },
     "shared": [
      {
@@ -1548,9 +1555,7 @@ export const SALMON_FEED_GOLDEN = {
      "6:bait_ban:ff2dcf43",
      "6:other:41155080"
     ],
-    "water": [
-     "6:aggregate:1ccba1c6"
-    ]
+    "water": []
    }
   },
   {
@@ -1768,10 +1773,12 @@ export const SALMON_FEED_GOLDEN = {
       "t": "You can only fish for salmon in Region 6 during daylight hours.",
       "hours": {
        "start": {
-        "solar": "sunrise"
+        "solar": "sunrise",
+        "offset_min": -60
        },
        "end": {
-        "solar": "sunset"
+        "solar": "sunset",
+        "offset_min": 60
        }
       },
       "fold": "hours"
@@ -1962,7 +1969,7 @@ export const SALMON_FEED_GOLDEN = {
       "t": "Reminder: There is no fishing for eulachon in Region 6."
      }
     ],
-    "header": "968cd65fa91214b1",
+    "header": "eac787cad402ef22",
     "bucket": {
      "tree": {
       "node": "tier",
@@ -2000,14 +2007,16 @@ export const SALMON_FEED_GOLDEN = {
     "hours": {
      "hours": {
       "start": {
-       "solar": "sunrise"
+       "solar": "sunrise",
+       "offset_min": -60
       },
       "end": {
-       "solar": "sunset"
+       "solar": "sunset",
+       "offset_min": 60
       }
      },
      "id": "6:daylight:c4e3b46f",
-     "says": "Salmon fishing in daylight only: sunrise to sunset"
+     "says": "Salmon fishing in daylight only: one hour before sunrise to one hour after sunset"
     },
     "shared": [
      {

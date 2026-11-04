@@ -2192,6 +2192,43 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "note": ""
+    },
+    {
+      "water_id": "6:fraser-river",
+      "region": "6",
+      "region_number": 6,
+      "name": "Fraser River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:39325",
+        "gnis:10494",
+        "gnis:11566",
+        "gnis:17805",
+        "gnis:17368",
+        "gnis:14905",
+        "gnis:22631",
+        "gnis:21224",
+        "gnis:14010",
+        "gnis:11481",
+        "gnis:13499",
+        "gnis:25152",
+        "gnis:8341"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "Fraser River (GNIS 39325) upstream of the CPR Bridge at Mission, plus all named channels and sloughs without their own regulation entries. Region 2. Nicomen Slough and Strawberry Slough excluded — they have separate regulation entries.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": "owner 2026-11-03: the same river as region 2's Fraser River, so R6's header exception (adult chinook \"other than Fraser River Watershed\") finds the Fraser-side waters of Region 6. No R6 DFO place names it."
     }
   ],
   "locations": [

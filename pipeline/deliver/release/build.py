@@ -76,7 +76,8 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_450_000, "lakes":
               # (T369) `lines`: ~0.99-1.08 MB gz estimated 2026-11-03 on the atlas's handles (ends proxied from the FWA
               # stream extents; the build measures the real one); WEB-ONLY (`contract.WEB_ONLY`: not in the offline
               # total), fetched once a page is drawn (its place in the address) or when a link with a place is opened
-              "lines": 1_250_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS},
+              # measured 2026-11-03 on the batch-3 bundle: 1,283,173 B gz (the estimate was low) → 1,400,000
+              "lines": 1_400_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS},
               # (T256) the answer slices (slices.py), web-only: measured on r-fa1915a56adb's tables, core-<r> 197-287 kB,
               # water-<r> ~0.75 MB (rules, display rules and the dictionaries are whole in every one)
               **{f"core-{r}": 400_000 for r in SH.REGIONS}, **{f"water-{r}": 1_100_000 for r in SH.REGIONS}}

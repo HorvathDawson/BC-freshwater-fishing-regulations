@@ -237,7 +237,7 @@ def test_t343_every_header_note_is_folded_dropped_or_left_as_words():
     """(T343) `header_answers` marks each note said elsewhere: the daily / possession / annual limits by the bucket (its
     total says "fresh and tidal waters combined"), the sizes by the sizes line, the closure by the closure; the 100 m
     facility rule, how to measure and R1's stream bait ban (the province's own) are dropped; daylight is the page's
-    `hours` (solar, DFO's definition — R2 prints none: sunrise to sunset). Only the eulachon reminder stays as words."""
+    `hours` (solar, DFO's definition — R2 prints none: 1 hour either side, owner). Only the eulachon reminder stays as words."""
     from pipeline.deliver.salmon import header_answers
     folds = {}
     for slug in T356_SLUGS:
@@ -247,7 +247,8 @@ def test_t343_every_header_note_is_folded_dropped_or_left_as_words():
         for n in got["notes"]:
             folds.setdefault(n["k"], set()).add(n.get("fold"))
         if slug == "2":
-            assert got["hours"]["says"] == "Salmon fishing in daylight only: sunrise to sunset"
+            assert got["hours"]["says"] == ("Salmon fishing in daylight only: one hour before sunrise to one hour after "
+                                            "sunset")          # R2 prints no definition: the usual hour (owner)
         if slug == "8":
             assert got["hours"]["says"] == ("Salmon fishing in daylight only: one hour before sunrise to one hour after "
                                             "sunset")

@@ -101,10 +101,10 @@ function names(phrase: string): string[] {
 
 const RE_SOLAR = pyRe("between (\\d+|one|two) hours? (before|after) (sunrise|sunset) and (\\d+|one|two) hours? (before|after) (sunrise|sunset)", "i");
 
-/** header._daylight (T343): DFO's daylight definition as solar hours, else sunrise to sunset (R2 prints none) */
+/** header._daylight (T343): DFO's daylight definition as solar hours, else 1 hour either side (owner 11-03; R2 prints none) */
 function daylight(low: string): Record<string, unknown> {
   const m = search(RE_SOLAR, low);
-  if (!m) return { start: { solar: "sunrise" }, end: { solar: "sunset" } };
+  if (!m) return { start: { solar: "sunrise", offset_min: -60 }, end: { solar: "sunset", offset_min: 60 } };
   const end = (n: string, side: string, ev: string) =>
     ({ solar: ev, offset_min: (side === "before" ? -1 : 1) * 60 * ({ one: 1, two: 2 }[n] ?? pyInt(n)) });
   return { start: end(m[1]!, m[2]!, m[3]!), end: end(m[4]!, m[5]!, m[6]!) };

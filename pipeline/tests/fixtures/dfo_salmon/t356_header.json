@@ -210,23 +210,27 @@
   "hours": {
    "hours": {
     "end": {
+     "offset_min": 60,
      "solar": "sunset"
     },
     "start": {
+     "offset_min": -60,
      "solar": "sunrise"
     }
    },
    "id": "2:daylight:f19a3472",
-   "says": "Salmon fishing in daylight only: sunrise to sunset"
+   "says": "Salmon fishing in daylight only: one hour before sunrise to one hour after sunset"
   },
   "notes": [
    {
     "fold": "hours",
     "hours": {
      "end": {
+      "offset_min": 60,
       "solar": "sunset"
      },
      "start": {
+      "offset_min": -60,
       "solar": "sunrise"
      }
     },

@@ -130,15 +130,15 @@ _N = {"one": 1, "two": 2}
 
 def _daylight(low: str) -> dict:
     """(T343) a `daylight` note's hours as the catalogue's `Hours` (each end a solar `Clock`): DFO's own definition
-    ("between 1 hour before sunrise and 1 hour after sunset", R3 / R8), else daylight as the words say it: sunrise to
-    sunset (R2 prints no definition)."""
+    ("between 1 hour before sunrise and 1 hour after sunset", R3 / R8), else the same hour either side (owner
+    2026-11-03: R2's undefined "daylight hours" is DFO's usual 1 hour before sunrise to 1 hour after sunset)."""
     from pipeline.regs.parsing.catalogue_parts.dates import Hours
     m = _RE_SOLAR.search(low)
     if m:
         end = lambda n, side, ev: {"solar": ev, "offset_min": (-1 if side == "before" else 1) * 60 * int(_N.get(n, n))}
         hours = {"start": end(*m.group(1, 2, 3)), "end": end(*m.group(4, 5, 6))}
     else:
-        hours = {"start": {"solar": "sunrise"}, "end": {"solar": "sunset"}}
+        hours = {"start": {"solar": "sunrise", "offset_min": -60}, "end": {"solar": "sunset", "offset_min": 60}}
     return Hours(**hours).model_dump(mode="json", exclude_defaults=True)
 
 

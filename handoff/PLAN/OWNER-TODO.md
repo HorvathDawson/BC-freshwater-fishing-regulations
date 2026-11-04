@@ -6,15 +6,12 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **DFO region 2 Fraser places (T366, 2026-11-03; blocks the batch 3 release):** the refresh (regions 1, 2, 6; no
+- **DFO region 2 Fraser places (T366, 2026-11-03; ANSWERED 11-03, committed as variants — no longer blocks):** the refresh (regions 1, 2, 6; no
   marks moved) found the Fraser mainstem reworded twice; FN1179 (chum 2/day Nov 3–30) is on one of them. Open the
   review app in DFO mode, region 2, and confirm the two Fraser places: the queue proposed "upstream of the CPR Bridge"
   as a variant of the existing upstream place, and DFO's "downstream of the CPR Bridge at Mission to … Hope" as the
   dormant Mission→Hope place (made active). `data/curated/regulations/entries/dfo_salmon/region-2.json` is left
   uncommitted until you have. Also yours: the staleness warning window, 7 days in Apr–Dec (`refresh.STALE_DAYS`).
-- **DFO header notes (T343, 2026-11-03):** R6's adult chinook "other than Fraser River Watershed" names a "Fraser
-  River" no R6 DFO water binds (a notice now says so): bind it in DFO review, or say R6 has no Fraser-watershed salmon
-  water. R2's "daylight hours" has no definition on DFO's page: read as sunrise to sunset (R3/R8 say 1 h either side).
 - **Plan to 0.5.0 approved (2026-11-03):** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Yours along the way: a look at the compressed rule-book photo pages (T354, plan set 11-03)
   (T360/T354, batch 2); the Apple Developer account ($99) before the iOS release (T88); the feeds-worker deploy only
   after 0.5.0 (T315).

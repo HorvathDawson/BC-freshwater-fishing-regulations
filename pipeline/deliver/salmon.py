@@ -470,6 +470,21 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         # again; the app leaves it off the card until then (core `pickSalmon` / `withSalmonFeed`)
         unmapped.append({"items": sorted(water.item_ids) if water else [], "r": slug, "w": _label(loc),
                          "chain": chain_for([lid]), **({} if rules_of[lid] else {"d": 1})})
+    if item_sections is not None:
+        # (T343) a region's note is read only on a page whose places are that region's (core `salmonNotes`, its chains'
+        # `r`): a scope keeps the items that have one — R6's "other than Fraser River Watershed" is 6,713 items across
+        # every region, a few dozen of them in a Region 6 chain. Every place is in a chain, dormant ones too.
+        sid_items: Dict[int, List[str]] = defaultdict(list)
+        for it, sids in item_sections.items():
+            for sid in sids:
+                sid_items[sid].append(it)
+        mine: Dict[str, set] = defaultdict(set)
+        for sid, c in sections:
+            for r in chains[c]["r"]:
+                mine[r].update(sid_items.get(sid, ()))
+        for u in unmapped:
+            mine[u["r"]].update(u["items"])
+        scopes = {slug: {k: [i for i in v if i in mine[slug]] for k, v in sc.items()} for slug, sc in scopes.items()}
     payload = {"format": FORMAT, "credit": CREDIT, "default": UNLISTED_CHAIN, "regions": regions, "verdicts": verdicts.items,
                "gears": gears.items, "chains": chains, "unmapped": unmapped, "scopes": scopes,
                **({"x": dict(sorted(words_of.items()))} if words_of else {})}
