@@ -17,26 +17,29 @@ for the whole tree: pipeline, worker, core, ui, ui-native, map.
   and writes `dfo-feed/3`, which 0.4.0 can't read, so 0.4.0 installs lose DFO salmon until they update.
 - **Play:** the AAB goes to internal and Closed testing. The Console steps are the owner's (T371, `play/`). The owner
   may start Closed testing with fewer than 12 testers and add more later.
-- **Not run before release (owner's call 2026-11-04):** the full test suites. Each change was checked with targeted
-  tests only.
+- **Tests before release (owner 2026-11-04):** a lean run, not the full suites: the app tests `--changed` since the
+  morning of 11-04 and the pipeline tests of the modules changed that day.
+- **Crashes and memory were in 0.5.0:** T345 fixed (8a5b5bd; its last path confirmed by the test bed's water-nav), T352
+  done (crash/2 carries the water, screen, install id), T360 measured and fixed over five rounds, T351 waits for a
+  0.5.0 crash report (they now say where). STATUS names what the final emulator run confirmed.
 
-## First, in order
-1. **Full suites, once.** App: `scripts/heavy.sh app-suite 50 -- bash -c 'cd app && npx vitest run'`. Pipeline:
-   `scripts/heavy.sh pytest 50 -- .venv/bin/python -m pytest -q pipeline/tests`. Then `pnpm -C app check`. Run
-   everything unfiltered (`rtk proxy`): rtk once reported a clean run that wasn't. Fix what's red, or ticket it.
-   - Known flake: `Walkthrough.test.tsx` "Layers … Next puts them back" fails under the parallel suite and passes
-     alone (2 s `waitFor`s). Give it room or ticket it.
-2. **`graphify update .`**: the graph was not updated after the 0.5.0 changes.
-3. **A stuck process from 2026-11-04:** a Vitest worker (PID 41624) and its Python child (41668) hung from an earlier
-   run. The permission check would not let Claude stop them. Ask the owner to run `kill 41668 41624` if they are
-   still there (`ps -p 41624,41668`).
-4. **Watch Closed testing.** Testers' reports and crash reports come to the staging worker (`/status`, the daily
-   digest). `OWNER-PHONE.md` lists what to watch for (fling, copy text, whitefish swipe, closed water, Change
-   percentiles, forecast days, Salmon card). Each real problem becomes a ticket.
+## First, in order (Claude's own, no owner step)
+1. **Read the reports.** Testers' problem reports and crash reports land on the staging worker (`/status`, `GET
+   /crashes` with the run token in `app/workers/feeds/.run-token`, the daily digest). Read them, and turn each real
+   problem into a ticket. `OWNER-PHONE.md` lists what testers may trip on (fling, copy text, whitefish swipe, closed
+   water, Change percentiles, forecast days, Salmon card).
+2. **The full suites, once, quietly in the background** (the pre-release run was lean). App:
+   `scripts/heavy.sh app-suite 50 -- bash -c 'cd app && npx vitest run'`. Pipeline:
+   `scripts/heavy.sh pytest 50 -- .venv/bin/python -m pytest -q pipeline/tests`. Then `pnpm -C app check`. Run them
+   unfiltered (`rtk proxy`). Fix what's red, or ticket it. Known flake: `Walkthrough.test.tsx` "Layers … Next puts
+   them back" fails under the parallel suite and passes alone (2 s `waitFor`s).
+3. **`graphify update .`**: the graph was not updated after the 0.5.0 changes.
+4. **One owner step, only if it's still there:** a Vitest worker (PID 41624) and its Python child (41668) hung on
+   2026-11-04, and the permission check would not let Claude stop them. Check with `ps -p 41624,41668`. If they're
+   still alive, ask the owner to run `kill 41668 41624`.
 
 ## Then the work, roughly in this order
-1. **Crashes and memory (Android):** T345 (Coquitlam River map tap crash), T351 (native foreground crash, no stack),
-   T352 (reports lack context), T360 leftovers.
+1. **New crashes from testing:** T351 when a 0.5.0 crash report names its screen; any new one from Closed testing.
 2. **T377 rest:** the T367 leftovers after the forecast-day list (tappable/collapsible legend etc., see the ticket).
 3. **T178 weights:** the worker now scores CLEVER vs COFFEE monthly (`/run/skill`, `private/feeds/skill.json`). After
    one or two months of scores, propose the weights. Changing them is a reviewed change, not automatic.
