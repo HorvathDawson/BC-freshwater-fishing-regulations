@@ -21,7 +21,11 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   walkthrough water search + T369's address store at boot + two whole-water routes) — all fixed, a test guards it.
 - Owner decision open: the web address's place (T369) fetches `lines` (1.2 MB gz) on the FIRST water a visitor opens.
   Unpriced by design (contract). Keep, or write the place only when Share / copy-link is used?
-- Running: T65 side atlas (`--atlas`). Next: ONE emulator sitting, suites, staging, worker, AAB.
+- T65 DONE (0d5d3577f): the atlas is deterministic (two builds byte-identical but timings, build_ts, a pickled
+  set's order; graphs equal).
+- Owner chose (11-04): named waters' link place from a small `part_line` table in the water slices — never `lines`;
+  unnamed reaches keep `lines`. T388 running (agent); then a deliver re-run + walk re-pin, then ONE APK + emulator
+  sitting (waits for T388 so there is one APK), suites, staging, worker, AAB.
 
 ## 2026-11-04 (merged chat, evening): owner answers in, T368/T369 lanes, T370 done [T368, T369, T370, T375, T360, T77, T381]
 - Owner answered T368 (9) and T369 (3): recorded at the end of each audit file; two agent lanes implement them now.
