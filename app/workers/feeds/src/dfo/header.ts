@@ -99,6 +99,17 @@ function names(phrase: string): string[] {
     .map((x) => sub(RE_THE, "", strip(x)));
 }
 
+const RE_SOLAR = pyRe("between (\\d+|one|two) hours? (before|after) (sunrise|sunset) and (\\d+|one|two) hours? (before|after) (sunrise|sunset)", "i");
+
+/** header._daylight (T343): DFO's daylight definition as solar hours, else sunrise to sunset (R2 prints none) */
+function daylight(low: string): Record<string, unknown> {
+  const m = search(RE_SOLAR, low);
+  if (!m) return { start: { solar: "sunrise" }, end: { solar: "sunset" } };
+  const end = (n: string, side: string, ev: string) =>
+    ({ solar: ev, offset_min: (side === "before" ? -1 : 1) * 60 * ({ one: 1, two: 2 }[n] ?? pyInt(n)) });
+  return { start: end(m[1]!, m[2]!, m[3]!), end: end(m[4]!, m[5]!, m[6]!) };
+}
+
 const water = (name: string, ws = false) => ({ n: name, ws, key: key(name) + (ws ? "+ws" : "") });
 
 const R = {
@@ -167,7 +178,7 @@ export function classify(text: string, lead: string | null = null): Note | null 
   if (text.endsWith(":") && !search(R.digit, text) && !low.includes("measured") && !low.includes("taken from")) return null;
   if (fullmatch(R.divided, low)) return null; // (T343) region 5's pointer to its two pages: no rule
   if (search(R.closed, low)) return { k: "closed", t: text };
-  if (low.includes("daylight hours")) return { k: "daylight", t: text };
+  if (low.includes("daylight hours")) return { k: "daylight", t: text, hours: daylight(low) };
   let m = search(R.facility, low);
   if (m) return { k: "facility", t: text, m: pyInt(m[1]!) };
   m = match(R.watershed, text);

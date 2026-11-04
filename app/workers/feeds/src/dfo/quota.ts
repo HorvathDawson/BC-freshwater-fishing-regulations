@@ -2,6 +2,7 @@
 // node of the GAME-FISH QUOTA TREE, the answers model's TreeTier, not T320's bespoke `q`), the region's salmon bucket
 // (`bucket`, its tree the TOTAL tier) and the header closure that wins over the table (`header_closure`).
 // `residue` / `unreadReason` live in typed.ts (to_rules uses them).
+import { clockWords, type ClockW } from "./salmon";
 import type { TypedRule } from "./typed";
 
 type R = TypedRule & Record<string, unknown>;
@@ -105,7 +106,7 @@ export const words = (t: QuotaTier | null | undefined): string | null =>
 type Band = { min_cm?: number; max_cm?: number };
 type Water = { n: string; ws?: boolean; key: string };
 type Note = { id?: string; k: string; t: string; n?: unknown; lengths?: Band[]; sp?: string[]; w?: Water[]; x?: unknown[]; xp?: unknown[];
-              on?: number[][]; hatchery?: boolean };
+              on?: number[][]; hatchery?: boolean; hours?: unknown };
 /** quota._over: a note's length floor (`lengths[0].min_cm`) */
 const overOf = (n: Note): number | undefined => n.lengths?.[0]?.min_cm;
 const isInt = (x: unknown): x is number => typeof x === "number" && Number.isInteger(x);
@@ -227,7 +228,7 @@ export function headerClosure(notes: Note[], slug: string): R[] | null {
 }
 
 /** (T343, owner 2026-10-31) deliver.salmon.DROPPED_KINDS: header notes never shown */
-const DROPPED_KINDS = new Set(["facility", "measure"]);
+const DROPPED_KINDS = new Set(["facility", "measure", "bait_ban"]);
 
 /** deliver.salmon.header_answers (T356, T343): the region's `bucket` / `shared` / `sizes`, and its `notes` again with
  *  each said elsewhere marked `fold` (bucket / sizes / shared / closure — where that structure read it — or drop) */
@@ -237,7 +238,12 @@ export function headerAnswers(notes: Note[]): Record<string, unknown> {
   const sized = new Set<string>();
   const sz = sizes(notes, sized);
   const closure = headerClosure(notes, "");
+  const day = notes.find((n) => n.k === "daylight" && n.hours && !(n.w && n.w.length));
+  const h = day?.hours as { start: ClockW; end: ClockW } | undefined;
+  const hours = day && h ? { hours: h, id: day.id ?? null,
+    says: `Salmon fishing in daylight only: ${clockWords(h.start)} to ${clockWords(h.end)}` } : null;
   const fold: Record<string, string> = {};
+  if (day?.id && hours) fold[day.id] = "hours";
   for (const i of sized) fold[i] = "sizes";
   for (const i of ((b?.ids as string[] | undefined) ?? [])) fold[i] = "bucket";
   for (const x of shared) if (x.id) fold[x.id as string] = "shared";
@@ -247,5 +253,5 @@ export function headerAnswers(notes: Note[]): Record<string, unknown> {
     const how = DROPPED_KINDS.has(rest.k) ? "drop" : rest.id !== undefined ? fold[rest.id] : undefined;
     return (how ? { ...rest, fold: how } : rest) as Note;
   });
-  return { notes: marked, ...(b ? { bucket: b } : {}), shared, sizes: sz };
+  return { notes: marked, ...(b ? { bucket: b } : {}), ...(hours ? { hours } : {}), shared, sizes: sz };
 }

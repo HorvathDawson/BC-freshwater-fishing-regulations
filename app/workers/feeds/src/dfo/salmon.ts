@@ -57,8 +57,8 @@ function rangeTxt(a: number, b: number): string {
   if (Math.floor(a / 100) === Math.floor(b / 100)) return `${fmtMd(a)}–${b % 100}`;
   return `${fmtMd(a)}–${fmtMd(b)}`;
 }
-type ClockW = { at?: string; solar?: string; offset_min?: number };
-function clockWords(c: ClockW): string {
+export type ClockW = { at?: string; solar?: string; offset_min?: number };
+export function clockWords(c: ClockW): string {
   if (c.at) return c.at;
   const off = c.offset_min || 0;
   const n = Math.abs(off);

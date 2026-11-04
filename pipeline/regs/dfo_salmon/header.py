@@ -123,6 +123,25 @@ def _over(cm: str) -> List[dict]:
     return _band(min_cm=int(cm))
 
 
+_RE_SOLAR = re.compile(r"between (\d+|one|two) hours? (before|after) (sunrise|sunset) and (\d+|one|two) hours? (before|after) "
+                       r"(sunrise|sunset)", re.I)
+_N = {"one": 1, "two": 2}
+
+
+def _daylight(low: str) -> dict:
+    """(T343) a `daylight` note's hours as the catalogue's `Hours` (each end a solar `Clock`): DFO's own definition
+    ("between 1 hour before sunrise and 1 hour after sunset", R3 / R8), else daylight as the words say it: sunrise to
+    sunset (R2 prints no definition)."""
+    from pipeline.regs.parsing.catalogue_parts.dates import Hours
+    m = _RE_SOLAR.search(low)
+    if m:
+        end = lambda n, side, ev: {"solar": ev, "offset_min": (-1 if side == "before" else 1) * 60 * int(_N.get(n, n))}
+        hours = {"start": end(*m.group(1, 2, 3)), "end": end(*m.group(4, 5, 6))}
+    else:
+        hours = {"start": {"solar": "sunrise"}, "end": {"solar": "sunset"}}
+    return Hours(**hours).model_dump(mode="json", exclude_defaults=True)
+
+
 def classify(text: str, lead: Optional[str] = None) -> Optional[dict]:
     """One header sentence -> a typed note (None for a bare lead-in like "You must be aware of these limits:")."""
     full = f"{lead} {text}" if lead else text
@@ -149,7 +168,7 @@ def classify(text: str, lead: Optional[str] = None) -> Optional[dict]:
     if re.search(r"no fishing for salmon in region .* until further notice", low):
         return {"k": "closed", "t": text}
     if "daylight hours" in low:
-        return {"k": "daylight", "t": text}
+        return {"k": "daylight", "t": text, "hours": _daylight(low)}
     m = re.search(r"within (\d+)\s*met(?:er|re)s of any government facility", low)
     if m:
         return {"k": "facility", "t": text, "m": int(m.group(1))}

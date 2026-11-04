@@ -31,3 +31,6 @@ ocean-phase chinook (`app/apps/mobile/assets/fish/chinook-salmon-ocean-phase.web
 own `<species>-salmon-spawning-phase.webp`. (b) The DFO source info (page link, date modified, notice numbers) is one
 collapsible line, collapsed by default; opened it shows the full source details. The view model is unchanged (core
 `salmonCard`: `source`, `asOf`, `credit`, `dfoWords`).
+(c) T343: draw the salmon card's new `hours` line (core `salmonCard(...).hours`, e.g. "Salmon fishing in daylight only:
+one hour before sunrise to one hour after sunset"; null when all closed) near the gear line. Then tell the data chat (or
+change core `salmon.ts` `asWords`: drop `n.fold === "hours" ||`) so the daylight note leaves the region block. Before 0.5.0.

@@ -51,3 +51,14 @@ has no single bucket). Notes stay in the file (ids, closure `c`). Format unchang
   note's words are still in the file and in its structure's `t`.
 - **6–7 → T367** (UI chat files): collapsed salmon section = ocean-phase chinook image, opened rows = each species'
   spawning-phase image; DFO source line one collapsible row, collapsed by default.
+
+## Owner round 2 (2026-11-03: "fix all these", eulachon stays)
+- **Daylight → `hours`:** a `daylight` note carries `hours` (the catalogue's `Hours`, solar ends): DFO's definition for
+  R3 / R8 ("1 hour before sunrise … 1 hour after sunset"); R2 prints none, read as sunrise to sunset. The region ships
+  `hours: {hours, says, id}`; the card's VM has `hours` ("Salmon fishing in daylight only: …", null when all closed).
+  Fold `hours`. Its words stay in the region block until the card draws `hours` (T367, UI chat) — then one line in
+  core `asWords` drops them.
+- **R1 bait ban → dropped:** the province already carries "Bait ban: all streams of Region 1, all year" (z1 base), and
+  each river DFO excepts (Quatse, Somass, Sproat, Stamp) has its own provincial seasonal bait ban — the card's gear line
+  says it, as for trout.
+- **Eulachon:** stays as words (owner).

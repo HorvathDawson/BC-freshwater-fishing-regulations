@@ -107,10 +107,12 @@ export interface SalmonNote {
   readonly hatchery?: boolean;
   /** (T343) where the note is said instead of as words (`deliver.salmon.header_answers`): the bucket, the sizes line,
    *  the aggregate limit, the closure — or `drop`, never shown */
-  readonly fold?: "bucket" | "sizes" | "shared" | "closure" | "drop";
+  readonly fold?: "bucket" | "sizes" | "shared" | "closure" | "hours" | "drop";
 }
+/** (T343) the page's salmon fishing hours (a `daylight` note), the pipeline's words in `says` */
+interface SalmonHours { readonly says: string; readonly id: string | null }
 interface Region { readonly name: string; readonly asof: string | null; readonly url: string; readonly notes?: readonly SalmonNote[];
-                  readonly bucket?: SalmonBucket; readonly shared: readonly SalmonShared[]; readonly sizes: readonly SalmonSizes[] }
+                  readonly bucket?: SalmonBucket; readonly hours?: SalmonHours; readonly shared: readonly SalmonShared[]; readonly sizes: readonly SalmonSizes[] }
 interface Unmapped { readonly items: readonly string[]; readonly r: string; readonly w: string; readonly chain: number; readonly d?: number }
 interface Payload {
   readonly format: string; readonly credit: string; readonly default: number;
@@ -508,6 +510,9 @@ export interface SalmonCardVM extends SalmonBlockVM {
   readonly waterRules: readonly string[];
   /** (owner 2026-10-28) the provincial bait ban / fly only on the page that day — it applies to salmon too — else null */
   readonly gearProvincial: string | null;
+  /** (T343) the page's salmon fishing hours (DFO's daylight rule, e.g. "Salmon fishing in daylight only: one hour before
+   *  sunrise to one hour after sunset"), null when the page prints none or every salmon is closed */
+  readonly hours?: string | null;
   /** (T227, owner 2026-10-28) the page's salmon reduce to ONE closed-all-year statement (a region-wide closure, an
    *  unlisted water, places closed every day): the at-a-glance row says "closed" and opens nothing */
   readonly closedOnly: boolean;
@@ -674,8 +679,10 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     .map((b) => [JSON.stringify([b.tree.n, b.possession ?? null]), b])).values()];
   // (T343) a note the pipeline folded is said by its structure, not as words: a sizes note where a sizes line says its
   // species (`sized`), a bucket note where the one bucket is; an aggregate, a closure or a dropped note never
+  // ("hours" stays words too until the card draws `hours` — T367, the UI chat)
   const asWords = (n: SalmonNote, sized: ReadonlySet<string>) =>
-    !n.fold || (n.fold === "sizes" && !n.sp?.some((x) => sized.has(x))) || (n.fold === "bucket" && buckets.length !== 1);
+    !n.fold || n.fold === "hours" || (n.fold === "sizes" && !n.sp?.some((x) => sized.has(x)))
+      || (n.fold === "bucket" && buckets.length !== 1);
   const none: ReadonlySet<string> = new Set();
   // (T227, owner 2026-10-28) a region note about a species (what an "adult chinook" is, an annual chinook limit) sits
   // with that species' row, the way steelhead's sits with steelhead; the region block keeps only what no row took
@@ -722,6 +729,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
       : sts.includes("check") ? "check" : "closed";
   return {
     ...block, rows, regionRules, gearProvincial,
+    hours: block.allClosed ? null
+      : [...new Set(regionsUsed.map((r) => P.regions[r]?.hours?.says).filter((x): x is string => !!x))].join(" · ") || null,
     bucket: buckets.length === 1 ? buckets[0]! : null,
     waterBuckets: hn.water.filter((n) => n.k === "aggregate" && typeof n.n === "number"
         && rows.some((r) => r.status === "open" && !!n.sp?.some((x) => r.species.includes(x as SalmonSpecies))))

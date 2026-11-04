@@ -13,7 +13,16 @@ export const SALMON_FEED_GOLDEN = {
      {
       "id": "6:daylight:c4e3b46f",
       "k": "daylight",
-      "t": "You can only fish for salmon in Region 6 during daylight hours."
+      "t": "You can only fish for salmon in Region 6 during daylight hours.",
+      "hours": {
+       "start": {
+        "solar": "sunrise"
+       },
+       "end": {
+        "solar": "sunset"
+       }
+      },
+      "fold": "hours"
      },
      {
       "id": "6:facility:482d5861",
@@ -192,7 +201,8 @@ export const SALMON_FEED_GOLDEN = {
       ],
       "xp": [
        "Zymoetz River downstream of the canyon"
-      ]
+      ],
+      "fold": "drop"
      },
      {
       "id": "6:other:41155080",
@@ -233,6 +243,18 @@ export const SALMON_FEED_GOLDEN = {
      ],
      "possession": 8,
      "tp": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence."
+    },
+    "hours": {
+     "hours": {
+      "start": {
+       "solar": "sunrise"
+      },
+      "end": {
+       "solar": "sunset"
+      }
+     },
+     "id": "6:daylight:c4e3b46f",
+     "says": "Salmon fishing in daylight only: sunrise to sunset"
     },
     "shared": [
      {
@@ -916,7 +938,16 @@ export const SALMON_FEED_GOLDEN = {
      {
       "id": "6:daylight:c4e3b46f",
       "k": "daylight",
-      "t": "You can only fish for salmon in Region 6 during daylight hours."
+      "t": "You can only fish for salmon in Region 6 during daylight hours.",
+      "hours": {
+       "start": {
+        "solar": "sunrise"
+       },
+       "end": {
+        "solar": "sunset"
+       }
+      },
+      "fold": "hours"
      },
      {
       "id": "6:facility:482d5861",
@@ -1095,7 +1126,8 @@ export const SALMON_FEED_GOLDEN = {
       ],
       "xp": [
        "Zymoetz River downstream of the canyon"
-      ]
+      ],
+      "fold": "drop"
      },
      {
       "id": "6:other:41155080",
@@ -1103,7 +1135,7 @@ export const SALMON_FEED_GOLDEN = {
       "t": "Reminder: There is no fishing for eulachon in Region 6."
      }
     ],
-    "header": "1f6ac7e02cfd09d2",
+    "header": "968cd65fa91214b1",
     "bucket": {
      "tree": {
       "node": "tier",
@@ -1137,6 +1169,18 @@ export const SALMON_FEED_GOLDEN = {
      ],
      "possession": 8,
      "tp": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence."
+    },
+    "hours": {
+     "hours": {
+      "start": {
+       "solar": "sunrise"
+      },
+      "end": {
+       "solar": "sunset"
+      }
+     },
+     "id": "6:daylight:c4e3b46f",
+     "says": "Salmon fishing in daylight only: sunrise to sunset"
     },
     "shared": [
      {
@@ -1721,7 +1765,16 @@ export const SALMON_FEED_GOLDEN = {
      {
       "id": "6:daylight:c4e3b46f",
       "k": "daylight",
-      "t": "You can only fish for salmon in Region 6 during daylight hours."
+      "t": "You can only fish for salmon in Region 6 during daylight hours.",
+      "hours": {
+       "start": {
+        "solar": "sunrise"
+       },
+       "end": {
+        "solar": "sunset"
+       }
+      },
+      "fold": "hours"
      },
      {
       "id": "6:facility:482d5861",
@@ -1900,7 +1953,8 @@ export const SALMON_FEED_GOLDEN = {
       ],
       "xp": [
        "Zymoetz River downstream of the canyon"
-      ]
+      ],
+      "fold": "drop"
      },
      {
       "id": "6:other:41155080",
@@ -1908,7 +1962,7 @@ export const SALMON_FEED_GOLDEN = {
       "t": "Reminder: There is no fishing for eulachon in Region 6."
      }
     ],
-    "header": "1f6ac7e02cfd09d2",
+    "header": "968cd65fa91214b1",
     "bucket": {
      "tree": {
       "node": "tier",
@@ -1942,6 +1996,18 @@ export const SALMON_FEED_GOLDEN = {
      ],
      "possession": 8,
      "tp": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence."
+    },
+    "hours": {
+     "hours": {
+      "start": {
+       "solar": "sunrise"
+      },
+      "end": {
+       "solar": "sunset"
+      }
+     },
+     "id": "6:daylight:c4e3b46f",
+     "says": "Salmon fishing in daylight only: sunrise to sunset"
     },
     "shared": [
      {

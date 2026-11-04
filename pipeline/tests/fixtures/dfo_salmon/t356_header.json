@@ -115,6 +115,7 @@
     "t": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined."
    },
    {
+    "fold": "drop",
     "id": "1:bait_ban:338a7b15",
     "k": "bait_ban",
     "t": "Annual bait ban in effect in all streams of Region 1 as follows: All streams in Region 1 except: Quatse River; Somass River; Sproat River; Stamp River downstream of \"Girl Guide Falls\" (approximately 275 m upstream of the mouth of Beaver Creek), unless otherwise described below.",
@@ -206,8 +207,29 @@
     "tier": "total"
    }
   },
+  "hours": {
+   "hours": {
+    "end": {
+     "solar": "sunset"
+    },
+    "start": {
+     "solar": "sunrise"
+    }
+   },
+   "id": "2:daylight:f19a3472",
+   "says": "Salmon fishing in daylight only: sunrise to sunset"
+  },
   "notes": [
    {
+    "fold": "hours",
+    "hours": {
+     "end": {
+      "solar": "sunset"
+     },
+     "start": {
+      "solar": "sunrise"
+     }
+    },
     "id": "2:daylight:f19a3472",
     "k": "daylight",
     "t": "You can only fish for salmon in Region 2 during daylight hours."
@@ -994,8 +1016,33 @@
     "tier": "total"
    }
   },
+  "hours": {
+   "hours": {
+    "end": {
+     "offset_min": 60,
+     "solar": "sunset"
+    },
+    "start": {
+     "offset_min": -60,
+     "solar": "sunrise"
+    }
+   },
+   "id": "8:daylight:45d8e305",
+   "says": "Salmon fishing in daylight only: one hour before sunrise to one hour after sunset"
+  },
   "notes": [
    {
+    "fold": "hours",
+    "hours": {
+     "end": {
+      "offset_min": 60,
+      "solar": "sunset"
+     },
+     "start": {
+      "offset_min": -60,
+      "solar": "sunrise"
+     }
+    },
     "id": "8:daylight:45d8e305",
     "k": "daylight",
     "t": "You are only allowed to fish for salmon in Region 8 during daylight hours, that is, between 1 hour before sunrise and 1 hour after sunset."

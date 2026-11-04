@@ -12,10 +12,9 @@ with the default Claude uses until you answer). Newest first inside each section
   as a variant of the existing upstream place, and DFO's "downstream of the CPR Bridge at Mission to … Hope" as the
   dormant Mission→Hope place (made active). `data/curated/regulations/entries/dfo_salmon/region-2.json` is left
   uncommitted until you have. Also yours: the staleness warning window, 7 days in Apr–Dec (`refresh.STALE_DAYS`).
-- **DFO header notes (T343, 2026-11-03):** three notes still show as words, having no structured home: daylight only
-  (R2, R3, R8), R1's stream bait ban, and the eulachon reminder (R5B, R6; not salmon — drop it?). And R6's adult chinook
-  "other than Fraser River Watershed" names a "Fraser River" no R6 DFO water binds (a notice now says so): bind it in DFO
-  review, or say R6 has no Fraser-watershed salmon water. Adult chinook defaults to 50 cm where DFO names none (your rule).
+- **DFO header notes (T343, 2026-11-03):** R6's adult chinook "other than Fraser River Watershed" names a "Fraser
+  River" no R6 DFO water binds (a notice now says so): bind it in DFO review, or say R6 has no Fraser-watershed salmon
+  water. R2's "daylight hours" has no definition on DFO's page: read as sunrise to sunset (R3/R8 say 1 h either side).
 - **Plan to 0.5.0 approved (2026-11-03):** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Yours along the way: a look at the compressed rule-book photo pages (T354, plan set 11-03)
   (T360/T354, batch 2); the Apple Developer account ($99) before the iOS release (T88); the feeds-worker deploy only
   after 0.5.0 (T315).

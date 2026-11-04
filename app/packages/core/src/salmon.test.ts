@@ -285,6 +285,17 @@ describe("(T227) region notes about a species sit with that species", () => {
     const c = salmonCard(g, { sids: [101], item: null }, JUL20);
     expect([c.bucket?.ids, words(c).includes("The daily limit … is 4.")]).toEqual([["6:daily:f"], false]);
   });
+  it("(T343) the page's fishing hours are the card's `hours` line (the words stay until the card draws it — T367)", () => {
+    const f = withNotes() as unknown as { payload: { regions: Record<string, { notes: unknown[] }> } };
+    const r6 = f.payload.regions["6"]!;
+    const g = { ...f, payload: { ...f.payload, regions: { ...f.payload.regions, "6": { ...r6,
+      hours: { says: "Salmon fishing in daylight only: sunrise to sunset", id: "6:daylight:a" },
+      notes: (r6.notes as { id: string }[]).map((x) => (x.id === "6:daylight:a" ? { ...x, fold: "hours" } : x)) } } } } as never;
+    const c = salmonCard(g, { sids: [101], item: null }, JUL20);
+    expect([c.hours, c.regionRules[0]!.notes.includes("Daylight only.")]).toEqual(["Salmon fishing in daylight only: sunrise to sunset", true]);
+    const closed = salmonCard(g, { sids: [101], item: null }, SEP15);      // every species closed: no hours line
+    expect([closed.allClosed, closed.hours]).toEqual([true, null]);
+  });
 });
 
 describe("(T227, owner 2026-10-28) a region-wide closure is the answer", () => {

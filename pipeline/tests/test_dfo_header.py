@@ -236,7 +236,8 @@ def test_t343_an_excepted_watershed_gets_the_default_adult_chinook_and_a_page_wi
 def test_t343_every_header_note_is_folded_dropped_or_left_as_words():
     """(T343) `header_answers` marks each note said elsewhere: the daily / possession / annual limits by the bucket (its
     total says "fresh and tidal waters combined"), the sizes by the sizes line, the closure by the closure; the 100 m
-    facility rule and how to measure are dropped. Daylight, the bait ban and the eulachon reminder stay as words."""
+    facility rule, how to measure and R1's stream bait ban (the province's own) are dropped; daylight is the page's
+    `hours` (solar, DFO's definition — R2 prints none: sunrise to sunset). Only the eulachon reminder stays as words."""
     from pipeline.deliver.salmon import header_answers
     folds = {}
     for slug in T356_SLUGS:
@@ -245,13 +246,19 @@ def test_t343_every_header_note_is_folded_dropped_or_left_as_words():
             assert got["bucket"]["tree"]["says"].endswith("salmon a day in total, fresh and tidal waters combined")
         for n in got["notes"]:
             folds.setdefault(n["k"], set()).add(n.get("fold"))
+        if slug == "2":
+            assert got["hours"]["says"] == "Salmon fishing in daylight only: sunrise to sunset"
+        if slug == "8":
+            assert got["hours"]["says"] == ("Salmon fishing in daylight only: one hour before sunrise to one hour after "
+                                            "sunset")
     assert folds.pop("facility") == folds.pop("measure", {"drop"}) == {"drop"}
     assert folds.pop("closed") == {"closure"}
     assert {k: v for k, v in folds.items() if k in ("daily", "possession", "annual", "monthly")} == {
         k: {"bucket"} for k in ("daily", "possession", "annual", "monthly") if k in folds}
     assert folds.pop("min_size") == folds.pop("adult") == folds.pop("jack") == {"sizes"}
     assert folds.get("aggregate", {"shared"}) == {"shared"}
-    assert folds.get("daylight", {None}) == folds.get("bait_ban", {None}) == folds.get("other", {None}) == {None}
+    assert folds.pop("daylight") == {"hours"} and folds.pop("bait_ban") == {"drop"}
+    assert folds.get("other", {None}) == {None}
 
 
 T356_FIXTURE = Path(__file__).parent / "fixtures" / "dfo_salmon" / "t356_header.json"
