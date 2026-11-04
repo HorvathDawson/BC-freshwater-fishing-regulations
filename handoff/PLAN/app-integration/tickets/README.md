@@ -414,6 +414,7 @@ use that as the sole source of future work."
 | T368 | Failures, fallbacks and reporting app-wide: rethrow, or show + `reportFailure`, or list; one failure face; scan net (split from T333) | OPEN | — | owner 2026-11-03 (batch 6c, in 0.5.0) |
 | T369 | One load path per screen: same output whatever the way in (refresh, tab/view switch, search, map tap, step, list pick); a net comparing every way in | OPEN | — | owner 2026-11-03 (batch 6c, in 0.5.0) |
 | T370 | Web: `water-{region}` slices each repeat ~0.7 MB of shared rules/keys; one shared web file instead (measure first) | OPEN | — | found 2026-11-03 (after 0.5.0) |
+| T371 | 0.5.0 to Play Closed testing: track, listing/app-content forms, 12 testers × 14 days → production access checklist | OPEN | — | owner 2026-11-03 (batch 7) |
 
 ## Order for open tickets
 

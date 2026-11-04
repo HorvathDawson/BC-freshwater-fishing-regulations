@@ -192,3 +192,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   beside the old one, and for two months watch Pages > Not found (404) and Redirect error (the 19,331 old `/waterbody/` URLs
   should show as Page with redirect). Deploy the generated `_worker.js` with `run_worker_first = ["/waterbody/*"]` (T86 hosting).
 
+- **T371 (batch 7): Play Closed testing for 0.5.0.** In the Play Console: create the Closed testing track and a tester
+  list (at least 12 people who will opt in and stay for 14 days), fill the app-content forms (Claude drafts the data
+  safety answers and listing text). Then roll 0.5.0 out there; that starts Google's clock for production access.
