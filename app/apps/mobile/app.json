@@ -11,15 +11,15 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Can I Fish? to add your photos to a spot you saved. They stay on this device.",
-          "cameraPermission": "Allow Can I Fish? to take a photo for a spot you saved. It stays on this device.",
+          "photosPermission": "Allow Can I Fish This? to add your photos to a spot you saved. They stay on this device.",
+          "cameraPermission": "Allow Can I Fish This? to take a photo for a spot you saved. It stays on this device.",
           "microphonePermission": false
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow Can I Fish? to pin a spot where you are standing. It stays on this device.",
+          "locationWhenInUsePermission": "Allow Can I Fish This? to pin a spot where you are standing. It stays on this device.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": false,
@@ -40,6 +40,8 @@
       "adaptiveIcon": { "foregroundImage": "./assets/icon/adaptive-foreground.png", "monochromeImage": "./assets/icon/adaptive-monochrome.png" }
     },
     "web": {
+      "name": "Can I Fish This?",
+      "shortName": "Can I Fish?",
       "bundler": "metro",
       "output": "single",
       "favicon": "./assets/icon/favicon-48.png"

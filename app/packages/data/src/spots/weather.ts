@@ -45,6 +45,15 @@ const AHEAD_DAYS = 5;
 /** The rain window before today's comparison (core `LIKE_RAIN_DAYS`). */
 const AHEAD_PAST_DAYS = 3;
 
+/**
+ * (T371, owner 2026-11-04) WHERE A REQUEST ASKS ABOUT, ROUNDED to 0.01° (~1 km): weather does not change across a
+ * kilometre, and a spot's exact point never leaves the device for it — Play's data-safety form then lists approximate
+ * location only. Every Open-Meteo request is built through this, never with the raw point.
+ */
+export function weatherPlace(lat: number, lon: number): string {
+  return `latitude=${lat.toFixed(2)}&longitude=${lon.toFixed(2)}`;
+}
+
 export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
   return {
     /**
@@ -53,7 +62,7 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
      * Null when it could not be read; a value the service did not send is null, never a neighbour's.
      */
     async ahead(lat, lon): Promise<WeatherAhead | null> {
-      const url = `${CURRENT}?latitude=${lat}&longitude=${lon}&daily=precipitation_sum&hourly=${AHEAD_HOURLY}` +
+      const url = `${CURRENT}?${weatherPlace(lat, lon)}&daily=precipitation_sum&hourly=${AHEAD_HOURLY}` +
                   `&timezone=auto&past_days=${AHEAD_PAST_DAYS}&forecast_days=${AHEAD_DAYS}`;
       try {
         const res = await fetchImpl(url);
@@ -85,7 +94,7 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
       const first = days[0], last = days[days.length - 1];
       if (!first || !last) return null;
       const endOfLast = bcMidnight(last) + 86_400_000;
-      const where = `latitude=${lat}&longitude=${lon}`;
+      const where = weatherPlace(lat, lon);
       // (owner 2026-11-04) days are B.C.'s, as everywhere
       const back = Math.round((bcMidnight(localDate(now())) - bcMidnight(first)) / 86_400_000);
       const recent = `${CURRENT}?${where}&daily=${DAILY}&timezone=auto` +
@@ -143,8 +152,8 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
         // way; `current` rides along when it exists because it is fresher than the hour.
         const range = `&start_date=${day(when)}&end_date=${day(when)}&hourly=${FIELDS}`;
         const url = historic
-          ? `${ARCHIVE}?latitude=${lat}&longitude=${lon}${range}`
-          : `${CURRENT}?latitude=${lat}&longitude=${lon}${range}&current=${FIELDS}`;
+          ? `${ARCHIVE}?${weatherPlace(lat, lon)}${range}`
+          : `${CURRENT}?${weatherPlace(lat, lon)}${range}&current=${FIELDS}`;
 
         const res = await fetchImpl(url);
         if (!res.ok) return null;

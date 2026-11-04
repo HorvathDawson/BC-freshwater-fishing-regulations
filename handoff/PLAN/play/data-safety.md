@@ -83,3 +83,16 @@ one small code change plus a weather test. It would be a new ticket. Nothing has
 3. The listing's "private by design" paragraph matches (`handoff/PLAN/play/listing.md`). The 10-29 text said location
    stays on the phone, which is no longer quite true.
 4. Families / target audience: 18+ (the listing draft), so the Families policy questions do not apply.
+
+## Owner answers (2026-11-04)
+- **Open-Meteo:** coordinates ROUNDED to 0.01° (~1 km) in every weather request (`weatherPlace`,
+  app/packages/data/src/spots/weather.ts; test in weather.test.ts). Declare APPROXIMATE location only (shared with
+  Open-Meteo for app functionality); no precise location leaves the device.
+- **Problem reports keep the map centre** (~100 m): approximate location, collected, user-initiated (the report is
+  sent only when the reader sends it).
+- **Device or other IDs: Yes** (the install id, T352) — and OPTIONAL: More → Data → "Send crash reports" turns crash
+  reports (and the id with them) off; on by default.
+- **App interactions: Yes** (the screen / last steps in a crash report) — optional the same way.
+- **App name:** "Can I Fish This?" (web tab: app.json `web.name`; permission prompts; the SEO pages already). The
+  Android launcher label stays "Can I Fish?" until the emulator shows the full name fits without clipping.
+- **Build:** the staging build (ENV staging, reports on) goes to internal + Closed testing.

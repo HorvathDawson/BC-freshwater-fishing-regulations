@@ -227,7 +227,7 @@ describe("openMeteo().ahead", () => {
     expect(await openMeteo(fake).ahead!(49.1, -121.96)).toEqual({
       days: [{ date: "2026-10-19", precipMm: 1.2 }, { date: "2026-10-20", precipMm: null }],
       hours: [{ at: "2026-10-22T09:00", tempC: 7.5, windKph: null, cloudPct: 90, pressureHpa: 1008.4 }] });
-    expect(urls).toEqual(["https://api.open-meteo.com/v1/forecast?latitude=49.1&longitude=-121.96"
+    expect(urls).toEqual(["https://api.open-meteo.com/v1/forecast?latitude=49.10&longitude=-121.96"
       + "&daily=precipitation_sum&hourly=temperature_2m,wind_speed_10m,cloud_cover,pressure_msl&timezone=auto&past_days=3"
       + "&forecast_days=5"]);
   });

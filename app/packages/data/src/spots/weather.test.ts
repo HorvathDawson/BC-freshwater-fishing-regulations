@@ -5,6 +5,7 @@
  * would look completely plausible on the record and be entirely wrong.
  */
 import { describe, expect, it, vi } from "vitest";
+import { localDate } from "@app/core";
 import { openMeteo } from "./weather";
 import { needsRefresh, refreshSpot } from "./refresh";
 import type { Spot } from "./model";
@@ -164,7 +165,7 @@ describe("openMeteo: the week before a visit, DAILY (S1)", () => {
     const fetchImpl = ok({ daily: DAILY });
     await openMeteo(fetchImpl as never).days!(49.1, -121.9, WEEK);
     expect(String(fetchImpl.mock.calls[0]![0])).toBe(
-      "https://archive-api.open-meteo.com/v1/archive?latitude=49.1&longitude=-121.9" +
+      "https://archive-api.open-meteo.com/v1/archive?latitude=49.10&longitude=-121.90" +
       "&start_date=2026-08-23&end_date=2026-08-29" + FIELDS + "&timezone=auto");
   });
 
@@ -175,7 +176,7 @@ describe("openMeteo: the week before a visit, DAILY (S1)", () => {
       const fetchImpl = ok({ daily: DAILY });
       await openMeteo(fetchImpl as never).days!(49.1, -121.9, WEEK);
       expect(String(fetchImpl.mock.calls[0]![0])).toBe(
-        "https://api.open-meteo.com/v1/forecast?latitude=49.1&longitude=-121.9" + FIELDS +
+        "https://api.open-meteo.com/v1/forecast?latitude=49.10&longitude=-121.90" + FIELDS +
         "&timezone=auto&past_days=8&forecast_days=1");
     } finally {
       vi.useRealTimers();
@@ -217,9 +218,9 @@ describe("openMeteo: the week before a visit, DAILY (S1)", () => {
         const fetchImpl = twoAnswers();
         const got = await openMeteo(fetchImpl as never).days!(49.1, -121.9, WEEK);
         expect(fetchImpl.mock.calls.map((c) => String(c[0]))).toEqual([
-          "https://archive-api.open-meteo.com/v1/archive?latitude=49.1&longitude=-121.9" +
+          "https://archive-api.open-meteo.com/v1/archive?latitude=49.10&longitude=-121.90" +
           "&start_date=2026-08-23&end_date=2026-08-29" + FIELDS + "&timezone=auto",
-          "https://api.open-meteo.com/v1/forecast?latitude=49.1&longitude=-121.9" + FIELDS +
+          "https://api.open-meteo.com/v1/forecast?latitude=49.10&longitude=-121.90" + FIELDS +
           "&timezone=auto&past_days=14&forecast_days=1"]);
         expect(got!.map((d) => d.maxC)).toEqual([16, 17, 18, 19, 20, 23, 24]);
         expect(got![6]).toEqual({ date: "2026-08-29", maxC: 24, minC: 13, precipMm: 1.5, windMaxKph: 12, code: 61 });
@@ -247,5 +248,20 @@ describe("openMeteo: the week before a visit, DAILY (S1)", () => {
       .toBeNull();
     expect(await openMeteo(vi.fn(async () => ({ ok: false })) as never).days!(49, -122, WEEK)).toBeNull();
     expect(await openMeteo(ok({ hourly: {} }) as never).days!(49, -122, WEEK)).toBeNull();
+  });
+});
+
+describe("(T371, owner 2026-11-04) a spot's exact point never leaves the device for weather", () => {
+  it("every request asks about the point rounded to 0.01° (~1 km)", async () => {
+    const urls: string[] = [];
+    const fake = (async (u: string) => { urls.push(u); return { ok: false } as Response; }) as unknown as typeof fetch;
+    const om = openMeteo(fake);
+    await om.ahead(49.123456, -121.987654);
+    await om.at(49.123456, -121.987654, Date.UTC(2020, 5, 1));
+    await om.days(49.123456, -121.987654, ["2020-05-25", "2020-05-31"]);
+    await om.days(49.123456, -121.987654, [localDate(Date.now() - 3 * 86_400_000), localDate(Date.now() - 86_400_000)]);
+    expect(urls.length).toBeGreaterThanOrEqual(3);
+    for (const u of urls) expect(u).toContain("latitude=49.12&longitude=-121.99");
+    expect(urls.some((u) => /49\.1234|121\.9876/.test(u))).toBe(false);
   });
 });
