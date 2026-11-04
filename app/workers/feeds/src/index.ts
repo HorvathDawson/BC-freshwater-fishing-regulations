@@ -27,6 +27,8 @@ import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
 import { runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./backup";
 import { crashEvents, handleCrash, listCrashes, purgeCrashes } from "./crashes";
+import { runSkill, skillText, type SkillReport } from "./gauges/score";
+import { FLOOD_WEIGHTS } from "./gauges/change";
 import { CORS as REPORT_CORS, handleReport, listReports, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 export interface Env extends ReportEnv {
@@ -392,6 +394,37 @@ async function purge(env: Env, now = new Date()) {
   return r;
 }
 
+/** (T178) where the last monthly model score is kept (GET /status shows it) */
+export const SKILL_STATUS_KEY = "private/feeds/skill.json";
+
+/** (T178) the monthly model score: CLEVER vs COFFEE on the archive month that just closed (src/gauges/score.ts). It
+ *  REPORTS — status + one digest line; applying new weights stays a reviewed change (owner 2026-11-04). */
+async function skill(env: Env, now = new Date(), month?: string): Promise<{ ok: boolean; error?: string; report?: SkillReport }> {
+  const m = newMeter();
+  let report: SkillReport | undefined;
+  let error: string | undefined;
+  try {
+    report = await runSkill({
+      feed: meteredStore(r2Store(env.BUCKET, "feeds/live/"), m),
+      priv: meteredStore(r2Store(env.BUCKET, "private/feeds/gauges/"), m),
+      now, month, weights: FLOOD_WEIGHTS,
+    });
+  } catch (e) {
+    error = String((e as Error)?.stack ?? e).slice(0, 2000);
+  }
+  const at = now.toISOString();
+  try {
+    await env.BUCKET.put(SKILL_STATUS_KEY, JSON.stringify(report ? { ok: true, ...report, meter: m } : { ok: false, at, month: month ?? null, error, meter: m }),
+      { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
+    const ev: FeedEvent = report
+      ? { key: `skill:${report.month}`, kind: "skill", at, title: `Forecast model scores for ${report.month}: ${report.differs ? "a verdict differs from the shipped weights" : "no change"}`, text: skillText(report) }
+      : { key: `skill-failed:${at.slice(0, 7)}`, kind: "skill", at, title: "The monthly forecast model score failed", text: `${error}\n\nRetry: POST /run/skill on the feeds worker (Bearer RUN_TOKEN).` };
+    await deliver([ev], { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now });
+  } catch { /* logged below */ }
+  console.log(JSON.stringify({ job: "skill", ok: !!report, month: report?.month, runs: report?.runs, cases: report?.cases, meter: m }));
+  return report ? { ok: true, report } : { ok: false, error };
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
@@ -430,8 +463,10 @@ export default {
       const bk = await (async () => { try { return JSON.parse((await env.BUCKET.get(BACKUP_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
       // (T271) the last report purge: when, and how many reports it deleted
       const rt = await (async () => { try { return JSON.parse((await env.BUCKET.get(RETENTION_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
-      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), backup: bk, reportRetention: rt }, { headers: { "Cache-Control": "no-store" } });
-      return new Response(statusHtml(st, now), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
+      // (T178) the last monthly model score
+      const sk = await (async () => { try { return JSON.parse((await env.BUCKET.get(SKILL_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
+      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), backup: bk, reportRetention: rt, skill: sk }, { headers: { "Cache-Control": "no-store" } });
+      return new Response(statusHtml(st, now, sk), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/notify/test" && req.method === "POST") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
@@ -463,6 +498,14 @@ export default {
       const r = await purge(env);
       return Response.json(r, { status: r.ok ? 200 : 500 });
     }
+    if (url.pathname === "/run/skill" && req.method === "POST") {
+      // (T178) the monthly model score by hand; ?month=YYYY-MM scores that archive month
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const month = url.searchParams.get("month") ?? undefined;
+      if (month !== undefined && !/^\d{4}-\d{2}$/.test(month)) return new Response("month must be YYYY-MM", { status: 400 });
+      const r = await skill(env, new Date(), month);
+      return Response.json(r, { status: r.ok ? 200 : 500 });
+    }
     if (url.pathname === "/run/backup" && req.method === "POST") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const r = await backup(env);
@@ -478,8 +521,10 @@ export default {
   },
   async scheduled(ev: { cron: string }, env: Env, ctx: { waitUntil(p: Promise<unknown>): void }): Promise<void> {
     // cron strings are in wrangler.toml [triggers]: the minute field names the job
-    //   "15 …" DFO, "45 …" in-season, "25 …" the daily backup (T246) + report purge (T271), anything else the gauges
+    //   "15 …" DFO, "45 …" in-season, "25 …" the daily backup (T246) + report purge (T271), "55 …" the monthly model
+    //   score (T178), anything else the gauges
     if (ev.cron.startsWith("25 ")) { ctx.waitUntil(Promise.allSettled([backup(env), purge(env)])); return; }
+    if (ev.cron.startsWith("55 ")) { ctx.waitUntil(skill(env)); return; }
     const job: Job = ev.cron.startsWith("15 ") ? "dfo" : ev.cron.startsWith("45 ") ? "inseason" : "gauges";
     ctx.waitUntil(run(job, env).then((r) => console.log(JSON.stringify({ job, ok: r.ok, wallMs: r.wallMs, meter: r.meter }))));
   },

@@ -213,7 +213,21 @@ const ago = (iso: string | null, now: Date) => {
   return m < 90 ? `${m} min ago` : m < 2880 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`;
 };
 
-export function statusHtml(s: Status, now: Date): string {
+/** (T178) the last monthly model score (private/feeds/skill.json): per lead day, the verdict and its reason */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function skillHtml(sk: any, now: Date): string {
+  if (!sk) return "<h2>Forecast model scores</h2><p><small>not run yet: monthly, the 1st at 10:55 UTC (T178)</small></p>";
+  if (!sk.ok) return `<h2>Forecast model scores</h2><p class="failing">failed ${esc(sk.at)} (${ago(sk.at, now)}): <small>${esc(String(sk.error ?? "").slice(0, 300))}</small></p>`;
+  const rows = Object.entries<any>(sk.verdict ?? {}).map(([lead, v]) => {
+    const d = sk.table?.[lead]?.paired?.difference;
+    return `<tr><td>${esc(lead)}</td><td>${esc(v.weights?.CLEVER)} / ${esc(v.weights?.COFFEE)}</td><td>${d ? `${esc(d.n)} · ${esc(d.mean)} ± ${esc(d.se)}` : "–"}</td><td><small>${esc(v.why)}</small></td></tr>`;
+  });
+  return `<h2>Forecast model scores (${esc(sk.month)})</h2><p><small>${esc(sk.at)} (${ago(sk.at, now)}) · ${esc(sk.runs)} runs, ${esc(sk.cases)} cases, ${esc(sk.stations)} stations · shipped CLEVER ${esc(sk.current?.CLEVER)} / COFFEE ${esc(sk.current?.COFFEE)}${sk.differs ? ' · <b class="degraded">a verdict differs: a reviewed change applies it (T178)</b>' : ""}</small></p>
+<div class="wrap"><table><tr><th>lead (days)</th><th>verdict CLEVER / COFFEE</th><th>paired n · difference ± se</th><th>why</th></tr>${rows.join("") || '<tr><td colspan="4"><small>no scored cases</small></td></tr>'}</table></div>`;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function statusHtml(s: Status, now: Date, skill: any = null): string {
   const rows = (["gauges", "dfo", "inseason"] as Job[]).map((j) => {
     const f = s.feeds[j];
     if (!f) return `<tr><td>${j}</td><td class="never">never run</td><td colspan="6"></td></tr>`;
@@ -245,7 +259,7 @@ ${rows.join("\n")}</table></div>
 <h2>Sources</h2><p><small>per upstream request (after retries): success rate and failures by class; "down" = runs in a row with nothing usable</small></p>
 <div class="wrap"><table><tr><th>feed</th><th>source</th><th>this run</th><th>24 h</th><th>7 d</th><th>down</th><th>last ok</th><th>last error</th></tr>
 ${sourceRows(s, now)}</table></div>
-${partsHtml(s, now)}</body></html>`;
+${partsHtml(s, now)}${skillHtml(skill, now)}</body></html>`;
 }
 
 const pct = (r: number | null) => (r === null ? "–" : `${(r * 100).toFixed(1)}%`);

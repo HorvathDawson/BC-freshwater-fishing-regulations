@@ -222,7 +222,7 @@ use that as the sole source of future work."
 | T175 | a water's own line shows at every zoom on its Conditions / water map (copy from tiles, clamp the opening zoom) | DONE | e8999343, 1f46e968 | app; native not run (T172/T50) |
 | T176 | the Conditions legend's "N gauges in view" counts sections, not gauges | DONE | e8999343, 1f46e968 | app: "N reaches coloured" |
 | T177 | combine CLEVER + COFFEE on every forecast day, weighted by measured skill (owner Q160) | DONE | b039349e, 73dd133e, af119f2c | feed republish; equal weights until the archive decides (T178); + spots record the trip day |
-| T178 | re-score CLEVER vs COFFEE from the run archive (~6 weeks) and set the weights by the verdict | OPEN | — | due ~2026-12-05 |
+| T178 | re-score CLEVER vs COFFEE from the run archive (~6 weeks) and set the weights by the verdict | PARTIAL (worker scores monthly + reports; not deployed; weights stay reviewed) | — | first full verdict 2026-12-01 |
 | T179 | one cut-placement pass: auto cuts merge into names, real cuts close together stay apart (order-independent) | DONE | deef0cec, 53f3819e, b93c95a6, 5c1ddc90, 6d7fd98e, cb858630 | promoted r-9b51c28ce0fe; Koocanusa cut verified at the inlet; authored lake-anchor ends named again (r-46a602244714) |
 | T180 | move the remaining ~105 component strings into core words (T60's KNOWN_COPY list empties) | DONE | 71179834, b54c69c1, bc7bc016, 462f8488 | KNOWN_COPY 95 → 0, no wording change; map gaugeDots attribution noted |
 | T181 | gauge pill keeps the theme the map was built with (check, then fix) | DONE | 7c43151a | confirmed (pill, pin, hatches kept the build theme); fixed + render test |

@@ -54,6 +54,7 @@ STATUS_URL = "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
 #   :15 DFO      every 6 h Jun–Oct (salmon season), daily 14 UTC (07 PDT) Nov–May
 #   :45 in-season  as DFO
 #   :25 backup   daily 09 UTC (T246)
+#   :55 model score  monthly, the 1st at 10:55 UTC (02:55 PST): CLEVER vs COFFEE on the month that closed (T178)
 # HYDAT (a new release, asked once a day) and ECCC roster drift are checked inside the gauge run — no cron of their own.
 # Status: GET /status on the worker; stale = no success for 2.5 cadences (gauges 30 min by day, 60 min at night).
 [triggers]
@@ -65,4 +66,5 @@ crons = [
   "45 */6 * 6-10 *",
   "45 14 * 1-5,11-12 *",
   "25 9 * * *",                  # T246: the daily backup (02:25 PDT), src/backup.ts
+  "55 10 1 * *",                 # T178: the monthly model score (reports only), src/gauges/score.ts
 ]

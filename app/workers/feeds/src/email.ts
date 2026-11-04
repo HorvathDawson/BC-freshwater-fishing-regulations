@@ -233,7 +233,7 @@ export function rosterSection(events: FeedEvent[]): Section {
 }
 
 const KIND_NAME: Record<string, string> = {
-  dfo: "DFO salmon", inseason: "In-season changes", health: "Feed health", hydat: "HYDAT", roster: "Gauge stations", report: "Problem reports from the app", crash: "New app errors",
+  dfo: "DFO salmon", inseason: "In-season changes", health: "Feed health", hydat: "HYDAT", roster: "Gauge stations", report: "Problem reports from the app", crash: "New app errors", skill: "Forecast model scores (T178)",
 };
 
 export function sectionFor(kind: string, events: FeedEvent[], ctx: RenderCtx): Section {
