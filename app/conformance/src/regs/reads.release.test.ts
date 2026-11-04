@@ -160,7 +160,7 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
       ["guidance", ["non_guided", "guided"]], ["status", ["none", "indian_bc_resident", "metis", "disabled", "aged_65_plus"]]]);
     expect(s.profiles[0]).toBe("resident/16_plus/non_guided/none");
     expect((s.fish as string[]).length).toBe(36);
-    expect({ v: s.glossary.version, n: s.glossary.terms.length }).toEqual({ v: 5, n: 63 });   // (T288, r-ce76b4ed3624) 29 + the 34 p.80 definitions
+    expect({ v: s.glossary.version, n: s.glossary.terms.length }).toEqual({ v: 5, n: 67 });   // (T288, r-ce76b4ed3624) 29 + the 34 p.80 definitions; (2026-11-04) + 4: one per Conservation Surcharge Stamp
     expect(s.strip[1]!.label).toBe("closed");
   });
 

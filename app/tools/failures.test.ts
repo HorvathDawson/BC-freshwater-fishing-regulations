@@ -177,7 +177,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui-native/src/CoachMarks.tsx": { n: 1, why: "not laid out yet" },
   "packages/ui-native/src/FirstRunNotice.tsx": { n: 2, why: PREF },
   "packages/ui-native/src/LeadUpStrip.tsx": { n: 1, why: "not laid out yet" },
-  "packages/ui-native/src/Shell.tsx": { n: 4, why: "the tour's camera niceties (gauge basin, guide water: search shows its own); a spot starts without its water pin" },
+  "packages/ui-native/src/Shell.tsx": { n: 3, why: "the tour's camera nicety (gauge basin); a spot starts without its water pin (the guide water now reports its failure)" },
   "packages/ui-native/src/Walkthrough.tsx": { n: 5, why: PREF },
   "packages/ui-native/src/chartInput.web.ts": { n: 1, why: CAP },
   "packages/ui-native/src/imageryProbe.ts": { n: 1, why: `satellite imagery down: shown as the imagery state (${ENV})` },

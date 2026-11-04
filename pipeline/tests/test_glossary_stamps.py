@@ -25,7 +25,7 @@ pytestmark = pytest.mark.needs_bundle
 #: the four stamps besides steelhead, and the condition each is needed for (the requirement records' own words)
 STAMPS = {"kootenay_rainbow_stamp": "to keep rainbow trout over 50 cm",
           "salmon_stamp": "to keep salmon (not kokanee)",
-          "shuswap_char_stamp": "to keep lake trout and dolly varden/bull trout over 60 cm",
+          "shuswap_char_stamp": "to keep lake trout or Dolly Varden/bull trout over 60 cm",
           "shuswap_rainbow_stamp": "to keep rainbow trout over 50 cm"}
 
 

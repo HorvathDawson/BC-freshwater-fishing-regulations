@@ -9,6 +9,7 @@ import { appKeyOf, bookText, buildRegsPage, creditsFor, sheetLines, type Run, ty
 import type { GoldenSheet } from "@app/core/regs/testing";
 import { ADULT_RESIDENT, golden, inputsOf, parityGate, requestOf } from "./golden";
 import { groupLines } from "./keepPage";
+import { GOLDEN_LICSRC_KEY } from "./exclusions";
 
 const G = golden();
 const gate = await parityGate();
@@ -39,8 +40,10 @@ describe.skipIf(gate.skip)(`T43 ${ID}`, () => {
     const sheets = Object.entries(G.states[ID]!.sheets as Record<string, GoldenSheet | "@">)
       .map(([k, v]) => [k, v === "@" ? G.sheets[k] as GoldenSheet : v] as const);
     expect(sheets.length).toBe(65);   // the ticket's 63 was v33; the v38 golden holds 65
+    // (owner 2026-11-04) the licence sources sheet is removed: the golden's `licsrc:` sheets have no app twin
+    expect(sheets.filter(([k]) => GOLDEN_LICSRC_KEY.test(k)).length).toBeGreaterThan(0);
     let runs = 0;
-    for (const [gk, want] of sheets) {
+    for (const [gk, want] of sheets.filter(([k]) => !GOLDEN_LICSRC_KEY.test(k))) {
       const vm = page.sheet(appKeyOf(gk, ID)) as SheetVM;
       for (const r of bookRuns(vm.blocks)) {
         runs++;
