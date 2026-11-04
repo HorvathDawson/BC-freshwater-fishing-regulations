@@ -18,3 +18,13 @@ drawn and tapped today (FWA river polygons + stream lines, T322 slough fold, or 
    (diff section counts, binding diff as in T322) before promoting.
 3. Atlas rebuild (heavy, heavy.sh) + reach step + bundle; owner sees the before/after list.
 Size: M–L. Pipeline.
+
+## Found 2026-11-04 (bundle.sqlite)
+Nicomen Slough = `gnis:21105` (ord 4250), stream, ONE part (part 0, rule set 281/325), 9 sections, all the same rules:
+5 LINE sections on FWA stream 355991886 (sids 59586–59590, measures 0–22,755 m) alternating with 4 POLYGON sections
+(shape 1, sids 1266784, 1266788, 1454480, 1454614: where the slough widens into mapped water, measures 16,690–22,416).
+So no rule splits it; the 9 pieces are geometry (line ↔ polygon), the atlas's section unit. (The release `core.item`
+search by name found nothing earlier — check how names are stored there; the bundle has it.)
+Question for the owner: what showed it as several — the tap / highlight lighting one piece, the polygon pieces drawn or
+coloured differently, or a count ("9 sections")? Merging sections themselves is atlas-wide (handles, gauges, marks);
+making every piece of a part light and answer as one is an app change.
