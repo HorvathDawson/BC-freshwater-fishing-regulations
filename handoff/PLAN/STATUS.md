@@ -34,12 +34,15 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   dropped (100 m facility, how to measure); the daily total says "fresh and tidal waters combined"; adult chinook 50 cm
   default (5B; R6's Fraser watershed). Yours (OWNER-TODO): daylight / R1 bait ban / eulachon notes stay as words; R6's
   "Fraser River" binds no R6 water. Images + collapsible source line → T367 (UI chat).
-- Owner 11-03 answers done: Fraser places committed as variants of the curated ones (9d5d52553); "until further
-  notice" = all year (T358, cf7d7130a: 6 rules, typed files re-typed); daylight → the card's `hours` line, R1 bait ban
-  dropped (c706d67ac; UI chat draws `hours`, T367). Memory: purge works (~16 MB at a trim, 17d5f0dc3); the PDF leak is
-  NOT fixed (T360 round 4). RUNNING: batch 3 rebuild (`pipeline.deliver all`; stale dfo-feed/2 index moved aside).
-  Asked the owner: partial coverage per species/day — trout keeps its answer + a caveat, salmon turns the row to
-  "check DFO"; pick one rule for both.
+- Owner 11-03 answers done: Fraser places = variants of the curated ones (9d5d52553, notes 5c31c2b10); "until further
+  notice" = all year (cf7d7130a); daylight → `hours` (R2 too: 1 h either side), R1 bait ban dropped, R6 binds the Fraser
+  (ec5b37257; scopes trimmed to each region's waters — the Fraser watershed is 6,713 items). Tickets for 0.5.0: T372
+  (partial coverage the trout way, in Python), T373 (run timing built with the release); T374 (trib walk collects lakes).
+- **Batch 3 release built + promoted locally: r-ac5a4e4f734c** (salmon/4, T369 lines; lines gate 1.25 → 1.4 MB, measured
+  1.28). Not on staging yet. DFO tests re-pinned (461 rows / 548 rules).
+- Memory: purge works (17d5f0dc3). PDF leak CAUSE found (T360 round 5: a cancelled load never closes its document;
+  react-native-pdf reloads on every props transaction) — fix in the patch + memoized `source`, uncommitted until the
+  queued heapprof run (t360-pdf2) shows pdfium released.
 
 ## 2026-11-03 (chat 4): batch 2 emulator sitting [T368, T354, T360, T345, T352]
 - **T368 (new, in 0.5.0, batch 6c):** the app-wide failures/fallbacks/reporting sweep, split from T333. Two found
