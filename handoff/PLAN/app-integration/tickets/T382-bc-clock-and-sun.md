@@ -58,3 +58,8 @@ joins UTC−7, Golden keeps Mountain) — local choice, in flux.
   its weather/day-flow days (spots/visits, dayFlow, capture, weather `today`), and a station chart's "today"
   (sql/shared, UTC). Moving those to the B.C. day changes stored visit dates (a picked local midnight read back
   through a B.C. clock lands a day early east of B.C.), so it needs its own decision.
+
+## Owner 2026-11-04: "spots should use the same date/time as everything else" — done
+`localDate` / `localDateTime` / `localStamp` / `shortStamp` (no zone) / visit day + hour steps / lead-up days / weather
+days / chart labels / the error log all read the B.C. clock; `wallIso(d)` for a wall-clock Date (bcNow, shiftDay, a
+picked day) — never `localDate(d.getTime())` on one. `bcDay.test.ts` runs with the device in Halifax.
