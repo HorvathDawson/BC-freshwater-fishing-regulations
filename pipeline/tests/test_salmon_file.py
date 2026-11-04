@@ -106,17 +106,19 @@ def test_build_chains_narrowest_first_with_the_unlisted_chain_first():
     assert payload["regions"]["6"]["asof"] == "2026-08-28"
 
 
-def test_a_water_with_an_undrawn_place_is_check_on_every_section_of_it():
-    """PARTIAL COVERAGE (owner 2026-10-28, the Kitimat): the resort (no extent, rules on the page) is on the Kispiox, so
-    every section of the Kispiox — placed (11) or in no location (14) — paints `check`, never the wider rule's answer."""
+def test_a_water_with_an_undrawn_place_carries_it_but_paints_its_drawn_answer():
+    """PARTIAL COVERAGE: the resort (no extent, rules on the page) is on the Kispiox, so every section of the Kispiox —
+    placed (11) or in no location (14) — carries it (`u`) for the card's caveat. (T372, owner 2026-11-04: the trout way)
+    the map paints the DRAWN answer, never `check` for the undrawn place."""
     payload, sections = S.build(*_fixture(), {"gnis:4674": [11, 14]})
     chains, by_sid = payload["chains"], dict(sections)
     check = [0, S.MAP_CODES.index("check")]
-    assert (chains[by_sid[11]]["l"], chains[by_sid[11]]["u"], chains[by_sid[11]]["m"]) == (["6:b(i)", "6:a"], ["6:resort"], check)
-    assert (chains[by_sid[14]]["l"], chains[by_sid[14]]["u"], chains[by_sid[14]]["m"]) == ([], ["6:resort"], check)
-    assert chains[by_sid[14]]["w"] == "Kispiox River"
-    # the species answers stay DFO's (the card shows them under "check DFO"); a section off the water is untouched
     p0, s0 = S.build(*_fixture())
+    assert (chains[by_sid[11]]["l"], chains[by_sid[11]]["u"]) == (["6:b(i)", "6:a"], ["6:resort"])
+    assert chains[by_sid[11]]["m"] == p0["chains"][dict(s0)[11]]["m"] != check      # as if the resort were not there
+    assert (chains[by_sid[14]]["l"], chains[by_sid[14]]["u"]) == ([], ["6:resort"]) and chains[by_sid[14]]["m"] != check
+    assert chains[by_sid[14]]["w"] == "Kispiox River"
+    # the species answers stay DFO's (the card keeps them, with the caveat); a section off the water is untouched
     assert chains[by_sid[11]]["sp"] == p0["chains"][dict(s0)[11]]["sp"]
     assert "u" not in chains[by_sid[10]] and chains[by_sid[10]]["m"] != check
     # a DORMANT undrawn place (no rules today) marks nothing: the feed paints it the day DFO lists it again
@@ -159,7 +161,8 @@ def test_a_header_closure_is_in_the_file_on_its_verdicts_and_chains():
     assert got["c"] == ["6:closed:abc"] and got["m"] == [0, S.MAP_CODES.index("closed")]
     locs["6:resort"] = {"r": "6", **L.location_calendar(REGION, v, g)}            # an undrawn place still open
     got = L.compose(["6:dormant", "6:a"], locs, v.items, ["6:resort"])
-    assert "c" not in got and got["m"] == [0, S.MAP_CODES.index("check")]
+    # not closed by the header (the resort is open) — and (T372) the map paints the drawn answer, never `check`
+    assert "c" not in got and got["m"] == [0, S.MAP_CODES.index("closed")]
 
 
 def test_a_placed_section_the_handle_table_does_not_know_stops_the_build():

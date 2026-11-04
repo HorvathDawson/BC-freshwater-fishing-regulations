@@ -558,7 +558,7 @@ export const SALMON_FEED_GOLDEN = {
     ],
     "m": [
      0,
-     4
+     1
     ]
    },
    {
@@ -643,7 +643,7 @@ export const SALMON_FEED_GOLDEN = {
     ],
     "m": [
      0,
-     4
+     3
     ]
    },
    {
@@ -1381,7 +1381,7 @@ export const SALMON_FEED_GOLDEN = {
    ],
    "m": [
     0,
-    4
+    1
    ]
   },
   {
@@ -1449,7 +1449,7 @@ export const SALMON_FEED_GOLDEN = {
    ],
    "m": [
     0,
-    4
+    3
    ]
   },
   {
@@ -2283,7 +2283,7 @@ export const SALMON_FEED_GOLDEN = {
    ],
    "m": [
     0,
-    4
+    3
    ]
   },
   {

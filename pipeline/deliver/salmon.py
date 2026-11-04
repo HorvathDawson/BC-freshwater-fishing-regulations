@@ -38,7 +38,7 @@ notes and wins (the release's are the offline answer of last resort, read from t
 THE FILES (`salmon/4`, split per bundle region — owner 2026-10-28: a water page's card fetches only its region's slice;
 T332: an open verdict's quota is `tree`, a TreeTier of the game-fish quota tree, and a region's `bucket.tree` its total
 tier; T356 (salmon/4): what the app used to work out itself is in the file — a verdict closed by its region header
-carries `c` (the note id) and a chain closed by it every day `c` (the note ids; its map says closed, never partial),
+carries `c` (the note id) and a chain closed by it every day `c` (the note ids; its map says closed),
 a region carries `shared` (the scoped aggregate limits, `quota.shared_buckets`, with or without a bucket) and `sizes`
 (the header sizes per species as `LengthBand`s, ordered, the first that holds wins — `quota.sizes`); the bucket's
 `min_cm` is gone and a header note's length is `lengths` (T358). An older app refuses this file rather than mis-read it),
@@ -292,13 +292,13 @@ def closed_by_header(sp_runs: Sequence[Sequence[int]], verdicts: Sequence[dict])
     return sorted(ids)
 
 
-def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: _Interner, partial: bool = False,
+def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: _Interner,
                    undrawn_closed: bool = True) -> dict:
     """One chain's year: per species runs of a verdict index (`NOT_LISTED` where nothing opens it), the gear runs (-1:
-    no gear line), the map-status runs. `partial`: the section's water has a DFO place with rules that is not drawn
-    yet, so no stretch of it can be answered with confidence — the map says `check` every day (PARTIAL COVERAGE).
-    (T356) `c`: the header notes that close the chain every day (`closed_by_header`) — set only where its undrawn
-    places, if any, are closed by their header too (`undrawn_closed`); then nothing is partial: the map says closed."""
+    no gear line), the map-status runs. (T372, owner 2026-11-04: the trout way) a DFO place on the water not drawn yet
+    never paints the map — it is the card's caveat, as an undrawn trout rule is (`status_index`: it never colours a
+    section). (T356) `c`: the header notes that close the chain every day (`closed_by_header`) — set only where its
+    undrawn places, if any, are closed by their header too (`undrawn_closed`)."""
     per_sp: List[List[int]] = [[] for _ in SPECIES]
     gear: List[int] = []
     mapc: List[int] = []
@@ -311,8 +311,7 @@ def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: 
         mapc.append(MAP_CODES.index(map_status(vs)))
     sp = [runs_of(x) for x in per_sp]
     c = closed_by_header(sp, verdicts.items) if undrawn_closed else []
-    m = [0, MAP_CODES.index("check")] if partial and not c else runs_of(mapc)
-    return {"sp": sp, "g": runs_of(gear), "m": m, **({"c": c} if c else {})}
+    return {"sp": sp, "g": runs_of(gear), "m": runs_of(mapc), **({"c": c} if c else {})}
 
 
 def _label(loc) -> str:
@@ -447,7 +446,6 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             chains.append({"r": sorted({locs[l][0] for l in key + uk}), "w": _label(first) if key else first.water,
                            "l": list(key), **({"u": list(uk)} if uk else {}),
                            **chain_calendar([rules_of[l] for l in key], verdicts, gears,
-                                            partial=any(rules_of[l] for l in uk),
                                             undrawn_closed=all(all(r.get("header_note") for r in rules_of[l])
                                                                for l in uk))})
         return chain_ix[(key, uk)]

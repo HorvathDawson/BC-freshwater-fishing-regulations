@@ -112,7 +112,8 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
     """A release chain's year from the feed: per species and day the FIRST location (narrowest first, the chain's own
     order) with an answer, else `NOT_LISTED` (index 0); gear the first with any; the map status from the five. The
     reference the app's `withSalmonFeed` is held to — equal to `deliver.salmon.chain_calendar` over the same rules.
-    `undrawn`: the chain's `u` (DFO places on its water not drawn yet); one the feed lists makes the map `check`."""
+    `undrawn`: the chain's `u` (DFO places on its water not drawn yet) — never the map's (T372, the trout way), only
+    whether the header closure `c` holds for them too."""
     cals = [locs[l] for l in lids if l in locs]
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
@@ -126,11 +127,10 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
         gear.append(next((g for g in (_at(c["g"], day) for c in cals) if g >= 0), -1))
         mapc.append(S.MAP_CODES.index(S.map_status(vs)))
     sp = [S.runs_of(x) for x in per_sp]
-    # T356: closed by the region header every day — and so is every undrawn place the feed lists — `c`, never partial
+    # T356: closed by the region header every day — and so is every undrawn place the feed lists — `c`
     shut = all(S.closed_by_header(locs[l]["sp"], verdicts) for l in undrawn if l in locs)
     c = S.closed_by_header(sp, verdicts) if shut else []
-    m = [0, S.MAP_CODES.index("check")] if any(l in locs for l in undrawn) and not c else S.runs_of(mapc)
-    return {"sp": sp, "g": S.runs_of(gear), "m": m, **({"c": c} if c else {})}
+    return {"sp": sp, "g": S.runs_of(gear), "m": S.runs_of(mapc), **({"c": c} if c else {})}
 
 
 # ── one region ───────────────────────────────────────────────────────────────────────────────────────────────────────

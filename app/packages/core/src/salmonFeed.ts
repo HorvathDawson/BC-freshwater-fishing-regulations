@@ -118,8 +118,8 @@ export function composeChain(lids: readonly string[], feed: SalmonFeed,
   // (T356) closed by the region header every day, and so is every undrawn place the feed lists: `c`, never partial
   const shut = undrawn.every((l) => !feed.locs[l] || closedByHeader(feed.locs[l]!.sp, feed).length);
   const c = shut ? closedByHeader(spr, feed) : [];
-  const partial = undrawn.some((l) => !!feed.locs[l]) && !c.length;
-  return { sp: spr, g: runsOf(g), m: partial ? [0, MAP_CODES.indexOf("check")] : runsOf(m), ...(c.length ? { c } : {}) };
+  // (T372, owner 2026-11-04: the trout way) an undrawn place never paints the map — it is the card's caveat
+  return { sp: spr, g: runsOf(g), m: runsOf(m), ...(c.length ? { c } : {}) };
 }
 
 /** (T356) the pipeline's `deliver.salmon.closed_by_header`: the header notes answering every species every day, else [] */

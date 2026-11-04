@@ -44,7 +44,9 @@ describe("the DFO feed over the release", () => {
     const by = new Map<number, number>(G.sections.map(([s, c]: [number, number]) => [s, c]));
     const live = withSalmonFeed(release(), feed());
     for (const f of [release(), live]) {
-      for (const sid of [11, 14]) expect(salmonChainStatus(f, by.get(sid)!, 250)).toBe("check");
+      // (T372, owner 2026-11-04: the trout way) the undrawn place no longer paints the map "check": the map keeps the
+      // chain's own answer, and the card carries the caveat (the headline and the partial line below)
+      expect([11, 14].map((sid) => salmonChainStatus(f, by.get(sid)!, 250))).toEqual(["open", "closed"]);
       const card = salmonCard(f, { sids: [11], item: "gnis:4674" }, new Date(2026, 8, 10));
       expect([card.headlineStatus, card.partial?.text, card.partial?.url]).toEqual(
         ["check", "Salmon rules on parts of this water aren't mapped yet — check DFO", G.release.regions["6"].url]);
