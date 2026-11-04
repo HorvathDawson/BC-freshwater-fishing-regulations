@@ -239,6 +239,9 @@ const RE_TBD = pyRe("to\\s+be\\s+determined", "i");
 const QUALIFIER = "(?:(?:hatchery[- ]marked|only|chinook|coho|sockeye|pink|chum|salmon)\\s+)*";
 const RE_DAILY = pyRe(`\\b(\\d+)\\s+${QUALIFIER}per\\s+day\\b`, "i");
 const RE_NO_FISHING = pyRe("\\bno\\s+fish(?:ing|inf)\\b|\\bfinfish\\s+closure\\b|\\bclosed\\s+to\\s+fishing\\b|\\bno\\s+angling\\b", "i");
+/** (T338) a closure of a STRETCH inside a limits cell ("No fishing for chinook from a point 100 m above Fort Babine
+ *  bridge to Nichyeskwa Creek."): never the cell's closure; the row keeps its limit, flagged (typed.py `_RE_PART_CLOSURE`) */
+const RE_PART_CLOSURE = pyRe("\\bno\\s+fishing\\s+for\\s+[a-z ,]+?\\s+from\\s+[^.]+?\\s+to\\s+[^.]+\\.?", "i");
 const RE_NON_RETENTION = pyRe("\\bnon[- ]retention\\b|\\bno\\s+retention\\s+of\\b|\\bcatch\\s+and\\s+release\\b", "i");
 const RE_HATCHERY = pyRe("hatchery[- ]marked", "i");
 const RE_BAIT_BAN = pyRe("\\bbait\\s+ban\\b|\\bno\\s+natural\\s+bait\\b|\\bnatural\\s+bait\\s+not\\s+allowed\\b", "i");
@@ -252,6 +255,7 @@ const RE_HOOK_SPAN = pyRe("single,?\\s+barbless\\s+hook[\\w\\s,.]*", "i");
 
 interface Says {
   no_fishing: boolean;
+  part_closure: string | null;
   non_retention: boolean;
   hatchery_marked_only: boolean;
   bait_ban: boolean;
@@ -260,12 +264,15 @@ interface Says {
 }
 export function decode(limits: string): Says {
   const text = limits || "";
+  const part = search(RE_PART_CLOSURE, text);
+  const whole = part ? sub(RE_PART_CLOSURE, " ", text) : text;     // what the cell says of the WHOLE water
   let daily: number | null = null;
   const m = search(RE_DAILY, text) ?? search(RE_DAILY_OF, text);
   if (m) daily = pyInt(m[1]!);
-  else if (search(RE_NON_RETENTION, text) || search(RE_NO_FISHING, text)) daily = 0;
+  else if (search(RE_NON_RETENTION, text) || search(RE_NO_FISHING, whole)) daily = 0;
   return {
-    no_fishing: !!search(RE_NO_FISHING, text),
+    no_fishing: !!search(RE_NO_FISHING, whole),
+    part_closure: part ? strip(part[0]) : null,
     non_retention: !!search(RE_NON_RETENTION, text),
     hatchery_marked_only: !!search(RE_HATCHERY, text),
     bait_ban: !!search(RE_BAIT_BAN, text),
@@ -634,7 +641,8 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
           origin: says.hatchery_marked_only ? "hatchery" : undefined,
           review_reason: zeroQuota
             ? "a bare '0 per day' says the quota is zero but not whether you may fish at all; published closed, confirm against the page"
-            : unreadReason(gear) || newWording,
+            : (says.part_closure ? `a closure of part of the water inside the limits cell: ${repr(says.part_closure)}` : "")
+              || unreadReason(gear) || newWording,
           verbatim: quoted || gear || rec.species || "row",
         },
         times,
