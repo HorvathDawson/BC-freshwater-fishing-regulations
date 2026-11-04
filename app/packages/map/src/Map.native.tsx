@@ -85,6 +85,9 @@ type PressEvent = { nativeEvent: { point: [number, number] | { x: number; y: num
 type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number; userInteraction?: boolean } | null };
 type Data = NonNullable<MapProps["data"]>;
 
+/** (T348) How long a settled camera waits for a full render before it asks what is on screen itself. */
+const SETTLE_ASK_MS = 700;
+
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, chrome, onError,
                       onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs,
@@ -283,6 +286,14 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // asked again as soon as someone (new) listens: a settled map does not draw again by itself (a tab switch)
   useEffect(() => { lastSeen.current = ""; stale.current = true; void reportVisible(); },
             [onVisible !== undefined, reportVisible]);
+  /**
+   * (T348, problem report 98935871: "the number of reaches coloured doesn't change when zoom or scroll changes") A
+   * settle over tiles the map already holds need not render "fully" again, so nothing asked and the legend's count and
+   * marks kept the old view's. The settle asks itself when no full render has by `SETTLE_ASK_MS`; one that comes first
+   * asks (and clears `stale`), so it stays one query per camera move.
+   */
+  const settleAsk = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (settleAsk.current) clearTimeout(settleAsk.current); }, []);
   const onRendered = useCallback(() => {
     rendered.current = true;
     setDrawn(true);
@@ -552,9 +563,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // the next full render reports what is on screen (and measures a fit): the tiles for here may not be in yet
     stale.current = true;
     copyStale.current = true;
+    if (settleAsk.current) clearTimeout(settleAsk.current);
+    settleAsk.current = setTimeout(() => { settleAsk.current = null; void reportVisible(); }, SETTLE_ASK_MS);
     // (T175) the reader's own pan or pinch: the copy never steps in against it
     if (ne?.userInteraction) copyTouched.current = true;
-  }, [shiftMarks]);
+  }, [shiftMarks, reportVisible]);
 
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {

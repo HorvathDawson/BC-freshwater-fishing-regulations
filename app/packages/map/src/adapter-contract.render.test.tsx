@@ -749,6 +749,28 @@ it("no listener, no long press: the binding is handed no handler (its long press
     await waitFor(() => expect(seen.mock.calls).toEqual([[[5, 6]], [[7]]]));
     expect(queries()).toBe(before + 1);
   });
+  it("(T348) a settle with no full render after it still asks, once: the legend's count follows a pan over held tiles", async () => {
+    const seen = vi.fn();
+    answer = () => [{ id: "5" }];
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, onVisible: seen })} />);
+    await waitFor(() => expect(seen.mock.calls).toEqual([[[5]]]));
+    const queries = () => log.filter((l) => l.startsWith("query viewport")).length;
+    const before = queries();
+    answer = () => [{ id: "8" }];
+    vi.useFakeTimers();
+    try {
+      act(() => {
+        (native.props!.onRegionDidChange as (e: unknown) => void)({ nativeEvent: { center: [-121, 50], zoom: 10, userInteraction: true } });
+      });
+      expect(queries()).toBe(before);                          // not at once: a full render may yet come
+      await act(async () => { vi.advanceTimersByTime(800); });
+    } finally { vi.useRealTimers(); }
+    await waitFor(() => expect(seen.mock.calls).toEqual([[[5]], [[8]]]));
+    // the full render that follows asks nothing more: still one query for the move
+    act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
+    await act(async () => {});
+    expect(queries()).toBe(before + 1);
+  });
   it("a status value already on a feature is not sent again (one bridge call per feature, per value)", async () => {
     const r = render(<NativeMap {...base({ highlight: undefined })} />);
     await waitFor(() => expect(log.filter((l) => l.startsWith("set")).length).toBe(2));
