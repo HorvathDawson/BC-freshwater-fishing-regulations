@@ -10,7 +10,7 @@
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { HORIZON_PICK } from "@app/core";
-import type { Horizon, HorizonChipVM } from "@app/ui";
+import { useBackLayer, type Horizon, type HorizonChipVM } from "@app/ui";
 import { CornerStrip, type CornerSegment } from "./CornerStrip";
 import { hitProps } from "./regs/hit";
 import { TYPE } from "./type";
@@ -24,6 +24,8 @@ export function HorizonPicker({ palette, chips, onPick, testID, coach, changeIco
   changeIcon?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  // the open day list is a layer: back closes it first
+  useBackLayer(open, () => setOpen(false));
   const days = chips.filter((c) => typeof c.day === "number" && c.day > 0);
   const lit = days.find((c) => c.on) ?? null;
   const seg = (h: HorizonChipVM): CornerSegment => ({

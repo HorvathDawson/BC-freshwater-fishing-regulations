@@ -410,7 +410,7 @@ use that as the sole source of future work."
 | T364 | Real-iPhone run: location prompt, offline first download, edge-back gesture, gauge pill padding | OPEN | T313, T88 | owner 2026-11-03 |
 | T365 | App Review compliance: privacy manifest, tracking declaration, final bundle id + name (CanIFish vs Can I Fish?) | OPEN | T244 | owner 2026-11-03 |
 | T366 | DFO live refresh made clean: dry-run preview of changed rows + marks it stales, typed stamped with its page, fetched pages archived, rule-only changes re-checked in one click; then region 2 (FN1179 Fraser chum) | IN REVIEW | — | b71bbcd11; refresh run 11-03 (regions 1, 2, 6; no marks moved); owner confirms 2 Fraser places in DFO mode |
-| T367 | UI text clean-up as an owner back-and-forth (regs, conditions map, More): bad formatting, debloat top-level text; dev web app first, then the 0.5.0 APK | OPEN | — | owner 2026-11-03 (batch 6b) |
+| T367 | UI text clean-up as an owner back-and-forth (regs, conditions map, More): bad formatting, debloat top-level text; dev web app first, then the 0.5.0 APK | DONE 11-04 (owner call; leftovers → T377) | d3577f2e3 | owner 2026-11-03 (batch 6b) |
 | T368 | Failures, fallbacks and reporting app-wide: rethrow, or show + `reportFailure`, or list; one failure face; scan net (split from T333) | OPEN | — | owner 2026-11-03 (batch 6c, in 0.5.0) |
 | T369 | One load path per screen: same output whatever the way in (refresh, tab/view switch, search, map tap, step, list pick); a net comparing every way in | OPEN | — | owner 2026-11-03 (batch 6c, in 0.5.0) |
 | T370 | Web: `water-{region}` slices each repeat ~0.7 MB of shared rules/keys; one shared web file instead (measure first) | OPEN | — | found 2026-11-03 (after 0.5.0) |
@@ -420,6 +420,7 @@ use that as the sole source of future work."
 | T374 | The Skeena tributary walk collects 11 lake sections (owner rule: walks pass lakes, collect streams) — may bind trout trib rules to lakes | DONE 11-04 (not a bug: the 11 are owner-confirmed sloughs folded into their creeks; test fixed) | e23994f5a | found 2026-11-03 |
 | T375 | Forecast feed publishes every day +1..+10 (HORIZONS in publish.py + worker), for the UI chat's day chips | DONE in code 11-03 (worker redeploy + feed size left) | 1c735272e | owner 2026-11-03 |
 | T376 | The Conditions view's watershed (map centre / a water's own, no fallback) + basin names, for the UI chat's forecast-day list | OPEN (0.5.0 batch 4) | — | UI chat via T367, 2026-11-03 |
+| T377 | T367 leftovers: forecast-day list by basin (after T376), tappable/collapsible legend, Runs peak markers, closed/open second cue, multi-model hydrograph, dead code | OPEN (day list in 0.5.0 after T376; rest after) | — | T367 close, 2026-11-04 |
 
 ## Order for open tickets
 

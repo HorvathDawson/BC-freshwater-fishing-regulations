@@ -49,6 +49,8 @@ export const NET_WORDS = Object.freeze({
     failed: (what: string) => `${what}: couldn’t load`,
     retry: "Try again",
     salmon: "Salmon rules",
+    /** (T368) a lazy part whose code could not be fetched */
+    code: "Couldn’t load this part of the app. Check your connection.",
   },
   /** the rule book on a slow line: asked before it is fetched */
   pdf: {

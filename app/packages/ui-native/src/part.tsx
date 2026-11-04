@@ -13,6 +13,7 @@
  */
 import { createElement, useEffect, useState, type ComponentType } from "react";
 import { Platform, View } from "react-native";
+import { NET_WORDS } from "@app/core";
 import { reportFailure } from "@app/ui";
 import { ErrorState } from "./ErrorState";
 import { LIGHT, SPACE, type Palette } from "./theme";
@@ -20,7 +21,7 @@ import { LIGHT, SPACE, type Palette } from "./theme";
 const all: (() => Promise<boolean>)[] = [];
 
 /** what a part whose code cannot load draws in its place */
-export const PART_FAILED = "Couldn’t load this part of the app. Check your connection.";
+export const PART_FAILED = NET_WORDS.part.code;
 
 /**
  * `when`: whether these props draw anything (a sheet's open state). An always-mounted closed sheet must not fetch its
@@ -59,7 +60,7 @@ export function part<P extends object>(load: () => Promise<ComponentType<P>>, wh
     const palette = (props as { palette?: Palette }).palette ?? LIGHT;
     return (
       <View testID="part-failed" style={{ padding: SPACE.s4, gap: SPACE.s2, backgroundColor: palette.card }}>
-        <ErrorState palette={palette} size="body" message={PART_FAILED} retryLabel="Try again" retryTestID="part-retry"
+        <ErrorState palette={palette} size="body" message={PART_FAILED} retryLabel={NET_WORDS.part.retry} retryTestID="part-retry"
                     onRetry={() => { setFailed(false); setTries((t) => t + 1); }} />
       </View>
     );

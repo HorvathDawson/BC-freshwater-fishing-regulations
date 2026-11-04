@@ -48,7 +48,7 @@ export function PdfViewer({ palette }: { palette: Palette }) {
           </View>
         ) : (
           <Pdf source={source} page={v.page} enableAnnotationRendering trustAllCerts={false}
-               style={{ flex: 1, backgroundColor: palette.wash }}
+               style={{ flex: 1, backgroundColor: palette.page }}
                onLoadComplete={(of) => { setAt({ page: v.page, of }); console.info(`[synopsis] drawn p.${v.page} of ${of} in ${Date.now() - v.at} ms`); }}
                onPageChanged={(page, of) => setAt({ page, of })}
                onError={(e) => {

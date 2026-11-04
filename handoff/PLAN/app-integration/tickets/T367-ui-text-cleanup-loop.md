@@ -1,7 +1,7 @@
 # T367 — UI text clean-up, owner back-and-forth (regs, conditions map, More)
 
-Status: OPEN (owner 2026-11-03; in 0.5.0, batch 6b of RELEASE-PLAN-0.5.0.md, after the small app fixes, before the
-release check).
+Status: DONE (d3577f2e3) 2026-11-04, owner call (was: OPEN, batch 6b of RELEASE-PLAN-0.5.0.md). Leftovers → T377;
+the SalmonCard caveat block → T372 part 2.
 
 Why: the owner wants a clean-up pass mostly in the regs pane, the conditions map pane and More: badly formatted text,
 and much less top-level text (debloat what shows before you tap in).

@@ -25,7 +25,7 @@ const MenuHost = part(() => import("../later").then((m) => m.MenuHost), (p) => p
  */
 function reportMapOf(col: Pick<MapColouring, "flowParam" | "horizon" | "layers" | "mm">, mapTab: ShellNav["mapTab"],
                             camera: Camera | null): ReportMap {
-  const what = mapTab === "conditions" ? `conditions ${col.flowParam}` : mapTab === "runs" ? "run timing" : col.layers.effective.water;
+  const what = mapTab === "conditions" ? `conditions ${col.flowParam}` : mapTab === "runs" ? "runs" : col.layers.effective.water;
   return { layer: `${what} · ${col.mm.basemap}`, horizon: col.horizon,
            zoom: camera?.zoom ?? null, lat: camera?.lat ?? null, lon: camera?.lon ?? null };
 }

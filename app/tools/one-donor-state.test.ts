@@ -97,6 +97,8 @@ const SPELLINGS: Record<string, string> = {
 const NOT_DONORS: Record<string, number> = {
   "packages/data/src/spots/words.ts: percentile": 1,
   "packages/ui-native/src/spot/Record.tsx: percentile": 1,
+  // (T367) the gauge card's reading: the station's own figure; its percentile places the dot on the ramp, no state
+  "packages/ui-native/src/ConditionsPanel.tsx: percentile": 1,
 };
 
 const REF = Date.parse("2026-10-21T05:00:00Z");

@@ -34,7 +34,7 @@ function Strip({ notice, palette }: { notice: AccessNotice; palette: Palette }) 
     : [palette.accent, laid(palette.accent, palette.card, NO_ACCESS_BAND)];
   return (
     <Pressable testID={banner ? "access-banner" : "access-note"} onPress={() => setOpen((o) => !o)}
-               accessibilityRole="button" accessibilityState={{ expanded: open }}
+               accessibilityRole="button" aria-expanded={open}
                accessibilityLabel={`${notice.title}: ${notice.text}`}
                style={{ backgroundColor: ground, borderLeftWidth: 4, borderLeftColor: bar, borderBottomWidth: 1,
                         borderBottomColor: palette.line, minHeight: 36, paddingVertical: 8, paddingLeft: 12,

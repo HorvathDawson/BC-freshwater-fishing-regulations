@@ -74,8 +74,10 @@ export function figureOf(s: string): string | null {
 
 /** Every hand-written literal in one component's code: `[kind, text]`. */
 export function literals(source: string): [kind: "copy" | "figure", text: string][] {
-  // a testID or a key is a name for a test or React, never shown; a `case "…":` is a key being matched
-  const src = source.replace(/\b(?:testID|key)=(?:\{[^}]*\}|"[^"]*")/g, "").replace(/\bcase\s+"[^"]*"\s*:/g, "case _:");
+  // a testID or a key is a name for a test or React, never shown; a `case "…":` is a key being matched; a console line
+  // or a thrown Error's message is for the log and the failure report, never drawn
+  const src = source.replace(/\b(?:testID|key)=(?:\{[^}]*\}|"[^"]*")/g, "").replace(/\bcase\s+"[^"]*"\s*:/g, "case _:")
+    .replace(/\b(console\.\w+|Error)\(\s*"(?:[^"\\\n]|\\.)*"/g, "$1(_");
   const out: [kind: "copy" | "figure", text: string][] = [];
   const seen = new Set<string>();
   const add = (kind: "copy" | "figure", text: string) => { const k = `${kind}:${text}`; if (!seen.has(k)) { seen.add(k); out.push([kind, text]); } };
@@ -143,7 +145,8 @@ describe("data vs UI: every word and number on screen comes from the data or fro
       <Pressable accessibilityRole="button" accessibilityLabel={on ? "Hide" : "Show"} />
       <Text>{\`Closed on \${day}\`}</Text>
       <Text>{"72h"}</Text><Text>−1 h</Text><Text style={{ width: "100%" }}>3rd–49th percentile · drains 50 km²</Text></View>);
-      switch (k) { case "classbox youth": return 1; }`);
+      switch (k) { case "classbox youth": return 1; }
+      console.warn("[x] the id could not be stored"); throw new Error("a part's code is not in its chunk");`);
     expect(literals(planted)).toEqual([
       ["copy", "Loading this water"], ["figure", "−1 h"], ["copy", "3rd–49th percentile · drains 50 km²"],
       ["figure", "3rd–49th percentile · drains 50 km²"], ["copy", "Open the map"], ["copy", "Hide"], ["copy", "Show"],

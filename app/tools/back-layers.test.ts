@@ -211,6 +211,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       // (T257) the first-run tour: its own Modal, registered (useBackLayer)
       "packages/ui-native/src/CoachMarks.tsx#CoachTour: a Modal",
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
+      // (T367) the forecast day list under the horizon strip (registered: back closes the list)
+      "packages/ui-native/src/HorizonPicker.tsx#HorizonPicker: draws HorizonPicker",
       "packages/ui-native/src/InSeasonNotice.tsx#InSeasonNotice: takes onClose",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
       // (T303) the rail's one-line location notice (why there is no dot): a tap puts it away; not a surface (COVERED)
