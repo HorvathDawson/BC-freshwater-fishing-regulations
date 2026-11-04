@@ -5,7 +5,6 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
-import { readingHeading } from "@app/core";
 import type { Panel, SectionId, UpdateService, WaterSource } from "@app/data";
 import { clearAnswers, clearPanelCache, resetFeedVersions, useSync } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -51,7 +50,7 @@ describe("live feed → the open Conditions view", () => {
     discharge = 30.1;
     act(() => { moved!("gauges"); });
     // no loading frame: the reading stays drawn while the new one is asked
-    expect(screen.getByText(readingHeading("Lead Creek near Town"))).toBeTruthy();
+    expect(screen.getByTestId("gauge-title").textContent).toBe("Lead Creek near Town");
     await waitFor(() => expect(screen.getByText("30.1")).toBeTruthy());
     expect(screen.queryByText("12.5")).toBeNull();
   });

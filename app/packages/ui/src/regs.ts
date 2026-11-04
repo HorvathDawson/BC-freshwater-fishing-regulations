@@ -16,7 +16,7 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { accessNotices, buildRegsPage, leadingAccessNotices, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
+import { accessNotices, buildRegsPage, headerOf, leadingAccessNotices, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who } from "@app/core";
 import { downstreamWater, openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
@@ -392,4 +392,28 @@ export function setAnglerProfile(next: Who): void {
 /** Who is fishing, shared by every mount, and its setter. No storage (D8 default). */
 export function useAnglerProfile(): readonly [Who, (who: Who) => void] {
   return [useSyncExternalStore(subscribe, () => who, () => who), setAnglerProfile] as const;
+}
+
+/**
+ * (T367, owner 2026-11-04: "in condition like regs add the extent text too … and land use notes … just like regs") A
+ * WATER'S OTHER VIEWS SAY WHERE AND WHAT LAND, AS ITS REGULATIONS PAGE DOES: the part's place label (core `headerOf`'s,
+ * "Mouth → Vedder Crossing Bridge"; an unnamed reach's "Tributary of …") and the page's access notices (the banner and
+ * the gentle note, `useAccessNotices` with the same page) — read through the same store, target and inputs the
+ * Regulations view asks, so both answer alike.
+ */
+export function useWaterPlace(loader: ReleaseLoader | null, source: Pick<WaterSource, "traceToGauge" | "waterFor">,
+                              item: ItemId | null, section: SectionId | null) {
+  const store = useRegsStore(loader);
+  const found = useRegsTarget(store.value ?? null, item, section);
+  const inputs = useRegulations(store.value ?? null, found.value ?? null, null);
+  const down = useDownstreamWater(source, item, section);
+  const inp = inputs.value ?? null;
+  const place = useMemo(() => (inp ? headerOf(inp, { today: regsDay(null).today, status: "unknown",
+                                                     downstream: down.value?.name ?? null }).place : null),
+                        [inp, down.value?.name]);
+  const page = useMemo(() => (inp?.item ? { ord: inp.item.ord, partIx: inp.partIx, parts: inp.item.parts.length } : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity is its item, part and part count
+    [inp?.item?.ord, inp?.partIx, inp?.item?.parts.length]);
+  const access = useAccessNotices(loader, section, store.value ?? null, page);
+  return { place, access: access.value ?? [] };
 }

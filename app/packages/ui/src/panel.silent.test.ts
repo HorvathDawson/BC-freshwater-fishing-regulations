@@ -135,11 +135,11 @@ describe("a silent panel member", () => {
     // line names it under "No forecast this far ahead" — the head over its chart must not say "Not reporting today".
     const second = answer(3).rows.find((r) => r.station === "SECOND")!;
     expect(quietHead("Second Creek", second, DAY.getTime(), 3, VAN)).toEqual({
-      heading: "AT SECOND CREEK", reads: "No forecast for this gauge that far ahead.",
+      heading: "AT SECOND CREEK", title: "Second Creek", reads: "No forecast for this gauge that far ahead.",
       lastReport: "Last reported 2026-10-20 at 21:00 PDT." });
     const stale = answer().rows.find((r) => r.station === "STALE")!;
     expect(quietHead("Liard River at Upper Crossing", stale, DAY.getTime(), 0, VAN)).toEqual({
-      heading: "AT LIARD RIVER AT UPPER CROSSING", reads: "Not reporting today.",
+      heading: "AT LIARD RIVER AT UPPER CROSSING", title: "Liard River at Upper Crossing", reads: "Not reporting today.",
       lastReport: "Last reported 2026-10-14 at 09:00 PDT." });
   });
 

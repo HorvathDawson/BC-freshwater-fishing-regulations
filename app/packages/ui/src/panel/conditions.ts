@@ -18,6 +18,8 @@ import { gaugeChoiceGroups, gaugeChoices, useGaugeSides, type GaugeChoiceVM, typ
 /** The lead station's own reading, finished. */
 export interface ReadingVM {
   heading: string;
+  /** (T367) the gauge's name as sourced: the gauge card's title */
+  title: string;
   figure: number;
   unit: string;
   /** Which quantity `figure` is. */
@@ -25,11 +27,13 @@ export interface ReadingVM {
   /** The stage beside a discharge, where the station has both. */
   stage: string | null;
   standing: string;
+  /** (T367) the reading's percentile, 0–1, for the standing's dot in the map's colour; null without a record */
+  percentile: number | null;
   age: string;
 }
 
 /** A quiet donor at the head of the chart, in core's words. */
-export interface QuietVM { heading: string; reads: string; lastReport: string }
+export interface QuietVM { heading: string; title: string; reads: string; lastReport: string }
 
 /**
  * THE QUIET HEAD, at the horizon the sheet is on: a day ahead with no forecast is a missing forecast, as the silent
@@ -37,14 +41,14 @@ export interface QuietVM { heading: string; reads: string; lastReport: string }
  * 2026-10-22). `zone` is for tests.
  */
 export function quietHead(name: string, row: DonorRow, ref: number, horizon: Horizon, zone?: string): QuietVM {
-  return { heading: readingHeading(name), reads: donorReads(row, { ref, horizon }),
+  return { heading: readingHeading(name), title: name, reads: donorReads(row, { ref, horizon }),
            lastReport: donorLastReport(row.observedAt, zone) };
 }
 
 /** A gauged lake's own station with no reading: whose it is, that it is quiet, when it last reported (core words). */
 export function lakeQuietHead(name: string, observedAt: string | null, ref: number, horizon: Horizon,
                               zone?: string): QuietVM {
-  return { heading: readingHeading(name), reads: donorReads({ percentile: null, observedAt }, { ref, horizon }),
+  return { heading: readingHeading(name), title: name, reads: donorReads({ percentile: null, observedAt }, { ref, horizon }),
            lastReport: donorLastReport(observedAt, zone) };
 }
 
@@ -164,11 +168,13 @@ export function useConditionsView(
   if (c && shown && figure !== null) {
     reading = {
       heading: readingHeading(name),
+      title: name,
       figure,
       unit: CONDITIONS_WORDS.unit[shown],
       quantity: shown,
       stage: shown === "discharge" && c.level != null ? stageLine(c.level) : null,
       standing: readingStandingLine(c.percentile, c.standing as Standing | null),
+      percentile: c.percentile ?? null,
       age: readingAgeLine(freshness(c.fetchedAt, Date.now()), c.observedAt),
     };
   }

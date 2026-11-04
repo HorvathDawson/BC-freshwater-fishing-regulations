@@ -8,13 +8,16 @@
  */
 import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, TEMP_LEGEND, unprovenLine,
          WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND,
-         RUN_WORDS, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
+         RUN_WORDS, salmonCheckedLine, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
 import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map/colours";
 import { ObstacleIcon } from "../icons";
 import { useMemo, useState } from "react";
+import { useCoachTarget } from "../CoachMarks";
 import { Pressable, Text, View } from "react-native";
-import { RunDayCaption, RunDaySlider } from "../RunsControls";
+import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
+import type { FishImages } from "../regs/types";
+import { RegsLayerToggle } from "./RegsLayerToggle";
 import { LegendCount, LegendRamp, LegendStrip } from "../Chrome";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
@@ -33,7 +36,11 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   const onConditions = mm.onConditions;
   // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
   const visibleMarks = cond.marks;
-  return (
+  // (T367, owner 2026-11-04) THE FISHERY HEADS THE KEY IT CHANGES: Trout & more | Salmon, both always in view, over the
+  // Map tab's legend (it sat in the map's top corner beside the day); in Salmon, whose rules these are, beside it
+  const fishery = !conditions && col.salmonOffered && col.statusOk && col.layers.water.drawn === "regulations";
+  const checked = fishery && col.regsLayer === "salmon" ? salmonCheckedLine(col.salmonFacts) : null;
+  const strip = (
     <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
       {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one
           choice — a second switch in the strip would be two answers to "where do I change this". The ramp below
@@ -129,6 +136,21 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
       )}
     </LegendStrip>
   );
+  if (!fishery) return strip;
+  return (
+    <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10, paddingHorizontal: 14,
+                     paddingTop: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
+        <RegsLayerToggle col={col} palette={palette} />
+        {checked && (
+          <Text testID="salmon-legend-source" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub, flexShrink: 1 }}>
+            {checked}
+          </Text>
+        )}
+      </View>
+      {strip}
+    </View>
+  );
 }
 
 /**
@@ -168,20 +190,35 @@ export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Pa
  * line below appears only while loading — never the routine offline line. Tap it for the whole text. (T367) What is
  * WRONG (stale, failed) is the bar over the map (`PairBanner`), not a grey line here.
  */
-export function RunsLegend({ col, palette, theme, onHelp }: { col: MapColouring; palette: Palette; theme: string; onHelp?: () => void }) {
+export function RunsLegend({ col, palette, theme, onHelp, fishImages }: { col: MapColouring; palette: Palette; theme: string;
+                                                                      onHelp?: () => void; fishImages?: FishImages }) {
   const r = col.runs;
   const slots = useMemo(() => (r.facts ? slotsFor(r.facts, r.chosen, r.year) : []), [r.facts, r.chosen, r.year]);
   const season = useMemo(() => (r.facts ? r.facts.season(slots) : []), [r.facts, slots]);
+  // (T367) each chosen species' own season, in its colour: the histogram stacks them
+  const bySpecies = useMemo(() => (r.facts ? r.chosen.map((s) => ({
+    name: s.name, colour: palette.runSpecies[s.name] ?? palette.sub, season: r.facts!.season(slotsFor(r.facts!, [s], r.year)),
+  })) : []), [r.facts, r.chosen, r.year, palette.sub]);
   const [open, setOpen] = useState(false);
+  // (T261) the walkthrough points at the species row by this key
+  const speciesTarget = useCoachTarget("runs:species");
   const note = !r.problem && r.loading ? RUN_WORDS.loading : null;
   return (
     <View testID="runs-legend" style={{ borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
                                         paddingHorizontal: 14, paddingTop: 8, paddingBottom: 8, gap: 6 }}>
       <View style={{ width: "100%", maxWidth: 760, alignSelf: "center", gap: 6 }}>
+        {/* (T367, owner 2026-11-04) THE SPECIES, in the bar with the rest of run timing (they sat over the map): tap to
+            show or hide, long-press for one alone, All for every one; each chip's colour is its band in the histogram */}
+        {r.species.length > 0 && (
+          <View ref={speciesTarget} collapsable={false}>
+            <RunSpeciesChips species={r.species} chosen={r.chosen} onToggle={r.toggle} onOnly={r.only} onAll={r.all}
+                             fishImages={fishImages} palette={palette} />
+          </View>
+        )}
         <RunDayCaption pentad={r.pentad} today={r.today} title={r.chosen.length ? RUN_WORDS.legendTitle(r.chosen.map((s) => s.name)) : null}
                        onToday={() => r.setPentad(r.today)} onHelp={onHelp} palette={palette} />
         <RunDaySlider pentad={r.pentad} today={r.today} playing={r.playing} onPentad={r.setPentad} onPlay={r.setPlaying}
-                      season={season} theme={theme} palette={palette} />
+                      season={season} bySpecies={bySpecies} theme={theme} palette={palette} />
         {note && (
           <Pressable testID="runs-legend-loading" onPress={() => setOpen((o) => !o)}
                      accessibilityRole="button" accessibilityLabel={note}>

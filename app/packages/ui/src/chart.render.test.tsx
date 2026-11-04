@@ -23,11 +23,11 @@ const source = { gaugeSeries: async () => ({ fetchedAt: 0, value: SERIES }) } as
 const ST = "08MH001" as StationId;
 
 describe("the chart's size", () => {
-  it("is built for the width it is drawn at, and never below the old box", () => {
-    expect(chartBox(1000)).toEqual({ width: 1000, height: 340, padLeft: 40, padRight: 10, padTop: 12, padBottom: 24 });
-    expect(chartBox(358)).toEqual({ width: 358, height: 190, padLeft: 40, padRight: 10, padTop: 12, padBottom: 24 });
+  it("is built for the width it is drawn at, between 180 and 240 high (T367)", () => {
+    expect(chartBox(1000)).toEqual({ width: 1000, height: 240, padLeft: 40, padRight: 10, padTop: 12, padBottom: 24 });
+    expect(chartBox(358)).toEqual({ width: 358, height: 180, padLeft: 40, padRight: 10, padTop: 12, padBottom: 24 });
     expect(chartBox(100).width).toBe(320);
-    expect([chartHeight(390), chartHeight(500), chartHeight(900)]).toEqual([195, 250, 340]);
+    expect([chartHeight(390), chartHeight(500), chartHeight(900)]).toEqual([180, 200, 240]);
   });
 });
 

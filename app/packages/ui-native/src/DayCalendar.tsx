@@ -14,7 +14,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { chooseDay, DAY_PICKER, mapDayChips, monthVM, showingLine, stepDay, type DayRange } from "@app/core";
+import { chooseDay, DAY_PICKER, dayButtonVM, monthVM, showingLine, stepDay, type DayRange } from "@app/core";
 import { CornerStrip } from "./CornerStrip";
 import { Icon, type IconName } from "./icons";
 import type { Palette } from "./theme";
@@ -25,10 +25,11 @@ import { hitProps } from "./regs/hit";
 const TARGET = 44;
 
 /**
- * (T213, owner 2026-10-28: "date selector up there to match Conditions' location for selecting date offsets") THE MAP'S
- * DAY STRIP, in the top-left corner where Conditions keeps its horizons and drawn with the same strip (`CornerStrip`):
- * Today · Tomorrow · a calendar segment naming any other day shown, which opens the date sheet. The words are `@app/core`
- * `mapDayChips`; a press moves THE day (`onDay`) or opens the sheet (`onOpen`).
+ * (T213; T367, owner 2026-11-04: the Today · Tomorrow · Date strip was "really ugly") THE MAP'S DAY PILL, in the
+ * top-left corner under search: ‹ · the day shown, with the calendar · ›. The arrows step a day (tomorrow stays one tap
+ * away; a step out of the data's range is refused, greyed); the middle opens the date sheet — its month grid, Today and
+ * the day steps. The words are `@app/core` `dayButtonVM` / `DAY_PICKER`; a press moves THE day (`onDay`) or opens the
+ * sheet (`onOpen`).
  */
 export function MapDayStrip({ palette, day, range, onDay, onOpen, now }: {
   palette: Palette; day: Date | null; range: DayRange;
@@ -36,14 +37,19 @@ export function MapDayStrip({ palette, day, range, onDay, onOpen, now }: {
   /** for tests; the device's clock otherwise */
   now?: Date;
 }) {
-  const chips = mapDayChips(day, now ?? new Date(), range);
+  const at = now ?? new Date();
+  const shown = dayButtonVM(day, at);
+  const earlier = stepDay(day, -1, at, range), later = stepDay(day, 1, at, range);
   return (
     <CornerStrip palette={palette} testID="map-day" label={DAY_PICKER.strip} coach="days"
-                 segments={chips.map((c) => ({
-                   key: c.k, chip: c.chip, label: c.label, on: c.on, enabled: c.enabled,
-                   icon: c.k === "pick" ? "calendar" as const : undefined,
-                   onPress: c.k === "pick" ? onOpen : () => onDay(c.day ?? null),
-                 }))} />
+                 segments={[
+                   { key: "earlier", chip: "", icon: "back" as const, label: DAY_PICKER.earlierLabel, on: false,
+                     enabled: earlier !== undefined, onPress: () => { if (earlier !== undefined) onDay(earlier); } },
+                   { key: "pick", chip: shown.text, icon: "calendar" as const, label: shown.label, on: day !== null,
+                     onPress: onOpen },
+                   { key: "later", chip: "", icon: "next" as const, label: DAY_PICKER.laterLabel, on: false,
+                     enabled: later !== undefined, onPress: () => { if (later !== undefined) onDay(later); } },
+                 ]} />
   );
 }
 

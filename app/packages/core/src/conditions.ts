@@ -187,20 +187,18 @@ export const CONDITIONS_WORDS = {
   },
   quantity: { discharge: "Flow", level: "Level" },
   span: { "72h": "Last 72 hours", year: "This year" },
+  /** (T367) the span's word on the gauge card's compact toggle (the full words are its spoken name) */
+  spanShort: { "72h": "72 h", year: "Year" },
   /** (T60) The chart's key: the four things that share its frame (Hydrograph `Key` rows). */
-  key: { reading: "reading", middleHalf: "middle half", band: "10th–90th", median: "median" },
-  /**
-   * (T180) THE HYDROGRAPH'S OWN LINES: the chart's name aloud, and the caption under it — what the shading is (or that
-   * the record is too short for any), that past TODAY is forecast, and the unit.
-   */
-  hydrograph: {
-    label: "River flow against its normal range",
-    envelope: "Shaded is the middle half of everything this station has recorded for these days; the dashed line is "
-      + "the median.",
-    noEnvelope: "No envelope: this station's record is too short to say what is normal here.",
-    forecast: " Past TODAY is a model forecast, not a reading.",
-    unit: (unit: string) => ` Values in ${unit}.`,
-  },
+  key: { reading: "reading", middleHalf: "middle half", band: "10th–90th", median: "median",
+         /** (T367) the legend's one note where the record is too short for a normal range */
+         noEnvelope: "no normal range (short record)",
+         /** (T367) a model's legend entry: tap to draw it */
+         model: (label: string, on: boolean) => `${label} forecast${on ? ", drawn" : ". Tap to draw it"}` },
+  /** (T367) the gauge card: its title opens the list of gauges */
+  card: { pick: (name: string) => `${name}. Choose another gauge`, list: "Gauges behind this estimate" },
+  /** (T180) the hydrograph's name aloud; (T367) its caption is gone, the legend says what each mark is */
+  hydrograph: { label: "River flow against its normal range" },
   /** The ONE place the app decides what a quantity is measured in. */
   unit: { discharge: "m³/s", level: "m" },
   /** The Change block's kicker over the lead gauge's own forecasts, one line per model (T52). */
@@ -726,8 +724,9 @@ export function readingHeading(name: string): string {
 export function readingStandingLine(percentile: number | null,
                                     band: Standing | null): string {
   if (percentile == null) return "There is a reading here, but no record to compare it against.";
-  return `${standingWord(band ?? "no-record")} — ${percentileOrdinal(percentile)} percentile `
-    + "for the date";
+  // (T367) sentence case beside its coloured dot on the gauge card: the caps shouted over the number
+  const word = standingWord(band ?? "no-record").toLowerCase();
+  return `${word[0]!.toUpperCase()}${word.slice(1)} · ${percentileOrdinal(percentile)} percentile for the date`;
 }
 
 /** The stage, beside a discharge. */
@@ -746,16 +745,6 @@ export function noGaugeSentence(): string {
 /** What the chart is of, for its accessible label. */
 export function chartLabel(span: ChartSpan): string {
   return span === "72h" ? "the last 72 hours" : "the whole year against its record";
-}
-
-/** The year chart explains its bands; the 72-hour one needs no caption. */
-export function chartCaption(span: ChartSpan): string | undefined {
-  if (span !== "year") return undefined;
-  return "Bands are this station's whole record for each five-day period. The bold line is "
-    + "this year to date, which the feed accumulates day by day — it starts a month long "
-    + "and grows, because the published daily record lags a year behind. The thin lines "
-    + "are the last complete years out of that record. The frame ends a month past today, "
-    + "where the longest forecast does.";
 }
 
 /** Why the chart is empty. */

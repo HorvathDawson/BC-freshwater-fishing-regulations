@@ -2,11 +2,9 @@
  * THE BROWSE TABS' BODIES: the Map and Conditions tabs' ONE map, the Spots tab and the More tab (T62 3.4: out of the
  * Shell, unchanged). The top bar, the search sheet, the legend and the tab bar are the Shell's, drawn over these.
  */
-import { dayLabel, salmonCheckedLine, type DayRange, type NotFishingKind, type SectionKey, type SyncVM } from "@app/core";
+import { dayLabel, type DayRange, type NotFishingKind, type SectionKey, type SyncVM } from "@app/core";
 import { useCallback, type MutableRefObject } from "react";
-import { Platform, Text, View } from "react-native";
-import { TYPE } from "../type";
-import { useCoachTarget } from "../CoachMarks";
+import { Platform, View } from "react-native";
 import { openProbe, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
@@ -19,8 +17,6 @@ import { TABS } from "../TabBar";
 import type { MenuInfo } from "../menu/MenuHost";
 import type { Palette, ThemeName } from "../theme";
 import { HANDOVER_Z, HOME, type MapColouring } from "./useMapColouring";
-import { RegsLayerToggle } from "./RegsLayerToggle";
-import { RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
 import type { ShellNav } from "./useShellNav";
 import type { ShellSearch } from "./useShellSearch";
@@ -123,35 +119,15 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
    * in, and Standard / Salmon beside it — while the day's regulations are what the map draws, and not
    * while search's sheet is over it.
    */
-  const speciesTarget = useCoachTarget("runs:species");
   const regsDrawn = tab === "map" && !searching && col.statusOk && layers.water.drawn === "regulations";
   // one control row — the day, then Standard / Salmon — wrapping under the day on a phone
+  // (T367, owner 2026-11-04) the day alone: Trout & more | Salmon heads the legend it changes, at the foot (`MapLegend`)
   const corner = regsDrawn
-    ? <View testID="map-corner-row" pointerEvents="box-none" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "flex-start" }}>
+    ? <View testID="map-corner-row" pointerEvents="box-none" style={{ flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
         <MapDayStrip palette={palette} day={mapDay} range={dayRange} onDay={onDay} onOpen={onOpenDay} />
-        {col.salmonOffered && (
-          // (T276) the mode switch, and under it — in Salmon — whose rules these are (it was the legend's last line)
-          <View style={{ gap: 6, alignItems: "flex-start", flexShrink: 1 }} pointerEvents="box-none">
-            <RegsLayerToggle col={col} palette={palette} />
-            {col.regsLayer === "salmon" && salmonCheckedLine(col.salmonFacts) && (
-              <View style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.chip,
-                             paddingHorizontal: 8, paddingVertical: 5, alignSelf: "flex-start" }} pointerEvents="none">
-                <Text testID="salmon-legend-source" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>
-                  {salmonCheckedLine(col.salmonFacts)}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
       </View>
-    // (T261) THE RUNS TAB'S CORNER: the species, several at once, each with its fish (the date slider is the foot's)
-    : tab === "runs" && !searching && col.runs.species.length > 0
-      // stretched to the corner's width, so the chips scroll inside it and never widen the page
-      ? <View testID="map-corner-row" ref={speciesTarget} collapsable={false} pointerEvents="box-none" style={{ alignSelf: "stretch", overflow: "hidden" }}>
-          <RunSpeciesChips species={col.runs.species} chosen={col.runs.chosen} onToggle={col.runs.toggle}
-                           fishImages={fishImages} palette={palette} />
-        </View>
-      : undefined;
+    // (T367) the Runs tab's species moved into its bar at the foot (`RunsLegend`), with the rest of run timing
+    : undefined;
 
   return tab === "spots"
     // (T48) THE SPOTS TAB: the list, open one, Show it on the map, add one — the long press on the maps stays

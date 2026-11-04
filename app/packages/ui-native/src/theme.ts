@@ -102,6 +102,9 @@ export interface Palette {
   donor: readonly [string, string, string, string];
   /** Bathymetry: traced contours, and a scanned sheet. From the map theme. */
   survey: readonly [string, string];
+  /** (T367) one colour per run species (by its name, "Chinook"…), for the Runs bar's chips and stacked histogram:
+   *  `color.ui.run-species.*` — Okabe-Ito, colour-blind safe, the same in every theme (they sit on the card) */
+  runSpecies: Readonly<Record<string, string>>;
   /** The plain basemap's own colours, for the basemap chooser's preview. */
   water: readonly [string, string];
   /** The flow ramp's low, normal and high (`color.flow.f1/f4/f7`), for the Layers sheet's Show preview. */
@@ -254,6 +257,10 @@ const statusColours = (theme: string) => ({
   temp: Object.fromEntries(TEMP_BANDS.map(([b]) => [b, tempBandColour(theme, b)])) as Record<TempBand, string>,
 });
 
+/** (T367, owner 2026-11-04: "differentiate the different species in [the histogram] by color") the run species with a
+ *  colour token each (`color.ui.run-species.<name>`, in the map's token file): `Palette.runSpecies`. */
+const RUN_SPECIES = ["Steelhead", "Chinook", "Chum", "Coho", "Pink", "Sockeye"] as const;
+
 /**
  * One theme's palette, from the tokens.
  *
@@ -279,6 +286,7 @@ export function paletteFor(theme: string): Palette {
     donor: [c("color.ui.donor.1"), c("color.ui.donor.2"), c("color.ui.donor.3"),
             c("color.ui.donor.4")],
     survey: [c("color.survey.digitised"), c("color.survey.sheet")],
+    runSpecies: Object.fromEntries(RUN_SPECIES.map((n) => [n, c(`color.ui.run-species.${n.toLowerCase()}`)])),
     water: [c("color.lake.fill"), c("color.water.mapped")],
     flow: [c("color.flow.f1"), c("color.flow.f4"), c("color.flow.f7")],
     imagery: [c("color.ui.imagery.water"), c("color.ui.imagery.forest"),
@@ -329,3 +337,4 @@ export function changeRampStops(theme: string): readonly { at: number; colour: s
   return (mode?.stops ?? []).filter(([at]) => at >= 200)
     .map(([at, ref]) => ({ at: (at - 200) / 100, colour: colour(theme, ref.token) }));
 }
+

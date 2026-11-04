@@ -41,6 +41,21 @@ Only then does it go into the 0.5.0 APK (the one APK for the batch). No APK per 
 - 5 (11-04): ten dated chips pushed Change out of sight → `HorizonPicker` (map corner + panel header): Now · Forecast ▾
   (or the chosen day, filled) · Change; the middle opens the ten days under the strip, a pick closes it. The strip's
   scroll option is gone. Verdict pending.
+- 5b (11-04): the day list stays open after a pick (6533a714c); then (owner: "big shift") ONE scrolling row under the
+  strip, the tile's heading top-aligned beside it. Change in the panel is a plain segment with its word.
+- 6 (11-04): Conditions as ONE gauge card: title = the gauge (▾ opens the gauges list, replacing the station-code chips),
+  the reading, toggles on the title row, chart, legend (models are legend entries; the caption and model selector are
+  gone), foot = when it was read.
+- 7 (11-04): the estimate as a bordered tile (status dot + scale bar on the map's ramp, quiet sentence/range); toggles
+  as joined segments; the figure in the display face, standing sentence case with a dot; one row over the plot (unit,
+  readout/hint, zoom); chart 180–240 tall. Owner: OK apart from the strip (5b).
+- 8 (11-04): map chrome: the day as ‹ · 📅 day · › (top-left); Trout & more | Salmon heads the Map tab's legend bar;
+  the Runs species in the Runs bar (All, tap, long-press = only), the histogram stacked by species colour
+  (`palette.runSpecies`, tokens `color.ui.run-species.*` from the other chat, which also passed `fishImages` to
+  `RunsLegend` in Shell.tsx). The web Spots notice centred. The Conditions view shows the part's place row and both
+  access notices, as the Regulations view does (`useWaterPlace`). Tests re-pinned (test files only).
+- 9 (11-04, approved, in progress): Change — the colour bar back in the tile (change ramp), one readable chart (combined
+  line bold, each model thin, ×today gridlines), the model lines folded into one note, the peak's percentile said.
 - Open (not this chat's): `WaterScreen.regs-props.test.tsx` (fixture release, T35 Licence) ×2 and `WaterMode.test.tsx`
   (ONE MAP ENTRY) fail on HEAD without the round 3 edits too — the page shows the spinner after the keep tab appeared.
 

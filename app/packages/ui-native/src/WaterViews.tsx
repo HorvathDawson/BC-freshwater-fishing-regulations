@@ -18,10 +18,11 @@ import { WATER_SCREEN_WORDS } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
-import { useAccessNotices, useRegsStore, useUnnamedName, useWater, useWaterBox, useWaterLine, useWaterName } from "@app/ui";
+import { useRegsStore, useUnnamedName, useWater, useWaterBox, useWaterLine, useWaterName, useWaterPlace } from "@app/ui";
 import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { AccessNoticeBlock } from "./regs/AccessNoticeBlock";
+import { Place } from "./regs/RegsHeader";
 import { LoadingState } from "./LoadingState";
 import { type Palette } from "./theme";
 import { WaterFrame, WaterTitle } from "./WaterFrame";
@@ -62,9 +63,9 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   const store = useRegsStore(item === null ? loader : null);
   const unnamed = useUnnamedName(store.value ?? null, item, tapSid);
   const name = (water.state === "ready" ? water.value?.name ?? null : null) ?? (unnamed.value ?? null);
-  // (T54) the TAPPED section's no-access banner only: the gentle note is the Regulations page's
-  const access = useAccessNotices(loader, tapSid);
-  const noAccess = (access.value ?? []).filter((n) => n.tier === "no_access");
+  // (T367, owner 2026-11-04: "just like regs") the part's place label and the page's access notices — the banner and
+  // the gentle note — as the Regulations view says them
+  const where = useWaterPlace(loader, source, item, section);
 
   return (
     <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>
@@ -75,8 +76,9 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
         )
       ) : (
         <>
-          {/* (T54, owner Q2 default) the flow colour stays; a section in no-access land carries the banner here too */}
-          <AccessNoticeBlock notices={noAccess} palette={palette} />
+          {/* (T367) where on the water, and what land, as the Regulations view heads with them */}
+          {where.place && <Place place={where.place} palette={palette} coach={null} />}
+          <AccessNoticeBlock notices={where.access} palette={palette} />
           <ConditionsPanel source={source} section={section} palette={palette}
                            tiles={tiles} theme={theme} feed={feed}
                            parameter={parameter} onParameter={onParameter} from={from}

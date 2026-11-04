@@ -38,6 +38,9 @@ export interface RunTimingVM {
   readonly chosen: readonly RunSpecies[];
   /** add or remove a species (the last one stays: a map of no species answers nothing) */
   readonly toggle: (name: string) => void;
+  /** (T367) that species alone; every species again */
+  readonly only: (name: string) => void;
+  readonly all: () => void;
   /** the pentad the slider holds (0..72), today's, and the year it is read in (pink's brood line) */
   readonly pentad: number;
   readonly today: number;
@@ -77,6 +80,14 @@ export function useRunTiming(i: { source: RunTimingSource | null | undefined; wa
     setNames(now);
     try { i.store?.write(saveRunSpecies(now)); } catch { /* a preference: losing it costs a tap */ }
   }, [chosenNames, i.store]);
+  // (T367, owner 2026-11-04: "select multiple and be able to reduce quickly") one species alone, or every one again
+  const choose = useCallback((now: readonly string[]) => {
+    if (now.length === 0) return;
+    setNames([...now]);
+    try { i.store?.write(saveRunSpecies(now)); } catch { /* a preference: losing it costs a tap */ }
+  }, [i.store]);
+  const only = useCallback((name: string) => choose([name]), [choose]);
+  const all = useCallback(() => choose(species.map((s) => s.name)), [choose, species]);
 
   const day = i.now ?? new Date();
   const today = pentadOf(day);
@@ -105,7 +116,7 @@ export function useRunTiming(i: { source: RunTimingSource | null | undefined; wa
   const loading = asked && got.state === "loading";
   const problem = got.state === "failed" || (got.state === "ready" && !facts) ? "failed"
     : facts && i.paired && handles !== null && handles !== facts.handles ? "stale" : null;
-  return { feed, facts, loading, problem, captured: data?.from === "capture", species, chosen, toggle,
+  return { feed, facts, loading, problem, captured: data?.from === "capture", species, chosen, toggle, only, all,
            pentad, today, year, setPentad, playing, setPlaying };
 }
 

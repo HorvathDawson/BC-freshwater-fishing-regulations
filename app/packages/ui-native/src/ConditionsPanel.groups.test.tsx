@@ -49,7 +49,8 @@ describe("(T168) the conditions panel, grouped", () => {
                             scroll={false} day={new Date(2026, 9, 23, 12)} />);
     await waitFor(() => expect(screen.getByTestId("gauge-count")).toBeTruthy());
     expect(screen.getByTestId("gauge-count").textContent).toBe("1 gauge on this water · 1 not reporting");
-    // the switch: OWN on this water (the chart's gauge), FAR folded under the donors
+    // the switch (T367: the card's title opens it): OWN on this water (the chart's gauge), FAR folded under the donors
+    fireEvent.click(screen.getByTestId("gauge-pick"));
     expect(screen.getByTestId("switch-groups-own").textContent).toBe("OWN100%");
     const fold = screen.getByTestId("switch-groups-donor-fold");
     expect(fold.getAttribute("aria-label")).toBe("1 gauge from other waters not reporting. Show them");

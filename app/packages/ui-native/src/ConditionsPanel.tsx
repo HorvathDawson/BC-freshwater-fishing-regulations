@@ -11,9 +11,9 @@
  * finished from `useConditionsView` in @app/ui (rule 25, P12a); the chart's words are
  * core's (`conditions.ts`). What is left here is drawing, and the chart's own controls.
  */
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo, useState, type ReactNode } from "react";
 import { Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
-import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
+import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
@@ -26,12 +26,12 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
 import { LoadingState } from "./LoadingState";
-import { DonorPanel, donorTone, Kicker } from "./DonorPanel";
+import { DonorPanel, donorTone, Kicker, rampAt } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { Hydrograph } from "./Hydrograph";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import { TYPE } from "./type";
-import { GUTTER, SPACE, type Palette, round } from "./theme";
+import { flowRampStops, GUTTER, SPACE, type Palette, round } from "./theme";
 import { hitProps } from "./regs/hit";
 import { NoneLine } from "./EmptyState";
 
@@ -151,28 +151,30 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    */
   const readingRows = reading ? (
         <View style={{ gap: SPACE.s1 }}>
-          {/* WHOSE READING THIS IS, before the number rather than under it. */}
-          <Kicker palette={palette}>{reading.heading}</Kicker>
-          {/* ONE NUMBER STYLE: the figure and its unit in the figure face, side by side. */}
-          <View style={{ flexDirection: "row", alignItems: "baseline", columnGap: SPACE.s2,
-                         flexWrap: "wrap" }}>
-            <Text style={{ ...TYPE.figureBig, color: tint }}>{reading.figure}</Text>
-            <Text style={{ ...TYPE.figure, color: palette.sub }}>{reading.unit}</Text>
+          {/* (T367) whose reading this is is the card's title, over it; when it was taken is the card's foot */}
+          {/* (T367) THE FIGURE AS A STAT: large in the display face, its unit small beside it, the stage after a dot —
+              the monospace figure in the chart's teal read as code beside the rest of the card */}
+          <View style={{ flexDirection: "row", alignItems: "baseline", columnGap: SPACE.s2, flexWrap: "wrap" }}>
+            <Text testID="reading-figure" style={{ ...TYPE.title, color: palette.ink }}>{reading.figure}</Text>
+            <Text style={{ ...TYPE.bodyStrong, color: palette.sub }}>{reading.unit}</Text>
             {/* BOTH NUMBERS WHERE THERE ARE BOTH. */}
             {reading.stage && (
-              <Text style={{ ...TYPE.figure, color: palette.sub }}>{reading.stage}</Text>
+              <Text style={{ ...TYPE.body, color: palette.sub }}>{`· ${reading.stage}`}</Text>
             )}
           </View>
-          <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{reading.standing}</Text>
-          <Text style={{ ...TYPE.meta, color: palette.faint }}>{reading.age}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
+            {reading.percentile != null && theme ? (
+              <View testID="reading-dot" style={{ width: 10, height: 10, borderRadius: round(10),
+                                                  backgroundColor: rampAt(flowRampStops(theme), reading.percentile) }} />
+            ) : null}
+            <Text style={{ ...TYPE.bodyStrong, color: palette.ink, flexShrink: 1 }}>{reading.standing}</Text>
+          </View>
         </View>
   ) : vm.quiet ? (
         // A QUIET DONOR AT THE HEAD OF THE CHART (review 2026-10-21): whose it is, that it is silent today and when it
         // last spoke — in the reading's place, under the switch. Never the no-gauge refusal: the headline answered.
         <View style={{ gap: SPACE.s1 }}>
-          <Kicker palette={palette}>{vm.quiet.heading}</Kicker>
           <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{vm.quiet.reads}</Text>
-          <Text style={{ ...TYPE.meta, color: palette.faint }}>{vm.quiet.lastReport}</Text>
         </View>
   ) : null;
 
@@ -192,31 +194,32 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   ) : undefined;
 
   const view = chart.state === "ready" ? chart.value : null;
+  /*
+   * (T367, owner 2026-11-04: "all gauge info … should be built into graph look … right now it isnt very cohesive") THE
+   * GAUGE CARD: one bordered card that reads top to bottom, the same for the lead gauge, a donor and a lake's own gauge —
+   * its title the gauge (a tap opens the gauges behind the estimate, in place of the wrap of station chips), the
+   * reading and its standing, the two toggles on one row, the chart with its legend (the models are legend entries,
+   * in place of the model selector), and in its foot when the reading was taken.
+   */
+  const title = reading?.title ?? vm.quiet?.title ?? vm.gauges.find((g) => g.on)?.name ?? station ?? "";
+  const foot = reading?.age ?? vm.quiet?.lastReport ?? null;
   const graph = station ? (
-    <View style={{ gap: SPACE.s3 }} onLayout={measure}>
-      {/* WHICH GAUGE, RIGHT BY THE PLOT IT CONTROLS (owner 2026-10-21): it was the donor list, a screen below. */}
-      {vm.gauges.length > 0 && (
-        <GaugeSwitch palette={palette} gauges={vm.gauges} groups={vm.gaugeGroups}
-                     onPick={(s) => vm.select(s as never)} />
-      )}
+    <View testID="gauge-card" onLayout={measure}
+          style={{ gap: SPACE.s3, padding: SPACE.s3, borderWidth: 1, borderColor: palette.line2,
+                   borderRadius: palette.r.box, backgroundColor: palette.card }}>
+      <GaugeTitle palette={palette} title={title} gauges={vm.gauges} groups={vm.gaugeGroups}
+                  onPick={(s) => vm.select(s as never)}
+                  tools={<>
+                    <ChartControls<Parameter> palette={palette} value={shown} testID="chart-quantity"
+                                              label={W.controls.quantity} onPick={pick}
+                                              options={available.map((p) => [p, W.quantity[p]] as const)} />
+                    <ChartControls<Span> palette={palette} value={span} label={W.controls.span} testID="chart-span"
+                                         onPick={setSpan}
+                                         options={[["72h", W.spanShort["72h"], W.span["72h"]],
+                                                   ["year", W.spanShort.year, W.span.year]] as const} />
+                  </>} />
       {readingRows}
       {change && <ChangeBlock palette={palette} change={change} colour={tint} />}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}>
-        <ChartControls<Parameter> palette={palette} value={shown}
-                                  label={W.controls.quantity} onPick={pick}
-                                  options={available.map((p) =>
-                                    [p, W.quantity[p]] as const)} />
-        <ChartControls<Span> palette={palette} value={span} label={W.controls.span}
-                             onPick={setSpan}
-                             options={[["72h", W.span["72h"]],
-                                       ["year", W.span.year]] as const} />
-        {/* THE MODEL, when more than one is running: they answer different questions,
-            and in the shoulder months both are in season and disagree. */}
-        <ChartControls<string> palette={palette} label={W.controls.model}
-                               value={run?.model ?? ""} onPick={setModel}
-                               options={runs.map((f) =>
-                                 [f.model, forecastModelOption(f)] as const)} />
-      </View>
       {chart.state === "loading" && (
         <LoadingState palette={palette} size={72} label={W.loadingRecord} style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />
       )}
@@ -226,15 +229,14 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           <Hydrograph shape={view.shape} palette={palette} colour={tint}
                       unit={UNIT[shown]} view={view}
                       forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
-                      label={chartLabel(span)}
-                      caption={chartCaption(span)} />
+                      models={runs.length > 1 ? runs.map((f) => ({ key: f.model, label: forecastModelOption(f),
+                                                                    on: f.model === run?.model,
+                                                                    onPress: () => setModel(f.model) })) : undefined}
+                      label={chartLabel(span)} />
         </View>
       )}
       {view?.pending && (
         <Text style={{ ...TYPE.meta, color: palette.faint }} accessibilityLiveRegion="polite">{W.loadingRecord}</Text>
-      )}
-      {view?.asOf && (
-        <Text testID="chart-kept-as-of" style={{ ...TYPE.meta, color: palette.sub }}>{view.asOf}</Text>
       )}
       {view && !view.pending && view.draft && (
         <Text style={{ ...TYPE.meta, color: palette.faint }} accessibilityLiveRegion="polite">{W.envelopeLoading}</Text>
@@ -255,6 +257,13 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           </Text>
           {run.model === "ELF" && <Text style={{ ...TYPE.meta, color: palette.sub }}>{CHANGE_LOW_WATER}</Text>}
         </About>
+      )}
+      {/* THE CARD'S FOOT: when the reading was taken (and how fresh), then the offline note */}
+      {(foot || view?.asOf) && (
+        <View testID="gauge-card-foot" style={{ borderTopWidth: 1, borderTopColor: palette.line, paddingTop: SPACE.s2, gap: 2 }}>
+          {foot && <Text style={{ ...TYPE.meta, color: palette.sub }}>{foot}</Text>}
+          {view?.asOf && <Text testID="chart-kept-as-of" style={{ ...TYPE.meta, color: palette.sub }}>{view.asOf}</Text>}
+        </View>
       )}
     </View>
   ) : null;
@@ -314,42 +323,56 @@ function About({ palette, label, children }: { palette: Palette; label: string; 
 }
 
 /**
- * THE GAUGE SWITCH: one chip per donor in the panel's weight order — its pin's colour, its station id and its share of
- * the estimate — directly above the reading and the plot it changes. Chosen from `vm.gauges` (@app/ui `gaugeChoices`);
- * a quiet gauge is still offered and says it counts for nothing today; picked, it says when it last reported, and the
- * chart says so if it has no recent record to draw.
+ * (T367) THE GAUGE CARD'S TITLE: the gauge's name as sourced, and — where there is more than one gauge behind the
+ * estimate — a chevron: a tap opens them as a list (status dot, name, station, share), grouped as `gaugeChoiceGroups`
+ * groups them (own first, the not-reporting last); a pick charts that gauge and closes the list. One gauge: a plain title.
  */
-function GaugeSwitch({ palette, gauges, groups, onPick }: {
-  palette: Palette; gauges: readonly GaugeChoiceVM[]; onPick: (station: string) => void;
-  /** (T168) the chips grouped, own first, the not-reporting folded (`gaugeChoiceGroups`); null: one run */
+function GaugeTitle({ palette, title, gauges, groups, onPick, tools }: {
+  palette: Palette; title: string; gauges: readonly GaugeChoiceVM[]; onPick: (station: string) => void;
+  /** (T367) the chart's toggles, on the title's row (they wrap under it on a narrow screen) */
+  tools?: ReactNode;
+  /** (T168) the gauges grouped, own first, the not-reporting folded (`gaugeChoiceGroups`); null: one run */
   groups?: readonly GaugeGroupVM<GaugeChoiceVM>[] | null;
 }) {
-  const chip = (g: GaugeChoiceVM) => (
-          <Pressable {...hitProps({ w: 80, h: 34 })} key={g.station} onPress={() => onPick(g.station)} accessibilityRole="radio"
-                     aria-checked={g.on} accessibilityLabel={g.label}
-                     style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2,
-                              paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,
-                              borderRadius: palette.r.pill, borderWidth: g.on ? 2 : 1,
-                              borderColor: g.on ? donorTone(palette, g.row, g.quiet) : palette.line2,
-                              backgroundColor: g.on ? palette.tint : palette.card }}>
-            <View style={{ width: 9, height: 9, borderRadius: round(9),
-                           backgroundColor: donorTone(palette, g.row, g.quiet) }} />
-            <Text style={{ ...TYPE.figure, color: palette.ink }}>{g.station}</Text>
-            <Text style={{ ...TYPE.metaBold, color: g.quiet ? palette.faint : palette.sub }}>{g.share}</Text>
-          </Pressable>
+  const [open, setOpen] = useState(false);
+  const head = <Text testID="gauge-title" style={{ ...TYPE.bodyStrong, color: palette.ink, flexShrink: 1 }}>{title}</Text>;
+  const bar = (name: ReactNode) => (
+    <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: SPACE.s2 }}>
+      <View style={{ flexGrow: 1, flexBasis: 220, flexDirection: "row" }}>{name}</View>
+      <View style={{ flexDirection: "row", gap: SPACE.s2 }}>{tools}</View>
+    </View>
+  );
+  if (gauges.length < 2) return bar(head);
+  const row = (g: GaugeChoiceVM, first: boolean) => (
+    <Pressable {...hitProps({ w: 120, h: 40 })} key={g.station} onPress={() => { setOpen(false); onPick(g.station); }}
+               accessibilityRole="radio" aria-checked={g.on} accessibilityLabel={g.label}
+               style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, minHeight: 44, paddingHorizontal: SPACE.s2,
+                        borderTopWidth: first ? 0 : 1, borderTopColor: palette.line,
+                        backgroundColor: g.on ? palette.tint : palette.card }}>
+      <View style={{ width: 10, height: 10, borderRadius: round(10), backgroundColor: donorTone(palette, g.row, g.quiet) }} />
+      <View style={{ flex: 1 }}>
+        <Text numberOfLines={1} style={{ ...TYPE.body, color: palette.ink, fontWeight: g.on ? "700" : "400" }}>{g.name ?? g.station}</Text>
+        {g.name && <Text style={{ ...TYPE.meta, color: palette.faint }}>{g.station}</Text>}
+      </View>
+      <Text style={{ ...TYPE.metaBold, color: g.quiet ? palette.faint : palette.sub }}>{g.share}</Text>
+    </Pressable>
   );
   return (
     <View style={{ gap: SPACE.s2 }}>
-      <Kicker palette={palette}>{W.chartGauge}</Kicker>
-      {groups ? (
-        <View accessibilityRole="radiogroup" accessibilityLabel={W.controls.gauge}>
-          <GaugeGroups palette={palette} groups={groups} keyOf={(g) => g.station} render={chip} wrap
-                       headings={false} testID="switch-groups" />
-        </View>
-      ) : (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}
-              accessibilityRole="radiogroup" accessibilityLabel={W.controls.gauge}>
-          {gauges.map(chip)}
+      {bar(
+        <Pressable testID="gauge-pick" onPress={() => setOpen((o) => !o)} accessibilityRole="button" aria-expanded={open}
+                   accessibilityLabel={W.card.pick(title)} {...hitProps({ w: 120, h: 34 })}
+                   style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, flexShrink: 1 }}>
+          {head}
+          <Icon name={open ? "collapse" : "expand"} colour={palette.accent} size={16} />
+        </Pressable>
+      )}
+      {open && (
+        <View testID="gauge-list" accessibilityRole="radiogroup" accessibilityLabel={W.card.list}
+              style={{ borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.box }}>
+          {groups ? <GaugeGroups palette={palette} groups={groups} keyOf={(g) => g.station} render={row}
+                                 headings={false} testID="switch-groups" />
+            : gauges.map((g, i) => row(g, i === 0))}
         </View>
       )}
     </View>

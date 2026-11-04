@@ -5,7 +5,7 @@ import { changeLowWaterNote, CONDITIONS_WORDS, disagreeNote, donorBecause, donor
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorSilent, donorVotes, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
          panelCamera, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
-         throughLakeNote,
+         throughLakeNote, interval,
          backwaterNote, unplacedNote, type SectionKey } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, joinMapLabel, ROUTE_MAP_WORDS, routeLegend } from "@app/core";
 import { gaugeSides, groupGauges, isDonorSide, stateAt, type GaugeGroup, type GaugeSide } from "@app/core";
@@ -124,6 +124,11 @@ export type DonorVM =
       headlineSuffix: string | null;
       sentence: string;
       range: string;
+      /**
+       * (T367) WHERE THE ESTIMATE SITS on the record, 0–1: the estimate and its interval, for the tile's scale bar (the
+       * map's own ramp). Null under Change, which is no percentile.
+       */
+      scale: { at: number; lo: number; hi: number } | null;
       horizons: readonly HorizonChipVM[];
       /** Null until the routes are in, or when no donor can be placed. */
       map: DonorMapVM | null;
@@ -319,6 +324,8 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     headlineSuffix: isAhead(o.horizon) && o.horizon !== "change" ? CONDITIONS_WORDS.byThen : null,
     sentence: estimateSentence(e, o.horizon),
     range: estimateRange(e, o.day, o.horizon, value.areaKm2),
+    scale: o.horizon === "change" ? null
+      : { at: e.percentile, lo: interval(e)[0] / 100, hi: interval(e)[1] / 100 },
     horizons: horizonChips(o.horizon, o.quantity),
     map,
     tapToChart: CONDITIONS_WORDS.tapToChart,

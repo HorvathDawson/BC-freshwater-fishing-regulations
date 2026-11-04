@@ -43,11 +43,9 @@ describe("(T180) words moved from components to core, composed whole", () => {
       .toBe("Flow vs. past years, this date: colours from low to high; normal is the middle half of past years");
   });
 
-  it("the hydrograph's caption parts and the trace panel's values", () => {
-    const h = CONDITIONS_WORDS.hydrograph;
-    expect(h.envelope + h.forecast + h.unit("m³/s")).toBe(
-      "Shaded is the middle half of everything this station has recorded for these days; the dashed line is the median."
-      + " Past TODAY is a model forecast, not a reading. Values in m³/s.");
+  it("the chart legend's model entry and the trace panel's values", () => {
+    expect([CONDITIONS_WORDS.key.model("GEM", true), CONDITIONS_WORDS.key.model("ELF", false)])
+      .toEqual(["GEM forecast, drawn", "ELF forecast. Tap to draw it"]);
     expect(TRACE_WORDS.magnitude(4)).toBe("magnitude 4");
   });
 

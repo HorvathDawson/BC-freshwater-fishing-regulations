@@ -121,8 +121,8 @@ describe("the one day, from the map's calendar and the page's pill", () => {
     seen.push(look());
 
     expect(seen).toEqual([
-      "map Wed Oct 21 2026 | button Date | Closed | no sheet",
-      "map Wed Oct 21 2026 | button Date | Closed | sheet: Showing today, Wednesday, October 21",
+      "map Wed Oct 21 2026 | button Today | Closed | no sheet",
+      "map Wed Oct 21 2026 | button Today | Closed | sheet: Showing today, Wednesday, October 21",
       "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed Oct 10 | sheet: Showing Saturday, October 10",
       "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed Oct 10 | no sheet",
       "pill SatOct 10",
@@ -130,7 +130,7 @@ describe("the one day, from the map's calendar and the page's pill", () => {
       "pill TodayOct 21",
       "back true: map gone | button none | no legend | no sheet | on the water",
       "back true",
-      "map Wed Oct 21 2026 | button Date | Closed | no sheet",
+      "map Wed Oct 21 2026 | button Today | Closed | no sheet",
     ]);
   }, 40_000);
 });

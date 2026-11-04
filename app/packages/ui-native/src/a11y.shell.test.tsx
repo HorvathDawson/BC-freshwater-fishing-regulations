@@ -164,7 +164,7 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     clearPanelCache();
     const { ConditionsPanel } = await import("./ConditionsPanel");
     render(<ConditionsPanel source={GAUGE_SOURCE} section={SEC} palette={LIGHT} feed={GAUGE_FEED} scroll={false} day={new Date(2026, 8, 4, 12)} />);
-    await screen.findByText("AT LEAD CREEK NEAR TOWN");
+    await screen.findByTestId("reading-figure");
   }, /Lead Creek/],
   ["(T284) a spot's three blocks: that day, what you added, the next few days", async (w) => {
     Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });

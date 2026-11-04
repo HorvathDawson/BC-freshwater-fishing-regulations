@@ -11,7 +11,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { chartLabel, CONDITIONS_WORDS, readingHeading } from "@app/core";
+import { chartLabel, CONDITIONS_WORDS } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { clearAnswers, clearPanelCache } from "@app/ui";
@@ -64,6 +64,13 @@ async function draw(src: WaterSource) {
   await waitFor(() => expect(screen.getByLabelText(chartLabel("72h"))).toBeTruthy());
 }
 
+/** (T367) the card's title is the gauge switch: a press opens the list; a pick closes it */
+const pickDam = () => {
+  fireEvent.click(screen.getByTestId("gauge-pick"));
+  fireEvent.click(screen.getByRole("radio", { name: "Chart DAM, Dam Creek below the Dam, 20% of this estimate" }));
+};
+const title = () => screen.getByTestId("gauge-title").textContent;
+
 const LOADING_NOTE = CONDITIONS_WORDS.loadingRecord;
 
 describe("every donor's chart is asked when the panel opens", () => {
@@ -74,7 +81,7 @@ describe("every donor's chart is asked when the panel opens", () => {
     expect([...asked.slice(0, 2)].sort()).toEqual(["DAM:72h:discharge", "LEAD:72h:discharge"]);
     expect([...asked.slice(2)].sort()).toEqual(["DAM:year:discharge", "LEAD:year:discharge"]);
     // switching gauges and spans asks for nothing more: it is all in hand
-    fireEvent.click(screen.getByRole("radio", { name: "Chart DAM, Dam Creek below the Dam, 20% of this estimate" }));
+    pickDam();
     fireEvent.click(screen.getByRole("radio", { name: CONDITIONS_WORDS.span.year }));
     await waitFor(() => expect(screen.getByLabelText(chartLabel("year"))).toBeTruthy());
     expect(asked).toHaveLength(4);
@@ -86,11 +93,13 @@ describe("switching gauges", () => {
     const asked: string[] = [];
     await draw(sourceLogging(asked));
     await waitFor(() => expect(asked).toHaveLength(4));
-    fireEvent.click(screen.getByRole("radio", { name: "Chart DAM, Dam Creek below the Dam, 20% of this estimate" }));
+    pickDam();
     // NO await between the click and these: anything that needed a promise to settle is not on screen yet.
+    expect(title()).toBe("Dam Creek below the Dam");
+    expect(screen.queryByTestId("gauge-list")).toBeNull();               // the pick closed the list
+    fireEvent.click(screen.getByTestId("gauge-pick"));
     expect(screen.getByRole("radio", { name: "Showing DAM, Dam Creek below the Dam, 20% of this estimate" })
       .getAttribute("aria-checked")).toBe("true");
-    expect(screen.getByText(readingHeading("Dam Creek below the Dam"))).toBeTruthy();
     expect(screen.getByLabelText(chartLabel("72h"))).toBeTruthy();
     expect(screen.queryByText(LOADING_NOTE)).toBeNull();
     expect(screen.queryByRole("progressbar")).toBeNull();
@@ -99,8 +108,8 @@ describe("switching gauges", () => {
   it("keeps the last chart up, dimmed with a small note, while a gauge not yet in hand loads", async () => {
     const asked: string[] = [];
     await draw(sourceLogging(asked, ["DAM"]));
-    fireEvent.click(screen.getByRole("radio", { name: "Chart DAM, Dam Creek below the Dam, 20% of this estimate" }));
-    await waitFor(() => expect(screen.getByText(readingHeading("Dam Creek below the Dam"))).toBeTruthy());
+    pickDam();
+    await waitFor(() => expect(title()).toBe("Dam Creek below the Dam"));
     expect(screen.getByLabelText(chartLabel("72h"))).toBeTruthy();       // the last chart, still drawn
     expect(screen.getByText(LOADING_NOTE)).toBeTruthy();                 // the inline note
     expect(screen.queryByRole("progressbar")).toBeNull();                // never the spinner in its place

@@ -29,16 +29,19 @@ export function WebSpotsNotice({ palette, onDone }: {
       <View style={{ paddingHorizontal: GUTTER, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
         <Text accessibilityRole="header" style={{ ...TYPE.screen, color: palette.ink }}>{W.title}</Text>
       </View>
-      <ScrollView contentContainerStyle={{ padding: GUTTER, gap: SPACE.s3, maxWidth: 560 }}>
-        <Text accessibilityRole="header" style={{ ...TYPE.name, color: palette.ink }}>{W.lead}</Text>
-        {W.body.map((t, i) => <Text key={i} style={{ ...TYPE.body, color: palette.ink }}>{t}</Text>)}
-        <View style={{ gap: SPACE.s2, marginTop: SPACE.s2 }}>
+      {/* (T367, owner 2026-11-04) in the middle of the pane, as the regs page's wait is */}
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: GUTTER, alignItems: "center", justifyContent: "center" }}>
+       <View testID="web-spots-body" style={{ width: "100%", maxWidth: 560, gap: SPACE.s3, alignItems: "center" }}>
+        <Text accessibilityRole="header" style={{ ...TYPE.name, color: palette.ink, textAlign: "center" }}>{W.lead}</Text>
+        {W.body.map((t, i) => <Text key={i} style={{ ...TYPE.body, color: palette.ink, textAlign: "center" }}>{t}</Text>)}
+        <View style={{ gap: SPACE.s2, marginTop: SPACE.s2, alignItems: "center" }}>
           <View testID="web-spots-get-app">
             <Button palette={palette} label={W.getApp}
                     onPress={() => { void Linking.openURL(W.appUrl); }} />
           </View>
           {onDone && <Button palette={palette} kind="ghost" label={W.back} onPress={onDone} />}
         </View>
+       </View>
       </ScrollView>
     </View>
   );

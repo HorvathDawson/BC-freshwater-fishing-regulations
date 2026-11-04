@@ -4,8 +4,8 @@
  * Owner Q10: the content was right and the formatting was not. So this file pins two
  * things and nothing else:
  *
- *   1. THE ORDER: horizon control (the panel header) → headline → the lead gauge's reading
- *      → the chart → the donor list → one fold holding the explanations, closed.
+ *   1. THE ORDER: headline → its horizon control (T367: both in the estimate tile) → the lead
+ *      gauge's card (title, toggles, reading, chart) → the donor list → one fold holding the explanations, closed.
  *   2. THE SAME WORDS: every line of text the panel draws (with the fold opened) is named
  *      below, whole, per scene — the set P16 kept from the panel before it (once a recorded
  *      snapshot, T62 3.10: now asserted directly). A dropped sentence fails here.
@@ -15,7 +15,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { CONDITIONS_WORDS, donorReason, forecastRunLine, horizonDateChip, localStamp, noGaugeSentence,
-         readingHeading, type Horizon } from "@app/core";
+         type Horizon } from "@app/core";
 
 /** (T367) a forecast day's chip: its date, from the device's today */
 const chipOf = (d: number) => horizonDateChip(d as Horizon, new Date());
@@ -97,8 +97,8 @@ async function draw(scene: Scene) {
   render(<ConditionsPanel source={SCENES[scene]()} section={SEC} palette={LIGHT} feed={feed}
                           scroll={false} day={DAY} credits={CREDITS}
                           onHorizon={onHorizon} />);
-  await waitFor(() => expect(screen.queryByText(scene === "none"
-    ? noGaugeSentence() : readingHeading("Lead Creek near Town"))).toBeTruthy());
+  await waitFor(() => expect(scene === "none" ? screen.queryByText(noGaugeSentence())
+    : screen.queryByTestId("reading-figure")).toBeTruthy());
   return { onHorizon };
 }
 
@@ -139,6 +139,7 @@ const SAYS: Readonly<Record<"estimate" | "none", readonly string[]>> = {
     "3rd–49th percentile for early September · this spot drains 50 km²",
     "Now",
     "Forecast",
+    "Change",
     "TAP A GAUGE TO SEE ITS CHART",
     "LEAD",
     "Lead Creek near Town",
@@ -152,20 +153,18 @@ const SAYS: Readonly<Record<"estimate" | "none", readonly string[]>> = {
     "Reads higher than 8 days in 10 at this time of year.",
     "downstream · drains 55 km² · same size · dam-controlled · on this reach",
     "Counts this much because it drains almost exactly the same country; it sits downstream, so it carries extra water; it has only 6 years of record, so it counts 30%.",
-    "QUIET",
     "This water is controlled by a dam. The reading is real, but it follows a release schedule as much as the weather — a low river here can mean the gate is shut rather than that the country is dry.",
     "These gauges disagree by 46 points. That is a catchment doing more than one thing, and the range above is the honest answer rather than their average.",
     "No gauge sits exactly here, so the reading is carried from the nearest ones. A gauge counts for more when it drains a piece of country the same size as this one, when it sits upstream, and when it has a long record. The percentage beside each is how much of the answer above came from it.",
-    "AT LEAD CREEK NEAR TOWN",
     "12.5",
     "m³/s",
-    "1.2 m stage",
-    "BELOW NORMAL — 15th percentile for the date",
+    "· 1.2 m stage",
+    "Below normal · 15th percentile for the date",
     `This gauge's own reading · observed ${localStamp(Date.parse("2026-09-04T06:00:00Z"))} · checked 5 min ago`,
     "Flow",
     "Level",
-    "Last 72 hours",
-    "This year",
+    "72 h",
+    "Year",
     "This station published no recent readings.",
     "SOURCES",
     "Hydrometric data: Environment and Climate Change Canada",
@@ -205,13 +204,14 @@ describe("P16: the same content", () => {
 });
 
 describe("P16: one reading order", () => {
-  it("runs horizon → headline → reading → chart → donors → fold", async () => {
+  it("runs headline → horizon → gauge card (title, reading, chart) → donors → fold", async () => {
     await draw("estimate");
     const order = [
-      screen.getByLabelText("Choose a forecast day"),              // the panel header
-      screen.getByText("ESTIMATE FOR THIS SPOT"),                   // the headline
-      screen.getByText(readingHeading("Lead Creek near Town")),     // its detail rows
-      screen.getByLabelText(CONDITIONS_WORDS.controls.span),        // the chart
+      screen.getByText("ESTIMATE FOR THIS SPOT"),                   // the headline's kicker (T367: the tile's top row …
+      screen.getByLabelText("Choose a forecast day"),              // … holds the horizon control, after it)
+      screen.getByTestId("gauge-title"),                            // the gauge card: its title …
+      screen.getByLabelText(CONDITIONS_WORDS.controls.span),        // … and the chart's toggles on its row,
+      screen.getByTestId("reading-figure"),                         // the reading (this scene has no series to chart)
       screen.getByText(CONDITIONS_WORDS.tapToChart),                // the donor list
       screen.getByRole("button", { name: CONDITIONS_WORDS.fold }),  // the fold
     ];

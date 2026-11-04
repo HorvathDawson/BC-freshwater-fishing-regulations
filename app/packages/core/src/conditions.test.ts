@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  CONDITIONS_WORDS, chartCaption, chartFigure, chartLabel, chartReadoutLine, disagreeNote, donorBecause,
+  CONDITIONS_WORDS, chartFigure, chartLabel, chartReadoutLine, disagreeNote, donorBecause,
   donorFacts, donorLastReport, donorSilent, horizonDateChip, lastDataStamp, silentLine,
   donorKeyLabel, donorPinTitle, donorReads, donorReason, donorRowLabel, donorShare,
   donorWeightLine, estimateHeadline, estimateRange, estimateSentence, forecastChartLabel,
@@ -286,9 +286,9 @@ describe("the gauge reading under the estimate", () => {
   });
 
   it("ranks it with core's band word, or says there is nothing to rank against", () => {
-    expect(readingStandingLine(0.15, "below")).toBe("BELOW NORMAL — 15th percentile for the date");
+    expect(readingStandingLine(0.15, "below")).toBe("Below normal · 15th percentile for the date");
     expect(readingStandingLine(0.004, null))
-      .toBe("NO RECORD — 0.4th percentile for the date");
+      .toBe("No record · 0.4th percentile for the date");
     expect(readingStandingLine(null, "below"))
       .toBe("There is a reading here, but no record to compare it against.");
   });
@@ -305,16 +305,9 @@ describe("the gauge reading under the estimate", () => {
 });
 
 describe("the chart's words", () => {
-  it("labels each span, and its caption", () => {
+  it("labels each span", () => {
     expect(chartLabel("72h")).toBe("the last 72 hours");
     expect(chartLabel("year")).toBe("the whole year against its record");
-    expect(chartCaption("72h")).toBeUndefined();
-    expect(chartCaption("year")).toBe(
-      "Bands are this station's whole record for each five-day period. The bold line is "
-      + "this year to date, which the feed accumulates day by day — it starts a month long "
-      + "and grows, because the published daily record lags a year behind. The thin lines "
-      + "are the last complete years out of that record. The frame ends a month past today, "
-      + "where the longest forecast does.");
   });
 
   it("explains an empty chart per span", () => {

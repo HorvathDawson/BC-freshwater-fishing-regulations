@@ -1,8 +1,8 @@
 /**
  * Owner 2026-10-21, the Conditions chart, mounted:
  *
- *   - "the way you switch gauges is far away from the plot" — the switch sits in the chart block, above the reading
- *     and the plot it changes, not a screen below in the donor list;
+ *   - "the way you switch gauges is far away from the plot" — the switch is the gauge card's title (T367: a tap opens
+ *     the gauges as a list), above the reading and the plot it changes, not a screen below in the donor list;
  *   - "zoom and look at data better" — the zoom controls work, and a tap on the plot reads the value in core's words;
  *   - "not reporting today should say when last report was" — the quiet row says it.
  *
@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { chartLabel, CONDITIONS_WORDS, donorLastReport, lastDataStamp, noGaugeSentence, readingHeading } from "@app/core";
+import { chartLabel, CONDITIONS_WORDS, donorLastReport, lastDataStamp, noGaugeSentence } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { clearPanelCache } from "@app/ui";
@@ -58,8 +58,16 @@ async function draw(src: WaterSource = source) {
   render(<GestureHandlerRootView>
     <ConditionsPanel source={src} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={DAY} />
   </GestureHandlerRootView>);
-  await waitFor(() => expect(screen.queryByText(readingHeading("Lead Creek near Town"))).toBeTruthy());
+  await waitFor(() => expect(screen.getByTestId("reading-figure")).toBeTruthy());
+  expect(screen.getByTestId("gauge-title").textContent).toBe("Lead Creek near Town");
 }
+
+/** (T367) the card's title is the switch: a press opens the gauges behind the estimate as a list */
+const openList = () => {
+  fireEvent.click(screen.getByTestId("gauge-pick"));
+  return screen.getByTestId("gauge-list");
+};
+const title = () => screen.getByTestId("gauge-title").textContent;
 
 const precedes = (a: Element, b: Element) =>
   (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
@@ -67,23 +75,38 @@ const precedes = (a: Element, b: Element) =>
 describe("the gauge switch sits by the plot", () => {
   it("runs switch → the gauge's reading → the chart's controls, all above the donor list", async () => {
     await draw();
+    // the card, and its title the switch (the old kicker "AT LEAD CREEK NEAR TOWN" and the chip wrap are gone)
+    expect(screen.getByTestId("gauge-card")).toBeTruthy();
+    expect(screen.queryByText(CONDITIONS_WORDS.chartGauge)).toBeNull();
     const order = [
-      screen.getByText(CONDITIONS_WORDS.chartGauge),
-      screen.getByRole("radio", { name: "Showing LEAD, Lead Creek near Town, 80% of this estimate" }),
-      screen.getByText(readingHeading("Lead Creek near Town")),
+      screen.getByTestId("gauge-pick"),
+      screen.getByTestId("gauge-title"),
       screen.getByLabelText(CONDITIONS_WORDS.controls.span),
+      screen.getByTestId("reading-figure"),
       screen.getByText(CONDITIONS_WORDS.tapToChart),
     ];
     for (let i = 1; i < order.length; i++)
       expect(precedes(order[i - 1]!, order[i]!), `item ${i} after item ${i - 1}`).toBe(true);
-    // every donor is offered, the quiet one too: it says what it last said (see "charting a quiet gauge")
+    // the list is shut until the title is pressed; every donor is then offered, the quiet one too: it says what it
+    // last said (see "charting a quiet gauge")
+    expect(screen.queryByTestId("gauge-list")).toBeNull();
+    expect(screen.getByTestId("gauge-pick").getAttribute("aria-expanded")).toBe("false");
+    const list = openList();
+    expect(screen.getByTestId("gauge-pick").getAttribute("aria-expanded")).toBe("true");
+    expect(list.getAttribute("role")).toBe("radiogroup");
+    expect(precedes(screen.getByTestId("gauge-title"), list)).toBe(true);
+    expect(screen.getByRole("radio", { name: "Showing LEAD, Lead Creek near Town, 80% of this estimate" })).toBeTruthy();
     expect(screen.getByRole("radio", { name: "Chart QUIET, Quiet River, not reporting" })).toBeTruthy();
   });
 
   it("charts the gauge picked there, and marks it", async () => {
     await draw();
+    openList();
     fireEvent.click(screen.getByRole("radio", { name: "Chart DAM, Dam Creek below the Dam, 20% of this estimate" }));
-    await waitFor(() => expect(screen.getByText(readingHeading("Dam Creek below the Dam"))).toBeTruthy());
+    await waitFor(() => expect(title()).toBe("Dam Creek below the Dam"));
+    // a pick closes the list; opened again, the picked gauge is the one marked
+    expect(screen.queryByTestId("gauge-list")).toBeNull();
+    openList();
     expect(screen.getByRole("radio", { name: "Showing DAM, Dam Creek below the Dam, 20% of this estimate" })
       .getAttribute("aria-checked")).toBe("true");
   });
@@ -109,19 +132,19 @@ const silent = {
 } as unknown as WaterSource;
 
 describe("charting a quiet gauge (review 2026-10-21)", () => {
-  it("says the gauge is quiet and when it last reported, under the switch — never the no-gauge refusal", async () => {
+  it("says the gauge is quiet and when it last reported, in the card — never the no-gauge refusal", async () => {
     await draw(silent);
+    openList();
     fireEvent.click(screen.getByRole("radio", { name: "Chart QUIET, Quiet River, not reporting" }));
-    await waitFor(() => expect(screen.getByText(readingHeading("Quiet River"))).toBeTruthy());
+    await waitFor(() => expect(title()).toBe("Quiet River"));
     // the headline answered from three gauges; picking one to chart does not take that back
     expect(screen.queryByText(noGaugeSentence())).toBeNull();
-    const radio = screen.getByRole("radio", { name: "Showing QUIET, Quiet River, not reporting" });
     const said = screen.getAllByText(donorLastReport("2026-08-30T10:00:00-08:00"));
-    // nothing new above the switch: the quiet gauge's words come after it, before the chart's controls
-    const inBlock = said.find((el) => precedes(radio, el)
-      && precedes(el, screen.getByLabelText(CONDITIONS_WORDS.controls.span)));
-    expect(inBlock, "the last report sits between the switch and the chart controls").toBeTruthy();
-    expect(precedes(screen.getByText(CONDITIONS_WORDS.chartGauge), radio)).toBe(true);
+    // (T367) the quiet gauge's last report is in the card's foot, after its title and the chart's controls
+    const foot = screen.getByTestId("gauge-card-foot");
+    expect(said.some((el) => foot.contains(el)), "the last report sits in the card's foot").toBe(true);
+    expect(precedes(screen.getByTestId("gauge-title"), foot)).toBe(true);
+    expect(precedes(screen.getByLabelText(CONDITIONS_WORDS.controls.span), foot)).toBe(true);
   });
 });
 
@@ -168,10 +191,11 @@ describe("the chart zooms and reads out", () => {
       return el.textContent!;
     });
     expect(line).not.toBe(CONDITIONS_WORDS.zoomHint.pointer);
-    // The hint stays, whole, under the plot while a value is read (it was cut to "…" on a phone above it).
-    expect(screen.getByText(CONDITIONS_WORDS.zoomHint.pointer)).toBeTruthy();
+    // (T367) the row above the plot holds the read-out OR the hint: the read-out takes the hint's place
+    expect(screen.queryByText(CONDITIONS_WORDS.zoomHint.pointer)).toBeNull();
     act(() => { fireGestureHandler(getByGestureTestId("chart-double-tap"), [{ x: 1, y: 1 }, { x: 1, y: 1 }]); });
     await waitFor(() => expect(screen.queryByText(/^\d{4}-\d\d-\d\d at \d\d:\d\d .+ · [\d.]+ m³\/s/)).toBeNull());
+    expect(screen.getByText(CONDITIONS_WORDS.zoomHint.pointer)).toBeTruthy();
   });
 
   it("a wheel the chart cannot use scrolls the page: out at the whole chart, in at the narrowest", async () => {

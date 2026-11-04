@@ -21,7 +21,8 @@ import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydro
 
 /** How tall the chart is for a width: a phone keeps the old proportion; a wide column does not become a banner. */
 export function chartHeight(width: number): number {
-  return Math.round(Math.min(340, Math.max(190, width * 0.5)));
+  // (T367, owner 2026-11-04: "so much white space") a wide panel's chart stops at 240 — it reached 340
+  return Math.round(Math.min(240, Math.max(180, width * 0.4)));
 }
 
 /** The chart's box at a measured width (never narrower than the old fixed one). */

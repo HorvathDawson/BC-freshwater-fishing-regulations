@@ -30,13 +30,18 @@ const TICK = 11;
 export type ChartActions = Pick<ChartView, "zoomed" | "readout" | "zoomIn" | "zoomOut" | "fit" | "zoomAt" | "zooms" | "panBy"
                                 | "probeAt">;
 
-export function Hydrograph({ shape, palette, colour, label, caption, unit,
-                             forecastLabel, view }:
+/** (T367) a forecast model in the legend: tap to draw it (the chart draws one model at a time) */
+export interface LegendModel { readonly key: string; readonly label: string; readonly on: boolean; readonly onPress: () => void }
+
+export function Hydrograph({ shape, palette, colour, label, unit,
+                             forecastLabel, models, view }:
   { shape: Shape; palette: Palette; colour: string; label?: string;
-    /** What this chart is actually showing. Never a fixed sentence — see below. */
-    caption?: string; unit?: string;
-    /** e.g. "ELF · 30 days" — which model is drawing the dashes. */
+    /** the quantity's unit, drawn over the value axis */
+    unit?: string;
+    /** e.g. "ELF · 30 days" — which model is drawing the dashes (when the legend has no model entries). */
     forecastLabel?: string;
+    /** (T367) the running models, as legend entries: tap one to draw it. Replaces the model selector. */
+    models?: readonly LegendModel[];
     /** Present, the chart zooms, pans and reads out; absent, it is a picture. */
     view?: ChartActions }) {
   const { box } = shape;
@@ -143,18 +148,20 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
   return (
     <View accessibilityRole="image"
           accessibilityLabel={label ?? CONDITIONS_WORDS.hydrograph.label}>
-      {view ? <ZoomBar palette={palette} view={view} /> : null}
+      {/* (T367) ONE ROW OVER THE PLOT: the unit over the value axis, the value under the finger (else how to read the
+          chart), the zoom buttons — it was three rows (the zoom bar, the unit, the hint under the plot) */}
+      {view ? <ZoomBar palette={palette} view={view} unit={unit} />
+        : unit ? <Text testID="chart-unit" style={{ ...TYPE.micro, fontSize: 11, color: palette.sub, marginBottom: 2 }}>{unit}</Text> : null}
       {/* THE PLOT IS READ WITH A FINGER: inside a water's view swipe a drag on it is the chart's (zoom, pan, read-out;
           see ViewSwipe); the zoom bar, the key and the caption are text, and swipe with the page */}
       <SwipeShield>
         {view ? <Gestures view={view} plotX={shape.plot.x}>{svg}</Gestures> : svg}
       </SwipeShield>
-      {view ? <ZoomHint palette={palette} /> : null}
       {/* A KEY, because four things share one frame and only one of them is a measurement.
           Drawn from the same palette and the same `colour` the paths use, so a swatch
           cannot end up describing a line of a different shade. */}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 5,
-                     marginTop: 8 }}>
+      <View testID="chart-legend" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 14,
+                                           rowGap: 6, marginTop: 8 }}>
         <Key palette={palette} label={CONDITIONS_WORDS.key.reading} swatch="line" colour={colour} />
         {shape.envelopes.length > 0 && (
           <>
@@ -164,25 +171,28 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
             <Key palette={palette} label={CONDITIONS_WORDS.key.median} swatch="dash" colour={palette.sub} />
           </>
         )}
+        {shape.envelopes.length === 0 && (
+          <Text style={{ ...TYPE.micro, fontSize: 12, color: palette.sub }}>{CONDITIONS_WORDS.key.noEnvelope}</Text>
+        )}
         {shape.priorYears.map((y) => (
           <Key key={y.year} palette={palette} label={String(y.year)} swatch="line"
                colour={palette.sub} />
         ))}
-        {shape.forecast && (
+        {/* (T367) THE MODELS ARE LEGEND ENTRIES: the one drawn is filled, a tap on another draws it (the model
+            selector they replace was a third row of controls); one model running is a plain entry */}
+        {models && models.length > 1 ? models.map((m) => (
+          <Pressable key={m.key} testID={`chart-model-${m.key}`} onPress={m.onPress} accessibilityRole="radio"
+                     aria-checked={m.on} accessibilityLabel={CONDITIONS_WORDS.key.model(m.label, m.on)}
+                     {...hitProps({ w: 60, h: 26 })}
+                     style={{ paddingVertical: 3, paddingHorizontal: 6, borderRadius: palette.r.pill, borderWidth: 1,
+                              borderColor: m.on ? colour : palette.line2, opacity: m.on ? 1 : 0.6 }}>
+            <Key palette={palette} label={m.label} swatch="dash" colour={m.on ? colour : palette.sub} />
+          </Pressable>
+        )) : shape.forecast && (
           <Key palette={palette} label={forecastLabel ?? "forecast"} swatch="dash"
                colour={colour} />
         )}
       </View>
-
-      {/* THE CAPTION IS PART OF THE CHART. It used to be one fixed sentence about the
-          middle half, printed under a chart that might have had no envelope at all — so a
-          station with too thin a record to build one was captioned as though it had. What
-          is on screen decides what this says. */}
-      <Text style={{ fontSize: 11.5, color: palette.sub, marginTop: 6, lineHeight: 17 }}>
-        {caption ?? (shape.envelopes.length ? CONDITIONS_WORDS.hydrograph.envelope : CONDITIONS_WORDS.hydrograph.noEnvelope)}
-        {shape.forecast ? CONDITIONS_WORDS.hydrograph.forecast : ""}
-        {unit ? CONDITIONS_WORDS.hydrograph.unit(unit) : ""}
-      </Text>
 
       {/* THE CENTRE'S OWN WORDS (the CSV header's disclaimer) are drawn by the caller, in
           the Conditions fold, while a forecast is on screen (P16 item 3). */}
@@ -191,29 +201,27 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
 }
 
 /** How to work the chart, said whole under the plot (above it, beside the buttons, a phone cut it to "…"). */
-function ZoomHint({ palette }: { palette: Palette }) {
-  const hint = useMemo(() => CONDITIONS_WORDS.zoomHint[chartPointer()], []);
-  return <Text style={{ ...TYPE.meta, color: palette.faint, marginTop: SPACE.s1 }}>{hint}</Text>;
-}
-
 /**
- * THE LINE ABOVE THE PLOT: the value under the finger when one is being read — and the zoom buttons, right where the
- * eye is. Two lines of room, so reading a value never moves the chart.
+ * THE LINE ABOVE THE PLOT: the unit, the value under the finger when one is being read (else, faint, how to read the
+ * chart — touch and pointer each in their own words), and the zoom buttons, right where the eye is. (T367) One line:
+ * the value is cut to it rather than growing a second, so reading a value never moves the chart.
  */
-function ZoomBar({ palette, view }: { palette: Palette; view: ChartActions }) {
+function ZoomBar({ palette, view, unit }: { palette: Palette; view: ChartActions; unit?: string }) {
   const W = CONDITIONS_WORDS;
   const r = view.readout;
+  const hint = useMemo(() => CONDITIONS_WORDS.zoomHint[chartPointer()], []);
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, marginBottom: SPACE.s1 }}>
-      <Text numberOfLines={2} accessibilityLiveRegion="polite"
-            style={{ ...TYPE.metaBold, flex: 1, minHeight: 2 * TYPE.meta.lineHeight, color: palette.ink }}>
-        {r ? r.line : ""}
+      {unit ? <Text testID="chart-unit" style={{ ...TYPE.micro, fontSize: 11, color: palette.sub }}>{unit}</Text> : null}
+      <Text numberOfLines={1} accessibilityLiveRegion="polite"
+            style={{ ...(r ? TYPE.metaBold : TYPE.meta), flex: 1, color: r ? palette.ink : palette.faint }}>
+        {r ? r.line : hint}
       </Text>
       <View style={{ flexDirection: "row", gap: SPACE.s1 }} accessibilityRole="toolbar"
             accessibilityLabel={W.zoom.group}>
         <ZoomButton palette={palette} label={W.zoom.out} glyph="−" onPress={view.zoomed ? view.zoomOut : undefined} />
         <ZoomButton palette={palette} label={W.zoom.in} glyph="+" onPress={view.zoomIn} />
-        <ZoomButton palette={palette} label={W.zoom.fit} glyph={W.zoom.fit}
+        <ZoomButton palette={palette} label={W.zoom.fit} glyph="⤢"
                     onPress={view.zoomed || r ? view.fit : undefined} />
       </View>
     </View>
@@ -318,7 +326,7 @@ function Key({ palette, label, swatch, colour }: {
                          borderStyle: swatch === "dash" ? "dashed" : "solid" }} />
         )}
       </View>
-      <Text style={{ ...TYPE.micro, fontSize: 10, color: palette.faint }}>{label}</Text>
+      <Text style={{ ...TYPE.micro, fontSize: 12, color: palette.sub }}>{label}</Text>
     </View>
   );
 }

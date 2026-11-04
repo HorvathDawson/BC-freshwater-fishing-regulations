@@ -46,14 +46,15 @@ describe("the conditions panel", () => {
                                 standing: "below", at: "2026-09-04T06:00:00Z" }, PANEL);
     render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed}
                             scroll={false} day={new Date(2026, 8, 4, 12)} />);
-    await waitFor(() =>
-      expect(screen.getByText(readingHeading("Lead Creek near Town"))).toBeTruthy());
-    expect(screen.getByText("AT LEAD CREEK NEAR TOWN")).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId("reading-figure")).toBeTruthy());
+    // (T367) the gauge card's title is the gauge's name as sourced — the old "AT …" kicker is not drawn
+    expect(screen.getByTestId("gauge-title").textContent).toBe("Lead Creek near Town");
+    expect(screen.queryByText(readingHeading("Lead Creek near Town"))).toBeNull();
     expect(screen.getByText("12.5")).toBeTruthy();
     expect(screen.getByText("m³/s")).toBeTruthy();
-    expect(screen.getByText(stageLine(1.2))).toBeTruthy();
+    expect(screen.getByText(`· ${stageLine(1.2)}`)).toBeTruthy();   // (T367) beside the figure, after a dot
     expect(screen.getByText(readingStandingLine(0.15, "below"))).toBeTruthy();
-    expect(screen.getByText("BELOW NORMAL — 15th percentile for the date")).toBeTruthy();
+    expect(screen.getByText("Below normal · 15th percentile for the date")).toBeTruthy();
     // The donor panel above it is drawn for the CHOSEN day.
     expect(screen.getByText("3rd–27th percentile for early September · this spot drains "
                             + "50 km²")).toBeTruthy();

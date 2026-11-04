@@ -50,7 +50,7 @@ import { useCoachTarget } from "./CoachMarks";
 import { GaugeGroups } from "./GaugeGroups";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
-import { SPACE, type Palette, round } from "./theme";
+import { flowRampStops, SPACE, type Palette, round } from "./theme";
 import { hitProps } from "./regs/hit";
 
 /** The bullet's inset, so a row's detail lines align under its name and not its dot. */
@@ -177,7 +177,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           {vm.silent ? <Silent palette={palette}>{vm.silent}</Silent> : null}
           {detail}
         </Block>
-        {chart && <Block palette={palette} coach="cond:chart">{chart}</Block>}
+        {chart}
         {foot && <Fold palette={palette}>{foot}</Fold>}
       </View>
     );
@@ -247,22 +247,33 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
       {/* THE PANEL HEADER: the horizon control, `horizonChips` over the Shell's one state —
           the Conditions map's corner draws the same chips (owner 2026-10-20). Above the
           headline it changes, never under it. */}
-      {onHorizon && <HorizonHeader palette={palette} chips={vm.horizons} onPick={onHorizon} />}
-
-      <Block palette={palette} first coach="cond:headline">
-        {/* ONE LINE, ALWAYS: a heading that wraps moves everything under it as the reader
-            steps through the horizons. */}
-        <Kicker palette={palette} oneLine>{vm.heading}</Kicker>
-        {/* THE PLAIN SENTENCE FIRST, the percentile second — the same numbers, in the order
-            a person reads them. Two lines of room whatever it says, so nothing below shifts
-            as the reader moves between horizons. */}
-        <Text style={{ ...TYPE.name, color: palette.ink, minHeight: 2 * TYPE.name.lineHeight }}>
-          {vm.headline}
-          {vm.headlineSuffix ? (
-            <Text style={{ color: palette.sub }}>{" "}{vm.headlineSuffix}</Text>
+      {/* (T367, owner 2026-11-04: "the top level numbers could be displayed better") THE ESTIMATE TILE: one card — the
+          heading, the answer with a dot in its colour on the map's ramp, where it sits on the record (the scale bar),
+          then the sentence and the range as one quiet block. */}
+      <Tile palette={palette} coach="cond:headline">
+        {/* (T367) THE TILE'S TOP ROW: the heading, and the day it is for beside it (Now · Forecast ▾ · Change) — the
+            control sat on its own above the tile; on a phone it wraps under the heading. ONE LINE, ALWAYS, for the
+            heading: one that wraps moves everything under it as the reader steps through the horizons. */}
+        <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between",
+                       gap: SPACE.s2 }}>
+          {/* top-aligned: the open day list under the control never moves the heading off its line */}
+          <View style={{ minHeight: 36, justifyContent: "center" }}><Kicker palette={palette} oneLine>{vm.heading}</Kicker></View>
+          {onHorizon && <HorizonHeader palette={palette} chips={vm.horizons} onPick={onHorizon} />}
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
+          {vm.scale && theme ? (
+            <View testID="estimate-dot" style={{ width: 14, height: 14, borderRadius: round(14),
+                                                 backgroundColor: rampAt(flowRampStops(theme), vm.scale.at) }} />
           ) : null}
-        </Text>
-        <Text style={{ ...TYPE.body, color: palette.ink }}>{vm.sentence}</Text>
+          <Text style={{ ...TYPE.name, color: palette.ink, flex: 1 }}>
+            {vm.headline}
+            {vm.headlineSuffix ? (
+              <Text style={{ color: palette.sub }}>{" "}{vm.headlineSuffix}</Text>
+            ) : null}
+          </Text>
+        </View>
+        {vm.scale && theme ? <ScaleBar palette={palette} stops={flowRampStops(theme)} scale={vm.scale} /> : null}
+        <Text style={{ ...TYPE.meta, color: palette.ink }}>{vm.sentence}</Text>
         <Text style={{ ...TYPE.meta, color: palette.sub }}>{vm.range}</Text>
         {/* (T157) the low-water caveat for the spot's own Change, beside the answer it qualifies (never folded) */}
         {vm.lowWater && (
@@ -272,10 +283,10 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         {vm.throughLake && (
           <Text testID="section-through-lake" style={{ ...TYPE.meta, color: palette.ink }}>{vm.throughLake}</Text>
         )}
-      </Block>
+      </Tile>
 
       {detail && <Block palette={palette}>{detail}</Block>}
-      {chart && <Block palette={palette}>{chart}</Block>}
+      {chart}
     </>
   );
 
@@ -383,6 +394,50 @@ export function Kicker({ palette, children, oneLine }: {
  * One block in the reading order. A hairline and the same step above every block but the
  * first, so the panel reads as a stack of parts rather than one run of text.
  */
+/** (T367) a bordered card: the estimate tile (the gauge card draws its own, in ConditionsPanel). */
+function Tile({ palette, children, coach }: { palette: Palette; children: ReactNode; coach?: string }) {
+  const target = useCoachTarget(coach);
+  return (
+    <View ref={target} collapsable={false} testID="estimate-tile"
+          style={{ gap: SPACE.s2, padding: SPACE.s3, borderWidth: 1, borderColor: palette.line2,
+                   borderRadius: palette.r.box, backgroundColor: palette.card }}>
+      {children}
+    </View>
+  );
+}
+
+/** The ramp's colour at `at` (0–1): the last stop at or below it, as the map's stepped legend reads. */
+export function rampAt(stops: readonly { at: number; colour: string }[], at: number): string {
+  let c = stops[0]?.colour ?? "transparent";
+  for (const s of stops) if (s.at <= at) c = s.colour;
+  return c;
+}
+
+/**
+ * (T367) WHERE THE ESTIMATE SITS on this water's record: the map's ramp as a slim bar (low at the left), the estimate's
+ * interval as a bracket over it and the estimate as a mark — the headline's words, drawn. Hidden from a screen reader:
+ * the range line under it says the same in words.
+ */
+function ScaleBar({ palette, stops, scale }: {
+  palette: Palette; stops: readonly { at: number; colour: string }[]; scale: { at: number; lo: number; hi: number };
+}) {
+  const pct = (v: number) => `${Math.max(0, Math.min(100, v * 100))}%` as const;
+  return (
+    <View testID="estimate-scale" importantForAccessibility="no-hide-descendants" aria-hidden
+          style={{ height: 18, justifyContent: "center", marginVertical: 2 }}>
+      <View style={{ flexDirection: "row", height: 6, borderRadius: round(6), overflow: "hidden" }}>
+        {stops.map((s, i) => (
+          <View key={i} style={{ flex: Math.max(0.001, (stops[i + 1]?.at ?? 1) - s.at), backgroundColor: s.colour }} />
+        ))}
+      </View>
+      <View style={{ position: "absolute", left: pct(scale.lo), width: pct(scale.hi - scale.lo), top: 3, height: 12,
+                     borderWidth: 1.5, borderColor: palette.ink, borderRadius: round(4), opacity: 0.55 }} />
+      <View style={{ position: "absolute", left: pct(scale.at), marginLeft: -2, top: 0, width: 4, height: 18,
+                     borderRadius: round(2), backgroundColor: palette.ink }} />
+    </View>
+  );
+}
+
 export function Block({ palette, children, first, coach }: {
   palette: Palette; children: ReactNode; first?: boolean;
   /** (T293) the key the walkthrough points at this block by */

@@ -12,7 +12,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Pressable, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { parseRunTimingIndex, RunTimingFacts, type PaintDoc, type RunsDoc, type StatusIndex } from "@app/core";
+import { parseRunTimingIndex, RUN_WORDS, RunTimingFacts, type PaintDoc, type RunsDoc, type StatusIndex } from "@app/core";
 import { parseManifest, type RunTimingSource } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { HOME, type PairingInput, type StatusSource } from "@app/ui";
@@ -112,12 +112,12 @@ describe("(T261) the Runs tab", () => {
     const seen: string[] = [bar(), `top ${[!!screen.queryByTestId("top-bar"), !!screen.queryByTestId("inseason-bell")]}`,
                             screen.getByTestId("map-modes").textContent!, screen.getByTestId("run-day").textContent!];
     // a second species: both painted, and kept
-    act(() => { fireEvent.click(screen.getByRole("checkbox", { name: "Coho" })); });
+    act(() => { fireEvent.click(screen.getByRole("checkbox", { name: RUN_WORDS.chipSaid("Coho", false) })); });
     await waitFor(() => expect(screen.getByTestId("map-runs").textContent).toBe("6,2:58"));
     seen.push(`kept ${kept.text}`, screen.getByTestId("runs-legend-title").textContent!);
     // the last species cannot be cleared: steelhead off, then coho stays
-    act(() => { fireEvent.click(screen.getByRole("checkbox", { name: "Steelhead" })); });
-    act(() => { fireEvent.click(screen.getByRole("checkbox", { name: "Coho" })); });
+    act(() => { fireEvent.click(screen.getByRole("checkbox", { name: RUN_WORDS.chipSaid("Steelhead", true) })); });
+    act(() => { fireEvent.click(screen.getByRole("checkbox", { name: RUN_WORDS.chipSaid("Coho", true) })); });
     await waitFor(() => expect(screen.getByTestId("map-runs").textContent).toBe("2:58"));
     // the slider: a key steps a pentad (painted after the throttle), Today returns
     act(() => { fireEvent.keyDown(screen.getByTestId("run-slider-track"), { key: "ArrowLeft" }); });

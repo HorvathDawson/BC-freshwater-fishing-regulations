@@ -152,17 +152,35 @@ describe("<DayCalendar>", () => {
 });
 
 describe("<MapDayStrip> — the map's day, in Conditions' corner strip (T213)", () => {
-  it("Today · Tomorrow · a calendar segment: the day shown filled; a press sets the day or opens the sheet", () => {
+  it("earlier · the day with a calendar · later: the day shown filled; the arrows step it, the middle opens the sheet (T367)", () => {
     const onDay = vi.fn(), open = vi.fn();
     const { rerender } = render(<MapDayStrip palette={LIGHT} day={null} range={YEAR} now={NOW} onDay={onDay} onOpen={open} />);
-    const pressed = () => ["today", "tomorrow", "pick"].map((k) => screen.getByTestId(`map-day-${k}`).getAttribute("aria-pressed"));
-    expect([screen.getByTestId("map-day").textContent, pressed()]).toEqual(["TodayTomorrowDate", ["true", "false", "false"]]);
-    fireEvent.click(btn("Colour the map for tomorrow"));
-    fireEvent.click(btn("Map coloured for today. Choose a day"));
+    const seg = (k: string) => screen.getByTestId(`map-day-${k}`);
+    const state = () => ["earlier", "pick", "later"].map((k) => [seg(k).getAttribute("aria-pressed"), seg(k).getAttribute("aria-disabled")]);
+    // today: the middle says "Today" and is not filled; both arrows are open inside the year
+    expect([screen.getByTestId("map-day").textContent, state()])
+      .toEqual(["Today", [["false", null], ["false", null], ["false", null]]]);
+    expect(seg("earlier").getAttribute("aria-label")).toBe("One day earlier");
+    expect(seg("pick").getAttribute("aria-label")).toBe("Map coloured for today. Choose a day");
+    expect(seg("later").getAttribute("aria-label")).toBe("One day later");
+    fireEvent.click(seg("later"));
+    fireEvent.click(seg("pick"));
     expect([onDay.mock.calls.map((c) => said(c[0])), open.mock.calls.length]).toEqual([["Thu Oct 22 2026 12h"], 1]);
-    rerender(<MapDayStrip palette={LIGHT} day={new Date(2026, 5, 13, 12)} range={YEAR} now={NOW} onDay={onDay} onOpen={open} />);
-    fireEvent.click(btn("Colour the map for today"));
-    expect([screen.getByTestId("map-day").textContent, pressed(), said(onDay.mock.calls[1]![0])])
-      .toEqual(["TodayTomorrowSat, Jun 13", ["false", "false", "true"], "null"]);
+    // another day shown: the middle names it and is filled; the arrows step from it
+    rerender(<MapDayStrip palette={LIGHT} day={new Date(2026, 9, 25, 12)} range={YEAR} now={NOW} onDay={onDay} onOpen={open} />);
+    expect([screen.getByTestId("map-day").textContent, seg("pick").getAttribute("aria-pressed")])
+      .toEqual(["Sun, Oct 25", "true"]);
+    fireEvent.click(seg("earlier"));
+    fireEvent.click(seg("later"));
+    expect(onDay.mock.calls.slice(1).map((c) => said(c[0]))).toEqual(["Sat Oct 24 2026 12h", "Mon Oct 26 2026 12h"]);
+    // stepping back onto today is the day null (today follows the clock)
+    rerender(<MapDayStrip palette={LIGHT} day={new Date(2026, 9, 22, 12)} range={YEAR} now={NOW} onDay={onDay} onOpen={open} />);
+    fireEvent.click(seg("earlier"));
+    expect(said(onDay.mock.calls[3]![0])).toBe("null");
+    // the range's first day: an arrow that would leave it is greyed and does nothing
+    rerender(<MapDayStrip palette={LIGHT} day={new Date(2026, 0, 1, 12)} range={YEAR} now={NOW} onDay={onDay} onOpen={open} />);
+    expect(seg("earlier").getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(seg("earlier"));
+    expect(onDay).toHaveBeenCalledTimes(4);
   });
 });

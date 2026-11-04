@@ -436,6 +436,10 @@ export const RUN_WORDS = {
   tab: "Runs",
   mode: "Run timing",
   speciesLabel: "Species",
+  /** (T367) the species row in the Runs bar: every species again; a chip's spoken name (a long press shows it alone) */
+  allSpecies: "All",
+  allSpeciesSaid: "Show every species",
+  chipSaid: (name: string, on: boolean) => `${name}, ${on ? "shown" : "hidden"}. Long-press to show only ${name}`,
   loading: "Loading run timing…",
   legend: { spawn: "In the water: spawning or surveyed here", pass: "Passing through", off: "A run here, not in the water then",
             none: "No run recorded" } satisfies Record<RunState | "none", string>,

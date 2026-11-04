@@ -9,44 +9,25 @@
  *                       so the control can never ask for a comparison that does not exist.
  *   72 hours / year     what the water is doing, or where today sits in its season.
  *
- * Drawn as pill rows rather than a segmented control so a single available option still
- * reads as a statement of fact ("this station measures level") instead of as a broken
- * switch.
+ * (T367, owner 2026-11-04: the four outlined buttons were "really wrong … ametuer") Drawn as a compact JOINED segmented
+ * control — the map corner's own shape (`CornerStrip`, radio) — on the gauge card's title row. A single option is
+ * not drawn: one choice is not a choice.
  */
-import { View } from "react-native";
+import { CornerStrip } from "./CornerStrip";
 import type { Palette } from "./theme";
-import { Chip } from "./Chip";
 
-export function ChartControls<T extends string>({ palette, value, options, onPick, label }: {
-  palette: Palette; value: T; options: readonly (readonly [T, string])[];
-  onPick: (v: T) => void; label: string;
+export function ChartControls<T extends string>({ palette, value, options, onPick, label, testID }: {
+  palette: Palette; value: T;
+  /** each option: its id, its word on the toggle, and (optionally) its spoken name */
+  options: readonly (readonly [T, string] | readonly [T, string, string])[];
+  onPick: (v: T) => void; label: string; testID: string;
 }) {
   // One choice is not a choice. Showing it as the current state, unpressable, is honest —
   // and it tells the reader something true: this station only measures the one thing.
   if (options.length < 2) return null;
   return (
-    <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}
-          accessibilityRole="radiogroup" accessibilityLabel={label}>
-      {options.map(([id, text]) => {
-        const on = id === value;
-        return (
-          /*
-           * IT HAS TO BE FINDABLE OVER A MAP.
-           *
-           * These were transparent with a hairline border and 11px grey text — fine inside
-           * a sheet, where they sit on a flat card, and nearly invisible over landcover,
-           * roads and rivers, which is where the Conditions view puts them. The control a
-           * reader needs in order to ask the other question was the hardest thing on the
-           * screen to see.
-           *
-           * So: an opaque card behind every option rather than only the chosen one, ink
-           * instead of grey, and `palette.lift` — the theme's own hard offset shadow, the
-           * same slab the map's zoom buttons use, so the app's chrome and MapLibre's read
-           * as one set rather than two.
-           */
-          <Chip key={id} palette={palette} look="chart" label={text} on={on} onPress={() => onPick(id)} />
-        );
-      })}
-    </View>
+    <CornerStrip palette={palette} testID={testID} label={label} radio
+                 segments={options.map(([id, text, said]) => ({ key: id, chip: text, label: said ?? text, on: id === value,
+                                                                onPress: () => onPick(id) }))} />
   );
 }

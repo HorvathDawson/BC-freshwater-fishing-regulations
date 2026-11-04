@@ -576,7 +576,7 @@ export function Shell(p: ShellProps) {
           )}
           {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
           {route.mode === "browse" && tab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footH} />}
-          {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} onHelp={runsTour.reopen} />}
+          {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} onHelp={runsTour.reopen} fishImages={p.fishImages} />}
         </View>
       </View>
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}

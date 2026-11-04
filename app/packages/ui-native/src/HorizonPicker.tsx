@@ -8,7 +8,7 @@
  * ONE horizon state.
  */
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { HORIZON_PICK } from "@app/core";
 import type { Horizon, HorizonChipVM } from "@app/ui";
 import { CornerStrip, type CornerSegment } from "./CornerStrip";
@@ -20,15 +20,15 @@ const DAY_HIT = hitProps({ w: 52, h: 34 });
 
 export function HorizonPicker({ palette, chips, onPick, testID, coach, changeIcon = false }: {
   palette: Palette; chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void; testID: string; coach?: string;
-  /** the panel's header draws Change as the trend glyph, a mode set off by a heavier divider */
+  /** (T367) the panel's header draws Change with the trend glyph beside its word (no heavier divider: it read as a break) */
   changeIcon?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const days = chips.filter((c) => typeof c.day === "number" && c.day > 0);
   const lit = days.find((c) => c.on) ?? null;
   const seg = (h: HorizonChipVM): CornerSegment => ({
-    key: String(h.day), chip: changeIcon && h.day === "change" ? "" : h.chip, label: h.label, on: h.on,
-    ...(h.note ? { note: h.note } : {}), ...(changeIcon && h.day === "change" ? { icon: "delta" as const, mode: true } : {}),
+    key: String(h.day), chip: h.chip, label: h.label, on: h.on,
+    ...(h.note ? { note: h.note } : {}), ...(changeIcon && h.day === "change" ? { icon: "delta" as const } : {}),
     onPress: () => { setOpen(false); onPick(h.day); },
   });
   const now = chips.find((c) => c.day === 0), change = chips.find((c) => c.day === "change");
@@ -42,24 +42,28 @@ export function HorizonPicker({ palette, chips, onPick, testID, coach, changeIco
     ...(change ? [seg(change)] : []),
   ];
   return (
-    <View style={{ alignItems: "flex-start", gap: 6 }} pointerEvents="box-none">
+    <View style={{ alignItems: "flex-start", gap: 6, maxWidth: "100%" }} pointerEvents="box-none">
       <CornerStrip palette={palette} testID={testID} coach={coach} segments={segments} />
+      {/* (T367, owner 2026-11-04: "big shift here") ONE ROW of days under the strip, as wide as the strip, scrolling
+          sideways — the three-row grid pushed the page down and pulled the heading beside it off its line */}
       {open && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ alignSelf: "stretch", flexGrow: 0 }}
+                    contentContainerStyle={{ gap: 4 }}>
         <View testID={`${testID}-list`} accessibilityRole="menu" accessibilityLabel={HORIZON_PICK.list}
-              style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, maxWidth: 5 * 58 + 4 * 6 + 16, padding: 8,
-                       backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2,
-                       borderRadius: palette.r.box, ...palette.lift }}>
+              style={{ flexDirection: "row", gap: 4 }}>
           {days.map((d) => (
             <Pressable key={String(d.day)} testID={`${testID}-day-${d.day}`} onPress={() => onPick(d.day)}
                        accessibilityRole="menuitem" accessibilityLabel={d.label} aria-selected={d.on} {...DAY_HIT}>
-              <View style={{ width: 58, paddingVertical: 8, alignItems: "center", borderRadius: palette.r.pill,
-                             backgroundColor: d.on ? palette.accent : palette.wash }}>
+              <View style={{ width: 58, paddingVertical: 6, alignItems: "center", borderRadius: palette.r.pill,
+                             borderWidth: 1, borderColor: d.on ? palette.accent : palette.line2,
+                             backgroundColor: d.on ? palette.accent : palette.card }}>
                 <Text style={{ ...TYPE.micro, fontSize: 13, lineHeight: 17, fontWeight: "600",
                                color: d.on ? palette.onAccent : palette.ink }}>{d.chip}</Text>
               </View>
             </Pressable>
           ))}
         </View>
+        </ScrollView>
       )}
     </View>
   );

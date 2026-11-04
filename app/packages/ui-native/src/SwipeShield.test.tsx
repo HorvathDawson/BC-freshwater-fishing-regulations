@@ -1,7 +1,7 @@
 /**
  * THE SHIELDED THINGS on a swiping body (reviewer 2026-10-21: the Conditions body swipes, its maps and chart do not).
  * `gestures.test.tsx` proves the shield itself; this pins that the minimap and the chart's plot wear one, so a pan on
- * the route map, the gauge's map or the plot is never taken for a change of view — while the chart's key and caption,
+ * the route map, the gauge's map or the plot is never taken for a change of view — while the chart's legend,
  * being text, still swipe.
  */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -33,7 +33,7 @@ const drag = (pressOn: string | ((c: HTMLElement) => Element) | null) => {
         <Text>the estimate</Text>
         <MiniMap at={{ atlas: "a", basemap: "b" } as never} palette={LIGHT} theme="light" hint="the map"
                  camera={{ lat: 49, lon: -122, zoom: 9 } as never} />
-        <Hydrograph shape={SHAPE} palette={LIGHT} colour={LIGHT.live} caption="the caption" />
+        <Hydrograph shape={SHAPE} palette={LIGHT} colour={LIGHT.live} />
       </ViewSwipe>
     </GestureHandlerRootView>);
   const t = { identifier: 1, force: 1, clientX: 200, clientY: 100, pageX: 200, pageY: 100, target: null };
@@ -52,7 +52,7 @@ const drag = (pressOn: string | ((c: HTMLElement) => Element) | null) => {
 describe("the minimap and the chart on a swiping body", () => {
   it("a drag that starts on the map or the plot is theirs; one on the text around them moves the view", () => {
     const plot = (c: HTMLElement) => c.querySelector("svg path")!;
-    expect([drag("the map"), drag(plot), drag("the estimate"), drag("the caption"), drag(null)])
+    expect([drag("the map"), drag(plot), drag("the estimate"), drag("reading"), drag(null)])
       .toEqual([0, 0, 1, 1, 1]);
   });
 });

@@ -98,7 +98,10 @@ export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette
  * The place row: ALWAYS present (an empty one-line slot when there is no label). One line, two when the label wraps. At the reader's text size (T40: the slot and the fit's line height grow with the scale, so a label at 2× is not
  * cut to one line); the measuring twin lays out again at the new size and the fit re-runs on its new height.
  */
-function Place({ place, palette }: { place: HeaderVM["place"]; palette: Palette }) {
+/** The part's place row; (T367) also the Conditions view's, under its name, so both views say where alike. */
+export function Place({ place, palette, coach: coachKey = "regs:place" }: { place: HeaderVM["place"]; palette: Palette;
+                                                                          /** the walkthrough's key (null: none) */
+                                                                          coach?: string | null }) {
   const [measured, setMeasured] = useState<number | null>(null);
   const scale = useCappedScale();
   const lh = PLACE_LH * scale;
@@ -107,7 +110,7 @@ function Place({ place, palette }: { place: HeaderVM["place"]; palette: Palette 
   // from the text's length (no jump for the common short name); the measure then settles it.
   const wraps = place ? (measured ? measured > lh * 1.5 : place.full.length * scale > ONE_LINE_CHARS) : false;
   const lines = wraps ? 2 : 1;
-  const coach = useCoachTarget("regs:place");   // (T293) the walkthrough: which part of the water this is
+  const coach = useCoachTarget(coachKey ?? undefined);   // (T293) the walkthrough: which part of the water this is
   return (
     <View ref={coach} collapsable={false} style={{ paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, marginTop: -2 }}>
       <Text testID="regs-place" numberOfLines={lines} accessibilityLabel={place?.full} maxFontSizeMultiplier={CAPPED_SCALE}

@@ -249,7 +249,7 @@ describe("useConditionsView", () => {
     expect(vm.day).toBe(DAY);
     expect(vm.lead).toBe("LEAD");
     expect(vm.reading).toMatchObject({
-      heading: readingHeading("Lead Creek near Town"),
+      heading: readingHeading("Lead Creek near Town"), title: "Lead Creek near Town",
       figure: 12.5, unit: "m³/s", quantity: "discharge",
       stage: stageLine(1.2),
       standing: readingStandingLine(0.15, "below"),
@@ -290,7 +290,7 @@ describe("useConditionsView", () => {
     await waitFor(() => expect(result.current.reading?.figure).toBe(3.4));
     expect(result.current.lead).toBe("OTHER");
     expect(result.current.reading).toMatchObject({
-      heading: readingHeading("Other River at Bridge"), unit: "m", quantity: "level", stage: null,
+      heading: readingHeading("Other River at Bridge"), title: "Other River at Bridge", unit: "m", quantity: "level", stage: null,
       standing: readingStandingLine(null, null) });
   });
 
@@ -318,8 +318,9 @@ describe("useConditionsView", () => {
     const { age: _age, ...shown } = result.current.reading!;
     expect([result.current.lead, shown, result.current.refuse, result.current.quiet, result.current.panel.answer])
       .toEqual(["LAKE", {
-        heading: readingHeading("Lake at Outlet"), figure: 2.31, unit: "m", quantity: "level", stage: null,
-        standing: readingStandingLine(0.6, "normal") }, false, null,
+        heading: readingHeading("Lake at Outlet"), title: "Lake at Outlet", figure: 2.31, unit: "m",
+        quantity: "level", stage: null,
+        standing: readingStandingLine(0.6, "normal"), percentile: 0.6 }, false, null,
         // the donor panel says the lake is read at its own gauge — not answerFrom's "no gauge on this water"
         { ok: false, why: "own-gauge" }]);
   });
@@ -337,7 +338,7 @@ describe("useConditionsView", () => {
     expect([result.current.lead, result.current.reading, result.current.quiet, result.current.refuse,
             result.current.panel.answer]).toEqual(["LAKE", null,
       lakeQuietHead("Lake at Outlet", null, DAY.getTime(), 0), false, { ok: false, why: "own-gauge" }]);
-    expect(result.current.quiet).toEqual({ heading: readingHeading("Lake at Outlet"), reads: "Not reporting today.",
+    expect(result.current.quiet).toEqual({ heading: readingHeading("Lake at Outlet"), title: "Lake at Outlet", reads: "Not reporting today.",
                                            lastReport: "When it last reported is not known." });
   });
 
@@ -361,10 +362,10 @@ describe("useConditionsView", () => {
     await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
     const { age: _age, ...shown } = result.current.reading!;
     expect(shown).toEqual({
-      heading: readingHeading("Lead Creek near Town"),
+      heading: readingHeading("Lead Creek near Town"), title: "Lead Creek near Town",
       figure: 4.162, unit: "m", quantity: "level",
       stage: null,                                        // the stage line is said beside a discharge only
-      standing: readingStandingLine(0.432, "normal"),
+      standing: readingStandingLine(0.432, "normal"), percentile: 0.432,
     });
     // and declared discharge, the same two values: the discharge, with its stage beside it
     const src2 = { ...source, gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000,
@@ -393,7 +394,7 @@ describe("useConditionsView", () => {
     expect(result.current.reading).toBeNull();
     expect(result.current.refuse).toBe(false);
     expect(result.current.quiet).toEqual({
-      heading: readingHeading("QUIET"),
+      heading: readingHeading("QUIET"), title: "QUIET",
       reads: donorReads({ percentile: null, observedAt: "2026-08-30T10:00:00-08:00" } as never,
                         { ref: DAY.getTime() }),
       lastReport: donorLastReport("2026-08-30T10:00:00-08:00"),
