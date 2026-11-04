@@ -61,3 +61,13 @@ map-feel ticket; T55 shrunk to "owner confirms slough marks" (T322 carries the f
 - ONE APK, one emulator sitting, carrying every app change: T312 fling patch, T382 B.C. clock + sun line, T384 open on my
   location, T385 share, T340 test-bed fix, then the device checks (T342, T344, T360, T50).
 - T239 after 0.5.0; T240 = a closed-testing checklist only.
+
+## Remaining, in order (2026-11-04, owner)
+1. T387 lands (every tap on a part gives the same page; the Salmon card fix found on the dev web app with it).
+2. THE ONE REBUILD, right after (owner 2026-11-04: the dev web app's data must be current — pre-T372 salmon file):
+   bundle → release (T372 `n`, T376 basins, T339 names, T387 part data, T370 `water-shared`, T386 `lines`), promoted
+   locally, release pins re-cut, the request walk re-pinned; T65 = the atlas built twice, diffed.
+3. T178 monthly score (worker) + T371 drafts (running); T377 item 1 (day list by watershed).
+4. ONE emulator sitting on ONE APK (fling, clock + sun, open on location, share; T340 fix; T307/T308/T293/T50 checks).
+5. Full suites once; staging upload (minAppVersion 0.5.0); feeds worker deploy with the app; AAB → Play internal +
+   Closed (T371; owner may start with fewer testers). No separate phone walk (owner: the testing tracks cover it).
