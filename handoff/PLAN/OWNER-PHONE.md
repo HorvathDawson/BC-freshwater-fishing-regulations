@@ -1,5 +1,8 @@
 # Phone checks for 0.5.0 (T77)
 
+(owner 2026-11-04: no separate phone walk — Play internal and Closed testing cover these; the list stays as what to
+watch for in testers' reports.)
+
 What only your phone can judge. Install the 0.5.0 build from Play internal testing (or a dev build: phone in developer
 mode, USB on, `pnpm -C app/apps/mobile android`). Say "fine" or what felt wrong for each line; each failure becomes a
 ticket.

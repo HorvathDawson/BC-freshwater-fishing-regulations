@@ -1,6 +1,6 @@
 # T77 — D1 phone testing: dev build now, preview build on R2 staging next (audit N17)
 
-Status: OPEN — the owner's phone walk left (handoff/PLAN/OWNER-PHONE.md, 2026-11-04). Owner needed (the phone).
+Status: DONE (55c09f699; owner 2026-11-04: "lets not do the phone walk because the internal and closed testing will cover it").
 
 Source: handoff/PLAN/app-data/D1-phone-testing.md — owner 2026-10-21: "do both options"; neither done.
 implement_progress queue K: "D1 phone testing needs the owner". Every "NOT verified on a device" note waits on this:

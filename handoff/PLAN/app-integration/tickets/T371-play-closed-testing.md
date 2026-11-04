@@ -19,3 +19,8 @@ closed track's first rollout, so 0.5.0 should go there, not only to internal tes
 
 Owner-only steps: the Console clicks, the tester list, any form that states policy. Claude: drafts the data-safety
 answers from the code, the listing text, the checklist. Depends: T244 (store listing), T352 (privacy wording).
+
+## Owner 2026-11-04: start with fewer testers
+A closed track takes any number of testers and more can be added any time. Production access (a personal account) needs
+12 testers opted in for the last 14 CONTINUOUS days — the qualifying 14 days count only once 12 are opted in. Starting
+small still clears the track setup, forms and review early. Check the Console's current numbers (Dashboard).

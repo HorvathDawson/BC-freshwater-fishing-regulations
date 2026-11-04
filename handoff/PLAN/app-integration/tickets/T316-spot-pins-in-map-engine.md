@@ -1,6 +1,6 @@
 # T316 — Spot (and parking) pins drawn by the map engine, not as overlays that lag on pan
 
-Status: IN REVIEW — built + tested (c9c18e5be); emulator pan before/after queued (owner 2026-10-31: "The spot icon doesn't render very well on the map when a user pans it lags behind the map?
+Status: DONE (55c09f699; owner checked the marks on the dev web app, 2026-11-04).
 Shouldn't it just be rendered in the actual map engine instead?? Like using geojson").
 
 ## Work
@@ -52,3 +52,6 @@ conversion and other lanes' work. Next: the same pan with PAN_SPOTS=0 on the aft
 ## Left
 - Owner: look at the marks on a phone (same look as `SpotPin`; names in Noto Sans Medium, the glyph host has no bold).
 - The jank question above (one more pan run, PAN_SPOTS=0 vs 6, same build).
+
+## 2026-11-04
+Owner: "the spot markers on current dev webapp look good." Done.
