@@ -31,26 +31,6 @@ export function registerPMTiles() {
 export const styledOnce = new WeakSet<maplibregl.Map>();
 
 /**
- * Run `fn` once the style can take layout and feature-state calls — now, or as soon as it
- * can. Returns the cleanup.
- *
- * NOT `isStyleLoaded() ? fn() : once("load", fn)`, the pattern this file uses elsewhere and
- * the one HANDOFF-ui.md records biting twice: `isStyleLoaded()` is briefly false on a map
- * that loaded long ago (every `setFilter` and tile burst), and `load` never fires again —
- * so the call was simply lost. `styledata` keeps arriving, so waiting on it cannot miss.
- */
-export function whenStyled(m: maplibregl.Map, fn: () => void): () => void {
-  if (m.isStyleLoaded()) { fn(); return () => {}; }
-  const h = () => {
-    if (!m.isStyleLoaded()) return;
-    m.off("styledata", h); m.off("load", h);
-    fn();
-  };
-  m.on("styledata", h); m.on("load", h);
-  return () => { m.off("styledata", h); m.off("load", h); };
-}
-
-/**
  * Run `fn` once the route overlay's sources exist — now, almost always.
  *
  * NOT `whenStyled`: a GeoJSON source takes `setData` whenever it exists, and

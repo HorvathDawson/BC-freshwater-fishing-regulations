@@ -3,7 +3,7 @@
  * per loader and expectation, a refusal cached, a failed fetch retried — over THE COMMITTED REGS FIXTURE RELEASE (T10).
  */
 import { setFailureSink } from "@app/core";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { loadRegsInputs, openRegsStore, RegsStoreError, targetFor, type RegsLoader } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { accessOf, type Paint } from "@app/core";
