@@ -20,7 +20,8 @@ import { Pressable } from "../Pressable";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
 import { RegsLayerToggle } from "./RegsLayerToggle";
-import { LegendCount, LegendRamp, LegendStrip } from "../Chrome";
+import { LEGEND_RAMP_MAX, LegendCount, LegendRamp, LegendStrip } from "../Chrome";
+import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
 import { changeRampStops, flowRampStops, round, type Palette } from "../theme";
@@ -124,6 +125,13 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
           <LegendCount palette={palette} colour={notFishingColours(theme).fill} rim={notFishingColours(theme).edge}
                        label={MAP_KEY.notFishing} />
         </>
+      )}
+      {/* (T377) THE CENTRE GROUP'S DAYS, under the ramp in the bottom bar: a tap on a day is the horizon chips' pick */}
+      {conditions && col.basinDays && (
+        <View style={{ width: "100%", maxWidth: LEGEND_RAMP_MAX, alignSelf: "center", marginTop: 6 }}>
+          <BasinDays state={col.basinDays} palette={palette} theme={theme} onPick={col.pickDay} layout="strip"
+                     testID="legend-basin-days" />
+        </View>
       )}
       {/* (T300) FISH OBSTACLES ON: their marks join the key, one icon and a word each (the same drawings the map wears) */}
       {!conditions && layers.effective.groups.obstacles === true && (

@@ -35,6 +35,8 @@ export * from "./mapModes";
 export * from "./conditionsColour";
 // (T376) the watershed group a Conditions view is about: the map centre's, a water's own
 export * from "./basin";
+// (T377) one watershed group's standing per forecast day
+export * from "./basinDays";
 export * from "./lakeColour";
 export * from "./salmonColour";
 export * from "./runTiming";

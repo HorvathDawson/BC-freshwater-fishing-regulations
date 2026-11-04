@@ -328,6 +328,11 @@ export function flowRampStops(theme: string): readonly { at: number; colour: str
     .map(([at, ref]) => ({ at: at / 100, colour: colour(theme, ref.token) }));
 }
 
+/** (T377) the colour the map gives water no gauge speaks for (`color.water.ungauged`, the standing mode's `missing`). */
+export function ungaugedColour(theme: string): string {
+  return colour(theme, "color.water.ungauged");
+}
+
 /**
  * THE EXPECTED-CHANGE RAMP (T52) as the map interpolates it: the same `standing` mode's stops in the change domain
  * (200–300, `CHANGE_RAMP_BASE` in @app/ui), each at its coded ratio, as 0–1 — falling at the left, rising at the right.

@@ -20,7 +20,8 @@ import { WATER_SCREEN_WORDS } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
-import { useFrameView, useRegsStore, useUnnamedName, useWater, useWaterBox, useWaterLine, useWaterName, useWaterPlace } from "@app/ui";
+import { useBasinDays, useFrameView, useRegsStore, useUnnamedName, useWater, useWaterBasin, useWaterBox, useWaterLine, useWaterName,
+         useWaterPlace } from "@app/ui";
 import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { Selectable } from "./Text";
@@ -30,6 +31,7 @@ import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 import { type Palette } from "./theme";
 import { WaterFrame, WaterTitle } from "./WaterFrame";
+import { BasinDays } from "./BasinDays";
 
 export function WaterConditions({ source, item, tapSid, palette, tiles, theme, parameter, onParameter, from, feed,
                                   credits, horizon, onHorizon, loader = null, part = null, stretch }: {
@@ -81,6 +83,11 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   // (T367, owner 2026-11-04: "just like regs") the part's place label and the page's access notices — the banner and
   // the gentle note — as the Regulations view says them
   const where = useWaterPlace(loader, source, item, section);
+  // (T377) THE WATER'S OWN WATERSHED GROUP and its days — its tap, else its own point; never the map's centre. The
+  // quantity is the panel's own (`ConditionsPanel`: the map's Flow or Level); a tap on a day is the panel's horizon pick.
+  const basin = useWaterBasin(source, { item, tapSid, at: from ?? null }, section !== null);
+  const days = useBasinDays({ source, feed, basin, for: "water", quantity: parameter ?? "discharge",
+                              horizon: horizon ?? 0, enabled: section !== null });
 
   return (
     <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>
@@ -98,7 +105,9 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
           <ConditionsPanel source={source} section={section} palette={palette}
                            tiles={tiles} theme={theme} feed={feed}
                            parameter={parameter} onParameter={onParameter} from={here}
-                           credits={credits} horizon={horizon} onHorizon={onHorizon} waterLine={line} waterBox={box} />
+                           credits={credits} horizon={horizon} onHorizon={onHorizon} waterLine={line} waterBox={box}
+                           footer={<BasinDays state={days} palette={palette} theme={theme ?? "light"} onPick={onHorizon}
+                                              layout="rows" testID="water-basin-days" />} />
         </>
       )}
     </WaterFrame>

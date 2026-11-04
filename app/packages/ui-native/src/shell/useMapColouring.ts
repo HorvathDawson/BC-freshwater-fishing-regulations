@@ -6,7 +6,7 @@ import { chooseLayer, chooseShow, layersVM, withImageryCredit, type Horizon, typ
 import { useCallback, useMemo, useState } from "react";
 import type { GaugeFeed, RunTimingSource, WaterSource, SectionId } from "@app/data";
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
-import { useCentreBasin, useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
+import { centreBasinAsk, useBasinDays, useCentreBasin, useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
          useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type RunSpeciesStore,
          type StatusSource } from "@app/ui";
@@ -206,6 +206,15 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    */
   const centre = useCentreBasin(source, mm.onConditions && paired, HOME);
   /*
+   * (T377) THE CENTRE GROUP'S DAYS: its standing on each day the horizon chips offer, for the legend's day list (a tap is
+   * `pickDay`, the chips' own pick). The CENTRE's group only — a water's view asks its own (`WaterConditions`). Asked
+   * where the horizon chips are offered (Conditions, Flow or Level) on a proven pair.
+   */
+  const centreAsk = useMemo(() => centreBasinAsk(centre.centreBasin, centre.centreBasinError),
+                            [centre.centreBasin, centre.centreBasinError]);
+  const basinDays = useBasinDays({ source, feed, basin: centreAsk, for: "browse", quantity: mm.standingParam, horizon,
+                                   enabled: mm.horizonsShown && paired, epoch });
+  /*
    * THE DAY'S STATUS, ONLY on a proven pair with an index that matched (`statusOk`) (`statusFeed`): the map is handed
    * the index and the day and labels each tile as it arrives (colour-latency AP — no `idle`, no round trip through
    * here per pan).
@@ -224,7 +233,9 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
            runsOffered, runs, runsFeed: runsShown ? runs.feed : null,
            // (T367) on the Runs tab, why nothing is painted: the bar over the map (`PairBanner`)
            runsProblem: mapTab === "runs" ? runs.problem : null,
-           centreBasin: centre.centreBasin, centreBasinError: centre.centreBasinError, noteCentre: centre.noteCentre };
+           centreBasin: centre.centreBasin, centreBasinError: centre.centreBasinError, noteCentre: centre.noteCentre,
+           // (T377) the centre group's days, while the horizon chips are offered (else null: nothing drawn)
+           basinDays: mm.horizonsShown && paired ? basinDays : null };
 }
 
 export type MapColouring = ReturnType<typeof useMapColouring>;
