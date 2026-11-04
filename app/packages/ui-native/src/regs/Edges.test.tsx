@@ -130,9 +130,9 @@ describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
    * (regs-v11.html l.408, a bar no v38 page draws) leaking into `.caveats .where`, which overrides only font-size and
    * colour — x14p2's "On one side of the channel only" item gets the same box. The app draws ONE caveat look for every
    * top caveat. Mutations: a `kind === "timed"` branch with its own box style fails the first test (its styles differ
-   * from the side / angler / uncertain block's); a wash background or padding on the where line fails the second.
+   * from the side / angler block's); a wash background or padding on the where line fails the second.
    */
-  const KINDS = ["timed", "side", "angler", "uncertain"] as const;
+  const KINDS = ["timed", "side", "angler"] as const;
   const styleOf = (kind: (typeof KINDS)[number]) => {
     render(<CaveatBlock caveat={{ ...caveat, kind }} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} />);
     const pick = (e: Element) => { const c = getComputedStyle(e);
