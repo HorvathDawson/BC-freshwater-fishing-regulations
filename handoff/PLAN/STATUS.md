@@ -47,7 +47,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   content (plain "Non-retention" already read closed — only "catch and release … until further notice" changes). 0.5.0
   plan grew 11-03 (bda00e2fb: 3b T374/T372/T373/T375, T376 in batch 4, 6d housekeeping, 6e T240/T370).
 - Batch 3b (11-04): T374 closed, not a bug (owner-confirmed sloughs, e23994f5a); T373 done (1cca5a8ff: deliver all binds
-  run timing per release, vintage refuses a mismatch, staging upload publishes it; local feed rebound). Next: T372.
+  run timing per release, vintage refuses a mismatch, staging upload publishes it; local feed rebound).
+- 11-04 test sweep: T375 leftovers fixed (c2b853f33: HORIZONS literal, dev feed every day, likeVisit); run-species tokens
+  for the UI chat; ticket ledger whole; RELEASE PINS on r-ac5a4e4f734c (931dba1ba: taps/hydrate + regs-fixture
+  r-056baa843558; the slough fold re-cut x5p0/x13p4/x9p5); map-gestures pins T345 (7cf72cd1c). Conformance 4138/4138.
+  The rest of the app suite's reds are the UI chat's in-progress files (T367 i).
+- T372 IN PROGRESS (uncommitted): owner 11-04 "trout way for both" for the map too — the undrawn place no longer paints
+  `check` (salmon.py chain_calendar, live.compose, core composeChain; Python tests updated); next the caveat reuse.
 ## 2026-11-03 (chat 4): batch 2 emulator sitting [T368, T354, T360, T345, T352]
 - **T368 (new, in 0.5.0, batch 6c):** the app-wide failures/fallbacks/reporting sweep, split from T333. Two found
   today and fixed on the way: boot's `.catch(() => null)` on the manifest (it hid a 404) and the source-line

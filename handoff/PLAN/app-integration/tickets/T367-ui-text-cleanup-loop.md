@@ -71,3 +71,7 @@ Change chip ×2 ("after +10" still holds: +10 is last). The live feed carries ev
   `palette.runSpecies[s.name]`. The tokens are committed (data chat); tsc + check-colours pass.
   Also yours, failing on your in-progress work: panel.silent (new `title`), the gauge reading's band words ("Below normal
   ·"), data-vs-ui's frozen list, back-layers, and the T375 horizon tests listed in (e).
+(i) Full app suite 2026-11-04 (data chat fixed its own: T375 tests, run-species tokens, the release pins on r-ac5a4e4f734c,
+  map-gestures). Failing on YOUR uncommitted work: check-platform (`regs/AccessNoticeBlock.tsx` uses `accessibilityState`),
+  one-button (`HorizonPicker.tsx`), one-donor-state, back-layers, data-vs-ui (frozen list), adipose-shots / fish-looks-layout /
+  fish-looks-shots, panel.silent (`title`), conditions.test (band words), and the (e) horizon tests.
