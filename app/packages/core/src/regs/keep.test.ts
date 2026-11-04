@@ -30,10 +30,10 @@ describe("keepOrder: page v36 renderCard + prototype buildKeep draw order", () =
       .toEqual(["strip", "inherited", "banner", { group: 0 }, { plain: 0 }, { group: 1 }, { plain: 1 }, "otherFish", "possession", "whereNot"]);
   });
 
-  it("caveats before the rows, except the unplaced rules (page v36 uncertainHtml), drawn after them", () => {
-    expect(keepOrder({ ...none, strip: true, caveats: [{ kind: "inpart" }, { kind: "side" }, { kind: "uncertain" }, { kind: "timed" }],
+  it("every caveat before the rows (T378: no unplaced block after them any more)", () => {
+    expect(keepOrder({ ...none, strip: true, caveats: [{ kind: "inpart" }, { kind: "side" }, { kind: "timed" }],
       rows: [{ group: 0 }], whereNot: true }))
-      .toEqual(["strip", { caveat: 0 }, { caveat: 1 }, { caveat: 3 }, { group: 0 }, { caveat: 2 }, "whereNot"]);
+      .toEqual(["strip", { caveat: 0 }, { caveat: 1 }, { caveat: 2 }, { group: 0 }, "whereNot"]);
   });
 
   it("nothing at all draws nothing", () => {

@@ -15,7 +15,7 @@ interface GKeep { order: string[]; lines: string[] }
 
 const CAVEAT_SEL = /^(details\.inpart|div\.caveats)/;
 const selOf = (c: CaveatVM) => c.kind === "inpart" ? (c.hot ? "details.inpart.hot" : "details.inpart")
-  : c.kind === "uncertain" ? "div.caveats.top.check" : "div.caveats.top";
+  : "div.caveats.top";
 /** The block's golden text form: keepPage.ts `caveatLines`. */
 const linesOf = caveatLines;
 

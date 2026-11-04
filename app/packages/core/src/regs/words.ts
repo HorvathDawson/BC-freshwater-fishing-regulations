@@ -93,7 +93,7 @@ export const WORDS = Object.freeze({
   WHERE_NOT: "Where you can’t fish",
   NO_FISHING_COLON: "No fishing: ",
   POSSESSION: "Possession",
-  // T15b caveats.ts: page v36 inPartHtml / sideHtml / anglerClosures / timedHtml / uncertainHtml (+ momentTxt, answerTxt, daysTxt, friendlyWhy)
+  // T15b caveats.ts: page v36 inPartHtml / sideHtml / anglerClosures / timedHtml (+ momentTxt, answerTxt, daysTxt)
   INPART_HOT: "Fishing is different in some spots today",
   INPART_BOAT: "Boat rules in some spots",
   INPART_SOME: "Some spots have their own rules",
@@ -120,8 +120,6 @@ export const WORDS = Object.freeze({
   TIMED_DAYLIGHT: (after: string, before: string) => `Daylight only: closed from ${after} after sunset to ${before} before sunrise`,
   TIMED_H: (min: number) => (min % 60 === 0 ? `${min / 60} h` : `${min} min`),
   ANGLER_TITLE: "⚠ Closed to some anglers",
-  UNCERTAIN_TITLE: "? Check: rules for parts of this water that couldn’t be placed on the map",
-  UNPLACED_WHY: "the regulations don’t say exactly where",
   TODAY_PAREN: (m: string) => "today (" + m + ")",
   NO_RULE: "no rule", ANSWER_NOLIMIT: "no limit", ANSWER_RELEASE: "release", ANSWER_CLOSED: "closed",
   OTHER_HOURS: "other hours",

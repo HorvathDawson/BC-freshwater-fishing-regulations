@@ -13,7 +13,7 @@
  * closing the most) — the closed moment itself is the frame's.
  *
  * Ports (inventory names, regs v38 @ 7fb6809f): page_v36 inPartHtml, sideHtml, anglerClosures, timedHtml, uncertainHtml,
- * momentTxt, answerTxt, daysTxt, hoursTxt, friendlyWhy, renderCard (order, open day only); prototype citeBooks (a Rule
+ * momentTxt, answerTxt, daysTxt, hoursTxt, renderCard (order, open day only); prototype citeBooks (a Rule
  * book link after each rule button).
  */
 import type { Moment } from "../answers.generated";
@@ -64,8 +64,6 @@ export function answerTxt(d: HydRes | null): string {
     : d.status === "release" ? WORDS.ANSWER_RELEASE : WORDS.ANSWER_CLOSED;
 }
 
-/** page v36 friendlyWhy: a placement code ("locator:…") is not words; anything else is the data's own reason. */
-export const friendlyWhy = (s: string | null | undefined): string => (!s ? "" : /^[a-z_]+:/.test(s) ? WORDS.UNPLACED_WHY : s);
 
 /**
  * (T208) A rule held on an undrawn part the book gives an area for: an outlet or inlet area, or a part the book draws on a
@@ -210,23 +208,16 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
   return items.length ? { kind: "timed", hot: false, title: WORDS.TIMED_TITLE, calm: null, items, later: null } : null;
 }
 
-/** page v36 uncertainHtml: the water's rules the pipeline could not place (store `item.unresolved`), in `fams`. */
-export function uncertainOf(inp: RegsInputs, fams: readonly string[]): CaveatVM | null {
-  const u = (inp.item?.uncertain ?? []).map((ix) => inp.rules.get(ix)).filter((r) => !r.missing && fams.includes(family(r)));
-  if (!u.length) return null;
-  return { kind: "uncertain", hot: false, title: WORDS.UNCERTAIN_TITLE, calm: null, later: null,
-    items: u.map((r) => item([text(clean(r.export.label))], friendlyWhy(r.export.prov.why), r)) };
-}
-
 /**
  * The Keep tab's caveat blocks (page v36 renderCard): only on a keyed, non-tidal day that is open, in the page's order —
- * in-part, one side, some anglers, certain times, then the unplaced rules (which page v36 draws AFTER the rows: T21 places
- * a `{caveat: i}` of kind "uncertain" after the rows in `KeepVM.order`).
+ * in-part, one side, some anglers, certain times. (T378, 2026-11-04) The unplaced rules are the in-part block's: a rule
+ * whose part is not drawn is `not_yet_mapped` (pipeline `undrawn_part`), carried on the water; page v36's separate
+ * "couldn't be placed" block read a store field nothing fills, and is gone.
  */
 export function caveatsOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled): readonly CaveatVM[] {
   const st = s.status?.status;
   if (!st || st === "closed" || st === "tidal") return [];
-  return [inPartOf(s, inp, KEEP_FAMS), sideOf(s, KEEP_FAMS), anglerOf(s), timedOf(inp, s, settledAtSeg), uncertainOf(inp, KEEP_FAMS)]
+  return [inPartOf(s, inp, KEEP_FAMS), sideOf(s, KEEP_FAMS), anglerOf(s), timedOf(inp, s, settledAtSeg)]
     .filter((c): c is CaveatVM => c !== null);
 }
 

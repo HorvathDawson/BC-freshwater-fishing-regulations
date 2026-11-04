@@ -1,13 +1,13 @@
 /**
  * caveats.ts, store-free, over hand-built inputs (real rule rows from testing/ruleRows.ts where a rule's words matter).
- * No v38 state draws an "uncertain" block, a boat-only or not-today in-part block, or the timed (b)/(c) items — they are
+ * No v38 state draws a boat-only or not-today in-part block, or the timed (b)/(c) items — they are
  * pinned here. The 134-state parity against the golden is app/conformance/src/regs/caveats.parity.test.ts.
  */
 import { describe, expect, it } from "vitest";
 import type { Moment } from "../answers.generated";
 import type { HydRes } from "./card";
 import {
-  anglerOf, answerTxt, caveatsOf, daysTxt, friendlyWhy, inPartOf, KEEP_FAMS, momentTxt, sideOf, timedOf, uncertainOf,
+  anglerOf, answerTxt, caveatsOf, daysTxt, inPartOf, KEEP_FAMS, momentTxt, sideOf, timedOf,
 } from "./caveats";
 import type { DisplayFrame, ExportRule, RegsInputs, RuleFacts, RuleIndex, RuleView, RowsValue } from "./inputs";
 import type { Verdict } from "./ladder";
@@ -32,7 +32,7 @@ const W = (...d: string[]) => d;
 const WEEKDAY = W("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"), WEEKEND = W("Saturday", "Sunday");
 const ALL7 = [...WEEKDAY, ...WEEKEND];
 
-describe("time words (page v36 daysTxt, momentTxt, answerTxt, friendlyWhy)", () => {
+describe("time words (page v36 daysTxt, momentTxt, answerTxt)", () => {
   it("daysTxt: runs of days, Monday first", () => {
     expect(daysTxt(["Saturday", "Sunday"])).toBe("Sat–Sun");
     expect(daysTxt(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])).toBe("Mon–Fri");
@@ -51,10 +51,6 @@ describe("time words (page v36 daysTxt, momentTxt, answerTxt, friendlyWhy)", () 
     const r = (status: string, daily: number | null) => ({ status, daily }) as unknown as HydRes;
     expect([answerTxt(r("keep", 5)), answerTxt(r("nolimit", Infinity)), answerTxt(r("release", null)), answerTxt(r("closed", null)), answerTxt(null)])
       .toEqual(["5 a day", "no limit", "release", "closed", "no rule"]);
-  });
-  it("friendlyWhy: a placement code is not words", () => {
-    expect([friendlyWhy("locator:abc"), friendlyWhy("The book names no landmark."), friendlyWhy(null)])
-      .toEqual(["the regulations don’t say exactly where", "The book names no landmark.", ""]);
   });
 });
 
@@ -123,7 +119,7 @@ describe("inPartOf: rules of parts the map can't draw", () => {
   });
 });
 
-describe("sideOf / anglerOf / uncertainOf", () => {
+describe("sideOf / anglerOf", () => {
   it("side: the data's words, else '<side> half only', then ' · ' and where", () => {
     const a = view(4, 3351, { label: "No fishing", parts: { what: "No fishing", where: "near the outfall" } }, { side: "West" }, { book: [[51, 53]] });
     const c = sideOf(settled({ side: [a] }), KEEP_FAMS)!;
@@ -135,16 +131,6 @@ describe("sideOf / anglerOf / uncertainOf", () => {
     const a = view(5, 3351, { label: "Angling closed to guided anglers" }, {}, { book: [[50, 52]] });
     const c = anglerOf(settled({ anglerclosed: [a] }))!;
     expect([c.title, plain(c.items[0]!.what), c.items[0]!.where, c.items[0]!.rule]).toEqual(["⚠ Closed to some anglers", "Angling closed to guided anglers", null, a.key]);
-  });
-  it("uncertain: the store's unplaced rules in the families, with the friendly why; a rix the store lacks is not drawn", () => {
-    const u = view(6, 3351, { label: "**No fishing** near the dam", prov: { rank: 0, why: "locator:dam" } });
-    const g = view(7, 78, { family: "gear_and_method" });
-    const inp = { item: { uncertain: [6, 7, 99] }, rules: indexOf([u, g]) } as unknown as RegsInputs;
-    const c = uncertainOf(inp, KEEP_FAMS)!;
-    expect([c.title, ...c.items.map((i) => [plain(i.what), i.where])]).toEqual([
-      "? Check: rules for parts of this water that couldn’t be placed on the map", ["No fishing near the dam", "the regulations don’t say exactly where"]]);
-    expect(uncertainOf({ item: { uncertain: [] }, rules: indexOf([]) } as unknown as RegsInputs, KEEP_FAMS)).toBeNull();
-    expect(uncertainOf({ item: null, rules: indexOf([]) } as unknown as RegsInputs, KEEP_FAMS)).toBeNull();
   });
 });
 

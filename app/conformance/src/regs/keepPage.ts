@@ -17,7 +17,7 @@ export function selectorOf(b: KeepBlock, keep: KeepVM): string {
   if ("group" in b) return "article.row.ledger.g28";
   if ("plain" in b) return "article.row.ledger";
   const c = keep.caveats[b.caveat]!;
-  return c.kind === "inpart" ? (c.hot ? "details.inpart.hot" : "details.inpart") : c.kind === "uncertain" ? "div.caveats.top.check" : "div.caveats.top";
+  return c.kind === "inpart" ? (c.hot ? "details.inpart.hot" : "details.inpart") : "div.caveats.top";
 }
 
 const join = (...xs: (string | null | undefined)[]): string => norm(xs.filter((x) => !!x).join(" "));

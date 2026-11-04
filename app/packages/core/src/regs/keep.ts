@@ -85,9 +85,8 @@ export function keepOrder(has: {
   if (has.strip) order.push("strip");
   if (has.inherited) order.push("inherited");
   if (has.banner) order.push("banner");
-  has.caveats.forEach((c, i) => { if (c.kind !== "uncertain") order.push({ caveat: i }); });
+  has.caveats.forEach((_, i) => order.push({ caveat: i }));
   order.push(...has.rows);
-  has.caveats.forEach((c, i) => { if (c.kind === "uncertain") order.push({ caveat: i }); });
   if (has.otherFish) order.push("otherFish");
   if (has.possession) order.push("possession");
   if (has.whereNot) order.push("whereNot");
