@@ -1,6 +1,6 @@
 # T375 — The forecast feed publishes every day, +1 to +10
 
-Status: DONE (1c735272e) in code 2026-11-03 (feed size + worker redeploy left) — data chat (owner 2026-11-03: "add this to the list for us to do here"); with the UI chat's forecast day
+Status: DONE (1c735272e) in code 2026-11-03; feed size estimated 2026-11-04 (+5–11 kB gz); worker redeploy left (with 0.5.0) — data chat (owner 2026-11-03: "add this to the list for us to do here"); with the UI chat's forecast day
 chips (T367: "Now · Tue 4 · Wed 5 · … · Fri 14 · Change"), before 0.5.0.
 
 Today the feed ranks only +1, +3, +5, +10 (`pipeline/gauges/feed/publish.py` `HORIZONS`, the worker's copy
@@ -21,3 +21,9 @@ Size: S–M.
 (percentiles, change — the spike day 10-26 is now +4 and ranked, under the Change's peak —, combine, gauge_policy): 105
 pass; worker 184 pass. The UI chat's horizon tests are theirs (T367 e). Left: measure the gauge feed's size on the next
 feeds run, and the staging worker redeploy (with 0.5.0).
+
+## Feed size, 2026-11-04 (estimate; staging still runs the 4-horizon worker)
+Staging `feeds/live/index.json` today: 434 stations, 335 with `ahead` (days 1, 3, 5 in season now; +10 absent), 273 kB
+raw / 33.1 kB gz. With all ten days filled for those 335: 329 kB / 37.6 kB gz (days copied from neighbours), and at
+most 373 kB / 44.1 kB gz with every added value random (the incompressible bound). So +5–11 kB gz on the index the map
+fetches — no budget concern. The real number: read `index.json` after the worker redeploy with 0.5.0.
