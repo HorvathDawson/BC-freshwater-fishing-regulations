@@ -95,6 +95,7 @@ export const memory = {
       const LINK = process.env.BOOK_LINK ?? 'Rule book p\\.[2-9][0-9] ↗.*';
       ctx.flow('scroll-to', { TEXT: LINK });
       const link = ctx.device.screenText().find((x) => new RegExp(LINK).test(x)) ?? '';
+      await measure('before rule book', 1000);
       ctx.device.logcatClear();
       const t0 = Date.now();
       ctx.flow('tap-text', { TEXT: LINK });
@@ -116,6 +117,10 @@ export const memory = {
       ctx.device.sh('input keyevent KEYCODE_BACK');
       await ctx.device.sleep(1500);
       if (ids(ctx).includes('pdf-viewer')) throw new Error('back did not close the viewer');
+      // (T360) what the viewer leaves behind once closed (the leak question): settled, then after a moderate trim
+      await measure('rule book closed', 5000);
+      ctx.device.sh(`am send-trim-memory ${ctx.device.pidOf()} RUNNING_MODERATE`);
+      await measure('rule book closed + trim', 4000);
       if (!ctx.device.screenText().some((x) => /Regulations/.test(x))) throw new Error('back closed more than the viewer (the water page is gone)');
       const said = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[synopsis] ')).map((l) => l.slice(l.indexOf('[synopsis]') + 11)).join('; ') || 'no [synopsis] line';
       return `${link} → ${page} in ${ms} ms (${said}); back closed it · ${mem}`;

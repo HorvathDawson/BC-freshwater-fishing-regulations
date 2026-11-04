@@ -90,3 +90,5 @@ MB, `dumpsys meminfo` App Summary. Graphics reads 0 on the emulator (host GPU): 
 - Rule-book open IN THE APP: book 3 ms (held), copy 6–39 ms, drawn in 390–680 ms. The 10 s the test bed reads is
   Maestro's own overhead.
 Probe: `[heap]` every 2 s in test-bed builds (apps/mobile/index.js); `session.sh --opengl` builds the other variant.
+- Correction (run t360-pdf): the viewer costs ~70 MB while OPEN and keeps ~35–40 MB after it closes (273 → 345 open →
+  312 closed; a RUNNING_MODERATE trim frees nothing). Not 70 retained.
