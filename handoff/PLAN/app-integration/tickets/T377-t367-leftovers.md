@@ -12,3 +12,7 @@ pulls them in.
    collapsible legend bar, peak markers on the Runs histogram, a second cue besides colour for closed / open.
 3. The hydrograph draws one model at a time (its legend entries pick it); drawing several at once needs chart logic.
 4. Dead code: `changeSpark` / `ChangeRunVM.spark` (always null now) and core `mapDayChips` are no longer drawn — remove.
+
+## 2026-11-04
+Item 4 done: `changeSpark` / `ChangeSparkVM` / `ChangeRunVM.spark` and core `mapDayChips` / `MapDayChip` removed (their
+tests with them; `changeChart` keeps the handover breaks). Item 1 next (0.5.0); items 2–3 after 0.5.0.

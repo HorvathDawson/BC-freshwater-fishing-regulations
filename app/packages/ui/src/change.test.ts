@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { answerFrom, buildStandingClasses, sectionStanding, type PanelMember, type SectionId, type StationId } from "@app/data";
 import { HORIZONS, codedChange, horizonDateChip, type RunChange, type SourceChange } from "@app/core";
 import { classMarks, standingValues } from "./conditionsColour";
-import { changeChartModel, changeSpark, changeView, donorView, flowHorizon, horizonChips, pickHorizon } from "./panel";
+import { changeChartModel, changeView, donorView, flowHorizon, horizonChips, pickHorizon } from "./panel";
 import { CHANGE_RAMP_BASE, rampPosition, routeLabels, routeValues, toRamp } from "./routeColour";
 
 const st = (s: string) => s as StationId;
@@ -140,7 +140,7 @@ describe("the Change block for the charted gauge", () => {
     expect(vm.runs.map((r) => r.line)).toEqual([
       "CLEVER: rises to about 25× today's flow on Mon (77th percentile, high for the time of year), back down by Tue.",
       "ELF: little change expected."]);
-    expect([vm.none, vm.attribution, vm.models, vm.runs.map((r) => r.spark)]).toEqual([null, ATTRIBUTION, null, [null, null]]);
+    expect([vm.none, vm.attribution, vm.models, vm.runs.length]).toEqual([null, ATTRIBUTION, null, 2]);
     // a feed from before T144: the chart is the first run's, alone (no station change to join models under)
     expect([vm.chart?.series.map((x) => [x.model, x.bold]), vm.chart?.mark?.label, vm.chart?.days.map((d) => d.label)])
       .toEqual([[["CLEVER", true]], "Peak Mon", ["today", "Mon", "Sat 31 Oct"]]);
@@ -168,7 +168,7 @@ describe("the Change block for the charted gauge", () => {
     const vm = changeView([{ model: "ELF", change: { ...ELF, dir: "fall" } }, { model: "COFFEE", change: COFFEE },
                            { model: "CLEVER", change: SPIKE }], TODAY, ATTRIBUTION, { width: 40, height: 40 }, JOINED);
     expect([vm.runs, vm.models, vm.caveat, vm.note, vm.none, vm.attribution]).toEqual([
-      [{ model: "CLEVER and COFFEE together", part: false, spark: null,
+      [{ model: "CLEVER and COFFEE together", part: false,
          line: "Rises to about 30× today's flow on Sun (83rd percentile, high for the time of year), back down by Tue." }],
       "Models: CLEVER rises to 23× (Mon) · COFFEE rises to 44× (Sun)",
       null, "COFFEE runs to Mon; after that, CLEVER alone.", null, ATTRIBUTION]);
@@ -185,25 +185,6 @@ describe("the Change block for the charted gauge", () => {
    * Mutations: the break dropped (every day `L`) -> this and the joined block test fail; `handovers` empty -> both fail;
    * a one-model line broken at its own reach -> "one model alone" below fails.
    */
-  it("draws the COFFEE to CLEVER handover as a gap with a tick, not a fall", () => {
-    const handover: SourceChange = {
-      models: ["CLEVER", "COFFEE"], lowWater: false, reach: { CLEVER: "2026-10-31", COFFEE: "2026-10-26" },
-      dir: "rise", base: 1,
-      peak: { day: "2026-10-26", ratio: 3.32, value: 3.32, back: null, until: "2026-10-26" },
-      trough: { day: "2026-10-22", ratio: 1, value: 1, back: null },
-      days: [["2026-10-22", 1, 1], ["2026-10-23", 1, 1.4], ["2026-10-24", 1.2, 2.1], ["2026-10-25", 1.9, 2.9],
-             ["2026-10-26", 2.5, 3.32], ["2026-10-27", 1.02, 1.06], ["2026-10-28", 1.01, 1.04],
-             ["2026-10-29", 1, 1.03], ["2026-10-30", 1, 1.02], ["2026-10-31", 1, 1.01]],
-    };
-    expect(changeSpark(handover, "2026-10-22", 90, 40)).toEqual({
-      path: "M0,40 L10,28.8 L20,15.3 L30,4.5 L40,0 M50,38.1 L60,38.7 L70,39 L80,39.3 L90,39.7",
-      mark: { x: 40, y: 0, label: "Peak Mon" },
-      ends: [{ x: 0, label: "today" }, { x: 90, label: "Sat 31 Oct" }],
-      handovers: [{ x: 45, model: "COFFEE" }],
-      label: "Each day's highest forecast flow against today's, from today to Sat 31 Oct; COFFEE's forecast ends Mon",
-    });
-  });
-
   it("one model alone is one line, named, with its chart", () => {
     const alone: SourceChange = { ...JOINED, models: ["CLEVER"], reach: { CLEVER: "2026-10-31" } };
     const vm = changeView([{ model: "CLEVER", change: SPIKE }, { model: "ELF", change: ELF }], TODAY, ATTRIBUTION,
@@ -227,11 +208,6 @@ describe("the Change block for the charted gauge", () => {
       null]);
   });
 
-  it("marks a falling run's lowest day", () => {
-    const fall: RunChange = { ...ELF, dir: "fall", trough: { ...ELF.trough, day: "2026-11-01", ratio: 0.45 },
-      days: [["2026-10-22", 0.456, 0.456], ["2026-11-01", 0.2, 0.2]] };
-    expect(changeSpark(fall, "2026-10-22", 100, 40)!.mark).toEqual({ x: 100, y: 40, label: "Lowest Sun 1 Nov" });
-  });
 });
 
 describe("the donor panel under Change", () => {
