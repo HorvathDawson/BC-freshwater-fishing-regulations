@@ -100,6 +100,9 @@ Answered 2026-10-23: Q5 + Q34–Q41 (curation plan approved, defaults; splits mi
 Triaged 2026-10-23: 64 smaller calls were decided by Claude and 12 were already answered or obsolete — all recorded in
 decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any). What is left needs you:
 
+- **T387 point-bound facts (2026-11-04, default: left per tap):** every other fact on a Regulations page is now its
+  PART's. Two still follow the tap: the sun line (sunrise / sunset at the tapped point — or the part's midpoint?) and the
+  scroll memory (reopens where you left it per tapped reach — or per part?). Ticket T387 has the why.
 - **Readings of the book (a wrong call misleads anglers):** Q124 a river's rules on unnamed widenings (456 polygons) ·
   (Q87, Q140, Q62, Q63 answered 2026-10-28.)
 - **Which gauge speaks (your policy):** Q31 the gauge rule · Q103 diversion
