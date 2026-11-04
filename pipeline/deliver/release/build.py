@@ -12,7 +12,9 @@ writes paint, derives three per-water flags for search, converts the climatology
   water          the regs store's common tables + display_rule + akey_region,     regs store + bundle
                  part_section, part_mark, water_exit,
                  water_continue (which stream goes on as another: the bundle's
-                 own table, bundle/continuation.py); meta `store_meta` = the regs
+                 own table, bundle/continuation.py), part_line (T388: each part's
+                 own stretch of stream, the place a named link carries —
+                 part_line.py, from section_measure); meta `store_meta` = the regs
                  store's own meta, so water + the shards + regs-sid ARE the store
                  (store/release.py; nothing reads regs.sqlite, P20)
   regs-<region>  cell + the frames its akeys reach (shards.py), × 9               regs store
@@ -51,6 +53,7 @@ from typing import Dict, Iterable, List, Optional
 from pipeline.deliver import lake_facts as LF
 from pipeline.deliver.release import contract as C
 from pipeline.deliver.release import lines as LINES
+from pipeline.deliver.release import part_line as PART_LINE
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 from pipeline.deliver.release import slices as SLICES
@@ -73,7 +76,9 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: (`contract.WEB_BUDGET["first_tap_unnamed"]`).
 SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_450_000, "lakes": 100_000, "salmon": 60_000,
               **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "method": 600_000,
-              "water": 2_500_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 950_000,
+              # (T388) water + `part_line` (79,253 B gz measured alone on the 2026-11-04 bundle; water was 2,409,579 in
+              # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
+              "water": 2_650_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 950_000,
               "down": 1_250_000, "geo": 700_000, "flow-area": 220_000,
               # (T369) `lines`: ~0.99-1.08 MB gz estimated 2026-11-03 on the atlas's handles (ends proxied from the FWA
               # stream extents; the build measures the real one); (T386) phone-held too since 2026-11-04 (in the offline
@@ -433,6 +438,10 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
     base = {"section_handles": bmeta["section_handles"], "reach_digest": bmeta["reach_digest"]}
     regs = {**base, "rule_ids_sha256": smeta["rule_ids_sha256"]}
     continues = bundle_continues(b)
+    # (T369) every stream section's span on its blue line: packed into `lines`, and (T388) each named part's runs of it
+    # into the water file's `part_line`
+    sm = bundle_section_measure(b)
+    part_lines = PART_LINE.from_bundle(b, sm)
 
     work = Path(tempfile.mkdtemp(prefix=".release-", dir=out_root if out_root.exists() else None))
     try:
@@ -480,6 +489,8 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                         "PRIMARY KEY (akey, region)) WITHOUT ROWID")
             con.executemany("INSERT INTO akey_region VALUES (?, ?)",
                             sorted((a, r) for a, rs in regions.items() for r in rs))
+            # (T388) each part's own stretch of stream (part_line.py): a named link's place, without `lines`
+            PART_LINE.write(con, part_lines)
         water_meta = {**regs, "format": FORMATS["water"], "card_check": json.dumps(stamp, sort_keys=True),
                       **{k: smeta[k] for k in ("layout", "about_bundle", "blob_codec", "answers_sha256")},
                       # the store's own meta, whole: the store is put back together from the release and held to its
@@ -501,11 +512,10 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         files["regs-sid"] = copy_file(work / "regs-sid.sqlite", {"s": store}, [("s", t, None) for t in SH.SID_TABLES],
                                       {**regs, "format": FORMATS["regs-sid"]})
         # (T369) `lines`: every stream section's stream key and measure span (release/lines.py), so a link's PLACE
-        # resolves to a section of this release — packed from the bundle's `section_measure`
-        sm = bundle_section_measure(b)
+        # resolves to a section of this release — packed from the bundle's `section_measure` (read above)
         files["lines"] = copy_file(work / "lines.sqlite", {}, [], {**base, "format": FORMATS["lines"]},
                                    extra=lambda con: LINES.write(con, sm))
-        del sm
+        del sm, part_lines
         # (T256) the answer slices: a web tap in region r reads core-<r> + water-<r>, not the whole files
         files.update(SLICES.build_slices(work, files["core"], files["water"], _sid_regions))
         # (T213) bait ban / fly fishing only per section and day: a projection of the store's open-days strips

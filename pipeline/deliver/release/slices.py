@@ -12,7 +12,7 @@ what it COVERS, and the app reads a slice only for keys it covers (`app/packages
             `water_continue` both ways: the water map names them), + the parts of a covered water (`item.part_of`: a
             lake cut into closure areas finds its parts). A covered water has EVERY row of its own in every table:
             core item / item_section / item_near / item_area / name_source; water item / part (+ its xpart) /
-            part_section / part_mark / water_exit / water_continue (either end) / picker.
+            part_section / part_line (T388) / part_mark / water_exit / water_continue (either end) / picker.
   ids       water `str`: every string a kept row names (no blob names a str: every str id is a column's, checked
             below); core `place`: the towns the kept `item_near` rows name (a place_id present is that town's row).
   shared    (T370) `water-shared`, ONE web file beside the slices: the water tables every region reads whole — `akey`,
@@ -47,8 +47,10 @@ CORE_SLICE_TABLES: Dict[str, str | None] = {"item": "ord", "item_section": "ord"
                                             "item_area": "ord", "name_source": "item_id", "place": "place_id"}
 #: water tables a slice carries; the column a covered water is keyed by, "*" = special (below)
 WATER_SLICE_TABLES: Dict[str, str] = {
-    "item": "item_ord", "part": "item_ord", "part_section": "ord", "part_mark": "ord", "water_exit": "ord",
-    "water_continue": "*", "xpart": "*", "picker": "*", "str": "*"}
+    "item": "item_ord", "part": "item_ord", "part_section": "ord", "part_line": "ord", "part_mark": "ord",
+    "water_exit": "ord", "water_continue": "*", "xpart": "*", "picker": "*", "str": "*"}
+#: tables a water cut before them lacks: a slice of it has none either (water_continue; T388 part_line)
+WATER_SLICE_ADDITIVE = ("water_continue", "part_line")
 #: (T370) the water tables every region reads whole: in `water-shared` only, never in a slice
 WATER_SHARED_TABLES = ("akey", "akey_region", "ruleset", "seglist", "segmom", "rule", "display_rule", "lic", "static",
                        "place", "zdict")
@@ -169,8 +171,8 @@ def water_slice(whole: Path, out: Path, region: str, ords: Set[int]) -> Path:
     con = _start(out, whole, ords)
     for t, key in WATER_SLICE_TABLES.items():
         if not con.execute("SELECT 1 FROM s.sqlite_master WHERE type='table' AND name=?", (t,)).fetchone():
-            if t == "water_continue":
-                continue                            # ADDITIVE: a water cut before the links has none
+            if t in WATER_SLICE_ADDITIVE:
+                continue                            # ADDITIVE: a water cut before the links / part_line has none
             raise SliceError(f"slices: the whole water has no table {t}")
         if key == "*":
             continue

@@ -120,6 +120,9 @@ FILES = {
         # every one is stretch 0): ADDITIVE, last — still water/1; an older release has no columns
         "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
                       "up_stretches"],
+        # (T388) each part's own stretch of stream as runs on its blue lines (part_line.py): the place a named link
+        # carries, so a named water never needs `lines`. ADDITIVE table — still water/1; an older release has none
+        "part_line": ["ord", "part_ix", "stretch", "blk", "m0", "m1"],
         # `m` (T387: the section's length along the water, metres; NULL unmeasured): ADDITIVE, last — still water/1
         "part_section": ["ord", "sid", "part_ix", "m"],
         "picker": _FRAME,
@@ -154,6 +157,7 @@ FILES = {
                  "closed_all_year", "paper_licence", "xp", "sections", "xruns"],
         "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
                       "up_stretches"],
+        "part_line": ["ord", "part_ix", "stretch", "blk", "m0", "m1"],             # (T388) by ord, as part_section
         "part_section": ["ord", "sid", "part_ix", "m"], "picker": _FRAME, "str": ["id", "text"],
         "water_continue": ["ord", "part", "next_ord", "next_part"],
         "water_exit": ["ord", "down_ord", "down_part"], "xpart": _FRAME}} for r in SH.REGIONS},

@@ -29,6 +29,9 @@ describe("sliceKeys", () => {
                               "WHERE item_ord = ? ORDER BY part_ix", [9])).toEqual({ ords: [9] });
     expect(sliceKeys("water", "SELECT id, text FROM str WHERE id IN (?, ?)", [1, 2])).toEqual({ strs: [1, 2] });
     expect(sliceKeys("water", "SELECT part_ix FROM part_section WHERE ord = ? AND sid = ?", [9, 77])).toEqual({ ords: [9] });
+    // (T388) a water's part runs ride in its region's slice, by ord (the named link's place: no `lines`)
+    expect(sliceKeys("water", "SELECT part_ix, stretch, blk, m0, m1 FROM part_line WHERE ord = ? ORDER BY part_ix", [9]))
+      .toEqual({ ords: [9] });
     expect(sliceKeys("water", "SELECT next_part AS part, ord AS other FROM water_continue WHERE next_ord = ?", [9]))
       .toEqual({ ords: [9] });
   });

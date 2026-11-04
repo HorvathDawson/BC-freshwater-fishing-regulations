@@ -49,6 +49,8 @@ const TABLES: Readonly<Record<Sliced, Readonly<Record<string, "whole" | "shared"
   },
   water: {
     item: { item_ord: "ords" }, part: { item_ord: "ords" }, part_section: { ord: "ords" }, part_mark: { ord: "ords" },
+    // (T388) each part's own stretch of stream (a named link's place): the water's rows, by ord, as part_section
+    part_line: { ord: "ords" },
     water_exit: { ord: "ords" }, water_continue: { ord: "ords", next_ord: "ords" }, str: { id: "strs" },
     picker: { id: "pickers" }, xpart: "follows",
     akey: "shared", akey_region: "shared", ruleset: "shared", seglist: "shared", segmom: "shared", rule: "shared",

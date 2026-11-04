@@ -6,7 +6,8 @@
  * per distinct strip in the static `rows.strips` and named by the rows frame's fifth slot, goes back on its row here).
  *
  *   core       itemOrd (core `item.item_id` is UNIQUE: one indexed read — core's ord IS water's item_ord, P08)
- *   water      item, parts, picker, akey, segStarts, segMoments, ruleset, rules, lics, statics, str, place, sectionPart
+ *   water      item, parts, picker, akey, segStarts, segMoments, ruleset, rules, lics, statics, str, place, sectionPart,
+ *              partLines (T388)
  *   regs-<r>   cell, cells and the five frame families, in the file water's `akey_region` names for the KEY — a frame
  *              id is the store's, the same in every region file that holds it, but only those files hold it; so every
  *              frame read is asked with the key it was reached from (`ladder(akey, id)`, not `ladder(id)`)
@@ -44,6 +45,15 @@ export interface PartRow {
   readonly tidal: boolean;
 }
 export interface PlaceRow extends AnswersPlace { readonly place: number }
+/**
+ * (T388) ONE RUN OF A PART'S OWN STREAM (water `part_line`; pipeline `release/part_line.py`): the part's stream sections
+ * of one stretch that lie end to end on one blue line, as the span [m0, m1) metres along stream key `blk` — the units
+ * of `lines` / `StreamPlace`. Only a water whose links carry a place has rows (two or more parts, or a part of two or
+ * more stretches); a part with no stream section (a lake) has none.
+ */
+export interface PartLine {
+  readonly partIx: number; readonly stretch: number; readonly blk: number; readonly m0: number; readonly m1: number;
+}
 export interface RulesetRow { readonly sections: number; readonly reach: readonly number[]; readonly trib: readonly number[] }
 export interface StoredRule { readonly rix: number; readonly export: ExportRule; readonly facts: RuleFacts }
 /** The store's statics (`static` rows) — `pdfPages` too: the release ships the synopsis's printed → PDF page map
@@ -97,6 +107,13 @@ export interface RegsReads {
    * not measure has null. null: the release predates `part_section.m` (it ships no section lengths).
    */
   partLengths(itemOrd: number, partIx: number): Promise<ReadonlyMap<number, number | null> | null>;
+  /**
+   * (T388) Item `itemOrd`'s part runs (water `part_line`, by part, stretch, stream key, start): what a named water's
+   * link place is made from and resolved by, with no `lines` file. null: the release predates `part_line` (then the
+   * place is the pre-T388 `lines` one, `@app/ui` place.ts). Empty: the water has none (one part and one stretch, or
+   * no stream section).
+   */
+  partLines(itemOrd: number): Promise<readonly PartLine[] | null>;
   /**
    * THE WATER MAP'S ROWS (P15) for item `itemOrd`, each one keyed read on its table's primary key: `part_geo` (rank,
    * box, midpoint — microdegrees as degrees), `part_mark` (boundaries: down part, up parts), `part_section` (the sids of
@@ -534,6 +551,23 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       if (!has) return null;
       const rows = await w.all("SELECT sid, m FROM part_section WHERE ord = ? AND part_ix = ? ORDER BY sid", ord, partIx);
       return new Map(rows.map((r) => [n(r.sid), r.m === null || r.m === undefined ? null : n(r.m)]));
+    }),
+
+    partLines: (ord) => once("partLines", ord, async () => {
+      const w = await base.water();
+      // (T388) `part_line` is an additive table (still water/1): a release cut before it has none. Read off
+      // `sqlite_master` (every water slice holds it whole), never `pragma_table_info` (the whole water's, T129). A keyed
+      // read of this water FIRST: it opens the file holding the water (its region's slice, or the whole water), so the
+      // schema is asked of a water file — a `sqlite_master` read with none open yet goes to `water-shared` (T370), which
+      // holds no part table and would say "no part_line" of a release that has it
+      await w.get("SELECT part_ix FROM part_section WHERE ord = ? LIMIT 1", ord);
+      const has = await once("hasPartLine", 0, async () =>
+        !!(await w.get("SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'part_line'")));
+      if (!has) return null;
+      const rows = await w.all("SELECT part_ix, stretch, blk, m0, m1 FROM part_line WHERE ord = ? "
+                               + "ORDER BY part_ix, stretch, blk, m0", ord);
+      return rows.map((r): PartLine => ({ partIx: n(r.part_ix), stretch: n(r.stretch), blk: n(r.blk), m0: n(r.m0),
+                                          m1: n(r.m1) }));
     }),
 
     navRows: (ord) => once("navRows", ord, async () => {

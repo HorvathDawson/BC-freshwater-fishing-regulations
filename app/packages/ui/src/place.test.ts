@@ -6,18 +6,20 @@
  */
 import { describe, expect, it } from "vitest";
 import type { ItemId, SectionId } from "@app/data";
-import type { NavRows, PartRow } from "@app/data/regs";
+import type { NavRows, PartLine, PartRow } from "@app/data/regs";
 import type { SectionLine } from "@app/data/regs/place";
-import { placeOf, resolvePlace, resolveStartLink, type PlaceReads } from "./place";
+import { placeOf, resolvePartPlace, resolvePlace, resolveStartLink, type PlaceReads } from "./place";
 import { parseStartLink, routeSearch } from "./startLink";
-import { HOME, reduce, waterFrame, type WaterRoute } from "./route";
+import { HOME, reduce, waterFrame, type WaterFrame, type WaterRoute } from "./route";
 import { carryRoute } from "./carry";
 import { openWater } from "./openWater";
 
 const BLK = 360000001, RIVER = "gnis:1" as ItemId, ORD = 7;
-/** A release: each section's handle, line and part (`stretch`: [part, stretch] for a part of two stretches). */
+/** A release: each section's handle, line and part (`stretch`: [part, stretch] for a part of two stretches). `runs`:
+ *  its `part_line` (T388); absent, a release cut before it (`partLines` null: the pre-T388 `lines` path). */
 interface Sec { h: number; from: number; to: number; part: number | null; stretch?: number }
-function release(secs: Sec[], mids: Record<number, number>, stretchMids: Record<string, number> = {}): PlaceReads {
+function release(secs: Sec[], mids: Record<number, number>, stretchMids: Record<string, number> = {},
+                 runs: PartLine[] | null = null): PlaceReads {
   const line = (h: number): SectionLine | null => {
     const s = secs.find((x) => x.h === h);
     return s ? { blk: BLK, from: s.from, to: s.to } : null;
@@ -39,6 +41,7 @@ function release(secs: Sec[], mids: Record<number, number>, stretchMids: Record<
     parts: async () => parts.map((p) => ({ partIx: p, tidal: false }) as unknown as PartRow),
     navRows: async () => nav,
     sectionPart: async (_o, sid) => secs.find((s) => s.h === sid)?.part ?? null,
+    partLines: async () => runs,
     sectionLine: async (h) => line(h),
     sectionAt: async (blk, m) => (blk === BLK ? secs.find((s) => s.from <= m && m < s.to)?.h ?? null : null),
   };
@@ -54,7 +57,7 @@ const B: Sec[] = [{ h: 20, from: 0, to: 1000, part: 0 }, { h: 21, from: 1000, to
                   { h: 22, from: 1800, to: 3000, part: 2 }, { h: 23, from: 3000, to: 5000, part: 3 },
                   { h: 24, from: 5000, to: 6000, part: null }];
 
-describe("(T369) a place across a re-split", () => {
+describe("(T369) a place across a re-split — a release cut before part_line (the pre-T388 `lines` path)", () => {
   const relA = release(A, { 0: 10, 1: 11, 2: 12 }), relB = release(B, { 0: 20, 1: 21, 2: 22, 3: 23 });
 
   it("A's part 1 is the middle of its midpoint section; in B that place is part 2 (the index 1 is another part now)", async () => {
@@ -122,5 +125,116 @@ describe("(T386, owner 2026-11-04) an unnamed reach open across a data update: c
       .toEqual({ type: "carry", stack: [] });
     // MUTATION PIN: without the place reads the old rule (dropped) is what runs
     expect(await carryRoute(unnamed(13), relA, relB)).toEqual({ type: "carry", stack: [] });
+  });
+});
+
+/**
+ * (T388, owner 2026-11-04) A NAMED WATER NEVER FETCHES `lines`: its places are made from and opened by the water file's
+ * own `part_line`. Every release below has the runs, and every `lines` read THROWS and is counted — so a named place that
+ * touched `lines` fails here, not only in the browser walk.
+ */
+describe("(T388) a named water's place comes from part_line, never lines", () => {
+  const SIDE = 360000002;
+  /** The runs of a release's sections: each part's (stretch's) sections on BLK merged, + `extra`. */
+  const runsOf = (secs: Sec[], extra: PartLine[] = []): PartLine[] => {
+    const out: PartLine[] = [];
+    for (const s of secs) {
+      if (s.part === null) continue;
+      const last = out[out.length - 1];
+      if (last && last.partIx === s.part && last.stretch === (s.stretch ?? 0) && last.m1 === s.from) {
+        out[out.length - 1] = { ...last, m1: s.to };
+      } else out.push({ partIx: s.part, stretch: s.stretch ?? 0, blk: BLK, m0: s.from, m1: s.to });
+    }
+    return [...out, ...extra];
+  };
+  /** `rel` with every `lines` read refused and counted. */
+  const noLines = (rel: PlaceReads) => {
+    const asked: string[] = [];
+    const refuse = (what: string) => async (): Promise<never> => { asked.push(what); throw new Error(`lines read: ${what}`); };
+    return { asked, reads: { ...rel, hasLines: refuse("hasLines"), sectionLine: refuse("sectionLine"),
+                             sectionAt: refuse("sectionAt") } as PlaceReads };
+  };
+  // part 1 also has a side channel on its own blue line, shorter than its main stem
+  const relA = release(A, { 0: 10, 1: 11, 2: 12 }, {}, runsOf(A, [{ partIx: 1, stretch: 0, blk: SIDE, m0: 0, m1: 300 }]));
+  const relB = release(B, { 0: 20, 1: 21, 2: 22, 3: 23 }, {}, runsOf(B));
+  const AT = { lat: 49.2, lon: -122.1 };
+
+  it("writing: a part's place is the middle of its longest run; a TAPPED frame says its part's, not the tap's", async () => {
+    const { asked, reads } = noLines(relA);
+    const part = waterFrame(reduce(HOME, openWater({ item: RIVER, part: 1, view: "map" })));
+    const tapped = waterFrame(reduce(HOME, openWater({ item: RIVER, part: 1, view: "regs", tapSid: 11 as SectionId, at: AT })));
+    // a tap whose part is not set yet: the tapped section's part (12 → part 2)
+    const loose: WaterFrame = { ...waterFrame(reduce(HOME, openWater({ item: RIVER, part: 2, view: "regs" })))!,
+                                part: null, tapSid: 12 as SectionId, at: AT };
+    expect(await Promise.all([placeOf(reads, part), placeOf(reads, tapped), placeOf(reads, loose)]))
+      .toEqual([{ blk: BLK, m: 2000 }, { blk: BLK, m: 2000 }, { blk: BLK, m: 4000 }]);
+    expect(asked).toEqual([]);
+    // MUTATION PIN: the same release without part_line (cut before it) makes the place from `lines`
+    const old = noLines(release(A, { 0: 10, 1: 11, 2: 12 }));
+    await expect(placeOf(old.reads, part)).rejects.toThrow("lines read");
+    expect(old.asked).toEqual(["hasLines"]);
+  });
+
+  it("a stretch: the middle of the stretch's own run; one part and one stretch: no place, tapped or not", async () => {
+    const S: Sec[] = [{ h: 1, from: 0, to: 1000, part: 0 }, { h: 2, from: 1000, to: 2000, part: 0, stretch: 1 },
+                      { h: 3, from: 2000, to: 3000, part: 1 }];
+    const { asked, reads } = noLines(release(S, { 0: 1, 1: 3 }, { "0:0": 1, "0:1": 2 }, runsOf(S)));
+    const st = waterFrame(reduce(HOME, openWater({ item: RIVER, part: 0, stretch: 1, view: "map" })));
+    const tap = waterFrame(reduce(HOME, openWater({ item: RIVER, part: 0, view: "regs", tapSid: 2 as SectionId, at: AT })));
+    expect([await placeOf(reads, st), await placeOf(reads, tap)]).toEqual([{ blk: BLK, m: 1500 }, { blk: BLK, m: 1500 }]);
+    const one = noLines(release([{ h: 1, from: 0, to: 10, part: 0 }], { 0: 1 }, {}, []));
+    expect(await Promise.all([
+      placeOf(one.reads, waterFrame(reduce(HOME, openWater({ item: RIVER, part: 0, view: "map" })))),
+      placeOf(one.reads, waterFrame(reduce(HOME, openWater({ item: RIVER, part: 0, view: "regs", tapSid: 1 as SectionId, at: AT }))))]))
+      .toEqual([null, null]);
+    expect([asked, one.asked]).toEqual([[], []]);
+  });
+
+  it("opening: the part of THAT water whose run holds the place — across a re-split too — with no lines read", async () => {
+    const a = noLines(relA), b = noLines(relB);
+    const url = `?regs=${RIVER}&blk=${BLK}&m=2000&view=map`;
+    const here = await resolveStartLink(parseStartLink(url)!, a.reads, itemFor(A));
+    const there = await resolveStartLink(parseStartLink(url)!, b.reads, itemFor(B));
+    expect([waterFrame(here.route), waterFrame(there.route), here.notice, there.notice]).toEqual([
+      waterFrame(reduce(HOME, openWater({ item: RIVER, part: 1, view: "map" }))),
+      waterFrame(reduce(HOME, openWater({ item: RIVER, part: 2, view: "map" }))), null, null]);
+    // the side channel is part 1's too
+    expect(await resolvePartPlace(a.reads, RIVER, ORD, (await relA.partLines(ORD))!, { blk: SIDE, m: 150 }))
+      .toEqual({ sid: 11, item: RIVER, part: 1 });
+    expect([a.asked, b.asked]).toEqual([[], []]);
+  });
+
+  it("a tapped link reopens the tap on its part's midpoint section, at its `here=` point", async () => {
+    const { asked, reads } = noLines(relA);
+    const r = reduce(HOME, openWater({ item: RIVER, part: 1, view: "regs", tapSid: 10 as SectionId, at: AT }));
+    const url = routeSearch(r, "", await placeOf(reads, waterFrame(r)));
+    expect(url).toBe(`?regs=${RIVER}&blk=${BLK}&m=2000&here=49.20000,-122.10000`);
+    const opened = await resolveStartLink(parseStartLink(url)!, reads, itemFor(A));
+    expect(waterFrame(opened.route)).toEqual(
+      waterFrame(reduce(HOME, openWater({ item: RIVER, part: 1, view: "regs", tapSid: 11 as SectionId, at: AT }))));
+    expect(asked).toEqual([]);
+  });
+
+  it("a place no run of THAT water holds is 'not on this map' — never another water, never the unnamed reach there", async () => {
+    const { asked, reads } = noLines(relB);
+    const whole = waterFrame(reduce(HOME, openWater({ item: RIVER, part: null, view: "map", whole: true })));
+    // 5500 is section 24, an unnamed reach in B: `lines` would open it (MUTATION PIN below); the named link does not
+    for (const m of [5500, 9000]) {
+      const gone = await resolveStartLink(parseStartLink(`?regs=${RIVER}&blk=${BLK}&m=${m}&view=map`)!, reads, itemFor(B));
+      expect([m, waterFrame(gone.route), gone.notice]).toEqual([m, whole, "place-gone"]);
+    }
+    expect(asked).toEqual([]);
+    const old = await resolveStartLink(parseStartLink(`?regs=${RIVER}&blk=${BLK}&m=5500&view=map`)!,
+                                       release(B, { 0: 20, 1: 21, 2: 22, 3: 23 }), itemFor(B));
+    expect([waterFrame(old.route)?.item, waterFrame(old.route)?.tapSid, old.notice]).toEqual([null, 24, null]);
+  });
+
+  it("an UNNAMED reach is unchanged: its place and its link still read lines", async () => {
+    const { asked, reads } = noLines(relB);
+    const reach = waterFrame(reduce(HOME, openWater({ item: null, part: null, view: "regs", tapSid: 24 as SectionId, at: AT })));
+    await expect(placeOf(reads, reach)).rejects.toThrow("lines read");
+    await expect(resolveStartLink(parseStartLink(`?blk=${BLK}&m=5500`)!, reads, itemFor(B))).rejects.toThrow("lines read");
+    expect(asked).toEqual(["hasLines", "sectionAt"]);
+    expect(await placeOf(relB, reach)).toEqual({ blk: BLK, m: 5500 });
   });
 });

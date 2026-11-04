@@ -34,7 +34,8 @@ const DICT = Buffer.from(JSON.stringify(RULE));
 
 /** Two regions; akey 1 → region 1, akey 2 → region 2. Frame id 5 exists in BOTH region files with DIFFERENT content,
  *  so a read routed to the wrong file is seen. regs-sid: handle 4097 (block 1, slot 1) → akey 2, place 0. */
-function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean } = {}) {
+function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean;
+                   partLine?: boolean } = {}) {
   const asked: string[] = [];
   const spy = (name: string, d: Db): Db => ({
     all: (q, ...p) => { asked.push(`${name}: ${q.split(" FROM ")[1]?.split(" ")[0]}`); return d.all(q, ...p); },
@@ -65,6 +66,9 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badS
     CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL${o.lengths ? ", m INTEGER" : ""},
                                PRIMARY KEY (ord, sid));
     INSERT INTO part_section VALUES ${o.lengths ? "(3, 4097, 1, 1200), (3, 4098, 0, NULL), (3, 4099, 1, 30)" : "(3, 4097, 1), (3, 4098, 0)"};
+    ${o.partLine ? `CREATE TABLE part_line (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, stretch INTEGER NOT NULL,
+      blk INTEGER NOT NULL, m0 INTEGER NOT NULL, m1 INTEGER NOT NULL, PRIMARY KEY (ord, part_ix, stretch, blk, m0)) WITHOUT ROWID;
+    INSERT INTO part_line VALUES (3, 1, 0, -2300000000, 0, 120), (3, 0, 0, 356364584, 312, 6590), (3, 0, 1, 356364584, 7400, 9100);` : ""}
     CREATE TABLE akey (akey INTEGER PRIMARY KEY, ruleset INTEGER, licensing_set INTEGER, steelhead_water INTEGER, steelhead INTEGER,
       steelhead_rules INTEGER, province_except INTEGER, home_region INTEGER, kind INTEGER, tidal INTEGER, seg INTEGER, mom INTEGER,
       nseg INTEGER);
@@ -219,6 +223,19 @@ describe("reads over water", () => {
     expect([...(await st.partLengths(3, 1))!]).toEqual([[4097, 1200], [4099, 30]]);
     expect([...(await st.partLengths(3, 0))!]).toEqual([[4098, null]]);
     expect(await (await openRegsStore(seed().loader)).partLengths(3, 1)).toBeNull();
+  });
+
+  it("(T388) partLines: a water's part runs (`part_line`) by part, stretch, key, start; [] for another; null from a release cut before it", async () => {
+    const { loader, asked } = seed({ partLine: true });
+    const st = await openRegsStore(loader);
+    asked.length = 0;
+    expect(await st.partLines(3)).toEqual([
+      { partIx: 0, stretch: 0, blk: 356364584, m0: 312, m1: 6590 }, { partIx: 0, stretch: 1, blk: 356364584, m0: 7400, m1: 9100 },
+      { partIx: 1, stretch: 0, blk: -2300000000, m0: 0, m1: 120 }]);
+    expect(await st.partLines(4)).toEqual([]);
+    // a keyed read of the water first (it opens the water's own file before the schema is asked: never water-shared)
+    expect(asked.slice(0, 3)).toEqual(["water: part_section", "water: sqlite_master", "water: part_line"]);
+    expect(await (await openRegsStore(seed().loader)).partLines(3)).toBeNull();
   });
 });
 

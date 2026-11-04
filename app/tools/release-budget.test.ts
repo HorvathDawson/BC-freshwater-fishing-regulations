@@ -45,6 +45,8 @@ const releaseFiles = (moment: string): string[] => {
  *  tap now (the pin shows it), so the gate prices exactly what the walk fetches. */
 const CONDITIONAL: string[] = [];
 const sorted = (xs: readonly string[]) => [...xs].sort();
+/** A moment's files with `lines` aside (T388 holds the named moments to none on its own, tied to the pin's re-cut). */
+const withoutLines = (xs: readonly string[] | undefined) => (xs ?? []).filter((f) => f !== "lines");
 
 /** Which pinned moment each gate prices. */
 const GATED: Record<string, string> = {
@@ -111,8 +113,9 @@ describe("the pinned walk fetches what the budget prices", () => {
     expect(Object.entries(PIN).filter(([k, f]) => /\| (first paint|prefetch after paint)$/.test(k) && f.includes("salmon"))
       .map(([k]) => k)).toEqual([]);
     // (T228) geo (the water map's boxes) is read with the tap; (T256) the web tap reads the region's answer slices
-    expect(PIN["tap named (save-data) | map tap: a named water (R2)"])
-      .toEqual(["access", "core-2", "geo", "lines", "method", "salmon", "salmon-2", "wasm", "water-2", "water-shared"]);
+    // (`lines` aside: T388 below holds a named tap to none)
+    expect(withoutLines(PIN["tap named (save-data) | map tap: a named water (R2)"]))
+      .toEqual(["access", "core-2", "geo", "method", "salmon", "salmon-2", "wasm", "water-2", "water-shared"]);
   });
 
   it("T186: no file is fetched twice — a moment after the prefetch asks for none of what it took", () => {
@@ -124,9 +127,24 @@ describe("the pinned walk fetches what the budget prices", () => {
     // the page's own region's slice only
     // (T256) the region's water slice, not the whole water file
     // (T370) + `water-shared`: the slice's region-wide tables, one file
-    // (T369) + `lines`: the address's place, asked once the page is drawn
-    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "geo", "lines", "salmon", "salmon-2",
-                                                                   "water-2", "water-shared"]);
+    // (T369) the address's place, asked once the page is drawn — (T388) from `part_line` in water-2, no `lines` (below)
+    expect(withoutLines(PIN["tap named | map tap: a named water (R2)"])).toEqual(["access", "geo", "salmon", "salmon-2",
+                                                                                 "water-2", "water-shared"]);
+  });
+
+  /**
+   * (T388, owner 2026-11-04) A NAMED WATER NEVER FETCHES `lines` (1.2 MB gz): its link place is the water file's own
+   * `part_line`, in the region slice the page already read. `lines` stays for an unnamed reach only.
+   *
+   * FAILS UNTIL THE PIN IS RE-CUT on a release with `part_line` (the walk pinned before it, on r-b86b60ca533b, shows the
+   * named moments fetching `lines`): node tools/request-walk.mjs --url http://localhost:<port> --pin
+   */
+  it("T388: a named water's moments fetch no `lines`; the unnamed tap still does (re-cut the pin after the rebuild)", () => {
+    const named = ["tap named | map tap: a named water (R2)", "tap named (save-data) | map tap: a named water (R2)",
+                   "visit | search: open the water (R3)"];
+    expect(named.filter((k) => (PIN[k] ?? []).includes("lines"))
+      .map((k) => `${k}: fetches lines — re-cut request-walk.pin.json on a release with part_line`)).toEqual([]);
+    expect(PIN["tap unnamed | map tap: an unnamed stream (R2)"]).toContain("lines");
   });
 
   it("before the first question nothing but the manifest, paint and the mask (and the feeds' index and observations) — every walk", () => {

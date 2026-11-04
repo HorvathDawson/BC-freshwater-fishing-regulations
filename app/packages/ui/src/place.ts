@@ -13,13 +13,28 @@
  * middle; no item), a stream water of one part (no place: the item says it all), a lake and a split lake's closure
  * area (no place: the area's item id is the address — lakes have no route measure).
  *
- * THE PLACE OF A PART is the middle of its midpoint section (`part_geo.mid_sid`; a stretch's, `part_stretch.mid_sid`):
- * strictly inside the part, so the same release resolves it back to the same part and stretch, and a later release to
- * whichever part now holds that point.
+ * (T388, owner 2026-11-04) A NAMED WATER NEVER FETCHES `lines` (1.2 MB gz). Its places come from the water file's own
+ * `part_line` (`@app/data` `PartLine`: each part's stream as runs on its blue lines), which rides in the `water-<region>`
+ * slice the page already reads:
+ *
+ *   writing    the place of a part (or of the frame's stretch) is the middle of its LONGEST run — a real point on the
+ *              part's own stream (a side channel is shorter than the main stem), strictly inside it, so this release
+ *              resolves it back to the same part and stretch. A tapped frame on a named water says its part's place too
+ *              (the tap's own point is `here=`, unchanged). One part and one stretch: no place (the item is enough).
+ *   opening    a named link (`regs=<item>` + blk + m) opens the part of THAT water whose run holds (blk, m), and its
+ *              stretch; none does: the "place not on this map" notice (T369 D9) — never a guess, never another water.
+ *              A tapped link reopens the tap on the part's (stretch's) midpoint section, at the link's `here=` point.
+ *   unnamed    unchanged: the tapped section's middle from `lines`, fetched only when an unnamed reach is on screen or a
+ *              link to one is opened.
+ *
+ * THE PRE-T388 RELEASE PATH: a release cut before `part_line` (`partLines` null) makes and opens named places through
+ * `lines`, as T369 did — a part's place is the middle of its midpoint section (`part_geo.mid_sid`; a stretch's,
+ * `part_stretch.mid_sid`), a tapped frame's the tapped section's middle, and a place opens on whichever water holds
+ * that section.
  */
 import { reported, bcNow } from "@app/core";
 import type { ItemId, SectionId, WaterSource } from "@app/data";
-import type { RegsReads } from "@app/data/regs";
+import type { PartLine, RegsReads } from "@app/data/regs";
 import type { ReleaseLoader } from "@app/data/release";
 import { lineMid, openLineReads, type LineReads, type StreamPlace } from "@app/data/regs/place";
 import { openWater, waterOfSection } from "./openWater";
@@ -27,14 +42,17 @@ import { HOME, reduce, waterFrame, type Route, type WaterFrame } from "./route";
 import { routeSearch, type AddressState, type StartLink } from "./startLink";
 
 export type { StreamPlace };
+/** The regs reads a place is made from: the water's parts and (T388) its part runs. */
+type WaterReads = Pick<RegsReads, "itemOrd" | "parts" | "navRows" | "sectionPart" | "partLines">;
 /** The open release's regs reads + its `lines` reads (`@app/data/regs/place` `openLineReads`). */
-export type PlaceReads = Pick<RegsReads, "itemOrd" | "parts" | "navRows" | "sectionPart"> & LineReads;
+export type PlaceReads = WaterReads & LineReads;
 
-/** The place reads of an open release: its regs store's, and its `lines` file (opened the first time a place needs it). */
-export function placeReads(store: Pick<RegsReads, "itemOrd" | "parts" | "navRows" | "sectionPart">,
-                           loader: Pick<ReleaseLoader, "manifest" | "db">): PlaceReads {
+/** The place reads of an open release: its regs store's, and its `lines` file (opened the first time a place needs it:
+ *  an unnamed reach, or a named water on a release cut before `part_line`). */
+export function placeReads(store: WaterReads, loader: Pick<ReleaseLoader, "manifest" | "db">): PlaceReads {
   return { itemOrd: (i) => store.itemOrd(i), parts: (o) => store.parts(o), navRows: (o) => store.navRows(o),
-           sectionPart: (o, h) => store.sectionPart(o, h), ...openLineReads(loader) };
+           sectionPart: (o, h) => store.sectionPart(o, h), partLines: (o) => store.partLines(o),
+           ...openLineReads(loader) };
 }
 /** What a section's water is asked of (`openWater.ts` `waterOfSection`, the map tap's own resolver: one rule for both). */
 export type ItemFor = Pick<WaterSource, "itemForSection">;
@@ -51,18 +69,44 @@ async function midOf(store: PlaceReads, sids: readonly number[]): Promise<Stream
   return null;
 }
 
+/** (T388) The middle of the longest of `runs` (the first, of equal ones), in whole metres: inside it (m1 > m0 always:
+ *  the pipeline writes no empty run). null: no run (a part with no stream section — a lake). */
+function runsMid(runs: readonly PartLine[]): StreamPlace | null {
+  let best: PartLine | null = null;
+  for (const r of runs) if (!best || r.m1 - r.m0 > best.m1 - best.m0) best = r;
+  return best ? { blk: best.blk, m: Math.floor((best.m0 + best.m1) / 2) } : null;
+}
+
 /**
  * THE PLACE A FRAME IS ON, for its address; null: the frame needs none (browsing, a whole water, a water of one part
- * and one stretch, a lake) or the release cannot say (cut before `section_line`).
+ * and one stretch, a lake) or the release cannot say (cut before `section_line`). A named water's comes from its
+ * `part_line` (T388: no `lines` read); an unnamed reach's — and a named water's on a release cut before `part_line` —
+ * from `lines`.
  */
 export async function placeOf(store: PlaceReads, f: WaterFrame | null): Promise<StreamPlace | null> {
   if (!f) return null;
-  // (T369 D5) a TAPPED frame's place is the tap's (the tapped section's middle): its reload reopens that reach, in its
-  // part — a lake's handle has none (its item and part are its address: `resolveStartLink` reopens the tap there)
-  if (f.tapSid !== null) return midOf(store, [f.tapSid]);
-  if (f.item === null || f.part === null) return null;
+  // an UNNAMED reach (always a tap): the tapped section's middle, from `lines`
+  if (f.item === null) return f.tapSid !== null ? midOf(store, [f.tapSid]) : null;
   const ord = await store.itemOrd(f.item);
   if (ord === null) return null;
+  const runs = await store.partLines(ord);
+  if (runs === null) return placeBeforeT388(store, f, ord);
+  // the frame's part: its own, or (a tap whose part is not set) the tapped section's
+  const part = f.part ?? (f.tapSid !== null ? await store.sectionPart(ord, f.tapSid) : null);
+  if (part === null) return null;
+  const nav = await store.navRows(ord);
+  const stretches = nav.stretches.filter((s) => s.partIx === part);
+  if (nav.geo.length <= 1 && stretches.length <= 1) return null;          // one part, one stretch: the item is enough
+  const tapped = f.tapSid !== null ? stretches.find((s) => s.sids.includes(f.tapSid as number))?.stretch : undefined;
+  const stretch = stretches.length > 1 ? f.stretch ?? tapped ?? 0 : 0;
+  return runsMid(runs.filter((r) => r.partIx === part && r.stretch === stretch));
+}
+
+/** THE PRE-T388 RELEASE PATH (module docstring): a named frame's place from `lines` — a tapped frame's the tapped
+ *  section's middle (T369 D5), a part's (stretch's) the middle of its midpoint section. */
+async function placeBeforeT388(store: PlaceReads, f: WaterFrame, ord: number): Promise<StreamPlace | null> {
+  if (f.tapSid !== null) return midOf(store, [f.tapSid]);
+  if (f.part === null) return null;
   const nav = await store.navRows(ord);
   const stretches = nav.stretches.filter((s) => s.partIx === f.part);
   if (nav.geo.length <= 1 && stretches.length <= 1) return null;          // one part, one stretch: the item is enough
@@ -75,7 +119,8 @@ export async function placeOf(store: PlaceReads, f: WaterFrame | null): Promise<
 /** Where a place falls in this release: the section, its water (null: an unnamed reach) and that water's part / stretch. */
 export interface PlaceAt { sid: SectionId; item: ItemId | null; part: number | null; stretch?: number }
 
-/** THE PLACE RESOLVED in the release held; null: no section of this release spans it (or the release has no lines). */
+/** THE PLACE RESOLVED in the release held, through `lines` (an unnamed reach's link; a named one on a release cut before
+ *  `part_line`); null: no section of this release spans it (or the release has no lines). */
 export async function resolvePlace(store: PlaceReads, itemFor: ItemFor, p: StreamPlace): Promise<PlaceAt | null> {
   const h = await store.sectionAt(p.blk, p.m);
   if (h === null) return null;
@@ -87,6 +132,34 @@ export async function resolvePlace(store: PlaceReads, itemFor: ItemFor, p: Strea
   if (ord === null || part === null) return { sid, item, part: null };
   const st = (await store.navRows(ord)).stretches.find((s) => s.partIx === part && s.sids.includes(h));
   return { sid, item, part, ...(st && st.stretch ? { stretch: st.stretch } : {}) };
+}
+
+/**
+ * (T388) A NAMED LINK'S PLACE, RESOLVED in the release held without `lines`: the part (and stretch) of water `item` whose
+ * `part_line` run holds it, and that part's (stretch's) midpoint section — the section a tapped link reopens on. null:
+ * no run of THAT water holds it (the link's "place not on this map"), or the water is not in this release. `runs`: the
+ * water's part runs (`partLines`, non-null: a release with the table).
+ */
+export async function resolvePartPlace(store: PlaceReads, item: ItemId, ord: number, runs: readonly PartLine[],
+                                       p: StreamPlace): Promise<PlaceAt | null> {
+  const run = runs.find((r) => r.blk === p.blk && r.m0 <= p.m && p.m < r.m1);
+  if (!run) return null;
+  const nav = await store.navRows(ord);
+  const st = nav.stretches.find((s) => s.partIx === run.partIx && s.stretch === run.stretch);
+  const mid = st?.midSid ?? nav.geo.find((g) => g.partIx === run.partIx)?.midSid;
+  if (mid === undefined) return null;
+  return { sid: mid as SectionId, item, part: run.partIx, ...(run.stretch ? { stretch: run.stretch } : {}) };
+}
+
+/** Where a link's place falls: on the link's own water through its `part_line` (T388), or — an unnamed reach's link, a
+ *  release cut before `part_line` — through `lines` (`resolvePlace`). A named link whose water this release does not
+ *  hold: nowhere (its notice), never another water. */
+async function placeAt(store: PlaceReads, itemFor: ItemFor, item: ItemId | null, p: StreamPlace): Promise<PlaceAt | null> {
+  if (item === null) return resolvePlace(store, itemFor, p);
+  const ord = await store.itemOrd(item);
+  if (ord === null) return null;
+  const runs = await store.partLines(ord);
+  return runs === null ? resolvePlace(store, itemFor, p) : resolvePartPlace(store, item, ord, runs, p);
 }
 
 /**
@@ -115,7 +188,7 @@ export async function resolveStartLink(link: StartLink, store: PlaceReads, itemF
                                        solo?: (item: ItemId) => Promise<boolean>): Promise<StartLink> {
   if (!link.place) return ownPart(link, store, solo);
   const view = link.place.view;
-  const at = await resolvePlace(store, itemFor, link.place);
+  const at = await placeAt(store, itemFor, waterFrame(link.route)?.item ?? null, link.place);
   if (!at) {
     const f = waterFrame(link.route);
     return { ...link, place: null, tap: null, notice: "place-gone",
@@ -145,10 +218,12 @@ async function ownPart(link: StartLink, store: PlaceReads, solo?: (item: ItemId)
   const ord = await store.itemOrd(f.item);
   const parts = ord === null ? [] : (await store.parts(ord)).filter((p) => !p.tidal);
   if (parts.length === 1) {
-    // (T369 D5) a tapped lake (no line, no place): its one part's section, when it has one, is the tap
-    const sids = link.tap && ord !== null
-      ? (await store.navRows(ord)).sections.filter((s) => s.partIx === parts[0]!.partIx) : [];
-    const tap = sids.length === 1 ? { tapSid: sids[0]!.sid as SectionId, at: link.tap!.at } : {};
+    // (T369 D5) a tapped lake (no line, no place): its one part's section, when it has one, is the tap; (T388) a tapped
+    // stream of one part and one stretch carries no place either: the tap reopens on its midpoint section, at `here=`
+    const nav = link.tap && ord !== null ? await store.navRows(ord) : null;
+    const sids = nav ? nav.sections.filter((s) => s.partIx === parts[0]!.partIx) : [];
+    const sid = sids.length === 1 ? sids[0]!.sid : nav?.geo.find((g) => g.partIx === parts[0]!.partIx)?.midSid;
+    const tap = sid !== undefined ? { tapSid: sid as SectionId, at: link.tap!.at } : {};
     return { ...link, tap: null, route: reduce(HOME, openWater({ item: f.item, part: parts[0]!.partIx, view, ...tap,
                                                                   ...(isSolo ? { solo: true } : {}) })) };
   }

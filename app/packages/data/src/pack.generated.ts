@@ -1521,6 +1521,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "sections",
         "xruns"
       ],
+      "part_line": [
+        "ord",
+        "part_ix",
+        "stretch",
+        "blk",
+        "m0",
+        "m1"
+      ],
       "part_mark": [
         "ord",
         "mark_ix",
@@ -1637,6 +1645,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "sections",
         "xruns"
       ],
+      "part_line": [
+        "ord",
+        "part_ix",
+        "stretch",
+        "blk",
+        "m0",
+        "m1"
+      ],
       "part_mark": [
         "ord",
         "mark_ix",
@@ -1718,6 +1734,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "xp",
         "sections",
         "xruns"
+      ],
+      "part_line": [
+        "ord",
+        "part_ix",
+        "stretch",
+        "blk",
+        "m0",
+        "m1"
       ],
       "part_mark": [
         "ord",
@@ -1801,6 +1825,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "sections",
         "xruns"
       ],
+      "part_line": [
+        "ord",
+        "part_ix",
+        "stretch",
+        "blk",
+        "m0",
+        "m1"
+      ],
       "part_mark": [
         "ord",
         "mark_ix",
@@ -1882,6 +1914,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "xp",
         "sections",
         "xruns"
+      ],
+      "part_line": [
+        "ord",
+        "part_ix",
+        "stretch",
+        "blk",
+        "m0",
+        "m1"
       ],
       "part_mark": [
         "ord",
@@ -1965,6 +2005,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "sections",
         "xruns"
       ],
+      "part_line": [
+        "ord",
+        "part_ix",
+        "stretch",
+        "blk",
+        "m0",
+        "m1"
+      ],
       "part_mark": [
         "ord",
         "mark_ix",
@@ -2046,6 +2094,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "xp",
         "sections",
         "xruns"
+      ],
+      "part_line": [
+        "ord",
+        "part_ix",
+        "stretch",
+        "blk",
+        "m0",
+        "m1"
       ],
       "part_mark": [
         "ord",
@@ -2129,6 +2185,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "sections",
         "xruns"
       ],
+      "part_line": [
+        "ord",
+        "part_ix",
+        "stretch",
+        "blk",
+        "m0",
+        "m1"
+      ],
       "part_mark": [
         "ord",
         "mark_ix",
@@ -2211,6 +2275,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "sections",
         "xruns"
       ],
+      "part_line": [
+        "ord",
+        "part_ix",
+        "stretch",
+        "blk",
+        "m0",
+        "m1"
+      ],
       "part_mark": [
         "ord",
         "mark_ix",
@@ -2292,6 +2364,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "xp",
         "sections",
         "xruns"
+      ],
+      "part_line": [
+        "ord",
+        "part_ix",
+        "stretch",
+        "blk",
+        "m0",
+        "m1"
       ],
       "part_mark": [
         "ord",
