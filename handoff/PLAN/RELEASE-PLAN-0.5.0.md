@@ -67,6 +67,9 @@ map-feel ticket; T55 shrunk to "owner confirms slough marks" (T322 carries the f
 2. THE ONE REBUILD, right after (owner 2026-11-04: the dev web app's data must be current — pre-T372 salmon file):
    bundle → release (T372 `n`, T376 basins, T339 names, T387 part data, T370 `water-shared`, T386 `lines`), promoted
    locally, release pins re-cut, the request walk re-pinned; T65 = the atlas built twice, diffed.
+   Commands (dry run 2026-11-04: clim + tiles up to date; reach + deliver run — deliver writes the release + LATEST):
+   `scripts/heavy.sh build 50 -- python -m pipeline build --jobs 1`; T65 after it: `scripts/heavy.sh atlas 50 --
+   python -m pipeline build --atlas` (a side atlas + its parity report vs the promoted one; never `--promote`).
 3. T178 monthly score (worker) + T371 drafts (running); T377 item 1 (day list by watershed).
 4. ONE emulator sitting on ONE APK (fling, clock + sun, open on location, share; T340 fix; T307/T308/T293/T50 checks).
 5. Full suites once; staging upload (minAppVersion 0.5.0); feeds worker deploy with the app; AAB → Play internal +
