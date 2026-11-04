@@ -1,6 +1,6 @@
 # T370 — Web: the `water-{region}` slices repeat ~0.7 MB each
 
-Status: DONE in code (owner 2026-11-04: "we should fix this here", in 0.5.0); live with the release rebuild.
+Status: DONE in code (20bd48088; owner 2026-11-04: "we should fix this here", in 0.5.0); live with the release rebuild.
 
 Every region's `water-*` slice is 0.74–0.86 MB gz, small regions included: per contract.py (T256) "its rules, statics and
 keys are whole in every slice". So a web visitor's first tap pays ~0.7 MB that is the same in every region, and a second
