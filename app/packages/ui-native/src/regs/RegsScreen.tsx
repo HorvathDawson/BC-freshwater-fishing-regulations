@@ -112,8 +112,8 @@ export interface RegsScreenProps {
    */
   lapsed?: string | null;
   /**
-   * (T54) The section's access notices (core `accessNotices`, through `@app/ui` `useAccessNotices`; T147: the page's
-   * part's `waterAccessNotice` when no section was tapped): the no-access banner and/or the gentle note, (T367) pinned
+   * (T54, T387) The page's PART's access notices (core `pageAccessNotices`, through `@app/ui` `useAccessNotices`; the
+   * same for every tap on the part): the no-access banner and/or the gentle note, (T367) pinned
    * as slim strips under the header, outside the scroll. Empty/absent: nothing to say.
    */
   access?: readonly AccessNotice[];
@@ -239,7 +239,9 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       )}
       <SunCard line={sun} palette={palette} />
       <BoatsLine boats={page.boats} palette={palette} onSheet={openSheet} />
-      {!glance && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
+      {/* (T387 review) the glance folds the card into its table only when it has the card's row: a card still coming, or
+          failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
+      {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
         <StickyContext.Provider value={sticky}>
           <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}

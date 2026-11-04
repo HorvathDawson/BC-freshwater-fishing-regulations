@@ -1,7 +1,7 @@
 /**
  * (T54, T147) THE ACCESS NOTICES of a Regulations page: the no-access banner and the gentle note (private land, a
- * reserve, permit-only land). No logic and no words of its own: core's `accessNotices` / `waterAccessNotice` say what,
- * `@app/ui` `useAccessNotices` says for which section or part.
+ * reserve, permit-only land). No logic and no words of its own: core's `pageAccessNotices` says what, `@app/ui`
+ * `useAccessNotices` says for which part (T387: the page's part, never the tapped section).
  *
  * (T367, owner 2026-11-03: "it should live in the stickied header since it is important info … make sure it doesnt make
  * screen size too small") Each notice is ONE slim strip pinned under the page's header, outside the scroll: its title in

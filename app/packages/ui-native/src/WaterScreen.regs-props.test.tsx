@@ -72,9 +72,9 @@ describe("<WaterScreen> regulations", () => {
 
   /*
    * (T147 review) THE PAGE PATH IS WIRED: a water opened with no tapped section (search, a start link) carries its
-   * part's no-access strip. `pageAccessNotice` and core's words are pinned in @app/ui and @app/core; this pins that
-   * WaterScreen hands `useAccessNotices` the store and the page — dropping them (the T54 call, section only) left every
-   * other ui-native test green.
+   * part's no-access strip. `regsAccessNotices` and core's words are pinned in @app/ui and @app/core; this pins that
+   * WaterScreen hands `useAccessNotices` the store and the page's subject — dropping them (the T54 call, section only)
+   * left every other ui-native test green.
    */
   it("(T147) opened with no tapped section: the part's no-access block leads the page", async () => {
     const live = openRegsFixture();
@@ -87,15 +87,15 @@ describe("<WaterScreen> regulations", () => {
     await waitFor(() => expect(screen.getByTestId("access-banner")).toBeTruthy(), { timeout: 20_000 });
     expect(screen.getByTestId("access-banner").textContent).toBe("No public access · Test Watershed");
     fireEvent.click(screen.getByTestId("access-banner"));
-    expect(screen.getByTestId("access-text").textContent).toBe("This part of the water is in Test Watershed, closed to "
-      + "the public. The regulations below don't give you access.");
+    expect(screen.getByTestId("access-text").textContent).toBe("All of this part of the water is in Test Watershed, "
+      + "closed to the public. The regulations below don't give you access.");
     // (T367) pinned under the header, outside the scroll
     expect(screen.getByTestId("regs-scroll").contains(screen.getByTestId("access-banner"))).toBe(false);
   }, 30_000);
 
   /*
    * (Q140, owner 2026-10-28) A TAPPED SECTION WHOLLY OUTSIDE no-access land, on a part that runs through it, leads with
-   * the PART's banner in the same block — the page asks its part beside the tapped section (`useAccessNotices`).
+   * the PART's banner — (T387) the page asks its part only (`useAccessNotices` takes no section at all).
    */
   it("(Q140) a tapped section outside no-access land: its part's banner leads the page", async () => {
     const live = openRegsFixture();
@@ -110,8 +110,8 @@ describe("<WaterScreen> regulations", () => {
     await waitFor(() => expect(screen.getByTestId("access-banner")).toBeTruthy(), { timeout: 20_000 });
     expect(screen.getByTestId("access-banner").textContent).toBe("No public access · Test Watershed");
     fireEvent.click(screen.getByTestId("access-banner"));
-    expect(screen.getByTestId("access-text").textContent).toBe("This part of the water is in Test Watershed, closed to "
-      + "the public. The regulations below don't give you access.");
+    expect(screen.getByTestId("access-text").textContent).toBe("All of this part of the water is in Test Watershed, "
+      + "closed to the public. The regulations below don't give you access.");
   }, 30_000);
 
   it("(T35) the Licence tab's pick reaches the page: Under 16 rebuilds it for that angler (useAnglerProfile, D8 a)", async () => {

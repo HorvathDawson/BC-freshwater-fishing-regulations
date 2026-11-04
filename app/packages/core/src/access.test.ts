@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { accessNotice, accessNotices, accessOf, leadingAccessNotices, waterAccessNotice, MOSTLY_INSIDE, noPublicAccess, ACCESS_WORDS, TOUCH_ONLY, type AccessArea,
-         type SectionAccess }
-  from "./access";
+import { accessNeedsWeights, accessOf, pageAccessNotices, partAccess, MOSTLY_INSIDE, noPublicAccess, ACCESS_WORDS, TOUCH_ONLY,
+         type AccessArea, type AccessRow, type SectionAccess } from "./access";
 
 const COQ: AccessArea = { tier: "no_access", name: "Coquitlam Watershed" };
 const SEY: AccessArea = { tier: "no_access", name: "Seymour Watershed" };
@@ -45,132 +44,83 @@ describe("section access: the fact (T54)", () => {
   });
 });
 
-describe("section access: the page's words (T54, core owns them)", () => {
-  it("a section mostly inside: the banner, whole", () => {
-    expect(accessNotice([{ area: COQ, share: 1 }])).toEqual({
-      tier: "no_access",
-      title: "No public access",
-      brief: "Coquitlam Watershed",
-      text: "This section is in Coquitlam Watershed, closed to the public. The regulations below don't give you access.",
-    });
+const row = (area: AccessArea, share: number): AccessRow => ({ area, share });
+const TAIL = ", closed to the public. The regulations below don't give you access.";
+
+describe("(T387) the part's areas: one answer for every tap on the part", () => {
+  it("each area's share of the WHOLE part, every section weighed by its length — the sections touching nothing included", () => {
+    // Nicomen Slough's shape: a reserve and private land on some sections, none on the rest
+    expect(partAccess([[row(CAP5, 1), row(PRIV, 0.5)], [row(PRIV, 1)], []], [200, 100, 700]))
+      .toEqual([row(CAP5, 0.2), row(PRIV, 0.2)]);
   });
 
-  it("a section partly inside: the banner says partly", () => {
-    expect(accessNotice([{ area: SEY, share: 0.3 }])?.text).toBe(
-      "Some of this section is in Seymour Watershed, closed to the public. The regulations below don't give you access.");
-  });
-
-  it("two no-access areas are both named, and their shares add up to mostly", () => {
-    expect(accessNotice([{ area: COQ, share: 0.4 }, { area: SEY, share: 0.3 }])?.text).toBe(
-      "This section is in Coquitlam Watershed and Seymour Watershed, closed to the public. The regulations below don't give you access.");
-  });
-
-  it("no access leads over a gentler note on the same section", () => {
-    expect(accessNotice([{ area: PRIV, share: 1 }, { area: COQ, share: 0.9 }])?.tier).toBe("no_access");
-  });
-
-  it("(T367) the reserve is never hidden by the watershed: both notices, the banner first", () => {
-    expect(accessNotices([{ area: CAP5, share: 0.4 }, { area: PRIV, share: 0.2 }, { area: COQ, share: 0.9 }])
-      .map((n) => [n.tier, n.title, n.brief])).toEqual([
-      ["no_access", "No public access", "Coquitlam Watershed"],
-      ["restricted", "Access may be restricted", "Indian reserve (Capilano 5) and private land"]]);
-    expect(accessNotices([])).toEqual([]);
-  });
-
-  it("private land: the gentle note, whole", () => {
-    expect(accessNotice([{ area: PRIV, share: 0.2 }])).toEqual({
-      tier: "restricted",
-      title: "Access may be restricted",
-      brief: "private land",
-      text: "This section crosses private land.",
-    });
-  });
-
-  it("a reserve by name, a nameless reserve, permit-only land with its permit — in the tiers' order", () => {
-    expect(accessNotice([{ area: CAP5, share: 1 }])?.text).toBe(
-      "This section crosses an Indian reserve (Capilano 5).");
-    expect(accessNotice([{ area: RES, share: 1 }])?.text).toBe(
-      "This section crosses an Indian reserve.");
-    expect(accessNotice([{ area: UBC, share: 1 }])?.text).toBe(
-      "This section crosses permit-only land (UBC Malcolm Knapp Research Forest), "
-      + "where a permit is needed.");
-    expect(accessNotice([{ area: PRIV, share: 0.1 }, { area: CAP5, share: 0.5 }, { area: UBC, share: 0.2 }])?.text).toBe(
-      "This section crosses permit-only land (UBC Malcolm Knapp Research Forest), "
-      + "where a permit is needed, an Indian reserve (Capilano 5) and private land.");
-  });
-
-  it("nothing to say: no notice — and a touch under 1% is nothing to say", () => {
+  it("the same area on two rows of a section counts once (summed, capped at the whole); a graze under TOUCH_ONLY never counts", () => {
+    expect(partAccess([[row(COQ, 0.6), row(COQ, 0.6), row(SEY, 0.009)]], null)).toEqual([row(COQ, 1)]);
     expect(TOUCH_ONLY).toBe(0.01);
-    expect(accessNotice([])).toBeNull();
-    expect(accessNotice([{ area: COQ, share: 0.009 }, { area: PRIV, share: 0.001 }])).toBeNull();
-    expect(accessNotice([{ area: COQ, share: 0.009 }, { area: PRIV, share: 0.01 }])?.tier).toBe("restricted");
   });
 
-  it("permit-only land stays the gentle note, under its own title (T54 Q1 default, T147, T367)", () => {
-    expect(accessNotice([{ area: UBC, share: 1 }])).toEqual({
-      tier: "restricted",
-      title: "Access may be restricted",
-      brief: "permit-only land (UBC Malcolm Knapp Research Forest)",
-      text: "This section crosses permit-only land (UBC Malcolm Knapp Research Forest), "
-          + "where a permit is needed.",
-    });
+  it("tier order, then the larger share, then the name", () => {
+    expect(partAccess([[row(PRIV, 1), row(CAP5, 0.5), row(SEY, 0.25), row(COQ, 0.5), row(UBC, 0.5)], []], [1, 1]))
+      .toEqual([row(COQ, 0.25), row(SEY, 0.125), row(UBC, 0.25), row(CAP5, 0.25), row(PRIV, 0.5)]);
   });
 
-  it("the legend's word is the status's, and the banner's title (one word for one fact)", () => {
-    expect(accessNotice([{ area: COQ, share: 1 }])?.title).toBe(ACCESS_WORDS.legend);
+  it("sections alike need no length; sections that differ with no lengths (or one not measured) give no share — never a guess", () => {
+    expect(accessNeedsWeights([[], [], []])).toBe(false);
+    expect(accessNeedsWeights([[row(COQ, 1)], [row(COQ, 1), row(PRIV, 0.001)]])).toBe(false);
+    expect(accessNeedsWeights([[row(COQ, 1)], []])).toBe(true);
+    expect(accessNeedsWeights([[row(COQ, 1)], [row(COQ, 0.9)]])).toBe(true);
+    expect(partAccess([[row(COQ, 0.7)], [row(COQ, 0.7)]], null)).toEqual([row(COQ, 0.7)]);
+    const unknown = [{ area: COQ, share: null }];
+    expect(partAccess([[row(COQ, 1)], []], null)).toEqual(unknown);
+    expect(partAccess([[row(COQ, 1)], []], [10, null])).toEqual(unknown);
+    expect(partAccess([[row(COQ, 1)], []], [0, 0])).toEqual(unknown);
+  });
+});
+
+describe("(T387) the page's words: core owns them, pinned whole", () => {
+  it("all of a one-part water inside: the banner says all of it", () => {
+    expect(pageAccessNotices([row(COQ, 1)], "water")).toEqual([{
+      tier: "no_access", title: ACCESS_WORDS.legend, brief: "Coquitlam Watershed",
+      text: `All of this water is in Coquitlam Watershed${TAIL}` }]);
     expect(ACCESS_WORDS.legend).toBe("No public access");
   });
-});
 
-describe("a page opened with no tapped section: its part or water (T147)", () => {
-  it("every section mostly inside: the water is inside, whole", () => {
-    expect(waterAccessNotice([[{ area: COQ, share: 1 }], [{ area: COQ, share: 0.8 }]], "water")).toEqual({
-      tier: "no_access",
-      title: "No public access",
-      brief: "Coquitlam Watershed",
-      text: "This water is in Coquitlam Watershed, closed to the public. The regulations below don't give you access.",
-    });
-  });
-
-  it("one section outside (Seymour River's lowest, live data shape): some of the part, whole", () => {
-    expect(waterAccessNotice([[{ area: SEY, share: 1 }], [{ area: SEY, share: 1 }], []], "part")?.text).toBe(
-      "Some of this part of the water is in Seymour Watershed, closed to the public. "
-      + "The regulations below don't give you access.");
+  it("some of a part: the share, rounded; two areas each with theirs; a nameless area; no share known: \"Some of\"", () => {
+    expect(pageAccessNotices([row(COQ, 0.4)], "part")[0]!.text).toBe(`About 40% of this part of the water is in Coquitlam Watershed${TAIL}`);
+    expect(pageAccessNotices([row(COQ, 0.3), row(SEY, 0.104)], "part")[0]).toEqual({
+      tier: "no_access", title: "No public access", brief: "Coquitlam Watershed and Seymour Watershed",
+      text: `About 40% of this part of the water is in Coquitlam Watershed (about 30%) and Seymour Watershed (about 10%)${TAIL}` });
+    expect(pageAccessNotices([row({ tier: "no_access", name: "" }, 0.004)], "section")[0]!.text)
+      .toBe(`Under 1% of this section is in land with no public access${TAIL}`);
+    expect(pageAccessNotices([{ area: COQ, share: null }, { area: SEY, share: null }], "part")[0]!.text)
+      .toBe(`Some of this part of the water is in Coquitlam Watershed and Seymour Watershed${TAIL}`);
   });
 
-  it("each no-access area once, across sections; a graze under 1% names nothing", () => {
-    expect(waterAccessNotice([[{ area: COQ, share: 1 }], [{ area: SEY, share: 1 }, { area: COQ, share: 0.6 }]], "water")
-      ?.text.startsWith("This water is in Coquitlam Watershed and Seymour Watershed,")).toBe(true);
-    expect(waterAccessNotice([[{ area: COQ, share: 0.009 }]], "water")).toBeNull();
-    expect(waterAccessNotice([], "water")).toBeNull();
+  it("the gentle note names each cause with its share, permit-only land first, then reserves, then private land", () => {
+    expect(pageAccessNotices([row(UBC, 0.2), row(CAP5, 1), row(RES, 0.5), row(PRIV, 0.05)], "part")).toEqual([{
+      tier: "restricted", title: ACCESS_WORDS.restricted,
+      brief: "permit-only land (UBC Malcolm Knapp Research Forest), Indian reserve (Capilano 5), Indian reserve and private land",
+      text: "This part of the water crosses permit-only land (UBC Malcolm Knapp Research Forest, about 20% of it), where a "
+        + "permit is needed, an Indian reserve (Capilano 5, all of it), an Indian reserve (about 50% of it) and private "
+        + "land (about 5% of it)." }]);
+    expect(pageAccessNotices([{ area: CAP5, share: null }, { area: PRIV, share: null }], "water")[0]!.text)
+      .toBe("This water crosses an Indian reserve (Capilano 5) and private land.");
+    expect(ACCESS_WORDS.restricted).toBe("Access may be restricted");
   });
 
-  it("MUTATION PIN: gentler land never puts a banner on a water's page (no note at the water level either)", () => {
-    for (const a of [PRIV, CAP5, RES, UBC]) expect([a.tier, waterAccessNotice([[{ area: a, share: 1 }]], "water")])
-      .toEqual([a.tier, null]);
+  it("(T367) both: the banner first, then the note; nothing: nothing", () => {
+    expect(pageAccessNotices([row(COQ, 0.9), row(CAP5, 0.4)], "water").map((n) => n.text)).toEqual([
+      `About 90% of this water is in Coquitlam Watershed${TAIL}`, "This water crosses an Indian reserve (Capilano 5, about 40% of it)."]);
+    expect(pageAccessNotices([], "part")).toEqual([]);
   });
-});
 
-describe("a tapped section on a part that runs through no-access land (owner 2026-10-28, Q140; T367)", () => {
-  const part = waterAccessNotice([[{ area: COQ, share: 1 }], []], "part");
-  it("a section wholly outside carries its part's banner", () => {
-    expect(leadingAccessNotices(accessNotices([]), part)).toEqual([{
-      tier: "no_access",
-      title: "No public access",
-      brief: "Coquitlam Watershed",
-      text: "Some of this part of the water is in Coquitlam Watershed, closed to the public. "
-        + "The regulations below don't give you access.",
-    }]);
-  });
-  it("a section with any no-access land keeps its own banner (the section speaks first)", () => {
-    expect(leadingAccessNotices(accessNotices([{ area: COQ, share: 0.3 }]), part).map((n) => n.text)).toEqual([
-      "Some of this section is in Coquitlam Watershed, closed to the public. The regulations below don't give you access."]);
-  });
-  it("(T367) the part's banner AND the section's gentle note, banner first; with no part banner the note alone", () => {
-    const gentle = accessNotices([{ area: CAP5, share: 1 }]);
-    expect(leadingAccessNotices(gentle, part)).toEqual([part, gentle[0]]);
-    expect(leadingAccessNotices(gentle, null)).toEqual(gentle);
-    expect(leadingAccessNotices([], null)).toEqual([]);
-    expect(leadingAccessNotices([], waterAccessNotice([[{ area: PRIV, share: 1 }]], "part"))).toEqual([]);
+  it("MUTATION PIN (Nicomen Slough): a tap on a section touching nothing says what a tap on the reserve says", () => {
+    const sections = [[row(CAP5, 1), row(PRIV, 0.3)], [], [row(PRIV, 1)], []];
+    const page = pageAccessNotices(partAccess(sections, [400, 300, 200, 100]), "water");
+    expect(page.map((n) => n.text)).toEqual(["This water crosses an Indian reserve (Capilano 5, about 40% of it) and "
+      + "private land (about 32% of it)."]);
+    // the T54 read (the tapped section's rows alone) gives each tap its own page — what this ticket removed
+    const perTap = sections.map((rows) => JSON.stringify(pageAccessNotices(partAccess([rows], null), "water")));
+    expect(new Set(perTap).size).toBe(3);
   });
 });

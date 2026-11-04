@@ -16,7 +16,8 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { accessNotices, buildRegsPage, offlineAs, reported, headerOf, leadingAccessNotices, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
+import { accessNeedsWeights, buildRegsPage, offlineAs, reported, headerOf, methodClassOn, pageAccessNotices as coreAccessNotices, partAccess,
+         salmonCardLive, soloWater, tapDay, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who, bcNow, now as clockNow } from "@app/core";
 import { downstreamWater, openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
@@ -154,44 +155,60 @@ export function useDownstreamWater(source: Pick<WaterSource, "traceToGauge" | "w
 }
 
 /**
- * (T54) WHAT A SECTION'S PAGE SAYS ABOUT ACCESS: paint's no-access rows and the `access` file's gentler ones (permit-only
- * land, reserves, private land), worded by core (`accessNotices`: the banner, then the note). Empty: nothing to say.
+ * (T387) WHAT A REGULATIONS PAGE IS ABOUT — read off its inputs, never off the tap: a named water's PART (the target a
+ * tap, a search, a flow or a part pick all resolve to), or an unnamed reach's section (its page is that section's). Every
+ * part-level fact on the page (access, the Salmon card, …) is asked by this, so no tap on a part can answer differently.
  */
-export async function sectionAccessNotices(loader: Pick<ReleaseLoader, "paint" | "access">,
-                                           section: SectionId): Promise<AccessNotice[]> {
+export type PageSubject =
+  | { readonly kind: "part"; readonly item: string; readonly ord: number; readonly partIx: number; readonly parts: number }
+  | { readonly kind: "section"; readonly sid: number };
+
+export function pageSubjectOf(inputs: RegsInputs | null): PageSubject | null {
+  if (!inputs) return null;
+  if (inputs.item) return { kind: "part", item: inputs.item.id, ord: inputs.item.ord, partIx: inputs.partIx,
+                            parts: inputs.item.parts.length };
+  return inputs.target.kind === "section" ? { kind: "section", sid: inputs.target.handle } : null;
+}
+
+/** A subject as a key (`part:<ord>:<partIx>/<parts>` | `section:<sid>`). */
+const pageSubjectKey = (s: PageSubject | null): string =>
+  !s ? "" : s.kind === "part" ? `part:${s.ord}:${s.partIx}/${s.parts}` : `section:${s.sid}`;
+
+/** The sections a page is about: its part's (the water's `part_section`, through the store's `navRows`), or its one. */
+async function pageSections(store: Pick<RegsStore, "navRows">, s: PageSubject): Promise<number[]> {
+  if (s.kind === "section") return [s.sid];
+  return (await store.navRows(s.ord)).sections.filter((x) => x.partIx === s.partIx).map((x) => x.sid);
+}
+
+/**
+ * (T54, T147, T367, T387) WHAT A PAGE SAYS ABOUT ACCESS — the PART's, the same for every tap on it (owner 2026-11-04:
+ * "in the one section not all clicks are equal"): paint's no-access rows and the `access` file's gentler ones (permit-only
+ * land, reserves, private land) over every section of the page's subject, pooled by core (`partAccess`: each area with
+ * the share of the part it covers, the sections weighed by their length along the water — the store's `partLengths`,
+ * read only when the sections differ; a release without them says no share) and worded by core (`pageAccessNotices`:
+ * the banner, then the note). Empty: nothing to say.
+ */
+export async function regsAccessNotices(loader: Pick<ReleaseLoader, "paint" | "access">,
+                                        store: Pick<RegsStore, "navRows" | "partLengths">,
+                                        subject: PageSubject): Promise<AccessNotice[]> {
   // the gentle file failing costs only the gentle note: the no-access banner is paint's alone, and must never be
   // silenced by it. (T368, owner Q4) Never a silent drop: a failure that is not the line being down is REPORTED. The
   // loader forgets a failed fetch, so the next page asks again.
   const gentleOf = loader.access().catch(reported(null));
-  const [paint, gentle] = await Promise.all([loader.paint(), gentleOf]);
-  return accessNotices([...paint.access.of(section), ...(gentle?.of(section) ?? [])]);
+  const [paint, gentle, sids] = await Promise.all([loader.paint(), gentleOf, pageSections(store, subject)]);
+  const rows = sids.map((sid) => [...paint.access.of(sid), ...(gentle?.of(sid) ?? [])]);
+  let lengths: (number | null)[] | null = null;
+  if (subject.kind === "part" && accessNeedsWeights(rows)) {
+    const m = await store.partLengths(subject.ord, subject.partIx);
+    lengths = m ? sids.map((sid) => m.get(sid) ?? null) : null;
+  }
+  const word = subject.kind === "section" ? "section" : subject.parts > 1 ? "part" : "water";
+  return coreAccessNotices(partAccess(rows, lengths), word);
 }
 
-/** (T147) The page a water opened with no tapped section shows: its item (by ord), its part, and how many parts it has. */
-export interface AccessPage { readonly ord: number; readonly partIx: number; readonly parts: number }
-
-/**
- * (T147) WHAT A PAGE OPENED WITH NO TAPPED SECTION SAYS ABOUT ACCESS: the no-access banner over its part's sections (the
- * water's `part_section`, read through the store's `navRows`), worded by core (`waterAccessNotice`): "this water" for a
- * one-part water, "this part of the water" otherwise. Paint's no-access rows only — the gentle note stays per section.
- */
-export async function pageAccessNotice(loader: Pick<ReleaseLoader, "paint">, store: Pick<RegsStore, "navRows">,
-                                       page: AccessPage): Promise<AccessNotice | null> {
-  const [paint, nav] = await Promise.all([loader.paint(), store.navRows(page.ord)]);
-  const sids = nav.sections.filter((s) => s.partIx === page.partIx).map((s) => s.sid);
-  return waterAccessNotice(sids.map((sid) => paint.access.of(sid)), page.parts > 1 ? "part" : "water");
-}
-
-/**
- * The notice a Regulations page leads with: the TAPPED section's (T54), else (T147) the page's own part's, when the
- * store and the page's inputs are there to name it. Null: nothing to say, or not yet known.
- */
-/** (T211) Which sections a page's Salmon card is about: the tapped section, else its water's part; and its water. */
+/** (T211, T387) Which sections a page's Salmon card is about: its subject's; and the part's answer key. */
 export interface SalmonPage {
-  readonly section: SectionId | null;
-  readonly item: string | null;
-  readonly ord: number | null;
-  readonly partIx: number;
+  readonly subject: PageSubject;
   /** (owner 2026-10-28) the part's answer key: its bundle regions name the salmon slices the card reads (null: all) */
   readonly akey?: number | null;
 }
@@ -200,57 +217,53 @@ type SalmonLoader = Pick<ReleaseLoader, "salmon"> & Partial<Pick<ReleaseLoader, 
 
 /**
  * (T211) THE SALMON CARD a Regulations page draws under the provincial rules (option A): the release's DFO salmon for
- * the tapped section (else every section of the page's part, through the store's `navRows`), worded by core
- * (`salmonCard`). Null where the release ships no salmon. A water DFO does not list reads "Salmon — closed".
+ * (T387) every section of the page's part — never the tapped section alone — through the store's `navRows`, worded by
+ * core (`salmonCard`). Null where the release ships no salmon. A water DFO does not list reads "Salmon — closed".
  */
-export async function salmonCardFor(loader: SalmonLoader, store: Pick<RegsStore, "navRows"> | null,
+export async function salmonCardFor(loader: SalmonLoader, store: Pick<RegsStore, "navRows">,
                                     page: SalmonPage, on: Date): Promise<SalmonCardLiveVM | null> {
   // only the page's own region's salmon slice (owner 2026-10-28); a page with no key reads them all
   const regions = page.akey != null && loader.regionsOf ? await loader.regionsOf(page.akey) : [];
   const f = await loader.salmon(regions.length ? regions : undefined);
   if (!f) return null;
-  let sids: number[] = [];
-  if (page.section !== null) sids = [Number(page.section)];
-  else if (store && page.ord !== null)
-    sids = (await store.navRows(page.ord)).sections.filter((s) => s.partIx === page.partIx).map((s) => s.sid);
+  const sids = await pageSections(store, page.subject);
   // (owner 2026-10-28: "bait and fly rules also apply to salmon") the provincial gear marks on the page that day
   // (T368) offline: no gear marks; any other failure fails the card (said with Try again, reported) — never a card
   // silently missing its gear rules
   const m = loader.method ? await loader.method().catch(offlineAs(null)) : null;
   const gear = m ? [...new Set(sids.map((sid) => methodClassOn(m, sid, on)))] : [];
-  return salmonCardLive(f, { sids, item: page.item, gear }, on);
+  return salmonCardLive(f, { sids, item: page.subject.kind === "part" ? page.subject.item : null, gear }, on);
 }
 
 export function useSalmonCard(loader: SalmonLoader | null, store: Pick<RegsStore, "navRows"> | null,
                               page: SalmonPage | null, mapDay: Date | null,
                               /** (T254) a new number asks again (Try again; the line coming back after a failure) */
                               retry = 0): Async<SalmonCardLiveVM | null> {
-  const asks = !!loader && !!page;
+  const asks = !!loader && !!store && !!page;
   const on = mapDay ?? bcNow();
   const dayKey = `${on.getFullYear()}-${on.getMonth() + 1}-${on.getDate()}`;
   // (owner 2026-10-29) a DFO feed the update service took redraws the open page's card in place: a refresh
   const dfo = useFeedVersion("dfo");
-  const key = `salmon:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${page?.section ?? ""}:`
-    + `${page?.item ?? ""}:${page?.ord ?? ""}:${page?.partIx ?? ""}:${page?.akey ?? ""}:${dayKey}`
-    + (retry ? `:r${retry}` : "");
-  return useAsync(async () => (asks ? salmonCardFor(loader!, store, page!, on) : null), `${key}#${dfo}`, asks, key);
+  const key = `salmon:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${pageSubjectKey(page?.subject ?? null)}:`
+    + `${page?.akey ?? ""}:${dayKey}` + (retry ? `:r${retry}` : "");
+  return useAsync(async () => (asks ? salmonCardFor(loader!, store!, page!, on) : null), `${key}#${dfo}`, asks, key);
 }
 
+/** (T387) The page's access notices (`regsAccessNotices`): asked by the page's subject alone — the tap is not an input. */
 export function useAccessNotices(loader: Pick<ReleaseLoader, "paint" | "access"> | null,
-                                 section: SectionId | null, store: Pick<RegsStore, "navRows"> | null = null,
-                                 page: AccessPage | null = null): Async<AccessNotice[]> {
-  const bySection = !!loader && section !== null;
-  // (Q140, owner 2026-10-28) the page's part is asked beside a tapped section too: a section wholly outside no-access
-  // land, on a part that runs through it, carries the part's banner (`leadingAccessNotices`)
-  const byPage = !!loader && !!store && !!page;
-  const asks = bySection || byPage;
-  return useAsync(async () => {
-    const [s, p] = await Promise.all([bySection ? sectionAccessNotices(loader!, section!) : [],
-                                      byPage ? pageAccessNotice(loader!, store!, page!) : null]);
-    return leadingAccessNotices(s, p);
-  },
-                  `access:${loader ? idOf(loader) : ""}:${bySection ? `s${section}` : ""}:`
-                  + `${byPage ? `${idOf(store!)}:${page!.ord}:${page!.partIx}:${page!.parts}` : ""}`, asks);
+                                 store: Pick<RegsStore, "navRows" | "partLengths"> | null,
+                                 subject: PageSubject | null): Async<AccessNotice[]> {
+  const asks = !!loader && !!store && !!subject;
+  return useAsync(async () => (asks ? regsAccessNotices(loader!, store!, subject!) : []),
+                  `access:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${pageSubjectKey(subject)}`, asks);
+}
+
+/** (T387) `pageSubjectOf`, held by its key: a new object only when the page's subject changes. */
+export function usePageSubject(inputs: RegsInputs | null): PageSubject | null {
+  const s = pageSubjectOf(inputs);
+  const key = pageSubjectKey(s);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the subject's identity is its key
+  return useMemo(() => s, [key]);
 }
 
 /**
@@ -411,9 +424,8 @@ export function useWaterPlace(loader: ReleaseLoader | null, source: Pick<WaterSo
   const place = useMemo(() => (inp ? headerOf(inp, { today: regsDay(null).today, status: "unknown",
                                                      downstream: down.value?.name ?? null }).place : null),
                         [inp, down.value?.name]);
-  const page = useMemo(() => (inp?.item ? { ord: inp.item.ord, partIx: inp.partIx, parts: inp.item.parts.length } : null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity is its item, part and part count
-    [inp?.item?.ord, inp?.partIx, inp?.item?.parts.length]);
-  const access = useAccessNotices(loader, section, store.value ?? null, page);
+  // (T387) the page's subject — its part, never the tap — so this view's notices are its Regulations page's
+  const subject = usePageSubject(inp);
+  const access = useAccessNotices(loader, store.value ?? null, subject);
   return { place, access: access.value ?? [] };
 }

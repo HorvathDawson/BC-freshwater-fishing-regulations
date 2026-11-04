@@ -7,9 +7,8 @@ import { describe, expect, it } from "vitest";
 import { loadRegsInputs, openRegsStore, RegsStoreError, targetFor, type RegsLoader } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { accessOf, type Paint } from "@app/core";
-import type { SectionId } from "@app/data";
-import { DEFAULT_WHO, loadRegsStore, mapDayOf, pageAccessNotice, regsDay, regsStoreKey, regsTargetKey,
-         sectionAccessNotices } from "./regs";
+import { DEFAULT_WHO, loadRegsStore, mapDayOf, pageSubjectOf, regsAccessNotices, regsDay, regsStoreKey, regsTargetKey,
+         type PageSubject } from "./regs";
 
 /** The fixture loader, counting how often the store asks it for water (once per `openRegsStore`). */
 function counted(base: RegsLoader = openRegsFixture(), fail = 0): { loader: RegsLoader; water: () => number } {
@@ -115,61 +114,71 @@ describe("the T09 functions", () => {
   });
 });
 
-describe("(T54) a section's access notice: paint's no-access rows and the access file's gentler ones", () => {
+describe("(T387) a page's access notices: its PART's, whatever was tapped", () => {
   const COQ = { tier: "no_access", name: "Coquitlam Watershed" } as const;
   const PRIV = { tier: "private", name: "" } as const;
-  const loader = (gentle: boolean) => ({
-    paint: async () => ({ access: accessOf([COQ], [7], [0], [1000]) }) as unknown as Paint,
-    access: async () => (gentle ? accessOf([PRIV], [7, 8], [0, 0], [1000, 300]) : null),
+  // sids 7, 8 inside Coquitlam (all, 90%); 9 private land only; lengths 1,000 m, 25 m, 3,000 m; part 0 = 7, 8; part 1 = 8, 9; part 2 = 9
+  const reads: string[] = [];
+  const loader = (gentle: boolean | Error = true) => ({
+    paint: async () => ({ access: accessOf([COQ], [7, 8], [0, 0], [1000, 900]) }) as unknown as Paint,
+    access: async () => { if (gentle instanceof Error) throw gentle; return gentle ? accessOf([PRIV], [9], [0], [1000]) : null; },
+  });
+  const LENS: Record<number, [number, number | null][]> = { 0: [[7, 1000], [8, 25]], 1: [[8, 25], [9, 3000]], 2: [[9, 3000]] };
+  const store = (lengths = true) => ({
+    navRows: async () => ({ sections: [{ sid: 7, partIx: 0 }, { sid: 8, partIx: 0 }, { sid: 8, partIx: 1 },
+                                       { sid: 9, partIx: 1 }, { sid: 9, partIx: 2 }] }) as never,
+    partLengths: async (ord: number, partIx: number) => { reads.push(`${ord}:${partIx}`); return lengths ? new Map(LENS[partIx]) : null; },
+  });
+  const part = (partIx: number, parts = 3): PageSubject => ({ kind: "part", item: "gnis:1", ord: 1, partIx, parts });
+  const TAIL = ", closed to the public. The regulations below don't give you access.";
+
+  it("the part's areas, each section weighed by its length (the store's `partLengths`), banner then note", async () => {
+    reads.length = 0;
+    // part 1: sid 8 (25 m, 90% Coquitlam) and sid 9 (3,000 m, private): 0.9 × 25 / 3025 ≈ 0.7%; private 3000/3025
+    expect((await regsAccessNotices(loader(), store(), part(1))).map((n) => n.text)).toEqual([
+      `Under 1% of this part of the water is in Coquitlam Watershed${TAIL}`,
+      "This part of the water crosses private land (about 99% of it)."]);
+    expect(reads).toEqual(["1:1"]);
+    // a release that ships no lengths: the same areas, no share claimed
+    expect((await regsAccessNotices(loader(), store(false), part(1))).map((n) => n.text)).toEqual([
+      `Some of this part of the water is in Coquitlam Watershed${TAIL}`, "This part of the water crosses private land."]);
   });
 
-  const BANNER = { tier: "no_access", title: "No public access", brief: "Coquitlam Watershed",
-                  text: "This section is in Coquitlam Watershed, closed to the public. The regulations below don't give you access." };
-  const NOTE = { tier: "restricted", title: "Access may be restricted", brief: "private land", text: "This section crosses private land." };
-
-  it("(T367) a section holding both gets both, banner first; a section with only private land gets the gentle note", async () => {
-    expect(await sectionAccessNotices(loader(true), 7 as SectionId)).toEqual([BANNER, NOTE]);
-    expect(await sectionAccessNotices(loader(true), 8 as SectionId)).toEqual([NOTE]);
-    // a release with no access file: the no-access rows still speak, the gentle ones are silent
-    expect(await sectionAccessNotices(loader(false), 7 as SectionId)).toEqual([BANNER]);
-    expect(await sectionAccessNotices(loader(false), 8 as SectionId)).toEqual([]);
+  it("sections alike read no length; a one-part water is \"this water\"; an unnamed reach is its section", async () => {
+    reads.length = 0;
+    expect(await regsAccessNotices(loader(), store(), part(2, 1))).toEqual([{ tier: "restricted",
+      title: "Access may be restricted", brief: "private land", text: "This water crosses private land (all of it)." }]);
+    expect((await regsAccessNotices(loader(), store(), { kind: "section", sid: 7 })).map((n) => n.text))
+      .toEqual([`All of this section is in Coquitlam Watershed${TAIL}`]);
+    expect(reads).toEqual([]);
   });
 
-  it("a failed `access` file never silences the no-access banner: paint's rows are enough for it; (T368, owner Q4) a failure that is not offline is reported", async () => {
-    const broken = (e: Error) => ({
-      paint: async () => ({ access: accessOf([COQ], [7], [0], [1000]) }) as unknown as Paint,
-      access: async () => { throw e; },
-    });
+  it("a section the build did not measure: no share is claimed", async () => {
+    const one = { ...store(), partLengths: async () => new Map<number, number | null>([[7, 1000], [8, null]]) };
+    expect((await regsAccessNotices(loader(), one, part(0))).map((n) => n.text))
+      .toEqual([`Some of this part of the water is in Coquitlam Watershed${TAIL}`]);
+  });
+
+  it("a failed `access` file never silences the no-access banner; (T368, owner Q4) a failure that is not offline is reported", async () => {
     const got: unknown[] = [];
     const undo = setFailureSink((e) => got.push(e));
     try {
-      const offline = broken(new TypeError("Failed to fetch")), bad = broken(new Error("access.bin: bad header"));
-      expect(await sectionAccessNotices(offline, 7 as SectionId)).toEqual([BANNER]);
-      expect(await sectionAccessNotices(offline, 8 as SectionId)).toEqual([]);
+      const banner = [`All of this part of the water is in Coquitlam Watershed${TAIL}`];
+      expect((await regsAccessNotices(loader(new TypeError("Failed to fetch")), store(), part(0))).map((n) => n.text)).toEqual(banner);
       expect(got).toEqual([]);
-      expect(await sectionAccessNotices(bad, 7 as SectionId)).toEqual([BANNER]);
+      expect((await regsAccessNotices(loader(new Error("access.bin: bad header")), store(), part(0))).map((n) => n.text)).toEqual(banner);
       expect(got.map((e) => (e as Error).message)).toEqual(["access.bin: bad header"]);
     } finally {
       undo();
     }
   });
-});
 
-describe("(T147) a page opened with no tapped section: its part's no-access banner", () => {
-  const COQ = { tier: "no_access", name: "Coquitlam Watershed" } as const;
-  const PRIV = { tier: "private", name: "" } as const;
-  // sids 7, 8 inside Coquitlam; 9 private land only; part 0 = 7, 8; part 1 = 8, 9; part 2 = 9
-  const loader = { paint: async () => ({ access: accessOf([COQ, PRIV], [7, 8, 9], [0, 0, 1], [1000, 900, 1000]) }) as unknown as Paint };
-  const store = { navRows: async () => ({ sections: [{ sid: 7, partIx: 0 }, { sid: 8, partIx: 0 }, { sid: 8, partIx: 1 },
-                                                     { sid: 9, partIx: 1 }, { sid: 9, partIx: 2 }] }) as never };
-
-  it("reads only the page's part, names the water by its parts, and never notes the gentler land", async () => {
-    expect(await pageAccessNotice(loader, store, { ord: 1, partIx: 0, parts: 1 })).toEqual({
-      tier: "no_access", title: "No public access", brief: "Coquitlam Watershed",
-      text: "This water is in Coquitlam Watershed, closed to the public. The regulations below don't give you access." });
-    expect((await pageAccessNotice(loader, store, { ord: 1, partIx: 1, parts: 3 }))?.text).toBe(
-      "Some of this part of the water is in Coquitlam Watershed, closed to the public. "
-      + "The regulations below don't give you access.");
-    expect(await pageAccessNotice(loader, store, { ord: 1, partIx: 2, parts: 3 })).toBeNull();
+  it("the subject is the page's, read off its inputs: a part for a named water, the section for an unnamed reach", () => {
+    expect(pageSubjectOf({ item: { id: "gnis:1", ord: 4, parts: [null, null] }, partIx: 1,
+                           target: { kind: "part", item: "gnis:1", partIx: 1 } } as never))
+      .toEqual({ kind: "part", item: "gnis:1", ord: 4, partIx: 1, parts: 2 });
+    expect(pageSubjectOf({ item: null, partIx: 0, target: { kind: "section", handle: 12 } } as never))
+      .toEqual({ kind: "section", sid: 12 });
+    expect(pageSubjectOf(null)).toBeNull();
   });
 });

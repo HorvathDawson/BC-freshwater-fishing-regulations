@@ -34,7 +34,7 @@ const DICT = Buffer.from(JSON.stringify(RULE));
 
 /** Two regions; akey 1 → region 1, akey 2 → region 2. Frame id 5 exists in BOTH region files with DIFFERENT content,
  *  so a read routed to the wrong file is seen. regs-sid: handle 4097 (block 1, slot 1) → akey 2, place 0. */
-function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean } = {}) {
+function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean } = {}) {
   const asked: string[] = [];
   const spy = (name: string, d: Db): Db => ({
     all: (q, ...p) => { asked.push(`${name}: ${q.split(" FROM ")[1]?.split(" ")[0]}`); return d.all(q, ...p); },
@@ -62,8 +62,9 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badS
       (1, ${X({ ruleset: null, licensing_set: null, steelhead: "known", province_except: ["tidal"] })});
     CREATE TABLE picker (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
     INSERT INTO picker VALUES (0, ${X({ choices: [], headed: false })});
-    CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL, PRIMARY KEY (ord, sid));
-    INSERT INTO part_section VALUES (3, 4097, 1), (3, 4098, 0);
+    CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL${o.lengths ? ", m INTEGER" : ""},
+                               PRIMARY KEY (ord, sid));
+    INSERT INTO part_section VALUES ${o.lengths ? "(3, 4097, 1, 1200), (3, 4098, 0, NULL), (3, 4099, 1, 30)" : "(3, 4097, 1), (3, 4098, 0)"};
     CREATE TABLE akey (akey INTEGER PRIMARY KEY, ruleset INTEGER, licensing_set INTEGER, steelhead_water INTEGER, steelhead INTEGER,
       steelhead_rules INTEGER, province_except INTEGER, home_region INTEGER, kind INTEGER, tidal INTEGER, seg INTEGER, mom INTEGER,
       nseg INTEGER);
@@ -211,6 +212,13 @@ describe("reads over water", () => {
     expect([await st.sectionPart(3, 4097), await st.sectionPart(3, 4098), await st.sectionPart(3, 1), await st.sectionPart(4, 4097)])
       .toEqual([1, 0, null, null]);
     expect(asked).toEqual(["water: part_section", "water: part_section", "water: part_section", "water: part_section"]);
+  });
+
+  it("(T387) partLengths: a part's sections and their lengths (`part_section.m`, null unmeasured); null from a release cut before it", async () => {
+    const st = await openRegsStore(seed({ lengths: true }).loader);
+    expect([...(await st.partLengths(3, 1))!]).toEqual([[4097, 1200], [4099, 30]]);
+    expect([...(await st.partLengths(3, 0))!]).toEqual([[4098, null]]);
+    expect(await (await openRegsStore(seed().loader)).partLengths(3, 1)).toBeNull();
   });
 });
 

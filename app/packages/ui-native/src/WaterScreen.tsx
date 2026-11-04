@@ -29,7 +29,7 @@ import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, regsLapsedNot
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
-         useSalmonCard, useNet,
+         useSalmonCard, useNet, usePageSubject,
          useRegsTarget, useRegulations, useSunLine, useWater, type LatLon, type RegsStart } from "@app/ui";
 import { LoadingState, useDelayedShow } from "./LoadingState";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
@@ -120,22 +120,15 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   // (T257) the waits, on the one timing: no spinner for a quick load, and one shown stays up its short hold
   const sheetWait = useDelayedShow(item !== null && sheet.state === "loading");
   const regsWait = useDelayedShow(!!loader && !regsError && !regs);
-  // (T54) the tapped section's access: the no-access banner or the gentle note; (T147) opened with no section, the
-  // page's own part's no-access banner (a water opened from search must still lead with the fact); (Q140) a tapped
-  // section wholly outside, on a part that runs through no-access land, leads with the part's banner
+  // (T54, T147, T367) the access notices: the no-access banner and the gentle note; (T387) THE PART'S — asked by the
+  // page's subject (its part; an unnamed reach's section), never the tapped section, so every tap on a part says the same
   const pageItem = inputs.value?.item ?? null;
-  const accessPage = useMemo(() => (pageItem ? { ord: pageItem.ord, partIx: inputs.value!.partIx, parts: pageItem.parts.length } : null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity is its item, part and part count
-    [pageItem?.ord, inputs.value?.partIx, pageItem?.parts.length]);
-  const access = useAccessNotices(loader, section, store.value ?? null, accessPage);
-  // (T211) the Salmon card: DFO's salmon for the tapped section, else the page's part, on THE day — (T369 D3) by ONE
-  // rule whatever way the frame came: the frame's tap (the route drops it when the part moves, so it is in the part)
-  const salmonPage = useMemo(() => (inputs.value
-    ? { section, item: pageItem?.id ?? null, ord: pageItem?.ord ?? null,
-        partIx: inputs.value.partIx, akey: inputs.value.key?.akey ?? null }
-    : null),
+  const subject = usePageSubject(inputs.value ?? null);
+  const access = useAccessNotices(loader, store.value ?? null, subject);
+  // (T211) the Salmon card: DFO's salmon for (T387) the page's part, on THE day — the same card for every tap on it
+  const salmonPage = useMemo(() => (subject ? { subject, akey: inputs.value?.key?.akey ?? null } : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity
-    [inputs.value?.partIx, pageItem?.id, pageItem?.ord, part, section, inputs.value?.key?.akey]);
+    [subject, inputs.value?.key?.akey]);
   // (T254) a failed Salmon card is asked again on Try again, and when the line comes back
   const { mode: netMode } = useNet();
   const [salmonTry, setSalmonTry] = useState(0);
@@ -251,8 +244,11 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                   salmon={salmon.value ? ({ actions, images }) => <SalmonCard card={salmon.value!} palette={palette} actions={actions} images={images} />
                     // (T254) the card is still coming (it waits behind the regulations on a slow line) or could not come:
                     // said in its place, never a silent gap
-                    : salmonExpected && salmon.state !== "ready"
-                      ? <PartPending palette={palette} what={NET_WORDS.part.salmon} state={salmon.state} testID="salmon-pending"
+                    // (T387 review) a release that ships salmon draws the card or its face: a card that came back
+                    // empty is said as failed, never a silent gap
+                    : salmonExpected
+                      ? <PartPending palette={palette} what={NET_WORDS.part.salmon}
+                                     state={salmon.state === "loading" ? "loading" : "failed"} testID="salmon-pending"
                                      onRetry={() => setSalmonTry((x) => x + 1)} />
                       : undefined}
                   glance={glance ? { salmon: salmon.value ? salmonGlance(salmon.value) : null } : null}

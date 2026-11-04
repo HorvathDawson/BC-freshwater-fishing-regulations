@@ -92,6 +92,12 @@ export interface RegsReads {
    *  null: the section is not one of the item's. */
   sectionPart(itemOrd: number, sid: number): Promise<number | null>;
   /**
+   * (T387) Each section of part `partIx` of item `itemOrd`, with its length along the water in metres (water
+   * `part_section.m`: a line's length, a polygon's half perimeter — pipeline `bundle/access.py`); a section the build did
+   * not measure has null. null: the release predates `part_section.m` (it ships no section lengths).
+   */
+  partLengths(itemOrd: number, partIx: number): Promise<ReadonlyMap<number, number | null> | null>;
+  /**
    * THE WATER MAP'S ROWS (P15) for item `itemOrd`, each one keyed read on its table's primary key: `part_geo` (rank,
    * box, midpoint — microdegrees as degrees), `part_mark` (boundaries: down part, up parts), `part_section` (the sids of
    * each part) and `water_exit` (the receiving item, named from core; null name when core does not hold it), and
@@ -515,6 +521,16 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
     sectionPart: (ord, sid) => once("sectionPart", `${ord}:${sid}`, async () => {
       const r = await (await base.water()).get("SELECT part_ix FROM part_section WHERE ord = ? AND sid = ?", ord, sid);
       return r ? n(r.part_ix) : null;
+    }),
+
+    partLengths: (ord, partIx) => once("partLengths", `${ord}:${partIx}`, async () => {
+      const w = await base.water();
+      // (T387) `m` is additive (still water/1): a release cut before it has no column
+      const has = await once("hasPartLength", 0, async () =>
+        !!(await w.get("SELECT 1 AS x FROM pragma_table_info('part_section') WHERE name = 'm'")));
+      if (!has) return null;
+      const rows = await w.all("SELECT sid, m FROM part_section WHERE ord = ? AND part_ix = ? ORDER BY sid", ord, partIx);
+      return new Map(rows.map((r) => [n(r.sid), r.m === null || r.m === undefined ? null : n(r.m)]));
     }),
 
     navRows: (ord) => once("navRows", ord, async () => {
