@@ -35,7 +35,7 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, FlatList, View, useWindowDimensions } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { SEARCH_BAR, type StatusIndex } from "@app/core";
+import { SEARCH_BAR, type StatusIndex, bcNow } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useBackLayer, type SearchAction, type SearchPick, type SearchSession } from "@app/ui";
 import { LoadingState } from "./LoadingState";
@@ -115,7 +115,7 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   if (!shown) return null;
   const rows = open ? sheetRows(pick, session, recents) : [];
   const drop = Math.round(height * HALF_DROP);
-  const today = new Date();
+  const today = bcNow();
   const act = (a: SearchAction) => onAct(a);
   return (
     <>

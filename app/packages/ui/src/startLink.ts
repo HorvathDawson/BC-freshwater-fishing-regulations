@@ -15,7 +15,7 @@
  * the session's profile (D8), the sheet a `SheetKey` the page opens like any press would. A bad value throws, naming it,
  * so a typo in a test never opens some other page silently.
  */
-import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Who } from "@app/core";
+import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Who, bcNow } from "@app/core";
 import type { ItemId } from "@app/data";
 import { openWater } from "./openWater";
 import type { StreamPlace } from "@app/data/regs/place";
@@ -46,7 +46,7 @@ const VIEWS: readonly View[] = ["regs", "conditions", "map"];
  * the bundle (AGENTS 5). Returns the new query string ("" or "?…").
  */
 export function routeSearch(r: Route, current = "", place: StreamPlace | null = null,
-                            extra: AddressState | null = null, now: Date = new Date()): string {
+                            extra: AddressState | null = null, now: Date = bcNow()): string {
   const q = new URLSearchParams(current);
   // (T369) the day and horizon are the address's only when the Shell says them (`extra`); else as they were
   for (const k of ROUTE_KEYS) if (extra || (k !== "date" && k !== "horizon")) q.delete(k);
@@ -160,7 +160,7 @@ const AGES = ["adult", "u16"] as const;
 const RESIDENCIES = ["resident", "non_resident", "non_resident_alien"] as const;
 
 /** The link in a page's query string (`location.search`), or null when it names no water. Throws on a bad value. */
-export function parseStartLink(search: string, now: Date = new Date()): StartLink | null {
+export function parseStartLink(search: string, now: Date = bcNow()): StartLink | null {
   const q = new URLSearchParams(search);
   const item = q.get("regs");
   const bad = (k: string, what: string): never => { throw new Error(`start link: ${k}=${q.get(k)} is not ${what}`); };

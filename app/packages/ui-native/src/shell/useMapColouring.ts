@@ -2,7 +2,7 @@
  * WHAT EVERY MAP IS COLOURED BY: the layers choice, the tiles/data pair, the day's status, the lake values, the
  * Conditions colouring and its horizon — decided in `@app/ui` hooks and only gathered here for the Shell (T62 3.4).
  */
-import { chooseLayer, chooseShow, layersVM, withImageryCredit, type Horizon, type SectionKey } from "@app/core";
+import { chooseLayer, chooseShow, layersVM, withImageryCredit, type Horizon, type SectionKey, bcNow } from "@app/core";
 import { useCallback, useMemo, useState } from "react";
 import type { GaugeFeed, RunTimingSource, WaterSource, SectionId } from "@app/data";
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
@@ -117,7 +117,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const statusIndex = useStatusIndex(status);
   const statusOk = statusIndex !== null && paired;
   // THE LAKE MODES' VALUES (Stocked, Depth): the release's lake facts, labelled per tile by the same engine
-  const lakeFeed = useLakeColour({ source, paired, today: new Date() });
+  const lakeFeed = useLakeColour({ source, paired, today: bcNow() });
   // PREPARED, NOT FED (owner 2026-10-21): a lake mode with no values in the release is greyed in Layers and drawn plain
   const lakeReady = useMemo(() => lakeModesReady(lakeFeed), [lakeFeed]);
   /*
@@ -210,7 +210,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    * the index and the day and labels each tile as it arrives (colour-latency AP — no `idle`, no round trip through
    * here per pan).
    */
-  const mapStatus = useMemo(() => statusFeed({ statusOk, index: statusIndex, day: mapDay ?? new Date() }),
+  const mapStatus = useMemo(() => statusFeed({ statusOk, index: statusIndex, day: mapDay ?? bcNow() }),
                             [statusOk, statusIndex, mapDay]);
   // the map labels each tile with the salmon chains on the Map tab whatever the toggle says (instant toggle)
   const salmonFeed = mapTab === "map" ? salmon.feed : null;

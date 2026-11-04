@@ -22,7 +22,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { GUIDE_WATER, TAB_TOUR_WORDS, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind } from "@app/core";
+import { GUIDE_WATER, TAB_TOUR_WORDS, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
@@ -259,7 +259,7 @@ export function Shell(p: ShellProps) {
   /** The SYNC ICON's state (`syncVM`): fresh, needs a refresh, checking — none when there is nothing to sync. */
   const sync = feed || checkRelease || updates
     ? syncVM({ feed: !!feed, feedFetchedAt: syncState.feedFetchedAt, checkedAt: syncState.checkedAt,
-               checking: syncState.checking, newRelease: syncState.newRelease, now: Date.now(),
+               checking: syncState.checking, newRelease: syncState.newRelease, now: clockNow(),
                ...(syncState.update ? { update: syncState.update } : {}) })
     : null;
   /** (T231) the red badge's tap: what could not be updated, and Retry; any other state's tap checks now */
@@ -284,11 +284,11 @@ export function Shell(p: ShellProps) {
   useEffect(() => {
     if (!releaseReady || !safe || askedApply.current === releaseReady) return;
     // a 250 ms poll, re-armed by setTimeout (no interval timer on the JS thread: tools/no-per-frame-animation.test.ts)
-    let seen = camera.current, still = Date.now();
+    let seen = camera.current, still = clockNow();
     let t: ReturnType<typeof setTimeout>;
     const poll = () => {
-      if (camera.current !== seen) { seen = camera.current; still = Date.now(); }
-      else if (Date.now() - still >= APPLY_STILL_MS) { askedApply.current = releaseReady; p.onSafeToApply?.(); return; }
+      if (camera.current !== seen) { seen = camera.current; still = clockNow(); }
+      else if (clockNow() - still >= APPLY_STILL_MS) { askedApply.current = releaseReady; p.onSafeToApply?.(); return; }
       t = setTimeout(poll, 250);
     };
     t = setTimeout(poll, 250);
@@ -425,7 +425,7 @@ export function Shell(p: ShellProps) {
       const spanM = 2.2 * Math.sqrt(g.km2) * 1000;
       const fitZ = Math.log2((156543 * Math.cos((g.lat * Math.PI) / 180) * width) / spanM);
       const zoom = kind === "watershed" ? Math.max(6, Math.min(8.5, fitZ)) : 10.5;
-      setTourFit({ key: `tour:${key}:${Date.now()}`, camera: { lon: g.lon, lat: g.lat, zoom } });
+      setTourFit({ key: `tour:${key}:${clockNow()}`, camera: { lon: g.lon, lat: g.lat, zoom } });
     });
   };
   useEffect(() => { if (!condTour.open) { setTourFit(null); tourGauge.current = null; } }, [condTour.open]);
@@ -510,7 +510,7 @@ export function Shell(p: ShellProps) {
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} me={me} photos={photos}
                   loader={loader} syncState={syncState} sync={sync} onSync={onSync} menu={menu} menuInfo={menuInfo} mapDay={mapDay} regsPrefetch={regsPrefetch}
                   onDay={setMapDay} onOpenDay={() => setDayOpen(true)}
-                  dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
+                  dayRange={dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
@@ -614,7 +614,7 @@ export function Shell(p: ShellProps) {
         */}
       <DaySheet open={dayOpen && route.mode === "browse"} onClose={() => setDayOpen(false)} palette={palette}
                 day={mapDay} onDay={setMapDay}
-                range={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)} />
+                range={dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null)} />
       {/* (T173) a tapped fish obstacle mark: what it is (Map tab, while browsing) */}
       <ObstacleSheet props={route.mode === "browse" ? obstacle : null} palette={palette} onClose={() => setObstacle(null)} />
       {/* (T166) a tap on tidal water: why the freshwater regulations stop here (Map tab, while browsing) */}

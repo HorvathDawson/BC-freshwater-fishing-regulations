@@ -1,3 +1,4 @@
+import { now } from "./clock";
 /**
  * (T287) A DECODE IN SLICES: the release's binary decoders (paint, status index, method, salmon slices) are written once
  * as generators that `yield` every few thousand rows; `runNow` runs one to the end (the plain `decodeX`), `runSliced`
@@ -32,10 +33,10 @@ export const SLICE_MS = 8;
 
 /** Run a decoder `budgetMs` at a time, the event loop's turn between slices. */
 export async function runSliced<T>(g: Steps<T>, budgetMs = SLICE_MS, turn: () => Promise<void> = nextTurn): Promise<T> {
-  let start = Date.now();
+  let start = now();
   for (;;) {
     const r = g.next();
     if (r.done) return r.value;
-    if (Date.now() - start >= budgetMs) { await turn(); start = Date.now(); }
+    if (now() - start >= budgetMs) { await turn(); start = now(); }
   }
 }

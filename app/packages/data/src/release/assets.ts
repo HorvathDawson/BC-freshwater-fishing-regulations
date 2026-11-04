@@ -16,6 +16,7 @@ import { utf8 } from "../regs/blob";
 import { sha256Hex } from "../sha256";
 import type { Manifest } from "../manifest";
 import type { ReleaseFs } from "./install";
+import { now } from "@app/core";
 
 /** The raw bytes at a url (gzip decoded), or throw: nothing is verified here — the caller holds them to a digest. */
 export type RawFetch = (url: string) => Promise<Uint8Array>;
@@ -101,11 +102,11 @@ export async function installAssets(fs: ReleaseFs, raw: RawFetch, base: string, 
   // again after a pause (a 429 waits longer) before the install fails; the first failure stops the rest (what was placed
   // stays, verified, for the next attempt). `install` runs this beside the big downloads, so it is mostly hidden.
   let next = 0, done = 0, failed: unknown = null;
-  const t0 = Date.now();
+  const t0 = now();
   let started = 0;
   const paced = async () => {
     const at = t0 + (started++ * 1000) / ASSET_RATE;
-    if (at > Date.now()) await new Promise<void>((r) => setTimeout(r, at - Date.now()));
+    if (at > now()) await new Promise<void>((r) => setTimeout(r, at - now()));
   };
   onFile?.(0, names.length);
   const worker = async () => {

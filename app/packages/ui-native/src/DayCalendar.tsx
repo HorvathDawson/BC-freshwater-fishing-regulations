@@ -16,7 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { chooseDay, DAY_PICKER, dayButtonVM, monthVM, showingLine, stepDay, type DayRange } from "@app/core";
+import { chooseDay, DAY_PICKER, dayButtonVM, monthVM, showingLine, stepDay, type DayRange, bcNow } from "@app/core";
 import { CornerStrip } from "./CornerStrip";
 import { Icon, type IconName } from "./icons";
 import type { Palette } from "./theme";
@@ -39,7 +39,7 @@ export function MapDayStrip({ palette, day, range, onDay, onOpen, now }: {
   /** for tests; the device's clock otherwise */
   now?: Date;
 }) {
-  const at = now ?? new Date();
+  const at = now ?? bcNow();
   const shown = dayButtonVM(day, at);
   const earlier = stepDay(day, -1, at, range), later = stepDay(day, 1, at, range);
   return (
@@ -85,7 +85,7 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
   /** for tests; the device's clock otherwise */
   now?: Date;
 }) {
-  const now = nowProp ?? new Date();
+  const now = nowProp ?? bcNow();
   const shown = day ?? now;
   const [view, setView] = useState({ year: shown.getFullYear(), month: shown.getMonth() });
   // the month follows the day when the day moves (a step, a key, Today) — IN THE SAME RENDER, not an effect after it:

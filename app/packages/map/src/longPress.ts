@@ -17,7 +17,7 @@
  *
  * Pure apart from the clock it is handed, so a test drives it with a fake one.
  */
-import { LONG_PRESS, longPressHolds } from "@app/core";
+import { LONG_PRESS, longPressHolds, now as clockNow } from "@app/core";
 
 export interface LongPressClock {
   set(fn: () => void, ms: number): unknown;
@@ -42,7 +42,7 @@ export interface LongPressWatch {
 const REAL_CLOCK: LongPressClock = {
   set: (fn, ms) => setTimeout(fn, ms),
   clear: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
-  now: () => Date.now(),
+  now: () => clockNow(),
 };
 
 export function longPressWatch(fire: (x: number, y: number) => void,

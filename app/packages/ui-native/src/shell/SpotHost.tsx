@@ -3,7 +3,7 @@
  * (T62 3.4: out of the Shell, unchanged). The edit draft is held by the Shell (`useSpotEdit`), so leaving the screen
  * cannot strand half an edit inside an unmounted component.
  */
-import { SPOT_WORDS, spotBack } from "@app/core";
+import { SPOT_WORDS, spotBack, now } from "@app/core";
 import type { MutableRefObject } from "react";
 import { useState } from "react";
 import { View } from "react-native";
@@ -48,7 +48,7 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
   // (T294) the page shows ONE visit: the spot read as it (its record, notes, photos, rating); the spot's place and name
   // are every visit's. An edit or a rating is written back to that visit alone (`withVisit`).
   const shown = visitSpot(viewing, shownVisit);
-  const visits = visitsView(viewing, shown.visitId, Date.now());
+  const visits = visitsView(viewing, shown.visitId, now());
   const add = useAddVisit(visitSources ?? null);
   const [pickingParking, setPickingParking] = useState<{ lat: number; lon: number } | null | false>(false);
   const [parkingNotice, setParkingNotice] = useState<string | null>(null);
@@ -132,7 +132,7 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                       try {
                         const { parking: _was, ...rest } = viewing;
                         await onSaveSpot(withVisit({ ...rest, ...(edit.parking ? { parking: edit.parking } : {}),
-                                                     title: edit.title || viewing.title, updatedAt: Date.now() },
+                                                     title: edit.title || viewing.title, updatedAt: now() },
                                                    shown.visitId,
                                                    { ...shown, notes: edit.notes, photos: [...photoEdit.refs] }));
                         photoEdit.committed();

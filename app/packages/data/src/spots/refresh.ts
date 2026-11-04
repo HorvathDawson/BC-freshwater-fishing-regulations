@@ -17,7 +17,7 @@
  * send. Those were frozen as if recorded, so the refresh never asked again and the spot was never offered one. Now each
  * such day is asked for again, and only it is filled (`fillDays`): a day the spot holds is never overwritten.
  */
-import { leadUpDays } from "@app/core";
+import { leadUpDays, now as clockNow } from "@app/core";
 import type { WaterSource } from "../index";
 import type { LeadUp, Spot } from "./model";
 import type { WeatherSource } from "./capture";
@@ -88,7 +88,7 @@ export async function refreshSpot(spot: Spot, weather: WeatherSource, source?: W
     const after = await refreshVisit(before, weather, source, feed, history);
     if (after !== before) next = withVisit(next, v.id, after);
   }
-  return next === spot ? spot : { ...next, updatedAt: Date.now() };
+  return next === spot ? spot : { ...next, updatedAt: clockNow() };
 }
 
 /** One visit (a spot read as that visit), as of its own day. */
@@ -122,7 +122,7 @@ async function refreshVisit(spot: Spot, weather: WeatherSource, source?: WaterSo
     // for its own day; a reading taken on the trip day is never touched (`needsDayPanel`)
     next = await fillDayPanel(next, { source, ...history });
   }
-  return next === spot ? spot : { ...next, updatedAt: Date.now() };
+  return next === spot ? spot : { ...next, updatedAt: clockNow() };
 }
 
 /** The week before, with only its missing halves and days fetched; null when nothing new was learned. */

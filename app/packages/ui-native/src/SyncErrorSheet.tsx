@@ -4,7 +4,7 @@
  * check now, as the icon's own tap). The words are `@app/core` `syncErrorVM`'s, whole; this draws them. A dialog on a
  * wide screen, a bottom sheet on a phone. The app keeps the data it has: said under the title.
  */
-import { syncErrorVM, type SyncErrorVM, type UpdateSourceInput } from "@app/core";
+import { syncErrorVM, type SyncErrorVM, type UpdateSourceInput, now as clockNow } from "@app/core";
 import { View } from "react-native";
 import { Text } from "./Text";
 import { Button } from "./Button";
@@ -18,7 +18,7 @@ export function SyncErrorSheet({ open, failed, palette, checking, onRetry, onClo
   checking: boolean;
   onRetry: () => void; onClose: () => void;
 }) {
-  const vm = syncErrorVM(failed, Date.now());
+  const vm = syncErrorVM(failed, clockNow());
   return (
     <Sheet open={open} onClose={onClose} title={vm.title} sub={vm.sub} palette={palette} dialog>
       <View testID="sync-error-sheet" style={{ paddingHorizontal: 20, paddingTop: 12 }}>

@@ -8,7 +8,7 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { INSEASON_WORDS, inSeasonBanner, reportFailure, inSeasonWaters, inSeasonNoticeRows, inSeasonOn, inSeasonUnseen, isoDayOf, joinInSeason,
-         type InSeasonBannerVM, type InSeasonChange, type InSeasonMarks, type InSeasonNoticeRow } from "@app/core";
+         type InSeasonBannerVM, type InSeasonChange, type InSeasonMarks, type InSeasonNoticeRow, bcNow } from "@app/core";
 import type { InSeasonData, InSeasonSource } from "@app/data";
 import type { RegsStore } from "@app/data/regs";
 import { useAsync, usePoll } from "./async";
@@ -41,7 +41,7 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
     return () => { live = false; };
     // (T231) `epoch`: bumped when the update service sees the feed move (the source was told to forget it)
   }, [source, tick, epoch]);
-  const today = isoDayOf(new Date());
+  const today = isoDayOf(bcNow());
   return useMemo(() => (data ? { ...joinInSeason(data.feed, data.links, today, release), data, release } : NONE),
     [data, today, release]);
 }
@@ -58,7 +58,7 @@ export interface InSeasonPage {
 export function useInSeasonBanners(store: Pick<RegsStore, "navRows"> | null, page: InSeasonPage | null,
                                    day: Date | null): readonly InSeasonBannerVM[] {
   const { data, release } = useContext(InSeasonContext);
-  const iso = isoDayOf(day ?? new Date());
+  const iso = isoDayOf(day ?? bcNow());
   const matched = useMemo(() => (data ? joinInSeason(data.feed, data.links, iso, release).matched : []),
     [data, iso, release]);
   const here = page ? matched.filter((c) => inSeasonWaters(c).includes(page.item)) : [];

@@ -11,6 +11,7 @@ import { appendHighlight } from "./appendPdf";
 import { showPdf } from "./pdfView";
 import { getSynopsisNet, type SynopsisSource } from "./synopsisSource";
 import type { LoadHooks } from "./synopsisLoad";
+import { now } from "@app/core";
 
 // (T285) the document directory, not the cache: the OS may empty the cache, and the rule book must open offline
 // (owner 2026-10-29) the same file a first install streams it to (`synopsisPath`): the book opens offline from the start
@@ -94,13 +95,13 @@ async function markedCopy(s: SynopsisSource, cached: File, boxes: readonly Sourc
  */
 export async function openHighlighted(s: SynopsisSource, pdf: number, boxes: readonly SourceBox[],
                                       hooks: Partial<LoadHooks> = {}): Promise<void> {
-  const t0 = Date.now();
+  const t0 = now();
   const cached = await downloadSynopsis(s, hooks);
-  const t1 = Date.now();
+  const t1 = now();
   const marked = await markedCopy(s, cached, boxes);
   // what opened, for the test bed (logcat) and a report: the page, the boxes it was handed, marked or plain, and how
   // long the book (held or fetched) and the marked copy took
   console.info(`[synopsis] open PDF p.${pdf}: ${boxes.length} box(es) → ${marked ? "highlighted copy" : "plain book"}`
-    + ` (book ${t1 - t0} ms, copy ${Date.now() - t1} ms)`);
+    + ` (book ${t1 - t0} ms, copy ${now() - t1} ms)`);
   showPdf((marked ?? cached).uri, Math.max(1, pdf));
 }

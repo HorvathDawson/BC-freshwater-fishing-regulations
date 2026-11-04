@@ -7,7 +7,7 @@ import { speaks, sheetLead, throughLakeStations, type DonorRow, type Horizon, ty
          type WaterSource, type SectionId, type StationId } from "@app/data";
 import { CONDITIONS_WORDS, donorLastReport, donorReads, donorSilent, freshness, gaugeCountLine, noGaugeSentence,
          readingAgeLine, readingHeading, readingIn, readingStandingLine, shownParameter, stageLine, stateAt,
-         type GaugeTrace, type SectionKey, type Standing } from "@app/core";
+         type GaugeTrace, type SectionKey, type Standing, bcNow, now } from "@app/core";
 import { useGaugeTrace, useStationReading } from "../hooks";
 import { routeLabels, routeValues, type RouteColourVM } from "../routeColour";
 import { useLastReports, type PanelFeed } from "./feed";
@@ -112,7 +112,7 @@ export function useConditionsView(
   const routes = useRoutes(source, section);
   const lakes = useMemo(() => throughLakeStations(routes), [routes]);
   const panel = useLastReports(feed, useJoinedRoutes(usePanel(source, feed, section, quantity, horizon, lakes), routes));
-  const today = useMemo(() => day ?? new Date(), [day]);
+  const today = useMemo(() => day ?? bcNow(), [day]);
   // THE ROUTES OF THE MEMBERS THAT SPEAK — the route map's own chain (`donorView`): a silent member has no pin, so its
   // route is not coloured either.
   const chain = useMemo<readonly SectionKey[]>(
@@ -175,7 +175,7 @@ export function useConditionsView(
       stage: shown === "discharge" && c.level != null ? stageLine(c.level) : null,
       standing: readingStandingLine(c.percentile, c.standing as Standing | null),
       percentile: c.percentile ?? null,
-      age: readingAgeLine(freshness(c.fetchedAt, Date.now()), c.observedAt),
+      age: readingAgeLine(freshness(c.fetchedAt, now()), c.observedAt),
     };
   }
 

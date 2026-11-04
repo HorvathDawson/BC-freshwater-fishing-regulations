@@ -23,7 +23,7 @@ import {
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
-         versionLine } from "@app/core";
+         versionLine, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
          type UpdateService, type WaterSource } from "@app/data";
 import type { MobileDataGate, ReleaseLoader } from "@app/data/release";
@@ -347,7 +347,7 @@ export default function App() {
   const applying = useRef<{ from: string | null; at: number } | null>(null);
   const apply = useCallback(() => {
     if (updates.snapshot().release?.phase !== "ready") return;
-    applying.current = { from: bootedRef.current?.held.release ?? null, at: Date.now() };
+    applying.current = { from: bootedRef.current?.held.release ?? null, at: clockNow() };
     if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log("[swap] apply");
     setGeneration((g) => g + 1);
   }, [updates]);
@@ -368,8 +368,8 @@ export default function App() {
     applying.current = null;
     // (T287) the test bed's stall log reads the swap off this line
     if ((globalThis as { __openProbe?: boolean }).__openProbe)
-      console.log(`[swap] the new set committed, ${a ? Date.now() - a.at : "?"} ms after apply`);
-    updates.applied(boot.booted.manifest.data_release, a ? { from: a.from, ms: Date.now() - a.at } : undefined);
+      console.log(`[swap] the new set committed, ${a ? clockNow() - a.at : "?"} ms after apply`);
+    updates.applied(boot.booted.manifest.data_release, a ? { from: a.from, ms: clockNow() - a.at } : undefined);
     setToast(updatedToast(manifestDate(boot.booted.manifest)));
   }, [boot, updates]);
   const clearToast = useCallback(() => setToast(null), []);
@@ -384,7 +384,7 @@ export default function App() {
                      env: APP_ENV.env, origin: APP_ENV.origin, channel: UPDATE_CHANNEL, release: releaseRef.current }),
     channel: APP_ENV.switchable ? { current: UPDATE_CHANNEL, pick: pickChannel } : null,
     offline: { get: () => devOffline.on,
-               set: (on) => { devOffline.on = on; updateLog.append({ at: Date.now(), source: "app", kind: "action",
+               set: (on) => { devOffline.on = on; updateLog.append({ at: clockNow(), source: "app", kind: "action",
                                                                        note: UPDATE_LOG_WORDS.notes.offline(on) }); } },
     forceRedownload: async () => { updates.forget(); await updates.check({ manual: true }); },
     clearCache: async () => {
@@ -392,7 +392,7 @@ export default function App() {
       // the web's release files (Cache Storage); a phone's installed set is the data in use and is never dropped here
       const caches = (globalThis as { caches?: CacheStorage }).caches;
       const dropped = caches ? await caches.delete("release-v1").catch(() => false) : false;
-      updateLog.append({ at: Date.now(), source: "app", kind: "action",
+      updateLog.append({ at: clockNow(), source: "app", kind: "action",
                          note: UPDATE_LOG_WORDS.notes.cache(WEB, dropped) });
       await updates.check({ manual: true });
     },

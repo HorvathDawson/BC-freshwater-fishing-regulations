@@ -20,7 +20,7 @@
  * spot's "Get the flow for that day" both go through `fillDayFlow`, which asks it. A reading taken ON the visit day is
  * never replaced (`readingIsTheDays`).
  */
-import { isEnvironment, lakeDamped, offlineAs, localDate, percentileInBand, placeInBand } from "@app/core";
+import { isEnvironment, lakeDamped, offlineAs, localDate, percentileInBand, placeInBand, now as clockNow } from "@app/core";
 import type { Panel, PanelMember, WaterSource, StationId } from "../index";
 import { answerFrom, type PanelAnswer } from "../panel";
 import { dayIn } from "./leadup";
@@ -160,7 +160,7 @@ export function dayFlowAskable(spot: Spot): boolean {
  * Ask for the visit day's flow and lay the answer on the spot: the same spot back when nothing is learned (offline,
  * the day not over) or nothing may be asked (a reading of the day, no station). `now` stamps the record.
  */
-export async function fillDayFlow(spot: Spot, ports: DayFlowPorts, now: number = Date.now()):
+export async function fillDayFlow(spot: Spot, ports: DayFlowPorts, now: number = clockNow()):
   Promise<{ spot: Spot; answer: DayFlowAnswer | null }> {
   const station = dayFlowStation(spot);
   if (!station || !dayFlowAskable(spot)) return { spot, answer: null };
@@ -262,7 +262,7 @@ export function needsDayPanel(spot: Spot): boolean {
 }
 
 /** Read the trip day's panel onto a spot that needs it (`needsDayPanel`); the same spot back when nothing is learned. */
-export async function fillDayPanel(spot: Spot, ports: DayFlowPorts, now: number = Date.now()): Promise<Spot> {
+export async function fillDayPanel(spot: Spot, ports: DayFlowPorts, now: number = clockNow()): Promise<Spot> {
   if (!needsDayPanel(spot)) return spot;
   const date = visitDay(spot);
   const members = spot.panelDay?.state === "pending" ? spot.panelDay.members : panelOfAnswer(spot.panel!);
@@ -311,7 +311,7 @@ export const pendingPanel = (members: Panel | undefined, date: string): Pick<Spo
   members && members.members.length ? { panel: null, panelDay: { state: "pending", date, members } } : { panel: null };
 
 /** Saved on its own day, which is still today, with gauges still to read: a live read now is that day's. */
-export function liveFillable(spot: Spot, now: number = Date.now()): boolean {
+export function liveFillable(spot: Spot, now: number = clockNow()): boolean {
   if (isBackdated(spot) || visitDay(spot) !== localDate(now) || readingIsTheDays(spot)) return false;
   return spot.panelDay?.state === "pending" || !!spot.reading?.station;
 }
@@ -321,7 +321,7 @@ export function liveFillable(spot: Spot, now: number = Date.now()): boolean {
  * was taken on the visit day (marked filled in). The same spot back when nothing could be read.
  */
 export async function fillLive(spot: Spot, source: WaterSource, feed: LiveIndex | undefined,
-                               now: number = Date.now()): Promise<Spot> {
+                               now: number = clockNow()): Promise<Spot> {
   if (!liveFillable(spot, now)) return spot;
   let next = spot;
   if (spot.panelDay?.state === "pending" && feed) {

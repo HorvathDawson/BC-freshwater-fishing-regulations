@@ -8,7 +8,7 @@
  *
  * https://open-meteo.com — CC-BY-4.0, attribution carried in the Layers panel.
  */
-import { reportFailure } from "@app/core";
+import { reportFailure, now } from "@app/core";
 import type { DailyWeather, SpotWeather, WeatherSample } from "./model";
 import type { WeatherSource } from "./capture";
 import type { WeatherAhead } from "./likeVisit";
@@ -23,7 +23,7 @@ const FIELDS = "temperature_2m,relative_humidity_2m,precipitation,weather_code,"
 const day = (d: Date) => d.toISOString().slice(0, 10);
 
 /** Yesterday, in UTC. The archive lags real time; asking it for today returns nothing. */
-const isHistoric = (when: Date) => Date.now() - when.getTime() > 36 * 3600_000;
+const isHistoric = (when: Date) => now() - when.getTime() > 36 * 3600_000;
 
 /** S1: the week before a visit, one row per day. */
 const DAILY = "temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weather_code";
@@ -90,7 +90,7 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
       if (!first || !last) return null;
       const endOfLast = localMidnight(last) + 86_400_000;
       const where = `latitude=${lat}&longitude=${lon}`;
-      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const today = new Date(now()); today.setHours(0, 0, 0, 0);
       const back = Math.round((today.getTime() - localMidnight(first)) / 86_400_000);
       const recent = `${CURRENT}?${where}&daily=${DAILY}&timezone=auto` +
                      `&past_days=${Math.min(PAST_DAYS_MAX, Math.max(1, back))}&forecast_days=1`;
@@ -118,7 +118,7 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
           return null;
         }
       };
-      if (Date.now() - endOfLast <= ARCHIVE_LAG_MS) return ask(recent);
+      if (now() - endOfLast <= ARCHIVE_LAG_MS) return ask(recent);
       const archived = await ask(`${ARCHIVE}?${where}&start_date=${first}&end_date=${last}&daily=${DAILY}&timezone=auto`);
       // THE ARCHIVE LAGS REAL TIME, and answers a day it has not reached with the day present and every value null
       // (owner bug 2026-10-22). Such a day, or one it left out, is asked of the forecast's `past_days` while that

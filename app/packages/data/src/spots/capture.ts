@@ -8,7 +8,7 @@
  * as a null on the record rather than a zero or a guess — the screen then says "not known",
  * which is the truth, and a later backfill can fill it in and mark itself as backfilled.
  */
-import { freezeTrace, leadUpDays, localDate, reported, reportFailure, type FrozenTrace } from "@app/core";
+import { freezeTrace, leadUpDays, localDate, reported, reportFailure, type FrozenTrace, now as clockNow } from "@app/core";
 import type { answerFrom } from "../panel";
 import { sheetLead, speakerFor, speaks, type Speaker } from "../standing";
 import type { ItemId, WaterSource, SectionId, StationId } from "../index";
@@ -99,7 +99,7 @@ export async function captureSpot(raw: CaptureInput): Promise<Spot> {
   // (T307) offline the network asks are not made, flaky they are cut short: the spot saves with what the device holds
   const input: CaptureInput = { ...raw, ...fastPorts(raw, raw.history?.online) } as CaptureInput;
   const { source, at, item, section, waterName } = input;
-  const now = input.now ?? Date.now();
+  const now = input.now ?? clockNow();
   const visitedAt = input.visitedAt ?? now;
   /*
    * THE TRIP'S DAY, NOT THE SAVE'S (owner 2026-10-24, Q161: "it should save the date that you set as the time of trip

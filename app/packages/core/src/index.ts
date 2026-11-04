@@ -34,6 +34,8 @@ export * from "./searchIndex";
 export * from "./recentSearches";
 export * from "./near";
 export * from "./day";
+// (T382) the ONE place the app reads the device clock: instants (`now`) and the B.C. day (`bcNow`, `bcToday`)
+export * from "./clock";
 export * from "./sun";
 export * from "./conditions";
 export * from "./gaugeSide";

@@ -27,6 +27,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { WaterView } from "@app/core";
 import type { ViewSwipe as ViewSwipeState } from "@app/ui";
 import { NATIVE_DRIVER } from "./motion";
+import { now } from "@app/core";
 
 export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill = true, still = false }: {
   swipe: ViewSwipeState; children: React.ReactNode;
@@ -43,7 +44,7 @@ export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill 
   const x = useContext(SwipeOffsetContext) ?? own;
   // when a shielded thing was last pressed (see useSwipeShield) — a drag that began on one is that thing's
   const heldAt = useRef(-Infinity);
-  const shield = useRef<Shield>(() => { heldAt.current = Date.now(); }).current;
+  const shield = useRef<Shield>(() => { heldAt.current = now(); }).current;
   // the edge zones are the SCREEN's (the system's edge gestures), so a start is measured against the window
   const width = useRef(0);
   width.current = useWindowDimensions().width;
@@ -75,7 +76,7 @@ export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill 
         });
     }
     return pan
-      .onBegin((e) => { begun = Date.now(); live = swipe.starts(e.absoluteX, width.current); })
+      .onBegin((e) => { begun = now(); live = swipe.starts(e.absoluteX, width.current); })
       .onUpdate((e) => { if (live && held()) live = false; if (live) x.setValue(swipe.offset(e.translationX)); })
       // `success` is false when the system cancelled the swipe after it went active: that is not a release
       .onEnd((e, success) => { if (live && success && !held()) swipe.release(e.translationX, e.translationY, e.velocityX); })

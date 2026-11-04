@@ -34,6 +34,7 @@ import { KeepTab } from "./KeepTab";
 import { TermTitles, type KeepActions } from "./LineText";
 import { createPinStore, type PinStore } from "./pinStore";
 import { BoatsLine } from "./BoatsLine";
+import { SunCard } from "./SunCard";
 import { RegsHeader } from "./RegsHeader";
 import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
@@ -124,6 +125,8 @@ export interface RegsScreenProps {
    * drawn at the page's foot under the "not legal advice" line (`LEGAL_WORDS.footer`, always drawn). Absent: that line only.
    */
   asOf?: string | null;
+  /** (T382) the day's sunrise and sunset at the water (`useSunLine`), the first small card of the page; absent: none. */
+  sun?: string | null;
   /**
    * (T50) the water as opened (`regsScrollKey`): the page remembers its scroll under it and, mounted again without a
    * start link (a view or tab switch, back / forward, a new day, an Android recreation), returns there once the page is
@@ -135,7 +138,7 @@ export interface RegsScreenProps {
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
                              gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
-                             nameSource = null, asOf = null, scrollKey = null }: RegsScreenProps) {
+                             nameSource = null, asOf = null, scrollKey = null, sun = null }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);
@@ -234,6 +237,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
           <Text accessibilityRole="alert" style={{ ...TYPE.metaBold, color: palette.ink, flex: 1 }}>{lapsed}</Text>
         </WaterInset>
       )}
+      <SunCard line={sun} palette={palette} />
       <BoatsLine boats={page.boats} palette={palette} onSheet={openSheet} />
       {!glance && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>

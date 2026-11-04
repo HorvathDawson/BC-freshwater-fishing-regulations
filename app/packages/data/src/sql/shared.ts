@@ -4,7 +4,7 @@
  * from any SQLite with the pipeline bundle's columns. (Its second reader, the dev bundle's, was retired in T61.)
  */
 import { bandAt, boxOfParts, CHANGE_POLICY, calendarDayOfYear, describeBy, metresOfBucket, rankPointers, rankWaters, relOfCode, shownParameter, type Band,
-         type Bbox, type NearPlace } from "@app/core";
+         type Bbox, type NearPlace, now as clockNow } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { Aged, GaugeLink, GaugeWaters, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId,
               Series, StationId } from "../index";
@@ -227,7 +227,7 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
      * belong at their own: on 73 buckets a whole autumn is fourteen points. `bandAt`
      * interpolates between pentads, which is what it is for.
      */
-    const at = obs?.at.length ? new Date(obs.at[obs.at.length - 1]!) : new Date();
+    const at = obs?.at.length ? new Date(obs.at[obs.at.length - 1]!) : new Date(clockNow());
     const year = at.getUTCFullYear();
     const today = calendarDayOfYear(at.toISOString().slice(0, 10));
     const days = Math.min(daysInYear(year), today + 31);

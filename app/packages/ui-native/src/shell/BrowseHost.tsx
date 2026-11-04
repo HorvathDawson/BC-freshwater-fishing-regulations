@@ -2,7 +2,7 @@
  * THE BROWSE TABS' BODIES: the Map and Conditions tabs' ONE map, the Spots tab and the More tab (T62 3.4: out of the
  * Shell, unchanged). The top bar, the search sheet, the legend and the tab bar are the Shell's, drawn over these.
  */
-import { dayLabel, type DayRange, type NotFishingKind, type SectionKey, type SyncVM } from "@app/core";
+import { dayLabel, type DayRange, type NotFishingKind, type SectionKey, type SyncVM, now as clockNow } from "@app/core";
 import { useCallback, type MutableRefObject } from "react";
 import { Platform, View } from "react-native";
 import { openProbe, type SectionId } from "@app/data";
@@ -108,7 +108,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   /** What More's Data block reads (T167: the only place a source's date and freshness are drawn): the release's dates, the pair, the feed's age. */
   const dataFacts = {
     sources: loader?.manifest?.sources ?? null, validUntil: loader?.manifest?.regulations?.valid_until ?? null,
-    tiles: vintage.tiles ?? null, tilesPaired: vintage.ok, feedFetchedAt: syncState.feedFetchedAt, now: Date.now(),
+    tiles: vintage.tiles ?? null, tilesPaired: vintage.ok, feedFetchedAt: syncState.feedFetchedAt, now: clockNow(),
     // the feed's word on HYDAT (its maintenance notice), read with the sync state; never handed to the sync icon
     hydatNotice: syncState.hydatNotice,
     // (T68) the feed index's newest forecast run, for the Forecasts line

@@ -17,6 +17,7 @@ import { WindowInsets } from "../WindowInset";
 import { MIN_HIT } from "./hit";
 import { closePdf, failPdf, usePdfView } from "./pdfView";
 import { SYNOPSIS_WORDS as W } from "./synopsisLoad";
+import { now } from "@app/core";
 
 export function PdfViewer({ palette }: { palette: Palette }) {
   const v = usePdfView();
@@ -51,7 +52,7 @@ export function PdfViewer({ palette }: { palette: Palette }) {
         ) : (
           <Pdf source={source} page={v.page} enableAnnotationRendering trustAllCerts={false}
                style={{ flex: 1, backgroundColor: palette.page }}
-               onLoadComplete={(of) => { setAt({ page: v.page, of }); console.info(`[synopsis] drawn p.${v.page} of ${of} in ${Date.now() - v.at} ms`); }}
+               onLoadComplete={(of) => { setAt({ page: v.page, of }); console.info(`[synopsis] drawn p.${v.page} of ${of} in ${now() - v.at} ms`); }}
                onPageChanged={(page, of) => setAt({ page, of })}
                onError={(e) => {
                  // said on its face AND reported (owner 2026-11-03: every shown failure reaches us)

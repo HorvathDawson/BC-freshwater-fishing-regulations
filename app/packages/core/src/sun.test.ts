@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bcClockTime, bcNow, bcOffsetHours, sunLine, sunTimes } from "./index";
+import { bcClockTime, bcNow, bcOffsetHours, bcToday, sunLine, sunTimes } from "./index";
 
 /** minutes past midnight at a fixed UTC offset */
 const at = (ms: number | null, off: number) => {
@@ -40,5 +40,7 @@ describe("the regulations' clock is B.C.'s, written in the app (not the device's
     const c = bcNow(Date.UTC(2026, 6, 1, 0, 30));
     expect([c.getMonth() + 1, c.getDate(), c.getHours()]).toEqual([6, 30, 17]);
     expect(bcClockTime(Date.UTC(2026, 11, 21, 16, 5))).toBe("09:05 PT");
+    const t = bcToday(Date.UTC(2026, 10, 5, 6, 30));                  // (T382) the same day, at its midnight
+    expect([t.getFullYear(), t.getMonth() + 1, t.getDate(), t.getHours(), t.getMinutes()]).toEqual([2026, 11, 4, 0, 0]);
   });
 });

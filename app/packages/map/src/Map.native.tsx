@@ -43,7 +43,7 @@ import {
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, fitAtMost, padBbox, refineFit, spotMarkers,
-         spotUnder, profileLabel, type Bbox, type SpotMarker, type SectionKey } from "@app/core";
+         spotUnder, profileLabel, type Bbox, type SpotMarker, type SectionKey, now as clockNow } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
 import { SPOT_SOURCE, spotBoxImage, spotBoxName, spotImages, spotsData, spotsLayers } from "./spot-marks";
 import { baseAdapter } from "./adapters/contract";
@@ -474,7 +474,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if (!ne) return;
     // (T286) the open probe's zero (test bed only: `@app/data` openProbe), before the hit test
     const probe = globalThis as { __openProbe?: boolean; __openPressAt?: number };
-    if (probe.__openProbe) probe.__openPressAt = globalThis.performance?.now?.() ?? Date.now();
+    if (probe.__openProbe) probe.__openPressAt = globalThis.performance?.now?.() ?? clockNow();
     const [x, y] = Array.isArray(ne.point) ? ne.point : [ne.point.x, ne.point.y];
     const [lon, lat] = ne.lngLat;
     // (T145) a tap on a spot is the spot's: never ALSO the map's — no water opens under it, and the off-spot tap that

@@ -80,7 +80,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
       : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages} adiposeImages={adiposeImages}
                      // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped
                      // (T53: an unnamed reach, item null, is answered by the tapped section itself)
-                     loader={loader} day={mapDay} onDay={onDay} section={frame.tapSid}
+                     loader={loader} day={mapDay} onDay={onDay} section={frame.tapSid} at={frame.at}
                      part={frame.part} stretch={frame.stretch} start={start} onStarted={onStarted}
                      // (T58) a Parts sheet row is the frame's part, as a step on the water map is (one water screen)
                      onPart={item === null ? undefined : (p) => go(partAction(item, item, p))}

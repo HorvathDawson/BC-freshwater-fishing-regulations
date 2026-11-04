@@ -10,7 +10,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pentadOf, restoreRunSpecies, runSpecies, saveRunSpecies, slotsFor, type RunSpecies,
-         type RunTimingFacts } from "@app/core";
+         type RunTimingFacts, bcNow, now as clockNow } from "@app/core";
 import type { RunTimingSource } from "@app/data";
 import { useAsync } from "./async";
 
@@ -89,7 +89,7 @@ export function useRunTiming(i: { source: RunTimingSource | null | undefined; wa
   const only = useCallback((name: string) => choose([name]), [choose]);
   const all = useCallback(() => choose(species.map((s) => s.name)), [choose, species]);
 
-  const day = i.now ?? new Date();
+  const day = i.now ?? bcNow();
   const today = pentadOf(day);
   const year = day.getFullYear();
   const [pentad, setPentadRaw] = useState(today);
@@ -125,9 +125,9 @@ function useThrottled<T>(v: T, ms: number): T {
   const [out, setOut] = useState(v);
   const last = useRef(0);
   useEffect(() => {
-    const wait = last.current + ms - Date.now();
-    if (wait <= 0) { last.current = Date.now(); setOut(v); return; }
-    const t = setTimeout(() => { last.current = Date.now(); setOut(v); }, wait);
+    const wait = last.current + ms - clockNow();
+    if (wait <= 0) { last.current = clockNow(); setOut(v); return; }
+    const t = setTimeout(() => { last.current = clockNow(); setOut(v); }, wait);
     return () => clearTimeout(t);
   }, [v, ms]);
   return out;

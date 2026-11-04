@@ -16,6 +16,7 @@ import type { WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { useFeedVersion } from "./feedVersion";
 import { sourceKey } from "./conditionsColour";
+import { bcNow } from "@app/core";
 
 /** Which regulations the Map tab paints: the provincial day's status (bait ban / fly only marked on it, T213), or DFO's
  *  salmon. (T261) Run timing left this switch for its own tab, Runs. */
@@ -53,7 +54,7 @@ export function useSalmonColour(i: { source: WaterSource; paired: boolean; statu
   const f = facts.state === "ready" ? facts.value : null;
   const dayKey = i.day ? `${i.day.getFullYear()}-${i.day.getMonth()}-${i.day.getDate()}` : "today";
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the day's identity is its date, not the Date object
-  const day = useMemo(() => i.day ?? new Date(), [dayKey]);
+  const day = useMemo(() => i.day ?? bcNow(), [dayKey]);
   const feed = useMemo(() => (f && i.paired ? { facts: f, day } : null), [f, day, i.paired]);
   const loading = asked === key && facts.state === "loading";
   const offered = i.onDemand ? i.paired && facts.state !== "failed" && !(facts.state === "ready" && f === null)
@@ -83,7 +84,7 @@ export function useMethodColour(i: { source: WaterSource; paired: boolean; statu
   const f = facts.state === "ready" ? facts.value : null;
   const dayKey = i.day ? `${i.day.getFullYear()}-${i.day.getMonth()}-${i.day.getDate()}` : "today";
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the day's identity is its date, not the Date object
-  const day = useMemo(() => i.day ?? new Date(), [dayKey]);
+  const day = useMemo(() => i.day ?? bcNow(), [dayKey]);
   const feed = useMemo(() => (f && i.paired ? { facts: f, day } : null), [f, day, i.paired]);
   return { feed };
 }

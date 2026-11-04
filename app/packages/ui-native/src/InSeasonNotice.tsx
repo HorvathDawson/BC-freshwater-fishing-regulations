@@ -8,7 +8,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { Text } from "./Text";
 import { INSEASON_WORDS, syncErrorVM, UPDATE_WORDS, type InSeasonNoticeRow, type ReleaseNoticeVM,
-         type UpdateSourceInput } from "@app/core";
+         type UpdateSourceInput, now } from "@app/core";
 import { SyncFailures } from "./SyncErrorSheet";
 import { Button } from "./Button";
 import { RegsPress } from "./regs/RegsPress";
@@ -33,7 +33,7 @@ export function InSeasonNotice({ open, rows, palette, onClose, sync = null, rele
   const [asking, setAsking] = useState(false);
   const rel = release?.vm ?? null;
   const others = rows.length > 0 || !!(sync && sync.failed.length);
-  const failed = sync && sync.failed.length ? syncErrorVM(sync.failed, Date.now()) : null;
+  const failed = sync && sync.failed.length ? syncErrorVM(sync.failed, now()) : null;
   // (owner 2026-10-29) the bell is always drawn, so it can open on nothing: "No notifications"
   const empty = !rel && !failed && rows.length === 0;
   const title = empty ? UPDATE_WORDS.bell.noneTitle : rel && !others ? rel.title

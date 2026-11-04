@@ -17,7 +17,7 @@
  * Switching it off sends nothing and forgets a kept one.
  */
 import { createContext, createElement, useContext, useEffect, useState, type ReactNode } from "react";
-import { isEnvironment, reportFailure, setFailureSink } from "@app/core";
+import { isEnvironment, reportFailure, setFailureSink, now as clockNow } from "@app/core";
 import { waterFrame, type Route, type View } from "./route";
 
 /** (T352) crash/2: the open water and its pane, the install id, `background`. The worker takes crash/1 too (0.4.0 phones). */
@@ -231,7 +231,7 @@ export function createCrashReporter(o: {
   test?: boolean;
 }): CrashReporter {
   const f = o.fetch ?? ((u: RequestInfo | URL, i?: RequestInit) => fetch(u, i));
-  const now = o.now ?? (() => new Date());
+  const now = o.now ?? (() => new Date(clockNow()));
   const seen = new Set<string>();
   const max = o.maxPerRun ?? 5;
   const clearKept = () => { try { o.store?.write(""); } catch { /* nothing kept */ } };

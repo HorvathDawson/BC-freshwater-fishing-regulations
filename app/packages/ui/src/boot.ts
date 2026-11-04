@@ -3,7 +3,7 @@
  * held for the loading screen. The app shell passes the platform half in (`@app/data/release/platform`), so this hook,
  * like every hook, runs under both renderers.
  */
-import { reportFailure } from "@app/core";
+import { reportFailure, now } from "@app/core";
 import { useEffect, useRef, useState } from "react";
 import { bootRelease, BootError, warmLike, type BootOptions, type Booted, type Progress } from "@app/data/release";
 
@@ -43,7 +43,7 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
     // screen can show, and every redraw is JS-thread time the follower hash (install.ts) does not get. A new stage of
     // the second bar is drawn at once.
     let drawn = 0, pending: ReturnType<typeof setTimeout> | null = null, lastStep: string | undefined;
-    const draw = () => { pending = null; drawn = Date.now(); if (live && !again) set({ state: "loading", stage, progress }); };
+    const draw = () => { pending = null; drawn = now(); if (live && !again) set({ state: "loading", stage, progress }); };
     // (T262) a failed first start tried again (`attempt`): back to the loading screen; the download resumes
     if (!again && attempt > 0) set({ state: "loading", stage, progress });
     bootRelease({
@@ -55,7 +55,7 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
         const step = p.setup?.step;
         if (step !== lastStep) { lastStep = step; if (pending) clearTimeout(pending); draw(); return; }
         if (pending) return;
-        pending = setTimeout(draw, Math.max(0, PROGRESS_MS - (Date.now() - drawn)));
+        pending = setTimeout(draw, Math.max(0, PROGRESS_MS - (now() - drawn)));
       },
     }).then(
       async (booted) => {

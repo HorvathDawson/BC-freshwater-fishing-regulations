@@ -18,6 +18,7 @@ import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { byWeekdays } from "./staleness";
 import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
          changeSentence } from "./change";
+import { now as clockNow } from "./clock";
 
 /* ------------------------------------------------------------------- horizons ---- */
 
@@ -767,7 +768,7 @@ export interface ForecastRunFacts { model: string; horizonDays: number }
  * `now` is for tests; left out, it is the device's clock.
  */
 export function forecastRunLine(run: ForecastRunFacts & { issuedAt: string },
-                                zone?: string, now: number = Date.now()): string {
+                                zone?: string, now: number = clockNow()): string {
   const t = Date.parse(run.issuedAt);
   const when = Number.isFinite(t) ? ` issued ${localStamp(t, zone)}` : "";
   const old = Number.isFinite(t) && byWeekdays(t, now) === "stale" ? ` · ${CONDITIONS_WORDS.runOld}` : "";

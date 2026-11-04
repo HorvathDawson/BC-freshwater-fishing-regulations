@@ -1,3 +1,4 @@
+import { now as clockNow } from "@app/core";
 /**
  * (T273) THE PAN PROBE — test-bed measurement only, beside T74's grey-frame probe (`probe.ts`). On while
  * `globalThis.__panProbe` is set (apps/mobile sets it from `EXPO_PUBLIC_PAN_PROBE=1`, the test bed's build); otherwise
@@ -20,9 +21,9 @@ let started = false;
 function start(): void {
   if (started || !on()) return;
   started = true;
-  let due = Date.now() + 50;
+  let due = clockNow() + 50;
   setInterval(() => {
-    const now = Date.now(), lag = Math.max(0, now - due);
+    const now = clockNow(), lag = Math.max(0, now - due);
     due = now + 50;
     if (lag > w.lagMax) w.lagMax = lag;
     if (lag > 100) w.late += 1;
@@ -31,7 +32,7 @@ function start(): void {
     const busy = w.tiles || w.sends || w.renders || w.late;
     if (busy) {
       const ackMean = w.acks ? Math.round(w.ackSum / w.acks) : 0;
-      console.log(`[pan] ${JSON.stringify({ t: Date.now(), lagMax: w.lagMax, late: w.late, tiles: w.tiles, labels: w.labels,
+      console.log(`[pan] ${JSON.stringify({ t: clockNow(), lagMax: w.lagMax, late: w.late, tiles: w.tiles, labels: w.labels,
                                             sends: w.sends, ackMax: w.ackMax, ackMean, renders: w.renders })}`);
     }
     w = fresh();
@@ -45,8 +46,8 @@ export const panProbe = {
     if (!on()) return () => {};
     start();
     w.sends += 1;
-    const t0 = Date.now();
-    return () => { const ms = Date.now() - t0; w.acks += 1; w.ackSum += ms; if (ms > w.ackMax) w.ackMax = ms; };
+    const t0 = clockNow();
+    return () => { const ms = clockNow() - t0; w.acks += 1; w.ackSum += ms; if (ms > w.ackMax) w.ackMax = ms; };
   },
   render(): void { if (!on()) return; start(); w.renders += 1; },
 };

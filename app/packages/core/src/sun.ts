@@ -4,7 +4,7 @@
  * radius), good to a minute or two, which is what a day's line needs. Pure: the instants are UTC ms; the words are on
  * the B.C. clock (`bcClockTime`), as every regulations day is.
  */
-import { bcClockTime } from "./day";
+import { bcClockTime } from "./clock";
 
 const RAD = Math.PI / 180;
 const J2000 = 2451545.0;

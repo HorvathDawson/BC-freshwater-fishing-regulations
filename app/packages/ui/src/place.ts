@@ -17,7 +17,7 @@
  * strictly inside the part, so the same release resolves it back to the same part and stretch, and a later release to
  * whichever part now holds that point.
  */
-import { reported } from "@app/core";
+import { reported, bcNow } from "@app/core";
 import type { ItemId, SectionId, WaterSource } from "@app/data";
 import type { RegsReads } from "@app/data/regs";
 import type { ReleaseLoader } from "@app/data/release";
@@ -96,7 +96,7 @@ export async function resolvePlace(store: PlaceReads, itemFor: ItemFor, p: Strea
  */
 export async function linkSearch(store: PlaceReads | null, r: Route, current = "",
                                  onMissing?: (e: Error) => void, extra: AddressState | null = null,
-                                 now: Date = new Date()): Promise<string> {
+                                 now: Date = bcNow()): Promise<string> {
   let place: StreamPlace | null = null;
   if (store) {
     try { place = await placeOf(store, waterFrame(r)); }

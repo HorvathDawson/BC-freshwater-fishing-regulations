@@ -24,7 +24,7 @@
  */
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { failedSources, hydatNotice as noticeOf, UPDATE_WORDS, type HydatNotice, type SyncInput, type UpdateSourceInput,
-         type MobileDataSetting, type UpdateSourceKey } from "@app/core";
+         type MobileDataSetting, type UpdateSourceKey, now as clockNow } from "@app/core";
 import { FEED_TTL_MS, type GaugeFeed, type UpdateService, type UpdateSnapshot } from "@app/data";
 import { usePoll } from "./async";
 import { feedMoved } from "./feedVersion";
@@ -126,7 +126,7 @@ export function useSync({ feed, release, checkRelease, named = null, updates = n
   const manualAt = snap?.manual?.at ?? null;
   useEffect(() => {
     if (manualAt === null) return;
-    const t = setTimeout(() => setDoneTick((n) => n + 1), Math.max(0, manualAt + SYNC_DONE_MS - Date.now()) + 20);
+    const t = setTimeout(() => setDoneTick((n) => n + 1), Math.max(0, manualAt + SYNC_DONE_MS - clockNow()) + 20);
     return () => clearTimeout(t);
   }, [manualAt]);
   const [st, setSt] = useState<{ feedFetchedAt: string | null; checkedAt: number | null; latest: string | null;
@@ -148,7 +148,7 @@ export function useSync({ feed, release, checkRelease, named = null, updates = n
       releaseAsk ? (first ? Promise.resolve(named) : releaseAsk().catch(() => null)) : Promise.resolve(null),
       asked ? new Promise((r) => setTimeout(r, SYNC_MIN_CHECK_MS)) : null,
     ]).then(([idx, latest]) => {
-      if (live) setSt({ feedFetchedAt: idx.at, checkedAt: idx.at !== null ? Date.now() : null, latest,
+      if (live) setSt({ feedFetchedAt: idx.at, checkedAt: idx.at !== null ? clockNow() : null, latest,
                         hydatNotice: idx.hydat, forecastIssuedAt: idx.forecast, checking: false });
     });
     return () => { live = false; };
@@ -171,7 +171,7 @@ export function useSync({ feed, release, checkRelease, named = null, updates = n
   const update: SyncInput["update"] = {
     downloading: r?.phase === "downloading" ? (r.progress && r.progress.of > 0 ? r.progress.bytes / r.progress.of : 0) : null,
     ready: r?.phase === "ready", waitingWifi: r?.phase === "waiting-wifi", failed: failed.map((f) => UPDATE_WORDS.inline[f.k]),
-    done: !!snap.manual?.ok && Date.now() - snap.manual.at < SYNC_DONE_MS,
+    done: !!snap.manual?.ok && clockNow() - snap.manual.at < SYNC_DONE_MS,
   };
   // the gauge feed's age on this device: when the service last reached it (a 304 is a reach)
   const gauges = snap.feeds.find((f) => f.id === "gauges");

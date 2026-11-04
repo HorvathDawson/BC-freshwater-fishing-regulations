@@ -9,7 +9,7 @@
  * are shared by every visit.
  */
 import { fastPorts } from "./fastFail";
-import { isRating, leadUpDays, localDate, reported, reportFailure } from "@app/core";
+import { isRating, leadUpDays, localDate, reported, reportFailure, now as clockNow } from "@app/core";
 import type { Spot, Visit } from "./model";
 import { leadUpFor } from "./leadup";
 import { capturePanelOnDay, dayFlowStation, fillDayFlow, livePanel, panelOfAnswer, pendingPanel, type DayFlowPorts } from "./dayFlow";
@@ -107,13 +107,13 @@ export function withVisit(spot: Spot, id: string, changed: Spot): Spot {
 }
 
 /** A visit's rating changed (null clears it). */
-export function rateVisit(spot: Spot, id: string, rating: number | null, now: number = Date.now()): Spot {
+export function rateVisit(spot: Spot, id: string, rating: number | null, now: number = clockNow()): Spot {
   const r = isRating(rating) ? rating : null;
   return { ...withVisit(spot, id, { ...visitSpot(spot, id), rating: r }), updatedAt: now };
 }
 
 /** A new visit added (kept oldest first). */
-export function addVisit(spot: Spot, visit: Visit, now: number = Date.now()): Spot {
+export function addVisit(spot: Spot, visit: Visit, now: number = clockNow()): Spot {
   const visits = [...(spot.visits ?? []), visit].sort((a, b) => a.visitedAt - b.visitedAt);
   return { ...spot, visits, updatedAt: now };
 }
@@ -122,7 +122,7 @@ export function addVisit(spot: Spot, visit: Visit, now: number = Date.now()): Sp
  * One visit removed. The spot's LAST visit cannot be: that is deleting the spot. Removing the first visit promotes the
  * next one into the spot's own fields (with its id kept as `visitId`), so the first visit is always the fields.
  */
-export function removeVisit(spot: Spot, id: string, now: number = Date.now()): Spot {
+export function removeVisit(spot: Spot, id: string, now: number = clockNow()): Spot {
   const later = spot.visits ?? [];
   if (!later.length) return spot;
   if (later.some((v) => v.id === id))
@@ -159,7 +159,7 @@ export interface CaptureVisitInput {
 export async function captureVisit(spot: Spot, raw: CaptureVisitInput): Promise<Visit> {
   // (T307) offline the network asks are not made, flaky they are cut short; the reconnect refresh fills the rest
   const input: CaptureVisitInput = { ...raw, ...fastPorts(raw, raw.history?.online) } as CaptureVisitInput;
-  const now = input.now ?? Date.now();
+  const now = input.now ?? clockNow();
   const visitedAt = input.visitedAt ?? now;
   const earlier = localDate(visitedAt) < localDate(now);
   const ports: DayFlowPorts = { source: input.source, ...input.history };

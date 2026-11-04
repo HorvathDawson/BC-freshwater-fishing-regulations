@@ -10,7 +10,7 @@ import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { UPDATE_LOG_CAP, UPDATE_LOG_WORDS, UPDATE_WORDS, updateLogHead, updateLogStatus, updateLogText, updateLogVM,
-         type UpdateLogHeader } from "@app/core";
+         type UpdateLogHeader, now as clockNow } from "@app/core";
 import type { UpdateLog, UpdateService } from "@app/data";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
@@ -105,7 +105,7 @@ export function UpdatesLogPage({ c, palette }: { c: UpdatesLogControls; palette:
 
       <View style={{ flexDirection: "row", gap: SPACE.s2, alignItems: "center" }}>
         <Act id="copy" label={W.actions.copy} palette={palette}
-             onPress={() => { void c.copy(updateLogText(events, c.header(), Date.now())).then(setCopied); }} />
+             onPress={() => { void c.copy(updateLogText(events, c.header(), clockNow())).then(setCopied); }} />
         <Act id="clear" label={W.actions.clear} palette={palette} onPress={events.length ? c.log.clear : undefined} />
         {copied !== null && (
           <Text testID="updates-log-copied" style={{ ...TYPE.small, color: copied ? palette.sub : palette.closed }}>

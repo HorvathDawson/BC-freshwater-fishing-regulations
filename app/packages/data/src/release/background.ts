@@ -27,6 +27,7 @@ import { REGIONS, WEB_BUDGET, type Region } from "../pack.generated";
 import type { Manifest } from "../manifest";
 import type { FileName, ReleaseLoader } from "./loader";
 import { PREFETCH_MARK } from "./prefetch";
+import { now as clockNow } from "@app/core";
 
 /**
  * Each region's neighbours on the land (hand-written from the provincial fishing regions map; symmetric, held so by a
@@ -159,7 +160,7 @@ const regionWord = (r: Region) => r.toUpperCase();
 export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefetch {
   const { loader } = o;
   const m = loader.manifest;
-  const now = o.now ?? (() => Date.now());
+  const now = o.now ?? (() => clockNow());
   const cap = Math.max(1, o.concurrency ?? 1);
   let net: NetSignals = { ...NET_DEFAULT, ...o.signals };
   let view: Region[] = [];

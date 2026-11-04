@@ -26,7 +26,7 @@
  * one binding to the archive, and works wherever `fetch` does — the same helper for the web
  * map and, through the adapter contract's `setTrace`, the native one.
  */
-import { reportFailure } from "@app/core";
+import { reportFailure, now as clockNow } from "@app/core";
 import type { SectionKey } from "@app/core";
 import { PMTiles } from "pmtiles";
 import { decodeTile, type TileLayer } from "./mvt";
@@ -487,9 +487,9 @@ export async function traceOverlay(url: string, routes: readonly TraceRoute[],
                                    source?: TileSource):
     Promise<{ fc: TraceCollection; missing: number[]; fetched: number; tiles: number;
               ms: number }> {
-  const t0 = Date.now();
+  const t0 = clockNow();
   const a = source ? { src: source, cache: atlasTrace(url).cache } : atlasTrace(url);
   const got = await readTrace(routes, a.src, a.cache);
   return { fc: traceCollection(routes, got.shapes), missing: got.missing,
-           fetched: got.fetched, tiles: got.asked.length, ms: Date.now() - t0 };
+           fetched: got.fetched, tiles: got.asked.length, ms: clockNow() - t0 };
 }

@@ -18,7 +18,7 @@
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { accessNotices, buildRegsPage, offlineAs, reported, headerOf, leadingAccessNotices, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
-         type Weekday, type Who } from "@app/core";
+         type Weekday, type Who, bcNow, now as clockNow } from "@app/core";
 import { downstreamWater, openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { itemsOfSections, loadRegsInputs, loadWaterGroup, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
@@ -226,7 +226,7 @@ export function useSalmonCard(loader: SalmonLoader | null, store: Pick<RegsStore
                               /** (T254) a new number asks again (Try again; the line coming back after a failure) */
                               retry = 0): Async<SalmonCardLiveVM | null> {
   const asks = !!loader && !!page;
-  const on = mapDay ?? new Date();
+  const on = mapDay ?? bcNow();
   const dayKey = `${on.getFullYear()}-${on.getMonth() + 1}-${on.getDate()}`;
   // (owner 2026-10-29) a DFO feed the update service took redraws the open page's card in place: a refresh
   const dfo = useFeedVersion("dfo");
@@ -333,7 +333,7 @@ async function prefetchPages(loader: RegsLoader, source: Pick<WaterSource, "wate
   for (const [sid, item] of owner) { const b = by.get(item); if (b) b.n += 1; else by.set(item, { n: 1, sid }); }
   const d = regsDay(mapDay);
   const top = [...by].sort((a, b) => b[1].n - a[1].n).slice(0, PREFETCH_MAX);
-  const t0 = Date.now();
+  const t0 = clockNow();
   let done = 0;
   for (const [item, { sid }] of top) {
     if (stale()) break;
@@ -345,7 +345,7 @@ async function prefetchPages(loader: RegsLoader, source: Pick<WaterSource, "wate
     done += 1;
   }
   // the test bed's open probe: what the settle read
-  if (openProbe.on()) console.log(`[prefetch] ${done}/${top.length} waters of ${sids.length} sections in ${Date.now() - t0} ms`);
+  if (openProbe.on()) console.log(`[prefetch] ${done}/${top.length} waters of ${sids.length} sections in ${clockNow() - t0} ms`);
 }
 
 // ── the one day ──────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -359,7 +359,7 @@ const isoDay = (d: Day, year: number) =>
  * The Shell's `mapDay` (Date | null; null = today) as the core's day: the LOCAL calendar date, its real weekday (core's
  * calendar, `tapDay`), its year (which names every weekday of the strip), today's date, and whether it is today.
  */
-export function regsDay(mapDay: Date | null, now: Date = new Date()):
+export function regsDay(mapDay: Date | null, now: Date = bcNow()):
   { day: Day; weekday: Weekday; calendarYear: number; today: Day; isToday: boolean } {
   const d = mapDay ?? now;
   const day = { month: d.getMonth() + 1, day: d.getDate() };
@@ -368,7 +368,7 @@ export function regsDay(mapDay: Date | null, now: Date = new Date()):
 }
 
 /** A core day (+ its year) back to the Shell's `mapDay`: today → null (so "Today" follows midnight), else local noon. */
-export function mapDayOf(day: Day, calendarYear: number, now: Date = new Date()): Date | null {
+export function mapDayOf(day: Day, calendarYear: number, now: Date = bcNow()): Date | null {
   const d = new Date(calendarYear, day.month - 1, day.day, 12);
   return sameDate(d, now) ? null : d;
 }

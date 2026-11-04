@@ -19,7 +19,7 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { reportFailure, shownParameter, standing, type SourceChange } from "@app/core";
+import { reportFailure, shownParameter, standing, type SourceChange, now as clockNow } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
 import { fetchJsonResilient } from "../net/fetch";
@@ -286,7 +286,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
   async function load<T>(path: string): Promise<T | null> {
     const url = `${trimmed}/${path}`;
     const hit = cache.get(url);
-    if (hit && (held(url) || Date.now() - hit.at < FEED_TTL_MS)) return hit.value as T;
+    if (hit && (held(url) || clockNow() - hit.at < FEED_TTL_MS)) return hit.value as T;
     // (T315) offline: no request (it would only wait out its timeouts); what this session or the phone holds answers
     if (opts.online && !opts.online()) return fallback<T>(path, url);
 
@@ -300,7 +300,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
           const got = await fetchJsonResilient<T>(url, { fetchImpl, attempts: 2, limits: opts.limits ?? FEED_LIMITS,
                                                           ...(held(url) ? { cache: "no-store" as const } : {}) });
           if (!got.ok) return null;          // 404 = this station is not transmitting
-          cache.set(url, { at: Date.now(), value: got.value });
+          cache.set(url, { at: clockNow(), value: got.value });
           good.set(url, got.value);
           const st = stationOf(path);
           try {
@@ -350,7 +350,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
       if (!i || typeof i !== "object" || typeof i.stations !== "object" || i.stations === null)
         throw new Error("not a gauge feed index (no stations)");
       cache.clear();
-      cache.set(`${trimmed}/index.json`, { at: Date.now(), value: i });
+      cache.set(`${trimmed}/index.json`, { at: clockNow(), value: i });
       try { opts.history?.noteIndex(i); } catch { /* a cache */ }
     },
 

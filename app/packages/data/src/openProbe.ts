@@ -1,3 +1,4 @@
+import { now as clockNow } from "@app/core";
 /**
  * (T286) THE OPEN PROBE — test-bed measurement only, beside T273's pan probe. On while `globalThis.__openProbe` is set
  * (apps/mobile sets it from `EXPO_PUBLIC_PAN_PROBE=1`, the test bed's build); otherwise every call is a no-op.
@@ -13,7 +14,7 @@ interface Trace {
 }
 type Probe = { __openProbe?: boolean; __openPressAt?: number };
 const g = globalThis as Probe;
-const now = (): number => globalThis.performance?.now?.() ?? Date.now();
+const now = (): number => globalThis.performance?.now?.() ?? clockNow();
 const r1 = (x: number) => Math.round(x * 10) / 10;
 let cur: Trace | null = null;
 

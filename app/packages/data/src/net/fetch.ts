@@ -19,6 +19,7 @@
  */
 import { MAX_ATTEMPTS, backoffMs, timeoutsFor, type Timeouts } from "./policy";
 import type { NetMeter } from "./meter";
+import { now } from "@app/core";
 
 export class NetError extends Error {
   /** (T368) the line, not a defect — offline, dropped, timed out — is shown, never reported (core `isEnvironment`); an
@@ -91,9 +92,9 @@ export async function fetchResilient(url: string, o: ResilientOptions = {}): Pro
     if (attempt > 1) {
       // the line is down: wait for it (not a try spent), then go again at once
       if (o.isOnline && !o.isOnline() && o.waitOnline) {
-        const t = Date.now();
+        const t = now();
         await o.waitOnline(o.signal);
-        if (Date.now() - t > 100) attempt--;                // a real wait: not a try spent (a waiter that does not wait is)
+        if (now() - t > 100) attempt--;                // a real wait: not a try spent (a waiter that does not wait is)
       }
       else {
         const waitMs = backoffMs(attempt, o.rand);

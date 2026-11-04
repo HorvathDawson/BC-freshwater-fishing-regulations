@@ -11,7 +11,7 @@
  * are none" are different claims, and only one of them is safe to show.
  */
 
-import { agoWords } from "@app/core";
+import { agoWords, now as clockNow } from "@app/core";
 
 /** `count(60648, "reaches")` -> "60,648 reaches". Undefined in, undefined out. */
 export function count(n: number | null | undefined, word: string): string | undefined {
@@ -31,6 +31,6 @@ export function plural(n: number, one: string, many: string): string {
  * the feed's own. Days past 48h, because "72h ago" is arithmetic the reader should not have
  * to do.
  */
-export function ago(iso: string, now: number = Date.now()): string {
+export function ago(iso: string, now: number = clockNow()): string {
   return agoWords(iso, now);          // core's: the menu's Data sources page says a feed's age in the same words
 }

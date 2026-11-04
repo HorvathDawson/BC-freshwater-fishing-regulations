@@ -22,6 +22,7 @@ import { utf8 } from "../regs/blob";
 import { Sha256, sha256Hex, sha256HexAsync } from "../sha256";
 import { VerifyError } from "../fetchVerified";
 import { assetsDir, installAssets, type RawFetch } from "./assets";
+import { now as clockNow } from "@app/core";
 
 export interface ReleaseFs {
   exists(path: string): Promise<boolean>;
@@ -143,13 +144,13 @@ export function partDownload(fs: PartFs, fill: PartFill): DownloadTo {
       }
     };
     const following = follow().catch(() => { rewritten = true; });     // a read that failed: hashed off disk
-    const t0 = Date.now();
+    const t0 = clockNow();
     try {
       if (have < e.bytes) await fill(url, part, have, e.bytes, onBytes, () => { rewritten = true; });
     } finally {
       filling = false;
     }
-    const tFill = Date.now();
+    const tFill = clockNow();
     await following;
     const got = await fs.size(part);
     if (got !== e.bytes) {
@@ -157,10 +158,10 @@ export function partDownload(fs: PartFs, fill: PartFill): DownloadTo {
       throw new VerifyError(`${url}: ${got} bytes on disk, the manifest says ${e.bytes}`);
     }
     let sha = !rewritten && hashed === got ? fh.hex() : null;
-    const tail = Date.now() - tFill;
+    const tail = clockNow() - tFill;
     // not followed (no readAt, a rewrite), or a follower hash that does not match: the whole file, off disk, decides
     if (sha !== e.sha256) sha = await hashFile(fs, part, onHashed);
-    console.info(`[download] ${url}: sha256 of ${got} bytes — ${Date.now() - tFill} ms after the download ` +
+    console.info(`[download] ${url}: sha256 of ${got} bytes — ${clockNow() - tFill} ms after the download ` +
                  `(${hashed === got && !rewritten ? `followed, ${tail} ms to catch up` : "hashed off disk"}; fill ${tFill - t0} ms)`);
     if (sha !== e.sha256) {
       await fs.remove(part);
@@ -345,12 +346,12 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
                                                     setup: { step: "assets", done: assetsAt.n, of: assetsAt.all } });
   const assetsRun = a && raw ? (async () => {
     const heldA = held ? (await heldManifest(fs, held).catch(() => null))?.tiles.assets ?? null : null;
-    const tA = Date.now();
+    const tA = clockNow();
     await installAssets(fs, raw, base, a, heldA ? assetsDir(heldA) : null, (n, all) => {
       assetsAt.n = n; assetsAt.all = all;
       if (bigDone) assetsStep();
     });
-    console.info(`[setup] map assets (${assetsAt.all} files) in ${Date.now() - tA} ms`);
+    console.info(`[setup] map assets (${assetsAt.all} files) in ${clockNow() - tA} ms`);
   })().catch((e: unknown) => { assetsFailed = e ?? new Error("assets failed"); }) : null;
   // (T272) what the big files' hashes have left once the last byte is down: the second stage's bar
   const verifyOf = big.reduce((n, b) => n + b.e.bytes, 0);

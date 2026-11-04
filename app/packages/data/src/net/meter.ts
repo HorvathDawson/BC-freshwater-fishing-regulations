@@ -1,3 +1,4 @@
+import { now as clockNow } from "@app/core";
 /**
  * (T254) THE APP'S OWN NETWORK METER: bytes per second over the app's real downloads (release files, the synopsis), so
  * low-bandwidth mode follows the link the reader actually has — not what the platform claims (Chrome says "4g" on a
@@ -28,7 +29,7 @@ export interface NetMeter {
 }
 
 export function createNetMeter(o: { now?: () => number; notifyEveryMs?: number } = {}): NetMeter {
-  const now = o.now ?? (() => Date.now());
+  const now = o.now ?? (() => clockNow());
   const every = o.notifyEveryMs ?? 1000;
   const open = new Set<number>();
   let next = 1;

@@ -63,6 +63,7 @@ goes through `scripts/heavy.sh`. `tools/vintage-pins.test.ts` refuses an id lite
 `offlineAs`, `reportOnce`; the environment — offline, a refused permission — is never reported), shown in the one face
 (`ui-native` `ErrorState`); `useAsync` reports every hook's failure; links leave through `ui-native` `openLink`.
 `tools/failures.test.ts` fails on a new catch that does neither, unless its file's `FINE` count and reason say why.
+**One clock (T382):** core `clock.ts` is the only place app source reads the device clock — `now()` for an instant, `bcNow()` / `bcToday()` for the day (the B.C. clock, UTC−7 all year from 8 Mar 2026, written in code); `tools/clock.test.ts` fails on a `new Date()` / `Date.now()` anywhere else (and lists the `performance.now()` frame timers).
 
 ## Tools (`tools/`)
 

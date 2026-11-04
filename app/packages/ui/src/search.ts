@@ -14,8 +14,7 @@ import { useEffect, useMemo, useRef } from "react";
 import {
   NEAR_KM, SEARCH_BAR, SEARCH_FIND, duplicateNames, extentOf, searchKey, rankNear, seeLine, townBox, waterCaption, waterStatusOn,
   watersNear,
-  type AreaAsk, type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus,
-} from "@app/core";
+  type AreaAsk, type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus, bcNow } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, PointerHit, WaterSource, SectionId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { useSearch, warmSearchIndex, type SearchResults } from "./hooks";
@@ -377,6 +376,6 @@ const EMPTY_RESULTS: SearchResults = { waters: [], places: [], pointers: [] };
  * refused for another atlas) — the row then draws no status at all, never a guessed one.
  */
 export function rowStatus(item: ItemId, index: StatusIndex | null,
-                          on: Date = new Date()): WaterStatus | null {
+                          on: Date = bcNow()): WaterStatus | null {
   return waterStatusOn(index, item, on);
 }

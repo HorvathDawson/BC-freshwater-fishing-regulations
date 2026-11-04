@@ -12,6 +12,7 @@
  *   - The user's own data: never in a release, never uploaded.
  */
 import type { Spot } from "./model";
+import { now } from "@app/core";
 
 /** What a picker hands back. A phone gives a `uri` in the picker's cache; a browser gives the chosen file's bytes. */
 export interface PickedPhoto {
@@ -86,7 +87,7 @@ export const photosDropped = (before: readonly string[], after: readonly string[
   before.filter((r) => isPhotoRef(r) && !after.includes(r));
 
 export function openPhotosWith(files: PhotoFiles,
-                               stamp: () => string = () => Date.now().toString(36)): PhotoStore {
+                               stamp: () => string = () => now().toString(36)): PhotoStore {
   return {
     async add(spotId, picked, taken) {
       const ref = nextPhotoRef(spotId, taken, photoExt(picked), stamp());

@@ -11,6 +11,7 @@
  * map keeps the most recently used `CAP` of them. A failure is never kept — the next asker tries again.
  */
 import { FEED_TTL_MS, type Parameter, type StationId } from "@app/data";
+import { now as clockNow } from "@app/core";
 
 /** How long an answer is reused: the feed's own file reuse (`TTL_MS` in data/src/feed/http.ts). */
 export const ANSWER_TTL_MS = FEED_TTL_MS;
@@ -32,7 +33,7 @@ function storeOf(source: object): Map<string, Entry> {
  * reading asks again once its entry is older than that).
  */
 export function askOnce<T>(source: object, key: string, run: () => Promise<T>,
-                           maxAge = ANSWER_TTL_MS, now = Date.now()): Promise<T> {
+                           maxAge = ANSWER_TTL_MS, now = clockNow()): Promise<T> {
   const m = storeOf(source);
   const hit = m.get(key);
   if (hit && now - hit.at < maxAge) {
@@ -53,7 +54,7 @@ export function askOnce<T>(source: object, key: string, run: () => Promise<T>,
 
 /** The settled answer to `key`, synchronously; null while it is unasked, in flight, failed or older than `maxAge`. */
 export function peekAnswer<T>(source: object, key: string, maxAge = ANSWER_TTL_MS,
-                              now = Date.now()): { value: T } | null {
+                              now = clockNow()): { value: T } | null {
   const hit = stores.get(source)?.get(key);
   return hit?.done && now - hit.at < maxAge ? (hit.done as { value: T }) : null;
 }
