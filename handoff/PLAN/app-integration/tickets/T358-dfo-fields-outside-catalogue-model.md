@@ -1,6 +1,6 @@
 # T358 — DFO rule fields that are not in the catalogue model
 
-Status: items 1–2 DONE 2026-11-03 (with T356, salmon/4); item 3 (`When`) WAITS on an owner decision + the T350 worker split (found by T350 lean pass, 2026-11-02). The DFO rules are `CatalogueRule`s (typed.py), but these ride
+Status: DONE 2026-11-03 — items 1–2 with T356 (salmon/4); item 3 by the owner's rule (below) (found by T350 lean pass, 2026-11-02). The DFO rules are `CatalogueRule`s (typed.py), but these ride
 beside the model (`extra="forbid"` would refuse them):
 
 - **`shared`** (`pipeline/regs/dfo_salmon/quota.py:221`, T349): a prose scope string ("Management Units 5-6 to 5-11")
@@ -33,3 +33,13 @@ Unblocked 2026-11-03: its dependency (T332 merged 0c276aa10 / T350) is DONE.
   unreadable cells with `check`. Proposed: add `open_ended` to Python's `When` and port the worker's reading into
   `typed.py` / `verdict_on` (answers change on those rows: check → open/closed after the start), drop the worker's
   `check` (it is `when.unparsed`). Do it with the T350 worker split.
+
+## Item 3 done 2026-11-03 (owner: "until further notice is closed, always — a change comes as a new rule")
+`typed.to_rules`: a date cell that says "until further notice" gives the row NO window (in force all year), never
+`unparsed`. The 6 rules on disk (R1 Oct 15 non-retention FN0952; R2 upper Fraser no fishing; R4 non-retention; R8 sockeye,
+chinook ×2 no fishing) now answer every day: closed, or release only for the 2 non-retention rows. A dated row that opens
+the fish still wins on its days (`verdict_on`: opens before closures). The worker already read them as in force from
+their start with dated rows outranking (`dates.ts`, `holdsKind`), so the two now agree except Jan 1 → the start date,
+where the worker has the row not yet in force unless nothing else holds; left for the T350 worker split. "To be
+determined" stays `check`. Typed files re-typed (`python -m pipeline.regs.dfo_salmon.feed`, which crashed run as a module:
+`_header_format` was defined below `__main__`, fixed).

@@ -159,10 +159,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     return 0
 
 
-if __name__ == "__main__":
-    sys.exit(main())
-
-
 def _header_format() -> str:
     from pipeline.regs.dfo_salmon.header import FORMAT
     return FORMAT
+
+
+if __name__ == "__main__":
+    sys.exit(main())

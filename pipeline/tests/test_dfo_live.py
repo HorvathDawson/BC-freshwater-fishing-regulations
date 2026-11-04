@@ -252,7 +252,9 @@ def test_a_dry_run_writes_nothing_and_previews_the_row_change(tmp_path):
                 dry_run=True, with_marks=False)
     assert sorted(p.name for p in tmp_path.rglob("*")) == before and s.sent == [] and got["sent"] is None
     pv = got["previews"]["2"]
-    assert not any(pv["places"].get(k) for k in ("new", "reworded", "dropped", "section moved"))
+    # the curated entries follow the NEWEST live page (T366, 11-03): against this older fixture page its places read as
+    # dropped / revived — never new or reworded
+    assert not any(pv["places"].get(k) for k in ("new", "reworded", "section moved"))
     (c,) = pv["rows"]
     assert c["location_id"].startswith("2:alouette-river") and c["fns"] == ["FN1179"]
     assert c["old"] == ["Chinook | Sep 1 to Nov 30 | 1 per day"]
@@ -263,7 +265,8 @@ def test_a_dry_run_writes_nothing_and_previews_the_row_change(tmp_path):
     assert n["urgent"] is False and "- was: Chinook | Sep 1 to Nov 30 | 1 per day" in n["text"] \
         and "read: retention_limit" in n["text"]
     txt = __import__("pipeline.regs.dfo_salmon.refresh", fromlist=["text"]).text(pv)
-    assert "PLACES: none new" in txt and "ROWS CHANGED (digest): 1 place(s)" in txt and "FN1179" in txt
+    assert "PLACES (owner review):" in txt and "  new " not in txt and "reworded" not in txt
+    assert "ROWS CHANGED (digest): 1 place(s)" in txt and "FN1179" in txt
 
 
 def test_the_real_run_archives_the_page_once_and_re_emits_one_stamped_vintage(tmp_path):

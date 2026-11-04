@@ -352,7 +352,9 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     # Jun 15"), because a window nobody can parse is worth less than one we can say we corrected.
     raw_dates = (rec.get("dates") or "").strip()
     when = interpret_dates(raw_dates)
-    if not raw_dates:
+    if not raw_dates or when.get("open_ended"):
+        # (T358, owner 2026-11-03) "Apr 1 until further notice" holds ALL YEAR: a change comes as a new row, never as
+        # this one running out (a dated row that opens the fish still wins on its days, `deliver.salmon.verdict_on`)
         windows = []
     elif when["repaired_from"]:
         windows = [_repair_dates(raw_dates)]
