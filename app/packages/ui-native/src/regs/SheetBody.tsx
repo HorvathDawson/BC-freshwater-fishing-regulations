@@ -9,6 +9,7 @@
  * the global click handler's `data-open` / `data-rule` / `data-gl` / `data-fish` / `data-howtell` (here each a run or a
  * block carrying its `SheetKey`).
  */
+import { SwipePages } from "./SwipePages";
 import { View } from "react-native";
 import { Text } from "../Text";
 import { type SheetBlock, type SourceBox, type SheetKey, type SheetVM, type Tab } from "@app/core";
@@ -60,6 +61,11 @@ export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass } & Shee
     case "sources": return <SourcesView groups={b.groups} overruled={b.overruled} palette={palette} actions={actions} />;
     case "pictures": return <Pictures pics={b.pics} palette={palette} actions={actions} images={p.fish} />;
     case "image": return <FishImage code={b.code} file={b.file} alt={b.alt} credit={b.credit} width={b.width} height={b.height} fish={p.fish} palette={palette} />;
+    // (T344) a group's fish, one page each: each page is the member's own sheet body (its looks, then what to look for)
+    case "swipe": return (
+      <SwipePages titles={b.pages.map((x) => x.title)} palette={palette}>
+        {(i) => <SheetBody {...p} vm={b.pages[i]!} />}
+      </SwipePages>);
     case "adipose": return <AdiposeArt figures={b.figures} images={p.adipose} palette={palette} layout={p.layout} />;
     case "pages": case "source": case "link":
       return <View style={{ marginTop: 8 }}><LineText line={b.line} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} linkStyle={TYPE.metaBold} /></View>;

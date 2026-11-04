@@ -45,7 +45,7 @@ export function plainRowSeams(inp: RegsInputs, fish: FishManifest): PlainRowSeam
   const name = fishNames(inp, fish);
   return {
     rowTitle, scopeOf,
-    pictures: (codes) => pictures(codes, fish, name),
+    pictures: (codes) => pictures(codes, fish, name, inp.statics.exportSpecies.groups),
     fishName: name,
     hasFish: (c) => !!inp.statics.exportSpecies.fish[c] || !!fish[c]?.length,
     runOf: (perDay, d) => runOf(perDay.map((s) => [s, 1] as const), d),

@@ -302,6 +302,8 @@ export type SheetBlock =
       overruled?: true }
   | { k: "pictures"; pics: readonly FishPicVM[] }
   | { k: "image"; code: string; file: string; alt: string; credit: string; width: number; height: number }
+  /** (T344) a group's fish, one page each, swiped between ("Whitefish" → lake, mountain) */
+  | { k: "swipe"; pages: readonly SheetVM[] }
   | { k: "adipose"; figures: readonly { variant: "wild" | "clipped"; caption: Line }[] }
   | { k: "pages"; line: Line }
   | { k: "source"; line: Line }

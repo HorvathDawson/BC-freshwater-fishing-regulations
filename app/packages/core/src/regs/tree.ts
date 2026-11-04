@@ -24,7 +24,7 @@ import type { RegsInputs } from "./inputs";
 import { boldN, nbsp, text, type Line, type Run } from "./line";
 import type { FishPicVM, KindVM, OriginVM, TierVM, TreeNodeVM } from "./model";
 import { WORDS } from "./words";
-import { cap, lc } from "./names";
+import { cap, lc, type SpeciesBook } from "./names";
 
 export interface TreeEnv {
   readonly inp: RegsInputs; readonly card: CardModel; readonly fish: FishManifest;
@@ -104,9 +104,11 @@ export const presenceLine = (p: Presence | null | undefined): Line | null =>
   p ? [text(p.says), text(" "), { t: "term", ids: ["steelhead"] }] : null;
 
 /** prototype fishBtn per code: the FIRST manifest picture, captioned, opening its sheet; no picture: a silhouette. */
-export function pictures(codes: readonly string[], fish: FishManifest, names: (c: string) => string): readonly FishPicVM[] {
+export function pictures(codes: readonly string[], fish: FishManifest, names: (c: string) => string,
+                         groupsOf?: SpeciesBook["groups"]): readonly FishPicVM[] {
   return codes.map((code): FishPicVM => {
-    const f = fish[code]?.[0];
+    // (T344) a group with no picture of its own shows its first member's, and opens the group's swipe sheet
+    const f = fish[code]?.[0] ?? (groupsOf?.[code]?.members ?? []).map((m) => fish[m]?.[0]).find((x) => !!x);
     const name = names(code) || f?.caption || code;
     return f ? { code, name, caption: WORDS.CAPTION(f.caption), open: `sp:${code}`, sil: false } : { code, name, sil: true };
   });
@@ -168,7 +170,7 @@ export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
     t: "kind", kind: k.name, species: k.species, folded: !!k.folded, zero, says,
     size: size && !zero ? { text: nbsp(size), rule: !!k.size_rule } : null,
     qualifiers: q.length ? q.join(", ") : null,
-    pictures: pictures(k.species, env.fish, fishNames(env.inp, env.fish)),
+    pictures: pictures(k.species, env.fish, fishNames(env.inp, env.fish), env.inp.statics.exportSpecies.groups),
     also: [...(sizeNote ? [nbsp(cap(sizeNote.says))] : []), ...(k.also_counts ?? []).map((a) => nbsp(cap(a.says)))],
     duty, stamps, presence: presenceLine(presOf(k, env.card, env.drawn)),
   };

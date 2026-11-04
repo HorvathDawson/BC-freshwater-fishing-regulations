@@ -211,6 +211,9 @@ export const WORDS = Object.freeze({
   SHEET_NO_FOR: "(no “for …” in the answers)",
   SHEET_QUOTED: (q: string) => `“${q}”`,
   SHEET_LOOK_FOR: "What to look for",
+  /** (T344) a swipeable sheet's place: "1 of 2"; and its spoken hint */
+  PAGE_OF: (i: number, n: number) => `${i} of ${n}`,
+  PAGE_HINT: "Swipe left or right for the other fish",
   SHEET_TODAY_DOT: "Today · ",
   SHARED_WITH: (s: string) => `Shared with all of ${s} today.`,
   NOLIMIT_MARK: "∞", NOLIMIT_SAYS: "No daily limit",   // page v36 groupBlock's no-limit fact (a pooled no-limit row)

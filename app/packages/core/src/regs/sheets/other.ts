@@ -89,7 +89,7 @@ export function otherSheet(ctx: SheetCtx, key: SheetKey, i: number): SheetVM | n
   if (ix === undefined) return null;
   const row = card.rows[ix]!, seams = plainRowSeams(inp, env.fish), title = rowTitle(row, inp);
   const blocks: SheetBlock[] = [];
-  const pics = pictures(row.members, env.fish, fishNames(inp, env.fish)).filter((p) => !p.sil);
+  const pics = pictures(row.members, env.fish, fishNames(inp, env.fish), inp.statics.exportSpecies.groups).filter((p) => !p.sil);
   if (pics.length) blocks.push({ k: "pictures", pics });
   if (row.raw.group?.headline) {
     // sheetHtml other: drops the row title (`<span class="rtitle">` with no scope tag inside): the sheet's title says it
