@@ -9,6 +9,26 @@ import { fileURLToPath } from "node:url";
 import { createServer } from "vite";
 import { ViteNodeServer } from "vite-node/server";
 import { ViteNodeRunner } from "vite-node/client";
+import { readFileSync } from "node:fs";
+
+/** The workspace packages the app's code imports as `@app/<name>[/<subpath>]`. */
+const PACKAGES = ["core", "data", "ui", "ui-native", "map"];
+
+/**
+ * Each `@app/<name>[/<subpath>]` the packages export, read from their own package.json `exports` (a package without one
+ * exports `src/index.ts`), as an EXACT-match alias. Read, not listed by hand: a hand list drifted twice (T369's
+ * `@app/data/regs/place` and `@app/ui/place` broke the 0.5.0 staging build), and a prefix match sent a subpath to its
+ * parent's index (`@app/data/regs` + `/place`).
+ */
+function workspaceAliases(app) {
+  return PACKAGES.flatMap((name) => {
+    const exp = JSON.parse(readFileSync(`${app}packages/${name}/package.json`, "utf8")).exports ?? { ".": "./src/index.ts" };
+    return Object.entries(exp).map(([sub, file]) => ({
+      find: new RegExp(`^@app/${name}${sub === "." ? "" : sub.slice(1).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`),
+      replacement: `${app}packages/${name}/${file.replace(/^\.\//, "")}`,
+    }));
+  });
+}
 
 /** A runner (`executeFile(<absolute path>)`) and its close. */
 export async function makeRunner() {
@@ -40,17 +60,7 @@ export async function makeRunner() {
         { find: /^react-native$/, replacement: "react-native-web" },
         { find: /^react-native-svg$/, replacement: `${app}node_modules/react-native-svg/lib/module/ReactNativeSVG.web.js` },
         { find: /^react-native-gesture-handler$/, replacement: `${app}node_modules/react-native-gesture-handler/lib/module/index.js` },
-        { find: "@app/core", replacement: pkg("core") },
-        { find: "@app/data/spots", replacement: pkg("data", "src/spots/index.ts") },
-        { find: "@app/data/release/node", replacement: pkg("data", "src/sql/drivers/releaseDir.ts") },
-        { find: "@app/data/release/platform", replacement: pkg("data", "src/release/drivers/platform.ts") },
-        { find: "@app/data/release", replacement: pkg("data", "src/release/index.ts") },
-        { find: "@app/data/regs", replacement: pkg("data", "src/regs/index.ts") },
-        { find: "@app/data", replacement: pkg("data") },
-        { find: "@app/ui-native", replacement: pkg("ui-native") },
-        { find: "@app/ui", replacement: pkg("ui") },
-        { find: "@app/map/colours", replacement: pkg("map", "src/colours.ts") },
-        { find: "@app/map", replacement: pkg("map") },
+        ...workspaceAliases(app),
       ],
     },
   });
