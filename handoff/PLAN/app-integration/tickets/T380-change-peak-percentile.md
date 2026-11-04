@@ -1,6 +1,6 @@
 # T380 — Change: say the percentile today and at the peak, beside the ratio
 
-Status: DONE in code (owner 2026-11-04, in 0.5.0); live with the worker deploy.
+Status: DONE in code (528620c65; owner 2026-11-04, in 0.5.0); live with the worker deploy.
 
 ## Ask (owner 2026-11-04)
 "when it says this (At its highest, about 3× today's flow — fairly confident, forecast from 4 gauges nearby.) could we
