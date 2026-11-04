@@ -16,23 +16,13 @@ changes, change these. Where the honest answer is a judgement call it is marked 
 | Photos / camera | on-device only | — | permission |
 Not present: accounts, advertising IDs, analytics SDKs, third-party crash SDKs, cookies (site), background location, purchases.
 
-## Google Play — Data safety form
-- Does the app collect or share user data? **Yes.**
-- Is all user data encrypted in transit? **Yes** (HTTPS everywhere).
-- Can users request deletion? **Yes** — reports/emails: write privacy@canifishthis.ca (reports also auto-delete at 180 days; crash records at 90 days). Provide the deletion-request URL: https://canifishthis.ca/privacy
-- Data types:
-  | Type | Collected | Shared | Purpose | Optional | Note |
-  |---|---|---|---|---|---|
-  | Email address | Yes | No | App functionality (reply to a report) | Yes | only if typed and "may contact me" ticked |
-  | Other user-generated content (report text) | Yes | No | App functionality | Yes | |
-  | App info and performance: Crash logs | Yes | No | Analytics / App functionality (stability) | Yes (user can switch off) | our own server, no third-party SDK |
-  | App info and performance: Diagnostics (report's recent app errors, version, platform) | Yes | No | App functionality | Yes | part of a report |
-  | Location: Precise location (a saved spot's coordinates; a pinned spot can be where the user stood) and Approximate location (Esri sees the viewed area's tile requests + IP) | **Yes (owner 2026-10-29)** | **Yes — Open-Meteo** (weather stays on Open-Meteo, not our server); Esri imagery tiles for the opt-in layer | App functionality | Yes (only when a spot's weather is opened / imagery turned on) | Declare precise location as collected and shared with Open-Meteo; approximate as shared with Esri. |
-  | Photos, files, contacts, calendar, health, financial, web history, audio | No | — | — | — | stay on device |
-  | Device or other IDs | No | — | — | — | none read or sent |
-- Security practices: encrypted in transit yes; data deletion request yes; committed to Play Families policy: no (18+).
+## Google Play: Data safety form
+Moved to `handoff/PLAN/play/data-safety.md` (2026-11-04, T371). It was redrafted from the code with file:line evidence.
+Two things changed since this draft: Device or other IDs is now YES (the T352 install id), and Approximate location now
+includes a problem report's map centre (T352 + T384). The table above predates both.
 
 ## Apple — App Privacy ("nutrition label")
+(Not yet updated for the T352 install id: Apple may count it as an Identifier → Device ID, "not linked to you". Settle this in T365.)
 - Data used to track you: **None** (no tracking, no ATT prompt).
 - Data linked to you: **None** (no account, no identifier).
 - Data not linked to you:

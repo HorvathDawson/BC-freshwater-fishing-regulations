@@ -6,36 +6,9 @@ a catch or legal advice (the app's own disclaimer applies: it is a reading aid, 
 ## Name
 canifishthis  (App Store subtitle / Play short title: "BC fishing rules, by the water")
 
-## Short description (Play, max 80)
-BC freshwater fishing rules for any river or lake: map, seasons, limits, flows.
-
-## Subtitle (App Store, max 30)
-BC fishing rules, by the water
-
-## Full description (Play max 4000 / App Store max 4000)
-Can I fish this? Tap a river or lake on the map and see the freshwater fishing rules that apply to that exact water, in plain words.
-
-WHAT IT DOES
-- A map of BC's named rivers, lakes and streams, coloured by what the rules say today.
-- The rules for the water you tapped: seasons, daily limits, size limits, bait and gear rules, closures, licences. Rules that
-  change along a river are split by section, so you see the stretch you are standing on.
-- Live river flow and temperature from the federal gauges, with how today compares with other years.
-- Salmon notices and in-season changes, brought together when Fisheries and Oceans Canada publishes them.
-- Search by water name, an old name or a nearby town.
-- Save spots with notes and photos, and see the weather and river flow for the day you fished.
-- Works offline once installed: the map and the rules live on your phone and refresh when you are on Wi-Fi.
-
-PRIVATE BY DESIGN
-No account, no ads, no tracking. Your location, photos and saved spots stay on your phone. The only things the app ever sends us
-are a problem report you choose to send and, unless you switch it off, a short error report when the app itself fails.
-Privacy policy: https://canifishthis.ca/privacy
-
-FREE AND NON-PROFIT
-canifishthis is free and not run for profit. It is not an official BC Government or DFO product.
-
-IMPORTANT
-The app is a reading aid built from the BC Freshwater Fishing Regulations Synopsis and DFO notices. Regulations change; always
-check the current printed synopsis, the BC Fisheries website and DFO notices before you fish, and carry the licences you need.
+## Short + full description
+Moved to `handoff/PLAN/play/listing.md` (2026-11-04, T371). That file is the one copy, and the App Store uses the same
+text. It was updated for T384 (opens on your location), T385 (share) and T352 (install id).
 
 ## Keywords (App Store, 100 chars, comma-separated)
 fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge
