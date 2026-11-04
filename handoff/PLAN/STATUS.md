@@ -8,6 +8,19 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-04 (merged chat): T367 closed, T372 done [T367, T377, T372, T378]
+- **T367 closed** in the ledger (95b633c38). The full app suite had 8 reds left from it; all fixed (back button closes
+  the forecast day list, the PDF viewer's ground colour, the "couldn't load" words moved to core, and so on). What
+  T367 left open is now T377 (the forecast-day list by watershed, after T376; the rest after 0.5.0).
+- **T372 done** (777a4fc2b). The salmon card now works the trout way. It keeps the answer for the drawn water and
+  lists DFO places that aren't on the map in the same "Fishing is different in some spots today" block trout uses,
+  with DFO's words for each place. Places DFO speaks for that day come first. It no longer turns rows into "check DFO".
+  Python decides which days each place is in force.
+- **Needs a release rebuild:** the local release r-ac5a4e4f734c was built before this change. Until the next build,
+  the dev app shows an error on waters that have an undrawn DFO place. That rebuild is part of the batch 7 cut, or
+  sooner if you want to check the card.
+- New ticket T378: trout's "couldn't be placed" block never gets data (found while doing T372).
+
 ## 2026-11-04: chats merged for 0.5.0 [T372, T367]
 - **One chat from here:** the UI chat and the pipeline chat merge. Start from `handoff/PLAN/NEXT-SESSION-0.5.0.md`.
 - **T367 done** (owner call; last commit d3577f2e3). The new chat marks it in the ledger and runs the full app suite
