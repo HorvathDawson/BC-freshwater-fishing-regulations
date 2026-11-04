@@ -562,8 +562,9 @@ export function estimateHeadline(e: Estimate, horizon: Horizon = 0): string {
 }
 
 /** "Lower than 8 days in 10 at this time of year — fairly confident, from 2 gauges nearby." */
-export function estimateSentence(e: Estimate, horizon: Horizon): string {
-  if (horizon === "change") return changeSentence(changeRatio(e.percentile), confidenceWord(e.plusMinus), e.donors);
+export function estimateSentence(e: Estimate, horizon: Horizon, changeEnds?: { from: number; to: number }): string {
+  if (horizon === "change")
+    return changeSentence(changeRatio(e.percentile), confidenceWord(e.plusMinus), e.donors, changeEnds);
   const w = inTen(e.percentile);
   const gauges = e.donors === 1 ? "one gauge" : `${e.donors} gauges`;
   return `${w.charAt(0).toUpperCase()}${w.slice(1)} — ${confidenceWord(e.plusMinus)}, `

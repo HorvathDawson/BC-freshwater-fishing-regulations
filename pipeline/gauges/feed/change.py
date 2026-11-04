@@ -491,8 +491,8 @@ def station_change(runs: dict | None, now: datetime, observed: float | None,
     station file's `change`, the panel's first line); and the index row's `change` the map reads, or None.
 
     The summary is FLOW ONLY — `discharge` is the coded ratio (see CHANGE_SCALE) — and carries what the words need:
-    which models, the direction, the ratio, the day and whether it comes back (`shape`, `back`), and `lowWater` when
-    only the low-water model spoke.
+    which models, the direction, the ratio, the day, that day's `percentile` (T380) and whether it comes back (`shape`,
+    `back`), and `lowWater` when only the low-water model spoke.
     """
     raw: dict[str, tuple[float, Days]] = {}
     per: dict[str, dict] = {}
@@ -513,6 +513,9 @@ def station_change(runs: dict | None, now: datetime, observed: float | None,
     # shape say what it is in a line. Every run's own detail, and the source's days, are in the station file.
     summary = {"discharge": round(coded(e["ratio"]), 4), "models": src["models"], "dir": src["dir"],
                "ratio": e["ratio"], "day": e["day"],
+               # T380: the extreme day's percentile for ITS date, from the same combined days as the ratio (absent with
+               # no envelope); the donor pathway carries it beside `discharge` for "from the 5th to about the 95th"
+               **({"percentile": e["percentile"]} if "percentile" in e else {}),
                "shape": "spike" if e["back"] else "open" if e.get("until") or e["day"] == src["days"][-1][0]
                else "step",
                **({"back": e["back"]} if e["back"] else {}),

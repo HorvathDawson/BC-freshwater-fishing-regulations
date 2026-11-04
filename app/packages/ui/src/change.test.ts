@@ -255,6 +255,25 @@ describe("the donor panel under Change", () => {
                                          note: null, needs: null });
   });
 
+  it("T380: carries each member's percentile at its extreme through the same pathway, beside today's answer", () => {
+    const at = { stations: {
+      A: { percentile: 0.2, discharge: 0.2, parameter: "discharge" as const, change: { discharge: codedChange(3), percentile: 0.9 } },
+      B: { percentile: 0.6, discharge: 0.6, parameter: "discharge" as const, change: { discharge: codedChange(1.5), percentile: 0.8 } },
+    } } as never;
+    const a = answerFrom(PANEL, at, "discharge", "change");
+    const now = answerFrom(PANEL, at, "discharge", 0);
+    if (!now.answer.ok || !a.changeEnds) throw new Error("expected both ends");
+    expect(a.changeEnds.from).toBe(now.answer.value.percentile);          // the Now view's own answer, not a second one
+    expect(a.changeEnds.to).toBeGreaterThan(0.8);
+    expect(a.changeEnds.to).toBeLessThan(0.9);
+    const vm = view(at);
+    if (!vm.ok) throw new Error("expected an answer");
+    expect(vm.sentence).toMatch(/^At its highest, from the \d+(st|nd|rd|th) percentile today to about the \d+(st|nd|rd|th) \(about 2× today's flow\) — /);
+    // MUTATION PIN: no member carrying its extreme's percentile → no ends; a Now question never carries them
+    expect(answerFrom(PANEL, IDX, "discharge", "change").changeEnds).toBeUndefined();
+    expect(answerFrom(PANEL, at, "discharge", 0).changeEnds).toBeUndefined();
+  });
+
   /*
    * T157 (T144 left it on the charted gauge only): the spot's own Change says the low-water caveat where a counted gauge's
    * change is ELF's alone. Mutations: `lowWater` not carried onto the row (`answerFrom`) -> the first two expectations

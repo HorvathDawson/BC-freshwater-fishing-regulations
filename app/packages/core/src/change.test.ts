@@ -224,6 +224,18 @@ describe("the Change horizon on the conditions surfaces", () => {
       + "behind it may peak on different days.");
   });
 
+  it("T380: says the percentile today and at the extreme when both answer, each for its own date", () => {
+    expect(changeSentence(3, "fairly confident", 4, { from: 0.05, to: 0.95 })).toBe(
+      "At its highest, from the 5th percentile today to about the 95th (about 3× today's flow) — fairly confident, "
+      + "forecast from 4 gauges nearby.");
+    expect(changeSentence(0.59, "roughly", 1, { from: 0.6, to: 0.2 })).toBe(
+      "At its lowest, from the 60th percentile today to about the 20th (about 60% of today's flow) — roughly, "
+      + "forecast from one gauge nearby.");
+    // steady says no percentile move; without ends the sentence is the ratio's alone
+    expect(changeSentence(1.1, "roughly", 1, { from: 0.5, to: 0.52 })).toBe(
+      "Staying near today's flow — roughly, forecast from one gauge nearby.");
+  });
+
   it("a sentence for one gauge", () => {
     expect(changeSentence(0.59, "roughly", 1)).toBe(
       "At its lowest, about 60% of today's flow — roughly, forecast from one gauge nearby.");

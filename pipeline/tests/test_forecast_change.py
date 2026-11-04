@@ -52,7 +52,7 @@ def test_a_one_day_spike_between_plus_3_and_plus_5_is_detected_and_dated():
     # is 10-25 — sqrt(22.73 x 44.17). COFFEE stops on 10-26 with the joined line still above half the rise, so it is
     # OPEN there (T144 review): 10-27 is CLEVER alone, and the old "back by 10-27" was the average losing COFFEE
     assert summary == {"discharge": 0.9937, "models": ["CLEVER", "COFFEE"], "dir": "rise", "ratio": 31.6876,
-                       "day": "2026-10-25", "shape": "open"}
+                       "day": "2026-10-25", "percentile": 0.8327, "shape": "open"}
     assert per["CLEVER"]["peak"] == {"day": "2026-10-26", "ratio": 22.7944, "value": 10.645, "percentile": 0.7717,
                                      "points": 0.6717, "back": "2026-10-27"}
     # +5 (10-27) samples the day after it and reads the bottom of the record. (T375) Every day is a horizon now, so the
@@ -68,7 +68,7 @@ def test_a_rise_that_holds_is_a_step():
     (per, _, summary), _, _ = at_station("08MH029")
     # COFFEE stops on 10-26 (flat); the rise on 10-28 is CLEVER's alone, past COFFEE's reach
     assert summary == {"discharge": 0.7688, "models": ["CLEVER", "COFFEE"], "dir": "rise", "ratio": 2.7695,
-                       "day": "2026-10-28", "shape": "step"}
+                       "day": "2026-10-28", "percentile": 0.5882, "shape": "step"}
     assert per["CLEVER"]["peak"]["back"] is None
 
 
@@ -80,7 +80,7 @@ def test_a_fall_is_dated_and_named_by_its_own_model():
     # ELF's own fall is kept on its run, but the station's change is the flood models' (T144: never ELF beside them):
     # they expect little either way, so the station is steady
     assert summary == {"discharge": 0.493, "models": ["CLEVER", "COFFEE"], "dir": "steady", "ratio": 0.976,
-                       "day": "2026-10-30", "shape": "step"}
+                       "day": "2026-10-30", "percentile": 0.4835, "shape": "step"}
 
 
 def test_two_models_are_both_kept_each_against_its_own_today():
@@ -93,7 +93,7 @@ def test_two_models_are_both_kept_each_against_its_own_today():
     assert r["now"]["discharge"] == 0.122
     # together: sqrt(47.45 x 544) on 10-25, each against its own today
     assert summary == {"discharge": 0.995, "models": ["CLEVER", "COFFEE"], "dir": "rise", "ratio": 160.6636,
-                       "day": "2026-10-25", "shape": "spike", "back": "2026-10-26"}
+                       "day": "2026-10-25", "percentile": 0.95, "shape": "spike", "back": "2026-10-26"}
 
 
 def test_out_of_season_says_nothing():
@@ -280,7 +280,7 @@ def test_clever_alone_is_its_own_change_and_ranks_like_its_run():
     runs = {"CLEVER": hourly_run([8.0, 20.0, 8.0])}
     per, src, s = C.station_change(runs, NOW, 10.0, lambda v, d: min(0.95, v / 100.0))
     assert s == {"discharge": round(C.coded(2.5), 4), "models": ["CLEVER"], "dir": "rise", "ratio": 2.5,
-                 "day": "2026-10-23", "shape": "spike", "back": "2026-10-24"}
+                 "day": "2026-10-23", "percentile": 0.25, "shape": "spike", "back": "2026-10-24"}
     assert {k: v for k, v in src["peak"].items() if k != "value"} == \
         {k: v for k, v in per["CLEVER"]["peak"].items() if k != "value"} == \
         {"day": "2026-10-23", "ratio": 2.5, "percentile": 0.25, "points": 0.15, "back": "2026-10-24"}
@@ -376,7 +376,7 @@ def test_the_feed_carries_the_change_the_runs_and_the_attribution(tmp_path, monk
     assert index["forecastIssuedAt"] == "2026-10-22T12:53:00"
     row = index["stations"]["08HB025"]
     assert row["change"] == {"discharge": 0.995, "models": ["CLEVER", "COFFEE"], "dir": "rise", "ratio": 160.6636,
-                             "day": "2026-10-25", "shape": "spike", "back": "2026-10-26"}
+                             "day": "2026-10-25", "percentile": 0.95, "shape": "spike", "back": "2026-10-26"}
     assert "change" not in row.get("ahead", {})
     station = json.loads((tmp_path / "08HB025.json").read_text())
     assert {m: run["change"]["peak"]["ratio"] for m, run in station["forecasts"].items()} == {

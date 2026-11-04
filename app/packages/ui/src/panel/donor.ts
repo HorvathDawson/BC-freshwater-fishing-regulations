@@ -323,7 +323,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     headline: estimateHeadline(e, o.horizon),
     // "by then" is about a DAY; Change spans the window and its heading says so
     headlineSuffix: isAhead(o.horizon) && o.horizon !== "change" ? CONDITIONS_WORDS.byThen : null,
-    sentence: estimateSentence(e, o.horizon),
+    sentence: estimateSentence(e, o.horizon, value.changeEnds),
     range: estimateRange(e, o.day, o.horizon, value.areaKm2),
     scale: { at: e.percentile, lo: interval(e)[0] / 100, hi: interval(e)[1] / 100,
              ramp: o.horizon === "change" ? "change" : "flow" },

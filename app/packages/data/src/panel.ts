@@ -85,7 +85,15 @@ export interface PanelAnswer {
    * map reads its opening camera once and never again.
    */
   routesReady: boolean;
+  /**
+   * (T380) Under Change only, and only where BOTH answer: the section's percentile today (the Now view's own answer)
+   * and at the change's extreme (the members' `change.percentile`, through the same pathway), 0–1.
+   */
+  changeEnds?: { from: number; to: number };
 }
+
+/** (T380) What a member is asked: a horizon, or under Change the percentile at its extreme (never a chip or a map). */
+export type Asked = Horizon | "changeEnd";
 
 /**
  * How far ahead the map and the sheet are looking. 0 is now. DEFINED IN CORE beside the
@@ -131,6 +139,11 @@ export interface StationChange {
   dir: "rise" | "fall" | "both" | "steady";
   ratio: number;
   day: string;
+  /**
+   * (T380) That day's percentile for ITS date, from the same combined days as the ratio; absent where the station has
+   * no envelope. The donor pathway carries it (`reading(row, q, "changeEnd")`) for "from the 5th … to about the 95th".
+   */
+  percentile?: number;
   /** spike: back within half by a later day; step: held to the last day; open: the extreme IS the last day read. */
   shape: "spike" | "step" | "open";
   back?: string;
@@ -182,12 +195,13 @@ type Index = { stations: Record<string, { percentile: number | null;
  * shows today when asked for Friday is worse than one that shows nothing.
  */
 export function reading(row: NonNullable<Index>["stations"][string] | null | undefined,
-                 quantity: Quantity, horizon: Horizon): number | null {
+                 quantity: Quantity, horizon: Asked): number | null {
   if (!row) return null;
   const q: "discharge" | "level" = quantity;
   // THE CHANGE VIEW (T52) reads the station's expected change — flow only, never a level: a ratio of stages is not a
   // ratio of water, and the publisher writes none.
   if (horizon === "change") return q === "discharge" ? row.change?.discharge ?? null : null;
+  if (horizon === "changeEnd") return q === "discharge" ? row.change?.percentile ?? null : null;
   if (horizon === 0) {
     // `percentile` is the station's own default and `parameter` says which quantity it is
     // about, so it stands in for that one only — a level percentile read as a flow is
@@ -303,8 +317,19 @@ export function answerFrom(panel: Panel | undefined, index: Index,
   const rows = raw
     .map(({ _w, ...r }, i) => ({ ...r, weight: shares[i]! }))
     .sort((a, b) => b.weight - a.weight);
+  const ends = horizon === "change" && answer.ok ? changeEnds(panel, index) : null;
   return { answer, rows,
-           areaKm2: panel.areaKm2, routesReady: false };
+           areaKm2: panel.areaKm2, routesReady: false, ...(ends ? { changeEnds: ends } : {}) };
+}
+
+/**
+ * (T380) THE SECTION'S PERCENTILE TODAY AND AT THE CHANGE'S EXTREME — each `answering` over its own contributions,
+ * exactly as the Now view and the Change view answer; null unless both do (a percentile end is never guessed).
+ */
+function changeEnds(panel: Panel, index: NonNullable<Index>): { from: number; to: number } | null {
+  const from = answering(panel.areaKm2, contributionsOf(panel, index, "discharge", 0)).answer;
+  const to = answering(panel.areaKm2, contributionsOf(panel, index, "discharge", "changeEnd")).answer;
+  return from.ok && to.ok ? { from: from.value.percentile, to: to.value.percentile } : null;
 }
 
 
@@ -371,7 +396,7 @@ export function aheadWhy(row: NonNullable<Index>["stations"][string] | null | un
  * `panelStanding` (the map's per-class values) both take their contributions from here.
  */
 export function contributionsOf(panel: Panel, index: NonNullable<Index>, quantity: Quantity,
-                                horizon: Horizon): Contribution[] {
+                                horizon: Asked): Contribution[] {
   const out: Contribution[] = [];
   if (!panel.areaKm2) return out;
   panel.members.forEach((m, i) => {

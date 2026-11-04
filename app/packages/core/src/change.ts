@@ -301,12 +301,21 @@ export function changeModelsNote(parts: readonly { model: string; change: RunCha
   return `Models: ${parts.map((p) => `${p.model} ${changeShort(p.change, today)}`).join(" · ")}`;
 }
 
-/** The section's expected change, in one sentence after the headline (`estimateSentence` under Change). */
-export function changeSentence(ratio: number, confidence: string, donors: number): string {
+/**
+ * The section's expected change, in one sentence after the headline (`estimateSentence` under Change). `ends` (T380,
+ * owner 2026-11-04): the section's percentile today and at the extreme, when both answer — "At its highest, from the
+ * 5th percentile today to about the 95th (about 3× today's flow) — …". Today's is a reading, the extreme's a forecast
+ * ("about"); each for its own date, so a rise can end at a lower percentile in a season that climbs faster.
+ */
+export function changeSentence(ratio: number, confidence: string, donors: number,
+                               ends?: { from: number; to: number }): string {
   const gauges = donors === 1 ? "one gauge" : `${donors} gauges`;
   const what = changeKind(ratio) === "steady"
     ? "Staying near today's flow"
-    : `At its ${ratio >= 1 ? "highest" : "lowest"}, ${ratioWords(ratio)}`;
+    : ends
+      ? `At its ${ratio >= 1 ? "highest" : "lowest"}, from the ${percentileOrdinal(ends.from)} percentile today to about `
+        + `the ${percentileOrdinal(ends.to)} (${ratioWords(ratio)})`
+      : `At its ${ratio >= 1 ? "highest" : "lowest"}, ${ratioWords(ratio)}`;
   return `${what} — ${confidence}, forecast from ${gauges} nearby.`;
 }
 

@@ -1,6 +1,6 @@
 # T380 — Change: say the percentile today and at the peak, beside the ratio
 
-Status: OPEN (owner 2026-11-04, in 0.5.0).
+Status: DONE in code (owner 2026-11-04, in 0.5.0); live with the worker deploy.
 
 ## Ask (owner 2026-11-04)
 "when it says this (At its highest, about 3× today's flow — fairly confident, forecast from 4 gauges nearby.) could we
@@ -22,3 +22,9 @@ moves. So the percentile at the extreme must come from the same combined series 
    today's flow)"; today's percentile is the horizon-0 estimate. Falls mirror it ("falling from … to …").
 3. Tests: Python + worker parity, core words, the panel VM. Takes effect with the worker deploy (0.5.0).
 Size: M.
+
+## Done 2026-11-04
+Publisher (Python + worker, parity green) puts the extreme day's `percentile` in the index row's `change`; data
+`reading(row, q, "changeEnd")` + `PanelAnswer.changeEnds` (today = the Now view's own answer, extreme = the same pathway,
+only when both answer); core `changeSentence` says "At its highest, from the 5th percentile today to about the 95th
+(about 3× today's flow) — …". Per-donor rows (`changeReads`) unchanged.

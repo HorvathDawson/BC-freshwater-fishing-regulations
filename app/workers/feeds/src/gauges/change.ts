@@ -379,6 +379,7 @@ export function stationChange(runs: Runs | null | undefined, now: number, observ
   const summary = {
     discharge: pyRound(coded(e.ratio), 4), models: src.models, dir: src.dir,
     ratio: e.ratio, day: e.day,
+    ...(e.percentile !== undefined ? { percentile: e.percentile } : {}),   // T380: the extreme day's own percentile
     shape: e.back ? "spike" : e.until || e.day === srcDays[srcDays.length - 1]![0] ? "open" : "step",
     ...(e.back ? { back: e.back } : {}),
     ...(src.lowWater ? { lowWater: true } : {}),
