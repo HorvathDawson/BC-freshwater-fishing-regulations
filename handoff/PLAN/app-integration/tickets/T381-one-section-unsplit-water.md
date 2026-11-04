@@ -1,6 +1,6 @@
 # T381 — A water with no splits is one section (Nicomen Slough: polygons + lines)
 
-Status: OPEN (owner 2026-11-04, in 0.5.0).
+Status: DONE (1f08e9936) — folded into T387 (owner 2026-11-04: the issue is that not every tap on the one part gets the land-use warnings; one section is fine). No atlas change.
 
 ## Ask (owner 2026-11-04)
 "could we make it so something like nicomen slough with streams that are polygons or lines. we should make it so
