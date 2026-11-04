@@ -45,7 +45,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   Batch 3 release r-ac5a4e4f734c is LOCAL ONLY until the 0.5.0 cut (batch 7): salmon/4 needs MIN_APP_VERSION 0.5.0, so a
   staging upload now would leave the 0.4.0 testers on old data. Rebuilt 11-04 after the T358 non-retention change: same
   content (plain "Non-retention" already read closed — only "catch and release … until further notice" changes). 0.5.0
-  plan grew 11-03 (bda00e2fb: 3b T374/T372/T373/T375, T376 in batch 4, 6d housekeeping, 6e T240/T370). Next: batch 3b.
+  plan grew 11-03 (bda00e2fb: 3b T374/T372/T373/T375, T376 in batch 4, 6d housekeeping, 6e T240/T370).
+- Batch 3b (11-04): T374 closed, not a bug (owner-confirmed sloughs, e23994f5a); T373 done (1cca5a8ff: deliver all binds
+  run timing per release, vintage refuses a mismatch, staging upload publishes it; local feed rebound). Next: T372.
 ## 2026-11-03 (chat 4): batch 2 emulator sitting [T368, T354, T360, T345, T352]
 - **T368 (new, in 0.5.0, batch 6c):** the app-wide failures/fallbacks/reporting sweep, split from T333. Two found
   today and fixed on the way: boot's `.catch(() => null)` on the manifest (it hid a 404) and the source-line

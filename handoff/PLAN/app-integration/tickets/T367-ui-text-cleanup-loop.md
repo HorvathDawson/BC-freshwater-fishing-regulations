@@ -61,3 +61,4 @@ carries (by date); the rest fill in when T375 lands.
 that pin the four days fail until updated with your chips: conditions.render (donorView ×2), MapScreen corner ×2, the
 Change chip ×2 ("after +10" still holds: +10 is last). The live feed carries every day after the feeds worker redeploy.
 (f) Forecast-day list: the centre basin, a water's own basin and the basin names are the data chat's, T376 (batch 4).
+(g) Run timing (your 11-03 finding): FIXED 2026-11-04 (T373) — the local feed is bound to 822db448 again (reload the dev app); every release now binds its own.
