@@ -72,10 +72,10 @@ def test_the_knots_the_panel_floor_and_the_forecast_days_are_the_pipelines():
     from pipeline.gauges.feed import publish
     from pipeline.gauges.feed.climatology import PCTILES
     assert [round(k * 100) for k in E._knots()] == list(PCTILES)
-    assert (MIN_TOTAL_WEIGHT, list(publish.HORIZONS)) == (0.05, [1, 3, 5, 10])
+    assert (MIN_TOTAL_WEIGHT, list(publish.HORIZONS)) == (0.05, list(range(1, 11)))   # T375: every day
     assert "export const PERCENTILE_KNOTS = [0.1, 0.25, 0.5, 0.75, 0.9] as const;" in E.render()
     assert "export const MIN_TOTAL_WEIGHT = 0.05;" in E.render()
-    assert "export const FORECAST_DAYS = [1, 3, 5, 10] as const;" in E.render()
+    assert "export const FORECAST_DAYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;" in E.render()
     src = inspect.getsource(publish.percentile_of)
     assert "PCTILES" in src and "0.25" not in src
     assert publish.percentile_of(30, [10, 20, 30, 40, 50]) == 0.5

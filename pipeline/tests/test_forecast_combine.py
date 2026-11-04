@@ -115,7 +115,8 @@ def test_every_ranked_day_joins_clever_and_coffee_then_clever_alone_then_never_e
 def test_the_horizons_join_the_same_way():
     ahead = pub.forecast_percentiles(both_runs(), {"discharge": FLAT}, NOW, {"discharge": 10.0, "level": None})
     assert {h: (v["model"], round(v["discharge"], 4)) for h, v in ahead.items()} == {
-        "1": ("CLEVER+COFFEE", JOINED), "3": ("CLEVER+COFFEE", JOINED), "5": ("CLEVER", 0.25), "10": ("CLEVER", 0.25)}
+        **{str(d): ("CLEVER+COFFEE", JOINED) for d in range(1, 5)},           # COFFEE's days (T375: every day)
+        **{str(d): ("CLEVER", 0.25) for d in range(5, 11)}}
 
 
 def test_the_change_joins_its_ratios_with_the_same_function():

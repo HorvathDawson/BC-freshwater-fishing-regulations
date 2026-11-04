@@ -295,7 +295,8 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
 # usually ELF that answers it (`change.combine_day`: the flood models that reach it, else ELF),
 # and where no run reaches ten days the horizon is ABSENT — the app reads that as no
 # forecast, never as the +5 value.
-HORIZONS = (1, 3, 5, 10)
+# EVERY DAY (owner 2026-11-03, T375): the map's day chips name each day, so each is ranked — +2, +4 and +6 to +9 too.
+HORIZONS = tuple(range(1, 11))
 
 # How far from the requested instant a model step may sit and still answer for it. CLEVER
 # steps hourly and ELF daily, so a day-grained model needs most of a day of slack; more than

@@ -36,3 +36,6 @@ one hour before sunrise to one hour after sunset"; null when all closed) near th
 change core `salmon.ts` `asWords`: drop `n.fold === "hours" ||`) so the daylight note leaves the region block. Before 0.5.0.
 (d) Forecast day chips: the every-day feed (+2, +4, +6–9) is the DATA chat's, T375. Build the chips on the days the feed
 carries (by date); the rest fill in when T375 lands.
+(e) T375 LANDED in the code (2026-11-03): `FORECAST_DAYS` is now [1..10] (core gauge-policy.generated.ts). Your ui tests
+that pin the four days fail until updated with your chips: conditions.render (donorView ×2), MapScreen corner ×2, the
+Change chip ×2 ("after +10" still holds: +10 is last). The live feed carries every day after the feeds worker redeploy.

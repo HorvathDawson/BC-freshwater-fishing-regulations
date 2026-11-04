@@ -85,7 +85,7 @@ export const PERCENTILE_KNOTS = [0.1, 0.25, 0.5, 0.75, 0.9] as const;
 export const MIN_TOTAL_WEIGHT = 0.05;
 
 /** The days ahead the publisher ranks a forecast for (now, 0, is the app's own). */
-export const FORECAST_DAYS = [1, 3, 5, 10] as const;
+export const FORECAST_DAYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 
 // A gauge reached through a lake (T296, owner 2026-10-29), from THROUGH_LAKE_FACTOR in pipeline/gauges/consume/panel.py.
 

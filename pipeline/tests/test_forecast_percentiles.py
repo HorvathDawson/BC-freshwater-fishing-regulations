@@ -60,7 +60,7 @@ def test_a_horizon_past_the_run_is_absent_not_flat():
     """Returning the last value would report day thirty's forecast as day five's."""
     runs = {"CLEVER": {"series": hourly(NOW, 48, lambda h: 11.0)}}   # two days only
     got = forecast_percentiles(runs, {"discharge": FLAT}, NOW)
-    assert sorted(int(k) for k in got) == [1]
+    assert sorted(int(k) for k in got) == [1, 2]                    # T375: every day; none past the run
 
 
 def test_it_ranks_against_the_FUTURE_day_not_today():
@@ -161,8 +161,9 @@ def test_a_run_of_all_nulls_answers_nothing():
 # fresh. Absent, the app reads null and says so; it never borrows +5.
 
 
-def test_the_horizons_are_one_three_five_and_ten():
-    assert HORIZONS == (1, 3, 5, 10)
+def test_the_horizons_are_every_day_one_to_ten():
+    """(T375, owner 2026-11-03) the map's day chips name each day: +1 to +10, every one ranked."""
+    assert HORIZONS == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 
 
 def test_ten_days_is_ranked_from_the_thirty_day_model():
@@ -202,7 +203,7 @@ def test_a_daily_run_keeps_half_a_day_of_slack():
 def test_ten_days_is_absent_not_the_five_day_value_when_no_run_reaches():
     runs = {"CLEVER": {"series": hourly(NOW, 144, lambda h: 11.0)}}  # six days, no ELF
     got = forecast_percentiles(runs, {"discharge": FLAT}, NOW)
-    assert sorted(got, key=int) == ["1", "3", "5"]
+    assert sorted(got, key=int) == ["1", "2", "3", "4", "5", "6"]
 
 
 def test_ten_days_ranks_against_the_envelope_ten_days_out():
@@ -235,15 +236,10 @@ def _publish_one(tmp_path, monkeypatch, runs):
 def test_the_index_carries_ten_days_ahead_beside_the_others(tmp_path, monkeypatch):
     got = _publish_one(tmp_path, monkeypatch,
                        lambda now: {"ELF": {"series": daily(now, 30, 11.0)}})
-    assert got["ahead"] == {
-        "1": {"discharge": pytest.approx(0.5), "model": "ELF"},
-        "3": {"discharge": pytest.approx(0.5), "model": "ELF"},
-        "5": {"discharge": pytest.approx(0.5), "model": "ELF"},
-        "10": {"discharge": pytest.approx(0.5), "model": "ELF"},
-    }
+    assert got["ahead"] == {str(d): {"discharge": pytest.approx(0.5), "model": "ELF"} for d in range(1, 11)}
 
 
 def test_the_index_leaves_ten_days_out_when_no_run_reaches(tmp_path, monkeypatch):
     got = _publish_one(tmp_path, monkeypatch,
                        lambda now: {"CLEVER": {"series": hourly(now, 144, lambda h: 11.0)}})
-    assert sorted(got["ahead"], key=int) == ["1", "3", "5"]
+    assert sorted(got["ahead"], key=int) == ["1", "2", "3", "4", "5", "6"]

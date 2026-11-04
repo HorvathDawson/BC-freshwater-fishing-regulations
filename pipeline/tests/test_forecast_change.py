@@ -55,10 +55,13 @@ def test_a_one_day_spike_between_plus_3_and_plus_5_is_detected_and_dated():
                        "day": "2026-10-25", "shape": "open"}
     assert per["CLEVER"]["peak"] == {"day": "2026-10-26", "ratio": 22.7944, "value": 10.645, "percentile": 0.7717,
                                      "points": 0.6717, "back": "2026-10-27"}
-    # THE POINT: +5 (10-27) samples the day after it and reads the bottom of the record; the day itself is no horizon
+    # +5 (10-27) samples the day after it and reads the bottom of the record. (T375) Every day is a horizon now, so the
+    # day itself (+4, 10-26) is ranked too — at its sampled hour, under the Change's peak (0.77): the Change stays the
+    # one that names the spike
     ahead = pub.forecast_percentiles(r["forecasts"], r["envelope"], now)
     assert ahead["5"] == {"discharge": 0.05, "model": "CLEVER"}
-    assert {(now + timedelta(days=d)).date().isoformat() for d in pub.HORIZONS}.isdisjoint({"2026-10-26"})
+    assert (now + timedelta(days=4)).date().isoformat() == "2026-10-26"
+    assert ahead["4"]["model"] == "CLEVER" and 0.05 < ahead["4"]["discharge"] < 0.7717
 
 
 def test_a_rise_that_holds_is_a_step():
