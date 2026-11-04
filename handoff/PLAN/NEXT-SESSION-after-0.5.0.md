@@ -45,15 +45,17 @@ for the whole tree: pipeline, worker, core, ui, ui-native, map.
 2. **T377 rest:** the T367 leftovers after the forecast-day list (tappable/collapsible legend etc., see the ticket).
 3. **T178 weights:** the worker now scores CLEVER vs COFFEE monthly (`/run/skill`, `private/feeds/skill.json`). After
    one or two months of scores, propose the weights. Changing them is a reviewed change, not automatic.
-4. **T389:** unnamed-reach links without the `lines` download (stream key in the tiles; needs a tiles rebuild, so
+4. **T390:** the app notices a newer version and offers an Update button (Play in-app update; a strong prompt when
+   a release needs a newer app).
+5. **T389:** unnamed-reach links without the `lines` download (stream key in the tiles; needs a tiles rebuild, so
    batch it with the next atlas rebuild).
-5. **T383:** per-water time zones. 0.5.0 uses one B.C. clock (UTC−7, "PT"), core `clock.ts`.
-6. **iOS:** T313 (simulator), T336, T88 (signed build + TestFlight), T362–T365.
-7. **T239:** the annual synopsis update runbook + book diff tool + dry run (the next synopsis is the trigger).
-8. **Pipeline hygiene:** T306, T341, T305, T304, T331. **Audits:** T333–T335 (the owner scopes them first).
-9. **T250:** Expo SDK upgrade (re-apply the MapLibre RN patch; the fling hunk is in it), best before the next store
+6. **T383:** per-water time zones. 0.5.0 uses one B.C. clock (UTC−7, "PT"), core `clock.ts`.
+7. **iOS:** T313 (simulator), T336, T88 (signed build + TestFlight), T362–T365.
+8. **T239:** the annual synopsis update runbook + book diff tool + dry run (the next synopsis is the trigger).
+9. **Pipeline hygiene:** T306, T341, T305, T304, T331. **Audits:** T333–T335 (the owner scopes them first).
+10. **T250:** Expo SDK upgrade (re-apply the MapLibre RN patch; the fling hunk is in it), best before the next store
    release.
-10. **Production launch (T86, T240):** production is not used yet; every build reads staging. When it launches, the
+11. **Production launch (T86, T240):** production is not used yet; every build reads staging. When it launches, the
     production feeds worker ships WITH the app that reads its formats, never ahead (`dfo-feed/3` needs 0.5.0+).
 
 ## Decided on 2026-11-04 (don't re-ask)
