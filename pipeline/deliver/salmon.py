@@ -320,15 +320,34 @@ def _label(loc) -> str:
     return f"{loc.water} — {area}" if loc.water and area else (loc.water or area or loc.location_id)
 
 
+#: (T343, owner 2026-10-31) header notes never shown: the 100 m facility closure (the freshwater regs carry the same
+#: rule, on the same page) and how a fish is measured
+DROPPED_KINDS = ("facility", "measure")
+
+
 def header_answers(notes: Sequence[dict]) -> dict:
     """(T356) What a region's header notes resolve to, beside them — the release's region and the live feed's
     (`live._set_bucket`) alike: `bucket` (the combined daily limit, `quota.bucket`; absent where none is printed),
     `shared` (the scoped aggregate limits, `quota.shared_buckets`, whether or not there is a bucket) and `sizes` (the
     header sizes per species, `quota.sizes`). Always `shared` and `sizes`, empty or not: the app reads them, never a
-    missing key."""
+    missing key. (T343) `notes` again, each said elsewhere marked `fold`: `bucket` / `sizes` / `shared` / `closure`
+    (the structure that says it — only where that structure did read it), `drop` (`DROPPED_KINDS`). The card shows
+    a note as words only without one."""
     from pipeline.regs.dfo_salmon import quota as Q
     b = Q.bucket(notes)
-    return {**({"bucket": b} if b else {}), "shared": Q.shared_buckets(notes), "sizes": Q.sizes(notes)}
+    shared = Q.shared_buckets(notes)
+    sized: set = set()
+    sizes = Q.sizes(notes, sized)
+    closure = Q.header_closure(notes, "")
+    fold = {**{i: "sizes" for i in sized}, **{i: "bucket" for i in (b or {}).get("ids") or ()},
+            **{x["id"]: "shared" for x in shared if x.get("id")},
+            **({closure[0]["header_note"]: "closure"} if closure else {})}
+    marked = []
+    for n in notes:
+        n = {k: v for k, v in n.items() if k != "fold"}
+        how = "drop" if n.get("k") in DROPPED_KINDS else fold.get(n.get("id"))
+        marked.append({**n, "fold": how} if how else n)
+    return {"notes": marked, **({"bucket": b} if b else {}), "shared": shared, "sizes": sizes}
 
 
 def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: Iterable[dict],

@@ -30,7 +30,7 @@ import { key } from "./names";
 import { parseRegion } from "./parse";
 import { cmpStr, cmpTuple, formatFixed, pyRe, pyStrOf, pyTypeName, repr, search } from "./py";
 import { feedText, loads, PyFloat } from "./pyjson";
-import { bucket, headerClosure, sharedBuckets, sizes } from "./quota";
+import { headerAnswers, headerClosure } from "./quota";
 import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
 import { readRegistry, REGISTRY_PATH, template, type Registry } from "./wording";
@@ -677,11 +677,8 @@ function upgrade(prev: Json): Json {
 /** (T320) the salmon bucket — the header's combined daily / possession — beside the notes it is read from; (T356) with
  *  the region's `shared` and `sizes` (deliver.salmon.header_answers) */
 function setBucket(reg: Json): void {
-  const b = bucket(reg.notes || []);
-  if (b) reg.bucket = b;
-  else delete reg.bucket;
-  reg.shared = sharedBuckets(reg.notes || []);
-  reg.sizes = sizes(reg.notes || []);
+  delete reg.bucket;
+  Object.assign(reg, headerAnswers(reg.notes || []));
 }
 
 /** (T358) a dfo-header/1 note's `cm` as `lengths` (the LengthBand header.py writes since dfo-header/2) */

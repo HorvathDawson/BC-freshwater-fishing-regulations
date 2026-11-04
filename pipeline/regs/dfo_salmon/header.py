@@ -144,6 +144,8 @@ def classify(text: str, lead: Optional[str] = None) -> Optional[dict]:
         return out
     if text.endswith(":") and not re.search(r"\d", text) and "measured" not in low and "taken from" not in low:
         return None                                              # a lead-in only ("You must be aware of ...:")
+    if re.fullmatch(r"region \d+ is divided into \d+ parts:", low):
+        return None                                              # (T343) region 5's pointer to its two pages: no rule
     if re.search(r"no fishing for salmon in region .* until further notice", low):
         return {"k": "closed", "t": text}
     if "daylight hours" in low:
@@ -184,6 +186,10 @@ def classify(text: str, lead: Optional[str] = None) -> Optional[dict]:
                     **({"lengths": _band(min_cm=int(r.group(1)), max_cm=int(r.group(2)))} if r else {})}
         r = re.search(r"(?:over|greater than) (\d+)\s*cm", low)
         out = {"k": "adult", "t": text, "sp": [sp], **({"lengths": _over(r.group(1))} if r else {})}
+        # (T343) R6: "in Region 6 (other than Fraser River Watershed)" — the watershed is excepted
+        other = re.search(r"\(other than (?:the )?(.+?) watershed\)", text, re.I)
+        if other:
+            out["x"] = [_water(other.group(1), ws=True)]
         place = re.search(r"cm in the (.+?)\.?$", text)
         if place and not re.search(r"\bin region\b", low):
             out["w"] = [_water(n) for n in _names(place.group(1))]

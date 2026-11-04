@@ -36,7 +36,7 @@ THE CHECK (`over_bucket`): a species' daily limit never exceeds the bucket's; a 
 from __future__ import annotations
 
 import re
-from typing import Dict, List, Mapping, Optional, Sequence
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 from pipeline.regs.dfo_salmon import typed as T
 
@@ -333,10 +333,15 @@ def bucket(notes: Sequence[Mapping]) -> Optional[dict]:
         return None
     d = daily[0]
     seq = [0]
-    tree = {"node": "tier", "id": "t0", "tier": "total", "n": d["n"], "says": f"Up to {d['n']} salmon a day in total",
+    # (T343) the daily total says where it counts: DFO's "from tidal and fresh waters combined"
+    where = ", fresh and tidal waters combined" if re.search(r"tidal and fresh|fresh and tidal", d["t"], re.I) else ""
+    tree = {"node": "tier", "id": "t0", "tier": "total", "n": d["n"], "says": f"Up to {d['n']} salmon a day in total{where}",
             "by": 0, "children": []}
+    out: dict = {"tree": tree, "t": d["t"], "ids": [d["id"]] if d.get("id") else []}
     for n in notes:
         if n.get("k") in ("annual", "monthly") and not n.get("w") and isinstance(n.get("n"), int):
+            if n.get("id"):
+                out["ids"].append(n["id"])                       # (T343) said by the bucket's tier
             sp = list(n.get("sp") or ())
             if isinstance(_over(n), int):
                 tree["children"].append(_size(seq, n["n"], _over(n), n["t"], n["k"], species=sp))
@@ -344,7 +349,6 @@ def bucket(notes: Sequence[Mapping]) -> Optional[dict]:
                 seq[0] += 1
                 tree["children"].append({"node": "tier", "id": f"t{seq[0]}", "tier": "count", "n": n["n"],
                                          "says": n["t"], "by": 0, "children": [], "species": sp, "period": n["k"]})
-    out: dict = {"tree": tree, "t": d["t"], "ids": [d["id"]] if d.get("id") else []}
     poss = [n for n in notes if n.get("k") == "possession" and not n.get("w")]
     if poss:
         p = poss[0]
@@ -392,20 +396,36 @@ SIZE_KINDS = ("min_size", "adult", "jack")
 _SIZE_KEY = {"min_size": "min", "adult": "adult", "jack": "jack"}
 
 
-def sizes(notes: Sequence[Mapping]) -> List[dict]:
+#: (owner T343, 2026-10-31) what an "adult chinook" is where the page names no length for it: 50 cm (every page that
+#: names one region-wide says 50, except R6's 65 — which excepts the Fraser watershed, so that watershed gets this)
+ADULT_CHINOOK = {"min_cm": 50}
+
+
+def sizes(notes: Sequence[Mapping], used: Optional[set] = None) -> List[dict]:
     """The page's header sizes per species, ordered: water entries first (page order), then the region's. Species whose
-    sizes are alike share an entry (`sp` a list). A size note that EXCEPTS waters (`x` / `xp`) is not modelled: an
-    error, never a guess."""
+    sizes are alike share an entry (`sp` a list). A region-wide size note EXCEPTING whole waters (`x`: R6's adult
+    chinook "other than Fraser River Watershed") gives those waters an entry without it (adult chinook: the owner's
+    default, `ADULT_CHINOOK`); one excepting PARTS of waters (`xp`) is not modelled: an error, never a guess. A page
+    with sizes but no adult chinook length gets the default region-wide. `used` collects the ids of the notes said."""
     from pipeline.deliver.salmon import SPECIES
+    used = set() if used is None else used
     for n in notes:
-        if n.get("k") in SIZE_KINDS and (n.get("x") or n.get("xp")):
-            raise ValueError(f"sizes: {n.get('id')} excepts waters — a size exception is not modelled")
+        if n.get("k") in SIZE_KINDS and n.get("xp"):
+            raise ValueError(f"sizes: {n.get('id')} excepts parts of waters — a size exception is not modelled")
     region: Dict[str, dict] = {}
+    excepted: List[Tuple[Mapping, str]] = []                     # (note, species) a region-wide note excepts waters of
     for n in notes:
         if n.get("k") in SIZE_KINDS and not n.get("w") and n.get("lengths"):
             for sp in n.get("sp") or ():
                 e = region.setdefault(sp, {})
-                e.setdefault(_SIZE_KEY[n["k"]], dict(n["lengths"][0]))   # the first note of a kind (page order)
+                if _SIZE_KEY[n["k"]] not in e:                   # the first note of a kind (page order)
+                    e[_SIZE_KEY[n["k"]]] = dict(n["lengths"][0])
+                    if n.get("x"):
+                        excepted.append((n, sp))
+            if n.get("id"):
+                used.add(n["id"])
+    if region and "adult" not in region.get("CH", {}):
+        region.setdefault("CH", {})["adult"] = dict(ADULT_CHINOOK)
     out: List[dict] = []
 
     def put(sp: str, e: dict) -> None:
@@ -420,6 +440,14 @@ def sizes(notes: Sequence[Mapping]) -> List[dict]:
             for sp in n.get("sp") or ():
                 put(sp, {**region.get(sp, {}), _SIZE_KEY[n["k"]]: dict(n["lengths"][0]),
                          "w": [w["key"] for w in n["w"]], **({"on": n["on"]} if n.get("on") else {})})
+            if n.get("id"):
+                used.add(n["id"])
+    for n, sp in excepted:
+        e = {k: v for k, v in region[sp].items() if k != _SIZE_KEY[n["k"]]}
+        if n["k"] == "adult" and sp == "CH":
+            e["adult"] = dict(ADULT_CHINOOK)
+        if e:
+            put(sp, {**e, "w": [w["key"] for w in n["x"]]})
     for sp in SPECIES:
         if sp in region:
             put(sp, region[sp])

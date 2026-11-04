@@ -261,9 +261,10 @@ describe("(T227) region notes about a species sit with that species", () => {
     const f = facts();
     return { ...f, payload: { ...f.payload, regions: { ...f.payload.regions, "6": { ...f.payload.regions["6"]!, notes: [
       n("6:daylight:a", "daylight", "Daylight only."),
-      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], lengths: [{ min_cm: 25 }] }),
+      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], lengths: [{ min_cm: 25 }], fold: "sizes" }),
       n("6:annual:c", "annual", "The annual coho limit is 10.", { sp: ["CO"], n: 10 }),
-      n("6:adult:d", "adult", "An \"adult chinook\" is over 50 cm.", { sp: ["CH"], lengths: [{ min_cm: 50 }] }),
+      n("6:adult:d", "adult", "An \"adult chinook\" is over 50 cm.", { sp: ["CH"], lengths: [{ min_cm: 50 }], fold: "sizes" }),
+      n("6:facility:e", "facility", "No fishing within 100 m of a government facility.", { fold: "drop" }),
     ], sizes: [{ sp: ["CH"], adult: { min_cm: 50 } }, { sp: ["CO"], min: { min_cm: 25 } }] } } } } as never;
   };
   it("an open coho row carries its annual note (its size is the sizes line); a closed chinook's note stays in the block", () => {
@@ -271,6 +272,18 @@ describe("(T227) region notes about a species sit with that species", () => {
     const coho = c.rows.find((r) => r.species.includes("CO"))!;
     expect([coho.sizes, coho.speciesNotes]).toEqual(["Sizes (DFO): coho 25 cm or more to keep", ["The annual coho limit is 10."]]);
     expect(c.regionRules.map(({ label, notes }) => ({ label, notes }))).toEqual([{ label: "Region 6 Skeena", notes: ["Daylight only.", "An \"adult chinook\" is over 50 cm."] }]);
+  });
+  it("(T343) a folded note is said by its structure: a dropped one never shows, a bucket one not beside its bucket", () => {
+    const f = withNotes() as unknown as { payload: { regions: Record<string, { notes: unknown[] }> } };
+    const r6 = f.payload.regions["6"]!;
+    const bucket = { tree: { node: "tier", id: "t0", tier: "total", n: 4, says: "Up to 4 salmon a day in total", by: 0, children: [] },
+                     t: "The daily limit … is 4.", ids: ["6:daily:f"] };
+    const g = { ...f, payload: { ...f.payload, regions: { ...f.payload.regions, "6": { ...r6, bucket,
+      notes: [...r6.notes, n("6:daily:f", "daily", "The daily limit … is 4.", { n: 4, fold: "bucket" })] } } } } as never;
+    const words = (c: ReturnType<typeof salmonCard>) => [...c.regionRules.flatMap((x) => x.notes), ...c.rows.flatMap((r) => [...r.notes, ...(r.speciesNotes ?? [])])];
+    expect(words(salmonCard(withNotes(), { sids: [101], item: null }, JUL20))).not.toContain("No fishing within 100 m of a government facility.");
+    const c = salmonCard(g, { sids: [101], item: null }, JUL20);
+    expect([c.bucket?.ids, words(c).includes("The daily limit … is 4.")]).toEqual([["6:daily:f"], false]);
   });
 });
 

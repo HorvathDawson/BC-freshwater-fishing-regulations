@@ -105,6 +105,9 @@ export interface SalmonNote {
   readonly on?: readonly (readonly number[])[];
   /** (T320) an `aggregate` note's "hatchery-marked" */
   readonly hatchery?: boolean;
+  /** (T343) where the note is said instead of as words (`deliver.salmon.header_answers`): the bucket, the sizes line,
+   *  the aggregate limit, the closure — or `drop`, never shown */
+  readonly fold?: "bucket" | "sizes" | "shared" | "closure" | "drop";
 }
 interface Region { readonly name: string; readonly asof: string | null; readonly url: string; readonly notes?: readonly SalmonNote[];
                   readonly bucket?: SalmonBucket; readonly shared: readonly SalmonShared[]; readonly sizes: readonly SalmonSizes[] }
@@ -667,6 +670,13 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   // row may be fished, else in the water's own lines; an open row says the sizes the header sets for its species
   const hn = salmonNotes(P, regionsUsed, page.item, day);
   const placed = new Set<string>();
+  const buckets = [...new Map(regionsUsed.flatMap((r) => (P.regions[r]?.bucket ? [P.regions[r]!.bucket!] : []))
+    .map((b) => [JSON.stringify([b.tree.n, b.possession ?? null]), b])).values()];
+  // (T343) a note the pipeline folded is said by its structure, not as words: a sizes note where a sizes line says its
+  // species (`sized`), a bucket note where the one bucket is; an aggregate, a closure or a dropped note never
+  const asWords = (n: SalmonNote, sized: ReadonlySet<string>) =>
+    !n.fold || (n.fold === "sizes" && !n.sp?.some((x) => sized.has(x))) || (n.fold === "bucket" && buckets.length !== 1);
+  const none: ReadonlySet<string> = new Set();
   // (T227, owner 2026-10-28) a region note about a species (what an "adult chinook" is, an annual chinook limit) sits
   // with that species' row, the way steelhead's sits with steelhead; the region block keeps only what no row took
   const speciesWise = hn.region.filter((n) => n.sp?.length);
@@ -676,18 +686,22 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     const ofRow = (n: SalmonNote) => !!n.sp?.some((x) => r.species.includes(x as SalmonSpecies));
     const regionMine = speciesWise.filter(ofRow);
     regionMine.forEach((n) => placedRegion.add(n.id));
-    if (r.status !== "open" && r.status !== "release")
-      return regionMine.length ? { ...r, speciesNotes: regionMine.map((n) => n.t) } : r;
+    if (r.status !== "open" && r.status !== "release") {
+      const words = regionMine.filter((n) => asWords(n, none)).map((n) => n.t);
+      return words.length ? { ...r, speciesNotes: words } : r;
+    }
     const mine = hn.water.filter((n) => n.k !== "adult" && ofRow(n));
     mine.forEach((n) => placed.add(n.id));
     const sizes = sizesOf(P, regionsUsed, page.item, day, r.species);
     // the sizes line already says the minimum, the adult and the jack lengths: those notes are not repeated
-    const said = sizes ? SIZE_KINDS : new Set<string>();
-    const speciesNotes = regionMine.filter((n) => !said.has(n.k)).map((n) => n.t);
-    return { ...r, notes: [...r.notes, ...mine.map((n) => n.t)], sizes, ...(speciesNotes.length ? { speciesNotes } : {}) };
+    const sized: ReadonlySet<string> = sizes ? new Set(r.species) : none;
+    const speciesNotes = regionMine.filter((n) => asWords(n, sized)).map((n) => n.t);
+    return { ...r, notes: [...r.notes, ...mine.filter((n) => asWords(n, sized)).map((n) => n.t)], sizes,
+             ...(speciesNotes.length ? { speciesNotes } : {}) };
   });
+  const sizesShown: ReadonlySet<string> = new Set(rows.flatMap((r) => (r.sizes ? r.species : [])));
   const regionRules = regionsUsed.map((r) => {
-    const mine = hn.region.filter((n) => n.id.startsWith(`${r}:`) && !placedRegion.has(n.id));
+    const mine = hn.region.filter((n) => n.id.startsWith(`${r}:`) && !placedRegion.has(n.id) && asWords(n, sizesShown));
     return {
       label: SALMON_WORDS.regionRulesOf(r, P.regions[r]?.name ?? ""),
       notes: mine.map((n) => n.t),
@@ -706,8 +720,6 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const headlineStatus: SalmonVerdictStatus | "varies" =
     sts.includes("open") ? "open" : sts.includes("release") ? "release" : sts.includes("varies") ? "varies"
       : sts.includes("check") ? "check" : "closed";
-  const buckets = [...new Map(regionsUsed.flatMap((r) => (P.regions[r]?.bucket ? [P.regions[r]!.bucket!] : []))
-    .map((b) => [JSON.stringify([b.tree.n, b.possession ?? null]), b])).values()];
   return {
     ...block, rows, regionRules, gearProvincial,
     bucket: buckets.length === 1 ? buckets[0]! : null,
@@ -720,7 +732,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
         const runs = tierWords(sh.tree);
         return { line: lineText(runs), runs, words: [n.t] };
       }),
-    waterRules: hn.water.filter((n) => !placed.has(n.id)).map((n) => n.t),
+    waterRules: hn.water.filter((n) => !placed.has(n.id) && asWords(n, sizesShown)).map((n) => n.t),
     title: SALMON_WORDS.title, badge: SALMON_WORDS.badge,
     headline: SALMON_WORDS.headline[headlineStatus], headlineStatus,
     notListed: listed || unmapped.length ? null : SALMON_WORDS.notListedLine,
@@ -740,9 +752,6 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
       && chains.every((c) => runsOf((i) => salmonStatusFromSpecies(f, c, i)).every((r) => r.status === "closed"))),
   };
 }
-
-/** The header notes a `sizes` line words (`sizesOf`). */
-const SIZE_KINDS: ReadonlySet<string> = new Set(["min_size", "adult", "jack"]);
 
 /** The book's day i (0 = Jan 1 … 364 = Dec 31, no Feb 29) as the file's day (Feb 29 is 59). */
 const fileDay = (i: number) => (i < 59 ? i : i + 1);

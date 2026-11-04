@@ -384,7 +384,7 @@ use that as the sole source of future work."
 | T340 | Test bed regs-open stream taps fail (known since 0.3.0) | OPEN | — | 2026-10-31 |
 | T341 | release-perf A5 search p95 ~9 ms vs 8 ms ceiling — machine calibration, not a raise | OPEN | — | 2026-10-31 |
 | T342 | Pane text copyable with the phone's own long-press controls; remove the salmon-only Copy button; map stays non-selectable | OPEN | — | owner 2026-10-31 |
-| T343 | Regional salmon rules cleanup: drop facility-100 m dup + measuring notes, fresh+tidal daily into the bucket line, adult-chinook size per water (default 50 cm), fold or drop every header note; spawning salmon image | OPEN | T332 | owner 2026-10-31 |
+| T343 | Regional salmon rules cleanup: drop facility-100 m dup + measuring notes, fresh+tidal daily into the bucket line, adult-chinook size per water (default 50 cm), fold or drop every header note; spawning salmon image | DONE 11-03 data side (items 6–7 → T367; owner: R6 Fraser binding, daylight/bait/eulachon notes) | T332 | owner 2026-10-31 |
 | T344 | Species ID: a grouped species line (e.g. whitefish → lake + mountain) opens a swipeable set, one page per fish | OPEN | — | owner 2026-10-31 |
 | T345 | BUG (HIGH, crash): Coquitlam River pane — flows-into-Fraser → map tap crashed; fake "2 stretches"; — "Lougheed bridge to watershed boundary" highlight runs past the bridge (downstream section ends correctly) | OPEN | — | owner 2026-10-31 |
 | T346 | Go through every crash + problem report the feeds worker collected (not just ours): group by cause, ticket each | DONE | 6c08121b3 | owner 2026-10-31 |

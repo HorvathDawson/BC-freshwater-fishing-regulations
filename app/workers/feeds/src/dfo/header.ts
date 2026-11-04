@@ -123,6 +123,8 @@ const R = {
   jack: pyRe("between (\\d+)\\s*-\\s*(\\d+)\\s*cm"),
   overCm2: pyRe("(?:over|greater than) (\\d+)\\s*cm"),
   place: pyRe("cm in the (.+?)\\.?$"),
+  otherThan: pyRe("\\(other than (?:the )?(.+?) watershed\\)", "i"),
+  divided: pyRe("region \\d+ is divided into \\d+ parts:"),
   inRegion: pyRe("\\bin region\\b"),
   adultOrBait: pyRe("adult|bait ban", "i"),
   except2: pyRe("\\s+except\\b", "i"),
@@ -163,6 +165,7 @@ export function classify(text: string, lead: string | null = null): Note | null 
     return out;
   }
   if (text.endsWith(":") && !search(R.digit, text) && !low.includes("measured") && !low.includes("taken from")) return null;
+  if (fullmatch(R.divided, low)) return null; // (T343) region 5's pointer to its two pages: no rule
   if (search(R.closed, low)) return { k: "closed", t: text };
   if (low.includes("daylight hours")) return { k: "daylight", t: text };
   let m = search(R.facility, low);
@@ -206,6 +209,9 @@ export function classify(text: string, lead: string | null = null): Note | null 
     }
     const r = search(R.overCm2, low);
     const out: Note = { k: "adult", t: text, sp: [sp], ...(r ? { lengths: over(r[1]!) } : {}) };
+    // (T343) R6: "in Region 6 (other than Fraser River Watershed)" — the watershed is excepted
+    const other = search(R.otherThan, text);
+    if (other) out.x = [water(other[1]!, true)];
     const place = search(R.place, text);
     if (place && !search(R.inRegion, low)) out.w = names(place[1]!).map((n) => water(n));
     return out;

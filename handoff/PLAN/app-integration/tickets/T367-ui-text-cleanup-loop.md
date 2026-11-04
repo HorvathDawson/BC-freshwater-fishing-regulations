@@ -24,3 +24,10 @@ Only then does it go into the 0.5.0 APK (the one APK for the batch). No APK per 
 - 0 (2026-11-03): regs loading spinner sat in the pane's top corner → centred, large size (0db30c2). Owner: OK.
 
 Start a UI chat from `handoff/PLAN/NEXT-SESSION-UI.md`.
+
+## From T343 (2026-11-03, data chat → UI chat)
+Two salmon-card items are yours (presentational files): (a) the COLLAPSED salmon section shows one image, the
+ocean-phase chinook (`app/apps/mobile/assets/fish/chinook-salmon-ocean-phase.webp`); OPENED, each species row uses its
+own `<species>-salmon-spawning-phase.webp`. (b) The DFO source info (page link, date modified, notice numbers) is one
+collapsible line, collapsed by default; opened it shows the full source details. The view model is unchanged (core
+`salmonCard`: `source`, `asOf`, `credit`, `dfoWords`).

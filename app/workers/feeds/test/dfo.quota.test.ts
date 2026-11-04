@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { Interner, locationCalendar, type Verdict } from "../src/dfo/salmon";
-import { bucket, headerClosure, sharedBuckets, sizes, speciesTree, walk, words, type QuotaTier } from "../src/dfo/quota";
+import { bucket, headerAnswers, headerClosure, sharedBuckets, sizes, speciesTree, walk, words, type QuotaTier } from "../src/dfo/quota";
 import { parseHeader } from "../src/dfo/header";
 import { toRules } from "../src/dfo/typed";
 import { REPO } from "./dfo.scenario";
@@ -77,7 +77,8 @@ describe("(T356) the header's answers, as the Python resolves them", () => {
     Record<string, { notes: never[]; bucket?: unknown; shared: unknown[]; sizes: unknown[] }>;
   for (const [slug, want] of Object.entries(FIX)) it(`region ${slug}`, () => {
     const notes = parseHeader(readFileSync(join(REPO, `pipeline/tests/fixtures/dfo_salmon/region${slug}-eng.html`), "utf-8"), slug);
-    expect(JSON.parse(JSON.stringify(notes))).toEqual(want.notes);
+    // (T343) `headerAnswers` gives the notes back with each folded note marked, as the Python does
+    expect(JSON.parse(JSON.stringify(headerAnswers(notes)))).toEqual(want);
     expect([bucket(notes) ?? undefined, sharedBuckets(notes), sizes(notes)]).toEqual([want.bucket, want.shared, want.sizes]);
     const closed = (notes as { k: string; id?: string }[]).find((n) => n.k === "closed");
     if (closed) expect(headerClosure(notes, slug)![0]).toMatchObject({ header_note: closed.id });

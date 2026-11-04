@@ -76,14 +76,16 @@ def test_the_feed_composed_narrowest_first_is_the_release_chain():
 def test_todays_pages_join_every_location(tmp_path):
     got = L.run(tmp_path, fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())
     ix = got["index"]
-    assert ix["format"] == L.FORMAT == "dfo-feed/3" and ix["unplaced"] == 0 and not got["notices"]
+    # (T343) R6's adult chinook excepts the "Fraser River" watershed, which no R6 DFO water binds: told, never guessed
+    assert ix["format"] == L.FORMAT == "dfo-feed/3" and ix["unplaced"] == 0
+    assert [n["key"] for n in got["notices"]] == ["dfo-header-name:6:Fraser River"]
     assert len(ix["locs"]) == 254          # T349: + 7 page-default entries (R4/5B/6 carry the sentence on their own row)
     assert ix["verdicts"][0] == S.NOT_LISTED
     assert ix["regions"]["6"]["asof"] == "2026-08-28" and ix["regions"]["6"]["checked"] == AT
     assert not any(r["stale"] or r["held"] for r in ix["regions"].values())
     assert json.loads((tmp_path / "index.json").read_text()) == ix
     # T332: the quota trees (game-fish TreeTier nodes) add ~22 kB to the ~74 kB of T320; gzip on the wire
-    assert (tmp_path / "index.json").stat().st_size < 100_000
+    assert (tmp_path / "index.json").stat().st_size < 105_000          # T343: + each note's `fold`
 
 
 def _unseen() -> str:
@@ -106,7 +108,7 @@ def test_an_unseen_location_is_held_and_told_once(tmp_path):
     assert {u["kind"] for u in held} == {"drift", "new_water"} and all(u["rules"] for u in held)
     assert any("Invented Creek" in t and "rule" in t for t in s.sent)
     assert any("new wording" in t and "likely 6:" in t for t in s.sent)
-    assert len(s.sent) == 2
+    assert len(s.sent) == 3 and any("'Fraser River', which no curated DFO water binds" in t for t in s.sent)   # T343
     # every other location publishes, with today's answers
     ix = got["index"]
     reworded = {c["location_id"] for u in got["unplaced"] for c in u["candidates"][:1]}

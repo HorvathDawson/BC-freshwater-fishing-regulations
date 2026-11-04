@@ -117,9 +117,13 @@ export function bucket(notes: Note[]): Record<string, unknown> | null {
   if (!daily.length) return null;
   const d = daily[0]!;
   const seq = [0];
-  const tree: QuotaTier = { node: "tier", id: "t0", tier: "total", n: d.n as number, says: `Up to ${d.n} salmon a day in total`, by: 0, children: [] };
+  // (T343) the daily total says where it counts: DFO's "from tidal and fresh waters combined"
+  const where = /tidal and fresh|fresh and tidal/i.test(d.t) ? ", fresh and tidal waters combined" : "";
+  const tree: QuotaTier = { node: "tier", id: "t0", tier: "total", n: d.n as number, says: `Up to ${d.n} salmon a day in total${where}`, by: 0, children: [] };
+  const out: Record<string, unknown> = { tree, t: d.t, ids: d.id ? [d.id] : [] };
   for (const n of notes) {
     if (!((n.k === "annual" || n.k === "monthly") && !(n.w && n.w.length) && isInt(n.n))) continue;
+    if (n.id) (out.ids as string[]).push(n.id); // (T343) said by the bucket's tier
     const sp = [...(n.sp ?? [])];
     const cm = overOf(n);
     if (isInt(cm)) tree.children.push(size(seq, n.n, cm, n.t, n.k, sp));
@@ -128,7 +132,6 @@ export function bucket(notes: Note[]): Record<string, unknown> | null {
       tree.children.push({ node: "tier", id: `t${seq[0]}`, tier: "count", n: n.n, says: n.t, by: 0, children: [], species: sp, period: n.k });
     }
   }
-  const out: Record<string, unknown> = { tree, t: d.t, ids: d.id ? [d.id] : [] };
   const poss = notes.filter((n) => n.k === "possession" && !(n.w && n.w.length));
   if (poss.length) {
     const p = poss[0]!;
@@ -166,18 +169,30 @@ const sameJson = (a: unknown, b: unknown): boolean => {
 const SIZE_KEY: Record<string, string> = { min_size: "min", adult: "adult", jack: "jack" };
 const SPECIES_ORDER = ["CH", "CO", "SK", "PK", "CM"];
 
-/** quota.sizes (T356): the header sizes per species, ordered — a water's own entries first, then the region's */
-export function sizes(notes: Note[]): Record<string, unknown>[] {
+/** (owner T343) quota.ADULT_CHINOOK: what an "adult chinook" is where the page names no length for it */
+const ADULT_CHINOOK = { min_cm: 50 };
+
+/** quota.sizes (T356, T343): the header sizes per species, ordered — a water's own entries first, then the waters a
+ *  region-wide note excepts (adult chinook: the default), then the region's; a page without an adult chinook length gets
+ *  the default. `used` collects the ids of the notes said. */
+export function sizes(notes: Note[], used: Set<string> = new Set()): Record<string, unknown>[] {
   for (const n of notes)
-    if (n.k in SIZE_KEY && ((n.x && n.x.length) || (n.xp && n.xp.length)))
-      throw new Error(`sizes: ${n.id} excepts waters — a size exception is not modelled`);
+    if (n.k in SIZE_KEY && n.xp && n.xp.length)
+      throw new Error(`sizes: ${n.id} excepts parts of waters — a size exception is not modelled`);
   const region: Record<string, Record<string, unknown>> = {};
+  const excepted: [Note, string][] = [];
   for (const n of notes)
-    if (n.k in SIZE_KEY && !(n.w && n.w.length) && n.lengths?.length)
+    if (n.k in SIZE_KEY && !(n.w && n.w.length) && n.lengths?.length) {
       for (const sp of n.sp ?? []) {
         const e = (region[sp] ??= {});
-        if (!(SIZE_KEY[n.k]! in e)) e[SIZE_KEY[n.k]!] = { ...n.lengths[0] };
+        if (!(SIZE_KEY[n.k]! in e)) {
+          e[SIZE_KEY[n.k]!] = { ...n.lengths[0] };
+          if (n.x && n.x.length) excepted.push([n, sp]);
+        }
       }
+      if (n.id) used.add(n.id);
+    }
+  if (Object.keys(region).length && !("adult" in (region.CH ?? {}))) (region.CH ??= {}).adult = { ...ADULT_CHINOOK };
   const out: Record<string, unknown>[] = [];
   const put = (sp: string, e: Record<string, unknown>) => {
     const last = out[out.length - 1];
@@ -191,6 +206,13 @@ export function sizes(notes: Note[]): Record<string, unknown>[] {
     if (n.k in SIZE_KEY && n.w && n.w.length && n.lengths?.length)
       for (const sp of n.sp ?? [])
         put(sp, { ...(region[sp] ?? {}), [SIZE_KEY[n.k]!]: { ...n.lengths[0] }, w: n.w.map((w) => w.key), ...(n.on && n.on.length ? { on: n.on } : {}) });
+  for (const n of notes)
+    if (n.k in SIZE_KEY && n.w && n.w.length && n.lengths?.length && n.id) used.add(n.id);
+  for (const [n, sp] of excepted) {
+    const e = Object.fromEntries(Object.entries(region[sp]!).filter(([k]) => k !== SIZE_KEY[n.k]));
+    if (n.k === "adult" && sp === "CH") e.adult = { ...ADULT_CHINOOK };
+    if (Object.keys(e).length) put(sp, { ...e, w: (n.x as { key: string }[]).map((w) => w.key) });
+  }
   for (const sp of SPECIES_ORDER) if (region[sp]) put(sp, region[sp]!);
   return out;
 }
@@ -202,4 +224,28 @@ export function headerClosure(notes: Note[], slug: string): R[] | null {
   // T356: the note's id rides on the rule, so its verdict carries `c` (salmon.ts)
   return [{ rule_id: `${slug}:header-closed`, type: "retention_limit", verbatim: closed[0]!.t, species: ["SA"], take: 0, may_target: false,
             header_note: closed[0]!.id } as R];
+}
+
+/** (T343, owner 2026-10-31) deliver.salmon.DROPPED_KINDS: header notes never shown */
+const DROPPED_KINDS = new Set(["facility", "measure"]);
+
+/** deliver.salmon.header_answers (T356, T343): the region's `bucket` / `shared` / `sizes`, and its `notes` again with
+ *  each said elsewhere marked `fold` (bucket / sizes / shared / closure — where that structure read it — or drop) */
+export function headerAnswers(notes: Note[]): Record<string, unknown> {
+  const b = bucket(notes);
+  const shared = sharedBuckets(notes);
+  const sized = new Set<string>();
+  const sz = sizes(notes, sized);
+  const closure = headerClosure(notes, "");
+  const fold: Record<string, string> = {};
+  for (const i of sized) fold[i] = "sizes";
+  for (const i of ((b?.ids as string[] | undefined) ?? [])) fold[i] = "bucket";
+  for (const x of shared) if (x.id) fold[x.id as string] = "shared";
+  if (closure) fold[(closure[0] as unknown as { header_note: string }).header_note] = "closure";
+  const marked = notes.map((n) => {
+    const { fold: _was, ...rest } = n as Note & { fold?: string };
+    const how = DROPPED_KINDS.has(rest.k) ? "drop" : rest.id !== undefined ? fold[rest.id] : undefined;
+    return (how ? { ...rest, fold: how } : rest) as Note;
+  });
+  return { notes: marked, ...(b ? { bucket: b } : {}), shared, sizes: sz };
 }

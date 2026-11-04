@@ -19,19 +19,22 @@ export const SALMON_FEED_GOLDEN = {
       "id": "6:facility:482d5861",
       "k": "facility",
       "t": "No fishing is allowed within 100 meters of any government facility operated for counting, passing or rearing fish.",
-      "m": 100
+      "m": 100,
+      "fold": "drop"
      },
      {
       "id": "6:daily:3edbbbb8",
       "k": "daily",
       "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply.",
-      "n": 4
+      "n": 4,
+      "fold": "bucket"
      },
      {
       "id": "6:possession:0483d6ff",
       "k": "possession",
       "t": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence.",
-      "n": 8
+      "n": 8,
+      "fold": "bucket"
      },
      {
       "id": "6:annual:abc91df0",
@@ -45,7 +48,8 @@ export const SALMON_FEED_GOLDEN = {
         "min_cm": 50
        }
       ],
-      "n": 10
+      "n": 10,
+      "fold": "bucket"
      },
      {
       "id": "6:aggregate:1ccba1c6",
@@ -62,12 +66,14 @@ export const SALMON_FEED_GOLDEN = {
         "ws": true,
         "key": "kispiox river+ws"
        }
-      ]
+      ],
+      "fold": "shared"
      },
      {
       "id": "6:measure:89e5a0b6",
       "k": "measure",
-      "t": "Salmon measurements are taken from tip of nose to tail fork."
+      "t": "Salmon measurements are taken from tip of nose to tail fork.",
+      "fold": "drop"
      },
      {
       "id": "6:min_size:3e134f97",
@@ -80,7 +86,8 @@ export const SALMON_FEED_GOLDEN = {
        {
         "min_cm": 25
        }
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:min_size:9a18cc7a",
@@ -96,7 +103,8 @@ export const SALMON_FEED_GOLDEN = {
        {
         "min_cm": 30
        }
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:adult:5292d2c1",
@@ -109,7 +117,8 @@ export const SALMON_FEED_GOLDEN = {
        {
         "min_cm": 50
        }
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:adult:51e92ef1",
@@ -135,7 +144,8 @@ export const SALMON_FEED_GOLDEN = {
         244,
         365
        ]
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:adult:a721861e",
@@ -166,7 +176,8 @@ export const SALMON_FEED_GOLDEN = {
         244,
         365
        ]
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:bait_ban:ff2dcf43",
@@ -195,7 +206,7 @@ export const SALMON_FEED_GOLDEN = {
       "id": "t0",
       "tier": "total",
       "n": 4,
-      "says": "Up to 4 salmon a day in total",
+      "says": "Up to 4 salmon a day in total, fresh and tidal waters combined",
       "by": 0,
       "children": [
        {
@@ -217,6 +228,7 @@ export const SALMON_FEED_GOLDEN = {
      "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply.",
      "ids": [
       "6:daily:3edbbbb8",
+      "6:annual:abc91df0",
       "6:possession:0483d6ff"
      ],
      "possession": 8,
@@ -910,19 +922,22 @@ export const SALMON_FEED_GOLDEN = {
       "id": "6:facility:482d5861",
       "k": "facility",
       "t": "No fishing is allowed within 100 meters of any government facility operated for counting, passing or rearing fish.",
-      "m": 100
+      "m": 100,
+      "fold": "drop"
      },
      {
       "id": "6:daily:9d1b13d1",
       "k": "daily",
       "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 2. Individual species limits also apply.",
-      "n": 2
+      "n": 2,
+      "fold": "bucket"
      },
      {
       "id": "6:possession:0483d6ff",
       "k": "possession",
       "t": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence.",
-      "n": 8
+      "n": 8,
+      "fold": "bucket"
      },
      {
       "id": "6:annual:abc91df0",
@@ -936,7 +951,8 @@ export const SALMON_FEED_GOLDEN = {
         "min_cm": 50
        }
       ],
-      "n": 10
+      "n": 10,
+      "fold": "bucket"
      },
      {
       "id": "6:aggregate:1ccba1c6",
@@ -953,12 +969,14 @@ export const SALMON_FEED_GOLDEN = {
         "ws": true,
         "key": "kispiox river+ws"
        }
-      ]
+      ],
+      "fold": "shared"
      },
      {
       "id": "6:measure:89e5a0b6",
       "k": "measure",
-      "t": "Salmon measurements are taken from tip of nose to tail fork."
+      "t": "Salmon measurements are taken from tip of nose to tail fork.",
+      "fold": "drop"
      },
      {
       "id": "6:min_size:3e134f97",
@@ -971,7 +989,8 @@ export const SALMON_FEED_GOLDEN = {
        {
         "min_cm": 25
        }
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:min_size:9a18cc7a",
@@ -987,7 +1006,8 @@ export const SALMON_FEED_GOLDEN = {
        {
         "min_cm": 30
        }
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:adult:5292d2c1",
@@ -1000,7 +1020,8 @@ export const SALMON_FEED_GOLDEN = {
        {
         "min_cm": 50
        }
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:adult:51e92ef1",
@@ -1026,7 +1047,8 @@ export const SALMON_FEED_GOLDEN = {
         244,
         365
        ]
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:adult:a721861e",
@@ -1057,7 +1079,8 @@ export const SALMON_FEED_GOLDEN = {
         244,
         365
        ]
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:bait_ban:ff2dcf43",
@@ -1087,7 +1110,7 @@ export const SALMON_FEED_GOLDEN = {
       "id": "t0",
       "tier": "total",
       "n": 2,
-      "says": "Up to 2 salmon a day in total",
+      "says": "Up to 2 salmon a day in total, fresh and tidal waters combined",
       "by": 0,
       "children": [
        {
@@ -1109,6 +1132,7 @@ export const SALMON_FEED_GOLDEN = {
      "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 2. Individual species limits also apply.",
      "ids": [
       "6:daily:9d1b13d1",
+      "6:annual:abc91df0",
       "6:possession:0483d6ff"
      ],
      "possession": 8,
@@ -1691,7 +1715,8 @@ export const SALMON_FEED_GOLDEN = {
      {
       "id": "6:closed:t356",
       "k": "closed",
-      "t": "There is no fishing for salmon in Region 6 until further notice."
+      "t": "There is no fishing for salmon in Region 6 until further notice.",
+      "fold": "closure"
      },
      {
       "id": "6:daylight:c4e3b46f",
@@ -1702,19 +1727,22 @@ export const SALMON_FEED_GOLDEN = {
       "id": "6:facility:482d5861",
       "k": "facility",
       "t": "No fishing is allowed within 100 meters of any government facility operated for counting, passing or rearing fish.",
-      "m": 100
+      "m": 100,
+      "fold": "drop"
      },
      {
       "id": "6:daily:9d1b13d1",
       "k": "daily",
       "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 2. Individual species limits also apply.",
-      "n": 2
+      "n": 2,
+      "fold": "bucket"
      },
      {
       "id": "6:possession:0483d6ff",
       "k": "possession",
       "t": "The possession limit for all salmon from all waters is twice the daily limit. You cannot possess more than 8 salmon in total, except for salmon that are at your ordinary residence.",
-      "n": 8
+      "n": 8,
+      "fold": "bucket"
      },
      {
       "id": "6:annual:abc91df0",
@@ -1728,7 +1756,8 @@ export const SALMON_FEED_GOLDEN = {
         "min_cm": 50
        }
       ],
-      "n": 10
+      "n": 10,
+      "fold": "bucket"
      },
      {
       "id": "6:aggregate:1ccba1c6",
@@ -1745,12 +1774,14 @@ export const SALMON_FEED_GOLDEN = {
         "ws": true,
         "key": "kispiox river+ws"
        }
-      ]
+      ],
+      "fold": "shared"
      },
      {
       "id": "6:measure:89e5a0b6",
       "k": "measure",
-      "t": "Salmon measurements are taken from tip of nose to tail fork."
+      "t": "Salmon measurements are taken from tip of nose to tail fork.",
+      "fold": "drop"
      },
      {
       "id": "6:min_size:3e134f97",
@@ -1763,7 +1794,8 @@ export const SALMON_FEED_GOLDEN = {
        {
         "min_cm": 25
        }
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:min_size:9a18cc7a",
@@ -1779,7 +1811,8 @@ export const SALMON_FEED_GOLDEN = {
        {
         "min_cm": 30
        }
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:adult:5292d2c1",
@@ -1792,7 +1825,8 @@ export const SALMON_FEED_GOLDEN = {
        {
         "min_cm": 50
        }
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:adult:51e92ef1",
@@ -1818,7 +1852,8 @@ export const SALMON_FEED_GOLDEN = {
         244,
         365
        ]
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:adult:a721861e",
@@ -1849,7 +1884,8 @@ export const SALMON_FEED_GOLDEN = {
         244,
         365
        ]
-      ]
+      ],
+      "fold": "sizes"
      },
      {
       "id": "6:bait_ban:ff2dcf43",
@@ -1879,7 +1915,7 @@ export const SALMON_FEED_GOLDEN = {
       "id": "t0",
       "tier": "total",
       "n": 2,
-      "says": "Up to 2 salmon a day in total",
+      "says": "Up to 2 salmon a day in total, fresh and tidal waters combined",
       "by": 0,
       "children": [
        {
@@ -1901,6 +1937,7 @@ export const SALMON_FEED_GOLDEN = {
      "t": "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 2. Individual species limits also apply.",
      "ids": [
       "6:daily:9d1b13d1",
+      "6:annual:abc91df0",
       "6:possession:0483d6ff"
      ],
      "possession": 8,

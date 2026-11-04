@@ -210,8 +210,48 @@ def test_the_header_sizes_resolve_per_species_a_water_before_its_region():
         ({"min_cm": 62}, ["babine river", "bulkley river"], [[244, 365]]),
         ({"min_cm": 50}, None, None)]
     assert ch[0]["min"] == ch[-1]["min"] == {"min_cm": 30}       # the water entry carries the region's minimum
-    with pytest.raises(ValueError, match="excepts waters"):
-        Q.sizes([{**next(n for n in notes if n["k"] == "min_size"), "x": [{"n": "A", "ws": False, "key": "a"}]}])
+    with pytest.raises(ValueError, match="excepts parts of waters"):
+        Q.sizes([{**next(n for n in notes if n["k"] == "min_size"), "xp": ["the part below the falls"]}])
+
+
+def test_t343_an_excepted_watershed_gets_the_default_adult_chinook_and_a_page_without_one_too():
+    """(T343, owner) R6's adult chinook is over 65 cm "other than Fraser River Watershed": that watershed gets an entry
+    of its own with the region's other sizes and the owner's default adult chinook (50 cm), before the region's 65.
+    A page with sizes but no adult chinook length (5B) gets the default region-wide."""
+    from pipeline.regs.dfo_salmon import quota as Q
+    six = [{"id": "6:min_size:a", "k": "min_size", "t": "…", "sp": ["CH"], "lengths": [{"min_cm": 30}]},
+           H.classify('An "adult chinook" in Region 6 (other than Fraser River Watershed) is defined as being over 65 cm'
+                      ' measured from the tip of the nose to tail fork') | {"id": "6:adult:b"}]
+    assert six[1]["x"] == [{"n": "Fraser River", "ws": True, "key": "fraser river+ws"}]
+    used: set = set()
+    got = Q.sizes(six, used)
+    assert got == [{"sp": ["CH"], "min": {"min_cm": 30}, "adult": {"min_cm": 50}, "w": ["fraser river+ws"]},
+                   {"sp": ["CH"], "min": {"min_cm": 30}, "adult": {"min_cm": 65}}]
+    assert used == {"6:min_size:a", "6:adult:b"}
+    five_b = [{"id": "5b:min_size:a", "k": "min_size", "t": "…", "sp": ["CH", "CO"], "lengths": [{"min_cm": 30}]}]
+    assert Q.sizes(five_b) == [{"sp": ["CH"], "min": {"min_cm": 30}, "adult": {"min_cm": 50}},
+                               {"sp": ["CO"], "min": {"min_cm": 30}}]
+
+
+def test_t343_every_header_note_is_folded_dropped_or_left_as_words():
+    """(T343) `header_answers` marks each note said elsewhere: the daily / possession / annual limits by the bucket (its
+    total says "fresh and tidal waters combined"), the sizes by the sizes line, the closure by the closure; the 100 m
+    facility rule and how to measure are dropped. Daylight, the bait ban and the eulachon reminder stay as words."""
+    from pipeline.deliver.salmon import header_answers
+    folds = {}
+    for slug in T356_SLUGS:
+        got = header_answers(H.parse_header((T356_FIXTURE.parent / f"region{slug}-eng.html").read_text(encoding="utf-8"), slug))
+        if got.get("bucket"):
+            assert got["bucket"]["tree"]["says"].endswith("salmon a day in total, fresh and tidal waters combined")
+        for n in got["notes"]:
+            folds.setdefault(n["k"], set()).add(n.get("fold"))
+    assert folds.pop("facility") == folds.pop("measure", {"drop"}) == {"drop"}
+    assert folds.pop("closed") == {"closure"}
+    assert {k: v for k, v in folds.items() if k in ("daily", "possession", "annual", "monthly")} == {
+        k: {"bucket"} for k in ("daily", "possession", "annual", "monthly") if k in folds}
+    assert folds.pop("min_size") == folds.pop("adult") == folds.pop("jack") == {"sizes"}
+    assert folds.get("aggregate", {"shared"}) == {"shared"}
+    assert folds.get("daylight", {None}) == folds.get("bait_ban", {None}) == folds.get("other", {None}) == {None}
 
 
 T356_FIXTURE = Path(__file__).parent / "fixtures" / "dfo_salmon" / "t356_header.json"
