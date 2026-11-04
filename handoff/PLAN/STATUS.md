@@ -26,7 +26,21 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   redeployed with 0.5.0. More → Sources now says forecasts are updated on weekdays.
 - **T348 done** (9907af3c0). The legend's "N reaches coloured" count now updates after a pan or zoom on the phone.
   A new feed already repaints the map in place; that now has a test.
-- T376 (basin names, the map-centre basin and a water's own basin) is running in a second lane.
+- **T376 done** (e21cdbeac). The release now names all 246 watershed groups as sourced. The Conditions map knows which
+  basin its centre is in (`col.centreBasin`), and a water knows its own basin (`useWaterBasin`). This needs a bundle
+  rebuild and then a release (about 42 kB more, conditions file 915 kB of its 950 kB budget). Until then, a release
+  build from the old bundle stops on purpose. The forecast-day list that uses it is T377.
+- **T339 done** (in e21cdbeac). Gauge names now come from HYDAT: 08MH044 reads "Fraser River at Albion", and the
+  Courtenay gauge "5th Street Bridge". Bedford Channel losing the Red Pass gauge is correct.
+- **T342 done in code** (e604eb5ae). You can copy any text on the panes (regulations, conditions, sheets, More pages,
+  spot screen) with the phone's own long-press. Buttons, tabs and the map are not selectable. The salmon-only Copy
+  button is gone.
+- **T344 done in code** (09d2d845e). Tapping a group such as Whitefish opens one swipeable page per fish, showing
+  "1 of 2".
+- T342 and T344 still need a check on the emulator; that happens in the batch 5 emulator sitting (T312 map feel, T340).
+- New ticket T379: one WaterMode test fails on and off. It did so before today's work, and it has to be fixed before
+  the batch 7 full suite run.
+- **Release rebuild owed** before the cut: bundle (T376, T339) → release (T372's salmon `n`, T376 tables).
 
 ## 2026-11-04: chats merged for 0.5.0 [T372, T367]
 - **One chat from here:** the UI chat and the pipeline chat merge. Start from `handoff/PLAN/NEXT-SESSION-0.5.0.md`.

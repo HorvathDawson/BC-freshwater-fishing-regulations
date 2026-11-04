@@ -1,6 +1,6 @@
 # T342 — Pane text copyable with the phone's own controls (remove the salmon-only Copy button)
 
-Status: OPEN (owner 2026-10-31: "the copy we added isn't what we wanted at all. It shouldn't be a button in only the
+Status: DONE in code (device check in the batch 5 emulator sitting) (e604eb5ae) 2026-11-04 (was: OPEN (owner 2026-10-31: "the copy we added isn't what we wanted at all. It shouldn't be a button in only the)
 salmon regs. It should just make it so a user could use basic phone controls to copy the text that is on screen if
 they wanted (on the panes, not the map)").
 
@@ -16,3 +16,9 @@ they wanted (on the panes, not the map)").
 4. Check: selection doesn't break scrolling, swipe-back or the bottom sheet drag; TalkBack/VoiceOver unchanged.
    Test bed: a long-press on a regs line shows the system Copy menu (Android emulator + iOS sim).
 Size: S–M.
+
+## Done (2026-11-04)
+One mechanism: ui-native `Text.tsx` (selectable inside a pane's `<Selectable>`: WaterFrame, Sheet, MenuPage, SpotScreen;
+no opinion outside a pane) and `Pressable.tsx` (never under a tap target); the water's Map view opts out. All 111
+components take both from there (`tools/selectable-text.test.ts`). The salmon Copy button, its words and `copyText.ts`
+are gone; the Updates-log "Copy log" stays. Left: the emulator / simulator long-press → system Copy check.

@@ -380,12 +380,12 @@ use that as the sole source of future work."
 | T336 | iOS: walkthrough card over the Layers sheet missing from the accessibility tree (VoiceOver can't reach it) | OPEN | — | T313 2026-10-30 |
 | T337 | DFO water bindings refresh inside the build — `match apply` is a manual step today; deliver reads a cache that an atlas rebuild can leave stale | OPEN | — | 2026-10-31 |
 | T338 | DFO part-closure in a limits cell (Fort Babine) reads as whole river closed | DONE | 01919949f, 7a4d3faec | 2026-11-03 (01919949f; ships with batch 3 release) |
-| T339 | 08MH044 cut still labelled Whonock; Bedford Channel lost its gauge — confirm | OPEN | — | 2026-10-31 |
+| T339 | 08MH044 cut still labelled Whonock; Bedford Channel lost its gauge — confirm | DONE (live with the next bundle + release) 11-04 | e21cdbeac | 2026-10-31 |
 | T340 | Test bed regs-open stream taps fail (known since 0.3.0) | OPEN | — | 2026-10-31 |
 | T341 | release-perf A5 search p95 ~9 ms vs 8 ms ceiling — machine calibration, not a raise | OPEN | — | 2026-10-31 |
-| T342 | Pane text copyable with the phone's own long-press controls; remove the salmon-only Copy button; map stays non-selectable | OPEN | — | owner 2026-10-31 |
+| T342 | Pane text copyable with the phone's own long-press controls; remove the salmon-only Copy button; map stays non-selectable | DONE in code (device check in the batch 5 emulator sitting) 11-04 | e604eb5ae | owner 2026-10-31 |
 | T343 | Regional salmon rules cleanup: drop facility-100 m dup + measuring notes, fresh+tidal daily into the bucket line, adult-chinook size per water (default 50 cm), fold or drop every header note; spawning salmon image | DONE 11-04 (data side; items 6–7 → T367) | 561115e24, c706d67ac, ec5b37257 | owner 2026-10-31 |
-| T344 | Species ID: a grouped species line (e.g. whitefish → lake + mountain) opens a swipeable set, one page per fish | OPEN | — | owner 2026-10-31 |
+| T344 | Species ID: a grouped species line (e.g. whitefish → lake + mountain) opens a swipeable set, one page per fish | DONE in code (device check in the batch 5 emulator sitting) 11-04 | 09d2d845e | owner 2026-10-31 |
 | T345 | BUG (HIGH, crash): Coquitlam River pane — flows-into-Fraser → map tap crashed; fake "2 stretches"; — "Lougheed bridge to watershed boundary" highlight runs past the bridge (downstream section ends correctly) | OPEN | — | owner 2026-10-31 |
 | T346 | Go through every crash + problem report the feeds worker collected (not just ours): group by cause, ticket each | DONE | 6c08121b3 | owner 2026-10-31 |
 | T347 | River forecast weekday-only: stays on Conditions over weekends/holidays (staleness by publishing schedule), More-tab note | DONE 11-04 (live with the worker redeploy) | 61f819c52 | owner 2026-11-02 |
