@@ -31,12 +31,12 @@ import * as platform from "@app/data/release/platform";
 import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
-         type UpdatesLogControls } from "@app/ui-native";
+         type ShellProps, type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
-         type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource } from "@app/ui";
+         type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
-import { routeLinks, routeUrl, systemBack } from "./systemBack";
+import { routeAddress, routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { resolveStart, startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
@@ -66,9 +66,12 @@ const START = startLink();
  * where it was. (Declaring `fontScale` handled instead left text laid out at the old size: Fabric's text measurements
  * do not hear the change.) A cold start begins empty, from the start link.
  */
-const place: { route: Route | null } = { route: null };
+const place: { route: Route | null; address: AddressState | null; cameras: NonNullable<ShellProps["cameraHold"]> } =
+  { route: null, address: null, cameras: {} };
 // (T221) and on the web the address bar follows it, so a refresh opens where the reader was
 const holdPlace = (r: Route) => { place.route = r; routeUrl(r); };
+// (T369 D10/D12) the day and the Conditions horizon: the address keeps them, and so does a recreated activity
+const holdAddress = (a: AddressState) => { place.address = a; routeAddress(a); };
 if (START?.who) setAnglerProfile(START.who);
 
 /**
@@ -434,7 +437,8 @@ export default function App() {
       const link = START;
       store.then((st) => resolveStart(link, st, data.loader, data.source))
         .then((l) => { if (live) setStart(l); },
-              (e: unknown) => { reportFailure(e); if (live) setStart({ ...link, place: null, notice: link.place ? "place-gone" : link.notice }); });
+              // (T369 D9) a place that could not be READ (offline, a failed fetch) is said as that, never "not on this map"
+              (e: unknown) => { reportFailure(e); if (live) setStart({ ...link, place: null, tap: null, notice: link.place ? "place-unread" : link.notice }); });
     }
     return () => { live = false; };
   }, [data]);
@@ -576,7 +580,10 @@ export default function App() {
                fishImages={FISH_IMAGES}
                adiposeImages={ADIPOSE_IMAGES}
                systemBack={systemBack}
-               initialRoute={place.route ?? start?.route} onRoute={holdPlace} initialDay={start?.day ?? null} regsStart={start?.regs ?? null} arriveAt={start?.arrive ?? null}
+               initialRoute={place.route ?? start?.route} onRoute={holdPlace}
+               initialDay={place.address ? place.address.day : start?.day ?? null}
+               initialHorizon={place.address ? place.address.horizon : start?.horizon ?? null} onAddress={holdAddress}
+               cameraHold={place.cameras} regsStart={start?.regs ?? null} arriveAt={start?.arrive ?? null}
                locate={locate}
                weather={weather}
                photos={photos}

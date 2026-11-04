@@ -11,7 +11,7 @@
  * here — import them by path.
  */
 export { WaterScreen } from "./WaterScreen";
-export { Shell } from "./Shell";
+export { Shell, type ShellProps } from "./Shell";
 export { SearchSheet } from "./SearchSheet";
 export { TopBar, TOP_BAR, topBarBottom } from "./TopBar";
 export { SpotDropSheet } from "./SpotDropSheet";

@@ -5,7 +5,8 @@
  */
 import type { ReleaseLoader } from "@app/data/release";
 import type { RegsStore } from "@app/data/regs";
-import { historySync, reportFailure, routeSearch, waterFrame, type HistoryPort, type Route, type SystemBack } from "@app/ui";
+import { historySync, reportFailure, routeSearch, waterFrame, type AddressState, type HistoryPort, type Route,
+         type SystemBack } from "@app/ui";
 import { linkSearch, placeReads, type PlaceReads } from "@app/ui/place";
 import { slugKnown, slugOf } from "./waterSlugs";
 
@@ -37,6 +38,8 @@ export const systemBack: SystemBack = (back) => historySync(port, back);
  */
 
 let last: Route | null = null;
+/** (T369 D10) the day and horizon on screen (`routeAddress`); null until the Shell says them (the start link's stand) */
+let extra: AddressState | null = null;
 let listening = false;
 /** (T369) The release's reads a place is made from (`routeLinks`); null until the release is open. */
 let places: PlaceReads | null = null;
@@ -52,11 +55,11 @@ const onMissing = (e: Error) => { if (!missingSaid) { missingSaid = true; report
 async function write(): Promise<void> {
   if (last === null) return;
   const asked = last;
-  put(asked, routeSearch(asked, window.location.search));
+  put(asked, routeSearch(asked, window.location.search, null, extra));
   if (places === null) return;
   await drawn();
   if (last !== asked) return;
-  const q = await linkSearch(places, asked, window.location.search, onMissing);
+  const q = await linkSearch(places, asked, window.location.search, onMissing, extra);
   if (last === asked) put(asked, q);
 }
 
@@ -77,7 +80,7 @@ function put(asked: Route, q: string): void {
   if (slug) {
     const p = new URLSearchParams(q);
     p.delete("regs");
-    const rest = p.toString().replace(/%3A/gi, ":");
+    const rest = p.toString().replace(/%3A/gi, ":").replace(/%2C/gi, ",");
     path = `/water/${slug}`;
     next = rest ? `?${rest}` : "";
   } else if (item) {
@@ -93,6 +96,12 @@ export function routeUrl(r: Route): void {
     window.addEventListener("popstate", () => { setTimeout(() => void write(), 0); });
   }
   queueMicrotask(() => void write());
+}
+
+/** (T369 D10) The day and the Conditions horizon, kept in the address beside the route. */
+export function routeAddress(a: AddressState): void {
+  extra = a;
+  if (last !== null) queueMicrotask(() => void write());
 }
 
 /** (T369) The release the address makes places from (its regs store + loader: `lines`); set once it is open. */

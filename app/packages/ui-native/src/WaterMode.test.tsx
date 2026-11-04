@@ -297,6 +297,8 @@ describe("ONE MAP ENTRY (T71, owner call 3, 2026-10-22: \"Keep only one Map entr
   it("on the Regulations view the water's Map is offered once — the view strip's tab — and the header has no action " +
      "(T150: no Parts either); the strip's Map opens the water's Map view on the part being read", async () => {
     await onRegs(CHILLIWACK, 1);
+    // (T379) load-proof: the header is waited for itself, not read on the strength of the tab's arrival
+    await waitFor(() => expect(screen.getByTestId("regs-header")).toBeTruthy(), { timeout: 20_000 });
     const leaving = [screen.getByLabelText("Back").textContent, screen.getByTestId("water-close").getAttribute("aria-label")];
     const seen: unknown[] = [leaving, mapEntries(), screen.queryByTestId("regs-action"),
                              within(screen.getByTestId("regs-header")).queryAllByRole("button", { name: /parts/i }).length];
@@ -337,11 +339,12 @@ describe("THE PARTS LIST IN THE MAP VIEW (T150, owner 2026-10-23: \"dont we want
     // the pick: part 2 of the list — the map's bar says so, the list closes, and the Regulations view reads that part
     const name2 = within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio")[1]!.getAttribute("aria-label")!.split(", part ")[0];
     fireEvent.click(screen.getByTestId("water-map-part-1"));
-    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe("Part 2 of 4 · Chilliwack River"));
+    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe("Part 2 of 4 · Chilliwack River"), { timeout: 20_000 });
     const after = [screen.getByTestId("water-map-name").textContent, screen.queryByTestId("water-map-parts-list"),
                    toggle().getAttribute("aria-label")];
     fireEvent.click(screen.getByRole("tab", { name: "Regulations" }));
-    await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
+    // (T369) load-proof: the place label itself is waited for (the page may hold its spinner a moment after the tab)
+    await waitFor(() => expect(screen.getByTestId("regs-place")).toBeTruthy(), { timeout: 20_000 });
     expect([...after, screen.getByTestId("regs-place").getAttribute("aria-label")])
       .toEqual([name2, null, "Show all 4 parts", expect.stringContaining(name2!.split(" → ")[0]!)]);
   }, 60_000);

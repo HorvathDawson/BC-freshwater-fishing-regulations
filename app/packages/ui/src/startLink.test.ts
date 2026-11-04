@@ -23,7 +23,7 @@ describe("parseStartLink (T41: the web test deep link)", () => {
       theme: "dark",
       arrive: "gnis:3062",
       place: { blk: 356364584, m: 3451, view: "regs" },
-      notice: null,
+      notice: null, horizon: null, tap: null,
     });
   });
 
@@ -31,7 +31,7 @@ describe("parseStartLink (T41: the web test deep link)", () => {
     expect(parseStartLink("?regs=wbk:-22", NOW)).toEqual({
       route: reduce(HOME, openWater({ item: "wbk:-22" as ItemId, part: null, view: "regs" })),
       day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: "wbk:-22",
-      place: null, notice: null,
+      place: null, notice: null, horizon: null, tap: null,
     });
   });
 
@@ -49,7 +49,7 @@ describe("parseStartLink (T41: the web test deep link)", () => {
   it("(T269) `show`: the map (no water open), arriving at that water; a bad id throws; the first route write drops it", () => {
     expect(parseStartLink("?show=gnis:3062", NOW)).toEqual({
       route: HOME, day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: "gnis:3062",
-      place: null, notice: null });
+      place: null, notice: null, horizon: null });
     expect(() => parseStartLink("?show=Vedder", NOW)).toThrow("start link: show=Vedder is not an item id");
     expect(routeSearch(HOME, "?show=gnis:3062&theme=dark")).toBe("?theme=dark");
   });

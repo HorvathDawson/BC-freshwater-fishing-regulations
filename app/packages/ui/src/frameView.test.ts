@@ -1,0 +1,99 @@
+/**
+ * (T369) The one reading of a frame (`frameView.ts`), the address round trip of everything a view is defined by
+ * (`routeSearch` → `parseStartLink`: browse tab, open spot, day, horizon, the tap), and a release applied with a water
+ * open (`carry.ts`).
+ */
+import { describe, expect, it } from "vitest";
+import type { ItemId, SectionId } from "@app/data";
+import { openRegsStore } from "@app/data/regs";
+import { openRegsFixture } from "@app/data/release/node";
+import { carryRoute, entryAt } from "./carry";
+import { frameHere, frameSection, frameStretch, type FrameNav } from "./frameView";
+import { openWater } from "./openWater";
+import { HOME, reduce, type Route, type WaterRoute } from "./route";
+import { parseStartLink, routeSearch } from "./startLink";
+
+const NAV: FrameNav = {
+  sections: [{ sid: 1, partIx: 0 }, { sid: 2, partIx: 0 }, { sid: 3, partIx: 1 }, { sid: 4, partIx: 1 }, { sid: 5, partIx: 1 }],
+  geo: [{ partIx: 0, rank: 0, midSid: 2, mid: [-122, 49], box: [-122.1, 48.9, -121.9, 49.1] },
+        { partIx: 1, rank: 1, midSid: 4, mid: [-121, 50], box: [-121.1, 49.9, -120.9, 50.1] }],
+  stretches: [{ partIx: 1, stretch: 0, rank: 1, midSid: 3, mid: [-121.05, 49.95], box: null, sids: [3] },
+              { partIx: 1, stretch: 1, rank: 2, midSid: 5, mid: [-120.95, 50.05], box: null, sids: [4, 5] }],
+};
+const W = "gnis:1" as ItemId;
+const f = (o: Partial<{ part: number | null; tapSid: number | null; at: { lat: number; lon: number } | null; stretch: number }>) =>
+  ({ item: W, part: null, tapSid: null, at: null, ...o }) as Parameters<typeof frameSection>[0];
+
+describe("(T369) the one reading of a frame", () => {
+  it("the reach: the tap in the part, else the stretch's middle, else the part's — never the water's first section", () => {
+    expect([
+      frameSection(f({ part: 0, tapSid: 1 }), 0, NAV),            // the tap, in its part
+      frameSection(f({ part: 0 }), 0, NAV),                       // the part's middle
+      frameSection(f({ part: 1, stretch: 1 }), 1, NAV),           // the stretch's middle
+      frameSection(f({ part: 1 }), 1, NAV),                       // the first stretch's
+      frameSection(f({ part: 1, tapSid: 1 }), 1, NAV),            // a tap of another part is not this part's reach
+      frameSection({ item: null, part: null, tapSid: 9 as SectionId, at: null }, null, null),
+    ]).toEqual([1, 2, 5, 3, 3, 9]);
+  });
+
+  it("\"you are here\": the tap's point, else the middle's own point (owner 2026-11-04: at the link's spot)", () => {
+    const at = { lat: 49.05, lon: -122.05 };
+    expect([frameHere(f({ part: 0, tapSid: 1, at }), 0, NAV), frameHere(f({ part: 0 }), 0, NAV),
+            frameHere(f({ part: 1, stretch: 1 }), 1, NAV), frameHere(f({ part: 0, tapSid: 1 }), 0, NAV)])
+      .toEqual([at, { lon: -122, lat: 49 }, { lon: -120.95, lat: 50.05 }, null]);
+  });
+
+  it("the stretch: the frame's, else the one holding its tap, else the first", () => {
+    expect([frameStretch(f({ part: 1, stretch: 1 }), 1, NAV), frameStretch(f({ part: 1, tapSid: 5 }), 1, NAV),
+            frameStretch(f({ part: 1 }), 1, NAV)]).toEqual([1, 1, 0]);
+  });
+});
+
+describe("(T369 D5/D10/D11) the address keeps what defines the view, and gives it back", () => {
+  const NOW = new Date(2026, 9, 22, 9, 30);
+  const back = (r: Route, extra: Parameters<typeof routeSearch>[3]) => parseStartLink(routeSearch(r, "", null, extra, NOW), NOW);
+  it("browse: the tab, an open spot, the day when not today, the Conditions horizon — each back from its address", () => {
+    const runs = reduce(HOME, { type: "tab", tab: "runs" });
+    const spot = reduce(reduce(HOME, { type: "tab", tab: "spots" }), { type: "openSpot", id: "s-1" });
+    const day = new Date(2026, 6, 1, 12);
+    const out = [back(runs, { day: null, horizon: 0 }), back(spot, { day, horizon: 3 }),
+                 back(HOME, { day: null, horizon: "change" })];
+    expect(out.map((l) => l && { route: l.route, day: l.day?.toDateString() ?? null, horizon: l.horizon })).toEqual([
+      { route: runs, day: null, horizon: null },
+      { route: spot, day: day.toDateString(), horizon: 3 },
+      { route: HOME, day: null, horizon: "change" }]);
+    // today and Now are unsaid; the Map tab with nothing open is no link at all
+    expect([routeSearch(HOME, "", null, { day: NOW, horizon: 0 }, NOW), back(HOME, { day: null, horizon: 0 })]).toEqual(["", null]);
+  });
+
+  it("a tapped water says it was tapped, and where (its place is the tap's); a bad point throws", () => {
+    const tapped = reduce(HOME, openWater({ item: W, part: 0, tapSid: 1 as SectionId, at: { lat: 49.123456, lon: -122.5 } }));
+    const noPoint = reduce(HOME, openWater({ item: W, part: 0, tapSid: 1 as SectionId }));
+    expect([routeSearch(tapped, "", { blk: 7, m: 50 }), routeSearch(noPoint, "", { blk: 7, m: 50 })])
+      .toEqual(["?regs=gnis:1&blk=7&m=50&here=49.12346,-122.50000", "?regs=gnis:1&blk=7&m=50&tap=1"]);
+    expect(parseStartLink("?regs=gnis:1&blk=7&m=50&here=49.12346,-122.50000")!.tap).toEqual({ at: { lat: 49.12346, lon: -122.5 } });
+    expect(() => parseStartLink("?regs=gnis:1&blk=7&m=50&here=north")).toThrow("start link: here=north is not a lat,lon point");
+  });
+});
+
+describe("(T369 D8, owner 2026-11-04) a new release with a water open: the same place on the water", () => {
+  it("the point's entry: the box that holds it, the nearest middle", () => {
+    expect([entryAt(NAV, { lon: -122, lat: 49 }), entryAt(NAV, { lon: -120.96, lat: 50.04 }), entryAt(NAV, { lon: -100, lat: 60 })])
+      .toEqual([{ part: 0, stretch: 0 }, { part: 1, stretch: 1 }, { part: 1, stretch: 1 }]);
+  });
+
+  it("carried into the same release, every named frame stays on its part (its tap dropped); an unnamed reach is left", async () => {
+    const st = await openRegsStore(openRegsFixture());
+    const C = "gnis:19986" as ItemId;
+    const r: WaterRoute = { mode: "water", from: HOME, stack: [
+      { item: C, part: 2, tapSid: 316504 as SectionId, at: null, view: "conditions" },
+      { item: C, part: 0, tapSid: null, at: null, view: "map" },
+      { item: null, part: null, tapSid: 99 as SectionId, at: null, view: "regs" }] };
+    const a = await carryRoute(r, st, st);
+    expect(a).toEqual({ type: "carry", stack: [
+      { item: C, part: 2, tapSid: null, at: null, view: "conditions", stretch: undefined },
+      { item: C, part: 0, tapSid: null, at: null, view: "map", stretch: undefined }] });
+    expect(reduce(r, a)).toEqual({ ...r, stack: (a as { stack: unknown }).stack });
+    expect(reduce(r, { type: "carry", stack: [] })).toBe(HOME);
+  });
+});

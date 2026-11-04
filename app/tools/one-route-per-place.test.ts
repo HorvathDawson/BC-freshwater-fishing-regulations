@@ -84,13 +84,14 @@ describe("one route per place: the frame (T60)", () => {
     const seenPart = await Promise.all(atPart.map(async ([n, run]) => [n, landed(await run(inside))]));
     expect(seenPart).toEqual(atPart.map(([n]) => [n, { item: VEDDER, part: 2, tapSid: null, at: null }]));
 
-    // a Parts row and "Show regulations for this part" step the frame's part: the same water at the same part
+    // a Parts row and "Show regulations for this part" step the frame's part: the same water at the same part — (T369
+    // D1/D2) and the tap, which lay in another part, is left behind: the stepped frame is that part's, as its reload
     const onVedder = reduce(HOME, openWater({ item: VEDDER, tapSid: SID, at: AT }));
     const stepped = reduce(onVedder, partAction(VEDDER, VEDDER, 3));
     let shown = onVedder;
     for (const a of showRegsActions(VEDDER, VEDDER, 3)) shown = reduce(shown, a);
     expect([landed(stepped), landed(shown), waterFrame(shown)!.view])
-      .toEqual([{ item: VEDDER, part: 3, tapSid: SID, at: AT }, { item: VEDDER, part: 3, tapSid: SID, at: AT }, "regs"]);
+      .toEqual([{ item: VEDDER, part: 3, tapSid: null, at: null }, { item: VEDDER, part: 3, tapSid: null, at: null }, "regs"]);
   });
 
   it("MUTATION PIN: an entry that forgets the part, or the tapped section, is a different place and is caught", async () => {

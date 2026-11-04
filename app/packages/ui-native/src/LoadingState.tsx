@@ -32,11 +32,15 @@ export interface DelayedShow {
 export function useDelayedShow(busy: boolean, { immediate = false }: { immediate?: boolean } = {}): DelayedShow {
   const [shown, setShown] = useState(busy && immediate);
   const shownAt = useRef<number | null>(busy && immediate ? Date.now() : null);
+  // (T369/T379) the wait as of the LAST RENDER: a show timer that fires after the wait ended — the render that drew the
+  // content committed, its effect's clean-up not yet run (a loaded machine) — must not put the spinner back over it
+  const busyNow = useRef(busy);
+  busyNow.current = busy;
   useEffect(() => {
     let t: ReturnType<typeof setTimeout> | null = null;
     if (busy) {
       if (shownAt.current === null) {
-        const show = () => { shownAt.current = Date.now(); setShown(true); };
+        const show = () => { if (!busyNow.current) return; shownAt.current = Date.now(); setShown(true); };
         if (immediate) show(); else t = setTimeout(show, SPINNER_TIMING.showAfterMs);
       }
     } else if (shownAt.current !== null) {

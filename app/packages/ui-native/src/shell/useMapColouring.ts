@@ -2,7 +2,7 @@
  * WHAT EVERY MAP IS COLOURED BY: the layers choice, the tiles/data pair, the day's status, the lake values, the
  * Conditions colouring and its horizon — decided in `@app/ui` hooks and only gathered here for the Shell (T62 3.4).
  */
-import { chooseLayer, chooseShow, layersVM, withImageryCredit, type SectionKey } from "@app/core";
+import { chooseLayer, chooseShow, layersVM, withImageryCredit, type Horizon, type SectionKey } from "@app/core";
 import { useCallback, useMemo, useState } from "react";
 import type { GaugeFeed, RunTimingSource, WaterSource, SectionId } from "@app/data";
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
@@ -31,7 +31,9 @@ export const HANDOVER_Z = FIELD_HANDOVER_Z;
 
 export function useMapColouring({ source, feed, status, pairing, tiles, layerStore, attribution, mapTab, mapDay,
                                   epoch, settled = true, gearSettled = settled, salmonOnDemand = false, runTiming = null,
-                                  runSpeciesStore = null }: {
+                                  runSpeciesStore = null, initialHorizon = 0 }: {
+  /** (T369 D10) the Conditions horizon it opens on (the address's, a recreated activity's); Now when absent. */
+  initialHorizon?: Horizon;
   source: WaterSource; feed?: GaugeFeed; status: StatusSource | null; pairing: PairingInput | null;
   tiles: TileEndpoints; layerStore?: LayerStore; attribution?: readonly string[];
   /** Which browse map's questions are asked (a water's map view asks the Map tab's). */
@@ -78,7 +80,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    * closes (P16 did, because the map then had no control saying which horizon it painted;
    * it has one again, showing the same choice).
    */
-  const hz = useHorizon();
+  const hz = useHorizon(initialHorizon);
   // Which side of the handover zoom the camera is on — the one bit of the camera that is render state (see onMoved).
   const [zoomedOut, setZoomedOut] = useState(HOME.zoom < HANDOVER_Z);
   /*
@@ -213,7 +215,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   // the map labels each tile with the salmon chains on the Map tab whatever the toggle says (instant toggle)
   const salmonFeed = mapTab === "map" ? salmon.feed : null;
   const methodFeed = mapTab === "map" ? method.feed : null;
-  return { noteVisible, setZoomedOut, zoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
+  return { pickedHorizon: hz.horizon, noteVisible, setZoomedOut, zoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
            mapStatus, salmonFeed, salmonOffered, salmonLoading, methodFeed, gearMarked,
            regsLayer: salmonLoading ? "salmon" as RegsLayer : regsShown,

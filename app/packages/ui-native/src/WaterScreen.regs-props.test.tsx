@@ -13,12 +13,15 @@ import { openRegsFixture } from "@app/data/release/node";
 import { WaterScreen } from "./WaterScreen";
 import { LIGHT } from "./theme";
 
+/** (T369, T379) LOAD-PROOF: every wait has the same generous ceiling — a loaded machine is slow, never wrong. */
+const LOADED = { timeout: 20_000 } as const;
+
 afterEach(cleanup);
 
 describe("<WaterScreen> regulations", () => {
   it("no loader: says the regulations are unavailable", async () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT} />);
-    await waitFor(() => expect(screen.getByText("Chilliwack River")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Chilliwack River")).toBeTruthy(), LOADED);
     expect(screen.getByText("Regulations unavailable: no data release is open")).toBeTruthy();
     expect(screen.queryByTestId("keep-tab")).toBeNull();
   });
@@ -119,9 +122,9 @@ describe("<WaterScreen> regulations", () => {
     const checked = () => screen.getAllByRole("radio").filter((r) => r.getAttribute("aria-checked") === "true").map((r) => r.textContent);
     expect(checked()).toEqual(["16 or older", "B.C. resident"]);
     fireEvent.click(screen.getByRole("radio", { name: "Under 16" }));
-    await waitFor(() => expect(checked()).toEqual(["Under 16", "B.C. resident"]));
+    await waitFor(() => expect(checked()).toEqual(["Under 16", "B.C. resident"]), LOADED);
     expect(screen.getByText("B.C. resident, under 16")).toBeTruthy();
     fireEvent.click(screen.getByRole("radio", { name: "16 or older" }));   // the profile is the Shell's, in memory: put it back
-    await waitFor(() => expect(checked()).toEqual(["16 or older", "B.C. resident"]));
+    await waitFor(() => expect(checked()).toEqual(["16 or older", "B.C. resident"]), LOADED);
   }, 30_000);
 });

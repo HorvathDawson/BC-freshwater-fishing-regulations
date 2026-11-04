@@ -71,9 +71,11 @@ export interface WaterFrame {
   /** (T203) The water Map opens on the WHOLE water (a search result's: the reader picks the section there). A step to another part drops it. */
   whole?: boolean;
   /**
-   * (T204, T345) Which STRETCH of `part` the water map is on (0 first, mouth up), where the release splits the part into
-   * stretches; absent: the first. On the frame, not held by the map, so every way to the same place — a step, a list
-   * pick, a reload of its URL — draws the same (owner 2026-11-03: one load path per screen).
+   * (T204, T345, T369 D6) Which STRETCH of `part` the frame is on: the RELEASE's stretch index (`part_stretch.stretch_ix`,
+   * 0 first, mouth up), where the release splits the part into stretches; absent: the first. Never the water map's piece
+   * index (a salmon join of stretches is display only: the map shows the piece HOLDING this stretch). On the frame, not
+   * held by the map, so every way to the same place — a step, a list pick, a reload of its URL, online or offline —
+   * draws the same (owner 2026-11-03: one load path per screen).
    */
   stretch?: number;
   /**
@@ -142,6 +144,17 @@ export type RouteAction =
    * so the frame forgets it.
    */
   | { type: "part"; part: number; item?: ItemId; stretch?: number }
+  /**
+   * (T369 D7) ⤢ on the water's Map: the frame's `whole` toggled — on the route (and so in the address), never held by
+   * the map, so a view switch, back and a reload keep it. Nothing off the Map view.
+   */
+  | { type: "whole" }
+  /**
+   * (T369 D8, owner 2026-11-04) A NEW RELEASE APPLIED WITH A WATER OPEN: the stack the old release's frames were carried
+   * to in the new one (`@app/ui` `carryRoute`: the same place on the water). An empty stack leaves water mode for
+   * `from`. Built ONLY by `carryRoute`. Nothing in browse mode.
+   */
+  | { type: "carry"; stack: readonly WaterFrame[] }
   | { type: "flowInto"; item: ItemId; part: number }
   /**
    * (Owner 2026-10-22 late, "a river that changes its name is ONE system") ▲ / ▼ off the end of a water into the water
@@ -255,12 +268,25 @@ export function reduce(r: Route, a: RouteAction): Route {
   switch (a.type) {
     case "openSpot": return { ...r, spot: a.id };
     case "view": return frameViews(top(r)).includes(a.view) ? withTop(r, { view: a.view, whole: undefined }) : r;
-    case "part":
-      if (top(r).item === null) return r;
-      return a.item === undefined || a.item === top(r).item
-        ? withTop(r, { part: a.part, whole: undefined, stretch: a.stretch || undefined })
+    case "part": {
+      const t = top(r);
+      if (t.item === null) return r;
+      // (T369 D1/D2) a move to ANOTHER part or stretch leaves the tapped point behind: a tap lies in one part, so the
+      // frame on the new part is that part's (its middle, the release's), exactly as a reload of its address draws it
+      const moved = a.part !== t.part || (a.stretch || 0) !== (t.stretch ?? 0);
+      const tap = moved ? { tapSid: null, at: null } : {};
+      return a.item === undefined || a.item === t.item
+        ? withTop(r, { part: a.part, whole: undefined, stretch: a.stretch || undefined, ...tap })
         : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null, whole: undefined, solo: undefined,
                        stretch: a.stretch || undefined });
+    }
+    case "whole": {
+      const t = top(r);
+      if (t.view !== "map" || t.item === null) return r;
+      return withTop(r, { whole: t.whole ? undefined : true });
+    }
+    case "carry":
+      return a.stack.length ? { ...r, stack: a.stack.slice(-STACK_CAP) } : r.from;
     case "solo": {
       const t = top(r);
       if (t.item !== a.item || t.solo) return r;

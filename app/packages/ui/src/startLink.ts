@@ -15,16 +15,27 @@
  * the session's profile (D8), the sheet a `SheetKey` the page opens like any press would. A bad value throws, naming it,
  * so a typo in a test never opens some other page silently.
  */
-import { parseSheetKey, type SheetKey, type Tab, type Who } from "@app/core";
+import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Who } from "@app/core";
 import type { ItemId } from "@app/data";
 import { openWater } from "./openWater";
 import type { StreamPlace } from "@app/data/regs/place";
 import { mapDayOf } from "./regs";
-import { HOME, reduce, waterFrame, type Route, type View } from "./route";
+import { HOME, reduce, waterFrame, type BrowseTab, type LatLon, type Route, type View } from "./route";
 
-/** The query keys a route owns (`routeSearch` writes them; the rest — date, angler, theme — are left as they were). `show`
- *  is read once at start and gone at the first write; `stretch` and `ix` are read, never written. */
-export const ROUTE_KEYS = ["regs", "blk", "m", "whole", "stretch", "ix", "view", "tab", "sheet", "scroll", "show"] as const;
+/** The query keys a route owns (`routeSearch` writes them; the rest — angler, theme — are left as they were). `show`
+ *  is read once at start and gone at the first write; `stretch` and `ix` are read, never written. (T369, owner
+ *  2026-11-04: the address holds what defines the view a reader would share or reload into) `here` / `tap` the tapped
+ *  point, `browse` the tab, `spot` an open spot, `date` the chosen day when not today, `horizon` the Conditions
+ *  forecast day; transient UI (folds, scroll memory) is not in it. */
+export const ROUTE_KEYS = ["regs", "blk", "m", "whole", "stretch", "ix", "view", "tab", "sheet", "scroll", "show",
+                          "here", "tap", "browse", "spot", "date", "horizon"] as const;
+const BROWSE_TABS: readonly BrowseTab[] = ["map", "conditions", "runs", "spots", "more"];
+
+/** (T369) What the address keeps beside the route: the Shell's one day (null: today) and the Conditions horizon. */
+export interface AddressState { day: Date | null; horizon: Horizon }
+const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+/** A point as the address writes it: 5 decimals (about a metre). */
+const pt = (p: LatLon) => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`;
 const VIEWS: readonly View[] = ["regs", "conditions", "map"];
 
 /**
@@ -34,18 +45,32 @@ const VIEWS: readonly View[] = ["regs", "conditions", "map"];
  * are kept, the route's replaced. Browsing, or an unnamed reach with no place, says no water — a section id never leaves
  * the bundle (AGENTS 5). Returns the new query string ("" or "?…").
  */
-export function routeSearch(r: Route, current = "", place: StreamPlace | null = null): string {
+export function routeSearch(r: Route, current = "", place: StreamPlace | null = null,
+                            extra: AddressState | null = null, now: Date = new Date()): string {
   const q = new URLSearchParams(current);
-  for (const k of ROUTE_KEYS) q.delete(k);
+  // (T369) the day and horizon are the address's only when the Shell says them (`extra`); else as they were
+  for (const k of ROUTE_KEYS) if (extra || (k !== "date" && k !== "horizon")) q.delete(k);
   const f = waterFrame(r);
   if (f && (f.item !== null || place)) {
     if (f.item !== null) q.set("regs", f.item);
     if (place) { q.set("blk", String(place.blk)); q.set("m", String(place.m)); }
+    // (T369 D5) a TAPPED frame says so, and where on the water the tap landed ("you are here")
+    // (an unnamed reach is always a tap: only its point is said)
+    if (f.tapSid !== null) { if (f.at) q.set("here", pt(f.at)); else if (f.item !== null) q.set("tap", "1"); }
     if (f.view !== "regs") q.set("view", f.view);
     // (T203, T369) the map framed on the whole water (a search Open's) — said, so a water named alone is its own part
     if (f.whole) q.set("whole", "1");
+  } else if (r.mode === "browse") {
+    // (T369 D11) browsing: the tab (the Map tab unsaid) and an open spot
+    if (r.tab !== HOME.tab) q.set("browse", r.tab);
+    if (r.spot !== null) q.set("spot", r.spot);
   }
-  const out = q.toString().replace(/%3A/gi, ":");   // an item id's colon reads as typed; a URL query allows it
+  if (extra) {
+    if (extra.day && ymd(extra.day) !== ymd(now)) q.set("date", ymd(extra.day));
+    if (extra.horizon !== 0) q.set("horizon", String(extra.horizon));
+  }
+  // an item id's colon and a point's comma read as typed; a URL query allows both
+  const out = q.toString().replace(/%3A/gi, ":").replace(/%2C/gi, ",");
   return out ? `?${out}` : "";
 }
 
@@ -78,6 +103,11 @@ export interface StartLink {
   place: LinkPlace | null;
   /** (T369) What the start must SAY: a place this release does not hold. Null: nothing. */
   notice: StartNotice | null;
+  /** (T369 D10) the Conditions forecast horizon the link was on; null: Now. */
+  horizon?: Horizon | null;
+  /** (T369 D5) the link was a TAPPED frame's: where on the water ("you are here"; null: a tap with no point). Resolved
+   *  with the place (`resolveStartLink`) into the frame's tap. Absent: not a tap. */
+  tap?: { at: LatLon | null } | null;
   /**
    * (T269, owner 2026-10-29) THE MAP COMES BACK AT THIS WATER: a page that started on a named water (a `/water/<slug>`
    * page, `?regs=`) — or `?show=<item>`, the map at a water, the link a water page's ‹ and × are before the app runs —
@@ -108,16 +138,21 @@ export const startNeedsRelease = (l: StartLink | null): boolean => !!l && (l.pla
 
 /** (T369) A link's place and the view it asked for (a place-only link's route is the map until resolved). */
 export interface LinkPlace extends StreamPlace { readonly view: View }
-export type StartNotice = "place-gone";
+export type StartNotice = "place-gone" | "place-unread";
 export const START_NOTICE_WORDS: Readonly<Record<StartNotice, string>> = {
   "place-gone": "The place this link names is not on this version of the map, so the whole water is shown.",
+  // (T369 D9) the place could not be READ (offline, a failed fetch): not the same claim as "not on this map"
+  "place-unread": "The place this link names could not be loaded (no connection?), so the whole water is shown. Reload to try again.",
 };
 /** (T369) The same, for a link to an unnamed reach (no water to show whole). */
 export const START_NOTICE_REACH_GONE = "The place this link names is not on this version of the map.";
+export const START_NOTICE_UNREAD_REACH = "The place this link names could not be loaded (no connection?). Reload to try again.";
 /** (T369) The line a start says, or null. */
 export function startNoticeLine(l: Pick<StartLink, "notice" | "route"> | null): string | null {
   if (!l?.notice) return null;
-  return l.notice === "place-gone" && waterFrame(l.route) === null ? START_NOTICE_REACH_GONE : START_NOTICE_WORDS[l.notice];
+  if (waterFrame(l.route) === null)
+    return l.notice === "place-gone" ? START_NOTICE_REACH_GONE : START_NOTICE_UNREAD_REACH;
+  return START_NOTICE_WORDS[l.notice];
 }
 
 const TABS: readonly Tab[] = ["keep", "gear", "methods", "licence"];
@@ -136,13 +171,31 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   const where: StreamPlace | null = blkS === null ? null
     : { blk: /^-?\d+$/.test(blkS) ? Number(blkS) : bad("blk", "a stream key"),
         m: /^\d+$/.test(mS!) ? Number(mS) : bad("m", "a distance in metres") };
+  const dateS = q.get("date");
+  let day: Date | null = null;
+  if (dateS !== null) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateS);
+    const [y, mo, d] = m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0];
+    const at = new Date(y, mo - 1, d, 12);
+    if (!m || at.getMonth() !== mo - 1 || at.getDate() !== d) bad("date", "a YYYY-MM-DD day");
+    day = mapDayOf({ month: mo, day: d }, y, now);
+  }
+  const horizonS = q.get("horizon");
+  const horizon: Horizon | null = horizonS === null ? null
+    : HORIZONS.find((h) => String(h) === horizonS) ?? bad("horizon", HORIZONS.join("|"));
   if (item === null && where === null) {
     // (T269) `?show=<item>`: the map, framed on that water (nothing lit)
     const show = q.get("show");
-    if (show === null) return null;
-    if (!ITEM.test(show)) bad("show", "an item id");
-    return { route: HOME, day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: show as ItemId,
-             place: null, notice: null };
+    // (T369 D11) a browse address: the tab and an open spot
+    const browseS = q.get("browse"), spot = q.get("spot");
+    const tab = browseS === null ? HOME.tab
+      : (BROWSE_TABS as readonly string[]).includes(browseS) ? (browseS as BrowseTab) : bad("browse", BROWSE_TABS.join("|"));
+    if (show === null && browseS === null && spot === null && day === null && horizon === null) return null;
+    if (show !== null && !ITEM.test(show)) bad("show", "an item id");
+    const browse = reduce(HOME, { type: "tab", tab });
+    const route = spot !== null ? reduce(browse, { type: "openSpot", id: spot }) : browse;
+    return { route, day, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null,
+             arrive: show as ItemId | null, place: null, notice: null, horizon };
   }
   if (item !== null && !ITEM.test(item)) bad("regs", "an item id");
 
@@ -154,16 +207,6 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   const ix = index("ix", "a part index");
   const stretch = ix === null ? undefined : index("stretch", "a stretch index") ?? undefined;
   const part = where === null ? ix : null;
-
-  const dateS = q.get("date");
-  let day: Date | null = null;
-  if (dateS !== null) {
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateS);
-    const [y, mo, d] = m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0];
-    const at = new Date(y, mo - 1, d, 12);
-    if (!m || at.getMonth() !== mo - 1 || at.getDate() !== d) bad("date", "a YYYY-MM-DD day");
-    day = mapDayOf({ month: mo, day: d }, y, now);
-  }
 
   const tabS = q.get("tab") ?? "keep";
   const tab = (TABS as readonly string[]).includes(tabS) ? (tabS as Tab) : bad("tab", "a tab");
@@ -188,7 +231,12 @@ export function parseStartLink(search: string, now: Date = new Date()): StartLin
   // the whole water: asked (`whole=1`)
   const whole = view === "map" && part === null && q.get("whole") === "1";
   const route = item === null ? HOME : reduce(HOME, openWater({ item: item as ItemId, part, view, stretch, whole }));
+  // (T369 D5) a tapped frame's address: the tap's point, or a tap with none
+  const hereS = q.get("here");
+  const hm = hereS === null ? null : /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(hereS);
+  if (hereS !== null && !hm) bad("here", "a lat,lon point");
+  const tap = hm ? { at: { lat: Number(hm[1]), lon: Number(hm[2]) } } : q.get("tap") === "1" ? { at: null } : null;
   const link: StartLink = { route, day, regs: { tab, sheet, scroll }, who, theme, arrive: item as ItemId | null, place,
-                            notice: null };
+                            notice: null, horizon, tap };
   return link;
 }

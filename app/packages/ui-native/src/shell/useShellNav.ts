@@ -3,12 +3,12 @@
  * navigation, read once here and handed down (T62 3.4).
  */
 import { soloWater, waterExit } from "@app/core";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { InteractionManager, Platform } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { frameViews, prewarmRegs, regsGroupOf, regsSoloOf, useOpenWater, useRegsStore, useRoute, useWaterGroup, waterFrame, type BrowseTab,
-         type Route } from "@app/ui";
+import { carryRoute, frameViews, loadRegsStore, prewarmRegs, regsGroupOf, regsPartOf, regsSoloOf, reportFailure, useOpenWater, useRegsStore,
+         useRoute, useWaterGroup, waterFrame, type BrowseTab, type Route } from "@app/ui";
 import { backDepth, edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
 import { useRegulationKeys } from "@app/ui";
 import { TABS, type TabKey } from "../TabBar";
@@ -66,7 +66,31 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   const now = useCallback(() => routeNow.current, []);
   const groupOf = useMemo(() => (loader ? regsGroupOf(loader) : undefined), [loader]);
   const soloOf = useMemo(() => (loader ? regsSoloOf(loader) : undefined), [loader]);
-  const opener = useOpenWater(source, go, { now, group: groupOf, solo: soloOf });
+  // (T369 D3) a tapped water opens AT its part: the Regulations view's own answer, asked before the frame is made
+  const partOf = useMemo(() => (loader ? regsPartOf(loader) : undefined), [loader]);
+  const opener = useOpenWater(source, go, { now, group: groupOf, solo: soloOf, partOf });
+  /*
+   * (T369 D8, owner 2026-11-04) A NEW RELEASE WITH A WATER OPEN is applied at once, and the open stack is CARRIED to the
+   * same place on the water in it (`carryRoute`: by item and point, never by the old part index). Until it is, the water
+   * says it is updating (`carrying`): no view ever reads the old release's indexes in the new one.
+   */
+  const heldLoader = useRef(loader);
+  const [carried, setCarried] = useState<ReleaseLoader | null>(loader);
+  const swapped = !!heldLoader.current && !!loader && heldLoader.current.release !== loader.release;
+  const carrying = route.mode === "water" && (swapped || carried?.release !== loader?.release);
+  useEffect(() => {
+    const was = heldLoader.current;
+    heldLoader.current = loader;
+    const r = routeNow.current;
+    if (!was || !loader || was.release === loader.release || r.mode !== "water") { setCarried(loader); return; }
+    let live = true;
+    void Promise.all([loadRegsStore(was), loadRegsStore(loader)])
+      .then(([a, b]) => carryRoute(r, a, b))
+      .then((a) => { if (live && routeNow.current === r) go(a); },
+            (e: unknown) => { reportFailure(e); if (live && routeNow.current === r) go({ type: "close" }); })
+      .finally(() => { if (live) setCarried(loader); });
+    return () => { live = false; };
+  }, [loader, go]);
   /*
    * (T221, owner 2026-10-28) A SOLO WATER HAS NO MAP VIEW: one part, going on as / from no other water (`soloWater`; the
    * Vedder ↔ Chilliwack keep theirs). However the water was opened — a map tap, a spot, a link — once its group is read
@@ -118,7 +142,7 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
         swipe: viewSwipe, bodySwipe: frame.view === "map" ? null : viewSwipe }
     : null;
   return { route, go, browse, tab, frame, item, adding, openSpot, toTab, back, escapeBack, backLayers, edge, opener, mapTab,
-           waterViews };
+           waterViews, carrying };
 }
 
 export type ShellNav = ReturnType<typeof useShellNav>;

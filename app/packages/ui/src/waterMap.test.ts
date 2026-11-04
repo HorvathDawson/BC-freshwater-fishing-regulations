@@ -327,11 +327,14 @@ describe("leaving the map, through the route (P13)", () => {
     expect(stepped).toEqual({ ...onMap, stack: [{ item: CHW, part: 2, tapSid: null, at: null, view: "map" }] });
     expect(top(reduce(stepped, { type: "view", view: "regs" }))).toEqual(
       { item: CHW, part: 2, tapSid: null, at: null, view: "regs" });
-    // a tap kept: same water, the tap stays; a split lake's other area: that area becomes the water, the tap goes
+    // (T369 D1/D2) a tap lies in ONE part: a step to another part (or a split lake's other area) leaves it behind, so
+    // the stepped frame is exactly the part's — what a reload of its address draws; the same part again keeps it
     const tapped: Route = { ...onMap, stack: [{ item: CHW, part: 1, tapSid: 62453 as never, at: { lat: 49, lon: -121 }, view: "map" }] };
-    expect([top(reduce(tapped, partAction(CHW, CHW, 2))), top(reduce(tapped, partAction(CHW, "wbk:-21" as ItemId, 0)))])
-      .toEqual([{ item: CHW, part: 2, tapSid: 62453, at: { lat: 49, lon: -121 }, view: "map" },   // the tap given above
-                { item: "wbk:-21", part: 0, tapSid: null, at: null, view: "map" }]);
+    expect([top(reduce(tapped, partAction(CHW, CHW, 2))), top(reduce(tapped, partAction(CHW, "wbk:-21" as ItemId, 0))),
+            top(reduce(tapped, partAction(CHW, CHW, 1)))])
+      .toEqual([{ item: CHW, part: 2, tapSid: null, at: null, view: "map" },
+                { item: "wbk:-21", part: 0, tapSid: null, at: null, view: "map" },
+                { item: CHW, part: 1, tapSid: 62453, at: { lat: 49, lon: -121 }, view: "map" }]);
   });
 
   it("across waters (owner 2026-10-22 late: a river that changes its name is ONE system): ▲ from the Vedder is the " +

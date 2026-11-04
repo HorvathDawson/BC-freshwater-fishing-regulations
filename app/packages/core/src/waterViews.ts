@@ -47,6 +47,8 @@ export const WATER_SCREEN_WORDS = {
   loading: "Loading this water",
   noSuchWater: "No such water in this bundle.",
   noRelease: "no data release is open",
+  /** (T369 D8) a new release applied with this water open: carried to the same place in it */
+  updating: "Updating this water to the new data",
 } as const;
 
 /** The one labelled way from a Conditions reach to its water's rules (and its screen-reader hint). */

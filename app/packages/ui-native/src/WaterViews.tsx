@@ -7,8 +7,10 @@
  *               whichever map you tapped"). A tap on the Conditions map opens the water screen with this view in
  *               front; a tap on the Map tab opens the same screen with Regulations in front — the same frame, the
  *               same reach the reader TAPPED, the same "you are here". There is no browse-mode Conditions screen
- *               (the old browse-mode reach drill is folded in here). Opened from search or a list there is no tap,
- *               and it opens on the water's first reach until P14 supplies the part's midpoint (`mid_sid`). An
+ *               (the old browse-mode reach drill is folded in here). (T369) The reach and the point are the FRAME's,
+ *               read by the one function (`@app/ui` `useFrameView`): the tap in the frame's part, else the middle of
+ *               the frame's part / stretch (`mid_sid`, and its point: "you are here" at the link's spot) — the same
+ *               whichever way the frame was reached (a search, a step, a list pick, a reload). An
  *               unnamed reach (no registry item) is a frame with `item: null` offering this view and its Regulations
  *               (T53); titled here with the store's name for it, as its Regulations page is.
  *   Map         the water framed and lit on the map (`focusFor`, the search's framing); the parts and their steps
@@ -18,18 +20,19 @@ import { WATER_SCREEN_WORDS } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
-import { useRegsStore, useUnnamedName, useWater, useWaterBox, useWaterLine, useWaterName, useWaterPlace } from "@app/ui";
+import { useFrameView, useRegsStore, useUnnamedName, useWater, useWaterBox, useWaterLine, useWaterName, useWaterPlace } from "@app/ui";
 import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { Selectable } from "./Text";
 import { AccessNoticeBlock } from "./regs/AccessNoticeBlock";
 import { Place } from "./regs/RegsHeader";
 import { LoadingState } from "./LoadingState";
+import { ErrorState } from "./ErrorState";
 import { type Palette } from "./theme";
 import { WaterFrame, WaterTitle } from "./WaterFrame";
 
 export function WaterConditions({ source, item, tapSid, palette, tiles, theme, parameter, onParameter, from, feed,
-                                  credits, horizon, onHorizon, loader = null }: {
+                                  credits, horizon, onHorizon, loader = null, part = null, stretch }: {
   source: WaterSource;
   /** (T53) the release, for an unnamed reach's name (the store's, as its Regulations page heads with); null: no name */
   loader?: ReleaseLoader | null;
@@ -37,6 +40,9 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   item: ItemId | null;
   /** The section the reader tapped — the reach this view is about. Null when the water was not opened by a tap. */
   tapSid: SectionId | null;
+  /** (T369 D1) The frame's part and release stretch: with no tap in it, the view is about that part's middle. */
+  part?: number | null;
+  stretch?: number;
   palette: Palette;
   tiles?: TileEndpoints; theme?: string;
   /** Kept in step with the map's own flow/level switch — see ConditionsPanel. */
@@ -51,19 +57,27 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   horizon?: Horizon;
   onHorizon?: (d: Horizon) => void;
 }) {
-  // the water is read only when there is no tap to open on
-  const sheet = useWater(source, tapSid === null ? item : null);
-  const section = tapSid ?? (sheet.state === "ready" ? sheet.value?.sections[0] ?? null : null);
+  // (T369) THE FRAME'S REACH AND POINT, read once from the release (`useFrameView`, the one reading of a frame)
+  const store = useRegsStore(loader);
+  const fv = useFrameView(store.value ?? null, { item, part, tapSid, at: from ?? null, stretch });
+  // the water's sheet: its name (the title every view of it shows), and with no release (a dev source) its first reach
+  const sheet = useWater(source, item);
+  const section = loader ? fv.value?.section ?? null
+    : tapSid ?? (sheet.state === "ready" ? sheet.value?.sections[0] ?? null : null);
+  const here = loader ? fv.value?.here ?? null : from ?? null;
+  const waiting = loader ? fv.state === "loading" || store.state === "loading" : sheet.state === "loading";
+  const failed = loader ? store.error ?? fv.error : null;
   // (T175) the water's own sections: the Conditions map keeps their line at every zoom (`MapProps.waterLine`)
   const line = useWaterLine(source, item, tapSid);
-  // and where it is, for the frame when no tap says where the reader stands
-  const box = useWaterBox(source, from ? null : item);
-  // THE WATER'S NAME, in the same place the Regulations view puts it — one water, one header, every view.
-  const water = useWaterName(source, section);
+  // and where it is, for the frame when no point says where the reader stands
+  const box = useWaterBox(source, here ? null : item);
+  // THE WATER'S NAME, in the same place the Regulations view puts it — one water, one header, every view (T369: the
+  // water's own sheet, as the Map view titles it, never a read that waits on which reach is shown)
+  const water = useWaterName(source, item === null ? null : section);
+  const sheetName = sheet.state === "ready" ? sheet.value?.name ?? null : null;
   // (T53) an unnamed reach: the store's name for it ("Unnamed stream · Region 1"), the one its Regulations view shows
-  const store = useRegsStore(item === null ? loader : null);
   const unnamed = useUnnamedName(store.value ?? null, item, tapSid);
-  const name = (water.state === "ready" ? water.value?.name ?? null : null) ?? (unnamed.value ?? null);
+  const name = sheetName ?? (water.state === "ready" ? water.value?.name ?? null : null) ?? (unnamed.value ?? null);
   // (T367, owner 2026-11-04: "just like regs") the part's place label and the page's access notices — the banner and
   // the gentle note — as the Regulations view says them
   const where = useWaterPlace(loader, source, item, section);
@@ -71,7 +85,8 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   return (
     <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>
       {section === null ? (
-        sheet.state === "loading" && (
+        failed ? <ErrorState palette={palette} size="body" message={failed.message} />
+        : waiting && (
           <LoadingState palette={palette} size={110} label={WATER_SCREEN_WORDS.loading}
                         style={{ flex: 1, alignItems: "center", justifyContent: "center" }} />
         )
@@ -82,7 +97,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
           <AccessNoticeBlock notices={where.access} palette={palette} />
           <ConditionsPanel source={source} section={section} palette={palette}
                            tiles={tiles} theme={theme} feed={feed}
-                           parameter={parameter} onParameter={onParameter} from={from}
+                           parameter={parameter} onParameter={onParameter} from={here}
                            credits={credits} horizon={horizon} onHorizon={onHorizon} waterLine={line} waterBox={box} />
         </>
       )}

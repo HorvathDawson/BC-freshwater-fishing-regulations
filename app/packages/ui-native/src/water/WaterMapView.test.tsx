@@ -4,12 +4,13 @@
  * this pins what the map is TOLD; the controls are the real component.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { useState } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ItemId, SectionId } from "@app/data";
 import type { MapProps } from "@app/map";
 import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines } from "@app/data/release/node";
 import { openRegsStore } from "@app/data/regs";
-import { BackLayerContext, HOME, openWater, parseStartLink, partAction, reduce, useBack, useRoute,
+import { BackLayerContext, HOME, openWater, parseStartLink, partAction, partOfTap, reduce, useBack, useRoute,
          waterFrame, type Route, type StartLink, type SystemBack } from "@app/ui";
 import { linkSearch, placeReads, resolveStartLink } from "@app/ui/place";
 import { LIGHT } from "../theme";
@@ -28,13 +29,19 @@ const MAP = { at: { atlas: "a", basemap: "b" } as never, theme: "light", camera:
 
 function mount(item: string, part: number | null, tapSid: number | null = null, withLoader = true) {
   const calls: string[] = [];
-  render(<WaterMapView loader={withLoader ? loader : null} item={item as ItemId} part={part}
-                       tapSid={tapSid as SectionId | null} palette={LIGHT} map={MAP}
-                       onOpenWater={(i, p) => calls.push(`open ${i} at ${p}`)}
-                       onShowRegs={(i, p) => calls.push(`regs ${i} part ${p}`)}
-                       onOtherSection={(s) => calls.push(`other ${s}`)}
-                       onCross={(i, p) => calls.push(`cross ${i} at ${p}`)}
-                       onPart={(i, p) => calls.push(`part ${i} ${p}`)} />);
+  // (T369 D7) ⤢ is the frame's: held here as the route holds it, and handed back down
+  function Mounted() {
+    const [whole, setWhole] = useState(false);
+    return <WaterMapView loader={withLoader ? loader : null} item={item as ItemId} part={part}
+                         tapSid={tapSid as SectionId | null} palette={LIGHT} map={MAP} whole={whole}
+                         onWhole={() => { calls.push("whole"); setWhole((w) => !w); }}
+                         onOpenWater={(i, p) => calls.push(`open ${i} at ${p}`)}
+                         onShowRegs={(i, p) => calls.push(`regs ${i} part ${p}`)}
+                         onOtherSection={(s) => calls.push(`other ${s}`)}
+                         onCross={(i, p) => calls.push(`cross ${i} at ${p}`)}
+                         onPart={(i, p) => calls.push(`part ${i} ${p}`)} />;
+  }
+  render(<Mounted />);
   return calls;
 }
 
@@ -375,7 +382,8 @@ describe("<WaterMapView>", () => {
       const item = f.item;
       return <WaterMapView loader={lined} item={item} part={f.part} stretch={f.stretch} tapSid={f.tapSid} whole={f.whole}
                            palette={LIGHT} map={MAP} onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}}
-                           onCross={() => {}} onPart={(i, p, st) => go(partAction(item, i, p, st))} />;
+                           onCross={() => {}} onPart={(i, p, st) => go(partAction(item, i, p, st))}
+                           onWhole={() => go({ type: "whole" })} />;
     }
     const drawn = () => JSON.stringify({
       where: screen.getByTestId("water-map-where").textContent, name: screen.getByTestId("water-map-name").textContent,
@@ -383,15 +391,17 @@ describe("<WaterMapView>", () => {
       fit: seen.props?.fit, marks: seen.props?.marks });
     const settle = () => act(() => new Promise((r) => setTimeout(r, 30)));
     const open = (o: Parameters<typeof openWater>[0]) => reduce(HOME, openWater(o));
+    /** (T369 D3) a TAP opens as the app's opener opens it: at the part (and stretch) the tapped section is in */
+    const tap = async (item: ItemId, sid: number, view: "map" | "regs" | "conditions" = "map") =>
+      open({ item, tapSid: sid as SectionId, view, ...(await partOfTap(await store, item, sid as SectionId)) });
     /**
-     * What a frame's screens are drawn from: its water, part, stretch, view and ⤢ — and for an unnamed reach its section.
-     * A named water's tapped section stays on the live frame for the Conditions view's "you are here" (no URL carries
-     * it: AGENTS rule 5); the map has adopted its part, so the drawing is the part's (the `drawn` comparison).
+     * What a frame's screens are drawn from: its water, part, stretch, view and ⤢, and its tap (T369 D5: the address
+     * carries a tap as its place, `tap=1`, never a section id).
      */
     const drawnFrom = (r: Route) => {
       const f = waterFrame(r);
-      return f && { item: f.item, part: f.part, stretch: f.stretch, view: f.view, whole: f.whole,
-                    ...(f.item === null ? { tapSid: f.tapSid } : {}) };
+      return f && { item: f.item, part: f.part, stretch: f.stretch || undefined, view: f.view, whole: f.whole || undefined,
+                    tapSid: f.tapSid };
     };
     /** Every URL a way in's routes made (the frame at every render): none may carry a section id (AGENTS rule 5). */
     const urls: string[] = [];
@@ -417,6 +427,7 @@ describe("<WaterMapView>", () => {
       return [out, again];
     }
     const up = () => fireEvent.click(screen.getByTestId("water-map-step-up"));
+    const whole = () => fireEvent.click(screen.getByTestId("water-map-whole"));
     const down = () => fireEvent.click(screen.getByTestId("water-map-step-down"));
     const pick = (row: number) => () => {
       fireEvent.click(screen.getByTestId("water-map-parts-toggle"));
@@ -429,17 +440,19 @@ describe("<WaterMapView>", () => {
         // (T369) the part's own address — a place (its midpoint section's middle), never `part=2`
         reload: await wayIn((await opened(await addressOf(open({ item: C, part: 2, view: "map" })))).route),
         "search Open, then the list": await wayIn(open({ item: C, view: "map", whole: true, fromSearch: true }), [pick(0)]),
-        "tap (316504)": await wayIn(open({ item: C, tapSid: 316504 as SectionId, view: "map" })),
+        "tap (316504)": await wayIn(await tap(C, 316504)),
         "▼ from Lougheed → boundary": await wayIn(open({ item: C, part: 0, view: "map" }), [down]),
         "the list, from the top part": await wayIn(open({ item: C, part: 1, view: "map" }), [pick(0)]),
-        "tap, ▲, the list's lowest (the owner's)": await wayIn(open({ item: C, tapSid: 316504 as SectionId, view: "map" }), [up, pick(0)]),
+        "tap, ▲, the list's lowest (the owner's)": await wayIn(await tap(C, 316504), [up, pick(0)]),
+        // (T369 D7) ⤢ on and off again is the part's frame; ⤢ on is the route's, reloaded the same (below)
+        "⤢ twice": await wayIn(open({ item: C, part: 2, view: "map" }), [whole, whole]),
       };
       const first = ways.reload![0];
       // the atlas's section handles (822db448…): they move with a new ATLAS, not a new release
       expect(JSON.parse(first)).toMatchObject({ where: "Part 1 of 3 · Coquitlam River", highlight: [316504, 316505],
                                                 fit: { key: "gnis:19986:2", bbox: [-122.808104, 49.226226, -122.78, 49.269798] } });
       for (const [way, [drew, reloaded]] of Object.entries(ways)) expect({ way, drew, reloaded }).toEqual({ way, drew: first, reloaded: first });
-      // the tapped frame ADOPTED its part: the live route's address is the part's, and no URL ever held a section id
+      // the tapped frame OPENED at its part (T369 D3: no adopting); no URL ever held a section id
       const sids = new Set([...JSON.parse(first).highlight, ...JSON.parse(first).water].map(String));
       expect(urls.length).toBeGreaterThan(0);
       expect(urls.filter((u) => /(^|[?&])(sid|part)=/.test(u) || u.split(/[^0-9]+/).some((n) => sids.has(n)))).toEqual([]);
@@ -448,9 +461,14 @@ describe("<WaterMapView>", () => {
         [`?regs=${C}&view=map&whole=1`]);
       // the part's place: the Coquitlam's stream key, the middle of its midpoint section (316504: 312–6590 m); the other
       // places are the frames the ways in started on (parts 0 and 1)
+      // (T369 D5) the tap's place is the tapped section's middle (316504 is the part's midpoint section too), said as a tap
       expect([...new Set(urls)].filter((u) => u.includes("blk=")).sort()).toEqual([
-        `?regs=${C}&blk=356364584&m=11669&view=map`, `?regs=${C}&blk=356364584&m=3451&view=map`,
+        `?regs=${C}&blk=356364584&m=11669&view=map`, `?regs=${C}&blk=356364584&m=3451&tap=1&view=map`,
+        `?regs=${C}&blk=356364584&m=3451&view=map`, `?regs=${C}&blk=356364584&m=3451&view=map&whole=1`,
         `?regs=${C}&blk=356364584&m=41797&view=map`]);
+      // (T369 D7) ⤢ pressed is the route's: the frame says it, its address says it, and its reload draws it
+      const [wholeDrew, wholeReloaded] = await wayIn(open({ item: C, part: 2, view: "map" }), [whole]);
+      expect([JSON.parse(wholeDrew).fit.key, wholeReloaded]).toEqual([`${C}:whole`, wholeDrew]);
     }, 60_000);
 
     it("(T369) an UNNAMED reach: its address is its place alone (no item, no section id); reloaded, the same reach", async () => {

@@ -58,7 +58,7 @@ export function WaterScreen(p: Parameters<typeof WaterScreenBody>[0]) {
 }
 
 function WaterScreenBody({ source, item, palette, onBack, onRetry,
-                              loader = null, day = null, onDay, section = null, part = null, fishImages, adiposeImages,
+                              loader = null, day = null, onDay, section = null, part = null, stretch: _stretch, fishImages, adiposeImages,
                               start = null, onStarted, onPart, glance = false }: {
   /** The water; null for an unnamed reach (T53), which `section` then names — its regulations are that section's. */
   source: WaterSource; item: ItemId | null;
@@ -76,6 +76,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   section?: SectionId | null;
   /** The part the water was opened at (a flow into it names one), else null. */
   part?: number | null;
+  /** (T369) The frame's release stretch: the page is the part's (one page per part), so it reads none of it. */
+  stretch?: number;
   palette: Palette; onBack?: () => void;
   /**
    * The fish pictures by species code (T20), for the regulations panel (the app registers the assets; T21 draws them).
@@ -94,7 +96,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   onRetry?: () => void;
 }) {
   const sheet = useWater(source, item);
-  // THE REGULATIONS: the store, the part (the one the frame names, else the tapped section's), the day's inputs, the page
+  // THE REGULATIONS: the store, the part (the one the frame names, else the tapped section's — T369: the same reading
+  // of a frame `useFrameView` makes, `targetFor`), the day's inputs, the page
   const store = useRegsStore(loader);
   const found = useRegsTarget(store.value ?? null, item, part === null ? section : null);
   const target: RegsTarget | null = useMemo(
@@ -121,9 +124,10 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity is its item, part and part count
     [pageItem?.ord, inputs.value?.partIx, pageItem?.parts.length]);
   const access = useAccessNotices(loader, section, store.value ?? null, accessPage);
-  // (T211) the Salmon card: DFO's salmon for the tapped section, else the page's part, on THE day
+  // (T211) the Salmon card: DFO's salmon for the tapped section, else the page's part, on THE day — (T369 D3) by ONE
+  // rule whatever way the frame came: the frame's tap (the route drops it when the part moves, so it is in the part)
   const salmonPage = useMemo(() => (inputs.value
-    ? { section: part === null ? section : null, item: pageItem?.id ?? null, ord: pageItem?.ord ?? null,
+    ? { section, item: pageItem?.id ?? null, ord: pageItem?.ord ?? null,
         partIx: inputs.value.partIx, akey: inputs.value.key?.akey ?? null }
     : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity

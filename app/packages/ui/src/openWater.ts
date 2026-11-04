@@ -14,6 +14,7 @@
  * the same frame either way; the water Map stays a named water's (asked for it, the frame's first view, Regulations).
  */
 import { useMemo } from "react";
+import { reported } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import { frameViews, type LatLon, type Route, type RouteAction, type View } from "./route";
 
@@ -71,11 +72,16 @@ export function waterOfSection(source: Pick<WaterSource, "itemForSection">, sid:
  */
 export async function openTap(source: Pick<WaterSource, "itemForSection">, sid: SectionId, at: LatLon | null,
                               view: View, except: ItemId | null = null,
-                              groupOf?: (item: ItemId) => Promise<readonly ItemId[] | undefined>): Promise<RouteAction | null> {
+                              groupOf?: (item: ItemId) => Promise<readonly ItemId[] | undefined>,
+                              partOf?: OpenerOptions["partOf"]): Promise<RouteAction | null> {
   const item = await waterOfSection(source, sid);
   if (item !== null && item === except) return null;
-  const group = item !== null && groupOf ? await groupOf(item) : undefined;
-  return openWater({ item, tapSid: sid, at, view, group });
+  const [group, at2] = await Promise.all([
+    item !== null && groupOf ? groupOf(item) : undefined,
+    // (T369 D3) the tapped water opens AT its part (and the release's stretch holding the tap): one frame for it
+    // (T368) a failed read opens part-less (each view asks the same `targetFor`), and is reported
+    item !== null && partOf ? partOf(item, sid).catch(reported(null)) : null]);
+  return openWater({ item, tapSid: sid, at, view, group, ...(at2 ? { part: at2.part, stretch: at2.stretch } : {}) });
 }
 
 export interface WaterOpener {
@@ -114,6 +120,12 @@ export interface OpenerOptions {
    * result only; a read that fails counts as not solo (its Map opens, as before). Absent: never asked.
    */
   solo?: (item: ItemId) => Promise<boolean>;
+  /**
+   * (T369 D3) The part (and the release's stretch) a tapped section of a water opens at — the Regulations view's own
+   * answer (`frameView.ts` `regsPartOf`). Every tapped frame then carries its part from the start, so no view adopts one
+   * later and the address names it. A read that fails opens part-less (each view asks the same `targetFor`).
+   */
+  partOf?: (item: ItemId, sid: SectionId) => Promise<{ part: number; stretch?: number } | null>;
 }
 
 /** The opener (`useOpenWater`'s value), React-free: what a test drives. */
@@ -126,23 +138,29 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
     const mine = ++latest;
     const start = o.now?.();
     const groupOf = o.group && (start === undefined || start.mode === "water")
-      ? (item: ItemId) => o.group!(item).catch(() => undefined) : undefined;
+      ? (item: ItemId) => o.group!(item).catch(reported(undefined)) : undefined;
     const a = await ask(groupOf);
     if (a === null || mine !== latest || (o.now && o.now() !== start)) return;
     openProbe.mark("go");
     go(a);
   };
   return {
-    tap: (sid, at, view, except = null) => settle((groupOf) => openTap(source, sid, at, view, except, groupOf)),
+    tap: (sid, at, view, except = null) => settle((groupOf) => openTap(source, sid, at, view, except, groupOf, o.partOf)),
     flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)),
-    // nothing to wait on: at once, and any open still in flight is overtaken
-    item: (item, view = "regs") => { latest += 1; go(openWater({ item, view })); },
+    // nothing to wait on: at once, and any open still in flight is overtaken — (T369 D13) but a Map asked for asks first
+    // whether the water is solo (no Map view: its Regulations), as a search result does, so no Map mounts and is dropped
+    item: (item, view = "regs") => {
+      if (view !== "map" || !o.solo) { latest += 1; go(openWater({ item, view })); return; }
+      const ask = o.solo;
+      void settle(async () => ((await ask(item).catch(reported(false)))
+        ? openWater({ item, view: "regs", solo: true }) : openWater({ item, view })));
+    },
     // (T203) a result opens the water's Map, the whole water shown, from Conditions or Regs alike — (T221) unless the
     // water is solo: nothing to choose on its map, so its Regulations
     searched: (item) => {
       if (!o.solo) { latest += 1; go(openWater({ item, view: "map", whole: true, fromSearch: true })); return Promise.resolve(); }
       const ask = o.solo;
-      return settle(async () => ((await ask(item).catch(() => false))
+      return settle(async () => ((await ask(item).catch(reported(false)))
         ? openWater({ item, view: "regs", solo: true, fromSearch: true })
         : openWater({ item, view: "map", whole: true, fromSearch: true })));
     },
@@ -152,6 +170,6 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
 /** The Shell's handle on `openWater` / `openTap`, dispatching to the route. */
 export function useOpenWater(source: Pick<WaterSource, "itemForSection">, go: (a: RouteAction) => void,
                              o: OpenerOptions = {}): WaterOpener {
-  const { now, group, solo } = o;
-  return useMemo(() => waterOpener(source, go, { now, group, solo }), [source, go, now, group, solo]);
+  const { now, group, solo, partOf } = o;
+  return useMemo(() => waterOpener(source, go, { now, group, solo, partOf }), [source, go, now, group, solo, partOf]);
 }

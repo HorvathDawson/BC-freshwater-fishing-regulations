@@ -36,12 +36,12 @@ export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
 const EXIT_SLOT = 44;
 
 export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
-                               onCross, onPart, whole = false }: {
+                               onCross, onPart, whole = false, onWhole }: {
   loader: ReleaseLoader | null;
   item: ItemId;
   /** The frame's part (null: the part the Regulations view opens for `tapSid`). */
   part: number | null;
-  /** (T204, T345) The frame's stretch of `part` (absent: its first). */
+  /** (T204, T345, T369 D6) The frame's RELEASE stretch of `part` (absent: its first). */
   stretch?: number;
   tapSid: SectionId | null;
   palette: Palette;
@@ -50,19 +50,21 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
   onOpenWater: (item: ItemId, part: number | null) => void;
   /** "Show regulations for this part": the Regulations view on it (another item for a split lake's closure area). */
   onShowRegs: (item: ItemId, partIx: number) => void;
-  /** A tap on a section that is not this water's. */
-  onOtherSection: (sid: SectionId) => void;
+  /** A tap on a section that is not this water's, and (T369) where on it: the opened frame's "you are here". */
+  onOtherSection: (sid: SectionId, at: { lat: number; lon: number } | null) => void;
   /** ▲ / ▼ into the water this one goes on from or as (`water_continue`), at its part there. */
   onCross: (item: ItemId, part: number) => void;
   /** A step to another part: the frame's part from now on (a split lake's other area: that water). */
   onPart?: (item: ItemId, partIx: number, stretch?: number) => void;
-  /** (T203) Open framed on the whole water (from a search result). */
+  /** (T203, T369 D7) The frame's ⤢: framed on the whole water (a search result's, or ⤢ pressed). */
   whole?: boolean;
+  /** (T369 D7) ⤢ pressed: the frame's `whole` toggled (the route's `whole`), so it outlives this view. */
+  onWhole?: () => void;
 }) {
   const store = useRegsStore(loader);
   // (T228) pieces of a part join only where salmon (the live DFO feed over the release) reads them alike
   const salmonKey = useSalmonKey(loader, store.value ?? null, item);
-  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey, stretch);
+  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey, stretch, onWhole);
   const vm = wm.value?.vm ?? null;
   const act = wm.value?.act ?? (() => {});
   const status = store.error || wm.error ? WATER_MAP_WORDS.unavailable
@@ -81,10 +83,10 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
                    marks={vm?.marks.map((m) => ({ lon: m.lon, lat: m.lat, label: m.label, a11y: m.a11y, on: m.on })) ?? []}
                    onPressMark={(i) => { const m = vm?.marks[i]; if (m) act({ type: "mark", ix: m.ix }); }}
                    fit={vm ? { key: vm.fitKey, bbox: vm.bounds, refine: false } : null}
-                   onPressFeature={(_layer, id) => {
+                   onPressFeature={(_layer, id, lat, lon) => {
                      const sid = Number(id);
                      if (vm && (vm.selected.includes(sid) || vm.water.includes(sid))) act({ type: "section", sid });
-                     else onOtherSection(sid as SectionId);
+                     else onOtherSection(sid as SectionId, lat !== undefined && lon !== undefined ? { lat, lon } : null);
                    }} />
         {vm && (
           <Pressable onPress={() => act({ type: "whole" })} accessibilityRole="button"

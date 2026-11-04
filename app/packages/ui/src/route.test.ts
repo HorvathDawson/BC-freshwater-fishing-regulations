@@ -317,7 +317,8 @@ describe("back steps out one layer: moves inside a water replace, a different wa
                   { type: "view", view: "map" }, { type: "part", part: 1 });
     const back1 = reduce(b, { type: "back" });
     expect([b, back1, reduce(back1, { type: "back" })]).toEqual([
-      { mode: "water", from, stack: [frame(CHW, 1, "map"), frame(VEDDER, 1, "map", 5)] },
+      // (T369 D1/D2) the step to part 1 left the tap (part 0's) behind: the frame is part 1's
+      { mode: "water", from, stack: [frame(CHW, 1, "map"), frame(VEDDER, 1, "map")] },
       { mode: "water", from, stack: [frame(CHW, 1, "map")] },
       from]);
   });

@@ -6,7 +6,7 @@
  */
 import type { ReleaseLoader } from "@app/data/release";
 import type { RegsStore } from "@app/data/regs";
-import type { Route, SystemBack } from "@app/ui";
+import type { AddressState, Route, SystemBack } from "@app/ui";
 
 export declare const systemBack: SystemBack;
 
@@ -15,6 +15,9 @@ export declare const systemBack: SystemBack;
  * refresh opens it again; the current entry is rewritten, never a new one pushed. Native: nothing (no address bar).
  */
 export declare function routeUrl(r: Route): void;
+
+/** (T369 D10) The day and the Conditions horizon the address keeps beside the route (the Shell's `onAddress`). */
+export declare function routeAddress(a: AddressState): void;
 
 /**
  * (T369) The open release the address makes a frame's PLACE from (`@app/ui/place` `linkSearch`, web-only): its regs

@@ -17,13 +17,14 @@
  * strictly inside the part, so the same release resolves it back to the same part and stretch, and a later release to
  * whichever part now holds that point.
  */
+import { reported } from "@app/core";
 import type { ItemId, SectionId, WaterSource } from "@app/data";
 import type { RegsReads } from "@app/data/regs";
 import type { ReleaseLoader } from "@app/data/release";
 import { lineMid, openLineReads, type LineReads, type StreamPlace } from "@app/data/regs/place";
 import { openWater, waterOfSection } from "./openWater";
 import { HOME, reduce, waterFrame, type Route, type WaterFrame } from "./route";
-import { routeSearch, type StartLink } from "./startLink";
+import { routeSearch, type AddressState, type StartLink } from "./startLink";
 
 export type { StreamPlace };
 /** The open release's regs reads + its `lines` reads (`@app/data/regs/place` `openLineReads`). */
@@ -56,7 +57,10 @@ async function midOf(store: PlaceReads, sids: readonly number[]): Promise<Stream
  */
 export async function placeOf(store: PlaceReads, f: WaterFrame | null): Promise<StreamPlace | null> {
   if (!f) return null;
-  if (f.item === null || f.part === null) return f.tapSid !== null ? midOf(store, [f.tapSid]) : null;
+  // (T369 D5) a TAPPED frame's place is the tap's (the tapped section's middle): its reload reopens that reach, in its
+  // part — a lake's handle has none (its item and part are its address: `resolveStartLink` reopens the tap there)
+  if (f.tapSid !== null) return midOf(store, [f.tapSid]);
+  if (f.item === null || f.part === null) return null;
   const ord = await store.itemOrd(f.item);
   if (ord === null) return null;
   const nav = await store.navRows(ord);
@@ -91,13 +95,14 @@ export async function resolvePlace(store: PlaceReads, itemFor: ItemFor, p: Strea
  * `section_line`) is reported, not hidden (`onMissing`), and addressed without one (its reload opens the whole water).
  */
 export async function linkSearch(store: PlaceReads | null, r: Route, current = "",
-                                 onMissing?: (e: Error) => void): Promise<string> {
+                                 onMissing?: (e: Error) => void, extra: AddressState | null = null,
+                                 now: Date = new Date()): Promise<string> {
   let place: StreamPlace | null = null;
   if (store) {
     try { place = await placeOf(store, waterFrame(r)); }
     catch (e) { onMissing?.(e instanceof Error ? e : new Error(String(e))); }
   }
-  return routeSearch(r, current, place);
+  return routeSearch(r, current, place, extra, now);
 }
 
 /**
@@ -106,31 +111,46 @@ export async function linkSearch(store: PlaceReads | null, r: Route, current = "
  * for a place alone, the map) and says so. A water named with no place, no part and not whole is a water whose address
  * needs no place — one of one part (a lake, a split lake's closure area): it opens at that part.
  */
-export async function resolveStartLink(link: StartLink, store: PlaceReads, itemFor: ItemFor): Promise<StartLink> {
-  if (!link.place) return ownPart(link, store);
+export async function resolveStartLink(link: StartLink, store: PlaceReads, itemFor: ItemFor,
+                                       solo?: (item: ItemId) => Promise<boolean>): Promise<StartLink> {
+  if (!link.place) return ownPart(link, store, solo);
   const view = link.place.view;
   const at = await resolvePlace(store, itemFor, link.place);
   if (!at) {
     const f = waterFrame(link.route);
-    return { ...link, place: null, notice: "place-gone",
+    return { ...link, place: null, tap: null, notice: "place-gone",
              route: f?.item ? reduce(HOME, openWater({ item: f.item, view, whole: view === "map" })) : link.route };
   }
+  // (T369 D5) a tapped frame's link reopens the tap: the section the place falls on, and the point it named
+  const tap = link.tap ? { tapSid: at.sid, at: link.tap.at } : {};
+  const isSolo = at.item !== null && view === "map" && !!solo && await solo(at.item).catch(reported(false));
   const route = reduce(HOME, openWater(at.item === null
-    ? { item: null, tapSid: at.sid, view }
-    : { item: at.item, part: at.part, view, ...(at.stretch ? { stretch: at.stretch } : {}),
-        whole: view === "map" && at.part === null }));
-  return { ...link, route, place: null, arrive: at.item ?? link.arrive };
+    ? { item: null, tapSid: at.sid, at: link.tap?.at ?? null, view }
+    : { item: at.item, part: at.part, view: isSolo ? "regs" : view, ...(at.stretch ? { stretch: at.stretch } : {}),
+        // (T369 D7) ⤢ is in the address (`whole=1`): the frame comes back whole, on its part
+        ...tap, ...(isSolo ? { solo: true } : {}), whole: view === "map" && (at.part === null || !!waterFrame(link.route)?.whole) }));
+  return { ...link, route, place: null, tap: null, arrive: at.item ?? link.arrive };
 }
 
 
 /** (T369) A link naming a water alone: a water of one part opens at it; any other — a multi-part water whose link has
  *  no place (a release cut before `section_line` made it) — on its Map, whole. */
-async function ownPart(link: StartLink, store: PlaceReads): Promise<StartLink> {
+async function ownPart(link: StartLink, store: PlaceReads, solo?: (item: ItemId) => Promise<boolean>): Promise<StartLink> {
   const f = waterFrame(link.route);
-  if (!f || f.item === null || f.part !== null || f.whole || f.tapSid !== null) return link;
+  if (!f || f.item === null || f.part !== null || f.tapSid !== null) return link;
+  // (T369 D13) a Map asked of a solo water opens its Regulations at once (no Map mounted, then dropped)
+  const isSolo = f.view === "map" && !!solo && await solo(f.item).catch(reported(false));
+  const view = isSolo ? "regs" : f.view;
+  if (f.whole && !isSolo) return link;
   const ord = await store.itemOrd(f.item);
   const parts = ord === null ? [] : (await store.parts(ord)).filter((p) => !p.tidal);
-  if (parts.length === 1)
-    return { ...link, route: reduce(HOME, openWater({ item: f.item, part: parts[0]!.partIx, view: f.view })) };
+  if (parts.length === 1) {
+    // (T369 D5) a tapped lake (no line, no place): its one part's section, when it has one, is the tap
+    const sids = link.tap && ord !== null
+      ? (await store.navRows(ord)).sections.filter((s) => s.partIx === parts[0]!.partIx) : [];
+    const tap = sids.length === 1 ? { tapSid: sids[0]!.sid as SectionId, at: link.tap!.at } : {};
+    return { ...link, tap: null, route: reduce(HOME, openWater({ item: f.item, part: parts[0]!.partIx, view, ...tap,
+                                                                  ...(isSolo ? { solo: true } : {}) })) };
+  }
   return f.view === "map" ? { ...link, route: reduce(HOME, openWater({ item: f.item, view: "map", whole: true })) } : link;
 }

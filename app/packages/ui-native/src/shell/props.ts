@@ -1,12 +1,13 @@
 /**
  * THE SHELL'S INPUTS: everything the app hands the Shell (T62 3.4: the props type, out of Shell.tsx unchanged).
  */
-import type { UpdateEvent } from "@app/core";
+import type { Horizon, UpdateEvent } from "@app/core";
 import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import type { LayerStore, Locate, PairingInput, RegsStart, Route, SpotPhotos, StatusSource, SystemBack } from "@app/ui";
 import type { DayFlowAnswer, HydatDaily, LikeStore, Spot, WeatherSource } from "@app/data/spots";
-import type { TileEndpoints } from "@app/map";
+import type { Camera, TileEndpoints } from "@app/map";
+import type { MutableRefObject } from "react";
 import type { MenuInfo } from "../menu/MenuHost";
 import type { AdiposeImages, FishImages } from "../regs/types";
 import type { Palette, ThemeName } from "../theme";
@@ -81,6 +82,17 @@ export interface ShellProps {
   onRoute?: (r: Route) => void;
   /** (T41) the day it opens on (the web start link); today when absent. Read once, on mount. */
   initialDay?: Date | null;
+  /** (T369 D10) the Conditions forecast horizon it opens on (the address's; a recreated activity's). Read once. */
+  initialHorizon?: Horizon | null;
+  /** (T369 D10/D11) the day and horizon on screen, told on every change: the address keeps them, and an app whose
+   *  activity Android recreates reopens on them. */
+  onAddress?: (a: { day: Date | null; horizon: Horizon }) => void;
+  /**
+   * (T369 D12) THE CAMERAS, held by the app across a recreated activity: the Shell keeps the browse map's and the
+   * water map's camera in these refs (made on first mount, then reused), so a reader put back on a water by Android
+   * goes back to where the map was, not HOME. Absent: the Shell's own.
+   */
+  cameraHold?: { browse?: MutableRefObject<Camera>; water?: MutableRefObject<Camera | null> };
   /** (T41) where the first water's Regulations page starts (the web start link): handed to that page once. */
   regsStart?: RegsStart | null;
   /** (T269) the water the page started on or at (the web start link's `arrive`): the map comes back framed on it (nothing lit). Read once. */

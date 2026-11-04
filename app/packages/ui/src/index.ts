@@ -39,6 +39,8 @@ export * from "./runTiming";
 export * from "./release";
 export * from "./boot";
 export * from "./regs";
+export * from "./frameView";
+export * from "./carry";
 export * from "./waterMap";
 export * from "./mapRail";
 export * from "./layerChoice";

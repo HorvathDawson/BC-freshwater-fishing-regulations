@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DeviceEventEmitter } from "react-native";
 import { Colouring, LABEL_SOURCE_LAYERS, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
-         type Channel, type ChannelInput, type LabelSourceLayer, type LabelTarget, type TileRenderer } from "../colouring";
+         type Channel, type ChannelInput, type LabelTarget, type TileRenderer } from "../colouring";
 import type { MapAdapter } from "../adapters/contract";
 import type { MapProps } from "../map-props";
 import { NO_VALUES, type ChannelValues } from "../style";
@@ -35,6 +35,48 @@ export interface AtlasSource {
 }
 
 type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "method" | "runs">;
+
+/**
+ * (T369 D14) THE PHONE'S FEATURE-STATE QUEUE, per source-layer, in the order asked. A layer CLEARED is not sent as
+ * `removeFeatureState({sourceLayer})`: MapLibre Native applies a frame's removals AFTER its sets, so a clear followed by
+ * the relabelling in the same frame wiped the new labels (the highlight's own bug, fixed by 8a5b5bd the same way). It
+ * is queued as a NULL write of every key the queue has set on that layer (a null state is unset to every paint), in
+ * order with the sets around it — one `setFeatureStates` call per layer per burst.
+ */
+export class StateQueue {
+  private q = new Map<string, { ids: string[]; states: Record<string, unknown>[] }>();
+  /** what each layer wears, by this queue: the ids and every key ever set there */
+  private worn = new Map<string, { ids: Set<string>; keys: Set<string> }>();
+  get size(): number { return this.q.size; }
+  set(layer: string, id: string, s: Record<string, unknown>): void {
+    let b = this.q.get(layer);
+    if (!b) this.q.set(layer, b = { ids: [], states: [] });
+    b.ids.push(id);
+    b.states.push(s);
+    let w = this.worn.get(layer);
+    if (!w) this.worn.set(layer, w = { ids: new Set(), keys: new Set() });
+    w.ids.add(id);
+    for (const k of Object.keys(s)) w.keys.add(k);
+  }
+  /** Every state on `layer` unset: what is queued for it is dropped, and every id it wears gets its keys written null. */
+  clear(layer: string): void {
+    this.q.delete(layer);
+    const w = this.worn.get(layer);
+    if (!w || !w.ids.size) return;
+    const nulls = Object.fromEntries([...w.keys].map((k) => [k, null]));
+    this.q.set(layer, { ids: [...w.ids], states: [...w.ids].map(() => nulls) });
+    this.worn.set(layer, { ids: new Set(), keys: new Set() });
+  }
+  /** A style swap dropped every state: nothing is worn any more. */
+  forget(): void { this.worn.clear(); }
+  /** The batches to send now, one per layer, and the queue emptied. */
+  drain(): [string, string[], Record<string, unknown>[]][] {
+    const out = [...this.q].map(([l, b]) => [l, b.ids, b.states] as [string, string[], Record<string, unknown>[]]);
+    this.q.clear();
+    return out;
+  }
+  dispose(): void { this.q.clear(); this.worn.clear(); }
+}
 
 export interface NativeColouring {
   /** The channels' style-borne values, for `nativeStyle`. */
@@ -74,7 +116,7 @@ export function useNativeColouring(o: {
   ready.current = o.ready;
   /** Unmounted: a batch still queued goes nowhere (its source's view is gone). */
   const alive = useRef(true);
-  useEffect(() => { alive.current = true; return () => { alive.current = false; queue.current.clear(); }; }, []);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; queue.current.dispose(); }; }, []);
   const ref = useRef(o);
   ref.current = o;
 
@@ -90,7 +132,7 @@ export function useNativeColouring(o: {
   };
 
   // THE BATCH: per source-layer, sent in one call per burst once the map has drawn
-  const queue = useRef(new Map<LabelSourceLayer, { ids: string[]; states: Record<string, unknown>[] }>());
+  const queue = useRef(new StateQueue());
   /** (T273) labels queued so far (the pan probe's count per tile) */
   const labelled = useRef(0);
   const queued = useRef(false);
@@ -98,14 +140,12 @@ export function useNativeColouring(o: {
     queued.current = false;
     const src = ref.current.atlas();
     if (!src || !ready.current || !alive.current) return;
-    for (const [layer, b] of queue.current) {
-      const ids = b.ids;
+    for (const [layer, ids, states] of queue.current.drain()) {
       const sent = panProbe.send();
-      void src.setFeatureStates(layer, ids, b.states)
+      void src.setFeatureStates(layer, ids, states)
         .then(() => { sent(); for (const id of ids) ack(Number(id)); })
         .catch(ref.current.report);
     }
-    queue.current.clear();
   }, []);
   const schedule = useCallback(() => {
     if (queued.current) return;
@@ -116,10 +156,7 @@ export function useNativeColouring(o: {
 
   const target = useMemo<LabelTarget>(() => ({
     setState: (layer, id, s) => {
-      let b = queue.current.get(layer);
-      if (!b) queue.current.set(layer, b = { ids: [], states: [] });
-      b.ids.push(String(id));
-      b.states.push(s);
+      queue.current.set(layer, String(id), s);
       labelled.current += 1;
       schedule();
       // (T175) a label for one of the water copy's sections is the copy's too — the one pathway
@@ -127,10 +164,10 @@ export function useNativeColouring(o: {
       if (fresh) ref.current.toCopy.set(id, fresh);
     },
     clearAll: (layer) => {
-      queue.current.delete(layer);
+      // (T369 D14) null writes in the queue's order, never a whole-layer removal applied after the frame's sets
+      queue.current.clear(layer);
       acked.current = new Uint8Array(0);
-      const src = ref.current.atlas();
-      if (src && ready.current) void src.removeFeatureState({ sourceLayer: layer }).catch(ref.current.report);
+      schedule();
       const copy = ref.current.copy();
       for (const id of copy.ids)
         if ((copy.layerOf(id) ?? layer) === layer && copy.drop(id)) ref.current.toCopy.remove(id);
@@ -166,6 +203,7 @@ export function useNativeColouring(o: {
   const swapped = useCallback(() => {
     const c = engine.current!;
     c.reset();
+    queue.current.forget();
     acked.current = new Uint8Array(0);
     if (c.active) for (const t of hold.current.all()) c.label(target, t);
   }, [target]);

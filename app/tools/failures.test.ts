@@ -202,7 +202,6 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui/src/myLocation.ts": { n: 1, why: `location refused: said (refusedLine); ${ENV}` },
   "packages/ui/src/net.ts": { n: 1, why: PREF },
   "packages/ui/src/photos.ts": { n: 1, why: "an orphaned photo file, not a lost record" },
-  "packages/ui/src/openWater.ts": { n: 2, why: "the group / solo lookups: the water still opens (without its pager / on its Map). In T369's lane (route code, in flight 2026-11-04): to become `reported(…)` there" },
   "packages/ui/src/place.ts": { n: 1, why: "hands it to `onMissing`, which reports (systemBack.web.ts)" },
   "packages/ui/src/prefetch.ts": { n: 3, why: `${PROBE}; ${CAP} (battery)` },
   "packages/ui/src/recentSearches.ts": { n: 2, why: PREF },
