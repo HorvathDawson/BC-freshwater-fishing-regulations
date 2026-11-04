@@ -41,8 +41,19 @@ let last: Route | null = null;
 /** (T369 D10) the day and horizon on screen (`routeAddress`); null until the Shell says them (the start link's stand) */
 let extra: AddressState | null = null;
 let listening = false;
-/** (T369) The release's reads a place is made from (`routeLinks`); null until the release is open. */
-let places: PlaceReads | null = null;
+/** (T369) How to open the release's reads a place is made from (`routeLinks`); null until the release is open. */
+let opener: { open: () => Promise<RegsStore>; loader: ReleaseLoader } | null = null;
+let placesP: Promise<PlaceReads | null> | null = null;
+/** The regs store is opened only when a water's place is first asked: a first paint on the map never reads `water`
+ *  (the request walk, T129). A store that cannot open is reported, and the address keeps its plain links. */
+function placesNow(): Promise<PlaceReads | null> {
+  if (opener === null) return Promise.resolve(null);
+  if (placesP === null) {
+    const o = opener;
+    placesP = o.open().then((st) => placeReads(st, o.loader), (e: unknown) => { reportFailure(e); return null; });
+  }
+  return placesP;
+}
 /** (T369) A part the release cannot put in the address is reported once a session, not on every move. */
 let missingSaid = false;
 const onMissing = (e: Error) => { if (!missingSaid) { missingSaid = true; reportFailure(e); } };
@@ -56,9 +67,11 @@ async function write(): Promise<void> {
   if (last === null) return;
   const asked = last;
   put(asked, routeSearch(asked, window.location.search, null, extra));
-  if (places === null) return;
+  if (opener === null || waterFrame(asked) === null) return;   // no water, no place to add
   await drawn();
   if (last !== asked) return;
+  const places = await placesNow();
+  if (places === null || last !== asked) return;
   const q = await linkSearch(places, asked, window.location.search, onMissing, extra);
   if (last === asked) put(asked, q);
 }
@@ -104,8 +117,9 @@ export function routeAddress(a: AddressState): void {
   if (last !== null) queueMicrotask(() => void write());
 }
 
-/** (T369) The release the address makes places from (its regs store + loader: `lines`); set once it is open. */
-export function routeLinks(store: RegsStore | null, loader: ReleaseLoader | null): void {
-  places = store && loader ? placeReads(store, loader) : null;
+/** (T369) The release the address makes places from (its regs store, opened on first need, + loader: `lines`). */
+export function routeLinks(open: (() => Promise<RegsStore>) | null, loader: ReleaseLoader | null): void {
+  opener = open && loader ? { open, loader } : null;
+  placesP = null;
   if (last !== null) queueMicrotask(() => void write());
 }

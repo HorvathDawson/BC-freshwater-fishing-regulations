@@ -269,6 +269,9 @@ const WATER_SHARED: DbName = "water-shared";
       }
       // a string the region-wide tables name (an akey's kind, a place's label) is held by `water-shared`
       if (shared && keys.strs?.length && await covers(name, await db(shared), keys)) return db(shared);
+      // a read of tables every water file holds whole (`meta`) with no slice open yet: the small shared file, never the
+      // whole water (the address's regs store opens before the page's region is focused — the request walk, T129)
+      if (shared && Object.keys(keys).length === 0) return db(shared);
       return db(name);
     },
     opened: () => order.slice(),

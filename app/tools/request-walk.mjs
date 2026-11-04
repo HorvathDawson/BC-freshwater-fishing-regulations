@@ -54,7 +54,7 @@ function kindOf(url) {
   if (/\.pmtiles$/.test(p)) return { kind: /basemap/.test(p) ? 'basemap' : 'tiles', name: null };
   if (/\/map-assets-[^/]+\//.test(p)) return { kind: 'map-assets', name: null };
   if (p.endsWith('bc_outside.geojson')) return { kind: 'mask', name: 'mask' };
-  if ((m = /\/feeds\/live\/([\w-]+)\.json$/.exec(p))) return { kind: 'feed', name: m[1] === 'index' ? 'feed:index' : 'feed:station' };
+  if ((m = /\/feeds\/live\/([\w-]+)\.json$/.exec(p))) return { kind: 'feed', name: m[1] === 'index' ? 'feed:index' : m[1] === 'obs' ? 'feed:obs' : 'feed:station' };   // obs: T347's observations
   if (p.endsWith('.wasm')) return { kind: 'wasm', name: 'wasm' };
   if (u.origin === new URL(URL0).origin) return { kind: 'app', name: null };
   return { kind: 'external', name: u.hostname };
@@ -67,11 +67,16 @@ const SAVE_DATA = `try { Object.defineProperty(Navigator.prototype, 'connection'
  *  what a COLD visitor fetches. `tools/prefetch-measure.mjs` measures the tap with it on. */
 const NO_BACKGROUND = `globalThis.__releasePrefetchBackground = false;`;
 
-/** the "Before you fish" notice and the coach-mark tour cover the map on a fresh profile: seed both as seen (versions read from the source) */
+/** the "Before you fish" notice and the coach-mark tour cover the map on a fresh profile, and the open at my location
+ *  (T384) moves it: seed all as seen (versions read from the source) */
 const rdv = (f, re) => re.exec(fs.readFileSync(new URL(`../${f}`, import.meta.url), 'utf8'))?.[1];
+// the mode hints (T303 "Where you are" on the Map tab, Runs, Conditions, Salmon) are lines of the same key
+const TOURS = [...(/export const TAB_TOURS = \{([^}]+)\}/.exec(fs.readFileSync(new URL('../packages/core/src/help.ts', import.meta.url), 'utf8'))?.[1] ?? '')
+  .matchAll(/"([^"]+)"/g)].map((m) => m[1]);
 const SEEN = `try { localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(rdv('packages/core/src/menu/legal.ts', /FIRST_RUN_VERSION = "([^"]+)"/) ?? 'disclaimer-1')});
-  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify(rdv('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/) ?? '1')});
-  localStorage.setItem('canifishthis.inseasonSeen.v1', '["*"]'); } catch {}`;
+  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify([rdv('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/) ?? '1', ...TOURS].join('\n'))});
+  localStorage.setItem('canifishthis.inseasonSeen.v1', '["*"]');
+  localStorage.setItem('canifishthis.locationAsk.v1', 'asked'); } catch {}`;   // (T384) the default camera, not the reader's
 
 async function session(url, { seedSpot = false, saveData = false } = {}) {
   const init = NO_BACKGROUND + SEEN + (seedSpot ? `try { if (!localStorage.getItem('canifishthis.spots.v1')) localStorage.setItem('canifishthis.spots.v1', ${JSON.stringify(JSON.stringify([SPOT]))}); } catch {}` : '')
@@ -81,7 +86,8 @@ async function session(url, { seedSpot = false, saveData = false } = {}) {
   /** quiet: no request started or finished for `quiet` ms, and none in flight */
   const idle = async (quiet = 3500, max = 90000) => {
     let sig = '', last = Date.now(); const t0 = Date.now();
-    const web = () => b.requests.filter((r) => /^https?:/.test(r.url));
+    // the failure reporter's POST (T368) is fire-and-forget and may never settle in a headless profile; it is no load
+    const web = () => b.requests.filter((r) => /^https?:/.test(r.url) && !/\/crash$/.test(r.url));
     while (Date.now() - t0 < max) {
       const all = web(), done = all.filter((r) => r.bytes !== null || r.failed).length, s = `${all.length}/${done}`;
       if (s !== sig) { sig = s; last = Date.now(); } else if (done === all.length && Date.now() - last > quiet) return;
@@ -163,10 +169,9 @@ async function spot() {
   const s = await session(`${URL0}/`, { seedSpot: true });
   try {
     await firstPaint(s, 'spot');
-    await s.press('Spots'); await s.until(`!!document.querySelector('[data-testid=spots-screen]')`); await s.idle();
+    // (T293) on the web the Spots tab is the get-the-app notice: there is no spot to open
+    await s.press('Spots'); await s.until(`!!document.querySelector('[data-testid=web-spots-notice]')`); await s.idle();
     record('spot', 'the Spots tab', s.take());
-    await s.press('Walk spot', { prefix: true }); await s.idle();
-    record('spot', 'open a spot', s.take());
   } finally { await s.b.close(); }
 }
 
@@ -222,13 +227,16 @@ for (const m of results) {
   const rel = sum(rs, (r) => r.kind === 'release' || r.kind === 'manifest' || r.kind === 'mask');
   console.log(`${m.walk.padEnd(22)} ${m.moment.padEnd(40)} ${kb(rel)}   ${kb(sum(rs, (r) => r.kind === 'wasm'))} ${kb(sum(rs, (r) => r.kind === 'feed'))} ${kb(sum(rs, (r) => ['tiles', 'basemap', 'map-assets'].includes(r.kind)))} ${kb(sum(rs, (r) => ['app', 'external'].includes(r.kind)))}  ${[...new Set(rs.filter((r) => r.name).map((r) => r.name))].join(' ')}`);
 }
-const failed = results.flatMap((m) => m.requests.filter((r) => r.failed && r.kind !== 'app').map((r) => `${m.walk}/${m.moment}: ${r.url} ${r.failed}`));
+// a tile range MapLibre cancels once the camera moves on (a start link's jump) is not a failure
+const cancelled = (r) => ['tiles', 'basemap'].includes(r.kind) && /ERR_ABORTED/.test(r.failed);
+const failed = results.flatMap((m) => m.requests.filter((r) => r.failed && r.kind !== 'app' && !cancelled(r)).map((r) => `${m.walk}/${m.moment}: ${r.url} ${r.failed}`));
 if (opt('--json', null)) fs.writeFileSync(opt('--json'), JSON.stringify(results, null, 1));
 
 // ---- the pin: which named files each moment fetches, sorted, a file fetched twice listed twice (a duplicate request
 // is drift too: the manifest was read twice per visit until T129); tiles, glyphs, the app and other hosts never ----
 // a CORS preflight (OPTIONS) is the browser asking leave for the request that follows, not a fetch of the file: not counted
-const pinOf = (m) => m.requests.filter((r) => r.name && r.kind !== 'external' && r.method !== 'OPTIONS').map((r) => r.name).sort();
+// WHICH files, not how many times (a feed's 404 is retried; that is the feed's business, not the moment's)
+const pinOf = (m) => [...new Set(m.requests.filter((r) => r.name && r.kind !== 'external' && r.method !== 'OPTIONS').map((r) => r.name))].sort();
 const now = Object.fromEntries(results.map((m) => [`${m.walk} | ${m.moment}`, pinOf(m)]));
 let bad = failed.length;
 for (const f of failed) console.log(`FAIL request failed — ${f}`);

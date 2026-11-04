@@ -272,3 +272,20 @@ describe("the tap reads what the background fetched: the real web source and cac
     expect(fetched.length).toBe(names.length);
   });
 });
+
+describe("(T129 walk) a read every water file holds whole, before any region is open", () => {
+  it("reads `water-shared`, never the whole water", async () => {
+    const m = manifest(["core", "water", "water-shared", "water-2"]);
+    const fetched: string[] = [];
+    const name = (url: string) => url.replace(/^.*\/r-1\//, "").replace(/-x\.sqlite\.gz$/, "");
+    const source = releaseSource(m, { base: "https://r2.test/release/", cache: await releaseCache(`meta-${Math.random()}`),
+      held: null, fetch: (async (url: string) => { fetched.push(name(url)); return new Response(enc(name(url))); }) as typeof fetch });
+    const L = releaseLoader(m, source, async (n: DbName, bytes) => {
+      await bytes();
+      return { all: async () => [{ k: "format", v: `${n}/1` }, { k: "section_handles", v: H }],
+               get: async () => undefined } as unknown as Db;
+    });
+    await L.routed!("water").all("SELECT k, v FROM meta");
+    expect(fetched).toEqual(["water-shared"]);
+  });
+});

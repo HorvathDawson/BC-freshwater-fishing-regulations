@@ -23,4 +23,4 @@ export declare function routeAddress(a: AddressState): void;
  * (T369) The open release the address makes a frame's PLACE from (`@app/ui/place` `linkSearch`, web-only): its regs
  * store and loader (the `lines` file, fetched in the background once the page is drawn); native has no address bar.
  */
-export declare function routeLinks(store: RegsStore | null, loader: ReleaseLoader | null): void;
+export declare function routeLinks(open: (() => Promise<RegsStore>) | null, loader: ReleaseLoader | null): void;

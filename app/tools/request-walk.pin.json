@@ -1,6 +1,7 @@
 {
  "visit | first paint": [
   "feed:index",
+  "feed:obs",
   "manifest",
   "mask",
   "paint"
@@ -11,6 +12,8 @@
   "regs-3"
  ],
  "visit | search: open the water (R3)": [
+  "access",
+  "lines",
   "salmon",
   "salmon-3",
   "water-3",
@@ -18,6 +21,7 @@
  ],
  "tap named | first paint": [
   "feed:index",
+  "feed:obs",
   "manifest",
   "mask",
   "paint"
@@ -25,6 +29,7 @@
  "tap named | map tap: a named water (R2)": [
   "access",
   "geo",
+  "lines",
   "salmon",
   "salmon-2",
   "water-2",
@@ -32,6 +37,7 @@
  ],
  "tap unnamed | first paint": [
   "feed:index",
+  "feed:obs",
   "manifest",
   "mask",
   "paint"
@@ -39,6 +45,7 @@
  "tap unnamed | map tap: an unnamed stream (R2)": [
   "access",
   "down",
+  "lines",
   "regs-sid",
   "salmon",
   "salmon-2",
@@ -47,6 +54,7 @@
  ],
  "conditions | first paint": [
   "feed:index",
+  "feed:obs",
   "manifest",
   "mask",
   "paint"
@@ -58,15 +66,17 @@
  "conditions | the Change horizon": [],
  "spot | first paint": [
   "feed:index",
+  "feed:obs",
   "manifest",
   "mask",
   "paint"
  ],
  "spot | the Spots tab": [],
- "spot | open a spot": [],
  "region 1 | cold open gnis:21141 (start link)": [
+  "access",
   "core",
   "feed:index",
+  "feed:obs",
   "geo",
   "manifest",
   "mask",
@@ -76,11 +86,14 @@
   "salmon",
   "salmon-1",
   "wasm",
-  "water"
+  "water",
+  "water-shared"
  ],
  "region 2 | cold open gnis:15333 (start link)": [
+  "access",
   "core",
   "feed:index",
+  "feed:obs",
   "geo",
   "manifest",
   "mask",
@@ -90,11 +103,14 @@
   "salmon",
   "salmon-2",
   "wasm",
-  "water"
+  "water",
+  "water-shared"
  ],
  "region 3 | cold open gnis:39492 (start link)": [
+  "access",
   "core",
   "feed:index",
+  "feed:obs",
   "geo",
   "manifest",
   "mask",
@@ -104,11 +120,14 @@
   "salmon",
   "salmon-3",
   "wasm",
-  "water"
+  "water",
+  "water-shared"
  ],
  "region 4 | cold open gnis:37414 (start link)": [
+  "access",
   "core",
   "feed:index",
+  "feed:obs",
   "geo",
   "manifest",
   "mask",
@@ -118,11 +137,14 @@
   "salmon",
   "salmon-4",
   "wasm",
-  "water"
+  "water",
+  "water-shared"
  ],
  "region 5 | cold open gnis:13744 (start link)": [
+  "access",
   "core",
   "feed:index",
+  "feed:obs",
   "geo",
   "manifest",
   "mask",
@@ -132,11 +154,14 @@
   "salmon",
   "salmon-5",
   "wasm",
-  "water"
+  "water",
+  "water-shared"
  ],
  "region 6 | cold open gnis:15430 (start link)": [
+  "access",
   "core",
   "feed:index",
+  "feed:obs",
   "geo",
   "manifest",
   "mask",
@@ -146,11 +171,14 @@
   "salmon",
   "salmon-6",
   "wasm",
-  "water"
+  "water",
+  "water-shared"
  ],
  "region 8 | cold open gnis:32069 (start link)": [
+  "access",
   "core",
   "feed:index",
+  "feed:obs",
   "geo",
   "manifest",
   "mask",
@@ -160,11 +188,14 @@
   "salmon",
   "salmon-8",
   "wasm",
-  "water"
+  "water",
+  "water-shared"
  ],
  "region 7a | cold open gnis:8018 (start link)": [
+  "access",
   "core",
   "feed:index",
+  "feed:obs",
   "geo",
   "manifest",
   "mask",
@@ -174,11 +205,14 @@
   "salmon",
   "salmon-7a",
   "wasm",
-  "water"
+  "water",
+  "water-shared"
  ],
  "region 7b | cold open gnis:14619 (start link)": [
+  "access",
   "core",
   "feed:index",
+  "feed:obs",
   "geo",
   "manifest",
   "mask",
@@ -188,7 +222,8 @@
   "salmon",
   "salmon-7b",
   "wasm",
-  "water"
+  "water",
+  "water-shared"
  ],
  "visit | prefetch after paint": [
   "core",
@@ -210,6 +245,7 @@
  ],
  "tap named (save-data) | first paint": [
   "feed:index",
+  "feed:obs",
   "manifest",
   "mask",
   "paint"
@@ -221,6 +257,7 @@
   "access",
   "core-2",
   "geo",
+  "lines",
   "method",
   "salmon",
   "salmon-2",

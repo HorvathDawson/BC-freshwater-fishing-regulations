@@ -36,7 +36,8 @@ const PIN = JSON.parse(readFileSync(join(__dirname, "request-walk.pin.json"), "u
 const releaseFiles = (moment: string): string[] => {
   const files = PIN[moment];
   if (!files) throw new Error(`the walk pins no moment "${moment}" (node tools/request-walk.mjs --pin)`);
-  return files.filter((f) => !/^(feed:|wasm$)/.test(f)).map((f) => (/^regs-(\d|7[ab])/.test(f) ? "regs-{region}"
+  // `lines` is in no gated moment (contract.py: fetched only when a link is made or opened — T369's place, behind the page)
+  return files.filter((f) => !/^(feed:|wasm$|lines$)/.test(f)).map((f) => (/^regs-(\d|7[ab])/.test(f) ? "regs-{region}"
     : /^salmon-(\d|7[ab]|x)/.test(f) ? "salmon-{region}"
     : /^(core|water)-(\d|7[ab])$/.test(f) ? `${f.split("-")[0]}-{region}` : f));       // (T256) the answer slices
 };
@@ -111,7 +112,7 @@ describe("the pinned walk fetches what the budget prices", () => {
       .map(([k]) => k)).toEqual([]);
     // (T228) geo (the water map's boxes) is read with the tap; (T256) the web tap reads the region's answer slices
     expect(PIN["tap named (save-data) | map tap: a named water (R2)"])
-      .toEqual(["access", "core-2", "geo", "method", "salmon", "salmon-2", "wasm", "water-2", "water-shared"]);
+      .toEqual(["access", "core-2", "geo", "lines", "method", "salmon", "salmon-2", "wasm", "water-2", "water-shared"]);
   });
 
   it("T186: no file is fetched twice — a moment after the prefetch asks for none of what it took", () => {
@@ -123,18 +124,22 @@ describe("the pinned walk fetches what the budget prices", () => {
     // the page's own region's slice only
     // (T256) the region's water slice, not the whole water file
     // (T370) + `water-shared`: the slice's region-wide tables, one file
-    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "geo", "salmon", "salmon-2", "water-2",
-                                                                   "water-shared"]);
+    // (T369) + `lines`: the address's place, asked once the page is drawn
+    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "geo", "lines", "salmon", "salmon-2",
+                                                                   "water-2", "water-shared"]);
   });
 
-  it("before the first question nothing but the manifest, paint and the mask (and the feed's index) — every walk", () => {
+  it("before the first question nothing but the manifest, paint and the mask (and the feeds' index and observations) — every walk", () => {
     const firsts = Object.entries(PIN).filter(([k]) => k.endsWith("| first paint"));
     expect(firsts.length).toBeGreaterThan(3);
-    for (const [k, files] of firsts) expect([k, files]).toEqual([k, ["feed:index", "manifest", "mask", "paint"]]);
+    // (T347) + the observations feed; no SQLite file, no engine (the walkthrough's water and the address's store are
+    // asked only when needed — the 2026-11-04 walk caught both on first paint)
+    for (const [k, files] of firsts) expect([k, files]).toEqual([k, ["feed:index", "feed:obs", "manifest", "mask", "paint"]]);
   });
 
-  it("the Change horizon, the Spots tab and a spot fetch no release file", () => {
-    for (const k of ["conditions | the Change horizon", "spot | the Spots tab", "spot | open a spot"])
+  // (T293) the web's Spots tab is the get-the-app notice: no spot to open there
+  it("the Change horizon and the Spots tab fetch no release file", () => {
+    for (const k of ["conditions | the Change horizon", "spot | the Spots tab"])
       expect([k, PIN[k]]).toEqual([k, []]);
   });
 });

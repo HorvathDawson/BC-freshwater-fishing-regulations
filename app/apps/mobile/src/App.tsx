@@ -433,12 +433,11 @@ export default function App() {
   useEffect(() => {
     if (!data) return;
     let live = true;
-    const store = loadRegsStore(data.loader);
-    // (T368) the same failure shows on a water page; here it is reported, and the address bar keeps its plain links
-    store.then((st) => { if (live) routeLinks(st, data.loader); }, (e: unknown) => { reportFailure(e); if (live) routeLinks(null, null); });
+    // the regs store opens when the address first needs a place (a water on screen), never on a first paint of the map
+    routeLinks(() => loadRegsStore(data.loader), data.loader);
     if (START && startNeedsRelease(START)) {
       const link = START;
-      store.then((st) => resolveStart(link, st, data.loader, data.source))
+      loadRegsStore(data.loader).then((st) => resolveStart(link, st, data.loader, data.source))
         .then((l) => { if (live) setStart(l); },
               // (T369 D9) a place that could not be READ (offline, a failed fetch) is said as that, never "not on this map"
               (e: unknown) => { reportFailure(e); if (live) setStart({ ...link, place: null, tap: null, notice: link.place ? "place-unread" : link.notice }); });

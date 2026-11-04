@@ -20,4 +20,4 @@ export function routeUrl(_r: Route): void {}
 export function routeAddress(_a: AddressState): void {}
 
 /** (T369) No address bar: no place to make. */
-export function routeLinks(_store: RegsStore | null, _loader: ReleaseLoader | null): void {}
+export function routeLinks(_open: (() => Promise<RegsStore>) | null, _loader: ReleaseLoader | null): void {}

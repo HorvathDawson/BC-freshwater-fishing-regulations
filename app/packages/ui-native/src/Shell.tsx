@@ -22,7 +22,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { GUIDE_WATER, TAB_TOUR_WORDS, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow } from "@app/core";
+import { GUIDE_WATER, TAB_TOUR_WORDS, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
@@ -101,18 +101,21 @@ const TAB_BAR_ROOM = 64;
 
 /**
  * (T293) THE WALKTHROUGH'S WATER (`GUIDE_WATER`): found by its name in the release once, a stream of exactly that name.
- * Not found (a release without it): null, and the walkthrough takes any water the reader picks.
+ * Not found (a release without it): null, and the walkthrough takes any water the reader picks. Asked only once the
+ * walkthrough is due or replayed (`wanted`): the search reads `core` and the whole `water` file, which a first paint
+ * must never fetch (the request walk, T129).
  */
-function useGuideWater(source: ShellProps["source"]): { item: string; name: string } | null {
+function useGuideWater(source: ShellProps["source"], wanted: boolean): { item: string; name: string } | null {
   const [w, setW] = useState<{ item: string; name: string } | null>(null);
   useEffect(() => {
+    if (!wanted) return;
     let live = true;
     void source.searchNames(GUIDE_WATER.name, 10).then((hits) => {
       const h = hits.find((x) => x.name === GUIDE_WATER.name && x.kind === GUIDE_WATER.kind) ?? hits.find((x) => x.name === GUIDE_WATER.name);
       if (live && h) setW({ item: h.item, name: h.name });
-    }).catch(() => {});
+    }).catch(reportFailure);   // (T368) the walk goes on with any water the reader picks
     return () => { live = false; };
-  }, [source]);
+  }, [source, wanted]);
   return w;
 }
 
@@ -338,7 +341,8 @@ export function Shell(p: ShellProps) {
    */
   const coach = useCoachRegistry();
   const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
-  const guideWater = useGuideWater(source);
+  const [guideWanted, setGuideWanted] = useState(false);
+  const guideWater = useGuideWater(source, guideWanted);
   const picked = searchMemory.pick.selected;
   // the layers as the reader had them when the walk reached its Layers steps: put back at the last of them (or a skip)
   const groundNow = col.layers.ground.tiles.find((t) => t.chosen)?.id ?? "";
@@ -396,6 +400,7 @@ export function Shell(p: ShellProps) {
     restoreLayers,
   };
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);
+  useEffect(() => { if (guide.open || guide.pending) setGuideWanted(true); }, [guide.open, guide.pending]);
   // the Layers sheet opened by the reader at the walk's Layers step: what they had is kept from that moment
   const atKey = guide.open ? GUIDE_STEPS[guide.at]?.key : undefined;
   useEffect(() => {

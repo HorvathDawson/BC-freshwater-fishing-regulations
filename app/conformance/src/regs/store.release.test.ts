@@ -21,10 +21,11 @@ describe("the port's versions are the golden store's", () => {
 });
 
 describe.skipIf(!LIVE)(`T03 on the live release (${LIVE ?? "absent"})`, () => {
-  it("opens over water alone, paired with the manifest's tiles, and says what it is", async () => {
+  it("opens over water-shared alone, paired with the manifest's tiles, and says what it is", async () => {
     const loader = openReleaseDir(LIVE!);
     const st = await openRegsStore(loader);
-    expect(loader.opened()).toEqual(["water"]);
+    // the store opens over `water-shared` (T370: meta + the region-wide tables) — the whole water only where it is held
+    expect(loader.opened()).toEqual(["water-shared"]);
     expect(loader.manifest.tiles.current!.id!.split(".")[0]).toBe(golden.section_handles);
     expect({ sectionHandles: st.meta.sectionHandles, reachDigest: st.meta.reachDigest, ruleIdsSha256: st.meta.ruleIdsSha256 })
       .toEqual({ sectionHandles: golden.section_handles, reachDigest: golden.reach_digest, ruleIdsSha256: golden.rule_ids_sha256 });
@@ -53,7 +54,7 @@ describe.skipIf(!LIVE)(`T03 on the live release (${LIVE ?? "absent"})`, () => {
       expect((await d.get("SELECT v FROM meta WHERE k = 'region'"))!.v).toBe(r.region);
     }
     await st.sid();
-    expect(loader.opened()).toEqual(["water", ...one.map((r) => `regs-${r.region}`), "regs-sid"]);
+    expect(loader.opened()).toEqual(["water-shared", ...one.map((r) => `regs-${r.region}`), "regs-sid"]);
     expect(st.refused()).toBeNull();
   });
 
@@ -61,7 +62,7 @@ describe.skipIf(!LIVE)(`T03 on the live release (${LIVE ?? "absent"})`, () => {
     const loader = openReleaseDir(LIVE!);
     const st = await openRegsStore(loader);
     await st.region(T.states.vedder_515!.akey);
-    expect(loader.opened()).toEqual(["water", "regs-2"]);
+    expect(loader.opened()).toEqual(["water-shared", "regs-2"]);
   });
 
   it("refuses the live release against another atlas's tiles", async () => {

@@ -6,7 +6,7 @@
 export const HOME = { lon: -121.85, lat: 49.15, zoom: 10 };
 export const TARGETS = {
   named: { lng: -121.944817, lat: 49.18167, name: 'Gravel Slough' },                       // section 235893, z10+
-  unnamed: { lng: -121.766921, lat: 49.031861, name: 'Unnamed stream · Region 2' },        // section 266049, z10+
+  unnamed: { lng: -121.754951, lat: 49.03798, name: 'Unnamed stream · Region 2' },         // section 266050, z10+; above the legend bar (T367)
 };
 const mx = (lo, z) => (lo + 180) / 360 * 512 * 2 ** z;
 const my = (la, z) => (1 - Math.log(Math.tan(Math.PI / 4 + la * Math.PI / 360)) / Math.PI) / 2 * 512 * 2 ** z;

@@ -525,9 +525,12 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
 
     partLengths: (ord, partIx) => once("partLengths", `${ord}:${partIx}`, async () => {
       const w = await base.water();
-      // (T387) `m` is additive (still water/1): a release cut before it has no column
-      const has = await once("hasPartLength", 0, async () =>
-        !!(await w.get("SELECT 1 AS x FROM pragma_table_info('part_section') WHERE name = 'm'")));
+      // (T387) `m` is additive (still water/1): a release cut before it has no column. Read off `sqlite_master` (every
+      // water slice holds it whole), never `pragma_table_info`, which no slice answers: the whole water's (T129 walk)
+      const has = await once("hasPartLength", 0, async () => {
+        const r = await w.get("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'part_section'");
+        return /[\s(,]m\s+INTEGER\b/.test(String(r?.sql ?? ""));
+      });
       if (!has) return null;
       const rows = await w.all("SELECT sid, m FROM part_section WHERE ord = ? AND part_ix = ? ORDER BY sid", ord, partIx);
       return new Map(rows.map((r) => [n(r.sid), r.m === null || r.m === undefined ? null : n(r.m)]));
