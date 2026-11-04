@@ -3,6 +3,7 @@
  * synopsis at its PDF page (`#page=`), iOS / Android the bare PDF URL; a page the map lacks is plain text, never a link.
  * The store-backed check of every book run in every vedder_1010 sheet is conformance/src/regs/book.parity.test.ts.
  */
+import { setFailureSink } from "@app/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Linking, Platform, Text } from "react-native";
@@ -73,10 +74,15 @@ describe("openBook (D6 a)", () => {
     fireEvent.click(screen.getByRole("link"));
     expect(open.mock.calls).toEqual([[SYNOPSIS_PDF]]);
   });
-  it("a refused open is logged and swallowed — never thrown, never an Alert", async () => {
+  it("a refused open is logged and (T368) reported through openLink — never thrown, never an Alert", async () => {
     vi.spyOn(Linking, "openURL").mockRejectedValue(new Error("no handler"));
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    await expect(openBook(23, undefined, "ios")).resolves.toBeUndefined();
-    expect(warn.mock.calls[0]![0]).toBe("openBook: could not open the synopsis (PDF page 23)");
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      await expect(openBook(23, undefined, "ios")).resolves.toBeUndefined();
+      expect(String(warn.mock.calls[0]![0])).toMatch(/^openLink: could not open https:\/\//);
+      expect(got.map((e) => (e as Error).message)).toEqual(["no handler"]);
+    } finally { undo(); }
   });
 });

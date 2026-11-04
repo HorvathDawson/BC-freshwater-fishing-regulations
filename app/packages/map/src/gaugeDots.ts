@@ -2,7 +2,7 @@
  * THE GAUGE DOTS: the live feed's runtime source and the two layers drawn from it (`gauge-dot`, `gauge-label`), and the
  * colour a dot takes for a mode — composed into the style by `runtime-style.ts`, repainted on a view change by `look.ts`.
  */
-import { TEMP_BANDS } from "@app/core";
+import { reportFailure, TEMP_BANDS } from "@app/core";
 import { STYLE_META, resolveTheme, tempBandColour } from "./style";
 
 /**
@@ -20,12 +20,14 @@ import { STYLE_META, resolveTheme, tempBandColour } from "./style";
  * point where it meets the renderer.
  *
  * A malformed payload yields an empty collection rather than throwing: a bad feed must not
- * take the whole map down, and an empty source draws nothing, which is the honest picture.
+ * take the whole map down, and an empty source draws nothing. (T368) It is REPORTED: the dots
+ * vanishing is a defect we hear of, not a quiet picture.
  */
 function geojsonData(raw: string): unknown {
   try {
     return JSON.parse(raw);
-  } catch {
+  } catch (e) {
+    reportFailure(e);
     return { type: "FeatureCollection", features: [] };
   }
 }

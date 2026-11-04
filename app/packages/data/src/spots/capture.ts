@@ -8,7 +8,7 @@
  * as a null on the record rather than a zero or a guess — the screen then says "not known",
  * which is the truth, and a later backfill can fill it in and mark itself as backfilled.
  */
-import { freezeTrace, leadUpDays, localDate, type FrozenTrace } from "@app/core";
+import { freezeTrace, leadUpDays, localDate, reported, reportFailure, type FrozenTrace } from "@app/core";
 import type { answerFrom } from "../panel";
 import { sheetLead, speakerFor, speaks, type Speaker } from "../standing";
 import type { ItemId, WaterSource, SectionId, StationId } from "../index";
@@ -81,15 +81,16 @@ async function panelFor(source: WaterSource, section: SectionId | null, feed: Ca
   if (!feed || !section) return { panel: null };
   try {
     const [panels, idx] = await Promise.all([source.panelsFor([section]),
-                                             feed.index().then((i) => i ?? null, () => null)]);
+                                             feed.index().then((i) => i ?? null, reported(null))]);
     const members = panels.get(section);
     // (T314) the index unreadable (offline): the panel's members are kept, and a refresh reads them
     if (!idx) return pendingPanel(members, date);
     // Only a real answer is worth freezing: "no panel" is not a fact about that day, it is
     // a fact about the app, and it would read as one on a spot opened a year later.
     return { panel: members ? livePanel(members, idx) : null };
-  } catch {
-    // A spot must save. A missing estimate is a smaller loss than a lost record.
+  } catch (e) {
+    // A spot must save. A missing estimate is a smaller loss than a lost record. (T368 Q7) Reported unless offline.
+    reportFailure(e);
     return { panel: null };
   }
 }
@@ -162,8 +163,9 @@ async function panelOnTripDay(source: WaterSource, section: SectionId | null, da
   try {
     const panels = await source.panelsFor([section]);
     return await capturePanelOnDay(panels.get(section), date, ports);
-  } catch {
-    // A spot must save. A missing estimate is a smaller loss than a lost record.
+  } catch (e) {
+    // A spot must save. A missing estimate is a smaller loss than a lost record. (T368 Q7) Reported unless offline.
+    reportFailure(e);
     return { panel: null };
   }
 }

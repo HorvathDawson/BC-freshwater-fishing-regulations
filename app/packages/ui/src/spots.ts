@@ -3,6 +3,7 @@
  * it and keeps the sheet open. The list is re-read after each write. A weather refresh writes through `patch`, so it
  * fills a spot only if nobody changed or deleted it meanwhile.
  */
+import { reportFailure } from "@app/core";
 import { useEffect, useRef, useState } from "react";
 import type { Spot } from "@app/data/spots";
 import { useAsync, type Async } from "./async";
@@ -38,6 +39,7 @@ export function useSpots(store: SpotsStoreLike): {
       await job();
       setError(null);
     } catch (e) {
+      reportFailure(e);
       setError(spotSaveFailed(e));
       throw e;
     } finally {

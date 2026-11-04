@@ -11,6 +11,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import { useState } from "react";
+import { setFailureSink } from "@app/core";
 import { useAsync } from "./async";
 
 afterEach(cleanup);
@@ -102,6 +103,18 @@ describe("useAsync", () => {
     );
     await settle();
     expect(getByRole("button").textContent).toBe("failed:feed down");
+  });
+
+  it("(T368 X2) reports every failure once, here — the environment's (offline) excepted", async () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      render(<Probe impl={async () => { throw new Error("bad file"); }} queryKey="r1" onRender={() => {}} />);
+      const offline = Object.assign(new Error("no line"), { environment: true });
+      render(<Probe impl={async () => { throw offline; }} queryKey="r2" onRender={() => {}} />);
+      await settle();
+      expect(got.map((e) => (e as Error).message)).toEqual(["bad file"]);
+    } finally { undo(); }
   });
 });
 

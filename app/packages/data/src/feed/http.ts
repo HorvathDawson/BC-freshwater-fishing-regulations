@@ -19,7 +19,7 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { shownParameter, standing, type SourceChange } from "@app/core";
+import { reportFailure, shownParameter, standing, type SourceChange } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
 import { fetchJsonResilient } from "../net/fetch";
@@ -308,7 +308,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
             else if (path === "index.json") opts.history?.noteIndex(got.value);
           } catch { /* a cache */ }
           return got.value;
-        } catch {
+        } catch (e) {
+          reportFailure(e);   // (T368) the line down is not reported; anything else is (the copy below still answers, aged)
           // (T254) offline or a dead line — an answer, not an exception: the last good copy if this session has one
           // (its own fetchedAt says how old it is, P02), else nothing
           // (T315) and across launches, the phone's kept week of a station

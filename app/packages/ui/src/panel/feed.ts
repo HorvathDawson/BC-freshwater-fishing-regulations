@@ -4,7 +4,7 @@
  */
 import { useMemo } from "react";
 import { answerFrom, type DonorRow, type GaugeFeed, type PanelAnswer, type StationId } from "@app/data";
-import { donorCounted } from "@app/core";
+import { offlineAs, donorCounted } from "@app/core";
 import { useAsync } from "../async";
 import { useFeedVersion } from "../feedVersion";
 
@@ -51,7 +51,7 @@ export function useLastReports(feed: PanelFeed | undefined, panel: PanelAnswer):
   const v = useFeedVersion("gauges");
   const got = useAsync(
     async () => new Map(await Promise.all(
-      want.map(async (s) => [s, await feed!.lastReport!(s as StationId).catch(() => undefined)] as const))),
+      want.map(async (s) => [s, await feed!.lastReport!(s as StationId).catch(offlineAs(undefined))] as const))),   // (T368)
     `${key}#${v}`, !!feed?.lastReport && want.length > 0, key);
   const map = got.state === "ready" ? got.value : null;
   return useMemo(() => {

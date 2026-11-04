@@ -7,6 +7,7 @@
  * LOCAL, NOT UTC, throughout. A spot fished at 6 p.m. in Vancouver on the 30th is in UTC on the 31st, and the list
  * used to say so; the reader's day is the only day a reader means.
  */
+import { reportOnce } from "./failure";
 import { monthAbbr } from "./flow";
 
 const DAY_MS = 86_400_000;
@@ -100,8 +101,10 @@ function zonedParts(ms: number, zone?: string): ZonedParts {
     const part = (t: string) => parts.find((p) => p.type === t)?.value;
     const [y, mo, d, h, mi, tz] = ["year", "month", "day", "hour", "minute", "timeZoneName"].map(part);
     if (y && mo && d && h && mi && tz) return { y: +y, mo: +mo, d: +d, h: +h, mi: +mi, tz };
-  } catch {
-    // No Intl, or no zone data: the device's own clock and its offset, below.
+    reportOnce("intl-zone", new Error(`Intl gave no zone parts${zone ? ` for ${zone}` : ""}`));
+  } catch (e) {
+    // No Intl, or no zone data: the device's own clock and its offset, below. (T368, owner Q6) Reported once a run.
+    reportOnce("intl-zone", e);
   }
   const x = new Date(ms);
   const off = -x.getTimezoneOffset();

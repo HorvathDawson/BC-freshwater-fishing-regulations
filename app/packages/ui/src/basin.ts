@@ -14,6 +14,7 @@
  * `reportFailure`), never an empty answer.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { reportFailure } from "@app/core";
 import type { Basin, ItemId, SectionId, WaterSource } from "@app/data";
 import { useAsync, type Async } from "./async";
 import type { LatLon } from "./route";
@@ -90,6 +91,7 @@ export function useCentreBasin(source: WaterSource, enabled: boolean, initial: L
         setVm(held.current);
       },
       (e: unknown) => {
+        reportFailure(e);   // (T368) shown by the screen, reported here
         if (n !== seq.current) return;
         held.current = { basin: undefined, error: e instanceof Error ? e : new Error(String(e)) };
         setVm(held.current);

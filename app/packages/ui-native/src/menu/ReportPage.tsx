@@ -11,7 +11,7 @@
  */
 import { ErrorState } from "../ErrorState";
 import { useMemo, useState } from "react";
-import { Linking, Share, Switch, TextInput, View } from "react-native";
+import { Share, Switch, TextInput, View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { contactVM, diagnosticRows, emailProblem, mailtoUrl, MENU_WORDS, PRIVACY_URL, REPORT_REASONS, reportMessage, type DiagKey,
@@ -23,6 +23,7 @@ import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { hitProps } from "../regs/hit";
 import { NoneLine } from "../EmptyState";
+import { linkTo, openLink } from "../openLink";
 
 export function ReportPage({ diagnostics, contact, palette, sender = null }: {
   diagnostics: Diagnostics; contact: string | null; palette: Palette;
@@ -50,7 +51,7 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
     ? () => tx.send!({ reason, what, email, contact: contactShown && mayContact, diagnostics, on }) : undefined;
   const reasons = useMemo(() => REPORT_REASONS.map((k) => ({ k, t: w.reasons[k] })), [w]);
 
-  const mail = to.kind === "email" && ready ? () => { void Linking.openURL(mailtoUrl(to.value, message)); } : undefined;
+  const mail = to.kind === "email" && ready ? () => { void openLink(mailtoUrl(to.value, message)); } : undefined;
   const share = ready ? () => {
     setShareFailed(false);
     Share.share({ title: message.subject, message: `${message.subject}\n\n${message.body}` })
@@ -146,7 +147,7 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
             <ErrorState palette={palette} testID="report-refused" message={w.refused(tx.state.error)} />
           )}
           <Text testID="report-privacy" style={{ ...TYPE.small, color: palette.sub }}>{w.privacy}</Text>
-          <Pressable {...hitProps({ w: 120, h: 44 })} testID="report-privacy-link" onPress={() => { void Linking.openURL(PRIVACY_URL); }}
+          <Pressable {...hitProps({ w: 120, h: 44 })} testID="report-privacy-link" onPress={linkTo(PRIVACY_URL)}
                      accessibilityRole="link" accessibilityLabel={MENU_WORDS.about.privacy} style={{ minHeight: 44, justifyContent: "center" }}>
             <Text style={{ ...TYPE.small, color: palette.accent }}>{MENU_WORDS.about.privacy}</Text>
           </Pressable>

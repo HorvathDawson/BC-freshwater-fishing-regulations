@@ -5,7 +5,7 @@
  * `inSeasonNoticeRows`). A scrolling sheet at every width (a centred dialog on a wide screen).
  */
 import { useState } from "react";
-import { Linking, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "./Text";
 import { INSEASON_WORDS, syncErrorVM, UPDATE_WORDS, type InSeasonNoticeRow, type ReleaseNoticeVM,
          type UpdateSourceInput } from "@app/core";
@@ -15,6 +15,7 @@ import { RegsPress } from "./regs/RegsPress";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
+import { linkTo } from "./openLink";
 
 export function InSeasonNotice({ open, rows, palette, onClose, sync = null, release = null }: {
   open: boolean; rows: readonly InSeasonNoticeRow[]; palette: Palette; onClose: () => void;
@@ -83,7 +84,7 @@ export function InSeasonNotice({ open, rows, palette, onClose, sync = null, rele
             <Text style={{ ...TYPE.body, color: palette.ink }}>{r.text}</Text>
             {!!r.url && (
               <RegsPress accessibilityRole="link" accessibilityLabel={INSEASON_WORDS.sourceLabel}
-                         onPress={() => { void Linking.openURL(r.url); }} box={{ w: 44, h: 32 }}
+                         onPress={linkTo(r.url)} box={{ w: 44, h: 32 }}
                          style={{ minHeight: 32, justifyContent: "center", alignSelf: "flex-start" }}>
                 <Text style={{ ...TYPE.metaBold, color: palette.accent }}>{INSEASON_WORDS.source}</Text>
               </RegsPress>

@@ -7,6 +7,7 @@
  *
  * Only the NETWORK asks are wrapped; the atlas lookups (panels, lake stations, the route) are on the device.
  */
+import { environmentError } from "@app/core";
 import type { WaterSource } from "../index";
 import type { WeatherSource } from "./capture";
 
@@ -29,7 +30,7 @@ export function fastPorts<F extends { index(): Promise<any> }>(
   ports: { source: WaterSource; weather?: WeatherSource; feed?: F }, online?: () => boolean, ms = DEADLINE_MS):
   { source: WaterSource; weather: WeatherSource | undefined; feed: F | undefined } {
   const { source, weather, feed } = ports;
-  const refuse = () => Promise.reject(new Error("offline"));
+  const refuse = () => Promise.reject(environmentError(new Error("offline")));   // (T368) the device offline: never reported
   const fast: WaterSource = new Proxy(source, {
     get(target, key, recv) {
       const v = Reflect.get(target, key, recv);

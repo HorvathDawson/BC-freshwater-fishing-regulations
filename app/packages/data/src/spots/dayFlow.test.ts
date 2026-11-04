@@ -115,10 +115,17 @@ describe("flowOnDay — the feed's record first, then HYDAT when online", () => 
   it("offline waits: the device says offline, or HYDAT cannot be reached, or there is no HYDAT port", async () => {
     const h = hydat({ kind: "day", discharge: 19.6, level: null });
     expect([await flowOnDay("08MH001", "2024-08-15", { source: source(), hydat: h, online: () => false }),
-            await flowOnDay("08MH001", "2024-08-15", { source: source(), hydat: hydat(new Error("fetch failed")) }),
+            await flowOnDay("08MH001", "2024-08-15", { source: source(), hydat: hydat(new TypeError("Failed to fetch")) }),
             await flowOnDay("08MH001", "2024-08-15", { source: source() })])
       .toEqual([{ kind: "offline" }, { kind: "offline" }, { kind: "offline" }]);
     expect(h.asked).toEqual([]);
+  });
+
+  it("(T368, owner Q8) a real failure is not offline: HYDAT answering wrong, or the bundle's read failing, is thrown", async () => {
+    await expect(flowOnDay("08MH001", "2024-08-15", { source: source(), hydat: hydat(new Error("HTTP 500")) }))
+      .rejects.toThrow("HTTP 500");
+    const broken = { ...source(), gaugeParameters: async () => { throw new Error("disk I/O error"); } } as never;
+    await expect(flowOnDay("08MH001", "2024-08-15", { source: broken })).rejects.toThrow("disk I/O error");
   });
 
   it("the feed unreachable (no age): its envelope still ranks HYDAT's value; its days are not read", async () => {

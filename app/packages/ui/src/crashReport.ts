@@ -17,6 +17,7 @@
  * Switching it off sends nothing and forgets a kept one.
  */
 import { createContext, createElement, useContext, useEffect, useState, type ReactNode } from "react";
+import { isEnvironment, reportFailure, setFailureSink } from "@app/core";
 import { waterFrame, type Route, type View } from "./route";
 
 /** (T352) crash/2: the open water and its pane, the install id, `background`. The worker takes crash/1 too (0.4.0 phones). */
@@ -288,20 +289,28 @@ export function createCrashReporter(o: {
 
 // ── a failure the app shows ──────────────────────────────────────────────────────────────────────────────────────────
 
-let installed: CrashReporter | null = null;
-
 /**
  * (owner 2026-11-03: "make sure we get reports on failures like this ... true universally in app") A failure the app
  * CATCHES and shows the reader — a card's "Couldn't load", a viewer that cannot draw — is reported too, not only an
- * uncaught one: through the same reporter (the Data switch, the scrubbing, the per-run cap), non-fatal. Before the
- * handlers are installed (tests, a tool) nothing is sent. Pair it with what the reader sees; never use it to hide one.
+ * uncaught one: through the same reporter (the Data switch, the scrubbing, the per-run cap), non-fatal. (T368) The one
+ * function is core's (`@app/core` failure.ts), so data and map report the same way; the ENVIRONMENT (offline, a refused
+ * permission) is never reported. Before the handlers are installed (tests, a tool) nothing is sent.
  */
-export function reportFailure(error: unknown): void {
-  installed?.report(error, { kind: "js", fatal: false });
+export { reportFailure } from "@app/core";
+
+/**
+ * (T368, owner Q2 2026-11-04) THE MAP'S `onError`, every host: a map-engine failure (a feature-state write, a source's
+ * data, a style step, a tap's handler) is logged and REPORTED. Most need no face — the map redraws on the next frame —
+ * so nothing is said to the reader here; what the reader can act on is said where it is decided.
+ */
+export function mapError(e: Error): void {
+  console.error("map:", e.message);
+  reportFailure(e);
 }
 
 // ── the catchers ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
+interface HermesLike { enablePromiseRejectionTracker?(o: { allRejections: boolean; onUnhandled: (id: number, e: unknown) => void; onHandled: (id: number) => void }): void }
 interface ErrorUtilsLike { getGlobalHandler?(): (e: unknown, fatal?: boolean) => void; setGlobalHandler?(h: (e: unknown, fatal?: boolean) => void): void }
 
 /**
@@ -312,8 +321,8 @@ interface ErrorUtilsLike { getGlobalHandler?(): (e: unknown, fatal?: boolean) =>
 export function installCrashHandlers(reporter: CrashReporter, g: Record<string, any> = globalThis as never): () => void { // eslint-disable-line @typescript-eslint/no-explicit-any
   if (g.__crashHandlers) return () => {};
   g.__crashHandlers = true;
-  installed = reporter;
-  const undo: Array<() => void> = [() => { delete g.__crashHandlers; installed = null; }];
+  const unsink = setFailureSink((e) => reporter.report(e, { kind: "js", fatal: false }));
+  const undo: Array<() => void> = [() => { delete g.__crashHandlers; unsink(); }];
   const eu = g.ErrorUtils as ErrorUtilsLike | undefined;
   if (eu?.setGlobalHandler) {
     const prev = eu.getGlobalHandler?.();
@@ -324,9 +333,24 @@ export function installCrashHandlers(reporter: CrashReporter, g: Record<string, 
     eu.setGlobalHandler(mine);
     undo.push(() => { if (prev) eu.setGlobalHandler!(prev); });
   }
+  // (T368 X1) A PHONE'S UNHANDLED REJECTIONS: Hermes keeps its own promise tracker, and React Native installs one only
+  // in a dev build (a LogBox warning). In a release build a `void p` that rejects was silent on a phone while the same
+  // code reported on the web. Installed here in every build, reported like the web's `unhandledrejection`.
+  const hermes = g.HermesInternal as HermesLike | undefined;
+  if (typeof hermes?.enablePromiseRejectionTracker === "function") {
+    hermes.enablePromiseRejectionTracker({
+      allRejections: true,
+      onUnhandled: (_id: number, e: unknown) => {
+        if (isEnvironment(e)) return;
+        console.warn("Unhandled promise rejection", e);
+        reporter.report(e ?? new Error("Unhandled rejection"), { kind: "promise", fatal: false });
+      },
+      onHandled: () => {},
+    });
+  }
   if (typeof g.addEventListener === "function") {
     const onError = (ev: { error?: unknown; message?: string }) => reporter.report(ev.error ?? new Error(ev.message ?? "Error"), { kind: "js", fatal: false });
-    const onRej = (ev: { reason?: unknown }) => reporter.report(ev.reason ?? new Error("Unhandled rejection"), { kind: "promise", fatal: false });
+    const onRej = (ev: { reason?: unknown }) => isEnvironment(ev.reason) ? undefined : reporter.report(ev.reason ?? new Error("Unhandled rejection"), { kind: "promise", fatal: false });
     g.addEventListener("error", onError);
     g.addEventListener("unhandledrejection", onRej);
     undo.push(() => { g.removeEventListener?.("error", onError); g.removeEventListener?.("unhandledrejection", onRej); });

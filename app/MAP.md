@@ -59,6 +59,10 @@ tickets → boundaries → platform → style → colours → spinner → gauge-
 `knip.jsonc`) → typecheck (`tsc -b`, `noUnusedLocals`) → test (vitest: packages, conformance, `tools/*.test.ts`).
 `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk; the strict run
 goes through `scripts/heavy.sh`. `tools/vintage-pins.test.ts` refuses an id literal a new release would move.
+**Failures (T368):** every caught failure is thrown on or reported through core's `failure.ts` (`reportFailure`, `reported`,
+`offlineAs`, `reportOnce`; the environment — offline, a refused permission — is never reported), shown in the one face
+(`ui-native` `ErrorState`); `useAsync` reports every hook's failure; links leave through `ui-native` `openLink`.
+`tools/failures.test.ts` fails on a new catch that does neither, unless its file's `FINE` count and reason say why.
 
 ## Tools (`tools/`)
 

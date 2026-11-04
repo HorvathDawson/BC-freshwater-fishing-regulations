@@ -17,7 +17,7 @@
  *            another. Anything else (an IO or opener failure) is rolled back for THIS launch only: the pointer, the
  *            set and the set it replaced all stay, and the next launch tries it again.
  */
-import { PaintError, releaseAllowed, StatusIndexError, UPDATE_WORDS, type AppVersion, type Paint } from "@app/core";
+import { PaintError, releaseAllowed, reportFailure, StatusIndexError, UPDATE_WORDS, type AppVersion, type Paint } from "@app/core";
 import { VerifyError } from "../fetchVerified";
 import { fetchResilient, NetError, type Net } from "../net";
 import { compatible, loadManifest, ManifestError, parseManifest, type Held, type Manifest } from "../manifest";
@@ -260,7 +260,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     const big: BgItem[] = bigFiles(latest, null).map((b) => ({ url: `${o.releaseBase}${b.url}`, file: b.file,
                                                                  bytes: b.e.bytes, path: b.path }));
     const queue = (metered: boolean) => dev.background?.queue(big, metered)
-      .catch((e: unknown) => console.warn(`[download] queue failed: ${e instanceof Error ? e.message : String(e)}`));
+      .catch((e: unknown) => { console.warn(`[download] queue failed: ${e instanceof Error ? e.message : String(e)}`); reportFailure(e); });
     if (dev.background) await o.beforeBackground?.().catch(() => {});
     let metered = true;
     const choice = o.mobileData ? await o.mobileData.decide(installBytes(latest, null)) : "go";
@@ -325,6 +325,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   } catch (e) {
     // ROLLBACK: the set this one replaced is still on disk (nothing is pruned before success); open it instead
     if (!previous || sameSet(previous, held)) throw e;
+    reportFailure(e);   // (T368) shown (`rolledBackLine`) and reported
     const bad = held, badM = await heldManifest(dev.fs, bad).catch(() => null);
     const defect = await provenDefect(e, dev.fs, bad);
     if (defect) {

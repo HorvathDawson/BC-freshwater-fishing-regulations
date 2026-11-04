@@ -6,7 +6,7 @@
  * itself is `core/day.ts`.
  */
 import { useRef, useState } from "react";
-import { setVisitHour, shiftVisitDay, visitSteps, type VisitSteps } from "@app/core";
+import { reportFailure, setVisitHour, shiftVisitDay, visitSteps, type VisitSteps } from "@app/core";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import { captureSpot, type HydatDaily, type Spot, type WeatherSource } from "@app/data/spots";
 import { spotSaveFailed } from "./spots";
@@ -86,6 +86,7 @@ export function useCaptureSpot(opts: CaptureOptions): CaptureSpotApi {
         setDraft(spot);
         return true;
       } catch (e) {
+        reportFailure(e);
         setError(spotSaveFailed(e));
         return false;
       }
@@ -97,6 +98,7 @@ export function useCaptureSpot(opts: CaptureOptions): CaptureSpotApi {
         await onSaved({ ...draft, title: title || draft.title, notes, photos: [...photos.refs], updatedAt: now() });
         photos.committed();
       } catch (e) {
+        reportFailure(e);
         setError(spotSaveFailed(e));
       }
     },

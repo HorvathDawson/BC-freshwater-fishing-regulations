@@ -10,6 +10,7 @@
  *
  * The picker itself is the app's (`apps/mobile/src/pickPhoto.native.ts` / `.web.ts`): this package names no platform.
  */
+import { reportFailure } from "@app/core";
 import { useEffect, useRef, useState } from "react";
 import { isPhotoRef, photoFailed, type PhotoSource, type PhotoStore, type PickedPhoto } from "@app/data/spots";
 
@@ -72,6 +73,7 @@ export function usePhotoEdit(photos: SpotPhotos | undefined): PhotoEdit {
         s.added.add(ref);
         setRefs([...cur.current, ref]);
       } catch (e) {
+        reportFailure(e);
         setError(photoFailed(e));
       } finally {
         setBusy(false);
@@ -112,7 +114,7 @@ export function usePhotoUris(store: Pick<PhotoStore, "uri"> | undefined,
       const next = new Map<string, string | null>();
       for (const r of refs) {
         if (!isPhotoRef(r)) { next.set(r, r); continue; }
-        try { next.set(r, store ? await store.uri(r) : null); } catch { next.set(r, null); }
+        try { next.set(r, store ? await store.uri(r) : null); } catch (e) { reportFailure(e); next.set(r, null); }   // (T368) a blank tile, reported
       }
       if (live) setGot(next);
     })();

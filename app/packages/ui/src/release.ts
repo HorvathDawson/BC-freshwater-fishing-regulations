@@ -8,6 +8,7 @@
  *             established, which colours nothing and raises no alarm — and, once checked with no tile version found
  *             (`unproven`), says why in one quiet line (core `unprovenLine`).
  */
+import { offlineAs } from "@app/core";
 import { pair, type Held, type Manifest } from "@app/data";
 import { releaseTiles, type Booted } from "@app/data/release";
 import type { StatusIndex } from "@app/core";
@@ -99,7 +100,9 @@ async function sidecarOf(atlasUrl: string, fetcher: typeof fetch): Promise<Sidec
  * and written to the sidecar as `tile_version`), or null: no sidecar, or tiles built before versions were stamped.
  */
 export async function tileVersionAt(atlasUrl: string, fetcher: typeof fetch = fetch): Promise<string | null> {
-  const v = (await sidecarOf(atlasUrl, fetcher).catch(() => null))?.tile_version;
+  // (T368, owner Q5) a sidecar that cannot be read is a FAILURE (the tiles cannot be shown to match): thrown, so the
+  // pairing reads unknown and the failure is reported. Offline alone reads as no stamp.
+  const v = (await sidecarOf(atlasUrl, fetcher).catch(offlineAs(null)))?.tile_version;
   return typeof v === "string" && v ? v : null;
 }
 

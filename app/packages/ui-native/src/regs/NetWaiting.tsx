@@ -4,7 +4,7 @@
  * and where a part of a page is not there yet, a line in its place that says whether it is still coming or cannot come
  * ("Salmon rules: still loading (slow connection)", "…: not available offline") — never a silent gap. Words: core's.
  */
-import { Button } from "../Button";
+import { ErrorState } from "../ErrorState";
 import { LoadingState } from "../LoadingState";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -53,6 +53,13 @@ export function PartPending({ palette, what, state, onRetry, testID }: {
   const say = useSayAfter(mode.low || mode.offline || state === "failed");
   const line = partLine(what, state, mode.offline);
   if (!say || !line) return null;
+  // (T368) a part that FAILED (not offline) is the one failure face: what went wrong, and Try again
+  if (state === "failed" && !mode.offline)
+    return (
+      <View testID={testID} style={{ gap: SPACE.s1, marginVertical: SPACE.s2 }}>
+        <ErrorState palette={palette} message={line} onRetry={onRetry} retryLabel={NET_WORDS.part.retry} />
+      </View>
+    );
   return (
     <View testID={testID} accessible accessibilityLabel={line}
           style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: SPACE.s2, marginVertical: SPACE.s2,
@@ -60,9 +67,6 @@ export function PartPending({ palette, what, state, onRetry, testID }: {
                    backgroundColor: palette.tint }}>
       {state === "loading" && <LoadingState palette={palette} size={22} label={line} />}
       <Text style={{ ...TYPE.small, color: palette.sub, flex: 1, minWidth: 160 }}>{line}</Text>
-      {state === "failed" && !mode.offline && onRetry && (
-        <Button palette={palette} kind="link" size="meta" label={NET_WORDS.part.retry} onPress={onRetry} />
-      )}
     </View>
   );
 }

@@ -5,7 +5,7 @@
  * (offline / the server busy), or refused. No sender (a build with no report address): the page offers email / share only.
  */
 import { useCallback, useRef, useState } from "react";
-import { reportPayload, type DiagKey, type Diagnostics, type ReportPayload, type ReportReason } from "@app/core";
+import { reportFailure, reportPayload, type DiagKey, type Diagnostics, type ReportPayload, type ReportReason } from "@app/core";
 import { reportId, type ReportSendResult } from "@app/data";
 
 export interface ReportSender { send(p: ReportPayload): Promise<ReportSendResult> }
@@ -31,7 +31,7 @@ export function useReportSend(sender: ReportSender | null, now: () => Date = () 
     sender.send(p).then(
       (r) => setState(r.kind === "sent" ? { kind: "sent" } : r.kind === "queued" ? { kind: "queued", offline: r.offline }
         : { kind: "refused", error: r.error }),
-      (e: unknown) => setState({ kind: "refused", error: e instanceof Error ? e.message : String(e) }),
+      (e: unknown) => { reportFailure(e); setState({ kind: "refused", error: e instanceof Error ? e.message : String(e) }); },
     ).finally(() => { busy.current = false; });
   }, [sender, now]);
   const reset = useCallback(() => setState({ kind: "idle" }), []);

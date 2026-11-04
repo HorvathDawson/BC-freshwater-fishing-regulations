@@ -26,6 +26,7 @@
  * one binding to the archive, and works wherever `fetch` does — the same helper for the web
  * map and, through the adapter contract's `setTrace`, the native one.
  */
+import { reportFailure } from "@app/core";
 import type { SectionKey } from "@app/core";
 import { PMTiles } from "pmtiles";
 import { decodeTile, type TileLayer } from "./mvt";
@@ -270,6 +271,7 @@ export class Lru<K, V> {
     while (this.m.size > this.max) this.m.delete(this.m.keys().next().value as K);
   }
   get size(): number { return this.m.size; }
+  delete(k: K): void { this.m.delete(k); }
   clear(): void { this.m.clear(); }
 }
 
@@ -331,7 +333,12 @@ export async function readTrace(routes: readonly TraceRoute[], src: TileSource,
         // wanted now: the next route opened nearby asks for different ids from the same tile.
         p = src.tile(z, x, y).then((b) => (b ? shapesIn(decodeTile(b, TRACE_LAYERS, () => true),
                                                         z, x, y) : new Map()))
-          .catch(() => new Map<number, SectionShape>());
+          .catch((e: unknown) => {
+            // (T368) a failed tile is REPORTED (unless offline) and NOT kept: the next trace asks for it again
+            reportFailure(e);
+            if (cache.tiles.get(key) === p) cache.tiles.delete(key);
+            return new Map<number, SectionShape>();
+          });
         cache.tiles.set(key, p);
       }
       return p;

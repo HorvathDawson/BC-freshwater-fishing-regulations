@@ -4,12 +4,13 @@
  * (core `inSeasonBanner`); which changes, from `@app/ui` `useInSeasonBanners`. INFORMATIONAL: drawn above the rules,
  * never changing them; the attention bar is not a water-status colour.
  */
-import { Linking, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "../Text";
 import { INSEASON_WORDS, type InSeasonBannerVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, RADIUS, type Palette } from "../theme";
 import { RegsPress } from "./RegsPress";
+import { linkTo } from "../openLink";
 
 export function InSeasonBanners({ banners: all, palette }: { banners: readonly InSeasonBannerVM[]; palette: Palette }) {
   // (T318) a change with no words of its own is never drawn as an empty card with only its link (owner's phone, 0.3.0)
@@ -31,7 +32,7 @@ export function InSeasonBanners({ banners: all, palette }: { banners: readonly I
             <Text style={[TYPE.meta, { color: palette.sub, flexShrink: 1 }]}>{b.note}</Text>
             {!!b.url && (
               <RegsPress accessibilityRole="link" accessibilityLabel={INSEASON_WORDS.sourceLabel}
-                         onPress={() => { void Linking.openURL(b.url); }} box={{ w: 44, h: 44 }}
+                         onPress={linkTo(b.url)} box={{ w: 44, h: 44 }}
                          style={{ minHeight: 44, justifyContent: "center" }}>
                 <Text testID="inseason-source" style={[TYPE.metaBold, { color: palette.accent }]}>{b.source}</Text>
               </RegsPress>

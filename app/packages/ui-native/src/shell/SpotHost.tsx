@@ -6,9 +6,9 @@
 import { SPOT_WORDS, spotBack } from "@app/core";
 import type { MutableRefObject } from "react";
 import { useState } from "react";
-import { Linking, View } from "react-native";
+import { View } from "react-native";
 import { nextRating, spotSaveFailed, useAddVisit, useBackLayer, useDayFlow, useLikeVisit, visitsView,
-         type AddVisitOptions, type SpotPhotos } from "@app/ui";
+         reportFailure, type AddVisitOptions, type SpotPhotos } from "@app/ui";
 import { photoOwner, rateVisit, removeVisit, visitSpot, withVisit, type Spot } from "@app/data/spots";
 import { VISIT_WORDS } from "@app/core";
 import { Busy, WhenScreen } from "../SpotCapture";
@@ -20,6 +20,7 @@ import { TABS, TabBar, type TabKey } from "../TabBar";
 import type { Palette } from "../theme";
 import type { ShellNav } from "./useShellNav";
 import type { useSpotEdit } from "./useSpotEdit";
+import { openLink } from "../openLink";
 
 /** The open spot's visit-day flow block and its action (`useDayFlow`). */
 type DayFlowBlock = ReturnType<typeof useDayFlow>;
@@ -59,7 +60,7 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
         || !same(edit.parking, viewing.parking));
   const saveOr = async (next: Spot) => {
     try { await onSaveSpot!(next); setSpotError(null); }
-    catch (e) { setSpotError(spotSaveFailed(e)); }
+    catch (e) { reportFailure(e); setSpotError(spotSaveFailed(e)); }
   };
   // (T294) a back on "Add a visit" goes back to the spot, as its ‹ does
   useBackLayer(addingVisit, () => setAddingVisit(false));
@@ -103,7 +104,7 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                     photoStore={photos?.store} photoEdit={edit ? photoEdit : undefined}
                     title={edit?.title} notes={edit?.notes}
                     parking={edit ? edit.parking : viewing.parking ?? null} parkingNotice={parkingNotice}
-                    onDirections={() => { const q = viewing.parking; if (q) void Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${q.lat},${q.lon}`); }}
+                    onDirections={() => { const q = viewing.parking; if (q) void openLink(`https://www.google.com/maps/dir/?api=1&destination=${q.lat},${q.lon}`); }}
                     onParkingPick={edit && tiles && theme ? () => setPickingParking(edit.parking ?? null) : undefined}
                     onParkingHere={edit && locate ? () => {
                       setParkingNotice(null);
@@ -140,12 +141,13 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                         if (pendingTab) goTab(pendingTab);
                       } catch (e) {
                         setPendingTab(null);
+                        reportFailure(e);
                         setSpotError(spotSaveFailed(e));    // the edit stays open, nothing dropped
                       }
                     } : undefined}
                     onDelete={onDeleteSpot && (async () => {
                       try { await onDeleteSpot(viewing.id); close(); }
-                      catch (e) { setSpotError(spotSaveFailed(e)); }
+                      catch (e) { reportFailure(e); setSpotError(spotSaveFailed(e)); }
                     })}
                     onShowOnMap={() => {
                       // THE ONE SHOW (the Spots tab's row does the same): the Map tab, framed on the spot with its

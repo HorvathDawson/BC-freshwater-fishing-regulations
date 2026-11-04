@@ -16,7 +16,7 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { accessNotices, buildRegsPage, headerOf, leadingAccessNotices, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
+import { accessNotices, buildRegsPage, offlineAs, reported, headerOf, leadingAccessNotices, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who } from "@app/core";
 import { downstreamWater, openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
@@ -159,12 +159,10 @@ export function useDownstreamWater(source: Pick<WaterSource, "traceToGauge" | "w
  */
 export async function sectionAccessNotices(loader: Pick<ReleaseLoader, "paint" | "access">,
                                            section: SectionId): Promise<AccessNotice[]> {
-  // the gentle file failing (offline, a bad fetch) costs only the gentle note: the no-access banner is paint's alone,
-  // and must never be silenced by it. The loader forgets a failed fetch, so the next page asks again.
-  const gentleOf = loader.access().catch((e: unknown) => {
-    console.warn("access:", e instanceof Error ? e.message : e);
-    return null;
-  });
+  // the gentle file failing costs only the gentle note: the no-access banner is paint's alone, and must never be
+  // silenced by it. (T368, owner Q4) Never a silent drop: a failure that is not the line being down is REPORTED. The
+  // loader forgets a failed fetch, so the next page asks again.
+  const gentleOf = loader.access().catch(reported(null));
   const [paint, gentle] = await Promise.all([loader.paint(), gentleOf]);
   return accessNotices([...paint.access.of(section), ...(gentle?.of(section) ?? [])]);
 }
@@ -216,7 +214,9 @@ export async function salmonCardFor(loader: SalmonLoader, store: Pick<RegsStore,
   else if (store && page.ord !== null)
     sids = (await store.navRows(page.ord)).sections.filter((s) => s.partIx === page.partIx).map((s) => s.sid);
   // (owner 2026-10-28: "bait and fly rules also apply to salmon") the provincial gear marks on the page that day
-  const m = loader.method ? await loader.method().catch(() => null) : null;
+  // (T368) offline: no gear marks; any other failure fails the card (said with Try again, reported) — never a card
+  // silently missing its gear rules
+  const m = loader.method ? await loader.method().catch(offlineAs(null)) : null;
   const gear = m ? [...new Set(sids.map((sid) => methodClassOn(m, sid, on)))] : [];
   return salmonCardLive(f, { sids, item: page.item, gear }, on);
 }

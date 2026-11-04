@@ -41,7 +41,7 @@ export async function regsKept(loader: ReleaseLoader): Promise<number | null> {
   const m = loader.manifest;
   let held = 0;
   for (const f of Object.keys(m.files).filter((k) => !m.files[k]!.slice_of) as FileName[]) {
-    const a = await loader.stored(f).catch(() => false);
+    const a = await loader.stored(f);   // (T368) a failed ask fails the count, never under-counts it
     if (a === null) return null;
     if (a) held += m.files[f]?.bytes ?? 0;
   }

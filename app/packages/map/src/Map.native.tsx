@@ -489,7 +489,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // (T317) a boundary mark's 44 px target: the mark's layers, asked first; the tap opens no water under it
     if (marksNow.current?.length && rendered.current) {
       const hit = markHit(await mapRef.current?.queryRenderedFeatures(markBox(x, y), { layers: [MARK_RING, MARK_LABEL] })
-        .catch(() => []) ?? []);
+        .catch((e: unknown) => { report(e); return []; }) ?? []);   // (T368, Q2) the tap falls through; the host reports it
       if (hit !== null) { pressMarkNow.current?.(hit); return; }
     }
     cb.current.onMapPoint?.(lat, lon);

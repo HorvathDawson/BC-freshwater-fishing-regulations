@@ -10,6 +10,7 @@
 import { useEffect, useState } from "react";
 import { DAY_FLOW_WORDS, dayFlowAskable, dayFlowLine, dayFlowStation, readingIsTheDays, type DayFlowAnswer,
          type Spot } from "@app/data/spots";
+import { isEnvironment, reportFailure } from "@app/core";
 import type { Connectivity } from "./imagery";
 
 export interface DayFlowView {
@@ -20,12 +21,15 @@ export interface DayFlowView {
   action: { label: string; busy: boolean } | null;
   /** What is happening now: asking, offline (waiting), the day not over. Null when nothing is. */
   status: string | null;
+  /** (T368) the ask FAILED (not offline): said in the one failure face; the action asks again. Null otherwise. */
+  error: string | null;
 }
 
-type Phase = "idle" | "asking" | "offline" | "pending";
+type Phase = "idle" | "asking" | "offline" | "pending" | "failed";
 
 const STATUS: Readonly<Record<Phase, string | null>> =
-  { idle: null, asking: DAY_FLOW_WORDS.asking, offline: DAY_FLOW_WORDS.offline, pending: DAY_FLOW_WORDS.pending };
+  { idle: null, asking: DAY_FLOW_WORDS.asking, offline: DAY_FLOW_WORDS.offline, pending: DAY_FLOW_WORDS.pending,
+    failed: null };
 
 /** The view, pure: null when the block has nothing to say (no station, or the reading is the day's own). */
 export function dayFlowView(spot: Spot, phase: Phase): DayFlowView | null {
@@ -36,6 +40,7 @@ export function dayFlowView(spot: Spot, phase: Phase): DayFlowView | null {
     line: dayFlowLine(spot.dayFlow),
     action: askable ? { label: DAY_FLOW_WORDS.action, busy: phase === "asking" } : null,
     status: STATUS[phase],
+    error: phase === "failed" ? DAY_FLOW_WORDS.failed : null,
   };
 }
 
@@ -55,8 +60,11 @@ export function useDayFlow(spot: Spot | null, ask?: (spot: Spot) => Promise<DayF
     try {
       const got = await ask(s);
       setPhase(got?.kind === "offline" ? "offline" : got?.kind === "pending" ? "pending" : "idle");
-    } catch {
-      setPhase("offline");
+    } catch (e) {
+      // (T368) offline waits and asks again; anything else failed: said and reported
+      if (isEnvironment(e)) { setPhase("offline"); return; }
+      reportFailure(e);
+      setPhase("failed");
     }
   };
   // waiting offline: ask again the moment the device is back

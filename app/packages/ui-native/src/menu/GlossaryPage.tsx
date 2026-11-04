@@ -21,6 +21,7 @@ import { glossaryRows, glossarySections, glossBlocks, markedRuns, MENU_WORDS, ty
          type GlossaryMark, type SheetKey } from "@app/core";
 import { useBackLayer, type Async, type Glossary } from "@app/ui";
 import { LoadingState } from "../LoadingState";
+import { ErrorState } from "../ErrorState";
 import { SheetBlockView } from "../regs/SheetBody";
 import { openBook } from "../regs/openBook";
 import { hitProps } from "../regs/hit";
@@ -44,7 +45,7 @@ export function GlossaryPage({ glossary, term, onTerm, onCloseTerm, palette }: {
   useBackLayer(open !== null, onCloseTerm);
 
   if (glossary.state === "failed")
-    return <Note palette={palette} text={MENU_WORDS.glossary.failed(glossary.error.message)} tone="closed" />;
+    return <ErrorState palette={palette} size="body" message={MENU_WORDS.glossary.failed(glossary.error.message)} style={{ paddingHorizontal: GUTTER, paddingVertical: SPACE.s4 }} />;
   if (glossary.state === "loading")
     return (
       <LoadingState palette={palette} size={64} label={MENU_WORDS.glossary.loading}
@@ -246,9 +247,8 @@ function Marked({ s, marks, palette }: { s: string; marks: readonly GlossaryMark
   );
 }
 
-function Note({ palette, text, tone }: { palette: Palette; text: string; tone?: "closed" }) {
+function Note({ palette, text }: { palette: Palette; text: string }) {
   return (
-    <Text style={{ ...TYPE.body, color: tone === "closed" ? palette.closed : palette.sub,
-                   paddingHorizontal: GUTTER, paddingVertical: SPACE.s4 }}>{text}</Text>
+    <Text style={{ ...TYPE.body, color: palette.sub, paddingHorizontal: GUTTER, paddingVertical: SPACE.s4 }}>{text}</Text>
   );
 }

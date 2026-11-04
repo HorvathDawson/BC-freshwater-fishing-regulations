@@ -2,6 +2,7 @@
  * THE BASEMAP'S LABELS, CONFINED TO BRITISH COLUMBIA: the outside-BC mask fetched once per session (`useOutsideMask`),
  * and laid on every basemap label layer as a `within` filter once it lands (`useLabelsInBC`).
  */
+import { reportFailure } from "@app/core";
 import { useEffect, useState, type MutableRefObject } from "react";
 import type * as maplibregl from "maplibre-gl";
 import { toExpression } from "../legacy-filter";
@@ -21,11 +22,15 @@ export function useOutsideMask(url: string | undefined): unknown {
   useEffect(() => {
     if (!url || url in outsideCache) return;
     let live = true;
-    fetch(url).then((r) => (r.ok ? r.json() : null)).then((j) => {
+    // (T368, owner Q2) a failure leaves the labels as they were (cosmetic, no face) and is REPORTED unless offline
+    fetch(url).then((r) => {
+      if (!r.ok) throw new Error(`outside mask: HTTP ${r.status}`);
+      return r.json();
+    }).then((j) => {
       if (!j || !live) return;
       outsideCache[url] = j;
       setGot(j);
-    }).catch(() => {});
+    }).catch(reportFailure);
     return () => { live = false; };
   }, [url]);
   return got;

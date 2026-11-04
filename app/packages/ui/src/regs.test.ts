@@ -2,6 +2,7 @@
  * T11, pure (logic project): the one day (`regsDay` / `mapDayOf`), the store cache's key, and `loadRegsStore` — one open
  * per loader and expectation, a refusal cached, a failed fetch retried — over THE COMMITTED REGS FIXTURE RELEASE (T10).
  */
+import { setFailureSink } from "@app/core";
 import { describe, expect, it, vi } from "vitest";
 import { loadRegsInputs, openRegsStore, RegsStoreError, targetFor, type RegsLoader } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
@@ -134,18 +135,22 @@ describe("(T54) a section's access notice: paint's no-access rows and the access
     expect(await sectionAccessNotices(loader(false), 8 as SectionId)).toEqual([]);
   });
 
-  it("a failed `access` file never silences the no-access banner: paint's rows are enough for it", async () => {
-    const broken = {
+  it("a failed `access` file never silences the no-access banner: paint's rows are enough for it; (T368, owner Q4) a failure that is not offline is reported", async () => {
+    const broken = (e: Error) => ({
       paint: async () => ({ access: accessOf([COQ], [7], [0], [1000]) }) as unknown as Paint,
-      access: async () => { throw new Error("offline"); },
-    };
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      access: async () => { throw e; },
+    });
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
     try {
-      expect(await sectionAccessNotices(broken, 7 as SectionId)).toEqual([BANNER]);
-      expect(await sectionAccessNotices(broken, 8 as SectionId)).toEqual([]);
-      expect(warn.mock.calls).toEqual([["access:", "offline"], ["access:", "offline"]]);
+      const offline = broken(new TypeError("Failed to fetch")), bad = broken(new Error("access.bin: bad header"));
+      expect(await sectionAccessNotices(offline, 7 as SectionId)).toEqual([BANNER]);
+      expect(await sectionAccessNotices(offline, 8 as SectionId)).toEqual([]);
+      expect(got).toEqual([]);
+      expect(await sectionAccessNotices(bad, 7 as SectionId)).toEqual([BANNER]);
+      expect(got.map((e) => (e as Error).message)).toEqual(["access.bin: bad header"]);
     } finally {
-      warn.mockRestore();
+      undo();
     }
   });
 });

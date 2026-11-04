@@ -17,7 +17,7 @@
  * not copied: there is one list of these pages in the app (tools/one-menu.test.ts).
  */
 import { createContext, useContext } from "react";
-import { Linking, Platform, ScrollView, View } from "react-native";
+import { Platform, ScrollView, View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { useCrashSetting, useLayoutClass, useNet, useNetBps } from "@app/ui";
@@ -29,6 +29,7 @@ import { FreshDot, FreshBadge } from "./Fresh";
 import { DottedSwatch } from "../Chrome";
 import { Icon } from "../icons";
 import { hitProps } from "../regs/hit";
+import { linkTo } from "../openLink";
 
 export interface MoreScreenProps {
   palette: Palette;
@@ -179,7 +180,7 @@ function DataBlock({ vm, palette, metered, sync, onSync }: { vm: MoreVM["data"];
                        gap: 2, borderLeftWidth: 3, borderLeftColor: palette.attention, backgroundColor: palette.tint }}>
           <Text style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink }}>{vm.inseason.title}</Text>
           <Text style={{ ...TYPE.small, color: palette.ink }}>{vm.inseason.text}</Text>
-          <Pressable {...hitProps({ w: 120, h: 28 })} testID="data-inseason-link" onPress={() => { void Linking.openURL(vm.inseason.link.url); }}
+          <Pressable {...hitProps({ w: 120, h: 28 })} testID="data-inseason-link" onPress={linkTo(vm.inseason.link.url)}
                      accessibilityRole="link" accessibilityLabel={vm.inseason.link.label}
                      style={{ alignSelf: "flex-start", minHeight: 28, justifyContent: "center" }}>
             <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{`${vm.inseason.link.label} ${WORDS.LINK_OUT}`}</Text>
@@ -427,7 +428,7 @@ function ContactBlock({ vm, palette }: { vm: MoreVM["contact"]; palette: Palette
           {c.kind === "none"
             ? <Text testID="contact-placeholder" style={{ ...TYPE.small, color: palette.sub }}>{c.text}</Text>
             : (
-              <Pressable {...hitProps({ w: 120, h: 32 })} onPress={() => { void Linking.openURL(c.url); }} accessibilityRole="link"
+              <Pressable {...hitProps({ w: 120, h: 32 })} onPress={linkTo(c.url)} accessibilityRole="link"
                          accessibilityLabel={`${c.label}: ${c.value}`}
                          style={{ flexDirection: "row", alignItems: "baseline", gap: SPACE.s2, minHeight: 32 }}>
                 <Text style={{ ...TYPE.section, color: palette.sub }}>{c.label}</Text>

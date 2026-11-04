@@ -1,6 +1,7 @@
 /** One row of search's sheet, drawn from its `Row` (search/rows.ts): a heading, a note, a pointer, a place or a water. */
 import { View } from "react-native";
 import { Text } from "../Text";
+import { ErrorState } from "../ErrorState";
 import { Pressable } from "../Pressable";
 import { SEARCH_BAR, SEARCH_FIND, areaPhrase, nearRowSub, spokenName, waterRowSub, type StatusIndex } from "@app/core";
 import type { ItemId } from "@app/data";
@@ -53,6 +54,8 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
         ) : null}
       </View>
     );
+  if (r.t === "failed")
+    return <ErrorState palette={palette} message={r.text} style={{ paddingHorizontal: 18, paddingTop: 10 }} testID="search-failed" />;
   if (r.t === "note")
     return (
       <Text style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 10 }}>

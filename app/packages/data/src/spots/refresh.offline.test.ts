@@ -60,7 +60,7 @@ describe("(T314) offline spot → online → filled", () => {
   it("still offline: the refresh changes nothing and the spot keeps waiting", async () => {
     const s = await capture();
     const dead = { ...source(), gaugeNow: async () => null, gaugeSeries: async () => null,
-                   gaugeParameters: async () => { throw new Error("offline"); } } as unknown as WaterSource;
+                   gaugeParameters: async () => { throw new TypeError("Network request failed"); } } as unknown as WaterSource;
     const r = await refreshSpot(s, { at: async () => null, days: async () => null }, dead,
                                 { index: async () => null }, { online: () => false });
     expect([r === s, needsRefresh(r)]).toEqual([true, true]);

@@ -7,7 +7,8 @@
  * ships our copy of the PDF (`setSynopsisSource`) open THAT copy with a highlight annotation on the passage
  * (`synopsisPdf` / `synopsisPdf.web`). No copy in the release: the plain link above (a link with no box opens our copy at its page, unmarked). A failure shows Retry + the plain link on the loading card.
  */
-import { Linking, Platform } from "react-native";
+import { Platform } from "react-native";
+import { openLink } from "../openLink";
 import { bookUrl, type SourceBox } from "@app/core";
 import { reportFailure } from "@app/ui";
 import { openHighlighted } from "./synopsisPdf";
@@ -16,13 +17,11 @@ import { getSynopsisNet, getSynopsisSource } from "./synopsisSource";
 import { offerSynopsis, runSynopsisLoad } from "./synopsisLoad";
 import { synopsisHeld } from "./synopsisPdf";
 
-/** Open the synopsis for a book run's PDF page. A refused open (no PDF handler) is logged, never thrown or alerted. */
+/** Open the synopsis for a book run's PDF page. A refused open (no PDF handler) is logged and reported (`openLink`), never thrown. */
 export function openBook(pdf: number, boxes?: readonly SourceBox[], os: string = Platform.OS,
                          open: typeof openHighlighted = openHighlighted): Promise<void> {
   const src = getSynopsisSource();
-  const plain = () => Linking.openURL(bookUrl(pdf, os)).then(() => undefined, (e: unknown) => {
-    console.warn(`openBook: could not open the synopsis (PDF page ${pdf})`, e);
-  });
+  const plain = () => openLink(bookUrl(pdf, os));   // (T368) a refused open is logged and reported
   // (owner 2026-10-28) OUR copy from the release, highlighted or not; gov.bc.ca only when the release names none
   if (!src) return plain();
   // (owner 2026-10-28) one download at a time, with progress + cancel (`synopsisLoad`); a failure shows Retry and the plain

@@ -20,7 +20,7 @@
  * spot's "Get the flow for that day" both go through `fillDayFlow`, which asks it. A reading taken ON the visit day is
  * never replaced (`readingIsTheDays`).
  */
-import { lakeDamped, localDate, percentileInBand, placeInBand } from "@app/core";
+import { isEnvironment, lakeDamped, offlineAs, localDate, percentileInBand, placeInBand } from "@app/core";
 import type { Panel, PanelMember, WaterSource, StationId } from "../index";
 import { answerFrom, type PanelAnswer } from "../panel";
 import { dayIn } from "./leadup";
@@ -103,9 +103,11 @@ export async function flowOnDay(station: string, date: string, ports: DayFlowPor
   const id = station as StationId;
   const { source } = ports;
   let params: readonly string[];
-  try { params = await source.gaugeParameters(id); } catch { return { kind: "offline" }; }
+  // (T368, owner 2026-11-04: offline is the only state with a fallback) a bundle read that fails is a failure (thrown);
+  // only the line being down reads as "offline"
+  try { params = await source.gaugeParameters(id); } catch (e) { if (isEnvironment(e)) return { kind: "offline" }; throw e; }
   if (!params.includes("discharge")) return { kind: "no-discharge" };
-  const got = await source.gaugeSeries(id, "year", "discharge").catch(() => null);
+  const got = await source.gaugeSeries(id, "year", "discharge").catch(offlineAs(null));   // offline: the envelope unknown
   const series = got?.value ?? null;
   const day = dayIn(series, date);                     // the envelope for the day, whether or not the feed was read
   const ranked = (v: number, from: "feed" | "hydat"): DayFlowAnswer =>
@@ -118,7 +120,7 @@ export async function flowOnDay(station: string, date: string, ports: DayFlowPor
   }
   if (!ports.hydat || (ports.online && !ports.online())) return { kind: "offline" };
   let h: HydatDay;
-  try { h = await ports.hydat.day(station, date); } catch { return { kind: "offline" }; }
+  try { h = await ports.hydat.day(station, date); } catch (e) { if (isEnvironment(e)) return { kind: "offline" }; throw e; }
   if (h.kind === "none") return { kind: "not-published" };
   if (h.kind === "later") return { kind: "no-record" };
   if (h.discharge !== null) return ranked(h.discharge, "hydat");

@@ -2,6 +2,7 @@
  * WHAT THE DATA SAYS ABOUT ITSELF: the bundle's and the feed's counts (read, never stated), and the regulations read of
  * the water that is open.
  */
+import { reported } from "@app/core";
 import { useState } from "react";
 import type { BundleCounts, GaugeFeed, ItemId, WaterSource } from "@app/data";
 import { useAsync, type Async } from "../async";
@@ -36,10 +37,11 @@ export function useDataFacts(source: WaterSource, feed?: GaugeFeed, wanted = tru
   const v = useFeedVersion("gauges");
   return useAsync(async () => {
     // The bundle is local and always answers; the feed is a network call that may not. Each
-    // is caught on its own, so a feed that is down cannot blank the bundle's counts.
+    // is caught on its own, so a feed that is down cannot blank the bundle's counts. (T368) A figure not had renders
+    // as nothing (AGENTS 32); a failure that is not the line being down is reported.
     const [counts, index] = await Promise.all([
-      source.counts().catch(() => null),
-      feed ? feed.index().catch(() => null) : Promise.resolve(null),
+      source.counts().catch(reported(null)),
+      feed ? feed.index().catch(reported(null)) : Promise.resolve(null),
     ]);
     return {
       counts,

@@ -233,6 +233,8 @@ export const DAY_FLOW_WORDS = {
   asking: "Asking for the flow on that day…",
   offline: "Offline: the flow for that day will be asked for when you are back online.",
   pending: "That day is not over in the gauge's record yet. Try again tomorrow.",
+  /** (T368) a real failure (not offline): said, reported, asked again by the action */
+  failed: "The flow for that day could not be read.",
 } as const;
 
 /**

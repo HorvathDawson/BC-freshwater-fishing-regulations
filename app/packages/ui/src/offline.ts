@@ -6,7 +6,7 @@
  * large-updates-on-mobile-data setting, shown as "Wi-Fi only". No action can drop the regulations.
  */
 import { useEffect, useState } from "react";
-import { offlineVM, type OfflineVM } from "@app/core";
+import { reportFailure, offlineVM, type OfflineVM } from "@app/core";
 import { offlineSizes, regsKept, type ReleaseLoader } from "@app/data/release";
 import type { UpdateSnapshot } from "@app/data";
 
@@ -34,7 +34,7 @@ export function useOfflineMaps(o: {
   useEffect(() => {
     if (!loader || !web || !o.open) return;
     let live = true;
-    void regsKept(loader).then((n) => { if (live) setHeld(n); }, () => {});
+    void regsKept(loader).then((n) => { if (live) setHeld(n); }, reportFailure);   // (T368) the size unsaid, reported
     return () => { live = false; };
   }, [loader, web, o.open]);
   if (!loader) return null;

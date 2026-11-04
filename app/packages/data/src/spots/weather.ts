@@ -8,6 +8,7 @@
  *
  * https://open-meteo.com — CC-BY-4.0, attribution carried in the Layers panel.
  */
+import { reportFailure } from "@app/core";
 import type { DailyWeather, SpotWeather, WeatherSample } from "./model";
 import type { WeatherSource } from "./capture";
 import type { WeatherAhead } from "./likeVisit";
@@ -71,7 +72,8 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
                                       windKph: num(body.hourly?.wind_speed_10m?.[i]),
                                       cloudPct: num(body.hourly?.cloud_cover?.[i]), pressureHpa: num(body.hourly?.pressure_msl?.[i]) })),
         };
-      } catch {
+      } catch (e) {
+        reportFailure(e);   // (T368 Q7) not known yet; reported unless offline
         return null;
       }
     },
@@ -111,7 +113,8 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
             precipMm: col("precipitation_sum", i), windMaxKph: col("wind_speed_10m_max", i),
             code: col("weather_code", i),
           }] : []));
-        } catch {
+        } catch (e) {
+          reportFailure(e);   // (T368 Q7) not known yet; reported unless offline
           return null;
         }
       };
@@ -190,9 +193,10 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
           // Says so. A value fetched days later is fine; claiming it was live is not.
           backfilled: true,
         };
-      } catch {
+      } catch (e) {
         // Offline, blocked, rate-limited — all the same answer: we do not know yet, and
-        // the spot records that rather than a plausible temperature.
+        // the spot records that rather than a plausible temperature. (T368 Q7) Reported unless offline.
+        reportFailure(e);
         return null;
       }
     },

@@ -77,3 +77,5 @@ export * from "./notFishing";
 export * from "./dayPicker";
 // (T254) bad connections in words: the Data setting, the slow / offline banner, waiting and missing parts, the rule book offer
 export * from "./net";
+// (T368) one way a caught failure is reported, from every package; the environment (offline, a refused permission) never
+export * from "./failure";

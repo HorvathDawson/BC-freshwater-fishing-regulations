@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import { isRating, RATING, setVisitHour, shiftVisitDay, starsText, VISIT_WORDS, visitDateText, visitSteps,
-         type VisitSteps } from "@app/core";
+         type VisitSteps, reportFailure } from "@app/core";
 import type { WaterSource } from "@app/data";
 import { addVisit, captureVisit, spotVisits, visitSpot, type HydatDaily, type Spot, type WeatherSource } from "@app/data/spots";
 import { spotSaveFailed } from "./spots";
@@ -102,6 +102,7 @@ export function useAddVisit(opts: AddVisitOptions | null): AddVisitApi {
         await onSave(addVisit(spot, visit, t));
         return visit.id;
       } catch (e) {
+        reportFailure(e);
         setError(spotSaveFailed(e));
         return null;
       } finally {

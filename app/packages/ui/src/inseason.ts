@@ -7,7 +7,7 @@
  * Informational only: nothing here touches an answer, a status or the map's colours.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { INSEASON_WORDS, inSeasonBanner, inSeasonWaters, inSeasonNoticeRows, inSeasonOn, inSeasonUnseen, isoDayOf, joinInSeason,
+import { INSEASON_WORDS, inSeasonBanner, reportFailure, inSeasonWaters, inSeasonNoticeRows, inSeasonOn, inSeasonUnseen, isoDayOf, joinInSeason,
          type InSeasonBannerVM, type InSeasonChange, type InSeasonMarks, type InSeasonNoticeRow } from "@app/core";
 import type { InSeasonData, InSeasonSource } from "@app/data";
 import type { RegsStore } from "@app/data/regs";
@@ -35,7 +35,9 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
   const [data, setData] = useState<InSeasonData | null>(null);
   useEffect(() => {
     let live = true;
-    if (source) void source.latest().then((d) => { if (live && d) setData(d); }, () => {});
+    // (T368) a failure is reported (shown by the update service's own check of this feed, the sync badge); the last
+    // read stays — offline is not a failure here (the source answers its capture)
+    if (source) void source.latest().then((d) => { if (live && d) setData(d); }, reportFailure);
     return () => { live = false; };
     // (T231) `epoch`: bumped when the update service sees the feed move (the source was told to forget it)
   }, [source, tick, epoch]);

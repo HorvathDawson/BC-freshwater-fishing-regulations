@@ -2,7 +2,7 @@
  * The menu's reading pages — About, Sources and credits. Each draws one VM from core/menu/ and decides nothing; a link
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
-import { Linking, Platform, View } from "react-native";
+import { Platform, View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { LICENCE_WORDS, licencesVM, MENU_WORDS, PRIVACY_URL, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
@@ -12,8 +12,9 @@ import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { hitProps } from "../regs/hit";
 import { openBook } from "../regs/openBook";
+import { openLink } from "../openLink";
 
-const open = (url: string) => { void Linking.openURL(url); };
+const open = (url: string) => { void openLink(url); };
 /**
  * (T285) the official Synopsis: on the web its link as ever; on a phone OUR copy of it through `openBook` (the system's PDF
  * viewer on the downloaded file, offline once held, the loading card and its failure words) — Android refuses to render a

@@ -10,7 +10,7 @@
  * Asked once per `ttlMs` (the publisher runs every 6 h in season); every answer resolves, never rejects.
  */
 import type { Region } from "../pack.generated";
-import { parseSalmonFeed, pickSalmon, type SalmonFacts, type SalmonFeed } from "@app/core";
+import { reportFailure, parseSalmonFeed, pickSalmon, type SalmonFacts, type SalmonFeed } from "@app/core";
 
 export interface SalmonFeedStore { read(): string | null; write(text: string): void }
 export interface SalmonFeedSource {
@@ -46,7 +46,7 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
           return f;
         }
       }
-    } catch { /* offline, or not a feed: the capture answers */ }
+    } catch (e) { reportFailure(e); /* offline, or not a feed: the capture answers, its age said; (T368) not offline: reported */ }
     return captured();
   };
   let version = 0;

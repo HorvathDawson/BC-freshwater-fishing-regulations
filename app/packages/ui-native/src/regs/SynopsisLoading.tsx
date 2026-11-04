@@ -4,7 +4,7 @@
  * (floating over the app) and inside the sheet host (a sheet's Modal covers the Shell). Nothing while idle, and nothing in
  * the first SHOW_AFTER_MS of a load (a cached copy opens without a flash). The app's tokens only.
  */
-import { Linking, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { NET_WORDS, SYNOPSIS_PDF } from "@app/core";
@@ -16,6 +16,7 @@ import { TYPE } from "../type";
 import { MIN_HIT } from "./hit";
 import { openBook } from "./openBook";
 import { cancelSynopsisLoad, declineSynopsisOffer, dismissSynopsisError, percentOf, SYNOPSIS_WORDS as W, useSynopsisLoad } from "./synopsisLoad";
+import { openLink } from "../openLink";
 
 /** The link's own words while its page is loading (null: it is not loading). */
 export function useBookLoadingWords(pdf: number | null): string | null {
@@ -61,7 +62,7 @@ export function SynopsisLoading({ palette, floating = false }: { palette: Palett
         <>
           {act(W.retry, () => { if (!failed) return; dismissSynopsisError(); void openBook(failed.pdf, failed.boxes).catch(() => undefined); }, "synopsis-retry")}
           {act(W.close, dismissSynopsisError, "synopsis-close")}
-          {act(W.fallback, () => { dismissSynopsisError(); void Linking.openURL(SYNOPSIS_PDF); }, "synopsis-fallback")}
+          {act(W.fallback, () => { dismissSynopsisError(); void openLink(SYNOPSIS_PDF); }, "synopsis-fallback")}
         </>
       ) : act(W.cancel, cancelSynopsisLoad, "synopsis-cancel")}
     </View>);

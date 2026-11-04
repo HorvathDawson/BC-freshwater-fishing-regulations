@@ -128,12 +128,10 @@ export function useSearch(
   return useAsync(
     async () => {
       if (q.length < 2) return { waters: [], places: [], pointers: [], query: q };
-      const indexed = await searchIndexOf(source).then((ix) => indexHits(ix, q, limit, 6), () => null);
-      if (indexed) return { ...indexed, pointers: await source.searchPointers(q, POINTER_LIMIT), query: q };
-      // the index could not be read: the source's own searches (exact and substring only) still answer
-      const [waters, places, pointers] = await Promise.all([
-        source.searchNames(q, limit), source.searchPlaces(q, 6), source.searchPointers(q, POINTER_LIMIT)]);
-      return { waters, places, pointers, query: q };
+      // (T368, owner Q3) ONE search: an index that cannot be read FAILS the search (said, reported) — never a silent
+      // fall back to a weaker exact/substring search that answers differently
+      const indexed = indexHits(await searchIndexOf(source), q, limit, 6);
+      return { ...indexed, pointers: await source.searchPointers(q, POINTER_LIMIT), query: q };
     },
     `search:${q}:${limit}`,
   );

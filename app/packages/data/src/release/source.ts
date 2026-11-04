@@ -516,7 +516,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
         ? (await all(CROSS.ORDS_FOR_ITEMS(named.length), ...named)).map((r) => Number(r.ord)) : [];
       const ords = await continuedOrds(start, async (o) => {
         if (!loader.manifest.files.water) return [];
-        try { return await all(CROSS.CONTINUE_LINKS(o.length), ...o, ...o); } catch { return []; }
+        return await all(CROSS.CONTINUE_LINKS(o.length), ...o, ...o);    // (T368) a failed read fails, never "no continuation"
       });
       const items = ords.length ? await chunked(ords, (c) => all(CROSS.ITEMS_FOR_ORDS(c.length), ...c)) : [];
       const gauges = stations.length

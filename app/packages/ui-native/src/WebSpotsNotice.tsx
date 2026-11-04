@@ -3,12 +3,13 @@
  * saved in the phone app, they don't show on the website yet, accounts are coming — with a link to the app. The phone
  * app never draws this. Spots a browser saved earlier stay where they are, unshown. Words: `@app/core` WEB_SPOTS_WORDS.
  */
-import { Linking, Platform, ScrollView, View } from "react-native";
+import { Platform, ScrollView, View } from "react-native";
 import { Text } from "./Text";
 import { WEB_SPOTS_WORDS as W } from "@app/core";
 import { Button } from "./Button";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
+import { linkTo } from "./openLink";
 
 /**
  * Does this build show the notice in place of spots? The web app does; the phone app never. The unit tests run on
@@ -38,7 +39,7 @@ export function WebSpotsNotice({ palette, onDone }: {
         <View style={{ gap: SPACE.s2, marginTop: SPACE.s2, alignItems: "center" }}>
           <View testID="web-spots-get-app">
             <Button palette={palette} label={W.getApp}
-                    onPress={() => { void Linking.openURL(W.appUrl); }} />
+                    onPress={linkTo(W.appUrl)} />
           </View>
           {onDone && <Button palette={palette} kind="ghost" label={W.back} onPress={onDone} />}
         </View>

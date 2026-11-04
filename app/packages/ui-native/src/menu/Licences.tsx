@@ -2,15 +2,16 @@
  * (T235) THE LICENCES, at the foot of the Sources and licences page: each dataset, who publishes it, what the app shows
  * from it, its licence (linked) and the words the licence asks for. Draws core's `licencesVM` and decides nothing.
  */
-import { Linking, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { LICENCE_WORDS, WORDS, type LicencesVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { hitProps } from "../regs/hit";
+import { openLink } from "../openLink";
 
-const open = (url: string) => { void Linking.openURL(url); };
+const open = (url: string) => { void openLink(url); };
 
 /** (T243) a link on its own line is a 44 px row (the touch-target floor), its words centred in it */
 const LINK_ROW = { minHeight: 44, justifyContent: "center" } as const;

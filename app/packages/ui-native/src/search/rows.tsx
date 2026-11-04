@@ -16,6 +16,8 @@ export type Row =
   /** A group name that only points: its line (`seeLine`) and a way to open each water it names. */
   | { t: "see"; key: string; line: string; see: readonly { name: string; item: ItemId | null }[] }
   | { t: "note"; key: string; text: string }
+  /** (T368) a read that failed: the one failure face (`ErrorState`), never a plain note */
+  | { t: "failed"; key: string; text: string }
   /** (T247) a recent search: its text, drawn as a row that searches it again */
   | { t: "recent"; key: string; q: string };
 
@@ -29,7 +31,7 @@ export function sheetRows(pick: SearchPick, s: SearchSession, recents: readonly 
                 right: s.town.state === "ready" ? nearCount(near.length) : "" });
     rows.push({ t: "head", key: "near-h", label: SEARCH_BAR.near(place.name), place: true });
     if (s.town.state === "failed")
-      rows.push({ t: "note", key: "fail", text: SEARCH_BAR.nearFailed });
+      rows.push({ t: "failed", key: "fail", text: SEARCH_BAR.nearFailed });
     else if (s.town.state === "ready" && !near.length)
       rows.push({ t: "note", key: "none", text: watersNear(0, place.name) });
     for (const n of near) rows.push({ t: "near", key: `n:${n.item}`, near: n });
@@ -47,7 +49,7 @@ export function sheetRows(pick: SearchPick, s: SearchSession, recents: readonly 
       }
     }
     if (s.none) rows.push({ t: "note", key: "none", text: SEARCH_BAR.none });
-    if (s.failed) rows.push({ t: "note", key: "fail", text: SEARCH_BAR.failed });
+    if (s.failed) rows.push({ t: "failed", key: "fail", text: SEARCH_BAR.failed });
   } else {
     rows.push({ t: "note", key: "start", text: SEARCH_BAR.start });
     rows.push({ t: "note", key: "start2", text: SEARCH_FIND.hint });

@@ -3,6 +3,7 @@
  * held for the loading screen. The app shell passes the platform half in (`@app/data/release/platform`), so this hook,
  * like every hook, runs under both renderers.
  */
+import { reportFailure } from "@app/core";
 import { useEffect, useRef, useState } from "react";
 import { bootRelease, BootError, warmLike, type BootOptions, type Booted, type Progress } from "@app/data/release";
 
@@ -72,6 +73,7 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
         const error = e instanceof Error ? e : new Error(String(e));
         // (T272) a failed start names itself in the log (logcat / the Updates log): the screen says only the reader's words
         console.error(`[boot] start failed: ${error.message}`);
+        reportFailure(error);   // (T368) shown (the boot-failed page / applyError) and reported
         // an apply that failed: the set in use stays (it never stopped working), and the failure is said
         if (again) set((prev) => (prev.state === "ready" ? { ...prev, applyError: error } : prev));
         else set({ state: "failed", error, firstRunOffline: e instanceof BootError && e.firstRunOffline });

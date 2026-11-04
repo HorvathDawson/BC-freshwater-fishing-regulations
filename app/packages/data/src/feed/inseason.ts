@@ -8,7 +8,7 @@
  * kept with the captured links, never with none: an outage of one file must not turn matched changes into the
  * "not on the map yet" notice. Asked once per `ttlMs`; every answer resolves, never rejects.
  */
-import { parseInSeasonFeed, parseInSeasonLinks, type InSeasonFeed, type InSeasonLinks } from "@app/core";
+import { parseInSeasonFeed, reported, parseInSeasonLinks, type InSeasonFeed, type InSeasonLinks } from "@app/core";
 
 export interface InSeasonStore { read(): string | null; write(text: string): void }
 export interface InSeasonData { readonly feed: InSeasonFeed; readonly links: InSeasonLinks | null }
@@ -35,11 +35,15 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
       return feed ? { feed, links: parseInSeasonLinks(j.links) } : null;
     } catch { return null; }
   };
+  // (T368) OFFLINE reads as "nothing new": the captured copy below answers, its age with it. An HTTP refusal or a body
+  // that will not parse answers the same way but is REPORTED (and shown: the update service's own check of this feed
+  // fails on the sync badge) — never a silent "no in-season changes".
   const getJson = async (name: string): Promise<unknown> => {
     try {
       const r = await fetchImpl(`${root}/${name}`, { cache: "no-store" });
-      return r.ok ? JSON.parse(await r.text()) : null;
-    } catch { return null; }
+      if (!r.ok) throw new Error(`in-season ${name}: HTTP ${r.status}`);
+      return JSON.parse(await r.text());
+    } catch (e) { return reported(null)(e); }
   };
   const get = async (): Promise<InSeasonData | null> => {
     const [f, l] = await Promise.all([getJson("index.json"), getJson("matches.json")]);

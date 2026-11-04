@@ -21,8 +21,11 @@ import { MAX_ATTEMPTS, backoffMs, timeoutsFor, type Timeouts } from "./policy";
 import type { NetMeter } from "./meter";
 
 export class NetError extends Error {
+  /** (T368) the line, not a defect — offline, dropped, timed out — is shown, never reported (core `isEnvironment`); an
+   *  HTTP answer (a 404, a 500) is the server's and is reported */
+  readonly environment: boolean;
   constructor(message: string, readonly kind: "timeout" | "stalled" | "network" | "http" | "offline",
-              readonly status: number | null = null, readonly attempts = 1) { super(message); }
+              readonly status: number | null = null, readonly attempts = 1) { super(message); this.environment = kind !== "http"; }
 }
 
 export interface ResilientOptions {

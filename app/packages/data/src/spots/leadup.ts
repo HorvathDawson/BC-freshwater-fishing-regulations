@@ -16,7 +16,7 @@
  * for them again (`leadUpPendingDays`); a day the feed had been published past and holds nothing for is `none: true`,
  * and is never asked for again. A weather day with no value at all is one the service did not send: asked again too.
  */
-import { calendarDayOfYear, localDate, placeInBand, type Band } from "@app/core";
+import { calendarDayOfYear, localDate, placeInBand, reported, reportFailure, type Band } from "@app/core";
 import type { Aged, Parameter, WaterSource, Series, StationId } from "../index";
 import type { WeatherSource } from "./capture";
 import type { DailyGauge, DailyWeather, LeadUp } from "./model";
@@ -54,7 +54,8 @@ async function notCarried(feed: FeedIndex | undefined, station: string): Promise
   try {
     const idx = await feed.index();
     return !!idx && !(station in idx.stations);
-  } catch {
+  } catch (e) {
+    reportFailure(e);   // (T368 Q7) "ask again"; reported unless offline
     return false;
   }
 }
@@ -67,7 +68,8 @@ export async function weekWeather(weather: WeatherSource | undefined, lat: numbe
     const got = await weather.days(lat, lon, days);
     if (!got) return null;
     return days.map((d) => got.find((g) => g.date === d) ?? blankDay(d));
-  } catch {
+  } catch (e) {
+    reportFailure(e);   // (T368 Q7) not read: asked again on refresh; reported unless offline
     return null;
   }
 }
@@ -103,7 +105,7 @@ export async function weekGauge(source: WaterSource, station: string, days: read
                                 feed?: FeedIndex): Promise<DailyGauge[] | null> {
   const id = station as StationId;
   let params: readonly Parameter[];
-  try { params = await source.gaugeParameters(id); } catch { return null; }
+  try { params = await source.gaugeParameters(id); } catch (e) { reportFailure(e); return null; }   // (T368 Q7)
   const settled = () => days.map((date) => emptyDay(date, true));
   if (!params.length) return settled();
   const read = async (p: Parameter): Promise<Aged<Series> | null | undefined> => {
@@ -111,7 +113,7 @@ export async function weekGauge(source: WaterSource, station: string, days: read
     try {
       const got = await source.gaugeSeries(id, "year", p);
       return got && got.fetchedAt !== null ? got : null;                // no age = no observations = not read
-    } catch { return null; }
+    } catch (e) { reportFailure(e); return null; }                    // (T368 Q7) not read; reported unless offline
   };
   const [q, lv] = await Promise.all([read("discharge"), read("level")]);
   if (q === null || lv === null) return (await notCarried(feed, station)) ? settled() : null;
@@ -131,7 +133,7 @@ export async function weekGauge(source: WaterSource, station: string, days: read
  * as the feed client carries it, never inferred from the days. Null when the reading cannot be had.
  */
 export async function declaredQuantity(source: WaterSource, station: string): Promise<Parameter | null> {
-  try { return (await source.gaugeNow(station as StationId))?.value.parameter ?? null; } catch { return null; }
+  try { return (await source.gaugeNow(station as StationId))?.value.parameter ?? null; } catch (e) { return reported(null)(e); }
 }
 
 /** Both halves for a visit, as `captureSpot` freezes them. */

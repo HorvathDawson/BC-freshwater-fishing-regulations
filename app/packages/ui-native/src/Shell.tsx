@@ -22,10 +22,10 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { GUIDE_WATER, TAB_TOUR_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind } from "@app/core";
+import { GUIDE_WATER, TAB_TOUR_WORDS, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Linking, Platform, View } from "react-native";
+import { Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useMenu, useDataFacts, useSync,
          BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
@@ -58,6 +58,8 @@ import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
 import { GUIDE_STEPS, GuideCard, TabTourSheet, useGuide, useTabTour, type GuideActs, type GuideFacts } from "./Walkthrough";
 import { CoachContext, useCoachRegistry } from "./CoachMarks";
 import { part, preloadParts } from "./part";
+import { LoadingState } from "./LoadingState";
+import { openLink } from "./openLink";
 
 // (T282) loaded later on the web (`part`): not on the first screen's path
 const SpotCapture = part(() => import("./later").then((m) => m.SpotCapture));
@@ -170,6 +172,8 @@ export function Shell(p: ShellProps) {
   // (T275) the foot block's height, for the credits and scale above it
   const [footH, setFootH] = useState(0);
   const [runsAt, setRunsAt] = useState<number | null>(null);
+  /** (T369 D15) where on that section the Runs tap landed: the water it opens is that tap's */
+  const [runsPoint, setRunsPoint] = useState<{ lat: number; lon: number } | null>(null);
   /**
    * The camera survives leaving the map.
    *
@@ -178,9 +182,12 @@ export function Shell(p: ShellProps) {
    * every pan would otherwise re-render the whole shell, and nothing on screen depends on
    * the camera except the map itself.
    */
-  const camera = useRef<Camera>(HOME);
+  const ownCamera = useRef<Camera>(HOME);
   /** The water's map view keeps its own camera (P15), across waters, so the browse map's is left where it was. */
-  const waterCamera = useRef<Camera | null>(null);
+  const ownWaterCamera = useRef<Camera | null>(null);
+  // (T369 D12) held by the app when it asks (`cameraHold`): the refs outlive a recreated activity's remount
+  const camera = p.cameraHold ? (p.cameraHold.browse ??= ownCamera) : ownCamera;
+  const waterCamera = p.cameraHold ? (p.cameraHold.water ??= ownWaterCamera) : ownWaterCamera;
   const search = useShellSearch({ source, nav, camera, recentStore: p.recentSearches ?? null });
   const { searching, session, searchMemory, field } = search;
   /** (owner 2026-10-29) the page started ON a water (a landing): the map is readied behind it once idle (below) */
@@ -226,7 +233,12 @@ export function Shell(p: ShellProps) {
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
                                 epoch: syncState.epoch, settled, gearSettled: settled && quietLine,
                                 salmonOnDemand: !!(p.prefetch && loader),
-                                runTiming: p.runTiming ?? null, runSpeciesStore: p.runSpeciesStore ?? null });
+                                runTiming: p.runTiming ?? null, runSpeciesStore: p.runSpeciesStore ?? null,
+                                initialHorizon: p.initialHorizon ?? 0 });
+  // (T369 D10) the day and the Conditions horizon are the address's (and a recreated activity's): told on each change
+  const tellAddress = useRef(p.onAddress);
+  tellAddress.current = p.onAddress;
+  useEffect(() => { tellAddress.current?.({ day: mapDay, horizon: col.pickedHorizon }); }, [mapDay, col.pickedHorizon]);
   // (T199, T261) the runs sheet's words, for the tapped section, the species chosen and the slider's pentad
   const runsVM = useMemo(() => {
     const f = col.runs.facts, sp = col.runs.chosen;
@@ -299,7 +311,7 @@ export function Shell(p: ShellProps) {
   const onReleaseAction = (kind: "download" | "apply" | "update-app") => {
     if (kind === "download") syncState.allowMetered?.(true);
     else if (kind === "apply") p.onSafeToApply?.();
-    else if (appUrl) void Linking.openURL(appUrl);
+    else if (appUrl) void openLink(appUrl);
   };
   const barBottom = topBarBottom();
   /*
@@ -473,7 +485,12 @@ export function Shell(p: ShellProps) {
                    onSaved={async (s) => { await onSaveSpot(s); go({ type: "openSpot", id: s.id }); }} />
     ));
 
-  const water = frame !== null
+  // (T369 D8) a new release applied with a water open: the water says it is updating while it is carried to the same
+  // place in the new data (`useShellNav`'s `carrying`), never drawn from the old release's part indexes
+  const water = frame !== null && nav.carrying
+    ? <LoadingState palette={palette} size={110} label={WATER_SCREEN_WORDS.updating} shown
+                    style={{ flex: 1, alignItems: "center", justifyContent: "center" }} />
+    : frame !== null
     ? <WaterModeHost frame={frame} nav={nav} col={col} source={source} palette={palette} loader={loader} tiles={tiles}
                      theme={theme} feed={feed} rail={rail} spotLayer={spotLayer} camera={camera}
                      waterCamera={waterCamera} fishImages={p.fishImages} adiposeImages={p.adiposeImages}
@@ -496,7 +513,7 @@ export function Shell(p: ShellProps) {
                   dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
-                  onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onNotFishing={setNotFishing} onRuns={setRunsAt}
+                  onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
                   fishImages={p.fishImages} tourFit={tourFit} />
     : null;
   const body = (
@@ -611,7 +628,7 @@ export function Shell(p: ShellProps) {
                  onOpenWater={runsAt === null ? undefined : () => {
                    const sid = runsAt;
                    setRunsAt(null);
-                   void nav.opener.tap(sid as never, null, "regs");
+                   void nav.opener.tap(sid as never, runsPoint, "regs");
                  }} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
                    mapDay={mapDay} theme={theme} onWalkthrough={replayTour} onTabTour={replayTab} sync={syncState}

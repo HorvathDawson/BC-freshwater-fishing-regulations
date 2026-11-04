@@ -8,7 +8,7 @@
  * Cache API, a phone in a file); offline, or when a fetch fails, the last capture answers. An index whose files are
  * the capture's is answered from the capture without fetching them again. Every answer resolves, never rejects.
  */
-import { checkRunTiming, parseRunTimingIndex, RunTimingFacts, type RunTimingIndex } from "@app/core";
+import { reportFailure, checkRunTiming, parseRunTimingIndex, RunTimingFacts, type RunTimingIndex } from "@app/core";
 import { fetchVerified } from "../fetchVerified";
 
 /** Whole text under one name — async, because a few MB does not belong in localStorage. */
@@ -55,7 +55,7 @@ export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: t
     try {
       const r = await fetchImpl(`${root}/index.json`, { cache: "no-store" });
       if (r.ok) { rawIndex = JSON.parse(await r.text()); index = parseRunTimingIndex(rawIndex); }
-    } catch { /* offline: the capture answers */ }
+    } catch (e) { reportFailure(e); /* offline: the capture answers (T368: anything else is reported too) */ }
     if (!index) return was ? { facts: was.facts, from: "capture" } : null;
     const same = was && JSON.stringify(parseRunTimingIndex(was.raw.index)?.files) === JSON.stringify(index.files);
     if (same) return { facts: was.facts, from: "live" };
@@ -67,7 +67,8 @@ export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: t
       if (!f) return was ? { facts: was.facts, from: "capture" } : null;
       try { await store?.write(JSON.stringify(raw)); } catch { /* a cache: costs only the next offline open */ }
       return { facts: f, from: "live" };
-    } catch {
+    } catch (e) {
+      reportFailure(e);   // (T368) the capture answers, said as captured; reported unless offline
       return was ? { facts: was.facts, from: "capture" } : null;
     }
   };

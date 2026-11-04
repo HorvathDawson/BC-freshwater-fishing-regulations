@@ -1,7 +1,7 @@
 // T242: the crash payload is pinned whole (every field), nothing identifying survives the scrub, the switch off sends
 // nothing, offline drops, a repeat is sent once, a fatal error is kept and sent at the next start, handlers chain.
 import { describe, expect, it, vi } from "vitest";
-import { backgroundKill, createCrashReporter, createCrashSetting, crashPayload, crashWhere, installCrashHandlers, installId, NO_WHERE, routeKind,
+import { backgroundKill, createCrashReporter, createCrashSetting, crashPayload, crashWhere, installCrashHandlers, installId, NO_WHERE, reportFailure, routeKind,
          scrubMessage, scrubStack, type CrashWhere } from "./crashReport";
 import { HOME, type Route } from "./route";
 
@@ -207,6 +207,28 @@ describe("the catchers (T242)", () => {
     l.error!({ error: new Error("e1") } as never);
     l.unhandledrejection!({ reason: new Error("r1") } as never);
     expect(calls).toEqual(["e1:js", "r1:promise"]);
+  });
+  it("(T368 X1) a phone's unhandled rejections: Hermes's tracker reports them, the environment's excepted", () => {
+    let opts: { allRejections: boolean; onUnhandled: (id: number, e: unknown) => void } | null = null;
+    const g = { HermesInternal: { enablePromiseRejectionTracker: (o: typeof opts) => { opts = o; } } };
+    const calls: string[] = [];
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => false }, g as never);
+    expect(opts!.allRejections).toBe(true);
+    opts!.onUnhandled(1, new Error("p1"));
+    opts!.onUnhandled(2, Object.assign(new Error("offline"), { environment: true }));
+    expect(calls).toEqual(["p1:promise:false"]);
+    undo();
+    warn.mockRestore();
+  });
+  it("(T368) reportFailure reaches the installed reporter (non-fatal), never the environment's, nothing after undo", () => {
+    const calls: string[] = [];
+    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => false }, {} as never);
+    reportFailure(new Error("caught"));
+    reportFailure(Object.assign(new TypeError("Network request failed")));
+    undo();
+    reportFailure(new Error("after"));
+    expect(calls).toEqual(["caught:js:false"]);
   });
 });
 

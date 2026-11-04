@@ -1,4 +1,5 @@
 /** T170: what the spot sheet says about the visit day's flow (whole), and the action: asks, waits offline, asks again. */
+import { setFailureSink } from "@app/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import type { DayFlowAnswer, Spot } from "@app/data/spots";
@@ -21,7 +22,7 @@ const backdated: Spot = {
 describe("dayFlowView", () => {
   it("a backdated spot never asked: the action (the save-day label is gone, Q161)", () => {
     expect(dayFlowView(backdated, "idle")).toEqual({
-      heading: "Flow that day", line: null, status: null,
+      heading: "Flow that day", line: null, status: null, error: null,
       action: { label: "Get the flow for that day", busy: false },
     });
   });
@@ -30,7 +31,7 @@ describe("dayFlowView", () => {
     const s: Spot = { ...backdated, dayFlow: { state: "filled", station: "08MH001", date: "2024-08-15", discharge: 19.6,
                                                percentile: 0.244, place: 0.244, source: "hydat", filledAt: SAVED } };
     expect(dayFlowView(s, "idle")).toEqual({
-      heading: "Flow that day", status: null, action: null,
+      heading: "Flow that day", status: null, action: null, error: null,
       line: "19.6 m³/s, the 24th percentile for the date — filled in from the day's record (HYDAT daily mean, "
         + "15 Aug 2024).",
     });
@@ -98,5 +99,26 @@ describe("useDayFlow — offline waits, and asks again when back", () => {
     act(() => out.onAsk!());
     await settle();
     expect(out.v!.status).toBe("That day is not over in the gauge's record yet. Try again tomorrow.");
+  });
+
+  it("(T368, owner Q8) a real failure is not offline: said in the failure face, reported, the action asks again", async () => {
+    const conn: Connectivity = { watches: true, probeWhileUp: false, online: () => true, subscribe: () => () => {} };
+    const out: { v?: DayFlowView | null; onAsk?: (() => void) | null } = {};
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const { rerender } = render(<Probe spot={backdated} ask={async () => { throw new Error("bundle unreadable"); }} conn={conn} out={out} />);
+      await settle();
+      act(() => out.onAsk!());
+      await settle();
+      expect([out.v!.status, out.v!.error, out.v!.action?.label, got.map((e) => (e as Error).message)])
+        .toEqual([null, "The flow for that day could not be read.", "Get the flow for that day", ["bundle unreadable"]]);
+      // the line being down is offline (waits), never a failure, never reported
+      rerender(<Probe spot={backdated} ask={async () => { throw new TypeError("Network request failed"); }} conn={conn} out={out} />);
+      act(() => out.onAsk!());
+      await settle();
+      expect([out.v!.status, out.v!.error, got.length])
+        .toEqual(["Offline: the flow for that day will be asked for when you are back online.", null, 1]);
+    } finally { undo(); }
   });
 });

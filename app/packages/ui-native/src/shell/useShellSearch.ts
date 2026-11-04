@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
 import { Keyboard, useWindowDimensions, type TextInput } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
-import { NO_SEARCH, searchStep, useRecentSearches, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
+import { NO_SEARCH, reportFailure, searchStep, useRecentSearches, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
 import type { Camera } from "@app/map";
 import { searchPanelWidth } from "../TopBar";
 import { CLOSE_KEEPS_FOCUS } from "../searchFocus";
@@ -94,7 +94,8 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
     if (f?.bbox) setArrive({ key, bbox: f.bbox, refine: f.refine });
     else {
       setArrive(null);
-      void source.waterBox(id).then((bbox) => { if (bbox && arrivals.current === n) setArrive({ key, bbox, refine: false }); });
+      void source.waterBox(id).then((bbox) => { if (bbox && arrivals.current === n) setArrive({ key, bbox, refine: false }); },
+                                    reportFailure);   // (T368) not framed: reported
     }
     searchMoved.current = false;            // the camera from before search is not put back: the water is the subject
     recents.push(searchMemory.q);
@@ -112,7 +113,7 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
     arrivedAt.current = null;
     void source.waterBox(id).then((bbox) => {
       if (bbox && arrivals.current === n) setArrive({ key: `arrive:${id}:${n}`, bbox, refine: false });
-    });
+    }, reportFailure);   // (T368) not framed: reported
   };
   /** One step of search (`searchStep`): a pick lowers the sheet to half, so the keyboard goes with it. */
   const searchAct = (a: SearchAction) => {

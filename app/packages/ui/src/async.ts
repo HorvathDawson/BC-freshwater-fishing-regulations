@@ -6,9 +6,10 @@
  *     answer (tap two rivers quickly and the first one wins the race);
  *   - unmounting mid-flight must not set state;
  *   - a failure is a STATE, not a silent empty result — "we could not check" and "nothing
- *     here" look identical if you model an error as `null`.
+ *     here" look identical if you model an error as `null`; and (T368) it is REPORTED, here, once for every hook.
  */
 import { useEffect, useRef, useState } from "react";
+import { reportFailure } from "@app/core";
 
 export type Async<T> =
   | { state: "loading"; value: null; error: null }
@@ -94,6 +95,9 @@ export function useAsync<T>(
     latest.current().then(
       (value) => { if (alive && mine === seq.current) setOut({ key, sameAs, v: { state: "ready", value, error: null } }); },
       (e: unknown) => {
+        // (T368 X2) THE ONE PLACE every hook's failure is reported: a failed state (or a failed refresh that keeps the
+        // last answer) is also a report — the environment's (offline) excepted, in `reportFailure` itself
+        reportFailure(e);
         if (alive && mine === seq.current) {
           const failed = { state: "failed", value: null, error: e instanceof Error ? e : new Error(String(e)) } as const;
           setOut((prev) => (refresh && prev.v.state === "ready" ? { ...prev, key } : { key, sameAs, v: failed }));

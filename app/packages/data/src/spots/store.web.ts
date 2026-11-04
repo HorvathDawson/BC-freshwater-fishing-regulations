@@ -23,9 +23,9 @@ export function openSpots(): SpotsStore {
     if (!s) throw new Error("This browser is not letting the app store anything.");
     return s;
   };
-  const safe = <T>(f: () => T, otherwise: T): T => { try { return f(); } catch { return otherwise; } };
   const fs: SpotsFs = {
-    exists: (n) => safe(() => ls().getItem(n) !== null, false),
+    // (T368) storage refused is a failure, never "no spots file" (an empty list with no word)
+    exists: (n) => ls().getItem(n) !== null,
     read: (n) => { const v = ls().getItem(n); if (v === null) throw new Error(`no ${n}`); return v; },
     write: (n, t) => { ls().setItem(n, t); },
     rename: (a, b) => { const s = ls(), v = s.getItem(a); if (v === null) throw new Error(`no ${a}`); s.setItem(b, v); s.removeItem(a); },

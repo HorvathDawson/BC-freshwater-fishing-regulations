@@ -17,7 +17,7 @@
  * the strip says it is a low-water forecast. A feed from before T171 (no `aheadDays`) is read at its four horizons, as
  * T51 did, until it is republished.
  */
-import { DAY_HORIZONS, LIKE_RAIN_DAYS, localDate, shiftDay, type LikeConditions } from "@app/core";
+import { reported, DAY_HORIZONS, LIKE_RAIN_DAYS, localDate, shiftDay, type LikeConditions } from "@app/core";
 import { spotReadingFigure } from "./words";
 import { readingIsTheDays } from "./dayFlow";
 import { reading } from "../panel";
@@ -173,8 +173,8 @@ export async function fetchLike(spot: Spot, had: LikeFetched, src: LikeSources, 
   Promise<{ fetched: LikeFetched; offline: boolean }> {
   const station = likeStation(spot);
   const [w, idx] = await Promise.all([
-    src.weather?.ahead ? src.weather.ahead(spot.lat, spot.lon).catch(() => null) : Promise.resolve(null),
-    station && src.feed ? src.feed.index().catch(() => null) : Promise.resolve(null),
+    src.weather?.ahead ? src.weather.ahead(spot.lat, spot.lon).catch(reported(null)) : Promise.resolve(null),
+    station && src.feed ? src.feed.index().catch(reported(null)) : Promise.resolve(null),   // (T368) shown offline; reported unless offline
   ]);
   const flowAsked = !!(station && src.feed);
   const ahead = idx && station ? flowAhead(idx, station, now) : undefined;

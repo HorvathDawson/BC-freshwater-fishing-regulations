@@ -23,7 +23,7 @@
  *
  * `snapshot()` is a new object on every change (for `useSyncExternalStore`); `subscribe` is told after each.
  */
-import { errorClassOf, mobileDataFrom, releaseAllowed, type AppVersion, type MobileDataSetting, type UpdateEvent } from "@app/core";
+import { errorClassOf, mobileDataFrom, releaseAllowed, reportFailure, type AppVersion, type MobileDataSetting, type UpdateEvent } from "@app/core";
 import { diff, parseManifest, type Held, type Manifest } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts)
 import { utf8 } from "../regs/blob";
@@ -307,8 +307,12 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     feeds.set(id, next);
     kept.at[id] = { checkedAt: next.checkedAt, updatedAt: next.updatedAt };
   };
-  const failSource = <S extends SourceStatus>(s: S, error: string, offline: boolean): S =>
-    ({ ...s, error, offline, failedAt: now(), failures: s.failures + 1 });
+  /** A source failed: shown (the sync badge, SyncErrorSheet) and — (T368) unless the line is down — REPORTED, here for
+   *  every source: an HTTP refusal, a feed its loader refuses, a manifest that will not parse. */
+  const failSource = <S extends SourceStatus>(s: S, error: string, offline: boolean): S => {
+    if (!offline) reportFailure(new Error(`update: ${error}`));
+    return { ...s, error, offline, failedAt: now(), failures: s.failures + 1 };
+  };
 
   async function checkFeed(spec: FeedSpec): Promise<boolean> {
     const t0 = now(), before = short(kept.seen[spec.id]?.sha256);
