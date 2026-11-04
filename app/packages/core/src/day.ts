@@ -89,6 +89,29 @@ export function localStamp(ms: number, zone?: string): string {
   return `${z.y}-${pad2(z.mo)}-${pad2(z.d)} at ${pad2(z.h)}:${pad2(z.mi)} ${z.tz}`;
 }
 
+/**
+ * (owner 2026-11-04: "bc time makes sense") THE REGULATIONS' CLOCK. A day of the regulations is a B.C. day, so "today" is
+ * the date on a Vancouver clock wherever the phone is (an Alberta phone at 23:30 is still on B.C.'s today, an hour
+ * before midnight). Pacific for the whole province: the book's days are not split by the Kootenay / Peace clocks.
+ */
+export const BC_ZONE = "America/Vancouver";
+
+/**
+ * Now on the B.C. clock, as a Date whose LOCAL fields (getFullYear … getMinutes) are B.C.'s wall clock — the shape every
+ * day-deciding reader takes (`Day`, `dayRange`, `regsDay`). For deciding which DAY it is, never for elapsed time (an
+ * instant is `Date.now()`). No zone data on the device: its own clock, reported once (`zonedParts`).
+ */
+export function bcNow(ms: number = Date.now()): Date {
+  const z = zonedParts(ms, BC_ZONE);
+  return new Date(z.y, z.mo - 1, z.d, z.h, z.mi);
+}
+
+/** "16:41 PST": an instant on the B.C. clock, labelled. */
+export function bcClockTime(ms: number): string {
+  const z = zonedParts(ms, BC_ZONE);
+  return `${pad2(z.h)}:${pad2(z.mi)} ${z.tz}`;
+}
+
 /** An instant's calendar and clock in `zone` (the device's when left out), with the zone's short label. */
 interface ZonedParts { y: number; mo: number; d: number; h: number; mi: number; tz: string }
 

@@ -34,6 +34,7 @@ export * from "./searchIndex";
 export * from "./recentSearches";
 export * from "./near";
 export * from "./day";
+export * from "./sun";
 export * from "./conditions";
 export * from "./gaugeSide";
 export * from "./change";
