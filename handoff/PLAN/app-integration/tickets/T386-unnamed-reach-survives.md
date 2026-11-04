@@ -8,3 +8,9 @@ the web has the `lines` file). Work: the pipeline writes it (release, phone-held
 section in the release it holds (the same pure resolver as named links), the update keeps the reach open at the same
 place, and a reload / start link opens it (web and phone). Tests: update carry, link round trip, offline.
 Rides the ONE release rebuild of 0.5.0. Size: M.
+
+## Owner 2026-11-04: reuse the links' data
+The web already opens `?blk=&m=` links from the `lines` file (T369, web-only). The phone has no address bar, but a data
+update needs the same resolution in-app. Decision: the phone downloads `lines` too (drop it from `contract.WEB_ONLY`;
+~1.3 MB gz on the offline total) — ONE resolver and one table for web and phone, no `section_measure`. Later, optional:
+app links (a shared https link opening the installed app).

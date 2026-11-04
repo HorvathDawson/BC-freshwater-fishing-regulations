@@ -28,3 +28,5 @@ scoring needs far more history (≥ a season per station).
 Worker cost (Cloudflare analytics, bc-fishing-feeds-staging, 2026-10-28 → 11-04, 8 days): 1,330 invocations, 77,490
 subrequests, 0 errors, 687 CPU-s (~86 s a day → ~2.6 M CPU-ms a month, ~9 % of the paid plan's included 30 M; a cron
 run p99 ~4 s CPU). Production adds a second worker's crons on the same account (~18 % together).
+
+Owner 2026-11-04: agreed — the worker scores monthly and reports; applying weights stays reviewed.

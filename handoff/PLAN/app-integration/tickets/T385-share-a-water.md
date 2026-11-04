@@ -7,3 +7,7 @@ web `navigator.share`, else copy) with the water's public web link — the same 
 view + place, the day when not today), on the production web origin. A dismissed share sheet is not a failure (T368).
 Unnamed reaches share their place link (`?blk=&m=`, T386 makes it open everywhere). Tests: the link built from the
 frame is the start link the web parses back to the same frame (round trip). Size: S.
+
+## Owner 2026-11-04: web and app
+App: the phone's share sheet. Web: `navigator.share` where the browser has it (phone browsers), else the link copied
+with "Link copied". The same link either way.
