@@ -60,3 +60,4 @@ carries (by date); the rest fill in when T375 lands.
 (e) T375 LANDED in the code (2026-11-03): `FORECAST_DAYS` is now [1..10] (core gauge-policy.generated.ts). Your ui tests
 that pin the four days fail until updated with your chips: conditions.render (donorView ×2), MapScreen corner ×2, the
 Change chip ×2 ("after +10" still holds: +10 is last). The live feed carries every day after the feeds worker redeploy.
+(f) Forecast-day list: the centre basin, a water's own basin and the basin names are the data chat's, T376 (batch 4).

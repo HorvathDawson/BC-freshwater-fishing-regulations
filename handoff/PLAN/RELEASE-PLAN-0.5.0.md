@@ -19,11 +19,14 @@ Each batch is one sitting on one area. Tickets in a batch are done together.
 | 1 | Slough fold release (data) | T322, T337 check | heavy, few credits | DONE 2026-11-03: gate PASS, release r-4df5bccc9360 local (labels refreshed; ships T354's smaller book). |
 | 2 | Crash, memory, rule-book PDF | T360 → T351, T354, T345, T352 (app side) | M–L | One emulator sitting. T360 measures first. PDF: incremental append + image compression (T354, owner 11-03). |
 | 3 | DFO salmon clean-up | T356, T358, T357, T338, T343, T366 (T361 folded into T366; the marks stand) | L | Changes what the salmon data looks like, so it must land BEFORE 0.5.0, or we need salmon/4 later. T366 makes the live refresh safe, then pulls region 2's new Fraser notice (FN1179). |
-| 4 | Feeds and map colours | T347, T348 | S–M | One "feed changed" signal; weekday forecast rule. |
+| 3b | Data correctness (owner 11-03) | T374, T372, T373, T375 | M–L | Trib walk collecting lakes (reach rerun + bundle); partial coverage the trout way, reusing the trout path; run timing built with each release; forecast every day (code done). |
+| 4 | Feeds and map colours | T347, T348, T376 | S–M | One "feed changed" signal; weekday forecast rule; the Conditions view's watershed (map centre / a water's own) + basin names for the UI chat's day list. |
 | 5 | Map feel (owner 2026-11-03: in 0.5.0) | T312 (T353 + T273 folded in) | M–L | One emulator gesture pass: 1:1 tracking, fling, pan lag; basemap already simplified (T280); measure pan on a real phone. |
 | 6 | Small app fixes | T342, T344, T339, T340 | S each | Phone long-press copy, species swipe, Whonock label/Bedford gauge, test bed taps. |
 | 6b | UI text clean-up (owner 11-03) | T367 | M, rounds | Back-and-forth: owner note → plan → fix on the dev web app → repeat. Regs, conditions map, More. Into the APK only when done. |
 | 6c | Failures, fallbacks, reporting (owner 11-03: in 0.5.0) | T368, T369 | M | App-wide: every catch/fallback rethrown, or shown + `reportFailure`, or listed; one failure face; a scan net. Split from T333. T369: one load path per screen, same output whatever the way in (refresh, tab, search, map tap, step, pick). |
+| 6d | Housekeeping and checks (owner 11-03: in 0.5.0) | T50, T65, T77, T178, T239, T328 | M | Emulator parity + system bars, determinism proof (heavy), phone testing, CLEVER vs COFFEE re-score, annual synopsis runbook, archive old slough inputs. |
+| 6e | Launch prep (owner 11-03: in 0.5.0) | T240, T370 | M | Production launch checklist (prod switch-on itself stays the owner's); one shared web file instead of ~0.7 MB repeated per region slice. |
 | 7 | Release check and cut | T307, T308, T310, T315, T316, T293 checks, T371 (closed testing); full suites once | M, mostly heavy | Then APK 0.5.0 → Play internal AND Closed testing (T371: starts Google's 12 testers × 14 days for production), staging upload with `MIN_APP_VERSION=0.5.0`, feeds-worker redeploy if changed since 2026-11-03. |
 
 After 0.5.0:

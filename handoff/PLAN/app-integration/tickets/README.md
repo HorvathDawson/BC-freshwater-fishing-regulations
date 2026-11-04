@@ -419,6 +419,7 @@ use that as the sole source of future work."
 | T373 | Run timing always matches the release's map: the release builds/binds it for its own handles, refuses otherwise | OPEN (before 0.5.0) | — | owner 2026-11-03 |
 | T374 | The Skeena tributary walk collects 11 lake sections (owner rule: walks pass lakes, collect streams) — may bind trout trib rules to lakes | OPEN | — | found 2026-11-03 |
 | T375 | Forecast feed publishes every day +1..+10 (HORIZONS in publish.py + worker), for the UI chat's day chips | DONE in code 11-03 (worker redeploy + feed size left) | — | owner 2026-11-03 |
+| T376 | The Conditions view's watershed (map centre / a water's own, no fallback) + basin names, for the UI chat's forecast-day list | OPEN (0.5.0 batch 4) | — | UI chat via T367, 2026-11-03 |
 
 ## Order for open tickets
 
