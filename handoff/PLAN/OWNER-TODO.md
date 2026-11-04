@@ -108,6 +108,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q91 "no gauge close enough" wording · Q123 how the Map view marks the selected part (built: dim the others; thin halo in
   `app-integration/T151-shots/alt-halo--*`) ·
   Q2 / Q139 / Q47 no-access and tidal notes on Conditions.
+- **"Today" is the phone's day, not BC's (T368 Q6, 2026-11-04):** your answer assumed the app counts days in BC time; it
+  counts them in the PHONE's zone (`localDate`). An Alberta reader at 23:30 MT already gets BC's date (22:30 PT) — but a
+  reader abroad would not. Default: unchanged (device day). Switch "today" to America/Vancouver? (a behaviour change)
 - **Vessel rules (T209):** the 10 close-wording undrawn parts kept ("various locations", "swimming areas") in
   on-parts.md: whole water too, or leave as notes? (`max_power_kw` 7.5 is stored on the 162 electric-only rules, 10-28.)
 - **Salmon (T164):** confirm the proposed DFO cut points in T164's DFO review mode (96 bridges/signs/dams).
