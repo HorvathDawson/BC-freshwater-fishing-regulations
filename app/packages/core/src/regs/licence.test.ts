@@ -201,8 +201,9 @@ describe("buildLicence", () => {
     const vm = buildLicence(INP(), WHO.adult_alien!, { closed: false, glossary: GLOSS })!;
     expect([lines(vm), vm.src!.who]).toEqual([[["muted", "Nothing is required of this angler here."]], "Sources ›"]);
   });
-  it("closed day: the empty section (D16 a); outside B.C.: null; tidal: the stored tidal words", () => {
-    expect(buildLicence(INP(), WHO.adult!, { closed: true, glossary: GLOSS })).toEqual({ question: null, questionTerms: [], axes: [], label: "", blocks: [], src: null });
+  it("closed day: no section (owner 2026-11-04, nothing under it); outside B.C.: null; tidal: the stored tidal words", () => {
+    expect(buildLicence(INP(), WHO.adult!, { closed: true, glossary: GLOSS })).toBeNull();
+    expect(buildLicence(INP(), WHO.adult!, { closed: false, glossary: GLOSS })).not.toBeNull();
     expect(buildLicence(INP({ key: null }), WHO.adult!, { closed: false, glossary: GLOSS })).toBeNull();
     const tidal = { holds: { tidal: { tidal: true, note: "n", see: [], licence: "federal Tidal Waters Sport Fishing Licence" } }, profiles: [] } as unknown as LicenceValue;
     expect(lines(buildLicence(INP({ licence: tidal }), WHO.adult!, { closed: false, glossary: GLOSS }))).toEqual([["classbox", "Tidal water federal Tidal Waters Sport Fishing Licence"]]);

@@ -1,7 +1,7 @@
 /**
  * T35 — the Licence tab drawn from `LicenceVM` (prototype `licence()`): the "Licence" section — who is fishing (two
  * choices), the profile's label, the answer's blocks, and the source line without pages (it opens `licsrc:<profile>`).
- * On a closed day (D16 a) only the heading: the VM carries no axes, blocks or source. No logic.
+ * On a closed day there is no VM (core: nothing is said under it, so no section). No logic.
  */
 import { Text } from "../Text";
 import { WORDS, type LicenceVM, type Who } from "@app/core";

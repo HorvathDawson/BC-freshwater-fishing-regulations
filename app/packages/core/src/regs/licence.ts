@@ -312,12 +312,14 @@ function selectors(who: Who, gloss: ReadonlySet<string>): Pick<LicenceVM, "quest
 const EMPTY: LicenceVM = Object.freeze({ question: null, questionTerms: [], axes: [], label: "", blocks: [], src: null });
 
 /**
- * The Licence tab for `who`. Null outside B.C. (no key). A closed day draws the prototype's empty section (D16 (a)); a
- * tidal key, page v36's "Tidal water" box with the stored tidal licence words (decisions D33 (b)).
+ * The Licence tab for `who`. Null outside B.C. (no key), and null on a closed day: nothing is said under it, so there is
+ * no section and no tab (owner 2026-11-04: "on a page fully closed where license has no info the header should
+ * disappear"; it was the prototype's empty section, D16 (a)). A tidal key, page v36's "Tidal water" box with the stored
+ * tidal licence words (decisions D33 (b)).
  */
 export function buildLicence(inp: RegsInputs, who: Who, ctx: { readonly closed: boolean; readonly glossary: ReadonlySet<string> }): LicenceVM | null {
-  if (!inp.key) return null;
-  if (ctx.closed || !inp.frames) return EMPTY;
+  if (!inp.key || ctx.closed) return null;
+  if (!inp.frames) return EMPTY;
   const F = inp.frames.licence, pix = profileOf(who, inp.statics), source: SheetKey = `licsrc:${keyOf(who)}`;
   const head = { ...selectors(who, ctx.glossary), label: inp.statics.profileLabels[pix] ?? "" };
   if (!isHolds(F.holds)) {

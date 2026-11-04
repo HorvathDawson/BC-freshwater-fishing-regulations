@@ -34,7 +34,7 @@ export interface RegsPage {
   readonly keep: KeepVM;
   readonly gear: GearVM | null;            // null outside B.C. (no key: no Gear section; tab hidden)
   readonly methods: MethodsVM | null;      // null outside B.C. (no key: no Methods section; tab hidden)
-  readonly licence: LicenceVM | null;      // null outside B.C. (no key: no Licence section; tab hidden)
+  readonly licence: LicenceVM | null;      // null outside B.C. (no key) or on a closed day: no Licence section; tab hidden
   /** (T40) glossary id → its title (`statics.glossary.terms[].term`), what a one-word ⓘ says to a screen reader
    *  ("What does Bait ban mean?", contracts §1 `term`); a term run carries ids only */
   readonly terms: Readonly<Record<string, string>>;
