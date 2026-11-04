@@ -170,7 +170,8 @@ export function useGaugeGeoJSON(
     // a moved feed is a refresh: the dots stay drawn until the new ones are in
     `gaugepoints:${quantity}:${horizon}`,
   );
-  return got.state === "ready" ? got.value : null;
+  // (T360) switched off, nothing: `useAsync` hands back its last answer for an unchanged key, which kept the dots drawn
+  return enabled && got.state === "ready" ? got.value : null;
 }
 
 /**
