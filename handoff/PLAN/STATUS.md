@@ -19,13 +19,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - Release r-b86b60ca533b built + promoted (reach 11m37s, deliver 11m07s; vintages agree; test_release 24/24; app
   release tests 4202/4202). Request walk re-cut (08b263e): it caught ~2.5 MB of SQLite on web FIRST PAINT (T293's
   walkthrough water search + T369's address store at boot + two whole-water routes) — all fixed, a test guards it.
-- Owner decision open: the web address's place (T369) fetches `lines` (1.2 MB gz) on the FIRST water a visitor opens.
-  Unpriced by design (contract). Keep, or write the place only when Share / copy-link is used?
+- Owner decided (11-04): the web's `lines` (1.2 MB) only for unnamed reaches → T388.
 - T65 DONE (0d5d3577f): the atlas is deterministic (two builds byte-identical but timings, build_ts, a pickled
   set's order; graphs equal).
-- Owner chose (11-04): named waters' link place from a small `part_line` table in the water slices — never `lines`;
-  unnamed reaches keep `lines`. T388 running (agent); then a deliver re-run + walk re-pin, then ONE APK + emulator
-  sitting (waits for T388 so there is one APK), suites, staging, worker, AAB.
+- T388 DONE + live (r-d458fbe165ac): named waters' link place from `part_line` (+79 kB gz water), never `lines`.
+- Staging: r-d458fbe165ac uploaded (minAppVersion 0.5.0), app 0.5.0 site deployed (SEO runner aliases now read from
+  package exports), feeds worker deployed (T347/T375/T380/T178 cron); smoke 18/18 (gauge check moved Pitt → Vedder:
+  the Pitt's one freshwater part has no gauge since T369).
+- Licence guiding folded; page foot as fine print (owner 11-04).
+- Running: 0.5.0 APK + emulator sitting (install, pan, locate, regs-open/T340, gestures, walkthrough, water-nav,
+  memory → out/r050). Then suites, AAB.
 
 ## 2026-11-04 (merged chat, evening): owner answers in, T368/T369 lanes, T370 done [T368, T369, T370, T375, T360, T77, T381]
 - Owner answered T368 (9) and T369 (3): recorded at the end of each audit file; two agent lanes implement them now.
