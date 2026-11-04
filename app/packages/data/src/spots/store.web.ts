@@ -113,6 +113,11 @@ export function openWalkthroughStore(): { read(): string | null; write(text: str
   return keyStore("canifishthis.walkthrough.v1");
 }
 
+/** (T384) Whether the first open has asked for the reader's location ("asked"), one key of its own: asked once. */
+export function openLocationAskStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.locationAsk.v1");
+}
+
 /** (T247) The recent searches (a JSON list of what the reader looked for), one key of its own; a cache, device-only. */
 export function openRecentSearchStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.recentSearches.v1");

@@ -99,6 +99,13 @@ export interface ShellProps {
   arriveAt?: ItemId | null;
   /** The platform's location, for the Spots menu's "At my location" (the app's). Absent -> not offered. */
   locate?: Locate | null;
+  /**
+   * (T384) Where the first open's location ask is kept (`openLocationAskStore`): the app opens on the reader, asking once.
+   * Absent: an open never asks by itself (a permission already given still centres it).
+   */
+  locationAsk?: import("@app/ui").LocationAskStore | null;
+  /** (T385) The platform's share (the phone's sheet; the web's, else the clipboard) for the water header's Share. Absent: none. */
+  share?: import("@app/ui").SharePort | null;
   /** The menu's build facts (app build, the one contact value), from the app's config. Absent -> neither stated. */
   menuInfo?: MenuInfo;
   /**

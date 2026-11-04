@@ -9,6 +9,7 @@
  */
 import * as Location from "expo-location";
 import { AppState } from "react-native";
+import { environmentError } from "@app/core";
 import type { Locate, LocatePermission } from "@app/ui";
 
 export const locate: Locate | null = {
@@ -23,7 +24,8 @@ export const locate: Locate | null = {
   },
   here: async () => {
     const p = await Location.requestForegroundPermissionsAsync();
-    if (!p.granted) throw new Error("location permission refused");
+    // (T368) a refusal is the environment's: shown (the rail's line), never reported
+    if (!p.granted) throw environmentError(new Error("location permission refused"));
     // a recent fix is good enough to pin a spot by (as the web's maximumAge 60 s); otherwise a fresh one
     const last = await Location.getLastKnownPositionAsync({ maxAge: 60_000, requiredAccuracy: 100 });
     const fix = last ?? await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });

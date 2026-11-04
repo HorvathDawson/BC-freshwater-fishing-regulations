@@ -108,7 +108,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   const coachTarget = useCoachTarget("map");
   return (
     <View ref={coachTarget} collapsable={false} style={{ flex: 1, backgroundColor: palette.tint }}>
-      <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
+      <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, zoom: me.zoom, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onPressObstacle={onPressObstacle} onPressTidal={onPressTidal} onPressNotFishing={onPressNotFishing} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
            highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}

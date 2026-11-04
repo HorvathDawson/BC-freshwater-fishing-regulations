@@ -26,7 +26,7 @@ import { GUIDE_WATER, TAB_TOUR_WORDS, WATER_SCREEN_WORDS, bellLabel, releaseNoti
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
-import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useMenu, useDataFacts, useSync,
+import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useMenu, useDataFacts, useSync,
          BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
@@ -206,6 +206,8 @@ export function Shell(p: ShellProps) {
   const rail = useMapRail(go, locate, route);
   /** (T303) my location on the browse maps: asked on the button's tap, never before */
   const me = useMyLocation(locate);
+  /** (T384) a plain open (no start link took it anywhere, no camera held from before) goes to the reader: read once */
+  const [opensHere] = useState(() => opensAtMe(p.initialRoute, p.arriveAt ?? p.regsStart ?? null, !!p.cameraHold?.browse));
   /** THE MENU (owner 2026-10-21): its pages, listed by the More tab (T48), mounted below as back layers (menu/MenuHost). */
   const menu = useMenu();
   /*
@@ -239,6 +241,8 @@ export function Shell(p: ShellProps) {
   const tellAddress = useRef(p.onAddress);
   tellAddress.current = p.onAddress;
   useEffect(() => { tellAddress.current?.({ day: mapDay, horizon: col.pickedHorizon }); }, [mapDay, col.pickedHorizon]);
+  /** (T385) the water header's Share: the same address (route + day + horizon) on the production site */
+  const share = useShare(p.share ?? null, loader, route, { day: mapDay, horizon: col.pickedHorizon });
   // (T199, T261) the runs sheet's words, for the tapped section, the species chosen and the slider's pentad
   const runsVM = useMemo(() => {
     const f = col.runs.facts, sp = col.runs.chosen;
@@ -323,6 +327,8 @@ export function Shell(p: ShellProps) {
   const notice = useInSeasonNotice(inSeason.unmatched, p.inSeasonSeen ?? null);
   // (T236) the first-run notice (not legal advice) comes first: nothing else opens by itself while it is up
   const firstRun = useFirstRun(p.firstRun ?? null);
+  // (T384) ...once the first-run notice is answered: the platform's prompt never comes up over it
+  useOpenAtMe(me, locate, p.locationAsk ?? null, opensHere, !firstRun.open);
   /*
    * (T293) THE GUIDED WALKTHROUGH comes SECOND: held while the notice is up, and the in-season notice waits for it. It
    * starts on the Map tab (where its first step, search, is) and, once started, follows the reader wherever its steps
@@ -544,7 +550,7 @@ export function Shell(p: ShellProps) {
       <NetBanner palette={palette} onPress={() => nav.toTab("more")} />
       <View style={{ flex: 1 }}>
         <EdgeBack drag={nav.edge}>
-          <WaterViewsContext.Provider value={nav.waterViews}>
+          <WaterViewsContext.Provider value={nav.waterViews && share ? { ...nav.waterViews, share } : nav.waterViews}>
             {/* Regulations and Conditions take the swipe anywhere on them (the Conditions maps and chart shielded),
                 Map from its header only (the canvas pans) — see `waterViews` */}
             {/* (T37) the regs sheet is a back layer too: back closes it before it leaves the water */}

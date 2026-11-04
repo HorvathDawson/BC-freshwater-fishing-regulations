@@ -152,6 +152,8 @@ export interface WaterViews {
    */
   close: () => void;
   closeLabel: string;
+  /** (T385) the header's Share (`@app/ui` `useShare`): absent or null, not drawn */
+  share?: import("@app/ui").ShareControl | null;
   swipe: ViewSwipeState | null;
   bodySwipe: ViewSwipeState | null;
 }

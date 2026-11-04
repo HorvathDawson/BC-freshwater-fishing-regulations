@@ -29,6 +29,8 @@ export * from "./dayFlow";
 export * from "./route";
 export * from "./openWater";
 // (T369) NOT `./place`: links are web-only (`@app/ui/place`, imported by the app's .web.ts modules alone)
+// (T385) the water header's Share: the reload address on the production site (`./place`'s linkSearch, through it)
+export * from "./share";
 export * from "./mapModes";
 export * from "./conditionsColour";
 // (T376) the watershed group a Conditions view is about: the map centre's, a water's own

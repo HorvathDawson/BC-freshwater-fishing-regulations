@@ -112,6 +112,11 @@ export function openWalkthroughStore(): { read(): string | null; write(text: str
   return fileStore("walkthrough.txt");
 }
 
+/** (T384) Whether the first open has asked for the reader's location ("asked"), a small file of its own: asked once. */
+export function openLocationAskStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("location-ask.txt");
+}
+
 /** (T247) The recent searches (a JSON list), a small file of its own; device-only. */
 export function openRecentSearchStore(): { read(): string | null; write(text: string): void } {
   return fileStore("recent-searches.json");

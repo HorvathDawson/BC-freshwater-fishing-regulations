@@ -22,7 +22,7 @@ import { OBSTACLE_ICON_GRID, OBSTACLE_ICON_HALO, OBSTACLE_ICON_SHAPES, obstacleI
 export type IconName =
   | "map" | "conditions" | "spots" | "more" | "layers" | "locate"
   | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse" | "sync" | "bell" | "check" | "fish" | "delta"
-  | "runs" | "play" | "pause"
+  | "runs" | "play" | "pause" | "share"
   // (T284) the sky, for a day of weather
   | "sun" | "cloud" | "cloudSun" | "cloudRain" | "cloudDrizzle" | "cloudSnow" | "cloudFog" | "cloudStorm";
 
@@ -49,6 +49,7 @@ export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
   delta: "trending-up-down",
   runs: "fish-symbol",
   play: "play",
+  share: "share-2",
   pause: "pause",
   sun: "sun", cloud: "cloud", cloudSun: "cloud-sun", cloudRain: "cloud-rain", cloudDrizzle: "cloud-drizzle",
   cloudSnow: "cloud-snow", cloudFog: "cloud-fog", cloudStorm: "cloud-lightning",
@@ -152,6 +153,13 @@ export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
   runs: [{ path: "M2 16s9-15 20-4C11 23 2 8 2 8" }],
   // (T261) the Runs date slider's play / pause
   play: [{ polygon: "6 3 20 12 6 21 6 3" }],
+  share: [
+    { circle: [18, 5, 3] },
+    { circle: [6, 12, 3] },
+    { circle: [18, 19, 3] },
+    { path: "M8.59 13.51 15.42 17.49" },
+    { path: "M15.41 6.51 8.59 10.49" },
+  ],
   pause: [
     { rect: [14, 4, 4, 16, 1] },
     { rect: [6, 4, 4, 16, 1] },

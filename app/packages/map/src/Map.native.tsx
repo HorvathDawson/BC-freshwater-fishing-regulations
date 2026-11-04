@@ -398,7 +398,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const pressed = me.centre !== centred.current;
     centred.current = me.centre;
     if (!pressed && !me.following) return;
-    renderer.easeTo({ lon: me.fix.lon, lat: me.fix.lat, zoom: Math.max(camNow.current.zoom, 15) },
+    renderer.easeTo({ lon: me.fix.lon, lat: me.fix.lat, zoom: pressed && me.zoom != null ? me.zoom : Math.max(camNow.current.zoom, 15) },
                     { duration: cameraMs(pressed ? 500 : 300) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me?.centre, me?.on, me?.following, me?.fix?.lat, me?.fix?.lon]);

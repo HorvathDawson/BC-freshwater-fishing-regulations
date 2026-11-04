@@ -360,6 +360,8 @@ export interface MapProps {
    * `following` keeps it in view; `onRelease` says the reader moved the map by hand, so following should stop.
    */
   me?: { on: boolean; fix: { lat: number; lon: number; accuracy?: number } | null; following: boolean; centre: number;
+         /** (T384) the zoom a centre goes to (the app's open, a town's scale); absent or null: street scale, or nearer */
+         zoom?: number | null;
          onRelease?: () => void } | null;
   /**
    * Several marked points at once, each with its own colour and label.

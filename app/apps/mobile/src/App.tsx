@@ -28,7 +28,7 @@ import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdat
          type UpdateService, type WaterSource } from "@app/data";
 import type { MobileDataGate, ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type ShellProps, type UpdatesLogControls } from "@app/ui-native";
@@ -38,6 +38,7 @@ import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, release
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeAddress, routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
+import { share } from "./share";
 import { resolveStart, startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
 import { trimOnPressure } from "./memoryTrim";
@@ -222,6 +223,8 @@ export default function App() {
   // T236: the first-run notice (not legal advice), once per device
   const firstRun = useMemo(() => openFirstRunStore(), []);
   const walkthrough = useMemo(() => openWalkthroughStore(), []);
+  // (T384) the first open asks for the reader's location once; this keeps that it has
+  const locationAsk = useMemo(() => openLocationAskStore(), []);
   const recentSearches = useMemo(() => openRecentSearchStore(), []);
   // (T261) the species the Runs tab paints, kept between visits
   const runSpeciesStore = useMemo(() => openRunSpeciesStore(), []);
@@ -584,7 +587,7 @@ export default function App() {
                initialDay={place.address ? place.address.day : start?.day ?? null}
                initialHorizon={place.address ? place.address.horizon : start?.horizon ?? null} onAddress={holdAddress}
                cameraHold={place.cameras} regsStart={start?.regs ?? null} arriveAt={start?.arrive ?? null}
-               locate={locate}
+               locate={locate} locationAsk={locationAsk} share={share}
                weather={weather}
                photos={photos}
                onSaveSpot={spotsHook.save}

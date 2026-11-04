@@ -1,7 +1,8 @@
 /**
  * A water's header: the way back, and its views as ONE strip — identical on every screen a water is read on.
  *
- *   ‹ Back-to-where-you-came-from                                   ×   (× leaves every water: owner 2026-10-22 late)
+ *   ‹ Back-to-where-you-came-from                              share  ×   (× leaves every water: owner 2026-10-22 late;
+ *                                                                          share sends its web link: T385)
  *   Regulations   Conditions   Map         (the selected view underscored in ink: the regs header's tabs, v11)
  *
  * ONE ORDER, LEFT TO RIGHT, and it is the swipe's (`@app/core` `WATER_VIEWS`): a finger moving left brings in the
@@ -47,6 +48,7 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
   const back = ctx?.onBack ?? onBack;
   const label = ctx?.backLabel ?? backLabel ?? WATER_BACK;
   const close = ctx?.close ?? null;
+  const share = ctx?.share ?? null;
 
   return (
     <View style={{ gap: SPACE.s1 }}>
@@ -60,15 +62,32 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
               <IconText name="back" text={label} style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }} />
             </Pressable>
           ) : <View />}
-          {close && (
-            // (owner 2026-10-22 late) one tap out of every water, to the tab the first was opened from; 32 drawn,
-            // 44 × 44 to the touch, at the row's right edge where a sheet's × sits
-            <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={ctx!.closeLabel}
-                       testID="water-close" {...hitProps({ w: 32, h: 32 })}
-                       style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
-              <Icon name="close" colour={palette.sub} size={20} />
-            </Pressable>
-          )}
+          {/* (T385) the right end: what Share said, Share, and × */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, flexShrink: 1 }}>
+            {share?.said && (
+              // (T385) "Link copied", or why it could not be shared: in the row, beside the control it answers
+              <Text testID="water-share-said" accessibilityLiveRegion="polite" numberOfLines={2}
+                    style={{ ...TYPE.meta, flexShrink: 1, textAlign: "right", color: palette.sub }}>{share.said}</Text>
+            )}
+            {share && (
+              // (T385) the phone's share sheet (the web's, else the link copied): 32 drawn, 44 × 44 to the touch
+              <Pressable onPress={share.press} accessibilityRole="button" accessibilityLabel={share.label}
+                         aria-disabled={share.busy} disabled={share.busy}
+                         testID="water-share" {...hitProps({ w: 32, h: 32 })}
+                         style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
+                <Icon name="share" colour={palette.accent} size={18} />
+              </Pressable>
+            )}
+            {close && (
+              // (owner 2026-10-22 late) one tap out of every water, to the tab the first was opened from; 32 drawn,
+              // 44 × 44 to the touch, at the row's right edge where a sheet's × sits
+              <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={ctx!.closeLabel}
+                         testID="water-close" {...hitProps({ w: 32, h: 32 })}
+                         style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
+                <Icon name="close" colour={palette.sub} size={20} />
+              </Pressable>
+            )}
+          </View>
         </View>
       )}
       <ViewTabs palette={palette} views={views} on={on} onView={pick} />

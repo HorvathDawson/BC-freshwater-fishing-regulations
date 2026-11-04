@@ -47,7 +47,7 @@ export function useMe({ map }: WebMapRefs, me: MapProps["me"], theme: string) {
     const pressed = me.centre !== lastCentre.current;
     lastCentre.current = me.centre;
     if (!pressed && !me.following) return;
-    m.easeTo({ center: [fix.lon, fix.lat], zoom: Math.max(m.getZoom(), CENTRE_ZOOM),
+    m.easeTo({ center: [fix.lon, fix.lat], zoom: pressed && me.zoom != null ? me.zoom : Math.max(m.getZoom(), CENTRE_ZOOM),
                duration: pressed ? cameraMs(500) : cameraMs(300), essential: false });
   }, [me?.centre, me?.following, fix?.lat, fix?.lon]);
 
