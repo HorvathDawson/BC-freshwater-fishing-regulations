@@ -90,26 +90,46 @@ export function localStamp(ms: number, zone?: string): string {
 }
 
 /**
- * (owner 2026-11-04: "bc time makes sense") THE REGULATIONS' CLOCK. A day of the regulations is a B.C. day, so "today" is
- * the date on a Vancouver clock wherever the phone is (an Alberta phone at 23:30 is still on B.C.'s today, an hour
- * before midnight). Pacific for the whole province: the book's days are not split by the Kootenay / Peace clocks.
+ * (owner 2026-11-04: "bc time makes sense") THE REGULATIONS' CLOCK, ONE FOR THE PROVINCE. A day of the regulations is a
+ * B.C. day, so "today" is B.C.'s date wherever the phone is (an Alberta phone near midnight is still on B.C.'s today).
+ *
+ * B.C. TIME IS UTC−7 ALL YEAR from 8 March 2026 (the province's permanent "Pacific time": the spring-forward that day
+ * was the last change; 1 Nov 2026 has none). Before it, Pacific standard / daylight (UTC−8 / −7, second Sunday of March
+ * to first Sunday of November, 02:00). WRITTEN HERE, NOT READ FROM THE DEVICE'S ZONE DATA: the tz databases shipping in
+ * 2026 (2026a: Node, many phones) still turn `America/Vancouver` back to UTC−8 on 1 Nov 2026, which would put the
+ * province's day an hour wrong all winter. The south-east (Golden, part of the East Kootenay) keeps its own clock by
+ * local choice; the regulations' day is still the province's.
  */
-export const BC_ZONE = "America/Vancouver";
+export const BC_PERMANENT_FROM = Date.UTC(2026, 2, 8, 10);      // 02:00 PST on 8 Mar 2026: UTC−7 from then on
+export const BC_TIME_LABEL = "PT";
 
-/**
- * Now on the B.C. clock, as a Date whose LOCAL fields (getFullYear … getMinutes) are B.C.'s wall clock — the shape every
- * day-deciding reader takes (`Day`, `dayRange`, `regsDay`). For deciding which DAY it is, never for elapsed time (an
- * instant is `Date.now()`). No zone data on the device: its own clock, reported once (`zonedParts`).
- */
-export function bcNow(ms: number = Date.now()): Date {
-  const z = zonedParts(ms, BC_ZONE);
-  return new Date(z.y, z.mo - 1, z.d, z.h, z.mi);
+/** B.C.'s offset from UTC at an instant, in hours (−7, or −8 under the old standard time before 8 Mar 2026). */
+export function bcOffsetHours(ms: number): number {
+  if (ms >= BC_PERMANENT_FROM) return -7;
+  const y = new Date(ms).getUTCFullYear();
+  const sunday = (month: number, nth: number) => {            // the nth Sunday of `month`, 02:00 local, as UTC ms
+    const first = new Date(Date.UTC(y, month, 1)).getUTCDay();
+    return Date.UTC(y, month, 1 + ((7 - first) % 7) + 7 * (nth - 1));
+  };
+  const springs = sunday(2, 2) + 10 * 3_600_000;                // 02:00 PST = 10:00 UTC
+  const falls = sunday(10, 1) + 9 * 3_600_000;                  // 02:00 PDT = 09:00 UTC
+  return ms >= springs && ms < falls ? -7 : -8;
 }
 
-/** "16:41 PST": an instant on the B.C. clock, labelled. */
+/**
+ * THE ONE SOURCE OF THE REGULATIONS' DAY: now on the B.C. clock, as a Date whose LOCAL fields (getFullYear …
+ * getMinutes) are B.C.'s wall clock — the shape every day-deciding reader takes (`Day`, `dayRange`, `regsDay`). For
+ * deciding which DAY it is, never for elapsed time (an instant is `Date.now()`).
+ */
+export function bcNow(ms: number = Date.now()): Date {
+  const w = new Date(ms + bcOffsetHours(ms) * 3_600_000);
+  return new Date(w.getUTCFullYear(), w.getUTCMonth(), w.getUTCDate(), w.getUTCHours(), w.getUTCMinutes());
+}
+
+/** "16:41 PT": an instant on the B.C. clock, labelled. */
 export function bcClockTime(ms: number): string {
-  const z = zonedParts(ms, BC_ZONE);
-  return `${pad2(z.h)}:${pad2(z.mi)} ${z.tz}`;
+  const w = new Date(ms + bcOffsetHours(ms) * 3_600_000);
+  return `${pad2(w.getUTCHours())}:${pad2(w.getUTCMinutes())} ${BC_TIME_LABEL}`;
 }
 
 /** An instant's calendar and clock in `zone` (the device's when left out), with the zone's short label. */

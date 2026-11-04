@@ -35,11 +35,11 @@ export function sunTimes(lat: number, lon: number, y: number, m: number, d: numb
 }
 
 export const SUN_WORDS = {
-  /** "Sunrise 07:12 PST · sunset 16:41 PST" */
+  /** "Sunrise 08:02 PT · sunset 17:41 PT" */
   line: (rise: string, set: string) => `Sunrise ${rise} · sunset ${set}`,
 } as const;
 
-/** The day's line at a point, on the B.C. clock: "Sunrise 07:12 PST · sunset 16:41 PST"; null with no rise or set. */
+/** The day's line at a point, on the B.C. clock: "Sunrise 08:02 PT · sunset 17:41 PT"; null with no rise or set. */
 export function sunLine(lat: number, lon: number, day: { y: number; m: number; d: number }): string | null {
   const t = sunTimes(lat, lon, day.y, day.m, day.d);
   return t.rise === null || t.set === null ? null : SUN_WORDS.line(bcClockTime(t.rise), bcClockTime(t.set));
