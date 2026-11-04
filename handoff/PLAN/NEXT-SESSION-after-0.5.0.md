@@ -34,9 +34,6 @@ for the whole tree: pipeline, worker, core, ui, ui-native, map.
    unfiltered (`rtk proxy`). Fix what's red, or ticket it. Known flake: `Walkthrough.test.tsx` "Layers … Next puts
    them back" fails under the parallel suite and passes alone (2 s `waitFor`s).
 3. **`graphify update .`**: the graph was not updated after the 0.5.0 changes.
-4. **One owner step, only if it's still there:** a Vitest worker (PID 41624) and its Python child (41668) hung on
-   2026-11-04, and the permission check would not let Claude stop them. Check with `ps -p 41624,41668`. If they're
-   still alive, ask the owner to run `kill 41668 41624`.
 
 ## Then the work, roughly in this order
 1. **New crashes from testing:** T351 when a 0.5.0 crash report names its screen; any new one from Closed testing.
