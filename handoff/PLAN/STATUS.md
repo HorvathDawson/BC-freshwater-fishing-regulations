@@ -33,7 +33,10 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
     texts, one extraction regression → T415).
   - A new book re-parses only changed rows, so your curation carries over.
 - **`decided/` is gone (T266/T325):** marks now go straight to the final file. The apply dry run is unchanged.
-- **Running now:** the one release command, `pipeline release --staging` (T295/T297).
+- **T337 done:** each build checks every DFO place's water against the map and stops, naming the place, if one is gone.
+  Today all 191 resolve. No manual matching step remains.
+- **Running now:** the one release command, `pipeline release --staging` (T295/T297). Then the curated renames and
+  clean-up (T324), which touch the same code.
 
 ## 2026-11-05: 0.6.0 built for Play internal; handoff ready
 - **0.6.0:** version + changelog committed (1590e08d6). On Play internal: versionCode 9 (97459e986), play.json
