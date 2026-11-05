@@ -106,3 +106,10 @@ Release **r-46be3c135e68** (LATEST; tiles db853e9556df81a6.16b3906b04bf, basemap
 - Production today (curl 2026-11-05): canifishthis.com + www.canifishthis.com already 301 to https://canifishthis.ca with
   path + query (an owner redirect rule); **www.canifishthis.ca 301s to `/` and drops the path** (fix: OWNER-TODO);
   http → https 301; no HSTS yet (v1 site).
+
+## Phase D (2026-11-05 UTC): T405 hand-over + T406 PNG cards on staging
+- Clean worktree at 08837f197: `export:web:staging`, `build-seo.mjs --release-dir data/release/r-5a5999c94588 --app app/dist/web-staging
+  --threads 4 --previous app/dist/seo-snapshots/r-d458fbe165ac.json` (979 s; 19,927 pages, 19,635 waters, largest 13,184 B gzip, p95
+  10,878 B, 19,635 share PNGs 531 MB, budget problems 0), `deploy/staging/site.sh` → version ffb4f71f (upload 292 s), smoke 18/18.
+- Lighthouse mobile (water pages): Performance 76-82 (was 40-45), LCP 2.2-3.7 s, CLS 0.002, TBT 350-520 ms, A11y 100. Record and
+  the owner's options: T405.
