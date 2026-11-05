@@ -10,7 +10,7 @@ import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, TEMP_LEGEND, unprovenLine,
          WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND,
          RUN_WORDS, salmonCheckedLine, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
-import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map/colours";
+import { closedCueColour, gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map/colours";
 import { Icon, ObstacleIcon } from "../icons";
 import { hitProps } from "../regs/hit";
 import { useMemo, useState } from "react";
@@ -57,11 +57,12 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     : {});
   const statusRows = WATER_STATUSES.map((s) => (
     <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]} tight
-                 line dotted={WATER_STATUS_LINE[s] === "dotted"}
+                 line dotted={WATER_STATUS_LINE[s] === "dotted"} striped={s === "closed" ? closedCueColour(theme) : undefined}
                  label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} {...tap(s)} />
   ));
   const salmonRows = salmonLegend().map((r) => (
     <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line tight
+                 striped={r.status === "closed" ? closedCueColour(theme) : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
   const strip = (

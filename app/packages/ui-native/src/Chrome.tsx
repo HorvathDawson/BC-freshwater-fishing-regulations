@@ -80,6 +80,19 @@ export function DottedSwatch({ colour, width = 14, thick = 3 }: { colour: string
 }
 
 /**
+ * (T377) A STRIPED line swatch, the same box as a solid one: the line's colour with short dashes of `stripe` down its
+ * middle, closed's stripe at legend size (Views, so it draws the same on web and native).
+ */
+export function StripedSwatch({ colour, stripe, width = 14, thick = 4 }: { colour: string; stripe: string; width?: number; thick?: number }) {
+  return (
+    <View testID="swatch-striped" style={{ width, height: thick, backgroundColor: colour, flexDirection: "row",
+                                            alignItems: "center", justifyContent: "space-evenly" }}>
+      {[0, 1].map((i) => <View key={i} style={{ width: 2, height: Math.max(1, Math.round(thick * 0.4)), backgroundColor: stripe }} />)}
+    </View>
+  );
+}
+
+/**
  * (T396) THE REGULATIONS KEY'S MEASURES, in Trout & more and in Salmon alike: the wrap strip's side padding, and a tight
  * entry's swatch widths, the gap to its label and the gap between entries. Chosen so Trout & more's longer row (No
  * access · Fly only · Bait ban · Not fishable, in Archivo at `LEGEND_TEXT`) fits a 390 dp phone with room to spare —
@@ -106,7 +119,7 @@ export function LegendRows({ rows }: { rows: readonly React.ReactNode[] }) {
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, edge, rim, tight, onPress, alone, faded }:
+export function LegendCount({ palette, colour, n, label, line, dotted, striped, edge, rim, tight, onPress, alone, faded }:
   { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
@@ -115,6 +128,8 @@ export function LegendCount({ palette, colour, n, label, line, dotted, edge, rim
     line?: boolean;
     /** (T165) the line DOTTED, as the map draws no public access (`WATER_STATUS_LINE`) */
     dotted?: boolean;
+    /** (T377) the line STRIPED down its middle with dashes in this colour, as the map draws closed (`closedCuePaint`) */
+    striped?: string;
     /**
      * (T213) a GEAR MARK's key: the edge the map draws round a line of any status colour, in `colour` (the gear ink) —
      * a hollow line, solid for fly fishing only, dashed for a bait ban. No fill: the mark rides on every status.
@@ -135,7 +150,8 @@ export function LegendCount({ palette, colour, n, label, line, dotted, edge, rim
       {edge ? <View testID={`legend-edge-${edge}`}
                     style={{ width: tight ? LEGEND_ROWS.edge : 22, height: 10, borderWidth: 1.5, borderColor: colour,
                              borderStyle: edge }} />
-        : line && dotted ? <DottedSwatch colour={colour} width={lineW} thick={4} /> : <View style={line
+        : line && dotted ? <DottedSwatch colour={colour} width={lineW} thick={4} />
+        : line && striped ? <StripedSwatch colour={colour} stripe={striped} width={lineW} /> : <View style={line
         ? { width: lineW, height: 4, backgroundColor: colour }
         : { width: 12, height: 12, borderRadius: palette.r.chip, backgroundColor: colour,
             ...(rim ? { borderWidth: 1, borderColor: rim, borderStyle: "dashed" as const } : {}) }}

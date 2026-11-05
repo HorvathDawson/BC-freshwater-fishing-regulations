@@ -2944,6 +2944,11 @@
       "dash.run.pass": [
         2,
         1.5
+      ],
+      "color.cue.closed": "#F8F8F2",
+      "dash.cue.closed": [
+        2,
+        3
       ]
     },
     "dark": {
@@ -3108,6 +3113,11 @@
       "dash.run.pass": [
         2,
         1.5
+      ],
+      "color.cue.closed": "#0A0B0D",
+      "dash.cue.closed": [
+        2,
+        3
       ]
     },
     "light": {
@@ -3272,6 +3282,11 @@
       "dash.run.pass": [
         2,
         1.5
+      ],
+      "color.cue.closed": "#F8F8F2",
+      "dash.cue.closed": [
+        2,
+        3
       ]
     }
   },
@@ -3964,6 +3979,16 @@
       "type": "dash",
       "themeable": true,
       "$comment": "(T199) RUN TIMING (the Map tab's Run timing mode, owner 2026-10-28): the passing run's dash, in line widths: long dashes, so a thin line still reads as a broken one."
+    },
+    "color.cue.closed": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T377) CLOSED'S SECOND CUE, besides its colour: a dashed stripe down the middle of a closed stream (paint.ts `CLOSED_CUE_LAYER`), in the paper's colour, so a closed line reads as a BROKEN line for a reader who cannot tell its red from the other statuses. The paper (`color.outside`) in every theme: it reads as gaps cut into the line, never as a hue of its own."
+    },
+    "dash.cue.closed": {
+      "type": "dash",
+      "themeable": true,
+      "$comment": "(T377) closed's stripe, in the stripe's own widths: short dashes with long gaps, so it reads as ticks along the line and never as the no-access dots (which replace the line) or a bait ban's dashed edge (which rides outside it)."
     }
   },
   "enums": {

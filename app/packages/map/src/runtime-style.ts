@@ -20,7 +20,7 @@ import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { OUR_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
-import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
@@ -278,6 +278,18 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       layout: { "line-cap": "butt" as const, "line-join": "round" as const },
       paint: runsPassPaint(mode ?? "plain", resolveTheme(theme),
                            (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]),
+    },
+    /*
+     * (T377) CLOSED, STRIPED (`closedCuePaint`): a dashed stripe in the paper's colour down a closed stream — closed's
+     * cue besides its colour. Over the stream line, shown only where its mode and day paint the section closed; built
+     * with no day (nothing is closed until a day is installed), so the first frame draws none.
+     */
+    {
+      id: CLOSED_CUE_LAYER, type: "line" as const, source: "atlas",
+      "source-layer": "stream",
+      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+      paint: closedCuePaint(mode ?? "plain", resolveTheme(theme), NO_VALUES,
+                            (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]),
     }];
   }) as { id: string; type?: string }[];
 

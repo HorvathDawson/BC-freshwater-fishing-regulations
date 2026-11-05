@@ -325,6 +325,13 @@ export function gearEdgeColour(theme: string): string {
   return hex;
 }
 
+/** (T377) Closed's stripe (its cue besides colour) in one theme — the legend's swatch draws it on the Closed line. */
+export function closedCueColour(theme: string): string {
+  const hex = resolveTheme(theme)["color.cue.closed"];
+  if (typeof hex !== "string") throw new Error(`theme "${theme}" has no closed cue`);
+  return hex;
+}
+
 /** (T248) The fill and edge the map paints tidal water with in one theme — the Help page's swatch for it. */
 export function tidalColours(theme: string): { fill: string; edge: string } {
   const t = resolveTheme(theme);

@@ -242,6 +242,43 @@ export function runsPassPaint(mode: string, tokens: Tokens, streamWidth?: unknow
   };
 }
 
+/**
+ * (T377) CLOSED HAS A SECOND CUE BESIDES ITS COLOUR (map-UI research, a proposal for the owner): a dashed stripe down the
+ * middle of a closed stream, in the paper's colour (`color.cue.closed`), so the line reads as broken — whatever
+ * the reader can tell of its red. Its own runtime layer over the stream line, for the same reason as the no-access dots
+ * (`line-dasharray` cannot vary per feature), shown only where the stream's own mode paints the section closed: the
+ * profile day's `closed` labels (Standard: the status day; Salmon: the salmon day, whose closed is "closed to salmon"),
+ * or a categorical mode's `closed` member. Never a second test of a rule. Lakes keep colour alone (a fill has no line).
+ */
+export const CLOSED_CUE_LAYER = "stream-closed";
+
+/** Where `mode` paints a stream section closed, as a boolean expression; null where the mode never does. */
+export function closedShown(layerId: string, mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  if (!m || !("categories" in m) || !m.categories["closed"]) return null;
+  if (m.scale === "profile") {
+    const labels = profileDay(m, values)?.["closed"] ?? [];
+    return labels.length ? ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]] : null;
+  }
+  if (m.scale === "categorical") return ["==", ["feature-state", m.property], "closed"];
+  return null;
+}
+
+/** the stripe's width as a share of the stream line's: the line's colour stays the edges either side */
+export const CLOSED_CUE_SHARE = 0.4;
+
+/** The stripe's paint: under half the stream's own width (`streamWidth`), the paper's colour, short dashes. */
+export function closedCuePaint(mode: string, tokens: Tokens, values: ChannelValues | null = NO_VALUES,
+                               streamWidth?: unknown): Record<string, unknown> {
+  const shown = closedShown("stream", mode, values);
+  return {
+    "line-color": tokens["color.cue.closed"],
+    "line-width": streamWidth !== undefined ? withinZoomCurve(streamWidth, (w) => ["*", w, CLOSED_CUE_SHARE])
+      : ["interpolate", ["linear"], ["zoom"], 6, 0.5, 10, 0.8, 14, 1.4],
+    "line-dasharray": tokens["dash.cue.closed"],
+    "line-opacity": shown === null ? 0 : ["case", shown, 1, 0],
+  };
+}
 /** The MapLibre paint property that carries colour, per layer type. */
 // Module-private: an implementation detail of `paintFor`.
 function colourPropFor(type: string | undefined): string {

@@ -163,6 +163,11 @@
     "dash.run.pass": [
       2,
       1.5
+    ],
+    "color.cue.closed": "@color.outside",
+    "dash.cue.closed": [
+      2,
+      3
     ]
   }
 }

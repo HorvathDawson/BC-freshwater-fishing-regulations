@@ -16,7 +16,7 @@ import {
   MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer, profileChannel,
   resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
-import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
+import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS, type SelectionCue } from "../paint";
 
 export type { ChannelValues } from "../style";
@@ -209,6 +209,9 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       // (T199) a passing run's dash: the stream's mode and width
       for (const [prop, value] of Object.entries(runsPassPaint(mode, tokens, out["line-width"])))
         h.setPaint(RUNS_PASS_LAYER, prop, value);
+      // (T377) closed's stripe: the stream's mode, its day and width
+      for (const [prop, value] of Object.entries(closedCuePaint(mode, tokens, values, out["line-width"])))
+        h.setPaint(CLOSED_CUE_LAYER, prop, value);
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's
       for (const [prop, value] of Object.entries(casingPaint(out["line-width"], tokens)))
         h.setPaint(SELECTION_CASING, prop, value);
