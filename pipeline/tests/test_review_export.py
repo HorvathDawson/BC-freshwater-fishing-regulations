@@ -38,7 +38,7 @@ def test_there_is_no_decided_data_directory():
 
 def test_load_is_what_the_marks_decide_less_the_closed_domains():
     from pipeline.regs.review import closed as C
-    want = E.decide(M.load(CURATED.regulations.review.marks))
+    want = E.decide(M.load(CURATED.review.marks))
     got = E.load()
     shut = C.scopes()                     # T325: a CLOSED domain (ponds, T329) is left out
     open_ = [m for m in want.inforce if m.scope not in shut]
@@ -47,7 +47,7 @@ def test_load_is_what_the_marks_decide_less_the_closed_domains():
     assert [(g["id"], g["split"], g["members"], g["marks"]) for g in got.groups] == \
         [(g["id"], g["split"], g["members"], g["marks"]) for g in want.groups]
     assert got.shared() == M.proposals(  # the shared cuts, as the marks module makes them from the history
-        list(_early(want)) + M.load(CURATED.regulations.review.marks))
+        list(_early(want)) + M.load(CURATED.review.marks))
 
 
 def _early(d):

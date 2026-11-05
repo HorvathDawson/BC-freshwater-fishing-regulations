@@ -1,4 +1,5 @@
 {
+ "_about": "THE OWNER'S SLOUGH PAGE CALLS (was sloughs/page-marks-2026-10-28.json; T324): the retired slough review page's database, read once on 2026-10-28 — the owner's per-candidate `verdicts` and `spotcheck` notes. Frozen: no program writes it. Read by `pipeline.regs.review.slough.page_note` (CURATED.waters.slough_page_calls) to show the owner's old note on a candidate in the review app; no build stage reads it.",
  "read": "2026-10-28 ArtifactData list (read-only) of https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 before its retirement",
  "spotcheck": {
   "328964356": {

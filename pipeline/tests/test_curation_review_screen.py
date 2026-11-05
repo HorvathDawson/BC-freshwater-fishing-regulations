@@ -50,9 +50,9 @@ def env(request, tmp_path_factory):
     root = tmp_path_factory.mktemp("screen")
     cat = root / "catalogue"
     cat.mkdir()
-    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
         shutil.copy2(p, cat / p.name)
-    shutil.copy2(CURATED.waters.splits, root / "splits.json")
+    shutil.copy2(CURATED.waters.cuts, root / "splits.json")
     (root / "marks.jsonl").write_text("")
     # the sidecar, made by the helper itself for page 16 (Adam River's page)
     from pipeline.common.synopsis_pages import default_pdf

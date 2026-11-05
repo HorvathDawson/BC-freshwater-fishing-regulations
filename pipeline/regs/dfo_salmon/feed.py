@@ -9,7 +9,7 @@ quota. The reason is measured rather than stylistic — Region 6 held 77/77 wate
 while its rules churned +110/-97, so a run that rewrote curated data every time would be rewriting
 a file whose durable half never moved.
 
-    curated   data/curated/regulations/entries/dfo_salmon/   locators: item, cut-points, tributaries
+    curated   data/curated/dfo_salmon/places/   locators: item, cut-points, tributaries
     feed      data/generated/regs/dfo_salmon/typed/          rules: species, dates, limits, gear
     join      EntryFile.by_fingerprint()                     fingerprint -> location_id -> geometry
 

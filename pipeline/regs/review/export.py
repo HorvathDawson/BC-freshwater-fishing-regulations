@@ -7,12 +7,12 @@
 `provenance` — {mark: sha256 of its line (12 hex), line: its line number, reviewer, date, source} — and every
 distinct cut an uncleared mark proposed (`marks.proposal_groups`, the shared-cut history). The domains:
 
-    tidal       scope tidal: the tidal boundaries          -> tools.tidal_limits    -> waters/tidal.json
-    dfo         scope dfo: DFO extent fixes and new cuts   -> apply_proposals       -> entries/dfo_salmon (+ splits.json)
-    entries     scopes entry / rule                        -> apply_proposals       -> entries/catalogue (+ splits.json)
-    splits      scope split: calls on existing cuts        -> apply_proposals       -> waters/splits.json
+    tidal       scope tidal: the tidal boundaries          -> tools.tidal_limits    -> waters/tidal_limits.json
+    dfo         scope dfo: DFO extent fixes and new cuts   -> apply_proposals       -> dfo_salmon/places (+ waters/cuts.json)
+    entries     scopes entry / rule                        -> apply_proposals       -> regulations/synopsis (+ waters/cuts.json)
+    splits      scope split: calls on existing cuts        -> apply_proposals       -> waters/cuts.json
     sloughs     scope slough: stream / not stream (T55)    -> tools.slough_calls    -> waters/slough_calls.json
-    names       scope name: accept / reject (T224)         -> tools.mined_names     -> waters/mined_names.json
+    names       scope name: accept / reject (T224)         -> tools.mined_names     -> waters/found_names.json
     ponds       scope q154 — CLOSED 2026-10-30 (T329)
     proposals   scope proposal (the retired accept step) — CLOSED (T331)
 
@@ -81,7 +81,7 @@ class Decided:
 def decide(marks: Iterable[M.Mark], *, tidal_decisions: Optional[Path] = None,
            source: str = "marks.jsonl", candidates: Optional[Path] = None) -> Decided:
     """export(marks) in memory. `tidal_decisions`: a file of tidal calls made before the Tidal tab, folded in
-    before the marks (None, the default since T326: the owner's calls live in `waters/tidal.json` as rows with no
+    before the marks (None, the default since T326: the owner's calls live in `waters/tidal_limits.json` as rows with no
     mark, and the three pre-tab calls are all superseded by marks)."""
     from pipeline.regs.review import proposals as P
     early = P.tidal_decision_marks(tidal_decisions, candidates) if tidal_decisions else []
@@ -126,7 +126,7 @@ def load(marks: Optional[Path] = None, closed: Optional[Iterable[str]] = None) -
     from pipeline.common.curated import CURATED
     from pipeline.regs.review import closed as C
     shut = C.domains(C.path(marks)) if closed is None else frozenset(closed)
-    d = decide(M.load(marks or CURATED.regulations.review.marks))
+    d = decide(M.load(marks or CURATED.review.marks))
     gone = {s for dom in shut for s in DOMAINS.get(dom, ())}
     if not gone:
         return d

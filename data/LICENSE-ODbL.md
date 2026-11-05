@@ -27,8 +27,8 @@ Each JSON file below holds its own licence record in a top-level `_licence` key:
 | `data/source/municipal/osm_streams.geojson` | every feature (Northrop Channel) | Overpass, by hand (T222) |
 | `data/curated/waters/added_streams.json` | entries in `streams[]` and `name_variants[]` with `source: "osm"` (Northrop Channel, blk -2300000000). The other entries come from city layers. | built from `osm_streams.geojson` |
 | `data/curated/waters/added_lakes.geojson` | features with `properties.source: "osm"`: ids 2 Marsh Pond, 3 Children's Fishing Pond, 4 Cheam Lake, 5 Minnekhada Marsh, 6 Cahilty Lake (their polygons) | Overpass, reviewed by hand 2026-09-03 |
-| `data/curated/waters/mined_names.json` | each `entries[].names[]` record with `source: "osm"` (182 names). The `municipal` and `gauge` records are not OSM data. | mined from the Protomaps basemap, which is OSM (T224) |
-| `data/curated/waters/splits.json` | the anchor `coord` of the 52 splits listed in `_licence.ids`. Each was placed on an OSM bridge, dam, weir, falls, rail line or road crossing. | OSM way/node named in the split's `_note`, or an `[osm-candidate]` road × river intersection |
+| `data/curated/waters/found_names.json` | each `entries[].names[]` record with `source: "osm"` (182 names). The `municipal` and `gauge` records are not OSM data. | mined from the Protomaps basemap, which is OSM (T224) |
+| `data/curated/waters/cuts.json` | the anchor `coord` of the 52 splits listed in `_licence.ids`. Each was placed on an OSM bridge, dam, weir, falls, rail line or road crossing. | OSM way/node named in the split's `_note`, or an `[osm-candidate]` road × river intersection |
 | `data/generated/review/tidal/tidal-osm-landmarks.json` | every way in `ways` (curation working file, not shipped) | Overpass, `pipeline/tools/audit/tidal_words.py osm` |
 
 ## Built from OpenStreetMap but not committed
@@ -43,7 +43,7 @@ published tiles.
 | `land_access` (restricted and permit-only land: Coquitlam and other municipal watersheds, DND land, private nature reserves, and the Malcolm Knapp Research Forest, which is geocoded from OSM by name) | tile layer `no_access`; bundle tables `access_area` / `section_access` | Overpass + OSM Nominatim (`fetch_overpass_land_access`) |
 | `aboriginal_lands` (Indian reserves and treaty lands) | tile layer `indigenous_land`; bundle `access_area` (tier `reserve`) | Overpass (`fetch_overpass_aboriginal_lands`) |
 | `bc_places.json` (above) | bundle `place` table (search) and the `near` place-to-water table | — |
-| `mined_names.json`, `added_*` (above) | names and shapes in the atlas tiles and the bundle | — |
+| `found_names.json`, `added_*` (above) | names and shapes in the atlas tiles and the bundle | — |
 
 Snapshot bundles kept for development under `app/packages/data/dev/*-release/` contain these same tables.
 

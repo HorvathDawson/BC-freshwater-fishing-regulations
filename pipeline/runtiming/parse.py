@@ -321,4 +321,4 @@ if __name__ == "__main__":
     ap.add_argument("--polygons", type=Path, default=GENERATED.runtiming / "cu_polygons.geojson")
     ap.add_argument("--no-polygons", action="store_true", help="leave the CU polygons as they are")
     a = ap.parse_args()
-    main(a.src, a.out, None if a.no_polygons else a.polygons, CURATED.runtiming.review)
+    main(a.src, a.out, None if a.no_polygons else a.polygons, CURATED.runtiming.run_calls)

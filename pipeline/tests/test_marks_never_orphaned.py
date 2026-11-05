@@ -135,7 +135,7 @@ def test_no_owner_mark_is_orphaned_or_dropped_live():
     name lists must never orphan an owner mark, and a DFO mark must never fall out of done because
     its own fix landed. Fails listing every orphan / stale DFO mark with what it said."""
     from pipeline.common.curated import CURATED
-    path = Path(CURATED.regulations.review.marks)
+    path = Path(CURATED.review.marks)
     assert path.exists(), f"no marks store at {path} — it is curated, in git"
     marks = [m for m in M.load(path) if m.scope in CHEAP_SCOPES]
     src = P.Sources.live()

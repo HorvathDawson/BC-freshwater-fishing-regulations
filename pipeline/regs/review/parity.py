@@ -2,7 +2,7 @@
 rule exactly as the reach run that ships did?
 
     python -m pipeline.regs.review.parity --reach data/generated/reaches/full [--json out.json]
-        [--build data/generated/atlas/full] [--entries data/curated/regulations/entries/catalogue]
+        [--build data/generated/atlas/full] [--entries data/curated/regulations/synopsis]
 
 A reviewer signs off on what the review app shows (`reuse.entry_reaches` -> `reach.build.build_reach`,
 one entry at a time); the bundle ships what the reach run bound (`reach.build.build_reaches`, the
@@ -213,7 +213,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--build", type=Path, default=GENERATED.build(), help="the atlas (default: the live one)")
     ap.add_argument("--reach", type=Path, default=None,
                     help="the reach run made on it (default: data/generated/reaches/<build name>)")
-    ap.add_argument("--entries", type=Path, default=CURATED.regulations.entries.catalogue)
+    ap.add_argument("--entries", type=Path, default=CURATED.regulations.synopsis)
     ap.add_argument("--json", type=Path, help="write every difference and the summary here")
     ap.add_argument("--only", nargs="*", help="these entry ids only (a spot check)")
     a = ap.parse_args(argv)

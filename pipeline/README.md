@@ -76,7 +76,7 @@ bash pipeline/regs/parsing/run_parse.sh parse-dry         # export batches only 
 bash pipeline/regs/parsing/run_parse.sh all               # parse, then review (spends credits)
 ```
 
-Entries land in `data/curated/regulations/entries/catalogue/region-*.json`. An agent never runs
+Entries land in `data/curated/regulations/synopsis/region-*.json`. An agent never runs
 `parse`, `all`, `review` or `repass`: hand the command to a person.
 
 ## Curation

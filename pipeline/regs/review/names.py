@@ -35,7 +35,7 @@ SPOT_SAMPLE = 30
 SOURCE_CODE = {"osm": "osm", "eccc": "gauge", "dfo": "dfo", "synopsis": "regulation", "bcgnis_cache": "gazette"}
 
 #: OWNER DECISIONS on single rows, by candidate id (call, why, and optionally the name to store / `display`): the
-#: curated file `CURATED.waters.name_calls` (T327: moved out of this module) — read through `owner_calls()`
+#: curated file `CURATED.waters.found_name_calls` (T327: moved out of this module) — read through `owner_calls()`
 NAME_CALLS_FORMAT = "name-calls/1"
 #: owner 2026-10-29: every auto-accepted row that came in by LINE COVERAGE (>= 80 %) is the owner's accept
 COVERAGE_ACCEPTED = "owner 2026-10-29: accepted (auto rule, line coverage >= 80 %)"
@@ -69,8 +69,8 @@ def _owner_calls(p: str, _m: float) -> dict:
 
 
 def owner_calls() -> dict:
-    """THE OWNER'S CALLS on single candidates (`CURATED.waters.name_calls`), by candidate id. A missing file raises."""
-    p = CURATED.waters.name_calls
+    """THE OWNER'S CALLS on single candidates (`CURATED.waters.found_name_calls`), by candidate id. A missing file raises."""
+    p = CURATED.waters.found_name_calls
     return _owner_calls(str(p), p.stat().st_mtime)
 
 

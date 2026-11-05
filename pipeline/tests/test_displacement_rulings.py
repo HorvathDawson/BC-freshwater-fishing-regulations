@@ -112,7 +112,7 @@ def test_no_catalogue_rule_carries_a_take_no_band_uses():
     """The 39 size rules N-5 found (and 3 clauses of the same shape) are migrated; the model now
     refuses the shape, so the corpus loading is the proof."""
     from pipeline.regs.parsing.catalogue import CatalogueFile
-    cat = Path(__file__).resolve().parents[2] / "data/curated/regulations/entries/catalogue"
+    cat = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis"
     bad = []
     for p in sorted(cat.glob("region-*.json")):
         doc = json.loads(p.read_text(encoding="utf-8"))

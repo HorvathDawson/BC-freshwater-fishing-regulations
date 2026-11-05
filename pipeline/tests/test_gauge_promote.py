@@ -20,7 +20,7 @@ Mutations that fail these tests (each tried by hand, T94):
 Adversarial review (T94):
     M8  `write_match` loses its `refuse_curated` call
             -> test_write_match_refuses_both_curated_files
-    M9  `CURATED_FILES` holds only matches.json (drops candidates.json)
+    M9  `PROMOTE_FILES` holds only matches.json (drops candidates.json)
             -> test_write_match_refuses_both_curated_files
     M10 `_stations` reads a top-level JSON list with `.get` (AttributeError)
             -> test_a_top_level_list_baseline_is_refused
@@ -201,15 +201,15 @@ def test_write_match_refuses_both_curated_files(tmp_path, monkeypatch):
     spelled through `..` so a string compare would miss them."""
     import inspect
 
-    from pipeline.common.curated import CURATED
+    from pipeline.common.curated import CURATED, GENERATED
     from pipeline.gauges import matches as M
-    assert M.CURATED_FILES == (M.MATCH_FILE, CURATED.gauges.candidates)
+    assert M.PROMOTE_FILES == (M.MATCH_FILE, GENERATED.gauges.candidates)
     assert inspect.signature(M.write_match).parameters["path"].default is inspect.Parameter.empty
     (tmp_path / "curated").mkdir()
-    fakes = tuple(tmp_path / "curated" / p.name for p in M.CURATED_FILES)
+    fakes = tuple(tmp_path / "curated" / p.name for p in M.PROMOTE_FILES)
     for f in fakes:
         f.write_text("{}", "utf-8")
-    monkeypatch.setattr(M, "CURATED_FILES", fakes)
+    monkeypatch.setattr(M, "PROMOTE_FILES", fakes)
     rows = [M.StationMatch("A", "unresolved", None, None)]
     for curated in fakes:
         with pytest.raises(SystemExit, match="refusing to write the raw match over the curated"):
@@ -240,7 +240,7 @@ def test_a_missing_match_names_the_two_step_regeneration(tmp_path, monkeypatch):
     writes it); a missing raw file says run the matcher. Whole messages (T94 review)."""
     from pipeline.gauges import matches as M
     committed, raw = tmp_path / "matches.json", tmp_path / "match.json"
-    monkeypatch.setattr(M, "CURATED_FILES", (committed, tmp_path / "candidates.json"))
+    monkeypatch.setattr(M, "PROMOTE_FILES", (committed, tmp_path / "candidates.json"))
     with pytest.raises(FileNotFoundError) as e:
         M.read_match(committed)
     assert str(e.value) == (

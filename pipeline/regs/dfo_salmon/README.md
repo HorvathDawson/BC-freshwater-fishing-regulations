@@ -72,7 +72,7 @@ file, the same way `data/curated/gauges/matches.json` holds the station-to-node 
 while the readings arrive on a schedule and are joined at build time. `feed.py` takes no
 curated input at all, so the scheduled run cannot corrupt anything a curator has touched:
 
-    curated  data/curated/regulations/entries/dfo_salmon/  item, cut-points, tributaries
+    curated  data/curated/dfo_salmon/places/  item, cut-points, tributaries
     feed     data/generated/regs/dfo_salmon/typed/         species, dates, limits, gear
     join     EntryFile.by_fingerprint()                    fingerprint -> location_id
 

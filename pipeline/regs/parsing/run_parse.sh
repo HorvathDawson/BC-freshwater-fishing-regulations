@@ -49,7 +49,7 @@ esac
 if [ ${#REPLACE[@]} -gt 0 ] && [ "${1:-}" != repass ] && [ "${1:-}" != ingest ]; then
   echo "  ✗ --replace-edited applies to repass and ingest only"; exit 1
 fi
-INGEST=($PY -m pipeline.regs.parsing.ingest_catalogue --out data/curated/regulations/entries/catalogue)
+INGEST=($PY -m pipeline.regs.parsing.ingest_catalogue --out data/curated/regulations/synopsis)
 
 # NO DEFAULT. `parse` spends credits and its first act is an export that DELETES the work dir's
 # responses, so a bare `run_parse.sh` — typed to see the usage text — silently destroys the raw

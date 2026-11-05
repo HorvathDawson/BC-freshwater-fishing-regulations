@@ -55,7 +55,7 @@ function EffectChip({ r }: { r: InSeasonRow }) {
 /* THE IN-SEASON TAB (T230): the provincial in-season feed's rows (T225) and WHERE each applies. A row is
    matched to extents on registry waters (whole / upstream of / downstream of / between named splits, several
    = a union), previewed on the map with the builder's own extent resolver, and saved to
-   data/curated/inseason/matches.json — the review app's one write that is not a mark (owner 2026-10-28:
+   data/curated/inseason/notice_waters.json — the review app's one write that is not a mark (owner 2026-10-28:
    Claude/owner tooling, a history note per edit). Informational only: a match is a banner, never an answer. */
 export function InSeasonReview() {
   const [queue, setQueue] = useState<InSeasonQueue | null>(null);

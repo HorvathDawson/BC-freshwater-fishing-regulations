@@ -2,7 +2,7 @@
 
 Turns each row of the BC fishing synopsis's water-specific tables into a `CatalogueEntry`
 (`catalogue.py`): typed rules bound to the water's cut-points, plus the entry's `licensing` list.
-The checked-in region files `data/curated/regulations/entries/catalogue/region-*.json` are the
+The checked-in region files `data/curated/regulations/synopsis/region-*.json` are the
 **single source of truth**; curator edits are written straight back to them.
 
 The format itself is `pipeline/docs/18-how-regulations-are-stored.md`; how to run the parse is also
@@ -43,7 +43,7 @@ synopsis rows ──match──▶ batches/batch_NNN.json         one item per R
                                    ▼
                          responses/batch_NNN.json       [{index, entry}, …]
                                    │
-                    ingest_catalogue (the gate)  ──────▶ entries/catalogue/region-*.json
+                    ingest_catalogue (the gate)  ──────▶ regulations/synopsis/region-*.json
                                    │                     + ingested.json (the ledger, work dir)
                     dispatch --review (claude CLI)
                                    ▼

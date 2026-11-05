@@ -97,7 +97,7 @@ def test_an_accepted_tidal_boundary_becomes_a_ticket_for_t185(cands):
     assert tickets.ticketed(m)
     text = tickets.ticket_text(m)
     assert "tidal" in text and TC.MOUTH_LABEL in text
-    assert any("mouth (tidal boundary)" in ln for ln in tickets._work(m)) or "splits.json" in "".join(tickets._work(m))
+    assert any("mouth (tidal boundary)" in ln for ln in tickets._work(m)) or "cuts.json" in "".join(tickets._work(m))
 
 
 # --------------------------------------------------------------------------- the census geometry

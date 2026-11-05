@@ -30,28 +30,28 @@ class TestItResolves:
         # FilePath refuses to construct otherwise, so reaching here is the assertion. Listed
         # explicitly anyway: a field silently dropped from the model would still pass a bare
         # `load()`, and the point is that nothing goes missing unnoticed.
-        for name in ("splits", "name_variants", "areas", "added_lakes",
-                     "added_streams", "ungazetted", "sub_lake_areas", "name_calls"):
+        for name in ("cuts", "name_variants", "areas", "added_lakes", "added_streams", "unmapped_waters",
+                     "found_name_calls", "found_names", "tidal", "slough_calls", "slough_page_calls", "steelhead_waters"):
             assert getattr(tree.waters, name).is_file(), name
 
-    def test_ungazetted_is_declared_even_though_nothing_imports_it(self, tree):
+    def test_unmapped_waters_is_declared_even_though_no_build_reads_it(self, tree):
         # It has zero code references BY DESIGN — it is the worklist for minting more added
         # lakes, and the minting is a hand process. Declaring it here is what stops the next
         # dead-file sweep deleting curated data.
-        assert tree.waters.ungazetted.is_file()
+        assert tree.waters.unmapped_waters.is_file()
 
     def test_regulations_paths_exist(self, tree):
-        assert tree.regulations.overrides.is_file()
+        assert tree.regulations.book_name_links.is_file()
 
     def test_both_entry_corpora_exist(self, tree):
-        e = tree.regulations.entries
-        assert e.catalogue.is_dir() and e.dfo_salmon.is_dir()
-        # They are separate FILES with separate models; only the location is shared.
-        assert e.catalogue != e.dfo_salmon
+        syn, dfo = tree.regulations.synopsis, tree.dfo_salmon.places
+        assert syn.is_dir() and dfo.is_dir()
+        # They are separate FILES with separate models (T324: separate folders too).
+        assert syn != dfo
 
     def test_the_built_domain_exists_and_the_unbuilt_are_declared(self, tree):
         assert tree.gauges.matches is not None and tree.gauges.matches.is_file()
-        assert tree.gauges.review is not None and tree.gauges.review.is_file()
+        assert tree.gauges.match_calls is not None and tree.gauges.match_calls.is_file()
         # Stocking and bathymetry are named before they exist so the freshness gate is
         # already waiting. Asserting they are None would break the day they are built;
         # asserting the DOMAIN resolves is the durable check.
@@ -61,14 +61,14 @@ class TestItResolves:
     def test_a_review_is_a_separate_file_from_the_matches_it_corrects(self, tree):
         # The matches file is regenerated wholesale; a decision recorded inside it would not
         # survive. Two files is what makes a regenerate PHYSICALLY unable to harm the review.
-        assert tree.gauges.matches != tree.gauges.review
+        assert tree.gauges.matches != tree.gauges.match_calls
 
     def test_paths_are_absolute_so_the_working_directory_cannot_matter(self, tree):
         # `pipeline/regs/dfo_salmon/match.py` used a bare Path("pipeline/atlas/splits.json"), correct
         # only when run from the repo root. Same class of bug as a missing path, harder to
         # see.
-        assert tree.waters.splits.is_absolute()
-        assert tree.regulations.entries.catalogue.is_absolute()
+        assert tree.waters.cuts.is_absolute()
+        assert tree.regulations.synopsis.is_absolute()
 
 
 class TestAWrongPathIsLoud:
@@ -77,10 +77,10 @@ class TestAWrongPathIsLoud:
 
     def test_a_typo_in_a_filename_refuses_to_load(self):
         blob = self._blob()
-        blob["waters"]["splits"] = "nowhere/at/all.json"
+        blob["waters"]["cuts"] = "nowhere/at/all.json"
         with pytest.raises(ValidationError) as e:
             C.Curated.model_validate(blob)
-        assert "splits" in str(e.value)
+        assert "cuts" in str(e.value)
 
     def test_a_directory_where_a_file_belongs_is_refused(self):
         blob = self._blob()
@@ -90,7 +90,7 @@ class TestAWrongPathIsLoud:
 
     def test_a_missing_entries_directory_is_refused(self):
         blob = self._blob()
-        blob["regulations"]["entries"]["catalogue"] = "pipeline/nope"
+        blob["regulations"]["synopsis"] = "pipeline/nope"
         with pytest.raises(ValidationError):
             C.Curated.model_validate(blob)
 
@@ -98,7 +98,7 @@ class TestAWrongPathIsLoud:
         # The important one. A default here would reintroduce exactly the silent-empty
         # behaviour the model exists to remove.
         blob = self._blob()
-        del blob["waters"]["splits"]
+        del blob["waters"]["cuts"]
         with pytest.raises(ValidationError):
             C.Curated.model_validate(blob)
 
@@ -118,7 +118,7 @@ class TestTheTreeIsImmutable:
         # Curated locations are decided in config.yaml, never patched by a caller. A module
         # that could repoint `splits` mid-run is how two builds read different files.
         with pytest.raises(ValidationError):
-            tree.waters.splits = tree.waters.name_variants
+            tree.waters.cuts = tree.waters.name_variants
 
 
 # ======================================================================================

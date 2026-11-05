@@ -293,7 +293,7 @@ def resolve_exempt_ids(data: dict) -> int:
 #: THE PROVINCE IS EVERY AREA. `within area_kind: region` is the union of every `area:region:*` item
 #: — the whole province, said the one way the corpus says it (`reach.licensing`). Every other area
 #: is clipped to the B.C. outline, the exact union of the units the regions are dissolved from
-#: (`data/curated/waters/areas.json` `_clip_policy`, AGENTS 59), so every area lies inside it.
+#: (`data/curated/waters/area_closures.json` `_clip_policy`, AGENTS 59), so every area lies inside it.
 #: The gate compared the STRING 'area:region:6' with the STRING 'region', found no common element,
 #: and refused four true provincial exemptions (`zp:set_lining`, `zp:spear_fishing`, `zp:bait`,
 #: `zp:white_sturgeon_licence`, T96) — each a lift in some regions or one basin of a rule held

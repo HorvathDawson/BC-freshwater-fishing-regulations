@@ -17,7 +17,7 @@ import pytest
 from pipeline.common import synopsis_pages as SP
 
 ROOT = Path(__file__).resolve().parents[2]
-CATALOGUE = ROOT / "data" / "curated" / "regulations" / "entries" / "catalogue"
+CATALOGUE = ROOT / "data" / "curated" / "regulations" / "synopsis"
 
 # The synopsis PDF is tracked in git: a missing PDF fails (`test_the_pdf_is_there`), never skips.
 

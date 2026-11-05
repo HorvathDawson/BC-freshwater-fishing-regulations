@@ -16,7 +16,7 @@ against what the words say:
   * the DFO salmon notices and synopsis rows that name a tidal boundary (curated dfo_salmon entries,
     the catalogue's `regs_verbatim`);
   * curated splits that ARE a tidal limit (Fraser CPR bridge at Mission, Somass Papermill Dam, ...)
-    and the tidal level gauges (data/curated/gauges/tidal.json; HYDAT's own: Mission, Port Mann) —
+    and the tidal level gauges (data/curated/gauges/tidal_stations.json; HYDAT's own: Mission, Port Mann) —
     the tidal limit is above a tidal gauge;
   * OSM bridges (an Overpass dump, `--osm`) to place a marker the words name ("CPR Bridge").
 
@@ -455,7 +455,7 @@ def _dfo_sources() -> dict[str, list[dict]]:
 def _catalogue_sources() -> dict[str, list[dict]]:
     """name key -> synopsis rows (the catalogue's verbatim) that name a tidal boundary."""
     out: dict[str, list[dict]] = defaultdict(list)
-    for f in sorted((ROOT / "data/curated/regulations/entries/catalogue").glob("region-*.json")):
+    for f in sorted((ROOT / "data/curated/regulations/synopsis").glob("region-*.json")):
         doc = json.loads(f.read_text())
         for e in doc.get("entries") or []:
             words = " ".join(str(e.get("regs_verbatim") or "").split())
@@ -823,8 +823,8 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
                                               "measure": float(r["route_measure"])})
     to_albers = _to_albers()
     loose = [{**p, "pt": Point(*to_albers(*p["coord"]))}
-             for p in curated_points(ROOT / "data/curated/waters/splits.json", resolved)]
-    tidal_gauges = set(json.loads((ROOT / "data/curated/gauges/tidal.json").read_text())["stations"])
+             for p in curated_points(ROOT / "data/curated/waters/cuts.json", resolved)]
+    tidal_gauges = set(json.loads((ROOT / "data/curated/gauges/tidal_stations.json").read_text())["stations"])
     tidal_gauges |= {"08MH024", "08MH126"}             # HYDAT's own remarks (pipeline/gauges/consume/tidal.py)
     dfo_src = _dfo_sources()
     cat_src = _catalogue_sources()
@@ -933,7 +933,7 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
                                    "measure": round(float(r["route_measure"]), 1),
                                    "below_polygon": poly_m is None or float(r["route_measure"]) <= poly_m + 1})
         if gauges:
-            sources.append({"kind": "tidal_gauge", "source": "data/curated/gauges/tidal.json + HYDAT remarks",
+            sources.append({"kind": "tidal_gauge", "source": "data/curated/gauges/tidal_stations.json + HYDAT remarks",
                             "words": "; ".join(f"{g['station']} {g['label']} at m {g['measure']}" for g in gauges),
                             "gauges": gauges,
                             "agrees": all(g["below_polygon"] for g in gauges)})
@@ -1118,10 +1118,10 @@ def summary_md(doc: dict) -> str:
             "- DFO tidal-area pages (pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s<N>-eng.html, read 2026-10-27): "
             "Area 29's \"Tidal water boundaries in streams and rivers\" list, and the area descriptions that "
             "bound tidal water on a stream (Areas 2, 12, 13, 17, 23, 27).",
-            "- DFO salmon notices (data/curated/regulations/entries/dfo_salmon) and synopsis rows (the "
+            "- DFO salmon notices (data/curated/dfo_salmon/places) and synopsis rows (the "
             "catalogue's regs_verbatim) that say \"tidal boundary\" / \"tidal waters\".",
             "- Curated splits that are a tidal limit (" + ", ".join(CURATED_TIDAL_SPLITS) + ").",
-            "- Tidal level gauges: data/curated/gauges/tidal.json + HYDAT's own remarks (08MH024, 08MH126).",
+            "- Tidal level gauges: data/curated/gauges/tidal_stations.json + HYDAT's own remarks (08MH024, 08MH126).",
             "- Markers located on OSM roads / rail from the app basemap (data/source/bc.pmtiles, z14; no operator "
             "tags, so a rail marker takes the rail crossing nearest the polygon's).", ""]
     out += ["", "## Low confidence (the polygon blobs or misses)", ""]
@@ -1146,7 +1146,7 @@ def summary_md(doc: dict) -> str:
             "- Words that say \"tidal boundary\" without placing it, and streams with no words, take the "
             "polygon's clean crossing (medium); a crossing in several pieces or a polygon that misses the "
             "stream is low.",
-            "- A tidal level gauge (data/curated/gauges/tidal.json, HYDAT remarks) above the polygon's "
+            "- A tidal level gauge (data/curated/gauges/tidal_stations.json, HYDAT remarks) above the polygon's "
             "crossing is a disagreement.",
             "- Every proposal is labelled `mouth (tidal boundary)`; one above the FWA mouth also carries "
             "the alias `tidal boundary` and the marker's words.",

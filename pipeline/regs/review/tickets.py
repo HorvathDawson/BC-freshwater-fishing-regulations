@@ -79,10 +79,10 @@ def _work(mark) -> list[str]:
              + (" — the owner's call (PLAN §6 Q3)." if mark.verdict == "unsure" else "."),
              "2. A reviewed change to the curated files (T185): the mark IS the decision; Claude "
              "applies its proposal "
-             + ("(the split in `data/curated/waters/splits.json`)." if split
-                else "(the DFO location's binding in `data/curated/regulations/entries/dfo_salmon/`;"
-                     " a new split in `data/curated/waters/splits.json`)." if mark.scope == "dfo"
-                else "(the accepted tidal boundary as a split in `data/curated/waters/splits.json`, "
+             + ("(the split in `data/curated/waters/cuts.json`)." if split
+                else "(the DFO location's binding in `data/curated/dfo_salmon/places/`;"
+                     " a new split in `data/curated/waters/cuts.json`)." if mark.scope == "dfo"
+                else "(the accepted tidal boundary as a split in `data/curated/waters/cuts.json`, "
                      "AT THE MARK'S NEW SPLIT — its own point and name, the point the owner CHOSE (its note "
                      "says which source: the words' landmark, a polygon crossing, the mouth, the DEM limit "
                      "or his own), never the candidate's original proposal; T212)." if mark.scope == "tidal"
@@ -315,7 +315,7 @@ def export(marks: Iterable, *, entries: Mapping[str, Mapping] | None = None,
     from pipeline.regs.review.marks import latest, load_overrides, proposals
     marks = list(marks)
     # T210: every mark's new splits, one entry per distinct cut (with the owner's confidence calls)
-    shared = proposals(marks, load_overrides(CURATED.regulations.review.proposal_overrides))
+    shared = proposals(marks, load_overrides(CURATED.review.proposal_overrides))
     out = []
     seen: dict[str, tuple] = {}
     for key, m in latest(marks).items():
@@ -362,8 +362,8 @@ def main(argv: list[str] | None = None) -> int:
     from pipeline.regs.review.marks import load
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.tickets",
                                  description="wrong and unsure review marks as ticket text")
-    ap.add_argument("--marks", type=Path, default=CURATED.regulations.review.marks)
-    ap.add_argument("--entries", type=Path, default=CURATED.regulations.entries.catalogue)
+    ap.add_argument("--marks", type=Path, default=CURATED.review.marks)
+    ap.add_argument("--entries", type=Path, default=CURATED.regulations.synopsis)
     ap.add_argument("--verdict", choices=TICKET_VERDICTS, action="append")
     ap.add_argument("--out", type=Path, help="write one file per ticket here (else stdout)")
     ap.add_argument("--lake-splits", action="store_true",
@@ -376,7 +376,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     from pipeline.regs.review.precheck import _corpus
     # what changed since each mark, against the vintage on disk — as the review app's export says it
-    ctx = Context.on_disk(CURATED.waters.splits, CURATED.regulations.overrides,
+    ctx = Context.on_disk(CURATED.waters.cuts, CURATED.regulations.book_name_links,
                           GENERATED.registry(), BUNDLE)
     # the corpus as the review app reads it (`io.read_entryfile` with the registry), so a mark's
     # prints are taken from the same entry

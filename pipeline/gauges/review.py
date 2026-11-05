@@ -56,7 +56,7 @@ from pipeline.common.curated import CURATED, SOURCE
 from pipeline.common.curated import REPO_ROOT
 
 ROOT = REPO_ROOT
-REVIEW_FILE = CURATED.gauges.review
+REVIEW_FILE = CURATED.gauges.match_calls
 
 Verdict = Literal["confirmed", "bind", "wrong", "none"]
 

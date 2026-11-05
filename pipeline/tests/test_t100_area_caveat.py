@@ -41,7 +41,7 @@ def _corpus():
     """(entry, its book facts as the bundle ships them, rule) for every rule of the corpus. The
     bundle's `entry.full_name` is the row's `name`, `entry.verbatim` (the export's `printed`) its
     `regs_verbatim`, `entry.pages` its `source_pages` (`bundle/rules/tables.py` entry rows)."""
-    for f in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+    for f in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
         for e in json.loads(f.read_text(encoding="utf-8"))["entries"]:
             book = {"full_name": e.get("name"), "printed": e.get("regs_verbatim"),
                     "pages": e.get("source_pages")}
@@ -56,7 +56,7 @@ def _corpus():
 #: entry -> how many of its rules are widened (bound to the whole water, holding only in an
 #: undrawn part). 135 rules on 87 rows, 2026-10-23. Lakes are most of them (100 rules on lakes, 9 on
 #: Hatzic Lake and Slough / Shuswap's lake-and-river row, the rest streams and one zone line).
-#: Kootenay, Williston (Zones A/B) and Shannon are SPLIT into parts (`sub_lake_areas.json`) and are
+#: Kootenay, Williston (Zones A/B) and Shannon are SPLIT into parts (`sub_lake_areas.json`, now in handoff/PLAN/app-integration/tickets/T281-files/) and are
 #: not here, nor the Stave's two spawning channels (T222 drew Ruskin and Northrop); Ross Lake / Skagit River are not either — each row binds its whole water by the book.
 WIDENED = {
     "r1:cowichan_lake_including_bear_lake@1-4": 1, "r1:great_central_lake@1-7": 1,
@@ -115,7 +115,7 @@ def test_the_widened_rules_are_counted():
     # between its two canyon cuts (131, 83 before)
     # T222 (r-0fa7927b16e5): the Stave's r1/r2 bind the Ruskin and Northrop channels, drawn now (85, 56 -> 83, 55)
     assert (sum(per.values()), len(per)) == (83, 55)
-    lic = sorted(e["entry_id"] for f in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json"))
+    lic = sorted(e["entry_id"] for f in sorted(CURATED.regulations.synopsis.glob("region-*.json"))
                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())
     assert lic == ["z4:creston_valley_permit"]

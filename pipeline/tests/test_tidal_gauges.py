@@ -3,7 +3,7 @@
 OWNER 2026-10-22 ("a water's own gauge comes first"): "In the Level view, check and disclose tidal or backwater
 influence where the record shows it (Port Coquitlam is tidal, with Fraser backwater)." The pipeline flags such
 stations from two sources — HYDAT's own station remarks (the record) and an authored list
-(`data/curated/gauges/tidal.json`) — the bundle writes `gauge.tidal`, the release carries it, and core says one
+(`data/curated/gauges/tidal_stations.json`) — the bundle writes `gauge.tidal`, the release carries it, and core says one
 sentence in the Level view.
 
 The remark strings below are HYDAT's own, copied verbatim (HYDAT release in data/source/hydat.release), so the pins
@@ -101,9 +101,9 @@ def test_an_authored_row_without_a_station_id_or_a_reason_is_refused(tmp_path, b
 
 
 def test_the_authored_list_is_declared_in_config():
-    assert CURATED.gauges.tidal is not None
-    assert CURATED.gauges.tidal.name == "tidal.json"
-    assert T.TIDAL_FILE == CURATED.gauges.tidal       # the default the bundle's call reads
+    assert CURATED.gauges.tidal_stations is not None
+    assert CURATED.gauges.tidal_stations.name == "tidal_stations.json"
+    assert T.TIDAL_FILE == CURATED.gauges.tidal_stations       # the default the bundle's call reads
 
 
 # ------------------------------------------------------------------ both, and the pins
@@ -124,7 +124,7 @@ def test_the_named_stations_are_flagged_and_an_unaffected_one_is_not(tmp_path):
     """THE ACCEPTANCE PIN: 08MH035 (the Pitt near Port Coquitlam), Whonock, Mission and Port Mann are flagged; the
     Fraser at Hope and the Chilliwack at Vedder Crossing are not — against the REAL authored list and the record's own
     remark strings."""
-    got = tidal_stations(_hydat(tmp_path, [MISSION, PORT_MANN, *NOT_TIDAL]), CURATED.gauges.tidal)
+    got = tidal_stations(_hydat(tmp_path, [MISSION, PORT_MANN, *NOT_TIDAL]), CURATED.gauges.tidal_stations)
     # WHOLE VALUE (review): the named four, the estuary three from the list, and nothing else — so an ice, beaver,
     # slide or lake station, or Hope / Vedder, cannot slip in unseen.
     assert sorted(got) == ["08MH024", "08MH028", "08MH032", "08MH035", "08MH044", "08MH053", "08MH126"]
@@ -133,7 +133,7 @@ def test_the_named_stations_are_flagged_and_an_unaffected_one_is_not(tmp_path):
 
 
 def test_the_real_authored_list_is_exactly_the_lower_fraser():
-    assert sorted(load_curated(CURATED.gauges.tidal)) == ["08MH028", "08MH032", "08MH035", "08MH044", "08MH053"]
+    assert sorted(load_curated(CURATED.gauges.tidal_stations)) == ["08MH028", "08MH032", "08MH035", "08MH044", "08MH053"]
 
 
 @pytest.mark.needs_source
@@ -207,12 +207,12 @@ def _backwater(tmp_path: Path, stations: dict) -> Path:
 
 
 def test_the_backwater_list_is_declared_in_config():
-    assert CURATED.gauges.backwater is not None and CURATED.gauges.backwater.name == "backwater.json"
-    assert T.BACKWATER_FILE == CURATED.gauges.backwater
+    assert CURATED.gauges.backwater_stations is not None and CURATED.gauges.backwater_stations.name == "backwater_stations.json"
+    assert T.BACKWATER_FILE == CURATED.gauges.backwater_stations
 
 
 def test_the_real_backwater_list_is_exactly_comox_lake_on_the_cruickshank():
-    got = T.load_backwater(CURATED.gauges.backwater)
+    got = T.load_backwater(CURATED.gauges.backwater_stations)
     assert sorted(got) == ["08HB074"]
     assert got["08HB074"]["from"] == "Comox Lake" and got["08HB074"]["remark"] == COMOX[1]
 

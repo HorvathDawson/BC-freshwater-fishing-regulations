@@ -58,8 +58,8 @@ def test_a_merged_place_is_used_through_any_id_or_name_it_answers_to():
 def test_the_pitt_and_wood_park_boundaries_are_used_on_the_corpus():
     """The review app's false positive: Pitt River's park cut (and Wood River's Hamber Park cut) are
     bound by an area extent, not by id."""
-    splits = json.loads(CURATED.waters.splits.read_text(encoding="utf-8"))
-    entries = [e for p in sorted(glob.glob(str(CURATED.regulations.entries.catalogue / "region-*.json")))
+    splits = json.loads(CURATED.waters.cuts.read_text(encoding="utf-8"))
+    entries = [e for p in sorted(glob.glob(str(CURATED.regulations.synopsis / "region-*.json")))
                for e in json.loads(open(p, encoding="utf-8").read())["entries"]]
     used = used_split_ids(entries, splits)
     assert {"pitt_river__garibaldi_pitt", "wood_river__hamber_prov_park_boundary"} <= used

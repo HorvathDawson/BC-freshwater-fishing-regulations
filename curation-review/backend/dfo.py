@@ -12,7 +12,7 @@
     mark_for(body, ...)   the `Mark` a DFO mark payload makes (anchors validated, resolved points
                           stamped) — `reuse.post_mark` commits it, the ONE write
 
-READ ONLY. The curated geography (`data/curated/regulations/entries/dfo_salmon/`) and splits.json
+READ ONLY. The curated geography (`data/curated/dfo_salmon/places/`) and splits.json
 are never written here: a new split is a PROPOSAL in the mark, and T185 turns marks into reviewed
 changes (AGENTS 66/67). The rules are the re-scrape's (`<generated>/regs/dfo_salmon/typed/`).
 """
@@ -72,7 +72,7 @@ def _proposals() -> list[dict]:
     proposed it. Read only — the store is never edited."""
     from pipeline.common.curated import CURATED
     from pipeline.regs.review import marks as M
-    ov = CURATED.regulations.review.proposal_overrides
+    ov = CURATED.review.proposal_overrides
     # once per marks / overrides file (owner 2026-10-28: ~0.7 s, read by every DFO progress badge)
     return _PROPOSALS_MEMO.get((reuse._stamp((reuse.MARKS_PATH, ov)), M.proposals, M.load),
                                lambda: M.proposals(M.load(reuse.MARKS_PATH), M.load_overrides(ov)))
@@ -127,11 +127,13 @@ def suggestion(location_id: str) -> dict | None:
 
 
 #: FIX PROPOSALS (owner 2026-11-02): Claude's proposal per unsure item, from the mark's note — shown on
-#: the item, never applied. `CURATION_DFO_FIXES` points it at a copy (tests).
+#: the item, never applied. Machine-written, so under `GENERATED.review` (T324: was beside the marks in curated);
+#: the owner's save is the decision. `CURATION_DFO_FIXES` points it at a copy (tests).
 def _fixes_path() -> Path:
     if os.environ.get("CURATION_DFO_FIXES"):
         return Path(os.environ["CURATION_DFO_FIXES"])
-    return Path(reuse.MARKS_PATH).parent / "dfo_fix_proposals.json"
+    from pipeline.common.curated import GENERATED
+    return Path(GENERATED.review) / "dfo_fix_proposals.json"
 
 
 def fix_proposal(location_id: str) -> dict | None:
@@ -253,7 +255,7 @@ _ROWS_MEMO = reuse._Memo()
 def _rows_inputs() -> tuple:
     from pipeline.common.curated import CURATED
     return (reuse._stamp((reuse.MARKS_PATH, SUGGESTIONS_PATH, preverify.FILES["dfo"], _fixes_path(),
-                          CURATED.regulations.review.proposal_overrides)),
+                          CURATED.review.proposal_overrides)),
             D.regions(DFO_DIR), D.typed(DFO_TYPED), reuse._registry(), reuse.applied_keys(),
             _locations, _states, _groups, _row)
 
@@ -908,7 +910,7 @@ def real_ids(extra: tuple = (), *, tidal: bool = False, tidal_water: str | None 
     if not extra:
         from pipeline.common.curated import CURATED
         return _REAL_IDS_MEMO.get((reuse._stamp((reuse.MARKS_PATH, reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
-                                                 CURATED.regulations.review.proposal_overrides)),),
+                                                 CURATED.review.proposal_overrides)),),
                                   lambda: {g: v["id"] for g, v in P.place_groups(rows, split_preview._sources()).items()})
     rows += [(k, n, tidal, tidal_water) for k, n in extra]
     return {g: v["id"] for g, v in P.place_groups(rows, split_preview._sources()).items()}

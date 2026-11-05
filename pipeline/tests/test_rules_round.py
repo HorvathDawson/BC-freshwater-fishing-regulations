@@ -19,7 +19,7 @@ from pipeline.regs.parsing import catalogue as C
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
 ROOT = Path(__file__).resolve().parents[2]
-CAT = ROOT / "data/curated/regulations/entries/catalogue"
+CAT = ROOT / "data/curated/regulations/synopsis"
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 
 

@@ -384,7 +384,7 @@ def context(verify: bool = True) -> Context:
                                                 load_overrides)
     reg = load_registry(GENERATED.registry())
     ctx = Context(reg, build_name_index(reg), build_id_index(reg), build_override_index(load_overrides(DEFAULT_OVERRIDES)),
-                  json.loads(Path(CURATED.waters.splits).read_text(encoding="utf-8")))
+                  json.loads(Path(CURATED.waters.cuts).read_text(encoding="utf-8")))
     if verify:
         ctx.verify, ctx.places = _graph_verifier(reg)
     return ctx

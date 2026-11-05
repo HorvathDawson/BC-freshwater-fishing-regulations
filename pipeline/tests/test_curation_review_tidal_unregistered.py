@@ -30,7 +30,7 @@ def env(request, tmp_path_factory):
     assert rows and rows[0]["items"] == [], f"{NELSON} is in {CANDIDATES} with no registry item"
     (tmp / "tidal-candidates.json").write_text(json.dumps({"coverage": {}, "candidates": rows}))
     (tmp / "marks.jsonl").write_text("")
-    shutil.copy2(CURATED.waters.splits, tmp / "splits.json")
+    shutil.copy2(CURATED.waters.cuts, tmp / "splits.json")
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_TIDAL_CANDIDATES", str(tmp / "tidal-candidates.json"))
     mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))

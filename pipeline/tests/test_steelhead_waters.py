@@ -378,7 +378,7 @@ def test_a_list_entry_is_refused_by_shape(bad):
 
 def test_the_curated_file_loads_and_is_documented():
     from pipeline.common.curated import CURATED
-    path = CURATED.regulations.steelhead_waters
+    path = CURATED.waters.steelhead_waters
     doc = json.loads(path.read_text(encoding="utf-8"))
     said = " ".join(doc["$comment"])
     assert "item_id" in said and "region" in said and "binds NO rule" in said
@@ -400,7 +400,7 @@ def test_the_curated_list_is_the_generated_list_it_says_it_is():
                "python -m pipeline.regs.steelhead.known_waters (reads the atlas and the reach run)")
     out = json.loads(gen.read_text(encoding="utf-8"))
     assert SH.fingerprint(out["waters"]) == doc.generated.fingerprint, (
-        f"{gen} is not the list data/curated/regulations/steelhead_waters.json was copied from — "
+        f"{gen} is not the list data/curated/waters/steelhead_waters.json was copied from — "
         f"copy it over (keeping the curated $comment) or regenerate deliberately")
 
 

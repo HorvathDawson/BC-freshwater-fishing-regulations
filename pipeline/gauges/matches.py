@@ -16,7 +16,7 @@ import json
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 
-from pipeline.common.curated import CURATED
+from pipeline.common.curated import CURATED, GENERATED
 
 @dataclass(frozen=True)
 class StationMatch:
@@ -84,16 +84,17 @@ REGENERATE = ("python -m pipeline.gauges.generate.match --build <a completed bui
               "python -m pipeline.gauges.generate.promote --only <station ...>")
 
 
-#: The two files only `promote` writes; the raw match may land anywhere else.
-CURATED_FILES = (MATCH_FILE, CURATED.gauges.candidates)
+#: The two files only `promote` writes (the curated matches.json and, T324, the review queue under data/generated);
+#: the raw match may land anywhere else.
+PROMOTE_FILES = (MATCH_FILE, GENERATED.gauges.candidates)
 
 
 def refuse_curated(path: Path) -> None:
-    """Stop when `path` is one of the two curated gauge files (T94). THE one check, asked by the
+    """Stop when `path` is one of the two promote-owned gauge files (T94). THE one check, asked by the
     matcher before it loads a build and by `write_match` before it writes: the raw match written
     over `matches.json` drops every trust a person gave, and over `candidates.json` the queue."""
     path = Path(path)
-    for curated in CURATED_FILES:
+    for curated in PROMOTE_FILES:
         same = path.resolve() == curated.resolve() or (
             path.exists() and curated.exists() and path.samefile(curated))
         if same:
@@ -135,7 +136,7 @@ def read_match(path: Path | None = None) -> list[StationMatch]:
     """
     path = path or MATCH_FILE
     if not path.exists():
-        committed = any(path.resolve() == c.resolve() for c in CURATED_FILES)
+        committed = any(path.resolve() == c.resolve() for c in PROMOTE_FILES)
         raise FileNotFoundError(
             f"no gauge matches at {path} — "
             + (f"restore the committed file (git checkout -- {path}) or regenerate it: {REGENERATE}"

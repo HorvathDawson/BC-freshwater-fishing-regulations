@@ -1,4 +1,4 @@
-"""Split accuracy audit: for every curated split (`CURATED.waters.splits`), resolve it and measure
+"""Split accuracy audit: for every curated split (`CURATED.waters.cuts`), resolve it and measure
 how far the RESOLVED cut landed from its curated coord (`_coord`, ground truth). The curated coords were hand-verified, so a large distance flags a bad conversion.
 
 Per waterbody: bbox = union(_coord of its splits) ∪ applies_to target bounds (200km-capped),
@@ -52,7 +52,7 @@ def _target_bounds(fwa: FWADataAccessor, applies: Optional[dict]):
 
 def audit_splits(splits_path: Optional[Path] = None) -> list[dict]:
     """Return one row per split: {id, wb, type, dist_m|None, offset_m|None, resolved}."""
-    splits_path = splits_path or CURATED.waters.splits
+    splits_path = splits_path or CURATED.waters.cuts
     fwa = FWADataAccessor(_DATA)
     defs = {d.id: d for d in load_split_defs(str(splits_path))}
     j = json.loads(Path(splits_path).read_text())

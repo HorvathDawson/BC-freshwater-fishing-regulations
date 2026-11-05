@@ -167,7 +167,7 @@ def test_every_waterbody_block_targets_a_real_registry_item():
     # is not itself an item key — `gnis:29662` is the Vedder Canal's gnis and resolves to
     # `wbk:329707189`. Checking membership in `reg` alone flags those as broken when they are fine.
     idx = build_id_index(reg)
-    body = json.loads(CURATED.waters.splits.read_text())
+    body = json.loads(CURATED.waters.cuts.read_text())
 
     bad = []
     for wb in body.get("waterbodies", []):
@@ -226,7 +226,7 @@ def test_the_loader_refuses_a_label_that_names_no_place(tmp_path):
 def test_every_curated_label_names_a_place():
     """The corpus: every label in splits.json passes `label_problem` (22 did not before the audit)."""
     from pipeline.atlas.splits.splits import label_problem
-    body = json.loads(CURATED.waters.splits.read_text(encoding="utf-8"))
+    body = json.loads(CURATED.waters.cuts.read_text(encoding="utf-8"))
     bad = [f"{s['id']}: {s.get('label')!r} {label_problem(s.get('label', ''))}"
            for wb in body["waterbodies"] for s in wb["splits"] if label_problem(s.get("label", ""))]
     assert not bad, "\n  ".join(["split label(s) that name no place:"] + bad)

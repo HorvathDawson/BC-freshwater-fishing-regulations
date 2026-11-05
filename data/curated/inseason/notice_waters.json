@@ -1,5 +1,5 @@
 {
-  "$comment": "T226 AUTHORED: provincial in-season rows (feeds/inseason/index.json `rows[].id`) -> where they apply. Written by the review app's In-season tab (POST /api/inseason/matches) or by hand; read through pipeline.regs.inseason.matches (validates: unknown splits, ops, ids refused). INFORMATIONAL ONLY: a match puts a banner on the water in the app, it never changes an answer. `history` is append-only, one note per edit.",
+  "$comment": "notice_waters.json (was matches.json; T324). T226 AUTHORED: provincial in-season notices (feeds/inseason/index.json `rows[].id`) -> the waters they apply to. Written by the review app's In-season tab (POST /api/inseason/matches) or by hand; read through pipeline.regs.inseason.matches (validates: unknown splits, ops, ids refused). INFORMATIONAL ONLY: a match puts a banner on the water in the app, it never changes an answer. `history` is append-only, one note per edit.",
   "format": "inseason-matches/1",
   "matches": {
     "is-0cf7f7b877ef": {

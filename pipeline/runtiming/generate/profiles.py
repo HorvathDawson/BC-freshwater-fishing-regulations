@@ -185,6 +185,6 @@ if __name__ == "__main__":
     from pipeline.common.curated import CURATED, GENERATED
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--gen", type=Path, default=GENERATED.runtiming)
-    ap.add_argument("--review", type=Path, default=CURATED.runtiming.review)
+    ap.add_argument("--review", type=Path, default=CURATED.runtiming.run_calls)
     a = ap.parse_args()
     main(a.gen, a.review)

@@ -413,7 +413,7 @@ def test_an_exemption_names_each_document_once():
 
 # =========================================================================== the corpus
 
-DIR = CURATED.regulations.entries.catalogue
+DIR = CURATED.regulations.synopsis
 
 
 def _corpus():
@@ -842,7 +842,7 @@ def test_presumes_belongs_to_a_duty():
 
 def test_the_corpus_s_licence_duties_presume_the_basic_licence():
     got = {}
-    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
         for e in CatalogueFile.model_validate(json.loads(p.read_text())).entries:
             for x in e.licensing:
                 if isinstance(x, Requirement) and x.conduct:

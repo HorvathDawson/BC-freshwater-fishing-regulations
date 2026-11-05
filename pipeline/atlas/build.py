@@ -271,7 +271,7 @@ def summarize(chains, graph, fids, pruned_fids=None) -> str:
 
 _ADDED_STREAMS_JSON = CURATED.waters.added_streams
 _ADDED_LAKES_GEOJSON = CURATED.waters.added_lakes
-_DEFAULT_SPLITS = CURATED.waters.splits
+_DEFAULT_SPLITS = CURATED.waters.cuts
 
 
 #: FWA wsc prefixes the OWNER has approved removing in favour of a city layer. EMPTY (owner 2026-10-29): every
@@ -461,7 +461,7 @@ class _Build:
         self.area_defs: list = []
         self.catalog_polys: dict[str, dict] = {}   # {area_def id: {name: polygon}} for the lazy catalog
         self.clean_inside: dict[str, dict] = {}
-        self.tidal_limits: list = []    # T326: waters/tidal.json (gauge_cuts)
+        self.tidal_limits: list = []    # T326: waters/tidal_limits.json (gauge_cuts)
         self.tidal_ids: dict = {}       # {blk: id} of every mouth alias and tidal cut (`tidal.ids`)
         self.tidal_placed: dict = {}    # {blk: where each mouth alias went} (alias_tidal_mouths)
 
@@ -609,7 +609,7 @@ def add_waters(b: _Build) -> None:
     # item: the Quinsam diversion headpond) and what a slough absorbs (an unnamed lake polygon became the
     # "Silverstream Slough" stream). So they are attached to the finished registry instead
     # (`registry.mined.add_mined_names`), never to the graph.
-    b._mined = load_name_variants(CURATED.waters.mined_names)
+    b._mined = load_name_variants(CURATED.waters.found_names)
     _nv_all = load_name_variants(_nv_path) + _added_name_variant_entries(add_nv)
     _nv_reach = [e for e in _nv_all if e.get("reach") or (e.get("target") or {}).get("reach")]
     _nv_now = [e for e in _nv_all if e not in _nv_reach]
@@ -805,7 +805,7 @@ def gauge_cuts(b: _Build) -> None:
         splits_doc = json.loads(_sp.read_text(encoding="utf-8"))
         splits = load_split_defs(str(_sp))
         print(f"curated splits: {len(splits)} from {_sp}")
-        # T326: THE TIDAL LIMITS (`waters/tidal.json`, read here only). A `cut` row rides in as a curated cut whose id
+        # T326: THE TIDAL LIMITS (`waters/tidal_limits.json`, read here only). A `cut` row rides in as a curated cut whose id
         # follows from its point; a `split` row must name a cut of splits.json; a `mouth` row is never a cut (it is
         # aliased onto the mouth boundary after every cut, `alias_tidal_mouths`).
         from pipeline.atlas.splits import tidal as _tidal
@@ -813,12 +813,12 @@ def gauge_cuts(b: _Build) -> None:
         _have = {d.id for d in splits}
         _stale = [f"{r.blk}: {r.split}" for r in b.tidal_limits if r.limit == "split" and r.split not in _have]
         if _stale:
-            raise SystemExit("tidal: waters/tidal.json names split(s) splits.json does not have: " + "; ".join(_stale))
+            raise SystemExit("tidal: waters/tidal_limits.json names split(s) splits.json does not have: " + "; ".join(_stale))
         b.tidal_ids = _tidal.ids(b.tidal_limits, _have)
         _tcuts = _tidal.cut_defs(b.tidal_limits, b.tidal_ids)
         splits = list(splits) + _tcuts
         _n = {k: sum(1 for r in b.tidal_limits if r.limit == k) for k in _tidal.LIMITS}
-        print(f"tidal limits:   {_n} ({len(_tcuts)} new cut(s) from waters/tidal.json)")
+        print(f"tidal limits:   {_n} ({len(_tcuts)} new cut(s) from waters/tidal_limits.json)")
         # GAUGE CUTS RIDE IN AS ORDINARY SPLIT DEFS, SECOND.
         #
         # A section takes ONE station: the one that most nearly is that water. On a river of

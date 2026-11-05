@@ -1,4 +1,5 @@
 {
+  "_about": "THE UNMAPPED WATERS (was ungazetted.json; T324): waters the book names that have no (or only a partial) FWA feature — a hand worklist for minting more added lakes (added_lakes.geojson). AUTHORED by hand. No build stage reads it by design (the minting is a hand process); `python -m pipeline.tools.audit.check_curated --waters` checks its shape and links. The rows stay under the key `ungazetted`.",
   "_schema": "ungazetted waterbodies with no (or partial) FWA feature; location is [lon,lat] EPSG:4326. `links` names the FWA feature a sub-area (arm/bay/pond) belongs to. The resolver binds a reg row here by name+MU, then to the point/linked feature.",
   "ungazetted": [
     {

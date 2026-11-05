@@ -2025,7 +2025,7 @@ def test_a_dfo_answer_never_reaches_a_provincial_row():
 
     from pipeline.regs.matching.matcher import load_overrides
 
-    path = CURATED.regulations.overrides
+    path = CURATED.regulations.book_name_links
     prov, dfo = load_overrides(path), load_overrides(path, source="dfo")
     tagged = [e for e in dfo if (e.get("source") or "") == "dfo"]
     assert tagged, "expected DFO-tagged overrides"
@@ -2106,7 +2106,7 @@ def test_a_dfo_tagged_override_is_invisible_to_the_provincial_matcher():
 
     from pipeline.regs.matching.matcher import load_overrides
 
-    p = CURATED.regulations.overrides
+    p = CURATED.regulations.book_name_links
     prov, dfo = load_overrides(p), load_overrides(p, source="dfo")
     tagged = [e for e in dfo if (e.get("source") or "") == "dfo"]
     assert tagged, "expected DFO-tagged overrides"

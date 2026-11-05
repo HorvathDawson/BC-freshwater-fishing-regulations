@@ -4,7 +4,7 @@
         [--json OUT.json] [--ids-out REVIEW_IDS.txt] [--ignore FIELD ...]
 
 OLD_DIR / NEW_DIR are catalogue dirs (`region-*.json`, `{region, entries: [...]}` — the shape of
-`data/curated/regulations/entries/catalogue`). Read as plain JSON, never through the model: the two
+`data/curated/regulations/synopsis`). Read as plain JSON, never through the model: the two
 books may be different vintages and neither has to load under today's `CatalogueEntry`.
 
 HOW ENTRIES ARE PAIRED (stable ids first, free text last):

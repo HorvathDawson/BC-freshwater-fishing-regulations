@@ -433,9 +433,9 @@ def test_the_renumber_check_is_pinned_by_mutation(monkeypatch):
 def test_renumbering_every_rule_of_the_real_corpus_stales_no_mark():
     """Every entry of the catalogue, its rules numbered backwards and every reference rewritten:
     no entry mark and no rule mark goes stale."""
-    entries = io.read_entries_dir(CURATED.regulations.entries.catalogue)
-    ctx = F.Context(splits=json.loads(CURATED.waters.splits.read_text(encoding="utf-8")),
-                    overrides=tuple(json.loads(CURATED.regulations.overrides.read_text(
+    entries = io.read_entries_dir(CURATED.regulations.synopsis)
+    ctx = F.Context(splits=json.loads(CURATED.waters.cuts.read_text(encoding="utf-8")),
+                    overrides=tuple(json.loads(CURATED.regulations.book_name_links.read_text(
                         encoding="utf-8"))))
     stale = check_renumber(entries, ctx)
     assert stale == {}, f"{len(stale)} marks stale after a renumber: {list(stale.items())[:5]}"
@@ -516,9 +516,9 @@ def _shuffled(d: dict, rnd: random.Random) -> dict:
 
 
 def test_a_noop_normalisation_of_the_whole_corpus_stales_no_mark(tmp_path):
-    src = CURATED.regulations.entries.catalogue
-    ctx = F.Context(splits=json.loads(CURATED.waters.splits.read_text(encoding="utf-8")),
-                    overrides=tuple(json.loads(CURATED.regulations.overrides.read_text(
+    src = CURATED.regulations.synopsis
+    ctx = F.Context(splits=json.loads(CURATED.waters.cuts.read_text(encoding="utf-8")),
+                    overrides=tuple(json.loads(CURATED.regulations.book_name_links.read_text(
                         encoding="utf-8"))))
     before = io.read_entries_dir(src)
     ms = [mark(e, ctx) for e in before.values()]
@@ -685,7 +685,7 @@ def test_a_mark_is_refused_on_an_entry_that_fails_the_gate():
 
 
 def test_the_checked_in_store_loads():
-    assert isinstance(M.load(CURATED.regulations.review.marks), list)
+    assert isinstance(M.load(CURATED.review.marks), list)
 
 
 # --------------------------------------------------------------------------------------------

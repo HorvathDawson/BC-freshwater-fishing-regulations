@@ -50,6 +50,9 @@ generated:
   gauges:
     feeds: "data/generated/gauges/feeds"               # per-station published JSON
     match: "data/generated/gauges/match.json"          # the matcher's raw output; `promote` reads it (T94)
+    # T324: the REVIEW QUEUE `promote` writes beside the curated matches.json (matches it did not promote, with their
+    # evidence); committed (data/.gitignore) so `check_curated --ci` sees the queue in CI
+    candidates: "data/generated/gauges/candidates.json"
 
   # Run timing: the CU polygons `pipeline.runtiming.parse` stitches from the cached Explorer
   # tiles (cu_polygons.geojson, read by `pipeline.deliver runs`). Re-runnable from data/source/runtiming/.
@@ -110,56 +113,58 @@ data_tree:
 
 curated:
   base: "data/curated"
+  # T324 naming (owner 2026-11-05): `*_calls.json` = the owner's per-item decisions, `*_waters.json` = a list of
+  # waters, `*_stations.json` = a list of gauges. Every folder has a README; every dict-shaped JSON an `_about`.
 
-  # --- the shape of the atlas itself ---------------------------------------------
+  # --- waters: the shape of the atlas itself, and lists of waters ------------------
   waters:
-    splits: "data/curated/waters/splits.json"                      # authored
+    # KEY NAMES `tidal` and `areas` are the pre-T324 names on purpose: the tiles stage keys on its code's bytes
+    # (pipeline/atlas/splits, pipeline/deliver/tiles) and that code reads these two, so renaming the attributes would
+    # rebuild and re-ship the tiles for nothing. Rename them the next time that code changes anyway.
+    cuts: "data/curated/waters/cuts.json"                          # authored — every curated cut on a water
     name_variants: "data/curated/waters/name_variants.json"        # authored
-    mined_names: "data/curated/waters/mined_names.json"            # promoted (T224: names from city / OSM / ECCC sources, accepted)
-    name_calls: "data/curated/waters/name_calls.json"              # authored (T327: the owner's calls on single mined-name candidates; read by tools.mined_names)
-    areas: "data/curated/waters/areas.json"                        # authored
+    found_names: "data/curated/waters/found_names.json"            # promoted (T224: names from city / OSM / ECCC sources, accepted; written by tools.mined_names)
+    found_name_calls: "data/curated/waters/found_name_calls.json"  # authored (T327: the owner's calls on single found-name candidates; read by tools.mined_names)
+    areas: "data/curated/waters/area_closures.json"                # authored — blanket area closures (cut every stream crossing the polygon)
     continuations: "data/curated/waters/continuations.json"        # authored (owner-reviewed / refused water_continue links)
-    tidal: "data/curated/waters/tidal.json"                        # T326: THE tidal limit of every ocean water (mouth | split | cut | whole); written by pipeline.tools.tidal_limits, read by the atlas only
+    tidal: "data/curated/waters/tidal_limits.json"                 # T326: THE tidal limit of every ocean water (mouth | split | cut | whole); written by pipeline.tools.tidal_limits, read by the atlas only
     slough_calls: "data/curated/waters/slough_calls.json"          # applied (T322: owner-confirmed slough calls, from the slough marks)
+    # the retired slough review page's verdicts + free-text notes (2026-10-28), read by `pipeline.regs.review.slough`
+    slough_page_calls: "data/curated/waters/slough_page_calls.json"
+    steelhead_waters: "data/curated/waters/steelhead_waters.json"  # authored — the known-steelhead list (accepted with pipeline.regs.steelhead.accept)
     # Hand-drawn ADMIN polygons: closure zones a regulation states as an area, not a reach.
-    # An areas.json def names this file in `file` instead of naming a fetched gpkg `layer`.
+    # An area_closures.json def names this file in `file` instead of naming a fetched gpkg `layer`.
     added_areas: "data/curated/waters/added_areas.geojson"         # authored — hand-drawn polygons
     added_lakes: "data/curated/waters/added_lakes.geojson"         # authored — hand-drawn polygons
     # PROMOTED, not authored. 361 minted streams whose negative blk ids are a live ABI;
     # re-running build_dataset.py remints them and strands every split bound to the old.
     added_streams: "data/curated/waters/added_streams.json"
-    # The worklist for minting MORE added lakes. Zero code references BY DESIGN — the
-    # minting is a hand process. Do not delete it in a dead-file sweep.
-    ungazetted: "data/curated/waters/ungazetted.json"
-    # The worklist for splitting a lake into the waters the book treats it as (T100). Zero code references BY DESIGN,
-    # like ungazetted.json: declared so a dead-file sweep cannot delete it (T331).
-    sub_lake_areas: "data/curated/waters/sub_lake_areas.json"
+    # The worklist for minting MORE added lakes. Zero code readers BY DESIGN (the minting is a hand process) beyond
+    # the fast check (`check_curated --waters`). Do not delete it in a dead-file sweep.
+    unmapped_waters: "data/curated/waters/unmapped_waters.json"
 
-  # --- DFO salmon: the limits wording registry (T321) ------------------------------
+  # --- DFO salmon: the places DFO's rules bind to, and the limits wording (T321) ----
   dfo_salmon:
+    # the curated DFO locations per region (item ids, extents); synced to the feeds worker
+    # (private/feeds/dfo/entries/, `pipeline.deliver.sync_inputs`)
+    places: "data/curated/dfo_salmon/places"
     # AUTHORED (templates reviewed by hand): `pipeline.regs.dfo_salmon.wording`; synced to the feeds worker
-    # (private/feeds/dfo/wording.json, `pipeline.deliver.sync_inputs`)
+    # (private/feeds/dfo/wording.json, `pipeline.deliver.sync_inputs`) — the worker's ONLY copy
     wording: "data/curated/dfo_salmon/wording.json"
 
-  # --- sloughs: the retired review page's database (T322) --------------------------
-  sloughs:
-    # the owner's slough page verdicts + free-text notes, read once (2026-10-28) by `pipeline.regs.review.slough`
-    page_marks: "data/curated/sloughs/page-marks-2026-10-28.json"
-
-  # --- regulations ---------------------------------------------------------------
+  # --- regulations: the synopsis corpus and the book ---------------------------------
   regulations:
-    overrides: "data/curated/regulations/overrides.json"
-    steelhead_waters: "data/curated/regulations/steelhead_waters.json"  # authored — the known-steelhead list
+    synopsis: "data/curated/regulations/synopsis"     # the parsed synopsis rows, one file per region
+    book_name_links: "data/curated/regulations/book_name_links.json"   # authored — a book water name -> the FWA water(s)
     reference: "data/curated/regulations/reference"   # the book's text, verbatim (definitions, legend, licensing)
-    review:
-      marks: "data/curated/regulations/review/marks.jsonl"   # reviewed — the reviewers' marks, append-only (T97)
-      proposal_overrides: "data/curated/regulations/review/proposal_overrides.json"  # owner calls on proposed splits (confidence), beside the never-edited marks (T185)
-      # T325: the review domains that are CLOSED (locked) — the exporter and the review app skip them; marks.jsonl is
-      # never edited. Close = `python -m pipeline.regs.review.lock <domain>`; reopen = remove the entry (`--reopen`).
-      closed: "data/curated/regulations/review/closed.json"
-    entries:
-      catalogue: "data/curated/regulations/entries/catalogue"
-      dfo_salmon: "data/curated/regulations/entries/dfo_salmon"
+
+  # --- review: the review app's state ----------------------------------------------
+  review:
+    marks: "data/curated/review/marks.jsonl"   # reviewed — the reviewers' marks, append-only (T97)
+    proposal_overrides: "data/curated/review/proposal_overrides.json"  # owner calls on proposed splits (confidence), beside the never-edited marks (T185); folded by T326
+    # T325: the review domains that are CLOSED (locked) — the apply and the review app skip them; marks.jsonl is
+    # never edited. Reopen = remove the entry.
+    closed: "data/curated/review/closed.json"
 
   # --- run timing: authored gaps and labels --------------------------------------
   #
@@ -167,31 +172,31 @@ curated:
   # that separate a summer run from a winter one are mostly derived. What cannot be derived
   # is a water an angler will look up and find nothing for — see `coverage_gaps`.
   runtiming:
-    review: "data/curated/runtiming/review.json"
+    run_calls: "data/curated/runtiming/run_calls.json"
     # (T331) the PARSED timings (`python -m pipeline.runtiming.parse`) are source data now:
     # data/source/runtiming/timing.json, tracked because the fetched pages are not.
 
   # --- in-season changes bound to waters (T226) -------------------------------------
   # AUTHORED: feed row id -> extent; written by the review app's In-season tab (its one non-mark write) or by hand.
   inseason:
-    matches: "data/curated/inseason/matches.json"
+    notice_waters: "data/curated/inseason/notice_waters.json"
 
   # --- matches: machine-produced, human-reviewed ---------------------------------
   #
-  # One shape for three domains: an external id -> FWA keys + trust. `review` is an INPUT
+  # One shape for three domains: an external id -> FWA keys + trust. `match_calls` is an INPUT
   # to matching and is never written by a program; `matches` is regenerated wholesale.
   # Keeping them in separate files is what makes a regenerate physically unable to harm
-  # the review.
+  # the review. (T324: the gauge review QUEUE, candidates.json, is machine output —
+  # `generated.gauges.candidates`.)
   gauges:
     matches: "data/curated/gauges/matches.json"
-    review: "data/curated/gauges/review.json"
+    match_calls: "data/curated/gauges/match_calls.json"
     # (T331) ECCC's water-body type per station is SCRAPED source data: data/source/bc_station_waterbody_type.json
-    candidates: "data/curated/gauges/candidates.json"   # the review queue `promote` writes beside matches
-    tidal: "data/curated/gauges/tidal.json"             # authored: level gauges the tide moves (T78)
-    backwater: "data/curated/gauges/backwater.json"     # authored: level gauges a lake below backs up (T160)
+    tidal_stations: "data/curated/gauges/tidal_stations.json"         # authored: level gauges the tide moves (T78)
+    backwater_stations: "data/curated/gauges/backwater_stations.json" # authored: level gauges a lake below backs up (T160)
   stocking:
     matches: null       # not built — needs the FIDQ fetch
-    review: null
+    match_calls: null
   bathymetry:
     matches: null       # not built — needs the sheet matcher
-    review: null
+    match_calls: null

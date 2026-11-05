@@ -98,7 +98,7 @@ def git_dirty() -> list[str]:
     out = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all", "--", *COMMITTED],
                          cwd=REPO_ROOT, capture_output=True, text=True, check=True).stdout
     allowed = {str(Path(p).resolve().relative_to(REPO_ROOT)) for p in
-               (CURATED.regulations.review.marks, CURATED.regulations.review.closed)}
+               (CURATED.review.marks, CURATED.review.closed)}
     paths = [ln[3:].split(" -> ")[-1].strip().strip('"') for ln in out.splitlines() if ln.strip()]
     return [p for p in paths if p not in allowed]
 

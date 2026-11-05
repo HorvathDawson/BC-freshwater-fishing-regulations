@@ -2,7 +2,7 @@
 itself; there is no lock step. Closed = a domain that feeds nothing (ponds, T329).
 
   per domain   a mark saved through the API updates the curated file: sloughs, names (in the request); dfo, entries
-               (in the background, one commit per proposal, temp git repo); tidal (T326: a file domain — waters/tidal.json
+               (in the background, one commit per proposal, temp git repo); tidal (T326: a file domain — waters/tidal_limits.json
                in the request)
   refused      an apply that refuses keeps the mark, returns / holds the reason, and logs it
   batch        accept-all (one request, many marks) writes once
@@ -93,9 +93,9 @@ def wt(tmp_path, monkeypatch):
     dfo, cat = repo / "data/curated/dfo_salmon", repo / "data/curated/catalogue"
     dfo.mkdir(parents=True)
     cat.mkdir(parents=True)
-    (dfo / "region-1.json").write_bytes((Path(CURATED.regulations.entries.dfo_salmon) / "region-1.json").read_bytes())
-    (cat / "region-2.json").write_bytes((Path(CURATED.regulations.entries.catalogue) / "region-2.json").read_bytes())
-    (repo / "data/curated/splits.json").write_bytes(Path(CURATED.waters.splits).read_bytes())
+    (dfo / "region-1.json").write_bytes((Path(CURATED.dfo_salmon.places) / "region-1.json").read_bytes())
+    (cat / "region-2.json").write_bytes((Path(CURATED.regulations.synopsis) / "region-2.json").read_bytes())
+    (repo / "data/curated/splits.json").write_bytes(Path(CURATED.waters.cuts).read_bytes())
     _git(repo, "init", "-q")
     _git(repo, "config", "user.email", "t@example.com")
     _git(repo, "config", "user.name", "t")
@@ -114,7 +114,7 @@ def wt(tmp_path, monkeypatch):
         calls["sloughs"] += 1
         return {tmp_path / "slough_calls.json": t for t in real_sloughs(d).values()}
     monkeypatch.setitem(AP.WRITERS, "sloughs", sloughs)
-    monkeypatch.setitem(AP.WRITERS, "names", lambda d: {tmp_path / "mined_names.json": t
+    monkeypatch.setitem(AP.WRITERS, "names", lambda d: {tmp_path / "found_names.json": t
                                                        for t in real_names(d).values()})
     from pipeline.tools import tidal_limits as TL
     monkeypatch.setitem(AP.WRITERS, "tidal", lambda d: {tmp_path / "tidal.json": TL.document(TL.build(d, existing=[])[0])})
@@ -185,7 +185,7 @@ def test_a_name_mark_writes_mined_names_in_the_request(wt):
                                    "target": "blk:2~review-creek", "call": "accept"})
     assert r.status_code == 200, r.text
     assert r.json()["write_through"]["state"] == "done"
-    doc = json.loads((tmp / "mined_names.json").read_text())
+    doc = json.loads((tmp / "found_names.json").read_text())
     assert [n["name"] for e in doc["entries"] if e["target"]["blks"] == ["2"] for n in e["names"]] == ["Review Creek"]
 
 
@@ -240,7 +240,7 @@ def test_an_entry_mark_lands_in_its_catalogue_file_in_the_background(wt):
 
 def test_a_tidal_mark_writes_waters_tidal_json_in_the_request(wt, monkeypatch):
     """T326: tidal is a FILE domain — the mark's row lands in
-    waters/tidal.json in the same request (a new cut keeps its point; the atlas mints its id)."""
+    waters/tidal_limits.json in the same request (a new cut keeps its point; the atlas mints its id)."""
     cid = "tidal:354154938"
     cands = wt["tmp"] / "tidal-candidates.json"
     cands.write_text(json.dumps({"candidates": [{
@@ -324,9 +324,9 @@ def test_write_through_is_off_over_a_temp_store_unless_asked(tmp_path, monkeypat
     import write_through as W
     monkeypatch.delenv("CURATION_WRITE_THROUGH", raising=False)
     assert not W.from_env(tmp_path / "marks.jsonl", tmp_path).enabled
-    assert W.from_env(Path(CURATED.regulations.review.marks), tmp_path).enabled
+    assert W.from_env(Path(CURATED.review.marks), tmp_path).enabled
     monkeypatch.setenv("CURATION_WRITE_THROUGH", "0")
-    assert not W.from_env(Path(CURATED.regulations.review.marks), tmp_path).enabled
+    assert not W.from_env(Path(CURATED.review.marks), tmp_path).enabled
     monkeypatch.setenv("CURATION_WRITE_THROUGH", "1")
     assert W.from_env(tmp_path / "marks.jsonl", tmp_path).enabled
     sys.modules.pop("write_through", None)
@@ -396,4 +396,4 @@ def test_only_ponds_are_closed_in_the_curated_list():
     got = C.entries()
     assert set(got) == {"ponds", "proposals"} and got["ponds"]["scopes"] == ["q154"] and got["ponds"]["final"] is None
     assert got["proposals"]["scopes"] == ["proposal"] and got["proposals"]["final"] is None   # T331 item 6
-    assert C.path() == Path(CURATED.regulations.review.marks).parent / "closed.json"
+    assert C.path() == Path(CURATED.review.marks).parent / "closed.json"

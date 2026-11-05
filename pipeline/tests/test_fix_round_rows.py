@@ -33,7 +33,7 @@ KOOTENAY_BLK = "356570348"
 
 def _entries():
     from pathlib import Path
-    path = Path(__file__).resolve().parents[2] / "data/curated/regulations/entries/catalogue/region-4.json"
+    path = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis/region-4.json"
     return {e["entry_id"]: e for e in json.loads(path.read_text())["entries"]}
 
 
@@ -116,7 +116,7 @@ MISSION = "fraser_river__the_cpr_bridge_at_mission"
 
 def _region(n):
     from pathlib import Path
-    path = Path(__file__).resolve().parents[2] / f"data/curated/regulations/entries/catalogue/region-{n}.json"
+    path = Path(__file__).resolve().parents[2] / f"data/curated/regulations/synopsis/region-{n}.json"
     return {e["entry_id"]: e for e in json.loads(path.read_text())["entries"]}
 
 

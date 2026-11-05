@@ -44,7 +44,7 @@ _ROOT = Path(__file__).resolve().parents[2]
 #: The catalogue region files the app reads (never writes). `CURATION_ENTRIES_DIR` points it at a
 #: copy — the API tests and a headless click-through run against a temp copy.
 ENTRIES_DIR = (Path(os.environ["CURATION_ENTRIES_DIR"]) if os.environ.get("CURATION_ENTRIES_DIR")
-               else CURATED.regulations.entries.catalogue)
+               else CURATED.regulations.synopsis)
 # The build the app SERVES. `project_config.review_build_dir` is the one name for it — see
 # config.yaml `generated.atlas.default_build`. Hard-coding it here meant the app could serve a build months older than the pipeline and say nothing: every
 # reach still renders, just against a stale graph, so a reviewer signs off on the wrong water.
@@ -53,7 +53,7 @@ ENTRIES_DIR = (Path(os.environ["CURATION_ENTRIES_DIR"]) if os.environ.get("CURAT
 _BUILD = (Path(os.environ["CURATION_BUILD"]) if os.environ.get("CURATION_BUILD")
           else GENERATED.build())
 REGISTRY_PATH = _BUILD / "registry.json"
-OVERRIDES_PATH = CURATED.regulations.overrides
+OVERRIDES_PATH = CURATED.regulations.book_name_links
 SPLITS_RESOLVED_PATH = _BUILD / "splits.resolved.json"
 GRAPH_PKL_PATH = _BUILD / "graph.pkl"
 GEOMS_PKL_PATH = _BUILD / "geometries.pkl"
@@ -62,12 +62,12 @@ BASEMAP_PMTILES = SOURCE / "bc.pmtiles"                  # the webapp's basemap 
 #: THE hand-curated split source (read here, never written). `CURATION_SPLITS_JSON` points it at a
 #: copy (tests).
 SPLITS_JSON_PATH = (Path(os.environ["CURATION_SPLITS_JSON"]) if os.environ.get("CURATION_SPLITS_JSON")
-                    else CURATED.waters.splits)
+                    else CURATED.waters.cuts)
 ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row crops
 #: THE REVIEWERS' MARKS (T97): the append-only store `pipeline.regs.review.marks` reads — never a
 #: field of an entry. `CURATION_MARKS` points it at a copy (tests).
 MARKS_PATH = (Path(os.environ["CURATION_MARKS"]) if os.environ.get("CURATION_MARKS")
-              else CURATED.regulations.review.marks)
+              else CURATED.review.marks)
 #: THE BUILT VINTAGE the tool holds each entry against (T133): the reach run of the served build
 #: and the release root (the bundle is `pipeline.deliver.bundle.read.BUNDLE`). `CURATION_REACH_DIR`
 #: / `CURATION_RELEASE_ROOT` point them at copies (tests).
@@ -437,7 +437,7 @@ def _curated_split_ids(item) -> set[str]:
 def _used_splits() -> frozenset[str]:
     """Every curated split id something in the corpus uses (`split_use.used_split_ids`) — keyed on
     the files' stamps, so a curated edit is seen on the next request."""
-    dfo = sorted(Path(CURATED.regulations.entries.dfo_salmon).glob("region-*.json"))
+    dfo = sorted(Path(CURATED.dfo_salmon.places).glob("region-*.json"))
     regions_ = sorted(Path(ENTRIES_DIR).glob("region-*.json"))
     return _used_splits_for(_stamp((SPLITS_JSON_PATH, REGISTRY_PATH, *regions_, *dfo)))
 
@@ -446,7 +446,7 @@ def _used_splits() -> frozenset[str]:
 def _used_splits_for(key: tuple) -> frozenset[str]:
     from pipeline.regs.review.split_use import used_split_ids
     dfo = [json.loads(Path(p).read_text(encoding="utf-8")) for p, *_ in key
-           if Path(p).parent == Path(CURATED.regulations.entries.dfo_salmon)]
+           if Path(p).parent == Path(CURATED.dfo_salmon.places)]
     return frozenset(used_split_ids([e for _r, e in _all_entries()],
                                     json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8")),
                                     dfo=dfo, registry=_registry()))

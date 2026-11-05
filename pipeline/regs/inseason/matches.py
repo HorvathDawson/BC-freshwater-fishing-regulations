@@ -1,4 +1,4 @@
-"""THE IN-SEASON MATCHES (T226, owner 2026-10-28): `data/curated/inseason/matches.json` — AUTHORED.
+"""THE IN-SEASON MATCHES (T226, owner 2026-10-28): `data/curated/inseason/notice_waters.json` — AUTHORED.
 
 One entry per in-season row id (the T225 feed's `rows[].id`, `is-` + 12 hex: a hash of region + water as printed + its
 order among that water's rows, so a reworded row keeps its id) saying WHERE the change applies, in the extent
@@ -141,7 +141,7 @@ class Matches(BaseModel):
 
 def default_path() -> Path:
     from pipeline.common.curated import CURATED
-    return CURATED.inseason.matches
+    return CURATED.inseason.notice_waters
 
 
 def parse(text: str) -> Matches:
@@ -162,14 +162,14 @@ def load(path: Path | str | None = None, *, split_ids: Iterable[str] | None = No
 def all_split_ids() -> set[str]:
     from pipeline.atlas.splits.splits import split_index
     from pipeline.common.curated import CURATED
-    return set(split_index(json.loads(Path(CURATED.waters.splits).read_text(encoding="utf-8"))))
+    return set(split_index(json.loads(Path(CURATED.waters.cuts).read_text(encoding="utf-8"))))
 
 
 def split_labels() -> dict[str, str]:
     """split id -> its label, the name the release's `part_mark.label` carries where two parts meet."""
     from pipeline.atlas.splits.splits import split_index
     from pipeline.common.curated import CURATED
-    idx = split_index(json.loads(Path(CURATED.waters.splits).read_text(encoding="utf-8")))
+    idx = split_index(json.loads(Path(CURATED.waters.cuts).read_text(encoding="utf-8")))
     return {k: str(v.get("label") or "") for k, v in idx.items()}
 
 

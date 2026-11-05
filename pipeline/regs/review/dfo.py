@@ -1,6 +1,6 @@
 """THE DFO SALMON EXTENTS as review targets (T164): one target per scraped DFO location.
 
-    data/curated/regulations/entries/dfo_salmon/region-*.json   the curated geography (read only)
+    data/curated/dfo_salmon/places/region-*.json   the curated geography (read only)
     <generated>/regs/dfo_salmon/typed/region-*.json             the re-scraped rules (read only)
 
 A DFO location is a named water's reach as the DFO notice words it ("from the Highway 16 bridge
@@ -43,7 +43,7 @@ def op_arity() -> dict[str, tuple[str, int]]:
 
 def default_dir() -> Path:
     from pipeline.common.curated import CURATED
-    return Path(CURATED.regulations.entries.dfo_salmon)
+    return Path(CURATED.dfo_salmon.places)
 
 
 def default_typed_dir() -> Path:

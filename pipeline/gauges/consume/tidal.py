@@ -13,7 +13,7 @@ TWO SOURCES, JOINED:
                   TIDE is read here. "Backwater" in the record is almost always episodic — ice (07FA006, 07FD010),
                   beavers (07FD004, 08HD023), the 2024 Chilcotin landslide (08MF073-076), a lake's variable level
                   (08HB074) — and flagging it would call every winter gauge tidal (`test_tidal_gauges` pins this).
-    the list      `data/curated/gauges/tidal.json` (authored): stations the record does not say so about but that are
+    the list      `data/curated/gauges/tidal_stations.json` (authored): stations the record does not say so about but that are
                   known to be tidal or backed up by a tidal river — the Pitt near Port Coquitlam (owner), Whonock, and
                   the Fraser below New Westminster. Each row carries its reason; the authored reason wins over the
                   record's where both name a station.
@@ -24,7 +24,7 @@ bundle and the release carry; the reason stays here, for the review.
 
 A LAKE'S STANDING BACKWATER IS ITS OWN FLAG (T160; Q49 decided 2026-10-23 under the owner's T78 rule). 08HB074
 (Cruickshank River near the mouth) carries HYDAT's standing remark "STATION SUBJECT TO VARIABLE BACKWATER FROM COMOX
-LAKE" — not the tide, so not the tidal sentence. It is AUTHORED (`data/curated/gauges/backwater.json`), never read from
+LAKE" — not the tide, so not the tidal sentence. It is AUTHORED (`data/curated/gauges/backwater_stations.json`), never read from
 the remarks by pattern (the episodic ice / beaver / slide backwater stays unread), and each row is CHECKED against the
 record: it quotes the station's own remark and names the lake (`backwater_stations`). `gauge.backwater` (0/1); the app
 says its own Level sentence.
@@ -47,7 +47,7 @@ _STATION = re.compile(r"^\d{2}[A-Z]{2}\d{3}$")
 
 #: The authored list, owned here the way `pipeline.gauges.matches.MATCH_FILE` owns the frozen match: the bundle asks
 #: `tidal_stations` and never names a curated file itself (`test_one_data_flow`: the bundle reads no curated file).
-TIDAL_FILE = CURATED.gauges.tidal
+TIDAL_FILE = CURATED.gauges.tidal_stations
 
 
 def remark_evidence(hydat: Path) -> dict[str, str]:
@@ -89,7 +89,7 @@ def tidal_stations(hydat: Path, curated: Path | None = None) -> dict[str, str]:
 
 #: The authored list of level gauges a LAKE below them backs up (T160; Q49 decided 2026-10-23 under the owner's T78
 #: rule). Owned here like `TIDAL_FILE`: the bundle asks `backwater_stations` and never names a curated file itself.
-BACKWATER_FILE = CURATED.gauges.backwater
+BACKWATER_FILE = CURATED.gauges.backwater_stations
 
 
 def _norm(text: str) -> str:

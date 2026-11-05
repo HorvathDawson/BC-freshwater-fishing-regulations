@@ -33,7 +33,7 @@ DFO's "Stream Aggregate" sites are not places and give none). `pipeline/runtimin
 
 The Skeena carries a summer and a winter steelhead run six months apart, so a reach holds a LIST of runs; Pink (even)
 and Pink (odd) are separate slots (they never share a year). Run labels come from the CU's name (`runs.derive_label`)
-or NuSEDS's `RUN_TYPE`; `data/curated/runtiming/review.json` is AUTHORED (labels, coverage gaps): keep it.
+or NuSEDS's `RUN_TYPE`; `data/curated/runtiming/run_calls.json` is AUTHORED (labels, coverage gaps): keep it.
 
 ## Older code kept
 

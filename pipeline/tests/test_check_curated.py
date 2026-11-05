@@ -136,8 +136,14 @@ def test_only_active_stations_need_a_decision(tmp_path):
     assert C.check(a)[0] == "STALE"
 
 
-def test_the_gauge_queue_is_committed_curated_data():
-    """CI has no data/generated: the review queue lives beside the matches, in curated."""
+def test_the_gauge_queue_is_committed_machine_output():
+    """T324: the review queue is machine output, so it lives under data/generated — but CI has no data/generated, so
+    it must stay COMMITTED (the one `!generated/gauges/candidates.json` exception in data/.gitignore), or every queued
+    station would read STALE in CI."""
+    import subprocess
+    from pipeline.common.curated import ROOT
     gauge = next(a for a in C.ARTIFACTS if a.name == "gauge match")
-    assert gauge.candidates is not None and "curated" in gauge.candidates.parts
+    assert gauge.candidates is not None and "generated" in gauge.candidates.parts
+    ignored = subprocess.run(["git", "check-ignore", "-q", str(gauge.candidates)], cwd=ROOT)
+    assert ignored.returncode == 1, f"{gauge.candidates} is git-ignored — CI would not see the queue"
     assert (gauge.roster_where, gauge.roster_where_word) == (may_speak, "active")   # T122: the one liveness

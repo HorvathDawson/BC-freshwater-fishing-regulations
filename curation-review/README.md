@@ -27,7 +27,7 @@ delete / rename were removed with their routes, and `test_curation_review_safety
 backend module but `writes.py` writes a file, its one caller being the mark.
 `test_curation_review_screen` calls every route and proves nothing under `data/curated` changed.
 The one exception (T230, owner 2026-10-28): the **In-season** tab (`#inseason/`) edits
-`data/curated/inseason/matches.json` through `POST /api/inseason/matches` (Claude/owner tooling, not a mark;
+`data/curated/inseason/notice_waters.json` through `POST /api/inseason/matches` (Claude/owner tooling, not a mark;
 a history note per edit), by the same `writes.commit`.
 
 **DFO salmon extents (T164).** The top bar's "DFO salmon extents" (or `#dfo/<location_id>`) opens
@@ -47,7 +47,7 @@ turns it into a reviewed change.
   the served atlas cannot place is listed "not on the map" with why. Each rule shows a **where**
   line with its splits by name, and the entry lists "Splits the rules name" (click to fly to one).
 - **Low-confidence cuts** (owner 2026-10-28; its own tab was removed in T290, the per-entry view stays): an entry whose rules
-  name a cut splits.json marks `confidence: low` (queue rows carry `low_cuts`). Such an entry opens on satellite
+  name a cut cuts.json marks `confidence: low` (queue rows carry `low_cuts`). Such an entry opens on satellite
   imagery (the map's "satellite" toggle, Esri World Imagery as in the app), flown to the cut, with the cut's `_note`
   above the rules. Place y confirms it; Place n + "split misplaced" + the extent fix's map pick moves it.
 - **A wrong split is a "Place: wrong" mark** on an entry that uses it (problem "split misplaced");
@@ -143,8 +143,8 @@ restriction missed). A human checks each entry against the book, and signs it of
 
 ## Marks
 
-- **Marks (T97)** live in the append-only store `data/curated/regulations/review/marks.jsonl`
-  (`CURATED.regulations.review.marks`; `CURATION_MARKS` overrides it), never inside an entry. Each
+- **Marks (T97)** live in the append-only store `data/curated/review/marks.jsonl`
+  (`CURATED.review.marks`; `CURATION_MARKS` overrides it), never inside an entry. Each
   mark names its reviewer, date, the book's sha256 and the printed pages, and holds the target's
   FINGERPRINTS (`pipeline.regs.review.fingerprint`: text, meaning, binding + its bundle half,
   answer). When something it was held against changes, the mark reads **changed since marked** with
@@ -169,12 +169,12 @@ licensing; and the map.
 
 | Source | Path | Role |
 |---|---|---|
-| Entries (read) | `data/curated/regulations/entries/catalogue/region-*.json` | the review surface |
-| Splits (read) | `data/curated/waters/splits.json` | split labels, notes, what is still to verify |
+| Entries (read) | `data/curated/regulations/synopsis/region-*.json` | the review surface |
+| Splits (read) | `data/curated/waters/cuts.json` | split labels, notes, what is still to verify |
 | Registry (read) | `data/generated/atlas/full/registry.json` | item identity, **`boundaries`**, `variants`, `mus`, `section_ids` |
 | Geometry (read) | `data/generated/atlas/full/graph.pkl`, `geometries.pkl`, `waterbody_polys.pkl` | streams, split points, lakes, areas — served as GeoJSON for the map |
-| Marks (append) | `data/curated/regulations/review/marks.jsonl` | the one write |
-| In-season matches (T230) | `data/curated/inseason/matches.json` | the one non-mark write |
+| Marks (append) | `data/curated/review/marks.jsonl` | the one write |
+| In-season matches (T230) | `data/curated/inseason/notice_waters.json` | the one non-mark write |
 
 **The one write goes through `backend/writes.py`**: the marks store is backed up first, byte for
 byte, into `data/generated/regs/entries_backup/curation-review/<UTC stamp>-mark/…`
@@ -183,7 +183,7 @@ appended atomically under the store's lock.
 
 **Caches follow the build.** Before every `/api/` request the backend stats the served build's
 files and the bundle (`reuse.ensure_fresh`); if any changed (a promote, or a rebuild from a
-terminal) every build-derived cache is dropped. The place-namer is keyed on splits.json, so a split
+terminal) every build-derived cache is dropped. The place-namer is keyed on cuts.json, so a split
 label edited by hand shows on the next request.
 
 ## API

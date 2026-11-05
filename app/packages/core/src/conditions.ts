@@ -632,7 +632,7 @@ export const TIDAL_NOTE = "One of these gauges is tidal: its level rises and fal
  * THE TIDE, said once (T78; owner 2026-10-22: "In the Level view, check and disclose tidal or backwater influence
  * where the record shows it"). LEVEL ONLY — the Flow view never mixes in a stage — and, like the dam, only about a
  * number being shown: a reporting member whose station the release flags tidal (`gauge.tidal`, HYDAT's tidal remarks
- * + data/curated/gauges/tidal.json). The flag rides on the member's route, so the line appears once routes are in.
+ * + data/curated/gauges/tidal_stations.json). The flag rides on the member's route, so the line appears once routes are in.
  */
 export function tidalNote(rows: readonly DonorFacts[], quantity: "discharge" | "level"): string | null {
   return quantity === "level" && rows.some((r) => r.route?.tidal === true && donorCounted(r))
@@ -647,7 +647,7 @@ export const BACKWATER_NOTE = "One of these gauges sits where a lake backs up in
  * A LAKE'S STANDING BACKWATER, said once (T160; Q49 decided 2026-10-23 under the owner's T78 rule: "disclose tidal or
  * backwater influence where the record shows it"). Its own sentence, never the tide's: 08HB074's record says "variable
  * backwater from Comox Lake", not the tide. LEVEL ONLY, and only about a number being shown — a reporting member whose
- * station the release flags (`gauge.backwater`, data/curated/gauges/backwater.json, checked against HYDAT).
+ * station the release flags (`gauge.backwater`, data/curated/gauges/backwater_stations.json, checked against HYDAT).
  */
 export function backwaterNote(rows: readonly DonorFacts[], quantity: "discharge" | "level"): string | null {
   return quantity === "level" && rows.some((r) => r.route?.backwater === true && donorCounted(r))

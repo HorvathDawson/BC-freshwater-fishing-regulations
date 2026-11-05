@@ -24,7 +24,7 @@ book-known only where one of its own rules binds them. The book-known set is wha
 book-known lakes).
 
 THE CURATED LIST IS A PRESENCE INDICATOR
-(`data/curated/regulations/steelhead_waters.json`, `load_list` / `resolve_list`): each listed
+(`data/curated/waters/steelhead_waters.json`, `load_list` / `resolve_list`): each listed
 water's own sections are KNOWN. It binds no rule, adds no twin and no stamp. In the steelhead
 regions (1, 2, 3, 5, 6) it flips a stream from "possible" to "known"; elsewhere (the Okanagan River
 in Region 8, the Fraser in Zone 7A) it marks steelhead as present on a water no steelhead rule
@@ -249,7 +249,7 @@ def load_document(path: Path | None = None) -> SteelheadList:
     """The curated list's whole document. A missing file RAISES (AGENTS 37)."""
     if path is None:
         from pipeline.common.curated import CURATED
-        path = CURATED.regulations.steelhead_waters
+        path = CURATED.waters.steelhead_waters
     path = Path(path)
     if not path.is_file():
         raise FileNotFoundError(f"the known-steelhead list {path} is missing")
@@ -326,7 +326,7 @@ def resolve_list(waters, registry) -> list[tuple[ListWater, str]]:
             bad.append(f"{w.label}: {k} is already listed as {seen[k]}")
         seen.setdefault(k, w.label)
     if bad:
-        raise SystemExit("the known-steelhead list (data/curated/regulations/steelhead_waters.json) "
+        raise SystemExit("the known-steelhead list (data/curated/waters/steelhead_waters.json) "
                          "does not resolve:\n  " + "\n  ".join(bad))
     return out
 

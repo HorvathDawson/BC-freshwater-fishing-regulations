@@ -41,7 +41,7 @@ THE CLASSES (owner, T212 follow-up):
                     in again): the boundary is the top of the run joined to the mouth, the gaps between
                     are filled and a separate upstream patch is ignored — shown so the owner sees them
   no claim          unedited, nothing locates a boundary: accepted at the polygon, low priority
-  owner-decided     the owner made the call (`waters/tidal.json` rows with no mark, T326): Capilano at the
+  owner-decided     the owner made the call (`waters/tidal_limits.json` rows with no mark, T326): Capilano at the
                     source text (the CN bridge at the mouth), Cowichan at the river mouth. Wins over the rest.
 Sources that name a boundary but cannot be located (book or web) do not decide; the row says so.
 
@@ -559,7 +559,7 @@ def classify(c: dict, edited: bool | None, web: list[dict], grid_blind: bool = F
 
 def triage(cands_doc: dict, edits: dict, web_doc: dict | None, decisions: dict | None = None) -> dict:
     """Writes `triage` into every candidate (in place) and returns the per-class counts. `decisions`:
-    the owner's own calls (waters/tidal.json rows with no mark, T326) — a candidate it names (by id) is class
+    the owner's own calls (waters/tidal_limits.json rows with no mark, T326) — a candidate it names (by id) is class
     "owner-decided" whatever the rest says."""
     idx = edit_index(edits)
     decided = {d["id"]: d for d in (decisions or {}).get("decisions") or []}
@@ -637,7 +637,7 @@ def summary_md(doc: dict, edits: dict) -> str:
                "owner-edited": "polygon edited here — accepted (trusted)",
                "book agrees": "unedited; book/web within 300 m — accepted",
                "no claim": "unedited, no located claim — accepted at the polygon, low priority",
-               "owner-decided": "the owner made the call (`waters/tidal.json`, no mark) — accepted as decided"}
+               "owner-decided": "the owner made the call (`waters/tidal_limits.json`, no mark) — accepted as decided"}
     for k in CLASSES:
         L.append(f"| {k} | {meaning[k]} | {len(by[k])} |")
     L.append(f"| **total** | | {len(cs)} |")
@@ -747,7 +747,7 @@ def main(argv=None) -> None:
     edits = json.loads((a.out / "tidal-edits.json").read_text())
     wpath = a.out / "tidal-web.json"
     web = json.loads(wpath.read_text()) if wpath.exists() else None
-    # T326: the owner's own calls are the rows of waters/tidal.json with no mark
+    # T326: the owner's own calls are the rows of waters/tidal_limits.json with no mark
     from pipeline.atlas.splits import tidal as _T
     decisions = {"decisions": [{"id": f"tidal:{r.blk}", "water": r.name, "blk": r.blk, "boundary": r.limit,
                                "decided": r.decided, "note": r.why} for r in _T.load() if r.mark is None]}

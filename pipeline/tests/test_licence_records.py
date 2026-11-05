@@ -15,7 +15,7 @@ NOTICE = (ROOT / "data/LICENSE-ODbL.md").read_text(encoding="utf-8")
 
 LICENSED = ["data/source/bc_places.json", "data/source/municipal/osm_streams.geojson",
             "data/curated/waters/added_streams.json", "data/curated/waters/added_lakes.geojson",
-            "data/curated/waters/mined_names.json", "data/curated/waters/splits.json",
+            "data/curated/waters/found_names.json", "data/curated/waters/cuts.json",
             "data/generated/review/tidal/tidal-osm-landmarks.json"]
 
 
@@ -46,9 +46,9 @@ def _at_head(rel: str):
 
 def test_mined_names_loader_reads_the_same_entries():
     from pipeline.atlas.graph.names import load_name_variants
-    got = load_name_variants(ROOT / "data/curated/waters/mined_names.json")
+    got = load_name_variants(ROOT / "data/curated/waters/found_names.json")
     assert got and all("target" in e and "names" in e for e in got)
-    head = _at_head("data/curated/waters/mined_names.json")
+    head = _at_head("data/curated/waters/found_names.json")
     if head is not None:
         assert got == entries(head, "entries")
     # every OSM name the record covers is a `source: "osm"` record
@@ -82,10 +82,10 @@ def test_places_readers_skip_the_record(tmp_path):
 
 def test_splits_record_names_real_splits_and_loaders_ignore_it():
     from pipeline.atlas.splits.splits import load_split_defs, split_index
-    doc = _doc("data/curated/waters/splits.json")
+    doc = _doc("data/curated/waters/cuts.json")
     idx = split_index(doc)
     assert doc["_licence"]["ids"] and set(doc["_licence"]["ids"]) <= set(idx)
-    assert len(load_split_defs(str(ROOT / "data/curated/waters/splits.json"))) == len(idx)
+    assert len(load_split_defs(str(ROOT / "data/curated/waters/cuts.json"))) == len(idx)
 
 
 def test_added_lakes_and_streams_loaders_ignore_the_record():

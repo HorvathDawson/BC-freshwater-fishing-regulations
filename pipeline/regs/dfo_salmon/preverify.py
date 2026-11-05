@@ -608,7 +608,7 @@ _LABELS: dict[str, str] = {}
 
 def _split_label(sid: str) -> str:
     if not _LABELS:
-        doc = json.loads((ROOT / "data/curated/waters/splits.json").read_text())
+        doc = json.loads((ROOT / "data/curated/waters/cuts.json").read_text())
         for wb in (doc.get("waterbodies") or {}).values() if isinstance(doc.get("waterbodies"), dict) else doc.get("waterbodies") or []:
             for sp in (wb.get("splits") or []) if isinstance(wb, dict) else []:
                 if isinstance(sp, dict) and sp.get("id"):

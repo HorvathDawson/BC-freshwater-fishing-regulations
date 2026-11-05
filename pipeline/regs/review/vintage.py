@@ -214,7 +214,7 @@ class Target:
     def canonical(cls) -> "Target":
         from pipeline.common.curated import CURATED, GENERATED
         b = GENERATED.build()
-        return cls(entries=CURATED.regulations.entries.catalogue, splits=CURATED.waters.splits,
+        return cls(entries=CURATED.regulations.synopsis, splits=CURATED.waters.cuts,
                    build=b, reach=GENERATED.reaches / b.name, bundle=GENERATED.bundle / "bundle.sqlite",
                    release=GENERATED.release, tiles=GENERATED.tiles)
 

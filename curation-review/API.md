@@ -5,13 +5,13 @@ Backend base URL (dev): `http://127.0.0.1:8787`. All responses JSON. No auth. St
 out of parsing credits.
 
 **Write model: ONE write, a mark** (T134, T185). The app reads the catalogue region files
-(`data/curated/regulations/entries/catalogue/region-*.json`, the single source of truth) and
+(`data/curated/regulations/synopsis/region-*.json`, the single source of truth) and
 splits.json, and appends reviewers' marks to the marks store — `POST /api/marks` is its only write
 route. The editors' routes (`POST /api/check`, `PUT /api/entries/{id}`, split add / save / delete /
 rename — the retired fix mode) are gone: a request to one is refused by the router (404 / 405). A
 fix is a reviewed change to the curated files (T185), never this app's.
 **The one exception (T230, owner 2026-10-28):** `POST /api/inseason/matches` writes the in-season
-matches file (`data/curated/inseason/matches.json`) — Claude/owner tooling, not a mark — below.
+matches file (`data/curated/inseason/notice_waters.json`) — Claude/owner tooling, not a mark — below.
 `GET /api/mode` → `{app_url, checks: {entry, rule}, problems: {T, R, P, A: [..]},
 prechecks: {code: {severity, what}}, commands: {commit_marks, tickets, prechecks}}` (T135: the
 commands the screen PRINTS for the human; it runs none).
@@ -179,7 +179,7 @@ The proposed edits the marks make (`python -m pipeline.regs.review.proposals bui
 
 ### Commit marks (T135)
 `python -m pipeline.regs.review.commit_marks [-m msg] [--dry-run]` — `git commit --only` of
-`data/curated/regulations/review/marks.jsonl` and nothing else (staged and edited files elsewhere stay
+`data/curated/review/marks.jsonl` and nothing else (staged and edited files elsewhere stay
 as they were). It commits whenever the store differs from HEAD, a store that lost lines included (a
 migration's rewrite adds none). Not an endpoint: review mode writes one thing, a mark; the screen prints
 the command.
@@ -212,7 +212,7 @@ saying what is wrong.", never pydantic's "Value error, …". A target awaiting i
 T and R can be answered and "all fine" waits for the build (wrong / unsure / defer now), not to "answer
 every check" (`unanswered_words(scope, awaiting=reuse.awaiting_build(...))`).
 The server stamps `date`, `pdf_sha256` (the repo PDF) and the target's fingerprints
-(`pipeline.regs.review.fingerprint`), and APPENDS the mark to `data/curated/regulations/review/marks.jsonl`
+(`pipeline.regs.review.fingerprint`), and APPENDS the mark to `data/curated/review/marks.jsonl`
 (or `CURATION_MARKS`) through the backed-up commit. `422` for a mark the model refuses (`verified`
 needs every check `y`; `wrong` a `n`, a problem and a note; no reviewer; an unknown field) or an
 entry that FAILS THE GATE; `404` for an unknown entry or rule. → the mark with `status` and
@@ -411,7 +411,7 @@ The proposed tidal boundaries (`data/generated/review/tidal/tidal-candidates.jso
 
 ### In-season mode (T230) — reads, and the one non-mark write
 The provincial in-season feed (T225 `inseason-feed/1`: `data/generated/inseason/feed/index.json`, or
-`CURATION_INSEASON_FEED`) and where each row applies, `data/curated/inseason/matches.json`
+`CURATION_INSEASON_FEED`) and where each row applies, `data/curated/inseason/notice_waters.json`
 (`CURATED.inseason.matches`, never env-overridable; read through `pipeline.regs.inseason.matches`). INFORMATIONAL ONLY: a match puts a
 banner on the water in the app, never changes an answer.
 - `GET /api/inseason/queue` → `{available, message, source, fetchedAt, rows, progress: {matched, auto, unmatched,

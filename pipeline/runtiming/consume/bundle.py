@@ -123,6 +123,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--gen", type=Path, default=GENERATED.runtiming)
     ap.add_argument("--db", type=Path, default=GENERATED.bundle / "bundle.sqlite")
-    ap.add_argument("--review", type=Path, default=CURATED.runtiming.review)
+    ap.add_argument("--review", type=Path, default=CURATED.runtiming.run_calls)
     a = ap.parse_args()
     main(a.gen, a.db, a.review)

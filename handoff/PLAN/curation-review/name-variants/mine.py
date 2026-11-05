@@ -6,8 +6,8 @@ Sources (each candidate carries its REAL source, never a borrowed label):
     municipal:<city>   the four municipal stream layers (data/generated/municipal/cleaned, from data/source/municipal)
     osm                OSM named waterways in the app basemap (bc.pmtiles z13, via osm_extract.py)
     eccc               ECCC / WSC hydrometric station names (data/curated/gauges/matches.json, bc_hydrometric_stations.json)
-    dfo                DFO salmon regulation water names + aliases (data/curated/regulations/entries/dfo_salmon)
-    synopsis           the synopsis entry name vs the item it is matched to (data/curated/regulations/entries/catalogue)
+    dfo                DFO salmon regulation water names + aliases (data/curated/dfo_salmon/places)
+    synopsis           the synopsis entry name vs the item it is matched to (data/curated/regulations/synopsis)
     bcgnis_cache       BC Geographical Names features cached by the DFO preverify (~/.cache/bcfish-preverify)
 
     NV_CACHE=<dir> python mine.py [--osm <osm_water.jsonl>]
@@ -47,8 +47,8 @@ SOURCE_LABEL = {
     "municipal:squamish": ("District of Squamish watercourses layer", "data/source/municipal/squamish_watercourses.geojson"),
     "osm": ("OpenStreetMap (app basemap, OSM 2026-03-05)", "data/source/bc.pmtiles"),
     "eccc": ("ECCC hydrometric station name", "data/curated/gauges/matches.json"),
-    "dfo": ("DFO salmon regulations", "data/curated/regulations/entries/dfo_salmon"),
-    "synopsis": ("BC freshwater fishing synopsis 2025-27", "data/curated/regulations/entries/catalogue"),
+    "dfo": ("DFO salmon regulations", "data/curated/dfo_salmon/places"),
+    "synopsis": ("BC freshwater fishing synopsis 2025-27", "data/curated/regulations/synopsis"),
     "bcgnis_cache": ("BC Geographical Names (cached WFS)", "~/.cache/bcfish-preverify"),
 }
 OFFICIAL = {"bcgnis_cache"}     # only a gazetted name is official; a regulation's name is authoritative, not gazetted
@@ -386,7 +386,7 @@ def _item_names(iid: str) -> list[str]:
 
 def dfo() -> list[dict]:
     out = []
-    for p in sorted(glob.glob(str(ROOT / "data/curated/regulations/entries/dfo_salmon/region-*.json"))):
+    for p in sorted(glob.glob(str(ROOT / "data/curated/dfo_salmon/places/region-*.json"))):
         for w in json.loads(Path(p).read_text())["waters"]:
             via = (w.get("match") or {}).get("via")
             others = {key(n) for i in (w.get("item_ids") or []) for n in _item_names(i)}
@@ -438,7 +438,7 @@ def dfo_unmatched() -> list[dict]:
 
 def synopsis() -> list[dict]:
     out = []
-    for p in sorted(glob.glob(str(ROOT / "data/curated/regulations/entries/catalogue/region-*.json"))):
+    for p in sorted(glob.glob(str(ROOT / "data/curated/regulations/synopsis/region-*.json"))):
         for e in json.loads(Path(p).read_text())["entries"]:
             matched = e.get("matched") or []
             nm = re.sub(r"\s*\([^)]*\)", "", e.get("display_name") or e.get("name") or "").strip()

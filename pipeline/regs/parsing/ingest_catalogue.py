@@ -261,7 +261,7 @@ def main() -> None:
                     help="batch file(s) from the exporter; a glob is fine")
     ap.add_argument("--response", action="extend", nargs="+",
                     help="candidate JSON from the agent; a glob is fine")
-    ap.add_argument("--out", default="data/curated/regulations/entries/catalogue")
+    ap.add_argument("--out", default="data/curated/regulations/synopsis")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--ledger", type=Path, default=None,
                     help="what ingest last wrote, per entry (default: <work dir>/ingested.json)")

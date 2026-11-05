@@ -1092,7 +1092,7 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
     from pipeline.regs.review import marks as M
     registry = {i["id"]: i for i in json.loads(Path(registry_path or GENERATED.build() / "registry.json")
                                                   .read_text())["items"]}
-    sj = json.loads(Path(CURATED.waters.splits).read_text())
+    sj = json.loads(Path(CURATED.waters.cuts).read_text())
     smeta = {sp["id"]: sp for wb in sj.get("waterbodies") or [] for sp in wb.get("splits") or []
              if isinstance(sp, dict) and sp.get("id")}
     from pipeline.regs.review import export as E
@@ -1100,7 +1100,7 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
     decided = E.decide(M.load(Path(marks_path))) if marks_path else E.load()
     props = [{"id": p["id"], "split": json.loads(p["split"].model_dump_json()),
               "confidence": p["confidence"]}
-             for p in decided.shared(M.load_overrides(CURATED.regulations.review.proposal_overrides))]
+             for p in decided.shared(M.load_overrides(CURATED.review.proposal_overrides))]
     if gpkg is None:
         from project_config import get_config
         gpkg = str(get_config().fwa_data_gpkg)

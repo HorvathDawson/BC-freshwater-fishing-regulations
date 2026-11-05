@@ -91,11 +91,19 @@ def owner_marks() -> list[M.Mark]:
 #: the commit the owner's 2026-10-27 marks were made against: every one of them was APPLIED after it
 #: (8459fa16..897b96f4, Hatzic held), so the live files no longer yield these proposals
 MARKED_AT = "2bd29a26"
+#: (T324) the curated paths as they were named at MARKED_AT
+PRE_T324 = (("data/curated/regulations/synopsis/", "data/curated/regulations/entries/catalogue/"),
+            ("data/curated/dfo_salmon/places/", "data/curated/regulations/entries/dfo_salmon/"),
+            ("data/curated/waters/cuts.json", "data/curated/waters/splits.json"))
 
 
 def _as_marked(path: Path, dst: Path) -> None:
     """`path` as it stood at MARKED_AT (the files the proposals were built from)."""
     rel = Path(path).resolve().relative_to(P.REPO.resolve()).as_posix()
+    for now, then in PRE_T324:            # MARKED_AT predates the T324 naming pass: ask for the file by its old name
+        if rel.startswith(now):
+            rel = then + rel[len(now):]
+            break
     got = subprocess.run(["git", "show", f"{MARKED_AT}:{rel}"], cwd=P.REPO, capture_output=True,
                          check=True)
     dst.write_bytes(got.stdout)
@@ -108,9 +116,9 @@ def src(tmp_path) -> P.Sources:
     cat.mkdir(parents=True)
     dfo.mkdir(parents=True)
     for name in ("region-2.json", "region-5.json"):
-        _as_marked(CURATED.regulations.entries.catalogue / name, cat / name)
-    _as_marked(Path(CURATED.regulations.entries.dfo_salmon) / "region-1.json", dfo / "region-1.json")
-    _as_marked(CURATED.waters.splits, tmp_path / "data/curated/splits.json")
+        _as_marked(CURATED.regulations.synopsis / name, cat / name)
+    _as_marked(Path(CURATED.dfo_salmon.places) / "region-1.json", dfo / "region-1.json")
+    _as_marked(CURATED.waters.cuts, tmp_path / "data/curated/splits.json")
     build = tmp_path / "build"
     build.mkdir()
     (build / "registry.json").write_text(json.dumps({"items": [
@@ -178,7 +186,7 @@ def test_confidence_set_in_the_mark_or_by_an_owner_override(src):
 def test_sandy_pool_is_medium_by_the_owners_override():
     """decisions.md 2026-10-27: Sandy Pool = medium — recorded in the override file, since the
     marks store is never edited."""
-    got = M.load_overrides(CURATED.regulations.review.proposal_overrides)
+    got = M.load_overrides(CURATED.review.proposal_overrides)
     sandy = [o for o in got if "Sandy Pool" in (o.match.name or "")]
     assert [o.confidence for o in sandy] == ["medium"]
     assert M.confidence_of([owner_marks()[4].new_splits[0]], got) == "medium"
@@ -210,7 +218,7 @@ def test_a_mark_whose_edit_is_already_in_the_file_proposes_nothing(src, tmp_path
 
 
 def test_building_and_writing_never_touches_curated_data(tmp_path):
-    root = Path(CURATED.waters.splits).parents[1]
+    root = Path(CURATED.waters.cuts).parents[1]
     before = {p: p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()}
     src = P.Sources.live()
     props = P.build(owner_marks(), src)

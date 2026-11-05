@@ -66,11 +66,11 @@ export interface LicenceRow {
 export const ODBL_FILES: readonly LicenceFile[] = [
   repoFile("data/LICENSE-ODbL.md", "LICENSE-ODbL.md (which files and entries)"),
   repoFile("data/source/bc_places.json"),
-  repoFile("data/curated/waters/mined_names.json"),
+  repoFile("data/curated/waters/found_names.json"),
   repoFile("data/curated/waters/added_lakes.geojson"),
   repoFile("data/curated/waters/added_streams.json"),
   repoFile("data/source/municipal/osm_streams.geojson"),
-  repoFile("data/curated/waters/splits.json"),
+  repoFile("data/curated/waters/cuts.json"),
 ];
 /** the fetch that builds the access land and reserve layers from OpenStreetMap (not committed: built, then shipped) */
 export const ODBL_LAND_FILES: readonly LicenceFile[] = [

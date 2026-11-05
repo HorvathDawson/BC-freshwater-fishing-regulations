@@ -109,7 +109,7 @@ def test_the_row_decides_the_scope_both_ways():
 def _corpus() -> dict:
     from pipeline.common.curated import CURATED
     out = {}
-    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
         for e in C.CatalogueFile.model_validate(json.loads(p.read_text())).entries:
             out[e.entry_id] = e
     return out

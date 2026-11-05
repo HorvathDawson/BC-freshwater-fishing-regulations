@@ -211,7 +211,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Dispatch exported batches through the Claude CLI (parallel subagents).")
     ap.add_argument("--work-dir", help="parse working dir (default: <out>/parse)")
     ap.add_argument("--entries-dir", help="catalogue region files dir (default: "
-                    "data/curated/regulations/entries/catalogue) — batches fully covered by these "
+                    "data/curated/regulations/synopsis) — batches fully covered by these "
                     "are skipped as already ingested")
     ap.add_argument("--model", default="sonnet", help="CLI model alias (default: sonnet — parsing is "
                     "mechanical; reserve opus for re-dispatching failures)")
@@ -347,7 +347,7 @@ def main() -> None:
                           concurrency=args.concurrency, force=(args.force or args.rereview),
                           review_model=review_model)
 
-    print(f"Done. Next: python -m pipeline.regs.parsing.ingest_catalogue --batch {responses_dir}/../batches/batch_*.json --response {responses_dir}/batch_*.json --out data/curated/regulations/entries/catalogue --dry-run")
+    print(f"Done. Next: python -m pipeline.regs.parsing.ingest_catalogue --batch {responses_dir}/../batches/batch_*.json --response {responses_dir}/batch_*.json --out data/curated/regulations/synopsis --dry-run")
 
 
 if __name__ == "__main__":

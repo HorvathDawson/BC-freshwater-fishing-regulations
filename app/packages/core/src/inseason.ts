@@ -1,7 +1,7 @@
 /**
  * (T230, owner 2026-10-28) THE PROVINCIAL IN-SEASON CHANGES: the T225 feed (`feeds/inseason/index.json`,
  * `inseason-feed/1`, `app/workers/feeds/src/inseason.ts`) joined to the curated links (`feeds/inseason/matches.json`,
- * `inseason-links/1`, `pipeline.regs.inseason.publish` from `data/curated/inseason/matches.json`).
+ * `inseason-links/1`, `pipeline.regs.inseason.publish` from `data/curated/inseason/notice_waters.json`).
  *
  * INFORMATIONAL ONLY. A change is shown as a banner on every water (and part) it is matched to while it is in effect;
  * it never changes a computed answer or a status. (A future option, not built: a full closure could set "Check".)

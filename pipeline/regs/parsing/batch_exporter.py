@@ -286,7 +286,7 @@ def main() -> None:
 
     rows = load_synopsis_rows(args.rows)
     registry = load_registry(Path(args.registry) if args.registry else default_registry_path())
-    default_ov = CURATED.regulations.overrides
+    default_ov = CURATED.regulations.book_name_links
     overrides = load_overrides(args.overrides or (default_ov if default_ov.exists() else None))
     out_dir = Path(args.out_dir) if args.out_dir else default_work_dir()
     entries_dir = Path(args.entries_dir) if args.entries_dir else io.entries_dir()

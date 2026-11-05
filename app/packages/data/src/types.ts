@@ -236,13 +236,13 @@ export interface PanelRoute {
   role: "up" | "down";
   /**
    * `true` only: the tide or a tidal river's backwater moves this station's level — the release's `gauge.tidal`
-   * (T78: HYDAT's tidal remarks + data/curated/gauges/tidal.json). Absent otherwise, and on a release built before
+   * (T78: HYDAT's tidal remarks + data/curated/gauges/tidal_stations.json). Absent otherwise, and on a release built before
    * the flag. Core's `tidalNote` says so in the Level view.
    */
   tidal?: true;
   /**
    * `true` only: a LAKE below this station backs water up onto it, standing — the release's `gauge.backwater` (T160:
-   * data/curated/gauges/backwater.json, each row checked against the station's HYDAT remark; 08HB074, Comox Lake).
+   * data/curated/gauges/backwater_stations.json, each row checked against the station's HYDAT remark; 08HB074, Comox Lake).
    * Absent otherwise, and on a release built before the flag. Core's `backwaterNote` says so in the Level view.
    */
   backwater?: true;

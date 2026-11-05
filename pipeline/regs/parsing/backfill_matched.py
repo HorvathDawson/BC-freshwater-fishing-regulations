@@ -80,9 +80,9 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Stamp `matched` (registry ids covered) onto the "
                                  "catalogue region files.")
     ap.add_argument("--registry", help=f"registry.json (default: {default_registry_path()})")
-    ap.add_argument("--overrides", default=str(CURATED.regulations.overrides))
+    ap.add_argument("--overrides", default=str(CURATED.regulations.book_name_links))
     ap.add_argument("--entries-dir", help="catalogue region files dir (default: "
-                    "data/curated/regulations/entries/catalogue).")
+                    "data/curated/regulations/synopsis).")
     ap.add_argument("--dry-run", action="store_true", help="report only; write nothing.")
     args = ap.parse_args()
 

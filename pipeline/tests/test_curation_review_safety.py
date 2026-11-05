@@ -40,10 +40,10 @@ def env(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("curation")
     cat = tmp / "catalogue"
     cat.mkdir()
-    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
         shutil.copy2(p, cat / p.name)
     splits = tmp / "splits.json"
-    shutil.copy2(CURATED.waters.splits, splits)
+    shutil.copy2(CURATED.waters.cuts, splits)
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_ENTRIES_DIR", str(cat))
     (tmp / "marks.jsonl").write_text("")
@@ -159,7 +159,7 @@ def test_a_split_carries_its_curator_note_and_grade(env):
     `_note` the curator wrote and the auto-proposal grade read from it (`[auto-proposal L]`), so
     the review screen shows what still needs checking on a cut-point an entry's rules name."""
     sid = "adam_river__hwy_19_bridge"
-    raw = next(sp for wb in json.loads(CURATED.waters.splits.read_text())["waterbodies"]
+    raw = next(sp for wb in json.loads(CURATED.waters.cuts.read_text())["waterbodies"]
                for sp in wb["splits"] if sp["id"] == sid)
     assert env["reuse"].split_review(raw) == {"note": raw["_note"], "grade": "L"}
 
@@ -179,7 +179,7 @@ def test_the_grade_is_the_note_s_leading_auto_proposal_tag(env, note, grade):
 def test_the_hwy_19_bridge_note_is_on_the_bridge_not_the_eve_river_confluence():
     """The Eve River confluence carried the Hwy 19 bridge's auto-proposal text (and its L grade)
     word for word; the bridge split already holds it. The confluence keeps its own history."""
-    by_id = {sp["id"]: sp for wb in json.loads(CURATED.waters.splits.read_text())["waterbodies"]
+    by_id = {sp["id"]: sp for wb in json.loads(CURATED.waters.cuts.read_text())["waterbodies"]
              for sp in wb["splits"]}
     eve, bridge = by_id["adam_river__eve_river_into_adam_river"], by_id["adam_river__hwy_19_bridge"]
     assert "Hwy 19 bridge over Adam River" in bridge["_note"]
@@ -199,7 +199,7 @@ def test_the_hwy_19_bridge_note_is_on_the_bridge_not_the_eve_river_confluence():
 #: split add / move / delete / rename — the retired fix mode) are gone, not hidden behind a flag.
 MARK_ROUTE = {("POST", "/api/marks")}
 #: ... and THE ONE EXCEPTION (T230, owner 2026-10-28: "this file is Claude/owner tooling, not marks; keep a
-#: history note per edit"): the in-season matches file, data/curated/inseason/matches.json
+#: history note per edit"): the in-season matches file, data/curated/inseason/notice_waters.json
 INSEASON_ROUTE = {("POST", "/api/inseason/matches")}
 WRITE_ROUTES = MARK_ROUTE | INSEASON_ROUTE
 #: what the retired editors were asked, so a request to one is shown refused

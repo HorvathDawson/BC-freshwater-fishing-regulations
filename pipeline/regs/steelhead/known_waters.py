@@ -9,8 +9,8 @@ it. It writes `data/generated/steelhead/`:
     steelhead_review.csv    every candidate water with its evidence and decision
     steelhead_dropped.json  every water with steelhead evidence that is NOT listed, and why
 
-A HUMAN then copies `steelhead_waters.json` over `data/curated/regulations/steelhead_waters.json`
-(the reach builder reads only that copy, `pipeline.atlas.reach.steelhead.load_list`), and runs the
+The OWNER then accepts it — `python -m pipeline.regs.steelhead.accept` prints the waters added / dropped and,
+with `--write`, writes `data/curated/waters/steelhead_waters.json` (T324; the reach builder reads only that copy, `pipeline.atlas.reach.steelhead.load_list`), and runs the
 reach run and the bundle. `test_steelhead_waters.py` fails while the curated copy and the generated
 file disagree. The list is a PRESENCE INDICATOR (user ruling 2026-10-02): it makes a water's
 `steelhead` attribute "known" and binds no rule; on its flowing sections a rainbow over 50 cm is a
@@ -725,8 +725,9 @@ def main() -> None:
         "accessibility model, blocking dams), the route to the sea, a per-water review, no lakes "
         "(sloughs and canals count as streams). A presence indicator that binds no rule; on its "
         "streams a rainbow over 50 cm is a steelhead (anadromous_rainbow).",
-        "To use it: a human copies this file over data/curated/regulations/steelhead_waters.json "
-        "(keep that file's $comment), then the reach run and the bundle."],
+        "To use it: the owner reviews and accepts it with `python -m pipeline.regs.steelhead.accept` (prints the "
+        "waters added / dropped; `--write` writes data/curated/waters/steelhead_waters.json, keeping that file's "
+        "$comment), then the reach run and the bundle."],
         "generated": {"source": "data/generated/steelhead/steelhead_waters.json",
                       "generator": "pipeline.regs.steelhead.known_waters",
                       "date": fetched_on(), "fingerprint": fingerprint(waters)},

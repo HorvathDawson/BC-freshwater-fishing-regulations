@@ -35,11 +35,11 @@ def env(tmp_path):
     at them."""
     cat, bak = tmp_path / "catalogue", tmp_path / "backups"
     cat.mkdir()
-    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
         shutil.copy2(p, cat / p.name)
     splits = tmp_path / "waters" / "splits.json"
     splits.parent.mkdir()
-    shutil.copy2(CURATED.waters.splits, splits)
+    shutil.copy2(CURATED.waters.cuts, splits)
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_ENTRIES_DIR", str(cat))
     marks = tmp_path / "review" / "marks.jsonl"          # the store is checked in, empty

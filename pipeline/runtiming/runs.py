@@ -54,7 +54,7 @@ def derive_label(cu_name: str) -> str | None:
     """The run label a CU's own name states, or None when it does not state one.
 
     149 of 463 names carry one. The rest are single-run waters where the species IS the
-    answer — and the handful that are not are what `curated/runtiming/review.json` is for.
+    answer — and the handful that are not are what `curated/runtiming/run_calls.json` is for.
     """
     n = cu_name.lower()
     for label, pat in _LABELS:

@@ -75,7 +75,7 @@ describe("Sources and licences (T235)", () => {
     // (owner 2026-10-28) the ODbL rows link their files in the public repository
     const files = screen.getByTestId("licence-files-osm");
     expect(files.textContent).toContain("LICENSE-ODbL.md");
-    expect(files.textContent).toContain("mined_names.json");
+    expect(files.textContent).toContain("found_names.json");
     expect(screen.getByTestId("licence-files-osmland").textContent).toContain("fetch_data.py");
     expect(screen.queryByTestId("licence-files-fwa")).toBeNull();
   });

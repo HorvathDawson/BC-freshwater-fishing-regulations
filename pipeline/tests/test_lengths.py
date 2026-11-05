@@ -100,7 +100,7 @@ def test_a_size_on_a_licence_names_the_fish_and_sets_no_number():
     import json
     from pipeline.common.curated import CURATED
     from pipeline.regs.parsing.catalogue import CatalogueFile, Requirement
-    path = CURATED.regulations.entries.catalogue / "region-3.json"
+    path = CURATED.regulations.synopsis / "region-3.json"
     cf = CatalogueFile.model_validate(json.loads(path.read_text(encoding="utf-8")))
     e = next(e for e in cf.entries if e.entry_id.startswith("r3:shuswap_lake"))
     assert not [r for r in e.rules if r.lengths and r.take is None and "Stamp" in r.verbatim]

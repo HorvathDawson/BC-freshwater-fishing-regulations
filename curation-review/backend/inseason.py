@@ -1,7 +1,7 @@
 """T230: THE IN-SEASON TAB — the provincial in-season feed's rows and WHERE each applies.
 
 The feed is the T225 worker's `inseason-feed/1` (`GENERATED.inseason / "feed" / "index.json"`, or
-`CURATION_INSEASON_FEED`); the matches are `data/curated/inseason/matches.json` (`CURATION_INSEASON_MATCHES`),
+`CURATION_INSEASON_FEED`); the matches are `data/curated/inseason/notice_waters.json` (`CURATION_INSEASON_MATCHES`),
 read and edited only through `pipeline.regs.inseason.matches`.
 
     queue()                    every feed row (and removed row, and a match on a row the feed no longer holds:

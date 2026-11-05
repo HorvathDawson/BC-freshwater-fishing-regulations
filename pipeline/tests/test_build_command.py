@@ -89,14 +89,14 @@ def test_the_deliver_key_reads_only_what_deliver_can_read(monkeypatch):
     monkeypatch.setattr(Path, "read_bytes", lambda self: (opened.append(Path(self)), real(self))[1])
     B.curated_digest()
     got = set(opened)
-    for p in (CURATED.sloughs.page_marks, CURATED.regulations.review.proposal_overrides, CURATED.gauges.candidates,
-              CURATED.waters.name_calls, CURATED.waters.ungazetted, CURATED.waters.sub_lake_areas,
+    for p in (CURATED.waters.slough_page_calls, CURATED.review.proposal_overrides,
+              CURATED.waters.found_name_calls, CURATED.waters.unmapped_waters,
               CURATED.base / "README.md"):
         assert Path(p) not in got, p
-    for p in (CURATED.waters.splits, CURATED.waters.mined_names, CURATED.gauges.matches, CURATED.dfo_salmon.wording,
-              CURATED.runtiming.review, CURATED.inseason.matches):
+    for p in (CURATED.waters.cuts, CURATED.waters.found_names, CURATED.gauges.matches, CURATED.dfo_salmon.wording,
+              CURATED.runtiming.run_calls, CURATED.inseason.notice_waters):
         assert Path(p) in got, p
-    assert any(CURATED.regulations.entries.catalogue in p.parents for p in got)
+    assert any(CURATED.regulations.synopsis in p.parents for p in got)
     assert all(CURATED.base in p.parents for p in got)
 
 
@@ -271,7 +271,7 @@ def test_the_marks_are_in_no_stage_key(monkeypatch):
     whole curated tree: the digest never opens them."""
     from pipeline.common.curated import CURATED
     nb = B.not_build_inputs()
-    assert Path(CURATED.regulations.review.marks) in nb and Path(CURATED.regulations.review.closed) in nb
+    assert Path(CURATED.review.marks) in nb and Path(CURATED.review.closed) in nb
     assert not hasattr(CURATED, "decided")                 # T408: no decided-data dir
     opened = []
     real = Path.read_bytes
@@ -286,8 +286,8 @@ def test_the_curated_tree_loads_without_the_marks_store(tmp_path):
     from pipeline.common import curated as C
     blob = yaml.safe_load(C.CONFIG.read_text(encoding="utf-8"))
     gone = tmp_path / "no-marks.jsonl"
-    blob["curated"]["regulations"]["review"]["marks"] = str(gone)
+    blob["curated"]["review"]["marks"] = str(gone)
     cfg = tmp_path / "config.yaml"
     cfg.write_text(yaml.safe_dump(blob))
     got = C.load(cfg)
-    assert got.regulations.review.marks == gone and not gone.exists()
+    assert got.review.marks == gone and not gone.exists()

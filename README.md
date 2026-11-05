@@ -75,7 +75,7 @@ The synopsis PDF goes at `data/source/fishing_synopsis.pdf`.
 
 ```bash
 python -m pipeline.regs.extraction.extract_synopsis   # PDF → synopsis rows
-bash pipeline/regs/parsing/run_parse.sh               # rows → data/curated/regulations/entries/catalogue/
+bash pipeline/regs/parsing/run_parse.sh               # rows → data/curated/regulations/synopsis/
 ```
 
 The parse runs Claude and spends credits: **a person runs it**, never an agent.

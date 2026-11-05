@@ -30,7 +30,7 @@ from pipeline.regs.parsing import catalogue as C
 from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
 BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
-CAT = Path("data/curated/regulations/entries/catalogue")
+CAT = Path("data/curated/regulations/synopsis")
 
 
 def _tiny(tmp_path, rules: list) -> str:

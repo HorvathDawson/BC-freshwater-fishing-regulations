@@ -1,7 +1,7 @@
 """THE DFO SALMON FILE (T211, option A + the Standard / Salmon map toggle): the federal salmon rules, read ONCE here and
 shipped as answers per day, so the app decides nothing about a salmon rule (app/MAP.md: every answer is looked up).
 
-    curated  data/curated/regulations/entries/dfo_salmon/   locations: precedence, water, scope words
+    curated  data/curated/dfo_salmon/places/   locations: precedence, water, scope words
     feed     <generated>/regs/dfo_salmon/typed/            the typed rules, keyed by fingerprint
     reach    <reach run>/dfo_salmon.jsonl.gz               each location's sections (`pipeline.atlas.reach.dfo_salmon`)
        └─ build() ─▶ the bundle's `salmon_doc` + `salmon_section` ─▶ the release file `salmon` (`salmon/4`, encode())

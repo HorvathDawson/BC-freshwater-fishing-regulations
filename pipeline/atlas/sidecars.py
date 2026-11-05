@@ -81,7 +81,7 @@ def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> l
             r["source"] = "border"
         elif strict:
             raise SystemExit(f"sidecars: resolved split {sid!r} ({kind}) is not in "
-                             f"{CURATED.waters.splits} and is no atlas-made cut — the curated file "
+                             f"{CURATED.waters.cuts} and is no atlas-made cut — the curated file "
                              f"changed since this atlas was built; rebuild the atlas")
         # the keys in the build writer's order, so the migrated file reads as a fresh one
         out.append(order_resolved(r))
@@ -155,7 +155,7 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
     homes = regions.write_homes(build, registry, out_dir=dest)
     log(f"  {regions.HOME_FILE}: {len(homes):,} straddling section(s)")
     rows = json.loads((build / "splits.resolved.json").read_text(encoding="utf-8"))
-    rows = enrich_resolved(rows, load_split_defs(str(CURATED.waters.splits)))
+    rows = enrich_resolved(rows, load_split_defs(str(CURATED.waters.cuts)))
     # the build's own writer (`splits.write_resolved`), so a migrated file is byte-equal to a fresh one
     (dest / "splits.resolved.json").write_text(dump_resolved(rows), encoding="utf-8")
     n_cur = sum(1 for r in rows if r.get("source") == "curated")
@@ -186,7 +186,7 @@ def write_splits_sidecar(build: Path, out: Path, *, log=print) -> Path:
             os.symlink(p, link)
     rows = json.loads((build / "splits.resolved.json").read_text(encoding="utf-8"))
     before = [r.get("label") for r in rows]
-    rows = enrich_resolved(rows, load_split_defs(str(CURATED.waters.splits)))
+    rows = enrich_resolved(rows, load_split_defs(str(CURATED.waters.cuts)))
     (dest / "splits.resolved.json").write_text(dump_resolved(rows), encoding="utf-8")
     moved = sorted({r["split_id"] for r, b in zip(rows, before) if r.get("label") != b})
     log(f"  splits.resolved.json: {len(rows):,} cuts; labels changed: {moved or 'none'}")
@@ -194,7 +194,7 @@ def write_splits_sidecar(build: Path, out: Path, *, log=print) -> Path:
 
 
 def write_tidal_sidecar(build: Path, out: Path | None = None, *, log=print) -> Path:
-    """`--tidal-only` (T326): `tidal.resolved.json` rewritten from `waters/tidal.json` for an atlas already built —
+    """`--tidal-only` (T326): `tidal.resolved.json` rewritten from `waters/tidal_limits.json` for an atlas already built —
     a `split` or `whole` change needs no cut, so it reaches the reach run without an atlas build. A `mouth` row keeps
     where the atlas put its alias (the sidecar already there; a mouth new since the build says `pending`, and its
     alias lands with the next atlas build). A `cut` row this atlas did not cut is refused: it needs the atlas."""
@@ -211,7 +211,7 @@ def write_tidal_sidecar(build: Path, out: Path | None = None, *, log=print) -> P
             if not (link.is_symlink() or link.exists()):
                 os.symlink(p, link)
     limits = T.load()
-    have = {d.id for d in load_split_defs(str(CURATED.waters.splits))}
+    have = {d.id for d in load_split_defs(str(CURATED.waters.cuts))}
     id_of = T.ids(limits, have)
     resolved = {str(r["split_id"]) for r in json.loads((build / "splits.resolved.json").read_text(encoding="utf-8"))}
     missing = [f"{r.blk}: {id_of[r.blk]}" for r in limits if r.limit == "cut" and id_of[r.blk] not in resolved]
@@ -219,7 +219,7 @@ def write_tidal_sidecar(build: Path, out: Path | None = None, *, log=print) -> P
         raise SystemExit("sidecars: tidal cut(s) this atlas did not cut — they need an atlas build: " + "; ".join(missing))
     stale = [f"{r.blk}: {r.split}" for r in limits if r.limit == "split" and r.split not in have]
     if stale:
-        raise SystemExit("sidecars: waters/tidal.json names split(s) splits.json does not have: " + "; ".join(stale))
+        raise SystemExit("sidecars: waters/tidal_limits.json names split(s) splits.json does not have: " + "; ".join(stale))
     old = {}
     if (build / T.RESOLVED).exists():
         old = {r["blk"]: r for r in T.read_resolved(build) if r["limit"] == "mouth" and r.get("alias")}
@@ -248,7 +248,7 @@ def main(argv=None) -> int:
                     help="with --out: link everything, write only splits.resolved.json (a curated "
                          "split label or offset edit)")
     ap.add_argument("--tidal-only", action="store_true",
-                    help="write only tidal.resolved.json from waters/tidal.json (T326; in place adds/replaces that "
+                    help="write only tidal.resolved.json from waters/tidal_limits.json (T326; in place adds/replaces that "
                          "one file, also on a promoted atlas)")
     a = ap.parse_args(argv)
     build = a.build or GENERATED.require_build()

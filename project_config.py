@@ -151,7 +151,7 @@ def _retired(self, name):
         raise AttributeError(
             f"ProjectConfig.{name} was retired with nothing in its place: what it held "
             f"belonged to the retired prose parser. Parsed entries are "
-            f"CURATED.regulations.entries.catalogue (pipeline.common.curated)."
+            f"CURATED.regulations.synopsis (pipeline.common.curated)."
         )
     if name in _RETIRED:
         raise AttributeError(

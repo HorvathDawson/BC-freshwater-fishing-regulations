@@ -19,7 +19,7 @@ from pipeline.common import entry_id as EID
 from pipeline.common.entry_id import EntryId
 
 ROOT = Path(__file__).resolve().parents[2]
-CATALOGUE = ROOT / "data/curated/regulations/entries/catalogue"
+CATALOGUE = ROOT / "data/curated/regulations/synopsis"
 
 
 def _corpus_ids() -> list[str]:

@@ -47,7 +47,7 @@ from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 logger = logging.getLogger(__name__)
 
-ENTRIES_DIR = CURATED.regulations.entries.dfo_salmon
+ENTRIES_DIR = CURATED.dfo_salmon.places
 
 #: Fraction of a region's locations that may go unbound before the whole region is held.
 _STRUCTURAL_UNBOUND = 0.25

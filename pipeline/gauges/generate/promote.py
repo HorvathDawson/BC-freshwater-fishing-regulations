@@ -276,7 +276,7 @@ def main(argv: list[str] | None = None) -> int:
                     help="the matcher's raw output to promote from")
     ap.add_argument("--out", type=Path, default=MATCH_FILE,
                     help="the promoted file (also the baseline)")
-    ap.add_argument("--candidates", type=Path, default=CURATED.gauges.candidates,
+    ap.add_argument("--candidates", type=Path, default=GENERATED.gauges.candidates,
                     help="the review queue (also the baseline)")
     ap.add_argument("--only", nargs="+", metavar="STATION",
                     help="change only these stations' rows; every other row is kept as it is")

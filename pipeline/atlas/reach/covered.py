@@ -35,7 +35,7 @@ from pipeline.common.curated import CURATED, SOURCE
 #: disambiguates ("Yakoun River" -> gnis:3485), the builder loses those items, and the
 #: bundle silently disagrees with the review app about which water a rule is even on.
 #: Passing None here cost 82 rules before it was caught.
-DEFAULT_OVERRIDES = CURATED.regulations.overrides
+DEFAULT_OVERRIDES = CURATED.regulations.book_name_links
 
 
 def make_matcher(registry, overrides_path="__default__"):

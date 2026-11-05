@@ -551,7 +551,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     from pipeline.atlas.registry import load_registry as _load_registry
     from pipeline.deliver.bundle import continuation as _continuation
     _book = _continuation.pairs_of(db, _continuation.catalogue_heads(
-        Path(entries) if entries else CURATED.regulations.entries.catalogue.parent,
+        Path(entries) if entries else CURATED.regulations.synopsis.parent,
         _load_registry(str(Path(build_dir) / "registry.json"))))
     graph_path, geom_path = build_dir / "graph.pkl", build_dir / "geometries.pkl"
     for _p in (graph_path, geom_path):          # P2: the atlas's own files are required
@@ -670,7 +670,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         # made from that copy (`reach.cli --entries`); the two must be the same corpus, and
         # `rules.write` refuses a run that binds rules the entries do not have.
         _rules.write(db, _reaches,
-                     Path(entries) if entries else CURATED.regulations.entries.catalogue.parent,
+                     Path(entries) if entries else CURATED.regulations.synopsis.parent,
                      cov, build_dir=build_dir, home=_home)
         # THE DERIVED TABLES (DATAFLOW P2): rule_ix, rule.closure_grade, part, part_section — from
         # the rows just written, proved against them.

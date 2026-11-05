@@ -1,4 +1,5 @@
 {
+ "_about": "THE FOUND NAMES (was mined_names.json; T324): water names found in city stream layers, OpenStreetMap and ECCC gauges that the owner accepted (an auto rule, or a Names-tab mark / found_name_calls.json call); each name carries its real `source`. PROMOTED: written only by `python -m pipeline.tools.mined_names` and the review app's write-through (`pipeline.regs.review.apply`) — never edit by hand; change found_name_calls.json or mark the candidate instead. Read by the atlas build (`load_name_variants`, CURATED.waters.found_names) as name variants on their waters.",
  "_licence": {
   "spdx": "ODbL-1.0",
   "attribution": "© OpenStreetMap contributors",

@@ -1,4 +1,4 @@
-"""T326: THE ONE TIDAL FILE — `waters/tidal.json`, written from the Tidal-tab marks (`tools.tidal_limits`, the tidal
+"""T326: THE ONE TIDAL FILE — `waters/tidal_limits.json`, written from the Tidal-tab marks (`tools.tidal_limits`, the tidal
 write-through) and read by the atlas only (`atlas.splits.tidal`), which resolves it into `tidal.resolved.json`.
 
   mouth      Place y at the FWA mouth (or the atlas line's own lower end) -> limit `mouth`: no cut, ever; the atlas
@@ -342,8 +342,8 @@ def test_the_atlas_build_never_hands_a_mouth_row_to_the_cutter():
 def test_the_old_tidal_records_are_gone_and_unread():
     from pipeline.common.curated import CURATED, REPO_ROOT
     assert not (REPO_ROOT / "data/curated/waters/tidal_waters.json").exists()
-    assert Path(CURATED.waters.tidal).name == "tidal.json" and not hasattr(CURATED.waters, "tidal_waters")
-    assert '"tidal"' not in Path(CURATED.waters.splits).read_text()
+    assert Path(CURATED.waters.tidal).name == "tidal_limits.json" and not hasattr(CURATED.waters, "tidal_waters")
+    assert '"tidal"' not in Path(CURATED.waters.cuts).read_text()
     src = "\n".join(p.read_text() for p in (REPO_ROOT / "pipeline").rglob("*.py") if "tests" not in p.parts)
     src += "\n".join(p.read_text() for p in (REPO_ROOT / "curation-review/backend").glob("*.py"))
     for gone in ("tidal_waters.json", "owner-decisions.json", "TIDAL_DECISIONS =", "CURATED.waters.tidal_waters"):

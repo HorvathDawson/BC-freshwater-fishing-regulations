@@ -57,6 +57,12 @@ jobs:
       - name: Committed match artifacts are in step with their rosters
         run: python -m pipeline.tools.audit.check_curated --ci
 
+      # T324: the hand-edited waters files (name_variants, area_closures, added_*, continuations, unmapped_waters) —
+      # shape + references, seconds. The build runs the same check as its first step. A runner has no atlas registry,
+      # so the registry references are skipped here, and the output says so.
+      - name: Hand-edited waters files are sound
+        run: python -m pipeline.tools.audit.check_curated --waters
+
       # THE GENERATORS (AGENTS 40): the gauge policy (trust bands, temperature, change, record), the answers/2 frame
       # models, the calendar spec and the release contract each exist in Python and in TypeScript/JSON for the app
       # (and the reference page's JS). One command re-runs all four and fails if any committed copy is stale or was
@@ -102,7 +108,7 @@ jobs:
           # `_DEFAULT_SPLITS = Path(__file__).resolve().parent / "splits.json"` survived the
           # migration, and the first full build after it stopped dead — correctly, because
           # the missing-splits guard fired, but the gate should have caught it first.
-          check "a __file__-relative curated file"  '(parents\[[0-9]\]|\.parent)\s*/\s*"(splits|name_variants|gauge_match|gauge_review|added_streams|added_lakes|areas|ungazetted)'
+          check "a __file__-relative curated file"  '(parents\[[0-9]\]|\.parent)\s*/\s*"(splits|cuts|name_variants|gauge_match|gauge_review|match_calls|added_streams|added_lakes|areas|area_closures|ungazetted|unmapped_waters)'
           check "quoted data/<file> as a value"     '[=(,]\s*"data/[a-z_]+\.(json|sqlite3|geojson|gpkg|csv|pmtiles)"'
           check "ROOT / \"data\" / a bare file"      '/\s*"data"\s*/\s*"[a-z]' '"(source|curated|generated)"|project_config\.py'
           check "/ \"entries\" outside a tmp fixture" '(_ROOT|__file__|parents\[[0-9]\])[^\n]*/ "entries"'

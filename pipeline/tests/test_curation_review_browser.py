@@ -69,9 +69,9 @@ def site(request, tmp_path_factory):
     root = tmp_path_factory.mktemp("browser")
     cat = root / "catalogue"
     cat.mkdir()
-    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
         shutil.copy2(p, cat / p.name)
-    shutil.copy2(CURATED.waters.splits, root / "splits.json")
+    shutil.copy2(CURATED.waters.cuts, root / "splits.json")
     (root / "marks.jsonl").write_text("")
     (root / "run").mkdir()
     api_port, vite_port = _free_port(), _free_port()

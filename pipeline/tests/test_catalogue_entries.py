@@ -15,7 +15,7 @@ from pipeline.common.curated import CURATED
 from pipeline.regs.parsing.catalogue import CatalogueFile, RuleType, label
 from pipeline.tests.conftest import need, ROWS_HINT
 
-DIR = CURATED.regulations.entries.catalogue
+DIR = CURATED.regulations.synopsis
 
 
 def _files() -> list[Path]:
@@ -148,7 +148,7 @@ def _transcription_only(text: str) -> str:
 
 def _reference_corpus() -> str:
     """Every verbatim transcription, as one normalised blob — audit sections excluded."""
-    ref = CURATED.regulations.entries.catalogue.parent.parent / "reference"
+    ref = CURATED.regulations.reference
     if not ref.exists():
         return ""
     return _norm(" ".join(_transcription_only(p.read_text(encoding="utf-8"))
@@ -194,7 +194,7 @@ def test_a_rule_quotes_its_OWN_region_not_another():
     provincial source; regional rules may quote their own chapter or a provincial one, because a
     chapter legitimately restates provincial text.
     """
-    ref = CURATED.regulations.entries.catalogue.parent.parent / "reference"
+    ref = CURATED.regulations.reference
     assert ref.exists(), f"no reference transcriptions at {ref} (tracked in git)"
 
     def blob(*names: str) -> str:

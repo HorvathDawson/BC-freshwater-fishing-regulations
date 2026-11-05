@@ -1,6 +1,6 @@
 """T166 step 5 (owner 2026-10-28, RULINGS C-2): THE PIECE BELOW A TIDAL BOUNDARY IS TIDAL WATER.
 
-  limit     a `split` / `cut` row of waters/tidal.json (T326) -> the atlas's `tidal.resolved.json`
+  limit     a `split` / `cut` row of waters/tidal_limits.json (T326) -> the atlas's `tidal.resolved.json`
             -> the reach run reads the ids from the atlas (`outside.tidal_splits`)
   piece     `downstream_of` the cut on every item that carries it — no tributary
             (`outside.TIDAL_PIECE_HAS_NO_TRIBUTARIES`, `tidal_cut_owner`)
@@ -180,7 +180,7 @@ def _sidecar(tmp_path, rows):
 
 
 def test_the_tidal_limits_reach_the_run_through_the_atlas_sidecar(tmp_path):
-    """T326: which cut is tidal is a row of waters/tidal.json, resolved by the atlas into `tidal.resolved.json`; the
+    """T326: which cut is tidal is a row of waters/tidal_limits.json, resolved by the atlas into `tidal.resolved.json`; the
     run reads the `split` / `cut` ids and the `whole` items from it — never a flag on splits.json."""
     _sidecar(tmp_path, [{"blk": "1", "limit": "split", "split_id": TIDE},
                         {"blk": "2", "limit": "cut", "split_id": "creek__tidal_boundary"},
@@ -310,7 +310,7 @@ def test_a_rule_on_a_whole_tidal_water_is_unresolved_and_listed(estuary):
 
 def test_the_curated_whole_tidal_waters_are_the_owners_ten_fraser_delta_waters():
     """The 4 channels the owner marked (2026-10-29) + the 6 Fraser-code items below Mission he confirmed the same day
-    (T326: `whole` rows of waters/tidal.json, the owner's own calls)."""
+    (T326: `whole` rows of waters/tidal_limits.json, the owner's own calls)."""
     from pipeline.atlas.splits import tidal as T
     assert sorted(r.item for r in T.load() if r.limit == "whole") == [
         "gnis:10494", "gnis:11566", "gnis:14010", "gnis:14905", "gnis:17368", "gnis:17805", "gnis:21224",

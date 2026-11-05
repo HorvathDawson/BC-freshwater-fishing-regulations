@@ -1,5 +1,5 @@
 {
- "_about": "T327 (owner 2026-10-30): THE OWNER'S CALLS ON SINGLE MINED-NAME CANDIDATES, moved out of code (was `names.OWNER`). Keyed by candidate id (`names.cid`: '<target>~<proposed-name-slug>'). `call`: accept | hold (held: kept out of the accepted set until the owner says). Optional `name`: the name to store instead of the candidate's; `display`: show it as the water's name; `why`: who decided, when and why (carried into each accepted name's `accepted`). AUTHORED: edit by hand, then rerun `python -m pipeline.tools.mined_names`. Read only by `pipeline.regs.review.names` (CURATED.waters.name_calls).",
+ "_about": "T327 (owner 2026-10-30): THE OWNER'S CALLS ON SINGLE FOUND-NAME CANDIDATES (was name_calls.json; T324), moved out of code (was `names.OWNER`). Keyed by candidate id (`names.cid`: '<target>~<proposed-name-slug>'). `call`: accept | hold (held: kept out of the accepted set until the owner says). Optional `name`: the name to store instead of the candidate's; `display`: show it as the water's name; `why`: who decided, when and why (carried into each accepted name's `accepted`). AUTHORED: edit by hand, then rerun `python -m pipeline.tools.mined_names` (writes found_names.json). Read only by `pipeline.regs.review.names` (CURATED.waters.found_name_calls).",
  "format": "name-calls/1",
  "calls": {
   "blk:356314888~kilgard-creek": {

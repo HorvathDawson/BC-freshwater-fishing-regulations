@@ -29,7 +29,7 @@ from pipeline.tests.conftest import need, ATLAS_HINT, BUNDLE_HINT
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
-REAL = CURATED.regulations.entries.catalogue
+REAL = CURATED.regulations.synopsis
 
 #: the review app serves the built registry (data/generated/atlas/full)
 pytestmark = pytest.mark.needs_atlas
@@ -43,7 +43,7 @@ def env(request, tmp_path_factory):
         shutil.copy2(p, tmp / p.name)
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_ENTRIES_DIR", str(tmp))
-    shutil.copy2(CURATED.waters.splits, tmp / "splits.json")
+    shutil.copy2(CURATED.waters.cuts, tmp / "splits.json")
     mp.setenv("CURATION_SPLITS_JSON", str(tmp / "splits.json"))
     # the reviewer's marks go to a temp store, never the real one
     (tmp / "marks.jsonl").write_text("")

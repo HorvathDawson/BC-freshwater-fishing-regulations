@@ -242,7 +242,7 @@ class TestCuratedClosureZones:
         want = {"area:sign_zone:fraser_river_landstrom_bar_sign_zone",
                 "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"}
         seen = set()
-        for p in glob.glob("data/curated/regulations/entries/catalogue/region-*.json"):
+        for p in glob.glob("data/curated/regulations/synopsis/region-*.json"):
             for e in json.load(open(p))["entries"]:
                 for r in e.get("rules", []):
                     for x in r.get("extents") or []:
@@ -250,7 +250,7 @@ class TestCuratedClosureZones:
                             seen.add(x["within_area"])
                             assert _specificity(r) == "section", (
                                 f"{r['rule_id']} became an area rule — it would be outranked")
-        for p in glob.glob("data/curated/regulations/entries/dfo_salmon/region-*.json"):
+        for p in glob.glob("data/curated/dfo_salmon/places/region-*.json"):
             for loc in json.load(open(p))["locations"]:
                 for x in (loc.get("binding") or {}).get("extents") or []:
                     if x.get("within_area") in want:
@@ -262,7 +262,7 @@ class TestCuratedClosureZones:
         polygon that already cuts there, and a rule that could bind either."""
         import json
         from pipeline.common.curated import CURATED
-        d = json.loads(CURATED.waters.splits.read_text())
+        d = json.loads(CURATED.waters.cuts.read_text())
         ids = {s["id"] for w in d["waterbodies"] for s in w["splits"]}
         for gone in ("fraser_river__landstrom_bar", "fraser_river__croft_island_southern_end",
                      "skeena_river__kispiox_sign_zone_lower", "skeena_river__kispiox_sign_zone_upper"):

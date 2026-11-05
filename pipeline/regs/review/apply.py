@@ -13,12 +13,12 @@ marks decide IN MEMORY (`review.export.load`: the marks in force, a closed domai
 T408) and runs each domain's WRITER, which puts it into the domain's final curated file:
 
      domain    writer                                        final file
-     tidal     tools.tidal_limits                            waters/tidal.json (T326: mouth | split | cut | whole)
-     dfo       apply_proposals --scope dfo                   regulations/entries/dfo_salmon/region-*.json (+ splits.json)
-     entries   apply_proposals --scope entry --scope rule    regulations/entries/catalogue/region-*.json (+ splits.json)
-     splits    apply_proposals --scope split                 waters/splits.json
+     tidal     tools.tidal_limits                            waters/tidal_limits.json (T326: mouth | split | cut | whole)
+     dfo       apply_proposals --scope dfo                   dfo_salmon/places/region-*.json (+ waters/cuts.json)
+     entries   apply_proposals --scope entry --scope rule    regulations/synopsis/region-*.json (+ waters/cuts.json)
+     splits    apply_proposals --scope split                 waters/cuts.json
      sloughs   tools.slough_calls                            waters/slough_calls.json
-     names     tools.mined_names                             waters/mined_names.json
+     names     tools.mined_names                             waters/found_names.json
      ponds     — (closed, T329: nothing reads a pond call)
 
 `apply_proposals` keeps every guard it had: the binding check, one commit per proposal (`git commit -- <paths>`), a
@@ -54,7 +54,7 @@ def _names(decided: E.Decided) -> dict[Path, str]:
     import json
     from pipeline.common.curated import CURATED
     from pipeline.tools import mined_names as N
-    return {Path(CURATED.waters.mined_names): json.dumps(N.document(N.build(decided)), indent=1, ensure_ascii=False)
+    return {Path(CURATED.waters.found_names): json.dumps(N.document(N.build(decided)), indent=1, ensure_ascii=False)
             + "\n"}
 
 

@@ -1,6 +1,6 @@
 """A reviewer's MARK, the append-only store that holds them, and the one staleness decision.
 
-    data/curated/regulations/review/marks.jsonl      (`CURATED.regulations.review.marks`)
+    data/curated/review/marks.jsonl      (`CURATED.review.marks`)
 
 One JSON object per line, each a `Mark` (pydantic, `extra=forbid`). APPEND-ONLY: a later mark on
 the same target supersedes an earlier one (`latest`), so the file is the history and git holds it.
@@ -641,7 +641,7 @@ def load(path: Path) -> list[Mark]:
     p = Path(path)
     if not p.exists():
         raise FileNotFoundError(f"no marks store at {p} — it is checked in (empty) under "
-                                f"data/curated/regulations/review/")
+                                f"data/curated/review/")
     out: list[Mark] = []
     for n, text in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
         if not text.strip():
@@ -1088,7 +1088,7 @@ class ConfidenceOverride(BaseModel):
 
 
 def load_overrides(path: Optional[Path]) -> list[ConfidenceOverride]:
-    """The confidence overrides (`CURATED.regulations.review.proposal_overrides`); [] for None."""
+    """The confidence overrides (`CURATED.review.proposal_overrides`); [] for None."""
     if path is None:
         return []
     doc = json.loads(Path(path).read_text(encoding="utf-8"))

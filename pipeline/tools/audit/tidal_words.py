@@ -287,7 +287,7 @@ def _split_labels() -> dict:
     """splits.json id -> label (read only)."""
     global _LABELS
     if _LABELS is None:
-        doc = json.loads((ROOT / "data/curated/waters/splits.json").read_text())
+        doc = json.loads((ROOT / "data/curated/waters/cuts.json").read_text())
         _LABELS = {sp["id"]: sp.get("label") or sp["id"] for wb in doc.get("waterbodies") or []
                    for sp in wb.get("splits") or [] if sp.get("id")}
     return _LABELS

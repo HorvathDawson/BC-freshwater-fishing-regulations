@@ -749,7 +749,7 @@ def locate(e: dict, blk: str, st: Streams, basemap, named: bool = False, primary
 
 def _marks() -> dict:
     from pipeline.regs.review import marks as M
-    p = ROOT / "data/curated/regulations/review/marks.jsonl"
+    p = ROOT / "data/curated/review/marks.jsonl"
     out = {}
     for m in M.latest(M.load(p)).values():
         if m.scope != "tidal":

@@ -150,7 +150,7 @@ def main(argv: list[str] | None = None) -> int:
     from pipeline.common.curated import GENERATED
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", type=Path, default=None)
-    ap.add_argument("--matches", type=Path, default=None, help="the curated file (default CURATED.inseason.matches)")
+    ap.add_argument("--matches", type=Path, default=None, help="the curated file (default CURATED.inseason.notice_waters)")
     ap.add_argument("--feed", type=Path, default=None, help="a captured feed index.json to copy beside it (dev)")
     ap.add_argument("--release", type=Path, default=None, help="the shipped release to name parts in (default LATEST)")
     ap.add_argument("--no-places", action="store_true", help="labels only: no atlas load, no parts")

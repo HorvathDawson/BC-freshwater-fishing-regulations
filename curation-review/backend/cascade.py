@@ -1,7 +1,7 @@
 """THE DFO CASCADE VIEW (T229): which DFO salmon places apply on each section of one watershed, and which one
 answers per species and day — the release's own chains, recomputed from the same three inputs, read only.
 
-    data/curated/regulations/entries/dfo_salmon/region-*.json   the places (precedence, water, words)
+    data/curated/dfo_salmon/places/region-*.json   the places (precedence, water, words)
     <generated>/regs/dfo_salmon/typed/region-*.json             their rules, by fingerprint
     <reach run>/dfo_salmon.jsonl.gz                             each place's sections (what the bundle reads)
 

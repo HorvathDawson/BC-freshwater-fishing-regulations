@@ -75,7 +75,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Re-point entries at renamed auto boundaries.")
     ap.add_argument("--old-registry", required=True, help="registry.json from BEFORE the rebuild")
     ap.add_argument("--registry", help=f"current registry.json (default: {default_registry_path()})")
-    ap.add_argument("--entries-dir", help="entries dir (default: data/curated/regulations/entries/catalogue).")
+    ap.add_argument("--entries-dir", help="entries dir (default: data/curated/regulations/synopsis).")
     ap.add_argument("--dry-run", action="store_true", help="report only; write nothing.")
     args = ap.parse_args()
 

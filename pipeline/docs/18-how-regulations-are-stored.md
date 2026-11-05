@@ -354,7 +354,7 @@ data/curated/regulations/reference/          the synopsis, transcribed verbatim 
   definitions.md · provincial-regulations.md · licensing.md · region-1.md … region-8.md
   water-specific-tables.md
 
-data/curated/regulations/entries/catalogue/  the typed rules                      ← what we build from
+data/curated/regulations/synopsis/  the typed rules                      ← what we build from
   region-provincial.json · region-1.json … region-8.json, region-7a.json, region-7b.json
   (11 files; 1,515 entries, 3,317 rules, 111 licensing records)
 

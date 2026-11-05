@@ -39,7 +39,7 @@ from pipeline.regs.parsing.catalogue import CatalogueEntry
 from pipeline.regs.parsing.catalogue_parts.see import see_relation
 from pipeline.tests.conftest import ATLAS_HINT, BUNDLE_HINT, need
 
-CAT = Path(CURATED.regulations.entries.catalogue)
+CAT = Path(CURATED.regulations.synopsis)
 
 #: BY DESIGN — a rule that binds nowhere and is right to.
 BY_DESIGN = frozenset({

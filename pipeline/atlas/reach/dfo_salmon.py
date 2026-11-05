@@ -2,7 +2,7 @@
 the SAME `build_reach` the provincial rules go through (`entries.to_reach_input` shapes it; nothing here re-implements a
 cut, a walk or a clip).
 
-    data/curated/regulations/entries/dfo_salmon/region-*.json   the curated geography (read only)
+    data/curated/dfo_salmon/places/region-*.json   the curated geography (read only)
       └─ to_reach_input → build_reach ─▶ <reach run>/dfo_salmon.jsonl.gz   one line per location
 
 Written beside the reach run's tables and OUTSIDE the rules' digest (like `tidal`, `steelhead_presence`): a DFO location

@@ -8,7 +8,7 @@ The one current map of `pipeline/` (T63, checked against the code 2026-10-24). H
 
 ```
 data/source/  (fetched: FWA gpkg, HYDAT, synopsis PDF, stations …)  ─┐
-data/curated/ (authored + reviewed: splits, names, areas, catalogue,  ├─▶ ATLAS ─▶ CLIM ─▶ REACH ─▶ TILES ─▶ DELIVER ─▶ data/release/r-*/
+data/curated/ (authored + reviewed: cuts, names, areas, synopsis,    ├─▶ ATLAS ─▶ CLIM ─▶ REACH ─▶ TILES ─▶ DELIVER ─▶ data/release/r-*/
                gauge matches, steelhead list …)                      ─┘   (side      (gauge   (rules →   (PMTiles) (bundle → … →     + LATEST
                                                                            build,     envelope) sections)            release)
                                                                            promoted)
@@ -32,7 +32,7 @@ against the live release) → LATEST → `deploy/staging/upload.sh`. Its ledger 
 |---|---|---|---|
 | **atlas** | `atlas/build.py`; `atlas/graph/` (network, prune, tributaries, windows), `atlas/splits/` (sectionizer, anchors, area cuts, border, sliver gate), `atlas/registry/` (named waters, flowing-polygon fold, regions), `atlas/waters/` (added lakes/streams), `atlas/sidecars.py`, `atlas/promote.py` | FWA gpkg, `CURATED.splits`, names, areas | `data/generated/atlas/<build>/`: graph, `registry.json`, `section_handles.txt`, sidecars |
 | **clim** | `gauges/feed/climatology.py` | HYDAT | `clim.json` (the gauge envelope) |
-| **reach** | `atlas/reach/` (`cli.py`, `build.py`, `classify.py`, `extent.py`, `licensing.py`, `steelhead.py`, `cache.py`) | atlas, the catalogue corpus (`data/curated/regulations/entries/catalogue/`) | `data/generated/reaches/<run>/`: per-rule bindings, `report.json`, diagnostics |
+| **reach** | `atlas/reach/` (`cli.py`, `build.py`, `classify.py`, `extent.py`, `licensing.py`, `steelhead.py`, `cache.py`) | atlas, the catalogue corpus (`data/curated/regulations/synopsis/`) | `data/generated/reaches/<run>/`: per-rule bindings, `report.json`, diagnostics |
 | **tiles** | `deliver/tiles/` (`tippe.py`, `layers.py`, `names.py`, `basemap.py`) | atlas | `data/generated/tiles/`: `atlas.pmtiles` (z4–13, T85), `atlas.meta.json`, `layers/` + `layers/undrawn.json` (the sections left out on purpose, T64; the bundle's `bundle/undrawn.py` proves none was needed), never the basemap |
 | **deliver** | `deliver/__main__.py` `all` | atlas, reach run, tiles, curated corpus, `clim.json` | `data/release/r-<id>/` + `LATEST` (or `CANDIDATE` with `--hold-latest`) |
 
@@ -63,12 +63,12 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 | **the LLM parse** | `regs/parsing/` (`run_parse.sh`, `dispatch`) | **HUMAN-ONLY, spends credits** (AGENTS 1); writes the catalogue |
 | catalogue model + gate | `regs/parsing/catalogue.py`, `validate_catalogue.py` | what ingest refuses |
 | curation review | `regs/review/` + `curation-review/` (FastAPI + frontend) | marks only in review mode (AGENTS 65–67) |
-| steelhead list | `regs/steelhead/known_waters.py` | generates a list a human copies to curated (AGENTS 54) |
+| steelhead list | `regs/steelhead/known_waters.py`, `regs/steelhead/accept.py` | generates the list; `accept` prints added / dropped and `--write`s `data/curated/waters/steelhead_waters.json` (AGENTS 54, T324) |
 | DFO salmon | `regs/dfo_salmon/` | see [`19-dfo-salmon-pipeline.md`](19-dfo-salmon-pipeline.md) |
 | gauge matches | `gauges/generate/` (`match.py`, `promote.py`) | REVIEWED data: promote station by station (AGENTS 38) |
 | live gauge feed | `gauges/feed/publish.py` (+ `forecast.py`, `change.py`, `notify.py`) | the feed the app polls; `scripts/dev-build.sh`, `scripts/update-hydat.sh` |
 | generated app code | `tools/emit/` (`calendar`, `gauge_policy`, `pack`) + `deliver/answers/model --check` | `--check` in `pnpm check` and CI |
-| audits | `tools/audit/` (`build_parity.py`, `check_curated.py`, …) | read-only reports |
+| audits | `tools/audit/` (`build_parity.py`, `check_curated.py` — `--waters` is the fast hand-edit check, the build's first step, …) | read-only reports |
 | basemap | `deliver/tiles/basemap.py` (+ `basemap_roads.py`) | the OSM ground: clip, filter to what the style draws (T85, T202), cap at z13 with the z13 roads rebuilt from z14 so trail/FSR names survive (T202; zoom audit gates the build), release as `data/release/basemap/<id>/` + `tiles/basemap.meta.json` (T75); the release names it |
 | tile sizes | `tools/audit/tile_sizes.py` | bytes per zoom and layer of a pmtiles archive (the S2 size table) |
 | PREPARED, NOT FED | `stocking/`, `bathymetry/`, `runtiming/` | kept on purpose (owner 2026-10-22); each README says what feeds it |

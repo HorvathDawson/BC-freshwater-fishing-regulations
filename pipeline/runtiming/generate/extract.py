@@ -199,7 +199,7 @@ if __name__ == "__main__":
     ap.add_argument("--src", type=Path, default=SOURCE / "runtiming")
     ap.add_argument("--out", type=Path, default=GENERATED.runtiming)
     ap.add_argument("--review", type=Path,
-                    default=CURATED.runtiming.review)
+                    default=CURATED.runtiming.run_calls)
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     main(a.src, a.out, a.review)

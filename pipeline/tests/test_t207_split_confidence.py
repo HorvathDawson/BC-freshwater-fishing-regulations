@@ -33,7 +33,7 @@ def test_the_model_defaults_to_high_and_refuses_anything_else():
 
 
 def test_the_curated_white_river_pool_cuts_are_low_and_load():
-    defs = {d.id: d for d in load_split_defs(str(CURATED.waters.splits))}
+    defs = {d.id: d for d in load_split_defs(str(CURATED.waters.cuts))}
     for sid in ("white_river__100_m_below_salmon_viewing_platform", "white_river__100_m_above_salmon_viewing_platform"):
         assert defs[sid].confidence == "low"
         assert defs[sid].anchor.offset_m == 100

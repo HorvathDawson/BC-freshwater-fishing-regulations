@@ -1,0 +1,25 @@
+# `waters/` — the shape of the atlas, and lists of waters
+
+Read by the atlas build (cuts, names, areas, added waters, tidal limits, sloughs) unless noted. Atlas inputs change
+the map only after the next atlas build (`pipeline build --atlas --promote`).
+
+| file | kind | written by | read by |
+|---|---|---|---|
+| `cuts.json` | authored | hand; review app write-through (split / entry / DFO marks) | atlas sectionizer; review app |
+| `name_variants.json` | authored | hand | atlas registry (names on FWA waters) |
+| `found_names.json` | promoted | `pipeline.tools.mined_names` / write-through (Names marks) | atlas registry |
+| `found_name_calls.json` | authored | hand (owner calls on single found-name candidates) | `pipeline.tools.mined_names` |
+| `area_closures.json` | authored | hand | atlas (cuts streams at area edges); tiles |
+| `added_areas.geojson` | authored | hand-drawn polygons | an `area_closures.json` def with `file` |
+| `added_lakes.geojson` | authored | hand-drawn polygons | atlas |
+| `added_streams.json` | promoted | the added-streams resolver (never rerun casually: negative `blk` ids are an ABI) | atlas |
+| `continuations.json` | authored | hand | bundle (`water_continue` gate) |
+| `tidal_limits.json` | applied | `pipeline.tools.tidal_limits` / write-through (Tidal marks) | atlas (`tidal.resolved.json`) |
+| `slough_calls.json` | applied | `pipeline.tools.slough_calls` / write-through (slough marks) | atlas registry |
+| `slough_page_calls.json` | frozen | the retired slough page (2026-10-28) | review app (old notes) |
+| `steelhead_waters.json` | accepted | `python -m pipeline.regs.steelhead.accept --write` | reach run |
+| `unmapped_waters.json` | authored | hand (worklist for added lakes) | `check_curated --waters` only |
+
+Hand-edited files are checked by `python -m pipeline.tools.audit.check_curated --waters` (the build's first step).
+Config keys: `CURATED.waters.<file stem>`, except `tidal` (tidal_limits.json) and `areas` (area_closures.json), which
+keep their old attribute names until the tile code next changes (renaming them would rebuild and re-ship the tiles).

@@ -144,7 +144,7 @@ def marks_moved(slug: str, region_old: Mapping[str, dict], region_new: Mapping[s
     from pipeline.common.curated import CURATED
     from pipeline.regs.review import dfo as D
     from pipeline.regs.review import marks as M
-    path = Path(marks_path or CURATED.regulations.review.marks)
+    path = Path(marks_path or CURATED.review.marks)
     locs = D.locations(entries_dir)
     everything = dict(D.typed(typed_dir))
     after = {k: v for k, v in everything.items() if k not in region_old}

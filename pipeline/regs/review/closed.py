@@ -10,7 +10,7 @@ default). marks.jsonl is never edited. A closed domain:
   * is read-only in the review app (its queue answers 423, a mark on its scopes is refused, the tab shows a
     "closed" notice).
 
-Reopen = remove the entry by hand. The list lives beside the marks store (`CURATED.regulations.review.closed`); a
+Reopen = remove the entry by hand. The list lives beside the marks store (`CURATED.review.closed`); a
 marks store elsewhere (a test's temp copy) has its own list beside it, absent = nothing closed.
 
     {"format": "closed/1", "_about": "...", "closed": [
@@ -30,12 +30,12 @@ ABOUT = ("T325: review domains that FEED NOTHING (ponds). The exporter (`pipelin
 
 
 def path(marks: Optional[Path] = None) -> Path:
-    """The closed list: the curated one (`CURATED.regulations.review.closed`), or the one beside `marks` when a marks
+    """The closed list: the curated one (`CURATED.review.closed`), or the one beside `marks` when a marks
     store other than the curated one is named."""
     from pipeline.common.curated import CURATED
-    default_marks = Path(CURATED.regulations.review.marks)
+    default_marks = Path(CURATED.review.marks)
     if marks is None or Path(marks).resolve() == default_marks.resolve():
-        return Path(CURATED.regulations.review.closed)
+        return Path(CURATED.review.closed)
     return Path(marks).parent / "closed.json"
 
 

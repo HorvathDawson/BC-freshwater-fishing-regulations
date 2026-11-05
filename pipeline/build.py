@@ -114,7 +114,7 @@ STAGES = tuple(st.name for st in STAGE_GRAPH)
 CODE = {st.name: st.code for st in STAGE_GRAPH}
 #: (T266) curated paths that are REVIEW STATE or its export, read by the apply paths and never by a stage: in no key
 #: (T325) + the closed-domains list beside the marks: review state too, read by the exporter / apply / review app only
-NOT_BUILD_INPUTS = ("regulations.review.marks", "regulations.review.closed")
+NOT_BUILD_INPUTS = ("review.marks", "review.closed")
 
 
 def _sha(obj) -> str:
@@ -138,18 +138,22 @@ def code_digest(roots) -> str:
 
 #: (T331) THE DELIVER KEY HASHES WHAT DELIVER CAN READ: every path the `CURATED` model declares (stage code reads
 #: curated data only through it, AGENTS 36) — not `base`, the whole tree, so an undeclared file never reruns deliver —
-#: minus these, which no stage reads: review inputs and worklists (the slough page marks, the split confidence
-#: overrides, the gauge review queue, the owner's name calls — `tools.mined_names` turns those into `mined_names.json`,
-#: which IS hashed — the closed-domains list) and the two hand worklists with zero code readers.
-NOT_DELIVER_INPUTS = ("base", "regulations.review.proposal_overrides", "regulations.review.closed",
-                      "gauges.candidates", "sloughs.page_marks", "waters.name_calls", "waters.ungazetted",
-                      "waters.sub_lake_areas")
+#: minus these, which no stage reads: review inputs and worklists (the slough page calls, the split confidence
+#: overrides, the owner's found-name calls — `tools.mined_names` turns those into `found_names.json`, which IS hashed —
+#: the closed-domains list) and the hand worklist with no build reader (`unmapped_waters`).
+NOT_DELIVER_INPUTS = ("base", "review.proposal_overrides", "review.closed",
+                      "waters.slough_page_calls", "waters.found_name_calls", "waters.unmapped_waters")
 
 
 def curated_digest() -> str:
-    """Every curated input deliver can read, by content: each path the `CURATED` model names (a file, or every
-    file under a directory) except the review state (`NOT_BUILD_INPUTS`) and `NOT_DELIVER_INPUTS`. A path the model
-    names that is missing raises (P2)."""
+    """Every curated input deliver can read, by CONTENT: each path the `CURATED` model names (a file, or every file
+    under a directory) except the review state (`NOT_BUILD_INPUTS`) and `NOT_DELIVER_INPUTS`. A path the model names
+    that is missing raises (P2).
+
+    (T324) NOT BY PATH: each file contributes its path RELATIVE TO THE DECLARED ROOT (empty for a file key, the name
+    inside a directory key) and its bytes, and the pairs are sorted — so moving or renaming a curated file or folder
+    (the T324 naming pass) leaves the key alone, and only a change of bytes, or of a file's name inside a declared
+    folder, reruns deliver. The one thing this cannot see is two declared FILES swapping their bytes; no tool does that."""
     paths: set[Path] = set()
 
     def walk(v):
@@ -164,15 +168,19 @@ def curated_digest() -> str:
     walk(CURATED.model_dump())
     skip = not_build_inputs()           # T266: the review log and its export (also under `base`)
     paths -= skip | not_build_inputs(NOT_DELIVER_INPUTS)
-    h = hashlib.sha256()
+    parts: list[tuple[str, str]] = []
     for root in sorted(paths):
         if not root.exists():
             raise FileNotFoundError(f"curated path {root} is missing")
         files = [root] if root.is_file() else _files_under(root, skip)
         for q in files:
             if q.name != ".DS_Store" and q not in skip:
-                h.update(str(q.relative_to(REPO_ROOT)).encode())
-                h.update(q.read_bytes())
+                rel = "" if q == root else str(q.relative_to(root))
+                parts.append((rel, hashlib.sha256(q.read_bytes()).hexdigest()))
+    h = hashlib.sha256()
+    for rel, digest in sorted(parts):
+        h.update(rel.encode())
+        h.update(digest.encode())
     return h.hexdigest()[:16]
 
 
@@ -274,7 +282,7 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
                       # (T211) the DFO salmon locations the run places: a curator placing one reruns the reach step
                       dfo=dfo_entries_digest(),
                       # (T166/T326) the tidal limits the run takes the tidal pieces out at, from the atlas's
-                      # tidal sidecar (`waters/tidal.json` reaches it through the atlas or `atlas.sidecars`)
+                      # tidal sidecar (`waters/tidal_limits.json` reaches it through the atlas or `atlas.sidecars`)
                       tidal=_sha(tidal_splits(build_dir)),
                       # (T212) the whole waters the owner calls tidal
                       tidal_waters=_sha(tidal_waters(build_dir)),
@@ -384,7 +392,13 @@ def save_manifest(m: dict) -> None:
 
 
 def preflight(want_tiles: bool) -> None:
-    """Refuse to start on a stale curated artifact or a missing source file — never regenerate."""
+    """Refuse to start on a bad hand edit, a stale curated artifact or a missing source file — never regenerate.
+
+    FIRST (T324, owner 2026-11-05): the fast check of the hand-edited waters files (`check_curated --waters`, seconds) —
+    a bad edit fails here, not an hour into the atlas."""
+    rc = subprocess.run([sys.executable, "-m", "pipeline.tools.audit.check_curated", "--waters"]).returncode
+    if rc:
+        raise SystemExit("build: a hand-edited waters file is wrong (check_curated --waters above); fix it, then rebuild")
     missing = [f"{k}: {p}" for k, p in sources().items() if not Path(p).exists()]
     if missing:
         raise SystemExit("build: source data missing — python data/fetch_data.py\n  "

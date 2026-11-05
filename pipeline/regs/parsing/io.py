@@ -50,7 +50,7 @@ def entries_dir() -> Path:
     `Path(__file__).parent / "entries"`, so the corpus had five definitions of where it
     lived and moving it would have moved only one of them. They all call this now.
     """
-    return CURATED.regulations.entries.catalogue
+    return CURATED.regulations.synopsis
 
 
 def entries_root() -> Path:

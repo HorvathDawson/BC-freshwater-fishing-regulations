@@ -3,7 +3,7 @@ marks store and NOTHING ELSE.
 
     python -m pipeline.regs.review.commit_marks [-m "review: region 1 P4"] [--dry-run]
 
-The store (`data/curated/regulations/review/marks.jsonl`) is append-only, so the file is the
+The store (`data/curated/review/marks.jsonl`) is append-only, so the file is the
 history; git holds it after each commit. The commit is `git commit --only -m <msg> -- <store>`:
 whatever else is staged or edited in the tree stays exactly as it was (staged files stay staged and
 uncommitted), so a reviewer's commit never sweeps up someone else's work. The review screen prints
@@ -72,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.commit_marks",
                                  description="commit the review marks store, and nothing else")
     ap.add_argument("-m", "--message")
-    ap.add_argument("--marks", type=Path, default=CURATED.regulations.review.marks)
+    ap.add_argument("--marks", type=Path, default=CURATED.review.marks)
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args(argv)
     repo = Path(_git(Path(a.marks).resolve().parent, "rev-parse", "--show-toplevel").stdout.strip())

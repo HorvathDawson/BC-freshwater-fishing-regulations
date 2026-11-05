@@ -331,7 +331,7 @@ def ambiguous_item(eid: str, rid: str, rule: dict, pay: dict, resolved: dict, id
             "reason": (f"{sid} matched both lake ends ({lo:,.0f} / {hi:,.0f} m); builder took {used:,.0f} m"
                        + ("" if proposed is None else ("; agrees" if agrees else f"; the words say {proposed:,.0f} m"))),
             "evidence": [f"{pay.get('_src')}: ambiguous_cut payload (candidates, used, toward {toward})",
-                         "data/curated/waters/splits.json anchor: " + (json.dumps(anchor) if anchor else
+                         "data/curated/waters/cuts.json anchor: " + (json.dumps(anchor) if anchor else
                                                                        "generated lake split (no curated anchor)")],
             "preverify": pv,
             "pick": {"builder": used, "proposed": proposed, "agrees": agrees},
@@ -350,9 +350,9 @@ def run(out: Path = OUT) -> dict:
     build = GENERATED.require_build()
     reach_dir = GENERATED.reaches / build.name
     run_ = RunFacts.read(reach_dir)
-    ctx = Context.on_disk(CURATED.waters.splits, CURATED.regulations.overrides, build / "registry.json", BUNDLE)
-    status = {k: v["status"] for k, v in M.split_states(M.load(CURATED.regulations.review.marks), ctx).items()}
-    entries = _corpus(CURATED.regulations.entries.catalogue, ctx.registry)
+    ctx = Context.on_disk(CURATED.waters.cuts, CURATED.regulations.book_name_links, build / "registry.json", BUNDLE)
+    status = {k: v["status"] for k, v in M.split_states(M.load(CURATED.review.marks), ctx).items()}
+    entries = _corpus(CURATED.regulations.synopsis, ctx.registry)
     findings = corpus_findings(entries, registry_ids=ctx.registry, run=run_, splits=dict(ctx.splits),
                                split_status=status)
     by_eid = {e["entry_id"]: e for e in entries}
@@ -364,7 +364,7 @@ def run(out: Path = OUT) -> dict:
     resolved: dict[str, list] = {}
     for r in json.loads((build / "splits.resolved.json").read_text()):
         resolved.setdefault(r["split_id"], []).append(r)
-    idx = {sp["id"]: sp for w in json.loads(Path(CURATED.waters.splits).read_text())["waterbodies"]
+    idx = {sp["id"]: sp for w in json.loads(Path(CURATED.waters.cuts).read_text())["waterbodies"]
            for sp in w["splits"]}
     # the run's ambiguous cuts through the ONE run reader (`RunFacts`), in precheck's order: the
     # n-th `ambiguous_cut` finding of a rule is its n-th OPEN cut (curated picks are `cut_picked`)

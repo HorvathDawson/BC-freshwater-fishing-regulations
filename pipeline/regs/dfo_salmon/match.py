@@ -51,7 +51,7 @@ from pipeline.common.names import drop_notes, key
 logger = logging.getLogger(__name__)
 
 REGISTRY = GENERATED.build() / "registry.json"
-SPLITS = CURATED.waters.splits
+SPLITS = CURATED.waters.cuts
 
 _FEATURES = ("River", "Creek", "Lake", "Slough", "Channel")
 

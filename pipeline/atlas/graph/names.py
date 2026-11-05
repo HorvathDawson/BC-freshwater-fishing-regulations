@@ -92,7 +92,7 @@ def _display_case(name: str) -> str:
 def load_name_variants(path) -> list[dict]:
     from pipeline.common.licence import entries
     p = Path(path)                          # curated: a missing file raises (AGENTS 37, P2)
-    # a licensed file (mined_names.json: `{"_licence": ..., "entries": [...]}`) or a bare list (name_variants.json)
+    # a licensed file (found_names.json: `{"_licence": ..., "entries": [...]}`) or a bare list (name_variants.json)
     return entries(json.loads(p.read_text()), "entries")
 
 

@@ -259,7 +259,7 @@ def test_the_corpus_passes_the_gate_with_its_build(request):
     need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
     reg = load_registry(str(GENERATED.registry()))
     cut_points = V.registry_cut_points(reg)
-    entries = [e for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json"))
+    entries = [e for p in sorted(CURATED.regulations.synopsis.glob("region-*.json"))
                for e in json.loads(p.read_text())["entries"]]
     refused = {}
     for e in entries:

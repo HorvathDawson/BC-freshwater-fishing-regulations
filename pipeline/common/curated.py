@@ -1,7 +1,7 @@
 """Where the data is — validated once, at import, by pydantic.
 
     from pipeline.common.curated import CURATED, SOURCE
-    defs = load_split_defs(CURATED.waters.splits)
+    defs = load_split_defs(CURATED.waters.cuts)
     roster = SOURCE / "bc_hydrometric_stations.json"
 
 WHY A MODEL AND NOT `get_path("curated", "splits")`.
@@ -25,7 +25,7 @@ THREE KINDS OF DATA, AND THE DIFFERENCE IS WHAT IT COSTS TO LOSE:
 
 The third splits again, and the split is what this module exists to make visible:
 
-    authored    a person typed it — splits, name_variants, added_lakes
+    authored    a person typed it — cuts, name_variants, added_lakes
     promoted    a machine produced it and a person APPROVED it — the gauge matches,
                 added_streams. It LOOKS generated, which is exactly the danger: someone
                 re-runs the generator "just to check" and destroys the review.
@@ -74,80 +74,67 @@ def _absolute(v: object) -> object:
 
 
 class Waters(BaseModel):
-    """Curation that shapes the atlas itself."""
+    """Curation that shapes the atlas itself, and the lists of waters (T324 naming: `*_calls` = the owner's per-item
+    decisions, `*_waters` = a list of waters).
+
+    `tidal` and `areas` keep their pre-T324 attribute names (files `tidal_limits.json`, `area_closures.json`): the
+    tiles stage keys on its code's bytes and that code reads these two, so renaming them would rebuild and re-ship the
+    tiles for nothing. Rename them when that code next changes anyway."""
 
     model_config = ConfigDict(frozen=True)
 
-    splits: FilePath
+    #: AUTHORED: every curated cut on a water (`cuts.json`, was `splits.json`); the atlas sectionizer applies them.
+    cuts: FilePath
     name_variants: FilePath
-    #: PROMOTED (T224): name variants mined from city layers, OSM, ECCC… that the owner accepted (auto rule or
+    #: PROMOTED (T224): name variants found in city layers, OSM, ECCC… that the owner accepted (auto rule or
     #: review mark); each name carries its real source. Written by `pipeline.tools.mined_names`.
-    mined_names: FilePath
-    #: AUTHORED (T327): the owner's calls on single mined-name candidates (accept / hold, a stored name, display),
+    found_names: FilePath
+    #: AUTHORED (T327): the owner's calls on single found-name candidates (accept / hold, a stored name, display),
     #: by candidate id — was `names.OWNER` in code. Read by `pipeline.regs.review.names`; an input to `mined_names`.
-    name_calls: FilePath
+    found_name_calls: FilePath
     #: THE OWNER-DECIDED CONTINUATION LINKS (`water_continue`): `reviewed` ship, `refused` never, anything else the
     #: topology proposes is held for review (owner 2026-10-29, `bundle.continuation.gate`).
     continuations: FilePath
-    #: T326: THE ONE TIDAL FILE — one row per ocean-entering water: its tidal limit at the `mouth` (an alias, no cut),
-    #: on an existing `split`, a new `cut`, or the `whole` water. Written by `pipeline.tools.tidal_limits` (review
-    #: write-through); read by the ATLAS only (`atlas.splits.tidal.load`), which writes `tidal.resolved.json`.
+    #: T326: THE ONE TIDAL FILE (`tidal_limits.json`) — one row per ocean-entering water: its tidal limit at the
+    #: `mouth` (an alias, no cut), on an existing `split`, a new `cut`, or the `whole` water. Written by
+    #: `pipeline.tools.tidal_limits` (review write-through); read by the ATLAS only (`atlas.splits.tidal.load`), which
+    #: writes `tidal.resolved.json`.
     tidal: FilePath
     #: T322 (owner 2026-10-30): the owner-CONFIRMED slough / canal polygons, applied from the slough marks by
     #: `pipeline.tools.slough_calls`; the registry folds each into the one stream through it, else ignores it
     #: (`registry.flowing.fold_confirmed_sloughs`).
     slough_calls: FilePath
+    #: T322: the retired slough review page's database — the owner's verdicts and free-text notes
+    #: (`pipeline.regs.review.slough.page_note`). Was `sloughs/page-marks-2026-10-28.json`.
+    slough_page_calls: FilePath
+    #: THE USER'S KNOWN-STEELHEAD LIST (authored; user ruling 2026-10-02) — rivers that are steelhead
+    #: water though no row of the book says so. `pipeline.atlas.reach.steelhead.load_list`; a new generated list is
+    #: accepted with `python -m pipeline.regs.steelhead.accept` (T324).
+    steelhead_waters: FilePath
+    #: AUTHORED: blanket area closures (`area_closures.json`) — cut every stream crossing the polygon.
     areas: FilePath
     #: Hand-drawn admin polygons — closure zones a regulation states as an AREA rather than a
-    #: reach. Selected by an `areas.json` def that names it in `file`; see `load_area_polys`.
+    #: reach. Selected by an `area_closures.json` def that names it in `file`; see `load_area_polys`.
     added_areas: FilePath
     added_lakes: FilePath
     #: PROMOTED, not authored — 361 minted streams whose negative `blk` ids are a live ABI.
     added_streams: FilePath
-    #: The worklist for minting more added lakes. Zero code references BY DESIGN; the
-    #: minting is a hand process. Declared here so a dead-file sweep cannot delete it.
-    ungazetted: FilePath
-    #: The worklist for splitting a lake into the waters the book treats it as (T100). Zero code references BY
-    #: DESIGN, like `ungazetted`; declared so a dead-file sweep cannot delete it (T331).
-    sub_lake_areas: FilePath
+    #: The worklist for minting more added lakes (was `ungazetted.json`). No build reader BY DESIGN; the minting is a
+    #: hand process. Checked by `check_curated --waters`; declared so a dead-file sweep cannot delete it.
+    unmapped_waters: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 
 
 class DfoSalmon(BaseModel):
-    """T321: DFO's limits wording as a closed registry (`pipeline.regs.dfo_salmon.wording`), AUTHORED; the feeds
-    worker reads a synced copy (`pipeline.deliver.sync_inputs`)."""
+    """DFO salmon: the curated places DFO's rules bind to (`places/region-*.json`, was `regulations/entries/
+    dfo_salmon/`) and T321's limits wording as a closed registry (`pipeline.regs.dfo_salmon.wording`), AUTHORED; the
+    feeds worker reads synced copies (`pipeline.deliver.sync_inputs`)."""
 
     model_config = ConfigDict(frozen=True)
 
+    places: DirectoryPath
     wording: FilePath
-
-    _abs = field_validator("*", mode="before")(_absolute)
-
-
-class Sloughs(BaseModel):
-    """T322: the retired slough review page's database — the owner's verdicts and free-text notes
-    (`pipeline.regs.review.slough.page_note`)."""
-
-    model_config = ConfigDict(frozen=True)
-
-    page_marks: FilePath
-
-    _abs = field_validator("*", mode="before")(_absolute)
-
-
-class Entries(BaseModel):
-    """The per-region regulation corpora. Same KIND of thing, separate models.
-
-    `catalogue` is the format doc 18 describes — a rule is a TYPE plus named CONDITIONS and the
-    label is generated. `synopsis` held the prose format it replaces and is gone; the water-specific
-    tables are reparsed into `catalogue` (`run_parse.sh parse`).
-    """
-
-    model_config = ConfigDict(frozen=True)
-
-    catalogue: DirectoryPath
-    dfo_salmon: DirectoryPath
 
     _abs = field_validator("*", mode="before")(_absolute)
 
@@ -164,36 +151,35 @@ class Review(BaseModel):
 
     marks: Path
     #: owner calls on PROPOSED splits the marks cannot carry (the store is append-only, never
-    #: edited): a cut's confidence (`marks.ConfidenceOverride`, owner 2026-10-27)
+    #: edited): a cut's confidence (`marks.ConfidenceOverride`, owner 2026-10-27). Folded by T326.
     proposal_overrides: FilePath
     #: T325: the CLOSED review domains (`pipeline.regs.review.closed`) — beside the marks, never required to exist
-    #: (absent = nothing closed); the exporter and the review app skip a domain listed here
+    #: (absent = nothing closed); the apply and the review app skip a domain listed here
     closed: Path
 
     _abs = field_validator("marks", "proposal_overrides", "closed", mode="before")(_absolute)
 
 
 class Regulations(BaseModel):
+    """The synopsis corpus and the book. `synopsis` is the per-region rule corpus (was `entries/catalogue`) — the
+    format doc 18 describes: a rule is a TYPE plus named CONDITIONS and the label is generated."""
+
     model_config = ConfigDict(frozen=True)
 
-    overrides: FilePath
-    entries: Entries
-    #: THE USER'S KNOWN-STEELHEAD LIST (authored; user ruling 2026-10-02) — rivers that are steelhead
-    #: water though no row of the book says so. `pipeline.atlas.reach.steelhead.load_list`.
-    steelhead_waters: FilePath
+    synopsis: DirectoryPath
+    #: AUTHORED: a book water name -> the FWA water(s) it means (was `overrides.json`).
+    book_name_links: FilePath
     #: THE BOOK'S TEXT, transcribed verbatim (`definitions.md` p.80, `water-specific-tables.md`
     #: p.4, `licensing.md` pp.6-7, `region-*.md`): source text, read by the answers glossary.
     reference: DirectoryPath
-    #: THE REVIEWERS' MARKS (curation-review PLAN §4 phase 1).
-    review: Review
 
-    _abs = field_validator("overrides", "steelhead_waters", "reference", mode="before")(_absolute)
+    _abs = field_validator("*", mode="before")(_absolute)
 
 
 class Domain(BaseModel):
     """One matching domain: an external id -> FWA keys, plus the hand review of it.
 
-    `review` is an INPUT to matching and is never written by a program. `matches` is
+    `match_calls` is an INPUT to matching and is never written by a program. `matches` is
     regenerated wholesale. Two files rather than one is what makes a regenerate PHYSICALLY
     unable to harm the review — the safety is in the filesystem, not in code remembering.
 
@@ -204,42 +190,40 @@ class Domain(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     matches: FilePath | None = None
-    review: FilePath | None = None
+    match_calls: FilePath | None = None
     #: (T331) ECCC's stated water-body type is scraped SOURCE data now: `SOURCE / "bc_station_waterbody_type.json"`
-    #: (`pipeline.gauges.generate.waterbody_type.TYPES_FILE`), not a curated key.
-    #: Gauges only: the REVIEW QUEUE — matches `pipeline.gauges.generate.promote` did not promote
-    #: (an independent check disagreed), with their evidence. Written by promote beside `matches`
-    #: and committed with it, so `check_curated --ci` sees the queue in CI too.
-    candidates: FilePath | None = None
+    #: (`pipeline.gauges.generate.waterbody_type.TYPES_FILE`), not a curated key. (T324) The gauge review QUEUE
+    #: (`candidates.json`) is machine output: `GENERATED.gauges.candidates`.
     #: Gauges only: AUTHORED — level stations the tide or a tidal river's backwater moves, each with its reason, joined
     #: with HYDAT's own tidal remarks by `pipeline.gauges.consume.tidal` into the bundle's `gauge.tidal` (T78).
-    tidal: FilePath | None = None
+    tidal_stations: FilePath | None = None
     #: Gauges only: AUTHORED — level stations a LAKE below them backs up (a standing backwater), each naming the lake
     #: and quoting the HYDAT remark that says so, checked against the record by `pipeline.gauges.consume.tidal` into
     #: the bundle's `gauge.backwater` (T160).
-    backwater: FilePath | None = None
+    backwater_stations: FilePath | None = None
 
     _abs = field_validator("*", mode="before")(_absolute)
 
 
 class RunTiming(BaseModel):
-    """Run timing: the authored curation (`review.json`). The parsed timings (`timing.json`, `pipeline/runtiming/
+    """Run timing: the authored curation (`run_calls.json`, was `review.json`). The parsed timings (`timing.json`, `pipeline/runtiming/
     timing.py`) are source data, `SOURCE / "runtiming/timing.json"` (T331)."""
 
     model_config = ConfigDict(frozen=True)
 
-    review: FilePath
+    run_calls: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 
 
 class InSeason(BaseModel):
-    """T226: the provincial in-season rows bound to waters (`pipeline.regs.inseason.matches`), AUTHORED — written by
-    the review app's In-season tab or by hand, never by a generator."""
+    """T226: the provincial in-season notices bound to waters (`notice_waters.json`, was `matches.json`;
+    `pipeline.regs.inseason.matches`), AUTHORED — written by the review app's In-season tab or by hand, never by a
+    generator."""
 
     model_config = ConfigDict(frozen=True)
 
-    matches: FilePath
+    notice_waters: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 
@@ -252,13 +236,13 @@ class Curated(BaseModel):
     base: DirectoryPath
     waters: Waters
     regulations: Regulations
+    review: Review
     gauges: Domain
     stocking: Domain
     bathymetry: Domain
     runtiming: RunTiming
     inseason: InSeason
     dfo_salmon: DfoSalmon
-    sloughs: Sloughs
 
     _abs = field_validator("base", mode="before")(_absolute)
 
@@ -320,6 +304,10 @@ class GeneratedGauges(BaseModel):
     #: The matcher's RAW output (`pipeline.gauges.generate.match`), never the curated file: only
     #: `promote` writes `CURATED.gauges.matches`, and only after it has shown what would be demoted (T94).
     match: Path
+    #: (T324) the REVIEW QUEUE — matches `pipeline.gauges.generate.promote` did not promote (an independent check
+    #: disagreed), with their evidence. Written by promote beside the curated `matches`; committed (data/.gitignore)
+    #: so `check_curated --ci` sees the queue in CI too. Machine output, so not curated.
+    candidates: Path
 
     _abs = field_validator("*", mode="before")(_absolute)
 
@@ -442,7 +430,7 @@ def load_generated(config: Path | None = None) -> Generated:
 
 
 class _Lazy:
-    """`CURATED.waters.splits` without paying validation at import of an unrelated module.
+    """`CURATED.waters.cuts` without paying validation at import of an unrelated module.
 
     Importing `pipeline.common.curated` must not stat twenty files just because something wanted a
     type from this module. The first ATTRIBUTE access loads and validates; everything after

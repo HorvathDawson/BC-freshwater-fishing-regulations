@@ -1,6 +1,6 @@
 """T224 MINED NAMES ARE LABELS, NOT GROUPING KEYS (owner 2026-10-28).
 
-A name the owner accepted from a mined source (`data/curated/waters/mined_names.json`: OpenStreetMap, a city stream
+A name the owner accepted from a mined source (`data/curated/waters/found_names.json`: OpenStreetMap, a city stream
 layer, an ECCC station) says what people CALL a feature. It never says what the feature IS, so it may not change:
 - what the braid prune keeps (a named piece is not a prune candidate — 409 braid pieces were kept for that reason);
 - which item a feature belongs to (a named ditch stays in its river's item: the Quinsam diversion headpond joined

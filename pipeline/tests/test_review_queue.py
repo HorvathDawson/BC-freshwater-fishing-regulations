@@ -257,8 +257,8 @@ def test_the_prechecks_measured_over_the_corpus(request):
     need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
     need(request, "reach_run", _reach_dir() / "report.json", REACH_HINT)
     run = RunFacts.read(_reach_dir())
-    entries = P._corpus(CURATED.regulations.entries.catalogue)
-    splits = json.loads(CURATED.waters.splits.read_text(encoding="utf-8"))
+    entries = P._corpus(CURATED.regulations.synopsis)
+    splits = json.loads(CURATED.waters.cuts.read_text(encoding="utf-8"))
     got = P.corpus_findings(entries, registry_ids=_registry_ids(), run=run, splits=splits)
     from collections import Counter
     n = Counter(f["code"] for fs in got.values() for f in fs)
@@ -294,7 +294,7 @@ def test_the_tiers_with_the_run_match_plan_section_3(request):
     need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
     need(request, "reach_run", _reach_dir() / "report.json", REACH_HINT)
     run, ids = RunFacts.read(_reach_dir()), _registry_ids()
-    entries = P._corpus(CURATED.regulations.entries.catalogue)
+    entries = P._corpus(CURATED.regulations.synopsis)
     got = Counter(T.entry_tier(e, binds=bool(covered_ids(e, ids)), run=run) for e in entries)
     # Z 132 -> 122: the zone daily-quota merge (6335f73d) into zN:daily_quotas
     # T207: an unidentified "on parts" is no risk — 3 closures P1 -> P2, 13 entries P3 -> P4
@@ -445,7 +445,7 @@ def test_commit_marks_commits_the_marks_file_and_nothing_else(tmp_path):
     from pipeline.regs.review.commit_marks import commit_marks
     from pipeline.regs.review.marks import line
     repo = tmp_path / "repo"
-    store = repo / "data" / "curated" / "regulations" / "review" / "marks.jsonl"
+    store = repo / "data" / "curated" / "review" / "marks.jsonl"
     store.parent.mkdir(parents=True)
     store.write_text("")
     (repo / "other.json").write_text("{}\n")
@@ -474,7 +474,7 @@ def test_commit_marks_commits_the_marks_file_and_nothing_else(tmp_path):
                 os.environ[k] = v
     assert (got["committed"], got["added"], got["message"]) == (True, 2, "review: 2 marks")
     assert _git(repo, "diff", "--name-only", head0, "HEAD").split() == [
-        "data/curated/regulations/review/marks.jsonl"]
+        "data/curated/review/marks.jsonl"]
     assert _git(repo, "diff", "--cached", "--name-only").split() == ["other.json"]
     assert _git(repo, "diff", "--name-only").split() == ["edited.txt"]
     # nothing left to commit: says so, commits nothing

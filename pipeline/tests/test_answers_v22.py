@@ -25,7 +25,7 @@ from pipeline.tests.conftest import need, part_at, EXPORT_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
-CAT = Path(__file__).resolve().parents[2] / "data/curated/regulations/entries/catalogue"
+CAT = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis"
 
 BABINE, SKEENA, VEDDER, TESLIN = "gnis:17687", "gnis:2936", "gnis:3062", "wbk:328961703"
 CHILLIWACK = "gnis:8634"            # the Vedder above Vedder Crossing

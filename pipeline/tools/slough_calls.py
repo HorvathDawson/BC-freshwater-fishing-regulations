@@ -20,10 +20,11 @@ from pathlib import Path
 from typing import Optional
 
 FORMAT = "slough_calls/1"
-ABOUT = ("T322: the owner's CONFIRMED slough / canal calls (scope slough, verified, call stream, P y), applied from "
-         "data/curated/decided/sloughs.json by `python -m pipeline.tools.slough_calls` — never edit by hand. The "
-         "registry folds each polygon into the ONE stream that flows in and out of it "
-         "(`registry.flowing.fold_confirmed_sloughs`); with no stream through it, it is ignored.")
+ABOUT = ("T322: the owner's CONFIRMED slough / canal calls (scope slough, verified, call stream, P y), written from "
+         "the slough marks (review/marks.jsonl) by `python -m pipeline.tools.slough_calls` and the review app's "
+         "write-through (`pipeline.regs.review.apply`) — never edit by hand. Read by the atlas registry, which folds "
+         "each polygon into the ONE stream that flows in and out of it (`registry.flowing.fold_confirmed_sloughs`); "
+         "with no stream through it, it is ignored.")
 
 
 def confirmed(m) -> bool:

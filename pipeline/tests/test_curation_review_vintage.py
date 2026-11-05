@@ -49,9 +49,9 @@ def app_env(request, tmp_path_factory):
     tmp = tmp_path_factory.mktemp("vintage")
     cat = tmp / "catalogue"
     cat.mkdir()
-    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
         shutil.copy2(p, cat / p.name)
-    shutil.copy2(CURATED.waters.splits, tmp / "splits.json")
+    shutil.copy2(CURATED.waters.cuts, tmp / "splits.json")
     (tmp / "marks.jsonl").write_text("")
     # the served atlas as the vintage reads it: the real registry and handles, and the split
     # record a build of the temp splits.json would write

@@ -138,7 +138,7 @@ def part_at(data: dict, item: str, *ends: str) -> int:
 
 BUNDLE_HINT = "python -m pipeline.deliver (or set UI_EXPORT_BUNDLE to a built bundle)"
 EXPORT_HINT = "python -m pipeline.deliver export (or set ANSWERS_EXPORT_DIR to a written export)"
-ATLAS_HINT = ("python -m pipeline.atlas.build --full --splits data/curated/waters/splits.json "
+ATLAS_HINT = ("python -m pipeline.atlas.build --full --splits data/curated/waters/cuts.json "
               "--out data/generated/atlas/full (~18 min, AGENTS.md 17)")
 REACH_HINT = "the reach step of python -m pipeline.deliver (writes data/generated/reaches/<run>)"
 TILES_HINT = "python -m pipeline.deliver.tiles"

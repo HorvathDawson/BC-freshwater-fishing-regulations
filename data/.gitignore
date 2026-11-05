@@ -50,13 +50,19 @@ release/
 !generated/stocking/identifier_audit.json
 # T322 (owner 2026-10-30): the slough review's GENERATED inputs (finder candidates + width-rule pre-marks), moved
 # here from handoff/; committed because the review app and the T322 apply step read them. The owner's own page verdicts
-# are curation and live in ../curated/sloughs/.
+# are curation and live in ../curated/waters/slough_page_calls.json.
 !generated/sloughs/
 # T330 (owner 2026-10-30): the curation review's machine-written inputs (tidal candidates / pre-verify, DFO suggestions,
 # entry split suggestions, the Q154 sample, the mined name candidates, the T185 proposals), moved here from handoff/;
 # committed because the review app reads them. The app's own refused-saves log is runtime state, not committed.
 !generated/review/
 generated/review/refused-saves.jsonl
+# T324 (owner 2026-11-05): the gauge REVIEW QUEUE (`pipeline.gauges.generate.promote` writes it beside the curated
+# matches.json) is machine output, so it lives here, not in ../curated/. Committed because `check_curated --ci` reads it
+# in CI (a queued station is not STALE). `generated/gauges/` is un-excluded only to reach this one file.
+!generated/gauges/
+generated/gauges/*
+!generated/gauges/candidates.json
 
 # The tree's own documentation — the map of what each subdirectory is and who writes it.
 # It belongs beside the thing it describes, not only in pipeline/docs/.

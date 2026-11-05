@@ -354,7 +354,7 @@ def test_every_blanket_closure_in_the_corpus_says_its_kind():
     from pipeline.regs.parsing.catalogue import CatalogueEntry
     from pipeline.common.curated import CURATED
     docs = [CatalogueEntry.model_validate(e)
-            for p in sorted(Path(CURATED.regulations.entries.catalogue).glob("region-*.json"))
+            for p in sorted(Path(CURATED.regulations.synopsis).glob("region-*.json"))
             for e in json.loads(p.read_text(encoding="utf-8"))["entries"]]
     got = {(eid, r.rule_id): (r.closure_kind.value if r.closure_kind else None)
            for reg in rules_mod.blanket_closures(docs).values() for eid, r in reg}

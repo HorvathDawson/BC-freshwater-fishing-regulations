@@ -9,10 +9,11 @@ uploaders only put what is staged, so they cannot drift apart again (the workflo
     deploy/staging/sync-inputs.sh             (the Mac; rclone --checksum)
 
 THE LIST (`INPUTS`), every source read through `CURATED` / `SOURCE`:
-    dfo-entries       regulations/entries/dfo_salmon/region-*.json -> private/feeds/dfo/entries/region-*.json
-    wording           dfo_salmon/wording.json                       -> private/feeds/dfo/wording.json (T321)
+    dfo-entries       dfo_salmon/places/region-*.json               -> private/feeds/dfo/entries/region-*.json
+    wording           dfo_salmon/wording.json                       -> private/feeds/dfo/wording.json (T321; the
+                                                                       worker's ONLY copy, T324)
     roster            source bc_hydrometric_stations.json, slim [{station, realtime}] -> private/feeds/gauges/roster.json
-    inseason-matches  `pipeline.regs.inseason.publish` (inseason/matches.json + split labels)
+    inseason-matches  `pipeline.regs.inseason.publish` (inseason/notice_waters.json + split labels)
                                                                     -> feeds/inseason/matches.json (PUBLIC)
 
 `private/` keys are never served (the data worker 404s them); the Worker reads them on its next run, no redeploy.
@@ -41,7 +42,7 @@ ROSTER_FIELDS = ("station", "realtime")
 
 def _dfo_entries(out: Path) -> list[str]:
     keys = []
-    for f in sorted(Path(CURATED.regulations.entries.dfo_salmon).glob("region-*.json")):
+    for f in sorted(Path(CURATED.dfo_salmon.places).glob("region-*.json")):
         key = f"private/feeds/dfo/entries/{f.name}"
         _put(out, key).write_bytes(f.read_bytes())
         keys.append(key)

@@ -20,7 +20,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
    `python -m pipeline.regs.parsing.dispatch`, anything that spawns `claude -p`. It spends the
    user's credits. Hand over the command; the human runs it. This holds even if the user
    says "run it" — that means *they* will.
-2. **Never write to `data/curated/regulations/entries/catalogue/region-*.json` without backing
+2. **Never write to `data/curated/regulations/synopsis/region-*.json` without backing
    them up first.** They hold in-progress curation that may not be committed. `cp` them to the scratchpad, make
    the change, then diff to prove only what you intended moved. A lock was lost in this
    repo once; do not be the second time.
@@ -55,7 +55,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 
 10. **The resolver never creates a section.** `pipeline/atlas/registry/build.py` filters
     pre-existing graph nodes by route measure. Splitting happens upstream in the
-    sectionizer from `data/curated/waters/splits.json`. If resolution could split, editing a
+    sectionizer from `data/curated/waters/cuts.json`. If resolution could split, editing a
     regulation would silently change section geometry.
 11. **Reaches resolve by ROUTE MEASURE on the cut's own blue line, never by a flow walk.**
     A `between` spanning two blue lines is the intersection of two half-lines. A flow walk
@@ -211,7 +211,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 
     | kind | example | a rebuild may | losing it costs |
     |---|---|---|---|
-    | **authored** | `splits.json`, `name_variants.json`, `overrides.json` | only READ it | human hours |
+    | **authored** | `waters/cuts.json`, `name_variants.json`, `regulations/book_name_links.json` | only READ it | human hours |
     | **reviewed** | `gauges/matches.json`, `added_streams.json` | only READ it | human hours |
     | **generated** | anything under `data/generated/` | rewrite it freely | CPU |
 
@@ -220,11 +220,17 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     happens to have been typed by a program.
 
 36. **Read curated paths through `pipeline.common.curated.CURATED`, never as a literal.**
-    `from pipeline.common.curated import CURATED` then `CURATED.splits`. The tree is pydantic-
+    `from pipeline.common.curated import CURATED` then `CURATED.waters.cuts`. The tree is pydantic-
     validated at first access, so a bad path fails naming the key instead of returning an
     empty list four builds later. `ProjectConfig.get_path` returns `Path()` for a missing
     key — silently the current directory — which is how a `--splits` flag with no default
     dropped all 376 curated cuts from three full builds with nothing looking wrong.
+
+36a. **Curated names (T324, owner 2026-11-05):** `*_calls.json` = the owner's per-item decisions, `*_waters.json` = a
+    list of waters, `*_stations.json` = a list of gauges; every dict-shaped curated JSON has an `_about` (what, who
+    writes, who reads), every curated folder a README. Machine output (proposal files, the gauge review queue) lives in
+    `data/generated/`, never curated. Hand-edited waters files: `python -m pipeline.tools.audit.check_curated --waters`
+    (seconds; the build's first step). Build stage keys hash curated files by CONTENT, so a move or rename reruns nothing.
 
 37. **A loader for a curated file must RAISE on a missing file, never return `[]`.**
     Absent curated data is a bug, never an empty set. This is the same failure as ㉟ one
@@ -237,7 +243,8 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     `python -m pipeline.tools.audit.check_curated` to see whether it is actually stale; it prints
     the command and never runs it. If it says `ok`, there is nothing to do.
     The matcher writes `data/generated/gauges/match.json` and refuses the curated file; only
-    `pipeline.gauges.generate.promote` writes `data/curated/gauges/{matches,candidates}.json`, one
+    `pipeline.gauges.generate.promote` writes `data/curated/gauges/matches.json` (and the review queue
+    `data/generated/gauges/candidates.json`, T324), one
     station at a time with `--only <station…>`. A full promote lists every demotion and refuses
     without `--accept-demotions`, which is the owner's call after reading the list (T94).
 
@@ -383,7 +390,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     `stamp_waiver`). The Classified Waters Licence and every steelhead rule still apply there. A
     waiver "unless fishing for steelhead" (Seymour, Ecstall, Skeena River 2) lifts the
     classified-water stamp only.
-    **THE CURATED LIST** is `data/curated/regulations/steelhead_waters.json` (`CURATED.regulations.
+    **THE CURATED LIST** is `data/curated/waters/steelhead_waters.json` (`CURATED.regulations.
     steelhead_waters`): `{"$comment": …, "generated": {source, generator, date, fingerprint},
     "waters": [{"item_id": "wbk:…", "note": "…"}, {"name": "Cowichan River", "region": "1"}]}` —
     exactly one of `item_id`/`name`; `region` ("1".."8") / `mu` ("1-4") choose among same-named
@@ -711,7 +718,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     `test_curation_review_safety` pins the app to exactly `POST /api/marks` and that no backend module but
     `writes.py` writes a file (its one caller: the mark); the screen test's route sweep proves nothing under
     `data/curated` changes. Never add a write route. The one exception (T230, owner 2026-10-28):
-    `POST /api/inseason/matches` writes only `data/curated/inseason/matches.json` (Claude/owner tooling, not a mark;
+    `POST /api/inseason/matches` writes only `data/curated/inseason/notice_waters.json` (Claude/owner tooling, not a mark;
     a history note per edit) via `writes.commit`. The verdict is `marks.verdict_from_answers`, the
     tiers `regs/review/tiers.py`, the coverage strip `regs/review/coverage.py` (its fold IS `squash`) — one function each.
 67. **The review queue has one order and one reader of the run** (T135). The order is `tiers.queue_rank` (tier, the

@@ -44,7 +44,7 @@ def env(request, tmp_path_factory):
     (tmp / "tidal-candidates.json").write_text(json.dumps({"coverage": {"named_ocean_entering_total": 1},
                                                            "candidates": rows}))
     (tmp / "marks.jsonl").write_text("")
-    shutil.copy2(CURATED.waters.splits, tmp / "splits.json")
+    shutil.copy2(CURATED.waters.cuts, tmp / "splits.json")
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_TIDAL_CANDIDATES", str(tmp / "tidal-candidates.json"))
     mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))

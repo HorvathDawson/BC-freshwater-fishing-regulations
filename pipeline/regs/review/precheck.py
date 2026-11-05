@@ -200,8 +200,8 @@ def main(argv: list[str] | None = None) -> int:
                                  description=__doc__.split("\n\n")[0])
     ap.add_argument("--reach", type=Path, default=None,
                     help="the reach run (default: the served build's, data/generated/reaches/<build>)")
-    ap.add_argument("--entries", type=Path, default=CURATED.regulations.entries.catalogue)
-    ap.add_argument("--marks", type=Path, default=CURATED.regulations.review.marks,
+    ap.add_argument("--entries", type=Path, default=CURATED.regulations.synopsis)
+    ap.add_argument("--marks", type=Path, default=CURATED.review.marks,
                     help="the marks store (a split whose old mark went stale is to verify again)")
     ap.add_argument("--entry", action="append", default=[], help="only this entry (repeatable)")
     ap.add_argument("--code", action="append", default=[], help="only this code (repeatable)")
@@ -218,7 +218,7 @@ def main(argv: list[str] | None = None) -> int:
     from pipeline.regs.review import marks as M
     from pipeline.regs.review.fingerprint import Context
     # the split marks' status NOW, as the review app has it (`Context.on_disk`, `marks.split_states`)
-    ctx = Context.on_disk(CURATED.waters.splits, CURATED.regulations.overrides,
+    ctx = Context.on_disk(CURATED.waters.cuts, CURATED.regulations.book_name_links,
                           build / "registry.json", BUNDLE)
     status = {k: v["status"] for k, v in M.split_states(M.load(a.marks), ctx).items()}
     entries = [e for e in _corpus(a.entries, ctx.registry) if not a.entry or e["entry_id"] in a.entry]

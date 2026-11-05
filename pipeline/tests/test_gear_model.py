@@ -184,7 +184,7 @@ def test_the_converted_provincial_rules_say_what_the_book_says():
     """The six conversions that were materially wrong before, read back off the entries."""
     import json
     from pipeline.common.curated import CURATED
-    d = json.loads((CURATED.regulations.entries.catalogue / "region-provincial.json").read_text())
+    d = json.loads((CURATED.regulations.synopsis / "region-provincial.json").read_text())
     by = {r["rule_id"]: r for e in d["entries"] for r in e.get("rules", [])}
 
     # was {barbless: true, required: false} — "barbed hooks are legal in every B.C. stream".
@@ -225,7 +225,7 @@ def test_unlimited_is_a_bound_said_outright():
             GearClause(**bad)
     import json
     from pipeline.common.curated import CURATED
-    d = json.loads((CURATED.regulations.entries.catalogue / "region-4.json").read_text())
+    d = json.loads((CURATED.regulations.synopsis / "region-4.json").read_text())
     x = next(r for e in d["entries"] for r in e.get("rules", [])
              if r["rule_id"] == "kootenay_lake_main_body.r1")
     assert CatalogueRule.model_validate(x).gear[0].unlimited

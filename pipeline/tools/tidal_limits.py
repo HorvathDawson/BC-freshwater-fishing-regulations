@@ -1,4 +1,4 @@
-"""T326: WRITE THE TIDAL LIMITS (`data/curated/waters/tidal.json`) from the Tidal-tab marks — the tidal domain's
+"""T326: WRITE THE TIDAL LIMITS (`data/curated/waters/tidal_limits.json`) from the Tidal-tab marks — the tidal domain's
 write-through writer (`review.apply.WRITERS["tidal"]`), run in the request like sloughs and names.
 
 Each Place y tidal mark in force (`proposals._tidal_decides`) becomes the row of its water (its blue line):

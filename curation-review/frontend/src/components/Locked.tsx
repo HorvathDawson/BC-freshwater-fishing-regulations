@@ -47,7 +47,7 @@ export function LockedView({ domain, entry, active, sub }: { domain: string; ent
             <p>Closed {entry.date} by {entry.by}: {entry.why}.</p>
             <p>{entry.final ? <>Its decisions live in <code>{entry.final}</code>.</> : <>Nothing reads these calls; there is no final file.</>}
               {" "}The marks stay in marks.jsonl as history and can no longer be changed here.</p>
-            <p className="dim">Reopen: remove its entry from <code>data/curated/regulations/review/closed.json</code>.</p>
+            <p className="dim">Reopen: remove its entry from <code>data/curated/review/closed.json</code>.</p>
           </div>
         </div>
       </div>

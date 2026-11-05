@@ -42,8 +42,8 @@ def test_bella_coola_splits_resolve_near_curated_coords():
     from pipeline.atlas.graph.blk_chains import load_stream_fids, build_blk_chains
     from pipeline.atlas.build import get_lake_wbk_kind
 
-    defs = {d.id: d for d in load_split_defs(str(CURATED.waters.splits))}
-    j = json.loads(CURATED.waters.splits.read_text())
+    defs = {d.id: d for d in load_split_defs(str(CURATED.waters.cuts))}
+    j = json.loads(CURATED.waters.cuts.read_text())
     coords = {s["id"]: s.get("_coord") for wb in j["waterbodies"] for s in wb["splits"]}
     for sid in _EXPECT:
         assert sid in defs, f"{sid} missing from splits.json"

@@ -1582,7 +1582,7 @@ def fetch_parsing_backup(config):
 
     The prose parser's `synopsis_parsed.json` and `session_state.json` were restored here too.
     That parser is retired: parsed entries are curated files
-    (`data/curated/regulations/entries/catalogue`), in git, and need no restore.
+    (`data/curated/regulations/synopsis`), in git, and need no restore.
     """
     from pipeline.common.curated import GENERATED
     restores = [

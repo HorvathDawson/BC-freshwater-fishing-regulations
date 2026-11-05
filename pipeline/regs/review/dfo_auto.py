@@ -90,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--apply", action="store_true", help="POST each mark to the running review app")
     ap.add_argument("--url", default="http://127.0.0.1:8787")
     a = ap.parse_args(argv)
-    marked = {m.target for m in M.latest(M.load(Path(CURATED.regulations.review.marks))).values()
+    marked = {m.target for m in M.latest(M.load(Path(CURATED.review.marks))).values()
               if m.scope == "dfo"}
     got, skipped = candidates(D.locations(), marked)
     print(f"{len(got)} whole-water places to auto-approve "

@@ -276,7 +276,7 @@ data/curated/gauges/matches.json                COMMITTED. One row per station:
   │                                        neither  status=unresolved, with the reason
   │
   ├──► pipeline.atlas.build      a `gauge` point anchor at the station's coordinate, scoped by
-  │                        `wsc`, appended AFTER data/curated/waters/splits.json and resolved by the
+  │                        `wsc`, appended AFTER data/curated/waters/cuts.json and resolved by the
   │                        same resolver → rivers get cut at their gauges
   │
   └──► pipeline.deliver.bundle     the node on `blk` whose measure range contains `measure`

@@ -75,11 +75,11 @@ def _mtimes(paths) -> tuple:
 
 def followups() -> tuple[dict[str, str], str | None]:
     """THE TIDAL FOLLOW-UPS (T359): {target: why} for every tidal mark the tidal writer leaves out of
-    waters/tidal.json — its own `skipped` list (`tools.tidal_limits.build`), never a second classifier — and the
+    waters/tidal_limits.json — its own `skipped` list (`tools.tidal_limits.build`), never a second classifier — and the
     error that stopped it (None). The writer takes the marks' decisions in memory (`review.export.load`, T408).
     Cached on the marks store's, tidal.json's and splits.json's mtimes (a build takes ~0.3 s)."""
     from pipeline.common.curated import CURATED
-    key = _mtimes([Path(reuse.MARKS_PATH), Path(CURATED.waters.tidal), Path(CURATED.waters.splits)])
+    key = _mtimes([Path(reuse.MARKS_PATH), Path(CURATED.waters.tidal), Path(CURATED.waters.cuts)])
     if _FOLLOWUPS["key"] != key:
         from pipeline.regs.review import export as E
         from pipeline.tools import tidal_limits as TL

@@ -25,9 +25,9 @@ import json
 from pathlib import Path
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
-ENTRIES = CURATED.regulations.entries.dfo_salmon
-SPLITS = CURATED.waters.splits
-OVERRIDES = CURATED.regulations.overrides
+ENTRIES = CURATED.dfo_salmon.places
+SPLITS = CURATED.waters.cuts
+OVERRIDES = CURATED.regulations.book_name_links
 
 
 def _regions() -> list[dict]:

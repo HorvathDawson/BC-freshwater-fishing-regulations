@@ -29,7 +29,7 @@ from pipeline.regs.parsing import io
 from pipeline.tests.conftest import EXPORT_HINT, need
 from pipeline.tests.test_competition import _rules_of, _tiny
 
-CAT = Path(__file__).resolve().parents[2] / "data/curated/regulations/entries/catalogue"
+CAT = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis"
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
 SNAG = "zp:prohibited_methods::prohibited_methods.r3"
 WORDS = "Any fish snagged — even by accident — must be released."

@@ -106,11 +106,11 @@ class Sources:
     def live(cls, build: Optional[Path] = None) -> "Sources":
         from pipeline.common.curated import CURATED, GENERATED
         from pipeline.regs.review.marks import load_overrides
-        return cls(entries_dir=Path(CURATED.regulations.entries.catalogue),
-                   dfo_dir=Path(CURATED.regulations.entries.dfo_salmon),
-                   splits_path=Path(CURATED.waters.splits),
+        return cls(entries_dir=Path(CURATED.regulations.synopsis),
+                   dfo_dir=Path(CURATED.dfo_salmon.places),
+                   splits_path=Path(CURATED.waters.cuts),
                    build=Path(build) if build else GENERATED.build(),
-                   overrides=tuple(load_overrides(CURATED.regulations.review.proposal_overrides)),
+                   overrides=tuple(load_overrides(CURATED.review.proposal_overrides)),
                    tidal_decisions=None)
 
     def text(self, path: Path) -> str:
@@ -848,7 +848,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                     n = _point_split(p, on, f"{_slug(m.target, 30)}_{fi}_{pi}")
                     ref_group[(m.key, f"#{fi}.{pi}")] = group_for(n, who)
 
-    # T326: a tidal decision is no split proposal any more — it lands in waters/tidal.json, the one tidal truth
+    # T326: a tidal decision is no split proposal any more — it lands in waters/tidal_limits.json, the one tidal truth
     # (`pipeline.tools.tidal_limits`, the tidal write-through), and a new tidal cut is minted by the atlas from it.
     out: list[dict] = []
     # ---- new splits
@@ -1133,7 +1133,7 @@ def write_side(p: Mapping, props: Iterable[Mapping], src: Sources, out: Path,
     from pipeline.common.curated import CURATED
     from pipeline.regs.parsing.io import atomic_write
     out = Path(out).resolve()
-    cur = Path(CURATED.waters.splits).resolve().parents[1]
+    cur = Path(CURATED.waters.cuts).resolve().parents[1]
     if out == cur or cur in out.parents:
         raise ValueError(f"{out} is under the curated data ({cur}): a side copy goes elsewhere")
     texts = materialize(chain if chain is not None else chain_of(p, props), src)
@@ -1292,7 +1292,7 @@ def main(argv: list[str] | None = None) -> int:
     from pipeline.regs.review import export as E
     src = Sources.live(a.build)
     from pipeline.common.curated import CURATED
-    marks_path = Path(a.marks or CURATED.regulations.review.marks)
+    marks_path = Path(a.marks or CURATED.review.marks)
     props = build(E.load(marks_path), src)
     if a.cmd == "side" and a.id == "tidal":
         tid = tidal_props(props)

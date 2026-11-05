@@ -415,7 +415,7 @@ def test_skeena_river_2_starts_at_the_exchamsiks_mainstem_cut(real):
 def test_skeena_river_2_starts_at_the_exchamsiks_in_the_curated_data():
     """No atlas: the record's lower cut is the Exchamsiks confluence, and it carries no stand-in pick."""
     import json
-    path = Path(__file__).resolve().parents[2] / "data/curated/regulations/entries/catalogue/region-6.json"
+    path = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis/region-6.json"
     data = json.loads(path.read_text())
     rec = next(r for e in data["entries"] for r in e.get("licensing") or [] if r["id"] == SKEENA_2)
     assert rec["extents"][0]["splits"][0] == SKEENA_EXCHAMSIKS

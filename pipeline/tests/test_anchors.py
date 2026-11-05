@@ -287,7 +287,7 @@ def test_real_splits_json_resolves_on_bella_coola_extract():
     from pipeline.atlas.splits.splits import load_split_defs
 
     fwa = FWADataAccessor(_DATA)
-    defs = load_split_defs(str(CURATED.waters.splits))
+    defs = load_split_defs(str(CURATED.waters.cuts))
     bbox = bbox_from_gnis(fwa, ["Atnarko River", "Hunlen Creek", "Burnt Bridge Creek", "Young Creek"])
     chains = build_blk_chains(load_stream_fids(_DATA, bbox=bbox), get_lake_wbk_kind(fwa, bbox))
     pts = resolve_split_defs(defs, chains)
