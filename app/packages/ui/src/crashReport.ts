@@ -212,7 +212,7 @@ export interface CrashReporter {
   report(error: unknown, o: { kind: CrashKind; fatal: boolean }): void;
   /** Send a fatal error kept from the last run (at start). Resolves true when one went. */
   flush(): Promise<boolean>;
-  /** (Android) Send why the last run ended, as read from the system. Resolves true when sent; false = not sent (off, offline, repeat, refused). */
+  /** (Android, T362 iOS) Send why the last run ended, as read from the system (iOS: the app's own record). Resolves true when sent; false = not sent (off, offline, repeat, refused). */
   sendExit(r: ExitRecord): Promise<boolean>;
 }
 
@@ -358,7 +358,7 @@ export function installCrashHandlers(reporter: CrashReporter, g: Record<string, 
   return () => { for (const u of undo.reverse()) u(); };
 }
 
-// ── why the last run ended (Android's ApplicationExitInfo) ────────────────────────────────────────────────────────────
+// ── why the last run ended (Android's ApplicationExitInfo; iOS: modules/exit-info's own record, T362) ──────────────
 
 export interface ExitRecord {
   readonly timestamp: number;

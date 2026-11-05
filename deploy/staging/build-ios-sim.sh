@@ -18,8 +18,9 @@ if [[ -z ${BUILD_IOS_INNER:-} && -z $DRY ]]; then
   exec scripts/heavy.sh build-ios-sim 20 -- "$0" "$@"
 fi
 export EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_CONTACT=${EXPO_PUBLIC_CONTACT:-support@canifishthis.ca}
-# (T313) --probes: the test bed's measuring switches only ([pan] [open] [stall] [target] in the log), on the live channel
-if [[ " $* " == *" --probes "* ]]; then export EXPO_PUBLIC_PAN_PROBE=1; fi
+# (T313) --probes: the test bed's measuring switches only ([pan] [open] [stall] [target] [heap] in the log), on the live
+# channel; (T362) its crash and problem reports tagged `test` (the crash scenario crashes it on purpose)
+if [[ " $* " == *" --probes "* ]]; then export EXPO_PUBLIC_PAN_PROBE=1 EXPO_PUBLIC_TEST_REPORTS=1; fi
 if [[ " $* " == *" --testbed "* ]]; then
   export EXPO_PUBLIC_UPDATE_CHANNEL=test EXPO_PUBLIC_PAN_PROBE=1 EXPO_PUBLIC_TEST_REPORTS=1
 fi

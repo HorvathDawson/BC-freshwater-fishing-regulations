@@ -1,4 +1,5 @@
 {
-  "platforms": ["android"],
-  "android": { "modules": ["ca.canifishthis.exitinfo.ExitInfoModule"] }
+  "platforms": ["android", "apple"],
+  "android": { "modules": ["ca.canifishthis.exitinfo.ExitInfoModule"] },
+  "apple": { "modules": ["ExitInfoModule"], "appDelegateSubscribers": ["ExitInfoAppDelegate"] }
 }
