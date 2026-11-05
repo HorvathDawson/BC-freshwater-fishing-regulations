@@ -456,10 +456,12 @@ use that as the sole source of future work."
 | T410 | One clear web / native split in the app code (platform files, a written rule, a guard) | OPEN | — | owner 11-05, hygiene chat |
 | T411 | The highlighted part still zigzags after stepping Downstream to the bottom, then Upstream once (Coquitlam part 2) | OPEN | — | owner 11-05, screenshot in T411-shots; first in the next chat |
 | T412 | One slow-feed pattern (run timing first; HYDAT clim + bathymetry follow): workflow, auto binding base, same-bytes check | OPEN | — | owner 11-05 (T408) |
-| T413 | The feeds worker starts the HYDAT workflow on a new HYDAT (staging) | OPEN | — | owner 11-05 (T408); owner makes the token |
+| T413 | New HYDAT picked up without a remembered step: weekly scheduled feeds-hydat run (no new token) | OPEN | — | owner 11-05 (T408); runs once on main |
 | T414 | Review app: "only these entries" filter for the yearly synopsis diff | OPEN | — | from T239 11-05 |
 | T415 | Extraction regression: Heber River's text (found by T239's dry run) | OPEN | — | from T239 11-05; before the next book |
 | T416 | A fresh clone can build: inventory non-git inputs, mirror what only lives on the Mac, one bootstrap, timed clone→build proof | OPEN | — | owner 11-05; after T324 |
+| T417 | Watershed conditions: no flicker between watersheds; pick the watershed most on screen | OPEN | — | owner report 11-05 on 0.6.0 |
+| T418 | Map style assets failed to load on the phone (sprite, glyphs, `outside` source) on 0.5.0 — one-off or real gap | OPEN | — | from reports 11-05 |
 
 ## Order for open tickets
 

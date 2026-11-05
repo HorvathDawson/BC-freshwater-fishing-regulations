@@ -35,6 +35,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **`decided/` is gone (T266/T325):** marks now go straight to the final file. The apply dry run is unchanged.
 - **T337 done:** each build checks every DFO place's water against the map and stops, naming the place, if one is gone.
   Today all 191 resolve. No manual matching step remains.
+- **Reports and crashes read (since 11-04):**
+  - Your six 0.5.0 notes were already fixed (T393–T398).
+  - One new 0.6.0 note: the watershed conditions flicker, and the app should pick the watershed most on screen → T417.
+  - The 0.5.0 reports all logged map sprite/font load failures; 0.6.0 doesn't so far → T418, to check.
+  - Crashes are all from 0.3.0–0.5.0 and already fixed (T391, T403). Two background low-memory kills are normal.
+  - No 0.6.0 crash yet.
+- **T413 revised:** the repo has R2 keys, not a GitHub token. A weekly scheduled HYDAT check needs no token. It runs
+  once the branch is on `main`.
 - **Running now:** the one release command, `pipeline release --staging` (T295/T297). Then the curated renames and
   clean-up (T324), which touch the same code.
 
