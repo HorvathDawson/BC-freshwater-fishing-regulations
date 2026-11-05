@@ -22,7 +22,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   T362–T365) → **0.6.0 release** (with T234 notifications, T390 update prompt and the 0.5.0 fixes).
 - **T234 notifications v1.1 + changelog built** (665dcb49b, 3dbc91380, 981c60cf5): above/below/±% in a day, one per
   water per day (or a set gap), More → Notifications cards + editor, new-version notice, "What's new". Phone checklist
-  in the ticket; your calls in OWNER-TODO (changelog drafts, held-back alerts). Map feel + performance lane started.
+  in the ticket; your calls in OWNER-TODO (changelog drafts).
+- **Crash reports done** [T403, T352]: your phone kept the 0.4.0-era data (r-4e70) through the app update, and 0.5.0
+  opened it before fetching the new one. Now a release the app can't read is never opened: the current one installs
+  first, like a first run (offline: the "needs a connection" screen). Source maps are kept per build, never served,
+  and a tool turns a crash's stack back into file:line. Reaches the phone with the next APK. [T351] still waits.
+- **Alerts: a crossing the limit blocks is dropped, never queued** (your call, e885af5e9).
+- **Running:** map feel + performance; SEO (T188–T198) started.
 - **Deferred, thought later:** T383, T389, T304, T401 (waits on your recording), T307/T308/T310 sign-offs.
 - **Next chat after 0.6.0:** data + build (T164, T178, T239, T266, T295, T297, T324–T326, T337) and launch + hygiene
   (T86, T240, T244, T371, T305, T306, T331, T341, T402, T333–T335).
