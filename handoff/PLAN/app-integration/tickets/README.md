@@ -436,7 +436,7 @@ use that as the sole source of future work."
 | T390 | The app notices a newer version of itself and offers an Update button (Play in-app update; strong prompt when a release needs a newer app) | PARTIAL | 0798fd27b, c62aeb4b8 | owner 2026-11-04 (after 0.5.0); expo-in-app-updates; iOS stub until T88; left: emulator/phone checks with the next APK (ticket test bed) |
 | T391 | Every web water page filed a fatal "Requiring unknown module": Metro reports the lazy-chunk miss as fatal while ErrorUtils is set; the asking moment runs without it | DONE 11-04 | 191953b4b | crash reports 2026-11-04 |
 | T392 | A feeds worker release reruns the feeds: the deployed version is in every reuse key; deploy/staging/feeds.sh deploys then runs every job | DONE 11-05 | 6f0a04a1c | owner 2026-11-05 |
-| T393 | Regional DFO size rules (adult chinook, 30 cm / 25 cm minimums) on the species rows, not loose lines | OPEN | — | owner report 2026-11-05 |
+| T393 | Regional DFO size rules (adult chinook, 30 cm / 25 cm minimums) on the species rows, not loose lines | DONE 11-05 | bfc758925 | owner report 2026-11-05 |
 | T394 | Salmon quota rows still show the ocean image, not the spawning image (T343 item 6 missed a path) | DONE 11-05 | 77e738b54 | owner report 2026-11-05 |
 | T395 | Vessel restrictions: own tab under Methods and gear, out of the top of the regs pane | OPEN | — | owner report 2026-11-05 |
 | T396 | Trout & more legend in 2 lines, both mode legends one height (no jump on switch) | OPEN | — | owner report 2026-11-05 |
