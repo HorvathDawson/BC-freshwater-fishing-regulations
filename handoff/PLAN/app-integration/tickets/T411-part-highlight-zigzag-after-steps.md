@@ -1,6 +1,10 @@
 # T411 — The highlighted part still zigzags after stepping between parts (water map, phone)
 
-Status: OPEN — owner 2026-11-05 on 0.6.0 (About says 0.6.0), so the T399 fix (adfbe330e) is on the phone and the
+Status: DONE 2026-11-05 in code (3350c391d; 0.6.1 batch; not on a phone yet). Reproduced and fixed on the emulator (test bed
+`part-steps`): FAIL before (Part 2 after the steps: sections 316504 and 316506 drawn by the copy AND the atlas,
+copy_until 11 at camera z10.90), PASS after (none drawn twice). Owner look on the next APK.
+
+Reported: owner 2026-11-05 on 0.6.0 (About says 0.6.0), so the T399 fix (adfbe330e) is on the phone and the
 zigzag remains on the step path. The T399 emulator check only opened Part 1 directly; this path was never checked.
 
 Source: owner, with a screenshot (`T411-shots/coquitlam-part2.png`): "The weird highlight in sections is still an
@@ -25,3 +29,28 @@ never after steps.
 
 Links: T399 (first fix), T175 (water copy), T345 (Coquitlam step paths).
 Size: S–M.
+
+## Done 2026-11-05
+
+**Cause (measured, test bed `[copy]`/`[copydraw]` log: `T411-shots/before-copy-log.txt`).** Map opens on Part 2 at
+z9.9: the copy keeps the river at z9 (copy_until 9). ▼ to Part 1 (z11.6): that pass sees Part 2's sections 316504 and
+316506 with a WIDER box than z9's simplified line, so `take` replaced them and their ceiling rose to 11; their pieces
+also came from tiles of TWO zooms in one pass (z11 and z7 — the source still held z7 tiles). ▲ to Part 2 (z10.9, tile
+z10): the copy (copy_until 11) drew that z11 + z7 line under the atlas's own z10 line — the owner's straight second path
+is the z7 piece. A settle over tiles the map already holds fires no full render (T348), so no pass ever corrected it
+(on the emulator no full render came after any step at all). The ticket's lead was half right: not one ceiling, a
+ceiling RAISED by a deeper pass, plus mixed-zoom pieces under one label.
+
+**Fix (`water-copy.ts`, `Map.native.tsx`).** A kept section's ceiling only comes DOWN: the shallowest tile zoom any pass
+found it at (a deeper pass may replace the geometry, never raise the ceiling), and also the shallowest zoom a piece
+itself was cut at, read off its vertices' tile grid (`pieceGridZoom`, the atlas's 2,048 grid; believed only when chance
+cannot explain it, n vertices × d zooms ≥ 4). So the copy draws a section only where the atlas does not, whatever path
+led there. The phone's settle fallback (T348's `SETTLE_ASK_MS`) now runs the copy's pass too, so a step back to held
+tiles still updates it.
+
+**Tests.** `water-copy.test.ts` (T411: the step path Part 2 → Part 1 → Part 2, Part 1 first then up, a mixed-zoom pass,
+the short-piece rule) fails on the old code, passes now. Test bed `part-steps` (`app/tools/testbed/scenarios/part-steps.mjs`,
+`STEPS_VIA=tap` for the map-tap way in): FAIL before / PASS after. The probe lines are test-bed only (`camProbe.copy`).
+
+**Shots.** `before-part2-after-steps.png` (two paths, as the owner's), `after-part2-after-steps.png` (one),
+`before-after-part2.png` (side by side), `after-part1.png`; logs `before-copy-log.txt`, `after-copy-log.txt`.

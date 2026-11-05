@@ -305,7 +305,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if (!camProbe.on() || !m || !copy.current.ids.size) return;
     const ids = new Set(copy.current.ids);
     const drawn = async (layers: string[]) => new Set(visibleSections(
-      await m.queryRenderedFeatures({ layers }).catch(() => [])).filter((id) => ids.has(id)));
+      await m.queryRenderedFeatures({ layers }).catch((e: unknown) => { report(e); return []; })).filter((id) => ids.has(id)));
     const byCopy = await drawn([COPY_LINE]), byAtlas = await drawn(["stream"]);
     camProbe.copy("copydraw", { zoom: camNow.current.zoom, both: [...byCopy].filter((id) => byAtlas.has(id)).sort(),
                                 copyOnly: [...byCopy].filter((id) => !byAtlas.has(id)).sort() });
