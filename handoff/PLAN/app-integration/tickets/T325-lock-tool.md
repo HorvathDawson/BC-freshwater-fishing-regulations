@@ -1,6 +1,6 @@
 # T325 — Write-through: reviewed marks → one final curated file per domain (was: lock tool)
 
-Status: IN REVIEW (2026-10-30, write-through) — was OPEN (owner 2026-10-30; T324 design approved, plan in handoff/PLAN/data-flow.md §4–5).
+Status: DONE (2026-11-05, cbb457042) — T408 re-scope landed: writers read marks.jsonl in memory, write only the final file; no `decided/`. Was IN REVIEW (2026-10-30, write-through); was OPEN (owner 2026-10-30; T324 design approved, plan in handoff/PLAN/data-flow.md §4–5).
 
 `python -m pipeline.regs.review.lock <domain>`: refuses until the domain's review is finished; writes the final file
 (no review fields, schema in data-flow.md §4, read through `CURATED`); proves a side build is byte-identical; then CLOSES
@@ -58,3 +58,6 @@ items it should take my reviews and add to the curated items." Done:
 ## T408 re-scope (owner walkthrough 2026-11-05, `handoff/PLAN/data-flow-decisions.md`)
 Drop `decided/`: each domain's writer reads `marks.jsonl` directly and writes only its final file (owner: drop the
 middle copy). Supersedes the 10-31 "one decided/ folder is fine".
+
+Done 2026-11-05 (cbb457042): `review.apply` no longer exports — `E.load(marks, closed)` in memory, then each writer;
+the write-through drops `CURATION_DECIDED` / `fresh`; closed domains are filtered in `load`. Dry-run unchanged.

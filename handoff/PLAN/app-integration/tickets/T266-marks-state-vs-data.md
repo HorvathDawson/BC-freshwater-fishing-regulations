@@ -1,6 +1,6 @@
 # T266 — Marks are review state; decided data lives in its own files (one exporter)
 
-Status: IN REVIEW (2026-10-31, ec2d60bdd) — exporter + apply paths on the export; a sandboxed full build with marks.jsonl unreadable passed and matched r-51d80e68f056 (`handoff/PLAN/app-integration/build-pass-2026-10-31.md`). Owner: confirm the one-directory split `data/curated/decided/`.
+Status: DONE (2026-11-05, cbb457042) — T408 re-scope landed: no `decided/`; the writers compute the marks' decisions in memory (`review.export.load`). Was IN REVIEW (2026-10-31, ec2d60bdd).
 
 Source: owner 2026-10-29: "should we get tidal marks into a separate file to simplify? so marks is just state of review
 then data goes into the individual files? could use a single exporter."
@@ -32,3 +32,9 @@ Depends: none. Size: M. Owner: confirm the file split (default as above).
 ## T408 re-scope (owner walkthrough 2026-11-05, `handoff/PLAN/data-flow-decisions.md`)
 `decided/` is dropped (owner 2026-11-05): the exporter's per-domain copy goes; the apply paths read the marks
 directly (with T325). The rest (build never reads marks) stands.
+
+Done 2026-11-05 (cbb457042): `data/curated/decided/` removed (git rm), `CURATED.decided` + config key gone, and
+`NOT_BUILD_INPUTS` drops it. `review.export.load(marks, closed)` = `decide(marks)` less closed domains — no file IO,
+no `--check`. apply / apply_proposals / proposals take `--marks`. Proof: `review.apply --dry-run` output identical
+before and after (tidal, sloughs, names current; the same proposals waiting); in-memory load == the old files'
+load (2095 decisions, 1179 cuts, provenance equal). Targeted tests pass.
