@@ -1,41 +1,29 @@
-# Data flow — every stream, end to end (T324 steps 1, 2, 4)
+# Data flow — every stream, end to end, as built (T324, 2026-11-05)
 
-> **2026-11-05 (T408):** the owner decided every stream — `data-flow-decisions.md` wins where this file differs
-> (`decided/` goes, the naming pass, the slow-feed pattern, DFO bindings checked in the build). This file is rewritten
-> to the pipeline as built when T324 lands.
-
-2026-10-30. For the owner. Planning only: nothing was moved, built or changed to write this.
-In flight while this was written: **T322** (slough files moved to `data/curated/sloughs/` and
-`data/generated/sloughs/`; `waters/slough_calls.json` + the registry fold added, fold **OFF** until its own side build).
+For the owner. The pipeline **as it is after T324** (the naming pass, machine output out of curated, the fast curated
+check, the steelhead accept command, one copy of the DFO wording, inputs synced on push). What the owner chose and why
+is `data-flow-decisions.md`; this is the map. Every curated folder also has its own README (`data/curated/*/README.md`).
 
 ## The short answer
 
-**"I thought the marks got converted into our real curated data type?"** Partly. Today a decision makes **three
-hops**, and only some domains finish the trip:
+**A review decision makes one hop.** You save a mark in the review app; the mark is appended to
+`data/curated/review/marks.jsonl` (the log, never edited) and the server writes it straight into its domain's final
+file. The build reads only the final files.
 
 ```
-marks.jsonl  ──export──▶  decided/<domain>.json  ──apply tool──▶  the real file  ──▶  build
-(review log)              (a COPY of the marks,                 (splits.json,
-                           whole mark lines + provenance)         catalogue, mined_names…)
+review app ──save──▶ review/marks.jsonl ──write-through (apply)──▶ the final curated file ──▶ build ──▶ release ──▶ app
+                     (the log)                                     (cuts.json, synopsis/,
+                                                                    places/, tidal_limits.json,
+                                                                    slough_calls.json, found_names.json)
 ```
 
-`decided/` is **not** the real data type. It is the marks again, filtered per domain, with every review field still
-in (prints, answers, seconds). The real file is one more tool away, and that tool is different for every domain.
-That is the awkward part.
+There is no `decided/` copy any more (T325/T408): the apply reads the marks in memory.
+`python -m pipeline.regs.review.apply [domain] [--dry-run]` is the same apply by hand.
 
-| domain | marks in force | lands in the real file? | read by the build? |
-|---|---|---|---|
-| tidal | 1,170 verified, 6 unsure, 1 wrong | **yes**: 33 cuts in `waters/splits.json` (applied one commit each by `apply_proposals`); ~1,130 are "tidal at the mouth" = no edit; 10 whole waters are in `waters/tidal_waters.json`, typed by hand | yes (reach + tiles read the cuts and `tidal_waters.json`) |
-| DFO extents | 49 verified, 4 unsure | **yes, as applied**: `apply_proposals` → `entries/dfo_salmon/region-*.json` + `splits.json` | yes (reach) |
-| entries / rules | 35 verified, 2 wrong | **yes, as applied**: `apply_proposals` → `entries/catalogue/region-*.json` + `splits.json` | yes (reach + deliver) |
-| sloughs | 811 "stream" calls (946 verified, 135 cleared) | **in flight (T322)**: `tools.slough_calls` → `waters/slough_calls.json` | **not yet**: the registry fold is written but OFF |
-| ponds (Q154) | 81 (61 pool, 19 real lake) | **no** — `decided/ponds.json` has **no reader** | no |
-| names | **0 marks** | the decisions are in **Python code** (`pipeline/regs/review/names.py` `OWNER`) + auto rules → `tools.mined_names` → `waters/mined_names.json` (one accepted name, Sheldens Creek, not yet written) | yes (atlas) |
-| splits (calls on existing cuts) | 0 | — | — |
-| "proposal" scope | 7 (from the retired accept step) | exported nowhere | no |
-
-Gauges, in-season, run timing, continuations and the steelhead list have **no marks**: their curated file already
-is the real file (good — that is the target shape).
+**Three kinds of data**, one folder each: `data/source/` (fetched — costs bandwidth), `data/generated/` (computed —
+costs CPU; includes Claude-made proposal files and the gauge review queue), `data/curated/` (the owner's decisions and
+hand-made data — costs human hours). Curated names: `*_calls.json` = your per-item decisions, `*_waters.json` = a list
+of waters, `*_stations.json` = a list of gauges.
 
 ---
 
@@ -43,341 +31,220 @@ is the real file (good — that is the target shape).
 
 ```mermaid
 flowchart LR
-  subgraph SRC["Sources (fetched)"]
-    FWA["FWA gpkg<br/>data/source/bc_fisheries_data.gpkg"]
-    PDF["Synopsis PDF<br/>data/source/fishing_synopsis.pdf"]
-    DFOP["DFO salmon pages"]
-    HYD["HYDAT sqlite + ECCC roster"]
-    ECCC["ECCC realtime"]
+  subgraph SRC["data/source (fetched)"]
+    FWA["FWA gpkg"]
+    PDF["synopsis PDF"]
+    HYD["HYDAT + ECCC roster"]
     PSF["PSF run timing + NuSEDS"]
-    OSM["OSM / city layers / GNIS"]
-    INS["Gov in-season page"]
+    OSM["OSM / city layers"]
+  end
+  subgraph WEB["live web pages"]
+    DFOP["DFO salmon pages"]
+    INS["gov in-season page"]
+    ECCC["ECCC realtime"]
   end
 
-  subgraph HUMAN["Owner review"]
-    APP["review app<br/>(curation-review)"]
-    MARKS["marks.jsonl"]
-    DEC["decided/*.json<br/>(export of marks)"]
-    HAND["hand edits"]
+  subgraph HUMAN["you"]
+    APP["review app"]
+    HAND["hand edits (rare)"]
   end
 
-  subgraph CUR["data/curated (human time)"]
-    WAT["waters/: splits, name_variants,<br/>mined_names, added_*, areas,<br/>continuations, tidal_waters,<br/>slough_calls (T322)"]
-    REG["regulations/: catalogue, dfo_salmon entries,<br/>overrides, steelhead_waters, reference"]
-    GAU["gauges/: matches, review,<br/>tidal, backwater"]
-    RT["runtiming/: review, timing"]
-    INSM["inseason/matches.json"]
-    WORD["dfo_salmon/wording.json"]
+  subgraph CUR["data/curated"]
+    MARKS["review/marks.jsonl"]
+    WAT["waters/: cuts, name_variants, found_names,<br/>area_closures, added_*, continuations,<br/>tidal_limits, slough_calls, steelhead_waters"]
+    REG["regulations/: synopsis/, book_name_links, reference/"]
+    DFO["dfo_salmon/: places/, wording.json"]
+    GAU["gauges/: matches, match_calls,<br/>tidal_stations, backwater_stations"]
+    RT["runtiming/run_calls.json"]
+    INSM["inseason/notice_waters.json"]
   end
 
-  subgraph GEN["data/generated (build stages)"]
-    ATLAS["atlas<br/>(registry, sections)"]
-    REACH["reach<br/>(rule ↔ section)"]
-    TILES["tiles<br/>(pmtiles + layers)"]
-    CLIM["clim.json"]
-    TYPED["regs/dfo_salmon/typed"]
-    DELIV["deliver<br/>(bundle → verdicts → export → answers)"]
+  subgraph GEN["data/generated"]
+    PROP["review/ (Claude's proposals,<br/>candidates the app shows)"]
+    QUEUE["gauges/candidates.json (review queue)"]
+    SH["steelhead/steelhead_waters.json"]
+    ATLAS["atlas (only with --atlas)"]
+    STAGES["clim · reach · tiles · deliver"]
   end
 
-  subgraph REL["data/release/&lt;r-id&gt;"]
-    FILES["water / regs / core / salmon /<br/>near / down / paint … + manifest"]
-  end
+  REL["data/release/r-* + LATEST"]
+  R2["R2: release/, feeds/, private/feeds/"]
+  WK["feeds Worker"]
+  PHONE["app"]
 
-  subgraph R2["R2 + workers"]
-    RREL["release/ + map-assets/"]
-    FEEDS["feeds/live · feeds/dfo · feeds/inseason"]
-    PRIV["private/feeds/* (worker inputs)"]
-    RTF["runtiming/ (own feed)"]
-    WK["feeds Worker (cron)"]
-  end
-
-  PHONE["App<br/>(manifest → install → feeds)"]
-
-  PDF -->|"LLM parse — HUMAN runs it"| REG
-  APP --> MARKS -->|"review.export"| DEC
-  DEC -->|"apply_proposals"| WAT
-  DEC -->|"apply_proposals"| REG
-  DEC -->|"slough_calls (T322)"| WAT
-  DEC -->|"mined_names"| WAT
+  APP --> MARKS -->|"write-through"| WAT & REG & DFO
   APP -->|"In-season tab"| INSM
-  HAND --> WAT & REG & GAU & RT
-  OSM -->|"mine → review"| WAT
+  PROP --> APP
+  HAND --> WAT & GAU & RT & REG
+  PDF -->|"parser — YOU run it"| REG
+  SH -->|"steelhead.accept --write (you)"| WAT
   HYD -->|"match → promote"| GAU
-  PSF -->|"runtiming.parse"| RT
-  DFOP -->|"dfo_salmon parse + place"| REG
+  HYD -.-> QUEUE
+  OSM -->|"candidates → Names tab"| PROP
 
-  FWA --> ATLAS
-  WAT --> ATLAS
-  ATLAS --> REACH & TILES
-  REG --> REACH
-  HYD --> CLIM
-  REACH & TILES & CLIM & TYPED --> DELIV
-  GAU & RT & REG --> DELIV
-  DELIV --> FILES
-  FILES -->|"deploy/staging/upload.sh"| RREL
+  FWA & WAT --> ATLAS --> STAGES
+  REG & DFO & GAU & RT & HYD --> STAGES
+  STAGES --> REL -->|"pipeline release --staging / --prod"| R2
 
-  REG -->|"sync-inputs.sh"| PRIV
-  WORD -->|"sync-inputs.sh"| PRIV
-  INSM -->|"inseason.publish"| FEEDS
-  ECCC & DFOP & INS --> WK
-  PRIV --> WK --> FEEDS
-  CLIM -->|"upload.sh / feeds-hydat"| FEEDS
-  PSF -->|"feeds-runtiming workflow"| RTF
-
-  RREL & FEEDS & RTF --> PHONE
+  DFO & INSM -->|"sync_inputs, on push (staging)"| R2
+  DFOP & INS & ECCC --> WK
+  R2 --> WK --> R2
+  R2 --> PHONE
 ```
 
-The build itself is four stages (`python -m pipeline build --graph`): **clim**, **reach**, **tiles**, **deliver**
-(+ **atlas** only with `--atlas`). No stage reads `marks.jsonl` or `decided/` (proved by the T266 sandboxed build).
+---
+
+## 2. The build and the release
+
+**One command ships:** `python -m pipeline release --staging` = build → checks → promote LATEST → staging upload,
+stopping at the first failure, resumable (finished stages are cached). `--prod <r-id>` re-uploads the same checked
+bytes to production (yours only). `--dry-run` prints the plan.
+
+The build (`python -m pipeline build`, which `release` runs) is, in order:
+
+1. **Fast curated check** (T324): `python -m pipeline.tools.audit.check_curated --waters` — the hand-edited waters
+   files (`name_variants`, `area_closures`, `added_areas` / `added_lakes` / `added_streams`, `continuations`,
+   `unmapped_waters`): shape and references, under a second. A bad hand edit stops the build here.
+2. **Preflight**: source files present; promoted artifacts not stale (`check_curated --ci`); tippecanoe.
+3. **Stages**, each only when its key moved: `clim` (gauge envelope from HYDAT), `reach` (every rule bound to its
+   sections), `tiles` (map geometry), `deliver` (bundle → verdicts → export → answers → release). The **atlas** is
+   built only with `--atlas` (then `--promote`), never to check something.
+
+**Keys are by content** (T324): a stage reruns when the bytes it reads change, not when a file is renamed or moved.
+The T324 renames reran nothing by themselves; `reach` and `deliver` were already due (code changes), and `tiles` and
+`clim` stayed up to date. (Two config attribute names, `waters.tidal` → `tidal_limits.json` and `waters.areas` →
+`area_closures.json`, keep their old spelling because the tile code reads them and renaming would rebuild and re-ship
+the tiles for nothing.)
+
+The marks are in no key: a mark changes the build only through the final file it writes.
+
+CI (`pipeline-ci.yml`, on every push) runs the cheap guards: every curated path resolves, `check_curated --ci`,
+`check_curated --waters`, generated files current, the no-data test tier, no hard-coded curated paths.
 
 ---
 
-## 2. The streams, one table each
+## 3. The streams
 
-Columns: **file** · **written by** · **read by** · **refreshed when** · **human time in it**.
+Columns: **file** · **written by** · **read by** · **your time in it**.
 
-### 2.1 Waters (the atlas shape)
+### 3.1 Waters (the shape of the map) — `data/curated/waters/`
 
-| file | written by | read by | refreshed | human time |
-|---|---|---|---|---|
-| `data/source/bc_fisheries_data.gpkg` | `data/fetch_data.py` | atlas | new FWA vintage | none |
-| `waters/splits.json` | hand + `apply_proposals` (one commit per proposal) | atlas (sectionizer), reach, review tools | each applied mark | **high** — every cut |
-| `waters/name_variants.json` | hand | atlas (registry) | rare | high |
-| `waters/mined_names.json` | `tools.mined_names` from `decided/names.json` + `names.OWNER` (code) + auto rules | atlas (`registry/mined.py`) | names review | medium — decisions live in code |
-| `waters/added_lakes.geojson`, `added_areas.geojson` | hand-drawn | atlas, `area_splits` | rare | high |
-| `waters/added_streams.json` | `added_streams/build_dataset.py`, promoted | atlas | never re-run (live `blk` ABI) | high (approved) |
-| `waters/areas.json` | hand | atlas, tiles key | rare | high |
-| `waters/continuations.json` | hand (reviewed / refused) | deliver (`bundle/continuation.py`) | per review | medium |
-| `waters/tidal_waters.json` | hand (T212) | reach (`outside.py`), tiles key | per owner call | low, but it is tidal truth #2 |
-| `waters/slough_calls.json` | `tools.slough_calls` from `decided/sloughs.json` (**T322, in flight**) | atlas registry fold (**OFF**) | after slough marks | high (811 calls) |
-| `waters/ungazetted.json`, `sub_lake_areas.json` | hand | **nothing** (worklists) | — | medium |
-| `sloughs/page-marks-2026-10-28.json` | review page (moved here by T322) | `review/slough.py` (pre-marks), by literal path | done | medium |
+| file | written by | read by | your time |
+|---|---|---|---|
+| `cuts.json` | hand; write-through (split / entry / DFO marks, one commit per proposal) | atlas (sectionizer), review app | **high** — every cut |
+| `name_variants.json` | hand | atlas (registry) | high, rare |
+| `found_names.json` | `tools.mined_names` / write-through (Names marks) | atlas (registry) | medium (you accept names) |
+| `found_name_calls.json` | hand (your calls on single found-name candidates) | `tools.mined_names` | low |
+| `area_closures.json` | hand | atlas, tiles | high, rare |
+| `added_areas.geojson`, `added_lakes.geojson` | hand-drawn | atlas | high, rare |
+| `added_streams.json` | added-streams resolver, promoted (never rerun: negative ids are an ABI) | atlas | high (approved) |
+| `continuations.json` | hand (reviewed / refused) | bundle (`water_continue` gate) | medium |
+| `tidal_limits.json` | `tools.tidal_limits` / write-through (Tidal marks) | atlas → `tidal.resolved.json` → reach, tiles | high |
+| `slough_calls.json` | `tools.slough_calls` / write-through (slough marks) | atlas (registry fold) | high (811 calls) |
+| `slough_page_calls.json` | the retired slough page (frozen 2026-10-28) | review app (your old notes) | done |
+| `steelhead_waters.json` | `steelhead.accept --write` (you accept a new generated list) | reach run | medium, rare |
+| `unmapped_waters.json` | hand (worklist for added lakes) | `check_curated --waters` only | medium |
 
-### 2.2 Regulations (the book)
+Atlas inputs reach the map only after the next atlas build. A hand edit is checked in seconds by the build's first step.
 
-| file | written by | read by | refreshed | human time |
-|---|---|---|---|---|
-| `data/source/fishing_synopsis.pdf` | fetch | extraction | new synopsis | none |
-| `entries/catalogue/region-*.json` | LLM parse (**owner runs**) + ingest, `apply_proposals`, hand | reach, deliver, review app | new synopsis / each applied mark | **highest** |
-| `regulations/overrides.json` | hand | reach (`covered.py`), parser, review | rare | high |
-| `regulations/steelhead_waters.json` | `regs/steelhead/known_waters.py`, then a human copies it in | reach, deliver | rare | medium |
-| `regulations/reference/*.md` | hand transcription | deliver (glossary) | new synopsis | high |
-| `regulations/cross_references.json` | old corpus extraction | **only a test** | — | low |
-| `review/marks.jsonl` | review app (append-only) | exporter, review app, tickets/precheck | every mark | **highest** |
-| `review/proposal_overrides.json` | hand | proposals, DFO suggest, review | per call | low |
-| `decided/*.json` | `pipeline.regs.review.export` | apply tools only | after marks (`--check`) | none of its own (a copy) |
+### 3.2 Regulations (the book) — `data/curated/regulations/`
 
-### 2.3 DFO salmon
+| file | written by | read by | your time |
+|---|---|---|---|
+| `data/source/fishing_synopsis.pdf` | fetch | extraction | none |
+| `synopsis/region-*.json` | the parser (**you run it — it spends credits**); write-through (entry / rule marks); hand (back up first) | reach, deliver, review app | **highest** |
+| `book_name_links.json` | hand | matcher, reach (`covered.py`), review app | high, rare |
+| `reference/*.md` | hand transcription of the printed book | answers glossary | high, per synopsis |
 
-| file | written by | read by | refreshed | human time |
-|---|---|---|---|---|
-| DFO pages | — | Python parse (`regs/dfo_salmon`) and worker (`app/workers/feeds/src/dfo`) | 4×/day in season (worker) | none |
-| `entries/dfo_salmon/region-*.json` | parse + placing + `apply_proposals` | reach, deliver, review app, **R2 private** via `sync-inputs.sh` | per placement | high |
-| `dfo_salmon/wording.json` | hand (T321) | worker via R2 private (compiled-in fallback copy too), `dfo_salmon/wording.py` by literal path | per wording edit | medium |
-| `generated/regs/dfo_salmon/typed` | `dfo_salmon.live` | deliver (bundle `dfo` key) | per run | none |
-| `generated/regs/dfo_salmon/feed` | Python feed | `upload.sh` seeds `feeds/dfo` (`--ignore-existing`) | per release | none |
-| R2 `feeds/dfo/` | feeds Worker | app | each worker run | none |
+**Steelhead list:** `python -m pipeline.regs.steelhead.known_waters` (separate, rare) writes
+`data/generated/steelhead/steelhead_waters.json`. Accepting it is your decision:
+`python -m pipeline.regs.steelhead.accept` prints the waters added / dropped; `--write` writes
+`waters/steelhead_waters.json`. A generator rerun never changes the curated list by itself.
 
-### 2.4 Gauges
+### 3.3 DFO salmon — `data/curated/dfo_salmon/`
 
-| file | written by | read by | refreshed | human time |
-|---|---|---|---|---|
-| `data/source/hydat.sqlite3`, `bc_hydrometric_stations.json` | `scripts/hydat-fetch.sh`, fetch | clim, match, `sync-inputs.sh` (roster → R2 private) | new HYDAT (feeds-hydat, manual) | none |
-| `generated/gauges/match.json` | `gauges.generate.match` | promote | rare | none |
-| `gauges/matches.json` + `candidates.json` | `gauges.generate.promote` | deliver (bundle) | rare (one frozen file) | high (approved) |
-| `gauges/review.json` | hand (231 decisions) | match / promote | per review | high |
-| `gauges/tidal.json`, `backwater.json` | hand | deliver (`consume/tidal.py`) | rare | medium |
-| `gauges/waterbody_type.json` | scraped from ECCC once | promote | rare | none — it is source data |
-| `generated/gauges/feeds/clim.json` | clim stage / feeds-hydat | deliver; R2 `feeds/live/clim.json` | new HYDAT / new year | none |
-| R2 `feeds/live/` | feeds Worker (every 30 min) | app | 30–60 min | none |
+| file | written by | read by | your time |
+|---|---|---|---|
+| DFO pages (web) | — | the feeds Worker (4×/day in season); the Python parse | none |
+| `places/region-*.json` | DFO review (write-through) + placing | reach, deliver, review app; the Worker via R2 `private/feeds/dfo/entries/` | high |
+| `wording.json` | `dfo_salmon.wording build`, entries checked by hand | the Python and the Worker — **one copy** (R2 `private/feeds/dfo/wording.json`); missing or invalid **fails the DFO job** and reports; the app keeps the last good feed | medium |
+| `data/generated/regs/dfo_salmon/typed` | `dfo_salmon.live` | deliver (bundle) | none |
+| R2 `feeds/dfo/` | the Worker | app | none |
 
-### 2.5 In-season changes
+Every saved DFO match is checked by the build against that build's registry (T337); a DFO name with no match is held
+in `unplaced.json` and you get an "N rules held unplaced" email.
 
-| file | written by | read by | refreshed | human time |
-|---|---|---|---|---|
-| gov in-season page | — | feeds Worker → R2 `feeds/inseason/index.json` | 4×/day in season | none |
-| `inseason/matches.json` | review app In-season tab (its one non-mark write) or hand | `inseason.publish` → R2 `feeds/inseason/matches.json` (`sync-inputs.sh`) | per match | medium |
+### 3.4 Gauges — `data/curated/gauges/`
 
-The app reads both and draws a banner. Nothing in the build reads in-season (informational only).
+| file | written by | read by | your time |
+|---|---|---|---|
+| `data/source/hydat.sqlite3`, `bc_hydrometric_stations.json` | `scripts/update-hydat.sh`, fetch | clim, match; roster → R2 private | none |
+| `data/generated/gauges/match.json` | `gauges.generate.match` | promote | none |
+| `matches.json` | `gauges.generate.promote` only (one station at a time) | atlas, bundle | high (approved) |
+| `data/generated/gauges/candidates.json` | promote (the review queue; committed so CI sees it) | `check_curated` | none |
+| `match_calls.json` | hand (your calls on matches; an input to matching) | match / promote | high |
+| `tidal_stations.json`, `backwater_stations.json` | hand | bundle (`consume/tidal.py`) | medium |
+| R2 `feeds/live/` | the Worker (every 30 min) | app | none |
 
-### 2.6 Run timing
+A new HYDAT: the Worker emails, you press the `feeds-hydat` workflow button (T413 will let the Worker start it). Never a
+GitHub schedule.
 
-| file | written by | read by | refreshed | human time |
-|---|---|---|---|---|
-| PSF + NuSEDS pages | — | `runtiming.parse` (Mac) and the `feeds-runtiming` workflow (its own fresh parse) | manual | none |
-| `runtiming/timing.json` | `runtiming.parse` | deliver | manual | **none** — parsed, kept in git because the pages may not be re-hosted |
-| `runtiming/review.json` | hand | parse, extract, bundle | rare | medium |
-| R2 `runtiming/` | `feeds-runtiming` workflow | app (Runs tab) | manual | none |
+### 3.5 In-season — `data/curated/inseason/`
 
-### 2.7 Release → app
+| file | written by | read by | your time |
+|---|---|---|---|
+| gov in-season page | — | the Worker → R2 `feeds/inseason/index.json` | none |
+| `notice_waters.json` | review app In-season tab or hand | `inseason.publish` → R2 `feeds/inseason/matches.json` | medium |
 
-| file | written by | read by | refreshed | human time |
-|---|---|---|---|---|
-| `data/release/<r-id>/*` + `manifest.json` | deliver | `upload.sh` | each build | none |
-| `data/release/LATEST` | `pipeline release` promote stage, after its checks (Claude may, owner 10-28) | `upload.sh` | each promote | a decision |
-| `data/release/CANDIDATE` | `pipeline build --hold-latest` (inside `pipeline release`, T408) | `pipeline release` checks | each held build | none |
-| R2 `release/` + `map-assets/` | `upload.sh` (staging: Claude; prod: owner) | app boot (`app/packages/data/src/release/boot.ts`): manifest → install → paint | each upload | none |
+Informational only: a banner on the water, never an answer change.
+
+### 3.6 Run timing — `data/curated/runtiming/`
+
+| file | written by | read by | your time |
+|---|---|---|---|
+| PSF + NuSEDS pages | — | `runtiming.parse` (Mac) and the `feeds-runtiming` workflow | none |
+| `data/source/runtiming/timing.json` | `runtiming.parse` | deliver | none |
+| `run_calls.json` | hand | parse, extract, bundle | medium |
+| R2 `runtiming/` | `feeds-runtiming` workflow (button) | app (Runs tab) | none |
+
+Decided, not built yet: run timing becomes a "slow feed" (own R2 folder + `index.json`, started by a button or the
+Worker, content-hashed, publish only on a real change) — its own ticket.
+
+### 3.7 Worker inputs → R2 (automatic to staging)
+
+`python -m pipeline.deliver.sync_inputs` is the one list of what the Worker reads from R2: the DFO places, the wording
+registry, the station roster, the in-season links. **On every push to the dev branch that touches one of them**,
+`.github/workflows/feeds-sync-inputs.yml` puts what changed into **staging** R2 (T324). Production stays a manual run
+at the prod switch. `deploy/staging/sync-inputs.sh` is the same list from the Mac.
+
+### 3.8 Release → app
+
+| file | written by | read by | your time |
+|---|---|---|---|
+| `data/release/<r-id>/*` | deliver | `pipeline release` checks, upload | none |
+| `data/release/CANDIDATE` → `LATEST` | `pipeline release` (promote after every check passes) | upload | none (staging) |
+| R2 `release/` | `pipeline release --staging` (Claude may); `--prod <r-id>` (you) | app boot: manifest → install → paint | prod: a decision |
 
 ---
 
-## 3. Problems found
+## 4. Where your time goes
 
-### Human work outside `data/curated`
-| where | what | fix |
+| when | what you do | command / place |
 |---|---|---|
-| `pipeline/regs/review/names.py` `OWNER` | the owner's single-name decisions, **in Python code** | rows in `waters/mined_names.json` |
-| `handoff/PLAN/curation-review/tidal/owner-decisions.json` | owner's tidal calls (Capilano, Cowichan) before the Tidal tab; read by `proposals.py` | fold into the tidal lock |
-| slough page verdicts | were in `handoff/` | **done by T322** → `data/curated/sloughs/` |
+| reviewing | save marks; they land in the final file at once | review app (restart it after pulling T324: its paths come from `config.yaml` at start) |
+| a rare hand edit | edit the file; the build's first step checks it in seconds | `check_curated --waters` to check by hand |
+| a new synopsis | run the parser (credits) | `pipeline/regs/parsing/run_parse.sh` |
+| a new steelhead list | read the diff, accept | `pipeline.regs.steelhead.accept [--write]` |
+| a new HYDAT | press the workflow button when the Worker emails | `feeds-hydat` |
+| production | promote the checked staging release | `CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>`; prod inputs sync (manual workflow run) |
 
-### Two files say the same thing
-| truth | files |
+## 5. Still open (tickets)
+
+| ticket | what |
 |---|---|
-| what is tidal | `decided/tidal.json` (1,170 calls) · tidal flags on 33 cuts in `waters/splits.json` · `waters/tidal_waters.json` (10 whole waters) · `owner-decisions.json` in handoff. The ~1,130 "tidal at the mouth" calls exist **only** as marks. |
-| every decision | `marks.jsonl` and `decided/*.json` (a full copy of each mark line) |
-| split confidence | `review/proposal_overrides.json` beside the split it is about |
-| DFO wording | `dfo_salmon/wording.json` and a compiled-in copy in the worker |
-| run timing | `runtiming/timing.json` (Mac parse) and the workflow's own parse |
-
-### Files no one reads
-- `decided/ponds.json` (80 decisions) — no reader; Q154 is OFF. **Done by T329:** ponds closed, file deleted.
-- `decided/names.json`, `decided/splits.json` — no records.
-- `regulations/cross_references.json` — only a test reads it.
-- `waters/sub_lake_areas.json` — no code reader (a worklist, not declared in config like `ungazetted.json` is).
-- 7 `proposal`-scope marks — exported nowhere.
-
-### Readers that skip the curated config (AGENTS 36)
-- `regs/review/slough.py` → `PAGE_MARKS` literal path.
-- `regs/dfo_salmon/wording.py` → `REGISTRY` literal; `wording.json` is not in `config.yaml` at all.
-- `regs/review/proposals.py` → `TIDAL_DECISIONS` in `handoff/`.
-- `curation-review/backend/inseason.py` → `CURATION_INSEASON_MATCHES` env var can repoint a curated file (curated paths are never env-overridable).
-- `.github/workflows/feeds-sync-inputs.yml` does **not** sync `wording.json`; its Mac twin `sync-inputs.sh` does. Two lists.
-
-### Generated files in `handoff/`
-Code reads or writes these, but they are machine output:
-`curation-review/tidal/{tidal-candidates,tidal-preverify,tidal-edits,tidal-osm-landmarks,tidal-web}.json`, `tidal/pass2/`,
-`dfo-suggestions.json`, `dfo-preverify.json`, `dfo-split-hunt.json`, `entry-split-suggestions.json`,
-`t89-awaiting-water.json`, `q154/sample.json`, `name-variants/candidates.json` (+ its script `mine.py`),
-`proposals/`. Readers: the review app backend, `regs/review/*`, `regs/dfo_salmon/*`, `tools/audit/tidal_*`.
-**Done by T330 (2026-10-30):** all 16 moved with `git mv` to `data/generated/review/` (same sub-paths), read through
-`GENERATED.review`; `tidal/owner-decisions.json` stays for T326.
-
-### Other
-- `gauges/waterbody_type.json` is scraped source data filed as curated.
-- The deliver key hashes the **whole** curated tree (minus marks/decided), so a review-only file (page marks, gauge
-  candidates) reruns deliver.
-- `data/release/` holds 27 release folders; the rule is live + previous.
-
----
-
-## 4. End state: one final file per data type
-
-The rule: **one file per data type, in the shape the build uses, no review fields, read through `CURATED`, by one
-loader.** Marks stay what they are for: the log of a review that is still open.
-
-| data type | final file | read by (one loader / stage) | status |
-|---|---|---|---|
-| cuts | `waters/splits.json` (confidence folded in from `proposal_overrides.json`) | atlas (sectionizer) | exists |
-| tidal limits | **`waters/tidal.json`** (new; replaces `tidal_waters.json` + the tidal flags + `decided/tidal`) | reach (`outside.py`); tiles via the same loader | to make (T326; write-through then targets it) |
-| sloughs | `waters/slough_calls.json` | atlas (registry fold) | exists (T322) |
-| ponds | none — owner 2026-10-30: a pond call only confirms the lake default | — | **closed** (T329) |
-| names | `waters/mined_names.json` (owner rows move in from code) | atlas (registry) | exists |
-| DFO places | `regulations/entries/dfo_salmon/region-*.json` | reach | exists |
-| regulations | `regulations/entries/catalogue/region-*.json` | reach + deliver | exists |
-| gauges | `gauges/matches.json` + `gauges/review.json` | deliver | exists; no marks |
-| in-season | `inseason/matches.json` | `inseason.publish` | exists; no marks |
-| run timing | `runtiming/review.json` (authored); `timing.json` moves out of curated | deliver | relabel |
-| DFO wording | `dfo_salmon/wording.json` (declared in config) | worker + `wording.py` | declare |
-
-### Example records
-
-`waters/tidal.json` — one row per ocean-entering water, the answer and where it came from:
-```json
-{"water": "gnis:5922", "limit": "split", "split_id": "capilano_river__cn_railway_bridge_tidal_boundary",
- "why": "words: CN Railway Bridge", "decided": "2026-10-28", "mark": "1f0c…"}
-{"water": "blk:360875001", "limit": "mouth", "decided": "2026-10-29", "mark": "9a2e…"}
-{"water": "gnis:12345", "limit": "whole", "decided": "2026-10-29", "why": "Fraser delta channel"}
-```
-The cut point stays in `splits.json` (the cutter needs it); `tidal.json` only says which cut is the tidal limit.
-That removes the tidal flag from splits.json and replaces `tidal_waters.json`.
-
-`waters/slough_calls.json` (T322's shape, already final):
-```json
-{"wbk": "328947490", "call": "stream", "date": "2026-10-29", "mark": "85bdfc14b03b", "reviewer": "dawson"}
-```
-
-`waters/pond_calls.json` (if kept):
-```json
-{"wbk": "329248389", "call": "lake", "date": "2026-10-29", "mark": "f97667997d8c"}
-```
-
-`waters/mined_names.json` owner row (from `names.OWNER`):
-```json
-{"target": {"blks": ["360846083"]}, "names": [{"name": "Sheldens Creek", "source": "owner", "decided": "2026-10-29"}]}
-```
-
-`mark` is the 12-hex sha of the mark line — enough to find the history in the archive, nothing else from the review.
-
-### Marks write through to the final file (T325, owner 2026-10-30)
-
-Owner: *"I don't want to have to individually lock everything. It should just work naturally from marks, and when
-reviewing items it should take my reviews and add to the curated items."* There is **no lock step**.
-
-Marking stays one click in the review app (a line appended to marks.jsonl, never edited). Right after the save, the
-server runs **that domain's apply** (`curation-review/backend/write_through.py` → `pipeline.regs.review.apply.run`):
-export the marks to `decided/`, then the domain's writer.
-
-| domain | writer | final file | when |
-|---|---|---|---|
-| sloughs | `tools.slough_calls` | `waters/slough_calls.json` | in the request (< 1 s) |
-| names | `tools.mined_names` | `waters/mined_names.json` | in the request |
-| dfo / entries / splits | `apply_proposals --scope …` (binding check, one `git commit --` per proposal) | `entries/dfo_salmon/`, `entries/catalogue/`, `splits.json` | background, debounced 1.5 s (binding check: seconds warm, ~20 s cold) |
-| tidal | `apply_proposals --scope tidal` (current path; T326 still owes `waters/tidal.json`) | `splits.json` tidal flags/cuts; `decided/tidal.json` | background |
-| ponds | — (closed: nothing reads a pond call, T329) | — | — |
-
-- **Batch** (accept all visible) is one request → one apply.
-- **Refused** (failed binding check, uncommitted changes in the file, a stale slough mark, conflicting decisions, any
-  error): the mark stays; the reason is returned (in-request) or held per item (`GET /api/review/write-through`),
-  shown on the item and in the app's amber "not in the curated file" list, and logged to
-  `data/generated/review/write-through.jsonl`. A later save of the same domain retries it.
-- **A cut that changes** (a new split, every tidal cut above the mouth) waits for its side rebuild as before (heavy, by
-  hand); the app lists those marks as "waits for a side rebuild" with the commands.
-- **Atomic**: every curated and decided write is temp file + rename; `apply_proposals` puts a file back if its commit
-  fails.
-- **Only over the curated store**: a server on a temp marks store (tests, a second copy) writes no curated file unless
-  `CURATION_WRITE_THROUGH=1`; `=0` turns it off.
-- The file writers write their file and leave committing to the owner's normal commit; the proposal writer commits
-  per proposal (as before).
-- A tab whose queue is empty shows **done**. `closed.json` keeps only domains that feed nothing (ponds).
-
-`python -m pipeline.regs.review.apply [domain ...] [--dry-run]` is the same apply by hand — a catch-up after marks
-were made with the server off.
-
-The `lock` tool (built earlier the same day) is **removed**: no lock, no "locked" tab, no reopen command. The
-original lock proposal (refuse-until-finished, side-build proof, archive marks) is dropped; the side-build proof that
-a domain's marks are fully in its final file is still a good one-off check before deleting a domain's marks path
-(T326 tidal), but it is not a step the owner runs per domain.
-
-
-
----
-
-## 5. Cleanup tickets (proposed — not created)
-
-| # | title | one line |
-|---|---|---|
-| 1 | Write-through (was: lock tool) | Marks reach their final file on save; no lock step (§4, T325, owner 2026-10-30). |
-| 2 | Lock tidal | `waters/tidal.json` replaces `tidal_waters.json`, the splits tidal flag, `decided/tidal` and handoff `owner-decisions.json`. |
-| 3 | Lock names | Move `names.OWNER` out of code into `mined_names.json`; write Sheldens Creek. |
-| 4 | Lock sloughs | After T322 is approved: archive slough marks, `page-marks` and `decided/sloughs`. |
-| 5 | Ponds: reader or archive | Owner decides whether Q154 calls drive anything; then a `pond_calls.json` or an archive. |
-| 6 | Generated review files out of handoff | Move `curation-review/{tidal/*, dfo-*, entry-split-suggestions, t89-awaiting-water, q154/sample, name-variants/candidates, proposals/}` to `data/generated/review/`, read via `GENERATED`. |
-| 7 | Every curated file in config | Declare `dfo_salmon/wording.json`, `sloughs/page-marks`, `sub_lake_areas.json`; read them through `CURATED` (`wording.py`, `slough.py`). |
-| 8 | No env override of curated paths | Drop `CURATION_INSEASON_MATCHES` (and any other `CURATION_*` that repoints a curated file). |
-| 9 | One sync list | `feeds-sync-inputs.yml` and `sync-inputs.sh` read the same key list; the workflow is missing `wording.json`. |
-| 10 | Dead curated files | Delete or declare `regulations/cross_references.json` (test only) and `waters/sub_lake_areas.json` (no reader). |
-| 11 | Split confidence into splits.json | Fold `review/proposal_overrides.json` into the split records (with T326). |
-| 12 | Source data out of curated | `gauges/waterbody_type.json` (scraped) and `runtiming/timing.json` (parsed) move to `data/source/`; note which run-timing parse the app trusts. |
-| 13 | Retired marks | Archive the 7 `proposal`-scope marks from the old accept step. |
-| 14 | Narrow the deliver key | Hash only the curated files deliver reads, so a review-only file does not rerun deliver. |
-| 15 | Prune releases | 27 folders in `data/release/`; keep live + previous. |
-| 16+ | ~~Lock DFO, lock regulations~~ | Not needed: write-through keeps them current (owner 2026-10-30). |
+| T326 | fold `review/proposal_overrides.json` (cut confidence) into the cuts |
+| T337 | every build checks each DFO match id against that build's registry |
+| T413 | the Worker starts the HYDAT workflow itself |
+| T416 | a fresh clone can build |
+| T281 | lake splits (deferred); its worklist `sub_lake_areas.json` now lives in `tickets/T281-files/` |
+| (slow feed) | run timing as a slow feed; HYDAT climatology and bathymetry follow it |

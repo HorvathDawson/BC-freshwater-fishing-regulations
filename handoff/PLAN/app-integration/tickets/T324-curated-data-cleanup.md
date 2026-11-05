@@ -1,6 +1,6 @@
 # T324 — One clean data flow: document every stream, then lock reviewed data as final curated files
 
-Status: PARTIAL — plan done (data-flow.md, cbfc0adc7); owner approved the design 2026-10-30; the lock step was replaced by write-through (T325: a saved mark updates its final curated file; lock.py deleted); work in T325–T331. (owner 2026-10-30: "I thought the marks got converted into our real curated data type? We need to document
+Status: DONE — 73c04dbc2 (naming pass, out of curated, check_curated --waters, steelhead accept), e064ab2ea (worker: one wording copy, fail loud; not deployed), f90fbb988 (sync inputs on push, staging); data-flow.md rewritten in the ticket commit. Earlier: plan cbfc0adc7, write-through T325.
 the flow of all the data streams too. … after we finish doing the review … lock all the data in curated in the format
 they will be useful like sloughs etc. … convert marks into that format for all the data types … Right now the whole flow
 feels really shitty and awkward.")
@@ -41,3 +41,12 @@ Now the cleanup change set for the curated layer:
 7. Rewrite `data-flow.md` to match the result.
 - (from T266/T325, 11-05) `pipeline/tools/slough_calls.py` ABOUT still says "applied from data/curated/decided/sloughs.json";
   fix it in the rename change (it is written into `slough_calls.json`, so it changes a build input once).
+
+## Done (2026-11-05)
+- Naming pass + moves as the table; `marks.jsonl` moved, bytes unchanged. Build keys by content: the renames rerun
+  nothing (`build --dry-run` before/after: clim + tiles up to date both times; reach + deliver were already due).
+- Left for later: config attributes `waters.tidal` / `waters.areas` keep their old names, and the `_about` of
+  `tidal_limits.json` / `area_closures.json` still says "splits.json" — both live in tile-stage code / a tile key, so
+  changing them rebuilds and re-ships the tiles; do it with the next tile change. `guide_words.py` STEELHEAD_TEXT still
+  names the old steelhead path (shipped export text; change with the next release).
+- Restart the review app after pulling: its curated paths are read from config at start.

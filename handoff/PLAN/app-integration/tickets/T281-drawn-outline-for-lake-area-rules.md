@@ -13,3 +13,7 @@ tag; the app's area tag becomes an ordinary drawn part.
 Each listed rule binds a drawn part; no `not_yet_mapped` left on a mapped area; binding diff reviewed.
 
 Depends: lake splits. Size: M. Owner: lift the deferral.
+
+## Worklist (moved here by T324, 2026-11-05)
+`T281-files/sub_lake_areas.json` — the worklist for splitting a lake into the waters the book treats it as (was
+`data/curated/waters/sub_lake_areas.json`; no build reader, so it left curated). Its `_` text is partly stale (see T100).
