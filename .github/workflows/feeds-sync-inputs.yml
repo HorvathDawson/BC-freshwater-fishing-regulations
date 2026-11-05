@@ -1,6 +1,9 @@
 name: feeds — sync curated inputs → R2 private/
 
-# T225 follow-up (owner 2026-10-28). MANUAL ONLY (workflow_dispatch) for now.
+# T225 follow-up (owner 2026-10-28). T324 (owner 2026-11-05, data-flow-decisions.md "In-season"): ON PUSH of a curated
+# input to the dev branch it syncs to STAGING R2 by itself, so a saved match reaches the worker with no remembered step;
+# a manual run (workflow_dispatch) stays for a dry run or one input. PRODUCTION stays a manual run at the prod switch.
+# NEVER a `schedule:` trigger (owner rule: GitHub schedules are flaky and unpaid).
 #
 # The feeds Worker reads curated inputs from R2 PRIVATE keys (never served — the data worker 404s private/), so a
 # curator's change reaches the feeds on their next run with no redeploy; the app reads the in-season links (PUBLIC).
@@ -8,8 +11,6 @@ name: feeds — sync curated inputs → R2 private/
 # `<key>\t<cache-control|->` — dfo-entries, wording (T321), roster, inseason-matches (see that module). The Mac twin,
 # deploy/staging/sync-inputs.sh, puts the same staged set, so the two cannot drift (this one lacked wording.json).
 # Only objects whose bytes differ from what R2 holds are written (compared by MD5 = the R2 ETag of a single-part put).
-#
-# Later (owner's call): run it on push to those paths — uncomment the `push:` block below.
 #
 # TARGET: staging only until the owner enables production (uncomment the option + the prod secrets).
 # SECRETS (already set in the repo by the owner): CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY. The token
@@ -36,14 +37,19 @@ on:
         description: "List what would change; write nothing"
         type: boolean
         default: true
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - data/curated/regulations/entries/dfo_salmon/**
-  #     - data/curated/dfo_salmon/wording.json
-  #     - data/source/bc_hydrometric_stations.json
-  #     - data/curated/inseason/matches.json
-  #     - data/curated/waters/splits.json
+  # T324: every input `pipeline.deliver.sync_inputs` stages, by its curated / source path (cuts.json: the in-season
+  # links carry split labels). A push run has no `inputs`: target = staging, what = all, dry_run = false (env below).
+  push:
+    branches: [redesign/stream-sections]
+    paths:
+      - data/curated/dfo_salmon/places/**
+      - data/curated/dfo_salmon/wording.json
+      - data/source/bc_hydrometric_stations.json
+      - data/curated/inseason/notice_waters.json
+      - data/curated/waters/cuts.json
+      - pipeline/deliver/sync_inputs.py
+      - pipeline/regs/inseason/**
+      - .github/workflows/feeds-sync-inputs.yml
 
 concurrency:
   group: feeds-sync-inputs
@@ -54,7 +60,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      BUCKET: ${{ inputs.target == 'production' && 'bc-fishing-regulations' || 'bc-fishing-regulations-staging' }}
+      # a push run has no inputs: staging, every input, a real put (only what differs from R2 is written)
+      BUCKET: ${{ github.event_name == 'workflow_dispatch' && inputs.target == 'production' && 'bc-fishing-regulations' || 'bc-fishing-regulations-staging' }}
+      WHAT: ${{ github.event_name == 'workflow_dispatch' && inputs.what || 'all' }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
       AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: auto
@@ -77,7 +86,7 @@ jobs:
       - name: Stage the files (the one list, pipeline.deliver.sync_inputs)
         run: |
           pip install --quiet "pydantic>=2" pyyaml
-          W="${{ inputs.what }}"
+          W="$WHAT"
           ONLY=(); [ "$W" != "all" ] && ONLY=(--only "$W")
           python -m pipeline.deliver.sync_inputs --out out ${ONLY[@]+"${ONLY[@]}"} > manifest.tsv
           cat manifest.tsv
@@ -90,7 +99,7 @@ jobs:
             have=$(aws s3api head-object --bucket "$BUCKET" --key "$2" --endpoint-url "$R2_ENDPOINT" \
                    --query ETag --output text 2>/dev/null | tr -d '"' || true)
             if [ "$want" = "$have" ]; then echo "same     $2"; return; fi
-            if [ "${{ inputs.dry_run }}" = "true" ]; then echo "WOULD PUT $2"; return; fi
+            if [ "$DRY_RUN" = "true" ]; then echo "WOULD PUT $2"; return; fi
             aws s3 cp "$1" "s3://$BUCKET/$2" --endpoint-url "$R2_ENDPOINT" --content-type application/json \
               ${3:+--cache-control "$3"} --only-show-errors
             echo "put      $2"
