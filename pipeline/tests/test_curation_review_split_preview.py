@@ -4,6 +4,8 @@ shows is the cut the build makes. Pinned against the served atlas where the buil
 (the Moyie's U.S. border, Little Qualicum Falls Park). Needs the FWA source and the served atlas."""
 from __future__ import annotations
 
+import sys
+
 import pytest
 
 from pipeline.common.curated import SOURCE
@@ -25,6 +27,12 @@ def _the_gpkg(request):
 def sp():
     mp = pytest.MonkeyPatch()
     mp.syspath_prepend(str(BACKEND))
+    # (T402) a backend module imported by an earlier file under its temp env (CURATION_MARKS …) keeps those paths for the
+    # session — `reuse.MARKS_PATH` is read at import — and `dfo` / `split_preview` hold that `reuse`: this file reads the
+    # live store, so every backend module is imported fresh here
+    for name, mod in list(sys.modules.items()):
+        if str(getattr(mod, "__file__", "") or "").startswith(str(BACKEND)):
+            sys.modules.pop(name, None)
     import split_preview
     yield split_preview
     mp.undo()
