@@ -78,3 +78,4 @@ gets a short README. One change set: files moved with `git mv`, code + config + 
 | `runtiming/review.json` | `runtiming/run_calls.json` |
 | kept | `waters/continuations.json`, `waters/name_variants.json`, `waters/slough_calls.json`, `waters/added_*`, `dfo_salmon/wording.json`, `gauges/matches.json`, `regulations/reference/` |
 | leaves curated (above) | `decided/`, `waters/sub_lake_areas.json`, `review/dfo_fix_proposals.json`, `gauges/candidates.json`, `review/proposal_overrides.json` (folded by T326) |
+| Release build isolation | **As built:** the build rewrites the local working copies (bundle, tiles, reach run); LATEST, staging and prod move only after every check passes (`data/release/CANDIDATE` until promote). Min app version carries over from the live release; the app gate refuses a release that needs a newer app. | Owner 2026-11-05: what ships is protected; no extra disk/time for a full side build. | T295/T297 |

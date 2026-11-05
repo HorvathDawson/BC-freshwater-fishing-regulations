@@ -43,8 +43,10 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   - No 0.6.0 crash yet.
 - **T413:** no GitHub schedules (your call). The worker's email is the trigger today. With a token you make, the
   worker starts the HYDAT workflow itself. The same applies to run timing (T412).
-- **Running now:** the one release command, `pipeline release --staging` (T295/T297). Then the curated renames and
-  clean-up (T324), which touch the same code.
+- **Release command built (T295/T297):** `python -m pipeline release --staging` runs build → checks (binding diff, app
+  gate, manifest) → promote → staging upload. It stops on a failure and resumes where it stopped. Prod is a separate
+  human-only command. Runbook: `handoff/PLAN/runbooks/release.md`. Not run end to end yet.
+- **Running now:** T411 (highlight zigzag, for 0.6.1) and T324 (curated renames + clean-up).
 
 ## 2026-11-05: 0.6.0 built for Play internal; handoff ready
 - **0.6.0:** version + changelog committed (1590e08d6). On Play internal: versionCode 9 (97459e986), play.json
