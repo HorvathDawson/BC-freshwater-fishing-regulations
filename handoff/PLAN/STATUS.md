@@ -13,6 +13,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-05: 0.6.1 on Play internal
+- **0.6.1** (9e610a6f2, versionCode 10, 40741d6de): the T411 highlight fix. Tester email sent; play.json published.
+  T417 (watershed flicker) and T418 (style assets) go in the next APK.
+- **Staging feeds worker** deployed with it (50a816d9): one wording copy (T324). The gauges, DFO and in-season jobs ran
+  clean. In-season links re-synced: same 32 links, new checksum.
+- **Your phone check:** Coquitlam → Map → Downstream to the bottom → Upstream once. The highlight should be one line.
+
 ## 2026-11-05: data flow walkthrough done (T408)
 - **Every stream decided.** Your answers are in `handoff/PLAN/data-flow-decisions.md`. In short:
   - `decided/` goes; marks write straight to the final file.
