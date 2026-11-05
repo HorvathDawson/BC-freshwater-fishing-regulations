@@ -462,6 +462,7 @@ use that as the sole source of future work."
 | T416 | A fresh clone can build: inventory non-git inputs, mirror what only lives on the Mac, one bootstrap, timed clone→build proof | OPEN | — | owner 11-05; after T324 |
 | T417 | Watershed conditions: no flicker between watersheds; pick the watershed most on screen | OPEN — 0.6.1 batch (with T411) | — | owner report 11-05 on 0.6.0 |
 | T418 | Map style assets failed to load on the phone (sprite, glyphs, `outside` source) on 0.5.0 — one-off or real gap | OPEN — 0.6.1 batch (with T411) | — | from reports 11-05 |
+| T419 | Salmon River (Region 2) keeps too much detail when zoomed out; check stream simplification | OPEN — UI check | — | owner 11-05 |
 
 ## Order for open tickets
 
