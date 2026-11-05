@@ -27,7 +27,7 @@ in order: **Data and build** first, then **Launch and hygiene**. Each is one cha
    https://bc-fishing-feeds-staging.horvath-dawson.workers.dev (Bearer token in `app/workers/feeds/.run-token`). Turn each real
    problem from 0.6.0 testing into a ticket. "App bug" and "Feature request" reports are the owner's own test notes.
 2. **T411** — the part highlight still zigzags after stepping (Coquitlam: Downstream to the bottom, then Upstream
-   once). An app bug from testing: fix it before 0.6.0 goes to Closed testing, or ship it in 0.6.1.
+   once). Seen on 0.6.0, so T399's fix does not cover it. Fix it in 0.6.1 before Closed testing.
 3. **`graphify update .`** (not run after the 0.6.0 changes).
 
 ## Chat 1 — Data and build (in order)

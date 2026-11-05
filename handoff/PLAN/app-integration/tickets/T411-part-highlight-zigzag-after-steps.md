@@ -1,8 +1,7 @@
 # T411 — The highlighted part still zigzags after stepping between parts (water map, phone)
 
-Status: OPEN — owner 2026-11-05 (phone, Play internal). The screenshot is from 13:22, before 0.6.0 reached Play, so most
-likely 0.5.0. The T399 fix (adfbe330e, 11-04 19:01) is NOT in 0.5.0 but IS in 0.6.0. FIRST: the owner repeats the
-steps on 0.6.0. If it's gone, close this as fixed by T399. If not, do the work below.
+Status: OPEN — owner 2026-11-05 on 0.6.0 (About says 0.6.0), so the T399 fix (adfbe330e) is on the phone and the
+zigzag remains on the step path. The T399 emulator check only opened Part 1 directly; this path was never checked.
 
 Source: owner, with a screenshot (`T411-shots/coquitlam-part2.png`): "The weird highlight in sections is still an
 issue. To reproduce go to Coquitlam river then hit downstream to bottom then go upstream one time and you will see it."
