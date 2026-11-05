@@ -441,7 +441,7 @@ use that as the sole source of future work."
 | T395 | Vessel restrictions: own tab under Methods and gear, out of the top of the regs pane | OPEN | — | owner report 2026-11-05 |
 | T396 | Trout & more legend in 2 lines, both mode legends one height (no jump on switch) | OPEN | — | owner report 2026-11-05 |
 | T397 | BUG: Runs tab fish chips cannot be scrolled sideways on the phone | DONE in code 11-05 (phone check next APK) | f2f726456 | owner report 2026-11-05 |
-| T398 | ELF-only water opens on real-time data; forecast always switchable off | OPEN | — | owner report 2026-11-05 |
+| T398 | ELF-only water opens on real-time data; forecast always switchable off | DONE in code 11-05 (phone check next APK) | f2796e37f | owner report 2026-11-05 |
 | T399 | The water map's highlighted part zigzagged: the water copy drew a shallow zoom's line over the atlas below one shared ceiling; each copied section now stops at its own zoom (filter, no style swap) | DONE in code (owner look on APK) | adfbe330e | owner 2026-11-04 (0.5.0 phone) |
 | T400 | Camera moves choppy on the phone: fitBounds flew (the binding's default "fly" easing); now eased. Left: search refine rounds / probe steps are extra moves | PARTIAL | adfbe330e | owner 2026-11-04 (0.5.0 phone) |
 | T401 | Streams pop in at the edges while panning: MapLibre Native has no viewport prefetch; parent tiles lack small streams. Measure, then prefetch-delta patch or render margin (no tile buffer rebuild) | OPEN | — | owner 2026-11-04 (0.5.0 phone) |
