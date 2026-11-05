@@ -35,6 +35,6 @@ t "pinned inputs (data/source/pins.json)"
 .venv/bin/python -m pipeline.tools.source_pins fetch
 
 t "synopsis extraction backup"
-.venv/bin/python data/fetch_data.py --add-parsing-data
+PYTHONPATH="$PWD" .venv/bin/python data/fetch_data.py --add-parsing-data
 
 t "done ($((SECONDS - t0)) s). Next: python -m pipeline build --atlas --promote   (the atlas is not in git)"
