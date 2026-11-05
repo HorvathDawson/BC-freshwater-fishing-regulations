@@ -58,6 +58,7 @@ The app decides nothing about a regulation: every answer is looked up in the rel
 | `fixtures/reference/` | page v36 (html, js) and its calendar copy, frozen: the parity tests' and the re-cut's oracle | `python -m pipeline.tools.emit.calendar` (calendar only) |
 | `fixtures/reader-states.json`, `fixtures/fishart.js` | the reader tool's states; the fish drawings `tools/emit-adipose.mjs` reads | hand / prototype |
 | `apps/mobile/assets/fish/thumbs/` | (T405) a 240 px thumbnail per fish picture, drawn by every row and chip (the fish sheet alone draws the full picture); `thumbs.json` records what each was made from, and `pnpm fish` refuses a missing or stale one | `node tools/emit-fish-thumbs.mjs` (Chrome), then `pnpm fish:build` |
+| `tools/seo/fonts/` | (T409) the app's faces as WOFF2 (lossless), served to the water pages at `/assets/fonts/`; `fonts.json` records the TTF each was made from, and the SEO build (`webFonts.ts`) refuses a missing or stale one | `node tools/emit-web-fonts.mjs` (Python fontTools + brotli) |
 
 The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps it (regs v38 @ 7fb6809f).
 
