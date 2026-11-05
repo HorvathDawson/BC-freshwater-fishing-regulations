@@ -22,5 +22,6 @@ import { gaugeOffline } from './gauge-offline.mjs';
 import { memory } from './memory.mjs';
 import { waterNav } from './water-nav.mjs';
 import { heapprof } from './heapprof.mjs';
+import { edge } from './edge.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge];
