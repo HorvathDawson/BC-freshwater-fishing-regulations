@@ -244,7 +244,8 @@ describe("P16: one reading order", () => {
     const DISCLAIMER = "USERS OF THIS DATA MUST ACCEPT ALL RESPONSIBILITY FOR THE USE AND "
       + "INTERPRETATION.";
     const run = forecastRunLine({ model: "ELF", issuedAt: "2026-08-30T00:00:00Z", horizonDays: 30 });
-    // The forecast IS drawn, and ELF is the only model with one here: said, not hidden …
+    // (T398) ELF is opt-in: the reader draws it; then it is the only model with one here — said, not hidden …
+    fireEvent.click(await screen.findByTestId("chart-model-ELF"));
     await waitFor(() => expect(screen.getByTestId("only-elf").textContent).toBe(CONDITIONS_WORDS.onlyModel("ELF")));
     // … but the model's information and the disclaimer are shut: one "About this forecast", one "Sources and notes"
     expect(screen.queryByText(DISCLAIMER)).toBeNull();
@@ -260,6 +261,25 @@ describe("P16: one reading order", () => {
     expect(CONDITIONS_WORDS.fold).toBe("Sources and notes");
   });
 
+  it("(T398) an ELF-only gauge opens on the measured line; ELF is drawn on a press and switched fully off again", async () => {
+    await draw("forecast");
+    const off = await screen.findByTestId("chart-model-off");
+    // OPENS REAL-TIME: the off entry is the one checked, ELF is offered, nothing speaks for a forecast
+    expect(off.getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByTestId("chart-model-ELF").getAttribute("aria-checked")).toBe("false");
+    expect(off.getAttribute("aria-label")).toBe(CONDITIONS_WORDS.key.realtimeLabel(true));
+    expect(screen.queryByTestId("only-elf")).toBeNull();
+    expect(screen.queryByRole("button", { name: CONDITIONS_WORDS.aboutForecast })).toBeNull();
+    // ON: the reader draws ELF
+    fireEvent.click(screen.getByTestId("chart-model-ELF"));
+    await waitFor(() => expect(screen.getByTestId("chart-model-ELF").getAttribute("aria-checked")).toBe("true"));
+    expect(screen.getByTestId("chart-model-off").getAttribute("aria-checked")).toBe("false");
+    expect(screen.getByTestId("only-elf")).toBeTruthy();
+    // OFF AGAIN: always offered
+    fireEvent.click(screen.getByTestId("chart-model-off"));
+    await waitFor(() => expect(screen.queryByTestId("only-elf")).toBeNull());
+    expect(screen.getByTestId("chart-model-off").getAttribute("aria-checked")).toBe("true");
+  });
 
   // ONE SET OF CHIPS IN THE PANEL. The owner's rule (2026-10-20) is not "exactly one control
   // in the app": the Conditions map has its own in the corner (MapScreen.test.tsx), the panel

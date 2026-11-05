@@ -36,7 +36,7 @@ export type ChartActions = Pick<ChartView, "zoomed" | "readout" | "zoomIn" | "zo
 export interface LegendModel { readonly key: string; readonly label: string; readonly on: boolean; readonly onPress: () => void }
 
 export function Hydrograph({ shape, palette, colour, label, unit,
-                             forecastLabel, models, view }:
+                             forecastLabel, models, realtime, view }:
   { shape: Shape; palette: Palette; colour: string; label?: string;
     /** the quantity's unit, drawn over the value axis */
     unit?: string;
@@ -44,6 +44,9 @@ export function Hydrograph({ shape, palette, colour, label, unit,
     forecastLabel?: string;
     /** (T367) the running models, as legend entries: tap one to draw it. Replaces the model selector. */
     models?: readonly LegendModel[];
+    /** (T398) the entry that turns the forecast off (the measured line alone), beside the models — on every gauge
+        with a forecast running, so a forecast can always be switched fully off */
+    realtime?: { readonly on: boolean; readonly onPress: () => void };
     /** Present, the chart zooms, pans and reads out; absent, it is a picture. */
     view?: ChartActions }) {
   const { box } = shape;
@@ -182,15 +185,30 @@ export function Hydrograph({ shape, palette, colour, label, unit,
         ))}
         {/* (T367) THE MODELS ARE LEGEND ENTRIES: the one drawn is filled, a tap on another draws it (the model
             selector they replace was a third row of controls); one model running is a plain entry */}
-        {models && models.length > 1 ? models.map((m) => (
-          <Pressable key={m.key} testID={`chart-model-${m.key}`} onPress={m.onPress} accessibilityRole="radio"
-                     aria-checked={m.on} accessibilityLabel={CONDITIONS_WORDS.key.model(m.label, m.on)}
-                     {...hitProps({ w: 60, h: 26 })}
-                     style={{ paddingVertical: 3, paddingHorizontal: 6, borderRadius: palette.r.pill, borderWidth: 1,
-                              borderColor: m.on ? colour : palette.line2, opacity: m.on ? 1 : 0.6 }}>
-            <Key palette={palette} label={m.label} swatch="dash" colour={m.on ? colour : palette.sub} />
-          </Pressable>
-        )) : shape.forecast && (
+        {models && (models.length > 1 || realtime) ? (
+          <>
+            {models.map((m) => (
+              <Pressable key={m.key} testID={`chart-model-${m.key}`} onPress={m.onPress} accessibilityRole="radio"
+                         aria-checked={m.on} accessibilityLabel={CONDITIONS_WORDS.key.model(m.label, m.on)}
+                         {...hitProps({ w: 60, h: 26 })}
+                         style={{ paddingVertical: 3, paddingHorizontal: 6, borderRadius: palette.r.pill, borderWidth: 1,
+                                  borderColor: m.on ? colour : palette.line2, opacity: m.on ? 1 : 0.6 }}>
+                <Key palette={palette} label={m.label} swatch="dash" colour={m.on ? colour : palette.sub} />
+              </Pressable>
+            ))}
+            {/* (T398) the forecast fully off: the measured line alone */}
+            {realtime && (
+              <Pressable testID="chart-model-off" onPress={realtime.onPress} accessibilityRole="radio"
+                         aria-checked={realtime.on} accessibilityLabel={CONDITIONS_WORDS.key.realtimeLabel(realtime.on)}
+                         {...hitProps({ w: 60, h: 26 })}
+                         style={{ paddingVertical: 3, paddingHorizontal: 6, borderRadius: palette.r.pill, borderWidth: 1,
+                                  borderColor: realtime.on ? colour : palette.line2, opacity: realtime.on ? 1 : 0.6 }}>
+                <Key palette={palette} label={CONDITIONS_WORDS.key.realtime} swatch="line"
+                     colour={realtime.on ? colour : palette.sub} />
+              </Pressable>
+            )}
+          </>
+        ) : shape.forecast && (
           <Key palette={palette} label={forecastLabel ?? "forecast"} swatch="dash"
                colour={colour} />
         )}

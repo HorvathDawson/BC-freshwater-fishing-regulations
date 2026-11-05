@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { answerFrom, buildStandingClasses, sectionStanding, type PanelMember, type SectionId, type StationId } from "@app/data";
 import { HORIZONS, codedChange, horizonDateChip, type RunChange, type SourceChange } from "@app/core";
 import { classMarks, standingValues } from "./conditionsColour";
-import { changeChartModel, changeView, donorView, flowHorizon, horizonChips, pickHorizon } from "./panel";
+import { changeChartModel, changeView, donorView, forecastDrawn, flowHorizon, horizonChips, pickHorizon } from "./panel";
 import { CHANGE_RAMP_BASE, rampPosition, routeLabels, routeValues, toRamp } from "./routeColour";
 
 const st = (s: string) => s as StationId;
@@ -319,5 +319,16 @@ describe("the chart's run under Change (T144 review: owner \"no elf\")", () => {
             changeChartModel(null, 3, joined), changeChartModel(null, "change", null),
             changeChartModel(null, "change", { models: ["ELF"] } as unknown as SourceChange)])
       .toEqual(["CLEVER", "ELF", undefined, undefined, "ELF"]);
+  });
+});
+
+describe("(T398) forecastDrawn — ELF is opt-in, a forecast can always be switched off", () => {
+  const elf = [{ model: "ELF" }], both = [{ model: "CLEVER" }, { model: "ELF" }];
+  it("untouched: drawn unless ELF is the only model, none while the runs are unknown", () => {
+    expect([forecastDrawn(null, elf), forecastDrawn(null, both), forecastDrawn(null, []), forecastDrawn(null, null)])
+      .toEqual([false, true, true, false]);
+  });
+  it("the reader's switch wins either way", () => {
+    expect([forecastDrawn(true, elf), forecastDrawn(false, both), forecastDrawn(false, elf)]).toEqual([true, false, false]);
   });
 });

@@ -139,7 +139,9 @@ function draftKey(station: StationId | null, span: ChartSpan, parameter: Paramet
 
 export function useChartView(source: WaterSource, station: StationId | null, span: ChartSpan,
                              parameter: Parameter | undefined, model: string | undefined,
-                             width: number, enabled = true, draft: ChartDraft | null = null): Async<ChartView | null> {
+                             width: number, enabled = true, draft: ChartDraft | null = null,
+                             /** (T398) false: the measured line alone — no forecast drawn, none in the time axis */
+                             drawForecast = true): Async<ChartView | null> {
   const key = seriesKey(station, span, parameter, model);
   // (owner 2026-10-29) a feed the update service took redraws the chart in place: a refresh of the same series (its
   // window and read-out, keyed on `key`, are kept)
@@ -160,7 +162,9 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
   const st: State = raw.key === key ? raw : { key, domain: null, probe: null };
   const whole = series.state === "ready" ? series.value?.value ?? null : null;
   const early = series.state === "loading" && wantsDraft && drafted.state === "ready" ? drafted.value?.value ?? null : null;
-  const s = whole ?? early;
+  const both = whole ?? early;
+  const s = useMemo(() => (both && !drawForecast && both.forecast ? { ...both, forecast: null } : both),
+                    [both, drawForecast]);
   const aged = series.state === "ready" && series.value ? series.value
     : series.state === "loading" && wantsDraft && drafted.state === "ready" ? drafted.value : null;
   const asOf = aged?.kept ? CONDITIONS_WORDS.keptAsOf(aged.fetchedAt) : null;
@@ -220,7 +224,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     } : null;
     return { state: "ready", error: null,
              value: { shape, readout, zoomed: !!(shape.view && shape.full && isZoomed(shape.view, shape.full)),
-                      pending: false, draft: s === early, asOf, ...actions } };
+                      pending: false, draft: both === early, asOf, ...actions } };
   }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions]);
 
   // The last chart drawn, for the frames between a switch and its answer.

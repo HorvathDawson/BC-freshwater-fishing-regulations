@@ -105,6 +105,19 @@ export function changeChartModel(picked: string | null, horizon: Horizon,
 }
 
 /**
+ * (T398) WHETHER THE CHART DRAWS A FORECAST AT ALL. The reader's switch wins: `false` is the measured line alone
+ * ("Real-time only", offered on every gauge), `true` is a model drawn. Untouched (`null`), a forecast is drawn unless
+ * ELF is the only model running here — ELF is the last resort (T144) and opt-in (owner 2026-11-05, Capilano: "if
+ * only elf is available … it should just show real time data"). Runs not yet known (`null`) draw none, so an ELF-only
+ * gauge never flashes its forecast before the runs arrive.
+ */
+export function forecastDrawn(on: boolean | null, runs: readonly { model: string }[] | null): boolean {
+  if (on !== null) return on;
+  if (!runs) return false;
+  return !(runs.length > 0 && runs.every((r) => r.model === "ELF"));
+}
+
+/**
  * The Change block for the charted gauge, on the reader's `today`.
  *
  * WHICH MODELS SPEAK IS THE PUBLISHER'S (T144, `source`, the station file's `change`): its line first, with its days

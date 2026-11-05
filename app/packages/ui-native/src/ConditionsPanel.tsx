@@ -19,7 +19,7 @@ import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, CONDITIONS_WORDS, forecast
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { changeChartModel, changeView, chartParameter, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
+import { changeChartModel, changeView, chartParameter, forecastDrawn, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
          usePrefetchGauges, useSeries, type ChangeVM, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed } from "@app/ui";
 import { GaugeGroups } from "./GaugeGroups";
@@ -104,6 +104,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const shown: Parameter = param ?? vm.reading?.quantity ?? "level";
   // WHICH MODEL. Left alone the freshest run is chosen — a UI default, not a judgement.
   const [model, setModel] = useState<string | null>(null);
+  // (T398) WHETHER A FORECAST IS DRAWN: the reader's switch, null until touched (`forecastDrawn` decides the default —
+  // off where ELF is the only model, ELF being opt-in).
+  const [forecastOn, setForecastOn] = useState<boolean | null>(null);
   // THE CHART IS BUILT FOR THE WIDTH IT IS DRAWN AT (owner 2026-10-21: "the plot doesnt scale to fill page"):
   // measured here, the paths are made for exactly that box and the labels stay label-sized.
   const [chartW, setChartW] = useState(0);
@@ -120,7 +123,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // (T256) on a poor line the chart draws the feed's observations and forecast first; the normal range joins them
   const draft = useMemo(() => (feed?.observations ? { feed: { observations: feed.observations.bind(feed) },
                                                       parameter: picked ?? undefined } : null), [feed, picked]);
-  const chart = useChartView(source, station, span, param, drawn, chartW, known, draft);
+  const allRuns = anyRun.state === "ready" ? anyRun.value?.forecasts ?? [] : null;
+  const drawsForecast = forecastDrawn(forecastOn, allRuns);
+  const chart = useChartView(source, station, span, param, drawn, chartW, known, draft, drawsForecast);
   const series = useSeries(source, station, span, param, drawn, known);
   // EVERY DONOR'S CHART, ASKED NOW (owner 2026-10-21: "get all the data when the page opens rather than one gauge at a
   // time when clicked"), so the gauge switch draws from what is already here.
@@ -128,7 +133,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const tint = colour ?? palette.live;
   const forecast = chart.state === "ready" ? chart.value?.shape.forecast : null;
   const runs = series.state === "ready" ? series.value?.forecasts ?? [] : [];
-  const run = (series.state === "ready" ? series.value?.forecast : null) ?? null;
+  // (T398) switched off, no run is drawn: nothing below speaks for one (the ELF note, About this forecast)
+  const run = (drawsForecast && series.state === "ready" ? series.value?.forecast : null) ?? null;
   // The Centre's disclaimer, verbatim, while its forecast is drawn (the same condition the chart draws it under).
   const disclaimer = forecast && run?.disclaimer ? run.disclaimer : null;
   // THE EXPECTED CHANGE (T52), under Change only: each model's own words for the charted gauge, its days as a line with
@@ -232,9 +238,11 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           <Hydrograph shape={view.shape} palette={palette} colour={tint}
                       unit={UNIT[shown]} view={view}
                       forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
-                      models={runs.length > 1 ? runs.map((f) => ({ key: f.model, label: forecastModelOption(f),
+                      models={runs.length > 0 ? runs.map((f) => ({ key: f.model, label: forecastModelOption(f),
                                                                     on: f.model === run?.model,
-                                                                    onPress: () => setModel(f.model) })) : undefined}
+                                                                    onPress: () => { setModel(f.model); setForecastOn(true); } }))
+                        : undefined}
+                      realtime={runs.length > 0 ? { on: !drawsForecast, onPress: () => setForecastOn(false) } : undefined}
                       label={chartLabel(span)} />
         </View>
       )}
