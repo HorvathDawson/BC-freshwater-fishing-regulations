@@ -438,7 +438,7 @@ use that as the sole source of future work."
 | T392 | A feeds worker release reruns the feeds: the deployed version is in every reuse key; deploy/staging/feeds.sh deploys then runs every job | DONE 11-05 | 6f0a04a1c | owner 2026-11-05 |
 | T393 | Regional DFO size rules (adult chinook, 30 cm / 25 cm minimums) on the species rows, not loose lines | DONE 11-05 | bfc758925 | owner report 2026-11-05 |
 | T394 | Salmon quota rows still show the ocean image, not the spawning image (T343 item 6 missed a path) | DONE 11-05 | 77e738b54 | owner report 2026-11-05 |
-| T395 | Vessel restrictions: own tab under Methods and gear, out of the top of the regs pane | OPEN | — | owner report 2026-11-05 |
+| T395 | Vessel restrictions: own tab under Methods and gear, out of the top of the regs pane | DONE in code 11-05 (phone check next APK) | 65e8bd6d7 | owner report 2026-11-05 |
 | T396 | Trout & more legend in 2 lines, both mode legends one height (no jump on switch) | DONE in code 11-05 (phone check next APK) | 8d1500036 | owner report 2026-11-05 |
 | T397 | BUG: Runs tab fish chips cannot be scrolled sideways on the phone | DONE in code 11-05 (phone check next APK) | f2f726456 | owner report 2026-11-05 |
 | T398 | ELF-only water opens on real-time data; forecast always switchable off | DONE in code 11-05 (phone check next APK) | f2796e37f | owner report 2026-11-05 |
