@@ -9,11 +9,8 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Water-page speed target (T405, 2026-11-05):** thumbnails done (staging fc215b52): water pages Perf 77–88, LCP 2.1–2.5 s,
   CLS 0.002, A11y 100. 95 still needs app-boot work: (a) lower the water-page target to ~80 (hubs stay ≥ 95); (b) start the
   app at the reader's first touch (you said not now); (c) boot work (WebCrypto / DecompressionStream verify, code splitting).
-- **Region hub cards (T406 part 2, proposals on staging, e.g. staging.canifishthis.ca/region/2):** "Open the map" card
-  (opens the whole map: the app has no region/bbox link — framing it on the region is a new start-link key, say if wanted)
-  and a "When waters are open" bar (streams/lakes share open per week, from the game-fish strips; salmon left out: it is
-  the live DFO feed). Perf stays 97–100 but LCP spread 1.2–2.4 s (was 1.7 s, one run) because the bar's caption is now the
-  largest text on the first screen: keep it, move it below the waters list, or drop it.
+- **Region hub cards (T406 part 2): answered 11-05 — keep both as they are** (the bar where it is; the map button opens
+  the whole map, no region link).
 - **Changelog drafts: approved (owner 11-05, "I'm sure they are good")** — `draft` cleared on 0.1.0–0.5.0; 0.6.0 stays a
   draft until its release. Still yours: production has no `app/android/play.json` yet (prod transition, T404).
 - **Alert cadence readings to confirm (T234 v1.1, 2026-11-05):** (answered 11-05: a crossing the cadence blocks is

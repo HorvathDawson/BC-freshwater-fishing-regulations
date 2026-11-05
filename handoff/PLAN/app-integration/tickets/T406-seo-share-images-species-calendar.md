@@ -1,6 +1,6 @@
 # T406 — SEO: raster share images and a species-by-region season calendar
 
-Status: PARTIAL — 08837f197 (part 1, a proposal for review); 7b20ec0da part 2 cheap version (a proposal, on staging fc215b52): owner reviews; the LCP gate result is mixed (below).
+Status: DONE 2026-11-05 (08837f197, 7b20ec0da; owner 11-05: region bar and map button accepted as they are — bar stays on the first screen, the button opens the whole map, no region start link).
 
 Source: T195 leftovers (2026-11-05). Share cards are SVG (`/share/<slug>.svg`); Facebook, X and most chat apps do not
 render an SVG `og:image`, so a shared water link shows no picture. The species season-start calendar needs the
