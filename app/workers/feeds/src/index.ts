@@ -29,9 +29,10 @@ import { runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./
 import { crashEvents, handleCrash, listCrashes, purgeCrashes } from "./crashes";
 import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
+import { dispatchOnce, type DispatchEnv } from "./dispatch";
 import { CORS as REPORT_CORS, handleReport, listReports, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
-export interface Env extends ReportEnv {
+export interface Env extends ReportEnv, DispatchEnv {
   BUCKET: R2BucketLike;
   RUN_TOKEN?: string;
   FEED_NOTIFY_URL?: string;
@@ -236,7 +237,15 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       });
       summary = { asked: s.asked, answered: s.answered, withPercentile: s.withPercentile, maintenance: s.maintenance, runArchive: s.runArchive, forecastReused: s.forecastReused };
       counts = { stations: s.answered, asked: s.asked, withPercentile: s.withPercentile, forecastRuns: s.forecastRuns, unchanged: m.sourcesUnchanged, forecastReused: s.forecastReused ? 1 : 0 };
-      events.push(...gaugeEvents(s.maintenance as any[], at));
+      const gev = gaugeEvents(s.maintenance as any[], at);
+      // (T413) a new HYDAT starts the HYDAT workflow itself when the owner's token is set; the email says what happened
+      for (const e of gev) {
+        if (e.kind !== "hydat" || opts.dryNotify) continue;
+        const d = e.data as Record<string, unknown>;
+        d.dispatch = await dispatchOnce(env, (u, i) => fetch(u, i), r2Store(env.BUCKET, "private/feeds/dispatch/"),
+          "feeds-hydat.yml", String(d.latest), { upload: "true" }, started);
+      }
+      events.push(...gev);
       // owner 2026-10-28: a station ECCC lists but has 404'd for NODATA_DAYS is "listed, no data" — not a failure
       const nd = await noDataStations(r2Store(env.BUCKET, "private/feeds/gauges/"), s.answered ? s.failed ?? [] : [], s.answered ? s.asked : 0, health, at, opts.dryNotify);
       events.push(...nd.events);

@@ -456,7 +456,7 @@ use that as the sole source of future work."
 | T410 | One clear web / native split in the app code (platform files, a written rule, a guard) | OPEN | — | owner 11-05, hygiene chat |
 | T411 | The highlighted part still zigzagged after stepping (Coquitlam ▼ to part 1, ▲ to part 2): a deeper pass RAISED a copied section's ceiling and one pass mixed z11 + z7 tile pieces; the ceiling now only comes down (shallowest zoom found, or a piece's own tile grid) and the settle fallback runs the copy's pass | DONE in code, 0.6.1 batch (owner look on APK) | 3350c391d | owner 11-05; test bed part-steps FAIL→PASS |
 | T412 | One slow-feed pattern (run timing first; HYDAT clim + bathymetry follow): button-run workflow (never a GitHub schedule), auto binding base, same-bytes check | OPEN | — | owner 11-05 (T408) |
-| T413 | A new HYDAT starts its workflow: the worker (with an owner-made token) or the owner after the email; never a GitHub schedule | OPEN | — | owner 11-05 |
+| T413 | A new HYDAT starts its workflow: the worker (with an owner-made token) or the owner after the email; never a GitHub schedule | DONE in code (deploy with next worker; owner token) | — | owner 11-05 |
 | T414 | Review app: "only these entries" filter for the yearly synopsis diff | DROPPED — merged into T239 (2026-11-05) | — | from T239 11-05 |
 | T415 | Extraction regression: Heber River's text (found by T239's dry run) | DROPPED — merged into T239 (2026-11-05) | — | from T239 11-05; before the next book |
 | T416 | A fresh clone can build: inventory non-git inputs, mirror what only lives on the Mac, one bootstrap, timed clone→build proof | OPEN | — | owner 11-05; after T324 |

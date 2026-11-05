@@ -2,6 +2,7 @@
 // HYDAT, roster drift, the daily digest — is one `Section` (a heading, blocks of items, ONE "What to do" list, why it
 // was sent) rendered by one layout into multipart HTML + plain text (wrapped at 78 columns). Each item's text appears
 // ONCE, in full; commands appear once per email and are never wrapped.
+import { dispatchSteps } from "./dispatch";
 import type { FeedEvent } from "./events";
 
 export interface Item {
@@ -195,7 +196,7 @@ export function hydatSection(events: FeedEvent[]): Section {
     subject: `New HYDAT ${d.latest} — run the HYDAT action`,
     blocks: [{ items: [{ name: `HYDAT ${d.latest}`, text: `The gauge envelope (clim.json) is on ${d.current}.`, note: d.since ? `noticed ${d.since}` : undefined }] }],
     steps: [
-      { text: 'GitHub → Actions → "feeds — HYDAT → climatology → R2", with upload: true (the feeds worker\'s clim.json).' },
+      ...dispatchSteps(d.dispatch, 'GitHub → Actions → "feeds — HYDAT → climatology → R2", with upload: true (the feeds worker\'s clim.json).'),
       { text: "Then, on the Mac, the bundle and release:", code: "scripts/update-hydat.sh --upload" },
     ],
     why: "The HYDAT listing is checked once a day; a newer release than the envelope's is out.",

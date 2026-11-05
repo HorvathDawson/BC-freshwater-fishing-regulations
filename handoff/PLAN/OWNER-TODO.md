@@ -11,7 +11,10 @@ with the default Claude uses until you answer). Newest first inside each section
 
 - **Optional, GitHub token for the feeds worker (T413):** a fine-grained token on this repo, *Actions: write* only,
   set as the staging worker's secret, so the worker starts the HYDAT workflow itself. Until then, its email tells you to press
-  the button. Not blocking.
+  the button. Not blocking. The code is in (T413); it goes live with the next worker deploy. To set it:
+  GitHub → Settings → Developer settings → Fine-grained tokens → this repo only → Repository permissions: Actions =
+  Read and write. Then `npx --prefix app wrangler secret put GITHUB_DISPATCH_TOKEN -c app/workers/feeds/wrangler.toml`
+  and paste it.
 
 
 - **Water-page speed (T405/T409): ANSWERED 2026-11-05.** Build the map only when it is first seen, web-only (local 93·93·93;
