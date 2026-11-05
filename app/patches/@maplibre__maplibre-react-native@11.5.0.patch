@@ -1376,16 +1376,105 @@ index 49b8fd3ec4332a5fc470c623302b3f3da8fcd552..ae84fc2f48a3b2a4ac2a4486225f5069
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 --- a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 +++ b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-@@ -460,6 +460,12 @@
+@@ -10,6 +10,8 @@
+ import android.util.AttributeSet
+ import android.view.Gravity
+ import android.view.MotionEvent
++import android.view.VelocityTracker
++import android.view.ViewConfiguration
+ import android.view.View
+ import android.view.ViewGroup
+ import android.widget.FrameLayout
+@@ -69,6 +71,9 @@
+ import org.maplibre.reactnative.utils.BitmapUtils
+ import org.maplibre.reactnative.utils.ConvertUtils
+ import org.maplibre.reactnative.utils.GeoJSONUtils
++import kotlin.math.exp
++import kotlin.math.hypot
++import kotlin.math.ln
+ import kotlin.math.roundToInt
+ 
+ sealed class MapChild {
+@@ -460,6 +465,12 @@
          this.mapLibreMap = mapLibreMap
  
          val uiSettings = mapLibreMap.uiSettings
-+        // (T312, owner 2026-11-02: "the fling is still too weak") MapLibre's fling glides for velocity/7 + base ms and
-+        // its distance grows with that time (MapGestureDetector.onFling: offset = v * time * 0.28 / 1000); the defaults
-+        // (150 ms base, 1000 dp/s threshold) stop short. A longer base and a lower threshold: every fling goes further
-+        // and a gentler swipe flings. Measured on the emulator (testbed `pan`); the feel is judged on a phone.
++        // (T312, owner 2026-11-02: "the fling is still too weak") MapLibre's fling glides for velocity/7/1.5 + base ms
++        // and its distance grows with that time (MapGestureDetector.onFling: offset = v * time * 0.28 / 1000); the
++        // defaults (150 ms base, 1000 dp/s threshold) stop short. A lower threshold: a gentler swipe flings; and the base
++        // is set per fling, as the finger lifts (`tuneFling`), so the glide goes as far as Android's own fling would.
 +        uiSettings.flingAnimationBaseTime = 450L
 +        uiSettings.flingThreshold = 500L
          if (attributionGravity == null) attributionGravity = Gravity.END or Gravity.BOTTOM
          if (attributionMargin == null) {
              attributionMargin =
+@@ -607,11 +618,46 @@
+             }
+ 
+             queuedChildren = null
++        }
++    }
++
++    /** (T312) the one finger's velocity, for the fling's glide (`tuneFling`) */
++    private var flingVelocity: VelocityTracker? = null
++
++    /**
++     * (T312) THE FLING GOES AS FAR AS ANDROID'S OWN. MapLibre's glide moves `v * time * 0.28 / 1000` dp, `time` being
++     * `v / 7 / 1.5 + base` ms: under Android's scroller (the fling a list or Google Maps gives) by 2x at 2000 dp/s and
++     * 2.5x at 5000 (testbed `feel`, owner 2026-11-02: "stops too soon"). As the finger lifts — before MapLibre's detector
++     * reads the base — the base is set so the glide covers OverScroller's spline distance for this release speed.
++     */
++    private fun tuneFling(ev: MotionEvent) {
++        when (ev.actionMasked) {
++            MotionEvent.ACTION_DOWN -> {
++                flingVelocity?.recycle()
++                flingVelocity = VelocityTracker.obtain().also { it.addMovement(ev) }
++            }
++            MotionEvent.ACTION_MOVE -> flingVelocity?.addMovement(ev)
++            // a second finger is a pinch: its release is not a fling of ours
++            MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> {
++                flingVelocity?.recycle()
++                flingVelocity = null
++            }
++            MotionEvent.ACTION_UP -> {
++                val vt = flingVelocity ?: return
++                flingVelocity = null
++                vt.addMovement(ev)
++                vt.computeCurrentVelocity(1000, ViewConfiguration.get(context).scaledMaximumFlingVelocity.toFloat())
++                val density = resources.displayMetrics.density
++                val vDp = hypot(vt.xVelocity.toDouble(), vt.yVelocity.toDouble()) / density
++                vt.recycle()
++                if (vDp > 0) mapLibreMap?.uiSettings?.flingAnimationBaseTime = flingBaseTime(vDp, density)
++            }
+         }
+     }
+ 
+     @SuppressLint("ClickableViewAccessibility")
+     override fun onTouchEvent(ev: MotionEvent?): Boolean {
++        if (ev != null) tuneFling(ev)
+         val result = super.onTouchEvent(ev)
+ 
+         if (result && scrollEnabled == true) {
+@@ -1613,6 +1659,22 @@
+     }
+ 
+     companion object {
++        /** (T312) Android's own fling distance for a release at `vDp` dp/s (OverScroller's spline), in dp. */
++        fun platformFlingDp(vDp: Double, density: Float): Double {
++            val ppi = density * 160.0
++            val coef = 9.80665 * 39.37 * ppi * 0.84
++            val friction = ViewConfiguration.getScrollFriction().toDouble()
++            val decel = ln(0.78) / ln(0.9)
++            val l = ln(0.35 * vDp * density / (friction * coef))
++            return friction * coef * exp(decel / (decel - 1.0) * l) / density
++        }
++
++        /** (T312) MapLibre's fling base time (ms) that makes its glide at `vDp` cover `platformFlingDp`. */
++        fun flingBaseTime(vDp: Double, density: Float): Long {
++            val glideMs = platformFlingDp(vDp, density) / (0.28 * vDp) * 1000.0
++            return (glideMs - vDp / 7.0 / 1.5).coerceIn(300.0, 2500.0).toLong()
++        }
++
+         const val LOG_TAG: String = "MLRNMapView"
+     }
+ }

@@ -13,6 +13,15 @@ import { mapFrames, mapLayer, presents } from './pan.mjs';
 export const BUDGET = { coldStartMs: 4000, memoryMb: 400, panFps: 45 };
 const COLD = Number(process.env.PERF_COLD ?? 3);
 const SWIPES = Number(process.env.PERF_SWIPES ?? 8);
+/** PERF_ZOOMS: the zooms the pan is measured at besides the start view (default 8,12; empty: none) */
+const ZOOMS = (process.env.PERF_ZOOMS ?? '8,12').split(',').filter(Boolean).map(Number);
+/** where: the Fraser Valley (dense streams, lakes, the Fraser) */
+const PLACE = { lon: -122.05, lat: 49.25 };
+
+/** (T245) The test bed's camera link: the map on screen goes there at once (`@app/map` native/camProbe.ts). */
+export function cameraTo(ctx, c) {
+  ctx.device.sh(`am start -a android.intent.action.VIEW -d 'canifishthis://testbed/camera?lon=${c.lon}&lat=${c.lat}&zoom=${c.zoom}' ${ctx.device.APP_ID} >/dev/null`);
+}
 
 /** TOTAL PSS of the app, MB (null when it is not running). */
 function pssMb(ctx) {
@@ -97,9 +106,7 @@ export const perf = {
       if (ctx.device.screenText().some((w) => /Powered by Esri/.test(w))) throw new Error('still on satellite');
     }, { shot: false });
     const layer = mapLayer(ctx);
-    // ONE pan, at the start view (the camera the app opens on; its zoom read off the scale bar). Not yet at z8 and z12:
-    // adb has no pinch, a scripted double-tap lands as a tap (it opens a water), and a search preview's framing is
-    // undone when the search closes (T245 follow-up).
+    // a pan at the start view (the camera the app opens on; its zoom read off the scale bar), then at z8 and z12
     await ctx.step(`pan at the start view: ${SWIPES} travelling swipes`, async () => {
       await toMap(ctx);
       const z = zoomNow(ctx);
@@ -113,6 +120,23 @@ export const perf = {
       if (r.fps < BUDGET.panFps) throw new Error(`under ${BUDGET.panFps} fps — ${note}`);
       return note;
     });
+    // (T245) and at z8 and z12, put there by the test bed's camera link (`@app/map` native/camProbe.ts): adb has no pinch
+    for (const z of ZOOMS) {
+      await ctx.step(`pan at z${z} (camera link, ${PLACE.lon},${PLACE.lat}): ${SWIPES} travelling swipes`, async () => {
+        await toMap(ctx);
+        cameraTo(ctx, { ...PLACE, zoom: z });
+        await ctx.device.sleep(6000);                                // that view's tiles and colours in
+        ctx.device.sh(`dumpsys gfxinfo ${ctx.device.APP_ID} reset`);
+        const r = await travel(ctx, layer);
+        out.memPeakMb = Math.max(out.memPeakMb, r.mem);
+        out.pan[`z${z}`] = { zoom: z, ...r };
+        keep();
+        const note = `${r.fps} fps while moving · ${r.frames} frames, >50 ms ${r.over50}, p50 ${r.p50} / p95 ${r.p95} / p99 ${r.p99} ms · PSS peak ${r.mem} MB`;
+        if (!layer || !r.frames) throw new Error(`no map frames read — ${note}`);
+        if (r.fps < BUDGET.panFps) throw new Error(`under ${BUDGET.panFps} fps — ${note}`);
+        return note;
+      });
+    }
     await ctx.step(`memory peak (TOTAL PSS) < ${BUDGET.memoryMb} MB`, async () => {
       mem();
       keep();

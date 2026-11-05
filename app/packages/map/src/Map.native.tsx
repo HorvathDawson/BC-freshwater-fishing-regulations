@@ -65,6 +65,7 @@ import type { MapProps } from "./map-props";
 import { COPY_SOURCE, WaterCopy, copyIds, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
 import { ME_SOURCE, meData, mePaint } from "./native/me";
+import { camProbe } from "./native/camProbe";
 
 /** (T317) a style-spec layer as the binding's `Layer` takes it (its source is the enclosing `GeoJSONSource`) */
 type LayerSpec = React.ComponentProps<typeof Layer>;
@@ -180,7 +181,14 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon, method, runs,
   });
   const cv = colouring.values;
-  const basinKey = JSON.stringify([cv.standing?.basins ?? null, cv.runs?.key ?? null]);
+  /*
+   * (T287) THE STYLE-BORNE VALUES BY CONTENT, not by object: an applied update (or a channel re-set) hands equal values
+   * in new objects, and a style swap drops every feature-state and relabels the map (~150 ms on the JS thread, then the
+   * map's own rebuild) for nothing. A few kB of label lists.
+   */
+  const valuesKey = useMemo(() => JSON.stringify([cv.status, cv.salmon, cv.method, cv.stocked, cv.survey,
+                                                   cv.standing?.basins ?? null, cv.runs?.key ?? null]),
+    [cv.status, cv.salmon, cv.method, cv.stocked, cv.survey, cv.standing?.basins, cv.runs?.key]);
 
   /*
    * THE STYLE. Keyed on what changes how the map LOOKS — never on `gauges` (read through a ref: a feed tick goes to
@@ -194,8 +202,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                         values: cv }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
-     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey,
-     cv.status, cv.salmon, cv.method, cv.stocked, cv.survey, basinKey]);
+     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, valuesKey]);
   // (T317) and the boundary mark label's box, named by its colours (the binding adds a name once and never replaces it)
   const markBoxName = `${MARK_BOX_IMAGE}.${furniture.card}.${furniture.ink}`.replace(/#/g, "");
   // (T316) and the spot faces and their name strip, named by the spot colours
@@ -364,6 +371,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
           : null;
         if (next !== null) {
           rounds += 1;
+          camProbe.move("probe", rounds, size.current.height);
           renderer.easeTo(zoomAround(at0, lineAt.current, at0.zoom, next), { duration: cameraMs(300) });
         }
       } finally { busy = false; }
@@ -404,6 +412,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   /** the reader's own pan or pinch stops following (our eases are not user interaction); the dot stays */
   const meNow = useRef(me);
   meNow.current = me;
+  // (test bed only) the camera link puts this map where a scenario asks, at once (`native/camProbe.ts`)
+  useEffect(() => camProbe.mount((c) => renderer.easeTo(c, { duration: 0 })), [renderer]);
   const onRegionWillChange = useCallback((e: RegionEvent) => {
     const ne = e.nativeEvent;
     if (ne?.userInteraction && meNow.current?.following) meNow.current.onRelease?.();
@@ -420,6 +430,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       const { width, height } = size.current;
       const p = Math.max(8, Math.round(Math.min(56, (width || 400) * 0.12, (height || 800) * 0.12)));
       moved = true;
+      camProbe.move(rounds ? "refine" : "fit", rounds, height);
       // the binding's fitBounds has no maxZoom, and the camera now goes to z18: widen the box to what FIT_MAX_ZOOM shows
       renderer.fitBounds(fitAtMost(b, FIT_MAX_ZOOM, width, height, p), { padding: p, duration: cameraMs(450) });
     };
@@ -547,6 +558,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if (ne?.center && ne.zoom !== undefined) {
       cb.current.onMoved?.({ lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom });
       camNow.current = { lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom };
+      camProbe.settled({ ...camNow.current, user: !!ne.userInteraction });
       // (test bed only, the open probe's build) once the camera rests: a point the selected water answers a tap at
       if ((globalThis as { __openProbe?: boolean }).__openProbe) {
         if (targetAt.current) clearTimeout(targetAt.current);

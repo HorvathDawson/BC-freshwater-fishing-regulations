@@ -23,5 +23,6 @@ import { memory } from './memory.mjs';
 import { waterNav } from './water-nav.mjs';
 import { heapprof } from './heapprof.mjs';
 import { edge } from './edge.mjs';
+import { feel } from './feel.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel];

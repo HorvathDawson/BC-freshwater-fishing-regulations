@@ -48,10 +48,15 @@ export const memory = {
       // (T360) the JS engine's own heap at this step (the build's `[heap]` probe, index.js): Native Heap less this is
       // the map, SQLite and the rest
       const h = ctx.device.logcatJs().split('\n').filter((l) => l.includes('[heap] ')).at(-1);
-      let js = null;
-      try { const j = JSON.parse(h.slice(h.indexOf('[heap] ') + 7)); js = Math.round(j.size / 104857.6) / 10; } catch { /* no probe line */ }
-      rows.push({ step: what, ...m, js }); keep();
-      return `${line(m)} · js heap ${js ?? '?'}`;
+      let js = null, ext = null;
+      try {
+        const j = JSON.parse(h.slice(h.indexOf('[heap] ') + 7));
+        js = Math.round(j.size / 104857.6) / 10;
+        // Hermes' EXTERNAL bytes (typed arrays: the decoded release files) are malloc'd: they count as Native Heap
+        ext = j.ext == null ? null : Math.round(j.ext / 104857.6) / 10;
+      } catch { /* no probe line */ }
+      rows.push({ step: what, ...m, js, ext }); keep();
+      return `${line(m)} · js heap ${js ?? '?'} · js external ${ext ?? '?'}`;
     };
     const [w, h] = (/(\d+)x(\d+)/.exec(ctx.device.sh('wm size'))?.slice(1) ?? ['1080', '2400']).map(Number);
     const cx = Math.round(w / 2), cy = Math.round(h * 0.45);
