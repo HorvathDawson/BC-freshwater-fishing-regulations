@@ -9,9 +9,15 @@
  *   node app/tools/build-seo.mjs --release-dir <folder> --app <web export> [--out app/dist/seo]
  *                                [--slug-map app/seo/slug-map.json --update-slugs] [--previous <snapshot.json>] [--date YYYY-MM-DD]
  *   node app/tools/build-seo.mjs --fixture [--app <web export>]
+ *   node app/tools/build-seo.mjs --release-dir <folder> --snapshot-only   (no pages: only what the NEXT release is diffed against)
+ *
+ * The snapshot (each water's rules hash + each page's lastmod) is kept between releases in app/dist/seo-snapshots/
+ * <release>.json; a build without `--previous` diffs against the newest kept snapshot of ANOTHER release (the /changes page
+ * and sitemap lastmod need it). `--snapshot-only` writes one for a release that was never built (its pages map is empty, so
+ * no lastmod is carried from it).
  */
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { openRegsStore } from "@app/data/regs";
@@ -26,7 +32,7 @@ import { PanePool } from "./panePool";
 import type { WaterModel } from "./model";
 import { appDocument } from "./prerender";
 import { withFavicon } from "./favicon";
-import { headersFile, hostRules, redirectsFile } from "./hosting";
+import { headersFile, hostRules, hostWorker, redirectsFile } from "./hosting";
 import type { Site } from "./html";
 import { legacyRedirects, legacyWorker, type Crosswalk, type LegacyBuilt } from "./legacy";
 import { buildDayOf, type BuildDay } from "./model";
@@ -37,6 +43,18 @@ const APP = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const DEFAULT_OUT = join(APP, "dist/seo");
 export const SLUG_MAP_FILE = join(APP, "seo/slug-map.json");
 export const CROSSWALK_FILE = join(APP, "seo/legacy-crosswalk.json");
+const SNAPSHOT_DIR = join(APP, "dist/seo-snapshots");
+
+/** The newest kept snapshot of a release other than `release` (by its as-of date, then file time), or null. */
+function previousSnapshot(dir: string, release: string): string | null {
+  if (!existsSync(dir)) return null;
+  const kept = readdirSync(dir).filter((f) => f.endsWith(".json") && f !== `${release}.json`).map((f) => {
+    const file = join(dir, f), snap = JSON.parse(readFileSync(file, "utf8")) as Snapshot;
+    return { file, asOf: snap.asOf, t: statSync(file).mtimeMs };
+  });
+  kept.sort((a, b) => b.asOf.localeCompare(a.asOf) || b.t - a.t);
+  return kept[0]?.file ?? null;
+}
 
 export interface Config extends Site { readonly alsoHosts: readonly string[] }
 export const readConfig = (): Config => JSON.parse(readFileSync(join(APP, "seo/site.json"), "utf8")) as Config;
@@ -57,6 +75,8 @@ export interface BuildArgs {
    */
   readonly threads?: { readonly n: number; readonly releaseDir: string; readonly appDir: string; readonly out: string };
   readonly only?: ReadonlySet<string>;
+  /** no water page is rendered (a stub stands in): for `--snapshot-only`, whose output is the snapshot alone */
+  readonly bare?: boolean;
 }
 /** The app document a test builds into when no web export is given: the export's shape, no script. */
 export const BARE_APP = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>canifishthis</title>` +
@@ -91,7 +111,10 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   let waterPage: (m: WaterModel, head: string, file: string) => Promise<WaterMade>;
   let cssParts: () => Promise<PaneCssParts[]>;
   let pool: PanePool | null = null;
-  if (a.threads) {
+  if (a.bare) {
+    waterPage = async (m) => ({ html: null, size: { path: m.id, gzipBytes: 0, blocking: false, critical: "" }, problems: [] });
+    cssParts = async () => [];
+  } else if (a.threads) {
     pool = new PanePool(Math.min(4, Math.max(1, a.threads.n)), { ...a.threads, origin: config.origin, doc });
     waterPage = (m, head, file) => pool!.page(m.id, head, file);
     cssParts = () => pool!.css();
@@ -124,6 +147,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   withFavicon(files);
   files.set("_redirects", redirectsFile(build.removed));
   files.set("redirects.json", `${JSON.stringify(hostRules(config, config.alsoHosts), null, 1)}\n`);
+  files.set("host-worker.js", hostWorker(config, build.removed));
   let legacy: LegacyBuilt | null = null;
   if (a.crosswalk) {
     const pathOfItem = new Map(build.models.map((m) => [m.id, `/water/${build.slugMap.waters[m.id]!.slug}`]));
@@ -186,11 +210,12 @@ const opt = (args: readonly string[], k: string): string | null => { const i = a
  */
 export async function main(args: readonly string[]): Promise<void> {
   const dir = opt(args, "--release-dir"), fixture = args.includes("--fixture"), appDir = opt(args, "--app");
+  if (dir && args.includes("--snapshot-only")) return snapshotOnly(dir, args);
   if ((!dir && !fixture) || (dir && !appDir)) throw new Error("usage: build-seo.mjs --release-dir <folder> --app <web export> | --fixture [--app <web export>]  [--out DIR] [--slug-map FILE --update-slugs] [--previous snapshot.json] [--date YYYY-MM-DD]");
   const loader = fixture ? openRegsFixture() : openReleaseDir(resolve(dir!));
   const date = opt(args, "--date"), now = date ? new Date(`${date}T12:00:00`) : new Date();
   const slugFile = resolve(opt(args, "--slug-map") ?? SLUG_MAP_FILE);
-  const prevFile = opt(args, "--previous");
+  const prevFile = opt(args, "--previous") ?? (fixture ? null : previousSnapshot(SNAPSHOT_DIR, loader.release));
   const app = appDir ? readAppExport(appDir) : undefined;
   const out = outDir(opt(args, "--out") ?? DEFAULT_OUT), partial = `${out}.partial`;
   rmSync(partial, { recursive: true, force: true });
@@ -212,8 +237,22 @@ export async function main(args: readonly string[]): Promise<void> {
   rmSync(out, { recursive: true, force: true });
   renameSync(partial, out);
   if (args.includes("--update-slugs") && !args.includes("--only")) writeFileSync(slugFile, built.files.get("slug-map.json")!);
+  // kept for the next release's diff (a sample build is never kept)
+  if (!fixture && !args.includes("--only")) put(SNAPSHOT_DIR, `${built.build.snapshot.release}.json`, built.files.get("snapshot.json")!);
   console.log(`seo: ${built.build.pages.length} pages (${built.build.models.length} waters), largest ${built.measured.largest.gzipBytes} B gzip, ` +
     `p95 ${built.measured.p95GzipBytes} B gzip, css ${built.measured.cssGzipBytes} B gzip, ${Math.round((Date.now() - started) / 1000)} s` +
     (threads ? ` on ${Math.min(4, threads.n)} threads; stored ${JSON.stringify(JSON.parse(built.files.get("budget.json")!).compressed)}` : "") +
+    `; diffed against ${prevFile ?? "no previous snapshot"}` +
     `; slug steps ${JSON.stringify(built.build.slugSteps)}` + (built.legacy ? `; v1 redirects ${JSON.stringify(built.legacy.counts)}` : ""));
+}
+
+/** `--snapshot-only`: the snapshot of a release no page was built for (rules hashes; no page lastmods), kept for the next diff. */
+async function snapshotOnly(dir: string, args: readonly string[]): Promise<void> {
+  const date = opt(args, "--date"), now = date ? new Date(`${date}T12:00:00`) : new Date();
+  const slugFile = resolve(opt(args, "--slug-map") ?? SLUG_MAP_FILE);
+  const built = await buildAll({ loader: openReleaseDir(resolve(dir)), on: buildDayOf(now), bare: true,
+    slugMap: existsSync(slugFile) ? (JSON.parse(readFileSync(slugFile, "utf8")) as SlugMap) : EMPTY_SLUG_MAP });
+  const snap = { ...built.build.snapshot, pages: {} };
+  put(SNAPSHOT_DIR, `${snap.release}.json`, `${JSON.stringify(snap, null, 1)}\n`);
+  console.log(`seo: snapshot of ${snap.release} (${Object.keys(snap.waters).length} waters, no pages) -> ${join(SNAPSHOT_DIR, `${snap.release}.json`)}`);
 }

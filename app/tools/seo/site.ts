@@ -193,14 +193,14 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       `<ul><li><a href="${path}/open-this-weekend">What is open this weekend in ${esc(name)}</a></li>` +
       `<li><a href="${path}/season-changes">Waters opening and closing soon in ${esc(name)}</a></li>` +
       TOPICS.filter((t) => topicWaters(r, t.key).length).map((t) => `<li><a href="${path}/${t.key}">${esc(t.hub)} in ${esc(name)}</a> (${topicWaters(r, t.key).length})</li>`).join("") + `</ul>` +
-      (letters ? `<h2>Waters in ${esc(name)} by first letter</h2><ul class="cols">${[...letters].map(([l, xs]) => `<li><a href="${path}/waters-${l}">${l === "0" ? "Other" : l} (${xs.length})</a></li>`).join("")}</ul>`
+      (letters ? `<h2>Waters in ${esc(name)} by first letter</h2><ul class="cols">${[...letters].map(([l, xs]) => `<li><a href="${path}/waters-${l.toLowerCase()}">${l === "0" ? "Other" : l} (${xs.length})</a></li>`).join("")}</ul>`
         : `<h2>All waters in ${esc(name)}</h2>${list(ws, (m) => WORD[m.status])}`) +
       `<div class="legal"><p>Open or closed is as of <time datetime="${asOf}">${asOf}</time>. This is not a legal document. Check the official synopsis before you fish.</p></div>`;
     const description = clip(`Full BC freshwater fishing regulations for ${ws.length} waters in ${name}: what is open today and what you can keep, in plain words.`);
     unique(titles, title, path); unique(descriptions, description, path);
     add("region", path, shellOf(path, title, description, body, pageLd(site, path, title, asOf, [["Home", "/"], [name, path]])));
     for (const [l, xs] of letters ?? []) {
-      const lp = `${path}/waters-${l}`, lname = l === "0" ? "other names" : `names starting with ${l}`;
+      const lp = `${path}/waters-${l.toLowerCase()}`, lname = l === "0" ? "other names" : `names starting with ${l}`;
       const lt = clip(`${name} waters, ${l === "0" ? "other" : l} — ${site.name}`, 60);
       const ld = clip(`${xs.length} waters in ${name} with ${lname}: what is open today and the full rules for each, in plain words.`);
       const lb = `<nav class="crumbs"><a href="/">Home</a> › <a href="${path}">${esc(name)}</a> › ${l === "0" ? "Other" : l}</nav><h1>${esc(name)} waters: ${esc(lname)}</h1>` +

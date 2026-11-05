@@ -95,6 +95,9 @@ describe("v1 redirects on the fixture release", () => {
     expect([plain.headers.get("content-encoding"), await plain.text()]).toEqual([null, html]);
     const slash = await get("/water/vedder-river/?part=1", "br");
     expect([slash.status, slash.headers.get("location")]).toEqual([301, "https://canifishthis.ca/water/vedder-river?part=1"]);
+    // every other path in its one form too: a PERMANENT redirect, never the assets' 307
+    const hub = await get("/region/2/?x=1", "br");
+    expect([hub.status, hub.headers.get("location")]).toEqual([301, "https://canifishthis.ca/region/2?x=1"]);
     expect((await get("/water/no-such-water", "br")).status).toBe(404);
     expect(asked).not.toContain("/water/vedder-river/index.html");   // the raw page is never asked for: it is not uploaded
   });

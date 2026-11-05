@@ -49,7 +49,9 @@ export function legacyRedirect(map: Readonly<Record<string, string>>, pathname: 
  *   - v1 `/waterbody/<id>/` → one 301 (the map above);
  *   - (T279) `/water/<slug>` → the page's STORED COMPRESSED BYTES (`index.html.br` / `.gz`, compressed.ts) with their
  *     `Content-Encoding`, by the request's Accept-Encoding (brotli first); a client that takes neither gets the gzip
- *     inflated here. `/water/<slug>/` → 301 to the page. A slug with no page → the site's 404.
+ *     inflated here. A slug with no page → the assets' answer (`_redirects`: a removed water's 301 to its region; else the 404).
+ *   - any other path ending in `/` (the host runs the worker first for every path that ends in a slash too) → ONE 301 to the path without it: the
+ *     assets' `drop-trailing-slash` would answer 307, a temporary redirect search engines do not consolidate.
  * Everything else is the assets' own answer.
  */
 export function legacyWorker(map: Readonly<Record<string, string>>, htmlCache = "public, max-age=300, must-revalidate"): string {
@@ -79,10 +81,9 @@ export default {
     try { p = decodeURI(p); } catch (e) {}
     const to = Object.prototype.hasOwnProperty.call(MAP, p) ? MAP[p] : undefined;
     if (to !== undefined) return Response.redirect(url.origin + to, 301);
-    if (WATER.test(p)) {
-      if (url.pathname !== p) return Response.redirect(url.origin + p + url.search, 301);
-      return water(request, env, url, p);
-    }
+    // one URL form, no trailing slash: a PERMANENT redirect (the assets' own drop-trailing-slash answers 307)
+    if (url.pathname.length > 1 && url.pathname.endsWith("/")) return Response.redirect(url.origin + url.pathname.replace(/\\/+$/, "") + url.search, 301);
+    if (WATER.test(p)) return water(request, env, url, p);
     return env.ASSETS.fetch(request);
   },
 };

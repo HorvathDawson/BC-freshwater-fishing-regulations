@@ -16,7 +16,7 @@ rm -rf "$O" "$K"; mkdir -p "$O" "$K"
 cp -R "$W/." "$O/"
 # SEO files never overwrite the app (the app owns /index.html); report any clash
 X=(--exclude /_worker.js --exclude /budget.json --exclude /lighthouserc.json --exclude /snapshot.json --exclude /slug-map.json
-   --exclude /legacy-redirects.json --exclude /redirects.json)
+   --exclude /legacy-redirects.json --exclude /redirects.json --exclude /host-worker.js)
 comm -12 <(cd "$W" && find . -type f | sort) <(cd "$S" && find . -type f | sort) | sed 's/^/clash (app kept): /'
 rsync -a --ignore-existing "${X[@]}" "$S/" "$O/"
 # The hubs' "Open the app" link is absolute to production; on staging it must open the staging app (canonicals stay on

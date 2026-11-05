@@ -1,0 +1,20 @@
+# PRODUCTION site — the OWNER deploys it (deploy/prod/site.sh; never an agent). Same shape as deploy/staging/site.wrangler.toml:
+# the Expo web export (the app at /) + the SEO pages (tools/seo) in one static-assets worker. The worker runs first for the v1
+# paths (/waterbody/*: one 301 each), the water pages (/water/*: stored index.html.br / .gz by Accept-Encoding) and any path
+# ending in "/" (one 301 to the path without it). Everything else is a static file or the real 404.
+name = "bc-fishing-regulations"
+main = "../../app/dist/prod-site-worker/worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = false
+preview_urls = false
+
+[assets]
+directory = "../../app/dist/prod-site"
+binding = "ASSETS"
+not_found_handling = "404-page"
+html_handling = "drop-trailing-slash"
+run_worker_first = ["/waterbody/*", "/water/*", "/*/"]
+
+[[routes]]
+pattern = "canifishthis.ca"
+custom_domain = true

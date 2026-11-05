@@ -14,7 +14,7 @@ import { openRegsFixture } from "@app/data/release/node";
 import { BUDGET, blockingScripts, checkBudget, measure, pageSize } from "./budget";
 import { buildAll, readConfig, writeSite, type Built } from "./build";
 import { TODAY } from "./fixture";
-import { headersFile, HSTS, redirectFor, redirectsFile } from "./hosting";
+import { headersFile, hostWorker, HSTS, redirectFor, redirectsFile } from "./hosting";
 import { checkJsonLd } from "./jsonld";
 import { buildDayOf } from "./model";
 import { weekendDays } from "./site";
@@ -316,6 +316,18 @@ describe("T198 hosting config (code half)", () => {
     const rules = JSON.parse(built.files.get("redirects.json")!) as { redirects: { from_host: string }[] };
     expect(rules.redirects.map((r) => r.from_host)).toEqual(["canifishthis.com", "www.canifishthis.com", "www.canifishthis.ca"]);
     expect(redirectsFile([{ slug: "a", region: 1 }])).toBe("/water/a /region/1 301\n");
+  });
+
+  it("the generated host worker (canifishthis.com, www) answers every URL exactly as redirectFor does: one 301, HSTS", async () => {
+    const rm = [{ slug: "old-creek", region: 4 }];
+    const mod = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(hostWorker(site, rm)).toString("base64")}`);
+    for (const u of ["https://canifishthis.com/", "https://canifishthis.com/water/vedder-river", "http://www.canifishthis.com/region/2/?x=1",
+                     "https://www.canifishthis.ca/about", "https://canifishthis.com/water/old-creek/", "https://www.canifishthis.com/waterbody/930-055749/"]) {
+      const r: Response = await mod.default.fetch(new Request(u));
+      expect([r.status, r.headers.get("location")], u).toEqual([301, redirectFor(u, site, rm)!.to]);
+      expect(r.headers.get("strict-transport-security")).toBe(HSTS);
+    }
+    expect(built.files.get("host-worker.js")).toContain(`const ORIGIN = "${site.origin}"`);
   });
 
   it("verification tokens render only when the owner has set them", () => {
