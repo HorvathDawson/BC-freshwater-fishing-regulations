@@ -70,3 +70,13 @@ would need a patch to the package's Kotlin (`installStateListener`).
    Play's flexible download, the app restarts into the new build. With `min-app` above it → Update starts the
    immediate flow.
 5. The first APK build itself proves `expo-in-app-updates` 0.13.0 builds on SDK 57.
+
+## Owner 2026-11-05: 0.6.0 did not notice 0.6.1 (uploaded ~15 min earlier)
+Why (code as built): (1) `useAppUpdate` asks at most once per DEVICE DAY — a check earlier that day saved "current";
+(2) on Play the check is Play's in-app update API, which says "available" only after the phone's Play Store refreshes
+(minutes to hours after an upload); (3) the background "new app version" notice runs only when that alert is on, on
+Android's WorkManager schedule. Our own `play.json` already said 0.6.1.
+**Fix:** the foreground check reads OUR version file (`play.json` / `latest.json`, tiny, our server) on every opening and
+every return to the app — no daily cap for it; when it names a newer version, the bell says so with its notes at once,
+and the button uses Play's in-app update once Play agrees (until then: "Play is still preparing it — or open the Play
+listing"). Play's own check keeps its daily cap. Test: a version file newer than the install shows on the next resume.
