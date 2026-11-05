@@ -23,6 +23,15 @@ need a workflow for the transition. we dont need this yet but will need it event
    (previous release id, previous worker version, halt rollout). Which steps Claude may do, which are the owner's.
 4. **A dry run** of the transition against a scratch "prod-like" bucket before the real one.
 
+## Launch steps the runbook must carry (first transition)
+- **www.canifishthis.ca redirect drops the path** (owner 2026-11-05: do it at the prod release). Checked 11-05:
+  `www.canifishthis.ca/water/vedder-river` → 301 `https://canifishthis.ca/` (home); the .com and www.com rules already
+  keep the path. Fix: Cloudflare → canifishthis.ca → Rules → Redirect Rules → the www rule → Dynamic
+  `concat("https://canifishthis.ca", http.request.uri.path)`, 301, preserve query string — or deploy the generated host
+  worker (`deploy/prod/host.wrangler.toml`). Check after: the curl above lands on `/water/vedder-river`.
+- The SEO launch steps (prod site deploy, managed robots.txt off, Search Console + Bing, outreach) — OWNER-TODO
+  "SEO / domain" and T198.
+
 Links: T86 (production hosting + ship config), T240 (launch checklist), T198 (.com → .ca, Search Console), T371 (Play
 closed testing), T234/T390 (`play.json`).
 Size: M.
