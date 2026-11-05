@@ -452,6 +452,7 @@ use that as the sole source of future work."
 | T406 | SEO: raster (PNG) share images + species-by-region season calendar | PARTIAL | 08837f197, 7b20ec0da | PNG cards + region map button + region when-open bar (proposals) on staging; region LCP gate mixed — owner keeps/moves/drops the bar |
 | T407 | Report a problem: "App bug" and "Feature request" reasons (for testing) | IN PROGRESS | — | owner 11-05; worker deploys with 0.6.0 |
 | T408 | Walk the owner through the data flow one question at a time, then simplify it to match (first task of the data-and-build chat) | OPEN | — | owner 11-05 |
+| T409 | Water pages: next Lighthouse wins (fonts, WebCrypto/DecompressionStream verify, code splitting, sql.js after paint, cache headers) | OPEN | — | owner 11-05, later |
 
 ## Order for open tickets
 
