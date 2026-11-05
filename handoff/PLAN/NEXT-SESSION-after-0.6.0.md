@@ -42,14 +42,17 @@ in order: **Data and build** first, then **Launch and hygiene**. Each is one cha
 
 ## Chat 2 — Launch and hygiene (in order)
 1. **T86, T240, T244** — production hosting, launch checklist, store readiness.
-2. **T371** — Closed testing (the owner's Console steps; Claude keeps drafts current).
-3. **T305, T306, T331, T341, T402** — pipeline and test hygiene. **The known failing tests (all from before 0.6.0):**
+2. **T409 rest** (owner 11-05: do it) — web-only: build the map only when it is first seen on `/water/*` (local
+   93·93·93; a phone's "back to map" waits ~1–2 s once). Measure as T409 did (local, 3 runs, median); no native diff.
+   Before the prod SEO launch.
+3. **T371** — Closed testing (the owner's Console steps; Claude keeps drafts current).
+4. **T305, T306, T331, T341, T402** — pipeline and test hygiene. **The known failing tests (all from before 0.6.0):**
    - slow pytest: `test_one_water_kind` ×3, `reach_tributaries`, `unnamed_trib_sweep`, `watershed_parts` (T306);
    - release-perf A5 search p95 timing (T341);
    - `Walkthrough.test.tsx` flakes under the parallel suite and passes alone (T402).
-4. **T333, T334, T335** — the audits and the archive removal (the owner scopes the audits first).
-5. **T404** — one switch to production + the prod runbook (it includes the www redirect fix).
-6. **T410** — one clear web/native split in the app code (38 platform files, 43 inline `Platform.OS` checks in 30
+5. **T333, T334, T335** — the audits and the archive removal (the owner scopes the audits first).
+6. **T404** — one switch to production + the prod runbook (it includes the www redirect fix).
+7. **T410** — one clear web/native split in the app code (38 platform files, 43 inline `Platform.OS` checks in 30
    files, 10 files checking `typeof document/window`).
 
 ## Deferred (don't start unless the owner asks)
@@ -57,10 +60,6 @@ T383 (per-water time zones), T389 (unnamed-reach links; needs a tiles rebuild), 
 T307/T308/T310 sign-offs. T351 waits for a 0.5.0+ native crash report.
 
 ## Waiting on the owner (also in OWNER-TODO.md)
-- **T405/T409:** the water-page Lighthouse target. Water pages now score 77–83 (hubs 100). The rest is the map warm-up,
-  which the owner chose to leave. T409 measured it: not building the map on `/water/*` gives 93·93·93. A web-only
-  middle option is to build the map when first seen (a phone's "back to map" waits 1–2 s once). Or lower the target to
-  ~80. Also: Cloudflare's injected scripts (JS detections, Web Analytics) are the owner's zone setting.
 - **iOS:** an Apple Developer account, App Store Connect, the app name ("Can I Fish?" or "Can I Fish This?"), then
   `deploy/staging/build-ios-testflight.sh` and the real-iPhone run (T364, after the hygiene chat). T363/T365/T88 are
   PARTIAL.
@@ -72,6 +71,7 @@ T307/T308/T310 sign-offs. T351 waits for a 0.5.0+ native crash report.
 - The in-memory salmon run table at 6.3 MB is fine (T360). No lazy decode.
 - No lighter z8 map (T245). The zoomed-out pan stays as is.
 - Region pages keep the "When waters are open" bar and the map button as they are (T406).
+- Keep Cloudflare's JS detections and Web Analytics beacon (0 ms blocking).
 - Fish pictures: 240 px thumbnails in rows, the full picture only in the ID pane.
 - Report a problem has "App bug" and "Feature request" (T407).
 - The changelog drafts are approved. Keep 3–5 plain bullets per version.

@@ -6,11 +6,9 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Water-page speed target (T405/T409, 2026-11-05):** T409 kept WOFF2 faces + WebCrypto verify (staging 0457d354): water
-  pages Perf 77–83, hubs 100. What is left is mostly the WARM MAP behind the page (maplibre ~1.5 s of main thread at load):
-  without it the sample pages score 93 (measured locally). Options: (a) lower the water-page target to ~80; (b) build the
-  map only when it is first seen (phone: "back to map" waits ~1–2 s once; desktop unchanged) — web-only; (c) leave as is.
-  Also yours: Cloudflare injects JS detections + the Web Analytics beacon on prod and staging (zone settings; T409 item 6).
+- **Water-page speed (T405/T409): ANSWERED 2026-11-05.** Build the map only when it is first seen, web-only (local 93·93·93;
+  a phone's "back to map" waits ~1–2 s once). Next chat, launch and hygiene, before the prod SEO launch. Keep Cloudflare's
+  JS detections and Web Analytics beacon (0 ms blocking).
 
 - **Region hub cards (T406 part 2): answered 11-05 — keep both as they are** (the bar where it is; the map button opens
   the whole map, no region link).
