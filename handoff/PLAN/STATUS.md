@@ -42,6 +42,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **Also 11-05:** Report a problem takes "App bug" / "Feature request" [T407]; salmon memory 15.8 → 6.3 MB, same files
   [T360; 6.3 MB is fine, no lazy decode]; changelog 0.1.0–0.5.0 approved; no lighter z8 map [T245].
 - **Now:** SEO speed on staging [T405, T406]; then the 0.6.0 release.
+- **0.6.0 rollout plan (owner 11-05):** internal testing 2–3 days (phone checks in OWNER-TODO, a gauge alert, one
+  "App bug" report) → if clean, promote the SAME build to Play closed testing (T371); else 0.6.1 internal first.
+  Closed testers read staging until the prod switch (T404), which follows the owner's DFO label review.
 - **Next chat starts with T408:** an agent walks you through the data flow one question at a time, records your
   answers, then simplifies the pipeline to match (T324–T326, T266, T295, T297, T337).
 - **Running:** map feel + performance; SEO (T188–T198) started.
