@@ -6,6 +6,10 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **T377 leftovers, conservative readings to confirm (2026-11-05):** tapping a legend class GREYS the others (not
+  hides); the legend fold (▾/▴) is only on the regulations bar, starts open, not remembered; the closed streams' dashed
+  stripe look; extra forecast models are thin dashed lines with no band, and the finger read-out reads only the chosen
+  model. Default: as built. Check on the phone with the next APK.
 - **Vessel restrictions (T395, 2026-11-05):** moved out of the top of the page into a "Vessel restrictions" section of
   the Methods tab (after Ways to fish). Is a section enough, or do you want a fifth tab in the header strip? And on
   Nicomekl River (gnis:21100) the Keep card still has a boat-only "Boat rules in some spots" note — was that the odd

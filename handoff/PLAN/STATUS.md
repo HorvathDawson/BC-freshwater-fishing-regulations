@@ -47,6 +47,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   the button. Sideloaded staging builds point to the staging APK page (build-apk.sh writes latest.json). iOS stub
   until T88. Owner decision: Play restarts the app itself after the download; a separate "Restart to update" step
   needs a Kotlin patch. Phone checks with the next APK.
+- **T377 DONE in code (lane):** tappable legend key 8658433c3, collapsible bar f42d32696, Runs peak dots aea5620a1,
+  closed streams' dashed stripe c1114b75d, several forecast models at once 6326964ad. Readings to confirm: OWNER-TODO.
+- **T234 PARTIAL (phone-only v1, owner 11-05):** expo-notifications (local only) + expo-background-task (~15 min):
+  gauge threshold alerts checked on the phone (once per crossing), "new regulations data ready" once per release; a
+  Notifications section in More (owner ask); "Alert me" on the gauge card (13b963619, 77790b907, 8b7b45866, dd0a49dde).
+  10-step phone checklist in the ticket.
+- **T402:** the pipeline flake fixed (93d274234: a temp marks path stuck at import). Quiet full `pnpm -C app check`:
+  8564 passed, 0 failed — the other failures were load from two parallel lanes.
 - **SDK risk settled:** no expo-in-app-updates release targets SDK 57 (0.12 → 56, 0.13 → 58); a full release APK with
   0.13.0 builds on our SDK 57 (local, not uploaded).
 - **T394 DONE (77e738b54):** salmon species rows show the spawning look (T343 item 6), not T318's ocean one.
