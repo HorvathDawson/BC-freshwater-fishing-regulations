@@ -10,6 +10,9 @@ import { LIGHT } from "./theme";
 
 afterEach(cleanup);
 
+/** a palette colour as the browser reads it back */
+const css = (c: string) => { const d = document.createElement("div"); d.style.backgroundColor = c; return d.style.backgroundColor; };
+
 const z = { spawn: 0, pass: 0 };
 const season = (at: number, n = 73) => Array.from({ length: n }, (_, i) => (i === at ? { spawn: 0.5, pass: 0.2 } : i === at + 1 ? { spawn: 0.1, pass: 0 } : z));
 const slider = (p: Partial<Parameters<typeof RunDaySlider>[0]>) => render(
@@ -18,12 +21,12 @@ const slider = (p: Partial<Parameters<typeof RunDaySlider>[0]>) => render(
 
 describe("(T377) the Runs histogram's peaks", () => {
   it("one marker per chosen species, at its own busiest bar, in its colour, named whole", () => {
-    slider({ bySpecies: [{ name: "Chinook", colour: "#aa0000", season: season(30) },
-                         { name: "Coho", colour: "#0000aa", season: season(50) }] });
+    slider({ bySpecies: [{ name: "Chinook", colour: LIGHT.accent, season: season(30) },
+                         { name: "Coho", colour: LIGHT.sub, season: season(50) }] });
     const chinook = screen.getByTestId("run-peak-Chinook"), coho = screen.getByTestId("run-peak-Coho");
     expect(chinook.style.left).toBe(`${(30.5 / 73) * 100}%`);
     expect(coho.style.left).toBe(`${(50.5 / 73) * 100}%`);
-    expect(getComputedStyle(chinook).backgroundColor).toBe("rgb(170, 0, 0)");
+    expect(getComputedStyle(chinook).backgroundColor).toBe(css(LIGHT.accent));
     expect(chinook.getAttribute("aria-label")).toBe(RUN_WORDS.slider.peak("Chinook", 30));
     expect(screen.queryByTestId("run-peak-season")).toBeNull();
   });
@@ -36,7 +39,7 @@ describe("(T377) the Runs histogram's peaks", () => {
   });
 
   it("a species with no run is no marker", () => {
-    slider({ bySpecies: [{ name: "Pink (odd)", colour: "#00aa00", season: Array.from({ length: 73 }, () => z) }] });
+    slider({ bySpecies: [{ name: "Pink (odd)", colour: LIGHT.accent, season: Array.from({ length: 73 }, () => z) }] });
     expect(screen.queryByTestId("run-peak-Pink (odd)")).toBeNull();
   });
 });
