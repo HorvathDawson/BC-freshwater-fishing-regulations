@@ -20,7 +20,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Streams popping in at the screen edge (T401, 2026-11-05):** the phone's map loads only on-screen tiles and has no
   prefetch setting. After a measurement: patch a prefetch in, draw past the screen edge, or leave it. Claude measures
   first.
-- **Phone checks with the next APK (2026-11-05):** Coquitlam part 1 highlight (T399), camera feel (T400), Runs fish row
+- **Phone checks with the next APK (2026-11-05):** Coquitlam part 1 highlight (T399) and Coquitlam → Flows into → map tap → close → reopen, no crash (T345), camera feel (T400), Runs fish row
   scrolls (T397), the Update button + "New data needs the latest app" (T390), notifications (T234: More →
   Notifications, Alert me on a gauge, the checklist in the ticket; then leave an alert set for a few days — "Last
   background checks" shows how late the phone really runs it, which decides whether FCM push is needed).

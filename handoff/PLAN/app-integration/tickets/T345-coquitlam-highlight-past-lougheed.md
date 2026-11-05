@@ -1,6 +1,6 @@
 # T345 — Coquitlam River: "Lougheed bridge to watershed boundary" highlight runs past the bridge
 
-Status: OPEN — bug, HIGH (one path crashed the app) (owner 2026-10-31).
+Status: DONE — fdf938745, 8a5b5bdf1, 7cf72cd1c (owner 2026-11-05: fixed; the 0.4.0 tapped-route path was confirmed on the emulator with 0.5.0; a phone glance is in OWNER-TODO).
 
 On the Coquitlam River water pane, stepping along the river (upstream/downstream navigation), the highlighted stretch for
 the section "Lougheed bridge to watershed boundary" extends PAST the Lougheed bridge (downstream of it), while the
