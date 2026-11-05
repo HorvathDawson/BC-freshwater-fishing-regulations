@@ -105,6 +105,30 @@ export function changeChartModel(picked: string | null, horizon: Horizon,
 }
 
 /**
+ * (T377) WHICH MODELS THE CHART DRAWS: `model` the chosen one (null: the freshest run, the default) — its ribbon, its
+ * notes — `also` the others drawn beside it, in the order picked, and `on` the forecast switch (`forecastDrawn`).
+ */
+export interface ModelPick { readonly model: string | null; readonly also: readonly string[]; readonly on: boolean | null }
+export const NO_MODEL_PICK: ModelPick = { model: null, also: [], on: null };
+
+/**
+ * A TAP ON A MODEL'S LEGEND ENTRY (T377: several at once, each entry a switch). `drawn` is the model the chart draws
+ * now (the pick, or the default's freshest run) and `drawing` whether any forecast is. With none drawn the tap draws
+ * that one alone; on one not drawn it joins the others (the chosen one pinned, so the default never shifts under it);
+ * on one drawn beside the chosen it goes; on the chosen one the next drawn takes its place — the last one off is
+ * "Real-time only" (T398's measured line alone).
+ */
+export function pickModel(p: ModelPick, m: string, drawn: string | null, drawing: boolean): ModelPick {
+  if (!drawing) return { model: m, also: [], on: true };
+  if (m === drawn) return p.also.length ? { model: p.also[0]!, also: p.also.slice(1), on: true } : { ...p, also: [], on: false };
+  if (p.also.includes(m)) return { ...p, also: p.also.filter((x) => x !== m) };
+  return { model: drawn ?? p.model, also: [...p.also, m], on: true };
+}
+
+/** (T398, T377) "Real-time only": every model off, the measured line alone. */
+export const realtimeOnly = (p: ModelPick): ModelPick => ({ ...p, also: [], on: false });
+
+/**
  * (T398) WHETHER THE CHART DRAWS A FORECAST AT ALL. The reader's switch wins: `false` is the measured line alone
  * ("Real-time only", offered on every gauge), `true` is a model drawn. Untouched (`null`), a forecast is drawn unless
  * ELF is the only model running here — ELF is the last resort (T144) and opt-in (owner 2026-11-05, Capilano: "if

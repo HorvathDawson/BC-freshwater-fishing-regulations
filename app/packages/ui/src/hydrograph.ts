@@ -60,6 +60,14 @@ export interface ForecastShape {
   end: { x: number; y: number } | null;
 }
 
+/** (T377) Another model's run drawn beside the chosen one: its trace alone (no ribbon), from the last observation. */
+export interface AlsoForecastShape {
+  /** the model's name, for its legend entry and its dash */
+  key: string;
+  line: string;
+  end: { x: number; y: number } | null;
+}
+
 export interface Hydrograph {
   box: Box;
   /** Observed values, in whatever quantity the series is about. */
@@ -84,6 +92,8 @@ export interface Hydrograph {
   now: { x: number; y: number } | null;
   /** The model run past today, or null outside every model's season. */
   forecast: ForecastShape | null;
+  /** (T377) the other models drawn at once, each its trace alone; empty when one model (or none) is drawn. */
+  alsoForecasts: readonly AlsoForecastShape[];
   /** True when the y scale is logarithmic — a whole year of flow spans two orders. */
   log: boolean;
   /**
@@ -180,6 +190,11 @@ export interface BuildInput {
                mid: readonly (number | null)[];
                lo: readonly (number | null)[];
                hi: readonly (number | null)[] } | null;
+  /**
+   * (T377) OTHER MODELS DRAWN AT ONCE: each one's steps, laid on the same clock and inside the same scale as `forecast`
+   * (its hindcast dropped the same way), drawn as a trace alone — the ribbon stays the chosen model's.
+   */
+  alsoForecasts?: readonly { key: string; at: readonly string[]; mid: readonly (number | null)[] }[];
   /** Observation stamps, for laying the forecast on the same clock. */
   at?: readonly string[];
   /** Earlier years of the same record, aligned to `values` by index. */
@@ -232,7 +247,13 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
         .filter((p) => Number.isFinite(p.t) && p.t > t1 && p.mid !== null)
     : [];
   const fc = ahead.length ? ahead : null;
-  const tEnd = fc ? fc[fc.length - 1]!.t : t1;
+  // (T377) the other models' steps past the record, the same way
+  const also = (input.alsoForecasts ?? []).map((a) => ({
+    key: a.key,
+    pts: a.at.map((t, i) => ({ t: Date.parse(t), mid: a.mid[i] ?? null }))
+      .filter((p): p is { t: number; mid: number } => Number.isFinite(p.t) && p.t > t1 && p.mid !== null && Number.isFinite(p.mid)),
+  })).filter((a) => a.pts.length > 0);
+  const tEnd = Math.max(fc ? fc[fc.length - 1]!.t : t1, ...also.map((a) => a.pts[a.pts.length - 1]!.t));
 
   // THE WINDOW (zoom). Only a stamped series is laid out on time, so only it can be windowed.
   const timed = stamps.length === vals.length && vals.length > 1 && stamps.every(Number.isFinite);
@@ -256,6 +277,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   for (const p of (fc ?? []).filter((q) => seen(q.t)))
     for (const v of [p.lo, p.mid, p.hi])
       if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  for (const a of also) for (const p of a.pts) if (seen(p.t)) { lo = Math.min(lo, p.mid); hi = Math.max(hi, p.mid); }
   const nowI = input.nowIndex ?? vals.length - 1;
   if (input.nowValue !== null && input.nowValue !== undefined && Number.isFinite(input.nowValue)
       && (nowI < 0 || nowI >= vals.length || seenAt(nowI))) {
@@ -380,6 +402,14 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     };
   })() : null;
 
+  const alsoForecasts: AlsoForecastShape[] = also.map((a) => {
+    const x0 = xAt(t1);
+    const y0 = nowValue !== null ? y(nowValue) : y(a.pts[0]!.mid);
+    const last = a.pts[a.pts.length - 1]!;
+    return { key: a.key, end: { x: xAt(last.t), y: y(last.mid) },
+             line: `M${[`${x0.toFixed(1)},${y0.toFixed(1)}`, ...a.pts.map((p) => `${xAt(p.t).toFixed(1)},${y(p.mid).toFixed(1)}`)].join("L")}` };
+  });
+
   return {
     box,
     line: segments.join(""),
@@ -409,6 +439,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     // shape took over.
     todayX: nowIndex >= 0 && nowIndex < vals.length && onPlot(x(nowIndex)) ? x(nowIndex) : null,
     forecast,
+    alsoForecasts,
     log,
     full,
     view,

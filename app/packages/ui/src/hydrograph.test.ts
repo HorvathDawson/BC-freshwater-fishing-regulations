@@ -189,3 +189,37 @@ describe("marking today", () => {
     expect(h.now!.x).toBeLessThan(h.box.width / 2);
   });
 });
+
+describe("(T377) other models drawn at once", () => {
+  const at = ["2026-09-01T00:00:00Z", "2026-09-01T01:00:00Z", "2026-09-01T02:00:00Z"];
+  const base = { values: [10, 11, 12] as (number | null)[], bands: [null, null, null], xLabels: ["a", "b", "c"], at };
+  const steps = (n: number, mid: (i: number) => number, from = 3) => ({
+    at: Array.from({ length: n }, (_, i) => new Date(Date.UTC(2026, 8, 1, from + i)).toISOString()),
+    mid: Array.from({ length: n }, (_, i) => mid(i)),
+  });
+  const run = (n: number, mid: (i: number) => number) => ({ ...steps(n, mid), lo: [], hi: [] });
+
+  it("each is a trace of its own from the last observation, every step, in the order given", () => {
+    const h = buildHydrograph({ ...base, forecast: run(10, () => 12),
+                                alsoForecasts: [{ key: "GEM", ...steps(10, () => 14) }, { key: "ELF", ...steps(5, () => 9) }] });
+    expect(h.alsoForecasts.map((a) => a.key)).toEqual(["GEM", "ELF"]);
+    expect((h.alsoForecasts[0]!.line.match(/L/g) ?? []).length).toBe(10);
+    // from the same point the chosen model's ribbon starts at
+    expect(h.alsoForecasts[0]!.line.split("L")[0]).toBe(h.forecast!.line.split("L")[0]);
+  });
+
+  it("their extremes are inside the frame, and the longest run sets the frame's end", () => {
+    const one = buildHydrograph({ ...base, forecast: run(4, () => 12) });
+    const two = buildHydrograph({ ...base, forecast: run(4, () => 12), alsoForecasts: [{ key: "ELF", ...steps(40, () => 900) }] });
+    expect(Math.max(...two.yTicks.map((t) => t.value))).toBeGreaterThan(100);
+    expect(two.forecast!.at).toBeLessThan(one.forecast!.at);
+    expect(two.full!.t1).toBe(Date.parse(steps(40, () => 0).at[39]!));
+  });
+
+  it("a hindcast-only or empty run is no trace; none given is none drawn", () => {
+    const past = { key: "OLD", at: ["2026-08-31T00:00:00Z"], mid: [5] };
+    expect(buildHydrograph({ ...base, forecast: run(4, () => 12), alsoForecasts: [past, { key: "E", at: [], mid: [] }] }).alsoForecasts)
+      .toEqual([]);
+    expect(buildHydrograph(base).alsoForecasts).toEqual([]);
+  });
+});

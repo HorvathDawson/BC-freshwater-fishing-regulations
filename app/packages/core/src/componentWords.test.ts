@@ -45,7 +45,7 @@ describe("(T180) words moved from components to core, composed whole", () => {
 
   it("the chart legend's model entry and the trace panel's values", () => {
     expect([CONDITIONS_WORDS.key.model("GEM", true), CONDITIONS_WORDS.key.model("ELF", false)])
-      .toEqual(["GEM forecast, drawn", "ELF forecast. Tap to draw it"]);
+      .toEqual(["GEM forecast, drawn. Tap to hide it", "ELF forecast. Tap to draw it"]);
     expect(TRACE_WORDS.magnitude(4)).toBe("magnitude 4");
   });
 

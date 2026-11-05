@@ -10,7 +10,7 @@
  * or `buildHydrograph`'s; this holds the state and hands the component actions that only take measurements.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { bcHour, localDate, CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2, panDomain, timeAt,
+import { bcHour, localDate, reportFailure, CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2, panDomain, timeAt,
          zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
 import { draftSeriesOf, type GaugeFeed, type Parameter, type WaterSource, type Series, type StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
@@ -18,6 +18,15 @@ import { askOnce, chartParameter, peekAnswer, seriesKey } from "./answers";
 import { useFeedVersion } from "./feedVersion";
 import { READING_REUSE_MS, stationReading } from "./hooks";
 import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydrograph";
+
+const NO_MODELS: readonly string[] = [];
+
+/**
+ * (T377) EACH MODEL DRAWN AT ONCE WEARS ITS OWN DASH, in the order drawn: the chosen model's (with its ribbon) first,
+ * then the others' — so two traces in one colour are told apart by shape, and the legend's swatch draws the same.
+ */
+export const FORECAST_DASHES: readonly string[] = ["4,3", "1,2.5", "8,2,1.5,2"];
+export const forecastDash = (i: number): string => FORECAST_DASHES[Math.min(i, FORECAST_DASHES.length - 1)]!;
 
 /** How tall the chart is for a width: a phone keeps the old proportion; a wide column does not become a banner. */
 export function chartHeight(width: number): number {
@@ -107,11 +116,12 @@ export interface ChartView {
 interface State { key: string; domain: Domain | null; probe: number | null }
 
 /** The extent `buildHydrograph` will lay out — the record's first stamp to its forecast's last step. */
-function extentOf(s: Series | null): Domain | null {
+function extentOf(s: Series | null, also: readonly { at: readonly string[] }[] = []): Domain | null {
   if (!s || s.at.length < 2) return null;
   const t0 = Date.parse(s.at[0]!);
   const t1 = Date.parse(s.at[s.at.length - 1]!);
-  const ahead = (s.forecast?.series?.at ?? []).map((t) => Date.parse(t)).filter((t) => Number.isFinite(t) && t > t1);
+  const ahead = [...(s.forecast?.series?.at ?? []), ...also.flatMap((a) => a.at)].map((t) => Date.parse(t))
+    .filter((t) => Number.isFinite(t) && t > t1);
   const end = ahead.length ? Math.max(...ahead) : t1;
   return Number.isFinite(t0) && Number.isFinite(end) ? { t0, t1: Math.max(end, t0 + 1) } : null;
 }
@@ -141,7 +151,13 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
                              parameter: Parameter | undefined, model: string | undefined,
                              width: number, enabled = true, draft: ChartDraft | null = null,
                              /** (T398) false: the measured line alone — no forecast drawn, none in the time axis */
-                             drawForecast = true): Async<ChartView | null> {
+                             drawForecast = true,
+                             /**
+                              * (T377) OTHER MODELS DRAWN AT ONCE beside `model`: each one's series asked under its own
+                              * key (the answer store's, so the legend's entries and the prefetch share it), its trace
+                              * drawn alone. Ignored while no forecast is drawn.
+                              */
+                             also: readonly string[] = NO_MODELS): Async<ChartView | null> {
   const key = seriesKey(station, span, parameter, model);
   // (owner 2026-10-29) a feed the update service took redraws the chart in place: a refresh of the same series (its
   // window and read-out, keyed on `key`, are kept)
@@ -158,6 +174,21 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
   const drafted = useAsync(
     async () => askOnce(source, dKey, async () => draftSeriesOf(await draft!.feed.observations(station!), span, dParam, model)),
     `${dKey}#${v}`, wantsDraft, dKey, () => peekAnswer(source, dKey));
+  // (T377) the other models' series: asked once each, drawn when all are in (a model that fails is left out, said
+  // nowhere else: its legend entry stays, the primary chart is untouched)
+  const alsoList = drawForecast && station ? also.filter((m) => m !== model) : NO_MODELS;
+  const alsoKey = alsoList.map((m) => seriesKey(station, span, parameter, m)).join("|");
+  const extra = useAsync(
+    () => Promise.all(alsoList.map((m) => askOnce(source, seriesKey(station, span, parameter, m),
+                                                  () => source.gaugeSeries(station!, span, parameter, m))
+      .then((a) => ({ key: m, series: a?.value?.forecast?.series ?? null }), (e: unknown) => {
+        reportFailure(e);
+        return { key: m, series: null };
+      }))),
+    `${alsoKey}#${v}`, alsoList.length > 0, alsoKey);
+  const alsoRuns = useMemo(() => (alsoList.length && extra.state === "ready" && extra.value
+    ? extra.value.flatMap((r) => (r.series ? [{ key: r.key, at: r.series.at, mid: r.series.mid }] : []))
+    : []), [extra, alsoList.length]);
   const [raw, setState] = useState<State>({ key, domain: null, probe: null });
   const st: State = raw.key === key ? raw : { key, domain: null, probe: null };
   const whole = series.state === "ready" ? series.value?.value ?? null : null;
@@ -169,7 +200,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     : series.state === "loading" && wantsDraft && drafted.state === "ready" ? drafted.value : null;
   const asOf = aged?.kept ? CONDITIONS_WORDS.keptAsOf(aged.fetchedAt) : null;
   const box = chartBox(width);
-  const full = useMemo(() => extentOf(s), [s]);
+  const full = useMemo(() => extentOf(s, alsoRuns), [s, alsoRuns]);
 
   // The actions read the LATEST window, not the one they were made with: a pinch delivers many updates between two
   // renders, and each must compound on the last.
@@ -212,6 +243,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
       forecast: s.forecast?.series
         ? { at: s.forecast.series.at, mid: s.forecast.series.mid, lo: s.forecast.series.lo, hi: s.forecast.series.hi }
         : null,
+      alsoForecasts: drawForecast ? alsoRuns : [],
       log: span === "year" && s.parameter === "discharge",
       box, domain: st.domain, probe: st.probe,
       ticks: (v) => chartTicks(v, span, tickCount(box.width)),
@@ -225,7 +257,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     return { state: "ready", error: null,
              value: { shape, readout, zoomed: !!(shape.view && shape.full && isZoomed(shape.view, shape.full)),
                       pending: false, draft: both === early, asOf, ...actions } };
-  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions]);
+  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast]);
 
   // The last chart drawn, for the frames between a switch and its answer.
   const last = useRef<ChartView | null>(null);

@@ -13,7 +13,7 @@
  */
 import { useId, useMemo, useRef } from "react";
 import { CONDITIONS_WORDS, wheelFactor } from "@app/core";
-import type { ChartView, Hydrograph as Shape } from "@app/ui";
+import { forecastDash, type ChartView, type Hydrograph as Shape } from "@app/ui";
 import { View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -32,8 +32,10 @@ const TICK = 11;
 export type ChartActions = Pick<ChartView, "zoomed" | "readout" | "zoomIn" | "zoomOut" | "fit" | "zoomAt" | "zooms" | "panBy"
                                 | "probeAt">;
 
-/** (T367) a forecast model in the legend: tap to draw it (the chart draws one model at a time) */
-export interface LegendModel { readonly key: string; readonly label: string; readonly on: boolean; readonly onPress: () => void }
+/** (T367) a forecast model in the legend: tap to draw it; (T377) several are drawn at once, a tap on one drawn hides it */
+export interface LegendModel { readonly key: string; readonly label: string; readonly on: boolean; readonly onPress: () => void;
+  /** (T377) the dash its trace wears when drawn (`forecastDash`), so the swatch draws the same */
+  readonly dash?: string }
 
 export function Hydrograph({ shape, palette, colour, label, unit,
                              forecastLabel, models, realtime, view }:
@@ -113,13 +115,22 @@ export function Hydrograph({ shape, palette, colour, label, unit,
               <Path d={shape.forecast.band} fill={colour} fillOpacity={0.13} />
             )}
             <Path d={shape.forecast.line} fill="none" stroke={colour} strokeWidth={1.8}
-                  strokeDasharray="4,3" strokeLinecap="round" strokeLinejoin="round" />
+                  strokeDasharray={forecastDash(0)} strokeLinecap="round" strokeLinejoin="round" />
             {shape.forecast.end && (
               <Circle cx={shape.forecast.end.x} cy={shape.forecast.end.y} r={2.6}
                       fill={palette.card} stroke={colour} strokeWidth={1.6} />
             )}
           </G>
         )}
+        {/* (T377) THE OTHER MODELS DRAWN AT ONCE: each its trace alone, thinner, in its own dash (the ribbon is the
+            chosen model's) */}
+        {shape.alsoForecasts.map((a, i) => (
+          <G key={a.key} testID={`chart-also-${a.key}`}>
+            <Path d={a.line} fill="none" stroke={colour} strokeWidth={1.4} strokeDasharray={forecastDash(i + 1)}
+                  strokeLinecap="round" strokeLinejoin="round" />
+            {a.end && <Circle cx={a.end.x} cy={a.end.y} r={2.2} fill={palette.card} stroke={colour} strokeWidth={1.3} />}
+          </G>
+        ))}
         {shape.now && (
           <Circle cx={shape.now.x} cy={shape.now.y} r={4}
                   fill={colour} stroke={palette.card} strokeWidth={2} />
@@ -188,12 +199,12 @@ export function Hydrograph({ shape, palette, colour, label, unit,
         {models && (models.length > 1 || realtime) ? (
           <>
             {models.map((m) => (
-              <Pressable key={m.key} testID={`chart-model-${m.key}`} onPress={m.onPress} accessibilityRole="radio"
+              <Pressable key={m.key} testID={`chart-model-${m.key}`} onPress={m.onPress} accessibilityRole="checkbox"
                          aria-checked={m.on} accessibilityLabel={CONDITIONS_WORDS.key.model(m.label, m.on)}
                          {...hitProps({ w: 60, h: 26 })}
                          style={{ paddingVertical: 3, paddingHorizontal: 6, borderRadius: palette.r.pill, borderWidth: 1,
                                   borderColor: m.on ? colour : palette.line2, opacity: m.on ? 1 : 0.6 }}>
-                <Key palette={palette} label={m.label} swatch="dash" colour={m.on ? colour : palette.sub} />
+                <Key palette={palette} label={m.label} swatch="dash" dash={m.dash} colour={m.on ? colour : palette.sub} />
               </Pressable>
             ))}
             {/* (T398) the forecast fully off: the measured line alone */}
@@ -331,14 +342,20 @@ function Gestures({ view, plotX, children }: { view: ChartActions; plotX: number
  * half of the record against the tenth-to-ninetieth, which is the whole point of drawing
  * both.
  */
-function Key({ palette, label, swatch, colour }: {
+function Key({ palette, label, swatch, colour, dash }: {
   palette: Palette; label: string; colour: string;
   swatch: "line" | "dash" | "fill" | "faintfill";
+  /** (T377) a model's own dash, drawn as its trace is (an svg line: a border's dash cannot be chosen) */
+  dash?: string;
 }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
       <View style={{ width: 16, height: 9, justifyContent: "center" }}>
-        {swatch === "fill" || swatch === "faintfill" ? (
+        {swatch === "dash" && dash ? (
+          <Svg testID="key-dash" width={16} height={4}>
+            <Line x1={0} y1={2} x2={16} y2={2} stroke={colour} strokeWidth={2} strokeDasharray={dash} />
+          </Svg>
+        ) : swatch === "fill" || swatch === "faintfill" ? (
           <View style={{ height: 9, backgroundColor: colour,
                          opacity: swatch === "fill" ? 0.11 : 0.06 }} />
         ) : (

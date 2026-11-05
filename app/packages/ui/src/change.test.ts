@@ -8,7 +8,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { answerFrom, buildStandingClasses, sectionStanding, type PanelMember, type SectionId, type StationId } from "@app/data";
 import { HORIZONS, codedChange, horizonDateChip, type RunChange, type SourceChange } from "@app/core";
 import { classMarks, standingValues } from "./conditionsColour";
-import { changeChartModel, changeView, donorView, forecastDrawn, flowHorizon, horizonChips, pickHorizon } from "./panel";
+import { changeChartModel, changeView, donorView, forecastDrawn, flowHorizon, horizonChips, NO_MODEL_PICK, pickHorizon, pickModel,
+         realtimeOnly } from "./panel";
 import { CHANGE_RAMP_BASE, rampPosition, routeLabels, routeValues, toRamp } from "./routeColour";
 
 const st = (s: string) => s as StationId;
@@ -330,5 +331,29 @@ describe("(T398) forecastDrawn — ELF is opt-in, a forecast can always be switc
   });
   it("the reader's switch wins either way", () => {
     expect([forecastDrawn(true, elf), forecastDrawn(false, both), forecastDrawn(false, elf)]).toEqual([true, false, false]);
+  });
+});
+
+describe("(T377) pickModel — several models drawn at once, each legend entry a switch", () => {
+  it("with none drawn, a tap draws that one alone", () => {
+    expect(pickModel({ model: "CLEVER", also: ["GEM"], on: false }, "ELF", null, false)).toEqual({ model: "ELF", also: [], on: true });
+  });
+  it("a tap on one not drawn adds it beside the chosen one, which is pinned (the default never shifts under it)", () => {
+    expect(pickModel(NO_MODEL_PICK, "GEM", "CLEVER", true)).toEqual({ model: "CLEVER", also: ["GEM"], on: true });
+    expect(pickModel({ model: "CLEVER", also: ["GEM"], on: true }, "ELF", "CLEVER", true))
+      .toEqual({ model: "CLEVER", also: ["GEM", "ELF"], on: true });
+  });
+  it("a tap on one drawn beside the chosen takes it off", () => {
+    expect(pickModel({ model: "CLEVER", also: ["GEM", "ELF"], on: true }, "GEM", "CLEVER", true))
+      .toEqual({ model: "CLEVER", also: ["ELF"], on: true });
+  });
+  it("a tap on the chosen one: the next drawn takes its place; the last one off is Real-time only", () => {
+    expect(pickModel({ model: "CLEVER", also: ["GEM", "ELF"], on: true }, "CLEVER", "CLEVER", true))
+      .toEqual({ model: "GEM", also: ["ELF"], on: true });
+    expect(pickModel({ model: null, also: [], on: null }, "CLEVER", "CLEVER", true)).toEqual({ model: null, also: [], on: false });
+    expect(forecastDrawn(pickModel(NO_MODEL_PICK, "CLEVER", "CLEVER", true).on, [{ model: "CLEVER" }])).toBe(false);
+  });
+  it("Real-time only clears every model and keeps the choice for when one is drawn again", () => {
+    expect(realtimeOnly({ model: "GEM", also: ["ELF"], on: true })).toEqual({ model: "GEM", also: [], on: false });
   });
 });

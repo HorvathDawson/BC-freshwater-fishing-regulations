@@ -195,7 +195,7 @@ export const CONDITIONS_WORDS = {
          /** (T367) the legend's one note where the record is too short for a normal range */
          noEnvelope: "no normal range (short record)",
          /** (T367) a model's legend entry: tap to draw it */
-         model: (label: string, on: boolean) => `${label} forecast${on ? ", drawn" : ". Tap to draw it"}`,
+         model: (label: string, on: boolean) => `${label} forecast${on ? ", drawn. Tap to hide it" : ". Tap to draw it"}`,
          /** (T398) the legend entry that turns the forecast off: the measured line alone */
          realtime: "Real-time only",
          realtimeLabel: (on: boolean) => (on ? "Real-time only, no forecast drawn" : "Real-time only. Tap to hide the forecast") },
