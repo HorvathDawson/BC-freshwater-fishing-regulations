@@ -28,8 +28,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T164 (salmon):** the dossier is clean and every live DFO rule lands on a place. Your part: 179 places still need an
   extent. I refreshed each proposal against today's build (OWNER-TODO has the steps).
 - **T178:** waits for the worker's first monthly score on 2026-12-01.
-- **Running now (2 lanes):** T239 (yearly synopsis runbook + a book-vs-book diff, dry run with no credits) and dropping
-  `decided/` (T266/T325).
+- **T239 done:** the yearly-synopsis runbook (`handoff/PLAN/runbooks/annual-synopsis.md`) and a book-vs-book diff.
+  - The dry run spent no credits: 1,512 of 1,515 entries came out identical. The other 3 are explained (two hand-fixed
+    texts, one extraction regression → T415).
+  - A new book re-parses only changed rows, so your curation carries over.
+- **`decided/` is gone (T266/T325):** marks now go straight to the final file. The apply dry run is unchanged.
+- **Running now:** the one release command, `pipeline release --staging` (T295/T297).
 
 ## 2026-11-05: 0.6.0 built for Play internal; handoff ready
 - **0.6.0:** version + changelog committed (1590e08d6). On Play internal: versionCode 9 (97459e986), play.json

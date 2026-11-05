@@ -457,6 +457,8 @@ use that as the sole source of future work."
 | T411 | The highlighted part still zigzags after stepping Downstream to the bottom, then Upstream once (Coquitlam part 2) | OPEN | — | owner 11-05, screenshot in T411-shots; first in the next chat |
 | T412 | One slow-feed pattern (run timing first; HYDAT clim + bathymetry follow): workflow, auto binding base, same-bytes check | OPEN | — | owner 11-05 (T408) |
 | T413 | The feeds worker starts the HYDAT workflow on a new HYDAT (staging) | OPEN | — | owner 11-05 (T408); owner makes the token |
+| T414 | Review app: "only these entries" filter for the yearly synopsis diff | OPEN | — | from T239 11-05 |
+| T415 | Extraction regression: Heber River's text (found by T239's dry run) | OPEN | — | from T239 11-05; before the next book |
 
 ## Order for open tickets
 
