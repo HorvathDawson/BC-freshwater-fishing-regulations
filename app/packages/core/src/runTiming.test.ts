@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { checkRunTiming, countHeight, inWaterOn, MONTH_PENTADS, parseRunTimingIndex, pentadDay, pentadLabel, pentadOf,
          restoreRunSpecies, runCounts, sliderKey, runSheet, runSpecies, RunTimingFacts, saveRunSpecies, slotFor, slotsFor,
-         speciesList, type PaintDoc, type RunsDoc } from "./runTiming";
+         RUN_WORDS, seasonPeak, speciesList, type PaintDoc, type RunsDoc } from "./runTiming";
 
 const SLOTS = ["Chinook", "Chum", "Coho", "Pink (even)", "Pink (odd)", "Sockeye", "Steelhead"];
 const hex = (pentads: number[]) => pentads.reduce((h, p) => h | (1n << BigInt(p)), 0n).toString(16).padStart(19, "0");
@@ -165,5 +165,21 @@ describe("run timing", () => {
     const sp = runSpecies(facts);
     expect(runSheet(facts, 10, sp.filter((s) => ["Chinook", "Chum"].includes(s.name)), 37).noneOfSpecies)
       .toBe("No chinook and chum run is recorded on this water. That is not the same as no fish.");
+  });
+});
+
+describe("(T377) seasonPeak", () => {
+  const z = { spawn: 0, pass: 0 };
+  it("the pentad with the most groups in the water, spawning and passing together; the first of a tie", () => {
+    expect(seasonPeak([z, { spawn: 0.2, pass: 0.1 }, { spawn: 0.1, pass: 0.3 }, { spawn: 0.4, pass: 0 }])).toBe(2);
+    expect(seasonPeak([z, { spawn: 0.5, pass: 0 }, { spawn: 0, pass: 0.5 }])).toBe(1);
+  });
+  it("no run at all is no peak", () => {
+    expect(seasonPeak([z, z, z])).toBeNull();
+    expect(seasonPeak([])).toBeNull();
+  });
+  it("its words, whole", () => {
+    expect(RUN_WORDS.slider.peak("Chinook", 0)).toBe(`Chinook peak: most groups in the water ${pentadLabel(0)}`);
+    expect(RUN_WORDS.slider.peak(null, 0)).toBe(`Peak: most groups in the water ${pentadLabel(0)}`);
   });
 });

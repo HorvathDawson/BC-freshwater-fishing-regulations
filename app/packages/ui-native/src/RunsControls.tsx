@@ -5,7 +5,7 @@
  * through the year, and wears the season at a glance behind its track (the share of watershed groups with these runs
  * in the water, `RunTimingFacts.season`). Every word is core's (`RUN_WORDS`); every colour a palette or map token.
  */
-import { FISH, MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, TAB_TOUR_WORDS, pentadLabel, sliderKey, type RunSpecies } from "@app/core";
+import { FISH, MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, TAB_TOUR_WORDS, pentadLabel, seasonPeak, sliderKey, type RunSpecies } from "@app/core";
 import { runStateColour } from "@app/map/colours";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { Image, PanResponder, ScrollView, View } from "react-native";
@@ -79,6 +79,8 @@ const MONTH_LETTER = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"
 const PLAY_HIT = hitProps({ w: 48, h: 48 });
 /** (T276) a phone-sized slider: a 48 px touch row, a 28 px thumb, a 5 px track */
 const TRACK_H = 48, THUMB = 28, LINE = 5;
+/** (T377) a peak marker's dot, over the histogram's top edge */
+const PEAK = 8;
 
 /**
  * THE DATE SLIDER: 73 pentads on one track. A press or a drag anywhere on it moves the day; the arrow keys and a
@@ -117,6 +119,10 @@ export function RunDaySlider({ pentad, today, playing, onPentad, onPlay, season,
     : (season[i]?.spawn ?? 0) + (season[i]?.pass ?? 0));
   const peak = Math.max(0.0001, ...season.map((_s, i) => total(i)));
   const h = (v: number) => Math.round((v / peak) * 20);
+  // (T377) EACH SEASON'S PEAK, marked over its bar: a chosen species' own in its colour, else the season's in ink
+  const peaks = (stacked ? bySpecies!.map((b) => ({ name: b.name as string | null, colour: b.colour, at: seasonPeak(b.season) }))
+    : [{ name: null, colour: palette.ink, at: seasonPeak(season) }]).filter((m) => m.at !== null) as
+    { name: string | null; colour: string; at: number }[];
   const step = (d: number) => onPentad(Math.max(0, Math.min(72, pentad + d)));
   const keys = { onKeyDown: (e: { key: string; preventDefault?: () => void }) => {
     const to = sliderKey(e.key, pentad);
@@ -158,6 +164,14 @@ export function RunDaySlider({ pentad, today, playing, onPentad, onPlay, season,
             ))}
           </View>
           <View pointerEvents="none" style={{ height: LINE, borderRadius: palette.r.chip, backgroundColor: palette.line2 }} />
+          {/* (T377) the peaks: a dot over the busiest bar, its colour the band's, on a card ring so it reads over bars */}
+          {season.length > 0 && peaks.map((m) => (
+            <View key={m.name ?? "season"} pointerEvents="none" testID={`run-peak-${m.name ?? "season"}`}
+                  accessibilityLabel={RUN_WORDS.slider.peak(m.name, m.at)}
+                  style={{ position: "absolute", left: `${((m.at + 0.5) / season.length) * 100}%`, marginLeft: -PEAK / 2, top: 0,
+                         width: PEAK, height: PEAK, borderRadius: round(PEAK), backgroundColor: m.colour,
+                         borderWidth: 1.5, borderColor: palette.card }} />
+          ))}
           {w > 0 && (
             <>
               {/* today: a short ink tick through the track */}

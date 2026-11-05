@@ -447,7 +447,9 @@ export const RUN_WORDS = {
   /** below the field's handover: each watershed group by its runs */
   field: "Each watershed group by its runs. Zoom in for the streams.",
   slider: { label: "Day of the year", today: "Today", play: "Play through the year", pause: "Pause",
-            value: (p: number, today: boolean) => (today ? `${pentadLabel(p)} (today)` : pentadLabel(p)) },
+            value: (p: number, today: boolean) => (today ? `${pentadLabel(p)} (today)` : pentadLabel(p)),
+            /** (T377) a peak marker on the histogram: when most watershed groups have that run in the water */
+            peak: (name: string | null, p: number) => `${name ? `${name} peak` : "Peak"}: most groups in the water ${pentadLabel(p)}` },
   /** the run-size key: the sheet's bars are on this scale */
   scale: { title: "Spawners counted (DFO; total, else adults) — tap a stream", ticks: ["10", "100", "1k", "10k", "100k"] as const,
            none: "No counts: shown as such, never guessed" },
@@ -611,4 +613,15 @@ export function runSheet(f: RunTimingFacts, sid: number, chosen: readonly RunSpe
 /** The credit line every surface showing a timing carries: each source's credit and its terms. */
 export function runCredit(f: Pick<RunTimingFacts, "sources">, which: readonly string[]): string {
   return RUN_WORDS.credit(which.filter((k) => f.sources[k]).map((k) => `${f.sources[k]!.credit} — ${f.sources[k]!.terms}`));
+}
+
+/**
+ * (T377) THE SEASON'S PEAK, for a marker on the Runs histogram: the pentad where the most watershed groups have the run in
+ * the water (spawning plus passing), the first of a tie. Null for a season with no run at all — no marker, never a
+ * marker at January.
+ */
+export function seasonPeak(season: readonly { readonly spawn: number; readonly pass: number }[]): number | null {
+  let at: number | null = null, best = 0;
+  season.forEach((s, i) => { const v = s.spawn + s.pass; if (v > best) { best = v; at = i; } });
+  return at;
 }
