@@ -40,6 +40,11 @@ export const COPY_FILL = "water-copy-fill";
 export const COPY_CASING = "water-copy-casing";
 /** A stream's copy, a line under the stream's own (the stream's paint, floored to the highlight width). */
 export const COPY_LINE = "water-copy-line";
+/** (T399) A copied feature's own ceiling, a property: the copy layers draw it only at zooms below this. */
+export const COPY_UNTIL = "copy_until";
+/** The copy layers' filter for one kind: that kind, and only below the feature's own ceiling (integer tile zooms). */
+export const copyFilter = (layer: CopyLayer): unknown[] =>
+  ["all", ["==", ["get", "layer"], layer], ["<", ["zoom"], ["to-number", ["get", COPY_UNTIL], 24]]];
 /** The source-layers a copy is kept from: a stream's line and a lake's polygon — the per-section ones but the wetland. */
 export type CopyLayer = Exclude<PerSectionLayer, "wetland">;
 export const COPY_SOURCE_LAYERS: readonly CopyLayer[] =
@@ -186,14 +191,21 @@ export class WaterCopy {
     return fresh;
   }
 
-  /** The kept sections as the copy source's data. */
-  collection(): CopyCollection {
+  /**
+   * The kept sections as the copy source's data. (T399) Each carries `COPY_UNTIL`, ITS OWN ceiling: the zoom the atlas
+   * draws that section from (the tile zoom it was kept at; past the atlas's deepest tiles, those overzoomed), or the view's floor for its layer (`floors`), whichever is
+   * deeper. The copy layers' filter reads it, so a section is drawn from the copy only where the atlas does not draw it.
+   * One ceiling for the whole copy (the deepest kept zoom) drew a section kept at z9 — z9's coarse tile line — on top
+   * of the atlas's own line up to the zoom some other section was first seen at: the casing zigzagged across the river.
+   */
+  collection(floors: Partial<Record<CopyLayer, number>> = {}): CopyCollection {
     if (!this.held.size) return EMPTY_COPY;
     return {
       type: "FeatureCollection",
       features: [...this.held].sort((a, b) => a[0] - b[0]).map(([id, h]) => ({
         type: "Feature" as const, id,
-        properties: { ...h.properties, layer: h.layer },
+        properties: { ...h.properties, layer: h.layer,
+                      [COPY_UNTIL]: Math.max(Math.min(Math.floor(h.zoom), ATLAS_MAX_ZOOM), floors[h.layer] ?? 0) },
         geometry: { type: h.layer === "stream" ? "MultiLineString" as const : "MultiPolygon" as const,
                     coordinates: h.pieces },
       })),

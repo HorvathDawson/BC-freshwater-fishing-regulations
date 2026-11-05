@@ -31,7 +31,6 @@ import { runtimeStyle } from "./runtime-style";
 import { ATLAS_SOURCES, SECTION_SOURCE_LAYERS, stateTarget } from "./sections";
 import { NO_VALUES, STYLE_META, type ChannelValues } from "./style";
 import { themedImageRefs } from "./images";
-import { COPY_CASING, COPY_FILL, COPY_LINE } from "./water-copy";
 
 type Json = Record<string, unknown>;
 type StyleLayer = { id: string; paint?: Json; layout?: Json; minzoom?: number; maxzoom?: number };
@@ -47,11 +46,6 @@ export interface NativeStyleInput extends Look {
    * them: layer → feature id → state. Written into the style; a change is a style swap.
    */
   areaData?: Record<string, Record<string, Record<string, unknown>>>;
-  /**
-   * (T175) Where the water copy stops, per kind (`WaterCopy.ceiling`): its layers' `maxzoom`. Null (or absent): nothing
-   * of that kind is kept, and the layer keeps the style's own range.
-   */
-  copyCeiling?: { line: number | null; fill: number | null };
   /** The colouring engine's style-borne channel values (`useNativeColouring`); absent: none installed. */
   values?: ChannelValues;
 }
@@ -170,11 +164,7 @@ export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[]
       if (l.layout) l.layout = each(l.layout);
     }
   }
-  // (T175) the water copy stops where the atlas draws the water itself
-  for (const l of s.layers) {
-    const z = l.id === COPY_FILL ? o.copyCeiling?.fill : l.id === COPY_LINE || l.id === COPY_CASING ? o.copyCeiling?.line
-      : undefined;
-    if (z !== undefined && z !== null) { l.minzoom = 0; l.maxzoom = z; }
-  }
+  // (T175, T399) the water copy stops where the atlas draws each section itself: its layers' filter reads each feature's
+  // own `copy_until` (`WaterCopy.collection`) — data, so a phone never swaps its style for it
   return { style: s, errors };
 }

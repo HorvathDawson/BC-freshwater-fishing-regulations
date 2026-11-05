@@ -22,7 +22,7 @@ import { OUR_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
-import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY } from "./water-copy";
+import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
 import { ATLAS_CREDIT, BASEMAP_CREDIT, creditLayers, creditSources } from "./credits";
 
@@ -184,16 +184,16 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
      */
     const tk = resolveTheme(theme);
     if (l.id === "lake") return [{
-      id: COPY_FILL, type: "fill" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "lake"],
+      id: COPY_FILL, type: "fill" as const, source: COPY_SOURCE, filter: copyFilter("lake"),
       paint: copyFillPaint((painted as { paint?: Record<string, unknown> }).paint ?? {}) }, painted];
     if (l.id !== "stream") return [painted];
     const copyLine = copyLinePaint((painted as { paint?: Record<string, unknown> }).paint
                                    ?? paintFor("stream", "plain", tk), tk);
     const copied = [
-      { id: COPY_CASING, type: "line" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "stream"],
+      { id: COPY_CASING, type: "line" as const, source: COPY_SOURCE, filter: copyFilter("stream"),
         layout: { "line-cap": "round" as const, "line-join": "round" as const },
         paint: casingPaint(copyLine["line-width"], tk) },
-      { id: COPY_LINE, type: "line" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "stream"],
+      { id: COPY_LINE, type: "line" as const, source: COPY_SOURCE, filter: copyFilter("stream"),
         layout: { "line-cap": "round" as const, "line-join": "round" as const }, paint: copyLine },
     ];
     const casing = {

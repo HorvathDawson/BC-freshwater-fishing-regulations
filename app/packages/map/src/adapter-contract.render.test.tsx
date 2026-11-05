@@ -119,7 +119,7 @@ type Press = { nativeEvent: { point: [number, number]; lngLat: [number, number] 
 const native: { props: Record<string, unknown> | null; camera: Record<string, unknown> | null;
                 geojson: Record<string, unknown>; holdRender: boolean; watched?: string[];
                 layers?: Record<string, { type: string; paint?: unknown }>;
-                images?: Record<string, unknown> } =
+                images?: Record<string, unknown>; fitOpts?: unknown[] } =
   { props: null, camera: null, geojson: {}, holdRender: false };
 vi.mock("@maplibre/maplibre-react-native", () => ({
   Map: ({ ref, children, ...props }: { ref?: unknown; children?: ReactNode } & Record<string, unknown>) => {
@@ -142,7 +142,7 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
   Camera: ({ ref, ...props }: { ref?: unknown } & Record<string, unknown>) => {
     native.camera = props;
     useImperativeHandle(ref as never, () => ({
-      fitBounds: (b: unknown) => log.push(`fit ${JSON.stringify(b)}`),
+      fitBounds: (b: unknown, o?: unknown) => { (native.fitOpts ??= []).push(o); log.push(`fit ${JSON.stringify(b)}`); },
       easeTo: (o: { center: [number, number]; zoom: number; duration: number }) =>
         log.push(`ease ${JSON.stringify(o.center)} z${o.zoom} ${o.duration}ms`),
     }));
@@ -189,7 +189,7 @@ afterEach(() => {
   answer = () => [];
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
   web.fitOpts = []; web.canvasH = 800; web.data = {};
-  native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {};
+  native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {}; native.fitOpts = [];
 });
 
 const AT = { atlas: "file:///d/atlas.pmtiles", basemap: "file:///d/basemap.pmtiles" };
@@ -590,6 +590,11 @@ describe("overzoom: the camera past the tiles, every source at its own deepest z
     // a 400 x 800 phone less 48 px padding: 304 x 704 px of z14 (0.0130° of longitude, 0.0198° of latitude at 49.2°N),
     // centred on the pond
     expect(fits).toEqual([[-121.9565, 49.1901, -121.9435, 49.2099]]);
+  });
+  it("(T400) native: a fit EASES — the binding's fitBounds defaults to a 'fly' arc, out and back in, in 450 ms", async () => {
+    render(<NativeMap {...base({ fit: { key: "pond", bbox: [-121.9502, 49.1999, -121.9498, 49.2001] } })} />);
+    await waitFor(() => expect(native.fitOpts?.length).toBe(1));
+    expect(native.fitOpts).toEqual([{ padding: { top: 48, right: 48, bottom: 48, left: 48 }, duration: 450, easing: "ease" }]);
   });
   it("(T48) a fit to a CAMERA puts it back exactly (search's cancel), the same command on both maps, once per key", async () => {
     const fit = { key: "restore:1", bbox: null, camera: { lon: -121.85, lat: 49.15, zoom: 9.4 } };

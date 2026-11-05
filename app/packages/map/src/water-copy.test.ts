@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { onceSink, type StateSink } from "./sections";
-import { WaterCopy, copyIds, mirrorSink, probeZoom, zoomAround, type CopyTarget, type LitFeature } from "./water-copy";
+import { COPY_UNTIL, WaterCopy, copyFilter, copyIds, mirrorSink, probeZoom, zoomAround, type CopyTarget, type LitFeature } from "./water-copy";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { copyFillPaint, copyLinePaint, paintFor } from "./paint";
 import { resolveTheme } from "./style";
@@ -37,10 +37,10 @@ describe("WaterCopy: kept from the tiles, the first time a zoom has them", () =>
     expect(c.reset([501, 502, 700, 701], "atlas-a")).toBe(true);
     expect(c.take([CREEK_A, RIVER, CREEK_A2, LAKE, MARSH], 12)).toEqual([501, 700]);
     expect(c.collection()).toEqual({ type: "FeatureCollection", features: [
-      { type: "Feature", id: 501, properties: { ord: 1, name: "Small Creek", layer: "stream" },
+      { type: "Feature", id: 501, properties: { ord: 1, name: "Small Creek", layer: "stream", copy_until: 12 },
         geometry: { type: "MultiLineString", coordinates: [
           [[-121.5, 49.2], [-121.49, 49.21]], [[-121.49, 49.21], [-121.48, 49.215]]] } },
-      { type: "Feature", id: 700, properties: { layer: "lake" },
+      { type: "Feature", id: 700, properties: { layer: "lake", copy_until: 12 },
         geometry: { type: "MultiPolygon", coordinates: [
           [[[-121, 49], [-120.9, 49], [-120.9, 49.1], [-121, 49]]]] } },
     ] });
@@ -78,6 +78,26 @@ describe("WaterCopy: kept from the tiles, the first time a zoom has them", () =>
     c.take([LAKE], 9.2);
     c.take([CREEK_B], 11.1);
     expect([c.ceiling("stream", 8), c.ceiling("stream", 13), c.ceiling("lake", 0)]).toEqual([12, 13, 9]);
+  });
+  it("(T399) each section stops at ITS OWN zoom — a section kept shallow never lies over the atlas's own line", () => {
+    // Coquitlam, 0.5.0 on a phone: the river's main stem kept at z9 (its coarse z9 tile line) and an upper part first
+    // seen at z13 — one ceiling (13) drew the z9 line over the atlas at z9–13, and the casing zigzagged across it
+    const c = new WaterCopy();
+    c.reset([501, 502, 700, 900]);
+    c.take([RIVER], 9.4);
+    c.take([CREEK_A, CREEK_A2], 13.2);
+    c.take([CREEK_B], 16.5);                                   // past the atlas's deepest (z13) tiles: those, overzoomed
+    c.take([LAKE], 8);
+    const until = (floors?: Parameters<WaterCopy["collection"]>[0]) =>
+      Object.fromEntries(c.collection(floors).features.map((f) => [f.id, f.properties[COPY_UNTIL]]));
+    expect(until()).toEqual({ 501: 13, 502: 13, 700: 8, 900: 9 });
+    // the view's floor for the layer (Conditions stands the rivers down below z9): carried on to it, per kind
+    expect(until({ stream: 11, lake: 10 })).toEqual({ 501: 13, 502: 13, 700: 10, 900: 11 });
+  });
+
+  it("(T399) the copy layers' filter: their kind, below each feature's own ceiling", () => {
+    expect(copyFilter("stream")).toEqual(["all", ["==", ["get", "layer"], "stream"],
+      ["<", ["zoom"], ["to-number", ["get", "copy_until"], 24]]]);
   });
 });
 

@@ -40,13 +40,13 @@ export function useWaterCopy({ map, renderer, copy }: WebMapRefs,
     const source = () => m.getSource(COPY_SOURCE) as { setData?: (d: unknown) => void } | undefined;
     // THE CEILING: the copy stops where the atlas draws the water itself — the deepest kept zoom, or the layer's own
     // floor in this view (the Conditions field stands the rivers down), whichever is deeper
+    const floorOf = (id: string) => (m.getLayer(id) as { minzoom?: number } | undefined)?.minzoom ?? 0;
     const ceilings = () => {
-      const floorOf = (id: string) => (m.getLayer(id) as { minzoom?: number } | undefined)?.minzoom ?? 0;
       const line = c.ceiling("stream", floorOf("stream")), fill = c.ceiling("lake", floorOf("lake"));
       if (line !== null) for (const id of [COPY_CASING, COPY_LINE]) if (m.getLayer(id)) m.setLayerZoomRange(id, 0, line);
       if (fill !== null && m.getLayer(COPY_FILL)) m.setLayerZoomRange(COPY_FILL, 0, fill);
     };
-    const draw = () => whenCopy(m, () => { source()?.setData?.(c.collection()); ceilings(); });
+    const draw = () => whenCopy(m, () => { source()?.setData?.(c.collection({ stream: floorOf("stream"), lake: floorOf("lake") })); ceilings(); });
     let pending = changed
       ? whenCopy(m, () => {
           if (m.getSource(COPY_SOURCE)) m.removeFeatureState({ source: COPY_SOURCE });

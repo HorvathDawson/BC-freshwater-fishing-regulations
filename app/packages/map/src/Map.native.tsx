@@ -188,15 +188,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const gaugesNow = useRef(gauges);
   gaugesNow.current = gauges;
-  /** (T175) Where the copy stops (the zoom the atlas draws the water from), per kind; in the style, so a change swaps it. */
-  const [ceil, setCeil] = useState<{ line: number | null; fill: number | null }>({ line: null, fill: null });
   const look = useMemo(
     () => nativeStyle({ at, theme, view, modes, hide, show, groups, basemap: basemap ?? "map",
-                        gauges: gaugesNow.current ?? EMPTY_FC, areaData: JSON.parse(areaKey) as Data, copyCeiling: ceil,
+                        gauges: gaugesNow.current ?? EMPTY_FC, areaData: JSON.parse(areaKey) as Data,
                         values: cv }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
-     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, ceil.line, ceil.fill,
+     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey,
      cv.status, cv.salmon, cv.method, cv.stocked, cv.survey, basinKey]);
   // (T317) and the boundary mark label's box, named by its colours (the binding adds a name once and never replaces it)
   const markBoxName = `${MARK_BOX_IMAGE}.${furniture.card}.${furniture.ink}`.replace(/#/g, "");
@@ -333,7 +331,6 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const had = c.ids.size > 0;
     if (c.reset(keep, at.atlas) && had) {
       setCopyData(c.collection());
-      setCeil((was) => (was.line === null && was.fill === null ? was : { line: null, fill: null }));
       void copyRef.current?.removeFeatureState().catch(report);
       copyTouched.current = false;
     }
@@ -348,6 +345,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         const found = await renderer.litFeatures([...c.ids]);
         if (!alive) return;
         const fresh = c.take(found, at0.zoom);
+        // (T399) EACH SECTION'S OWN CEILING (`copy_until`, read by the copy layers' filter): the zoom it was kept at, or
+        // the view's floor for its layer (the Conditions view's z9 for streams). Data only: no style swap mid-flight.
+        const floorOf = (id: string) =>
+          ((lookNow.current.style.layers as { id: string; minzoom?: number }[]).find((l) => l.id === id)?.minzoom) ?? 0;
+        const floors = { stream: floorOf("stream"), lake: floorOf("lake") };
         if (fresh.length) {
           // what the atlas features hold now goes on the copy first (later writes are mirrored as they are made)
           for (const id of fresh) {
@@ -355,13 +357,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
             const st = c.fresh(id, (held ?? {}) as Record<string, unknown>);
             if (st) void copyRef.current?.setFeatureState({ id }, st as never).catch(report);
           }
-          setCopyData(c.collection());
+          setCopyData(c.collection(floors));
         }
-        // THE CEILING, from the style this map is drawing (the stream's and the lake's floor in this view)
-        const floorOf = (id: string) =>
-          ((lookNow.current.style.layers as { id: string; minzoom?: number }[]).find((l) => l.id === id)?.minzoom) ?? 0;
-        const line = c.ceiling("stream", floorOf("stream")), fill = c.ceiling("lake", floorOf("lake"));
-        setCeil((was) => (was.line === line && was.fill === fill ? was : { line, fill }));
         const next = clamps.current
           ? probeZoom({ zoom: at0.zoom, found: found.some((f) => lineIds.current.has(f.id)),
                         kept: c.keptOf(lineIds.current), rounds, touched: copyTouched.current })

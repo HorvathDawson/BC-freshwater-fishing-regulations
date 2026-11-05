@@ -44,7 +44,7 @@ export interface NativeRefs {
   } | null;
   camera(): {
     fitBounds(b: [number, number, number, number], o: Record<string, unknown>): void;
-    easeTo(o: { center: [number, number]; zoom: number; duration: number }): void;
+    easeTo(o: { center: [number, number]; zoom: number; duration: number; easing?: "ease" }): void;
   } | null;
 }
 
@@ -93,10 +93,12 @@ export function nativeRenderer(refs: NativeRefs, report: (e: unknown) => void, m
     platform: "native",
     forget: () => { sink.forget(); failed = false; },
     states: (lit: () => readonly SectionKey[]) => stateHandle(sink, lit),
+    // (T400) EASED, both: the binding's fitBounds defaults to `easing: "fly"` — an arc out and back in, squeezed into
+    // 450 ms, through zooms whose tiles are not loaded — which read as a choppy jump on a phone. The web eases.
     fitBounds: (b, { padding, duration }) => refs.camera()?.fitBounds([b[0], b[1], b[2], b[3]], {
-      padding: { top: padding, right: padding, bottom: padding, left: padding }, duration,
+      padding: { top: padding, right: padding, bottom: padding, left: padding }, duration, easing: "ease",
     }),
-    easeTo: (c, { duration }) => refs.camera()?.easeTo({ center: [c.lon, c.lat], zoom: c.zoom, duration }),
+    easeTo: (c, { duration }) => refs.camera()?.easeTo({ center: [c.lon, c.lat], zoom: c.zoom, duration, easing: "ease" }),
     press: async (x, y) => {
       const box = tapBox(x, y);
       for (const g of TAP_GROUPS) {
