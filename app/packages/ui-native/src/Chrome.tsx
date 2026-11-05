@@ -30,7 +30,7 @@ export function LegendStrip({ palette, children, full, wrap }:
       <View testID="legend-strip"
             style={{ flexGrow: 0, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 16,
                      rowGap: 6, borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
-                     paddingHorizontal: 14, paddingVertical: 9 }}>
+                     paddingHorizontal: LEGEND_ROWS.padX, paddingVertical: 9 }}>
         {children}
       </View>
     );
@@ -77,8 +77,34 @@ export function DottedSwatch({ colour, width = 14, thick = 3 }: { colour: string
   );
 }
 
+/**
+ * (T396) THE REGULATIONS KEY'S MEASURES, in Trout & more and in Salmon alike: the wrap strip's side padding, and a tight
+ * entry's swatch widths, the gap to its label and the gap between entries. Chosen so Trout & more's longer row (No
+ * access · Fly only · Bait ban · Not fishable, in Archivo at `LEGEND_TEXT`) fits a 390 dp phone with room to spare —
+ * pinned by MapLegend.rows.test.tsx against the font's own advance widths.
+ */
+export const LEGEND_ROWS = { padX: 12, column: 8, gap: 4, line: 14, edge: 16, square: 12 } as const;
+
+/**
+ * (T396) THE KEY IN TWO FIXED ROWS: each mode decides which entries share a row, so Trout & more and Salmon both stand two
+ * lines tall at a phone's width and the bottom bar does not jump between them. A row too wide for a narrow screen still
+ * wraps (nothing is cut).
+ */
+export function LegendRows({ rows }: { rows: readonly React.ReactNode[] }) {
+  return (
+    <View testID="legend-rows" style={{ width: "100%", rowGap: 6 }}>
+      {rows.map((r, i) => (
+        <View key={i} testID="legend-row" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center",
+                                                   columnGap: LEGEND_ROWS.column, rowGap: 6 }}>
+          {r}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, edge, rim }:
+export function LegendCount({ palette, colour, n, label, line, dotted, edge, rim, tight }:
   { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
@@ -93,13 +119,17 @@ export function LegendCount({ palette, colour, n, label, line, dotted, edge, rim
      */
     edge?: "solid" | "dashed";
     /** (T292) a DASHED RIM round the square in this colour, as the map draws not-fishing water's edge */
-    rim?: string }) {
+    rim?: string;
+    /** (T396) the regulations key's narrower swatches and closer label (`LEGEND_ROWS`), so its rows fit a phone */
+    tight?: boolean }) {
+  const lineW = tight ? LEGEND_ROWS.line : 20;
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
+    <View testID="legend-entry" style={{ flexDirection: "row", alignItems: "center", gap: tight ? LEGEND_ROWS.gap : 7 }}>
       {edge ? <View testID={`legend-edge-${edge}`}
-                    style={{ width: 22, height: 10, borderWidth: 1.5, borderColor: colour, borderStyle: edge }} />
-        : line && dotted ? <DottedSwatch colour={colour} width={20} thick={4} /> : <View style={line
-        ? { width: 20, height: 4, backgroundColor: colour }
+                    style={{ width: tight ? LEGEND_ROWS.edge : 22, height: 10, borderWidth: 1.5, borderColor: colour,
+                             borderStyle: edge }} />
+        : line && dotted ? <DottedSwatch colour={colour} width={lineW} thick={4} /> : <View style={line
+        ? { width: lineW, height: 4, backgroundColor: colour }
         : { width: 12, height: 12, borderRadius: palette.r.chip, backgroundColor: colour,
             ...(rim ? { borderWidth: 1, borderColor: rim, borderStyle: "dashed" as const } : {}) }}
         {...(rim ? { testID: "legend-rim" } : {})} />}

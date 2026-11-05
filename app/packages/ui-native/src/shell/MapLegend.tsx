@@ -20,7 +20,7 @@ import { Pressable } from "../Pressable";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
 import { RegsLayerToggle } from "./RegsLayerToggle";
-import { LEGEND_RAMP_MAX, LegendCount, LegendRamp, LegendStrip } from "../Chrome";
+import { LEGEND_RAMP_MAX, LEGEND_ROWS, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
 import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
@@ -43,6 +43,20 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   // Map tab's legend (it sat in the map's top corner beside the day); in Salmon, whose rules these are, beside it
   const fishery = !conditions && col.salmonOffered && col.statusOk && col.layers.water.drawn === "regulations";
   const checked = fishery && col.regsLayer === "salmon" ? salmonCheckedLine(col.salmonFacts) : null;
+  // (T396) the regulations key's entries, laid in two rows below (`LegendRows`)
+  const gearRows = col.gearMarked ? GEAR_LEGEND.map((m) => (
+    <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"} tight
+                 label={MAP_KEY.gear[m]} />
+  )) : [];
+  const statusRows = WATER_STATUSES.map((s) => (
+    <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]} tight
+                 line dotted={WATER_STATUS_LINE[s] === "dotted"}
+                 label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} />
+  ));
+  const salmonRows = salmonLegend().map((r) => (
+    <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line tight
+                 label={MAP_KEY.salmon[r.status]} />
+  ));
   const strip = (
     <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
       {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one
@@ -96,35 +110,19 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
       ) : col.regsLayer === "salmon" ? (
         // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
         // Layers button and the day in the map's corner (T213)
-        <>
-          {salmonLegend().map((r) => (
-            <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line
-                         label={MAP_KEY.salmon[r.status]} />
-          ))}
-          {/* (owner 2026-10-28) the provincial gear marks hold for salmon too: the same two rows as Standard */}
-          {col.gearMarked && GEAR_LEGEND.map((m) => (
-            <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"}
-                         label={MAP_KEY.gear[m]} />
-          ))}
-        </>
+        // (T396) two rows, as Trout & more's: three statuses, then Check DFO with the gear marks
+        <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), ...gearRows]]} />
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core
         // WATER_STATUS through the map's theme) — for the day shown. (T213) Then the gear marks drawn ON them: an ink
         // edge, solid for fly fishing only, dashed for a bait ban — the one compact key for status and marks.
-        <>
-          {WATER_STATUSES.map((s) => (
-            <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
-                         line dotted={WATER_STATUS_LINE[s] === "dotted"}
-                         label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} />
-          ))}
-          {col.gearMarked && GEAR_LEGEND.map((m) => (
-            <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"}
-                         label={MAP_KEY.gear[m]} />
-          ))}
-          {/* (T292) sewage lagoons, tailings ponds, dumps: the off colour and its dashed rim, no status at all */}
-          <LegendCount palette={palette} colour={notFishingColours(theme).fill} rim={notFishingColours(theme).edge}
-                       label={MAP_KEY.notFishing} />
-        </>
+        // (T396) TWO ROWS at a phone's width, as Salmon's (owner 2026-11-05: it wrapped to three, and the bar jumped
+        // between modes): the statuses a reader fishes by, then no access, the gear marks and not-fishable water
+        <LegendRows rows={[statusRows.filter((s) => s.key !== "no_access"),
+                           [...statusRows.filter((s) => s.key === "no_access"), ...gearRows,
+                            // (T292) sewage lagoons, tailings ponds, dumps: the off colour and its dashed rim, no status
+                            <LegendCount key="off" palette={palette} colour={notFishingColours(theme).fill} tight
+                                         rim={notFishingColours(theme).edge} label={MAP_KEY.notFishing} />]]} />
       )}
       {/* (T377) THE CENTRE GROUP'S DAYS, under the ramp in the bottom bar: a tap on a day is the horizon chips' pick */}
       {conditions && col.basinDays && (
@@ -149,11 +147,15 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   if (!fishery) return strip;
   return (
     <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card }}>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10, paddingHorizontal: 14,
+      {/* (T396) ONE ROW in both modes: Salmon's "DFO rules checked …" sits beside the switch, up to two lines no taller
+          than it, never wrapping under it — so switching modes does not move the bar */}
+      <View testID="legend-fishery-head"
+            style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: LEGEND_ROWS.padX,
                      paddingTop: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
         <RegsLayerToggle col={col} palette={palette} />
         {checked && (
-          <Text testID="salmon-legend-source" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub, flexShrink: 1 }}>
+          <Text testID="salmon-legend-source" numberOfLines={2}
+                style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub, flexShrink: 1 }}>
             {checked}
           </Text>
         )}
