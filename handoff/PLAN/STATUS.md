@@ -13,6 +13,15 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-05: 0.6.0 built for Play internal; handoff ready
+- **0.6.0:** version + changelog committed (1590e08d6). The AAB is being built and uploaded to Play internal
+  (`build-apk.sh --play`); the tester link comes by email. Then 2–3 days of internal testing → Closed testing (T371).
+- **Staging feeds worker** deployed with it (b960604d): "App bug" / "Feature request" reports (T407), the monthly
+  forecast score (T178), the version notices. All three feed jobs ran clean.
+- **Website speed (T409):** water pages 77–83 (were 40–45), hubs 100. Web-only. The rest is the map warm-up (left, owner).
+- **Next chat:** `handoff/PLAN/NEXT-SESSION-after-0.6.0.md`. T408 first (walk you through the data flow), then data and
+  build, then a second chat for launch and hygiene (T404, T410 …).
+
 ## 2026-11-05: the order to 0.6.0 (owner)
 - **T345 closed** (it was fixed: fdf938745, 8a5b5bdf1). A quick phone glance at Coquitlam is in OWNER-TODO.
 - **Now:** crash reports (item 2). Your phone sent 2 non-fatal errors on 0.5.0 right after install: the data release on
