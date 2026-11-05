@@ -433,7 +433,7 @@ use that as the sole source of future work."
 | T387 | Every tap on a part gives the same page: per-section facts (access first) become part-level; a net over every part | DONE (point-bound: sun line, scroll memory — owner) | 2a9bd4aed, 47c5b66f0 | owner 2026-11-04 (in 0.5.0) |
 | T388 | A named water's link place never fetches `lines`: each part's runs in the water file (`part_line`, by ord, in the region slice); unnamed reaches keep `lines` | DONE | dfe887d6a | owner 2026-11-04 |
 | T389 | Unnamed reach links write their place from the tiles' stream key (no `lines` download); `lines` only to open a shared unnamed link | OPEN | — | owner 2026-11-04 (after 0.5.0) |
-| T390 | The app notices a newer version of itself and offers an Update button (Play in-app update; strong prompt when a release needs a newer app) | OPEN | — | owner 2026-11-04 (after 0.5.0) |
+| T390 | The app notices a newer version of itself and offers an Update button (Play in-app update; strong prompt when a release needs a newer app) | PARTIAL | 0798fd27b, c62aeb4b8 | owner 2026-11-04 (after 0.5.0); expo-in-app-updates; iOS stub until T88; left: emulator/phone checks with the next APK (ticket test bed) |
 | T391 | Every web water page filed a fatal "Requiring unknown module": Metro reports the lazy-chunk miss as fatal while ErrorUtils is set; the asking moment runs without it | DONE 11-04 | 191953b4b | crash reports 2026-11-04 |
 | T392 | A feeds worker release reruns the feeds: the deployed version is in every reuse key; deploy/staging/feeds.sh deploys then runs every job | DONE 11-05 | 6f0a04a1c | owner 2026-11-05 |
 | T393 | Regional DFO size rules (adult chinook, 30 cm / 25 cm minimums) on the species rows, not loose lines | OPEN | — | owner report 2026-11-05 |
