@@ -8,6 +8,46 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-05 (after 0.5.0): reports read, web crash fixed, phone map reports in a lane [T391]
+- Reports read (staging worker): 1 problem report (owner's, 11-02, already T348, done). New crash kinds since T346:
+  - **T391 DONE (191953b4b):** every web water page filed a FATAL "Requiring unknown module" (9 reports, 5 installs,
+    0.5.0; also 0.3.0). Metro reports a lazy chunk's first miss as fatal while ErrorUtils is set; the import now asks
+    without it. Verified on the live page with the fixed bundle swapped in: no report, chunk loads, page shows. Live at
+    the next staging site deploy.
+  - "not a dfo-feed/3 feed" (10, non-fatal, 21:28–21:34 11-04): 0.5.0 site up before the feed was rewritten by hand.
+    A sequencing slip, gone; no ticket (production rule already: feeds worker ships with the app).
+  - 0.4.0 native crashes 11-01..03: before T360's memory fixes; T351 waits for a 0.5.0 report.
+- Owner 11-05 (phone, 0.5.0): highlighted part drawn off the river (pink/yellow lines crossing, Coquitlam part 1),
+  choppy fly-to, too little stream buffer outside the view when panning. Lane done (adfbe330e, app code only):
+  - **T399 fixed:** the coarse water copy drew over the river past its own zoom (one ceiling for the whole copy); each
+    section now has its own. Owner checks Coquitlam part 1 on the next APK.
+  - **T400 partly:** camera fits now ease instead of the 450 ms "fly" arc; extra re-fit rounds on search arrival still
+    to measure.
+  - **T401 open, owner decision after measuring:** MapLibre Native loads only on-screen tiles and has no prefetch
+    setting; options are a patch, drawing past the screen edge, or leaving it.
+- Test-bed drift (c7ac3e9ac): gestures opens "Sources and notes" first; water-nav logs the probe's hit id. Verified on
+  the emulator with the next APK (APK held for the batch).
+- **T392 DONE (6f0a04a1c), owner 11-05:** a feeds worker release now reruns the feeds. The deployed version is part of
+  every job's reuse key (no more hand-bumped GAUGE_REV), and `deploy/staging/feeds.sh` deploys then runs all three jobs.
+  Deployed: staging forecasts recomputed (all stations), so the new forecast detail is live on staging now.
+- Owner's 6 reports from playing with 0.5.0 filed (ed8aef131): T393 sizes on species rows, T394 spawning image on quota
+  rows, T395 vessel tab, T396 legend 2 lines / no jump, T397 BUG Runs chips don't scroll, T398 ELF-only → real-time,
+  forecast always switchable off.
+- **T397 fixed in code (f2f726456):** the map's bottom block hung from a zero-height row, and Android only hands a
+  sideways drag to a view inside its parent's box, so the Runs fish row never scrolled (taps still worked). Moved inside
+  the map area; a test guards it. Phone check with the next APK.
+- **T390 PARTIAL (0798fd27b, c62aeb4b8, c0e416056):** the Update button is written: package `expo-in-app-updates`
+  0.13.0 (Expo module, web stub, no extra native deps; built for SDK 58, so the next APK build proves it on SDK 57). The
+  bell has an "App update" section; a release refused for minAppVersion now says "New data needs the latest app." with
+  the button. Sideloaded staging builds point to the staging APK page (build-apk.sh writes latest.json). iOS stub
+  until T88. Owner decision: Play restarts the app itself after the download; a separate "Restart to update" step
+  needs a Kotlin patch. Phone checks with the next APK.
+- T399 follow-up (13dca580c): the T124 one-layer-list guard caught a per-layer object in the copy code; fixed.
+  `pnpm -C app check` green (8495 passed). Graph updated.
+- Full suites (post-0.5.0): app 8457 passed / 13 failed, pipeline 6268 passed / 1 failed. 12 were the ticket ledger
+  (DONE rows without hashes, fixed); the other 2 pass alone (flakes under load) → T402. `pnpm -C app check` reruns
+  after the T390 lane lands.
+
 ## 2026-11-04 (merged chat, night): one clock, T368/T369 landed, the 0.5.0 list closing [T368, T369, T382, T386, T378, T377, T312, T381, T387, T384, T385, T240]
 - Landed: T368 (one reporter, one failure face, catch net), T369 (one load path per screen, 14 divergences, net; T379
   flake fixed), T382 (core clock.ts the only clock reader, B.C. UTC−7 written in code, sun card; spots on B.C. dates too),

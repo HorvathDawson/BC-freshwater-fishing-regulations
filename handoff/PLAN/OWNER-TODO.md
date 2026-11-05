@@ -6,6 +6,14 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Update button restart step (T390, 2026-11-05):** with `expo-in-app-updates`, Play installs and restarts the app by
+  itself once the background download is done. Fine as is, or do you want a separate "Restart to update" button (needs
+  a small Kotlin patch to the package)? Default until you answer: as is.
+- **Streams popping in at the screen edge (T401, 2026-11-05):** the phone's map loads only on-screen tiles and has no
+  prefetch setting. After a measurement: patch a prefetch in, draw past the screen edge, or leave it. Claude measures
+  first.
+- **Phone checks with the next APK (2026-11-05):** Coquitlam part 1 highlight (T399), camera feel (T400), Runs fish row
+  scrolls (T397), the Update button + "New data needs the latest app" (T390).
 - **DFO region 2 Fraser places (T366, 2026-11-03; ANSWERED 11-03, committed as variants — no longer blocks):** the refresh (regions 1, 2, 6; no
   marks moved) found the Fraser mainstem reworded twice; FN1179 (chum 2/day Nov 3–30) is on one of them. Open the
   review app in DFO mode, region 2, and confirm the two Fraser places: the queue proposed "upstream of the CPR Bridge"
