@@ -20,6 +20,20 @@ import { LIGHT, SPACE, type Palette } from "./theme";
 
 const all: (() => Promise<boolean>)[] = [];
 
+/**
+ * (T391) Metro's `import()` first asks for the module at once and fetches the chunk only when that throws. With
+ * `global.ErrorUtils` installed (the web bundle has it), the miss is not thrown: Metro reports it as a FATAL "Requiring
+ * unknown module" and hands back nothing — every web visit filed a fatal crash and the part needed a second try. So the
+ * asking moment runs without `ErrorUtils`: the miss throws, the chunk is fetched, and only a real load failure is reported
+ * (by `preload`, below). Only the synchronous call: the module's own code runs later, guarded as before.
+ */
+export function unguarded<T>(load: () => Promise<T>, g: Record<string, unknown> = globalThis as never): Promise<T> {
+  if (!("ErrorUtils" in g)) return load();
+  const eu = g.ErrorUtils;
+  g.ErrorUtils = undefined;
+  try { return load(); } finally { g.ErrorUtils = eu; }
+}
+
 /** what a part whose code cannot load draws in its place */
 export const PART_FAILED = NET_WORDS.part.code;
 
@@ -34,8 +48,8 @@ export function part<P extends object>(load: () => Promise<ComponentType<P>>, wh
   let p: Promise<void> | null = null;
   // a failed load is reported here, once per attempt, and forgotten so the next ask tries again; the rejection still
   // reaches every caller (a drawn part shows it)
-  const preload = (): Promise<void> => (p ??= load().then((c) => {
-    // Metro's importAll hands back nothing when the chunk lacks the module (it has already raised it as fatal)
+  const preload = (): Promise<void> => (p ??= (Platform.OS === "web" ? unguarded(load) : load()).then((c) => {
+    // a chunk that hands back nothing (Metro's importAll when the module is still unknown) is a failure
     if (typeof c !== "function" && (typeof c !== "object" || c === null)) throw new Error("a part's code is not in its chunk");
     C = c;
   }).catch((e: unknown) => { p = null; reportFailure(e); throw e; }));

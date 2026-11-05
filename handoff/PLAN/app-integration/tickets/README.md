@@ -434,6 +434,7 @@ use that as the sole source of future work."
 | T388 | A named water's link place never fetches `lines`: each part's runs in the water file (`part_line`, by ord, in the region slice); unnamed reaches keep `lines` | DONE | dfe887d6a | owner 2026-11-04 |
 | T389 | Unnamed reach links write their place from the tiles' stream key (no `lines` download); `lines` only to open a shared unnamed link | OPEN | — | owner 2026-11-04 (after 0.5.0) |
 | T390 | The app notices a newer version of itself and offers an Update button (Play in-app update; strong prompt when a release needs a newer app) | OPEN | — | owner 2026-11-04 (after 0.5.0) |
+| T391 | Every web water page filed a fatal "Requiring unknown module": Metro reports the lazy-chunk miss as fatal while ErrorUtils is set; the asking moment runs without it | DONE 11-04 | — | crash reports 2026-11-04 |
 
 ## Order for open tickets
 

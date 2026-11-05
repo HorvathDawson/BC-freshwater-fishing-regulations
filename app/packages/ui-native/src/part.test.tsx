@@ -54,6 +54,18 @@ describe("part()", () => {
     expect(second).not.toHaveBeenCalled();
   });
 
+  it("(T391) the asking moment runs without ErrorUtils (Metro then throws the miss and fetches), restored after", async () => {
+    const { unguarded } = await fresh();
+    const eu = { reportFatalError: vi.fn() };
+    const g: Record<string, unknown> = { ErrorUtils: eu };
+    let during: unknown = "unset";
+    await unguarded(() => { during = g.ErrorUtils; return Promise.resolve(1); }, g);
+    expect(during).toBeUndefined();
+    expect(g.ErrorUtils).toBe(eu);
+    expect(() => unguarded(() => { throw new Error("sync"); }, g)).toThrow("sync");
+    expect(g.ErrorUtils).toBe(eu);
+  });
+
   it("a closed sheet that failed draws nothing until it is opened", async () => {
     const { part } = await fresh();
     const P = part<{ open: boolean }>(() => Promise.reject(new Error("x")), (p) => p.open);
