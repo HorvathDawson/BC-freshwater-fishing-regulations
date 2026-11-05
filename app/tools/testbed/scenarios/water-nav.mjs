@@ -63,6 +63,10 @@ export const waterNav = {
         const at = await settledTarget(ctx);
         if (!at) throw new Error('the app named no tap target for the water (no [target] line)');
         ctx.device.sh(`input tap ${at.x} ${at.y}`);
+        // (0.5.0 drift) beside the tap: the section the probe hit there (a confluence tap
+        // opened the unnamed tributary)
+        const hit = /\[target\] (\{.*\})/.exec(ctx.device.logcatJs())?.[1];
+        console.log(`  tap ${at.x},${at.y} px; probe hit ${hit ?? '?'}`);
       }
       // the water's own screen (its view strip), and the water tapped is the one searched (not a neighbour; the search
       // field keeps the query, so the title alone proves nothing)

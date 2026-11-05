@@ -457,7 +457,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     for (const [x, y] of pts.slice(0, 400)) {
       const hit = await renderer.press(x, y).catch(() => null);
       if (hit && ids.has(Number(hit.id))) {
-        console.log(`[target] ${JSON.stringify({ x, y, win: winRect.current })}`);
+        console.log(`[target] ${JSON.stringify({ x, y, id: hit.id, win: winRect.current })}`);
         return;
       }
     }
