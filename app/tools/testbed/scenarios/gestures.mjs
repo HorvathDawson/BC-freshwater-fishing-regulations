@@ -125,13 +125,12 @@ export const gestures = {
     await ctx.step('the Conditions route map: pan + pinch', async () => {
       ctx.flow('tap-id', { ID: 'water-view-conditions' });
       await ctx.device.sleep(8000);                                           // the routes in before the map mounts
-      // (0.5.0) the route map sits in the closed "Sources and notes" fold at the page's foot: open it, then bring the
-      // map up from the bottom edge
-      ctx.flow('scroll-to', { TEXT: 'Sources and notes' });
-      ctx.flow('tap-text', { TEXT: 'Sources and notes' });
-      await ctx.device.sleep(2500);
-      ctx.device.sh(`input swipe ${size.w >> 1} ${Math.round(size.h * 0.8)} ${size.w >> 1} ${Math.round(size.h * 0.35)} 600`);
-      await ctx.device.sleep(3000);
+      // (0.5.0) the route map sits above the gauge list (DonorPanel `gaugeSide`), below the fold of a tall page: scroll
+      // down in small steps until a map box is on screen (not inside "Sources and notes", as first thought)
+      for (let i = 0; i < 6 && !smallMap(ctx, size); i++) {
+        ctx.device.sh(`input swipe ${size.w >> 1} ${Math.round(size.h * 0.75)} ${size.w >> 1} ${Math.round(size.h * 0.5)} 500`);
+        await ctx.device.sleep(2500);
+      }
       return drive(ctx, 'route', size, ts);
     });
     await ctx.step('back to the map', async () => { await toMap(ctx); });
