@@ -21,7 +21,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
-    version: "0.6.0", date: null, draft: true, notes: [
+    version: "0.6.0", date: "2026-11-05", notes: [
       "Gauge alerts you set yourself: when a river rises or falls past a level, or by a % in a day",
       "Choose how often an alert may ring; by default at most once a day per river",
       "A notice when a newer version of the app is out, with what's new in it",
