@@ -81,7 +81,7 @@ export function DottedSwatch({ colour, width = 14, thick = 3 }: { colour: string
  * (T396) THE REGULATIONS KEY'S MEASURES, in Trout & more and in Salmon alike: the wrap strip's side padding, and a tight
  * entry's swatch widths, the gap to its label and the gap between entries. Chosen so Trout & more's longer row (No
  * access · Fly only · Bait ban · Not fishable, in Archivo at `LEGEND_TEXT`) fits a 390 dp phone with room to spare —
- * pinned by MapLegend.rows.test.tsx against the font's own advance widths.
+ * pinned by tools/legend-rows.test.ts against the font's own advance widths.
  */
 export const LEGEND_ROWS = { padX: 12, column: 8, gap: 4, line: 14, edge: 16, square: 12 } as const;
 

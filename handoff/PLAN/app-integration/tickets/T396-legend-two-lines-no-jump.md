@@ -17,6 +17,6 @@ has 362. So the key is laid in TWO FIXED ROWS (`LegendRows`, ui-native Chrome.ts
 - The switch row is one row in both modes: Salmon's "DFO rules checked …" sits beside the switch (up to two lines, no
   taller than it) and no longer wraps under it, so the bar is the same height in both.
 A row too wide for a narrower phone (360 dp) still wraps rather than cutting a word — there Trout & more's second row
-can take a third line. Test: MapLegend.rows.test.tsx (two rows per mode; every row's width from Archivo's own advance
+can take a third line. Test: app/tools/legend-rows.test.ts (two rows per mode; every row's width from Archivo's own advance
 widths ≤ 390 dp; fails on the old measures).
 Phone: switch Trout & more ↔ Salmon on the map; the bar must not move, and both keys stand two lines.

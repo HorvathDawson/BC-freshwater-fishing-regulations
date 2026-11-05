@@ -1,20 +1,24 @@
+// @vitest-environment jsdom
 /**
  * T396 — the regulations key in two rows in both fishery modes, so the bottom bar stands the same height in Trout & more
  * and in Salmon, and Trout & more fits those two rows at a 390 dp phone (owner 2026-11-05: it wrapped to three).
  *
+ * Here in tools/ (not beside MapLegend) because it reads the font file, which packages/ui-native may not (node:fs).
  * jsdom lays nothing out, so the fit is checked against the font itself: every row's width is its entries' swatches,
  * gaps and labels, the labels measured with Archivo's own advance widths (the face `TYPE.small` names) at `LEGEND_TEXT`.
  */
+import "./render-setup.ts";   // the render project's setup
+import { createElement as h } from "react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 import { cleanup, render, screen } from "@testing-library/react";
-import { MapLegend } from "./shell/MapLegend";
-import { LEGEND_ROWS } from "./Chrome";
-import { LEGEND_TEXT } from "./type";
-import { LIGHT } from "./theme";
+import { MapLegend } from "../packages/ui-native/src/shell/MapLegend";
+import { LEGEND_ROWS } from "../packages/ui-native/src/Chrome";
+import { LEGEND_TEXT } from "../packages/ui-native/src/type";
+import { LIGHT } from "../packages/ui-native/src/theme";
 
 afterEach(cleanup);
 
@@ -77,7 +81,7 @@ const ROOM = 390 - 2 * LEGEND_ROWS.padX;
 describe("(T396) the regulations key: two rows in both modes, Trout & more fitting a 390 dp phone", () => {
   it("Trout & more and Salmon each lay their key in exactly two rows, with every entry kept", () => {
     for (const mode of ["standard", "salmon"] as const) {
-      render(<MapLegend col={col(mode)} conditions={false} palette={LIGHT} theme="light" mapDay={null} />);
+      render(h(MapLegend, { col: col(mode), conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
       expect(screen.getAllByTestId("legend-row").length, mode).toBe(2);
       expect(screen.getAllByTestId("legend-entry").length, mode).toBe(mode === "standard" ? 7 : 6);
       // the head is one row (no wrap): Salmon's checked line sits beside the switch, never under it
@@ -88,7 +92,7 @@ describe("(T396) the regulations key: two rows in both modes, Trout & more fitti
 
   it("every row fits 390 dp in Archivo at the legend size — also with a day's date on Closed", () => {
     for (const [mode, day] of [["standard", null], ["standard", new Date("2026-09-30T12:00:00")], ["salmon", null]] as const) {
-      render(<MapLegend col={col(mode)} conditions={false} palette={LIGHT} theme="light" mapDay={day} />);
+      render(h(MapLegend, { col: col(mode), conditions: false, palette: LIGHT, theme: "light", mapDay: day }));
       for (const w of rowWidths()) expect(w, `${mode} ${day ? "dated" : ""}`).toBeLessThanOrEqual(ROOM);
       cleanup();
     }
