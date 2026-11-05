@@ -1,6 +1,6 @@
 # T234 — Push notifications: regulation changes and condition alerts
 
-Status: OPEN — not started (owner 2026-10-28: "another ticket").
+Status: OPEN — started 2026-11-05 (owner: phone-only v1, gauge thresholds + update-ready notices).
 
 Source: owner 2026-10-28: "add ability to have push notifications for regulation changes too, or set push
 notifications for specific condition changes or forecasted changes."
@@ -45,3 +45,24 @@ notifications for specific condition changes or forecasted changes."
 
 Depends: T225 (feeds worker, staging), T230 (in-season feed), T231 (update service), T223 (optional accounts).
 Size: L. Owner: questions above.
+
+## Owner 2026-11-05
+- Wants: gauge alerts (a reading rises/falls past a threshold) and "regulation changes need downloading".
+- **New data (release / regulation updates): phone only** — no server push. The phone's background check finds the new
+  release and raises a local notification (download now / it downloads on next open).
+- Asked whether phone-only can be more real-time for gauge alerts. Claude's answer (below); owner to confirm the route
+  for gauge alerts.
+
+### How real-time can phone-only be (Android)
+- Background work (WorkManager via expo-background-task): every 15 min at best, while the phone is awake/charging;
+  Doze defers it to maintenance windows when the phone sits idle — roughly every 1–2 h at first, longer in deep idle.
+- Faster on-device options are closed or costly: exact alarms need SCHEDULE_EXACT_ALARM (Play allows it only for alarm/
+  calendar apps); a foreground service polls freely but shows a permanent notification, drains battery, and Android 15
+  caps dataSync services at 6 h/day.
+- The data's own pace: ECCC gauges publish hourly (about an hour behind), RFC forecasts once a day, DFO and in-season a
+  few times a day. So a 15–60 min phone check loses little against the data itself; only deep idle (hours) does.
+- Server push (FCM high priority) is the only way to wake an idle phone within minutes.
+- **Owner 2026-11-05, decided: phone-only v1 for gauge alerts too.** Background check every ~15 min (expo-background-task
+  / WorkManager), local notifications (expo-notifications, local only — no push token, no server). Measure real delays
+  on the owner's phone; FCM push only if alerts arrive too late. Q-T234a answered (device-only, no account, no server
+  record at all); Q-T234b: v1 = gauge thresholds (rise/fall past a value) + new data/regulation update ready; Q-T234c: now.
