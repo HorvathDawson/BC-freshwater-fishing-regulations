@@ -14,8 +14,9 @@
  *                  CADENCE (owner: "only should notify once on a river per day, or user can set max cadence"): each
  *                  alert has a minimum gap before it can fire again. The DEFAULT (`gapH: null`) is once per WATER per
  *                  day: no alert of that water fires while any of its alerts fired in the last 24 h. A gap the reader
- *                  picks (`ALERT_GAPS_H`) is the alert's own. A crossing the cadence holds back is kept PENDING and
- *                  told at the first check the gap allows while the condition still holds; back inside, it is dropped.
+ *                  picks (`ALERT_GAPS_H`) is the alert's own. A crossing the cadence blocks is DROPPED, never queued
+ *                  (owner 2026-11-05: a rise and fall inside the window must not ring later); the alert stays past and
+ *                  rings again only on a new crossing (back inside by the margin, then past) once the gap allows.
  *                  A reading missing, older than `ALERT_STALE_MS`, or the phone offline: nothing fires.
  *   update ready   a newer data release than the one in use: once per release.
  *   new app        (v1.1) a newer app version than the one installed: once per version (`appUpdate.ts`).
@@ -68,8 +69,6 @@ export interface AlertRuleState {
   readonly change?: number | null;
   /** when it last fired (epoch ms) */
   readonly firedAt?: number | null;
-  /** crossed while the cadence held it back: told at the first check the gap allows, if still past */
-  readonly pending?: boolean;
 }
 
 /** A gauge reading older than this is not evaluated (ECCC publishes hourly, about an hour behind). */
@@ -91,7 +90,7 @@ export type AlertSkip = "missing" | "stale" | "no-day-ago";
 
 export interface AlertEvaluation {
   readonly state: AlertRuleState;
-  /** the condition crossed now, or a held crossing still holds: tell it if the cadence allows */
+  /** the condition crossed now: tell it if the cadence allows (else it is dropped) */
   readonly due: boolean;
   /** why nothing was evaluated (for the run log); null when it was */
   readonly skipped: AlertSkip | null;
@@ -118,7 +117,7 @@ const isBack = (r: Rule, m: number) => {
  * ONE ALERT AGAINST ITS INPUT (no cadence: `evaluateAlerts` applies it). The first usable reading only sets where the
  * water is (an alert set while the river is already past its line does not ring at once: that is not a crossing).
  * Then: inside → past is due; past stays past (quiet) until back inside by the margin; between the line and the margin
- * keeps the state. A held crossing (`pending`) stays due while past, and is dropped once back inside.
+ * keeps the state.
  */
 export function evaluateAlert(rule: Rule, state: AlertRuleState | null, input: AlertInput | null,
                               nowMs: number): AlertEvaluation {
@@ -134,17 +133,17 @@ export function evaluateAlert(rule: Rule, state: AlertRuleState | null, input: A
     if (!then || !Number.isFinite(then.value) || then.value <= 0) return { state: prev, due: false, skipped: "no-day-ago" };
     m = change = changeOf(rule.kind, reading.value, then.value);
   }
-  // the same reading again (the feed has not moved): nothing new — but a held crossing waits on the clock, not the feed
-  if (prev.at === reading.at && prev.past !== null) return { state: prev, due: !!prev.pending, skipped: null };
+  // the same reading again (the feed has not moved): nothing new
+  if (prev.at === reading.at && prev.past !== null) return { state: prev, due: false, skipped: null };
   const seen = { at: reading.at, value: reading.value, ...(change !== null ? { change } : {}) };
-  if (prev.past === null) return { state: { ...prev, ...seen, past: isPast(rule, m), pending: false }, due: false, skipped: null };
+  if (prev.past === null) return { state: { ...prev, ...seen, past: isPast(rule, m) }, due: false, skipped: null };
   if (!prev.past) {
     if (isPast(rule, m)) return { state: { ...prev, ...seen, past: true }, due: true, skipped: null };
     return { state: { ...prev, ...seen }, due: false, skipped: null };
   }
   const back = isBack(rule, m);
-  if (back) return { state: { ...prev, ...seen, past: false, pending: false }, due: false, skipped: null };
-  return { state: { ...prev, ...seen }, due: !!prev.pending, skipped: null };
+  if (back) return { state: { ...prev, ...seen, past: false }, due: false, skipped: null };
+  return { state: { ...prev, ...seen }, due: false, skipped: null };
 }
 
 /** The water an alert counts against for the default cadence: its durable item, else (an unnamed reach) its gauge. */
@@ -164,12 +163,14 @@ export interface AlertsResult {
   readonly waterFired: Readonly<Record<string, number>>;
   /** the alerts to tell now, in the alerts' order, with the reading each crossed on */
   readonly fire: readonly { readonly rule: GaugeAlertRule; readonly input: { now: AlertReading; dayAgo: AlertReading | null } }[];
+  /** crossings the cadence dropped this check (for the run log) */
+  readonly dropped: number;
   readonly skipped: readonly AlertSkip[];
 }
 
 /**
  * EVERY ALERT, ONE CHECK: each switched-on alert against its input, the cadence applied in the alerts' order (two of a
- * water's alerts crossing in one check under the default: the first is told, the second held). An alert switched off
+ * water's alerts crossing in one check under the default: the first is told, the second dropped). An alert switched off
  * is not evaluated and keeps no state.
  */
 export function evaluateAlerts(rules: readonly GaugeAlertRule[], states: Readonly<Record<string, AlertRuleState>>,
@@ -179,6 +180,7 @@ export function evaluateAlerts(rules: readonly GaugeAlertRule[], states: Readonl
   const water: Record<string, number> = { ...waterFired };
   const fire: { rule: GaugeAlertRule; input: { now: AlertReading; dayAgo: AlertReading | null } }[] = [];
   const skipped: AlertSkip[] = [];
+  let dropped = 0;
   for (const r of rules) {
     if (!r.on) continue;
     const input = inputOf(r);
@@ -189,16 +191,14 @@ export function evaluateAlerts(rules: readonly GaugeAlertRule[], states: Readonl
     if (e.due) {
       const key = alertWaterKey(r);
       if (cadenceAllows(r, prev?.firedAt, water[key], nowMs)) {
-        s = { ...s, pending: false, firedAt: nowMs };
+        s = { ...s, firedAt: nowMs };
         water[key] = nowMs;
         fire.push({ rule: r, input: { now: input!.now!, dayAgo: input?.dayAgo ?? null } });
-      } else {
-        s = { ...s, pending: true };
-      }
+      } else dropped++;
     }
     out[r.id] = s;
   }
-  return { states: out, waterFired: water, fire, skipped };
+  return { states: out, waterFired: water, fire, dropped, skipped };
 }
 
 type Row = readonly [string, number | null, number | null];
@@ -312,7 +312,6 @@ export const NOTIFY_WORDS = {
     switchAloud: (line: string) => `Alert on: ${line}`,
     lastSent: (ms: number) => `last sent ${localStamp(ms)}`,
     notSent: "not sent yet",
-    held: "waiting for its gap",
     off: "off",
     /** the card's heading: the water, then the gauge */
     heading: (water: string | null, gauge: string) => (water && water !== gauge ? `${water} · ${gauge}` : gauge),
@@ -371,7 +370,7 @@ export const NOTIFY_WORDS = {
     offline: "offline",
     failed: (why: string) => `failed: ${why}`,
     fired: (n: number) => (n === 1 ? "1 alert" : `${n} alerts`),
-    held: (n: number) => `${n} held by cadence`,
+    dropped: (n: number) => `${n} not sent (cadence)`,
     quiet: "nothing to tell",
     updateReady: "new data ready",
     appVersion: "new app version",
@@ -399,7 +398,7 @@ export function cadenceLine(gapH: number | null): string {
 /** The card's line: "Flow above 30 m³/s · at most once a day for this water · last sent 2026-11-05 at 14:05 PT". */
 export function alertCardLine(r: GaugeAlertRule, s: AlertRuleState | null | undefined): string {
   const W = NOTIFY_WORDS.alerts;
-  const sent = s?.pending ? W.held : s?.firedAt ? W.lastSent(s.firedAt) : W.notSent;
+  const sent = s?.firedAt ? W.lastSent(s.firedAt) : W.notSent;
   return [alertLine(r), cadenceLine(r.gapH), r.on ? sent : W.off].join(" · ");
 }
 

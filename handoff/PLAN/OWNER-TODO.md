@@ -11,8 +11,8 @@ with the default Claude uses until you answer). Newest first inside each section
   words, clear `draft: true` per entry when read. From now on a release adds its entry before `build-apk.sh` (it warns
   when the version has none). Also yours: production has no `app/android/play.json` yet — a Play build pointed at
   production data reads it there (prod R2 is yours); Play builds today read staging, which build-apk.sh --play writes.
-- **Alert cadence readings to confirm (T234 v1.1, 2026-11-05):** a crossing the cadence holds back is told LATER (at the
-  first check the gap allows, if the river is still past the line) rather than dropped; a ±% alert re-arms once the
+- **Alert cadence readings to confirm (T234 v1.1, 2026-11-05):** (answered 11-05: a crossing the cadence blocks is
+  DROPPED, never queued; it rings again only on a new crossing) a ±% alert re-arms once the
   day's change is 2 points back under its line; "24 h earlier" = the gauge's reading nearest 24 h before, within 2 h.
   "Add an alert" in More finds a water by name and opens its Conditions, where the gauge card's "Alert me" sets it (the
   water's gauge is chosen there). Default: as built.

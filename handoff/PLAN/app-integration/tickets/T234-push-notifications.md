@@ -199,3 +199,9 @@ v1.1 (same build):
   to know when a river rises or falls past a point." "z times" = a % change within a day (owner's pick). At most once per
   river per day by default, or a reader-set gap before it can fire again. A nice UI, in a menu in More. Also: app
   updates should notify (T390 shows them in the bell on open; a closed-app notice is new) → v1.1 in progress.
+
+## Owner 2026-11-05: blocked crossings are dropped, not queued
+"if we get a rise then fall in a short time we don't want that queueing a message — until it happens again after it is
+open for notifications again." A crossing the cadence blocks is dropped (`dropped` count in the run log: "N not sent
+(cadence)"); the alert stays past and rings only on a new crossing (back inside by the margin, then past) once the gap
+allows. `pending` removed from the alert state (v1.1 never shipped, so no stored state carries it).

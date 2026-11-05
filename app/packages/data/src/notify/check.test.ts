@@ -58,7 +58,7 @@ describe("the background check (T234)", () => {
     expect(h.told.map((n) => n.title)).toEqual(["Chilliwack River: flow above 50 m³/s"]);
     expect(h.told[0]!.data).toEqual({ kind: "gauge", rule: "r1", station: "08MH001", item: "w1" });
     expect(h.settings.read().runs.map((r) => r.result))
-      .toEqual(["nothing to tell", "1 alert", "nothing to tell", "nothing to tell", "1 held by cadence"]);
+      .toEqual(["nothing to tell", "1 alert", "nothing to tell", "nothing to tell", "1 not sent (cadence)"]);
     expect(h.settings.read().waterFired).toEqual({ w1: T0 + 15 * 60_000 });
   });
 
@@ -70,7 +70,7 @@ describe("the background check (T234)", () => {
       await runBackgroundCheck(h.deps);
       h.tick(15 * 60_000);
     }
-    // 55 fires (T0+15); 56 at T0+45 is inside the hour (held), 30 drops it, 57 at T0+90 fires
+    // 55 fires (T0+15); 56 at T0+45 is inside the hour (dropped), 30 back inside, 57 at T0+90 fires
     expect(h.told).toHaveLength(2);
   });
 

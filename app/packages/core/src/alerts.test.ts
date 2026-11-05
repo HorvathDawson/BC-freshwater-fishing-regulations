@@ -126,20 +126,24 @@ describe("cadence (T234 v1.1)", () => {
   it("default: at most one notification per water per 24 h ACROSS its alerts; another water is not held", () => {
     const r = evaluateAlerts([a, b, other], crossing, (x) => past(x, 0), {}, T0);
     expect(r.fire.map((f) => f.rule.id)).toEqual(["a", "c"]);
-    expect(r.states.b!.pending).toBe(true);
+    expect([r.dropped, r.states.b!.past]).toEqual([1, true]);
     expect(r.waterFired).toEqual({ w1: T0, w2: T0 });
   });
 
-  it("a held crossing is told once the day has passed, if still past; dropped if it went back inside", () => {
+  it("a crossing the cadence blocks is dropped, never told later (owner 2026-11-05); a new crossing after the day is", () => {
     const first = evaluateAlerts([a, b], crossing, (x) => past(x, 0), {}, T0);
     const later = evaluateAlerts([a, b], first.states, (x) => past(x, 60), first.waterFired, T0 + 6 * H);
     expect(later.fire).toEqual([]);
+    // still past after the day: nothing (no queue; it was never back inside)
     const day = evaluateAlerts([a, b], later.states, (x) => past(x, 24 * 60 + 15), later.waterFired, T0 + WATER_DAY_MS + 15 * 60_000);
-    expect(day.fire.map((f) => f.rule.id)).toEqual(["b"]);
-    // back inside before the day passed: nothing held any more
+    expect(day.fire).toEqual([]);
+    // rise and fall inside the day: nothing then, nothing after
     const inside = evaluateAlerts([b], first.states, () => ({ now: { at: iso(120), value: 1 } }), first.waterFired, T0 + 2 * H);
     const after = evaluateAlerts([b], inside.states, () => ({ now: { at: iso(25 * 60), value: 1.5 } }), inside.waterFired, T0 + 25 * H);
-    expect([inside.states.b!.pending, after.fire.length]).toEqual([false, 0]);
+    expect(after.fire.length).toBe(0);
+    // back inside, then past again once the day allows: told
+    const again = evaluateAlerts([b], after.states, () => ({ now: { at: iso(26 * 60), value: 3 } }), after.waterFired, T0 + 26 * H);
+    expect(again.fire.map((f) => f.rule.id)).toEqual(["b"]);
   });
 
   it("a per-alert gap is the alert's own: a 1 h alert fires again after an hour and a re-crossing", () => {
@@ -152,7 +156,7 @@ describe("cadence (T234 v1.1)", () => {
       st = r.states; w = r.waterFired;
       return r.fire.length;
     });
-    // fires at 0 (its own gap, not the water's day); the re-crossing at 30 is held (gap 1 h); 75 back inside drops it;
+    // fires at 0 (its own gap, not the water's day); the re-crossing at 30 is dropped (gap 1 h); 75 back inside;
     // 90 crosses again with the hour passed
     expect(fired).toEqual([1, 0, 0, 0, 1]);
   });
@@ -209,7 +213,6 @@ describe("alert words (T234)", () => {
     expect(alertCardLine(rule({ gapH: 3 }), { past: true, firedAt: Date.parse("2026-11-05T14:05:00-07:00") }))
       .toBe("Flow above 50 m³/s · at most once every 3 h · last sent 2026-11-05 at 14:05 PT");
     expect(alertCardLine(rule({ on: false }), null)).toBe("Flow above 50 m³/s · at most once a day for this water · off");
-    expect(alertCardLine(rule(), { past: true, pending: true })).toBe("Flow above 50 m³/s · at most once a day for this water · waiting for its gap");
   });
 
   it("the editor's summary line, whole", () => {

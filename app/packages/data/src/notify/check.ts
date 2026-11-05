@@ -83,7 +83,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   let told = false;
 
   const live = s0.on ? s0.rules.filter((r) => r.on) : [];
-  let held = 0;
+  let dropped = 0;
   if (live.length) {
     try {
       const value = live.some((r) => !isChangeKind(r.kind)) ? await d.obs() : null;
@@ -115,7 +115,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
           if (prev) states[f.rule.id] = prev; else delete states[f.rule.id];
         }
       }
-      held = Object.entries(states).filter(([, st]) => st.pending).length;
+      dropped = e.dropped;
       // only the alerts still there (one deleted while the check ran stays deleted)
       d.settings.update((s) => ({ ...s, waterFired: { ...s.waterFired, ...water }, ruleState: { ...s.ruleState,
         ...Object.fromEntries(Object.entries(states).filter(([id]) => s.rules.some((r) => r.id === id))) } }));
@@ -152,7 +152,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   const W = NOTIFY_WORDS.run;
   if (!s0.on || (!live.length && !s0.updateReady && !s0.appVersion)) parts.push(W.noRules);
   if (fired) parts.push(W.fired(fired));
-  if (held) parts.push(W.held(held));
+  if (dropped) parts.push(W.dropped(dropped));
   if (told) parts.push(W.updateReady);
   if (toldApp) parts.push(W.appVersion);
   if (offline) parts.push(W.offline);
