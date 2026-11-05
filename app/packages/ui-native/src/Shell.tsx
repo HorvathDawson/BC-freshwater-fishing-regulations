@@ -638,7 +638,7 @@ export function Shell(p: ShellProps) {
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    vm={col.layers} onChoose={col.onChooseLayer}
                    // (T293) while the sheet is up the walkthrough's card is drawn in its window (a Modal is on top)
-                   overlay={layersOpen ? guideCard : undefined} />
+                   overlay={layersOpen && guide.open ? guideCard : undefined} />
       {/*
         * (T49) The map's date sheet: its calendar button opens the SAME sheet the Regulations page's date pill does
         * (`regs/DaySheet`), on this one `mapDay` — and the days it offers are the data's calendar year, cut at the

@@ -199,7 +199,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: SHEET_DIALOG.inset }}>
             <Pressable accessibilityRole="button" accessibilityLabel={SHEET_WORDS.close} onPress={onClose} {...SCRIM_HIT}
                        style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0, backgroundColor: palette.scrim }} />
-            <View testID="sheet-dialog" accessibilityViewIsModal
+            <View testID="sheet-dialog" accessibilityViewIsModal={!overlay}
                   style={{ width: "100%", maxWidth: SHEET_DIALOG.maxWidth, // no window height yet (0: not measured) caps nothing
                            maxHeight: windowHeight > 0 ? windowHeight * SHEET_DIALOG.maxHeight : undefined,
                            backgroundColor: palette.card, borderWidth: 1.5, borderColor: palette.ink }}>
@@ -247,7 +247,10 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   
           Square, a 1.5px rule in ink, and the grabber is a flat bar rather than a lozenge.
         */}
-        <Animated.View testID="sheet-panel" onLayout={(e) => { height.current = e.nativeEvent.layout.height; }} accessibilityViewIsModal
+        {/* (T336) `accessibilityViewIsModal` hides the panel's SIBLINGS from VoiceOver / XCUITest on iOS — the walkthrough card
+            drawn over it (`overlay`) is one, so it was drawn but unreachable (no Skip / Next / Show me). The Modal is its own
+            window already (the app behind is out of reach either way); with an overlay up, the panel is not modal. */}
+        <Animated.View testID="sheet-panel" onLayout={(e) => { height.current = e.nativeEvent.layout.height; }} accessibilityViewIsModal={!overlay}
                        style={{ backgroundColor: palette.card,
                                 borderTopWidth: 1.5, borderColor: palette.ink,
                                 opacity: reduced ? dim : 1, transform: [{ translateY: Animated.add(y, slide) }] }}>
