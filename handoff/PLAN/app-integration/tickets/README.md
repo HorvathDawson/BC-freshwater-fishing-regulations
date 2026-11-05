@@ -436,6 +436,12 @@ use that as the sole source of future work."
 | T390 | The app notices a newer version of itself and offers an Update button (Play in-app update; strong prompt when a release needs a newer app) | OPEN | — | owner 2026-11-04 (after 0.5.0) |
 | T391 | Every web water page filed a fatal "Requiring unknown module": Metro reports the lazy-chunk miss as fatal while ErrorUtils is set; the asking moment runs without it | DONE 11-04 | — | crash reports 2026-11-04 |
 | T392 | A feeds worker release reruns the feeds: the deployed version is in every reuse key; deploy/staging/feeds.sh deploys then runs every job | DONE 11-05 | — | owner 2026-11-05 |
+| T393 | Regional DFO size rules (adult chinook, 30 cm / 25 cm minimums) on the species rows, not loose lines | OPEN | — | owner report 2026-11-05 |
+| T394 | Salmon quota rows still show the ocean image, not the spawning image (T343 item 6 missed a path) | OPEN | — | owner report 2026-11-05 |
+| T395 | Vessel restrictions: own tab under Methods and gear, out of the top of the regs pane | OPEN | — | owner report 2026-11-05 |
+| T396 | Trout & more legend in 2 lines, both mode legends one height (no jump on switch) | OPEN | — | owner report 2026-11-05 |
+| T397 | BUG: Runs tab fish chips cannot be scrolled sideways on the phone | OPEN | — | owner report 2026-11-05 |
+| T398 | ELF-only water opens on real-time data; forecast always switchable off | OPEN | — | owner report 2026-11-05 |
 
 ## Order for open tickets
 
