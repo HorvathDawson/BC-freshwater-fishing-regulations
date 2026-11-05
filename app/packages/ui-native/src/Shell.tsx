@@ -592,12 +592,12 @@ export function Shell(p: ShellProps) {
         {rail.picking && route.mode === "browse" && tab === "map" && (
           <SpotPickBanner palette={palette} onCancel={rail.cancelPick} />
         )}
-      </View>
-      {/* (T275) THE FOOT OVERLAYS THE MAP: a zero-height row at the bottom of the page whose block hangs up over the map. The
-          block's height changes with the mode (Standard / Salmon / Runs / Conditions) and as a flex sibling it resized the
-          map each time; now the map keeps its size and camera, and only the block changes. */}
-      <View testID="map-foot" style={{ height: 0, zIndex: 1 }} pointerEvents="box-none">
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }} pointerEvents="box-none"
+        {/* (T275) THE FOOT OVERLAYS THE MAP: a block at the bottom of the map area that hangs up over the map. Its height
+            changes with the mode (Standard / Salmon / Runs / Conditions) and as a flex sibling it resized the map each
+            time; now the map keeps its size and camera, and only the block changes. (T397) It is INSIDE the map area,
+            not hung from a zero-height row: Android delivers a native drag only within the parent's bounds, so the Runs
+            species row (a native horizontal ScrollView) never scrolled, while taps (hit-tested in JS) still worked. */}
+        <View testID="map-foot" style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 1 }} pointerEvents="box-none"
               onLayout={(e) => setFootH(Math.round(e.nativeEvent.layout.height))}>
           {showLegend && (
             <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />

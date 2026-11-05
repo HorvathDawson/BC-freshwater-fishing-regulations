@@ -440,7 +440,7 @@ use that as the sole source of future work."
 | T394 | Salmon quota rows still show the ocean image, not the spawning image (T343 item 6 missed a path) | OPEN | — | owner report 2026-11-05 |
 | T395 | Vessel restrictions: own tab under Methods and gear, out of the top of the regs pane | OPEN | — | owner report 2026-11-05 |
 | T396 | Trout & more legend in 2 lines, both mode legends one height (no jump on switch) | OPEN | — | owner report 2026-11-05 |
-| T397 | BUG: Runs tab fish chips cannot be scrolled sideways on the phone | OPEN | — | owner report 2026-11-05 |
+| T397 | BUG: Runs tab fish chips cannot be scrolled sideways on the phone | DONE in code 11-05 (phone check next APK) | — | owner report 2026-11-05 |
 | T398 | ELF-only water opens on real-time data; forecast always switchable off | OPEN | — | owner report 2026-11-05 |
 | T399 | The water map's highlighted part zigzagged: the water copy drew a shallow zoom's line over the atlas below one shared ceiling; each copied section now stops at its own zoom (filter, no style swap) | DONE in code (owner look on APK) | adfbe330e | owner 2026-11-04 (0.5.0 phone) |
 | T400 | Camera moves choppy on the phone: fitBounds flew (the binding's default "fly" easing); now eased. Left: search refine rounds / probe steps are extra moves | PARTIAL | adfbe330e | owner 2026-11-04 (0.5.0 phone) |

@@ -109,6 +109,9 @@ describe("(T261) the Runs tab", () => {
 
     act(() => { fireEvent.click(screen.getByRole("tab", { name: "Runs" })); });
     await waitFor(() => expect(screen.getByTestId("map-runs").textContent).toBe("6:58"));
+    // (T397) no ancestor of the species row is a zero-height box: Android hands a native drag (the row's sideways
+    // scroll) only to a view inside its parent's bounds
+    for (let e: HTMLElement | null = screen.getByTestId("run-species"); e; e = e.parentElement) expect(e.style.height).not.toBe("0px");
     const seen: string[] = [bar(), `top ${[!!screen.queryByTestId("top-bar"), !!screen.queryByTestId("inseason-bell")]}`,
                             screen.getByTestId("map-modes").textContent!, screen.getByTestId("run-day").textContent!];
     // a second species: both painted, and kept
