@@ -1,9 +1,217 @@
 {
  "version": 1,
  "waters": {
+  "blk:-2200000296": {
+   "slug": "kyle-creek-r2",
+   "region": 2
+  },
   "blk:-2200000420": {
    "slug": "wilkes-creek",
    "region": 2
+  },
+  "blk:354088905": {
+   "slug": "quinsam-river-diversion-headpond",
+   "region": 1
+  },
+  "blk:354089612": {
+   "slug": "the-cut-coulee",
+   "region": 1
+  },
+  "blk:354090493": {
+   "slug": "crocker-creek",
+   "region": 1
+  },
+  "blk:354090778": {
+   "slug": "baker-creek",
+   "region": 1
+  },
+  "blk:354091667": {
+   "slug": "gray-farm-creek",
+   "region": 1
+  },
+  "blk:354092267": {
+   "slug": "chapple-creek",
+   "region": 1
+  },
+  "blk:354095395": {
+   "slug": "belvedere-farm-creek",
+   "region": 1
+  },
+  "blk:354096324": {
+   "slug": "rap-creek",
+   "region": 1
+  },
+  "blk:354107767": {
+   "slug": "hamilton-creek",
+   "region": 1
+  },
+  "blk:354108514": {
+   "slug": "mckay-creek-r1",
+   "region": 1
+  },
+  "blk:354114978": {
+   "slug": "beaver-creek",
+   "region": 1
+  },
+  "blk:354115683": {
+   "slug": "craig-creek",
+   "region": 1
+  },
+  "blk:354115965": {
+   "slug": "mayfly-creek-r1",
+   "region": 1
+  },
+  "blk:354116002": {
+   "slug": "harris-creek",
+   "region": 1
+  },
+  "blk:354117553": {
+   "slug": "normandy-creek",
+   "region": 1
+  },
+  "blk:354118062": {
+   "slug": "jacqueline-brook",
+   "region": 1
+  },
+  "blk:354118973": {
+   "slug": "farley-creek",
+   "region": 1
+  },
+  "blk:354119767": {
+   "slug": "devlin-creek",
+   "region": 1
+  },
+  "blk:354120641": {
+   "slug": "loon-creek",
+   "region": 1
+  },
+  "blk:354125014": {
+   "slug": "north-mcnaughton-creek",
+   "region": 1
+  },
+  "blk:354125318": {
+   "slug": "pup-creek-r1",
+   "region": 1
+  },
+  "blk:354125656": {
+   "slug": "throup-stream",
+   "region": 1
+  },
+  "blk:354126239": {
+   "slug": "benes-creek",
+   "region": 1
+  },
+  "blk:354126755": {
+   "slug": "hidden-creek",
+   "region": 1
+  },
+  "blk:354128296": {
+   "slug": "cat-stream",
+   "region": 1
+  },
+  "blk:354128686": {
+   "slug": "salmon-brook",
+   "region": 1
+  },
+  "blk:354132772": {
+   "slug": "death-creek",
+   "region": 1
+  },
+  "blk:354136493": {
+   "slug": "rashleigh-brook",
+   "region": 1
+  },
+  "blk:354139008": {
+   "slug": "darough-creek",
+   "region": 1
+  },
+  "blk:354139477": {
+   "slug": "gnarly-creek",
+   "region": 1
+  },
+  "blk:354139803": {
+   "slug": "sheet-creek",
+   "region": 1
+  },
+  "blk:354139831": {
+   "slug": "westglade-brook",
+   "region": 1
+  },
+  "blk:354140869": {
+   "slug": "dicks-brook",
+   "region": 1
+  },
+  "blk:354141792": {
+   "slug": "finlay-creek-r1",
+   "region": 1
+  },
+  "blk:354141940": {
+   "slug": "burnham-brook",
+   "region": 1
+  },
+  "blk:354142015": {
+   "slug": "teachers-creek",
+   "region": 1
+  },
+  "blk:354142529": {
+   "slug": "mallard-creek-r1",
+   "region": 1
+  },
+  "blk:354142996": {
+   "slug": "emily-creek",
+   "region": 1
+  },
+  "blk:354143627": {
+   "slug": "rugged-creek",
+   "region": 1
+  },
+  "blk:354145759": {
+   "slug": "river-meadows-creek",
+   "region": 1
+  },
+  "blk:354147156": {
+   "slug": "mud-bay-creek-r1",
+   "region": 1
+  },
+  "blk:354147601": {
+   "slug": "forbidden-plateau-creek",
+   "region": 1
+  },
+  "blk:354148045": {
+   "slug": "maple-creek",
+   "region": 1
+  },
+  "blk:354148885": {
+   "slug": "thatcher-creek",
+   "region": 1
+  },
+  "blk:354148939": {
+   "slug": "hidden-hills-creek",
+   "region": 1
+  },
+  "blk:354149669": {
+   "slug": "bevan-creek",
+   "region": 1
+  },
+  "blk:354150301": {
+   "slug": "b-p-creek",
+   "region": 1
+  },
+  "blk:354151186": {
+   "slug": "stink-creek",
+   "region": 1
+  },
+  "blk:354151912": {
+   "slug": "noble-creek",
+   "region": 1
+  },
+  "blk:354153674": {
+   "slug": "marion-creek",
+   "region": 1
+  },
+  "blk:354155073": {
+   "slug": "cathedral-creek",
+   "region": 1
   },
   "blk:355991777": {
    "slug": "seabird-island-north-side-channel",
@@ -11,6 +219,10 @@
   },
   "blk:355992187": {
    "slug": "herrling-island-side-channel",
+   "region": 2
+  },
+  "blk:355993381": {
+   "slug": "ruskin-spawning-channel",
    "region": 2
   },
   "blk:355994157": {
@@ -21,9 +233,485 @@
    "slug": "jeperson-side-channel-r2",
    "region": 2
   },
+  "blk:355997438": {
+   "slug": "shovel-creek",
+   "region": 2
+  },
+  "blk:356033284": {
+   "slug": "cub-creek",
+   "region": 2
+  },
+  "blk:356037641": {
+   "slug": "gates-spawning-channel",
+   "region": 3
+  },
+  "blk:356050695": {
+   "slug": "tower-creek-r2",
+   "region": 2
+  },
+  "blk:356056778": {
+   "slug": "corinne-brook",
+   "region": 2
+  },
+  "blk:356062107": {
+   "slug": "jantz-stream",
+   "region": 2
+  },
+  "blk:356078121": {
+   "slug": "thomson-creek",
+   "region": 2
+  },
+  "blk:356081632": {
+   "slug": "hunt-brook",
+   "region": 2
+  },
+  "blk:356082830": {
+   "slug": "marshall-creek",
+   "region": 2
+  },
+  "blk:356085915": {
+   "slug": "henry-bose-creek",
+   "region": 2
+  },
+  "blk:356088277": {
+   "slug": "trickle-creek",
+   "region": 2
+  },
+  "blk:356092472": {
+   "slug": "jacobsen-creek-r2",
+   "region": 2
+  },
+  "blk:356095236": {
+   "slug": "reedville-creek",
+   "region": 2
+  },
+  "blk:356096337": {
+   "slug": "gill-brook",
+   "region": 2
+  },
+  "blk:356118304": {
+   "slug": "miami-slough",
+   "region": 2
+  },
+  "blk:356128411": {
+   "slug": "cloverdale-canal",
+   "region": 2
+  },
+  "blk:356128529": {
+   "slug": "mckay-creek-r2",
+   "region": 2
+  },
+  "blk:356136026": {
+   "slug": "mcnally-creek-r2",
+   "region": 2
+  },
+  "blk:356136630": {
+   "slug": "norum-creek",
+   "region": 2
+  },
+  "blk:356145206": {
+   "slug": "angel-creek",
+   "region": 2
+  },
+  "blk:356150719": {
+   "slug": "harper-creek",
+   "region": 3
+  },
+  "blk:356161149": {
+   "slug": "fleetwood-creek",
+   "region": 2
+  },
+  "blk:356177804": {
+   "slug": "gourlay-creek",
+   "region": 2
+  },
+  "blk:356188803": {
+   "slug": "no-good-creek",
+   "region": 2
+  },
+  "blk:356195100": {
+   "slug": "reeve-slough",
+   "region": 2
+  },
+  "blk:356196726": {
+   "slug": "shamrock-creek-r2",
+   "region": 2
+  },
+  "blk:356205439": {
+   "slug": "glover-creek-r2",
+   "region": 2
+  },
+  "blk:356210019": {
+   "slug": "silverstream-slough",
+   "region": 2
+  },
+  "blk:356211380": {
+   "slug": "truckwash-creek",
+   "region": 2
+  },
+  "blk:356217367": {
+   "slug": "manson-canal",
+   "region": 2
+  },
+  "blk:356218035": {
+   "slug": "saporano-creek",
+   "region": 2
+  },
+  "blk:356220750": {
+   "slug": "laura-brook-r2",
+   "region": 2
+  },
+  "blk:356226572": {
+   "slug": "mcgillivray-creek-south-fork",
+   "region": 3
+  },
+  "blk:356228345": {
+   "slug": "shane-creek-r7",
+   "region": 7
+  },
+  "blk:356232808": {
+   "slug": "brae-slough",
+   "region": 2
+  },
+  "blk:356238772": {
+   "slug": "stapley-creek",
+   "region": 2
+  },
+  "blk:356249293": {
+   "slug": "mcfadden-creek-r2",
+   "region": 2
+  },
+  "blk:356253337": {
+   "slug": "karen-creek-r2",
+   "region": 2
+  },
+  "blk:356254237": {
+   "slug": "pylon-creek-r2",
+   "region": 2
+  },
+  "blk:356263650": {
+   "slug": "kerfoot-creek",
+   "region": 2
+  },
+  "blk:356271168": {
+   "slug": "bean-creek",
+   "region": 2
+  },
+  "blk:356272352": {
+   "slug": "cohen-creek",
+   "region": 2
+  },
+  "blk:356275366": {
+   "slug": "everets-creek",
+   "region": 2
+  },
+  "blk:356280098": {
+   "slug": "king-creek",
+   "region": 2
+  },
+  "blk:356288569": {
+   "slug": "buxton-creek-r2",
+   "region": 2
+  },
+  "blk:356294200": {
+   "slug": "price-creek",
+   "region": 2
+  },
+  "blk:356300550": {
+   "slug": "peacock-brook",
+   "region": 2
+  },
+  "blk:356304947": {
+   "slug": "smith-brook",
+   "region": 2
+  },
+  "blk:356305031": {
+   "slug": "problem-creek",
+   "region": 2
+  },
+  "blk:356314888": {
+   "slug": "kilgard-creek",
+   "region": 2
+  },
+  "blk:356316442": {
+   "slug": "east-creek",
+   "region": 2
+  },
+  "blk:356317915": {
+   "slug": "canyon-creek",
+   "region": 2
+  },
+  "blk:356322711": {
+   "slug": "gulch-creek-r3",
+   "region": 3
+  },
+  "blk:356337117": {
+   "slug": "cattle-valley-creek",
+   "region": 3
+  },
+  "blk:356353428": {
+   "slug": "cottonwood-creek-south",
+   "region": 3
+  },
+  "blk:356354557": {
+   "slug": "s-m-creek",
+   "region": 2
+  },
+  "blk:356356588": {
+   "slug": "coho-creek",
+   "region": 2
+  },
+  "blk:356360791": {
+   "slug": "scudamore-creek-north",
+   "region": 3
+  },
+  "blk:356364390": {
+   "slug": "lakes-creek-r3",
+   "region": 3
+  },
+  "blk:356368998": {
+   "slug": "meadow-creek-diversion",
+   "region": 4
+  },
+  "blk:356370187": {
+   "slug": "inkaneep-creek-r8",
+   "region": 8
+  },
+  "blk:356432746": {
+   "slug": "porcupine-river-r4",
+   "region": 4
+  },
+  "blk:356464736": {
+   "slug": "meighan-creek",
+   "region": 8
+  },
+  "blk:356470444": {
+   "slug": "krumholtz-creek",
+   "region": 4
+  },
+  "blk:356500859": {
+   "slug": "negro-creek",
+   "region": 4
+  },
+  "blk:356520700": {
+   "slug": "white-creek",
+   "region": 8
+  },
+  "blk:356559786": {
+   "slug": "boardman-creek",
+   "region": 4
+  },
+  "blk:359111766": {
+   "slug": "wendy-creek",
+   "region": 7
+  },
+  "blk:359295223": {
+   "slug": "college-creek",
+   "region": 7
+  },
+  "blk:359343124": {
+   "slug": "north-hermann-creek",
+   "region": 7
+  },
+  "blk:359353121": {
+   "slug": "nabors-creek",
+   "region": 7
+  },
+  "blk:359567586": {
+   "slug": "camp-creek",
+   "region": 7
+  },
   "blk:360219234": {
    "slug": "squamish-powerhouse-channel-r2-2-6-near-squamish-riverside-day-use-area",
    "region": 2
+  },
+  "blk:360278283": {
+   "slug": "norguard-brook",
+   "region": 2
+  },
+  "blk:360280439": {
+   "slug": "huszar-creek",
+   "region": 2
+  },
+  "blk:360304172": {
+   "slug": "panorama-creek-r2",
+   "region": 2
+  },
+  "blk:360319246": {
+   "slug": "jessie-creek",
+   "region": 2
+  },
+  "blk:360324076": {
+   "slug": "pluton-creek",
+   "region": 2
+  },
+  "blk:360342347": {
+   "slug": "frank-creek",
+   "region": 2
+  },
+  "blk:360357261": {
+   "slug": "brigade-bay-creek",
+   "region": 2
+  },
+  "blk:360368539": {
+   "slug": "coffin-creek-r2",
+   "region": 2
+  },
+  "blk:360377737": {
+   "slug": "senate-creek",
+   "region": 2
+  },
+  "blk:360405521": {
+   "slug": "temple-creek-r2",
+   "region": 2
+  },
+  "blk:360418020": {
+   "slug": "roche-point-creek",
+   "region": 2
+  },
+  "blk:360428491": {
+   "slug": "burton-creek",
+   "region": 2
+  },
+  "blk:360479384": {
+   "slug": "empress-creek",
+   "region": 2
+  },
+  "blk:360555609": {
+   "slug": "windsor-creek-r2",
+   "region": 2
+  },
+  "blk:360569185": {
+   "slug": "fromme-creek",
+   "region": 2
+  },
+  "blk:360589684": {
+   "slug": "maude-frickert-creek",
+   "region": 2
+  },
+  "blk:360594352": {
+   "slug": "damsoon-creek",
+   "region": 2
+  },
+  "blk:360596958": {
+   "slug": "queens-cup-creek",
+   "region": 2
+  },
+  "blk:360626307": {
+   "slug": "stuyvesant-creek",
+   "region": 2
+  },
+  "blk:360631291": {
+   "slug": "emsley-creek-r2",
+   "region": 2
+  },
+  "blk:360656139": {
+   "slug": "balloon-creek",
+   "region": 2
+  },
+  "blk:360661877": {
+   "slug": "wyssen-creek",
+   "region": 2
+  },
+  "blk:360681465": {
+   "slug": "elderberry-creek",
+   "region": 2
+  },
+  "blk:360686071": {
+   "slug": "nygaard-creek",
+   "region": 5
+  },
+  "blk:360698837": {
+   "slug": "grennon-creek",
+   "region": 2
+  },
+  "blk:360717058": {
+   "slug": "one-eye-creek",
+   "region": 2
+  },
+  "blk:360747072": {
+   "slug": "wolverine-creek",
+   "region": 2
+  },
+  "blk:360750947": {
+   "slug": "boulder-creek",
+   "region": 2
+  },
+  "blk:360755606": {
+   "slug": "paranoid-creek",
+   "region": 2
+  },
+  "blk:360760569": {
+   "slug": "sundown-creek",
+   "region": 2
+  },
+  "blk:360765287": {
+   "slug": "colwood-creek-r2",
+   "region": 2
+  },
+  "blk:360766324": {
+   "slug": "thomas-creek-r2-2",
+   "region": 2
+  },
+  "blk:360768090": {
+   "slug": "skullhead-creek",
+   "region": 2
+  },
+  "blk:360784317": {
+   "slug": "beer-creek",
+   "region": 2
+  },
+  "blk:360798415": {
+   "slug": "round-creek-r2",
+   "region": 2
+  },
+  "blk:360809256": {
+   "slug": "spring-creek",
+   "region": 2
+  },
+  "blk:360810400": {
+   "slug": "drifter-creek",
+   "region": 2
+  },
+  "blk:360818251": {
+   "slug": "east-gray-creek",
+   "region": 2
+  },
+  "blk:360820636": {
+   "slug": "lions-creek",
+   "region": 2
+  },
+  "blk:360830493": {
+   "slug": "peach-creek",
+   "region": 2
+  },
+  "blk:360834850": {
+   "slug": "lodgepole-creek-r2",
+   "region": 2
+  },
+  "blk:360835297": {
+   "slug": "shannon-creek",
+   "region": 2
+  },
+  "blk:360837986": {
+   "slug": "last-creek-r2",
+   "region": 2
+  },
+  "blk:360838112": {
+   "slug": "outrigger-creek",
+   "region": 2
+  },
+  "blk:360846083": {
+   "slug": "sheldens-creek",
+   "region": 1
+  },
+  "blk:360860441": {
+   "slug": "carnival-creek",
+   "region": 2
+  },
+  "blk:360871596": {
+   "slug": "paul-said-brook",
+   "region": 5
   },
   "gnis:10004": {
    "slug": "anchor-creek",
@@ -36160,6 +36848,10 @@
   "gnis:37591": {
    "slug": "moffat-creek-r1",
    "region": 1
+  },
+  "gnis:37595": {
+   "slug": "nelson-creek",
+   "region": 2
   },
   "gnis:37597": {
    "slug": "nolan-creek",
@@ -76569,6 +77261,30 @@
    "slug": "kaymar-trib-2-trib-1",
    "region": 2
   },
+  "wsc:100-010829": {
+   "slug": "kaymar-creek-r2",
+   "region": 2
+  },
+  "wsc:100-010829-264500": {
+   "slug": "kaymar-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-010829-400500": {
+   "slug": "kaymar-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-010829-400500-012900": {
+   "slug": "kaymar-trib-2-1-r2",
+   "region": 2
+  },
+  "wsc:100-010829-400500-187600": {
+   "slug": "kaymar-trib-2-2-r2",
+   "region": 2
+  },
+  "wsc:100-010829-400500-251200": {
+   "slug": "kaymar-trib-2-trib-1-r2",
+   "region": 2
+  },
   "wsc:100-011000": {
    "slug": "glen-lyon-creek",
    "region": 2
@@ -76577,12 +77293,28 @@
    "slug": "glen-lyon-trib-1",
    "region": 2
   },
+  "wsc:100-011048": {
+   "slug": "glen-lyon-creek-r2",
+   "region": 2
+  },
+  "wsc:100-011048-870300": {
+   "slug": "glen-lyon-trib-1-r2",
+   "region": 2
+  },
   "wsc:100-011200": {
    "slug": "fraser-river-trib-1",
    "region": 2
   },
   "wsc:100-011400": {
    "slug": "sussex-creek",
+   "region": 2
+  },
+  "wsc:100-011460": {
+   "slug": "sussex-creek-r2",
+   "region": 2
+  },
+  "wsc:100-011460-749300": {
+   "slug": "sussex-creek-r2-near-burnaby",
    "region": 2
   },
   "wsc:100-011600": {
@@ -76635,6 +77367,46 @@
   },
   "wsc:100-011600-857700": {
    "slug": "power-house-creek",
+   "region": 2
+  },
+  "wsc:100-011602": {
+   "slug": "power-house-creek-r2",
+   "region": 2
+  },
+  "wsc:100-011602-118600-447336-268100": {
+   "slug": "gray-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-011602-118600-447336-268100-113400": {
+   "slug": "gray-trib-1-1-r2",
+   "region": 2
+  },
+  "wsc:100-011602-118600-447336-999999": {
+   "slug": "gray-creek",
+   "region": 2
+  },
+  "wsc:100-011602-314256-062500": {
+   "slug": "froggers-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-011602-326200": {
+   "slug": "froggers-creek-r2",
+   "region": 2
+  },
+  "wsc:100-011602-326200-284500": {
+   "slug": "froggers-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-011602-483643": {
+   "slug": "john-matthews-creek-r2",
+   "region": 2
+  },
+  "wsc:100-011602-540300": {
+   "slug": "byrne-fish-channel-r2",
+   "region": 2
+  },
+  "wsc:100-011602-813700": {
+   "slug": "byrne-trib-8-r2",
    "region": 2
   },
   "wsc:100-011800": {
@@ -76703,6 +77475,10 @@
   },
   "wsc:100-019698-465700": {
    "slug": "lost-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-471100": {
+   "slug": "lost-creek",
    "region": 2
   },
   "wsc:100-019698-479800": {
@@ -76789,6 +77565,78 @@
    "slug": "stoney-trib-3-2",
    "region": 2
   },
+  "wsc:100-019698-561179-172700": {
+   "slug": "stoney-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-172700-560200": {
+   "slug": "stoney-trib-1-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-369200": {
+   "slug": "stoney-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-369200-228400": {
+   "slug": "stoney-trib-2-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-671000": {
+   "slug": "stoney-trib-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-671000-851000": {
+   "slug": "stoney-trib-3-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700": {
+   "slug": "stoney-trib-3-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-176000": {
+   "slug": "stoney-trib-3-1-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-176000-257800": {
+   "slug": "stoney-trib-3-1-1-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-176000-321000": {
+   "slug": "stoney-trib-3-1-1-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-176000-321000-237700": {
+   "slug": "stoney-trib-3-1-1-2-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-176000-321000-316300": {
+   "slug": "stoney-trib-3-1-1-2-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-176000-321000-316300-394900": {
+   "slug": "stoney-trib-3-1-1-2-2-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-176000-321000-577900": {
+   "slug": "stoney-trib-3-1-1-2-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-176000-321000-833800": {
+   "slug": "stoney-trib-3-1-1-2-4-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-176000-321000-969300": {
+   "slug": "stoney-trib-3-1-1-2-5-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-236900": {
+   "slug": "stoney-trib-3-1-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-561179-672700-782100": {
+   "slug": "stoney-trib-3-1-3-r2",
+   "region": 2
+  },
   "wsc:100-019698-665200": {
    "slug": "silver-creek-r2",
    "region": 2
@@ -76815,6 +77663,10 @@
   },
   "wsc:100-019698-665200-493300-999999": {
    "slug": "slvt2",
+   "region": 2
+  },
+  "wsc:100-019698-665200-495100": {
+   "slug": "slvt2-r2",
    "region": 2
   },
   "wsc:100-019698-665200-680800": {
@@ -76909,6 +77761,66 @@
    "slug": "osprey-trib-2",
    "region": 2
   },
+  "wsc:100-019698-793856": {
+   "slug": "eagle-creek",
+   "region": 2
+  },
+  "wsc:100-019698-793856-326300": {
+   "slug": "eagle-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-369100": {
+   "slug": "eagle-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-369100-383900": {
+   "slug": "eagle-trib-2-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-570300": {
+   "slug": "eagle-trib-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-669400": {
+   "slug": "eagle-trib-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-737764-008500": {
+   "slug": "eagle-trib-4-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-737764-008500-728900": {
+   "slug": "eagle-trib-4-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-810200": {
+   "slug": "eagle-trib-5-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-810200-125500": {
+   "slug": "eagle-trib-5-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-810200-367800": {
+   "slug": "eagle-trib-5-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-810200-374400": {
+   "slug": "eagle-trib-5-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-827300": {
+   "slug": "eagle-trib-6-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-827300-487700": {
+   "slug": "eagle-trib-6-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-793856-827300-487700-256100": {
+   "slug": "eagle-trib-6-1-1-r2",
+   "region": 2
+  },
   "wsc:100-019698-794100": {
    "slug": "eagle-creek-r2-near-burnaby",
    "region": 2
@@ -76971,6 +77883,38 @@
   },
   "wsc:100-019698-794100-776700-531600-256100": {
    "slug": "eagle-trib-6-1-1",
+   "region": 2
+  },
+  "wsc:100-019698-807867": {
+   "slug": "ramsay-trib-5-r2",
+   "region": 2
+  },
+  "wsc:100-019698-807867-371100": {
+   "slug": "ramsay-trib-6-r2",
+   "region": 2
+  },
+  "wsc:100-019698-807867-371100-685500": {
+   "slug": "ramsay-trib-6-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-807867-420200": {
+   "slug": "ramsay-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-807867-420200-937000": {
+   "slug": "ramsay-trib-1-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-807867-443900": {
+   "slug": "ramsay-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-807867-621000": {
+   "slug": "ramsay-trib-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-807867-833400": {
+   "slug": "ramsay-trib-4-r2",
    "region": 2
   },
   "wsc:100-019698-807900": {
@@ -77067,6 +78011,274 @@
   },
   "wsc:100-019698-933000": {
    "slug": "rayside-creek",
+   "region": 2
+  },
+  "wsc:100-019698-933296": {
+   "slug": "deer-lake-brook-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-143455-028200": {
+   "slug": "deer-lake-brook-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-176900": {
+   "slug": "deer-lake-brook-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-179700": {
+   "slug": "deer-lake-brook-trib-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-311800": {
+   "slug": "buckingham-creek",
+   "region": 2
+  },
+  "wsc:100-019698-933296-311800-330600": {
+   "slug": "buckingham-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-311800-949200": {
+   "slug": "buckingham-trib-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-332200": {
+   "slug": "first-beach-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-337699": {
+   "slug": "chickadee-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-337700": {
+   "slug": "flume-creek",
+   "region": 2
+  },
+  "wsc:100-019698-933296-337733": {
+   "slug": "second-beach-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-337733-375800": {
+   "slug": "second-beach-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-337733-375800-403300": {
+   "slug": "second-beach-trib-1-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-337733-673500": {
+   "slug": "second-beach-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-377700": {
+   "slug": "edgar-creek",
+   "region": 2
+  },
+  "wsc:100-019698-933296-387700": {
+   "slug": "turtle-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-388641": {
+   "slug": "third-beach-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-388641-642000": {
+   "slug": "third-beach-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-388641-762100": {
+   "slug": "third-beach-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-388641-779300": {
+   "slug": "third-beach-trib-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-388641-793800": {
+   "slug": "third-beach-trib-4-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-411400": {
+   "slug": "oakalla-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-416500": {
+   "slug": "owl-creek",
+   "region": 2
+  },
+  "wsc:100-019698-933296-416500-209800": {
+   "slug": "owl-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-416500-209800-159000": {
+   "slug": "owl-trib-1-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-432100": {
+   "slug": "angelo-creek",
+   "region": 2
+  },
+  "wsc:100-019698-933296-518100": {
+   "slug": "oakalla-farm-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-624700": {
+   "slug": "beaver-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-624700-336800": {
+   "slug": "beaver-trib-1-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-628800": {
+   "slug": "beaver-trib-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-668000": {
+   "slug": "beaver-trib-4-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-679300": {
+   "slug": "beaver-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-679300-153000": {
+   "slug": "beaver-trib-2-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-933296-718700": {
+   "slug": "beaver-trib-5-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-062300": {
+   "slug": "station-creek",
+   "region": 2
+  },
+  "wsc:100-019698-961269-123600": {
+   "slug": "bog-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-168000": {
+   "slug": "pole-line-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-168100": {
+   "slug": "pollywog-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-168100-728500": {
+   "slug": "pollywog-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-203400": {
+   "slug": "spartan-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-203400-503700": {
+   "slug": "spartan-creek-trib-2-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-241300": {
+   "slug": "black-bear-creek",
+   "region": 2
+  },
+  "wsc:100-019698-961269-265736": {
+   "slug": "cranberry-creek",
+   "region": 2
+  },
+  "wsc:100-019698-961269-265909": {
+   "slug": "crab-apple-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-265909-097400": {
+   "slug": "crab-apple-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-265909-097400-430800": {
+   "slug": "crab-apple-trib-1-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-309009": {
+   "slug": "sunken-engine-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-309009-300800": {
+   "slug": "beecher-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-309009-433700": {
+   "slug": "beecher-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-309009-636600": {
+   "slug": "beecher-trib-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-309009-656900": {
+   "slug": "beecher-trib-4-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-382000": {
+   "slug": "elk-creek",
+   "region": 2
+  },
+  "wsc:100-019698-961269-419099": {
+   "slug": "ardley-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-419100": {
+   "slug": "stickleback-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-419100-444400": {
+   "slug": "stickleback-creek-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-435700": {
+   "slug": "willow-creek",
+   "region": 2
+  },
+  "wsc:100-019698-961269-437000": {
+   "slug": "cutthroat-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-452200": {
+   "slug": "corvus-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-479668": {
+   "slug": "guichon-creek",
+   "region": 2
+  },
+  "wsc:100-019698-961269-479668-071400": {
+   "slug": "guichon-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-479668-642300": {
+   "slug": "guichon-trib-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-519400": {
+   "slug": "sumner-creek",
+   "region": 2
+  },
+  "wsc:100-019698-961269-519400-919100": {
+   "slug": "sumner-trib-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-579574": {
+   "slug": "chub-creek-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-579574-088300": {
+   "slug": "chub-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-579574-088300-124300": {
+   "slug": "chub-trib-1-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-961269-601700": {
+   "slug": "spring-brook",
    "region": 2
   },
   "wsc:100-019698-972600": {
@@ -77211,6 +78423,26 @@
   },
   "wsc:100-019698-972600-973000-720800": {
    "slug": "beaver-trib-5",
+   "region": 2
+  },
+  "wsc:100-019698-997400": {
+   "slug": "thomas-creek-r2-near-burnaby",
+   "region": 2
+  },
+  "wsc:100-019698-997400-353799": {
+   "slug": "thomas-creek-trib-1-r2",
+   "region": 2
+  },
+  "wsc:100-019698-997400-353800": {
+   "slug": "thomas-creek-trib-2-r2",
+   "region": 2
+  },
+  "wsc:100-019698-997400-627400": {
+   "slug": "thomas-creek-trib-3-r2",
+   "region": 2
+  },
+  "wsc:100-019698-997400-750000": {
+   "slug": "thomas-creek-trib-5-r2",
    "region": 2
   },
   "wsc:100-019698-999997": {
@@ -77373,6 +78605,10 @@
    "slug": "spring-brook-r2",
    "region": 2
   },
+  "wsc:100-046202-028692-080600": {
+   "slug": "northrop-spawning-channel",
+   "region": 2
+  },
   "wsc:100-190442-590943-400441-661450": {
    "slug": "dairy-creek-r3-near-pass-valley",
    "region": 3
@@ -77477,6 +78713,38 @@
    "slug": "schoolhouse-south-creek-tributary-trib-2",
    "region": 2
   },
+  "wsc:900-056279-246900": {
+   "slug": "schoolhouse-south-creek-tributary-r2",
+   "region": 2
+  },
+  "wsc:900-056279-246900-333100": {
+   "slug": "schoolhouse-south-creek-tributary-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-056279-246900-506500": {
+   "slug": "schoolhouse-south-creek-tributary-trib-2-r2",
+   "region": 2
+  },
+  "wsc:900-056279-321399": {
+   "slug": "ottley-creek-r2",
+   "region": 2
+  },
+  "wsc:900-056279-321399-557000": {
+   "slug": "ottley-creek-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-056279-321399-557000-343200": {
+   "slug": "ottley-creek-trib-1-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-056279-321400": {
+   "slug": "axford-creek-r2",
+   "region": 2
+  },
+  "wsc:900-056279-321400-324700": {
+   "slug": "axford-creek-trib-1-r2",
+   "region": 2
+  },
   "wsc:900-056279-352700": {
    "slug": "noble-creek-r2",
    "region": 2
@@ -77521,6 +78789,18 @@
    "slug": "goulet-creek",
    "region": 2
   },
+  "wsc:900-056280": {
+   "slug": "hatchley-creek-r2",
+   "region": 2
+  },
+  "wsc:900-056280-198900": {
+   "slug": "hatchley-creek-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-056280-535700": {
+   "slug": "hatchley-creek-trib-2-r2",
+   "region": 2
+  },
   "wsc:900-056280-692300-999999": {
    "slug": "ottley-creek",
    "region": 2
@@ -77539,6 +78819,22 @@
   },
   "wsc:900-056280-999999-324700": {
    "slug": "axford-creek-trib-1",
+   "region": 2
+  },
+  "wsc:900-056281": {
+   "slug": "goulet-creek-r2",
+   "region": 2
+  },
+  "wsc:900-056282": {
+   "slug": "west-sundial-creek-r2",
+   "region": 2
+  },
+  "wsc:900-056282-471000": {
+   "slug": "west-sundial-creek-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-057239-436900": {
+   "slug": "turner-creek-trib-1-r2",
    "region": 2
   },
   "wsc:900-057239-999998": {
@@ -77569,6 +78865,18 @@
    "slug": "suter-brook-creek",
    "region": 2
   },
+  "wsc:900-057241-999999": {
+   "slug": "dallas-creek-r2",
+   "region": 2
+  },
+  "wsc:900-057241-999999-863500": {
+   "slug": "correl-brook-r2",
+   "region": 2
+  },
+  "wsc:900-057241-999999-993800": {
+   "slug": "elginhouse-creek-r2",
+   "region": 2
+  },
   "wsc:900-057242": {
    "slug": "pigeon-creek-r2",
    "region": 2
@@ -77589,12 +78897,84 @@
    "slug": "hutchinson-creek-trib-2",
    "region": 2
   },
+  "wsc:900-057244": {
+   "slug": "hutchinson-creek",
+   "region": 2
+  },
+  "wsc:900-057244-773100": {
+   "slug": "hutchinson-creek-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-057244-846600": {
+   "slug": "hutchinson-creek-trib-2-r2",
+   "region": 2
+  },
+  "wsc:900-057245": {
+   "slug": "williams-creek",
+   "region": 2
+  },
   "wsc:900-058210": {
    "slug": "schoolhouse-creek-north",
    "region": 2
   },
+  "wsc:900-058379": {
+   "slug": "schoolhouse-creek-north-r2-near-port-moody",
+   "region": 2
+  },
+  "wsc:900-058380": {
+   "slug": "schoolhouse-creek-north-r2-near-port-moody-2",
+   "region": 2
+  },
+  "wsc:900-058381": {
+   "slug": "schoolhouse-creek-north-r2-near-anmore",
+   "region": 2
+  },
+  "wsc:900-058382": {
+   "slug": "schoolhouse-creek-north-r2-near-anmore-2",
+   "region": 2
+  },
+  "wsc:900-058383": {
+   "slug": "schoolhouse-creek-north-r2-near-anmore-3",
+   "region": 2
+  },
+  "wsc:900-058384": {
+   "slug": "village-creek",
+   "region": 2
+  },
+  "wsc:900-058385": {
+   "slug": "schoolhouse-creek-north-r2-near-anmore-4",
+   "region": 2
+  },
+  "wsc:900-058386": {
+   "slug": "schoolhouse-creek-north-r2-near-anmore-5",
+   "region": 2
+  },
+  "wsc:900-058387": {
+   "slug": "schoolhouse-creek-north-r2-near-port-moody-3",
+   "region": 2
+  },
+  "wsc:900-058388": {
+   "slug": "schoolhouse-creek-north-r2-near-port-moody-4",
+   "region": 2
+  },
+  "wsc:900-058389": {
+   "slug": "schoolhouse-creek-north-r2-near-port-moody-5",
+   "region": 2
+  },
   "wsc:900-059187": {
    "slug": "thluk-way-tun-creek",
+   "region": 2
+  },
+  "wsc:900-059187-358500": {
+   "slug": "aliceville-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-059187-358500-866100": {
+   "slug": "aliceville-trib-1-1-r2",
+   "region": 2
+  },
+  "wsc:900-059187-447600": {
+   "slug": "aliceville-trib-2-r2",
    "region": 2
   },
   "wsc:900-059187-880400": {
@@ -77603,6 +78983,10 @@
   },
   "wsc:900-059188": {
    "slug": "takaya-creek",
+   "region": 2
+  },
+  "wsc:900-059188-880400": {
+   "slug": "thluk-way-tun-trib-1-r2",
    "region": 2
   },
   "wsc:900-059189": {
@@ -77645,20 +79029,60 @@
    "slug": "simon-trib-1-2",
    "region": 2
   },
+  "wsc:900-059190-242900": {
+   "slug": "submarines-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-059190-242900-631300": {
+   "slug": "submarines-trib-1-1-r2",
+   "region": 2
+  },
   "wsc:900-059190-516700": {
    "slug": "simon-trib-2",
+   "region": 2
+  },
+  "wsc:900-059190-542900": {
+   "slug": "submarines-trib-2-r2",
    "region": 2
   },
   "wsc:900-059190-657300": {
    "slug": "simon-trib-3",
    "region": 2
   },
+  "wsc:900-059190-674900": {
+   "slug": "submarines-trib-3-r2",
+   "region": 2
+  },
   "wsc:900-059191": {
    "slug": "nichols-creek-r2",
    "region": 2
   },
+  "wsc:900-059191-148900": {
+   "slug": "simon-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-059191-148900-273800": {
+   "slug": "simon-trib-1-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-059191-148900-273800-723800": {
+   "slug": "simon-trib-1-1-1-r2",
+   "region": 2
+  },
+  "wsc:900-059191-148900-320000": {
+   "slug": "simon-trib-1-2-r2",
+   "region": 2
+  },
   "wsc:900-059191-447000": {
    "slug": "nichols-trib-1",
+   "region": 2
+  },
+  "wsc:900-059191-516700": {
+   "slug": "simon-trib-2-r2",
+   "region": 2
+  },
+  "wsc:900-059191-657300": {
+   "slug": "simon-trib-3-r2",
    "region": 2
   },
   "wsc:900-059192": {
@@ -77675,6 +79099,10 @@
   },
   "wsc:900-059192-334300-502800": {
    "slug": "crab-trib-2-2",
+   "region": 2
+  },
+  "wsc:900-059192-447000": {
+   "slug": "nichols-trib-1-r2",
    "region": 2
   },
   "wsc:900-059193": {
@@ -77697,6 +79125,18 @@
    "slug": "aliceville-creek",
    "region": 2
   },
+  "wsc:900-059194-213200": {
+   "slug": "crab-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-059194-334300": {
+   "slug": "crab-trib-2-r2",
+   "region": 2
+  },
+  "wsc:900-059194-334300-502800": {
+   "slug": "crab-trib-2-2-r2",
+   "region": 2
+  },
   "wsc:900-059194-358500": {
    "slug": "aliceville-trib-1",
    "region": 2
@@ -77707,6 +79147,22 @@
   },
   "wsc:900-059194-447600": {
    "slug": "aliceville-trib-2",
+   "region": 2
+  },
+  "wsc:900-059195": {
+   "slug": "cougar-creek",
+   "region": 2
+  },
+  "wsc:900-059195-046800": {
+   "slug": "cougar-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-059195-046800-496400": {
+   "slug": "cougar-trib-1-1-r2",
+   "region": 2
+  },
+  "wsc:900-059195-057400": {
+   "slug": "cougar-trib-2-r2",
    "region": 2
   },
   "wsc:900-076392": {
@@ -77779,6 +79235,66 @@
   },
   "wsc:900-102884": {
    "slug": "mamquam-blind-channel-trib-1",
+   "region": 2
+  },
+  "wsc:900-103609": {
+   "slug": "loggers-lane-creek-trib-4-r2",
+   "region": 2
+  },
+  "wsc:900-103610": {
+   "slug": "loggers-lane-creek-r2",
+   "region": 2
+  },
+  "wsc:900-103610-275500": {
+   "slug": "finch-creek-r2",
+   "region": 2
+  },
+  "wsc:900-103611": {
+   "slug": "mamquam-blind-channel-wetland-r2",
+   "region": 2
+  },
+  "wsc:900-103611-278195": {
+   "slug": "wilson-slough",
+   "region": 2
+  },
+  "wsc:900-103611-278195-370300": {
+   "slug": "britannia-slough-r2",
+   "region": 2
+  },
+  "wsc:900-103611-278195-370300-118300": {
+   "slug": "britannia-slough-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-103611-278195-370300-366900": {
+   "slug": "britannia-slough-trib-2-r2",
+   "region": 2
+  },
+  "wsc:900-103611-278195-370300-714100": {
+   "slug": "britannia-slough-trib-3-r2",
+   "region": 2
+  },
+  "wsc:900-103611-288200": {
+   "slug": "loggers-lane-creek-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-103611-570000": {
+   "slug": "loggers-lane-creek-trib-2-r2",
+   "region": 2
+  },
+  "wsc:900-103611-839600": {
+   "slug": "loggers-lane-creek-trib-5-r2",
+   "region": 2
+  },
+  "wsc:900-103611-966100": {
+   "slug": "loggers-lane-connector-r2",
+   "region": 2
+  },
+  "wsc:900-103611-966100-102000": {
+   "slug": "loggers-lane-connector-trib-1-r2",
+   "region": 2
+  },
+  "wsc:900-103612": {
+   "slug": "mamquam-blind-channel-trib-1-r2",
    "region": 2
   },
   "wsc:900-105031": {
@@ -77869,6 +79385,14 @@
    "slug": "mashiter-side-channel",
    "region": 2
   },
+  "wsc:900-105574-087851-218737": {
+   "slug": "thunderbird-creek-r2-2",
+   "region": 2
+  },
+  "wsc:900-105574-087851-218737-215600": {
+   "slug": "thunderbird-creek-r2-3",
+   "region": 2
+  },
   "wsc:900-105574-092353-121874-348300": {
    "slug": "brackendale-creek",
    "region": 2
@@ -77891,6 +79415,10 @@
   },
   "wsc:900-105574-293100": {
    "slug": "horse-creek-r2",
+   "region": 2
+  },
+  "wsc:900-105574-345000": {
+   "slug": "horse-creek",
    "region": 2
   },
   "wsc:900-105574-416908": {

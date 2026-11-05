@@ -277,6 +277,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const was = prev.waters, now = new Map(models.map((m) => [m.id, m]));
     const added = models.filter((m) => !(m.id in was)), changed = models.filter((m) => m.id in was && was[m.id]!.hash !== waterHash.get(m.id));
     const gone = Object.entries(was).filter(([id]) => !now.has(id)).map(([, w]) => w.name).sort();
+    // nothing differs (two cuts of the same rules): no page — an empty "changes" page is thin content, not news
+    if (changed.length + added.length + gone.length > 0) {
     const ul = (xs: readonly WaterModel[]) => `<ul class="cols">${xs.map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a></li>`).join("")}</ul>`;
     const path = "/changes", title = clip(`BC fishing regulation changes this release — ${site.name}`, 60);
     const body = `<nav class="crumbs"><a href="/">Home</a> › Changes</nav><h1>Fishing regulation changes in this release</h1>` +
@@ -287,6 +289,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const description = clip(`${changed.length} waters with changed rules, ${added.length} new and ${gone.length} removed since release ${prev.release}.`);
     unique(titles, title, path); unique(descriptions, description, path);
     add("changes", path, shellOf(path, title, description, body, pageLd(site, path, title, asOf, [["Home", "/"], ["Changes", path]])));
+    }
   }
 
   // ── About ──────────────────────────────────────────────────────────────────────────────────────────────────────────

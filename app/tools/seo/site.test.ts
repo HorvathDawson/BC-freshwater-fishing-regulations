@@ -249,7 +249,11 @@ describe("T195 hubs and dated pages", () => {
     expect(t).toMatch(/Rules changed \(1\)/); expect(t).toMatch(/New waters \(1\)/); expect(t).toMatch(/no longer listed \(1\)/);
     expect(t).toContain("Gone Creek"); expect(t).toContain("r-000000000000");
     expect(next.files.get("sitemap-1.xml")).toContain("/changes");
-  }, 120_000);
+    // another release with the same rules (a re-cut): nothing to say, so no page and no sitemap entry
+    const same = await buildAll({ loader: openRegsFixture(), on: TODAY, previous: { ...built.build.snapshot, release: "r-000000000000" } });
+    expect(same.build.pages.some((p) => p.kind === "changes")).toBe(false);
+    expect(same.files.get("sitemap-1.xml")).not.toContain("/changes");
+  }, 180_000);
 });
 
 describe("T196 performance budget", () => {
