@@ -25,7 +25,7 @@
 import { GUIDE_WATER, TAB_TOUR_WORDS, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Platform, View } from "react-native";
+import { AppState, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useMenu, useDataFacts, useSync, useAppUpdate,
          BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
@@ -312,11 +312,17 @@ export function Shell(p: ShellProps) {
   /*
    * (T390) THE BELL'S "APP UPDATE" SECTION: a newer app (gentle), or a release refused because it needs one (strong:
    * "New data needs the latest app"), with one Update button — Play's in-app update, the App Store page, or the staging
-   * APK page (`p.appUpdater`). Checked at most once a device day, never offline.
+   * APK page (`p.appUpdater`). Checked on every opening and every return to the app, never offline.
    */
+  const [resumed, setResumed] = useState(0);
+  useEffect(() => {
+    let was = AppState.currentState;
+    const sub = AppState.addEventListener("change", (st) => { if (st === "active" && was !== "active") setResumed((n) => n + 1); was = st; });
+    return () => sub.remove();
+  }, []);
   const appUpdate = useAppUpdate(p.appUpdater ?? null, p.appUpdateStore ?? null,
                                  { offline: netState.mode.offline, tooOld: syncState.updates?.release?.phase === "app-too-old",
-                                   ask: p.openUpdate ?? 0 });
+                                   ask: p.openUpdate ?? 0, resume: resumed });
   const appVM = appUpdate?.vm ?? null;
   const releaseCount = (releaseVM?.counts ? 1 : 0) + (appVM?.counts ? 1 : 0);
   const onReleaseAction = (kind: "download" | "apply") => {

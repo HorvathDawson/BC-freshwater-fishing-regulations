@@ -9,8 +9,9 @@
  *
  * Where the button goes is the CHANNEL (`appUpdateChannel`): Play's in-app update for a Play install, the App Store page
  * on iOS (once the listing exists, T88), the staging APK page for a sideloaded test build; none on the web (the site is
- * always the latest) or a local build. The store is asked at most once a device day (`shouldCheckAppUpdate`) and never
- * offline; offline says nothing (`appUpdateVM`). A check or a start that fails is shown here and reported by the hook
+ * always the latest) or a local build. The check reads OUR version file (`play.json` / `latest.json`, tiny) on every
+ * opening and every return to the app (T390 2026-11-05: a daily cap and Play's own slow refresh hid 0.6.1), never
+ * offline (`shouldCheckAppUpdate`); offline says nothing (`appUpdateVM`). A check or a start that fails is shown here and reported by the hook
  * (`@app/ui` `useAppUpdate`, T368).
  */
 import { compareSemver, parseSemver, type AppVersion } from "./appVersion";
@@ -34,6 +35,8 @@ export const APP_UPDATE_WORDS = {
   downloading: "Downloading the update. The app restarts when it is ready.",
   opened: "The store page is open.",
   notYet: "No newer version is available for this phone yet.",
+  /** our version file names a newer build that Play does not offer this phone yet: the button opened the listing */
+  playPreparing: "Play is still preparing this version for your phone. The Play listing is open.",
   working: "Starting the update…",
   /** failures, said under the button (the hook reports them) */
   checkFailed: "Could not check for a newer version of the app.",
@@ -163,11 +166,10 @@ export function readAppUpdateSaved(text: string | null): AppUpdateSaved | null {
   } catch { return null; }
 }
 
-/** Ask the store now? Never offline, never without a channel, and at most once a device day. */
-export function shouldCheckAppUpdate(i: { channel: AppUpdateChannel; saved: AppUpdateSaved | null; today: string;
-                                          offline: boolean }): boolean {
-  if (i.channel === "none" || i.offline) return false;
-  return i.saved?.day !== i.today;
+/** Check now? Never offline, never without a channel; otherwise on every opening and every return to the app (no day
+ *  cap: the check is our own small version file, T390 2026-11-05). */
+export function shouldCheckAppUpdate(i: { channel: AppUpdateChannel; offline: boolean }): boolean {
+  return i.channel !== "none" && !i.offline;
 }
 
 /** The staging APK page's `latest.json` (written by `deploy/staging/build-apk.sh` beside `latest.apk`). */
@@ -198,7 +200,7 @@ export type AppUpdateCheck =
   | { readonly state: "failed"; readonly offline: boolean };
 
 /** What the button last did. */
-export type AppUpdateStart = "idle" | "working" | "downloading" | "opened" | "none" | "failed" | "offline";
+export type AppUpdateStart = "idle" | "working" | "downloading" | "opened" | "listing" | "none" | "failed" | "offline";
 
 export interface AppUpdateVM {
   readonly strength: "gentle" | "strong";
@@ -239,7 +241,7 @@ function appUpdateVMBare(i: { channel: AppUpdateChannel; check: AppUpdateCheck; 
                               start: AppUpdateStart }): Omit<AppUpdateVM, "whatsNew"> | null {
   const W = APP_UPDATE_WORDS;
   const said = i.start === "working" ? W.working : i.start === "downloading" ? W.downloading
-    : i.start === "opened" ? W.opened : i.start === "none" ? W.notYet : i.start === "failed" ? W.startFailed
+    : i.start === "opened" ? W.opened : i.start === "listing" ? W.playPreparing : i.start === "none" ? W.notYet : i.start === "failed" ? W.startFailed
     : i.start === "offline" ? W.offline : null;
   const startFailed = i.start === "failed" || i.start === "offline";
   const label = i.channel === "apk-page" ? W.getBuild : W.update;

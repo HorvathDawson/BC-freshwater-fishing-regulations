@@ -1,10 +1,12 @@
 /**
- * (T390) A NEWER APP, HEADLESS: asks the platform's store (`AppUpdatePort`, the app's: `apps/mobile`
- * `appUpdater.native.ts` / `.web.ts`) at most once a device day and never offline, keeps the answer on the device, and
- * gives the bell's "App update" section its view model (`@app/core` `appUpdateVM`) and its one button.
+ * (T390) A NEWER APP, HEADLESS: asks the platform's way to a newer app (`AppUpdatePort`, the app's: `apps/mobile`
+ * `appUpdater.native.ts` / `.web.ts`; on Play and the APK page that is OUR version file, tiny) on every opening and every
+ * return to the app, never offline, keeps the answer on the device (shown at once on the next opening), and gives the
+ * bell's "App update" section its view model (`@app/core` `appUpdateVM`) and its one button.
  *
- * ONE LOAD PATH (T369): the check runs from here only — on opening, and again when the phone comes back online or the
- * device day turns; the bell, its badge and its label all read this one state.
+ * ONE LOAD PATH (T369): the check runs from here only — on opening, on each return to the app (`resume`), when the phone
+ * comes back online, and when a new-version notification is tapped (`ask`); the bell, its badge and its label all read
+ * this one state. (2026-11-05: a once-a-day cap here is why 0.6.0 did not notice 0.6.1.)
  * FAILURES (T368): a check or a start that fails is said in the section and reported; the environment's (offline, a
  * dropped line) is said and never reported, and an offline check says nothing at all.
  */
@@ -20,9 +22,9 @@ export interface AppUpdatePort {
   check(): Promise<{ available: boolean; version: string | null; notes?: readonly string[] | null }>;
   /**
    * Start it: Play's in-app update (`immediate`: the full-screen flow, for data that needs the app; else the flexible
-   * download), the store page, or the test-build page. "downloading" | "opened" | "none" (nothing newer to install).
+   * download), the store page, the test-build page, or (Play not offering it yet) the Play listing. "downloading" | "opened" | "listing" | "none" (nothing newer to install).
    */
-  start(o: { immediate: boolean }): Promise<"downloading" | "opened" | "none">;
+  start(o: { immediate: boolean }): Promise<"downloading" | "opened" | "listing" | "none">;
 }
 
 /** Where the last check is kept (a small file of its own). */
@@ -49,20 +51,17 @@ function asCheck(s: AppUpdateSaved | null): AppUpdateCheck {
 
 export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore | null,
                              o: { offline: boolean; tooOld: boolean;
-                                  /** (T234 v1.1) a new-version notification was tapped: ask now, whatever the day */
-                                  ask?: number }): AppUpdateControl | null {
+                                  /** (T234 v1.1) a new-version notification was tapped: ask now */
+                                  ask?: number;
+                                  /** (T390) bumped on each return to the app: ask again */
+                                  resume?: number }): AppUpdateControl | null {
   const channel = port?.channel ?? "none";
   const [check, setCheck] = useState<AppUpdateCheck>(() => asCheck(readSaved(store)));
   const [start, setStart] = useState<AppUpdateStart>("idle");
   const asking = useRef(false);
   const today = deviceDay();
-  const asked = useRef(0);
   useEffect(() => {
-    if (!port || asking.current) return;
-    const saved = readSaved(store);
-    const tapped = (o.ask ?? 0) > asked.current && !o.offline && channel !== "none";
-    if (!tapped && !shouldCheckAppUpdate({ channel, saved, today, offline: o.offline })) return;
-    asked.current = o.ask ?? 0;
+    if (!port || asking.current || !shouldCheckAppUpdate({ channel, offline: o.offline })) return;
     asking.current = true;
     port.check().then((r) => {
       const next: AppUpdateSaved = { day: today, available: r.available, version: r.version, notes: r.notes ?? null };
@@ -70,15 +69,11 @@ export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore |
       setCheck(asCheck(next));
     }, (e: unknown) => {
       const offline = isEnvironment(e);
-      // a failed check is still the day's ask (a store that refuses would otherwise be asked on every opening);
-      // the connection's failure is not: asked again when the phone is back online
-      if (!offline) {
-        reportFailure(e);
-        try { store?.write(JSON.stringify({ day: today, available: false, version: null })); } catch (w) { reportFailure(w); }
-      }
+      // shown, and reported unless it is the connection's (asked again on the next return or when back online)
+      if (!offline) reportFailure(e);
       setCheck({ state: "failed", offline });
     }).finally(() => { asking.current = false; });
-  }, [port, store, channel, today, o.offline, o.ask]);
+  }, [port, store, channel, today, o.offline, o.ask, o.resume]);
 
   const update = useCallback(() => {
     if (!port) return;

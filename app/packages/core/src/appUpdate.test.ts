@@ -27,16 +27,14 @@ describe("appUpdateChannel", () => {
   });
 });
 
-describe("once a device day, never offline", () => {
-  const saved = { day: "2026-11-04", available: false, version: null };
-  it("asks when nothing is kept, or the kept ask was another day", () => {
-    expect(shouldCheckAppUpdate({ channel: "play", saved: null, today: "2026-11-04", offline: false })).toBe(true);
-    expect(shouldCheckAppUpdate({ channel: "play", saved, today: "2026-11-04", offline: false })).toBe(false);
-    expect(shouldCheckAppUpdate({ channel: "play", saved, today: "2026-11-05", offline: false })).toBe(true);
+describe("every opening and return, never offline", () => {
+  it("asks whenever there is a channel and a connection (no day cap: 0.6.0 missed 0.6.1 behind one)", () => {
+    expect(shouldCheckAppUpdate({ channel: "play", offline: false })).toBe(true);
+    expect(shouldCheckAppUpdate({ channel: "apk-page", offline: false })).toBe(true);
   });
   it("offline or without a channel: never", () => {
-    expect(shouldCheckAppUpdate({ channel: "play", saved: null, today: "2026-11-04", offline: true })).toBe(false);
-    expect(shouldCheckAppUpdate({ channel: "none", saved: null, today: "2026-11-04", offline: false })).toBe(false);
+    expect(shouldCheckAppUpdate({ channel: "play", offline: true })).toBe(false);
+    expect(shouldCheckAppUpdate({ channel: "none", offline: false })).toBe(false);
   });
   it("the kept file: read whole, anything else is nothing kept", () => {
     expect(readAppUpdateSaved(JSON.stringify({ day: "2026-11-04", available: true, version: "0.6.0" })))
@@ -106,6 +104,9 @@ describe("appUpdateVM: the bell's App update section", () => {
     expect(appUpdateVM({ channel: "play", check: avail, tooOld: false, start: "working" })!.button).toBeNull();
     expect(appUpdateVM({ channel: "apk-page", check: avail, tooOld: false, start: "opened" })!.said).toBe(W.opened);
     expect(appUpdateVM({ channel: "play", check: current, tooOld: true, start: "none" })!.said).toBe(W.notYet);
+    // (T390 11-05) our file names a newer build that Play does not offer yet: the listing opened, said so, button kept
+    expect(appUpdateVM({ channel: "play", check: avail, tooOld: false, start: "listing" }))
+      .toMatchObject({ said: W.playPreparing, failed: false, button: { label: "Update" } });
   });
   it("the bell says it first", () => {
     const vm = appUpdateVM({ channel: "play", check: current, tooOld: true, start: "idle" });

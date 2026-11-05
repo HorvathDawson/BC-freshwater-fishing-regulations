@@ -1,5 +1,6 @@
 /**
- * (T390) useAppUpdate: the store is asked once a device day and never offline; the answer is kept; a failed check or
+ * (T390) useAppUpdate: asked on every opening and every return to the app, never offline; the answer is kept (shown at
+ * once on the next opening); a failed check or
  * start is said and reported (the connection's never reported); the button is immediate for the strong prompt.
  * Mounted (jsdom) because it is a hook.
  */
@@ -14,7 +15,7 @@ const today = wallIso(new Date());
 const flush = () => act(async () => { await new Promise((r) => setTimeout(r, 0)); });
 
 function port(o: { check?: () => Promise<{ available: boolean; version: string | null }>;
-                   start?: (x: { immediate: boolean }) => Promise<"downloading" | "opened" | "none"> } = {}) {
+                   start?: (x: { immediate: boolean }) => Promise<"downloading" | "opened" | "listing" | "none"> } = {}) {
   const calls = { check: 0, start: [] as boolean[] };
   const p: AppUpdatePort = {
     channel: "play",
@@ -24,15 +25,15 @@ function port(o: { check?: () => Promise<{ available: boolean; version: string |
   return { p, calls };
 }
 
-function Probe({ p, store, offline = false, tooOld = false, out }: {
-  p: AppUpdatePort | null; store: ReturnType<typeof mem>; offline?: boolean; tooOld?: boolean;
+function Probe({ p, store, offline = false, tooOld = false, resume = 0, out }: {
+  p: AppUpdatePort | null; store: ReturnType<typeof mem>; offline?: boolean; tooOld?: boolean; resume?: number;
   out: { c?: AppUpdateControl | null } }) {
-  out.c = useAppUpdate(p, store, { offline, tooOld });
+  out.c = useAppUpdate(p, store, { offline, tooOld, resume });
   return null;
 }
 
 describe("useAppUpdate", () => {
-  it("asks once, keeps the answer for the day: the next opening reads it and does not ask", async () => {
+  it("asks on opening and keeps the answer: the next opening shows it at once and asks again", async () => {
     const store = mem(), { p, calls } = port(), out: { c?: AppUpdateControl | null } = {};
     const first = render(<Probe p={p} store={store} out={out} />);
     await flush();
@@ -40,16 +41,14 @@ describe("useAppUpdate", () => {
     expect(out.c!.vm).toMatchObject({ strength: "gentle", text: "Version 0.6.0 of the app is available." });
     expect(JSON.parse(store.read()!)).toEqual({ day: today, available: true, version: "0.6.0", notes: null });
     first.unmount();
-    render(<Probe p={p} store={store} out={out} />);
+    const second = render(<Probe p={p} store={store} out={out} />);
+    expect(out.c!.vm?.strength).toBe("gentle");   // the kept answer, before the new ask lands
     await flush();
-    expect(calls.check).toBe(1);
-    expect(out.c!.vm?.strength).toBe("gentle");
-  });
-  it("a kept ask from another day is asked again", async () => {
-    const store = mem(JSON.stringify({ day: "2020-01-01", available: false, version: null })), { p, calls } = port();
-    render(<Probe p={p} store={store} out={{}} />);
+    expect(calls.check).toBe(2);
+    // (T390 11-05) each return to the app asks again, the same day: 0.6.0 missed 0.6.1 behind a daily cap
+    second.rerender(<Probe p={p} store={store} resume={1} out={out} />);
     await flush();
-    expect(calls.check).toBe(1);
+    expect(calls.check).toBe(3);
   });
   it("offline: never asked, nothing said; back online it asks", async () => {
     const store = mem(JSON.stringify({ day: "2020-01-01", available: true, version: "0.6.0" })), { p, calls } = port();
@@ -61,7 +60,7 @@ describe("useAppUpdate", () => {
     await flush();
     expect(calls.check).toBe(1);
   });
-  it("a failed check is said and reported, and is the day's ask; a dropped line is neither", async () => {
+  it("a failed check is said and reported; a dropped line is neither; nothing is kept for either", async () => {
     const got: unknown[] = [];
     const undo = setFailureSink((e) => got.push(e));
     try {
@@ -71,7 +70,7 @@ describe("useAppUpdate", () => {
       await flush();
       expect(out.c!.vm).toMatchObject({ text: "Could not check for a newer version of the app.", failed: true, button: null });
       expect(got).toHaveLength(1);
-      expect(JSON.parse(store.read()!).day).toBe(today);
+      expect(store.read()).toBeNull();
       cleanup();
       const store2 = mem(), out2: { c?: AppUpdateControl | null } = {};
       const off = port({ check: () => Promise.reject(environmentError(new Error("Network request failed"))) });

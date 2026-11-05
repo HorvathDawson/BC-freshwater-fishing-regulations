@@ -80,3 +80,15 @@ Android's WorkManager schedule. Our own `play.json` already said 0.6.1.
 every return to the app — no daily cap for it; when it names a newer version, the bell says so with its notes at once,
 and the button uses Play's in-app update once Play agrees (until then: "Play is still preparing it — or open the Play
 listing"). Play's own check keeps its daily cap. Test: a version file newer than the install shows on the next resume.
+
+## Done 2026-11-05 (the fix above; next APK)
+- The check is OUR version file on every opening and every return to the app (Shell bumps `resume` on AppState
+  active; `useAppUpdate` asks on mount, resume, back online, a tapped notice). No day cap (`shouldCheckAppUpdate` =
+  channel + online only); a failed check is said + reported but no longer stored as "the day's ask".
+- Play: `check` = `play.json` vs this build (`apkIsNewer`), with its notes; Play's API is asked only when Update is
+  pressed. If Play does not offer the version to this phone yet, the button opens the Play listing and says "Play is
+  still preparing this version for your phone. The Play listing is open." (start state `listing`).
+- Tests: core `appUpdate.test.ts` (no cap; the `listing` words), ui `appUpdate.render.test.tsx` (a resume re-asks the
+  same day; the kept answer shows before the new ask lands). 39 pass; typecheck clean.
+- Test bed with the next APK: install N−1 from Play internal, upload N, open the app → bell says N at once (no wait for
+  Play); Update → Play's flow, or the listing while Play catches up.
