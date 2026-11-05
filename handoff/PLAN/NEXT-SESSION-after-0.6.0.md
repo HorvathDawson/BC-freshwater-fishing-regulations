@@ -58,7 +58,9 @@ T307/T308/T310 sign-offs. T351 waits for a 0.5.0+ native crash report.
 
 ## Waiting on the owner (also in OWNER-TODO.md)
 - **T405/T409:** the water-page Lighthouse target. Water pages now score 77–83 (hubs 100). The rest is the map warm-up,
-  which the owner chose to leave. Is 77–83 good enough, or is it another ticket?
+  which the owner chose to leave. T409 measured it: not building the map on `/water/*` gives 93·93·93. A web-only
+  middle option is to build the map when first seen (a phone's "back to map" waits 1–2 s once). Or lower the target to
+  ~80. Also: Cloudflare's injected scripts (JS detections, Web Analytics) are the owner's zone setting.
 - **iOS:** an Apple Developer account, App Store Connect, the app name ("Can I Fish?" or "Can I Fish This?"), then
   `deploy/staging/build-ios-testflight.sh` and the real-iPhone run (T364, after the hygiene chat). T363/T365/T88 are
   PARTIAL.
