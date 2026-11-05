@@ -13,3 +13,5 @@ Status: OPEN (found in the post-0.5.0 full run; both pass alone).
 
 Full-run counts: app 8457 passed, 13 failed (12 = the ticket-ledger guard, fixed the same session: DONE rows without hashes;
 1 = item 2); pipeline 6268 passed, 1 failed (item 1).
+3. **app/packages/ui-native/src/Walkthrough.test.tsx** (the T293 Layers step) — the known one from the handoff; failed
+   again in the T398/T396/T395 lane's `pnpm -C app check` (11-05), passes alone.

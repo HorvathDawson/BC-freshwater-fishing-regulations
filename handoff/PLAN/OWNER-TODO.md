@@ -6,6 +6,10 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Vessel restrictions (T395, 2026-11-05):** moved out of the top of the page into a "Vessel restrictions" section of
+  the Methods tab (after Ways to fish). Is a section enough, or do you want a fifth tab in the header strip? And on
+  Nicomekl River (gnis:21100) the Keep card still has a boat-only "Boat rules in some spots" note — was that the odd
+  part? Default: section as is, note left.
 - **Update button restart step (T390, 2026-11-05):** with `expo-in-app-updates`, Play installs and restarts the app by
   itself once the background download is done. Fine as is, or do you want a separate "Restart to update" button (needs
   a small Kotlin patch to the package)? Default until you answer: as is.

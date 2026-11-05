@@ -42,6 +42,21 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   the button. Sideloaded staging builds point to the staging APK page (build-apk.sh writes latest.json). iOS stub
   until T88. Owner decision: Play restarts the app itself after the download; a separate "Restart to update" step
   needs a Kotlin patch. Phone checks with the next APK.
+- **SDK risk settled:** no expo-in-app-updates release targets SDK 57 (0.12 → 56, 0.13 → 58); a full release APK with
+  0.13.0 builds on our SDK 57 (local, not uploaded).
+- **T394 DONE (77e738b54):** salmon species rows show the spawning look (T343 item 6), not T318's ocean one.
+- **T393 DONE (bfc758925):** every species row (closed too) carries its own DFO size line; the region block drops the
+  size notes a row says (Region 2's five leave the block on gnis:14589).
+- **T401 measuring:** new test-bed `edge` scenario (9ab90059f) times how long a pan's new strip takes to draw, and
+  whether the wait is tiles or colouring. Running on the emulator with gestures + water-nav reruns.
+- **T398 / T396 / T395 done in code (lane):** T398 (f2796e37f) "Real-time only" in the chart's model control on every
+  gauge; an ELF-only gauge (Capilano) opens on measured data. T396 (8d1500036) both legends two fixed rows, same height
+  (360 dp phones may still wrap). T395 (65e8bd6d7) vessel restrictions → a Methods-tab section; owner questions in
+  OWNER-TODO. All need the next APK.
+- T401 first run (slow drag, river zoom): no pop-in on the emulator — the first frame had every stream, only offset by
+  the camera still settling; matched at ~450 ms. Fling + zoomed-in runs going. Test-bed fixes: water-nav tapped the
+  wrong place (origin from an off-screen map's accessibility node → now the app's own rect); gestures' route map is
+  above the gauge list, not in the fold (script scrolls to it).
 - T399 follow-up (13dca580c): the T124 one-layer-list guard caught a per-layer object in the copy code; fixed.
   `pnpm -C app check` green (8495 passed). Graph updated.
 - Full suites (post-0.5.0): app 8457 passed / 13 failed, pipeline 6268 passed / 1 failed. 12 were the ticket ledger
