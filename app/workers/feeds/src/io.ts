@@ -30,6 +30,15 @@ export interface Meter {
 
 export const newMeter = (): Meter => ({ subrequests: 0, r2ClassA: 0, r2ClassB: 0, bytesIn: 0, bytesRead: 0, bytesWritten: 0, writesSkipped: 0, sourcesUnchanged: 0 });
 
+/**
+ * THE DEPLOYED CODE'S VERSION (Cloudflare version metadata, set once per isolate by the entry points). Mixed into every
+ * job's reuse key (`rev`): a deploy recomputes everything once, so a change of output never waits on a hand-bumped
+ * constant (owner 2026-11-05: the forecast detail stayed old after a worker release). Empty under test and `wrangler dev`.
+ */
+let deployId = "";
+export function setDeployId(id: string | undefined): void { deployId = id ?? ""; }
+export const rev = (base: string): string => (deployId ? `${base}@${deployId}` : base);
+
 const enc = new TextEncoder();
 
 export function meteredFetch(f: Fetch, m: Meter): Fetch {

@@ -18,7 +18,7 @@
 // (or a calendar that throws) keeps that location's last answers (a `check` verdict when it has none), listed in the
 // region's `holds` with the reason, and the rest of the region publishes. A page that does not parse / verify, and a
 // STRUCTURAL reconcile, still hold the region (those are page-level).
-import { contentHash, loadManifest, skipSameStore, type Fetch, type Meter, type Store } from "../io";
+import { contentHash, loadManifest, rev, skipSameStore, type Fetch, type Meter, type Store } from "../io";
 import { sendDue } from "../notify";
 import { byFingerprint, loadEntryFile, reconcile, type EntryFile, type Report } from "./entries";
 import { build, type TypedFeed } from "./feed";
@@ -430,7 +430,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     if (aware) {
       // CHANGE-AWARE: the same page and the same entry file type to the same answers — carry them, skip the typing
       const key = { page: sha, entries: contentHash((await rawEntries(slug)) ?? "") };
-      const last = inputs.rev === DFO_REV ? inputs.regions?.[slug] : undefined;
+      const last = inputs.rev === rev(DFO_REV) ? inputs.regions?.[slug] : undefined;
       const usable = last && last.page === key.page && last.entries === key.entries && !was.held && slug in prevRegions;
       if (usable) {
         inputsOut[slug] = key;
@@ -538,8 +538,8 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   if (aware) {
     // a region not run this time keeps its last inputs; one held / failed this run has none (re-typed next run)
     const keep: Record<string, { page: string; entries: string }> = {};
-    if (inputs.rev === DFO_REV) for (const [s2, v] of Object.entries(inputs.regions ?? {})) if (!todo.includes(s2)) keep[s2] = v;
-    const next = JSON.stringify({ rev: DFO_REV, wording: wordingHash, regions: { ...keep, ...inputsOut } });
+    if (inputs.rev === rev(DFO_REV)) for (const [s2, v] of Object.entries(inputs.regions ?? {})) if (!todo.includes(s2)) keep[s2] = v;
+    const next = JSON.stringify({ rev: rev(DFO_REV), wording: wordingHash, regions: { ...keep, ...inputsOut } });
     if (next !== JSON.stringify(inputs)) await deps.priv.put("inputs.json", next);
     if ((feedStore as { changed?: boolean }).changed) await deps.priv.put("writes.json", JSON.stringify(writes));
     if (skipped.length) log(`unchanged (page + entries): region ${skipped.join(", ")} — typing skipped, last answers carried`);

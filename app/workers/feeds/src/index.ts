@@ -15,7 +15,7 @@
 // R2 layout (one bucket): published  feeds/live/  feeds/dfo/  feeds/inseason/   (the data worker serves these)
 //                         private    private/feeds/{gauges,dfo,inseason,notify}/, private/feeds/status.json,
 //                                    private/reports/<day>/<id>.json (T237: POST /report, GET /reports; src/reports.ts)
-import { meteredFetch, meteredStore, newMeter, r2Store, type Meter, type R2BucketLike } from "./io";
+import { meteredFetch, meteredStore, newMeter, r2Store, setDeployId, type Meter, type R2BucketLike } from "./io";
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
 import { runInSeason } from "./inseason";
@@ -51,6 +51,8 @@ export interface Env extends ReportEnv {
   RL_AUTH?: RateLimiter;
   /** (T246) the backup bucket (bc-fishing-regulations-staging-backup; src/backup.ts) */
   BACKUP?: DstBucket;
+  /** the deployed version ([version_metadata] in wrangler.toml): every job's reuse key carries it (`rev`, io.ts) */
+  CF_VERSION_METADATA?: { id: string };
 }
 
 const STATUS_PREFIX = "private/feeds/";
@@ -427,6 +429,7 @@ async function skill(env: Env, now = new Date(), month?: string): Promise<{ ok: 
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
+    setDeployId(env.CF_VERSION_METADATA?.id);
     const url = new URL(req.url);
     // (T249) every route is rate-limited per IP before anything else runs (the token routes more tightly)
     const cls = routeClass(url.pathname);
@@ -520,6 +523,7 @@ export default {
     return Response.json(r, { status: r.ok ? 200 : 500 });
   },
   async scheduled(ev: { cron: string }, env: Env, ctx: { waitUntil(p: Promise<unknown>): void }): Promise<void> {
+    setDeployId(env.CF_VERSION_METADATA?.id);
     // cron strings are in wrangler.toml [triggers]: the minute field names the job
     //   "15 …" DFO, "45 …" in-season, "25 …" the daily backup (T246) + report purge (T271), "55 …" the monthly model
     //   score (T178), anything else the gauges

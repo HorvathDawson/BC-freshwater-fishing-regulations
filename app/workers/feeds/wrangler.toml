@@ -1,10 +1,15 @@
-# T225 STAGING ONLY. Deploy: npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml
+# T225 STAGING ONLY. Deploy: deploy/staging/feeds.sh (deploys, then runs every job: T392)
 # The feed schedule is ON for staging (owner 2026-10-28). No production env in this file.
 name = "bc-fishing-feeds-staging"
 main = "src/index.ts"
 compatibility_date = "2025-09-01"
 workers_dev = true
 preview_urls = false
+
+# owner 2026-11-05: the deployed version is part of every feed job's reuse key (src/io.ts `rev`), so a deploy recomputes
+# the feeds once; deploy/staging/feeds.sh then runs every job at once
+[version_metadata]
+binding = "CF_VERSION_METADATA"
 
 [observability]
 enabled = true

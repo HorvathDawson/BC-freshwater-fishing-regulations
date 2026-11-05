@@ -435,6 +435,7 @@ use that as the sole source of future work."
 | T389 | Unnamed reach links write their place from the tiles' stream key (no `lines` download); `lines` only to open a shared unnamed link | OPEN | — | owner 2026-11-04 (after 0.5.0) |
 | T390 | The app notices a newer version of itself and offers an Update button (Play in-app update; strong prompt when a release needs a newer app) | OPEN | — | owner 2026-11-04 (after 0.5.0) |
 | T391 | Every web water page filed a fatal "Requiring unknown module": Metro reports the lazy-chunk miss as fatal while ErrorUtils is set; the asking moment runs without it | DONE 11-04 | — | crash reports 2026-11-04 |
+| T392 | A feeds worker release reruns the feeds: the deployed version is in every reuse key; deploy/staging/feeds.sh deploys then runs every job | DONE 11-05 | — | owner 2026-11-05 |
 
 ## Order for open tickets
 

@@ -4,7 +4,7 @@
 //           HYDAT tier in Python)
 //   priv  — never served: runs/ (append-only, see skill.ts), temp_history.json, notified.json (`<out>.notified.json`),
 //           roster.json (the realtime roster, when `deps.roster` is not passed)
-import { contentHash, type Fetch, type Meter, type Store } from "../io";
+import { contentHash, rev, type Fetch, type Meter, type Store } from "../io";
 import { sendDue } from "../notify";
 import { combineDay, forecastDays, gaugeScale, modelName, stale, stationChange, type Rank } from "./change";
 import { ATTRIBUTION, fetchSummary, timeout, withSeries, type Runs, type Summary } from "./forecast";
@@ -538,7 +538,7 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
     }
     sig = await forecastSignature(fetch);
     const today = dayOf(centreWall(now));
-    reuse = !!(fstate && fstate.rev === GAUGE_REV && fstate.day === today && sig && sameSig(sig, fstate.sig));
+    reuse = !!(fstate && fstate.rev === rev(GAUGE_REV) && fstate.day === today && sig && sameSig(sig, fstate.sig));
   }
   const files = new Map<string, Promise<Prev | null>>();
   const stationFile = (st: string): Promise<Prev | null> => {
@@ -591,7 +591,7 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
       fcast = await withSeries(fetch, fcast, new Set(ids), have, now, log);
       for (const f of prevs) if (f) delete f.keep; // carried series now live in `fcast`; the rest is garbage
       if (aware && sig && Object.keys(fcast).length && !forecastFailed.length) // a partial answer is not saved for reuse
-        await priv.put(FORECAST_STATE, JSON.stringify({ rev: GAUGE_REV, sig, day: dayOf(centreWall(now)), at: wallIso(now) + "Z", summary: stripSeries(fcast) }));
+        await priv.put(FORECAST_STATE, JSON.stringify({ rev: rev(GAUGE_REV), sig, day: dayOf(centreWall(now)), at: wallIso(now) + "Z", summary: stripSeries(fcast) }));
     } catch (e) {
       log(`  forecast unavailable: ${String(e)}`);
     }
@@ -670,7 +670,7 @@ interface PublishArgs {
 }
 
 // ── change-aware runs (owner 2026-10-28) ───────────────────────────────────────────────────────────────────────────
-/** Bump when a code change alters a station's output: every station is recomputed once after a deploy. */
+/** The base of the reuse key; every deploy recomputes once anyway (`rev`, io.ts). Bump it to recompute without a deploy. */
 export const GAUGE_REV = "2026-10-28.1";
 export const STATION_CACHE = "stations.cache.json";
 interface Base {
@@ -792,9 +792,9 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     } catch {
       cache = null;
     }
-    if (!cache || cache.rev !== GAUGE_REV) cache = { rev: GAUGE_REV, st: {} };
+    if (!cache || cache.rev !== rev(GAUGE_REV)) cache = { rev: rev(GAUGE_REV), st: {} };
   }
-  const nextCache: StationCache = { rev: GAUGE_REV, st: {} };
+  const nextCache: StationCache = { rev: rev(GAUGE_REV), st: {} };
   const ctxOf = (st: string) =>
     contentHash(JSON.stringify([nowDay, pent, release, (envelope[st] ? "e" : ""), Object.keys(forecast[st] || {}).length ? (a.reuse ? fsigOf(forecast[st]) : now) : null]));
   const unchanged = new Set<string>();
