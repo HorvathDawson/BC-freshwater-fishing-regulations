@@ -21,3 +21,13 @@ the audit." Before ANY audit work: the session that starts T333/T334/T335 sits d
 question round, then a written scope in this ticket that the owner approves): what counts as a finding, which areas
 are in/out, depth vs credits, what the output looks like (report only, or fixes too), and who decides each fix. No
 workflow or agent fan-out until that scope is approved here.
+
+## Add (owner asked 2026-11-05, data-and-build chat)
+Include what that chat changed, so no doc points at the old shape:
+- every doc and runbook against T324's renames (old curated paths: `regulations/entries/catalogue`, `decided/`,
+  `splits.json`, `mined_names.json`, `gauges/review.json` …) — grep for each old path, not only docs/;
+- the new runbooks (`handoff/PLAN/runbooks/{release,annual-synopsis,fresh-machine}.md`) read cold: can a human follow
+  each step with no other context?;
+- one place a newcomer starts (root README → AGENTS.md → data-flow.md → runbooks), and which handoff/PLAN files are
+  history vs current (NEXT-SESSION-*, IMPLEMENT-HANDOFF, implement_progress, proposed-tickets-*);
+- docstrings that describe removed steps (`review.export` files, `match apply` after a rebuild, the lock tool).
