@@ -6,6 +6,12 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Water-page speed target (T405, 2026-11-05):** staging water pages now score Perf 76–82, LCP 2.2–3.7 s, CLS 0.002,
+  A11y 100 (were 45 / 38.9 s / 0.15). 95 needs one of: (a) lower the water-page target to ~75–80 (hubs stay ≥ 95);
+  (b) start the app at the reader's first touch (controls dead until then) + thumbnail-size fish pictures (~90 expected);
+  (c) bigger boot work (WebCrypto / DecompressionStream verify, code splitting). Default: thumbnails only (no app cost).
+- **Species season calendar (T406 part 2):** per-species seasons built from the rules (new logic), or a game fish vs
+  salmon calendar from the strips the app already has. Default: the existing strips.
 - **Changelog drafts: approved (owner 11-05, "I'm sure they are good")** — `draft` cleared on 0.1.0–0.5.0; 0.6.0 stays a
   draft until its release. Still yours: production has no `app/android/play.json` yet (prod transition, T404).
 - **Alert cadence readings to confirm (T234 v1.1, 2026-11-05):** (answered 11-05: a crossing the cadence blocks is
