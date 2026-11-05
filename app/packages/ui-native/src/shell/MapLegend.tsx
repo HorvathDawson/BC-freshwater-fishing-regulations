@@ -11,7 +11,8 @@ import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, TEMP_LEGEND, unprovenLine,
          RUN_WORDS, salmonCheckedLine, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
 import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map/colours";
-import { ObstacleIcon } from "../icons";
+import { Icon, ObstacleIcon } from "../icons";
+import { hitProps } from "../regs/hit";
 import { useMemo, useState } from "react";
 import { useCoachTarget } from "../CoachMarks";
 import { View } from "react-native";
@@ -42,6 +43,8 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   // (T367, owner 2026-11-04) THE FISHERY HEADS THE KEY IT CHANGES: Trout & more | Salmon, both always in view, over the
   // Map tab's legend (it sat in the map's top corner beside the day); in Salmon, whose rules these are, beside it
   const fishery = !conditions && col.salmonOffered && col.statusOk && col.layers.water.drawn === "regulations";
+  // (T377) the regulations key folded away (the bar keeps its switch); a reader's choice for this screen, open at first
+  const [folded, setFolded] = useState(false);
   const checked = fishery && col.regsLayer === "salmon" ? salmonCheckedLine(col.salmonFacts) : null;
   // (T396) the regulations key's entries, laid in two rows below (`LegendRows`)
   const gearRows = col.gearMarked ? GEAR_LEGEND.map((m) => (
@@ -149,6 +152,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     </LegendStrip>
   );
   if (!fishery) return strip;
+  const fold = folded ? MAP_KEY.fold.show : MAP_KEY.fold.hide;
   return (
     <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card }}>
       {/* (T396) ONE ROW in both modes: Salmon's "DFO rules checked …" sits beside the switch, up to two lines no taller
@@ -163,8 +167,16 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
             {checked}
           </Text>
         )}
+        {/* (T377) THE KEY FOLDS AWAY: the switch stays, the rows go (the bar one line tall); the choice holds across both
+            modes, so switching never moves the bar */}
+        <Pressable testID="legend-fold" onPress={() => setFolded((f) => !f)} accessibilityRole="button"
+                   aria-expanded={!folded} accessibilityLabel={fold} {...hitProps({ w: 32, h: 32 })}
+                   style={{ marginLeft: "auto", width: 32, height: 32, alignItems: "center", justifyContent: "center",
+                            borderWidth: 1, borderColor: palette.line, borderRadius: palette.r.chip }}>
+          <Icon name={folded ? "collapse" : "expand"} colour={palette.ink} size={18} />
+        </Pressable>
       </View>
-      {strip}
+      {folded ? <View style={{ height: 9 }} /> : strip}
     </View>
   );
 }

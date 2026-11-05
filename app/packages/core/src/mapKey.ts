@@ -17,6 +17,8 @@ export const MAP_KEY = {
   status: { own: "Own rules", base: "Base rules", no_access: "No access" } satisfies Record<Exclude<WaterStatus, "closed">, string>,
   gear: { fly: "Fly only", bait: "Bait ban" } satisfies Record<GearMark, string>,
   notFishing: "Not fishable",
+  /** (T377) the regulations bar's fold: what its button does, whole (the key hidden, the switch stays) */
+  fold: { hide: "Hide the map key", show: "Show the map key" },
   salmon: { open: "Keep salmon", release: "Release only", closed: "Closed", check: "Check DFO" } satisfies Record<SalmonMapStatus, string>,
   stocked: { season: "This season", year: "This year", recent: "1–3 years ago", decade: "3–10 years ago", old: "Over 10 years ago" } satisfies Record<StockRecency, string>,
   stockedNone: "Not stocked",
