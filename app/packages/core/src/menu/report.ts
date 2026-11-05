@@ -163,9 +163,12 @@ export function mailtoUrl(to: string, m: { subject: string; body: string }): str
 
 // ── (T237) the report, sent ─────────────────────────────────────────────────────────────────────────────────────────
 
-/** Why the reader is reporting: the form's first choice. */
-export type ReportReason = "rule" | "place" | "missing" | "name" | "other";
-export const REPORT_REASONS: readonly ReportReason[] = ["rule", "place", "missing", "name", "other"];
+/**
+ * Why the reader is reporting: the form's first choice. (T407, owner 2026-11-05) "bug" (the app misbehaves) and "feature"
+ * (a request) sit beside the data reasons, so testing finds land apart from wrong data.
+ */
+export type ReportReason = "rule" | "place" | "missing" | "name" | "bug" | "feature" | "other";
+export const REPORT_REASONS: readonly ReportReason[] = ["rule", "place", "missing", "name", "bug", "feature", "other"];
 
 /** The payload's format tag. (T352) report/2 adds the map facts and the install id; the endpoint takes report/1 too. */
 export const REPORT_FORMAT = "report/2";

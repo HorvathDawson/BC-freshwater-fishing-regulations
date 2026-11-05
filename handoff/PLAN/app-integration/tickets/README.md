@@ -450,6 +450,7 @@ use that as the sole source of future work."
 | T404 | One switch to production (every origin from one setting) + the prod release runbook and transition workflow | OPEN | — | owner 2026-11-05 (later, with T86/T240) |
 | T405 | Water pages fail Lighthouse when the app takes over the prerendered pane (LCP 3-39 s, CLS 0.15-0.72; hubs score 100) | OPEN | — | from T196 staging run 11-05 |
 | T406 | SEO: raster (PNG) share images + species-by-region season calendar | OPEN | — | from T195 11-05 |
+| T407 | Report a problem: "App bug" and "Feature request" reasons (for testing) | IN PROGRESS | — | owner 11-05; worker deploys with 0.6.0 |
 
 ## Order for open tickets
 

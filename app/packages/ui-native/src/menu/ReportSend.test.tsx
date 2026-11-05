@@ -93,6 +93,21 @@ describe("Send report (T237)", () => {
     click("open");
   });
 
+  it("(T407) App bug and Feature request are reasons of their own; the question and its example follow the choice", async () => {
+    const { s, sent } = sender({ kind: "sent" });
+    render(<Host info={{ appBuild: null, contact: null, report: s }} />);
+    click("open");
+    expect(screen.getByLabelText("What's wrong?")).toBeTruthy();
+    act(() => { fireEvent.click(screen.getByLabelText("Feature request")); });
+    expect(screen.getByLabelText("What would you like?")).toBeTruthy();
+    act(() => { fireEvent.click(screen.getByLabelText("App bug")); });
+    expect(screen.getByLabelText("What happened?")).toBeTruthy();
+    type("report-what", "The map went blank.");
+    act(() => { fireEvent.click(screen.getByLabelText("Send report")); });
+    await flush();
+    expect(sent.map((p) => p.reason)).toEqual(["bug"]);
+  });
+
   it("switching Where you were off sends no water, part, section or day", async () => {
     const { s, sent } = sender({ kind: "sent" });
     render(<Host info={{ appBuild: null, contact: null, report: s }} />);

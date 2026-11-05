@@ -50,6 +50,7 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
   const sendNow = tx.send && ready && !emailBad && tx.state.kind !== "sending"
     ? () => tx.send!({ reason, what, email, contact: contactShown && mayContact, diagnostics, on }) : undefined;
   const reasons = useMemo(() => REPORT_REASONS.map((k) => ({ k, t: w.reasons[k] })), [w]);
+  const ask = w.whatFor[reason] ?? { what: w.what, hint: w.whatHint };
 
   const mail = to.kind === "email" && ready ? () => { void openLink(mailtoUrl(to.value, message)); } : undefined;
   const share = ready ? () => {
@@ -84,9 +85,9 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
         </View>
       )}
       <View style={{ gap: SPACE.s2 }}>
-        <Text style={{ ...TYPE.section, color: palette.sub }}>{w.what}</Text>
-        <TextInput testID="report-what" value={what} onChangeText={setWhat} multiline placeholder={w.whatHint}
-                   accessibilityLabel={w.what} placeholderTextColor={palette.faint} textAlignVertical="top"
+        <Text style={{ ...TYPE.section, color: palette.sub }}>{ask.what}</Text>
+        <TextInput testID="report-what" value={what} onChangeText={setWhat} multiline placeholder={ask.hint}
+                   accessibilityLabel={ask.what} placeholderTextColor={palette.faint} textAlignVertical="top"
                    style={{ ...TYPE.body, color: palette.ink, minHeight: 112, borderWidth: 1.5, borderColor: palette.ink,
                             borderRadius: palette.r.box, padding: SPACE.s3, backgroundColor: palette.card }} />
       </View>

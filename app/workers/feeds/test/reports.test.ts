@@ -46,6 +46,13 @@ describe("POST /report (T237)", () => {
     expect(BUCKET.m.get(keys[1]!)).not.toMatch(/203\.0\.113\.5/);
   });
 
+  it("(T407) takes an app bug and a feature request beside the data reasons; their digest title says which", () => {
+    for (const reason of ["bug", "feature"]) {
+      const v = validateReport(report({ reason }));
+      expect(v.ok && v.report.reason).toBe(reason);
+    }
+  });
+
   it("refuses a 2nd report from one IP within 10 s (429), not from another IP, and again after 10 s", async () => {
     const BUCKET = new MemBucket();
     expect((await handleReport(post(report()), { BUCKET }, at("2026-10-28T20:00:00Z"))).status).toBe(201);

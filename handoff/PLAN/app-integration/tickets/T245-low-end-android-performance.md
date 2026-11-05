@@ -53,3 +53,7 @@ Cold start 3.9 s (budget 4 s), memory peak 326 MB (budget 400). z9.9 and z12 sit
 slow zoom** — many basemap/atlas features per tile (T273: the basemap's green-space polygons were the hitch). Lowering it
 is a visual change (e.g. no wood/forest fill below z9, or the atlas's small streams from z9): the owner's choice, and
 only worth deciding after the same `perf` run on a real low-end phone (emulator fps is not a phone's).
+
+## Owner 2026-11-05: no lighter map at z8
+The z8 pan (29 fps on the emulator) is NOT to be fixed by drawing less at z8 ("No to this"). Any z8 work must keep the
+map as it looks; a real low-end phone run still decides whether it matters.

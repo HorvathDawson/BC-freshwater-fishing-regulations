@@ -6,11 +6,8 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Changelog draft to review (T234 v1.1, 2026-11-05):** `app/packages/core/src/changelog.ts` — the reader-facing
-  bullets for 0.1.0 … 0.6.0 were drafted by Claude from STATUS.md (0.1.0 and 0.3.0 thin: little was recorded). Edit the
-  words, clear `draft: true` per entry when read. From now on a release adds its entry before `build-apk.sh` (it warns
-  when the version has none). Also yours: production has no `app/android/play.json` yet — a Play build pointed at
-  production data reads it there (prod R2 is yours); Play builds today read staging, which build-apk.sh --play writes.
+- **Changelog drafts: approved (owner 11-05, "I'm sure they are good")** — `draft` cleared on 0.1.0–0.5.0; 0.6.0 stays a
+  draft until its release. Still yours: production has no `app/android/play.json` yet (prod transition, T404).
 - **Alert cadence readings to confirm (T234 v1.1, 2026-11-05):** (answered 11-05: a crossing the cadence blocks is
   DROPPED, never queued; it rings again only on a new crossing) a ±% alert re-arms once the
   day's change is 2 points back under its line; "24 h earlier" = the gauge's reading nearest 24 h before, within 2 h.
@@ -243,6 +240,26 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
     size, come back — it should be where you left it.
   - Offline maps (T238/T259): More → Offline maps; which map regions a first install keeps (Q161, default all).
 - **Sign-off walk** at the end (T87) before app/design is deleted.
+
+- **iOS (T88, T364, T365; 2026-11-05)** — the real iPhone run (T364) is AFTER the launch-and-hygiene chat (owner 11-05). Claude built and tested everything the simulator can show (T313).
+  1. Join the Apple Developer Program ($99/yr). Then put two files in `~/.canifishthis/`: `ios-team-id` (the Team ID,
+     Membership details) and `asc-api-key.json` `{"key_id","issuer_id","key_path"}` for an App Store Connect API key
+     (Users and Access → Integrations → Team key, role App Manager; keep the .p8 outside the repo).
+  2. App Store Connect → My Apps → + New App: iOS, bundle id `ca.canifishthis.app`, the name, English (Canada), any SKU.
+  3. Decide THE NAME once (T365, same question as Play T371): home screen "Can I Fish?" vs "Can I Fish This?" in the
+     permission prompts and the web.
+  4. Run `deploy/staging/build-ios-testflight.sh` (staging data, for you + testers; `--dry-run` first lists what is
+     missing). It uploads to TestFlight; install TestFlight on the iPhone and accept the build.
+  5. **Real iPhone run (T364)** on that build: the location prompt on the first "My location" tap; the first offline
+     download on Wi-Fi and on cellular (the foreground download, b8e33ca80); the left-edge swipe back from a water's page
+     (simulator: a slow drag goes back, a fast mid-height one sometimes does not — say which works for your thumb); the
+     gauge pill's padding; the walkthrough to its end, incl. step 17 over the Layers sheet (T336) with VoiceOver on;
+     More → Data "Send crash reports" stays on. Memory: Settings → General → iPhone Storage is not it — just say if the
+     app is ever closed by itself while you pan or open Conditions (a crash report then reaches the staging store, T362).
+  6. App Store Connect forms (T365): App Privacy from `app-integration/store/privacy-labels-draft.md` (confirm the install
+     id as Device ID, not linked); age rating; category; support URL; screenshots (6.9" + 6.5"); review notes. Export
+     compliance: answer "standard encryption only" (the build already says so). The review build is
+     `--production` and needs production hosting (T86) live.
 
 - **SEO, v1 pages (2026-10-27):** keep your existing Search Console property; when the new site is live add the new sitemap
   beside the old one, and for two months watch Pages > Not found (404) and Redirect error (the 19,331 old `/waterbody/` URLs

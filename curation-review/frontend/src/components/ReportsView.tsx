@@ -12,7 +12,7 @@ export const REPORTS_HASH = "reports/";
    page, the tapped section's handle: resolved to a piece of this build's map only when the report's tiles are this
    build's vintage. */
 
-type Reason = "rule" | "place" | "missing" | "name" | "other";
+type Reason = "rule" | "place" | "missing" | "name" | "bug" | "feature" | "other";
 export type ReportStatus = "new" | "looking" | "fixed" | "wontfix";
 const STATUSES: { k: ReportStatus; t: string; chip: string }[] = [
   { k: "new", t: "new", chip: "chip-tag new" },
@@ -21,7 +21,8 @@ const STATUSES: { k: ReportStatus; t: string; chip: string }[] = [
   { k: "wontfix", t: "won't fix", chip: "chip-tag" },
 ];
 const REASON: Record<Reason, string> = {
-  rule: "Wrong rule", place: "Wrong place on the map", missing: "Missing water", name: "Wrong name", other: "Something else",
+  rule: "Wrong rule", place: "Wrong place on the map", missing: "Missing water", name: "Wrong name",
+  bug: "App bug", feature: "Feature request", other: "Something else",
 };
 
 export interface Report {

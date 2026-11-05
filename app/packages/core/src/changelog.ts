@@ -30,7 +30,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     ],
   },
   {
-    version: "0.5.0", date: "2026-11-04", draft: true, notes: [
+    version: "0.5.0", date: "2026-11-04", notes: [
       "The rule book opens inside the app, right at the page for your water",
       "The forecast lists each of the next 10 days, grouped by watershed",
       "Dates and sunrise/sunset follow B.C. time, whatever your phone's clock says",
@@ -39,7 +39,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     ],
   },
   {
-    version: "0.4.0", date: "2026-10-31", draft: true, notes: [
+    version: "0.4.0", date: "2026-10-31", notes: [
       "Gauge charts keep the last week on your phone, so they work offline",
       "Saved spots can have a parking pin, with directions",
       "Provincial parks are drawn on the map",
@@ -47,13 +47,13 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     ],
   },
   {
-    version: "0.3.0", date: "2026-10-30", draft: true, notes: [
+    version: "0.3.0", date: "2026-10-30", notes: [
       "Your location dot stays put as you move the map",
       "Smoother map drawing",
     ],
   },
   {
-    version: "0.2.0", date: "2026-10-29", draft: true, notes: [
+    version: "0.2.0", date: "2026-10-29", notes: [
       "Regulations open the moment you tap a water",
       "The rule book downloads with the offline maps",
       "A Glossary from A to Z, with a quick letter strip",
@@ -61,7 +61,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     ],
   },
   {
-    version: "0.1.0", date: null, draft: true, notes: [
+    version: "0.1.0", date: null, notes: [
       "First test build: the map, regulations for each water, gauges and saved spots",
     ],
   },

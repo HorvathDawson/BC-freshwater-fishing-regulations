@@ -531,7 +531,8 @@ describe("report a problem, sent (T237)", () => {
 
   it("lists the reasons in the form's order, each worded", () => {
     expect(REPORT_REASONS.map((r) => MENU_WORDS.report.reasons[r]))
-      .toEqual(["Wrong rule", "Wrong place on the map", "Missing water", "Wrong name", "Something else"]);
+      .toEqual(["Wrong rule", "Wrong place on the map", "Missing water", "Wrong name", "App bug", "Feature request",
+               "Something else"]);
   });
 
   it("shows the environment on the App version row", () => {

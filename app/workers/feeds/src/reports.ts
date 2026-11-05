@@ -28,9 +28,11 @@ const LIMITS_PREFIX = `${REPORTS_PREFIX}limits/`;
 /** (T352) the newest format; report/2 adds the map facts and the install id to the context */
 export const REPORT_FORMAT = "report/2";
 export const REPORT_FORMATS = ["report/1", "report/2"] as const;
-export const REASONS = ["rule", "place", "missing", "name", "other"] as const;
+/** (T407) "bug" and "feature" beside the data reasons (core REPORT_REASONS) */
+export const REASONS = ["rule", "place", "missing", "name", "bug", "feature", "other"] as const;
 const REASON_WORDS: Record<(typeof REASONS)[number], string> = {
-  rule: "Wrong rule", place: "Wrong place on the map", missing: "Missing water", name: "Wrong name", other: "Something else",
+  rule: "Wrong rule", place: "Wrong place on the map", missing: "Missing water", name: "Wrong name",
+  bug: "App bug", feature: "Feature request", other: "Something else",
 };
 /** the app's limits (core REPORT_LIMITS) */
 export const LIMITS = { bytes: 16_384, text: 4000, email: 254, errors: 20, line: 300, field: 200 } as const;

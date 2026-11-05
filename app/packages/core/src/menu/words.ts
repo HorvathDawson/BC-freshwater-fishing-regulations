@@ -163,8 +163,14 @@ export const MENU_WORDS = {
     /** (T237) the reason, the form's first choice (`REPORT_REASONS` order) */
     reason: "What kind of problem?",
     reasons: {
-      rule: "Wrong rule", place: "Wrong place on the map", missing: "Missing water", name: "Wrong name", other: "Something else",
+      rule: "Wrong rule", place: "Wrong place on the map", missing: "Missing water", name: "Wrong name",
+      bug: "App bug", feature: "Feature request", other: "Something else",
     },
+    /** (T407) the question and its example follow the reason: a bug and a request are not "what's wrong" with the data */
+    whatFor: {
+      bug: { what: "What happened?", hint: "For example: the map went blank after I closed the water page." },
+      feature: { what: "What would you like?", hint: "For example: show sunrise and sunset on the water page." },
+    } as Partial<Record<"rule" | "place" | "missing" | "name" | "bug" | "feature" | "other", { what: string; hint: string }>>,
     email: "Your email (optional)",
     emailHint: "Only if you would like a reply. It is never shown or shared.",
     emailBad: "That does not look like an email address.",
