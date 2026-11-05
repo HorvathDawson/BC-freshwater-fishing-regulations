@@ -43,8 +43,10 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
     if outside is None:
         outside = outside_bc(registry, graph)
     rows: List[dict] = []
+    gone: List[str] = []
     for slug in _slugs():
         ef = E.load(slug, entries_dir or E.ENTRIES_DIR, registry=registry)
+        gone += stale_bindings(ef, registry)
         by_id = {x.location_id: x for x in ef.locations}
         for loc in ef.locations:
             target = loc
@@ -64,8 +66,20 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
                 else:
                     row["reason"] = binding.reason.value if binding.reason else None
             rows.append(row)
+    if gone:
+        raise ValueError(f"dfo_salmon: {len(gone)} DFO water binding(s) name an item this registry does not have — "
+                         "re-bind them (the review app's DFO mode) before building:\n  " + "\n  ".join(gone))
     rows.sort(key=lambda r: r["location_id"])
     return rows
+
+
+def stale_bindings(ef, registry) -> List[str]:
+    """T337 (owner 2026-11-05: the DFO matches are done and verified): a water's `item_ids` are the owner's binding, kept
+    as written; this build only CHECKS each still names an item of its registry (an absorbed item already reads as its
+    absorber, `entries.load(registry=)`). One line per id that does not, naming the water, so the build stops on it
+    instead of placing nothing there. Never re-matched by name here."""
+    return [f"r{w.region} {w.name} ({w.water_id}): {i}"
+            for w in ef.waters for i in w.item_ids if i not in registry]
 
 
 def write(out_dir: Path, rows: Iterable[dict]) -> str:

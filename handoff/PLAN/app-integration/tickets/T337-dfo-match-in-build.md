@@ -1,6 +1,6 @@
 # T337 — DFO water bindings refresh inside the build (no manual `match apply` after an atlas rebuild)
 
-Status: OPEN (found 2026-10-31 answering the owner's "when is matching applied?").
+Status: DONE (2026-11-05) — the reach run checks every DFO binding against its registry and stops naming the water (`atlas.reach.dfo_salmon.stale_bindings`, `test_t337_dfo_bindings.py`); today 191/191 ids resolve on `atlas/full`. Was OPEN (found 2026-10-31 answering the owner's "when is matching applied?").
 
 `WaterBinding.item_ids` in the DFO entries is a CACHE re-derived by `python -m pipeline.regs.dfo_salmon.match apply`
 "after a registry rebuild" (DESIGN.md §3), but no build stage runs it. `deliver/salmon.py` reads the cache directly, so

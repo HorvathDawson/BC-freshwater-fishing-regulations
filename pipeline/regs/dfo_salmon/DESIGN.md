@@ -131,8 +131,10 @@ bridges a curated id to whatever item owns it after a rebuild. So:
 
 * **the override file is the source of truth** — it stores `gnis_ids`, which survive a
   registry rebuild;
-* **`WaterBinding.item_ids` is a resolved cache** — re-derived by `match apply` on every
-  rebuild, never hand-edited.
+* **`WaterBinding.item_ids` is the verified binding** (T337, owner 2026-11-05: the matches are done and
+  verified) — kept as written; every reach run CHECKS each id is in its registry and stops naming the
+  water when one is not (`atlas.reach.dfo_salmon.stale_bindings`). `match apply` is only for binding a
+  NEW name, never a step after a rebuild.
 
 ## 3. One key, three files
 
@@ -398,7 +400,7 @@ class UnmatchedRow:
 |---|---|---|---|
 | fetch | `dfo_salmon.fetch` | scheduled | network |
 | a. seed | `dfo_salmon.entries seed --history` | on demand | cached pages |
-| b. match | `dfo_salmon.match apply` | after a registry rebuild | registry + overrides |
+| b. match | `dfo_salmon.match apply` | a new DFO name only (the reach run checks the rest, T337) | registry + overrides |
 | c. feed | `dfo_salmon.feed build` | **every scheduled run** | entries (for fingerprints) |
 | d. curate | the §4 workflow | until done | you |
 | e. link | `dfo_salmon.link build` | after a bundle rebuild | registry + graph (9.6 GB) |

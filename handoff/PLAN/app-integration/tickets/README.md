@@ -378,7 +378,7 @@ use that as the sole source of future work."
 | T334 | Audit all tests and documentation (dead tests, gaps, stale/duplicate docs) → fix tickets | POSTPONED (next credit cycle) | T333 | owner 2026-10-30 |
 | T335 | Remove archive/ + general cleanup (stray files, old side builds, releases to live+previous, dead scripts) | POSTPONED (next credit cycle, with T333/T334) | T333 | owner 2026-10-30 |
 | T336 | iOS: walkthrough card over the Layers sheet missing from the accessibility tree (VoiceOver can't reach it) | DONE 11-05 | ed1cf4a81 | sim walk 25 of 25 |
-| T337 | DFO water bindings refresh inside the build — `match apply` is a manual step today; deliver reads a cache that an atlas rebuild can leave stale | OPEN | — | 2026-10-31 |
+| T337 | DFO water bindings refresh inside the build — `match apply` is a manual step today; deliver reads a cache that an atlas rebuild can leave stale | DONE | (this commit) | 2026-10-31 |
 | T338 | DFO part-closure in a limits cell (Fort Babine) reads as whole river closed | DONE | 01919949f, 7a4d3faec | 2026-11-03 (01919949f; ships with batch 3 release) |
 | T339 | 08MH044 cut still labelled Whonock; Bedford Channel lost its gauge — confirm | DONE (live with the next bundle + release) 11-04 | e21cdbeac | 2026-10-31 |
 | T340 | Test bed regs-open stream taps fail (known since 0.3.0) | DONE | 2c96522 | 2026-10-31 |
