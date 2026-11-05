@@ -128,3 +128,7 @@ Build on the staging **test** update channel (Updates log → channel), Android 
 - Measure real delays on the owner's phone (the runs log); FCM push only if alerts arrive too late (owner 2026-11-05).
 - Later kinds (not v1): forecast crossings, in-season / DFO changes on followed waters, quiet hours; web push.
 
+- **Owner 2026-11-05 (later):** alerts are the reader's own: "on x gauge if it rises to y point or z times … they want
+  to know when a river rises or falls past a point." "z times" = a % change within a day (owner's pick). At most once per
+  river per day by default, or a reader-set gap before it can fire again. A nice UI, in a menu in More. Also: app
+  updates should notify (T390 shows them in the bell on open; a closed-app notice is new) → v1.1 in progress.
