@@ -45,7 +45,8 @@ Left, in order (a short "Chat 1b" before chat 2):
 
 ## Chat 2 — Launch and hygiene (in order; ticket audit 2026-11-05 in `ticket-audit-2026-11-05.md`)
 1. **0.6.1 is on Play internal** (11-05, T411; worker 50a816d9). Next APK: T417 (watershed flicker), T418 (style
-   assets), then **T390** (in-app update notice) — build when the owner says "build".
+   assets), **T390** (read play.json on every open/return) — build when the owner says "build". T419 (Salmon River
+   simplification) is checked with this UI work; a fix there is a tiles change (rides a data release).
 2. **T86, T240, T244** — production hosting, launch checklist (now carries T50, T75, T80, T87), store readiness.
 3. **T409** — SEO launch pass (carries T188, T196, T405; T198 owner-blocked): incl. the map built when first seen on
    `/water/*` (owner 11-05). Measure as T409 did (local, 3 runs, median); no native diff. Before the prod SEO launch.
