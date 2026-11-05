@@ -94,7 +94,7 @@ export function memory() {
   const pid = pidOf();
   if (!pid) return null;
   try {
-    const t = execFileSync('footprint', [pid], { encoding: 'utf8', timeout: 60_000, maxBuffer: 16 << 20 });
+    const t = execFileSync('/usr/bin/footprint', [pid], { encoding: 'utf8', timeout: 60_000, maxBuffer: 16 << 20 });
     const mb = (v, u) => Math.round(Number(v) * ({ B: 1 / 1048576, KB: 1 / 1024, MB: 1, GB: 1024 }[u] ?? 0) * 10) / 10;
     const head = /Footprint:\s+([\d.]+)\s+(B|KB|MB|GB)/.exec(t);
     const cat = { malloc: 0, graphics: 0, mapped: 0 };
