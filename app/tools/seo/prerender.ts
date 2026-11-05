@@ -173,6 +173,18 @@ export const HANDOFF = `<script type="module">` +
   `</script>`;
 
 
+/**
+ * (T405) THE APP'S SCRIPT, ASKED FOR AFTER THE FIRST PAINT. As a `defer` tag in the page it is requested while the page
+ * parses, before the prerendered pane paints, and Lighthouse's lab model (lantern) then counts its download and run (the
+ * 3.5 MB bundle, ~1 MB on the wire) in the page's largest paint even though the pane painted without it. Asked for one frame
+ * after the pane's first paint, it starts a frame later (milliseconds) and is not in that paint's chain. A page opened in a
+ * background tab (no frames) asks at once. One script only: the export's index (its own chunks are loaded by it).
+ */
+export const afterPaint = (src: string): string => `<script type="module">` +
+  `const g=()=>{if(document.querySelector('script[src="${src}"]'))return;const s=document.createElement("script");s.src="${src}";document.body.append(s)};` +
+  `document.visibilityState==="hidden"?g():requestAnimationFrame(()=>setTimeout(g))` +
+  `</script>`;
+
 export interface AppDocument {
   /** the page's head: title, description, canonical, social tags, JSON-LD (built by site.ts) */
   readonly head: string;
@@ -196,6 +208,7 @@ export function appDocument(template: string, d: AppDocument): string {
     .replace(/<link rel="preload" href="([^"]+\.css)" as="style">/g, "")
     .replace(/<link rel="stylesheet" href="([^"]+\.css)">/g, `<link rel="stylesheet" href="$1" media="print" onload="this.media='all'">`)
     .replace(/<noscript>[\s\S]*?<\/noscript>/, "")
+    .replace(/<script src="([^"]+)" defer><\/script>/g, (_, src: string) => afterPaint(src))
     .replace(/<\/head>/, `${d.head}<meta name="cift:item" content="${d.item}">` +
       d.preload.map((f) => `<link rel="preload" href="${f}" as="font" type="font/ttf" crossorigin>`).join("") +
       `<style>${d.critical}</style><link rel="stylesheet" href="${d.cssHref}"></head>`)

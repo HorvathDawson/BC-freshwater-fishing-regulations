@@ -6,7 +6,7 @@
  * jsdom lays nothing out: a part's arrival is what changes the pane's boxes here (their count), frames are pumped by hand.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { HANDOFF, PRERENDER_CSS, QUIET_MS, SETTLE_FRAMES, SETTLE_MAX_MS } from "./prerender";
+import { afterPaint, HANDOFF, PRERENDER_CSS, QUIET_MS, SETTLE_FRAMES, SETTLE_MAX_MS } from "./prerender";
 
 const BODY = /^<script type="module">([\s\S]*)<\/script>$/.exec(HANDOFF)![1]!;
 let frames: FrameRequestCallback[] = [], clock = 0;
@@ -95,5 +95,25 @@ describe("T405: the prerendered pane goes when the app's pane is complete and st
   it("a start on another view has no prerendered twin: it goes at once", () => {
     page(pane("keep-tab"), "?view=conditions");
     expect(gone()).toBe(true);
+  });
+});
+
+describe("T405: the app's script is asked for after the pane's first paint", () => {
+  const run = (src: string) => new Function(/^<script type="module">([\s\S]*)<\/script>$/.exec(afterPaint(src))![1]!)();
+  const asked = () => [...document.querySelectorAll("script[src]")].map((e) => e.getAttribute("src"));
+  it("one frame after the first paint, once", async () => {
+    document.body.innerHTML = "";
+    run("/app.js");
+    expect(asked()).toEqual([]);                      // not while the page parses: the pane paints without it
+    pump(1);
+    await new Promise((r) => setTimeout(r, 0));
+    run("/app.js"); pump(1); await new Promise((r) => setTimeout(r, 0));
+    expect(asked()).toEqual(["/app.js"]);
+  });
+  it("a page opened in a background tab (no frames) asks at once", () => {
+    document.body.innerHTML = "";
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    run("/app.js");
+    expect(asked()).toEqual(["/app.js"]);
   });
 });
