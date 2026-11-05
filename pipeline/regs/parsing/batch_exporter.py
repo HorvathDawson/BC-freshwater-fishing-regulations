@@ -268,6 +268,9 @@ def main() -> None:
     ap.add_argument("--overrides", help="matcher overrides JSON.")
     ap.add_argument("--entries-dir", help="catalogue region files dir (resume skip).")
     ap.add_argument("--out-dir", help="working dir (default: data/generated/regs/parse).")
+    ap.add_argument("--rows", type=Path,
+                    help="synopsis_raw_data.json to export (default: the extraction's, "
+                    "GENERATED.regs.extraction) — a new book's extraction in a scratch dir (T239)")
     ap.add_argument("--force", action="store_true", help="re-export rows already in the catalogue.")
     ap.add_argument("--skip-existing", action="store_true",
                     help="drop rows already in the catalogue (CHANGES the batch layout — breaks "
@@ -281,7 +284,7 @@ def main() -> None:
                     "hints. Pair with `dispatch --force`.")
     args = ap.parse_args()
 
-    rows = load_synopsis_rows()
+    rows = load_synopsis_rows(args.rows)
     registry = load_registry(Path(args.registry) if args.registry else default_registry_path())
     default_ov = CURATED.regulations.overrides
     overrides = load_overrides(args.overrides or (default_ov if default_ov.exists() else None))

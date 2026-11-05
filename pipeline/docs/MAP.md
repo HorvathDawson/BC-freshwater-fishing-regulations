@@ -53,6 +53,7 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 | what | code | note |
 |---|---|---|
 | synopsis rows | `regs/extraction/extract_synopsis.py` | PDF → rows (only when the synopsis changes) |
+| a new synopsis | `tools/synopsis_book.py` (carry / replay), `tools/synopsis_diff.py` | the annual update: carry unchanged rows, diff two books; runbook `handoff/PLAN/runbooks/annual-synopsis.md` (T239) |
 | **the LLM parse** | `regs/parsing/` (`run_parse.sh`, `dispatch`) | **HUMAN-ONLY, spends credits** (AGENTS 1); writes the catalogue |
 | catalogue model + gate | `regs/parsing/catalogue.py`, `validate_catalogue.py` | what ingest refuses |
 | curation review | `regs/review/` + `curation-review/` (FastAPI + frontend) | marks only in review mode (AGENTS 65–67) |

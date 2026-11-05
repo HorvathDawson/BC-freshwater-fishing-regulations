@@ -1081,7 +1081,9 @@ class FishingSynopsisParser:
             if "WATER BODY" in w_txt.upper() or "MGMT UNIT" in w_txt.upper():
                 continue
 
-            all_syms = list(set(v_sym_raw + w_sym))
+            # First-seen order, never `set` order: a set made the order follow the hash seed, so two
+            # extractions of one PDF differed on 30 rows' symbols (T239 dry run).
+            all_syms = list(dict.fromkeys(v_sym_raw + w_sym))
 
             # Normalize unicode characters to preserve context while standardizing format
             regs_raw = _normalize_unicode(regs_raw)
@@ -1415,9 +1417,17 @@ def _process_single_page(args):
         result = parser.extract_rows(page, save_debug=save_debug, page_num=page_num)
 
     # Only return pages with actual data rows
-    if result.rows:
-        return result
-    return None
+    if not result.rows:
+        return None
+    # A table on a page with no REGION header is the "how to read the tables" sample (printed p.4
+    # of the 2025-27 book: ALICE LAKE / ALOUETTE LAKE), not a regulation. Dropped LOUDLY: a new
+    # book whose header the reader no longer finds would lose every page here, and must say so.
+    if not result.metadata.region:
+        print(f"  [Skipped] PDF page {page_num}: {len(result.rows)} row(s) on a page with no REGION "
+              f"header (the sample table) — if this is a real table, fix _extract_region_header",
+              file=sys.stderr)
+        return None
+    return result
 
 
 class SynopsisExtractor:
@@ -1464,7 +1474,7 @@ class SynopsisExtractor:
                 f.write(chunk)
         print(f"Download complete: {filename}")
 
-    def extract_all_pages(self, save_debug: bool = False) -> ExtractionResults:
+    def extract_all_pages(self, save_debug: bool = False, workers: Optional[int] = 4) -> ExtractionResults:
         """
         Extract raw rows from all pages in the PDF.
         Returns a list of page results with metadata and raw row data.
@@ -1501,7 +1511,8 @@ class SynopsisExtractor:
         completed_count = 0
 
         # Process pages in parallel
-        with ProcessPoolExecutor() as executor:
+        # At most 4 processes by default: heavy jobs here run <= 4 workers (scripts/heavy.sh).
+        with ProcessPoolExecutor(max_workers=workers) as executor:
             futures = {
                 executor.submit(_process_single_page, args): args[1]
                 for args in page_args
@@ -1567,6 +1578,7 @@ def main(argv: Optional[List[str]] = None) -> None:
         help=f"Output JSON file path (default: {default_output})",
     )
     parser.add_argument("--page", type=int, help="Single page to extract (for testing)")
+    parser.add_argument("--workers", type=int, default=4, help="page worker processes (default 4)")
     parser.add_argument(
         "--debug", action="store_true", help="Save debug visualizations"
     )
@@ -1603,7 +1615,7 @@ def main(argv: Optional[List[str]] = None) -> None:
             shutil.copy2(args.pdf_path, extractor.pdf_path)
             print(f"Copied PDF to {extractor.pdf_path}")
 
-        raw_data = extractor.extract_all_pages(save_debug=args.debug)
+        raw_data = extractor.extract_all_pages(save_debug=args.debug, workers=args.workers)
         output_file = os.path.basename(args.output_path)
         extractor.save_to_json(raw_data, filename=output_file)
         print("\nRaw extraction complete.")
