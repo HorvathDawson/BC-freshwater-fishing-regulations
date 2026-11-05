@@ -31,7 +31,7 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **Running:** map feel + performance; SEO (T188–T198) started.
 - **Deferred, thought later:** T383, T389, T304, T401 (waits on your recording), T307/T308/T310 sign-offs.
 - **Next chat after 0.6.0:** data + build (T164, T178, T239, T266, T295, T297, T324–T326, T337) and launch + hygiene
-  (T86, T240, T244, T371, T305, T306, T331, T341, T402, T333–T335).
+  (T86, T240, T404 one switch to prod + runbook, T244, T371, T305, T306, T331, T341, T402, T333–T335).
 
 ## 2026-11-05 (after 0.5.0): reports read, web crash fixed, phone map reports in a lane [T391]
 - Reports read (staging worker): 1 problem report (owner's, 11-02, already T348, done). New crash kinds since T346:
