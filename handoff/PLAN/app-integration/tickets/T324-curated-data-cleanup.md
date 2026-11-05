@@ -39,3 +39,5 @@ Now the cleanup change set for the curated layer:
 5. **Worker wording: one copy** — drop the compiled-in `wording.json`; missing/invalid R2 copy fails the DFO job loudly.
 6. **Sync inputs on push to STAGING** (`feeds-sync-inputs.yml` push trigger); prod stays manual.
 7. Rewrite `data-flow.md` to match the result.
+- (from T266/T325, 11-05) `pipeline/tools/slough_calls.py` ABOUT still says "applied from data/curated/decided/sloughs.json";
+  fix it in the rename change (it is written into `slough_calls.json`, so it changes a build input once).
