@@ -434,13 +434,13 @@ use that as the sole source of future work."
 | T388 | A named water's link place never fetches `lines`: each part's runs in the water file (`part_line`, by ord, in the region slice); unnamed reaches keep `lines` | DONE | dfe887d6a | owner 2026-11-04 |
 | T389 | Unnamed reach links write their place from the tiles' stream key (no `lines` download); `lines` only to open a shared unnamed link | OPEN | — | owner 2026-11-04 (after 0.5.0) |
 | T390 | The app notices a newer version of itself and offers an Update button (Play in-app update; strong prompt when a release needs a newer app) | OPEN | — | owner 2026-11-04 (after 0.5.0) |
-| T391 | Every web water page filed a fatal "Requiring unknown module": Metro reports the lazy-chunk miss as fatal while ErrorUtils is set; the asking moment runs without it | DONE 11-04 | — | crash reports 2026-11-04 |
-| T392 | A feeds worker release reruns the feeds: the deployed version is in every reuse key; deploy/staging/feeds.sh deploys then runs every job | DONE 11-05 | — | owner 2026-11-05 |
+| T391 | Every web water page filed a fatal "Requiring unknown module": Metro reports the lazy-chunk miss as fatal while ErrorUtils is set; the asking moment runs without it | DONE 11-04 | 191953b4b | crash reports 2026-11-04 |
+| T392 | A feeds worker release reruns the feeds: the deployed version is in every reuse key; deploy/staging/feeds.sh deploys then runs every job | DONE 11-05 | 6f0a04a1c | owner 2026-11-05 |
 | T393 | Regional DFO size rules (adult chinook, 30 cm / 25 cm minimums) on the species rows, not loose lines | OPEN | — | owner report 2026-11-05 |
 | T394 | Salmon quota rows still show the ocean image, not the spawning image (T343 item 6 missed a path) | OPEN | — | owner report 2026-11-05 |
 | T395 | Vessel restrictions: own tab under Methods and gear, out of the top of the regs pane | OPEN | — | owner report 2026-11-05 |
 | T396 | Trout & more legend in 2 lines, both mode legends one height (no jump on switch) | OPEN | — | owner report 2026-11-05 |
-| T397 | BUG: Runs tab fish chips cannot be scrolled sideways on the phone | DONE in code 11-05 (phone check next APK) | — | owner report 2026-11-05 |
+| T397 | BUG: Runs tab fish chips cannot be scrolled sideways on the phone | DONE in code 11-05 (phone check next APK) | f2f726456 | owner report 2026-11-05 |
 | T398 | ELF-only water opens on real-time data; forecast always switchable off | OPEN | — | owner report 2026-11-05 |
 | T399 | The water map's highlighted part zigzagged: the water copy drew a shallow zoom's line over the atlas below one shared ceiling; each copied section now stops at its own zoom (filter, no style swap) | DONE in code (owner look on APK) | adfbe330e | owner 2026-11-04 (0.5.0 phone) |
 | T400 | Camera moves choppy on the phone: fitBounds flew (the binding's default "fly" easing); now eased. Left: search refine rounds / probe steps are extra moves | PARTIAL | adfbe330e | owner 2026-11-04 (0.5.0 phone) |

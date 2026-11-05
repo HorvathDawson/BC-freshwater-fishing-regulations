@@ -1,6 +1,6 @@
 # T399 — The highlighted part's casing zigzags across the river (water map, phone)
 
-Status: DONE 2026-11-04 in code (owner, 0.5.0 Play internal: Coquitlam River, Part 1 of 3 — a pink casing and the
+Status: DONE 2026-11-04 in code (adfbe330e; owner, 0.5.0 Play internal: Coquitlam River, Part 1 of 3 — a pink casing and the
 yellow line cross each other like two different lines; upstream of the part's end the river is fine).
 
 **Cause:** the water copy (T175, `water-copy.ts`) keeps each section's line from the tiles of the zoom it was first

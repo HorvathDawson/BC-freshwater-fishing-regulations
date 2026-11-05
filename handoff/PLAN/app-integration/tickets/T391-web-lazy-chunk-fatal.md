@@ -1,6 +1,6 @@
 # T391 — Every web water page filed a fatal "Requiring unknown module" crash
 
-Status: DONE 2026-11-04 (found reading the 0.5.0 crash reports).
+Status: DONE 2026-11-04 (191953b4b; found reading the 0.5.0 crash reports).
 
 **Reports:** kind 5f6c515b (0.5.0 web, 9 then 10, 5 installs: the staging smoke runs and a fresh visit) and e7557774
 (0.3.0 web, same cause). Fatal, route water / other.

@@ -1,6 +1,6 @@
 # T392 — A feeds worker release reruns the feeds
 
-Status: DONE 2026-11-05 (owner 2026-11-05: "the feeds in staging never updated after release to get the new forecast
+Status: DONE 2026-11-05 (6f0a04a1c; owner 2026-11-05: "the feeds in staging never updated after release to get the new forecast
 detail; when a feeds worker release happens it should rerun feeds automatically").
 
 **Cause:** the gauge job reuses the day's forecast output (and each station's) while its key `GAUGE_REV` matches, and the
