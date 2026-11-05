@@ -23,7 +23,8 @@ export function FishImage({ code, file, alt, credit, width, height, fish, palett
   code: string; file: string; alt: string; credit: string; width: number; height: number; fish?: FishImages; palette: Palette;
 }) {
   // FishImages holds a code's pictures in the manifest's order (emit-fish.mjs): this picture is the one at its file's place
-  const src = fish?.[code]?.[Math.max(0, FISH[code]?.findIndex((f) => f.file === file) ?? 0)];
+  // (T405) the sheet is the one place the FULL picture is drawn (rows draw `thumb`)
+  const src = fish?.[code]?.[Math.max(0, FISH[code]?.findIndex((f) => f.file === file) ?? 0)]?.full;
   return (
     <View testID="fish-look" style={{ marginTop: 8, width: "100%", maxWidth: FISH_PICTURE.maxWidth }}>
       {/* the box keeps the picture's own proportions; the image fills it (an Image's own aspectRatio is not kept on web) */}

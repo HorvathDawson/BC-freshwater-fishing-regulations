@@ -24,7 +24,12 @@ export type ToThread = { t: "page"; n: number; id: string; head: string; file: s
 /** @public — loaded by tools/seo/pane-worker.mjs through the module runner (a dynamic load knip cannot follow). */
 export async function serve(port: MessagePort, d: ThreadData): Promise<void> {
   const loader = openReleaseDir(d.releaseDir), app = readAppExport(d.appDir);
-  (globalThis as { __ciftAsset?: (p: string) => unknown }).__ciftAsset = (p: string) => app.asset(p);
+  // (T405) a picture the app requires but its export does not serve is an error, never a pane drawn without it
+  (globalThis as { __ciftAsset?: (p: string) => unknown }).__ciftAsset = (p: string) => {
+    const a = app.asset(p);
+    if (!a) throw new Error(`build-seo: the app export ${d.appDir} serves no ${p} (rebuild the export)`);
+    return a;
+  };
   const images = await import("../../apps/mobile/src/fishImages.generated");
   const panes = new PaneRenderer({ source: makeReleaseSource(loader), loader,
                                    fishImages: images.FISH_IMAGES as FishImages, adiposeImages: images.ADIPOSE_IMAGES as AdiposeImages });

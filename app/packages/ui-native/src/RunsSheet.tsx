@@ -37,7 +37,7 @@ export function RunsSheet({ vm, palette, theme = "light", fishImages, onClose, o
           {/* the chosen species' runs; the other species' fold behind one line (a big river carries dozens) */}
           {vm.rows.slice(0, all ? vm.rows.length : vm.mine).map((r) => (
             <RunRow key={r.key} r={r} pentad={vm.pentad} palette={palette} theme={theme}
-                    art={r.code ? fishImages?.[r.code]?.[0] : undefined} />
+                    art={r.code ? fishImages?.[r.code]?.[0]?.thumb : undefined} />
           ))}
           {vm.moreWords && (
             <Pressable testID="runs-more" accessibilityRole="button" aria-expanded={all} onPress={() => setAll(!all)}
@@ -61,7 +61,7 @@ export function RunsSheet({ vm, palette, theme = "light", fishImages, onClose, o
 }
 
 function RunRow({ r, pentad, palette, theme, art }: {
-  r: RunRowVM; pentad: number; palette: Palette; theme: string; art: FishImages[string][number] | undefined;
+  r: RunRowVM; pentad: number; palette: Palette; theme: string; art: FishImages[string][number]["thumb"] | undefined;
 }) {
   return (
     <View testID="runs-row" style={{ gap: 4, borderBottomWidth: 1, borderBottomColor: palette.line, paddingBottom: 12 }}>

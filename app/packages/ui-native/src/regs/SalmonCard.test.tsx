@@ -91,11 +91,13 @@ describe("the Salmon card", () => {
   });
 
   it("(T394) each species row wears its SPAWNING look (owner 2026-10-31, T343 item 6), never the ocean one", () => {
-    const images = Object.fromEntries(Object.entries(FISH).map(([code, looks]) => [code, looks.map((l) => ({ uri: l.file }))]));
+    const images = Object.fromEntries(Object.entries(FISH).map(([code, looks]) => [code, looks.map((l) => ({ thumb: { uri: `thumbs/${l.file}` }, full: { uri: l.file } }))]));
     render(<SalmonCard card={salmonCard(FACTS, { sids: [101], item: null }, JUL20)} palette={LIGHT} images={images as never} />);
     const looks = screen.getAllByTestId("salmon-look").map((e) => e.outerHTML);
     expect(looks.length).toBe(5);
     expect(looks.every((h) => h.includes("-spawning-phase.webp") && !h.includes("-ocean-phase.webp"))).toBe(true);
+    // (T405) a row draws the thumbnail, never the full picture
+    expect(looks.every((h) => h.includes("thumbs/"))).toBe(true);
   });
 
   it("every species closed: five closed species rows and DFO's closed words said ONCE (not per picture)", () => {

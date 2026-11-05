@@ -29,7 +29,7 @@ const ON = process.env.T46_SHOTS === "1";
 const OUT = join(process.cwd(), "..", "handoff", "PLAN", "app-integration", "T46-shots");
 const ASSETS = join(process.cwd(), "apps", "mobile", "assets", "fish");
 const FISH_IMAGES = Object.fromEntries(Object.entries(FISH).map(([code, pics]) =>
-  [code, pics.map((p) => ({ uri: pathToFileURL(join(ASSETS, p.file)).href }))]));
+  [code, pics.map((p) => ({ thumb: { uri: pathToFileURL(join(ASSETS, "thumbs", p.file)).href }, full: { uri: pathToFileURL(join(ASSETS, p.file)).href } }))]));
 // fishSheet reads only the species book's names (none here: each falls back to its picture's caption, the manifest's)
 const INPUTS = { statics: { exportSpecies: { fish: {} } } } as unknown as RegsInputs;
 const PAGE = { sheet: (k: SheetKey) => fishSheet(INPUTS, k, k.slice(3)) } as unknown as RegsPage;

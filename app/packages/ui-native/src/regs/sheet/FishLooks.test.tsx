@@ -21,11 +21,12 @@ afterEach(cleanup);
 type Frozen = Omit<RegsPage, "sheet"> & { sheets: Record<string, SheetVM | null> };
 const sheetPage = (f: unknown): RegsPage => { const p = f as Frozen; return { ...p, sheet: (k: SheetKey) => p.sheets[k] ?? null } as RegsPage; };
 const VEDDER = sheetPage(vedder1010);
-/** pictures registered as the app registers them (a source per manifest picture, manifest order) */
+/** pictures registered as the app registers them (a thumbnail + the picture per manifest picture, manifest order) */
+const pic = (file: string) => ({ thumb: { uri: `thumbs/${file}` }, full: { uri: file } });
 const FISH: FishImages = {
-  ST: [{ uri: "steelhead-ocean-phase.webp" }, { uri: "steelhead-spawning-phase.webp" }],
-  KO: [{ uri: "kokanee-spawning-phase.webp" }, { uri: "kokanee.webp" }],
-  RB: [{ uri: "rainbow-trout.webp" }],
+  ST: [pic("steelhead-ocean-phase.webp"), pic("steelhead-spawning-phase.webp")],
+  KO: [pic("kokanee-spawning-phase.webp"), pic("kokanee.webp")],
+  RB: [pic("rainbow-trout.webp")],
 };
 
 function open(key: SheetKey, layout: LayoutClass, palette: Palette = LIGHT, fish: FishImages | undefined = FISH) {
@@ -108,6 +109,12 @@ describe("T46 a fish's looks: side by side when there is room, stacked on a phon
         cleanup();
       }
     expect(grounds).toEqual([]);
+  });
+
+  it("(T405) the sheet draws each look's FULL picture, never its thumbnail", () => {
+    open("sp:ST", "desktop");
+    const html = screen.getAllByTestId("fish-look-box").map((b) => b.innerHTML);
+    expect(html.map((h) => [h.includes('"steelhead-'), h.includes("thumbs/")])).toEqual([[true, false], [true, false]]);
   });
 
   it("a fish with no registered picture keeps its plain ground (the stand-in), at the same measure", () => {

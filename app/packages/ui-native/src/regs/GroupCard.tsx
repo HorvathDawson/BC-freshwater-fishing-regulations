@@ -43,7 +43,7 @@ export function Pictures({ pics, palette, actions, images }: { pics: readonly Fi
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 8, marginTop: 4 }}>
       {shown.map((p) => {
-        const src = images?.[p.code]?.[0];
+        const src = images?.[p.code]?.[0]?.thumb;
         return (
           <RegsPress key={p.code} testID={`pic:${p.code}`} accessibilityRole="button" accessibilityLabel={WORDS.LOOKS_LIKE(p.name)} box={{ w: 80, h: 44 }}
                      onPress={() => !p.sil && actions.onSheet(p.open)} style={{ minWidth: 80, maxWidth: 132, paddingVertical: 4, minHeight: 44 }}>

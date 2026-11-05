@@ -76,7 +76,8 @@ export class PaneRenderer {
   private shared: Set<string> | null = null;
   constructor(private readonly p: PaneInputs, private readonly waitMs = 4000) {
     // the pictures are the web export's files, which the page loads like any other: drawn as loaded, as the app draws them
-    const uris = [...Object.values(p.fishImages ?? {}).flat(), ...Object.values(p.adiposeImages ?? {})]
+    // (T405) a row draws a picture's thumbnail; the full picture is the fish sheet's, never in a prerendered pane
+    const uris = [...Object.values(p.fishImages ?? {}).flat().map((f) => f.thumb), ...Object.values(p.adiposeImages ?? {})]
       .map((s) => (s && typeof s === "object" && "uri" in s ? (s as { uri?: string }).uri : undefined));
     for (const u of uris) if (u) ImageUriCache.add(u);
   }

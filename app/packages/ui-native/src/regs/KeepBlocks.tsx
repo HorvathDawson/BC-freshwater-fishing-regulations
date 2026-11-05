@@ -206,7 +206,7 @@ export function PossessionRow({ possession, palette, actions }: { possession: Po
 /** A row's picture; a row with no picture (Crayfish, Protected species: thumb null) draws the prototype's silhouette
  *  (`.th.sil`: a line2 fish shape, no ground) — never a filled tile. Both carry `pic:` (rule 8 sees them). */
 function Thumb({ code, images, palette }: { code: string | null; images: FishImages | undefined; palette: Palette }) {
-  const src = code ? images?.[code]?.[0] : undefined;
+  const src = code ? images?.[code]?.[0]?.thumb : undefined;
   return (
     <View testID={`pic:${src ? code : "none"}`} aria-hidden={!src || undefined} style={{ width: 64, alignItems: "center" }}>
       {src ? <Image source={src} style={{ width: 64, height: 32 }} resizeMode="contain" accessibilityIgnoresInvertColors />

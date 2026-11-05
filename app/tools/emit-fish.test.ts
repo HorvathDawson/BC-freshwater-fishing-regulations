@@ -11,7 +11,9 @@ import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { emit, fishTips, CORE_OUT, MOBILE_OUT, MANIFEST, TIPS_SOURCE } from "./emit-fish.mjs";
+import { emit, fishTips, thumbProblems, CORE_OUT, MOBILE_OUT, MANIFEST, TIPS_SOURCE } from "./emit-fish.mjs";
+import { THUMB_WIDTH, THUMBS_RECORD, thumbSize } from "./emit-fish-thumbs.mjs";
+import { webpSize } from "./seo/appExport";
 import { FISH, FISH_CREDIT_OF, FISH_CREDITS, FISH_MANIFEST_SHA256, FISH_TIPS } from "../packages/core/src/regs/fish.generated";
 
 const app = fileURLToPath(new URL("..", import.meta.url));
@@ -123,21 +125,46 @@ describe("emit-fish: the look-for tips (T36, contracts §3 FISH_TIPS)", () => {
 
 describe("emit-fish: the mobile require map", () => {
   const { mobile } = emit(manifest, sha, tips);
-  const required = [...mobile.matchAll(/require\("\.\.\/assets\/fish\/([^"]+)"\)/g)].map((m) => m[1]);
+  const required = [...mobile.matchAll(/require\("\.\.\/assets\/fish\/([^"]+)"\)/g)].map((m) => m[1]!);
+  const full = required.filter((f) => !f.startsWith("thumbs/")), thumbs = required.filter((f) => f.startsWith("thumbs/"));
 
   it("requires every coded .webp in the folder exactly once, each one present (and T38's two hatch drawings)", () => {
     const onDisk = readdirSync(assets).filter((f) => f.endsWith(".webp"));
     const coded = manifest.images.filter((i: { code: string | null }) => i.code !== null)
       .map((i: { file: string }) => i.file);
-    for (const f of required) expect(onDisk).toContain(f);
-    expect([...required].sort()).toEqual([...coded, "adipose-wild.webp", "adipose-clipped.webp"].sort());
-    expect(new Set(required).size).toBe(required.length);
+    for (const f of full) expect(onDisk).toContain(f);
+    expect([...full].sort()).toEqual([...coded, "adipose-wild.webp", "adipose-clipped.webp"].sort());
+    expect(new Set(full).size).toBe(full.length);
   });
 
-  it("emits literal paths in manifest order, one line per code", () => {
-    expect(mobile).toContain(
-      '  "DV": [require("../assets/fish/bull-trout.webp"), require("../assets/fish/dolly-varden.webp")],\n');
-    expect(mobile).toContain('  "GR": [require("../assets/fish/arctic-grayling.webp")],\n');
+  it("(T405) gives every coded picture its thumbnail, each one on disk at the recorded size", () => {
+    const onDisk = readdirSync(`${assets}thumbs/`).filter((f) => f.endsWith(".webp"));
+    const record = JSON.parse(readFileSync(THUMBS_RECORD, "utf8")) as { thumbs: Record<string, { width: number; height: number }> };
+    const coded = manifest.images.filter((i: { code: string | null }) => i.code !== null);
+    expect([...thumbs].sort()).toEqual(coded.map((i: { file: string }) => `thumbs/${i.file}`).sort());
+    for (const f of thumbs) expect(onDisk).toContain(f.slice("thumbs/".length));
+    for (const i of coded as { file: string; width: number; height: number }[]) {
+      const b = readFileSync(`${assets}thumbs/${i.file}`);
+      expect([i.file, webpSize(b), record.thumbs[i.file]!.width]).toEqual([i.file, thumbSize(i.width, i.height), THUMB_WIDTH]);
+    }
+  });
+
+  it("(T405) refuses a picture with no thumbnail or a stale one (mutation)", () => {
+    const record = JSON.parse(readFileSync(THUMBS_RECORD, "utf8")) as { thumbs: Record<string, { source_sha256: string }> };
+    const read = (f: string) => { try { return readFileSync(`${assets}${f}`); } catch { return null; } };
+    expect(thumbProblems(manifest, record, read)).toEqual([]);
+    const { "burbot.webp": _gone, ...rest } = record.thumbs;
+    expect(thumbProblems(manifest, { ...record, thumbs: rest }, read)).toEqual(["burbot.webp: no thumbnail"]);
+    const stale = { ...record, thumbs: { ...record.thumbs, "burbot.webp": { ...record.thumbs["burbot.webp"]!, source_sha256: "0" } } };
+    expect(thumbProblems(manifest, stale, read)).toEqual(["burbot.webp: thumbnail made from another version of the picture"]);
+    expect(thumbProblems(manifest, record, (f) => (f === "thumbs/burbot.webp" ? null : read(f)))).toEqual(["thumbs/burbot.webp: missing"]);
+  });
+
+  it("emits literal paths in manifest order, one line per picture: the thumbnail and the picture", () => {
+    expect(mobile).toContain('  "DV": [\n' +
+      '    { thumb: require("../assets/fish/thumbs/bull-trout.webp"), full: require("../assets/fish/bull-trout.webp") },\n' +
+      '    { thumb: require("../assets/fish/thumbs/dolly-varden.webp"), full: require("../assets/fish/dolly-varden.webp") },\n  ],\n');
+    expect(mobile).toContain('  "GR": [\n    { thumb: require("../assets/fish/thumbs/arctic-grayling.webp"), full: require("../assets/fish/arctic-grayling.webp") },\n  ],\n');
     expect(mobile).not.toContain("`");
   });
 });

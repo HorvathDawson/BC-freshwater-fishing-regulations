@@ -21,6 +21,11 @@
  * `adipose-clipped.webp` (code null: never a species picture; drawn by tools/emit-adipose.mjs). A manifest without
  * either is refused — the "Hatchery or wild?" sheet would draw two empty grounds.
  *
+ * (T405) Each species picture is registered TWICE, `{ thumb, full }`: the thumbnail tools/emit-fish-thumbs.mjs made from
+ * it (apps/mobile/assets/fish/thumbs/, 240 px) for every row and chip, the picture itself for the fish sheet only. The
+ * thumbnails are checked against the pictures they were made from (`thumbProblems`): a picture with no thumbnail, or a
+ * stale one, fails `--check` and the build — never a quiet fall back to the full picture.
+ *
  * Images with `code: null` have no species row and are skipped. Keys are sorted by code for a
  * stable diff; images keep manifest order within a code (the first is the one a row shows).
  * Every string goes through JSON.stringify — never hand-escaped.
@@ -28,6 +33,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { THUMB_DIR, THUMBS_RECORD, thumbFiles } from "./emit-fish-thumbs.mjs";
 
 const app = fileURLToPath(new URL("..", import.meta.url));
 export const MANIFEST = `${app}apps/mobile/assets/fish/manifest.json`;
@@ -74,6 +80,26 @@ const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
  *  adipose figures, T38) are not credits: there is nobody else to credit, and the line would only repeat the app. */
 export const credited = (i) => i.source !== "this app";
 export const creditLine = (i) => `${i.caption}${i.phase ? ` · ${i.phase}` : ""} — ${i.credit} (${i.source})`;
+
+/**
+ * (T405) What is wrong with the thumbnails: `record` is thumbs.json, `read(file)` a picture's bytes (`thumbs/<file>` for a
+ * thumbnail), null when absent. Every coded picture needs a thumbnail made from its current bytes, and the thumbnail on
+ * disk must be the one recorded.
+ */
+export function thumbProblems(manifest, record, read) {
+  const out = [];
+  const want = thumbFiles(manifest);
+  for (const file of want) {
+    const r = record?.thumbs?.[file];
+    if (!r) { out.push(`${file}: no thumbnail`); continue; }
+    const src = read(file), thumb = read(`thumbs/${file}`);
+    if (!src || createHash("sha256").update(src).digest("hex") !== r.source_sha256) out.push(`${file}: thumbnail made from another version of the picture`);
+    if (!thumb) out.push(`thumbs/${file}: missing`);
+    else if (createHash("sha256").update(thumb).digest("hex") !== r.sha256) out.push(`thumbs/${file}: not the recorded thumbnail`);
+  }
+  for (const file of Object.keys(record?.thumbs ?? {})) if (!want.includes(file)) out.push(`thumbs/${file}: no such picture in manifest.json`);
+  return out;
+}
 
 export function emit(manifest, sha, tips) {
   const codes = byCode(manifest);
@@ -127,9 +153,14 @@ export function emit(manifest, sha, tips) {
     "// Literal require() paths: Metro resolves them statically. Codes match FISH in @app/core.",
     'import type { ImageSourcePropType } from "react-native";',
     "",
-    "export const FISH_IMAGES: Readonly<Record<string, readonly ImageSourcePropType[]>> = {",
-    ...codes.map(([code, imgs]) =>
-      `  ${s(code)}: [${imgs.map((i) => `require(${s(`../assets/fish/${i.file}`)})`).join(", ")}],`),
+    "/** (T405) Species code -> its pictures in manifest order: thumb (240 px, tools/emit-fish-thumbs.mjs) for every row and chip,",
+    " *  full for the fish sheet only. */",
+    "export const FISH_IMAGES: Readonly<Record<string, readonly { readonly thumb: ImageSourcePropType; readonly full: ImageSourcePropType }[]>> = {",
+    ...codes.map(([code, imgs]) => [
+      `  ${s(code)}: [`,
+      ...imgs.map((i) => `    { thumb: require(${s(`../assets/fish/thumbs/${i.file}`)}), full: require(${s(`../assets/fish/${i.file}`)}) },`),
+      "  ],",
+    ].join("\n")),
     "};",
     "",
     "/** (T38) The hatch sheet's two drawings (Wild · adipose fin there / Hatchery · clipped), by variant. */",
@@ -144,6 +175,13 @@ export function emit(manifest, sha, tips) {
 
 function main() {
   const bytes = readFileSync(MANIFEST);
+  const fishDir = THUMB_DIR.slice(0, -"thumbs/".length);
+  const thumbs = thumbProblems(JSON.parse(bytes.toString("utf8")), JSON.parse(readFileSync(THUMBS_RECORD, "utf8")),
+    (f) => { try { return readFileSync(`${fishDir}${f}`); } catch { return null; } });
+  if (thumbs.length) {
+    console.error(`fish thumbnails stale — run node tools/emit-fish-thumbs.mjs, then pnpm fish:build:\n  ${thumbs.join("\n  ")}`);
+    process.exit(1);
+  }
   const sha = createHash("sha256").update(bytes).digest("hex");
   const { core, mobile } = emit(JSON.parse(bytes.toString("utf8")), sha, fishTips(readFileSync(TIPS_SOURCE, "utf8")));
   if (process.argv.includes("--check")) {

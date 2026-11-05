@@ -42,7 +42,7 @@ const PAGES = { vedder_1010: vedder1010, vedder_515: vedder515, vedder_615: vedd
 const TABS: readonly Tab[] = ["keep", "gear", "methods", "licence"];
 /** every species code has a picture, as the app's FISH_IMAGES gives each code the manifest draws (apps/mobile; a
  *  ui-native test may not import it — layers.json) */
-const IMAGES = new Proxy({}, { get: (_t, code) => [{ uri: `fish/${String(code)}.webp` }] }) as FishImages;
+const IMAGES = new Proxy({}, { get: (_t, code) => [{ thumb: { uri: `fish/thumbs/${String(code)}.webp` }, full: { uri: `fish/${String(code)}.webp` } }] }) as FishImages;
 
 function drawTab(tab: Tab, page: RegsPage, palette: Palette): HTMLElement {
   // a tab the page does not draw (null: outside B.C.) mounts nothing — none of the frozen pages here is one

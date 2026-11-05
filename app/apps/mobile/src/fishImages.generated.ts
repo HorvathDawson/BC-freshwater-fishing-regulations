@@ -2,37 +2,108 @@
 // Literal require() paths: Metro resolves them statically. Codes match FISH in @app/core.
 import type { ImageSourcePropType } from "react-native";
 
-export const FISH_IMAGES: Readonly<Record<string, readonly ImageSourcePropType[]>> = {
-  "BB": [require("../assets/fish/burbot.webp")],
-  "BCB": [require("../assets/fish/black-crappie.webp")],
-  "CH": [require("../assets/fish/chinook-salmon-ocean-phase.webp"), require("../assets/fish/chinook-salmon-spawning-phase.webp")],
-  "CM": [require("../assets/fish/chum-salmon-ocean-phase.webp"), require("../assets/fish/chum-salmon-spawning-phase.webp")],
-  "CO": [require("../assets/fish/coho-salmon-ocean-phase.webp"), require("../assets/fish/coho-salmon-spawning-phase.webp")],
-  "CT": [require("../assets/fish/coastal-cutthroat-trout.webp"), require("../assets/fish/westslope-cutthroat-trout.webp")],
-  "CULTUS_LAKE_SCULPIN": [require("../assets/fish/coastrange-sculpin-cultus-pygmy-sculpin-stand-in.webp")],
-  "DV": [require("../assets/fish/bull-trout.webp"), require("../assets/fish/dolly-varden.webp")],
-  "EB": [require("../assets/fish/brook-trout.webp")],
-  "GB": [require("../assets/fish/brown-trout.webp")],
-  "GE": [require("../assets/fish/goldeye.webp")],
-  "GR": [require("../assets/fish/arctic-grayling.webp")],
-  "GREEN_STURGEON": [require("../assets/fish/green-sturgeon.webp")],
-  "IN": [require("../assets/fish/inconnu.webp")],
-  "KO": [require("../assets/fish/kokanee-spawning-phase.webp"), require("../assets/fish/kokanee.webp")],
-  "LMB": [require("../assets/fish/largemouth-bass.webp")],
-  "LT": [require("../assets/fish/lake-trout.webp")],
-  "LW": [require("../assets/fish/lake-whitefish.webp")],
-  "MW": [require("../assets/fish/mountain-whitefish.webp")],
-  "NOOKSACK_DACE": [require("../assets/fish/longnose-dace-nooksack-dace-stand-in.webp")],
-  "NP": [require("../assets/fish/northern-pike.webp")],
-  "PK": [require("../assets/fish/pink-salmon-ocean-phase.webp"), require("../assets/fish/pink-salmon-spawning-phase.webp")],
-  "RB": [require("../assets/fish/rainbow-trout.webp")],
-  "SALISH_SUCKER": [require("../assets/fish/longnose-sucker-salish-sucker-stand-in.webp")],
-  "SK": [require("../assets/fish/sockeye-salmon-ocean-phase.webp"), require("../assets/fish/sockeye-salmon-spawning-phase.webp")],
-  "SMB": [require("../assets/fish/smallmouth-bass.webp")],
-  "ST": [require("../assets/fish/steelhead-ocean-phase.webp"), require("../assets/fish/steelhead-spawning-phase.webp")],
-  "WP": [require("../assets/fish/walleye.webp")],
-  "WSG": [require("../assets/fish/white-sturgeon.webp")],
-  "YP": [require("../assets/fish/yellow-perch.webp")],
+/** (T405) Species code -> its pictures in manifest order: thumb (240 px, tools/emit-fish-thumbs.mjs) for every row and chip,
+ *  full for the fish sheet only. */
+export const FISH_IMAGES: Readonly<Record<string, readonly { readonly thumb: ImageSourcePropType; readonly full: ImageSourcePropType }[]>> = {
+  "BB": [
+    { thumb: require("../assets/fish/thumbs/burbot.webp"), full: require("../assets/fish/burbot.webp") },
+  ],
+  "BCB": [
+    { thumb: require("../assets/fish/thumbs/black-crappie.webp"), full: require("../assets/fish/black-crappie.webp") },
+  ],
+  "CH": [
+    { thumb: require("../assets/fish/thumbs/chinook-salmon-ocean-phase.webp"), full: require("../assets/fish/chinook-salmon-ocean-phase.webp") },
+    { thumb: require("../assets/fish/thumbs/chinook-salmon-spawning-phase.webp"), full: require("../assets/fish/chinook-salmon-spawning-phase.webp") },
+  ],
+  "CM": [
+    { thumb: require("../assets/fish/thumbs/chum-salmon-ocean-phase.webp"), full: require("../assets/fish/chum-salmon-ocean-phase.webp") },
+    { thumb: require("../assets/fish/thumbs/chum-salmon-spawning-phase.webp"), full: require("../assets/fish/chum-salmon-spawning-phase.webp") },
+  ],
+  "CO": [
+    { thumb: require("../assets/fish/thumbs/coho-salmon-ocean-phase.webp"), full: require("../assets/fish/coho-salmon-ocean-phase.webp") },
+    { thumb: require("../assets/fish/thumbs/coho-salmon-spawning-phase.webp"), full: require("../assets/fish/coho-salmon-spawning-phase.webp") },
+  ],
+  "CT": [
+    { thumb: require("../assets/fish/thumbs/coastal-cutthroat-trout.webp"), full: require("../assets/fish/coastal-cutthroat-trout.webp") },
+    { thumb: require("../assets/fish/thumbs/westslope-cutthroat-trout.webp"), full: require("../assets/fish/westslope-cutthroat-trout.webp") },
+  ],
+  "CULTUS_LAKE_SCULPIN": [
+    { thumb: require("../assets/fish/thumbs/coastrange-sculpin-cultus-pygmy-sculpin-stand-in.webp"), full: require("../assets/fish/coastrange-sculpin-cultus-pygmy-sculpin-stand-in.webp") },
+  ],
+  "DV": [
+    { thumb: require("../assets/fish/thumbs/bull-trout.webp"), full: require("../assets/fish/bull-trout.webp") },
+    { thumb: require("../assets/fish/thumbs/dolly-varden.webp"), full: require("../assets/fish/dolly-varden.webp") },
+  ],
+  "EB": [
+    { thumb: require("../assets/fish/thumbs/brook-trout.webp"), full: require("../assets/fish/brook-trout.webp") },
+  ],
+  "GB": [
+    { thumb: require("../assets/fish/thumbs/brown-trout.webp"), full: require("../assets/fish/brown-trout.webp") },
+  ],
+  "GE": [
+    { thumb: require("../assets/fish/thumbs/goldeye.webp"), full: require("../assets/fish/goldeye.webp") },
+  ],
+  "GR": [
+    { thumb: require("../assets/fish/thumbs/arctic-grayling.webp"), full: require("../assets/fish/arctic-grayling.webp") },
+  ],
+  "GREEN_STURGEON": [
+    { thumb: require("../assets/fish/thumbs/green-sturgeon.webp"), full: require("../assets/fish/green-sturgeon.webp") },
+  ],
+  "IN": [
+    { thumb: require("../assets/fish/thumbs/inconnu.webp"), full: require("../assets/fish/inconnu.webp") },
+  ],
+  "KO": [
+    { thumb: require("../assets/fish/thumbs/kokanee-spawning-phase.webp"), full: require("../assets/fish/kokanee-spawning-phase.webp") },
+    { thumb: require("../assets/fish/thumbs/kokanee.webp"), full: require("../assets/fish/kokanee.webp") },
+  ],
+  "LMB": [
+    { thumb: require("../assets/fish/thumbs/largemouth-bass.webp"), full: require("../assets/fish/largemouth-bass.webp") },
+  ],
+  "LT": [
+    { thumb: require("../assets/fish/thumbs/lake-trout.webp"), full: require("../assets/fish/lake-trout.webp") },
+  ],
+  "LW": [
+    { thumb: require("../assets/fish/thumbs/lake-whitefish.webp"), full: require("../assets/fish/lake-whitefish.webp") },
+  ],
+  "MW": [
+    { thumb: require("../assets/fish/thumbs/mountain-whitefish.webp"), full: require("../assets/fish/mountain-whitefish.webp") },
+  ],
+  "NOOKSACK_DACE": [
+    { thumb: require("../assets/fish/thumbs/longnose-dace-nooksack-dace-stand-in.webp"), full: require("../assets/fish/longnose-dace-nooksack-dace-stand-in.webp") },
+  ],
+  "NP": [
+    { thumb: require("../assets/fish/thumbs/northern-pike.webp"), full: require("../assets/fish/northern-pike.webp") },
+  ],
+  "PK": [
+    { thumb: require("../assets/fish/thumbs/pink-salmon-ocean-phase.webp"), full: require("../assets/fish/pink-salmon-ocean-phase.webp") },
+    { thumb: require("../assets/fish/thumbs/pink-salmon-spawning-phase.webp"), full: require("../assets/fish/pink-salmon-spawning-phase.webp") },
+  ],
+  "RB": [
+    { thumb: require("../assets/fish/thumbs/rainbow-trout.webp"), full: require("../assets/fish/rainbow-trout.webp") },
+  ],
+  "SALISH_SUCKER": [
+    { thumb: require("../assets/fish/thumbs/longnose-sucker-salish-sucker-stand-in.webp"), full: require("../assets/fish/longnose-sucker-salish-sucker-stand-in.webp") },
+  ],
+  "SK": [
+    { thumb: require("../assets/fish/thumbs/sockeye-salmon-ocean-phase.webp"), full: require("../assets/fish/sockeye-salmon-ocean-phase.webp") },
+    { thumb: require("../assets/fish/thumbs/sockeye-salmon-spawning-phase.webp"), full: require("../assets/fish/sockeye-salmon-spawning-phase.webp") },
+  ],
+  "SMB": [
+    { thumb: require("../assets/fish/thumbs/smallmouth-bass.webp"), full: require("../assets/fish/smallmouth-bass.webp") },
+  ],
+  "ST": [
+    { thumb: require("../assets/fish/thumbs/steelhead-ocean-phase.webp"), full: require("../assets/fish/steelhead-ocean-phase.webp") },
+    { thumb: require("../assets/fish/thumbs/steelhead-spawning-phase.webp"), full: require("../assets/fish/steelhead-spawning-phase.webp") },
+  ],
+  "WP": [
+    { thumb: require("../assets/fish/thumbs/walleye.webp"), full: require("../assets/fish/walleye.webp") },
+  ],
+  "WSG": [
+    { thumb: require("../assets/fish/thumbs/white-sturgeon.webp"), full: require("../assets/fish/white-sturgeon.webp") },
+  ],
+  "YP": [
+    { thumb: require("../assets/fish/thumbs/yellow-perch.webp"), full: require("../assets/fish/yellow-perch.webp") },
+  ],
 };
 
 /** (T38) The hatch sheet's two drawings (Wild · adipose fin there / Hatchery · clipped), by variant. */

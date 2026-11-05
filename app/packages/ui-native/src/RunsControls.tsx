@@ -57,7 +57,7 @@ export function RunSpeciesChips({ species, chosen, onToggle, onOnly, onAll, fish
           const on = chosen.some((c) => c.name === s.name);
           // (T367, owner 2026-11-03) the run's own look: the spawning picture, where the species has one
           const code = RUN_SPECIES_CODE[s.name] ?? "";
-          const art = fishImages?.[code]?.[Math.max(0, (FISH[code] ?? []).findIndex((l) => l.phase === "spawning"))];
+          const art = fishImages?.[code]?.[Math.max(0, (FISH[code] ?? []).findIndex((l) => l.phase === "spawning"))]?.thumb;
           const colour = palette.runSpecies[s.name] ?? palette.sub;
           return chip(s.name, on, <>
             <View testID={`run-species-swatch-${s.name}`}

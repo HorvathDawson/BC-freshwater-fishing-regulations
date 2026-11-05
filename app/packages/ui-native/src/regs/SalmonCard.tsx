@@ -38,7 +38,7 @@ function Chip({ status, label, palette }: { status: SalmonRowVM["status"]; label
 function spawningOf(code: SalmonSpecies, images?: FishImages) {
   const looks = FISH[code] ?? [];
   const i = Math.max(0, looks.findIndex((l) => l.phase === "spawning"));
-  return { look: looks[i], src: images?.[code]?.[i], name: looks[i]?.caption ?? code };
+  return { look: looks[i], src: images?.[code]?.[i]?.thumb, name: looks[i]?.caption ?? code };
 }
 
 /** One species of the table: its spawning picture (opens its fish sheet, both looks), its name, today's status, its sizes. */

@@ -37,7 +37,7 @@ const PAGE = { ...vedder, sheet: (k: SheetKey) => vedder.sheets[k] ?? null } as 
 // the app's picture files, by manifest order (as apps/mobile registers them)
 const ASSETS = join(process.cwd(), "apps", "mobile", "assets", "fish");
 const FISH_IMAGES = Object.fromEntries(Object.entries(FISH).map(([code, pics]) =>
-  [code, pics.map((p) => ({ uri: pathToFileURL(join(ASSETS, p.file)).href }))]));
+  [code, pics.map((p) => ({ thumb: { uri: pathToFileURL(join(ASSETS, "thumbs", p.file)).href }, full: { uri: pathToFileURL(join(ASSETS, p.file)).href } }))]));
 
 const CASES: [LayoutClass, number, number][] = [["desktop", 1440, 900], ["tablet", 1024, 768], ["phone", 390, 844]];
 const KEYS = ["sp:ST", "sp:RB"] as const;
