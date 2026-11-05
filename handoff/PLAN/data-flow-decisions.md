@@ -39,7 +39,7 @@ One row per question asked. Stream → decision → why → ticket. `data-flow.m
 ## Run timing → the "slow feed" pattern
 | question | decision | why | ticket |
 |---|---|---|---|
-| Run timing made two ways (Mac deliver + manual workflow needing an owner-uploaded base) | **One slow-feed pattern:** own R2 folder + `index.json`; a GitHub workflow (monthly + button); `upload.sh` uploads the binding base with every release (no owner step); content-hashed files; publish only on a real change with a diff report; a build-twice test asserts identical bytes. The Mac deliver stops making run timing. Staging automatic; prod the owner's choice. | Owner: a slow feed like HYDAT and later bathymetry; "make sure it is producing same output … deployed to R2 directly". | new ticket; HYDAT clim + bathymetry follow it when touched |
+| Run timing made two ways (Mac deliver + manual workflow needing an owner-uploaded base) | **One slow-feed pattern:** own R2 folder + `index.json`; a GitHub workflow started by a button or the worker (never a GitHub schedule); `upload.sh` uploads the binding base with every release (no owner step); content-hashed files; publish only on a real change with a diff report; a build-twice test asserts identical bytes. The Mac deliver stops making run timing. Staging automatic; prod the owner's choice. | Owner: a slow feed like HYDAT and later bathymetry; "make sure it is producing same output … deployed to R2 directly". | new ticket; HYDAT clim + bathymetry follow it when touched |
 
 ## Naming (owner 2026-11-05)
 "Make all the file names more accurate." Renames are collected per stream during the walkthrough and decided in ONE
@@ -50,7 +50,7 @@ naming pass at the end, so each file moves once.
 |---|---|---|---|
 | Build, checks, promote, staging upload are separate hand steps | **One command, "build once, promote the same artifact":** `pipeline release --staging` = build → checks → promote LATEST → upload staging, stop at the first failure, resumable (finished stages cached), stage-by-stage progress, plain failure message. Prod = `pipeline release --prod <r-id>` re-uploads the SAME checked bytes (human-only). | Owner: "we want to do that"; industry standard. | T295 / T297 |
 | Who starts a rebuild after curated changes | **Claude, batched** (one build via heavy.sh after a batch lands, diff summarized), and the **same command is the human's** — a short runbook, readable progress. | Owner: "something a human could run too with a nice workflow". | T297 |
-| Worker sees a new HYDAT | **`feeds-hydat.yml` runs weekly on a schedule** (staging); it already no-ops unless HYDAT is newer. Revised the same day: the repo holds R2 keys, not a GitHub token, and a schedule needs none. The same for every slow feed. | Owner 2026-11-05: "could it auto trigger the hydat workflow too?" | new ticket (with the slow-feed one) |
+| Worker sees a new HYDAT | **Never a GitHub schedule** (owner: flaky, unpaid, will disappear). Today the worker emails and the owner presses the workflow button; T413 lets the worker start it itself once the owner makes a token that can only start workflows in this repo. | Owner 2026-11-05. | T413 |
 
 ### Naming pass — decided (owner 2026-11-05: "I like all changes", names consistent across streams, good docs in the files)
 Conventions: `*_calls.json` = the owner's per-item decisions · `*_waters.json` = a list of waters · `*_stations.json` =

@@ -7,8 +7,9 @@ owner uploads a binding base after each atlas promote). Owner: a slow feed like 
 it is producing same output … deployed to R2 directly".
 
 ## Work
-1. One path: the `feeds-runtiming.yml` workflow (monthly + button), own R2 folder + `index.json`. Deliver stops making
-   run timing.
+1. One path: the `feeds-runtiming.yml` workflow, own R2 folder + `index.json`. Deliver stops making run timing.
+   **Started by a button or by the worker — never a GitHub schedule** (owner 11-05: GitHub as scheduler is flaky and
+   unpaid). The worker emails when a source looks changed (or starts the run itself, T413's token).
 2. `upload.sh` uploads the binding base with every release, so the workflow never waits on the owner.
 3. Content-hashed files; publish only on a real change, with a diff report (runs / waters added, dropped, changed).
 4. A build-twice test asserts identical bytes. Staging automatic; prod the owner's choice.

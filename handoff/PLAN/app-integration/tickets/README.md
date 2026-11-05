@@ -455,8 +455,8 @@ use that as the sole source of future work."
 | T409 | Water pages: next Lighthouse wins (fonts, WebCrypto/DecompressionStream verify, code splitting, sql.js after paint, cache headers) | PARTIAL | e843253e7, 011c8a8b8, 4771bb914, eb118fd15, 17791608a, e92983641 | staging 0457d354: WOFF2 faces + WebCrypto verify kept, water 77-83 (were 67-83), hubs 100; rest of TBT = warm map (no-map bound 93) — owner decision |
 | T410 | One clear web / native split in the app code (platform files, a written rule, a guard) | OPEN | — | owner 11-05, hygiene chat |
 | T411 | The highlighted part still zigzags after stepping Downstream to the bottom, then Upstream once (Coquitlam part 2) | OPEN | — | owner 11-05, screenshot in T411-shots; first in the next chat |
-| T412 | One slow-feed pattern (run timing first; HYDAT clim + bathymetry follow): workflow, auto binding base, same-bytes check | OPEN | — | owner 11-05 (T408) |
-| T413 | New HYDAT picked up without a remembered step: weekly scheduled feeds-hydat run (no new token) | OPEN | — | owner 11-05 (T408); runs once on main |
+| T412 | One slow-feed pattern (run timing first; HYDAT clim + bathymetry follow): button-run workflow (never a GitHub schedule), auto binding base, same-bytes check | OPEN | — | owner 11-05 (T408) |
+| T413 | A new HYDAT starts its workflow: the worker (with an owner-made token) or the owner after the email; never a GitHub schedule | OPEN | — | owner 11-05 |
 | T414 | Review app: "only these entries" filter for the yearly synopsis diff | OPEN | — | from T239 11-05 |
 | T415 | Extraction regression: Heber River's text (found by T239's dry run) | OPEN | — | from T239 11-05; before the next book |
 | T416 | A fresh clone can build: inventory non-git inputs, mirror what only lives on the Mac, one bootstrap, timed clone→build proof | OPEN | — | owner 11-05; after T324 |
