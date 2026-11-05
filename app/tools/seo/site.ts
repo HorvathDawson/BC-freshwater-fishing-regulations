@@ -15,6 +15,7 @@ import { appPage, buildDayOf, listWaterOrds, managementUnits, nearestTowns, stat
 import { TOPICS, topicLines, type TopicKey } from "./topics";
 import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
+import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
 
 export interface PageRec {
@@ -191,9 +192,13 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const title = clip(`${name} fishing regulations (BC) — ${site.name}`, 60);
     const body = `<nav class="crumbs"><a href="/">Home</a> › ${esc(name)}</nav><h1>${esc(name)} fishing regulations</h1>` +
       `<p>${ws.length} waters in ${esc(name)} with the full rules in plain words, from release ${esc(release.id)}.</p>` +
+      // (owner 2026-11-05, a proposal) the map, from every hub: the app opens on its map (it takes no region or bbox in a link yet)
+      `<div class="card"><p>For a more visual experience, open the map: every water coloured by today's rules.</p>` +
+      `<a class="app" href="${esc(site.origin)}/">Open the map</a></div>` +
       `<ul><li><a href="${path}/open-this-weekend">What is open this weekend in ${esc(name)}</a></li>` +
       `<li><a href="${path}/season-changes">Waters opening and closing soon in ${esc(name)}</a></li>` +
       TOPICS.filter((t) => topicWaters(r, t.key).length).map((t) => `<li><a href="${path}/${t.key}">${esc(t.hub)} in ${esc(name)}</a> (${topicWaters(r, t.key).length})</li>`).join("") + `</ul>` +
+      yearCardHtml(name, regionYear(ws)) +
       (letters ? `<h2>Waters in ${esc(name)} by first letter</h2><ul class="cols">${[...letters].map(([l, xs]) => `<li><a href="${path}/waters-${l.toLowerCase()}">${l === "0" ? "Other" : l} (${xs.length})</a></li>`).join("")}</ul>`
         : `<h2>All waters in ${esc(name)}</h2>${list(ws, (m) => WORD[m.status])}`) +
       `<div class="legal"><p>Open or closed is as of <time datetime="${asOf}">${asOf}</time>. This is not a legal document. Check the official synopsis before you fish.</p></div>`;

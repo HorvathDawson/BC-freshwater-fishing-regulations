@@ -52,6 +52,8 @@ ul{padding-left:1.1rem}li{margin:.25rem 0}li.sub{list-style:none;margin-left:-1.
 .bk{font-size:.85rem;white-space:nowrap}.part{border-top:1px solid var(--line);margin-top:1.4rem}
 .legal{background:var(--soft);border-radius:.5rem;padding:.7rem 1rem;margin:1.5rem 0}
 .cols{columns:2 14rem;list-style:none;padding:0}.cols li{break-inside:avoid}
+.card{border:1px solid var(--line);padding:.8rem 1rem;margin:1rem 0}.card>p{margin:0 0 .5rem}.card .app{border-radius:0;margin:0}.card h2{margin-top:0}
+.yb svg{display:block;width:100%;height:auto}.yb text{font-size:10px;fill:var(--muted)}.yb .o{fill:var(--open)}.yb .c{fill:var(--closed)}.yb ul{margin:.4rem 0 0}
 .tag{font-size:.8rem;color:var(--muted)}footer{border-top:1px solid var(--line);margin-top:2rem;padding:1rem;text-align:center;font-size:.9rem;color:var(--muted)}
 `;
 

@@ -23,6 +23,9 @@ export type Status = RegsPage["status"];
 export interface Turn { readonly inDays: number; readonly on: string; readonly to: "open" | "closed" }
 export interface PartModel {
   readonly turns: readonly Turn[];
+  /** (T406 part 2) the strip's book year as closed/open runs (null: a day with no frame, or tidal), or null: no strip.
+   *  Read by the region hubs' year bar; not in the water's content hash. */
+  readonly year: readonly { readonly closed: boolean | null; readonly days: number }[] | null;
   readonly partIx: number; readonly label: string;
   readonly status: Status;
   /** the presenter's strip words ("Open today", "Closed", ...) or its banner's headline */
@@ -176,6 +179,18 @@ function turnsOf(page: RegsPage, within: number): Turn[] {
   return out;
 }
 
+/** (T406 part 2) The strip's year runs folded to closed / open (bit 1 = closed; null stays null); null: no strip. */
+function yearOf(page: RegsPage): PartModel["year"] {
+  const s = page.keep.strip;
+  if (!s) return null;
+  const out: { closed: boolean | null; days: number }[] = [];
+  for (const r of s.runs) {
+    const closed = r.bits === null ? null : (r.bits & 1) === 1, l = out[out.length - 1];
+    if (l && l.closed === closed) l.days += r.days; else out.push({ closed, days: r.days });
+  }
+  return out;
+}
+
 /** One part's model on `day`. */
 export function partModel(page: RegsPage): PartModel {
   const { sheet: _sheet, ...bare } = page;
@@ -184,7 +199,7 @@ export function partModel(page: RegsPage): PartModel {
   return {
     partIx: page.target.kind === "part" ? page.target.partIx : 0, label: page.header.place?.full ?? page.header.name,
     status: page.status, today: banner?.big[0] ?? banner?.paras[0] ?? (strip || TODAY_WORDS[page.status]),
-    sections: sectionsOf(bare), turns: turnsOf(page, 60),
+    sections: sectionsOf(bare), turns: turnsOf(page, 60), year: yearOf(page),
   };
 }
 
