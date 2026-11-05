@@ -6,10 +6,8 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **PSF run-timing files in a PUBLIC repo (found 11-05, T416):** `data/source/runtiming/` (the PSF pages + `timing.json`)
-  is in git and on GitHub (public). T162 found PSF's terms give no reuse grant ("© PSF, all rights reserved"). Options:
-  keep as is, or remove them from git going forward (git-ignored, re-fetched by the run-timing workflow, T412) and ask
-  PSF for permission. History already holds them either way. Not blocking.
+- **PSF run-timing files: ANSWERED 11-05** — fine as is; only the parsed `timing.json` stays in git, the PSF pages and their
+  fetch record are git-ignored from now on (772fbf4f0).
 
 - **Optional, GitHub token for the feeds worker (T413):** a fine-grained token on this repo, *Actions: write* only,
   set as the staging worker's secret, so the worker starts the HYDAT workflow itself. Until then, its email tells you to press
