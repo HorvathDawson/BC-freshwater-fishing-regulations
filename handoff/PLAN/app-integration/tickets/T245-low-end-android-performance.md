@@ -1,6 +1,6 @@
 # T245 — low-end Android performance
 
-Status: MERGED into T360 (2026-11-05 audit) — was: PARTIAL 2026-11-05 — 49e303e96, d91f300f6 (z8/z12 measured; pan fps fails on the emulator; a real low-end phone left)
+Status: DROPPED — merged into T360 (2026-11-05 audit; the work continues there) — was: PARTIAL 2026-11-05 — 49e303e96, d91f300f6 (z8/z12 measured; pan fps fails on the emulator; a real low-end phone left)
 
 Source: owner 2026-10-28 — approved proposal P11 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 

@@ -1,6 +1,6 @@
 # T407 — Report a problem: "App bug" and "Feature request" of their own
 
-Status: MERGED into T242 (2026-11-05 audit) — was: IN PROGRESS — built (app, worker, review app); ships with 0.6.0 (the staging feeds worker deploys with the
+Status: DROPPED — merged into T242 (2026-11-05 audit; the work continues there) — was: IN PROGRESS — built (app, worker, review app); ships with 0.6.0 (the staging feeds worker deploys with the
 release, not ahead of the app).
 
 Source: owner 2026-11-05: "in the app we should add a separate button for bug in report a problem and feature request so

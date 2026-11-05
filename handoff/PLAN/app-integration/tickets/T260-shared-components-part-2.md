@@ -1,6 +1,6 @@
 # T260 — shared components, part 2 (the rest of the T257 sweep)
 
-Status: MERGED into T410 (2026-11-05 audit) — was: PARTIAL — items 1 (Chip), 3, 5 (caption), 8 done with an exact-markup proof; 2 waits for the owner (Q); 4, 5b, 6, 7 left (each needs a look decision)
+Status: DROPPED — merged into T410 (2026-11-05 audit; the work continues there) — was: PARTIAL — items 1 (Chip), 3, 5 (caption), 8 done with an exact-markup proof; 2 waits for the owner (Q); 4, 5b, 6, 7 left (each needs a look decision)
 
 Source: owner 2026-10-29 polish pass (T257 add-on: "extract generic reusable components, migrate call sites, guard").
 T257 extracted Button (small / link / busy / icon), LoadingState + useDelayedShow, ErrorState and round(); these are

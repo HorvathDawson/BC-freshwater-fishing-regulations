@@ -338,10 +338,11 @@ def test_a_dfo_suggestion_is_served_read_only_and_its_new_splits_land(env):
     c = env["client"]
     doc = json.loads((REPO / "data/generated/review/dfo-suggestions.json").read_text())
     curated = _stamps(CURATED.base)
-    lid = "1:nanaimo-river:from-the-cedar-road-bridge-crossin"   # campbell (the first pin) is placed now
+    # a "between" suggestion with new splits; campbell, then nanaimo (the earlier pins) were placed by the owner
+    lid = "1:puntledge-river:from-the-weir-at-the-lower-hatcher"
     got = c.get(f"/api/dfo/locations/{lid}").json()["suggestion"]
     assert got == doc["suggestions"][lid] and got["suggestion"]["op"] == "between"
-    row = next(x for x in c.get("/api/dfo/queue", params={"q": "cedar road bridge crossing"}).json() if x["id"] == lid)
+    row = next(x for x in c.get("/api/dfo/queue", params={"q": "puntledge"}).json() if x["id"] == lid)
     assert row["suggested"] == doc["suggestions"][lid]["confidence"]
     news = [(k, n) for k, r in doc["suggestions"].items() for n in (r.get("suggestion") or {}).get("new_splits", [])]
     assert news

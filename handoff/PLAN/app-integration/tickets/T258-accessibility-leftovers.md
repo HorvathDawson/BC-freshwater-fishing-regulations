@@ -1,6 +1,6 @@
 # T258 — accessibility leftovers (after T243)
 
-Status: MERGED into T410 (2026-11-05 audit) — was: PARTIAL — items 1-3 done (see Built); item 4 is the owner's phone walk.
+Status: DROPPED — merged into T410 (2026-11-05 audit; the work continues there) — was: PARTIAL — items 1-3 done (see Built); item 4 is the owner's phone walk.
 
 Source: T243 (2026-10-29 overnight): what the pass did not reach.
 ## Work

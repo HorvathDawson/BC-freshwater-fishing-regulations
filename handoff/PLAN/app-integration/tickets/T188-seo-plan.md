@@ -1,6 +1,6 @@
 # T188 — Get found in search: an SEO plan and the work it needs
 
-Status: MERGED into T409 (2026-11-05 audit) — was: PARTIAL — plan done; build T192-T198: 192-195, 197 DONE; T196 left (T405), T198 owner steps.
+Status: DROPPED — merged into T409 (2026-11-05 audit; the work continues there) — was: PARTIAL — plan done; build T192-T198: 192-195, 197 DONE; T196 left (T405), T198 owner steps.
 us up in the search results."
 
 ## Principle

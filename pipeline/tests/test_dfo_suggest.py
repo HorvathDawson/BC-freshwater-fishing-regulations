@@ -318,15 +318,16 @@ def test_the_split_hunt_turns_research_into_a_valid_suggestion_and_keeps_the_evi
 
 
 def test_the_hunt_file_covers_its_targets_and_names_real_cuts():
-    """Every location the hunt names is in the suggestions and carries the hunt; every `cut` end
-    names a hunted cut with a confidence, a description and a source."""
+    """Every location the hunt names that still has a suggestion carries the hunt (one the owner has since
+    placed leaves the suggestions); every `cut` end names a hunted cut with a confidence, a description and a source."""
     hunt = json.loads((REPO / S.HUNT_PATH).read_text())
     doc = json.loads((REPO / "data/generated/review/dfo-suggestions.json").read_text())["suggestions"]
     for k, c in hunt["cuts"].items():
         assert c["confidence"] in ("high", "medium", "low") and c["description"] and c["sources"], k
         assert len(k) <= 40, k
+    assert any(lid in doc for lid in hunt["locations"])
     for lid, e in hunt["locations"].items():
-        assert lid in doc and doc[lid].get("hunt"), lid
+        assert lid not in doc or doc[lid].get("hunt"), lid
         for end in e.get("ends") or []:
             assert "cut" not in end or end["cut"] in hunt["cuts"], (lid, end)
 

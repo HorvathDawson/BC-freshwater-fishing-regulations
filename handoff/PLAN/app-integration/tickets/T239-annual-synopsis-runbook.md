@@ -1,6 +1,6 @@
 # T239 — annual synopsis update: runbook + dry run
 
-Status: DONE 2026-11-05 — runbook, diff tool, carry/replay tool, dry run (diff explained). Two follow-ups below, to ticket.
+Status: PARTIAL (2df8add7b) 2026-11-05 — left: T414 + T415 (merged in, before the next book); done: runbook, diff tool, carry/replay tool, dry run (diff explained). Two follow-ups below, to ticket.
 
 Source: owner 2026-10-28 — approved proposal P5 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 

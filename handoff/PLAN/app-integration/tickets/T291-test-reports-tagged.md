@@ -1,6 +1,6 @@
 # T291 — Test problem reports and crash reports are tagged and ignored; staging reports cleaned up
 
-Status: MERGED into T242 (2026-11-05 audit) — was: PARTIAL — built, tested, staging cleaned; worker deployed and verified live 2026-10-29; left: an APK rebuild that sends the tag (owner 2026-10-29: "can we clean up reports too? can add a test tag so that we can ignore test ones").
+Status: DROPPED — merged into T242 (2026-11-05 audit; the work continues there) — was: PARTIAL — built, tested, staging cleaned; worker deployed and verified live 2026-10-29; left: an APK rebuild that sends the tag (owner 2026-10-29: "can we clean up reports too? can add a test tag so that we can ignore test ones").
 
 ## Work
 1. A `test` tag on problem reports and crash reports: set by every tool that sends one (testbed scenarios report/crash,
