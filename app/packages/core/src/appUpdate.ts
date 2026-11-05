@@ -14,6 +14,7 @@
  * (`@app/ui` `useAppUpdate`, T368).
  */
 import { compareSemver, parseSemver, type AppVersion } from "./appVersion";
+import { CHANGELOG, type ChangelogEntry } from "./changelog";
 
 export type AppUpdateChannel = "play" | "app-store" | "apk-page" | "none";
 
@@ -40,7 +41,89 @@ export const APP_UPDATE_WORDS = {
   offline: "No connection. Try again when you are online.",
   /** the bell's label aloud */
   label: { available: "A new version of the app is available", needed: "New data needs the latest app" },
+  /** (T234 v1.1) the incoming version's bullets under the prompt */
+  whatsNew: (v: string) => `What's new in ${v}`,
+  whatsNewMissing: (v: string) => `No notes were published for version ${v}.`,
 } as const;
+
+/** (T234 v1.1) The changelog page (More → About → What's new). */
+export const CHANGELOG_WORDS = {
+  title: "What's new",
+  open: "What's new in each version",
+  openHint: "Every version of the app, newest first",
+  installed: "Installed",
+  version: (v: string) => `Version ${v}`,
+  date: (d: string) => d,
+  notCut: "Coming next",
+  noNotes: "No notes for this version.",
+} as const;
+
+/** (T234 v1.1) The new-app-version notification (opt-in, once per version). */
+export const APP_VERSION_NOTE = {
+  title: "A new version of the app is out",
+  body: (v: string) => `Version ${v} is ready. Tap to see what's new and update.`,
+} as const;
+
+/** The bullets for a version: the version file's own (it travels with a version not installed yet), else the bundled
+ *  changelog's; null when neither has any (shown as missing, never blank). */
+export function notesFor(version: string | null, fromFile: readonly string[] | null | undefined,
+                         log: readonly ChangelogEntry[] = CHANGELOG): readonly string[] | null {
+  const own = (fromFile ?? []).filter((n) => typeof n === "string" && n.trim());
+  if (own.length) return own;
+  const e = version ? log.find((x) => x.version === version) : undefined;
+  return e && e.notes.length ? e.notes : null;
+}
+
+export interface ChangelogRowVM {
+  readonly version: string;
+  readonly title: string;
+  /** the day it was cut, or "Coming next" */
+  readonly when: string;
+  readonly installed: boolean;
+  readonly notes: readonly string[];
+  /** said when a version has no notes (never a blank row) */
+  readonly missing: string | null;
+}
+
+/** Every version, NEWEST FIRST (by semver, whatever order the file is in); the installed one marked. */
+export function changelogVM(installed: string | null, log: readonly ChangelogEntry[] = CHANGELOG): readonly ChangelogRowVM[] {
+  const W = CHANGELOG_WORDS;
+  return [...log].filter((e) => parseSemver(e.version)).sort((a, b) => compareSemver(b.version, a.version)).map((e) => ({
+    version: e.version, title: W.version(e.version), when: e.date ? W.date(e.date) : W.notCut,
+    installed: installed !== null && compareSemver(e.version, installed) === 0,
+    notes: e.notes, missing: e.notes.length ? null : W.noNotes,
+  }));
+}
+
+/**
+ * (T234 v1.1) WHERE THIS BUILD LEARNS OF A NEWER VERSION OF ITSELF, ON OUR OWN SERVER (owner: self-host everything):
+ *   apk-page  `latest.json` beside the staging APK page (build-apk.sh writes it with the APK)
+ *   play      `<data origin>/app/android/play.json` (build-apk.sh --play writes it after the Play upload)
+ *   app-store / none: no file (iOS waits for T88; a local build has no channel) — null.
+ * The background check reads it for the new-version notice; the foreground check for Play reads it for the bullets.
+ */
+export function appVersionFileUrl(channel: AppUpdateChannel, i: { apkPage: string | null; dataBase: string }): string | null {
+  if (channel === "apk-page" && i.apkPage) return new URL("latest.json", i.apkPage).toString();
+  if (channel === "play") return `${i.dataBase.replace(/\/+$/, "")}/app/android/play.json`;
+  return null;
+}
+
+/** The version file our server publishes beside the app (`latest.json` sideload / `play.json` Play, build-apk.sh). */
+export interface AppVersionFile extends ApkLatest { readonly notes?: readonly string[] | null }
+
+/**
+ * (T234 v1.1) THE NEW-APP-VERSION NOTICE: the key of a version to tell now, or null. Only with notifications and the
+ * switch on, only a version newer than this install (`apkIsNewer`: semver, then build, then commit), once per version
+ * (`told`). A file that names no version throws (the caller reports it).
+ */
+export function appVersionToTell(s: { on: boolean; appVersion: boolean; toldAppVersion: string | null },
+                                 latest: unknown, own: AppVersion): string | null {
+  if (!s.on || !s.appVersion) return null;
+  if (!apkIsNewer(latest, own)) return null;
+  const l = latest as AppVersionFile;
+  const key = `${l.version}+${typeof l.build === "number" ? l.build : ""}`;
+  return key === s.toldAppVersion ? null : key;
+}
 
 /**
  * Which way this build updates. `distribution` is the build's own word (`EXPO_PUBLIC_APP_DISTRIBUTION`: "play" for a
@@ -65,6 +148,8 @@ export interface AppUpdateSaved {
   readonly day: string;
   readonly available: boolean;
   readonly version: string | null;
+  /** (T234 v1.1) the incoming version's bullets, from the version file */
+  readonly notes?: readonly string[] | null;
 }
 
 /** The kept check, or null for anything else (nothing kept, an old shape). */
@@ -73,7 +158,8 @@ export function readAppUpdateSaved(text: string | null): AppUpdateSaved | null {
   try {
     const o = JSON.parse(text) as Partial<AppUpdateSaved>;
     if (typeof o.day !== "string" || typeof o.available !== "boolean") return null;
-    return { day: o.day, available: o.available, version: typeof o.version === "string" ? o.version : null };
+    return { day: o.day, available: o.available, version: typeof o.version === "string" ? o.version : null,
+             notes: Array.isArray(o.notes) ? o.notes.filter((n): n is string => typeof n === "string") : null };
   } catch { return null; }
 }
 
@@ -108,7 +194,7 @@ export function apkIsNewer(latest: unknown, own: AppVersion): boolean {
 export type AppUpdateCheck =
   | { readonly state: "unknown" }
   | { readonly state: "current" }
-  | { readonly state: "available"; readonly version: string | null }
+  | { readonly state: "available"; readonly version: string | null; readonly notes?: readonly string[] | null }
   | { readonly state: "failed"; readonly offline: boolean };
 
 /** What the button last did. */
@@ -130,6 +216,8 @@ export interface AppUpdateVM {
   readonly said: string | null;
   /** `said` is a failure (drawn as one) */
   readonly failed: boolean;
+  /** (T234 v1.1) the incoming version's bullets: "What's new in 0.6.0", or said missing; null: no version named */
+  readonly whatsNew: { readonly title: string; readonly notes: readonly string[] | null; readonly missing: string | null } | null;
 }
 
 /**
@@ -139,6 +227,16 @@ export interface AppUpdateVM {
  */
 export function appUpdateVM(i: { channel: AppUpdateChannel; check: AppUpdateCheck; tooOld: boolean;
                                  start: AppUpdateStart }): AppUpdateVM | null {
+  const vm = appUpdateVMBare(i);
+  if (!vm) return null;
+  const v = i.check.state === "available" && i.check.version && parseSemver(i.check.version) ? i.check.version : null;
+  if (!v) return { ...vm, whatsNew: null };
+  const notes = notesFor(v, i.check.state === "available" ? i.check.notes : null);
+  return { ...vm, whatsNew: { title: APP_UPDATE_WORDS.whatsNew(v), notes, missing: notes ? null : APP_UPDATE_WORDS.whatsNewMissing(v) } };
+}
+
+function appUpdateVMBare(i: { channel: AppUpdateChannel; check: AppUpdateCheck; tooOld: boolean;
+                              start: AppUpdateStart }): Omit<AppUpdateVM, "whatsNew"> | null {
   const W = APP_UPDATE_WORDS;
   const said = i.start === "working" ? W.working : i.start === "downloading" ? W.downloading
     : i.start === "opened" ? W.opened : i.start === "none" ? W.notYet : i.start === "failed" ? W.startFailed
