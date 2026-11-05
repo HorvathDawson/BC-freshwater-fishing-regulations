@@ -189,6 +189,27 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   tap (`requestForegroundPermissionsAsync`) and never before. Used ONLY by `apps/mobile/src/locate.native.ts`; the web
   side is the browser's geolocation (`locate.web.ts`). Its config plugin in `apps/mobile/app.json` carries the
   when-in-use permission string; background location is off. Native code: it needs a rebuilt development build.
+- `expo-notifications` — pinned 57.0.24 (the SDK 57 line; `bundledNativeModules` names `~57.0.15`). (T234, owner
+  2026-11-05: phone-only v1) LOCAL notifications only: a gauge alert crossing its line and "new regulations data is
+  ready", raised by the phone's own background check (`scheduleNotificationAsync`, trigger now, on one of two Android
+  channels), the Android 13+ POST_NOTIFICATIONS permission (asked only when the reader turns something on), and the tap
+  that opens the water's Conditions. No push token is ever asked for and no server holds anything. Chosen over
+  `@notifee/react-native` (richer local notifications, but a second notification stack beside Expo's, its own config, and
+  not in Expo's SDK set) and over a hand-written module: it is Expo's own, versioned with the SDK, has a config plugin
+  for the icon and channels, and is the route to FCM push later should local checks prove too late (the ticket's
+  measure-first plan). Used ONLY by `apps/mobile/src/notify.native.ts`; `notify.web.ts` imports nothing, so the web bundle
+  carries none of it. Its Android library links `firebase-messaging` 25.0.1 (and its
+  manifest RECEIVE_BOOT_COMPLETED + POST_NOTIFICATIONS); with no `google-services.json` Firebase never initialises (one
+  log line at start) and nothing registers — the emulator checklist in T234 confirms it.
+- `expo-background-task` — pinned 57.0.21 (`bundledNativeModules`: `~57.0.14`). (T234) The phone's periodic check:
+  Android WorkManager / iOS BGTaskScheduler, ~15 min at best (the system decides; Doze stretches it). Expo's successor to
+  `expo-background-fetch` (deprecated in SDK 53: Android's old JobScheduler path and iOS's background fetch API). Chosen
+  over `react-native-background-fetch` (Transistorsoft: older, its own headless-task plumbing, a separate licence model
+  for some features) and over a foreground service (a permanent notification, battery, Android 15's 6 h/day dataSync
+  cap). Used ONLY by `apps/mobile/src/notify.native.ts`.
+- `expo-task-manager` — pinned 57.0.21 (`bundledNativeModules`: `~57.0.14`). (T234) `expo-background-task`'s required
+  peer: `defineTask` names the JS the system runs (at module scope, so a headless start finds it). Used ONLY by
+  `apps/mobile/src/notify.native.ts`.
 - `expo-in-app-updates` — pinned 0.13.0 (T390, owner 2026-11-04). The app's own newer version, from inside it: Google
   Play's in-app update (Play Core `app-update` 2.1.0 — flexible download, immediate when new data needs the app) on a
   Play install, and the App Store lookup on iOS. Used ONLY by `apps/mobile/src/appUpdater.native.ts`, loaded on the first

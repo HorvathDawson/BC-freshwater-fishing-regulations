@@ -24,7 +24,7 @@ import {
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, now as clockNow } from "@app/core";
-import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, openRunTimingStore,
+import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, openRunTimingStore,
          type UpdateService, type WaterSource } from "@app/data";
 import type { MobileDataGate, ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
@@ -32,7 +32,7 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
@@ -47,6 +47,8 @@ import { exitSource } from "./exitInfo";
 import { trimOnPressure } from "./memoryTrim";
 import { backgroundDownloads } from "./bgDownload";
 import { releaseSplash } from "./splash";
+// (T234) the phone's local notifications (gauge alerts, new data ready) and their background check; none on the web
+import { notifications, onTap } from "./notify";
 
 import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
@@ -296,6 +298,17 @@ export default function App() {
   const bootedRef = useRef(booted);
   bootedRef.current = booted;
   if (booted) crashContext.release = booted.manifest.data_release;
+  // (T234) the background check's "new data ready" compares against the release in use: noted on every open
+  const heldRelease = booted?.manifest.data_release ?? null;
+  useEffect(() => {
+    if (!heldRelease || !notifications) return;
+    try { notifications.settings.update(noteHeld(heldRelease)); } catch (e) { reportFailure(e); }
+  }, [heldRelease]);
+  // (T234) a notification's tap: a gauge alert opens its water's Conditions (the one that started the app too)
+  const [openRequest, setOpenRequest] = useState<{ item: string | null; n: number } | null>(null);
+  useEffect(() => onTap((d) => {
+    if (d.kind === "gauge") setOpenRequest((r) => ({ item: d.item, n: (r?.n ?? 0) + 1 }));
+  }), []);
 
   /*
    * (T231) THE UPDATE SERVICE (owner 2026-10-28: "check the data origin for new updates and download them"): the three
@@ -544,6 +557,7 @@ export default function App() {
     <SafeAreaProvider>
     <NetRoot net={NET} connectivity={connectivity} store={dataModeStore}>
     <CrashSettingRoot setting={CRASH_URL ? crashSetting : null}>
+    <NotifyRoot controls={notifications}>
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
       <StatusBar barStyle={name === "dark" ? "light-content" : "dark-content"} />
       {failed ? (
@@ -598,7 +612,7 @@ export default function App() {
                fishImages={FISH_IMAGES}
                adiposeImages={ADIPOSE_IMAGES}
                systemBack={systemBack}
-               initialRoute={place.route ?? start?.route} onRoute={holdPlace}
+               initialRoute={place.route ?? start?.route} onRoute={holdPlace} openRequest={openRequest}
                initialDay={place.address ? place.address.day : start?.day ?? null}
                initialHorizon={place.address ? place.address.horizon : start?.horizon ?? null} onAddress={holdAddress}
                cameraHold={place.cameras} regsStart={start?.regs ?? null} arriveAt={start?.arrive ?? null}
@@ -687,6 +701,7 @@ export default function App() {
         </BootScreen>
       )}
     </SafeAreaView>
+    </NotifyRoot>
     </CrashSettingRoot>
     </NetRoot>
     </SafeAreaProvider>

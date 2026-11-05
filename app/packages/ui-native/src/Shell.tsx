@@ -118,6 +118,9 @@ function useGuideWater(source: ShellProps["source"], wanted: boolean): { item: s
   return w;
 }
 
+/** (T234) The last notification tap opened, outside React: it outlives a remount of the Shell. */
+const openedTap = { n: 0 };
+
 /** (T287) How long the map must stand still before a downloaded release is swapped in. */
 const APPLY_STILL_MS = 3000;
 
@@ -361,6 +364,16 @@ export function Shell(p: ShellProps) {
     }
     setLayersWas(null); setLayersOpen(false);
   };
+  // (T234) A NOTIFICATION'S TAP: a gauge alert opens its water's Conditions (an unnamed reach's: the Conditions map)
+  const openReq = p.openRequest ?? null;
+  useEffect(() => {
+    // a remount (an applied update, a recreated activity) does not open the same tap again
+    if (!openReq || openReq.n <= openedTap.n) return;
+    openedTap.n = openReq.n;
+    if (searching) go({ type: "search", open: false });
+    if (openReq.item) nav.opener.item(openReq.item as ItemId, "conditions");
+    else { go({ type: "close" }); nav.toTab("conditions"); }
+  }, [openReq?.n]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per tap
   const guideActs: GuideActs = {
     search: () => { go({ type: "close" }); if (tab !== "map") nav.toTab("map"); go({ type: "search", open: true });
                     search.searchType(guideWater?.name ?? GUIDE_WATER.name); },

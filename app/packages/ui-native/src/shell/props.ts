@@ -84,6 +84,11 @@ export interface ShellProps {
   loader?: ReleaseLoader | null;
   /** Where the app opens (a deep link, a test); the map tab when absent. Read once, on mount. */
   initialRoute?: Route;
+  /**
+   * (T234) Open a water's Conditions now — a notification's tap (a gauge alert): `item` its durable id, null an unnamed
+   * reach's alert (the Conditions map); `n` counts taps, so the same water asked again opens again.
+   */
+  openRequest?: { item: string | null; n: number } | null;
   /** (T50) every route the Shell moves to, for an app that must put the reader back after Android recreates the
    *  activity (a font-size or display change) — the JS outlives the React tree, so the app holds the last one. */
   onRoute?: (r: Route) => void;

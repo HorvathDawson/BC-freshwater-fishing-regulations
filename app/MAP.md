@@ -34,6 +34,10 @@ data/release/r-*/ (R2 in production)
                          └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx
 gauge feed (index.json, per-station) ─▶ data/src/feed/http.ts ─▶ panels / conditions
 in-season feed + links (feeds/inseason/, T230) ─▶ data/src/feed/inseason.ts ─▶ ui inseason.ts ─▶ banners, notice
+background check (T234, phone only: apps/mobile notify.native.ts, expo-background-task ~15 min) ─▶ data/src/notify/check.ts
+                   (obs.json via feed/http.ts `fetchObs`, the release manifest) ─▶ core alerts.ts (once per crossing) ─▶
+                   local notification (expo-notifications); settings + rules + run log: data/src/notify/settings.ts ─▶
+                   ui notify.ts ─▶ More → Notifications, a gauge card's "Alert me"
 tiles (atlas.pmtiles + basemap) ─▶ @app/map
 ```
 
