@@ -393,7 +393,7 @@ use that as the sole source of future work."
 | T349 | DFO scope defaults as entries (R2 Areas 28/29, 13/15/16; every region), non-retention = closed, shared quotas (R5B MUs, Squamish) as aggregate tiers; T332 merged | DONE | f5fc9c356, 910e83d39, 0404b09ae | owner 2026-11-02 (f5fc9c356, a2415b239); atlas promoted (+5 drains_to areas), live build r-d0ad76a6e6a1 with T326; staging held by SALMON_NEEDS (app 0.5.0); worker parity → T350 |
 | T350 | Quick audit: DFO salmon pipeline unified with freshwater datatypes, no fallbacks / dup paths / tech debt (after T349) | DONE | 4fb701fb7 | lean pass merged 4fb701fb7 → T356–T358; in-depth pass → T333 (owner 2026-11-03) |
 | T351 | Native crash in the foreground, Android 37 / 0.4.0 (2 reports, no stack) | OPEN | T346 | 2026-11-02 |
-| T352 | Crash + problem reports lack context (water id, screen, module id, install id, stack normalising, background kills) | OPEN | T346 | 2026-11-02 |
+| T352 | Crash + problem reports lack context (water id, screen, module id, install id, stack normalising, background kills) | DONE 11-05 | 03492caa0 | 2026-11-02 |
 | T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | IN REVIEW — fix landed; left: two-side-build proof | 4754c6f8d, 7dd2f991f | found by the 10-31 build pass; release id moved on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | IN REVIEW — some fixed; re-check which of the 8 are still red | f0b92de23, 876e63529 | found by the 10-31 build pass; not caused by it |
 | T353 | Map fling still too weak on 0.4.0 mobile: measure, tune deceleration/velocity (see T312) | DROPPED (folded into T312) | T312 | owner 2026-11-02 |
@@ -446,6 +446,7 @@ use that as the sole source of future work."
 | T400 | Camera moves choppy on the phone: fitBounds flew (the binding's default "fly" easing); now eased. Left: search refine rounds / probe steps are extra moves | PARTIAL | adfbe330e | owner 2026-11-04 (0.5.0 phone) |
 | T401 | Streams pop in at the edges while panning: MapLibre Native has no viewport prefetch; parent tiles lack small streams. Measure, then prefetch-delta patch or render margin (no tile buffer rebuild) | OPEN | — | owner 2026-11-04 (0.5.0 phone) |
 | T402 | Two tests fail only in the full suites: split_preview real_ids empty (memo/module leak), back.test day sheet under load | OPEN (item 1 fixed; 2–3 load-only) | 93d274234 | full run 2026-11-05 |
+| T403 | A 0.5.0 phone opened the 0.4.0 data release it held (salmon/3, no lines): a release the app cannot read is never opened, installed or rolled back to | DONE 11-05 | 62d96721d | staging crashes 2026-11-05 |
 
 ## Order for open tickets
 

@@ -13,3 +13,6 @@ zoom around), then `adb logcat` / the tombstone. Also see T352 (reports should c
 Background kills (not crashes, no action): SIGNALED status 9 at 99 MB (0.2.0, 1), LOW_MEMORY at 169 MB (0.3.0 and 0.4.0,
 2 in one hash). T352 asks that these be marked non-fatal-to-the-user.
 Size: M.
+
+- 2026-11-05: no foreground native crash from 0.5.0 yet (the store holds only a 0.4.0 LOW_MEMORY background kill since);
+  stays OPEN waiting for a 0.5.0 report.

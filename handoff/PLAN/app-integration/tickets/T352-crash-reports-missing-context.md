@@ -1,6 +1,6 @@
 # T352 — Crash and problem reports lack the facts that would find the cause
 
-Status: OPEN (from T346, 2026-11-02).
+Status: DONE 2026-11-05 — items 1–7 in code (T346 lane, 11-03); source maps 03492caa0.
 
 What the 7 crash kinds and 1 problem report held vs what was needed:
 1. No water/item id, section, or open pane on a crash (only `route` = water/map/other). The Coquitlam crash shows as
@@ -57,3 +57,14 @@ Words: CRASH_WORDS.hint and the privacy page (tools/seo/html.ts, effective 2026-
 - Main session 2026-11-03: crash/2 carries NO section handle (AGENTS rule 5: section ids never leave the bundle in an
   API contract; the owner asked for the water id + pane). The problem report's listed "Section" line (sent by the reader,
   shown before Send) is unchanged. Worker deploy before the 0.5.0 APK reaches testers (batch 7).
+
+## Source maps (2026-11-05, 03492caa0)
+- `export:web` / `export:web:staging` export with `--source-maps`, then `node ../../tools/sourcemaps.mjs keep-web <dir>`
+  moves every map to `data/sourcemaps/<version>-b<build>-<sha7>/web/` (gitignored, never uploaded) and drops the
+  bundles' `sourceMappingURL` line. `deploy/staging/build-apk.sh` copies the Hermes map
+  (`android/app/build/generated/sourcemaps/react/release/index.android.bundle.map`) to `…/android/` after gradle, both
+  the APK and the Play AAB; no map stops the build before upload.
+- `node app/tools/sourcemaps.mjs symbolicate <crash json | ->` takes a crash-store kind (or its sample) and prints each
+  frame with its source position; no maps for the crash's build → it fails, naming the builds kept. Checked on a real
+  web export: the "not a salmon/4 file" frame → packages/core/src/salmon.ts:156. Builds made before this (incl. 0.5.0
+  build 8) have no kept map.
