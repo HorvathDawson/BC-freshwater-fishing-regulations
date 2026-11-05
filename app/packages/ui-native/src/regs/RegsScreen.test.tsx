@@ -106,7 +106,7 @@ describe("<RegsScreen>", () => {
   it("the pill asks for 'Which day?' (T49: the water screen's sheet, so a reload does not close it); no sheet of its own", () => {
     const onDate = vi.fn();
     mount({ onDate });
-    fireEvent.click(screen.getByRole("button", { name: "Change date, now Oct 10" }));
+    fireEvent.click(screen.getByRole("button", { name: "Today Oct 10, change date" }));
     expect([onDate.mock.calls.length, screen.queryByText("Which day?")]).toEqual([1, null]);
   });
 

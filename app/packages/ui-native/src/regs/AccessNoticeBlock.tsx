@@ -15,7 +15,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
-import type { AccessNotice } from "@app/core";
+import { accessLabel, type AccessNotice } from "@app/core";
 import { TYPE } from "../type";
 import { NO_ACCESS_BAND, laid, type Palette } from "../theme";
 import { Icon } from "../icons";
@@ -37,7 +37,7 @@ function Strip({ notice, palette }: { notice: AccessNotice; palette: Palette }) 
   return (
     <Pressable testID={banner ? "access-banner" : "access-note"} onPress={() => setOpen((o) => !o)}
                accessibilityRole="button" aria-expanded={open}
-               accessibilityLabel={`${notice.title}: ${notice.text}`}
+               accessibilityLabel={accessLabel(notice)}
                style={{ backgroundColor: ground, borderLeftWidth: 4, borderLeftColor: bar, borderBottomWidth: 1,
                         borderBottomColor: palette.line, minHeight: 36, paddingVertical: 8, paddingLeft: 12,
                         paddingRight: 14, justifyContent: "center" }}>

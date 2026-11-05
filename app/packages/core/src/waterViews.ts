@@ -32,6 +32,8 @@ export const WATER_VIEWS_LABEL = "Views of this water";
  * leaves every water at once for that tab. `fromTab` is the tab's own name as the bottom bar prints it.
  */
 export const WATER_BACK = "Back";
+/** (T405) The ‹'s name for a screen reader: "Back", or "Back to Map" when it shows where it goes (WCAG 2.5.3: the name holds the visible word). */
+export const waterBackName = (shown: string): string => (shown === WATER_BACK ? WATER_BACK : `${WATER_BACK} to ${shown}`);
 /**
  * Where the first water's ‹ and × go when search is still open under it (a map tap beside the results — a water
  * opened FROM a result consumed the search, so it names the tab).

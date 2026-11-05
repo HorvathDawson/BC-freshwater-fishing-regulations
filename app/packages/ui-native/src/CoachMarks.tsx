@@ -215,7 +215,7 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words, onS
   const rise = reduced ? 0 : fade.interpolate({ inputRange: [0, 1], outputRange: [place?.below === false ? -8 : 8, 0] });
 
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={requestClose}>
+    <Modal visible={open} transparent animationType="fade" onRequestClose={requestClose} aria-labelledby="coach-title">
       <View ref={(v) => { origin.current = v as unknown as Measurable; }} collapsable={false} onLayout={onLayout}
             testID="coach-tour" style={{ flex: 1 }}>
         {/* THE DIM, in four pieces round the spotlight (one piece when there is none); presses on it do nothing */}

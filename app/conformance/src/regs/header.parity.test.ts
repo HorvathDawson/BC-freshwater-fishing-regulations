@@ -67,9 +67,13 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
     const { action: _golden, ...rest } = g;
     // (owner 2026-11-04) a closed day offers no Licence tab (no section under it): the golden's tab is dropped
     const tabs = v.dot === "closed" ? rest.tabs.filter((t) => t.sec !== "licence") : rest.tabs;
+    // (T405) the date button's name starts with the words it shows (WCAG 2.5.3): the golden's "Change date, now <date>" is
+    // asserted as the prototype's, and the app's is its day word and date, then "change date"
+    expect(rest.dateAria).toBe(`Change date, now ${rest.date}`);
     expect({ name: v.name, day: v.dayWord, date: v.date, dateAria: v.dateAria, dot: v.dot, place: noMap || grown ? null : v.place,
              tabs: v.tabs.map((t) => ({ sec: t.tab, text: t.label })) })
-      .toEqual({ ...rest, tabs, place: grown ? null : RELABELED[id] ?? (g.place && { full: g.place.full, short: g.place.short }) });
+      .toEqual({ ...rest, dateAria: `${rest.day} ${rest.date}, change date`, tabs,
+                 place: grown ? null : RELABELED[id] ?? (g.place && { full: g.place.full, short: g.place.short }) });
     passed++;
   });
 
@@ -85,7 +89,7 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
 
   it("3. vedder_1010: no action — the golden's Map is the view strip's (T71); the Vedder has no choice of parts", async () => {
     expect(await headerFor("vedder_1010")).toEqual({ name: "Vedder River", dayWord: "Today", date: "Oct 10",
-      dateAria: "Change date, now Oct 10", dot: "open",
+      dateAria: "Today Oct 10, change date", dot: "open",
       place: { full: "Mouth → Vedder Crossing Bridge", short: "Mouth → Vedder Crossing Bridge" },
       tabs: [{ tab: "keep", label: "What you can keep" }, { tab: "gear", label: "Gear" }, { tab: "methods", label: "Methods" },
              { tab: "licence", label: "Licence" }] });

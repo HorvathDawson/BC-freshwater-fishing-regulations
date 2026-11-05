@@ -8,7 +8,7 @@
  * Spots, SpotDrop, the Day sheet) changes what the map shows, so it stays a bottom sheet at every width and the map stays
  * visible above it (T45 review: a 640 px dialog's scrim covered the middle of the map the Layers choices recolour).
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Animated, Easing, Modal, ScrollView, View, useWindowDimensions } from "react-native";
 import { Selectable, Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -144,7 +144,9 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   const kept = useRef({ title, sub, children, icon });
   if (open) kept.current = { title, sub, children, icon };
   const shown = open ? { title, sub, children, icon } : kept.current;
-  const titleText = <Text accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>;
+  // (T405) the web's Modal is a role=dialog: named by its title (aria-labelledby; a label on it would swallow its content)
+  const titleId = useId();
+  const titleText = <Text nativeID={titleId} accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>;
   const titleEl = shown.icon
     ? <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 1 }}>{shown.icon}{titleText}</View>
     : titleText;
@@ -194,7 +196,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
    */
   if (wide) {
     return (
-      <Modal visible={open} transparent animationType="fade" onRequestClose={requestClose}>
+      <Modal visible={open} transparent animationType="fade" onRequestClose={requestClose} aria-labelledby={titleId}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: SHEET_DIALOG.inset }}>
             <Pressable accessibilityRole="button" accessibilityLabel={SHEET_WORDS.close} onPress={onClose} {...SCRIM_HIT}
@@ -229,7 +231,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
     );
   }
   return (
-    <Modal visible={up} transparent animationType="none" onRequestClose={requestClose}>
+    <Modal visible={up} transparent animationType="none" onRequestClose={requestClose} aria-labelledby={titleId}>
       {/* A Modal is its own native root: on Android its gestures need a root view of their own (RNGH). While it leaves,
           it takes no touches: the map under it is live again from the press of Done. */}
       <GestureHandlerRootView style={{ flex: 1, justifyContent: "flex-end" }} pointerEvents={open ? "auto" : "none"}>

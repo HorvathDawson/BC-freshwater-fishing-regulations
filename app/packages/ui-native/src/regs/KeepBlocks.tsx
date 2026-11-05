@@ -245,7 +245,9 @@ function FoldRow({ f, palette, images }: { f: GlanceFold; palette: Palette; imag
   return (
     <View testID={`glance:${f.key}`}>
       <View style={{ paddingHorizontal: GUTTER }}>
-        <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={GLANCE_WORDS.a11y(f.row.name, open)}
+        {/* (T405) named by what it shows ("Salmon closed Details"), open or folded by aria-expanded: a name that holds the
+            visible words (WCAG 2.5.3), so a voice user's "Salmon" or "Details" finds it */}
+        <RegsPress accessibilityRole="button" aria-expanded={open}
                    onPress={() => setOpen(!open)} box={ROW}
                    // (T227, owner 2026-10-28) the WHOLE row opens and folds it (Enter / Space too, role button): it shows it
                    // pressed and, on the web, under the pointer or the keyboard's focus

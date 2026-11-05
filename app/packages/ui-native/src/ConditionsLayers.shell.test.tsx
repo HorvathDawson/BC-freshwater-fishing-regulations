@@ -24,6 +24,8 @@ import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId } from "@app/data";
 import { HOME, type BrowseTab } from "@app/ui";
 import { LIGHT } from "./theme";
+/** (T405) the water's ‹: "Back" inside a water, "Back to <where it goes>" for the first one (`waterBackName`) */
+const BACK = /^Back( to .+)?$/;
 
 /** What the engine's standing channel and the gauge roster were last asked for. */
 const asked: { standing: string | null; gauges: string | null } = { standing: null, gauges: null };
@@ -196,7 +198,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     const chart = screen.getByTestId("chart").textContent;
     press("chart Flow");
     const after = screen.getByTestId("chart").textContent;
-    act(() => { fireEvent.click(screen.getAllByLabelText("Back")[0]!); });
+    act(() => { fireEvent.click(screen.getAllByLabelText(BACK)[0]!); });
     await waitFor(() => expect(screen.queryByTestId("map-look")).not.toBeNull());
     press("Choose layers");
     expect([chart, after, asked.standing, sheet()]).toEqual([

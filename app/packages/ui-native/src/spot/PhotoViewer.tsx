@@ -40,7 +40,7 @@ export function PhotoViewer({ uris, index, onIndex, onClose, palette }: {
     );
   };
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={requestClose}>
+    <Modal visible transparent animationType="fade" onRequestClose={requestClose} aria-label={photoLabel(index + 1, n)}>
       <View testID="photo-viewer" style={{ flex: 1, backgroundColor: palette.ink }} {...pan.panHandlers}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}>
           <Text style={{ ...TYPE.small, color: palette.card }}>{photoLabel(index + 1, n)}</Text>

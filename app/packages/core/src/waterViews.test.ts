@@ -2,7 +2,7 @@
  * A water's views: the one order the strip draws and the swipe walks, every step from every view, both ends.
  */
 import { describe, expect, it } from "vitest";
-import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, stepView, waterExit,
+import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, stepView, waterBackName, waterExit,
          type WaterView } from "./waterViews";
 
 describe("the views and their words", () => {
@@ -24,6 +24,11 @@ describe("leaving a water (owner 2026-10-22 late): ‹ one layer, × all of them
       { back: "Back", close: "Close, back to Conditions" },
       { back: "Back", close: "Close, back to Map" },
     ]);
+  });
+
+  it("(T405) the ‹'s name holds the word it shows (WCAG 2.5.3): Back, or Back to the place it names", () => {
+    expect([waterExit(1, "Map"), waterExit(2, "Map"), waterExit(1, "Map", true)].map((e) => waterBackName(e.back)))
+      .toEqual(["Back to Map", "Back", "Back to Search"]);
   });
 
   it("(owner 2026-10-22 late) a water over an OPEN SEARCH (a map tap beside it) names search, which is where back goes; " +

@@ -89,10 +89,11 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
   // prototype placeRow: no label slot when the short label is the water's own name
   const lbl = lab && lab.short !== name ? lab.short : "";
   const tabs: readonly [Tab, string][] = [["keep", WORDS.TAB_KEEP], ["gear", WORDS.TAB_GEAR], ["methods", WORDS.TAB_METHODS], ["licence", WORDS.TAB_LICENCE]];
+  const dayWord = sameDay(inp.day, o.today) ? WORDS.TODAY : WD3[WEEKDAYS.indexOf(inp.weekday)]!;
   return {
     name,
-    dayWord: sameDay(inp.day, o.today) ? WORDS.TODAY : WD3[WEEKDAYS.indexOf(inp.weekday)]!,
-    date, dateAria: WORDS.DATE_ARIA(date),
+    dayWord,
+    date, dateAria: WORDS.DATE_ARIA(dayWord, date),
     dot: o.status === "closed" ? "closed" : o.status === "open" ? "open" : "faint",
     place: lbl ? { full: lab!.full || lbl, short: lbl } : null,
     // (T42) outside B.C. the page has no Gear, Methods or Licence section (no key): only the Keep tab is listed;

@@ -12,7 +12,7 @@ const page = {
   day: { month: 5, day: 15 }, weekday: "Friday", today: false, who: { age: "adult", residency: "resident" },
   status: "open",
   header: {
-    name: "Vedder River", dayWord: "Fri", date: "May 15", dateAria: "Change date, now May 15", dot: "open",
+    name: "Vedder River", dayWord: "Fri", date: "May 15", dateAria: "Fri May 15, change date", dot: "open",
     place: { full: "Mouth → Vedder Crossing Bridge", short: "Mouth → Vedder Crossing Bridge" },
     tabs: [{ tab: "keep", label: "What you can keep" }],
   },

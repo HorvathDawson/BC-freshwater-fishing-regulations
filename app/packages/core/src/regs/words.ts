@@ -83,7 +83,8 @@ export const WORDS = Object.freeze({
   DOT: " · ", SECTION: "section", SECTIONS: "sections",
   TIDAL_WATER: "Tidal water",
   // T16 the header (prototype hdr / placeGo; page v36 subtitle)
-  DATE_ARIA: (date: string) => `Change date, now ${date}`,
+  /** (T405) the date button's name starts with what it shows ("Today Nov 4"): a name holding the visible words (WCAG 2.5.3) */
+  DATE_ARIA: (dayWord: string, date: string) => `${dayWord} ${date}, change date`,
   SUB_CLOSED_ALL_YEAR: "closed all year",
   /** (T53) an unnamed section's label slot: the named water it flows into (a stream is that water's tributary) */
   TRIBUTARY_OF: (name: string) => `Tributary of ${name}`,

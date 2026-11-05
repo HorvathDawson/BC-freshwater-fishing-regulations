@@ -107,6 +107,11 @@ export interface AccessNotice {
   readonly text: string;
 }
 
+/** The strip's line as drawn: "Access may be restricted · private land". */
+export const accessLine = (n: AccessNotice): string => `${n.title} · ${n.brief}`;
+/** (T405) The strip's name for a screen reader: its line as drawn (WCAG 2.5.3, the name holds the visible words), then the sentence. */
+export const accessLabel = (n: AccessNotice): string => `${accessLine(n)}. ${n.text}`;
+
 const and = (xs: readonly string[]): string =>
   xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 

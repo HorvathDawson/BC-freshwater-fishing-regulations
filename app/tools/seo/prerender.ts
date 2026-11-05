@@ -123,19 +123,52 @@ export function linkHeader(html: string, item: string): string {
 
 export const LAYOUTS: readonly LayoutClass[] = ["phone", "tablet", "desktop"];
 
-/** The box the pane stands in: where the app's `#root` is (the window), over it until the hand-over. */
-export const PRERENDER_CSS = "#prerender{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;z-index:1;background:var(--cift-bg)}";
+/**
+ * The box the pane stands in: where the app's `#root` is (the window), over it until the hand-over.
+ *
+ * (T405) WHILE THE PRERENDERED PANE IS UP, THE APP'S ROOT IS DRAWN AT 1 % OF ITS SIZE (a transform, so the app's own
+ * layout — its offsets, its onLayout — is untouched). The browser reports a page's largest paint (LCP) and its layout
+ * shifts (CLS) from what each element first paints, where it paints it: the app's pane painting under the prerendered one
+ * at full size made its first frames count — a block of text larger than any the prerender had (Vedder: LCP 38.9 s, the
+ * app's own pane at the hand-over) and the shifts of its first layout (a bar measured, a strip arriving; CLS 0.15-0.72).
+ * Drawn at 1 %, those first paints are a few pixels and their shifts nothing; the hand-over then only takes the transform
+ * off, which paints no element for the first time and is not a layout shift. Not `visibility:hidden` / `opacity:0`: an
+ * element first painted when it is shown counts then, at full size (measured, T405).
+ */
+export const PRERENDER_CSS = "#prerender{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;z-index:1;background:var(--cift-bg)}" +
+  "#prerender~#root{transform:scale(.01);transform-origin:0 0}";
+
+/** (T405) Frames the app's pane must hold still (the same boxes) once it has every part the prerendered pane shows. */
+export const SETTLE_FRAMES = 3;
+/** (T405) A pane that differs from the prerendered one (a live feed changed a part) is handed over once it has been still this long (ms). */
+export const QUIET_MS = 1000;
+/** (T405) The longest the hand-over waits once the app's pane is drawn (ms): then it hands over, said in the console. */
+export const SETTLE_MAX_MS = 5000;
 
 /**
- * THE HAND-OVER, a module script (deferred; it never blocks the parse): when the app has drawn its own regs pane — the
- * same pane, at the same place — the prerendered one goes, keeping the reader's scroll. A start on another view
- * (`?view=conditions|map`) has no prerendered twin: it goes at once. So does it when the app has moved off the page.
+ * THE HAND-OVER, a module script (deferred; it never blocks the parse). The app's regs pane is the same pane at the same
+ * place; the prerendered one goes — and the app's is drawn at full size in the same frame, keeping the reader's scroll —
+ * when the app's pane is COMPLETE (T405): it shows every part (data-testid) the prerendered pane shows (the access strip,
+ * the salmon row… arrive after its first frame) and has held still for SETTLE_FRAMES frames; or, when a part differs from
+ * the build's (a live feed), once it has held still for QUIET_MS; or at the reader's first click / key (the app is up:
+ * they get it at once); or after SETTLE_MAX_MS, said in the console. A start on another view (`?view=conditions|map`) has
+ * no prerendered twin: it goes at once. So does it when the app has moved off the page.
  */
 export const HANDOFF = `<script type="module">` +
   `const p=document.getElementById("prerender"),r=document.getElementById("root"),v=new URLSearchParams(location.search).get("view"),w=location.pathname;` +
-  `const s=e=>[...e.querySelectorAll('[data-testid="regs-scroll"]')].find(x=>x.offsetParent!==null);` +
-  `const go=()=>{if(!p.isConnected)return;const a=s(p),b=s(r);if(a&&b)b.scrollTop=a.scrollTop;p.remove();o.disconnect()};` +
-  `const o=new MutationObserver(()=>{if(r.querySelector('[data-testid="regs-header"]')||location.pathname!==w)requestAnimationFrame(go)});` +
+  // the drawn one of an id (a prerendered pane holds every layout's; only the window's is drawn)
+  `const d=(e,i)=>[...e.querySelectorAll('[data-testid="'+i+'"]')].find(x=>x.offsetParent!==null);` +
+  `const ids=e=>new Set([...e.querySelectorAll("[data-testid]")].filter(x=>x.offsetParent!==null).map(x=>x.getAttribute("data-testid")));` +
+  `const go=()=>{if(!p.isConnected)return;const a=d(p,"regs-scroll"),b=d(r,"regs-scroll");if(a&&b)b.scrollTop=a.scrollTop;p.remove();o.disconnect()};` +
+  // the app's pane's boxes: the scroll's place and size, its content's height, the header's, its parts' count
+  `const k=()=>{const b=d(r,"regs-scroll"),h=d(r,"regs-header"),g=d(r,"regs-view");if(!b||!h||!g)return"";const q=b.getBoundingClientRect();return[q.top,q.height,b.scrollHeight,h.offsetHeight,g.querySelectorAll("[data-testid]").length].join()};` +
+  `const pv=d(p,"regs-view"),want=pv?[...ids(pv)]:[];let t0=-1,l="",n=0,c=0;` +
+  `const f=()=>{if(!p.isConnected)return;if(location.pathname!==w)return go();const g=k(),t=performance.now();if(g!==l){l=g;n=0;c=t}else n++;` +
+  `if(g&&n>=${SETTLE_FRAMES}){const rv=d(r,"regs-view"),has=ids(rv);if(want.every(i=>has.has(i))||t-c>=${QUIET_MS})return go()}` +
+  `if(t-t0>${SETTLE_MAX_MS}){console.info("hand-over: the app's pane did not settle in ${SETTLE_MAX_MS} ms; handed over");return go()}requestAnimationFrame(f)};` +
+  `const o=new MutationObserver(()=>{if(t0>=0)return;if(d(r,"regs-header")||location.pathname!==w){t0=performance.now();requestAnimationFrame(f)}});` +
+  // a click on a prerendered link (‹, ×, "Rule book p.N") is left to the link
+  `const now=e=>{if(!(e.target.closest&&e.target.closest("a"))&&k())go()};p.addEventListener("click",now,true);addEventListener("keydown",now,true);` +
   `if(v&&v!=="regs")p.remove();else o.observe(r,{childList:true,subtree:true})` +
   `</script>`;
 

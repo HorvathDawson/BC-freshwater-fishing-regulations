@@ -26,6 +26,9 @@ describe("T54/T367: the access strips on the Regulations page", () => {
     render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} access={pageAccessNotices([{ area: COQ, share: 1 }], "part")} />);
     const banner = screen.getByTestId("access-banner");
     expect(screen.getByTestId("access-title").textContent).toBe("No public access · Coquitlam Watershed");
+    // (T405) its name starts with its line as drawn (WCAG 2.5.3), then the sentence
+    expect(banner.getAttribute("aria-label")).toBe("No public access · Coquitlam Watershed. All of this part of the water is in "
+      + "Coquitlam Watershed, closed to the public. The regulations below don't give you access.");
     expect(screen.queryByTestId("access-text")).toBeNull();
     expect([banner.style.borderLeftColor, banner.style.backgroundColor]).toEqual([rgb(LIGHT.warning), rgb(LIGHT.noAccessBand)]);
     expect(LIGHT.warning).toBe(LIGHT.waterStatus.own);

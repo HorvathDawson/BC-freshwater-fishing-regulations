@@ -16,6 +16,8 @@ import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, WaterSource } from "@app/data";
 import { HOME, type Route, type SystemBack } from "@app/ui";
 import { LIGHT } from "./theme";
+/** (T405) the water's ‹: "Back" inside a water, "Back to <where it goes>" for the first one (`waterBackName`) */
+const BACK = /^Back( to .+)?$/;
 
 type Fit = { key: string; bbox: unknown; camera?: { lon: number; lat: number; zoom: number } } | null | undefined;
 type Stub = { fit?: Fit; highlight?: readonly unknown[]; pins?: readonly { tone?: string }[]; insetTop?: number;
@@ -263,7 +265,7 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     await settle();
     fireEvent.click(screen.getByRole("button", { name: /^Open Chilliwack River/ }));
     await waitFor(() => expect(screen.queryByRole("tablist", { name: "Views of this water" })).not.toBeNull());
-    const header = [screen.getByRole("button", { name: "Back" }).textContent, screen.getByTestId("water-close")
+    const header = [screen.getByRole("button", { name: BACK }).textContent, screen.getByTestId("water-close")
       .getAttribute("aria-label")];
     await leave();
     await settle();
@@ -331,7 +333,7 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     const viewOn = () => screen.getAllByRole("tab").find((t) => t.getAttribute("aria-selected") === "true")
       ?.getAttribute("aria-label") ?? screen.getAllByRole("tab").find((t) => t.getAttribute("aria-selected") === "true")
       ?.textContent;
-    const opened = [viewOn(), screen.getByRole("button", { name: "Back" }).textContent];
+    const opened = [viewOn(), screen.getByRole("button", { name: BACK }).textContent];
     fireEvent.click(screen.getAllByRole("tab").find((t) => /Regulations/.test(t.textContent ?? ""))!);
     await settle();
     const moved = viewOn();
@@ -352,7 +354,7 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     await settle();
     fireEvent.click(screen.getByTestId("stub-feature-click"));
     await waitFor(() => expect(screen.queryByRole("tablist", { name: "Views of this water" })).not.toBeNull());
-    const header = [screen.getByRole("button", { name: "Back" }).textContent,
+    const header = [screen.getByRole("button", { name: BACK }).textContent,
                     screen.getByTestId("water-close").getAttribute("aria-label")];
     back();
     await settle();

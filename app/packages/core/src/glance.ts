@@ -16,8 +16,6 @@ export const GLANCE_WORDS = {
   /** the fold's affordance, closed and open */
   show: "Details",
   hide: "Hide",
-  /** a screen reader's name for the fold */
-  a11y: (name: string, open: boolean) => `${name}: ${open ? "hide" : "show"} the details`,
 } as const;
 
 /** One folded row: the picture's code, the name, the status word true for the whole card (null: none) and its tone. */

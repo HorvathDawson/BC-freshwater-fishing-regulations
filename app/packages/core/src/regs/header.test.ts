@@ -68,7 +68,7 @@ describe("partLabels (prototype hereLabel / shortLabel)", () => {
 describe("headerOf", () => {
   it("today: 'Today' + the date; another day: its weekday; the dot from the strip's status", () => {
     const h = headerOf(inputs(), { today, status: "open" });
-    expect([h.name, h.dayWord, h.date, h.dateAria, h.dot]).toEqual(["Test River", "Today", "Oct 10", "Change date, now Oct 10", "open"]);
+    expect([h.name, h.dayWord, h.date, h.dateAria, h.dot]).toEqual(["Test River", "Today", "Oct 10", "Today Oct 10, change date", "open"]);
     const h2 = headerOf(inputs({ day: D(6, 15), weekday: "Monday" }), { today, status: "closed" });
     expect([h2.dayWord, h2.date, h2.dot]).toEqual(["Mon", "Jun 15", "closed"]);
     expect(["tidal", "outside", "unknown"].map((s) => headerOf(inputs(), { today, status: s as "tidal" }).dot))
@@ -77,7 +77,7 @@ describe("headerOf", () => {
   it("(owner call 3: T71 Map, T150 Parts) the header has no action — a water of many parts keeps only its part's name", () => {
     // the whole VM: no `action` key at all (a Parts or Map button coming back is a new key here and fails this)
     expect(headerOf(inputs(), { today, status: "open" })).toEqual({
-      name: "Test River", dayWord: "Today", date: "Oct 10", dateAria: "Change date, now Oct 10", dot: "open",
+      name: "Test River", dayWord: "Today", date: "Oct 10", dateAria: "Today Oct 10, change date", dot: "open",
       place: { full: "From the mouth up to the falls", short: "Mouth → falls" },
       tabs: [{ tab: "keep", label: "What you can keep" }, { tab: "gear", label: "Gear" }, { tab: "methods", label: "Methods" },
              { tab: "licence", label: "Licence" }] });

@@ -132,7 +132,7 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
   it("desktop: the date pill in the side column asks 'Which day?' as the header's does", () => {
     const onDate = vi.fn();
     mount("vedder_1010", "desktop", { onDate });
-    fireEvent.click(within(screen.getByTestId("regs-side")).getByRole("button", { name: "Change date, now Oct 10" }));
+    fireEvent.click(within(screen.getByTestId("regs-side")).getByRole("button", { name: "Today Oct 10, change date" }));
     expect(onDate).toHaveBeenCalledTimes(1);
   });
 });

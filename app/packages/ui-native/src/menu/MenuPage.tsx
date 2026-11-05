@@ -28,7 +28,7 @@ export function MenuPage({ open, title, onBack, palette, children, scroll = true
   const column = useLayoutClass() !== "phone"
     ? { width: "100%" as const, maxWidth: MORE_WIDE.page, alignSelf: "center" as const } : null;
   return (
-    <Modal visible={open} animationType="slide" onRequestClose={requestClose}>
+    <Modal visible={open} animationType="slide" onRequestClose={requestClose} aria-label={title}>
       {/* (T50) its own window: clear of the bars on every edge (RN's SafeAreaView padded iOS only) */}
       <WindowInsets style={{ flex: 1, backgroundColor: palette.card }}>
         <View testID={testID} style={{ flex: 1 }}>

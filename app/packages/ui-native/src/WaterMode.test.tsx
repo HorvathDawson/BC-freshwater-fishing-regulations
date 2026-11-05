@@ -16,6 +16,8 @@ import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, SectionId } from "@app/data";
 import { HOME, type Route } from "@app/ui";
 import { LIGHT } from "./theme";
+/** (T405) the water's ‹: "Back" inside a water, "Back to <where it goes>" for the first one (`waterBackName`) */
+const BACK = /^Back( to .+)?$/;
 
 /** The section the stub map's button taps, and where on it. */
 const TAP: { sid: number; lat: number; lon: number } = { sid: 0, lat: 49.1, lon: -121.6 };
@@ -79,7 +81,7 @@ const look = () => {
   const strip = screen.queryByRole("tablist", { name: "Views of this water" });
   const views = strip ? within(strip).getAllByRole("tab").map((t) =>
     `${t.getAttribute("aria-label")}${t.getAttribute("aria-selected") === "true" ? "*" : ""}`).join(" · ") : "no strip";
-  const back = screen.queryAllByLabelText("Back").map((b) => b.textContent).join() || "no back";
+  const back = screen.queryAllByLabelText(BACK).map((b) => b.textContent).join() || "no back";
   const bar = screen.queryByRole("tab", { name: "Spots" })
     ? ["Map", "Conditions", "Runs", "Spots", "More"].map((k) =>
       `${k}${screen.getByRole("tab", { name: k }).getAttribute("aria-selected") === "true" ? "*" : ""}`).join(" ")
@@ -151,7 +153,7 @@ describe("one water screen, whichever map you tapped", () => {
     await until(() => !regsShown()); seen.push(look());
     swipe("view-swipe-conditions", -120);                   // on the Conditions body: Map
     await until(() => titled() && screen.queryByLabelText("tap the map") !== null); seen.push(look());
-    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
+    act(() => { fireEvent.click(screen.getByLabelText(BACK)); });
     seen.push(look());
     expect(seen).toEqual([
       "no back | no strip | no title | the map | Map Conditions* Runs Spots More",
@@ -169,7 +171,7 @@ describe("one water screen, whichever map you tapped", () => {
     await tapMap();
     await until(() => regsShown() && titled());
     fireEvent.click(screen.getByRole("tab", { name: "Conditions" }));
-    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
+    act(() => { fireEvent.click(screen.getByLabelText(BACK)); });
     expect(look()).toBe("no back | no strip | no title | the map | Map* Conditions Runs Spots More");
   });
 
@@ -181,7 +183,7 @@ describe("one water screen, whichever map you tapped", () => {
     swipe("view-swipe-conditions", 120);                    // its Regulations is to the left of Conditions
     await until(regsShown);
     const swiped = look();
-    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
+    act(() => { fireEvent.click(screen.getByLabelText(BACK)); });
     const backed = look();
     cleanup();
     await mount("map", UNNAMED);
@@ -189,7 +191,7 @@ describe("one water screen, whichever map you tapped", () => {
     await until(regsShown);
     const mapOpened = look();
     const on = screen.getByTestId("regs-on").textContent;
-    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
+    act(() => { fireEvent.click(screen.getByLabelText(BACK)); });
     expect([opened, swiped, backed, mapOpened, on, look()]).toEqual([
       `Conditions | Regulations · Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
       "Conditions | Regulations* · Conditions | no title | regs page | no bar",
@@ -255,14 +257,14 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
     const seen = [where()];
     fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
     await until(() => where().startsWith("Part 1 of 4 · Chilliwack River"));
-    seen.push(`${where()} | ${screen.getByLabelText("Back").textContent}`);
+    seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
     fireEvent.click(screen.getByRole("button", { name: "Downstream into Vedder River" }));
     await until(() => where().startsWith("Part 1 of 1"));
-    seen.push(`${where()} | ${screen.getByLabelText("Back").textContent}`);
+    seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
     fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
     await until(() => where().startsWith("Part 1 of 4"));
-    seen.push(`${where()} | ${screen.getByLabelText("Back").textContent}`);
-    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
+    seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
+    act(() => { fireEvent.click(screen.getByLabelText(BACK)); });
     seen.push(screen.queryByTestId("water-map-where") ? where() : "the Map tab");
     expect(seen).toEqual([
       "Part 1 of 1 | Vedder River",
@@ -287,9 +289,9 @@ describe("ONE MAP ENTRY (T71, owner call 3, 2026-10-22: \"Keep only one Map entr
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
   }
   /** Every control on the water screen whose name says Map: [role, name]. A control's name is its aria-label, else its
-   *  words. The ‹ (named "Back", its words the tab it returns to) and the × ("Close, back to Map") LEAVE the water for
-   *  the Map tab — they are not a way to this water's map, so they are left out by name, exactly. */
-  const LEAVING = new Set(["Back", "Close, back to Map"]);
+   *  words. The ‹ (named "Back to Map" (T405), its words the tab it returns to) and the × ("Close, back to Map") LEAVE the
+   *  water for the Map tab — they are not a way to this water's map, so they are left out by name, exactly. */
+  const LEAVING = new Set(["Back to Map", "Close, back to Map"]);
   const mapEntries = () => [...screen.getByTestId("water-frame").querySelectorAll("[role=button],[role=tab],[role=link]")]
     .map((e) => [e.getAttribute("role"), e.getAttribute("aria-label") ?? e.textContent ?? ""])
     .filter(([, name]) => /\bmap\b/i.test(name!) && !LEAVING.has(name!));
@@ -299,7 +301,7 @@ describe("ONE MAP ENTRY (T71, owner call 3, 2026-10-22: \"Keep only one Map entr
     await onRegs(CHILLIWACK, 1);
     // (T379) load-proof: the header is waited for itself, not read on the strength of the tab's arrival
     await waitFor(() => expect(screen.getByTestId("regs-header")).toBeTruthy(), { timeout: 20_000 });
-    const leaving = [screen.getByLabelText("Back").textContent, screen.getByTestId("water-close").getAttribute("aria-label")];
+    const leaving = [screen.getByLabelText(BACK).textContent, screen.getByTestId("water-close").getAttribute("aria-label")];
     const seen: unknown[] = [leaving, mapEntries(), screen.queryByTestId("regs-action"),
                              within(screen.getByTestId("regs-header")).queryAllByRole("button", { name: /parts/i }).length];
     fireEvent.click(screen.getByRole("tab", { name: "Map" }));
