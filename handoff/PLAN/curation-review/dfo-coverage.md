@@ -1,6 +1,6 @@
 # DFO extent coverage — every historic location (owner 2026-10-27)
 
-348 historic DFO salmon locations (all scrapes, active + dormant); 150 have a curated extent; the other **198** are below — each with a proposal + confidence + evidence in the review app's DFO mode (`accept suggestion` pre-fills the editor; **Save extent** — your mark — is the only write). Nothing touched splits.json, the catalogue or marks.jsonl.
+352 historic DFO salmon locations (all scrapes, active + dormant); 173 have a curated extent; the other **179** are below — each with a proposal + confidence + evidence in the review app's DFO mode (`accept suggestion` pre-fills the editor; **Save extent** — your mark — is the only write). Nothing touched splits.json, the catalogue or marks.jsonl.
 
 Regenerate: `python -m pipeline.regs.dfo_salmon.suggest` (matcher → split hunt `dfo-split-hunt.json` → this pass, `pipeline/regs/dfo_salmon/coverage.py`).
 
@@ -8,24 +8,24 @@ Regenerate: `python -m pipeline.regs.dfo_salmon.suggest` (matcher → split hunt
 
 | outcome | high | medium | low | total |
 |---|---|---|---|---|
-| matched to EXISTING cuts | 45 | 19 | 3 | 67 |
-| the whole water (no cut) | | | | 50 |
-| NEW split proposed | 24 | 23 | 19 | 66 |
+| matched to EXISTING cuts | 32 | 16 | 4 | 52 |
+| the whole water (no cut) | | | | 47 |
+| NEW split proposed | 24 | 21 | 20 | 65 |
 | unresolvable (why below) | | | | 15 |
 
-Clusters of rewordings with an unplaced member: **25** (covering 57 locations, placed members included). Unplaced members: inherit a curated extent 2, adopt the cluster's better suggestion 0, already agree 22, canonical 24, member (own reading kept — differs in meaning) 7.
+Clusters of rewordings with an unplaced member: **25** (covering 58 locations, placed members included). Unplaced members: inherit a curated extent 6, adopt the cluster's better suggestion 1, already agree 20, canonical 20, member (own reading kept — differs in meaning) 5.
 
 ## Why each was unplaced
 
 | why | n | meaning |
 |---|---|---|
-| review_pending | 100 | existing cuts (or the whole water) say it — never curated, owner review pending |
-| needs_split | 59 | the water lacks a cut it needs — a NEW split is proposed |
-| variant | 16 | a rewording of another unplaced location (one decision covers the cluster) |
+| review_pending | 80 | existing cuts (or the whole water) say it — never curated, owner review pending |
+| needs_split | 57 | the water lacks a cut it needs — a NEW split is proposed |
+| variant | 15 | a rewording of another unplaced location (one decision covers the cluster) |
 | lake_area | 12 | a part of a lake (a line across it / a radius) — not a cut on a line; lake splits are deferred |
+| variant_of_placed | 6 | a rewording of a location that already has a curated extent |
 | side_channel | 3 | a side channel FWA does not draw — needs an added stream or an area |
 | tributary_set | 3 | tributaries only — a mark cannot say tributaries-only |
-| variant_of_placed | 2 | a rewording of a location that already has a curated extent |
 | unknown_landmark | 2 | the notice's landmark is named nowhere public |
 | no_water | 1 | the location's water is not matched to the registry |
 
@@ -64,17 +64,17 @@ Clusters of rewordings with an unplaced member: **25** (covering 57 locations, p
 
 Canonical first; **placed** = has a curated extent; role of each unplaced member.
 
-- `1:nanaimo-river:from-the-cedar-road-bridge-crossin` (canonical) · `1:nanaimo-river:cedar-road-bridge-upstream-approx` (agrees)
-- `1:nanaimo-river:from-the-power-line-crossing-at-bo` (canonical) · `1:nanaimo-river:from-500-m-below-the-lower-power-l` (member)
+- `1:nanaimo-river:from-the-cedar-road-bridge-crossin` (placed) · `1:nanaimo-river:cedar-road-bridge-upstream-approx` (inherits)
 - `1:nanaimo-river:in-subarea-17-14-tidal-portions-of` (canonical) · `1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2` (member)
-- `1:sproat-river:from-sproat-lake-to-approx-300m-be` (canonical) · `1:sproat-river:sproat-river-from-sproat-lake-to-f` (agrees)
-- `1:stamp-river:stamp-river-downstream-of-girl-gui` (canonical) · `1:stamp-river:downstream-of-signs-at-girl-guide` (agrees)
-- `1:stamp-river:from-the-confluence-of-the-ash-riv~2` (canonical) · `1:stamp-river:from-the-confluence-of-the-ash-riv` (member)
+- `1:sproat-river:from-sproat-lake-to-approx-300m-be` (placed) · `1:sproat-river:sproat-river-from-sproat-lake-to-f` (inherits)
+- `1:stamp-river:stamp-river-downstream-of-girl-gui` (placed) · `1:stamp-river:downstream-of-signs-at-girl-guide` (inherits)
+- `1:stamp-river:from-the-confluence-of-the-ash-riv~2` (placed) · `1:stamp-river:from-the-confluence-of-the-ash-riv` (inherits)
 - `1:stamp-river:from-the-inlet-upstream-of-roberst` (canonical) · `1:stamp-river:hatchery-lagoon-from-fishing-bound` (agrees)
 - `1:stamp-river:from-the-powerline-crossing-downst` (canonical) · `1:stamp-river:powerline-crossing-from-boundary-s` (agrees)
 - `2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f` (canonical) · `2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis` (agrees)
 - `2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3` (canonical) · `2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun` (agrees) · `2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2` (agrees) · `2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2` (agrees)
-- `2:fraser-river:mainstem-waters-from-the-downstrea` (canonical) · `2:fraser-river:from-the-downstream-side-of-the-cp` (member) · `2:fraser-river:from-the-downstream-side-of-the-cp~2` (member)
+- `2:fraser-river:mainstem-waters-from-the-downstrea` (canonical) · `2:fraser-river:from-the-downstream-side-of-the-cp` (member) · `2:fraser-river:from-the-downstream-side-of-the-cp~2` (member) · `2:fraser-river:mainstem-waters-downstream-of-the` (adopts)
+- `2:fraser-river:mainstem-waters-upstream-of-the-cp~2` (canonical) · `2:fraser-river:mainstem-waters-upstream-of-the-cp` (agrees)
 - `2:serpentine-river:downstream-of-168th-street-at-both` (canonical) · `2:serpentine-river:downstream-of-168th-street` (agrees)
 - `2:stave-river:downstream-of-b-c-hydro-dam-to-the~2` (canonical) · `2:stave-river:downstream-of-b-c-hydro-dam-to-the` (agrees)
 - `2:stave-river:the-ruskin-spawning-channel-on-the` (canonical) · `2:stave-river:in-that-portion-of-the-stave-river` (agrees) · `2:stave-river:that-portion-of-the-stave-river-kn` (agrees)
@@ -97,55 +97,34 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `1:cayeghle-river:including-colonial-river` | active | review_pending | the whole water | medium |
 | `1:cowichan-river:downstream-of-the-weir-on-cowichan` | dormant | review_pending | between Cowichan Lake and CNR Mile 66 Trestle | high |
 | `1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s` | dormant | needs_split | between CNR Bridge (mile 70.2) and Skutz Falls | high |
-| `1:cowichan-river:from-the-white-triangle-boundary-s` | active | review_pending | downstream of white triangle boundary sign located in Sandy Pool Regional Park | high |
 | `1:cowichan-river:including-tributaries-and-cowichan` | dormant | review_pending | the whole water | medium |
 | `1:koksilah-river:including-tributaries` | active | review_pending | the whole water with its tributaries | high |
-| `1:little-qualicum-river:all-open-portions-of-the-little-qu` | active | review_pending | the whole water | medium |
-| `1:little-qualicum-river:all-waters-unless-indicated-below` | active | review_pending | the whole water | medium |
 | `1:little-qualicum-river:from-the-falls-in-little-qualicum` | active | needs_split | between Little Qualicum Falls and hatchery fence | medium |
-| `1:little-qualicum-river:from-the-hatchery-fence-to-signs-l` | active | review_pending | between hatchery fence and signs 35 m downstream of hatchery fence | medium |
-| `1:nanaimo-river:cedar-road-bridge-upstream-approx` | dormant | variant | between Cedar Road bridge and Hwy 19 bridge | high |
-| `1:nanaimo-river:from-500-m-below-the-lower-power-l` | active | needs_split | between 500 m below the power line at Bore Hole and Boulder Creek → Nanaimo River | medium |
-| `1:nanaimo-river:from-the-cedar-road-bridge-crossin` | active | review_pending | between Cedar Road bridge and Hwy 19 bridge | high |
-| `1:nanaimo-river:from-the-power-line-crossing-at-bo` | dormant | review_pending | between power line at Bore Hole and Boulder Creek → Nanaimo River | high |
-| `1:nanaimo-river:from-the-upstream-side-of-the-ceda` | active | review_pending | between Cedar Road bridge and Hwy 1 bridge | medium |
-| `1:nanaimo-river:in-subarea-17-14-tidal-portions-of` | dormant | review_pending | downstream of Cedar Road bridge | high |
-| `1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2` | dormant | needs_split | between Cedar Road bridge and signs 400 m below the Cedar Road bridge | medium |
+| `1:nanaimo-river:cedar-road-bridge-upstream-approx` | dormant | variant_of_placed | between Cedar Road bridge and Hwy 19 bridge | high |
+| `1:nanaimo-river:in-subarea-17-14-tidal-portions-of` | active | review_pending | downstream of Cedar Road bridge | high |
+| `1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2` | active | needs_split | between Cedar Road bridge and signs 400 m below the Cedar Road bridge | medium |
 | `1:nanaimo-river:including-tributaries-except-in-th` | active | review_pending | the whole water with its tributaries | medium |
 | `1:puntledge-river:downstream-from-a-fishing-boundary` | dormant | review_pending | downstream of signs 75 m downstream of Puntledge River hatchery fence | medium |
-| `1:puntledge-river:downstream-from-the-base-of-stotan` | active | review_pending | downstream of base of Stotan Falls | high |
-| `1:puntledge-river:from-signs-located-50m-upstream-of` | active | review_pending | between fishing boundary signs 50 m upstream of BC Hydro Puntledge generating-station tailrace and signs 75 m downstream of Puntledge River hatchery fence | high |
 | `1:puntledge-river:from-the-weir-at-the-lower-hatcher` | dormant | needs_split | between Puntledge lower hatchery weir and signs 75 m below the Puntledge lower hatchery weir | medium |
-| `1:puntledge-river:morrison-creek-closure-between-fis` | active | review_pending | between Morrison Creek → Puntledge River (100 m upstream) and Morrison Creek → Puntledge River (100 m downstream) | high |
 | `1:qualicum-river:all-open-portions-of-the-qualicum` | active | review_pending | the whole water | medium |
-| `1:qualicum-river:downstream-of-the-upper-weir-locat` | active | review_pending | between upper hatchery weir (125 m downstream) and boundary signs = QFN | medium |
-| `1:qualicum-river:those-waters-upstream-of-the-big-q` | active | review_pending | upstream of upper hatchery weir (125 m downstream) | high |
-| `1:qualicum-river:waters-below-the-qfn-boundary-fenc` | active | review_pending | between boundary signs = QFN and Hwy 19A bridge | low |
 | `1:quatse-river:100m-upstream-and-downstream-of-th` | active | needs_split | between 100 m above the Quatse River Hatchery weir and 100 m below the Quatse River Hatchery weir | low |
 | `1:san-juan-river:that-portion-of-the-san-juan-river` | dormant | needs_split | between San Juan hatchery counting fence and signs 150 m below the San Juan hatchery fence | low |
 | `1:san-juan-river:waters-of-the-san-juan-river-and-i` | dormant | review_pending | downstream of Fleet River → San Juan River | high |
-| `1:sproat-river:from-sproat-lake-to-approx-300m-be` | active | review_pending | between Sproat Lake and fishing boundary signs 300 m downstream of Hwy 4 | high |
-| `1:sproat-river:sproat-river-from-sproat-lake-to-f` | dormant | variant | between Sproat Lake and fishing boundary signs 300 m downstream of Hwy 4 | high |
+| `1:sproat-river:sproat-river-from-sproat-lake-to-f` | dormant | variant_of_placed | between sproat_river__sproat_lake and fishing boundary signs 300 m downstream of Hwy 4 | medium |
 | `1:stamp-river:between-fishing-boundary-signs-app` | dormant | review_pending | between fishing boundary signs 200 m upstream of Stamp Falls and signs 500 m downstream of Stamp Falls | high |
-| `1:stamp-river:downstream-of-signs-at-girl-guide` | dormant | variant | downstream of Girl Guide Falls signs | high |
-| `1:stamp-river:except-in-those-areas-and-times-li` | active | review_pending | the whole water | medium |
-| `1:stamp-river:from-approx-200-m-upstream-of-the` | active | review_pending | between fishing boundary signs 200 m upstream of Stamp Falls and signs 500 m downstream of Stamp Falls | high |
-| `1:stamp-river:from-the-confluence-of-the-ash-riv` | dormant | review_pending | between Ash River → Stamp River and Great Central Lake dam | high |
-| `1:stamp-river:from-the-confluence-of-the-ash-riv~2` | active | review_pending | between Ash River → Stamp River and Great Central Lake dam | high |
+| `1:stamp-river:downstream-of-signs-at-girl-guide` | dormant | variant_of_placed | downstream of Girl Guide Falls signs | medium |
+| `1:stamp-river:from-the-confluence-of-the-ash-riv` | dormant | variant_of_placed | upstream of Ash River → Stamp River | high |
 | `1:stamp-river:from-the-inlet-upstream-of-roberst` | active | needs_split | between Robertson Creek Hatchery lagoon inlet and Robertson Creek Hatchery lagoon outlet | low |
 | `1:stamp-river:from-the-powerline-crossing-downst` | active | needs_split | between Stamp River powerline crossing (BC Hydro 1L127) and Robertson Creek Hatchery lagoon inlet | low |
 | `1:stamp-river:from-the-southern-portion-of-the-r` | dormant | needs_split | between Robertson Creek Hatchery lagoon inlet and Robertson Creek Hatchery lagoon outlet | low |
 | `1:stamp-river:hatchery-lagoon-from-boundary-sign` | dormant | needs_split | between Robertson Creek Hatchery lagoon inlet and Stamp River cable car crossing | low |
 | `1:stamp-river:hatchery-lagoon-from-fishing-bound` | dormant | variant | between Robertson Creek Hatchery lagoon inlet and Robertson Creek Hatchery lagoon outlet | low |
 | `1:stamp-river:powerline-crossing-from-boundary-s` | dormant | variant | between Stamp River powerline crossing (BC Hydro 1L127) and Robertson Creek Hatchery lagoon inlet | low |
-| `1:stamp-river:stamp-river-downstream-of-girl-gui` | active | review_pending | downstream of Girl Guide Falls signs | high |
 | `1:stamp-river:upstream-of-signs-located-at-girl` | dormant | review_pending | upstream of Girl Guide Falls signs | medium |
 | `2:alouette-river-and-tributaries:above-216th-street-including-the-n` | dormant | review_pending | upstream of 216 Street bridge | low |
 | `2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis` | dormant | variant | downstream of Allco Park boundary signs (Allco hatchery fence) | medium |
 | `2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f` | dormant | needs_split | downstream of Allco Park boundary signs (Allco hatchery fence) | medium |
-| `2:alouette-river-and-tributaries:downstream-of-the-216th-street-bri` | active | review_pending | downstream of 216 Street bridge | medium |
 | `2:alouette-river-and-tributaries:north-alouette-and-tributaries` | active | review_pending | the whole water | high |
-| `2:alouette-river-and-tributaries:upstream-of-the-216th-street-bridg` | active | needs_split | between 216 Street bridge and Allco Park boundary signs (Allco hatchery fence) | medium |
 | `2:birkenhead-river:from-the-birkenhead-bridge-located` | dormant | needs_split | between Birkenhead Bridge (Portage Road) and Birkenhead canyon (foot) | medium |
 | `2:brunette-river:downstream-of-cariboo-road` | dormant | needs_split | downstream of Cariboo Road bridge | high |
 | `2:capilano-river:including-tributaries` | active | review_pending | the whole water with its tributaries | high |
@@ -159,8 +138,10 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `2:fraser-river:from-the-downstream-side-of-the-cp` | dormant | needs_split | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | low |
 | `2:fraser-river:from-the-downstream-side-of-the-cp~2` | dormant | needs_split | between the CPR Bridge at Mission and Alexandra Bridge (Hwy 1) | low |
 | `2:fraser-river:from-the-highway-1-bridge-at-hope` | dormant | needs_split | between Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) and Alexandra Bridge (Hwy 1) | medium |
+| `2:fraser-river:mainstem-waters-downstream-of-the` | active | variant | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | low |
 | `2:fraser-river:mainstem-waters-from-the-downstrea` | dormant | needs_split | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | low |
-| `2:fraser-river:mainstem-waters-upstream-of-the-cp` | active | review_pending | upstream of the CPR Bridge at Mission | low |
+| `2:fraser-river:mainstem-waters-upstream-of-the-cp` | dormant | variant | upstream of the CPR Bridge at Mission | low |
+| `2:fraser-river:mainstem-waters-upstream-of-the-cp~2` | active | review_pending | upstream of the CPR Bridge at Mission | low |
 | `2:fraser-river:upstream-from-the-highway-1-bridge` | dormant | needs_split | upstream of Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | high |
 | `2:harrison-river:from-the-highway-7-bridge-downstre` | active | needs_split | downstream of Hwy 7 bridge over the Harrison | high |
 | `2:harrison-river:from-the-outlet-of-harrison-lake-d` | active | needs_split | between Harrison Lake and Hwy 7 bridge over the Harrison | high |
@@ -173,7 +154,7 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `2:nicomekl-river:downstream-of-208th-street` | active | review_pending | downstream of 208th Street | high |
 | `2:nicomekl-river:within-23-m-downstream-of-the-floo` | dormant | needs_split | between dyke gates and 23 m below the Nicomekl flood dam | high |
 | `2:nicomen-including-dewdney-slough:from-the-confluence-of-siddle-bell` | active | needs_split | downstream of Siddle (Bell's) Creek mouth | high |
-| `2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn` | dormant | needs_split | downstream of Hwy 7 Nicomen Slough Bridge at Dewdney | high |
+| `2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn` | active | needs_split | downstream of Hwy 7 Nicomen Slough Bridge at Dewdney | high |
 | `2:pitt-river:pitt-river-and-tributaries` | dormant | review_pending | the whole water with its tributaries | high |
 | `2:pitt-river:upper-and-lower-river-including-tr` | dormant | review_pending | the whole water with its tributaries | high |
 | `2:pitt-river:upper-river-upstream-of-pitt-lake` | dormant | review_pending | upstream of Pitt Lake | high |
@@ -201,7 +182,7 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `5b:atnarko-river:downstream-of-the-fishing-boundary` | active | needs_split | downstream of signs near Tweedsmuir Park Lodge (Stuie) | medium |
 | `5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola` | active | tributary_set | the whole water | medium |
 | `5b:dean-river:from-signs-located-approx-500-m-up` | active | review_pending | between signs ~0.5 km above the canyon (500 m upstream) and signs ~100 m below the canyon (100 m downstream) | high |
-| `5b:dean-river:from-the-confluence-with-crag-cree` | active | review_pending | between Crag Creek → Dean River and Dean River: mouth (tidal boundary) (medium confidence) | medium |
+| `5b:dean-river:from-the-confluence-with-crag-cree` | active | review_pending | between Crag Creek → Dean River and mouth | low |
 | `5b:dean-river:upstream-of-the-confluence-with-cr` | active | review_pending | upstream of Crag Creek → Dean River | high |
 | `5b:long-lake:including-tributaries` | active | review_pending | the whole water with its tributaries | high |
 | `6:babine-lake:babine-lake-excluding-tributaries` | dormant | lake_area | the whole water | medium |

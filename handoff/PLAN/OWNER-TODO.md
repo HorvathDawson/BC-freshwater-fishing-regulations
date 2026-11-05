@@ -166,7 +166,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   23:30. Default: unchanged (device day). Switch "today" to America/Vancouver? (a behaviour change)
 - **Vessel rules (T209):** the 10 close-wording undrawn parts kept ("various locations", "swimming areas") in
   on-parts.md: whole water too, or leave as notes? (`max_power_kw` 7.5 is stored on the 162 electric-only rules, 10-28.)
-- **Salmon (T164):** confirm the proposed DFO cut points in T164's DFO review mode (96 bridges/signs/dams).
+- **Salmon (T164), refreshed 11-05:** 179 DFO places still need an extent; each has a fresh proposal (52 on existing
+  cuts, 47 whole water, 65 new splits, 15 with a reason). Review app → DFO salmon extents → accept suggestion → Save
+  extent. Includes Skeena B(i) (T229 Q3) and the 3 items T326 waits on. Claude rebuilds and measures after.
 - **User accounts (T223, new 2026-10-28):** one account for web + phone. Questions Q-T223a–f in the ticket: auth
   provider, what syncs (spots / photos / pins / settings), privacy of spot locations, offline merge rule, optional or
   required, before or after first release. Nothing is built until you answer.

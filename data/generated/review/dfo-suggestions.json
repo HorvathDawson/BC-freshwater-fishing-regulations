@@ -1,34 +1,34 @@
 {
  "_about": "DFO extent SUGGESTIONS (T164 / T210 follow-up) — never applied. The review app's DFO mode shows each one; 'accept suggestion' pre-fills the extent-fix editor and the owner saves it as their mark. Regenerate: python -m pipeline.regs.dfo_salmon.suggest",
- "generated": "2026-10-29",
+ "generated": "2026-11-05",
  "counts": {
-  "existing": 67,
+  "existing": 52,
   "new_high": 24,
-  "new_low": 19,
-  "new_medium": 23,
+  "new_low": 20,
+  "new_medium": 21,
   "none": 15,
-  "whole": 50
+  "whole": 47
  },
  "outcomes": {
-  "existing_high": 45,
-  "existing_low": 3,
-  "existing_medium": 19,
+  "existing_high": 32,
+  "existing_low": 4,
+  "existing_medium": 16,
   "new_high": 24,
-  "new_low": 19,
-  "new_medium": 23,
+  "new_low": 20,
+  "new_medium": 21,
   "unresolvable": 15,
-  "whole": 50
+  "whole": 47
  },
  "why": {
   "lake_area": 12,
-  "needs_split": 59,
+  "needs_split": 57,
   "no_water": 1,
-  "review_pending": 100,
+  "review_pending": 80,
   "side_channel": 3,
   "tributary_set": 3,
   "unknown_landmark": 2,
-  "variant": 16,
-  "variant_of_placed": 2
+  "variant": 15,
+  "variant_of_placed": 6
  },
  "suggestions": {
   "1:cayeghle-river:including-colonial-river": {
@@ -97,83 +97,6 @@
    "status": "dormant",
    "why": "review_pending",
    "outcome": "whole"
-  },
-  "1:cowichan-river:from-the-white-triangle-boundary-s": {
-   "location_id": "1:cowichan-river:from-the-white-triangle-boundary-s",
-   "water": "Cowichan River",
-   "text": "from the white triangle boundary sign located in Sandy Pool Regional Park, downstream to the tidal boundary.",
-   "notice_op": "between",
-   "items": [
-    "gnis:12227"
-   ],
-   "suggestion": {
-    "op": "downstream_of",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "cowichan_river__white_triangle_boundary_sign_loc"
-     }
-    ],
-    "items": [
-     "gnis:12227"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "downstream of white triangle boundary sign located in Sandy Pool Regional Park"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "split hunt: 'from the white triangle boundary sign in Sandy Pool Regional Park, downstream to the tidal boundary' (T227 2026-10-28). The tidal end is the FWA mouth: the DFO Cowichan Bay tidal line (Hecate boat ramp to Green Point) runs 641 m seaward of the FWA mouth (tidal-candidates tidal:354155148), so 'downstream of the sign' reaches it.; high: the curated cut `cowichan_river__white_triangle_boundary_sign_loc` — the curated Sandy Pool sign cut (owner's T185 mark on 1:cowichan-river:from-66-mile-trestle-downstream-to, applied 897b96f4); on the FWA line at 20.0 km, 110 m from OSM Sandy Pool Regional Park (relation 543934)",
-   "endpoints": [
-    {
-     "phrase": "the white triangle boundary sign located in Sandy Pool Regional Park",
-     "kind": "split",
-     "confidence": "low",
-     "reason": "\"park, pool, regional, sandy\" -> the curated cut `cowichan_river__white_triangle_boundary_sign_loc` (white triangle boundary sign located in Sandy Pool Regional Park); as close: `n1` (white triangle boundary sign located in Sandy Pool Regional Park (medium confidence))",
-     "label": "white triangle boundary sign located in Sandy Pool Regional Park",
-     "fix": {
-      "kind": "split",
-      "split_id": "cowichan_river__white_triangle_boundary_sign_loc"
-     },
-     "item_id": "gnis:12227"
-    },
-    {
-     "phrase": "the tidal boundary",
-     "kind": "proposed",
-     "confidence": "medium",
-     "reason": "\"tidal\" -> the proposed cut `tidal-354155148` (Cowichan River: mouth (tidal boundary) (medium confidence))",
-     "label": "Cowichan River: mouth (tidal boundary) (medium confidence)",
-     "fix": {
-      "kind": "new",
-      "split_id": "tidal-354155148"
-     },
-     "item_id": "gnis:12227"
-    }
-   ],
-   "points": [
-    {
-     "label": "white triangle boundary sign located in Sandy Pool Regional Park",
-     "coord": null,
-     "kind": "split",
-     "split_id": "cowichan_river__white_triangle_boundary_sign_loc"
-    }
-   ],
-   "hunt": {
-    "status": "found",
-    "notes": "'from the white triangle boundary sign in Sandy Pool Regional Park, downstream to the tidal boundary' (T227 2026-10-28). The tidal end is the FWA mouth: the DFO Cowichan Bay tidal line (Hecate boat ramp to Green Point) runs 641 m seaward of the FWA mouth (tidal-candidates tidal:354155148), so 'downstream of the sign' reaches it.",
-    "proposals": [],
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
-    ],
-    "matcher": {
-     "matched": "existing",
-     "reason": "low: \"park, pool, regional, sandy\" -> the curated cut `cowichan_river__white_triangle_boundary_sign_loc` (white triangle boundary sign located in Sandy Pool Regional Park); as close: `n1` (white triangle boundary sign located in Sandy Pool Regional Park (medium confidence)); medium: \"tidal\" -> the proposed cut `tidal-354155148` (Cowichan River: mouth (tidal boundary) (medium confidence))"
-    }
-   },
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_high"
   },
   "1:cowichan-river:downstream-of-the-weir-on-cowichan": {
    "location_id": "1:cowichan-river:downstream-of-the-weir-on-cowichan",
@@ -276,108 +199,6 @@
    "status": "active",
    "why": "review_pending",
    "outcome": "whole"
-  },
-  "1:little-qualicum-river:all-waters-unless-indicated-below": {
-   "location_id": "1:little-qualicum-river:all-waters-unless-indicated-below",
-   "water": "Little Qualicum River",
-   "text": "all waters unless indicated below",
-   "notice_op": "whole_water",
-   "items": [
-    "gnis:10886"
-   ],
-   "matched": "whole",
-   "confidence": "medium",
-   "endpoints": [],
-   "reason": "the notice names no reach: the whole water",
-   "suggestion": {
-    "op": "whole",
-    "points": [],
-    "items": [
-     "gnis:10886"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "the whole water"
-   },
-   "state": "unbound",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "whole"
-  },
-  "1:little-qualicum-river:from-the-hatchery-fence-to-signs-l": {
-   "location_id": "1:little-qualicum-river:from-the-hatchery-fence-to-signs-l",
-   "water": "Little Qualicum River",
-   "text": "from the hatchery fence to signs located approximately 35 meters downstream",
-   "notice_op": "between",
-   "items": [
-    "gnis:10886"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "little_qualicum_river__hatchery_fence"
-     },
-     {
-      "kind": "split",
-      "split_id": "little_qualicum_river__signs_35_m_downstream_of_hatchery_fence"
-     }
-    ],
-    "items": [
-     "gnis:10886"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between hatchery fence and signs 35 m downstream of hatchery fence"
-   },
-   "confidence": "medium",
-   "matched": "existing",
-   "reason": "medium: \"fence, hatchery\" -> the curated cut `little_qualicum_river__hatchery_fence` (hatchery fence); medium: \"35m-down, downstream\" -> the curated cut `little_qualicum_river__signs_35_m_downstream_of_hatchery_fence` (signs 35 m downstream of hatchery fence)",
-   "endpoints": [
-    {
-     "phrase": "the hatchery fence",
-     "kind": "split",
-     "confidence": "medium",
-     "reason": "\"fence, hatchery\" -> the curated cut `little_qualicum_river__hatchery_fence` (hatchery fence)",
-     "label": "hatchery fence",
-     "fix": {
-      "kind": "split",
-      "split_id": "little_qualicum_river__hatchery_fence"
-     },
-     "item_id": "gnis:10886"
-    },
-    {
-     "phrase": "signs located approximately 35 meters downstream",
-     "kind": "split",
-     "confidence": "medium",
-     "reason": "\"35m-down, downstream\" -> the curated cut `little_qualicum_river__signs_35_m_downstream_of_hatchery_fence` (signs 35 m downstream of hatchery fence)",
-     "label": "signs 35 m downstream of hatchery fence",
-     "fix": {
-      "kind": "split",
-      "split_id": "little_qualicum_river__signs_35_m_downstream_of_hatchery_fence"
-     },
-     "item_id": "gnis:10886"
-    }
-   ],
-   "points": [
-    {
-     "label": "hatchery fence",
-     "coord": null,
-     "kind": "split",
-     "split_id": "little_qualicum_river__hatchery_fence"
-    },
-    {
-     "label": "signs 35 m downstream of hatchery fence",
-     "coord": null,
-     "kind": "split",
-     "split_id": "little_qualicum_river__signs_35_m_downstream_of_hatchery_fence"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_medium"
   },
   "1:little-qualicum-river:from-the-falls-in-little-qualicum": {
    "location_id": "1:little-qualicum-river:from-the-falls-in-little-qualicum",
@@ -516,94 +337,6 @@
    "why": "review_pending",
    "outcome": "whole"
   },
-  "1:nanaimo-river:from-the-power-line-crossing-at-bo": {
-   "location_id": "1:nanaimo-river:from-the-power-line-crossing-at-bo",
-   "water": "Nanaimo River",
-   "text": "from the power line crossing at \"Bore Hole\" upstream to the fishing boundary signs at the mouth of Boulder Creek",
-   "notice_op": "between",
-   "items": [
-    "gnis:16505"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "nanaimo_river__power_line_at_bore_hole"
-     },
-     {
-      "kind": "split",
-      "split_id": "nanaimo_river__boulder_creek_into_nanaimo_river"
-     }
-    ],
-    "items": [
-     "gnis:16505"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between power line at Bore Hole and Boulder Creek → Nanaimo River"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: \"bore, hole, powerline\" -> the curated cut `nanaimo_river__power_line_at_bore_hole` (power line at Bore Hole); high: confluence of Boulder Creek: the curated cut `nanaimo_river__boulder_creek_into_nanaimo_river` (Boulder Creek → Nanaimo River)",
-   "endpoints": [
-    {
-     "phrase": "the power line crossing at \"Bore Hole\"",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"bore, hole, powerline\" -> the curated cut `nanaimo_river__power_line_at_bore_hole` (power line at Bore Hole)",
-     "label": "power line at Bore Hole",
-     "fix": {
-      "kind": "split",
-      "split_id": "nanaimo_river__power_line_at_bore_hole"
-     },
-     "item_id": "gnis:16505"
-    },
-    {
-     "phrase": "the fishing boundary signs at the mouth of Boulder Creek",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "confluence of Boulder Creek: the curated cut `nanaimo_river__boulder_creek_into_nanaimo_river` (Boulder Creek → Nanaimo River)",
-     "label": "Boulder Creek → Nanaimo River",
-     "fix": {
-      "kind": "split",
-      "split_id": "nanaimo_river__boulder_creek_into_nanaimo_river"
-     },
-     "item_id": "gnis:16505"
-    }
-   ],
-   "points": [
-    {
-     "label": "power line at Bore Hole",
-     "coord": null,
-     "kind": "split",
-     "split_id": "nanaimo_river__power_line_at_bore_hole"
-    },
-    {
-     "label": "Boulder Creek → Nanaimo River",
-     "coord": null,
-     "kind": "split",
-     "split_id": "nanaimo_river__boulder_creek_into_nanaimo_river"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "dormant",
-   "cluster": {
-    "id": "1:nanaimo-river#2",
-    "members": [
-     "1:nanaimo-river:from-500-m-below-the-lower-power-l",
-     "1:nanaimo-river:from-the-power-line-crossing-at-bo"
-    ],
-    "placed": [],
-    "canonical": "1:nanaimo-river:from-the-power-line-crossing-at-bo",
-    "role": "canonical",
-    "links": {
-     "1:nanaimo-river:from-500-m-below-the-lower-power-l": "dup 0.82"
-    }
-   },
-   "why": "review_pending",
-   "outcome": "existing_high"
-  },
   "1:nanaimo-river:cedar-road-bridge-upstream-approx": {
    "location_id": "1:nanaimo-river:cedar-road-bridge-upstream-approx",
    "water": "Nanaimo River",
@@ -633,7 +366,7 @@
    },
    "confidence": "high",
    "matched": "existing",
-   "reason": "high: \"bridge, cedar, road\" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge); high: \"19, bridge, hwy\" -> the curated cut `nanaimo_river__hwy_19_bridge` (Hwy 19 bridge)",
+   "reason": "high: the same place as `1:nanaimo-river:from-the-cedar-road-bridge-crossin` — its CURATED extent (\"from the Cedar Road Bridge crossing upstream to the Highway 19 Bridge crossing\"; place words 80% alike)",
    "endpoints": [
     {
      "phrase": "Cedar Road Bridge",
@@ -682,90 +415,17 @@
      "1:nanaimo-river:cedar-road-bridge-upstream-approx",
      "1:nanaimo-river:from-the-cedar-road-bridge-crossin"
     ],
-    "placed": [],
+    "placed": [
+     "1:nanaimo-river:from-the-cedar-road-bridge-crossin"
+    ],
     "canonical": "1:nanaimo-river:from-the-cedar-road-bridge-crossin",
-    "role": "agrees",
+    "role": "inherits",
     "links": {
      "1:nanaimo-river:from-the-cedar-road-bridge-crossin": "text 0.80"
     }
    },
-   "why": "variant",
+   "why": "variant_of_placed",
    "outcome": "existing_high"
-  },
-  "1:nanaimo-river:from-the-upstream-side-of-the-ceda": {
-   "location_id": "1:nanaimo-river:from-the-upstream-side-of-the-ceda",
-   "water": "Nanaimo River",
-   "text": "from the upstream side of the Cedar Road Bridge, upstream to the downstream side of the Highway 1 overpass.",
-   "notice_op": "between",
-   "items": [
-    "gnis:16505"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "nanaimo_river__cedar_road_bridge"
-     },
-     {
-      "kind": "split",
-      "split_id": "nanaimo_river__hwy_1_bridge"
-     }
-    ],
-    "items": [
-     "gnis:16505"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between Cedar Road bridge and Hwy 1 bridge"
-   },
-   "confidence": "medium",
-   "matched": "existing",
-   "reason": "high: \"bridge, cedar, road\" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge); medium: \"1, hwy\" -> the curated cut `nanaimo_river__hwy_1_bridge` (Hwy 1 bridge)",
-   "endpoints": [
-    {
-     "phrase": "the upstream side of the Cedar Road Bridge",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"bridge, cedar, road\" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge)",
-     "label": "Cedar Road bridge",
-     "fix": {
-      "kind": "split",
-      "split_id": "nanaimo_river__cedar_road_bridge"
-     },
-     "item_id": "gnis:16505"
-    },
-    {
-     "phrase": "the downstream side of the Highway 1 overpass",
-     "kind": "split",
-     "confidence": "medium",
-     "reason": "\"1, hwy\" -> the curated cut `nanaimo_river__hwy_1_bridge` (Hwy 1 bridge)",
-     "label": "Hwy 1 bridge",
-     "fix": {
-      "kind": "split",
-      "split_id": "nanaimo_river__hwy_1_bridge"
-     },
-     "item_id": "gnis:16505"
-    }
-   ],
-   "points": [
-    {
-     "label": "Cedar Road bridge",
-     "coord": null,
-     "kind": "split",
-     "split_id": "nanaimo_river__cedar_road_bridge"
-    },
-    {
-     "label": "Hwy 1 bridge",
-     "coord": null,
-     "kind": "split",
-     "split_id": "nanaimo_river__hwy_1_bridge"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_medium"
   },
   "1:puntledge-river:from-the-weir-at-the-lower-hatcher": {
    "location_id": "1:puntledge-river:from-the-weir-at-the-lower-hatcher",
@@ -812,12 +472,12 @@
       "on_item": "gnis:27060",
       "coord": [
        -125.0323,
-       49.685119
+       49.685118
       ],
       "blk": "354154204",
       "measure": 4001.1,
-      "note": "[split hunt medium] boundary signs ~75 m downstream of the lower hatchery weir (placed 75 m downstream of the anchor, now the split's offset attribute). Sources: https://www.openstreetmap.org/way/152588484. the weir (exact) moved 75 m downstream along the FWA line, the notice's own approximate distance.",
-      "offset_m": -75.0
+      "offset_m": -75.0,
+      "note": "[split hunt medium] boundary signs ~75 m downstream of the lower hatchery weir (75 m downstream of the anchor, as the split's offset). Sources: https://www.openstreetmap.org/way/152588484. the weir (exact) moved 75 m downstream along the FWA line, the notice's own approximate distance."
      }
     ],
     "words": "between Puntledge lower hatchery weir and signs 75 m below the Puntledge lower hatchery weir"
@@ -906,7 +566,7 @@
       "split_id": null,
       "snap_m": 2.9,
       "blk": "354154204",
-      "measure": 3926.1
+      "measure": 4001.1
      }
     ],
     "sources": [
@@ -975,284 +635,6 @@
    "why": "review_pending",
    "outcome": "existing_medium"
   },
-  "1:puntledge-river:morrison-creek-closure-between-fis": {
-   "location_id": "1:puntledge-river:morrison-creek-closure-between-fis",
-   "water": "Puntledge River",
-   "text": "Morrison Creek closure: between fishing boundary signs located 100m upstream and downstream of the confluence with Morrison Creek.",
-   "notice_op": "between",
-   "items": [
-    "gnis:27060"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "puntledge_river__morrison_creek_into_puntledge_river_u100m"
-     },
-     {
-      "kind": "split",
-      "split_id": "puntledge_river__morrison_creek_into_puntledge_river_d100m"
-     }
-    ],
-    "items": [
-     "gnis:27060"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between Morrison Creek → Puntledge River (100 m upstream) and Morrison Creek → Puntledge River (100 m downstream)"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: confluence of Morrison Creek: the curated cut `puntledge_river__morrison_creek_into_puntledge_river_u100m` (Morrison Creek → Puntledge River (100 m upstream)); high: confluence of Morrison Creek: the curated cut `puntledge_river__morrison_creek_into_puntledge_river_d100m` (Morrison Creek → Puntledge River (100 m downstream))",
-   "endpoints": [
-    {
-     "phrase": "100m upstream of the confluence with Morrison Creek",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "confluence of Morrison Creek: the curated cut `puntledge_river__morrison_creek_into_puntledge_river_u100m` (Morrison Creek → Puntledge River (100 m upstream))",
-     "label": "Morrison Creek → Puntledge River (100 m upstream)",
-     "fix": {
-      "kind": "split",
-      "split_id": "puntledge_river__morrison_creek_into_puntledge_river_u100m"
-     },
-     "item_id": "gnis:27060"
-    },
-    {
-     "phrase": "100m downstream of the confluence with Morrison Creek",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "confluence of Morrison Creek: the curated cut `puntledge_river__morrison_creek_into_puntledge_river_d100m` (Morrison Creek → Puntledge River (100 m downstream))",
-     "label": "Morrison Creek → Puntledge River (100 m downstream)",
-     "fix": {
-      "kind": "split",
-      "split_id": "puntledge_river__morrison_creek_into_puntledge_river_d100m"
-     },
-     "item_id": "gnis:27060"
-    }
-   ],
-   "points": [
-    {
-     "label": "Morrison Creek → Puntledge River (100 m upstream)",
-     "coord": null,
-     "kind": "split",
-     "split_id": "puntledge_river__morrison_creek_into_puntledge_river_u100m"
-    },
-    {
-     "label": "Morrison Creek → Puntledge River (100 m downstream)",
-     "coord": null,
-     "kind": "split",
-     "split_id": "puntledge_river__morrison_creek_into_puntledge_river_d100m"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_high"
-  },
-  "1:qualicum-river:those-waters-upstream-of-the-big-q": {
-   "location_id": "1:qualicum-river:those-waters-upstream-of-the-big-q",
-   "water": "Qualicum River",
-   "text": "those waters upstream of the Big Qualicum Hatchery upper weir (located approximately 125 m downstream of the E&N railway bridge).",
-   "notice_op": "upstream_of",
-   "items": [
-    "gnis:27804"
-   ],
-   "suggestion": {
-    "op": "upstream_of",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "qualicum_river__upper_hatchery_weir_125_m_downstream"
-     }
-    ],
-    "items": [
-     "gnis:27804"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "upstream of upper hatchery weir (125 m downstream)"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: \"125m-down, downstream, hatchery, weir\" -> the curated cut `qualicum_river__upper_hatchery_weir_125_m_downstream` (upper hatchery weir (125 m downstream))",
-   "endpoints": [
-    {
-     "phrase": "upstream of the Big Qualicum Hatchery upper weir (located approximately 125 m downstream of the E&N railway bridge)",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"125m-down, downstream, hatchery, weir\" -> the curated cut `qualicum_river__upper_hatchery_weir_125_m_downstream` (upper hatchery weir (125 m downstream))",
-     "label": "upper hatchery weir (125 m downstream)",
-     "fix": {
-      "kind": "split",
-      "split_id": "qualicum_river__upper_hatchery_weir_125_m_downstream"
-     },
-     "item_id": "gnis:27804"
-    }
-   ],
-   "points": [
-    {
-     "label": "upper hatchery weir (125 m downstream)",
-     "coord": null,
-     "kind": "split",
-     "split_id": "qualicum_river__upper_hatchery_weir_125_m_downstream"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_high"
-  },
-  "1:qualicum-river:downstream-of-the-upper-weir-locat": {
-   "location_id": "1:qualicum-river:downstream-of-the-upper-weir-locat",
-   "water": "Qualicum River",
-   "text": "downstream of the upper weir (located approximately 125 m downstream of the E&N railway bridge) to the QFN boundary fence located approximately 100 m downstream of the hatchery counting fence",
-   "notice_op": "between",
-   "items": [
-    "gnis:27804"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "qualicum_river__upper_hatchery_weir_125_m_downstream"
-     },
-     {
-      "kind": "split",
-      "split_id": "qualicum_river__boundary_signs_qfn"
-     }
-    ],
-    "items": [
-     "gnis:27804"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between upper hatchery weir (125 m downstream) and boundary signs = QFN"
-   },
-   "confidence": "medium",
-   "matched": "existing",
-   "reason": "high: \"125m-down, downstream, weir\" -> the curated cut `qualicum_river__upper_hatchery_weir_125_m_downstream` (upper hatchery weir (125 m downstream)); medium: \"qfn\" -> the curated cut `qualicum_river__boundary_signs_qfn` (boundary signs = QFN); the notice's place is 100 m below it",
-   "endpoints": [
-    {
-     "phrase": "downstream of the upper weir (located approximately 125 m downstream of the E&N railway bridge)",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"125m-down, downstream, weir\" -> the curated cut `qualicum_river__upper_hatchery_weir_125_m_downstream` (upper hatchery weir (125 m downstream))",
-     "label": "upper hatchery weir (125 m downstream)",
-     "fix": {
-      "kind": "split",
-      "split_id": "qualicum_river__upper_hatchery_weir_125_m_downstream"
-     },
-     "item_id": "gnis:27804"
-    },
-    {
-     "phrase": "the QFN boundary fence located approximately 100 m downstream of the hatchery counting fence",
-     "kind": "split",
-     "confidence": "medium",
-     "reason": "\"qfn\" -> the curated cut `qualicum_river__boundary_signs_qfn` (boundary signs = QFN); the notice's place is 100 m below it",
-     "label": "boundary signs = QFN",
-     "fix": {
-      "kind": "split",
-      "split_id": "qualicum_river__boundary_signs_qfn"
-     },
-     "item_id": "gnis:27804"
-    }
-   ],
-   "points": [
-    {
-     "label": "upper hatchery weir (125 m downstream)",
-     "coord": null,
-     "kind": "split",
-     "split_id": "qualicum_river__upper_hatchery_weir_125_m_downstream"
-    },
-    {
-     "label": "boundary signs = QFN",
-     "coord": null,
-     "kind": "split",
-     "split_id": "qualicum_river__boundary_signs_qfn"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_medium"
-  },
-  "1:qualicum-river:waters-below-the-qfn-boundary-fenc": {
-   "location_id": "1:qualicum-river:waters-below-the-qfn-boundary-fenc",
-   "water": "Qualicum River",
-   "text": "waters below the QFN boundary fence, downstream to the Hwy 19A bridge",
-   "notice_op": "downstream_of",
-   "items": [
-    "gnis:27804"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "qualicum_river__boundary_signs_qfn"
-     },
-     {
-      "kind": "split",
-      "split_id": "qualicum_river__hwy_19a_bridge"
-     }
-    ],
-    "items": [
-     "gnis:27804"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between boundary signs = QFN and Hwy 19A bridge"
-   },
-   "confidence": "low",
-   "matched": "existing",
-   "reason": "medium: \"qfn\" -> the curated cut `qualicum_river__boundary_signs_qfn` (boundary signs = QFN); low: \"19a, bridge, hwy\" -> the curated cut `qualicum_river__hwy_19a_bridge` (Hwy 19A bridge); as close: `tidal-354152785` (Qualicum River: Hwy 19A bridge)",
-   "endpoints": [
-    {
-     "phrase": "below the QFN boundary fence",
-     "kind": "split",
-     "confidence": "medium",
-     "reason": "\"qfn\" -> the curated cut `qualicum_river__boundary_signs_qfn` (boundary signs = QFN)",
-     "label": "boundary signs = QFN",
-     "fix": {
-      "kind": "split",
-      "split_id": "qualicum_river__boundary_signs_qfn"
-     },
-     "item_id": "gnis:27804"
-    },
-    {
-     "phrase": "the Hwy 19A bridge",
-     "kind": "split",
-     "confidence": "low",
-     "reason": "\"19a, bridge, hwy\" -> the curated cut `qualicum_river__hwy_19a_bridge` (Hwy 19A bridge); as close: `tidal-354152785` (Qualicum River: Hwy 19A bridge)",
-     "label": "Hwy 19A bridge",
-     "fix": {
-      "kind": "split",
-      "split_id": "qualicum_river__hwy_19a_bridge"
-     },
-     "item_id": "gnis:27804"
-    }
-   ],
-   "points": [
-    {
-     "label": "boundary signs = QFN",
-     "coord": null,
-     "kind": "split",
-     "split_id": "qualicum_river__boundary_signs_qfn"
-    },
-    {
-     "label": "Hwy 19A bridge",
-     "coord": null,
-     "kind": "split",
-     "split_id": "qualicum_river__hwy_19a_bridge"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_low"
-  },
   "1:qualicum-river:all-open-portions-of-the-qualicum": {
    "location_id": "1:qualicum-river:all-open-portions-of-the-qualicum",
    "water": "Qualicum River",
@@ -1316,8 +698,8 @@
       ],
       "blk": "354150419",
       "measure": 1624.0,
-      "note": "[split hunt low] 100 m upstream of the Quatse hatchery weir (the weir taken at the hatchery frontage, just above the Byng Rd bridge) (placed 100 m upstream of the anchor, now the split's offset attribute). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/quatse-eng.html ; https://www.openstreetmap.org/way/146582668. no weir is mapped; DFO's page names only an intake and a counter. The point is the hatchery (8400 Byng Rd) frontage. The curated `quatse_river__quatse_river_fishway` is ~2 km away, so it is NOT this weir.",
-      "offset_m": 100.0
+      "offset_m": 100.0,
+      "note": "[split hunt low] 100 m upstream of the Quatse hatchery weir (the weir taken at the hatchery frontage, just above the Byng Rd bridge) (100 m upstream of the anchor, as the split's offset). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/quatse-eng.html ; https://www.openstreetmap.org/way/146582668. no weir is mapped; DFO's page names only an intake and a counter. The point is the hatchery (8400 Byng Rd) frontage. The curated `quatse_river__quatse_river_fishway` is ~2 km away, so it is NOT this weir."
      },
      {
       "ref": "quatse_weir_d100",
@@ -1330,8 +712,8 @@
       ],
       "blk": "354150419",
       "measure": 1624.0,
-      "note": "[split hunt low] 100 m downstream of the Quatse hatchery weir (same guessed weir point) (placed 100 m downstream of the anchor, now the split's offset attribute). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/quatse-eng.html. see the upstream cut: the weir point is a guess at the hatchery frontage.",
-      "offset_m": -100.0
+      "offset_m": -100.0,
+      "note": "[split hunt low] 100 m downstream of the Quatse hatchery weir (same guessed weir point) (100 m downstream of the anchor, as the split's offset). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/quatse-eng.html. see the upstream cut: the weir point is a guess at the hatchery frontage."
      }
     ],
     "words": "between 100 m above the Quatse River Hatchery weir and 100 m below the Quatse River Hatchery weir"
@@ -1342,15 +724,27 @@
    "endpoints": [
     {
      "phrase": "100m upstream of the Quatse River Hatchery weir",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "proposed",
+     "confidence": "high",
+     "reason": "\"100m-up, hatchery, quatse, upstream, weir\" -> the proposed cut `n2-2-u100` (Quatse River Hatchery weir (100 m upstream) (medium confidence))",
+     "label": "Quatse River Hatchery weir (100 m upstream) (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "n2-2-u100"
+     },
+     "item_id": "gnis:32101"
     },
     {
      "phrase": "100m downstream of the Quatse River Hatchery weir",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "proposed",
+     "confidence": "high",
+     "reason": "\"100m-down, downstream, hatchery, quatse, weir\" -> the proposed cut `n2-2-d100` (Quatse River Hatchery weir (100 m downstream) (medium confidence))",
+     "label": "Quatse River Hatchery weir (100 m downstream) (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "n2-2-d100"
+     },
+     "item_id": "gnis:32101"
     }
    ],
    "points": [
@@ -1398,7 +792,7 @@
       "split_id": null,
       "snap_m": 35.9,
       "blk": "354150419",
-      "measure": 1724.0
+      "measure": 1624.0
      },
      {
       "ref": "quatse_weir_d100",
@@ -1420,15 +814,15 @@
       "split_id": null,
       "snap_m": 35.9,
       "blk": "354150419",
-      "measure": 1524.0
+      "measure": 1624.0
      }
     ],
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
     ],
     "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place; none: no curated cut, proposal or data point names this place"
+     "matched": "existing",
+     "reason": "high: \"100m-up, hatchery, quatse, upstream, weir\" -> the proposed cut `n2-2-u100` (Quatse River Hatchery weir (100 m upstream) (medium confidence)); high: \"100m-down, downstream, hatchery, quatse, weir\" -> the proposed cut `n2-2-d100` (Quatse River Hatchery weir (100 m downstream) (medium confidence))"
     }
    },
    "state": "needs_cut",
@@ -1533,13 +927,13 @@
       "name": "signs 150 m below the San Juan hatchery fence",
       "on_item": "gnis:21201",
       "coord": [
-       -124.336967,
+       -124.336966,
        48.581029
       ],
       "blk": "354154702",
       "measure": 6940.5,
-      "note": "[split hunt low] square white signs ~150 m downstream of the counting fence (placed 150 m downstream of the anchor, now the split's offset attribute). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/sanjuan-eng.html. the guessed fence moved 150 m downstream (the notice's distance).",
-      "offset_m": -150.0
+      "offset_m": -150.0,
+      "note": "[split hunt low] square white signs ~150 m downstream of the counting fence (150 m downstream of the anchor, as the split's offset). Sources: https://www.pac.dfo-mpo.gc.ca/sep-pmvs/hatcheries-ecloseries/cedp-pdec/sanjuan-eng.html. the guessed fence moved 150 m downstream (the notice's distance)."
      }
     ],
     "words": "between San Juan hatchery counting fence and signs 150 m below the San Juan hatchery fence"
@@ -1628,7 +1022,7 @@
       "split_id": null,
       "snap_m": 4.1,
       "blk": "354154702",
-      "measure": 6790.5
+      "measure": 6940.5
      }
     ],
     "sources": [
@@ -1669,11 +1063,11 @@
     ],
     "tributaries": null,
     "new_splits": [],
-    "words": "between Sproat Lake and fishing boundary signs 300 m downstream of Hwy 4"
+    "words": "between sproat_river__sproat_lake and fishing boundary signs 300 m downstream of Hwy 4"
    },
-   "confidence": "high",
+   "confidence": "medium",
    "matched": "existing",
-   "reason": "high: Sproat Lake: the curated cut `sproat_river__sproat_lake` (Sproat Lake); high: \"300m-down, 4, downstream, hwy\" -> the curated cut `sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4` (fishing boundary signs 300 m downstream of Hwy 4)",
+   "reason": "medium: the same place as `1:sproat-river:from-sproat-lake-to-approx-300m-be` — its CURATED extent (\"from Sproat Lake to approximately 300m below the Highway 4 bridge, at the downstream end of the pool that is below the r\"; place words 60% alike)",
    "endpoints": [
     {
      "phrase": "Sproat River from Sproat Lake",
@@ -1722,62 +1116,17 @@
      "1:sproat-river:from-sproat-lake-to-approx-300m-be",
      "1:sproat-river:sproat-river-from-sproat-lake-to-f"
     ],
-    "placed": [],
+    "placed": [
+     "1:sproat-river:from-sproat-lake-to-approx-300m-be"
+    ],
     "canonical": "1:sproat-river:from-sproat-lake-to-approx-300m-be",
-    "role": "agrees",
+    "role": "inherits",
     "links": {
      "1:sproat-river:from-sproat-lake-to-approx-300m-be": "same extent 0.60"
     }
    },
-   "why": "variant",
-   "outcome": "existing_high"
-  },
-  "1:stamp-river:except-in-those-areas-and-times-li": {
-   "location_id": "1:stamp-river:except-in-those-areas-and-times-li",
-   "water": "Stamp River",
-   "text": "Except in those areas and times listed below",
-   "notice_op": "downstream_of",
-   "items": [
-    "gnis:14533"
-   ],
-   "suggestion": {
-    "op": "whole",
-    "points": [],
-    "items": [
-     "gnis:14533"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "the whole water"
-   },
-   "confidence": "medium",
-   "matched": "whole",
-   "reason": "split hunt: 'Except in those areas and times listed below': the whole river; the listed areas are their own locations.",
-   "endpoints": [
-    {
-     "phrase": "Except in those areas and times listed below",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
-    }
-   ],
-   "points": [],
-   "hunt": {
-    "status": "found",
-    "notes": "'Except in those areas and times listed below': the whole river; the listed areas are their own locations.",
-    "proposals": [],
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
-    ],
-    "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place; the notice reads as downstream_of"
-    }
-   },
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "whole"
+   "why": "variant_of_placed",
+   "outcome": "existing_medium"
   },
   "1:stamp-river:from-the-confluence-of-the-ash-riv": {
    "location_id": "1:stamp-river:from-the-confluence-of-the-ash-riv",
@@ -1788,27 +1137,23 @@
     "gnis:14533"
    ],
    "suggestion": {
-    "op": "between",
+    "op": "upstream_of",
     "points": [
      {
       "kind": "split",
       "split_id": "stamp_river__ash_river_into_stamp_river"
-     },
-     {
-      "kind": "split",
-      "split_id": "stamp_river__great_central_lake_dam"
      }
     ],
     "items": [
      "gnis:14533"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [],
-    "words": "between Ash River → Stamp River and Great Central Lake dam"
+    "words": "upstream of Ash River → Stamp River"
    },
    "confidence": "high",
    "matched": "existing",
-   "reason": "high: confluence of Ash River: the curated cut `stamp_river__ash_river_into_stamp_river` (Ash River → Stamp River); high: Great Central Lake: the curated cut `stamp_river__great_central_lake_dam` (Great Central Lake dam)",
+   "reason": "high: the same place as `1:stamp-river:from-the-confluence-of-the-ash-riv~2` — its CURATED extent (\"From the confluence of the Ash River upstream to the Great Central Lake Dam, including tributaries\"; place words 100% alike)",
    "endpoints": [
     {
      "phrase": "the confluence of the Ash River",
@@ -1851,20 +1196,46 @@
    ],
    "state": "needs_cut",
    "status": "dormant",
+   "before": {
+    "suggestion": {
+     "op": "between",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "stamp_river__ash_river_into_stamp_river"
+      },
+      {
+       "kind": "split",
+       "split_id": "stamp_river__great_central_lake_dam"
+      }
+     ],
+     "items": [
+      "gnis:14533"
+     ],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "between Ash River → Stamp River and Great Central Lake dam"
+    },
+    "confidence": "high",
+    "matched": "existing",
+    "reason": "high: confluence of Ash River: the curated cut `stamp_river__ash_river_into_stamp_river` (Ash River → Stamp River); high: Great Central Lake: the curated cut `stamp_river__great_central_lake_dam` (Great Central Lake dam)"
+   },
    "cluster": {
     "id": "1:stamp-river#5",
     "members": [
      "1:stamp-river:from-the-confluence-of-the-ash-riv",
      "1:stamp-river:from-the-confluence-of-the-ash-riv~2"
     ],
-    "placed": [],
+    "placed": [
+     "1:stamp-river:from-the-confluence-of-the-ash-riv~2"
+    ],
     "canonical": "1:stamp-river:from-the-confluence-of-the-ash-riv~2",
-    "role": "member",
+    "role": "inherits",
     "links": {
      "1:stamp-river:from-the-confluence-of-the-ash-riv~2": "text 1.00"
     }
    },
-   "why": "review_pending",
+   "why": "variant_of_placed",
    "outcome": "existing_high"
   },
   "1:stamp-river:between-fishing-boundary-signs-app": {
@@ -2505,9 +1876,9 @@
     "new_splits": [],
     "words": "downstream of Girl Guide Falls signs"
    },
-   "confidence": "high",
+   "confidence": "medium",
    "matched": "existing",
-   "reason": "high (raised from medium): the same binding as `1:stamp-river:stamp-river-downstream-of-girl-gui`, a clearer wording of this place — medium: \"falls, girl, guide\" -> the curated cut `stamp_river__girl_guide_falls_signs` (Girl Guide Falls signs); the notice's place is 250 m above it",
+   "reason": "medium: the same place as `1:stamp-river:stamp-river-downstream-of-girl-gui` — its CURATED extent (\"Stamp River downstream of “Girl Guide Falls” (approximately 275 m upstream of the mouth of Beaver Creek). Triangle sport\"; place words 57% alike)",
    "endpoints": [
     {
      "phrase": "Downstream of signs at \"Girl Guide Falls\" approximately 250m upstream of the mouth of Beaver Creek",
@@ -2532,41 +1903,23 @@
    ],
    "state": "needs_cut",
    "status": "dormant",
-   "before": {
-    "suggestion": {
-     "op": "downstream_of",
-     "points": [
-      {
-       "kind": "split",
-       "split_id": "stamp_river__girl_guide_falls_signs"
-      }
-     ],
-     "items": [
-      "gnis:14533"
-     ],
-     "tributaries": null,
-     "new_splits": [],
-     "words": "downstream of Girl Guide Falls signs"
-    },
-    "confidence": "medium",
-    "matched": "existing",
-    "reason": "medium: \"falls, girl, guide\" -> the curated cut `stamp_river__girl_guide_falls_signs` (Girl Guide Falls signs); the notice's place is 250 m above it"
-   },
    "cluster": {
     "id": "1:stamp-river#2",
     "members": [
      "1:stamp-river:downstream-of-signs-at-girl-guide",
      "1:stamp-river:stamp-river-downstream-of-girl-gui"
     ],
-    "placed": [],
+    "placed": [
+     "1:stamp-river:stamp-river-downstream-of-girl-gui"
+    ],
     "canonical": "1:stamp-river:stamp-river-downstream-of-girl-gui",
-    "role": "agrees",
+    "role": "inherits",
     "links": {
      "1:stamp-river:stamp-river-downstream-of-girl-gui": "same extent 0.57"
     }
    },
-   "why": "variant",
-   "outcome": "existing_high"
+   "why": "variant_of_placed",
+   "outcome": "existing_medium"
   },
   "1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s": {
    "location_id": "1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s",
@@ -2712,372 +2065,6 @@
    "status": "dormant",
    "why": "needs_split",
    "outcome": "new_high"
-  },
-  "1:little-qualicum-river:all-open-portions-of-the-little-qu": {
-   "location_id": "1:little-qualicum-river:all-open-portions-of-the-little-qu",
-   "water": "Little Qualicum River",
-   "text": "all open portions of the Little Qualicum River",
-   "notice_op": "described",
-   "items": [
-    "gnis:10886"
-   ],
-   "matched": "whole",
-   "confidence": "medium",
-   "endpoints": [],
-   "reason": "the notice names no reach: the whole water",
-   "suggestion": {
-    "op": "whole",
-    "points": [],
-    "items": [
-     "gnis:10886"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "the whole water"
-   },
-   "state": "unbound",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "whole"
-  },
-  "1:nanaimo-river:from-the-cedar-road-bridge-crossin": {
-   "location_id": "1:nanaimo-river:from-the-cedar-road-bridge-crossin",
-   "water": "Nanaimo River",
-   "text": "from the Cedar Road Bridge crossing upstream to the Highway 19 Bridge crossing",
-   "notice_op": "between",
-   "items": [
-    "gnis:16505"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "nanaimo_river__cedar_road_bridge"
-     },
-     {
-      "kind": "split",
-      "split_id": "nanaimo_river__hwy_19_bridge"
-     }
-    ],
-    "items": [
-     "gnis:16505"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between Cedar Road bridge and Hwy 19 bridge"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: \"bridge, cedar, road\" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge); high: \"19, bridge, hwy\" -> the curated cut `nanaimo_river__hwy_19_bridge` (Hwy 19 bridge)",
-   "endpoints": [
-    {
-     "phrase": "the Cedar Road Bridge crossing",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"bridge, cedar, road\" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge)",
-     "label": "Cedar Road bridge",
-     "fix": {
-      "kind": "split",
-      "split_id": "nanaimo_river__cedar_road_bridge"
-     },
-     "item_id": "gnis:16505"
-    },
-    {
-     "phrase": "the Highway 19 Bridge crossing",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"19, bridge, hwy\" -> the curated cut `nanaimo_river__hwy_19_bridge` (Hwy 19 bridge)",
-     "label": "Hwy 19 bridge",
-     "fix": {
-      "kind": "split",
-      "split_id": "nanaimo_river__hwy_19_bridge"
-     },
-     "item_id": "gnis:16505"
-    }
-   ],
-   "points": [
-    {
-     "label": "Cedar Road bridge",
-     "coord": null,
-     "kind": "split",
-     "split_id": "nanaimo_river__cedar_road_bridge"
-    },
-    {
-     "label": "Hwy 19 bridge",
-     "coord": null,
-     "kind": "split",
-     "split_id": "nanaimo_river__hwy_19_bridge"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "cluster": {
-    "id": "1:nanaimo-river#1",
-    "members": [
-     "1:nanaimo-river:cedar-road-bridge-upstream-approx",
-     "1:nanaimo-river:from-the-cedar-road-bridge-crossin"
-    ],
-    "placed": [],
-    "canonical": "1:nanaimo-river:from-the-cedar-road-bridge-crossin",
-    "role": "canonical",
-    "links": {
-     "1:nanaimo-river:cedar-road-bridge-upstream-approx": "text 0.80"
-    }
-   },
-   "why": "review_pending",
-   "outcome": "existing_high"
-  },
-  "1:sproat-river:from-sproat-lake-to-approx-300m-be": {
-   "location_id": "1:sproat-river:from-sproat-lake-to-approx-300m-be",
-   "water": "Sproat River",
-   "text": "from Sproat Lake to approximately 300m below the Highway 4 bridge, at the downstream end of the pool that is below the rapids at the Sproat River Fishway. Square boundary signs may be present to delineate the downstream boundary.",
-   "notice_op": "between",
-   "items": [
-    "gnis:25640"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "sproat_river__sproat_lake"
-     },
-     {
-      "kind": "split",
-      "split_id": "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4"
-     }
-    ],
-    "items": [
-     "gnis:25640"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between Sproat Lake and fishing boundary signs 300 m downstream of Hwy 4"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: Sproat Lake: the curated cut `sproat_river__sproat_lake` (Sproat Lake); high: \"300m-down, 4, downstream, hwy\" -> the curated cut `sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4` (fishing boundary signs 300 m downstream of Hwy 4)",
-   "endpoints": [
-    {
-     "phrase": "Sproat Lake",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "Sproat Lake: the curated cut `sproat_river__sproat_lake` (Sproat Lake)",
-     "label": "Sproat Lake",
-     "fix": {
-      "kind": "split",
-      "split_id": "sproat_river__sproat_lake"
-     },
-     "item_id": "gnis:25640"
-    },
-    {
-     "phrase": "approximately 300m below the Highway 4 bridge, at the downstream end of the pool that is below the rapids at the Sproat River Fishway",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"300m-down, 4, downstream, hwy\" -> the curated cut `sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4` (fishing boundary signs 300 m downstream of Hwy 4)",
-     "label": "fishing boundary signs 300 m downstream of Hwy 4",
-     "fix": {
-      "kind": "split",
-      "split_id": "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4"
-     },
-     "item_id": "gnis:25640"
-    }
-   ],
-   "points": [
-    {
-     "label": "Sproat Lake",
-     "coord": null,
-     "kind": "split",
-     "split_id": "sproat_river__sproat_lake"
-    },
-    {
-     "label": "fishing boundary signs 300 m downstream of Hwy 4",
-     "coord": null,
-     "kind": "split",
-     "split_id": "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "cluster": {
-    "id": "1:sproat-river#1",
-    "members": [
-     "1:sproat-river:from-sproat-lake-to-approx-300m-be",
-     "1:sproat-river:sproat-river-from-sproat-lake-to-f"
-    ],
-    "placed": [],
-    "canonical": "1:sproat-river:from-sproat-lake-to-approx-300m-be",
-    "role": "canonical",
-    "links": {
-     "1:sproat-river:sproat-river-from-sproat-lake-to-f": "same extent 0.60"
-    }
-   },
-   "why": "review_pending",
-   "outcome": "existing_high"
-  },
-  "1:stamp-river:from-the-confluence-of-the-ash-riv~2": {
-   "location_id": "1:stamp-river:from-the-confluence-of-the-ash-riv~2",
-   "water": "Stamp River",
-   "text": "From the confluence of the Ash River upstream to the Great Central Lake Dam, including tributaries",
-   "notice_op": "between",
-   "items": [
-    "gnis:14533"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "stamp_river__ash_river_into_stamp_river"
-     },
-     {
-      "kind": "split",
-      "split_id": "stamp_river__great_central_lake_dam"
-     }
-    ],
-    "items": [
-     "gnis:14533"
-    ],
-    "tributaries": true,
-    "new_splits": [],
-    "words": "between Ash River → Stamp River and Great Central Lake dam"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: confluence of Ash River: the curated cut `stamp_river__ash_river_into_stamp_river` (Ash River → Stamp River); high: Great Central Lake: the curated cut `stamp_river__great_central_lake_dam` (Great Central Lake dam)",
-   "endpoints": [
-    {
-     "phrase": "the confluence of the Ash River",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "confluence of Ash River: the curated cut `stamp_river__ash_river_into_stamp_river` (Ash River → Stamp River)",
-     "label": "Ash River → Stamp River",
-     "fix": {
-      "kind": "split",
-      "split_id": "stamp_river__ash_river_into_stamp_river"
-     },
-     "item_id": "gnis:14533"
-    },
-    {
-     "phrase": "the Great Central Lake Dam",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "Great Central Lake: the curated cut `stamp_river__great_central_lake_dam` (Great Central Lake dam)",
-     "label": "Great Central Lake dam",
-     "fix": {
-      "kind": "split",
-      "split_id": "stamp_river__great_central_lake_dam"
-     },
-     "item_id": "gnis:14533"
-    }
-   ],
-   "points": [
-    {
-     "label": "Ash River → Stamp River",
-     "coord": null,
-     "kind": "split",
-     "split_id": "stamp_river__ash_river_into_stamp_river"
-    },
-    {
-     "label": "Great Central Lake dam",
-     "coord": null,
-     "kind": "split",
-     "split_id": "stamp_river__great_central_lake_dam"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "cluster": {
-    "id": "1:stamp-river#5",
-    "members": [
-     "1:stamp-river:from-the-confluence-of-the-ash-riv",
-     "1:stamp-river:from-the-confluence-of-the-ash-riv~2"
-    ],
-    "placed": [],
-    "canonical": "1:stamp-river:from-the-confluence-of-the-ash-riv~2",
-    "role": "canonical",
-    "links": {
-     "1:stamp-river:from-the-confluence-of-the-ash-riv": "text 1.00"
-    }
-   },
-   "why": "review_pending",
-   "outcome": "existing_high"
-  },
-  "1:stamp-river:from-approx-200-m-upstream-of-the": {
-   "location_id": "1:stamp-river:from-approx-200-m-upstream-of-the",
-   "water": "Stamp River",
-   "text": "From approximately 200 m upstream of the Stamp Falls fishway (50 downstream of site 17 in Stamp River Provincial Park) to 500 m downstream of the Stamp Falls fishway (225m downstream of the confluence of Deer Creek). Square boundary signs may be present to delineate these boundaries.",
-   "notice_op": "between",
-   "items": [
-    "gnis:14533"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls"
-     },
-     {
-      "kind": "split",
-      "split_id": "stamp_river__signs_500_m_downstream_of_stamp_falls"
-     }
-    ],
-    "items": [
-     "gnis:14533"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between fishing boundary signs 200 m upstream of Stamp Falls and signs 500 m downstream of Stamp Falls"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: \"200m-up, falls, stamp, upstream\" -> the curated cut `stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls` (fishing boundary signs 200 m upstream of Stamp Falls); high: \"500m-down, downstream, falls, stamp\" -> the curated cut `stamp_river__signs_500_m_downstream_of_stamp_falls` (signs 500 m downstream of Stamp Falls)",
-   "endpoints": [
-    {
-     "phrase": "approximately 200 m upstream of the Stamp Falls fishway (50 downstream of site 17 in Stamp River Provincial Park)",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"200m-up, falls, stamp, upstream\" -> the curated cut `stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls` (fishing boundary signs 200 m upstream of Stamp Falls)",
-     "label": "fishing boundary signs 200 m upstream of Stamp Falls",
-     "fix": {
-      "kind": "split",
-      "split_id": "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls"
-     },
-     "item_id": "gnis:14533"
-    },
-    {
-     "phrase": "500 m downstream of the Stamp Falls fishway (225m downstream of the confluence of Deer Creek)",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"500m-down, downstream, falls, stamp\" -> the curated cut `stamp_river__signs_500_m_downstream_of_stamp_falls` (signs 500 m downstream of Stamp Falls)",
-     "label": "signs 500 m downstream of Stamp Falls",
-     "fix": {
-      "kind": "split",
-      "split_id": "stamp_river__signs_500_m_downstream_of_stamp_falls"
-     },
-     "item_id": "gnis:14533"
-    }
-   ],
-   "points": [
-    {
-     "label": "fishing boundary signs 200 m upstream of Stamp Falls",
-     "coord": null,
-     "kind": "split",
-     "split_id": "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls"
-    },
-    {
-     "label": "signs 500 m downstream of Stamp Falls",
-     "coord": null,
-     "kind": "split",
-     "split_id": "stamp_river__signs_500_m_downstream_of_stamp_falls"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_high"
   },
   "1:stamp-river:from-the-inlet-upstream-of-roberst": {
    "location_id": "1:stamp-river:from-the-inlet-upstream-of-roberst",
@@ -3413,200 +2400,6 @@
    "why": "needs_split",
    "outcome": "new_low"
   },
-  "1:stamp-river:stamp-river-downstream-of-girl-gui": {
-   "location_id": "1:stamp-river:stamp-river-downstream-of-girl-gui",
-   "water": "Stamp River",
-   "text": "Stamp River downstream of “Girl Guide Falls” (approximately 275 m upstream of the mouth of Beaver Creek). Triangle sport fishing boundary signs may be present to delineate the upstream boundary.",
-   "notice_op": "between",
-   "items": [
-    "gnis:14533"
-   ],
-   "suggestion": {
-    "op": "downstream_of",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "stamp_river__girl_guide_falls_signs"
-     }
-    ],
-    "items": [
-     "gnis:14533"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "downstream of Girl Guide Falls signs"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: \"falls, girl, guide\" -> the curated cut `stamp_river__girl_guide_falls_signs` (Girl Guide Falls signs)",
-   "endpoints": [
-    {
-     "phrase": "Stamp River downstream of “Girl Guide Falls” (approximately 275 m upstream of the mouth of Beaver Creek)",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"falls, girl, guide\" -> the curated cut `stamp_river__girl_guide_falls_signs` (Girl Guide Falls signs)",
-     "label": "Girl Guide Falls signs",
-     "fix": {
-      "kind": "split",
-      "split_id": "stamp_river__girl_guide_falls_signs"
-     },
-     "item_id": "gnis:14533"
-    }
-   ],
-   "points": [
-    {
-     "label": "Girl Guide Falls signs",
-     "coord": null,
-     "kind": "split",
-     "split_id": "stamp_river__girl_guide_falls_signs"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "cluster": {
-    "id": "1:stamp-river#2",
-    "members": [
-     "1:stamp-river:downstream-of-signs-at-girl-guide",
-     "1:stamp-river:stamp-river-downstream-of-girl-gui"
-    ],
-    "placed": [],
-    "canonical": "1:stamp-river:stamp-river-downstream-of-girl-gui",
-    "role": "canonical",
-    "links": {
-     "1:stamp-river:downstream-of-signs-at-girl-guide": "same extent 0.57"
-    }
-   },
-   "why": "review_pending",
-   "outcome": "existing_high"
-  },
-  "1:puntledge-river:from-signs-located-50m-upstream-of": {
-   "location_id": "1:puntledge-river:from-signs-located-50m-upstream-of",
-   "water": "Puntledge River",
-   "text": "From signs located 50m upstream of the BC Hydro generating station tailrace to signs located 75m downstream of the Puntledge River hatchery fish fence (total distance approx. 500m)",
-   "notice_op": "between",
-   "items": [
-    "gnis:27060"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace"
-     },
-     {
-      "kind": "split",
-      "split_id": "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence"
-     }
-    ],
-    "items": [
-     "gnis:27060"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between fishing boundary signs 50 m upstream of BC Hydro Puntledge generating-station tailrace and signs 75 m downstream of Puntledge River hatchery fence"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: \"50m-up, generating, hydro, station, tailrace, upstream\" -> the curated cut `puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace` (fishing boundary signs 50 m upstream of BC Hydro Puntledge generating-station tailrace); high: \"75m-down, downstream, fence, hatchery, puntledge\" -> the curated cut `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence` (signs 75 m downstream of Puntledge River hatchery fence)",
-   "endpoints": [
-    {
-     "phrase": "signs located 50m upstream of the BC Hydro generating station tailrace",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"50m-up, generating, hydro, station, tailrace, upstream\" -> the curated cut `puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace` (fishing boundary signs 50 m upstream of BC Hydro Puntledge generating-station tailrace)",
-     "label": "fishing boundary signs 50 m upstream of BC Hydro Puntledge generating-station tailrace",
-     "fix": {
-      "kind": "split",
-      "split_id": "puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace"
-     },
-     "item_id": "gnis:27060"
-    },
-    {
-     "phrase": "signs located 75m downstream of the Puntledge River hatchery fish fence (total distance approx. 500m)",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"75m-down, downstream, fence, hatchery, puntledge\" -> the curated cut `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence` (signs 75 m downstream of Puntledge River hatchery fence)",
-     "label": "signs 75 m downstream of Puntledge River hatchery fence",
-     "fix": {
-      "kind": "split",
-      "split_id": "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence"
-     },
-     "item_id": "gnis:27060"
-    }
-   ],
-   "points": [
-    {
-     "label": "fishing boundary signs 50 m upstream of BC Hydro Puntledge generating-station tailrace",
-     "coord": null,
-     "kind": "split",
-     "split_id": "puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace"
-    },
-    {
-     "label": "signs 75 m downstream of Puntledge River hatchery fence",
-     "coord": null,
-     "kind": "split",
-     "split_id": "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_high"
-  },
-  "1:puntledge-river:downstream-from-the-base-of-stotan": {
-   "location_id": "1:puntledge-river:downstream-from-the-base-of-stotan",
-   "water": "Puntledge River",
-   "text": "downstream from the base of Stotan Falls (approximately 450 m downstream of the Duncan Bay Mainline logging road bridge)",
-   "notice_op": "downstream_of",
-   "items": [
-    "gnis:27060"
-   ],
-   "suggestion": {
-    "op": "downstream_of",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "puntledge_river__base_of_stotan_falls"
-     }
-    ],
-    "items": [
-     "gnis:27060"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "downstream of base of Stotan Falls"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: \"falls, stotan\" -> the curated cut `puntledge_river__base_of_stotan_falls` (base of Stotan Falls)",
-   "endpoints": [
-    {
-     "phrase": "downstream from the base of Stotan Falls (approximately 450 m downstream of the Duncan Bay Mainline logging road bridge)",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"falls, stotan\" -> the curated cut `puntledge_river__base_of_stotan_falls` (base of Stotan Falls)",
-     "label": "base of Stotan Falls",
-     "fix": {
-      "kind": "split",
-      "split_id": "puntledge_river__base_of_stotan_falls"
-     },
-     "item_id": "gnis:27060"
-    }
-   ],
-   "points": [
-    {
-     "label": "base of Stotan Falls",
-     "coord": null,
-     "kind": "split",
-     "split_id": "puntledge_river__base_of_stotan_falls"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_high"
-  },
   "1:stamp-river:from-the-southern-portion-of-the-r": {
    "location_id": "1:stamp-river:from-the-southern-portion-of-the-r",
    "water": "Stamp River",
@@ -3667,32 +2460,14 @@
    "endpoints": [
     {
      "phrase": "the southern portion of the Robertson Creek Hatchery Lagoon, east of a line drawn from the southern shoreline at the inlet",
-     "kind": "new",
-     "confidence": "high",
-     "reason": "Robertson Creek (gnis:25870) flows straight into Stamp River (FWA watershed code); its mouth 0 m from the water's line",
-     "label": "confluence of Robertson Creek",
+     "kind": "proposed",
+     "confidence": "medium",
+     "reason": "\"hatchery, inlet, lagoon, robertson\" -> the proposed cut `stamp_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet (medium confidence))",
+     "label": "Robertson Creek Hatchery lagoon inlet (medium confidence)",
      "fix": {
       "kind": "new",
-      "split_id": "sg1"
+      "split_id": "stamp_lagoon_inlet"
      },
-     "new_split": {
-      "ref": "sg1",
-      "anchor": "confluence",
-      "name": "Robertson Creek",
-      "item_id": "gnis:25870",
-      "on_item": "gnis:14533",
-      "quote": "the southern portion of the Robertson Creek Hatchery Lagoon, east of a line drawn from the southern shoreline at the inlet",
-      "blk": "354154793",
-      "measure": 17988.8,
-      "coord": [
-       -124.982138,
-       49.339132
-      ]
-     },
-     "coord": [
-      -124.982138,
-      49.339132
-     ],
      "item_id": "gnis:14533"
     },
     {
@@ -3776,149 +2551,13 @@
     ],
     "matcher": {
      "matched": "partial",
-     "reason": "high: Robertson Creek (gnis:25870) flows straight into Stamp River (FWA watershed code); its mouth 0 m from the water's line; none: no curated cut, proposal or data point names this place"
+     "reason": "medium: \"hatchery, inlet, lagoon, robertson\" -> the proposed cut `stamp_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet (medium confidence)); none: no curated cut, proposal or data point names this place"
     }
    },
    "state": "needs_cut",
    "status": "dormant",
    "why": "needs_split",
    "outcome": "new_low"
-  },
-  "1:nanaimo-river:from-500-m-below-the-lower-power-l": {
-   "location_id": "1:nanaimo-river:from-500-m-below-the-lower-power-l",
-   "water": "Nanaimo River",
-   "text": "from 500 meters below the lower power line crossing at \"Bore Hole\" upstream to the fishing boundary signs at the mouth of Boulder Creek",
-   "notice_op": "between",
-   "items": [
-    "gnis:16505"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "new",
-      "split_id": "nanaimo_borehole_d500"
-     },
-     {
-      "kind": "split",
-      "split_id": "nanaimo_river__boulder_creek_into_nanaimo_river"
-     }
-    ],
-    "items": [
-     "gnis:16505"
-    ],
-    "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "nanaimo_borehole_d500",
-      "anchor": "split",
-      "name": "500 m below the power line at Bore Hole",
-      "split_id": "nanaimo_river__power_line_at_bore_hole",
-      "on_item": "gnis:16505",
-      "offset_m": -500.0,
-      "note": "[split hunt medium] 500 m downstream of the curated 'power line at Bore Hole' cut — the notice's own distance. Sources: data/curated/waters/splits.json#nanaimo_river__power_line_at_bore_hole. the 2024+ wording moved the lower end 500 m below the power line (the dormant wording ran from the power line itself)."
-     }
-    ],
-    "words": "between 500 m below the power line at Bore Hole and Boulder Creek → Nanaimo River"
-   },
-   "confidence": "medium",
-   "matched": "new",
-   "reason": "split hunt: 'from 500 m below the lower power line crossing at Bore Hole upstream to the signs at the mouth of Boulder Creek': the matcher took the power line itself; the notice says 500 m below it.; medium: 500 m downstream of the curated 'power line at Bore Hole' cut — the notice's own distance; high: confluence of Boulder Creek: the curated cut `nanaimo_river__boulder_creek_into_nanaimo_river` (Boulder Creek → Nanaimo River)",
-   "endpoints": [
-    {
-     "phrase": "500 meters below the lower power line crossing at \"Bore Hole\"",
-     "kind": "split",
-     "confidence": "medium",
-     "reason": "\"bore, hole, powerline\" -> the curated cut `nanaimo_river__power_line_at_bore_hole` (power line at Bore Hole); the notice's place is 500 m below it",
-     "label": "power line at Bore Hole",
-     "fix": {
-      "kind": "split",
-      "split_id": "nanaimo_river__power_line_at_bore_hole"
-     },
-     "item_id": "gnis:16505"
-    },
-    {
-     "phrase": "the fishing boundary signs at the mouth of Boulder Creek",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "confluence of Boulder Creek: the curated cut `nanaimo_river__boulder_creek_into_nanaimo_river` (Boulder Creek → Nanaimo River)",
-     "label": "Boulder Creek → Nanaimo River",
-     "fix": {
-      "kind": "split",
-      "split_id": "nanaimo_river__boulder_creek_into_nanaimo_river"
-     },
-     "item_id": "gnis:16505"
-    }
-   ],
-   "points": [
-    {
-     "label": "500 m below the power line at Bore Hole",
-     "coord": [
-      -123.906526,
-      49.072971
-     ],
-     "kind": "new",
-     "split_id": "nanaimo_borehole_d500"
-    },
-    {
-     "label": "Boulder Creek → Nanaimo River",
-     "coord": null,
-     "kind": "split",
-     "split_id": "nanaimo_river__boulder_creek_into_nanaimo_river"
-    }
-   ],
-   "hunt": {
-    "status": "found",
-    "notes": "'from 500 m below the lower power line crossing at Bore Hole upstream to the signs at the mouth of Boulder Creek': the matcher took the power line itself; the notice says 500 m below it.",
-    "proposals": [
-     {
-      "ref": "nanaimo_borehole_d500",
-      "anchor": "split",
-      "name": "500 m below the power line at Bore Hole",
-      "confidence": "medium",
-      "description": "500 m downstream of the curated 'power line at Bore Hole' cut — the notice's own distance",
-      "sources": [
-       "data/curated/waters/splits.json#nanaimo_river__power_line_at_bore_hole"
-      ],
-      "notes": "the 2024+ wording moved the lower end 500 m below the power line (the dormant wording ran from the power line itself).",
-      "lat": 49.07297,
-      "lon": -123.90653,
-      "coord": [
-       -123.906526,
-       49.072971
-      ],
-      "offset_m": -500,
-      "split_id": "nanaimo_river__power_line_at_bore_hole",
-      "snap_m": 0.3,
-      "blk": null,
-      "measure": null
-     }
-    ],
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
-    ],
-    "matcher": {
-     "matched": "existing",
-     "reason": "medium: \"bore, hole, powerline\" -> the curated cut `nanaimo_river__power_line_at_bore_hole` (power line at Bore Hole); the notice's place is 500 m below it; high: confluence of Boulder Creek: the curated cut `nanaimo_river__boulder_creek_into_nanaimo_river` (Boulder Creek → Nanaimo River)"
-    }
-   },
-   "state": "needs_cut",
-   "status": "active",
-   "cluster": {
-    "id": "1:nanaimo-river#2",
-    "members": [
-     "1:nanaimo-river:from-500-m-below-the-lower-power-l",
-     "1:nanaimo-river:from-the-power-line-crossing-at-bo"
-    ],
-    "placed": [],
-    "canonical": "1:nanaimo-river:from-the-power-line-crossing-at-bo",
-    "role": "member",
-    "links": {
-     "1:nanaimo-river:from-the-power-line-crossing-at-bo": "dup 0.82"
-    }
-   },
-   "why": "needs_split",
-   "outcome": "new_medium"
   },
   "1:nanaimo-river:in-subarea-17-14-tidal-portions-of": {
    "location_id": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of",
@@ -3982,7 +2621,7 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant",
+   "status": "active",
    "cluster": {
     "id": "1:nanaimo-river#4",
     "members": [
@@ -4113,7 +2752,7 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant",
+   "status": "active",
    "cluster": {
     "id": "1:nanaimo-river#4",
     "members": [
@@ -4628,8 +3267,8 @@
       ],
       "blk": "360857589",
       "measure": 3949.8,
-      "note": "[split hunt low] 100 m below the cascade ~600–700 m BELOW the power-line crossing (the owner's falls) (placed 100 m downstream of the anchor, now the split's offset attribute). Sources: https://www.openstreetmap.org/way/258997740 ; https://www.openstreetmap.org/way/164628560 ; https://www.vancouvertrails.com/trails/chapman-falls/. owner 2026-10-27: no falls above the power line, but one below it at about the right distance — use it, LOW. The power lines cross at 49.4686,-123.7272; the DEM shows a cascade at 49.4626–49.4652 (62→72 m). Chapman Falls proper (49.4818,-123.7140) is ~2 km ABOVE the lines, too far.",
-      "offset_m": -100.0
+      "offset_m": -100.0,
+      "note": "[split hunt low] 100 m below the cascade ~600–700 m BELOW the power-line crossing (the owner's falls) (100 m downstream of the anchor, as the split's offset). Sources: https://www.openstreetmap.org/way/258997740 ; https://www.openstreetmap.org/way/164628560 ; https://www.vancouvertrails.com/trails/chapman-falls/. owner 2026-10-27: no falls above the power line, but one below it at about the right distance — use it, LOW. The power lines cross at 49.4686,-123.7272; the DEM shows a cascade at 49.4626–49.4652 (62→72 m). Chapman Falls proper (49.4818,-123.7140) is ~2 km ABOVE the lines, too far."
      }
     ],
     "words": "between Chapman Creek Hwy 101 bridge (tidal signs below it) and 100 m below the Chapman Creek falls (below the power line)"
@@ -4731,7 +3370,7 @@
       "split_id": null,
       "snap_m": 19.1,
       "blk": "360857589",
-      "measure": 3849.8
+      "measure": 3949.8
      }
     ],
     "sources": [
@@ -5074,6 +3713,7 @@
     "members": [
      "2:fraser-river:from-the-downstream-side-of-the-cp",
      "2:fraser-river:from-the-downstream-side-of-the-cp~2",
+     "2:fraser-river:mainstem-waters-downstream-of-the",
      "2:fraser-river:mainstem-waters-from-the-downstrea"
     ],
     "placed": [],
@@ -5081,6 +3721,7 @@
     "role": "member",
     "links": {
      "2:fraser-river:from-the-downstream-side-of-the-cp~2": "text 0.80",
+     "2:fraser-river:mainstem-waters-downstream-of-the": "text 1.00",
      "2:fraser-river:mainstem-waters-from-the-downstrea": "text 1.00"
     }
    },
@@ -6015,7 +4656,7 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant",
+   "status": "active",
    "why": "needs_split",
    "outcome": "new_high"
   },
@@ -6872,180 +5513,6 @@
    "why": "needs_split",
    "outcome": "new_medium"
   },
-  "2:alouette-river-and-tributaries:upstream-of-the-216th-street-bridg": {
-   "location_id": "2:alouette-river-and-tributaries:upstream-of-the-216th-street-bridg",
-   "water": "Alouette River and tributaries",
-   "text": "Upstream of the 216th Street bridge to a line between two fishing boundary signs at Allco park",
-   "notice_op": "between",
-   "items": [
-    "gnis:9630",
-    "gnis:39404"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "alouette_river__216_street_bridge"
-     },
-     {
-      "kind": "new",
-      "split_id": "allco_fence"
-     }
-    ],
-    "items": [],
-    "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "allco_fence",
-      "anchor": "sign",
-      "name": "Allco Park boundary signs (Allco hatchery fence)",
-      "on_item": "gnis:9630",
-      "coord": [
-       -122.533526,
-       49.246954
-      ],
-      "blk": "356356440",
-      "measure": 18295.8,
-      "note": "[split hunt medium] the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end. Sources: https://www.openstreetmap.org/way/1154159739 ; https://www.openstreetmap.org/way/1154159759 ; https://www.openstreetmap.org/way/1057532557. Allco Park runs along the river 49.2465–49.2414; the signs' spot is unpublished. The fence is the likeliest line; the other candidate is the park's downstream end ≈ 49.2423,-122.5347."
-     }
-    ],
-    "words": "between 216 Street bridge and Allco Park boundary signs (Allco hatchery fence)"
-   },
-   "confidence": "medium",
-   "matched": "new",
-   "reason": "split hunt: 216th Street bridge (curated) up to the Allco Park signs.; medium: \"216, bridge, street\" -> the curated cut `alouette_river__216_street_bridge` (216 Street bridge); medium: the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end",
-   "endpoints": [
-    {
-     "phrase": "Upstream of the 216th Street bridge",
-     "kind": "split",
-     "confidence": "medium",
-     "reason": "\"216, bridge, street\" -> the curated cut `alouette_river__216_street_bridge` (216 Street bridge)",
-     "label": "216 Street bridge",
-     "fix": {
-      "kind": "split",
-      "split_id": "alouette_river__216_street_bridge"
-     },
-     "item_id": "gnis:9630"
-    },
-    {
-     "phrase": "signs at Allco park",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
-    }
-   ],
-   "points": [
-    {
-     "label": "216 Street bridge",
-     "coord": null,
-     "kind": "split",
-     "split_id": "alouette_river__216_street_bridge"
-    },
-    {
-     "label": "Allco Park boundary signs (Allco hatchery fence)",
-     "coord": [
-      -122.533526,
-      49.246954
-     ],
-     "kind": "new",
-     "split_id": "allco_fence"
-    }
-   ],
-   "hunt": {
-    "status": "found",
-    "notes": "216th Street bridge (curated) up to the Allco Park signs.",
-    "proposals": [
-     {
-      "ref": "allco_fence",
-      "anchor": "sign",
-      "name": "Allco Park boundary signs (Allco hatchery fence)",
-      "confidence": "medium",
-      "description": "the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end",
-      "sources": [
-       "https://www.openstreetmap.org/way/1154159739",
-       "https://www.openstreetmap.org/way/1154159759",
-       "https://www.openstreetmap.org/way/1057532557"
-      ],
-      "notes": "Allco Park runs along the river 49.2465–49.2414; the signs' spot is unpublished. The fence is the likeliest line; the other candidate is the park's downstream end ≈ 49.2423,-122.5347.",
-      "lat": 49.247,
-      "lon": -122.5336,
-      "coord": [
-       -122.533526,
-       49.246954
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 7.4,
-      "blk": "356356440",
-      "measure": 18295.8
-     }
-    ],
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
-    ],
-    "matcher": {
-     "matched": "partial",
-     "reason": "medium: \"216, bridge, street\" -> the curated cut `alouette_river__216_street_bridge` (216 Street bridge); none: no curated cut, proposal or data point names this place"
-    }
-   },
-   "state": "needs_cut",
-   "status": "active",
-   "why": "needs_split",
-   "outcome": "new_medium"
-  },
-  "2:alouette-river-and-tributaries:downstream-of-the-216th-street-bri": {
-   "location_id": "2:alouette-river-and-tributaries:downstream-of-the-216th-street-bri",
-   "water": "Alouette River and tributaries",
-   "text": "Downstream of the 216th street bridge to the confluence of the Pitt River",
-   "notice_op": "between",
-   "items": [
-    "gnis:9630",
-    "gnis:39404"
-   ],
-   "suggestion": {
-    "op": "downstream_of",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "alouette_river__216_street_bridge"
-     }
-    ],
-    "items": [],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "downstream of 216 Street bridge"
-   },
-   "confidence": "medium",
-   "matched": "existing",
-   "reason": "medium: \"216, bridge, street\" -> the curated cut `alouette_river__216_street_bridge` (216 Street bridge); the other end is the water's mouth, so downstream of it",
-   "endpoints": [
-    {
-     "phrase": "Downstream of the 216th street bridge",
-     "kind": "split",
-     "confidence": "medium",
-     "reason": "\"216, bridge, street\" -> the curated cut `alouette_river__216_street_bridge` (216 Street bridge)",
-     "label": "216 Street bridge",
-     "fix": {
-      "kind": "split",
-      "split_id": "alouette_river__216_street_bridge"
-     },
-     "item_id": "gnis:9630"
-    }
-   ],
-   "points": [
-    {
-     "label": "216 Street bridge",
-     "coord": null,
-     "kind": "split",
-     "split_id": "alouette_river__216_street_bridge"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "existing_medium"
-  },
   "2:alouette-river-and-tributaries:north-alouette-and-tributaries": {
    "location_id": "2:alouette-river-and-tributaries:north-alouette-and-tributaries",
    "water": "Alouette River and tributaries",
@@ -7424,6 +5891,7 @@
     "members": [
      "2:fraser-river:from-the-downstream-side-of-the-cp",
      "2:fraser-river:from-the-downstream-side-of-the-cp~2",
+     "2:fraser-river:mainstem-waters-downstream-of-the",
      "2:fraser-river:mainstem-waters-from-the-downstrea"
     ],
     "placed": [],
@@ -7431,7 +5899,8 @@
     "role": "canonical",
     "links": {
      "2:fraser-river:from-the-downstream-side-of-the-cp": "text 1.00",
-     "2:fraser-river:from-the-downstream-side-of-the-cp~2": "text 0.80"
+     "2:fraser-river:from-the-downstream-side-of-the-cp~2": "text 0.80",
+     "2:fraser-river:mainstem-waters-downstream-of-the": "dup 1.00"
     }
    },
    "why": "needs_split",
@@ -7761,8 +6230,21 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active",
-   "why": "review_pending",
+   "status": "dormant",
+   "cluster": {
+    "id": "2:fraser-river#3",
+    "members": [
+     "2:fraser-river:mainstem-waters-upstream-of-the-cp",
+     "2:fraser-river:mainstem-waters-upstream-of-the-cp~2"
+    ],
+    "placed": [],
+    "canonical": "2:fraser-river:mainstem-waters-upstream-of-the-cp~2",
+    "role": "agrees",
+    "links": {
+     "2:fraser-river:mainstem-waters-upstream-of-the-cp~2": "dup 1.00"
+    }
+   },
+   "why": "variant",
    "outcome": "existing_low"
   },
   "2:fraser-river:from-the-downstream-side-of-the-cp~2": {
@@ -7898,6 +6380,7 @@
     "members": [
      "2:fraser-river:from-the-downstream-side-of-the-cp",
      "2:fraser-river:from-the-downstream-side-of-the-cp~2",
+     "2:fraser-river:mainstem-waters-downstream-of-the",
      "2:fraser-river:mainstem-waters-from-the-downstrea"
     ],
     "placed": [],
@@ -7905,6 +6388,7 @@
     "role": "member",
     "links": {
      "2:fraser-river:from-the-downstream-side-of-the-cp": "text 0.80",
+     "2:fraser-river:mainstem-waters-downstream-of-the": "text 0.80",
      "2:fraser-river:mainstem-waters-from-the-downstrea": "text 0.80"
     }
    },
@@ -8147,6 +6631,248 @@
    },
    "why": "needs_split",
    "outcome": "new_high"
+  },
+  "2:fraser-river:mainstem-waters-upstream-of-the-cp~2": {
+   "location_id": "2:fraser-river:mainstem-waters-upstream-of-the-cp~2",
+   "water": "Fraser River",
+   "text": "mainstem waters upstream of the CPR Bridge at Mission",
+   "notice_op": "upstream_of",
+   "items": [
+    "gnis:39325",
+    "gnis:10494",
+    "gnis:11566",
+    "gnis:17805",
+    "gnis:17368",
+    "gnis:14905",
+    "gnis:22631",
+    "gnis:21224",
+    "gnis:14010",
+    "gnis:11481",
+    "gnis:13499",
+    "gnis:25152",
+    "gnis:8341"
+   ],
+   "suggestion": {
+    "op": "upstream_of",
+    "points": [
+     {
+      "kind": "split",
+      "split_id": "fraser_river__the_cpr_bridge_at_mission"
+     }
+    ],
+    "items": [],
+    "tributaries": null,
+    "new_splits": [],
+    "words": "upstream of the CPR Bridge at Mission"
+   },
+   "confidence": "low",
+   "matched": "existing",
+   "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+   "endpoints": [
+    {
+     "phrase": "upstream of the CPR Bridge at Mission",
+     "kind": "split",
+     "confidence": "low",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+     "label": "the CPR Bridge at Mission",
+     "fix": {
+      "kind": "split",
+      "split_id": "fraser_river__the_cpr_bridge_at_mission"
+     },
+     "item_id": "gnis:39325"
+    }
+   ],
+   "points": [
+    {
+     "label": "the CPR Bridge at Mission",
+     "coord": null,
+     "kind": "split",
+     "split_id": "fraser_river__the_cpr_bridge_at_mission"
+    }
+   ],
+   "state": "needs_cut",
+   "status": "active",
+   "cluster": {
+    "id": "2:fraser-river#3",
+    "members": [
+     "2:fraser-river:mainstem-waters-upstream-of-the-cp",
+     "2:fraser-river:mainstem-waters-upstream-of-the-cp~2"
+    ],
+    "placed": [],
+    "canonical": "2:fraser-river:mainstem-waters-upstream-of-the-cp~2",
+    "role": "canonical",
+    "links": {
+     "2:fraser-river:mainstem-waters-upstream-of-the-cp": "dup 1.00"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_low"
+  },
+  "2:fraser-river:mainstem-waters-downstream-of-the": {
+   "location_id": "2:fraser-river:mainstem-waters-downstream-of-the",
+   "water": "Fraser River",
+   "text": "mainstem waters downstream of the CPR Bridge at Mission to the Highway 1 Bridge at Hope",
+   "notice_op": "between",
+   "items": [
+    "gnis:39325",
+    "gnis:10494",
+    "gnis:11566",
+    "gnis:17805",
+    "gnis:17368",
+    "gnis:14905",
+    "gnis:22631",
+    "gnis:21224",
+    "gnis:14010",
+    "gnis:11481",
+    "gnis:13499",
+    "gnis:25152",
+    "gnis:8341"
+   ],
+   "suggestion": {
+    "op": "between",
+    "points": [
+     {
+      "kind": "split",
+      "split_id": "fraser_river__the_cpr_bridge_at_mission"
+     },
+     {
+      "kind": "new",
+      "split_id": "fraser_hope_bridge"
+     }
+    ],
+    "items": [],
+    "tributaries": false,
+    "new_splits": [
+     {
+      "ref": "fraser_hope_bridge",
+      "anchor": "bridge",
+      "name": "Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)",
+      "on_item": "gnis:39325",
+      "coord": [
+       -121.452186,
+       49.386489
+      ],
+      "blk": "356364114",
+      "measure": 158750.9,
+      "note": "[split hunt high] the Hwy 1 bridge over the Fraser at Hope. Sources: https://openmaps.gov.bc.ca/geo/pub/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=pub:WHSE_IMAGERY_AND_BASE_MAPS.MOT_ROAD_STRUCTURE_SP&outputFormat=json&CQL_FILTER=BMIS_STRUCTURE_NAME%20LIKE%20%27%25FRASER-HOPE%25%27. BC MoTI structure 'BILL HARTLEY/FRASER-HOPE', highway 1 — the only Hwy 1 Fraser crossing at Hope."
+     }
+    ],
+    "words": "between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)"
+   },
+   "confidence": "low",
+   "matched": "new",
+   "reason": "a rewording of `2:fraser-river:mainstem-waters-from-the-downstrea` (100% alike) — its suggestion: split hunt: 'mainstem waters' CPR Mission to Hope: no tributaries.; low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
+   "endpoints": [
+    {
+     "phrase": "downstream of the CPR Bridge at Mission",
+     "kind": "split",
+     "confidence": "low",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+     "label": "the CPR Bridge at Mission",
+     "fix": {
+      "kind": "split",
+      "split_id": "fraser_river__the_cpr_bridge_at_mission"
+     },
+     "item_id": "gnis:39325"
+    },
+    {
+     "phrase": "the Highway 1 Bridge at Hope",
+     "kind": "none",
+     "confidence": "none",
+     "reason": "no curated cut, proposal or data point names this place"
+    }
+   ],
+   "points": [
+    {
+     "label": "the CPR Bridge at Mission",
+     "coord": null,
+     "kind": "split",
+     "split_id": "fraser_river__the_cpr_bridge_at_mission"
+    },
+    {
+     "label": "Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)",
+     "coord": [
+      -121.452186,
+      49.386489
+     ],
+     "kind": "new",
+     "split_id": "fraser_hope_bridge"
+    }
+   ],
+   "state": "needs_cut",
+   "status": "active",
+   "before": {
+    "suggestion": {
+     "op": "between",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "fraser_river__the_cpr_bridge_at_mission"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "between the CPR Bridge at Mission and the Highway 1 Bridge at Hope"
+    },
+    "confidence": "none",
+    "matched": "partial",
+    "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
+   },
+   "hunt": {
+    "status": "found",
+    "notes": "'mainstem waters' CPR Mission to Hope: no tributaries.",
+    "proposals": [
+     {
+      "ref": "fraser_hope_bridge",
+      "anchor": "bridge",
+      "name": "Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)",
+      "confidence": "high",
+      "description": "the Hwy 1 bridge over the Fraser at Hope",
+      "sources": [
+       "https://openmaps.gov.bc.ca/geo/pub/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=pub:WHSE_IMAGERY_AND_BASE_MAPS.MOT_ROAD_STRUCTURE_SP&outputFormat=json&CQL_FILTER=BMIS_STRUCTURE_NAME%20LIKE%20%27%25FRASER-HOPE%25%27"
+      ],
+      "notes": "BC MoTI structure 'BILL HARTLEY/FRASER-HOPE', highway 1 — the only Hwy 1 Fraser crossing at Hope.",
+      "lat": 49.38644,
+      "lon": -121.45062,
+      "coord": [
+       -121.452186,
+       49.386489
+      ],
+      "offset_m": null,
+      "split_id": null,
+      "snap_m": 113.9,
+      "blk": "356364114",
+      "measure": 158750.9
+     }
+    ],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
+    ],
+    "matcher": {
+     "matched": "partial",
+     "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
+    }
+   },
+   "cluster": {
+    "id": "2:fraser-river#1",
+    "members": [
+     "2:fraser-river:from-the-downstream-side-of-the-cp",
+     "2:fraser-river:from-the-downstream-side-of-the-cp~2",
+     "2:fraser-river:mainstem-waters-downstream-of-the",
+     "2:fraser-river:mainstem-waters-from-the-downstrea"
+    ],
+    "placed": [],
+    "canonical": "2:fraser-river:mainstem-waters-from-the-downstrea",
+    "role": "adopts",
+    "links": {
+     "2:fraser-river:from-the-downstream-side-of-the-cp": "text 1.00",
+     "2:fraser-river:from-the-downstream-side-of-the-cp~2": "text 0.80",
+     "2:fraser-river:mainstem-waters-from-the-downstrea": "dup 1.00"
+    }
+   },
+   "why": "variant",
+   "outcome": "new_low"
   },
   "3:fraser-river:mainstem-waters-of-the-fraser-rive": {
    "location_id": "3:fraser-river:mainstem-waters-of-the-fraser-rive",
@@ -9434,8 +8160,8 @@
       "split_id": "dean_river__crag_creek_into_dean_river"
      },
      {
-      "kind": "new",
-      "split_id": "tidal-360883982"
+      "kind": "split",
+      "split_id": "dean_river__mouth"
      }
     ],
     "items": [
@@ -9443,11 +8169,11 @@
     ],
     "tributaries": null,
     "new_splits": [],
-    "words": "between Crag Creek → Dean River and Dean River: mouth (tidal boundary) (medium confidence)"
+    "words": "between Crag Creek → Dean River and mouth"
    },
-   "confidence": "medium",
+   "confidence": "low",
    "matched": "existing",
-   "reason": "high: confluence of Crag Creek: the curated cut `dean_river__crag_creek_into_dean_river` (Crag Creek → Dean River); medium: \"tidal\" -> the proposed cut `tidal-360883982` (Dean River: mouth (tidal boundary) (medium confidence))",
+   "reason": "high: confluence of Crag Creek: the curated cut `dean_river__crag_creek_into_dean_river` (Crag Creek → Dean River); low: \"tidal\" -> the curated cut `dean_river__mouth` (mouth); as close: `tidal-360883982` (Dean River: mouth (tidal boundary) (medium confidence))",
    "endpoints": [
     {
      "phrase": "the confluence with Crag Creek",
@@ -9463,13 +8189,13 @@
     },
     {
      "phrase": "the tidal boundary",
-     "kind": "proposed",
-     "confidence": "medium",
-     "reason": "\"tidal\" -> the proposed cut `tidal-360883982` (Dean River: mouth (tidal boundary) (medium confidence))",
-     "label": "Dean River: mouth (tidal boundary) (medium confidence)",
+     "kind": "split",
+     "confidence": "low",
+     "reason": "\"tidal\" -> the curated cut `dean_river__mouth` (mouth); as close: `tidal-360883982` (Dean River: mouth (tidal boundary) (medium confidence))",
+     "label": "mouth",
      "fix": {
-      "kind": "new",
-      "split_id": "tidal-360883982"
+      "kind": "split",
+      "split_id": "dean_river__mouth"
      },
      "item_id": "gnis:16075"
     }
@@ -9482,16 +8208,16 @@
      "split_id": "dean_river__crag_creek_into_dean_river"
     },
     {
-     "label": "Dean River: mouth (tidal boundary) (medium confidence)",
+     "label": "mouth",
      "coord": null,
-     "kind": "proposed",
-     "split_id": "tidal-360883982"
+     "kind": "split",
+     "split_id": "dean_river__mouth"
     }
    ],
    "state": "needs_cut",
    "status": "active",
    "why": "review_pending",
-   "outcome": "existing_medium"
+   "outcome": "existing_low"
   },
   "5b:dean-river:from-signs-located-approx-500-m-up": {
    "location_id": "5b:dean-river:from-signs-located-approx-500-m-up",
@@ -10153,12 +8879,35 @@
    "water": "Sheldens Creek",
    "text": "upstream of white triangular fishing boundary signs located at the Spur 19 Bridge site.",
    "notice_op": "upstream_of",
-   "items": [],
+   "items": [
+    "blk:360846083"
+   ],
    "suggestion": null,
    "confidence": "none",
    "matched": "none",
-   "reason": "the location's water is not matched to the registry",
-   "endpoints": [],
+   "reason": "high: \"19, bridge, spur\" -> the proposed cut `sheldens_creek__spur_19_bridge_site` (Spur 19 Bridge site (medium confidence))",
+   "endpoints": [
+    {
+     "phrase": "upstream of white triangular fishing boundary signs located at the Spur 19 Bridge site",
+     "kind": "proposed",
+     "confidence": "high",
+     "reason": "\"19, bridge, spur\" -> the proposed cut `sheldens_creek__spur_19_bridge_site` (Spur 19 Bridge site (medium confidence))",
+     "label": "Spur 19 Bridge site (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "sheldens_creek__spur_19_bridge_site"
+     },
+     "item_id": "blk:360846083"
+    }
+   ],
+   "points": [
+    {
+     "label": "Spur 19 Bridge site (medium confidence)",
+     "coord": null,
+     "kind": "proposed",
+     "split_id": "sheldens_creek__spur_19_bridge_site"
+    }
+   ],
    "hunt": {
     "status": "not_found",
     "why": "(T164 2026-10-29) the WATER is the open question, not the cut. Proposed match: the unnamed FWA stream blk 360846083 (code 950-016367) into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677) — the forest roads around it are all named for it (FTEN R06206 'SP 19(1) TO SHELDONS', 'SP 19H TO SHELDONS', SHEL100–SHEL103). The cut: FTEN road 'SP 19(1) TO SHELDONS' (R06206 sec 331, ACTIVE) crosses that line at 53.12968,-131.78224, FWA measure 3402 m (exact road×stream intersection) — the Spur 19 bridge site, medium. The name is a REVIEW row in the Names mode (candidate `blk:360846083~sheldens-creek`, never auto-accepted): accepting it names the line, the DFO matcher then binds the water, and this cut becomes placeable here.",
@@ -10167,7 +8916,7 @@
     ],
     "category": "no_water"
    },
-   "state": "no_water",
+   "state": "needs_cut",
    "status": "active",
    "why": "no_water",
    "outcome": "unresolvable"
@@ -11710,12 +10459,13 @@
       "name": "signs above the Shegunia logging road bridge",
       "on_item": "gnis:22777",
       "coord": [
-       -127.631325,
-       55.347463
+       -127.6321,
+       55.347395
       ],
       "blk": "360875115",
-      "measure": 3452.5,
-      "note": "[split hunt low] signs above the Salmon River Rd bridge (~2.6 km above the Skeena) (placed 50 m upstream of the anchor, offset applied). Sources: https://www.openstreetmap.org/#map=17/55.34740/-127.63210 ; data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN 4841 BABINE SLIDE FSR). the bridge is exact (the only road crossing of the Shegunia in the road atlas / FTEN); the signs' distance above it is not published — 50 m is a guess. (T164 2026-10-29) corroborated: the FTEN road BABINE SLIDE FSR (file 4841) passes 14 m from this bridge point."
+      "measure": 3402.5,
+      "offset_m": 50.0,
+      "note": "[split hunt low] signs above the Salmon River Rd bridge (~2.6 km above the Skeena) (50 m upstream of the anchor, as the split's offset). Sources: https://www.openstreetmap.org/#map=17/55.34740/-127.63210 ; data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN 4841 BABINE SLIDE FSR). the bridge is exact (the only road crossing of the Shegunia in the road atlas / FTEN); the signs' distance above it is not published — 50 m is a guess. (T164 2026-10-29) corroborated: the FTEN road BABINE SLIDE FSR (file 4841) passes 14 m from this bridge point."
      },
      {
       "ref": "shegunia_bridge_d50",
@@ -11723,12 +10473,13 @@
       "name": "signs below the Shegunia logging road bridge",
       "on_item": "gnis:22777",
       "coord": [
-       -127.632835,
-       55.347538
+       -127.6321,
+       55.347395
       ],
       "blk": "360875115",
-      "measure": 3352.5,
-      "note": "[split hunt low] signs below the Salmon River Rd bridge (placed 50 m downstream of the anchor, offset applied). Sources: https://www.openstreetmap.org/#map=17/55.34740/-127.63210 ; data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN 4841 BABINE SLIDE FSR). as above: bridge exact, 50 m guessed. (T164 2026-10-29) corroborated: the FTEN road BABINE SLIDE FSR (file 4841) passes 14 m from this bridge point."
+      "measure": 3402.5,
+      "offset_m": -50.0,
+      "note": "[split hunt low] signs below the Salmon River Rd bridge (50 m downstream of the anchor, as the split's offset). Sources: https://www.openstreetmap.org/#map=17/55.34740/-127.63210 ; data/source/bc_fisheries_data.gpkg#forest_service_roads (FTEN 4841 BABINE SLIDE FSR). as above: bridge exact, 50 m guessed. (T164 2026-10-29) corroborated: the FTEN road BABINE SLIDE FSR (file 4841) passes 14 m from this bridge point."
      }
     ],
     "words": "between signs above the Shegunia logging road bridge and signs below the Shegunia logging road bridge"
@@ -11795,7 +10546,7 @@
       "split_id": null,
       "snap_m": 0.6,
       "blk": "360875115",
-      "measure": 3452.5
+      "measure": 3402.5
      },
      {
       "ref": "shegunia_bridge_d50",
@@ -11818,7 +10569,7 @@
       "split_id": null,
       "snap_m": 0.6,
       "blk": "360875115",
-      "measure": 3352.5
+      "measure": 3402.5
      }
     ],
     "sources": [
@@ -14158,29 +12909,33 @@
     "new_splits": [
      {
       "ref": "nakina_sloko_u300",
-      "anchor": "sign",
+      "anchor": "confluence",
       "name": "Sloko River",
+      "item_id": "gnis:27962",
       "on_item": "gnis:16492",
       "coord": [
-       -133.151968,
-       59.00816
+       -133.154313,
+       59.006004
       ],
       "blk": "360874795",
-      "measure": 15041.8,
-      "note": "[split hunt medium] boundary sign ~300 m above the Nakina–Sloko confluence (placed 300 m upstream of the anchor, offset applied). Sources: https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html. the FWA Sloko mouth (exact) plus the notice's approximate 300 m up the Nakina (≈ 59.00816,-133.15196). The notice covers only the centre line to the north bank — an extent cannot say a half-river."
+      "measure": 14741.8,
+      "offset_m": 300.0,
+      "note": "[split hunt medium] boundary sign ~300 m above the Nakina–Sloko confluence (300 m upstream of the anchor, as the split's offset). Sources: https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html. the FWA Sloko mouth (exact) plus the notice's approximate 300 m up the Nakina (≈ 59.00816,-133.15196). The notice covers only the centre line to the north bank — an extent cannot say a half-river."
      },
      {
       "ref": "nakina_sloko_u1300",
-      "anchor": "sign",
+      "anchor": "confluence",
       "name": "Sloko River",
+      "item_id": "gnis:27962",
       "on_item": "gnis:16492",
       "coord": [
-       -133.138746,
-       59.011592
+       -133.154313,
+       59.006004
       ],
       "blk": "360874795",
-      "measure": 16041.8,
-      "note": "[split hunt medium] boundary sign ~1300 m above the Nakina–Sloko confluence (placed 1300 m upstream of the anchor, offset applied). Sources: https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html. the FWA Sloko mouth plus the notice's 1300 m (≈ 59.01160,-133.13868)."
+      "measure": 14741.8,
+      "offset_m": 1300.0,
+      "note": "[split hunt medium] boundary sign ~1300 m above the Nakina–Sloko confluence (1300 m upstream of the anchor, as the split's offset). Sources: https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html. the FWA Sloko mouth plus the notice's 1300 m (≈ 59.01160,-133.13868)."
      }
     ],
     "words": "between sign ~300 m above the Sloko confluence and sign ~1300 m above the Sloko confluence"
@@ -14246,7 +13001,7 @@
       "split_id": null,
       "snap_m": 0.0,
       "blk": "360874795",
-      "measure": 15041.8
+      "measure": 14741.8
      },
      {
       "ref": "nakina_sloko_u1300",
@@ -14268,7 +13023,7 @@
       "split_id": null,
       "snap_m": 0.0,
       "blk": "360874795",
-      "measure": 16041.8
+      "measure": 14741.8
      }
     ],
     "sources": [
@@ -15271,8 +14026,8 @@
      -124.983276,
      51.986316
     ],
-    "down_sid": 1235560,
-    "up_sid": 766562,
+    "down_sid": 1235562,
+    "up_sid": 766564,
     "places": {
      "below": [
       [
@@ -15280,12 +14035,21 @@
        "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed)."
       ]
      ],
-     "above": []
+     "above": [
+      [
+       "5a:default:region",
+       "All Region 5A waters (Region 5 less Management Units 5-6 to 5-11) — All Region 5A waters (Region 5 less Management Units 5-6 to 5-11)"
+      ]
+     ]
     },
     "differ": [
      [
       "5b:region:section",
       "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed)."
+     ],
+     [
+      "5a:default:region",
+      "All Region 5A waters (Region 5 less Management Units 5-6 to 5-11) — All Region 5A waters (Region 5 less Management Units 5-6 to 5-11)"
      ]
     ],
     "cause": "area-bound: the area:mu_group:management_units_5_6_to_5_11 edge crosses the water (Management Units 5-6 to 5-11 boundary)",
@@ -15311,8 +14075,8 @@
       -124.983276,
       51.986316
      ],
-     "down_sid": 1235560,
-     "up_sid": 766562,
+     "down_sid": 1235562,
+     "up_sid": 766564,
      "places": {
       "below": [
        [
@@ -15320,12 +14084,21 @@
         "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed)."
        ]
       ],
-      "above": []
+      "above": [
+       [
+        "5a:default:region",
+        "All Region 5A waters (Region 5 less Management Units 5-6 to 5-11) — All Region 5A waters (Region 5 less Management Units 5-6 to 5-11)"
+       ]
+      ]
      },
      "differ": [
       [
        "5b:region:section",
        "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed)."
+      ],
+      [
+       "5a:default:region",
+       "All Region 5A waters (Region 5 less Management Units 5-6 to 5-11) — All Region 5A waters (Region 5 less Management Units 5-6 to 5-11)"
       ]
      ],
      "cause": "area-bound: the area:mu_group:management_units_5_6_to_5_11 edge crosses the water (Management Units 5-6 to 5-11 boundary)",
@@ -15360,11 +14133,11 @@
    "edge_gap": {
     "water": "Atnarko River",
     "item_id": "gnis:17209",
-    "sections": 40,
-    "of": 40,
+    "sections": 41,
+    "of": 41,
     "cause": "the place's tributary walk covers Atnarko River, which its own words exclude"
    },
-   "reason": "Bella Coola River (not including Atnarko River) covers 40 of 40 sections of Atnarko River (gnis:17209) — add gnis:17209 to its tributary_excludes",
+   "reason": "Bella Coola River (not including Atnarko River) covers 41 of 41 sections of Atnarko River (gnis:17209) — add gnis:17209 to its tributary_excludes",
    "suggestion": {
     "op": "whole",
     "points": [],
@@ -15379,8 +14152,8 @@
     {
      "water": "Atnarko River",
      "item_id": "gnis:17209",
-     "sections": 40,
-     "of": 40,
+     "sections": 41,
+     "of": 41,
      "cause": "the place's tributary walk covers Atnarko River, which its own words exclude"
     }
    ]

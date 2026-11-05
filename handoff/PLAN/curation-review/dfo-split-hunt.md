@@ -5,14 +5,14 @@ Every cut is a PROPOSAL: open the location in the review app's DFO mode — the 
 with their confidence, description, sources and notes; **accept suggestion** pre-fills the
 editor (the research travels in each new split's note); **Save extent** (your mark) is the only
 write. Nothing touched splits.json, the catalogue or marks.jsonl. Input:
-`handoff/PLAN/curation-review/dfo-split-hunt.json`; regenerate with
+`data/generated/review/dfo-split-hunt.json`; regenerate with
 `python -m pipeline.regs.dfo_salmon.suggest`.
 
-## Counts (93 locations)
+## Counts (90 locations)
 
 | locations | high | medium | low | not found |
 |---|---|---|---|---|
-| 93 | 25 | 34 | 19 | 15 |
+| 90 | 24 | 31 | 20 | 15 |
 
 A location's confidence is its weakest end. Distinct hunted cuts: high 22, medium 15, low 17.
 
@@ -21,15 +21,12 @@ A location's confidence is its weakest end. Distinct hunted cuts: high 22, mediu
 | location | extent | conf | cuts (conf · snap) |
 |---|---|---|---|
 | `1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s` | between CNR Bridge (mile 70.2) and Skutz Falls | high | Skutz Falls (high · 0 m) |
-| `1:cowichan-river:from-the-white-triangle-boundary-s` | downstream of white triangle boundary sign located in Sandy Pool Regional Park | high | curated cuts only |
 | `1:cowichan-river:including-tributaries-and-cowichan` | the whole water | medium | curated cuts only |
-| `1:nanaimo-river:from-500-m-below-the-lower-power-l` | between 500 m below the power line at Bore Hole and Boulder Creek → Nanaimo River | medium | 500 m below the power line at Bore Hole (medium · 0 m) |
 | `1:nanaimo-river:in-subarea-17-14-tidal-portions-of` | downstream of Cedar Road bridge | high | curated cuts only |
 | `1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2` | between Cedar Road bridge and signs 400 m below the Cedar Road bridge | medium | signs 400 m below the Cedar Road bridge (medium · 0 m) |
 | `1:puntledge-river:from-the-weir-at-the-lower-hatcher` | between Puntledge lower hatchery weir and signs 75 m below the Puntledge lower hatchery weir | medium | Puntledge lower hatchery weir (high · 3 m); signs 75 m below the Puntledge lower hatchery weir (medium · 3 m) |
 | `1:quatse-river:100m-upstream-and-downstream-of-th` | between 100 m above the Quatse River Hatchery weir and 100 m below the Quatse River Hatchery weir | low | 100 m above the Quatse River Hatchery weir (low · 36 m); 100 m below the Quatse River Hatchery weir (low · 36 m) |
 | `1:san-juan-river:that-portion-of-the-san-juan-river` | between San Juan hatchery counting fence and signs 150 m below the San Juan hatchery fence | low | San Juan hatchery counting fence (low · 4 m); signs 150 m below the San Juan hatchery fence (low · 4 m) |
-| `1:stamp-river:except-in-those-areas-and-times-li` | the whole water | medium | curated cuts only |
 | `1:stamp-river:from-the-inlet-upstream-of-roberst` | between Robertson Creek Hatchery lagoon inlet and Robertson Creek Hatchery lagoon outlet | low | Robertson Creek Hatchery lagoon inlet (low · 1 m); Robertson Creek Hatchery lagoon outlet (low · 5 m) |
 | `1:stamp-river:from-the-powerline-crossing-downst` | between Stamp River powerline crossing (BC Hydro 1L127) and Robertson Creek Hatchery lagoon inlet | low | Stamp River powerline crossing (BC Hydro 1L127) (medium · 0 m); Robertson Creek Hatchery lagoon inlet (low · 1 m) |
 | `1:stamp-river:from-the-southern-portion-of-the-r` | between Robertson Creek Hatchery lagoon inlet and Robertson Creek Hatchery lagoon outlet | low | Robertson Creek Hatchery lagoon inlet (low · 1 m); Robertson Creek Hatchery lagoon outlet (low · 5 m) |
@@ -39,13 +36,13 @@ A location's confidence is its weakest end. Distinct hunted cuts: high 22, mediu
 | `2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis` | downstream of Allco Park boundary signs (Allco hatchery fence) | medium | Allco Park boundary signs (Allco hatchery fence) (medium · 7 m) |
 | `2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f` | downstream of Allco Park boundary signs (Allco hatchery fence) | medium | Allco Park boundary signs (Allco hatchery fence) (medium · 7 m) |
 | `2:alouette-river-and-tributaries:north-alouette-and-tributaries` | the whole water | high | curated cuts only |
-| `2:alouette-river-and-tributaries:upstream-of-the-216th-street-bridg` | between 216 Street bridge and Allco Park boundary signs (Allco hatchery fence) | medium | Allco Park boundary signs (Allco hatchery fence) (medium · 7 m) |
 | `2:birkenhead-river:from-the-birkenhead-bridge-located` | between Birkenhead Bridge (Portage Road) and Birkenhead canyon (foot) | medium | Birkenhead Bridge (Portage Road) (high · 1 m); Birkenhead canyon (foot) (medium · 1 m) |
 | `2:brunette-river:downstream-of-cariboo-road` | downstream of Cariboo Road bridge | high | Cariboo Road bridge (high · 1 m) |
 | `2:chapman-creek:upstream-of-tidal-water-fishing-bo` | between Chapman Creek Hwy 101 bridge (tidal signs below it) and 100 m below the Chapman Creek falls (below the power line) | low | Chapman Creek Hwy 101 bridge (tidal signs below it) (low · 0 m); 100 m below the Chapman Creek falls (below the power line) (low · 19 m) |
 | `2:fraser-river:from-the-downstream-side-of-the-cp` | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | low | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m) |
 | `2:fraser-river:from-the-downstream-side-of-the-cp~2` | between the CPR Bridge at Mission and Alexandra Bridge (Hwy 1) | low | Alexandra Bridge (Hwy 1) (medium · 77 m) |
 | `2:fraser-river:from-the-highway-1-bridge-at-hope` | between Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) and Alexandra Bridge (Hwy 1) | medium | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m); Alexandra Bridge (Hwy 1) (medium · 77 m) |
+| `2:fraser-river:mainstem-waters-downstream-of-the` | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | low | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m) |
 | `2:fraser-river:mainstem-waters-from-the-downstrea` | between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | low | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m) |
 | `2:fraser-river:upstream-from-the-highway-1-bridge` | upstream of Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) | high | Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (high · 114 m) |
 | `2:harrison-river:from-the-highway-7-bridge-downstre` | downstream of Hwy 7 bridge over the Harrison | high | Hwy 7 bridge over the Harrison (high · 165 m) |

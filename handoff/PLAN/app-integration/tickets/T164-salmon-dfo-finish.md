@@ -128,3 +128,17 @@ bindings landed) + 49 dormant.
   confidence: the owner's newer tidal proposals (T212) now sit at the same places, e.g. Fraser at the Mission CPR
   bridge, Qualicum Hwy 19A and the Dean mouth, and the matcher reports that as a near-tie. Tests:
   `test_dfo_suggest`, `test_names`, `test_name_sources_t224` pass.
+
+## 2026-11-05: where it stands (measured)
+- **Step 1 dossier: DONE** — `dossier list`: 0 unresolved DFO waters (Sheldens Creek resolved).
+- **Live feed:** staging `feeds/dfo/unplaced.json` is empty (2026-11-04 run): every current DFO rule lands on a curated
+  place. 161 of them still bind to no section until their cuts exist (`splitwork`: 82 waters need a cut — 80
+  coordinate + 4 confluence locators active, 45 dormant).
+- **Owner review so far:** 79 DFO places marked (68 verified, 7 unsure, 4 wrong; last 11-03).
+- **Proposals refreshed** against today's build (`suggest`, 2026-11-05): 352 locations, 173 with a curated extent;
+  the other 179 each carry a proposal — 52 on existing cuts, 47 whole water, 65 new splits (24 high / 21 medium / 20
+  low), 15 unresolvable with the reason. Versus 10-29: 21 proposals dropped, all on waters the owner has marked since.
+  `handoff/PLAN/curation-review/dfo-coverage.md` lists them.
+- **Left — owner time:** the 179 in the review app's DFO mode (accept suggestion → Save extent), incl. T229 Q3
+  (Skeena "mainstem waters only" clipped to B(i)) and the 3 DFO items T326 waits on. Then Claude: a reach-only rerun
+  (memory reach-only-rerun) + the measured binding diff (step 5) and the acceptance check on Skeena/Fraser/Cowichan.
