@@ -88,3 +88,21 @@ Release **r-46be3c135e68** (LATEST; tiles db853e9556df81a6.16b3906b04bf, basemap
   to date" (B11); Updates log (app 0.1.0 build 1 0374a71, data staging, channel live) (B12); feeds /status all ok, gauges
   last run 05:35 UTC from the :35 cron (B13).
 - Seen: More → Data still says "In-season changes are not read" although the app now reads them (T230 wording to fix).
+
+## Phase C (2026-11-05 UTC): first real-release SEO build, r-5a5999c94588 (T192-T198)
+- Built from a CLEAN worktree at b1a5c7fa8 (no other lane's uncommitted edits in the bundle): `pnpm -C app install
+  --frozen-lockfile`, `pnpm -C app/apps/mobile export:web:staging`, `node app/tools/build-seo.mjs --release-dir
+  <repo>/data/release/r-5a5999c94588 --app app/dist/web-staging --threads 4 --previous app/dist/seo-snapshots/r-d458fbe165ac.json`
+  (the snapshot of the previous release by `--snapshot-only`), `deploy/staging/site.sh` → version 20c0a32b, smoke 18/18.
+  The first pass (21a2d17ff, `--update-slugs`) wrote the slug map committed in b1a5c7fa8 (+382, none moved).
+- 19,927 pages (19,635 waters), largest 13,184 B gzip, p95 10,298 B, budget problems 0, titles/descriptions unique.
+- Verified: sitemap parses, 19,928 locs all canonical; 150 random URLs 200 + self-canonical + JSON-LD parses; trailing
+  slash on any path = one 301 (was 307: the worker now runs first for `/*/`); v1 `/waterbody/*` one 301 each; removed
+  slugs 301 to their region; `/region/N/waters-<letter>` lowercase; no `/changes` page (r-d458fbe165ac had the same rules).
+- check-public.mjs: private/ not served, no secret in the site folder; the bucket scan read 846 of 854 public objects —
+  8 `feeds/live/*.json` answered 429 (the data worker's own rate limit), no secret in any object read.
+- Lighthouse mobile: hubs/About 100/100, LCP 1.3-1.4 s, CLS 0 (Cloudflare's injected script no longer shows); water
+  pages Performance 40-45, CLS 0.15-0.72 at the app's hand-over → T405.
+- Production today (curl 2026-11-05): canifishthis.com + www.canifishthis.com already 301 to https://canifishthis.ca with
+  path + query (an owner redirect rule); **www.canifishthis.ca 301s to `/` and drops the path** (fix: OWNER-TODO);
+  http → https 301; no HSTS yet (v1 site).

@@ -46,12 +46,13 @@ against staging) and the owner runs on prod.
       old app installs, then delete (a dated reminder in OWNER-TODO).
 
 ## 5. Site + DNS + redirects (T198)
-- [ ] Prod site wrangler (from `deploy/staging/site.wrangler.toml`): name `bc-fishing-regulations`, route
-      `canifishthis.ca`; `site.sh` with a prod switch that does NOT apply the staging-only edits (no `Disallow: /`
+- [x] Prod site wrangler (2026-11-05, 21a2d17ff): `deploy/prod/site.wrangler.toml` + `deploy/prod/site.sh` (owner runs with
+      `CONFIRM_PROD=canifishthis.ca`); name `bc-fishing-regulations`, route
+      `canifishthis.ca`; a prod script that does NOT apply the staging-only edits (no `Disallow: /`
       robots, no `X-Robots-Tag: noindex, nofollow`, "Open in the app" links stay absolute to prod).
 - [ ] ★ Registrar/DNS: `canifishthis.com`, `www.canifishthis.com`, `www.canifishthis.ca` → **301** to
       `https://canifishthis.ca` (path + query kept; `redirects.json`); HSTS once https is confirmed everywhere.
-- [ ] `/water/<slug>/` answers 307 today (assets `drop-trailing-slash`): make it a 301 (worker or a redirect rule).
+- [x] Trailing slash on ANY path → one 301 (2026-11-05, 21a2d17ff: the site worker runs first for `/*/`; verified on staging).
 - [ ] v1 legacy paths `/waterbody/*` → one 301 each (already in the site worker; re-check on prod).
 - [x] Favicon (T244, 2026-10-29): `/favicon.svg` + icon link on the hub pages (SEO build, `tools/seo/favicon.ts`) and the app export's `favicon.ico`; prod already serves the v1 `favicon.svg`: keep it (same file).
 
