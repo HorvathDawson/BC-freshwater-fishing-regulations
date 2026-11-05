@@ -9,7 +9,7 @@
 import { createHash } from "node:crypto";
 import type { RegsStore } from "@app/data/regs";
 import { slugShard, SLUG_SHARDS } from "@app/ui";
-import { aboutBody, privacyBody, CSS, SHARE_GROUND, SHARE_INK, clip, descriptionOf, esc, headOf, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, type Release, type Site } from "./html";
+import { aboutBody, privacyBody, CSS, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, clip, descriptionOf, esc, headOf, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, type Release, type Site } from "./html";
 import { aboutLd, checkJsonLd, pageLd, waterLd } from "./jsonld";
 import { appPage, buildDayOf, listWaterOrds, managementUnits, nearestTowns, statusOn, waterModel, type BuildDay, type WaterModel, type WaterStatus } from "./model";
 import { TOPICS, topicLines, type TopicKey } from "./topics";
@@ -87,8 +87,8 @@ function shareSvg(m: WaterModel, site: Site): string {
   const words = m.name.split(" "), lines: string[] = [""];
   for (const w of words) { if ((lines.at(-1) + " " + w).trim().length > 26 && lines.at(-1)) lines.push(w); else lines[lines.length - 1] = (lines.at(-1) + " " + w).trim(); }
   const t = lines.slice(0, 3).map((l, i) => `<text x="64" y="${190 + i * 84}" font-size="72" font-weight="700">${esc(l)}</text>`).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="system-ui,sans-serif">` +
-    `<rect width="1200" height="630" fill="${SHARE_GROUND}"/><g fill="${SHARE_INK}">${t}` +
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${SHARE_W}" height="${SHARE_H}" viewBox="0 0 ${SHARE_W} ${SHARE_H}" font-family="${SHARE_FONT}">` +
+    `<rect width="${SHARE_W}" height="${SHARE_H}" fill="${SHARE_GROUND}"/><g fill="${SHARE_INK}">${t}` +
     `<text x="64" y="470" font-size="40">${esc(clip(m.answer, 70))}</text>` +
     `<text x="64" y="560" font-size="34" opacity=".85">${esc(site.name)} · ${esc(regionLabel(m.region))} · ${esc(site.origin.replace("https://", ""))}</text></g></svg>`;
 }
@@ -163,9 +163,10 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     waterHash.set(m.id, hash);
     // the topic lines feed the hubs (each a sentence the water's own pane shows)
     waterTopics.set(m.id, topicLines(m));
-    const head = headOf({ title, description, path, jsonld: waterLd(m, path, title, site), image: `/share/${slugOf(m.id)}.svg` }, site);
+    const head = headOf({ title, description, path, jsonld: waterLd(m, path, title, site), image: `/share/${slugOf(m.id)}.png` }, site);
     // (T279) asked at once, all of them: the build's render threads take them in parallel; kept in order below
     made.push({ path, hash, title, description, page: o.waterPage(m, head, outFile(path)) });
+    // (T406) the card's source: build.ts draws it as `share/<slug>.png` (share.ts) and ships the PNG only
     files.set(`share/${slugOf(m.id)}.svg`, shareSvg(m, site));
   }
   for (const w of made) {

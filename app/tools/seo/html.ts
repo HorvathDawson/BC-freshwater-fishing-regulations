@@ -30,6 +30,8 @@ const vars = (th: "light" | "dark"): string =>
   `--ink:${T(th, "color.ui.ink")};--muted:${T(th, "color.ui.sub")};--line:${T(th, "color.ui.line2")};--accent:${T(th, "color.ui.accent")};` +
   `--accent-ink:${T(th, "color.ui.on-accent")};--open:${T(th, "color.status.open")};--closed:${T(th, "color.status.closed")};--soft:${T(th, "color.ui.wash")}`;
 export const SHARE_GROUND = T("light", "color.ui.accent");
+/** (T406) the share card: its size (the size Facebook and X ask for a large-image card) and its face (share.ts loads it) */
+export const SHARE_W = 1200, SHARE_H = 630, SHARE_FONT = "Archivo";
 export const SHARE_INK = T("light", "color.ui.on-accent");
 
 /** the shared stylesheet; `inlineCritical` is the part the first paint needs */
@@ -199,7 +201,10 @@ export function headOf(s: Omit<Shell, "body" | "cssHref">, site: Site): string {
   const url = `${site.origin}${s.path === "/" ? "/" : s.path}`;
   const ver = [site.verification.google ? `<meta name="google-site-verification" content="${esc(site.verification.google)}">` : "",
                site.verification.bing ? `<meta name="msvalidate.01" content="${esc(site.verification.bing)}">` : ""].join("");
-  const img = s.image ? `<meta property="og:image" content="${esc(site.origin + s.image)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${esc(site.origin + s.image)}">`
+  // (T406) a water's card is a 1200 x 630 PNG (share.ts): its size and type said, so a preview need not fetch it to lay it out
+  const img = s.image ? `<meta property="og:image" content="${esc(site.origin + s.image)}">` +
+      (s.image.endsWith(".png") ? `<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="${SHARE_W}"><meta property="og:image:height" content="${SHARE_H}">` : "") +
+      `<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${esc(site.origin + s.image)}">`
     : `<meta name="twitter:card" content="summary">`;
   return `<title>${esc(s.title)}</title><meta name="description" content="${esc(s.description)}">` +
     `<link rel="canonical" href="${esc(url)}"><meta name="robots" content="${s.robots ?? "index,follow"}">` +

@@ -31,6 +31,7 @@ import { fontFaceCss, paneCss as paneCss_, PaneRenderer, type PaneCssParts } fro
 import { PanePool } from "./panePool";
 import type { WaterModel } from "./model";
 import { appDocument } from "./prerender";
+import { sharePng } from "./share";
 import { withFavicon } from "./favicon";
 import { headersFile, hostRules, hostWorker, redirectsFile } from "./hosting";
 import type { Site } from "./html";
@@ -95,7 +96,12 @@ function compressedTotals(b: SiteBuild): { pages: number; rawBytes: number; gzip
   }
   return { pages, rawBytes, gzipBytes, brBytes };
 }
-export interface Built { readonly legacy: LegacyBuilt | null; readonly build: SiteBuild; readonly files: ReadonlyMap<string, string>; readonly measured: Measured; readonly problems: readonly string[] }
+export interface Built {
+  readonly legacy: LegacyBuilt | null; readonly build: SiteBuild; readonly files: ReadonlyMap<string, string>;
+  /** (T406) the binary files: each water's share card, `share/<slug>.png` */
+  readonly binary: ReadonlyMap<string, Uint8Array>;
+  readonly measured: Measured; readonly problems: readonly string[];
+}
 
 /** Everything the site is, in memory: pages, sitemap, robots, hosting config, the budget and its Lighthouse config. */
 export async function buildAll(a: BuildArgs): Promise<Built> {
@@ -140,6 +146,13 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     parts = await cssParts();
   } finally { await pool?.close(); }
   const files = new Map(build.files);
+  // (T406) each water's card drawn as the PNG its head names; its SVG source is not shipped
+  const binary = new Map<string, Uint8Array>();
+  for (const [name, svg] of build.files) {
+    if (!/^share\/[^/]+\.svg$/.test(name)) continue;
+    files.delete(name);
+    if (!a.bare) binary.set(name.replace(/\.svg$/, ".png"), sharePng(svg));
+  }
   const paneCss = paneCss_(fonts.css, parts);
   const unmerged = parts.flatMap((p) => p.unmerged);
   files.set(paneHref.slice(1), paneCss);
@@ -158,6 +171,9 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const sizes = build.pages.map((p) => p.size);
   const measured = measure(sizes, [files.get(build.cssHref.slice(1))!, paneCss]);
   const problems = checkBudget(measured, sizes);
+  const cards = [...binary.values()].map((b) => b.length);
+  const share = { files: cards.length, bytes: cards.reduce((x, y) => x + y, 0), largest: Math.max(0, ...cards) };
+  if (share.largest > BUDGET.sharePngBytes) problems.push(`a share card is ${share.largest} B, over ${BUDGET.sharePngBytes}`);
   if (a.app && fonts.missing.length) problems.push(`the app's web export has no file for the face(s) ${fonts.missing.join(", ")}`);
   if (unmerged.length) problems.push(`${unmerged.length} pane(s) whose light and dark renders differ beyond colour, shipped twice: ${unmerged.slice(0, 5).join(", ")}`);
   // the page count, the sitemap's count and the bundle's waters with rules are one number
@@ -177,9 +193,9 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     emptyTitleOrDescription: titles.filter((t) => !t).length + descs.filter((t) => !t).length,
   };
   if (quality.uniqueTitles !== quality.pages || quality.uniqueDescriptions !== quality.pages) problems.push(`titles/descriptions are not unique: ${JSON.stringify(quality)}`);
-  files.set("budget.json", `${JSON.stringify({ budget: BUDGET, measured, quality, themeVariables: new Set(parts.flatMap((p) => p.vars)).size,
+  files.set("budget.json", `${JSON.stringify({ budget: BUDGET, measured, quality, share, themeVariables: new Set(parts.flatMap((p) => p.vars)).size,
     ...(a.threads ? { compressed: compressedTotals(build) } : {}), problems }, null, 1)}\n`);
-  return { build, files, measured, problems, legacy };
+  return { build, files, binary, measured, problems, legacy };
 }
 
 const outDir = (out: string): string => {
@@ -187,17 +203,18 @@ const outDir = (out: string): string => {
   if (!/[\\/]dist[\\/]/.test(`${abs}/`)) throw new Error(`seo: refusing to empty ${abs}: the output folder must be inside a dist folder`);
   return abs;
 };
-const put = (root: string, name: string, text: string) => {
+const put = (root: string, name: string, text: string | Uint8Array) => {
   const to = join(root, name);
   mkdirSync(dirname(to), { recursive: true });
   writeFileSync(to, text);
 };
 
 /** Write `files` under `out`, which is emptied first and must sit in a `dist` folder (it is deleted). */
-export function writeSite(out: string, files: ReadonlyMap<string, string>): void {
+export function writeSite(out: string, files: ReadonlyMap<string, string>, binary: ReadonlyMap<string, Uint8Array> = new Map()): void {
   const abs = outDir(out);
   rmSync(abs, { recursive: true, force: true });
   for (const [name, text] of files) put(abs, name, text);
+  for (const [name, bytes] of binary) put(abs, name, bytes);
 }
 
 const opt = (args: readonly string[], k: string): string | null => { const i = args.indexOf(k); return i >= 0 ? (args[i + 1] ?? null) : null; };
@@ -234,6 +251,7 @@ export async function main(args: readonly string[]): Promise<void> {
   });
   if (built.problems.length) throw new Error(`seo: ${built.problems.length} budget/consistency problem(s):\n${built.problems.join("\n")}`);
   for (const [name, text] of built.files) put(partial, name, text);
+  for (const [name, bytes] of built.binary) put(partial, name, bytes);
   rmSync(out, { recursive: true, force: true });
   renameSync(partial, out);
   if (args.includes("--update-slugs") && !args.includes("--only")) writeFileSync(slugFile, built.files.get("slug-map.json")!);

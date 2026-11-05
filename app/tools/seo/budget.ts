@@ -12,6 +12,7 @@ export const BUDGET = {
   /** the 95th-percentile page, gzip (a typical water page is a few KB; this catches a template that bloats them all) */ p95HtmlGzipBytes: 16 * 1024,
   /** the shared stylesheet, gzip */ cssGzipBytes: 10 * 1024,
   /** the inlined critical CSS, raw */ criticalCssBytes: 2 * 1024,
+  /** (T406) one water's share card, PNG (Facebook takes up to 8 MB, X 5 MB; a card is ~30 KB) */ sharePngBytes: 100 * 1024,
   /** lab targets, mobile profile, 4G throttled */ lcpMs: 1800, cls: 0.05, tbtMs: 200, performance: 0.95, seo: 1, accessibility: 0.95,
 } as const;
 
