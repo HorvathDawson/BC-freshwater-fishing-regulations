@@ -1627,8 +1627,11 @@ def main():
     gpkg_out = Path(config.fetch_output_gpkg_path)
     temp_dir = Path(config.fetch_temp_dir)
 
-    FTP_FWA = "ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_BC.zip"
-    FTP_STR = "ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_STREAM_NETWORKS_SP.zip"
+    # The FWA packages left the GeoBC FTP (its FWA_Public folder holds only FWA_README.pdf, 2026-08-21) for the
+    # government object store; same zips, same 2024 data (T416, 2026-11-05).
+    FWA_PUBLIC = "https://nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public"
+    FTP_FWA = f"{FWA_PUBLIC}/FWA_BC.zip"
+    FTP_STR = f"{FWA_PUBLIC}/FWA_STREAM_NETWORKS_SP.zip"
 
     # BC Data Catalogue — ParcelMap BC bulk File Geodatabase download (all
     # ~2.49M parcels province-wide, ~358MB). Same bulk download+extract

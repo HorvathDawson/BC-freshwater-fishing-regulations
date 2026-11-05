@@ -50,3 +50,7 @@ clone cannot build today.**
   source or a mirror (or a note that the build does not need it).
 - Fetched fine: OSM/Overpass layers, WFS layers, bathymetry PDFs (2,599), HYDAT, places, stations, the R2 files
   (DFO tidal gpkg, basemap pmtiles), the synopsis extraction backup.
+- **Correction, same day:** the FWA was not lost — it MOVED. The GeoBC FTP's FWA_Public now holds only
+  `FWA_README.pdf` (2026-08-21) pointing at `https://nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/` (same zips;
+  FWA_BC.zip 2.47 GB and FWA_STREAM_NETWORKS_SP.zip 1.52 GB, data 2024-03-26). `data/fetch_data.py` now uses it. A
+  `--missing-only` rerun in the fresh clone fetches those layers (log `~/t416-fresh.log`).
