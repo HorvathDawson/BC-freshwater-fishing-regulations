@@ -1,0 +1,29 @@
+{
+  "_about": "T416: the build's big inputs that are not in git, pinned by sha256 (python -m pipeline.tools.source_pins fetch|check|pin). url = where a fresh clone downloads them; upstream = where the bytes first came from. A pin's key holds its hash, so it never changes; refresh with data/fetch_data.py, then pin again.",
+  "files": {
+    "bc.pmtiles": {
+      "bytes": 4360240464,
+      "sha256": "53aec653a5314e4d7405b479909ed6f1524023a14432495e966491c64ed06aac",
+      "url": "https://data.canifishthis.ca/bc.pmtiles",
+      "upstream": "Protomaps daily build 2026-03-05 (pruned upstream; bc.pmtiles.source.json). Served from the data bucket, not a hash-keyed pin: fetch fails loudly if those bytes ever change."
+    },
+    "bc_fisheries_data.gpkg": {
+      "bytes": 10219569152,
+      "sha256": "9b35a8a7f394e6c86e97f37c1a077cfae79b14460d7c97039bc5f8a8b35d49f2",
+      "url": "https://build.canifishthis.ca/source/9b35a8a7f394e6c8/bc_fisheries_data.gpkg",
+      "upstream": "data/fetch_data.py: FWA (2024-03-26, nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public) + live WFS/Overpass layers as fetched on this Mac (they drift: T416)"
+    },
+    "fish_obstacles/fish_obstacles.gpkg": {
+      "bytes": 32698368,
+      "sha256": "73befc72a74a08778dbf03d25ec3a8bd54adda397f13193199e40161e7c52574",
+      "url": "https://build.canifishthis.ca/source/73befc72a74a0877/fish_obstacles.gpkg",
+      "upstream": "data/fetch_data.py WFS (fish_obstacles_fiss/dams/pscis), Mac copy of 2026-10"
+    },
+    "hydat.sqlite3": {
+      "bytes": 1302107136,
+      "sha256": "a2c84de258187fb91645beea56b954c4b7bd363786660c21bf48b78cb7ec315a",
+      "url": "https://build.canifishthis.ca/source/a2c84de258187fb9/hydat.sqlite3",
+      "upstream": "ECCC HYDAT release 20261019 (Hydat_sqlite3_20261019.zip; old releases are pruned upstream)"
+    }
+  }
+}
