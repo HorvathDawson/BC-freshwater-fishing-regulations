@@ -153,7 +153,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/data/src/release/drivers/install.native.ts": { n: 1, why: "a bounded retry, thrown at the end" },
   "packages/data/src/release/drivers/open.web.ts": { n: 1, why: UNCACHE },
   "packages/data/src/release/drivers/serial.ts": { n: 2, why: "the queue's tail: the caller holds the job's own promise" },
-  "packages/data/src/release/drivers/source.web.ts": { n: 2, why: "cached bytes that fail verification are fetched again; a priority raise (the original promise carries the outcome)" },
+  "packages/data/src/release/drivers/source.web.ts": { n: 1, why: "a priority raise (the original promise carries the outcome); (T409) cached bytes that fail verification are fetched again, any other error is rethrown" },
   "packages/data/src/release/install.ts": { n: 3, why: "the follower hash falls back to the authoritative check; a held manifest costs only a download; the assets failure is thrown at the end" },
   "packages/data/src/release/loader.ts": { n: 13, why: `${UNCACHE}; a routing hint (stored); ${WARM}` },
   "packages/data/src/release/prefetch.ts": { n: 2, why: WARM },
