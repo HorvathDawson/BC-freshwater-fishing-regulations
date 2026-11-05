@@ -5,8 +5,7 @@ name: staging — nothing private is public
 # secret (the R2 key pair, a reporter email from private/reports/, a Bearer token / PEM key / secret-named field).
 # Optionally (flood: true) deploy/staging/flood-test.mjs: a request flood on the feeds + data workers must get 429.
 #
-# Schedule: daily 10:10 UTC — GitHub runs a schedule only from the default branch (main), so it starts once this file is
-# merged there; until then run it by hand:
+# BUTTON ONLY (owner 2026-11-05: never a GitHub schedule). Run it by hand:
 #   gh workflow run staging-security.yml --ref redesign/stream-sections
 # SECRETS (already set): CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY (read-only use: list + get).
 # The bucket is hardcoded in the script: this workflow can only ever look at staging.
@@ -18,8 +17,6 @@ on:
         description: "Also flood the feeds + data workers and expect 429 (this runner's IP is limited for a minute after)"
         type: boolean
         default: false
-  schedule:
-    - cron: "10 10 * * *"
 
 concurrency:
   group: staging-security

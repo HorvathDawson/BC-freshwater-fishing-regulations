@@ -35,3 +35,18 @@ Size: M–L (the proof is a full build). Owner: provide credentials on the test 
 - The repo is PUBLIC; the PSF run-timing pages are in git (owner question in OWNER-TODO).
 - Fetch started on a local clone: `~/t416-fresh` (clone → venv → `data/fetch_data.py` under heavy.sh → parsing
   backup), timed in `~/t416-fresh.log`. Script: the session scratchpad `t416-fetch.sh` (copy it into the runbook).
+
+## 2026-11-05: the first fresh fetch (local clone, `~/t416-fresh`, log `~/t416-fresh.log`)
+Timed: clone 3 s (1.9 GB) · venv 23 s · `data/fetch_data.py` 47 min (rc 0) · parsing backup 3 s. Result: **a fresh
+clone cannot build today.**
+- **The FWA source is gone from its URL.** `ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_BC.zip` and
+  `FWA_STREAM_NETWORKS_SP.zip` answer FTP 550 (file not found): lakes, wetlands, manmade, watersheds, watershed groups
+  and streams all failed. The fresh `bc_fisheries_data.gpkg` is 0.85 GB; the Mac's is 9.7 GB. The Mac's copy is the
+  only copy. First job: mirror it (or its FWA inputs) to the R2 assets bucket with a sha256, and find FWA's new home.
+- **fetch_data exits 0 with those errors** (they print "❌ Error on …" and carry on): a silent failure (no-silent-
+  fallbacks rule). It must exit non-zero and list what failed.
+- **Not fetched at all** (on the Mac, no fetch path): `bc_boundary.exact.{json,wkb}`, `map-assets/`, `official/`,
+  `steelhead/` (the 6.6 GB accessibility model + observations), and the older `hydat.20260717.sqlite3`. Each needs a
+  source or a mirror (or a note that the build does not need it).
+- Fetched fine: OSM/Overpass layers, WFS layers, bathymetry PDFs (2,599), HYDAT, places, stations, the R2 files
+  (DFO tidal gpkg, basemap pmtiles), the synopsis extraction backup.
