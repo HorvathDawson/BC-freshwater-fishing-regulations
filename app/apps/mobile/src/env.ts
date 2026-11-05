@@ -151,6 +151,11 @@ export function endpointsFor(base: string, channel: UpdateChannel = "live") {
     dfoFeed: `${base}/feeds/dfo`,
     /** (T230) The provincial in-season changes (T225 worker's index.json) + their curated links (R2 `feeds/inseason/`). */
     inSeason: `${base}/feeds/inseason`,
+    /**
+     * (T234) Where the background check reads the gauges' newest rows (`<this>/obs.json`): the live feed, or on the test
+     * channel `test/feeds/live` (`deploy/staging/test-updates.mjs gauge` sets a reading there to make an alert cross).
+     */
+    alertFeed: `${up}/feeds/live`,
     /** (T251) The three indexes the update service checks (under `test/` on the test channel). */
     checks: {
       gauges: `${up}/feeds/live/index.json`,

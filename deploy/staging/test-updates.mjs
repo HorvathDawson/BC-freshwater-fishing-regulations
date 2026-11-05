@@ -14,6 +14,9 @@
 //   node deploy/staging/test-updates.mjs big [tag]             (T255) a LARGE release: the basemap's id moves (same file,
 //                                                              same sha), so a phone re-downloads it whole (~270 MB) —
 //                                                              over the 20 MB line a metered connection holds for Wi-Fi
+//   node deploy/staging/test-updates.mjs gauge <station> <flow|level> <value>   (T234) the gauge alerts' feed (the
+//                                                              background check reads test/feeds/live/obs.json on this
+//                                                              channel): that station's newest reading set to <value>, now
 //   node deploy/staging/test-updates.mjs status                what test/ holds now
 //   node deploy/staging/test-updates.mjs clean                 remove test/
 //
@@ -49,6 +52,7 @@ const putManifest = (m) => put('test/release/manifest.json', JSON.stringify(m, n
 export async function reset() {
   putManifest(await liveManifest());
   for (const dir of Object.values(FEEDS)) put(`test/${dir}/index.json`, await get(`${dir}/index.json`));
+  put('test/feeds/live/obs.json', await get('feeds/live/obs.json'));
   return status();
 }
 
@@ -99,6 +103,20 @@ export const minApp = (v) => {
   return synthetic(`needs-${v}`, (m) => ({ ...m, minAppVersion: v }));
 };
 
+/** (T234) A gauge's newest reading, as the background check will read it: `[now, level, discharge]` on the test channel. */
+export async function gauge(station, quantity, value) {
+  const v = Number(value);
+  if (!station || !['flow', 'level'].includes(quantity) || !Number.isFinite(v))
+    throw new Error('gauge <station> <flow|level> <value>, e.g. gauge 08MH001 flow 60');
+  let j;
+  try { j = JSON.parse(await get('test/feeds/live/obs.json')); } catch { j = JSON.parse(await get('feeds/live/obs.json')); }
+  const at = new Date().toISOString();
+  const last = j.stations[station]?.at(-1) ?? [at, null, null];
+  j.stations[station] = [[at, quantity === 'level' ? v : last[1], quantity === 'flow' ? v : last[2]]];
+  put('test/feeds/live/obs.json', JSON.stringify(j));
+  return { station, row: j.stations[station][0] };
+}
+
 export async function status() {
   const out = {};
   try { const m = await testManifest(); out.release = { data_release: m.data_release, minAppVersion: m.minAppVersion ?? null, basemap: m.basemap?.id ?? null }; }
@@ -115,13 +133,13 @@ export async function clean() {
   return { cleaned: 'test/' };
 }
 
-const CMDS = { reset, 'feed-bump': feedBump, 'feed-404': feed404, release, big, corrupt, missing, 'min-app': minApp, status, clean };
+const CMDS = { reset, gauge, 'feed-bump': feedBump, 'feed-404': feed404, release, big, corrupt, missing, 'min-app': minApp, status, clean };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [cmd, arg] = process.argv.slice(2);
+  const [cmd, ...args] = process.argv.slice(2);
   if (!CMDS[cmd]) {
     console.error(`usage: test-updates.mjs ${Object.keys(CMDS).join('|')} [arg]`);
     process.exit(2);
   }
-  CMDS[cmd](arg).then((r) => console.log(JSON.stringify(r, null, 1)), (e) => { console.error(e.message); process.exit(1); });
+  CMDS[cmd](...args).then((r) => console.log(JSON.stringify(r, null, 1)), (e) => { console.error(e.message); process.exit(1); });
 }

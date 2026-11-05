@@ -57,7 +57,7 @@ TaskManager.defineTask(TASK, async () => {
   try {
     await runBackgroundCheck({
       settings, now, appVersion: APP_VERSION, notify: raise,
-      obs: () => fetchObs(ENDPOINTS.feed, FETCH),
+      obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH),
       manifest: async () => {
         const res = await FETCH(ENDPOINTS.manifest, { cache: "no-store" });
         if (!res.ok) throw new Error(`${ENDPOINTS.manifest}: HTTP ${res.status}`);
